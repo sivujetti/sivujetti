@@ -1,0 +1,17 @@
+{
+    "name": "ut4/kuuracms",
+    "description": "KuuraCMS is simply the most radical CMS ever created.",
+    "type": "project",
+    "require": {
+        "php": "^8.0.0",
+        "ext-pdo_mysql": "*",
+        "ext-mbstring": "*",
+        "ext-ctype": "*",
+        "ext-fileinfo": "*",
+        "ut4/pike": "0.10.0-dev",
+        "phpmailer/phpmailer": "~6.1"
+    },
+    "autoload": {
+        "psr-4": {"KuuraCms\\": "src/"}
+    }
+}

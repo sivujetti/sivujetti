@@ -12,6 +12,8 @@ final class Block extends \stdClass {
     public string $slot;
     /** @var string e.g. 'MyTag', 'file-name' */
     public string $renderer;
+    /** @var string */
+    public string $id;
 
     /* If self::TYPE_HEADING
     public string $text;

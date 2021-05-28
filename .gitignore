@@ -17,8 +17,12 @@ public/kuura/*
 !public/kuura/tests-vendor/
 !public/kuura/vendor/
 !public/kuura/common.css
+<<<<<<< HEAD
 !public/kuura/kuura-edit-app.css
 !public/kuura/quill-kuura.css
+=======
+!public/kuura/cpanel-app.css
+>>>>>>> Kuura-proto: add frontend
 !public/kuura/install-app.css
 /internal/
 !*/**/Internal

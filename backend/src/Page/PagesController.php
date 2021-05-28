@@ -8,21 +8,36 @@ use Pike\{Db, Request, Response};
 
 final class PagesController {
     public function renderPage(Request $req, Response $res, Db $db): void {
-        if (!($page = match ($req->path) {
+        if (!($page = self::foss($req->path, $db))) {
+            $res->plain('404'); // @todo custom 404 pages
+            return;
+        }
+        $html = (new Template(KUURA_WORKSPACE_PATH . "site/templates/{$page->template}"))->render([
+            'page' => $page,
+            'site' => self::baz()
+        ]);
+        if ($req->queryVar('in-edit') !== null &&
+            ($bodyEnd = strpos($html, '</body>')) > 0)
+            $html = substr($html, 0, $bodyEnd) .
+                '<script>window.kuuraCurrentPageData = ' . json_encode($page->blocks) . '</script>' .
+                '<script src="' . Template::makeUrl('public/kuura/kuura-webpage.js', false) . '"></script>' .
+            substr($html, $bodyEnd);
+        $res->html($html);
+    }
+    public function renderPageInEditMode(Request $req, Response $res, Db $db): void {
+        //
+        $res->html((new Template(KUURA_BACKEND_PATH . 'assets/templates/edit-app-wrapper.tmpl.php'))->render([
+            'url' => $req->params->url ?? ''
+        ]));
+    }
+    private static function foss(string $path, Db $db): Page {
+        return match ($path) {
             '/' => self::getHomePage(),
             '/yritys' => self::getYritysPage(),
             '/palvelut' => self::getPalvelutPage(),
             '/yhteys' => self::getYhteysPage(),
             default => null
-        })) {
-            $res->plain('404'); // @todo custom 404 pages
-            return;
-        }
-        //
-        $res->html((new Template(KUURA_WORKSPACE_PATH . 'site/templates/' . $page->template))->render([
-            'page' => $page,
-            'site' => self::baz()
-        ]));
+        };
     }
     private static function getHomePage(): Page {
         $page = new Page;
@@ -57,6 +72,7 @@ final class PagesController {
         $out->type = Block::TYPE_HEADING;
         $out->slot = 'main';
         $out->renderer = 'auto';
+        $out->id = '1';
         $out->level = 1;
         $out->text = $fos;
 
@@ -64,12 +80,14 @@ final class PagesController {
         $out2->type = Block::TYPE_PARAGRAPH;
         $out2->slot = 'main';
         $out2->renderer = 'auto';
+        $out2->id = '2';
         $out2->text = "{$fos} lorem ipsum";
 
         $out3 = new Block;
         $out3->type = Block::TYPE_FORMATTED_TEXT;
         $out3->slot = 'main';
         $out3->renderer = 'auto';
+        $out3->id = '3';
         $out3->html = '<pre>Html:ää</pre>';
 
         return [$out, $out2, $out3];
@@ -90,6 +108,7 @@ final class PagesController {
         $out->pages = $foo();
         $out->slot = 'sidebar';
         $out->renderer = 'auto';
+        $out->id = 1;
         return [$out];
     }
     private static function baz(): WebSite {

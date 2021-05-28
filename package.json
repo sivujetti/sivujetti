@@ -1,0 +1,66 @@
+{
+<<<<<<< HEAD
+  "name": "radcms",
+  "version": "0.0.0",
+  "description": "Simply the most radical static site cms ever created.",
+  "main": "main.js",
+  "bin": "main.js",
+  "scripts": {
+    "test": "node node_modules/qunit/bin/qunit.js tests/*-tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ut4/radcms.git"
+  },
+  "author": "ut4",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/ut4/radcms/issues"
+  },
+  "homepage": "https://github.com/ut4/radcms#readme",
+  "dependencies": {
+    "basic-ftp": "^3.4.4",
+    "better-sqlite3": "^5.4.0",
+    "chokidar": "^2.1.5",
+    "ini": "^1.3.5",
+    "opener": "^1.5.1"
+  },
+  "devDependencies": {
+    "qunit": "^2.9.2"
+  },
+  "pkg": {
+    "assets": [
+      "frontend/assets/feather-sprite.svg",
+      "frontend/assets/fira-sans-heavy.woff2",
+      "frontend/assets/fira-sans-light.woff2",
+      "frontend/vendor/vendor.bundle.min.js",
+      "frontend/common.bundle.min.css",
+      "frontend/app.bundle.min.css",
+      "frontend/app.bundle.min.js",
+      "frontend/cpanel.bundle.min.css",
+      "frontend/cpanel.bundle.min.js",
+      "frontend/app.html",
+      "frontend/cpanel.html"
+    ]
+  }
+=======
+  "name": "kuuracms-devtools",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "rollup -c -w",
+    "build": "rollup -c",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ut4",
+  "license": "GPLv3",
+  "devDependencies": {
+    "@rollup/plugin-sucrase": "^3.1.0",
+    "eslint": "^7.27.0",
+    "eslint-plugin-react": "^7.23.2",
+    "preact": "^10.5.13",
+    "rollup": "^2.50.2"
+  },
+  "typings": "lib.d.ts"
+>>>>>>> Kuura-proto: add frontend
+}

@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "target": "es2017",
+        "baseUrl": "./",
+        "paths": {
+            "@kuura-commons": ["frontend/commons/main.js"],
+            "@kuura-cpanel-commons": ["frontend/cpanel-commons/main.js"],
+        }
+    }
+}

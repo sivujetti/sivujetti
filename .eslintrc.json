@@ -1,0 +1,45 @@
+{
+    "extends": ["eslint:recommended", "plugin:react/recommended"],
+    "rules": {
+        "strict": 1,
+        "no-trailing-spaces": 1,
+        "no-console": 1,
+        "semi": 1,
+        "no-unused-vars": [1,{ "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+        "no-case-declarations": 0,
+        "comma-dangle": 0,
+        "react/prop-types": 0,
+        "react/jsx-key": 0,
+        "react/jsx-no-target-blank": 0,
+        "react/no-unknown-property": [1, {"ignore": ["class", "className"]}],
+        "react/display-name": [0]
+    },
+    "parserOptions": {
+        "ecmaVersion": 2017,
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "sourceType": "module"
+    },
+    "plugins": [
+        "react"
+    ],
+    "settings": {
+        "react": {
+            "createClass": "createReactClass",
+            "pragma": "preact",
+            "version": "0.10",
+            "flowVersion": "0.53"
+        }
+    },
+    "env": {
+        "es6": true,
+        "browser": true,
+        "node": true
+    },
+    "globals": {
+        "preact": true,
+        "preactRouter": true,
+        "QUnit": true
+    }
+}

@@ -2,7 +2,7 @@
 
 namespace KuuraCms;
 
-use KuuraCms\Entities\Page;
+use KuuraCms\Entities\{Block, Page};
 use Pike\{ArrayUtils, Template as PikeTemplate};
 
 final class Template extends PikeTemplate {
@@ -80,7 +80,8 @@ final class Template extends PikeTemplate {
     protected function renderBlocks(array $blocks): string {
         $out = '';
         foreach ($blocks as $blockOrListing)
-            $out .= $this->__call($blockOrListing->renderer, [(object) $blockOrListing]);
+            $out .= $this->renderValue($this->__call($blockOrListing->renderer, [(object) $blockOrListing]),
+                                       $blockOrListing);
         return $out;
     }
     /**
@@ -90,5 +91,21 @@ final class Template extends PikeTemplate {
      */
     protected function filterBlocks(Page $page, string $slotName): array {
         return ArrayUtils::filterByKey($page->blocks, $slotName, 'slot');
+    }
+    /**
+     * @todo
+     * @todo
+     * @return string
+     */
+    protected function renderValue(string $value, Block $block): string {
+        return "<!-- block-start " . json_encode(self::dumpBlock($block)) .
+            " -->{$value}<!-- block-end {$block->id} -->";
+    }
+    private static function dumpBlock(Block $block): object {
+        return (object) [
+            'type' => $block->type,
+            'renderer' => $block->renderer,
+            'id' => $block->id,
+        ];
     }
 }

@@ -81,7 +81,7 @@ final class Template extends PikeTemplate {
         $out = '';
         foreach ($blocks as $blockOrListing)
             $out .= $this->renderValue($this->__call($blockOrListing->renderer, [(object) $blockOrListing]),
-                                       $blockOrListing);
+                                       $blockOrListing->id);
         return $out;
     }
     /**
@@ -97,15 +97,7 @@ final class Template extends PikeTemplate {
      * @todo
      * @return string
      */
-    protected function renderValue(string $value, Block $block): string {
-        return "<!-- block-start " . json_encode(self::dumpBlock($block)) .
-            " -->{$value}<!-- block-end {$block->id} -->";
-    }
-    private static function dumpBlock(Block $block): object {
-        return (object) [
-            'type' => $block->type,
-            'renderer' => $block->renderer,
-            'id' => $block->id,
-        ];
+    protected function renderValue(string $value, string $blockId): string {
+        return "<!-- block-start {$blockId} -->{$value}<!-- block-end {$blockId} -->";
     }
 }

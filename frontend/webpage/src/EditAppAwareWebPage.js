@@ -1,10 +1,17 @@
+let counter = 0;
+
 class EditAppAwareWebPage {
     /**
+     * @todo
+     * @todo
+     * @access public
      */
     doLoad(editApp, currentPageBlocks) {
         if (editApp) editApp.current.handleWebpageLoaded(this, currentPageBlocks);
     }
     /**
+     * @return todo
+     * @access public
      */
     getBlockRefs() {
         const comms = getAllComments(document.body);
@@ -13,24 +20,37 @@ class EditAppAwareWebPage {
                 return null;
             const L1 = /* <!-- */ ' block-start '.length;
             const L2 = ' '.length /* --> */;
-            const parsed = JSON.parse(c.nodeValue.substr(L1, c.nodeValue.length - L1 - L2));
-            //
-            let node = c.nextSibling;
-            if (node.nodeType !== 1) // element
-                node = node.parentElement;
-            const rect = node.getBoundingClientRect();
             //
             return new Block({
-                blockId: parsed.id,
-                type: ['Heading', 'Paragraph', 'Formatted text'][parsed.type],
-                position: rect,
-                comment: c,
-                node,
-            });
+                blockId: parseInt(c.nodeValue.substr(L1, c.nodeValue.length - L1 - L2)).toString(),
+                startingCommentNode: c,
+            }, true);
         }).filter(v => v !== null);
     }
-}
+    /**
+     * @todo
+     * @todo
+     * @return todo
+     * @access public
+     */
+    addBlock(after, initialText) {
 
+        const blockId = `new-${++counter}`;
+        const startingCommentNode = document.createComment(` block-start ${blockId} `);
+        const startingDomNode = document.createElement('p');
+        startingDomNode.textContent = initialText;
+
+        const parent = after.parentElement;
+        parent.appendChild(startingCommentNode);
+        parent.appendChild(startingDomNode);
+        parent.appendChild(document.createComment(` block-end ${blockId} `));
+
+        return new Block({
+            blockId,
+            startingCommentNode
+        });
+    }
+}
 
 function filterNone() {
     return NodeFilter.FILTER_ACCEPT;
@@ -45,16 +65,20 @@ function getAllComments(rootElem) {
     return comments;
 }
 
-class Block { // @todo Block, Comment ??
+class Block { // @todo Block, Comment, BlockRef ??
     constructor(input) {
         this.blockId = input.blockId; // public string
-        this.type = input.type; // public
-        this.position = input.position; // public
-        this.startingCommentNode = input.comment; // private
-        this.domNode = input.node; // private
+        this.startingCommentNode = input.startingCommentNode; // public
+        this.startingDomNode = this.startingCommentNode.nextElementSibling; // private
+    }
+    get position() {
+        return this.startingDomNode.getBoundingClientRect();
+    }
+    get parentElement() {
+        return this.startingDomNode.parentElement;
     }
     reRenderWithText(text) {
-        this.domNode.textContent = text;
+        this.startingDomNode.textContent = text;
     }
     tryToReRenderWithHtml(html) {
         let el = this.startingCommentNode.nextSibling;
@@ -82,6 +106,23 @@ class Block { // @todo Block, Comment ??
             parent.removeChild(toRemove[i]);
         // 4. Replace the last DOM node with the html
         toRemove[toRemove.length - 1].replaceWith(...Array.from(newContents.childNodes));
+        //
+        this.startingDomNode = this.startingCommentNode.nextElementSibling; // private
+    }
+    destroy() {
+        // todo dry
+        let el = this.startingCommentNode.nextSibling;
+        if (!el) throw new Error('?');
+        //
+        const expectedEndComment = ` block-end ${this.blockId} `;
+        const parent = el.parentElement;
+        while (el) {
+            const p = el;
+            el = el.nextSibling;
+            parent.removeChild(p);
+            if (p.nodeType === Node.COMMENT_NODE &&
+                p.nodeValue === expectedEndComment) break;
+        }
     }
 }
 

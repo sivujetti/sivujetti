@@ -104,8 +104,8 @@ final class Template extends PikeTemplate {
      * @todo
      * @return string
      */
-    protected function filterBlocks(Page $page, string $slotName): array {
-        return ArrayUtils::filterByKey($page->blocks, $slotName, 'slot');
+    protected function filterBlocks(Page $page, string $sectionName): array {
+        return ArrayUtils::filterByKey($page->blocks, $sectionName, 'section');
     }
     /**
      * @todo

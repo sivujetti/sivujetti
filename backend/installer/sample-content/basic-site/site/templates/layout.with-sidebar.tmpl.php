@@ -15,11 +15,11 @@
     </header>
     <div id="main">
         <?php if ($page): ?>
-            <div class="columns">
-                <div class="main-column">
+            <div class="columns" style="display:flex">
+                <div class="main-column" style="flex:1" data-section="main">
                     <?= $this->renderBlocks($this->filterBlocks($page, 'main')) ?>
                 </div>
-                <div class="aside-column">
+                <div class="aside-column" style="flex:1;width:300px" data-section="sidebar">
                     <?= $this->renderBlocks($this->filterBlocks($page, 'sidebar')) ?>
                 </div>
             </div>

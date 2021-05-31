@@ -4,7 +4,7 @@ const paragraphBlockReRender = (newDataFromEditBoxForm, blockRef, _prevData) => 
     blockRef.reRenderWithText(newDataFromEditBoxForm.text);
 };
 
-const paragraphBLockGetInitalData = () => ({
+const paragraphBlockGetInitalData = () => ({
     text: __('Text here'),
 });
 
@@ -35,7 +35,7 @@ class ParagraphBlockFormInputs extends preact.Component {
 
 const blockType = {
     reRender: paragraphBlockReRender,
-    getInitialData: paragraphBLockGetInitalData,
+    getInitialData: paragraphBlockGetInitalData,
     FormImpl: ParagraphBlockFormInputs,
     friendlyName: 'Paragraph',
 };

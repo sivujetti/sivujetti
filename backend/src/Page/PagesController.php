@@ -55,9 +55,9 @@ final class PagesController {
     private static function dos(): Block {
         $out3 = new Block;
         $out3->type = Block::TYPE_FORMATTED_TEXT + 1;
-        $out3->slot = 'main';
+        $out3->section = 'main';
         $out3->renderer = 'my-site-text-and-image';
-        $out3->id = '4';
+        $out3->id = self::c();
         $out3->imageSrc = 'sample.jpg';
         $out3->html = '<pre>Html:ää</pre>';
         return $out3;
@@ -86,51 +86,44 @@ final class PagesController {
     private static function foo($fos): array {
         $out = new Block;
         $out->type = Block::TYPE_HEADING;
-        $out->slot = 'main';
+        $out->section = 'main';
         $out->renderer = 'auto';
-        $out->id = '1';
+        $out->id = self::c();
         $out->level = 1;
         $out->text = $fos;
 
         $out2 = new Block;
         $out2->type = Block::TYPE_PARAGRAPH;
-        $out2->slot = 'main';
+        $out2->section = 'main';
         $out2->renderer = 'auto';
-        $out2->id = '2';
+        $out2->id = self::c();
         $out2->text = "{$fos} lorem ipsum";
 
         $out3 = new Block;
         $out3->type = Block::TYPE_FORMATTED_TEXT;
-        $out3->slot = 'main';
+        $out3->section = 'main';
         $out3->renderer = 'auto';
-        $out3->id = '3';
+        $out3->id = self::c();
         $out3->html = '<pre>Html:ää</pre>';
 
         return [$out, $out2, $out3];
     }
     private static function bar(): array {
-        $out = new Listing;
-        $foo = function () {
-            $page1 = new Page;
-            $page1->title = '<pseudo>';
-            $page1->blocks = self::foo('Sivupalkki1');
-            $page1->blocks[0]->level = 2;
-            $page2 = new Page;
-            $page2->title = '<pseudo>';
-            $page2->blocks = self::foo('Sivupalkki2');
-            $page2->blocks[0]->level = 2;
-            return [$page1, $page2];
-        };
-        $out->pages = $foo();
-        $out->slot = 'sidebar';
-        $out->renderer = 'auto';
-        $out->id = 1;
-        return [$out];
+        $out = self::foo('Sivupalkki1');
+        $out[0]->level = 2;
+        $out[0]->section = 'sidebar';
+        $out[1]->section = 'sidebar';
+        $out[2]->section = 'sidebar';
+        return $out;
     }
     private static function baz(): WebSite {
         $out = new WebSite;
         $out->name = 'My site';
         $out->lang = 'fi';
         return $out;
+    }
+    private static function c(): string {
+        static $c = 0;
+        return strval(++$c);
     }
 }

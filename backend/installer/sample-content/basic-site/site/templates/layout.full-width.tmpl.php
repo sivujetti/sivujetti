@@ -13,7 +13,7 @@
         <h1><?= $page->title ?></h1>
         <?= $this->MainMenu() ?>
     </header>
-    <div id="main">
+    <div id="main" data-section="main">
         <?php if ($page):
             echo $this->renderBlocks($this->filterBlocks($page, 'main'));
         else: ?>

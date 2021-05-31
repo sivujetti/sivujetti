@@ -9,7 +9,7 @@ final class Block extends \stdClass {
     /** @var int self::TYPE_* */
     public int $type;
     /** @var string e.g. 'main', 'sidebar' */
-    public string $slot;
+    public string $section;
     /** @var string e.g. 'MyTag', 'file-name' */
     public string $renderer;
     /** @var string */

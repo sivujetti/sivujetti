@@ -52,10 +52,11 @@ class EditApp extends preact.Component {
                         <button onClick={ () => this.editBox.current.open(b, this.findBlockData(b)) } title={ __('Edit') }>{ __(blockTypes[this.findBlockData(b).type].friendlyName) }</button>
                     </div>),
                     <EditBox ref={ this.editBox }/>,
-                    <AddContentBox ref={ this.addBox } onBlockAdded={ this.addBlock.bind(this) }/>
+                    <AddContentBox ref={ this.addBox } onBlockAdded={ this.addBlock.bind(this) }
+                        findLastBlock={ sectionName => this.findLastBlock(sectionName) }/>
                 ]
                 : <p>{ __('No blocks on this page') }</p>,
-            <button onClick={ () => this.addBox.current.open(blocks[blocks.length - 1]) } title={ __('Add content to current page') }>Add content</button>
+            <button onClick={ () => this.addBox.current.open(this.findLastBlock('main')) } title={ __('Add content to current page') }>Add content</button>
         ];
     }
     /**
@@ -75,6 +76,11 @@ class EditApp extends preact.Component {
         this.data.push(blockData);
         this.setState({blocks: this.state.blocks.concat(newBlockRef)});
     }
+    findLastBlock(sectionName) {
+        return this.state.blocks.reduce((l, b) =>
+            this.findBlockData(b).section === sectionName ? b : l
+        , null);
+    }
 }
 
 class AddContentBox extends preact.Component {
@@ -92,12 +98,13 @@ class AddContentBox extends preact.Component {
      * @acces public
      */
     open(after) {
-        const newBlockRef = EditApp.currentWebPage.addBlock(after, __('Text here'));
+        const paragraphInitialData = blockTypes[1].getInitialData();
+        const newBlockRef = EditApp.currentWebPage.addBlock(paragraphInitialData.text, after);
         this.setState({isOpen: true,
                        newBlockRef,
                        newBlockData: createBlockData({
                            type: 1,
-                           slot: 'main', // ??
+                           section: 'main', // ??
                            renderer: 'auto', // ??
                            id: newBlockRef.blockId
                         })});
@@ -113,8 +120,11 @@ class AddContentBox extends preact.Component {
         return <form class="edit-box" style={ `left: ${TODO+rect.left}px; top: ${rect.top}px` }
              onSubmit={ this.applyNewContent.bind(this) }>
             <div class="edit-box__inner">
-                <div><select><option>Main</option><option>Sidebar</option></select></div>
-                <div><select value={ newBlockData.type } onChange={ this.foo.bind(this) }>{ blockTypes.map((blockType, i) =>
+                <div><select value={ this.state.newBlockData.section } onChange={ this.handleSectionTargetChanged.bind(this) }>
+                    <option value="main">Main</option>
+                    <option value="sidebar">Sidebar</option>
+                </select></div>
+                <div><select value={ newBlockData.type } onChange={ this.handleBlockTypeChanged.bind(this) }>{ blockTypes.map((blockType, i) =>
                     <option value={ i }>{ __(blockType.friendlyName) }</option>
                 ) }</select></div>
                 <Form handleValueChange={ this.handleBlockValueChanged.bind(this) } blockData={ newBlockData } ref={ this.currentForm }/>
@@ -127,10 +137,27 @@ class AddContentBox extends preact.Component {
      * @todo
      * @access private
      */
-    foo(e) {
+    handleSectionTargetChanged(e) {
+
+        const newBlockData = Object.assign({}, this.state.newBlockData);
+        newBlockData.section = e.target.value;
+
+        // todo handle oldBlockData.type instead of always adding a paragraph
+        const newBlockRef = EditApp.currentWebPage.moveBlock(this.state.newBlockRef,
+            newBlockData.section);
+        if (!newBlockRef) // section element not found, @todo handle
+            return;
+
+        this.setState({newBlockRef, newBlockData});
+    }
+    /**
+     * @todo
+     * @access private
+     */
+    handleBlockTypeChanged(e) {
         const newBlockData = createBlockData({
             type: parseInt(e.target.value),
-            slot: this.state.newBlockData.slot,
+            section: this.state.newBlockData.section,
             renderer: this.state.newBlockData.renderer,
             id: this.state.newBlockData.id});
         tryToReRenderBlock(this.state.newBlockRef, newBlockData, this.state.newBlockData, newBlockData.type);
@@ -172,7 +199,7 @@ function tryToReRenderBlock(blockRef, newData, currentData, type = currentData.t
 function createBlockData(from) {
     return Object.assign({
         type: from.type,
-        slot: from.slot,
+        section: from.section,
         renderer: from.renderer,
         id: from.id
     }, blockTypes[from.type].getInitialData());

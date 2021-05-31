@@ -2,10 +2,20 @@
 
 namespace KuuraCms;
 
-use KuuraCms\Entities\{Block, Page};
+use KuuraCms\Entities\Page;
 use Pike\{ArrayUtils, Template as PikeTemplate};
 
 final class Template extends PikeTemplate {
+    private array $__aliases = [];
+    /**
+     * @param string $file
+     * @param ?array<string, mixed> $vars = null
+     * @param ?string[] $aliases = null
+     */
+    public function __construct(string $file, array $vars = null, array $aliases = null) {
+        parent::__construct($file, $vars);
+        $this->__aliases = $aliases ?? [];
+    }
     /**
      * @param string $str
      * @param int $flags = ENT_QUOTES | ENT_HTML5
@@ -68,9 +78,14 @@ final class Template extends PikeTemplate {
      * @return string
      */
     public function __call($name, $args) {
-        ValidationUtils::checkIfValidaPathOrThrow($name, true);
-        $filePath = "{$this->__dir}{$name}.tmpl.php";
-        return $this->doRender($filePath,
+        $alias = $this->__aliases[$name] ?? '';
+        if (!$alias) {
+            ValidationUtils::checkIfValidaPathOrThrow($name, true);
+            $templateFilePath = "{$this->__dir}{$name}.tmpl.php";
+        } else { // trust
+            $templateFilePath = $alias;
+        }
+        return $this->doRender($templateFilePath,
             $this->__locals + ['props' => $args ? $args[0] : []]);
     }
     /**

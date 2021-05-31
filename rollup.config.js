@@ -84,10 +84,9 @@ module.exports = args => {
             output: makeOutputCfg({globals: allGlobals, banner: ''}, cfg.output),
             external: allExternals,
             plugins: [
-                makeJsxPlugin([
-                    'frontend/edit-app/src/**'].concat(cfg.jsxTranspile
-                        ? cfg.jsxTranspile.include || []
-                        : [])),
+                makeJsxPlugin(cfg.jsxTranspile
+                    ? cfg.jsxTranspile.include || []
+                    : []),
             ],
             watch: {
                 clearScreen: false

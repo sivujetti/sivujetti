@@ -107,7 +107,7 @@ class Block { // @todo Block, Comment, BlockRef ??
         // 4. Replace the last DOM node with the html
         toRemove[toRemove.length - 1].replaceWith(...Array.from(newContents.childNodes));
         //
-        this.startingDomNode = this.startingCommentNode.nextElementSibling; // private
+        this.startingDomNode = this.startingCommentNode.nextElementSibling;
     }
     destroy() {
         // todo dry

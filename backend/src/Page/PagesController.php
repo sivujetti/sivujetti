@@ -3,16 +3,20 @@
 namespace KuuraCms\Page;
 
 use KuuraCms\Entities\{Block, Listing, Page, WebSite};
-use KuuraCms\Template;
+use KuuraCms\{SharedAPIContext, Template};
 use Pike\{Db, Request, Response};
 
 final class PagesController {
-    public function renderPage(Request $req, Response $res, Db $db): void {
+    public function renderPage(Request $req, Response $res, Db $db, SharedAPIContext $storage): void {
         if (!($page = self::foss($req->path, $db))) {
             $res->plain('404'); // @todo custom 404 pages
             return;
         }
-        $html = (new Template(KUURA_WORKSPACE_PATH . "site/templates/{$page->template}"))->render([
+        $html = (new Template(KUURA_WORKSPACE_PATH . "site/templates/{$page->template}",
+                              null,
+                              array_map(fn ($blockType) =>
+                                KUURA_WORKSPACE_PATH . "site/$blockType[1]" // Quaranteed to be valid (see WebsiteApi->registerBlockType())
+                              , $storage->getDataHandle()->userDefinedBlockTypes)))->render([
             'page' => $page,
             'site' => self::baz()
         ]);
@@ -24,10 +28,11 @@ final class PagesController {
             substr($html, $bodyEnd);
         $res->html($html);
     }
-    public function renderPageInEditMode(Request $req, Response $res, Db $db): void {
+    public function renderPageInEditMode(Request $req, Response $res, Db $db, SharedAPIContext $storage): void {
         //
         $res->html((new Template(KUURA_BACKEND_PATH . 'assets/templates/edit-app-wrapper.tmpl.php'))->render([
-            'url' => $req->params->url ?? ''
+            'url' => $req->params->url ?? '',
+            'userDefinedJsFiles' => $storage->getDataHandle()->userDefinedJsFiles->editApp,
         ]));
     }
     private static function foss(string $path, Db $db): Page {
@@ -44,7 +49,18 @@ final class PagesController {
         $page->title = 'Perussivustoesimerkki';
         $page->template = 'layout.full-width.tmpl.php';
         $page->blocks = self::foo($page->title);
+        $page->blocks[] = self::dos();
         return $page;
+    }
+    private static function dos(): Block {
+        $out3 = new Block;
+        $out3->type = Block::TYPE_FORMATTED_TEXT + 1;
+        $out3->slot = 'main';
+        $out3->renderer = 'my-site-text-and-image';
+        $out3->id = '4';
+        $out3->imageSrc = 'sample.jpg';
+        $out3->html = '<pre>Html:ää</pre>';
+        return $out3;
     }
     private static function getYritysPage(): Page {
         $page = new Page;

@@ -1,11 +1,11 @@
 import {__} from './temp.js';
 
-const headingBlockReRender = (newDataFromEditBoxForm, blockRef, prevData) => {
-    if (newDataFromEditBoxForm.level === prevData.level)
-        blockRef.reRenderWithText(newDataFromEditBoxForm.text);
+const headingBlockReRender = (newDataFromForm, blockRef, prevData) => {
+    if (newDataFromForm.level === prevData.level)
+        blockRef.reRenderWithText(newDataFromForm.text);
     else {
-        const newHNode = document.createElement(`h${newDataFromEditBoxForm.level}`);
-        newHNode.textContent = newDataFromEditBoxForm.text;
+        const newHNode = document.createElement(`h${newDataFromForm.level}`);
+        newHNode.textContent = newDataFromForm.text;
         if (prevData.type === 0) {
             const oldHNode = blockRef.startingCommentNode.nextElementSibling;
             for (const attr of oldHNode.attributes) newHNode.setAttribute(attr.name, attr.value);
@@ -14,14 +14,13 @@ const headingBlockReRender = (newDataFromEditBoxForm, blockRef, prevData) => {
     }
 };
 
-const headingBLockGetInitalData = () => ({
+const headingBLockGetInitialData = () => ({
     text: __('Heading here'),
     level: 1,
 });
 
 /*
 interface FormInputs {
-    handleInput(e);
     applyLatestValue();
 }
 */
@@ -42,7 +41,7 @@ class HeadingBlockFormInputs extends preact.Component {
     handleInput(e) {
         const text = e.target.value;
         this.setState({text});
-        this.props.handleValueChange({text, level: this.props.blockData.level});
+        this.props.onValueChanged({text, level: this.props.blockData.level});
     }
     applyLatestValue() {
         this.props.blockData.text = this.state.text;
@@ -51,7 +50,7 @@ class HeadingBlockFormInputs extends preact.Component {
 
 const blockType = {
     reRender: headingBlockReRender,
-    getInitialData: headingBLockGetInitalData,
+    getInitialData: headingBLockGetInitialData,
     FormImpl: HeadingBlockFormInputs,
     friendlyName: 'Heading',
 };

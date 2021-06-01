@@ -1,16 +1,15 @@
 import {__} from './temp.js';
 
-const formattedTextBlockReRender = (newDataFromEditBoxForm, blockRef, _prevData) => {
-    blockRef.tryToReRenderWithHtml(newDataFromEditBoxForm.html);
+const formattedTextBlockReRender = (newDataFromForm, blockRef, _prevData) => {
+    blockRef.tryToReRenderWithHtml(newDataFromForm.html);
 };
 
-const formattedTextBLockGetInitalData = () => ({
+const formattedTextBLockGetInitialData = () => ({
     html: `<pre>${__('Text here')}</pre>`,
 });
 
 /*
 interface FormInputs {
-    handleInput(e);
     applyLatestValue();
 }
 */
@@ -27,7 +26,7 @@ class FormattedTextBlockFormInputs extends preact.Component {
     handleInput(e) {
         const html = e.target.value;
         this.setState({html});
-        this.props.handleValueChange({html});
+        this.props.onValueChanged({html});
     }
     applyLatestValue() {
         this.props.blockData.html = this.state.html;
@@ -36,7 +35,7 @@ class FormattedTextBlockFormInputs extends preact.Component {
 
 const blockType = {
     reRender: formattedTextBlockReRender,
-    getInitialData: formattedTextBLockGetInitalData,
+    getInitialData: formattedTextBLockGetInitialData,
     FormImpl: FormattedTextBlockFormInputs,
     friendlyName: 'Formatted text',
 };

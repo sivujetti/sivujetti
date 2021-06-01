@@ -15,17 +15,25 @@ class EditAppAwareWebPage {
      */
     getBlockRefs() {
         const comms = getAllComments(document.body);
-        return comms.map(c => {
-            if (c.nodeValue.startsWith(' block-end'))
-                return null;
+        const out = [];
+        for (const c of comms) {
+            if (!c.nodeValue.startsWith(' block-start '))
+                continue;
             const L1 = /* <!-- */ ' block-start '.length;
             const L2 = ' '.length /* --> */;
+            const pair = c.nodeValue.substr(L1, c.nodeValue.length - L1 - L2); // todo validate
+            const [blockId, blockType] = pair.split(':');
+            const blockIdAsInt = parseInt(blockId);
+            if (isNaN(blockIdAsInt))
+                continue;
             //
-            return new Block({
-                blockId: parseInt(c.nodeValue.substr(L1, c.nodeValue.length - L1 - L2)).toString(),
+            out.push(new Block({
+                blockId: blockIdAsInt.toString(),
                 startingCommentNode: c,
-            }, true);
-        }).filter(v => v !== null);
+                blockType,
+            }));
+        }
+        return out;
     }
     /**
      * @todo
@@ -48,8 +56,9 @@ class EditAppAwareWebPage {
      * @access public
      */
     moveBlock(blockRefToMove, targetSectionName, after) {
+        // todo update comments (<!-- id:type) if type changes
         const out = this._addBlock(blockRefToMove.getContents(),
-            targetSectionName, after);
+            targetSectionName, after, blockRefToMove.blockId);
         //
         blockRefToMove.destroy();
         //
@@ -59,21 +68,23 @@ class EditAppAwareWebPage {
      * @todo
      * @todo
      * @todo
+     * @todo
      * @return todo
      * @access private
      */
-    _addBlock(initialContent, sectionName, after) {
-        const blockId = `new-${++counter}`;
-        const startingCommentNode = document.createComment(` block-start ${blockId} `);
+    _addBlock(initialContent, sectionName, after, blockId = `new-${++counter}`, blockType = 'paragraph' /* todo */) {
+
+        const startingCommentNode = document.createComment(` block-start ${blockId}:${blockType} `);
 
         const parent = after ? after.parentElement : document.querySelector(`[data-section="${sectionName}"]`); // todo handle if section not found
         parent.appendChild(startingCommentNode);
         initialContent.forEach(el => parent.appendChild(el));
-        parent.appendChild(document.createComment(` block-end ${blockId} `));
+        parent.appendChild(document.createComment(` block-end ${blockId}:${blockType} `));
 
         return new Block({
             blockId,
-            startingCommentNode
+            startingCommentNode,
+            blockType,
         });
     }
 }
@@ -97,7 +108,10 @@ function getAllComments(rootElem) {
 class Block { // @todo Block, Comment, BlockRef ??
     constructor(input) {
         this.blockId = input.blockId; // public string
+        this.blockType = input.blockType; // public string
         this.startingCommentNode = input.startingCommentNode; // public
+
+
         this.startingDomNode = this.startingCommentNode.nextElementSibling; // private
     }
     get position() {
@@ -112,7 +126,7 @@ class Block { // @todo Block, Comment, BlockRef ??
     getContents() {
         let el = this.startingCommentNode.nextSibling;
         if (!el) throw new Error('?');
-        const expectedEndComment = ` block-end ${this.blockId} `;
+        const expectedEndComment = ` block-end ${this.blockId}:${this.blockType} `;
         const out = [];
         while (el) {
             if (el.nodeType === Node.COMMENT_NODE &&
@@ -136,7 +150,7 @@ class Block { // @todo Block, Comment, BlockRef ??
         }
         // 2. Collect all DOM node between the comments
         const toRemove = [];
-        const expectedEndComment = ` block-end ${this.blockId} `;
+        const expectedEndComment = ` block-end ${this.blockId}:${this.blockType} `;
         while (el) {
             if (el.nodeType === Node.COMMENT_NODE &&
                 el.nodeValue === expectedEndComment) break;
@@ -157,7 +171,7 @@ class Block { // @todo Block, Comment, BlockRef ??
         let el = this.startingCommentNode.nextSibling;
         if (!el) throw new Error('?');
         // 1. Collect all elements between the comments
-        const expectedEndComment = ` block-end ${this.blockId} `;
+        const expectedEndComment = ` block-end ${this.blockId}:${this.blockType} `;
         const toRemove = !removeCommentBoundariesAsWell ? [] : [this.startingCommentNode];
         while (el) {
             if (el.nodeType === Node.COMMENT_NODE &&

@@ -2,6 +2,7 @@
 
 namespace KuuraCms;
 
+use KuuraCms\Entities\Block;
 use KuuraCms\Entities\Page;
 use Pike\{ArrayUtils, Template as PikeTemplate};
 
@@ -94,9 +95,9 @@ final class Template extends PikeTemplate {
      */
     protected function renderBlocks(array $blocks): string {
         $out = '';
-        foreach ($blocks as $blockOrListing)
-            $out .= $this->renderValue($this->__call($blockOrListing->renderer, [(object) $blockOrListing]),
-                                       $blockOrListing->id);
+        foreach ($blocks as $block)
+            $out .= $this->renderValue($this->__call($block->renderer, [$block]),
+                                       "$block->id:$block->type");
         return $out;
     }
     /**

@@ -2,7 +2,7 @@
 
 namespace KuuraCms\Page;
 
-use KuuraCms\Entities\{Block, Listing, Page, WebSite};
+use KuuraCms\Entities\{Block, Page, WebSite};
 use KuuraCms\{SharedAPIContext, Template};
 use Pike\{Db, Request, Response};
 
@@ -20,10 +20,23 @@ final class PagesController {
             'page' => $page,
             'site' => self::baz()
         ]);
+        $foo = function ($blocks) {
+            $listingBlocks = [];
+            foreach ($blocks as $block) {
+                // todo how to generalize this?
+                foreach (get_object_vars($block) as $propName => $_) {
+                    if ($propName !== '__pages') continue;
+                    foreach ($block->__pages as $page)
+                        $listingBlocks = array_merge($listingBlocks, $page->blocks);
+                    unset($block->__pages);
+                }
+            }
+            return array_merge($blocks, $listingBlocks);
+        };
         if ($req->queryVar('in-edit') !== null &&
             ($bodyEnd = strpos($html, '</body>')) > 0)
             $html = substr($html, 0, $bodyEnd) .
-                '<script>window.kuuraCurrentPageData = ' . json_encode($page->blocks) . '</script>' .
+                '<script>window.kuuraCurrentPageData = ' . json_encode($foo($page->blocks)) . '</script>' .
                 '<script src="' . Template::makeUrl('public/kuura/kuura-webpage.js', false) . '"></script>' .
             substr($html, $bodyEnd);
         $res->html($html);
@@ -54,7 +67,7 @@ final class PagesController {
     }
     private static function dos(): Block {
         $out3 = new Block;
-        $out3->type = Block::TYPE_FORMATTED_TEXT + 1;
+        $out3->type = 'text-and-image';
         $out3->section = 'main';
         $out3->renderer = 'my-site-text-and-image';
         $out3->id = self::c();
@@ -109,12 +122,24 @@ final class PagesController {
         return [$out, $out2, $out3];
     }
     private static function bar(): array {
-        $out = self::foo('Sivupalkki1');
-        $out[0]->level = 2;
-        $out[0]->section = 'sidebar';
-        $out[1]->section = 'sidebar';
-        $out[2]->section = 'sidebar';
-        return $out;
+        $foo = function ($listingSection) {
+            $page1 = new Page;
+            $page1->title = '<pseudo>';
+            $page1->blocks = self::foo('Sivupalkki1');
+            $page1->blocks[0]->level = 2;
+            $page1->blocks[0]->section = $listingSection;
+            $page1->blocks[1]->section = $listingSection;
+            $page1->blocks[2]->section = $listingSection;
+            return [$page1];
+        };
+        $out = new Block;
+        $out->type = Block::TYPE_LISTING;
+        $out->section = 'sidebar';
+        $out->renderer = 'auto';
+        $out->id = self::c();
+        $out->fetchFilters = '{$all: {$eq: {entityType: "pages", id: $in: [foo]}}}';
+        $out->__pages = $foo($out->section);
+        return [$out];
     }
     private static function baz(): WebSite {
         $out = new WebSite;

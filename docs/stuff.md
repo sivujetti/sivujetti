@@ -33,7 +33,7 @@ const textAndImageBlockReRender = (newDataFromForm, blockRef, prevData) => {
     // todo
 };
 
-const textAndImageBLockGetInitalData = () => ({
+const textAndImageBLockGetInitialData = () => ({
     // todo
 });
 
@@ -43,11 +43,11 @@ class TextAndImageBlockFormInputs extends preact.Component {
     }
 }
 
-window.kuuraCms.registerBlock({
+window.kuuraCms.registerBlock('text-and-image', {
     reRender: textAndImageBlockReRender,
-    getInitialData: textAndImageBLockGetInitalData,
+    getInitialData: textAndImageBLockGetInitialData,
     FormImpl: TextAndImageBlockFormInputs,
-    friendlyName: 'Text with image',
+    friendlyName: 'Text and image',
 });
 
 ```

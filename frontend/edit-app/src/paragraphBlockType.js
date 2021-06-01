@@ -1,16 +1,15 @@
 import {__} from './temp.js';
 
-const paragraphBlockReRender = (newDataFromEditBoxForm, blockRef, _prevData) => {
-    blockRef.reRenderWithText(newDataFromEditBoxForm.text);
+const paragraphBlockReRender = (newDataFromForm, blockRef, _prevData) => {
+    blockRef.reRenderWithText(newDataFromForm.text);
 };
 
-const paragraphBlockGetInitalData = () => ({
+const paragraphBlockGetInitialData = () => ({
     text: __('Text here'),
 });
 
 /*
 interface FormInputs {
-    handleInput(e);
     applyLatestValue();
 }
 */
@@ -26,7 +25,7 @@ class ParagraphBlockFormInputs extends preact.Component {
     handleInput(e) {
         const text = e.target.value;
         this.setState({text});
-        this.props.handleValueChange({text});
+        this.props.onValueChanged({text});
     }
     applyLatestValue() {
         this.props.blockData.text = this.state.text;
@@ -35,7 +34,7 @@ class ParagraphBlockFormInputs extends preact.Component {
 
 const blockType = {
     reRender: paragraphBlockReRender,
-    getInitialData: paragraphBlockGetInitalData,
+    getInitialData: paragraphBlockGetInitialData,
     FormImpl: ParagraphBlockFormInputs,
     friendlyName: 'Paragraph',
 };

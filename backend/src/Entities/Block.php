@@ -3,11 +3,12 @@
 namespace KuuraCms\Entities;
 
 final class Block extends \stdClass {
-    public const TYPE_HEADING = 0;
-    public const TYPE_PARAGRAPH = 1;
-    public const TYPE_FORMATTED_TEXT = 2;
-    /** @var int self::TYPE_* */
-    public int $type;
+    public const TYPE_HEADING = 'heading';
+    public const TYPE_PARAGRAPH = 'paragraph';
+    public const TYPE_FORMATTED_TEXT = 'formatted-text';
+    public const TYPE_LISTING = 'dynamic-listing';
+    /** @var string self::TYPE_* */
+    public string $type;
     /** @var string e.g. 'main', 'sidebar' */
     public string $section;
     /** @var string e.g. 'MyTag', 'file-name' */
@@ -24,4 +25,12 @@ final class Block extends \stdClass {
 
     /* If self::TYPE_FORMATTED_TEXT
     public string $html; */
+
+    /* If self::TYPE_LISTING
+    public string $fetchFilters; */
+
+    /* If <someUserDefinedType>
+    public any $prop1;
+    public any $prop2;
+    etc.. */
 }

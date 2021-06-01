@@ -1,0 +1,27 @@
+DROP TABLE IF EXISTS `blockProps`;
+DROP TABLE IF EXISTS `blocks`;
+DROP TABLE IF EXISTS `pages`;
+
+CREATE TABLE `pages` (
+    `id` MEDIUMINT UNSIGNED NOT NULL PRIMARY KEY AUTOINCREMENT,
+    `slug` VARCHAR(92) NOT NULL,
+    `title` VARCHAR(92) NOT NULL,
+    `layout` VARCHAR(42) NOT NULL
+);
+
+CREATE TABLE `blocks` (
+    `id` INT UNSIGNED NOT NULL PRIMARY KEY AUTOINCREMENT,
+    `type` VARCHAR(48) NOT NULL,
+    `section` VARCHAR(48) NOT NULL,
+    `renderer` VARCHAR(128) NOT NULL,
+    `pageId` MEDIUMINT UNSIGNED NOT NULL,
+    FOREIGN KEY(`pageId`) REFERENCES `pages`(`id`),
+);
+
+CREATE TABLE `blockProps` (
+    `id` INT UNSIGNED NOT NULL PRIMARY KEY AUTOINCREMENT,
+    `key` VARCHAR(48) NOT NULL,
+    `value` TEXT,
+    `blockId` INT UNSIGNED NOT NULL,
+    FOREIGN KEY(`blockId`) REFERENCES `blocks`(`id`)
+);

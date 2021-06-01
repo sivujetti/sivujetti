@@ -79,3 +79,11 @@ Tee tämä muokkaamalla `Site.php`:hen:
 ```
 
 Tämän jälkeen muokkaus-applikaatio sisällyttää uuden `<script>`-tagin sivuun, ja uuden lohkotyypin sisältöä pitäisi pystyä valitsemaan "Luo sisältöä" dialogin listasta uutta sisältöää luodessa.
+
+### 6. Yhteenveto
+
+Tässä vaiheessa uuden tyyppisiä lohkoja voi siis lisätä muokkaus-applikaation "Lisää sisältöä"-dialogissa, mutta niitä ei voi tallentaa: korjataan tilanne seuraavassa osiossa.
+
+## Backendin osuus
+
+...

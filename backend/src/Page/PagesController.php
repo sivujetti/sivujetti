@@ -4,11 +4,19 @@ namespace KuuraCms\Page;
 
 use KuuraCms\Entities\{Block, Page, WebSite};
 use KuuraCms\{SharedAPIContext, Template};
+use KuuraCms\Defaults\ListingBlockType;
 use Pike\{Db, Request, Response};
 
 final class PagesController {
-    public function renderPage(Request $req, Response $res, Db $db, SharedAPIContext $storage): void {
-        if (!($page = self::foss($req->path, $db))) {
+    public static $blockTypes;
+    public function __construct() {
+        self::$blockTypes = [Block::TYPE_LISTING => fn() => new ListingBlockType];
+    }
+    public function renderPage(Request $req,
+                               Response $res,
+                               Db $db,
+                               SharedAPIContext $storage): void {
+        if (!($page = self::tempFetchPage($req->path, $db))) {
             $res->plain('404'); // @todo custom 404 pages
             return;
         }
@@ -20,23 +28,11 @@ final class PagesController {
             'page' => $page,
             'site' => self::baz()
         ]);
-        $foo = function ($blocks) {
-            $listingBlocks = [];
-            foreach ($blocks as $block) {
-                // todo how to generalize this?
-                foreach (get_object_vars($block) as $propName => $_) {
-                    if ($propName !== '__pages') continue;
-                    foreach ($block->__pages as $page)
-                        $listingBlocks = array_merge($listingBlocks, $page->blocks);
-                    unset($block->__pages);
-                }
-            }
-            return array_merge($blocks, $listingBlocks);
-        };
+        //
         if ($req->queryVar('in-edit') !== null &&
             ($bodyEnd = strpos($html, '</body>')) > 0)
             $html = substr($html, 0, $bodyEnd) .
-                '<script>window.kuuraCurrentPageData = ' . json_encode($foo($page->blocks)) . '</script>' .
+                '<script>window.kuuraCurrentPageData = ' . json_encode($this->getBlocksDeep($page->blocks)) . '</script>' .
                 '<script src="' . Template::makeUrl('public/kuura/kuura-webpage.js', false) . '"></script>' .
             substr($html, $bodyEnd);
         $res->html($html);
@@ -48,107 +44,57 @@ final class PagesController {
             'userDefinedJsFiles' => $storage->getDataHandle()->userDefinedJsFiles->editApp,
         ]));
     }
-    private static function foss(string $path, Db $db): Page {
-        return match ($path) {
-            '/' => self::getHomePage(),
-            '/yritys' => self::getYritysPage(),
-            '/palvelut' => self::getPalvelutPage(),
-            '/yhteys' => self::getYhteysPage(),
-            default => null
-        };
+    private function getBlocksDeep(array $blocks): array {
+        $dynamicBlocks = [];
+        foreach ($blocks as $block) {
+            $makeBlockType = self::$blockTypes[$block->type] ?? null;
+            if (!$makeBlockType) continue;
+            $blockType = $makeBlockType();
+            if (method_exists($blockType, 'onBeforeRenderPage'))
+                $dynamicBlocks = array_merge($dynamicBlocks, $blockType->onBeforeRenderPage($blocks));
+        }
+        return array_merge($blocks, $dynamicBlocks);
     }
-    private static function getHomePage(): Page {
-        $page = new Page;
-        $page->title = 'Perussivustoesimerkki';
-        $page->template = 'layout.full-width.tmpl.php';
-        $page->blocks = self::foo($page->title);
-        $page->blocks[] = self::dos();
+    public static function tempFetchPages($temp1, $temp2, $db): array {
+        return $db->fetchAll(
+            'SELECT p.`title`,p.`template`' .
+            ',b.`type` AS `blockType`,b.`section` AS `blockSection`,b.`renderer` AS `blockRenderer`,b.`id` AS `blockId`' .
+            ',bp.`blockId` AS `blockPropBlockId`,bp.`key` AS `blockPropKey`,bp.`value` AS `blockPropValue`' .
+            ' from `pages` p' .
+            ' JOIN `blocks` b ON (b.`pageId` = p.`id`)' .
+            ' JOIN `blockProps` bp ON (bp.`blockId` = b.`id`)' .
+            " WHERE {$temp1}",
+            [$temp2],
+            \PDO::FETCH_CLASS,
+            Page::class
+        );
+    }
+    public static function temp2(array $rows, Db $db): ?Page {
+        if (!$rows)
+            return null;
+        $page = $rows[0];
+        $page->blocks = [];
+        foreach ($rows as $row) {
+            if (array_reduce($page->blocks, fn($prev, $block) =>
+                !$prev ? $block->id === $row->blockId : $prev,
+            null)) continue;
+            $b = Block::fromDbResult($row, $rows);
+            $makeBlockType = self::$blockTypes[$b->type] ?? null;
+            if ($makeBlockType)
+                $makeBlockType()->fetchData($b, $db);
+            $page->blocks[] = $b;
+        }
         return $page;
     }
-    private static function dos(): Block {
-        $out3 = new Block;
-        $out3->type = 'text-and-image';
-        $out3->section = 'main';
-        $out3->renderer = 'my-site-text-and-image';
-        $out3->id = self::c();
-        $out3->imageSrc = 'sample.jpg';
-        $out3->html = '<pre>Html:ää</pre>';
-        return $out3;
-    }
-    private static function getYritysPage(): Page {
-        $page = new Page;
-        $page->title = 'Yritys';
-        $page->template = 'layout.full-width.tmpl.php';
-        $page->blocks = self::foo($page->title);
-        return $page;
-    }
-    private static function getPalvelutPage(): Page {
-        $page = new Page;
-        $page->title = 'Palvelut';
-        $page->template = 'layout.with-sidebar.tmpl.php';
-        $page->blocks = array_merge(self::foo($page->title), self::bar());
-        return $page;
-    }
-    private static function getYhteysPage(): Page {
-        $page = new Page;
-        $page->title = 'Yhteys';
-        $page->template = 'layout.full-width.tmpl.php';
-        $page->blocks = self::foo($page->title);
-        return $page;
-    }
-    private static function foo($fos): array {
-        $out = new Block;
-        $out->type = Block::TYPE_HEADING;
-        $out->section = 'main';
-        $out->renderer = 'auto';
-        $out->id = self::c();
-        $out->level = 1;
-        $out->text = $fos;
-
-        $out2 = new Block;
-        $out2->type = Block::TYPE_PARAGRAPH;
-        $out2->section = 'main';
-        $out2->renderer = 'auto';
-        $out2->id = self::c();
-        $out2->text = "{$fos} lorem ipsum";
-
-        $out3 = new Block;
-        $out3->type = Block::TYPE_FORMATTED_TEXT;
-        $out3->section = 'main';
-        $out3->renderer = 'auto';
-        $out3->id = self::c();
-        $out3->html = '<pre>Html:ää</pre>';
-
-        return [$out, $out2, $out3];
-    }
-    private static function bar(): array {
-        $foo = function ($listingSection) {
-            $page1 = new Page;
-            $page1->title = '<pseudo>';
-            $page1->blocks = self::foo('Sivupalkki1');
-            $page1->blocks[0]->level = 2;
-            $page1->blocks[0]->section = $listingSection;
-            $page1->blocks[1]->section = $listingSection;
-            $page1->blocks[2]->section = $listingSection;
-            return [$page1];
-        };
-        $out = new Block;
-        $out->type = Block::TYPE_LISTING;
-        $out->section = 'sidebar';
-        $out->renderer = 'auto';
-        $out->id = self::c();
-        $out->fetchFilters = '{$all: {$eq: {entityType: "pages", id: $in: [foo]}}}';
-        $out->__pages = $foo($out->section);
-        return [$out];
+    // move this to App->openDbAndLoadState() ?
+    private static function tempFetchPage(string $path, Db $db): Page {
+        $rows = self::tempFetchPages('p.`slug` = ?', $path, $db);
+        return self::temp2($rows, $db);
     }
     private static function baz(): WebSite {
         $out = new WebSite;
         $out->name = 'My site';
         $out->lang = 'fi';
         return $out;
-    }
-    private static function c(): string {
-        static $c = 0;
-        return strval(++$c);
     }
 }

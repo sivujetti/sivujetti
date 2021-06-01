@@ -33,4 +33,17 @@ final class Block extends \stdClass {
     public any $prop1;
     public any $prop2;
     etc.. */
+
+    public static function fromDbResult(object $row, array $rows): Block {
+        $out = new self;
+        $out->type = $row->blockType;
+        $out->section = $row->blockSection;
+        $out->renderer = $row->blockRenderer;
+        $out->id = $row->blockId;
+        foreach ($rows as $row2) {
+            if ($row2->blockPropBlockId === $out->id)
+                $out->{$row2->blockPropKey} = $row2->blockPropValue;
+        }
+        return $out;
+    }
 }

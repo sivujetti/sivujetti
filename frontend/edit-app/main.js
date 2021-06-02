@@ -1,4 +1,7 @@
 import EditApp from './src/EditApp.jsx';
+import {setupServices} from './src/services.js';
+
+setupServices({});
 
 // Expose our app so the EditAppAwareWebPage (inside the iframe) can access it
 window.kuuraEditApp = preact.createRef();

@@ -14,7 +14,7 @@ const headingBlockReRender = (newDataFromForm, blockRef, prevData) => {
     }
 };
 
-const headingBLockGetInitialData = () => ({
+const headingBlockGetInitialData = () => ({
     text: __('Heading here'),
     level: 1,
 });
@@ -50,7 +50,7 @@ class HeadingBlockFormInputs extends preact.Component {
 
 const blockType = {
     reRender: headingBlockReRender,
-    getInitialData: headingBLockGetInitialData,
+    getInitialData: headingBlockGetInitialData,
     FormImpl: HeadingBlockFormInputs,
     friendlyName: 'Heading',
 };

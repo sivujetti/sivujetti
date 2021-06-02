@@ -2,18 +2,19 @@
 
 namespace KuuraCms\Defaults;
 
+use KuuraCms\Block\BlockTypeInterface;
 use KuuraCms\Entities\Block;
-use KuuraCms\Page\PagesController;
-use Pike\Db;
+use KuuraCms\Entities\BlockProperties;
+use KuuraCms\Page\Todo;
 
-final class ListingBlockType {
+final class ListingBlockType implements BlockTypeInterface {
     /**
      * Fetches data for 'dynamic-listing' typed block $for.
      */
-    public function fetchData(Block $for, Db $db) {
+    public function fetchData(Block $for, Todo $paegRepo) {
         // todo use the actual $block->fetchFilters
-        $rows = PagesController::tempFetchPages('p.`title` = ?', '<pseudo>', $db);
-        $for->__pages = [PagesController::temp2($rows, $db)];
+        $rows = $paegRepo->tempFetchPages('p.`title` = ?', '<pseudo>');
+        $for->__pages = [$paegRepo->temp2($rows)];
     }
     public function onBeforeRenderPage(array $blocks): array {
         $listingBlocks = [];
@@ -25,5 +26,12 @@ final class ListingBlockType {
             unset($block->__pages);
         }
         return $listingBlocks;
+    }
+    // todo add separate interface for dynamic blocks?
+    public function getDefaultRenderer(): string {
+        return 'auto';
+    }
+    public function defineProperties(): BlockProperties {
+        return new BlockProperties;
     }
 }

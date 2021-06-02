@@ -1,4 +1,5 @@
 import {__} from './temp.js';
+import services from './services.js';
 import headingBlockType from './headingBlockType.js';
 import paragraphBlockType from './paragraphBlockType.js';
 import formattedTextBlockType from './formattedTextBlockType.js';
@@ -172,10 +173,14 @@ class AddContentBox extends preact.Component {
      */
     applyNewContent(e) {
         e.preventDefault();
-        // @todo http.posr() or hard-reload
         this.currentForm.current.applyLatestValue(); // mutates this.state.newBlockData
-        this.props.onBlockAdded(this.state.newBlockRef, this.state.newBlockData);
         this.setState({isOpen: false});
+        services.http.post('index.php?q=/api/blocks', Object.assign({
+            pageId: '1' // todo where get this ?
+        }, this.state.newBlockData)).then(_resp => {
+            // todo update id (_resp.insertId)
+            this.props.onBlockAdded(this.state.newBlockRef, this.state.newBlockData);
+        });
     }
     /**
      * @access private

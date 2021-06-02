@@ -4,7 +4,7 @@ const formattedTextBlockReRender = (newDataFromForm, blockRef, _prevData) => {
     blockRef.tryToReRenderWithHtml(newDataFromForm.html);
 };
 
-const formattedTextBLockGetInitialData = () => ({
+const formattedTextBlockGetInitialData = () => ({
     html: `<pre>${__('Text here')}</pre>`,
 });
 
@@ -35,7 +35,7 @@ class FormattedTextBlockFormInputs extends preact.Component {
 
 const blockType = {
     reRender: formattedTextBlockReRender,
-    getInitialData: formattedTextBLockGetInitialData,
+    getInitialData: formattedTextBlockGetInitialData,
     FormImpl: FormattedTextBlockFormInputs,
     friendlyName: 'Formatted text',
 };

@@ -3,6 +3,7 @@
 namespace KuuraCms\Website;
 
 use KuuraCms\{BaseAPI, SharedAPIContext, ValidationUtils};
+use KuuraCms\Block\BlockTypeInterface;
 
 /**
  * An API for WORKSPACE_PATH . site/Site.php classes.
@@ -16,8 +17,6 @@ class WebsiteAPI extends BaseAPI {
     public function __construct(string $namespace, SharedAPIContext $storage) {
         parent::__construct($namespace, $storage);
         $this->storageData = $storage->getDataHandle();
-        if (!property_exists($this->storageData, 'userDefinedBlockTypes'))
-            $this->storageData->userDefinedBlockTypes = [];
         if (!property_exists($this->storageData, 'userDefinedJsFiles'))
             $this->storageData->userDefinedJsFiles = (object) [
                 'editApp' => [],
@@ -27,9 +26,9 @@ class WebsiteAPI extends BaseAPI {
     /**
      * @todo
      */
-    public function registerBlockType(string $name, string $rendererRelFilePath): void {
-        ValidationUtils::checkIfValidaPathOrThrow($rendererRelFilePath);
-        $this->storageData->userDefinedBlockTypes[] = [$name, $rendererRelFilePath];
+    public function registerBlockType(string $name, \Closure $blockTypeFactory): void {
+        ValidationUtils::checkIfValidaPathOrThrow($blockTypeFactory()->getDefaultRenderer()); // todo lazify (see notes.txt)
+        $this->storageData->blockTypes[$name] = $blockTypeFactory;
     }
     /**
      * @param string $relUrl Relative to http://<base>/public/

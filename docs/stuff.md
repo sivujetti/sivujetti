@@ -33,7 +33,7 @@ const textAndImageBlockReRender = (newDataFromForm, blockRef, prevData) => {
     // todo
 };
 
-const textAndImageBLockGetInitialData = () => ({
+const textAndImageBlockGetInitialData = () => ({
     // todo
 });
 
@@ -45,7 +45,7 @@ class TextAndImageBlockFormInputs extends preact.Component {
 
 window.kuuraCms.registerBlock('text-and-image', {
     reRender: textAndImageBlockReRender,
-    getInitialData: textAndImageBLockGetInitialData,
+    getInitialData: textAndImageBlockGetInitialData,
     FormImpl: TextAndImageBlockFormInputs,
     friendlyName: 'Text and image',
 });
@@ -87,3 +87,50 @@ Tässä vaiheessa uuden tyyppisiä lohkoja voi siis lisätä muokkaus-applikaati
 ## Backendin osuus
 
 ...
+
+### 1. Rekisteröi tyyppi
+
+Tee tämä muokkaamalla `Site.php`:hen:
+
+```php
+...
+    public function __construct(WebsiteAPI $api) {
+        $api->registerBlockType('text-and-image', fn() => new TextAndImageBlockType);
+        ...
+    }
+}
+
+class TextAndImageBlockType implements BlockTypeInterface {
+    public function getDefaultRenderer(): string {
+        return 'templates/my-site-text-and-image.tmpl.php';
+    }
+    public function defineProperties(): BlockProperties {
+        $out = new BlockProperties;
+        $textProp = new BlockProperty;
+        $textProp->name = 'html';
+        $textProp->dataType = 'text';
+        $out[] = $textProp;
+        $imageSrcProp = new BlockProperty;
+        $imageSrcProp->name = 'imageSrc';
+        $imageSrcProp->dataType = 'text';
+        $out[] = $imageSrcProp;
+        return $out;
+     }
+}
+
+```
+
+Tämän jälkeen KuuraCms osaa tallentaa muokkausapplikaatiossa luodut lohkot käyttäen `TextAndImageBlockType->defineProperties()`-metodin ohjeita.
+
+### 2. Lisää oletustemplaatti
+
+Luo tiedosto `<sivustonPolku>/site/templates/my-site-text-and-image.tmpl.php`:
+
+```php
+<div style="display:flex">
+    <article style="flex:1">
+        <?= $props->html // allow pre-validated html ?>
+    </article>
+    <img style="flex:1" src="<?= $this->assetUrl("public/uploads/{$props->imageSrc}") ?>"/>
+</div>
+```

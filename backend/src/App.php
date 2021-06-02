@@ -3,6 +3,10 @@
 namespace KuuraCms;
 
 use Auryn\Injector;
+use KuuraCms\Block\BlocksModule;
+use KuuraCms\Defaults\{FormattedTextBlockType, HeadingBlockType, ListingBlockType,
+                       ParagraphBlockType};
+use KuuraCms\Entities\Block;
 use KuuraCms\Page\PagesModule;
 use KuuraCms\Plugin\PluginInterface;
 use KuuraCms\Website\{WebsiteAPI, WebsiteInterface};
@@ -21,7 +25,8 @@ final class App {
                                   ?Router $router = null): PikeApp {
         return new PikeApp([
             new self,
-            new PagesModule
+            new BlocksModule,
+            new PagesModule // Must be last because the * route
         ], function (AppContext $ctx, ServiceDefaults $defaults) use ($config): void {
             $ctx->config = $defaults->makeConfig($config);
             $ctx->db = $defaults->makeDb();
@@ -62,6 +67,12 @@ final class App {
      * @access private
      */
     private function loadSite(): void {
+        $this->ctx->storage->getDataHandle()->blockTypes = [
+            Block::TYPE_HEADING => fn() => new HeadingBlockType,
+            Block::TYPE_PARAGRAPH => fn() => new ParagraphBlockType,
+            Block::TYPE_FORMATTED_TEXT => fn() => new FormattedTextBlockType,
+            Block::TYPE_LISTING => fn() => new ListingBlockType,
+        ];
         $this->ctx->site = $this->instantiatePluginOrSite(false);
     }
     /**

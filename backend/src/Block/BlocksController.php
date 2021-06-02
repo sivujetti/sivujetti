@@ -31,14 +31,46 @@ final class BlocksController {
 
             [$qGroups, $values, $columns] = $db->makeBatchInsertQParts($blockProps);
             return $db->exec("INSERT INTO `blockProps` ({$columns}) VALUES {$qGroups}",
-                             $values) > 0 ? $db->lastInsertId() : null;
+                             $values) > 0 ? $insertId : null;
 
         });
 
         $res->json(['insertId' => $newBlockId]);
     }
-    public function updateBlock(): void {
-        // todo
+    public function updateBlock(Request $req, Response $res, SharedAPIContext $storage, Db $db): void {
+        // todo validate block-related input
+
+        // todo change type change
+
+        $blockProps = self::makeBlockProps($req->body,
+                                           $storage->getDataHandle()->blockTypes);
+
+        $ok = $db->runInTransaction(function () use ($req, $db, $blockProps) {
+
+            [$columns, $values] = $db->makeUpdateQParts([
+                'type' => $req->body->type,
+                'section' => $req->body->section,
+                'renderer' => $req->body->renderer,
+            ]);
+            //
+            if ($db->exec("UPDATE `blocks` SET {$columns} WHERE `id` = ?",
+                          array_merge($values, [$req->params->blockId])) !== 1)
+                throw new PikeException('hj');
+
+            $db->exec("DELETE FROM `blockProps` WHERE `blockId` = ?",
+                      [$req->params->blockId]);
+
+            //
+            foreach ($blockProps as $prop)
+                $prop->blockId = $req->params->blockId;
+
+            [$qGroups, $values, $columns] = $db->makeBatchInsertQParts($blockProps);
+            return $db->exec("INSERT INTO `blockProps` ({$columns}) VALUES {$qGroups}",
+                             $values) > 0 ? true : false;
+
+        });
+
+        $res->json(['ok' => $ok]);
     }
     private static function makeBlockProps(object $reqBody, array $blockTypes): array {
         $t = $blockTypes[$reqBody->type] ?? null;

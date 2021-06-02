@@ -156,7 +156,7 @@ class AddContentBox extends preact.Component {
         const newBlockData = createBlockData({
             type: e.target.value,
             section: this.state.newBlockData.section,
-            renderer: this.state.newBlockData.renderer,
+            renderer: this.state.newBlockData.renderer, // todo http.get('block-types/newBlockRef.type').defaultRenderer
             id: this.state.newBlockData.id});
         tryToReRenderBlock(this.state.newBlockRef, newBlockData, this.state.newBlockData, newBlockData.type);
         this.setState({newBlockData});
@@ -180,6 +180,9 @@ class AddContentBox extends preact.Component {
         }, this.state.newBlockData)).then(_resp => {
             // todo update id (_resp.insertId)
             this.props.onBlockAdded(this.state.newBlockRef, this.state.newBlockData);
+        })
+        .catch(_err => {
+            // ??
         });
     }
     /**
@@ -254,9 +257,15 @@ class EditBox extends preact.Component {
      */
     applyChanges(e) {
         e.preventDefault();
-        // @todo http.put() or hard-reload
         this.currentForm.current.applyLatestValue();
         this.setState({isOpen: false});
+        services.http.put(`index.php?q=/api/blocks/${this.state.blockRef.blockId}`, Object.assign({
+        }, this.state.blockData)).then(_resp => {
+            // ?
+        })
+        .catch(_err => {
+            // ??
+        });
     }
     /**
      * @access private

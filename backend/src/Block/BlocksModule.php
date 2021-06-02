@@ -9,7 +9,7 @@ final class BlocksModule {
         $ctx->router->map('POST', '/api/blocks',
             [BlocksController::class, 'createBlock']
         );
-        $ctx->router->map('PUT', '/api/blocks/[i:id]',
+        $ctx->router->map('PUT', '/api/blocks/[i:blockId]',
             [BlocksController::class, 'updateBlock']
         );
     }

@@ -2,6 +2,7 @@
 
 Simply the most radical CMS ever created.
 
+<<<<<<< HEAD
 ## High-level goals (primary)
 
 1. Is significantly faster and/or uses fewer resources than any popular (mysql-based) php CMS
@@ -16,6 +17,13 @@ Simply the most radical CMS ever created.
 
 1. Scales easily
 1. Has built-in exporter/importer
+=======
+## High-level goals
+
+- Support for local (MySQL, SQLite) and remote databases
+- Built-in exporter/importer for websites
+- Fast!
+>>>>>>> Kuura-proto: add persistence pt. updating
 
 # License
 

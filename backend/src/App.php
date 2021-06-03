@@ -4,6 +4,7 @@ namespace KuuraCms;
 
 use Auryn\Injector;
 use KuuraCms\Block\BlocksModule;
+use KuuraCms\ContentType\ContentTypesModule;
 use KuuraCms\Defaults\{FormattedTextBlockType, HeadingBlockType, ListingBlockType,
                        ParagraphBlockType};
 use KuuraCms\Entities\Block;
@@ -26,6 +27,7 @@ final class App {
         return new PikeApp([
             new self,
             new BlocksModule,
+            new ContentTypesModule,
             new PagesModule // Must be last because the * route
         ], function (AppContext $ctx, ServiceDefaults $defaults) use ($config): void {
             $ctx->config = $defaults->makeConfig($config);
@@ -53,6 +55,7 @@ final class App {
     public function alterDi(Injector $di): void {
         $di->share($this->ctx->storage);
         $di->share($this->ctx->site);
+        $di->share($this->ctx->theWebsite);
     }
     /**
      * @access private
@@ -67,7 +70,13 @@ final class App {
      * @access private
      */
     private function loadSite(): void {
-        $this->ctx->storage->getDataHandle()->blockTypes = [
+        if (!($entity = TheWebsiteRepository::fetchActive($this->ctx->db)))
+            throw new PikeException('Site not installed',
+                                    PikeException::ERROR_EXCEPTION);
+        $this->ctx->theWebsite = $entity;
+        //
+        $data = $this->ctx->storage->getDataHandle();
+        $data->blockTypes = [
             Block::TYPE_HEADING => fn() => new HeadingBlockType,
             Block::TYPE_PARAGRAPH => fn() => new ParagraphBlockType,
             Block::TYPE_FORMATTED_TEXT => fn() => new FormattedTextBlockType,
@@ -78,7 +87,7 @@ final class App {
     /**
      * @access private
      */
-    private function instantiatePluginOrSite($isPlugin): object {
+    private function instantiatePluginOrSite($isPlugin): WebsiteInterface|PluginInterface {
         $Ctor = $isPlugin
             ? "KuuraPlugins\\Name\\Name"
             : 'KuuraSite\\Site';

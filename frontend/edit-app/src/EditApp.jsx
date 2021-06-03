@@ -154,7 +154,7 @@ class AddContentBox extends preact.Component {
     render(_, {isOpen, newBlockRef, newBlockData}) {
         if (!isOpen)
             return;
-        const Form = blockTypes.get(newBlockData.type).FormImpl;
+        const Form = blockTypes.get(newBlockData.type).CreateFormImpl;
         const rect = newBlockRef.position;
         return <form class="edit-box" style={ `left: ${TODO+rect.left}px; top: ${rect.top}px` }
              onSubmit={ this.applyNewContent.bind(this) }>
@@ -270,7 +270,7 @@ class EditBox extends preact.Component {
     render(_, {isOpen, blockRef, blockData}) {
         if (!isOpen)
             return;
-        const Form = blockTypes.get(blockRef.blockType).FormImpl;
+        const Form = blockTypes.get(blockRef.blockType).EditFormImpl;
         const rect = blockRef.position;
         return <form class="edit-box" style={ `left: ${TODO+rect.left}px; top: ${rect.top}px` }
             onSubmit={ this.applyChanges.bind(this) }>

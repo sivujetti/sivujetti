@@ -2,7 +2,7 @@
 
 namespace KuuraCms\Page;
 
-use KuuraCms\Entities\WebSite;
+use KuuraCms\Entities\TheWebsite;
 use KuuraCms\{SharedAPIContext, Template};
 use Pike\{Db, Request, Response};
 
@@ -11,7 +11,8 @@ final class PagesController {
     public function renderPage(Request $req,
                                Response $res,
                                Todo $paegRepo,
-                               SharedAPIContext $storage): void {
+                               SharedAPIContext $storage,
+                               TheWebsite $theWebsite): void {
         // move this to App->openDbAndLoadState() ?
         $rows = $paegRepo->tempFetchPages('p.`slug` = ?', $req->path);
         if (!($page = $paegRepo->temp2($rows))) {
@@ -25,7 +26,7 @@ final class PagesController {
                                 KUURA_WORKSPACE_PATH . "site/{$t()->getDefaultRenderer()}" // Quaranteed to be valid (see WebsiteApi->registerBlockType())
                               , self::$blockTypes)))->render([
             'page' => $page,
-            'site' => self::baz()
+            'site' => $theWebsite
         ]);
         //
         if ($req->queryVar('in-edit') !== null &&
@@ -53,12 +54,5 @@ final class PagesController {
                 $dynamicBlocks = array_merge($dynamicBlocks, $blockType->onBeforeRenderPage($blocks));
         }
         return array_merge($blocks, $dynamicBlocks);
-    }
-
-    private static function baz(): WebSite {
-        $out = new WebSite;
-        $out->name = 'My site';
-        $out->lang = 'fi';
-        return $out;
     }
 }

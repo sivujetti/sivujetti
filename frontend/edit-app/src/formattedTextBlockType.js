@@ -36,7 +36,8 @@ class FormattedTextBlockFormInputs extends preact.Component {
 const blockType = {
     reRender: formattedTextBlockReRender,
     getInitialData: formattedTextBlockGetInitialData,
-    FormImpl: FormattedTextBlockFormInputs,
+    EditFormImpl: FormattedTextBlockFormInputs,
+    CreateFormImpl: FormattedTextBlockFormInputs,
     friendlyName: 'Formatted text',
 };
 

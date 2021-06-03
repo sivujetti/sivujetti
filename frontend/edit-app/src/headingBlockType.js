@@ -51,7 +51,8 @@ class HeadingBlockFormInputs extends preact.Component {
 const blockType = {
     reRender: headingBlockReRender,
     getInitialData: headingBlockGetInitialData,
-    FormImpl: HeadingBlockFormInputs,
+    EditFormImpl: HeadingBlockFormInputs,
+    CreateFormImpl: HeadingBlockFormInputs,
     friendlyName: 'Heading',
 };
 

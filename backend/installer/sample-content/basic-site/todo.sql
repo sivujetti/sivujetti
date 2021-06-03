@@ -1,4 +1,11 @@
-INSERT INTO `pages` VALUES
+INSERT INTO `theWebsite` VALUES
+('My site','en','{}',0);
+
+INSERT INTO `contentTypes` VALUES
+(1,'Pages','["heading","paragraph"]',1),
+(2,'Services','["heading","paragraph"]',1);
+
+INSERT INTO `Pages` VALUES
 (1,'/','Basic site example','layout.full-width.tmpl.php'),
 (2,'/company','Company','layout.with-sidebar.tmpl.php'),
 (3,'/services','Services','layout.with-sidebar.tmpl.php'),
@@ -8,30 +15,30 @@ INSERT INTO `pages` VALUES
 
 INSERT INTO `blocks` VALUES
 -- home
-(1,'heading','main','auto',1),
-(2,'paragraph','main','auto',1),
-(3,'formatted-text','main','auto',1),
+(1,'heading','main','auto',1,NULL),
+(2,'paragraph','main','auto',1,NULL),
+(3,'formatted-text','main','auto',1,NULL),
 
 -- company
-(4,'heading','main','auto',2),
-(5,'paragraph','main','auto',2),
-(6,'heading','sidebar','auto',2),
-(7,'paragraph','sidebar','auto',2),
+(4,'heading','main','auto',2,NULL),
+(5,'paragraph','main','auto',2,NULL),
+(6,'heading','sidebar','auto',2,NULL),
+(7,'paragraph','sidebar','auto',2,NULL),
 
 -- services
-(8,'heading','main','auto',3),
-(9,'dynamic-listing','main','auto',3),
-(10,'heading','sidebar','auto',3),
-(11,'paragraph','sidebar','auto',3),
+(8,'heading','main','auto',3,NULL),
+(9,'dynamic-listing','main','auto',3,'Services'),
+(10,'heading','sidebar','auto',3,NULL),
+(11,'paragraph','sidebar','auto',3,NULL),
 -- services listing
-(14,'heading','main','auto',4),
-(15,'paragraph','main','auto',4),
-(16,'heading','sidebar','auto',5),
-(17,'paragraph','sidebar','auto',5),
+(14,'heading','main','auto',4,NULL),
+(15,'paragraph','main','auto',4,NULL),
+(16,'heading','sidebar','auto',5,NULL),
+(17,'paragraph','sidebar','auto',5,NULL),
 
 -- contact
-(12,'heading','main','auto',6),
-(13,'paragraph','main','auto',6);
+(12,'heading','main','auto',6,NULL),
+(13,'paragraph','main','auto',6,NULL);
 
 INSERT INTO `blockProps` VALUES
 (1,'text','Front page',1),

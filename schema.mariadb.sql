@@ -1,13 +1,38 @@
 DROP TABLE IF EXISTS `blockProps`;
 DROP TABLE IF EXISTS `blocks`;
-DROP TABLE IF EXISTS `pages`;
+DROP TABLE IF EXISTS `Pages`;
+DROP TABLE IF EXISTS `contentTypes`;
+DROP TABLE IF EXISTS `plugins`;
+DROP TABLE IF EXISTS `theWebsite`;
 
-CREATE TABLE `pages` (
+CREATE TABLE `theWebsite` (
+    `name` VARCHAR(92) NOT NULL,
+    `lang` VARCHAR(12) NOT NULL,
+    `aclRules` JSON,
+    `lastUpdatedAt` INT(10) UNSIGNED DEFAULT 0
+) DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE `plugins` (
+    `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(92) NOT NULL,
+    `status` TINYINT(1) NOT NULL,
+    PRIMARY KEY (`id`)
+) DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE `contentTypes` (
+    `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(92)  NOT NULL,
+    `fields` JSON,
+    `isListable` TINYINT(1) DEFAULT 1,
+    PRIMARY KEY (`id`)
+) DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE `Pages` (
     `id` MEDIUMINT UNSIGNED NOT NULL PRIMARY KEY AUTOINCREMENT,
     `slug` VARCHAR(92) NOT NULL,
     `title` VARCHAR(92) NOT NULL,
     `layout` VARCHAR(42) NOT NULL
-);
+) DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `blocks` (
     `id` INT UNSIGNED NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -16,8 +41,8 @@ CREATE TABLE `blocks` (
     `renderer` VARCHAR(128) NOT NULL,
     `pageId` MEDIUMINT UNSIGNED NOT NULL,
     `title` VARCHAR(48) DEFAULT NULL,
-    FOREIGN KEY(`pageId`) REFERENCES `pages`(`id`),
-);
+    FOREIGN KEY(`pageId`) REFERENCES `Pages`(`id`),
+) DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `blockProps` (
     `id` INT UNSIGNED NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -25,4 +50,4 @@ CREATE TABLE `blockProps` (
     `value` TEXT,
     `blockId` INT UNSIGNED NOT NULL,
     FOREIGN KEY(`blockId`) REFERENCES `blocks`(`id`)
-);
+) DEFAULT CHARSET = utf8mb4;

@@ -35,7 +35,8 @@ class ParagraphBlockFormInputs extends preact.Component {
 const blockType = {
     reRender: paragraphBlockReRender,
     getInitialData: paragraphBlockGetInitialData,
-    FormImpl: ParagraphBlockFormInputs,
+    EditFormImpl: ParagraphBlockFormInputs,
+    CreateFormImpl: ParagraphBlockFormInputs,
     friendlyName: 'Paragraph',
 };
 

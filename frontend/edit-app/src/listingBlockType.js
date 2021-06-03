@@ -9,11 +9,11 @@ const listingBlockReRender = (newDataFromForm, blockRef, prevData) => {
     if (todoIsBlockSavedToBackend(blockRef, prevData))
         // todo how to rerender dynamic listing without reloading the whole page ??
         return;
-    blockRef.tryToReRenderWithHtml('<div>Listing results will appear here...</div>');
+    blockRef.tryToReRenderWithHtml(`<div>A list of ${JSON.parse(newDataFromForm.fetchFilters).$all.$eq.contentType} will appear here...</div>`);
 };
 
 const listingBlockGetInitialData = () => ({
-    fetchFilters: '{"$all": {"$eq": {"contentType": "Services"}}}'
+    fetchFilters: '{"$all": {"$eq": {"contentType": "Pages"}}}'
 });
 
 /*
@@ -22,28 +22,27 @@ interface FormInputs {
 }
 */
 
-class ListingBlockFormInputs extends preact.Component {
+class ListingBlockCreateFormInputs extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {fetchFilters: props.blockData.fetchFilters};
-        this.entityType = JSON.parse(this.state.fetchFilters).$all.$eq.contentType;
-        this.entityTypeSingular = this.entityType.substr(0, this.entityType.length - 1);
+        this.state = {contentTypesThatCanBeListed: null,
+                      fetchFilters: props.blockData.fetchFilters,
+                      foo: JSON.parse(props.blockData.fetchFilters).$all.$eq.contentType};
+        services.http.get('/api/content-types/listable')
+            .then(contentTypesThatCanBeListed => { this.setState({contentTypesThatCanBeListed}); })
+            .catch(window.console.error);
     }
-    render({blockData}, {fetchFilters}) {
-        let F = AddPageView;
-        // if (this.entityType === 'Articles')
-        //     F = 'SomeOther';
-        // if (this.entityType === 'MyTypes')
-        //     F = 'SomeOther2';
-        return <>
-            <button onClick={ () => services.editApp.openView(F, {entityType: this.entityTypeSingular, listingTitle: blockData.title || '[not-specified]'}) } title="" class="btn">{ __(`Add ${this.entityTypeSingular}`) }</button>
-            <div>----</div>
-            <textarea onInput={ this.handleInput.bind(this) }>{ fetchFilters }</textarea>
-        </>;
+    render(_, {contentTypesThatCanBeListed, foo}) {
+        return contentTypesThatCanBeListed
+            ? <select value={ foo } onChange={ e => this.asd(e, 'foo') }>{ contentTypesThatCanBeListed.map(ct =>
+                <option value={ ct.name }>{ __(ct.name) }</option>
+            ) }</select>
+            : __('Loading ...');
     }
-    handleInput(e) {
-        const fetchFilters = e.target.value;
-        this.setState({fetchFilters});
+    asd(e, prop) {
+        const asd = e.target.value;
+        const fetchFilters = `{"$all": {"$eq": {"contentType": "${asd}"}}}`;
+        this.setState({[prop]: asd, fetchFilters});
         this.props.onValueChanged({fetchFilters});
     }
     applyLatestValue() {
@@ -51,6 +50,28 @@ class ListingBlockFormInputs extends preact.Component {
     }
 }
 
+class ListingBlockEditFormInputs extends preact.Component {
+    constructor(props) {
+        super(props);
+        this.entityType = JSON.parse(props.blockData.fetchFilters).$all.$eq.contentType;
+        this.entityTypeSingular = this.entityType.substr(0, this.entityType.length - 1);
+    }
+    render({blockData}) {
+        let F = AddPageView;
+        // if (this.entityType === 'Articles')
+        //     F = 'SomeOther';
+        // if (this.entityType === 'MyTypes')
+        //     F = 'SomeOther2';
+        return <>
+            <button onClick={ () => services.editApp.openView(F, {entityType: this.entityTypeSingular, listingTitle: blockData.title || '[not-specified]'}) } title="" class="btn">{ __(`Add ${this.entityTypeSingular}`) }</button>
+        </>;
+    }
+    applyLatestValue() {
+        //
+    }
+}
+
+// todo see notes.txt
 class AddPageView extends preact.Component {
     /**
      * @param {todo} props
@@ -113,7 +134,8 @@ class AddPageView extends preact.Component {
 const blockType = {
     reRender: listingBlockReRender,
     getInitialData: listingBlockGetInitialData,
-    FormImpl: ListingBlockFormInputs,
+    CreateFormImpl: ListingBlockCreateFormInputs,
+    EditFormImpl: ListingBlockEditFormInputs,
     friendlyName: 'Listing',
 };
 

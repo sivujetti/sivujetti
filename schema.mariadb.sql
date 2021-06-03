@@ -15,6 +15,7 @@ CREATE TABLE `blocks` (
     `section` VARCHAR(48) NOT NULL,
     `renderer` VARCHAR(128) NOT NULL,
     `pageId` MEDIUMINT UNSIGNED NOT NULL,
+    `title` VARCHAR(48) DEFAULT NULL,
     FOREIGN KEY(`pageId`) REFERENCES `pages`(`id`),
 );
 

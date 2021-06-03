@@ -14,7 +14,7 @@ final class ListingBlockType implements BlockTypeInterface {
     public function fetchData(Block $for, Todo $paegRepo) {
         // todo use the actual $block->fetchFilters
         $rows = $paegRepo->tempFetchPages('p.`title` = ?', '<pseudo>');
-        $for->__pages = [$paegRepo->temp2($rows)];
+        $for->__pages = $paegRepo->temp3($rows);
     }
     public function onBeforeRenderPage(array $blocks): array {
         $listingBlocks = [];

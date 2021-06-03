@@ -1,29 +1,37 @@
 INSERT INTO `pages` VALUES
 (1,'/','Basic site example','layout.full-width.tmpl.php'),
-(2,'/company','Company','layout.full-width.tmpl.php'),
+(2,'/company','Company','layout.with-sidebar.tmpl.php'),
 (3,'/services','Services','layout.with-sidebar.tmpl.php'),
 (4,'','<pseudo>',''),
-(5,'/contact','Contact','layout.full-width.tmpl.php');
+(5,'','<pseudo>',''),
+(6,'/contact','Contact','layout.full-width.tmpl.php');
 
 INSERT INTO `blocks` VALUES
+-- home
 (1,'heading','main','auto',1),
 (2,'paragraph','main','auto',1),
 (3,'formatted-text','main','auto',1),
 
+-- company
 (4,'heading','main','auto',2),
 (5,'paragraph','main','auto',2),
-(6,'formatted-text','main','auto',2),
+(6,'heading','sidebar','auto',2),
+(7,'paragraph','sidebar','auto',2),
 
-(7,'heading','main','auto',3),
-(8,'paragraph','main','auto',3),
-(9,'formatted-text','main','auto',3),
-(10,'dynamic-listing','sidebar','auto',3),
+-- services
+(8,'heading','main','auto',3),
+(9,'dynamic-listing','main','auto',3),
+(10,'heading','sidebar','auto',3),
+(11,'paragraph','sidebar','auto',3),
+-- services listing
+(14,'heading','main','auto',4),
+(15,'paragraph','main','auto',4),
+(16,'heading','sidebar','auto',5),
+(17,'paragraph','sidebar','auto',5),
 
-(11,'paragraph','sidebar','auto',4),
-
-(12,'heading','main','auto',5),
-(13,'paragraph','main','auto',5),
-(14,'formatted-text','main','auto',5);
+-- contact
+(12,'heading','main','auto',6),
+(13,'paragraph','main','auto',6);
 
 INSERT INTO `blockProps` VALUES
 (1,'text','Front page',1),
@@ -32,19 +40,26 @@ INSERT INTO `blockProps` VALUES
 (4,'html','<pre>Some html 1</pre>',3),
 
 (5,'text','Company',4),
-(6,'level','1',4),
+(6,'level','2',4),
 (7,'text','Company page p1',5),
-(8,'html','<pre>Some html 2</pre>',6),
+(8,'text','Sidebar1',6),
+(9,'level','1',6),
+(10,'text','text',7),
 
-(9,'text','Services',7),
-(10,'level','1',7),
-(11,'text','Services p1',8),
-(12,'html','<pre>Some html 3</pre>',9),
-(13,'fetchFilters','{$all: {$eq: {entityType: "pages", id: $in: [foo]}}}',10),
+(11,'text','Services',8),
+(12,'level','1',8),
+(13,'fetchFilters','{"$all": {"$eq": {"contentType": "Services"}}}',9),
+(14,'text','Sidebar2',10),
+(15,'level','2',10),
+(16,'text','text',11),
 
-(14,'text','Services sidebar p1',11),
+(20,'text','Service 1',14),
+(21,'level','2',14),
+(22,'text','Cats',15),
+(23,'text','Service 2',16),
+(24,'level','2',16),
+(25,'text','Dogs',17),
 
-(15,'text','Company',12),
-(16,'level','1',12),
-(17,'text','Company page p1',13),
-(18,'html','<pre>Some html 2</pre>',14);
+(17,'text','Company',12),
+(18,'level','1',12),
+(19,'text','Company page p1',13);

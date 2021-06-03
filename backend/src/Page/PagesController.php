@@ -18,11 +18,12 @@ final class PagesController {
             $res->plain('404'); // @todo custom 404 pages
             return;
         }
+        self::$blockTypes = $storage->getDataHandle()->blockTypes;
         $html = (new Template(KUURA_WORKSPACE_PATH . "site/templates/{$page->template}",
                               null,
                               array_map(fn($t) =>
                                 KUURA_WORKSPACE_PATH . "site/{$t()->getDefaultRenderer()}" // Quaranteed to be valid (see WebsiteApi->registerBlockType())
-                              , $storage->getDataHandle()->blockTypes)))->render([
+                              , self::$blockTypes)))->render([
             'page' => $page,
             'site' => self::baz()
         ]);

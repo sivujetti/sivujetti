@@ -11,7 +11,7 @@ class Http {
      * @access public
      */
     get(url) {
-        return this.fetchFn(url, completeSettings({method: 'GET'}, null))
+        return this.fetchFn(todo(url), completeSettings({method: 'GET'}, null))
             .then(resp => {
                 if (resp.status === 401)
                     window.console.error('todo');
@@ -27,7 +27,7 @@ class Http {
      * @access public
      */
     post(url, data, settings = {}, defaults = {method: 'POST'}) {
-        return this.fetchFn(url, completeSettings(Object.assign(defaults, settings), data))
+        return this.fetchFn(todo(url), completeSettings(Object.assign(defaults, settings), data))
             .then(resp => {
                 if (resp.status === 401)
                     window.console.error('todo');
@@ -65,6 +65,10 @@ function completeSettings(settings, data) {
     if (!settings.credentials)
         settings.credentials = 'same-origin';
     return settings;
+}
+
+function todo(url) {
+    return `index.php?q=${url}`;
 }
 
 export default Http;

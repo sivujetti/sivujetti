@@ -15,6 +15,8 @@ final class Block extends \stdClass {
     public string $renderer;
     /** @var string */
     public string $id;
+    /** @var ?string e.g. 'Articles' */
+    public ?string $title;
 
     /* If self::TYPE_HEADING
     public string $text;
@@ -40,6 +42,7 @@ final class Block extends \stdClass {
         $out->section = $row->blockSection;
         $out->renderer = $row->blockRenderer;
         $out->id = $row->blockId;
+        $out->title = $row->blockTitle ?? null;
         foreach ($rows as $row2) {
             if ($row2->blockPropBlockId === $out->id)
                 $out->{$row2->blockPropKey} = $row2->blockPropValue;

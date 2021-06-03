@@ -19,6 +19,7 @@ class EditApp extends preact.Component {
         this.state = {blocks: null};
         this.editBox = preact.createRef();
         this.addBox = preact.createRef();
+        this.mainView = preact.createRef(); // public
         EditApp.currentWebpage = null;
     }
     /**
@@ -51,15 +52,16 @@ class EditApp extends preact.Component {
         return [
             blocks.length
                 ? [
-                    blocks.map(b => <div>
-                        <button onClick={ () => this.editBox.current.open(b, this.findBlockData(b)) } title={ __('Edit') }>{ blockTypes.get(b.blockType).friendlyName }</button>
+                    blocks.map(b => <div class={ `block` }>
+                        <button onClick={ () => this.editBox.current.open(b, this.findBlockData(b)) } title={ __('Edit') } class="btn">{ blockTypes.get(b.blockType).friendlyName }{ !this.findBlockData(b).title ? null : <span>{ this.findBlockData(b).title }</span> }</button>
                     </div>),
                     <EditBox ref={ this.editBox }/>,
                     <AddContentBox ref={ this.addBox } onBlockAdded={ this.addBlock.bind(this) }
-                        findLastBlock={ sectionName => this.findLastBlock(sectionName) }/>
+                        findLastBlock={ sectionName => this.findLastBlock(sectionName) }/>,
+                    <MainView ref={ this.mainView }/>
                 ]
                 : <p>{ __('No blocks on this page') }</p>,
-            <button onClick={ () => this.addBox.current.open(this.findLastBlock('main')) } title={ __('Add content to current page') }>Add content</button>
+            <button onClick={ () => this.addBox.current.open(this.findLastBlock('main')) } title={ __('Add content to current page') } class="btn">{ __('Add content') }</button>
         ];
     }
     /**
@@ -83,6 +85,41 @@ class EditApp extends preact.Component {
         return this.state.blocks.reduce((l, b) =>
             (this.findBlockData(b) || {}).section === sectionName ? b : l
         , null);
+    }
+}
+
+class MainView extends preact.Component {
+    /**
+     * @param {todo} props
+     */
+    constructor(props) {
+        super(props);
+        this.state = {isOpen: false};
+        this.rendererProps = null;
+    }
+    /**
+     * @todo
+     * @acces public
+     */
+    open(Renderer, props) {
+        this.rendererProps = Object.assign({view: this}, props);
+        this.setState({isOpen: true, Renderer});
+    }
+    /**
+     * @acces public
+     */
+    close() {
+        this.setState({isOpen: false});
+    }
+    /**
+     * @acces protected
+     */
+    render(_, {isOpen, Renderer}) {
+        if (!isOpen)
+            return;
+        return <div id="view" class={ !isOpen ? '' : 'open' }>{
+            preact.createElement(Renderer, this.rendererProps)
+        }</div>;
     }
 }
 
@@ -114,7 +151,7 @@ class AddContentBox extends preact.Component {
     /**
      * @acces protected
      */
-    render (_, {isOpen, newBlockRef, newBlockData}) {
+    render(_, {isOpen, newBlockRef, newBlockData}) {
         if (!isOpen)
             return;
         const Form = blockTypes.get(newBlockData.type).FormImpl;
@@ -175,7 +212,7 @@ class AddContentBox extends preact.Component {
         e.preventDefault();
         this.currentForm.current.applyLatestValue(); // mutates this.state.newBlockData
         this.setState({isOpen: false});
-        services.http.post('index.php?q=/api/blocks', Object.assign({
+        services.http.post('/api/blocks', Object.assign({
             pageId: '1' // todo where get this ?
         }, this.state.newBlockData)).then(_resp => {
             // todo update id (_resp.insertId)
@@ -230,7 +267,7 @@ class EditBox extends preact.Component {
     /**
      * @acces protected
      */
-    render (_, {isOpen, blockRef, blockData}) {
+    render(_, {isOpen, blockRef, blockData}) {
         if (!isOpen)
             return;
         const Form = blockTypes.get(blockRef.blockType).FormImpl;
@@ -259,7 +296,7 @@ class EditBox extends preact.Component {
         e.preventDefault();
         this.currentForm.current.applyLatestValue();
         this.setState({isOpen: false});
-        services.http.put(`index.php?q=/api/blocks/${this.state.blockRef.blockId}`, Object.assign({
+        services.http.put(`/api/blocks/${this.state.blockRef.blockId}`, Object.assign({
         }, this.state.blockData)).then(_resp => {
             // ?
         })

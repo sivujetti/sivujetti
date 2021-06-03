@@ -14,8 +14,8 @@ final class Todo {
     }
     public function tempFetchPages($temp1, $temp2): array {
         return $this->db->fetchAll(
-            'SELECT p.`title`,p.`template`' .
-            ',b.`type` AS `blockType`,b.`section` AS `blockSection`,b.`renderer` AS `blockRenderer`,b.`id` AS `blockId`' .
+            'SELECT p.`id`,p.`title`,p.`template`' .
+            ',b.`type` AS `blockType`,b.`section` AS `blockSection`,b.`renderer` AS `blockRenderer`,b.`id` AS `blockId`,b.`pageId` AS `blockPageId`,b.`title` AS `blockTitle`' .
             ',bp.`blockId` AS `blockPropBlockId`,bp.`key` AS `blockPropKey`,bp.`value` AS `blockPropValue`' .
             ' from `pages` p' .
             ' JOIN `blocks` b ON (b.`pageId` = p.`id`)' .
@@ -26,12 +26,14 @@ final class Todo {
             Page::class
         );
     }
-    public function temp2(array $rows): ?Page {
+    public function temp2(array $rows, $i = 0): ?Page {
         if (!$rows)
             return null;
-        $page = $rows[0];
+        $page = $rows[$i];
         $page->blocks = [];
         foreach ($rows as $row) {
+            if ($row->blockPageId !== $page->id)
+                continue;
             if (array_reduce($page->blocks, fn($prev, $block) =>
                 !$prev ? $block->id === $row->blockId : $prev,
             null)) continue;
@@ -44,5 +46,32 @@ final class Todo {
             $page->blocks[] = $b;
         }
         return $page;
+    }
+    public function temp3(array $rows): array {
+        if (!$rows)
+            return null;
+        $pages = [];
+        foreach ($rows as $rowo) {
+            if (array_key_exists("k-$rowo->id", $pages))
+                continue;
+            $blocks = [];
+            foreach ($rows as $row) {
+                if ($row->blockPageId !== $rowo->id)
+                    continue;
+                if (array_key_exists("k-$row->blockId", $blocks))
+                    continue;
+                $b = Block::fromDbResult($row, $rows);
+                $makeBlockType = $this->blockTypes[$b->type] ?? null;
+                if (!$makeBlockType) continue;
+                $blockType = $makeBlockType();
+                if (method_exists($blockType, 'fetchData'))
+                    $makeBlockType()->fetchData($b, $this);
+                $blocks["k-$row->blockId"] = $b;
+            }
+            $rowo->blocks = array_values($blocks);
+            $pages["k-$rowo->id"] = $rowo;
+
+        }
+        return array_values($pages);
     }
 }

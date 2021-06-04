@@ -2,7 +2,7 @@
 
 namespace KuuraCms\Entities;
 
-use KuuraCms\ContentType\ContentTypeCollection;
+use KuuraCms\PageType\PageTypeCollection;
 
 final class TheWebsite {
     /** @var string e.g. 'My site' */
@@ -13,6 +13,6 @@ final class TheWebsite {
     public string $aclRulesJson;
     /** @var \KuuraCms\Entities\Plugin[] */
     public \ArrayObject $plugins;
-    /** @var \KuuraCms\ContentType\ContentTypeCollection */
-    public ContentTypeCollection $contentTypes;
+    /** @var \KuuraCms\PageType\PageTypeCollection */
+    public PageTypeCollection $pageTypes;
 }

@@ -3,20 +3,24 @@
 namespace KuuraCms\Defaults;
 
 use KuuraCms\Block\BlockTypeInterface;
-use KuuraCms\Entities\Block;
-use KuuraCms\Entities\BlockProperties;
+use KuuraCms\Entities\{Block, BlockProperties, BlockProperty};
 use KuuraCms\Page\Todo;
+use Pike\ArrayUtils;
+use Pike\PikeException;
 
-final class ListingBlockType implements BlockTypeInterface {
+final class ListingBlockType implements BlockTypeInterface
+{
     /**
-     * Fetches data for 'dynamic-listing' typed block $for.
+     * Fetches data for 'dynamic-listing' -typed block $for.
      */
-    public function fetchData(Block $for, Todo $paegRepo) {
-        // todo use the actual $block->fetchFilters
-        $rows = $paegRepo->tempFetchPages('p.`title` = ?', '<pseudo>');
+    public function fetchData(Block $for, Todo $paegRepo): void
+    {
+        // {"$all": {"$eq": {"pageType": "Services"}}}
+        $rows = $paegRepo->tempFetch(json_decode($for->fetchFilters)->{'$all'}->{'$eq'}->pageType);
         $for->__pages = $paegRepo->temp3($rows);
     }
-    public function onBeforeRenderPage(array $blocks): array {
+    public function onBeforeRenderPage(array $blocks): array
+    {
         $listingBlocks = [];
         foreach ($blocks as $block) {
             if ($block->type !== Block::TYPE_LISTING)
@@ -28,10 +32,17 @@ final class ListingBlockType implements BlockTypeInterface {
         return $listingBlocks;
     }
     // todo add separate interface for dynamic blocks?
-    public function getDefaultRenderer(): string {
+    public function getDefaultRenderer(): string
+    {
         return 'auto';
     }
-    public function defineProperties(): BlockProperties {
-        return new BlockProperties;
+    public function defineProperties(): BlockProperties
+    {
+        $out = new BlockProperties;
+        $p1 = new BlockProperty;
+        $p1->name = 'fetchFilters';
+        $p1->dataType = 'text';
+        $out[] = $p1;
+        return $out;
     }
 }

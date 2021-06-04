@@ -1,17 +1,19 @@
+-- todo use StorageStrategy -abstraction
+
 INSERT INTO `theWebsite` VALUES
 ('My site','en','{}',0);
 
-INSERT INTO `contentTypes` VALUES
-(1,'Pages','["heading","paragraph"]',1),
-(2,'Services','["heading","paragraph"]',1);
+INSERT INTO `pageTypes` VALUES
+(1,'Pages','[{"blockType":"heading","initialData":{"level":2}},{"blockType":"paragraph","initialData":{}}]',1),
+(2,'Services','[{"blockType":"heading","initialData":{"level":2}},{"blockType":"paragraph","initialData":{}}]',1);
 
-INSERT INTO `Pages` VALUES
-(1,'/','Basic site example','layout.full-width.tmpl.php'),
-(2,'/company','Company','layout.with-sidebar.tmpl.php'),
-(3,'/services','Services','layout.with-sidebar.tmpl.php'),
-(4,'','<pseudo>',''),
-(5,'','<pseudo>',''),
-(6,'/contact','Contact','layout.full-width.tmpl.php');
+INSERT INTO `pages` VALUES
+(1,'/','Basic site example','layout.full-width.tmpl.php',1),
+(2,'/company','Company','layout.with-sidebar.tmpl.php',1),
+(3,'/services','Services','layout.with-sidebar.tmpl.php',1),
+(4,'','','',2),
+(5,'','','',2),
+(6,'/contact','Contact','layout.full-width.tmpl.php',1);
 
 INSERT INTO `blocks` VALUES
 -- home
@@ -55,7 +57,7 @@ INSERT INTO `blockProps` VALUES
 
 (11,'text','Services',8),
 (12,'level','1',8),
-(13,'fetchFilters','{"$all": {"$eq": {"contentType": "Services"}}}',9),
+(13,'fetchFilters','{"$all": {"$eq": {"pageType": "Services"}}}',9),
 (14,'text','Sidebar2',10),
 (15,'level','2',10),
 (16,'text','text',11),

@@ -7,11 +7,15 @@
     elseif ($props->type === \KuuraCms\Entities\Block::TYPE_FORMATTED_TEXT):
         echo $props->html; // Allow pre-validated html
     elseif ($props->type === \KuuraCms\Entities\Block::TYPE_LISTING):
-        foreach ($props->__pages as $page):
-            echo $this->renderBlocks($page->blocks);
-        endforeach;
+        if ($props->__pages): // Pages, Articles etc.
+            foreach ($props->__pages as $entity):
+                echo $this->renderBlocks($entity->blocks);
+            endforeach;
+        else:
+            echo '<p>No "',json_decode($props->fetchFilters)->{'$all'}->{'$eq'}->pageType,'" found.</p>';// todo custom no results -page
+        endif;
     else:
-        echo '<!-- Can\'t render -->';
+        echo "<!-- Don't know how to render a custom page type `{$props->type}` -->"; // allow unescaped
     endif;
 else:
     throw new \Pike\PikeException('cant render');

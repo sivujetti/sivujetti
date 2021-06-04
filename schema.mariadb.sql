@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `blockProps`;
 DROP TABLE IF EXISTS `blocks`;
-DROP TABLE IF EXISTS `Pages`;
-DROP TABLE IF EXISTS `contentTypes`;
+DROP TABLE IF EXISTS `pages`;
+DROP TABLE IF EXISTS `pageTypes`;
 DROP TABLE IF EXISTS `plugins`;
 DROP TABLE IF EXISTS `theWebsite`;
 
@@ -19,7 +19,7 @@ CREATE TABLE `plugins` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE `contentTypes` (
+CREATE TABLE `pageTypes` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92)  NOT NULL,
     `fields` JSON,
@@ -27,11 +27,13 @@ CREATE TABLE `contentTypes` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE `Pages` (
+CREATE TABLE `pages` (
     `id` MEDIUMINT UNSIGNED NOT NULL PRIMARY KEY AUTOINCREMENT,
     `slug` VARCHAR(92) NOT NULL,
     `title` VARCHAR(92) NOT NULL,
-    `layout` VARCHAR(42) NOT NULL
+    `template` VARCHAR(128) NOT NULL,
+    `pageTypeId` SMALLINT UNSIGNED NOT NULL,
+    FOREIGN KEY(`pageTypeId`) REFERENCES `pageTypes`(`id`)
 ) DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `blocks` (
@@ -41,7 +43,7 @@ CREATE TABLE `blocks` (
     `renderer` VARCHAR(128) NOT NULL,
     `pageId` MEDIUMINT UNSIGNED NOT NULL,
     `title` VARCHAR(48) DEFAULT NULL,
-    FOREIGN KEY(`pageId`) REFERENCES `Pages`(`id`),
+    FOREIGN KEY(`pageId`) REFERENCES `pages`(`id`),
 ) DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE `blockProps` (

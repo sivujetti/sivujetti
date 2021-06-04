@@ -2,7 +2,6 @@
 
 namespace KuuraCms;
 
-use KuuraCms\Entities\Block;
 use KuuraCms\Entities\Page;
 use Pike\{ArrayUtils, Template as PikeTemplate};
 

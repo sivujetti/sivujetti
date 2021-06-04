@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `blockProps`;
 DROP TABLE IF EXISTS `blocks`;
-DROP TABLE IF EXISTS `Pages`;
-DROP TABLE IF EXISTS `contentTypes`;
+DROP TABLE IF EXISTS `pages`;
+DROP TABLE IF EXISTS `pageTypes`;
 DROP TABLE IF EXISTS `plugins`;
 DROP TABLE IF EXISTS `theWebsite`;
 
@@ -18,18 +18,20 @@ CREATE TABLE `plugins` (
     `status` INTEGER NOT NULL
 );
 
-CREATE TABLE `contentTypes` (
+CREATE TABLE `pageTypes` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
     `fields` TEXT,
     `isListable` INTEGER DEFAULT 1
 );
 
-CREATE TABLE `Pages` (
+CREATE TABLE `pages` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `slug` TEXT NOT NULL,
     `title` TEXT NOT NULL,
-    `template` TEXT NOT NULL
+    `template` TEXT NOT NULL,
+    `pageTypeId` INTEGER NOT NULL,
+    FOREIGN KEY(`pageTypeId`) REFERENCES `pageTypes`(`id`)
 );
 
 CREATE TABLE `blocks` (

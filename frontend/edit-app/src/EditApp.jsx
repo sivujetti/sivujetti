@@ -1,17 +1,8 @@
 import {__} from './temp.js';
 import services from './services.js';
-import headingBlockType from './headingBlockType.js';
-import paragraphBlockType from './paragraphBlockType.js';
-import formattedTextBlockType from './formattedTextBlockType.js';
-import listingBlockType from './listingBlockType.js';
+import EditBox, {createBlockData, tryToReRenderBlock} from './EditBox.jsx';
 
 const TODO = 282;
-
-const blockTypes = new Map();
-blockTypes.set('heading', headingBlockType);
-blockTypes.set('paragraph', paragraphBlockType);
-blockTypes.set('formatted-text', formattedTextBlockType);
-blockTypes.set('dynamic-listing', listingBlockType);
 
 class EditApp extends preact.Component {
     constructor(props) {
@@ -30,7 +21,7 @@ class EditApp extends preact.Component {
      */
     registerBlockType(name, blockType) {
         // @todo validate
-        blockTypes.set(name, blockType);
+        services.blockTypes.set(name, blockType);
     }
     /**
      * Kutsutaan ifamen sisältä joka kerta, kun siihen latautuu uusi sivu.
@@ -53,7 +44,7 @@ class EditApp extends preact.Component {
             blocks.length
                 ? [
                     blocks.map(b => <div class={ `block` }>
-                        <button onClick={ () => this.editBox.current.open(b, this.findBlockData(b)) } title={ __('Edit') } class="btn">{ blockTypes.get(b.blockType).friendlyName }{ !this.findBlockData(b).title ? null : <span>{ this.findBlockData(b).title }</span> }</button>
+                        <button onClick={ () => this.editBox.current.open(b, this.findBlockData(b)) } title={ __('Edit') } class="btn">{ services.blockTypes.get(b.blockType).friendlyName }{ !this.findBlockData(b).title ? null : <span>{ this.findBlockData(b).title }</span> }</button>
                     </div>),
                     <EditBox ref={ this.editBox }/>,
                     <AddContentBox ref={ this.addBox } onBlockAdded={ this.addBlock.bind(this) }
@@ -138,7 +129,7 @@ class AddContentBox extends preact.Component {
      * @acces public
      */
     open(after) {
-        const newBlockRef = EditApp.currentWebPage.addBlock(blockTypes.get('paragraph').getInitialData().text, after);
+        const newBlockRef = EditApp.currentWebPage.addBlock(services.blockTypes.get('paragraph').getInitialData().text, after);
         this.setState({isOpen: true,
                        newBlockRef,
                        newBlockData: createBlockData({
@@ -154,7 +145,7 @@ class AddContentBox extends preact.Component {
     render(_, {isOpen, newBlockRef, newBlockData}) {
         if (!isOpen)
             return;
-        const Form = blockTypes.get(newBlockData.type).CreateFormImpl;
+        const Form = services.blockTypes.get(newBlockData.type).CreateFormImpl;
         const rect = newBlockRef.position;
         return <form class="edit-box" style={ `left: ${TODO+rect.left}px; top: ${rect.top}px` }
              onSubmit={ this.applyNewContent.bind(this) }>
@@ -163,7 +154,7 @@ class AddContentBox extends preact.Component {
                     <option value="main">Main</option>
                     <option value="sidebar">Sidebar</option>
                 </select></div>
-                <div><select value={ newBlockData.type } onChange={ this.handleBlockTypeChanged.bind(this) }>{ Array.from(blockTypes.entries()).map(([name, blockType]) =>
+                <div><select value={ newBlockData.type } onChange={ this.handleBlockTypeChanged.bind(this) }>{ Array.from(services.blockTypes.entries()).map(([name, blockType]) =>
                     <option value={ name }>{ __(blockType.friendlyName) }</option>
                 ) }</select></div>
                 <Form onValueChanged={ this.handleBlockValueChanged.bind(this) } blockData={ newBlockData } ref={ this.currentForm }/>
@@ -213,13 +204,14 @@ class AddContentBox extends preact.Component {
         this.currentForm.current.applyLatestValue(); // mutates this.state.newBlockData
         this.setState({isOpen: false});
         services.http.post('/api/blocks', Object.assign({
-            pageId: '1' // todo where get this ?
+            pageId: EditApp.currentWebPage.pageId,
         }, this.state.newBlockData)).then(_resp => {
             // todo update id (_resp.insertId)
             this.props.onBlockAdded(this.state.newBlockRef, this.state.newBlockData);
         })
-        .catch(_err => {
+        .catch(err => {
             // ??
+            window.console.error(err);
         });
     }
     /**
@@ -227,88 +219,6 @@ class AddContentBox extends preact.Component {
      */
     discardNewContent() {
         this.state.newBlockRef.destroy();
-        this.setState({isOpen: false});
-    }
-}
-
-function tryToReRenderBlock(blockRef, newData, currentData, type = currentData.type) {
-    const blockType = blockTypes.get(type);
-    if (!blockType)
-        throw new Error('hoo');
-    blockType.reRender(newData, blockRef, currentData);
-}
-
-function createBlockData(from) {
-    return Object.assign({
-        type: from.type,
-        section: from.section,
-        renderer: from.renderer,
-        id: from.id
-    }, blockTypes.get(from.type).getInitialData());
-}
-
-/**
- * Note: mutates props.blockData
- */
-class EditBox extends preact.Component {
-    constructor(props) {
-        super(props);
-        this.state = {isOpen: false, blockRef: null, blockData: null};
-        this.currentForm = preact.createRef();
-    }
-    /**
-     * @todo
-     * @todo @todo combine these?
-     * @acces public
-     */
-    open(blockRef, blockData) {
-        this.setState({isOpen: true, blockRef: blockRef, blockData});
-    }
-    /**
-     * @acces protected
-     */
-    render(_, {isOpen, blockRef, blockData}) {
-        if (!isOpen)
-            return;
-        const Form = blockTypes.get(blockRef.blockType).EditFormImpl;
-        const rect = blockRef.position;
-        return <form class="edit-box" style={ `left: ${TODO+rect.left}px; top: ${rect.top}px` }
-            onSubmit={ this.applyChanges.bind(this) }>
-            <div class="edit-box__inner">
-                <Form onValueChanged={ this.handleBlockValueChanged.bind(this) } blockData={ blockData } ref={ this.currentForm }/>
-                <button class="btn btn-primary">{ __('Apply') }</button>
-                <button class="btn btn-link" onClick={ this.discardChanges.bind(this) } type="button">{ __('Cancel') }</button>
-            </div>
-        </form>;
-    }
-    /**
-     * @todo
-     * @access private
-     */
-    handleBlockValueChanged(newData) {
-        tryToReRenderBlock(this.state.blockRef, newData, this.state.blockData);
-    }
-    /**
-     * @todo
-     * @access private
-     */
-    applyChanges(e) {
-        e.preventDefault();
-        this.currentForm.current.applyLatestValue();
-        this.setState({isOpen: false});
-        services.http.put(`/api/blocks/${this.state.blockRef.blockId}`, Object.assign({
-        }, this.state.blockData)).then(_resp => {
-            // ?
-        })
-        .catch(_err => {
-            // ??
-        });
-    }
-    /**
-     * @access private
-     */
-    discardChanges() {
-        // @todo revert if changed
         this.setState({isOpen: false});
     }
 }

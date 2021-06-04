@@ -12,5 +12,8 @@ final class PagesModule {
         $ctx->router->map('GET', '*',
             [PagesController::class, 'renderPage']
         );
+        $ctx->router->map('POST', '/api/pages',
+            [PagesController::class, 'createPage']
+        );
     }
 }

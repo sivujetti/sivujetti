@@ -12,8 +12,5 @@ final class BlocksModule {
         $ctx->router->map('PUT', '/api/blocks/[i:blockId]',
             [BlocksController::class, 'updateBlock']
         );
-        $ctx->router->map('POST', '/api/temp-create-service-and-add-it-to-list',
-            [BlocksController::class, 'tempCreateService']
-        );
     }
 }

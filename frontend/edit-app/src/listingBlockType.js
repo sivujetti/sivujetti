@@ -1,5 +1,7 @@
 import {__} from './temp.js';
 import services from './services.js'; // How to expose main API to the SDK?
+import EditApp from './EditApp.jsx';
+import {CreateBlocksSequence, createBlockData} from './EditBox.jsx';
 
 const todoIsBlockSavedToBackend = (_blockRef, blockData) =>
     !blockData.id.startsWith('new-')
@@ -9,11 +11,11 @@ const listingBlockReRender = (newDataFromForm, blockRef, prevData) => {
     if (todoIsBlockSavedToBackend(blockRef, prevData))
         // todo how to rerender dynamic listing without reloading the whole page ??
         return;
-    blockRef.tryToReRenderWithHtml(`<div>A list of ${JSON.parse(newDataFromForm.fetchFilters).$all.$eq.contentType} will appear here...</div>`);
+    blockRef.tryToReRenderWithHtml(`<div>A list of ${JSON.parse(newDataFromForm.fetchFilters).$all.$eq.pageType} will appear here...</div>`);
 };
 
 const listingBlockGetInitialData = () => ({
-    fetchFilters: '{"$all": {"$eq": {"contentType": "Pages"}}}'
+    fetchFilters: '{"$all": {"$eq": {"pageType": "Pages"}}}'
 });
 
 /*
@@ -25,23 +27,23 @@ interface FormInputs {
 class ListingBlockCreateFormInputs extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {contentTypesThatCanBeListed: null,
+        this.state = {pageTypesThatCanBeListed: null,
                       fetchFilters: props.blockData.fetchFilters,
-                      foo: JSON.parse(props.blockData.fetchFilters).$all.$eq.contentType};
-        services.http.get('/api/content-types/listable')
-            .then(contentTypesThatCanBeListed => { this.setState({contentTypesThatCanBeListed}); })
+                      foo: JSON.parse(props.blockData.fetchFilters).$all.$eq.pageType};
+        services.http.get('/api/page-types/listable')
+            .then(pageTypesThatCanBeListed => { this.setState({pageTypesThatCanBeListed}); })
             .catch(window.console.error);
     }
-    render(_, {contentTypesThatCanBeListed, foo}) {
-        return contentTypesThatCanBeListed
-            ? <select value={ foo } onChange={ e => this.asd(e, 'foo') }>{ contentTypesThatCanBeListed.map(ct =>
+    render(_, {pageTypesThatCanBeListed, foo}) {
+        return pageTypesThatCanBeListed
+            ? <select value={ foo } onChange={ e => this.asd(e, 'foo') }>{ pageTypesThatCanBeListed.map(ct =>
                 <option value={ ct.name }>{ __(ct.name) }</option>
             ) }</select>
             : __('Loading ...');
     }
     asd(e, prop) {
         const asd = e.target.value;
-        const fetchFilters = `{"$all": {"$eq": {"contentType": "${asd}"}}}`;
+        const fetchFilters = `{"$all": {"$eq": {"pageType": "${asd}"}}}`;
         this.setState({[prop]: asd, fetchFilters});
         this.props.onValueChanged({fetchFilters});
     }
@@ -53,82 +55,60 @@ class ListingBlockCreateFormInputs extends preact.Component {
 class ListingBlockEditFormInputs extends preact.Component {
     constructor(props) {
         super(props);
-        this.entityType = JSON.parse(props.blockData.fetchFilters).$all.$eq.contentType;
-        this.entityTypeSingular = this.entityType.substr(0, this.entityType.length - 1);
+        this.pageType = JSON.parse(props.blockData.fetchFilters).$all.$eq.pageType;
+        this.pageTypeSingular = this.pageType.substr(0, this.pageType.length - 1);
+        this.dos = preact.createRef();
+        this.state = {blockRefs: null, blocksData: null};
     }
-    render({blockData}) {
-        let F = AddPageView;
-        // if (this.entityType === 'Articles')
-        //     F = 'SomeOther';
-        // if (this.entityType === 'MyTypes')
-        //     F = 'SomeOther2';
+    render({blockRef}) {
         return <>
-            <button onClick={ () => services.editApp.openView(F, {entityType: this.entityTypeSingular, listingTitle: blockData.title || '[not-specified]'}) } title="" class="btn">{ __(`Add ${this.entityTypeSingular}`) }</button>
+            <button onClick={ this.openCreateItemToListingSequence.bind(this) } title="" class="btn" type="button">{ __(`Add ${this.pageTypeSingular}`) }</button>
+            <CreateBlocksSequence title={ `Add ${this.pageTypeSingular}` } d={ () => {
+                return {top: blockRef.position.top - this.props.getEditBoxHeight(),
+                        left: blockRef.position.left};
+            } } pageType={ this.pageType } ref={ this.dos }/>
         </>;
+    }
+    openCreateItemToListingSequence() {
+        services.http.get(`/api/page-types/${this.pageType}`)
+            .then(pageType => {
+                const lastListItem = this.props.blockRef; // todo
+                const d = makeBlocksFrom(pageType.fields, lastListItem); // Note: appends nodes to DOM
+                this.setState(d);
+                // todo update initial "Edit listing" editbox
+                // Open first property automatically
+                setTimeout(() => {
+                this.dos.current.open(d.blockRefs, d.blocksDatas);
+                }, 20);
+            })
+            .catch(window.console.error);
     }
     applyLatestValue() {
         //
     }
 }
 
-// todo see notes.txt
-class AddPageView extends preact.Component {
-    /**
-     * @param {todo} props
-     */
-    constructor(props) {
-        super(props);
-        this.state = {title: 'Title', slug: 'title', template: 'full-width'};
-    }
-    /**
-     * @acces protected
-     */
-    render({entityType, listingTitle}, {title, slug}) {
-        return <div>
-            <h2>{ `${__('Add')} ${entityType}` }</h2>
-            <div>{ __(`Add new entry to "${listingTitle}" listing.`) }</div>
-            <form onSubmit={ this.handleSubmit.bind(this) }>
-                <input value={ title } onInput={ e => this.doo(e, 'title') }/>
-                <br/>
-                <input value={ slug } onInput={ e => this.doo(e, 'slug') }/>
-                <br/>
-                <button class="btn">{ __('Add') }</button>
-                <button onClick={ this.handleCancel.bind(this) } class="btn btn-link" type="button">{ __('Cancel') }</button>
-            </form>
-        </div>;
-    }
-    /**
-     * @param {todo} e
-     * @acces private
-     */
-    handleSubmit(e) {
-        e.preventDefault();
-        services.http.post('/api/temp-create-service-and-add-it-to-list', {
-            title: this.state.title,
-            slug: this.state.slug,
-            template: this.state.template,
-        })
-        .then(_resp => {
-            window.location.reload();
-        })
-        .catch(_err => {
-            // ??
-        });
-    }
-    /**
-     * @acces private
-     */
-    handleCancel() {
-        this.props.view.close();
-    }
-    /**
-     * @param {todo} e
-     * @param {todo} e
-     * @acces private
-     */
-    doo(e, prop) {
-        this.setState({[prop]: e.target.value});
-    }
+function makeBlocksFrom(pageTypeFields, after) {
+    const out = {
+        blockRefs: [],
+        blocksDatas: [],
+    };
+    pageTypeFields.forEach(field => {
+        const t = services.blockTypes.get(field.blockType);
+        const initialData = Object.assign(
+            createBlockData({
+                type: field.blockType,
+                section: 'main',  // todo
+                renderer: 'auto', // todo
+                id: '<none>',
+            }),
+            t.getInitialData(),
+            field.initialData
+        );
+        out.blockRefs.push(EditApp.currentWebPage.addBlockT(t, initialData, after));
+        out.blocksDatas.push(Object.assign({title: null /* todo */}, initialData));
+    });
+    return out;
 }
 
 const blockType = {

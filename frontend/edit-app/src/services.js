@@ -11,6 +11,7 @@ const setupServices = config => {
             return config.editAppReactRef.current.mainView.current.open(RendererClass, props);
         }
     };
+    services.blockTypes = config.blockTypes;
 };
 
 export default services;

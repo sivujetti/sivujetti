@@ -1,13 +1,17 @@
 let counter = 0;
 
 class EditAppAwareWebPage {
+    constructor() {
+        this.pageId = null; // public
+    }
     /**
      * @todo
      * @todo
      * @access public
      */
-    doLoad(editApp, currentPageBlocks) {
-        if (editApp) editApp.current.handleWebpageLoaded(this, currentPageBlocks);
+    doLoad(editApp, currentPage) {
+        this.pageId = currentPage.pageId;
+        if (editApp) editApp.current.handleWebpageLoaded(this, currentPage.blocks);
     }
     /**
      * @return todo
@@ -46,7 +50,19 @@ class EditAppAwareWebPage {
         const p = document.createElement('p');
         p.textContent = initialText;
         return this._addBlock([p], sectionName, after);
-
+    }
+    /**
+     * @todo
+     * @todo
+     * @todo
+     * @return todo
+     * @access public
+     */
+    addBlockT(blockType, initialData, after) {
+        const refg = this.addBlock('wiped', after);
+        refg.blockType = initialData.type; // ??
+        blockType.reRender(initialData, refg, {});
+        return refg;
     }
     /**
      * @todo
@@ -110,8 +126,6 @@ class Block { // @todo Block, Comment, BlockRef ??
         this.blockId = input.blockId; // public string
         this.blockType = input.blockType; // public string
         this.startingCommentNode = input.startingCommentNode; // public
-
-
         this.startingDomNode = this.startingCommentNode.nextElementSibling; // private
     }
     get position() {

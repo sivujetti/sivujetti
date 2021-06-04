@@ -32,10 +32,10 @@ final class BlocksController {
             [$qGroups, $values, $columns] = $db->makeBatchInsertQParts($blockProps);
             return $db->exec("INSERT INTO `blockProps` ({$columns}) VALUES {$qGroups}",
                              $values) > 0 ? $insertId : null;
-
         });
 
-        $res->json(['insertId' => $newBlockId]);
+        $res->json(['ok' => $newBlockId !== null ? 'ok' : 'err',
+                    'insertId' => $newBlockId]);
     }
     public function updateBlock(Request $req, Response $res, SharedAPIContext $storage, Db $db): void {
         // todo validate block-related input
@@ -72,46 +72,6 @@ final class BlocksController {
 
         $res->json(['ok' => $ok]);
     }
-    public function tempCreateService(Request $req, Response $res, Db $db): void {
-        [$qList, $values, $columns] = $db->makeInsertQParts([
-            'title' => '<pseudo>',
-            'slug' => '',
-            'template' => '',
-        ]);
-        if ($db->exec("INSERT INTO `pages` ({$columns}) VALUES ({$qList})",
-                      $values) !== 1)
-            throw new PikeException('foo');
-        $pageId = $db->lastInsertId();
-
-        foreach ([
-            [
-                (object) ['type' => 'heading', 'section' => 'main',
-                          'renderer' => 'auto', 'pageId' => $pageId],
-                [(object) ['key' => 'text', 'value' => 'Service 3', 'blockId' => 'see below'],
-                 (object) ['key' => 'level', 'value' => '2', 'blockId' => 'see below']]
-            ],
-            [
-                (object) ['type' => 'paragraph', 'section' => 'main',
-                          'renderer' => 'auto', 'pageId' => $pageId],
-                [(object) ['key' => 'text', 'value' => 'Catdogs', 'blockId' => 'see below']]
-            ],
-        ] as [$blockData, $blockProps]) {
-
-            [$qList, $values, $columns] = $db->makeInsertQParts($blockData);
-            if ($db->exec("INSERT INTO `blocks` ({$columns}) VALUES ({$qList})",
-                          $values) !== 1)
-                throw new PikeException('foo');
-            $blockId = $db->lastInsertId();
-
-            foreach ($blockProps as $prop)
-                $prop->blockId = $blockId;
-            [$qGroups, $values, $columns] = $db->makeBatchInsertQParts($blockProps);
-            $db->exec("INSERT INTO `blockProps` ({$columns}) VALUES {$qGroups}",
-                      $values);
-        }
-
-        $res->json(['ok' => true]);
-    }
     private static function makeBlockProps(object $reqBody, array $blockTypes): array {
         $t = $blockTypes[$reqBody->type] ?? null;
         if (!$t)
@@ -119,6 +79,8 @@ final class BlocksController {
 
         //
         $propDescriptors = $t()->defineProperties();
+        if (!count($propDescriptors)) throw new \RuntimeException('?');
+
         $blockProps = [];
         foreach ($propDescriptors as $d)
             // todo validate using $d (if $d->dataType == 'string' && !is_string($reqBody->{$d->name})) etc..)

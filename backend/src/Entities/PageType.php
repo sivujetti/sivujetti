@@ -2,7 +2,7 @@
 
 namespace KuuraCms\Entities;
 
-final class ContentType {
+final class PageType {
     /** @var string */
     public string $name;
     /** @var array */
@@ -13,11 +13,11 @@ final class ContentType {
      * @param object $row
      * @return self
      */
-    static function fromParentRs(object $row): ContentType {
+    static function fromParentRs(object $row): PageType {
         $out = new self;
-        $out->name = $row->contentTypeName;
-        $out->fields = json_decode($row->contentTypeFields, false, 512, JSON_THROW_ON_ERROR);
-        $out->isListable = (bool) $row->contentTypeIsListable;
+        $out->name = $row->pageTypeName;
+        $out->fields = json_decode($row->pageTypeFields, false, 512, JSON_THROW_ON_ERROR);
+        $out->isListable = (bool) $row->pageTypeIsListable;
         return $out;
     }
 }

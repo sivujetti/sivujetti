@@ -3,9 +3,9 @@
 namespace KuuraCms;
 
 use Pike\Db;
-use KuuraCms\ContentType\ContentTypeCollection;
+use KuuraCms\PageType\PageTypeCollection;
 use KuuraCms\Entities\TheWebsite;
-use KuuraCms\Entities\ContentType;
+use KuuraCms\Entities\PageType;
 use KuuraCms\Entities\Plugin;
 
 final class TheWebsiteRepository {
@@ -18,17 +18,17 @@ final class TheWebsiteRepository {
             'SELECT' .
                 ' ws.`name`, ws.`lang`, ws.`aclRules` AS `aclRulesJson`' .
                 ', p.`name` AS `pluginName`' .
-                ', ct.`name` AS `contentTypeName`, ct.`fields` AS `contentTypeFields`, ct.`isListable` AS `contentTypeIsListable`' .
+                ', ct.`name` AS `pageTypeName`, ct.`fields` AS `pageTypeFields`, ct.`isListable` AS `pageTypeIsListable`' .
             ' FROM theWebsite ws' .
             ' LEFT JOIN plugins p ON (1)' .
-            ' LEFT JOIN contentTypes ct ON (1)',
+            ' LEFT JOIN pageTypes ct ON (1)',
             [],
             \PDO::FETCH_CLASS,
             TheWebsite::class
         );
         $out = $rows[0];
         $out->plugins = (new Collector($rows))->collect(Plugin::class, 'pluginName');
-        $out->contentTypes = (new Collector($rows, new ContentTypeCollection))->collect(ContentType::class, 'contentTypeName');
+        $out->pageTypes = (new Collector($rows, new PageTypeCollection))->collect(PageType::class, 'pageTypeName');
         return $out;
     }
 }

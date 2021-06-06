@@ -17,30 +17,30 @@ INSERT INTO `pages` VALUES
 
 INSERT INTO `blocks` VALUES
 -- home
-(1,'heading','main','auto',1,NULL),
-(2,'paragraph','main','auto',1,NULL),
-(3,'formatted-text','main','auto',1,NULL),
+(1,'heading','main','kuura:auto',1,NULL),
+(2,'paragraph','main','kuura:auto',1,NULL),
+(3,'formatted-text','main','kuura:auto',1,NULL),
 
 -- company
-(4,'heading','main','auto',2,NULL),
-(5,'paragraph','main','auto',2,NULL),
-(6,'heading','sidebar','auto',2,NULL),
-(7,'paragraph','sidebar','auto',2,NULL),
+(4,'heading','main','kuura:auto',2,NULL),
+(5,'paragraph','main','kuura:auto',2,NULL),
+(6,'heading','sidebar','kuura:auto',2,NULL),
+(7,'paragraph','sidebar','kuura:auto',2,NULL),
 
 -- services
-(8,'heading','main','auto',3,NULL),
-(9,'dynamic-listing','main','auto',3,'Services'),
-(10,'heading','sidebar','auto',3,NULL),
-(11,'paragraph','sidebar','auto',3,NULL),
+(8,'heading','main','kuura:auto',3,NULL),
+(9,'dynamic-listing','main','kuura:auto',3,'Services'),
+(10,'heading','sidebar','kuura:auto',3,NULL),
+(11,'paragraph','sidebar','kuura:auto',3,NULL),
 -- services listing
-(14,'heading','main','auto',4,NULL),
-(15,'paragraph','main','auto',4,NULL),
-(16,'heading','sidebar','auto',5,NULL),
-(17,'paragraph','sidebar','auto',5,NULL),
+(14,'heading','main','kuura:auto',4,NULL),
+(15,'paragraph','main','kuura:auto',4,NULL),
+(16,'heading','sidebar','kuura:auto',5,NULL),
+(17,'paragraph','sidebar','kuura:auto',5,NULL),
 
 -- contact
-(12,'heading','main','auto',6,NULL),
-(13,'paragraph','main','auto',6,NULL);
+(12,'heading','main','kuura:auto',6,NULL),
+(13,'paragraph','main','kuura:auto',6,NULL);
 
 INSERT INTO `blockProps` VALUES
 (1,'text','Front page',1),

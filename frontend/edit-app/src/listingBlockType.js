@@ -99,7 +99,7 @@ function makeBlocksFrom(pageTypeFields, after) {
             createBlockData({
                 type: field.blockType,
                 section: 'main',  // todo
-                renderer: 'auto', // todo
+                renderer: 'kuura:auto', // todo
                 id: '<none>',
             }),
             t.getInitialData(),

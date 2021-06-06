@@ -23,7 +23,7 @@ final class PagesController
             return;
         }
         self::$blockTypes = $storage->getDataHandle()->blockTypes;
-        $html = (new Template(KUURA_WORKSPACE_PATH . "site/templates/{$page->template}",
+        $html = (new Template($page->template, // becomes KUURA_WORKSPACE_PATH . "site/templates/{$page->template}"
                               null,
                               array_map(fn($t) =>
                                 KUURA_WORKSPACE_PATH . "site/{$t()->getDefaultRenderer()}" // Quaranteed to be valid (see WebsiteApi->registerBlockType())
@@ -46,7 +46,7 @@ final class PagesController
     public function renderPageInEditMode(Request $req, Response $res, Db $db, SharedAPIContext $storage): void
     {
         //
-        $res->html((new Template(KUURA_BACKEND_PATH . 'assets/templates/edit-app-wrapper.tmpl.php'))->render([
+        $res->html((new Template('kuura:edit-app-wrapper.tmpl.php'))->render([
             'url' => $req->params->url ?? '',
             'userDefinedJsFiles' => $storage->getDataHandle()->userDefinedJsFiles->editApp,
         ]));

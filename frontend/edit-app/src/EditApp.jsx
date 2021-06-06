@@ -135,7 +135,7 @@ class AddContentBox extends preact.Component {
                        newBlockData: createBlockData({
                            type: 'paragraph',
                            section: 'main', // ??
-                           renderer: 'auto', // ??
+                           renderer: 'kuura:auto', // ??
                            id: newBlockRef.blockId
                         })});
     }

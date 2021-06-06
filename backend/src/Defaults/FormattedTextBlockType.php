@@ -7,7 +7,7 @@ use KuuraCms\Entities\{BlockProperties, BlockProperty};
 
 final class FormattedTextBlockType implements BlockTypeInterface {
     public function getDefaultRenderer(): string {
-        return 'auto';
+        return 'kuura:auto';
     }
     public function defineProperties(): BlockProperties {
         $out = new BlockProperties;

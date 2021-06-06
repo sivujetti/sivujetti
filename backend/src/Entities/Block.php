@@ -7,6 +7,7 @@ final class Block extends \stdClass {
     public const TYPE_PARAGRAPH = 'paragraph';
     public const TYPE_FORMATTED_TEXT = 'formatted-text';
     public const TYPE_LISTING = 'dynamic-listing';
+    public const TYPE_CONTACT_FORM = 'contact-form';
     /** @var string self::TYPE_* */
     public string $type;
     /** @var string e.g. 'main', 'sidebar' */

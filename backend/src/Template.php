@@ -3,7 +3,7 @@
 namespace KuuraCms;
 
 use KuuraCms\Entities\Page;
-use Pike\{ArrayUtils, Template as PikeTemplate};
+use Pike\{ArrayUtils, PikeException, Template as PikeTemplate};
 
 final class Template extends PikeTemplate {
     private array $__aliases = [];
@@ -13,8 +13,18 @@ final class Template extends PikeTemplate {
      * @param ?string[] $aliases = null
      */
     public function __construct(string $file, array $vars = null, array $aliases = null) {
-        parent::__construct($file, $vars);
+        parent::__construct(self::dos($file), $vars);
         $this->__aliases = $aliases ?? [];
+    }
+    private static function dos(string $pair): string {
+        $pcs = explode(':', $pair);
+        [$ns, $relFilePath] = count($pcs) > 1 ? [$pcs[0], implode(':', array_slice($pcs, 1))] : ['site', $pcs[0]];
+        ValidationUtils::checkIfValidaPathOrThrow($relFilePath);
+        $whiteList = ['kuura' => KUURA_BACKEND_PATH . 'assets/templates/',
+                      'site' => KUURA_WORKSPACE_PATH . 'site/templates/'];
+        if (!($root = $whiteList[$ns] ?? null))
+            throw new PikeException('Invalid template namespace');
+        return "{$root}{$relFilePath}";
     }
     /**
      * @param string $str
@@ -81,7 +91,9 @@ final class Template extends PikeTemplate {
         $alias = $this->__aliases[$name] ?? '';
         if (!$alias) {
             ValidationUtils::checkIfValidaPathOrThrow($name, true);
-            $templateFilePath = "{$this->__dir}{$name}.tmpl.php";
+            $templateFilePath = !str_contains($name, ':')
+                ? "{$this->__dir}{$name}.tmpl.php"
+                : self::dos($name) . ".tmpl.php";
         } else { // trust
             $templateFilePath = $alias;
         }

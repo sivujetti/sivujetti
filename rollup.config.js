@@ -27,8 +27,9 @@ const makeJsxPlugin = () =>
 ////////////////////////////////////////////////////////////////////////////////
 module.exports = args => {
     //
-    const allGlobals = {};
-    const allExternals = [];
+    const commonsPath = '@kuura-commons';
+    const allGlobals = {[commonsPath]: 'kuuraCommons'};
+    const allExternals = [commonsPath];
     const bundle = !args.configInput ? args.configBundle || 'main' : 'custom';
     const bundles = [];
     // == kuura-commons.js & kuura-cpanel-commons.js & kuura-edit-app.js =====

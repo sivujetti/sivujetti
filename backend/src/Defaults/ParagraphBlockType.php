@@ -6,8 +6,8 @@ use KuuraCms\Block\BlockTypeInterface;
 use KuuraCms\Entities\{BlockProperties, BlockProperty};
 
 final class ParagraphBlockType implements BlockTypeInterface {
-    public function getDefaultRenderer(): string {
-        return 'kuura:auto';
+    public function getTemplates(): array {
+        return ['kuura:auto'];
     }
     public function defineProperties(): BlockProperties {
         $out = new BlockProperties;

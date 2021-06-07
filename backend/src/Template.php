@@ -6,6 +6,7 @@ use KuuraCms\Entities\Page;
 use Pike\{ArrayUtils, PikeException, Template as PikeTemplate};
 
 final class Template extends PikeTemplate {
+    /** @deprecated */
     private array $__aliases = [];
     /**
      * @param string $file
@@ -13,10 +14,10 @@ final class Template extends PikeTemplate {
      * @param ?string[] $aliases = null
      */
     public function __construct(string $file, array $vars = null, array $aliases = null) {
-        parent::__construct(self::dos($file), $vars);
+        parent::__construct(self::completePath($file), $vars);
         $this->__aliases = $aliases ?? [];
     }
-    private static function dos(string $pair): string {
+    private static function completePath(string $pair): string {
         $pcs = explode(':', $pair);
         [$ns, $relFilePath] = count($pcs) > 1 ? [$pcs[0], implode(':', array_slice($pcs, 1))] : ['site', $pcs[0]];
         ValidationUtils::checkIfValidaPathOrThrow($relFilePath);
@@ -93,7 +94,7 @@ final class Template extends PikeTemplate {
             ValidationUtils::checkIfValidaPathOrThrow($name, true);
             $templateFilePath = !str_contains($name, ':')
                 ? "{$this->__dir}{$name}.tmpl.php"
-                : self::dos($name) . ".tmpl.php";
+                : self::completePath($name) . ".tmpl.php";
         } else { // trust
             $templateFilePath = $alias;
         }

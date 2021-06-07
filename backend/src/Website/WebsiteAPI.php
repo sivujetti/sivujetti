@@ -27,7 +27,8 @@ class WebsiteAPI extends BaseAPI {
      * @todo
      */
     public function registerBlockType(string $name, \Closure $blockTypeFactory): void {
-        ValidationUtils::checkIfValidaPathOrThrow($blockTypeFactory()->getDefaultRenderer()); // todo lazify (see notes.txt)
+        foreach ($blockTypeFactory()->getTemplates() as $path) // todo lazify (see notes.txt)
+            ValidationUtils::checkIfValidaPathOrThrow($path);
         $this->storageData->blockTypes[$name] = $blockTypeFactory;
     }
     /**

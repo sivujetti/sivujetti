@@ -5,7 +5,7 @@ namespace KuuraCms\Block;
 use KuuraCms\Entities\BlockProperties;
 
 interface BlockTypeInterface {
-    public function getDefaultRenderer(): string;
+    public function getTemplates(): array;
     /** Tells KuuraCms how persist and validate data */
     public function defineProperties(): BlockProperties;
 }

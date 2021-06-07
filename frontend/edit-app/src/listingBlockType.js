@@ -98,8 +98,7 @@ function makeBlocksFrom(pageTypeFields, after) {
         const initialData = Object.assign(
             createBlockData({
                 type: field.blockType,
-                section: 'main',  // todo
-                renderer: 'kuura:auto', // todo
+                section: 'main', // todo
                 id: '<none>',
             }),
             t.getInitialData(),
@@ -117,6 +116,7 @@ const blockType = {
     CreateFormImpl: ListingBlockCreateFormInputs,
     EditFormImpl: ListingBlockEditFormInputs,
     friendlyName: 'Listing',
+    defaultRenderer: 'kuura:auto',
 };
 
 export default blockType;

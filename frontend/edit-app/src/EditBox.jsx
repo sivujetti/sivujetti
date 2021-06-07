@@ -187,12 +187,13 @@ function tryToReRenderBlock(blockRef, newData, currentData, type = currentData.t
 }
 
 function createBlockData(from) {
+    const t = services.blockTypes.get(from.type);
     return Object.assign({
         type: from.type,
         section: from.section,
-        renderer: from.renderer,
+        renderer: from.renderer || t.defaultRenderer,
         id: from.id
-    }, services.blockTypes.get(from.type).getInitialData());
+    }, t.getInitialData());
 }
 
 export default EditBox;

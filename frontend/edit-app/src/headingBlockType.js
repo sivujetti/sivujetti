@@ -54,6 +54,7 @@ const blockType = {
     EditFormImpl: HeadingBlockFormInputs,
     CreateFormImpl: HeadingBlockFormInputs,
     friendlyName: 'Heading',
+    defaultRenderer: 'kuura:auto',
 };
 
 export default blockType;

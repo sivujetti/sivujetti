@@ -15,7 +15,9 @@
             echo '<p>No "',json_decode($props->fetchFilters)->{'$all'}->{'$eq'}->pageType,'" found.</p>';// todo custom no results -page
         endif;
     else:
-        echo "<!-- Don't know how to render a custom page type `{$props->type}` -->"; // allow unescaped
+        echo !(KUURA_FLAGS & KUURA_DEVMODE)
+            ? "<!-- Don't know how to render a custom page type `{$props->type}` -->" // allow unescaped
+            : "<div>Don't know how to render a custom page type `{$props->type}`</div>";
     endif;
 else:
     throw new \Pike\PikeException('cant render');

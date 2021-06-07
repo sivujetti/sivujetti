@@ -38,6 +38,7 @@ const blockType = {
     EditFormImpl: ParagraphBlockFormInputs,
     CreateFormImpl: ParagraphBlockFormInputs,
     friendlyName: 'Paragraph',
+    defaultRenderer: 'kuura:auto',
 };
 
 export default blockType;

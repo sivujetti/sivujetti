@@ -32,9 +32,9 @@ final class ListingBlockType implements BlockTypeInterface
         return $listingBlocks;
     }
     // todo add separate interface for dynamic blocks?
-    public function getDefaultRenderer(): string
+    public function getTemplates(): array
     {
-        return 'kuura:auto';
+        return ['kuura:auto'];
     }
     public function defineProperties(): BlockProperties
     {

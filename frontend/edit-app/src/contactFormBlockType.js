@@ -92,6 +92,7 @@ const blockType = {
     EditFormImpl: CreateContactFormBlockFormInputs,
     CreateFormImpl: EditContactFormBlockFormInputs,
     friendlyName: 'ContactForm',
+    defaultRenderer: 'kuura:auto',
 };
 
 export default blockType;

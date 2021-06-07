@@ -23,11 +23,8 @@ final class PagesController
             return;
         }
         self::$blockTypes = $storage->getDataHandle()->blockTypes;
-        $html = (new Template($page->template, // becomes KUURA_WORKSPACE_PATH . "site/templates/{$page->template}"
-                              null,
-                              array_map(fn($t) =>
-                                KUURA_WORKSPACE_PATH . "site/{$t()->getDefaultRenderer()}" // Quaranteed to be valid (see WebsiteApi->registerBlockType())
-                              , self::$blockTypes)))->render([
+        $html = (new Template($page->template // becomes KUURA_WORKSPACE_PATH . "site/templates/{$page->template}"
+                              ))->render([
             'page' => $page,
             'site' => $theWebsite
         ]);

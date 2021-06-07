@@ -8,8 +8,8 @@ use KuuraCms\Entities\{BlockProperties, BlockProperty};
 final class ContactFormBlockType implements BlockTypeInterface {
     /* fn(\PhpMailer\PhpMailer\PhpMailer $mailer, string $formId): void */
     public const ON_MAILER_CONFIGURE = 'kuuraFormsOnMailerConfigure';
-    public function getDefaultRenderer(): string {
-        return 'form';
+    public function getTemplates(): array {
+        return ['kuura:form'];
     }
     public function defineProperties(): BlockProperties {
         $out = new BlockProperties;

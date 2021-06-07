@@ -6,8 +6,8 @@ use KuuraCms\Block\BlockTypeInterface;
 use KuuraCms\Entities\{BlockProperties, BlockProperty};
 
 final class HeadingBlockType implements BlockTypeInterface { // add separate LocalDbBlockTypeInterface?
-    public function getDefaultRenderer(): string {
-        return 'kuura:auto';
+    public function getTemplates(): array {
+        return ['kuura:auto'];
     }
     public function defineProperties(): BlockProperties {
         // todo BlockPropertiesBuilder ??

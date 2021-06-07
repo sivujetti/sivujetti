@@ -9,25 +9,23 @@ use KuuraCms\Entities\Block;
 use KuuraCms\Entities\TheWebsite;
 use KuuraCms\SharedAPIContext;
 use KuuraCms\Template;
-use Pike\{PikeException, Request, Response};
+use Pike\{ArrayUtils, PikeException, Request, Response};
 
 /**
  * Funtionalities for all default block types.
  */
 final class DefaultsController {
-    public function renderBlockTemplate(Request $req, Response $res): void {
-        $whiteList = [
-            Block::TYPE_CONTACT_FORM . ':form' => [
-                'contact-form-block-form',
-                // todo validate properly using $blockType->defineProperties()
-                fn($reqBody) => ['fields' => $reqBody->fields]
-            ],
-        ];
-        if (!($cfg = $whiteList["{$req->params->blockType}:{$req->params->templateName}"] ?? null))
+    public function renderBlockTemplate(Request $req, Response $res, SharedAPIContext $storage): void {
+        if (!($btf = $storage->getDataHandle()->blockTypes[$req->params->blockType] ?? null))
             throw new \RuntimeException('');
-        [$relFilePath, $makeProps] = $cfg;
-        $t = new Template("kuura:{$relFilePath}.tmpl.php");
-        $res->json(['html' => $t->render(['props' => (object) $makeProps($req->body)])]);
+        if (array_search($req->params->templateName, $btf()->getTemplates()) === false)
+            throw new \RuntimeException('');
+        $pair = "{$req->params->templateName}.tmpl.php";
+
+        // todo validate $req->body using $blockType->defineProperties()
+
+        $t = new Template($pair);
+        $res->json(['html' => $t->render(['props' => $req->body])]);
     }
     public function processFormsBlockFSubmit(Request $req, Response $res, SharedAPIContext $storage, TheWebsite $theWebsite, BlocksRepository $blocks, DefaultServicesFactory $services): void {
         //

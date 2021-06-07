@@ -12,6 +12,7 @@ const setupServices = config => {
         }
     };
     services.blockTypes = config.blockTypes;
+    window.kuuraCommons = {services};
 };
 
 export default services;

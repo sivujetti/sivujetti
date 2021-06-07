@@ -39,6 +39,7 @@ const blockType = {
     EditFormImpl: FormattedTextBlockFormInputs,
     CreateFormImpl: FormattedTextBlockFormInputs,
     friendlyName: 'Formatted text',
+    defaultRenderer: 'kuura:auto',
 };
 
 export default blockType;

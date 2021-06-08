@@ -28,4 +28,5 @@ window.kuuraCms = {
 
 preact.render(preact.createElement(EditApp, {
     ref: window.kuuraEditApp,
+    dataFromBackend: window.dataToEditApp,
 }), document.getElementById('doos'));

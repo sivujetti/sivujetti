@@ -9,7 +9,8 @@ final class DefaultsModule {
         $ctx->router->map('POST', '/api/defaults/contact-form/handle-submit/[i:contactFormBlockId]',
             [DefaultsController::class, 'processFormsBlockFSubmit']
         );
-        $ctx->router->map('POST', '/api/defaults/[w:blockType]/render-template/[w:templateName]',
+        $todoReplaceWithRegexp = '*';
+        $ctx->router->map('POST', '/api/defaults/[w:blockType]/render-template/['.$todoReplaceWithRegexp.':templateName]',
             [DefaultsController::class, 'renderBlockTemplate']
         );
     }

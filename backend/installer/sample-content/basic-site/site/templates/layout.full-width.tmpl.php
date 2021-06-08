@@ -5,12 +5,12 @@
 <head>
     <meta charset="utf-8">
     <title><?= "{$page->title} - {$site->name}" ?></title>
-    <meta name="generator" content="KuuraCMS <?= KUURA_VERSION ?>">
+    <meta name="generator" content="KuuraCMS">
     <?= $this->cssFiles() ?>
 </head>
 <body>
     <header>
-        <h1><?= $page->title ?></h1>
+        <h1 data-prop="title"><?= $this->e($page->title) ?></h1>
         <?= $this->MainMenu() ?>
     </header>
     <div id="main" data-section="main">

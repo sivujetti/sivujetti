@@ -9,7 +9,7 @@ final class ContactFormBlockType implements BlockTypeInterface {
     /* fn(\PhpMailer\PhpMailer\PhpMailer $mailer, string $formId): void */
     public const ON_MAILER_CONFIGURE = 'kuuraFormsOnMailerConfigure';
     public function getTemplates(): array {
-        return ['kuura:form'];
+        return ['kuura:contact-form-block-form'];
     }
     public function defineProperties(): BlockProperties {
         $out = new BlockProperties;

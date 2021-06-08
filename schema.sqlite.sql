@@ -1,3 +1,4 @@
+DROP TRIGGER IF EXISTS `deleteBlockProps`;
 DROP TABLE IF EXISTS `blockProps`;
 DROP TABLE IF EXISTS `blocks`;
 DROP TABLE IF EXISTS `pages`;
@@ -30,6 +31,7 @@ CREATE TABLE `pages` (
     `slug` TEXT NOT NULL,
     `title` TEXT NOT NULL,
     `template` TEXT NOT NULL,
+    `status` INTEGER NOT NULL DEFAULT 0,
     `pageTypeId` INTEGER NOT NULL,
     FOREIGN KEY(`pageTypeId`) REFERENCES `pageTypes`(`id`)
 );
@@ -51,3 +53,8 @@ CREATE TABLE `blockProps` (
     `blockId` INTEGER NOT NULL,
     FOREIGN KEY(`blockId`) REFERENCES `blocks`(`id`)
 );
+
+CREATE TRIGGER `deleteBlockProps` BEFORE DELETE ON `blocks`
+BEGIN
+    DELETE FROM `blockProps` WHERE `blockId` = old.`id`;
+END;

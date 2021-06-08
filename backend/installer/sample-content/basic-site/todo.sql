@@ -8,12 +8,12 @@ INSERT INTO `pageTypes` VALUES
 (2,'Services','[{"blockType":"heading","initialData":{"level":2}},{"blockType":"paragraph","initialData":{}}]',1);
 
 INSERT INTO `pages` VALUES
-(1,'/','Basic site example','layout.full-width.tmpl.php',1),
-(2,'/company','Company','layout.with-sidebar.tmpl.php',1),
-(3,'/services','Services','layout.with-sidebar.tmpl.php',1),
-(4,'','','',2),
-(5,'','','',2),
-(6,'/contact','Contact','layout.full-width.tmpl.php',1);
+(1,'/','Basic site example','layout.full-width.tmpl.php',0,1),
+(2,'/company','Company','layout.with-sidebar.tmpl.php',0,1),
+(3,'/services','Services','layout.with-sidebar.tmpl.php',0,1),
+(4,'','','',0,2),
+(5,'','','',0,2),
+(6,'/contact','Contact','layout.full-width.tmpl.php',0,1);
 
 INSERT INTO `blocks` VALUES
 -- home

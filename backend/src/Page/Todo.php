@@ -8,16 +8,13 @@ use KuuraCms\Entities\Page;
 use KuuraCms\SharedAPIContext;
 use Pike\{ArrayUtils, Db, PikeException};
 
-final class Todo
-{
-    public function __construct(Db $db, SharedAPIContext $storage)
-    {
+final class Todo {
+    public function __construct(Db $db, SharedAPIContext $storage) {
         $this->db = $db;
         $this->pageTypes = $storage->getDataHandle()->pageTypes;
         $this->blockTypes = $storage->getDataHandle()->blockTypes;
     }
-    public function tempFetch(string $pageTypeName, $temp1=null, $temp2=null): array
-    {
+    public function tempFetch(string $pageTypeName, $temp1=null, $temp2=null): array {
         if (!($pt = ArrayUtils::findByKey(
             $this->pageTypes,
             $pageTypeName,
@@ -26,8 +23,7 @@ final class Todo
 
         return (new AssociativeJoinStorageStrategy($this->db))->select($pt, $temp1, $temp2);
     }
-    public function temp2(array $rows, $i = 0): ?Page
-    {
+    public function temp2(array $rows, $i = 0): ?Page {
         if (!$rows)
             return null;
         $page = $rows[$i];
@@ -49,8 +45,7 @@ final class Todo
         }
         return $page;
     }
-    public function temp3(array $rows): array
-    {
+    public function temp3(array $rows): array {
         if (!$rows)
             return [];
         $pages = [];
@@ -78,25 +73,28 @@ final class Todo
         }
         return array_values($pages);
     }
+    public function tempDelete($pageId, bool $doDeleteBlocksAsWell): void {
+        (new AssociativeJoinStorageStrategy($this->db))->delete($pageId, $doDeleteBlocksAsWell);
+    }
+    public function tempUpdate($pageId, $data): void {
+        (new AssociativeJoinStorageStrategy($this->db))->update($pageId, $data);
+    }
 }
 
-interface StorageStrategy
-{
+interface StorageStrategy {
     public function select(PageType $pageType, $temp1, $temp2): array;
 }
 
 class AssociativeJoinStorageStrategy implements StorageStrategy {
-    public function __construct(Db $db)
-    {
+    public function __construct(Db $db) {
         $this->db = $db;
     }
-    public function select(PageType $pageType, $temp1, $temp2): array
-    {
+    public function select(PageType $pageType, $temp1, $temp2): array {
         [$t1, $t2] = !$temp1
             ? ["", []]
             : [" AND p.$temp1", [$temp2]];
         return $this->db->fetchAll(
-            "SELECT p.`id`,p.`title`,p.`template`,pt.`name` AS `pageType`" .
+            "SELECT p.`id`,p.`slug`,p.`title`,p.`template`,pt.`name` AS `pageType`" .
             ",b.`type` AS `blockType`,b.`section` AS `blockSection`,b.`renderer` AS `blockRenderer`,b.`id` AS `blockId`,b.`pageId` AS `blockPageId`,b.`title` AS `blockTitle`" .
             ",bp.`blockId` AS `blockPropBlockId`,bp.`key` AS `blockPropKey`,bp.`value` AS `blockPropValue`" .
             " FROM `pages` p" .
@@ -108,5 +106,16 @@ class AssociativeJoinStorageStrategy implements StorageStrategy {
             \PDO::FETCH_CLASS,
             Page::class
         );
+    }
+    public function update($pageId, $data): void {
+        [$columns, $values] = $this->db->makeUpdateQParts($data);
+        $this->db->exec("UPDATE `pages` SET {$columns} WHERE `id`=?",
+                        array_merge($values, [$pageId]));
+    }
+    public function delete($pageId, $temp): void {
+        if ($temp)
+            // Note: a database trigger will delete associated rows from blockProps
+            $this->db->exec('DELETE FROM `blocks` WHERE `pageId` = ?', [$pageId]);
+        $this->db->exec('DELETE FROM `pages` WHERE `id` = ?', [$pageId]);
     }
 }

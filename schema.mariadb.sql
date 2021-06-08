@@ -1,3 +1,4 @@
+DROP TRIGGER IF EXISTS `deleteBlockProps`;
 DROP TABLE IF EXISTS `blockProps`;
 DROP TABLE IF EXISTS `blocks`;
 DROP TABLE IF EXISTS `pages`;
@@ -32,6 +33,7 @@ CREATE TABLE `pages` (
     `slug` VARCHAR(92) NOT NULL,
     `title` VARCHAR(92) NOT NULL,
     `template` VARCHAR(128) NOT NULL,
+    `status` TINYINT(1) NOT NULL DEFAULT 0,
     `pageTypeId` SMALLINT UNSIGNED NOT NULL,
     FOREIGN KEY(`pageTypeId`) REFERENCES `pageTypes`(`id`)
 ) DEFAULT CHARSET = utf8mb4;
@@ -53,3 +55,8 @@ CREATE TABLE `blockProps` (
     `blockId` INT UNSIGNED NOT NULL,
     FOREIGN KEY(`blockId`) REFERENCES `blocks`(`id`)
 ) DEFAULT CHARSET = utf8mb4;
+
+CREATE TRIGGER `deleteBlockProps` BEFORE DELETE ON `blocks`
+BEGIN
+    DELETE FROM `blockProps` WHERE `blockId` = old.`id`;
+END;

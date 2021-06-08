@@ -11,7 +11,7 @@ class EditAppAwareWebPage {
      */
     doLoad(editApp, currentPage) {
         this.pageId = currentPage.pageId;
-        if (editApp) editApp.current.handleWebpageLoaded(this, currentPage.blocks);
+        if (editApp) editApp.current.handleWebpageLoaded(this, currentPage.blocks, currentPage.isNewPage);
     }
     /**
      * @return todo
@@ -79,6 +79,15 @@ class EditAppAwareWebPage {
         blockRefToMove.destroy();
         //
         return out;
+    }
+    /**
+     * @todo
+     * @access public
+     */
+    updateTitle(title) {
+        const els = document.querySelectorAll('[data-prop="title"]');
+        for (let i = 0; i < els.length; ++i)
+            els[i].textContent = title;
     }
     /**
      * @todo

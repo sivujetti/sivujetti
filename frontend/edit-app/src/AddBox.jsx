@@ -73,7 +73,6 @@ class AddContentBox extends preact.Component {
         const newBlockData = createBlockData({
             type: e.target.value,
             section: this.state.newBlockData.section,
-            renderer: this.state.newBlockData.renderer,
             id: this.state.newBlockData.id});
         tryToReRenderBlock(this.state.newBlockRef, newBlockData, this.state.newBlockData, newBlockData.type);
         this.setState({newBlockData});

@@ -11,7 +11,7 @@ const contactFormBlockReRender = (newDataFromForm, blockRef, prevData) => {
         return;
     }
     blockRef.tryToReRenderWithHtml(`<p>${__('Loading')} ...</p>`);
-    services.http.post('/api/defaults/contact-form/render-template/form', {fields:newDataFromForm.fields})
+    services.http.post('/api/defaults/contact-form/render-template/kuura:contact-form-block-form', {fields:newDataFromForm.fields})
         .then(resp => blockRef.tryToReRenderWithHtml(resp.html))
         .catch(window.console.error);
 };
@@ -92,7 +92,7 @@ const blockType = {
     EditFormImpl: CreateContactFormBlockFormInputs,
     CreateFormImpl: EditContactFormBlockFormInputs,
     friendlyName: 'ContactForm',
-    defaultRenderer: 'kuura:auto',
+    defaultRenderer: 'kuura:contact-form-block-form',
 };
 
 export default blockType;

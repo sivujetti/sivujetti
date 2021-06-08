@@ -7,4 +7,5 @@ interface WebsiteInterface {
      * @param \KuuraCms\Website\WebsiteAPI $api
      */
     public function __construct(WebsiteAPI $api);
+    public function getDefaultLayout(): string;
 }

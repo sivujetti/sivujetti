@@ -30,7 +30,7 @@ CREATE TABLE `pages` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `slug` TEXT NOT NULL,
     `title` TEXT NOT NULL,
-    `template` TEXT NOT NULL,
+    `layout` TEXT NOT NULL,
     `status` INTEGER NOT NULL DEFAULT 0,
     `pageTypeId` INTEGER NOT NULL,
     FOREIGN KEY(`pageTypeId`) REFERENCES `pageTypes`(`id`)

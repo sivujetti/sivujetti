@@ -14,12 +14,7 @@
         <?= $this->MainMenu() ?>
     </header>
     <div id="main" data-section="main">
-        <?php if ($page):
-            echo $this->renderBlocks($this->filterBlocks($page, 'main'));
-        else: ?>
-            <h2>404</h2>
-            <div>404</div>
-        <?php endif; ?>
+        <?= $this->renderBlocks($this->filterBlocks($page, 'main')) ?>
     </div>
     <footer>
         &copy; <?= $site->name ?> <?= date('Y') ?>

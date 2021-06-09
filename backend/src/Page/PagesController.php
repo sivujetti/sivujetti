@@ -4,9 +4,9 @@ namespace KuuraCms\Page;
 
 use KuuraCms\Entities\TheWebsite;
 use KuuraCms\{SharedAPIContext, Template};
-use KuuraCms\Entities\Block;
-use KuuraCms\Entities\Page;
-use Pike\{Db, PikeException, Request, Response};
+use KuuraCms\Theme\ThemeAPI;
+use KuuraSite\Theme;
+use Pike\{Db, FileSystem, PikeException, Request, Response};
 
 final class PagesController {
     public static $blockTypes;
@@ -14,15 +14,18 @@ final class PagesController {
                                Response $res,
                                Todo $paegRepo,
                                SharedAPIContext $storage,
-                               TheWebsite $theWebsite): void {
-        // move this to App->openDbAndLoadState() ?
+                               TheWebsite $theWebsite,
+                               FileSystem $fs): void {
+        $themeAPI = new ThemeAPI('theme', $storage, $fs);
+        $theme = new Theme($themeAPI); // Note: mutates $this->storage->data
+        //
         $rows = $paegRepo->tempFetch('Pages', '`slug` = ?', $req->path);
         if (!($page = $paegRepo->temp2($rows))) {
             $res->plain('404'); // @todo custom 404 pages
             return;
         }
         self::$blockTypes = $storage->getDataHandle()->blockTypes;
-        $html = (new Template($page->template // becomes KUURA_WORKSPACE_PATH . "site/templates/{$page->template}"
+        $html = (new Template($page->layout // becomes KUURA_WORKSPACE_PATH . "site/templates/{$page->layout}"
                               ))->render([
             'page' => $page,
             'site' => $theWebsite,
@@ -32,26 +35,35 @@ final class PagesController {
             ($bodyEnd = strpos($html, '</body>')) > 0)
             $html = substr($html, 0, $bodyEnd) .
                 '<script>window.kuuraCurrentPageData = ' . json_encode([
-                    'pageId' => $page->id,
+                    'page' => (object) [
+                    'id' => $page->id,
+                    'layout' => $page->layout
+                    ],
                     'isNewPage' => false,
                     'blocks' => $this->getBlocksDeep($page->blocks),
+                    'theme' => (object) ['pageLayouts' => $storage->getDataHandle()->pageLayouts],
                 ]) . '</script>' .
                 '<script src="' . Template::makeUrl('public/kuura/kuura-webpage.js', false) . '"></script>' .
             substr($html, $bodyEnd);
         $res->html($html);
     }
-    public function renderPageInEditMode(Request $req, Response $res, Db $db, SharedAPIContext $storage): void {
+    public function renderPageInEditMode(Request $req, Response $res, SharedAPIContext $storage): void {
         //
         $res->html((new Template('kuura:edit-app-wrapper.tmpl.php'))->render([
             'url' => $req->params->url ?? '',
             'userDefinedJsFiles' => $storage->getDataHandle()->userDefinedJsFiles->editApp,
-            'dataToEditApp' => (object) ['theme' => (object) ['defaultLayoutRelFilePath' => 'layout.full-width']],
+            'dataToEditApp' => (object) [],
         ]));
     }
     public function renderPlaceholderPage(Request $req,
-                               Response $res,
-                               Todo $paegRepo,
-                               TheWebsite $theWebsite): void {
+                                          Response $res,
+                                          Todo $paegRepo,
+                                          TheWebsite $theWebsite,
+                                          SharedAPIContext $storage,
+                                          FileSystem $fs): void {
+        $themeAPI = new ThemeAPI('theme', $storage, $fs);
+        $theme = new Theme($themeAPI); // Note: mutates $this->storage->data
+        //
         $rows = $paegRepo->tempFetch('Pages', '`id` = ?', $req->params->pageId);
         if (!($page = $paegRepo->temp2($rows)))
             throw new PikeException('Invalid pageId');
@@ -59,7 +71,7 @@ final class PagesController {
 
         // todo validate req->params->layout
 
-        $html = (new Template(urldecode($req->params->layout).'.tmpl.php' // KUURA_WORKSPACE_PATH . "site/templates/{$l}"
+        $html = (new Template(urldecode($req->params->layout) // KUURA_WORKSPACE_PATH . "site/templates/{$l}"
                               ))->render([
             'page' => $page,
             'site' => $theWebsite,
@@ -68,9 +80,13 @@ final class PagesController {
         if (($bodyEnd = strpos($html, '</body>')) > 0)
             $html = substr($html, 0, $bodyEnd) .
                 '<script>window.kuuraCurrentPageData = ' . json_encode([
-                    'pageId' => $page->id,
+                    'page' => (object) [
+                    'id' => $page->id,
+                    'layout' => $req->params->layout,
+                    ],
                     'isNewPage' => true,
                     'blocks' => $this->getBlocksDeep($page->blocks),
+                    'theme' => (object) ['pageLayouts' => $storage->getDataHandle()->pageLayouts],
                 ]) . '</script>' .
                 '<script src="' . Template::makeUrl('public/kuura/kuura-webpage.js', false) . '"></script>' .
             substr($html, $bodyEnd);
@@ -100,7 +116,7 @@ final class PagesController {
         [$qList, $values, $columns] = $db->makeInsertQParts([
             'slug' => $req->body->slug,
             'title' => $req->body->title,
-            'template' => $req->body->template,
+            'layout' => $req->body->layout,
             'pageTypeId' => $pageType['id'],
         ]);
         if ($db->exec("INSERT INTO `pages` ({$columns}) VALUES ({$qList})",
@@ -120,7 +136,7 @@ final class PagesController {
         $pageRepo->tempUpdate($req->params->pageId, (object) [
             'slug' => $req->body->slug,
             'title' => $req->body->title,
-            'template' => $req->body->template,
+            'layout' => $req->body->layout,
             'status' => $req->body->status,
         ]);
         $res->json(['ok' => 'ok']);

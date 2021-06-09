@@ -2,6 +2,9 @@
 
 namespace KuuraCms;
 
+use KuuraCms\Theme\ThemeAPI;
+use KuuraCms\Website\WebsiteAPI;
+
 final class SharedAPIContext {
     /** @var array<string, callable[]> */
     private array $eventListeners;
@@ -31,9 +34,26 @@ final class SharedAPIContext {
             call_user_func_array($fn, $args);
     }
     /**
+     * @todo
      * @return object
      */
-    public function getDataHandle(): object {
+    public function getDataHandle(?BaseAPI $for = null): object {
+        if ($for) {
+            $isThemeApi = $for instanceof ThemeAPI;
+            if (($isThemeApi || $for instanceof WebsiteAPI) &&
+                !property_exists($this->data, 'userDefinedJsFiles')) {
+                $this->data->userDefinedJsFiles = (object) [
+                    'editApp' => [],
+                    'webPage' => []
+                ];
+                $this->data->userDefinedCssFiles = (object) [
+                    'editApp' => [],
+                    'webPage' => []
+                ];
+            }
+            if ($isThemeApi && !property_exists($this->data, 'pageLayouts'))
+                $this->data->pageLayouts = [];
+        }
         return $this->data;
     }
 }

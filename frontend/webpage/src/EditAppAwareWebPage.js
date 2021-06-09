@@ -2,7 +2,9 @@ let counter = 0;
 
 class EditAppAwareWebPage {
     constructor() {
-        this.pageId = null; // public
+        this.id = null; // public
+        this.layout = null; // public
+        this.theme = null; // public
     }
     /**
      * @todo
@@ -10,7 +12,9 @@ class EditAppAwareWebPage {
      * @access public
      */
     doLoad(editApp, currentPage) {
-        this.pageId = currentPage.pageId;
+        Object.assign(this, currentPage.page); // id, layout
+        this.theme = currentPage.theme;
+        this.theme.defaultPageLayout = this.theme.pageLayouts.find(pl => pl.isDefault === true);
         if (editApp) editApp.current.handleWebpageLoaded(this, currentPage.blocks, currentPage.isNewPage);
     }
     /**

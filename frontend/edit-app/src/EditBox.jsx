@@ -143,7 +143,7 @@ class CreateBlocksSequence extends preact.Component {
         services.http.post(`/api/pages`, {
             slug: '',
             title: '',
-            template: '',
+            layout: '',
             pageTypeName: this.props.pageType,
         }).then(resp => {
             if (resp.ok !== 'ok') throw new Error('');

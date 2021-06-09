@@ -16,12 +16,7 @@ class WebsiteAPI extends BaseAPI {
      */
     public function __construct(string $namespace, SharedAPIContext $storage) {
         parent::__construct($namespace, $storage);
-        $this->storageData = $storage->getDataHandle();
-        if (!property_exists($this->storageData, 'userDefinedJsFiles'))
-            $this->storageData->userDefinedJsFiles = (object) [
-                'editApp' => [],
-                'webPage' => []
-            ];
+        $this->storageData = $storage->getDataHandle($this);
     }
     /**
      * @todo

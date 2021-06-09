@@ -94,7 +94,7 @@ class AssociativeJoinStorageStrategy implements StorageStrategy {
             ? ["", []]
             : [" AND p.$temp1", [$temp2]];
         return $this->db->fetchAll(
-            "SELECT p.`id`,p.`slug`,p.`title`,p.`template`,pt.`name` AS `pageType`" .
+            "SELECT p.`id`,p.`slug`,p.`title`,p.`layout`,pt.`name` AS `pageType`" .
             ",b.`type` AS `blockType`,b.`section` AS `blockSection`,b.`renderer` AS `blockRenderer`,b.`id` AS `blockId`,b.`pageId` AS `blockPageId`,b.`title` AS `blockTitle`" .
             ",bp.`blockId` AS `blockPropBlockId`,bp.`key` AS `blockPropKey`,bp.`value` AS `blockPropValue`" .
             " FROM `pages` p" .

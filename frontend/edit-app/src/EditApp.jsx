@@ -22,25 +22,22 @@ class MainPanel extends preact.Component {
 class AddPagePanel extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {layouts: null, selectedLayout: null, title: '-', slug: '-', currentStep: 0};
-        setTimeout(() => {
-            this.setState({layouts: [{friendlyName: 'Full width', relFilePath: 'layout.full-width', sections: ['main']}, // sections ??
-                                     {friendlyName: 'With sidebar', relFilePath: 'layout.with-sidebar', sections: ['main','sidebar']}]});
-        }, 100); // todo http
+        this.state = {selectedLayout: null, title: '-', slug: '-', currentStep: 0};
     }
     componentDidMount() {
-        this.setState({currentStep: 0, selectedLayout: this.props.defaultLayout, title: '-', slug: '-'});
+        const l = EditApp.currentWebPage.theme.defaultPageLayout.relFilePath;
+        this.setState({currentStep: 0, selectedLayout: l, title: '-', slug: '-'});
     }
-    render({blocks, editApp}, {layouts, selectedLayout, currentStep, title, slug}) {
+    render({blocks, editApp}, {selectedLayout, currentStep, title, slug}) {
         return <>
             <h2>Create page</h2>
             { currentStep === 0 ? [
             //
             <div>Step 1/2: Choose a layout.</div>,
             <div class="form-group">
-            <select onChange={ this.changeNewPageLayout.bind(this) } value={ selectedLayout } class="form-select">{ layouts ? layouts.map(layout =>
+            <select onChange={ this.changeNewPageLayout.bind(this) } value={ selectedLayout } class="form-select">{ this.props.editApp.layouts.map(layout =>
                 <option value={ layout.relFilePath }>{ layout.friendlyName }</option>
-            ) : null }</select>
+            ) }</select>
             </div>,
             <button onClick={ this.goBack.bind(this) } class="btn btn-sm" disabled>{ __('Prev') }</button>,
             <button onClick={ this.advance.bind(this)} title={ __('Go to next step') } class="btn btn-primary btn-sm">{ __('Next') }</button>,
@@ -73,8 +70,9 @@ class AddPagePanel extends preact.Component {
     changeNewPageLayout(e) {
         const w = e.target.value;
         this.setState({selectedLayout: w});
+        this.props.onLayoutSelected(this.props.editApp.layouts.find(pl => pl.relFilePath === w));
         document.getElementById('kuura-site-iframe').contentWindow.location.href =
-            `/kuura/index.php?q=/_placeholder-page/${EditApp.currentWebPage.pageId}/${encodeURIComponent(w)}`;
+            `/kuura/index.php?q=/_placeholder-page/${EditApp.currentWebPage.id}/${encodeURIComponent(w)}`;
     }
     advance() {
         this.setState({currentStep: this.state.currentStep + 1});
@@ -83,10 +81,10 @@ class AddPagePanel extends preact.Component {
         this.setState({currentStep: this.state.currentStep - 1});
     }
     applyNewPage() {
-        services.http.put(`/api/pages/${EditApp.currentWebPage.pageId}`,
+        services.http.put(`/api/pages/${EditApp.currentWebPage.id}`,
                           {slug: this.state.slug,
                            title: this.state.title,
-                           template: `${this.state.selectedLayout}.tmpl.php`,
+                           layout: this.state.selectedLayout,
                            status: 0})
             .then(resp => {
                 if (!resp.ok) throw new Error();
@@ -96,7 +94,7 @@ class AddPagePanel extends preact.Component {
             .catch(window.console.error);
     }
     discardNewPage() {
-        services.http.delete(`/api/pages/${EditApp.currentWebPage.pageId}`)
+        services.http.delete(`/api/pages/${EditApp.currentWebPage.id}`)
             .then(resp => {
                 if (!resp.ok) throw new Error();
                 document.getElementById('kuura-site-iframe').contentWindow.location.href = this.props.editApp.orig;
@@ -105,28 +103,10 @@ class AddPagePanel extends preact.Component {
     }
 }
 
-/**
- * https://gist.github.com/mathewbyrne/1280286#gistcomment-2353812
- *
- * @param {string} text
- * @returns {string}
- */
-function slugify(text) {
-    // Use hash map for special characters
-    const specialChars = {"à":'a',"ä":'a',"á":'a',"â":'a',"æ":'a',"å":'a',"ë":'e',"è":'e',"é":'e', "ê":'e',"î":'i',"ï":'i',"ì":'i',"í":'i',"ò":'o',"ó":'o',"ö":'o',"ô":'o',"ø":'o',"ù":'o',"ú":'u',"ü":'u',"û":'u',"ñ":'n',"ç":'c',"ß":'s',"ÿ":'y',"œ":'o',"ŕ":'r',"ś":'s',"ń":'n',"ṕ":'p',"ẃ":'w',"ǵ":'g',"ǹ":'n',"ḿ":'m',"ǘ":'u',"ẍ":'x',"ź":'z',"ḧ":'h',"·":'-',"/":'-',"_":'-',",":'-',":":'-',";":'-'};
-    return text.toString().toLowerCase()
-        .replace(/\s+/g, '-')    // Replace spaces with -
-        .replace(/./g, (target) => specialChars[target] || target) // Replace special characters using the hash map
-        .replace(/[^\w-]+/g, '') // Remove all non-word chars
-        .replace(/--+/g, '-')    // Replace multiple - with single -
-        .replace(/^-+/, '')      // Trim - from start of text
-        .replace(/-+$/, '');     // Trim - from end of text
-}
-
 class EditApp extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {blocks: null, isCreatePageModeOn: false};
+        this.state = {blocks: null, isCreatePageModeOn: false, selectedPageLayout: null};
         this.editBox = preact.createRef();
         this.addBox = preact.createRef();
         this.mainView = preact.createRef(); // public
@@ -151,38 +131,43 @@ class EditApp extends preact.Component {
     handleWebpageLoaded(currentWebPage, currentWebPageBlocks, isNewPage = false) {
         EditApp.currentWebPage = currentWebPage;
         this.data = currentWebPageBlocks;
+        this.layouts = currentWebPage.theme.pageLayouts;
         if (!isNewPage) {
             this.orig = document.getElementById('kuura-site-iframe').contentWindow.location.href; // ??
         }
         this.setState({blocks: currentWebPage.getBlockRefs(),
+                       selectedPageLayout: this.layouts.find(l => l.relFilePath === currentWebPage.layout),
                        isCreatePageModeOn: isNewPage});
     }
     /**
      * @acces protected
      */
-    render(_, {blocks, isCreatePageModeOn}) {
+    render(_, {blocks, isCreatePageModeOn, selectedPageLayout}) {
         // The webpage iframe hasn't loaded yet
         if (blocks === null)
             return;
         return <>
             { !isCreatePageModeOn
                 ? <MainPanel blocks={ blocks } editApp={ this }/>
-                : <AddPagePanel blocks={ blocks } editApp={ this } defaultLayout={ this.props.dataFromBackend.theme.defaultLayoutRelFilePath }/>
+                : <AddPagePanel blocks={ blocks } editApp={ this } onLayoutSelected={ pageLayout => {
+                    this.setState({selectedPageLayout: pageLayout});
+                }}/>
             }
             <EditBox ref={ this.editBox }/>
             <AddBox ref={ this.addBox } onBlockAdded={ this.addBlock.bind(this) }
                 findLastBlock={ sectionName => this.findLastBlock(sectionName) }
-                EditApp={ EditApp }/>
+                EditApp={ EditApp } currentPageLayoutSections={ selectedPageLayout.sections }/>
         </>;
     }
     beginCreatePageMode() {
         if (this.loading) return;
         this.loading = true;
         //
+        const pl = EditApp.currentWebPage.theme.defaultPageLayout.relFilePath;
         services.http.post(`/api/pages`, {
             slug: '-',
             title: '-',
-            template: this.props.dataFromBackend.theme.defaultLayoutRelFilePath, // todo http.get('layouts')[0].relFilePath ??
+            layout: pl,
             pageTypeName: 'Pages',
         }).then(resp => {
             if (resp.ok !== 'ok') throw new Error('');
@@ -202,7 +187,7 @@ class EditApp extends preact.Component {
             // todo dry
             const seq = i => {
                 if (!initialBlocks[i]) { // We're done
-                    document.getElementById('kuura-site-iframe').contentWindow.location.href = `/kuura/index.php?q=/_placeholder-page/${resp.insertId}/${encodeURIComponent('layout.full-width')}`;
+                    document.getElementById('kuura-site-iframe').contentWindow.location.href = `/kuura/index.php?q=/_placeholder-page/${resp.insertId}/${encodeURIComponent(pl)}`;
                     this.loading = false;
                     return;
                 }
@@ -242,6 +227,24 @@ class EditApp extends preact.Component {
             (this.findBlockData(b) || {}).section === sectionName ? b : l
         , null);
     }
+}
+
+/**
+ * https://gist.github.com/mathewbyrne/1280286#gistcomment-2353812
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+function slugify(text) {
+    // Use hash map for special characters
+    const specialChars = {"à":'a',"ä":'a',"á":'a',"â":'a',"æ":'a',"å":'a',"ë":'e',"è":'e',"é":'e', "ê":'e',"î":'i',"ï":'i',"ì":'i',"í":'i',"ò":'o',"ó":'o',"ö":'o',"ô":'o',"ø":'o',"ù":'o',"ú":'u',"ü":'u',"û":'u',"ñ":'n',"ç":'c',"ß":'s',"ÿ":'y',"œ":'o',"ŕ":'r',"ś":'s',"ń":'n',"ṕ":'p',"ẃ":'w',"ǵ":'g',"ǹ":'n',"ḿ":'m',"ǘ":'u',"ẍ":'x',"ź":'z',"ḧ":'h',"·":'-',"/":'-',"_":'-',",":'-',":":'-',";":'-'};
+    return text.toString().toLowerCase()
+        .replace(/\s+/g, '-')    // Replace spaces with -
+        .replace(/./g, (target) => specialChars[target] || target) // Replace special characters using the hash map
+        .replace(/[^\w-]+/g, '') // Remove all non-word chars
+        .replace(/--+/g, '-')    // Replace multiple - with single -
+        .replace(/^-+/, '')      // Trim - from start of text
+        .replace(/-+$/, '');     // Trim - from end of text
 }
 
 class MainView extends preact.Component {

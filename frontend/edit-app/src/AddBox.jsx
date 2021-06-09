@@ -31,7 +31,7 @@ class AddContentBox extends preact.Component {
     /**
      * @acces protected
      */
-    render(_, {isOpen, newBlockRef, newBlockData}) {
+    render({currentPageLayoutSections}, {isOpen, newBlockRef, newBlockData}) {
         if (!isOpen)
             return;
         const Form = services.blockTypes.get(newBlockData.type).CreateFormImpl;
@@ -39,10 +39,12 @@ class AddContentBox extends preact.Component {
         return <form class="edit-box" style={ `left: ${TODO+rect.left}px; top: ${rect.top}px` }
              onSubmit={ this.applyNewContent.bind(this) }>
             <div class="edit-box__inner">
+                { currentPageLayoutSections && currentPageLayoutSections.length > 1 ?
                 <div><select value={ this.state.newBlockData.section } onChange={ this.handleSectionTargetChanged.bind(this) }>
-                    <option value="main">Main</option>
-                    <option value="sidebar">Sidebar</option>
-                </select></div>
+                    { currentPageLayoutSections.map(name =>
+                        <option value={ name }>{ name[0].toUpperCase()+name.substr(1) }</option>)
+                    }
+                </select></div> : null }
                 <div><select value={ newBlockData.type } onChange={ this.handleBlockTypeChanged.bind(this) }>{ Array.from(services.blockTypes.entries()).map(([name, blockType]) =>
                     <option value={ name }>{ __(blockType.friendlyName) }</option>
                 ) }</select></div>
@@ -92,7 +94,7 @@ class AddContentBox extends preact.Component {
         this.currentForm.current.applyLatestValue(); // mutates this.state.newBlockData
         this.setState({isOpen: false});
         services.http.post('/api/blocks', Object.assign({
-            pageId: this.props.EditApp.currentWebPage.pageId,
+            pageId: this.props.EditApp.currentWebPage.id,
         }, this.state.newBlockData)).then(_resp => {
             // todo update id (_resp.insertId)
             this.props.onBlockAdded(this.state.newBlockRef, this.state.newBlockData);

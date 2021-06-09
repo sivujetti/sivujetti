@@ -1,6 +1,6 @@
-# Custom-liastuksen luominen
+# Custom-listauksen luominen
 
-Oletuksena KuuraCms:n listaus-lohkotyyppi osaa listata vain sivu-tyyppistä sisältöä. Tässä tutoriaalissa käydään läpi miten voit devaajana kustomoida listaus-lohkotyypin tukemaan mitä tahansa sisältöä.
+Oletuksena KuuraCms:n listaus-lohkotyyppi osaa listata vain "sivu"-tyyppistä sisältöä. Tässä tutoriaalissa käydään läpi miten voit devaajana kustomoida listaus-lohkotyypin tukemaan mitä tahansa sisältöä.
 
 ## 1. Luo sisältötyyppi
 

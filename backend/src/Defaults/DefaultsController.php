@@ -20,11 +20,10 @@ final class DefaultsController {
             throw new \RuntimeException('');
         if (array_search($req->params->templateName, $btf()->getTemplates()) === false)
             throw new \RuntimeException('');
-        $pair = "{$req->params->templateName}.tmpl.php";
 
         // todo validate $req->body using $blockType->defineProperties()
 
-        $t = new Template($pair);
+        $t = new Template($req->params->templateName);
         $res->json(['html' => $t->render(['props' => $req->body])]);
     }
     public function processFormsBlockFSubmit(Request $req, Response $res, SharedAPIContext $storage, TheWebsite $theWebsite, BlocksRepository $blocks, DefaultServicesFactory $services): void {

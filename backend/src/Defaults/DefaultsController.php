@@ -23,8 +23,9 @@ final class DefaultsController {
 
         // todo validate $req->body using $blockType->defineProperties()
 
-        $t = new Template($req->params->templateName);
-        $res->json(['html' => $t->render(['props' => $req->body])]);
+        $t = new Template("{$req->params->templateName}.tmpl.php");
+        $res->json(['html' => $t->render(['props' => $req->body, 'urlStr' => '/' // todo
+        ])]);
     }
     public function processFormsBlockFSubmit(Request $req, Response $res, SharedAPIContext $storage, TheWebsite $theWebsite, BlocksRepository $blocks, DefaultServicesFactory $services): void {
         //

@@ -9,9 +9,9 @@ const TODO = 282;
 class EditBox extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {isOpen: false, blockRef: null, blockData: null};
+        this.state = {isOpen: false, blockRef: null, blockData: null, innerBoxIsBelow: false};
         this.currentForm = preact.createRef();
-        this.foo = preact.createRef();
+        this.foo = null;
     }
     /**
      * @todo
@@ -19,24 +19,37 @@ class EditBox extends preact.Component {
      * @acces public
      */
     open(blockRef, blockData) {
-        this.setState({isOpen: true, blockRef: blockRef, blockData});
+        this.setState({isOpen: true, blockRef: blockRef, blockData, innerBoxIsBelow: false});
     }
     /**
      * @acces protected
      */
-    render(_, {isOpen, blockRef, blockData}) {
+    render(_, {isOpen, blockRef, blockData, innerBoxIsBelow}) {
         if (!isOpen)
             return;
         const Form = services.blockTypes.get(blockRef.blockType).EditFormImpl;
         const rect = blockRef.position;
+        const st = el => {
+            this.foo = {current: el};
+            if (el && !innerBoxIsBelow) setTimeout(() => {
+                this.setState({innerBoxIsBelow: rect.top - this.getHeight() < 0});
+            }, 1);
+        };
         return <form class="edit-box" style={ `left: ${TODO+rect.left}px; top: ${rect.top}px` }
             onSubmit={ this.applyChanges.bind(this) }>
-            <div class="edit-box__inner" ref={ this.foo }>
-                <Form onValueChanged={ this.handleBlockValueChanged.bind(this) } blockRef={ blockRef } blockData={ blockData } ref={ this.currentForm } getEditBoxHeight={ () => this.foo.current.getBoundingClientRect().height }/>
+            <div class={ `edit-box__inner${!innerBoxIsBelow ? '' : ' below'}` } style={ !innerBoxIsBelow ? '' : `top:${rect.height}px` } ref={ st }>
+                <Form onValueChanged={ this.handleBlockValueChanged.bind(this) } blockRef={ blockRef } blockData={ blockData } ref={ this.currentForm } getEditBoxHeight={ this.getHeight.bind(this) }/>
                 <button class="btn btn-primary">{ __('Apply') }</button>
                 <button class="btn btn-link" onClick={ this.discardChanges.bind(this) } type="button">{ __('Cancel') }</button>
             </div>
         </form>;
+    }
+    /**
+     * @return todo
+     * @acces public
+     */
+    getHeight() {
+        return this.foo.current.getBoundingClientRect().height;
     }
     /**
      * @todo

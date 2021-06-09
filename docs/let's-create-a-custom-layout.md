@@ -64,6 +64,11 @@ Tee tämä muokkaamalla `Theme.php`:hen:
 
 Tämän jälkeen rekisteröity sivupohja pitäisi olla valittavissa muokkaus-applikaation "Luo sivu"-näkymässä.
 
-## 3. Yhteenveto
+## 3. Hae sivupohjaan lohkoja
+
+- todo luo lohko käyttäen `kuura-cli`:tä
+- päivitä sivupohjan koodiin edellä luotu staattinen lohko
+
+## 4. Yhteenveto
 
 ...

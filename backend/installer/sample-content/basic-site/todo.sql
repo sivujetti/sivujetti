@@ -40,7 +40,12 @@ INSERT INTO `blocks` VALUES
 
 -- contact
 (12,'heading','main','kuura:auto',6,NULL),
-(13,'paragraph','main','kuura:auto',6,NULL);
+(13,'paragraph','main','kuura:auto',6,NULL),
+
+-- Page layouts
+(18,'menu','<layout>','kuura:menu',1, -- pageId ??
+'Main menu'),
+(19,'paragraph','<layout>','kuura:auto',1,'Footer text');
 
 INSERT INTO `blockProps` VALUES
 (1,'text','Front page',1),
@@ -71,4 +76,9 @@ INSERT INTO `blockProps` VALUES
 
 (17,'text','Company',12),
 (18,'level','1',12),
-(19,'text','Company page p1',13);
+(19,'text','Company page p1',13),
+
+(26,'tree','[{"id":1,"url":"/","text":"Home","children":[]},{"id":2,"url":"/company","text":"Company","children":[]},{"id":3,"url":"/services","text":"Services","children":[]},{"id":3,"url":"/contact","text":"Contact","children":[]}]',18),
+(27,'treeStart','',18),
+(28,'itemStart','',18),
+(29,'text','© My site 2021',19);

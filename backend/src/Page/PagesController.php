@@ -4,6 +4,8 @@ namespace KuuraCms\Page;
 
 use KuuraCms\Entities\TheWebsite;
 use KuuraCms\{SharedAPIContext, Template};
+use KuuraCms\Block\BlocksRepository;
+use KuuraCms\Block\SelectBlocksQuery;
 use KuuraCms\Theme\ThemeAPI;
 use KuuraSite\Theme;
 use Pike\{Db, FileSystem, PikeException, Request, Response};
@@ -15,7 +17,8 @@ final class PagesController {
                                Todo $paegRepo,
                                SharedAPIContext $storage,
                                TheWebsite $theWebsite,
-                               FileSystem $fs): void {
+                               FileSystem $fs,
+                               BlocksRepository $br): void {
         $themeAPI = new ThemeAPI('theme', $storage, $fs);
         $theme = new Theme($themeAPI); // Note: mutates $this->storage->data
         //
@@ -25,10 +28,14 @@ final class PagesController {
             return;
         }
         self::$blockTypes = $storage->getDataHandle()->blockTypes;
-        $html = (new Template($page->layout // becomes KUURA_WORKSPACE_PATH . "site/templates/{$page->layout}"
-                              ))->render([
+        $html = (new Template($page->layout, // becomes KUURA_WORKSPACE_PATH . "site/templates/{$page->layout}"
+                              null,
+                              function() use ($br): SelectBlocksQuery {
+                                  return $br->fetchAll();
+                              }))->render([
             'page' => $page,
             'site' => $theWebsite,
+            'urlStr' => $req->path,
         ]);
         //
         if ($req->queryVar('in-edit') !== null &&
@@ -40,7 +47,7 @@ final class PagesController {
                     'layout' => $page->layout
                     ],
                     'isNewPage' => false,
-                    'blocks' => $this->getBlocksDeep($page->blocks),
+                    'blocks' => $this->getBlocksDeep(array_merge($br->getResults(), $page->blocks)),
                     'theme' => (object) ['pageLayouts' => $storage->getDataHandle()->pageLayouts],
                 ]) . '</script>' .
                 '<script src="' . Template::makeUrl('public/kuura/kuura-webpage.js', false) . '"></script>' .
@@ -60,7 +67,8 @@ final class PagesController {
                                           Todo $paegRepo,
                                           TheWebsite $theWebsite,
                                           SharedAPIContext $storage,
-                                          FileSystem $fs): void {
+                                          FileSystem $fs,
+                                          BlocksRepository $br): void {
         $themeAPI = new ThemeAPI('theme', $storage, $fs);
         $theme = new Theme($themeAPI); // Note: mutates $this->storage->data
         //
@@ -71,10 +79,14 @@ final class PagesController {
 
         // todo validate req->params->layout
 
-        $html = (new Template(urldecode($req->params->layout) // KUURA_WORKSPACE_PATH . "site/templates/{$l}"
-                              ))->render([
+        $html = (new Template(urldecode($req->params->layout), // KUURA_WORKSPACE_PATH . "site/templates/{$l}"
+                              null,
+                              function() use ($br): SelectBlocksQuery {
+                                  return $br->fetchAll();
+                              }))->render([
             'page' => $page,
             'site' => $theWebsite,
+            'urlStr' => $req->path,
         ]);
         //
         if (($bodyEnd = strpos($html, '</body>')) > 0)
@@ -85,7 +97,7 @@ final class PagesController {
                     'layout' => $req->params->layout,
                     ],
                     'isNewPage' => true,
-                    'blocks' => $this->getBlocksDeep($page->blocks),
+                    'blocks' => $this->getBlocksDeep(array_merge($br->getResults(), $page->blocks)),
                     'theme' => (object) ['pageLayouts' => $storage->getDataHandle()->pageLayouts],
                 ]) . '</script>' .
                 '<script src="' . Template::makeUrl('public/kuura/kuura-webpage.js', false) . '"></script>' .

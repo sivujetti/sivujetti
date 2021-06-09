@@ -23,8 +23,6 @@
             </div>
         </div>
     </div>
-    <footer>
-        &copy; <?= $site->name ?> <?= date('Y') ?>
-    </footer>
+    <?= $this->Footer() ?>
 </body>
 </html>

@@ -2,19 +2,24 @@
 
 namespace KuuraCms;
 
+use KuuraCms\Block\SelectBlocksQuery;
 use KuuraCms\Entities\Page;
 use Pike\{ArrayUtils, PikeException, Template as PikeTemplate};
 
 final class Template extends PikeTemplate {
+    /** @var ?\Closure */
+    private ?\Closure $__fetchBlocks;
     /** @deprecated */
     private array $__aliases = [];
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
+     * @param ?\Closure $fetchBlocks = null
      * @param ?string[] $aliases = null
      */
-    public function __construct(string $file, array $vars = null, array $aliases = null) {
+    public function __construct(string $file, array $vars = null, ?\Closure $fetchBlocks = null, array $aliases = null) {
         parent::__construct(self::completePath($file), $vars);
+        $this->__fetchBlocks = $fetchBlocks;
         $this->__aliases = $aliases ?? [];
     }
     private static function completePath(string $pair): string {
@@ -99,7 +104,7 @@ final class Template extends PikeTemplate {
             $templateFilePath = $alias;
         }
         return $this->doRender($templateFilePath,
-            $this->__locals + ['props' => $args ? $args[0] : []]);
+            array_merge($this->__locals, ['props' => $args ? $args[0] : []]));
     }
     /**
      * @todo
@@ -111,6 +116,13 @@ final class Template extends PikeTemplate {
             $out .= $this->renderValue($this->__call($block->renderer, [$block]),
                                        "$block->id:$block->type");
         return $out;
+    }
+    /**
+     * @todo
+     * @return todo
+     */
+    protected function fetchBlocks(): SelectBlocksQuery {
+        return $this->__fetchBlocks->__invoke();
     }
     /**
      * @todo

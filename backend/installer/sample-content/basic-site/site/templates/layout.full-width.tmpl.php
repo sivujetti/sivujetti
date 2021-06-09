@@ -16,8 +16,6 @@
     <div id="main" data-section="main">
         <?= $this->renderBlocks($this->filterBlocks($page, 'main')) ?>
     </div>
-    <footer>
-        &copy; <?= $site->name ?> <?= date('Y') ?>
-    </footer>
+    <?= $this->Footer() ?>
 </body>
 </html>

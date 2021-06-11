@@ -1,6 +1,10 @@
 import {__} from './temp.js';
 
-const paragraphBlockReRender = (newDataFromForm, blockRef, _prevData) => {
+const paragraphBlockReRender = (newDataFromForm, blockRef, prevData) => {
+    if (!prevData.type) {
+        blockRef.tryToReRenderWithHtml(`<p>${newDataFromForm.text}</p>`); // attrs ?
+        return;
+    }
     blockRef.reRenderWithText(newDataFromForm.text);
 };
 

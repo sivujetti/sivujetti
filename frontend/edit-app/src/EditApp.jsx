@@ -1,7 +1,9 @@
 import {__} from './temp.js';
 import services from './services.js';
-import EditBox, {createBlockData} from './EditBox.jsx';
+import EditBox, {createBlockData, tryToReRenderBlock, saveBlockToBackend} from './EditBox.jsx';
 import AddBox from './AddBox.jsx';
+
+const TODO = 282;
 
 class MainPanel extends preact.Component {
     render({blocks, editApp}) {
@@ -106,12 +108,28 @@ class AddPagePanel extends preact.Component {
 class EditApp extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {blocks: null, isCreatePageModeOn: false, selectedPageLayout: null};
+        this.state = {blocks: null, isCreatePageModeOn: false, selectedPageLayout: null, cog: {left: -10000, top: -10000}};
         this.editBox = preact.createRef();
         this.addBox = preact.createRef();
         this.mainView = preact.createRef(); // public
         EditApp.currentWebPage = null;
         this.loading = false;
+        this.webpageEventHandlers = {
+            onBlockHoverStarted: this._handleWebpageBlockHoverStarted.bind(this),
+            onBlockHoverEnded: this._handleWebpageBlockHoverEnded.bind(this),
+            onBlockClickedDuringHover: this._handleWebpageBlockClicked.bind(this),
+            onBlur: this._handleInlineWysiwygEditingEnded.bind(this),
+            onHtmlInput: debounce(this._handleInlineWysiwygInput.bind(this)),
+        };
+        // https://www.freecodecamp.org/news/javascript-debounce-example/
+        function debounce(func, timeout = 200){
+            let timer;
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => { func.apply(this, args); }, timeout);
+            };
+        }
+        this.dirty = new Map;
     }
     /**
      * @param {string} name
@@ -135,14 +153,15 @@ class EditApp extends preact.Component {
         if (!isNewPage) {
             this.orig = document.getElementById('kuura-site-iframe').contentWindow.location.href; // ??
         }
-        this.setState({blocks: currentWebPage.getBlockRefs(),
+        currentWebPage.setEventHandlers(this.webpageEventHandlers);
+        this.setState({blocks: currentWebPage.getBlockRefs(this.webpageEventHandlers),
                        selectedPageLayout: this.layouts.find(l => l.relFilePath === currentWebPage.layout),
                        isCreatePageModeOn: isNewPage});
     }
     /**
      * @acces protected
      */
-    render(_, {blocks, isCreatePageModeOn, selectedPageLayout}) {
+    render(_, {blocks, isCreatePageModeOn, selectedPageLayout, cog}) {
         // The webpage iframe hasn't loaded yet
         if (blocks === null)
             return;
@@ -157,6 +176,7 @@ class EditApp extends preact.Component {
             <AddBox ref={ this.addBox } onBlockAdded={ this.addBlock.bind(this) }
                 findLastBlock={ sectionName => this.findLastBlock(sectionName) }
                 EditApp={ EditApp } currentPageLayoutSections={ selectedPageLayout.sections }/>
+            <button class="cog" style={ `left: ${TODO+cog.left}px; top: ${cog.top}px; pointer-events:none` } type="button">E</button>
         </>;
     }
     beginCreatePageMode() {
@@ -226,6 +246,49 @@ class EditApp extends preact.Component {
         return this.state.blocks.reduce((l, b) =>
             (this.findBlockData(b) || {}).section === sectionName ? b : l
         , null);
+    }
+    _handleWebpageBlockHoverStarted(blockRef) {
+        this.setState({cog: blockRef.position});
+    }
+    _handleWebpageBlockHoverEnded(_blockRef) {
+        this.setState({cog: {left: -10000, top: -10000}});
+    }
+    _handleWebpageBlockClicked(b) {
+        const isP = b.blockType === 'paragraph';
+        const isH = !isP && b.blockType === 'heading';
+
+        if (!isP && !isH) {
+            this.editBox.current.open(b, this.findBlockData(b));
+            return false; // isInlineEditable
+        }
+
+        this.dirty.set(b.blockId, Object.assign({}, this.findBlockData(b)));
+        return true; // isInlineEditable
+    }
+    _handleInlineWysiwygInput(b, value) {
+        const d = {};
+        if (b.blockType === 'heading') // ??
+            d.text = value.substr('<h1>'.length, value.length - '<h1></h1>'.length); // ?? attrs
+        else if (b.blockType === 'paragraph')
+            d.text = value.substr('<p>'.length, value.length - '<p></p>'.length);
+        else if (b.blockType === 'formattedText')
+            d.html = value;
+        else
+            throw new Error();
+
+        this.dirty.set(b.blockId, Object.assign({
+        }, this.findBlockData(b), d));
+
+        saveBlockToBackend(b.blockId, this.dirty.get(b.blockId));
+    }
+    _handleInlineWysiwygEditingEnded(b) {
+        tryToReRenderBlock(
+            b,
+            this.dirty.get(b.blockId),
+            {},
+            b.blockType,
+        );
+        this.dirty.delete(b.blockId);
     }
 }
 

@@ -66,14 +66,7 @@ class EditBox extends preact.Component {
         e.preventDefault();
         this.currentForm.current.applyLatestValue();
         this.setState({isOpen: false});
-        services.http.put(`/api/blocks/${this.state.blockRef.blockId}`, Object.assign({
-        }, this.state.blockData)).then(_resp => {
-            // ?
-        })
-        .catch(err => {
-            // ??
-            window.console.error(err);
-        });
+        saveBlockToBackend(this.state.blockRef.blockId, this.state.blockData);
     }
     /**
      * @access private
@@ -82,6 +75,17 @@ class EditBox extends preact.Component {
         // @todo revert if changed
         this.setState({isOpen: false});
     }
+}
+
+function saveBlockToBackend(blockId, data) {
+    services.http.put(`/api/blocks/${blockId}`, Object.assign({
+    }, data)).then(_resp => {
+        // ?
+    })
+    .catch(err => {
+        // ??
+        window.console.error(err);
+    });
 }
 
 class CreateBlocksSequence extends preact.Component {
@@ -210,4 +214,4 @@ function createBlockData(from) {
 }
 
 export default EditBox;
-export {createBlockData, CreateBlocksSequence, tryToReRenderBlock}; // ?
+export {createBlockData, CreateBlocksSequence, tryToReRenderBlock, saveBlockToBackend}; // ?

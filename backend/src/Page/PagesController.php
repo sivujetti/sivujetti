@@ -39,19 +39,27 @@ final class PagesController {
         ]);
         //
         if ($req->queryVar('in-edit') !== null &&
-            ($bodyEnd = strpos($html, '</body>')) > 0)
-            $html = substr($html, 0, $bodyEnd) .
-                '<script>window.kuuraCurrentPageData = ' . json_encode([
-                    'page' => (object) [
-                    'id' => $page->id,
-                    'layout' => $page->layout
-                    ],
-                    'isNewPage' => false,
-                    'blocks' => $this->getBlocksDeep(array_merge($br->getResults(), $page->blocks)),
-                    'theme' => (object) ['pageLayouts' => $storage->getDataHandle()->pageLayouts],
-                ]) . '</script>' .
-                '<script src="' . Template::makeUrl('public/kuura/kuura-webpage.js', false) . '"></script>' .
-            substr($html, $bodyEnd);
+            ($headEnd = strpos($html, '</head>')) > 0) {
+            //
+            $html = substr($html, 0, $headEnd) .
+                '<link rel="stylesheet" href="' . Template::makeUrl('public/kuura/quill-kuura.css', false) . '">' .
+            substr($html, $headEnd);
+            //
+            if (($bodyEnd = strpos($html, '</body>')) > 0)
+                $html = substr($html, 0, $bodyEnd) .
+                    '<script>window.kuuraCurrentPageData = ' . json_encode([
+                        'page' => (object) [
+                        'id' => $page->id,
+                        'layout' => $page->layout
+                        ],
+                        'isNewPage' => false,
+                        'blocks' => $this->getBlocksDeep(array_merge($br->getResults(), $page->blocks)),
+                        'theme' => (object) ['pageLayouts' => $storage->getDataHandle()->pageLayouts],
+                    ]) . '</script>' .
+                    '<script src="' . Template::makeUrl('public/kuura/vendor/quill.min.js', false) . '"></script>' .
+                    '<script src="' . Template::makeUrl('public/kuura/kuura-webpage.js', false) . '"></script>' .
+                substr($html, $bodyEnd);
+        }
         $res->html($html);
     }
     public function renderPageInEditMode(Request $req, Response $res, SharedAPIContext $storage): void {

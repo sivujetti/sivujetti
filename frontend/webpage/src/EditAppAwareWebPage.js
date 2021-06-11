@@ -15,7 +15,15 @@ class EditAppAwareWebPage {
         Object.assign(this, currentPage.page); // id, layout
         this.theme = currentPage.theme;
         this.theme.defaultPageLayout = this.theme.pageLayouts.find(pl => pl.isDefault === true);
-        if (editApp) editApp.current.handleWebpageLoaded(this, currentPage.blocks, currentPage.isNewPage);
+        if (!editApp) throw new Error('!editApp');
+        editApp.current.handleWebpageLoaded(this, currentPage.blocks, currentPage.isNewPage);
+    }
+    /**
+     * @todo
+     * @access public
+     */
+    setEventHandlers(handlers) {
+        this._eventHandlers = handlers;
     }
     /**
      * @return todo
@@ -39,7 +47,7 @@ class EditAppAwareWebPage {
                 blockId: blockIdAsInt.toString(),
                 startingCommentNode: c,
                 blockType,
-            }));
+            }, this._eventHandlers));
         }
         return out;
     }
@@ -114,7 +122,7 @@ class EditAppAwareWebPage {
             blockId,
             startingCommentNode,
             blockType,
-        });
+        }, this._eventHandlers);
     }
 }
 
@@ -134,12 +142,40 @@ function getAllComments(rootElem) {
     return comments;
 }
 
+let globalClickHandlerAdded = false;
+let blockCurrentlyBeingHovered = null;
+let blockCurrentlyBeingEdited = null;
+
 class Block { // @todo Block, Comment, BlockRef ??
-    constructor(input) {
+    constructor(input, eventHandlers) {
         this.blockId = input.blockId; // public string
         this.blockType = input.blockType; // public string
         this.startingCommentNode = input.startingCommentNode; // public
         this.startingDomNode = this.startingCommentNode.nextElementSibling; // private
+        this._eventHandlers = eventHandlers;
+        if (!globalClickHandlerAdded) {
+        const clearStuff = () => {
+            blockCurrentlyBeingEdited = null;
+            blockCurrentlyBeingHovered = null;
+        };
+        document.body.addEventListener('click', e => {
+            if (blockCurrentlyBeingHovered && !blockCurrentlyBeingEdited) {
+                blockCurrentlyBeingEdited = blockCurrentlyBeingHovered;
+                blockCurrentlyBeingHovered = null;
+                const clickedBlockWasInlineEditable = this._eventHandlers.onBlockClickedDuringHover(blockCurrentlyBeingEdited);
+                this._eventHandlers.onBlockHoverEnded(blockCurrentlyBeingEdited, e);
+                if (!clickedBlockWasInlineEditable)
+                    clearStuff();
+                else
+                    blockCurrentlyBeingEdited._openInlineEditor();
+            } else if (blockCurrentlyBeingEdited && !e.target.closest('.ql-container') && !e.target.closest('.ql-toolbar')) {
+                this._eventHandlers.onBlur(blockCurrentlyBeingEdited);
+                clearStuff();
+            }
+        });
+        globalClickHandlerAdded = true;
+        }
+        this._hookBlockHoverListeners();
     }
     get position() {
         return this.startingDomNode.getBoundingClientRect();
@@ -163,7 +199,27 @@ class Block { // @todo Block, Comment, BlockRef ??
         }
         return out;
     }
-    tryToReRenderWithHtml(html) {
+    _openInlineEditor() {
+        let html = [`<div id="editor-${this.blockId}">`];
+        this.getContents().forEach(el => { html.push(el.outerHTML); });
+        html.push('</div>');
+        this.tryToReRenderWithHtml(html.join(''), false);
+        //
+        const quill = new window.Quill(`#editor-${this.blockId}`, {
+            modules: {toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],
+                ['clean']
+            ]},
+            theme: 'snow'
+        });
+        quill.on('text-change', (_delta, _oldDelta, _source) => {
+            if (quill.container.firstChild)
+                this._eventHandlers.onHtmlInput(this, quill.container.firstChild.innerHTML);
+        });
+        quill.focus();
+
+    }
+    tryToReRenderWithHtml(html, rewire = true) {
         // todo use this.getContents
         let el = this.startingCommentNode.nextSibling;
         if (!el) throw new Error('?');
@@ -192,6 +248,8 @@ class Block { // @todo Block, Comment, BlockRef ??
         toRemove[toRemove.length - 1].replaceWith(...Array.from(newContents.childNodes));
         //
         this.startingDomNode = this.startingCommentNode.nextElementSibling;
+        if (rewire)
+            this._hookBlockHoverListeners();
     }
     destroy(removeCommentBoundariesAsWell = true) {
         // todo use this.getContents
@@ -213,6 +271,20 @@ class Block { // @todo Block, Comment, BlockRef ??
         const parent = toRemove[0].parentElement;
         for (const el of toRemove)
             parent.removeChild(el);
+    }
+    _hookBlockHoverListeners() {
+        this.startingDomNode.addEventListener('mouseover', e => {
+            if (blockCurrentlyBeingEdited) return;
+            blockCurrentlyBeingHovered = this;
+            this._eventHandlers.onBlockHoverStarted(this, e);
+            e.stopPropagation();
+        });
+        this.startingDomNode.addEventListener('mouseout', e => {
+            if (blockCurrentlyBeingEdited) return;
+            blockCurrentlyBeingHovered = null;
+            this._eventHandlers.onBlockHoverEnded(this, e);
+            e.stopPropagation();
+        });
     }
 }
 

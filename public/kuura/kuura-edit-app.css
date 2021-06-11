@@ -1,0 +1,94 @@
+/* @todo */
+#doos {
+    position: absolute;
+    width: 282px;
+    height: 100%;
+}
+#view {
+    display: none;
+    position: fixed;
+    left: 282px;
+    top: 0;
+    background-color: rgba(255, 255, 255, .8);
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+#view.open {
+    display: block;
+}
+#kuura-site-iframe {
+    position: absolute;
+    width: calc(100% - 282px);
+    height: 100%;
+    border: none;
+    left: 282px;
+}
+
+
+#cpanel {
+    padding: 0 .4rem;
+}
+#cpanel .section {
+    background-color: rgba(255,255,255,0.07);
+    padding: .4rem;
+    color: #fff;
+    margin-bottom: .4rem;
+    border-radius: .4rem;
+}
+#cpanel .section.dashed {
+    border: 2px dashed rgba(255,255,255,.1);
+}
+
+
+.block > .btn > span {
+    display: block;
+    font-size: .6rem;
+    margin: -.43rem 0 0 0;
+}
+
+
+.edit-box {
+    position: absolute;
+    z-index: 1;
+}
+.edit-box__inner {
+    position: absolute;
+    bottom: .4rem;
+    background-color: #fff;
+    padding: .4rem;
+    box-shadow: 2px 2px 20px rgba(0,0,0,.5);
+}
+.edit-box__inner:after {
+    content: "";
+    position: absolute;
+    border-right: 7px solid transparent;
+    border-top: 7px solid #fff;
+    border-left: 7px solid transparent;
+    bottom: -7px;
+    right: 50%;
+    margin-right: -7px;
+}
+.edit-box__inner.below {
+    bottom: initial;
+}
+.edit-box__inner.below:after {
+    content: "";
+    position: absolute;
+    border-top: none;
+    border-bottom: 7px solid #fff;
+    bottom: initial;
+    top: -7px;
+}
+
+
+
+
+
+.cog {
+    position: absolute;
+    z-index: 2;
+}
+
+
+

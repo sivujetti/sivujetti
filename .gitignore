@@ -18,11 +18,16 @@ public/kuura/*
 !public/kuura/vendor/
 !public/kuura/common.css
 <<<<<<< HEAD
+<<<<<<< HEAD
 !public/kuura/kuura-edit-app.css
 !public/kuura/quill-kuura.css
 =======
 !public/kuura/cpanel-app.css
 >>>>>>> Kuura-proto: add frontend
+=======
+!public/kuura/kuura-edit-app.css
+!public/kuura/quill-kuura.css
+>>>>>>> Kuura-proto: add inline editing for headings and paragraphs
 !public/kuura/install-app.css
 /internal/
 !*/**/Internal

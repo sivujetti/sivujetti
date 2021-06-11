@@ -54,6 +54,7 @@ const todoIsBlockSavedToBackend = (_blockRef, blockData) =>
 
 const menuBlockGetInitialData = () => ({
     tree: JSON.stringify([{id: 1, url: '/', text: __('Home'), children: []}]),
+    doAddTopLevelPagesAutomatically: 'no',
     treeStart: '', // default '<ul>'
     itemStart: '', // '<li>'
 });

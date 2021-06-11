@@ -6,9 +6,10 @@ use KuuraCms\Entities\TheWebsite;
 use KuuraCms\{SharedAPIContext, Template};
 use KuuraCms\Block\BlocksRepository;
 use KuuraCms\Block\SelectBlocksQuery;
+use KuuraCms\Entities\Block;
 use KuuraCms\Theme\ThemeAPI;
 use KuuraSite\Theme;
-use Pike\{Db, FileSystem, PikeException, Request, Response};
+use Pike\{ArrayUtils, Db, FileSystem, PikeException, Request, Response};
 
 final class PagesController {
     public static $blockTypes;
@@ -124,7 +125,11 @@ final class PagesController {
         }
         return array_merge($blocks, $dynamicBlocks);
     }
-    public function createPage(Request $req, Response $res, Db $db): void {
+    public function createPage(Request $req,
+                               Response $res,
+                               Db $db,
+                               BlocksRepository $br,
+                               bool $performMenuAutoAdd = true): void {
         // todo validate input
 
         if (!($pageType = $db->fetchOne(
@@ -135,14 +140,21 @@ final class PagesController {
 
         [$qList, $values, $columns] = $db->makeInsertQParts([
             'slug' => $req->body->slug,
+            'path' => $req->body->path, // todo create patcher (db trigger) for empty values
+            'level' => $req->body->level,
             'title' => $req->body->title,
             'layout' => $req->body->layout,
             'pageTypeId' => $pageType['id'],
         ]);
         if ($db->exec("INSERT INTO `pages` ({$columns}) VALUES ({$qList})",
-                      $values) !== 1)
+                      $values) !== 1 || !($insertId = $db->lastInsertId()))
             throw new PikeException('hj');
-        $insertId = $db->lastInsertId();
+
+        if ($performMenuAutoAdd) {
+            $menus = $br->fetchAll()->where('type', Block::TYPE_MENU)->exec();
+            $toAdd = ArrayUtils::filterByKey($menus, 'yes', 'doAddTopLevelPagesAutomatically');
+            // todo foreach ($toAdd as $block) { json_decode($block->tree)[] = thisPage; $db->save($block); }
+        }
 
         $res->json(['ok' => $insertId ? 'ok' : 'err',
                     'insertId' => $insertId]);

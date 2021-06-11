@@ -53,6 +53,13 @@ class AddPagePanel extends preact.Component {
             <div class="form-group">
             <input value={ slug } class="form-input" disabled/>
             </div>,
+            <div class="form-group">
+            <label class="form-label">Parent page</label>
+            <select class="form-select">
+                <option value="todo1">todo</option>
+                <option value="todo2">todo</option>
+            </select>
+            </div>,
             blocks.map(b => <div class="block">
                 <button onClick={ () => editApp.editBox.current.open(b, editApp.findBlockData(b)) } title={ __('Edit') } class="btn">{ services.blockTypes.get(b.blockType).friendlyName }{ !editApp.findBlockData(b).title ? null : <span>{ editApp.findBlockData(b).title }</span> }</button>
             </div>),
@@ -85,6 +92,8 @@ class AddPagePanel extends preact.Component {
     applyNewPage() {
         services.http.put(`/api/pages/${EditApp.currentWebPage.id}`,
                           {slug: this.state.slug,
+                           path: EditApp.currentWebPage.id.toString(),
+                           level: 1,
                            title: this.state.title,
                            layout: this.state.selectedLayout,
                            status: 0})
@@ -186,6 +195,8 @@ class EditApp extends preact.Component {
         const pl = EditApp.currentWebPage.theme.defaultPageLayout.relFilePath;
         services.http.post(`/api/pages`, {
             slug: '-',
+            path: '',
+            level: 1,
             title: '-',
             layout: pl,
             pageTypeName: 'Pages',

@@ -29,6 +29,8 @@ CREATE TABLE `pageTypes` (
 CREATE TABLE `pages` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `slug` TEXT NOT NULL,
+    `path` TEXT, -- todo ids or slugs?
+    `level` INTEGER NOT NULL DEFAULT 1,
     `title` TEXT NOT NULL,
     `layout` TEXT NOT NULL,
     `status` INTEGER NOT NULL DEFAULT 0,

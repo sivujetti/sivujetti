@@ -23,6 +23,10 @@ final class MenuBlockType implements BlockTypeInterface {
         $p3->name = 'itemStart';
         $p3->dataType = 'text';
         $out[] = $p3;
+        $p4 = new BlockProperty;
+        $p4->name = 'doAddTopLevelPagesAutomatically';
+        $p4->dataType = 'text';
+        $out[] = $p4;
         return $out;
     }
 }

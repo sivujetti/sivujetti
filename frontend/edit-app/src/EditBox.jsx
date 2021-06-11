@@ -159,6 +159,8 @@ class CreateBlocksSequence extends preact.Component {
         this.setState({isOpen: false});
         services.http.post(`/api/pages`, {
             slug: '',
+            path: '',
+            level: 1,
             title: '',
             layout: '',
             pageTypeName: this.props.pageType,

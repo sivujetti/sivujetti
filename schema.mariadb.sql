@@ -31,6 +31,8 @@ CREATE TABLE `pageTypes` (
 CREATE TABLE `pages` (
     `id` MEDIUMINT UNSIGNED NOT NULL PRIMARY KEY AUTOINCREMENT,
     `slug` VARCHAR(92) NOT NULL,
+    `path` VARCHAR(191) NOT NULL, -- 191 * 4 = 767 bytes = max key length
+    `level` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1,
     `title` VARCHAR(92) NOT NULL,
     `layout` VARCHAR(128) NOT NULL,
     `status` TINYINT(1) NOT NULL DEFAULT 0,

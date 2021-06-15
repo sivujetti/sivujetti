@@ -1,6 +1,6 @@
 import {__} from './temp.js';
 import services from './services.js';
-import EditBox, {createBlockData, tryToReRenderBlock, saveBlockToBackend} from './EditBox.jsx';
+import EditBox, {Block, createBlockData, tryToReRenderBlock, saveBlockToBackend} from './EditBox.jsx';
 import AddBox from './AddBox.jsx';
 
 const TODO = 282;
@@ -9,15 +9,19 @@ class MainPanel extends preact.Component {
     render({blocks, editApp}) {
         return <>
             { blocks.length
-                ? blocks.map(b => <div class="block">
-                    <button onClick={ () => editApp.editBox.current.open(b, editApp.findBlockData(b)) } title={ __('Edit') } class="btn">{ services.blockTypes.get(b.blockType).friendlyName }{ !editApp.findBlockData(b).title ? null : <span>{ editApp.findBlockData(b).title }</span> }</button>
-                </div>)
+                ? this.renderBranch(blocks)
                 : <p>{ __('No blocks on this page') }</p>
             }
             <button onClick={ () => editApp.addBox.current.open(editApp.findLastBlock('main')) } title={ __('Add block to current page') } class="btn">{ __('Add block') }</button>
             <br/>
             <button onClick={ () => editApp.beginCreatePageMode() } title={ __('Add new page') } class="btn">{ __('Add page') }</button>
         </>;
+    }
+    renderBranch(blocks) {
+        const editApp = this.props.editApp;
+        return <ul class="block-tree">{ blocks.map(b => <li><div class="block">
+            <button onClick={ () => editApp.editBox.current.open(b, editApp.findBlockData(b)) } title={ __('Edit') } class="btn">{ services.blockTypes.get(b.data.type).friendlyName }{ !editApp.findBlockData(b).title ? null : <span>{ editApp.findBlockData(b).title }</span> }</button>
+        </div>{ b.children.length ? this.renderBranch(b.children) : null }</li>) }</ul>;
     }
 }
 
@@ -61,7 +65,7 @@ class AddPagePanel extends preact.Component {
             </select>
             </div>,
             blocks.map(b => <div class="block">
-                <button onClick={ () => editApp.editBox.current.open(b, editApp.findBlockData(b)) } title={ __('Edit') } class="btn">{ services.blockTypes.get(b.blockType).friendlyName }{ !editApp.findBlockData(b).title ? null : <span>{ editApp.findBlockData(b).title }</span> }</button>
+                <button onClick={ () => editApp.editBox.current.open(b, editApp.findBlockData(b)) } title={ __('Edit') } class="btn">{ services.blockTypes.get(b.data.type).friendlyName }{ !editApp.findBlockData(b).title ? null : <span>{ editApp.findBlockData(b).title }</span> }</button>
             </div>),
             <button onClick={ () => editApp.addBox.current.open(editApp.findLastBlock('main')) } title={ __('Add block to current page') } class="btn">{ __('Add block') }</button>,
             <br/>,
@@ -124,11 +128,11 @@ class EditApp extends preact.Component {
         EditApp.currentWebPage = null;
         this.loading = false;
         this.webpageEventHandlers = {
-            onBlockHoverStarted: this._handleWebpageBlockHoverStarted.bind(this),
-            onBlockHoverEnded: this._handleWebpageBlockHoverEnded.bind(this),
-            onBlockClickedDuringHover: this._handleWebpageBlockClicked.bind(this),
-            onBlur: this._handleInlineWysiwygEditingEnded.bind(this),
-            onHtmlInput: debounce(this._handleInlineWysiwygInput.bind(this)),
+            onBlockHoverStarted: () => null, // this._handleWebpageBlockHoverStarted.bind(this),
+            onBlockHoverEnded: () => null, // this._handleWebpageBlockHoverEnded.bind(this),
+            onBlockClickedDuringHover: () => null, // this._handleWebpageBlockClicked.bind(this),
+            onBlur: () => null, // this._handleInlineWysiwygEditingEnded.bind(this),
+            onHtmlInput: () => null, // debounce(this._handleInlineWysiwygInput.bind(this)),
         };
         // https://www.freecodecamp.org/news/javascript-debounce-example/
         function debounce(func, timeout = 200){
@@ -155,17 +159,23 @@ class EditApp extends preact.Component {
      * @todo
      * @todo
      */
-    handleWebpageLoaded(currentWebPage, currentWebPageBlocks, isNewPage = false) {
+    handleWebpageLoaded(currentWebPage, currentWebPageBlockData, isNewPage = false) {
         EditApp.currentWebPage = currentWebPage;
-        this.data = currentWebPageBlocks;
+        //this.data = currentWebPageBlocks;
         this.layouts = currentWebPage.theme.pageLayouts;
         if (!isNewPage) {
             this.orig = document.getElementById('kuura-site-iframe').contentWindow.location.href; // ??
         }
         currentWebPage.setEventHandlers(this.webpageEventHandlers);
-        this.setState({blocks: currentWebPage.getBlockRefs(this.webpageEventHandlers),
+        this.setState({blocks: this.mb(currentWebPageBlockData, currentWebPage.getBlockRefs()),//,
                        selectedPageLayout: this.layouts.find(l => l.relFilePath === currentWebPage.layout),
                        isCreatePageModeOn: isNewPage});
+    }
+    mb(datas, refs) {
+        return datas.map(d =>
+            new Block(d, refs.find(br => br.blockId === d.id),
+                d.children.length ? this.mb(d.children, refs) : [])
+        );
     }
     /**
      * @acces protected
@@ -241,32 +251,32 @@ class EditApp extends preact.Component {
      * @return todo
      * @access private
      */
-    findBlockData(blockRef) {
-        return this.data.find(blockData => blockData.id === blockRef.blockId);
+    findBlockData(block) {
+        return block.data;
     }
     /**
      * @todo
      * @todo
      * @access private
      */
-    addBlock(newBlockRef, blockData) {
-        this.data.push(blockData);
-        this.setState({blocks: this.state.blocks.concat(newBlockRef)});
+    addBlock(newBlock) {
+        this.setState({blocks: this.state.blocks.concat(newBlock)});
     }
     findLastBlock(sectionName) {
-        return this.state.blocks.reduce((l, b) =>
+        const b = this.state.blocks.reduce((l, b) =>
             (this.findBlockData(b) || {}).section === sectionName ? b : l
         , null);
+        return b ? b.ref : null;
     }
-    _handleWebpageBlockHoverStarted(blockRef) {
-        this.setState({cog: blockRef.position});
+    _handleWebpageBlockHoverStarted(block) {
+        this.setState({cog: block.ref.position});
     }
     _handleWebpageBlockHoverEnded(_blockRef) {
         this.setState({cog: {left: -10000, top: -10000}});
     }
     _handleWebpageBlockClicked(b) {
-        const isP = b.blockType === 'paragraph';
-        const isH = !isP && b.blockType === 'heading';
+        const isP = b.data.type === 'paragraph';
+        const isH = !isP && b.data.type === 'heading';
 
         if (!isP && !isH) {
             this.editBox.current.open(b, this.findBlockData(b));
@@ -278,11 +288,11 @@ class EditApp extends preact.Component {
     }
     _handleInlineWysiwygInput(b, value) {
         const d = {};
-        if (b.blockType === 'heading') // ??
+        if (b.data.type === 'heading') // ??
             d.text = value.substr('<h1>'.length, value.length - '<h1></h1>'.length); // ?? attrs
-        else if (b.blockType === 'paragraph')
+        else if (b.data.type === 'paragraph')
             d.text = value.substr('<p>'.length, value.length - '<p></p>'.length);
-        else if (b.blockType === 'formattedText')
+        else if (b.data.type === 'formattedText')
             d.html = value;
         else
             throw new Error();
@@ -297,7 +307,7 @@ class EditApp extends preact.Component {
             b,
             this.dirty.get(b.blockId),
             {},
-            b.blockType,
+            b.data.type,
         );
         this.dirty.delete(b.blockId);
     }

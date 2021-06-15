@@ -43,7 +43,7 @@ class EditAppAwareWebPage {
             if (isNaN(blockIdAsInt))
                 continue;
             //
-            out.push(new Block({
+            out.push(new BlockRef({
                 blockId: blockIdAsInt.toString(),
                 startingCommentNode: c,
                 blockType,
@@ -118,7 +118,7 @@ class EditAppAwareWebPage {
         initialContent.forEach(el => parent.appendChild(el));
         parent.appendChild(document.createComment(` block-end ${blockId}:${blockType} `));
 
-        return new Block({
+        return new BlockRef({
             blockId,
             startingCommentNode,
             blockType,
@@ -146,7 +146,7 @@ let globalClickHandlerAdded = false;
 let blockCurrentlyBeingHovered = null;
 let blockCurrentlyBeingEdited = null;
 
-class Block { // @todo Block, Comment, BlockRef ??
+class BlockRef {
     constructor(input, eventHandlers) {
         this.blockId = input.blockId; // public string
         this.blockType = input.blockType; // public string

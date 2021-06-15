@@ -21,7 +21,7 @@ interface FormInputs {
 class ParagraphBlockFormInputs extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {text: props.blockData.text};
+        this.state = {text: props.block.data.text};
     }
     render(_, {text}) {
         return <textarea onInput={ this.handleInput.bind(this) }>{ text }</textarea>;
@@ -32,7 +32,7 @@ class ParagraphBlockFormInputs extends preact.Component {
         this.props.onValueChanged({text});
     }
     applyLatestValue() {
-        this.props.blockData.text = this.state.text;
+        this.props.block.data.text = this.state.text;
     }
 }
 

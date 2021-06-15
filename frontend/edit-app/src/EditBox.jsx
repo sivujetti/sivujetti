@@ -4,12 +4,12 @@ import services from './services.js';
 const TODO = 282;
 
 /**
- * Note: mutates props.blockData
+ * Note: mutates props.block.data
  */
 class EditBox extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {isOpen: false, blockRef: null, blockData: null, innerBoxIsBelow: false};
+        this.state = {isOpen: false, block: null, innerBoxIsBelow: false};
         this.currentForm = preact.createRef();
         this.foo = null;
     }
@@ -18,17 +18,17 @@ class EditBox extends preact.Component {
      * @todo @todo combine these?
      * @acces public
      */
-    open(blockRef, blockData) {
-        this.setState({isOpen: true, blockRef: blockRef, blockData, innerBoxIsBelow: false});
+    open(block) {
+        this.setState({isOpen: true, block, innerBoxIsBelow: false});
     }
     /**
      * @acces protected
      */
-    render(_, {isOpen, blockRef, blockData, innerBoxIsBelow}) {
+    render(_, {isOpen, block, innerBoxIsBelow}) {
         if (!isOpen)
             return;
-        const Form = services.blockTypes.get(blockRef.blockType).EditFormImpl;
-        const rect = blockRef.position;
+        const Form = services.blockTypes.get(block.ref.blockType).EditFormImpl;
+        const rect = block.ref.position;
         const st = el => {
             this.foo = {current: el};
             if (el && !innerBoxIsBelow) setTimeout(() => {
@@ -38,7 +38,7 @@ class EditBox extends preact.Component {
         return <form class="edit-box" style={ `left: ${TODO+rect.left}px; top: ${rect.top}px` }
             onSubmit={ this.applyChanges.bind(this) }>
             <div class={ `edit-box__inner${!innerBoxIsBelow ? '' : ' below'}` } style={ !innerBoxIsBelow ? '' : `top:${rect.height}px` } ref={ st }>
-                <Form onValueChanged={ this.handleBlockValueChanged.bind(this) } blockRef={ blockRef } blockData={ blockData } ref={ this.currentForm } getEditBoxHeight={ this.getHeight.bind(this) }/>
+                <Form onValueChanged={ this.handleBlockValueChanged.bind(this) } block={ block } ref={ this.currentForm } getEditBoxHeight={ this.getHeight.bind(this) }/>
                 <button class="btn btn-primary">{ __('Apply') }</button>
                 <button class="btn btn-link" onClick={ this.discardChanges.bind(this) } type="button">{ __('Cancel') }</button>
             </div>
@@ -56,7 +56,7 @@ class EditBox extends preact.Component {
      * @access private
      */
     handleBlockValueChanged(newData) {
-        tryToReRenderBlock(this.state.blockRef, newData, this.state.blockData);
+        tryToReRenderBlock(this.state.block.ref, newData, this.state.block.data);
     }
     /**
      * @todo
@@ -66,7 +66,7 @@ class EditBox extends preact.Component {
         e.preventDefault();
         this.currentForm.current.applyLatestValue();
         this.setState({isOpen: false});
-        saveBlockToBackend(this.state.blockRef.blockId, this.state.blockData);
+        saveBlockToBackend(this.state.block.ref.blockId, this.state.block.data);
     }
     /**
      * @access private
@@ -88,6 +88,7 @@ function saveBlockToBackend(blockId, data) {
     });
 }
 
+// todo
 class CreateBlocksSequence extends preact.Component {
     /** @param {{title: string;, d: () => {left: umber; top: number;}; pageType: string;}} props */
     constructor(props) {
@@ -215,5 +216,13 @@ function createBlockData(from) {
     }, t.getInitialData());
 }
 
+class Block {
+    constructor(data, ref, children) {
+        this.data = data;
+        this.ref = ref; // aka. comment
+        this.children = children;
+    }
+}
+
 export default EditBox;
-export {createBlockData, CreateBlocksSequence, tryToReRenderBlock, saveBlockToBackend}; // ?
+export {Block, createBlockData, CreateBlocksSequence, tryToReRenderBlock, saveBlockToBackend}; // ?

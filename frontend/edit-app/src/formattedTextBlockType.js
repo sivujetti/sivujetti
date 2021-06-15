@@ -17,7 +17,7 @@ interface FormInputs {
 class FormattedTextBlockFormInputs extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {html: props.blockData.html};
+        this.state = {html: props.block.data.html};
     }
     render(_, {html}) {
         /* todo use quill editor */
@@ -29,7 +29,7 @@ class FormattedTextBlockFormInputs extends preact.Component {
         this.props.onValueChanged({html});
     }
     applyLatestValue() {
-        this.props.blockData.html = this.state.html;
+        this.props.block.data.html = this.state.html;
     }
 }
 

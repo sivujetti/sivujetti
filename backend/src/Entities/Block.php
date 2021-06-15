@@ -9,6 +9,7 @@ final class Block extends \stdClass {
     public const TYPE_LISTING = 'dynamic-listing';
     public const TYPE_MENU = 'menu';
     public const TYPE_PARAGRAPH = 'paragraph';
+    public const TYPE_SECTION = 'section';
     /** @var string self::TYPE_* */
     public string $type;
     /** @var string e.g. 'main', 'sidebar' */
@@ -19,6 +20,8 @@ final class Block extends \stdClass {
     public string $id;
     /** @var ?string e.g. 'Articles' */
     public ?string $title;
+    /** @var \KuuraCms\Entities\Block[] */
+    public array $children;
 
     /* If self::TYPE_HEADING
     public string $text;
@@ -45,6 +48,7 @@ final class Block extends \stdClass {
         $out->renderer = $row->blockRenderer;
         $out->id = $row->blockId;
         $out->title = $row->blockTitle ?? null;
+        $out->children = [];
         foreach ($rows as $row2) {
             if ($row2->blockPropBlockId === $out->id)
                 $out->{$row2->blockPropKey} = $row2->blockPropValue;

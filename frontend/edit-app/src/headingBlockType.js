@@ -28,7 +28,7 @@ interface FormInputs {
 class HeadingBlockFormInputs extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {text: props.blockData.text};
+        this.state = {text: props.block.data.text};
     }
     render(_, {text}) {
         return <>
@@ -41,10 +41,10 @@ class HeadingBlockFormInputs extends preact.Component {
     handleInput(e) {
         const text = e.target.value;
         this.setState({text});
-        this.props.onValueChanged({text, level: this.props.blockData.level});
+        this.props.onValueChanged({text, level: this.props.block.data.level});
     }
     applyLatestValue() {
-        this.props.blockData.text = this.state.text;
+        this.props.block.data.text = this.state.text;
     }
 }
 

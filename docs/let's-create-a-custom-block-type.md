@@ -43,7 +43,7 @@ class TextAndImageBlockFormInputs extends preact.Component {
     }
 }
 
-window.kuuraCms.registerBlock('text-and-image', {
+window.kuuraCms.registerBlockType('text-and-image', {
     reRender: textAndImageBlockReRender,
     getInitialData: textAndImageBlockGetInitialData,
     EditFormImpl: TextAndImageBlockFormInputs,

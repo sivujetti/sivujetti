@@ -41,6 +41,12 @@
 }
 
 
+.block-tree, .block-tree ul {
+    list-style: none;
+    margin-top: 0;
+}
+
+
 .block > .btn > span {
     display: block;
     font-size: .6rem;
@@ -57,30 +63,51 @@
     bottom: .4rem;
     background-color: #fff;
     padding: .4rem;
-    box-shadow: 2px 2px 20px rgba(0,0,0,.5);
+    box-shadow: 2px 2px 20px rgb(0 0 0 / 10%);
+    border: 1px solid #0000001f;
+    border-radius: 3px;
 }
+.edit-box__inner:before,
 .edit-box__inner:after {
     content: "";
     position: absolute;
+    right: 50%;
+    bottom: -7px;
+}
+.edit-box__inner:before {
+    border-right: 8px solid transparent;
+    border-top: 8px solid #0000009c;
+    border-left: 8px solid transparent;
+    margin-right: -8px;
+    z-index: -1;
+}
+.edit-box__inner:after {
     border-right: 7px solid transparent;
     border-top: 7px solid #fff;
     border-left: 7px solid transparent;
-    bottom: -7px;
-    right: 50%;
     margin-right: -7px;
 }
 .edit-box__inner.below {
     bottom: initial;
 }
+.edit-box__inner.below:before,
 .edit-box__inner.below:after {
-    content: "";
-    position: absolute;
     border-top: none;
-    border-bottom: 7px solid #fff;
     bottom: initial;
     top: -7px;
 }
-
+.edit-box__inner.below:before {
+    border-bottom: 8px solid #0000009c;
+}
+.edit-box__inner.below:after {
+    border-bottom: 7px solid #fff;
+}
+.edit-box h2 {
+    font: normal .8rem/.8rem -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    background-color: rgba(0,0,0,0.1);
+    padding: .2rem .3rem;
+    border-radius: 2px;
+}
 
 
 

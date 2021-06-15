@@ -121,8 +121,8 @@ class CreateMenuBlockFormInputs extends preact.Component {
     constructor(props) {
         super(props);
         this.sortable = new Sortable();
-        this.r = Object.assign({}, props.blockData);
-        this.state = {tree: JSON.parse(props.blockData.tree),
+        this.r = Object.assign({}, props.block.data);
+        this.state = {tree: JSON.parse(props.block.data.tree),
                       panel: 'main',
                       cei: null};
     }
@@ -132,7 +132,7 @@ class CreateMenuBlockFormInputs extends preact.Component {
             : <EditItemPanel cei={ cei } onConfirm={ this.applyEdit.bind(this) }/>;
     }
     applyLatestValue() {
-        this.props.blockData.tree = JSON.stringify(this.state.tree);
+        this.props.block.data.tree = JSON.stringify(this.state.tree);
     }
     addItem() {
         const ref = this.state.tree;

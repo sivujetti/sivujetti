@@ -28,8 +28,8 @@ class ListingBlockCreateFormInputs extends preact.Component {
     constructor(props) {
         super(props);
         this.state = {pageTypesThatCanBeListed: null,
-                      fetchFilters: props.blockData.fetchFilters,
-                      foo: JSON.parse(props.blockData.fetchFilters).$all.$eq.pageType};
+                      fetchFilters: props.block.data.fetchFilters,
+                      foo: JSON.parse(props.block.data.fetchFilters).$all.$eq.pageType};
         services.http.get('/api/page-types/listable')
             .then(pageTypesThatCanBeListed => { this.setState({pageTypesThatCanBeListed}); })
             .catch(window.console.error);
@@ -48,7 +48,7 @@ class ListingBlockCreateFormInputs extends preact.Component {
         this.props.onValueChanged({fetchFilters});
     }
     applyLatestValue() {
-        this.props.blockData.fetchFilters = this.state.fetchFilters;
+        this.props.block.data.fetchFilters = this.state.fetchFilters;
     }
 }
 

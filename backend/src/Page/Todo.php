@@ -27,23 +27,37 @@ final class Todo {
         if (!$rows)
             return null;
         $page = $rows[$i];
-        $page->blocks = [];
-        foreach ($rows as $row) {
-            if ($row->blockPageId !== $page->id)
-                continue;
-            if (array_reduce($page->blocks, fn($prev, $block) =>
-                !$prev ? $block->id === $row->blockId : $prev,
-            null)) continue;
-            $b = Block::fromDbResult($row, $rows);
-            $makeBlockType = $this->blockTypes[$b->type] ?? null;
-            if (!$makeBlockType) continue;
-            $blockType = $makeBlockType();
-            // todo $blockType->makePropsFromRs()
-            if (method_exists($blockType, "fetchData"))
-                $makeBlockType()->fetchData($b, $this);
-            $page->blocks[] = $b;
-        }
+        $page->blocks = [
+            self::temp4(Block::TYPE_SECTION, [
+                self::temp4(Block::TYPE_HEADING),
+                self::temp4(Block::TYPE_PARAGRAPH)
+            ]),
+        ];
         return $page;
+    }
+    private static function temp4(string $type, array $children = []): Block {
+        $out3 = new Block;
+        $out3->type = $type;
+        $out3->renderer = 'kuura:auto';
+        if ($type === Block::TYPE_SECTION) {
+            $out3->renderer = 'kuura:section';
+            $out3->section = 'main';
+            $out3->id = '100';
+            $out3->className = 'foo';
+            $out3->cssClass = 'light';
+        } elseif ($type === Block::TYPE_HEADING) {
+            $out3->section = '<inner>';
+            $out3->id = '101';
+            $out3->level = '2';
+            $out3->text = 'Head';
+        } elseif ($type === Block::TYPE_PARAGRAPH) {
+            $out3->section = '<inner>';
+            $out3->id = '102';
+            $out3->text = 'Para';
+        }
+        $out3->title = '';
+        $out3->children = $children;
+        return $out3;
     }
     public function temp3(array $rows): array {
         if (!$rows)

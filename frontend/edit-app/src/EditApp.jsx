@@ -1,27 +1,136 @@
 import {__} from './temp.js';
 import services from './services.js';
-import EditBox, {Block, createBlockData, tryToReRenderBlock, saveBlockToBackend} from './EditBox.jsx';
-import AddBox from './AddBox.jsx';
+import {Block, createBlockData, tryToReRenderBlock, saveBlockToBackend} from './EditBox.jsx';
 
-const TODO = 282;
+const TODO = 142;
 
 class MainPanel extends preact.Component {
+    constructor(props) {
+        super(props);
+        const makeTreeState = (blocks, out) => {
+            for (const itm of blocks) {
+                out[itm.data.id] = {isSelected: false, isNew: false,};
+                if (itm.children.length)
+                    makeTreeState(itm.children, out);
+            }
+        };
+        const treeState = {};
+        makeTreeState(props.blocks, treeState);
+        this.selectedBlock = null;
+        this.state = {treeState};
+    }
     render({blocks, editApp}) {
         return <>
             { blocks.length
                 ? this.renderBranch(blocks)
                 : <p>{ __('No blocks on this page') }</p>
             }
-            <button onClick={ () => editApp.addBox.current.open(editApp.findLastBlock('main')) } title={ __('Add block to current page') } class="btn">{ __('Add block') }</button>
+            <button onClick={ this.appendNewBlockTypeSelector.bind(this) } title={ __('Add block to current page') } class="btn">{ __('Add block') }</button>
             <br/>
             <button onClick={ () => editApp.beginCreatePageMode() } title={ __('Add new page') } class="btn">{ __('Add page') }</button>
         </>;
     }
+    appendNewBlockTypeSelector() {
+        const s = this.selectedBlock || this.props.editApp.findLastBlock('main');
+        const placeholderBlock = this.props.editApp.addBlock(s.ref);
+        // note: mutates this.state.blocks
+        s.children.push(placeholderBlock);
+
+        const ref = this.state.treeState;
+        ref[placeholderBlock.data.id] = {
+            isSelected: true,
+            isNew: true,
+        };
+        this.setState({treeState: ref, blocks: this.state.blocks});
+    }
     renderBranch(blocks) {
         const editApp = this.props.editApp;
-        return <ul class="block-tree">{ blocks.map(b => <li><div class="block">
-            <button onClick={ () => editApp.editBox.current.open(b, editApp.findBlockData(b)) } title={ __('Edit') } class="btn">{ services.blockTypes.get(b.data.type).friendlyName }{ !editApp.findBlockData(b).title ? null : <span>{ editApp.findBlockData(b).title }</span> }</button>
-        </div>{ b.children.length ? this.renderBranch(b.children) : null }</li>) }</ul>;
+        const treeState = this.state.treeState;
+        return <ul class="block-tree">{ blocks.map(b =>
+        !treeState[b.data.id].isNew ?
+            <li onClick={ () => this.setRowAsSelected(b) } key={ b.id } class={ treeState[b.data.id].isSelected ? 'selected' : '' }><div class="block">
+                <button onClick={ () => editApp.props.inspectorPanel.show('block-details', {block: b}) } title={ __('Edit') } class="btn">{ services.blockTypes.get(b.data.type).friendlyName }{ !b.data.title ? null : <span>{ b.data.title }</span> }</button>
+            </div>{ b.children.length ? this.renderBranch(b.children) : null }</li> :
+        <li key={ b.id }>
+            <BlockTypeSelector EditApp={ EditApp } after={ this.gsb() } onConfirmed={ this.confirmAdd.bind(this) } onCanceled={ this.clearAdd.bind(this) }/>
+        </li>
+        ) }</ul>;
+    }
+    confirmAdd(placeholderBlock) {
+        this.clearAdd();
+        this.props.editApp.confirmAdd(placeholderBlock);
+    }
+    gsb() {
+        return this.selectedBlock || this.props.editApp.findLastBlock('main');
+    }
+    clearAdd() {
+        // note: mutates this.state.blocks
+        this.gsb().children.pop();
+        const ref = this.state.treeState;
+        for (const id in ref) ref[id].isNew = false;
+        this.setState({treeState: ref, blocks: this.state.blocks});
+    }
+    setRowAsSelected(block, state = {}) {
+        const ref = this.state.treeState;
+        for (const id in ref)
+            ref[id].isSelected = id === block.data.id;
+        state.treeState = ref;
+        this.setState(state);
+        this.selectedBlock = block;
+        this.props.onBlockRowSelected(block);
+    }
+}
+
+class BlockTypeSelector extends preact.Component {
+    /**
+     * @param { } props
+     */
+    constructor(props) {
+        super(props);
+        const newBlockRef = this.props.EditApp.currentWebPage.addBlock(services.blockTypes.get('paragraph').getInitialData().text, props.after.ref);
+        this.state = {newBlock: new Block(createBlockData({
+                           type: 'paragraph',
+                           section: 'main', // ??
+                           id: newBlockRef.blockId
+                        }), newBlockRef, [])};
+    }
+    /**
+     * @acces protected
+     */
+    render(_, {newBlock}) {
+        return <div>
+                <div><select value={ newBlock.data.type } onChange={ this.handleBlockTypeChanged.bind(this) }>{ Array.from(services.blockTypes.entries()).map(([name, blockType]) =>
+                    <option value={ name }>{ __(blockType.friendlyName) }</option>
+                ) }</select></div>
+                <button class="btn btn-sm btn-primary" onClick={ this.applyr.bind(this) } type="button">{ __('Ok') }</button>
+                <button class="btn btn-sm btn-link" onClick={ this.discard.bind(this) } type="button">{ __('Cancel') }</button>
+            </div>;
+    }
+    /**
+     * @todo
+     * @access private
+     */
+    handleBlockTypeChanged(e) {
+        const newBlockData = createBlockData({
+            type: e.target.value,
+            section: this.state.newBlock.data.section,
+            id: this.state.newBlock.data.id});
+        tryToReRenderBlock(this.state.newBlock.ref, newBlockData, this.state.newBlock.data, newBlockData.type);
+        this.setState({newBlock: Object.assign(this.state.newBlock, {data: newBlockData})});
+    }
+    /**
+     * @todo
+     * @access private
+     */
+    applyr() {
+        this.props.onConfirmed(this.state.newBlock);
+    }
+    /**
+     * @access private
+     */
+    discard() {
+        this.state.newBlock.ref.destroy();
+        this.props.onCanceled();
     }
 }
 
@@ -65,9 +174,9 @@ class AddPagePanel extends preact.Component {
             </select>
             </div>,
             blocks.map(b => <div class="block">
-                <button onClick={ () => editApp.editBox.current.open(b, editApp.findBlockData(b)) } title={ __('Edit') } class="btn">{ services.blockTypes.get(b.data.type).friendlyName }{ !editApp.findBlockData(b).title ? null : <span>{ editApp.findBlockData(b).title }</span> }</button>
+                <button onClick={ () => editApp.editBox.current.open(b, b.data) } title={ __('Edit') } class="btn">{ services.blockTypes.get(b.data.type).friendlyName }{ !b.data.title ? null : <span>{ b.data.title }</span> }</button>
             </div>),
-            <button onClick={ () => editApp.addBox.current.open(editApp.findLastBlock('main')) } title={ __('Add block to current page') } class="btn">{ __('Add block') }</button>,
+            <button onClick={ () => { throw new Error('jj') } } title={ __('Add block to current page') } class="btn">{ __('Add block') }</button>,
             <br/>,
             <button onClick={ this.goBack.bind(this) } title={ __('Change design') } class="btn btn-sm">{ __('Prev') }</button>,
             <button onClick={ this.applyNewPage.bind(this) } title={ __('Confirm add page') } class="btn btn-primary btn-sm">{ __('Add the page') }</button>,
@@ -122,15 +231,13 @@ class EditApp extends preact.Component {
     constructor(props) {
         super(props);
         this.state = {blocks: null, isCreatePageModeOn: false, selectedPageLayout: null, cog: {left: -10000, top: -10000}};
-        this.editBox = preact.createRef();
-        this.addBox = preact.createRef();
         this.mainView = preact.createRef(); // public
         EditApp.currentWebPage = null;
         this.loading = false;
         this.webpageEventHandlers = {
-            onBlockHoverStarted: () => null, // this._handleWebpageBlockHoverStarted.bind(this),
-            onBlockHoverEnded: () => null, // this._handleWebpageBlockHoverEnded.bind(this),
-            onBlockClickedDuringHover: () => null, // this._handleWebpageBlockClicked.bind(this),
+            onBlockHoverStarted: this._handleWebpageBlockHoverStarted.bind(this),
+            onBlockHoverEnded: this._handleWebpageBlockHoverEnded.bind(this),
+            onBlockClickedDuringHover: this._handleWebpageBlockClicked.bind(this),
             onBlur: () => null, // this._handleInlineWysiwygEditingEnded.bind(this),
             onHtmlInput: () => null, // debounce(this._handleInlineWysiwygInput.bind(this)),
         };
@@ -177,6 +284,18 @@ class EditApp extends preact.Component {
                 d.children.length ? this.mb(d.children, refs) : [])
         );
     }
+    confirmAdd(placeholderBlock) {
+        this.props.inspectorPanel.show('block-details', {block: placeholderBlock});
+        services.http.post('/api/blocks', Object.assign({
+            pageId: EditApp.currentWebPage.id,
+        }, placeholderBlock.data)).then(_resp => {
+            // ??
+        })
+        .catch(err => {
+            // ??
+            window.console.error(err);
+        });
+    }
     /**
      * @acces protected
      */
@@ -186,15 +305,11 @@ class EditApp extends preact.Component {
             return;
         return <>
             { !isCreatePageModeOn
-                ? <MainPanel blocks={ blocks } editApp={ this }/>
+                ? <MainPanel blocks={ blocks } editApp={ this } onBlockRowSelected={ row => { this.selectedBlockRow = row; } }/>
                 : <AddPagePanel blocks={ blocks } editApp={ this } onLayoutSelected={ pageLayout => {
                     this.setState({selectedPageLayout: pageLayout});
                 }}/>
             }
-            <EditBox ref={ this.editBox }/>
-            <AddBox ref={ this.addBox } onBlockAdded={ this.addBlock.bind(this) }
-                findLastBlock={ sectionName => this.findLastBlock(sectionName) }
-                EditApp={ EditApp } currentPageLayoutSections={ selectedPageLayout.sections }/>
             <button class="cog" style={ `left: ${TODO+cog.left}px; top: ${cog.top}px; pointer-events:none` } type="button">E</button>
         </>;
     }
@@ -246,45 +361,38 @@ class EditApp extends preact.Component {
             seq(0);
         });
     }
-    /**
-     * @todo
-     * @return todo
-     * @access private
-     */
-    findBlockData(block) {
-        return block.data;
-    }
-    /**
-     * @todo
-     * @todo
-     * @access private
-     */
-    addBlock(newBlock) {
-        this.setState({blocks: this.state.blocks.concat(newBlock)});
+    addBlock(after) {
+        const newBlockRef = EditApp.currentWebPage.addBlock(services.blockTypes.get('paragraph').getInitialData().text, after);
+        return new Block(createBlockData({
+            type: 'paragraph',
+            section: 'main', // ??
+            id: newBlockRef.blockId
+        }), newBlockRef, []);
     }
     findLastBlock(sectionName) {
-        const b = this.state.blocks.reduce((l, b) =>
-            (this.findBlockData(b) || {}).section === sectionName ? b : l
+        return this.state.blocks.reduce((l, b) =>
+            (b.data || {}).section === sectionName ? b : l
         , null);
-        return b ? b.ref : null;
     }
-    _handleWebpageBlockHoverStarted(block) {
-        this.setState({cog: block.ref.position});
+    _handleWebpageBlockHoverStarted(blockRef) {
+        this.setState({cog: blockRef.position});
     }
     _handleWebpageBlockHoverEnded(_blockRef) {
         this.setState({cog: {left: -10000, top: -10000}});
     }
-    _handleWebpageBlockClicked(b) {
-        const isP = b.data.type === 'paragraph';
-        const isH = !isP && b.data.type === 'heading';
-
-        if (!isP && !isH) {
-            this.editBox.current.open(b, this.findBlockData(b));
-            return false; // isInlineEditable
-        }
-
-        this.dirty.set(b.blockId, Object.assign({}, this.findBlockData(b)));
-        return true; // isInlineEditable
+    _handleWebpageBlockClicked(blockRef) {
+        const findBlock = (id, branch) => {
+            for (const b of branch) {
+                if (b.data.id === id) return b;
+                if (b.children.length) {
+                    const c = findBlock(id, b.children);
+                    if (c) return c;
+                }
+            }
+            return null;
+        };
+        this.props.inspectorPanel.show('block-details', {block: findBlock(blockRef.blockId, this.state.blocks)});
+        return false;
     }
     _handleInlineWysiwygInput(b, value) {
         const d = {};
@@ -298,7 +406,7 @@ class EditApp extends preact.Component {
             throw new Error();
 
         this.dirty.set(b.blockId, Object.assign({
-        }, this.findBlockData(b), d));
+        }, b.data, d));
 
         saveBlockToBackend(b.blockId, this.dirty.get(b.blockId));
     }

@@ -15,6 +15,7 @@ final class BlocksController {
 
         $newBlockId = $db->runInTransaction(function () use ($req, $db, $blockProps) {
             [$qList, $values, $columns] = $db->makeInsertQParts([
+                'path' => '',
                 'type' => $req->body->type,
                 'section' => $req->body->section,
                 'renderer' => $req->body->renderer,

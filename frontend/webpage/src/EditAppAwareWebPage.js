@@ -143,8 +143,8 @@ function getAllComments(rootElem) {
 }
 
 let globalClickHandlerAdded = false;
-let blockCurrentlyBeingHovered = null;
-let blockCurrentlyBeingEdited = null;
+let blockRefCurrentlyBeingHovered = null;
+let blockRefCurrentlyBeingEdited = null;
 
 class BlockRef {
     constructor(input, eventHandlers) {
@@ -155,21 +155,21 @@ class BlockRef {
         this._eventHandlers = eventHandlers;
         if (!globalClickHandlerAdded) {
         const clearStuff = () => {
-            blockCurrentlyBeingEdited = null;
-            blockCurrentlyBeingHovered = null;
+            blockRefCurrentlyBeingEdited = null;
+            blockRefCurrentlyBeingHovered = null;
         };
         document.body.addEventListener('click', e => {
-            if (blockCurrentlyBeingHovered && !blockCurrentlyBeingEdited) {
-                blockCurrentlyBeingEdited = blockCurrentlyBeingHovered;
-                blockCurrentlyBeingHovered = null;
-                const clickedBlockWasInlineEditable = this._eventHandlers.onBlockClickedDuringHover(blockCurrentlyBeingEdited);
-                this._eventHandlers.onBlockHoverEnded(blockCurrentlyBeingEdited, e);
+            if (blockRefCurrentlyBeingHovered && !blockRefCurrentlyBeingEdited) {
+                blockRefCurrentlyBeingEdited = blockRefCurrentlyBeingHovered;
+                blockRefCurrentlyBeingHovered = null;
+                const clickedBlockWasInlineEditable = this._eventHandlers.onBlockClickedDuringHover(blockRefCurrentlyBeingEdited);
+                this._eventHandlers.onBlockHoverEnded(blockRefCurrentlyBeingEdited, e);
                 if (!clickedBlockWasInlineEditable)
                     clearStuff();
                 else
-                    blockCurrentlyBeingEdited._openInlineEditor();
-            } else if (blockCurrentlyBeingEdited && !e.target.closest('.ql-container') && !e.target.closest('.ql-toolbar')) {
-                this._eventHandlers.onBlur(blockCurrentlyBeingEdited);
+                    blockRefCurrentlyBeingEdited._openInlineEditor();
+            } else if (blockRefCurrentlyBeingEdited && !e.target.closest('.ql-container') && !e.target.closest('.ql-toolbar')) {
+                this._eventHandlers.onBlur(blockRefCurrentlyBeingEdited);
                 clearStuff();
             }
         });
@@ -274,14 +274,14 @@ class BlockRef {
     }
     _hookBlockHoverListeners() {
         this.startingDomNode.addEventListener('mouseover', e => {
-            if (blockCurrentlyBeingEdited) return;
-            blockCurrentlyBeingHovered = this;
+            if (blockRefCurrentlyBeingEdited) return;
+            blockRefCurrentlyBeingHovered = this;
             this._eventHandlers.onBlockHoverStarted(this, e);
             e.stopPropagation();
         });
         this.startingDomNode.addEventListener('mouseout', e => {
-            if (blockCurrentlyBeingEdited) return;
-            blockCurrentlyBeingHovered = null;
+            if (blockRefCurrentlyBeingEdited) return;
+            blockRefCurrentlyBeingHovered = null;
             this._eventHandlers.onBlockHoverEnded(this, e);
             e.stopPropagation();
         });

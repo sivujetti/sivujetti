@@ -18,6 +18,8 @@ final class Block extends \stdClass {
     public string $renderer;
     /** @var string */
     public string $id;
+    /** @var string */
+    public string $path;
     /** @var ?string e.g. 'Articles' */
     public ?string $title;
     /** @var \KuuraCms\Entities\Block[] */
@@ -47,6 +49,7 @@ final class Block extends \stdClass {
         $out->section = $row->blockSection;
         $out->renderer = $row->blockRenderer;
         $out->id = $row->blockId;
+        $out->path = $row->blockPath;
         $out->title = $row->blockTitle ?? null;
         $out->children = [];
         foreach ($rows as $row2) {

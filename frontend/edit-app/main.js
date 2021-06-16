@@ -7,9 +7,11 @@ import menuFormBlockType from './src/menuFormBlockType.js';
 import paragraphBlockType from './src/paragraphBlockType.js';
 import sectionBlockType from './src/sectionBlockType.js';
 import {setupServices} from './src/services.js';
+import InspectorPanel from './src/InspectorPanel.jsx';
 
 // Expose our app so the EditAppAwareWebPage (inside the iframe) can access it
 window.kuuraEditApp = preact.createRef();
+const inspectorPanelReactRef = preact.createRef();
 
 const config = {};
 config.blockTypes = new Map();
@@ -30,8 +32,18 @@ window.kuuraCms = {
         return window.kuuraEditApp.current.registerBlockType(name, blockType);
     }
 };
+const inspectorPanel = {
+    show(...a) {
+        return inspectorPanelReactRef.current.show(...a);
+    }
+};
 
 preact.render(preact.createElement(EditApp, {
     ref: window.kuuraEditApp,
     dataFromBackend: window.dataToEditApp,
-}), document.getElementById('doos'));
+    inspectorPanel,
+}), document.getElementById('block-tree-panel'));
+
+preact.render(preact.createElement(InspectorPanel, {
+    ref: inspectorPanelReactRef,
+}), document.getElementById('inpector-panel'));

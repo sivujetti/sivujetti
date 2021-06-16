@@ -1,13 +1,13 @@
 /* @todo */
-#doos {
+#block-tree-panel {
     position: absolute;
-    width: 282px;
+    width: 142px;
     height: 100%;
 }
 #view {
     display: none;
     position: fixed;
-    left: 282px;
+    left: 142px;
     top: 0;
     background-color: rgba(255, 255, 255, .8);
     width: 100%;
@@ -19,10 +19,16 @@
 }
 #kuura-site-iframe {
     position: absolute;
-    width: calc(100% - 282px);
+    width: calc(100% - 142px - 172px);
     height: 100%;
     border: none;
-    left: 282px;
+    left: 142px;
+}
+#inpector-panel {
+    position: absolute;
+    width: 172px;
+    height: 100%;
+    right: 0;
 }
 
 
@@ -43,9 +49,22 @@
 
 .block-tree, .block-tree ul {
     list-style: none;
-    margin-top: 0;
+    margin: 0;
 }
-
+.block-tree li {
+    background: #fff;
+    margin: 0;
+    padding: .2rem;
+}
+.block-tree li:not(.selected):hover {
+    background-color: rgba(0,0,0,0.05);
+}
+.block-tree li.selected {
+    background-color: rgba(0,0,0,0.1);
+}
+.block-tree ul li {
+    padding-left: .8rem;
+}
 
 .block > .btn > span {
     display: block;

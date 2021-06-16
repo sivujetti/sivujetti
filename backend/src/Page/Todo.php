@@ -27,37 +27,47 @@ final class Todo {
         if (!$rows)
             return null;
         $page = $rows[$i];
-        $page->blocks = [
-            self::temp4(Block::TYPE_SECTION, [
-                self::temp4(Block::TYPE_HEADING),
-                self::temp4(Block::TYPE_PARAGRAPH)
-            ]),
-        ];
+        $blocks = [];
+        foreach ($rows as $row) {
+            if ($row->blockPageId !== $page->id ||
+                $row->blockSection === '<layout>') // path startswith ??
+                continue;
+            if (array_key_exists("k-$row->blockId", $blocks))
+                continue;
+            $b = Block::fromDbResult($row, $rows);
+            $makeBlockType = $this->blockTypes[$b->type] ?? null;
+            if (!$makeBlockType) continue;
+            $blockType = $makeBlockType();
+            // todo $blockType->makePropsFromRs()
+            if (method_exists($blockType, "fetchData"))
+                $makeBlockType()->fetchData($b, $this);
+            $blocks["k-$row->blockId"] = $b;
+        }
+        $page->blocks = self::treeifyBlocks(array_values($blocks));
         return $page;
     }
-    private static function temp4(string $type, array $children = []): Block {
-        $out3 = new Block;
-        $out3->type = $type;
-        $out3->renderer = 'kuura:auto';
-        if ($type === Block::TYPE_SECTION) {
-            $out3->renderer = 'kuura:section';
-            $out3->section = 'main';
-            $out3->id = '100';
-            $out3->className = 'foo';
-            $out3->cssClass = 'light';
-        } elseif ($type === Block::TYPE_HEADING) {
-            $out3->section = '<inner>';
-            $out3->id = '101';
-            $out3->level = '2';
-            $out3->text = 'Head';
-        } elseif ($type === Block::TYPE_PARAGRAPH) {
-            $out3->section = '<inner>';
-            $out3->id = '102';
-            $out3->text = 'Para';
+    /**
+     * https://stackoverflow.com/a/8249047
+     * @access private
+     */
+    private static function treeifyBlocks(array $blocks): array {
+        $tree = ['0' => (object) ['path' => '0']];
+        for ($i = 0; $i < count($blocks); ++$i) {
+            $path = $blocks[$i]->path;
+            $tree[$path] = $blocks[$i];
+            $tree[self::makeParentPath($path)]->children[] = $tree[$path];
         }
-        $out3->title = '';
-        $out3->children = $children;
-        return $out3;
+        return $tree['0']->children;
+    }
+    /**
+     * @access private
+     */
+    private static function makeParentPath(string $path): string {
+        $level = substr_count($path, '/');
+        return $level !== 1
+            // 'foo/bar/baz/' -> 'foo/bar/'
+            ? substr($path, 0, strrpos(substr($path, 0, strlen($path) - 1), '/')) . '/'
+            : '0';
     }
     public function temp3(array $rows): array {
         if (!$rows)
@@ -107,13 +117,15 @@ class AssociativeJoinStorageStrategy implements StorageStrategy {
         [$t1, $t2] = !$temp1
             ? ["", []]
             : [" AND p.$temp1", [$temp2]];
+        $t = $this->db->attr(\PDO::ATTR_DRIVER_NAME) === 'sqlite' ? "ir.`path` || '%'" : "CONCAT(ir.`path`, '%')";
         return $this->db->fetchAll(
             "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`layout`,pt.`name` AS `pageType`" .
-            ",b.`type` AS `blockType`,b.`section` AS `blockSection`,b.`renderer` AS `blockRenderer`,b.`id` AS `blockId`,b.`pageId` AS `blockPageId`,b.`title` AS `blockTitle`" .
+            ",b.`type` AS `blockType`,b.`section` AS `blockSection`,b.`renderer` AS `blockRenderer`,b.`id` AS `blockId`,b.`path` AS `blockPath`,b.`pageId` AS `blockPageId`,b.`title` AS `blockTitle`" .
             ",bp.`blockId` AS `blockPropBlockId`,bp.`key` AS `blockPropKey`,bp.`value` AS `blockPropValue`" .
             " FROM `pages` p" .
-            " JOIN `blocks` b ON (b.`pageId` = p.`id`)" .
             " JOIN `pageTypes` pt ON (pt.`id` = p.`pageTypeId`)" .
+            " JOIN `blocks` ir ON (ir.`pageId` = p.`id`)" . // Note1: ei käytetä
+            " LEFT JOIN `blocks` b ON (b.`path` LIKE {$t})" . // Note2: sisältää myös "päälohkon" (jonka pageId=p.id)
             " JOIN `blockProps` bp ON (bp.`blockId` = b.`id`)" .
             " WHERE pt.`name` = ?$t1",
             array_merge([$pageType->name], $t2),

@@ -17,41 +17,41 @@ INSERT INTO `pages` VALUES
 
 INSERT INTO `blocks` VALUES
 -- home
-(1,'heading','main','kuura:auto',1,NULL),
-(2,'paragraph','main','kuura:auto',1,NULL),
-(3,'formatted-text','main','kuura:auto',1,NULL),
+(1,'1/','section','main','kuura:section',1,NULL),
+(2,'1/2/','heading','<inner>','kuura:auto',1,NULL),
+(3,'1/3/','paragraph','<inner>','kuura:auto',1,NULL),
 
 -- company
-(4,'heading','main','kuura:auto',2,NULL),
-(5,'paragraph','main','kuura:auto',2,NULL),
-(6,'heading','sidebar','kuura:auto',2,NULL),
-(7,'paragraph','sidebar','kuura:auto',2,NULL),
+(4,'4/','heading','main','kuura:auto',2,NULL),
+(5,'5/','paragraph','main','kuura:auto',2,NULL),
+(6,'6/','heading','sidebar','kuura:auto',2,NULL),
+(7,'7/','paragraph','sidebar','kuura:auto',2,NULL),
 
 -- services
-(8,'heading','main','kuura:auto',3,NULL),
-(9,'dynamic-listing','main','kuura:auto',3,'Services'),
-(10,'heading','sidebar','kuura:auto',3,NULL),
-(11,'paragraph','sidebar','kuura:auto',3,NULL),
+(8,'8/','heading','main','kuura:auto',3,NULL),
+(9,'9/','dynamic-listing','main','kuura:auto',3,'Services'),
+(10,'10/','heading','sidebar','kuura:auto',3,NULL),
+(11,'11/','paragraph','sidebar','kuura:auto',3,NULL),
 -- services listing
-(14,'heading','main','kuura:auto',4,NULL),
-(15,'paragraph','main','kuura:auto',4,NULL),
-(16,'heading','sidebar','kuura:auto',5,NULL),
-(17,'paragraph','sidebar','kuura:auto',5,NULL),
+(14,'14/','heading','main','kuura:auto',4,NULL),
+(15,'15/','paragraph','main','kuura:auto',4,NULL),
+(16,'16/','heading','sidebar','kuura:auto',5,NULL),
+(17,'17/','paragraph','sidebar','kuura:auto',5,NULL),
 
 -- contact
-(12,'heading','main','kuura:auto',6,NULL),
-(13,'paragraph','main','kuura:auto',6,NULL),
+(12,'12/','heading','main','kuura:auto',6,NULL),
+(13,'13/','paragraph','main','kuura:auto',6,NULL),
 
 -- Page layouts
-(18,'menu','<layout>','kuura:menu',1, -- pageId ??
+(18,'18/','menu','<layout>','kuura:menu',1, -- pageId ??
 'Main menu'),
-(19,'paragraph','<layout>','kuura:auto',1,'Footer text');
+(19,'19/','paragraph','<layout>','kuura:auto',1,'Footer text');
 
 INSERT INTO `blockProps` VALUES
-(1,'text','Front page',1),
-(2,'level','1',1),
-(3,'text','Front page p1',2),
-(4,'html','<pre>Some html 1</pre>',3),
+(1,'cssClass','light',1),
+(2,'level','1',2),
+(3,'text','Front page',2),
+(4,'text','Front page p1',3),
 
 (5,'text','Company',4),
 (6,'level','2',4),

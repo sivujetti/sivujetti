@@ -14,9 +14,7 @@
         <h1 data-prop="title"><?= $this->e($page->title) ?></h1>
         <?= $this->MainMenu() ?>
     </header>
-    <div id="main" data-section="main">
-        <?= $this->renderBlocks($this->filterBlocks($page, 'main')) ?>
-    </div>
+    <?= $this->renderBlocks($page->blocks) ?>
     <?= $this->Footer() ?>
 </body>
 </html>

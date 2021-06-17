@@ -4,7 +4,7 @@ import {Block, createBlockData, tryToReRenderBlock, saveBlockToBackend} from './
 
 const TODO = 142;
 
-class MainPanel extends preact.Component {
+class BlockTreePanel extends preact.Component {
     constructor(props) {
         super(props);
         const makeTreeState = (blocks, out) => {
@@ -19,20 +19,50 @@ class MainPanel extends preact.Component {
         this.selectedBlock = null;
         this.state = {treeState};
     }
-    render({blocks, editApp}) {
+    /**
+     * @access public
+     */
+    setAsActive(block) {
+        const ref = this.state.treeState;
+        for (const id in ref)
+            ref[id].isSelected = id === block.data.id;
+        this.setState({treeState: ref});
+        this.selectedBlock = block;
+    }
+    render({blocks, editApp}, {treeState}) {
+
+        const br = a => {
+            return a.map(b =>
+            !treeState[b.data.id].isNew ?
+            <li key={ b.data.id } class={ `block${!treeState[b.data.id].isSelected ? '' : ' selected'}` }>
+                <button onClick={ () => this.handleItemClicked(b) }>{ b.data.type }</button>
+                { b.children.length ? <ul>{ br(b.children) }</ul> : null }
+            </li> :
+            <li key={ b.data.id } class="block">
+                <BlockTypeSelector EditApp={ EditApp } b={ b } after={ this.gsb() } onConfirmed={ this.confirmAdd.bind(this) } onCanceled={ this.clearAdd.bind(this) }/>
+            </li>
+            );
+        };
+
         return <>
-            { blocks.length
-                ? this.renderBranch(blocks)
-                : <p>{ __('No blocks on this page') }</p>
-            }
+            <ul class="block-tree">{ blocks.map(b =>
+                br([b], null)
+            ) }</ul>
             <button onClick={ this.appendNewBlockTypeSelector.bind(this) } title={ __('Add block to current page') } class="btn">{ __('Add block') }</button>
             <br/>
-            <button onClick={ () => editApp.beginCreatePageMode() } title={ __('Add new page') } class="btn">{ __('Add page') }</button>
+            <button onClick={ editApp.beginCreatePageMode.bind(editApp) } title={ __('Add new page') } class="btn">{ __('Add page') }</button>
         </>;
     }
+    /**
+     * @access private
+    */
+    handleItemClicked(block) {
+        this.setAsActive(block);
+        this.props.onBlockSelected(block);
+    }
     appendNewBlockTypeSelector() {
-        const s = this.selectedBlock || this.props.editApp.findLastBlock('main');
-        const placeholderBlock = this.props.editApp.addBlock(s.ref);
+        const s = this.gsb();
+        const placeholderBlock = this.props.editApp.addBlock(s.children[s.children.length-1].ref, s);
         // note: mutates this.state.blocks
         s.children.push(placeholderBlock);
 
@@ -43,21 +73,12 @@ class MainPanel extends preact.Component {
         };
         this.setState({treeState: ref, blocks: this.state.blocks});
     }
-    renderBranch(blocks) {
-        const editApp = this.props.editApp;
-        const treeState = this.state.treeState;
-        return <ul class="block-tree">{ blocks.map(b =>
-        !treeState[b.data.id].isNew ?
-            <li onClick={ () => this.setRowAsSelected(b) } key={ b.id } class={ treeState[b.data.id].isSelected ? 'selected' : '' }><div class="block">
-                <button onClick={ () => editApp.props.inspectorPanel.show('block-details', {block: b}) } title={ __('Edit') } class="btn">{ services.blockTypes.get(b.data.type).friendlyName }{ !b.data.title ? null : <span>{ b.data.title }</span> }</button>
-            </div>{ b.children.length ? this.renderBranch(b.children) : null }</li> :
-        <li key={ b.id }>
-            <BlockTypeSelector EditApp={ EditApp } after={ this.gsb() } onConfirmed={ this.confirmAdd.bind(this) } onCanceled={ this.clearAdd.bind(this) }/>
-        </li>
-        ) }</ul>;
-    }
     confirmAdd(placeholderBlock) {
-        this.clearAdd();
+        const ref = this.state.treeState;
+        ref[this.gsb().data.id].isSelected = false;
+        ref[placeholderBlock.data.id].isSelected = true;
+        for (const id in ref) ref[id].isNew = false;
+        this.setState({treeState: ref, blocks: this.state.blocks});
         this.props.editApp.confirmAdd(placeholderBlock);
     }
     gsb() {
@@ -70,15 +91,6 @@ class MainPanel extends preact.Component {
         for (const id in ref) ref[id].isNew = false;
         this.setState({treeState: ref, blocks: this.state.blocks});
     }
-    setRowAsSelected(block, state = {}) {
-        const ref = this.state.treeState;
-        for (const id in ref)
-            ref[id].isSelected = id === block.data.id;
-        state.treeState = ref;
-        this.setState(state);
-        this.selectedBlock = block;
-        this.props.onBlockRowSelected(block);
-    }
 }
 
 class BlockTypeSelector extends preact.Component {
@@ -87,24 +99,19 @@ class BlockTypeSelector extends preact.Component {
      */
     constructor(props) {
         super(props);
-        const newBlockRef = this.props.EditApp.currentWebPage.addBlock(services.blockTypes.get('paragraph').getInitialData().text, props.after.ref);
-        this.state = {newBlock: new Block(createBlockData({
-                           type: 'paragraph',
-                           section: 'main', // ??
-                           id: newBlockRef.blockId
-                        }), newBlockRef, [])};
+        this.state = {d: Object.assign({}, props.b.data)};
     }
     /**
      * @acces protected
      */
-    render(_, {newBlock}) {
+    render(_, {d}) {
         return <div>
-                <div><select value={ newBlock.data.type } onChange={ this.handleBlockTypeChanged.bind(this) }>{ Array.from(services.blockTypes.entries()).map(([name, blockType]) =>
-                    <option value={ name }>{ __(blockType.friendlyName) }</option>
-                ) }</select></div>
-                <button class="btn btn-sm btn-primary" onClick={ this.applyr.bind(this) } type="button">{ __('Ok') }</button>
-                <button class="btn btn-sm btn-link" onClick={ this.discard.bind(this) } type="button">{ __('Cancel') }</button>
-            </div>;
+            <div><select value={ d.type } onChange={ this.handleBlockTypeChanged.bind(this) }>{ Array.from(services.blockTypes.entries()).map(([name, blockType]) =>
+                <option value={ name }>{ __(blockType.friendlyName) }</option>
+            ) }</select></div>
+            <button class="btn btn-sm btn-primary" onClick={ this.applyr.bind(this) } type="button">{ __('Ok') }</button>
+            <button class="btn btn-sm btn-link" onClick={ this.discard.bind(this) } type="button">{ __('Cancel') }</button>
+        </div>;
     }
     /**
      * @todo
@@ -113,23 +120,25 @@ class BlockTypeSelector extends preact.Component {
     handleBlockTypeChanged(e) {
         const newBlockData = createBlockData({
             type: e.target.value,
-            section: this.state.newBlock.data.section,
-            id: this.state.newBlock.data.id});
-        tryToReRenderBlock(this.state.newBlock.ref, newBlockData, this.state.newBlock.data, newBlockData.type);
-        this.setState({newBlock: Object.assign(this.state.newBlock, {data: newBlockData})});
+            section: this.state.d.section,
+            id: this.state.d.id,
+            path: this.state.d.path});
+        tryToReRenderBlock(this.props.b.ref, newBlockData, this.state.d, newBlockData.type);
+        this.setState({d: Object.assign(this.state.d, newBlockData)});
     }
     /**
      * @todo
      * @access private
      */
     applyr() {
-        this.props.onConfirmed(this.state.newBlock);
+        Object.assign(this.props.b.data, this.state.d);
+        this.props.onConfirmed(this.props.b);
     }
     /**
      * @access private
      */
     discard() {
-        this.state.newBlock.ref.destroy();
+        this.props.b.ref.destroy();
         this.props.onCanceled();
     }
 }
@@ -230,8 +239,8 @@ class AddPagePanel extends preact.Component {
 class EditApp extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {blocks: null, isCreatePageModeOn: false, selectedPageLayout: null, cog: {left: -10000, top: -10000}};
-        this.mainView = preact.createRef(); // public
+        this.state = {blocks: null, isCreatePageModeOn: false, selectedPageLayout: null, cog: {left: -10000, top: -10000}, refs: null, datas: null};
+        this.blockTreePanel = preact.createRef(); // public
         EditApp.currentWebPage = null;
         this.loading = false;
         this.webpageEventHandlers = {
@@ -268,15 +277,16 @@ class EditApp extends preact.Component {
      */
     handleWebpageLoaded(currentWebPage, currentWebPageBlockData, isNewPage = false) {
         EditApp.currentWebPage = currentWebPage;
-        //this.data = currentWebPageBlocks;
         this.layouts = currentWebPage.theme.pageLayouts;
         if (!isNewPage) {
             this.orig = document.getElementById('kuura-site-iframe').contentWindow.location.href; // ??
         }
         currentWebPage.setEventHandlers(this.webpageEventHandlers);
-        this.setState({blocks: this.mb(currentWebPageBlockData, currentWebPage.getBlockRefs()),//,
-                       selectedPageLayout: this.layouts.find(l => l.relFilePath === currentWebPage.layout),
-                       isCreatePageModeOn: isNewPage});
+        this.setState({
+            blocks: this.mb(currentWebPageBlockData, currentWebPage.getBlockRefs()),
+            selectedPageLayout: this.layouts.find(l => l.relFilePath === currentWebPage.layout),
+            isCreatePageModeOn: isNewPage
+        });
     }
     mb(datas, refs) {
         return datas.map(d =>
@@ -299,13 +309,14 @@ class EditApp extends preact.Component {
     /**
      * @acces protected
      */
-    render(_, {blocks, isCreatePageModeOn, selectedPageLayout, cog}) {
+    render(_, {blocks, isCreatePageModeOn, cog}) {
         // The webpage iframe hasn't loaded yet
         if (blocks === null)
             return;
         return <>
             { !isCreatePageModeOn
-                ? <MainPanel blocks={ blocks } editApp={ this } onBlockRowSelected={ row => { this.selectedBlockRow = row; } }/>
+                ? <BlockTreePanel blocks={ blocks } editApp={ this } onBlockSelected={ this.handleBlockTreeBlockClicked.bind(this) }
+                    ref={ this.blockTreePanel }/>
                 : <AddPagePanel blocks={ blocks } editApp={ this } onLayoutSelected={ pageLayout => {
                     this.setState({selectedPageLayout: pageLayout});
                 }}/>
@@ -361,12 +372,13 @@ class EditApp extends preact.Component {
             seq(0);
         });
     }
-    addBlock(after) {
+    addBlock(after, parent) {
         const newBlockRef = EditApp.currentWebPage.addBlock(services.blockTypes.get('paragraph').getInitialData().text, after);
         return new Block(createBlockData({
             type: 'paragraph',
-            section: 'main', // ??
-            id: newBlockRef.blockId
+            section: '<inner>', // ??
+            id: newBlockRef.blockId,
+            path: parent.data.path,
         }), newBlockRef, []);
     }
     findLastBlock(sectionName) {
@@ -380,6 +392,9 @@ class EditApp extends preact.Component {
     _handleWebpageBlockHoverEnded(_blockRef) {
         this.setState({cog: {left: -10000, top: -10000}});
     }
+    handleBlockTreeBlockClicked(block) {
+        this.props.inspectorPanel.show('block-details', {block});
+    }
     _handleWebpageBlockClicked(blockRef) {
         const findBlock = (id, branch) => {
             for (const b of branch) {
@@ -391,7 +406,9 @@ class EditApp extends preact.Component {
             }
             return null;
         };
-        this.props.inspectorPanel.show('block-details', {block: findBlock(blockRef.blockId, this.state.blocks)});
+        const block = findBlock(blockRef.blockId, this.state.blocks);
+        this.blockTreePanel.current.setAsActive(block);
+        this.props.inspectorPanel.show('block-details', {block});
         return false;
     }
     _handleInlineWysiwygInput(b, value) {

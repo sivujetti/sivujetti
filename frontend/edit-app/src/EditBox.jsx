@@ -1,7 +1,7 @@
 import {__} from './temp.js';
 import services from './services.js';
 
-const TODO = 282;
+const TODO = 142;
 
 /**
  * Note: mutates props.block.data
@@ -212,7 +212,8 @@ function createBlockData(from) {
         type: from.type,
         section: from.section,
         renderer: from.renderer || t.defaultRenderer,
-        id: from.id
+        id: from.id,
+        path: from.path || '?',
     }, t.getInitialData());
 }
 

@@ -17,35 +17,37 @@ INSERT INTO `pages` VALUES
 
 INSERT INTO `blocks` VALUES
 -- home
-(1,'1/','section','main','kuura:section',1,NULL),
-(2,'1/2/','heading','<inner>','kuura:auto',1,NULL),
-(3,'1/3/','paragraph','<inner>','kuura:auto',1,NULL),
+(1,'','section','main','kuura:section',1,NULL),
+(2,'1/','heading','<inner>','kuura:auto',1,NULL),
+(3,'1/','paragraph','<inner>','kuura:auto',1,NULL),
 
 -- company
-(4,'4/','heading','main','kuura:auto',2,NULL),
-(5,'5/','paragraph','main','kuura:auto',2,NULL),
-(6,'6/','heading','sidebar','kuura:auto',2,NULL),
-(7,'7/','paragraph','sidebar','kuura:auto',2,NULL),
+(4,'','heading','main','kuura:auto',2,NULL),
+(5,'','paragraph','main','kuura:auto',2,NULL),
+(6,'','heading','sidebar','kuura:auto',2,NULL),
+(7,'','paragraph','sidebar','kuura:auto',2,NULL),
 
 -- services
-(8,'8/','heading','main','kuura:auto',3,NULL),
-(9,'9/','dynamic-listing','main','kuura:auto',3,'Services'),
-(10,'10/','heading','sidebar','kuura:auto',3,NULL),
-(11,'11/','paragraph','sidebar','kuura:auto',3,NULL),
+(20,'','section','main','kuura:section',3,NULL),
+(8,'20/','heading','<inner>','kuura:auto',3,NULL),
+(9,'20/','dynamic-listing','<inner>','kuura:auto',3,'Services'),
+(21,'','section','sidebar','kuura:section',3,NULL),
+(10,'21/','heading','<inner>','kuura:auto',3,NULL),
+(11,'21/','paragraph','<inner>','kuura:auto',3,NULL),
 -- services listing
-(14,'14/','heading','main','kuura:auto',4,NULL),
-(15,'15/','paragraph','main','kuura:auto',4,NULL),
-(16,'16/','heading','sidebar','kuura:auto',5,NULL),
-(17,'17/','paragraph','sidebar','kuura:auto',5,NULL),
+(14,'','heading','main','kuura:auto',4,NULL),
+(15,'','paragraph','main','kuura:auto',4,NULL),
+(16,'','heading','sidebar','kuura:auto',5,NULL),
+(17,'','paragraph','sidebar','kuura:auto',5,NULL),
 
 -- contact
-(12,'12/','heading','main','kuura:auto',6,NULL),
-(13,'13/','paragraph','main','kuura:auto',6,NULL),
+(12,'','heading','main','kuura:auto',6,NULL),
+(13,'','paragraph','main','kuura:auto',6,NULL),
 
 -- Page layouts
-(18,'18/','menu','<layout>','kuura:menu',1, -- pageId ??
+(18,'','menu','<layout>','kuura:menu',1, -- pageId ??
 'Main menu'),
-(19,'19/','paragraph','<layout>','kuura:auto',1,'Footer text');
+(19,'','paragraph','<layout>','kuura:auto',1,'Footer text');
 
 INSERT INTO `blockProps` VALUES
 (1,'cssClass','light',1),
@@ -60,9 +62,11 @@ INSERT INTO `blockProps` VALUES
 (9,'level','1',6),
 (10,'text','text',7),
 
+(31,'cssClass','light',20),
 (11,'text','Services',8),
 (12,'level','1',8),
 (13,'fetchFilters','{"$all": {"$eq": {"pageType": "Services"}}}',9),
+(32,'cssClass','light',21),
 (14,'text','Sidebar2',10),
 (15,'level','2',10),
 (16,'text','text',11),

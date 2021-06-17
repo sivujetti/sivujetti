@@ -8,6 +8,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="KuuraCMS">
     <?= $this->cssFiles() ?>
+    <style>
+        .columns { display: flex; }
+        .columns > section { flex: 1; }
+    </style>
 </head>
 <body>
     <header>
@@ -15,13 +19,8 @@
         <?= $this->MainMenu() ?>
     </header>
     <div id="main">
-        <div class="columns" style="display:flex">
-            <div class="main-column" style="flex:1" data-section="main">
-                <?= $this->renderBlocks($this->filterBlocks($page, 'main')) ?>
-            </div>
-            <div class="aside-column" style="flex:1" data-section="sidebar">
-                <?= $this->renderBlocks($this->filterBlocks($page, 'sidebar')) ?>
-            </div>
+        <div class="columns">
+            <?= $this->renderBlocks($page->blocks) ?>
         </div>
     </div>
     <?= $this->Footer() ?>

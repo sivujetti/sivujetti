@@ -49,7 +49,7 @@ final class Block extends \stdClass {
         $out->section = $row->blockSection;
         $out->renderer = $row->blockRenderer;
         $out->id = $row->blockId;
-        $out->path = $row->blockPath;
+        $out->path = "{$row->blockParentPath}{$row->blockId}/";
         $out->title = $row->blockTitle ?? null;
         $out->children = [];
         foreach ($rows as $row2) {

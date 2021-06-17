@@ -43,6 +43,7 @@ final class Todo {
                 $makeBlockType()->fetchData($b, $this);
             $blocks["k-$row->blockId"] = $b;
         }
+        usort($blocks, fn($a, $b) => strlen($a->path) <=> strlen($b->path));
         $page->blocks = self::treeifyBlocks(array_values($blocks));
         return $page;
     }
@@ -117,15 +118,15 @@ class AssociativeJoinStorageStrategy implements StorageStrategy {
         [$t1, $t2] = !$temp1
             ? ["", []]
             : [" AND p.$temp1", [$temp2]];
-        $t = $this->db->attr(\PDO::ATTR_DRIVER_NAME) === 'sqlite' ? "ir.`path` || '%'" : "CONCAT(ir.`path`, '%')";
+        $t = $this->db->attr(\PDO::ATTR_DRIVER_NAME) === 'sqlite' ? "ir.`id` || '/%'" : "CONCAT(ir.`id`, '/%')";
         return $this->db->fetchAll(
             "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`layout`,pt.`name` AS `pageType`" .
-            ",b.`type` AS `blockType`,b.`section` AS `blockSection`,b.`renderer` AS `blockRenderer`,b.`id` AS `blockId`,b.`path` AS `blockPath`,b.`pageId` AS `blockPageId`,b.`title` AS `blockTitle`" .
+            ",b.`type` AS `blockType`,b.`section` AS `blockSection`,b.`renderer` AS `blockRenderer`,b.`id` AS `blockId`,b.`parentPath` AS `blockParentPath`,b.`pageId` AS `blockPageId`,b.`title` AS `blockTitle`" .
             ",bp.`blockId` AS `blockPropBlockId`,bp.`key` AS `blockPropKey`,bp.`value` AS `blockPropValue`" .
             " FROM `pages` p" .
             " JOIN `pageTypes` pt ON (pt.`id` = p.`pageTypeId`)" .
             " JOIN `blocks` ir ON (ir.`pageId` = p.`id`)" . // Note1: ei käytetä
-            " LEFT JOIN `blocks` b ON (b.`path` LIKE {$t})" . // Note2: sisältää myös "päälohkon" (jonka pageId=p.id)
+            " LEFT JOIN `blocks` b ON (b.`id` == ir.`id` OR b.`parentPath` LIKE {$t})" . // Note2: sisältää myös "päälohkon" (jonka pageId=p.id)
             " JOIN `blockProps` bp ON (bp.`blockId` = b.`id`)" .
             " WHERE pt.`name` = ?$t1",
             array_merge([$pageType->name], $t2),

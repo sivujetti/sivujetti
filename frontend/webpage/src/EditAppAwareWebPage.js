@@ -113,7 +113,8 @@ class EditAppAwareWebPage {
 
         const startingCommentNode = document.createComment(` block-start ${blockId}:${blockType} `);
 
-        const parent = after ? after.parentElement : document.querySelector(`[data-section="${sectionName}"]`); // todo handle if section not found
+        if (!after) throw new Error('99');
+        const parent = after.parentElement;
         parent.appendChild(startingCommentNode);
         initialContent.forEach(el => parent.appendChild(el));
         parent.appendChild(document.createComment(` block-end ${blockId}:${blockType} `));

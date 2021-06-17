@@ -68,7 +68,7 @@ class AssociativeJoinStorageStrategy implements StorageStrategy {
     public function select($temp1, $temp2): array
     {
         return $this->db->fetchAll(
-            "SELECT b.`type` AS `blockType`,b.`section` AS `blockSection`,b.`renderer` AS `blockRenderer`,b.`id` AS `blockId`,b.`path` AS `blockPath`,b.`pageId` AS `blockPageId`,b.`title` AS `blockTitle`" .
+            "SELECT b.`type` AS `blockType`,b.`section` AS `blockSection`,b.`renderer` AS `blockRenderer`,b.`id` AS `blockId`,b.`parentPath` AS `blockParentPath`,b.`pageId` AS `blockPageId`,b.`title` AS `blockTitle`" .
             ",bp.`blockId` AS `blockPropBlockId`,bp.`key` AS `blockPropKey`,bp.`value` AS `blockPropValue`" .
             " FROM `blocks` b" .
             " JOIN `blockProps` bp ON (bp.`blockId` = b.`id`)" .

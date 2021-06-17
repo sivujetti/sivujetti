@@ -49,21 +49,19 @@
 
 .block-tree, .block-tree ul {
     list-style: none;
-    margin: 0;
+    border-left: 1px dotted;
 }
-.block-tree li {
-    background: #fff;
-    margin: 0;
-    padding: .2rem;
+.block button {
+    padding: 0;
+    height: 1.3rem;
+    border: none;
+    background-color: transparent;
 }
-.block-tree li:not(.selected):hover {
+.block-tree li:not(.selected) > button:hover {
     background-color: rgba(0,0,0,0.05);
 }
-.block-tree li.selected {
-    background-color: rgba(0,0,0,0.1);
-}
-.block-tree ul li {
-    padding-left: .8rem;
+.block-tree li.selected > button {
+    background-color: #82d1ff;
 }
 
 .block > .btn > span {
@@ -135,6 +133,5 @@
     position: absolute;
     z-index: 2;
 }
-
 
 

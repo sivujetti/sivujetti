@@ -1,6 +1,5 @@
 DROP TRIGGER IF EXISTS `deleteBlockProps`;
 DROP TABLE IF EXISTS `blockProps`;
-DROP TRIGGER IF EXISTS `patchBlockPath`;
 DROP TABLE IF EXISTS `blocks`;
 DROP TABLE IF EXISTS `pages`;
 DROP TABLE IF EXISTS `pageTypes`;
@@ -43,7 +42,7 @@ CREATE TABLE `pages` (
 
 CREATE TABLE `blocks` (
     `id` INT UNSIGNED NOT NULL PRIMARY KEY AUTOINCREMENT,
-    `path` VARCHAR(191) NOT NULL,
+    `parentPath` VARCHAR(191) NOT NULL,
     `type` VARCHAR(48) NOT NULL,
     `section` VARCHAR(48) NOT NULL,
     `renderer` VARCHAR(128) NOT NULL,
@@ -51,15 +50,6 @@ CREATE TABLE `blocks` (
     `title` VARCHAR(48) DEFAULT NULL,
     FOREIGN KEY(`pageId`) REFERENCES `pages`(`id`),
 ) DEFAULT CHARSET = utf8mb4;
-
-DELIMITER //
-CREATE TRIGGER `patchBlockPath` BEFORE INSERT ON `blocks`
-FOR EACH ROW BEGIN
-    IF NEW.`path` = '' THEN
-        SET NEW.`path` = CONCAT(NEW.`id`, '/');
-    END IF;
-END//
-DELIMITER ;
 
 CREATE TABLE `blockProps` (
     `id` INT UNSIGNED NOT NULL PRIMARY KEY AUTOINCREMENT,

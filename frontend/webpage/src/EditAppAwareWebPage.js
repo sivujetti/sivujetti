@@ -58,10 +58,10 @@ class EditAppAwareWebPage {
      * @return todo
      * @access public
      */
-    addBlock(initialText, after, sectionName = 'main') {
+    addBlock(initialText, after) {
         const p = document.createElement('p');
         p.textContent = initialText;
-        return this._addBlock([p], sectionName, after);
+        return this._addBlock([p], after);
     }
     /**
      * @todo
@@ -83,10 +83,10 @@ class EditAppAwareWebPage {
      * @return todo
      * @access public
      */
-    moveBlock(blockRefToMove, targetSectionName, after) {
+    moveBlock(blockRefToMove, after) { // todo
         // todo update comments (<!-- id:type) if type changes
         const out = this._addBlock(blockRefToMove.getContents(),
-            targetSectionName, after, blockRefToMove.blockId);
+            after, blockRefToMove.blockId);
         //
         blockRefToMove.destroy();
         //
@@ -109,7 +109,7 @@ class EditAppAwareWebPage {
      * @return todo
      * @access private
      */
-    _addBlock(initialContent, sectionName, after, blockId = `new-${++counter}`, blockType = 'paragraph' /* todo */) {
+    _addBlock(initialContent, after, blockId = `new-${++counter}`, blockType = 'paragraph' /* todo */) {
 
         const startingCommentNode = document.createComment(` block-start ${blockId}:${blockType} `);
 

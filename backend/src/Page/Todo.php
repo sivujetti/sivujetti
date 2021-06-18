@@ -29,8 +29,8 @@ final class Todo {
         $page = $rows[$i];
         $blocks = [];
         foreach ($rows as $row) {
-            if ($row->blockPageId !== $page->id ||
-                $row->blockSection === '<layout>') // path startswith ??
+            if (($row->blockPageId !== $page->id && !str_starts_with($row->blockParentPath, "{$page->blockId}/")) ||
+                $row->blockSection === '<layout>')
                 continue;
             if (array_key_exists("k-$row->blockId", $blocks))
                 continue;

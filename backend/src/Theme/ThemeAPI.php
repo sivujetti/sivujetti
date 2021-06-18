@@ -5,6 +5,7 @@ namespace KuuraCms\Theme;
 use Pike\{FileSystem, PikeException};
 use KuuraCms\Plugin\PluginAPI;
 use KuuraCms\{SharedAPIContext, ValidationUtils};
+use KuuraCms\Entities\Block;
 use KuuraCms\Entities\PageLayout;
 
 final class ThemeAPI extends PluginAPI {
@@ -26,18 +27,18 @@ final class ThemeAPI extends PluginAPI {
     /**
      * @param string $friendlyName
      * @param string $relFilePath
-     * @param ?array<int, string> $sections = null
+     * @param ?array<int, \KuuraCms\Entities\Block> $initialBlocks
      * @param ?bool $isDefault = null
      */
     public function registerPageLayout(string $friendlyName,
                                        string $relFilePath,
-                                       ?array $sections = null,
+                                       ?array $initialBlocks = null,
                                        ?bool $isDefault = null): void {
         ValidationUtils::checkIfValidaPathOrThrow($relFilePath);
         $layout = new PageLayout;
         $layout->friendlyName = $friendlyName;
         $layout->relFilePath = $relFilePath;
-        $layout->sections = $sections ?? ['main'];
+        $layout->initialBlocks = $initialBlocks ?? self::makeDefaultInitialBlocks();
         $layout->isDefault = $isDefault ?? false;
         $this->storageData->pageLayouts[] = $layout;
     }
@@ -68,5 +69,30 @@ final class ThemeAPI extends PluginAPI {
             'url' => $url,
             'attrs' => $attrs,
         ];
+    }
+    /**
+     * @access private
+     */
+    private static function makeDefaultInitialBlocks(): array {
+        $b1 = new Block;
+        $b1->type = Block::TYPE_HEADING;
+        $b1->section = 'main';
+        $b1->renderer = 'kuura:auto';
+        $b1->id = '';
+        $b1->path = '';
+        $b1->title = '';
+        $b1->children = [];
+        $b1->level = '2';
+        $b1->text = '-';
+        $b2 = new Block;
+        $b2->type = Block::TYPE_PARAGRAPH;
+        $b2->section = 'main';
+        $b2->renderer = 'kuura:auto';
+        $b2->id = '';
+        $b2->path = '';
+        $b2->title = '';
+        $b2->children = [];
+        $b2->text = '-';
+        return [$b1, $b2];
     }
 }

@@ -11,7 +11,7 @@ const sectionBlockReRender = (newDataFromForm, blockRef, prevData) => {
         return;
     }
     blockRef.tryToReRenderWithHtml(`<p>Loading ...</p>`);
-    services.http.post('/api/defaults/section/render-template/kuura:section', newDataFromForm)
+    services.http.post('/api/defaults/section/render-template/kuura:generic-wrapper', newDataFromForm)
         .then(resp => blockRef.tryToReRenderWithHtml(resp.html))
         .catch(window.console.error);
 };

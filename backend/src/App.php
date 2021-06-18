@@ -5,8 +5,9 @@ namespace KuuraCms;
 use Auryn\Injector;
 use KuuraCms\Block\BlocksModule;
 use KuuraCms\PageType\PageTypesModule;
-use KuuraCms\Defaults\{DefaultsModule, FormattedTextBlockType, HeadingBlockType,
-                       ListingBlockType, MenuBlockType, ParagraphBlockType, SectionBlockType};
+use KuuraCms\Defaults\{ColumnsBlockType, DefaultsModule, FormattedTextBlockType,
+                       HeadingBlockType, ListingBlockType, MenuBlockType, ParagraphBlockType,
+                       SectionBlockType};
 use KuuraCms\Defaults\ContactForm\ContactFormBlockType;
 use KuuraCms\Entities\Block;
 use KuuraCms\Page\PagesModule;
@@ -79,6 +80,7 @@ final class App {
         //
         $data = $this->ctx->storage->getDataHandle();
         $data->blockTypes = [
+            Block::TYPE_COLUMNS => fn() => new ColumnsBlockType,
             Block::TYPE_CONTACT_FORM => fn() => new ContactFormBlockType,
             Block::TYPE_FORMATTED_TEXT => fn() => new FormattedTextBlockType,
             Block::TYPE_HEADING => fn() => new HeadingBlockType,

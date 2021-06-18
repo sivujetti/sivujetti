@@ -30,7 +30,10 @@ class BlockTreePanel extends preact.Component {
         this.selectedBlock = block;
     }
     render({blocks, editApp}, {treeState}) {
-
+        const grouped = blocks.reduce((arr, block) => {
+            arr[block.data.section !== '<layout>' ? 0 : 1].push(block);
+            return arr;
+        }, [[], []]);
         const br = a => {
             return a.map(b =>
             !treeState[b.data.id].isNew ?
@@ -43,11 +46,12 @@ class BlockTreePanel extends preact.Component {
             </li>
             );
         };
-
         return <>
-            <ul class="block-tree">{ blocks.map(b =>
-                br([b], null)
-            ) }</ul>
+            { grouped.map(group =>
+                <ul class="block-tree">{ group.map(b =>
+                    br([b])
+                ) }</ul>
+            ) }
             <button onClick={ this.appendNewBlockTypeSelector.bind(this) } title={ __('Add block to current page') } class="btn">{ __('Add block') }</button>
             <br/>
             <button onClick={ editApp.beginCreatePageMode.bind(editApp) } title={ __('Add new page') } class="btn">{ __('Add page') }</button>
@@ -328,33 +332,25 @@ class EditApp extends preact.Component {
         if (this.loading) return;
         this.loading = true;
         //
-        const pl = EditApp.currentWebPage.theme.defaultPageLayout.relFilePath;
+        const d = EditApp.currentWebPage.theme.defaultPageLayout;
+
         services.http.post(`/api/pages`, {
             slug: '-',
             path: '',
             level: 1,
             title: '-',
-            layout: pl,
+            layout: d.relFilePath,
             pageTypeName: 'Pages',
         }).then(resp => {
             if (resp.ok !== 'ok') throw new Error('');
 
-            const initialBlocks = [
-                createBlockData({
-                    type: 'heading',
-                    section: 'main',
-                    id: 'new-2-1',
-                }),
-                createBlockData({
-                    type: 'paragraph',
-                    section: 'main',
-                    id: 'new-2-2',
-                }),
-            ];
+            const initialBlocks = d.initialBlocks.map((bd, i) =>
+                Object.assign({}, bd, {id: `new-2-${i+1}`})
+            );
             // todo dry
             const seq = i => {
                 if (!initialBlocks[i]) { // We're done
-                    document.getElementById('kuura-site-iframe').contentWindow.location.href = `/kuura/index.php?q=/_placeholder-page/${resp.insertId}/${encodeURIComponent(pl)}`;
+                    document.getElementById('kuura-site-iframe').contentWindow.location.href = `/kuura/index.php?q=/_placeholder-page/${resp.insertId}/${encodeURIComponent(d.relFilePath)}`;
                     this.loading = false;
                     return;
                 }

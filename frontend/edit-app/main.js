@@ -1,4 +1,5 @@
 import EditApp from './src/EditApp.jsx';
+import columnsBlockType from './src/contactFormBlockType.js';
 import contactFormBlockType from './src/contactFormBlockType.js';
 import formattedTextBlockType from './src/formattedTextBlockType.js';
 import headingBlockType from './src/headingBlockType.js';
@@ -15,6 +16,7 @@ const inspectorPanelReactRef = preact.createRef();
 
 const config = {};
 config.blockTypes = new Map();
+config.blockTypes.set('columns', columnsBlockType);
 config.blockTypes.set('contact-form', contactFormBlockType);
 config.blockTypes.set('formatted-text', formattedTextBlockType);
 config.blockTypes.set('heading', headingBlockType);

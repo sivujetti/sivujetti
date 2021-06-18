@@ -15,11 +15,11 @@ class Theme implements ThemeInterface {
     public function __construct(ThemeAPI $api) {
         $api->registerPageLayout('Full width',
                                  'layout.full-width.tmpl.php',
-                                 ['main'],
+                                 null,
                                  true);
         $api->registerPageLayout('With sidebar',
                                  'layout.with-sidebar.tmpl.php',
-                                 ['main', 'sidebar']);
+                                 null); // todo
         $api->enqueueCssFile('main.css');
     }
 }

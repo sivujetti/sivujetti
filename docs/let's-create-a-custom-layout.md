@@ -14,20 +14,13 @@ Luo tiedosto `<sivustonPolku>/site/templates/layout.my-layout.tmpl.php`, ja kirj
     <title><?= "{$page->title} - {$site->name}" ?></title>
     <meta name="generator" content="KuuraCMS">
     <?= $this->cssFiles() ?>
-    <style>
-        .columns { display: flex; }
-        .columns > section { flex: 1; }
-    </style>
 </head>
 <body>
     <header>
         <h1 data-prop="title"><?= $this->e($page->title) ?></h1>
     </header>
-    <div class="columns">
-        <?= $this->renderBlocks($page->blocks) ?>
-    </div>
+    <?= $this->renderBlocks($page->blocks) ?>
     <footer>
-        <?= $this->renderBlocks($this->filterBlocks($page, 'footer')) ?>
         &copy; <?= $site->name ?> <?= date('Y') ?>
     </footer>
 </body>
@@ -54,7 +47,7 @@ Tee tämä muokkaamalla `Theme.php`:hen:
         ...
         $api->registerPageLayout(friendlyName: 'My layout',
                                  relFilePath: 'layout.my-layout.tmpl.php',
-                                 sections: ['main', 'sidebar', 'footer'],
+                                 initialBlocks: null,
                                  isDefault: false);
     }
 ...

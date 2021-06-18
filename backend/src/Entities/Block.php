@@ -3,6 +3,7 @@
 namespace KuuraCms\Entities;
 
 final class Block extends \stdClass {
+    public const TYPE_COLUMNS = 'columns';
     public const TYPE_CONTACT_FORM = 'contact-form';
     public const TYPE_FORMATTED_TEXT = 'formatted-text';
     public const TYPE_HEADING = 'heading';

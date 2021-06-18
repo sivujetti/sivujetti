@@ -7,8 +7,8 @@ final class PageLayout {
     public string $friendlyName;
     /** @var string */
     public string $relFilePath;
-    /** @var string[] */
-    public array $sections;
+    /** @var \KuuraCms\Entities\Block[] */
+    public array $initialBlocks;
     /** @var bool */
     public bool $isDefault;
 }

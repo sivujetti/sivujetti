@@ -5,7 +5,7 @@ namespace KuuraCms\Defaults;
 use KuuraCms\Block\BlockTypeInterface;
 use KuuraCms\Entities\{BlockProperties, BlockProperty};
 
-class SectionBlockType implements BlockTypeInterface {
+class ColumnsBlockType implements BlockTypeInterface {
     public function getTemplates(): array {
         return ['kuura:generic-wrapper'];
     }

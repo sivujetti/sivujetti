@@ -44,6 +44,12 @@ final class Template extends PikeTemplate {
         return htmlspecialchars($str, $flags, 'UTF-8', $doubleEncode);
     }
     /**
+     * @todo
+     */
+    public function __(string $key, ...$args): string {
+        return $key;
+    }
+    /**
      * @param string $url
      * @param bool $withIndexFile = true
      * @return string
@@ -119,10 +125,11 @@ final class Template extends PikeTemplate {
     }
     /**
      * @todo
+     * @todo eliminate
      * @return todo
      */
-    protected function fetchBlocks(): SelectBlocksQuery {
-        return $this->__fetchBlocks->__invoke();
+    protected function fetchBlocks($section = '<layout>'): SelectBlocksQuery {
+        return $this->__fetchBlocks->__invoke($section);
     }
     /**
      * @todo

@@ -2,6 +2,8 @@
 
 namespace KuuraCms\Block;
 
+use KuuraCms\AssociativeJoinStorageStrategy;
+use KuuraCms\EmbeddedDataStorageStrategy;
 use KuuraCms\Entities\Block;
 use Pike\{Db};
 
@@ -12,11 +14,11 @@ final class BlocksRepository {
         $this->db = $db;
         $this->results = [];
     }
-    public function fetchOne(): SelectBlocksQuery {
-        return new SelectBlocksQuery($this->db, function ($b) { $this->results = array_merge($this->results, $b); }, true);
+    public function fetchOne(string $pageId, string $section): SelectBlocksQuery {
+        return new SelectBlocksQuery($this->db, $pageId, $section, function ($b) { $this->results = array_merge($this->results, $b); }, true);
     }
-    public function fetchAll(): SelectBlocksQuery {
-        return new SelectBlocksQuery($this->db, function ($b) { $this->results = array_merge($this->results, $b); });
+    public function fetchAll(string $pageId, string $section): SelectBlocksQuery {
+        return new SelectBlocksQuery($this->db, $pageId, $section, function ($b) { $this->results = array_merge($this->results, $b); });
     }
     public function getResults(): array {
         return $this->results;
@@ -24,12 +26,17 @@ final class BlocksRepository {
 }
 
 final class SelectBlocksQuery {
-    private Db $r;
+    private Db $db;
+    private string $pageId;
+    private string $section;
     private $_d;
     private bool $single;
     private array $wheretemp = [];
-    public function __construct(Db $r, $d, ?bool $single = null) {
-        $this->r = $r;
+    public function __construct(Db $db, string $pageId, string $section, $d, ?bool $single = null) {
+        $this->db = $db;
+        if ($pageId) throw new \RuntimeException('not implemented');
+        $this->pageId = $pageId;
+        $this->section = $section;
         $this->_d = $d;
         $this->single = $single ?? false;
     }
@@ -38,44 +45,29 @@ final class SelectBlocksQuery {
         return $this;
     }
     public function exec(): object|array|null {
-        $rows = (new AssociativeJoinStorageStrategy($this->r))->select("b.`{$this->wheretemp[0]}`=?", $this->wheretemp[1]);
-        if ($this->single) {
-            $block = Block::fromDbResult($rows[0], $rows);
-            $this->_d->__invoke($block);
-            return $block;
-        }
-        $k = [];
-        foreach ($rows as $row) {
-            if (array_key_exists("k-$row->blockId", $k)) continue;
-            $k["k-$row->blockId"] = Block::fromDbResult($row, $rows);
-        }
-        $blcoks = array_values($k);
-        $this->_d->__invoke($blcoks);
-        return $blcoks;
-    }
-}
 
-interface StorageStrategy
-{
-    public function select($temp1, $temp2): array;
-}
+        $Cls = [
+            'associative' => AssociativeJoinStorageStrategy::class,
+            'embedded' => EmbeddedDataStorageStrategy::class,
+        ][STORAGE_STATEGY];
 
-class AssociativeJoinStorageStrategy implements StorageStrategy {
-    public function __construct(Db $db)
-    {
-        $this->db = $db;
-    }
-    public function select($temp1, $temp2): array
-    {
-        return $this->db->fetchAll(
-            "SELECT b.`type` AS `blockType`,b.`section` AS `blockSection`,b.`renderer` AS `blockRenderer`,b.`id` AS `blockId`,b.`parentPath` AS `blockParentPath`,b.`pageId` AS `blockPageId`,b.`title` AS `blockTitle`" .
-            ",bp.`blockId` AS `blockPropBlockId`,bp.`key` AS `blockPropKey`,bp.`value` AS `blockPropValue`" .
-            " FROM `blocks` b" .
-            " JOIN `blockProps` bp ON (bp.`blockId` = b.`id`)" .
-            " WHERE $temp1",
-            [$temp2],
-            \PDO::FETCH_CLASS,
-            '\\stdClass'
+        $dd = function (Block $b) {
+            $makeBlockType = $this->blockTypes[$b->type] ?? null;
+            if (!$makeBlockType) return $b;
+            $blockType = $makeBlockType();
+            // todo $blockType->makePropsFromRs()
+            if (method_exists($blockType, "fetchData"))
+                $makeBlockType()->fetchData($b, $this);
+            return $b;
+        };
+
+        return (new $Cls($this->db))->selectBlocks(
+            $this->section,
+            $this->wheretemp[0],
+            $this->wheretemp[1],
+            $this->single,
+            $this->_d,
+            $dd
         );
     }
 }

@@ -2,6 +2,8 @@
 
 namespace KuuraCms\Entities;
 
+use KuuraCms\StorageStrategy;
+
 final class Block extends \stdClass {
     public const TYPE_COLUMNS = 'columns';
     public const TYPE_CONTACT_FORM = 'contact-form';
@@ -44,19 +46,7 @@ final class Block extends \stdClass {
     public any $prop2;
     etc.. */
 
-    public static function fromDbResult(object $row, array $rows): Block {
-        $out = new self;
-        $out->type = $row->blockType;
-        $out->section = $row->blockSection;
-        $out->renderer = $row->blockRenderer;
-        $out->id = $row->blockId;
-        $out->path = "{$row->blockParentPath}{$row->blockId}/";
-        $out->title = $row->blockTitle ?? null;
-        $out->children = [];
-        foreach ($rows as $row2) {
-            if ($row2->blockPropBlockId === $out->id)
-                $out->{$row2->blockPropKey} = $row2->blockPropValue;
-        }
-        return $out;
+    public static function fromDbResult(object $row, array $rows, StorageStrategy $strat, $dd): Block {
+        return $strat->makeBlockFromDbResult($row, $rows, $dd);
     }
 }

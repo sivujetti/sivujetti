@@ -19,14 +19,6 @@ class WebsiteAPI extends BaseAPI {
         $this->storageData = $storage->getDataHandle($this);
     }
     /**
-     * @todo
-     */
-    public function registerBlockType(string $name, \Closure $blockTypeFactory): void {
-        foreach ($blockTypeFactory()->getTemplates() as $path) // todo lazify (see notes.txt)
-            ValidationUtils::checkIfValidaPathOrThrow($path);
-        $this->storageData->blockTypes[$name] = $blockTypeFactory;
-    }
-    /**
      * @param string $relUrl Relative to http://<base>/public/
      */
     public function enqueueEditAppJsFile(string $relUrl): void {

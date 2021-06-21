@@ -23,16 +23,18 @@ final class PagesController {
         $themeAPI = new ThemeAPI('theme', $storage, $fs);
         $theme = new Theme($themeAPI); // Note: mutates $this->storage->data
         //
-        $rows = $paegRepo->tempFetch('Pages', '`slug` = ?', $req->path);
-        if (!($page = $paegRepo->temp2($rows))) {
+        $page = $paegRepo->tempFetch('Pages', '`slug` = ?', $req->path);
+        if (!$page) $page = $paegRepo->tempFetch('Products', '`slug` = ?', $req->path);
+        if (!$page) {
             $res->plain('404'); // @todo custom 404 pages
             return;
         }
+        $storage->triggerEvent('kuuraOnPageRequestInitialized', '@@@');
         self::$blockTypes = $storage->getDataHandle()->blockTypes;
         $html = (new Template($page->layout, // becomes KUURA_WORKSPACE_PATH . "site/templates/{$page->layout}"
                               null,
-                              function() use ($br): SelectBlocksQuery {
-                                  return $br->fetchAll();
+                              function($section) use ($br): SelectBlocksQuery {
+                                  return $br->fetchAll('', $section);
                               }))->render([
             'page' => $page,
             'site' => $theWebsite,

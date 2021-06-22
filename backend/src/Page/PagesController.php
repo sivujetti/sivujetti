@@ -6,7 +6,7 @@ use KuuraCms\Entities\TheWebsite;
 use KuuraCms\{SharedAPIContext, Template};
 use KuuraCms\Block\BlocksRepository;
 use KuuraCms\Block\SelectBlocksQuery;
-use KuuraCms\Entities\Block;
+use KuuraCms\Block\Entities\Block;
 use KuuraCms\Theme\ThemeAPI;
 use KuuraSite\Theme;
 use Pike\{ArrayUtils, Db, FileSystem, PikeException, Request, Response};

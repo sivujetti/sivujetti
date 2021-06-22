@@ -3,7 +3,7 @@
 namespace KuuraCms;
 
 use KuuraCms\Block\SelectBlocksQuery;
-use KuuraCms\Entities\Page;
+use KuuraCms\Page\Entities\Page;
 use Pike\{ArrayUtils, PikeException, Template as PikeTemplate};
 
 final class Template extends PikeTemplate {

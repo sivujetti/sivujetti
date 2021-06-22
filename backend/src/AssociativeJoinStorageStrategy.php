@@ -2,9 +2,9 @@
 
 namespace KuuraCms;
 
-use KuuraCms\Entities\Block;
-use KuuraCms\Entities\Page;
-use KuuraCms\Entities\PageType;
+use KuuraCms\Block\Entities\Block;
+use KuuraCms\Page\Entities\Page;
+use KuuraCms\PageType\Entities\PageType;
 use Pike\Db;
 
 class AssociativeJoinStorageStrategy implements StorageStrategy {
@@ -75,6 +75,7 @@ class AssociativeJoinStorageStrategy implements StorageStrategy {
         $out->renderer = $row->blockRenderer;
         $out->id = $row->blockId;
         $out->path = "{$row->blockParentPath}{$row->blockId}/";
+        $out->pageId = $row->id;
         $out->title = $row->blockTitle ?? null;
         $out->children = [];
         foreach ($rows as $row2) {
@@ -139,7 +140,7 @@ class AssociativeJoinStorageStrategy implements StorageStrategy {
     /**
      * @access private
      */
-    private static function makeParentPath(string $path): string {
+    public static function makeParentPath(string $path): string {
         $level = substr_count($path, '/');
         return $level !== 1
             // 'foo/bar/baz/' -> 'foo/bar/'

@@ -2,7 +2,7 @@
 
 namespace KuuraCms\Block;
 
-use KuuraCms\Entities\BlockProperties;
+use KuuraCms\Block\Entities\BlockProperties;
 
 interface BlockTypeInterface {
     public function getTemplates(): array;

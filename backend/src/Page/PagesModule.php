@@ -9,7 +9,7 @@ final class PagesModule {
         $ctx->router->map('GET', '/_edit/[**:url]?',
             [PagesController::class, 'renderPageInEditMode']
         );
-        $ctx->router->map('GET', '/_placeholder-page/[i:pageId]/[*:layout]',
+        $ctx->router->map('GET', '/_placeholder-page/[w:pageId]/[*:layout]',
             [PagesController::class, 'renderPlaceholderPage']
         );
         $ctx->router->map('GET', '*',
@@ -18,10 +18,10 @@ final class PagesModule {
         $ctx->router->map('POST', '/api/pages',
             [PagesController::class, 'createPage']
         );
-        $ctx->router->map('PUT', '/api/pages/[i:pageId]',
+        $ctx->router->map('PUT', '/api/pages/[w:pageId]',
             [PagesController::class, 'updatePage']
         );
-        $ctx->router->map('DELETE', '/api/pages/[i:pageId]',
+        $ctx->router->map('DELETE', '/api/pages/[w:pageId]',
             [PagesController::class, 'deletePage']
         );
     }

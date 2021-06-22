@@ -1,13 +1,13 @@
-<?php if ($props instanceof \KuuraCms\Entities\Block):
-    if ($props->type === \KuuraCms\Entities\Block::TYPE_PARAGRAPH):
+<?php if ($props instanceof \KuuraCms\Block\Entities\Block):
+    if ($props->type === \KuuraCms\Block\Entities\Block::TYPE_PARAGRAPH):
         echo "<p>{$this->e($props->text)}",$props->children?$this->renderBlocks($props->children):'',"</p>";
-    elseif ($props->type === \KuuraCms\Entities\Block::TYPE_HEADING):
+    elseif ($props->type === \KuuraCms\Block\Entities\Block::TYPE_HEADING):
         $hType = "h{$props->level}>";
         echo "<{$hType}{$this->e($props->text)}",$props->children?$this->renderBlocks($props->children):'',"</{$hType}";
-    elseif ($props->type === \KuuraCms\Entities\Block::TYPE_FORMATTED_TEXT):
+    elseif ($props->type === \KuuraCms\Block\Entities\Block::TYPE_FORMATTED_TEXT):
         echo $props->html, // Allow pre-validated html
             $props->children?$this->renderBlocks($props->children):'';
-    elseif ($props->type === \KuuraCms\Entities\Block::TYPE_LISTING):
+    elseif ($props->type === \KuuraCms\Block\Entities\Block::TYPE_LISTING):
         if ($props->__pages): // Pages, Articles etc.
             foreach ($props->__pages as $entity):
                 echo $this->renderBlocks($entity->blocks);

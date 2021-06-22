@@ -1,5 +1,3 @@
-let counter = 0;
-
 class EditAppAwareWebPage {
     constructor() {
         this.id = null; // public
@@ -58,20 +56,21 @@ class EditAppAwareWebPage {
      * @return todo
      * @access public
      */
-    addBlock(initialText, after) {
+    addBlock(initialText, blockId, after) {
         const p = document.createElement('p');
         p.textContent = initialText;
-        return this._addBlock([p], after);
+        return this._addBlock([p], blockId, after);
     }
     /**
+     * @todo
      * @todo
      * @todo
      * @todo
      * @return todo
      * @access public
      */
-    addBlockT(blockType, initialData, after) {
-        const refg = this.addBlock('wiped', after);
+    addBlockT(blockType, initialData, blockId, after) {
+        const refg = this.addBlock('wiped', blockId, after);
         refg.blockType = initialData.type; // ??
         blockType.reRender(initialData, refg, {});
         return refg;
@@ -86,7 +85,7 @@ class EditAppAwareWebPage {
     moveBlock(blockRefToMove, after) { // todo
         // todo update comments (<!-- id:type) if type changes
         const out = this._addBlock(blockRefToMove.getContents(),
-            after, blockRefToMove.blockId);
+            blockRefToMove.blockId, after);
         //
         blockRefToMove.destroy();
         //
@@ -109,7 +108,7 @@ class EditAppAwareWebPage {
      * @return todo
      * @access private
      */
-    _addBlock(initialContent, after, blockId = `new-${++counter}`, blockType = 'paragraph' /* todo */) {
+    _addBlock(initialContent, blockId, after, blockType = 'paragraph' /* todo */) {
 
         const startingCommentNode = document.createComment(` block-start ${blockId}:${blockType} `);
 

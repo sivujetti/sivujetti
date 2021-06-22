@@ -5,8 +5,8 @@ namespace KuuraCms;
 use Pike\Db;
 use KuuraCms\PageType\PageTypeCollection;
 use KuuraCms\Entities\TheWebsite;
-use KuuraCms\Entities\PageType;
-use KuuraCms\Entities\Plugin;
+use KuuraCms\PageType\Entities\PageType;
+use KuuraCms\Plugin\Entities\Plugin;
 
 final class TheWebsiteRepository {
     /**

@@ -3,9 +3,8 @@
 namespace KuuraCms\Page;
 
 use KuuraCms\EmbeddedDataStorageStrategy;
-use KuuraCms\Entities\Block;
-use KuuraCms\Entities\PageType;
-use KuuraCms\Entities\Page;
+use KuuraCms\Block\Entities\Block;
+use KuuraCms\Page\Entities\Page;
 use KuuraCms\SharedAPIContext;
 use KuuraCms\StorageStrategy;
 use Pike\{ArrayUtils, Db, PikeException};

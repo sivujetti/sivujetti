@@ -1,7 +1,7 @@
 import {__} from './temp.js';
 import services from './services.js'; // How to expose main API to the SDK?
 import EditApp from './EditApp.jsx';
-import {CreateBlocksSequence, createBlockData} from './EditBox.jsx';
+import {CreateBlocksSequence, createBlockData, generatePushID} from './EditBox.jsx';
 
 const todoIsBlockSavedToBackend = (_blockRef, blockData) =>
     !blockData.id.startsWith('new-')
@@ -104,7 +104,7 @@ function makeBlocksFrom(pageTypeFields, after) {
             t.getInitialData(),
             field.initialData
         );
-        out.blockRefs.push(EditApp.currentWebPage.addBlockT(t, initialData, after));
+        out.blockRefs.push(EditApp.currentWebPage.addBlockT(t, initialData, generatePushID(), after));
         out.blocksDatas.push(Object.assign({title: null /* todo */}, initialData));
     });
     return out;

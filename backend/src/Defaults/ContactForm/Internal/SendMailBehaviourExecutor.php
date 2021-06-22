@@ -5,7 +5,7 @@ namespace KuuraCms\Defaults\ContactForm\Internal;
 use KuuraCms\Defaults\ContactFormBlockType;
 use KuuraCms\Entities\TheWebsite;
 use KuuraCms\SharedAPIContext;
-use Pike\{ArrayUtils, PikeException, Validation};
+use Pike\{PikeException, Validation};
 use Pike\Interfaces\MailerInterface;
 
 /**

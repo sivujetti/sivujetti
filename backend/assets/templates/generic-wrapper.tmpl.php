@@ -1,8 +1,8 @@
-<?php if ($props->type === \KuuraCms\Entities\Block::TYPE_COLUMNS):
+<?php if ($props->type === \KuuraCms\Block\Entities\Block::TYPE_COLUMNS):
     echo '<div class="columns">',
         ($props->children ? $this->renderBlocks($props->children) : ''),
     '</div>';
-elseif ($props->type === \KuuraCms\Entities\Block::TYPE_SECTION):
+elseif ($props->type === \KuuraCms\Block\Entities\Block::TYPE_SECTION):
     echo '<section class="', $this->e($props->cssClass) ,'">',
         ($props->children ? $this->renderBlocks($props->children) : ''),
     '</section>';

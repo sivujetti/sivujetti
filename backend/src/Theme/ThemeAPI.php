@@ -5,8 +5,8 @@ namespace KuuraCms\Theme;
 use Pike\{FileSystem, PikeException};
 use KuuraCms\Plugin\PluginAPI;
 use KuuraCms\{SharedAPIContext, ValidationUtils};
-use KuuraCms\Entities\Block;
-use KuuraCms\Entities\PageLayout;
+use KuuraCms\Block\Entities\Block;
+use KuuraCms\Page\Entities\PageLayout;
 
 final class ThemeAPI extends PluginAPI {
     /** @var object Reference to SharedApiContext->data */
@@ -27,7 +27,7 @@ final class ThemeAPI extends PluginAPI {
     /**
      * @param string $friendlyName
      * @param string $relFilePath
-     * @param ?array<int, \KuuraCms\Entities\Block> $initialBlocks
+     * @param ?array<int, \KuuraCms\Block\Entities\Block> $initialBlocks
      * @param ?bool $isDefault = null
      */
     public function registerPageLayout(string $friendlyName,

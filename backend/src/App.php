@@ -9,8 +9,8 @@ use KuuraCms\Defaults\{ColumnsBlockType, DefaultsModule, FormattedTextBlockType,
                        HeadingBlockType, ListingBlockType, MenuBlockType, ParagraphBlockType,
                        SectionBlockType};
 use KuuraCms\Defaults\ContactForm\ContactFormBlockType;
-use KuuraCms\Entities\Block;
-use KuuraCms\Entities\Plugin;
+use KuuraCms\Block\Entities\Block;
+use KuuraCms\Plugin\Entities\Plugin;
 use KuuraCms\Page\PagesModule;
 use KuuraCms\Plugin\PluginAPI;
 use KuuraCms\Plugin\PluginInterface;

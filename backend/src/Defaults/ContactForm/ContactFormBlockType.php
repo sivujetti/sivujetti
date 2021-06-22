@@ -3,7 +3,7 @@
 namespace KuuraCms\Defaults\ContactForm;
 
 use KuuraCms\Block\BlockTypeInterface;
-use KuuraCms\Entities\{BlockProperties, BlockProperty};
+use KuuraCms\Block\Entities\{BlockProperties, BlockProperty};
 
 final class ContactFormBlockType implements BlockTypeInterface {
     /* fn(\PhpMailer\PhpMailer\PhpMailer $mailer, string $formId): void */

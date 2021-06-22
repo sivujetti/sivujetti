@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace KuuraCms\Entities;
+namespace KuuraCms\PageType\Entities;
 
 final class PageType {
     /** @var string */

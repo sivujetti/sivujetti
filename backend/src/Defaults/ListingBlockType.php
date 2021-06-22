@@ -3,10 +3,8 @@
 namespace KuuraCms\Defaults;
 
 use KuuraCms\Block\BlockTypeInterface;
-use KuuraCms\Entities\{Block, BlockProperties, BlockProperty};
+use KuuraCms\Block\Entities\{Block, BlockProperties, BlockProperty};
 use KuuraCms\Page\Todo;
-use Pike\ArrayUtils;
-use Pike\PikeException;
 
 final class ListingBlockType implements BlockTypeInterface
 {

@@ -3,7 +3,7 @@
 namespace KuuraCms\Defaults;
 
 use KuuraCms\Block\BlockTypeInterface;
-use KuuraCms\Entities\{BlockProperties, BlockProperty};
+use KuuraCms\Block\Entities\{BlockProperties, BlockProperty};
 
 class SectionBlockType implements BlockTypeInterface {
     public function getTemplates(): array {

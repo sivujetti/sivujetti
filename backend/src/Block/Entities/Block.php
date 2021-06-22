@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace KuuraCms\Entities;
+namespace KuuraCms\Block\Entities;
 
 use KuuraCms\StorageStrategy;
 
@@ -23,9 +23,11 @@ final class Block extends \stdClass {
     public string $id;
     /** @var string */
     public string $path;
+    /** @var string */
+    public string $pageId;
     /** @var ?string e.g. 'Articles' */
     public ?string $title;
-    /** @var \KuuraCms\Entities\Block[] */
+    /** @var \KuuraCms\Block\Entities\Block[] */
     public array $children;
 
     /* If self::TYPE_HEADING

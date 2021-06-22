@@ -11,7 +11,7 @@ final class TheWebsite {
     public string $lang;
     /** @var string */
     public string $aclRulesJson;
-    /** @var \KuuraCms\Entities\Plugin[] */
+    /** @var \KuuraCms\Plugin\Entities\Plugin[] */
     public \ArrayObject $plugins;
     /** @var \KuuraCms\PageType\PageTypeCollection */
     public PageTypeCollection $pageTypes;

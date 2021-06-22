@@ -2,9 +2,9 @@
 
 namespace KuuraCms;
 
-use KuuraCms\Entities\Block;
-use KuuraCms\Entities\Page;
-use KuuraCms\Entities\PageType;
+use KuuraCms\Block\Entities\Block;
+use KuuraCms\Page\Entities\Page;
+use KuuraCms\PageType\Entities\PageType;
 use Pike\ArrayUtils;
 use Pike\Db;
 
@@ -72,12 +72,15 @@ final class EmbeddedDataStorageStrategy implements StorageStrategy {
         $out->renderer = $data->renderer;
         $out->id = strval($data->id);
         $out->path = "{$data->parentPath}{$data->id}/";
+        $out->pageId = $data->pageId;
         $out->title = $data->title ?? null;
         $out->children = $data->children ? array_map(fn($b) =>
             $this->makeBlockFromDbResult($b, $rows, $dd)
         , $data->children) : [];
-        foreach ($data->props as $prop)
-            $out->{$prop->key} = $prop->val;
+        foreach ($data->props as $prop) {
+            $out->{$prop->key} = $prop->value;
+            $out->{"_propId_{$prop->key}"} = $prop->id;
+        }
         return $dd($out);
     }
     public function update($pageId, $data): void {
@@ -143,18 +146,18 @@ final class EmbeddedDataStorageStrategy implements StorageStrategy {
         $out = [];
         foreach ($blocks as $block) {
             $out[] = (object) [
-                'id' => $block['data'][0],
+                'id' => strval($block['data'][0]),
                 'parentPath' => $block['data'][1],
                 'type' => $block['data'][2],
                 'section' => $block['data'][3],
                 'renderer' => $block['data'][4],
-                'pageId' => $block['data'][5],
+                'pageId' => strval($block['data'][5]),
                 'title' => $block['data'][6],
                 'props' => array_map(fn ($prop) => (object) [
-                    'id' => $prop[0],
+                    'id' => strval($prop[0]),
                     'key' => $prop[1],
-                    'val' => $prop[2],
-                    'blockId' => $prop[3],
+                    'value' => $prop[2],
+                    'blockId' => strval($prop[3]),
                 ], $block['props']),
                 'children' => self::b($block['children']),
             ];

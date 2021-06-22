@@ -1,6 +1,6 @@
 import {__} from './temp.js';
 import services from './services.js';
-import {Block, createBlockData, tryToReRenderBlock, saveBlockToBackend} from './EditBox.jsx';
+import {Block, createBlockData, tryToReRenderBlock, saveBlockToBackend, generatePushID} from './EditBox.jsx';
 
 const TODO = 142;
 
@@ -41,12 +41,13 @@ class BlockTreePanel extends preact.Component {
                 <button onClick={ () => this.handleItemClicked(b) }>{ b.data.type }</button>
                 { b.children.length ? <ul>{ br(b.children) }</ul> : null }
             </li> :
-            <li key={ b.data.id } class="block">
+            <li key={ b.data.id }>
                 <BlockTypeSelector EditApp={ EditApp } b={ b } after={ this.gsb() } onConfirmed={ this.confirmAdd.bind(this) } onCanceled={ this.clearAdd.bind(this) }/>
             </li>
             );
         };
-        return <>
+        return <section class="on-this-page">
+            <h2>{ __('Tällä sivulla') }</h2>
             { grouped.map(group =>
                 <ul class="block-tree">{ group.map(b =>
                     br([b])
@@ -55,7 +56,7 @@ class BlockTreePanel extends preact.Component {
             <button onClick={ this.appendNewBlockTypeSelector.bind(this) } title={ __('Add block to current page') } class="btn">{ __('Add block') }</button>
             <br/>
             <button onClick={ editApp.beginCreatePageMode.bind(editApp) } title={ __('Add new page') } class="btn">{ __('Add page') }</button>
-        </>;
+        </section>;
     }
     /**
      * @access private
@@ -369,7 +370,7 @@ class EditApp extends preact.Component {
         });
     }
     addBlock(after, parent) {
-        const newBlockRef = EditApp.currentWebPage.addBlock(services.blockTypes.get('paragraph').getInitialData().text, after);
+        const newBlockRef = EditApp.currentWebPage.addBlock(services.blockTypes.get('paragraph').getInitialData().text, generatePushID(), after);
         return new Block(createBlockData({
             type: 'paragraph',
             section: '<inner>', // ??

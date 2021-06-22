@@ -3,8 +3,8 @@
 namespace KuuraCms\Block;
 
 use KuuraCms\AssociativeJoinStorageStrategy;
+use KuuraCms\Block\Entities\Block;
 use KuuraCms\EmbeddedDataStorageStrategy;
-use KuuraCms\Entities\Block;
 use Pike\{Db};
 
 final class BlocksRepository {

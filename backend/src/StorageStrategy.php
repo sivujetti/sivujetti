@@ -2,7 +2,9 @@
 
 namespace KuuraCms;
 
-use KuuraCms\Entities\{Block, Page, PageType};
+use KuuraCms\Block\Entities\Block;
+use KuuraCms\Page\Entities\Page;
+use KuuraCms\PageType\Entities\PageType;
 
 interface StorageStrategy {
     public function select(PageType $pageType, $temp1, $temp2, $dd): ?Page;

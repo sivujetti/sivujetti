@@ -6,10 +6,10 @@
         <link rel="stylesheet" href="<?= $this->assetUrl('public/kuura/kuura-edit-app.css') ?>">
     </head>
     <body>
-        <div id="root">
+        <div id="root" class="one-column">
             <div id="block-tree-panel"></div>
-            <iframe src="<?= $this->url("{$url}?in-edit") ?>" id="kuura-site-iframe"></iframe>
             <div id="inpector-panel"></div>
+            <iframe src="<?= $this->url("{$url}?in-edit") ?>" id="kuura-site-iframe"></iframe>
         </div>
         <script src="<?= $this->assetUrl('public/kuura/vendor/vendor.bundle.min.js') ?>"></script>
         <script>window.dataToEditApp = <?= json_encode($dataToEditApp) ?></script>

@@ -6,7 +6,7 @@ use KuuraCms\AppContext;
 
 final class DefaultsModule {
     public function init(AppContext $ctx): void {
-        $ctx->router->map('POST', '/api/defaults/contact-form/handle-submit/[i:contactFormBlockId]',
+        $ctx->router->map('POST', '/api/defaults/contact-form/handle-submit/[w:contactFormBlockId]',
             [DefaultsController::class, 'processFormsBlockFSubmit']
         );
         $todoReplaceWithRegexp = '*';

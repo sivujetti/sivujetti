@@ -5,11 +5,10 @@ namespace KuuraCms\Defaults;
 use KuuraCms\Block\BlocksRepository;
 use KuuraCms\Defaults\ContactForm\Internal\DefaultServicesFactory;
 use KuuraCms\Defaults\ContactForm\Internal\SendMailBehaviourExecutor;
-use KuuraCms\Entities\Block;
 use KuuraCms\Entities\TheWebsite;
 use KuuraCms\SharedAPIContext;
 use KuuraCms\Template;
-use Pike\{ArrayUtils, PikeException, Request, Response};
+use Pike\{PikeException, Request, Response};
 
 /**
  * Funtionalities for all default block types.

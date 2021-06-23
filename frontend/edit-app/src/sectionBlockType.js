@@ -17,30 +17,44 @@ const sectionBlockReRender = (newDataFromForm, blockRef, prevData) => {
 };
 
 const sectionBlockGetInitialData = () => ({
+    bgImage: '',
     cssClass: 'light',
 });
 
 class SectionBlockCreateFormInputs extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {cssClass: props.block.data.cssClass};
+        this.state = {bgImage: '',
+                      cssClass: props.block.data.cssClass,};
     }
-    render(_, {cssClass}) {
+    render(_, {cssClass, bgImage}) {
         return <>
-            <select>
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-            </select>
-            <textarea onInput={ this.handleInput.bind(this) }>{ cssClass }</textarea>
+            <div class="form-group">
+                <label>{ __('Background image') }</label>
+                <input value={ bgImage } onInput={ e => this.handleInput(e, 'bgImage') } list="fosfos" class="form-input"/>
+            </div>
+            <datalist id="fosfos">
+                <option value="Image 1"/>
+                <option value="Image 2"/>
+            </datalist>
+            <div class="form-group">
+                <label>{ __('Foo') }</label>
+                <select value={ cssClass } onChange={ e => this.handleInput(e, 'cssClass') } class="form-select">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                </select>
+            </div>
         </>;
     }
-    handleInput(e) {
-        const cssClass = e.target.value;
-        this.setState({cssClass});
-        this.props.onValueChanged({cssClass});
+    handleInput(e, p) {
+        const s = this.state;
+        s[p] = e.target.value;
+        this.setState({[p]: s[p]});
+        this.props.onValueChanged(s);
     }
     applyLatestValue() {
         this.props.block.data.cssClass = this.state.cssClass;
+        this.props.block.data.bgImage = this.state.bgImage;
     }
 }
 

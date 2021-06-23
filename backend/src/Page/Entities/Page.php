@@ -6,7 +6,7 @@ final class Page {
     public const TYPE_PAGE = 'Pages';
     public string $slug;
     public string $title;
-    public string $layout;
+    public string $layoutId;
     public string $id;
     public string $type;
     public array $blocks;

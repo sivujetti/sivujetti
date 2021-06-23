@@ -7,6 +7,8 @@ use KuuraCms\{SharedAPIContext, Template};
 use KuuraCms\Block\BlocksRepository;
 use KuuraCms\Block\SelectBlocksQuery;
 use KuuraCms\Block\Entities\Block;
+use KuuraCms\Page\Entities\Page;
+use KuuraCms\Page\Entities\PageLayout;
 use KuuraCms\Theme\ThemeAPI;
 use KuuraSite\Theme;
 use Pike\{ArrayUtils, Db, FileSystem, PikeException, Request, Response};
@@ -22,6 +24,7 @@ final class PagesController {
                                BlocksRepository $br): void {
         $themeAPI = new ThemeAPI('theme', $storage, $fs);
         $theme = new Theme($themeAPI); // Note: mutates $this->storage->data
+        $storage->triggerEvent('kuuraOnPageRequestInitialized', '@@@');
         //
         $page = $paegRepo->tempFetch('Pages', '`slug` = ?', $req->path);
         if (!$page) $page = $paegRepo->tempFetch('Products', '`slug` = ?', $req->path);
@@ -29,9 +32,8 @@ final class PagesController {
             $res->plain('404'); // @todo custom 404 pages
             return;
         }
-        $storage->triggerEvent('kuuraOnPageRequestInitialized', '@@@');
         self::$blockTypes = $storage->getDataHandle()->blockTypes;
-        $html = (new Template($page->layout, // becomes KUURA_WORKSPACE_PATH . "site/templates/{$page->layout}"
+        $html = (new Template(ArrayUtils::findByKey($storage->getDataHandle()->pageLayouts, $page->layoutId, 'id')->relFilePath, // becomes KUURA_WORKSPACE_PATH . "site/templates/{$relFilePath}"
                               null,
                               function($section) use ($br): SelectBlocksQuery {
                                   return $br->fetchAll('', $section);
@@ -53,10 +55,10 @@ final class PagesController {
                     '<script>window.kuuraCurrentPageData = ' . json_encode([
                         'page' => (object) [
                         'id' => $page->id,
-                        'layout' => $page->layout
+                        'layoutId' => $page->layoutId
                         ],
                         'isNewPage' => false,
-                        'blocks' => $this->getBlocksDeep(array_merge($br->getResults(), $page->blocks)),
+                        'blocks' => $this->getBlocksDeep(array_merge($br->getResults(), $page->blocks), $storage->di),
                         'theme' => (object) ['pageLayouts' => $storage->getDataHandle()->pageLayouts],
                     ]) . '</script>' .
                     '<script src="' . Template::makeUrl('public/kuura/vendor/quill.min.js', false) . '"></script>' .
@@ -73,9 +75,18 @@ final class PagesController {
             'dataToEditApp' => (object) [],
         ]));
     }
+    private static function createPlaceholderPage(PageLayout $layout): Page {
+        $out = new Page;
+        $out->slug = 'placeholder';
+        $out->title = 'New page';
+        $out->layoutId = $layout->id;
+        $out->id = 'placeholder';
+        $out->type = Page::TYPE_PAGE;
+        $out->blocks = $layout->initialBlocks;
+        return $out;
+    }
     public function renderPlaceholderPage(Request $req,
                                           Response $res,
-                                          Todo $paegRepo,
                                           TheWebsite $theWebsite,
                                           SharedAPIContext $storage,
                                           FileSystem $fs,
@@ -83,17 +94,14 @@ final class PagesController {
         $themeAPI = new ThemeAPI('theme', $storage, $fs);
         $theme = new Theme($themeAPI); // Note: mutates $this->storage->data
         //
-        $rows = $paegRepo->tempFetch('Pages', '`id` = ?', $req->params->pageId);
-        if (!($page = $paegRepo->temp2($rows)))
-            throw new PikeException('Invalid pageId');
-        // todo check that page->status == STATUS_CREATING
+        $pls = $storage->getDataHandle()->pageLayouts;
+        $pl = ArrayUtils::findByKey($pls, $req->params->layoutId, 'id');
+        $page = self::createPlaceholderPage($pl);
 
-        // todo validate req->params->layout
-
-        $html = (new Template(urldecode($req->params->layout), // KUURA_WORKSPACE_PATH . "site/templates/{$l}"
+        $html = (new Template($pl->relFilePath, // KUURA_WORKSPACE_PATH . "site/templates/{$l}"
                               null,
                               function() use ($br): SelectBlocksQuery {
-                                  return $br->fetchAll();
+                                  return $br->fetchAll('', '<layout>');
                               }))->render([
             'page' => $page,
             'site' => $theWebsite,
@@ -105,23 +113,23 @@ final class PagesController {
                 '<script>window.kuuraCurrentPageData = ' . json_encode([
                     'page' => (object) [
                     'id' => $page->id,
-                    'layout' => $req->params->layout,
+                    'layoutId' => $pl->id,
                     ],
                     'isNewPage' => true,
-                    'blocks' => $this->getBlocksDeep(array_merge($br->getResults(), $page->blocks)),
-                    'theme' => (object) ['pageLayouts' => $storage->getDataHandle()->pageLayouts],
+                    'blocks' => $this->getBlocksDeep(array_merge($br->getResults(), $page->blocks), $storage->di),
+                    'theme' => (object) ['pageLayouts' => $pls],
                 ]) . '</script>' .
                 '<script src="' . Template::makeUrl('public/kuura/kuura-webpage.js', false) . '"></script>' .
             substr($html, $bodyEnd);
         //
         $res->html($html);
     }
-    private function getBlocksDeep(array $blocks): array {
+    private function getBlocksDeep(array $blocks, $di): array {
         $dynamicBlocks = [];
         foreach ($blocks as $block) {
             $makeBlockType = self::$blockTypes[$block->type] ?? null;
             if (!$makeBlockType) continue;
-            $blockType = $makeBlockType();
+            $blockType = $makeBlockType instanceof \Closure ? $makeBlockType() : $di->make($makeBlockType);
             if (method_exists($blockType, 'onBeforeRenderPage'))
                 $dynamicBlocks = array_merge($dynamicBlocks, $blockType->onBeforeRenderPage($blocks));
         }
@@ -145,7 +153,8 @@ final class PagesController {
             'path' => $req->body->path, // todo create patcher (db trigger) for empty values
             'level' => $req->body->level,
             'title' => $req->body->title,
-            'layout' => $req->body->layout,
+            'layoutId' => $req->body->layoutId,
+            'blocks' => '[]',
             'pageTypeId' => $pageType['id'],
         ]);
         if ($db->exec("INSERT INTO `pages` ({$columns}) VALUES ({$qList})",
@@ -153,8 +162,8 @@ final class PagesController {
             throw new PikeException('hj');
 
         if ($performMenuAutoAdd) {
-            $menus = $br->fetchAll()->where('type', Block::TYPE_MENU)->exec();
-            $toAdd = ArrayUtils::filterByKey($menus, 'yes', 'doAddTopLevelPagesAutomatically');
+            // $menus = $br->fetchAll()->where('type', Block::TYPE_MENU)->exec();
+            // $toAdd = ArrayUtils::filterByKey($menus, 'yes', 'doAddTopLevelPagesAutomatically');
             // todo foreach ($toAdd as $block) { json_decode($block->tree)[] = thisPage; $db->save($block); }
         }
 
@@ -164,13 +173,12 @@ final class PagesController {
     public function updatePage(Request $req,
                                Response $res,
                                Todo $pageRepo): void {
-        $rows = $pageRepo->tempFetch('Pages', '`id` = ?', $req->params->pageId);
-        if (!($page = $pageRepo->temp2($rows)))
+        if (!$pageRepo->tempFetch(Page::TYPE_PAGE, '@simple', $req->params->pageId))
             throw new PikeException('Invalid pageId');
         $pageRepo->tempUpdate($req->params->pageId, (object) [
             'slug' => $req->body->slug,
             'title' => $req->body->title,
-            'layout' => $req->body->layout,
+            'layoutId' => $req->body->layoutId,
             'status' => $req->body->status,
         ]);
         $res->json(['ok' => 'ok']);

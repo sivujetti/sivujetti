@@ -3,7 +3,9 @@
         ($props->children ? $this->renderBlocks($props->children) : ''),
     '</div>';
 elseif ($props->type === \KuuraCms\Block\Entities\Block::TYPE_SECTION):
-    echo '<section class="', $this->e($props->cssClass) ,'">',
+    echo '<section class="', $this->e($props->cssClass), '"',
+        ($props->bgImage ? ' style="background-image:url(\''.$this->assetUrl($props->bgImage).'\')"' : ''),
+        '>',
         ($props->children ? $this->renderBlocks($props->children) : ''),
     '</section>';
 else:

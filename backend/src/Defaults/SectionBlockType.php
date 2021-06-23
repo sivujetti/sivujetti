@@ -12,9 +12,13 @@ class SectionBlockType implements BlockTypeInterface {
     public function defineProperties(): BlockProperties {
         $out = new BlockProperties;
         $p1 = new BlockProperty;
-        $p1->name = 'cssClass';
+        $p1->name = 'bgImage';
         $p1->dataType = 'text';
         $out[] = $p1;
+        $p2 = new BlockProperty;
+        $p2->name = 'cssClass';
+        $p2->dataType = 'text';
+        $out[] = $p2;
         return $out;
     }
 }

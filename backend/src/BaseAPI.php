@@ -22,9 +22,9 @@ class BaseAPI {
     }
     /**
      */
-    public function registerBlockType(string $name, \Closure $blockTypeFactory): void {
-        foreach ($blockTypeFactory()->getTemplates() as $path) // todo lazify (see notes.txt)
-            ValidationUtils::checkIfValidaPathOrThrow($path);
+    public function registerBlockType(string $name, $blockTypeFactory): void {
+        // foreach ($blockTypeFactory()->getTemplates() as $path) // todo lazify (see notes.txt)
+        //     ValidationUtils::checkIfValidaPathOrThrow($path);
         // todo {$this->namespace}{$name}
         $this->storage->getDataHandle()->blockTypes[$name] = $blockTypeFactory;
     }

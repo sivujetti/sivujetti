@@ -4,7 +4,7 @@ namespace KuuraCms\Theme;
 
 use Pike\{FileSystem, PikeException};
 use KuuraCms\Plugin\PluginAPI;
-use KuuraCms\{SharedAPIContext, ValidationUtils};
+use KuuraCms\{PushId, SharedAPIContext, ValidationUtils};
 use KuuraCms\Block\Entities\Block;
 use KuuraCms\Page\Entities\PageLayout;
 
@@ -36,6 +36,7 @@ final class ThemeAPI extends PluginAPI {
                                        ?bool $isDefault = null): void {
         ValidationUtils::checkIfValidaPathOrThrow($relFilePath);
         $layout = new PageLayout;
+        $layout->id = strval(count($this->storageData->pageLayouts) + 1);
         $layout->friendlyName = $friendlyName;
         $layout->relFilePath = $relFilePath;
         $layout->initialBlocks = $initialBlocks ?? self::makeDefaultInitialBlocks();
@@ -78,7 +79,7 @@ final class ThemeAPI extends PluginAPI {
         $b1->type = Block::TYPE_HEADING;
         $b1->section = 'main';
         $b1->renderer = 'kuura:auto';
-        $b1->id = '';
+        $b1->id = PushId::generate();
         $b1->path = '';
         $b1->title = '';
         $b1->children = [];
@@ -88,7 +89,7 @@ final class ThemeAPI extends PluginAPI {
         $b2->type = Block::TYPE_PARAGRAPH;
         $b2->section = 'main';
         $b2->renderer = 'kuura:auto';
-        $b2->id = '';
+        $b2->id = PushId::generate();
         $b2->path = '';
         $b2->title = '';
         $b2->children = [];

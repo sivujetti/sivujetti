@@ -32,7 +32,7 @@ CREATE TABLE `pages` (
     `path` TEXT, -- todo ids or slugs?
     `level` INTEGER NOT NULL DEFAULT 1,
     `title` TEXT NOT NULL,
-    `layout` TEXT NOT NULL,
+    `layoutId` TEXT NOT NULL,
     `status` INTEGER NOT NULL DEFAULT 0,
     `pageTypeId` INTEGER NOT NULL,
     FOREIGN KEY(`pageTypeId`) REFERENCES `pageTypes`(`id`)

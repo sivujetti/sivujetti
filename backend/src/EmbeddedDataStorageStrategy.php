@@ -17,17 +17,29 @@ final class EmbeddedDataStorageStrategy implements StorageStrategy {
         // todo exec schema-embed.sqlite.sql
     }
     public function select(PageType $pageType, $temp1, $temp2, $dd): ?Page {
+        if ($temp1 === '@simple') return $this->temp4($temp2);
         return $this->_selectMany($pageType, $temp1, $temp2, $dd)[0] ?? null;
     }
-    public function selectMany(PageType $pageType, $dd): array {
-        return $this->_selectMany($pageType, '', '', $dd);
+    public function selectMany(PageType $pageType, $temp1, $temp2, $dd): array {
+        return $this->_selectMany($pageType, $temp1, $temp2, $dd);
+    }
+    private function temp4(string $pageId): ?Page {
+        return $this->db->fetchOne(
+            "SELECT p.`id`" .
+            " FROM `pages` p" .
+            " JOIN `pageTypes` pt ON (pt.`id` = p.`pageTypeId`)" .
+            " WHERE pt.`name` = ? AND p.`id` = ?",
+            [Page::TYPE_PAGE, $pageId],
+            \PDO::FETCH_CLASS,
+            Page::class
+        );
     }
     public function _selectMany(PageType $pageType, $temp1, $temp2, $dd): array {
         [$t1, $t2] = !$temp1
             ? ["", []]
             : [" AND p.$temp1", !is_array($temp2) ? [$temp2] : $temp2];
         $rows = $this->db->fetchAll(
-            "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`layout`,p.`blocks` AS `blocksJson`,pt.`name` AS `pageType`" .
+            "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`layoutId`,p.`blocks` AS `blocksJson`,pt.`name` AS `pageType`" .
             " FROM `pages` p" .
             " JOIN `pageTypes` pt ON (pt.`id` = p.`pageTypeId`)" .
             " WHERE pt.`name` = ?$t1",

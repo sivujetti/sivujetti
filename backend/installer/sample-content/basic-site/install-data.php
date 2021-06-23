@@ -7,16 +7,17 @@ return [
         [2,'Services','[{"blockType":"heading","initialData":{"level":2}},{"blockType":"paragraph","initialData":{}}]',1],
     ],
     'pages' => [
-        [1,'/','1',1,'Basic site example','layout.default.tmpl.php',0,1],
-        [2,'/company','2',1,'Company','layout.default.tmpl.php',0,1],
-        [3,'/services','3',1,'Services','layout.default.tmpl.php',0,1],
+        [1,'/','1',1,'Basic site example','1',0,1],
+        [2,'/company','2',1,'Company','1',0,1],
+        [3,'/services','3',1,'Services','1',0,1],
         [4,'','4',1,'','',0,2],
         [5,'','5',1,'','',0,2],
-        [6,'/contact','6',1,'Contact','layout.default.tmpl.php',0,1],
+        [6,'/contact','6',1,'Contact','1',0,1],
     ],
     'blocks' => [
         ['data' => [1,'','section','main','kuura:generic-wrapper',1,NULL],
-         'props' => [[1,'cssClass','light',1]],
+         'props' => [[1,'cssClass','light',1],
+                     [34,'bgImage','',1],],
          'children' => [
              ['data' => [2,'1/','heading','<inner>','kuura:auto',1,NULL],
               'props' => [[2,'level','1',2],
@@ -44,7 +45,8 @@ return [
          'props' => [[11,'foo','bar',8]],
          'children' => [
              ['data' => [9,'8/','section','<inner>','kuura:generic-wrapper',3,NULL],
-              'props' => [[12,'cssClass','light',9],],
+              'props' => [[12,'cssClass','light',9],
+                          [35,'bgImage','',9],],
               'children' => [
                   ['data' => [10,'8/9/','heading','<inner>','kuura:auto',3,NULL],
                    'props' => [[13,'text','Services',10],
@@ -55,7 +57,8 @@ return [
                    'children' => []],
               ]],
              ['data' => [12,'8/','section','<inner>','kuura:generic-wrapper',3,NULL],
-              'props' => [[16,'cssClass','aside-column',12],],
+              'props' => [[16,'cssClass','aside-column',12],
+                          [36,'bgImage','',12]],
               'children' => [
                   ['data' => [13,'8/12/','heading','<inner>','kuura:auto',3,NULL],
                    'props' => [[17,'text','Sidebar2',13],

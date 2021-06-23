@@ -54,7 +54,7 @@ class AssociativeJoinStorageStrategy implements StorageStrategy {
             : [" AND p.$temp1", !is_array($temp2) ? [$temp2] : $temp2];
         $t = $this->db->attr(\PDO::ATTR_DRIVER_NAME) === 'sqlite' ? "ir.`id` || '/%'" : "CONCAT(ir.`id`, '/%')";
         return $this->db->fetchAll(
-            "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`layout`,pt.`name` AS `pageType`" .
+            "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`layoutId`,pt.`name` AS `pageType`" .
             ",b.`type` AS `blockType`,b.`section` AS `blockSection`,b.`renderer` AS `blockRenderer`,b.`id` AS `blockId`,b.`parentPath` AS `blockParentPath`,b.`pageId` AS `blockPageId`,b.`title` AS `blockTitle`" .
             ",bp.`blockId` AS `blockPropBlockId`,bp.`key` AS `blockPropKey`,bp.`value` AS `blockPropValue`" .
             " FROM `pages` p" .
@@ -140,12 +140,12 @@ class AssociativeJoinStorageStrategy implements StorageStrategy {
     /**
      * @access private
      */
-    public static function makeParentPath(string $path): string {
+    public static function makeParentPath(string $path, string $root = '0'): string {
         $level = substr_count($path, '/');
         return $level !== 1
             // 'foo/bar/baz/' -> 'foo/bar/'
             ? substr($path, 0, strrpos(substr($path, 0, strlen($path) - 1), '/')) . '/'
-            : '0';
+            : $root;
     }
     public function update($pageId, $data): void {
         [$columns, $values] = $this->db->makeUpdateQParts($data);

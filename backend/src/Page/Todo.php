@@ -6,22 +6,23 @@ use KuuraCms\EmbeddedDataStorageStrategy;
 use KuuraCms\Block\Entities\Block;
 use KuuraCms\Page\Entities\Page;
 use KuuraCms\SharedAPIContext;
-use KuuraCms\StorageStrategy;
-use Pike\{ArrayUtils, Db, PikeException};
+use Pike\{ArrayUtils, Db, PikeException, Request};
 
 final class Todo {
-    public function __construct(Db $db, SharedAPIContext $storage) {
+    public function __construct(Db $db, SharedAPIContext $storage, Request $req) {
         $this->db = $db;
+        $this->req = $req;
         $this->pageTypes = $storage->getDataHandle()->pageTypes;
         $this->blockTypes = $storage->getDataHandle()->blockTypes;
+        $this->di = $storage->di;
     }
     public function tempFetch(string $pageTypeName, $temp1=null, $temp2=null): ?Page {
         [$pt, $dd, $Cls] = $this->ewrd($pageTypeName);
         return (new $Cls($this->db))->select($pt, $temp1, $temp2, $dd);
     }
-    public function tempFetchMany(string $pageTypeName): array {
+    public function tempFetchMany(string $pageTypeName, $foo='', $bar=''): array {
         [$pt, $dd, $Cls] = $this->ewrd($pageTypeName);
-        return (new $Cls($this->db))->selectMany($pt, $dd);
+        return (new $Cls($this->db))->selectMany($pt, $foo, $bar, $dd);
     }
     private function ewrd(string $pageTypeName): array {
         if (!($pt = ArrayUtils::findByKey(
@@ -34,11 +35,11 @@ final class Todo {
 
         $dd = function (Block $b) {
             $makeBlockType = $this->blockTypes[$b->type] ?? null;
-            if (!$makeBlockType) {echo $b->type;return $b;}
-            $blockType = $makeBlockType();
+            if (!$makeBlockType) return $b;
+            $blockType = $makeBlockType instanceof \Closure ? $makeBlockType() : $this->di->make($makeBlockType);
             // todo $blockType->makePropsFromRs()
             if (method_exists($blockType, "fetchData"))
-                $makeBlockType()->fetchData($b, $this);
+                $blockType->fetchData($b, $this);
             return $b;
         };
 

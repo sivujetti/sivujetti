@@ -4,6 +4,8 @@ namespace KuuraCms\Page\Entities;
 
 final class PageLayout {
     /** @var string */
+    public string $id;
+    /** @var string */
     public string $friendlyName;
     /** @var string */
     public string $relFilePath;

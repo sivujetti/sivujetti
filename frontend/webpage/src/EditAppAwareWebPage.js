@@ -37,12 +37,12 @@ class EditAppAwareWebPage {
             const L2 = ' '.length /* --> */;
             const pair = c.nodeValue.substr(L1, c.nodeValue.length - L1 - L2); // todo validate
             const [blockId, blockType] = pair.split(':');
-            const blockIdAsInt = parseInt(blockId);
-            if (isNaN(blockIdAsInt))
+            const PUSH_ID_LENGTH = 20;
+            if (!(blockId.length === PUSH_ID_LENGTH || !isNaN(parseInt(blockId))))
                 continue;
             //
             out.push(new BlockRef({
-                blockId: blockIdAsInt.toString(),
+                blockId: blockId,
                 startingCommentNode: c,
                 blockType,
             }, this._eventHandlers));

@@ -29,7 +29,7 @@ class BlockTreePanel extends preact.Component {
         this.setState({treeState: ref});
         this.selectedBlock = block;
     }
-    render({blocks, editApp}, {treeState}) {
+    render({blocks, editApp, foo}, {treeState}) {
         const grouped = blocks.reduce((arr, block) => {
             arr[block.data.section !== '<layout>' ? 0 : 1].push(block);
             return arr;
@@ -47,7 +47,7 @@ class BlockTreePanel extends preact.Component {
             );
         };
         return <section class="on-this-page">
-            <h2>{ __('Tällä sivulla') }</h2>
+            { !foo ? <h2>{ __('Tällä sivulla') }</h2> : null }
             { grouped.map(group =>
                 <ul class="block-tree">{ group.map(b =>
                     br([b])
@@ -55,7 +55,7 @@ class BlockTreePanel extends preact.Component {
             ) }
             <button onClick={ this.appendNewBlockTypeSelector.bind(this) } title={ __('Add block to current page') } class="btn">{ __('Add block') }</button>
             <br/>
-            <button onClick={ editApp.beginCreatePageMode.bind(editApp) } title={ __('Add new page') } class="btn">{ __('Add page') }</button>
+            { !foo ? <button onClick={ editApp.beginCreatePageMode.bind(editApp) } title={ __('Create new page') } class="btn">{ __('Create page') }</button> : null }
         </section>;
     }
     /**
@@ -151,26 +151,27 @@ class BlockTypeSelector extends preact.Component {
 class AddPagePanel extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {selectedLayout: null, title: '-', slug: '-', currentStep: 0};
+        this.state = {selectedLayoutId: null, title: '-', slug: '-', currentStep: 0};
+        this.blockTreePanel = preact.createRef();
     }
     componentDidMount() {
-        const l = EditApp.currentWebPage.theme.defaultPageLayout.relFilePath;
-        this.setState({currentStep: 0, selectedLayout: l, title: '-', slug: '-'});
+        const selectedLayoutId = EditApp.currentWebPage.theme.defaultPageLayout.id;
+        this.setState({currentStep: 0, selectedLayoutId, title: '-', slug: '-'});
     }
-    render({blocks, editApp}, {selectedLayout, currentStep, title, slug}) {
+    render({blocks, editApp}, {selectedLayoutId, currentStep, title, slug}) {
         return <>
             <h2>Create page</h2>
             { currentStep === 0 ? [
             //
             <div>Step 1/2: Choose a layout.</div>,
             <div class="form-group">
-            <select onChange={ this.changeNewPageLayout.bind(this) } value={ selectedLayout } class="form-select">{ this.props.editApp.layouts.map(layout =>
-                <option value={ layout.relFilePath }>{ layout.friendlyName }</option>
+            <select onChange={ this.changeNewPageLayout.bind(this) } value={ selectedLayoutId } class="form-select">{ this.props.editApp.layouts.map(layout =>
+                <option value={ layout.id }>{ layout.friendlyName }</option>
             ) }</select>
             </div>,
             <button onClick={ this.goBack.bind(this) } class="btn btn-sm" disabled>{ __('Prev') }</button>,
             <button onClick={ this.advance.bind(this)} title={ __('Go to next step') } class="btn btn-primary btn-sm">{ __('Next') }</button>,
-            <button onClick={ this.discardNewPage.bind(this) } title={ __('Cancel add page') } class="btn btn-sm btn-link">{ __('Cancel') }</button>
+            <button onClick={ this.discardNewPage.bind(this) } title={ __('Cancel create page') } class="btn btn-sm btn-link">{ __('Cancel') }</button>
             ] : [
             //
             <div>Step 2/2: Choose a title and write the content.</div>,
@@ -187,14 +188,11 @@ class AddPagePanel extends preact.Component {
                 <option value="todo2">todo</option>
             </select>
             </div>,
-            blocks.map(b => <div class="block">
-                <button onClick={ () => editApp.editBox.current.open(b, b.data) } title={ __('Edit') } class="btn">{ services.blockTypes.get(b.data.type).friendlyName }{ !b.data.title ? null : <span>{ b.data.title }</span> }</button>
-            </div>),
-            <button onClick={ () => { throw new Error('jj') } } title={ __('Add block to current page') } class="btn">{ __('Add block') }</button>,
-            <br/>,
+            <BlockTreePanel blocks={ blocks } editApp={ editApp } onBlockSelected={ editApp.handleBlockTreeBlockClicked.bind(editApp) }
+                ref={ this.blockTreePanel } foo={ true }/>,
             <button onClick={ this.goBack.bind(this) } title={ __('Change design') } class="btn btn-sm">{ __('Prev') }</button>,
-            <button onClick={ this.applyNewPage.bind(this) } title={ __('Confirm add page') } class="btn btn-primary btn-sm">{ __('Add the page') }</button>,
-            <button onClick={ this.discardNewPage.bind(this) } title={ __('Cancel add page') } class="btn btn-sm btn-link">{ __('Cancel') }</button>
+            <button onClick={ this.applyNewPage.bind(this) } title={ __('Confirm create page') } class="btn btn-primary btn-sm">{ __('Create the page') }</button>,
+            <button onClick={ this.discardNewPage.bind(this) } title={ __('Cancel create page') } class="btn btn-sm btn-link">{ __('Cancel') }</button>
             ]}
         </>;
     }
@@ -205,10 +203,9 @@ class AddPagePanel extends preact.Component {
     }
     changeNewPageLayout(e) {
         const w = e.target.value;
-        this.setState({selectedLayout: w});
-        this.props.onLayoutSelected(this.props.editApp.layouts.find(pl => pl.relFilePath === w));
+        this.setState({selectedLayoutId: w});
         document.getElementById('kuura-site-iframe').contentWindow.location.href =
-            `/kuura/index.php?q=/_placeholder-page/${EditApp.currentWebPage.id}/${encodeURIComponent(w)}`;
+            `/kuura/index.php?q=/_placeholder-page/${w}`;
     }
     advance() {
         this.setState({currentStep: this.state.currentStep + 1});
@@ -217,37 +214,48 @@ class AddPagePanel extends preact.Component {
         this.setState({currentStep: this.state.currentStep - 1});
     }
     applyNewPage() {
-        services.http.put(`/api/pages/${EditApp.currentWebPage.id}`,
-                          {slug: this.state.slug,
-                           path: EditApp.currentWebPage.id.toString(),
-                           level: 1,
-                           title: this.state.title,
-                           layout: this.state.selectedLayout,
-                           status: 0})
-            .then(resp => {
-                if (!resp.ok) throw new Error();
-                const todo = url => `index.php?q=${url}`;
-                window.location.href = todo(`/_edit${this.state.slug}`);
-            })
-            .catch(window.console.error);
+        services.http.post(`/api/pages`, {
+            slug: this.state.slug,
+            path: EditApp.currentWebPage.id.toString(),
+            level: 1,
+            title: this.state.title,
+            layoutId: this.state.selectedLayoutId,
+            pageTypeName: 'Pages',
+        }).then(resp => {
+            if (resp.ok !== 'ok') throw new Error('');
+            const initialBlocks = this.props.editApp.layouts.find(pl => pl.id === this.state.selectedLayoutId).initialBlocks;
+            // todo dry
+            const seq = i => {
+                if (!initialBlocks[i]) { // We're done
+                    const todo = url => `index.php?q=${url}`;
+                    window.location.href = todo(`/_edit${this.state.slug}`);
+                    return;
+                }
+                services.http.post('/api/blocks', Object.assign({
+                    pageId: resp.insertId,
+                }, initialBlocks[i])).then(resp => {
+                    if (resp.ok !== 'ok') throw new Error('');
+                    seq(i + 1);
+                })
+                .catch(err => {
+                    // ??
+                    window.console.error(err);
+                });
+            };
+            seq(0);
+        });
     }
     discardNewPage() {
-        services.http.delete(`/api/pages/${EditApp.currentWebPage.id}`)
-            .then(resp => {
-                if (!resp.ok) throw new Error();
-                document.getElementById('kuura-site-iframe').contentWindow.location.href = this.props.editApp.orig;
-            })
-            .catch(window.console.error);
+        document.getElementById('kuura-site-iframe').contentWindow.location.href = this.props.editApp.orig;
     }
 }
 
 class EditApp extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {blocks: null, isCreatePageModeOn: false, selectedPageLayout: null, cog: {left: -10000, top: -10000}, refs: null, datas: null};
+        this.state = {blocks: null, isCreatePageModeOn: false, cog: {left: -10000, top: -10000}, refs: null, datas: null};
         this.blockTreePanel = preact.createRef(); // public
         EditApp.currentWebPage = null;
-        this.loading = false;
         this.webpageEventHandlers = {
             onBlockHoverStarted: this._handleWebpageBlockHoverStarted.bind(this),
             onBlockHoverEnded: this._handleWebpageBlockHoverEnded.bind(this),
@@ -289,7 +297,6 @@ class EditApp extends preact.Component {
         currentWebPage.setEventHandlers(this.webpageEventHandlers);
         this.setState({
             blocks: this.mb(currentWebPageBlockData, currentWebPage.getBlockRefs()),
-            selectedPageLayout: this.layouts.find(l => l.relFilePath === currentWebPage.layout),
             isCreatePageModeOn: isNewPage
         });
     }
@@ -322,52 +329,14 @@ class EditApp extends preact.Component {
             { !isCreatePageModeOn
                 ? <BlockTreePanel blocks={ blocks } editApp={ this } onBlockSelected={ this.handleBlockTreeBlockClicked.bind(this) }
                     ref={ this.blockTreePanel }/>
-                : <AddPagePanel blocks={ blocks } editApp={ this } onLayoutSelected={ pageLayout => {
-                    this.setState({selectedPageLayout: pageLayout});
-                }}/>
+                : <AddPagePanel blocks={ blocks } editApp={ this }/>
             }
             <button class="cog" style={ `left: ${TODO+cog.left}px; top: ${cog.top}px; pointer-events:none` } type="button">E</button>
         </>;
     }
     beginCreatePageMode() {
-        if (this.loading) return;
-        this.loading = true;
-        //
         const d = EditApp.currentWebPage.theme.defaultPageLayout;
-
-        services.http.post(`/api/pages`, {
-            slug: '-',
-            path: '',
-            level: 1,
-            title: '-',
-            layout: d.relFilePath,
-            pageTypeName: 'Pages',
-        }).then(resp => {
-            if (resp.ok !== 'ok') throw new Error('');
-
-            const initialBlocks = d.initialBlocks.map((bd, i) =>
-                Object.assign({}, bd, {id: `new-2-${i+1}`})
-            );
-            // todo dry
-            const seq = i => {
-                if (!initialBlocks[i]) { // We're done
-                    document.getElementById('kuura-site-iframe').contentWindow.location.href = `/kuura/index.php?q=/_placeholder-page/${resp.insertId}/${encodeURIComponent(d.relFilePath)}`;
-                    this.loading = false;
-                    return;
-                }
-                services.http.post('/api/blocks', Object.assign({
-                    pageId: resp.insertId,
-                }, initialBlocks[i])).then(resp => {
-                    if (resp.ok !== 'ok') throw new Error('');
-                    seq(i + 1);
-                })
-                .catch(err => {
-                    // ??
-                    window.console.error(err);
-                });
-            };
-            seq(0);
-        });
+        document.getElementById('kuura-site-iframe').contentWindow.location.href = `/kuura/index.php?q=/_placeholder-page/${d.id}`;
     }
     addBlock(after, parent) {
         const newBlockRef = EditApp.currentWebPage.addBlock(services.blockTypes.get('paragraph').getInitialData().text, generatePushID(), after);

@@ -34,7 +34,7 @@ CREATE TABLE `pages` (
     `path` VARCHAR(191) NOT NULL, -- 191 * 4 = 767 bytes = max key length
     `level` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1,
     `title` VARCHAR(92) NOT NULL,
-    `layout` VARCHAR(128) NOT NULL,
+    `layoutId` VARCHAR(191) NOT NULL,
     `status` TINYINT(1) NOT NULL DEFAULT 0,
     `pageTypeId` SMALLINT UNSIGNED NOT NULL,
     FOREIGN KEY(`pageTypeId`) REFERENCES `pageTypes`(`id`)

@@ -9,7 +9,7 @@ final class PagesModule {
         $ctx->router->map('GET', '/_edit/[**:url]?',
             [PagesController::class, 'renderPageInEditMode']
         );
-        $ctx->router->map('GET', '/_placeholder-page/[w:pageId]/[*:layout]',
+        $ctx->router->map('GET', '/_placeholder-page/[w:layoutId]',
             [PagesController::class, 'renderPlaceholderPage']
         );
         $ctx->router->map('GET', '*',

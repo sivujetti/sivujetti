@@ -7,7 +7,7 @@ DROP TABLE IF EXISTS `theWebsite`;
 CREATE TABLE `theWebsite` (
     `name` TEXT NOT NULL,
     `lang` TEXT NOT NULL,
-    `aclRules` TEXT,
+    `aclRules` JSON,
     `lastUpdatedAt` INTEGER DEFAULT 0
 );
 
@@ -20,7 +20,8 @@ CREATE TABLE `plugins` (
 CREATE TABLE `pageTypes` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
-    `fields` TEXT,
+    `ownFields` JSON,
+    `blockFields` JSON,
     `isListable` INTEGER DEFAULT 1
 );
 
@@ -31,8 +32,9 @@ CREATE TABLE `pages` (
     `level` INTEGER NOT NULL DEFAULT 1,
     `title` TEXT NOT NULL,
     `layoutId` TEXT NOT NULL,
-    `blocks` TEXT,
+    `blocks` JSON,
     `status` INTEGER NOT NULL DEFAULT 0,
+    `ownProps` JSON,
     `pageTypeId` INTEGER NOT NULL,
     FOREIGN KEY(`pageTypeId`) REFERENCES `pageTypes`(`id`)
 );

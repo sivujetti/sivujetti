@@ -121,7 +121,6 @@ final class EmbeddedDataStorageStrategy implements StorageStrategy {
         $this->db->commit();
     }
     private static function p(array $in): array {
-
         foreach ($in['pages'] as $page) {
             $out[] = [
                 $page[0],
@@ -133,6 +132,7 @@ final class EmbeddedDataStorageStrategy implements StorageStrategy {
                 json_encode(self::b(self::getBlocksForPage($in, $page[0]))),
                 $page[6],                
                 $page[7],                
+                $page[8],
             ];
         }
         return $out;

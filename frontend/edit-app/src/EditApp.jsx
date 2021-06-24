@@ -38,7 +38,7 @@ class BlockTreePanel extends preact.Component {
             return a.map(b =>
             !treeState[b.data.id].isNew ?
             <li key={ b.data.id } class={ `block${!treeState[b.data.id].isSelected ? '' : ' selected'}` }>
-                <button onClick={ () => this.handleItemClicked(b) }>{ b.data.type }</button>
+                <button onClick={ () => this.handleItemClicked(b) }><svg class="feather feather-sm"><use xlinkHref="/hostelli/frontend/rad/assets/feather-sprite.svg#code"/></svg>{ b.data.type }</button>
                 { b.children.length ? <ul>{ br(b.children) }</ul> : null }
             </li> :
             <li key={ b.data.id }>
@@ -151,7 +151,11 @@ class BlockTypeSelector extends preact.Component {
 class AddPagePanel extends preact.Component {
     constructor(props) {
         super(props);
-        this.state = {selectedLayoutId: null, title: '-', slug: '-', currentStep: 0};
+        this.state = {selectedLayoutId: null, title: '-', slug: '-', selectedCategories: {}, currentStep: 0};
+        this.pageType = {name: 'Pages', ownFields: [
+            {"name":"Categories","widget":"pageSelector","widgetSettings":{"pageType":"Categories","many":true},"initialValue":["7"]}
+        ]}; // todo http.get / theWebsite.pageTypes.find()
+        this.categories = [{name: 'General', id: '7'}]; // todo http.get
         this.blockTreePanel = preact.createRef();
     }
     componentDidMount() {
@@ -188,6 +192,16 @@ class AddPagePanel extends preact.Component {
                 <option value="todo2">todo</option>
             </select>
             </div>,
+            this.pageType && this.pageType.ownFields ? this.pageType.ownFields.map(descr => <div class="form-group">
+            <label class="form-label">{ descr.name }</label>
+            { // todo preact.render(widgetImpls[descr.widget], {settings: descr.widgetSettings, ref: this.widgetImplInstances[descr.id]})
+            this.categories.map(cat =>
+                <label class="text-break form-checkbox">
+                    <input type="checkbox" onChange={ e => { this.setState({selectedCategories: Object.assign(this.state.selectedCategories, {[cat.id]: e.target.checked})}); } }/>
+                    <i class="form-icon"></i> { cat.name }
+                </label>
+            ) }
+            </div>) : null,
             <BlockTreePanel blocks={ blocks } editApp={ editApp } onBlockSelected={ editApp.handleBlockTreeBlockClicked.bind(editApp) }
                 ref={ this.blockTreePanel } foo={ true }/>,
             <button onClick={ this.goBack.bind(this) } title={ __('Change design') } class="btn btn-sm">{ __('Prev') }</button>,
@@ -214,6 +228,14 @@ class AddPagePanel extends preact.Component {
         this.setState({currentStep: this.state.currentStep - 1});
     }
     applyNewPage() {
+        const makeOwnProps = () => {
+            // todo this.pageType.ownFields.map(descr => this.widgetImplInstances[descr.id].getResult())
+            const out = {categoryIds: []};
+            for (const catId in this.state.selectedCategories) {
+                if (this.state.selectedCategories[catId]) out.categoryIds.push(catId);
+            }
+            return out;
+        };
         services.http.post(`/api/pages`, {
             slug: this.state.slug,
             path: EditApp.currentWebPage.id.toString(),
@@ -221,6 +243,7 @@ class AddPagePanel extends preact.Component {
             title: this.state.title,
             layoutId: this.state.selectedLayoutId,
             pageTypeName: 'Pages',
+            ownProps: makeOwnProps()
         }).then(resp => {
             if (resp.ok !== 'ok') throw new Error('');
             const initialBlocks = this.props.editApp.layouts.find(pl => pl.id === this.state.selectedLayoutId).initialBlocks;

@@ -6,7 +6,9 @@ final class PageType {
     /** @var string */
     public string $name;
     /** @var array */
-    public array $fields;
+    public array $blockFields;
+    /** @var array */
+    public array $ownFields;
     /** @var bool */
     public bool $isListable;
     /**
@@ -16,7 +18,8 @@ final class PageType {
     static function fromParentRs(object $row): PageType {
         $out = new self;
         $out->name = $row->pageTypeName;
-        $out->fields = json_decode($row->pageTypeFields, false, 512, JSON_THROW_ON_ERROR);
+        $out->blockFields = json_decode($row->pageTypeBlockFields, false, 512, JSON_THROW_ON_ERROR);
+        $out->ownFields = json_decode($row->pageTypeOwnFields, false, 512, JSON_THROW_ON_ERROR);
         $out->isListable = (bool) $row->pageTypeIsListable;
         return $out;
     }

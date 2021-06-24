@@ -3,16 +3,18 @@
 return [
     'theWebsite' => ['My site','en','{}',0],
     'pageTypes' => [
-        [1,'Pages','[{"blockType":"heading","initialData":{"level":2}},{"blockType":"paragraph","initialData":{}}]',1],
-        [2,'Services','[{"blockType":"heading","initialData":{"level":2}},{"blockType":"paragraph","initialData":{}}]',1],
+        [1,'Pages','[{"name":"Categories","widget":"pageSelector","widgetSettings":{"pageType":"Categories","many":true},"initialValue":["7"]}]','[{"blockType":"heading","initialData":{"level":2}},{"blockType":"paragraph","initialData":{}}]',1],
+        [2,'Services','[{}]','[{"blockType":"heading","initialData":{"level":2}},{"blockType":"paragraph","initialData":{}}]',1],
+        [3,'Categories','[{}]','[{"blockType":"heading","initialData":{"level":2}}]',1],
     ],
     'pages' => [
-        [1,'/','1',1,'Basic site example','1',0,1],
-        [2,'/company','2',1,'Company','1',0,1],
-        [3,'/services','3',1,'Services','1',0,1],
-        [4,'','4',1,'','',0,2],
-        [5,'','5',1,'','',0,2],
-        [6,'/contact','6',1,'Contact','1',0,1],
+        [1,'/','1',1,'Basic site example','1',0,'{"categoryIds":[]}',1],
+        [2,'/company','2',1,'Company','1',0,'{"categoryIds":[]}',1],
+        [3,'/services','3',1,'Services','1',0,'{"categoryIds":[]}',1],
+        [4,'','4',1,'','',0,'{}',2],
+        [5,'','5',1,'','',0,'{}',2],
+        [6,'/contact','6',1,'Contact','1',0,'{"categoryIds":[]}',1],
+        [7,'/category/general','7',1,'General','1',0,'{}',3],
     ],
     'blocks' => [
         ['data' => [1,'','section','main','kuura:generic-wrapper',1,NULL],

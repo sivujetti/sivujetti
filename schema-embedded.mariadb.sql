@@ -21,7 +21,8 @@ CREATE TABLE `plugins` (
 CREATE TABLE `pageTypes` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92)  NOT NULL,
-    `fields` JSON,
+    `ownFields` JSON,
+    `blockFields` JSON,
     `isListable` TINYINT(1) DEFAULT 1,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4;
@@ -35,6 +36,7 @@ CREATE TABLE `pages` (
     `layoutId` VARCHAR(191) NOT NULL,
     `blocks` JSON,
     `status` TINYINT(1) NOT NULL DEFAULT 0,
+    `ownProps` JSON,
     `pageTypeId` SMALLINT UNSIGNED NOT NULL,
     FOREIGN KEY(`pageTypeId`) REFERENCES `pageTypes`(`id`)
 ) DEFAULT CHARSET = utf8mb4;

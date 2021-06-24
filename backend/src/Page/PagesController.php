@@ -155,6 +155,7 @@ final class PagesController {
             'title' => $req->body->title,
             'layoutId' => $req->body->layoutId,
             'blocks' => '[]',
+            'ownProps' => json_encode($req->body->ownProps, JSON_THROW_ON_ERROR), // todo pageType.defineProps().each validate
             'pageTypeId' => $pageType['id'],
         ]);
         if ($db->exec("INSERT INTO `pages` ({$columns}) VALUES ({$qList})",

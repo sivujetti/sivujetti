@@ -18,7 +18,7 @@ final class TheWebsiteRepository {
             'SELECT' .
                 ' ws.`name`, ws.`lang`, ws.`aclRules` AS `aclRulesJson`' .
                 ', p.`name` AS `pluginName`' .
-                ', ct.`name` AS `pageTypeName`, ct.`fields` AS `pageTypeFields`, ct.`isListable` AS `pageTypeIsListable`' .
+                ', ct.`name` AS `pageTypeName`, ct.`blockFields` AS `pageTypeBlockFields`, ct.`ownFields` AS `pageTypeOwnFields`, ct.`isListable` AS `pageTypeIsListable`' .
             ' FROM theWebsite ws' .
             ' LEFT JOIN plugins p ON (1)' .
             ' LEFT JOIN pageTypes ct ON (1)',

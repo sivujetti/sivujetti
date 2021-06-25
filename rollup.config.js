@@ -1,4 +1,5 @@
 // Usage: npm start -- --configBundle main|website|all
+//        npm start -- --configBundle myBundle (see docs/let's-create-a-custom-block-type.md)
 
 const path = require('path');
 const sucrase = require('@rollup/plugin-sucrase');
@@ -32,29 +33,9 @@ module.exports = args => {
     const allExternals = [commonsPath];
     const bundle = !args.configInput ? args.configBundle || 'main' : 'custom';
     const bundles = [];
-    // == kuura-commons.js & kuura-cpanel-commons.js & kuura-edit-app.js =====
+    // == kuura-edit-app.js ====================================================
     if (bundle === 'main' || bundle === 'all') {
-        bundles.push(...[/*{
-            input: 'frontend/commons/main.js',
-            output: makeOutputCfg({
-                name: 'kuuraCommons',
-                file: 'public/kuura/kuura-commons.js'
-            }),
-            plugins: [makeJsxPlugin()],
-            watch: {clearScreen: false}
-        }, {
-            input: 'frontend/cpanel-commons/main.js',
-            output: makeOutputCfg({
-                name: 'kuuraCpanelCommons',
-                file: 'public/kuura/kuura-cpanel-commons.js',
-                globals: {[commonsPath]: 'kuuraCommons'},
-            }),
-            external: [commonsPath],
-            plugins: [makeJsxPlugin([
-                'frontend/cpanel-commons/src/**',
-            ])],
-            watch: {clearScreen: false}
-        }, */{
+        bundles.push({
             input: 'frontend/edit-app/main.js',
             output: makeOutputCfg({
                 name: 'kuuraEditApp',
@@ -66,7 +47,7 @@ module.exports = args => {
                 makeJsxPlugin(['frontend/edit-app/src/**']),
             ],
             watch: {clearScreen: false}
-        }]);
+        });
     }
     // == kuura-webpage.js =====================================================
     if (bundle === 'webpage' || bundle === 'all')

@@ -1,16 +1,16 @@
 <?php declare(strict_types=1);
 
-namespace KuuraCms\Installer;
+namespace KuuraCms\Page;
 
 use KuuraCms\AppContext;
 
-final class Module {
+final class PagesModule {
     /**
-     * Registers routes for install.php?q=*
-     *
      * @param \KuuraCms\AppContext $ctx
      */
     public function init(AppContext $ctx): void {
-        //
+        $ctx->router->map('GET', '[*:url]',
+            [PagesController::class, 'renderPage']
+        );
     }
 }

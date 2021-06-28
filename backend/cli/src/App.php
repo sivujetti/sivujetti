@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace KuuraCms\Installer;
+namespace KuuraCms\Cli;
 
 use KuuraCms\AppContext;
 use Pike\{App as PikeApp, Router, ServiceDefaults};

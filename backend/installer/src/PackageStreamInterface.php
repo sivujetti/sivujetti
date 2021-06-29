@@ -3,6 +3,8 @@
 namespace KuuraCms\Installer;
 
 interface PackageStreamInterface {
+    public const LOCAL_NAME_PHP_FILES_LIST = 'php-files-list.php';
+    public const LOCAL_NAME_MAIN_CONFIG = 'config.in.php';
     /**
      * @param string $filePath
      * @param bool $create = false

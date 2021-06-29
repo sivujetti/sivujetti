@@ -1,14 +1,14 @@
 <?php declare(strict_types=1);
 
-namespace KuuraSite;
+namespace MySite;
 
-use KuuraCms\Website\{WebsiteAPI, WebsiteInterface};
+use KuuraCms\UserSite\{UserSiteAPI, UserSiteInterface};
 
-class Site implements WebsiteInterface {
+class Site implements UserSiteInterface {
     /**
-     * @param \RadCms\Website\WebsiteAPI $api
+     * @param \RadCms\UserSite\UserSiteAPI $api
      */
-    public function __construct(WebsiteAPI $api) {
+    public function __construct(UserSiteAPI $api) {
         //
     }
 }

@@ -1,0 +1,1 @@
+<?php // {"db.connPath":"sqlite:${targetSitePath}my-site.db"}

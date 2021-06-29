@@ -3,7 +3,6 @@
 namespace KuuraCms\Installer;
 
 use Pike\Interfaces\FileSystemInterface;
-use Pike\PikeException;
 
 final class LocalDirInstaller {
     /** @var \Pike\Interfaces\FileSystemInterface */
@@ -24,12 +23,7 @@ final class LocalDirInstaller {
     public function doInstall(string $relDirPath): void {
         $package = new LocalDirPackage($this->fs);
         $package->open($relDirPath); // @allow \Pike\PikeException
-        if (!is_string(($str = $package->read("config.php"))))
-            throw new PikeException("Failed to read `config.php`",
-                                    PikeException::FAILED_FS_OP);
-        if (!is_array(($config = json_decode(substr($str, strlen("<?php // ")), associative: true, flags: JSON_THROW_ON_ERROR))))
-            throw new PikeException("Failed to parse the contents of config.php",
-                                    PikeException::BAD_INPUT);
+        $config = Commons::readSneakyJsonData($package::LOCAL_NAME_MAIN_CONFIG, $package);
         foreach ($config as $key => $_)
             $config[$key] = str_replace("\${targetSitePath}",
                                         $this->commons->getTargetSitePath(),
@@ -37,5 +31,6 @@ final class LocalDirInstaller {
         $this->commons->createTargetSiteDirs(); // @allow \Pike\PikeException
         $this->commons->createOrOpenDb($config); // @allow \Pike\PikeException
         $this->commons->createMainSchema($config); // @allow \Pike\PikeException
+        $this->commons->writeFiles($package); // @allow \Pike\PikeException
     }
 }

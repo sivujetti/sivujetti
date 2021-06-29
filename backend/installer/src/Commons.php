@@ -42,7 +42,7 @@ final class Commons {
         $this->db->open(); // @allow \Pike\PikeException
     }
     /**
-     * @param todo
+     * @param array $config
      */
     public function createMainSchema(array $config): void {
         $driver = $this->db->attr(\PDO::ATTR_DRIVER_NAME);
@@ -71,6 +71,30 @@ final class Commons {
         }
     }
     /**
+     * @param \KuuraCms\Installer\PackageStreamInterface $package
+     */
+    public function writeFiles(PackageStreamInterface $package): void {
+        $this->writeDefaultFiles($package); // @allow \Pike\PikeException
+        $this->writeSiteAndThemeFiles($package); // @allow \Pike\PikeException
+    }
+    /**
+     * @param string $sneakyJsonFileLocalName
+     * @param \KuuraCms\Installer\PackageStreamInterface $package
+     * @return array|object Parsed json data
+     */
+    public static function readSneakyJsonData(string $sneakyJsonFileLocalName,
+                                              PackageStreamInterface $package): array|object {
+        if (!is_string(($str = $package->read($sneakyJsonFileLocalName))))
+            throw new PikeException("Failed to read `{$sneakyJsonFileLocalName}`",
+                                    PikeException::FAILED_FS_OP);
+        if (!($parsed = json_decode(substr($str, strlen("<?php // ")),
+                                    associative: true,
+                                    flags: JSON_THROW_ON_ERROR)) === null)
+            throw new PikeException("Failed to parse the contents of `{$sneakyJsonFileLocalName}`",
+                                    PikeException::BAD_INPUT);
+        return $parsed;
+    }
+    /**
      * @return string
      */
     public function getTargetSitePath(): string {
@@ -89,6 +113,20 @@ final class Commons {
      */
     public function getDb(): Db {
         return $this->db;
+    }
+    /**
+     * @param \KuuraCms\Installer\PackageStreamInterface $package
+     */
+    private function writeDefaultFiles(PackageStreamInterface $package): void {
+        $package->extractMany($this->targetSitePath, ["site/Theme.php", "site/Site.php"]);
+    }
+    /**
+     * @param \KuuraCms\Installer\PackageStreamInterface $package
+     */
+    private function writeSiteAndThemeFiles(PackageStreamInterface $package): void {
+        $localFileNames = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PHP_FILES_LIST,
+                                                   $package);
+        $package->extractMany($this->targetSitePath, $localFileNames);
     }
     /**
      * @access private

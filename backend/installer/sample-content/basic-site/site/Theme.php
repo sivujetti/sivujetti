@@ -1,14 +1,16 @@
 <?php declare(strict_types=1);
 
-namespace KuuraSite;
+namespace MySite;
 
-use KuuraCms\Theme\{ThemeAPI, ThemeInterface};
+use KuuraCms\UserTheme\{UserThemeAPI, UserThemeInterface};
 
-class Theme implements ThemeInterface {
+class Theme implements UserThemeInterface {
     /**
-     * @param \KuuraCms\Theme\ThemeAPI $api
+     * @param \KuuraCms\UserTheme\UserThemeAPI $api
      */
-    public function __construct(ThemeAPI $api) {
-        //
+    public function __construct(UserThemeAPI $api) {
+        $api->registerPageLayout('Full width',
+                                 'layout.default.tmpl.php',
+                                 isDefault: true);
     }
 }

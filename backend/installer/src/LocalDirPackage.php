@@ -55,7 +55,19 @@ final class LocalDirPackage implements PackageStreamInterface {
      */
     public function extractMany(string $destinationPath,
                                 $localNames = []): bool {
-        throw new \RuntimeException('Not supported');
+        ValidationUtils::checkIfValidaPathOrThrow($destinationPath);
+        foreach ($localNames as $relativePath) {
+            ValidationUtils::checkIfValidaPathOrThrow($relativePath);
+            //
+            $fromAbsPath = "{$this->absDirPath}{$relativePath}";
+            $toAbsPath = "{$destinationPath}{$relativePath}";
+            //
+            $this->createTargetDirIfNotExist(dirname($toAbsPath));
+            if (!$this->fs->copy($fromAbsPath, $toAbsPath))
+                throw new PikeException("Failed to copy `{$fromAbsPath}` -> `{$toAbsPath}`",
+                                        PikeException::FAILED_FS_OP);
+        }
+        return true;
     }
     /**
      * @param string $path

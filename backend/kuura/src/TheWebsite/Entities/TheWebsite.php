@@ -11,6 +11,6 @@ final class TheWebsite {
     public string $aclRulesJson;
     /** @var \KuuraCms\Plugin\Entities\Plugin[] */
     public \ArrayObject $plugins;
-    /** @var \ArrayObject */
+    /** @var \KuuraCms\PageType\Entities\PageType[] */
     public \ArrayObject $pageTypes;
 }

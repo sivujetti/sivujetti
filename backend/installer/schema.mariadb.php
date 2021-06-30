@@ -1,35 +1,38 @@
-USE `${database}`;
+<?php
 
-DROP TABLE IF EXISTS `layoutBlocks`;
-DROP TABLE IF EXISTS `pages`;
-DROP TABLE IF EXISTS `pageTypes`;
-DROP TABLE IF EXISTS `plugins`;
-DROP TABLE IF EXISTS `theWebsite`;
+return [
+"USE `\${database}`",
 
-CREATE TABLE `theWebsite` (
+"DROP TABLE IF EXISTS `\${p}layoutBlocks`",
+"DROP TABLE IF EXISTS `\${p}Pages`",
+"DROP TABLE IF EXISTS `\${p}pageTypes`",
+"DROP TABLE IF EXISTS `\${p}plugins`",
+"DROP TABLE IF EXISTS `\${p}theWebsite`",
+
+"CREATE TABLE `\${p}theWebsite` (
     `name` VARCHAR(92) NOT NULL,
     `lang` VARCHAR(12) NOT NULL,
     `aclRules` JSON,
     `lastUpdatedAt` INT(10) UNSIGNED DEFAULT 0
-) DEFAULT CHARSET = utf8mb4;
+) DEFAULT CHARSET = utf8mb4",
 
-CREATE TABLE `plugins` (
+"CREATE TABLE `\${p}plugins` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92) NOT NULL,
     `status` TINYINT(1) NOT NULL,
     PRIMARY KEY (`id`)
-) DEFAULT CHARSET = utf8mb4;
+) DEFAULT CHARSET = utf8mb4",
 
-CREATE TABLE `pageTypes` (
+"CREATE TABLE `\${p}pageTypes` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92)  NOT NULL,
     `ownFields` JSON,
     `blockFields` JSON,
     `isListable` TINYINT(1) DEFAULT 1,
     PRIMARY KEY (`id`)
-) DEFAULT CHARSET = utf8mb4;
+) DEFAULT CHARSET = utf8mb4",
 
-CREATE TABLE `pages` (
+"CREATE TABLE `\${p}Pages` (
     `id` MEDIUMINT UNSIGNED NOT NULL PRIMARY KEY AUTOINCREMENT,
     `slug` VARCHAR(92) NOT NULL,
     `path` VARCHAR(191) NOT NULL, -- 191 * 4 = 767 bytes = max key length
@@ -38,11 +41,10 @@ CREATE TABLE `pages` (
     `layoutId` VARCHAR(191) NOT NULL,
     `blocks` JSON,
     `status` TINYINT(1) NOT NULL DEFAULT 0,
-    `ownProps` JSON,
-    `pageTypeId` SMALLINT UNSIGNED NOT NULL,
-    FOREIGN KEY(`pageTypeId`) REFERENCES `pageTypes`(`id`)
-) DEFAULT CHARSET = utf8mb4;
+    `categories` JSON
+) DEFAULT CHARSET = utf8mb4",
 
-CREATE TABLE `layoutBlocks` (
+"CREATE TABLE `\${p}layoutBlocks` (
     `data` JSON
-) DEFAULT CHARSET = utf8mb4;
+) DEFAULT CHARSET = utf8mb4",
+];

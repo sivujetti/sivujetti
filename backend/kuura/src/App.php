@@ -57,7 +57,6 @@ final class App {
         $di->share($this->ctx->theWebsite);
     }
     /**
-     * @access private
      */
     private function openDbAndLoadState(): void {
         if (!isset($this->ctx->theWebsite)) {
@@ -71,13 +70,13 @@ final class App {
         }
     }
     /**
-     * @access private
      */
     private function loadSite(): void {
         $this->ctx->kuuraSite = $this->instantiatePluginOrSite(null);
     }
     /**
-     * @access private
+     * @param ?\KuuraCms\Plugin\Entities\Plugin $plugin
+     * @return \KuuraCms\UserSite\UserSiteInterface|\KuuraCms\UserPlugin\UserPluginInterface
      */
     private function instantiatePluginOrSite(?Plugin $plugin): UserSiteInterface|UserPluginInterface {
         $isPlugin = $plugin !== null;

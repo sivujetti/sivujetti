@@ -26,7 +26,7 @@ final class PagesController {
         $_ = new Theme($themeAPI); // Note: mutates $storage->data
         //
         $page = $pagesRepo->getSingle($theWebsite->pageTypes[0])
-            ->where("[t].`slug`=?", $req->params->url)
+            ->where("\${t}.`slug`=?", $req->params->url)
             ->exec();
         if (!$page) {
             $res->status(404)->html('404');

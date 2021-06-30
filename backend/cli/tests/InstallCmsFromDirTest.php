@@ -5,6 +5,7 @@ namespace KuuraCms\Cli\Tests;
 use Auryn\Injector;
 use KuuraCms\Cli\App;
 use KuuraCms\Installer\{Commons, LocalDirPackage};
+use KuuraCms\Tests\Utils\PageTestUtils;
 use Pike\{Db, FileSystem, Request, TestUtils\DbTestCase, TestUtils\HttpTestUtils};
 
 final class InstallCmsFromDirTest extends DbTestCase {
@@ -25,6 +26,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->invokeInstallFromDirFeature($state);
         $this->verifyFeatureFinishedSuccesfully($state);
         $this->verifyCreatedDbAndSchema($state->getInstallerDb->__invoke());
+        $this->verifyPopulatedDb($state->getInstallerDb->__invoke());
         $this->verifyCopiedDefaultSiteFiles($state);
         $this->verifyCopiedUserThemeAndSiteFiles($state);
     }
@@ -40,7 +42,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
     private function makeInstallerTestApp(\TestState $state): void {
         $state->installerApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function (Injector $di) use ($state) {
             $di->prepare(Commons::class, function (Commons $instance) use ($state) {
-                $instance->setTargetSitePath('install-from-dir-site/');
+                $instance->setTargetSitePath('install-from-dir-test-temp-dir/site/');
                 $state->getTargetSitePath = fn() => $instance->getTargetSitePath();
                 $state->getInstallerDb = fn() => $instance->getDb();
             });
@@ -59,9 +61,16 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->assertEquals(1, $numAffected, "Should succeed");
         $installerDb->exec("DELETE FROM `plugins` WHERE `id` = ?", [$installerDb->lastInsertId()]);
     }
+    private function verifyPopulatedDb(Db $installerDb): void {
+        $actual = $installerDb->fetchOne("SELECT `id` FROM `pageTypes` WHERE `name`=?",
+                                         ["Pages"],
+                                         \PDO::FETCH_ASSOC);
+        $this->assertNotNull($actual);
+        $this->assertNotNull((new PageTestUtils($installerDb))->getPage('/'));
+    }
     private function verifyCopiedDefaultSiteFiles(\TestState $state): void {
         $a = fn($str) => KUURA_BACKEND_PATH . "installer/sample-content/basic-site/site/{$str}";
-        $b = fn($str) => "{$state->getTargetSitePath->__invoke()}site/{$str}";
+        $b = fn($str) => "{$state->getTargetSitePath->__invoke()}{$str}";
         $this->assertFileEquals($a("Site.php"), $b("Site.php"));
         $this->assertFileEquals($a("Theme.php"), $b("Theme.php"));
     }
@@ -70,7 +79,8 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $p->open('basic-site');
         $filesList = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_PHP_FILES_LIST, $p);
         $a = fn($str) => KUURA_BACKEND_PATH . "installer/sample-content/basic-site/{$str}";
-        $b = fn($str) => "{$state->getTargetSitePath->__invoke()}{$str}";
+        $withoutSiteDir = dirname($state->getTargetSitePath->__invoke()) . '/';
+        $b = fn($str) => "{$withoutSiteDir}{$str}";
         foreach ($filesList as $relFilePath)
             $this->assertFileEquals($a($relFilePath), $b($relFilePath));
     }
@@ -88,7 +98,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         } else {
             $installerDb->exec("DROP DATABASE `{$actualConfig["db.database"]}`");
         }
-        $this->deleteFilesRecursive($state->getTargetSitePath->__invoke());
+        $this->deleteFilesRecursive(dirname($state->getTargetSitePath->__invoke()) . '/');
     }
     private function deleteFilesRecursive(string $dirPath): ?string {
         foreach ($this->fs->readDir($dirPath) as $path) {

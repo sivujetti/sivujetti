@@ -18,7 +18,8 @@ final class LocalDirInstaller {
         $this->commons = $commons;
     }
     /**
-     * Installs KuuraCms from local directory KUURA_BACKEND_PATH . "installer/sample-content/{$relDirPath}/"
+     * Installs KuuraCms from local directory KUURA_BACKEND_PATH . "installer/
+     * sample-content/{$relDirPath}/" to KUURA_BACKEND_PATH . "site".
      */
     public function doInstall(string $relDirPath): void {
         $package = new LocalDirPackage($this->fs);
@@ -30,7 +31,8 @@ final class LocalDirInstaller {
                                         $config[$key]);
         $this->commons->createTargetSiteDirs(); // @allow \Pike\PikeException
         $this->commons->createOrOpenDb($config); // @allow \Pike\PikeException
-        $this->commons->createMainSchema($config); // @allow \Pike\PikeException
+        $this->commons->createMainSchema(); // @allow \Pike\PikeException
+        $this->commons->populateDb($package); // @allow \Pike\PikeException
         $this->commons->writeFiles($package); // @allow \Pike\PikeException
     }
 }

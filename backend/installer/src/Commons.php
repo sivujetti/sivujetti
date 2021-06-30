@@ -3,9 +3,7 @@
 namespace KuuraCms\Installer;
 
 use KuuraCms\ValidationUtils;
-use Pike\Db;
-use Pike\FileSystem;
-use Pike\PikeException;
+use Pike\{Db, FileSystem, PikeException};
 
 final class Commons {
     /** @var \Pike\Db */
@@ -42,33 +40,19 @@ final class Commons {
         $this->db->open(); // @allow \Pike\PikeException
     }
     /**
-     * @param array $config
      */
-    public function createMainSchema(array $config): void {
+    public function createMainSchema(): void {
         $driver = $this->db->attr(\PDO::ATTR_DRIVER_NAME);
-        $path = KUURA_BACKEND_PATH . "installer/schema.{$driver}.sql";
-        $sql = $this->fs->read($path);
-        if (!$sql) throw new PikeException("Failed to read `{$path}`",
-                                           PikeException::FAILED_FS_OP);
-        if ($driver === "sqlite") {
-            $pcs = explode("CREATE TABLE", $sql);
-            $drops = explode(";", array_shift($pcs));
-            $this->db->runInTransaction(function () use ($drops) {
-                foreach ($drops as $drop) {
-                    if (strpos($drop, "DROP") === -1) break;
-                    $this->db->exec($drop);
-                }
-            });
-            $this->db->runInTransaction(function () use ($pcs) {
-                foreach ($pcs as $create)
-                    $this->db->exec("CREATE TABLE {$create}");
-            });
-        } else {
-            $this->db->attr(\PDO::ATTR_EMULATE_PREPARES, 1);
-            $sql = str_replace("\${database}", $config["db.database"], $sql);
-            $this->db->exec($sql); // @allow \Pike\PikeException
-            $this->db->attr(\PDO::ATTR_EMULATE_PREPARES, 0);
-        }
+        $statements = require KUURA_BACKEND_PATH . "installer/schema.{$driver}.php";
+        $this->runManyDbStatements($statements);
+    }
+    /**
+     * @param \KuuraCms\Installer\PackageStreamInterface $package
+     */
+    public function populateDb(PackageStreamInterface $package): void {
+        $statements = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_DB_DATA,
+                                               $package);
+        $this->runManyDbStatements($statements);
     }
     /**
      * @param \KuuraCms\Installer\PackageStreamInterface $package
@@ -118,7 +102,7 @@ final class Commons {
      * @param \KuuraCms\Installer\PackageStreamInterface $package
      */
     private function writeDefaultFiles(PackageStreamInterface $package): void {
-        $package->extractMany($this->targetSitePath, ["site/Theme.php", "site/Site.php"]);
+        $package->extractMany(dirname($this->targetSitePath) . '/', ["site/Theme.php", "site/Site.php"]);
     }
     /**
      * @param \KuuraCms\Installer\PackageStreamInterface $package
@@ -126,10 +110,18 @@ final class Commons {
     private function writeSiteAndThemeFiles(PackageStreamInterface $package): void {
         $localFileNames = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PHP_FILES_LIST,
                                                    $package);
-        $package->extractMany($this->targetSitePath, $localFileNames);
+        $package->extractMany(dirname($this->targetSitePath) . '/', $localFileNames);
     }
     /**
-     * @access private
+     * @param array $statements
+     */
+    private function runManyDbStatements(array $statements): void {
+        $this->db->exec("BEGIN TRANSACTION");
+        foreach ($statements as $stmt)
+            $this->db->exec($stmt);
+        $this->db->exec("COMMIT TRANSACTION");
+    }
+    /**
      */
     private static function checkEnvRequirementsAreMetOrDie(): void {
         if (version_compare(phpversion(), "8.0.0", "<"))

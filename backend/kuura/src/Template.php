@@ -17,7 +17,8 @@ class Template extends PikeTemplate {
      * 'kuura:foo.tmpl.php' -> KUURA_BACKEND_PATH . 'site/templates/foo.tmpl.php'
      * 'unknown:var.tmpl.php' -> PikeException
      *
-     * @access private
+     * @param string $pair
+     * @return string
      */
     private static function completePath(string $pair): string {
         $pcs = explode(':', $pair);

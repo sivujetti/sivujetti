@@ -4,6 +4,7 @@ namespace KuuraCms\Installer;
 
 interface PackageStreamInterface {
     public const LOCAL_NAME_PHP_FILES_LIST = 'php-files-list.php';
+    public const LOCAL_NAME_PUBLIC_FILES_LIST = 'public-files-list.php';
     public const LOCAL_NAME_MAIN_CONFIG = 'config.in.php';
     public const LOCAL_NAME_DB_DATA = 'db-data.php';
     /**

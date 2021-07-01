@@ -11,22 +11,24 @@ final class Commons {
     /** @var \Pike\FileSystem */
     private FileSystem $fs;
     /** @var string Mainly for tests */
-    private string $targetSitePath;
+    private string $targetSiteBackendPath;
+    /** @var string */
+    private string $targetSitePublicPath;
     /**
      * @param \Pike\FileSystem $fs
-     * @param ?string $targetSitePath = null
      */
-    public function __construct(FileSystem $fs,
-                                ?string $targetSitePath = null) {
+    public function __construct(FileSystem $fs) {
         self::checkEnvRequirementsAreMetOrDie();
         $this->fs = $fs;
-        $this->targetSitePath = $targetSitePath ?? KUURA_BACKEND_PATH . "site/";
+        $this->targetSiteBackendPath = KUURA_BACKEND_PATH;
+        $this->targetSitePublicPath = KUURA_PUBLIC_PATH;
     }
     /**
      * @throws \Pike\PikeException
      */
     public function createTargetSiteDirs(): void {
-        foreach (["{$this->targetSitePath}templates"] as $path) {
+        foreach (["{$this->targetSiteBackendPath}site/templates",
+                  "{$this->targetSitePublicPath}uploads"] as $path) {
             if (!$this->fs->isDir($path) && !$this->fs->mkDir($path))
                 throw new PikeException("Failed to create `{$path}`",
                                         PikeException::FAILED_FS_OP);
@@ -59,7 +61,8 @@ final class Commons {
      */
     public function writeFiles(PackageStreamInterface $package): void {
         $this->writeDefaultFiles($package); // @allow \Pike\PikeException
-        $this->writeSiteAndThemeFiles($package); // @allow \Pike\PikeException
+        $this->writeSiteSourceFiles($package); // @allow \Pike\PikeException
+        $this->writePublicFiles($package); // @allow \Pike\PikeException
     }
     /**
      * @param string $sneakyJsonFileLocalName
@@ -81,16 +84,28 @@ final class Commons {
     /**
      * @return string
      */
-    public function getTargetSitePath(): string {
-        return $this->targetSitePath;
+    public function getTargetSitePath(string $which = 'site'): string {
+        return match ($which) {
+            'backend' => $this->targetSiteBackendPath,
+            'public' => $this->targetSitePublicPath,
+            default => "{$this->targetSiteBackendPath}site/",
+        };
     }
     /**
-     * @param string $relDirPath
-     * @throws \Pike\PikeException If $relPath is not valid
+     * @param ?string $backendRelDirPath = KUURA_BACKEND_PATH
+     * @param ?string $publicRelDirPath = KUURA_PUBLIC_PATH
+     * @throws \Pike\PikeException If path is not valid
      */
-    public function setTargetSitePath(string $relDirPath): void {
-        ValidationUtils::checkIfValidaPathOrThrow($relDirPath);
-        $this->targetSitePath = KUURA_BACKEND_PATH . $relDirPath;
+    public function setTargetSitePaths(?string $backendRelDirPath = null,
+                                       ?string $publicRelDirPath = null): void {
+        if ($backendRelDirPath) {
+            ValidationUtils::checkIfValidaPathOrThrow($backendRelDirPath);
+            $this->targetSiteBackendPath = KUURA_BACKEND_PATH . $backendRelDirPath;
+        }
+        if ($publicRelDirPath) {
+            ValidationUtils::checkIfValidaPathOrThrow($publicRelDirPath);
+            $this->targetSitePublicPath = dirname(KUURA_PUBLIC_PATH) . "/{$publicRelDirPath}";
+        }
     }
     /**
      * @param todo 
@@ -102,15 +117,24 @@ final class Commons {
      * @param \KuuraCms\Installer\PackageStreamInterface $package
      */
     private function writeDefaultFiles(PackageStreamInterface $package): void {
-        $package->extractMany(dirname($this->targetSitePath) . '/', ["site/Theme.php", "site/Site.php"]);
+        $package->extractMany($this->targetSiteBackendPath,
+                              ["site/Theme.php", "site/Site.php"]);
     }
     /**
      * @param \KuuraCms\Installer\PackageStreamInterface $package
      */
-    private function writeSiteAndThemeFiles(PackageStreamInterface $package): void {
+    private function writeSiteSourceFiles(PackageStreamInterface $package): void {
         $localFileNames = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PHP_FILES_LIST,
                                                    $package);
-        $package->extractMany(dirname($this->targetSitePath) . '/', $localFileNames);
+        $package->extractMany($this->targetSiteBackendPath, $localFileNames);
+    }
+    /**
+     * @param \KuuraCms\Installer\PackageStreamInterface $package
+     */
+    private function writePublicFiles(PackageStreamInterface $package): void {
+        $localFileNames = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PUBLIC_FILES_LIST,
+                                                   $package);
+        $package->extractMany(dirname($this->targetSitePublicPath) . '/', $localFileNames);
     }
     /**
      * @param array $statements

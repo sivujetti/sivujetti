@@ -10,11 +10,14 @@ use Pike\{Db, FileSystem, Request, TestUtils\DbTestCase, TestUtils\HttpTestUtils
 
 final class InstallCmsFromDirTest extends DbTestCase {
     use HttpTestUtils;
-    protected FileSystem $fs;
-    protected \TestState $state;
+    private FileSystem $fs;
+    private LocalDirPackage $sitePackage;
+    private \TestState $state;
     protected function setUp(): void {
         parent::setUp();
         $this->fs = new FileSystem;
+        $this->sitePackage = new LocalDirPackage($this->fs);
+        $this->sitePackage->open('basic-site');
     }
     protected function tearDown(): void {
         parent::tearDown();
@@ -29,6 +32,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->verifyPopulatedDb($state->getInstallerDb->__invoke());
         $this->verifyCopiedDefaultSiteFiles($state);
         $this->verifyCopiedUserThemeAndSiteFiles($state);
+        $this->verifyCopiedUserThemePublicFiles($state);
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
@@ -42,8 +46,9 @@ final class InstallCmsFromDirTest extends DbTestCase {
     private function makeInstallerTestApp(\TestState $state): void {
         $state->installerApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function (Injector $di) use ($state) {
             $di->prepare(Commons::class, function (Commons $instance) use ($state) {
-                $instance->setTargetSitePath('install-from-dir-test-temp-dir/site/');
-                $state->getTargetSitePath = fn() => $instance->getTargetSitePath();
+                $instance->setTargetSitePaths(backendRelDirPath: 'install-from-dir-test-backend/',
+                                              publicRelDirPath: 'install-from-dir-test-root/public/');
+                $state->getTargetSitePath = fn($which = 'site') => $instance->getTargetSitePath($which);
                 $state->getInstallerDb = fn() => $instance->getDb();
             });
         });
@@ -75,19 +80,25 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->assertFileEquals($a("Theme.php"), $b("Theme.php"));
     }
     private function verifyCopiedUserThemeAndSiteFiles(\TestState $state): void {
-        $p = new LocalDirPackage($this->fs);
-        $p->open('basic-site');
-        $filesList = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_PHP_FILES_LIST, $p);
+        $filesList = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_PHP_FILES_LIST,
+                                                 $this->sitePackage);
+        $this->assertCopyedTheseFiles($state, $filesList);
+    }
+    private function verifyCopiedUserThemePublicFiles(\TestState $state): void {
+        $filesList = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_PUBLIC_FILES_LIST,
+                                                 $this->sitePackage);
+        $this->assertCopyedTheseFiles($state, $filesList, 'public');
+    }
+    private function assertCopyedTheseFiles(\TestState $state, array $filesList, string $into = 'site'): void {
         $a = fn($str) => KUURA_BACKEND_PATH . "installer/sample-content/basic-site/{$str}";
-        $withoutSiteDir = dirname($state->getTargetSitePath->__invoke()) . '/';
-        $b = fn($str) => "{$withoutSiteDir}{$str}";
+        $where = dirname($state->getTargetSitePath->__invoke($into)) . '/';
+        $b = fn($str) => "{$where}{$str}";
         foreach ($filesList as $relFilePath)
             $this->assertFileEquals($a($relFilePath), $b($relFilePath));
     }
     private function cleanUp(\TestState $state): void {
-        $p = new LocalDirPackage($this->fs);
-        $p->open('basic-site');
-        $actualConfig = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_MAIN_CONFIG, $p);
+        $actualConfig = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_MAIN_CONFIG,
+                                                    $this->sitePackage);
         foreach ($actualConfig as $key => $_)
             $actualConfig[$key] = str_replace('${targetSitePath}',
                                               $state->getTargetSitePath->__invoke(),
@@ -98,7 +109,11 @@ final class InstallCmsFromDirTest extends DbTestCase {
         } else {
             $installerDb->exec("DROP DATABASE `{$actualConfig["db.database"]}`");
         }
-        $this->deleteFilesRecursive(dirname($state->getTargetSitePath->__invoke()) . '/');
+        // .../kuura/backend/install-from-dir-test-backend/
+        $this->deleteFilesRecursive($state->getTargetSitePath->__invoke('backend'));
+        // .../Applications/MAMP/htdocs/kuura/install-from-dir-test-root/public/
+        $withPublic = $state->getTargetSitePath->__invoke('public');
+        $this->deleteFilesRecursive(dirname($withPublic) . "/");
     }
     private function deleteFilesRecursive(string $dirPath): ?string {
         foreach ($this->fs->readDir($dirPath) as $path) {

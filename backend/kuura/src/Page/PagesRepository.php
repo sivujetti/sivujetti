@@ -176,7 +176,7 @@ final class SelectQuery {
      * @return $this
      */
     public function from(string $tableName): SelectQuery {
-        $this->tableName = $tableName;
+        $this->tableName = "\${p}{$tableName}";
         return $this;
     }
     /**

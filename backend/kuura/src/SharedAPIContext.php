@@ -14,6 +14,7 @@ final class SharedAPIContext {
         $this->data = (object) [
             "blockTypes" => [],
             "pageLayouts" => [],
+            "userDefinedCssFiles" => (object) ["webPage" => []],
         ];
     }
     /**

@@ -6,7 +6,7 @@ use KuuraCms\UserSite\{UserSiteAPI, UserSiteInterface};
 
 class Site implements UserSiteInterface {
     /**
-     * @param \RadCms\UserSite\UserSiteAPI $api
+     * @param \KuuraCms\UserSite\UserSiteAPI $api
      */
     public function __construct(UserSiteAPI $api) {
         //

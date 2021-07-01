@@ -18,9 +18,9 @@ final class TheWebsiteRepository {
                 ', p.`name` AS `pluginName`' .
                 ', ct.`name` AS `pageTypeName`, ct.`blockFields` AS `pageTypeBlockFields`' .
                 ', ct.`ownFields` AS `pageTypeOwnFields`, ct.`isListable` AS `pageTypeIsListable`' .
-            ' FROM theWebsite ws' .
-            ' LEFT JOIN plugins p ON (1)' .
-            ' LEFT JOIN pageTypes ct ON (1)',
+            ' FROM ${p}theWebsite ws' .
+            ' LEFT JOIN ${p}plugins p ON (1)' .
+            ' LEFT JOIN ${p}pageTypes ct ON (1)',
             [],
             \PDO::FETCH_CLASS,
             TheWebsite::class

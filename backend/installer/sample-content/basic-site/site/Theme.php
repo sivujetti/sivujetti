@@ -12,5 +12,8 @@ class Theme implements UserThemeInterface {
         $api->registerPageLayout('Full width',
                                  'layout.default.tmpl.php',
                                  isDefault: true);
+        $api->registerPageLayout('With sidebar',
+                                 'layout.with-sidebar.tmpl.php');
+        $api->enqueueCssFile('basic-site.css');
     }
 }

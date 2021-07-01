@@ -1,1 +1,1 @@
-<?php // ["site/templates/layout.default.tmpl.php"]
+<?php // ["site/templates/Footer.tmpl.php", "site/templates/layout.default.tmpl.php", "site/templates/layout.with-sidebar.tmpl.php", "site/templates/MainMenu.tmpl.php"]

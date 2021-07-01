@@ -30,4 +30,14 @@ final class UserThemeAPI extends UserPluginAPI {
         $layout->isDefault = $isDefault ?? false;
         $mut->pageLayouts[] = $layout;
     }
+    /**
+     * @param string $url
+     * @param array $attrs = []
+     */
+    public function enqueueCssFile(string $url, array $attrs = []): void {
+        $this->storage->getDataHandle()->userDefinedCssFiles->webPage[] = (object) [
+            'url' => $url,
+            'attrs' => $attrs,
+        ];
+    }
 }

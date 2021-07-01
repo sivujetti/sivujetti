@@ -1,6 +1,6 @@
 <?php
 
-$statements = require dirname(__DIR__, 2) . '/installer/schema.sqlite.php';
+$statements = require dirname(__DIR__, 2) . "/installer/schema.sqlite.php";
 
 $statements = array_merge($statements, [
 

@@ -12,8 +12,9 @@
         <h1 data-prop="title"><?= $this->e($page->title) ?></h1>
         <?= $this->partial("MainMenu") ?>
     </header>
-    <main>
-        <p>Hello</p>
+    <main class="columns">
+        <div>Hello</div>
+        <div class="aside-column">Sidebar</div>
     </main>
     <?= $this->partial("Footer") ?>
 </body>

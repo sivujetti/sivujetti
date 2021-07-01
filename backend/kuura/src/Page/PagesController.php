@@ -2,7 +2,7 @@
 
 namespace KuuraCms\Page;
 
-use KuuraCms\{SharedAPIContext, Template};
+use KuuraCms\SharedAPIContext;
 use KuuraCms\TheWebsite\Entities\TheWebsite;
 use KuuraCms\UserTheme\UserThemeAPI;
 use MySite\Theme;
@@ -33,11 +33,12 @@ final class PagesController {
             return;
         }
         //
-        $layout = ArrayUtils::findByKey($storage->getDataHandle()->pageLayouts, $page->layoutId, 'id');
+        $data = $storage->getDataHandle();
+        $layout = ArrayUtils::findByKey($data->pageLayouts, $page->layoutId, 'id');
         if (!$layout) throw new PikeException("Page layout #`{$page->layoutId}` not available",
                                               PikeException::BAD_INPUT);
         $fileId = $layout->relFilePath;
-        $html = (new Template($fileId))->render([
+        $html = (new SiteAwareTemplate($fileId, cssFiles: $data->userDefinedCssFiles->webPage))->render([
             'page' => $page,
             'site' => $theWebsite,
         ]);

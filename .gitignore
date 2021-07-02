@@ -3,12 +3,14 @@
 .idea
 .vscode
 config.php
+config.in.php
 package-lock.json
 *.db
 
 node_modules
 
 /backend/vendor/
+/docs/
 /public/
 !/public/kuura/assets/
 !/public/kuura/vendor/

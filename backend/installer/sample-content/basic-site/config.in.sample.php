@@ -1,0 +1,1 @@
+<?php // {"db.connPath": "sqlite:${KUURA_BACKEND_PATH}site/my-site.db", "baseUrl": "/kuura/", "mainQueryVar": "q", "secret": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}

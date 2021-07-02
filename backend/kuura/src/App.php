@@ -13,6 +13,7 @@ use KuuraCms\UserSite\{UserSiteAPI, UserSiteInterface};
 use Pike\{App as PikeApp, PikeException, Router, ServiceDefaults};
 
 final class App {
+    public const VERSION = "0.1.0-dev";
     /** @var \KuuraCms\AppContext */
     private AppContext $ctx;
     /**

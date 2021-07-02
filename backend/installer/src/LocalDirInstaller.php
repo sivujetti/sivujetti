@@ -26,13 +26,13 @@ final class LocalDirInstaller {
         $package->open($relDirPath); // @allow \Pike\PikeException
         $config = Commons::readSneakyJsonData($package::LOCAL_NAME_MAIN_CONFIG, $package);
         foreach ($config as $key => $_)
-            $config[$key] = str_replace("\${targetSitePath}",
-                                        $this->commons->getTargetSitePath(),
+            $config[$key] = str_replace("\${KUURA_BACKEND_PATH}",
+                                        $this->commons->getTargetSitePath('backend'),
                                         $config[$key]);
         $this->commons->createTargetSiteDirs(); // @allow \Pike\PikeException
         $this->commons->createOrOpenDb($config); // @allow \Pike\PikeException
         $this->commons->createMainSchema(); // @allow \Pike\PikeException
         $this->commons->populateDb($package); // @allow \Pike\PikeException
-        $this->commons->writeFiles($package); // @allow \Pike\PikeException
+        $this->commons->writeFiles($package, $config); // @allow \Pike\PikeException
     }
 }

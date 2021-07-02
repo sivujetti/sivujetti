@@ -33,6 +33,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->verifyCopiedDefaultSiteFiles($state);
         $this->verifyCopiedUserThemeAndSiteFiles($state);
         $this->verifyCopiedUserThemePublicFiles($state);
+        $this->verifyCreatedConfigFile($state);
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
@@ -47,7 +48,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $state->installerApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function (Injector $di) use ($state) {
             $di->prepare(Commons::class, function (Commons $instance) use ($state) {
                 $instance->setTargetSitePaths(backendRelDirPath: 'install-from-dir-test-backend/',
-                                              publicRelDirPath: 'install-from-dir-test-root/public/');
+                                              serverRootRelDirPath: 'install-from-dir-test-root/');//public/');
                 $state->getTargetSitePath = fn($which = 'site') => $instance->getTargetSitePath($which);
                 $state->getInstallerDb = fn() => $instance->getDb();
             });
@@ -82,14 +83,31 @@ final class InstallCmsFromDirTest extends DbTestCase {
     private function verifyCopiedUserThemeAndSiteFiles(\TestState $state): void {
         $filesList = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_PHP_FILES_LIST,
                                                  $this->sitePackage);
-        $this->assertCopyedTheseFiles($state, $filesList);
+        $this->assertCopiedTheseFiles($state, $filesList);
     }
     private function verifyCopiedUserThemePublicFiles(\TestState $state): void {
         $filesList = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_PUBLIC_FILES_LIST,
                                                  $this->sitePackage);
-        $this->assertCopyedTheseFiles($state, $filesList, 'public');
+        $this->assertCopiedTheseFiles($state, $filesList, 'serverRoot');
     }
-    private function assertCopyedTheseFiles(\TestState $state, array $filesList, string $into = 'site'): void {
+    private function verifyCreatedConfigFile(\TestState $state): void {
+        $actualConfig = $this->_getSiteConfig($state);
+        $this->assertStringEqualsFile("{$state->getTargetSitePath->__invoke('serverRoot')}config.php",
+            "<?php\r\n" .
+            "if (!defined('KUURA_BASE_URL')) {\r\n" .
+            "    define('KUURA_BASE_URL',  '{$actualConfig['baseUrl']}');\r\n" .
+            "    define('KUURA_QUERY_VAR', '{$actualConfig['mainQueryVar']}');\r\n" .
+            "    define('KUURA_SECRET',    '{$actualConfig['secret']}');\r\n" .
+            "    define('KUURA_DEVMODE',   1 << 1);\r\n" .
+            "    define('KUURA_FLAGS',     0);\r\n" .
+            "}\r\n" .
+            "return [\r\n" .
+            "    'db.connPath' => '".str_replace(KUURA_BACKEND_PATH, "'.KUURA_BACKEND_PATH.'",$actualConfig["db.connPath"])."',\r\n" .
+            "    'db.tablePrefix' => '',\r\n" .
+            "];\r\n"
+        );
+    }
+    private function assertCopiedTheseFiles(\TestState $state, array $filesList, string $into = 'site'): void {
         $a = fn($str) => KUURA_BACKEND_PATH . "installer/sample-content/basic-site/{$str}";
         $where = dirname($state->getTargetSitePath->__invoke($into)) . '/';
         $b = fn($str) => "{$where}{$str}";
@@ -97,12 +115,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
             $this->assertFileEquals($a($relFilePath), $b($relFilePath));
     }
     private function cleanUp(\TestState $state): void {
-        $actualConfig = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_MAIN_CONFIG,
-                                                    $this->sitePackage);
-        foreach ($actualConfig as $key => $_)
-            $actualConfig[$key] = str_replace('${targetSitePath}',
-                                              $state->getTargetSitePath->__invoke(),
-                                              $actualConfig[$key]);
+        $actualConfig = $this->_getSiteConfig($state);
         $installerDb = $state->getInstallerDb->__invoke();
         if ($installerDb->attr(\PDO::ATTR_DRIVER_NAME) === "sqlite") {
             $this->fs->unlink(substr($actualConfig["db.connPath"], strlen("sqlite:")));
@@ -110,16 +123,24 @@ final class InstallCmsFromDirTest extends DbTestCase {
             $installerDb->exec("DROP DATABASE `{$actualConfig["db.database"]}`");
         }
         // .../kuura/backend/install-from-dir-test-backend/
-        $this->deleteFilesRecursive($state->getTargetSitePath->__invoke('backend'));
-        // .../Applications/MAMP/htdocs/kuura/install-from-dir-test-root/public/
-        $withPublic = $state->getTargetSitePath->__invoke('public');
-        $this->deleteFilesRecursive(dirname($withPublic) . "/");
+        $this->_deleteFilesRecursive($state->getTargetSitePath->__invoke('backend'));
+        // .../kuura/install-from-dir-test-root/
+        $this->_deleteFilesRecursive($state->getTargetSitePath->__invoke('serverRoot'));
     }
-    private function deleteFilesRecursive(string $dirPath): ?string {
+    private function _getSiteConfig(\TestState $state) {
+        $actualConfig = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_MAIN_CONFIG,
+                                                    $this->sitePackage);
+        foreach ($actualConfig as $key => $_)
+            $actualConfig[$key] = str_replace('${KUURA_BACKEND_PATH}',
+                                              $state->getTargetSitePath->__invoke('backend'),
+                                              $actualConfig[$key]);
+        return $actualConfig;
+    }
+    private function _deleteFilesRecursive(string $dirPath): ?string {
         foreach ($this->fs->readDir($dirPath) as $path) {
             if ($this->fs->isFile($path)) {
                 if (!$this->fs->unlink($path)) return $path;
-            } elseif (($failedItem = $this->deleteFilesRecursive($path))) {
+            } elseif (($failedItem = $this->_deleteFilesRecursive($path))) {
                 return $failedItem;
             }
         }

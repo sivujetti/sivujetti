@@ -13,7 +13,7 @@ final class Commons {
     /** @var string Mainly for tests */
     private string $targetSiteBackendPath;
     /** @var string */
-    private string $targetSitePublicPath;
+    private string $targetSiteServerRoot;
     /**
      * @param \Pike\FileSystem $fs
      */
@@ -21,14 +21,14 @@ final class Commons {
         self::checkEnvRequirementsAreMetOrDie();
         $this->fs = $fs;
         $this->targetSiteBackendPath = KUURA_BACKEND_PATH;
-        $this->targetSitePublicPath = KUURA_PUBLIC_PATH;
+        $this->targetSiteServerRoot = KUURA_PUBLIC_PATH;
     }
     /**
      * @throws \Pike\PikeException
      */
     public function createTargetSiteDirs(): void {
         foreach (["{$this->targetSiteBackendPath}site/templates",
-                  "{$this->targetSitePublicPath}uploads"] as $path) {
+                  "{$this->targetSiteServerRoot}public/uploads"] as $path) {
             if (!$this->fs->isDir($path) && !$this->fs->mkDir($path))
                 throw new PikeException("Failed to create `{$path}`",
                                         PikeException::FAILED_FS_OP);
@@ -58,11 +58,14 @@ final class Commons {
     }
     /**
      * @param \KuuraCms\Installer\PackageStreamInterface $package
+     * @param array $config
      */
-    public function writeFiles(PackageStreamInterface $package): void {
+    public function writeFiles(PackageStreamInterface $package,
+                               array $config): void {
         $this->writeDefaultFiles($package); // @allow \Pike\PikeException
         $this->writeSiteSourceFiles($package); // @allow \Pike\PikeException
         $this->writePublicFiles($package); // @allow \Pike\PikeException
+        $this->generateAndWriteConfigFile($config); // @allow \Pike\PikeException
     }
     /**
      * @param string $sneakyJsonFileLocalName
@@ -74,12 +77,41 @@ final class Commons {
         if (!is_string(($str = $package->read($sneakyJsonFileLocalName))))
             throw new PikeException("Failed to read `{$sneakyJsonFileLocalName}`",
                                     PikeException::FAILED_FS_OP);
-        if (!($parsed = json_decode(substr($str, strlen("<?php // ")),
-                                    associative: true,
-                                    flags: JSON_THROW_ON_ERROR)) === null)
+        if (($parsed = json_decode(substr($str, strlen("<?php // ")),
+                                   associative: true,
+                                   flags: JSON_THROW_ON_ERROR)) === null)
             throw new PikeException("Failed to parse the contents of `{$sneakyJsonFileLocalName}`",
                                     PikeException::BAD_INPUT);
         return $parsed;
+    }
+    /**
+     * @param array $config
+     */
+    private function generateAndWriteConfigFile(array $config): void {
+        if (!$this->fs->write(
+            "{$this->targetSiteServerRoot}config.php",
+"<?php
+if (!defined('KUURA_BASE_URL')) {
+    define('KUURA_BASE_URL',  '{$config["baseUrl"]}');
+    define('KUURA_QUERY_VAR', '{$config["mainQueryVar"]}');
+    define('KUURA_SECRET',    '{$config["secret"]}');
+    define('KUURA_DEVMODE',   1 << 1);
+    define('KUURA_FLAGS',     0);
+}
+return [
+" . (array_key_exists('db.connPath', $config) ?
+"    'db.connPath' => '".str_replace(KUURA_BACKEND_PATH, "'.KUURA_BACKEND_PATH.'",$config["db.connPath"])."',
+    'db.tablePrefix' => ''," :
+"    'db.host'        => '{$config["db.host"]}',
+    'db.database'    => '{$config["db.database"]}',
+    'db.user'        => '{$config["db.user"]}',
+    'db.pass'        => '{$config["db.pass"]}',
+    'db.tablePrefix' => '{$config["db.tablePrefix"]}',
+    'db.charset'     => '{$config["db.charset"]}',") . "
+];
+"
+        )) throw new PikeException("Failed to generate `{$this->targetSiteServerRoot}config.php`",
+                                   PikeException::FAILED_FS_OP);
     }
     /**
      * @return string
@@ -87,24 +119,24 @@ final class Commons {
     public function getTargetSitePath(string $which = 'site'): string {
         return match ($which) {
             'backend' => $this->targetSiteBackendPath,
-            'public' => $this->targetSitePublicPath,
+            'serverRoot' => $this->targetSiteServerRoot,
             default => "{$this->targetSiteBackendPath}site/",
         };
     }
     /**
      * @param ?string $backendRelDirPath = KUURA_BACKEND_PATH
-     * @param ?string $publicRelDirPath = KUURA_PUBLIC_PATH
+     * @param ?string $serverRootRelDirPath = KUURA_PUBLIC_PATH
      * @throws \Pike\PikeException If path is not valid
      */
     public function setTargetSitePaths(?string $backendRelDirPath = null,
-                                       ?string $publicRelDirPath = null): void {
+                                       ?string $serverRootRelDirPath = null): void {
         if ($backendRelDirPath) {
             ValidationUtils::checkIfValidaPathOrThrow($backendRelDirPath);
             $this->targetSiteBackendPath = KUURA_BACKEND_PATH . $backendRelDirPath;
         }
-        if ($publicRelDirPath) {
-            ValidationUtils::checkIfValidaPathOrThrow($publicRelDirPath);
-            $this->targetSitePublicPath = dirname(KUURA_PUBLIC_PATH) . "/{$publicRelDirPath}";
+        if ($serverRootRelDirPath) {
+            ValidationUtils::checkIfValidaPathOrThrow($serverRootRelDirPath);
+            $this->targetSiteServerRoot = dirname(KUURA_PUBLIC_PATH) . "/{$serverRootRelDirPath}";
         }
     }
     /**
@@ -134,7 +166,7 @@ final class Commons {
     private function writePublicFiles(PackageStreamInterface $package): void {
         $localFileNames = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PUBLIC_FILES_LIST,
                                                    $package);
-        $package->extractMany(dirname($this->targetSitePublicPath) . '/', $localFileNames);
+        $package->extractMany($this->targetSiteServerRoot, $localFileNames);
     }
     /**
      * @param array $statements

@@ -22,26 +22,48 @@ final class PagesController {
                                PagesRepository $pagesRepo,
                                SharedAPIContext $storage,
                                TheWebsite $theWebsite): void {
-        $themeAPI = new UserThemeAPI('theme', $storage);
+        $themeAPI = new UserThemeAPI("theme", $storage);
         $_ = new Theme($themeAPI); // Note: mutates $storage->data
         //
-        $page = $pagesRepo->getSingle($theWebsite->pageTypes[0])
+        if (!($page = $pagesRepo->getSingle($theWebsite->pageTypes[0])
             ->where("\${t}.`slug`=?", $req->params->url)
-            ->exec();
-        if (!$page) {
-            $res->status(404)->html('404');
+            ->exec())) {
+            $res->status(404)->html("404");
             return;
         }
         //
         $data = $storage->getDataHandle();
-        $layout = ArrayUtils::findByKey($data->pageLayouts, $page->layoutId, 'id');
+        $layout = ArrayUtils::findByKey($data->pageLayouts, $page->layoutId, "id");
         if (!$layout) throw new PikeException("Page layout #`{$page->layoutId}` not available",
                                               PikeException::BAD_INPUT);
         $fileId = $layout->relFilePath;
         $html = (new SiteAwareTemplate($fileId, cssFiles: $data->userDefinedCssFiles->webPage))->render([
-            'page' => $page,
-            'site' => $theWebsite,
+            "page" => $page,
+            "site" => $theWebsite,
         ]);
+        if ($req->queryVar("in-edit") !== null &&
+            ($bodyEnd = strrpos($html, "</body>")) > 0) {
+            $html = substr($html, 0, $bodyEnd) .
+                "<script>window.kuuraCurrentPageData = " . json_encode([
+                    "blocks" => [],
+                ]) . "</script>" .
+                "<script src=\"" . SiteAwareTemplate::makeUrl("public/kuura/kuura-webpage.js", false) . "\"></script>" .
+            substr($html, $bodyEnd);
+        }
         $res->html($html);
+    }
+    /**
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     */
+    public function renderEditAppWrapper(Request $req, Response $res): void {
+        $res->html((new SiteAwareTemplate("kuura:edit-app-wrapper.tmpl.php"))->render([
+            "url" => $req->params->url ?? "",
+            "userDefinedJsFiles" => [],
+            "dataToFrontend" => json_encode((object) [
+                "baseUrl" => SiteAwareTemplate::makeUrl('/', true),
+                "assetBaseUrl" => SiteAwareTemplate::makeUrl('/', false),
+            ])
+        ]));
     }
 }

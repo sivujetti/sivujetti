@@ -9,6 +9,9 @@ final class PagesModule {
      * @param \KuuraCms\AppContext $ctx
      */
     public function init(AppContext $ctx): void {
+        $ctx->router->map('GET', '/_edit/[**:url]?',
+            [PagesController::class, 'renderEditAppWrapper']
+        );
         $ctx->router->map('GET', '[*:url]',
             [PagesController::class, 'renderPage']
         );

@@ -61,7 +61,7 @@ final class App {
      */
     private function openDbAndLoadState(): void {
         if (!isset($this->ctx->theWebsite)) {
-            $this->ctx->db->open();
+            $this->ctx->db->open([\PDO::ATTR_EMULATE_PREPARES => 0]);
             if (!($entity = TheWebsiteRepository::fetchActive($this->ctx->db)))
                 throw new PikeException("Site not installed", 301010);
             if (empty($entity->pageTypes) || $entity->pageTypes[0]->name !== PageType::PAGE)

@@ -45,7 +45,7 @@ final class PagesController {
             ($bodyEnd = strrpos($html, "</body>")) > 0) {
             $html = substr($html, 0, $bodyEnd) .
                 "<script>window.kuuraCurrentPageData = " . json_encode([
-                    "blocks" => [],
+                    "blocks" => $page->blocks,
                 ]) . "</script>" .
                 "<script src=\"" . SiteAwareTemplate::makeUrl("public/kuura/kuura-webpage.js", false) . "\"></script>" .
             substr($html, $bodyEnd);

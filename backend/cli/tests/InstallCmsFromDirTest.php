@@ -48,7 +48,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $state->installerApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function (Injector $di) use ($state) {
             $di->prepare(Commons::class, function (Commons $instance) use ($state) {
                 $instance->setTargetSitePaths(backendRelDirPath: 'install-from-dir-test-backend/',
-                                              serverRootRelDirPath: 'install-from-dir-test-root/');//public/');
+                                              serverRootRelDirPath: 'install-from-dir-test-root/');
                 $state->getTargetSitePath = fn($which = 'site') => $instance->getTargetSitePath($which);
                 $state->getInstallerDb = fn() => $instance->getDb();
             });
@@ -109,7 +109,8 @@ final class InstallCmsFromDirTest extends DbTestCase {
     }
     private function assertCopiedTheseFiles(\TestState $state, array $filesList, string $into = 'site'): void {
         $a = fn($str) => KUURA_BACKEND_PATH . "installer/sample-content/basic-site/{$str}";
-        $where = dirname($state->getTargetSitePath->__invoke($into)) . '/';
+        $where = $state->getTargetSitePath->__invoke($into);
+        $where = $into !== 'serverRoot' ? (dirname($where) . "/") : $where;
         $b = fn($str) => "{$where}{$str}";
         foreach ($filesList as $relFilePath)
             $this->assertFileEquals($a($relFilePath), $b($relFilePath));

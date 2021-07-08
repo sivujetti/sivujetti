@@ -9,7 +9,7 @@ body {
     flex: 1;
 }
 
-header, main, footer {
+header, .main, footer {
     padding: 1rem;
 }
 header {

@@ -14,5 +14,8 @@
         <script src="<?= $this->assetUrl("public/kuura/vendor/vendor.bundle.min.js") ?>"></script>
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
         <script src="<?= $this->assetUrl("public/kuura/kuura-edit-app.js", /* @see frontend/edit-app/main.js */) ?>?q=<?= time() ?>"></script>
+        <?php foreach ($userDefinedJsFiles as $relUrl): ?>
+            <script src="<?= $this->assetUrl("public/{$relUrl}") ?>"></script>
+        <?php endforeach; ?>
     </body>
 </html>

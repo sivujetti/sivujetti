@@ -20,16 +20,16 @@ final class SiteAwareTemplate extends Template {
     }
     /**
      * @param string $name
-     * @param ...$args
+     * @param mixed $props = null
      * @return string
      */
-    public function partial(string $name, ...$args): string {
+    public function partial(string $name, $props = null): string {
         ValidationUtils::checkIfValidaPathOrThrow($name, strict: true);
         $templateFilePath = !str_contains($name, ":")
             ? "{$this->__dir}{$name}.tmpl.php"
             : self::completePath($name) . ".tmpl.php";
         return $this->doRender($templateFilePath,
-            array_merge($this->__locals, ["props" => $args ?? []]));
+            array_merge($this->__locals, ["props" => $props]));
     }
     /**
      * @param string $url
@@ -45,6 +45,17 @@ final class SiteAwareTemplate extends Template {
      */
     public function assetUrl(string $url): string {
         return self::makeUrl($url, false);
+    }
+    /**
+     * @param \KuuraCms\Block\Entities\Block[] $blocks
+     * @return string
+     */
+    public function renderBlocks(array $blocks): string {
+        $out = '';
+        foreach ($blocks as $block)
+            $out .= "<!-- block-start {$block->id}:{$block->type} -->" .
+                $this->partial($block->renderer, $block) . "<!-- block-end {$block->id} -->";
+        return $out;
     }
     /**
      * @return string

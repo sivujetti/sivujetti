@@ -2,6 +2,7 @@
 
 namespace KuuraCms\Page;
 
+use KuuraCms\Block\Entities\Block;
 use KuuraCms\Page\Entities\Page;
 use KuuraCms\PageType\Entities\PageType;
 use KuuraCms\PageType\PageTypeValidator;
@@ -101,6 +102,11 @@ final class PagesRepository implements RepositoryInterface {
      */
     public function normalizeRs(array $rows): array {
         foreach ($rows as $row) {
+            $blocks = [];
+            foreach (json_decode($row->blocksJson, flags: JSON_THROW_ON_ERROR) as $data)
+                $blocks[] = Block::fromObject($data);
+            $row->blocks = $blocks;
+            unset($row->blocksJson);
             foreach ($this->pageType->ownFields as $field)
                 $row->{$field->name} = strval($row->{"{$field->name}"}); // todo cast type?
         }

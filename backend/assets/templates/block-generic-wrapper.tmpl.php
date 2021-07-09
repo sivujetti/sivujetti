@@ -1,5 +1,5 @@
 <?php if ($props->type === \KuuraCms\Block\Entities\Block::TYPE_COLUMNS):
-    echo "<div class=\"", $this->e($props->cssClass ?? "columns"), "\">",
+    echo "<div class=\"", $this->e($props->cssClass ?: "columns"), "\">",
         ($props->children ? $this->renderBlocks($props->children) : ""),
     "</div>";
 elseif ($props->type === \KuuraCms\Block\Entities\Block::TYPE_SECTION):

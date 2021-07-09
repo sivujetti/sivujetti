@@ -33,7 +33,7 @@ final class PagesRepository implements RepositoryInterface {
      */
     public function __construct(Db $db) {
         $this->db = $db;
-        $this->lastInsertId = '0';
+        $this->lastInsertId = "0";
     }
     /**
      * @param \KuuraCms\PageType\Entities\PageType $pageType
@@ -44,12 +44,13 @@ final class PagesRepository implements RepositoryInterface {
         return (new SelectQuery($this, true))
             ->fields(
                 '${t}.`id`,${t}.`slug`,${t}.`path`,${t}.`level`,${t}.`title`,${t}.`layoutId`' .
-                ',${t}.`blocks` AS `blocksJson`,"${t}" AS `pageType`' .
+                ',${t}.`blocks` AS `pageBlocksJson`,"${t}" AS `pageType`,lb.`data` AS `layoutBlocksJson`' .
                 ($pageType->ownFields ? ("," . implode(',', array_map(fn(object $f) =>
                     "\${t}.`$f->name` AS `$f->name`"
                 , $pageType->ownFields))) : "")
             )
             ->from($pageType->name)
+            ->leftJoin("`\${p}layoutBlocks` lb ON (lb.`layoutId` = \${t}.`layoutId`)")
             ->into(Page::class);
     }
     /**
@@ -63,15 +64,15 @@ final class PagesRepository implements RepositoryInterface {
                            object $inputData,
                            bool $doInsertRevision = false,
                            bool $doInsertAsDraft = false): int {
-        $this->lastInsertId = '0';
+        $this->lastInsertId = "0";
         if (($errors = PageTypeValidator::validateInsertData($pageType, $inputData)))
             throw new PikeException(implode(PHP_EOL, $errors),
                                     PikeException::BAD_INPUT);
         $data = new \stdClass;
-        foreach (['slug','path','level','title','layoutId','blocks'] as $defaultFieldName) {
+        foreach (["slug","path","level","title","layoutId","blocks"] as $defaultFieldName) {
             $data->{$defaultFieldName} = $inputData->{$defaultFieldName};
         }
-        foreach (['id', 'status'] as $optional) {
+        foreach (["id", "status"] as $optional) {
             if (($inputData->{$optional} ?? null) !== null)
                 $data->{$optional} = $inputData->{$optional};
         }
@@ -102,11 +103,20 @@ final class PagesRepository implements RepositoryInterface {
      */
     public function normalizeRs(array $rows): array {
         foreach ($rows as $row) {
-            $blocks = [];
-            foreach (json_decode($row->blocksJson, flags: JSON_THROW_ON_ERROR) as $data)
-                $blocks[] = Block::fromObject($data);
-            $row->blocks = $blocks;
-            unset($row->blocksJson);
+            $pageBlocks = [];
+            foreach (json_decode($row->pageBlocksJson, flags: JSON_THROW_ON_ERROR) as $data)
+                $pageBlocks[] = Block::fromObject($data);
+            $row->blocks = $pageBlocks;
+            unset($row->pageBlocksJson);
+            //
+            $layoutBlocks = [];
+            if ($row->layoutBlocksJson) {
+            foreach (json_decode($row->layoutBlocksJson, flags: JSON_THROW_ON_ERROR) as $data)
+                $layoutBlocks[] = Block::fromObject($data);
+            }
+            $row->layout = (object) ["blocks" => $layoutBlocks];
+            unset($row->layoutBlocksJson);
+            //
             foreach ($this->pageType->ownFields as $field)
                 $row->{$field->name} = strval($row->{"{$field->name}"}); // todo cast type?
         }
@@ -166,7 +176,7 @@ final class SelectQuery {
      * @return $this
      */
     public function where(string $expr, $value): SelectQuery {
-        $this->wheres[] = ['', $expr, $value];
+        $this->wheres[] = ["", $expr, $value];
         return $this;
     }
     /**
@@ -190,7 +200,15 @@ final class SelectQuery {
      * @return $this
      */
     public function join(string $expr): SelectQuery {
-        $this->joins[] = $expr;
+        $this->joins[] = [$expr, ""];
+        return $this;
+    }
+    /**
+     * @param string $expr
+     * @return $this
+     */
+    public function leftJoin(string $expr): SelectQuery {
+        $this->joins[] = [$expr, "LEFT "];
         return $this;
     }
     /**
@@ -214,12 +232,12 @@ final class SelectQuery {
      * @return array{0: string, 1: mixed[]}
      */
     private function toQParts(): array {
-        $q = 'SELECT ';
-        $q .= ($this->theFields ?? '*') . ' FROM ';
+        $q = "SELECT ";
+        $q .= ($this->theFields ?? "*") . " FROM ";
         $q .= "`$this->tableName` ";
         //
-        foreach ($this->joins as $join)
-            $q .= "JOIN {$join} ";
+        foreach ($this->joins as [$expr, $joinType])
+            $q .= "{$joinType}JOIN {$expr} ";
         //
         $values = [];
         if ($this->wheres) {
@@ -229,6 +247,6 @@ final class SelectQuery {
                 $values[] = $value;
             }
         }
-        return [str_replace('${t}', "`$this->tableName`", $q), $values];
+        return [str_replace("\${t}", "`$this->tableName`", $q), $values];
     }
 }

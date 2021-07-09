@@ -41,6 +41,7 @@ return [
 )",
 
 "CREATE TABLE `\${p}layoutBlocks` (
-    `data` TEXT
+    `data` JSON,
+    `layoutId` TEXT NOT NULL
 )"
 ];

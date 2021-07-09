@@ -19,6 +19,7 @@ final class RenderBasicPageTest extends DbTestCase {
         $state = $this->setupTest();
         $this->makeKuuraApp($state);
         $this->insertTestPageToDb($state);
+        $this->insertTestLayoutBlocksToDb($state);
         $this->sendRenderPageRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
         $this->verifyRenderedCorrectPageAndLayout($state);
@@ -31,6 +32,7 @@ final class RenderBasicPageTest extends DbTestCase {
             self::makeBlockData(Block::TYPE_HEADING, ownProps: ["text" => "Hello", "level" => 2]),
             self::makeBlockData(Block::TYPE_PARAGRAPH, ownProps: ["text" => "Text"]),
         ], ownProps: ["cssClass" => "", "bgImage" => ""])];
+        $state->testLayoutBlocksTree = [self::makeBlockData(Block::TYPE_PARAGRAPH, ownProps: ["text" => "Footer text"])];
         $state->testPageData = (object) [
             "slug" => "/hello",
             "path" => "/hello",
@@ -41,10 +43,18 @@ final class RenderBasicPageTest extends DbTestCase {
                 JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),
             "categories" => "[]",
         ];
+        $state->testLayoutData = (object) [
+            "blocks" => json_encode($state->testLayoutBlocksTree,
+                JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),
+        ];
         return $state;
     }
     private function insertTestPageToDb(\TestState $state): void {
         $this->pageTestUtils->insertPage($state->testPageData);
+    }
+    private function insertTestLayoutBlocksToDb(\TestState $state): void {
+        self::$db->exec("INSERT INTO \${p}`layoutBlocks` VALUES (?,?)",
+                        [$state->testLayoutData->blocks, $state->testPageData->layoutId]);
     }
     private function makeKuuraApp(\TestState $state): void {
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
@@ -62,6 +72,9 @@ final class RenderBasicPageTest extends DbTestCase {
                                           $state->spyingResponse->getActualBody());
         $expectedPageBlockHeading = $state->testPageBlocksTree[0]->children[0]->props[0]->value;
         $this->assertStringContainsString("<h2>{$expectedPageBlockHeading}</h2>",
+                                          $state->spyingResponse->getActualBody());
+        $expectedFooterText = $state->testLayoutBlocksTree[0]->props[0]->value;
+        $this->assertStringContainsString("<p>{$expectedFooterText}</p>",
                                           $state->spyingResponse->getActualBody());
     }
     private function verifyThemeCanRegisterCssFiles(\TestState $state): void {

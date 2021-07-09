@@ -45,6 +45,7 @@ return [
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}layoutBlocks` (
-    `data` JSON
+    `data` JSON,
+    `layoutId` VARCHAR(191) NOT NULL
 ) DEFAULT CHARSET = utf8mb4",
 ];

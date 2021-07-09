@@ -1,18 +1,25 @@
+/* commons.css start */
 :root {
-    --bg-default: rgb(255 255 255);
-    --bg-dimmed: rgb(248 250 255);
-    --bg-dimmed2: rgb(235 237 243);
-    --bg-form-input: rgb(255 255 255);
-    --bg-accent: rgb(178,188,249);
-    --fg-default: rgb(48 52 65);
-    --fg-dimmed: rgb(150 155 173);
-    --fg-form-input: rgb(48 52 65);
-    --fg-border-dotted: rgba(255,255,222,0.2);
-    --fg-border-form-input: rgb(69 75 95);
+    --color-bg-default: rgb(255, 255, 255);
+    --color-bg-dimmed: rgb(250, 252, 255);
+    --color-bg-dimmed2: rgb(235, 237, 243);
+    --color-accent: #909daf;
+    --color-accent2: #8fdec4;
+    --color-fg-default: rgb(48, 52, 65);
+    --color-fg-dimmed: rgb(150, 155, 173);
+    --border-tree-guide: 1px dotted rgba(121, 125, 136, .56);
+}
+.color-accent {
+    color: var(--color-accent);
 }
 
 /* Spectre-overrides */
 .btn {
+    font-size: .7rem;
+    padding: .25rem .6rem;
+}
+.form-input, .form-select {
+    border-radius: 6px;
     font-size: .7rem;
 }
 
@@ -51,12 +58,27 @@ h2 {
     width: .9rem;
     height: .9rem;
 }
+.feather-xs {
+    width: .8rem;
+    height: .8rem;
+}
 .box {
     padding: 1rem;
-    background-color: var(--bg-default);
+    background-color: var(--color-bg-default);
     border-radius: 2px;
     box-shadow: 2px 2px 4px rgba(0,0,0,.1);
 }
+.btn.with-icon {
+    display: flex;
+    align-items: center;
+}
+.btn.with-icon .feather {
+    margin-right: .4rem;
+}
+/* commons.css end */
+
+
+
 
 /* EditApp: commons */
 @keyframes adjust-panels {
@@ -70,14 +92,14 @@ h2 {
 .one-column-layout #inpector-panel {
     position: absolute;
     width: 242px;
-    background-color: var(--bg-dimmed);
-    color: var(--fg-default);
+    background-color: var(--color-bg-dimmed);
+    color: var(--color-fg-default);
     overflow-y: auto;
     transition: min-height .2s linear, max-height .2s linear, opacity .1s linear;
 }
 .one-column-layout #main-panel {
     height: 100%;
-    border-right: 1px solid var(--bg-dimmed2);
+    border-right: 1px solid var(--color-bg-dimmed2);
 }
 .one-column-layout.inspector-panel-open #main-panel,
 .one-column-layout.inspector-panel-open #inpector-panel {
@@ -109,8 +131,8 @@ h2 {
 }
 .two-columns-layout #main-panel {
     width: 142px;
-    background-color: var(--bg-default);
-    color: var(--fg-default);
+    background-color: var(--color-bg-default);
+    color: var(--color-fg-default);
 }
 .two-columns-layout #kuura-site-iframe {
     width: calc(100% - 142px - 172px);
@@ -122,7 +144,7 @@ h2 {
     right: 0;
 }*/
 
-/* EditApp: main panel */
+/* EditApp: Main panel */
 #main-panel header {
     margin: .4rem 0 -.7rem 0;
 }
@@ -137,14 +159,69 @@ h2 {
 
 #main-panel section {
     padding: .01rem 0;
-    border-left: 3px solid var(--bg-accent);
+    border-left: 3px solid var(--color-accent2);
     margin: 1rem 0;
 }
 #main-panel section h2 {
-    color: var(--fg-dimmed);
+    color: var(--color-fg-dimmed);
     font-size: .6rem;
     font-weight: 300;
     margin: .4rem .5rem;
     text-transform: uppercase;
     letter-spacing: .08rem;
+}
+
+/* EditApp: Main panel > Block tree */
+.block-tree {
+    margin: 0;
+}
+.block-tree, .block-tree ul {
+    list-style: none;
+    margin-top: .2rem;
+}
+.block-tree ul ul {
+    margin: .2rem 0 0 .7rem;
+}
+.block-tree li {
+    margin: 0;
+    border-left: var(--border-tree-guide);
+}
+.block-tree > li {
+    margin-left: -.4rem;
+    border-left: none;
+}
+.block-tree li > button {
+    background: transparent;
+    border: none;
+    color: var(--color-fg-default);
+    padding: .2rem;
+    margin-left: .4rem;
+    position: relative;
+    border-radius: 6px;
+}
+.block-tree li.selected > .drag-hadle {
+    background: #00000013;
+}
+.block-tree li > button:hover {
+    background: #0000000d;
+}
+.block-tree li.with-children .toggle + button {
+    margin-left: 1.5rem;
+}
+.block-tree ul li > button:before {
+    content: "";
+    position: absolute;
+    border-top: var(--border-tree-guide);
+    width: 10px;
+    left: -.4rem;
+    top: 50%;
+}
+.block-tree ul > li:last-of-type button:after {
+    content: "";
+    position: absolute;
+    background-color: var(--color-bg-dimmed2);
+    width: 1px;
+    height: 50%;
+    left: -9px;
+    bottom: 0;
 }

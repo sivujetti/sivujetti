@@ -1,6 +1,6 @@
 class InspectorPanel extends preact.Component {
     /**
-     * @acces protected
+     * @access protected
      */
     render() {
         return 'Fresh game';

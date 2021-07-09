@@ -8,7 +8,6 @@ const urlUtils = {
      * @returns {string}
      */
     makeUrl(url) {
-        console.log(this.baseUrl);
         return this.baseUrl + this.normalizeUrl(url);
     },
     /**

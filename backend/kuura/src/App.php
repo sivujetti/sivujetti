@@ -4,6 +4,9 @@ namespace KuuraCms;
 
 use Auryn\Injector;
 use KuuraCms\AppContext;
+use KuuraCms\Block\BlocksModule;
+use KuuraCms\Block\Entities\Block;
+use KuuraCms\BlockType\ParagraphBlockType;
 use KuuraCms\Page\PagesModule;
 use KuuraCms\PageType\Entities\PageType;
 use KuuraCms\Plugin\Entities\Plugin;
@@ -27,11 +30,15 @@ final class App {
                                   ?Router $router = null): PikeApp {
         return new PikeApp([
             new self,
+            new BlocksModule,
             new PagesModule,
         ], function (AppContext $ctx, ServiceDefaults $defaults) use ($config): void {
             $ctx->config = $defaults->makeConfig($config);
             $ctx->db = $defaults->makeDb();
             $ctx->storage = new SharedAPIContext;
+            $ctx->storage->getDataHandle()->blockTypes = (object) [
+                Block::TYPE_PARAGRAPH => new ParagraphBlockType,
+            ];
         }, $initialCtx ?? new AppContext, $router);
     }
 

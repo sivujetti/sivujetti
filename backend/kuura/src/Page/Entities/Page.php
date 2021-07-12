@@ -15,6 +15,8 @@ final class Page {
     public string $type;
     /** @var \KuuraCms\Block\Entities\Block[] */
     public array $blocks;
+    /** @var int */
+    public int $status;
     /** @var object */
     public object $layout;
 }

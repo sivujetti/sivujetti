@@ -42,6 +42,7 @@ final class Block {
         $out->title = $data->title;
         $out->renderer = $data->renderer;
         $out->id = $data->id;
+        $out->props = $data->props;
         $out->children = [];
         foreach ($data->children as $child)
             $out->children[] = self::fromObject($child);

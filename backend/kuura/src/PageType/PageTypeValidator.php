@@ -14,4 +14,13 @@ abstract class PageTypeValidator {
                                               object $input): array {
         return [];
     }
+    /**
+     * @param \KuuraCms\PageType\Entities\PageType $pageType
+     * @param object $input
+     * @return string[] Error messages or empty array
+     */
+    public static function validateUpdateData(PageType $pageType,
+                                              object $input): array {
+        return [];
+    }
 }

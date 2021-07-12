@@ -2,6 +2,10 @@
 
 namespace KuuraCms;
 
+/**
+ * Stuff registered by Site.php, Theme.php, SomePlugin.php. Gets populated on
+ * every request.
+ */
 final class SharedAPIContext {
     /** @var array<string, callable[]> */
     private array $eventListeners;
@@ -12,7 +16,7 @@ final class SharedAPIContext {
     public function __construct() {
         $this->eventListeners = [];
         $this->data = (object) [
-            "blockTypes" => [],
+            "blockTypes" => null,
             "pageLayouts" => [],
             "userDefinedCssFiles" => (object) ["webPage" => []],
         ];

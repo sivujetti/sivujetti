@@ -2,12 +2,13 @@
 
 namespace KuuraCms\Page;
 
+use KuuraCms\Block\BlockTree;
 use KuuraCms\Block\Entities\Block;
 use KuuraCms\Page\Entities\Page;
 use KuuraCms\PageType\Entities\PageType;
 use KuuraCms\PageType\PageTypeValidator;
-use Pike\Db;
-use Pike\PikeException;
+use KuuraCms\TheWebsite\Entities\TheWebsite;
+use Pike\{ArrayUtils, Db, PikeException};
 
 interface RepositoryInterface {
     /**
@@ -24,27 +25,34 @@ interface RepositoryInterface {
 final class PagesRepository implements RepositoryInterface {
     /** @var \Pike\Db */
     private Db $db;
-    /** @var \KuuraCms\PageType\Entities\PageType */
-    private PageType $pageType;
+    /** @var \KuuraCms\PageType\Entities\PageType[] */
+    private \ArrayObject $pageTypes;
+    /** @var ?\KuuraCms\PageType\Entities\PageType */
+    private ?PageType $pageType;
     /** @var string */
     public string $lastInsertId;
     /**
      * @param \Pike\Db $db
+     * @param \KuuraCms\TheWebsite\Entities\TheWebsite $theWebsite
      */
-    public function __construct(Db $db) {
+    public function __construct(Db $db, TheWebsite $theWebsite) {
         $this->db = $db;
+        $this->pageTypes = $theWebsite->pageTypes;
+        $this->pageType = null;
         $this->lastInsertId = "0";
     }
     /**
-     * @param \KuuraCms\PageType\Entities\PageType $pageType
+     * @param \KuuraCms\PageType\Entities\PageType|string $pageTypeOrPageTypeName
      * @return \KuuraCms\Page\SelectQuery
      */
-    public function getSingle(PageType $pageType): SelectQuery {
+    public function getSingle(string|PageType $pageTypeOrPageTypeName): SelectQuery {
+        $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
         $this->pageType = $pageType;
         return (new SelectQuery($this, true))
             ->fields(
                 '${t}.`id`,${t}.`slug`,${t}.`path`,${t}.`level`,${t}.`title`,${t}.`layoutId`' .
-                ',${t}.`blocks` AS `pageBlocksJson`,"${t}" AS `pageType`,lb.`data` AS `layoutBlocksJson`' .
+                ',${t}.`blocks` AS `pageBlocksJson`,"'.$pageType->name.'" AS `type`,${t}.`status`' .
+                ',lb.`data` AS `layoutBlocksJson`' .
                 ($pageType->ownFields ? ("," . implode(',', array_map(fn(object $f) =>
                     "\${t}.`$f->name` AS `$f->name`"
                 , $pageType->ownFields))) : "")
@@ -91,6 +99,37 @@ final class PagesRepository implements RepositoryInterface {
             $numRows += $this->insertRevision(self::makeSnapshot($data, $pageType->ownFields), $doInsertAsDraft);
         $this->db->commit();
         return $numRows;
+    }
+    /**
+     * @param \KuuraCms\PageType\Entities\PageType $pageType
+     * @param \KuuraCms\Page\Entities\Page $newData
+     * @param bool $doInsertRevision = false
+     * @return int $numAffectedRows
+     */
+    public function updateById(string $id,
+                               Page $newData,
+                               bool $doInsertRevision = false): int {
+        $pageType = $this->getPageTypeOrThrow($newData->type);
+        //
+        $updateData = (object) [
+            "slug" => $newData->slug,
+            "path" => $newData->path,
+            "level" => $newData->level,
+            "title" => $newData->title,
+            "layoutId" => $newData->layoutId,
+            "blocks" => BlockTree::toJson($newData->blocks),
+            "status" => $newData->status,
+        ];
+        //
+        if (($errors = PageTypeValidator::validateUpdateData($pageType, $updateData)))
+            throw new PikeException(implode(PHP_EOL, $errors),
+                                    PikeException::BAD_INPUT);
+        //
+        [$columns, $values] = $this->db->makeUpdateQParts($updateData);
+        if ($doInsertRevision)
+            throw new \RuntimeException("Not implemented yet.");
+        return $this->db->exec("UPDATE `\${p}{$pageType->name}` SET {$columns} WHERE `id` = ?",
+                               array_merge($values, [$id]));
     }
     /**
      * @inheritdoc
@@ -141,6 +180,16 @@ final class PagesRepository implements RepositoryInterface {
         foreach ($fields as $f)
             $out->{$f->name} = $data->{$f->name};
         return json_encode($out, JSON_UNESCAPED_UNICODE);
+    }
+    /**
+     * @param string|\KuuraCms\PageType\Entities\PageType $candidate
+     * @return \KuuraCms\PageType\Entities\PageType
+     */
+    private function getPageTypeOrThrow(string|PageType $candidate): PageType {
+        if ($candidate instanceof PageType) return $candidate;
+        if (($possible = ArrayUtils::findByKey($this->pageTypes, $candidate, "name")))
+            return $possible;
+        throw new PikeException("Unknown page type `{$candidate}`.");
     }
 }
 

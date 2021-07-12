@@ -72,7 +72,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
                                          ["Pages"],
                                          \PDO::FETCH_ASSOC);
         $this->assertNotNull($actual);
-        $this->assertNotNull((new PageTestUtils($installerDb))->getPage('/'));
+        $this->assertNotNull((new PageTestUtils($installerDb))->getPageBySlug('/'));
     }
     private function verifyCopiedDefaultSiteFiles(\TestState $state): void {
         $a = fn($str) => KUURA_BACKEND_PATH . "installer/sample-content/basic-site/site/{$str}";

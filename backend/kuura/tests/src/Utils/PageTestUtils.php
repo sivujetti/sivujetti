@@ -4,7 +4,9 @@ namespace KuuraCms\Tests\Utils;
 
 use KuuraCms\Page\Entities\Page;
 use KuuraCms\Page\PagesRepository;
+use KuuraCms\Page\SelectQuery;
 use KuuraCms\PageType\Entities\PageType;
+use KuuraCms\TheWebsite\Entities\TheWebsite;
 use Pike\Db;
 
 final class PageTestUtils {
@@ -14,7 +16,12 @@ final class PageTestUtils {
      * @param \Pike\Db $db
      */
     public function __construct(Db $db) {
-        $this->pagesRepo = new PagesRepository($db);
+        $fakeTheWebsite = new TheWebsite;
+        $fakeTheWebsite->pageTypes = new \ArrayObject;
+        $pagePageType = new PageType;
+        $pagePageType->name = PageType::PAGE;
+        $fakeTheWebsite->pageTypes[] = $pagePageType;
+        $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite);
     }
     /**
      * @param object $data 
@@ -33,10 +40,16 @@ final class PageTestUtils {
      * @param ?\KuuraCms\PageType\Entities\PageType $pageType = null
      * @return ?\KuuraCms\Page\Entities\Page
      */
-    public function getPage(string $slug, ?PageType $pageType = null): ?Page {
-        if (!$pageType)
-            $pageType = $this->makeDefaultPageType();
-        return $this->pagesRepo->getSingle($pageType)->where('${t}.`slug`=?', $slug)->exec();
+    public function getPageBySlug(string $slug, ?PageType $pageType = null): ?Page {
+        return $this->t($pageType)->where('${t}.`slug`=?', $slug)->exec();
+    }
+    /**
+     * @param string $id
+     * @param ?\KuuraCms\PageType\Entities\PageType $pageType = null
+     * @return ?\KuuraCms\Page\Entities\Page
+     */
+    public function getPageById(string $id, ?PageType $pageType = null): ?Page {
+        return $this->t($pageType)->where('${t}.`id`=?', $id)->exec();
     }
     /**
      * @return \KuuraCms\PageType\Entities\PageType
@@ -46,5 +59,14 @@ final class PageTestUtils {
         $pageType->name = PageType::PAGE;
         $pageType->ownFields = [(object) ["name" => "categories"]];
         return $pageType;
+    }
+    /**
+     * @param ?\KuuraCms\PageType\Entities\PageType $pageType = null
+     * @return ?\KuuraCms\Page\Entities\Page
+     */
+    private function t(?PageType $pageType = null): SelectQuery {
+        if (!$pageType)
+            $pageType = $this->makeDefaultPageType();
+        return $this->pagesRepo->getSingle($pageType);
     }
 }

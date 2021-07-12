@@ -1,10 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace KuuraCms\Tests;
+namespace KuuraCms\Tests\Page;
 
 use KuuraCms\App;
+use KuuraCms\Block\BlockTree;
 use KuuraCms\Block\Entities\Block;
 use KuuraCms\Page\SiteAwareTemplate;
+use KuuraCms\Tests\Utils\BlockTestUtils;
 use KuuraCms\Tests\Utils\PageTestUtils;
 use Pike\{Request, TestUtils\DbTestCase, TestUtils\HttpTestUtils};
 
@@ -27,25 +29,24 @@ final class RenderBasicPageTest extends DbTestCase {
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
+        $btu = new BlockTestUtils();
         $state->app = null;
-        $state->testPageBlocksTree = [self::makeBlockData(Block::TYPE_SECTION, "Main", "kuura:block-generic-wrapper", children: [
-            self::makeBlockData(Block::TYPE_HEADING, ownProps: ["text" => "Hello", "level" => 2]),
-            self::makeBlockData(Block::TYPE_PARAGRAPH, ownProps: ["text" => "Text"]),
+        $state->testPageBlocksTree = [$btu->makeBlockData(Block::TYPE_SECTION, "Main", "kuura:block-generic-wrapper", children: [
+            $btu->makeBlockData(Block::TYPE_HEADING, ownProps: ["text" => "Hello", "level" => 2]),
+            $btu->makeBlockData(Block::TYPE_PARAGRAPH, ownProps: ["text" => "Text"]),
         ], ownProps: ["cssClass" => "", "bgImage" => ""])];
-        $state->testLayoutBlocksTree = [self::makeBlockData(Block::TYPE_PARAGRAPH, ownProps: ["text" => "Footer text"])];
+        $state->testLayoutBlocksTree = [$btu->makeBlockData(Block::TYPE_PARAGRAPH, ownProps: ["text" => "Footer text"])];
         $state->testPageData = (object) [
             "slug" => "/hello",
             "path" => "/hello",
             "level" => 1,
             "title" => "<Hello>",
             "layoutId" => 1,
-            "blocks" => json_encode($state->testPageBlocksTree,
-                JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),
+            "blocks" => BlockTree::toJson($state->testPageBlocksTree),
             "categories" => "[]",
         ];
         $state->testLayoutData = (object) [
-            "blocks" => json_encode($state->testLayoutBlocksTree,
-                JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),
+            "blocks" => BlockTree::toJson($state->testLayoutBlocksTree),
         ];
         return $state;
     }
@@ -81,21 +82,5 @@ final class RenderBasicPageTest extends DbTestCase {
         $expectedUrl = SiteAwareTemplate::makeUrl("/public/basic-site.css");
         $this->assertStringContainsString("<link href=\"{$expectedUrl}\" rel=\"stylesheet\">",
             $state->spyingResponse->getActualBody());
-    }
-    private static function makeBlockData(?string $type = null,
-                                          ?string $title = null,
-                                          ?string $renderer = null,
-                                          ?array $children = null,
-                                          ?array $ownProps = null): object {
-        $out = new \stdClass;
-        $out->type = $type ?? Block::TYPE_PARAGRAPH;
-        $out->title = $title ?? "";
-        $out->renderer = $renderer ?? "kuura:block-auto";
-        $out->id = "-aaaaaaaaaaaaaaaaaaa";
-        $out->children = $children ?? [];
-        foreach ($ownProps as $key => $value) {
-            $out->props[] = (object) ["key" => $key, "value" => $value];
-        }
-        return $out;
     }
 }

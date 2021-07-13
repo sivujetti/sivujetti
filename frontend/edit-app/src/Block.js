@@ -18,6 +18,19 @@ class Block {
         return out;
     }
     /**
+     * @param {BlockType} blockType
+     * @param {string} id
+     * @returns {Block}
+     * @access public
+     */
+    static fromType(blockType, id) {
+        return Block.fromObject(Object.assign(
+            {id, type: blockType.name, title: '', renderer: blockType.defaultRenderer,
+                children: []},
+            blockType.initialData
+        ));
+    }
+    /**
      * @returns {string}
      * @access public
      */

@@ -1,11 +1,15 @@
-import {__} from '../../commons/main.js';
+import {__, http} from '../../commons/main.js';
+import {generatePushID} from '../../commons/utils.js';
 import Icon from '../../commons/Icon.jsx';
 import Tabs from '../../commons/Tabs.jsx';
-import BlockTypeSelector from './BlockTypeSelector.jsx';
+import toasters from '../../commons/Toaster.jsx';
+import BlockTypeSelector, {blockTypes} from './BlockTypeSelector.jsx';
 import Block from './Block.js';
 
 class BlockTreeTabs extends preact.Component {
     // pageBlocksTree;
+    // static currentWebPage;
+    // static currentWebPageComments;
     /**
      * @param {Object} props
      */
@@ -13,7 +17,6 @@ class BlockTreeTabs extends preact.Component {
         super(props);
         this.state = {currentTab: 0, pageBlocksInput: null, layoutBlocksInput: null};
         this.pageBlocksTree = preact.createRef();
-        this.currentWebPage = null;
     }
     /**
      * @param {Array<Block>} pageBlocks
@@ -60,6 +63,24 @@ class BlockTree extends preact.Component {
         this.selectedRoot = null;
     }
     /**
+     * @access public
+     */
+    appendNewBlockPlaceholder() {
+        const paragraphType = blockTypes.get('Paragraph');
+        const newBlock = Block.fromType(paragraphType, generatePushID());
+        const toBranch = this.selectedRoot ? this.selectedRoot.children : this.state.blockTree;
+        //
+        newBlock._cref = BlockTreeTabs.currentWebPage.appendBlockToDom(newBlock, toBranch);
+        // Note: mutates this.state.blockTree
+        toBranch.push(newBlock);
+        //
+        this.setState({
+            blockTree: this.state.blockTree,
+            treeState: Object.assign(this.state.treeState,
+                {[newBlock.id]: {isSelected: false, isNew: true}})
+        });
+    }
+    /**
      * @access protected
      */
     componentWillMount() {
@@ -87,12 +108,17 @@ class BlockTree extends preact.Component {
                                                                    !block.children.length ? '' : 'with-children'].join(' ') }>
                 { !block.children.length
                     ? null
-                    : <button class="toggle p-absolute"><Icon iconId="chevron-down" className="feather-xs"/></button>
+                    : <button onClick={ () => this.collapseBranch(block) } class="toggle p-absolute"><Icon iconId="chevron-down" className="feather-xs"/></button>
                 }
-                <button onClick={ () => this.handleItemClicked(block) } class="drag-handle columns">
-                    <Icon iconId="type" className="feather-xs color-accent mr-1"/>
-                    { block.title || block.type }
-                </button>
+                <div class="d-flex">
+                    <button onClick={ () => this.handleItemClicked(block) } class="drag-handle columns">
+                        <Icon iconId="type" className="feather-xs color-accent mr-1"/>
+                        { block.title || block.type }
+                    </button>
+                    <button onClick={ () => this.openMoreMenu() } class="more-toggle ml-2">
+                        <Icon iconId="more-horizontal" className="feather-xs"/>
+                    </button>
+                </div>
                 { block.children.length
                     ? <ul data-sort-group-id={ `s-${block.path}` }>{ renderBranch(block.children) }</ul>
                     : null
@@ -109,20 +135,89 @@ class BlockTree extends preact.Component {
      * @access private
      */
     handleItemClicked(block) {
+        this.selectedRoot = block;
+        const ref = this.state.treeState;
+        if (ref[block.id].isSelected) return;
         //
+        for (const key in ref) ref[key].isSelected = false;
+        ref[block.id].isSelected = true;
+        this.setState({treeState: ref});
     }
     /**
      * @param {string} _blockType
      * @param {Block} newPlaceholderBlockData
      */
     confirmAddBlock(_blockType, newPlaceholderBlockData) {
+        const treeState = this.state.treeState;
+        const [block, containingBranch, parentBlock] = this.findBlock(newPlaceholderBlockData.id);
+        treeState[newPlaceholderBlockData.id].isNew = false; // mutates this.state.treeState
+        Object.assign(block, newPlaceholderBlockData); // mutates this.state.blockTree
+        this.setState({treeState: treeState, blockTree: this.state.blockTree});
         //
+        const postData = Object.assign({parentBlockId: parentBlock ? parentBlock.id : ''}, block);
+        delete postData.children;
+        delete postData._cref;
+        //
+        http.post(`/api/blocks/to-page/${BlockTreeTabs.currentWebPage.data.page.id}`, postData)
+            .then(resp => {
+                if (resp.ok !== 'ok') throw new Error('-');
+            })
+            .catch(err => {
+                BlockTreeTabs.currentWebPage.deleteBlockFromDom(block);
+                this.deleteBlock(block, containingBranch);
+                window.console.error(err);
+                toasters.editAppMain(__('Something unexpected happened.'));
+            });
     }
     /**
      * @param {Block} newPlaceholderBlockData
      */
     cancelAddBlock(newPlaceholderBlockData) {
+        const [block, containingBranch] = this.findBlock(newPlaceholderBlockData.id);
+        BlockTreeTabs.currentWebPage.deleteBlockFromDom(block);
+        this.deleteBlock(block, containingBranch);
+    }
+    /**
+     * @param {string} id
+     * @param {Array<Block>=} branch = this.state.blockTree
+     * @param {Block=} parentBlock = null
+     * @returns {Block|null}
+     * @access private
+     */
+    findBlock(id, branch = this.state.blockTree, parentBlock = null) {
+        for (const b of branch) {
+            if (b.id === id) return [b, branch, parentBlock];
+            if (b.children.length) {
+                const c = this.findBlock(id, b.children, b);
+                if (c[0]) return c;
+            }
+        }
+        return [null, null, null];
+    }
+    /**
+     * @param {Block} block
+     * @param {Array<Block>} containingBranch
+     * @access private
+     */
+    deleteBlock(block, containingBranch) {
+        containingBranch.splice(containingBranch.indexOf(block), 1); // Note: mutates this.state.blockTree
+        const ref = this.state.treeState;
+        delete ref[block.id]; // Mutates this.state.treeState
+        this.setState({blockTree: this.state.blockTree,
+                       treeState: ref});
+    }
+    /**
+     * @access private
+     */
+    openMoreMenu() {
         //
+    }
+    /**
+     * @param {Block} block
+     * @access private
+     */
+    collapseBranch(block) {
+        block;
     }
 }
 

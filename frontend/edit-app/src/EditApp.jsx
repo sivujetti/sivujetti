@@ -19,7 +19,7 @@ class EditApp extends preact.Component {
      * @access public
      */
     handleWebPageLoaded(dataFromWebPage, comments, webPage) {
-        this.blockTrees.current.setBlocks(dataFromWebPage.blocks,
+        this.blockTrees.current.setBlocks(dataFromWebPage.page.blocks,
                                           dataFromWebPage.layoutBlocks,
                                           comments,
                                           webPage);

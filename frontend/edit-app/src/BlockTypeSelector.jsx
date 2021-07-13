@@ -1,7 +1,12 @@
 import {__} from '../../commons/main.js';
 
 const blockTypes = new Map;
-blockTypes.set('Paragraph', {friendlyName: 'Paragraph', initialData: {text: __('Text here')}});
+blockTypes.set('Paragraph', {
+    name: 'Paragraph',
+    friendlyName: 'Paragraph',
+    initialData: {text: __('Text here')},
+    defaultRenderer: 'kuura:block-auto',
+});
 
 class BlockTypeSelector extends preact.Component {
     /**

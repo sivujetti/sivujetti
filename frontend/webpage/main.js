@@ -3,9 +3,8 @@ import EditAppAwareWebPage from './src/EditAppAwareWebPage.js';
 const editApp = (window.parent || {}).editApp;
 
 if (editApp) {
-    const webPage = new EditAppAwareWebPage();
-    const d = window.kuuraCurrentPageData || {};
-    editApp.handleWebPageLoaded(d, webPage.getBlockRefComments(d), webPage);
+    const webPage = new EditAppAwareWebPage(window.kuuraCurrentPageData || {});
+    editApp.handleWebPageLoaded(webPage);
 
     const host = location.hostname;
     // https://stackoverflow.com/a/2911045

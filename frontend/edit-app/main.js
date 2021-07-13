@@ -16,14 +16,12 @@ function renderReactEditApp() {
 
     window.editApp = {
         /**
-         * @param {CurrentPageData} dataFromWebPage
-         * @param {Array<BlockRefComment>} blockRefComments
          * @param {EditAppAwareWebPage} webPage
          * @access public
          */
-        handleWebPageLoaded(dataFromWebPage, blockRefComments, webPage) {
-            editAppReactRef.current.handleWebPageLoaded(dataFromWebPage,
-                                                        blockRefComments,
+        handleWebPageLoaded(webPage) {
+            editAppReactRef.current.handleWebPageLoaded(webPage.data,
+                                                        webPage.scanBlockRefComments(),
                                                         webPage);
         }
     };

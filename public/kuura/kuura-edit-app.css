@@ -19,7 +19,6 @@
     padding: .25rem .6rem;
 }
 .form-input, .form-select {
-    border-radius: 6px;
     font-size: .7rem;
 }
 
@@ -179,6 +178,10 @@ h2 {
     list-style: none;
     margin-top: .2rem;
 }
+.block-tree ul.collapsed {
+    max-height: 1.2rem;
+    overflow: hidden;
+}
 .block-tree ul ul {
     margin: .2rem 0 0 .7rem;
 }
@@ -190,7 +193,8 @@ h2 {
     margin-left: -.4rem;
     border-left: none;
 }
-.block-tree li > button {
+.block-tree li > button,
+.block-tree li > .d-flex > button {
     background: transparent;
     border: none;
     color: var(--color-fg-default);
@@ -199,16 +203,25 @@ h2 {
     position: relative;
     border-radius: 6px;
 }
-.block-tree li.selected > .drag-hadle {
-    background: #00000013;
-}
 .block-tree li > button:hover {
     background: #0000000d;
 }
-.block-tree li.with-children .toggle + button {
+.block-tree li.selected > .drag-handle {
+    background: #00000013;
+}
+.block-tree li.with-children > .d-flex .drag-handle {
     margin-left: 1.5rem;
 }
-.block-tree ul li > button:before {
+.block-tree .more-toggle {
+    opacity: 0;
+    transition: opacity .125s ease-out;
+}
+.block-tree .drag-handle:hover + .more-toggle,
+.block-tree .more-toggle:hover,
+.block-tree .drag-handle .more-toggle.opened {
+    opacity: 0; /* todo */
+}
+.block-tree ul li > .d-flex > .drag-handle:before {
     content: "";
     position: absolute;
     border-top: var(--border-tree-guide);
@@ -216,10 +229,10 @@ h2 {
     left: -.4rem;
     top: 50%;
 }
-.block-tree ul > li:last-of-type button:after {
+.block-tree ul > li:last-of-type .drag-handle:after {
     content: "";
     position: absolute;
-    background-color: var(--color-bg-dimmed2);
+    background-color: var(--color-bg-dimmed);
     width: 1px;
     height: 50%;
     left: -9px;

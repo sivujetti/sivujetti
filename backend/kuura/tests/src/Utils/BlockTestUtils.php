@@ -19,23 +19,23 @@ final class BlockTestUtils {
      * @param ?string $title = null
      * @param ?string $renderer = null
      * @param object[]|null $children = null
-     * @param array<string, mixed>|null $ownProps = null
+     * @param array<string, mixed>|null $propsData = null
      * @return object
      */
     public function makeBlockData(?string $type = null,
                                   ?string $title = null,
                                   ?string $renderer = null,
                                   ?array $children = null,
-                                  ?array $ownProps = null): object {
+                                  ?array $propsData = null): object {
         $out = new \stdClass;
         $out->type = $type ?? Block::TYPE_PARAGRAPH;
         $out->title = $title ?? "";
         $out->renderer = $renderer ?? "kuura:block-auto";
-        $out->id = "-aaaaaaaaaaaaaaaaaaa";
+        $out->id = "-bbbbbbbbbbbbbbbbbbb";
         $out->children = $children ?? [];
-        $out->props = [];
-        foreach ($ownProps as $key => $value) {
-            $out->props[] = (object) ["key" => $key, "value" => $value];
+        $out->propsData = [];
+        foreach ($propsData as $key => $value) {
+            $out->propsData[] = (object) ["key" => $key, "value" => $value];
         }
         return $out;
     }

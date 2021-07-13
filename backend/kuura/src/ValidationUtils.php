@@ -5,6 +5,7 @@ namespace KuuraCms;
 use Pike\PikeException;
 
 abstract class ValidationUtils {
+    public const HARD_STRING_LIMIT = 1024;
     /**
      * Throws an exception if $path contains './', '../', or '/' (strict).
      *

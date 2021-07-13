@@ -32,10 +32,10 @@ final class RenderBasicPageTest extends DbTestCase {
         $btu = new BlockTestUtils();
         $state->app = null;
         $state->testPageBlocksTree = [$btu->makeBlockData(Block::TYPE_SECTION, "Main", "kuura:block-generic-wrapper", children: [
-            $btu->makeBlockData(Block::TYPE_HEADING, ownProps: ["text" => "Hello", "level" => 2]),
-            $btu->makeBlockData(Block::TYPE_PARAGRAPH, ownProps: ["text" => "Text"]),
-        ], ownProps: ["cssClass" => "", "bgImage" => ""])];
-        $state->testLayoutBlocksTree = [$btu->makeBlockData(Block::TYPE_PARAGRAPH, ownProps: ["text" => "Footer text"])];
+            $btu->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Hello", "level" => 2]),
+            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Text"]),
+        ], propsData: ["cssClass" => "", "bgImage" => ""])];
+        $state->testLayoutBlocksTree = [$btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Footer text"])];
         $state->testPageData = (object) [
             "slug" => "/hello",
             "path" => "/hello",
@@ -71,10 +71,10 @@ final class RenderBasicPageTest extends DbTestCase {
         $expectedHeading = htmlspecialchars($state->testPageData->title);
         $this->assertStringContainsString("<h1 data-prop=\"title\">{$expectedHeading}</h1>",
                                           $state->spyingResponse->getActualBody());
-        $expectedPageBlockHeading = $state->testPageBlocksTree[0]->children[0]->props[0]->value;
+        $expectedPageBlockHeading = $state->testPageBlocksTree[0]->children[0]->propsData[0]->value;
         $this->assertStringContainsString("<h2>{$expectedPageBlockHeading}</h2>",
                                           $state->spyingResponse->getActualBody());
-        $expectedFooterText = $state->testLayoutBlocksTree[0]->props[0]->value;
+        $expectedFooterText = $state->testLayoutBlocksTree[0]->propsData[0]->value;
         $this->assertStringContainsString("<p>{$expectedFooterText}</p>",
                                           $state->spyingResponse->getActualBody());
     }

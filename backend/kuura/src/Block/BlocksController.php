@@ -6,11 +6,11 @@ use KuuraCms\BlockType\BlockTypeInterface;
 use KuuraCms\Page\PagesRepository;
 use KuuraCms\PageType\Entities\PageType;
 use KuuraCms\SharedAPIContext;
-use Pike\{PikeException, Request, Response, Validation};
+use Pike\{PikeException, Request, Response};
 
 final class BlocksController {
     /**
-     * Inserts a new block to the database and links it to $req->body->pageId.
+     * Inserts a new block to the database and links it to $req->params->pageId.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
@@ -21,61 +21,53 @@ final class BlocksController {
                                    Response $res,
                                    PagesRepository $pagesRepo,
                                    SharedAPIContext $storage): void {
-        if (($errors = self::validateAddBlockToPageInput($req->body))) {
+        if (!is_string(($typeAsStr = $req->body->type ?? null)))
+            throw new PikeException("type must be string",
+                                    PikeException::BAD_INPUT);
+        if (!($blockType = ($storage->getDataHandle()->blockTypes->{$typeAsStr} ?? null)))
+            throw new PikeException("Unknown block type `{$typeAsStr}`.",
+                                    PikeException::BAD_INPUT);
+        if (($errors = BlockValidator::validateInsertData($blockType, $req->body))) {
             $res->status(400)->json($errors);
             return;
         }
-        if (!($blockType = $storage->getDataHandle()->blockTypes->{$req->body->type} ?? null))
-            throw new PikeException("Unknown block type `{$req->body->type}`.",
-                                    PikeException::BAD_INPUT);
         if (!($page = $pagesRepo->getSingle(PageType::PAGE)
-            ->where('${t}.`id`=?', $req->body->pageId)
+            ->where('${t}.`id`=?', $req->params->pageId)
             ->exec()))
-            throw new PikeException("Couldn't not add block to page #{$req->body->pageId}" .
+            throw new PikeException("Couldn't add block to page #{$req->params->pageId}" .
                 " because it doesn't exist.", PikeException::BAD_INPUT);
-        if ($req->body->parentBlockId) {
-            throw new \RuntimeException("Not implemented yet.");
-        } else {
-            $page->blocks[] = self::makeStorableBlockDataFromInput($req->body, $blockType);
-        }
-        if (($num = $pagesRepo->updateById($req->body->pageId, $page)) !== 1)
+        //
+        $newBlock = self::makeStorableBlockDataFromValidInput($blockType, $req->body);
+        if (!$req->body->parentBlockId)
+            $page->blocks[] = $newBlock;
+        elseif (($appendTo = BlockTree::findBlock($req->body->parentBlockId, $page->blocks)))
+            $appendTo->children[] = $newBlock; // Note: mutates $page->blocks
+        else
+            throw new PikeException("Couldn't add block because its parent" .
+                " #{$req->body->parentBlockId} doesn't exist.", PikeException::BAD_INPUT);
+        //
+        if (($num = $pagesRepo->updateById($req->params->pageId, $page)) !== 1)
             throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",
                 PikeException::INEFFECTUAL_DB_OP);
         $res->json(["ok" => "ok"]);
     }
     /**
-     * @param object $input
      * @return \KuuraCms\BlockType\BlockTypeInterface $blockType
+     * @param object $input
      * @return object
      */
-    private static function makeStorableBlockDataFromInput(object $input,
-                                                           BlockTypeInterface $blockType): object {
+    private static function makeStorableBlockDataFromValidInput(BlockTypeInterface $blockType,
+                                                                object $input): object {
         $out = (object) [
             "type" => $input->type,
             "title" => $input->title,
             "renderer" => $input->renderer,
             "id" => $input->id,
             "children" => [],
-            "props" => [],
+            "propsData" => [],
         ];
-        foreach ($blockType->defineProperties() as $prop) {
-            if (!property_exists($input, $prop->name)) throw new \RuntimeException("Todo");
-            $out->props[] = (object) ["key" => $prop->name, "value" => $input->{$prop->name}];
-        }
+        foreach ($blockType->defineProperties() as $prop)
+            $out->propsData[] = (object) ["key" => $prop->name, "value" => $input->{$prop->name}];
         return $out;
-    }
-    /**
-     * @param object $input
-     * @return string[] Error messages or []
-     */
-    private static function validateAddBlockToPageInput(object $input): array {
-        return Validation::makeObjectValidator()
-            ->rule("type", "type", "string")
-            ->rule("title", "type", "string")
-            ->rule("renderer", "in", ["kuura:auto", "kuura:generic-wrapper"])
-            ->rule("id", "minLength", 20)
-            ->rule("id", "maxLength", 20)
-            ->rule("parentBlockId", "type", "string")
-            ->validate($input);
     }
 }

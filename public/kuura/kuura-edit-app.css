@@ -8,6 +8,7 @@
     --color-fg-default: rgb(48, 52, 65);
     --color-fg-dimmed: rgb(150, 155, 173);
     --border-tree-guide: 1px dotted rgba(121, 125, 136, .56);
+    --border-dashed-box: 1px dashed rgba(0,0,0,0.2);
 }
 .color-accent {
     color: var(--color-accent);
@@ -67,12 +68,23 @@ h2 {
     border-radius: 2px;
     box-shadow: 2px 2px 4px rgba(0,0,0,.1);
 }
-.btn.with-icon {
+.dashed {
+    border: var(--border-dashed-box);
+    border-radius: 6px;
+}
+.btn.widen.btn-sm {
+    padding: .05rem .6rem;
+}
+.with-icon {
     display: flex;
     align-items: center;
 }
-.btn.with-icon .feather {
+.with-icon .feather {
     margin-right: .4rem;
+}
+.form-input.tight {
+    padding: .1rem .35rem;
+    height: 1.4rem;
 }
 /* commons.css end */
 
@@ -156,12 +168,12 @@ h2 {
     filter: invert(1)
 }
 
-#main-panel section {
+#main-panel .panel-section {
     padding: .01rem 0;
     border-left: 3px solid var(--color-accent2);
     margin: 1rem 0;
 }
-#main-panel section h2 {
+#main-panel .panel-section h2 {
     color: var(--color-fg-dimmed);
     font-size: .6rem;
     font-weight: 300;

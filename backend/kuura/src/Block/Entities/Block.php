@@ -3,15 +3,15 @@
 namespace KuuraCms\Block\Entities;
 
 final class Block {
-    public const TYPE_COLUMNS = 'Columns';
-    public const TYPE_HEADING = 'Heading';
-    public const TYPE_PARAGRAPH = 'Paragraph';
-    public const TYPE_SECTION = 'Section';
+    public const TYPE_COLUMNS   = "Columns";
+    public const TYPE_HEADING   = "Heading";
+    public const TYPE_PARAGRAPH = "Paragraph";
+    public const TYPE_SECTION   = "Section";
     /** @var string self::TYPE_* */
     public string $type;
     /** @var ?string */
     public ?string $title;
-    /** @var string e.g. 'my-file', 'kuura:block-auto' */
+    /** @var string e.g. "my-file", "kuura:block-auto" */
     public string $renderer;
     /** @var string */
     public string $id;

@@ -1,5 +1,4 @@
 import {__, http} from '../../commons/main.js';
-import {generatePushID} from '../../commons/utils.js';
 import Icon from '../../commons/Icon.jsx';
 import Tabs from '../../commons/Tabs.jsx';
 import toasters from '../../commons/Toaster.jsx';
@@ -67,7 +66,7 @@ class BlockTree extends preact.Component {
      */
     appendNewBlockPlaceholder() {
         const paragraphType = blockTypes.get('Paragraph');
-        const newBlock = Block.fromType(paragraphType, generatePushID());
+        const newBlock = Block.fromType(paragraphType);
         const toBranch = this.selectedRoot ? this.selectedRoot.children : this.state.blockTree;
         //
         newBlock._cref = BlockTreeTabs.currentWebPage.appendBlockToDom(newBlock, toBranch);
@@ -125,10 +124,33 @@ class BlockTree extends preact.Component {
                 }
             </li>
             : <li key={ block.id }>
-                <BlockTypeSelector block={ block } onSelectionConfirmed={ this.confirmAddBlock.bind(this) } onSelectionDiscarded={ this.cancelAddBlock.bind(this) }/>
+                <div class="d-flex">
+                    <button class="drag-handle columns">
+                        <Icon iconId="type" className="feather-xs color-accent mr-1"/>
+                        { block.type }
+                    </button>
+                </div>
+                <BlockTypeSelector
+                    block={ block }
+                    onSelectionChanged={ this.replacePlaceholderBlock.bind(this) }
+                    onSelectionConfirmed={ this.confirmAddBlock.bind(this) }
+                    onSelectionDiscarded={ this.cancelAddBlock.bind(this) }/>
             </li>
         );
         return <ul class="block-tree" data-sort-group-id="r">{ renderBranch(blockTree) }</ul>;
+    }
+    /**
+     * @param {string} _blockType
+     * @param {Object} newPlaceholderBlockData
+     * @access private
+     */
+    replacePlaceholderBlock(_blockType, newPlaceholderBlockData) {
+        const block = this.findBlock(newPlaceholderBlockData.id)[0];
+        const newBlock = Block.fromObject(newPlaceholderBlockData);
+        newBlock._cref = BlockTreeTabs.currentWebPage.replaceBlockFromDomWith(block, newBlock);
+        //
+        Object.assign(block, newBlock); // mutates this.state.blockTree
+        this.setState({blockTree: this.state.blockTree});
     }
     /**
      * @param {Block} block
@@ -145,7 +167,8 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {string} _blockType
-     * @param {Block} newPlaceholderBlockData
+     * @param {Object} newPlaceholderBlockData
+     * @access private
      */
     confirmAddBlock(_blockType, newPlaceholderBlockData) {
         const treeState = this.state.treeState;
@@ -171,6 +194,7 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} newPlaceholderBlockData
+     * @access private
      */
     cancelAddBlock(newPlaceholderBlockData) {
         const [block, containingBranch] = this.findBlock(newPlaceholderBlockData.id);

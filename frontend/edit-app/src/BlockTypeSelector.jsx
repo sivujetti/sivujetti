@@ -1,16 +1,10 @@
 import {__} from '../../commons/main.js';
-
-const blockTypes = new Map;
-blockTypes.set('Paragraph', {
-    name: 'Paragraph',
-    friendlyName: 'Paragraph',
-    initialData: {text: __('Text here')},
-    defaultRenderer: 'kuura:block-auto',
-});
+import blockTypes from './block-types/all.js';
+import Block from './Block.js';
 
 class BlockTypeSelector extends preact.Component {
     /**
-     * @param {{onSelectionConfirmed: (blockType: BlockType, blockData: Object) => void; onSelectionDiscarded: (blockData: Object) => void; block: Block;}} props
+     * @param {{onSelectionConfirmed: (blockType: BlockType, blockData: Object) => void; onSelectionChanged: (blockType: BlockType, blockData: Object) => void; onSelectionDiscarded: (blockData: Object) => void; block: Block;};}} props
      */
     constructor(props) {
         super(props);
@@ -20,21 +14,34 @@ class BlockTypeSelector extends preact.Component {
      * @access protected
      */
     render(_, {blockData}) {
-        return <div>
-            <div><select value={ blockData.type } onChange={ this.handleBlockTypeChanged.bind(this) }>{ Array.from(blockTypes.entries()).map(([name, blockType]) =>
-                <option value={ name }>{ __(blockType.friendlyName) }</option>
-            ) }</select></div>
-            <button class="btn btn-sm btn-primary" onClick={ this.apply.bind(this) } type="button">{ __('Ok') }</button>
+        return <div class="dashed p-2">
+            <select
+                value={ blockData.type }
+                onChange={ e => this.selectBlockType(e.target.value) }
+                class="form-input form-select tight mb-2">{ Array.from(blockTypes.entries()).map(([name, blockType]) =>
+                <option value={ name }>
+                    { __(blockType.friendlyName) }
+                </option>
+            ) }</select>
+            <button class="btn btn-sm btn-primary widen" onClick={ this.apply.bind(this) } type="button">Ok</button>
             <button class="btn btn-sm btn-link" onClick={ this.discard.bind(this) } type="button">{ __('Cancel') }</button>
         </div>;
     }
     /**
-     * @param {InputEvent} e
+     * @param {string} blockTypeName
      * @access private
      */
-    handleBlockTypeChanged(e) {
-        const newBlockData = {type: e.target.value};
-        this.setState({blockData: Object.assign(this.state.blockData, newBlockData)});
+    selectBlockType(blockTypeName) {
+        if (this.state.blockData.type === blockTypeName) return;
+        //
+        const blockType = blockTypes.get(blockTypeName);
+        const blockData = Block.fromType(blockType);
+        blockData.id = this.props.block.id;
+        blockData._cref = this.props.block._cref;
+        //
+        this.setState({blockData});
+        this.props.onSelectionChanged(blockType,
+                                      blockData);
     }
     /**
      * @access private

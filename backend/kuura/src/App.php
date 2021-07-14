@@ -6,7 +6,10 @@ use Auryn\Injector;
 use KuuraCms\AppContext;
 use KuuraCms\Block\BlocksModule;
 use KuuraCms\Block\Entities\Block;
+use KuuraCms\BlockType\ColumnsBlockType;
+use KuuraCms\BlockType\HeadingBlockType;
 use KuuraCms\BlockType\ParagraphBlockType;
+use KuuraCms\BlockType\SectionBlockType;
 use KuuraCms\Page\PagesModule;
 use KuuraCms\PageType\Entities\PageType;
 use KuuraCms\Plugin\Entities\Plugin;
@@ -37,11 +40,13 @@ final class App {
             $ctx->db = $defaults->makeDb();
             $ctx->storage = new SharedAPIContext;
             $ctx->storage->getDataHandle()->blockTypes = (object) [
+                Block::TYPE_COLUMNS => new ColumnsBlockType,
+                Block::TYPE_HEADING => new HeadingBlockType,
                 Block::TYPE_PARAGRAPH => new ParagraphBlockType,
+                Block::TYPE_SECTION => new SectionBlockType,
             ];
         }, $initialCtx ?? new AppContext, $router);
     }
-
     /**
      * @param \KuuraCms\AppContext $ctx
      */

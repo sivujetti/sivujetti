@@ -34,11 +34,11 @@ class EditApp extends preact.Component {
                     <img src={ urlUtils.makeAssetUrl('/public/kuura/assets/logo-darkmode.png') }/>
                 </a>
             </header>
-            <section>
+            <section class="panel-section">
                 <h2>{ __('On this page') }</h2>
                 <BlockTrees ref={ this.blockTrees }/>
             </section>
-            <section>
+            <section class="panel-section">
                 <h2>{ __('My website') }</h2>
                 todo
             </section>

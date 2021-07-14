@@ -1,10 +1,5 @@
-const paragraphReRender = block =>
-    `<p>${block.text}</p>`
-;
-
-const reRenderers = {
-    'Paragraph': paragraphReRender,
-};
+import {generatePushID} from '../../commons/utils.js';
+import blockTypes from './block-types/all.js';
 
 class Block {
     /**
@@ -19,13 +14,12 @@ class Block {
     }
     /**
      * @param {BlockType} blockType
-     * @param {string} id
      * @returns {Block}
      * @access public
      */
-    static fromType(blockType, id) {
+    static fromType(blockType) {
         return Block.fromObject(Object.assign(
-            {id, type: blockType.name, title: '', renderer: blockType.defaultRenderer,
+            {id: generatePushID(), type: blockType.name, title: '', renderer: blockType.defaultRenderer,
                 children: []},
             blockType.initialData
         ));
@@ -35,7 +29,7 @@ class Block {
      * @access public
      */
     toHtml() {
-        return reRenderers[this.type](this);
+        return blockTypes.get(this.type).reRender(this);
     }
 }
 

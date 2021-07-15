@@ -13,7 +13,9 @@
         </div>
         <script src="<?= $this->assetUrl("public/kuura/vendor/vendor.bundle.min.js") ?>"></script>
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
-        <script src="<?= $this->assetUrl("public/kuura/kuura-edit-app.js", /* @see frontend/edit-app/main.js */) ?>?q=<?= time() ?>"></script>
+        <script>window.translationStringBundles = []</script>
+        <script src="<?= $this->assetUrl("public/kuura/lang-fi.js") ?>"></script>
+        <script src="<?= $this->assetUrl("public/kuura/kuura-edit-app.js", /* @see frontend/edit-app/main.js */) ?>"></script>
         <?php foreach ($userDefinedJsFiles as $relUrl): ?>
             <script src="<?= $this->assetUrl("public/{$relUrl}") ?>"></script>
         <?php endforeach; ?>

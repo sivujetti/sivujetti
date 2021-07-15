@@ -25,6 +25,10 @@ const makeJsxPlugin = () =>
         jsxFragmentPragma: 'preact.createFragment',
     });
 
+const watchSettings = {
+    clearScreen: false
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 module.exports = args => {
     //
@@ -33,6 +37,7 @@ module.exports = args => {
     const allExternals = [commonsPath];
     const bundle = !args.configInput ? args.configBundle || 'main' : 'custom';
     const bundles = [];
+    const selectedLang = args.configLang || 'fi';
     // == kuura-edit-app.js ====================================================
     if (bundle === 'main' || bundle === 'all') {
         bundles.push({
@@ -46,7 +51,20 @@ module.exports = args => {
             plugins: [
                 makeJsxPlugin(['frontend/edit-app/src/**']),
             ],
-            watch: {clearScreen: false}
+            watch: watchSettings
+        });
+    }
+    // == lang-*.js ============================================================
+    if (bundle === 'lang' || bundle === 'all') {
+        bundles.push({
+            input: `frontend/translations/${selectedLang}.js`,
+            output: {
+                format: 'iife',
+                file: `public/kuura/lang-${selectedLang}.js`,
+                globals: {'@kuura-string-bundles': 'translationStringBundles'},
+            },
+            external: ['@kuura-string-bundles'],
+            watch: watchSettings
         });
     }
     // == kuura-webpage.js =====================================================
@@ -56,7 +74,7 @@ module.exports = args => {
             output: makeOutputCfg({
                 file: 'public/kuura/kuura-webpage.js'
             }),
-            watch: {clearScreen: false}
+            watch: watchSettings
         });
     // == custom.js ============================================================
     if (!bundles.length && bundle !== 'all') {

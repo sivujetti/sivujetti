@@ -1,4 +1,5 @@
 import {urlUtils} from '../commons/utils.js';
+import {translator} from '../commons/main.js';
 import EditApp from './src/EditApp.jsx';
 import InspectorPanel from './src/InspectorPanel.jsx';
 
@@ -9,6 +10,7 @@ hookUpSiteIframeUrlMirrorer();
 function configureServices() {
     urlUtils.baseUrl = window.dataFromAdminBackend.baseUrl;
     urlUtils.assetBaseUrl = window.dataFromAdminBackend.assetBaseUrl;
+    window.translationStringBundles.map(strings => translator.addStrings(strings));
 }
 
 function renderReactEditApp() {
@@ -27,7 +29,7 @@ function renderReactEditApp() {
     };
 
     preact.render(preact.createElement(EditApp, {
-        ref: editAppReactRef
+        ref: editAppReactRef,
     }), document.getElementById('main-panel'));
 
     preact.render(preact.createElement(InspectorPanel, {

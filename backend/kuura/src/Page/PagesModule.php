@@ -9,11 +9,14 @@ final class PagesModule {
      * @param \KuuraCms\AppContext $ctx
      */
     public function init(AppContext $ctx): void {
-        $ctx->router->map('GET', '/_edit/[**:url]?',
-            [PagesController::class, 'renderEditAppWrapper']
+        $ctx->router->map("POST", "/api/pages/[w:pageType]",
+            [PagesController::class, "createPage", "consumes=json&identifiedBy=create:pages"],
         );
-        $ctx->router->map('GET', '[*:url]',
-            [PagesController::class, 'renderPage']
+        $ctx->router->map("GET", "/_edit/[**:url]?",
+            [PagesController::class, "renderEditAppWrapper"]
+        );
+        $ctx->router->map("GET", "[*:url]",
+            [PagesController::class, "renderPage"]
         );
     }
 }

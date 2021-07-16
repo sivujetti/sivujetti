@@ -2,10 +2,12 @@
 
 namespace KuuraCms\Tests\Utils;
 
+use KuuraCms\Block\Entities\Block;
+use KuuraCms\BlockType\{HeadingBlockType, ParagraphBlockType, SectionBlockType};
 use KuuraCms\Page\Entities\Page;
-use KuuraCms\Page\PagesRepository;
-use KuuraCms\Page\SelectQuery;
+use KuuraCms\Page\{PagesRepository, SelectQuery};
 use KuuraCms\PageType\Entities\PageType;
+use KuuraCms\SharedAPIContext;
 use KuuraCms\TheWebsite\Entities\TheWebsite;
 use Pike\Db;
 
@@ -18,10 +20,15 @@ final class PageTestUtils {
     public function __construct(Db $db) {
         $fakeTheWebsite = new TheWebsite;
         $fakeTheWebsite->pageTypes = new \ArrayObject;
-        $pagePageType = new PageType;
-        $pagePageType->name = PageType::PAGE;
+        $pagePageType = $this->makeDefaultPageType();
         $fakeTheWebsite->pageTypes[] = $pagePageType;
-        $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite);
+        $fakeApiStorage = new SharedAPIContext;
+        $fakeApiStorage->getDataHandle()->blockTypes = (object) [
+            Block::TYPE_HEADING => new HeadingBlockType,
+            Block::TYPE_PARAGRAPH => new ParagraphBlockType,
+            Block::TYPE_SECTION => new SectionBlockType,
+        ];
+        $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite, $fakeApiStorage);
     }
     /**
      * @param object $data 
@@ -31,7 +38,7 @@ final class PageTestUtils {
     public function insertPage(object $data, ?PageType $pageType = null): ?string {
         if (!$pageType)
             $pageType = $this->makeDefaultPageType();
-        return $this->pagesRepo->insert($pageType, $data)
+        return $this->pagesRepo->insert($pageType, $data, doValidateBlocks: false)
             ? $this->pagesRepo->lastInsertId
             : null;
     }
@@ -57,7 +64,7 @@ final class PageTestUtils {
     public function makeDefaultPageType(): PageType {
         $pageType = new PageType;
         $pageType->name = PageType::PAGE;
-        $pageType->ownFields = [(object) ["name" => "categories"]];
+        $pageType->ownFields = [(object) ["name" => "categories", "dataType" => "json"]];
         return $pageType;
     }
     /**

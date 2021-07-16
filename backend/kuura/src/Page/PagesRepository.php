@@ -2,11 +2,12 @@
 
 namespace KuuraCms\Page;
 
-use KuuraCms\Block\BlockTree;
+use KuuraCms\Block\{BlocksController, BlockTree};
 use KuuraCms\Block\Entities\Block;
 use KuuraCms\Page\Entities\Page;
 use KuuraCms\PageType\Entities\PageType;
 use KuuraCms\PageType\PageTypeValidator;
+use KuuraCms\SharedAPIContext;
 use KuuraCms\TheWebsite\Entities\TheWebsite;
 use Pike\{ArrayUtils, Db, PikeException};
 
@@ -27,6 +28,8 @@ final class PagesRepository implements RepositoryInterface {
     private Db $db;
     /** @var \KuuraCms\PageType\Entities\PageType[] */
     private \ArrayObject $pageTypes;
+    /** @var object */
+    private object $blockTypes;
     /** @var ?\KuuraCms\PageType\Entities\PageType */
     private ?PageType $pageType;
     /** @var string */
@@ -34,10 +37,14 @@ final class PagesRepository implements RepositoryInterface {
     /**
      * @param \Pike\Db $db
      * @param \KuuraCms\TheWebsite\Entities\TheWebsite $theWebsite
+     * @param \KuuraCms\SharedAPIContext $storage
      */
-    public function __construct(Db $db, TheWebsite $theWebsite) {
+    public function __construct(Db $db,
+                                TheWebsite $theWebsite,
+                                SharedAPIContext $storage) {
         $this->db = $db;
         $this->pageTypes = $theWebsite->pageTypes;
+        $this->blockTypes = $storage->getDataHandle()->blockTypes;
         $this->pageType = null;
         $this->lastInsertId = "0";
     }
@@ -62,27 +69,39 @@ final class PagesRepository implements RepositoryInterface {
             ->into(Page::class);
     }
     /**
-     * @param \KuuraCms\PageType\Entities\PageType $pageType
+     * @param string|\KuuraCms\PageType\Entities\PageType $pageTypeOrPageTypeName
      * @param object $inputData
      * @param bool $doInsertRevision = false
      * @param bool $doInsertAsDraft = false
      * @return int $numAffectedRows
+     * @throws \Pike\PikeException If $inputData is not valid
      */
-    public function insert(PageType $pageType,
+    public function insert(string|PageType $pageTypeOrPageTypeName,
                            object $inputData,
                            bool $doInsertRevision = false,
-                           bool $doInsertAsDraft = false): int {
+                           bool $doInsertAsDraft = false,
+                           bool $doValidateBlocks = true): int {
         $this->lastInsertId = "0";
-        if (($errors = PageTypeValidator::validateInsertData($pageType, $inputData)))
+        $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
+        if (($errors = PageTypeValidator::validateInsertData($pageType, $inputData,
+            $doValidateBlocks ? $this->blockTypes : null)))
             throw new PikeException(implode(PHP_EOL, $errors),
                                     PikeException::BAD_INPUT);
         $data = new \stdClass;
-        foreach (["slug","path","level","title","layoutId","blocks"] as $defaultFieldName) {
-            $data->{$defaultFieldName} = $inputData->{$defaultFieldName};
+        foreach ([["slug","string"],
+                  ["path","string"],
+                  ["level","int"],
+                  ["title","string"],
+                  ["layoutId","int"]] as [$defaultFieldName, $valueType]) {
+            $data->{$defaultFieldName} = $valueType === "string"
+                ? $inputData->{$defaultFieldName}
+                : (int) $inputData->{$defaultFieldName};
         }
+        $data->blocks = BlockTree::toJson(BlocksController::makeStorableBlocksDataFromValidInput(
+            $inputData->blocks, $this->blockTypes));
         foreach (["id", "status"] as $optional) {
             if (($inputData->{$optional} ?? null) !== null)
-                $data->{$optional} = $inputData->{$optional};
+                $data->{$optional} = (int) $inputData->{$optional};
         }
         foreach ($pageType->ownFields as $f) {
             $data->{$f->name} = $inputData->{$f->name};

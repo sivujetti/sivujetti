@@ -2,8 +2,10 @@
 
 namespace KuuraCms\Page;
 
+use KuuraCms\PageType\Entities\PageType;
 use KuuraCms\SharedAPIContext;
 use KuuraCms\TheWebsite\Entities\TheWebsite;
+use KuuraCms\Translator;
 use KuuraCms\UserTheme\UserThemeAPI;
 use MySite\Theme;
 use Pike\{ArrayUtils, PikeException, Request, Response};
@@ -21,8 +23,8 @@ final class PagesController {
                                Response $res,
                                PagesRepository $pagesRepo,
                                SharedAPIContext $storage,
-                               TheWebsite $theWebsite): void {
-        $themeAPI = new UserThemeAPI("theme", $storage);
+                               TheWebsite $theWebsite,): void {
+        $themeAPI = new UserThemeAPI("theme", $storage, new Translator);
         $_ = new Theme($themeAPI); // Note: mutates $storage->data
         //
         if (!($page = $pagesRepo->getSingle($theWebsite->pageTypes[0])
@@ -65,9 +67,30 @@ final class PagesController {
             "url" => $req->params->url ?? "",
             "userDefinedJsFiles" => [],
             "dataToFrontend" => json_encode((object) [
-                "baseUrl" => SiteAwareTemplate::makeUrl('/', true),
-                "assetBaseUrl" => SiteAwareTemplate::makeUrl('/', false),
+                "baseUrl" => SiteAwareTemplate::makeUrl("/", true),
+                "assetBaseUrl" => SiteAwareTemplate::makeUrl("/", false),
             ])
         ]));
+    }
+    /**
+     * Inserts a new page to the database.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \KuuraCms\Page\PagesRepository $pagesRepo
+     */
+    public function createPage(Request $req,
+                               Response $res,
+                               PagesRepository $pagesRepo): void {
+        if ($req->params->pageType !== PageType::PAGE)
+            throw new \RuntimeException("Not implemented yet.");
+        //
+        $num = $pagesRepo->insert(PageType::PAGE, $req->body);
+        //
+        if ($num !== 1)
+            throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",
+                PikeException::INEFFECTUAL_DB_OP);
+        //
+        $res->status(201)->json(["ok" => "ok"]);
     }
 }

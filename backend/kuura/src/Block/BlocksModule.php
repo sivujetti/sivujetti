@@ -9,7 +9,7 @@ final class BlocksModule {
      * @param \KuuraCms\AppContext $ctx
      */
     public function init(AppContext $ctx): void {
-        $ctx->router->map("POST", "/api/blocks/to-page/[i:pageId]",
+        $ctx->router->map("POST", "/api/blocks/to-page/[i:pageId]/[w:parentBlockId]?",
             [BlocksController::class, "addBlockToPage", "consumes=json&identifiedBy=create:blocks"]
         );
     }

@@ -38,26 +38,26 @@ final class BlocksController {
                 " because it doesn't exist.", PikeException::BAD_INPUT);
         //
         $newBlock = self::makeStorableBlockDataFromValidInput($blockType, $req->body);
-        if (!$req->body->parentBlockId)
+        if (!property_exists($req->params, "parentBlockId"))
             $page->blocks[] = $newBlock;
-        elseif (($appendTo = BlockTree::findBlock($req->body->parentBlockId, $page->blocks)))
+        elseif (($appendTo = BlockTree::findBlock($req->params->parentBlockId, $page->blocks)))
             $appendTo->children[] = $newBlock; // Note: mutates $page->blocks
         else
             throw new PikeException("Couldn't add block because its parent" .
-                " #{$req->body->parentBlockId} doesn't exist.", PikeException::BAD_INPUT);
+                " #{$req->params->parentBlockId} doesn't exist.", PikeException::BAD_INPUT);
         //
         if (($num = $pagesRepo->updateById($req->params->pageId, $page)) !== 1)
             throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",
                 PikeException::INEFFECTUAL_DB_OP);
-        $res->json(["ok" => "ok"]);
+        $res->status(201)->json(["ok" => "ok"]);
     }
     /**
      * @return \KuuraCms\BlockType\BlockTypeInterface $blockType
      * @param object $input
      * @return object
      */
-    private static function makeStorableBlockDataFromValidInput(BlockTypeInterface $blockType,
-                                                                object $input): object {
+    public static function makeStorableBlockDataFromValidInput(BlockTypeInterface $blockType,
+                                                               object $input): object {
         $out = (object) [
             "type" => $input->type,
             "title" => $input->title,
@@ -68,6 +68,22 @@ final class BlocksController {
         ];
         foreach ($blockType->defineProperties() as $prop)
             $out->propsData[] = (object) ["key" => $prop->name, "value" => $input->{$prop->name}];
+        return $out;
+    }
+    /**
+     * @param object[] $branch
+     * @return object $blockTypes
+     * @return object
+     */
+    public static function makeStorableBlocksDataFromValidInput(array $branch,
+                                                                object $blockTypes): array {
+        $out = [];
+        foreach ($branch as $blockData) {
+            $b = self::makeStorableBlockDataFromValidInput($blockTypes->{$blockData->type}, $blockData);
+            if ($blockData->children)
+                $b->children = self::makeStorableBlocksDataFromValidInput($blockData->children, $blockTypes);
+            $out[] = $b;
+        }
         return $out;
     }
 }

@@ -36,6 +36,7 @@ final class BlockTestUtils {
         $out->propsData = [];
         foreach ($propsData as $key => $value) {
             $out->propsData[] = (object) ["key" => $key, "value" => $value];
+            $out->{$key} = $value;
         }
         return $out;
     }

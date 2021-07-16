@@ -5,6 +5,7 @@ namespace KuuraCms\Tests\Page;
 use KuuraCms\App;
 use KuuraCms\Block\BlockTree;
 use KuuraCms\Block\Entities\Block;
+use KuuraCms\Page\Entities\Page;
 use KuuraCms\Page\SiteAwareTemplate;
 use KuuraCms\Tests\Utils\BlockTestUtils;
 use KuuraCms\Tests\Utils\PageTestUtils;
@@ -30,7 +31,6 @@ final class RenderBasicPageTest extends DbTestCase {
     private function setupTest(): \TestState {
         $state = new \TestState;
         $btu = new BlockTestUtils();
-        $state->app = null;
         $state->testPageBlocksTree = [$btu->makeBlockData(Block::TYPE_SECTION, "Main", "kuura:block-generic-wrapper", children: [
             $btu->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Hello", "level" => 2]),
             $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Text"]),
@@ -42,12 +42,14 @@ final class RenderBasicPageTest extends DbTestCase {
             "level" => 1,
             "title" => "<Hello>",
             "layoutId" => 1,
-            "blocks" => BlockTree::toJson($state->testPageBlocksTree),
+            "blocks" => $state->testPageBlocksTree,
             "categories" => "[]",
+            "status" => Page::STATUS_PUBLISHED,
         ];
         $state->testLayoutData = (object) [
             "blocks" => BlockTree::toJson($state->testLayoutBlocksTree),
         ];
+        $state->app = null;
         return $state;
     }
     private function insertTestPageToDb(\TestState $state): void {

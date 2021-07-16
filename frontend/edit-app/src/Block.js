@@ -3,7 +3,7 @@ import blockTypes from './block-types/all.js';
 
 class Block {
     /**
-     * @param {Object} data
+     * @param {BlockData} data
      * @returns {Block}
      * @access public
      */
@@ -18,10 +18,14 @@ class Block {
      * @access public
      */
     static fromType(blockType) {
+        const propsShortcuts = blockType.initialData;
+        const propsData = [];
+        for (const key in propsShortcuts) propsData.push({key, value: propsShortcuts[key]});
+        //
         return Block.fromObject(Object.assign(
             {id: generatePushID(), type: blockType.name, title: '', renderer: blockType.defaultRenderer,
-                children: []},
-            blockType.initialData
+                propsData, children: []},
+            propsShortcuts
         ));
     }
     /**

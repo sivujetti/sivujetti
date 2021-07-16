@@ -3,13 +3,10 @@
 namespace KuuraCms;
 
 use Auryn\Injector;
-use KuuraCms\AppContext;
 use KuuraCms\Block\BlocksModule;
 use KuuraCms\Block\Entities\Block;
-use KuuraCms\BlockType\ColumnsBlockType;
-use KuuraCms\BlockType\HeadingBlockType;
-use KuuraCms\BlockType\ParagraphBlockType;
-use KuuraCms\BlockType\SectionBlockType;
+use KuuraCms\BlockType\{ColumnsBlockType, HeadingBlockType, ParagraphBlockType,
+                        SectionBlockType};
 use KuuraCms\Page\PagesModule;
 use KuuraCms\PageType\Entities\PageType;
 use KuuraCms\Plugin\Entities\Plugin;

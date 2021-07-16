@@ -9,8 +9,8 @@ final class PageLayout {
     public string $friendlyName;
     /** @var string */
     public string $relFilePath;
-    /** @var \KuuraCms\Block\Entities\Block[] */
-    public array $initialBlocks;
+    /** @var \Closure fn(): \KuuraCms\Block\Entities\Block[] */
+    public \Closure $getInitialBlocks;
     /** @var bool */
     public bool $isDefault;
 }

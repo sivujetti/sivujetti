@@ -1,16 +1,21 @@
 import {__} from '../../commons/main.js';
 import {urlUtils} from '../../commons/utils.js';
 import {Toaster} from '../../commons/Toaster.jsx';
-import BlockTrees from './BlockTrees.jsx';
+import DefaultMainPanelView from './DefaultMainPanelView.jsx';
+import AddPageMainPanelView from './AddPageMainPanelView.jsx';
+import store, {setCurrentPage} from './store.js';
 
 class EditApp extends preact.Component {
     // blockTrees;
+    // currentWebPageType;
     /**
-     * @param {Object} props
+     * @param {{webPageIframe: WebPageIframe;}} props
      */
     constructor(props) {
         super(props);
-        this.blockTrees = preact.createRef();
+        this.state = {isCreatePageModeOn: false};
+        this.blockTrees = null;
+        this.currentWebPageType = null;
     }
     /**
      * @param {CurrentPageData} dataFromWebPage
@@ -19,29 +24,30 @@ class EditApp extends preact.Component {
      * @access public
      */
     handleWebPageLoaded(dataFromWebPage, comments, webPage) {
-        this.blockTrees.current.setBlocks(dataFromWebPage.page.blocks,
-                                          dataFromWebPage.layoutBlocks,
-                                          comments,
-                                          webPage);
+        if (dataFromWebPage.page.isPlaceholderPage !== this.state.isCreatePageModeOn) {
+            this.currentWebPageType = dataFromWebPage.page.type;
+            this.setState({isCreatePageModeOn: dataFromWebPage.page.isPlaceholderPage});
+        }
+        store.dispatch(setCurrentPage({dataFromWebPage, comments, webPage}));
     }
     /**
      * @access protected
      */
-    render() {
+    render({webPageIframe}, {isCreatePageModeOn}) {
         return <>
             <header class="container">
                 <a href={ urlUtils.makeUrl('_edit') }>
                     <img src={ urlUtils.makeAssetUrl('/public/kuura/assets/logo-darkmode.png') }/>
                 </a>
             </header>
-            <section class="panel-section">
-                <h2>{ __('On this page') }</h2>
-                <BlockTrees ref={ this.blockTrees }/>
-            </section>
-            <section class="panel-section">
-                <h2>{ __('My website') }</h2>
-                todo
-            </section>
+            { !isCreatePageModeOn
+                ? <DefaultMainPanelView
+                    startAddPageMode={ () => webPageIframe.openPlaceholderPage('Pages') }/>
+                : <AddPageMainPanelView
+                    cancelAddPage={ () => webPageIframe.goBack() }
+                    webPageIframe={ webPageIframe }
+                    pageType={ this.currentWebPageType }/>
+            }
             <Toaster id="editAppMain"/>
         </>;
     }

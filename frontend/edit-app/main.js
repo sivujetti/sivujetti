@@ -2,6 +2,7 @@ import {urlUtils} from '../commons/utils.js';
 import {translator} from '../commons/main.js';
 import EditApp from './src/EditApp.jsx';
 import InspectorPanel from './src/InspectorPanel.jsx';
+import webPageIframe from './src/webPageIframe.js';
 
 configureServices();
 renderReactEditApp();
@@ -10,6 +11,8 @@ hookUpSiteIframeUrlMirrorer();
 function configureServices() {
     urlUtils.baseUrl = window.dataFromAdminBackend.baseUrl;
     urlUtils.assetBaseUrl = window.dataFromAdminBackend.assetBaseUrl;
+    urlUtils.env = {window, document};
+    webPageIframe.env = urlUtils.env;
     window.translationStringBundles.map(strings => translator.addStrings(strings));
 }
 
@@ -30,6 +33,7 @@ function renderReactEditApp() {
 
     preact.render(preact.createElement(EditApp, {
         ref: editAppReactRef,
+        webPageIframe,
     }), document.getElementById('main-panel'));
 
     preact.render(preact.createElement(InspectorPanel, {

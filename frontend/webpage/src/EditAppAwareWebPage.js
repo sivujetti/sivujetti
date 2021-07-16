@@ -17,12 +17,11 @@ class EditAppAwareWebPage {
     }
     /**
      * @param {Block} block
-     * @param {Array<Block>} parentBranch
+     * @param {Block} after
      * @returns {BlockRefComment}
      * @access public
      */
-    appendBlockToDom(block, parentBranch) {
-        const after = parentBranch[parentBranch.length - 1];
+    appendBlockToDom(block, after) {
         const afterComment = this.getBlockContents(after).pop();
         if (!afterComment) throw new Error(`Failed to ending comment for "${makeStartingComment(after)}"`);
         //
@@ -57,12 +56,21 @@ class EditAppAwareWebPage {
         for (const el of toRemove) parent.removeChild(el);
     }
     /**
+     * @param {String} text
+     * @access public
+     */
+    updateTitle(text) {
+        const els = document.querySelectorAll('[data-prop="title"]');
+        for (let i = 0; i < els.length; ++i)
+            els[i].textContent = text;
+    }
+    /**
      * @param {Block} block
      * @param {HTMLElement} parent
      * @param {HTMLElement=} before = null
      * @param {boolean} doInsertCommentBoundaries = false
      * @returns {Comment|null}
-     * @access public
+     * @access private
      */
     renderBlockInto(block, parent, before = null, doInsertCommentBoundaries = false) {
         const startingComment = !doInsertCommentBoundaries ? null : makeStartingComment(block);

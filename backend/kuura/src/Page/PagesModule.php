@@ -9,6 +9,9 @@ final class PagesModule {
      * @param \KuuraCms\AppContext $ctx
      */
     public function init(AppContext $ctx): void {
+        $ctx->router->map("GET", "/api/_placeholder-page/[w:pageType]/[i:layoutId]",
+            [PagesController::class, "renderPlaceholderPage", "consumes=html&identifiedBy=create:pages"],
+        );
         $ctx->router->map("POST", "/api/pages/[w:pageType]",
             [PagesController::class, "createPage", "consumes=json&identifiedBy=create:pages"],
         );

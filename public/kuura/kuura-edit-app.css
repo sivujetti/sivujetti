@@ -169,7 +169,7 @@ h2 {
 }
 
 #main-panel .panel-section {
-    padding: .01rem 0;
+    padding: 1px .4rem;
     border-left: 3px solid var(--color-accent2);
     margin: 1rem 0;
 }
@@ -177,7 +177,7 @@ h2 {
     color: var(--color-fg-dimmed);
     font-size: .6rem;
     font-weight: 300;
-    margin: .4rem .5rem;
+    margin: .4rem .5rem .4rem 0;
     text-transform: uppercase;
     letter-spacing: .08rem;
 }

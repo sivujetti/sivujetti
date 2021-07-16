@@ -3,7 +3,7 @@ import {urlUtils} from '../../../commons/utils.js';
 export default {
     name: 'Section',
     friendlyName: 'Section',
-    initialData: {cssClass: 'columns', bgImage: ''},
+    initialData: {cssClass: '', bgImage: ''},
     defaultRenderer: 'kuura:block-generic-wrapper',
     reRender({cssClass, bgImage, children}) {
         return `<section class="${cssClass}"` +

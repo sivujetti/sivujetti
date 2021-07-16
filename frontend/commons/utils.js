@@ -1,28 +1,56 @@
 const urlUtils = {
-    /** @var {string} For pages (may contain index.php) */
+    /** @var {String} For pages (may contain index.php) */
     baseUrl: '',
-    /** @var {string} For assets */
+    /** @var {String} For assets */
     assetBaseUrl: '',
+    /** @var {Env?} */
+    env: null,
     /**
-     * @param {string} url
-     * @returns {string}
+     * @param {String} url
+     * @returns {String}
      */
     makeUrl(url) {
         return this.baseUrl + this.normalizeUrl(url);
     },
     /**
-     * @param {string} url
-     * @returns {string}
+     * @param {String} url
+     * @returns {String}
      */
     makeAssetUrl(url) {
         return this.assetBaseUrl + this.normalizeUrl(url);
     },
     /**
-     * @param {string} url '/foo' -> 'foo', 'bar' -> 'bar'
-     * @returns {string}
+     * @param {String} url
+     */
+    redirect(url) {
+        this.env.window.location.href = this.makeUrl(url);
+    },
+    /**
+     * @param {String} url '/foo' -> 'foo', 'bar' -> 'bar'
+     * @returns {String}
+     * @access private
      */
     normalizeUrl(url) {
         return url[0] !== '/' ? url : url.substr(1);
+    }
+};
+
+const stringUtils = {
+    /**
+     * https://gist.github.com/mathewbyrne/1280286#gistcomment-2353812
+     * https://stackoverflow.com/a/37511463
+     *
+     * @param {String} text
+     * @returns {String}
+     */
+    slugify(text) {
+        return text.toString().toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove special characters
+            .replace(/\s+/g, '-')    // Replace spaces with -
+            .replace(/[^\w-]+/g, '') // Remove all non-word chars
+            .replace(/--+/g, '-')    // Replace multiple - with single -
+            .replace(/^-+/, '')      // Trim - from start of text
+            .replace(/-+$/, '');     // Trim - from end of text
     }
 };
 
@@ -77,4 +105,4 @@ const generatePushID = (function() {
   };
 })();
 
-export {urlUtils, generatePushID};
+export {urlUtils, stringUtils, generatePushID};

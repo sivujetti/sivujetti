@@ -3,7 +3,7 @@ import blockTypes from './block-types/all.js';
 
 class Block {
     /**
-     * @param {BlockData} data
+     * @param {RawBlock} data
      * @returns {Block}
      * @access public
      */

@@ -17,7 +17,7 @@ class DefaultMainPanelView extends preact.Component {
                 <h2>{ __('Pages') }</h2>
                 <div>-</div>
                 <button onClick={ startAddPageMode } class="btn btn-sm btn-link with-icon">
-                    <Icon iconId="plus-circle" className="feather-xs"/>
+                    <Icon iconId="plus-circle" className="size-xs"/>
                     { __('Create page') }
                 </button>
             </section>

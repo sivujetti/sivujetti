@@ -1,4 +1,5 @@
 import {__, http} from '../../commons/main.js';
+import {hookForm, InputGroup, InputError, Input} from '../../commons/Form.jsx';
 import {urlUtils, stringUtils} from '../../commons/utils.js';
 import toasters from '../../commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';
@@ -22,22 +23,23 @@ class AddPageMainPanelView extends preact.Component {
         super(props);
         this.pageType = tempPageTypes[props.pageType];
         this.blockTrees = preact.createRef();
-        this.state = {
-            slug: '',
-            title: '',
+        this.state = Object.assign({
             layoutId: '1',
-        };
+            slug: '',
+        }, hookForm(this, {
+            title: '',
+        }));
     }
     /**
      * @access protected
      */
     componentDidMount() {
-        this.handleTitleChanged({target: {value: __('New page')}});
+        this.form.triggerChange(__('New page'), 'title');
     }
     /**
      * @access protected
      */
-    render({cancelAddPage}, {layoutId, title, slug}) {
+    render({cancelAddPage}, {errors, classes, slug, layoutId}) {
         return <form onSubmit={ this.handleFormSubmitted.bind(this) }>
             <h1>{ __('Create page') }</h1>
             <section class="panel-section">
@@ -52,12 +54,15 @@ class AddPageMainPanelView extends preact.Component {
             <section class="panel-section">
                 <h2>{ __('Default fields') }</h2>
                 <div>
-                    <div>
-                        <input value={ title } onInput={ this.handleTitleChanged.bind(this) } class="form-input tight" placeholder={ __('Title') }/>
-                    </div>
-                    <div>
+                    <InputGroup classes={ classes.title }>
+                        <label htmlFor="title" class="form-label">{ __('Title') }</label>
+                        <Input vm={ this } name="title" id="title" errorLabel={ __('Title') }
+                            validations={ [['required']] } myOnChange={ this.handleTitleChanged.bind(this) } className="tight"/>
+                        <InputError error={ errors.title }/>
+                    </InputGroup>
+                    <InputGroup>
                         <input value={ slug } class="form-input tight" placeholder={ __('Slug') } disabled/>
-                    </div>
+                    </InputGroup>
                 </div>
             </section>
             <section class="panel-section">
@@ -71,25 +76,29 @@ class AddPageMainPanelView extends preact.Component {
         </form>;
     }
     /**
-     * @param {InputEvent} e
+     * @param {Object} state
      * @access private
      */
-    handleTitleChanged(e) {
-        const title = e.target.value;
-        this.setState({title, slug: `/${stringUtils.slugify(title) || '-'}`});
-        BlockTrees.currentWebPage.updateTitle(title);
+    handleTitleChanged(state) {
+        const title = state.values.title;
+        if (title.length) {
+            this.setState({slug: `/${stringUtils.slugify(title) || '-'}`});
+            BlockTrees.currentWebPage.updateTitle(title);
+        }
+        return state;
     }
     /**
      * @param {Event} e
      * @access private
      */
     handleFormSubmitted(e) {
-        e.preventDefault();
+        if (!this.form.handleSubmit(e))
+            return;
         const data = Object.assign({
             slug: this.state.slug,
             path: `${this.state.slug.substr(1)}/`,
             level: 1,
-            title: this.state.title,
+            title: this.state.values.title,
             layoutId: this.state.layoutId,
             blocks: this.blockTrees.current.getPageBlocksTree(),
             status: 0,
@@ -102,6 +111,7 @@ class AddPageMainPanelView extends preact.Component {
             .catch(err => {
                 window.console.error(err);
                 toasters.editAppMain(__('Something unexpected happened.'));
+                this.form.setIsSubmitting(false);
             });
     }
     /**

@@ -1,8 +1,6 @@
 <?php
 
 return [
-"USE `\${database}`",
-
 "DROP TABLE IF EXISTS `\${p}layoutBlocks`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
 "DROP TABLE IF EXISTS `\${p}pageTypes`",
@@ -33,7 +31,7 @@ return [
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}Pages` (
-    `id` MEDIUMINT UNSIGNED NOT NULL PRIMARY KEY AUTOINCREMENT,
+    `id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `slug` VARCHAR(92) NOT NULL,
     `path` VARCHAR(191) NOT NULL, -- 191 * 4 = 767 bytes = max key length
     `level` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1,
@@ -41,7 +39,8 @@ return [
     `layoutId` VARCHAR(191) NOT NULL,
     `blocks` JSON,
     `status` TINYINT(1) NOT NULL DEFAULT 0,
-    `categories` JSON
+    `categories` JSON,
+    PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}layoutBlocks` (

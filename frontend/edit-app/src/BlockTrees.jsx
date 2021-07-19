@@ -6,8 +6,6 @@ import BlockTypeSelector, {blockTypes} from './BlockTypeSelector.jsx';
 import Block from './Block.js';
 import store, {observeStore, selectCurrentPage} from './store.js';
 
-const PLACEHOLDER_PAGE_ID = '-';
-
 class BlockTreeTabs extends preact.Component {
     // pageBlocksTree;
     // cleanStoreSubs;
@@ -22,9 +20,9 @@ class BlockTreeTabs extends preact.Component {
         this.pageBlocksTree = preact.createRef();
         this.cleanStoreSubs = observeStore(s => selectCurrentPage(s), value => {
             if (// `this` is still attached to <DefaultMainPanelView/>, but placeholder page is loaded
-                (this.props.containingView === 'DefaultMainPanelView' && value.dataFromWebPage.page.id === PLACEHOLDER_PAGE_ID) ||
+                (this.props.containingView === 'DefaultMainPanelView' && value.dataFromWebPage.page.isPlaceholderPage) ||
                 // `this` is still attached to <AddPageMainPanelViwe/>, but reqular page is loaded
-                (this.props.containingView === 'AddPageMainPanelView' && value.dataFromWebPage.page.id !== PLACEHOLDER_PAGE_ID))
+                (this.props.containingView === 'AddPageMainPanelView' && !value.dataFromWebPage.page.isPlaceholderPage))
                 return;
             this.handleWebPageDataReceived(value);
         });
@@ -73,7 +71,7 @@ class BlockTreeTabs extends preact.Component {
             { currentTab === 0
                 ? [
                     <button class="btn with-icon my-2" onClick={ () => this.pageBlocksTree.current.appendNewBlockPlaceholder() } title={ __('Add new block') } type="button">
-                        <Icon iconId="plus" className="feather-sm"/> { __('Add new block') }
+                        <Icon iconId="plus" className="size-sm"/> { __('Add new block') }
                     </button>,
                     <BlockTree key="pageBlocks" blocksInput={ pageBlocksInput } ref={ this.pageBlocksTree }/>
                 ]
@@ -153,15 +151,15 @@ class BlockTree extends preact.Component {
                                                                    !block.children.length ? '' : 'with-children'].join(' ') }>
                 { !block.children.length
                     ? null
-                    : <button onClick={ () => this.collapseBranch(block) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="feather-xs"/></button>
+                    : <button onClick={ () => this.collapseBranch(block) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="size-xs"/></button>
                 }
                 <div class="d-flex">
                     <button onClick={ () => this.handleItemClicked(block) } class="drag-handle columns" type="button">
-                        <Icon iconId="type" className="feather-xs color-accent mr-1"/>
+                        <Icon iconId="type" className="size-xs color-accent mr-1"/>
                         { block.title || block.type }
                     </button>
                     <button onClick={ () => this.openMoreMenu() } class="more-toggle ml-2" type="button">
-                        <Icon iconId="more-horizontal" className="feather-xs"/>
+                        <Icon iconId="more-horizontal" className="size-xs"/>
                     </button>
                 </div>
                 { block.children.length

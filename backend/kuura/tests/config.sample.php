@@ -9,6 +9,7 @@ if (!defined("KUURA_BASE_URL")) {
     define("KUURA_FLAGS",          KUURA_DEVMODE);
 }
 return [
-    "db.connPath" => "sqlite::memory:",
+    "db.driver" => "sqlite",
+    "db.database" => ":memory:",
     "db.schemaInitFilePath" => __DIR__ . "/test-db-init.php",
 ];

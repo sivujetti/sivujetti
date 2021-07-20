@@ -120,31 +120,43 @@ final class PagesRepository implements RepositoryInterface {
         return $numRows;
     }
     /**
-     * @param \KuuraCms\PageType\Entities\PageType $pageType
-     * @param \KuuraCms\Page\Entities\Page $newData
+     * @param string $id
+     * @param object|\KuuraCms\Page\Entities\Page $newData
      * @param bool $doInsertRevision = false
+     * @param array $theseColumnsOnly = []
      * @return int $numAffectedRows
      */
     public function updateById(string $id,
-                               Page $newData,
-                               bool $doInsertRevision = false): int {
+                               object $newData,
+                               bool $doInsertRevision = false,
+                               array $theseColumnsOnly = []): int {
         $pageType = $this->getPageTypeOrThrow($newData->type);
+        if (!$theseColumnsOnly) {
+            $updateData = (object) [
+                "slug" => $newData->slug,
+                "path" => $newData->path,
+                "level" => $newData->level,
+                "title" => $newData->title,
+                "layoutId" => $newData->layoutId,
+                "blocks" => BlockTree::toJson($newData->blocks),
+                "status" => $newData->status,
+            ];
+            if (($errors = PageTypeValidator::validateUpdateData($pageType, $updateData)))
+                throw new PikeException(implode(PHP_EOL, $errors),
+                                        PikeException::BAD_INPUT);
+        } elseif (count($theseColumnsOnly) === 1 && $theseColumnsOnly[0] === "blocks") {
+            if (($errors = PageTypeValidator::validateUpdateData($pageType, $newData, $this->blockTypes)))
+                throw new PikeException(implode(PHP_EOL, $errors),
+                                        PikeException::BAD_INPUT);
+            $updateData = (object) ["blocks" =>
+                BlockTree::toJson(BlocksController::makeStorableBlocksDataFromValidInput(
+                                  $newData->blocks, $this->blockTypes))
+            ];
+        } else {
+            throw new \InvalidArgumentException("\$theseColumnsOnly supports only ['blocks'] and []");
+        }
         //
-        $updateData = (object) [
-            "slug" => $newData->slug,
-            "path" => $newData->path,
-            "level" => $newData->level,
-            "title" => $newData->title,
-            "layoutId" => $newData->layoutId,
-            "blocks" => BlockTree::toJson($newData->blocks),
-            "status" => $newData->status,
-        ];
-        //
-        if (($errors = PageTypeValidator::validateUpdateData($pageType, $updateData)))
-            throw new PikeException(implode(PHP_EOL, $errors),
-                                    PikeException::BAD_INPUT);
-        //
-        [$columns, $values] = $this->db->makeUpdateQParts($updateData);
+        [$columns, $values] = $this->db->makeUpdateQParts($updateData, $theseColumnsOnly);
         if ($doInsertRevision)
             throw new \RuntimeException("Not implemented yet.");
         return $this->db->exec("UPDATE `\${p}{$pageType->name}` SET {$columns} WHERE `id` = ?",

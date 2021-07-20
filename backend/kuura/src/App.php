@@ -13,7 +13,7 @@ use KuuraCms\Plugin\Entities\Plugin;
 use KuuraCms\TheWebsite\TheWebsiteRepository;
 use KuuraCms\UserPlugin\{UserPluginAPI, UserPluginInterface};
 use KuuraCms\UserSite\{UserSiteAPI, UserSiteInterface};
-use Pike\{App as PikeApp, PikeException, Router, ServiceDefaults};
+use Pike\{App as PikeApp, PikeException, Request, Response, Router, ServiceDefaults};
 
 final class App {
     public const VERSION = "0.1.0-dev";
@@ -49,12 +49,15 @@ final class App {
      */
     public function init(AppContext $ctx, $doPopulateCtxEarly): void {
         $this->ctx = $ctx;
-        if (str_starts_with($ctx->req->path, '/plugins/')) {
+        if (str_starts_with($ctx->req->path, "/plugins/")) {
             $doPopulateCtxEarly();
             $this->openDbAndLoadState();
         }
-        $ctx->router->on("*", function ($req, $_res, $next) {
+        $ctx->router->on("*", function ($req, $res, $next) {
             $req->myData = new \stdClass;
+            if ((str_starts_with($req->path, "/api/") ||
+                 str_starts_with($req->path, "/_edit/")) &&
+                 !self::runAuthMiddleware($req, $res)) return;
             $this->openDbAndLoadState();
             $next();
         });
@@ -65,6 +68,22 @@ final class App {
     public function alterDi(Injector $di): void {
         $di->share($this->ctx->storage);
         $di->share($this->ctx->theWebsite);
+    }
+    /**
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @return bool $requestWasValid
+     * @throws \Pike\PikeException If the route definition (ctx->router->map) wasn't valid
+     */
+    private static function runAuthMiddleware(Request $req, Response $res): bool {
+        $routeInfo = $req->routeInfo->myCtx;
+        //
+        if (($consumesStr = $routeInfo["consumes"] ?? "") &&
+            !str_starts_with($req->header("Content-Type", "text/html"), $consumesStr)) {
+            $res->status(415)->plain("Unexpected content-type");
+            return false;
+        }
+        return true;
     }
     /**
      */

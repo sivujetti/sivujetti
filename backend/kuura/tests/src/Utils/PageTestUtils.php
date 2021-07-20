@@ -68,6 +68,32 @@ final class PageTestUtils {
         return $pageType;
     }
     /**
+     * @param ?array<int, \KuuraCms\Block\Entities\Block> $blocks = null
+     * @return object
+     */
+    public function makeTestPageData(?array $blocks = null): object {
+        return (object) [
+            "slug" => "/hello",
+            "path" => "/hello",
+            "level" => 1,
+            "title" => "<Hello>",
+            "layoutId" => 1,
+            "blocks" => $blocks ?? self::makeDefaultBlockTree(),
+            "categories" => "[]",
+            "status" => Page::STATUS_PUBLISHED,
+        ];
+    }
+    /**
+     * @return \KuuraCms\Block\Entities\Block[]
+     */
+    private static function makeDefaultBlockTree(): array {
+        $btu = new BlockTestUtils();
+        return [$btu->makeBlockData(Block::TYPE_SECTION, "Main", "kuura:block-generic-wrapper", children: [
+            $btu->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Hello", "level" => 2]),
+            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Text"]),
+        ], propsData: ["cssClass" => "", "bgImage" => ""])];
+    }
+    /**
      * @param ?\KuuraCms\PageType\Entities\PageType $pageType = null
      * @return ?\KuuraCms\Page\Entities\Page
      */

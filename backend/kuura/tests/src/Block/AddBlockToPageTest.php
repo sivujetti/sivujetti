@@ -4,12 +4,12 @@ namespace KuuraCms\Tests\Block;
 
 use KuuraCms\App;
 use KuuraCms\Block\Entities\Block;
-use KuuraCms\Page\Entities\Page;
-use KuuraCms\Tests\Utils\{BlockTestUtils, PageTestUtils};
-use Pike\{PikeException, Request, TestUtils\DbTestCase, TestUtils\HttpTestUtils};
+use KuuraCms\Tests\Utils\{BlockTestUtils, HttpApiTestTrait, PageTestUtils};
+use Pike\{PikeException, TestUtils\DbTestCase, TestUtils\HttpTestUtils};
 
 final class AddBlockToPageTest extends DbTestCase {
     use HttpTestUtils;
+    use HttpApiTestTrait;
     private BlockTestUtils $blockTestUtils;
     private PageTestUtils $pageTestUtils;
     protected function setUp(): void {
@@ -17,6 +17,58 @@ final class AddBlockToPageTest extends DbTestCase {
         $this->pageTestUtils = new PageTestUtils(self::$db);
         $this->blockTestUtils = new BlockTestUtils($this->pageTestUtils);
     }
+    public function testAddBlockToPageInsertsNewBlockToDb(): void {
+        $state = $this->setupCreateBlockTest();
+        $this->makeKuuraApp($state);
+        $this->insertTestPageToDb($state);
+        $this->sendAddBlockToPageRequest($state);
+        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifyInsertedBlockToDb($state);
+    }
+    private function setupCreateBlockTest(): \TestState {
+        $state = new \TestState;
+        $testPageId = "1001";
+        $state->parentBlockId = "";
+        $state->inputData = (object) [
+            "id" => "-bbbbbbbbbbbbbbbbbb1",
+            "type" => Block::TYPE_PARAGRAPH,
+            "renderer" => "kuura:block-auto",
+            "title" => "",
+            "pageId" => $testPageId,
+            "text" => "My text",
+        ];
+        $state->testPageBlocksTree = [
+            $this->blockTestUtils->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Hello", "level" => 2])
+        ];
+        $state->testPageData = $this->pageTestUtils->makeTestPageData($state->testPageBlocksTree);
+        $state->testPageData->id = $testPageId;
+        $state->testPageData->slug = "/add-block-to-page-test-page";
+        $state->testPageData->path = "/add-block-to-page-test-page/";
+        $state->app = null;
+        return $state;
+    }
+    private function insertTestPageToDb(\TestState $state): void {
+        $this->pageTestUtils->insertPage($state->testPageData);
+    }
+    private function makeKuuraApp(\TestState $state): void {
+        $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
+    }
+    private function sendAddBlockToPageRequest(\TestState $state): void {
+        $state->spyingResponse = $state->app->sendRequest(
+            $this->createApiRequest("/api/blocks/to-page/{$state->testPageData->id}" .
+            ($state->parentBlockId ? "/{$state->parentBlockId}" : ""),
+                "POST", $state->inputData));
+    }
+    private function verifyRequestFinishedSuccesfully(\TestState $state): void {
+        $this->verifyResponseMetaEquals(201, "application/json", $state->spyingResponse);
+    }
+    private function verifyInsertedBlockToDb(\TestState $state): void {
+        $this->assertNotNull($this->blockTestUtils->getBlock(id: $state->inputData->id,
+                                                             pageId: $state->inputData->pageId));
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+
     public function testAddBlockToPageRejectsInvalidInputs(): void {
         $state = $this->setupCreateBlockTest();
         $state->inputData = (object) ["type" => Block::TYPE_PARAGRAPH];
@@ -68,64 +120,5 @@ final class AddBlockToPageTest extends DbTestCase {
         $this->expectExceptionMessage("Couldn't add block because its parent" .
             " #{$state->parentBlockId} doesn't exist.");
         $this->sendAddBlockToPageRequest($state);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-
-    public function testAddBlockToPageInsertsNewBlockToDb(): void {
-        $state = $this->setupCreateBlockTest();
-        $this->makeKuuraApp($state);
-        $this->insertTestPageToDb($state);
-        $this->sendAddBlockToPageRequest($state);
-        $this->verifyRequestFinishedSuccesfully($state);
-        $this->verifyInsertedBlockToDb($state);
-    }
-    private function setupCreateBlockTest(): \TestState {
-        $state = new \TestState;
-        $testPageId = "1001";
-        $state->parentBlockId = "";
-        $state->inputData = (object) [
-            "id" => "-bbbbbbbbbbbbbbbbbb1",
-            "type" => Block::TYPE_PARAGRAPH,
-            "renderer" => "kuura:block-auto",
-            "title" => "",
-            "pageId" => $testPageId,
-            "text" => "My text",
-        ];
-        $state->testPageBlocksTree = [
-            $this->blockTestUtils->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Hello", "level" => 2])
-        ];
-        $state->testPageData = (object) [
-            "id" => $testPageId,
-            "slug" => "/add-block-to-page-test-page",
-            "path" => "/add-block-to-page-test-page",
-            "level" => 1,
-            "title" => "-",
-            "layoutId" => 1,
-            "blocks" => $state->testPageBlocksTree,
-            "categories" => "[]",
-            "status" => Page::STATUS_PUBLISHED,
-        ];
-        $state->app = null;
-        return $state;
-    }
-    private function insertTestPageToDb(\TestState $state): void {
-        $this->pageTestUtils->insertPage($state->testPageData);
-    }
-    private function makeKuuraApp(\TestState $state): void {
-        $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
-    }
-    private function sendAddBlockToPageRequest(\TestState $state): void {
-        $state->spyingResponse = $state->app->sendRequest(
-            new Request("/api/blocks/to-page/{$state->testPageData->id}" .
-            ($state->parentBlockId ? "/{$state->parentBlockId}" : ""),
-                "POST", $state->inputData));
-    }
-    private function verifyRequestFinishedSuccesfully(\TestState $state): void {
-        $this->verifyResponseMetaEquals(201, "application/json", $state->spyingResponse);
-    }
-    private function verifyInsertedBlockToDb(\TestState $state): void {
-        $this->assertNotNull($this->blockTestUtils->getBlock(id: $state->inputData->id,
-                                                             pageId: $state->inputData->pageId));
     }
 }

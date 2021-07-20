@@ -12,8 +12,8 @@ final class BlockValidator {
      * @param object $input
      * @return string[] Error messages or []
      */
-    public static function validateInsertData(BlockTypeInterface $blockType,
-                                              object $input): array {
+    public static function validateInsertOrUpdateData(BlockTypeInterface $blockType,
+                                                      object $input): array {
         return ValidationUtils::addRulesForProperties(
             $blockType->defineProperties(),
             Validation::makeObjectValidator()

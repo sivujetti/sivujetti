@@ -87,13 +87,40 @@ final class PagesController {
         if ($req->params->pageType !== PageType::PAGE)
             throw new \RuntimeException("Not implemented yet.");
         //
-        $num = $pagesRepo->insert(PageType::PAGE, $req->body);
+        $num = $pagesRepo->insert($req->params->pageType, $req->body);
         //
         if ($num !== 1)
             throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",
                 PikeException::INEFFECTUAL_DB_OP);
         //
         $res->status(201)->json(["ok" => "ok"]);
+    }
+    /**
+     * PUT /api/pages/[w:pageType]/[i:pageId]/blocks: Overwrites the block tree
+     * of $req->params->pageId.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \KuuraCms\Page\PagesRepository $pagesRepo
+     */
+    public function updatePageBlocks(Request $req,
+                                     Response $res,
+                                     PagesRepository $pagesRepo): void {
+        if ($req->params->pageType !== PageType::PAGE)
+            throw new \RuntimeException("Not implemented yet.");
+        //
+        $pseudoPage = new \stdClass;
+        $pseudoPage->type = $req->params->pageType;
+        $pseudoPage->blocks = $req->body->blocks;
+        $num = $pagesRepo->updateById($req->params->pageId,
+                                      $pseudoPage,
+                                      theseColumnsOnly: ["blocks"]);
+        //
+        if ($num !== 1)
+            throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",
+                PikeException::INEFFECTUAL_DB_OP);
+        //
+        $res->status(200)->json(["ok" => "ok"]);
     }
     /**
      * @param \Pike\Request $req

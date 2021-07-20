@@ -37,11 +37,17 @@ abstract class PageTypeValidator {
     /**
      * @param \KuuraCms\PageType\Entities\PageType $pageType
      * @param object $input
+     * @param ?object $blockTypes = null null -> Do not validate $input->blocks, object -> Do validate $input->blocks using $blockTypes.*.defineProperties()
      * @return string[] Error messages or []
      */
     public static function validateUpdateData(PageType $pageType,
-                                              object $input): array {
-        return [];
+                                              object $input,
+                                              object $blockTypes = null): array {
+        $v = Validation::makeObjectValidator()
+            ->rule("blocks", "minLength", "1", "array");
+        if (!($errors = $v->validate($input)) && $blockTypes)
+            $errors = self::validateBlocks($input->blocks, $blockTypes);
+        return $errors;
     }
     /**
      * @param object[] $branch
@@ -53,7 +59,7 @@ abstract class PageTypeValidator {
             if (!($bt = $blockTypes->{$blockData->type} ?? null))
                 throw new PikeException("Unknown block type `{$blockData->type}`",
                                         PikeException::BAD_INPUT);
-            if (($errors = BlockValidator::validateInsertData($bt, $blockData)))
+            if (($errors = BlockValidator::validateInsertOrUpdateData($bt, $blockData)))
                 return $errors;
             if ($blockData->children && ($errors = self::validateBlocks($blockData->children, $blockTypes)))
                 return $errors;

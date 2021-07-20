@@ -10,7 +10,8 @@ use Pike\{PikeException, Request, Response};
 
 final class BlocksController {
     /**
-     * Inserts a new block to the database and links it to $req->params->pageId.
+     * POST /api/blocks/to-page/[i:pageId]/[w:parentBlockId]?: Inserts new block
+     * to the database and links it to $req->params->pageId.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
@@ -21,13 +22,14 @@ final class BlocksController {
                                    Response $res,
                                    PagesRepository $pagesRepo,
                                    SharedAPIContext $storage): void {
+        throw new \RuntimeException("Deprecated");
         if (!is_string(($typeAsStr = $req->body->type ?? null)))
             throw new PikeException("type must be string",
                                     PikeException::BAD_INPUT);
         if (!($blockType = ($storage->getDataHandle()->blockTypes->{$typeAsStr} ?? null)))
             throw new PikeException("Unknown block type `{$typeAsStr}`.",
                                     PikeException::BAD_INPUT);
-        if (($errors = BlockValidator::validateInsertData($blockType, $req->body))) {
+        if (($errors = BlockValidator::validateInsertOrUpdateData($blockType, $req->body))) {
             $res->status(400)->json($errors);
             return;
         }

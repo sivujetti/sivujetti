@@ -102,7 +102,8 @@ final class InstallCmsFromDirTest extends DbTestCase {
             "    define('KUURA_FLAGS',     0);\r\n" .
             "}\r\n" .
             "return [\r\n" .
-            "    'db.connPath' => '".str_replace(KUURA_BACKEND_PATH, "'.KUURA_BACKEND_PATH.'",$actualConfig["db.connPath"])."',\r\n" .
+            "    'db.driver'      => '{$actualConfig["db.driver"]}',\r\n" .
+            "    'db.database'    => '".str_replace(KUURA_BACKEND_PATH, "'.KUURA_BACKEND_PATH.'",$actualConfig["db.database"])."',\r\n" .
             "    'db.tablePrefix' => '',\r\n" .
             "];\r\n"
         );
@@ -119,7 +120,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $actualConfig = $this->_getSiteConfig($state);
         $installerDb = $state->getInstallerDb->__invoke();
         if ($installerDb->attr(\PDO::ATTR_DRIVER_NAME) === "sqlite") {
-            $this->fs->unlink(substr($actualConfig["db.connPath"], strlen("sqlite:")));
+            $this->fs->unlink($actualConfig["db.database"]);
         } else {
             $installerDb->exec("DROP DATABASE `{$actualConfig["db.database"]}`");
         }

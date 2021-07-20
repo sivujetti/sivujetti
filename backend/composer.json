@@ -8,7 +8,7 @@
         "ext-mbstring": "*",
         "ext-ctype": "*",
         "ext-fileinfo": "*",
-        "ut4/pike": "0.10.0-dev",
+        "ut4/pike": "1.0.0-dev",
         "phpmailer/phpmailer": "~6.1"
     },
     "require-dev": {

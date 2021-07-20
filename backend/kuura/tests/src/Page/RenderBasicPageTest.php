@@ -5,7 +5,6 @@ namespace KuuraCms\Tests\Page;
 use KuuraCms\App;
 use KuuraCms\Block\BlockTree;
 use KuuraCms\Block\Entities\Block;
-use KuuraCms\Page\Entities\Page;
 use KuuraCms\Page\SiteAwareTemplate;
 use KuuraCms\Tests\Utils\BlockTestUtils;
 use KuuraCms\Tests\Utils\PageTestUtils;
@@ -31,21 +30,8 @@ final class RenderBasicPageTest extends DbTestCase {
     private function setupTest(): \TestState {
         $state = new \TestState;
         $btu = new BlockTestUtils();
-        $state->testPageBlocksTree = [$btu->makeBlockData(Block::TYPE_SECTION, "Main", "kuura:block-generic-wrapper", children: [
-            $btu->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Hello", "level" => 2]),
-            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Text"]),
-        ], propsData: ["cssClass" => "", "bgImage" => ""])];
         $state->testLayoutBlocksTree = [$btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Footer text"])];
-        $state->testPageData = (object) [
-            "slug" => "/hello",
-            "path" => "/hello",
-            "level" => 1,
-            "title" => "<Hello>",
-            "layoutId" => 1,
-            "blocks" => $state->testPageBlocksTree,
-            "categories" => "[]",
-            "status" => Page::STATUS_PUBLISHED,
-        ];
+        $state->testPageData = $this->pageTestUtils->makeTestPageData();
         $state->testLayoutData = (object) [
             "blocks" => BlockTree::toJson($state->testLayoutBlocksTree),
         ];
@@ -73,7 +59,7 @@ final class RenderBasicPageTest extends DbTestCase {
         $expectedHeading = htmlspecialchars($state->testPageData->title);
         $this->assertStringContainsString("<h1 data-prop=\"title\">{$expectedHeading}</h1>",
                                           $state->spyingResponse->getActualBody());
-        $expectedPageBlockHeading = $state->testPageBlocksTree[0]->children[0]->propsData[0]->value;
+        $expectedPageBlockHeading = $state->testPageData->blocks[0]->children[0]->propsData[0]->value;
         $this->assertStringContainsString("<h2>{$expectedPageBlockHeading}</h2>",
                                           $state->spyingResponse->getActualBody());
         $expectedFooterText = $state->testLayoutBlocksTree[0]->propsData[0]->value;

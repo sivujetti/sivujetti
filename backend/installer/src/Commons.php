@@ -99,8 +99,9 @@ if (!defined('KUURA_BASE_URL')) {
     define('KUURA_FLAGS',     0);
 }
 return [
-" . (array_key_exists('db.connPath', $config) ?
-"    'db.connPath' => '".str_replace(KUURA_BACKEND_PATH, "'.KUURA_BACKEND_PATH.'",$config["db.connPath"])."',
+" . (($config["db.driver"] ?? "") === "sqlite" ?
+"    'db.driver'      => 'sqlite',
+    'db.database'    => '".str_replace(KUURA_BACKEND_PATH, "'.KUURA_BACKEND_PATH.'",$config["db.database"])."',
     'db.tablePrefix' => ''," :
 "    'db.host'        => '{$config["db.host"]}',
     'db.database'    => '{$config["db.database"]}',

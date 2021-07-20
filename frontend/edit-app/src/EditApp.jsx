@@ -4,6 +4,7 @@ import {Toaster} from '../../commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
 import AddPageMainPanelView from './AddPageMainPanelView.jsx';
 import store, {setCurrentPage} from './store.js';
+import SaveButton from './SaveButton.jsx';
 
 class EditApp extends preact.Component {
     // blockTrees;
@@ -35,10 +36,15 @@ class EditApp extends preact.Component {
      */
     render({webPageIframe}, {isCreatePageModeOn}) {
         return <>
-            <header class="container">
-                <a href={ urlUtils.makeUrl('_edit') }>
+            <header class="container d-flex flex-centered">
+                <a href={ urlUtils.makeUrl('_edit') } class="column">
                     <img src={ urlUtils.makeAssetUrl('/public/kuura/assets/logo-darkmode.png') }/>
+                    <span class="d-inline-block ml-1">
+                        <span class="d-inline-block col-12">Sivujetti</span>
+                        <span>{ __('Admin') }</span>
+                    </span>
                 </a>
+                <SaveButton/>
             </header>
             { !isCreatePageModeOn
                 ? <DefaultMainPanelView

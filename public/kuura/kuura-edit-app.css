@@ -26,7 +26,7 @@
     margin-bottom: -.2rem;
 }
 
-/* Commons */
+/* Commons / Global utilies */
 @font-face {
     font-family: "Fira Sans";
     src: url("assets/fira-sans-light.woff2") format("woff2");
@@ -158,6 +158,20 @@ h2 {
     right: 0;
 }*/
 
+/* EditApp: Components */
+ul.popup-menu.menu {
+    position: fixed;
+    z-index: 2;
+}
+a.popup-close-area {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
 /* EditApp: Main panel */
 #main-panel header {
     margin: .4rem 0 -.7rem 0;
@@ -165,10 +179,21 @@ h2 {
 #main-panel header a {
     display: inline-block;
     padding: .2rem;
+    text-decoration: none;
 }
 #main-panel header img {
     width: 29px;
     filter: invert(1)
+}
+#main-panel header img + span {
+    position: relative;
+    line-height: .7rem;
+    top: -.12rem;
+    font-size: .65rem;
+}
+#main-panel header img + span > span:last-child {
+    opacity: 0.4;
+    font-size: .6rem;
 }
 
 #main-panel .panel-section {
@@ -233,8 +258,8 @@ h2 {
 }
 .block-tree .drag-handle:hover + .more-toggle,
 .block-tree .more-toggle:hover,
-.block-tree .drag-handle .more-toggle.opened {
-    opacity: 0; /* todo */
+.block-tree .more-toggle.opened {
+    opacity: 1;
 }
 .block-tree ul li > .d-flex > .drag-handle:before {
     content: "";

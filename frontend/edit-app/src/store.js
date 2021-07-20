@@ -13,33 +13,39 @@ const currentPageReducer = (state = {}, action) => {
     }
 };
 
-const setCurrentPage = (value) => ({type: 'currentPage/set', value});
-const selectCurrentPage = (state) => state.currentPage;
+const setCurrentPage = value => ({type: 'currentPage/set', value});
+const selectCurrentPage = state => state.currentPage;
 
 
 /**
- * @param {String} state
+ * @param {Array<{opName: String; handler: Function;}>} state
  * @param {Object} action
  */
-const loadStateReducer = (state = 'none', action) => {
+const opQueueReducer = (state = [], action) => {
     switch (action.type) {
-    case 'loadState/set':
-        return action.value;
+    case 'opQueue/set':
+        return action.opQueue;
+    case 'opQueue/pushItem':
+        return state.concat(action.item);
+    case 'opQueue/dropItem':
+        return state.filter(({opName}) => opName !== action.opName);
     default:
         return state;
     }
 };
 
-const setLoadState = (stateName) => ({type: 'loadState/set', value: stateName});
-const selectLoadState = (state) => state.loadState;
+const setOpQueue = opQueue => ({type: 'opQueue/set', opQueue});
+const pushItemToOpQueue = (opName, handler) => ({type: 'opQueue/pushItem', item: {opName, handler}});
+const deleteItemFromOpQueue = opName => ({type: 'opQueue/dropItem', opName});
+const selectOpQueue = state => state.opQueue;
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
 
 const mainStore = createManageableStore(undefined, {
-    'currentPage': currentPageReducer,
-    'loadState': loadStateReducer,
+    currentPage: currentPageReducer,
+    opQueue: opQueueReducer
 });
 
 const observeMainStore = (select, onChange, triggerImmediately = false) =>
@@ -47,6 +53,6 @@ const observeMainStore = (select, onChange, triggerImmediately = false) =>
 ;
 
 export {setCurrentPage, selectCurrentPage,
-        setLoadState, selectLoadState,
+        setOpQueue, pushItemToOpQueue, deleteItemFromOpQueue, selectOpQueue,
         observeMainStore as observeStore};
 export default mainStore;

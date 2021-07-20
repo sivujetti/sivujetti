@@ -17,15 +17,22 @@ class EditAppAwareWebPage {
     }
     /**
      * @param {Block} block
-     * @param {Block} after
+     * @param {Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}} after
      * @returns {BlockRefComment}
      * @access public
      */
     appendBlockToDom(block, after) {
-        const afterComment = this.getBlockContents(after).pop();
-        if (!afterComment) throw new Error(`Failed to ending comment for "${makeStartingComment(after)}"`);
-        //
-        const startingCommentNode = this.renderBlockInto(block, afterComment.parentNode, afterComment.nextSibling, true);
+        let commentOrPseudoComment;
+        if (after._cref) { // Block
+            commentOrPseudoComment = this.getBlockContents(after).pop();
+            if (!commentOrPseudoComment) throw new Error(`Failed to ending comment for "${makeStartingComment(after)}"`);
+        } else { // Pseudo comment / marker
+            commentOrPseudoComment = after;
+        }
+        const startingCommentNode = this.renderBlockInto(block,
+            commentOrPseudoComment.parentNode,
+            commentOrPseudoComment.nextSibling,
+            true);
         return makeBlockRefComment(block.id, startingCommentNode);
     }
     /**
@@ -54,6 +61,13 @@ class EditAppAwareWebPage {
         const toRemove = this.getBlockContents(block);
         const parent = toRemove[0].parentElement;
         for (const el of toRemove) parent.removeChild(el);
+    }
+    /**
+     * @param {Block} block
+     * @access public
+     */
+    findEndingComment(block) {
+        return this.getBlockContents(block, true).pop();
     }
     /**
      * @param {String} text

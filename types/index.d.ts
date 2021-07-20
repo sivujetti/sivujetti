@@ -57,3 +57,9 @@ interface Env {
     window: Window;
     document: Document;
 }
+
+interface ContextMenuLink {
+    text: String;
+    title: String;
+    id: String;
+}

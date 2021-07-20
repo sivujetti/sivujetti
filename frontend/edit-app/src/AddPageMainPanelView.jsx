@@ -3,6 +3,7 @@ import {hookForm, InputGroup, InputError, Input} from '../../commons/Form.jsx';
 import {urlUtils, stringUtils} from '../../commons/utils.js';
 import toasters from '../../commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';
+import store, {pushItemToOpQueue, deleteItemFromOpQueue} from './store.js';
 
 const tempPageTypes = {
     'Pages': {
@@ -35,6 +36,13 @@ class AddPageMainPanelView extends preact.Component {
      */
     componentDidMount() {
         this.form.triggerChange(__('New page'), 'title');
+        store.dispatch(pushItemToOpQueue('create-new-page', this.handleFormSubmitted.bind(this)));
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        store.dispatch(deleteItemFromOpQueue('create-new-page'));
     }
     /**
      * @access protected
@@ -42,6 +50,11 @@ class AddPageMainPanelView extends preact.Component {
     render({cancelAddPage}, {errors, classes, slug, layoutId}) {
         return <form onSubmit={ this.handleFormSubmitted.bind(this) }>
             <h1>{ __('Create page') }</h1>
+            <button
+                onClick={ cancelAddPage }
+                class="btn btn-link btn-sm mb-2"
+                title={ __('Cancel add page') }
+                type="button">&lt; { __('Back') }</button>
             <section class="panel-section">
                 <h2>{ __('Layout') }</h2>
                 <select
@@ -69,10 +82,6 @@ class AddPageMainPanelView extends preact.Component {
                 <h2>{ __('Content') }</h2>
                 <BlockTrees containingView="AddPageMainPanelView" ref={ this.blockTrees } hideTabs/>
             </section>
-            <div class="float-bottom" style="position: fixed;bottom: 0px;padding: 0.4rem;width: 242px;background: var(--color-bg-dimmed);border-top: 1px solid var(--color-bg-dimmed2);">
-                <button class="btn btn-sm btn-primary" type="submit">{ __('Create page') }</button>
-                <button class="btn btn-sm btn-link" onClick={ cancelAddPage } type="button">{ __('Cancel') }</button>
-            </div>
         </form>;
     }
     /**
@@ -88,12 +97,14 @@ class AddPageMainPanelView extends preact.Component {
         return state;
     }
     /**
-     * @param {Event} e
+     * @param {Event|undefined} e
+     * @returns {Promise<Boolean>}
      * @access private
      */
     handleFormSubmitted(e) {
         if (!this.form.handleSubmit(e))
-            return;
+            return Promise.resolve(false);
+        //
         const data = Object.assign({
             slug: this.state.slug,
             path: `${this.state.slug.substr(1)}/`,
@@ -103,10 +114,11 @@ class AddPageMainPanelView extends preact.Component {
             blocks: this.blockTrees.current.getPageBlocksTree(),
             status: 0,
         }, this.pageType.defaultOwnProps);
-        http.post('/api/pages/Pages', data)
+        return http.post('/api/pages/Pages', data)
             .then(resp => {
-                if (resp.ok !== 'ok') throw new Error;
+                if (resp.ok !== 'ok') throw new Error('-');
                 urlUtils.redirect(`/_edit${data.slug}`);
+                return true;
             })
             .catch(err => {
                 window.console.error(err);

@@ -3,7 +3,7 @@ import {hookForm, InputGroup, InputError, Input} from '../../commons/Form.jsx';
 import {urlUtils, stringUtils} from '../../commons/utils.js';
 import toasters from '../../commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';
-import store, {pushItemToOpQueue, deleteItemFromOpQueue} from './store.js';
+import store, {pushItemToOpQueue, deleteItemsFromOpQueueAfter} from './store.js';
 
 const tempPageTypes = {
     'Pages': {
@@ -42,7 +42,7 @@ class AddPageMainPanelView extends preact.Component {
      * @access protected
      */
     componentWillUnmount() {
-        store.dispatch(deleteItemFromOpQueue('create-new-page'));
+        store.dispatch(deleteItemsFromOpQueueAfter('create-new-page'));
     }
     /**
      * @access protected
@@ -124,6 +124,7 @@ class AddPageMainPanelView extends preact.Component {
                 window.console.error(err);
                 toasters.editAppMain(__('Something unexpected happened.'));
                 this.form.setIsSubmitting(false);
+                return false;
             });
     }
     /**

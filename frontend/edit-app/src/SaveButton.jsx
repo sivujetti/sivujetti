@@ -42,7 +42,7 @@ class SaveButton extends preact.Component {
                 store.dispatch(setOpQueue([]));
                 return;
             }
-            top.handler()
+            top.handler(queue)
                 .then(doProceed => {
                     // Truthy value -> clear item from the queue and proceed
                     if (doProceed !== false) next(queue);
@@ -56,8 +56,8 @@ class SaveButton extends preact.Component {
 
 function optimizeQueueTEMP(queue) {
     if (queue[0].opName === 'append-block-to-tree' ||
-        queue[0].opName === 'create-new-page')
-        return [queue[0]];
+        queue[0].opName === 'delete-block-from-tree')
+        return [queue[queue.length - 1]];
     throw new Error();
 }
 

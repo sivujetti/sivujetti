@@ -1,7 +1,8 @@
-import {__} from '../../commons/main.js';
+import {__, http} from '../../commons/main.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import Icon from '../../commons/Icon.jsx';
 import Tabs from '../../commons/Tabs.jsx';
+import toasters from '../../commons/Toaster.jsx';
 import BlockTypeSelector, {blockTypes} from './BlockTypeSelector.jsx';
 import Block from './Block.js';
 import store, {observeStore, selectCurrentPage, pushItemToOpQueue} from './store.js';
@@ -12,7 +13,7 @@ class BlockTreeTabs extends preact.Component {
     // static currentWebPage;
     // static currentWebPageComments;
     /**
-     * @param {{contaningView: String;}} props
+     * @param {{containingView: String;}} props
      */
     constructor(props) {
         super(props);
@@ -62,7 +63,7 @@ class BlockTreeTabs extends preact.Component {
     /**
      * @access protected
      */
-    render({hideTabs}, {currentTab, pageBlocksInput, layoutBlocksInput}) {
+    render({hideTabs, containingView}, {currentTab, pageBlocksInput, layoutBlocksInput}) {
         if (pageBlocksInput === null)
             return;
         return <div>
@@ -70,7 +71,7 @@ class BlockTreeTabs extends preact.Component {
                 onTabChanged={ toIdx => this.setState({currentTab: toIdx}) }/> : null }
             { currentTab === 0
                 ? [
-                    <BlockTree key="pageBlocks" blocksInput={ pageBlocksInput } onChangesApplied={ !BlockTreeTabs.currentWebPage.data.page.isPlaceholderPage ? this.saveExistingPageBlocksToBackend.bind(this) : function () {} } ref={ this.pageBlocksTree }/>,
+                    <BlockTree key="pageBlocks" blocksInput={ pageBlocksInput } onChangesApplied={ containingView === 'DefaultMainPanelView' ? this.saveExistingPageBlocksToBackend.bind(this) : function () {} } ref={ this.pageBlocksTree }/>,
                     <button class="btn btn-sm btn-link with-icon" onClick={ () => this.pageBlocksTree.current.appendNewBlockPlaceholder() } title={ __('Add new block') } type="button" style="color: var(--color-fg-dimmed)">
                         <Icon iconId="plus" className="size-sm"/> { __('Add new block') }
                     </button>
@@ -84,7 +85,17 @@ class BlockTreeTabs extends preact.Component {
      * @access private
      */
     saveExistingPageBlocksToBackend(newBlockTree) {
-        throw new Error('todo');
+        return http.put(`/api/pages/Pages/${BlockTreeTabs.currentWebPage.data.page.id}/blocks`,
+            {blocks: BlockTree.mapRecursively(newBlockTree, blockToRaw)})
+            .then(resp => {
+                if (resp.ok !== 'ok') throw new Error('-');
+                return true;
+            })
+            .catch(err => {
+                window.console.error(err);
+                toasters.editAppMain(__('Something unexpected happened.'));
+                return false;
+            });
     }
 }
 
@@ -234,7 +245,8 @@ class BlockTree extends preact.Component {
             this.appendNewBlockPlaceholder(this.state.currentlyOpenBlock);
         } else if (link.id === 'delete-block') {
             this.cancelAddBlock(this.state.currentlyOpenBlock);
-            store.dispatch(pushItemToOpQueue('delete-block-from-tree', 'todo'));
+            store.dispatch(pushItemToOpQueue('delete-block-from-tree',
+                () => this.props.onChangesApplied(this.state.blockTree)));
         }
     }
     /**

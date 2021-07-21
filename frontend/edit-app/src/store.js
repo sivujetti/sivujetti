@@ -29,6 +29,8 @@ const opQueueReducer = (state = [], action) => {
         return state.concat(action.item);
     case 'opQueue/dropItem':
         return state.filter(({opName}) => opName !== action.opName);
+    case 'opQueue/dropItemsAfter':
+        return state.slice(0, state.findIndex(({opName}) => opName === action.afterOpName) + (action.includeOpItself ? 0 : 1));
     default:
         return state;
     }
@@ -37,6 +39,7 @@ const opQueueReducer = (state = [], action) => {
 const setOpQueue = opQueue => ({type: 'opQueue/set', opQueue});
 const pushItemToOpQueue = (opName, handler) => ({type: 'opQueue/pushItem', item: {opName, handler}});
 const deleteItemFromOpQueue = opName => ({type: 'opQueue/dropItem', opName});
+const deleteItemsFromOpQueueAfter = (afterOpName, includeOpItself = true) => ({type: 'opQueue/dropItemsAfter', afterOpName, includeOpItself});
 const selectOpQueue = state => state.opQueue;
 
 
@@ -52,7 +55,11 @@ const observeMainStore = (select, onChange, triggerImmediately = false) =>
     observeStore(mainStore, select, onChange, triggerImmediately)
 ;
 
-export {setCurrentPage, selectCurrentPage,
-        setOpQueue, pushItemToOpQueue, deleteItemFromOpQueue, selectOpQueue,
+export {// Current page
+        setCurrentPage, selectCurrentPage,
+        // OpQueue
+        setOpQueue, pushItemToOpQueue, deleteItemFromOpQueue, deleteItemsFromOpQueueAfter,
+        selectOpQueue,
+        //
         observeMainStore as observeStore};
 export default mainStore;

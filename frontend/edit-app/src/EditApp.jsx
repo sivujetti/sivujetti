@@ -1,9 +1,9 @@
-import {__} from '../../commons/main.js';
+import {__, signals} from '../../commons/main.js';
 import {urlUtils} from '../../commons/utils.js';
 import {Toaster} from '../../commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
 import AddPageMainPanelView from './AddPageMainPanelView.jsx';
-import store, {setCurrentPage} from './store.js';
+import store, {setCurrentPage, setOpQueue} from './store.js';
 import SaveButton from './SaveButton.jsx';
 
 class EditApp extends preact.Component {
@@ -29,7 +29,9 @@ class EditApp extends preact.Component {
             this.currentWebPageType = dataFromWebPage.page.type;
             this.setState({isCreatePageModeOn: dataFromWebPage.page.isPlaceholderPage});
         }
+        signals.emit('new-page-loaded');
         store.dispatch(setCurrentPage({dataFromWebPage, comments, webPage}));
+        store.dispatch(setOpQueue([]));
     }
     /**
      * @access protected

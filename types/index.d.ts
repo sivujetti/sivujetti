@@ -1,10 +1,11 @@
 interface Block {
     id: String;
-    type: 'Heading'|'Listing'|'Paragraph'|String;
+    type: 'Columns'|'Heading'|'Paragraph'|'Section'|String;
     _cref: BlockRefComment;
     toHtml(block: Block): String;
     static fromObject(data: RawBlock|Object): Block;
     static fromType(blockType: BlockType, id: String): Block;
+    static clone(from: RawBlock|Object): Block;
 }
 
 interface RawBlock {
@@ -43,14 +44,17 @@ interface CurrentPageData {
 interface EditAppAwareWebPage {
     data: CurrentPageData;
     scanBlockRefComments(): Array<BlockRefComment>;
-    after(block: Block, after: Block): BlockRefComment;
-    deleteBlockFromDom(block: Block);
-    updateTitle(text: String);
+    appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): BlockRefComment;
+    replaceBlockFromDomWith(currentBlock: Block, replacement: Block): BlockRefComment;
+    deleteBlockFromDom(block: Block, doKeepBoundaryComments: Boolean = false);
+    renderBlockInPlace(block: Block): void;
+    findEndingComment(block: Block): Commment|undefined;
+    updateTitle(text: String): void;
 }
 
 interface WebPageIframe {
-    openPlaceholderPage(pageType: String, layoutId: String = '1');
-    goBack();
+    openPlaceholderPage(pageType: String, layoutId: String = '1'): void;
+    goBack(): void;
 }
 
 interface Env {

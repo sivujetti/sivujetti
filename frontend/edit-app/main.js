@@ -21,7 +21,7 @@ function configureServices() {
 }
 
 function renderReactEditApp() {
-    let editAppReactRef = preact.createRef();
+    const editAppReactRef = preact.createRef();
 
     window.editApp = {
         /**
@@ -41,7 +41,7 @@ function renderReactEditApp() {
     }), document.getElementById('main-panel'));
 
     preact.render(preact.createElement(InspectorPanel, {
-        //
+        rootEl: document.getElementById('root'),
     }), document.getElementById('inpector-panel'));
 }
 

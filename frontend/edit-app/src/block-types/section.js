@@ -1,9 +1,18 @@
 import {urlUtils} from '../../../commons/utils.js';
 
+class SectionBlockEditForm extends preact.Component {
+    render() {
+        return <div>todo</div>;
+    }
+}
+
+const initialData = {cssClass: '', bgImage: ''};
+
 export default {
     name: 'Section',
     friendlyName: 'Section',
-    initialData: {cssClass: '', bgImage: ''},
+    ownPropNames: Object.keys(initialData),
+    initialData,
     defaultRenderer: 'kuura:block-generic-wrapper',
     reRender({cssClass, bgImage, children}) {
         return `<section class="${cssClass}"` +
@@ -11,5 +20,6 @@ export default {
             '>' +
             (children ? children.map(b => b.reRender(b)) : '') +
         '</section>';
-    }
+    },
+    editForm: SectionBlockEditForm,
 };

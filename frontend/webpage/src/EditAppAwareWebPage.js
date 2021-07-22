@@ -42,28 +42,44 @@ class EditAppAwareWebPage {
      * @access public
      */
     replaceBlockFromDomWith(currentBlock, replacement) {
-        // 1. Remove old
-        const contents = this.getBlockContents(currentBlock);
-        const parent = contents[0].parentNode;
-        for (let i = 1; i < contents.length - 1; ++i) // Leave [0] and [-1]
-            parent.removeChild(contents[i]);
-        // 2. Add new
-        this.renderBlockInto(replacement, parent, contents[contents.length - 1]);
+        // 1. Remove contents of currentBlock
+        const contents = this.deleteBlockFromDom(currentBlock, true);
+        // 2. Add contents of replacement
+        this.renderBlockInto(replacement, contents[0].parentNode,
+            contents[contents.length - 1]);
         if (currentBlock.type !== replacement.type)
            contents[0].textContent = makeStartingComment(replacement);
         return makeBlockRefComment(replacement, contents[0]);
     }
     /**
      * @param {Block} block
+     * @param {Boolean} doKeepBoundaryComments = false
+     * @returns {Array<HTMLElement>}
      * @access public
      */
-    deleteBlockFromDom(block) {
+    deleteBlockFromDom(block, doKeepBoundaryComments = false) {
         const toRemove = this.getBlockContents(block);
         const parent = toRemove[0].parentElement;
-        for (const el of toRemove) parent.removeChild(el);
+        //
+        const oneOff = !doKeepBoundaryComments ? 0 : 1;
+        for (let i = oneOff; i < toRemove.length - oneOff; ++i)
+            parent.removeChild(toRemove[i]);
+        return toRemove;
     }
     /**
      * @param {Block} block
+     * @access public
+     */
+    renderBlockInPlace(block) {
+        // 1. Remove old contents
+        this.deleteBlockFromDom(block, true);
+        // 2. Replace with current contents
+        const com = block._cref.startingCommentNode;
+        this.renderBlockInto(block, com.parentNode, com.nextSibling);
+    }
+    /**
+     * @param {Block} block
+     * @returns {Commment|undefined}
      * @access public
      */
     findEndingComment(block) {
@@ -82,12 +98,12 @@ class EditAppAwareWebPage {
      * @param {Block} block
      * @param {HTMLElement} parent
      * @param {HTMLElement=} before = null
-     * @param {boolean} doInsertCommentBoundaries = false
+     * @param {boolean} doInsertCommentBoundaryComments = false
      * @returns {Comment|null}
      * @access private
      */
-    renderBlockInto(block, parent, before = null, doInsertCommentBoundaries = false) {
-        const startingComment = !doInsertCommentBoundaries ? null : makeStartingComment(block);
+    renderBlockInto(block, parent, before = null, doInsertCommentBoundaryComments = false) {
+        const startingComment = !doInsertCommentBoundaryComments ? null : makeStartingComment(block);
         const temp = document.createElement('template');
         temp.innerHTML = !startingComment
             ? block.toHtml()

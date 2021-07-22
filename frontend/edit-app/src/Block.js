@@ -29,7 +29,17 @@ class Block {
         ));
     }
     /**
-     * @returns {string}
+     * @param {RawBlock} from
+     * @returns {Block}
+     * @access public
+     */
+    static clone(from) {
+        const data = Object.assign(JSON.parse(JSON.stringify(from)),
+            {_cref: from._cref, children: from.children});
+        return Block.fromObject(data);
+    }
+    /**
+     * @returns {String}
      * @access public
      */
     toHtml() {

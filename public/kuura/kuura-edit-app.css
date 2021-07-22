@@ -3,27 +3,80 @@
     --color-bg-default: rgb(255, 255, 255);
     --color-bg-dimmed: rgb(250, 252, 255);
     --color-bg-dimmed2: rgb(235, 237, 243);
-    --color-accent: #909daf;
-    --color-accent2: #8fdec4;
-    --color-fg-default: rgb(48, 52, 65);
-    --color-fg-dimmed: rgb(150, 155, 173);
+    --color-accent: #1fc79d;
+    --color-accent2: #00eeb3;
+    --color-accent3: rgba(118,255,255,.33);
+    --color-fg-default: #000a47;
+    --color-fg-dimmed: #000a47;
     --border-tree-guide: 1px dotted rgba(121, 125, 136, .56);
     --border-dashed-box: 1px dashed rgba(0,0,0,0.2);
+    --color-input-border: #e1e4e8;
+    --color-blue: #2196f3;
+    --color-orange: #ff5722;
+    --color-purple: #673ab7;
+    --color-pink: #e91e63;
+    --color-bg-button: rgb(244, 244, 247);
+    --color-bg-button-hover: rgb(236, 236, 239);
+}
+.color-default {
+    color: var(--color-fg-default);
 }
 .color-accent {
     color: var(--color-accent);
 }
+.color-orange {
+    color: var(--color-orange);
+}
+.color-purple {
+    color: var(--color-purple);
+}
 
 /* Spectre-overrides */
 .btn {
+    background: var(--color-bg-button);
+    border-color: var(--color-bg-button);
+    color: var(--color-fg-default);
     font-size: .7rem;
+    font-weight: 400;
     padding: .25rem .6rem;
+    border-radius: 4px;
+}
+.btn:hover {
+    background: var(--color-bg-button-hover);
+    border-color: var(--color-bg-button-hover);
+    color: var(--color-fg-default);
+}
+.btn:focus {
+    background: rgb(244, 244, 247);
+    border-color: var(--color-fg-default);
+    box-shadow: none;
+    outline: none;
+}
+.btn.btn-primary:focus, .btn.btn-primary:hover {
+    background: #00062e;
+    border-color: #00041e;
+    color: #fff;
+}
+.btn.btn-primary:focus {
+    box-shadow: 0 0 0 0.1rem rgb(112, 218, 189);
+}
+.btn.btn-sm {
+    font-size: .65rem;
 }
 .form-input, .form-select {
+    border: 1px solid var(--color-input-border);
+    border-radius: 4px;
+    font-weight: 300;
     font-size: .7rem;
 }
 .form-group > .form-input-hint {
     margin-bottom: -.2rem;
+}
+.menu .menu-item > a:focus, .menu .menu-item > a:hover {
+    background: rgba(129, 134, 165, .15);
+}
+.menu .menu-item > a.active, .menu .menu-item > a:active {
+    background: rgba(129, 134, 165, .15);
 }
 
 /* Commons / Global utilies */
@@ -31,6 +84,12 @@
     font-family: "Fira Sans";
     src: url("assets/fira-sans-light.woff2") format("woff2");
     font-weight: 300; /* light */
+    font-style: normal;
+}
+@font-face {
+    font-family: "Fira Sans";
+    src: url("assets/fira-sans-regular.woff2") format("woff2");
+    font-weight: 400; /* normal */
     font-style: normal;
 }
 @font-face {
@@ -70,10 +129,11 @@ h2 {
     background-color: var(--color-bg-default);
     border-radius: 2px;
     box-shadow: 2px 2px 4px rgba(0,0,0,.1);
+    font-weight: 400;
 }
 .dashed {
     border: var(--border-dashed-box);
-    border-radius: 6px;
+    border-radius: 4px;
 }
 .btn.widen.btn-sm {
     padding: .05rem .6rem;
@@ -95,31 +155,40 @@ h2 {
 
 
 /* EditApp: commons */
-@keyframes adjust-panels {
-    from {
-    }
+@keyframes adjust-main-panel {
     to {
-        height: 50%;
+        height: 70%;
+    }
+}
+@keyframes adjust-inspector-panel {
+    to {
+        height: 30%;
     }
 }
 .one-column-layout #main-panel,
 .one-column-layout #inpector-panel {
     position: absolute;
     width: 242px;
-    background-color: var(--color-bg-dimmed);
+    background-color: var(--color-bg-default);
     color: var(--color-fg-default);
+    border-right: 1px solid var(--color-bg-dimmed2);
     overflow-y: auto;
-    transition: min-height .2s linear, max-height .2s linear, opacity .1s linear;
+    transition: opacity .1s linear;
 }
 .one-column-layout #main-panel {
     height: 100%;
-    border-right: 1px solid var(--color-bg-dimmed2);
 }
 .one-column-layout.inspector-panel-open #main-panel,
 .one-column-layout.inspector-panel-open #inpector-panel {
     opacity: 1;
-    animation: .2s adjust-panels;
+    animation-duration: .2s;
     animation-fill-mode: forwards;
+}
+.one-column-layout.inspector-panel-open #main-panel {
+    animation-name: adjust-main-panel;
+}
+.one-column-layout.inspector-panel-open #inpector-panel {
+    animation-name: adjust-inspector-panel;
 }
 .one-column-layout #kuura-site-iframe {
     position: absolute;
@@ -131,9 +200,10 @@ h2 {
 }
 .one-column-layout #inpector-panel {
     bottom: 0;
-    border-top: 1px solid rgba(255,255,255,.05);
+    border-top: 1px solid var(--color-bg-dimmed2);
     height: 0;
     opacity: 0;
+    padding: .4rem;
 }
 
 /* todo
@@ -198,7 +268,6 @@ a.popup-close-area {
 
 #main-panel .panel-section {
     padding: 1px .4rem;
-    border-left: 3px solid var(--color-accent2);
     margin: 1rem 0;
 }
 #main-panel .panel-section h2 {
@@ -208,6 +277,13 @@ a.popup-close-area {
     margin: .4rem .5rem .4rem 0;
     text-transform: uppercase;
     letter-spacing: .08rem;
+}
+.panel-section > nav a {
+    margin: .8rem 0;
+    color: var(--color-fg-default);
+}
+.panel-section > nav a > .feather {
+    margin: 0 .6rem 0 .5rem;
 }
 
 /* EditApp: Main panel > Block tree */
@@ -241,7 +317,8 @@ a.popup-close-area {
     padding: .2rem;
     margin-left: .4rem;
     position: relative;
-    border-radius: 6px;
+    border-radius: 4px;
+    font-weight: 300;
 }
 .block-tree li > button:hover {
     background: #0000000d;
@@ -251,6 +328,9 @@ a.popup-close-area {
 }
 .block-tree li.with-children > .d-flex .drag-handle {
     margin-left: 1.5rem;
+}
+.block-tree li.selected > .d-flex .drag-handle {
+    background: var(--color-bg-button);
 }
 .block-tree .more-toggle {
     opacity: 0;

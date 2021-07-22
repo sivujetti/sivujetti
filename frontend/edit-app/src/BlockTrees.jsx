@@ -1,4 +1,4 @@
-import {__, http} from '../../commons/main.js';
+import {__, http, signals} from '../../commons/main.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import Icon from '../../commons/Icon.jsx';
 import Tabs from '../../commons/Tabs.jsx';
@@ -27,6 +27,23 @@ class BlockTreeTabs extends preact.Component {
                 return;
             this.handleWebPageDataReceived(value);
         });
+    }
+    /**
+     * @param {String} id
+     * @param {Array<Block>} branch
+     * @param {Block=} parentBlock = null
+     * @returns {Block|null}
+     * @access private
+     */
+    static findBlock(id, branch, parentBlock = null) {
+        for (const b of branch) {
+            if (b.id === id) return [b, branch, parentBlock];
+            if (b.children.length) {
+                const c = BlockTreeTabs.findBlock(id, b.children, b);
+                if (c[0]) return c;
+            }
+        }
+        return [null, null, null];
     }
     /**
      * @returns {Array<Block>}
@@ -71,8 +88,8 @@ class BlockTreeTabs extends preact.Component {
                 onTabChanged={ toIdx => this.setState({currentTab: toIdx}) }/> : null }
             { currentTab === 0
                 ? [
-                    <BlockTree key="pageBlocks" blocksInput={ pageBlocksInput } onChangesApplied={ containingView === 'DefaultMainPanelView' ? this.saveExistingPageBlocksToBackend.bind(this) : function () {} } ref={ this.pageBlocksTree }/>,
-                    <button class="btn btn-sm btn-link with-icon" onClick={ () => this.pageBlocksTree.current.appendNewBlockPlaceholder() } title={ __('Add new block') } type="button" style="color: var(--color-fg-dimmed)">
+                    <BlockTree key="pageBlocks" blocksInput={ pageBlocksInput } onChangesApplied={ containingView === 'DefaultMainPanelView' ? BlockTreeTabs.saveExistingPageBlocksToBackend : function () {} } ref={ this.pageBlocksTree }/>,
+                    <button onClick={ () => this.pageBlocksTree.current.appendNewBlockPlaceholder() } class="btn btn-sm with-icon" title={ __('Add new block') } type="button">
                         <Icon iconId="plus" className="size-sm"/> { __('Add new block') }
                     </button>
                 ]
@@ -84,7 +101,7 @@ class BlockTreeTabs extends preact.Component {
      * @returns {Promise<Boolean>}
      * @access private
      */
-    saveExistingPageBlocksToBackend(newBlockTree) {
+    static saveExistingPageBlocksToBackend(newBlockTree) {
         return http.put(`/api/pages/Pages/${BlockTreeTabs.currentWebPage.data.page.id}/blocks`,
             {blocks: BlockTree.mapRecursively(newBlockTree, blockToRaw)})
             .then(resp => {
@@ -255,7 +272,7 @@ class BlockTree extends preact.Component {
      * @access private
      */
     replacePlaceholderBlock(_blockType, newPlaceholderBlockData) {
-        const block = this.findBlock(newPlaceholderBlockData.id)[0];
+        const block = BlockTreeTabs.findBlock(newPlaceholderBlockData.id, this.state.blockTree)[0];
         const newBlock = Block.fromObject(newPlaceholderBlockData);
         newBlock._cref = BlockTreeTabs.currentWebPage.replaceBlockFromDomWith(block, newBlock);
         //
@@ -269,6 +286,7 @@ class BlockTree extends preact.Component {
     handleItemClicked(block) {
         this.selectedRoot = block;
         const ref = this.state.treeState;
+        signals.emit('on-block-tree-item-clicked', block, this.state.blockTree);
         if (ref[block.id].isSelected) return;
         //
         for (const key in ref) ref[key].isSelected = false;
@@ -282,7 +300,7 @@ class BlockTree extends preact.Component {
      */
     confirmAddBlock(_blockType, newPlaceholderBlockData) {
         const treeState = this.state.treeState;
-        const block = this.findBlock(newPlaceholderBlockData.id)[0];
+        const block = BlockTreeTabs.findBlock(newPlaceholderBlockData.id, this.state.blockTree)[0];
         treeState[newPlaceholderBlockData.id].isNew = false; // mutates this.state.treeState
         Object.assign(block, newPlaceholderBlockData); // mutates this.state.blockTree
         this.setState({treeState: treeState, blockTree: this.state.blockTree});
@@ -295,26 +313,9 @@ class BlockTree extends preact.Component {
      * @access private
      */
     cancelAddBlock(newPlaceholderBlockData) {
-        const [block, containingBranch] = this.findBlock(newPlaceholderBlockData.id);
+        const [block, containingBranch] = BlockTreeTabs.findBlock(newPlaceholderBlockData.id, this.state.blockTree);
         BlockTreeTabs.currentWebPage.deleteBlockFromDom(block);
         this.deleteBlock(block, containingBranch);
-    }
-    /**
-     * @param {String} id
-     * @param {Array<Block>=} branch = this.state.blockTree
-     * @param {Block=} parentBlock = null
-     * @returns {Block|null}
-     * @access private
-     */
-    findBlock(id, branch = this.state.blockTree, parentBlock = null) {
-        for (const b of branch) {
-            if (b.id === id) return [b, branch, parentBlock];
-            if (b.children.length) {
-                const c = this.findBlock(id, b.children, b);
-                if (c[0]) return c;
-            }
-        }
-        return [null, null, null];
     }
     /**
      * @param {Block} block

@@ -55,8 +55,11 @@ class SaveButton extends preact.Component {
 }
 
 function optimizeQueueTEMP(queue) {
+    if (queue[0].opName === 'create-new-page')
+        return [queue[0]];
     if (queue[0].opName === 'append-block-to-tree' ||
-        queue[0].opName === 'delete-block-from-tree')
+        queue[0].opName === 'delete-block-from-tree' ||
+        queue[0].opName === 'update-tree-block')
         return [queue[queue.length - 1]];
     throw new Error();
 }

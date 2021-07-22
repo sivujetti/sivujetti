@@ -3,7 +3,7 @@ import {hookForm, InputGroup, InputError, Input} from '../../commons/Form.jsx';
 import {urlUtils, stringUtils} from '../../commons/utils.js';
 import toasters from '../../commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';
-import store, {pushItemToOpQueue, deleteItemsFromOpQueueAfter} from './store.js';
+import store, {deleteItemsFromOpQueueAfter, setOpQueue} from './store.js';
 
 const tempPageTypes = {
     'Pages': {
@@ -36,7 +36,7 @@ class AddPageMainPanelView extends preact.Component {
      */
     componentDidMount() {
         this.form.triggerChange(__('New page'), 'title');
-        store.dispatch(pushItemToOpQueue('create-new-page', this.handleFormSubmitted.bind(this)));
+        store.dispatch(setOpQueue([{opName: 'create-new-page', handler: this.handleFormSubmitted.bind(this)}]));
     }
     /**
      * @access protected

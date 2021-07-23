@@ -1,0 +1,11 @@
+Asset: fira-sans-heavy.woff2, fira-sans-light.woff2, fira-sans-regular.woff2
+License: SIL Open Font License v1.10
+Link: https://www.fontsquirrel.com/fonts/fira-sans
+
+Asset: feather-sprite.svg
+License: The MIT License (MIT)
+Link: https://github.com/feathericons/feather
+
+Asset: sivujetti-logo.png
+License: ?
+Link: https://graphicsfamily.com/downloads/modern-s-letter-logo/

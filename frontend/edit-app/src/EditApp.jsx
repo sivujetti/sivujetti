@@ -40,7 +40,7 @@ class EditApp extends preact.Component {
         return <>
             <header class="container d-flex flex-centered">
                 <a href={ urlUtils.makeUrl('_edit') } class="column">
-                    <img src={ urlUtils.makeAssetUrl('/public/kuura/assets/logo-darkmode.png') }/>
+                    <img src={ urlUtils.makeAssetUrl('/public/kuura/assets/sivujetti-logo.png') }/>
                     <span class="d-inline-block ml-1">
                         <span class="d-inline-block col-12">Sivujetti</span>
                         <span>{ __('Admin') }</span>

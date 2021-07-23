@@ -266,8 +266,9 @@ a.popup-close-area {
     text-decoration: none;
 }
 #main-panel header img {
-    width: 29px;
-    filter: invert(1)
+    width: 24px;
+    margin: .1rem .2rem .1rem 0;
+    filter: contrast(0.8);
 }
 #main-panel header img + span {
     position: relative;

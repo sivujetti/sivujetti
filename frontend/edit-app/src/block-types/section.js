@@ -14,11 +14,11 @@ export default {
     ownPropNames: Object.keys(initialData),
     initialData,
     defaultRenderer: 'kuura:block-generic-wrapper',
-    reRender({cssClass, bgImage, children}) {
+    reRender({cssClass, bgImage}, renderChildren) {
         return `<section class="${cssClass}"` +
             (bgImage ? ` style="background-image:url('${urlUtils.makeAssetUrl(bgImage)}')"` : '') +
             '>' +
-            (children ? children.map(b => b.reRender(b)) : '') +
+            renderChildren() +
         '</section>';
     },
     editForm: SectionBlockEditForm,

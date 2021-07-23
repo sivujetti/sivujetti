@@ -49,20 +49,23 @@ class AddPageMainPanelView extends preact.Component {
      */
     render({cancelAddPage}, {errors, classes, slug, layoutId}) {
         return <form onSubmit={ this.handleFormSubmitted.bind(this) }>
-            <h1>{ __('Create page') }</h1>
-            <button
-                onClick={ cancelAddPage }
-                class="btn btn-link btn-sm mb-2"
-                title={ __('Cancel add page') }
-                type="button">&lt; { __('Back') }</button>
-            <section class="panel-section">
+            <header class="panel-section mb-2">
+                <h1 class="mb-2">{ __('Create page') }</h1>
+                <button
+                    onClick={ cancelAddPage }
+                    class="btn btn-link btn-sm"
+                    title={ __('Cancel add page') }
+                    type="button">&lt; { __('Back') }</button>
+            </header>
+            <section class="panel-section mt-0">
                 <h2>{ __('Layout') }</h2>
+                { BlockTrees.currentWebPage ?
                 <select
                     value={ layoutId }
                     onChange={ this.renderAnotherLayout.bind(this) }
                     class="form-select form-input tight">{ BlockTrees.currentWebPage.data.layouts.map(l =>
                     <option value={ l.id }>{ __(l.friendlyName) }</option>
-                ) }</select>
+                ) }</select> : null }
             </section>
             <section class="panel-section">
                 <h2>{ __('Default fields') }</h2>

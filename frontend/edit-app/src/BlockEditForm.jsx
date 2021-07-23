@@ -2,18 +2,15 @@ import {__} from '../../commons/main.js';
 import Icon from '../../commons/Icon.jsx';
 import {blockTypes} from './BlockTypeSelector.jsx';
 import BlockTrees from './BlockTrees.jsx';
-import Block from './Block.js';
 import store, {pushItemToOpQueue} from './store.js';
 
 class BlockEditForm extends preact.Component {
     // blockType;
-    // blockClone;
     /**
      * @access protected
      */
     componentWillMount() {
         this.blockType = blockTypes.get(this.props.block.type);
-        this.blockClone = Block.clone(this.props.block);
     }
     /**
      * @access protected
@@ -25,7 +22,7 @@ class BlockEditForm extends preact.Component {
                 { __(block.type) }
             </div>
             <div class="mt-2">
-                { preact.createElement(this.blockType.EditForm, {
+                { preact.createElement(this.blockType.editForm, {
                     block,
                     onValueChanged: this.handleBlockValueChanged.bind(this),
                 }) }
@@ -33,31 +30,22 @@ class BlockEditForm extends preact.Component {
         </>;
     }
     /**
-     * @param {{[key: String]: any;}} newValue
+     * @param {{[key: String]: any;}} newBlockPropsData
      * @access private
      */
-    handleBlockValueChanged(newValue) {
-        Object.assign(this.blockClone, newValue);
-        BlockTrees.currentWebPage.renderBlockInPlace(this.blockClone);
+    handleBlockValueChanged(newBlockPropsData) {
+        this.props.block.overwritePropsData(newBlockPropsData);
+        BlockTrees.currentWebPage.renderBlockInPlace(this.props.block);
         //
         store.dispatch(pushItemToOpQueue('update-tree-block',
-            () => this.saveBlockTreeToBackend(this.blockClone, this.props.blockTree)));
+            () => this.saveBlockTreeToBackend(this.props.block, this.props.blockTree)));
     }
     /**
-     * @param {Block} blockClone
+     * @param {Block} _block
      * @param {Array<Block>} blockTree
      * @access private
      */
-    saveBlockTreeToBackend(blockClone, blockTree) {
-        const block = BlockTrees.findBlock(blockClone.id, blockTree)[0];
-        //
-        const newPropsMeta = [];
-        for (const key of blockTypes.get(blockClone.type).ownPropNames) {
-            block[key] = blockClone[key]; // Mutates block and blockTree
-            newPropsMeta.push({key, value: block[key]});
-        }
-        block.ownProps = newPropsMeta;
-        //
+    saveBlockTreeToBackend(_block, blockTree) {
         return BlockTrees.saveExistingPageBlocksToBackend(blockTree);
     }
 }

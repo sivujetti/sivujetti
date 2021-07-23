@@ -51,7 +51,7 @@ final class SiteAwareTemplate extends Template {
      * @return string
      */
     public function renderBlocks(array $blocks): string {
-        $out = '';
+        $out = "";
         foreach ($blocks as $block)
             $out .= "<!-- block-start {$block->id}:{$block->type} -->" .
                 $this->partial($block->renderer, $block) . "<!-- block-end {$block->id} -->";

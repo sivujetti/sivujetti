@@ -12,10 +12,8 @@ export default {
     ownPropNames: Object.keys(initialData),
     initialData,
     defaultRenderer: 'kuura:block-generic-wrapper',
-    reRender({cssClass, children}) {
-        return `<div class="${cssClass || 'columns'}"` +
-            (children ? children.map(b => b.reRender(b)) : '') +
-        '</div>';
+    reRender({cssClass}, renderChildren) {
+        return `<div class="${cssClass || 'columns'}">${renderChildren()}</div>`;
     },
     editForm: ColumnsBlockEditForm,
 };

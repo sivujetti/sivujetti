@@ -6,8 +6,7 @@ use KuuraCms\App;
 use KuuraCms\Block\BlockTree;
 use KuuraCms\Block\Entities\Block;
 use KuuraCms\Page\SiteAwareTemplate;
-use KuuraCms\Tests\Utils\BlockTestUtils;
-use KuuraCms\Tests\Utils\PageTestUtils;
+use KuuraCms\Tests\Utils\{BlockTestUtils, PageTestUtils};
 use Pike\{Request, TestUtils\DbTestCase, TestUtils\HttpTestUtils};
 
 final class RenderBasicPageTest extends DbTestCase {
@@ -16,6 +15,8 @@ final class RenderBasicPageTest extends DbTestCase {
     protected function setUp(): void {
         parent::setUp();
         $this->pageTestUtils = new PageTestUtils(self::$db);
+        if (!file_exists(KUURA_BACKEND_PATH . "site/templates/layout.default.tmpl.php"))
+            throw new \RuntimeException("Site not installed");
     }
     public function testRenderPageRendersPage(): void {
         $state = $this->setupTest();

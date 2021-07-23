@@ -10,5 +10,5 @@ elseif ($props->type === \KuuraCms\Block\Entities\Block::TYPE_SECTION):
     "</section>";
 else:
     [$startTag, $endTag] = !(KUURA_FLAGS & KUURA_DEVMODE) ? ["<!--", "-->"] : ["<div>", "</div>"];
-    echo "{$startTag} kuura:block-generic-wrapper can only render TYPE_COLUMN|SECTION's (your type was `{$props->type}`) {$endTag} ";
+    echo "{$startTag} kuura:block-generic-wrapper.tmpl.php: can only render TYPE_COLUMN|SECTIONs (your type was `{$props->type}`) {$endTag} ";
 endif; ?>

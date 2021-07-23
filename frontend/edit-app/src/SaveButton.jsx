@@ -42,7 +42,7 @@ class SaveButton extends preact.Component {
                 store.dispatch(setOpQueue([]));
                 return;
             }
-            top.handler(queue)
+            top.handler()
                 .then(doProceed => {
                     // Truthy value -> clear item from the queue and proceed
                     if (doProceed !== false) next(queue);

@@ -131,24 +131,24 @@ class BlockTree extends preact.Component {
         this.lastRootBlockMarker = null;
     }
     /**
-     * @param {Block} toParent = null
+     * @param {Block} toChildrenOf = this.selectedRoot
      * @access public
      */
-    appendNewBlockPlaceholder(toParent = null) {
+    appendNewBlockPlaceholder(toChildrenOf = this.selectedRoot) {
         const paragraphType = blockTypes.get('Paragraph');
         const newBlock = Block.fromType(paragraphType);
-        let toBranch;
-        if (!toParent) {
-            toBranch = this.selectedRoot ? this.selectedRoot.children : this.state.blockTree;
-            //
-            newBlock._cref = BlockTreeTabs.currentWebPage.appendBlockToDom(newBlock,
-                this.state.blockTree.length ? (this.selectedRoot || toBranch[toBranch.length - 1]) : this.lastRootBlockMarker);
-        } else {
-            newBlock._cref = BlockTreeTabs.currentWebPage.appendBlockToDom(newBlock, toParent);
-            toBranch = toParent.children;
+        const toArr = toChildrenOf ? toChildrenOf.children : this.state.blockTree;
+        //
+        let after;
+        if (toArr.length) { // Use block as `after`
+            after = toArr[toArr.length - 1];
+        } else { // Use comment|pseudoComment as `after`
+            after = toChildrenOf
+                ? {parentNode: toChildrenOf.getRootDomNode(), nextSibling: null}
+                : this.lastRootBlockMarker;
         }
-        // Note: mutates this.state.blockTree
-        toBranch.push(newBlock);
+        newBlock._cref = BlockTreeTabs.currentWebPage.appendBlockToDom(newBlock, after);
+        toArr.push(newBlock); // Note: mutates this.state.blockTree
         //
         this.setState({
             blockTree: this.state.blockTree,

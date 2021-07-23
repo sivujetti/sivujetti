@@ -81,13 +81,14 @@ class ValidatorRunner {
         this.inputs = new Map;
         for (const name in inputs) {
             const {validations} = inputs[name];
-            if (!validations)
-                continue;
-            if (!Array.isArray(validations) ||
-                !Array.isArray(validations[0]))
-                throw new TypeError('validations must be an array of arrays');
-            this.setInput(name,
-                new Validator(inputs[name].label || name, validations), inputs[name]);
+            let validator = null;
+            if (validations) {
+                if (!Array.isArray(validations) ||
+                    !Array.isArray(validations[0]))
+                    throw new TypeError('validations must be an array of arrays');
+                validator = new Validator(inputs[name].label || name, validations);
+            }
+            this.setInput(name, validator, inputs[name]);
         }
     }
     /**
@@ -236,9 +237,70 @@ class Form {
     }
 }
 
+/**
+ * Usage:
+ * ```
+ * class MyCmp extends preact.Component {
+ *     constructor(props) {
+ *         ...
+ *         this.state = hookForm(this, {
+ *             prop1: 'Some value',
+ *             prop2: 'Another',
+ *         });
+ *     }
+ *     render(_, {classes, errors}) {
+ *         return <>
+ *             <InputGroup classes={ classes.prop1 }>
+ *                 <Input vm={ this } name="prop1" id="prop1" errorLabel="prop1 label"
+ *                     validations={ [['required'], ['minLength', 8]] } myOnChange={ this.grabChange.bind(this) } className="tight"/>
+ *                 <InputError error={ errors.prop1 }/>
+ *             </InputGroup>
+ *             <InputGroup classes={ classes.prop2 }>
+ *                 <Input vm={ this } name="prop2" id="prop2"/>
+ *             </InputGroup>
+ *         </>;
+ *     }
+ *     grabChange(newState) {
+ *         console.log('Some value changed', newState);
+ *         return newState;
+ *     }
+ * }
+ * ```
+ * OR
+ * ```
+ * class MyCmp extends preact.Component {
+ *     constructor(props) {
+ *         ...
+ *         this.state = hookForm(this, null, {
+ *             prop1: {value: 'Some value', validations: [['required'], ['minLength', 8]],
+ *                     label: 'prop1 label', props: {myOnChange: this.grabChange.bind(this)}},
+ *             prop2: {value: 'Another'},
+ *         });
+ *     }
+ *     render(_, {classes, errors, values}) {
+ *         return <>
+ *             <InputGroup classes={ classes.prop1 }>
+ *                 <button onClick={ () => this.form.triggerChange(values.prop1.substr(0, values.prop1.length-1),'prop1') }>Mutate</button>
+ *                 { values.prop1 }
+ *                 <InputError error={ errors.prop1 }/>
+ *             </InputGroup>
+ *             <InputGroup classes={ classes.prop2 }>
+ *                 <button onClick={ () => this.form.triggerChange('foo', 'prop2') }>Mutate</button>
+ *                 { values.prop2 }
+ *             </InputGroup>
+ *         </>;
+ *     }
+ *     grabChange(newState) {
+ *         console.log('Some value changed', newState);
+ *         return newState;
+ *     }
+ * }
+ * ```
+ */
 const hookForm = (vm, values = null, inputs = null) => {
     if (!values) values = Object.keys(inputs).reduce((out, key) => {
         out[key] = inputs[key].value;
+        if (!inputs[key].props) inputs[key].props = {};
         return out;
     }, {});
     const state = {

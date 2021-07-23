@@ -29,6 +29,20 @@ class Block {
         ));
     }
     /**
+     * @param {{[key: String]: any;}} newPropsData
+     * @access public
+     */
+    overwritePropsData(newPropsData) {
+        const newPropsMeta = [];
+        for (const key of blockTypes.get(this.type).ownPropNames) {
+            if (!Object.prototype.hasOwnProperty.call(newPropsData, key))
+                throw new Error(`Invalid newPropsData: \`${key}\` missing.`);
+            this[key] = newPropsData[key];
+            newPropsMeta.push({key, value: newPropsData[key]});
+        }
+        this.ownProps = newPropsMeta;
+    }
+    /**
      * @param {RawBlock} from
      * @returns {Block}
      * @access public
@@ -43,7 +57,15 @@ class Block {
      * @access public
      */
     toHtml() {
-        return blockTypes.get(this.type).reRender(this);
+        return blockTypes.get(this.type).reRender(this,
+            () => this.children ? this.children.map(b => b.toHtml()).join('') : '');
+    }
+    /**
+     * @returns {HTMLElement}
+     * @access public
+     */
+    getRootDomNode() {
+        return this._cref.startingCommentNode.nextElementSibling;
     }
 }
 

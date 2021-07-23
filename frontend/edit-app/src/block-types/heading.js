@@ -14,8 +14,8 @@ export default {
     ownPropNames: Object.keys(initialData),
     initialData,
     defaultRenderer: 'kuura:block-auto',
-    reRender({level, text}) {
-        return `<h${level}>${text}</h${level}>`;
+    reRender({level, text}, renderChildren) {
+        return `<h${level}>${text}${renderChildren()}</h${level}>`;
     },
-    EditForm: HeadingBlockEditForm,
+    editForm: HeadingBlockEditForm,
 };

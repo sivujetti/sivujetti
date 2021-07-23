@@ -1,7 +1,6 @@
 import {__, signals} from '../../commons/main.js';
 import Icon from '../../commons/Icon.jsx';
 import BlockEditForm from './BlockEditForm.jsx';
-import blockTypes from './block-types/all.js';
 
 class InspectorPanel extends preact.Component {
     // rendererProps;

@@ -1,32 +1,47 @@
 import {__} from '../../../commons/main.js';
-import {hookForm, InputGroup, InputError, Input} from '../../../commons/Form.jsx';
+import {hookForm, InputGroup, InputError} from '../../../commons/Form.jsx';
+import QuillEditor from '../../../commons/QuillEditor.jsx';
 
-const HARD_SHORT_TEXT_MAX_LEN = 1024;
+const HARD_LONG_TEXT_MAX_LEN = 128000;
+const minPossibleLen = '<p></p>'.length;
 
 class ParagraphBlockEditForm extends preact.Component {
+    // fieldKey;
     /**
      * @param {{block: Block;}} props
      */
     constructor(props) {
         super(props);
         this.state = {};
+        this.fieldKey = `p-${props.block.id}`;
     }
     /**
      * @access protected
      */
     componentWillMount() {
-        this.setState(hookForm(this, {
-            text: this.props.block.text,
+        this.setState(hookForm(this, null, {
+            [this.fieldKey]: {
+                value: this.props.block.text,
+                validations: [['required'], ['maxLength', HARD_LONG_TEXT_MAX_LEN]],
+                label: __('Text'),
+                props: {myOnChange: this.emitChange.bind(this)}
+            },
         }));
     }
     /**
      * @access protected
      */
     render(_, {classes, errors}) {
-        return <InputGroup classes={ classes.text }>
-            <Input vm={ this } name="text" id="text" errorLabel={ __('Text') }
-                validations={ [['required'], ['maxLength', HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ this.emitChange.bind(this) } className="tight"/>
-            <InputError error={ errors.text }/>
+        return <InputGroup classes={ classes.text } className="has-error">
+            <QuillEditor
+                name={ this.fieldKey }
+                value={ this.props.block.text }
+                onChange={ html => {
+                    this.form.triggerChange(html, this.fieldKey);
+                } }
+                onBlur={ () => this.form.triggerBlur(this.fieldKey) }
+                toolbarBundle="simplest"/>
+            <InputError error={ errors[this.fieldKey] }/>
         </InputGroup>;
     }
     /**
@@ -34,7 +49,13 @@ class ParagraphBlockEditForm extends preact.Component {
      * @access private
      */
     emitChange(newState) {
-        this.props.onValueChanged({text: newState.values.text});
+        const html = newState.values[this.fieldKey];
+        this.props.onValueChanged({text: html.length > minPossibleLen
+            ? html.substr(
+                3,                // <p>
+                html.length - 4-3 // </p>
+            ).replace(/<\/p><p>/g, '<br>')
+            : ''});
         return newState;
     }
 }
@@ -47,8 +68,8 @@ export default {
     ownPropNames: Object.keys(initialData),
     initialData,
     defaultRenderer: 'kuura:block-auto',
-    reRender(block) {
-        return `<p>${block.text}</p>`;
+    reRender({text}, renderChildren) {
+        return `<p>${text}${renderChildren()}</p>`;
     },
-    EditForm: ParagraphBlockEditForm,
+    editForm: ParagraphBlockEditForm,
 };

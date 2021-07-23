@@ -6,6 +6,7 @@ use Pike\{ObjectValidator, PikeException};
 
 abstract class ValidationUtils {
     public const HARD_SHORT_TEXT_MAX_LEN = 1024;
+    public const HARD_LONG_TEXT_MAX_LEN = 128000;
     public const HARD_JSON_TEXT_MAX_LEN = 256000;
     private const VALID_RULES = ["type", "minLength", "maxLength", "min",
                                  "max", "in", "identifier", "regexp"];

@@ -1,22 +1,21 @@
 import {__} from '../../commons/main.js';
 import blockTypes from './block-types/all.js';
-import Block from './Block.js';
 
 class BlockTypeSelector extends preact.Component {
     /**
-     * @param {{onSelectionConfirmed: (blockType: BlockType, blockData: Object) => void; onSelectionChanged: (blockType: BlockType, blockData: Object) => void; onSelectionDiscarded: (blockData: Object) => void; block: Block;};}} props
+     * @param {{onSelectionConfirmed: (placeholderBlock: Block) => void; onSelectionChanged: (blockBluePrint: BlockBlueprint, placeholderBlock: Block) => void; onSelectionDiscarded: (placeholderBlock: Block) => void; block: Block;}} props
      */
     constructor(props) {
         super(props);
-        this.state = {blockData: Object.assign({}, props.block)};
+        this.state = {blockBluePrint: {blockType: props.block.type}};
     }
     /**
      * @access protected
      */
-    render(_, {blockData}) {
+    render(_, {blockBluePrint}) {
         return <div class="dashed p-2">
             <select
-                value={ blockData.type }
+                value={ blockBluePrint.blockType }
                 onChange={ e => this.selectBlockType(e.target.value) }
                 class="form-input form-select tight mb-2">{ Array.from(blockTypes.entries()).map(([name, blockType]) =>
                 <option value={ name }>
@@ -32,29 +31,26 @@ class BlockTypeSelector extends preact.Component {
      * @access private
      */
     selectBlockType(blockTypeName) {
-        if (this.state.blockData.type === blockTypeName) return;
-        //
+        if (this.state.blockBluePrint.blockType === blockTypeName) return;
         const blockType = blockTypes.get(blockTypeName);
-        const blockData = Block.fromType(blockType);
-        blockData.id = this.props.block.id;
-        blockData._cref = this.props.block._cref;
-        //
-        this.setState({blockData});
-        this.props.onSelectionChanged(blockType,
-                                      blockData);
+        const providedInitialData = blockType.initialData; // BlockBlueprint|Object
+        const blockBluePrint = !providedInitialData.blockType
+            ? {blockType: blockType.name, data: providedInitialData, children: []}
+            : providedInitialData;
+        this.setState({blockBluePrint});
+        this.props.onSelectionChanged(blockBluePrint, this.props.block);
     }
     /**
      * @access private
      */
     apply() {
-        this.props.onSelectionConfirmed(blockTypes.get(this.state.blockData.type),
-                                        this.state.blockData);
+        this.props.onSelectionConfirmed(this.props.block);
     }
     /**
      * @access private
      */
     discard() {
-        this.props.onSelectionDiscarded(this.state.blockData);
+        this.props.onSelectionDiscarded(this.props.block);
     }
 }
 

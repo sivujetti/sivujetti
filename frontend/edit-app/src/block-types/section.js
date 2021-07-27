@@ -15,7 +15,7 @@ export default {
     initialData,
     defaultRenderer: 'kuura:block-generic-wrapper',
     reRender({cssClass, bgImage}, renderChildren) {
-        return `<section class="${cssClass}"` +
+        return `<section${cssClass? ` class="${cssClass}"` : ''}` +
             (bgImage ? ` style="background-image:url('${urlUtils.makeAssetUrl(bgImage)}')"` : '') +
             '>' +
             renderChildren() +

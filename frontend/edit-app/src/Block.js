@@ -13,34 +13,30 @@ class Block {
         return out;
     }
     /**
-     * @param {BlockType} blockType
+     * @param {BlockType|String} blockType
+     * @param {Object} data = {}
+     * @param {String} id = generatePushID()
      * @returns {Block}
      * @access public
      */
-    static fromType(blockType) {
-        const propsShortcuts = blockType.initialData;
-        const propsData = [];
-        for (const key in propsShortcuts) propsData.push({key, value: propsShortcuts[key]});
-        //
-        return Block.fromObject(Object.assign(
-            {id: generatePushID(), type: blockType.name, title: '', renderer: blockType.defaultRenderer,
-                propsData, children: []},
-            propsShortcuts
-        ));
+    static fromType(blockType, data = {}, id = generatePushID()) {
+        blockType = typeof blockType !== 'string' ? blockType : blockTypes.get(blockType);
+        const completeOwnProps = Block.makeOwnData(blockType, data);
+        return Block.fromObject(Object.assign({
+            id,
+            type: blockType.name,
+            title: '',
+            renderer: blockType.defaultRenderer,
+            children: []
+        }, completeOwnProps));
     }
     /**
      * @param {{[key: String]: any;}} newPropsData
      * @access public
      */
     overwritePropsData(newPropsData) {
-        const newPropsMeta = [];
-        for (const key of blockTypes.get(this.type).ownPropNames) {
-            if (!Object.prototype.hasOwnProperty.call(newPropsData, key))
-                throw new Error(`Invalid newPropsData: \`${key}\` missing.`);
-            this[key] = newPropsData[key];
-            newPropsMeta.push({key, value: newPropsData[key]});
-        }
-        this.ownProps = newPropsMeta;
+        const completeOwnProps = Block.makeOwnData(blockTypes.get(this.type), newPropsData);
+        Object.assign(this, completeOwnProps);
     }
     /**
      * @param {RawBlock} from
@@ -65,7 +61,26 @@ class Block {
      * @access public
      */
     getRootDomNode() {
-        return this._cref.startingCommentNode.nextElementSibling;
+        // <!-- block-start ... --><section> <- this element
+        const firstEl = this._cref.startingCommentNode.nextElementSibling;
+        return firstEl.querySelector('[data-block-root]') || firstEl;
+    }
+    /**
+     * @param {BlockType} blockType
+     * @param {Object} customData
+     * @returns {{ownProps: Array<{key: String; value: any;}>; [key: String]: any;}}
+     * @access private
+     */
+    static makeOwnData(blockType, customData) {
+        const partialBlock = {};
+        const defaultOwnData = blockType.initialData;
+        const propsMeta = [];
+        for (const key of blockType.ownPropNames) {
+            partialBlock[key] = customData[key] || defaultOwnData[key];
+            propsMeta.push({key, value: partialBlock[key]});
+        }
+        partialBlock.ownProps = propsMeta;
+        return partialBlock;
     }
 }
 

@@ -8,5 +8,8 @@ blockTypes.set('Columns', columnsBlockType);
 blockTypes.set('Heading', headingBlockType);
 blockTypes.set('Paragraph', paragraphBlockType);
 blockTypes.set('Section', sectionBlockType);
+blockTypes.forEach(blockType => {
+    blockType.ownPropNames = blockType.ownPropNames.filter(name => name !== 'children');
+});
 
 export default blockTypes;

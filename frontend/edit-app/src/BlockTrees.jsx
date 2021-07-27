@@ -3,7 +3,7 @@ import ContextMenu from '../../commons/ContextMenu.jsx';
 import Icon from '../../commons/Icon.jsx';
 import Tabs from '../../commons/Tabs.jsx';
 import toasters from '../../commons/Toaster.jsx';
-import BlockTypeSelector, {blockTypes} from './BlockTypeSelector.jsx';
+import BlockTypeSelector from './BlockTypeSelector.jsx';
 import Block from './Block.js';
 import store, {observeStore, selectCurrentPage, pushItemToOpQueue} from './store.js';
 
@@ -135,25 +135,16 @@ class BlockTree extends preact.Component {
      * @access public
      */
     appendNewBlockPlaceholder(toChildrenOf = this.selectedRoot) {
-        const paragraphType = blockTypes.get('Paragraph');
-        const newBlock = Block.fromType(paragraphType);
+        const newBlock = Block.fromType('Paragraph');
         const toArr = toChildrenOf ? toChildrenOf.children : this.state.blockTree;
-        //
-        let after;
-        if (toArr.length) { // Use block as `after`
-            after = toArr[toArr.length - 1];
-        } else { // Use comment|pseudoComment as `after`
-            after = toChildrenOf
-                ? {parentNode: toChildrenOf.getRootDomNode(), nextSibling: null}
-                : this.lastRootBlockMarker;
-        }
+        const after = this.getAfter(toArr, toChildrenOf);
         newBlock._cref = BlockTreeTabs.currentWebPage.appendBlockToDom(newBlock, after);
         toArr.push(newBlock); // Note: mutates this.state.blockTree
         //
         this.setState({
             blockTree: this.state.blockTree,
             treeState: Object.assign(this.state.treeState,
-                {[newBlock.id]: {isSelected: false, isNew: true}})
+                {[newBlock.id]: createTreeItemState({isNew: true})})
         });
     }
     /**
@@ -172,6 +163,20 @@ class BlockTree extends preact.Component {
         });
     }
     /**
+     * @param {Array<Object>} branch
+     * @param {(item: Object, i: Number) => any} fn
+     * @returns {Array<Object>}
+     * @access public
+     */
+    static traverseRecursively(branch, fn) {
+        branch.forEach((b, i) => {
+            fn(b, i);
+            if (b.children.length) {
+                BlockTree.traverseRecursively(b.children, fn);
+            }
+        });
+    }
+    /**
      * @returns {Array<Block>}
      * @access public
      */
@@ -187,7 +192,7 @@ class BlockTree extends preact.Component {
         const blockTree = BlockTree.mapRecursively(props.blocksInput, blockRaw => {
             const block = Block.fromObject(blockRaw);
             block._cref = comments.find(({blockId}) => blockId === block.id);
-            treeState[block.id] = {isSelected: false, isNew: false};
+            treeState[block.id] = createTreeItemState();
             return block;
         });
         const com = BlockTreeTabs.currentWebPage.findEndingComment(blockTree[blockTree.length - 1]);
@@ -267,17 +272,57 @@ class BlockTree extends preact.Component {
         }
     }
     /**
-     * @param {String} _blockType
-     * @param {Object} newPlaceholderBlockData
+     * @param {BlockBlueprint} blockBluePrint
+     * @param {Block} origBlock Previous placeholder block
      * @access private
      */
-    replacePlaceholderBlock(_blockType, newPlaceholderBlockData) {
-        const block = BlockTreeTabs.findBlock(newPlaceholderBlockData.id, this.state.blockTree)[0];
-        const newBlock = Block.fromObject(newPlaceholderBlockData);
-        newBlock._cref = BlockTreeTabs.currentWebPage.replaceBlockFromDomWith(block, newBlock);
+    replacePlaceholderBlock(blockBluePrint, origBlock) {
+        // Remove previous placeholderBlock.children from treeState (if any)
+        const treeStateMutRef = this.state.treeState;
+        for (const block of origBlock.children)
+            delete treeStateMutRef[block.id];
+        // Replace root block
+        const newBlock = Block.fromType(blockBluePrint.blockType, blockBluePrint.data, origBlock.id);
+        newBlock._cref = origBlock._cref;
+        newBlock._cref = BlockTreeTabs.currentWebPage.replaceBlockFromDomWith(origBlock, newBlock);
+        // Replace children
+        if (blockBluePrint.children.length) {
+            // Children: Add to dom
+            BlockTree.traverseRecursively(blockBluePrint.children, blueprint => {
+                const b = Block.fromType(blueprint.blockType, blueprint.data, undefined);
+                const after = this.getAfter(newBlock.children, newBlock);
+                b._cref = BlockTreeTabs.currentWebPage.appendBlockToDom(b, after);
+                newBlock.children.push(b);
+                treeStateMutRef[b.id] = createTreeItemState();
+            });
+        }
+        // Commit to state
+        const branch = BlockTreeTabs.findBlock(origBlock.id, this.state.blockTree)[1];
+        branch[branch.indexOf(origBlock)] = newBlock; // mutates this.state.blockTree
+        this.setState({blockTree: this.state.blockTree,
+                       treeState: treeStateMutRef});
+    }
+    /**
+     * @param {Block} placeholderBlock
+     * @access private
+     */
+    confirmAddBlock(placeholderBlock) {
+        const treeState = this.state.treeState;
+        treeState[placeholderBlock.id].isNew = false;
+        this.setState({treeState: treeState});
         //
-        Object.assign(block, newBlock); // mutates this.state.blockTree
-        this.setState({blockTree: this.state.blockTree});
+        store.dispatch(pushItemToOpQueue('append-block-to-tree',
+            () => this.props.onChangesApplied(this.state.blockTree)));
+    }
+    /**
+     * @param {Block} placeholderBlock
+     * @access private
+     */
+    cancelAddBlock(placeholderBlock) {
+        const [block, containingBranch] = BlockTreeTabs.findBlock(placeholderBlock.id,
+            this.state.blockTree);
+        BlockTreeTabs.currentWebPage.deleteBlockFromDom(block);
+        this.deleteBlock(block, containingBranch);
     }
     /**
      * @param {Block} block
@@ -285,37 +330,13 @@ class BlockTree extends preact.Component {
      */
     handleItemClicked(block) {
         this.selectedRoot = block;
-        const ref = this.state.treeState;
+        const mutRef = this.state.treeState;
         signals.emit('on-block-tree-item-clicked', block, this.state.blockTree);
-        if (ref[block.id].isSelected) return;
+        if (mutRef[block.id].isSelected) return;
         //
-        for (const key in ref) ref[key].isSelected = false;
-        ref[block.id].isSelected = true;
-        this.setState({treeState: ref});
-    }
-    /**
-     * @param {String} _blockType
-     * @param {Object} newPlaceholderBlockData
-     * @access private
-     */
-    confirmAddBlock(_blockType, newPlaceholderBlockData) {
-        const treeState = this.state.treeState;
-        const block = BlockTreeTabs.findBlock(newPlaceholderBlockData.id, this.state.blockTree)[0];
-        treeState[newPlaceholderBlockData.id].isNew = false; // mutates this.state.treeState
-        Object.assign(block, newPlaceholderBlockData); // mutates this.state.blockTree
-        this.setState({treeState: treeState, blockTree: this.state.blockTree});
-        //
-        store.dispatch(pushItemToOpQueue('append-block-to-tree',
-            () => this.props.onChangesApplied(this.state.blockTree)));
-    }
-    /**
-     * @param {Block} newPlaceholderBlockData
-     * @access private
-     */
-    cancelAddBlock(newPlaceholderBlockData) {
-        const [block, containingBranch] = BlockTreeTabs.findBlock(newPlaceholderBlockData.id, this.state.blockTree);
-        BlockTreeTabs.currentWebPage.deleteBlockFromDom(block);
-        this.deleteBlock(block, containingBranch);
+        for (const key in mutRef) mutRef[key].isSelected = false;
+        mutRef[block.id].isSelected = true;
+        this.setState({treeState: mutRef});
     }
     /**
      * @param {Block} block
@@ -324,10 +345,25 @@ class BlockTree extends preact.Component {
      */
     deleteBlock(block, containingBranch) {
         containingBranch.splice(containingBranch.indexOf(block), 1); // Note: mutates this.state.blockTree
-        const ref = this.state.treeState;
-        delete ref[block.id]; // Mutates this.state.treeState
+        const mutRef = this.state.treeState;
+        for (const c of block.children) delete mutRef[c.id];
+        delete mutRef[block.id]; // Mutates this.state.treeState
         this.setState({blockTree: this.state.blockTree,
-                       treeState: ref});
+                       treeState: mutRef});
+    }
+    /**
+     * @param {Array<Block>} targetBranch
+     * @param {Block|null} parent
+     * @access private
+     */
+    getAfter(targetBranch, parent) {
+        return targetBranch.length
+            // Use block as `after`
+            ? targetBranch[targetBranch.length - 1]
+            // Use comment|pseudoComment as `after`
+            : parent
+                ? {parentNode: parent.getRootDomNode(), nextSibling: null}
+                : this.lastRootBlockMarker;
     }
     /**
      * @param {Block} block
@@ -345,6 +381,10 @@ class BlockTree extends preact.Component {
     collapseBranch(block) {
         block;
     }
+}
+
+function createTreeItemState(overrides = {}) {
+    return Object.assign({isSelected: false, isNew: false}, overrides);
 }
 
 function blockToRaw(block) {

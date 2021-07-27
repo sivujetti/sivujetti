@@ -16,7 +16,7 @@ use KuuraCms\UserSite\{UserSiteAPI, UserSiteInterface};
 use Pike\{App as PikeApp, PikeException, Request, Response, Router, ServiceDefaults};
 
 final class App {
-    public const VERSION = "0.1.0-dev";
+    public const VERSION = "0.2.0-dev";
     /** @var \KuuraCms\AppContext */
     private AppContext $ctx;
     /**
@@ -57,7 +57,7 @@ final class App {
             $req->myData = new \stdClass;
             if ((str_starts_with($req->path, "/api/") ||
                  str_starts_with($req->path, "/_edit/")) &&
-                 !self::runAuthMiddleware($req, $res)) return;
+                 !$this->runAuthMiddleware($req, $res)) return;
             $this->openDbAndLoadState();
             $next();
         });
@@ -72,10 +72,10 @@ final class App {
     /**
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @return bool $requestWasValid
+     * @return bool $requestWasOk
      * @throws \Pike\PikeException If the route definition (ctx->router->map) wasn't valid
      */
-    private static function runAuthMiddleware(Request $req, Response $res): bool {
+    private function runAuthMiddleware(Request $req, Response $res): bool {
         $routeInfo = $req->routeInfo->myCtx;
         //
         if (($consumesStr = $routeInfo["consumes"] ?? "") &&

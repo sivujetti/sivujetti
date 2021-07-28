@@ -2,10 +2,17 @@ interface Block {
     id: String;
     type: 'Columns'|'Heading'|'Paragraph'|'Section'|String;
     _cref: BlockRefComment;
-    toHtml(block: Block): String;
+    toHtml(): String;
+    overwritePropsData(newPropsData: Object): void;
     static fromObject(data: RawBlock|Object): Block;
-    static fromType(blockType: BlockType, id: String): Block;
+    static fromType(blockType: BlockType|String, data?: Object, id?: String): Block;
     static clone(from: RawBlock|Object): Block;
+}
+
+interface BlockBlueprint {
+    blockType: String;
+    data: Object;
+    children: Array<BlockBlueprint>;
 }
 
 interface RawBlock {
@@ -46,8 +53,8 @@ interface EditAppAwareWebPage {
     scanBlockRefComments(): Array<BlockRefComment>;
     appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): BlockRefComment;
     replaceBlockFromDomWith(currentBlock: Block, replacement: Block): BlockRefComment;
-    deleteBlockFromDom(block: Block, doKeepBoundaryComments: Boolean = false);
-    renderBlockInPlace(block: Block): void;
+    deleteBlockFromDom(block: Block, doKeepBoundaryComments: Boolean = false): [Array, Array];
+    reRenderBlockInPlace(block: Block): void;
     findEndingComment(block: Block): Commment|undefined;
     updateTitle(text: String): void;
 }

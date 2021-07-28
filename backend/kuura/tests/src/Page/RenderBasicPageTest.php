@@ -31,7 +31,9 @@ final class RenderBasicPageTest extends DbTestCase {
     private function setupTest(): \TestState {
         $state = new \TestState;
         $btu = new BlockTestUtils();
-        $state->testLayoutBlocksTree = [$btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Footer text"])];
+        $state->testLayoutBlocksTree = [
+            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Footer text", "cssClass" => ""])
+        ];
         $state->testPageData = $this->pageTestUtils->makeTestPageData();
         $state->testLayoutData = (object) [
             "blocks" => BlockTree::toJson($state->testLayoutBlocksTree),

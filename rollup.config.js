@@ -76,6 +76,15 @@ module.exports = args => {
             }),
             watch: watchSettings
         });
+    // == tests-bundled-main.js ================================================
+    if (bundle === 'tests' || bundle === 'all') {
+        bundles.push({
+            input: 'frontend/tests/main.js',
+            output: makeOutputCfg({file: 'public/tests/bundled-main.js'}),
+            plugins: [makeJsxPlugin(['frontend/edit-app/src/**'])],
+            watch: watchSettings
+        });
+    }
     // == custom.js ============================================================
     if (!bundles.length && bundle !== 'all') {
         const cfg = require(path.resolve(__dirname, args.configInput));

@@ -6,7 +6,7 @@ class HeadingBlockEditForm extends preact.Component {
     }
 }
 
-const initialData = {text: __('Text here'), level: 2};
+const initialData = {text: __('Text here'), level: 2, cssClass: ''};
 
 export default {
     name: 'Heading',
@@ -14,8 +14,8 @@ export default {
     ownPropNames: Object.keys(initialData),
     initialData,
     defaultRenderer: 'kuura:block-auto',
-    reRender({level, text}, renderChildren) {
-        return `<h${level}>${text}${renderChildren()}</h${level}>`;
+    reRender({level, text, cssClass}, renderChildren) {
+        return `<h${level}${cssClass? ` class="${cssClass}"` : ''}>${text}${renderChildren()}</h${level}>`;
     },
     editForm: HeadingBlockEditForm,
 };

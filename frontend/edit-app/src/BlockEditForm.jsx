@@ -35,7 +35,7 @@ class BlockEditForm extends preact.Component {
      */
     handleBlockValueChanged(newBlockPropsData) {
         this.props.block.overwritePropsData(newBlockPropsData);
-        BlockTrees.currentWebPage.renderBlockInPlace(this.props.block);
+        BlockTrees.currentWebPage.reRenderBlockInPlace(this.props.block);
         //
         store.dispatch(pushItemToOpQueue('update-tree-block',
             () => this.saveBlockTreeToBackend(this.props.block, this.props.blockTree)));

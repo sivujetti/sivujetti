@@ -43,7 +43,7 @@ class EditAppAwareWebPage {
      */
     replaceBlockFromDomWith(currentBlock, replacement) {
         // 1. Remove contents of currentBlock
-        const contents = this.deleteBlockFromDom(currentBlock, true);
+        const contents = this.deleteBlockFromDom(currentBlock, true)[0];
         // 2. Add contents of replacement
         this.renderBlockInto(replacement, contents[0].parentNode,
             contents[contents.length - 1]);
@@ -54,28 +54,27 @@ class EditAppAwareWebPage {
     /**
      * @param {Block} block
      * @param {Boolean} doKeepBoundaryComments = false
-     * @returns {Array<HTMLElement>}
+     * @returns {[Array<HTMLElement>, Array<HTMLElement>]}
      * @access public
      */
     deleteBlockFromDom(block, doKeepBoundaryComments = false) {
         const toRemove = this.getBlockContents(block);
         const parent = toRemove[0].parentElement;
+        const keptChildNodes = block.children.length ? this.getChildBlockContents(block) : [];
         //
         const oneOff = !doKeepBoundaryComments ? 0 : 1;
         for (let i = oneOff; i < toRemove.length - oneOff; ++i)
             parent.removeChild(toRemove[i]);
-        return toRemove;
+        return [toRemove, keptChildNodes];
     }
     /**
      * @param {Block} block
      * @access public
      */
-    renderBlockInPlace(block) {
-        // 1. Remove old contents
-        this.deleteBlockFromDom(block, true);
-        // 2. Replace with current contents
+    reRenderBlockInPlace(block) {
+        const keptChildContent = this.deleteBlockFromDom(block, true)[1];
         const com = block._cref.startingCommentNode;
-        this.renderBlockInto(block, com.parentNode, com.nextSibling);
+        this.renderBlockInto(block, com.parentNode, com.nextSibling, false, keptChildContent);
     }
     /**
      * @param {Block} block
@@ -99,18 +98,27 @@ class EditAppAwareWebPage {
      * @param {HTMLElement} parent
      * @param {HTMLElement=} before = null
      * @param {boolean} doInsertCommentBoundaryComments = false
+     * @param {Array<HTMLElement>|null} childNodes = null
      * @returns {Comment|null}
      * @access private
      */
-    renderBlockInto(block, parent, before = null, doInsertCommentBoundaryComments = false) {
+    renderBlockInto(block, parent, before = null, doInsertCommentBoundaryComments = false, childNodes = null) {
         const startingComment = !doInsertCommentBoundaryComments ? null : makeStartingComment(block);
         const temp = document.createElement('template');
+        const markerHtml = !block.children.length ? null : '<span id="temp-marker"></span>';
         temp.innerHTML = !startingComment
-            ? block.toHtml()
-            : `<!--${startingComment}-->${block.toHtml()}<!--${makeEndingComment(block)}-->`;
+            ? block.toHtml(markerHtml)
+            : `<!--${startingComment}-->${block.toHtml(markerHtml)}<!--${makeEndingComment(block)}-->`;
         //
         if (before) parent.insertBefore(temp.content, before);
         else parent.appendChild(temp.content);
+        //
+        if (markerHtml) {
+            const markerEl = document.getElementById('temp-marker');
+            childNodes.forEach(el => { markerEl.parentNode.insertBefore(el, markerEl); });
+            markerEl.parentNode.removeChild(markerEl);
+            // re-set _crefs ??
+        }
         //
         return !startingComment
             ? null
@@ -138,6 +146,29 @@ class EditAppAwareWebPage {
             el = el.nextSibling;
         }
         return out;
+    }
+    /**
+     * @param {Block} blockWithChildren
+     * @returns {Array<HTMLElement>}
+     * @access private
+     */
+    getChildBlockContents(blockWithChildren) {
+        const collectAfter = blockWithChildren.children[0]._cref.startingCommentNode;
+        const collectUntil = makeEndingComment(blockWithChildren.children[blockWithChildren.children.length - 1]);
+        for (const c of getAllComments(blockWithChildren._cref.startingCommentNode.parentElement)) {
+            if (c === collectAfter) {
+                const out = [c];
+                let el = c.nextSibling;
+                while (el) {
+                    if (el.nodeType === Node.COMMENT_NODE &&
+                        el.nodeValue === collectUntil)
+                            return out.concat(el);
+                    out.push(el);
+                    el = el.nextSibling;
+                }
+            }
+        }
+        return [];
     }
 }
 

@@ -49,12 +49,13 @@ class Block {
         return Block.fromObject(data);
     }
     /**
+     * @param {String|null} children = null
      * @returns {String}
      * @access public
      */
-    toHtml() {
+    toHtml(children = null) {
         return blockTypes.get(this.type).reRender(this,
-            () => this.children ? this.children.map(b => b.toHtml()).join('') : '');
+            () => children || (this.children ? this.children.map(b => b.toHtml()).join('') : ''));
     }
     /**
      * @returns {HTMLElement}
@@ -76,7 +77,9 @@ class Block {
         const defaultOwnData = blockType.initialData;
         const propsMeta = [];
         for (const key of blockType.ownPropNames) {
-            partialBlock[key] = customData[key] || defaultOwnData[key];
+            partialBlock[key] = Object.prototype.hasOwnProperty.call(customData, key)
+                ? customData[key]
+                : defaultOwnData[key];
             propsMeta.push({key, value: partialBlock[key]});
         }
         partialBlock.ownProps = propsMeta;

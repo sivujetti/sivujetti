@@ -13,7 +13,7 @@ class BlockTreeTabs extends preact.Component {
     // static currentWebPage;
     // static currentWebPageComments;
     /**
-     * @param {{containingView: String;}} props
+     * @param {{containingView: String; onWebPageLoadHandled?: () => void;}} props
      */
     constructor(props) {
         super(props);
@@ -76,6 +76,7 @@ class BlockTreeTabs extends preact.Component {
         BlockTreeTabs.currentWebPageComments = d.comments;
         this.setState({pageBlocksInput: d.dataFromWebPage.page.blocks,
                        layoutBlocksInput: d.dataFromWebPage.layoutBlocks});
+        this.props.onWebPageLoadHandled && this.props.onWebPageLoadHandled();
     }
     /**
      * @access protected
@@ -389,9 +390,9 @@ function createTreeItemState(overrides = {}) {
 
 function blockToRaw(block) {
     const postData = Object.assign({}, block);
-    delete postData.children;
+    postData.children = [];
     delete postData._cref;
-    return block;
+    return postData;
 }
 
 export default BlockTreeTabs;

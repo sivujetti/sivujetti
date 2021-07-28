@@ -18,6 +18,10 @@ final class HeadingBlockType implements BlockTypeInterface {
         $p2->name = "level";
         $p2->dataType = BlockProperty::DATA_TYPE_UINT;
         $out[] = $p2;
+        $p3 = new BlockProperty;
+        $p3->name = "cssClass";
+        $p3->dataType = BlockProperty::DATA_TYPE_TEXT;
+        $out[] = $p3;
         return $out;
     }
 }

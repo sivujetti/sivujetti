@@ -31,7 +31,7 @@ final class OverwritePageBlocksTest extends DbTestCase {
         $state->testPageData->slug = "/overwrite-blocks-page";
         $state->testPageData->path = "/overwrite-blocks-page/";
         $state->inputData = (object) ["blocks" =>
-            [$btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Hello"])]
+            [$btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Hello", "cssClass" => ""])]
         ];
         $state->app = null;
         return $state;
@@ -64,7 +64,7 @@ final class OverwritePageBlocksTest extends DbTestCase {
 
     public function testOverwritePageBlocksRejectsInvalidInputs(): void {
         $state = $this->setupTest();
-        $state->inputData = (object) ["blocks" => [(object) ["type" => "not-valid"]]];
+        $state->inputData = (object) ["blocks" => [(object) ["type" => "not-valid", "cssClass" => ""]]];
         $this->makeKuuraApp($state);
         $this->insertTestPageDataToDb($state);
         $this->expectException(PikeException::class);

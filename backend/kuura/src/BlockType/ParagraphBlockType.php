@@ -14,6 +14,10 @@ final class ParagraphBlockType implements BlockTypeInterface {
         $p1->name = "text";
         $p1->dataType = BlockProperty::DATA_TYPE_TEXT;
         $out[] = $p1;
+        $p2 = new BlockProperty;
+        $p2->name = "cssClass";
+        $p2->dataType = BlockProperty::DATA_TYPE_TEXT;
+        $out[] = $p2;
         return $out;
     }
 }

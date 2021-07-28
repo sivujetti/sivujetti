@@ -12,21 +12,21 @@ class ParagraphBlockEditForm extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {cssClass: ''};
         this.fieldKey = `p-${props.block.id}`;
     }
     /**
      * @access protected
      */
     componentWillMount() {
-        this.setState(hookForm(this, null, {
+        this.setState(Object.assign({cssClass: this.props.block.cssClass}, hookForm(this, null, {
             [this.fieldKey]: {
                 value: this.props.block.text,
                 validations: [['required'], ['maxLength', HARD_LONG_TEXT_MAX_LEN]],
                 label: __('Text'),
                 props: {myOnChange: this.emitChange.bind(this)}
             },
-        }));
+        })));
     }
     /**
      * @access protected
@@ -55,12 +55,12 @@ class ParagraphBlockEditForm extends preact.Component {
                 3,                // <p>
                 html.length - 4-3 // </p>
             ).replace(/<\/p><p>/g, '<br>')
-            : ''});
+            : '', cssClass: this.state.cssClass});
         return newState;
     }
 }
 
-const initialData = {text: __('Text here')};
+const initialData = {text: __('Text here'), cssClass: ''};
 
 export default {
     name: 'Paragraph',
@@ -68,8 +68,8 @@ export default {
     ownPropNames: Object.keys(initialData),
     initialData,
     defaultRenderer: 'kuura:block-auto',
-    reRender({text}, renderChildren) {
-        return `<p>${text}${renderChildren()}</p>`;
+    reRender({text, cssClass}, renderChildren) {
+        return `<p${cssClass? ` class="${cssClass}"` : ''}>${text}${renderChildren()}</p>`;
     },
     editForm: ParagraphBlockEditForm,
 };

@@ -2,11 +2,13 @@
 
 namespace KuuraCms\Tests\Utils;
 
+use KuuraCms\Block\BlockValidator;
 use KuuraCms\Block\Entities\Block;
 use KuuraCms\BlockType\{HeadingBlockType, ParagraphBlockType, SectionBlockType};
 use KuuraCms\Page\Entities\Page;
 use KuuraCms\Page\{PagesRepository, SelectQuery};
 use KuuraCms\PageType\Entities\PageType;
+use KuuraCms\PageType\PageTypeValidator;
 use KuuraCms\SharedAPIContext;
 use KuuraCms\TheWebsite\Entities\TheWebsite;
 use Pike\Db;
@@ -28,7 +30,8 @@ final class PageTestUtils {
             Block::TYPE_PARAGRAPH => new ParagraphBlockType,
             Block::TYPE_SECTION => new SectionBlockType,
         ];
-        $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite, $fakeApiStorage);
+        $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite, $fakeApiStorage,
+            new PageTypeValidator(new BlockValidator($fakeApiStorage)));
     }
     /**
      * @param object $data 
@@ -89,8 +92,8 @@ final class PageTestUtils {
     private static function makeDefaultBlockTree(): array {
         $btu = new BlockTestUtils();
         return [$btu->makeBlockData(Block::TYPE_SECTION, "Main", "kuura:block-generic-wrapper", children: [
-            $btu->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Hello", "level" => 2]),
-            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Text"]),
+            $btu->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Hello", "level" => 2, "cssClass" => ""]),
+            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Text", "cssClass" => ""]),
         ], propsData: ["cssClass" => "", "bgImage" => ""])];
     }
     /**

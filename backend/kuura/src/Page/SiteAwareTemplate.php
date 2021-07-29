@@ -24,10 +24,13 @@ final class SiteAwareTemplate extends Template {
      * @return string
      */
     public function partial(string $name, $props = null): string {
-        ValidationUtils::checkIfValidaPathOrThrow($name, strict: true);
-        $templateFilePath = !str_contains($name, ":")
-            ? "{$this->__dir}{$name}.tmpl.php"
-            : self::completePath($name) . ".tmpl.php";
+        $templateFilePath = null;
+        if (!str_contains($name, ":")) {
+            ValidationUtils::checkIfValidaPathOrThrow($name, strict: true);
+            $templateFilePath = "{$this->__dir}{$name}.tmpl.php";
+        } else
+            $templateFilePath = self::completePath($name) . ".tmpl.php";
+        //
         return $this->doRender($templateFilePath,
             array_merge($this->__locals, ["props" => $props]));
     }

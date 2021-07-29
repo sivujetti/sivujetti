@@ -38,14 +38,17 @@ final class PagesRepository implements RepositoryInterface {
      * @param \Pike\Db $db
      * @param \KuuraCms\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \KuuraCms\SharedAPIContext $storage
+     * @param \KuuraCms\PageType\PageTypeValidator $pageTypeValidator
      */
     public function __construct(Db $db,
                                 TheWebsite $theWebsite,
-                                SharedAPIContext $storage) {
+                                SharedAPIContext $storage,
+                                PageTypeValidator $pageTypeValidator) {
         $this->db = $db;
         $this->pageTypes = $theWebsite->pageTypes;
         $this->blockTypes = $storage->getDataHandle()->blockTypes;
         $this->pageType = null;
+        $this->pageTypeValidator = $pageTypeValidator;
         $this->lastInsertId = "0";
     }
     /**
@@ -83,7 +86,7 @@ final class PagesRepository implements RepositoryInterface {
                            bool $doValidateBlocks = true): int {
         $this->lastInsertId = "0";
         $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
-        if (($errors = PageTypeValidator::validateInsertData($pageType, $inputData,
+        if (($errors = $this->pageTypeValidator->validateInsertData($pageType, $inputData,
             $doValidateBlocks ? $this->blockTypes : null)))
             throw new PikeException(implode(PHP_EOL, $errors),
                                     PikeException::BAD_INPUT);
@@ -141,11 +144,11 @@ final class PagesRepository implements RepositoryInterface {
                 "blocks" => BlockTree::toJson($newData->blocks),
                 "status" => $newData->status,
             ];
-            if (($errors = PageTypeValidator::validateUpdateData($pageType, $updateData)))
+            if (($errors = $this->pageTypeValidator->validateUpdateData($pageType, $updateData)))
                 throw new PikeException(implode(PHP_EOL, $errors),
                                         PikeException::BAD_INPUT);
         } elseif (count($theseColumnsOnly) === 1 && $theseColumnsOnly[0] === "blocks") {
-            if (($errors = PageTypeValidator::validateUpdateData($pageType, $newData, $this->blockTypes)))
+            if (($errors = $this->pageTypeValidator->validateUpdateData($pageType, $newData, $this->blockTypes)))
                 throw new PikeException(implode(PHP_EOL, $errors),
                                         PikeException::BAD_INPUT);
             $updateData = (object) ["blocks" =>

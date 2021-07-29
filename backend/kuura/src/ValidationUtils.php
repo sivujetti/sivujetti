@@ -18,7 +18,7 @@ abstract class ValidationUtils {
      */
     public static function checkIfValidaPathOrThrow(string $path,
                                                     bool $strict = false): void {
-        if (strpos($path, $strict ? '/' : './') !== false)
+        if (str_contains($path, $strict ? '/' : './'))
             throw new PikeException("`{$path}` is not valid path",
                                     PikeException::BAD_INPUT);
     }

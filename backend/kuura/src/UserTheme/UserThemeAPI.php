@@ -65,6 +65,7 @@ final class UserThemeAPI extends UserPluginAPI {
         $p->id = PushIdGenerator::generatePushId();
         $p->children = [];
         $p->text = $this->translator->t("Text here");
+        $p->cssClass = "";
         return [$p];
     }
 }

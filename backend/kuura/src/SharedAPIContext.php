@@ -16,9 +16,14 @@ final class SharedAPIContext {
     public function __construct() {
         $this->eventListeners = [];
         $this->data = (object) [
+            /** @var object @see \KuuraCms\App::create()  */
             "blockTypes" => null,
+            /** @var \KuuraCms\Page\Entities\PageLayout[] @see \KuuraCms\UserTheme\UserThemeApi->registerPageLayout()  */
             "pageLayouts" => [],
+            /** @var object {"webPage" => object[]} @see \KuuraCms\UserTheme\UserThemeApi->enqueueCssFile() */
             "userDefinedCssFiles" => (object) ["webPage" => []],
+            /** @var string[] \KuuraCms\UserSite\UserSite->registerBlockRenderer() */
+            "validBlockRenderers" => [],
         ];
     }
     /**

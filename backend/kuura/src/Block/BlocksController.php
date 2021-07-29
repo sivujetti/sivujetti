@@ -17,11 +17,13 @@ final class BlocksController {
      * @param \Pike\Response $res
      * @param \KuuraCms\Page\PagesRepository $pagesRepo
      * @param \KuuraCms\SharedAPIContext $storage
+     * @param \KuuraCms\Block\BlockValidator $blockValidator
      */
     public function addBlockToPage(Request $req,
                                    Response $res,
                                    PagesRepository $pagesRepo,
-                                   SharedAPIContext $storage): void {
+                                   SharedAPIContext $storage,
+                                   BlockValidator $blockValidator): void {
         throw new \RuntimeException("Deprecated");
         if (!is_string(($typeAsStr = $req->body->type ?? null)))
             throw new PikeException("type must be string",
@@ -29,7 +31,7 @@ final class BlocksController {
         if (!($blockType = ($storage->getDataHandle()->blockTypes->{$typeAsStr} ?? null)))
             throw new PikeException("Unknown block type `{$typeAsStr}`.",
                                     PikeException::BAD_INPUT);
-        if (($errors = BlockValidator::validateInsertOrUpdateData($blockType, $req->body))) {
+        if (($errors = $blockValidator->validateInsertOrUpdateData($blockType, $req->body))) {
             $res->status(400)->json($errors);
             return;
         }

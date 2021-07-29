@@ -10,7 +10,7 @@ class Template extends PikeTemplate {
      * @param ?array<string, mixed> $vars = null
      */
     public function __construct(string $file, array $vars = null) {
-        parent::__construct(self::completePath($file), $vars);
+        parent::__construct(self::completePath($file, allowSubFolders: true), $vars);
     }
     /**
      * @param string $str
@@ -40,23 +40,26 @@ class Template extends PikeTemplate {
             (isset($info["fragment"]) ? "#" . $info["fragment"] : "");
     }
     /**
-     * "foo.tmpl.php" -> KUURA_BACKEND_PATH . "assets/templates/foo.tmpl.php"
-     * "kuura:foo.tmpl.php" -> KUURA_BACKEND_PATH . "site/templates/foo.tmpl.php"
-     * "unknown:var.tmpl.php" -> PikeException
+     * "foo.tmpl.php" -> KUURA_BACKEND_PATH . "site/templates/foo.tmpl.php"
+     * "site:foo.tmpl.php" -> same as above
+     * "kuura:block-auto.tmpl.php" -> KUURA_BACKEND_PATH . "assets/templates/block-auto.tmpl.php"
+     * "unknown:something.tmpl.php" -> PikeException
      *
-     * @param string $pair
+     * @param string $fileId
+     * @param bool $allowSubFolders = false
      * @return string
      */
-    protected static function completePath(string $pair): string {
-        $pcs = explode(":", $pair);
-        [$ns, $relFilePath] = count($pcs) > 1
-            ? [$pcs[0], implode(":", array_slice($pcs, 1))]
-            : ["site", $pcs[0]];
-        ValidationUtils::checkIfValidaPathOrThrow($relFilePath);
+    public static function completePath(string $fileId,
+                                        bool $allowSubFolders = false): string {
+        $pcs = explode(":", $fileId, 2);
+        [$ns, $relFilePath] = count($pcs) > 1 ? $pcs : ["site", $pcs[0]];
+        ValidationUtils::checkIfValidaPathOrThrow($relFilePath, !$allowSubFolders);
         $whiteList = ["kuura" => KUURA_BACKEND_PATH . "assets/templates/",
                       "site" => KUURA_BACKEND_PATH . "site/templates/"];
         if (!($root = $whiteList[$ns] ?? null))
-            throw new PikeException("Invalid template namespace");
+            throw new PikeException("Renderer namespace must be " .
+                implode(" or ", array_keys($whiteList)) . " (yours was `{$ns}`.)",
+                PikeException::BAD_INPUT);
         return "{$root}{$relFilePath}";
     }
 }

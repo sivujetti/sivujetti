@@ -42,6 +42,10 @@ final class App {
                 Block::TYPE_PARAGRAPH => new ParagraphBlockType,
                 Block::TYPE_SECTION => new SectionBlockType,
             ];
+            $ctx->storage->getDataHandle()->validBlockRenderers = [
+                "kuura:block-auto",
+                "kuura:block-generic-wrapper"
+            ];
         }, $initialCtx ?? new AppContext, $router);
     }
     /**

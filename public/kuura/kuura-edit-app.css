@@ -379,3 +379,17 @@ a.popup-close-area {
     left: -9px;
     bottom: 0;
 }
+
+/* EditApp: Block hover icon */
+.block-hover-icon {
+    pointer-events: none;
+    position: fixed;
+    z-index: 1;
+    left: 410px;
+    top: 300px;
+    background-color: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    width: 20px;
+    height: 20px;
+    padding: .1rem;color: #fff;
+}

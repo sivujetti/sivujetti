@@ -50,7 +50,7 @@ interface CurrentPageData {
 
 interface EditAppAwareWebPage {
     data: CurrentPageData;
-    scanBlockRefComments(): Array<BlockRefComment>;
+    scanBlockRefComments(doRegisterEventListeners: Boolean = false): Array<BlockRefComment>;
     appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): BlockRefComment;
     replaceBlockFromDomWith(currentBlock: Block, replacement: Block): BlockRefComment;
     deleteBlockFromDom(block: Block, doKeepBoundaryComments: Boolean = false): [Array, Array];

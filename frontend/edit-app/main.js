@@ -29,9 +29,11 @@ function renderReactEditApp() {
          * @access public
          */
         handleWebPageLoaded(webPage) {
-            editAppReactRef.current.handleWebPageLoaded(webPage.data,
-                                                        webPage.scanBlockRefComments(),
-                                                        webPage);
+            const editApp = editAppReactRef.current;
+            webPage.setEventHandlers(editApp.websiteEventHandlers);
+            editApp.handleWebPageLoaded(webPage.data,
+                                        webPage.scanBlockRefComments(true),
+                                        webPage);
         }
     };
 

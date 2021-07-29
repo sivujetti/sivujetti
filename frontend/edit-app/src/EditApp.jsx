@@ -1,10 +1,13 @@
 import {__, signals} from '../../commons/main.js';
 import {urlUtils} from '../../commons/utils.js';
 import {Toaster} from '../../commons/Toaster.jsx';
+import Icon from '../../commons/Icon.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
 import AddPageMainPanelView from './AddPageMainPanelView.jsx';
 import store, {setCurrentPage, setOpQueue} from './store.js';
 import SaveButton from './SaveButton.jsx';
+
+const LEFT_PANEL_WIDTH = 242;
 
 class EditApp extends preact.Component {
     // blockTrees;
@@ -14,9 +17,30 @@ class EditApp extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {isCreatePageModeOn: false};
+        this.state = {isCreatePageModeOn: false, blockHoverIconCss: 'display:none'};
         this.blockTrees = null;
         this.currentWebPageType = null;
+        this.websiteEventHandlers = {
+            /**
+             * @param {HTMLElement} el block._cref.startingCommentNode.nextElement
+             */
+            onBlockHoverStarted: el => {
+                const r = el.getBoundingClientRect();
+                const margin = 10;
+                this.setState({blockHoverIconCss: `left:${r.left+LEFT_PANEL_WIDTH+margin}px;top:${r.top+margin}px;`});
+            },
+            /**
+             */
+            onBlockHoverEnded: () => {
+                this.setState({blockHoverIconCss: 'display:none'});
+            },
+            /**
+             * @param {BlockRefComment} blockRef
+             */
+            onBlockClicked: blockRef => {
+                signals.emit('on-web-page-block-clicked', blockRef);
+            }
+        };
     }
     /**
      * @param {CurrentPageData} dataFromWebPage
@@ -29,14 +53,14 @@ class EditApp extends preact.Component {
             this.currentWebPageType = dataFromWebPage.page.type;
             this.setState({isCreatePageModeOn: dataFromWebPage.page.isPlaceholderPage});
         }
-        signals.emit('new-page-loaded');
+        signals.emit('on-web-page-loaded');
         store.dispatch(setCurrentPage({dataFromWebPage, comments, webPage}));
         store.dispatch(setOpQueue([]));
     }
     /**
      * @access protected
      */
-    render({webPageIframe}, {isCreatePageModeOn}) {
+    render({webPageIframe}, {isCreatePageModeOn, blockHoverIconCss}) {
         return <>
             <header class="container d-flex flex-centered">
                 <a href={ urlUtils.makeUrl('_edit') } class="column">
@@ -57,6 +81,9 @@ class EditApp extends preact.Component {
                     pageType={ this.currentWebPageType }/>
             }
             <Toaster id="editAppMain"/>
+            <span class="block-hover-icon" style={ blockHoverIconCss }>
+                <Icon iconId="settings" className="size-xs"/>
+            </span>
         </>;
     }
 }

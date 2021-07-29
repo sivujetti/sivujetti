@@ -21,7 +21,7 @@ class InspectorPanel extends preact.Component {
             this.setState({Renderer: BlockEditForm});
             this.props.rootEl.classList.add('inspector-panel-open');
         });
-        signals.on('new-page-loaded', this.close.bind(this));
+        signals.on('on-web-page-loaded', this.close.bind(this));
     }
     /**
      * @access protected

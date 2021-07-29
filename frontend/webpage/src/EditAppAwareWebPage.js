@@ -1,5 +1,8 @@
 class EditAppAwareWebPage {
     // data;
+    // currentlyHoveredBlockFirstChildEl;
+    // currentlyHoveredBlockRef;
+    // isGlobalClickHandlerSet;
     /**
      * @param {CurrentPageData} dataFromAdminBackend
      */
@@ -7,13 +10,32 @@ class EditAppAwareWebPage {
         this.data = dataFromAdminBackend;
     }
     /**
+     * @param {{onBlockHoverStarted: (el: HTMLElement) => void; onBlockHoverEnded: () => void; onBlockClicked: (blockRef: BlockRefComment) => void;}} handlers
+     * @access public
+     */
+    setEventHandlers(handlers) {
+        this.handlers = handlers;
+    }
+    /**
+     * @param {Boolean} doRegisterEventListeners = false
      * @returns {Array<BlockRefComment>}
      * @access public
      */
-    scanBlockRefComments() {
-        return this.data.page.blocks.length
+    scanBlockRefComments(doRegisterEventListeners = false) {
+        const out = this.data.page.blocks.length
             ? getBlockRefCommentsFromCurrentPage()
             : [];
+        if (doRegisterEventListeners) {
+            out.map(this.registerBlockMouseListeners.bind(this));
+            if (!this.isGlobalClickHandlerSet) {
+                document.body.addEventListener('click', () => {
+                    if (this.currentlyHoveredBlockFirstChildEl)
+                        this.handlers.onBlockClicked(this.currentlyHoveredBlockRef);
+                });
+                this.isGlobalClickHandlerSet = true;
+            }
+        }
+        return out;
     }
     /**
      * @param {Block} block
@@ -169,6 +191,33 @@ class EditAppAwareWebPage {
             }
         }
         return [];
+    }
+    /**
+     * @param {BlockRefComment} blockRef
+     * @access private
+     */
+    registerBlockMouseListeners(blockRef) {
+        const comment = blockRef.startingCommentNode;
+        const nextEl = comment.nextElementSibling || comment.nextSibling;
+        nextEl.addEventListener('mouseover', e => {
+            if (e.target !== nextEl) {
+                return;
+            }
+            if (this.currentlyHoveredBlockFirstChildEl !== e.target) {
+                this.currentlyHoveredBlockRef = blockRef;
+                this.handlers.onBlockHoverStarted(e.target, this.currentlyHoveredBlockRef);
+                this.currentlyHoveredBlockFirstChildEl = e.target;
+                e.stopPropagation();
+            }
+        });
+        nextEl.addEventListener('mouseleave', e => {
+            if (this.currentlyHoveredBlockFirstChildEl === e.target) {
+                this.handlers.onBlockHoverEnded(this.currentlyHoveredBlockFirstChildEl, this.currentlyHoveredBlockRef);
+                this.currentlyHoveredBlockFirstChildEl = null;
+                this.currentlyHoveredBlockRef = null;
+                e.stopPropagation();
+            }
+        });
     }
 }
 

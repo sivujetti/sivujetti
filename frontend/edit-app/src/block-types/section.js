@@ -1,3 +1,4 @@
+import {__} from '@kuura-commons';
 import {urlUtils} from '../../../commons/utils.js';
 
 class SectionBlockEditForm extends preact.Component {

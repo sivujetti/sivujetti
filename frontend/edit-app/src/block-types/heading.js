@@ -1,4 +1,4 @@
-import {__} from '../../../commons/main.js';
+import {__} from '@kuura-commons';
 
 class HeadingBlockEditForm extends preact.Component {
     render() {

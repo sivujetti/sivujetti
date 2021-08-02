@@ -1,23 +1,45 @@
+import {translator, env} from '@kuura-commons';
 import {urlUtils} from '../commons/utils.js';
-import {translator} from '../commons/main.js';
 import {Validator} from '../commons/Form.jsx';
 import EditApp from './src/EditApp.jsx';
+import blockTypes from './src/block-types/block-types.js';
+import columnsBlockType from './src/block-types/columns.js';
+import headingBlockType from './src/block-types/heading.js';
+import paragraphBlockType from './src/block-types/paragraph.js';
+import richTextBlockType from './src/block-types/richText.js';
+import sectionBlockType from './src/block-types/section.js';
 import InspectorPanel from './src/InspectorPanel.jsx';
 import webPageIframe from './src/webPageIframe.js';
 
 configureServices();
+publishFrontendApi();
 renderReactEditApp();
 hookUpSiteIframeUrlMirrorer();
 
 function configureServices() {
+    env.window = window;
+    env.document = document;
+    //
     urlUtils.baseUrl = window.dataFromAdminBackend.baseUrl;
     urlUtils.assetBaseUrl = window.dataFromAdminBackend.assetBaseUrl;
-    urlUtils.env = {window, document};
-    webPageIframe.env = urlUtils.env;
+    urlUtils.env = env;
+    //
     window.translationStringBundles.forEach(strings => {
         translator.addStrings(strings);
         if (strings.minLength) Validator.setValidationStrings(strings);
     });
+    //
+    blockTypes.register('Columns', columnsBlockType);
+    blockTypes.register('Heading', headingBlockType);
+    blockTypes.register('Paragraph', paragraphBlockType);
+    blockTypes.register('RichText', richTextBlockType);
+    blockTypes.register('Section', sectionBlockType);
+}
+
+function publishFrontendApi() {
+    window.sivujetti = {
+        blockTypes,
+    };
 }
 
 function renderReactEditApp() {

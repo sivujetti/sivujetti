@@ -1,20 +1,19 @@
+import {env} from '@kuura-commons';
 import {urlUtils} from '../../commons/utils.js';
 
 const webPageIframe = {
-    /** @var {Env?} */
-    env: null,
     /**
      * @param {String} pageType
      * @param {String} layoutId = '1'
      */
     openPlaceholderPage(pageType, layoutId = '1') {
         const u = urlUtils.makeUrl(`/api/_placeholder-page/${pageType}/${layoutId}`);
-        this.env.document.getElementById('kuura-site-iframe').contentWindow.location.href = u;
+        env.document.getElementById('kuura-site-iframe').contentWindow.location.href = u;
     },
     /**
      */
     goBack() {
-        this.env.window.history.back();
+        env.window.history.back();
     }
 };
 

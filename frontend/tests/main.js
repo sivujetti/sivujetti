@@ -1,9 +1,17 @@
-import './render-blocks-into-dom-test.js';
+import {env} from '@kuura-commons';
 import {urlUtils} from '../commons/utils.js';
+import blockTypes from '../edit-app/src/block-types/block-types.js';
+import paragraphBlockType from '../edit-app/src/block-types/paragraph';
+import './render-blocks-into-dom-test.js';
 
+env.window = window;
+env.document = document;
+//
 urlUtils.baseUrl = window.location.pathname.split('public/tests')[0];
 urlUtils.assetBaseUrl = urlUtils.baseUrl;
-urlUtils.env = {window, document};
+urlUtils.env = env;
+//
+blockTypes.register('Paragraph', paragraphBlockType);
 
 QUnit.config.autostart = false;
 QUnit.dump.maxDepth = 8; // default 5

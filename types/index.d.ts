@@ -1,3 +1,24 @@
+interface SivujettiFrontendApi {
+    blockTypes: BlockTypes;
+}
+
+interface BlockTypes {
+    get(name: String): BlockType|undefined;
+    register(name: String, blockType: BlockType): void;
+    entries(): IterableIterator<String, BlockType>;
+}
+
+interface BlockType {
+    name: String;
+    friendlyName: String;
+    ownPropNames: Array<String>;
+    initialData: {[key: String]: any}|BlockBlueprint,
+    defaultRenderer: String,
+    reRender(props: {[key: String]: any}, renderChildren: () => String): String;
+    editForm: preact.ComponentConstructor;
+    infoFromBackend: {associatedRenderers: Array<String>;};
+}
+
 interface Block {
     id: String;
     type: 'Columns'|'Heading'|'Paragraph'|'Section'|String;

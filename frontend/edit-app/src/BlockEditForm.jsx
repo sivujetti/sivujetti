@@ -1,6 +1,6 @@
-import {__} from '../../commons/main.js';
+import {__} from '@kuura-commons';
 import Icon from '../../commons/Icon.jsx';
-import {blockTypes} from './BlockTypeSelector.jsx';
+import blockTypes from './block-types/block-types.js';
 import BlockTrees from './BlockTrees.jsx';
 import store, {pushItemToOpQueue} from './store.js';
 

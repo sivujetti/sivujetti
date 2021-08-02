@@ -1,4 +1,4 @@
-import {__} from '../../commons/main.js';
+import {__} from '@kuura-commons';
 import Icon from '../../commons/Icon.jsx';
 import store, {observeStore, setOpQueue, selectOpQueue} from './store.js';
 

@@ -4,7 +4,7 @@ namespace KuuraCms;
 
 use Auryn\Injector;
 use KuuraCms\Block\BlocksModule;
-use KuuraCms\Block\Entities\Block;
+use KuuraCms\Block\Entities\{Block};
 use KuuraCms\BlockType\{ColumnsBlockType, HeadingBlockType, ParagraphBlockType,
                         SectionBlockType};
 use KuuraCms\Page\PagesModule;
@@ -35,7 +35,7 @@ final class App {
         ], function (AppContext $ctx, ServiceDefaults $defaults) use ($config): void {
             $ctx->config = $defaults->makeConfig($config);
             $ctx->db = $defaults->makeDb();
-            $ctx->storage = new SharedAPIContext;
+            $ctx->storage = $ctx->storage ?? new SharedAPIContext;
             $ctx->storage->getDataHandle()->blockTypes = (object) [
                 Block::TYPE_COLUMNS => new ColumnsBlockType,
                 Block::TYPE_HEADING => new HeadingBlockType,

@@ -63,11 +63,14 @@ final class PagesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
+     * @param \KuuraCms\SharedAPIContext $storage
      */
-    public function renderEditAppWrapper(Request $req, Response $res): void {
+    public function renderEditAppWrapper(Request $req,
+                                         Response $res,
+                                         SharedAPIContext $storage): void {
         $res->html((new SiteAwareTemplate("kuura:edit-app-wrapper.tmpl.php"))->render([
             "url" => $req->params->url ?? "",
-            "userDefinedJsFiles" => [],
+            "userDefinedJsFiles" => $storage->getDataHandle()->adminJsFiles,
             "dataToFrontend" => json_encode((object) [
                 "baseUrl" => SiteAwareTemplate::makeUrl("/", true),
                 "assetBaseUrl" => SiteAwareTemplate::makeUrl("/", false),

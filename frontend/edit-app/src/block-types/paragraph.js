@@ -1,4 +1,4 @@
-import {__} from '../../../commons/main.js';
+import {__} from '@kuura-commons';
 import {hookForm, InputGroup, InputError} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
 

@@ -15,6 +15,7 @@
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
         <script>window.translationStringBundles = []</script>
         <script src="<?= $this->assetUrl("public/kuura/lang-fi.js") ?>"></script>
+        <script src="<?= $this->assetUrl("public/kuura/kuura-commons.js", /* @see frontend/commons/main.js */) ?>"></script>
         <script src="<?= $this->assetUrl("public/kuura/kuura-edit-app.js", /* @see frontend/edit-app/main.js */) ?>"></script>
         <?php foreach ($userDefinedJsFiles as $relUrl): ?>
             <script src="<?= $this->assetUrl("public/{$relUrl}") ?>"></script>

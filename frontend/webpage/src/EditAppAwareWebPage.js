@@ -55,7 +55,9 @@ class EditAppAwareWebPage {
             commentOrPseudoComment.parentNode,
             commentOrPseudoComment.nextSibling,
             true);
-        return makeBlockRefComment(block.id, startingCommentNode);
+        const com = makeBlockRefComment(block.id, startingCommentNode);
+        this.registerBlockMouseListeners(com);
+        return com;
     }
     /**
      * @param {Block} block

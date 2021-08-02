@@ -1,4 +1,4 @@
-import {__, signals} from '../../commons/main.js';
+import {__, signals} from '@kuura-commons';
 import Icon from '../../commons/Icon.jsx';
 import BlockEditForm from './BlockEditForm.jsx';
 

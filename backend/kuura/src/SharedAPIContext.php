@@ -18,12 +18,14 @@ final class SharedAPIContext {
         $this->data = (object) [
             /** @var object @see \KuuraCms\App::create()  */
             "blockTypes" => null,
-            /** @var \KuuraCms\Page\Entities\PageLayout[] @see \KuuraCms\UserTheme\UserThemeApi->registerPageLayout()  */
+            /** @var \KuuraCms\Page\Entities\PageLayout[] @see \KuuraCms\UserTheme\UserThemeAPI->registerPageLayout()  */
             "pageLayouts" => [],
-            /** @var object {"webPage" => object[]} @see \KuuraCms\UserTheme\UserThemeApi->enqueueCssFile() */
+            /** @var object {"webPage" => object[]} @see \KuuraCms\UserTheme\UserThemeAPI->enqueueCssFile() */
             "userDefinedCssFiles" => (object) ["webPage" => []],
-            /** @var string[] \KuuraCms\UserSite\UserSite->registerBlockRenderer() */
+            /** @var string[] \KuuraCms\UserSite\UserSiteAPI->registerBlockRenderer() */
             "validBlockRenderers" => [],
+            /** @var string[] \KuuraCms\UserSite\UserSiteAPI->enqueueEditAppJsFile() */
+            "adminJsFiles" => [],
         ];
     }
     /**

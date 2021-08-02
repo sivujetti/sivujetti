@@ -1,4 +1,4 @@
-import {__, signals} from '../../commons/main.js';
+import {__, signals} from '@kuura-commons';
 import {urlUtils} from '../../commons/utils.js';
 import {Toaster} from '../../commons/Toaster.jsx';
 import Icon from '../../commons/Icon.jsx';

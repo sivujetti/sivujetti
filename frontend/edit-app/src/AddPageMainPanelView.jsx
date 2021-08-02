@@ -1,4 +1,4 @@
-import {__, http} from '../../commons/main.js';
+import {__, http} from '@kuura-commons';
 import {hookForm, InputGroup, InputError, Input} from '../../commons/Form.jsx';
 import {urlUtils, stringUtils} from '../../commons/utils.js';
 import toasters from '../../commons/Toaster.jsx';

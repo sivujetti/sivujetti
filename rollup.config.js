@@ -41,6 +41,13 @@ module.exports = args => {
     // == kuura-edit-app.js ====================================================
     if (bundle === 'main' || bundle === 'all') {
         bundles.push({
+            input: 'frontend/commons/main.js',
+            output: makeOutputCfg({
+                name: 'kuuraCommons',
+                file: 'public/kuura/kuura-commons.js'
+            }),
+            watch: watchSettings
+        }, {
             input: 'frontend/edit-app/main.js',
             output: makeOutputCfg({
                 name: 'kuuraEditApp',
@@ -72,16 +79,22 @@ module.exports = args => {
         bundles.push({
             input: 'frontend/webpage/main.js',
             output: makeOutputCfg({
-                file: 'public/kuura/kuura-webpage.js'
+                file: 'public/kuura/kuura-webpage.js',
+                globals: {[commonsPath]: 'kuuraCommons'},
             }),
+            external: [commonsPath],
             watch: watchSettings
         });
     // == tests-bundled-main.js ================================================
     if (bundle === 'tests' || bundle === 'all') {
         bundles.push({
             input: 'frontend/tests/main.js',
-            output: makeOutputCfg({file: 'public/tests/bundled-main.js'}),
+            output: makeOutputCfg({
+                file: 'public/tests/bundled-main.js',
+                globals: allGlobals,
+            }),
             plugins: [makeJsxPlugin(['frontend/edit-app/src/**'])],
+            external: allExternals,
             watch: watchSettings
         });
     }
@@ -91,12 +104,12 @@ module.exports = args => {
         const out = {
             input: cfg.input,
             output: makeOutputCfg({globals: allGlobals, banner: ''}, cfg.output),
-            external: allExternals,
             plugins: [
                 makeJsxPlugin(cfg.jsxTranspile
                     ? cfg.jsxTranspile.include || []
                     : []),
             ],
+            external: allExternals,
             watch: {
                 clearScreen: false
             },

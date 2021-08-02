@@ -2,7 +2,7 @@ import store, {setCurrentPage} from '../edit-app/src/store.js';
 import BlockTrees from '../edit-app/src/BlockTrees.jsx';
 import reactTestUtils from './my-test-utils.js';
 import EditAppAwareWebPage from '../webpage/src/EditAppAwareWebPage.js';
-import blockTypes from '../edit-app/src/block-types/all.js';
+import blockTypes from '../edit-app/src/block-types/block-types.js';
 
 QUnit.module('EditAppAwareWebPage', () => {
     QUnit.test('appends non-nested block after another', assert => {

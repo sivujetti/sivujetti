@@ -9,6 +9,17 @@ use KuuraCms\{BaseAPI, Template};
  */
 final class UserSiteAPI extends BaseAPI {
     /**
+     * Adds $url to a list of urls, that will be included at the end of
+     * "backend/assets/edit-app-wrapper.tmpl.php". $url is relative to KUURA_BASE_URL .
+     * "public/" ("foo/file.js" will become "http://mysite.com/public/foo/file.js")
+     *
+     * @param string $url e.g. "my-site.bundle.js"
+     */
+    public function enqueueEditAppJsFile(string $url): void {
+        $mut = $this->storage->getDataHandle();
+        $mut->adminJsFiles[] = $url;
+    }
+    /**
      * Adds $fileId to a list of names that can be used as $block->renderer.
      *
      * @param string $fileId "my-file", "site:my-file", "kuura:block-auto"

@@ -1,5 +1,5 @@
-import {__} from '../../commons/main.js';
-import blockTypes from './block-types/all.js';
+import {__} from '@kuura-commons';
+import blockTypes from './block-types/block-types.js';
 
 class BlockTypeSelector extends preact.Component {
     /**
@@ -55,4 +55,3 @@ class BlockTypeSelector extends preact.Component {
 }
 
 export default BlockTypeSelector;
-export {blockTypes};

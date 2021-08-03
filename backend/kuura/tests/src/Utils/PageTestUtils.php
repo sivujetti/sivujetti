@@ -18,20 +18,25 @@ final class PageTestUtils {
     private PagesRepository $pagesRepo;
     /**
      * @param \Pike\Db $db
+     * @param ?\KuuraCms\SharedAPIContext $testAppStorage = null
      */
-    public function __construct(Db $db) {
+    public function __construct(Db $db, ?SharedAPIContext $testAppStorage = null) {
         $fakeTheWebsite = new TheWebsite;
         $fakeTheWebsite->pageTypes = new \ArrayObject;
         $pagePageType = $this->makeDefaultPageType();
         $fakeTheWebsite->pageTypes[] = $pagePageType;
-        $fakeApiStorage = new SharedAPIContext;
-        $fakeApiStorage->getDataHandle()->blockTypes = (object) [
-            Block::TYPE_HEADING => new HeadingBlockType,
-            Block::TYPE_PARAGRAPH => new ParagraphBlockType,
-            Block::TYPE_SECTION => new SectionBlockType,
-        ];
-        $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite, $fakeApiStorage,
-            new PageTypeValidator(new BlockValidator($fakeApiStorage)));
+        if (!$testAppStorage) {
+            $testAppStorage = new SharedAPIContext;
+        }
+        if ($testAppStorage->getDataHandle()->blockTypes === null) {
+            $testAppStorage->getDataHandle()->blockTypes = (object) [
+                Block::TYPE_HEADING => new HeadingBlockType,
+                Block::TYPE_PARAGRAPH => new ParagraphBlockType,
+                Block::TYPE_SECTION => new SectionBlockType,
+            ];
+        }
+        $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite, $testAppStorage,
+            new PageTypeValidator(new BlockValidator($testAppStorage)));
     }
     /**
      * @param object $data 

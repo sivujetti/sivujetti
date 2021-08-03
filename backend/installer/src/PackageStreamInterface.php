@@ -16,14 +16,14 @@ interface PackageStreamInterface {
     public function open(string $filePath, bool $create = false): string;
     /**
      * @param string $filePath
-     * @param string $localName = null
+     * @param ?string $localName = null
      * @param int $start = 0
      * @param int $length = 0
      * @return bool
      * @throws \Pike\PikeException
      */
     public function addFile(string $filePath,
-                            string $localName = null,
+                            ?string $localName = null,
                             int $start = 0,
                             int $length = 0): bool;
     /**

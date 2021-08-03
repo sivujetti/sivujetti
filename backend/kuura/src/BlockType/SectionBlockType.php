@@ -2,22 +2,14 @@
 
 namespace KuuraCms\BlockType;
 
-use KuuraCms\BlockType\Entities\{BlockProperty};
-
 final class SectionBlockType implements BlockTypeInterface {
     /**
      * @inheritdoc
      */
-    public function defineProperties(): \ArrayObject {
-        $out = new \ArrayObject;
-        $p1 = new BlockProperty;
-        $p1->name = "cssClass";
-        $p1->dataType = BlockProperty::DATA_TYPE_TEXT;
-        $out[] = $p1;
-        $p2 = new BlockProperty;
-        $p2->name = "bgImage";
-        $p2->dataType = BlockProperty::DATA_TYPE_TEXT;
-        $out[] = $p2;
-        return $out;
+    public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
+        return $builder
+            ->newProperty("cssClass", $builder::DATA_TYPE_TEXT)
+            ->newProperty("bgImage", $builder::DATA_TYPE_TEXT)
+            ->getResult();
     }
 }

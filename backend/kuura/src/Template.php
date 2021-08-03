@@ -9,8 +9,9 @@ class Template extends PikeTemplate {
      * @param string $file
      * @param ?array<string, mixed> $vars = null
      */
-    public function __construct(string $file, array $vars = null) {
+    public function __construct(string $file, ?array $vars = null) {
         parent::__construct(self::completePath($file, allowSubFolders: true), $vars);
+        $this->__locals = [];
     }
     /**
      * @param string $str

@@ -25,7 +25,7 @@ final class PageTypeValidator {
      */
     public function validateInsertData(PageType $pageType,
                                        object $input,
-                                       object $blockTypes = null): array {
+                                       ?object $blockTypes = null): array {
         $v = ValidationUtils::addRulesForProperties($pageType->ownFields,
             Validation::makeObjectValidator()
                 ->rule("slug", "type", "string")
@@ -49,8 +49,8 @@ final class PageTypeValidator {
      * @return string[] Error messages or []
      */
     public function validateUpdateData(PageType $pageType,
-                                              object $input,
-                                              object $blockTypes = null): array {
+                                       object $input,
+                                       ?object $blockTypes = null): array {
         $v = Validation::makeObjectValidator()
             ->rule("blocks", "minLength", "1", "array");
         if (!($errors = $v->validate($input)) && $blockTypes)

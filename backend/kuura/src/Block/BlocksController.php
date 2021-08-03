@@ -2,8 +2,8 @@
 
 namespace KuuraCms\Block;
 
-use KuuraCms\BlockType\BlockTypeInterface;
-use KuuraCms\Page\PagesRepository;
+use KuuraCms\BlockType\{BlockTypeInterface, PropertiesBuilder};
+use KuuraCms\Page\{PagesRepository};
 use KuuraCms\PageType\Entities\PageType;
 use KuuraCms\SharedAPIContext;
 use Pike\{PikeException, Request, Response};
@@ -70,7 +70,7 @@ final class BlocksController {
             "children" => [],
             "propsData" => [],
         ];
-        foreach ($blockType->defineProperties() as $prop)
+        foreach ($blockType->defineProperties(new PropertiesBuilder) as $prop)
             $out->propsData[] = (object) ["key" => $prop->name, "value" => $input->{$prop->name}];
         return $out;
     }

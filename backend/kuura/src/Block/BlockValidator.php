@@ -2,9 +2,8 @@
 
 namespace KuuraCms\Block;
 
-use KuuraCms\BlockType\BlockTypeInterface;
-use KuuraCms\SharedAPIContext;
-use KuuraCms\ValidationUtils;
+use KuuraCms\BlockType\{BlockTypeInterface, PropertiesBuilder};
+use KuuraCms\{SharedAPIContext, ValidationUtils};
 use Pike\Validation;
 
 final class BlockValidator {
@@ -28,7 +27,7 @@ final class BlockValidator {
     public  function validateInsertOrUpdateData(BlockTypeInterface $blockType,
                                                 object $input): array {
         return ValidationUtils::addRulesForProperties(
-            $blockType->defineProperties(),
+            $blockType->defineProperties(new PropertiesBuilder),
             Validation::makeObjectValidator()
                 ->rule("title", "type", "string")
                 ->rule("title", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)

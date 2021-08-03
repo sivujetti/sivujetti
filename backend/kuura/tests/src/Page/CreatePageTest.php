@@ -26,7 +26,6 @@ final class CreatePageTest extends DbTestCase {
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
-        $btu = new BlockTestUtils();
         $state->inputData = (object) [
             "slug" => "/my-page",
             "path" => "/my-page/",

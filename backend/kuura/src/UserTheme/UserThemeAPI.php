@@ -19,7 +19,7 @@ final class UserThemeAPI extends UserPluginAPI {
      */
     public function __construct(string $namespace,
                                 SharedAPIContext $storage,
-                                Translator $translator = null) {
+                                ?Translator $translator = null) {
         $this->namespace = $namespace;
         $this->storage = $storage;
         $this->translator = $translator;

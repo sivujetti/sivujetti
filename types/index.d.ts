@@ -72,10 +72,10 @@ interface CurrentPageData {
 interface EditAppAwareWebPage {
     data: CurrentPageData;
     scanBlockRefComments(doRegisterEventListeners: Boolean = false): Array<BlockRefComment>;
-    appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): BlockRefComment;
-    replaceBlockFromDomWith(currentBlock: Block, replacement: Block): BlockRefComment;
+    appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<BlockRefComment>;
+    replaceBlockFromDomWith(currentBlock: Block, replacement: Block): Promise<BlockRefComment>;
     deleteBlockFromDom(block: Block, doKeepBoundaryComments: Boolean = false): [Array, Array];
-    reRenderBlockInPlace(block: Block): void;
+    reRenderBlockInPlace(block: Block): Promise<null>;
     findEndingComment(block: Block): Commment|undefined;
     updateTitle(text: String): void;
 }

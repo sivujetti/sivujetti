@@ -1,5 +1,4 @@
-import {translator, env} from '@kuura-commons';
-import {urlUtils} from '../commons/utils.js';
+import {translator, env, urlUtils} from '@kuura-commons';
 import {Validator} from '../commons/Form.jsx';
 import EditApp from './src/EditApp.jsx';
 import blockTypes from './src/block-types/block-types.js';

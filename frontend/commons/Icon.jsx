@@ -1,4 +1,4 @@
-import {urlUtils} from './utils.js';
+import {urlUtils} from '@kuura-commons';
 
 class FeatherSvg extends preact.Component {
     /**

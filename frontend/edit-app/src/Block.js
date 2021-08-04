@@ -31,14 +31,6 @@ class Block {
         }, completeOwnProps));
     }
     /**
-     * @param {{[key: String]: any;}} newPropsData
-     * @access public
-     */
-    overwritePropsData(newPropsData) {
-        const completeOwnProps = Block.makeOwnData(blockTypes.get(this.type), newPropsData);
-        Object.assign(this, completeOwnProps);
-    }
-    /**
      * @param {RawBlock} from
      * @returns {Block}
      * @access public
@@ -47,6 +39,24 @@ class Block {
         const data = Object.assign(JSON.parse(JSON.stringify(from)),
             {_cref: from._cref, children: from.children});
         return Block.fromObject(data);
+    }
+    /**
+     * @param {{[key: String]: any;}} newPropsData
+     * @access public
+     */
+    overwritePropsData(newPropsData) {
+        const completeOwnProps = Block.makeOwnData(blockTypes.get(this.type), newPropsData);
+        Object.assign(this, completeOwnProps);
+    }
+    /**
+     * @returns {RawBlock}
+     * @access public
+     */
+    toRaw() {
+        const out = Object.assign({}, this);
+        out.children = [];
+        delete out._cref;
+        return out;
     }
     /**
      * @param {String|null} children = null
@@ -69,7 +79,7 @@ class Block {
     /**
      * @param {BlockType} blockType
      * @param {Object} customData
-     * @returns {{ownProps: Array<{key: String; value: any;}>; [key: String]: any;}}
+     * @returns {{propsData: Array<{key: String; value: any;}>; [key: String]: any;}}
      * @access private
      */
     static makeOwnData(blockType, customData) {
@@ -82,7 +92,7 @@ class Block {
                 : defaultOwnData[key];
             propsMeta.push({key, value: partialBlock[key]});
         }
-        partialBlock.ownProps = propsMeta;
+        partialBlock.propsData = propsMeta;
         return partialBlock;
     }
 }

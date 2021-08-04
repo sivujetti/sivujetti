@@ -35,10 +35,11 @@ class BlockEditForm extends preact.Component {
      */
     handleBlockValueChanged(newBlockPropsData) {
         this.props.block.overwritePropsData(newBlockPropsData);
-        BlockTrees.currentWebPage.reRenderBlockInPlace(this.props.block);
-        //
-        store.dispatch(pushItemToOpQueue('update-tree-block',
-            () => this.saveBlockTreeToBackend(this.props.block, this.props.blockTree)));
+        BlockTrees.currentWebPage.reRenderBlockInPlace(this.props.block).then(() => {
+            //
+            store.dispatch(pushItemToOpQueue('update-tree-block',
+                () => this.saveBlockTreeToBackend(this.props.block, this.props.blockTree)));
+        });
     }
     /**
      * @param {Block} _block

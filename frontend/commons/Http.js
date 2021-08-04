@@ -1,12 +1,10 @@
-import {urlUtils} from './utils';
-
 class Http {
     /**
      * @param {(url: string, settings?: Object) => Promise<Object>} fetchFn
      * @param {(url: string) => string} makeUrl
      */
     constructor(fetchFn = (url, settings) => window.fetch(url, settings),
-                makeUrl = urlUtils.makeUrl.bind(urlUtils)) {
+                makeUrl = url => url) {
         this.fetchFn = fetchFn;
         this.makeUrl = makeUrl;
     }

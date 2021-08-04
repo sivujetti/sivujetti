@@ -40,7 +40,7 @@ class EditAppAwareWebPage {
     /**
      * @param {Block} block
      * @param {Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}} after
-     * @returns {BlockRefComment}
+     * @returns {Promise<BlockRefComment>}
      * @access public
      */
     appendBlockToDom(block, after) {
@@ -51,29 +51,38 @@ class EditAppAwareWebPage {
         } else { // Pseudo comment / marker
             commentOrPseudoComment = after;
         }
-        const startingCommentNode = this.renderBlockInto(block,
-            commentOrPseudoComment.parentNode,
-            commentOrPseudoComment.nextSibling,
-            true);
-        const com = makeBlockRefComment(block.id, startingCommentNode);
-        this.registerBlockMouseListeners(com);
-        return com;
+        return this.renderBlockInto(
+            block,
+            () => ({parent: commentOrPseudoComment.parentNode,
+                    before: commentOrPseudoComment.nextSibling}),
+            true
+        ).then(startingCommentNode => {
+            const cref = makeBlockRefComment(block.id, startingCommentNode);
+            this.registerBlockMouseListeners(cref);
+            return cref;
+        });
     }
     /**
      * @param {Block} block
      * @param {Block} replacement
-     * @returns {BlockRefComment}
+     * @returns {Promise<BlockRefComment>}
      * @access public
      */
     replaceBlockFromDomWith(currentBlock, replacement) {
         // 1. Remove contents of currentBlock
         const contents = this.deleteBlockFromDom(currentBlock, true)[0];
         // 2. Add contents of replacement
-        this.renderBlockInto(replacement, contents[0].parentNode,
-            contents[contents.length - 1]);
-        if (currentBlock.type !== replacement.type)
-           contents[0].textContent = makeStartingComment(replacement);
-        return makeBlockRefComment(replacement, contents[0]);
+        return this.renderBlockInto(
+            replacement,
+            () => ({parent: contents[0].parentNode,
+                    before: contents[contents.length - 1]})
+        ).then(() => {
+            if (currentBlock.type !== replacement.type)
+               contents[0].textContent = makeStartingComment(replacement);
+            const cref = makeBlockRefComment(replacement, contents[0]);
+            this.registerBlockMouseListeners(cref);
+            return cref;
+        });
     }
     /**
      * @param {Block} block
@@ -93,12 +102,17 @@ class EditAppAwareWebPage {
     }
     /**
      * @param {Block} block
+     * @returns {Promise<null>}
      * @access public
      */
     reRenderBlockInPlace(block) {
-        const keptChildContent = this.deleteBlockFromDom(block, true)[1];
-        const com = block._cref.startingCommentNode;
-        this.renderBlockInto(block, com.parentNode, com.nextSibling, false, keptChildContent);
+        return this.renderBlockInto(block, () => {
+            const keptChildren = this.deleteBlockFromDom(block, true)[1];
+            const com = block._cref.startingCommentNode;
+            return {parent: com.parentNode,
+                    before: com.nextSibling,
+                    prevChildNodes: keptChildren};
+        });
     }
     /**
      * @param {Block} block
@@ -119,34 +133,37 @@ class EditAppAwareWebPage {
     }
     /**
      * @param {Block} block
-     * @param {HTMLElement} parent
-     * @param {HTMLElement=} before = null
+     * @param {() => {parent: HTMLElement; before: HTMLElement|null; prevChildNodes?: Array<HTMLElement>;}} getSettings
      * @param {boolean} doInsertCommentBoundaryComments = false
-     * @param {Array<HTMLElement>|null} childNodes = null
-     * @returns {Comment|null}
+     * @returns {Promise<Comment|null>}
      * @access private
      */
-    renderBlockInto(block, parent, before = null, doInsertCommentBoundaryComments = false, childNodes = null) {
+    renderBlockInto(block, getSettings, doInsertCommentBoundaryComments = false) {
         const startingComment = !doInsertCommentBoundaryComments ? null : makeStartingComment(block);
         const temp = document.createElement('template');
         const markerHtml = !block.children.length ? null : '<span id="temp-marker"></span>';
-        temp.innerHTML = !startingComment
-            ? block.toHtml(markerHtml)
-            : `<!--${startingComment}-->${block.toHtml(markerHtml)}<!--${makeEndingComment(block)}-->`;
-        //
-        if (before) parent.insertBefore(temp.content, before);
-        else parent.appendChild(temp.content);
-        //
-        if (markerHtml) {
-            const markerEl = document.getElementById('temp-marker');
-            childNodes.forEach(el => { markerEl.parentNode.insertBefore(el, markerEl); });
-            markerEl.parentNode.removeChild(markerEl);
-            // re-set _crefs ??
-        }
-        //
-        return !startingComment
-            ? null
-            : getAllComments(parent).find(c => c.nodeValue === startingComment);
+        const newh = block.toHtml(markerHtml);
+        return (typeof newh === 'string' ? Promise.resolve(newh) : newh).then(html => {
+            const {parent, before, prevChildNodes} = getSettings();
+            //
+            temp.innerHTML = !doInsertCommentBoundaryComments
+                ? html
+                : `<!--${startingComment}-->${html}<!--${makeEndingComment(block)}-->`;
+            //
+            if (before) parent.insertBefore(temp.content, before);
+            else parent.appendChild(temp.content);
+            //
+            if (markerHtml) {
+                const markerEl = document.getElementById('temp-marker');
+                prevChildNodes.forEach(el => { markerEl.parentNode.insertBefore(el, markerEl); });
+                markerEl.parentNode.removeChild(markerEl);
+                // re-set _crefs ??
+            }
+            //
+            return !doInsertCommentBoundaryComments
+                ? null
+                : getAllComments(parent).find(c => c.nodeValue === startingComment);
+        });
     }
     /**
      * @param {Block} block

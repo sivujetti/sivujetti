@@ -1,5 +1,4 @@
-import {env} from '@kuura-commons';
-import {urlUtils} from '../../commons/utils.js';
+import {env, urlUtils} from '@kuura-commons';
 
 const webPageIframe = {
     /**

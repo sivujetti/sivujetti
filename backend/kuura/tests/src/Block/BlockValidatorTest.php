@@ -3,7 +3,7 @@
 namespace KuuraCms\Tests\Block;
 
 use KuuraCms\Block\BlockValidator;
-use KuuraCms\BlockType\ParagraphBlockType;
+use KuuraCms\Block\Entities\Block;
 use KuuraCms\SharedAPIContext;
 use KuuraCms\UserSite\UserSiteAPI;
 use PHPUnit\Framework\TestCase;
@@ -43,8 +43,7 @@ final class BlockValidatorTest extends TestCase {
     }
     private function invokeValidation(\TestState $state): void {
         $v = new BlockValidator($state->sharedAPIContext);
-        $type = new ParagraphBlockType;
-        $state->validationErrors = $v->validateInsertOrUpdateData($type, $state->testInput);
+        $state->validationErrors = $v->validateInsertOrUpdateData(Block::TYPE_PARAGRAPH, $state->testInput);
     }
     private function registerAdditionalRenderer(string $fileId, \TestState $state): void {
         $userSiteApi = new UserSiteAPI("site", $state->sharedAPIContext);

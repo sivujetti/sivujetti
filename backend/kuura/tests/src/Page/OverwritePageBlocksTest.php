@@ -33,6 +33,7 @@ final class OverwritePageBlocksTest extends DbTestCase {
         $state->inputData = (object) ["blocks" =>
             [$btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Hello", "cssClass" => ""])]
         ];
+        $state->spyingResponse = null;
         $state->app = null;
         return $state;
     }
@@ -60,7 +61,9 @@ final class OverwritePageBlocksTest extends DbTestCase {
         $this->assertEquals($state->inputData->blocks[0]->id, $actual->blocks[0]->id);
     }
 
+
     ////////////////////////////////////////////////////////////////////////////
+
 
     public function testOverwritePageBlocksRejectsInvalidInputs(): void {
         $state = $this->setupTest();
@@ -72,7 +75,9 @@ final class OverwritePageBlocksTest extends DbTestCase {
         $this->sendOverwritePageBlocksRequest($state);
     }
 
+
     ////////////////////////////////////////////////////////////////////////////
+
 
     public function testOverwritePageRejectsIfPageDoesNotExist(): void {
         $state = $this->setupTest();

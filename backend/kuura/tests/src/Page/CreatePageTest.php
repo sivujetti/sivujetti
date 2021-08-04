@@ -36,6 +36,7 @@ final class CreatePageTest extends DbTestCase {
             "status" => Page::STATUS_PUBLISHED,
             "categories" => "[]",
         ];
+        $state->spyingResponse = null;
         $state->app = null;
         return $state;
     }
@@ -66,7 +67,9 @@ final class CreatePageTest extends DbTestCase {
         ], (array) $actual);
     }
 
+
     ////////////////////////////////////////////////////////////////////////////
+
 
     public function testCreateNormalPageRejectsInvalidInputs(): void {
         $state = $this->setupTest();

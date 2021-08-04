@@ -1,13 +1,13 @@
 <?php if ($props->type === \KuuraCms\Block\Entities\Block::TYPE_PARAGRAPH):
     echo "<p", ($props->cssClass ? " class=\"{$this->e($props->cssClass)}\"" : ''), ">",
         $props->text, // @allow pre-validated html
-        ($props->children ? $this->renderBlocks($props->children) : ""),
+        $this->renderChildren($props),
     "</p>";
 elseif ($props->type === \KuuraCms\Block\Entities\Block::TYPE_HEADING):
     $tag = "h{$this->e($props->level)}";
     echo "<{$tag}", ($props->cssClass ? " class=\"{$this->e($props->cssClass)}\"" : ''), ">",
         $this->e($props->text), // @allow pre-validated html
-        ($props->children ? $this->renderBlocks($props->children) : ""),
+        $this->renderChildren($props),
     "</{$tag}>";
 else:
     [$startTag, $endTag] = !(KUURA_FLAGS & KUURA_DEVMODE) ? ["<!--", "-->"] : ["<div>", "</div>"];

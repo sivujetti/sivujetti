@@ -64,10 +64,7 @@ final class PageTypeValidator {
      */
     private function validateBlocks(array $branch, object $blockTypes): array {
         foreach ($branch as $blockData) {
-            if (!($bt = $blockTypes->{$blockData->type} ?? null))
-                throw new PikeException("Unknown block type `{$blockData->type}`",
-                                        PikeException::BAD_INPUT);
-            if (($errors = $this->blockValidator->validateInsertOrUpdateData($bt, $blockData)))
+            if (($errors = $this->blockValidator->validateInsertOrUpdateData($blockData->type, $blockData)))
                 return $errors;
             if ($blockData->children && ($errors = $this->validateBlocks($blockData->children, $blockTypes)))
                 return $errors;

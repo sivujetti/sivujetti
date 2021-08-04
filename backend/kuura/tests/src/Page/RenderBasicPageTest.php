@@ -28,6 +28,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $state->testLayoutData = (object) [
             "blocks" => BlockTree::toJson($state->testLayoutBlocksTree),
         ];
+        $state->spyingResponse = null;
         $state->app = null;
         return $state;
     }

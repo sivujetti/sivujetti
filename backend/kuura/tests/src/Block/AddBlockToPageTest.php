@@ -44,6 +44,7 @@ final class AddBlockToPageTest extends DbTestCase {
         $state->testPageData->id = $testPageId;
         $state->testPageData->slug = "/add-block-to-page-test-page";
         $state->testPageData->path = "/add-block-to-page-test-page/";
+        $state->spyingResponse = null;
         $state->app = null;
         return $state;
     }
@@ -67,7 +68,9 @@ final class AddBlockToPageTest extends DbTestCase {
                                                              pageId: $state->inputData->pageId));
     }
 
+
     ////////////////////////////////////////////////////////////////////////////
+
 
     public function testAddBlockToPageRejectsInvalidInputs(): void {
         $state = $this->setupCreateBlockTest();
@@ -86,7 +89,9 @@ final class AddBlockToPageTest extends DbTestCase {
         ], $state->spyingResponse);
     }
 
+
     ////////////////////////////////////////////////////////////////////////////
+
 
     public function testAddBlockRejectsIfBlockTypeIsNotRegistered(): void {
         $state = $this->setupCreateBlockTest();
@@ -97,7 +102,9 @@ final class AddBlockToPageTest extends DbTestCase {
         $this->sendAddBlockToPageRequest($state);
     }
 
+
     ////////////////////////////////////////////////////////////////////////////
+
 
     public function testAddBlockRejectsIfPageDoesNotExist(): void {
         $state = $this->setupCreateBlockTest();
@@ -109,7 +116,9 @@ final class AddBlockToPageTest extends DbTestCase {
         $this->sendAddBlockToPageRequest($state);
     }
 
+
     ////////////////////////////////////////////////////////////////////////////
+
 
     public function testAddBlockRejectsIfParentBlockDoesNotExist(): void {
         $state = $this->setupCreateBlockTest();

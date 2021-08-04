@@ -32,6 +32,7 @@ final class RenderPageWithCustomBlockTest extends RenderPageTestCase {
     private function setupTest(): \TestState {
         $state = new \TestState;
         $state->testPageData = $this->pageTestUtils->makeTestPageData([]);
+        $state->spyingResponse = null;
         $state->app = null;
         return $state;
     }

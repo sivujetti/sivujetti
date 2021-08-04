@@ -3,6 +3,7 @@
 namespace KuuraCms\Page;
 
 use KuuraCms\{Template, ValidationUtils};
+use KuuraCms\Block\Entities\Block;
 
 final class SiteAwareTemplate extends Template {
     /** @var object[] */
@@ -48,6 +49,16 @@ final class SiteAwareTemplate extends Template {
      */
     public function assetUrl(string $url): string {
         return self::makeUrl($url, false);
+    }
+    /**
+     * @param \KuuraCms\Block\Entities\Block $block
+     * @return string
+     */
+    public function renderChildren(Block $block): string {
+        if (!$block->children) return "";
+        return $block->children[0]->type !== "__marker"
+            ? $this->renderBlocks($block->children)
+            : "<span id=\"temp-marker\"></span>";
     }
     /**
      * @param \KuuraCms\Block\Entities\Block[] $blocks

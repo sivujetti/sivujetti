@@ -20,6 +20,8 @@ final class RenderEditAppWrapperTest extends DbTestCase {
     private function setupTest(): \TestState {
         $state = new \TestState;
         $state->sharedAPIContext = new SharedAPIContext;
+        $state->spyingResponse = null;
+        $state->app = null;
         return $state;
     }
     private function registerJsFile(string $url, \TestState $state): void {

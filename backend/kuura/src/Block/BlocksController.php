@@ -2,13 +2,41 @@
 
 namespace KuuraCms\Block;
 
+use KuuraCms\Block\Entities\Block;
 use KuuraCms\BlockType\{BlockTypeInterface, PropertiesBuilder};
-use KuuraCms\Page\{PagesRepository};
+use KuuraCms\Page\{PagesRepository, SiteAwareTemplate};
 use KuuraCms\PageType\Entities\PageType;
 use KuuraCms\SharedAPIContext;
-use Pike\{PikeException, Request, Response};
+use Pike\{PikeException, Request, Response, Validation};
 
 final class BlocksController {
+    /**
+     * POST /api/blocks/render: Renders $req->body->block using $req->body->block->
+     * render -template. Returns 400 (or throws an exception) if the block or its
+     * properties isn't valid.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \KuuraCms\Block\BlockValidator $blockValidator
+     */
+    public function render(Request $req,
+                           Response $res,
+                           BlockValidator $blockValidator): void {
+        if (($errors = self::validateRenderBlockInput($req->body)) ||
+            ($errors = $blockValidator->validateInsertOrUpdateData($req->body->block->type,
+                                                                   $req->body->block))) {
+            $res->status(400)->json($errors);
+            return;
+        }
+        //
+        $block = Block::fromObject($req->body->block);
+        $marker = new Block;
+        $marker->type = "__marker";
+        $block->children = [$marker];
+        //
+        $html = (new SiteAwareTemplate($block->renderer))->renderBlocks([$block]);
+        $res->json(["result" => $html]);
+    }
     /**
      * POST /api/blocks/to-page/[i:pageId]/[w:parentBlockId]?: Inserts new block
      * to the database and links it to $req->params->pageId.
@@ -89,5 +117,15 @@ final class BlocksController {
             $out[] = $b;
         }
         return $out;
+    }
+    /**
+     * @param object $input
+     * @return string[] Error messages or []
+     */
+    private static function validateRenderBlockInput(object $input): array {
+        return Validation::makeObjectValidator()
+            ->rule("block.type", "type", "string")
+            ->rule("block.renderer", "type", "string")
+            ->validate($input);
     }
 }

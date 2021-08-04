@@ -14,5 +14,8 @@ final class Module {
         $ctx->router->map("PSEUDO:CLI", "/install-from-dir/[*:relDirPath]",
             [Controller::class, "installCmsFromDir"]
         );
+        $ctx->router->map("PSEUDO:CLI", "/print-acl-rules",
+            [Controller::class, "printAclRules"]
+        );
     }
 }

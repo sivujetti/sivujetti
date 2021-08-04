@@ -17,7 +17,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         parent::setUp();
         $this->fs = new FileSystem;
         $this->sitePackage = new LocalDirPackage($this->fs);
-        $this->sitePackage->open('basic-site');
+        $this->sitePackage->open("basic-site");
     }
     protected function tearDown(): void {
         parent::tearDown();
@@ -47,9 +47,9 @@ final class InstallCmsFromDirTest extends DbTestCase {
     private function makeInstallerTestApp(\TestState $state): void {
         $state->installerApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function (Injector $di) use ($state) {
             $di->prepare(Commons::class, function (Commons $instance) use ($state) {
-                $instance->setTargetSitePaths(backendRelDirPath: 'install-from-dir-test-backend/',
-                                              serverRootRelDirPath: 'install-from-dir-test-root/');
-                $state->getTargetSitePath = fn($which = 'site') => $instance->getTargetSitePath($which);
+                $instance->setTargetSitePaths(backendRelDirPath: "install-from-dir-test-backend/",
+                                              serverRootRelDirPath: "install-from-dir-test-root/");
+                $state->getTargetSitePath = fn($which = "site") => $instance->getTargetSitePath($which);
                 $state->getInstallerDb = fn() => $instance->getDb();
             });
         });
@@ -72,7 +72,13 @@ final class InstallCmsFromDirTest extends DbTestCase {
                                          ["Pages"],
                                          \PDO::FETCH_ASSOC);
         $this->assertNotNull($actual);
-        $this->assertNotNull((new PageTestUtils($installerDb))->getPageBySlug('/'));
+        $this->assertNotNull((new PageTestUtils($installerDb))->getPageBySlug("/"));
+        $actual = $installerDb->fetchOne("SELECT `aclRules` FROM `theWebsite` LIMIT 1",
+                                         [],
+                                         \PDO::FETCH_ASSOC);
+        $this->assertNotNull($actual);
+        $this->assertStringStartsWith("{\"resources\":",
+                                      $actual["aclRules"]);
     }
     private function verifyCopiedDefaultSiteFiles(\TestState $state): void {
         $a = fn($str) => KUURA_BACKEND_PATH . "installer/sample-content/basic-site/site/{$str}";
@@ -88,11 +94,11 @@ final class InstallCmsFromDirTest extends DbTestCase {
     private function verifyCopiedUserThemePublicFiles(\TestState $state): void {
         $filesList = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_PUBLIC_FILES_LIST,
                                                  $this->sitePackage);
-        $this->assertCopiedTheseFiles($state, $filesList, 'serverRoot');
+        $this->assertCopiedTheseFiles($state, $filesList, "serverRoot");
     }
     private function verifyCreatedConfigFile(\TestState $state): void {
         $actualConfig = $this->_getSiteConfig($state);
-        $this->assertStringEqualsFile("{$state->getTargetSitePath->__invoke('serverRoot')}config.php",
+        $this->assertStringEqualsFile("{$state->getTargetSitePath->__invoke("serverRoot")}config.php",
             "<?php\r\n" .
             "if (!defined('KUURA_BASE_URL')) {\r\n" .
             "    define('KUURA_BASE_URL',  '{$actualConfig['baseUrl']}');\r\n" .
@@ -108,10 +114,10 @@ final class InstallCmsFromDirTest extends DbTestCase {
             "];\r\n"
         );
     }
-    private function assertCopiedTheseFiles(\TestState $state, array $filesList, string $into = 'site'): void {
+    private function assertCopiedTheseFiles(\TestState $state, array $filesList, string $into = "site"): void {
         $a = fn($str) => KUURA_BACKEND_PATH . "installer/sample-content/basic-site/{$str}";
         $where = $state->getTargetSitePath->__invoke($into);
-        $where = $into !== 'serverRoot' ? (dirname($where) . "/") : $where;
+        $where = $into !== "serverRoot" ? (dirname($where) . "/") : $where;
         $b = fn($str) => "{$where}{$str}";
         foreach ($filesList as $relFilePath)
             $this->assertFileEquals($a($relFilePath), $b($relFilePath));
@@ -125,16 +131,16 @@ final class InstallCmsFromDirTest extends DbTestCase {
             $installerDb->exec("DROP DATABASE `{$actualConfig["db.database"]}`");
         }
         // .../kuura/backend/install-from-dir-test-backend/
-        $this->_deleteFilesRecursive($state->getTargetSitePath->__invoke('backend'));
+        $this->_deleteFilesRecursive($state->getTargetSitePath->__invoke("backend"));
         // .../kuura/install-from-dir-test-root/
-        $this->_deleteFilesRecursive($state->getTargetSitePath->__invoke('serverRoot'));
+        $this->_deleteFilesRecursive($state->getTargetSitePath->__invoke("serverRoot"));
     }
     private function _getSiteConfig(\TestState $state) {
         $actualConfig = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_MAIN_CONFIG,
                                                     $this->sitePackage);
         foreach ($actualConfig as $key => $_)
-            $actualConfig[$key] = str_replace('${KUURA_BACKEND_PATH}',
-                                              $state->getTargetSitePath->__invoke('backend'),
+            $actualConfig[$key] = str_replace("\${KUURA_BACKEND_PATH}",
+                                              $state->getTargetSitePath->__invoke("backend"),
                                               $actualConfig[$key]);
         return $actualConfig;
     }

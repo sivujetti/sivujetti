@@ -3,8 +3,9 @@
 namespace KuuraCms;
 
 use Auryn\Injector;
+use KuuraCms\Auth\ACL;
 use KuuraCms\Block\BlocksModule;
-use KuuraCms\Block\Entities\{Block};
+use KuuraCms\Block\Entities\Block;
 use KuuraCms\BlockType\{ColumnsBlockType, HeadingBlockType, ParagraphBlockType,
                         SectionBlockType};
 use KuuraCms\Page\PagesModule;
@@ -59,10 +60,11 @@ final class App {
         }
         $ctx->router->on("*", function ($req, $res, $next) {
             $req->myData = new \stdClass;
-            if ((str_starts_with($req->path, "/api/") ||
-                 str_starts_with($req->path, "/_edit/")) &&
-                 !$this->runAuthMiddleware($req, $res)) return;
+            $doRequireLogin = str_starts_with($req->path, "/api/") ||
+                              str_starts_with($req->path, "/_edit/");
+            if ($doRequireLogin && !$this->validateRequestMeta($req, $res)) return;
             $this->openDbAndLoadState();
+            if ($doRequireLogin && !$this->checkRequestUserPermissions($req, $res)) return;
             $next();
         });
     }
@@ -76,10 +78,10 @@ final class App {
     /**
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @return bool $requestWasOk
+     * @return bool $requestMetaWasOk
      * @throws \Pike\PikeException If the route definition (ctx->router->map) wasn't valid
      */
-    private function runAuthMiddleware(Request $req, Response $res): bool {
+    private function validateRequestMeta(Request $req, Response $res): bool {
         $routeInfo = $req->routeInfo->myCtx;
         //
         if (($consumesStr = $routeInfo["consumes"] ?? "") &&
@@ -87,6 +89,35 @@ final class App {
             $res->status(415)->plain("Unexpected content-type");
             return false;
         }
+        //
+        $todoUserRole = ACL::ROLE_ADMIN;
+        if (!$todoUserRole) {
+            $res->status(401)->plain("Login required");
+            return false;
+        }
+        //
+        return true;
+    }
+    /**
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @return bool $requestUserIsPermittedToAccessThisRoute
+     * @throws \Pike\PikeException If the database returned invalid aclRulesJson
+     */
+    private function checkRequestUserPermissions(Request $req, Response $res): bool {
+        $doThrowExceptions = (bool) (KUURA_FLAGS & KUURA_DEVMODE);
+        $acl = new ACL($doThrowExceptions);
+        $theWebsite = $this->ctx->theWebsite;
+        if (($rules = json_decode($theWebsite->aclRulesJson)) === null)
+            throw new PikeException("Failed to parse acl rules",
+                                    PikeException::BAD_INPUT);
+        $acl->setRules($rules);
+        $todoUserRole = ACL::ROLE_ADMIN;
+        if (!$acl->can($todoUserRole, ...$req->routeInfo->myCtx["identifiedBy"])) {
+            $res->status(403)->plain("Not permitted");
+            return false;
+        }
+        //
         return true;
     }
     /**

@@ -11,7 +11,7 @@ final class Module {
      * @param \KuuraCms\AppContext $ctx
      */
     public function init(AppContext $ctx): void {
-        $ctx->router->map("PSEUDO:CLI", "/install-from-dir/[*:relDirPath]",
+        $ctx->router->map("PSEUDO:CLI", "/install-from-dir/[*:relDirPath]/[*:baseUrl]?",
             [Controller::class, "installCmsFromDir"]
         );
         $ctx->router->map("PSEUDO:CLI", "/print-acl-rules",

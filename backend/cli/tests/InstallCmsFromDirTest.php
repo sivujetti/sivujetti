@@ -25,15 +25,16 @@ final class InstallCmsFromDirTest extends DbTestCase {
     }
     public function testInstallFromDirInstallsSiteFromLocalDirectory(): void {
         $state = $this->setupTest();
+        $params = (object) ["baseUrl" => "/foo"];
         $this->makeInstallerTestApp($state);
-        $this->invokeInstallFromDirFeature($state);
+        $this->invokeInstallFromDirFeature($state, $params);
         $this->verifyFeatureFinishedSuccesfully($state);
         $this->verifyCreatedDbAndSchema($state->getInstallerDb->__invoke());
         $this->verifyPopulatedDb($state->getInstallerDb->__invoke());
         $this->verifyCopiedDefaultSiteFiles($state);
         $this->verifyCopiedUserThemeAndSiteFiles($state);
         $this->verifyCopiedUserThemePublicFiles($state);
-        $this->verifyCreatedConfigFile($state);
+        $this->verifyCreatedConfigFile($state, $params);
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
@@ -41,6 +42,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $state->getInstallerDb = null;
         $state->getTargetSitePath = null;
         $state->spyingResponse = null;
+        $state->testTargetBaseUrl = null;
         $this->state = $state;
         return $state;
     }
@@ -54,9 +56,10 @@ final class InstallCmsFromDirTest extends DbTestCase {
             });
         });
     }
-    private function invokeInstallFromDirFeature(\TestState $state): void {
+    private function invokeInstallFromDirFeature(\TestState $state, object $params): void {
+        $tail = $params->baseUrl ? ("/" . urlencode($params->baseUrl)) : "";
         $state->spyingResponse = $state->installerApp->sendRequest(
-            new Request("/install-from-dir/basic-site", "PSEUDO:CLI"));
+            new Request("/install-from-dir/basic-site{$tail}", "PSEUDO:CLI"));
     }
     private function verifyFeatureFinishedSuccesfully(\TestState $state): void {
         $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
@@ -96,12 +99,13 @@ final class InstallCmsFromDirTest extends DbTestCase {
                                                  $this->sitePackage);
         $this->assertCopiedTheseFiles($state, $filesList, "serverRoot");
     }
-    private function verifyCreatedConfigFile(\TestState $state): void {
+    private function verifyCreatedConfigFile(\TestState $state, object $usedParams): void {
         $actualConfig = $this->_getSiteConfig($state);
+        $expectedBaseUrl = $usedParams->baseUrl ?? "/";
         $this->assertStringEqualsFile("{$state->getTargetSitePath->__invoke("serverRoot")}config.php",
             "<?php\r\n" .
             "if (!defined('KUURA_BASE_URL')) {\r\n" .
-            "    define('KUURA_BASE_URL',  '{$actualConfig['baseUrl']}');\r\n" .
+            "    define('KUURA_BASE_URL',  '{$expectedBaseUrl}');\r\n" .
             "    define('KUURA_QUERY_VAR', '{$actualConfig['mainQueryVar']}');\r\n" .
             "    define('KUURA_SECRET',    '{$actualConfig['secret']}');\r\n" .
             "    define('KUURA_DEVMODE',   1 << 1);\r\n" .
@@ -153,5 +157,23 @@ final class InstallCmsFromDirTest extends DbTestCase {
             }
         }
         return $this->fs->rmDir($dirPath) ? null : $dirPath;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testInstallFromDirUsesDefaults(): void {
+        $state = $this->setupTest();
+        $params = (object) ["baseUrl" => null];
+        $this->makeInstallerTestApp($state);
+        $this->invokeInstallFromDirFeature($state, $params);
+        $this->verifyFeatureFinishedSuccesfully($state);
+        $this->verifyCreatedDbAndSchema($state->getInstallerDb->__invoke());
+        $this->verifyPopulatedDb($state->getInstallerDb->__invoke());
+        $this->verifyCopiedDefaultSiteFiles($state);
+        $this->verifyCopiedUserThemeAndSiteFiles($state);
+        $this->verifyCopiedUserThemePublicFiles($state);
+        $this->verifyCreatedConfigFile($state, $params);
     }
 }

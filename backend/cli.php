@@ -3,8 +3,8 @@
 if (php_sapi_name() !== "cli")
     die("cli.php must be run on the command line.");
 
-if (($argc ?? 0) < 2) die(
-    "Usage: cli.php install-from-dir <relDirPath>"
+if (($argc ?? 0) < 3) die(
+    "Usage: cli.php install-from-dir <relDirPath>[ <baseUrl>]"
 );
 
 define("KUURA_BACKEND_PATH", str_replace("\\", "/", __DIR__) . "/");

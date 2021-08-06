@@ -1,6 +1,5 @@
-import {__, http} from '@kuura-commons';
+import {__, http, urlUtils, stringUtils} from '@kuura-commons';
 import {hookForm, InputGroup, InputError, Input} from '../../commons/Form.jsx';
-import {urlUtils, stringUtils} from '../../commons/utils.js';
 import toasters from '../../commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';
 import store, {deleteItemsFromOpQueueAfter, setOpQueue} from './store.js';

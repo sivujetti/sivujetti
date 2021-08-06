@@ -10,13 +10,14 @@ package-lock.json
 node_modules
 
 /backend/vendor/
+/backend/plugins/*
+/backend/site/
+/backend/translations/
 /docs/
+/internal/
+!*/**/Internal
 /public/*.*
 /public/uploads
 /public/kuura/*.js
 /public/tests/bundled-main.js
-/internal/
-!*/**/Internal
-/backend/plugins/*
-/backend/site/
-/backend/translations/
+/sdk/

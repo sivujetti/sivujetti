@@ -7,8 +7,8 @@ use Pike\{Request, Response};
 
 final class Controller {
     /**
-     * `php cli.php install-from-dir <relDirPath>`: Installs KuuraCms from local
-     * directory KUURA_BACKEND_PATH . "installer/sample-content/
+     * `php cli.php install-from-dir <relDirPath> <baseUrl>?`: Installs KuuraCms
+     * from local directory KUURA_BACKEND_PATH . "installer/sample-content/
      * {$req->params->relDirPath}/" to KUURA_BACKEND_PATH . "site".
      *
      * @param \Pike\Request $req
@@ -18,7 +18,8 @@ final class Controller {
     public function installCmsFromDir(Request $req,
                                       Response $res,
                                       LocalDirInstaller $installer): void {
-        $installer->doInstall(urldecode($req->params->relDirPath));
+        $installer->doInstall(urldecode($req->params->relDirPath),
+                              urldecode($req->params->baseUrl ?? "/"));
         $res->json((object) ['ok' => 'ok']);
     }
     /**

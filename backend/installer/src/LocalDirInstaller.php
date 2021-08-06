@@ -20,8 +20,11 @@ final class LocalDirInstaller {
     /**
      * Installs KuuraCms from local directory KUURA_BACKEND_PATH . "installer/
      * sample-content/{$relDirPath}/" to KUURA_BACKEND_PATH . "site".
+     *
+     * @param string $relDirPath e.g. "basic-site"
+     * @param string $baseUrl e.g. "/"
      */
-    public function doInstall(string $relDirPath): void {
+    public function doInstall(string $relDirPath, string $baseUrl): void {
         $package = new LocalDirPackage($this->fs);
         $package->open($relDirPath); // @allow \Pike\PikeException
         $config = Commons::readSneakyJsonData($package::LOCAL_NAME_MAIN_CONFIG, $package);
@@ -29,6 +32,9 @@ final class LocalDirInstaller {
             $config[$key] = str_replace("\${KUURA_BACKEND_PATH}",
                                         $this->commons->getTargetSitePath('backend'),
                                         $config[$key]);
+        $config["baseUrl"] = str_replace("\${baseUrl}",
+                                         $baseUrl,
+                                         $config["baseUrl"]);
         $this->commons->createTargetSiteDirs(); // @allow \Pike\PikeException
         $this->commons->createOrOpenDb($config); // @allow \Pike\PikeException
         $this->commons->createMainSchema(); // @allow \Pike\PikeException

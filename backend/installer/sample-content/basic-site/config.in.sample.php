@@ -1,1 +1,1 @@
-<?php // {"db.driver": "sqlite", "db.database": "${KUURA_BACKEND_PATH}site/my-site.db", "baseUrl": "/kuura/", "mainQueryVar": "q", "secret": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+<?php // {"db.driver": "sqlite", "db.database": "${KUURA_BACKEND_PATH}site/my-site.db", "baseUrl": "${baseUrl}", "mainQueryVar": "q", "secret": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}

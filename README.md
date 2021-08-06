@@ -17,6 +17,10 @@ Simply the most radical CMS ever created.
 1. Scales easily
 1. Has built-in exporter/importer
 
+## Personal goals
+
+1. Learn English
+
 # License
 
 GPLv3

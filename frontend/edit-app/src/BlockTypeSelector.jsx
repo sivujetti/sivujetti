@@ -1,4 +1,4 @@
-import {__} from '@kuura-commons';
+import {__} from '@sivujetti-commons';
 import blockTypes from './block-types/block-types.js';
 
 class BlockTypeSelector extends preact.Component {

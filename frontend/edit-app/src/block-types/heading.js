@@ -1,4 +1,4 @@
-import {__} from '@kuura-commons';
+import {__} from '@sivujetti-commons';
 
 class HeadingBlockEditForm extends preact.Component {
     render() {
@@ -13,7 +13,7 @@ export default {
     friendlyName: 'Heading',
     ownPropNames: Object.keys(initialData),
     initialData,
-    defaultRenderer: 'kuura:block-auto',
+    defaultRenderer: 'sivujetti:block-auto',
     reRender({level, text, cssClass}, renderChildren) {
         return `<h${level}${cssClass? ` class="${cssClass}"` : ''}>${text}${renderChildren()}</h${level}>`;
     },

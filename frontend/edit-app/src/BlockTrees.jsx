@@ -1,4 +1,4 @@
-import {__, http, signals} from '@kuura-commons';
+import {__, http, signals} from '@sivujetti-commons';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import Icon from '../../commons/Icon.jsx';
 import Tabs from '../../commons/Tabs.jsx';

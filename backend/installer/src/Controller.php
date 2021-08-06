@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace KuuraCms\Installer;
+namespace Sivujetti\Installer;
 
 final class Controller {
     //

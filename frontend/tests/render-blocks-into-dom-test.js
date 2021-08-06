@@ -75,7 +75,7 @@ QUnit.module('EditAppAwareWebPage', () => {
                 blocks: [{
                     "type": "Section",
                     "title": "",
-                    "renderer": "kuura:block-generic-wrapper",
+                    "renderer": "sivujetti:block-generic-wrapper",
                     "id": sectionBlockId,
                     "propsData": [{
                         "key": "cssClass",
@@ -89,7 +89,7 @@ QUnit.module('EditAppAwareWebPage', () => {
                     "children": [{
                         "type": "Paragraph",
                         "title": "",
-                        "renderer": "kuura:block-auto",
+                        "renderer": "sivujetti:block-auto",
                         "id": paragraphBlockId,
                         "children": [],
                         "propsData": [{

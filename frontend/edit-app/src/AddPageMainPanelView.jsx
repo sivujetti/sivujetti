@@ -1,4 +1,4 @@
-import {__, http, urlUtils, stringUtils} from '@kuura-commons';
+import {__, http, urlUtils, stringUtils} from '@sivujetti-commons';
 import {hookForm, InputGroup, InputError, Input} from '../../commons/Form.jsx';
 import toasters from '../../commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';

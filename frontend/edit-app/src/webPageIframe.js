@@ -1,4 +1,4 @@
-import {env, urlUtils} from '@kuura-commons';
+import {env, urlUtils} from '@sivujetti-commons';
 
 const webPageIframe = {
     /**
@@ -7,7 +7,7 @@ const webPageIframe = {
      */
     openPlaceholderPage(pageType, layoutId = '1') {
         const u = urlUtils.makeUrl(`/api/_placeholder-page/${pageType}/${layoutId}`);
-        env.document.getElementById('kuura-site-iframe').contentWindow.location.href = u;
+        env.document.getElementById('sivujetti-site-iframe').contentWindow.location.href = u;
     },
     /**
      */

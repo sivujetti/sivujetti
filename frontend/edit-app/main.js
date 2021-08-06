@@ -1,4 +1,4 @@
-import {translator, env, urlUtils} from '@kuura-commons';
+import {translator, env, urlUtils} from '@sivujetti-commons';
 import {Validator} from '../commons/Form.jsx';
 import EditApp from './src/EditApp.jsx';
 import blockTypes from './src/block-types/block-types.js';
@@ -69,7 +69,7 @@ function renderReactEditApp() {
 }
 
 function hookUpSiteIframeUrlMirrorer() {
-    document.getElementById('kuura-site-iframe').addEventListener('load', e => {
+    document.getElementById('sivujetti-site-iframe').addEventListener('load', e => {
         let p = e.target.contentWindow.location.href.split('#')[0]
             .replace('&in-edit', '')
             .replace('?in-edit', '')

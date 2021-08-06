@@ -4,8 +4,8 @@
         "target": "es2017",
         "baseUrl": "./",
         "paths": {
-            "@kuura-commons": ["frontend/commons/main.js"],
-            "@kuura-cpanel-commons": ["frontend/cpanel-commons/main.js"],
+            "@sivujetti-commons": ["frontend/commons/main.js"],
+            "@sivujetti-cpanel-commons": ["frontend/cpanel-commons/main.js"],
         }
     }
 }

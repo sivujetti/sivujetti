@@ -1,4 +1,4 @@
-import stringBundles from '@kuura-string-bundles';
+import stringBundles from '@sivujetti-string-bundles';
 
 stringBundles.push({
     'On this page': 'Tällä sivulla',

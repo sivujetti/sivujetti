@@ -1,14 +1,14 @@
 <?php declare(strict_types=1);
 
-namespace KuuraCms\Installer;
+namespace Sivujetti\Installer;
 
-use KuuraCms\AppContext;
+use Sivujetti\AppContext;
 use Pike\{App as PikeApp, Router, ServiceDefaults};
 
 final class App {
     /**
      * @param array|object|null $config
-     * @param ?\KuuraCms\AppContext $initialCtx = null
+     * @param ?\Sivujetti\AppContext $initialCtx = null
      * @param ?\Pike\Router $router = null
      * @return \Pike\App
      */

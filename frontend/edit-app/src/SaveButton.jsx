@@ -1,4 +1,4 @@
-import {__} from '@kuura-commons';
+import {__} from '@sivujetti-commons';
 import Icon from '../../commons/Icon.jsx';
 import store, {observeStore, setOpQueue, selectOpQueue} from './store.js';
 
@@ -37,7 +37,7 @@ class SaveButton extends preact.Component {
      */
     execQueuedOps() {
         const next = queue => {
-            const top = queue.shift();
+            const top = queue[0];
             if (!top) {
                 store.dispatch(setOpQueue([]));
                 return;
@@ -45,7 +45,7 @@ class SaveButton extends preact.Component {
             top.handler()
                 .then(doProceed => {
                     // Truthy value -> clear item from the queue and proceed
-                    if (doProceed !== false) next(queue);
+                    if (doProceed !== false) { queue.shift(); next(queue); }
                     // false -> do not clear the item and stop
                     else store.dispatch(setOpQueue(queue));
                 });

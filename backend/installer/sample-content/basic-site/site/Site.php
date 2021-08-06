@@ -2,11 +2,11 @@
 
 namespace MySite;
 
-use KuuraCms\UserSite\{UserSiteAPI, UserSiteInterface};
+use Sivujetti\UserSite\{UserSiteAPI, UserSiteInterface};
 
 class Site implements UserSiteInterface {
     /**
-     * @param \KuuraCms\UserSite\UserSiteAPI $api
+     * @param \Sivujetti\UserSite\UserSiteAPI $api
      */
     public function __construct(UserSiteAPI $api) {
         //

@@ -1,4 +1,4 @@
-import {env, urlUtils} from '@kuura-commons';
+import {env, urlUtils} from '@sivujetti-commons';
 import blockTypes from '../edit-app/src/block-types/block-types.js';
 import paragraphBlockType from '../edit-app/src/block-types/paragraph';
 import './render-blocks-into-dom-test.js';

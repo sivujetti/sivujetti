@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace KuuraCms\Installer;
+namespace Sivujetti\Installer;
 
-use KuuraCms\ValidationUtils;
+use Sivujetti\ValidationUtils;
 use Pike\Interfaces\FileSystemInterface;
 use Pike\PikeException;
 
@@ -22,7 +22,7 @@ final class LocalDirPackage implements PackageStreamInterface {
      * @inheritdoc
      */
     public function open(string $relDirPath, bool $create = false): string {
-        $this->absDirPath = KUURA_BACKEND_PATH . "installer/sample-content/{$relDirPath}/";
+        $this->absDirPath = SIVUJETTI_BACKEND_PATH . "installer/sample-content/{$relDirPath}/";
         if (!$this->fs->isDir($this->absDirPath))
             throw new PikeException("Directory `{$this->absDirPath}` doesn't exist or isn't readable",
                                     PikeException::BAD_INPUT);

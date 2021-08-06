@@ -1,4 +1,4 @@
-import {__} from '@kuura-commons';
+import {__} from '@sivujetti-commons';
 import Icon from '../../commons/Icon.jsx';
 import blockTypes from './block-types/block-types.js';
 import BlockTrees from './BlockTrees.jsx';

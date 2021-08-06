@@ -1,5 +1,4 @@
-import {__} from '@kuura-commons';
-import {urlUtils} from '../../../commons/utils.js';
+import {__, urlUtils} from '@sivujetti-commons';
 
 class SectionBlockEditForm extends preact.Component {
     render() {
@@ -14,7 +13,7 @@ export default {
     friendlyName: 'Section',
     ownPropNames: Object.keys(initialData),
     initialData,
-    defaultRenderer: 'kuura:block-generic-wrapper',
+    defaultRenderer: 'sivujetti:block-generic-wrapper',
     reRender({cssClass, bgImage}, renderChildren) {
         return `<section${cssClass? ` class="${cssClass}"` : ''}` +
             (bgImage ? ` style="background-image:url('${urlUtils.makeAssetUrl(bgImage)}')"` : '') +

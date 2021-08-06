@@ -1,4 +1,4 @@
-import {urlUtils} from '@kuura-commons';
+import {urlUtils} from '@sivujetti-commons';
 
 class FeatherSvg extends preact.Component {
     /**
@@ -7,7 +7,7 @@ class FeatherSvg extends preact.Component {
      */
     render({iconId, className}) {
         return <svg class={ `feather${!className ? '' : ` ${className}`}` }>
-            <use xlinkHref={ `${urlUtils.assetBaseUrl}public/kuura/assets/feather-sprite.svg#${iconId}` }/>
+            <use xlinkHref={ `${urlUtils.assetBaseUrl}public/sivujetti/assets/feather-sprite.svg#${iconId}` }/>
         </svg>;
     }
 }

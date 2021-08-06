@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace KuuraCms\Installer;
+namespace Sivujetti\Installer;
 
-use KuuraCms\ValidationUtils;
+use Sivujetti\ValidationUtils;
 use Pike\{Db, FileSystem, PikeException};
 
 final class Commons {
@@ -20,8 +20,8 @@ final class Commons {
     public function __construct(FileSystem $fs) {
         self::checkEnvRequirementsAreMetOrDie();
         $this->fs = $fs;
-        $this->targetSiteBackendPath = KUURA_BACKEND_PATH;
-        $this->targetSiteServerRoot = KUURA_PUBLIC_PATH;
+        $this->targetSiteBackendPath = SIVUJETTI_BACKEND_PATH;
+        $this->targetSiteServerRoot = SIVUJETTI_PUBLIC_PATH;
     }
     /**
      * @throws \Pike\PikeException
@@ -45,11 +45,11 @@ final class Commons {
      */
     public function createMainSchema(): void {
         $driver = $this->db->attr(\PDO::ATTR_DRIVER_NAME);
-        $statements = require KUURA_BACKEND_PATH . "installer/schema.{$driver}.php";
+        $statements = require SIVUJETTI_BACKEND_PATH . "installer/schema.{$driver}.php";
         $this->runManyDbStatements($statements);
     }
     /**
-     * @param \KuuraCms\Installer\PackageStreamInterface $package
+     * @param \Sivujetti\Installer\PackageStreamInterface $package
      */
     public function populateDb(PackageStreamInterface $package): void {
         $statements = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_DB_DATA,
@@ -57,7 +57,7 @@ final class Commons {
         $this->runManyDbStatements($statements);
     }
     /**
-     * @param \KuuraCms\Installer\PackageStreamInterface $package
+     * @param \Sivujetti\Installer\PackageStreamInterface $package
      * @param array $config
      */
     public function writeFiles(PackageStreamInterface $package,
@@ -69,7 +69,7 @@ final class Commons {
     }
     /**
      * @param string $sneakyJsonFileLocalName
-     * @param \KuuraCms\Installer\PackageStreamInterface $package
+     * @param \Sivujetti\Installer\PackageStreamInterface $package
      * @return array|object Parsed json data
      */
     public static function readSneakyJsonData(string $sneakyJsonFileLocalName,
@@ -91,17 +91,17 @@ final class Commons {
         if (!$this->fs->write(
             "{$this->targetSiteServerRoot}config.php",
 "<?php
-if (!defined('KUURA_BASE_URL')) {
-    define('KUURA_BASE_URL',  '{$config["baseUrl"]}');
-    define('KUURA_QUERY_VAR', '{$config["mainQueryVar"]}');
-    define('KUURA_SECRET',    '{$config["secret"]}');
-    define('KUURA_DEVMODE',   1 << 1);
-    define('KUURA_FLAGS',     0);
+if (!defined('SIVUJETTI_BASE_URL')) {
+    define('SIVUJETTI_BASE_URL',  '{$config["baseUrl"]}');
+    define('SIVUJETTI_QUERY_VAR', '{$config["mainQueryVar"]}');
+    define('SIVUJETTI_SECRET',    '{$config["secret"]}');
+    define('SIVUJETTI_DEVMODE',   1 << 1);
+    define('SIVUJETTI_FLAGS',     0);
 }
 return [
 " . (($config["db.driver"] ?? "") === "sqlite" ?
 "    'db.driver'      => 'sqlite',
-    'db.database'    => '".str_replace(KUURA_BACKEND_PATH, "'.KUURA_BACKEND_PATH.'",$config["db.database"])."',
+    'db.database'    => '".str_replace(SIVUJETTI_BACKEND_PATH, "'.SIVUJETTI_BACKEND_PATH.'",$config["db.database"])."',
     'db.tablePrefix' => ''," :
 "    'db.host'        => '{$config["db.host"]}',
     'db.database'    => '{$config["db.database"]}',
@@ -125,19 +125,19 @@ return [
         };
     }
     /**
-     * @param ?string $backendRelDirPath = KUURA_BACKEND_PATH
-     * @param ?string $serverRootRelDirPath = KUURA_PUBLIC_PATH
+     * @param ?string $backendRelDirPath = SIVUJETTI_BACKEND_PATH
+     * @param ?string $serverRootRelDirPath = SIVUJETTI_PUBLIC_PATH
      * @throws \Pike\PikeException If path is not valid
      */
     public function setTargetSitePaths(?string $backendRelDirPath = null,
                                        ?string $serverRootRelDirPath = null): void {
         if ($backendRelDirPath) {
             ValidationUtils::checkIfValidaPathOrThrow($backendRelDirPath);
-            $this->targetSiteBackendPath = KUURA_BACKEND_PATH . $backendRelDirPath;
+            $this->targetSiteBackendPath = SIVUJETTI_BACKEND_PATH . $backendRelDirPath;
         }
         if ($serverRootRelDirPath) {
             ValidationUtils::checkIfValidaPathOrThrow($serverRootRelDirPath);
-            $this->targetSiteServerRoot = dirname(KUURA_PUBLIC_PATH) . "/{$serverRootRelDirPath}";
+            $this->targetSiteServerRoot = dirname(SIVUJETTI_PUBLIC_PATH) . "/{$serverRootRelDirPath}";
         }
     }
     /**
@@ -147,14 +147,14 @@ return [
         return $this->db;
     }
     /**
-     * @param \KuuraCms\Installer\PackageStreamInterface $package
+     * @param \Sivujetti\Installer\PackageStreamInterface $package
      */
     private function writeDefaultFiles(PackageStreamInterface $package): void {
         $package->extractMany($this->targetSiteBackendPath,
                               ["site/Theme.php", "site/Site.php"]);
     }
     /**
-     * @param \KuuraCms\Installer\PackageStreamInterface $package
+     * @param \Sivujetti\Installer\PackageStreamInterface $package
      */
     private function writeSiteSourceFiles(PackageStreamInterface $package): void {
         $localFileNames = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PHP_FILES_LIST,
@@ -162,7 +162,7 @@ return [
         $package->extractMany($this->targetSiteBackendPath, $localFileNames);
     }
     /**
-     * @param \KuuraCms\Installer\PackageStreamInterface $package
+     * @param \Sivujetti\Installer\PackageStreamInterface $package
      */
     private function writePublicFiles(PackageStreamInterface $package): void {
         $localFileNames = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PUBLIC_FILES_LIST,
@@ -182,13 +182,13 @@ return [
      */
     private static function checkEnvRequirementsAreMetOrDie(): void {
         if (version_compare(phpversion(), "8.0.0", "<"))
-            die("KuuraCMS requires PHP 8.0.0 or later.");
+            die("Sivujetti requires PHP 8.0.0 or later.");
         if (!function_exists("random_bytes"))
             die("!function_exists(\"random_bytes\") for some reason.");
         if (!extension_loaded("pdo_mysql") && !extension_loaded("pdo_sqlite"))
-            die("pdo_mysql OR pdo_sqlite is required by KuuraCMS.");
+            die("pdo_mysql OR pdo_sqlite is required by Sivujetti.");
         foreach (["mbstring", "fileinfo"] as $ext)
             if (!extension_loaded($ext))
-                die("{$ext} extension is required by KuuraCMS.");
+                die("{$ext} extension is required by Sivujetti.");
     }
 }

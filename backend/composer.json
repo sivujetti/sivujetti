@@ -1,6 +1,6 @@
 {
-    "name": "ut4/kuuracms",
-    "description": "KuuraCMS is simply the most radical CMS ever created.",
+    "name": "sivujetti/sivujetti",
+    "description": "Sivujetti is simply the most radical CMS ever created.",
     "type": "project",
     "require": {
         "php": "^8.0.0",
@@ -8,16 +8,16 @@
         "ext-mbstring": "*",
         "ext-ctype": "*",
         "ext-fileinfo": "*",
-        "ut4/pike": "1.0.0-dev",
+        "ut4/pike": "1.0.x-dev",
         "phpmailer/phpmailer": "~6.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5"
     },
     "autoload": {
-        "psr-4": {"KuuraCms\\": "kuura/src/"}
+        "psr-4": {"Sivujetti\\": "sivujetti/src/"}
     },
     "scripts": {
-        "test": "\"vendor/bin/phpunit\" --bootstrap ./kuura/tests/bootstrap.php"
+        "test": "\"vendor/bin/phpunit\" --bootstrap ./sivujetti/tests/bootstrap.php"
     }
 }

@@ -1,14 +1,14 @@
 <?php declare(strict_types=1);
 
-namespace KuuraCms\Installer;
+namespace Sivujetti\Installer;
 
-use KuuraCms\AppContext;
+use Sivujetti\AppContext;
 
 final class Module {
     /**
      * Registers routes for install.php?q=*
      *
-     * @param \KuuraCms\AppContext $ctx
+     * @param \Sivujetti\AppContext $ctx
      */
     public function init(AppContext $ctx): void {
         //

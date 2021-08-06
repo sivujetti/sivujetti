@@ -1,3 +1,5 @@
+import {__} from '@sivujetti-commons';
+
 class ColumnsBlockEditForm extends preact.Component {
     render() {
         return <div>todo</div>;
@@ -11,7 +13,7 @@ export default {
     friendlyName: 'Columns',
     ownPropNames: Object.keys(initialData),
     initialData,
-    defaultRenderer: 'kuura:block-generic-wrapper',
+    defaultRenderer: 'sivujetti:block-generic-wrapper',
     reRender({cssClass}, renderChildren) {
         return `<div class="${cssClass || 'columns'}">${renderChildren()}</div>`;
     },

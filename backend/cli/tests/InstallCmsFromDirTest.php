@@ -1,11 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace KuuraCms\Cli\Tests;
+namespace Sivujetti\Cli\Tests;
 
 use Auryn\Injector;
-use KuuraCms\Cli\App;
-use KuuraCms\Installer\{Commons, LocalDirPackage};
-use KuuraCms\Tests\Utils\PageTestUtils;
+use Sivujetti\Cli\App;
+use Sivujetti\Installer\{Commons, LocalDirPackage};
+use Sivujetti\Tests\Utils\PageTestUtils;
 use Pike\{Db, FileSystem, Request, TestUtils\DbTestCase, TestUtils\HttpTestUtils};
 
 final class InstallCmsFromDirTest extends DbTestCase {
@@ -84,7 +84,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
                                       $actual["aclRules"]);
     }
     private function verifyCopiedDefaultSiteFiles(\TestState $state): void {
-        $a = fn($str) => KUURA_BACKEND_PATH . "installer/sample-content/basic-site/site/{$str}";
+        $a = fn($str) => SIVUJETTI_BACKEND_PATH . "installer/sample-content/basic-site/site/{$str}";
         $b = fn($str) => "{$state->getTargetSitePath->__invoke()}{$str}";
         $this->assertFileEquals($a("Site.php"), $b("Site.php"));
         $this->assertFileEquals($a("Theme.php"), $b("Theme.php"));
@@ -104,22 +104,22 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $expectedBaseUrl = $usedParams->baseUrl ?? "/";
         $this->assertStringEqualsFile("{$state->getTargetSitePath->__invoke("serverRoot")}config.php",
             "<?php\r\n" .
-            "if (!defined('KUURA_BASE_URL')) {\r\n" .
-            "    define('KUURA_BASE_URL',  '{$expectedBaseUrl}');\r\n" .
-            "    define('KUURA_QUERY_VAR', '{$actualConfig['mainQueryVar']}');\r\n" .
-            "    define('KUURA_SECRET',    '{$actualConfig['secret']}');\r\n" .
-            "    define('KUURA_DEVMODE',   1 << 1);\r\n" .
-            "    define('KUURA_FLAGS',     0);\r\n" .
+            "if (!defined('SIVUJETTI_BASE_URL')) {\r\n" .
+            "    define('SIVUJETTI_BASE_URL',  '{$expectedBaseUrl}');\r\n" .
+            "    define('SIVUJETTI_QUERY_VAR', '{$actualConfig['mainQueryVar']}');\r\n" .
+            "    define('SIVUJETTI_SECRET',    '{$actualConfig['secret']}');\r\n" .
+            "    define('SIVUJETTI_DEVMODE',   1 << 1);\r\n" .
+            "    define('SIVUJETTI_FLAGS',     0);\r\n" .
             "}\r\n" .
             "return [\r\n" .
             "    'db.driver'      => '{$actualConfig["db.driver"]}',\r\n" .
-            "    'db.database'    => '".str_replace(KUURA_BACKEND_PATH, "'.KUURA_BACKEND_PATH.'",$actualConfig["db.database"])."',\r\n" .
+            "    'db.database'    => '".str_replace(SIVUJETTI_BACKEND_PATH, "'.SIVUJETTI_BACKEND_PATH.'",$actualConfig["db.database"])."',\r\n" .
             "    'db.tablePrefix' => '',\r\n" .
             "];\r\n"
         );
     }
     private function assertCopiedTheseFiles(\TestState $state, array $filesList, string $into = "site"): void {
-        $a = fn($str) => KUURA_BACKEND_PATH . "installer/sample-content/basic-site/{$str}";
+        $a = fn($str) => SIVUJETTI_BACKEND_PATH . "installer/sample-content/basic-site/{$str}";
         $where = $state->getTargetSitePath->__invoke($into);
         $where = $into !== "serverRoot" ? (dirname($where) . "/") : $where;
         $b = fn($str) => "{$where}{$str}";
@@ -134,16 +134,16 @@ final class InstallCmsFromDirTest extends DbTestCase {
         } else {
             $installerDb->exec("DROP DATABASE `{$actualConfig["db.database"]}`");
         }
-        // .../kuura/backend/install-from-dir-test-backend/
+        // .../sivujetti/backend/install-from-dir-test-backend/
         $this->_deleteFilesRecursive($state->getTargetSitePath->__invoke("backend"));
-        // .../kuura/install-from-dir-test-root/
+        // .../sivujetti/install-from-dir-test-root/
         $this->_deleteFilesRecursive($state->getTargetSitePath->__invoke("serverRoot"));
     }
     private function _getSiteConfig(\TestState $state) {
         $actualConfig = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_MAIN_CONFIG,
                                                     $this->sitePackage);
         foreach ($actualConfig as $key => $_)
-            $actualConfig[$key] = str_replace("\${KUURA_BACKEND_PATH}",
+            $actualConfig[$key] = str_replace("\${SIVUJETTI_BACKEND_PATH}",
                                               $state->getTargetSitePath->__invoke("backend"),
                                               $actualConfig[$key]);
         return $actualConfig;

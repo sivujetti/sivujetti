@@ -2,11 +2,11 @@
 
 namespace MySite;
 
-use KuuraCms\UserTheme\{UserThemeAPI, UserThemeInterface};
+use Sivujetti\UserTheme\{UserThemeAPI, UserThemeInterface};
 
 class Theme implements UserThemeInterface {
     /**
-     * @param \KuuraCms\UserTheme\UserThemeAPI $api
+     * @param \Sivujetti\UserTheme\UserThemeAPI $api
      */
     public function __construct(UserThemeAPI $api) {
         $api->registerPageLayout("Full width",

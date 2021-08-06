@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace KuuraCms\Installer;
+namespace Sivujetti\Installer;
 
 interface PackageStreamInterface {
     public const LOCAL_NAME_PHP_FILES_LIST = 'php-files-list.php';

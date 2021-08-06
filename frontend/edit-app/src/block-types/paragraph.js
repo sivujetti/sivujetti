@@ -1,4 +1,4 @@
-import {__} from '@kuura-commons';
+import {__} from '@sivujetti-commons';
 import {hookForm, InputGroup, InputError} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
 
@@ -67,7 +67,7 @@ export default {
     friendlyName: 'Paragraph',
     ownPropNames: Object.keys(initialData),
     initialData,
-    defaultRenderer: 'kuura:block-auto',
+    defaultRenderer: 'sivujetti:block-auto',
     reRender({text, cssClass}, renderChildren) {
         return `<p${cssClass? ` class="${cssClass}"` : ''}>${text}${renderChildren()}</p>`;
     },

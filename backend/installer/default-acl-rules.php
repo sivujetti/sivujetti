@@ -1,5 +1,5 @@
 <?php
-use KuuraCms\Auth\ACL;
+use Sivujetti\Auth\ACL;
 //
 return function () {
 $out = new \stdClass;

@@ -10,7 +10,7 @@ const makeOutputCfg = (...myCfg) => {
     if (!out.banner) out.banner =
 `/*!
  * ${out.file.split('/').pop().split('.')[0]} 0.0.0
- * https://github.com/ut4/kuuracms
+ * https://github.com/sivujetti/sivujetti
  * @license GPLv3
  */`;
     return out;
@@ -32,26 +32,26 @@ const watchSettings = {
 ////////////////////////////////////////////////////////////////////////////////
 module.exports = args => {
     //
-    const commonsPath = '@kuura-commons';
-    const allGlobals = {[commonsPath]: 'kuuraCommons'};
+    const commonsPath = '@sivujetti-commons';
+    const allGlobals = {[commonsPath]: 'sivujettiCommons'};
     const allExternals = [commonsPath];
     const bundle = !args.configInput ? args.configBundle || 'main' : 'custom';
     const bundles = [];
     const selectedLang = args.configLang || 'fi';
-    // == kuura-edit-app.js ====================================================
+    // == sivujetti-edit-app.js ================================================
     if (bundle === 'main' || bundle === 'all') {
         bundles.push({
             input: 'frontend/commons/main.js',
             output: makeOutputCfg({
-                name: 'kuuraCommons',
-                file: 'public/kuura/kuura-commons.js'
+                name: 'sivujettiCommons',
+                file: 'public/sivujetti/sivujetti-commons.js'
             }),
             watch: watchSettings
         }, {
             input: 'frontend/edit-app/main.js',
             output: makeOutputCfg({
-                name: 'kuuraEditApp',
-                file: 'public/kuura/kuura-edit-app.js',
+                name: 'sivujettiEditApp',
+                file: 'public/sivujetti/sivujetti-edit-app.js',
                 globals: allGlobals,
             }),
             external: allExternals,
@@ -67,20 +67,20 @@ module.exports = args => {
             input: `frontend/translations/${selectedLang}.js`,
             output: {
                 format: 'iife',
-                file: `public/kuura/lang-${selectedLang}.js`,
-                globals: {'@kuura-string-bundles': 'translationStringBundles'},
+                file: `public/sivujetti/lang-${selectedLang}.js`,
+                globals: {'@sivujetti-string-bundles': 'translationStringBundles'},
             },
-            external: ['@kuura-string-bundles'],
+            external: ['@sivujetti-string-bundles'],
             watch: watchSettings
         });
     }
-    // == kuura-webpage.js =====================================================
+    // == sivujetti-webpage.js =================================================
     if (bundle === 'webpage' || bundle === 'all')
         bundles.push({
             input: 'frontend/webpage/main.js',
             output: makeOutputCfg({
-                file: 'public/kuura/kuura-webpage.js',
-                globals: {[commonsPath]: 'kuuraCommons'},
+                file: 'public/sivujetti/sivujetti-webpage.js',
+                globals: {[commonsPath]: 'sivujettiCommons'},
             }),
             external: [commonsPath],
             watch: watchSettings

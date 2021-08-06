@@ -1,4 +1,4 @@
-# KuuraCMS
+# Sivujetti
 
 Simply the most radical CMS ever created.
 

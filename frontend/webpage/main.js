@@ -3,7 +3,7 @@ import EditAppAwareWebPage from './src/EditAppAwareWebPage.js';
 const editApp = (window.parent || {}).editApp;
 
 if (editApp) {
-    const webPage = new EditAppAwareWebPage(window.kuuraCurrentPageData || {});
+    const webPage = new EditAppAwareWebPage(window.sivujettiCurrentPageData || {});
     editApp.handleWebPageLoaded(webPage);
 
     const host = location.hostname;

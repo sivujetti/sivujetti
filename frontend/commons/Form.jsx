@@ -35,10 +35,11 @@ const validatorImplFactories = {
          `{field}${args.length < 2 ? ' ei kelpaa' : '{arg1}'}`]
     ,
 };
+const formStateWrappersImpls = new Map;
 class Validator {
     /**
-     * @param {string} errorLabel
-     * @param {Array<[string, ...any]|[[function, string], ...any]>} ruleSettings
+     * @param {String} errorLabel
+     * @param {Array<[String, ...any]|[[function, String], ...any]>} ruleSettings
      */
     constructor(errorLabel, ruleSettings) {
         this.errorLabel = errorLabel;
@@ -46,7 +47,7 @@ class Validator {
     }
     /**
      * @param {any} value
-     * @returns {string|null}
+     * @returns {String|null}
      * @access public
      */
     checkValidity(value) {
@@ -66,11 +67,19 @@ class Validator {
         , errorTmpl.replace('{field}', this.errorLabel));
     }
     /**
-     * @param {{[key: string]: string;}} strings
+     * @param {{[key: String]: String;}} strings
      * @access public
      */
     static setValidationStrings(strings) {
         Object.assign(validationStrings, strings);
+    }
+    /**
+     * @param {String} name
+     * @param {new (){pushState: () => String; removeState: () => void; getState: () => {isSubmitting?: Boolean; isValidating?: Boolean; isValid?: Boolean;}; setState: (newState: {isSubmitting?: Boolean; isValidating?: Boolean; isValid?: Boolean;}) => void;}} Cls
+     * @access public
+     */
+    static registerStateWrapperImpl(name, Cls) {
+        formStateWrappersImpls.set(name, Cls);
     }
 }
 class ValidatorRunner {
@@ -92,7 +101,7 @@ class ValidatorRunner {
         }
     }
     /**
-     * @param {string} inputName
+     * @param {String} inputName
      * @param {Validator} validator
      * @param {Object} cmp
      * @access public
@@ -101,7 +110,7 @@ class ValidatorRunner {
         this.inputs.set(inputName, {validator, cmp});
     }
     /**
-     * @param {string} inputName
+     * @param {String} inputName
      * @returns {{validator: Validator; cmp: Object;}|null}
      * @access public
      */
@@ -109,7 +118,7 @@ class ValidatorRunner {
         return this.inputs.get(inputName) || null;
     }
     /**
-     * @param {(validator: Validator, inputName: string) => false|any} fn
+     * @param {(validator: Validator, inputName: String) => false|any} fn
      */
     each(fn) {
         for (const [inputName, input] of this.inputs) {
@@ -123,11 +132,24 @@ class Form {
     /**
      * @param {preact.Component} vm
      * @param {ValidatorRunner} validatorRunner
+     * @param {{getState: () => {isSubmitting?: Boolean; isValidating?: Boolean; isValid?: Boolean;}; setState: (newState: {isSubmitting?: Boolean; isValidating?: Boolean; isValid?: Boolean;}) => void;}} stateWrapper
      */
-    constructor(vm, validatorRunner) {
+    constructor(vm, validatorRunner, stateWrapper) {
         this.vm = vm;
         this.validatorRunner = validatorRunner;
-        this.isSubmitting = false;
+        this.stateWrapper = stateWrapper || {
+            pushState: () => null,
+            removeState: () => null,
+            getState: () => ({}),
+            setState: () => null
+        };
+        this.stateWrapper.pushState();
+    }
+    /**
+     * @access public
+     */
+    destroy() {
+        this.stateWrapper.removeState();
     }
     /**
      * @param {InputEvent} e
@@ -137,18 +159,34 @@ class Form {
         const name = e.target.name;
         const {values, errors, classes} = this.vm.state;
         values[name] = e.target.type !== 'checkbox' ? e.target.value : e.target.checked;
+        const prevError = errors[name];
         const input = this.validatorRunner.getInput(name);
         errors[name] = input.validator
             ? input.validator.checkValidity(values[name])
             : '';
         classes[name].invalid = !!errors[name];
         classes[name].focused = true;
+        //
+        const prevOverall = this.stateWrapper.getState().isValid === true;
+        if (errors[name] !== prevError) {
+            let overall = !errors[name];
+            if (overall) {
+                const errors = this.vm.state.errors;
+                for (const inputName in errors) {
+                    if (inputName !== name && errors[inputName]) { overall = false; break; }
+                }
+            }
+            if (overall !== prevOverall) {
+                this.stateWrapper.setState({isValid: overall});
+            }
+        }
+        //
         this.applyState({values, errors, classes}, input.cmp.props.myOnChange);
     }
     /**
-     * @param {string} value
-     * @param {string} inputName
-     * @param {string} inputType 'text'|'checkbox' etc.
+     * @param {String} value
+     * @param {String} inputName
+     * @param {String} inputType 'text'|'checkbox' etc.
      * @access public
      */
     triggerChange(value, inputName, inputType = 'text') {
@@ -174,7 +212,7 @@ class Form {
      * @access public
      */
     handleBlur(e) {
-        if (this.isSubmitting) return;
+        if (this.isSubmitting()) return;
         const name = e.target.name;
         const {errors, classes} = this.vm.state;
         const input = this.validatorRunner.getInput(name);
@@ -204,8 +242,8 @@ class Form {
      */
     handleSubmit(e, myAlterStateFn = null) {
         if (e) e.preventDefault();
-        if (this.isSubmitting) return null;
-        this.setIsSubmitting(true);
+        if (this.isValidatingOrSubmitting()) return null;
+        this.stateWrapper.setState({isValidating: true});
         const {values, errors, classes} = this.vm.state;
         let overall = true;
         this.validatorRunner.each((validator, inputName) => {
@@ -216,18 +254,35 @@ class Form {
                 classes[inputName].blurredAtLeastOnce = true;
             if (error) overall = false;
         });
+        if (overall) {
+            this.stateWrapper.setState({isSubmitting: true, isValid: true});
+        } else setTimeout(() => {
+            this.stateWrapper.setState({isValidating: false, isValid: false});
+        }, 800);
         this.applyState({errors, classes}, myAlterStateFn);
         return overall;
     }
     /**
-     * @param {boolean} isSubmitting
+     * @returns {Boolean}
+     * @access public
+     */
+    isValidatingOrSubmitting() {
+        const s = this.stateWrapper.getState();
+        return s.isValidating || s.isSubmitting;
+    }
+    /**
+     * @returns {Boolean}
+     * @access public
+     */
+    isSubmitting() {
+        return this.stateWrapper.getState().isSubmitting === true;
+    }
+    /**
+     * @param {Boolean} isSubmitting
      * @access public
      */
     setIsSubmitting(isSubmitting) {
-        this.isSubmitting = isSubmitting;
-        if (isSubmitting) setTimeout(() => {
-            this.isSubmitting = false;
-        }, 800);
+        this.stateWrapper.setState({isSubmitting});
     }
     /**
      * @access private
@@ -297,7 +352,7 @@ class Form {
  * }
  * ```
  */
-const hookForm = (vm, values = null, inputs = null) => {
+const hookForm = (vm, values = null, inputs = null, stateWrapperName = 'default') => {
     if (!values) values = Object.keys(inputs).reduce((out, key) => {
         out[key] = inputs[key].value;
         if (!inputs[key].props) inputs[key].props = {};
@@ -314,13 +369,14 @@ const hookForm = (vm, values = null, inputs = null) => {
                                         focused: false}})
         , {}),
     };
-    Object.assign(vm, {form: new Form(vm, new ValidatorRunner(inputs))});
+    const formStateWrapper = new (formStateWrappersImpls.get(stateWrapperName))();
+    Object.assign(vm, {form: new Form(vm, new ValidatorRunner(inputs), formStateWrapper)});
     return state;
 };
 
 class AbstractInput extends preact.Component {
     /**
-     * @param {{vm: preact.Component; myOnChange?: (state: Object) => Object; validations?: Array<[string, ...any]>; errorLabel?: string; [key: string]: any;}} props
+     * @param {{vm: preact.Component; myOnChange?: (state: Object) => Object; validations?: Array<[String, ...any]>; errorLabel?: String; [key: String]: any;}} props
      */
     constructor(props) {
         super(props);
@@ -332,7 +388,7 @@ class AbstractInput extends preact.Component {
         this.inputEl = null;
     }
     /**
-     * @returns {string} 'input'|'select' etc.
+     * @returns {String} 'input'|'select' etc.
      * @access protected
      */
     getTagName() {
@@ -377,8 +433,8 @@ class Select extends AbstractInput {
 }
 
 /**
- * @param {{invalid: boolean; focused: boolean; blurredAtLeastOnce: boolean;}}
- * @returns {string}
+ * @param {{invalid: Boolean; focused: Boolean; blurredAtLeastOnce: Boolean;}}
+ * @returns {String}
  */
 function formatCssClasses(classes) {
     return (classes.invalid ? ' has-error' : '') +
@@ -388,7 +444,7 @@ function formatCssClasses(classes) {
 
 class InputGroup extends preact.Component {
     /**
-     * @param {{classes?: {invalid: boolean; focused: boolean; blurredAtLeastOnce: boolean;}; className?: string;}} props
+     * @param {{classes?: {invalid: Boolean; focused: Boolean; blurredAtLeastOnce: Boolean;}; className?: String;}} props
      * @access protected
      */
     render({children, classes, className}) {
@@ -403,7 +459,7 @@ class InputGroup extends preact.Component {
 
 class InputError extends preact.Component {
     /**
-     * @param {{error?: string; className?: string;}} props
+     * @param {{error?: String; className?: String;}} props
      * @access protected
      */
     render({error, className}) {
@@ -413,7 +469,7 @@ class InputError extends preact.Component {
 
 class FormButtons extends preact.Component {
     /**
-     * @param {{buttons?: Array<'submit'|'submitWithAlt'|'cancel'|preact.AnyComponent>; submitButtonText?: string; altSubmitButtonText?: string; cancelButtonText?: string; returnTo?: string; className?: string;}} props
+     * @param {{buttons?: Array<'submit'|'submitWithAlt'|'cancel'|preact.AnyComponent>; submitButtonText?: String; altSubmitButtonText?: String; cancelButtonText?: String; returnTo?: String; className?: String;}} props
      */
     constructor(props) {
         super(props);

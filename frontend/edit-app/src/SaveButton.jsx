@@ -1,6 +1,6 @@
 import {__} from '@sivujetti-commons';
 import Icon from '../../commons/Icon.jsx';
-import store, {observeStore, setOpQueue, selectOpQueue} from './store.js';
+import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from './store.js';
 
 class SaveButton extends preact.Component {
     // queuedOps;
@@ -9,7 +9,7 @@ class SaveButton extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {isVisible: false};
+        this.state = {isVisible: false, formState: {}};
         this.queuedOps = [];
         observeStore(selectOpQueue, ops => {
             this.queuedOps = ops;
@@ -18,15 +18,23 @@ class SaveButton extends preact.Component {
             else if (!ops.length && this.state.isVisible)
                 this.setState({isVisible: false});
         });
+        observeStore(selectFormStates, formStates => {
+            let aggregated = {isValid: true};
+            for (const key in formStates) {
+                aggregated = formStates[key];
+                if (!aggregated.isValid) break;
+            }
+            this.setState({formState: aggregated});
+        });
     }
     /**
      * @access protected
      */
-    render (_, {isVisible, isSubmitting}) {
+    render (_, {isVisible, formState}) {
         if (!isVisible) return;
         return <button
             onClick={ this.execQueuedOps.bind(this) }
-            disabled={ isSubmitting }
+            disabled={ formState.isValidating || formState.isSubmitting || !formState.isValid }
             class="btn btn-link pr-1"
             title={ __('Save changes') }>
             <Icon iconId="save" className="size-sm"/> *

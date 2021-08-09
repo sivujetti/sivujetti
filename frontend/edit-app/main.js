@@ -1,5 +1,6 @@
 import {translator, env, urlUtils} from '@sivujetti-commons';
 import {Validator} from '../commons/Form.jsx';
+import {FormStateStoreWrapper} from './src/store.js';
 import EditApp from './src/EditApp.jsx';
 import blockTypes from './src/block-types/block-types.js';
 import columnsBlockType from './src/block-types/columns.js';
@@ -23,6 +24,7 @@ function configureServices() {
     urlUtils.assetBaseUrl = window.dataFromAdminBackend.assetBaseUrl;
     urlUtils.env = env;
     //
+    Validator.registerStateWrapperImpl('default', FormStateStoreWrapper);
     window.translationStringBundles.forEach(strings => {
         translator.addStrings(strings);
         if (strings.minLength) Validator.setValidationStrings(strings);

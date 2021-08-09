@@ -17,7 +17,7 @@ use Sivujetti\UserSite\{UserSiteAPI, UserSiteInterface};
 use Pike\{App as PikeApp, PikeException, Request, Response, Router, ServiceDefaults};
 
 final class App {
-    public const VERSION = "0.2.0";
+    public const VERSION = "0.3.0-dev";
     /** @var \Sivujetti\AppContext */
     private AppContext $ctx;
     /**

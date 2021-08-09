@@ -1,4 +1,4 @@
-import {__} from '@sivujetti-commons';
+import {__, signals} from '@sivujetti-commons';
 import Icon from '../../commons/Icon.jsx';
 import blockTypes from './block-types/block-types.js';
 import BlockTrees from './BlockTrees.jsx';
@@ -6,11 +6,22 @@ import store, {pushItemToOpQueue} from './store.js';
 
 class BlockEditForm extends preact.Component {
     // blockType;
+    // doCleanSignalListeners;
     /**
      * @access protected
      */
     componentWillMount() {
         this.blockType = blockTypes.get(this.props.block.type);
+        this.doCleanSignalListeners = signals.on('on-block-deleted', block => {
+            if (block.id === this.props.block.id)
+                this.props.inspectorPanel.close();
+        });
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        this.doCleanSignalListeners();
     }
     /**
      * @access protected

@@ -326,6 +326,7 @@ class BlockTree extends preact.Component {
             this.cancelAddBlock(this.state.currentlyOpenBlock);
             store.dispatch(pushItemToOpQueue('delete-block-from-tree',
                 () => this.props.onChangesApplied(this.state.blockTree)));
+            signals.emit('on-block-deleted', this.state.currentlyOpenBlock);
         }
     }
     /**

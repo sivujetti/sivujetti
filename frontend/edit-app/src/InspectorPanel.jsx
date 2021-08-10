@@ -13,10 +13,10 @@ class InspectorPanel extends preact.Component {
         this.state = {Renderer: null};
         this.rendererProps = {};
         this.rendererKey = null;
-        signals.on('on-block-tree-item-clicked', (block, blockTree, blockTreeKind = 'Pages') => {
+        signals.on('on-block-tree-item-clicked', (block, blockTree, blockTreeKind = 'pageBlocks') => {
             const newRendererKey = `edit-block-tree-${blockTreeKind}-${block.id}`;
             if (this.rendererKey === newRendererKey) return;
-            this.rendererProps = {block, blockTree};
+            this.rendererProps = {block, blockTree, blockTreeKind};
             this.rendererKey = newRendererKey;
             this.setState({Renderer: BlockEditForm});
             this.props.rootEl.classList.add('inspector-panel-open');

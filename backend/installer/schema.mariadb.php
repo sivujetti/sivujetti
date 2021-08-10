@@ -11,7 +11,7 @@ return [
     `name` VARCHAR(92) NOT NULL,
     `lang` VARCHAR(12) NOT NULL,
     `aclRules` JSON,
-    `lastUpdatedAt` INT(10) UNSIGNED DEFAULT 0
+    `lastUpdatedAt` INT(10) UNSIGNED NOT NULL DEFAULT 0
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}plugins` (
@@ -44,7 +44,7 @@ return [
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}layoutBlocks` (
-    `data` JSON,
+    `blocks` JSON,
     `layoutId` VARCHAR(191) NOT NULL
 ) DEFAULT CHARSET = utf8mb4",
 ];

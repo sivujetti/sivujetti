@@ -113,12 +113,12 @@ class BlockTreeTabs extends preact.Component {
             { currentTabIdx === 0
                 ? [
                     <BlockTree
+                        treeKind="pageBlocks"
                         blocksInput={ pageBlocksInput }
                         onChangesApplied={ containingView === 'DefaultMainPanelView'
                             ? BlockTreeTabs.saveExistingPageBlocksToBackend
                             : function () {} }
-                        ref={ this.pageBlocksTree }
-                        key="pageBlocks"/>,
+                        ref={ this.pageBlocksTree }/>,
                     <button
                         onClick={ () => this.pageBlocksTree.current.appendNewBlockPlaceholder() }
                         class="btn btn-sm with-icon"
@@ -127,20 +127,24 @@ class BlockTreeTabs extends preact.Component {
                     </button>
                 ]
                 : <BlockTree
+                    treeKind="layoutBlocks"
                     blocksInput={ layoutBlocksInput }
                     onChangesApplied={ () => null }
-                    ref={ this.layoutBlocksTree }
-                    key="layoutBlocks"/>
+                    ref={ this.layoutBlocksTree }/>
             }
         </div>;
     }
     /**
      * @param {Array<Block>} newBlockTree
+     * @param {'pageBlocks'|'layoutBlocks'} blockTreeKind
      * @returns {Promise<Boolean>}
      * @access private
      */
-    static saveExistingPageBlocksToBackend(newBlockTree) {
-        return http.put(`/api/pages/Pages/${BlockTreeTabs.currentWebPage.data.page.id}/blocks`,
+    static saveExistingPageBlocksToBackend(newBlockTree, blockTreeKind) {
+        const url = blockTreeKind === 'pageBlocks'
+            ? `/api/pages/Pages/${BlockTreeTabs.currentWebPage.data.page.id}/blocks`
+            : `/api/layouts/${BlockTreeTabs.currentWebPage.data.page.layoutId}/blocks`;
+        return http.put(url,
             {blocks: BlockTree.mapRecursively(newBlockTree, block => block.toRaw())})
             .then(resp => {
                 if (resp.ok !== 'ok') throw new Error('-');
@@ -159,7 +163,7 @@ class BlockTree extends preact.Component {
     // contextMenu;
     // lastRootBlockMarker;
     /**
-     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>) => Promise<Boolean>;}} props
+     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>, treeKind: 'pageBlocks'|'layoutBlocks') => Promise<Boolean>;}} props
      */
     constructor(props) {
         super(props);
@@ -325,7 +329,7 @@ class BlockTree extends preact.Component {
         } else if (link.id === 'delete-block') {
             this.cancelAddBlock(this.state.currentlyOpenBlock);
             store.dispatch(pushItemToOpQueue('delete-block-from-tree',
-                () => this.props.onChangesApplied(this.state.blockTree)));
+                () => this.props.onChangesApplied(this.state.blockTree, this.props.treeKind)));
             signals.emit('on-block-deleted', this.state.currentlyOpenBlock);
         }
     }
@@ -379,7 +383,7 @@ class BlockTree extends preact.Component {
         this.setState({treeState: treeState});
         //
         store.dispatch(pushItemToOpQueue('append-block-to-tree',
-            () => this.props.onChangesApplied(this.state.blockTree)));
+            () => this.props.onChangesApplied(this.state.blockTree, this.props.treeKind)));
     }
     /**
      * @param {Block} placeholderBlock
@@ -398,7 +402,8 @@ class BlockTree extends preact.Component {
     handleItemClicked(block) {
         this.selectedRoot = block;
         const mutRef = this.state.treeState;
-        signals.emit('on-block-tree-item-clicked', block, this.state.blockTree);
+        signals.emit('on-block-tree-item-clicked', block, this.state.blockTree,
+            this.props.treeKind === 'pageBlocks' ? 'pageBlocks' : 'layoutBlocks');
         if (mutRef[block.id].isSelected) return;
         //
         for (const key in mutRef) mutRef[key].isSelected = false;

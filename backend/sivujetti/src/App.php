@@ -15,6 +15,8 @@ use Sivujetti\TheWebsite\TheWebsiteRepository;
 use Sivujetti\UserPlugin\{UserPluginAPI, UserPluginInterface};
 use Sivujetti\UserSite\{UserSiteAPI, UserSiteInterface};
 use Pike\{App as PikeApp, PikeException, Request, Response, Router, ServiceDefaults};
+use Sivujetti\BlockType\Entities\BlockTypes;
+use Sivujetti\Layout\LayoutsModule;
 
 final class App {
     public const VERSION = "0.3.0-dev";
@@ -32,17 +34,18 @@ final class App {
         return new PikeApp([
             new self,
             new BlocksModule,
+            new LayoutsModule,
             new PagesModule,
         ], function (AppContext $ctx, ServiceDefaults $defaults) use ($config): void {
             $ctx->config = $defaults->makeConfig($config);
             $ctx->db = $defaults->makeDb();
             $ctx->storage = $ctx->storage ?? new SharedAPIContext;
-            $ctx->storage->getDataHandle()->blockTypes = (object) [
-                Block::TYPE_COLUMNS => new ColumnsBlockType,
-                Block::TYPE_HEADING => new HeadingBlockType,
-                Block::TYPE_PARAGRAPH => new ParagraphBlockType,
-                Block::TYPE_SECTION => new SectionBlockType,
-            ];
+            $blockTypes = new BlockTypes;
+            $blockTypes->{Block::TYPE_COLUMNS} = new ColumnsBlockType;
+            $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
+            $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
+            $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
+            $ctx->storage->getDataHandle()->blockTypes = $blockTypes;
             $ctx->storage->getDataHandle()->validBlockRenderers = [
                 "sivujetti:block-auto",
                 "sivujetti:block-generic-wrapper"
@@ -73,6 +76,7 @@ final class App {
      */
     public function alterDi(Injector $di): void {
         $di->share($this->ctx->storage);
+        $di->share($this->ctx->storage->getDataHandle()->blockTypes);
         $di->share($this->ctx->theWebsite);
     }
     /**

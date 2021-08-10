@@ -11,7 +11,7 @@ return [
     `name` TEXT NOT NULL,
     `lang` TEXT NOT NULL,
     `aclRules` JSON,
-    `lastUpdatedAt` INTEGER DEFAULT 0
+    `lastUpdatedAt` INTEGER NOT NULL DEFAULT 0
 )",
 
 "CREATE TABLE `\${p}plugins` (
@@ -41,7 +41,7 @@ return [
 )",
 
 "CREATE TABLE `\${p}layoutBlocks` (
-    `data` JSON,
+    `blocks` JSON,
     `layoutId` TEXT NOT NULL
 )"
 ];

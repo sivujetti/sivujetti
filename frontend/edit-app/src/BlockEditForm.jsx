@@ -24,6 +24,7 @@ class BlockEditForm extends preact.Component {
         this.doCleanSignalListeners();
     }
     /**
+     * @param {{block: Block; blockTree: Array<Block>; blockTreeKind: 'pageBlocks'|'layoutBlocks';}} props
      * @access protected
      */
     render({block}) {
@@ -49,16 +50,18 @@ class BlockEditForm extends preact.Component {
         BlockTrees.currentWebPage.reRenderBlockInPlace(this.props.block).then(() => {
             //
             store.dispatch(pushItemToOpQueue('update-tree-block',
-                () => this.saveBlockTreeToBackend(this.props.block, this.props.blockTree)));
+                () => this.saveBlockTreeToBackend(null, this.props.blockTree,
+                    this.props.blockTreeKind)));
         });
     }
     /**
      * @param {Block} _block
      * @param {Array<Block>} blockTree
+     * @param {'pageBlocks'|'layoutBlocks'} blockTreeKind
      * @access private
      */
-    saveBlockTreeToBackend(_block, blockTree) {
-        return BlockTrees.saveExistingPageBlocksToBackend(blockTree);
+    saveBlockTreeToBackend(_block, blockTree, blockTreeKind) {
+        return BlockTrees.saveExistingPageBlocksToBackend(blockTree, blockTreeKind);
     }
 }
 

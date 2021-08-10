@@ -29,8 +29,8 @@ final class BlockValidator {
      * @return string[] Error messages or []
      * @throws \Pike\PikeException If $blockType (string) wasn't valid
      */
-    public  function validateInsertOrUpdateData(BlockTypeInterface|string $blockType,
-                                                object $input): array {
+    public function validateInsertOrUpdateData(BlockTypeInterface|string $blockType,
+                                               object $input): array {
         if (is_string($blockType)) {
             if (!($blockTypeFinal = $this->blockTypes->{$blockType} ?? null))
                 throw new PikeException("Unknown block type `{$blockType}`",
@@ -47,5 +47,19 @@ final class BlockValidator {
                 ->rule("id", "minLength", 20)
                 ->rule("id", "maxLength", 20)
         )->validate($input);
+    }
+    /**
+     * @param object[] $branch
+     * @param object $blockTypes
+     * @return string[] Error messages or e[]
+     */
+    public function validateMany(array $branch, object $blockTypes): array {
+        foreach ($branch as $blockData) {
+            if (($errors = $this->validateInsertOrUpdateData($blockData->type, $blockData)))
+                return $errors;
+            if ($blockData->children && ($errors = $this->validateMany($blockData->children, $blockTypes)))
+                return $errors;
+        }
+        return [];
     }
 }

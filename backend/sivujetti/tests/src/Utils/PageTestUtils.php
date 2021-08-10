@@ -2,6 +2,7 @@
 
 namespace Sivujetti\Tests\Utils;
 
+use Pike\Db;
 use Sivujetti\Block\BlockValidator;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{HeadingBlockType, ParagraphBlockType, SectionBlockType};
@@ -11,7 +12,7 @@ use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\PageTypeValidator;
 use Sivujetti\SharedAPIContext;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
-use Pike\Db;
+use Sivujetti\BlockType\Entities\BlockTypes;
 
 final class PageTestUtils {
     /** @var \Sivujetti\Page\PagesRepository */
@@ -29,14 +30,16 @@ final class PageTestUtils {
             $testAppStorage = new SharedAPIContext;
         }
         if ($testAppStorage->getDataHandle()->blockTypes === null) {
-            $testAppStorage->getDataHandle()->blockTypes = (object) [
-                Block::TYPE_HEADING => new HeadingBlockType,
-                Block::TYPE_PARAGRAPH => new ParagraphBlockType,
-                Block::TYPE_SECTION => new SectionBlockType,
-            ];
+            $blockTypes = new BlockTypes;
+            $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
+            $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
+            $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
+            $testAppStorage->getDataHandle()->blockTypes = $blockTypes;
         }
-        $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite, $testAppStorage,
-            new PageTypeValidator(new BlockValidator($testAppStorage)));
+        $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite,
+            $testAppStorage->getDataHandle()->blockTypes,
+            new PageTypeValidator(new BlockValidator($testAppStorage))
+        );
     }
     /**
      * @param object $data 

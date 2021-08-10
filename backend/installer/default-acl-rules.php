@@ -11,6 +11,9 @@ $out->resources = (object) [
     "editMode" => (object) [
         "access"         => 0b00000010,
     ],
+    "layouts" => (object) [
+        "updateBlocksOf" => 0b00000010,
+    ],
     "pages" => (object) [
         "create"         => 0b00000010,
         "updateBlocksOf" => 0b00000100,
@@ -20,6 +23,7 @@ $out->userPermissions = (object) [
     ACL::ROLE_ADMIN => (object) [
         "blocks"   => ACL::makePermissions("*", $out->resources->blocks),
         "editMode" => ACL::makePermissions("*", $out->resources->editMode),
+        "layouts"  => ACL::makePermissions("*", $out->resources->layouts),
         "pages"    => ACL::makePermissions("*", $out->resources->pages),
     ]
 ];

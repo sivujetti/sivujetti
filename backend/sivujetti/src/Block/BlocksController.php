@@ -2,12 +2,12 @@
 
 namespace Sivujetti\Block;
 
+use Pike\{PikeException, Request, Response, Validation};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder};
 use Sivujetti\Page\{PagesRepository, SiteAwareTemplate};
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\SharedAPIContext;
-use Pike\{PikeException, Request, Response, Validation};
+use Sivujetti\BlockType\Entities\BlockTypes;
 
 final class BlocksController {
     /**
@@ -44,19 +44,19 @@ final class BlocksController {
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
-     * @param \Sivujetti\SharedAPIContext $storage
+     * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      * @param \Sivujetti\Block\BlockValidator $blockValidator
      */
     public function addBlockToPage(Request $req,
                                    Response $res,
                                    PagesRepository $pagesRepo,
-                                   SharedAPIContext $storage,
+                                   BlockTypes $blockTypes,
                                    BlockValidator $blockValidator): void {
         throw new \RuntimeException("Deprecated");
         if (!is_string(($typeAsStr = $req->body->type ?? null)))
             throw new PikeException("type must be string",
                                     PikeException::BAD_INPUT);
-        if (!($blockType = ($storage->getDataHandle()->blockTypes->{$typeAsStr} ?? null)))
+        if (!($blockType = ($blockTypes->{$typeAsStr} ?? null)))
             throw new PikeException("Unknown block type `{$typeAsStr}`.",
                                     PikeException::BAD_INPUT);
         if (($errors = $blockValidator->validateInsertOrUpdateData($blockType, $req->body))) {

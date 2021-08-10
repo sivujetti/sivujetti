@@ -92,7 +92,9 @@ final class CreatePageTest extends DbTestCase {
         $this->sendCreatePageRequest($state);
     }
 
+
     ////////////////////////////////////////////////////////////////////////////
+
 
     public function testCreateNormalPageValidatesBlocksRecursively(): void {
         $state = $this->setupTest();

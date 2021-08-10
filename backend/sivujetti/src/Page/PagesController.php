@@ -175,6 +175,7 @@ final class PagesController {
                     "page" => (object) [
                         "id" => $page->id,
                         "type" => $page->type,
+                        "layoutId" => $page->layoutId,
                         "blocks" => $page->blocks,
                         "isPlaceholderPage" => $isPlaceholderPage,
                     ],

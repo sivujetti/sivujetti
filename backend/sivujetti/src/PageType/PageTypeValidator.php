@@ -39,7 +39,7 @@ final class PageTypeValidator {
                 ->rule("status", "min", Page::STATUS_PUBLISHED)
         );
         if (!($errors = $v->validate($input)) && $blockTypes)
-            $errors = $this->validateBlocks($input->blocks, $blockTypes);
+            $errors = $this->blockValidator->validateMany($input->blocks, $blockTypes);
         return $errors;
     }
     /**
@@ -54,21 +54,7 @@ final class PageTypeValidator {
         $v = Validation::makeObjectValidator()
             ->rule("blocks", "minLength", "1", "array");
         if (!($errors = $v->validate($input)) && $blockTypes)
-            $errors = $this->validateBlocks($input->blocks, $blockTypes);
+            $errors = $this->blockValidator->validateMany($input->blocks, $blockTypes);
         return $errors;
-    }
-    /**
-     * @param object[] $branch
-     * @param object $blockTypes
-     * @return string[] Error messages or e[]
-     */
-    private function validateBlocks(array $branch, object $blockTypes): array {
-        foreach ($branch as $blockData) {
-            if (($errors = $this->blockValidator->validateInsertOrUpdateData($blockData->type, $blockData)))
-                return $errors;
-            if ($blockData->children && ($errors = $this->validateBlocks($blockData->children, $blockTypes)))
-                return $errors;
-        }
-        return [];
     }
 }

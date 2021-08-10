@@ -2,14 +2,14 @@
 
 namespace Sivujetti\Page;
 
+use Pike\{ArrayUtils, Db, PikeException};
 use Sivujetti\Block\{BlocksController, BlockTree};
 use Sivujetti\Block\Entities\Block;
+use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\PageTypeValidator;
-use Sivujetti\SharedAPIContext;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
-use Pike\{ArrayUtils, Db, PikeException};
 
 interface RepositoryInterface {
     /**
@@ -37,16 +37,16 @@ final class PagesRepository implements RepositoryInterface {
     /**
      * @param \Pike\Db $db
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
-     * @param \Sivujetti\SharedAPIContext $storage
+     * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      * @param \Sivujetti\PageType\PageTypeValidator $pageTypeValidator
      */
     public function __construct(Db $db,
                                 TheWebsite $theWebsite,
-                                SharedAPIContext $storage,
+                                BlockTypes $blockTypes,
                                 PageTypeValidator $pageTypeValidator) {
         $this->db = $db;
         $this->pageTypes = $theWebsite->pageTypes;
-        $this->blockTypes = $storage->getDataHandle()->blockTypes;
+        $this->blockTypes = $blockTypes;
         $this->pageType = null;
         $this->pageTypeValidator = $pageTypeValidator;
         $this->lastInsertId = "0";
@@ -62,7 +62,7 @@ final class PagesRepository implements RepositoryInterface {
             ->fields(
                 '${t}.`id`,${t}.`slug`,${t}.`path`,${t}.`level`,${t}.`title`,${t}.`layoutId`' .
                 ',${t}.`blocks` AS `pageBlocksJson`,"'.$pageType->name.'" AS `type`,${t}.`status`' .
-                ',lb.`data` AS `layoutBlocksJson`' .
+                ',IFNULL(lb.`blocks`, \'[]\') AS `layoutBlocksJson`' .
                 ($pageType->ownFields ? ("," . implode(',', array_map(fn(object $f) =>
                     "\${t}.`$f->name` AS `$f->name`"
                 , $pageType->ownFields))) : "")
@@ -176,24 +176,25 @@ final class PagesRepository implements RepositoryInterface {
      */
     public function normalizeRs(array $rows): array {
         foreach ($rows as $row) {
-            $pageBlocks = [];
-            foreach (json_decode($row->pageBlocksJson, flags: JSON_THROW_ON_ERROR) as $data)
-                $pageBlocks[] = Block::fromObject($data);
-            $row->blocks = $pageBlocks;
-            unset($row->pageBlocksJson);
-            //
-            $layoutBlocks = [];
-            if ($row->layoutBlocksJson) {
-            foreach (json_decode($row->layoutBlocksJson, flags: JSON_THROW_ON_ERROR) as $data)
-                $layoutBlocks[] = Block::fromObject($data);
-            }
-            $row->layout = (object) ["blocks" => $layoutBlocks];
-            unset($row->layoutBlocksJson);
+            $row->blocks = self::blocksFromRs("pageBlocksJson", $row);
+            $row->layout = (object) ["blocks" => self::blocksFromRs("layoutBlocksJson", $row)];
             //
             foreach ($this->pageType->ownFields as $field)
                 $row->{$field->name} = strval($row->{"{$field->name}"}); // todo cast type?
         }
         return $rows;
+    }
+    /**
+     * @param string $key
+     * @param object $row
+     * @return \Sivujetti\Block\Entities\Block[]
+     */
+    public static function blocksFromRs(string $key, object $row): array {
+        $arr = [];
+        foreach (json_decode($row->{$key}, flags: JSON_THROW_ON_ERROR) as $data)
+            $arr[] = Block::fromObject($data);
+        unset($row->{$key});
+        return $arr;
     }
     /**
      * @param string $snapshot

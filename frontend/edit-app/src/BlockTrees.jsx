@@ -157,18 +157,57 @@ class BlockTree extends preact.Component {
         this.lastRootBlockMarker = null;
     }
     /**
-     * @param {Block} toChildrenOf = this.selectedRoot
-     * @param {(state: Object, newBlock: Block) => Object} alterState = null
+     * @param {Block} block After
+     * @param {Boolean} autoFocus = true
+     * @access public
+     */
+    appendBlockToTreeAfter(block, autoFocus = true) {
+        this.appendNewBlockPlaceholder(block, 'after',
+            (state, newBlock) => {
+                state.treeState = this.setBlockAsSected(newBlock, state.treeState);
+                state.treeState[newBlock.id].isNew = false;
+                return state;
+            }).then(newBlock => {
+                if (autoFocus)
+                    this.emitItemClickedOrAppendedSignal('focus-requested', newBlock);
+            });
+    }
+    /**
+     * @param {Block} block After
+     * @access public
+     */
+    appendBlockToTreeAsChildOf(block) {
+        throw new Error('Not implemented yet.');
+    }
+    /**
+     * @param {Block|Array<Block>|undefined} context = this.selectedRoot || this.state.blockTree
+     * @param {'after'|'as-child'} position = 'after'
      * @returns {Promise<Block>}
      * @access public
      */
-    appendNewBlockPlaceholder(toChildrenOf = this.selectedRoot, alterState = null) {
+    appendNewBlockPlaceholder(context = this.selectedRoot || this.state.blockTree,
+                              position = 'after',
+                              alterState = null) {
+        let toArr;
+        let after = context;
+        //
+        if (position === 'after' && context instanceof Block) {
+            const parent = blockTreeUtils.findBlock(context.id, this.state.blockTree)[2];
+            toArr = parent.children;
+        } else if (position === 'after' && Array.isArray(context)) {
+            toArr = context;
+            if (toArr !== this.state.blockTree) throw new Error();
+            after = toArr.length ? toArr[toArr.length - 1] : this.lastRootBlockMarker;
+        } else if (position === 'as-child' && context instanceof Block) {
+            toArr = context.children;
+        } else if (position === 'as-child' && Array.isArray(context)) {
+            throw new Error('Invalid usage (arr, "as-child"), should be (arr[position], "as-child")');
+        }
+        //
         const newBlock = Block.fromType('Paragraph');
-        const toArr = toChildrenOf ? toChildrenOf.children : this.state.blockTree;
-        const after = this.getAfter(toArr, toChildrenOf);
         return BlockTreeTabs.currentWebPage.appendBlockToDom(newBlock, after).then(_cref => {
             newBlock._cref = _cref;
-            toArr.push(newBlock); // Note: mutates this.state.blockTree
+            toArr.splice(toArr.indexOf(after) + 1, 0, newBlock); // Note: mutates this.state.blockTree
             //
             this.setState((alterState || function (s, _) { return s; })({
                 blockTree: this.state.blockTree,
@@ -206,17 +245,6 @@ class BlockTree extends preact.Component {
         //
         signals.on('on-inspector-panel-closed', () => {
             this.deSelectAllBlocks();
-        });
-        signals.on('on-paragraph-block-enter-pressed', () => {
-            const [_, branch, parentBlock] = blockTreeUtils.findBlock(this.selectedRoot.id, this.state.blockTree);
-            this.appendNewBlockPlaceholder(branch !== this.state.blockTree ? parentBlock : null,
-                (state, newBlock) => {
-                    state.treeState = this.setBlockAsSected(newBlock, state.treeState);
-                    state.treeState[newBlock.id].isNew = false;
-                    return state;
-                }).then(newBlock => {
-                    this.emitItemClickedOrAppendedSignal('appended-on-enter', newBlock);
-                });
         });
     }
     /**
@@ -282,7 +310,7 @@ class BlockTree extends preact.Component {
      */
     handleContextMenuLinkClicked(link) {
         if (link.id === 'add-child') {
-            this.appendNewBlockPlaceholder(this.state.currentlyOpenBlock);
+            this.appendNewBlockPlaceholder(this.state.currentlyOpenBlock, 'as-child');
         } else if (link.id === 'delete-block') {
             this.cancelAddBlock(this.state.currentlyOpenBlock);
             store.dispatch(pushItemToOpQueue('delete-block-from-tree',
@@ -429,13 +457,12 @@ class BlockTree extends preact.Component {
         this.setState({treeState: mutRef, currentlyOpenBlock: null});
     }
     /**
-     * @param {'clicked'|'appended-on-enter'} name
+     * @param {'clicked'|'focus-requested'} name
      * @param {Block} block
      * @access private
      */
     emitItemClickedOrAppendedSignal(name, block) {
-        signals.emit(`on-block-tree-item-${name}`, block, this.state.blockTree,
-            this.props.treeKind === 'pageBlocks' ? 'pageBlocks' : 'layoutBlocks');
+        signals.emit(`on-block-tree-item-${name}`, block, this);
     }
 }
 

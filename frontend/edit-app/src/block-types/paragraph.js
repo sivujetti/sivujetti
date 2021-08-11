@@ -1,8 +1,8 @@
-import {__, signals} from '@sivujetti-commons';
-import {hookForm, InputGroup, InputError} from '../../../commons/Form.jsx';
+import {__} from '@sivujetti-commons';
+import {hookForm, InputGroup, Input, InputError} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
+import {formValidation} from '../constants.js';
 
-const HARD_LONG_TEXT_MAX_LEN = 128000;
 const minPossibleLen = '<p></p>'.length;
 
 class ParagraphBlockEditForm extends preact.Component {
@@ -13,7 +13,7 @@ class ParagraphBlockEditForm extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {cssClass: ''};
+        this.state = {};
         this.fieldKey = `p-${props.block.id}`;
         this.editor = preact.createRef();
     }
@@ -21,10 +21,12 @@ class ParagraphBlockEditForm extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        this.setState(Object.assign({cssClass: this.props.block.cssClass}, hookForm(this, null, {
+        this.setState(Object.assign(hookForm(this, {
+            cssClass: this.props.block.cssClass,
+        }, {
             [this.fieldKey]: {
                 value: this.props.block.text,
-                validations: [['required'], ['maxLength', HARD_LONG_TEXT_MAX_LEN]],
+                validations: [['required'], ['maxLength', formValidation.HARD_LONG_TEXT_MAX_LEN]],
                 label: __('Text'),
                 props: {myOnChange: this.emitChange.bind(this)}
             },
@@ -48,42 +50,57 @@ class ParagraphBlockEditForm extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {classes, errors}) {
-        return <InputGroup classes={ classes.text } className="has-error">
-            <QuillEditor
-                name={ this.fieldKey }
-                value={ this.props.block.text }
-                onChange={ html => {
-                    this.form.triggerChange(html, this.fieldKey);
-                } }
-                onBlur={ () => this.form.triggerBlur(this.fieldKey) }
-                onInit={ editor => {
-                    // https://stackoverflow.com/a/63803445
-                    editor.quill.keyboard.bindings[13].unshift({
-                        key: 13,
-                        handler: (_range, _context) => {
-                            signals.emit('on-paragraph-block-enter-pressed');
-                            return false;
-                        }
-                    });
-                } }
-                toolbarBundle="simplest"
-                ref={ this.editor }/>
-            <InputError error={ errors[this.fieldKey] }/>
-        </InputGroup>;
+    render({blockTree, block}, {classes, errors}) {
+        return <>
+            <InputGroup classes={ classes.text } className="has-error">
+                <QuillEditor
+                    name={ this.fieldKey }
+                    value={ this.props.block.text }
+                    onChange={ html => {
+                        this.form.triggerChange(html, this.fieldKey);
+                    } }
+                    onBlur={ () => this.form.triggerBlur(this.fieldKey) }
+                    onInit={ editor => {
+                        // https://stackoverflow.com/a/63803445
+                        editor.quill.keyboard.bindings[13].unshift({
+                            key: 13,
+                            handler: (_range, _context) => {
+                                // signals.emit('on-paragraph-block-enter-pressed');
+                                blockTree.appendBlockToTreeAfter(block);
+                                return false;
+                            }
+                        });
+                    } }
+                    toolbarBundle="simplest"
+                    ref={ this.editor }/>
+                <InputError error={ errors[this.fieldKey] }/>
+            </InputGroup>
+            <InputGroup classes={ classes.cssClass }>
+                <Input vm={ this } name="cssClass" id="cssClass" errorLabel={ __('Css class') }
+                    validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ newState => this.emitChange(newState, 'cssClass') } className="tight" placeholder={ __('Css class') }/>
+                <InputError error={ errors.cssClass }/>
+            </InputGroup>
+        </>;
     }
     /**
      * @param {Object} newState
+     * @param {String} prop = null
      * @access private
      */
-    emitChange(newState) {
-        const html = newState.values[this.fieldKey];
-        this.props.onValueChanged({text: html.length > minPossibleLen
-            ? html.substr(
-                3,                // <p>
-                html.length - 4-3 // </p>
-            ).replace(/<\/p><p>/g, '<br>')
-            : '', cssClass: this.state.cssClass});
+    emitChange(newState, prop = null) {
+        let text;
+        if (prop !== 'cssClass') {
+            const html = newState.values[this.fieldKey];
+            text = html.length > minPossibleLen
+                ? html.substr(
+                    3,                // <p>
+                    html.length - 4-3 // </p>
+                ).replace(/<\/p><p>/g, '<br>')
+                : '';
+        } else {
+            text = newState.values[this.fieldKey];
+        }
+        this.props.onValueChanged({text, cssClass: newState.values.cssClass});
         return newState;
     }
 }

@@ -24,10 +24,10 @@ class BlockEditForm extends preact.Component {
         this.doCleanSignalListeners();
     }
     /**
-     * @param {{block: Block; blockTree: Array<Block>; blockTreeKind: 'pageBlocks'|'layoutBlocks'; autoFocus: Boolean;}} props
+     * @param {{block: Block; blockTree: Array<Block>; blockTreeCmp: preact.Component; blockTreeKind: 'pageBlocks'|'layoutBlocks'; autoFocus: Boolean;}} props
      * @access protected
      */
-    render({block, autoFocus}) {
+    render({block, blockTreeCmp, autoFocus}) {
         return <>
             <div class="with-icon pb-1">
                 <Icon iconId="type" className="size-xs color-accent mr-1"/>
@@ -36,6 +36,7 @@ class BlockEditForm extends preact.Component {
             <div class="mt-2">
                 { preact.createElement(this.blockType.editForm, {
                     block,
+                    blockTree: blockTreeCmp,
                     autoFocus,
                     onValueChanged: this.handleBlockValueChanged.bind(this),
                 }) }

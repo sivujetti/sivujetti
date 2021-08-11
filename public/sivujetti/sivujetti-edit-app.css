@@ -6,8 +6,8 @@
     --color-accent: #1fc79d;
     --color-accent2: #00eeb3;
     --color-accent3: rgba(118,255,255,.33);
-    --color-fg-default: #000a47;
-    --color-fg-dimmed: #000a47;
+    --color-fg-default: rgb(0,10,71);
+    --color-fg-dimmed: rgba(0,10,71,.75);
     --border-tree-guide: 1px dotted rgba(121, 125, 136, .56);
     --border-dashed-box: 1px dashed rgba(0,0,0,0.2);
     --color-input-border: #e1e4e8;
@@ -18,18 +18,11 @@
     --color-bg-button: rgb(244, 244, 247);
     --color-bg-button-hover: rgb(236, 236, 239);
 }
-.color-default {
-    color: var(--color-fg-default);
-}
-.color-accent {
-    color: var(--color-accent);
-}
-.color-orange {
-    color: var(--color-orange);
-}
-.color-purple {
-    color: var(--color-purple);
-}
+.color-default { color: var(--color-fg-default); }
+.color-dimmed { color: var(--color-fg-dimmed); }
+.color-accent { color: var(--color-accent); }
+.color-orange { color: var(--color-orange); }
+.color-purple { color: var(--color-purple); }
 
 /* Spectre-overrides */
 .btn {
@@ -77,6 +70,9 @@
 }
 .menu .menu-item > a.active, .menu .menu-item > a:active {
     background: rgba(129, 134, 165, .15);
+}
+.text-tiny {
+    font-size: .6rem !important;
 }
 
 /* Commons / Global utilies */
@@ -140,6 +136,10 @@ h2 {
 }
 .with-icon {
     display: flex;
+    align-items: center;
+}
+.with-icon-inline {
+    display: inline-flex;
     align-items: center;
 }
 .with-icon .feather {

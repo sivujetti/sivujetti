@@ -353,11 +353,14 @@ class Form {
  * ```
  */
 const hookForm = (vm, values = null, inputs = null, stateWrapperName = 'default') => {
-    if (!values) values = Object.keys(inputs).reduce((out, key) => {
-        out[key] = inputs[key].value;
-        if (!inputs[key].props) inputs[key].props = {};
-        return out;
-    }, {});
+    if (inputs) {
+        if (!values) values = {};
+        for (const key in inputs) {
+            if (Object.prototype.hasOwnProperty.call(values, key)) continue;
+            values[key] = inputs[key].value;
+            if (!inputs[key].props) inputs[key].props = {};
+        }
+    }
     const state = {
         values,
         errors: Object.keys(values).reduce((obj, key) =>

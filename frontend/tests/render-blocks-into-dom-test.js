@@ -78,14 +78,14 @@ QUnit.module('EditAppAwareWebPage', () => {
                     "renderer": "sivujetti:block-generic-wrapper",
                     "id": sectionBlockId,
                     "propsData": [{
-                        "key": "cssClass",
-                        "value": ""
-                    }, {
                         "key": "bgImage",
                         "value": ""
+                    }, {
+                        "key": "cssClass",
+                        "value": ""
                     }],
-                    "cssClass": "",
                     "bgImage": "",
+                    "cssClass": "",
                     "children": [{
                         "type": "Paragraph",
                         "title": "",

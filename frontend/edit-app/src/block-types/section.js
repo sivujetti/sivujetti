@@ -6,7 +6,7 @@ class SectionBlockEditForm extends preact.Component {
     }
 }
 
-const initialData = {cssClass: '', bgImage: ''};
+const initialData = {bgImage: '', cssClass: ''};
 
 export default {
     name: 'Section',
@@ -14,7 +14,7 @@ export default {
     ownPropNames: Object.keys(initialData),
     initialData,
     defaultRenderer: 'sivujetti:block-generic-wrapper',
-    reRender({cssClass, bgImage}, renderChildren) {
+    reRender({bgImage, cssClass}, renderChildren) {
         return `<section${cssClass? ` class="${cssClass}"` : ''}` +
             (bgImage ? ` style="background-image:url('${urlUtils.makeAssetUrl(bgImage)}')"` : '') +
             '>' +

@@ -102,7 +102,7 @@ final class CreatePageTest extends DbTestCase {
         $notValidBlock = (object) ["type" => Block::TYPE_PARAGRAPH];
         $validBlock = $btu->makeBlockData(Block::TYPE_SECTION, "Main", "sivujetti:block-generic-wrapper", children: [
             $notValidBlock,
-        ], propsData: ["cssClass" => "", "bgImage" => ""]);
+        ], propsData: ["bgImage" => "", "cssClass" => ""]);
         $state->inputData->blocks = [$validBlock];
         $this->makeSivujettiApp($state);
         $this->expectException(PikeException::class);

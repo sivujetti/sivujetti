@@ -1,4 +1,4 @@
-import {__} from '@sivujetti-commons';
+import {__, signals} from '@sivujetti-commons';
 import {hookForm, InputGroup, InputError} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
 
@@ -7,13 +7,15 @@ const minPossibleLen = '<p></p>'.length;
 
 class ParagraphBlockEditForm extends preact.Component {
     // fieldKey;
+    // editor;
     /**
-     * @param {{block: Block;}} props
+     * @param {{block: Block; onValueChanged: (newBlockData: {[key: String]: any;}) => Promise<null>; autoFocus: Boolean;}} props
      */
     constructor(props) {
         super(props);
         this.state = {cssClass: ''};
         this.fieldKey = `p-${props.block.id}`;
+        this.editor = preact.createRef();
     }
     /**
      * @access protected
@@ -27,6 +29,15 @@ class ParagraphBlockEditForm extends preact.Component {
                 props: {myOnChange: this.emitChange.bind(this)}
             },
         })));
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        if (this.props.autoFocus) {
+            const quill = this.editor.current.quill;
+            quill.setSelection(quill.getLength(), 0);
+        }
     }
     /**
      * @access protected
@@ -46,7 +57,18 @@ class ParagraphBlockEditForm extends preact.Component {
                     this.form.triggerChange(html, this.fieldKey);
                 } }
                 onBlur={ () => this.form.triggerBlur(this.fieldKey) }
-                toolbarBundle="simplest"/>
+                onInit={ editor => {
+                    // https://stackoverflow.com/a/63803445
+                    editor.quill.keyboard.bindings[13].unshift({
+                        key: 13,
+                        handler: (_range, _context) => {
+                            signals.emit('on-paragraph-block-enter-pressed');
+                            return false;
+                        }
+                    });
+                } }
+                toolbarBundle="simplest"
+                ref={ this.editor }/>
             <InputError error={ errors[this.fieldKey] }/>
         </InputGroup>;
     }

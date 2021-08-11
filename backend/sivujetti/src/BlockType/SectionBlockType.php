@@ -8,8 +8,8 @@ final class SectionBlockType implements BlockTypeInterface {
      */
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
         return $builder
-            ->newProperty("cssClass", $builder::DATA_TYPE_TEXT)
             ->newProperty("bgImage", $builder::DATA_TYPE_TEXT)
+            ->newProperty("cssClass", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }
 }

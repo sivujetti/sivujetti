@@ -1,6 +1,6 @@
 const toolbarBundles = {
     simplest: [
-        ['bold', 'italic', 'underline', 'strike']
+        ['bold', 'italic', 'underline', 'strike'],
     ],
     full: [
         ['bold', 'italic', 'underline', 'strike', 'blockquote'],
@@ -9,13 +9,13 @@ const toolbarBundles = {
         [{'header': [1, 2, 3, 4, 5, 6, false]}],
         [{'size': ['small', false, 'large', 'huge'] }],
         ['link', 'image', 'video', 'code-block'],
-        ['clean']
+        ['clean'],
     ]
 };
 
 class QuillEditor extends preact.Component {
     /**
-     * @param {{name: String; value: String; onChange: (html: String) => any; onBlur?: () => any; toolbarBundle?: String;}} props
+     * @param {{name: String; value: String; onChange: (html: String) => any; onBlur?: () => any; toolbarBundle?: String; onInit?: (editor: QuillEditor) => any;}} props
      */
     constructor(props) {
         super(props);
@@ -32,6 +32,7 @@ class QuillEditor extends preact.Component {
             modules: {toolbar},
             theme: 'snow'
         });
+        if (this.props.onInit) this.props.onInit(this);
         this.quill.on('text-change', (_delta, _oldDelta, _source) => {
             if (this.quill.container.firstChild)
                 this.props.onChange(this.quill.container.firstChild.innerHTML);

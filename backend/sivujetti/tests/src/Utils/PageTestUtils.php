@@ -102,7 +102,7 @@ final class PageTestUtils {
         return [$btu->makeBlockData(Block::TYPE_SECTION, "Main", "sivujetti:block-generic-wrapper", children: [
             $btu->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Hello", "level" => 2, "cssClass" => ""]),
             $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Text", "cssClass" => ""]),
-        ], propsData: ["cssClass" => "", "bgImage" => ""])];
+        ], propsData: ["bgImage" => "", "cssClass" => ""])];
     }
     /**
      * @param ?\Sivujetti\PageType\Entities\PageType $pageType = null

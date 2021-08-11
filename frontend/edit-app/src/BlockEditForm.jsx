@@ -24,10 +24,10 @@ class BlockEditForm extends preact.Component {
         this.doCleanSignalListeners();
     }
     /**
-     * @param {{block: Block; blockTree: Array<Block>; blockTreeKind: 'pageBlocks'|'layoutBlocks';}} props
+     * @param {{block: Block; blockTree: Array<Block>; blockTreeKind: 'pageBlocks'|'layoutBlocks'; autoFocus: Boolean;}} props
      * @access protected
      */
-    render({block}) {
+    render({block, autoFocus}) {
         return <>
             <div class="with-icon pb-1">
                 <Icon iconId="type" className="size-xs color-accent mr-1"/>
@@ -36,6 +36,7 @@ class BlockEditForm extends preact.Component {
             <div class="mt-2">
                 { preact.createElement(this.blockType.editForm, {
                     block,
+                    autoFocus,
                     onValueChanged: this.handleBlockValueChanged.bind(this),
                 }) }
             </div>
@@ -43,11 +44,12 @@ class BlockEditForm extends preact.Component {
     }
     /**
      * @param {{[key: String]: any;}} newBlockPropsData
+     * @returns {Promise<null>}
      * @access private
      */
     handleBlockValueChanged(newBlockPropsData) {
         this.props.block.overwritePropsData(newBlockPropsData);
-        BlockTrees.currentWebPage.reRenderBlockInPlace(this.props.block).then(() => {
+        return BlockTrees.currentWebPage.reRenderBlockInPlace(this.props.block).then(() => {
             //
             store.dispatch(pushItemToOpQueue('update-tree-block',
                 () => this.saveBlockTreeToBackend(null, this.props.blockTree,

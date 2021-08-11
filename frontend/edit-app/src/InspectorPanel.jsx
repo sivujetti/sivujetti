@@ -13,14 +13,16 @@ class InspectorPanel extends preact.Component {
         this.state = {Renderer: null};
         this.rendererProps = {};
         this.rendererKey = null;
-        signals.on('on-block-tree-item-clicked', (block, blockTree, blockTreeKind = 'pageBlocks') => {
+        const openPanel = (block, blockTree, blockTreeKind = 'pageBlocks', autoFocus = false) => {
             const newRendererKey = `edit-block-tree-${blockTreeKind}-${block.id}`;
             if (this.rendererKey === newRendererKey) return;
-            this.rendererProps = {block, blockTree, blockTreeKind};
+            this.rendererProps = {block, blockTree, blockTreeKind, autoFocus};
             this.rendererKey = newRendererKey;
             this.setState({Renderer: BlockEditForm});
             this.props.rootEl.classList.add('inspector-panel-open');
-        });
+        };
+        signals.on('on-block-tree-item-clicked', openPanel);
+        signals.on('on-block-tree-item-appended-on-enter', (a, b, c) => openPanel(a, b, c, true));
         signals.on('on-web-page-loaded', this.close.bind(this));
     }
     /**
@@ -49,6 +51,8 @@ class InspectorPanel extends preact.Component {
         if (!this.state.Renderer) return;
         this.setState({Renderer: null});
         this.props.rootEl.classList.remove('inspector-panel-open');
+        this.rendererKey = null;
+        signals.emit('on-inspector-panel-closed', this);
     }
 }
 

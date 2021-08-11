@@ -23,14 +23,16 @@ final class Block {
 
     /* If self::TYPE_HEADING
     public string $text;
-    public int $level; */
+    public int $level;
+    public string $cssClass; */
 
     /* If self::TYPE_PARAGRAPH
-    public string $text; */
+    public string $text;
+    public string $cssClass; */
 
     /* If self::TYPE_SECTION
-    public string $cssClass;
-    public string $bgImage; */
+    public string $bgImage;
+    public string $cssClass; */
 
     /**
      * @param object $data

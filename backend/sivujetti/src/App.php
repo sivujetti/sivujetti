@@ -6,8 +6,8 @@ use Auryn\Injector;
 use Sivujetti\Auth\ACL;
 use Sivujetti\Block\BlocksModule;
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\BlockType\{ColumnsBlockType, HeadingBlockType, ParagraphBlockType,
-                        SectionBlockType};
+use Sivujetti\BlockType\{ButtonBlockType, ColumnsBlockType, HeadingBlockType,
+                         ParagraphBlockType, SectionBlockType};
 use Sivujetti\Page\PagesModule;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Plugin\Entities\Plugin;
@@ -41,6 +41,7 @@ final class App {
             $ctx->db = $defaults->makeDb();
             $ctx->storage = $ctx->storage ?? new SharedAPIContext;
             $blockTypes = new BlockTypes;
+            $blockTypes->{Block::TYPE_BUTTON} = new ButtonBlockType;
             $blockTypes->{Block::TYPE_COLUMNS} = new ColumnsBlockType;
             $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
             $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
@@ -48,7 +49,7 @@ final class App {
             $ctx->storage->getDataHandle()->blockTypes = $blockTypes;
             $ctx->storage->getDataHandle()->validBlockRenderers = [
                 "sivujetti:block-auto",
-                "sivujetti:block-generic-wrapper"
+                "sivujetti:block-generic-wrapper",
             ];
         }, $initialCtx ?? new AppContext, $router);
     }

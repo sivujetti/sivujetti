@@ -460,6 +460,27 @@ class InputGroup extends preact.Component {
     }
 }
 
+class InputGroupInline extends preact.Component {
+    /**
+     * @param {{classes?: {invalid: Boolean; focused: Boolean; blurredAtLeastOnce: Boolean;}; className?: String;}} props
+     * @access protected
+     */
+    render({children, classes, className}) {
+        return <div
+            className={ 'form-group' +
+                        (!className ? '' : ` ${className}`) +
+                        (classes ? formatCssClasses(classes) : '') }>
+            <div class="col-3 text-ellipsis">
+                { children[0] }
+            </div>
+            <div class="col-9">
+                { children[1] }
+            </div>
+            { children[2] || null }
+        </div>;
+    }
+}
+
 class InputError extends preact.Component {
     /**
      * @param {{error?: String; className?: String;}} props
@@ -558,4 +579,4 @@ function expandRules(rules) {
     });
 }
 
-export {hookForm, InputGroup, Input, Textarea, Select, InputError, FormButtons, Validator};
+export {hookForm, InputGroup, InputGroupInline, Input, Textarea, Select, InputError, FormButtons, Validator};

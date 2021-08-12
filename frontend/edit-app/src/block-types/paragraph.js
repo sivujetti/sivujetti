@@ -1,12 +1,11 @@
 import {__} from '@sivujetti-commons';
-import {hookForm, InputGroup, Input, InputError} from '../../../commons/Form.jsx';
+import {hookForm, InputGroup, InputGroupInline, Input, InputError} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
 import {formValidation} from '../constants.js';
 
 const minPossibleLen = '<p></p>'.length;
 
 class ParagraphBlockEditForm extends preact.Component {
-    // fieldKey;
     // editor;
     /**
      * @param {{block: Block; onValueChanged: (newBlockData: {[key: String]: any;}) => Promise<null>; autoFocus: Boolean;}} props
@@ -14,23 +13,22 @@ class ParagraphBlockEditForm extends preact.Component {
     constructor(props) {
         super(props);
         this.state = {};
-        this.fieldKey = `p-${props.block.id}`;
         this.editor = preact.createRef();
     }
     /**
      * @access protected
      */
     componentWillMount() {
-        this.setState(Object.assign(hookForm(this, {
+        this.setState(hookForm(this, {
             cssClass: this.props.block.cssClass,
         }, {
-            [this.fieldKey]: {
+            text: {
                 value: this.props.block.text,
                 validations: [['required'], ['maxLength', formValidation.HARD_LONG_TEXT_MAX_LEN]],
                 label: __('Text'),
                 props: {myOnChange: this.emitChange.bind(this)}
             },
-        })));
+        }));
     }
     /**
      * @access protected
@@ -54,12 +52,12 @@ class ParagraphBlockEditForm extends preact.Component {
         return <>
             <InputGroup classes={ classes.text } className="has-error">
                 <QuillEditor
-                    name={ this.fieldKey }
+                    name="text"
                     value={ this.props.block.text }
                     onChange={ html => {
-                        this.form.triggerChange(html, this.fieldKey);
+                        this.form.triggerChange(html, 'text');
                     } }
-                    onBlur={ () => this.form.triggerBlur(this.fieldKey) }
+                    onBlur={ () => this.form.triggerBlur('text') }
                     onInit={ editor => {
                         // https://stackoverflow.com/a/63803445
                         editor.quill.keyboard.bindings[13].unshift({
@@ -71,41 +69,34 @@ class ParagraphBlockEditForm extends preact.Component {
                             }
                         });
                     } }
-                    toolbarBundle="simplest"
+                    toolbarBundle="simplestWithLink"
                     ref={ this.editor }/>
-                <InputError error={ errors[this.fieldKey] }/>
+                <InputError error={ errors.text }/>
             </InputGroup>
-            <InputGroup classes={ classes.cssClass }>
-                <Input vm={ this } name="cssClass" id="cssClass" errorLabel={ __('Css class') }
-                    validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ newState => this.emitChange(newState, 'cssClass') } className="tight" placeholder={ __('Css class') }/>
+            <div class="form-horizontal">
+            <InputGroupInline classes={ classes.cssClass }>
+                <label class="form-label" htmlFor="cssClass" title={ __('Css classes') }>{ __('Css classes') }</label>
+                <Input vm={ this } name="cssClass" id="cssClass" errorLabel={ __('Css classes') } validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ this.emitChange.bind(this) }/>
                 <InputError error={ errors.cssClass }/>
-            </InputGroup>
+            </InputGroupInline>
+            </div>
         </>;
     }
     /**
      * @param {Object} newState
-     * @param {String} prop = null
      * @access private
      */
-    emitChange(newState, prop = null) {
-        let text;
-        if (prop !== 'cssClass') {
-            const html = newState.values[this.fieldKey];
-            text = html.length > minPossibleLen
-                ? html.substr(
-                    3,                // <p>
-                    html.length - 4-3 // </p>
-                ).replace(/<\/p><p>/g, '<br>')
-                : '';
-        } else {
-            text = newState.values[this.fieldKey];
-        }
-        this.props.onValueChanged({text, cssClass: newState.values.cssClass});
+    emitChange(newState) {
+        this.props.onValueChanged({
+            text: unParagraphify(newState.values.text),
+            linkTo: newState.values.linkTo,
+            cssClass: newState.values.cssClass,
+        });
         return newState;
     }
 }
 
-const initialData = {text: __('Text here'), cssClass: ''};
+const initialData = {text: __('Paragraph text'), cssClass: ''};
 
 export default {
     name: 'Paragraph',
@@ -118,3 +109,21 @@ export default {
     },
     editForm: ParagraphBlockEditForm,
 };
+
+/**
+ * @param {String} quillOutput `<p>foo</p><p>bar</p>`
+ * @returns {String} `foo<br>bar` or an empty string
+ */
+function unParagraphify(quillOutput) {
+    if (!quillOutput.startsWith('<'))
+        return quillOutput;
+    if (quillOutput.length > minPossibleLen) {
+        return quillOutput.substr(
+            3,                       // <p>
+            quillOutput.length - 4-3 // </p>
+        ).replace(/<\/p><p>/g, '<br>');
+    }
+    return '';
+}
+
+export {unParagraphify};

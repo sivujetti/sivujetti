@@ -3,6 +3,7 @@ import {Validator} from '../commons/Form.jsx';
 import {FormStateStoreWrapper} from './src/store.js';
 import EditApp from './src/EditApp.jsx';
 import blockTypes from './src/block-types/block-types.js';
+import buttonBlockType from './src/block-types/button.js';
 import columnsBlockType from './src/block-types/columns.js';
 import headingBlockType from './src/block-types/heading.js';
 import paragraphBlockType from './src/block-types/paragraph.js';
@@ -30,6 +31,7 @@ function configureServices() {
         if (strings.minLength) Validator.setValidationStrings(strings);
     });
     //
+    blockTypes.register('Button', buttonBlockType);
     blockTypes.register('Columns', columnsBlockType);
     blockTypes.register('Heading', headingBlockType);
     blockTypes.register('Paragraph', paragraphBlockType);

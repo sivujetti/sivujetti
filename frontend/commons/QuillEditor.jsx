@@ -1,7 +1,9 @@
+const simplest = ['bold', 'italic', 'underline', 'strike'];
+const simplestWithLink = simplest.concat('link');
+
 const toolbarBundles = {
-    simplest: [
-        ['bold', 'italic', 'underline', 'strike'],
-    ],
+    simplest: [simplest],
+    simplestWithLink: [simplestWithLink],
     full: [
         ['bold', 'italic', 'underline', 'strike', 'blockquote'],
         [{'list': 'ordered'}, {'list': 'bullet'}],
@@ -15,7 +17,7 @@ const toolbarBundles = {
 
 class QuillEditor extends preact.Component {
     /**
-     * @param {{name: String; value: String; onChange: (html: String) => any; onBlur?: () => any; toolbarBundle?: String; onInit?: (editor: QuillEditor) => any;}} props
+     * @param {{name: String; value: String; onChange: (html: String) => any; onBlur?: () => any; toolbarBundle?: 'simplest'|'simplestWithLink'|'full'; onInit?: (editor: QuillEditor) => any;}} props
      */
     constructor(props) {
         super(props);
@@ -30,7 +32,7 @@ class QuillEditor extends preact.Component {
         //
         this.quill = new window.Quill(`#editor-${this.props.name}`, {
             modules: {toolbar},
-            theme: 'snow'
+            theme: 'snow',
         });
         if (this.props.onInit) this.props.onInit(this);
         this.quill.on('text-change', (_delta, _oldDelta, _source) => {

@@ -1,51 +1,65 @@
 import {__} from '@sivujetti-commons';
-import {hookForm, InputGroup, InputError, Input, Select} from '../../../commons/Form.jsx';
+import {unParagraphify} from './paragraph.js';
+import {hookForm, InputGroup, InputGroupInline, InputError, Input, Select} from '../../../commons/Form.jsx';
+import QuillEditor from '../../../commons/QuillEditor.jsx';
 import Icon from '../../../commons/Icon.jsx';
 import {formValidation} from '../constants.js';
 
 class HeadingBlockEditForm extends preact.Component {
     /**
-     * @param {{block: Block; blockTree: preact.Component; onValueChanged: (newBlockData: {[key: String]: any;}) => Promise<null>; autoFocus: Boolean;}} props
-     */
-    constructor(props) {
-        super(props);
-        this.state = {};
-    }
-    /**
      * @access protected
      */
     componentWillMount() {
         this.setState(hookForm(this, {
-            text: this.props.block.text,
             level: this.props.block.level,
             cssClass: this.props.block.cssClass,
+        }, {
+            text: {
+                value: this.props.block.text,
+                validations: [['required'], ['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
+                label: __('Text'),
+                props: {myOnChange: this.emitChange.bind(this)}
+            },
         }));
     }
     /**
      * @access protected
      */
+    componentWillUnmount() {
+        this.form.destroy();
+    }
+    /**
+     * @param {{block: Block; blockTree: preact.Component; onValueChanged: (newBlockData: {[key: String]: any;}) => Promise<null>; autoFocus: Boolean;}} props
+     * @access protected
+     */
     render({block, blockTree}, {classes, errors}) {
         return <>
-            <InputGroup classes={ classes.text }>
-                <Input vm={ this } name="text" id="text" errorLabel={ __('Text') }
-                    validations={ [['required']] } myOnChange={ this.emitChange.bind(this) } className="tight"/>
+            <InputGroup classes={ classes.html } className="has-error">
+                <QuillEditor
+                    name="text"
+                    value={ this.props.block.text }
+                    onChange={ html => {
+                        this.form.triggerChange(html, 'text');
+                    } }
+                    onBlur={ () => this.form.triggerBlur('text') }
+                    toolbarBundle="simplest"
+                    ref={ this.editor }/>
                 <InputError error={ errors.text }/>
             </InputGroup>
-            <InputGroup>
-                <Select
-                    vm={ this }
-                    name="level"
-                    id="level"
-                    myOnChange={ this.emitChange.bind(this) }
-                    className="tight">{ [1, 2, 3, 4, 5, 6].map(n =>
+            <div class="form-horizontal">
+            <InputGroupInline>
+                <label class="form-label" title={ __('Level') }>{ __('Level') }</label>
+                <Select vm={ this } name="level" id="level" myOnChange={ this.emitChange.bind(this) }>{
+                    [1, 2, 3, 4, 5, 6].map(n =>
                         <option value={ n }>{ `<h${n}>` }</option>
-                ) }</Select>
-            </InputGroup>
-            <InputGroup classes={ classes.cssClass }>
-                <Input vm={ this } name="cssClass" id="cssClass" errorLabel={ __('Css class') }
-                    validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ this.emitChange.bind(this) } className="tight" placeholder={ __('Css class') }/>
+                    ) }</Select>
+            </InputGroupInline>
+            <InputGroupInline classes={ classes.cssClass }>
+                <label class="form-label" htmlFor="cssClass" title={ __('Css classes') }>{ __('Css classes') }</label>
+                <Input vm={ this } name="cssClass" id="cssClass" errorLabel={ __('Css classes') } validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ this.emitChange.bind(this) }/>
                 <InputError error={ errors.cssClass }/>
-            </InputGroup>
+            </InputGroupInline>
+            </div>
             <a onClick={ e => (e.preventDefault(), blockTree.appendBlockToTreeAfter(block)) }
                 class="btn btn-link btn-sm text-tiny with-icon-inline color-dimmed">
                 <Icon iconId="plus" className="size-xs"/> { __('Add block after') }
@@ -57,13 +71,16 @@ class HeadingBlockEditForm extends preact.Component {
      * @access private
      */
     emitChange(newState) {
-        const v = {text: newState.values.text, level: newState.values.level, cssClass: newState.values.cssClass};
-        this.props.onValueChanged(v);
+        this.props.onValueChanged({
+            text: unParagraphify(newState.values.text),
+            level: newState.values.level,
+            cssClass: newState.values.cssClass,
+        });
         return newState;
     }
 }
 
-const initialData = {text: __('Text here'), level: 2, cssClass: ''};
+const initialData = {text: __('Heading text'), level: 2, cssClass: ''};
 
 export default {
     name: 'Heading',

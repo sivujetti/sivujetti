@@ -6,9 +6,13 @@
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_HEADING):
     $tag = "h{$this->e($props->level)}";
     echo "<{$tag}", ($props->cssClass ? " class=\"{$this->e($props->cssClass)}\"" : ''), ">",
-        $this->e($props->text), // @allow pre-validated html
+        $props->text, // @allow pre-validated html
         $this->renderChildren($props),
     "</{$tag}>";
+elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):
+    echo "<p><a href=\"{$props->linkTo}\" class=\"btn btn-link",
+        ($props->cssClass ? " {$this->e($props->cssClass)}" : ""),
+        "\">{$props->html}{$this->renderChildren($props)}</a></p>"; // @allow pre-validated html
 else:
     [$startTag, $endTag] = !(SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE) ? ["<!--", "-->"] : ["<div>", "</div>"];
     echo "{$startTag} block-auto.tmpl.php: Don't know how to render custom page type `{$props->type}` {$endTag}";

@@ -8,6 +8,7 @@
     --color-accent3: rgba(118,255,255,.33);
     --color-fg-default: rgb(0,10,71);
     --color-fg-dimmed: rgba(0,10,71,.75);
+    --color-fg-input: #3b4351;
     --border-tree-guide: 1px dotted rgba(121, 125, 136, .56);
     --border-dashed-box: 1px dashed rgba(0,0,0,0.2);
     --color-input-border: #e1e4e8;
@@ -61,6 +62,7 @@
     border-radius: 4px;
     font-weight: 300;
     font-size: .7rem;
+    color: var(--color-fg-input);
 }
 .form-group > .form-input-hint {
     margin-bottom: -.2rem;
@@ -74,6 +76,8 @@
 .text-tiny {
     font-size: .6rem !important;
 }
+
+
 
 /* Commons / Global utilies */
 @font-face {
@@ -169,6 +173,9 @@ h2 {
     width: 1.2rem;
     height: 1.2rem;
 }
+.ql-snow .ql-editor {
+    color: var(--color-fg-input);
+}
 @keyframes adjust-main-panel {
     to {
         height: 70%;
@@ -180,7 +187,7 @@ h2 {
     }
 }
 .one-column-layout #main-panel,
-.one-column-layout #inpector-panel {
+.one-column-layout #inspector-panel {
     position: absolute;
     width: 242px;
     background-color: var(--color-bg-default);
@@ -193,7 +200,7 @@ h2 {
     height: 100%;
 }
 .one-column-layout.inspector-panel-open #main-panel,
-.one-column-layout.inspector-panel-open #inpector-panel {
+.one-column-layout.inspector-panel-open #inspector-panel {
     opacity: 1;
     animation-duration: .2s;
     animation-fill-mode: forwards;
@@ -201,7 +208,7 @@ h2 {
 .one-column-layout.inspector-panel-open #main-panel {
     animation-name: adjust-main-panel;
 }
-.one-column-layout.inspector-panel-open #inpector-panel {
+.one-column-layout.inspector-panel-open #inspector-panel {
     animation-name: adjust-inspector-panel;
 }
 .one-column-layout #sivujetti-site-iframe {
@@ -212,7 +219,7 @@ h2 {
     left: 242px;
     height: 100%;
 }
-.one-column-layout #inpector-panel {
+.one-column-layout #inspector-panel {
     bottom: 0;
     border-top: 1px solid var(--color-bg-dimmed2);
     height: 0;
@@ -223,7 +230,7 @@ h2 {
 /* todo
 .two-columns-layout #main-panel,
 .two-columns-layout #sivujetti-site-iframe,
-.two-columns-layout #inpector-panel {
+.two-columns-layout #inspector-panel {
     position: absolute;
     height: 100%;
 }
@@ -237,7 +244,7 @@ h2 {
     border: none;
     left: 142px;
 }
-.two-columns-layout #inpector-panel {
+.two-columns-layout #inspector-panel {
     width: 172px;
     right: 0;
 }*/

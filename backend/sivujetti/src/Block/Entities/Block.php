@@ -3,6 +3,7 @@
 namespace Sivujetti\Block\Entities;
 
 final class Block {
+    public const TYPE_BUTTON    = "Button";
     public const TYPE_COLUMNS   = "Columns";
     public const TYPE_HEADING   = "Heading";
     public const TYPE_PARAGRAPH = "Paragraph";
@@ -17,6 +18,11 @@ final class Block {
     public string $id;
     /** @var \Sivujetti\Block\Entities\Block[] */
     public array $children;
+
+    /* If self::TYPE_COLUMNS
+    public string $html;
+    public string $linkTo;
+    public string $cssClass; */
 
     /* If self::TYPE_COLUMNS
     public string $cssClass; */

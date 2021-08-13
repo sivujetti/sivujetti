@@ -73,7 +73,7 @@ class ParagraphBlockEditForm extends preact.Component {
                     ref={ this.editor }/>
                 <InputError error={ errors.text }/>
             </InputGroup>
-            <div class="form-horizontal">
+            <div class="form-horizontal pt-0">
             <InputGroupInline classes={ classes.cssClass }>
                 <label class="form-label" htmlFor="cssClass" title={ __('Css classes') }>{ __('Css classes') }</label>
                 <Input vm={ this } name="cssClass" id="cssClass" errorLabel={ __('Css classes') } validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ this.emitChange.bind(this) }/>

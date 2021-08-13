@@ -8,6 +8,9 @@ class EditAppAwareWebPage {
      */
     constructor(dataFromAdminBackend) {
         this.data = dataFromAdminBackend;
+        this.currentlyHoveredBlockFirstChildEl = undefined;
+        this.currentlyHoveredBlockRef = undefined;
+        this.isGlobalClickHandlerSet = undefined;
     }
     /**
      * @param {{onBlockHoverStarted: (el: HTMLElement) => void; onBlockHoverEnded: () => void; onBlockClicked: (blockRef: BlockRefComment) => void;}} handlers
@@ -26,7 +29,10 @@ class EditAppAwareWebPage {
             ? getBlockRefCommentsFromCurrentPage()
             : [];
         if (doRegisterEventListeners) {
-            out.map(this.registerBlockMouseListeners.bind(this));
+            const hoverables = !this.data.page.isPlaceholderPage
+                ? out
+                : out.filter(({blockId}) => this.data.layoutBlocks.some(block => block.id === blockId) === false);
+            hoverables.map(this.registerBlockMouseListeners.bind(this));
             if (!this.isGlobalClickHandlerSet) {
                 document.body.addEventListener('click', () => {
                     if (this.currentlyHoveredBlockFirstChildEl)

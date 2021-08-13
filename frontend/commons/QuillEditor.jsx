@@ -1,11 +1,12 @@
-const simplest = ['bold', 'italic', 'underline', 'strike'];
-const simplestWithLink = simplest.concat('link');
+const common = ['bold', 'italic', 'underline', 'strike'];
+const simplest = common.concat('clean');
+const simplestWithLink = common.concat('link', 'clean');
 
 const toolbarBundles = {
     simplest: [simplest],
     simplestWithLink: [simplestWithLink],
     full: [
-        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        common.concat('blockquote'),
         [{'list': 'ordered'}, {'list': 'bullet'}],
         [{'indent': '-1'}, {'indent': '+1'}, {'align': [] }],
         [{'header': [1, 2, 3, 4, 5, 6, false]}],

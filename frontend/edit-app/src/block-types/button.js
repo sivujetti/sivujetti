@@ -1,4 +1,4 @@
-import {__} from '@sivujetti-commons';
+import {urlUtils, __} from '@sivujetti-commons';
 import {unParagraphify} from './paragraph.js';
 import {hookForm, InputGroup, InputGroupInline, InputError, Input} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
@@ -44,7 +44,7 @@ class ButtonBlockEditForm extends preact.Component {
                     toolbarBundle="simplest"/>
                 <InputError error={ errors.html }/>
             </InputGroup>
-            <div class="form-horizontal">
+            <div class="form-horizontal pt-0">
             <InputGroupInline classes={ classes.linkTo }>
                 <label class="form-label" htmlFor="linkTo">{ __('Link') }</label>
                 <Input vm={ this } name="linkTo" id="linkTo" errorLabel={ __('Link') } validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ this.emitChange.bind(this) }/>
@@ -81,7 +81,10 @@ export default {
     initialData,
     defaultRenderer: 'sivujetti:block-auto',
     reRender({html, linkTo, cssClass}, renderChildren) {
-        return `<p><a href="${linkTo}" class="btn${cssClass ? ` ${cssClass}` : ''}">${html}${renderChildren()}</a></p>`;
+        const href = linkTo.indexOf('.') < 0
+            ? urlUtils.makeUrl(linkTo)
+            : `${linkTo.startsWith('//') || linkTo.startsWith('http') ? '' : '//'}${linkTo}`;
+        return `<p><a href="${href}" class="btn${cssClass ? ` ${cssClass}` : ''}">${html}${renderChildren()}</a></p>`;
     },
     editForm: ButtonBlockEditForm,
 };

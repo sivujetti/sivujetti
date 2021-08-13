@@ -16,7 +16,7 @@ final class LocalDirPackage implements PackageStreamInterface {
      */
     public function __construct(FileSystemInterface $fs) {
         $this->fs = $fs;
-        $this->absDirPath = '';
+        $this->absDirPath = "";
     }
     /**
      * @inheritdoc

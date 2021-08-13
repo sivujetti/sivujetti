@@ -6,7 +6,7 @@ import AddPageMainPanelView from './AddPageMainPanelView.jsx';
 import store, {setCurrentPage, setOpQueue} from './store.js';
 import SaveButton from './SaveButton.jsx';
 
-const LEFT_PANEL_WIDTH = 242;
+const LEFT_PANEL_WIDTH = 274;
 
 class EditApp extends preact.Component {
     // blockTrees;

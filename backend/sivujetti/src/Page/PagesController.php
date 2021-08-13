@@ -9,6 +9,7 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
 use MySite\Theme;
 use Pike\{ArrayUtils, PikeException, Request, Response};
+use Sivujetti\Layout\LayoutBlocksRepository;
 
 final class PagesController {
     /**
@@ -34,6 +35,7 @@ final class PagesController {
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
+     * @param \Sivujetti\Layout\LayoutBlocksRepository $layoutBlocksRepo
      * @param \Sivujetti\SharedAPIContext $storage
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @throws \Pike\PikeException
@@ -41,6 +43,7 @@ final class PagesController {
     public function renderPlaceholderPage(Request $req,
                                           Response $res,
                                           PagesRepository $pagesRepo,
+                                          LayoutBlocksRepository $layoutBlocksRepo,
                                           SharedAPIContext $storage,
                                           TheWebsite $theWebsite): void {
         if ($req->params->pageType !== PageType::PAGE)
@@ -56,7 +59,8 @@ final class PagesController {
         $page->status = Page::STATUS_DRAFT;
         $page->layout = (object) ["blocks" => []];
         //
-        self::sendPageResponse($req, $res, $pagesRepo, $storage, $theWebsite, $page);
+        self::sendPageResponse($req, $res, $pagesRepo, $storage, $theWebsite,
+            $page, $layoutBlocksRepo);
     }
     /**
      * GET /_edit/[**:url]?: Renders the edit app.
@@ -135,6 +139,7 @@ final class PagesController {
      * @param \Sivujetti\SharedAPIContext $storage
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param ?\Sivujetti\Page\Entities\Page $page = null
+     * @param ?\Sivujetti\Layout\LayoutBlocksRepository $layoutBlocksRepo = null
      * @throws \Pike\PikeException
      */
     private static function sendPageResponse(Request $req,
@@ -142,7 +147,8 @@ final class PagesController {
                                              PagesRepository $pagesRepo,
                                              SharedAPIContext $storage,
                                              TheWebsite $theWebsite,
-                                             ?Page $pageIn = null) {
+                                             ?Page $pageIn = null,
+                                             ?LayoutBlocksRepository $layoutBlocksRepo = null) {
         $themeAPI = new UserThemeAPI("theme", $storage, new Translator);
         $_ = new Theme($themeAPI); // Note: mutates $storage->data
         $isPlaceholderPage = $pageIn !== null;
@@ -162,7 +168,10 @@ final class PagesController {
         $layout = ArrayUtils::findByKey($data->pageLayouts, $page->layoutId, "id");
         if (!$layout) throw new PikeException("Page layout #`{$page->layoutId}` not available",
                                               PikeException::BAD_INPUT);
-        if ($isPlaceholderPage) $page->blocks = $layout->getInitialBlocks->__invoke();
+        if ($isPlaceholderPage) {
+            $page->blocks = $layout->getInitialBlocks->__invoke();
+            $page->layout->blocks = $layoutBlocksRepo->getMany($page->layoutId)[0]->blocks;
+        }
         //
         $html = (new SiteAwareTemplate($layout->relFilePath, cssFiles: $data->userDefinedCssFiles->webPage))->render([
             "page" => $page,

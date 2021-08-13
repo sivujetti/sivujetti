@@ -8,7 +8,8 @@
     --color-accent3: rgba(118,255,255,.33);
     --color-fg-default: rgb(0,10,71);
     --color-fg-dimmed: rgba(0,10,71,.75);
-    --color-fg-input: #3b4351;
+    --color-fg-dimmed2: #1c275a;
+    --color-fg-input: rgb(0,10,71);
     --border-tree-guide: 1px dotted rgba(121, 125, 136, .56);
     --border-dashed-box: 1px dashed rgba(0,0,0,0.2);
     --color-input-border: #e1e4e8;
@@ -76,8 +77,21 @@
 .text-tiny {
     font-size: .6rem !important;
 }
-
-
+.form-horizontal .form-group {
+    margin: .6rem 0;
+}
+.form-horizontal .form-label {
+    padding: .2rem 0;
+    color: var(--color-fg-dimmed2);
+}
+.form-horizontal .form-input {
+    padding: .1rem .35rem;
+    height: 1.6rem;
+}
+.form-horizontal .form-group > .col-9 {
+    width: calc(75% - .2rem);
+    margin-left: auto;
+}
 
 /* Commons / Global utilies */
 @font-face {
@@ -175,6 +189,11 @@ h2 {
 }
 .ql-snow .ql-editor {
     color: var(--color-fg-input);
+    padding: .4rem;
+    font: 300 .7rem/.9rem "Fira Sans";
+}
+.ql-snow .ql-tooltip {
+    z-index: 1;
 }
 @keyframes adjust-main-panel {
     to {
@@ -189,7 +208,7 @@ h2 {
 .one-column-layout #main-panel,
 .one-column-layout #inspector-panel {
     position: absolute;
-    width: 242px;
+    width: 274px;
     background-color: var(--color-bg-default);
     color: var(--color-fg-default);
     border-right: 1px solid var(--color-bg-dimmed2);
@@ -214,9 +233,9 @@ h2 {
 .one-column-layout #sivujetti-site-iframe {
     position: absolute;
     height: 100%;
-    width: calc(100% - 242px);
+    width: calc(100% - 274px);
     border: none;
-    left: 242px;
+    left: 274px;
     height: 100%;
 }
 .one-column-layout #inspector-panel {

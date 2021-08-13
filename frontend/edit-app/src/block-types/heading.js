@@ -46,7 +46,7 @@ class HeadingBlockEditForm extends preact.Component {
                     ref={ this.editor }/>
                 <InputError error={ errors.text }/>
             </InputGroup>
-            <div class="form-horizontal">
+            <div class="form-horizontal pt-0">
             <InputGroupInline>
                 <label class="form-label" title={ __('Level') }>{ __('Level') }</label>
                 <Select vm={ this } name="level" id="level" myOnChange={ this.emitChange.bind(this) }>{

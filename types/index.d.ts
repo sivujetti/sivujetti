@@ -43,6 +43,7 @@ interface RawBlock {
     renderer: String;
     propsData: Array<{key: String; value: String;}>;
     children: Array<RawBlock>;
+    parentBlockId: String|null;
     [key: String]: mixed;
 }
 

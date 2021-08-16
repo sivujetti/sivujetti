@@ -5,7 +5,6 @@
         "baseUrl": "./",
         "paths": {
             "@sivujetti-commons": ["frontend/commons/main.js"],
-            "@sivujetti-cpanel-commons": ["frontend/cpanel-commons/main.js"],
         }
     }
 }

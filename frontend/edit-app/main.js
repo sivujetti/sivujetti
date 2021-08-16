@@ -11,6 +11,7 @@ import richTextBlockType from './src/block-types/richText.js';
 import sectionBlockType from './src/block-types/section.js';
 import InspectorPanel from './src/InspectorPanel.jsx';
 import webPageIframe from './src/webPageIframe.js';
+import blockTreeUtils from './src/blockTreeUtils.js';
 
 configureServices();
 publishFrontendApi();
@@ -56,6 +57,8 @@ function renderReactEditApp() {
         handleWebPageLoaded(webPage) {
             const editApp = editAppReactRef.current;
             webPage.setEventHandlers(editApp.websiteEventHandlers);
+            webPage.data.blocks = normalizeBlockTree(webPage.data.page.blocks);
+            webPage.data.layoutBlocks = normalizeBlockTree(webPage.data.layoutBlocks);
             editApp.handleWebPageLoaded(webPage.data,
                                         webPage.scanBlockRefComments(true),
                                         webPage);
@@ -83,4 +86,11 @@ function hookUpSiteIframeUrlMirrorer() {
         if (window.location.href !== `${window.location.origin}${p}`)
             history.replaceState(null, null, p);
     });
+}
+
+function normalizeBlockTree(branch) {
+    blockTreeUtils.traverseRecursively(branch, (b, _, parent) => {
+        b.parentBlockId = parent ? parent.id : null;
+    });
+    return branch;
 }

@@ -17,7 +17,7 @@ class BlockTree extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {blockTree: null, treeState: null, currentlyOpenBlock: null};
+        this.state = {blockTree: null, treeState: null, blockWithNavOpened: null};
         this.selectedRoot = null;
         this.contextMenu = preact.createRef();
         this.lastRootBlockMarker = null;
@@ -67,11 +67,6 @@ class BlockTree extends preact.Component {
             after = toArr.length ? toArr[toArr.length - 1] : this.lastRootBlockMarker;
         } else if (position === 'as-child' && context instanceof Block) {
             toArr = context.children;
-            /*after = toArr.length
-                ? toArr[toArr.length - 1]
-                : toArr !== this.state.blockTree
-                    ? {parentNode: parent.getRootDomNode(), nextSibling: null}
-                    : this.lastRootBlockMarker;*/
             after = this.getAfter(toArr, context);
         } else if (position === 'as-child' && Array.isArray(context)) {
             throw new Error('Invalid usage (arr, "as-child"), should be (arr[position], "as-child")');
@@ -130,7 +125,7 @@ class BlockTree extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {blockTree, treeState, currentlyOpenBlock}) {
+    render(_, {blockTree, treeState, blockWithNavOpened}) {
         if (blockTree === null) return;
         const renderBranch = branch => branch.map(block => !treeState[block.id].isNew
             ? <li key={ block.id } data-id={ block.path } class={ [!treeState[block.id].isSelected ? '' : 'selected',
@@ -144,7 +139,7 @@ class BlockTree extends preact.Component {
                         <Icon iconId="type" className="size-xs color-accent mr-1"/>
                         { block.title || block.type }
                     </button>
-                    <button onClick={ e => this.openMoreMenu(block, e) } class={ `more-toggle ml-2${currentlyOpenBlock !== block ? '' : ' opened'}` } type="button">
+                    <button onClick={ e => this.openMoreMenu(block, e) } class={ `more-toggle ml-2${blockWithNavOpened !== block ? '' : ' opened'}` } type="button">
                         <Icon iconId="more-horizontal" className="size-xs"/>
                     </button>
                 </div>
@@ -173,7 +168,7 @@ class BlockTree extends preact.Component {
                     {text: __('Delete'), title: __('Delete block'), id: 'delete-block'},
                 ] }
                 onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
-                onMenuClosed={ () => this.setState({currentlyOpenBlock: null}) }
+                onMenuClosed={ () => this.setState({blockWithNavOpened: null}) }
                 ref={ this.contextMenu }/>
         </>;
     }
@@ -183,12 +178,29 @@ class BlockTree extends preact.Component {
      */
     handleContextMenuLinkClicked(link) {
         if (link.id === 'add-child') {
-            this.appendNewBlockPlaceholder(this.state.currentlyOpenBlock, 'as-child');
+            this.appendNewBlockPlaceholder(this.state.blockWithNavOpened, 'as-child');
         } else if (link.id === 'delete-block') {
-            this.cancelAddBlock(this.state.currentlyOpenBlock);
+            const isSelectedRootCurrentlyClickedBlock = () => {
+                if (!this.selectedRoot)
+                    return false;
+                return this.selectedRoot === this.state.blockWithNavOpened;
+            };
+            const isSelectedRootChildOfCurrentlyClickedBlock = () => {
+                if (!this.selectedRoot ||
+                    !this.selectedRoot.parentBlockId ||
+                    !this.state.blockWithNavOpened.children.length)
+                    return false;
+                return blockTreeUtils.findRecursively(this.state.blockWithNavOpened.children,
+                    b => b.id === this.selectedRoot.id);
+            };
+            //
+            let wasCurrentlySelectedBlock = isSelectedRootCurrentlyClickedBlock() ||
+                                            isSelectedRootChildOfCurrentlyClickedBlock();
+            if (wasCurrentlySelectedBlock) this.selectedRoot = null;
+            this.cancelAddBlock(this.state.blockWithNavOpened);
             store.dispatch(pushItemToOpQueue('delete-block-from-tree',
                 () => this.props.onChangesApplied(this.state.blockTree, this.props.treeKind)));
-            signals.emit('on-block-deleted', this.state.currentlyOpenBlock);
+            signals.emit('on-block-deleted', this.state.blockWithNavOpened, wasCurrentlySelectedBlock);
         }
     }
     /**
@@ -298,7 +310,7 @@ class BlockTree extends preact.Component {
      * @access private
      */
     openMoreMenu(block, e) {
-        this.setState({currentlyOpenBlock: block});
+        this.setState({blockWithNavOpened: block});
         this.contextMenu.current.open(e);
     }
     /**
@@ -327,7 +339,7 @@ class BlockTree extends preact.Component {
         const mutRef = this.state.treeState;
         for (const key in mutRef) mutRef[key].isSelected = false;
         this.selectedRoot = null;
-        this.setState({treeState: mutRef, currentlyOpenBlock: null});
+        this.setState({treeState: mutRef, blockWithNavOpened: null});
     }
     /**
      * @param {'clicked'|'focus-requested'} name

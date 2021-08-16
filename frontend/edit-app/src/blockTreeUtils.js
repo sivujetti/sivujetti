@@ -50,15 +50,16 @@ export default {
     },
     /**
      * @param {Array<Object>} branch
-     * @param {(item: Object, i: Number) => any} fn
+     * @param {(item: Object, i: Number, parent: Object|null) => any} fn
+     * @param {Object|null} parent = null
      * @returns {Array<Object>}
      * @access public
      */
-    traverseRecursively(branch, fn) {
+    traverseRecursively(branch, fn, parent = null) {
         branch.forEach((b, i) => {
-            fn(b, i);
+            fn(b, i, parent);
             if (b.children.length) {
-                this.traverseRecursively(b.children, fn);
+                this.traverseRecursively(b.children, fn, b);
             }
         });
     }

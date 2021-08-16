@@ -12,9 +12,8 @@ class BlockEditForm extends preact.Component {
      */
     componentWillMount() {
         this.blockType = blockTypes.get(this.props.block.type);
-        this.doCleanSignalListeners = signals.on('on-block-deleted', block => {
-            if (block.id === this.props.block.id)
-                this.props.inspectorPanel.close();
+        this.doCleanSignalListeners = signals.on('on-block-deleted', (_block, wasCurrentlySelectedBlock) => {
+            if (wasCurrentlySelectedBlock) this.props.inspectorPanel.close();
         });
     }
     /**

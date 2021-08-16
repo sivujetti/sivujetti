@@ -28,7 +28,7 @@ class ButtonBlockEditForm extends preact.Component {
         this.form.destroy();
     }
     /**
-     * @param {{block: Block; onValueChanged: (newBlockData: {[key: String]: any;}) => Promise<null>; autoFocus: Boolean;}} _
+     * @param {BlockEditFormProps} _
      * @access protected
      */
     render(_, {classes, errors}) {

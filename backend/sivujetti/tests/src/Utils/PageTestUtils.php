@@ -59,7 +59,7 @@ final class PageTestUtils {
      * @return ?\Sivujetti\Page\Entities\Page
      */
     public function getPageBySlug(string $slug, ?PageType $pageType = null): ?Page {
-        return $this->t($pageType)->where('${t}.`slug`=?', $slug)->exec();
+        return $this->t($pageType, ["slug" => $slug]);
     }
     /**
      * @param string $id
@@ -67,7 +67,7 @@ final class PageTestUtils {
      * @return ?\Sivujetti\Page\Entities\Page
      */
     public function getPageById(string $id, ?PageType $pageType = null): ?Page {
-        return $this->t($pageType)->where('${t}.`id`=?', $id)->exec();
+        return $this->t($pageType, ["id" => $id]);
     }
     /**
      * @return \Sivujetti\PageType\Entities\PageType
@@ -108,9 +108,9 @@ final class PageTestUtils {
      * @param ?\Sivujetti\PageType\Entities\PageType $pageType = null
      * @return ?\Sivujetti\Page\Entities\Page
      */
-    private function t(?PageType $pageType = null): SelectQuery {
+    private function t(?PageType $pageType = null, ...$filters): ?Page {
         if (!$pageType)
             $pageType = $this->makeDefaultPageType();
-        return $this->pagesRepo->getSingle($pageType);
+        return $this->pagesRepo->getSingle($pageType, ...$filters);
     }
 }

@@ -29,7 +29,7 @@ class HeadingBlockEditForm extends preact.Component {
         this.form.destroy();
     }
     /**
-     * @param {{block: Block; blockTree: preact.Component; onValueChanged: (newBlockData: {[key: String]: any;}) => Promise<null>; autoFocus: Boolean;}} props
+     * @param {BlockEditFormProps} props
      * @access protected
      */
     render({block, blockTree}, {classes, errors}) {

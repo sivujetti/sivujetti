@@ -8,7 +8,7 @@ const minPossibleLen = '<p></p>'.length;
 class ParagraphBlockEditForm extends preact.Component {
     // editor;
     /**
-     * @param {{block: Block; onValueChanged: (newBlockData: {[key: String]: any;}) => Promise<null>; autoFocus: Boolean;}} props
+     * @param {BlockEditFormProps} props
      */
     constructor(props) {
         super(props);

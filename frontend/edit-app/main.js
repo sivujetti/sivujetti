@@ -6,6 +6,7 @@ import blockTypes from './src/block-types/block-types.js';
 import buttonBlockType from './src/block-types/button.js';
 import columnsBlockType from './src/block-types/columns.js';
 import headingBlockType from './src/block-types/heading.js';
+import menuBlockType from './src/block-types/menu.js';
 import paragraphBlockType from './src/block-types/paragraph.js';
 import richTextBlockType from './src/block-types/richText.js';
 import sectionBlockType from './src/block-types/section.js';
@@ -35,6 +36,7 @@ function configureServices() {
     blockTypes.register('Button', buttonBlockType);
     blockTypes.register('Columns', columnsBlockType);
     blockTypes.register('Heading', headingBlockType);
+    blockTypes.register('Menu', menuBlockType);
     blockTypes.register('Paragraph', paragraphBlockType);
     blockTypes.register('RichText', richTextBlockType);
     blockTypes.register('Section', sectionBlockType);

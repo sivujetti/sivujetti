@@ -1,3 +1,3 @@
 <footer>
-    <?= $this->renderBlocks($page->layout->blocks) ?>
+    <?= $this->renderBlocks(\Pike\ArrayUtils::filterByKey($page->layout->blocks, "Paragraph", "type")) ?>
 </footer>

@@ -11,19 +11,7 @@ use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\PageTypeValidator;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
-interface RepositoryInterface {
-    /**
-     * @return \Pike\Db
-     */
-    public function getDb(): Db;
-    /**
-     * @param \Sivujetti\Page\Entities\Page[] $rows
-     * @return \Sivujetti\Page\Entities\Page[]
-     */
-    public function normalizeRs(array $rows): array;
-}
-
-final class PagesRepository implements RepositoryInterface {
+final class PagesRepository {
     /** @var \Pike\Db */
     private Db $db;
     /** @var \Sivujetti\PageType\Entities\PageType[] */
@@ -53,23 +41,30 @@ final class PagesRepository implements RepositoryInterface {
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
-     * @return \Sivujetti\Page\SelectQuery
+     * @param string|string[] ...$filters
+     * @return \Sivujetti\Page\Entities\Page|null
      */
-    public function getSingle(string|PageType $pageTypeOrPageTypeName): SelectQuery {
+    public function getSingle(string|PageType $pageTypeOrPageTypeName, ...$filters): ?Page {
         $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
         $this->pageType = $pageType;
-        return (new SelectQuery($this, true))
-            ->fields(
-                '${t}.`id`,${t}.`slug`,${t}.`path`,${t}.`level`,${t}.`title`,${t}.`layoutId`' .
-                ',${t}.`blocks` AS `pageBlocksJson`,"'.$pageType->name.'" AS `type`,${t}.`status`' .
-                ',IFNULL(lb.`blocks`, \'[]\') AS `layoutBlocksJson`' .
+        [$filterCols, $filterVals] = $this->filtersToQParts(...$filters);
+        //
+        $rows = $this->db->fetchAll(
+            "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`layoutId`," .
+                    "p.`blocks` AS `pageBlocksJson`,'{$pageType->name}' AS `type`,p.`status`" .
+                    ",IFNULL(lb.`blocks`, '[]') AS `layoutBlocksJson`" .
                 ($pageType->ownFields ? ("," . implode(',', array_map(fn(object $f) =>
-                    "\${t}.`$f->name` AS `$f->name`"
-                , $pageType->ownFields))) : "")
-            )
-            ->from($pageType->name)
-            ->leftJoin("`\${p}layoutBlocks` lb ON (lb.`layoutId` = \${t}.`layoutId`)")
-            ->into(Page::class);
+                    "p.`$f->name` AS `$f->name`"
+                , $pageType->ownFields))) : "") .
+            " FROM `\${p}{$pageType->name}` p" .
+            " LEFT JOIN `\${p}layoutBlocks` lb ON (lb.`layoutId` = p.`layoutId`)" .
+            ($filterCols ? " WHERE {$filterCols}" : ""),
+            $filterVals,
+            \PDO::FETCH_CLASS,
+            Page::class
+        );
+        $rows = $this->normalizeRs($rows);
+        return $rows[0] ?? null;
     }
     /**
      * @param string|\Sivujetti\PageType\Entities\PageType $pageTypeOrPageTypeName
@@ -166,15 +161,10 @@ final class PagesRepository implements RepositoryInterface {
                                array_merge($values, [$id]));
     }
     /**
-     * @inheritdoc
+     * @param \Sivujetti\Page\Entities\Page[] $rows
+     * @return \Sivujetti\Page\Entities\Page[]
      */
-    public function getDb(): Db {
-        return $this->db;
-    }
-    /**
-     * @inheritdoc
-     */
-    public function normalizeRs(array $rows): array {
+    private function normalizeRs(array $rows): array {
         foreach ($rows as $row) {
             $row->blocks = self::blocksFromRs("pageBlocksJson", $row);
             $row->layout = (object) ["blocks" => self::blocksFromRs("layoutBlocksJson", $row)];
@@ -226,111 +216,20 @@ final class PagesRepository implements RepositoryInterface {
             return $possible;
         throw new PikeException("Unknown page type `{$candidate}`.");
     }
-}
-
-// Todo
-final class SelectQuery {
-    /** @var \Sivujetti\Page\RepositoryInterface */
-    private RepositoryInterface $repository;
-    /** @var array<int, array<int, string>> */
-    private array $wheres;
-    /** @var \Sivujetti\Page\RepositoryInterface */
-    private array $joins;
-    /** @var ?string */
-    private ?string $theFields;
-    /** @var ?class-string */
-    private ?string $Cls;
-    /** @var bool */
-    private bool $onlyOneRow;
     /**
-     * @param \Sivujetti\Page\RepositoryInterface $repository
-     * @param bool $onlyOneRow
+     * todo
      */
-    public function __construct(RepositoryInterface $repository, bool $onlyOneRow) {
-        $this->repository = $repository;
-        $this->wheres = [];
-        $this->joins = [];
-        $this->theFields = null;
-        $this->Cls = null;
-        $this->onlyOneRow = $onlyOneRow;
-    }
-    /**
-     * @param string $expr
-     * @param mixed $value
-     * @return $this
-     */
-    public function where(string $expr, $value): SelectQuery {
-        $this->wheres[] = ["", $expr, $value];
-        return $this;
-    }
-    /**
-     * @param string $fields
-     * @return $this
-     */
-    public function fields(string $fields): SelectQuery {
-        $this->theFields = $fields;
-        return $this;
-    }
-    /**
-     * @param string $tableName
-     * @return $this
-     */
-    public function from(string $tableName): SelectQuery {
-        $this->tableName = "\${p}{$tableName}";
-        return $this;
-    }
-    /**
-     * @param string $expr
-     * @return $this
-     */
-    public function join(string $expr): SelectQuery {
-        $this->joins[] = [$expr, ""];
-        return $this;
-    }
-    /**
-     * @param string $expr
-     * @return $this
-     */
-    public function leftJoin(string $expr): SelectQuery {
-        $this->joins[] = [$expr, "LEFT "];
-        return $this;
-    }
-    /**
-     * @param class-string $Cls
-     * @return $this
-     */
-    public function into(string $Cls): SelectQuery {
-        $this->Cls = $Cls;
-        return $this;
-    }
-    /**
-     * @return object|array|null
-     */
-    public function exec(): object|array|null {
-        [$sql, $values] = $this->toQParts();
-        $rows = $this->repository->getDb()->fetchAll($sql, $values, \PDO::FETCH_CLASS, $this->Cls);
-        $rows = $this->repository->normalizeRs($rows);
-        return $this->onlyOneRow ? ($rows[0] ?? null) : $rows;
-    }
-    /**
-     * @return array{0: string, 1: mixed[]}
-     */
-    private function toQParts(): array {
-        $q = "SELECT ";
-        $q .= ($this->theFields ?? "*") . " FROM ";
-        $q .= "`$this->tableName` ";
-        //
-        foreach ($this->joins as [$expr, $joinType])
-            $q .= "{$joinType}JOIN {$expr} ";
-        //
-        $values = [];
-        if ($this->wheres) {
-            $q .= "WHERE ";
-            foreach ($this->wheres as [$conti, $expr, $value]) {
-                $q .= "{$conti}{$expr}";
-                $values[] = $value;
-            }
+    private function filtersToQParts(...$filters): array {
+        $filterSql = "";
+        $filterValues = [];
+        foreach ($filters as $inp) {
+            // todo validate
+            $column = key($inp);
+            $cand = $inp[$column];
+            $f = is_string($cand) ? ["", "", $column] : $inp;
+            $filterSql .= ($f[0] ?? " AND ") . $this->db->columnify($f[2]) . ($f[1] ?: "=") . "?";
+            $filterValues[] = $cand;
         }
-        return [str_replace("\${t}", "`$this->tableName`", $q), $values];
+        return [$filterSql, $filterValues];
     }
 }

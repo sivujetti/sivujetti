@@ -8,6 +8,7 @@ use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder};
 use Sivujetti\Page\{PagesRepository, SiteAwareTemplate};
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\BlockType\Entities\BlockTypes;
+use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class BlocksController {
     /**
@@ -18,10 +19,12 @@ final class BlocksController {
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\Block\BlockValidator $blockValidator
+     * @param \Sivujetti\TheWebsite $theWebsite
      */
     public function render(Request $req,
                            Response $res,
-                           BlockValidator $blockValidator): void {
+                           BlockValidator $blockValidator,
+                           TheWebsite $theWebsite): void {
         if (($errors = self::validateRenderBlockInput($req->body)) ||
             ($errors = $blockValidator->validateInsertOrUpdateData($req->body->block->type,
                                                                    $req->body->block))) {
@@ -34,7 +37,10 @@ final class BlocksController {
         $marker->type = "__marker";
         $block->children = [$marker];
         //
-        $html = (new SiteAwareTemplate($block->renderer))->renderBlocks([$block]);
+        $html = (new SiteAwareTemplate($block->renderer, null, [
+            "page" => null,
+            "site" => $theWebsite,
+        ]))->renderBlocks([$block]);
         $res->json(["result" => $html]);
     }
     /**

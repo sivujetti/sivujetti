@@ -154,9 +154,8 @@ final class PagesController {
         $isPlaceholderPage = $pageIn !== null;
         //
         if (!$isPlaceholderPage) {
-            if (!($page = $pagesRepo->getSingle($theWebsite->pageTypes[0])
-                ->where("\${t}.`slug`=?", $req->params->url)
-                ->exec())) {
+            if (!($page = $pagesRepo->getSingle($theWebsite->pageTypes[0],
+                                                ["slug" => $req->params->url]))) {
                 $res->status(404)->html("404");
                 return;
             }

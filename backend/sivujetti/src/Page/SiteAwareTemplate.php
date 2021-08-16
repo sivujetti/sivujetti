@@ -11,12 +11,14 @@ final class SiteAwareTemplate extends Template {
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
+     * @param ?array<string, mixed> $initialLocals = null
      * @param ?array<int, object> $cssFiles = null
      */
     public function __construct(string $file,
                                 ?array $vars = null,
+                                ?array $initialLocals = null,
                                 ?array $cssFiles = null) {
-        parent::__construct($file, $vars);
+        parent::__construct($file, $vars, $initialLocals);
         $this->__cssFiles = $cssFiles ?? [];
     }
     /**
@@ -79,7 +81,7 @@ final class SiteAwareTemplate extends Template {
             $attrsMap = $f->attrs;
             if (!array_key_exists("rel", $attrsMap)) $attrsMap["rel"] = "stylesheet";
             return "<link href=\"{$this->assetUrl("public/{$this->e($f->url)}")}\"" .
-                self::attrMapToStr($attrsMap) . ">";
+                $this->attrMapToStr($attrsMap) . ">";
         }, $this->__cssFiles));
     }
     /**
@@ -88,9 +90,9 @@ final class SiteAwareTemplate extends Template {
      * @param array|object $map
      * @return string
      */
-    private static function attrMapToStr(array|object $map): string {
+    protected function attrMapToStr(array|object $map): string {
         $pairs = [];
         foreach ($map as $key => $val) $pairs[] = " {$key}=\"{$val}\"";
-        return htmlspecialchars(implode("" , $pairs), ENT_NOQUOTES);
+        return $this->e(implode("", $pairs), ENT_NOQUOTES);
     }
 }

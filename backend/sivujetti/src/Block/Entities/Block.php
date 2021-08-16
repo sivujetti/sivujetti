@@ -6,6 +6,7 @@ final class Block {
     public const TYPE_BUTTON    = "Button";
     public const TYPE_COLUMNS   = "Columns";
     public const TYPE_HEADING   = "Heading";
+    public const TYPE_MENU      = "Menu";
     public const TYPE_PARAGRAPH = "Paragraph";
     public const TYPE_SECTION   = "Section";
     /** @var string self::TYPE_* */
@@ -31,6 +32,15 @@ final class Block {
     public string $text;
     public int $level;
     public string $cssClass; */
+
+    /* If self::TYPE_MENU
+    public string $tree;
+    public string $wrapStart;
+    public string $wrapEnd;
+    public string $treeStart;
+    public string $treeEnd;
+    public string $itemAttrs;
+    public string $itemEnd; */
 
     /* If self::TYPE_PARAGRAPH
     public string $text;

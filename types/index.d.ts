@@ -96,3 +96,9 @@ interface ContextMenuLink {
     title: String;
     id: String;
 }
+
+interface BlockEditFormProps {
+    block: Block;
+    onValueChanged: (newBlockData: {[key: String]: any;}) => Promise<null>;
+    autoFocus: Boolean;
+}

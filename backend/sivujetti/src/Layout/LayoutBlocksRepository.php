@@ -3,11 +3,9 @@
 namespace Sivujetti\Layout;
 
 use Pike\Db;
-use Sivujetti\Block\BlocksController;
-use Sivujetti\Block\BlockTree;
+use Sivujetti\Block\{BlocksController, BlockTree};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\Page\PagesRepository;
-use Sivujetti\SharedAPIContext;
 
 final class LayoutBlocksRepository {
     /** @var \Pike\Db */
@@ -52,7 +50,7 @@ final class LayoutBlocksRepository {
     /**
      * @inheritdoc
      */
-    public function normalizeRs(array $rows): array {
+    private function normalizeRs(array $rows): array {
         foreach ($rows as $row)
             $row->blocks = PagesRepository::blocksFromRs("blocksJson", $row);
         return $rows;

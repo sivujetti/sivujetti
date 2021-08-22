@@ -6,9 +6,9 @@ Simply the most radical CMS ever created.
 
 1. Is significantly faster and/or uses fewer resources than any popular (mysql-based) php CMS
 1. Supports local (MySQL, SQLite) and remote data sources
-1. Supports multi-lingual content out of the box
 1. Updates itself automatically
-1. Comes with a high-quality eCommerce-addon
+1. Comes with a high-quality eCommerce plugin
+1. Supports multi-lingual content out of the box
 1. Is easy for developers
 1. Is FOSS forever
 
@@ -19,7 +19,7 @@ Simply the most radical CMS ever created.
 
 ## Personal goals
 
-1. Learn English
+1. Hopefully improves my English
 
 # License
 

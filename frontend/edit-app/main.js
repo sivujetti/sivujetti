@@ -3,13 +3,13 @@ import {Validator} from '../commons/Form.jsx';
 import {FormStateStoreWrapper} from './src/store.js';
 import EditApp from './src/EditApp.jsx';
 import blockTypes from './src/block-types/block-types.js';
-import buttonBlockType from './src/block-types/button.js';
-import columnsBlockType from './src/block-types/columns.js';
-import headingBlockType from './src/block-types/heading.js';
-import menuBlockType from './src/block-types/menu.js';
-import paragraphBlockType from './src/block-types/paragraph.js';
-import richTextBlockType from './src/block-types/richText.js';
-import sectionBlockType from './src/block-types/section.js';
+import createButtonBlockType from './src/block-types/button.js';
+import createColumnsBlockType from './src/block-types/columns.js';
+import createHeadingBlockType from './src/block-types/heading.js';
+import createMenuBlockType from './src/block-types/menu.js';
+import createParagraphBlockType from './src/block-types/paragraph.js';
+import createRichTextBlockType from './src/block-types/richText.js';
+import createSectionBlockType from './src/block-types/section.js';
 import InspectorPanel from './src/InspectorPanel.jsx';
 import webPageIframe from './src/webPageIframe.js';
 import blockTreeUtils from './src/blockTreeUtils.js';
@@ -33,13 +33,13 @@ function configureServices() {
         if (strings.minLength) Validator.setValidationStrings(strings);
     });
     //
-    blockTypes.register('Button', buttonBlockType);
-    blockTypes.register('Columns', columnsBlockType);
-    blockTypes.register('Heading', headingBlockType);
-    blockTypes.register('Menu', menuBlockType);
-    blockTypes.register('Paragraph', paragraphBlockType);
-    blockTypes.register('RichText', richTextBlockType);
-    blockTypes.register('Section', sectionBlockType);
+    blockTypes.register('Button', createButtonBlockType());
+    blockTypes.register('Columns', createColumnsBlockType());
+    blockTypes.register('Heading', createHeadingBlockType());
+    blockTypes.register('Menu', createMenuBlockType());
+    blockTypes.register('Paragraph', createParagraphBlockType());
+    blockTypes.register('RichText', createRichTextBlockType());
+    blockTypes.register('Section', createSectionBlockType());
 }
 
 function publishFrontendApi() {

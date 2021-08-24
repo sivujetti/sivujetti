@@ -81,16 +81,17 @@ class HeadingBlockEditForm extends preact.Component {
     }
 }
 
-const initialData = {text: __('Heading text'), level: 2, cssClass: ''};
-
-export default {
-    name: 'Heading',
-    friendlyName: 'Heading',
-    ownPropNames: Object.keys(initialData),
-    initialData,
-    defaultRenderer: 'sivujetti:block-auto',
-    reRender({level, text, cssClass}, renderChildren) {
-        return `<h${level}${cssClass? ` class="${cssClass}"` : ''}>${text}${renderChildren()}</h${level}>`;
-    },
-    editForm: HeadingBlockEditForm,
+export default () => {
+    const initialData = {text: __('Heading text'), level: 2, cssClass: ''};
+    return {
+        name: 'Heading',
+        friendlyName: 'Heading',
+        ownPropNames: Object.keys(initialData),
+        initialData,
+        defaultRenderer: 'sivujetti:block-auto',
+        reRender({level, text, cssClass}, renderChildren) {
+            return `<h${level}${cssClass? ` class="${cssClass}"` : ''}>${text}${renderChildren()}</h${level}>`;
+        },
+        editForm: HeadingBlockEditForm,
+    };
 };

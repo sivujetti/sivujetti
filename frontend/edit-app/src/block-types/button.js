@@ -72,19 +72,20 @@ class ButtonBlockEditForm extends preact.Component {
     }
 }
 
-const initialData = {html: `${__('Button text')}`, linkTo: '/', cssClass: ''};
-
-export default {
-    name: 'Button',
-    friendlyName: 'Button',
-    ownPropNames: Object.keys(initialData),
-    initialData,
-    defaultRenderer: 'sivujetti:block-auto',
-    reRender({html, linkTo, cssClass}, renderChildren) {
-        const href = linkTo.indexOf('.') < 0
-            ? urlUtils.makeUrl(linkTo)
-            : `${linkTo.startsWith('//') || linkTo.startsWith('http') ? '' : '//'}${linkTo}`;
-        return `<p><a href="${href}" class="btn${cssClass ? ` ${cssClass}` : ''}">${html}${renderChildren()}</a></p>`;
-    },
-    editForm: ButtonBlockEditForm,
+export default () => {
+    const initialData = {html: `${__('Button text')}`, linkTo: '/', cssClass: ''};
+    return {
+        name: 'Button',
+        friendlyName: 'Button',
+        ownPropNames: Object.keys(initialData),
+        initialData,
+        defaultRenderer: 'sivujetti:block-auto',
+        reRender({html, linkTo, cssClass}, renderChildren) {
+            const href = linkTo.indexOf('.') < 0
+                ? urlUtils.makeUrl(linkTo)
+                : `${linkTo.startsWith('//') || linkTo.startsWith('http') ? '' : '//'}${linkTo}`;
+            return `<p><a href="${href}" class="btn${cssClass ? ` ${cssClass}` : ''}">${html}${renderChildren()}</a></p>`;
+        },
+        editForm: ButtonBlockEditForm,
+    };
 };

@@ -16,7 +16,7 @@ class MenuBlockEditForm extends preact.Component {
      */
     render(_, {parsedTree}) {
         return <>
-            <table><tbody>{ parsedTree.map(item => <tr key={ item.id }>
+            <table class="table"><tbody>{ parsedTree.map(item => <tr key={ item.id }>
                 <td>{ item.text }</td>
             </tr>) }</tbody></table>
             <button onClick={ this.appendItemToMenu.bind(this) }

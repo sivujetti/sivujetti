@@ -2,7 +2,7 @@ import {urlUtils, __} from '@sivujetti-commons';
 import {unParagraphify} from './paragraph.js';
 import {hookForm, InputGroup, InputGroupInline, InputError, Input} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
-import {formValidation} from '../constants.js';
+import {formValidation, sensibleDefaults} from '../constants.js';
 
 class ButtonBlockEditForm extends preact.Component {
     /**
@@ -67,7 +67,7 @@ class ButtonBlockEditForm extends preact.Component {
             html: unParagraphify(newState.values.html),
             linkTo: newState.values.linkTo,
             cssClass: newState.values.cssClass,
-        });
+        }, sensibleDefaults.normalTypingDebounceMillis);
         return newState;
     }
 }

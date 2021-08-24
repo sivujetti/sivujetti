@@ -3,7 +3,7 @@ import {unParagraphify} from './paragraph.js';
 import {hookForm, InputGroup, InputGroupInline, InputError, Input, Select} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
 import Icon from '../../../commons/Icon.jsx';
-import {formValidation} from '../constants.js';
+import {formValidation, sensibleDefaults} from '../constants.js';
 
 class HeadingBlockEditForm extends preact.Component {
     /**
@@ -61,8 +61,9 @@ class HeadingBlockEditForm extends preact.Component {
             </InputGroupInline>
             </div>
             <a onClick={ e => (e.preventDefault(), blockTree.appendBlockToTreeAfter(block)) }
-                class="btn btn-link btn-sm text-tiny with-icon-inline color-dimmed">
-                <Icon iconId="plus" className="size-xs"/> { __('Add block after') }
+                class="btn btn-link btn-sm text-tiny with-icon-inline color-dimmed"
+                href="#add-block-after">
+                <Icon iconId="plus" className="size-xs mr-1"/> { __('Add block after') }
             </a>
         </>;
     }
@@ -75,7 +76,7 @@ class HeadingBlockEditForm extends preact.Component {
             text: unParagraphify(newState.values.text),
             level: newState.values.level,
             cssClass: newState.values.cssClass,
-        });
+        }, sensibleDefaults.normalTypingDebounceMillis);
         return newState;
     }
 }

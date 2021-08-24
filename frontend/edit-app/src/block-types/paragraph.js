@@ -1,7 +1,7 @@
 import {__} from '@sivujetti-commons';
 import {hookForm, InputGroup, InputGroupInline, Input, InputError} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
-import {formValidation} from '../constants.js';
+import {formValidation, sensibleDefaults} from '../constants.js';
 
 const minPossibleLen = '<p></p>'.length;
 
@@ -91,7 +91,7 @@ class ParagraphBlockEditForm extends preact.Component {
             text: unParagraphify(newState.values.text),
             linkTo: newState.values.linkTo,
             cssClass: newState.values.cssClass,
-        });
+        }, sensibleDefaults.normalTypingDebounceMillis);
         return newState;
     }
 }

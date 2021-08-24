@@ -3,4 +3,8 @@ const formValidation = Object.freeze({
     HARD_LONG_TEXT_MAX_LEN: 128000,
 });
 
-export {formValidation};
+const sensibleDefaults = Object.freeze({
+    normalTypingDebounceMillis: 400,
+});
+
+export {formValidation, sensibleDefaults};

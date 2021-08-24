@@ -84,6 +84,7 @@ interface EditAppAwareWebPage {
 interface WebPageIframe {
     openPlaceholderPage(pageType: String, layoutId: String = '1'): void;
     goBack(): void;
+    getEl(): HTMLIFrameElement;
 }
 
 interface Env {

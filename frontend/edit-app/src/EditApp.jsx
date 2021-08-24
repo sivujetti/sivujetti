@@ -11,14 +11,16 @@ const LEFT_PANEL_WIDTH = 274;
 class EditApp extends preact.Component {
     // blockTrees;
     // currentWebPageType;
+    // resizeHandleEl;
     /**
-     * @param {{webPageIframe: WebPageIframe;}} props
+     * @param {{webPageIframe: WebPageIframe; outerEl: HTMLElement; inspectorPanelEl: HTMLElement;}} props
      */
     constructor(props) {
         super(props);
         this.state = {isCreatePageModeOn: false, blockHoverIconCss: 'display:none'};
         this.blockTrees = null;
         this.currentWebPageType = null;
+        this.resizeHandleEl = preact.createRef();
         this.websiteEventHandlers = {
             /**
              * @param {HTMLElement} el block._cref.startingCommentNode.nextElement
@@ -83,7 +85,53 @@ class EditApp extends preact.Component {
             <span class="block-hover-icon" style={ blockHoverIconCss }>
                 <Icon iconId="settings" className="size-xs"/>
             </span>
+            <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         </>;
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        const el = this.resizeHandleEl.current;
+        const mainPanelEl = this.props.outerEl;
+        const iframeEl = this.props.webPageIframe.getEl();
+        const inspectorPanelEl = this.props.inspectorPanelEl;
+        el.style.transform = `translateX(${mainPanelEl.getBoundingClientRect().width}px`;
+        //
+        const startTreshold = 2;
+        const minWidth = 206;
+        let startWidth;
+        let startScreenX = null;
+        let currentHandle = null;
+        //
+        el.addEventListener('mousedown', e => {
+            if (e.button !== 0) return;
+            //
+            currentHandle = e.target;
+            startWidth = mainPanelEl.getBoundingClientRect().width;
+            startScreenX = e.screenX;
+            el.classList.add('dragging');
+        });
+        document.addEventListener('mousemove', e => {
+            if (!currentHandle) return;
+            //
+            let delta = e.screenX - startScreenX;
+            if (Math.abs(delta) < startTreshold) return;
+            //
+            let w = startWidth + delta;
+            if (w < minWidth) w = minWidth;
+            //
+            mainPanelEl.style.width = `${w}px`;
+            inspectorPanelEl.style.width = `${w}px`;
+            iframeEl.style.width = `calc(100% - ${w}px)`;
+            iframeEl.style.transform = `translateX(${w}px)`;
+            //
+            el.style.transform = `translateX(${w}px)`;
+        });
+        document.addEventListener('mouseup', () => {
+            currentHandle = null;
+            el.classList.remove('dragging');
+        });
     }
 }
 

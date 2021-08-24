@@ -7,12 +7,17 @@ const webPageIframe = {
      */
     openPlaceholderPage(pageType, layoutId = '1') {
         const u = urlUtils.makeUrl(`/api/_placeholder-page/${pageType}/${layoutId}`);
-        env.document.getElementById('sivujetti-site-iframe').contentWindow.location.href = u;
+        this.getEl().contentWindow.location.href = u;
     },
     /**
      */
     goBack() {
         env.window.history.back();
+    },
+    /**
+     */
+    getEl() {
+        return env.document.getElementById('sivujetti-site-iframe');
     }
 };
 

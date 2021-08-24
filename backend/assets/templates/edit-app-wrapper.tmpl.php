@@ -8,7 +8,7 @@
     <body>
         <div id="root" class="one-column-layout">
             <div id="main-panel"></div>
-            <div id="inpector-panel"></div>
+            <div id="inspector-panel"></div>
             <iframe src="<?= $this->url("{$url}?in-edit") ?>" id="sivujetti-site-iframe"></iframe>
         </div>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.js") ?>"></script>

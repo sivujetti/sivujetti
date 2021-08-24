@@ -67,14 +67,19 @@ function renderReactEditApp() {
         }
     };
 
+    const mainPanelOuterEl = document.getElementById('main-panel');
+    const inspectorPanelOuterEl = document.getElementById('inspector-panel');
     preact.render(preact.createElement(EditApp, {
-        ref: editAppReactRef,
         webPageIframe,
-    }), document.getElementById('main-panel'));
+        outerEl: mainPanelOuterEl,
+        inspectorPanelEl: inspectorPanelOuterEl,
+        ref: editAppReactRef,
+    }), mainPanelOuterEl);
 
     preact.render(preact.createElement(InspectorPanel, {
+        outerEl: inspectorPanelOuterEl,
         rootEl: document.getElementById('root'),
-    }), document.getElementById('inpector-panel'));
+    }), inspectorPanelOuterEl);
 }
 
 function hookUpSiteIframeUrlMirrorer() {

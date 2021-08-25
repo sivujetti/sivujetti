@@ -5,7 +5,8 @@
     --color-bg-dimmed2: rgb(235, 237, 243);
     --color-accent: #1fc79d;
     --color-accent2: #00eeb3;
-    --color-accent3: rgba(118,255,255,.33);
+    --color-accent3: rgb(65,255,209);
+    --color-accent4: rgba(118,255,255,.33);
     --color-fg-default: rgb(0,10,71);
     --color-fg-dimmed: rgba(0,10,71,.75);
     --color-fg-dimmed2: #1c275a;
@@ -373,13 +374,23 @@ a.popup-close-area {
     margin: 0;
     border-left: var(--border-tree-guide);
 }
+.block-tree li.maybe-drop-before:before,
+.block-tree li.maybe-drop-after + li:before {
+    content: "";
+    background-color: var(--color-orange);
+    position: absolute;
+    width: calc(100% - 1.6rem);
+    height: 1px;
+    margin: -1px 0 0 .3rem;
+    opacity: 0.6;
+}
 .block-tree > li {
+    border: 1px solid transparent;
     margin-left: -.4rem;
     border-left: none;
 }
 .block-tree li > button,
 .block-tree li > .d-flex > button {
-    background: transparent;
     border: none;
     color: var(--color-fg-default);
     padding: .2rem;

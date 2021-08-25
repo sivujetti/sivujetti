@@ -5,6 +5,7 @@ stringBundles.push({
     'New page': 'New page',
     'Create page': 'Create page',
     'Cancel add page': 'Cancel add page',
+    'Back': 'Back',
     'Layout': 'Layout',
     'Default fields': 'Default fields',
     'Title': 'Title',

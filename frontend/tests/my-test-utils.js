@@ -4,8 +4,8 @@ const utils = {
      * @param {Object} props
      */
     renderIntoDocument(reactCmp, props) {
-        return preact.render(preact.createElement(reactCmp, props),
-                             document.getElementById('render-container-el'));
+        preact.render(preact.createElement(reactCmp, props),
+                      document.getElementById('render-container-el'));
     },
     /**
      * @param {any} value

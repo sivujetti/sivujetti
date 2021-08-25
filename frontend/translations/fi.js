@@ -5,6 +5,7 @@ stringBundles.push({
     'New page': 'Uusi sivu',
     'Create page': 'Luo sivu',
     'Cancel add page': 'Peruuta sivun luonti',
+    'Back': 'Takaisin',
     'Layout': 'Sivupohja',
     'Default fields': 'Oletuskentät',
     'Title': 'Otsikko',

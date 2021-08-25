@@ -1,7 +1,8 @@
 import {env, urlUtils} from '@sivujetti-commons';
 import blockTypes from '../edit-app/src/block-types/block-types.js';
-import paragraphBlockType from '../edit-app/src/block-types/paragraph';
+import createParagraphBlockType from '../edit-app/src/block-types/paragraph';
 import './render-blocks-into-dom-test.js';
+import './reorder-blocks-test.js';
 
 env.window = window;
 env.document = document;
@@ -10,7 +11,7 @@ urlUtils.baseUrl = window.location.pathname.split('public/tests')[0];
 urlUtils.assetBaseUrl = urlUtils.baseUrl;
 urlUtils.env = env;
 //
-blockTypes.register('Paragraph', paragraphBlockType);
+blockTypes.register('Paragraph', createParagraphBlockType());
 
 QUnit.config.autostart = false;
 QUnit.dump.maxDepth = 8; // default 5

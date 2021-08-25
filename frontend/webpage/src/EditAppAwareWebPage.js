@@ -45,6 +45,20 @@ class EditAppAwareWebPage {
     }
     /**
      * @param {Block} block
+     * @param {Block} block
+     * @param {'before'} position
+     * @access public
+     */
+    reOrderBlocksInDom(blockToMove, blockToMoveTo, position) {
+        if (position !== 'before') throw new Error('Not implemented');
+        const p = blockToMoveTo._cref.startingCommentNode.parentElement;
+        const ps = blockToMoveTo._cref.startingCommentNode;
+        this.getBlockContents(blockToMove).forEach(n => {
+            p.insertBefore(n, ps);
+        });
+    }
+    /**
+     * @param {Block} block
      * @param {Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}} after
      * @returns {Promise<BlockRefComment>}
      * @access public

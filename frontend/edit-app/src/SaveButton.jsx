@@ -67,7 +67,8 @@ function optimizeQueueTEMP(queue) {
         return [queue[0]];
     if (queue[0].opName === 'append-block-to-tree' ||
         queue[0].opName === 'delete-block-from-tree' ||
-        queue[0].opName === 'update-tree-block')
+        queue[0].opName === 'update-tree-block' ||
+        queue[0].opName === 'swapped-blocks-in-tree')
         return [queue[queue.length - 1]];
     throw new Error();
 }

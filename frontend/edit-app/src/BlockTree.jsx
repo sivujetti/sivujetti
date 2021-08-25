@@ -5,6 +5,7 @@ import BlockTypeSelector from './BlockTypeSelector.jsx';
 import Block from './Block.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from './store.js';
+import BlockTreeDragDrop from './BlockTreeDragDrop.js';
 
 let BlockTreeTabs;
 
@@ -12,6 +13,10 @@ class BlockTree extends preact.Component {
     // selectedRoot;
     // contextMenu;
     // lastRootBlockMarker;
+    // dragUtils;
+    // onDragStart;
+    // onDragOver;
+    // onDrop;
     /**
      * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>, treeKind: 'pageBlocks'|'layoutBlocks') => Promise<Boolean>; BlockTrees: preact.ComponentClass;}} props
      */
@@ -21,6 +26,12 @@ class BlockTree extends preact.Component {
         this.selectedRoot = null;
         this.contextMenu = preact.createRef();
         this.lastRootBlockMarker = null;
+        this.dragUtils = new BlockTreeDragDrop(this, (mutatedTree, dragBlock, dropBlock, dropPosition) => {
+            this.setState({blockTree: mutatedTree});
+            BlockTreeTabs.currentWebPage.reOrderBlocksInDom(dragBlock, dropBlock, dropPosition);
+            store.dispatch(pushItemToOpQueue('swapped-blocks-in-tree',
+                () => this.props.onChangesApplied(mutatedTree, this.props.treeKind)));
+        });
         BlockTreeTabs = props.BlockTrees;
     }
     /**
@@ -29,22 +40,15 @@ class BlockTree extends preact.Component {
      * @access public
      */
     appendBlockToTreeAfter(block, autoFocus = true) {
-        this.appendNewBlockPlaceholder(block, 'after',
-            (state, newBlock) => {
-                state.treeState = this.setBlockAsSected(newBlock, state.treeState);
-                state.treeState[newBlock.id].isNew = false;
-                return state;
-            }).then(newBlock => {
-                if (autoFocus)
-                    this.emitItemClickedOrAppendedSignal('focus-requested', newBlock);
-            });
+        this.doAppendBlockAndUpdateState(block, 'after', autoFocus);
     }
     /**
-     * @param {Block} block After
+     * @param {Block} block The parent block
+     * @param {Boolean} autoFocus = true
      * @access public
      */
-    appendBlockToTreeAsChildOf(_block) {
-        throw new Error('Not implemented yet.');
+    appendBlockToTreeAsChildOf(block, autoFocus = true) {
+        this.doAppendBlockAndUpdateState(block, 'as-child', autoFocus);
     }
     /**
      * @param {Block|Array<Block>|undefined} context = this.selectedRoot || this.state.blockTree
@@ -114,6 +118,10 @@ class BlockTree extends preact.Component {
         signals.on('on-inspector-panel-closed', () => {
             this.deSelectAllBlocks();
         });
+        //
+        this.onDragStart = this.dragUtils.handleDragStarted.bind(this.dragUtils);
+        this.onDragOver = this.dragUtils.handleDraggedOver.bind(this.dragUtils);
+        this.onDrop = this.dragUtils.handleDraggableDropped.bind(this.dragUtils);
     }
     /**
      * @access protected
@@ -128,8 +136,17 @@ class BlockTree extends preact.Component {
     render(_, {blockTree, treeState, blockWithNavOpened}) {
         if (blockTree === null) return;
         const renderBranch = branch => branch.map(block => !treeState[block.id].isNew
-            ? <li key={ block.id } data-id={ block.path } class={ [!treeState[block.id].isSelected ? '' : 'selected',
-                                                                   !block.children.length ? '' : 'with-children'].join(' ') }>
+            ? <li
+                onDragStart={ this.onDragStart }
+                onDragOver={ this.onDragOver }
+                onDrop={ this.onDrop }
+                data-id={ block.path }
+                class={ [!treeState[block.id].isSelected ? '' : 'selected',
+                         !block.children.length ? '' : 'with-children'].join(' ') }
+                data-fos={ block.id }
+                data-drop-group="1"
+                key={ block.id }
+                draggable>
                 { !block.children.length
                     ? null
                     : <button onClick={ () => this.collapseBranch(block) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="size-xs"/></button>
@@ -137,7 +154,7 @@ class BlockTree extends preact.Component {
                 <div class="d-flex">
                     <button onClick={ () => this.handleItemClicked(block) } class="drag-handle columns" type="button">
                         <Icon iconId="type" className="size-xs color-accent mr-1"/>
-                        { block.title || block.type }
+                        { block.title || __(block.type) }
                     </button>
                     <button onClick={ e => this.openMoreMenu(block, e) } class={ `more-toggle ml-2${blockWithNavOpened !== block ? '' : ' opened'}` } type="button">
                         <Icon iconId="more-horizontal" className="size-xs"/>
@@ -348,6 +365,23 @@ class BlockTree extends preact.Component {
      */
     emitItemClickedOrAppendedSignal(name, block) {
         signals.emit(`on-block-tree-item-${name}`, block, this);
+    }
+    /**
+     * @param {Block} block The parent block
+     * @param {'after'|'as-child'} position
+     * @param {Boolean} autoFocus
+     * @access private
+     */
+    doAppendBlockAndUpdateState(block, position, autoFocus) {
+        this.appendNewBlockPlaceholder(block, position,
+            (state, newBlock) => {
+                state.treeState = this.setBlockAsSected(newBlock, state.treeState);
+                state.treeState[newBlock.id].isNew = false;
+                return state;
+            }).then(newBlock => {
+                if (autoFocus)
+                    this.emitItemClickedOrAppendedSignal('focus-requested', newBlock);
+            });
     }
 }
 

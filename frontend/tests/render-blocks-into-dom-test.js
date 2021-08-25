@@ -1,15 +1,12 @@
-import store, {setCurrentPage} from '../edit-app/src/store.js';
-import BlockTrees from '../edit-app/src/BlockTrees.jsx';
-import reactTestUtils from './my-test-utils.js';
-import EditAppAwareWebPage from '../webpage/src/EditAppAwareWebPage.js';
 import blockTypes from '../edit-app/src/block-types/block-types.js';
+import * as treeTestUtils from './block-tree-mutating-testutils.js';
 
-QUnit.module('EditAppAwareWebPage', () => {
-    QUnit.test('appends non-nested block after another', assert => {
+QUnit.module('BlockTrees', () => {
+    QUnit.test('user can add block to inner branch', assert => {
         const done = assert.async();
-        const s = setupTest();
-        renderBlockTreeIntoDom(s, () => {
-            simulatePageLoad(s);
+        const s = treeTestUtils.createTestState();
+        treeTestUtils.renderBlockTreeIntoDom(s, () => {
+            treeTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             clickAddBlockButton(s)
@@ -19,11 +16,11 @@ QUnit.module('EditAppAwareWebPage', () => {
             done();
         });
     });
-    QUnit.test('appends non-nested block as second child of another', assert => {
+    QUnit.test('user can add block to inner branch by using the context menu', assert => {
         const done = assert.async();
-        const s = setupTest();
-        renderBlockTreeIntoDom(s, () => {
-            simulatePageLoad(s);
+        const s = treeTestUtils.createTestState();
+        treeTestUtils.renderBlockTreeIntoDom(s, () => {
+            treeTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             clickAddChildBlockButton(s)
@@ -33,85 +30,6 @@ QUnit.module('EditAppAwareWebPage', () => {
             done();
         });
     });
-    function setupTest() {
-        return {
-            mockPageData: {
-                dataFromWebPage: null,
-                comments: null,
-                webPage: null
-            }
-        };
-    }
-    function renderBlockTreeIntoDom(s, then) {
-        return new Promise(resolve => {
-            reactTestUtils.renderIntoDocument(BlockTrees, {ref: () => {
-                then();
-            }, onWebPageLoadHandled: () => {
-                resolve();
-            }});
-        });
-    }
-    function simulatePageLoad(s) {
-        //
-        const sectionBlockId = '-MfgGtK5pnuk1s0Kws4u';
-        const paragraphBlockId = '-Me3jYWcEOlLTgJhzqLA';
-        const temp = document.createElement('template');
-        temp.innerHTML = [
-            `<!-- block-start ${sectionBlockId}:Section -->`,
-            `<section id="initial-section">`,
-                `<!-- block-start ${paragraphBlockId}:Paragraph -->`,
-                '<p id="initial-paragraph">Hello</p>',
-                `<!-- block-end ${paragraphBlockId} -->`,
-            '</section>',
-            `<!-- block-end ${sectionBlockId} -->`
-        ].join('');
-        document.body.appendChild(temp.content);
-        //
-        s.mockPageData.dataFromWebPage = {
-            page: {
-                id: '1',
-                isPlaceholderPage: false,
-                type: 'Pages',
-                blocks: [{
-                    "type": "Section",
-                    "title": "",
-                    "renderer": "sivujetti:block-generic-wrapper",
-                    "id": sectionBlockId,
-                    "propsData": [{
-                        "key": "bgImage",
-                        "value": ""
-                    }, {
-                        "key": "cssClass",
-                        "value": ""
-                    }],
-                    "bgImage": "",
-                    "cssClass": "",
-                    "children": [{
-                        "type": "Paragraph",
-                        "title": "",
-                        "renderer": "sivujetti:block-auto",
-                        "id": paragraphBlockId,
-                        "children": [],
-                        "propsData": [{
-                            "key": "text",
-                            "value": "Hello"
-                        }, {
-                            "key": "cssClass",
-                            "value": ""
-                        }],
-                        "text": "Hello",
-                        "cssClass": ""
-                    }]
-                }]
-            },
-            layouts: [],
-            layoutBlocks: [],
-        };
-        s.mockPageData.webPage = new EditAppAwareWebPage(s.mockPageData.dataFromWebPage);
-        s.mockPageData.comments = s.mockPageData.webPage.scanBlockRefComments();
-        //
-        store.dispatch(setCurrentPage(s.mockPageData));
-    }
     function clickAddChildBlockButton(s) {
         return new Promise(resolve => {
             const contextNavToggleBtn = document.querySelector('.block-tree > li:first-child .more-toggle');
@@ -126,7 +44,7 @@ QUnit.module('EditAppAwareWebPage', () => {
     function clickAddBlockButton(s) {
         return new Promise(resolve => {
             setTimeout(() => {
-                const btn = document.querySelector('.block-tree').parentElement.nextElementSibling;
+                const btn = document.querySelector('.block-tree').parentElement.previousElementSibling;
                 btn.click();
                 resolve();
             }, 0);

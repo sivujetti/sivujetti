@@ -1,7 +1,7 @@
 import * as treeTestUtils from './block-tree-mutating-testutils.js';
 
 QUnit.module('BlockTrees', () => {
-    QUnit.test('user can reorder inner branch blocks', assert => {
+    QUnit.test('blocks can be reordered inside inner branch by dragging upwards', assert => {
         const done = assert.async();
         const s = treeTestUtils.createTestState();
         treeTestUtils.renderBlockTreeIntoDom(s, cmp => {
@@ -9,27 +9,43 @@ QUnit.module('BlockTrees', () => {
             treeTestUtils.simulatePageLoad(s);
         })
         .then(() =>
-            simulateDragBlockUpwards(s)
+            simulateDragBlock(s, 'upwards')
         )
         .then(() => {
-            verifyReOrderedBlockTree(s,assert);
-            verifyReOrderedDom(s,assert);
+            verifySwappedBlocksInTree(s, assert);
+            verifySwappedBlocksInDom(s, assert);
             done();
         });
     });
-    function simulateDragBlockUpwards(s) {
+    QUnit.test('blocks can be reordered inside inner branch by dragging downwards', assert => {
+        const done = assert.async();
+        const s = treeTestUtils.createTestState();
+        treeTestUtils.renderBlockTreeIntoDom(s, cmp => {
+            s.blockTreesCmp = cmp;
+            treeTestUtils.simulatePageLoad(s);
+        })
+        .then(() =>
+            simulateDragBlock(s, 'downwards')
+        )
+        .then(() => {
+            verifySwappedBlocksInTree(s, assert);
+            verifySwappedBlocksInDom(s, assert);
+            done();
+        });
+    });
+    function simulateDragBlock(s, direction) {
         const simulateDragStarted = liEl => {
             const fakeDragStartEvent = {target: liEl};
-            s.blockTreesCmp.pageBlocksTree.current.dragUtils.handleDragStarted(fakeDragStartEvent);
+            s.blockTreesCmp.pageBlocksTree.current.dragDrop.handleDragStarted(fakeDragStartEvent);
         };
-        const simulateDraggedOver = liEl => {
+        const simulateDraggedOver = (liEl, simulatedMousePosition) => {
             const fakeDragOverEvent = {target: liEl,
-                                       clientY: 0, // Simulate that mouse is above li's center
+                                       clientY: simulatedMousePosition,
                                        preventDefault: () => null};
-            s.blockTreesCmp.pageBlocksTree.current.dragUtils.handleDraggedOver(fakeDragOverEvent);
+            s.blockTreesCmp.pageBlocksTree.current.dragDrop.handleDraggedOver(fakeDragOverEvent);
         };
         const simulateDropped = () => {
-            s.blockTreesCmp.pageBlocksTree.current.dragUtils.handleDraggableDropped();
+            s.blockTreesCmp.pageBlocksTree.current.dragDrop.handleDraggableDropped();
         };
         return new Promise(resolve => {
             setTimeout(() => {
@@ -37,20 +53,29 @@ QUnit.module('BlockTrees', () => {
                 const paragraphBlockLi = lis[lis.length - 1];
                 const headingBlockLi = lis[lis.length - 2];
                 //
+                if (direction === 'upwards') {
                 simulateDragStarted(paragraphBlockLi);
-                simulateDraggedOver(headingBlockLi);
+                simulateDraggedOver(headingBlockLi,
+                                    // Simulate that mouse is above target li's center
+                                    0);
+                } else {
+                simulateDragStarted(headingBlockLi);
+                simulateDraggedOver(paragraphBlockLi,
+                                    // Simulate that mouse is below target li's center
+                                    Infinity);
+                }
                 simulateDropped();
                 resolve();
             }, 0);
         });
     }
-    function verifyReOrderedBlockTree(s, assert) {
+    function verifySwappedBlocksInTree(s, assert) {
         const lis = document.querySelectorAll('.block-tree li ul li');
         const getLiContents = li => li.querySelector('button.drag-handle').textContent;
         assert.equal(getLiContents(lis[0]), 'Paragraph');
         assert.equal(getLiContents(lis[1]), 'Heading');
     }
-    function verifyReOrderedDom(s, assert) {
+    function verifySwappedBlocksInDom(s, assert) {
         const domBranchAfter = document.getElementById('initial-section').children;
         assert.equal(domBranchAfter[0].tagName, 'P');
         assert.equal(domBranchAfter[1].tagName, 'H2');

@@ -13,7 +13,7 @@ class BlockTree extends preact.Component {
     // selectedRoot;
     // contextMenu;
     // lastRootBlockMarker;
-    // dragUtils;
+    // dragDrop;
     // onDragStart;
     // onDragOver;
     // onDrop;
@@ -26,7 +26,7 @@ class BlockTree extends preact.Component {
         this.selectedRoot = null;
         this.contextMenu = preact.createRef();
         this.lastRootBlockMarker = null;
-        this.dragUtils = new BlockTreeDragDrop(this, (mutatedTree, dragBlock, dropBlock, dropPosition) => {
+        this.dragDrop = new BlockTreeDragDrop(this, (mutatedTree, dragBlock, dropBlock, dropPosition) => {
             this.setState({blockTree: mutatedTree});
             BlockTreeTabs.currentWebPage.reOrderBlocksInDom(dragBlock, dropBlock, dropPosition);
             store.dispatch(pushItemToOpQueue('swapped-blocks-in-tree',
@@ -119,9 +119,9 @@ class BlockTree extends preact.Component {
             this.deSelectAllBlocks();
         });
         //
-        this.onDragStart = this.dragUtils.handleDragStarted.bind(this.dragUtils);
-        this.onDragOver = this.dragUtils.handleDraggedOver.bind(this.dragUtils);
-        this.onDrop = this.dragUtils.handleDraggableDropped.bind(this.dragUtils);
+        this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
+        this.onDragOver = this.dragDrop.handleDraggedOver.bind(this.dragDrop);
+        this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
     }
     /**
      * @access protected
@@ -143,7 +143,7 @@ class BlockTree extends preact.Component {
                 data-id={ block.path }
                 class={ [!treeState[block.id].isSelected ? '' : 'selected',
                          !block.children.length ? '' : 'with-children'].join(' ') }
-                data-fos={ block.id }
+                data-block-id={ block.id }
                 data-drop-group="1"
                 key={ block.id }
                 draggable>

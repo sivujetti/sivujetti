@@ -5,8 +5,7 @@ class BlockTreeDradDrop {
     // onDropped;
     // startEl;
     // startLiIndex;
-    // curDropTypeCandiate;
-    // distance;
+    // curDropTypeCandidate;
     /**
      * @param {BlockTree} blockTree
      * @param {(mutatedBlockTree: Array<Block>, dragBlock: Block, dropBlock: Block, dropPosition: 'before'|'after') => void} onDropped
@@ -22,86 +21,80 @@ class BlockTreeDradDrop {
     handleDragStarted(e) {
         this.startEl = e.target;
         this.startLiIndex = this.getLiIndex(this.startEl);
-        this.curDropTypeCandiate = {dropPosition: null, liEl: null};
+        this.curDropTypeCandidate = {dropPosition: null, el: null};
     }
     /**
      * @param {DragEvent} e
      * @access public
      */
     handleDraggedOver(e) {
-        let li = e.target;
-        if (li.nodeName !== 'LI') li = e.target.closest('li');
-        //
+        const li = e.target.nodeName === 'LI' ? e.target : e.target.closest('li');
         if (!li || li.getAttribute('data-drop-group') !== '1')
             return;
-        //
-        const distance = this.getLiIndex(li) - this.startLiIndex;
-        if (distance === 0 && this.distance === 0) return;
         // Enable handleDraggableDropped (developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/Drag_operations#drop)
         e.preventDefault();
-        this.distance = distance; // ??
         //
-        let newCandiate = {dropPosition: null, liEl: null};
+        const distance = this.getLiIndex(li) - this.startLiIndex;
+        if (distance === 0 && this.curDropTypeCandidate.el === li)
+            return;
+        //
+        const newCandidate = {dropPosition: null, el: li};
         if (distance < 0) {
-            newCandiate.dropPosition = 'before';
-            newCandiate.liEl = li;
+            newCandidate.dropPosition = 'before';
         } else if (distance > 0) {
-            newCandiate.dropPosition = 'after';
-            newCandiate.liEl = li;
-        }
+            newCandidate.dropPosition = 'after';
+        } // else dropPosition remains null
         //
-        if (!newCandiate.dropPosition ||
-            (this.curDropTypeCandiate.dropPosition === newCandiate.dropPosition &&
-            this.curDropTypeCandiate.liEl === newCandiate.liEl)) return;
+        if ((newCandidate.dropPosition === this.curDropTypeCandidate.dropPosition &&
+            newCandidate.el === this.curDropTypeCandidate.el)) return;
         //
-        if (newCandiate.dropPosition === 'before' && e.clientY < this.getCenter(newCandiate.liEl) ||
-            newCandiate.dropPosition === 'after' && e.clientY > this.getCenter(newCandiate.liEl)) {
-            if (this.curDropTypeCandiate.liEl) {
-                this.clearPreviousDroppableBorder(this.curDropTypeCandiate);
+        const transitToBeforeOrAfter = newCandidate.dropPosition === 'before' && e.clientY < this.getCenter(newCandidate.el) ||
+                                       newCandidate.dropPosition === 'after' && e.clientY > this.getCenter(newCandidate.el);
+        if (transitToBeforeOrAfter || newCandidate.dropPosition === null) {
+            if (this.curDropTypeCandidate.el) {
+                this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
             }
-            newCandiate.liEl.classList.add(`maybe-drop-${newCandiate.dropPosition}`);
-            this.curDropTypeCandiate = newCandiate;
+            if (transitToBeforeOrAfter) {
+                newCandidate.el.classList.add(`maybe-drop-${newCandidate.dropPosition}`);
+            }
+            this.curDropTypeCandidate = newCandidate;
         }
     }
     /**
      * @access public
      */
     handleDraggableDropped() {
-
-        if (!this.curDropTypeCandiate) return;
-
-        const [dragBlock, branchA] = blockTreeUtils.findBlock(this.startEl.getAttribute('data-fos'), this.blockTree.state.blockTree);
-        const [dropBlock, branchB] = blockTreeUtils.findBlock(this.curDropTypeCandiate.liEl.getAttribute('data-fos'), this.blockTree.state.blockTree);
-
-        if (branchA.liEl !== branchB.liEl)
-            throw new Error('Swap between arrays not implemented yet');
-
-        let s = null;
-
-        if (this.curDropTypeCandiate.dropPosition === 'before') {
+        if (!this.curDropTypeCandidate) return;
+        //
+        const [dragBlock, branchA] = blockTreeUtils.findBlock(this.startEl.getAttribute('data-block-id'),
+                                                              this.blockTree.state.blockTree);
+        const [dropBlock, branchB] = blockTreeUtils.findBlock(this.curDropTypeCandidate.el.getAttribute('data-block-id'),
+                                                              this.blockTree.state.blockTree);
+        if (branchA !== branchB) {
+            this.curDropTypeCandidate = null;
+            alert('Swap between arrays not implemented yet');
+            return;
+        }
+        //
+        const isBefore = this.curDropTypeCandidate.dropPosition === 'before';
+        if (isBefore || this.curDropTypeCandidate.dropPosition === 'after') {
             const refIndex = branchA.indexOf(dropBlock);
             const fromIndex = branchA.indexOf(dragBlock);
             // Mutates this.blockTree.state.blockTree
-            branchA.splice(refIndex, 0, dragBlock);
-            branchA.splice(fromIndex + 1, 1);
-            s = this.blockTree.state.blockTree;
+            branchA.splice(refIndex + (!isBefore ? 1 : 0), 0, dragBlock);
+            branchA.splice(fromIndex + (isBefore ? 1 : 0), 1);
+            this.onDropped(this.blockTree.state.blockTree, dragBlock, dropBlock, this.curDropTypeCandidate.dropPosition);
         }
-
-        this.curDropTypeCandiate.liEl.classList.remove('maybe-drop-before'); // todo lookupMap
-        this.curDropTypeCandiate.liEl.classList.remove('maybe-drop-after');
-
-        if (s) {
-            this.onDropped(s, dragBlock, dropBlock, this.curDropTypeCandiate.dropPosition);
-        }
-
-        this.curDropTypeCandiate = null;
+        this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
+        this.curDropTypeCandidate = null;
     }
     /**
      * https://stackoverflow.com/a/23528539
+     * @param {HTMLElement} el
      * @access private
      */
-    getLiIndex(liEl) {
-        return Array.prototype.indexOf.call(liEl.parentElement.children, liEl);
+    getLiIndex(el) {
+        return Array.prototype.indexOf.call(el.parentElement.children, el);
     }
     /**
      * @access private
@@ -111,11 +104,11 @@ class BlockTreeDradDrop {
         return r.top + r.height / 2;
     }
     /**
-     * @param {{dropPosition: 'before'|'after'; liEl: HTMLLIElement;}} previousDropCandidate
+     * @param {{dropPosition: 'before'|'after'; el: HTMLElement;}} previousDropCandidate
      * @access private
      */
     clearPreviousDroppableBorder(previousDropCandidate) {
-        previousDropCandidate.liEl.classList.remove(`maybe-drop-${previousDropCandidate.dropPosition}`); // todo lookupMap
+        previousDropCandidate.el.classList.remove(`maybe-drop-${previousDropCandidate.dropPosition}`); // todo lookupMap
     }
 }
 

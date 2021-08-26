@@ -374,24 +374,14 @@ a.popup-close-area {
     margin: 0;
     border-left: var(--border-tree-guide);
 }
-.block-tree li.maybe-drop-before:before,
-.block-tree li.maybe-drop-after + li:before {
-    content: "";
-    background-color: var(--color-orange);
-    position: absolute;
-    width: calc(100% - 1.6rem);
-    height: 1px;
-    margin: -1px 0 0 .3rem;
-    opacity: 0.6;
-}
 .block-tree > li {
     border: 1px solid transparent;
     margin-left: -.4rem;
     border-left: none;
 }
-.block-tree li > button,
-.block-tree li > .d-flex > button {
-    border: none;
+.block-tree li button {
+    background: transparent;
+    border: 1px solid transparent;
     color: var(--color-fg-default);
     padding: .2rem;
     margin-left: .4rem;
@@ -399,16 +389,30 @@ a.popup-close-area {
     border-radius: 4px;
     font-weight: 300;
 }
+.block-tree li.maybe-drop-before .drag-handle,
+.block-tree li.maybe-drop-after .drag-handle,
+.block-tree li.maybe-drop-as-child .drag-handle {
+    border-radius: 0;
+}
+.block-tree li.maybe-drop-before .drag-handle {
+    border-top-color: var(--color-orange);
+}
+.block-tree li.maybe-drop-after .drag-handle {
+    border-bottom-color: var(--color-orange);
+}
+.block-tree li.maybe-drop-as-child .drag-handle {
+    border-color: var(--color-orange);
+}
 .block-tree li > button:hover {
     background: #0000000d;
 }
-.block-tree li.selected > .drag-handle {
+.block-tree li.selected .drag-handle {
     background: #00000013;
 }
-.block-tree li.with-children > .d-flex .drag-handle {
+.block-tree li.with-children > div > .drag-handle {
     margin-left: 1.5rem;
 }
-.block-tree li.selected > .d-flex .drag-handle {
+.block-tree li.selected .drag-handle {
     background: var(--color-bg-button);
 }
 .block-tree .more-toggle {

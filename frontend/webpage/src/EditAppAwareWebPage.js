@@ -44,18 +44,30 @@ class EditAppAwareWebPage {
         return out;
     }
     /**
-     * @param {Block} block
-     * @param {Block} block
-     * @param {'before'} position
+     * @param {Block} blockToMove
+     * @param {Block} blockToMoveTo
+     * @param {'before'|'after'} position
      * @access public
      */
     reOrderBlocksInDom(blockToMove, blockToMoveTo, position) {
-        if (position !== 'before') throw new Error('Not implemented');
         const p = blockToMoveTo._cref.startingCommentNode.parentElement;
         const ps = blockToMoveTo._cref.startingCommentNode;
-        this.getBlockContents(blockToMove).forEach(n => {
-            p.insertBefore(n, ps);
-        });
+        //
+        if (position === 'before') {
+            this.getBlockContents(blockToMove).forEach(n => p.insertBefore(n, ps));
+        } else if (position === 'after') {
+            const targetBlockContents = this.getBlockContents(blockToMoveTo);
+            const endingComment = targetBlockContents[targetBlockContents.length - 1];
+            //
+            const marker = document.createElement('span');
+            if (endingComment.nextSibling) p.insertBefore(marker, endingComment.nextSibling);
+            else p.appendChild(marker);
+            //
+            this.getBlockContents(blockToMove).forEach(n => p.insertBefore(n, marker));
+            p.removeChild(marker);
+        } else {
+            throw new Error(`Invalid drop position ${position}`);
+        }
     }
     /**
      * @param {Block} block

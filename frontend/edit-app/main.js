@@ -96,8 +96,8 @@ function hookUpSiteIframeUrlMirrorer() {
 }
 
 function normalizeBlockTree(branch) {
-    blockTreeUtils.traverseRecursively(branch, (b, _, parent) => {
-        b.parentBlockId = parent ? parent.id : null;
+    blockTreeUtils.traverseRecursively(branch, (b, _i, _parent, parentIdPath) => {
+        b.parentBlockIdPath = parentIdPath;
     });
     return branch;
 }

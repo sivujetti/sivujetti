@@ -43,7 +43,7 @@ interface RawBlock {
     renderer: String;
     propsData: Array<{key: String; value: String;}>;
     children: Array<RawBlock>;
-    parentBlockId: String|null;
+    parentBlockIdPath: String; // e.g. '/grand-parent/parent'
     [key: String]: mixed;
 }
 
@@ -77,8 +77,10 @@ interface EditAppAwareWebPage {
     replaceBlockFromDomWith(currentBlock: Block, replacement: Block): Promise<BlockRefComment>;
     deleteBlockFromDom(block: Block, doKeepBoundaryComments: Boolean = false): [Array, Array];
     reRenderBlockInPlace(block: Block): Promise<null>;
+    reOrderBlocksInDom(blockToMove: Block, blockToMoveTo: Block, position: 'before'|'after'): void;
     findEndingComment(block: Block): Commment|undefined;
     updateTitle(text: String): void;
+
 }
 
 interface WebPageIframe {

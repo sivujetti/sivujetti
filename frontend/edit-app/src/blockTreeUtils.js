@@ -52,15 +52,16 @@ export default {
      * @param {Array<Object>} branch
      * @param {(item: Object, i: Number, parent: Object|null) => any} fn
      * @param {Object|null} parent = null
+     * @param {String} parentIdPath = ''
      * @returns {Array<Object>}
      * @access public
      */
-    traverseRecursively(branch, fn, parent = null) {
+    traverseRecursively(branch, fn, parent = null, parentIdPath = '') {
         branch.forEach((b, i) => {
-            fn(b, i, parent);
+            fn(b, i, parent, parentIdPath);
             if (b.children.length) {
-                this.traverseRecursively(b.children, fn, b);
+                this.traverseRecursively(b.children, fn, b, `${parentIdPath}/${b.id}`);
             }
         });
-    }
+    },
 };

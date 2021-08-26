@@ -44,32 +44,6 @@ class EditAppAwareWebPage {
         return out;
     }
     /**
-     * @param {Block} blockToMove
-     * @param {Block} blockToMoveTo
-     * @param {'before'|'after'} position
-     * @access public
-     */
-    reOrderBlocksInDom(blockToMove, blockToMoveTo, position) {
-        const p = blockToMoveTo._cref.startingCommentNode.parentElement;
-        const ps = blockToMoveTo._cref.startingCommentNode;
-        //
-        if (position === 'before') {
-            this.getBlockContents(blockToMove).forEach(n => p.insertBefore(n, ps));
-        } else if (position === 'after') {
-            const targetBlockContents = this.getBlockContents(blockToMoveTo);
-            const endingComment = targetBlockContents[targetBlockContents.length - 1];
-            //
-            const marker = document.createElement('span');
-            if (endingComment.nextSibling) p.insertBefore(marker, endingComment.nextSibling);
-            else p.appendChild(marker);
-            //
-            this.getBlockContents(blockToMove).forEach(n => p.insertBefore(n, marker));
-            p.removeChild(marker);
-        } else {
-            throw new Error(`Invalid drop position ${position}`);
-        }
-    }
-    /**
      * @param {Block} block
      * @param {Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}} after
      * @returns {Promise<BlockRefComment>}
@@ -145,6 +119,32 @@ class EditAppAwareWebPage {
                     before: com.nextSibling,
                     prevChildNodes: keptChildren};
         });
+    }
+    /**
+     * @param {Block} blockToMove
+     * @param {Block} blockToMoveTo
+     * @param {'before'|'after'} position
+     * @access public
+     */
+    reOrderBlocksInDom(blockToMove, blockToMoveTo, position) {
+        const p = blockToMoveTo._cref.startingCommentNode.parentElement;
+        const ps = blockToMoveTo._cref.startingCommentNode;
+        //
+        if (position === 'before') {
+            this.getBlockContents(blockToMove).forEach(n => p.insertBefore(n, ps));
+        } else if (position === 'after') {
+            const targetBlockContents = this.getBlockContents(blockToMoveTo);
+            const endingComment = targetBlockContents[targetBlockContents.length - 1];
+            //
+            const marker = document.createElement('span');
+            if (endingComment.nextSibling) p.insertBefore(marker, endingComment.nextSibling);
+            else p.appendChild(marker);
+            //
+            this.getBlockContents(blockToMove).forEach(n => p.insertBefore(n, marker));
+            p.removeChild(marker);
+        } else {
+            throw new Error(`Invalid drop position ${position}`);
+        }
     }
     /**
      * @param {Block} block

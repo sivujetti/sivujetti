@@ -363,16 +363,20 @@ a.popup-close-area {
     list-style: none;
     margin-top: .2rem;
 }
-.block-tree ul.collapsed {
-    max-height: 1.2rem;
-    overflow: hidden;
-}
 .block-tree ul ul {
     margin: .2rem 0 0 .7rem;
 }
 .block-tree li {
     margin: 0;
     border-left: var(--border-tree-guide);
+}
+.block-tree li.collapsed {
+    /* line-height: .9rem + padding: .2rem * 2 + .2rem */
+    max-height: 1.5rem;
+    overflow: hidden;
+}
+.block-tree li.collapsed ul {
+    display: none;
 }
 .block-tree > li {
     border: 1px solid transparent;
@@ -406,14 +410,11 @@ a.popup-close-area {
 .block-tree li > button:hover {
     background: #0000000d;
 }
-.block-tree li.selected .drag-handle {
-    background: #00000013;
+.block-tree li.selected > div > .drag-handle {
+    background: var(--color-bg-button);
 }
 .block-tree li.with-children > div > .drag-handle {
     margin-left: 1.5rem;
-}
-.block-tree li.selected .drag-handle {
-    background: var(--color-bg-button);
 }
 .block-tree .more-toggle {
     opacity: 0;

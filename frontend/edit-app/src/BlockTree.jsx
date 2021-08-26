@@ -142,6 +142,7 @@ class BlockTree extends preact.Component {
                 onDrop={ this.onDrop }
                 data-id={ block.path }
                 class={ [!treeState[block.id].isSelected ? '' : 'selected',
+                         !treeState[block.id].isCollapsed ? '' : 'collapsed',
                          !block.children.length ? '' : 'with-children'].join(' ') }
                 data-block-id={ block.id }
                 data-drop-group="1"
@@ -149,7 +150,7 @@ class BlockTree extends preact.Component {
                 draggable>
                 { !block.children.length
                     ? null
-                    : <button onClick={ () => this.collapseBranch(block) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="size-xs"/></button>
+                    : <button onClick={ () => this.toggleBranchIsCollapsed(block) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="size-xs"/></button>
                 }
                 <div class="d-flex">
                     <button onClick={ () => this.handleItemClicked(block) } class="drag-handle columns" type="button">
@@ -204,7 +205,7 @@ class BlockTree extends preact.Component {
             };
             const isSelectedRootChildOfCurrentlyClickedBlock = () => {
                 if (!this.selectedRoot ||
-                    !this.selectedRoot.parentBlockId ||
+                    !this.selectedRoot.parentBlockIdPath ||
                     !this.state.blockWithNavOpened.children.length)
                     return false;
                 return blockTreeUtils.findRecursively(this.state.blockWithNavOpened.children,
@@ -292,7 +293,13 @@ class BlockTree extends preact.Component {
         this.emitItemClickedOrAppendedSignal('clicked', block);
         if (mutRef[block.id].isSelected) return;
         //
-        this.setState({treeState: this.setBlockAsSected(block, mutRef)});
+        if (block.parentBlockIdPath) {
+            const ids = block.parentBlockIdPath.split('/'); // '/foo/bar' -> ['', 'foo', 'bar']
+            ids.shift();                                    //            -> ['foo', 'bar']
+            ids.forEach(id => { mutRef[id].isCollapsed = false; });
+        }
+        //
+        this.setState({treeState: this.setBlockAsSelected(block, mutRef)});
     }
     /**
      * @param {Block} block
@@ -334,16 +341,18 @@ class BlockTree extends preact.Component {
      * @param {Block} block
      * @access private
      */
-    collapseBranch(block) {
-        block;
+    toggleBranchIsCollapsed(block) {
+        const mutRef = this.state.treeState;
+        mutRef[block.id].isCollapsed = !mutRef[block.id].isCollapsed;
+        this.setState({treeState: mutRef});
     }
     /**
      * @param {Block} block
      * @param {Object} treeStateMutRef
-     * @return {Object}
+     * @returns {Object}
      * @access private
      */
-    setBlockAsSected(block, treeStateMutRef) {
+    setBlockAsSelected(block, treeStateMutRef) {
         for (const key in treeStateMutRef) treeStateMutRef[key].isSelected = false;
         treeStateMutRef[block.id].isSelected = true;
         this.selectedRoot = block;
@@ -375,7 +384,7 @@ class BlockTree extends preact.Component {
     doAppendBlockAndUpdateState(block, position, autoFocus) {
         this.appendNewBlockPlaceholder(block, position,
             (state, newBlock) => {
-                state.treeState = this.setBlockAsSected(newBlock, state.treeState);
+                state.treeState = this.setBlockAsSelected(newBlock, state.treeState);
                 state.treeState[newBlock.id].isNew = false;
                 return state;
             }).then(newBlock => {
@@ -386,7 +395,7 @@ class BlockTree extends preact.Component {
 }
 
 function createTreeItemState(overrides = {}) {
-    return Object.assign({isSelected: false, isNew: false}, overrides);
+    return Object.assign({isSelected: false, isCollapsed: false, isNew: false}, overrides);
 }
 
 export default BlockTree;

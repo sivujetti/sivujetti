@@ -140,7 +140,6 @@ class BlockTree extends preact.Component {
                 onDragStart={ this.onDragStart }
                 onDragOver={ this.onDragOver }
                 onDrop={ this.onDrop }
-                data-id={ block.path }
                 class={ [!treeState[block.id].isSelected ? '' : 'selected',
                          !treeState[block.id].isCollapsed ? '' : 'collapsed',
                          !block.children.length ? '' : 'with-children'].join(' ') }
@@ -162,7 +161,7 @@ class BlockTree extends preact.Component {
                     </button>
                 </div>
                 { block.children.length
-                    ? <ul data-sort-group-id={ `s-${block.path}` }>{ renderBranch(block.children) }</ul>
+                    ? <ul>{ renderBranch(block.children) }</ul>
                     : null
                 }
             </li>

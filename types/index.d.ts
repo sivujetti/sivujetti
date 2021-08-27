@@ -77,7 +77,7 @@ interface EditAppAwareWebPage {
     replaceBlockFromDomWith(currentBlock: Block, replacement: Block): Promise<BlockRefComment>;
     deleteBlockFromDom(block: Block, doKeepBoundaryComments: Boolean = false): [Array, Array];
     reRenderBlockInPlace(block: Block): Promise<null>;
-    reOrderBlocksInDom(blockToMove: Block, blockToMoveTo: Block, position: 'before'|'after'): void;
+    reOrderBlocksInDom(blockToMove: Block, blockToMoveTo: Block, position: 'before'|'after'|'as-child'): void;
     findEndingComment(block: Block): Commment|undefined;
     updateTitle(text: String): void;
 

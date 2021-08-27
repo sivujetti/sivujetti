@@ -371,9 +371,13 @@ a.popup-close-area {
     border-left: var(--border-tree-guide);
 }
 .block-tree li.collapsed {
-    /* line-height: .9rem + padding: .2rem * 2 + .2rem */
-    max-height: 1.5rem;
+    /* : .9rem (line-height) + .4rem (padding * 2) + .2rem (?) + 2px (border  * 2) -> ~1.6rem */
+    max-height: 1.6rem;
     overflow: hidden;
+}
+.block-tree li.dragging {
+    display: inline-block;
+    opacity: .5;
 }
 .block-tree li.collapsed ul {
     display: none;
@@ -398,13 +402,13 @@ a.popup-close-area {
 .block-tree li.maybe-drop-as-child .drag-handle {
     border-radius: 0;
 }
-.block-tree li.maybe-drop-before .drag-handle {
+.block-tree li.maybe-drop-before > div > .drag-handle {
     border-top-color: var(--color-orange);
 }
-.block-tree li.maybe-drop-after .drag-handle {
+.block-tree li.maybe-drop-after > div > .drag-handle {
     border-bottom-color: var(--color-orange);
 }
-.block-tree li.maybe-drop-as-child .drag-handle {
+.block-tree li.maybe-drop-as-child > div > .drag-handle {
     border-color: var(--color-orange);
 }
 .block-tree li > button:hover {
@@ -443,6 +447,12 @@ a.popup-close-area {
     height: 50%;
     left: -9px;
     bottom: 0;
+}
+.block-tree li > button > .feather {
+    transition: transform linear .1s;
+}
+.block-tree li.collapsed > button > .feather {
+    transform: rotate(180deg);
 }
 
 /* EditApp: Block hover icon */

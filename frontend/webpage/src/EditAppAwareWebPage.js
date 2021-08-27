@@ -123,25 +123,46 @@ class EditAppAwareWebPage {
     /**
      * @param {Block} blockToMove
      * @param {Block} blockToMoveTo
-     * @param {'before'|'after'} position
+     * @param {'before'|'after'|'as-child'} position
      * @access public
      */
     reOrderBlocksInDom(blockToMove, blockToMoveTo, position) {
-        const p = blockToMoveTo._cref.startingCommentNode.parentElement;
-        const ps = blockToMoveTo._cref.startingCommentNode;
-        //
+        const targetStartingComment = blockToMoveTo._cref.startingCommentNode;
+        const targetParent = targetStartingComment.parentElement;
+        /*
+         *                          <- move here
+         * <!-- block-start ... -->
+         * ...
+         */
         if (position === 'before') {
-            this.getBlockContents(blockToMove).forEach(n => p.insertBefore(n, ps));
+            this.getBlockContents(blockToMove).forEach(n => targetParent.insertBefore(n, targetStartingComment));
+        /*
+         * <!-- block-start ... -->
+         * ...
+         * <!-- block-end ... -->
+         *                          <- move here
+         * <span> (marker)          <- then remove the marker
+         */
         } else if (position === 'after') {
             const targetBlockContents = this.getBlockContents(blockToMoveTo);
             const endingComment = targetBlockContents[targetBlockContents.length - 1];
             //
             const marker = document.createElement('span');
-            if (endingComment.nextSibling) p.insertBefore(marker, endingComment.nextSibling);
-            else p.appendChild(marker);
+            if (endingComment.nextSibling) targetParent.insertBefore(marker, endingComment.nextSibling);
+            else targetParent.appendChild(marker);
             //
-            this.getBlockContents(blockToMove).forEach(n => p.insertBefore(n, marker));
-            p.removeChild(marker);
+            this.getBlockContents(blockToMove).forEach(n => targetParent.insertBefore(n, marker));
+            targetParent.removeChild(marker);
+        /*
+         * <!-- block-start ... -->
+         * <section> (rootDomNode)
+         * ...                      <- move here
+         * </section>
+         * <!-- block-end ... -->
+         */
+        } else if (position === 'as-child') {
+            const to = blockToMoveTo.getRootDomNode();
+            this.getBlockContents(blockToMove).forEach(n => to.appendChild(n));
         } else {
             throw new Error(`Invalid drop position ${position}`);
         }

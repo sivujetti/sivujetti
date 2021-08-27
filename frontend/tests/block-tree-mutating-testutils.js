@@ -29,8 +29,7 @@ function simulatePageLoad(s) {
     const sectionBlockId = '-MfgGtK5pnuk1s0Kws4u';
     const headingBlockId = '-Me3jYWcEOlLTgJhzqL8';
     const paragraphBlockId = '-Me3jYWcEOlLTgJhzqLA';
-    const temp = document.createElement('template');
-    temp.innerHTML = [
+    document.getElementById('mock-page-container-el').innerHTML = [
         `<!-- block-start ${sectionBlockId}:Section -->`,
         `<section id="initial-section">`,
             `<!-- block-start ${headingBlockId}:Heading -->`,
@@ -42,7 +41,6 @@ function simulatePageLoad(s) {
         '</section>',
         `<!-- block-end ${sectionBlockId} -->`
     ].join('');
-    document.body.appendChild(temp.content);
     //
     s.mockPageData.dataFromWebPage = {
         page: {

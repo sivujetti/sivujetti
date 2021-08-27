@@ -16,6 +16,9 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):
         "\" class=\"btn",
         ($props->cssClass ? " {$this->e($props->cssClass)}" : ""),
         "\">{$props->html}{$this->renderChildren($props)}</a></p>"; // @allow pre-validated html
+elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_RICH_TEXT):
+    echo $props->html, // @allow pre-validated html
+         $this->renderChildren($props);
 else:
     [$startTag, $endTag] = !(SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE) ? ["<!--", "-->"] : ["<div>", "</div>"];
     echo "{$startTag} block-auto.tmpl.php: Don't know how to render custom page type `{$props->type}` {$endTag}";

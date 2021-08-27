@@ -53,6 +53,10 @@ stringBundles.push({
     // edit-app/src/block-types/paragraph.js
     'Paragraph' : 'Paragraph',
     'Paragraph text' : 'Paragraph text',
+    // edit-app/src/block-types/richText.js
+    'RichText' : 'Rich text',
+    'Rich text' : 'Rich text',
+    'Rich text content' : 'Rich text content',
     //
     required: '{field} is required',
     minLength: '{field} must be at least {arg0} characters long',

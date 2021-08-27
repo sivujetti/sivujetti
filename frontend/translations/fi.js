@@ -53,6 +53,10 @@ stringBundles.push({
     // edit-app/src/block-types/paragraph.js
     'Paragraph' : 'Tekstikappale',
     'Paragraph text' : 'Tekstikappaleen teksti',
+    // edit-app/src/block-types/richText.js
+    'RichText' : 'Rikasteteksti',
+    'Rich text' : 'Rikasteteksti',
+    'Rich text content' : 'Rikastettua tekstiä',
     //
     required: '{field} vaaditaan',
     minLength: '{field} tulee olla vähintään {arg0} merkkiä pitkä',

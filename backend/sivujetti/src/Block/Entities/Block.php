@@ -8,6 +8,7 @@ final class Block {
     public const TYPE_HEADING   = "Heading";
     public const TYPE_MENU      = "Menu";
     public const TYPE_PARAGRAPH = "Paragraph";
+    public const TYPE_RICH_TEXT = "RichText";
     public const TYPE_SECTION   = "Section";
     /** @var string self::TYPE_* */
     public string $type;
@@ -45,6 +46,9 @@ final class Block {
     /* If self::TYPE_PARAGRAPH
     public string $text;
     public string $cssClass; */
+
+    /* If self::TYPE_RICH_TEXT
+    public string $html; */
 
     /* If self::TYPE_SECTION
     public string $bgImage;

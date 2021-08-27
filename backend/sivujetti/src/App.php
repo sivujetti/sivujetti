@@ -7,7 +7,8 @@ use Sivujetti\Auth\ACL;
 use Sivujetti\Block\BlocksModule;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, ColumnsBlockType, HeadingBlockType,
-                         MenuBlockType, ParagraphBlockType, SectionBlockType};
+                         MenuBlockType, ParagraphBlockType, RichTextBlockType,
+                         SectionBlockType};
 use Sivujetti\Page\PagesModule;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Plugin\Entities\Plugin;
@@ -46,6 +47,7 @@ final class App {
             $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
             $blockTypes->{Block::TYPE_MENU} = new MenuBlockType;
             $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
+            $blockTypes->{Block::TYPE_RICH_TEXT} = new RichTextBlockType;
             $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
             $ctx->storage->getDataHandle()->blockTypes = $blockTypes;
             $ctx->storage->getDataHandle()->validBlockRenderers = [

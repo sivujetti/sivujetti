@@ -5,6 +5,12 @@ const simplestWithLink = common.concat('link', 'clean');
 const toolbarBundles = {
     simplest: [simplest],
     simplestWithLink: [simplestWithLink],
+    simple: [
+        common.concat('link'),
+        ['blockquote', {'list': 'ordered'}, {'list': 'bullet'}],
+        [{'size': ['small', false, 'large', 'huge'] }],
+        ['clean'],
+    ],
     full: [
         common.concat('blockquote'),
         [{'list': 'ordered'}, {'list': 'bullet'}],

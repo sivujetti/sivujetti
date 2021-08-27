@@ -20,7 +20,7 @@ use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\Layout\LayoutsModule;
 
 final class App {
-    public const VERSION = "0.3.0-dev";
+    public const VERSION = "0.3.0";
     /** @var \Sivujetti\AppContext */
     private AppContext $ctx;
     /**

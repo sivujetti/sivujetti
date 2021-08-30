@@ -4,7 +4,7 @@
     "</div>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_SECTION):
     echo "<section class=\"", $this->e($props->cssClass), "\"",
-        ($props->bgImage ? " style=\"background-image:url('".$this->assetUrl($props->bgImage)."')\"" : ""),
+        ($props->bgImage ? " style=\"background-image:url('{$this->assetUrl($props->bgImage)}')\"" : ""),
         ">",
         $this->renderChildren($props),
     "</section>";

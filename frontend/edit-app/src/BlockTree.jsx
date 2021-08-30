@@ -51,12 +51,12 @@ class BlockTree extends preact.Component {
         this.doAppendBlockAndUpdateState(block, 'as-child', autoFocus);
     }
     /**
-     * @param {Block|Array<Block>|undefined} context = this.selectedRoot || this.state.blockTree
+     * @param {Block|Array<Block>|undefined} context = this.state.blockTree
      * @param {'after'|'as-child'} position = 'after'
      * @returns {Promise<Block>}
      * @access public
      */
-    appendNewBlockPlaceholder(context = this.selectedRoot || this.state.blockTree,
+    appendNewBlockPlaceholder(context = this.state.blockTree,
                               position = 'after',
                               alterState = null) {
         let toArr;

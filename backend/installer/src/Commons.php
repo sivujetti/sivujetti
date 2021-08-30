@@ -49,7 +49,7 @@ final class Commons {
         $this->runManyDbStatements($statements);
     }
     /**
-     * @param \Sivujetti\Installer\PackageStreamInterface $package
+     * @param \Sivujetti\Update\PackageStreamInterface $package
      */
     public function populateDb(PackageStreamInterface $package): void {
         $statements = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_DB_DATA,
@@ -57,7 +57,7 @@ final class Commons {
         $this->runManyDbStatements($statements);
     }
     /**
-     * @param \Sivujetti\Installer\PackageStreamInterface $package
+     * @param \Sivujetti\Update\PackageStreamInterface $package
      * @param array $config
      */
     public function writeFiles(PackageStreamInterface $package,
@@ -69,7 +69,7 @@ final class Commons {
     }
     /**
      * @param string $sneakyJsonFileLocalName
-     * @param \Sivujetti\Installer\PackageStreamInterface $package
+     * @param \Sivujetti\Update\PackageStreamInterface $package
      * @return array|object Parsed json data
      */
     public static function readSneakyJsonData(string $sneakyJsonFileLocalName,
@@ -147,14 +147,14 @@ return [
         return $this->db;
     }
     /**
-     * @param \Sivujetti\Installer\PackageStreamInterface $package
+     * @param \Sivujetti\Update\PackageStreamInterface $package
      */
     private function writeDefaultFiles(PackageStreamInterface $package): void {
         $package->extractMany($this->targetSiteBackendPath,
                               ["site/Theme.php", "site/Site.php"]);
     }
     /**
-     * @param \Sivujetti\Installer\PackageStreamInterface $package
+     * @param \Sivujetti\Update\PackageStreamInterface $package
      */
     private function writeSiteSourceFiles(PackageStreamInterface $package): void {
         $localFileNames = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PHP_FILES_LIST,
@@ -162,7 +162,7 @@ return [
         $package->extractMany($this->targetSiteBackendPath, $localFileNames);
     }
     /**
-     * @param \Sivujetti\Installer\PackageStreamInterface $package
+     * @param \Sivujetti\Update\PackageStreamInterface $package
      */
     private function writePublicFiles(PackageStreamInterface $package): void {
         $localFileNames = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PUBLIC_FILES_LIST,

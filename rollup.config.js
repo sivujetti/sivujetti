@@ -3,13 +3,14 @@
 
 const path = require('path');
 const sucrase = require('@rollup/plugin-sucrase');
+const {terser} = require('rollup-plugin-terser');
 
 ////////////////////////////////////////////////////////////////////////////////
 const makeOutputCfg = (...myCfg) => {
     const out = Object.assign({format: 'iife'}, ...myCfg);
     if (!out.banner) out.banner =
 `/*!
- * ${out.file.split('/').pop().split('.')[0]} 0.0.0
+ * ${out.file.split('/').pop().split('.')[0]} 0.4.0-dev
  * https://github.com/sivujetti/sivujetti
  * @license GPLv3
  */`;
@@ -38,26 +39,36 @@ module.exports = args => {
     const bundle = !args.configInput ? args.configBundle || 'main' : 'custom';
     const bundles = [];
     const selectedLang = args.configLang || 'fi';
+    const isBuild = args.w === undefined;
+    const postPlugins = !isBuild ? [] : [terser()];
+    const getTargetDirBase = input => {
+        if (!input) return 'public/sivujetti/';
+        if (input.indexOf('./') > -1)
+            throw new Error(`Invalid directory ${input}`);
+        return input;
+    };
+    const targetDirBase = getTargetDirBase(args.configTargetRelDir);
     // == sivujetti-edit-app.js ================================================
     if (bundle === 'main' || bundle === 'all') {
         bundles.push({
             input: 'frontend/commons/main.js',
             output: makeOutputCfg({
                 name: 'sivujettiCommons',
-                file: 'public/sivujetti/sivujetti-commons.js'
+                file: `${targetDirBase}sivujetti-commons.js`,
             }),
+            plugins: postPlugins,
             watch: watchSettings
         }, {
             input: 'frontend/edit-app/main.js',
             output: makeOutputCfg({
                 name: 'sivujettiEditApp',
-                file: 'public/sivujetti/sivujetti-edit-app.js',
+                file: `${targetDirBase}sivujetti-edit-app.js`,
                 globals: allGlobals,
             }),
             external: allExternals,
             plugins: [
                 makeJsxPlugin(['frontend/edit-app/src/**']),
-            ],
+            ].concat(...postPlugins),
             watch: watchSettings
         });
     }
@@ -67,10 +78,11 @@ module.exports = args => {
             input: `frontend/translations/${selectedLang}.js`,
             output: {
                 format: 'iife',
-                file: `public/sivujetti/lang-${selectedLang}.js`,
+                file: `${targetDirBase}lang-${selectedLang}.js`,
                 globals: {'@sivujetti-string-bundles': 'translationStringBundles'},
             },
             external: ['@sivujetti-string-bundles'],
+            plugins: postPlugins,
             watch: watchSettings
         });
     }
@@ -79,10 +91,11 @@ module.exports = args => {
         bundles.push({
             input: 'frontend/webpage/main.js',
             output: makeOutputCfg({
-                file: 'public/sivujetti/sivujetti-webpage.js',
+                file: `${targetDirBase}sivujetti-webpage.js`,
                 globals: {[commonsPath]: 'sivujettiCommons'},
             }),
             external: [commonsPath],
+            plugins: postPlugins,
             watch: watchSettings
         });
     // == tests-bundled-main.js ================================================
@@ -93,7 +106,7 @@ module.exports = args => {
                 file: 'public/tests/bundled-main.js',
                 globals: allGlobals,
             }),
-            plugins: [makeJsxPlugin(['frontend/edit-app/src/**'])],
+            plugins: [makeJsxPlugin(['frontend/edit-app/src/**'])].concat(...postPlugins),
             external: allExternals,
             watch: watchSettings
         });
@@ -108,7 +121,7 @@ module.exports = args => {
                 makeJsxPlugin(cfg.jsxTranspile
                     ? cfg.jsxTranspile.include || []
                     : []),
-            ],
+            ].concat(...postPlugins),
             external: allExternals,
             watch: {
                 clearScreen: false

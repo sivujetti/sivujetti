@@ -2,12 +2,11 @@
 
 namespace Sivujetti\Block;
 
-use Pike\{PikeException, Request, Response, Validation};
+use Pike\{Request, Response, Validation};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder};
-use Sivujetti\Page\{PagesRepository, SiteAwareTemplate};
-use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\BlockType\Entities\BlockTypes;
+use Sivujetti\Page\{PagesController, PagesRepository, SiteAwareTemplate};
+use Sivujetti\SharedAPIContext;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class BlocksController {
@@ -20,11 +19,15 @@ final class BlocksController {
      * @param \Pike\Response $res
      * @param \Sivujetti\Block\BlockValidator $blockValidator
      * @param \Sivujetti\TheWebsite $theWebsite
+     * @param \Sivujetti\Page\PagesRepository $pagesRepo
+     * @param \Sivujetti\SharedAPIContext $storage
      */
     public function render(Request $req,
                            Response $res,
                            BlockValidator $blockValidator,
-                           TheWebsite $theWebsite): void {
+                           TheWebsite $theWebsite,
+                           PagesRepository $pagesRepo,
+                           SharedAPIContext $storage): void {
         if (($errors = self::validateRenderBlockInput($req->body)) ||
             ($errors = $blockValidator->validateInsertOrUpdateData($req->body->block->type,
                                                                    $req->body->block))) {
@@ -37,57 +40,12 @@ final class BlocksController {
         $marker->type = "__marker";
         $block->children = [$marker];
         //
+        PagesController::runBlockBeforeRenderEvent([$block], $storage->getDataHandle()->blockTypes, $pagesRepo);
         $html = (new SiteAwareTemplate($block->renderer, null, [
             "page" => null,
             "site" => $theWebsite,
         ]))->renderBlocks([$block]);
         $res->json(["result" => $html]);
-    }
-    /**
-     * POST /api/blocks/to-page/[i:pageId]/[w:parentBlockId]?: Inserts new block
-     * to the database and links it to $req->params->pageId.
-     *
-     * @param \Pike\Request $req
-     * @param \Pike\Response $res
-     * @param \Sivujetti\Page\PagesRepository $pagesRepo
-     * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
-     * @param \Sivujetti\Block\BlockValidator $blockValidator
-     */
-    public function addBlockToPage(Request $req,
-                                   Response $res,
-                                   PagesRepository $pagesRepo,
-                                   BlockTypes $blockTypes,
-                                   BlockValidator $blockValidator): void {
-        throw new \RuntimeException("Deprecated");
-        if (!is_string(($typeAsStr = $req->body->type ?? null)))
-            throw new PikeException("type must be string",
-                                    PikeException::BAD_INPUT);
-        if (!($blockType = ($blockTypes->{$typeAsStr} ?? null)))
-            throw new PikeException("Unknown block type `{$typeAsStr}`.",
-                                    PikeException::BAD_INPUT);
-        if (($errors = $blockValidator->validateInsertOrUpdateData($blockType, $req->body))) {
-            $res->status(400)->json($errors);
-            return;
-        }
-        if (!($page = $pagesRepo->getSingle(PageType::PAGE)
-            ->where('${t}.`id`=?', $req->params->pageId)
-            ->exec()))
-            throw new PikeException("Couldn't add block to page #{$req->params->pageId}" .
-                " because it doesn't exist.", PikeException::BAD_INPUT);
-        //
-        $newBlock = self::makeStorableBlockDataFromValidInput($blockType, $req->body);
-        if (!property_exists($req->params, "parentBlockId"))
-            $page->blocks[] = $newBlock;
-        elseif (($appendTo = BlockTree::findBlock($req->params->parentBlockId, $page->blocks)))
-            $appendTo->children[] = $newBlock; // Note: mutates $page->blocks
-        else
-            throw new PikeException("Couldn't add block because its parent" .
-                " #{$req->params->parentBlockId} doesn't exist.", PikeException::BAD_INPUT);
-        //
-        if (($num = $pagesRepo->updateById($req->params->pageId, $page)) !== 1)
-            throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",
-                PikeException::INEFFECTUAL_DB_OP);
-        $res->status(201)->json(["ok" => "ok"]);
     }
     /**
      * @return \Sivujetti\BlockType\BlockTypeInterface $blockType

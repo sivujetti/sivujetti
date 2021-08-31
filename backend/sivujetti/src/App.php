@@ -40,8 +40,8 @@ final class App {
         ], function (AppContext $ctx, ServiceDefaults $defaults) use ($config): void {
             $ctx->config = $defaults->makeConfig($config);
             $ctx->db = $defaults->makeDb();
-            $ctx->storage = $ctx->storage ?? new SharedAPIContext;
-            $blockTypes = new BlockTypes;
+            $ctx->storage = $ctx->storage ??new SharedAPIContext;
+            $blockTypes = $ctx->storage->getDataHandle()->blockTypes ?? new BlockTypes;
             $blockTypes->{Block::TYPE_BUTTON} = new ButtonBlockType;
             $blockTypes->{Block::TYPE_COLUMNS} = new ColumnsBlockType;
             $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
@@ -51,8 +51,8 @@ final class App {
             $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
             $ctx->storage->getDataHandle()->blockTypes = $blockTypes;
             $ctx->storage->getDataHandle()->validBlockRenderers = [
-                "sivujetti:block-auto",
-                "sivujetti:block-generic-wrapper",
+                "sivujetti:block-auto", // Heading, Paragraph etc.
+                "sivujetti:block-generic-wrapper", // Columns, Section
                 "sivujetti:block-menu",
             ];
         }, $initialCtx ?? new AppContext, $router);

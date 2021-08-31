@@ -2,13 +2,15 @@
 
 namespace Sivujetti\Page;
 
+use MySite\Theme;
+use Pike\{ArrayUtils, PikeException, Request, Response};
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\{SharedAPIContext, Translator};
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
-use MySite\Theme;
-use Pike\{ArrayUtils, PikeException, Request, Response};
+use Sivujetti\BlockType\Entities\BlockTypes;
+use Sivujetti\BlockType\ListeningBlockTypeInterface;
 use Sivujetti\Layout\LayoutBlocksRepository;
 
 final class PagesController {
@@ -172,6 +174,8 @@ final class PagesController {
             $page->layout->blocks = $layoutBlocksRepo->getMany($page->layoutId)[0]->blocks;
         }
         //
+        self::runBlockBeforeRenderEvent($page->blocks, $data->blockTypes, $pagesRepo);
+        self::runBlockBeforeRenderEvent($page->layout->blocks, $data->blockTypes, $pagesRepo);
         $html = (new SiteAwareTemplate($layout->relFilePath, cssFiles: $data->userDefinedCssFiles->webPage))->render([
             "page" => $page,
             "site" => $theWebsite,
@@ -194,5 +198,23 @@ final class PagesController {
             substr($html, $bodyEnd);
         }
         $res->html($html);
+    }
+    /**
+     * @param \Sivujetti\Block\Entities\Block[] $branch
+     * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
+     * @param \Sivujetti\Page\PagesRepository $pagesRepo
+     */
+    public static function runBlockBeforeRenderEvent(array $branch,
+                                                     BlockTypes $blockTypes,
+                                                     PagesRepository $pagesRepo): void {
+        foreach ($branch as $block) {
+            if ($block->type === "__marker")
+                continue;
+            $blockType = $blockTypes->{$block->type};
+            if (array_key_exists(ListeningBlockTypeInterface::class, class_implements($blockType)))
+                $blockType->onBeforeRender($block, $blockType, $pagesRepo);
+            if ($block->children)
+                self::runBlockBeforeRenderEvent($block->children, $blockTypes, $pagesRepo);
+        }
     }
 }

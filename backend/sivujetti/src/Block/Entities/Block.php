@@ -14,7 +14,7 @@ final class Block {
     public string $type;
     /** @var ?string */
     public ?string $title;
-    /** @var string e.g. "my-file", "sivujetti:block-auto" */
+    /** @var string e.g. "my-file", "site:my-file", "sivujetti:block-auto" */
     public string $renderer;
     /** @var string */
     public string $id;
@@ -33,6 +33,11 @@ final class Block {
     public string $text;
     public int $level;
     public string $cssClass; */
+
+    /* If "MyListing"
+    public string $listPageType; e.g. "Pages"
+    public string $listFilters; e.g. "[{"slug":"foo"}]"
+    public ?array $__pages; ?array<int, \Sivujetti\Page\Entities\Page> */
 
     /* If self::TYPE_MENU
     public string $tree;

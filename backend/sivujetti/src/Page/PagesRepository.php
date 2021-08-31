@@ -45,26 +45,16 @@ final class PagesRepository {
      * @return \Sivujetti\Page\Entities\Page|null
      */
     public function getSingle(string|PageType $pageTypeOrPageTypeName, ...$filters): ?Page {
-        $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
-        $this->pageType = $pageType;
-        [$filterCols, $filterVals] = $this->filtersToQParts(...$filters);
-        //
-        $rows = $this->db->fetchAll(
-            "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`layoutId`," .
-                    "p.`blocks` AS `pageBlocksJson`,'{$pageType->name}' AS `type`,p.`status`" .
-                    ",IFNULL(lb.`blocks`, '[]') AS `layoutBlocksJson`" .
-                ($pageType->ownFields ? ("," . implode(',', array_map(fn(object $f) =>
-                    "p.`$f->name` AS `$f->name`"
-                , $pageType->ownFields))) : "") .
-            " FROM `\${p}{$pageType->name}` p" .
-            " LEFT JOIN `\${p}layoutBlocks` lb ON (lb.`layoutId` = p.`layoutId`)" .
-            ($filterCols ? " WHERE {$filterCols}" : ""),
-            $filterVals,
-            \PDO::FETCH_CLASS,
-            Page::class
-        );
-        $rows = $this->normalizeRs($rows);
+        $rows = $this->doGetMany($pageTypeOrPageTypeName, true, ...$filters);
         return $rows[0] ?? null;
+    }
+    /**
+     * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
+     * @param string|string[] ...$filters
+     * @return \Sivujetti\Page\Entities\Page[]
+     */
+    public function getMany(string|PageType $pageTypeOrPageTypeName, ...$filters): array {
+        return $this->doGetMany($pageTypeOrPageTypeName, false, ...$filters);
     }
     /**
      * @param string|\Sivujetti\PageType\Entities\PageType $pageTypeOrPageTypeName
@@ -161,6 +151,42 @@ final class PagesRepository {
                                array_merge($values, [$id]));
     }
     /**
+     * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
+     * @param bool $doIncludeLayoutBlocks
+     * @param string|string[] ...$filters
+     * @return \Sivujetti\Page\Entities\Page[]
+     */
+    private function doGetMany(string|PageType $pageTypeOrPageTypeName,
+                               bool $doIncludeLayoutBlocks,
+                               ...$filters): array {
+        $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
+        $this->pageType = $pageType;
+        [$filterCols, $filterVals, $joinsCols, $joins] = $this->filtersToQParts(...$filters);
+        [$baseJoinCols, $baseJoin] = !$doIncludeLayoutBlocks
+            ? [",'[]' AS `layoutBlocksJson`",
+               ""]
+            : [",IFNULL(lb.`blocks`, '[]') AS `layoutBlocksJson`",
+               " LEFT JOIN `\${p}layoutBlocks` lb ON (lb.`layoutId` = p.`layoutId`)"];
+        //
+        $rows = $this->db->fetchAll(
+            "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`layoutId`," .
+                "p.`blocks` AS `pageBlocksJson`,'{$pageType->name}' AS `type`,p.`status`" .
+                $baseJoinCols .
+                ($pageType->ownFields ? ("," . implode(',', array_map(fn(object $f) =>
+                    "p.`$f->name` AS `$f->name`"
+                , $pageType->ownFields))) : "") .
+                $joinsCols .
+            " FROM `\${p}{$pageType->name}` p" .
+            $baseJoin .
+            $joins .
+            ($filterCols ? " WHERE {$filterCols}" : ""),
+            $filterVals,
+            \PDO::FETCH_CLASS,
+            Page::class
+        );
+        return $this->normalizeRs($rows);
+    }
+    /**
      * @param \Sivujetti\Page\Entities\Page[] $rows
      * @return \Sivujetti\Page\Entities\Page[]
      */
@@ -230,6 +256,6 @@ final class PagesRepository {
             $filterSql .= ($f[0] ?? " AND ") . $this->db->columnify($f[2]) . ($f[1] ?: "=") . "?";
             $filterValues[] = $cand;
         }
-        return [$filterSql, $filterValues];
+        return [$filterSql, $filterValues, "", ""];
     }
 }

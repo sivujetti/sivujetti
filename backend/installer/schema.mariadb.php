@@ -24,8 +24,7 @@ return [
 "CREATE TABLE `\${p}pageTypes` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92)  NOT NULL,
-    `ownFields` JSON,
-    `blockFields` JSON,
+    `fields` JSON,
     `isListable` TINYINT(1) DEFAULT 1,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",

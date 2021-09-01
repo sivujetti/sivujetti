@@ -10,16 +10,16 @@ const LEFT_PANEL_WIDTH = 274;
 
 class EditApp extends preact.Component {
     // blockTrees;
-    // currentWebPageType;
+    // currentWebPage;
     // resizeHandleEl;
     /**
-     * @param {{webPageIframe: WebPageIframe; outerEl: HTMLElement; inspectorPanelEl: HTMLElement;}} props
+     * @param {{webPageIframe: WebPageIframe; dataFromAdminBackend: TheWebsite; outerEl: HTMLElement; inspectorPanelEl: HTMLElement;}} props
      */
     constructor(props) {
         super(props);
         this.state = {isCreatePageModeOn: false, blockHoverIconCss: 'display:none'};
         this.blockTrees = null;
-        this.currentWebPageType = null;
+        this.currentWebPage = null;
         this.resizeHandleEl = preact.createRef();
         this.websiteEventHandlers = {
             /**
@@ -51,7 +51,7 @@ class EditApp extends preact.Component {
      */
     handleWebPageLoaded(dataFromWebPage, comments, webPage) {
         if (dataFromWebPage.page.isPlaceholderPage !== this.state.isCreatePageModeOn) {
-            this.currentWebPageType = dataFromWebPage.page.type;
+            this.currentWebPage = dataFromWebPage.page;
             this.setState({isCreatePageModeOn: dataFromWebPage.page.isPlaceholderPage});
         }
         signals.emit('on-web-page-loaded');
@@ -75,11 +75,17 @@ class EditApp extends preact.Component {
             </header>
             { !isCreatePageModeOn
                 ? <DefaultMainPanelView
-                    startAddPageMode={ () => webPageIframe.openPlaceholderPage('Pages') }/>
+                    startAddPageMode={ () =>
+                        // Open to iframe to '/_edit/api/_placeholder-page...',
+                        // which then triggers this.handleWebPageLoaded() and sets
+                        // this.state.isCreatePageModeOn to true
+                        webPageIframe.openPlaceholderPage('Pages')
+                }/>
                 : <AddPageMainPanelView
+                    initialPageData={ this.currentWebPage }
                     cancelAddPage={ () => webPageIframe.goBack() }
                     webPageIframe={ webPageIframe }
-                    pageType={ this.currentWebPageType }/>
+                    pageType={ this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentWebPage.type) }/>
             }
             <Toaster id="editAppMain"/>
             <span class="block-hover-icon" style={ blockHoverIconCss }>

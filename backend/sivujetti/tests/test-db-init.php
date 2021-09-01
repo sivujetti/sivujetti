@@ -10,8 +10,12 @@ $statements = array_merge($statements, [
 
 "INSERT INTO `pageTypes` VALUES
 (1,'Pages','" . json_encode([
-    (object) ["name" => "categories", "dataType" => "json", "friendlyName" => "Categories"]
-]) . "','[]',1)",
+    "ownFields" => [(object) ["name" => "categories", "dataType" => "json", "friendlyName" => "Categories", "defaultValue" => "[]"]],
+    "blockFields" => [(object) ["type" => "Paragraph", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
+                                "initialData" => (object) ["text" => "Paragraph text", "cssClass" => ""],
+                                "children" => []]],
+    "defaultFields" => (object) ["title" => (object) ["defaultValue" => "New page"]],
+]) . "',1)",
 
 ]);
 

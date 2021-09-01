@@ -4,37 +4,29 @@ import toasters from '../../commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';
 import store, {deleteItemsFromOpQueueAfter, setOpQueue} from './store.js';
 
-const tempPageTypes = {
-    'Pages': {
-        defaultOwnProps: {categories: '[]'},
-    },
-    'Categories': {
-        defaultOwnProps: {},
-    }
-};
-
 class AddPageMainPanelView extends preact.Component {
+    // initialPageData;
     // pageType;
     // blockTrees;
     /**
-     * @param {{cancelAddPage: () => void; pageType: String; webPageIframe: WebPageIframe;}} props
+     * @param {{cancelAddPage: () => void; initialPageData: Object; pageType: PageType; webPageIframe: WebPageIframe;}} props
      */
     constructor(props) {
         super(props);
-        this.pageType = tempPageTypes[props.pageType];
+        this.initialPageData = props.initialPageData;
         this.blockTrees = preact.createRef();
+        const title = __(this.initialPageData.title);
         this.state = Object.assign({
             layoutId: '1',
-            slug: '',
+            slug: makeSlug(title),
         }, hookForm(this, {
-            title: '',
+            title,
         }));
     }
     /**
      * @access protected
      */
     componentDidMount() {
-        this.form.triggerChange(__('New page'), 'title');
         store.dispatch(setOpQueue([{opName: 'create-new-page', handler: this.handleFormSubmitted.bind(this)}]));
     }
     /**
@@ -49,11 +41,11 @@ class AddPageMainPanelView extends preact.Component {
     render({cancelAddPage}, {errors, classes, slug, layoutId}) {
         return <form onSubmit={ this.handleFormSubmitted.bind(this) }>
             <header class="panel-section mb-2">
-                <h1 class="mb-2">{ __('Create page') }</h1>
+                <h1 class="mb-2">{ __('Create %s', this.props.pageType.name) }</h1>
                 <button
                     onClick={ cancelAddPage }
                     class="btn btn-link btn-sm"
-                    title={ __('Cancel add page') }
+                    title={ __('Cancel add %s', this.props.pageType.name) }
                     type="button">&lt; { __('Back') }</button>
             </header>
             <section class="panel-section mt-0">
@@ -93,7 +85,7 @@ class AddPageMainPanelView extends preact.Component {
     handleTitleChanged(state) {
         const title = state.values.title;
         if (title.length) {
-            this.setState({slug: `/${stringUtils.slugify(title) || '-'}`});
+            this.setState({slug: makeSlug(title)});
             BlockTrees.currentWebPage.updateTitle(title);
         }
         return state;
@@ -107,7 +99,7 @@ class AddPageMainPanelView extends preact.Component {
         if (!this.form.handleSubmit(e))
             return Promise.resolve(false);
         //
-        const data = Object.assign({
+        const data = {
             slug: this.state.slug,
             path: `${this.state.slug.substr(1)}/`,
             level: 1,
@@ -115,11 +107,17 @@ class AddPageMainPanelView extends preact.Component {
             layoutId: this.state.layoutId,
             blocks: this.blockTrees.current.getPageBlocksTree(),
             status: 0,
-        }, this.pageType.defaultOwnProps);
-        return http.post('/api/pages/Pages', data)
+        };
+        for (const fieldDef of this.props.pageType.ownFields) {
+            data[fieldDef.name] = fieldDef.defaultValue;
+        }
+        return http.post(`/api/pages/${this.props.pageType.name}`, data)
             .then(resp => {
                 if (resp.ok !== 'ok') throw new Error('-');
-                urlUtils.redirect(`/_edit${data.slug}`);
+                if (this.props.pageType.name === 'Pages')
+                    urlUtils.redirect(`/_edit${data.slug}`);
+                else
+                    window.console.log('todo');
                 return true;
             })
             .catch(err => {
@@ -134,8 +132,12 @@ class AddPageMainPanelView extends preact.Component {
      * @access private
      */
     renderAnotherLayout(e) {
-        this.props.webPageIframe.openPlaceholderPage(e.target.value);
+        this.props.webPageIframe.openPlaceholderPage(this.initialPageData.type, e.target.value);
     }
+}
+
+function makeSlug(title) {
+    return `/${stringUtils.slugify(title) || '-'}`;
 }
 
 export default AddPageMainPanelView;

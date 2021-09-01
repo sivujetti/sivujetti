@@ -3,8 +3,8 @@ import stringBundles from '@sivujetti-string-bundles';
 stringBundles.push({
     // edit-app/src/AddPageMainPanelView.jsx
     'New page': 'Uusi sivu',
-    'Create page': 'Luo sivu',
-    'Cancel add page': 'Peruuta sivun luonti',
+    'Create %s': 'Luo %s',
+    'Cancel add %s': 'Peruuta %s luonti',
     'Back': 'Takaisin',
     'Layout': 'Sivupohja',
     'Default fields': 'Oletuskentät',
@@ -44,6 +44,8 @@ stringBundles.push({
     'Add block after' : 'Lisää lohko jälkeen',
     'Heading text' : 'Otsikon teksti',
     'Heading' : 'Otsikko',
+    // edit-app/src/block-types/listing.js
+    'Add new %s': 'Lisää uusi %s',
     // edit-app/src/block-types/menu.js
     'Menu': 'Valikko',
     'Add item': 'Lisää linkki',

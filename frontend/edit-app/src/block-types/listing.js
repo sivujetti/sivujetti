@@ -1,8 +1,13 @@
 import {__, http} from '@sivujetti-commons';
+import webPageIframe from '../webPageIframe.js';
 
 class ListingBlockEditForm extends preact.Component {
-    render() {
-        return <p>todo</p>;
+    /**
+     * @param {BlockEditFormProps} props
+     * @access protected
+     */
+    render({block}) {
+        return <div><a href="" onClick={ e => (e.preventDefault(), webPageIframe.openPlaceholderPage(block.listPageType)) }>{ __('Add new %s', block.listPageType) }</a></div>;
     }
 }
 

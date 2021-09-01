@@ -73,6 +73,7 @@ function renderReactEditApp() {
         webPageIframe,
         outerEl: mainPanelOuterEl,
         inspectorPanelEl: inspectorPanelOuterEl,
+        dataFromAdminBackend: window.dataFromAdminBackend,
         ref: editAppReactRef,
     }), mainPanelOuterEl);
 

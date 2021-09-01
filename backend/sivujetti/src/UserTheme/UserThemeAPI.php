@@ -27,12 +27,10 @@ final class UserThemeAPI extends UserPluginAPI {
     /**
      * @param string $friendlyName
      * @param string $relFilePath
-     * @param ?\Closure $getInitialBlocks = null callable(void): \Sivujetti\Block\Entities\Block[]
      * @param ?bool $isDefault = null
      */
     public function registerPageLayout(string $friendlyName,
                                        string $relFilePath,
-                                       ?\Closure $getInitialBlocks = null,
                                        ?bool $isDefault = null): void {
         ValidationUtils::checkIfValidaPathOrThrow($relFilePath);
         $mut = $this->storage->getDataHandle();
@@ -40,7 +38,6 @@ final class UserThemeAPI extends UserPluginAPI {
         $layout->id = strval(count($mut->pageLayouts) + 1);
         $layout->friendlyName = $friendlyName;
         $layout->relFilePath = $relFilePath;
-        $layout->getInitialBlocks = $getInitialBlocks ?? fn() => $this->makeDefaultBlocks();
         $layout->isDefault = $isDefault ?? false;
         $mut->pageLayouts[] = $layout;
     }
@@ -53,19 +50,5 @@ final class UserThemeAPI extends UserPluginAPI {
             "url" => $url,
             "attrs" => $attrs,
         ];
-    }
-    /**
-     * @return \Sivujetti\Block\Entities\Block[]
-     */
-    private function makeDefaultBlocks(): array {
-        $p = new Block;
-        $p->type = Block::TYPE_PARAGRAPH;
-        $p->title = "";
-        $p->renderer = "sivujetti:block-auto";
-        $p->id = PushIdGenerator::generatePushId();
-        $p->children = [];
-        $p->text = $this->translator->t("Text here");
-        $p->cssClass = "";
-        return [$p];
     }
 }

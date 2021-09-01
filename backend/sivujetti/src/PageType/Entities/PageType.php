@@ -3,15 +3,17 @@
 namespace Sivujetti\PageType\Entities;
 
 final class PageType {
-    public const PAGE = 'Pages';
+    public const PAGE = "Pages";
     /** @var string */
     public string $name;
     /** @var string */
     public string $slug;
     /** @var array */
     public array $blockFields;
-    /** @var array */
+    /** @var array e.g. [{name: "categories", dataType: "json"...}...] */
     public array $ownFields;
+    /** @var array e.g. {title: {defaultValue: "My page"}...} */
+    public object $defaultFields;
     /** @var bool */
     public bool $isListable;
     /**
@@ -21,8 +23,10 @@ final class PageType {
     public static function fromParentRs(object $row): PageType {
         $out = new self;
         $out->name = $row->pageTypeName;
-        $out->blockFields = json_decode($row->pageTypeBlockFields, false, 512, JSON_THROW_ON_ERROR);
-        $out->ownFields = json_decode($row->pageTypeOwnFields, false, 512, JSON_THROW_ON_ERROR);
+        $fields = json_decode($row->pageTypeFieldsJson, flags: JSON_THROW_ON_ERROR);
+        $out->blockFields = $fields->blockFields;
+        $out->ownFields = $fields->ownFields;
+        $out->defaultFields = $fields->defaultFields;
         $out->isListable = (bool) $row->pageTypeIsListable;
         return $out;
     }

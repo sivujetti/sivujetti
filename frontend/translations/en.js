@@ -3,8 +3,8 @@ import stringBundles from '@sivujetti-string-bundles';
 stringBundles.push({
     // edit-app/src/AddPageMainPanelView.jsx
     'New page': 'New page',
-    'Create page': 'Create page',
-    'Cancel add page': 'Cancel add page',
+    'Create %s': 'Create %s',
+    'Cancel add %s': 'Cancel add %s',
     'Back': 'Back',
     'Layout': 'Layout',
     'Default fields': 'Default fields',
@@ -44,6 +44,8 @@ stringBundles.push({
     'Add block after' : 'Add block after',
     'Heading text' : 'Heading text',
     'Heading' : 'Heading',
+    // edit-app/src/block-types/listing.js
+    'Add new %s': 'Add new %s',
     // edit-app/src/block-types/menu.js
     'Menu': 'Menu',
     'Add item': 'Add item',

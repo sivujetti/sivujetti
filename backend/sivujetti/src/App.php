@@ -40,7 +40,7 @@ final class App {
         ], function (AppContext $ctx, ServiceDefaults $defaults) use ($config): void {
             $ctx->config = $defaults->makeConfig($config);
             $ctx->db = $defaults->makeDb();
-            $ctx->storage = $ctx->storage ??new SharedAPIContext;
+            $ctx->storage = $ctx->storage ?? new SharedAPIContext;
             $blockTypes = $ctx->storage->getDataHandle()->blockTypes ?? new BlockTypes;
             $blockTypes->{Block::TYPE_BUTTON} = new ButtonBlockType;
             $blockTypes->{Block::TYPE_COLUMNS} = new ColumnsBlockType;

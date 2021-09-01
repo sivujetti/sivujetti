@@ -6,7 +6,9 @@ use MySite\Theme;
 use Pike\{ArrayUtils, PikeException, Request, Response};
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\{SharedAPIContext, Translator};
+use Sivujetti\{PushIdGenerator, SharedAPIContext, Translator};
+use Sivujetti\Block\BlocksController;
+use Sivujetti\Block\Entities\Block;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
 use Sivujetti\BlockType\Entities\BlockTypes;
@@ -48,16 +50,15 @@ final class PagesController {
                                           LayoutBlocksRepository $layoutBlocksRepo,
                                           SharedAPIContext $storage,
                                           TheWebsite $theWebsite): void {
-        if ($req->params->pageType !== PageType::PAGE)
-            throw new \RuntimeException("Not implemented yet.");
+        $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
         //
         $page = new Page;
         $page->slug = "-";
-        $page->title = "-";
+        $page->title = $pageType->defaultFields->title->defaultValue;
         $page->layoutId = $req->params->layoutId;
         $page->id = "-";
         $page->type = $req->params->pageType;
-        $page->blocks = []; // set by self::sendPageRequest()
+        $page->blocks = array_map(fn($b) => Block::fromBlueprint($b), $pageType->blockFields);
         $page->status = Page::STATUS_DRAFT;
         $page->layout = (object) ["blocks" => []];
         //
@@ -82,7 +83,7 @@ final class PagesController {
             "dataToFrontend" => json_encode((object) [
                 "baseUrl" => SiteAwareTemplate::makeUrl("/", true),
                 "assetBaseUrl" => SiteAwareTemplate::makeUrl("/", false),
-                "blockTypes" => $storage->getDataHandle()->blockTypes,
+                "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
             ])
         ]));
     }
@@ -96,10 +97,9 @@ final class PagesController {
     public function createPage(Request $req,
                                Response $res,
                                PagesRepository $pagesRepo): void {
-        if ($req->params->pageType !== PageType::PAGE)
-            throw new \RuntimeException("Not implemented yet.");
+        $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
         //
-        $num = $pagesRepo->insert($req->params->pageType, $req->body);
+        $num = $pagesRepo->insert($pageType, $req->body);
         //
         if ($num !== 1)
             throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",
@@ -140,7 +140,7 @@ final class PagesController {
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\SharedAPIContext $storage
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
-     * @param ?\Sivujetti\Page\Entities\Page $page = null
+     * @param ?\Sivujetti\Page\Entities\Page $pageIn = null
      * @param ?\Sivujetti\Layout\LayoutBlocksRepository $layoutBlocksRepo = null
      * @throws \Pike\PikeException
      */
@@ -169,10 +169,8 @@ final class PagesController {
         $layout = ArrayUtils::findByKey($data->pageLayouts, $page->layoutId, "id");
         if (!$layout) throw new PikeException("Page layout #`{$page->layoutId}` not available",
                                               PikeException::BAD_INPUT);
-        if ($isPlaceholderPage) {
-            $page->blocks = $layout->getInitialBlocks->__invoke();
+        if ($isPlaceholderPage)
             $page->layout->blocks = $layoutBlocksRepo->getMany($page->layoutId)[0]->blocks;
-        }
         //
         self::runBlockBeforeRenderEvent($page->blocks, $data->blockTypes, $pagesRepo);
         self::runBlockBeforeRenderEvent($page->layout->blocks, $data->blockTypes, $pagesRepo);
@@ -186,6 +184,7 @@ final class PagesController {
                 "<script>window.sivujettiCurrentPageData = " . json_encode([
                     "page" => (object) [
                         "id" => $page->id,
+                        "title" => $page->title,
                         "type" => $page->type,
                         "layoutId" => $page->layoutId,
                         "blocks" => $page->blocks,

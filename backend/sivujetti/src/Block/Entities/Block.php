@@ -2,6 +2,8 @@
 
 namespace Sivujetti\Block\Entities;
 
+use Sivujetti\PushIdGenerator;
+
 final class Block {
     public const TYPE_BUTTON    = "Button";
     public const TYPE_COLUMNS   = "Columns";
@@ -18,6 +20,8 @@ final class Block {
     public string $renderer;
     /** @var string */
     public string $id;
+    /** @var array array<int, {key: string, value: string}> */
+    public array $propsData;
     /** @var \Sivujetti\Block\Entities\Block[] */
     public array $children;
 
@@ -75,6 +79,26 @@ final class Block {
             $out->children[] = self::fromObject($child);
         foreach ($data->propsData as $field) {
             $out->{$field->key} = $field->value;
+        }
+        return $out;
+    }
+    /**
+     * @param object $blueprint
+     * @return \Sivujetti\Block\Entities\Block
+     */
+    public static function fromBlueprint(object $blueprint): Block {
+        $out = new Block;
+        $out->type = $blueprint->type;
+        $out->title = $blueprint->title;
+        $out->renderer = $blueprint->defaultRenderer;
+        $out->id = PushIdGenerator::generatePushId();
+        $out->propsData = [];
+        $out->children = [];
+        foreach ($blueprint->children as $child)
+            $out->children[] = self::fromBlueprint($child);
+        foreach ($blueprint->initialData as $key => $value) {
+            $out->propsData[] = (object) ["key" => $key, "value" => $value];
+            $out->{$key} = $value;
         }
         return $out;
     }

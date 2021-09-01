@@ -45,6 +45,7 @@ function simulatePageLoad(s) {
     s.mockPageData.dataFromWebPage = {
         page: {
             id: '1',
+            title: 'New page',
             isPlaceholderPage: false,
             type: 'Pages',
             blocks: [{

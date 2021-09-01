@@ -9,8 +9,6 @@ final class PageLayout {
     public string $friendlyName;
     /** @var string */
     public string $relFilePath;
-    /** @var \Closure fn(): \Sivujetti\Block\Entities\Block[] */
-    public \Closure $getInitialBlocks;
     /** @var bool */
     public bool $isDefault;
 }

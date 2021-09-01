@@ -64,13 +64,12 @@ final class PagesRepository {
      * @return int $numAffectedRows
      * @throws \Pike\PikeException If $inputData is not valid
      */
-    public function insert(string|PageType $pageTypeOrPageTypeName,
+    public function insert(PageType $pageType,
                            object $inputData,
                            bool $doInsertRevision = false,
                            bool $doInsertAsDraft = false,
                            bool $doValidateBlocks = true): int {
         $this->lastInsertId = "0";
-        $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
         if (($errors = $this->pageTypeValidator->validateInsertData($pageType, $inputData,
             $doValidateBlocks ? $this->blockTypes : null)))
             throw new PikeException(implode(PHP_EOL, $errors),
@@ -213,6 +212,17 @@ final class PagesRepository {
         return $arr;
     }
     /**
+     * @param string|\Sivujetti\PageType\Entities\PageType $candidate
+     * @return \Sivujetti\PageType\Entities\PageType
+     * @throws \Pike\PikeException
+     */
+    public function getPageTypeOrThrow(string|PageType $candidate): PageType {
+        if ($candidate instanceof PageType) return $candidate;
+        if (($possible = ArrayUtils::findByKey($this->pageTypes, $candidate, "name")))
+            return $possible;
+        throw new PikeException("Unknown page type `{$candidate}`.");
+    }
+    /**
      * @param string $snapshot
      * @param bool $doInsertRevisionAsCurrentDraft
      * @return int ok = 1, fail = 0
@@ -231,16 +241,6 @@ final class PagesRepository {
         foreach ($fields as $f)
             $out->{$f->name} = $data->{$f->name};
         return json_encode($out, JSON_UNESCAPED_UNICODE);
-    }
-    /**
-     * @param string|\Sivujetti\PageType\Entities\PageType $candidate
-     * @return \Sivujetti\PageType\Entities\PageType
-     */
-    private function getPageTypeOrThrow(string|PageType $candidate): PageType {
-        if ($candidate instanceof PageType) return $candidate;
-        if (($possible = ArrayUtils::findByKey($this->pageTypes, $candidate, "name")))
-            return $possible;
-        throw new PikeException("Unknown page type `{$candidate}`.");
     }
     /**
      * todo

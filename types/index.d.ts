@@ -63,11 +63,35 @@ interface BlockRefComment {
 interface CurrentPageData {
     page: {
         id: String;
+        title: String;
         blocks: Array<RawBlock>;
         isPlaceholderPage: Boolean;
     };
     layoutBlocks: Array<RawBlock>;
     layouts: Array<Object>;
+}
+
+interface BlockBlueprint2 {
+    type: String;
+    title: String;
+    defaultRenderer: String;
+    initialData: {[key: String]: String;};
+    children: Array<BlockBlueprint2>;
+}
+
+interface PageType {
+    name: String;
+    slug: String;
+    ownFields: Array<{name: String; dataType: String; friendlyName: String;}>;
+    blockFields: Array<BlockBlueprint2>;
+    defaultFields: {[key: String]: {defautlValue: String;};};
+    isListable: Boolean;
+}
+
+interface TheWebsite {
+    baseUrl: String;
+    assetBaseUrl: String;
+    pageTypes: Array<PageType>;
 }
 
 interface EditAppAwareWebPage {
@@ -80,7 +104,6 @@ interface EditAppAwareWebPage {
     reOrderBlocksInDom(blockToMove: Block, blockToMoveTo: Block, position: 'before'|'after'|'as-child'): void;
     findEndingComment(block: Block): Commment|undefined;
     updateTitle(text: String): void;
-
 }
 
 interface WebPageIframe {

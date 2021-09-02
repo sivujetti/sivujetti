@@ -9,7 +9,7 @@ $statements = array_merge($statements, [
 ('Test suite website','fi','".json_encode($getRules())."',0)",
 
 "INSERT INTO `pageTypes` VALUES
-(1,'Pages','" . json_encode([
+(1,'Pages','pages','" . json_encode([
     "ownFields" => [(object) ["name" => "categories", "dataType" => "json", "friendlyName" => "Categories", "defaultValue" => "[]"]],
     "blockFields" => [(object) ["type" => "Paragraph", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
                                 "initialData" => (object) ["text" => "Paragraph text", "cssClass" => ""],

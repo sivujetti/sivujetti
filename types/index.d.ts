@@ -64,6 +64,8 @@ interface CurrentPageData {
     page: {
         id: String;
         title: String;
+        type: String;
+        layoutId: String;
         blocks: Array<RawBlock>;
         isPlaceholderPage: Boolean;
     };

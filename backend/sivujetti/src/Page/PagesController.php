@@ -6,8 +6,7 @@ use MySite\Theme;
 use Pike\{ArrayUtils, PikeException, Request, Response};
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\{PushIdGenerator, SharedAPIContext, Translator};
-use Sivujetti\Block\BlocksController;
+use Sivujetti\{SharedAPIContext, Template, Translator};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
@@ -118,13 +117,13 @@ final class PagesController {
     public function updatePageBlocks(Request $req,
                                      Response $res,
                                      PagesRepository $pagesRepo): void {
-        if ($req->params->pageType !== PageType::PAGE)
-            throw new \RuntimeException("Not implemented yet.");
+        $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
         //
         $pseudoPage = new \stdClass;
         $pseudoPage->type = $req->params->pageType;
         $pseudoPage->blocks = $req->body->blocks;
-        $num = $pagesRepo->updateById($req->params->pageId,
+        $num = $pagesRepo->updateById($pageType,
+                                      $req->params->pageId,
                                       $pseudoPage,
                                       theseColumnsOnly: ["blocks"]);
         //
@@ -156,8 +155,17 @@ final class PagesController {
         $isPlaceholderPage = $pageIn !== null;
         //
         if (!$isPlaceholderPage) {
-            if (!($page = $pagesRepo->getSingle($theWebsite->pageTypes[0],
-                                                ["slug" => $req->params->url]))) {
+            $pcs = explode("/", $req->params->url, 3);
+            [$pageTypeSlug, $slug] = count($pcs) > 2
+                ? [$pcs[1], "/{$pcs[2]}"]
+                : [PageType::SLUG_PAGE, "/{$pcs[1]}"];
+            if (!($pageType = ArrayUtils::findByKey($theWebsite->pageTypes,
+                                                    $pageTypeSlug,
+                                                    "slug"))) {
+                $res->status(404)->html("Unknown page type `" . Template::e($pageTypeSlug) . "`.");
+                return;
+            }
+            if (!($page = $pagesRepo->getSingle($pageType, ["slug" => $slug]))) {
                 $res->status(404)->html("404");
                 return;
             }
@@ -172,8 +180,8 @@ final class PagesController {
         if ($isPlaceholderPage)
             $page->layout->blocks = $layoutBlocksRepo->getMany($page->layoutId)[0]->blocks;
         //
-        self::runBlockBeforeRenderEvent($page->blocks, $data->blockTypes, $pagesRepo);
-        self::runBlockBeforeRenderEvent($page->layout->blocks, $data->blockTypes, $pagesRepo);
+        self::runBlockBeforeRenderEvent($page->blocks, $data->blockTypes, $pagesRepo, $theWebsite);
+        self::runBlockBeforeRenderEvent($page->layout->blocks, $data->blockTypes, $pagesRepo, $theWebsite);
         $html = (new SiteAwareTemplate($layout->relFilePath, cssFiles: $data->userDefinedCssFiles->webPage))->render([
             "page" => $page,
             "site" => $theWebsite,
@@ -202,18 +210,20 @@ final class PagesController {
      * @param \Sivujetti\Block\Entities\Block[] $branch
      * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      */
     public static function runBlockBeforeRenderEvent(array $branch,
                                                      BlockTypes $blockTypes,
-                                                     PagesRepository $pagesRepo): void {
+                                                     PagesRepository $pagesRepo,
+                                                     TheWebsite $theWebsite): void {
         foreach ($branch as $block) {
             if ($block->type === "__marker")
                 continue;
             $blockType = $blockTypes->{$block->type};
             if (array_key_exists(ListeningBlockTypeInterface::class, class_implements($blockType)))
-                $blockType->onBeforeRender($block, $blockType, $pagesRepo);
+                $blockType->onBeforeRender($block, $blockType, $pagesRepo, $theWebsite);
             if ($block->children)
-                self::runBlockBeforeRenderEvent($block->children, $blockTypes, $pagesRepo);
+                self::runBlockBeforeRenderEvent($block->children, $blockTypes, $pagesRepo, $theWebsite);
         }
     }
 }

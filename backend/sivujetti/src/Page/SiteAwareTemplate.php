@@ -53,6 +53,14 @@ final class SiteAwareTemplate extends Template {
         return self::makeUrl($url, false);
     }
     /**
+     * @param string $str
+     * @param mixed ...$args
+     * @return string
+     */
+    public function __(string $str, ...$args): string {
+        return $this->e(!$args ? $str : sprintf($str, ...$args));
+    }
+    /**
      * @param \Sivujetti\Block\Entities\Block $block
      * @return string
      */

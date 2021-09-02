@@ -15,8 +15,8 @@ final class TheWebsiteRepository {
         if (!($rows = $db->fetchAll(
             "SELECT" .
                 " ws.`name`, ws.`lang`, ws.`aclRules` AS `aclRulesJson`" .
-                ", p.`name` AS `pluginName`" .
-                ", pt.`name` AS `pageTypeName`, pt.`fields` AS `pageTypeFieldsJson`" .
+                ", p.`name` AS `pluginName`, pt.`name` AS `pageTypeName`" .
+                ", pt.`slug` AS `pageTypeSlug`, pt.`fields` AS `pageTypeFieldsJson`" .
                 ", pt.`isListable` AS `pageTypeIsListable`" .
             " FROM \${p}theWebsite ws" .
             " LEFT JOIN \${p}plugins p ON (1)" .

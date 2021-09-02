@@ -4,6 +4,7 @@ namespace Sivujetti\PageType\Entities;
 
 final class PageType {
     public const PAGE = "Pages";
+    public const SLUG_PAGE = "pages";
     /** @var string */
     public string $name;
     /** @var string */
@@ -23,6 +24,7 @@ final class PageType {
     public static function fromParentRs(object $row): PageType {
         $out = new self;
         $out->name = $row->pageTypeName;
+        $out->slug = $row->pageTypeSlug;
         $fields = json_decode($row->pageTypeFieldsJson, flags: JSON_THROW_ON_ERROR);
         $out->blockFields = $fields->blockFields;
         $out->ownFields = $fields->ownFields;

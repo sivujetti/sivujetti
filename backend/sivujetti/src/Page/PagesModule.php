@@ -24,7 +24,7 @@ final class PagesModule {
         $ctx->router->map("GET", "/_edit/[**:url]?",
             [PagesController::class, "renderEditAppWrapper", ["identifiedBy" => ["access", "editMode"]]]
         );
-        $ctx->router->map("GET", "[*:url]",
+        $ctx->router->map("GET", "[**:url]",
             [PagesController::class, "renderPage"]
         );
     }

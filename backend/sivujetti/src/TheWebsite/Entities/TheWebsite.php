@@ -3,9 +3,9 @@
 namespace Sivujetti\TheWebsite\Entities;
 
 final class TheWebsite {
-    /** @var string e.g. 'My site' */
+    /** @var string e.g. "My site" */
     public string $name;
-    /** @var string e.g. 'fi', 'en' */
+    /** @var string e.g. "fi", "en" */
     public string $lang;
     /** @var string */
     public string $aclRulesJson;

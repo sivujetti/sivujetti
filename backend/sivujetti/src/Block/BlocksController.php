@@ -40,7 +40,8 @@ final class BlocksController {
         $marker->type = "__marker";
         $block->children = [$marker];
         //
-        PagesController::runBlockBeforeRenderEvent([$block], $storage->getDataHandle()->blockTypes, $pagesRepo);
+        PagesController::runBlockBeforeRenderEvent([$block], $storage->getDataHandle()->blockTypes,
+                                                   $pagesRepo, $theWebsite);
         $html = (new SiteAwareTemplate($block->renderer, null, [
             "page" => null,
             "site" => $theWebsite,

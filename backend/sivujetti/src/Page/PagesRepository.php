@@ -57,7 +57,7 @@ final class PagesRepository {
         return $this->doGetMany($pageTypeOrPageTypeName, false, ...$filters);
     }
     /**
-     * @param string|\Sivujetti\PageType\Entities\PageType $pageTypeOrPageTypeName
+     * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param object $inputData
      * @param bool $doInsertRevision = false
      * @param bool $doInsertAsDraft = false
@@ -107,17 +107,18 @@ final class PagesRepository {
         return $numRows;
     }
     /**
+     * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param string $id
      * @param object|\Sivujetti\Page\Entities\Page $newData
      * @param bool $doInsertRevision = false
      * @param array $theseColumnsOnly = []
      * @return int $numAffectedRows
      */
-    public function updateById(string $id,
+    public function updateById(PageType $pageType,
+                               string $id,
                                object $newData,
                                bool $doInsertRevision = false,
                                array $theseColumnsOnly = []): int {
-        $pageType = $this->getPageTypeOrThrow($newData->type);
         if (!$theseColumnsOnly) {
             $updateData = (object) [
                 "slug" => $newData->slug,
@@ -178,7 +179,8 @@ final class PagesRepository {
             " FROM `\${p}{$pageType->name}` p" .
             $baseJoin .
             $joins .
-            ($filterCols ? " WHERE {$filterCols}" : ""),
+            ($filterCols ? " WHERE {$filterCols}" : "") .
+            " LIMIT 40",
             $filterVals,
             \PDO::FETCH_CLASS,
             Page::class

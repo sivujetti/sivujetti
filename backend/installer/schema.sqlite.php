@@ -23,6 +23,7 @@ return [
 "CREATE TABLE `\${p}pageTypes` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
+    `slug` TEXT NOT NULL,
     `fields` JSON,
     `isListable` INTEGER DEFAULT 1
 )",

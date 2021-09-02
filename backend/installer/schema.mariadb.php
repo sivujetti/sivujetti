@@ -23,7 +23,8 @@ return [
 
 "CREATE TABLE `\${p}pageTypes` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(92)  NOT NULL,
+    `name` VARCHAR(92) NOT NULL,
+    `slug` VARCHAR(92) NOT NULL,
     `fields` JSON,
     `isListable` TINYINT(1) DEFAULT 1,
     PRIMARY KEY (`id`)

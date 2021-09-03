@@ -63,7 +63,6 @@ final class CreatePageTest extends DbTestCase {
             "id" => $actual->id,
             "type" => PageType::PAGE,
             "status" => $state->inputData->status,
-            "categories" => $state->inputData->categories,
         ], (array) $actual);
     }
 
@@ -87,7 +86,6 @@ final class CreatePageTest extends DbTestCase {
             "status must be number",
             "The value of status must be 0 or greater",
             "categories must be string",
-            "The length of categories must be 256000 or less",
         ]));
         $this->sendCreatePageRequest($state);
     }

@@ -11,14 +11,14 @@ abstract class ValidationUtils {
     private const VALID_RULES = ["type", "minLength", "maxLength", "min",
                                  "max", "in", "identifier", "regexp"];
     /**
-     * Throws an exception if $path contains './', '../', or '/' (strict).
+     * Throws an exception if $path contains "./", "../", or "/" (strict).
      *
      * @param string $path
      * @param bool $strict = false
      */
     public static function checkIfValidaPathOrThrow(string $path,
                                                     bool $strict = false): void {
-        if (str_contains($path, $strict ? '/' : './'))
+        if (str_contains($path, $strict ? "/" : "./"))
             throw new PikeException("`{$path}` is not valid path",
                                     PikeException::BAD_INPUT);
     }
@@ -30,13 +30,10 @@ abstract class ValidationUtils {
     public static function addRulesForProperties(array|\ArrayObject $properties,
                                                  ObjectValidator $to): ObjectValidator {
         foreach ($properties as $prop) {
-            if (!property_exists($prop, 'dataType')) {
-            var_dump($prop);
-            throw new \RuntimeException('ff');
-            }
             $rules = [
                 "text" => [["type", "string"], ["maxLength", self::HARD_SHORT_TEXT_MAX_LEN]],
                 "json" => [["type", "string"], ["maxLength", self::HARD_JSON_TEXT_MAX_LEN]],
+                "many-to-many" => [["type", "string"]],
                 "int" =>  [["type", "number"]],
                 "uint" => [["type", "number"], ["min", 0]],
             ][$prop->dataType] ?? null;

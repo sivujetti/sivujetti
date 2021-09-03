@@ -20,6 +20,8 @@ final class PagesRepository {
     private object $blockTypes;
     /** @var ?\Sivujetti\PageType\Entities\PageType */
     private ?PageType $pageType;
+    /** @var \Sivujetti\PageType\PageTypeValidator */
+    private PageTypeValidator $pageTypeValidator;
     /** @var string */
     public string $lastInsertId;
     /**
@@ -91,6 +93,7 @@ final class PagesRepository {
                 $data->{$optional} = (int) $inputData->{$optional};
         }
         foreach ($pageType->ownFields as $f) {
+            if ($f->dataType === "many-to-many") continue;
             $data->{$f->name} = $inputData->{$f->name};
         }
         //
@@ -161,20 +164,24 @@ final class PagesRepository {
                                ...$filters): array {
         $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
         $this->pageType = $pageType;
-        [$filterCols, $filterVals, $joinsCols, $joins] = $this->filtersToQParts(...$filters);
+        [$filterCols, $filterVals, $joinsCols, $joins] = $this->filtersToQParts($pageType, ...$filters);
         [$baseJoinCols, $baseJoin] = !$doIncludeLayoutBlocks
             ? [",'[]' AS `layoutBlocksJson`",
                ""]
             : [",IFNULL(lb.`blocks`, '[]') AS `layoutBlocksJson`",
                " LEFT JOIN `\${p}layoutBlocks` lb ON (lb.`layoutId` = p.`layoutId`)"];
         //
+        $ownFieldCols = [];
+        foreach ($pageType->ownFields as $f) {
+            if ($f->dataType === "many-to-many") continue;
+            $ownFieldCols[] = "p.`$f->name` AS `$f->name`";
+        }
+        //
         $rows = $this->db->fetchAll(
             "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`layoutId`," .
                 "p.`blocks` AS `pageBlocksJson`,'{$pageType->name}' AS `type`,p.`status`" .
                 $baseJoinCols .
-                ($pageType->ownFields ? ("," . implode(',', array_map(fn(object $f) =>
-                    "p.`$f->name` AS `$f->name`"
-                , $pageType->ownFields))) : "") .
+                ($ownFieldCols ? ("," . implode(',', $ownFieldCols)) : "") .
                 $joinsCols .
             " FROM `\${p}{$pageType->name}` p" .
             $baseJoin .
@@ -196,8 +203,12 @@ final class PagesRepository {
             $row->blocks = self::blocksFromRs("pageBlocksJson", $row);
             $row->layout = (object) ["blocks" => self::blocksFromRs("layoutBlocksJson", $row)];
             //
-            foreach ($this->pageType->ownFields as $field)
-                $row->{$field->name} = strval($row->{"{$field->name}"}); // todo cast type?
+            foreach ($this->pageType->ownFields as $field) {
+                if ($field->dataType !== "many-to-many")
+                    $row->{$field->name} = strval($row->{"{$field->name}"}); // todo cast type?
+                else
+                    ; // todo
+            }
         }
         return $rows;
     }
@@ -247,7 +258,7 @@ final class PagesRepository {
     /**
      * todo
      */
-    private function filtersToQParts(...$filters): array {
+    private function filtersToQParts(PageType $pageType, ...$filters): array {
         $filterSql = "";
         $filterValues = [];
         foreach ($filters as $inp) {

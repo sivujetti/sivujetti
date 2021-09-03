@@ -11,7 +11,7 @@ final class PageType {
     public string $slug;
     /** @var array */
     public array $blockFields;
-    /** @var array e.g. [{name: "categories", dataType: "json"...}...] */
+    /** @var array e.g. [{name: "price", dataType: "text"...}...] */
     public array $ownFields;
     /** @var array e.g. {title: {defaultValue: "My page"}...} */
     public object $defaultFields;

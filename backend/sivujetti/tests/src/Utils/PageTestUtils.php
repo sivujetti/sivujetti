@@ -75,7 +75,7 @@ final class PageTestUtils {
     public function makeDefaultPageType(): PageType {
         $pageType = new PageType;
         $pageType->name = PageType::PAGE;
-        $pageType->ownFields = [(object) ["name" => "categories", "dataType" => "json"]];
+        $pageType->ownFields = [(object) ["name" => "categories", "dataType" => "many-to-many"]];
         return $pageType;
     }
     /**

@@ -9,7 +9,7 @@
     --color-accent4: rgba(118,255,255,.33);
     --color-fg-default: rgb(0,10,71);
     --color-fg-dimmed: rgba(0,10,71,.75);
-    --color-fg-dimmed2: #1c275a;
+    --color-fg-dimmed2: #1c125a;
     --color-fg-input: rgb(0,10,71);
     --border-tree-guide: 1px dotted rgba(121, 125, 136, .56);
     --border-dashed-box: 1px dashed rgba(0,0,0,0.2);
@@ -168,6 +168,10 @@ h2 {
     padding: .1rem .35rem;
     height: 1.4rem;
 }
+ul.list {
+    list-style: none;
+    margin: 0;
+}
 /* commons.css end */
 
 
@@ -304,6 +308,57 @@ a.popup-close-area {
     top: 0;
     left: 0;
     z-index: 1;
+}
+@keyframes reveal-anim {
+    from { }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+@keyframes fade-to-left-anim {
+    from { }
+    to {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+@keyframes fade-to-right-anim {
+    from { }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+.anim-outer {
+    overflow: hidden;
+}
+.reveal-from-right,
+.reveal-from-left {
+    animation: .125s reveal-anim;
+    animation-fill-mode: forwards;
+    opacity: 0;
+    position: relative;
+}
+.fade-to-left,
+.fade-to-right {
+    transform: translateX(0px);
+    opacity: 1;
+}
+.reveal-from-right {
+    transform: translateX(100%);
+}
+.fade-to-left {
+    animation: .125s fade-to-left-anim;
+    animation-fill-mode: forwards;
+}
+.reveal-from-left {
+    transform: translateX(-100%);
+}
+.fade-to-right {
+    animation: .125s fade-to-right-anim;
+    animation-fill-mode: forwards;
+    position: relative;
 }
 
 /* EditApp: Main panel */

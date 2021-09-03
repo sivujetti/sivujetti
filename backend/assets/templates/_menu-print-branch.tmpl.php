@@ -14,7 +14,7 @@ foreach ($props["branch"] as $i => $item) {
     );
     // == <a ...</a> ================
     echo "<a href=\"", $this->url($item->slug), "\"",
-            isset($props["itemAttrs"]) ? $this->attrMapToStr($props["itemAttrs"]) : "", ">",
+            $props["itemAttrs"] !== "[]" ? $this->attrMapToStr(json_decode($props["itemAttrs"])) : "", ">",
         $item->text,
     "</a>";
     if ($item->children) {

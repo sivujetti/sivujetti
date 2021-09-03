@@ -33,6 +33,12 @@ stringBundles.push({
     'Close': 'Sulje',
     // edit-app/src/SaveButton.jsx
     'Save changes': 'Tallenna muutokset',
+    // edit-app/src/block-types/Menu/menu.js
+    'Menu': 'Valikko',
+    'Add item': 'Lisää linkki',
+    'Link text': 'Linkin teksti',
+    'Home': 'Etusivu',
+    'About': 'Meistä',
     // edit-app/src/block-types/button.js
     'Button': 'Nappi',
     'Link': 'Linkki',
@@ -46,12 +52,6 @@ stringBundles.push({
     'Heading' : 'Otsikko',
     // edit-app/src/block-types/listing.js
     'Add new %s': 'Lisää uusi %s',
-    // edit-app/src/block-types/menu.js
-    'Menu': 'Valikko',
-    'Add item': 'Lisää linkki',
-    'Link text': 'Linkin teksti',
-    'Home': 'Etusivu',
-    'About': 'Meistä',
     // edit-app/src/block-types/paragraph.js
     'Paragraph' : 'Tekstikappale',
     'Paragraph text' : 'Tekstikappaleen teksti',

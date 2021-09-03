@@ -33,6 +33,12 @@ stringBundles.push({
     'Close': 'Close',
     // edit-app/src/SaveButton.jsx
     'Save changes': 'Save changes',
+    // edit-app/src/block-types/Menu/menu.js
+    'Menu': 'Menu',
+    'Add item': 'Add item',
+    'Link text': 'Link text',
+    'Home': 'Home',
+    'About': 'About',
     // edit-app/src/block-types/button.js
     'Button': 'Button',
     'Link': 'Link',
@@ -46,12 +52,6 @@ stringBundles.push({
     'Heading' : 'Heading',
     // edit-app/src/block-types/listing.js
     'Add new %s': 'Add new %s',
-    // edit-app/src/block-types/menu.js
-    'Menu': 'Menu',
-    'Add item': 'Add item',
-    'Link text': 'Link text',
-    'Home': 'Home',
-    'About': 'About',
     // edit-app/src/block-types/paragraph.js
     'Paragraph' : 'Paragraph',
     'Paragraph text' : 'Paragraph text',

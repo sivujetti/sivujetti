@@ -125,8 +125,9 @@ class BlockTreeTabs extends preact.Component {
      * @access private
      */
     static saveExistingPageBlocksToBackend(newBlockTree, blockTreeKind) {
+        const page = BlockTreeTabs.currentWebPage.data.page;
         const url = blockTreeKind === 'pageBlocks'
-            ? `/api/pages/Pages/${BlockTreeTabs.currentWebPage.data.page.id}/blocks`
+            ? `/api/pages/${page.type}/${page.id}/blocks`
             : `/api/layouts/${BlockTreeTabs.currentWebPage.data.page.layoutId}/blocks`;
         return http.put(url,
             {blocks: blockTreeUtils.mapRecursively(newBlockTree, block => block.toRaw())})

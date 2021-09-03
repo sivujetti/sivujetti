@@ -195,7 +195,12 @@ class BlockTree extends preact.Component {
      */
     handleContextMenuLinkClicked(link) {
         if (link.id === 'add-child') {
-            this.appendNewBlockPlaceholder(this.state.blockWithNavOpened, 'as-child');
+            const id = this.state.blockWithNavOpened.id;
+            this.appendNewBlockPlaceholder(this.state.blockWithNavOpened, 'as-child',
+                state => {
+                    state.treeState[id].isCollapsed = false;
+                    return state;
+                });
         } else if (link.id === 'delete-block') {
             const isSelectedRootCurrentlyClickedBlock = () => {
                 if (!this.selectedRoot)

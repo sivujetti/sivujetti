@@ -6,7 +6,7 @@ import blockTypes from './src/block-types/block-types.js';
 import createButtonBlockType from './src/block-types/button.js';
 import createColumnsBlockType from './src/block-types/columns.js';
 import createHeadingBlockType from './src/block-types/heading.js';
-import createMenuBlockType from './src/block-types/menu.js';
+import createMenuBlockType from './src/block-types/Menu/menu.js';
 import createParagraphBlockType from './src/block-types/paragraph.js';
 import createRichTextBlockType from './src/block-types/richText.js';
 import createSectionBlockType from './src/block-types/section.js';

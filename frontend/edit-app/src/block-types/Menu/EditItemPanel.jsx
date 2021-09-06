@@ -36,13 +36,13 @@ class EditItemPanel extends preact.Component {
                 <button onClick={ () => this.props.parent.endEditMode(this.treeCopy) } class="btn btn-sm" type="button"> &lt; </button>,
                 <div class="form-horizontal pt-0">
                 <InputGroupInline classes={ classes.linkText }>
-                    <label class="form-label" htmlFor="linkText" title={ __('Css classes') }>{ __('Css classes') }</label>
-                    <Input vm={ this } name="linkText" id="linkText" errorLabel={ __('Css classes') } validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ this.emitChange.bind(this) }/>
+                    <label class="form-label" htmlFor="linkText" title={ __('Text') }>{ __('Text') }</label>
+                    <Input vm={ this } name="linkText" id="linkText" errorLabel={ __('Text') } validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ this.emitChange.bind(this) }/>
                     <InputError error={ errors.linkText }/>
                 </InputGroupInline>
                 <InputGroupInline classes={ classes.linkSlug }>
-                    <label class="form-label" htmlFor="linkSlug" title={ __('Css classes') }>{ __('Css classes') }</label>
-                    <Input vm={ this } name="linkSlug" id="linkSlug" errorLabel={ __('Css classes') }
+                    <label class="form-label" htmlFor="linkSlug" title={ __('Url') }>{ __('Url') }</label>
+                    <Input vm={ this } name="linkSlug" id="linkSlug" errorLabel={ __('Url') } placeholder={ __('e.g. %s or %s', '/my-page', 'https://page.com') }
                         validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ this.emitChange.bind(this) }/>
                     <InputError error={ errors.linkSlug }/>
                 </InputGroupInline>

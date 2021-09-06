@@ -12,6 +12,9 @@ use Sivujetti\PageType\PageTypeValidator;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class PagesRepository {
+    /** @var string[] Fields that all page types share */
+    private const DEFAULT_FIELDS = ["id", "slug", "path", "level", "title",
+                                    "layoutId", "status"];
     /** @var \Pike\Db */
     private Db $db;
     /** @var \Sivujetti\PageType\Entities\PageType[] */
@@ -112,39 +115,32 @@ final class PagesRepository {
     /**
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param string $id
-     * @param object|\Sivujetti\Page\Entities\Page $newData
+     * @param object|\Sivujetti\Page\Entities\Page $input
      * @param bool $doInsertRevision = false
-     * @param array $theseColumnsOnly = []
+     * @param ?array $theseColumnsOnly = null
      * @return int $numAffectedRows
      */
     public function updateById(PageType $pageType,
                                string $id,
-                               object $newData,
+                               object $input,
                                bool $doInsertRevision = false,
-                               array $theseColumnsOnly = []): int {
-        if (!$theseColumnsOnly) {
-            $updateData = (object) [
-                "slug" => $newData->slug,
-                "path" => $newData->path,
-                "level" => $newData->level,
-                "title" => $newData->title,
-                "layoutId" => $newData->layoutId,
-                "blocks" => BlockTree::toJson($newData->blocks),
-                "status" => $newData->status,
-            ];
-            if (($errors = $this->pageTypeValidator->validateUpdateData($pageType, $updateData)))
+                               ?array $theseColumnsOnly = null): int {
+        if ($theseColumnsOnly === null) {
+            if (($errors = $this->pageTypeValidator->validateUpdateData($pageType, $input)))
                 throw new PikeException(implode(PHP_EOL, $errors),
                                         PikeException::BAD_INPUT);
+            $updateData = self::makeStorablePageDataFromValidInput($input);
+            $theseColumnsOnly = self::DEFAULT_FIELDS;
         } elseif (count($theseColumnsOnly) === 1 && $theseColumnsOnly[0] === "blocks") {
-            if (($errors = $this->pageTypeValidator->validateUpdateData($pageType, $newData, $this->blockTypes)))
+            if (($errors = $this->pageTypeValidator->validateBlocksUpdateData($input, $this->blockTypes)))
                 throw new PikeException(implode(PHP_EOL, $errors),
                                         PikeException::BAD_INPUT);
             $updateData = (object) ["blocks" =>
                 BlockTree::toJson(BlocksController::makeStorableBlocksDataFromValidInput(
-                                  $newData->blocks, $this->blockTypes))
+                                  $input->blocks, $this->blockTypes))
             ];
         } else {
-            throw new \InvalidArgumentException("\$theseColumnsOnly supports only ['blocks'] and []");
+            throw new \InvalidArgumentException("\$theseColumnsOnly supports only ['blocks'] and null");
         }
         //
         [$columns, $values] = $this->db->makeUpdateQParts($updateData, $theseColumnsOnly);
@@ -243,6 +239,20 @@ final class PagesRepository {
     private function insertRevision(string $snapshot,
                                     bool $doInsertRevisionAsCurrentDraft): int {
         return 1;
+    }
+    /**
+     * @param object $input Valid $req->body
+     * @return object An object that can be passed to $db->makeUpdateQParts()
+     */
+    private static function makeStorablePageDataFromValidInput(object $input): object {
+        return (object) [
+            "slug" => $input->slug,
+            "path" => $input->path,
+            "level" => (int) $input->level,
+            "title" => $input->title,
+            "layoutId" => $input->layoutId,
+            "status" => (int) $input->status,
+        ];
     }
     /**
      * @param \stdClass $data

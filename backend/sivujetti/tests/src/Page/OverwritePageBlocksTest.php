@@ -28,8 +28,8 @@ final class OverwritePageBlocksTest extends DbTestCase {
         $state = new \TestState;
         $btu = new BlockTestUtils();
         $state->testPageData = $this->pageTestUtils->makeTestPageData();
-        $state->testPageData->slug = "/overwrite-blocks-page";
-        $state->testPageData->path = "/overwrite-blocks-page/";
+        $state->testPageData->slug = "/overwrite-blocks-test-page";
+        $state->testPageData->path = "/overwrite-blocks-test-page/";
         $state->inputData = (object) ["blocks" =>
             [$btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Hello", "cssClass" => ""])]
         ];

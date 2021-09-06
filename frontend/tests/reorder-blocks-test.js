@@ -115,7 +115,7 @@ QUnit.module('BlockTrees', () => {
         return document.querySelectorAll('.block-tree li ul li');
     }
     function getLiContents(li) {
-        return li.querySelector('button.drag-handle').textContent;
+        return li.querySelector('button.block-handle').textContent;
     }
     function verifySwappedBlocksInTree(s, assert) {
         const lis = getBlockTreeListItems();

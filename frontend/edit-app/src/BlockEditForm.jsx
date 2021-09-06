@@ -128,3 +128,4 @@ function debounce(func, wait, immediate) {
 }
 
 export default BlockEditForm;
+export {debounce};

@@ -10,11 +10,26 @@ final class BlockTree {
      * @param \Sivujetti\Block\Entities\Block[] $branch
      * @return ?\Sivujetti\Block\Entities\Block
      */
-    public static function findBlock(string $id, array $branch): ?Block {
+    public static function findBlockById(string $id, array $branch): ?Block {
         foreach ($branch as $block) {
             if ($block->id === $id) return $block;
             if ($block->children) {
-                $c = self::findBlock($id, $block->children);
+                $c = self::findBlockById($id, $block->children);
+                if ($c) return $c;
+            }
+        }
+        return null;
+    }
+    /**
+     * @param \Sivujetti\Block\Entities\Block[] $blocks
+     * @param callable $predicate callable(\Sivujetti\Block\Entities\Block $block): bool
+     * @return ?\Sivujetti\Block\Entities\Block
+     */
+    public static function findBlock(array $branch, callable $predicate): ?Block {
+        foreach ($branch as $block) {
+            if (call_user_func($predicate, $block)) return $block;
+            if ($block->children) {
+                $c = self::findBlock($block->children, $predicate);
                 if ($c) return $c;
             }
         }

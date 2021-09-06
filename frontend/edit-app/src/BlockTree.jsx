@@ -135,8 +135,17 @@ class BlockTree extends preact.Component {
      */
     render(_, {blockTree, treeState, blockWithNavOpened}) {
         if (blockTree === null) return;
-        const renderBranch = branch => branch.map(block => !treeState[block.id].isNew
-            ? <li
+        const renderBranch = branch => branch.map(block => {
+            //
+            if (treeState[block.id].isNew) return <li key={ block.id }>
+                <BlockTypeSelector
+                    block={ block }
+                    onSelectionChanged={ this.replacePlaceholderBlock.bind(this) }
+                    onSelectionConfirmed={ this.confirmAddBlock.bind(this) }
+                    onSelectionDiscarded={ this.cancelAddBlock.bind(this) }/>
+            </li>;
+            //
+            if (block.type !== 'PageInfo') return <li
                 onDragStart={ this.onDragStart }
                 onDragOver={ this.onDragOver }
                 onDrop={ this.onDrop }
@@ -152,7 +161,7 @@ class BlockTree extends preact.Component {
                     : <button onClick={ () => this.toggleBranchIsCollapsed(block) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="size-xs"/></button>
                 }
                 <div class="d-flex">
-                    <button onClick={ () => this.handleItemClicked(block) } class="drag-handle columns" type="button">
+                    <button onClick={ () => this.handleItemClicked(block) } class="block-handle columns" type="button">
                         <Icon iconId="type" className="size-xs color-accent mr-1"/>
                         { block.title || __(block.type) }
                     </button>
@@ -164,15 +173,19 @@ class BlockTree extends preact.Component {
                     ? <ul>{ renderBranch(block.children) }</ul>
                     : null
                 }
-            </li>
-            : <li key={ block.id }>
-                <BlockTypeSelector
-                    block={ block }
-                    onSelectionChanged={ this.replacePlaceholderBlock.bind(this) }
-                    onSelectionConfirmed={ this.confirmAddBlock.bind(this) }
-                    onSelectionDiscarded={ this.cancelAddBlock.bind(this) }/>
-            </li>
-        );
+            </li>;
+            //
+            return <li
+                class={ [!treeState[block.id].isSelected ? '' : 'selected'].join(' ') }
+                key={ block.id }>
+                <div class="d-flex">
+                    <button onClick={ () => this.handleItemClicked(block) } class="block-handle columns" type="button">
+                        <Icon iconId="file" className="size-xs color-accent mr-1"/>
+                        { block.title || __(block.type) }
+                    </button>
+                </div>
+            </li>;
+        });
         return <>
             <ul class="block-tree" data-sort-group-id="r">{
                 blockTree.length

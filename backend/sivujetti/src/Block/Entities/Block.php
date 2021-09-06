@@ -9,6 +9,7 @@ final class Block {
     public const TYPE_COLUMNS   = "Columns";
     public const TYPE_HEADING   = "Heading";
     public const TYPE_MENU      = "Menu";
+    public const TYPE_PAGE_INFO = "PageInfo";
     public const TYPE_PARAGRAPH = "Paragraph";
     public const TYPE_RICH_TEXT = "RichText";
     public const TYPE_SECTION   = "Section";

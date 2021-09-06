@@ -48,6 +48,6 @@ final class BlockTestUtils {
     public function getBlock(string $id, string $pageId): ?Block {
         if (!($page = $this->pageTestUtils->getPageById($pageId)))
             return null;
-        return BlockTree::findBlock($id, $page->blocks);
+        return BlockTree::findBlockById($id, $page->blocks);
     }
 }

@@ -452,41 +452,41 @@ a.popup-close-area {
     border-radius: 4px;
     font-weight: 300;
 }
-.block-tree li.maybe-drop-before .drag-handle,
-.block-tree li.maybe-drop-after .drag-handle,
-.block-tree li.maybe-drop-as-child .drag-handle {
+.block-tree li.maybe-drop-before .block-handle,
+.block-tree li.maybe-drop-after .block-handle,
+.block-tree li.maybe-drop-as-child .block-handle {
     border-radius: 0;
 }
-.block-tree li.maybe-drop-before > div > .drag-handle {
+.block-tree li.maybe-drop-before > div > .block-handle {
     border-top-color: var(--color-orange);
 }
-.block-tree li.maybe-drop-after > div > .drag-handle {
+.block-tree li.maybe-drop-after > div > .block-handle {
     border-bottom-color: var(--color-orange);
 }
-.block-tree li.maybe-drop-as-child > div > .drag-handle {
+.block-tree li.maybe-drop-as-child > div > .block-handle {
     border-color: var(--color-orange);
 }
 .block-tree li > button:hover {
     background: #0000000d;
 }
-.block-tree li.selected > div > .drag-handle {
+.block-tree li.selected > div > .block-handle {
     background: var(--color-bg-button);
 }
-.block-tree li.with-children > div > .drag-handle {
+.block-tree li.with-children > div > .block-handle {
     margin-left: 1.5rem;
 }
 .block-tree .more-toggle {
     opacity: 0;
     transition: opacity .125s ease-out;
 }
-.block-tree .drag-handle:hover + .more-toggle,
-.block-tree .drag-handle:focus + .more-toggle,
+.block-tree .block-handle:hover + .more-toggle,
+.block-tree .block-handle:focus + .more-toggle,
 .block-tree .more-toggle:hover,
 .block-tree .more-toggle:focus,
 .block-tree .more-toggle.opened {
     opacity: 1;
 }
-.block-tree ul li > .d-flex > .drag-handle:before {
+.block-tree ul li > .d-flex > .block-handle:before {
     content: "";
     position: absolute;
     border-top: var(--border-tree-guide);
@@ -494,7 +494,7 @@ a.popup-close-area {
     left: -.4rem;
     top: 50%;
 }
-.block-tree ul > li:last-of-type .drag-handle:after {
+.block-tree ul > li:last-of-type .block-handle:after {
     content: "";
     position: absolute;
     background-color: var(--color-bg-dimmed);

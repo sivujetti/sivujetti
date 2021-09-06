@@ -5,6 +5,15 @@ import createParagraphBlockType from '../edit-app/src/block-types/paragraph.js';
 import './render-blocks-into-dom-test.js';
 import './reorder-blocks-test.js';
 
+const mockInternalSivujettiApi = {
+    /**
+     * @returns {Array<PageType>}
+     */
+    getPageTypes() {
+        return [];
+    }
+};
+
 env.window = window;
 env.document = document;
 //
@@ -12,8 +21,8 @@ urlUtils.baseUrl = window.location.pathname.split('public/tests')[0];
 urlUtils.assetBaseUrl = urlUtils.baseUrl;
 urlUtils.env = env;
 //
-blockTypes.register('Heading', createHeadingBlockType());
-blockTypes.register('Paragraph', createParagraphBlockType());
+blockTypes.register('Heading', createHeadingBlockType(mockInternalSivujettiApi));
+blockTypes.register('Paragraph', createParagraphBlockType(mockInternalSivujettiApi));
 
 QUnit.config.autostart = false;
 QUnit.dump.maxDepth = 8; // default 5

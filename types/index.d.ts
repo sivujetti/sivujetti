@@ -62,10 +62,14 @@ interface BlockRefComment {
 
 interface CurrentPageData {
     page: {
-        id: String;
-        title: String;
+        slug: String;
+        path: String;
+        level: Number;
         type: String;
+        title: String;
+        id: String;
         layoutId: String;
+        status: Number;
         blocks: Array<RawBlock>;
         isPlaceholderPage: Boolean;
     };
@@ -129,4 +133,8 @@ interface BlockEditFormProps {
     block: Block;
     onValueChanged: (newBlockData: {[key: String]: any;}, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none') => Promise<null>;
     autoFocus: Boolean;
+}
+
+interface InternalSivujettiApi {
+    getPageTypes(): Array<PageType>;
 }

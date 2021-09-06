@@ -53,6 +53,8 @@ final class PagesController {
         //
         $page = new Page;
         $page->slug = "-";
+        $page->path = "-";
+        $page->level = 1;
         $page->title = $pageType->defaultFields->title->defaultValue;
         $page->layoutId = $req->params->layoutId;
         $page->id = "-";
@@ -134,6 +136,27 @@ final class PagesController {
         $res->status(200)->json(["ok" => "ok"]);
     }
     /**
+     * PUT /api/pages/[w:pageType]/[i:pageId]: updates basic info of $req->params
+     * ->pageId to the database.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Sivujetti\Page\PagesRepository $pagesRepo
+     */
+    public function updatePage(Request $req,
+                               Response $res,
+                               PagesRepository $pagesRepo): void {
+        $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
+        //
+        $num = $pagesRepo->updateById($pageType, $req->params->pageId, $req->body);
+        //
+        if ($num !== 1)
+            throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",
+                PikeException::INEFFECTUAL_DB_OP);
+        //
+        $res->status(200)->json(["ok" => "ok"]);
+    }
+    /**
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
@@ -192,9 +215,13 @@ final class PagesController {
                 "<script>window.sivujettiCurrentPageData = " . json_encode([
                     "page" => (object) [
                         "id" => $page->id,
-                        "title" => $page->title,
+                        "slug" => $page->slug,
+                        "path" => $page->path,
+                        "level" => $page->level,
                         "type" => $page->type,
+                        "title" => $page->title,
                         "layoutId" => $page->layoutId,
+                        "status" => $page->status,
                         "blocks" => $page->blocks,
                         "isPlaceholderPage" => $isPlaceholderPage,
                     ],

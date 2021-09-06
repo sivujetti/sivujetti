@@ -51,9 +51,31 @@ final class PageTypeValidator {
     public function validateUpdateData(PageType $pageType,
                                        object $input,
                                        ?object $blockTypes = null): array {
+        $v = ValidationUtils::addRulesForProperties($pageType->ownFields,
+            Validation::makeObjectValidator()
+                ->rule("slug", "type", "string")
+                ->rule("path", "type", "string")
+                ->rule("level", "type", "number")
+                ->rule("title", "type", "string")
+                ->rule("layoutId", "type", "number")
+                ->rule("layoutId", "min", 1)
+                ->rule("status", "type", "number")
+                ->rule("status", "min", Page::STATUS_PUBLISHED)
+        );
+        if (!($errors = $v->validate($input)) && $blockTypes)
+            $errors = $this->blockValidator->validateMany($input->blocks, $blockTypes);
+        return $errors;
+    }
+    /**
+     * @param object $input
+     * @param object $blockTypes
+     * @return string[] Error messages or []
+     */
+    public function validateBlocksUpdateData(object $input,
+                                             object $blockTypes): array {
         $v = Validation::makeObjectValidator()
             ->rule("blocks", "minLength", "1", "array");
-        if (!($errors = $v->validate($input)) && $blockTypes)
+        if (!($errors = $v->validate($input)))
             $errors = $this->blockValidator->validateMany($input->blocks, $blockTypes);
         return $errors;
     }

@@ -21,6 +21,10 @@ final class PagesModule {
             [PagesController::class, "updatePageBlocks", ["consumes" => "application/json",
                                                           "identifiedBy" => ["updateBlocksOf", "pages"]]],
         );
+        $ctx->router->map("PUT", "/api/pages/[w:pageType]/[i:pageId]",
+            [PagesController::class, "updatePage", ["consumes" => "application/json",
+                                                    "identifiedBy" => ["update", "pages"]]],
+        );
         $ctx->router->map("GET", "/_edit/[**:url]?",
             [PagesController::class, "renderEditAppWrapper", ["identifiedBy" => ["access", "editMode"]]]
         );

@@ -7,12 +7,23 @@ import createButtonBlockType from './src/block-types/button.js';
 import createColumnsBlockType from './src/block-types/columns.js';
 import createHeadingBlockType from './src/block-types/heading.js';
 import createMenuBlockType from './src/block-types/Menu/menu.js';
+import createPageInfoBlockType from './src/block-types/pageInfo.js';
 import createParagraphBlockType from './src/block-types/paragraph.js';
 import createRichTextBlockType from './src/block-types/richText.js';
 import createSectionBlockType from './src/block-types/section.js';
 import InspectorPanel from './src/InspectorPanel.jsx';
 import webPageIframe from './src/webPageIframe.js';
 import blockTreeUtils from './src/blockTreeUtils.js';
+
+const editAppReactRef = preact.createRef();
+const internalSivujettiApi = {
+    /**
+     * @returns {Array<PageType>}
+     */
+    getPageTypes() {
+        return editAppReactRef.current.props.dataFromAdminBackend.pageTypes;
+    }
+};
 
 configureServices();
 publishFrontendApi();
@@ -33,13 +44,14 @@ function configureServices() {
         if (strings.minLength) Validator.setValidationStrings(strings);
     });
     //
-    blockTypes.register('Button', createButtonBlockType());
-    blockTypes.register('Columns', createColumnsBlockType());
-    blockTypes.register('Heading', createHeadingBlockType());
-    blockTypes.register('Menu', createMenuBlockType());
-    blockTypes.register('Paragraph', createParagraphBlockType());
-    blockTypes.register('RichText', createRichTextBlockType());
-    blockTypes.register('Section', createSectionBlockType());
+    blockTypes.register('Button', createButtonBlockType(internalSivujettiApi));
+    blockTypes.register('Columns', createColumnsBlockType(internalSivujettiApi));
+    blockTypes.register('Heading', createHeadingBlockType(internalSivujettiApi));
+    blockTypes.register('Menu', createMenuBlockType(internalSivujettiApi));
+    blockTypes.register('PageInfo', createPageInfoBlockType(internalSivujettiApi));
+    blockTypes.register('Paragraph', createParagraphBlockType(internalSivujettiApi));
+    blockTypes.register('RichText', createRichTextBlockType(internalSivujettiApi));
+    blockTypes.register('Section', createSectionBlockType(internalSivujettiApi));
 }
 
 function publishFrontendApi() {
@@ -49,7 +61,6 @@ function publishFrontendApi() {
 }
 
 function renderReactEditApp() {
-    const editAppReactRef = preact.createRef();
 
     window.editApp = {
         /**

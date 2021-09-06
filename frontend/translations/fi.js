@@ -33,6 +33,9 @@ stringBundles.push({
     'Close': 'Sulje',
     // edit-app/src/SaveButton.jsx
     'Save changes': 'Tallenna muutokset',
+    // edit-app/src/block-types/Menu/EditItemPanel.jsx
+    'Text': 'Teksti',
+    'Url': 'Urli',
     // edit-app/src/block-types/Menu/menu.js
     'Menu': 'Valikko',
     'Add item': 'Lisää linkki',
@@ -45,13 +48,15 @@ stringBundles.push({
     'Css classes': 'Css-luokat',
     'Button text': 'Napin teksti',
     // edit-app/src/block-types/heading.js
-    'Text' : 'Teksti',
     'Level' : 'Taso',
     'Add block after' : 'Lisää lohko jälkeen',
     'Heading text' : 'Otsikon teksti',
     'Heading' : 'Otsikko',
     // edit-app/src/block-types/listing.js
     'Add new %s': 'Lisää uusi %s',
+    // edit-app/src/block-types/pageInfo.js
+    'Url (slug)': 'Urli (slug)',
+    ' contains forbidden characters': ' sisältää kiellettyjä merkkejä',
     // edit-app/src/block-types/paragraph.js
     'Paragraph' : 'Tekstikappale',
     'Paragraph text' : 'Tekstikappaleen teksti',

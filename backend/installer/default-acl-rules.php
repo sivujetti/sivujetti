@@ -17,6 +17,7 @@ $out->resources = (object) [
     "pages" => (object) [
         "create"         => 0b00000010,
         "updateBlocksOf" => 0b00000100,
+        "update"         => 0b00001000,
     ]
 ];
 $out->userPermissions = (object) [

@@ -3,6 +3,7 @@
 namespace Sivujetti\Page;
 
 use Sivujetti\{Template, ValidationUtils};
+use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 
 final class SiteAwareTemplate extends Template {
@@ -80,6 +81,12 @@ final class SiteAwareTemplate extends Template {
             $out .= "<!-- block-start {$block->id}:{$block->type} -->" .
                 $this->partial($block->renderer, $block) . "<!-- block-end {$block->id} -->";
         return $out;
+    }
+    /**
+     * @see \Sivujetti\Block\BlockTree::findBlock()
+     */
+    public function findBlock(array $branch, callable $predicate): ?Block {
+        return BlockTree::findBlock($branch, $predicate);
     }
     /**
      * @return string

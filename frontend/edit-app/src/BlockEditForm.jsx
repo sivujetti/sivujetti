@@ -3,6 +3,7 @@ import Icon from '../../commons/Icon.jsx';
 import blockTypes from './block-types/block-types.js';
 import BlockTrees from './BlockTrees.jsx';
 import store, {pushItemToOpQueue} from './store.js';
+import {timingUtils} from './utils.js';
 
 class BlockEditForm extends preact.Component {
     // a; // Current reRender function closure
@@ -79,10 +80,10 @@ class BlockEditForm extends preact.Component {
             // Run reRender immediately, but throttle commitChangeToQueue
             if (debounceType === 'debounce-commit-to-queue') {
                 this.a = this.reRenderBlock.bind(this);
-                this.b = debounce(this.commitChangeToQueue.bind(this), debounceMillis);
+                this.b = timingUtils.debounce(this.commitChangeToQueue.bind(this), debounceMillis);
             // Throttle reRender, which throttles commitToQueue as well
             } else if (debounceType === 'debounce-re-render-and-commit-to-queue') {
-                this.a = debounce(this.reRenderBlock.bind(this), debounceMillis);
+                this.a = timingUtils.debounce(this.reRenderBlock.bind(this), debounceMillis);
                 this.b = this.commitChangeToQueue.bind(this);
             // Run both immediately
             } else {
@@ -105,27 +106,4 @@ class BlockEditForm extends preact.Component {
     }
 }
 
-/**
- * https://davidwalsh.name/javascript-debounce-function
- *
- * @param {Function} func
- * @param {Number} wait
- * @param {Boolean=} immediate
- */
-function debounce(func, wait, immediate) {
-    var timeout;
-    return function() {
-        var context = this, args = arguments;
-        var later = function() {
-            timeout = null;
-            if (!immediate) func.apply(context, args);
-        };
-        var callNow = immediate && !timeout;
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-        if (callNow) func.apply(context, args);
-    };
-}
-
 export default BlockEditForm;
-export {debounce};

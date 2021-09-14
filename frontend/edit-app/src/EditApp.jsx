@@ -3,6 +3,7 @@ import {Toaster} from '../../commons/Toaster.jsx';
 import Icon from '../../commons/Icon.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
 import AddPageMainPanelView from './AddPageMainPanelView.jsx';
+import {FloatingDialog} from './FloatingDialog.jsx';
 import store, {setCurrentPage, setOpQueue} from './store.js';
 import SaveButton from './SaveButton.jsx';
 
@@ -88,6 +89,7 @@ class EditApp extends preact.Component {
                     pageType={ this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentWebPage.type) }/>
             }
             <Toaster id="editAppMain"/>
+            <FloatingDialog/>
             <span class="block-hover-icon" style={ blockHoverIconCss }>
                 <Icon iconId="settings" className="size-xs"/>
             </span>

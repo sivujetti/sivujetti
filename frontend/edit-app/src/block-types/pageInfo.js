@@ -3,8 +3,8 @@ import {hookForm, InputGroupInline, Input, InputError} from '../../../commons/Fo
 import toasters from '../../../commons/Toaster.jsx';
 import store, {pushItemToOpQueue} from '../store.js';
 import BlockTrees from '../BlockTrees.jsx';
-import {debounce} from '../BlockEditForm.jsx';
 import {sensibleDefaults} from '../constants.js';
+import {timingUtils} from '../utils.js';
 
 class PageInfoBlockEditForm extends preact.Component {
     // static internalSivujettiApi;
@@ -15,7 +15,7 @@ class PageInfoBlockEditForm extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.commitNewPageValuesDebounced = debounce(this.commitNewPageValues.bind(this),
+        this.commitNewPageValuesDebounced = timingUtils.debounce(this.commitNewPageValues.bind(this),
             sensibleDefaults.normalTypingDebounceMillis);
     }
     /**

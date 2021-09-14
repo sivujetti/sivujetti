@@ -26,6 +26,8 @@
 .color-accent { color: var(--color-accent); }
 .color-orange { color: var(--color-orange); }
 .color-purple { color: var(--color-purple); }
+.mt-8 { margin-top: .8rem !important; }
+.mb-8 { margin-bottom: 1rem !important; }
 
 /* Spectre-overrides */
 .btn {
@@ -172,6 +174,41 @@ ul.list {
     list-style: none;
     margin: 0;
 }
+@keyframes show {
+    0% { visibility: hidden; }
+    100% { visibility: visible; }
+}
+.show-after-05 {
+    visibility: hidden;
+    animation: show 0s .5s forwards;
+}
+/* https://stackoverflow.com/a/40991531 */
+@keyframes dotty {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+    100% { content: ''; }
+}
+.dots-animation {
+    font-size: 1.2rem;
+    line-height: 1.2rem;
+}
+.dots-animation:after {
+    display: inline-block;
+    animation: dotty steps(1,end) 1s infinite;
+    content: '';
+    letter-spacing: 2px;
+}
+.img-ratio {
+    padding-bottom: 56.25%;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+}
+.img-ratio img {
+    position: absolute;
+}
 /* commons.css end */
 
 
@@ -273,6 +310,29 @@ ul.list {
     left: 0;
     cursor: row-resize;
 }
+.floating-dialog {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    left: 0;
+}
+.has-icon-right .form-input {
+    padding-right: 1.6rem;
+}
+.has-icon-right .sivujetti-form-icon {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: .2rem .4rem;
+}
+.has-icon-right button.sivujetti-form-icon {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
 
 /* todo
 .two-columns-layout #main-panel,
@@ -360,6 +420,29 @@ a.popup-close-area {
     animation-fill-mode: forwards;
     position: relative;
 }
+.item-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .4rem;
+}
+.image-grid button, .image-grid img {
+    border-radius: 2px;
+}
+.image-grid > button {
+    background-color: var(--color-bg-default);
+    padding: 0 0 2rem;
+    height: initial;
+    position: relative;
+}
+.image-grid .caption {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    bottom: 0;
+    padding: .34rem;
+}
+
+
 
 /* EditApp: Main panel */
 #main-panel header {

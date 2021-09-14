@@ -13,10 +13,10 @@ stringBundles.push({
     'Content': 'Content',
     'Something unexpected happened.': 'Something unexpected happened.',
     // edit-app/src/BlockTree.jsx
-    'Add child' : 'Add child',
-    'Add child block' : 'Add child block',
-    'Delete' : 'Delete',
-    'Delete block' : 'Delete block',
+    'Add child': 'Add child',
+    'Add child block': 'Add child block',
+    'Delete': 'Delete',
+    'Delete block': 'Delete block',
     // edit-app/src/BlockTrees.jsx
     'Page': 'Page',
     'Add new block': 'Add new block',
@@ -48,22 +48,33 @@ stringBundles.push({
     'Css classes': 'Css classes',
     'Button text': 'Button text',
     // edit-app/src/block-types/heading.js
-    'Level' : 'Level',
-    'Add block after' : 'Add block after',
-    'Heading text' : 'Heading text',
-    'Heading' : 'Heading',
+    'Level': 'Level',
+    'Add block after': 'Add block after',
+    'Heading text': 'Heading text',
+    'Heading': 'Heading',
     // edit-app/src/block-types/listing.js
     'Add new %s': 'Add new %s',
     // edit-app/src/block-types/pageInfo.js
     'Url (slug)': 'Url (slug)',
     ' contains forbidden characters': ' contains forbidden characters',
     // edit-app/src/block-types/paragraph.js
-    'Paragraph' : 'Paragraph',
-    'Paragraph text' : 'Paragraph text',
+    'Paragraph': 'Paragraph',
+    'Paragraph text': 'Paragraph text',
     // edit-app/src/block-types/richText.js
-    'RichText' : 'Rich text',
-    'Rich text' : 'Rich text',
-    'Rich text content' : 'Rich text content',
+    'RichText': 'Rich text',
+    'Rich text': 'Rich text',
+    'Rich text content': 'Rich text content',
+    // edit-app/src/block-types/section.js
+    'Background': 'Background',
+    //edit-app/src/Upload/UploadsManager.jsx
+    'Documents': 'Documents',
+    'Images': 'Kuvat',
+    'Upload': 'Lataa',
+    'Search': 'Search',
+    'No results for "%s"': 'No results for "%s"',
+    'No uploads yet': 'No uploads yet',
+    // edit-app/src/widgets/ImagePicker.jsx
+    'Choose a picture': 'Valitse kuva',
     //
     required: '{field} is required',
     minLength: '{field} must be at least {arg0} characters long',

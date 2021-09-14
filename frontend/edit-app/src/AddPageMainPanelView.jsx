@@ -1,8 +1,9 @@
-import {__, http, urlUtils, stringUtils} from '@sivujetti-commons';
+import {__, http, urlUtils} from '@sivujetti-commons';
 import {hookForm, InputGroup, InputError, Input} from '../../commons/Form.jsx';
 import toasters from '../../commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';
 import store, {deleteItemsFromOpQueueAfter, setOpQueue} from './store.js';
+import {stringUtils} from './utils.js';
 
 class AddPageMainPanelView extends preact.Component {
     // initialPageData;

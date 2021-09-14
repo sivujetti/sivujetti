@@ -1,5 +1,5 @@
-import {generatePushID} from '../../commons/utils.js';
 import blockTypes from './block-types/block-types.js';
+import {generatePushID} from './utils.js';
 
 class Block {
     /**

@@ -18,14 +18,18 @@ $out->resources = (object) [
         "create"         => 0b00000010,
         "updateBlocksOf" => 0b00000100,
         "update"         => 0b00001000,
-    ]
+    ],
+    "uploads" => (object) [
+        "view"           => 0b00000010,
+    ],
 ];
 $out->userPermissions = (object) [
     ACL::ROLE_ADMIN => (object) [
-        "blocks"   => ACL::makePermissions("*", $out->resources->blocks),
-        "editMode" => ACL::makePermissions("*", $out->resources->editMode),
-        "layouts"  => ACL::makePermissions("*", $out->resources->layouts),
-        "pages"    => ACL::makePermissions("*", $out->resources->pages),
+        "blocks"      => ACL::makePermissions("*", $out->resources->blocks),
+        "editMode"    => ACL::makePermissions("*", $out->resources->editMode),
+        "layouts"     => ACL::makePermissions("*", $out->resources->layouts),
+        "pages"       => ACL::makePermissions("*", $out->resources->pages),
+        "uploads"     => ACL::makePermissions("*", $out->resources->uploads),
     ]
 ];
 return $out;

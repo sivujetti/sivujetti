@@ -138,3 +138,11 @@ interface BlockEditFormProps {
 interface InternalSivujettiApi {
     getPageTypes(): Array<PageType>;
 }
+
+interface UploadsEntry {
+    baseDir: String;
+    createdAt: Number;
+    fileName: String;
+    friendlyName: String;
+    mime: String;
+}

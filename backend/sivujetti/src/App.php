@@ -18,6 +18,7 @@ use Sivujetti\UserSite\{UserSiteAPI, UserSiteInterface};
 use Pike\{App as PikeApp, PikeException, Request, Response, Router, ServiceDefaults};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\Layout\LayoutsModule;
+use Sivujetti\Upload\UploadsModule;
 
 final class App {
     public const VERSION = "0.4.0-dev";
@@ -36,6 +37,7 @@ final class App {
             new self,
             new BlocksModule,
             new LayoutsModule,
+            new UploadsModule,
             new PagesModule,
         ], function (AppContext $ctx, ServiceDefaults $defaults) use ($config): void {
             $ctx->config = $defaults->makeConfig($config);

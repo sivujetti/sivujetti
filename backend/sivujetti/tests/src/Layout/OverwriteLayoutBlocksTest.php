@@ -4,8 +4,9 @@ namespace Sivujetti\Tests\Layout;
 
 use Sivujetti\App;
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\Tests\Utils\{BlockTestUtils, HttpApiTestTrait};
-use Pike\{PikeException, TestUtils\DbTestCase, TestUtils\HttpTestUtils};
+use Sivujetti\Tests\Utils\{BlockTestUtils, DbDataHelper, HttpApiTestTrait};
+use Pike\PikeException;
+use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 use Sivujetti\Block\BlockTree;
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\Layout\LayoutBlocksRepository;
@@ -14,9 +15,11 @@ final class OverwriteLayoutBlocksTest extends DbTestCase {
     use HttpTestUtils;
     use HttpApiTestTrait;
     private LayoutBlocksRepository $layoutBlocksRepo;
+    private DbDataHelper $dbDataHelper;
     protected function setUp(): void {
         parent::setUp();
         $this->layoutBlocksRepo = new LayoutBlocksRepository(self::$db, new BlockTypes);
+        $this->dbDataHelper = new DbDataHelper(self::$db);
     }
     public function testOverwriteLayoutBlocksSavesNewBlocksToDb(): void {
         $state = $this->setupTest();
@@ -47,9 +50,7 @@ final class OverwriteLayoutBlocksTest extends DbTestCase {
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
     }
     private function insertTestLayoutBlocksDataToDb(\TestState $state): void {
-        [$qList, $values, $columns] = self::$db->makeInsertQParts($state->testLayoutBlocksData);
-        self::$db->exec("INSERT INTO `\${p}layoutBlocks` ({$columns})" .
-                        " VALUES ({$qList})", $values);
+        $this->dbDataHelper->insertData($state->testLayoutBlocksData, "layoutBlocks");
     }
     private function sendOverwriteLayoutBlocksRequest(\TestState $state): void {
         $state->spyingResponse = $state->app->sendRequest($this->createApiRequest(

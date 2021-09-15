@@ -33,8 +33,9 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         return $state;
     }
     private function insertTestLayoutBlocksToDb(\TestState $state): void {
-        self::$db->exec("INSERT INTO \${p}`layoutBlocks` VALUES (?,?)",
-                        [$state->testLayoutData->blocks, $state->testPageData->layoutId]);
+        $this->dbDataHelper->insertData((object) ["blocks" => $state->testLayoutData->blocks,
+                                                  "layoutId" => $state->testPageData->layoutId],
+                                        "layoutBlocks");
     }
     private function verifyRenderedCorrectPageAndLayout(\TestState $state): void {
         $expectedHeading = htmlspecialchars($state->testPageData->title);

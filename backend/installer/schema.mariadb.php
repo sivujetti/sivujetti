@@ -1,6 +1,10 @@
 <?php
 
+$dataTypeForTimestamps = "INT(10) UNSIGNED NOT NULL DEFAULT 0";
+$dataTypeForMaxIndexableText = "VARCHAR(191) NOT NULL"; // 191 * 4 = 767 bytes = max key length
+
 return [
+"DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layoutBlocks`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
@@ -13,7 +17,7 @@ return [
     `name` VARCHAR(92) NOT NULL,
     `lang` VARCHAR(12) NOT NULL,
     `aclRules` JSON,
-    `lastUpdatedAt` INT(10) UNSIGNED NOT NULL DEFAULT 0
+    `lastUpdatedAt` {$dataTypeForTimestamps}
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}plugins` (
@@ -26,7 +30,7 @@ return [
 "CREATE TABLE `\${p}categories` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `slug` VARCHAR(92) NOT NULL,
-    `path` VARCHAR(191) NOT NULL, -- 191 * 4 = 767 bytes = max key length
+    `path` {$dataTypeForMaxIndexableText},
     `level` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1,
     `title` VARCHAR(92) NOT NULL,
     `status` TINYINT(1) NOT NULL DEFAULT 0,
@@ -45,10 +49,10 @@ return [
 "CREATE TABLE `\${p}Pages` (
     `id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `slug` VARCHAR(92) NOT NULL,
-    `path` VARCHAR(191) NOT NULL,
+    `path` {$dataTypeForMaxIndexableText},
     `level` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1,
     `title` VARCHAR(92) NOT NULL,
-    `layoutId` VARCHAR(191) NOT NULL,
+    `layoutId` {$dataTypeForMaxIndexableText},
     `blocks` JSON,
     `status` TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`)
@@ -64,6 +68,16 @@ return [
 
 "CREATE TABLE `\${p}layoutBlocks` (
     `blocks` JSON,
-    `layoutId` VARCHAR(191) NOT NULL
+    `layoutId` {$dataTypeForMaxIndexableText}
+) DEFAULT CHARSET = utf8mb4",
+
+"CREATE TABLE `\${p}files` (
+    `fileName` VARCHAR(127) NOT NULL, -- e.g. 'a-cat.png'
+    `baseDir` VARCHAR(260) NOT NULL, -- e.g. '' or 'sub-dir/' or 'sub-dir/another-dir/'
+    `mime` VARCHAR(255) NOT NULL,
+    `friendlyName` VARCHAR(64) NOT NULL,
+    `createdAt` {$dataTypeForTimestamps},
+    `updatedAt` {$dataTypeForTimestamps},
+    PRIMARY KEY (`fileName`, `baseDir`)
 ) DEFAULT CHARSET = utf8mb4",
 ];

@@ -6,18 +6,22 @@ use Sivujetti\App;
 use Sivujetti\AppContext;
 use Sivujetti\SharedAPIContext;
 use Sivujetti\Tests\Utils\PageTestUtils;
-use Pike\{Request, TestUtils\DbTestCase, TestUtils\HttpTestUtils};
+use Pike\Request;
+use Pike\TestUtils\{DbTestCase, HttpTestUtils};
+use Sivujetti\Tests\Utils\DbDataHelper;
 
 abstract class RenderPageTestCase extends DbTestCase {
     use HttpTestUtils;
     protected PageTestUtils $pageTestUtils;
     protected SharedAPIContext $testAppStorage;
+    protected DbDataHelper $dbDataHelper;
     protected function setUp(): void {
         parent::setUp();
         $this->testAppStorage = new SharedAPIContext;
         $this->pageTestUtils = new PageTestUtils(self::$db, $this->testAppStorage);
         if (!file_exists(SIVUJETTI_BACKEND_PATH . "site/templates/layout.default.tmpl.php"))
             throw new \RuntimeException("Site not installed");
+        $this->dbDataHelper = new DbDataHelper(self::$db);
     }
     protected function makeSivujettiApp(\TestState $state): void {
         $ctx = new AppContext;

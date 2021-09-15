@@ -1,6 +1,9 @@
 <?php
 
+$dataTypeForTimestamps = "INTEGER NOT NULL DEFAULT 0";
+
 return [
+"DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layoutBlocks`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
@@ -13,7 +16,7 @@ return [
     `name` TEXT NOT NULL,
     `lang` TEXT NOT NULL,
     `aclRules` JSON,
-    `lastUpdatedAt` INTEGER NOT NULL DEFAULT 0
+    `lastUpdatedAt` {$dataTypeForTimestamps}
 )",
 
 "CREATE TABLE `\${p}plugins` (
@@ -61,5 +64,15 @@ return [
 "CREATE TABLE `\${p}layoutBlocks` (
     `blocks` JSON,
     `layoutId` TEXT NOT NULL
-)"
+)",
+
+"CREATE TABLE `\${p}files` (
+    `fileName` TEXT NOT NULL, -- e.g. 'a-cat.png'
+    `baseDir` TEXT NOT NULL, -- e.g. '' or 'sub-dir/' or 'sub-dir/another-dir/'
+    `mime` TEXT NOT NULL,
+    `friendlyName` TEXT NOT NULL,
+    `createdAt` {$dataTypeForTimestamps},
+    `updatedAt` {$dataTypeForTimestamps},
+    PRIMARY KEY (`fileName`, `baseDir`)
+)",
 ];

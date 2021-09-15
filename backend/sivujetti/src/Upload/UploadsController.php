@@ -2,24 +2,22 @@
 
 namespace Sivujetti\Upload;
 
-use Pike\{Response};
+use Pike\{Request, Response};
 
 final class UploadsController {
     /**
      * GET /api/uploads/:filters?: Returns a list of files synced to db
      *
+     * @param \Pike\Request $req
      * @param \Pike\Response $res
+     * @param \Sivujetti\Upload\UploadsRepository $uploadsRepo
      */
-    public function getUploads(Response $res): void {
-        $res->json([
-            (object) [
-                "fileName" => "sample.jpg",
-                "baseDir" => "",
-                "mime" => "image/png",
-                "friendlyName" => "",
-                "createdAt" => time(),
-                "updatedAt" => 0,
-            ],
-        ]);
+    public function getUploads(Request $req,
+                               Response $res,
+                               UploadsRepository $uploadsRepo): void {
+        if ($req->params->filters !== '{"mime":{"$eq":"image/*"}}')
+            throw new \RuntimeException("Not implemented");
+        $files = $uploadsRepo->getMany((new UploadsQFilters)->byMime("image/*"));
+        $res->json($files);
     }
 }

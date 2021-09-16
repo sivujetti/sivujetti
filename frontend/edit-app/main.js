@@ -70,8 +70,8 @@ function renderReactEditApp() {
         handleWebPageLoaded(webPage) {
             const editApp = editAppReactRef.current;
             webPage.setEventHandlers(editApp.websiteEventHandlers);
-            webPage.data.blocks = normalizeBlockTree(webPage.data.page.blocks);
-            webPage.data.layoutBlocks = normalizeBlockTree(webPage.data.layoutBlocks);
+            webPage.data.blocks = blockTreeUtils.setParentIdPaths(webPage.data.page.blocks);
+            webPage.data.layoutBlocks = blockTreeUtils.setParentIdPaths(webPage.data.layoutBlocks);
             editApp.handleWebPageLoaded(webPage.data,
                                         webPage.scanBlockRefComments(true),
                                         webPage);
@@ -105,11 +105,4 @@ function hookUpSiteIframeUrlMirrorer() {
         if (window.location.href !== `${window.location.origin}${p}`)
             history.replaceState(null, null, p);
     });
-}
-
-function normalizeBlockTree(branch) {
-    blockTreeUtils.traverseRecursively(branch, (b, _i, _parent, parentIdPath) => {
-        b.parentBlockIdPath = parentIdPath;
-    });
-    return branch;
 }

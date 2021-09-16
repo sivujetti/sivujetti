@@ -1,4 +1,5 @@
 import blockTypes from './block-types/block-types.js';
+import blockTreeUtils from './blockTreeUtils.js';
 import {generatePushID} from './utils.js';
 
 class Block {
@@ -29,6 +30,24 @@ class Block {
             renderer: blockType.defaultRenderer,
             children: []
         }, completeOwnProps));
+    }
+    /**
+     * @param {Block} from
+     * @returns {Block}
+     * @access public
+     */
+    static cloneDeep(from) {
+        const branch = blockTreeUtils.mapRecursively([from], block =>
+            Block.fromObject(Object.assign({
+                id: generatePushID(),
+                parentBlockIdPath: '',
+                title: block.title,
+                type: block.type,
+                renderer: block.renderer,
+            }, this.makeOwnData(blockTypes.get(block.type), block, 1)))
+        );
+        blockTreeUtils.setParentIdPaths(branch);
+        return branch[0];
     }
     /**
      * @param {RawBlock} from

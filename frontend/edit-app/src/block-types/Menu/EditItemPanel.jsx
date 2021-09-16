@@ -25,7 +25,8 @@ class EditItemPanel extends preact.Component {
      * @access protected
      */
     componentWillUnmount() {
-        this.form.destroy();
+        if (this.form)
+            this.form.destroy();
     }
     /**
      * @access protected

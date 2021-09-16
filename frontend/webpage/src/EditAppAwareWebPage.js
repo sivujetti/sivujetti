@@ -63,10 +63,59 @@ class EditAppAwareWebPage {
                     before: commentOrPseudoComment.nextSibling}),
             true
         ).then(startingCommentNode => {
-            const cref = makeBlockRefComment(block.id, startingCommentNode);
+            const cref = makeBlockRefComment(block, startingCommentNode);
             this.registerBlockMouseListeners(cref);
             return cref;
         });
+    }
+    /**
+     * @param {Block} clonedBlock
+     * @param {Block} clonedFromBlock
+     * @param {blockTreeUtils} blockTreeUtils
+     * @returns {Promise<{[key: String]: BlockRefComment;}>}
+     * @access public
+     */
+    appendClonedBlockBranchToDom(clonedBlock, clonedFromBlock, blockTreeUtils) {
+        const contentToClone = this.getBlockContents(clonedFromBlock);
+        const clonedContentEls = [document.createComment(makeStartingComment(clonedBlock)),
+                                  contentToClone[1].cloneNode(true),
+                                  document.createComment(makeEndingComment(clonedBlock))];
+        //
+        const childBlockMap = {};
+        blockTreeUtils.traverseRecursively(clonedFromBlock.children, (block, i, _parent, p) => {
+            childBlockMap[`${p}-${i}`] = {clonedFrom: block, cloned: null, startingCommentNode: null};
+        });
+        blockTreeUtils.traverseRecursively(clonedBlock.children, (block, i, _parent, p) => {
+            childBlockMap[`${p}-${i}`].cloned = block;
+        });
+        // Update the comment ref nodes of each cloned block
+        const clonedComms = getAllComments(clonedContentEls[1]);
+        for (const key in childBlockMap) {
+            const {clonedFrom, cloned} = childBlockMap[key];
+            const startingCommentNode = clonedComms.find(c => c.nodeValue === makeStartingComment(clonedFrom));
+            const endindCommentNode = clonedComms.find(c => c.nodeValue === makeEndingComment(clonedFrom));
+            startingCommentNode.textContent = makeStartingComment(cloned); // Note: mutates clonedContentEls
+            endindCommentNode.textContent = makeEndingComment(cloned); // Note: mutates clonedContentEls
+            childBlockMap[key].startingCommentNode = startingCommentNode;
+        }
+        // Append new contents to the DOM
+        const referenceEndingComment = contentToClone[contentToClone.length - 1];
+        const parent = referenceEndingComment.parentNode;
+        const before = referenceEndingComment.nextSibling;
+        if (before) clonedContentEls.forEach(el => { parent.insertBefore(el, before); });
+        else clonedContentEls.forEach(el => { parent.appendChild(el); });
+        //
+        const _crefs = {
+            [clonedBlock.id]: makeBlockRefComment(clonedBlock, clonedContentEls[0])
+        };
+        for (const key in childBlockMap) {
+            const {cloned, startingCommentNode} = childBlockMap[key];
+            _crefs[cloned.id] = makeBlockRefComment(cloned, startingCommentNode);
+        }
+        for (const clonedBlockId in _crefs) {
+            this.registerBlockMouseListeners(_crefs[clonedBlockId]);
+        }
+        return Promise.resolve(_crefs);
     }
     /**
      * @param {Block} block

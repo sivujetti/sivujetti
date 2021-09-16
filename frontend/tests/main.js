@@ -2,6 +2,7 @@ import {env, urlUtils} from '@sivujetti-commons';
 import blockTypes from '../edit-app/src/block-types/block-types.js';
 import createHeadingBlockType from '../edit-app/src/block-types/heading.js';
 import createParagraphBlockType from '../edit-app/src/block-types/paragraph.js';
+import createSectionBlockType from '../edit-app/src/block-types/section.js';
 import './render-blocks-into-dom-test.js';
 import './reorder-blocks-test.js';
 
@@ -23,6 +24,7 @@ urlUtils.env = env;
 //
 blockTypes.register('Heading', createHeadingBlockType(mockInternalSivujettiApi));
 blockTypes.register('Paragraph', createParagraphBlockType(mockInternalSivujettiApi));
+blockTypes.register('Section', createSectionBlockType(mockInternalSivujettiApi));
 
 QUnit.config.autostart = false;
 QUnit.dump.maxDepth = 8; // default 5

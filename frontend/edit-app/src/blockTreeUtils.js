@@ -1,10 +1,21 @@
 export default {
     /**
+     * @param {Array<Block>} branch
+     * @returns {Array<Block>}
+     * @access public
+     */
+    setParentIdPaths(branch) {
+        this.traverseRecursively(branch, (b, _i, _parent, parentIdPath) => {
+            b.parentBlockIdPath = parentIdPath;
+        });
+        return branch;
+    },
+    /**
      * @param {String} id
      * @param {Array<Block>} branch
      * @param {Block=} parentBlock = null
      * @returns {[Block|null, Array<Block>|null, Block|null]} [block, containingBranch, parentBlock]
-     * @access private
+     * @access public
      */
     findBlock(id, branch, parentBlock = null) {
         for (const b of branch) {
@@ -25,9 +36,9 @@ export default {
     mapRecursively(branch, fn) {
         return branch.map((b, i) => {
             const out = fn(b, i);
-            if (b.children.length) {
-                out.children = this.mapRecursively(b.children, fn);
-            }
+            out.children = b.children.length
+                ? this.mapRecursively(b.children, fn)
+                : [];
             return out;
         });
     },

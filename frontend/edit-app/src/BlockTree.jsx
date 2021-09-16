@@ -195,6 +195,7 @@ class BlockTree extends preact.Component {
             <ContextMenu
                 links={ [
                     {text: __('Add child'), title: __('Add child block'), id: 'add-child'},
+                    {text: __('Clone'), title: __('Clone block or branch'), id: 'clone-block'},
                     {text: __('Delete'), title: __('Delete block'), id: 'delete-block'},
                 ] }
                 onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
@@ -214,6 +215,21 @@ class BlockTree extends preact.Component {
                     state.treeState[id].isCollapsed = false;
                     return state;
                 });
+        } else if (link.id === 'clone-block') {
+            const clonedBlock = Block.cloneDeep(this.state.blockWithNavOpened);
+            const [cloneFrom, branch] = blockTreeUtils.findBlock(this.state.blockWithNavOpened.id, this.state.blockTree);
+            BlockTreeTabs.currentWebPage.appendClonedBlockBranchToDom(clonedBlock, cloneFrom, blockTreeUtils).then(_crefs => {
+                const treeStateMutRef = this.state.treeState;
+                blockTreeUtils.traverseRecursively([clonedBlock], b => {
+                    b._cref = _crefs[b.id];                        // Note: mutates this.state.blockTree
+                    treeStateMutRef[b.id] = createTreeItemState(); // Note: mutates this.state.treeState
+                });
+                branch.splice(branch.indexOf(cloneFrom) + 1, 0, clonedBlock); // mutates this.state.blockTree
+                this.setState({
+                    blockTree: this.state.blockTree,
+                    treeState: treeStateMutRef
+                });
+            });
         } else if (link.id === 'delete-block') {
             const isSelectedRootCurrentlyClickedBlock = () => {
                 if (!this.selectedRoot)

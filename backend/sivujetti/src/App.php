@@ -21,7 +21,7 @@ use Sivujetti\Layout\LayoutsModule;
 use Sivujetti\Upload\UploadsModule;
 
 final class App {
-    public const VERSION = "0.4.0-dev";
+    public const VERSION = "0.4.0";
     /** @var \Sivujetti\AppContext */
     private AppContext $ctx;
     /**

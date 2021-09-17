@@ -16,3 +16,14 @@ This sprint focused on adding new basic block types, and improving the overall c
     - Dragging between branches is not supported yet
 - Block tree branches can now be collapsed / uncollapsed
 - The frontend does less unnecessary work, when text is being typed to a Paragraph / Heading etc. block's input
+
+# 0.4.0 (2021-09-17)
+
+This sprint focused on improving the overall content editing experience further, and figuring out how to implement custom page types.
+
+- Listing and Section blocks can now be inserted to a page
+- Page titles and slugs are now editable
+- It's now much faster to write content by cloning previously created blocks!
+- Menu blocks' links are now editable
+- Sections blocks' backgrounds can now be selected from a image picker dialog
+- The main "Add block" button now ignores the active block, and always adds new blocks to the root branch

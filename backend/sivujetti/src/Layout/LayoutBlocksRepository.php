@@ -12,7 +12,7 @@ final class LayoutBlocksRepository {
     private Db $db;
     /**
      * @param \Pike\Db $db
-     * @param \Sivujetti\SharedAPIContext $storage 
+     * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      */
     public function __construct(Db $db, BlockTypes $blockTypes) {
         $this->db = $db;

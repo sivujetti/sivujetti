@@ -1,1 +1,1 @@
-<?php // ["site/templates/block-services-listing.tmpl.php", "site/templates/Footer.tmpl.php", "site/templates/layout.default.tmpl.php", "site/templates/MainMenu.tmpl.php"]
+<?php // ["$backend/site/templates/block-services-listing.tmpl.php", "$backend/site/templates/Footer.tmpl.php", "$backend/site/templates/layout.default.tmpl.php", "$backend/site/templates/MainMenu.tmpl.php"]

@@ -2,8 +2,9 @@
 
 namespace Sivujetti\Installer;
 
-use Sivujetti\ValidationUtils;
 use Pike\{Db, FileSystem, PikeException};
+use Sivujetti\Update\{PackageStreamInterface, Updater};
+use Sivujetti\ValidationUtils;
 
 final class Commons {
     /** @var \Pike\Db */
@@ -52,8 +53,8 @@ final class Commons {
      * @param \Sivujetti\Update\PackageStreamInterface $package
      */
     public function populateDb(PackageStreamInterface $package): void {
-        $statements = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_DB_DATA,
-                                               $package);
+        $statements = Updater::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_DB_DATA,
+                                                  $package);
         $this->runManyDbStatements($statements);
     }
     /**
@@ -66,23 +67,6 @@ final class Commons {
         $this->writeSiteSourceFiles($package); // @allow \Pike\PikeException
         $this->writePublicFiles($package); // @allow \Pike\PikeException
         $this->generateAndWriteConfigFile($config); // @allow \Pike\PikeException
-    }
-    /**
-     * @param string $sneakyJsonFileLocalName
-     * @param \Sivujetti\Update\PackageStreamInterface $package
-     * @return array|object Parsed json data
-     */
-    public static function readSneakyJsonData(string $sneakyJsonFileLocalName,
-                                              PackageStreamInterface $package): array|object {
-        if (!is_string(($str = $package->read($sneakyJsonFileLocalName))))
-            throw new PikeException("Failed to read `{$sneakyJsonFileLocalName}`",
-                                    PikeException::FAILED_FS_OP);
-        if (($parsed = json_decode(substr($str, strlen("<?php // ")),
-                                   associative: true,
-                                   flags: JSON_THROW_ON_ERROR)) === null)
-            throw new PikeException("Failed to parse the contents of `{$sneakyJsonFileLocalName}`",
-                                    PikeException::BAD_INPUT);
-        return $parsed;
     }
     /**
      * @param array $config
@@ -157,16 +141,16 @@ return [
      * @param \Sivujetti\Update\PackageStreamInterface $package
      */
     private function writeSiteSourceFiles(PackageStreamInterface $package): void {
-        $localFileNames = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PHP_FILES_LIST,
-                                                   $package);
+        $localFileNames = Updater::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PHP_FILES_LIST,
+                                                      $package);
         $package->extractMany($this->targetSiteBackendPath, $localFileNames);
     }
     /**
      * @param \Sivujetti\Update\PackageStreamInterface $package
      */
     private function writePublicFiles(PackageStreamInterface $package): void {
-        $localFileNames = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PUBLIC_FILES_LIST,
-                                                   $package);
+        $localFileNames = Updater::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PUBLIC_FILES_LIST,
+                                                      $package);
         $package->extractMany($this->targetSiteServerRoot, $localFileNames);
     }
     /**

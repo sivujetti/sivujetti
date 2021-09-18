@@ -1,10 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Sivujetti\Cli;
+namespace Sivujetti\Update;
 
-use Pike\Auth\Crypto as PikeCrypto;
-
-final class Crypto extends PikeCrypto {
+final class Signer {
     /**
      * @throws \SodiumException
      */

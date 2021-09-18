@@ -4,6 +4,7 @@ $dataTypeForTimestamps = "INT(10) UNSIGNED NOT NULL DEFAULT 0";
 $dataTypeForMaxIndexableText = "VARCHAR(191) NOT NULL"; // 191 * 4 = 767 bytes = max key length
 
 return [
+"DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layoutBlocks`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
@@ -17,7 +18,8 @@ return [
     `name` VARCHAR(92) NOT NULL,
     `lang` VARCHAR(12) NOT NULL,
     `aclRules` JSON,
-    `lastUpdatedAt` {$dataTypeForTimestamps}
+    `lastUpdatedAt` {$dataTypeForTimestamps},
+    `newestCoreVersionLastChecked` {$dataTypeForTimestamps}
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}plugins` (
@@ -80,4 +82,13 @@ return [
     `updatedAt` {$dataTypeForTimestamps},
     PRIMARY KEY (`fileName`, `baseDir`)
 ) DEFAULT CHARSET = utf8mb4",
+
+"CREATE TABLE `\${p}jobs` (
+    `id` SMALLINT UNSIGNED NOT NULL,
+    `jobName` VARCHAR(64) NOT NULL,
+    `startedAt` {$dataTypeForTimestamps},
+    PRIMARY KEY (`id`)
+) DEFAULT CHARSET = utf8mb4",
+
+"INSERT INTO `\${p}jobs` VALUES (1,'update-core',0)",
 ];

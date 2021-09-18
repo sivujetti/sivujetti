@@ -1,12 +1,14 @@
 <?php declare(strict_types=1);
 
-namespace Sivujetti\Installer;
+namespace Sivujetti\Update;
 
 interface PackageStreamInterface {
-    public const LOCAL_NAME_PHP_FILES_LIST = 'php-files-list.php';
-    public const LOCAL_NAME_PUBLIC_FILES_LIST = 'public-files-list.php';
-    public const LOCAL_NAME_MAIN_CONFIG = 'config.in.php';
-    public const LOCAL_NAME_DB_DATA = 'db-data.php';
+    public const FILE_NS_BACKEND = "\$backend/";
+    public const FILE_NS_INDEX = "\$index/";
+    public const LOCAL_NAME_PHP_FILES_LIST = "php-files-list.php";
+    public const LOCAL_NAME_PUBLIC_FILES_LIST = "public-files-list.php";
+    public const LOCAL_NAME_MAIN_CONFIG = "config.in.php";
+    public const LOCAL_NAME_DB_DATA = "db-data.php";
     /**
      * @param string $filePath
      * @param bool $create = false
@@ -26,6 +28,13 @@ interface PackageStreamInterface {
                             ?string $localName = null,
                             int $start = 0,
                             int $length = 0): bool;
+    /**
+     * @param string $localName
+     * @param string[] $localNames
+     * @return booll
+     * @throws \Pike\PikeException
+     */
+    public function addFileMap(string $localName, array $localNames): bool;
     /**
      * @param string $localName
      * @param string $contents
@@ -48,12 +57,9 @@ interface PackageStreamInterface {
     public function extractMany(string $destinationPath,
                                 $localNames = []): bool;
     /**
+     * @param int $flags = 0
      * @return string
      * @throws \Pike\PikeException
      */
-    public function getResult(): string;
-    /**
-     * @throws \Pike\PikeException
-     */
-    public function writeToDisk(): void;
+    public function getResult(int $flags = 0): string;
 }

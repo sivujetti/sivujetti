@@ -3,6 +3,7 @@
 $dataTypeForTimestamps = "INTEGER NOT NULL DEFAULT 0";
 
 return [
+"DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layoutBlocks`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
@@ -16,7 +17,8 @@ return [
     `name` TEXT NOT NULL,
     `lang` TEXT NOT NULL,
     `aclRules` JSON,
-    `lastUpdatedAt` {$dataTypeForTimestamps}
+    `lastUpdatedAt` {$dataTypeForTimestamps},
+    `newestCoreVersionLastChecked` {$dataTypeForTimestamps}
 )",
 
 "CREATE TABLE `\${p}plugins` (
@@ -75,4 +77,12 @@ return [
     `updatedAt` {$dataTypeForTimestamps},
     PRIMARY KEY (`fileName`, `baseDir`)
 )",
+
+"CREATE TABLE `\${p}jobs` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `jobName` TEXT NOT NULL,
+    `startedAt` {$dataTypeForTimestamps}
+)",
+
+"INSERT INTO `\${p}jobs` VALUES (1,'update-core',0)",
 ];

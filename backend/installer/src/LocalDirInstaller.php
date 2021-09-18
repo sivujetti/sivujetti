@@ -3,6 +3,7 @@
 namespace Sivujetti\Installer;
 
 use Pike\Interfaces\FileSystemInterface;
+use Sivujetti\Update\Updater;
 
 final class LocalDirInstaller {
     /** @var \Pike\Interfaces\FileSystemInterface */
@@ -26,8 +27,10 @@ final class LocalDirInstaller {
      */
     public function doInstall(string $relDirPath, string $baseUrl): void {
         $package = new LocalDirPackage($this->fs);
-        $package->open($relDirPath); // @allow \Pike\PikeException
-        $config = Commons::readSneakyJsonData($package::LOCAL_NAME_MAIN_CONFIG, $package);
+        $package->open(SIVUJETTI_BACKEND_PATH . "installer/sample-content/" . $relDirPath); // @allow \Pike\PikeException
+        $config = Updater::readSneakyJsonData($package::LOCAL_NAME_MAIN_CONFIG,
+                                              $package,
+                                              associative: true);
         foreach ($config as $key => $_)
             $config[$key] = str_replace("\${SIVUJETTI_BACKEND_PATH}",
                                         $this->commons->getTargetSitePath('backend'),

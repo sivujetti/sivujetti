@@ -8,6 +8,10 @@ $out->resources = (object) [
         "create"         => 0b00000010,
         "render"         => 0b00000100,
     ],
+    "coreUpdates" => (object) [
+        "checkAvailable" => 0b00000010,
+        "install"        => 0b00000100,
+    ],
     "editMode" => (object) [
         "access"         => 0b00000010,
     ],
@@ -26,6 +30,7 @@ $out->resources = (object) [
 $out->userPermissions = (object) [
     ACL::ROLE_ADMIN => (object) [
         "blocks"      => ACL::makePermissions("*", $out->resources->blocks),
+        "coreUpdates" => ACL::makePermissions("*", $out->resources->coreUpdates),
         "editMode"    => ACL::makePermissions("*", $out->resources->editMode),
         "layouts"     => ACL::makePermissions("*", $out->resources->layouts),
         "pages"       => ACL::makePermissions("*", $out->resources->pages),

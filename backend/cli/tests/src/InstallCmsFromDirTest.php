@@ -6,7 +6,9 @@ use Auryn\Injector;
 use Sivujetti\Cli\App;
 use Sivujetti\Installer\{Commons, LocalDirPackage};
 use Sivujetti\Tests\Utils\PageTestUtils;
-use Pike\{Db, FileSystem, Request, TestUtils\DbTestCase, TestUtils\HttpTestUtils};
+use Pike\{Db, FileSystem, Request};
+use Pike\TestUtils\{DbTestCase, HttpTestUtils};
+use Sivujetti\Update\Updater;
 
 final class InstallCmsFromDirTest extends DbTestCase {
     use HttpTestUtils;
@@ -17,7 +19,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         parent::setUp();
         $this->fs = new FileSystem;
         $this->sitePackage = new LocalDirPackage($this->fs);
-        $this->sitePackage->open("basic-site");
+        $this->sitePackage->open(SIVUJETTI_BACKEND_PATH . "installer/sample-content/basic-site");
     }
     protected function tearDown(): void {
         parent::tearDown();
@@ -90,12 +92,12 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->assertFileEquals($a("Theme.php"), $b("Theme.php"));
     }
     private function verifyCopiedUserThemeAndSiteFiles(\TestState $state): void {
-        $filesList = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_PHP_FILES_LIST,
+        $filesList = Updater::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_PHP_FILES_LIST,
                                                  $this->sitePackage);
         $this->assertCopiedTheseFiles($state, $filesList);
     }
     private function verifyCopiedUserThemePublicFiles(\TestState $state): void {
-        $filesList = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_PUBLIC_FILES_LIST,
+        $filesList = Updater::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_PUBLIC_FILES_LIST,
                                                  $this->sitePackage);
         $this->assertCopiedTheseFiles($state, $filesList, "serverRoot");
     }
@@ -140,7 +142,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->_deleteFilesRecursive($state->getTargetSitePath->__invoke("serverRoot"));
     }
     private function _getSiteConfig(\TestState $state) {
-        $actualConfig = Commons::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_MAIN_CONFIG,
+        $actualConfig = Updater::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_MAIN_CONFIG,
                                                     $this->sitePackage);
         foreach ($actualConfig as $key => $_)
             $actualConfig[$key] = str_replace("\${SIVUJETTI_BACKEND_PATH}",

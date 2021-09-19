@@ -1,0 +1,1 @@
+<?php // ["$backend/site/templates/Footer.tmpl.php", "$backend/site/templates/layout.default.tmpl.php", "$backend/site/templates/MainMenu.tmpl.php"]

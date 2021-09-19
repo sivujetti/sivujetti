@@ -4,26 +4,27 @@ namespace Sivujetti\Update;
 
 use Pike\PikeException;
 use Pike\Interfaces\FileSystemInterface;
+use Sivujetti\Cli\Bundler;
 use Sivujetti\ValidationUtils;
 use ZipArchive;
 
 class ZipPackageStream implements PackageStreamInterface {
-    public const CREATE_TEMP_FILE_PATH = '@createTemp';
+    public const CREATE_TEMP_FILE_PATH = "@createTemp";
     public const FLAG_AUTOCLEAN = 1 << 1;
     public const FLAG_AS_STRING = 1 << 2;
     public const FLAG_AS_PATH = 1 << 3;
     /** @var \ZipArchive */
-    private $zip;
+    private ZipArchive $zip;
     /** @var \Pike\Interfaces\FileSystemInterface */
-    private $fs;
+    private FileSystemInterface $fs;
     /** @var string */
-    private $tmpFilePath;
+    private string $tmpFilePath;
     /** @var ?string */
-    private $targetFilePath;
+    private ?string $targetFilePath;
     /**
-     * @param \Pike\Interfaces\FileSystemInterface
+     * @param \Pike\Interfaces\FileSystemInterface $fs
      */
-    public function __construct(FileSystemInterface $fs,) {
+    public function __construct(FileSystemInterface $fs) {
         $this->fs = $fs;
     }
     /**
@@ -41,8 +42,8 @@ class ZipPackageStream implements PackageStreamInterface {
                 ValidationUtils::checkIfValidaPathOrThrow($filePath);
                 $this->targetFilePath = $filePath;
             }
-            if (!($filePath = tempnam(sys_get_temp_dir(), 'zip')))
-                throw new PikeException('Failed to generate temp file name',
+            if (!($filePath = tempnam(sys_get_temp_dir(), "zip")))
+                throw new PikeException("Failed to generate temp file name",
                                         PikeException::FAILED_FS_OP);
             $flags = ZipArchive::OVERWRITE;
         }
@@ -116,17 +117,27 @@ class ZipPackageStream implements PackageStreamInterface {
                                 PikeException::FAILED_FS_OP);
     }
     /**
-     * @param string $destinationPath
-     * @param string[]|string $localNames = []
-     * @return bool
-     * @throws \Pike\PikeException
+     * @inheritdoc
      */
     public function extractMany(string $destinationPath,
-                                $localNames = []): bool {
-        if ($this->zip->extractTo($destinationPath, $localNames))
+                                $localNames = [],
+                                ?string $prefixToStripFromLocalNames = null): bool {
+        ValidationUtils::checkIfValidaPathOrThrow($destinationPath);
+        if (!$prefixToStripFromLocalNames) {
+            $this->zip->extractTo($destinationPath, $localNames);
             return true;
-        throw new PikeException("Failed to extract entries to ${destinationPath}",
-                                PikeException::FAILED_FS_OP);
+        }
+        $stripPrefix = Bundler::makeRelatifier($prefixToStripFromLocalNames);
+        foreach (is_array($localNames) ? $localNames : [$localNames] as $prefixedLocalName) {
+            ValidationUtils::checkIfValidaPathOrThrow($prefixedLocalName);
+            $targetPath = "{$destinationPath}{$stripPrefix($prefixedLocalName)}";
+            $parentDir = dirname($targetPath);
+            if (!$this->fs->isDir($parentDir))
+                $this->fs->mkDir($parentDir);
+            $this->fs->copy("zip://{$this->tmpFilePath}#{$prefixedLocalName}",
+                            $targetPath);
+        }
+        return true;
     }
     /**
      * @return string
@@ -135,13 +146,13 @@ class ZipPackageStream implements PackageStreamInterface {
      */
     public function getResult(int $flags = 0): string {
         if (!$this->zip->close())
-            throw new PikeException('Failed to close zip stream',
+            throw new PikeException("Failed to close zip stream",
                                     PikeException::FAILED_FS_OP);
         $resultFilePath = null;
 
         if ($this->targetFilePath) {
             if (!$this->fs->move($this->tmpFilePath, $this->targetFilePath))
-                throw new PikeException('Failed to move zip stream output file',
+                throw new PikeException("Failed to move zip stream output file",
                                         PikeException::FAILED_FS_OP);
             $resultFilePath = $this->targetFilePath;
         } else {
@@ -151,7 +162,7 @@ class ZipPackageStream implements PackageStreamInterface {
         $out = !($flags & self::FLAG_AS_STRING) ? $resultFilePath : $this->fs->read($resultFilePath);
 
         if (($flags & self::FLAG_AUTOCLEAN) && !$this->fs->unlink($resultFilePath))
-            throw new PikeException('Failed to remove temp file',
+            throw new PikeException("Failed to remove temp file",
                                     PikeException::FAILED_FS_OP);
 
         return $out;

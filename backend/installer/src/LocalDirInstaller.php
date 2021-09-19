@@ -33,7 +33,7 @@ final class LocalDirInstaller {
                                               associative: true);
         foreach ($config as $key => $_)
             $config[$key] = str_replace("\${SIVUJETTI_BACKEND_PATH}",
-                                        $this->commons->getTargetSitePath('backend'),
+                                        $this->commons->getTargetSitePath("backend"),
                                         $config[$key]);
         $config["baseUrl"] = str_replace("\${baseUrl}",
                                          $baseUrl,

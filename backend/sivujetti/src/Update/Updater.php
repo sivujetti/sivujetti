@@ -171,7 +171,7 @@ final class Updater {
                                               string $targetBackendDirPath): array {
         return [
             new UpdateBackendSourceFilesTask($zip, $fs,
-                self::readSneakyJsonData("backend-files-list.php", $zip),
+                self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_BACKEND_FILES_LIST, $zip),
                 $targetBackendDirPath)
         ];
     }

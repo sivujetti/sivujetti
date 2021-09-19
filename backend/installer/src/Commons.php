@@ -101,10 +101,10 @@ return [
     /**
      * @return string
      */
-    public function getTargetSitePath(string $which = 'site'): string {
+    public function getTargetSitePath(string $which = "site"): string {
         return match ($which) {
-            'backend' => $this->targetSiteBackendPath,
-            'serverRoot' => $this->targetSiteServerRoot,
+            "backend" => $this->targetSiteBackendPath,
+            "serverRoot" => $this->targetSiteServerRoot,
             default => "{$this->targetSiteBackendPath}site/",
         };
     }
@@ -135,23 +135,24 @@ return [
      */
     private function writeDefaultFiles(PackageStreamInterface $package): void {
         $package->extractMany($this->targetSiteBackendPath,
-                              ["site/Theme.php", "site/Site.php"]);
+                              ["\$backend/site/Theme.php", "\$backend/site/Site.php"],
+                              PackageStreamInterface::FILE_NS_BACKEND);
     }
     /**
      * @param \Sivujetti\Update\PackageStreamInterface $package
      */
     private function writeSiteSourceFiles(PackageStreamInterface $package): void {
-        $localFileNames = Updater::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PHP_FILES_LIST,
+        $localFileNames = Updater::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_BACKEND_FILES_LIST,
                                                       $package);
-        $package->extractMany($this->targetSiteBackendPath, $localFileNames);
+        $package->extractMany($this->targetSiteBackendPath, $localFileNames, PackageStreamInterface::FILE_NS_BACKEND);
     }
     /**
      * @param \Sivujetti\Update\PackageStreamInterface $package
      */
     private function writePublicFiles(PackageStreamInterface $package): void {
-        $localFileNames = Updater::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_PUBLIC_FILES_LIST,
+        $localFileNames = Updater::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_INDEX_FILES_LIST,
                                                       $package);
-        $package->extractMany($this->targetSiteServerRoot, $localFileNames);
+        $package->extractMany($this->targetSiteServerRoot, $localFileNames, PackageStreamInterface::FILE_NS_INDEX);
     }
     /**
      * @param array $statements

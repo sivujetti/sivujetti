@@ -5,8 +5,8 @@ namespace Sivujetti\Update;
 interface PackageStreamInterface {
     public const FILE_NS_BACKEND = "\$backend/";
     public const FILE_NS_INDEX = "\$index/";
-    public const LOCAL_NAME_PHP_FILES_LIST = "php-files-list.php";
-    public const LOCAL_NAME_PUBLIC_FILES_LIST = "public-files-list.php";
+    public const LOCAL_NAME_BACKEND_FILES_LIST = "\$backend-files-list.php";
+    public const LOCAL_NAME_INDEX_FILES_LIST = "\$index-files-list.php";
     public const LOCAL_NAME_MAIN_CONFIG = "config.in.php";
     public const LOCAL_NAME_DB_DATA = "db-data.php";
     /**
@@ -51,11 +51,13 @@ interface PackageStreamInterface {
     /**
      * @param string $destinationPath
      * @param string[]|string $localNames = []
+     * @param ?string $prefixToStripFromLocalNames = null
      * @return bool
      * @throws \Pike\PikeException
      */
     public function extractMany(string $destinationPath,
-                                $localNames = []): bool;
+                                $localNames = [],
+                                ?string $prefixToStripFromLocalNames = null): bool;
     /**
      * @param int $flags = 0
      * @return string

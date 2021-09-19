@@ -5,6 +5,19 @@ namespace Sivujetti\Cli;
 use Pike\{FileSystem, PikeException};
 use Sivujetti\Update\{PackageStreamInterface, ZipPackageStream};
 
+/**
+ * Creates a zip file / directory with following structure:
+ * ```
+ * /$backend      <-- literally directory named "$backend"
+ *   /some-dir
+ *     file2.php
+ *  file1.php
+ * /$index
+ *   some-file.js
+ * $backend-files-list.php // Contains "<?php // ["$backend/some-dir/file2.php","$backend/file1.php"]"
+ * $index-files-list.php   // Contains "<?php // ["$index/some-file.js"]"
+ * ```
+ */
 final class Bundler {
     private FileSystem $fs;
     /** @var \Closure fn(...$args) => string */
@@ -80,35 +93,46 @@ final class Bundler {
     private function makeBackendFilesFileListGroups(): array {
         $b = $this->sivujettiBackendPath;
         $relatifyPath = self::makeRelatifier($b);
+        $prefix = PackageStreamInterface::FILE_NS_BACKEND;
+        $prefixyAndRelatifyPath = fn($p) => "{$prefix}{$relatifyPath($p)}";
         // assets
         $out = [
-            "\$backend/assets/templates/_menu-print-branch.tmpl.php",
-            "\$backend/assets/templates/block-auto.tmpl.php",
-            "\$backend/assets/templates/block-generic-wrapper.tmpl.php",
-            "\$backend/assets/templates/block-listing.tmpl.php",
-            "\$backend/assets/templates/block-menu.tmpl.php",
-            "\$backend/assets/templates/edit-app-wrapper.tmpl.php",
+            "{$prefix}assets/templates/_menu-print-branch.tmpl.php",
+            "{$prefix}assets/templates/block-auto.tmpl.php",
+            "{$prefix}assets/templates/block-generic-wrapper.tmpl.php",
+            "{$prefix}assets/templates/block-listing.tmpl.php",
+            "{$prefix}assets/templates/block-menu.tmpl.php",
+            "{$prefix}assets/templates/edit-app-wrapper.tmpl.php",
         ];
         // cli
         $cliPaths = $this->fs->readDirRecursive("{$b}cli/src", "/^.*\.php$/");
-        $out = array_merge($out, array_map(fn($p) =>
-            PackageStreamInterface::FILE_NS_BACKEND . $relatifyPath($p)
-        , $cliPaths));
+        $out = array_merge($out, array_map($prefixyAndRelatifyPath, $cliPaths));
         // installer
-        // todo
+        $flags = \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::SKIP_DOTS;
+        $instPaths = $this->fs->readDirRecursive("{$b}installer",
+                                                  "/^[^.]+" .      // starts with "<anyExceptDot>"
+                                                  "[^\\/]+\..+$/", // followed by "<anyExceptSlash>.<any>"
+                                                  $flags);
+        $testsDir = "{$b}installer/tests/";
+        foreach ($instPaths as $path) {
+            if (str_starts_with($path, $testsDir) ||
+                str_ends_with($path, "config.in.php")) continue;
+            $relPath = $prefixyAndRelatifyPath($path);
+            $out[] = $relPath;
+        }
         // sivujetti
-        // todo
-        //
+        $sjetPaths = $this->fs->readDirRecursive("{$b}sivujetti/src", "/^.*\.php$/");
+        $out = array_merge($out, array_map($prefixyAndRelatifyPath, $sjetPaths));
         // vendor
         // todo
         //
-        return [new FileGroup($this->sivujettiBackendPath, $out, PackageStreamInterface::FILE_NS_BACKEND)];
+        return [new FileGroup($this->sivujettiBackendPath, $out, $prefix)];
     }
     /**
      * Writes $fileGroups.* and their file lists to $out.
      *
      * @param \Sivujetti\Cli\FileGroup[] $fileGroups
-     * @param string $dirName
+     * @param string $dirName "backend" or "index"
      * @param \Sivujetti\Update\PackageStreamInterface $out
      */
     private function writeFiles(array $fileGroups, string $dirName, PackageStreamInterface $out): void {
@@ -116,14 +140,14 @@ final class Bundler {
         //
         $filesList = [];
         foreach ($fileGroups as $group) $filesList = array_merge($filesList, $group->nsdRelFilePaths);
-        $out->addFileMap("{$dirName}-files-list.php", $filesList);
+        $out->addFileMap("\${$dirName}-files-list.php", $filesList);
         //
         foreach ($fileGroups as $group) {
-            $b = $group->basePathToCopyFrom;
+            $from = $group->basePathToCopyFrom;
             $stripDirNs = self::makeRelatifier($group->dirNameSpace);
             foreach ($group->nsdRelFilePaths as $path) {
                 // @allow \Pike\PikeException
-                $out->addFile("{$b}{$stripDirNs($path)}", $path);
+                $out->addFile("{$from}{$stripDirNs($path)}", $path);
             }
         }
         $this->doPrint->__invoke("Done.");

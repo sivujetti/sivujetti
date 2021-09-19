@@ -45,7 +45,7 @@ final class BundleCmsToZipTest extends DbTestCase {
     private function makeCliTestApp(\TestState $state): void {
         $state->cliApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function ($di) {
             $di->define(Bundler::class, [
-                ':printFn' => function() { echo 'foo'; }
+                ':printFn' => function() { }
             ]);
         });
     }
@@ -78,7 +78,7 @@ final class BundleCmsToZipTest extends DbTestCase {
             $this->assertStringEqualsFile(SIVUJETTI_BACKEND_PATH . $relFilePath,
                                           $pkg->read($nsdRelFilePath));
         }
-        $actualFilesList = Updater::readSneakyJsonData("backend-files-list.php", $pkg);
+        $actualFilesList = Updater::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_BACKEND_FILES_LIST, $pkg);
         $this->assertEquals($expectedFiles, $actualFilesList);
     }
 }

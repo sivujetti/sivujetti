@@ -6,7 +6,7 @@ use Sivujetti\{App, FileSystem};
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 use Sivujetti\Cli\Bundler;
 use Sivujetti\Tests\Utils\HttpApiTestTrait;
-use Sivujetti\Update\{Updater, ZipPackageStream};
+use Sivujetti\Update\{PackageStreamInterface, Updater, ZipPackageStream};
 
 final class UpdateCoreTest extends DbTestCase {
     use HttpTestUtils;
@@ -42,7 +42,7 @@ final class UpdateCoreTest extends DbTestCase {
         $outFilePath = self::BACKEND_DIR_CLONE_PATH . "/sivujetti-{$state->testInput->toVersion}.zip";
         $fs = new FileSystem;
         $pkg = new ZipPackageStream($fs);
-        (new Bundler($fs, function () { echo 'foo'; }))->makeRelease($pkg, $outFilePath, true);
+        (new Bundler($fs, function () { }))->makeRelease($pkg, $outFilePath, true);
     }
     private function makeTestSivujettiApp(\TestState $state): void {
         $state->sivujettiApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function ($di) {
@@ -60,9 +60,10 @@ final class UpdateCoreTest extends DbTestCase {
         $targetBase = self::BACKEND_DIR_CLONE_PATH . "/";
         $testUpdateZipPath = "{$targetBase}sivujetti-{$state->testInput->toVersion}.zip";
         $pkg->open($testUpdateZipPath);
-        $paths = Updater::readSneakyJsonData("backend-files-list.php", $pkg);
+        $paths = Updater::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_BACKEND_FILES_LIST, $pkg);
+        $stripNs = Bundler::makeRelatifier(PackageStreamInterface::FILE_NS_BACKEND);
         foreach ($paths as $nsdRelFilePath) {
-            $this->assertStringEqualsFile("{$targetBase}{$nsdRelFilePath}",
+            $this->assertStringEqualsFile("{$targetBase}{$stripNs($nsdRelFilePath)}",
                                           $pkg->read($nsdRelFilePath),
                                           "Should overwrite local file with update package zip's file");
         }

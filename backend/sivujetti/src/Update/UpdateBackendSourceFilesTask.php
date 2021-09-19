@@ -36,7 +36,8 @@ final class UpdateBackendSourceFilesTask implements UpdateProcessTaskInterface {
      */
     function exec(): void {
         $this->fileContentsBefore = []; // todo $this->fs->readMany($this->filesToOverwriteNsd);
-        $this->zip->extractMany($this->targetPathBase, $this->filesToOverwriteNsd);
+        $this->zip->extractMany($this->targetPathBase, $this->filesToOverwriteNsd,
+            PackageStreamInterface::FILE_NS_BACKEND);
     }
     /**
      * Reverts $this->exec().

@@ -6,9 +6,10 @@ use Auryn\Injector;
 use Sivujetti\Cli\App;
 use Sivujetti\Installer\{Commons, LocalDirPackage};
 use Sivujetti\Tests\Utils\PageTestUtils;
-use Pike\{Db, FileSystem, Request};
+use Pike\{Db, Request};
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
-use Sivujetti\Update\Updater;
+use Sivujetti\FileSystem;
+use Sivujetti\Update\{PackageStreamInterface, Updater};
 
 final class InstallCmsFromDirTest extends DbTestCase {
     use HttpTestUtils;
@@ -86,18 +87,18 @@ final class InstallCmsFromDirTest extends DbTestCase {
                                       $actual["aclRules"]);
     }
     private function verifyCopiedDefaultSiteFiles(\TestState $state): void {
-        $a = fn($str) => SIVUJETTI_BACKEND_PATH . "installer/sample-content/basic-site/site/{$str}";
+        $a = fn($str) => SIVUJETTI_BACKEND_PATH . "installer/sample-content/basic-site/\$backend/site/{$str}";
         $b = fn($str) => "{$state->getTargetSitePath->__invoke()}{$str}";
         $this->assertFileEquals($a("Site.php"), $b("Site.php"));
         $this->assertFileEquals($a("Theme.php"), $b("Theme.php"));
     }
     private function verifyCopiedUserThemeAndSiteFiles(\TestState $state): void {
-        $filesList = Updater::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_PHP_FILES_LIST,
+        $filesList = Updater::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_BACKEND_FILES_LIST,
                                                  $this->sitePackage);
         $this->assertCopiedTheseFiles($state, $filesList);
     }
     private function verifyCopiedUserThemePublicFiles(\TestState $state): void {
-        $filesList = Updater::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_PUBLIC_FILES_LIST,
+        $filesList = Updater::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_INDEX_FILES_LIST,
                                                  $this->sitePackage);
         $this->assertCopiedTheseFiles($state, $filesList, "serverRoot");
     }
@@ -125,8 +126,11 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $where = $state->getTargetSitePath->__invoke($into);
         $where = $into !== "serverRoot" ? (dirname($where) . "/") : $where;
         $b = fn($str) => "{$where}{$str}";
-        foreach ($filesList as $relFilePath)
-            $this->assertFileEquals($a($relFilePath), $b($relFilePath));
+        foreach ($filesList as $nsdRelFilePath) {
+            $unPrefixified = str_replace([PackageStreamInterface::FILE_NS_BACKEND,
+                                          PackageStreamInterface::FILE_NS_INDEX], "", $nsdRelFilePath);
+            $this->assertFileEquals($a($nsdRelFilePath), $b($unPrefixified));
+        }
     }
     private function cleanUp(\TestState $state): void {
         $actualConfig = $this->_getSiteConfig($state);
@@ -137,28 +141,21 @@ final class InstallCmsFromDirTest extends DbTestCase {
             $installerDb->exec("DROP DATABASE `{$actualConfig["db.database"]}`");
         }
         // .../sivujetti/backend/install-from-dir-test-backend/
-        $this->_deleteFilesRecursive($state->getTargetSitePath->__invoke("backend"));
+        $dir = $state->getTargetSitePath->__invoke("backend");
+        $this->fs->deleteFilesRecursive($dir, SIVUJETTI_BACKEND_PATH);
         // .../sivujetti/install-from-dir-test-root/
-        $this->_deleteFilesRecursive($state->getTargetSitePath->__invoke("serverRoot"));
+        $dir2 = $state->getTargetSitePath->__invoke("serverRoot");
+        $this->fs->deleteFilesRecursive($dir2, dirname(SIVUJETTI_BACKEND_PATH). "/");
     }
     private function _getSiteConfig(\TestState $state) {
         $actualConfig = Updater::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_MAIN_CONFIG,
-                                                    $this->sitePackage);
+                                                    $this->sitePackage,
+                                                    associative: true);
         foreach ($actualConfig as $key => $_)
             $actualConfig[$key] = str_replace("\${SIVUJETTI_BACKEND_PATH}",
                                               $state->getTargetSitePath->__invoke("backend"),
                                               $actualConfig[$key]);
         return $actualConfig;
-    }
-    private function _deleteFilesRecursive(string $dirPath): ?string {
-        foreach ($this->fs->readDir($dirPath) as $path) {
-            if ($this->fs->isFile($path)) {
-                if (!$this->fs->unlink($path)) return $path;
-            } elseif (($failedItem = $this->_deleteFilesRecursive($path))) {
-                return $failedItem;
-            }
-        }
-        return $this->fs->rmDir($dirPath) ? null : $dirPath;
     }
 
 

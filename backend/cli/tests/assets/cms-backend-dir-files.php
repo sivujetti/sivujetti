@@ -55,6 +55,7 @@ return [
     "\$backend/sivujetti/src/App.php",
     "\$backend/sivujetti/src/Update/Signer.php",
     "\$backend/sivujetti/src/Update/UpdatesModule.php",
+    "\$backend/sivujetti/src/Update/UpdateIndexSourceFilesTask.php",
     "\$backend/sivujetti/src/Update/UpdateBackendSourceFilesTask.php",
     "\$backend/sivujetti/src/Update/HttpClientInterface.php",
     "\$backend/sivujetti/src/Update/ZipPackageStream.php",
@@ -110,5 +111,5 @@ return [
     "\$backend/sivujetti/src/Block/BlockValidator.php",
     "\$backend/sivujetti/src/Block/BlocksController2.php",
     "\$backend/sivujetti/src/Block/Entities/Block.php",
-    "\$backend/sivujetti/src/SharedAPIContext.php"
+    "\$backend/sivujetti/src/SharedAPIContext.php",
 ];

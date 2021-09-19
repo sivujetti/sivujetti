@@ -20,7 +20,7 @@ final class GetUploadsTest extends DbTestCase {
     public function testGetUploadsReturnsOnlyImages(): void {
         $state = $this->setupListUploadsTest();
         $this->dbDataHelper->insertData($state->testFiles, "files");
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->sendGetUploadsRequest($state, '{"mime":{"$eq":"image/*"}}');
         $this->verifyListedTheseFiles(array_slice($state->testFiles, 0, 2), $state);
     }
@@ -49,7 +49,7 @@ final class GetUploadsTest extends DbTestCase {
         $state->spyingResponse = null;
         return $state;
     }
-    private function makeSivujettiApp(\TestState $state): void {
+    private function makeTestSivujettiApp(\TestState $state): void {
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
     }
     private function sendGetUploadsRequest(\TestState $state, ?string $filters = null): void {

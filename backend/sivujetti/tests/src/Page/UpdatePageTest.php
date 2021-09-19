@@ -19,7 +19,7 @@ final class UpdatePageTest extends DbTestCase {
     }
     public function testUpdatePageWritesUpdatedDataToDb(): void {
         $state = $this->setupTest();
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
         $this->sendUpdatePageRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
@@ -43,7 +43,7 @@ final class UpdatePageTest extends DbTestCase {
         $state->app = null;
         return $state;
     }
-    private function makeSivujettiApp(\TestState $state): void {
+    private function makeTestSivujettiApp(\TestState $state): void {
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
     }
     private function insertTestPageDataToDb(\TestState $state): void {
@@ -76,7 +76,7 @@ final class UpdatePageTest extends DbTestCase {
     public function testUpdatePageRejectsInvalidInputs(): void {
         $state = $this->setupTest();
         $state->inputData = (object) [];
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
         $this->expectException(PikeException::class);
         $this->expectExceptionMessage(implode("\n", [
@@ -101,7 +101,7 @@ final class UpdatePageTest extends DbTestCase {
         $state = $this->setupTest();
         $state->inputData->id = "updated-uuid";
         $state->inputData->blocks = BlockTree::toJson([$state->testPageData->blocks[0]->children[0]]);
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
         $this->sendUpdatePageRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);

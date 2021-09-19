@@ -47,8 +47,13 @@ final class Bundler {
                                 bool $allowOverWrite = false): string {
         $this->destryPreviousTargetOrThrow($to, $fileOrDirPath, $allowOverWrite);
         $to->open($fileOrDirPath, true);
+        //
         $backendRelatedFileGroups = $this->makeBackendFilesFileListGroups();
+        $publicRelatedFileGroups = $this->makePublicFilesFileListGroups();
+        //
         $this->writeFiles($backendRelatedFileGroups, "backend", $to);
+        $this->writeFiles($publicRelatedFileGroups, "index", $to);
+        //
         $contents = $to->getResult();
         return $contents;
     }
@@ -127,6 +132,28 @@ final class Bundler {
         // todo
         //
         return [new FileGroup($this->sivujettiBackendPath, $out, $prefix)];
+    }
+    /**
+     * Constructs a list of files that will be included to the output package,
+     * tagged as a frontend file.
+     *
+     * @return \Sivujetti\Cli\FileGroup[]
+     */
+    private function makePublicFilesFileListGroups(): array {
+        $prefix = PackageStreamInterface::FILE_NS_INDEX;
+        // public/sivujetti/assets/*.*
+        // todo
+        // // public/sivujetti/vendor/*.*
+        // todo
+        // // public/sivujetti/*.css
+        // todo
+        $out = [];
+        // *.*
+        $out = array_merge($out, ["{$prefix}index.php",
+                                  "{$prefix}install.php",
+                                  "{$prefix}LICENSE"]);
+        //
+        return [new FileGroup($this->sivujettiIndexPath, $out, $prefix)];
     }
     /**
      * Writes $fileGroups.* and their file lists to $out.

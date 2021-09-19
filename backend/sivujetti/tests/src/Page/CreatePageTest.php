@@ -19,7 +19,7 @@ final class CreatePageTest extends DbTestCase {
     }
     public function testCreateNormalPageInsertsPageToDb(): void {
         $state = $this->setupTest();
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->sendCreatePageRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
         $this->verifyInsertedPageToDb($state);
@@ -40,7 +40,7 @@ final class CreatePageTest extends DbTestCase {
         $state->app = null;
         return $state;
     }
-    private function makeSivujettiApp(\TestState $state): void {
+    private function makeTestSivujettiApp(\TestState $state): void {
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
     }
     private function sendCreatePageRequest(\TestState $state): void {
@@ -73,7 +73,7 @@ final class CreatePageTest extends DbTestCase {
     public function testCreateNormalPageRejectsInvalidInputs(): void {
         $state = $this->setupTest();
         $state->inputData = (object) [];
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->expectException(PikeException::class);
         $this->expectExceptionMessage(implode(PHP_EOL, [
             "slug must be string",
@@ -102,7 +102,7 @@ final class CreatePageTest extends DbTestCase {
             $notValidBlock,
         ], propsData: ["bgImage" => "", "cssClass" => ""]);
         $state->inputData->blocks = [$validBlock];
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->expectException(PikeException::class);
         $this->expectExceptionMessage(implode(PHP_EOL, [
             "The value of renderer was not in the list",

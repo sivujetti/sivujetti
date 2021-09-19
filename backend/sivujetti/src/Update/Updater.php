@@ -20,18 +20,23 @@ final class Updater {
     private string $lastErrorDetails;
     /** @var string */
     private string $targetBackendDirPath;
+    /** @var string */
+    private string $targetIndexDirPath;
     /**
      * @param \Pike\Db $db
      * @param \Pike\FileSystem $fs
      * @param string $targetBackendDirPath = SIVUJETTI_BACKEND_PATH Must end with "/", mainly used by tests
+     * @param string $targetIndexDirPath = SIVUJETTI_PUBLIC_PATH
      */
     public function __construct(Db $db,
                                 FileSystem $fs,
-                                string $targetBackendDirPath = SIVUJETTI_BACKEND_PATH) {
+                                string $targetBackendDirPath = SIVUJETTI_BACKEND_PATH,
+                                string $targetIndexDirPath = SIVUJETTI_PUBLIC_PATH) {
         $this->db = $db;
         $this->fs = $fs;
         $this->lastErrorDetails = "";
         $this->targetBackendDirPath = $targetBackendDirPath;
+        $this->targetIndexDirPath = $targetIndexDirPath;
     }
     /**
      * @param string $toVersion e.g. "0.5.0"
@@ -46,11 +51,11 @@ final class Updater {
             return self::RESULT_BAD_INPUT;
         }
         //
-        $updateJob = self::getUpdateState($this->db);
+        $updateJob = $this->getUpdateState();
         if ($updateJob->startedAt) // Some other request has already started the update process
             return self::RESULT_ALREADY_IN_PROGRESS;
         //
-        self::updateUpdateStateAsStarted($this->db);
+        $this->updateUpdateStateAsStarted();
         $localState = "opening-zip";
         try {
             $zip = new ZipPackageStream($this->fs);
@@ -58,7 +63,7 @@ final class Updater {
             $zip->open($filePath);
             //
             $localState = "creating-tasks";
-            $tasks = self::createUpdateTasks($zip, $this->fs, $this->targetBackendDirPath);
+            $tasks = $this->createUpdateTasks($zip);
             //
             $localState = "running-tasks";
             $currentTaskIdx = 0;
@@ -66,22 +71,23 @@ final class Updater {
                 $tasks[$currentTaskIdx]->exec(); // Copy files, migrate db etc..
             }
             $localState = "finalizing";
-            self::updateUpdateStateAsEnded($this->db);
+            self::updateUpdateStateAsEnded();
             return self::RESULT_OK;
         } catch (\Exception $e) {
             if ($localState === "opening-zip" ||
                 $localState === "creating-tasks" ||
                 $localState === "running-tasks") {
                 if ($localState === "running-tasks") {
-                try {
-                    do {
-                        $tasks[$currentTaskIdx]->rollBack();
-                    } while ($currentTaskIdx--);
-                } catch (\Exception $e) {
-                    // ??
+                    $localState = "rolling-back";
+                    try {
+                        do {
+                            $tasks[$currentTaskIdx]->rollBack();
+                        } while ($currentTaskIdx--);
+                    } catch (\Exception $e) {
+                        // ??
+                    }
                 }
-                }
-                self::updateUpdateStateAsEnded($this->db, $localState, $e);
+                $this->updateUpdateStateAsEnded($localState, $e);
             } elseif ($localState === "finalizing") {
                 // Do nothing
             }
@@ -142,48 +148,43 @@ final class Updater {
         return null;
     }
     /**
-     * @param \Pike\Db $db
      * @return \Sivujetti\Update\Entities\Job
      */
-    private static function getUpdateState(Db $db): Job {
-        return $db->fetchOne("SELECT `startedAt` FROM \${p}jobs WHERE `jobName` = ?",
-                             [self::UPDATE_CORE_TASK],
-                             \PDO::FETCH_CLASS,
-                             Job::class); // #ref-1
+    private function getUpdateState(): Job {
+        return $this->db->fetchOne("SELECT `startedAt` FROM `\${p}jobs` WHERE `jobName` = ?",
+                                   [self::UPDATE_CORE_TASK],
+                                   \PDO::FETCH_CLASS,
+                                   Job::class); // #ref-1
     }
     /**
-     * @param \Pike\Db $db
      */
-    private static function updateUpdateStateAsStarted(Db $db): void {
-        $db->beginTransaction(); // Force other requests/processes to wait at #ref-1
-        $db->exec("UPDATE \${p}jobs SET `startedAt` = ? WHERE `jobName` = ?",
-                  [time(), self::UPDATE_CORE_TASK]);
-        $db->commit();
+    private function updateUpdateStateAsStarted(): void {
+        $this->db->beginTransaction(); // Force other requests/processes to wait at #ref-1
+        $this->db->exec("UPDATE `\${p}jobs` SET `startedAt` = ? WHERE `jobName` = ?",
+                        [time(), self::UPDATE_CORE_TASK]);
+        $this->db->commit();
     }
     /**
      * @param \Sivujetti\Update\ZipPackageStream $zip
-     * @param \Pike\FileSystem $fs
-     * @param string $targetBackendDirPath
      * @return \Sivujetti\Update\UpdateProcessTaskInterface[]
      */
-    private static function createUpdateTasks(ZipPackageStream $zip,
-                                              FileSystem $fs,
-                                              string $targetBackendDirPath): array {
+    private function createUpdateTasks(ZipPackageStream $zip): array {
         return [
-            new UpdateBackendSourceFilesTask($zip, $fs,
+            new UpdateBackendSourceFilesTask($zip, $this->fs,
                 self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_BACKEND_FILES_LIST, $zip),
-                $targetBackendDirPath)
+                $this->targetBackendDirPath),
+            new UpdateIndexSourceFilesTask($zip, $this->fs,
+                self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_INDEX_FILES_LIST, $zip),
+                $this->targetIndexDirPath)
         ];
     }
     /**
-     * @param \Pike\Db $db
      * @param ?string $failedWhile = null
      * @param ?\Exception $_failDetails = null
      */
-    private static function updateUpdateStateAsEnded(Db $db,
-                                                     ?string $failedWhile = null,
-                                                     ?\Exception $_failDetails = null): void {
-        $db->exec("UPDATE \${p}jobs SET `startedAt` = 0 WHERE `jobName` = ?",
-                  [self::UPDATE_CORE_TASK]);
+    private function updateUpdateStateAsEnded(?string $failedWhile = null,
+                                              ?\Exception $_failDetails = null): void {
+        $this->db->exec("UPDATE `\${p}jobs` SET `startedAt` = 0 WHERE `jobName` = ?",
+                        [self::UPDATE_CORE_TASK]);
     }
 }

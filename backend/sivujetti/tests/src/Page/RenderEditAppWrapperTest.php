@@ -12,7 +12,7 @@ final class RenderEditAppWrapperTest extends DbTestCase {
     public function testRenderEditAppWrapperIncludesUserDefinedJsFiles(): void {
         $state = $this->setupTest();
         $this->registerJsFile("some-file.js", $state);
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->sendRenderEditAppWrapperRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
         $this->verifyInlcudedUserDefinedJsFiles($state);
@@ -28,7 +28,7 @@ final class RenderEditAppWrapperTest extends DbTestCase {
         $api = new UserSiteAPI("site", $state->sharedAPIContext);
         $api->enqueueEditAppJsFile($url);
     }
-    private function makeSivujettiApp(\TestState $state): void {
+    private function makeTestSivujettiApp(\TestState $state): void {
         $ctx = new AppContext;
         $ctx->storage = $state->sharedAPIContext;
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig(), $ctx));

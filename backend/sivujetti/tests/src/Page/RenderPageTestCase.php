@@ -23,7 +23,7 @@ abstract class RenderPageTestCase extends DbTestCase {
             throw new \RuntimeException("Site not installed");
         $this->dbDataHelper = new DbDataHelper(self::$db);
     }
-    protected function makeSivujettiApp(\TestState $state): void {
+    protected function makeTestSivujettiApp(\TestState $state): void {
         $ctx = new AppContext;
         $ctx->storage = $this->testAppStorage;
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig(), $ctx));

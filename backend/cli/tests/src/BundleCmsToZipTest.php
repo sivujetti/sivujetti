@@ -24,11 +24,12 @@ final class BundleCmsToZipTest extends DbTestCase {
     }
     public function testCreateZipReleaseBundlesEverythingToZipFile(): void {
         $state = $this->setupTest();
-        $this->makeCliTestApp($state);
+        $this->makeTestCliApp($state);
         $this->invokeCreateZipReleaseFeature($state);
         $this->verifyReturnedSuccesfully($state);
         $this->verifyWroteZipAndSignatureFilesToTargetDir($state);
         $this->verifyIncludedBackendFilesToZip($state);
+        $this->verifyIncludedPublicFilesToZip($state);
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
@@ -42,7 +43,7 @@ final class BundleCmsToZipTest extends DbTestCase {
         $state->spyingResponse = null;
         return $state;
     }
-    private function makeCliTestApp(\TestState $state): void {
+    private function makeTestCliApp(\TestState $state): void {
         $state->cliApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function ($di) {
             $di->define(Bundler::class, [
                 ':printFn' => function() { }
@@ -69,16 +70,31 @@ final class BundleCmsToZipTest extends DbTestCase {
         $this->actuallyWrittenSignatureFilePath = $matches[2];
     }
     private function verifyIncludedBackendFilesToZip(\TestState $state): void {
+        $this->verifyIncludedTheseFilesToZip("backend-dir-files");
+    }
+    private function verifyIncludedPublicFilesToZip(\TestState $state): void {
+        $this->verifyIncludedTheseFilesToZip("index-dir-files");
+    }
+    private function verifyIncludedTheseFilesToZip(string $which): void {
+        [$pathPrefix, $localDir, $zipFileListName] = match($which) {
+            "backend-dir-files" => [PackageStreamInterface::FILE_NS_BACKEND,
+                                    SIVUJETTI_BACKEND_PATH,
+                                    PackageStreamInterface::LOCAL_NAME_BACKEND_FILES_LIST],
+            "index-dir-files" => [PackageStreamInterface::FILE_NS_INDEX,
+                                  SIVUJETTI_PUBLIC_PATH,
+                                  PackageStreamInterface::LOCAL_NAME_INDEX_FILES_LIST],
+            default => throw new \RuntimeException("Invalid dirName"),
+        };
+        $expectedFiles = require dirname(__DIR__) . "/assets/cms-{$which}.php";
         $pkg = new ZipPackageStream(new FileSystem);
         $pkg->open($this->actuallyWrittenZipFilePath);
-        $expectedFiles = require dirname(__DIR__) . "/assets/cms-backend-files.php";
-        $stripDirNs = Bundler::makeRelatifier(PackageStreamInterface::FILE_NS_BACKEND);
+        $stripDirNs = Bundler::makeRelatifier($pathPrefix);
         foreach ($expectedFiles as $nsdRelFilePath) {
             $relFilePath = $stripDirNs($nsdRelFilePath);
-            $this->assertStringEqualsFile(SIVUJETTI_BACKEND_PATH . $relFilePath,
+            $this->assertStringEqualsFile("{$localDir}{$relFilePath}",
                                           $pkg->read($nsdRelFilePath));
         }
-        $actualFilesList = Updater::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_BACKEND_FILES_LIST, $pkg);
+        $actualFilesList = Updater::readSneakyJsonData($zipFileListName, $pkg);
         $this->assertEquals($expectedFiles, $actualFilesList);
     }
 }

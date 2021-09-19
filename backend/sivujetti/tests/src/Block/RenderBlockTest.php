@@ -18,7 +18,7 @@ final class RenderBlockTest extends DbTestCase {
     }
     public function testRenderBlockRendersBlockShallowly(): void {
         $state = $this->setupTest();
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->sendRenderBlockRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
         $this->verifyReturnedRenderOutput($state);
@@ -30,7 +30,7 @@ final class RenderBlockTest extends DbTestCase {
         $state->app = null;
         return $state;
     }
-    private function makeSivujettiApp(\TestState $state): void {
+    private function makeTestSivujettiApp(\TestState $state): void {
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
     }
     private function sendRenderBlockRequest(\TestState $state): void {
@@ -57,7 +57,7 @@ final class RenderBlockTest extends DbTestCase {
         $state = $this->setupTest();
         $this->setInvalidRenderer($state);
         $this->setInvalidPropData($state);
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->sendRenderBlockRequest($state);
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals([
@@ -83,7 +83,7 @@ final class RenderBlockTest extends DbTestCase {
     public function testRenderBlockRejectsIfBlockTypeIsNotRegistered(): void {
         $state = $this->setupTest();
         $state->testBlock->type = "DoesNotExist";
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->expectException(PikeException::class);
         $this->expectExceptionMessage("Unknown block type `DoesNotExist`");
         $this->sendRenderBlockRequest($state);

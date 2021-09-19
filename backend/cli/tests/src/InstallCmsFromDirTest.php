@@ -29,7 +29,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
     public function testInstallFromDirInstallsSiteFromLocalDirectory(): void {
         $state = $this->setupTest();
         $params = (object) ["baseUrl" => "/foo"];
-        $this->makeInstallerTestApp($state);
+        $this->makeTestInstallerApp($state);
         $this->invokeInstallFromDirFeature($state, $params);
         $this->verifyFeatureFinishedSuccesfully($state);
         $this->verifyCreatedDbAndSchema($state->getInstallerDb->__invoke());
@@ -49,7 +49,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->state = $state;
         return $state;
     }
-    private function makeInstallerTestApp(\TestState $state): void {
+    private function makeTestInstallerApp(\TestState $state): void {
         $state->installerApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function (Injector $di) use ($state) {
             $di->prepare(Commons::class, function (Commons $instance) use ($state) {
                 $instance->setTargetSitePaths(backendRelDirPath: "install-from-dir-test-backend/",
@@ -145,7 +145,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->fs->deleteFilesRecursive($dir, SIVUJETTI_BACKEND_PATH);
         // .../sivujetti/install-from-dir-test-root/
         $dir2 = $state->getTargetSitePath->__invoke("serverRoot");
-        $this->fs->deleteFilesRecursive($dir2, dirname(SIVUJETTI_BACKEND_PATH). "/");
+        $this->fs->deleteFilesRecursive($dir2, SIVUJETTI_PUBLIC_PATH);
     }
     private function _getSiteConfig(\TestState $state) {
         $actualConfig = Updater::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_MAIN_CONFIG,
@@ -165,7 +165,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
     public function testInstallFromDirUsesDefaults(): void {
         $state = $this->setupTest();
         $params = (object) ["baseUrl" => null];
-        $this->makeInstallerTestApp($state);
+        $this->makeTestInstallerApp($state);
         $this->invokeInstallFromDirFeature($state, $params);
         $this->verifyFeatureFinishedSuccesfully($state);
         $this->verifyCreatedDbAndSchema($state->getInstallerDb->__invoke());

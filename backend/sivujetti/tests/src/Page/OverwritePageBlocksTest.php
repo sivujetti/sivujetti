@@ -18,7 +18,7 @@ final class OverwritePageBlocksTest extends DbTestCase {
     }
     public function testOverwritePageBlocksSavesNewBlocksToDb(): void {
         $state = $this->setupTest();
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
         $this->sendOverwritePageBlocksRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
@@ -37,7 +37,7 @@ final class OverwritePageBlocksTest extends DbTestCase {
         $state->app = null;
         return $state;
     }
-    private function makeSivujettiApp(\TestState $state): void {
+    private function makeTestSivujettiApp(\TestState $state): void {
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
     }
     private function insertTestPageDataToDb(\TestState $state): void {
@@ -68,7 +68,7 @@ final class OverwritePageBlocksTest extends DbTestCase {
     public function testOverwritePageBlocksRejectsInvalidInputs(): void {
         $state = $this->setupTest();
         $state->inputData = (object) ["blocks" => [(object) ["type" => "not-valid", "cssClass" => ""]]];
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
         $this->expectException(PikeException::class);
         $this->expectExceptionMessage("Unknown block type `not-valid`");
@@ -82,7 +82,7 @@ final class OverwritePageBlocksTest extends DbTestCase {
     public function testOverwritePageRejectsIfPageDoesNotExist(): void {
         $state = $this->setupTest();
         $state->testPageData->id = "4040";
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->expectException(PikeException::class);
         $this->sendOverwritePageBlocksRequest($state);
     }

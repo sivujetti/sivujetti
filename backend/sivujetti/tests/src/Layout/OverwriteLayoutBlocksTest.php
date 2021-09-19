@@ -23,7 +23,7 @@ final class OverwriteLayoutBlocksTest extends DbTestCase {
     }
     public function testOverwriteLayoutBlocksSavesNewBlocksToDb(): void {
         $state = $this->setupTest();
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->insertTestLayoutBlocksDataToDb($state);
         $this->sendOverwriteLayoutBlocksRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
@@ -46,7 +46,7 @@ final class OverwriteLayoutBlocksTest extends DbTestCase {
         $state->app = null;
         return $state;
     }
-    private function makeSivujettiApp(\TestState $state): void {
+    private function makeTestSivujettiApp(\TestState $state): void {
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
     }
     private function insertTestLayoutBlocksDataToDb(\TestState $state): void {
@@ -76,7 +76,7 @@ final class OverwriteLayoutBlocksTest extends DbTestCase {
     public function testOverwriteLayoutBlocksRejectsInvalidInputs(): void {
         $state = $this->setupTest();
         $state->inputData = (object) ["blocks" => [(object) ["type" => "not-valid", "cssClass" => ""]]];
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->insertTestLayoutBlocksDataToDb($state);
         $this->expectException(PikeException::class);
         $this->expectExceptionMessage("Unknown block type `not-valid`");
@@ -90,7 +90,7 @@ final class OverwriteLayoutBlocksTest extends DbTestCase {
     public function testOverwriteLayoutRejectsIfLayoutDoesNotExist(): void {
         $state = $this->setupTest();
         $state->testLayoutBlocksData->layoutId = "4040";
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->expectException(PikeException::class);
         $this->sendOverwriteLayoutBlocksRequest($state);
     }

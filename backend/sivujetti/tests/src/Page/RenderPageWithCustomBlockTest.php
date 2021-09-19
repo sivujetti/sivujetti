@@ -23,7 +23,7 @@ final class RenderPageWithCustomBlockTest extends RenderPageTestCase {
     public function testRenderPageRendersCustomBlock(): void {
         $state = $this->setupTest();
         $this->registerCustomBlock($state);
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->insertTestPageToDb($state);
         $this->sendRenderPageRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);

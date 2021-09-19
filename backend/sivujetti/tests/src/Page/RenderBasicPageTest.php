@@ -10,7 +10,7 @@ use Sivujetti\Tests\Utils\BlockTestUtils;
 final class RenderBasicPageTest extends RenderPageTestCase {
     public function testRenderPageRendersPage(): void {
         $state = $this->setupTest();
-        $this->makeSivujettiApp($state);
+        $this->makeTestSivujettiApp($state);
         $this->insertTestPageToDb($state);
         $this->insertTestLayoutBlocksToDb($state);
         $this->sendRenderPageRequest($state);

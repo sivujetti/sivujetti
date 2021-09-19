@@ -121,7 +121,7 @@ return [
         }
         if ($serverRootRelDirPath) {
             ValidationUtils::checkIfValidaPathOrThrow($serverRootRelDirPath);
-            $this->targetSiteServerRoot = dirname(SIVUJETTI_PUBLIC_PATH) . "/{$serverRootRelDirPath}";
+            $this->targetSiteServerRoot = SIVUJETTI_PUBLIC_PATH . $serverRootRelDirPath;
         }
     }
     /**

@@ -61,23 +61,6 @@ function publishFrontendApi() {
 }
 
 function renderReactEditApp() {
-
-    window.editApp = {
-        /**
-         * @param {EditAppAwareWebPage} webPage
-         * @access public
-         */
-        handleWebPageLoaded(webPage) {
-            const editApp = editAppReactRef.current;
-            webPage.setEventHandlers(editApp.websiteEventHandlers);
-            webPage.data.blocks = blockTreeUtils.setParentIdPaths(webPage.data.page.blocks);
-            webPage.data.layoutBlocks = blockTreeUtils.setParentIdPaths(webPage.data.layoutBlocks);
-            editApp.handleWebPageLoaded(webPage.data,
-                                        webPage.scanBlockRefComments(true),
-                                        webPage);
-        }
-    };
-
     const mainPanelOuterEl = document.getElementById('main-panel');
     const inspectorPanelOuterEl = document.getElementById('inspector-panel');
     const inspectorPanelReactRef = preact.createRef();
@@ -94,6 +77,22 @@ function renderReactEditApp() {
         rootEl: document.getElementById('root'),
         ref: inspectorPanelReactRef,
     }), inspectorPanelOuterEl);
+
+    window.editApp = {
+        /**
+         * @param {EditAppAwareWebPage} webPage
+         * @access public
+         */
+        handleWebPageLoaded(webPage) {
+            const editApp = editAppReactRef.current;
+            webPage.setEventHandlers(editApp.websiteEventHandlers);
+            webPage.data.blocks = blockTreeUtils.setParentIdPaths(webPage.data.page.blocks);
+            webPage.data.layoutBlocks = blockTreeUtils.setParentIdPaths(webPage.data.layoutBlocks);
+            editApp.handleWebPageLoaded(webPage.data,
+                                        webPage.scanBlockRefComments(true),
+                                        webPage);
+        }
+    };
 }
 
 function hookUpSiteIframeUrlMirrorer() {

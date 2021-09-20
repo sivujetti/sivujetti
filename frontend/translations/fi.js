@@ -65,6 +65,7 @@ stringBundles.push({
     'Rich text': 'Rikasteteksti',
     'Rich text content': 'Rikastettua tekstiä',
     // edit-app/src/block-types/section.js
+    'Section': 'Osio',
     'Background': 'Taustakuva',
     //edit-app/src/Upload/UploadsManager.jsx
     'Documents': 'Tiedostot',

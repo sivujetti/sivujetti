@@ -49,17 +49,17 @@ class SectionBlockEditForm extends preact.Component {
      * @access private
      */
     handleBgImageChanged(img) {
-        const newState = this.state;
-        newState.bgImage = img ? `/${UPLOADS_DIR_PATH}${img.baseDir}${img.fileName}` : '';
-        this.setState({newState});
-        this.emitChange(newState);
+        const bgImage = img ? `/${UPLOADS_DIR_PATH}${img.baseDir}${img.fileName}` : '';
+        this.setState({bgImage});
+        this.emitChange(this.state, bgImage);
     }
     /**
      * @param {Object} newState
+     * @param {String|null} bgImage = null
      * @access private
      */
-    emitChange(newState) {
-        this.props.onValueChanged({bgImage: newState.bgImage,
+    emitChange(newState, bgImage = null) {
+        this.props.onValueChanged({bgImage: bgImage !== null ? bgImage : this.state.bgImage,
                                    cssClass: newState.values.cssClass},
                                   sensibleDefaults.normalTypingDebounceMillis);
         return newState;

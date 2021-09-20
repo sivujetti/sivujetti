@@ -2,7 +2,7 @@
 
 namespace Sivujetti\BlockType;
 
-final class SectionBlockType implements BlockTypeInterface {
+class SectionBlockType implements BlockTypeInterface {
     /**
      * @inheritdoc
      */

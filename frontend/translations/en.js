@@ -65,6 +65,7 @@ stringBundles.push({
     'Rich text': 'Rich text',
     'Rich text content': 'Rich text content',
     // edit-app/src/block-types/section.js
+    'Section': 'Section',
     'Background': 'Background',
     //edit-app/src/Upload/UploadsManager.jsx
     'Documents': 'Documents',

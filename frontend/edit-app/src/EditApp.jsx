@@ -14,7 +14,7 @@ class EditApp extends preact.Component {
     // currentWebPage;
     // resizeHandleEl;
     /**
-     * @param {{webPageIframe: WebPageIframe; dataFromAdminBackend: TheWebsite; outerEl: HTMLElement; inspectorPanelEl: HTMLElement;}} props
+     * @param {{webPageIframe: WebPageIframe; dataFromAdminBackend: TheWebsite; outerEl: HTMLElement; inspectorPanelRef: preact.Ref;}} props
      */
     constructor(props) {
         super(props);
@@ -103,7 +103,6 @@ class EditApp extends preact.Component {
         const el = this.resizeHandleEl.current;
         const mainPanelEl = this.props.outerEl;
         const iframeEl = this.props.webPageIframe.getEl();
-        const inspectorPanelEl = this.props.inspectorPanelEl;
         el.style.transform = `translateX(${mainPanelEl.getBoundingClientRect().width}px`;
         //
         const startTreshold = 2;
@@ -111,6 +110,7 @@ class EditApp extends preact.Component {
         let startWidth;
         let startScreenX = null;
         let currentHandle = null;
+        let inspectorPanel = null;
         //
         el.addEventListener('mousedown', e => {
             if (e.button !== 0) return;
@@ -119,6 +119,7 @@ class EditApp extends preact.Component {
             startWidth = mainPanelEl.getBoundingClientRect().width;
             startScreenX = e.screenX;
             el.classList.add('dragging');
+            inspectorPanel = this.props.inspectorPanelRef.current;
         });
         document.addEventListener('mousemove', e => {
             if (!currentHandle) return;
@@ -130,7 +131,7 @@ class EditApp extends preact.Component {
             if (w < minWidth) w = minWidth;
             //
             mainPanelEl.style.width = `${w}px`;
-            inspectorPanelEl.style.width = `${w}px`;
+            inspectorPanel.resizeX(w);
             iframeEl.style.width = `calc(100% - ${w}px)`;
             iframeEl.style.transform = `translateX(${w}px)`;
             //

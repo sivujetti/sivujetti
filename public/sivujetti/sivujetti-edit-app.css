@@ -260,6 +260,9 @@ ul.list {
 .one-column-layout #main-panel {
     height: 100%;
 }
+.one-column-layout #inspector-panel {
+    z-index: -1;
+}
 .one-column-layout.inspector-panel-open #main-panel,
 .one-column-layout.inspector-panel-open #inspector-panel {
     opacity: 1;
@@ -271,6 +274,7 @@ ul.list {
 }
 .one-column-layout.inspector-panel-open #inspector-panel {
     animation-name: adjust-inspector-panel;
+    z-index: initial;
 }
 .one-column-layout #sivujetti-site-iframe {
     position: absolute;
@@ -288,25 +292,24 @@ ul.list {
     padding: .4rem;
 }
 .resize-panel-handle {
-    position: absolute;
+    position: fixed;
     z-index: 1;
 }
 #main-panel .resize-panel-handle {
-    position: fixed;
     height: 100%;
     width: 8px;
     top: 0;
     cursor: col-resize;
 }
-/* Increase width to prevent #sivujetti-site-iframe from disrupting the mouse movement */
+/* Increase width to prevent #sivujetti-site-iframe from disrupting the mouse drag events */
 #main-panel .resize-panel-handle.dragging {
     width: 120px;
     margin-left: -60px;
 }
 #inspector-panel .resize-panel-handle {
-    width: 100%;
+    width: 274px;
     height: 8px;
-    top: 0;
+    bottom: 0;
     left: 0;
     cursor: row-resize;
 }

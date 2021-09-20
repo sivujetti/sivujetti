@@ -2,10 +2,13 @@ import {__, signals, env} from '@sivujetti-commons';
 import Icon from '../../commons/Icon.jsx';
 import BlockEditForm from './BlockEditForm.jsx';
 
+const REVEAL_ANIM_DURATION = 200;
+
 class InspectorPanel extends preact.Component {
     // rendererProps;
     // rendererKey;
     // resizeHandleEl;
+    // lastHeight;
     /**
      * @param {{outerEl: HTMLElement; rootEl: HTMLElement;}} props
      */
@@ -15,19 +18,18 @@ class InspectorPanel extends preact.Component {
         this.rendererProps = {};
         this.rendererKey = null;
         this.resizeHandleEl = preact.createRef();
-        const openPanel = (block, blockTreeCmp, autoFocus = false) => {
-            const blockTree = blockTreeCmp.state.blockTree;
-            const blockTreeKind = blockTreeCmp.props.treeKind === 'pageBlocks' ? 'pageBlocks' : 'layoutBlocks';
-            const newRendererKey = `edit-block-tree-${blockTreeKind}-${block.id}`;
-            if (this.rendererKey === newRendererKey) return;
-            this.rendererProps = {block, blockTree, blockTreeCmp, blockTreeKind, autoFocus};
-            this.rendererKey = newRendererKey;
-            this.setState({Renderer: BlockEditForm});
-            this.props.rootEl.classList.add('inspector-panel-open');
-        };
-        signals.on('on-block-tree-item-clicked', openPanel);
-        signals.on('on-block-tree-item-focus-requested', (a, b) => openPanel(a, b, true));
+        this.lastHeight = null;
+        signals.on('on-block-tree-item-clicked', this.open.bind(this));
+        signals.on('on-block-tree-item-focus-requested', (a, b) => this.open(a, b, true));
         signals.on('on-web-page-loaded', this.close.bind(this));
+    }
+    /**
+     * @param {Number} width
+     * @access public
+     */
+    resizeX(width) {
+        this.props.outerEl.style.width = `${width}px`;
+        this.resizeHandleEl.current.style.width = `${width}px`;
     }
     /**
      * @access proctected
@@ -65,8 +67,11 @@ class InspectorPanel extends preact.Component {
             else if (h > maxHeight) h = maxHeight;
             //
             inspectorPanelEl.style.height = `${h}px`;
+            dragEl.style.transform = `translateY(-${h}px)`;
         });
         document.addEventListener('mouseup', () => {
+            if (currentHandle)
+                this.lastHeight = parseFloat(dragEl.style.transform.split('translateY(')[1]);
             currentHandle = null;
         });
     }
@@ -83,12 +88,31 @@ class InspectorPanel extends preact.Component {
         </>;
     }
     /**
+     * Note to self: this currently supports BlockEditForm only.
+     *
+     * @param {Block} block
+     * @param {BlockTree} blockTreeCmp
+     * @param {Boolean} autoFocus = false
      * @access private
      */
-    open() {
-        if (!this.state.Renderer) return;
-        this.setState({Renderer: null});
-        this.props.rootEl.classList.remove('inspector-panel-open');
+    open(block, blockTreeCmp, autoFocus = false) {
+        const blockTree = blockTreeCmp.state.blockTree;
+        const blockTreeKind = blockTreeCmp.props.treeKind;
+        const newRendererKey = `edit-block-tree-${blockTreeKind}-${block.id}`;
+        if (this.rendererKey === newRendererKey) return;
+        //
+        this.rendererProps = {block, blockTree, blockTreeCmp, blockTreeKind, autoFocus};
+        this.rendererKey = newRendererKey;
+        this.setState({Renderer: BlockEditForm});
+        this.props.rootEl.classList.add('inspector-panel-open');
+        //
+        if (this.lastHeight === null) {
+            setTimeout(() => {
+                const inspectorPanelHeight = this.props.outerEl.getBoundingClientRect().height;
+                this.lastHeight = inspectorPanelHeight;
+                this.resizeHandleEl.current.style.transform = `translateY(-${inspectorPanelHeight}px)`;
+            }, REVEAL_ANIM_DURATION + 100);
+        }
     }
     /**
      * @access private

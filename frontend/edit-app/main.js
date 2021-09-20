@@ -80,10 +80,11 @@ function renderReactEditApp() {
 
     const mainPanelOuterEl = document.getElementById('main-panel');
     const inspectorPanelOuterEl = document.getElementById('inspector-panel');
+    const inspectorPanelReactRef = preact.createRef();
     preact.render(preact.createElement(EditApp, {
         webPageIframe,
         outerEl: mainPanelOuterEl,
-        inspectorPanelEl: inspectorPanelOuterEl,
+        inspectorPanelRef: inspectorPanelReactRef,
         dataFromAdminBackend: window.dataFromAdminBackend,
         ref: editAppReactRef,
     }), mainPanelOuterEl);
@@ -91,6 +92,7 @@ function renderReactEditApp() {
     preact.render(preact.createElement(InspectorPanel, {
         outerEl: inspectorPanelOuterEl,
         rootEl: document.getElementById('root'),
+        ref: inspectorPanelReactRef,
     }), inspectorPanelOuterEl);
 }
 

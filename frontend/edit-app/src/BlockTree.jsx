@@ -7,7 +7,7 @@ import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from './store.js';
 import BlockTreeDragDrop from './BlockTreeDragDrop.js';
 
-let BlockTreeTabs;
+let BlockTrees;
 
 class BlockTree extends preact.Component {
     // selectedRoot;
@@ -18,7 +18,7 @@ class BlockTree extends preact.Component {
     // onDragOver;
     // onDrop;
     /**
-     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>, treeKind: 'pageBlocks'|'layoutBlocks') => Promise<Boolean>; BlockTrees: preact.ComponentClass;}} props
+     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>) => Promise<Boolean>; BlockTrees: preact.ComponentClass;}} props
      */
     constructor(props) {
         super(props);
@@ -28,11 +28,11 @@ class BlockTree extends preact.Component {
         this.lastRootBlockMarker = null;
         this.dragDrop = new BlockTreeDragDrop(this, (mutatedTree, dragBlock, dropBlock, dropPosition) => {
             this.setState({blockTree: mutatedTree});
-            BlockTreeTabs.currentWebPage.reOrderBlocksInDom(dragBlock, dropBlock, dropPosition);
+            BlockTrees.currentWebPage.reOrderBlocksInDom(dragBlock, dropBlock, dropPosition);
             store.dispatch(pushItemToOpQueue('swapped-blocks-in-tree',
-                () => this.props.onChangesApplied(mutatedTree, this.props.treeKind)));
+                () => this.props.onChangesApplied(mutatedTree)));
         });
-        BlockTreeTabs = props.BlockTrees;
+        BlockTrees = props.BlockTrees;
     }
     /**
      * @param {Block} block After
@@ -68,7 +68,9 @@ class BlockTree extends preact.Component {
         } else if (position === 'after' && Array.isArray(context)) {
             toArr = context;
             if (toArr !== this.state.blockTree) throw new Error();
-            after = toArr.length ? toArr[toArr.length - 1] : this.lastRootBlockMarker;
+            after = toArr.length
+                ? getLastPageBlock(this.state.blockTree)
+                : this.lastRootBlockMarker;
         } else if (position === 'as-child' && context instanceof Block) {
             toArr = context.children;
             after = this.getAfter(toArr, context);
@@ -77,7 +79,7 @@ class BlockTree extends preact.Component {
         }
         //
         const newBlock = Block.fromType('Paragraph');
-        return BlockTreeTabs.currentWebPage.appendBlockToDom(newBlock, after).then(_cref => {
+        return BlockTrees.currentWebPage.appendBlockToDom(newBlock, after).then(_cref => {
             newBlock._cref = _cref;
             toArr.splice(toArr.indexOf(after) + 1, 0, newBlock); // Note: mutates this.state.blockTree
             //
@@ -101,15 +103,15 @@ class BlockTree extends preact.Component {
      * @access protected
      */
     componentWillMount(props = this.props) {
-        const comments = BlockTreeTabs.currentWebPageComments;
+        const blockRefs = BlockTrees.currentWebPageBlockRefs;
         const treeState = {};
         const blockTree = blockTreeUtils.mapRecursively(props.blocksInput, blockRaw => {
             const block = Block.fromObject(blockRaw);
-            block._cref = comments.find(({blockId}) => blockId === block.id);
+            block._cref = blockRefs.find(({blockId}) => blockId === block.id);
             treeState[block.id] = createTreeItemState();
             return block;
         });
-        const com = BlockTreeTabs.currentWebPage.findEndingComment(blockTree[blockTree.length - 1]);
+        const com = BlockTrees.currentWebPage.findEndingComment(getLastPageBlock(blockTree));
         this.lastRootBlockMarker = com.nextSibling
             ? {nextSibling: com.nextSibling, parentNode: com.parentNode}
             : {nextSibling: null, parentNode: com.parentNode};
@@ -149,9 +151,10 @@ class BlockTree extends preact.Component {
                 onDragStart={ this.onDragStart }
                 onDragOver={ this.onDragOver }
                 onDrop={ this.onDrop }
-                class={ [!treeState[block.id].isSelected ? '' : 'selected',
-                         !treeState[block.id].isCollapsed ? '' : 'collapsed',
-                         !block.children.length ? '' : 'with-children'].join(' ') }
+                class={ [`${block.origin}-block`,
+                         !treeState[block.id].isSelected ? '' : ' selected',
+                         !treeState[block.id].isCollapsed ? '' : ' collapsed',
+                         !block.children.length ? '' : ' with-children'].join('') }
                 data-block-id={ block.id }
                 data-drop-group="1"
                 key={ block.id }
@@ -186,7 +189,7 @@ class BlockTree extends preact.Component {
                 </div>
             </li>;
         });
-        return <>
+        return <div class="pt-2">
             <ul class="block-tree" data-sort-group-id="r">{
                 blockTree.length
                     ? renderBranch(blockTree)
@@ -201,7 +204,7 @@ class BlockTree extends preact.Component {
                 onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
                 onMenuClosed={ () => this.setState({blockWithNavOpened: null}) }
                 ref={ this.contextMenu }/>
-        </>;
+        </div>;
     }
     /**
      * @param {ContextMenuLink} link
@@ -218,7 +221,7 @@ class BlockTree extends preact.Component {
         } else if (link.id === 'clone-block') {
             const clonedBlock = Block.cloneDeep(this.state.blockWithNavOpened);
             const [cloneFrom, branch] = blockTreeUtils.findBlock(this.state.blockWithNavOpened.id, this.state.blockTree);
-            BlockTreeTabs.currentWebPage.appendClonedBlockBranchToDom(clonedBlock, cloneFrom, blockTreeUtils).then(_crefs => {
+            BlockTrees.currentWebPage.appendClonedBlockBranchToDom(clonedBlock, cloneFrom, blockTreeUtils).then(_crefs => {
                 const treeStateMutRef = this.state.treeState;
                 blockTreeUtils.traverseRecursively([clonedBlock], b => {
                     b._cref = _crefs[b.id];                        // Note: mutates this.state.blockTree
@@ -250,7 +253,7 @@ class BlockTree extends preact.Component {
             if (wasCurrentlySelectedBlock) this.selectedRoot = null;
             this.cancelAddBlock(this.state.blockWithNavOpened);
             store.dispatch(pushItemToOpQueue('delete-block-from-tree',
-                () => this.props.onChangesApplied(this.state.blockTree, this.props.treeKind)));
+                () => this.props.onChangesApplied(this.state.blockTree)));
             signals.emit('on-block-deleted', this.state.blockWithNavOpened, wasCurrentlySelectedBlock);
         }
     }
@@ -267,7 +270,7 @@ class BlockTree extends preact.Component {
         // Replace root block
         const newBlock = Block.fromType(blockBluePrint.blockType, blockBluePrint.data, origBlock.id);
         newBlock._cref = origBlock._cref;
-        BlockTreeTabs.currentWebPage.replaceBlockFromDomWith(origBlock, newBlock).then(_cref => {
+        BlockTrees.currentWebPage.replaceBlockFromDomWith(origBlock, newBlock).then(_cref => {
             newBlock._cref = _cref;
             // Replace children
             if (blockBluePrint.children.length) {
@@ -278,7 +281,7 @@ class BlockTree extends preact.Component {
                 return Promise.all(flat.map(blueprint => {
                     const b = Block.fromType(blueprint.blockType, blueprint.data, undefined);
                     const after = this.getAfter(newBlock.children, newBlock);
-                    return BlockTreeTabs.currentWebPage.appendBlockToDom(b, after).then(_cref => {
+                    return BlockTrees.currentWebPage.appendBlockToDom(b, after).then(_cref => {
                         b._cref = _cref;
                         newBlock.children.push(b);
                         treeStateMutRef[b.id] = createTreeItemState();
@@ -304,7 +307,7 @@ class BlockTree extends preact.Component {
         this.setState({treeState: treeState});
         //
         store.dispatch(pushItemToOpQueue('append-block-to-tree',
-            () => this.props.onChangesApplied(this.state.blockTree, this.props.treeKind)));
+            () => this.props.onChangesApplied(this.state.blockTree)));
     }
     /**
      * @param {Block} placeholderBlock
@@ -313,7 +316,7 @@ class BlockTree extends preact.Component {
     cancelAddBlock(placeholderBlock) {
         const [block, containingBranch] = blockTreeUtils.findBlock(placeholderBlock.id,
             this.state.blockTree);
-        BlockTreeTabs.currentWebPage.deleteBlockFromDom(block);
+        BlockTrees.currentWebPage.deleteBlockFromDom(block);
         this.deleteBlock(block, containingBranch);
     }
     /**
@@ -429,6 +432,10 @@ class BlockTree extends preact.Component {
 
 function createTreeItemState(overrides = {}) {
     return Object.assign({isSelected: false, isCollapsed: false, isNew: false}, overrides);
+}
+
+function getLastPageBlock(blockTree) {
+    return blockTree.reduce((last, b) => b.origin === 'page' ? b : last, null);
 }
 
 export default BlockTree;

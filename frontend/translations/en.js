@@ -15,10 +15,11 @@ stringBundles.push({
     // edit-app/src/BlockTree.jsx
     'Add child': 'Add child',
     'Add child block': 'Add child block',
+    'Clone': 'Clone',
+    'Clone block or branch': 'Clone block or branch',
     'Delete': 'Delete',
     'Delete block': 'Delete block',
     // edit-app/src/BlockTrees.jsx
-    'Page': 'Page',
     'Add new block': 'Add new block',
     'Add block': 'Add block',
     // edit-app/src/BlockTypeSelector.jsx
@@ -28,7 +29,7 @@ stringBundles.push({
     'My website': 'My website',
     'Pages': 'Pages',
     // edit-app/src/EditApp.jsx
-    'Admin': 'Admin',
+    'Edit mode': 'Edit mode',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Close',
     // edit-app/src/SaveButton.jsx
@@ -55,6 +56,7 @@ stringBundles.push({
     // edit-app/src/block-types/listing.js
     'Add new %s': 'Add new %s',
     // edit-app/src/block-types/pageInfo.js
+    'PageInfo': 'Metadata',
     'Url (slug)': 'Url (slug)',
     ' contains forbidden characters': ' contains forbidden characters',
     // edit-app/src/block-types/paragraph.js

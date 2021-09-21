@@ -32,7 +32,7 @@ class BlockEditForm extends preact.Component {
         this.doCleanSignalListeners();
     }
     /**
-     * @param {{block: Block; blockTree: Array<Block>; blockTreeCmp: preact.Component; blockTreeKind: 'pageBlocks'|'layoutBlocks'; autoFocus: Boolean;}} props
+     * @param {{block: Block; blockTree: Array<Block>; blockTreeCmp: preact.Component; autoFocus: Boolean;}} props
      * @access protected
      */
     render({block, blockTreeCmp, autoFocus}) {
@@ -65,8 +65,7 @@ class BlockEditForm extends preact.Component {
      */
     commitChangeToQueue() {
         store.dispatch(pushItemToOpQueue('update-tree-block',
-            () => this.saveBlockTreeToBackend(null, this.props.blockTree,
-                this.props.blockTreeKind)));
+            () => this.saveBlockTreeToBackend(null, this.props.blockTree)));
     }
     /**
      * @param {{[key: String]: any;}} newBlockPropsData
@@ -98,11 +97,10 @@ class BlockEditForm extends preact.Component {
     /**
      * @param {Block} _block
      * @param {Array<Block>} blockTree
-     * @param {'pageBlocks'|'layoutBlocks'} blockTreeKind
      * @access private
      */
-    saveBlockTreeToBackend(_block, blockTree, blockTreeKind) {
-        return BlockTrees.saveExistingPageBlocksToBackend(blockTree, blockTreeKind);
+    saveBlockTreeToBackend(_block, blockTree) {
+        return BlockTrees.saveExistingBlocksToBackend(blockTree);
     }
 }
 

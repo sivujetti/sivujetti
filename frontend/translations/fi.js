@@ -15,10 +15,11 @@ stringBundles.push({
     // edit-app/src/BlockTree.jsx
     'Add child': 'Lisää lapsilohko',
     'Add child block': 'Lisää lapsilohko',
+    'Clone': 'Kloonaa',
+    'Clone block or branch': 'Kloonaa lohko tai haara',
     'Delete': 'Poista',
     'Delete block': 'Poista lohko',
     // edit-app/src/BlockTrees.jsx
-    'Page': 'Sivu',
     'Add new block': 'Lisää uusi lohko',
     'Add block': 'Lisää lohko',
     // edit-app/src/BlockTypeSelector.jsx
@@ -28,7 +29,7 @@ stringBundles.push({
     'My website': 'Sivustoni',
     'Pages': 'Sivut',
     // edit-app/src/EditApp.jsx
-    'Admin': 'Ylläpito',
+    'Edit mode': 'Muokkaustila',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Sulje',
     // edit-app/src/SaveButton.jsx
@@ -55,6 +56,7 @@ stringBundles.push({
     // edit-app/src/block-types/listing.js
     'Add new %s': 'Lisää uusi %s',
     // edit-app/src/block-types/pageInfo.js
+    'PageInfo': 'Metatiedot',
     'Url (slug)': 'Urli (slug)',
     ' contains forbidden characters': ' sisältää kiellettyjä merkkejä',
     // edit-app/src/block-types/paragraph.js

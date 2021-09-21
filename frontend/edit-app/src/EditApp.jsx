@@ -45,31 +45,32 @@ class EditApp extends preact.Component {
         };
     }
     /**
-     * @param {CurrentPageData} dataFromWebPage
-     * @param {Array<BlockRefComment>} comments
      * @param {EditAppAwareWebPage} webPage
+     * @param {Array<RawBlock} combinedBlockTree
+     * @param {Array<BlockRefComment>} blockRefs
      * @access public
      */
-    handleWebPageLoaded(dataFromWebPage, comments, webPage) {
+    handleWebPageLoaded(webPage, combinedBlockTree, blockRefs) {
+        const dataFromWebPage = webPage.data;
         if (dataFromWebPage.page.isPlaceholderPage !== this.state.isCreatePageModeOn) {
             this.currentWebPage = dataFromWebPage.page;
             this.setState({isCreatePageModeOn: dataFromWebPage.page.isPlaceholderPage});
         }
         signals.emit('on-web-page-loaded');
-        store.dispatch(setCurrentPage({dataFromWebPage, comments, webPage}));
+        store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
         store.dispatch(setOpQueue([]));
     }
     /**
      * @access protected
      */
     render({webPageIframe}, {isCreatePageModeOn, blockHoverIconCss}) {
-        return <>
+        return <div>
             <header class="container d-flex flex-centered">
                 <a href={ urlUtils.makeUrl('_edit') } class="column">
                     <img src={ urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo.png') }/>
                     <span class="d-inline-block ml-1">
                         <span class="d-inline-block col-12">Sivujetti</span>
-                        <span>{ __('Admin') }</span>
+                        <span>{ __('Edit mode') }</span>
                     </span>
                 </a>
                 <SaveButton/>
@@ -94,7 +95,7 @@ class EditApp extends preact.Component {
                 <Icon iconId="settings" className="size-xs"/>
             </span>
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
-        </>;
+        </div>;
     }
     /**
      * @access protected

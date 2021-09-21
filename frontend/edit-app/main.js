@@ -86,11 +86,15 @@ function renderReactEditApp() {
         handleWebPageLoaded(webPage) {
             const editApp = editAppReactRef.current;
             webPage.setEventHandlers(editApp.websiteEventHandlers);
-            webPage.data.blocks = blockTreeUtils.setParentIdPaths(webPage.data.page.blocks);
+            webPage.data.page.blocks = blockTreeUtils.setParentIdPaths(webPage.data.page.blocks);
             webPage.data.layoutBlocks = blockTreeUtils.setParentIdPaths(webPage.data.layoutBlocks);
-            editApp.handleWebPageLoaded(webPage.data,
-                                        webPage.scanBlockRefComments(true),
-                                        webPage);
+            //
+            const blockRefs = webPage.scanBlockRefComments();
+            webPage.hookBlockRefEventListeners(blockRefs);
+            const ordered = webPage.getCombinedAndOrderedBlockTree(webPage.data.page.blocks,
+                                                                   webPage.data.layoutBlocks,
+                                                                   blockRefs);
+            editApp.handleWebPageLoaded(webPage, ordered, blockRefs);
         }
     };
 }

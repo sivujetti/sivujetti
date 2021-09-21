@@ -1,33 +1,29 @@
 import {__, http, signals} from '@sivujetti-commons';
 import Icon from '../../commons/Icon.jsx';
-import Tabs from '../../commons/Tabs.jsx';
 import toasters from '../../commons/Toaster.jsx';
 import BlockTree from './BlockTree.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {observeStore, selectCurrentPage} from './store.js';
 
-class BlockTreeTabs extends preact.Component {
-    // pageBlocksTree;
-    // layoutBlocksTree;
-    // tabs;
+class BlockTrees extends preact.Component {
+    // blockTree;
     // doCleanStoreSubs;
     // doCleanSignalListeners;
     // static currentWebPage;
-    // static currentWebPageComments;
+    // static currentWebPageBlockRefs;
     /**
      * @param {{containingView: String; onWebPageLoadHandled?: () => void;}} props
      */
     constructor(props) {
         super(props);
-        this.state = {currentTabIdx: 0, pageBlocksInput: null, layoutBlocksInput: null};
-        this.pageBlocksTree = preact.createRef();
-        this.layoutBlocksTree = preact.createRef();
-        this.tabs = preact.createRef();
+        this.state = {blocksInput: null};
+        this.blockTree = preact.createRef();
         this.doCleanStoreSubs = observeStore(s => selectCurrentPage(s), value => {
+            const dataFromWebPage = value.webPage.data;
             if (// `this` is still attached to <DefaultMainPanelView/>, but placeholder page is loaded
-                (this.props.containingView === 'DefaultMainPanelView' && value.dataFromWebPage.page.isPlaceholderPage) ||
+                (this.props.containingView === 'DefaultMainPanelView' && dataFromWebPage.page.isPlaceholderPage) ||
                 // `this` is still attached to <AddPageMainPanelViwe/>, but reqular page is loaded
-                (this.props.containingView === 'AddPageMainPanelView' && !value.dataFromWebPage.page.isPlaceholderPage))
+                (this.props.containingView === 'AddPageMainPanelView' && !dataFromWebPage.page.isPlaceholderPage))
                 return;
             this.handleWebPageDataReceived(value);
         });
@@ -36,8 +32,8 @@ class BlockTreeTabs extends preact.Component {
      * @returns {Array<Block>}
      * @access public
      */
-    getPageBlocksTree() {
-        return this.pageBlocksTree.current.getTree();
+    getPageBlocks() {
+        return this.blockTree.current.getTree().filter(block => block.origin === 'page');
     }
     /**
      * @access protected
@@ -47,23 +43,11 @@ class BlockTreeTabs extends preact.Component {
         if (value.dataFromWebPage) {
             this.handleWebPageDataReceived(value);
         }
-        //
-        const treeCmps = [this.pageBlocksTree, this.layoutBlocksTree];
-        const setBlockAsSelected = (blockRef, selectedTabIdx = this.state.currentTabIdx, nthAttemp = 0) => {
-            const selectedTreeCmp = treeCmps[selectedTabIdx].current;
-            const b = blockTreeUtils.findRecursively(selectedTreeCmp.getTree(), b => b._cref === blockRef);
-            if (b) {
-                selectedTreeCmp.handleItemClicked(b);
-            } else { // Select the another tree & recurse
-                if (nthAttemp > 0) return;
-                const nextTabIdx = this.state.currentTabIdx === 0 ? 1 : 0;
-                this.tabs.current.changeTab(nextTabIdx);
-                setTimeout(() => {
-                    setBlockAsSelected(blockRef, nextTabIdx, 1);
-                }, 0);
-            }
-        };
-        this.doCleanSignalListeners = signals.on('on-web-page-block-clicked', setBlockAsSelected);
+        this.doCleanSignalListeners = signals.on('on-web-page-block-clicked', blockRef => {
+            const treeCmp = this.blockTree.current;
+            const b = blockTreeUtils.findRecursively(treeCmp.getTree(), b => b._cref === blockRef);
+            treeCmp.handleItemClicked(b);
+        });
     }
     /**
      * @access protected
@@ -73,62 +57,48 @@ class BlockTreeTabs extends preact.Component {
         this.doCleanSignalListeners();
     }
     /**
-     * @param {{dataFromWebPage: CurrentPageData; comments: Array<BlockRefComment>; webPage: EditAppAwareWebPage;}} d
+     * @param {{webPage: EditAppAwareWebPage; combinedBlockTree: Array<RawBlock>; blockRefs: Array<BlockRefComment>;}} d
      * @access private
      */
     handleWebPageDataReceived(d) {
-        BlockTreeTabs.currentWebPage = d.webPage;
-        BlockTreeTabs.currentWebPageComments = d.comments;
-        this.setState({pageBlocksInput: d.dataFromWebPage.page.blocks,
-                       layoutBlocksInput: d.dataFromWebPage.layoutBlocks});
+        BlockTrees.currentWebPage = d.webPage;
+        BlockTrees.currentWebPageBlockRefs = d.blockRefs;
+        this.setState({blocksInput: d.combinedBlockTree});
         this.props.onWebPageLoadHandled && this.props.onWebPageLoadHandled();
     }
     /**
      * @access protected
      */
-    render({hideTabs, containingView}, {currentTabIdx, pageBlocksInput, layoutBlocksInput}) {
-        if (pageBlocksInput === null)
+    render({containingView}, {blocksInput}) {
+        if (blocksInput === null)
             return;
         return <div>
-            { !hideTabs ? <Tabs className="tab-block" links={ [__('Page'), __('Layout')] }
-                onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) } ref={ this.tabs }/> : null }
-            { currentTabIdx === 0
-                ? [
-                    <button
-                        onClick={ () => this.pageBlocksTree.current.appendNewBlockPlaceholder() }
-                        class="btn btn-sm with-icon mt-2"
-                        title={ __('Add new block') } type="button">
-                        <Icon iconId="plus" className="size-sm"/> { __('Add block') }
-                    </button>,
-                    <BlockTree
-                        treeKind="pageBlocks"
-                        blocksInput={ pageBlocksInput }
-                        onChangesApplied={ containingView === 'DefaultMainPanelView'
-                            ? BlockTreeTabs.saveExistingPageBlocksToBackend
-                            : function () {} }
-                        BlockTrees={ BlockTreeTabs }
-                        ref={ this.pageBlocksTree }/>,
-                ]
-                : <BlockTree
-                    treeKind="layoutBlocks"
-                    blocksInput={ layoutBlocksInput }
-                    onChangesApplied={ () => null }
-                    BlockTrees={ BlockTreeTabs }
-                    ref={ this.layoutBlocksTree }/>
-            }
+            <button
+                onClick={ () => this.blockTree.current.appendNewBlockPlaceholder() }
+                class="btn btn-sm with-icon my-2"
+                title={ __('Add new block') } type="button">
+                <Icon iconId="plus" className="size-sm"/> { __('Add block') }
+            </button>
+            <BlockTree
+                blocksInput={ blocksInput }
+                onChangesApplied={ containingView === 'DefaultMainPanelView'
+                    ? BlockTrees.saveExistingBlocksToBackend
+                    : function () {} }
+                BlockTrees={ BlockTrees }
+                ref={ this.blockTree }/>
         </div>;
     }
     /**
      * @param {Array<Block>} newBlockTree
-     * @param {'pageBlocks'|'layoutBlocks'} blockTreeKind
      * @returns {Promise<Boolean>}
      * @access private
      */
-    static saveExistingPageBlocksToBackend(newBlockTree, blockTreeKind) {
-        const page = BlockTreeTabs.currentWebPage.data.page;
-        const url = blockTreeKind === 'pageBlocks'
+    static saveExistingBlocksToBackend(newBlockTree) {
+        const page = BlockTrees.currentWebPage.data.page;
+        // todo a, b
+        const url = 'pageBlocks'
             ? `/api/pages/${page.type}/${page.id}/blocks`
-            : `/api/layouts/${BlockTreeTabs.currentWebPage.data.page.layoutId}/blocks`;
+            : `/api/layouts/${BlockTrees.currentWebPage.data.page.layoutId}/blocks`;
         return http.put(url,
             {blocks: blockTreeUtils.mapRecursively(newBlockTree, block => block.toRaw())})
             .then(resp => {
@@ -143,4 +113,4 @@ class BlockTreeTabs extends preact.Component {
     }
 }
 
-export default BlockTreeTabs;
+export default BlockTrees;

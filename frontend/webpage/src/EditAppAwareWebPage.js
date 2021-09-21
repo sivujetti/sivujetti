@@ -20,26 +20,50 @@ class EditAppAwareWebPage {
         this.handlers = handlers;
     }
     /**
-     * @param {Boolean} doRegisterEventListeners = false
      * @returns {Array<BlockRefComment>}
      * @access public
      */
-    scanBlockRefComments(doRegisterEventListeners = false) {
-        const out = this.data.page.blocks.length
+    scanBlockRefComments() {
+        return this.data.page.blocks.length
             ? getBlockRefCommentsFromCurrentPage()
             : [];
-        if (doRegisterEventListeners) {
-            const hoverables = !this.data.page.isPlaceholderPage
-                ? out
-                : out.filter(({blockId}) => this.data.layoutBlocks.some(block => block.id === blockId) === false);
-            hoverables.map(this.registerBlockMouseListeners.bind(this));
-            if (!this.isGlobalClickHandlerSet) {
-                document.body.addEventListener('click', () => {
-                    if (this.currentlyHoveredBlockFirstChildEl)
-                        this.handlers.onBlockClicked(this.currentlyHoveredBlockRef);
-                });
-                this.isGlobalClickHandlerSet = true;
+    }
+    /**
+     * @param {Array<BlockRefComment>} blockRefComments
+     * @access public
+     */
+    hookBlockRefEventListeners(blockRefComments) {
+        const hoverables = !this.data.page.isPlaceholderPage
+            ? blockRefComments
+            : blockRefComments.filter(({blockId}) => this.data.layoutBlocks.some(block => block.id === blockId) === false);
+        hoverables.map(this.registerBlockMouseListeners.bind(this));
+        if (!this.isGlobalClickHandlerSet) {
+            document.body.addEventListener('click', () => {
+                if (this.currentlyHoveredBlockFirstChildEl)
+                    this.handlers.onBlockClicked(this.currentlyHoveredBlockRef);
+            });
+            this.isGlobalClickHandlerSet = true;
+        }
+    }
+    /**
+     * @param {Array<RawBlock>} pageBlocks
+     * @param {Array<RawBlock>} layoutBlocks
+     * @param {Array<BlockRefComment>} blockRefComments
+     * @returns {Array<RawBlock>}
+     * @access public
+     */
+    getCombinedAndOrderedBlockTree(pageBlocks, layoutBlocks, blockRefComments) {
+        const out = [];
+        for (const _cref of blockRefComments) {
+            let block = pageBlocks.find(({id}) => id === _cref.blockId);
+            if (block) {
+                block.origin = 'page';
+            } else {
+                block = layoutBlocks.find(({id}) => id === _cref.blockId);
+                if (!block) continue; // Child block, do nothing
+                block.origin = 'layout';
             }
+            out.push(block);
         }
         return out;
     }
@@ -384,7 +408,7 @@ function getBlockRefCommentsFromCurrentPage() {
         const pair = c.nodeValue.substr(L1, c.nodeValue.length - L1 - L2);
         const [blockId, blockType] = pair.split(':');
         const PUSH_ID_LENGTH = 20;
-        if (!(blockId.length === PUSH_ID_LENGTH || !isNaN(parseInt(blockId))))
+        if (blockId.length !== PUSH_ID_LENGTH)
             continue;
         //
         out.push({

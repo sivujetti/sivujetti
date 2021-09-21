@@ -44,6 +44,7 @@ interface RawBlock {
     propsData: Array<{key: String; value: String;}>;
     children: Array<RawBlock>;
     parentBlockIdPath: String; // e.g. '/grand-parent/parent'
+    origin?: 'page'|'layout';
     [key: String]: mixed;
 }
 
@@ -102,7 +103,8 @@ interface TheWebsite {
 
 interface EditAppAwareWebPage {
     data: CurrentPageData;
-    scanBlockRefComments(doRegisterEventListeners: Boolean = false): Array<BlockRefComment>;
+    scanBlockRefComments(): Array<BlockRefComment>;
+    hookBlockRefEventListeners(blockRefComments: Array<BlockRefComment>): void;
     appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<BlockRefComment>;
     appendClonedBlockBranchToDom(clonedBlock: Block, clonedFromBlock: Block, blockTreeUtils: blockTreeUtils): Promise<{[key: String]: BlockRefComment;}>;
     replaceBlockFromDomWith(currentBlock: Block, replacement: Block): Promise<BlockRefComment>;

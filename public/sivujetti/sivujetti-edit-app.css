@@ -247,8 +247,8 @@ ul.list {
         height: 30%;
     }
 }
-.one-column-layout #main-panel,
-.one-column-layout #inspector-panel {
+#main-panel,
+#inspector-panel {
     position: absolute;
     width: 274px;
     background-color: var(--color-bg-default);
@@ -257,26 +257,26 @@ ul.list {
     overflow-y: auto;
     transition: opacity .1s linear;
 }
-.one-column-layout #main-panel {
+#main-panel {
     height: 100%;
 }
-.one-column-layout #inspector-panel {
+#inspector-panel {
     z-index: -1;
 }
-.one-column-layout.inspector-panel-open #main-panel,
-.one-column-layout.inspector-panel-open #inspector-panel {
+.inspector-panel-open #main-panel,
+.inspector-panel-open #inspector-panel {
     opacity: 1;
     animation-duration: .2s;
     animation-fill-mode: forwards;
 }
-.one-column-layout.inspector-panel-open #main-panel {
+.inspector-panel-open #main-panel {
     animation-name: adjust-main-panel;
 }
-.one-column-layout.inspector-panel-open #inspector-panel {
+.inspector-panel-open #inspector-panel {
     animation-name: adjust-inspector-panel;
     z-index: initial;
 }
-.one-column-layout #sivujetti-site-iframe {
+#sivujetti-site-iframe {
     position: absolute;
     height: 100%;
     width: calc(100% - 274px);
@@ -284,7 +284,7 @@ ul.list {
     transform: translateX(274px);
     height: 100%;
 }
-.one-column-layout #inspector-panel {
+#inspector-panel {
     bottom: 0;
     border-top: 1px solid var(--color-bg-dimmed2);
     height: 0;
@@ -294,6 +294,7 @@ ul.list {
 .resize-panel-handle {
     position: fixed;
     z-index: 1;
+    left: 0;
 }
 #main-panel .resize-panel-handle {
     height: 100%;
@@ -310,7 +311,6 @@ ul.list {
     width: 274px;
     height: 8px;
     bottom: 0;
-    left: 0;
     cursor: row-resize;
 }
 .floating-dialog {
@@ -336,28 +336,6 @@ ul.list {
     border: none;
     cursor: pointer;
 }
-
-/* todo
-.two-columns-layout #main-panel,
-.two-columns-layout #sivujetti-site-iframe,
-.two-columns-layout #inspector-panel {
-    position: absolute;
-    height: 100%;
-}
-.two-columns-layout #main-panel {
-    width: 142px;
-    background-color: var(--color-bg-default);
-    color: var(--color-fg-default);
-}
-.two-columns-layout #sivujetti-site-iframe {
-    width: calc(100% - 142px - 172px);
-    border: none;
-    left: 142px;
-}
-.two-columns-layout #inspector-panel {
-    width: 172px;
-    right: 0;
-}*/
 
 /* EditApp: Components */
 ul.popup-menu.menu {
@@ -448,8 +426,12 @@ a.popup-close-area {
 
 
 /* EditApp: Main panel */
+#main-panel > div {
+    display: block;
+    padding: 0 .4rem;
+}
 #main-panel header {
-    margin: .4rem 0 -.7rem 0;
+    margin: .4rem 0 .3rem 0;
 }
 #main-panel header a {
     display: inline-block;
@@ -471,29 +453,43 @@ a.popup-close-area {
     opacity: 0.4;
     font-size: .6rem;
 }
-
-#main-panel .panel-section {
-    padding: 1px .4rem;
-    margin: 1rem 0;
+.panel-section {
+    padding: .8rem 0 .4rem .4rem;
 }
-#main-panel .panel-section h1 {
+.panel-section:not(:last-of-type) {
+    border-bottom: 1px solid #ebedf3;
+}
+.panel-section.open:not(:last-of-type) {
+    padding-bottom: 1rem;
+}
+.panel-section h1 {
     font-weight: 800;
     font-size: 1rem;
 }
-#main-panel .panel-section h2 {
-    color: var(--color-fg-dimmed);
-    font-size: .6rem;
+.panel-section > div,
+.panel-section > nav {
+    display: none;
+}
+.panel-section.open > div,
+.panel-section.open > nav {
+    display: initial;
+}
+.panel-section > button {
+    font-size: .75rem;
     font-weight: 300;
-    margin: .4rem .5rem .4rem 0;
-    text-transform: uppercase;
-    letter-spacing: .08rem;
+    padding: .6rem 0;
+    border: none;
+    background: transparent;
+}
+.panel-section.open > button > .feather:last-of-type {
+    transition: transform linear .1s;
+}
+.panel-section.open > button > .feather:last-of-type {
+    transform: rotate(90deg);
 }
 .panel-section > nav a {
     margin: .8rem 0;
     color: var(--color-fg-default);
-}
-.panel-section > nav a > .feather {
-    margin: 0 .6rem 0 .5rem;
 }
 
 /* EditApp: Main panel > Block tree */
@@ -527,6 +523,10 @@ a.popup-close-area {
     border: 1px solid transparent;
     margin-left: -.4rem;
     border-left: none;
+}
+.block-tree > li.layout-block {
+    background-color: #fc57220d;
+    border-radius: 3px;
 }
 .block-tree li button {
     background: transparent;
@@ -593,7 +593,7 @@ a.popup-close-area {
     transition: transform linear .1s;
 }
 .block-tree li.collapsed > button > .feather {
-    transform: rotate(180deg);
+    transform: rotate(-90deg);
 }
 
 /* EditApp: Block hover icon */

@@ -106,7 +106,7 @@ class AddPageMainPanelView extends preact.Component {
             level: 1,
             title: this.state.values.title,
             layoutId: this.state.layoutId,
-            blocks: this.blockTrees.current.getPageBlocksTree(),
+            blocks: this.blockTrees.current.getPageBlocks(),
             status: 0,
         };
         for (const fieldDef of this.props.pageType.ownFields) {

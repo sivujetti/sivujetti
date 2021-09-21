@@ -68,22 +68,22 @@ QUnit.module('BlockTrees', () => {
     function simulateDragBlock(s, direction, t = null) {
         const simulateDragStarted = liEl => {
             const fakeDragStartEvent = {target: liEl};
-            s.blockTreesCmp.pageBlocksTree.current.dragDrop.handleDragStarted(fakeDragStartEvent);
+            s.blockTreesCmp.blockTree.current.dragDrop.handleDragStarted(fakeDragStartEvent);
         };
         const simulateDraggedOver = (liEl, simulatedMousePosition) => {
             const fakeDragOverEvent = {target: liEl,
                                        clientY: simulatedMousePosition,
                                        preventDefault: () => null};
-            s.blockTreesCmp.pageBlocksTree.current.dragDrop.handleDraggedOver(fakeDragOverEvent);
+            s.blockTreesCmp.blockTree.current.dragDrop.handleDraggedOver(fakeDragOverEvent);
         };
         const simulateDropped = () => {
-            s.blockTreesCmp.pageBlocksTree.current.dragDrop.handleDraggableDropped();
+            s.blockTreesCmp.blockTree.current.dragDrop.handleDraggableDropped();
         };
         return new Promise(resolve => {
             setTimeout(() => {
                 const lis = document.querySelectorAll('.block-tree li');
-                const paragraphBlockLi = lis[lis.length - 1];
-                const headingBlockLi = lis[lis.length - 2];
+                const paragraphBlockLi = lis[lis.length - 2];
+                const headingBlockLi = lis[lis.length - 3];
                 //
                 if (direction === 'upwards') {
                     simulateDragStarted(paragraphBlockLi);

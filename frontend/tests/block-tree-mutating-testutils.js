@@ -5,12 +5,7 @@ import EditAppAwareWebPage from '../webpage/src/EditAppAwareWebPage.js';
 
 function createTestState() {
     return {
-        mockPageData: {
-            dataFromWebPage: null,
-            comments: null,
-            webPage: null,
-            blockTreesCmp: null,
-        }
+        blockTreesCmp: null,
     };
 }
 
@@ -26,7 +21,7 @@ function renderBlockTreeIntoDom(s, then) {
 
 function simulatePageLoad(s) {
     //
-    const blockTree = [{
+    const pageBlocks = [{
         "type": "Section",
         "title": "",
         "renderer": "sivujetti:block-generic-wrapper",
@@ -75,27 +70,45 @@ function simulatePageLoad(s) {
             "cssClass": ""
         }]
     }];
+    const layoutBlocks = [{
+        "type": "Paragraph",
+        "title": "",
+        "renderer": "sivujetti:block-auto",
+        "id": 'EsmAW0--AnViMcwnIaDP',
+        "children": [],
+        "propsData": [{
+            "key": "text",
+            "value": "© Mysite"
+        }, {
+            "key": "cssClass",
+            "value": ""
+        }],
+        "text": "© Mysite",
+        "cssClass": ""
+    }];
     document.getElementById('mock-page-container-el').innerHTML =
-        blockUtils.decorateWithRef(blockTree[0], '<section id="initial-section">' +
-            blockUtils.decorateWithRef(blockTree[0].children[0], '<h2>My page</h2>') +
-            blockUtils.decorateWithRef(blockTree[0].children[1], '<p id="initial-paragraph">Hello</p>') +
-        '</section>');
+        blockUtils.decorateWithRef(pageBlocks[0], '<section id="initial-section">' +
+            blockUtils.decorateWithRef(pageBlocks[0].children[0], '<h2>My page</h2>') +
+            blockUtils.decorateWithRef(pageBlocks[0].children[1], '<p id="initial-paragraph">Hello</p>') +
+        '</section>') +
+        blockUtils.decorateWithRef(layoutBlocks[0], '<p id="initial-paragraph2">© Mysite</p>');
     //
-    s.mockPageData.dataFromWebPage = {
+    const mockSivujettiCurrentPageData = {
         page: {
             id: '1',
             title: 'New page',
             isPlaceholderPage: false,
             type: 'Pages',
-            blocks: blockTree,
+            blocks: pageBlocks,
         },
         layouts: [],
-        layoutBlocks: [],
+        layoutBlocks: layoutBlocks,
     };
-    s.mockPageData.webPage = new EditAppAwareWebPage(s.mockPageData.dataFromWebPage);
-    s.mockPageData.comments = s.mockPageData.webPage.scanBlockRefComments();
-    //
-    store.dispatch(setCurrentPage(s.mockPageData));
+    const webPage = new EditAppAwareWebPage(mockSivujettiCurrentPageData);
+    const blockRefs = webPage.scanBlockRefComments();
+    const combinedBlockTree = webPage.getCombinedAndOrderedBlockTree(pageBlocks,
+        layoutBlocks, blockRefs);
+    store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
 }
 
 export {createTestState, renderBlockTreeIntoDom, simulatePageLoad};

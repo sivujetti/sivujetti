@@ -4,7 +4,7 @@ import Icon from '../../commons/Icon.jsx';
 import BlockTypeSelector from './BlockTypeSelector.jsx';
 import Block from './Block.js';
 import blockTreeUtils from './blockTreeUtils.js';
-import store, {pushItemToOpQueue} from './store.js';
+import store, {selectOpQueue, pushItemToOpQueue} from './store.js';
 import BlockTreeDragDrop from './BlockTreeDragDrop.js';
 
 let BlockTrees;
@@ -13,6 +13,7 @@ class BlockTree extends preact.Component {
     // selectedRoot;
     // contextMenu;
     // lastRootBlockMarker;
+    // unregisterSignalListener;
     // dragDrop;
     // onDragStart;
     // onDragOver;
@@ -117,13 +118,19 @@ class BlockTree extends preact.Component {
             : {nextSibling: null, parentNode: com.parentNode};
         this.setState({blockTree, treeState});
         //
-        signals.on('on-inspector-panel-closed', () => {
+        this.unregisterSignalListener = signals.on('on-inspector-panel-closed', () => {
             this.deSelectAllBlocks();
         });
         //
         this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
         this.onDragOver = this.dragDrop.handleDraggedOver.bind(this.dragDrop);
         this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        this.unregisterSignalListener();
     }
     /**
      * @access protected

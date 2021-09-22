@@ -11,7 +11,7 @@ class BlockEditForm extends preact.Component {
     // currentDebouceTime;
     // currentDebounceType;
     // blockType;
-    // doCleanSignalListeners;
+    // unregisterSignalListener;
     /**
      * @access protected
      */
@@ -21,7 +21,12 @@ class BlockEditForm extends preact.Component {
         this.currentDebouceTime = null;
         this.currentDebounceType = null;
         this.blockType = blockTypes.get(this.props.block.type);
-        this.doCleanSignalListeners = signals.on('on-block-deleted', (_block, wasCurrentlySelectedBlock) => {
+        this.unregisterSignalListener = signals.on('on-block-deleted',
+        /**
+         * @param {Block} _block
+         * @param {Boolean} wasCurrentlySelectedBlock
+         */
+        (_block, wasCurrentlySelectedBlock) => {
             if (wasCurrentlySelectedBlock) this.props.inspectorPanel.close();
         });
     }
@@ -29,7 +34,7 @@ class BlockEditForm extends preact.Component {
      * @access protected
      */
     componentWillUnmount() {
-        this.doCleanSignalListeners();
+        this.unregisterSignalListener();
     }
     /**
      * @param {{block: Block; blockTree: Array<Block>; blockTreeCmp: preact.Component; autoFocus: Boolean;}} props

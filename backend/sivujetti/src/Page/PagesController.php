@@ -59,7 +59,16 @@ final class PagesController {
         $page->layoutId = $req->params->layoutId;
         $page->id = "-";
         $page->type = $req->params->pageType;
-        $page->blocks = array_map(fn($b) => Block::fromBlueprint($b), $pageType->blockFields);
+        $page->blocks = array_map([Block::class, "fromBlueprint"], array_merge(
+            [(object) [
+                "type" => Block::TYPE_PAGE_INFO,
+                "title" => "",
+                "defaultRenderer" => "sivujetti:block-auto",
+                "children" => [],
+                "initialData" => (object) ["overrides" => "[]"]
+            ]],
+            $pageType->blockFields
+        ));
         $page->status = Page::STATUS_DRAFT;
         $page->layout = (object) ["blocks" => []];
         //

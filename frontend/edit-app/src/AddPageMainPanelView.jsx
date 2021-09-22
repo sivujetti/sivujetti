@@ -1,45 +1,51 @@
-import {__, http, urlUtils} from '@sivujetti-commons';
-import {hookForm, InputGroup, InputError, Input} from '../../commons/Form.jsx';
+import {__, http, urlUtils, signals, env} from '@sivujetti-commons';
 import toasters from '../../commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';
 import store, {deleteItemsFromOpQueueAfter, setOpQueue} from './store.js';
-import {stringUtils} from './utils.js';
 
 class AddPageMainPanelView extends preact.Component {
     // initialPageData;
+    // pageMetaData;
     // pageType;
     // blockTrees;
+    // unregisterSignalListener;
     /**
-     * @param {{cancelAddPage: () => void; initialPageData: Object; pageType: PageType; webPageIframe: WebPageIframe;}} props
+     * @param {{cancelAddPage: () => void; initialPageData: {id: String; slug: String; path: String; level: Number; type: String; title: String; layoutId: String; status: Number; blocks: Array<RawBlock>; isPlaceholderPage: Boolean;}; pageType: PageType; webPageIframe: WebPageIframe;}} props
      */
     constructor(props) {
         super(props);
         this.initialPageData = props.initialPageData;
+        this.pageMetaData = {};
         this.blockTrees = preact.createRef();
-        const title = __(this.initialPageData.title);
-        this.state = Object.assign({
-            layoutId: '1',
-            slug: makeSlug(title),
-        }, hookForm(this, {
-            title,
-        }));
+        this.state = {layoutId: '1'};
+        this.unregisterSignalListener = signals.on('on-page-info-form-value-changed',
+        /**
+         * @param {{title: String; slug: String;}} newValues
+         */
+        newValues => {
+            this.pageMetaData = {title: newValues.title, slug: newValues.slug};
+        });
     }
     /**
      * @access protected
      */
     componentDidMount() {
         store.dispatch(setOpQueue([{opName: 'create-new-page', handler: this.handleFormSubmitted.bind(this)}]));
+        setTimeout(() => {
+            env.document.querySelectorAll('.block-tree li .block-handle')[1].click();
+        }, 1);
     }
     /**
      * @access protected
      */
     componentWillUnmount() {
         store.dispatch(deleteItemsFromOpQueueAfter('create-new-page'));
+        this.unregisterSignalListener();
     }
     /**
      * @access protected
      */
-    render({cancelAddPage}, {errors, classes, slug, layoutId}) {
+    render({cancelAddPage}, {layoutId}) {
         return <form onSubmit={ this.handleFormSubmitted.bind(this) }>
             <header class="panel-section mb-2">
                 <h1 class="mb-2">{ __('Create %s', this.props.pageType.name) }</h1>
@@ -49,8 +55,12 @@ class AddPageMainPanelView extends preact.Component {
                     title={ __('Cancel add %s', this.props.pageType.name) }
                     type="button">&lt; { __('Back') }</button>
             </header>
-            <section class="panel-section mt-0">
-                <h2>{ __('Layout') }</h2>
+            {/*<section class="panel-section open pt-0">
+                <button class="d-flex col-12 flex-centered pr-2" onClick={ () => '{ this.setState({sectionAIsCollapsed: !sectionAIsCollapsed}); }' } type="button">
+                    <Icon iconId="layout" className="size-sm mr-2 color-dimmed"/>
+                    <span class="pl-1 color-default">{ __('Layout') }</span>
+                    <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
+                </button>
                 { BlockTrees.currentWebPage ?
                 <select
                     value={ layoutId }
@@ -58,38 +68,11 @@ class AddPageMainPanelView extends preact.Component {
                     class="form-select form-input tight">{ BlockTrees.currentWebPage.data.layouts.map(l =>
                     <option value={ l.id }>{ __(l.friendlyName) }</option>
                 ) }</select> : null }
-            </section>
-            <section class="panel-section">
-                <h2>{ __('Default fields') }</h2>
-                <div>
-                    <InputGroup classes={ classes.title }>
-                        <label htmlFor="title" class="form-label">{ __('Title') }</label>
-                        <Input vm={ this } name="title" id="title" errorLabel={ __('Title') }
-                            validations={ [['required']] } myOnChange={ this.handleTitleChanged.bind(this) } className="tight"/>
-                        <InputError error={ errors.title }/>
-                    </InputGroup>
-                    <InputGroup>
-                        <input value={ slug } class="form-input tight" placeholder={ __('Slug') } disabled/>
-                    </InputGroup>
-                </div>
-            </section>
-            <section class="panel-section">
-                <h2>{ __('Content') }</h2>
-                <BlockTrees containingView="AddPageMainPanelView" ref={ this.blockTrees } hideTabs/>
+            </section>*/}
+            <section>
+                <BlockTrees containingView="AddPageMainPanelView" ref={ this.blockTrees }/>
             </section>
         </form>;
-    }
-    /**
-     * @param {Object} state
-     * @access private
-     */
-    handleTitleChanged(state) {
-        const title = state.values.title;
-        if (title.length) {
-            this.setState({slug: makeSlug(title)});
-            BlockTrees.currentWebPage.updateTitle(title);
-        }
-        return state;
     }
     /**
      * @param {Event|undefined} e
@@ -97,14 +80,12 @@ class AddPageMainPanelView extends preact.Component {
      * @access private
      */
     handleFormSubmitted(e) {
-        if (!this.form.handleSubmit(e))
-            return Promise.resolve(false);
-        //
+        if (e) e.preventDefault();
         const data = {
-            slug: this.state.slug,
-            path: `${this.state.slug.substr(1)}/`,
+            slug: this.pageMetaData.slug,
+            path: `${this.pageMetaData.slug.substr(1)}/`,
             level: 1,
-            title: this.state.values.title,
+            title: this.pageMetaData.title,
             layoutId: this.state.layoutId,
             blocks: this.blockTrees.current.getPageBlocks(),
             status: 0,
@@ -135,10 +116,6 @@ class AddPageMainPanelView extends preact.Component {
     renderAnotherLayout(e) {
         this.props.webPageIframe.openPlaceholderPage(this.initialPageData.type, e.target.value);
     }
-}
-
-function makeSlug(title) {
-    return `/${stringUtils.slugify(title) || '-'}`;
 }
 
 export default AddPageMainPanelView;

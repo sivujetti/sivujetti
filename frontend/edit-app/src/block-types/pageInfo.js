@@ -1,15 +1,15 @@
-import {__, http} from '@sivujetti-commons';
+import {__, http, signals} from '@sivujetti-commons';
 import {hookForm, InputGroupInline, Input, InputError} from '../../../commons/Form.jsx';
 import toasters from '../../../commons/Toaster.jsx';
 import store, {pushItemToOpQueue} from '../store.js';
 import BlockTrees from '../BlockTrees.jsx';
 import {sensibleDefaults} from '../constants.js';
-import {timingUtils} from '../utils.js';
+import {stringUtils, timingUtils} from '../utils.js';
 
 class PageInfoBlockEditForm extends preact.Component {
     // static internalSivujettiApi;
     // commitNewPageValuesDebounced;
-    // currentPage;
+    // currentPageIsPlaceholder;
     /**
      * @param {BlockEditFormProps} props
      */
@@ -17,15 +17,22 @@ class PageInfoBlockEditForm extends preact.Component {
         super(props);
         this.commitNewPageValuesDebounced = timingUtils.debounce(this.commitNewPageValues.bind(this),
             sensibleDefaults.normalTypingDebounceMillis);
+        this.currentPageIsPlaceholder = null;
     }
     /**
      * @access protected
      */
     componentWillMount() {
         const currentPage = BlockTrees.currentWebPage.data.page;
+        this.currentPageIsPlaceholder = currentPage.isPlaceholderPage;
+        let slug = currentPage.slug;
+        if (this.currentPageIsPlaceholder) {
+            slug = makeSlug(currentPage.title);
+            emitValueChangedSignal(currentPage);
+        }
         this.setState(hookForm(this, {
             title: currentPage.title,
-            slug: currentPage.slug,
+            slug,
         }));
     }
     /**
@@ -62,8 +69,12 @@ class PageInfoBlockEditForm extends preact.Component {
         const currentPage = BlockTrees.currentWebPage.data.page;
         currentPage.title = this.state.values.title;
         currentPage.slug = this.state.values.slug;
-        store.dispatch(pushItemToOpQueue('update-page-basic-info',
-            () => this.savePageToBackend(this.state.values.title, this.state.values.slug)));
+        if (!this.currentPageIsPlaceholder)
+            store.dispatch(pushItemToOpQueue('update-page-basic-info',
+                () => this.savePageToBackend(this.state.values.title, this.state.values.slug)));
+        else {
+            emitValueChangedSignal(currentPage);
+        }
     }
     /**
      * @param {String} title
@@ -106,6 +117,15 @@ class PageInfoBlockEditForm extends preact.Component {
         }
         return state;
     }
+}
+
+function emitValueChangedSignal(currentPage) {
+    signals.emit('on-page-info-form-value-changed', {title: currentPage.title,
+                                                     slug: currentPage.slug});
+}
+
+function makeSlug(title) {
+    return `/${stringUtils.slugify(title) || '-'}`;
 }
 
 /**

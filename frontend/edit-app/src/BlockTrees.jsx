@@ -8,7 +8,7 @@ import store, {observeStore, selectCurrentPage} from './store.js';
 class BlockTrees extends preact.Component {
     // blockTree;
     // doCleanStoreSubs;
-    // doCleanSignalListeners;
+    // unregisterSignalListener;
     // static currentWebPage;
     // static currentWebPageBlockRefs;
     /**
@@ -43,7 +43,11 @@ class BlockTrees extends preact.Component {
         if (value.dataFromWebPage) {
             this.handleWebPageDataReceived(value);
         }
-        this.doCleanSignalListeners = signals.on('on-web-page-block-clicked', blockRef => {
+        this.unregisterSignalListener = signals.on('on-web-page-block-clicked',
+        /**
+         * @param {BlockRefComment} blockRef
+         */
+        blockRef => {
             const treeCmp = this.blockTree.current;
             const b = blockTreeUtils.findRecursively(treeCmp.getTree(), b => b._cref === blockRef);
             treeCmp.handleItemClicked(b);
@@ -54,7 +58,7 @@ class BlockTrees extends preact.Component {
      */
     componentWillUnmount() {
         this.doCleanStoreSubs();
-        this.doCleanSignalListeners();
+        this.unregisterSignalListener();
     }
     /**
      * @param {{webPage: EditAppAwareWebPage; combinedBlockTree: Array<RawBlock>; blockRefs: Array<BlockRefComment>;}} d

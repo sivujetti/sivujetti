@@ -9,7 +9,7 @@ class DefaultMainPanelView extends preact.Component {
     constructor(props) {
         super(props);
         this.state = {sectionAIsCollapsed: false,
-                      sectionBIsCollapsed: true};
+                      sectionBIsCollapsed: false};
     }
     /**
      * @access protected

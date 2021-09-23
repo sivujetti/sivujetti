@@ -1,9 +1,9 @@
-import {__} from '@sivujetti-commons';
+import {__, env} from '@sivujetti-commons';
 import {unParagraphify} from './paragraph.js';
 import {hookForm, InputGroup, InputGroupInline, InputError, Input, Select} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
 import Icon from '../../../commons/Icon.jsx';
-import {formValidation, sensibleDefaults} from '../constants.js';
+import {formValidation} from '../constants.js';
 
 class HeadingBlockEditForm extends preact.Component {
     /**
@@ -76,7 +76,7 @@ class HeadingBlockEditForm extends preact.Component {
             text: unParagraphify(newState.values.text),
             level: newState.values.level,
             cssClass: newState.values.cssClass,
-        }, sensibleDefaults.normalTypingDebounceMillis);
+        }, env.normalTypingDebounceMillis);
         return newState;
     }
 }

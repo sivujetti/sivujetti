@@ -17,6 +17,14 @@ const utils = {
         event.initEvent('input', false, true);
         inputEl.dispatchEvent(event);
     },
+    /**
+     * @param {String} value Allow raw input
+     * @param {String} wysiwygInputName Allow raw input
+     */
+    fillWysiwygInput(value, wysiwygInputName) {
+        const contenteditable = document.querySelector(`#editor-${wysiwygInputName} .ql-editor`);
+        contenteditable.innerHTML = value;
+    },
 };
 
 const blockUtils = {

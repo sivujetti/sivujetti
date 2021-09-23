@@ -1,13 +1,13 @@
 import blockTypes from '../edit-app/src/block-types/block-types.js';
 import {blockUtils} from './my-test-utils.js';
-import * as treeTestUtils from './block-tree-mutating-testutils.js';
+import * as appTestUtils from './edit-app-testutils.js';
 
 QUnit.module('BlockTrees', () => {
     QUnit.test('user can add block to inner branch', assert => {
         const done = assert.async();
-        const s = treeTestUtils.createTestState();
-        treeTestUtils.renderBlockTreeIntoDom(s, () => {
-            treeTestUtils.simulatePageLoad(s);
+        const s = appTestUtils.createTestState();
+        appTestUtils.renderMockEditAppIntoDom(s, () => {
+            appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             clickAddBlockButton(s)
@@ -19,9 +19,9 @@ QUnit.module('BlockTrees', () => {
     });
     QUnit.test('user can add block to inner branch by using the context menu', assert => {
         const done = assert.async();
-        const s = treeTestUtils.createTestState();
-        treeTestUtils.renderBlockTreeIntoDom(s, () => {
-            treeTestUtils.simulatePageLoad(s);
+        const s = appTestUtils.createTestState();
+        appTestUtils.renderMockEditAppIntoDom(s, () => {
+            appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             clickContextMenuLink(s, 'add-child')
@@ -33,9 +33,9 @@ QUnit.module('BlockTrees', () => {
     });
     QUnit.test('user can clone block using the context menu', assert => {
         const done = assert.async();
-        const s = treeTestUtils.createTestState();
-        treeTestUtils.renderBlockTreeIntoDom(s, () => {
-            treeTestUtils.simulatePageLoad(s);
+        const s = appTestUtils.createTestState();
+        appTestUtils.renderMockEditAppIntoDom(s, () => {
+            appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             clickContextMenuLink(s, 'clone-block')
@@ -46,13 +46,11 @@ QUnit.module('BlockTrees', () => {
             done();
         });
     });
-    function clickAddBlockButton(s) {
+    function clickAddBlockButton(_s) {
         return new Promise(resolve => {
-            setTimeout(() => {
-                const btn = document.querySelector('.block-tree').parentElement.previousElementSibling;
-                btn.click();
-                resolve();
-            }, 0);
+            const btn = document.querySelector('.block-tree').parentElement.previousElementSibling;
+            btn.click();
+            resolve();
         });
     }
     function clickContextMenuLink(s, linkId) {

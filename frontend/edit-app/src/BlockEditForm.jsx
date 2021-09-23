@@ -69,8 +69,10 @@ class BlockEditForm extends preact.Component {
      * @access private
      */
     commitChangeToQueue() {
-        store.dispatch(pushItemToOpQueue('update-tree-block',
-            () => this.saveBlockTreeToBackend(null, this.props.blockTree)));
+        store.dispatch(pushItemToOpQueue(`update-${this.props.block.origin}-block`, {
+            doHandle: this.props.blockTreeCmp.props.onChangesApplied,
+            args: [this.props.blockTree, this.props.block.origin],
+        }));
     }
     /**
      * @param {{[key: String]: any;}} newBlockPropsData
@@ -98,14 +100,6 @@ class BlockEditForm extends preact.Component {
             this.currentDebounceType = debounceType;
         }
         this.a(newBlockPropsData);
-    }
-    /**
-     * @param {Block} _block
-     * @param {Array<Block>} blockTree
-     * @access private
-     */
-    saveBlockTreeToBackend(_block, blockTree) {
-        return BlockTrees.saveExistingBlocksToBackend(blockTree);
     }
 }
 

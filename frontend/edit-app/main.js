@@ -1,5 +1,6 @@
 import {translator, env, urlUtils} from '@sivujetti-commons';
 import {Validator} from '../commons/Form.jsx';
+import {sensibleDefaults} from './src/constants.js';
 import {FormStateStoreWrapper} from './src/store.js';
 import EditApp from './src/EditApp.jsx';
 import blockTypes from './src/block-types/block-types.js';
@@ -33,6 +34,7 @@ hookUpSiteIframeUrlMirrorer();
 function configureServices() {
     env.window = window;
     env.document = document;
+    env.normalTypingDebounceMillis = sensibleDefaults.normalTypingDebounceMillis;
     //
     urlUtils.baseUrl = window.dataFromAdminBackend.baseUrl;
     urlUtils.assetBaseUrl = window.dataFromAdminBackend.assetBaseUrl;
@@ -93,7 +95,8 @@ function renderReactEditApp() {
             webPage.hookBlockRefEventListeners(blockRefs);
             const ordered = webPage.getCombinedAndOrderedBlockTree(webPage.data.page.blocks,
                                                                    webPage.data.layoutBlocks,
-                                                                   blockRefs);
+                                                                   blockRefs,
+                                                                   blockTreeUtils);
             editApp.handleWebPageLoaded(webPage, ordered, blockRefs);
         }
     };

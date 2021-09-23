@@ -1,9 +1,8 @@
-import {__, http, signals} from '@sivujetti-commons';
+import {__, http, signals, env} from '@sivujetti-commons';
 import {hookForm, InputGroupInline, Input, InputError} from '../../../commons/Form.jsx';
 import toasters from '../../../commons/Toaster.jsx';
 import store, {pushItemToOpQueue} from '../store.js';
 import BlockTrees from '../BlockTrees.jsx';
-import {sensibleDefaults} from '../constants.js';
 import {stringUtils, timingUtils} from '../utils.js';
 
 class PageInfoBlockEditForm extends preact.Component {
@@ -16,7 +15,7 @@ class PageInfoBlockEditForm extends preact.Component {
     constructor(props) {
         super(props);
         this.commitNewPageValuesDebounced = timingUtils.debounce(this.commitNewPageValues.bind(this),
-            sensibleDefaults.normalTypingDebounceMillis);
+            env.normalTypingDebounceMillis);
         this.currentPageIsPlaceholder = null;
     }
     /**
@@ -69,10 +68,12 @@ class PageInfoBlockEditForm extends preact.Component {
         const currentPage = BlockTrees.currentWebPage.data.page;
         currentPage.title = this.state.values.title;
         currentPage.slug = this.state.values.slug;
-        if (!this.currentPageIsPlaceholder)
-            store.dispatch(pushItemToOpQueue('update-page-basic-info',
-                () => this.savePageToBackend(this.state.values.title, this.state.values.slug)));
-        else {
+        if (!this.currentPageIsPlaceholder) {
+            store.dispatch(pushItemToOpQueue('update-page-basic-info', {
+                doHandle: this.savePageToBackend.bind(this),
+                args: [this.state.values.title, this.state.values.slug],
+            }));
+        } else {
             emitValueChangedSignal(currentPage);
         }
     }

@@ -94,17 +94,18 @@ class BlockTrees extends preact.Component {
     }
     /**
      * @param {Array<Block>} newBlockTree
+     * @param {'page'|'layout'} blockGroup
      * @returns {Promise<Boolean>}
      * @access private
      */
-    static saveExistingBlocksToBackend(newBlockTree) {
+    static saveExistingBlocksToBackend(newBlockTree, blockGroup) {
         const page = BlockTrees.currentWebPage.data.page;
-        // todo a, b
-        const url = 'pageBlocks'
+        const url = blockGroup === 'page'
             ? `/api/pages/${page.type}/${page.id}/blocks`
             : `/api/layouts/${BlockTrees.currentWebPage.data.page.layoutId}/blocks`;
+        const filtered = newBlockTree.filter(block => block.origin === blockGroup);
         return http.put(url,
-            {blocks: blockTreeUtils.mapRecursively(newBlockTree, block => block.toRaw())})
+            {blocks: blockTreeUtils.mapRecursively(filtered, block => block.toRaw())})
             .then(resp => {
                 if (resp.ok !== 'ok') throw new Error('-');
                 return true;

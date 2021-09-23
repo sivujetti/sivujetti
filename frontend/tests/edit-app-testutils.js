@@ -2,6 +2,9 @@ import reactTestUtils, {blockUtils} from './my-test-utils.js';
 import store, {setCurrentPage} from '../edit-app/src/store.js';
 import BlockTrees from '../edit-app/src/BlockTrees.jsx';
 import EditAppAwareWebPage from '../webpage/src/EditAppAwareWebPage.js';
+import InspectorPanel from '../edit-app/src/InspectorPanel.jsx';
+import SaveButton from '../edit-app/src/SaveButton.jsx';
+import blockTreeUtils from '../edit-app/src/blockTreeUtils.js';
 
 function createTestState() {
     return {
@@ -9,17 +12,30 @@ function createTestState() {
     };
 }
 
-function renderBlockTreeIntoDom(s, then) {
+class MockEditApp extends preact.Component {
+    /**
+     * @param {{onPageLoaded: () => void; blockTreesRef: preact.Ref;}} props
+     */
+    render({onPageLoaded, blockTreesRef}) {
+        return <>
+            <SaveButton/>
+            <BlockTrees onWebPageLoadHandled={ onPageLoaded } ref={ blockTreesRef }/>
+            <InspectorPanel rootEl={ document.getElementById('render-container-el') } outerEl={ document.getElementById('render-container-el') }/>
+        </>;
+    }
+}
+
+function renderMockEditAppIntoDom(_s, then) {
     return new Promise(resolve => {
-        reactTestUtils.renderIntoDocument(BlockTrees, {ref: cmp => {
+        reactTestUtils.renderIntoDocument(MockEditApp, {blockTreesRef: cmp => {
             then(cmp);
-        }, onWebPageLoadHandled: () => {
+        }, onPageLoaded: () => {
             resolve();
         }});
     });
 }
 
-function simulatePageLoad(s) {
+function simulatePageLoad(_s) {
     //
     const pageBlocks = [{
         "type": "Section",
@@ -89,9 +105,9 @@ function simulatePageLoad(s) {
     document.getElementById('mock-page-container-el').innerHTML =
         blockUtils.decorateWithRef(pageBlocks[0], '<section id="initial-section">' +
             blockUtils.decorateWithRef(pageBlocks[0].children[0], '<h2>My page</h2>') +
-            blockUtils.decorateWithRef(pageBlocks[0].children[1], '<p id="initial-paragraph">Hello</p>') +
+            blockUtils.decorateWithRef(pageBlocks[0].children[1], '<p>Hello</p>') +
         '</section>') +
-        blockUtils.decorateWithRef(layoutBlocks[0], '<p id="initial-paragraph2">© Mysite</p>');
+        blockUtils.decorateWithRef(layoutBlocks[0], '<p>© Mysite</p>');
     //
     const mockSivujettiCurrentPageData = {
         page: {
@@ -107,8 +123,8 @@ function simulatePageLoad(s) {
     const webPage = new EditAppAwareWebPage(mockSivujettiCurrentPageData);
     const blockRefs = webPage.scanBlockRefComments();
     const combinedBlockTree = webPage.getCombinedAndOrderedBlockTree(pageBlocks,
-        layoutBlocks, blockRefs);
+        layoutBlocks, blockRefs, blockTreeUtils);
     store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
 }
 
-export {createTestState, renderBlockTreeIntoDom, simulatePageLoad};
+export {createTestState, renderMockEditAppIntoDom, simulatePageLoad};

@@ -1,12 +1,12 @@
-import * as treeTestUtils from './block-tree-mutating-testutils.js';
+import * as appTestUtils from './edit-app-testutils.js';
 
 QUnit.module('BlockTrees', () => {
     QUnit.test('blocks can be reordered inside inner branch by dragging upwards', assert => {
         const done = assert.async();
-        const s = treeTestUtils.createTestState();
-        treeTestUtils.renderBlockTreeIntoDom(s, cmp => {
+        const s = appTestUtils.createTestState();
+        appTestUtils.renderMockEditAppIntoDom(s, cmp => {
             s.blockTreesCmp = cmp;
-            treeTestUtils.simulatePageLoad(s);
+            appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             simulateDragBlock(s, 'upwards')
@@ -19,10 +19,10 @@ QUnit.module('BlockTrees', () => {
     });
     QUnit.test('blocks can be reordered inside inner branch by dragging downwards', assert => {
         const done = assert.async();
-        const s = treeTestUtils.createTestState();
-        treeTestUtils.renderBlockTreeIntoDom(s, cmp => {
+        const s = appTestUtils.createTestState();
+        appTestUtils.renderMockEditAppIntoDom(s, cmp => {
             s.blockTreesCmp = cmp;
-            treeTestUtils.simulatePageLoad(s);
+            appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             simulateDragBlock(s, 'downwards')
@@ -35,10 +35,10 @@ QUnit.module('BlockTrees', () => {
     });
     QUnit.test('blocks can be moved to child of another block by dragging upwards', assert => {
         const done = assert.async();
-        const s = treeTestUtils.createTestState();
-        treeTestUtils.renderBlockTreeIntoDom(s, cmp => {
+        const s = appTestUtils.createTestState();
+        appTestUtils.renderMockEditAppIntoDom(s, cmp => {
             s.blockTreesCmp = cmp;
-            treeTestUtils.simulatePageLoad(s);
+            appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             simulateDragBlock(s, 'upwards', 'as-child')
@@ -51,10 +51,10 @@ QUnit.module('BlockTrees', () => {
     });
     QUnit.test('blocks can be moved to child of another block by dragging downwards', assert => {
         const done = assert.async();
-        const s = treeTestUtils.createTestState();
-        treeTestUtils.renderBlockTreeIntoDom(s, cmp => {
+        const s = appTestUtils.createTestState();
+        appTestUtils.renderMockEditAppIntoDom(s, cmp => {
             s.blockTreesCmp = cmp;
-            treeTestUtils.simulatePageLoad(s);
+            appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             simulateDragBlock(s, 'downwards', 'as-child')
@@ -80,35 +80,33 @@ QUnit.module('BlockTrees', () => {
             s.blockTreesCmp.blockTree.current.dragDrop.handleDraggableDropped();
         };
         return new Promise(resolve => {
-            setTimeout(() => {
-                const lis = document.querySelectorAll('.block-tree li');
-                const paragraphBlockLi = lis[lis.length - 2];
-                const headingBlockLi = lis[lis.length - 3];
-                //
-                if (direction === 'upwards') {
-                    simulateDragStarted(paragraphBlockLi);
-                    if (t !== 'as-child')
-                        simulateDraggedOver(headingBlockLi,
-                                            // Simulate that mouse is above target li's center
-                                            0);
-                    else
-                        simulateDraggedOver(headingBlockLi,
-                                            // Simulate that mouse is below target li's bottom treshold
-                                            Infinity);
-                } else {
-                    simulateDragStarted(headingBlockLi);
-                    if (t !== 'as-child')
-                        simulateDraggedOver(paragraphBlockLi,
-                                            // Simulate that mouse is below target li's center
-                                            Infinity);
-                    else
-                        simulateDraggedOver(paragraphBlockLi,
-                                            // Simulate that mouse is above target li's top treshold
-                                            0);
-                }
-                simulateDropped();
-                resolve();
-            }, 0);
+            const lis = document.querySelectorAll('.block-tree li');
+            const paragraphBlockLi = lis[lis.length - 2];
+            const headingBlockLi = lis[lis.length - 3];
+            //
+            if (direction === 'upwards') {
+                simulateDragStarted(paragraphBlockLi);
+                if (t !== 'as-child')
+                    simulateDraggedOver(headingBlockLi,
+                                        // Simulate that mouse is above target li's center
+                                        0);
+                else
+                    simulateDraggedOver(headingBlockLi,
+                                        // Simulate that mouse is below target li's bottom treshold
+                                        Infinity);
+            } else {
+                simulateDragStarted(headingBlockLi);
+                if (t !== 'as-child')
+                    simulateDraggedOver(paragraphBlockLi,
+                                        // Simulate that mouse is below target li's center
+                                        Infinity);
+                else
+                    simulateDraggedOver(paragraphBlockLi,
+                                        // Simulate that mouse is above target li's top treshold
+                                        0);
+            }
+            simulateDropped();
+            resolve();
         });
     }
     function getBlockTreeListItems() {

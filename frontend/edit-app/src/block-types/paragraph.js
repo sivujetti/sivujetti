@@ -1,7 +1,7 @@
-import {__} from '@sivujetti-commons';
+import {__, env} from '@sivujetti-commons';
 import {hookForm, InputGroup, InputGroupInline, Input, InputError} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
-import {formValidation, sensibleDefaults} from '../constants.js';
+import {formValidation} from '../constants.js';
 
 const minPossibleLen = '<p></p>'.length;
 
@@ -52,7 +52,7 @@ class ParagraphBlockEditForm extends preact.Component {
         return <>
             <InputGroup classes={ classes.text } className="has-error">
                 <QuillEditor
-                    name="text"
+                    name="paragraph-text"
                     value={ this.props.block.text }
                     onChange={ html => {
                         this.form.triggerChange(html, 'text');
@@ -63,7 +63,6 @@ class ParagraphBlockEditForm extends preact.Component {
                         editor.quill.keyboard.bindings[13].unshift({
                             key: 13,
                             handler: (_range, _context) => {
-                                // signals.emit('on-paragraph-block-enter-pressed');
                                 blockTree.appendBlockToTreeAfter(block);
                                 return false;
                             }
@@ -91,7 +90,7 @@ class ParagraphBlockEditForm extends preact.Component {
             text: unParagraphify(newState.values.text),
             linkTo: newState.values.linkTo,
             cssClass: newState.values.cssClass,
-        }, sensibleDefaults.normalTypingDebounceMillis);
+        }, env.normalTypingDebounceMillis);
         return newState;
     }
 }

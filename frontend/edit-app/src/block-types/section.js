@@ -1,7 +1,7 @@
-import {__, urlUtils} from '@sivujetti-commons';
+import {__, urlUtils, env} from '@sivujetti-commons';
 import {hookForm, InputGroupInline, Input, InputError} from '../../../commons/Form.jsx';
 import Icon from '../../../commons/Icon.jsx';
-import {formValidation, sensibleDefaults} from '../constants.js';
+import {formValidation} from '../constants.js';
 import ImagePicker from '../widgets/ImagePicker.jsx';
 import {UPLOADS_DIR_PATH} from '../Upload/UploadsManager.jsx';
 
@@ -61,7 +61,7 @@ class SectionBlockEditForm extends preact.Component {
     emitChange(newState, bgImage = null) {
         this.props.onValueChanged({bgImage: bgImage !== null ? bgImage : this.state.bgImage,
                                    cssClass: newState.values.cssClass},
-                                  sensibleDefaults.normalTypingDebounceMillis);
+                                  env.normalTypingDebounceMillis);
         return newState;
     }
 }

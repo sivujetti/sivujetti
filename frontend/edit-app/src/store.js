@@ -18,7 +18,7 @@ const selectCurrentPage = state => state.currentPage;
 
 
 /**
- * @param {Array<{opName: String; handler: Function;}>} state
+ * @param {Array<{opName: String; command: OpQueueCommand;}>} state
  * @param {Object} action
  */
 const opQueueReducer = (state = [], action) => {
@@ -36,9 +36,23 @@ const opQueueReducer = (state = [], action) => {
     }
 };
 
+/**
+ * @param {Array<OpQueueCommand>} opQueue
+ */
 const setOpQueue = opQueue => ({type: 'opQueue/set', opQueue});
-const pushItemToOpQueue = (opName, handler) => ({type: 'opQueue/pushItem', item: {opName, handler}});
+/**
+ * @param {String} opName
+ * @param {OpQueueCommand} command
+ */
+const pushItemToOpQueue = (opName, command) => ({type: 'opQueue/pushItem', item: {opName, command}});
+/**
+ * @param {String} opName
+ */
 const deleteItemFromOpQueue = opName => ({type: 'opQueue/dropItem', opName});
+/**
+ * @param {String} afterOpName
+ * @param {Boolean} includeOpItself = true
+ */
 const deleteItemsFromOpQueueAfter = (afterOpName, includeOpItself = true) => ({type: 'opQueue/dropItemsAfter', afterOpName, includeOpItself});
 const selectOpQueue = state => state.opQueue;
 
@@ -124,6 +138,11 @@ class FormStateStoreWrapper {
     }
 }
 
+/**
+ * @typedef OpQueueCommand
+ * @prop {Function} doHandle
+ * @prop {Array} args
+ */
 
 ////////////////////////////////////////////////////////////////////////////////
 

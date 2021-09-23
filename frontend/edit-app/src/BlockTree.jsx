@@ -19,7 +19,7 @@ class BlockTree extends preact.Component {
     // onDragOver;
     // onDrop;
     /**
-     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>) => Promise<Boolean>; BlockTrees: preact.ComponentClass;}} props
+     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>, blockGroup: 'page'|'layout') => Promise<Boolean>; BlockTrees: preact.ComponentClass;}} props
      */
     constructor(props) {
         super(props);
@@ -30,8 +30,11 @@ class BlockTree extends preact.Component {
         this.dragDrop = new BlockTreeDragDrop(this, (mutatedTree, dragBlock, dropBlock, dropPosition) => {
             this.setState({blockTree: mutatedTree});
             BlockTrees.currentWebPage.reOrderBlocksInDom(dragBlock, dropBlock, dropPosition);
-            store.dispatch(pushItemToOpQueue('swapped-blocks-in-tree',
-                () => this.props.onChangesApplied(mutatedTree)));
+            if (dragBlock.origin !== dropBlock.origin) throw new Error('Todo disable cross-origin drag&drop');
+            store.dispatch(pushItemToOpQueue(`swap-${dragBlock.origin}-blocks`, {
+                doHandle: this.props.onChangesApplied,
+                args: [mutatedTree, dragBlock.origin],
+            }));
         });
         BlockTrees = props.BlockTrees;
     }
@@ -258,9 +261,12 @@ class BlockTree extends preact.Component {
             let wasCurrentlySelectedBlock = isSelectedRootCurrentlyClickedBlock() ||
                                             isSelectedRootChildOfCurrentlyClickedBlock();
             if (wasCurrentlySelectedBlock) this.selectedRoot = null;
+            if (this.state.blockWithNavOpened.origin === 'layout') throw new Error('Todo remove layout block context menu delete buttons');
             this.cancelAddBlock(this.state.blockWithNavOpened);
-            store.dispatch(pushItemToOpQueue('delete-block-from-tree',
-                () => this.props.onChangesApplied(this.state.blockTree)));
+            store.dispatch(pushItemToOpQueue('delete-page-block', {
+                doHandle: this.props.onChangesApplied,
+                args: [this.state.blockTree, 'page'],
+            }));
             signals.emit('on-block-deleted', this.state.blockWithNavOpened, wasCurrentlySelectedBlock);
         }
     }
@@ -275,7 +281,10 @@ class BlockTree extends preact.Component {
         for (const block of origBlock.children)
             delete treeStateMutRef[block.id];
         // Replace root block
-        const newBlock = Block.fromType(blockBluePrint.blockType, blockBluePrint.data, origBlock.id);
+        const newBlock = Block.fromType(blockBluePrint.blockType,
+                                        blockBluePrint.data,
+                                        origBlock.id,
+                                        origBlock.origin);
         newBlock._cref = origBlock._cref;
         BlockTrees.currentWebPage.replaceBlockFromDomWith(origBlock, newBlock).then(_cref => {
             newBlock._cref = _cref;
@@ -286,7 +295,8 @@ class BlockTree extends preact.Component {
                     flat.push(blueprint);
                 });
                 return Promise.all(flat.map(blueprint => {
-                    const b = Block.fromType(blueprint.blockType, blueprint.data, undefined);
+                    const b = Block.fromType(blueprint.blockType, blueprint.data, undefined,
+                        newBlock.origin);
                     const after = this.getAfter(newBlock.children, newBlock);
                     return BlockTrees.currentWebPage.appendBlockToDom(b, after).then(_cref => {
                         b._cref = _cref;
@@ -313,8 +323,10 @@ class BlockTree extends preact.Component {
         treeState[placeholderBlock.id].isNew = false;
         this.setState({treeState: treeState});
         //
-        store.dispatch(pushItemToOpQueue('append-block-to-tree',
-            () => this.props.onChangesApplied(this.state.blockTree)));
+        store.dispatch(pushItemToOpQueue(`append-${placeholderBlock.origin}-block`, {
+            doHandle: this.props.onChangesApplied,
+            args: [this.state.blockTree, placeholderBlock.origin],
+        }));
     }
     /**
      * @param {Block} placeholderBlock

@@ -50,7 +50,7 @@ class SaveButton extends preact.Component {
                 store.dispatch(setOpQueue([]));
                 return;
             }
-            top.handler()
+            top.command.doHandle(...top.command.args)
                 .then(doProceed => {
                     // Truthy value -> clear item from the queue and proceed
                     if (doProceed !== false) { queue.shift(); next(queue); }
@@ -58,20 +58,49 @@ class SaveButton extends preact.Component {
                     else store.dispatch(setOpQueue(queue));
                 });
         };
-        next(optimizeQueueTEMP(this.queuedOps.slice(0)));
+        next(optimizeQueue(this.queuedOps.slice(0)));
     }
 }
 
-function optimizeQueueTEMP(queue) {
-    if (queue[0].opName === 'create-new-page')
-        return [queue[0]];
-    if (queue[0].opName === 'append-block-to-tree' ||
-        queue[0].opName === 'delete-block-from-tree' ||
-        queue[0].opName === 'update-tree-block' ||
-        queue[0].opName === 'swapped-blocks-in-tree' ||
-        queue[0].opName === 'update-page-basic-info')
-        return [queue[queue.length - 1]];
-    throw new Error();
+/**
+ * Note: may mutate queue.*.opName
+ */
+function optimizeQueue(queue) {
+    const unifyBlockOpNames = queue => {
+        queue.forEach(itm => {
+            const opName = itm.opName;
+            if (opName === 'append-page-block' ||
+                opName === 'swap-page-blocks' ||
+                opName === 'delete-page-block') {
+                itm.opName = 'update-page-block';
+            } else if (opName === 'append-layout-block' ||
+                       opName === 'swap-layout-blocks' ||
+                       opName === 'delete-layout-block') {
+                itm.opName = 'update-layout-block';
+            }
+        });
+        return queue;
+    };
+    const findLastSimilar = (itm, state) => {
+        let last = null;
+        queue.forEach((cand, i) => {
+            if (cand.opName === itm.opName) {
+                last = cand;
+                state[i].appended = true;
+            }
+        });
+        return last;
+    };
+    //
+    const out = [];
+    const state = queue.map(() => ({appended: false}));
+    unifyBlockOpNames(queue).forEach((itm, i) => {
+        if (state[i].appended) return;
+        out.push(findLastSimilar(itm, state) || itm);
+        state[i].appended = true;
+    });
+    return out;
 }
 
 export default SaveButton;
+export {optimizeQueue};

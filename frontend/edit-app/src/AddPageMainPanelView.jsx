@@ -30,7 +30,10 @@ class AddPageMainPanelView extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        store.dispatch(setOpQueue([{opName: 'create-new-page', handler: this.handleFormSubmitted.bind(this)}]));
+        store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
+            doHandle: this.handleFormSubmitted.bind(this),
+            args: []
+        }}]));
         setTimeout(() => {
             env.document.querySelectorAll('.block-tree li .block-handle')[1].click();
         }, 1);

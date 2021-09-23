@@ -36,6 +36,10 @@ class AddPageMainPanelView extends preact.Component {
         }}]));
         setTimeout(() => {
             env.document.querySelectorAll('.block-tree li .block-handle')[1].click();
+            const unregisterListener = signals.on('on-inspector-panel-revealed', () => {
+                env.document.querySelector('input[name="title"]').focus();
+                unregisterListener();
+            });
         }, 1);
     }
     /**

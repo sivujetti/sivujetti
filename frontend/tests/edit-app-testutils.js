@@ -19,7 +19,7 @@ class MockEditApp extends preact.Component {
     render({onPageLoaded, blockTreesRef}) {
         return <>
             <SaveButton/>
-            <BlockTrees onWebPageLoadHandled={ onPageLoaded } ref={ blockTreesRef }/>
+            <BlockTrees containingView="DefaultMainPanelView" onWebPageLoadHandled={ onPageLoaded } ref={ blockTreesRef }/>
             <InspectorPanel rootEl={ document.getElementById('render-container-el') } outerEl={ document.getElementById('render-container-el') }/>
         </>;
     }

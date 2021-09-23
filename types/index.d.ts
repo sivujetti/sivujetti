@@ -105,6 +105,7 @@ interface EditAppAwareWebPage {
     data: CurrentPageData;
     scanBlockRefComments(): Array<BlockRefComment>;
     hookBlockRefEventListeners(blockRefComments: Array<BlockRefComment>): void;
+    getCombinedAndOrderedBlockTree(pageBlocks: Array<RawBlock>, layoutBlocks: Array<RawBlock>, blockRefComments: Array<BlockRefComment>, blockTreeUtils: blockTreeUtils): Array<RawBlock>;
     appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<BlockRefComment>;
     appendClonedBlockBranchToDom(clonedBlock: Block, clonedFromBlock: Block, blockTreeUtils: blockTreeUtils): Promise<{[key: String]: BlockRefComment;}>;
     replaceBlockFromDomWith(currentBlock: Block, replacement: Block): Promise<BlockRefComment>;

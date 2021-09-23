@@ -2,12 +2,14 @@ import {__} from '@sivujetti-commons';
 import blockTypes from './block-types/block-types.js';
 
 class BlockTypeSelector extends preact.Component {
+    // selectableBlockTypes;
     /**
      * @param {{onSelectionConfirmed: (placeholderBlock: Block) => void; onSelectionChanged: (blockBluePrint: BlockBlueprint, placeholderBlock: Block) => void; onSelectionDiscarded: (placeholderBlock: Block) => void; block: Block;}} props
      */
     constructor(props) {
         super(props);
         this.state = {blockBluePrint: {blockType: props.block.type}};
+        this.selectableBlockTypes = Array.from(blockTypes.entries()).filter(itm => itm[0] !== 'PageInfo');
     }
     /**
      * @access protected
@@ -17,7 +19,7 @@ class BlockTypeSelector extends preact.Component {
             <select
                 value={ blockBluePrint.blockType }
                 onChange={ e => this.selectBlockType(e.target.value) }
-                class="form-input form-select tight mb-2">{ Array.from(blockTypes.entries()).map(([name, blockType]) =>
+                class="form-input form-select tight mb-2">{ this.selectableBlockTypes.map(([name, blockType]) =>
                 <option value={ name }>
                     { __(blockType.friendlyName) }
                 </option>

@@ -30,7 +30,6 @@ class BlockTree extends preact.Component {
         this.dragDrop = new BlockTreeDragDrop(this, (mutatedTree, dragBlock, dropBlock, dropPosition) => {
             this.setState({blockTree: mutatedTree});
             BlockTrees.currentWebPage.reOrderBlocksInDom(dragBlock, dropBlock, dropPosition);
-            if (dragBlock.origin !== dropBlock.origin) throw new Error('Todo disable cross-origin drag&drop');
             store.dispatch(pushItemToOpQueue(`swap-${dragBlock.origin}-blocks`, {
                 doHandle: this.props.onChangesApplied,
                 args: [mutatedTree, dragBlock.origin],
@@ -166,7 +165,7 @@ class BlockTree extends preact.Component {
                          !treeState[block.id].isCollapsed ? '' : ' collapsed',
                          !block.children.length ? '' : ' with-children'].join('') }
                 data-block-id={ block.id }
-                data-drop-group="1"
+                data-drop-group={ block.origin }
                 key={ block.id }
                 draggable>
                 { !block.children.length

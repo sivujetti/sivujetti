@@ -4,6 +4,7 @@ class BlockTreeDradDrop {
     // blockTree;
     // onDropped;
     // startEl;
+    // startElDropGroup;
     // startLiIndex;
     // curDropTypeCandidate;
     /**
@@ -20,6 +21,7 @@ class BlockTreeDradDrop {
      */
     handleDragStarted(e) {
         this.startEl = e.target;
+        this.startElDropGroup = this.startEl.getAttribute('data-drop-group');
         this.startEl.classList.add('dragging');
         this.startLiIndex = this.getLiIndex(this.startEl);
         this.curDropTypeCandidate = {dropPosition: 'self', dragDirection: null, el: null};
@@ -30,7 +32,7 @@ class BlockTreeDradDrop {
      */
     handleDraggedOver(e) {
         const li = e.target.nodeName === 'LI' ? e.target : e.target.closest('li');
-        if (!li || li.getAttribute('data-drop-group') !== '1')
+        if (!li || li.getAttribute('data-drop-group') !== this.startElDropGroup)
             return;
         // Enable handleDraggableDropped (developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/Drag_operations#drop)
         e.preventDefault();

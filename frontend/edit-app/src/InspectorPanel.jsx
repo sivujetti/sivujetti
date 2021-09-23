@@ -105,13 +105,14 @@ class InspectorPanel extends preact.Component {
         this.setState({Renderer: BlockEditForm});
         this.props.rootEl.classList.add('inspector-panel-open');
         //
-        if (this.lastHeight === null) {
-            setTimeout(() => {
+        setTimeout(() => {
+            if (this.lastHeight === null) {
                 const inspectorPanelHeight = this.props.outerEl.getBoundingClientRect().height;
                 this.lastHeight = inspectorPanelHeight;
                 this.resizeHandleEl.current.style.transform = `translateY(-${inspectorPanelHeight}px)`;
-            }, REVEAL_ANIM_DURATION + 100);
-        }
+            }
+            signals.emit('on-inspector-panel-revealed', this);
+        }, REVEAL_ANIM_DURATION + 100);
     }
     /**
      * @access private

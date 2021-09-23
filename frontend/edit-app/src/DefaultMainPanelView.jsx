@@ -1,8 +1,9 @@
-import {__} from '@sivujetti-commons';
+import {__, signals} from '@sivujetti-commons';
 import Icon from '../../commons/Icon.jsx';
 import BlockTrees from './BlockTrees.jsx';
 
 class DefaultMainPanelView extends preact.Component {
+    // unregisterSignalListener;
     /**
      * @param {{startAddPageMode: () => void;}} props
      */
@@ -10,6 +11,22 @@ class DefaultMainPanelView extends preact.Component {
         super(props);
         this.state = {sectionAIsCollapsed: false,
                       sectionBIsCollapsed: false};
+        this.unregisterSignalListener = null;
+    }
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        this.unregisterSignalListener = signals.on('on-web-page-block-clicked', _blockRef => {
+            if (this.state.sectionAIsCollapsed) this.setState({sectionAIsCollapsed: false});
+        });
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        this.unregisterSignalListener();
+
     }
     /**
      * @access protected

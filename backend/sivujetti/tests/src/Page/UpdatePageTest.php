@@ -5,7 +5,7 @@ namespace Sivujetti\Tests\Page;
 use Sivujetti\App;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\Tests\Utils\{BlockTestUtils, HttpApiTestTrait, PageTestUtils};
+use Sivujetti\Tests\Utils\{HttpApiTestTrait, PageTestUtils};
 use Pike\{PikeException, TestUtils\DbTestCase, TestUtils\HttpTestUtils};
 use Sivujetti\Block\BlockTree;
 
@@ -23,7 +23,7 @@ final class UpdatePageTest extends DbTestCase {
         $this->insertTestPageDataToDb($state);
         $this->sendUpdatePageRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
-        $this->verifyWroteNewDataToDb($state);
+        $this->verifyWroteDefaultFieldsToDb($state);
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
@@ -46,21 +46,23 @@ final class UpdatePageTest extends DbTestCase {
     private function makeTestSivujettiApp(\TestState $state): void {
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
     }
-    private function insertTestPageDataToDb(\TestState $state): void {
-        $insertId = $this->pageTestUtils->insertPage($state->testPageData);
+    private function insertTestPageDataToDb(\TestState $state, ?PageType $pageType = null): void {
+        $insertId = $this->pageTestUtils->insertPage($state->testPageData,
+                                                     $pageType);
         $state->testPageData->id = $insertId;
     }
-    private function sendUpdatePageRequest(\TestState $state): void {
+    private function sendUpdatePageRequest(\TestState $state, string $pageTypeName = PageType::PAGE): void {
         $state->spyingResponse = $state->app->sendRequest($this->createApiRequest(
-            "/api/pages/" . PageType::PAGE . "/{$state->testPageData->id}",
+            "/api/pages/{$pageTypeName}/{$state->testPageData->id}",
             "PUT",
             $state->inputData));
     }
     private function verifyRequestFinishedSuccesfully(\TestState $state): void {
         $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
     }
-    private function verifyWroteNewDataToDb(\TestState $state): void {
-        $actual = $this->pageTestUtils->getPageById($state->testPageData->id);
+    private function verifyWroteDefaultFieldsToDb(\TestState $state, ?PageType $pageType = null): void {
+        $actual = $this->pageTestUtils->getPageById($state->testPageData->id,
+                                                    $pageType);
         $this->assertEquals($state->inputData->slug, $actual->slug);
         $this->assertEquals($state->inputData->path, $actual->path);
         $this->assertEquals((int) $state->inputData->level, $actual->level);
@@ -113,5 +115,58 @@ final class UpdatePageTest extends DbTestCase {
         $this->assertEquals($original->id, $actual->id);
         $this->assertEquals(array_map([Block::class, "fromObject"], $original->blocks),
                             $actual->blocks);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testUpdateCustomPageWritesUpdatedDataToDb(): void {
+        $state = $this->setupUpdateCustomPageTest();
+        $state->customPageType = $this->pageTestUtils->registerTestCustomPageType();
+        $this->makeTestSivujettiApp($state);
+        $this->insertTestPageDataToDb($state, $state->customPageType);
+        $this->sendUpdatePageRequest($state, $state->customPageType->name);
+        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifyWroteDefaultFieldsToDb($state, $state->customPageType);
+        $this->verifyWroteCustomPagesOwnFieldsToDb($state);
+        $this->pageTestUtils->dropCustomPageType($state->customPageType);
+    }
+    private function setupUpdateCustomPageTest(): \TestState {
+        $state = $this->setupTest();
+        unset($state->testPageData->categories);
+        $state->testPageData->ownField1 = "Value original";
+        $state->testPageData->ownField2 = 123;
+        $state->inputData->ownField1 = "Updated value";
+        $state->inputData->ownField2 = 456;
+        $state->customPageType = null;
+        return $state;
+    }
+    private function verifyWroteCustomPagesOwnFieldsToDb(\TestState $state): void {
+        $actual = $this->pageTestUtils->getPageById($state->testPageData->id,
+                                                    $state->customPageType);
+        $this->assertEquals($state->inputData->ownField1, $actual->ownField1);
+        $this->assertEquals((int) $state->inputData->ownField2, $actual->ownField2);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testUpdateCustomPageRejectsInvalidOwnFieldsInputs(): void {
+        $state = $this->setupUpdateCustomPageTest();
+        $state->customPageType = $this->pageTestUtils->registerTestCustomPageType();
+        $state->inputData = (object) [];
+        $this->makeTestSivujettiApp($state);
+        $this->insertTestPageDataToDb($state, $state->customPageType);
+        $this->expectException(PikeException::class);
+        $this->expectExceptionMessage(implode("\n", [
+            "ownField1 must be string",
+            "The length of ownField1 must be 1024 or less",
+            "ownField2 must be number",
+            "The value of ownField2 must be 0 or greater",
+        ]));
+        $this->sendUpdatePageRequest($state, $state->customPageType->name);
+        $this->pageTestUtils->dropCustomPageType($state->customPageType);
     }
 }

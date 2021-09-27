@@ -17,6 +17,8 @@ use Sivujetti\BlockType\Entities\BlockTypes;
 final class PageTestUtils {
     /** @var \Sivujetti\Page\PagesRepository */
     private PagesRepository $pagesRepo;
+    /** @var \Closure Overwrites $this->pagesRepo */
+    private \Closure $createPageRepo;
     /**
      * @param \Pike\Db $db
      * @param ?\Sivujetti\SharedAPIContext $testAppStorage = null
@@ -36,10 +38,14 @@ final class PageTestUtils {
             $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
             $testAppStorage->getDataHandle()->blockTypes = $blockTypes;
         }
-        $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite,
-            $testAppStorage->getDataHandle()->blockTypes,
-            new PageTypeValidator(new BlockValidator($testAppStorage))
-        );
+        $this->createPageRepo = function (\Closure $doBefore) use ($db, $fakeTheWebsite, $testAppStorage) {
+            $doBefore($db, $fakeTheWebsite, $testAppStorage);
+            $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite,
+                $testAppStorage->getDataHandle()->blockTypes,
+                new PageTypeValidator(new BlockValidator($testAppStorage))
+            );
+        };
+        $this->createPageRepo->__invoke(function () {});
     }
     /**
      * @param object $data 
@@ -93,6 +99,57 @@ final class PageTestUtils {
             "categories" => "[]",
             "status" => Page::STATUS_PUBLISHED,
         ];
+    }
+    /**
+     * @return \Sivujetti\PageType\Entities\PageType
+     */
+    public function registerTestCustomPageType(): PageType {
+        $pageType = new PageType;
+        $pageType->name = "MyProducts";
+        $pageType->ownFields = [
+            (object) ["name" => "ownField1", "dataType" => "text", "friendlyName" => "Some prop", "defaultValue" => "foo"],
+            (object) ["name" => "ownField2", "dataType" => "uint", "friendlyName" => "Some prop2", "defaultValue" => 123],
+        ];
+        //
+        $this->createPageRepo->__invoke(function ($db, $fakeTheWebsite, $_testAppStorage) use ($pageType) {
+            $fakeTheWebsite->pageTypes[] = $pageType;
+            $id = 100 + array_search($pageType, $fakeTheWebsite->pageTypes->getArrayCopy());
+            //
+            $db->exec("CREATE TABLE `\${p}MyProducts` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                `slug` TEXT NOT NULL,
+                `path` TEXT,
+                `level` INTEGER NOT NULL DEFAULT 1,
+                `title` TEXT NOT NULL,
+                `layoutId` TEXT NOT NULL,
+                `blocks` JSON,
+                `status` INTEGER NOT NULL DEFAULT 0,
+                `ownField1` TEXT,
+                `ownField2` INTEGER
+            )");
+            $db->exec("INSERT INTO `pageTypes` VALUES
+                ({$id},'MyProducts','my-products','" . json_encode([
+                    "ownFields" => $pageType->ownFields,
+                    "blockFields" => [(object) ["type" => "Paragraph", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
+                                                "initialData" => (object) ["text" => "Paragraph text", "cssClass" => ""],
+                                                "children" => []]],
+                    "defaultFields" => (object) ["title" => (object) ["defaultValue" => "Product name"]],
+                ]) . "',1)");
+        });
+        return $pageType;
+    }
+    /**
+     * @param \Sivujetti\PageType\Entities\PageType $pageType
+     */
+    public function dropCustomPageType(PageType $pageType): void {
+        $this->createPageRepo->__invoke(function ($db, $fakeTheWebsite, $_testAppStorage) use ($pageType) {
+            $idx = array_search($pageType, $fakeTheWebsite->pageTypes->getArrayCopy());
+            $fakeTheWebsite->pageTypes->offsetUnset($idx);
+            $id = 100 + $idx;
+            //
+            $db->exec("DROP TABLE `\${p}{$pageType->name}`");
+            $db->exec("DELETE FROM `pageTypes` WHERE `id` = ?", [$id]);
+        });
     }
     /**
      * @return \Sivujetti\Block\Entities\Block[]

@@ -35,13 +35,13 @@ final class UpdateCoreTest extends DbTestCase {
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
-        $state->testInput = (object) ["toVersion" => "0.6.0"];
+        $state->inputData = (object) ["toVersion" => "0.6.0"];
         $state->sivujettiApp = null;
         $state->spyingResponse = null;
         return $state;
     }
     private function writeTestUpdateZip(\TestState $state): void {
-        $outFilePath = self::CMS_CLONE_BACKEND_PATH . "/sivujetti-{$state->testInput->toVersion}.zip";
+        $outFilePath = self::CMS_CLONE_BACKEND_PATH . "/sivujetti-{$state->inputData->toVersion}.zip";
         $fs = new FileSystem;
         $pkg = new ZipPackageStream($fs);
         (new Bundler($fs, function () { }))->makeRelease($pkg, $outFilePath, true);
@@ -56,7 +56,7 @@ final class UpdateCoreTest extends DbTestCase {
     }
     private function sendUpdateCoreRequest(\TestState $state): void {
         $state->spyingResponse = $state->sivujettiApp->sendRequest(
-            $this->createApiRequest("/api/updates/core", "PUT", $state->testInput));
+            $this->createApiRequest("/api/updates/core", "PUT", $state->inputData));
     }
     private function verifyOverwroteBackendSourceFiles(\TestState $state): void {
         $this->verifyOverwroteTheseFiles("backend-files", $state);
@@ -74,7 +74,7 @@ final class UpdateCoreTest extends DbTestCase {
                self::CMS_CLONE_INDEX_PATH . "/"];
         //
         $pkg = new ZipPackageStream(new FileSystem);
-        $testUpdateZipPath = self::CMS_CLONE_BACKEND_PATH . "/sivujetti-{$state->testInput->toVersion}.zip";
+        $testUpdateZipPath = self::CMS_CLONE_BACKEND_PATH . "/sivujetti-{$state->inputData->toVersion}.zip";
         $pkg->open($testUpdateZipPath);
         //
         $paths = Updater::readSneakyJsonData($actualFileListFileName, $pkg);
@@ -92,7 +92,7 @@ final class UpdateCoreTest extends DbTestCase {
 
     public function testUpdateCoreRejectsRequestIfToVersionIsNotValidSemVerVersion(): void {
         $state = $this->setupTest();
-        $state->testInput->toVersion = "not-valid-version";
+        $state->inputData->toVersion = "not-valid-version";
         $this->makeTestSivujettiApp($state);
         $this->sendUpdateCoreRequest($state);
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
@@ -106,7 +106,7 @@ final class UpdateCoreTest extends DbTestCase {
 
     public function testUpdateCoreRejectsRequestIfToVersionIsOlderThanCurrentVersion(): void {
         $state = $this->setupTest();
-        $state->testInput->toVersion = "0.0.0";
+        $state->inputData->toVersion = "0.0.0";
         $this->makeTestSivujettiApp($state);
         $this->sendUpdateCoreRequest($state);
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);

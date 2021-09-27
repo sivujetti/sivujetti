@@ -96,7 +96,7 @@ final class PagesRepository {
                 $data->{$optional} = (int) $inputData->{$optional};
         }
         foreach ($pageType->ownFields as $f) {
-            if ($f->dataType === "many-to-many") continue;
+            if ($f->dataType === "many-to-many") continue; // Not implemented yet
             $data->{$f->name} = $inputData->{$f->name};
         }
         //
@@ -129,8 +129,12 @@ final class PagesRepository {
             if (($errors = $this->pageTypeValidator->validateUpdateData($pageType, $input)))
                 throw new PikeException(implode(PHP_EOL, $errors),
                                         PikeException::BAD_INPUT);
-            $updateData = self::makeStorablePageDataFromValidInput($input);
+            $updateData = self::makeStorablePageDataFromValidInput($input, $pageType);
             $theseColumnsOnly = self::DEFAULT_FIELDS;
+            foreach ($pageType->ownFields as $field) {
+                if ($field->dataType === "many-to-many") continue; // Not implemented yet
+                $theseColumnsOnly[] = $field->name;
+            }
         } elseif (count($theseColumnsOnly) === 1 && $theseColumnsOnly[0] === "blocks") {
             if (($errors = $this->pageTypeValidator->validateBlocksUpdateData($input, $this->blockTypes)))
                 throw new PikeException(implode(PHP_EOL, $errors),
@@ -169,7 +173,7 @@ final class PagesRepository {
         //
         $ownFieldCols = [];
         foreach ($pageType->ownFields as $f) {
-            if ($f->dataType === "many-to-many") continue;
+            if ($f->dataType === "many-to-many") continue; // Not implemented yet
             $ownFieldCols[] = "p.`$f->name` AS `$f->name`";
         }
         //
@@ -200,10 +204,8 @@ final class PagesRepository {
             $row->layout = (object) ["blocks" => self::blocksFromRs("layoutBlocksJson", $row)];
             //
             foreach ($this->pageType->ownFields as $field) {
-                if ($field->dataType !== "many-to-many")
-                    $row->{$field->name} = strval($row->{"{$field->name}"}); // todo cast type?
-                else
-                    ; // todo
+                if ($field->dataType === "many-to-many") continue; // Not implemented yet
+                $row->{$field->name} = strval($row->{"{$field->name}"}); // todo cast type?
             }
         }
         return $rows;
@@ -242,10 +244,12 @@ final class PagesRepository {
     }
     /**
      * @param object $input Valid $req->body
+     * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @return object An object that can be passed to $db->makeUpdateQParts()
      */
-    private static function makeStorablePageDataFromValidInput(object $input): object {
-        return (object) [
+    private static function makeStorablePageDataFromValidInput(object $input,
+                                                               PageType $pageType): object {
+        $out = (object) [
             "slug" => $input->slug,
             "path" => $input->path,
             "level" => (int) $input->level,
@@ -253,6 +257,10 @@ final class PagesRepository {
             "layoutId" => $input->layoutId,
             "status" => (int) $input->status,
         ];
+        foreach ($pageType->ownFields as $field) {
+            $out->{$field->name} = $input->{$field->name} ?? null;
+        }
+        return $out;
     }
     /**
      * @param \stdClass $data

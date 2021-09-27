@@ -43,9 +43,9 @@ final class CreatePageTest extends DbTestCase {
     private function makeTestSivujettiApp(\TestState $state): void {
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
     }
-    private function sendCreatePageRequest(\TestState $state): void {
+    private function sendCreatePageRequest(\TestState $state, string $pageTypeName = PageType::PAGE): void {
         $state->spyingResponse = $state->app->sendRequest(
-            $this->createApiRequest("/api/pages/" . PageType::PAGE, "POST", $state->inputData));
+            $this->createApiRequest("/api/pages/{$pageTypeName}", "POST", $state->inputData));
     }
     private function verifyRequestFinishedSuccesfully(\TestState $state): void {
         $this->verifyResponseMetaEquals(201, "application/json", $state->spyingResponse);
@@ -108,5 +108,71 @@ final class CreatePageTest extends DbTestCase {
             "The value of renderer was not in the list",
         ]));
         $this->sendCreatePageRequest($state);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testCreateCustomPageInsertsCustomPageAndItsCustomPropsToDb(): void {
+        $state = $this->setupCreateCustomPageTest();
+        $this->registerCustomPageType($state);
+        $this->makeTestSivujettiApp($state);
+        $this->sendCreatePageRequest($state, $state->customPageType->name);
+        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifyInsertedCustomPageToDb($state);
+        $this->dropCustomPageType($state);
+    }
+    private function setupCreateCustomPageTest(): \TestState {
+        $state = $this->setupTest();
+        $state->inputData->ownField1 = "Value";
+        $state->inputData->ownField2 = 456;
+        $state->customPageType = null;
+        return $state;
+    }
+    private function registerCustomPageType(\TestState $state): void {
+        $state->customPageType = $this->pageTestUtils->registerTestCustomPageType();
+    }
+    private function verifyInsertedCustomPageToDb(\TestState $state): void {
+        $actual = $this->pageTestUtils->getPageBySlug($state->inputData->slug,
+                                                      $state->customPageType);
+        unset($actual->blocks);
+        unset($actual->layout);
+        $this->assertEquals([
+            "slug" => $state->inputData->slug,
+            "path" => $state->inputData->path,
+            "level" => $state->inputData->level,
+            "title" => $state->inputData->title,
+            "layoutId" => strval($state->inputData->layoutId),
+            "id" => $actual->id,
+            "type" => $state->customPageType->name,
+            "status" => $state->inputData->status,
+            "ownField1" => $state->inputData->ownField1,
+            "ownField2" => $state->inputData->ownField2,
+        ], (array) $actual);
+    }
+    private function dropCustomPageType(\TestState $state): void {
+        $this->pageTestUtils->dropCustomPageType($state->customPageType);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testCreateCustomPageRejectsInvalidOwnFieldsInputs(): void {
+        $state = $this->setupCreateCustomPageTest();
+        unset($state->inputData->ownField1);
+        $state->inputData->ownField2 = [];
+        $this->registerCustomPageType($state);
+        $this->makeTestSivujettiApp($state);
+        $this->expectException(PikeException::class);
+        $this->expectExceptionMessage(implode(PHP_EOL, [
+            "ownField1 must be string",
+            "The length of ownField1 must be 1024 or less",
+            "ownField2 must be number",
+            "The value of ownField2 must be 0 or greater",
+        ]));
+        $this->sendCreatePageRequest($state, $state->customPageType->name);
+        $this->dropCustomPageType($state);
     }
 }

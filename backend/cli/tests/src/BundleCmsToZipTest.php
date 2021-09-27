@@ -33,7 +33,7 @@ final class BundleCmsToZipTest extends DbTestCase {
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
-        $state->testInput = (object) [
+        $state->inputData = (object) [
             // $signer->hex2bin($signer->generateSigningKeyPair()->secretKey)
             "secretKey" => "17c31ad9c358901e0c3364025ddae226dbd95fd130bf85eac802a29e9d363bdef636a6df9e68639e6594a1f3a412fb3479b1cebb62460d96464e5cbcc66d38d6"
         ];
@@ -52,7 +52,7 @@ final class BundleCmsToZipTest extends DbTestCase {
     }
     private function invokeCreateZipReleaseFeature(\TestState $state): void {
         $state->spyingResponse = $state->cliApp->sendRequest(
-            new Request("/create-release/to-zip/{$state->testInput->secretKey}", "PSEUDO:CLI"));
+            new Request("/create-release/to-zip/{$state->inputData->secretKey}", "PSEUDO:CLI"));
     }
     private function verifyReturnedSuccesfully(\TestState $state): void {
         $this->verifyResponseMetaEquals(200, "text/plain", $state->spyingResponse);

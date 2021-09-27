@@ -6,7 +6,7 @@ use Sivujetti\Block\BlockValidator;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\ValidationUtils;
-use Pike\{PikeException, Validation};
+use Pike\{Validation};
 
 final class PageTypeValidator {
     /** @var \Sivujetti\Block\BlockValidator */

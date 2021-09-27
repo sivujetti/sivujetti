@@ -29,7 +29,21 @@ final class PagesController {
                                PagesRepository $pagesRepo,
                                SharedAPIContext $storage,
                                TheWebsite $theWebsite): void {
-        self::sendPageResponse($req, $res, $pagesRepo, $storage, $theWebsite);
+        $pcs = explode("/", $req->params->url, 3);
+        [$pageTypeSlug, $slug] = count($pcs) > 2
+            ? [$pcs[1], "/{$pcs[2]}"]
+            : [PageType::SLUG_PAGE, "/{$pcs[1]}"];
+        if (!($pageType = ArrayUtils::findByKey($theWebsite->pageTypes,
+                                                $pageTypeSlug,
+                                                "slug"))) {
+            $res->status(404)->html("Unknown page type `" . Template::e($pageTypeSlug) . "`.");
+            return;
+        }
+        if (!($page = $pagesRepo->getSingle($pageType, ["slug" => $slug]))) {
+            $res->status(404)->html("404");
+            return;
+        }
+        self::sendPageResponse($req, $res, $pagesRepo, $storage, $theWebsite, $page, $pageType);
     }
     /**
      * GET /api/_placeholder-page/[w:pageType]/[i:layoutId]: renders a placeholder
@@ -71,9 +85,12 @@ final class PagesController {
         ));
         $page->status = Page::STATUS_DRAFT;
         $page->layout = (object) ["blocks" => []];
+        foreach ($pageType->ownFields as $field) {
+            $page->{$field->name} = $field->defaultValue;
+        }
         //
         self::sendPageResponse($req, $res, $pagesRepo, $storage, $theWebsite,
-            $page, $layoutBlocksRepo);
+            $page, $pageType, $layoutBlocksRepo);
     }
     /**
      * GET /_edit/[**:url]?: Renders the edit app.
@@ -171,7 +188,8 @@ final class PagesController {
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\SharedAPIContext $storage
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
-     * @param ?\Sivujetti\Page\Entities\Page $pageIn = null
+     * @param \Sivujetti\Page\Entities\Page $page
+     * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param ?\Sivujetti\Layout\LayoutBlocksRepository $layoutBlocksRepo = null
      * @throws \Pike\PikeException
      */
@@ -180,30 +198,12 @@ final class PagesController {
                                              PagesRepository $pagesRepo,
                                              SharedAPIContext $storage,
                                              TheWebsite $theWebsite,
-                                             ?Page $pageIn = null,
+                                             Page $page,
+                                             PageType $pageType,
                                              ?LayoutBlocksRepository $layoutBlocksRepo = null) {
         $themeAPI = new UserThemeAPI("theme", $storage, new Translator);
         $_ = new Theme($themeAPI); // Note: mutates $storage->data
-        $isPlaceholderPage = $pageIn !== null;
-        //
-        if (!$isPlaceholderPage) {
-            $pcs = explode("/", $req->params->url, 3);
-            [$pageTypeSlug, $slug] = count($pcs) > 2
-                ? [$pcs[1], "/{$pcs[2]}"]
-                : [PageType::SLUG_PAGE, "/{$pcs[1]}"];
-            if (!($pageType = ArrayUtils::findByKey($theWebsite->pageTypes,
-                                                    $pageTypeSlug,
-                                                    "slug"))) {
-                $res->status(404)->html("Unknown page type `" . Template::e($pageTypeSlug) . "`.");
-                return;
-            }
-            if (!($page = $pagesRepo->getSingle($pageType, ["slug" => $slug]))) {
-                $res->status(404)->html("404");
-                return;
-            }
-        } else {
-            $page = $pageIn;
-        }
+        $isPlaceholderPage = $page->id === "-";
         //
         $data = $storage->getDataHandle();
         $layout = ArrayUtils::findByKey($data->pageLayouts, $page->layoutId, "id");
@@ -222,18 +222,7 @@ final class PagesController {
             ($bodyEnd = strrpos($html, "</body>")) > 0) {
             $html = substr($html, 0, $bodyEnd) .
                 "<script>window.sivujettiCurrentPageData = " . json_encode([
-                    "page" => (object) [
-                        "id" => $page->id,
-                        "slug" => $page->slug,
-                        "path" => $page->path,
-                        "level" => $page->level,
-                        "type" => $page->type,
-                        "title" => $page->title,
-                        "layoutId" => $page->layoutId,
-                        "status" => $page->status,
-                        "blocks" => $page->blocks,
-                        "isPlaceholderPage" => $isPlaceholderPage,
-                    ],
+                    "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
                     "layoutBlocks" => $page->layout->blocks,
                     "layouts" => $storage->getDataHandle()->pageLayouts,
                 ]) . "</script>" .
@@ -261,5 +250,31 @@ final class PagesController {
             if ($block->children)
                 self::runBlockBeforeRenderEvent($block->children, $blockTypes, $pagesRepo, $theWebsite);
         }
+    }
+    /**
+     * @param \Sivujetti\Page\Entities\Page[] $page
+     * @param \Sivujetti\PageType\Entities\PageType $pageType
+     * @param bool $isPlaceholderPage
+     * @return object
+     */
+    private static function pageToRaw(Page $page,
+                                      PageType $pageType,
+                                      bool $isPlaceholderPage): object {
+        $out = (object) [
+            "id" => $page->id,
+            "slug" => $page->slug,
+            "path" => $page->path,
+            "level" => $page->level,
+            "type" => $page->type,
+            "title" => $page->title,
+            "layoutId" => $page->layoutId,
+            "status" => $page->status,
+            "blocks" => $page->blocks,
+            "isPlaceholderPage" => $isPlaceholderPage,
+        ];
+        foreach ($pageType->ownFields as $field) {
+            $out->{$field->name} = $page->{$field->name};
+        }
+        return $out;
     }
 }

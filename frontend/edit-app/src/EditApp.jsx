@@ -84,7 +84,7 @@ class EditApp extends preact.Component {
                         webPageIframe.openPlaceholderPage('Pages')
                 }/>
                 : <AddPageMainPanelView
-                    initialPageData={ this.currentWebPage }
+                    initialPage={ this.currentWebPage }
                     cancelAddPage={ () => webPageIframe.goBack() }
                     webPageIframe={ webPageIframe }
                     pageType={ this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentWebPage.type) }/>

@@ -93,6 +93,7 @@ function optimizeQueue(queue) {
     };
     //
     const out = [];
+    queue = queue.filter(({command}) => command.doHandle !== null);
     const state = queue.map(() => ({appended: false}));
     unifyBlockOpNames(queue).forEach((itm, i) => {
         if (state[i].appended) return;

@@ -86,13 +86,34 @@ interface BlockBlueprint2 {
     children: Array<BlockBlueprint2>;
 }
 
+interface PageTypeField {
+    name: String;
+    friendlyName: String;
+    dataType: 'text'|'uint';
+    defaultValue: String|null;
+}
+
 interface PageType {
     name: String;
     slug: String;
-    ownFields: Array<{name: String; dataType: String; friendlyName: String;}>;
+    ownFields: Array<PageTypeField>;
     blockFields: Array<BlockBlueprint2>;
     defaultFields: {[key: String]: {defautlValue: String;};};
     isListable: Boolean;
+}
+
+interface Page {
+    id: String;
+    slug: String;
+    path: String;
+    level: Number;
+    type: String;
+    title: String;
+    layoutId: String;
+    status: Number;
+    blocks: Array<RawBlock>;
+    isPlaceholderPage: Boolean;
+    [key: String]: any; // Custom fields (PageType.ownFields)
 }
 
 interface TheWebsite {

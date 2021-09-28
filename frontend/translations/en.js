@@ -69,6 +69,8 @@ stringBundles.push({
     // edit-app/src/block-types/section.js
     'Section': 'Section',
     'Background': 'Background',
+    // edit-app/src/BlockWidget/ImagePicker.jsx
+    'Choose a picture': 'Valitse kuva',
     //edit-app/src/Upload/UploadsManager.jsx
     'Documents': 'Documents',
     'Images': 'Kuvat',
@@ -76,8 +78,6 @@ stringBundles.push({
     'Search': 'Search',
     'No results for "%s"': 'No results for "%s"',
     'No uploads yet': 'No uploads yet',
-    // edit-app/src/widgets/ImagePicker.jsx
-    'Choose a picture': 'Valitse kuva',
     //
     required: '{field} is required',
     minLength: '{field} must be at least {arg0} characters long',

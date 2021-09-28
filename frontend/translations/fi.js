@@ -69,6 +69,8 @@ stringBundles.push({
     // edit-app/src/block-types/section.js
     'Section': 'Osio',
     'Background': 'Taustakuva',
+    // edit-app/src/BlockWidget/ImagePicker.jsx
+    'Choose a picture': 'Valitse kuva',
     //edit-app/src/Upload/UploadsManager.jsx
     'Documents': 'Tiedostot',
     'Images': 'Kuvat',
@@ -76,8 +78,6 @@ stringBundles.push({
     'Search': 'Hae',
     'No results for "%s"': 'Ei tuloksia hakusanalla "%s"',
     'No uploads yet': 'Ei vielä latauksia',
-    // edit-app/src/widgets/ImagePicker.jsx
-    'Choose a picture': 'Valitse kuva',
     //
     required: '{field} vaaditaan',
     minLength: '{field} tulee olla vähintään {arg0} merkkiä pitkä',

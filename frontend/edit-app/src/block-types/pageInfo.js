@@ -4,6 +4,7 @@ import toasters from '../../../commons/Toaster.jsx';
 import store, {pushItemToOpQueue} from '../store.js';
 import BlockTrees from '../BlockTrees.jsx';
 import {stringUtils, timingUtils} from '../utils.js';
+import getWidget from '../FieldWidget/all.jsx';
 
 class PageInfoBlockEditForm extends preact.Component {
     // static internalSivujettiApi;
@@ -17,6 +18,7 @@ class PageInfoBlockEditForm extends preact.Component {
         this.commitNewPageValuesDebounced = timingUtils.debounce(this.commitNewPageValues.bind(this),
             env.normalTypingDebounceMillis);
         this.currentPageIsPlaceholder = null;
+        this.pageType = null;
     }
     /**
      * @access protected
@@ -24,15 +26,17 @@ class PageInfoBlockEditForm extends preact.Component {
     componentWillMount() {
         const currentPage = BlockTrees.currentWebPage.data.page;
         this.currentPageIsPlaceholder = currentPage.isPlaceholderPage;
+        this.pageType = PageInfoBlockEditForm.internalSivujettiApi.getPageTypes()
+            .find(({name}) => name === currentPage.type);
         let slug = currentPage.slug;
         if (this.currentPageIsPlaceholder) {
             slug = makeSlug(currentPage.title);
             emitValueChangedSignal(currentPage);
         }
-        this.setState(hookForm(this, {
-            title: currentPage.title,
-            slug,
-        }));
+        this.setState(hookForm(this, Object.assign(
+            {title: currentPage.title, slug},
+            getPageTypeSpecificData(currentPage, this.pageType)
+        )));
     }
     /**
      * @access protected
@@ -58,6 +62,13 @@ class PageInfoBlockEditForm extends preact.Component {
                         validations={ [['required'], ['maxLength', 92], ['regexp', '^/[a-zA-Z0-9_\\-$.+!*\'():,]*$', __(' contains forbidden characters')]] } myOnChange={ newState => this.handleValueChanged(newState, 'slug') }/>
                     <InputError error={ errors.slug }/>
                 </InputGroupInline>
+                { this.pageType.ownFields.map(field => {
+                    const Widget = getWidget(field.dataType);
+                    return <InputGroupInline classes={ classes[field.name] } key={ field.name }>
+                        <label htmlFor={ field.name } class="form-label">{ __(field.friendlyName) }</label>
+                        <Widget field={ field } parent={ this }/>
+                    </InputGroupInline>;
+                }) }
             </div>
         </>;
     }
@@ -87,10 +98,8 @@ class PageInfoBlockEditForm extends preact.Component {
         const data = Object.assign({}, currentPage, {title, slug});
         delete data.blocks;
         delete data.isPlaceholderPage;
-        const pageType = PageInfoBlockEditForm.internalSivujettiApi.getPageTypes()
-            .find(({name}) => name === currentPage.type);
-        for (const fieldDef of pageType.ownFields) // todo
-            data[fieldDef.name] = fieldDef.defaultValue;
+        for (const fieldDef of this.pageType.ownFields)
+            data[fieldDef.name] = this.state.values[fieldDef.name] || fieldDef.defaultValue;
         //
         return http.put(`/api/pages/${currentPage.type}/${currentPage.id}`, data)
             .then(resp => {
@@ -129,8 +138,17 @@ function makeSlug(title) {
     return `/${stringUtils.slugify(title) || '-'}`;
 }
 
+function getPageTypeSpecificData(page, pageType) {
+    const out = {};
+    for (const field of pageType.ownFields) {
+        const val = page[field.name];
+        out[field.name] = val !== null ? val : field.defaultValue;
+    }
+    return out;
+}
+
 /**
- * @param {PageType} internalSivujettiApi
+ * @param {InternalSivujettiApi} internalSivujettiApi
  */
 export default internalSivujettiApi => {
     const initialData = {overrides: '[]'};

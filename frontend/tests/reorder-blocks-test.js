@@ -4,7 +4,7 @@ QUnit.module('BlockTrees', () => {
     QUnit.test('blocks can be reordered inside inner branch by dragging upwards', assert => {
         const done = assert.async();
         const s = appTestUtils.createTestState();
-        appTestUtils.renderMockEditAppIntoDom(s, cmp => {
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
             s.blockTreesCmp = cmp;
             appTestUtils.simulatePageLoad(s);
         })
@@ -20,7 +20,7 @@ QUnit.module('BlockTrees', () => {
     QUnit.test('blocks can be reordered inside inner branch by dragging downwards', assert => {
         const done = assert.async();
         const s = appTestUtils.createTestState();
-        appTestUtils.renderMockEditAppIntoDom(s, cmp => {
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
             s.blockTreesCmp = cmp;
             appTestUtils.simulatePageLoad(s);
         })
@@ -36,7 +36,7 @@ QUnit.module('BlockTrees', () => {
     QUnit.test('blocks can be moved to child of another block by dragging upwards', assert => {
         const done = assert.async();
         const s = appTestUtils.createTestState();
-        appTestUtils.renderMockEditAppIntoDom(s, cmp => {
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
             s.blockTreesCmp = cmp;
             appTestUtils.simulatePageLoad(s);
         })
@@ -52,7 +52,7 @@ QUnit.module('BlockTrees', () => {
     QUnit.test('blocks can be moved to child of another block by dragging downwards', assert => {
         const done = assert.async();
         const s = appTestUtils.createTestState();
-        appTestUtils.renderMockEditAppIntoDom(s, cmp => {
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
             s.blockTreesCmp = cmp;
             appTestUtils.simulatePageLoad(s);
         })

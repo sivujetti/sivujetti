@@ -54,12 +54,13 @@ class EditAppAwareWebPage {
      * @access public
      */
     getCombinedAndOrderedBlockTree(pageBlocks, layoutBlocks, blockRefComments, blockTreeUtils) {
-        const out = [];
         const setBranchOrigins = (rootBlock, origin) => {
             blockTreeUtils.traverseRecursively([rootBlock], block => {
                 block.origin = origin;
             });
         };
+        //
+        const out = [];
         for (const _cref of blockRefComments) {
             let block = pageBlocks.find(({id}) => id === _cref.blockId);
             if (block) {

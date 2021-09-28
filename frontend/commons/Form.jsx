@@ -6,9 +6,9 @@ const validatorImplFactories = {
     'required': messages =>
         [(value) => !!value, messages.required]
     ,
-    'type': () => {
-        throw new Error('Not implemented yet.');
-    },
+    'type': _messages =>
+        [(_value, _type) => true, 'Always valid.']
+    ,
     'minLength': messages =>
         [(value, min) => value.length >= min, messages.minLength]
     ,

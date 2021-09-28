@@ -6,7 +6,7 @@ QUnit.module('BlockTrees', () => {
     QUnit.test('user can add block to inner branch', assert => {
         const done = assert.async();
         const s = appTestUtils.createTestState();
-        appTestUtils.renderMockEditAppIntoDom(s, () => {
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', () => {
             appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
@@ -20,7 +20,7 @@ QUnit.module('BlockTrees', () => {
     QUnit.test('user can add block to inner branch by using the context menu', assert => {
         const done = assert.async();
         const s = appTestUtils.createTestState();
-        appTestUtils.renderMockEditAppIntoDom(s, () => {
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', () => {
             appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
@@ -34,7 +34,7 @@ QUnit.module('BlockTrees', () => {
     QUnit.test('user can clone block using the context menu', assert => {
         const done = assert.async();
         const s = appTestUtils.createTestState();
-        appTestUtils.renderMockEditAppIntoDom(s, () => {
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', () => {
             appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
@@ -55,7 +55,7 @@ QUnit.module('BlockTrees', () => {
     }
     function clickContextMenuLink(s, linkId) {
         return new Promise(resolve => {
-            const contextNavToggleBtn = document.querySelector('.block-tree > li:first-child .more-toggle');
+            const contextNavToggleBtn = document.querySelector('.block-tree > li:nth-of-type(2) .more-toggle');
             contextNavToggleBtn.click();
             setTimeout(() => {
                 const linkEl = Array.from(document.querySelectorAll('.popup-menu a'))

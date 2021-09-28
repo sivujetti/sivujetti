@@ -4,17 +4,15 @@ import BlockTrees from './BlockTrees.jsx';
 import store, {deleteItemsFromOpQueueAfter, setOpQueue} from './store.js';
 
 class AddPageMainPanelView extends preact.Component {
-    // initialPageData;
     // pageMetaData;
     // pageType;
     // blockTrees;
     // unregisterSignalListener;
     /**
-     * @param {{cancelAddPage: () => void; initialPageData: {id: String; slug: String; path: String; level: Number; type: String; title: String; layoutId: String; status: Number; blocks: Array<RawBlock>; isPlaceholderPage: Boolean;}; pageType: PageType; webPageIframe: WebPageIframe;}} props
+     * @param {{cancelAddPage: () => void; pageType: PageType; webPageIframe: WebPageIframe; initialPage?: Page; noAutoFocus?: Boolean;}} props
      */
     constructor(props) {
         super(props);
-        this.initialPageData = props.initialPageData;
         this.pageMetaData = {};
         this.blockTrees = preact.createRef();
         this.state = {layoutId: '1'};
@@ -34,8 +32,8 @@ class AddPageMainPanelView extends preact.Component {
             doHandle: this.handleFormSubmitted.bind(this),
             args: []
         }}]));
-        setTimeout(() => {
-            env.document.querySelectorAll('.block-tree li .block-handle')[1].click();
+        if (!this.props.noAutoFocus) setTimeout(() => {
+            env.document.querySelector('.block-tree li[data-block-type="PageInfo"] .block-handle').click();
             const unregisterListener = signals.on('on-inspector-panel-revealed', () => {
                 env.document.querySelector('input[name="title"]').focus();
                 unregisterListener();
@@ -121,7 +119,7 @@ class AddPageMainPanelView extends preact.Component {
      * @access private
      */
     renderAnotherLayout(e) {
-        this.props.webPageIframe.openPlaceholderPage(this.initialPageData.type, e.target.value);
+        this.props.webPageIframe.openPlaceholderPage(this.props.initialPage.type, e.target.value);
     }
 }
 

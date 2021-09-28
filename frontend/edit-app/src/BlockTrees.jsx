@@ -87,7 +87,7 @@ class BlockTrees extends preact.Component {
                 blocksInput={ blocksInput }
                 onChangesApplied={ containingView === 'DefaultMainPanelView'
                     ? BlockTrees.saveExistingBlocksToBackend
-                    : function () {} }
+                    : null }
                 BlockTrees={ BlockTrees }
                 ref={ this.blockTree }/>
         </div>;

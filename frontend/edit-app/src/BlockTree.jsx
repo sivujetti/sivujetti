@@ -189,6 +189,7 @@ class BlockTree extends preact.Component {
             //
             return <li
                 class={ [!treeState[block.id].isSelected ? '' : 'selected'].join(' ') }
+                data-block-type="PageInfo"
                 key={ block.id }>
                 <div class="d-flex">
                     <button onClick={ () => this.handleItemClicked(block) } class="block-handle columns" type="button">

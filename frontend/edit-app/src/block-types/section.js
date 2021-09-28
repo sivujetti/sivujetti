@@ -2,7 +2,7 @@ import {__, urlUtils, env} from '@sivujetti-commons';
 import {hookForm, InputGroupInline, Input, InputError} from '../../../commons/Form.jsx';
 import Icon from '../../../commons/Icon.jsx';
 import {formValidation} from '../constants.js';
-import ImagePicker from '../widgets/ImagePicker.jsx';
+import ImagePicker from '../BlockWidget/ImagePicker.jsx';
 import {UPLOADS_DIR_PATH} from '../Upload/UploadsManager.jsx';
 
 class SectionBlockEditForm extends preact.Component {

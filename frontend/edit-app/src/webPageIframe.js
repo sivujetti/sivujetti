@@ -2,11 +2,11 @@ import {env, urlUtils} from '@sivujetti-commons';
 
 const webPageIframe = {
     /**
-     * @param {String} pageType
+     * @param {String} pageTypeName
      * @param {String} layoutId = '1'
      */
-    openPlaceholderPage(pageType, layoutId = '1') {
-        const u = urlUtils.makeUrl(`/api/_placeholder-page/${pageType}/${layoutId}`);
+    openPlaceholderPage(pageTypeName, layoutId = '1') {
+        const u = urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`);
         this.getEl().contentWindow.location.href = u;
     },
     /**

@@ -17,6 +17,7 @@ final class TheWebsiteRepository {
                 " ws.`name`, ws.`lang`, ws.`aclRules` AS `aclRulesJson`" .
                 ", p.`name` AS `pluginName`, pt.`name` AS `pageTypeName`" .
                 ", pt.`slug` AS `pageTypeSlug`, pt.`fields` AS `pageTypeFieldsJson`" .
+                ", pt.`defaultLayoutId` AS `pageTypeDefaultLayoutId`" .
                 ", pt.`isListable` AS `pageTypeIsListable`" .
             " FROM \${p}theWebsite ws" .
             " LEFT JOIN \${p}plugins p ON (1)" .

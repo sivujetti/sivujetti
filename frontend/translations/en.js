@@ -54,6 +54,7 @@ stringBundles.push({
     'Heading text': 'Heading text',
     'Heading': 'Heading',
     // edit-app/src/block-types/listing.js
+    'A list of %s': 'A list of %s',
     'Add new %s': 'Add new %s',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metadata',

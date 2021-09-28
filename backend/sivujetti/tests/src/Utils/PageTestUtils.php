@@ -134,7 +134,7 @@ final class PageTestUtils {
                                                 "initialData" => (object) ["text" => "Paragraph text", "cssClass" => ""],
                                                 "children" => []]],
                     "defaultFields" => (object) ["title" => (object) ["defaultValue" => "Product name"]],
-                ]) . "',1)");
+                ]) . "','1',1)");
         });
         return $pageType;
     }

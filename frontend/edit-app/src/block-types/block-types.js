@@ -3,7 +3,7 @@ const storage = new Map;
 const blockTypes = {
     /**
      * @param {String} name
-     * @returns {BlockType|undefined}
+     * @returns {BlockType|(...any) => BlockType|undefined}
      * @access public
      */
     get(name) {
@@ -11,15 +11,16 @@ const blockTypes = {
     },
     /**
      * @param {String} name
-     * @param {BlockType}
+     * @param {BlockType|(...any) => BlockType}
      * @access public
      */
-    register(name, blockType) {
-        blockType.ownPropNames = blockType.ownPropNames.filter(key => key !== 'children');
-        storage.set(name, blockType);
+    register(name, blockTypeOrFactory) {
+        if (typeof blockTypeOrFactory !== 'function')
+            blockTypeOrFactory.ownPropNames = blockTypeOrFactory.ownPropNames.filter(key => key !== 'children');
+        storage.set(name, blockTypeOrFactory);
     },
     /**
-     * @returns {IterableIterator<String, BlockType>}
+     * @returns {IterableIterator<String, BlockType|(...any) => BlockType>}
      * @access public
      */
     entries() {

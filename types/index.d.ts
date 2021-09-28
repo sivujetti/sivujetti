@@ -98,7 +98,12 @@ interface PageType {
     slug: String;
     ownFields: Array<PageTypeField>;
     blockFields: Array<BlockBlueprint2>;
-    defaultFields: {[key: String]: {defautlValue: String;};};
+    defaultFields: {
+        [key: String]: {
+            defaultValue: String;
+        };
+    };
+    defaultLayoutId: String;
     isListable: Boolean;
 }
 

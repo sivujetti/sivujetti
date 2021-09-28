@@ -35,7 +35,7 @@ final class UpdateCoreTest extends DbTestCase {
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
-        $state->inputData = (object) ["toVersion" => "0.6.0"];
+        $state->inputData = (object) ["toVersion" => '1' . App::VERSION];
         $state->sivujettiApp = null;
         $state->spyingResponse = null;
         return $state;

@@ -44,6 +44,7 @@ return [
     `name` VARCHAR(92) NOT NULL,
     `slug` VARCHAR(92) NOT NULL,
     `fields` JSON,
+    `defaultLayoutId` {$dataTypeForMaxIndexableText},
     `isListable` TINYINT(1) DEFAULT 1,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",

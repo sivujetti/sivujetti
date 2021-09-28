@@ -54,6 +54,7 @@ stringBundles.push({
     'Heading text': 'Otsikon teksti',
     'Heading': 'Otsikko',
     // edit-app/src/block-types/listing.js
+    'A list of %s': 'Lista %s:ja',
     'Add new %s': 'Lisää uusi %s',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metatiedot',

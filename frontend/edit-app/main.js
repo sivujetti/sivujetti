@@ -4,10 +4,11 @@ import {sensibleDefaults} from './src/constants.js';
 import {FormStateStoreWrapper} from './src/store.js';
 import EditApp from './src/EditApp.jsx';
 import blockTypes from './src/block-types/block-types.js';
+import createMenuBlockType from './src/block-types/Menu/menu.js';
 import createButtonBlockType from './src/block-types/button.js';
 import createColumnsBlockType from './src/block-types/columns.js';
 import createHeadingBlockType from './src/block-types/heading.js';
-import createMenuBlockType from './src/block-types/Menu/menu.js';
+import createListingBlockTypeCreator from './src/block-types/listing.js';
 import createPageInfoBlockType from './src/block-types/pageInfo.js';
 import createParagraphBlockType from './src/block-types/paragraph.js';
 import createRichTextBlockType from './src/block-types/richText.js';
@@ -46,10 +47,11 @@ function configureServices() {
         if (strings.minLength) Validator.setValidationStrings(strings);
     });
     //
+    blockTypes.register('Menu', createMenuBlockType(internalSivujettiApi));
     blockTypes.register('Button', createButtonBlockType(internalSivujettiApi));
     blockTypes.register('Columns', createColumnsBlockType(internalSivujettiApi));
     blockTypes.register('Heading', createHeadingBlockType(internalSivujettiApi));
-    blockTypes.register('Menu', createMenuBlockType(internalSivujettiApi));
+    blockTypes.register('Listing', createListingBlockTypeCreator(internalSivujettiApi));
     blockTypes.register('PageInfo', createPageInfoBlockType(internalSivujettiApi));
     blockTypes.register('Paragraph', createParagraphBlockType(internalSivujettiApi));
     blockTypes.register('RichText', createRichTextBlockType(internalSivujettiApi));

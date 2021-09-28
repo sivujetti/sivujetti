@@ -15,7 +15,7 @@ $statements = array_merge($statements, [
                                 "initialData" => (object) ["text" => "Paragraph text", "cssClass" => ""],
                                 "children" => []]],
     "defaultFields" => (object) ["title" => (object) ["defaultValue" => "New page"]],
-]) . "',1)",
+]) . "','1',1)",
 
 ]);
 

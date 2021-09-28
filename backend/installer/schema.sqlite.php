@@ -41,6 +41,7 @@ return [
     `name` TEXT NOT NULL,
     `slug` TEXT NOT NULL,
     `fields` JSON,
+    `defaultLayoutId` TEXT NOT NULL,
     `isListable` INTEGER DEFAULT 1
 )",
 

@@ -9,7 +9,9 @@ class BlockTypeSelector extends preact.Component {
     constructor(props) {
         super(props);
         this.state = {blockBluePrint: {blockType: props.block.type}};
-        this.selectableBlockTypes = Array.from(blockTypes.entries()).filter(itm => itm[0] !== 'PageInfo');
+        this.selectableBlockTypes = Array.from(blockTypes.entries()).filter(([name, _]) =>
+            name !== 'PageInfo' && name !== 'Listing'
+        );
     }
     /**
      * @access protected

@@ -15,6 +15,8 @@ final class PageType {
     public array $ownFields;
     /** @var array e.g. {title: {defaultValue: "My page"}...} */
     public object $defaultFields;
+    /** @var string */
+    public string $defaultLayoutId;
     /** @var bool */
     public bool $isListable;
     /**
@@ -29,6 +31,7 @@ final class PageType {
         $out->blockFields = $fields->blockFields;
         $out->ownFields = $fields->ownFields;
         $out->defaultFields = $fields->defaultFields;
+        $out->defaultLayoutId = $row->pageTypeDefaultLayoutId;
         $out->isListable = (bool) $row->pageTypeIsListable;
         return $out;
     }

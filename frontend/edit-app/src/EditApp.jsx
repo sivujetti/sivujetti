@@ -84,9 +84,11 @@ class EditApp extends preact.Component {
                         webPageIframe.openPlaceholderPage('Pages')
                 }/>
                 : <AddPageMainPanelView
-                    initialPage={ this.currentWebPage }
                     cancelAddPage={ () => webPageIframe.goBack() }
-                    webPageIframe={ webPageIframe }
+                    reRenderWithAnotherLayout={ layoutId => {
+                        this.setState({isCreatePageModeOn: false});
+                        webPageIframe.openPlaceholderPage(this.currentWebPage.type, layoutId);
+                    }}
                     pageType={ this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentWebPage.type) }/>
             }
             <Toaster id="editAppMain"/>

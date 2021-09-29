@@ -148,6 +148,7 @@ function simulatePageLoad(_s, isNewPage = false) {
             title: 'Page',
             isPlaceholderPage: isNewPage,
             type: 'Pages',
+            layoutId: '1',
             blocks: pageBlocks,
         },
         layouts: [],

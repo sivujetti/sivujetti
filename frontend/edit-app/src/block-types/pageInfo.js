@@ -28,15 +28,15 @@ class PageInfoBlockEditForm extends preact.Component {
         this.currentPageIsPlaceholder = currentPage.isPlaceholderPage;
         this.pageType = PageInfoBlockEditForm.internalSivujettiApi.getPageTypes()
             .find(({name}) => name === currentPage.type);
-        let slug = currentPage.slug;
-        if (this.currentPageIsPlaceholder) {
-            slug = makeSlug(currentPage.title);
-            emitValueChangedSignal(currentPage);
+        //
+        const state = createState(currentPage, this.pageType);
+        if (this.currentPageIsPlaceholder && state.slug === '-') {
+            state.slug = makeSlug(state.title);
+            currentPage.slug = state.slug; // Note: Mutates BlockTrees.currentWebPage.data.page
+            emitValueChangedSignal(state);
         }
-        this.setState(hookForm(this, Object.assign(
-            {title: currentPage.title, slug},
-            getPageTypeSpecificData(currentPage, this.pageType)
-        )));
+        //
+        this.setState(hookForm(this, state));
     }
     /**
      * @access protected
@@ -77,29 +77,26 @@ class PageInfoBlockEditForm extends preact.Component {
      */
     commitNewPageValues() {
         const currentPage = BlockTrees.currentWebPage.data.page;
-        currentPage.title = this.state.values.title;
-        currentPage.slug = this.state.values.slug;
+        const state = createState(this.state.values, this.pageType);
+        Object.assign(currentPage, state); // Note: Mutates BlockTrees.currentWebPage.data.page
+        //
         if (!this.currentPageIsPlaceholder) {
             store.dispatch(pushItemToOpQueue('update-page-basic-info', {
                 doHandle: this.savePageToBackend.bind(this),
-                args: [this.state.values.title, this.state.values.slug],
+                args: [],
             }));
         } else {
-            emitValueChangedSignal(currentPage);
+            emitValueChangedSignal(state);
         }
     }
     /**
-     * @param {String} title
-     * @param {String} slug
      * @access private
      */
-    savePageToBackend(title, slug) {
+    savePageToBackend() {
         const currentPage = BlockTrees.currentWebPage.data.page;
-        const data = Object.assign({}, currentPage, {title, slug});
+        const data = Object.assign({}, currentPage, createState(currentPage, this.pageType));
         delete data.blocks;
         delete data.isPlaceholderPage;
-        for (const fieldDef of this.pageType.ownFields)
-            data[fieldDef.name] = this.state.values[fieldDef.name] || fieldDef.defaultValue;
         //
         return http.put(`/api/pages/${currentPage.type}/${currentPage.id}`, data)
             .then(resp => {
@@ -129,19 +126,30 @@ class PageInfoBlockEditForm extends preact.Component {
     }
 }
 
-function emitValueChangedSignal(currentPage) {
-    signals.emit('on-page-info-form-value-changed', {title: currentPage.title,
-                                                     slug: currentPage.slug});
+/**
+ * @param {PageMetaRaw} titleSlugAndOwnFields
+ */
+function emitValueChangedSignal(titleSlugAndOwnFields) {
+    signals.emit('on-page-info-form-value-changed', titleSlugAndOwnFields);
 }
 
+/**
+ * @param {String} title
+ * @returns {String}
+ */
 function makeSlug(title) {
     return `/${stringUtils.slugify(title) || '-'}`;
 }
 
-function getPageTypeSpecificData(page, pageType) {
-    const out = {};
+/**
+ * @param {Page|Object} from
+ * @param {PageType} pageType
+ * @return {PageMetaRaw}
+ */
+function createState(from, pageType) {
+    const out = {title: from.title, slug: from.slug};
     for (const field of pageType.ownFields) {
-        const val = page[field.name];
+        const val = from[field.name];
         out[field.name] = val !== null ? val : field.defaultValue;
     }
     return out;

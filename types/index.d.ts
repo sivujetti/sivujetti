@@ -118,7 +118,13 @@ interface Page {
     status: Number;
     blocks: Array<RawBlock>;
     isPlaceholderPage: Boolean;
-    [key: String]: any; // Custom fields (PageType.ownFields)
+    [ownFieldName: String]: any; // Custom fields (PageType.ownFields)
+}
+
+interface PageMetaRaw {
+    title: String;
+    slug: String;
+    [key: String]: any; // Own fields
 }
 
 interface TheWebsite {

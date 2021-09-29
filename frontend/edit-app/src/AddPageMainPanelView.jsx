@@ -1,4 +1,5 @@
 import {__, http, urlUtils, signals, env} from '@sivujetti-commons';
+import {InputGroupInline} from '../../commons/Form.jsx';
 import toasters from '../../commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';
 import store, {deleteItemsFromOpQueueAfter, setOpQueue} from './store.js';
@@ -9,19 +10,19 @@ class AddPageMainPanelView extends preact.Component {
     // blockTrees;
     // unregisterSignalListener;
     /**
-     * @param {{cancelAddPage: () => void; pageType: PageType; webPageIframe: WebPageIframe; initialPage?: Page; noAutoFocus?: Boolean;}} props
+     * @param {{cancelAddPage: () => void; pageType: PageType; reRenderWithAnotherLayout: (layoutId: String) => void; page: Page; noAutoFocus?: Boolean;}} props
      */
     constructor(props) {
         super(props);
         this.pageMetaData = {};
         this.blockTrees = preact.createRef();
-        this.state = {layoutId: '1'};
+        this.state = {layouts: BlockTrees.currentWebPage ? BlockTrees.currentWebPage.data.layouts : null};
         this.unregisterSignalListener = signals.on('on-page-info-form-value-changed',
         /**
-         * @param {{title: String; slug: String;}} newValues
+         * @param {PageMetaRaw} pageMeta
          */
-        newValues => {
-            this.pageMetaData = {title: newValues.title, slug: newValues.slug};
+        pageMeta => {
+            this.pageMetaData = pageMeta;
         });
     }
     /**
@@ -50,7 +51,7 @@ class AddPageMainPanelView extends preact.Component {
     /**
      * @access protected
      */
-    render({cancelAddPage}, {layoutId}) {
+    render({cancelAddPage}, {layouts}) {
         return <form onSubmit={ this.handleFormSubmitted.bind(this) }>
             <header class="panel-section mb-2">
                 <h1 class="mb-2">{ __('Create %s', this.props.pageType.name) }</h1>
@@ -60,22 +61,25 @@ class AddPageMainPanelView extends preact.Component {
                     title={ __('Cancel add %s', this.props.pageType.name) }
                     type="button">&lt; { __('Back') }</button>
             </header>
-            {/*<section class="panel-section open pt-0">
-                <button class="d-flex col-12 flex-centered pr-2" onClick={ () => '{ this.setState({sectionAIsCollapsed: !sectionAIsCollapsed}); }' } type="button">
-                    <Icon iconId="layout" className="size-sm mr-2 color-dimmed"/>
-                    <span class="pl-1 color-default">{ __('Layout') }</span>
-                    <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
-                </button>
-                { BlockTrees.currentWebPage ?
-                <select
-                    value={ layoutId }
-                    onChange={ this.renderAnotherLayout.bind(this) }
-                    class="form-select form-input tight">{ BlockTrees.currentWebPage.data.layouts.map(l =>
-                    <option value={ l.id }>{ __(l.friendlyName) }</option>
-                ) }</select> : null }
-            </section>*/}
+            { layouts && layouts.length > 1 ?
+            <section class="panel-section open pt-0"><div class="form-horizontal pt-0">
+                <InputGroupInline>
+                    <label class="form-label" htmlFor="pageLayout">{ __('Layout') }</label>
+                    <select
+                        value={ BlockTrees.currentWebPage.data.page.layoutId }
+                        onChange={ e => this.props.reRenderWithAnotherLayout(e.target.value) }
+                        class="form-select form-input tight"
+                        name="pageLayout"
+                        id="pageLayout">{ layouts.map(l =>
+                        <option value={ l.id }>{ __(l.friendlyName) }</option>
+                    ) }</select>
+                </InputGroupInline>
+            </div></section> : null }
             <section>
-                <BlockTrees containingView="AddPageMainPanelView" ref={ this.blockTrees }/>
+                <BlockTrees
+                    onWebPageLoadHandled={ () => { this.setState({layouts: BlockTrees.currentWebPage.data.layouts}); }}
+                    containingView="AddPageMainPanelView"
+                    ref={ this.blockTrees }/>
             </section>
         </form>;
     }
@@ -86,18 +90,14 @@ class AddPageMainPanelView extends preact.Component {
      */
     handleFormSubmitted(e) {
         if (e) e.preventDefault();
-        const data = {
-            slug: this.pageMetaData.slug,
-            path: `${this.pageMetaData.slug.substr(1)}/`,
-            level: 1,
-            title: this.pageMetaData.title,
-            layoutId: this.state.layoutId,
-            blocks: this.blockTrees.current.getPageBlocks(),
-            status: 0,
-        };
-        for (const fieldDef of this.props.pageType.ownFields) {
-            data[fieldDef.name] = fieldDef.defaultValue;
-        }
+        // {title, slug, customField1, customField2 ...}
+        const data = Object.assign({}, this.pageMetaData);
+        data.path = `${data.slug.substr(1)}/`;
+        data.level = 1;
+        data.layoutId = BlockTrees.currentWebPage.data.page.layoutId;
+        data.blocks = this.blockTrees.current.getPageBlocks();
+        data.status = 0;
+        //
         return http.post(`/api/pages/${this.props.pageType.name}`, data)
             .then(resp => {
                 if (resp.ok !== 'ok') throw new Error('-');
@@ -113,13 +113,6 @@ class AddPageMainPanelView extends preact.Component {
                 this.form.setIsSubmitting(false);
                 return false;
             });
-    }
-    /**
-     * @param {InputEvent} e
-     * @access private
-     */
-    renderAnotherLayout(e) {
-        this.props.webPageIframe.openPlaceholderPage(this.props.initialPage.type, e.target.value);
     }
 }
 

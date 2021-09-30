@@ -31,7 +31,7 @@ interface PackageStreamInterface {
     /**
      * @param string $localName
      * @param string[] $localNames
-     * @return booll
+     * @return bool
      * @throws \Pike\PikeException
      */
     public function addFileMap(string $localName, array $localNames): bool;

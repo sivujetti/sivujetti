@@ -4,6 +4,7 @@ namespace Sivujetti\TheWebsite;
 
 use Pike\Db;
 use Sivujetti\PageType\Entities\PageType;
+use Sivujetti\Plugin\Entities\Plugin;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class TheWebsiteRepository {

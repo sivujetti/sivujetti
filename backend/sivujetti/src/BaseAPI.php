@@ -9,7 +9,7 @@ abstract class BaseAPI {
     /** @var string */
     protected string $namespace;
     /** @var \Sivujetti\SharedAPIContext */
-    protected SharedAPIContext $strorage;
+    protected SharedAPIContext $storage;
     /**
      * @param string $namespace
      * @param \Sivujetti\SharedAPIContext $storage

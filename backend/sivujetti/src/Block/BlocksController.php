@@ -18,7 +18,7 @@ final class BlocksController {
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\Block\BlockValidator $blockValidator
-     * @param \Sivujetti\TheWebsite $theWebsite
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\SharedAPIContext $storage
      */

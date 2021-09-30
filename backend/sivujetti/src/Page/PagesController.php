@@ -97,7 +97,7 @@ final class PagesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Sivujetti\TheWebsite $theWebsite 
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\SharedAPIContext $storage 
      */
     public function renderEditAppWrapper(Request $req,
@@ -252,7 +252,7 @@ final class PagesController {
         }
     }
     /**
-     * @param \Sivujetti\Page\Entities\Page[] $page
+     * @param \Sivujetti\Page\Entities\Page $page
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param bool $isPlaceholderPage
      * @return object

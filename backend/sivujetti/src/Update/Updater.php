@@ -151,10 +151,12 @@ final class Updater {
      * @return \Sivujetti\Update\Entities\Job
      */
     private function getUpdateState(): Job {
-        return $this->db->fetchOne("SELECT `startedAt` FROM `\${p}jobs` WHERE `jobName` = ?",
+        $job = $this->db->fetchOne("SELECT `startedAt` FROM `\${p}jobs` WHERE `jobName` = ?",
                                    [self::UPDATE_CORE_TASK],
                                    \PDO::FETCH_CLASS,
                                    Job::class); // #ref-1
+        if (!($job instanceof Job)) throw new PikeException("Invalid database state", 301010);
+        return $job;
     }
     /**
      */

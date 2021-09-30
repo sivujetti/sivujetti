@@ -19,7 +19,7 @@ final class PushIdGenerator {
      * generated because in the event of a collision, we"ll use those same characters except
      * "incremented" by one.
      *
-     * @var string[]
+     * @var array<int, int>
      */
     private static $lastRandChars = [];
     /**

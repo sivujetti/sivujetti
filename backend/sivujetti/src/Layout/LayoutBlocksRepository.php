@@ -10,6 +10,8 @@ use Sivujetti\Page\PagesRepository;
 final class LayoutBlocksRepository {
     /** @var \Pike\Db */
     private Db $db;
+    /** @var \Sivujetti\BlockType\Entities\BlockTypes */
+    private BlockTypes $blockTypes;
     /**
      * @param \Pike\Db $db
      * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes

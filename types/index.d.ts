@@ -133,10 +133,16 @@ interface TheWebsite {
     pageTypes: Array<PageType>;
 }
 
+interface EditAwareWebPageEventHandlers {
+    onHoverStarted(blockRef: BlockRefComment, rect: ClientRect): void;
+    onClicked(blockRef: BlockRefComment): void;
+    onHoverEnded(blockRef: BlockRefComment): void;
+}
+
 interface EditAppAwareWebPage {
     data: CurrentPageData;
     scanBlockRefComments(): Array<BlockRefComment>;
-    hookBlockRefEventListeners(blockRefComments: Array<BlockRefComment>): void;
+    registerEventHandlers(handlers: EditAwareWebPageEventHandlers, blockRefComments: Array<BlockRefComment>): void;
     getCombinedAndOrderedBlockTree(pageBlocks: Array<RawBlock>, layoutBlocks: Array<RawBlock>, blockRefComments: Array<BlockRefComment>, blockTreeUtils: blockTreeUtils): Array<RawBlock>;
     appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<BlockRefComment>;
     appendClonedBlockBranchToDom(clonedBlock: Block, clonedFromBlock: Block, blockTreeUtils: blockTreeUtils): Promise<{[key: String]: BlockRefComment;}>;

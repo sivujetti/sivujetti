@@ -1,48 +1,31 @@
 import {__, signals, urlUtils} from '@sivujetti-commons';
 import {Toaster} from '../../commons/Toaster.jsx';
-import Icon from '../../commons/Icon.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
 import AddPageMainPanelView from './AddPageMainPanelView.jsx';
 import {FloatingDialog} from './FloatingDialog.jsx';
 import store, {setCurrentPage, setOpQueue} from './store.js';
 import SaveButton from './SaveButton.jsx';
+import blockTreeUtils from './blockTreeUtils.js';
 
-const LEFT_PANEL_WIDTH = 274;
+let LEFT_PANEL_WIDTH = 274;
 
 class EditApp extends preact.Component {
     // blockTrees;
     // currentWebPage;
     // resizeHandleEl;
+    // highlightRectEl;
     /**
      * @param {{webPageIframe: WebPageIframe; dataFromAdminBackend: TheWebsite; outerEl: HTMLElement; inspectorPanelRef: preact.Ref;}} props
      */
     constructor(props) {
         super(props);
-        this.state = {isCreatePageModeOn: false, blockHoverIconCss: 'display:none'};
-        this.blockTrees = null;
+        this.state = {isCreatePageModeOn: false};
+        this.blockTrees = preact.createRef();
         this.currentWebPage = null;
         this.resizeHandleEl = preact.createRef();
-        this.websiteEventHandlers = {
-            /**
-             * @param {HTMLElement} el block._cref.startingCommentNode.nextElement
-             */
-            onBlockHoverStarted: el => {
-                const r = el.getBoundingClientRect();
-                const margin = 10;
-                this.setState({blockHoverIconCss: `left:${r.left+LEFT_PANEL_WIDTH+margin}px;top:${r.top+margin}px;`});
-            },
-            /**
-             */
-            onBlockHoverEnded: () => {
-                this.setState({blockHoverIconCss: 'display:none'});
-            },
-            /**
-             * @param {BlockRefComment} blockRef
-             */
-            onBlockClicked: blockRef => {
-                signals.emit('on-web-page-block-clicked', blockRef);
-            }
-        };
+        this.highlightRectEl = preact.createRef();
+        this.websiteEventHandlers = createWebsiteEventHandlers(this.highlightRectEl,
+                                                               this.blockTrees);
     }
     /**
      * @param {EditAppAwareWebPage} webPage
@@ -63,7 +46,7 @@ class EditApp extends preact.Component {
     /**
      * @access protected
      */
-    render({webPageIframe}, {isCreatePageModeOn, blockHoverIconCss}) {
+    render({webPageIframe}, {isCreatePageModeOn}) {
         return <div>
             <header class="container d-flex flex-centered">
                 <a href={ urlUtils.makeUrl('_edit') } class="column">
@@ -77,6 +60,7 @@ class EditApp extends preact.Component {
             </header>
             { !isCreatePageModeOn
                 ? <DefaultMainPanelView
+                    blockTreesRef={ this.blockTrees }
                     startAddPageMode={ () =>
                         // Open to iframe to '/_edit/api/_placeholder-page...',
                         // which then triggers this.handleWebPageLoaded() and sets
@@ -84,6 +68,7 @@ class EditApp extends preact.Component {
                         webPageIframe.openPlaceholderPage('Pages')
                 }/>
                 : <AddPageMainPanelView
+                    blockTreesRef={ this.blockTrees }
                     cancelAddPage={ () => webPageIframe.goBack() }
                     reRenderWithAnotherLayout={ layoutId => {
                         this.setState({isCreatePageModeOn: false});
@@ -93,9 +78,7 @@ class EditApp extends preact.Component {
             }
             <Toaster id="editAppMain"/>
             <FloatingDialog/>
-            <span class="block-hover-icon" style={ blockHoverIconCss }>
-                <Icon iconId="settings" className="size-xs"/>
-            </span>
+            <span class="highlight-rect" ref={ this.highlightRectEl }></span>
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         </div>;
     }
@@ -141,10 +124,55 @@ class EditApp extends preact.Component {
             el.style.transform = `translateX(${w}px)`;
         });
         document.addEventListener('mouseup', () => {
+            if (currentHandle) LEFT_PANEL_WIDTH = parseFloat(mainPanelEl.style.width);
             currentHandle = null;
             el.classList.remove('dragging');
         });
     }
+}
+
+/**
+ * @param {preact.Ref} highlightRectEl
+ * @param {preact.Ref} blockTrees
+ * @returns {EditAwareWebPageEventHandlers}
+ */
+function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
+    let prevHoverStartBlockRef = null;
+    const hideRect = () => {
+        highlightRectEl.current.setAttribute('data-title', '');
+        highlightRectEl.current.style.cssText = '';
+    };
+    return {
+        /**
+         * @param {BlockRefComment} blockRef
+         * @param {ClientRect} r
+         */
+        onHoverStarted: (blockRef, r) => {
+            highlightRectEl.current.style.cssText = `width:${r.width}px;height:${r.height}px;top:${r.top}px;left:${r.left+LEFT_PANEL_WIDTH}px`;
+            const block = blockTreeUtils.findRecursively(blockTrees.current.blockTree.current.getTree(), ({id}) => id === blockRef.blockId);
+            highlightRectEl.current.setAttribute('data-title', __(block.type));
+            prevHoverStartBlockRef = blockRef;
+        },
+        /**
+         * @param {BlockRefComment} blockRef
+         */
+        onClicked: blockRef => {
+            const treeCmp = blockTrees.current.blockTree.current;
+            const b = blockTreeUtils.findRecursively(treeCmp.getTree(), ({id}) => id === blockRef.blockId);
+            signals.emit('on-web-page-block-clicked');
+            treeCmp.handleItemClicked(b);
+        },
+        /**
+         * @param {BlockRefComment} blockRef
+         */
+        onHoverEnded: (blockRef, _r) => {
+            setTimeout(() => {
+                if (blockRef === prevHoverStartBlockRef) {
+                    hideRect();
+                }
+            }, 80);
+        }
+    };
 }
 
 export default EditApp;

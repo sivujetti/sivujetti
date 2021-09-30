@@ -2,7 +2,6 @@ class EditAppAwareWebPage {
     // data;
     // currentlyHoveredBlockFirstChildEl;
     // currentlyHoveredBlockRef;
-    // isGlobalClickHandlerSet;
     /**
      * @param {CurrentPageData} dataFromAdminBackend
      */
@@ -10,14 +9,6 @@ class EditAppAwareWebPage {
         this.data = dataFromAdminBackend;
         this.currentlyHoveredBlockFirstChildEl = undefined;
         this.currentlyHoveredBlockRef = undefined;
-        this.isGlobalClickHandlerSet = undefined;
-    }
-    /**
-     * @param {{onBlockHoverStarted: (el: HTMLElement) => void; onBlockHoverEnded: () => void; onBlockClicked: (blockRef: BlockRefComment) => void;}} handlers
-     * @access public
-     */
-    setEventHandlers(handlers) {
-        this.handlers = handlers;
     }
     /**
      * @returns {Array<BlockRefComment>}
@@ -29,21 +20,21 @@ class EditAppAwareWebPage {
             : [];
     }
     /**
+     * @param {EditAwareWebPageEventHandlers} handlers
      * @param {Array<BlockRefComment>} blockRefComments
      * @access public
      */
-    hookBlockRefEventListeners(blockRefComments) {
-        const hoverables = !this.data.page.isPlaceholderPage
-            ? blockRefComments
-            : blockRefComments.filter(({blockId}) => this.data.layoutBlocks.some(block => block.id === blockId) === false);
-        hoverables.map(this.registerBlockMouseListeners.bind(this));
-        if (!this.isGlobalClickHandlerSet) {
-            document.body.addEventListener('click', () => {
-                if (this.currentlyHoveredBlockFirstChildEl)
-                    this.handlers.onBlockClicked(this.currentlyHoveredBlockRef);
-            });
-            this.isGlobalClickHandlerSet = true;
-        }
+    registerEventHandlers(handlers, blockRefComments) {
+        if (this.handlers)
+            return;
+        this.handlers = handlers;
+        document.body.addEventListener('click', () => {
+            if (this.currentlyHoveredBlockFirstChildEl)
+                this.handlers.onClicked(this.currentlyHoveredBlockRef);
+        });
+        blockRefComments.forEach(
+            this.registerBlockMouseListeners.bind(this)
+        );
     }
     /**
      * @param {Array<RawBlock>} pageBlocks
@@ -166,7 +157,7 @@ class EditAppAwareWebPage {
             if (currentBlock.type !== replacement.type)
                contents[0].textContent = makeStartingComment(replacement);
             const cref = makeBlockRefComment(replacement, contents[0]);
-            this.registerBlockMouseListeners(cref);
+            this.replaceBlockMouseListeners(cref);
             return cref;
         });
     }
@@ -198,6 +189,9 @@ class EditAppAwareWebPage {
             return {parent: com.parentNode,
                     before: com.nextSibling,
                     prevChildNodes: keptChildren};
+        }).then(commentNode => {
+            this.replaceBlockMouseListeners(block._cref);
+            return commentNode;
         });
     }
     /**
@@ -275,13 +269,16 @@ class EditAppAwareWebPage {
         const startingComment = !doInsertCommentBoundaryComments ? null : makeStartingComment(block);
         const temp = document.createElement('template');
         const markerHtml = !block.children.length ? null : '<span id="temp-marker"></span>';
-        const newh = block.toHtml(markerHtml);
-        return (typeof newh === 'string' ? Promise.resolve(newh) : newh).then(html => {
+        const htmlOrPromise = block.toHtml(markerHtml);
+        return (typeof htmlOrPromise === 'string'
+            ? Promise.resolve(htmlOrPromise)
+            : htmlOrPromise.then(newHtml => newHtml.replace(/<!-- block-(?:start|end) [^<]+ -->/g, ''))
+        ).then(newHtml => {
             const {parent, before, prevChildNodes} = getSettings();
             //
             temp.innerHTML = !doInsertCommentBoundaryComments
-                ? html
-                : `<!--${startingComment}-->${html}<!--${makeEndingComment(block)}-->`;
+                ? newHtml
+                : `<!--${startingComment}-->${newHtml}<!--${makeEndingComment(block)}-->`;
             //
             if (before) parent.insertBefore(temp.content, before);
             else parent.appendChild(temp.content);
@@ -357,19 +354,26 @@ class EditAppAwareWebPage {
             }
             if (this.currentlyHoveredBlockFirstChildEl !== e.target) {
                 this.currentlyHoveredBlockRef = blockRef;
-                this.handlers.onBlockHoverStarted(e.target, this.currentlyHoveredBlockRef);
+                this.handlers.onHoverStarted(this.currentlyHoveredBlockRef, nextEl.getBoundingClientRect());
                 this.currentlyHoveredBlockFirstChildEl = e.target;
                 e.stopPropagation();
             }
         });
         nextEl.addEventListener('mouseleave', e => {
             if (this.currentlyHoveredBlockFirstChildEl === e.target) {
-                this.handlers.onBlockHoverEnded(this.currentlyHoveredBlockFirstChildEl, this.currentlyHoveredBlockRef);
+                this.handlers.onHoverEnded(this.currentlyHoveredBlockRef);
                 this.currentlyHoveredBlockFirstChildEl = null;
                 this.currentlyHoveredBlockRef = null;
                 e.stopPropagation();
             }
         });
+    }
+    /**
+     * @param {BlockRefComment} blockRef
+     * @access private
+     */
+    replaceBlockMouseListeners(blockRef) {
+        this.registerBlockMouseListeners(blockRef);
     }
 }
 

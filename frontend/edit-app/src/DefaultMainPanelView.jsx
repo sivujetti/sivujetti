@@ -5,7 +5,7 @@ import BlockTrees from './BlockTrees.jsx';
 class DefaultMainPanelView extends preact.Component {
     // unregisterSignalListener;
     /**
-     * @param {{startAddPageMode: () => void;}} props
+     * @param {{startAddPageMode: () => void; blockTreesRef: preact.Ref;}} props
      */
     constructor(props) {
         super(props);
@@ -26,12 +26,11 @@ class DefaultMainPanelView extends preact.Component {
      */
     componentWillUnmount() {
         this.unregisterSignalListener();
-
     }
     /**
      * @access protected
      */
-    render({startAddPageMode}, {sectionAIsCollapsed, sectionBIsCollapsed}) {
+    render({startAddPageMode, blockTreesRef}, {sectionAIsCollapsed, sectionBIsCollapsed}) {
         return <>
             <section class={ `panel-section${sectionAIsCollapsed ? '' : ' open'}` }>
                 <button class="d-flex col-12 flex-centered pr-2" onClick={ () => { this.setState({sectionAIsCollapsed: !sectionAIsCollapsed}); } }>
@@ -39,7 +38,7 @@ class DefaultMainPanelView extends preact.Component {
                     <span class="pl-1 color-default">{ __('On this page') }</span>
                     <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
                 </button>
-                <BlockTrees containingView="DefaultMainPanelView"/>
+                <BlockTrees containingView="DefaultMainPanelView" ref={ blockTreesRef }/>
             </section>
             <section class={ `panel-section${sectionBIsCollapsed ? '' : ' open'}` }>
                 <button class="d-flex col-12 flex-centered pr-2" onClick={ () => { this.setState({sectionBIsCollapsed: !sectionBIsCollapsed}); } }>

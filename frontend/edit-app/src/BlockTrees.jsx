@@ -1,4 +1,4 @@
-import {__, http, signals} from '@sivujetti-commons';
+import {__, http} from '@sivujetti-commons';
 import Icon from '../../commons/Icon.jsx';
 import toasters from '../../commons/Toaster.jsx';
 import BlockTree from './BlockTree.jsx';
@@ -8,7 +8,6 @@ import store, {observeStore, selectCurrentPage} from './store.js';
 class BlockTrees extends preact.Component {
     // blockTree;
     // doCleanStoreSubs;
-    // unregisterSignalListener;
     // static currentWebPage;
     // static currentWebPageBlockRefs;
     /**
@@ -43,22 +42,12 @@ class BlockTrees extends preact.Component {
         if (value.dataFromWebPage) {
             this.handleWebPageDataReceived(value);
         }
-        this.unregisterSignalListener = signals.on('on-web-page-block-clicked',
-        /**
-         * @param {BlockRefComment} blockRef
-         */
-        blockRef => {
-            const treeCmp = this.blockTree.current;
-            const b = blockTreeUtils.findRecursively(treeCmp.getTree(), b => b._cref === blockRef);
-            treeCmp.handleItemClicked(b);
-        });
     }
     /**
      * @access protected
      */
     componentWillUnmount() {
         this.doCleanStoreSubs();
-        this.unregisterSignalListener();
     }
     /**
      * @param {{webPage: EditAppAwareWebPage; combinedBlockTree: Array<RawBlock>; blockRefs: Array<BlockRefComment>;}} d

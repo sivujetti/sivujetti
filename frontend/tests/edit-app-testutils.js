@@ -24,7 +24,7 @@ class MockEditApp extends preact.Component {
             <SaveButton/>
             { view === 'DefaultView'
                 ? <BlockTrees containingView="DefaultMainPanelView" onWebPageLoadHandled={ onPageLoaded } ref={ pref }/>
-                : <AddPageMainPanelView pageType={ mockPageTypes[0] } ref={ pref } noAutoFocus/>
+                : <AddPageMainPanelView pageType={ mockPageTypes[0] } ref={ pref } blockTreesRef={ preact.createRef() } noAutoFocus/>
             }
             <InspectorPanel rootEl={ document.getElementById('render-container-el') } outerEl={ document.getElementById('render-container-el') }/>
         </>;

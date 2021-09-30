@@ -4,7 +4,7 @@ import Icon from '../../commons/Icon.jsx';
 import BlockTypeSelector from './BlockTypeSelector.jsx';
 import Block from './Block.js';
 import blockTreeUtils from './blockTreeUtils.js';
-import store, {selectOpQueue, pushItemToOpQueue} from './store.js';
+import store, {pushItemToOpQueue} from './store.js';
 import BlockTreeDragDrop from './BlockTreeDragDrop.js';
 
 let BlockTrees;

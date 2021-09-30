@@ -7,15 +7,13 @@ import store, {deleteItemsFromOpQueueAfter, setOpQueue} from './store.js';
 class AddPageMainPanelView extends preact.Component {
     // pageMetaData;
     // pageType;
-    // blockTrees;
     // unregisterSignalListener;
     /**
-     * @param {{cancelAddPage: () => void; pageType: PageType; reRenderWithAnotherLayout: (layoutId: String) => void; page: Page; noAutoFocus?: Boolean;}} props
+     * @param {{cancelAddPage: () => void; pageType: PageType; reRenderWithAnotherLayout: (layoutId: String) => void; blockTreesRef: preact.Ref; noAutoFocus?: Boolean;}} props
      */
     constructor(props) {
         super(props);
         this.pageMetaData = {};
-        this.blockTrees = preact.createRef();
         this.state = {layouts: BlockTrees.currentWebPage ? BlockTrees.currentWebPage.data.layouts : null};
         this.unregisterSignalListener = signals.on('on-page-info-form-value-changed',
         /**
@@ -51,7 +49,7 @@ class AddPageMainPanelView extends preact.Component {
     /**
      * @access protected
      */
-    render({cancelAddPage}, {layouts}) {
+    render({cancelAddPage, blockTreesRef}, {layouts}) {
         return <form onSubmit={ this.handleFormSubmitted.bind(this) }>
             <header class="panel-section mb-2">
                 <h1 class="mb-2">{ __('Create %s', this.props.pageType.name) }</h1>
@@ -79,7 +77,7 @@ class AddPageMainPanelView extends preact.Component {
                 <BlockTrees
                     onWebPageLoadHandled={ () => { this.setState({layouts: BlockTrees.currentWebPage.data.layouts}); }}
                     containingView="AddPageMainPanelView"
-                    ref={ this.blockTrees }/>
+                    ref={ blockTreesRef }/>
             </section>
         </form>;
     }
@@ -95,7 +93,7 @@ class AddPageMainPanelView extends preact.Component {
         data.path = `${data.slug.substr(1)}/`;
         data.level = 1;
         data.layoutId = BlockTrees.currentWebPage.data.page.layoutId;
-        data.blocks = this.blockTrees.current.getPageBlocks();
+        data.blocks = this.props.blockTreesRef.current.getPageBlocks();
         data.status = 0;
         //
         return http.post(`/api/pages/${this.props.pageType.name}`, data)

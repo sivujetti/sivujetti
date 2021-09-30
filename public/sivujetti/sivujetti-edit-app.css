@@ -596,16 +596,21 @@ a.popup-close-area {
     transform: rotate(-90deg);
 }
 
-/* EditApp: Block hover icon */
-.block-hover-icon {
-    pointer-events: none;
+/* EditApp: Block highligh rectangles */
+.highlight-rect {
     position: fixed;
+    border: 1px solid #20c79d80; /* rgba(--color-accent, .5) */
+    border-radius: 2px;
+    box-shadow: 0 0 0px 2px #18e8bb17; /* rgba(--color-accent, .09) */
     z-index: 1;
-    left: 410px;
-    top: 300px;
-    background-color: rgba(0,0,0,0.3);
-    border-radius: 10px;
-    width: 20px;
-    height: 20px;
-    padding: .1rem;color: #fff;
+    pointer-events: none;
+}
+.highlight-rect:before {
+    content: attr(data-title);
+    position: absolute;
+    margin: -20px 0 0 -1px;
+    background: #20c79d80; /* rgba(--color-accent, .5) */
+    padding: 0 .2rem;
+    font-size: .6rem;
+    border-radius: 2px;
 }

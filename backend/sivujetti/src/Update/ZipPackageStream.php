@@ -4,7 +4,6 @@ namespace Sivujetti\Update;
 
 use Pike\PikeException;
 use Pike\Interfaces\FileSystemInterface;
-use Sivujetti\Cli\Bundler;
 use Sivujetti\ValidationUtils;
 use ZipArchive;
 
@@ -127,7 +126,7 @@ class ZipPackageStream implements PackageStreamInterface {
             $this->zip->extractTo($destinationPath, $localNames);
             return true;
         }
-        $stripPrefix = Bundler::makeRelatifier($prefixToStripFromLocalNames);
+        $stripPrefix = Updater::makeRelatifier($prefixToStripFromLocalNames);
         foreach (is_array($localNames) ? $localNames : [$localNames] as $prefixedLocalName) {
             ValidationUtils::checkIfValidaPathOrThrow($prefixedLocalName);
             $targetPath = "{$destinationPath}{$stripPrefix($prefixedLocalName)}";

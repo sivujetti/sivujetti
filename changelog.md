@@ -27,3 +27,10 @@ This sprint focused on improving the overall content editing experience further,
 - Menu blocks' links are now editable
 - Sections blocks' backgrounds can now be selected from a image picker dialog
 - The main "Add block" button now ignores the active block, and always adds new blocks to the root branch
+
+# 0.5.0 (2021-10-01)
+
+- The edit app now shows all blocks (page's and layout's) in a single tree instead of two separate ones
+- The edit app now highlights block's outline when hovered (instead of showing a small icon on top of it)
+- Page meta fields are now editable
+- The Save button is now able to run multiple queued operations at once when clicked

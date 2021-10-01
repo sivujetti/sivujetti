@@ -118,6 +118,16 @@ final class Updater {
         return $parsed;
     }
     /**
+     * Returns a function that removes $basePath from the beginning of a string.
+     *
+     * @param string $basePath
+     * @return \Closure
+     */
+    public static function makeRelatifier(string $basePath): \Closure {
+        $after = strlen($basePath);
+        return static fn($fullPath) => substr($fullPath, $after);
+    }
+    /**
      * @param string $toVersion
      * @param string $currentVersion
      * @return ["<validVersionNumber>", null] or [null, "Error message"]

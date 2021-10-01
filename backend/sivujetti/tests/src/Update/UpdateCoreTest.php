@@ -78,7 +78,7 @@ final class UpdateCoreTest extends DbTestCase {
         $pkg->open($testUpdateZipPath);
         //
         $paths = Updater::readSneakyJsonData($actualFileListFileName, $pkg);
-        $stripNs = Bundler::makeRelatifier($pathPrefix);
+        $stripNs = Updater::makeRelatifier($pathPrefix);
         foreach ($paths as $nsdRelFilePath) {
             $this->assertStringEqualsFile("{$localDir}{$stripNs($nsdRelFilePath)}",
                                           $pkg->read($nsdRelFilePath),

@@ -22,7 +22,7 @@ use Sivujetti\Update\UpdatesModule;
 use Sivujetti\Upload\UploadsModule;
 
 final class App {
-    public const VERSION = "0.5.0-dev";
+    public const VERSION = "0.5.0";
     /** @var \Sivujetti\AppContext */
     private AppContext $ctx;
     /**

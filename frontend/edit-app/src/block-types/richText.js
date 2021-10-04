@@ -1,4 +1,4 @@
-import {__} from '@sivujetti-commons';
+import {__, env} from '@sivujetti-commons';
 import {hookForm, InputGroup, InputError} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
 import {formValidation} from '../constants.js';
@@ -48,7 +48,7 @@ class RichTextBlockEditForm extends preact.Component {
      */
     emitChange(newState) {
         const html = newState.values[this.fieldKey];
-        this.props.onValueChanged({html});
+        this.props.onValueChanged({html}, env.normalTypingDebounceMillis);
         return newState;
     }
 }

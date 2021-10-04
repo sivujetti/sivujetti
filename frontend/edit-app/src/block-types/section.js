@@ -61,7 +61,8 @@ class SectionBlockEditForm extends preact.Component {
     emitChange(newState, bgImage = null) {
         this.props.onValueChanged({bgImage: bgImage !== null ? bgImage : this.state.bgImage,
                                    cssClass: newState.values.cssClass},
-                                  env.normalTypingDebounceMillis);
+                                  !bgImage ? env.normalTypingDebounceMillis : undefined,
+                                  !bgImage ? undefined : 'debounce-none');
         return newState;
     }
 }

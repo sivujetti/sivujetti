@@ -1,3 +1,4 @@
+import {markInternalLinksAsInternal} from '../shared.js';
 import EditAppAwareWebPage from './src/EditAppAwareWebPage.js';
 
 let tries = 0;
@@ -9,12 +10,7 @@ const informEditAppWeJustLoaded = () => {
         const webPage = new EditAppAwareWebPage(window.sivujettiCurrentPageData || {});
         editApp.handleWebPageLoaded(webPage);
 
-        const host = location.hostname;
-        // https://stackoverflow.com/a/2911045
-        Array.from(document.querySelectorAll('a')).forEach(a => {
-            if (a.hostname === host || !a.hostname.length)
-                a.href += `${a.search[0] !== '?' ? '?' : '&'}in-edit`;
-        });
+        markInternalLinksAsInternal(document);
     // edit-app/main.js is not ready yet
     } else {
         if (++tries < 4)

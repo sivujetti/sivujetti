@@ -1,5 +1,6 @@
 import {http, __} from '@sivujetti-commons';
 import MenuBlockEditForm, {makeLinkItem} from './EditForm.jsx';
+import {markInternalLinksAsInternal} from '../../../../shared.js';
 
 export default () => {
     const initialData = {
@@ -19,7 +20,12 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-menu',
         reRender(block) {
-            return http.post('/api/blocks/render', {block}).then(resp => resp.result);
+            return http.post('/api/blocks/render', {block}).then(resp => {
+                const el = document.createElement('div');
+                el.innerHTML = resp.result;
+                markInternalLinksAsInternal(el);
+                return el.innerHTML;
+            });
         },
         editForm: MenuBlockEditForm,
     };

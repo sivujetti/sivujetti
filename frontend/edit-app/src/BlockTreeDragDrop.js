@@ -34,12 +34,12 @@ class BlockTreeDradDrop {
         const li = e.target.nodeName === 'LI' ? e.target : e.target.closest('li');
         if (!li || li.getAttribute('data-drop-group') !== this.startElDropGroup)
             return;
-        // Enable handleDraggableDropped (developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/Drag_operations#drop)
-        e.preventDefault();
         //
         const distance = this.getLiIndex(li) - this.startLiIndex;
         if (distance === 0 && this.curDropTypeCandidate.el === li)
             return;
+        // Enable handleDraggableDropped (developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/Drag_operations#specifying_drop_targets)
+        e.preventDefault();
         //
         const newCandidate = {dropPosition: null, dragDirection: null, el: li};
         const edge = 10;
@@ -111,8 +111,16 @@ class BlockTreeDradDrop {
             this.onDropped(this.blockTree.state.blockTree, dragBlock, dropBlock, this.curDropTypeCandidate.dropPosition);
         }
         this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
-        this.startEl.classList.remove('dragging');
         this.curDropTypeCandidate = null;
+        this.clearDragEl();
+    }
+    /**
+     * @access public
+     */
+    handleDragEnded() {
+        if (!this.startEl) return;
+        if (this.curDropTypeCandidate) this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
+        this.clearDragEl();
     }
     /**
      * https://stackoverflow.com/a/23528539
@@ -135,6 +143,13 @@ class BlockTreeDradDrop {
      */
     clearPreviousDroppableBorder(previousDropCandidate) {
         previousDropCandidate.el.classList.remove(`maybe-drop-${previousDropCandidate.dropPosition}`);
+    }
+    /**
+     * @access private
+     */
+    clearDragEl() {
+        this.startEl.classList.remove('dragging');
+        this.startEl = null;
     }
 }
 

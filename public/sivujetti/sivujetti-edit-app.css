@@ -525,7 +525,7 @@ a.popup-close-area {
     border-left: none;
 }
 .block-tree > li.layout-block {
-    background-color: #fc57220d;
+    background-color: #ff57220d; /* rgba(--color-orange, .05) */
     border-radius: 3px;
 }
 .block-tree li button {
@@ -557,6 +557,9 @@ a.popup-close-area {
 }
 .block-tree li.selected > div > .block-handle {
     background: var(--color-bg-button);
+}
+.block-tree li.layout-block.selected > div > .block-handle {
+    background: #ff57220d /* rgba(--color-orange, .05) */
 }
 .block-tree li.with-children > div > .block-handle {
     margin-left: 1.5rem;

@@ -127,6 +127,7 @@ class BlockTree extends preact.Component {
         this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
         this.onDragOver = this.dragDrop.handleDraggedOver.bind(this.dragDrop);
         this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
+        this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
     }
     /**
      * @access protected
@@ -160,6 +161,7 @@ class BlockTree extends preact.Component {
                 onDragStart={ this.onDragStart }
                 onDragOver={ this.onDragOver }
                 onDrop={ this.onDrop }
+                onDragEnd={ this.onDragEnd }
                 class={ [`${block.origin}-block`,
                          !treeState[block.id].isSelected ? '' : ' selected',
                          !treeState[block.id].isCollapsed ? '' : ' collapsed',

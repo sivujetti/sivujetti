@@ -13,5 +13,9 @@ final class UploadsModule {
             [UploadsController::class, "getUploads", ["consumes" => "application/json",
                                                       "identifiedBy" => ["view", "uploads"]]]
         );
+        $ctx->router->map("POST", "/api/uploads",
+            [UploadsController::class, "uploadFile", ["consumes" => "multipart/form-data",
+                                                      "identifiedBy" => ["upload", "uploads"]]]
+        );
     }
 }

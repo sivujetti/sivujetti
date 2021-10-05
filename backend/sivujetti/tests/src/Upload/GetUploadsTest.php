@@ -3,20 +3,8 @@
 namespace Sivujetti\Tests\Upload;
 
 use Sivujetti\App;
-use Sivujetti\Tests\Utils\{DbDataHelper, HttpApiTestTrait};
-use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 
-final class GetUploadsTest extends DbTestCase {
-    use HttpTestUtils;
-    use HttpApiTestTrait;
-    /** @var Sivujetti\Tests\Utils\DbDataHelper */
-    protected DbDataHelper $dbDataHelper;
-    /**
-     */
-    public function setUp(): void {
-        parent::setUp();
-        $this->dbDataHelper = new DbDataHelper(self::$db);
-    }
+final class GetUploadsTest extends UploadsControllerTestCase {
     public function testGetUploadsReturnsOnlyImages(): void {
         $state = $this->setupListUploadsTest();
         $this->dbDataHelper->insertData($state->testFiles, "files");
@@ -48,9 +36,6 @@ final class GetUploadsTest extends DbTestCase {
         ];
         $state->spyingResponse = null;
         return $state;
-    }
-    private function makeTestSivujettiApp(\TestState $state): void {
-        $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
     }
     private function sendGetUploadsRequest(\TestState $state, ?string $filters = null): void {
         $state->spyingResponse = $state->app->sendRequest(

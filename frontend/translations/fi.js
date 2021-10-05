@@ -72,6 +72,12 @@ stringBundles.push({
     'Background': 'Taustakuva',
     // edit-app/src/BlockWidget/ImagePicker.jsx
     'Choose a picture': 'Valitse kuva',
+    //edit-app/src/Upload/UploadButton.jsx
+    'File name': 'Tiedostonimi',
+    'Upload picture': 'Lataa kuva',
+    'File extension not supported': 'Tiedostopääte ei kelpaa',
+    'File size must not exceed %dMB': 'Tiedosto saa olla enintään %dMB',
+    'Failed to upload image': 'Kuvan lataus epäonnistui',
     //edit-app/src/Upload/UploadsManager.jsx
     'Documents': 'Tiedostot',
     'Images': 'Kuvat',

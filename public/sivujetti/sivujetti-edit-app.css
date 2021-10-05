@@ -337,6 +337,8 @@ ul.list {
     cursor: pointer;
 }
 
+
+
 /* EditApp: Components */
 ul.popup-menu.menu {
     position: fixed;
@@ -421,6 +423,24 @@ a.popup-close-area {
     width: 100%;
     bottom: 0;
     padding: .34rem;
+}
+.image-selected img {
+    min-width: 160px;
+    min-height: 160px;
+    max-width: 320px;
+    max-height: 320px;
+}
+.image-picker-dialog .image-selected .form-buttons {
+    border-bottom: 1px solid #d5dbe0;
+    padding-bottom: 1rem;
+}
+.file-input-outer > input {
+    position: absolute;
+    opacity: 0;
+    z-index: -1;
+}
+.file-input-outer > label {
+    cursor: pointer;
 }
 
 

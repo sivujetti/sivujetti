@@ -72,6 +72,12 @@ stringBundles.push({
     'Background': 'Background',
     // edit-app/src/BlockWidget/ImagePicker.jsx
     'Choose a picture': 'Valitse kuva',
+    //edit-app/src/Upload/UploadButton.jsx
+    'File name': 'File name',
+    'Upload picture': 'Upload picture',
+    'File extension not supported': 'File extension not supported',
+    'File size must not exceed %dMB': 'File size must not exceed %dMB',
+    'Failed to upload image': 'Failed to upload image',
     //edit-app/src/Upload/UploadsManager.jsx
     'Documents': 'Documents',
     'Images': 'Kuvat',

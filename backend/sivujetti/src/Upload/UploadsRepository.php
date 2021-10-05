@@ -15,6 +15,16 @@ final class UploadsRepository {
         $this->db = $db;
     }
     /**
+     * @param object|\Sivujetti\Upload\Entities\UploadsEntry $item
+     * @return string $lastInsertId or ""
+     */
+    public function insert(object $item): string {
+        [$qList, $values, $columns] = $this->db->makeInsertQParts($item);
+        // @allow \Pike\PikeException
+        return $this->db->exec("INSERT INTO `\${p}files` ({$columns})" .
+                               " VALUES ({$qList})", $values) ? $this->db->lastInsertId() : "";
+    }
+    /**
      * @param \Sivujetti\Upload\UploadsQFilters $filters
      * @return \Sivujetti\Upload\Entities\UploadsEntry[]
      */

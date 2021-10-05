@@ -36,6 +36,7 @@ function configureServices() {
     env.window = window;
     env.document = document;
     env.normalTypingDebounceMillis = sensibleDefaults.normalTypingDebounceMillis;
+    env.csrfToken = '<token>';
     //
     urlUtils.baseUrl = window.dataFromAdminBackend.baseUrl;
     urlUtils.assetBaseUrl = window.dataFromAdminBackend.assetBaseUrl;

@@ -26,6 +26,7 @@ class ListingBlockType implements BlockTypeInterface, ListeningBlockTypeInterfac
                                    TheWebsite $theWebsite): void {
         if (!($blockType instanceof ListingBlockType)) return;
         $filters = json_decode($block->listFilters, true, JSON_THROW_ON_ERROR);
+        // @allow \Pike\PikeException (if listPageType does not exist)
         $block->__pages = $pagesRepo->getMany($block->listPageType, ...$filters);
         $block->__pageType = ArrayUtils::findByKey($theWebsite->pageTypes, $block->listPageType, "name");
     }

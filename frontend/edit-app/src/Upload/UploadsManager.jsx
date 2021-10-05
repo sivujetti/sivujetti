@@ -3,6 +3,8 @@ import Icon from '../../../commons/Icon.jsx';
 import Tabs from '../../../commons/Tabs.jsx';
 import LoadingSpinner from '../../../commons/LoadingSpinner.jsx';
 import {timingUtils} from '../utils.js';
+import UploadButton from './UploadButton.jsx';
+
 const INITIAL_CACHE_KEY = '';
 const UPLOADS_DIR_PATH = 'public/uploads/';
 
@@ -60,9 +62,18 @@ class UploadsManager extends preact.Component {
                     }.</p>
                 : <LoadingSpinner/> }</div>
             <div class={ currentTabIdx !== 1 ? 'd-none' : 'mt-8' }>
-                <p>todo</p>
+                <UploadButton onFileUploaded={ this.handleFileUploaded.bind(this) }/>
             </div>
         </div>;
+    }
+    /**
+     * @param {UploadsEntry} entry
+     * @access private
+     */
+    handleFileUploaded(entry) {
+        this.setState({files: this.state.files.concat(entry), message: null});
+        this.searchResultCache = new Map();
+        this.tabs.current.changeTab(0);
     }
     /**
      * @param {String} term

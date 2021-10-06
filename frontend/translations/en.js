@@ -30,6 +30,7 @@ stringBundles.push({
     'Pages': 'Pages',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Edit mode',
+    'Page title': 'Page title',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Close',
     // edit-app/src/SaveButton.jsx

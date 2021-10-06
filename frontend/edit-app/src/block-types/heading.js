@@ -4,8 +4,18 @@ import {hookForm, InputGroup, InputGroupInline, InputError, Input, Select} from 
 import QuillEditor from '../../../commons/QuillEditor.jsx';
 import Icon from '../../../commons/Icon.jsx';
 import {formValidation} from '../constants.js';
+import setFocusTo from './auto-focusers.js';
 
 class HeadingBlockEditForm extends preact.Component {
+    // editor;
+    /**
+     * @param {BlockEditFormProps} props
+     */
+    constructor(props) {
+        super(props);
+        this.state = {};
+        this.editor = preact.createRef();
+    }
     /**
      * @access protected
      */
@@ -21,6 +31,12 @@ class HeadingBlockEditForm extends preact.Component {
                 props: {myOnChange: this.emitChange.bind(this)}
             },
         }));
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        setFocusTo(this.editor);
     }
     /**
      * @access protected

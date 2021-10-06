@@ -5,11 +5,13 @@ import store, {pushItemToOpQueue} from '../store.js';
 import BlockTrees from '../BlockTrees.jsx';
 import {stringUtils, timingUtils} from '../utils.js';
 import getWidget from '../FieldWidget/all.jsx';
+import setFocusTo from './auto-focusers.js';
 
 class PageInfoBlockEditForm extends preact.Component {
     // static internalSivujettiApi;
     // commitNewPageValuesDebounced;
     // currentPageIsPlaceholder;
+    // titleInputWrapper;
     /**
      * @param {BlockEditFormProps} props
      */
@@ -19,6 +21,7 @@ class PageInfoBlockEditForm extends preact.Component {
             env.normalTypingDebounceMillis);
         this.currentPageIsPlaceholder = null;
         this.pageType = null;
+        this.titleInputWrapper = preact.createRef();
     }
     /**
      * @access protected
@@ -41,6 +44,12 @@ class PageInfoBlockEditForm extends preact.Component {
     /**
      * @access protected
      */
+    componentDidMount() {
+        setFocusTo(this.titleInputWrapper);
+    }
+    /**
+     * @access protected
+     */
     componentWillUnmount() {
         this.form.destroy();
     }
@@ -51,9 +60,9 @@ class PageInfoBlockEditForm extends preact.Component {
         return <>
             <div class="form-horizontal pt-0">
                 <InputGroupInline classes={ classes.title }>
-                    <label htmlFor="title" class="form-label">{ __('Title') }</label>
-                    <Input vm={ this } name="title" id="title" errorLabel={ __('Title') }
-                        validations={ [['required'], ['maxLength', 92]] } myOnChange={ newState => this.handleValueChanged(newState, 'title') }/>
+                    <label htmlFor="title" class="form-label">{ __('Page title') }</label>
+                    <Input vm={ this } name="title" id="title" errorLabel={ __('Page title') }
+                        validations={ [['required'], ['maxLength', 92]] } myOnChange={ newState => this.handleValueChanged(newState, 'title') } ref={ this.titleInputWrapper }/>
                     <InputError error={ errors.title }/>
                 </InputGroupInline>
                 <InputGroupInline classes={ classes.slug }>

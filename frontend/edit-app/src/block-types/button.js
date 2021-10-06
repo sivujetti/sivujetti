@@ -3,8 +3,18 @@ import {unParagraphify} from './paragraph.js';
 import {hookForm, InputGroup, InputGroupInline, InputError, Input} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
 import {formValidation} from '../constants.js';
+import setFocusTo from './auto-focusers.js';
 
 class ButtonBlockEditForm extends preact.Component {
+    // editor;
+    /**
+     * @param {BlockEditFormProps} props
+     */
+    constructor(props) {
+        super(props);
+        this.state = {};
+        this.editor = preact.createRef();
+    }
     /**
      * @access protected
      */
@@ -20,6 +30,12 @@ class ButtonBlockEditForm extends preact.Component {
                 props: {myOnChange: this.emitChange.bind(this)}
             },
         }));
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        setFocusTo(this.editor);
     }
     /**
      * @access protected
@@ -41,7 +57,8 @@ class ButtonBlockEditForm extends preact.Component {
                         this.form.triggerChange(html, "html");
                     } }
                     onBlur={ () => this.form.triggerBlur("html") }
-                    toolbarBundle="simplest"/>
+                    toolbarBundle="simplest"
+                    ref={ this.editor }/>
                 <InputError error={ errors.html }/>
             </InputGroup>
             <div class="form-horizontal pt-0">

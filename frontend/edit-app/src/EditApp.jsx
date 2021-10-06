@@ -141,6 +141,7 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
     const hideRect = () => {
         highlightRectEl.current.setAttribute('data-title', '');
         highlightRectEl.current.style.cssText = '';
+        prevHoverStartBlockRef = null;
     };
     return {
         /**
@@ -148,9 +149,18 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
          * @param {ClientRect} r
          */
         onHoverStarted: (blockRef, r) => {
-            highlightRectEl.current.style.cssText = `width:${r.width}px;height:${r.height}px;top:${r.top}px;left:${r.left+LEFT_PANEL_WIDTH}px`;
+            if (prevHoverStartBlockRef === blockRef)
+                return;
+            highlightRectEl.current.style.cssText = [
+                'width:', r.width, 'px;',
+                'height:', r.height, 'px;',
+                'top:', r.top, 'px;',
+                'left:', r.left + LEFT_PANEL_WIDTH, 'px'
+            ].join('');
             const block = blockTreeUtils.findRecursively(blockTrees.current.blockTree.current.getTree(), ({id}) => id === blockRef.blockId);
-            highlightRectEl.current.setAttribute('data-title', __(block.type));
+            highlightRectEl.current.setAttribute('data-title',
+                (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + __(block.type)
+            );
             prevHoverStartBlockRef = blockRef;
         },
         /**

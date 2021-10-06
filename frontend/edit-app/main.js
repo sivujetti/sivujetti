@@ -101,7 +101,7 @@ function renderReactEditApp() {
             const hoverableBlockRefs = [];
             blockTreeUtils.traverseRecursively(!webPage.data.page.isPlaceholderPage ? ordered : webPage.data.page.blocks, block => {
                 const blockRef = blockRefs.find(({blockId}) => blockId === block.id);
-                if (blockRef && block.type !== 'PageInfo') hoverableBlockRefs.push(blockRef);
+                if (blockRef) hoverableBlockRefs.push(blockRef);
             });
             webPage.registerEventHandlers(editApp.websiteEventHandlers, hoverableBlockRefs);
             editApp.handleWebPageLoaded(webPage, ordered, blockRefs);

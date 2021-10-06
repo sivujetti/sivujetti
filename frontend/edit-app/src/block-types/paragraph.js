@@ -2,6 +2,7 @@ import {__, env} from '@sivujetti-commons';
 import {hookForm, InputGroup, InputGroupInline, Input, InputError} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
 import {formValidation} from '../constants.js';
+import setFocusTo from './auto-focusers.js';
 
 const minPossibleLen = '<p></p>'.length;
 
@@ -34,10 +35,7 @@ class ParagraphBlockEditForm extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        if (this.props.autoFocus) {
-            const quill = this.editor.current.quill;
-            quill.setSelection(quill.getLength(), 0);
-        }
+        setFocusTo(this.editor);
     }
     /**
      * @access protected

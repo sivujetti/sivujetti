@@ -174,7 +174,6 @@ interface ContextMenuLink {
 interface BlockEditFormProps {
     block: Block;
     onValueChanged: (newBlockData: {[key: String]: any;}, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none') => Promise<null>;
-    autoFocus: Boolean;
 }
 
 interface InternalSivujettiApi {

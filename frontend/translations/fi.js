@@ -30,6 +30,7 @@ stringBundles.push({
     'Pages': 'Sivut',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Muokkaustila',
+    'Page title': 'Sivuotsikko',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Sulje',
     // edit-app/src/SaveButton.jsx

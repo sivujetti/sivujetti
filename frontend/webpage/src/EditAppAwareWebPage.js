@@ -1,14 +1,16 @@
 class EditAppAwareWebPage {
     // data;
-    // currentlyHoveredBlockFirstChildEl;
+    // currentlyHoveredEl;
+    // currentlyHoveredRootEl;
     // currentlyHoveredBlockRef;
     /**
      * @param {CurrentPageData} dataFromAdminBackend
      */
     constructor(dataFromAdminBackend) {
         this.data = dataFromAdminBackend;
-        this.currentlyHoveredBlockFirstChildEl = undefined;
-        this.currentlyHoveredBlockRef = undefined;
+        this.currentlyHoveredEl = null;
+        this.currentlyHoveredRootEl = null;
+        this.currentlyHoveredBlockRef = null;
     }
     /**
      * @returns {Array<BlockRefComment>}
@@ -29,12 +31,18 @@ class EditAppAwareWebPage {
             return;
         this.handlers = handlers;
         document.body.addEventListener('click', () => {
-            if (this.currentlyHoveredBlockFirstChildEl)
+            if (this.currentlyHoveredEl)
                 this.handlers.onClicked(this.currentlyHoveredBlockRef);
         });
-        blockRefComments.forEach(
-            this.registerBlockMouseListeners.bind(this)
-        );
+        blockRefComments.forEach(blockRef => {
+            if (blockRef.blockType !== 'PageInfo') {
+                this.registerBlockMouseListeners(blockRef);
+            } else {
+                getTitleEls().forEach(el => {
+                    this.registerBlockMouseListeners(blockRef, el);
+                });
+            }
+        });
     }
     /**
      * @param {Array<RawBlock>} pageBlocks
@@ -254,9 +262,9 @@ class EditAppAwareWebPage {
      * @access public
      */
     updateTitle(text) {
-        const els = document.querySelectorAll('[data-prop="title"]');
-        for (let i = 0; i < els.length; ++i)
-            els[i].textContent = text;
+        getTitleEls().forEach(el => {
+            el.textContent = text;
+        });
     }
     /**
      * @param {Block} block
@@ -343,28 +351,32 @@ class EditAppAwareWebPage {
     }
     /**
      * @param {BlockRefComment} blockRef
+     * @param {HTMLElement=} nextEl = null
      * @access private
      */
-    registerBlockMouseListeners(blockRef) {
-        const comment = blockRef.startingCommentNode;
-        const nextEl = comment.nextElementSibling || comment.nextSibling;
+    registerBlockMouseListeners(blockRef, nextEl = null) {
+        if (nextEl === null) {
+            const comment = blockRef.startingCommentNode;
+            nextEl = comment.nextElementSibling || comment.nextSibling;
+        }
         nextEl.addEventListener('mouseover', e => {
-            if (e.target !== nextEl) {
-                return;
-            }
-            if (this.currentlyHoveredBlockFirstChildEl !== e.target) {
-                this.currentlyHoveredBlockRef = blockRef;
-                this.handlers.onHoverStarted(this.currentlyHoveredBlockRef, nextEl.getBoundingClientRect());
-                this.currentlyHoveredBlockFirstChildEl = e.target;
+            if (e.target !== this.currentlyHoveredEl) {
+                this.currentlyHoveredEl = e.target;
                 e.stopPropagation();
+                if (this.currentlyHoveredRootEl !== nextEl) {
+                    this.currentlyHoveredRootEl = nextEl;
+                    this.currentlyHoveredBlockRef = blockRef;
+                    this.handlers.onHoverStarted(this.currentlyHoveredBlockRef, nextEl.getBoundingClientRect());
+                }
             }
         });
         nextEl.addEventListener('mouseleave', e => {
-            if (this.currentlyHoveredBlockFirstChildEl === e.target) {
-                this.handlers.onHoverEnded(this.currentlyHoveredBlockRef);
-                this.currentlyHoveredBlockFirstChildEl = null;
-                this.currentlyHoveredBlockRef = null;
+            if (e.target === this.currentlyHoveredRootEl) {
                 e.stopPropagation();
+                this.handlers.onHoverEnded(this.currentlyHoveredBlockRef);
+                this.currentlyHoveredEl = null;
+                this.currentlyHoveredBlockRef = null;
+                this.currentlyHoveredRootEl = null;
             }
         });
     }
@@ -445,6 +457,13 @@ function getAllComments(rootElem) {
     while (curNode = iterator.nextNode()) // eslint-disable-line
         comments.push(curNode);
     return comments;
+}
+
+/**
+ * @return {Array<HTMLElement>}
+ */
+function getTitleEls() {
+    return Array.from(document.querySelectorAll('[data-prop="title"]'));
 }
 
 export default EditAppAwareWebPage;

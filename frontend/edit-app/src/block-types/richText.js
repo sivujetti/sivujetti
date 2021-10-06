@@ -2,9 +2,11 @@ import {__, env} from '@sivujetti-commons';
 import {hookForm, InputGroup, InputError} from '../../../commons/Form.jsx';
 import QuillEditor from '../../../commons/QuillEditor.jsx';
 import {formValidation} from '../constants.js';
+import setFocusTo from './auto-focusers.js';
 
 class RichTextBlockEditForm extends preact.Component {
     // fieldKey;
+    // editor;
     /**
      * @param {BlockEditFormProps} props
      */
@@ -12,6 +14,7 @@ class RichTextBlockEditForm extends preact.Component {
         super(props);
         this.state = {};
         this.fieldKey = `rt-${props.block.id}`;
+        this.editor = preact.createRef();
     }
     /**
      * @access protected
@@ -29,6 +32,12 @@ class RichTextBlockEditForm extends preact.Component {
     /**
      * @access protected
      */
+    componentDidMount() {
+        setFocusTo(this.editor);
+    }
+    /**
+     * @access protected
+     */
     render(_, {classes, errors}) {
         return <InputGroup classes={ classes.html } className="has-error">
             <QuillEditor
@@ -38,7 +47,8 @@ class RichTextBlockEditForm extends preact.Component {
                     this.form.triggerChange(html, this.fieldKey);
                 } }
                 onBlur={ () => this.form.triggerBlur(this.fieldKey) }
-                toolbarBundle="simple"/>
+                toolbarBundle="simple"
+                ref={ this.editor }/>
             <InputError error={ errors[this.fieldKey] }/>
         </InputGroup>;
     }

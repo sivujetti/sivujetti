@@ -5,7 +5,7 @@ export default {
      * @access public
      */
     setParentIdPaths(branch) {
-        this.traverseRecursively(branch, (b, _i, _parent, parentIdPath) => {
+        this.traverseRecursively(branch, (b, _i, _parentI, parentIdPath) => {
             b.parentBlockIdPath = parentIdPath;
         });
         return branch;
@@ -62,16 +62,16 @@ export default {
     /**
      * @param {Array<Object>} branch
      * @param {(item: Object, i: Number, parent: Object|null) => any} fn
-     * @param {Object|null} parent = null
+     * @param {Number} parentI = 0
      * @param {String} parentIdPath = ''
      * @returns {Array<Object>}
      * @access public
      */
-    traverseRecursively(branch, fn, parent = null, parentIdPath = '') {
+    traverseRecursively(branch, fn, parentI = 0, parentIdPath = '') {
         branch.forEach((b, i) => {
-            fn(b, i, parent, parentIdPath);
+            fn(b, i, parentI, parentIdPath);
             if (b.children.length) {
-                this.traverseRecursively(b.children, fn, b, `${parentIdPath}/${b.id}`);
+                this.traverseRecursively(b.children, fn, parentI+1, `${parentIdPath}/${b.id}`);
             }
         });
     },

@@ -112,11 +112,11 @@ class EditAppAwareWebPage {
                                   document.createComment(makeEndingComment(clonedBlock))];
         //
         const childBlockMap = {};
-        blockTreeUtils.traverseRecursively(clonedFromBlock.children, (block, i, _parent, p) => {
-            childBlockMap[`${p}-${i}`] = {clonedFrom: block, cloned: null, startingCommentNode: null};
+        blockTreeUtils.traverseRecursively(clonedFromBlock.children, (block, i, pi) => {
+            childBlockMap[`${pi}-${i}`] = {clonedFrom: block, cloned: null, startingCommentNode: null};
         });
-        blockTreeUtils.traverseRecursively(clonedBlock.children, (block, i, _parent, p) => {
-            childBlockMap[`${p}-${i}`].cloned = block;
+        blockTreeUtils.traverseRecursively(clonedBlock.children, (block, i, pi) => {
+            childBlockMap[`${pi}-${i}`].cloned = block;
         });
         // Update the comment ref nodes of each cloned block
         const clonedComms = getAllComments(clonedContentEls[1]);

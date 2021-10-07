@@ -78,9 +78,9 @@ export default () => {
         reRender({bgImage, cssClass}, renderChildren) {
             return `<section${cssClass? ` class="${cssClass}"` : ''}` +
                 (bgImage ? ` style="background-image:url('${urlUtils.makeAssetUrl(bgImage)}')"` : '') +
-                '>' +
+                '><div data-block-root>' +
                 renderChildren() +
-            '</section>';
+            '</div></section>';
         },
         editForm: SectionBlockEditForm,
     };

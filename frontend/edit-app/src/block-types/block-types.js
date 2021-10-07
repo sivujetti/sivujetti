@@ -1,5 +1,8 @@
 const storage = new Map;
 
+/**
+ * See also ../../main.js.
+ */
 const blockTypes = {
     /**
      * @param {String} name

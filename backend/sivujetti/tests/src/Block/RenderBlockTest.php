@@ -43,7 +43,7 @@ final class RenderBlockTest extends DbTestCase {
     }
     private function verifyReturnedRenderOutput(\TestState $state): void {
         $expected = "<!-- block-start -bbbbbbbbbbbbbbbbbbb:Section -->" .
-                    "<section class=\"\"><span id=\"temp-marker\"></span></section>" .
+                    "<section class=\"\"><div data-block-root><span id=\"temp-marker\"></span></div></section>" .
                     "<!-- block-end -bbbbbbbbbbbbbbbbbbb -->";
         $this->verifyResponseBodyEquals((object) ["result" => $expected],
                                         $state->spyingResponse);

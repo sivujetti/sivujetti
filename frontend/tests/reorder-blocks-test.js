@@ -89,7 +89,7 @@ QUnit.module('BlockTrees', () => {
                 if (t !== 'as-child')
                     simulateDraggedOver(headingBlockLi,
                                         // Simulate that mouse is above target li's center
-                                        0);
+                                        -Infinity);
                 else
                     simulateDraggedOver(headingBlockLi,
                                         // Simulate that mouse is below target li's bottom treshold
@@ -103,7 +103,7 @@ QUnit.module('BlockTrees', () => {
                 else
                     simulateDraggedOver(paragraphBlockLi,
                                         // Simulate that mouse is above target li's top treshold
-                                        0);
+                                        -Infinity);
             }
             simulateDropped();
             resolve();
@@ -121,7 +121,7 @@ QUnit.module('BlockTrees', () => {
         assert.equal(getLiContents(lis[1]), 'Heading');
     }
     function verifySwappedBlocksInDom(s, assert) {
-        const domBranchAfter = document.getElementById('initial-section').children;
+        const domBranchAfter = document.getElementById('initial-section').children[0].children;
         assert.equal(domBranchAfter[0].tagName, 'P');
         assert.equal(domBranchAfter[1].tagName, 'H2');
     }
@@ -135,9 +135,9 @@ QUnit.module('BlockTrees', () => {
     function verifyMoveBlockToChildOfInDom(s, assert, draggedEl) {
         const [dragElTag, targetElTag] = draggedEl === 'h2' ? ['h2', 'p'] : ['p', 'h2'];
         //
-        assert.equal(document.querySelector(`#initial-section > ${dragElTag}`), undefined,
+        assert.equal(document.querySelector(`#initial-section > * > ${dragElTag}`), undefined,
                      'Should remove dragged item from outer element');
-        assert.equal(document.querySelector(`#initial-section > ${targetElTag} > ${dragElTag}`).nodeName,
+        assert.equal(document.querySelector(`#initial-section > * > ${targetElTag} > ${dragElTag}`).nodeName,
                      draggedEl === 'h2' ? 'H2' : 'P',
                      'Should move dragged item to target element');
     }

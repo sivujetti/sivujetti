@@ -41,7 +41,23 @@ QUnit.module('BlockTrees', () => {
             clickContextMenuLink(s, 'clone-block')
         )
         .then(() => {
-            verifyRecirsivelyClonedSectionAfter(s, assert);
+            verifyRecursivelyClonedSectionAfter(s, assert);
+            verifyUpdatedChildBlockRefs(s, assert);
+            done();
+        });
+    });
+    QUnit.test('user can clone deeply nested block', assert => {
+        const done = assert.async();
+        const s = appTestUtils.createTestState();
+        s.useDeeplyNestedBlock = true;
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', () => {
+            appTestUtils.simulatePageLoad(s, undefined, true);
+        })
+        .then(() =>
+            clickContextMenuLink(s, 'clone-block')
+        )
+        .then(() => {
+            verifyRecursivelyClonedSectionAfter(s, assert);
             verifyUpdatedChildBlockRefs(s, assert);
             done();
         });
@@ -74,35 +90,51 @@ QUnit.module('BlockTrees', () => {
         assert.equal(expectedNewPEl.textContent, paragraphType.initialData.text);
     }
     function verifyAppendedParagraphInside(s, assert) {
-        const initialSectionEl = document.getElementById('initial-section');
-        const expectedNewPEl = initialSectionEl.children[initialSectionEl.children.length - 1];
+        const initialSectionElDiv = document.getElementById('initial-section').children[0];
+        const expectedNewPEl = initialSectionElDiv.children[initialSectionElDiv.children.length - 1];
         assert.equal(expectedNewPEl.tagName, 'P');
         const paragraphType = blockTypes.get('Paragraph');
         assert.equal(expectedNewPEl.textContent, paragraphType.initialData.text);
     }
-    function verifyRecirsivelyClonedSectionAfter(s, assert) {
+    function verifyRecursivelyClonedSectionAfter(s, assert) {
         const initialSectionEl = document.getElementById('initial-section');
+        const initialSectionElDiv = initialSectionEl.children[0];
         const expectedClonedSectionEl = initialSectionEl.nextElementSibling;
         assert.equal(expectedClonedSectionEl.nodeName, 'SECTION');
+        const expectedClonedSectionElDiv = expectedClonedSectionEl.children[0];
         //
-        const expectedClonedH2El = expectedClonedSectionEl.children[0];
+        const expectedClonedH2El = expectedClonedSectionElDiv.children[0];
         assert.equal(expectedClonedH2El.textContent,
-                     initialSectionEl.children[0].textContent);
-        const expectedClonedPEl = expectedClonedSectionEl.children[1];
+                     initialSectionElDiv.children[0].textContent);
+        if (s.useDeeplyNestedBlock) {
+            const expectedClonedH2PEl = expectedClonedH2El.children[0];
+            assert.equal(expectedClonedH2PEl.textContent,
+                         initialSectionElDiv.children[0].children[0].textContent);
+        }
+        const expectedClonedPEl = expectedClonedSectionElDiv.children[1];
         assert.equal(expectedClonedPEl.textContent,
-                     initialSectionEl.children[1].textContent);
+                     initialSectionElDiv.children[1].textContent);
     }
     function verifyUpdatedChildBlockRefs(s, assert) {
         const initialSectionEl = document.getElementById('initial-section');
+        const initialSectionDivEl = initialSectionEl.children[0];
         const clonedSectionEl = initialSectionEl.nextElementSibling;
+        const clonedSectionDivEl = clonedSectionEl.children[0];
         //
-        const h2BlockRefAfter = blockUtils.getBlockRefId(clonedSectionEl.children[0]);
-        const h2BlockRefBefore = blockUtils.getBlockRefId(initialSectionEl.children[0]);
+        const h2BlockRefAfter = blockUtils.getBlockRefId(clonedSectionDivEl.children[0]);
+        const h2BlockRefBefore = blockUtils.getBlockRefId(initialSectionDivEl.children[0]);
         assert.equal(typeof h2BlockRefAfter.blockId, 'string');
         assert.notEqual(h2BlockRefAfter.blockId,
                         h2BlockRefBefore.blockId);
-        const pBlockRefAfter = blockUtils.getBlockRefId(clonedSectionEl.children[0]);
-        const pBlockRefBefore = blockUtils.getBlockRefId(initialSectionEl.children[0]);
+        if (s.useDeeplyNestedBlock) {
+            const h2pBlockRefAfter = blockUtils.getBlockRefId(clonedSectionDivEl.children[0].children[0]);
+            const h2pBlockRefBefore = blockUtils.getBlockRefId(initialSectionDivEl.children[0].children[0]);
+            assert.equal(typeof h2pBlockRefAfter.blockId, 'string');
+            assert.notEqual(h2pBlockRefAfter.blockId,
+                            h2pBlockRefBefore.blockId);
+        }
+        const pBlockRefAfter = blockUtils.getBlockRefId(clonedSectionDivEl.children[0]);
+        const pBlockRefBefore = blockUtils.getBlockRefId(initialSectionDivEl.children[0]);
         assert.equal(typeof pBlockRefAfter.blockId, 'string');
         assert.notEqual(pBlockRefAfter.blockId,
                         pBlockRefBefore.blockId);

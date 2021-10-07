@@ -52,17 +52,14 @@ function renderMockEditAppIntoDom(view, then = null) {
     });
 }
 
-function simulatePageLoad(_s, isNewPage = false) {
+function simulatePageLoad(_s, isNewPage = false, buildDeeplyNestedBlock = false) {
     //
     const pageBlocks = [{
         "type": "PageInfo",
         "title": "",
         "renderer": "sivujetti:block-auto",
         "id": "gBPJW0--vD-s3HsG3cu-",
-        "propsData": [{
-            "key": "overrides",
-            "value": "[]"
-        }],
+        "propsData": [{"key": "overrides", "value": "[]"}],
         "children": [],
         "overrides": "[]",
         "parentBlockIdPath": "",
@@ -72,13 +69,10 @@ function simulatePageLoad(_s, isNewPage = false) {
         "title": "",
         "renderer": "sivujetti:block-generic-wrapper",
         "id": '-MfgGtK5pnuk1s0Kws4u',
-        "propsData": [{
-            "key": "bgImage",
-            "value": ""
-        }, {
-            "key": "cssClass",
-            "value": ""
-        }],
+        "propsData": [
+            {"key": "bgImage", "value": ""},
+            {"key": "cssClass", "value": ""}
+        ],
         "bgImage": "",
         "cssClass": "",
         "children": [{
@@ -86,17 +80,24 @@ function simulatePageLoad(_s, isNewPage = false) {
             "title": "",
             "renderer": "sivujetti:block-auto",
             "id": '-Me3jYWcEOlLTgJhzqL8',
-            "children": [],
-            "propsData": [{
-                "key": "text",
-                "value": "My page"
-            }, {
-                "key": "level",
-                "value": "1"
-            }, {
-                "key": "cssClass",
-                "value": ""
+            "children": !buildDeeplyNestedBlock ? [] : [{
+                "type": "Paragraph",
+                "title": "",
+                "renderer": "sivujetti:block-auto",
+                "id": '-MlOaY1tZtpkrwPbyuTW',
+                "children": [],
+                "propsData": [
+                    {"key": "text", "value": "Sub text"},
+                    {"key": "cssClass", "value": "subtitle"}
+                ],
+                "text": "Sub text",
+                "cssClass": "subtitle"
             }],
+            "propsData": [
+                {"key": "text", "value": "My page"},
+                {"key": "level", "value": "1"},
+                {"key": "cssClass", "value": ""}
+            ],
             "text": "Hello",
             "cssClass": ""
         }, {
@@ -105,13 +106,10 @@ function simulatePageLoad(_s, isNewPage = false) {
             "renderer": "sivujetti:block-auto",
             "id": '-Me3jYWcEOlLTgJhzqLA',
             "children": [],
-            "propsData": [{
-                "key": "text",
-                "value": "Hello"
-            }, {
-                "key": "cssClass",
-                "value": ""
-            }],
+            "propsData": [
+                {"key": "text", "value": "Hello"},
+                {"key": "cssClass", "value": ""}
+            ],
             "text": "Hello",
             "cssClass": ""
         }]
@@ -122,13 +120,10 @@ function simulatePageLoad(_s, isNewPage = false) {
         "renderer": "sivujetti:block-auto",
         "id": 'EsmAW0--AnViMcwnIaDP',
         "children": [],
-        "propsData": [{
-            "key": "text",
-            "value": "© Mysite"
-        }, {
-            "key": "cssClass",
-            "value": ""
-        }],
+        "propsData": [
+            {"key": "text", "value": "© Mysite"},
+            {"key": "cssClass", "value": ""}
+        ],
         "text": "© Mysite",
         "cssClass": ""
     }];
@@ -136,10 +131,14 @@ function simulatePageLoad(_s, isNewPage = false) {
         blockUtils.decorateWithRef(pageBlocks[0],
             '<!-- PageInfo dummy -->'
         ) +
-        blockUtils.decorateWithRef(pageBlocks[1], '<section id="initial-section">' +
-            blockUtils.decorateWithRef(pageBlocks[1].children[0], '<h2>My page</h2>') +
+        blockUtils.decorateWithRef(pageBlocks[1], '<section id="initial-section"><div data-block-root>' +
+            blockUtils.decorateWithRef(pageBlocks[1].children[0], '<h2>My page' +
+                (!buildDeeplyNestedBlock
+                    ? ''
+                    : blockUtils.decorateWithRef(pageBlocks[1].children[0].children[0], '<p>Sub para</p>'))
+            + '</h2>') +
             blockUtils.decorateWithRef(pageBlocks[1].children[1], '<p>Hello</p>') +
-        '</section>') +
+        '</div></section>') +
         blockUtils.decorateWithRef(layoutBlocks[0], '<p>© Mysite</p>');
     //
     const mockSivujettiCurrentPageData = {

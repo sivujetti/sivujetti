@@ -32,11 +32,13 @@ final class DbDataHelper {
     }
     /**
      * @param string $tableName @allow raw sql
-     * @param string $whereExpr @allow raw sql
-     * @param array<int, mixed> $whereVals
+     * @param string $whereExpr = "1=1" @allow raw sql
+     * @param array<int, mixed> $whereVals = []
      * @return array<string, mixed>|null
      */
-    public function getRow(string $tableName, string $whereExpr, array $whereVals): ?array {
+    public function getRow(string $tableName,
+                           string $whereExpr = "1=1",
+                           array $whereVals = []): ?array {
         return $this->db->fetchOne("SELECT * FROM `\${p}{$tableName}` WHERE {$whereExpr}",
                                    $whereVals,
                                    \PDO::FETCH_ASSOC);

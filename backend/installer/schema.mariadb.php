@@ -7,6 +7,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layoutBlocks`",
+"DROP TABLE IF EXISTS `\${p}globalBlocks`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
 "DROP TABLE IF EXISTS `\${p}pageTypes`",
@@ -68,6 +69,12 @@ return [
     FOREIGN KEY (`categoryId`) REFERENCES `\${p}categories`(`id`),
     PRIMARY KEY (`pageId`, `categoryId`)
 )",
+
+"CREATE TABLE `\${p}globalBlocks` (
+    `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(92) NOT NULL,
+    `blocks` JSON
+) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}layoutBlocks` (
     `blocks` JSON,

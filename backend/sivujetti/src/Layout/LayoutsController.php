@@ -4,20 +4,15 @@ namespace Sivujetti\Layout;
 
 use Pike\{PikeException, Request, Response, Validation};
 use Sivujetti\Block\BlockValidator;
-use Sivujetti\BlockType\Entities\BlockTypes;
 
 final class LayoutsController {
     /** @var \Sivujetti\Block\BlockValidator $blockValidator */
     private BlockValidator $blockValidator;
-    /** @var object */
-    private object $blockTypes;
     /**
      * @param \Sivujetti\Block\BlockValidator $blockValidator
-     * @param \Sivujetti\SharedAPIContext $storage  
      */
-    public function __construct(BlockValidator $blockValidator, BlockTypes $blockTypes) {
+    public function __construct(BlockValidator $blockValidator) {
         $this->blockValidator = $blockValidator;
-        $this->blockTypes = $blockTypes;
     }
     /**
      * PUT /api/layouts/[i:layoutId]/blocks: Overwrites the block tree of
@@ -48,11 +43,11 @@ final class LayoutsController {
      * @return string[] Error messages or []
      */
     private function validateUpdateBlocksInput(object $input): array {
-        $v = Validation::makeObjectValidator()
-            ->rule("blocks", "minLength", "1", "array");
-        if (!($errors = $v->validate($input)))
-            $errors = $this->blockValidator->validateMany($input->blocks,
-                                                          $this->blockTypes);
-        return $errors;
+        if (($errors = Validation::makeObjectValidator()
+            ->rule("blocks", "minLength", "1", "array")
+            ->validate($input))) {
+            return $errors;
+        }
+        return $this->blockValidator->validateMany($input->blocks);
     }
 }

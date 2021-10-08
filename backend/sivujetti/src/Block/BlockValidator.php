@@ -50,14 +50,13 @@ final class BlockValidator {
     }
     /**
      * @param object[] $branch
-     * @param object $blockTypes
      * @return string[] Error messages or e[]
      */
-    public function validateMany(array $branch, object $blockTypes): array {
+    public function validateMany(array $branch): array {
         foreach ($branch as $blockData) {
             if (($errors = $this->validateInsertOrUpdateData($blockData->type, $blockData)))
                 return $errors;
-            if ($blockData->children && ($errors = $this->validateMany($blockData->children, $blockTypes)))
+            if ($blockData->children && ($errors = $this->validateMany($blockData->children)))
                 return $errors;
         }
         return [];

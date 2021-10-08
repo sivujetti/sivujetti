@@ -6,6 +6,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layoutBlocks`",
+"DROP TABLE IF EXISTS `\${p}globalBlocks`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
 "DROP TABLE IF EXISTS `\${p}pageTypes`",
@@ -62,6 +63,12 @@ return [
     FOREIGN KEY (`pageId`) REFERENCES `\${p}Pages`(`id`),
     FOREIGN KEY (`categoryId`) REFERENCES `\${p}categories`(`id`),
     PRIMARY KEY (`pageId`, `categoryId`)
+)",
+
+"CREATE TABLE `\${p}globalBlocks` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `name` TEXT NOT NULL,
+    `blocks` JSON
 )",
 
 "CREATE TABLE `\${p}layoutBlocks` (

@@ -12,6 +12,11 @@ $out->resources = (object) [
         "checkAvailable" => 0b00000010,
         "install"        => 0b00000100,
     ],
+    "globalBlockTrees" => (object) [
+        "create"        => 0b00000010,
+        "list"          => 0b00000100,
+        "update"        => 0b00001000,
+    ],
     "editMode" => (object) [
         "access"         => 0b00000010,
     ],
@@ -30,12 +35,13 @@ $out->resources = (object) [
 ];
 $out->userPermissions = (object) [
     ACL::ROLE_ADMIN => (object) [
-        "blocks"      => ACL::makePermissions("*", $out->resources->blocks),
-        "coreUpdates" => ACL::makePermissions("*", $out->resources->coreUpdates),
-        "editMode"    => ACL::makePermissions("*", $out->resources->editMode),
-        "layouts"     => ACL::makePermissions("*", $out->resources->layouts),
-        "pages"       => ACL::makePermissions("*", $out->resources->pages),
-        "uploads"     => ACL::makePermissions("*", $out->resources->uploads),
+        "blocks"           => ACL::makePermissions("*", $out->resources->blocks),
+        "coreUpdates"      => ACL::makePermissions("*", $out->resources->coreUpdates),
+        "globalBlockTrees" => ACL::makePermissions("*", $out->resources->globalBlockTrees),
+        "editMode"         => ACL::makePermissions("*", $out->resources->editMode),
+        "layouts"          => ACL::makePermissions("*", $out->resources->layouts),
+        "pages"            => ACL::makePermissions("*", $out->resources->pages),
+        "uploads"          => ACL::makePermissions("*", $out->resources->uploads),
     ]
 ];
 return $out;

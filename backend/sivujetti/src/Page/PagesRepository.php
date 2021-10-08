@@ -76,7 +76,7 @@ final class PagesRepository {
                            bool $doValidateBlocks = true): int {
         $this->lastInsertId = "0";
         if (($errors = $this->pageTypeValidator->validateInsertData($pageType, $inputData,
-            $doValidateBlocks ? $this->blockTypes : null)))
+            $doValidateBlocks)))
             throw new PikeException(implode(PHP_EOL, $errors),
                                     PikeException::BAD_INPUT);
         $data = new \stdClass;
@@ -136,7 +136,7 @@ final class PagesRepository {
                 $theseColumnsOnly[] = $field->name;
             }
         } elseif (count($theseColumnsOnly) === 1 && $theseColumnsOnly[0] === "blocks") {
-            if (($errors = $this->pageTypeValidator->validateBlocksUpdateData($input, $this->blockTypes)))
+            if (($errors = $this->pageTypeValidator->validateBlocksUpdateData($input)))
                 throw new PikeException(implode(PHP_EOL, $errors),
                                         PikeException::BAD_INPUT);
             $updateData = (object) ["blocks" =>

@@ -26,7 +26,7 @@ return [
 "CREATE TABLE `\${p}plugins` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92) NOT NULL,
-    `status` TINYINT(1) NOT NULL,
+    `isActive` TINYINT(1) NOT NULL,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

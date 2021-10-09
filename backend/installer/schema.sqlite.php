@@ -25,7 +25,7 @@ return [
 "CREATE TABLE `\${p}plugins` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
-    `status` INTEGER NOT NULL DEFAULT 0
+    `isActive` INTEGER NOT NULL DEFAULT 0
 )",
 
 "CREATE TABLE `\${p}categories` (

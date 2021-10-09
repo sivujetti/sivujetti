@@ -9,7 +9,7 @@ use Pike\{PikeException, Validation};
 /**
  * An API for BACKEND_PATH . site/Site.php classes.
  */
-final class UserSiteAPI extends BaseAPI {
+class UserSiteAPI extends BaseAPI {
     /**
      * @param string $name
      * @param \Sivujetti\BlockType\BlockTypeInterface $instance

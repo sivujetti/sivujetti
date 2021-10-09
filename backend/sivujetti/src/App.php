@@ -147,12 +147,20 @@ final class App {
                 throw new PikeException("Invalid database state", 301010);
             $this->ctx->theWebsite = $entity;
             $this->loadSite();
+            $this->loadPlugins();
         }
     }
     /**
      */
     private function loadSite(): void {
         $this->ctx->sivujettiSite = $this->instantiatePluginOrSite(null);
+    }
+    /**
+     */
+    private function loadPlugins(): void {
+        foreach ($this->ctx->theWebsite->plugins as $plugin) {
+            $_ignore = $this->instantiatePluginOrSite($plugin);
+        }
     }
     /**
      * @param ?\Sivujetti\Plugin\Entities\Plugin $plugin
@@ -172,7 +180,7 @@ final class App {
                                               : ("Site.php (\"{$Ctor}\") must implement " . UserSiteInterface::class),
                                     PikeException::BAD_INPUT);
         if ($isPlugin)
-            return new $Ctor(new UserPluginAPI($plugin->name, $this->ctx->storage));
+            return new $Ctor(new UserPluginAPI($plugin->name, $this->ctx->storage, $this->ctx->router));
         return new $Ctor(new UserSiteAPI("site", $this->ctx->storage));
     }
 }

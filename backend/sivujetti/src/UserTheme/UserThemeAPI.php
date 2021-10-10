@@ -2,15 +2,13 @@
 
 namespace Sivujetti\UserTheme;
 
-use Sivujetti\Block\Entities\Block;
 use Sivujetti\Page\Entities\PageLayout;
-use Sivujetti\{PushIdGenerator, SharedAPIContext, Translator, ValidationUtils};
-use Sivujetti\UserPlugin\UserPluginAPI;
+use Sivujetti\{BaseAPI, SharedAPIContext, Translator, ValidationUtils};
 
 /**
  * An API for BACKEND_PATH . site/Theme.php classes.
  */
-final class UserThemeAPI extends UserPluginAPI {
+final class UserThemeAPI extends BaseAPI {
     private Translator $translator;
     /**
      * @param string $namespace
@@ -40,15 +38,5 @@ final class UserThemeAPI extends UserPluginAPI {
         $layout->relFilePath = $relFilePath;
         $layout->isDefault = $isDefault ?? false;
         $mut->pageLayouts[] = $layout;
-    }
-    /**
-     * @param string $url
-     * @param array $attrs = []
-     */
-    public function enqueueCssFile(string $url, array $attrs = []): void {
-        $this->storage->getDataHandle()->userDefinedCssFiles->webPage[] = (object) [
-            "url" => $url,
-            "attrs" => $attrs,
-        ];
     }
 }

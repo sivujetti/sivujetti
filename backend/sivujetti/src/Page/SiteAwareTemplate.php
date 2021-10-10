@@ -7,20 +7,20 @@ use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 
 final class SiteAwareTemplate extends Template {
-    /** @var object[] */
-    private array $__cssFiles;
+    /** @var ?object */
+    private ?object $__cssAndJsFiles;
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
      * @param ?array<string, mixed> $initialLocals = null
-     * @param ?array<int, object> $cssFiles = null
+     * @param ?object $cssAndJsFiles = null
      */
     public function __construct(string $file,
                                 ?array $vars = null,
                                 ?array $initialLocals = null,
-                                ?array $cssFiles = null) {
+                                ?object $cssAndJsFiles = null) {
         parent::__construct($file, $vars, $initialLocals);
-        $this->__cssFiles = $cssFiles ?? [];
+        $this->__cssAndJsFiles = $cssAndJsFiles;
     }
     /**
      * @param string $name
@@ -78,8 +78,7 @@ final class SiteAwareTemplate extends Template {
     public function renderBlocks(array $blocks): string {
         $out = "";
         foreach ($blocks as $block)
-            $out .= "<!-- block-start {$block->id}:{$block->type} -->" .
-                $this->partial($block->renderer, $block) . "<!-- block-end {$block->id} -->";
+            $out .= $this->partial($block->renderer, $block) . "<!-- block-end {$block->id} -->";
         return $out;
     }
     /**
@@ -92,17 +91,35 @@ final class SiteAwareTemplate extends Template {
      * @return string
      */
     public function cssFiles(): string {
+        if (!$this->__cssAndJsFiles)
+            return "";
         return implode(" ", array_map(function ($f) {
             $attrsMap = $f->attrs;
             if (!array_key_exists("rel", $attrsMap)) $attrsMap["rel"] = "stylesheet";
             return "<link href=\"{$this->assetUrl("public/{$this->e($f->url)}")}\"" .
                 $this->attrMapToStr($attrsMap) . ">";
-        }, $this->__cssFiles));
+        }, $this->__cssAndJsFiles->css));
+    }
+    /**
+     * @return string
+     */
+    public function jsFiles(): string {
+        if (!$this->__cssAndJsFiles)
+            return "";
+        return implode(" ", array_map(function ($f) {
+            $attrsMap = $f->attrs;
+            $pre = $f->url !== "sivujetti/sivujetti-website-tools.js"
+                ? ""
+                : "<script>window.sivujettiBaseUrl='{$this->makeUrl("/", true)}';
+                           window.sivujettiAssetBaseUrl='{$this->makeUrl("/", false)}';</script>";
+            return "{$pre}<script src=\"{$this->assetUrl("public/{$this->e($f->url)}")}\"" .
+                $this->attrMapToStr($attrsMap) . "></script>";
+        }, $this->__cssAndJsFiles->js));
     }
     /**
      * ['id' => 'foo', 'class' => 'bar'] -> ' id="foo" class="bar"'
      *
-     * @param array|object $map
+     * @param array<string, string>|object $map
      * @return string
      */
     protected function attrMapToStr(array|object $map): string {

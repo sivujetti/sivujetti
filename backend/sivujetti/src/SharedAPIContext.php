@@ -20,8 +20,8 @@ final class SharedAPIContext {
             "blockTypes" => null,
             /** @var \Sivujetti\Page\Entities\PageLayout[] @see \Sivujetti\UserTheme\UserThemeAPI->registerPageLayout()  */
             "pageLayouts" => [],
-            /** @var object {"webPage" => object[]} @see \Sivujetti\UserTheme\UserThemeAPI->enqueueCssFile() */
-            "userDefinedCssFiles" => (object) ["webPage" => []],
+            /** @var object {"css" => object[], "js" => object[]} @see \Sivujetti\UserTheme\UserThemeAPI->enqueueCss|JsFile() */
+            "userDefinedAssets" => (object) ["css" => [], "js" => []],
             /** @var string[] \Sivujetti\UserSite\UserSiteAPI->registerBlockRenderer() */
             "validBlockRenderers" => [],
             /** @var string[] \Sivujetti\UserSite\UserSiteAPI->enqueueEditAppJsFile() */

@@ -214,7 +214,7 @@ final class PagesController {
         //
         self::runBlockBeforeRenderEvent($page->blocks, $data->blockTypes, $pagesRepo, $theWebsite);
         self::runBlockBeforeRenderEvent($page->layout->blocks, $data->blockTypes, $pagesRepo, $theWebsite);
-        $html = (new SiteAwareTemplate($layout->relFilePath, cssFiles: $data->userDefinedCssFiles->webPage))->render([
+        $html = (new SiteAwareTemplate($layout->relFilePath, cssAndJsFiles: $data->userDefinedAssets))->render([
             "page" => $page,
             "site" => $theWebsite,
         ]);

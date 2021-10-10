@@ -2,20 +2,21 @@
 
 namespace Sivujetti\UserPlugin;
 
-use Pike\{Router};
+use Pike\{PikeException, Router};
+use Sivujetti\BlockType\BlockTypeInterface;
 use Sivujetti\SharedAPIContext;
 use Sivujetti\UserSite\UserSiteAPI;
 
 /**
  * An API for BACKEND_PATH . plugins/Name/Name.php classes.
  */
-class UserPluginAPI extends UserSiteAPI {
+final class UserPluginAPI extends UserSiteAPI {
     /** @var \Pike\Router */
     private Router $router;
     /** @var string e.g. "SitePlugins\TomsCoolPlugin\" */
     private string $classNamespace;
-    /** @var ?string e.g. "/plugins/toms-cool-plugin" */
-    private ?string $routeNamespace;
+    /** @var ?string e.g. "toms-cool-plugin" */
+    private ?string $dashifiedNamespace;
     /**
      * @param string $namespace
      * @param \Sivujetti\SharedAPIContext $storage
@@ -27,6 +28,102 @@ class UserPluginAPI extends UserSiteAPI {
         parent::__construct($namespace, $storage);
         $this->router = $router;
         $this->classNamespace = "SitePlugins\\{$namespace}\\";
-        $this->routeNamespace = null;
+        $this->dashifiedNamespace = null;
+    }
+    /**
+     * @inheritdoc
+     */
+    public function enqueueCssFile(string $url, array $attrs = []): void {
+        $expected = "plugin-{$this->getDashifiedNs()}";
+        if (!str_starts_with($url, $expected))
+            throw new PikeException("Expected css file url (`{$url}`) to start with `{$expected}`",
+                                    PikeException::BAD_INPUT);
+        parent::enqueueCssFile($url, $attrs);
+    }
+    /**
+     * @inheritdoc
+     */
+    public function enqueueJsFile(string $url, array $attrs = []): void {
+        if (!str_starts_with($url, "sivujetti/")) {
+            $expected = "plugin-{$this->getDashifiedNs()}";
+            if (!str_starts_with($url, $expected))
+                throw new PikeException("Expected js file url (`{$url}`) to start with `{$expected}`",
+                                        PikeException::BAD_INPUT);
+        }
+        parent::enqueueJsFile($url, $attrs);
+    }
+    /**
+     * @inheritdoc
+     */
+    public function registerBlockType(string $name,
+                                      BlockTypeInterface $instance): void {
+        if (!str_starts_with($name, $this->namespace))
+            throw new PikeException("Expected block name (`{$name}`) to start with `{$this->namespace}`",
+                                    PikeException::BAD_INPUT);
+        parent::registerBlockType($name, $instance);
+    }
+    /**
+     * @inheritdoc
+     */
+    public function enqueueEditAppJsFile(string $url): void {
+        $expected = "plugin-{$this->getDashifiedNs()}";
+        if (!str_starts_with($url, $expected))
+            throw new PikeException("Expected url (`{$url}`) to start with `{$expected}`",
+                                    PikeException::BAD_INPUT);
+        parent::enqueueEditAppJsFile($url);
+    }
+    /**
+     * @inheritdoc
+     */
+    public function registerBlockRenderer(string $fileId): void {
+        $filePathPart = str_contains($fileId, ":") ? explode(":", $fileId, 2)[1] : $fileId;
+        $expected = "{$this->getDashifiedNs()}-";
+        if (!str_starts_with($filePathPart, $expected))
+            throw new PikeException("Expected file path part of fileId (`{$fileId}`)" .
+                                    " to start with `{$expected}`",
+                                    PikeException::BAD_INPUT);
+        parent::registerBlockRenderer($fileId);
+    }
+    /**
+     * Registers a http route and its controller. Example:
+     * ```
+     * registerHttpRoute(
+     *     "GET",
+     *     // See http://altorouter.com/usage/mapping-routes.html
+     *     "/plugins/my-plugin/foo/[i:id]/[w:name]",
+     *     MyController::class,
+     *     "doSomething"
+     * )
+     * ```
+     *
+     * @param string $method
+     * @param string $url
+     * @param string $ctrlClassPath
+     * @param string $ctrlMethodName
+     */
+    public function registerHttpRoute(string $method,
+                                      string $url,
+                                      string $ctrlClassPath,
+                                      string $ctrlMethodName): void {
+        $expected = "/plugins/{$this->getDashifiedNs()}";
+        if (!str_starts_with($url, $expected))
+            throw new PikeException("Expected route (`{$url}`) to start with `{$expected}`",
+                                    PikeException::BAD_INPUT);
+        if (!str_starts_with($ctrlClassPath, $this->classNamespace))
+            throw new PikeException("Expected ctrlClassPath (`{$ctrlClassPath}`) to start with `{$this->classNamespace}`",
+                                    PikeException::BAD_INPUT);
+        $this->router->map($method, $url,
+            [$ctrlClassPath, $ctrlMethodName]
+        );
+    }
+    /**
+     * @return string
+     */
+    private function getDashifiedNs(): string {
+        if (!$this->dashifiedNamespace) {
+            $dashified = substr(preg_replace("/[A-Z]/", "-\\0", $this->namespace), 1);
+            $this->dashifiedNamespace = strtolower($dashified);
+        }
+        return $this->dashifiedNamespace;
     }
 }

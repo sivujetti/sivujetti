@@ -3,7 +3,7 @@
 namespace Sivujetti;
 
 /**
- * Shared funtionality for WebsiteAPI, PluginAPI etc.
+ * Shared funtionality for UserThemeAPI, UserSiteAPI and UserPluginAPI.
  */
 abstract class BaseAPI {
     /** @var string */
@@ -17,5 +17,25 @@ abstract class BaseAPI {
     public function __construct(string $namespace, SharedAPIContext $storage) {
         $this->namespace = $namespace;
         $this->storage = $storage;
+    }
+    /**
+     * @param string $url
+     * @param array<string, string> $attrs = []
+     */
+    public function enqueueCssFile(string $url, array $attrs = []): void {
+        $this->storage->getDataHandle()->userDefinedAssets->css[] = (object) [
+            "url" => $url,
+            "attrs" => $attrs,
+        ];
+    }
+    /**
+     * @param string $url
+     * @param array<string, string> $attrs = []
+     */
+    public function enqueueJsFile(string $url, array $attrs = []): void {
+        $this->storage->getDataHandle()->userDefinedAssets->js[] = (object) [
+            "url" => $url,
+            "attrs" => $attrs,
+        ];
     }
 }

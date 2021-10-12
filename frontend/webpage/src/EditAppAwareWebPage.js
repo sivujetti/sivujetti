@@ -56,6 +56,12 @@ class EditAppAwareWebPage {
         const setBranchOrigins = (rootBlock, origin) => {
             blockTreeUtils.traverseRecursively([rootBlock], block => {
                 block.origin = origin;
+                if (block.type === 'GlobalBlockReference') {
+                    blockTreeUtils.traverseRecursively(block.__blockTree, sb => {
+                        sb.origin = 'global';
+                        sb.globalBlockTreeId = block.globalBlockTreeId;
+                    });
+                }
             });
         };
         //

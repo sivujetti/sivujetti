@@ -61,6 +61,11 @@ interface BlockRefComment {
     startingCommentNode: Comment;   
 }
 
+interface RawGlobalBlockTree {
+    name: String;
+    blockTree: Array<RawBlock>;
+}
+
 interface CurrentPageData {
     page: {
         slug: String;

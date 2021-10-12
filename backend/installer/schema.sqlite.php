@@ -68,7 +68,7 @@ return [
 "CREATE TABLE `\${p}globalBlocks` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
-    `blocks` JSON
+    `blockTree` JSON
 )",
 
 "CREATE TABLE `\${p}layoutBlocks` (

@@ -114,7 +114,7 @@ class PageInfoBlockEditForm extends preact.Component {
             })
             .catch(err => {
                 window.console.error(err);
-                toasters.editAppMain(__('Something unexpected happened.'));
+                toasters.editAppMain(__('Something unexpected happened.'), 'error');
                 return false;
             });
     }

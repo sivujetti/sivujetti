@@ -19,11 +19,18 @@ stringBundles.push({
     'Clone block or branch': 'Kloonaa lohko tai haara',
     'Delete': 'Poista',
     'Delete block': 'Poista lohko',
+    'Convert to global': 'Muunna globaaliksi',
+    'Convert to global block': 'Muunna globaaliksi lohkoksi',
     // edit-app/src/BlockTrees.jsx
     'Add new block': 'Lisää uusi lohko',
     'Add block': 'Lisää lohko',
     // edit-app/src/BlockTypeSelector.jsx
     'Cancel': 'Peruuta',
+    // edit-app/src/ConvertBlockToGlobalBlockTreeDialog.jsx
+    'Store this block globally so you can use it later in other pages?': 'Tallenna tämä lohko globaalisti että voit käyttää sitä myöhemmin myös muilla sivuilla?',
+    'Name': 'Nimi',
+    'e.g. Header, Footer': 'esim. Header, Footer',
+    'Convert': 'Muunna',
     // edit-app/src/DefaultMainPanelView.jsx
     'On this page': 'Tällä sivulla',
     'My website': 'Sivustoni',

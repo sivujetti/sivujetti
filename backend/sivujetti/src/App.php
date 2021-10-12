@@ -6,9 +6,9 @@ use Auryn\Injector;
 use Sivujetti\Auth\ACL;
 use Sivujetti\Block\BlocksModule;
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\BlockType\{ButtonBlockType, ColumnsBlockType, HeadingBlockType,
-                         MenuBlockType, PageInfoBlockType, ParagraphBlockType,
-                         RichTextBlockType, SectionBlockType};
+use Sivujetti\BlockType\{ButtonBlockType, ColumnsBlockType, GlobalBlockReferenceBlockType,
+                         HeadingBlockType, MenuBlockType, PageInfoBlockType,
+                         ParagraphBlockType, RichTextBlockType, SectionBlockType};
 use Sivujetti\Page\PagesModule;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Plugin\Entities\Plugin;
@@ -24,6 +24,8 @@ use Sivujetti\Upload\UploadsModule;
 
 final class App {
     public const VERSION = "0.6.0-dev";
+    /** @var ?\Auryn\Injector */
+    public static ?Injector $di;
     /** @var \Sivujetti\AppContext */
     private AppContext $ctx;
     /**
@@ -50,6 +52,7 @@ final class App {
             $blockTypes = $ctx->storage->getDataHandle()->blockTypes ?? new BlockTypes;
             $blockTypes->{Block::TYPE_BUTTON} = new ButtonBlockType;
             $blockTypes->{Block::TYPE_COLUMNS} = new ColumnsBlockType;
+            $blockTypes->{Block::TYPE_GLOBAL_BLOCK_REF} = new GlobalBlockReferenceBlockType;
             $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
             $blockTypes->{Block::TYPE_MENU} = new MenuBlockType;
             $blockTypes->{Block::TYPE_PAGE_INFO} = new PageInfoBlockType;
@@ -87,6 +90,7 @@ final class App {
      * @param \Auryn\Injector $di
      */
     public function alterDi(Injector $di): void {
+        self::$di = $di;
         $di->share($this->ctx->storage);
         $di->share($this->ctx->storage->getDataHandle()->blockTypes);
         $di->share($this->ctx->theWebsite);

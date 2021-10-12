@@ -73,7 +73,7 @@ return [
 "CREATE TABLE `\${p}globalBlocks` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92) NOT NULL,
-    `blocks` JSON
+    `blockTree` JSON
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}layoutBlocks` (

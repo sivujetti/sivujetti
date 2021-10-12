@@ -107,7 +107,7 @@ class AddPageMainPanelView extends preact.Component {
             })
             .catch(err => {
                 window.console.error(err);
-                toasters.editAppMain(__('Something unexpected happened.'));
+                toasters.editAppMain(__('Something unexpected happened.'), 'error');
                 this.form.setIsSubmitting(false);
                 return false;
             });

@@ -20,6 +20,9 @@ class ImagePickerFieldWidget extends preact.Component {
             value={ initialImageFileName }
             onClick={ () => {
                 floatingDialog.open(PickImageDialog, {
+                    title: __('Choose a picture'),
+                    className: 'image-picker-dialog',
+                }, {
                     selectedImagePath: initialImageFileName,
                     onSelected: file => onImageSelected(file)
                 });
@@ -54,21 +57,18 @@ class PickImageDialog extends preact.Component {
      * @access protected
      */
     render({onSelected}) {
-        return <div class="floating-dialog image-picker-dialog" style="width: 600px;transform: translate(200px, 60px);"><div class="box">
-            <h2>{ __('Choose a picture') }</h2>
-            <div class="main">
-                <UploadsManager
-                    onEntryClicked={ imageEntry => {
-                        onSelected(imageEntry);
-                        floatingDialog.close();
-                    }}
-                    onlyImages/>
-                <button
-                    onClick={ () => floatingDialog.close() }
-                    class="btn mt-8"
-                    type="button">{ __('Cancel') }</button>
-            </div>
-        </div></div>;
+        return <>
+            <UploadsManager
+                onEntryClicked={ imageEntry => {
+                    onSelected(imageEntry);
+                    floatingDialog.close();
+                }}
+                onlyImages/>
+            <button
+                onClick={ () => floatingDialog.close() }
+                class="btn mt-8"
+                type="button">{ __('Cancel') }</button>
+        </>;
     }
 }
 

@@ -26,7 +26,7 @@ final class GlobalBlockTreesController {
         //
         $insertId = $globalBlocksRepo->insert((object) [
             "name" => $req->body->name,
-            "blocks" => BlockTree::toJson($req->body->blocks),
+            "blockTree" => BlockTree::toJson($req->body->blockTree),
         ]);
         //
         $res->status($insertId !== "" ? 201 : 200)->json(["insertId" => $insertId]);
@@ -39,7 +39,7 @@ final class GlobalBlockTreesController {
         throw new \RuntimeException("Not implemented yet.");
     }
     /**
-     * PUT /api/ /api/global-block-trees/:globalBlockTreeId/blocks.  
+     * PUT /api/ /api/global-block-trees/:globalBlockTreeId/blockTrees: .
      *
      */
     public function update(): void {
@@ -55,10 +55,10 @@ final class GlobalBlockTreesController {
         if (($errors = Validation::makeObjectValidator()
             ->rule("name", "type", "string")
             ->rule("name", "maxLength", self::MAX_NAME_LEN)
-            ->rule("blocks", "minLength", "1", "array")
+            ->rule("blockTree", "minLength", "1", "array")
             ->validate($input))) {
             return $errors;
         }
-        return $blockValidator->validateMany($input->blocks);
+        return $blockValidator->validateMany($input->blockTree);
     }
 }

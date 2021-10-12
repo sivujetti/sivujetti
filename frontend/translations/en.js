@@ -19,11 +19,18 @@ stringBundles.push({
     'Clone block or branch': 'Clone block or branch',
     'Delete': 'Delete',
     'Delete block': 'Delete block',
+    'Convert to global': 'Convert to global',
+    'Convert to global block': 'Convert to global block',
     // edit-app/src/BlockTrees.jsx
     'Add new block': 'Add new block',
     'Add block': 'Add block',
     // edit-app/src/BlockTypeSelector.jsx
     'Cancel': 'Cancel',
+    // edit-app/src/ConvertBlockToGlobalBlockTreeDialog.jsx
+    'Store this block globally so you can use it later in other pages?': 'Store this block globally so you can use it later in other pages?',
+    'Name': 'Name',
+    'e.g. Header, Footer': 'e.g. Header, Footer',
+    'Convert': 'Convert',
     // edit-app/src/DefaultMainPanelView.jsx
     'On this page': 'On this page',
     'My website': 'My website',

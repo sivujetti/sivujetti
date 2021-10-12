@@ -5,14 +5,15 @@ namespace Sivujetti\Block\Entities;
 use Sivujetti\PushIdGenerator;
 
 final class Block {
-    public const TYPE_BUTTON    = "Button";
-    public const TYPE_COLUMNS   = "Columns";
-    public const TYPE_HEADING   = "Heading";
-    public const TYPE_MENU      = "Menu";
-    public const TYPE_PAGE_INFO = "PageInfo";
-    public const TYPE_PARAGRAPH = "Paragraph";
-    public const TYPE_RICH_TEXT = "RichText";
-    public const TYPE_SECTION   = "Section";
+    public const TYPE_BUTTON           = "Button";
+    public const TYPE_COLUMNS          = "Columns";
+    public const TYPE_GLOBAL_BLOCK_REF = "GlobalBlockReference";
+    public const TYPE_HEADING          = "Heading";
+    public const TYPE_MENU             = "Menu";
+    public const TYPE_PAGE_INFO        = "PageInfo";
+    public const TYPE_PARAGRAPH        = "Paragraph";
+    public const TYPE_RICH_TEXT        = "RichText";
+    public const TYPE_SECTION          = "Section";
     /** @var string self::TYPE_* */
     public string $type;
     /** @var ?string */
@@ -34,6 +35,10 @@ final class Block {
     /* If self::TYPE_COLUMNS
     public string $cssClass; */
 
+    /* If self::TYPE_TYPE_GLOBAL_BLOCK_REF
+    public string $globalBlockTreeId;
+    public \Sivujetti\Block\Entities\Block[] $__blockTree; */
+
     /* If self::TYPE_HEADING
     public string $text;
     public int $level;
@@ -42,7 +47,8 @@ final class Block {
     /* If "MyListing"
     public string $listPageType; e.g. "Pages"
     public string $listFilters; e.g. "[{"slug":"foo"}]"
-    public ?array $__pages; ?array<int, \Sivujetti\Page\Entities\Page> */
+    public ?array $__pages; ?array<int, \Sivujetti\Page\Entities\Page>
+    public \Sivujetti\PageType\Entities\PageType $__pageType; */
 
     /* If self::TYPE_MENU
     public string $tree;

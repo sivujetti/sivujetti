@@ -2,19 +2,16 @@
 
 namespace Sivujetti\BlockType;
 
+use Auryn\Injector;
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\Page\PagesRepository;
-use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 interface ListeningBlockTypeInterface {
     /**
      * @param \Sivujetti\Block\Entities\Block $block
      * @param \Sivujetti\BlockType\BlockTypeInterface $blockType
-     * @param \Sivujetti\Page\PagesRepository $pagesRepo
-     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
+     * @param \Auryn\Injector $di
      */
     public function onBeforeRender(Block $block,
                                    BlockTypeInterface $blockType,
-                                   PagesRepository $pagesRepo,
-                                   TheWebsite $theWebsite): void;
+                                   Injector $di): void;
 }

@@ -2,6 +2,7 @@
 
 namespace Sivujetti\BlockType;
 
+use Auryn\Injector;
 use Pike\ArrayUtils;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\Page\PagesRepository;
@@ -22,9 +23,19 @@ class ListingBlockType implements BlockTypeInterface, ListeningBlockTypeInterfac
      */
     public function onBeforeRender(Block $block,
                                    BlockTypeInterface $blockType,
-                                   PagesRepository $pagesRepo,
-                                   TheWebsite $theWebsite): void {
-        if (!($blockType instanceof ListingBlockType)) return;
+                                   Injector $di): void {
+        $di->execute([$this, "doPerformBeforeRender"], [
+            ":block" => $block,
+        ]);
+    }
+    /**
+     * @param \Sivujetti\Block\Entities\Block $block
+     * @param \Sivujetti\Page\PagesRepository $pagesRepo
+     * @param \Sivujetti\TheWebsite $theWebsite
+    */
+    public function doPerformBeforeRender(Block $block,
+                                          PagesRepository $pagesRepo,
+                                          TheWebsite $theWebsite): void {
         $filters = json_decode($block->listFilters, true, JSON_THROW_ON_ERROR);
         // @allow \Pike\PikeException (if listPageType does not exist)
         $block->__pages = $pagesRepo->getMany($block->listPageType, ...$filters);

@@ -6,7 +6,7 @@ use MySite\Theme;
 use Pike\{ArrayUtils, PikeException, Request, Response};
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\{SharedAPIContext, Template, Translator};
+use Sivujetti\{App, SharedAPIContext, Template, Translator};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
@@ -246,7 +246,7 @@ final class PagesController {
                 continue;
             $blockType = $blockTypes->{$block->type};
             if (array_key_exists(ListeningBlockTypeInterface::class, class_implements($blockType)))
-                $blockType->onBeforeRender($block, $blockType, $pagesRepo, $theWebsite);
+                $blockType->onBeforeRender($block, $blockType, App::$di);
             if ($block->children)
                 self::runBlockBeforeRenderEvent($block->children, $blockTypes, $pagesRepo, $theWebsite);
         }

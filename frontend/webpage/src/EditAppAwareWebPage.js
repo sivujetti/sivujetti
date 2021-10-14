@@ -30,11 +30,16 @@ class EditAppAwareWebPage {
         if (this.handlers)
             return;
         this.handlers = handlers;
-        document.body.addEventListener('click', () => {
-            if (this.currentlyHoveredEl)
-                this.handlers.onClicked(this.currentlyHoveredBlockRef);
+        document.body.addEventListener('click', e => {
+            if (!this.currentlyHoveredEl) return;
+            if (e.target.nodeName === 'A' && e.target.hostname === location.hostname) {
+                return;
+            }
+            this.handlers.onClicked(this.currentlyHoveredBlockRef);
         });
         blockRefComments.forEach(blockRef => {
+            if (blockRef.blockType === 'GlobalBlockReference')
+                return;
             if (blockRef.blockType !== 'PageInfo') {
                 this.registerBlockMouseListeners(blockRef);
             } else {
@@ -53,15 +58,9 @@ class EditAppAwareWebPage {
      * @access public
      */
     getCombinedAndOrderedBlockTree(pageBlocks, layoutBlocks, blockRefComments, blockTreeUtils) {
-        const setBranchOrigins = (rootBlock, origin) => {
+        const setBranchOrigins = (rootBlock, isStoredTo) => {
             blockTreeUtils.traverseRecursively([rootBlock], block => {
-                block.origin = origin;
-                if (block.type === 'GlobalBlockReference') {
-                    blockTreeUtils.traverseRecursively(block.__blockTree, sb => {
-                        sb.origin = 'global';
-                        sb.globalBlockTreeId = block.globalBlockTreeId;
-                    });
-                }
+                block.isStoredTo = isStoredTo;
             });
         };
         //
@@ -256,6 +255,27 @@ class EditAppAwareWebPage {
         }
     }
     /**
+     * @param {Block} globalBlockReference
+     * @param {Block} blockToConvert
+     * @returns {BlockRefComment}
+     * @access public
+     */
+    convertToGlobal(globalBlockReference, blockToConvert) {
+        const contents = this.getBlockContents(blockToConvert);
+        const startingComment = contents[0];
+        const endingComment = contents[contents.length - 1];
+        // Insert GlobalBlockReference's starting comment before starting comment of blockToConvert
+        const newStartingComment = document.createComment(makeStartingComment(globalBlockReference));
+        startingComment.parentElement.insertBefore(newStartingComment, startingComment);
+        // Append GlobalBlockReference's ending comment after ending comment of blockToConvert
+        const nextEl = endingComment.nextElementSibling || endingComment.nextSibling;
+        const newEndingComment = document.createComment(makeEndingComment(globalBlockReference));
+        if (nextEl) nextEl.parentElement.insertBefore(newEndingComment, nextEl);
+        else endingComment.parentElement.appendChild(newEndingComment);
+        //
+        return makeBlockRefComment(globalBlockReference, newStartingComment);
+    }
+    /**
      * @param {Block} block
      * @returns {Commment|undefined}
      * @access public
@@ -275,7 +295,7 @@ class EditAppAwareWebPage {
     /**
      * @param {Block} block
      * @param {() => {parent: HTMLElement; before: HTMLElement|null; prevChildNodes?: Array<HTMLElement>;}} getSettings
-     * @param {boolean} doInsertCommentBoundaryComments = false
+     * @param {Boolean} doInsertCommentBoundaryComments = false
      * @returns {Promise<Comment|null>}
      * @access private
      */
@@ -286,7 +306,13 @@ class EditAppAwareWebPage {
         const htmlOrPromise = block.toHtml(markerHtml);
         return (typeof htmlOrPromise === 'string'
             ? Promise.resolve(htmlOrPromise)
-            : htmlOrPromise.then(newHtml => newHtml.replace(/<!-- block-(?:start|end) [^<]+ -->/g, ''))
+            : htmlOrPromise.then(newHtml => {
+                const startAt = `<!--${makeStartingComment(block)}-->`.length;
+                return newHtml.substr(
+                    startAt,
+                    newHtml.length - `<!--${makeEndingComment(block)}-->`.length - startAt
+                );
+            })
         ).then(newHtml => {
             const {parent, before, prevChildNodes} = getSettings();
             //
@@ -311,7 +337,7 @@ class EditAppAwareWebPage {
     }
     /**
      * @param {Block} block
-     * @param {boolean} doIncludeBoundaryComments = true
+     * @param {Boolean} doIncludeBoundaryComments = true
      * @returns {Array<HTMLElement>}
      * @access private
      */

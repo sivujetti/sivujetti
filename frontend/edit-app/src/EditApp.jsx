@@ -143,6 +143,17 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
         highlightRectEl.current.style.cssText = '';
         prevHoverStartBlockRef = null;
     };
+    function findBlockTemp(blockRef, blockTreeCmp = blockTrees.current.blockTree.current) {
+        // todo optimize this out by adding isStoredTo to BlockRefComment and then globalBlockTreeBlocks.get(blockRef.treeId)
+        let block = blockTreeUtils.findRecursively(blockTreeCmp.getTree(), ({id}) => id === blockRef.blockId);
+        if (!block) {
+            for (const [_, tree] of blockTreeCmp.getGlobalTrees()) {
+                block = blockTreeUtils.findRecursively(tree, ({id}) => id === blockRef.blockId);
+                if (block) break;
+            }
+        }
+        return block;
+    }
     return {
         /**
          * @param {BlockRefComment} blockRef
@@ -157,7 +168,7 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
                 'top:', r.top, 'px;',
                 'left:', r.left + LEFT_PANEL_WIDTH, 'px'
             ].join('');
-            const block = blockTreeUtils.findRecursively(blockTrees.current.blockTree.current.getTree(), ({id}) => id === blockRef.blockId);
+            const block = findBlockTemp(blockRef);
             highlightRectEl.current.setAttribute('data-title',
                 (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + __(block.type)
             );
@@ -168,7 +179,7 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
          */
         onClicked: blockRef => {
             const treeCmp = blockTrees.current.blockTree.current;
-            const b = blockTreeUtils.findRecursively(treeCmp.getTree(), ({id}) => id === blockRef.blockId);
+            const b = findBlockTemp(blockRef, treeCmp);
             signals.emit('on-web-page-block-clicked');
             treeCmp.handleItemClicked(b);
         },

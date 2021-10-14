@@ -44,7 +44,7 @@ interface RawBlock {
     propsData: Array<{key: String; value: String;}>;
     children: Array<RawBlock>;
     parentBlockIdPath: String; // e.g. '/grand-parent/parent'
-    origin?: 'page'|'layout';
+    isStoredTo?: 'page'|'globalBlockTree'|'layout';
     [key: String]: mixed;
 }
 
@@ -63,22 +63,11 @@ interface BlockRefComment {
 
 interface RawGlobalBlockTree {
     name: String;
-    blockTree: Array<RawBlock>;
+    blocks: Array<RawBlock>;
 }
 
 interface CurrentPageData {
-    page: {
-        slug: String;
-        path: String;
-        level: Number;
-        type: String;
-        title: String;
-        id: String;
-        layoutId: String;
-        status: Number;
-        blocks: Array<RawBlock>;
-        isPlaceholderPage: Boolean;
-    };
+    page: Page;
     layoutBlocks: Array<RawBlock>;
     layouts: Array<Object>;
 }
@@ -155,6 +144,7 @@ interface EditAppAwareWebPage {
     deleteBlockFromDom(block: Block, doKeepBoundaryComments: Boolean = false): [Array, Array];
     reRenderBlockInPlace(block: Block): Promise<null>;
     reOrderBlocksInDom(blockToMove: Block, blockToMoveTo: Block, position: 'before'|'after'|'as-child'): void;
+    convertToGlobal(globalBlockReference: Block, blockToConvert: Block): BlockRefComment;
     findEndingComment(block: Block): Commment|undefined;
     updateTitle(text: String): void;
 }

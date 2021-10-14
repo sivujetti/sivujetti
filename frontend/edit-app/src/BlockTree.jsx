@@ -11,7 +11,7 @@ import floatingDialog from './FloatingDialog.jsx';
 import ConvertBlockToGlobalDialog from './ConvertBlockToGlobalBlockTreeDialog.jsx';
 
 let BlockTrees;
-const globalTrees = new Map;
+const globalBlockTreeBlocks = new Map;
 
 class BlockTree extends preact.Component {
     // selectedRoot;
@@ -23,7 +23,7 @@ class BlockTree extends preact.Component {
     // onDragOver;
     // onDrop;
     /**
-     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>, blockGroup: 'page'|'global'|'layout') => Promise<Boolean>; BlockTrees: preact.ComponentClass;}} props
+     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>, blockIsStoredTo: 'page'|'globalBlockTree'|'layout') => Promise<Boolean>; BlockTrees: preact.ComponentClass;}} props
      */
     constructor(props) {
         super(props);
@@ -34,9 +34,9 @@ class BlockTree extends preact.Component {
         this.dragDrop = new BlockTreeDragDrop(this, (mutatedTree, dragBlock, dropBlock, dropPosition) => {
             this.setState({blockTree: mutatedTree});
             BlockTrees.currentWebPage.reOrderBlocksInDom(dragBlock, dropBlock, dropPosition);
-            store.dispatch(pushItemToOpQueue(`swap-${dragBlock.origin}-blocks`, {
+            store.dispatch(pushItemToOpQueue(`swap-${dragBlock.isStoredTo}-blocks`, {
                 doHandle: this.props.onChangesApplied,
-                args: [mutatedTree, dragBlock.origin, dragBlock.globalBlockTreeId || null],
+                args: [mutatedTree, dragBlock.isStoredTo, dragBlock.globalBlockTreeId || null],
             }));
         });
         BlockTrees = props.BlockTrees;
@@ -107,16 +107,50 @@ class BlockTree extends preact.Component {
         return this.state.blockTree;
     }
     /**
+     * @returns {Map<string, Array<Block>>}
+     * @access public
+     */
+    getGlobalTrees() {
+        return globalBlockTreeBlocks;
+    }
+    /**
+     * @param {Block} block
+     * @returns {Array<Block>}
+     * @throws {Error} If block is not valid or no tree was found
+     * @access public
+     */
+    getTreeFor(block) {
+        if (block.isStoredTo !== 'globalBlockTree' || !block.globalBlockTreeId)
+            throw new Error('Expected $block to be a child of a GlobalBlockReference block');
+        const tree = globalBlockTreeBlocks.get(block.globalBlockTreeId);
+        if (!tree)
+            throw new Error(`Global block tree #${block.globalBlockTreeId} not found.`);
+        return tree;
+    }
+    /**
      * @access protected
      */
     componentWillMount(props = this.props) {
         const blockRefs = BlockTrees.currentWebPageBlockRefs;
         const treeState = {};
-        const blockTree = blockTreeUtils.mapRecursively(props.blocksInput, blockRaw => {
+        const createBlockAndPutToState = blockRaw => {
             const block = Block.fromObject(blockRaw);
             block._cref = blockRefs.find(({blockId}) => blockId === block.id);
             treeState[block.id] = createTreeStateItem();
             return block;
+        };
+        const blockTree = blockTreeUtils.mapRecursively(props.blocksInput, blockRaw => {
+            const out = createBlockAndPutToState(blockRaw);
+            if (blockRaw.type === 'GlobalBlockReference') {
+                if (!globalBlockTreeBlocks.has(blockRaw.globalBlockTreeId))
+                    globalBlockTreeBlocks.set(blockRaw.globalBlockTreeId, blockTreeUtils.mapRecursively(out.__globalBlockTree.blocks, sbRaw => {
+                        sbRaw.isStoredTo = 'globalBlockTree';
+                        sbRaw.globalBlockTreeId = blockRaw.globalBlockTreeId;
+                        return createBlockAndPutToState(sbRaw);
+                    }));
+                out.__globalBlockTree.blocks = globalBlockTreeBlocks.get(blockRaw.globalBlockTreeId);
+            }
+            return out;
         });
         const com = BlockTrees.currentWebPage.findEndingComment(getLastPageBlock(blockTree));
         this.lastRootBlockMarker = com.nextSibling
@@ -161,37 +195,42 @@ class BlockTree extends preact.Component {
                     onSelectionDiscarded={ this.cancelAddBlock.bind(this) }/>
             </li>;
             //
-            if (block.type !== 'PageInfo') return <li
+            if (block.type !== 'PageInfo') {
+            const virtual = block.type !== 'GlobalBlockReference'
+                ? block
+                : block.__globalBlockTree.blocks[0];
+            return <li
                 onDragStart={ this.onDragStart }
                 onDragOver={ this.onDragOver }
                 onDrop={ this.onDrop }
                 onDragEnd={ this.onDragEnd }
-                class={ [`${block.origin}-block`,
+                class={ [`${block.isStoredTo}-block`,
                          !treeState[block.id].isSelected ? '' : ' selected',
                          !treeState[block.id].isCollapsed ? '' : ' collapsed',
-                         !block.children.length ? '' : ' with-children'].join('') }
+                         !virtual.children.length ? '' : ' with-children'].join('') }
                 data-block-id={ block.id }
-                data-drop-group={ block.origin }
+                data-drop-group={ virtual.isStoredTo }
                 key={ block.id }
                 draggable>
-                { !block.children.length
+                { !virtual.children.length
                     ? null
-                    : <button onClick={ () => this.toggleBranchIsCollapsed(block) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="size-xs"/></button>
+                    : <button onClick={ () => this.toggleBranchIsCollapsed(virtual) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="size-xs"/></button>
                 }
                 <div class="d-flex">
-                    <button onClick={ () => this.handleItemClicked(block) } class="block-handle columns" type="button">
+                    <button onClick={ () => this.handleItemClicked(virtual) } class="block-handle columns" type="button">
                         <Icon iconId="type" className="size-xs color-accent mr-1"/>
-                        { block.title || __(block.type) }
+                        { virtual.title || __(virtual.type) }
                     </button>
                     <button onClick={ e => this.openMoreMenu(block, e) } class={ `more-toggle ml-2${blockWithNavOpened !== block ? '' : ' opened'}` } type="button">
                         <Icon iconId="more-horizontal" className="size-xs"/>
                     </button>
                 </div>
-                { block.children.length
-                    ? <ul>{ renderBranch(block.children) }</ul>
+                { virtual.children.length
+                    ? <ul>{ renderBranch(virtual.children) }</ul>
                     : null
                 }
             </li>;
+            }
             //
             return <li
                 class={ [!treeState[block.id].isSelected ? '' : 'selected'].join(' ') }
@@ -216,7 +255,7 @@ class BlockTree extends preact.Component {
                     {text: __('Add child'), title: __('Add child block'), id: 'add-child'},
                     {text: __('Clone'), title: __('Clone block or branch'), id: 'clone-block'},
                     {text: __('Delete'), title: __('Delete block'), id: 'delete-block'},
-                    {text: __('Convert to global'), title: __('Convert to global block'), id: 'convert-to-global'},
+                    {text: __('Convert to global'), title: __('Convert to global block'), id: 'convert-block-to-global'},
                 ] }
                 onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
                 onMenuClosed={ () => this.setState({blockWithNavOpened: null}) }
@@ -268,19 +307,19 @@ class BlockTree extends preact.Component {
             let wasCurrentlySelectedBlock = isSelectedRootCurrentlyClickedBlock() ||
                                             isSelectedRootChildOfCurrentlyClickedBlock();
             if (wasCurrentlySelectedBlock) this.selectedRoot = null;
-            if (this.state.blockWithNavOpened.origin === 'layout') throw new Error('Todo remove layout block context menu delete buttons');
+            if (this.state.blockWithNavOpened.isStoredTo === 'layout') throw new Error('Todo remove layout block context menu delete buttons');
             this.cancelAddBlock(this.state.blockWithNavOpened);
             store.dispatch(pushItemToOpQueue('delete-page-block', {
                 doHandle: this.props.onChangesApplied,
                 args: [this.state.blockTree, 'page', null],
             }));
             signals.emit('on-block-deleted', this.state.blockWithNavOpened, wasCurrentlySelectedBlock);
-        } else if (link.id === 'convert-to-global') {
+        } else if (link.id === 'convert-block-to-global') {
             const blockTreeToStore = this.state.blockWithNavOpened;
             floatingDialog.open(ConvertBlockToGlobalDialog, {
                 title: __('Convert to global')
             }, {
-                block: blockTreeToStore,
+                blockToConvertAndStore: blockTreeToStore,
                 onConfirmed: data => this.doConvertBlockToGlobal(data, blockTreeToStore),
             });
         }
@@ -292,37 +331,37 @@ class BlockTree extends preact.Component {
     doConvertBlockToGlobal(data, originalBlock) {
         // todo emit to queue
         // todo start loadState
-        http.post('/api/global-block-trees', {
+        const postData = {
             name: data.name,
-            blockTree: data.blockTree,
-        })
+            blocks: data.blocks,
+        };
+        http.post('/api/global-block-trees', postData)
         .then(resp => {
             if (!resp.insertId) throw new Error('-');
-            // 1. Create new block
-            blockTreeUtils.traverseRecursively(data.blockTree, rawBlock => {
-                rawBlock.origin = 'global';
-                rawBlock.globalBlocTreeId = resp.insertId;
-            });
-            const newBlock = Block.fromType('GlobalBlockReference', {globalBlockTreeId: resp.insertId,
-                                                                     __blockTree: data.blockTree});
-            // 2. Replace block in dom
-            newBlock._cref = originalBlock._cref;
-            return BlockTrees.currentWebPage.replaceBlockFromDomWith(originalBlock, newBlock).then(_cref => {
-                // 3. Replace block in blockTree
-                newBlock._cref = _cref;
-                const branch = blockTreeUtils.findBlock(originalBlock.id, this.state.blockTree)[1];
-                branch.splice(branch.indexOf(originalBlock), 1, newBlock); // Note: mutates this.state.blockTree
-                // 4. Update treeState
-                const treeStateMutRef = this.state.treeState;
-                blockTreeUtils.traverseRecursively([originalBlock], oldBlock => {
-                    delete treeStateMutRef[oldBlock.id];
-                });
-                treeStateMutRef[newBlock.id] = createTreeStateItem();
-                // 5. Done
-                globalTrees.set(resp.insertId, data.blockTree);
-                this.setState({blockTree: this.state.blockTree,
-                            treeState: treeStateMutRef});
-            });
+            const blockWasStoredTo = originalBlock.isStoredTo;
+            const blockRefs = BlockTrees.currentWebPageBlockRefs;
+            // 1. Create new block, update dom
+            const newBlock = Block.fromType('GlobalBlockReference',
+                                            {globalBlockTreeId: resp.insertId});
+            newBlock._cref = BlockTrees.currentWebPage.convertToGlobal(newBlock, originalBlock);
+            blockRefs.splice(blockRefs.indexOf(originalBlock._cref), 0, newBlock._cref);
+            const mutated = turnBranchToGlobal(postData.blocks, // Note: mutates entries of this.state.blockTree
+                                               this.state.blockTree,
+                                               newBlock.globalBlockTreeId);
+            newBlock.__globalBlockTree = {id: resp.insertId,
+                                          name: postData.name,
+                                          blocks: mutated};
+            // 2. Update treeState
+            const treeStateMutRef = this.state.treeState;
+            treeStateMutRef[newBlock.id] = createTreeStateItem();
+            // 3. Replace block in blockTree
+            const branch = blockTreeUtils.findBlock(originalBlock.id, this.state.blockTree)[1];
+            branch.splice(branch.indexOf(originalBlock), 1, newBlock); // Note: mutates this.state.blockTree
+            // 4. Commit to state
+            this.setState({blockTree: this.state.blockTree,
+                           treeState: treeStateMutRef});
+            // 5. Save to backend
+            return this.props.onChangesApplied(this.state.blockTree, blockWasStoredTo, null);
         })
         .catch(err => {
             env.window.console.error(err);
@@ -346,7 +385,7 @@ class BlockTree extends preact.Component {
         const newBlock = Block.fromType(blockBluePrint.blockType,
                                         blockBluePrint.data,
                                         origBlock.id,
-                                        origBlock.origin);
+                                        origBlock.isStoredTo);
         newBlock._cref = origBlock._cref;
         BlockTrees.currentWebPage.replaceBlockFromDomWith(origBlock, newBlock).then(_cref => {
             newBlock._cref = _cref;
@@ -358,7 +397,7 @@ class BlockTree extends preact.Component {
                 });
                 return Promise.all(flat.map(blueprint => {
                     const b = Block.fromType(blueprint.blockType, blueprint.data, undefined,
-                        newBlock.origin);
+                        newBlock.isStoredTo);
                     const after = this.getAfter(newBlock.children, newBlock);
                     return BlockTrees.currentWebPage.appendBlockToDom(b, after).then(_cref => {
                         b._cref = _cref;
@@ -385,9 +424,9 @@ class BlockTree extends preact.Component {
         treeState[placeholderBlock.id].isNew = false;
         this.setState({treeState: treeState});
         //
-        store.dispatch(pushItemToOpQueue(`append-${placeholderBlock.origin}-block`, {
+        store.dispatch(pushItemToOpQueue(`append-${placeholderBlock.isStoredTo}-block`, {
             doHandle: this.props.onChangesApplied,
-            args: [this.state.blockTree, placeholderBlock.origin, placeholderBlock.globalBlockTreeId || null],
+            args: [this.state.blockTree, placeholderBlock.isStoredTo, placeholderBlock.globalBlockTreeId || null],
         }));
     }
     /**
@@ -452,7 +491,12 @@ class BlockTree extends preact.Component {
      */
     openMoreMenu(block, e) {
         this.setState({blockWithNavOpened: block});
-        this.contextMenu.current.open(e);
+        this.contextMenu.current.open(e, links => {
+            if (block.type === 'GlobalBlockReference')
+                return links.filter(({id}) => id !== 'convert-block-to-global' &&
+                                              id !== 'clone-block');
+            return links;
+        });
     }
     /**
      * @param {Block} block
@@ -511,17 +555,45 @@ class BlockTree extends preact.Component {
     }
 }
 
+/**
+ * @param {Object} overrides = {}
+ * @returns {{isSelected: Boolean; isCollapsed: Boolean; isNew: Boolean;}}
+ */
 function createTreeStateItem(overrides = {}) {
     return Object.assign({
         isSelected: false,
         isCollapsed: false,
         isNew: false,
-        isExpanded: false // If GlobalBlockReference
     }, overrides);
 }
 
+/**
+ * @param {Array<Block>} blockTree
+ * @returns {Block|null}
+ */
 function getLastPageBlock(blockTree) {
-    return blockTree.reduce((last, b) => b.origin === 'page' ? b : last, null);
+    return blockTree.reduce((last, b) => b.isStoredTo === 'page' ? b : last, null);
+}
+
+/**
+ * @param {Array<RawBlock>} branchRaw
+ * @param {Array<Block>} containingBlockTree i.e. BlockTree.state.blockTree
+ * @param {String} globalBlockTreeId
+ * @returns {Array<Block>}
+ */
+function turnBranchToGlobal(branchRaw, containingBlockTree, globalBlockTreeId) {
+    // Find each corresponding block from currentContainingBranch
+    const currentBlocks = blockTreeUtils.mapRecursively(branchRaw, sbRaw =>
+        blockTreeUtils.findBlock(sbRaw.id, containingBlockTree)[0]
+    );
+    // Turn them from normal block to a global tree block
+    blockTreeUtils.traverseRecursively(currentBlocks, block => {
+        block.globalBlockTreeId = globalBlockTreeId;
+        block.isStoredTo = 'globalBlockTree';
+    });
+    // Store and return
+    globalBlockTreeBlocks.set(globalBlockTreeId, currentBlocks);
+    return globalBlockTreeBlocks.get(globalBlockTreeId);
 }
 
 export default BlockTree;

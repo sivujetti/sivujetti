@@ -29,7 +29,7 @@ final class GlobalBlockTreesRepository {
      * @return \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree|null
      */
     public function getSingle(string $globalBlockTreeId): ?GlobalBlockTree {
-        $rows = $this->db->fetchAll("SELECT `id`, `name`, `blockTree` AS `blockTreeJson`" .
+        $rows = $this->db->fetchAll("SELECT `id`, `name`, `blocks` AS `blocksJson`" .
                                     " FROM `\${p}globalBlocks` WHERE `id` = ?",
                                     [$globalBlockTreeId],
                                     \PDO::FETCH_CLASS,
@@ -43,7 +43,7 @@ final class GlobalBlockTreesRepository {
      */
     private function normalizeRs(array $rows): array {
         foreach ($rows as $row) {
-            $row->blockTree = $row->blockTreeJson ? PagesRepository::blocksFromRs("blockTreeJson", $row) : null;
+            $row->blocks = $row->blocksJson ? PagesRepository::blocksFromRs("blocksJson", $row) : null;
         }
         return $rows;
     }

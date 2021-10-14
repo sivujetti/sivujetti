@@ -209,8 +209,10 @@ final class PagesController {
         $layout = ArrayUtils::findByKey($data->pageLayouts, $page->layoutId, "id");
         if (!$layout) throw new PikeException("Page layout #`{$page->layoutId}` not available",
                                               PikeException::BAD_INPUT);
-        if ($isPlaceholderPage)
-            $page->layout->blocks = $layoutBlocksRepo->getMany($page->layoutId)[0]->blocks;
+        if ($isPlaceholderPage) {
+            $trees = $layoutBlocksRepo->getMany($page->layoutId);
+            $page->layout->blocks = $trees ? $trees[0]->blocks : [];
+        }
         //
         self::runBlockBeforeRenderEvent($page->blocks, $data->blockTypes, $pagesRepo, $theWebsite);
         self::runBlockBeforeRenderEvent($page->layout->blocks, $data->blockTypes, $pagesRepo, $theWebsite);

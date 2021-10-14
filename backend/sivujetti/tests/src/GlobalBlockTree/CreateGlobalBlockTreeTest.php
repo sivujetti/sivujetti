@@ -28,7 +28,7 @@ final class CreateGlobalBlockTreeTest extends DbTestCase {
         $btu = new BlockTestUtils();
         $state->inputData = (object) [
             "name" => "My footer",
-            "blockTree" => [$btu->makeBlockData(Block::TYPE_SECTION, "Footer", "sivujetti:block-generic-wrapper", children: [
+            "blocks" => [$btu->makeBlockData(Block::TYPE_SECTION, "Footer", "sivujetti:block-generic-wrapper", children: [
                 $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "© Year My Site", "cssClass" => ""]),
             ], propsData: ["bgImage" => "", "cssClass" => ""])]
         ];
@@ -54,7 +54,7 @@ final class CreateGlobalBlockTreeTest extends DbTestCase {
                                               "`id` = ?",
                                               [$state->actualInsertId]);
         $this->assertEquals($state->inputData->name, $actual["name"]);
-        $tree = json_decode($actual["blockTree"], flags: JSON_THROW_ON_ERROR);
+        $tree = json_decode($actual["blocks"], flags: JSON_THROW_ON_ERROR);
         $this->assertCount(1, $tree);
         $this->assertCount(1, $tree[0]->children);
     }
@@ -72,7 +72,7 @@ final class CreateGlobalBlockTreeTest extends DbTestCase {
         $this->verifyResponseBodyEquals([
             "name must be string",
             "The length of name must be 92 or less",
-            "The length of blockTree must be at least 1",
+            "The length of blocks must be at least 1",
         ], $state->spyingResponse);
     }
 
@@ -82,7 +82,7 @@ final class CreateGlobalBlockTreeTest extends DbTestCase {
 
     public function testCreateGlobalBlockTreeRejectsInvalidBlocksInput(): void {
         $state = $this->setupTest();
-        $state->inputData->blockTree = [(object) ["type" => "not-valid"]];
+        $state->inputData->blocks = [(object) ["type" => "not-valid"]];
         $this->makeTestSivujettiApp($state);
         $this->expectException(PikeException::class);
         $this->expectExceptionMessage("Unknown block type `not-valid`");

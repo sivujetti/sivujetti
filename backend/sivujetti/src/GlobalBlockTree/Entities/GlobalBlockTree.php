@@ -8,5 +8,5 @@ final class GlobalBlockTree {
     /** @var string e.g. "Header", "Default footer" */
     public string $name;
     /** @var ?array<int, \Sivujetti\Block\Entities\Block> */
-    public ?array $blockTree;
+    public ?array $blocks;
 }

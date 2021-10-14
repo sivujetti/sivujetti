@@ -7,10 +7,10 @@ const informEditAppWeJustLoaded = () => {
     const editApp = (window.parent || {}).editApp;
     //
     if (editApp) {
+        markInternalLinksAsInternal(document);
+
         const webPage = new EditAppAwareWebPage(window.sivujettiCurrentPageData || {});
         editApp.handleWebPageLoaded(webPage);
-
-        markInternalLinksAsInternal(document);
     // edit-app/main.js is not ready yet
     } else {
         if (++tries < 4)

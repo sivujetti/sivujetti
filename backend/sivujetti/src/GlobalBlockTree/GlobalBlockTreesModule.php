@@ -17,7 +17,7 @@ final class GlobalBlockTreesModule {
             [GlobalBlockTreesController::class, "list", ["consumes" => "application/json",
                                                          "identifiedBy" => ["list", "globalBlockTrees"]]]
         );
-        $ctx->router->map("PUT", "/api/global-block-trees/[i:globalBlockTreeId]/blockTree",
+        $ctx->router->map("PUT", "/api/global-block-trees/[i:globalBlockTreeId]/blocks",
             [GlobalBlockTreesController::class, "update", ["consumes" => "application/json",
                                                            "identifiedBy" => ["update", "globalBlockTrees"]]]
         );

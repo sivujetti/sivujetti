@@ -37,10 +37,10 @@ class BlockEditForm extends preact.Component {
         this.unregisterSignalListener();
     }
     /**
-     * @param {{block: Block; blockTree: Array<Block>; blockTreeCmp: preact.Component; autoFocus: Boolean;}} props
+     * @param {{block: Block; blockTree: Array<Block>; blockTreeCmp: preact.Component;}} props
      * @access protected
      */
-    render({block, blockTreeCmp, autoFocus}) {
+    render({block, blockTreeCmp}) {
         return <>
             <div class="with-icon pb-1">
                 <Icon iconId="type" className="size-xs color-accent mr-1"/>
@@ -50,7 +50,6 @@ class BlockEditForm extends preact.Component {
                 { preact.createElement(this.blockType.editForm, {
                     block,
                     blockTree: blockTreeCmp,
-                    autoFocus,
                     onValueChanged: this.handleBlockValueChanged.bind(this),
                 }) }
             </div>
@@ -69,9 +68,9 @@ class BlockEditForm extends preact.Component {
      * @access private
      */
     commitChangeToQueue() {
-        store.dispatch(pushItemToOpQueue(`update-${this.props.block.origin}-block`, {
+        store.dispatch(pushItemToOpQueue(`update-${this.props.block.isStoredTo}-block`, {
             doHandle: this.props.blockTreeCmp.props.onChangesApplied,
-            args: [this.props.blockTree, this.props.block.origin],
+            args: [this.props.blockTree, this.props.block.isStoredTo, this.props.block.globalBlockTreeId || null],
         }));
     }
     /**

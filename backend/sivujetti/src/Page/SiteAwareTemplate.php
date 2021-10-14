@@ -27,7 +27,7 @@ final class SiteAwareTemplate extends Template {
      * @param mixed $props = null
      * @return string
      */
-    public function partial(string $name, $props = null): string {
+    public function partial(string $name, mixed $props = null): string {
         $templateFilePath = null;
         if (!str_contains($name, ":")) {
             ValidationUtils::checkIfValidaPathOrThrow($name, strict: true);
@@ -81,7 +81,7 @@ final class SiteAwareTemplate extends Template {
             $out .= "<!-- block-start {$block->id}:{$block->type} -->" .
                 ($block->type !== Block::TYPE_GLOBAL_BLOCK_REF
                     ? $this->partial($block->renderer, $block)
-                    : $this->renderBlocks($block->__blockTree)) .
+                    : $this->renderBlocks($block->__globalBlockTree?->blocks ?? [])) .
             "<!-- block-end {$block->id} -->";}
         return $out;
     }

@@ -100,12 +100,12 @@ function renderReactEditApp() {
                                                                    webPage.data.layoutBlocks,
                                                                    blockRefs,
                                                                    blockTreeUtils);
-            const hoverableBlockRefs = [];
-            blockTreeUtils.traverseRecursively(!webPage.data.page.isPlaceholderPage ? ordered : webPage.data.page.blocks, block => {
-                const blockRef = blockRefs.find(({blockId}) => blockId === block.id);
-                if (blockRef) hoverableBlockRefs.push(blockRef);
-            });
-            webPage.registerEventHandlers(editApp.websiteEventHandlers, hoverableBlockRefs);
+            const filtered = !webPage.data.page.isPlaceholderPage
+                // Accept all
+                ? blockRefs
+                // Only if page block
+                : blockRefs.filter(({blockId}) => blockTreeUtils.findBlock(blockId, webPage.data.page.blocks)[0] !== null);
+            webPage.registerEventHandlers(editApp.websiteEventHandlers, filtered);
             editApp.handleWebPageLoaded(webPage, ordered, blockRefs);
         }
     };

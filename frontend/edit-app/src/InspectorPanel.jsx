@@ -95,7 +95,7 @@ class InspectorPanel extends preact.Component {
      * @access private
      */
     open(block, blockTreeCmp) {
-        const blockTree = blockTreeCmp.state.blockTree;
+        const blockTree = block.isStoredTo !== 'globalBlockTree' ? blockTreeCmp.state.blockTree : blockTreeCmp.getTreeFor(block);
         const newRendererKey = `edit-block-tree-${block.id}`;
         if (this.rendererKey === newRendererKey) return;
         //

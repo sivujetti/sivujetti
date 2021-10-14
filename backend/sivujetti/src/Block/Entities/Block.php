@@ -37,7 +37,7 @@ final class Block {
 
     /* If self::TYPE_TYPE_GLOBAL_BLOCK_REF
     public string $globalBlockTreeId;
-    public \Sivujetti\Block\Entities\Block[] $__blockTree; */
+    public ?\Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree $__globalBlockTree; */
 
     /* If self::TYPE_HEADING
     public string $text;
@@ -48,7 +48,7 @@ final class Block {
     public string $listPageType; e.g. "Pages"
     public string $listFilters; e.g. "[{"slug":"foo"}]"
     public ?array $__pages; ?array<int, \Sivujetti\Page\Entities\Page>
-    public \Sivujetti\PageType\Entities\PageType $__pageType; */
+    public ?\Sivujetti\PageType\Entities\PageType $__pageType; */
 
     /* If self::TYPE_MENU
     public string $tree;

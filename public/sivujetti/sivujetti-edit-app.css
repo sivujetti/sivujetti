@@ -536,6 +536,10 @@ a.popup-close-area {
     display: inline-block;
     opacity: .5;
 }
+.block-tree li[data-drop-group="globalBlockTree"] {
+    background-color: #eff8fe; /* rgba(--color-blue, .07) */
+    border-radius: 3px;
+}
 .block-tree li.collapsed ul {
     display: none;
 }
@@ -580,6 +584,9 @@ a.popup-close-area {
 }
 .block-tree li.layout-block.selected > div > .block-handle {
     background: #ff57220d /* rgba(--color-orange, .05) */
+}
+.block-tree li[data-drop-group="globalBlockTree"].selected > div > .block-handle {
+    background: #2196f312; /* rgba(--color-blue, .07) */
 }
 .block-tree li.with-children > div > .block-handle {
     margin-left: 1.5rem;

@@ -63,7 +63,7 @@ function simulatePageLoad(_s, isNewPage = false, buildDeeplyNestedBlock = false)
         "children": [],
         "overrides": "[]",
         "parentBlockIdPath": "",
-        "origin": "page"
+        "isStoredTo": "page"
     }, {
         "type": "Section",
         "title": "",

@@ -24,6 +24,6 @@ final class GlobalBlockReferenceBlockType implements BlockTypeInterface,
                                    Injector $di): void {
         $entry = $di->make(GlobalBlockTreesRepository::class)
             ->getSingle($block->globalBlockTreeId);
-        $block->__blockTree = $entry ? $entry->blockTree ?? [] : [];
+        $block->__globalBlockTree = $entry;
     }
 }

@@ -79,7 +79,7 @@ stringBundles.push({
     'Section': 'Section',
     'Background': 'Background',
     // edit-app/src/BlockWidget/ImagePicker.jsx
-    'Choose a picture': 'Valitse kuva',
+    'Choose a picture': 'Choose a picture',
     //edit-app/src/Upload/UploadButton.jsx
     'File name': 'File name',
     'Upload picture': 'Upload picture',
@@ -88,8 +88,8 @@ stringBundles.push({
     'Failed to upload image': 'Failed to upload image',
     //edit-app/src/Upload/UploadsManager.jsx
     'Documents': 'Documents',
-    'Images': 'Kuvat',
-    'Upload': 'Lataa',
+    'Images': 'Images',
+    'Upload': 'Upload',
     'Search': 'Search',
     'No results for "%s"': 'No results for "%s"',
     'No uploads yet': 'No uploads yet',

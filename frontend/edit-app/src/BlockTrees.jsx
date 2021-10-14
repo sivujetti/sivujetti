@@ -32,7 +32,7 @@ class BlockTrees extends preact.Component {
      * @access public
      */
     getPageBlocks() {
-        return this.blockTree.current.getTree().filter(block => block.origin === 'page');
+        return this.blockTree.current.getTree().filter(block => block.isStoredTo === 'page');
     }
     /**
      * @access protected
@@ -82,26 +82,32 @@ class BlockTrees extends preact.Component {
         </div>;
     }
     /**
-     * @param {Array<Block>} newBlockTree
-     * @param {'page'|'layout'} blockGroup
+     * @param {Array<Block>} newBlockTree The root block tree (BlockTree.state.blockTree), or .blocks of a single GlobalBlockTree
+     * @param {'page'|'globalBlockTree'|'layout'} blockIsStoredTo
+     * @param {String|null} blockTreeId
      * @returns {Promise<Boolean>}
      * @access private
      */
-    static saveExistingBlocksToBackend(newBlockTree, blockGroup) {
+    static saveExistingBlocksToBackend(newBlockTree, blockIsStoredTo, blockTreeId) {
         const page = BlockTrees.currentWebPage.data.page;
-        const url = blockGroup === 'page'
-            ? `/api/pages/${page.type}/${page.id}/blocks`
-            : `/api/layouts/${BlockTrees.currentWebPage.data.page.layoutId}/blocks`;
-        const filtered = newBlockTree.filter(block => block.origin === blockGroup);
+        let url = '';
+        if (blockIsStoredTo === 'page')
+            url = `/api/pages/${page.type}/${page.id}/blocks`;
+        else if (blockIsStoredTo === 'layout')
+            url = `/api/layouts/${BlockTrees.currentWebPage.data.page.layoutId}/blocks`;
+        else if (blockIsStoredTo === 'globalBlockTree' && blockTreeId)
+            url = `/api/global-block-trees/${blockTreeId}/blocks`;
+        else
+            throw new Error('Bad input');
         return http.put(url,
-            {blocks: blockTreeUtils.mapRecursively(filtered, block => block.toRaw())})
+            {blocks: blockTreeUtils.mapRecursively(newBlockTree, block => block.toRaw())})
             .then(resp => {
                 if (resp.ok !== 'ok') throw new Error('-');
                 return true;
             })
             .catch(err => {
                 window.console.error(err);
-                toasters.editAppMain(__('Something unexpected happened.'));
+                toasters.editAppMain(__('Something unexpected happened.'), 'error');
                 return false;
             });
     }

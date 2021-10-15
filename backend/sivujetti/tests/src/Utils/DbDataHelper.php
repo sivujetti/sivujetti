@@ -16,8 +16,9 @@ final class DbDataHelper {
     /**
      * @param object[]|object $data
      * @param string $tableName @allow raw sql
+     * @return string $lastInsertId or ""
      */
-    public function insertData(array|object $data, string $tableName): void {
+    public function insertData(array|object $data, string $tableName): string {
         if (!Validation::isIdentifier($tableName)) throw new PikeException("Wut?");
         if (is_object($data)) $data = [$data];
         [$qGroups, $vals, $cols] = $this->db->makeBatchInsertQParts($data);
@@ -29,6 +30,7 @@ final class DbDataHelper {
                                             $tableName,
                                             $numRows),
                                     PikeException::FAILED_DB_OP);
+        return $this->db->lastInsertId();
     }
     /**
      * @param string $tableName @allow raw sql

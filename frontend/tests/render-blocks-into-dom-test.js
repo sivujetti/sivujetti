@@ -51,7 +51,7 @@ QUnit.module('BlockTrees', () => {
         const s = appTestUtils.createTestState();
         s.useDeeplyNestedBlock = true;
         appTestUtils.renderMockEditAppIntoDom('DefaultView', () => {
-            appTestUtils.simulatePageLoad(s, undefined, true);
+            appTestUtils.simulatePageLoad(s, undefined, 'withNestedBlock');
         })
         .then(() =>
             clickContextMenuLink(s, 'clone-block')

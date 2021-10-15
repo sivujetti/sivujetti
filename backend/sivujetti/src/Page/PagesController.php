@@ -136,7 +136,7 @@ final class PagesController {
     }
     /**
      * PUT /api/pages/[w:pageType]/[i:pageId]/blocks: Overwrites the block tree
-     * of $req->params->pageId.
+     * of $req->params->pageId to the database.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res

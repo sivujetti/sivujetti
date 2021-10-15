@@ -3,19 +3,8 @@
 namespace Sivujetti\Tests\GlobalBlockTree;
 
 use Pike\PikeException;
-use Sivujetti\App;
-use Sivujetti\Block\Entities\Block;
-use Sivujetti\Tests\Utils\{BlockTestUtils, DbDataHelper, HttpApiTestTrait};
-use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 
-final class CreateGlobalBlockTreeTest extends DbTestCase {
-    use HttpTestUtils;
-    use HttpApiTestTrait;
-    private DbDataHelper $dbDataHelper;
-    protected function setUp(): void {
-        parent::setUp();
-        $this->dbDataHelper = new DbDataHelper(self::$db);
-    }
+final class CreateGlobalBlockTreeTest extends GlobalBlockTreeControllerTestCase {
     public function testCreateGlobalBlockTreeInsertsDataToDb(): void {
         $state = $this->setupTest();
         $this->makeTestSivujettiApp($state);
@@ -23,22 +12,10 @@ final class CreateGlobalBlockTreeTest extends DbTestCase {
         $this->verifyRequestFinishedSuccesfully($state);
         $this->verifyInsertedGlobalBlockTreeToDb($state);
     }
-    private function setupTest(): \TestState {
-        $state = new \TestState;
-        $btu = new BlockTestUtils();
-        $state->inputData = (object) [
-            "name" => "My footer",
-            "blocks" => [$btu->makeBlockData(Block::TYPE_SECTION, "Footer", "sivujetti:block-generic-wrapper", children: [
-                $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "© Year My Site", "cssClass" => ""]),
-            ], propsData: ["bgImage" => "", "cssClass" => ""])]
-        ];
+    protected function setupTest(): \TestState {
+        $state = parent::setupTest();
         $state->actualInsertId = null;
-        $state->spyingResponse = null;
-        $state->app = null;
         return $state;
-    }
-    private function makeTestSivujettiApp(\TestState $state): void {
-        $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
     }
     private function sendCreateGlobalBlockTreeRequest(\TestState $state): void {
         $state->spyingResponse = $state->app->sendRequest(

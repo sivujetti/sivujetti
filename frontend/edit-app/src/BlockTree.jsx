@@ -139,6 +139,7 @@ class BlockTree extends preact.Component {
             treeState[block.id] = createTreeStateItem();
             return block;
         };
+        globalBlockTreeBlocks.clear();
         const blockTree = blockTreeUtils.mapRecursively(props.blocksInput, blockRaw => {
             const out = createBlockAndPutToState(blockRaw);
             if (blockRaw.type === 'GlobalBlockReference') {
@@ -204,7 +205,7 @@ class BlockTree extends preact.Component {
                 onDragOver={ this.onDragOver }
                 onDrop={ this.onDrop }
                 onDragEnd={ this.onDragEnd }
-                class={ [`${block.isStoredTo}-block`,
+                class={ [`${virtual.isStoredTo}-block`,
                          !treeState[block.id].isSelected ? '' : ' selected',
                          !treeState[block.id].isCollapsed ? '' : ' collapsed',
                          !virtual.children.length ? '' : ' with-children'].join('') }

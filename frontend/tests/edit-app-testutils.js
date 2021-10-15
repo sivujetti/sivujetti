@@ -52,8 +52,21 @@ function renderMockEditAppIntoDom(view, then = null) {
     });
 }
 
-function simulatePageLoad(_s, isNewPage = false, buildDeeplyNestedBlock = false) {
+function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default') {
     //
+    const layoutBlocks = [{
+        "type": "Paragraph",
+        "title": "",
+        "renderer": "sivujetti:block-auto",
+        "id": 'EsmAW0--AnViMcwnIaDP',
+        "children": [],
+        "propsData": [
+            {"key": "text", "value": "© Mysite"},
+            {"key": "cssClass", "value": ""}
+        ],
+        "text": "© Mysite",
+        "cssClass": ""
+    }];
     const pageBlocks = [{
         "type": "PageInfo",
         "title": "",
@@ -80,7 +93,7 @@ function simulatePageLoad(_s, isNewPage = false, buildDeeplyNestedBlock = false)
             "title": "",
             "renderer": "sivujetti:block-auto",
             "id": '-Me3jYWcEOlLTgJhzqL8',
-            "children": !buildDeeplyNestedBlock ? [] : [{
+            "children": testBlocksBundle === 'withNestedBlock' ? [{
                 "type": "Paragraph",
                 "title": "",
                 "renderer": "sivujetti:block-auto",
@@ -92,13 +105,13 @@ function simulatePageLoad(_s, isNewPage = false, buildDeeplyNestedBlock = false)
                 ],
                 "text": "Sub text",
                 "cssClass": "subtitle"
-            }],
+            }] : [],
             "propsData": [
                 {"key": "text", "value": "My page"},
                 {"key": "level", "value": "1"},
                 {"key": "cssClass", "value": ""}
             ],
-            "text": "Hello",
+            "text": "My page",
             "cssClass": ""
         }, {
             "type": "Paragraph",
@@ -113,33 +126,38 @@ function simulatePageLoad(_s, isNewPage = false, buildDeeplyNestedBlock = false)
             "text": "Hello",
             "cssClass": ""
         }]
-    }];
-    const layoutBlocks = [{
-        "type": "Paragraph",
+    }].concat(...(testBlocksBundle === 'withGlobalBlockReference' ? [{
+        "type": "GlobalBlockReference",
         "title": "",
         "renderer": "sivujetti:block-auto",
-        "id": 'EsmAW0--AnViMcwnIaDP',
+        "id": "-MlPupIvfXCsi7eHeTP4",
+        "propsData": [{"key": "globalBlockTreeId", "value": "10"}],
         "children": [],
-        "propsData": [
-            {"key": "text", "value": "© Mysite"},
-            {"key": "cssClass", "value": ""}
-        ],
-        "text": "© Mysite",
-        "cssClass": ""
-    }];
+        "globalBlockTreeId": "10",
+        "__globalBlockTree": {
+            "id": "10",
+            "name": "My stored",
+            "blocks": [Object.assign({}, layoutBlocks[0], {id: "-MlU72IZ110nBtvXt5sx"})]
+        },
+    }] : []));
     document.getElementById('mock-page-container-el').innerHTML =
         blockUtils.decorateWithRef(pageBlocks[0],
             '<!-- PageInfo dummy -->'
         ) +
         blockUtils.decorateWithRef(pageBlocks[1], '<section id="initial-section"><div data-block-root>' +
             blockUtils.decorateWithRef(pageBlocks[1].children[0], '<h2>My page' +
-                (!buildDeeplyNestedBlock
-                    ? ''
-                    : blockUtils.decorateWithRef(pageBlocks[1].children[0].children[0], '<p>Sub para</p>'))
+                (testBlocksBundle === 'withNestedBlock'
+                    ? blockUtils.decorateWithRef(pageBlocks[1].children[0].children[0], '<p>Sub para</p>')
+                    : '')
             + '</h2>') +
             blockUtils.decorateWithRef(pageBlocks[1].children[1], '<p>Hello</p>') +
         '</div></section>') +
-        blockUtils.decorateWithRef(layoutBlocks[0], '<p>© Mysite</p>');
+        blockUtils.decorateWithRef(layoutBlocks[0], '<p>© Mysite</p>') +
+        (testBlocksBundle === 'withGlobalBlockReference'
+            ? blockUtils.decorateWithRef(pageBlocks[2],
+                blockUtils.decorateWithRef(pageBlocks[2].__globalBlockTree.blocks[0], '<p>© Mysite</p>'
+            ))
+            : '');
     //
     const mockSivujettiCurrentPageData = {
         page: {

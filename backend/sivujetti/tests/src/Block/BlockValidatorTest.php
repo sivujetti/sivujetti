@@ -4,10 +4,9 @@ namespace Sivujetti\Tests\Block;
 
 use Sivujetti\Block\BlockValidator;
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\SharedAPIContext;
 use Sivujetti\UserSite\UserSiteAPI;
 use PHPUnit\Framework\TestCase;
-use Sivujetti\BlockType\ParagraphBlockType;
+use Sivujetti\Tests\Utils\PageTestUtils;
 
 final class BlockValidatorTest extends TestCase {
     public function testValidateInsertOrUpdateDataRejectsUnkownRenderers(): void {
@@ -38,10 +37,7 @@ final class BlockValidatorTest extends TestCase {
             "cssClass" => "foo",
         ];
         $state->validationErrors = null;
-        $state->sharedAPIContext = new SharedAPIContext;
-        $state->sharedAPIContext->getDataHandle()->blockTypes = (object) [
-            Block::TYPE_PARAGRAPH => new ParagraphBlockType,
-        ];
+        $state->sharedAPIContext = PageTestUtils::createTestAPIStorage();
         $state->sharedAPIContext->getDataHandle()->validBlockRenderers = ["sivujetti:block-auto"];
         return $state;
     }

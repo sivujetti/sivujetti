@@ -12,6 +12,7 @@ import './create-page-test.js';
 import './render-blocks-into-dom-test.js';
 import './reorder-blocks-test.js';
 import './optimize-op-queue-test.js';
+import './update-global-block-test.js';
 import './update-paragraph-text-test.js';
 
 const mockInternalSivujettiApi = {

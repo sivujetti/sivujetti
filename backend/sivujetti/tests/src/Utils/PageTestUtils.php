@@ -28,16 +28,7 @@ final class PageTestUtils {
         $fakeTheWebsite->pageTypes = new \ArrayObject;
         $pagePageType = $this->makeDefaultPageType();
         $fakeTheWebsite->pageTypes[] = $pagePageType;
-        if (!$testAppStorage) {
-            $testAppStorage = new SharedAPIContext;
-        }
-        if ($testAppStorage->getDataHandle()->blockTypes === null) {
-            $blockTypes = new BlockTypes;
-            $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
-            $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
-            $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
-            $testAppStorage->getDataHandle()->blockTypes = $blockTypes;
-        }
+        $testAppStorage = self::createTestAPIStorage($testAppStorage);
         $this->createPageRepo = function (\Closure $doBefore) use ($db, $fakeTheWebsite, $testAppStorage) {
             $doBefore($db, $fakeTheWebsite, $testAppStorage);
             $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite,
@@ -150,6 +141,21 @@ final class PageTestUtils {
             $db->exec("DROP TABLE `\${p}{$pageType->name}`");
             $db->exec("DELETE FROM `pageTypes` WHERE `id` = ?", [$id]);
         });
+    }
+    /**
+     * @param ?SharedAPIContext $initial = null
+     * @return \Sivujetti\SharedAPIContext
+     */
+    public static function createTestAPIStorage(?SharedAPIContext $initial = null): SharedAPIContext {
+        $out = $initial ?? new SharedAPIContext;
+        if ($out->getDataHandle()->blockTypes === null) {
+            $blockTypes = new BlockTypes;
+            $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
+            $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
+            $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
+            $out->getDataHandle()->blockTypes = $blockTypes;
+        }
+        return $out;
     }
     /**
      * @return \Sivujetti\Block\Entities\Block[]

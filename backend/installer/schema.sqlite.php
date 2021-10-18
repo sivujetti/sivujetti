@@ -5,7 +5,7 @@ $dataTypeForTimestamps = "INTEGER NOT NULL DEFAULT 0";
 return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
-"DROP TABLE IF EXISTS `\${p}layoutBlocks`",
+"DROP TABLE IF EXISTS `\${p}layouts`",
 "DROP TABLE IF EXISTS `\${p}globalBlocks`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
@@ -71,9 +71,11 @@ return [
     `blocks` JSON
 )",
 
-"CREATE TABLE `\${p}layoutBlocks` (
-    `blocks` JSON,
-    `layoutId` TEXT NOT NULL
+"CREATE TABLE `\${p}layouts` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `friendlyName` TEXT NOT NULL,
+    `relFilePath` TEXT NOT NULL,
+    `structure` JSON
 )",
 
 "CREATE TABLE `\${p}files` (

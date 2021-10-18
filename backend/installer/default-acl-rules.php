@@ -21,7 +21,8 @@ $out->resources = (object) [
         "access"         => 0b00000010,
     ],
     "layouts" => (object) [
-        "updateBlocksOf" => 0b00000010,
+        "list"              => 0b00000010,
+        "updateStructureOf" => 0b00000100,
     ],
     "pages" => (object) [
         "create"         => 0b00000010,

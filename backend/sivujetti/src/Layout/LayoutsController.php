@@ -15,22 +15,31 @@ final class LayoutsController {
         $this->blockValidator = $blockValidator;
     }
     /**
-     * PUT /api/layouts/[i:layoutId]/blocks: Overwrites the block tree of
+     * GET /api/layouts: returns a list of layouts.
+     *
+     * @param \Pike\Response $res
+     * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
+     */
+    public function list(Response $res, LayoutsRepository $layoutsRepo): void {
+        $all = $layoutsRepo->getMany();
+        $res->json($all);
+    }
+    /**
+     * PUT /api/layouts/[i:layoutId]/structure: Overwrites the structure tree of
      * $req->params->layoutId.  
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Sivujetti\Layout\LayoutBlocksRepository $layoutBlocksRepo 
+     * @param \Sivujetti\Layout\LayoutRepository $layoutsRepo
      */
-    public function updateLayoutBlocks(Request $req,
-                                       Response $res,
-                                       LayoutBlocksRepository $layoutBlocksRepo): void {
+    public function updateLayoutStructure(Request $req,
+                                          Response $res,
+                                          LayoutsRepository $layoutsRepo): void {
         if (($errors = $this->validateUpdateBlocksInput($req->body))) {
             $res->status(400)->json($errors);
             return;
         }
-        $num = $layoutBlocksRepo->updateById($req->params->layoutId,
-                                             $req->body->blocks);
+        $num = $layoutsRepo->updateById($req->params->layoutId, $req->body);
         //
         if ($num !== 1)
             throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",

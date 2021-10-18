@@ -12,7 +12,8 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\BlockType\ListeningBlockTypeInterface;
-use Sivujetti\Layout\LayoutBlocksRepository;
+use Sivujetti\Layout\Entities\Layout;
+use Sivujetti\Layout\LayoutsRepository;
 
 final class PagesController {
     /**
@@ -52,7 +53,7 @@ final class PagesController {
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
-     * @param \Sivujetti\Layout\LayoutBlocksRepository $layoutBlocksRepo
+     * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
      * @param \Sivujetti\SharedAPIContext $storage
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @throws \Pike\PikeException
@@ -60,7 +61,7 @@ final class PagesController {
     public function renderPlaceholderPage(Request $req,
                                           Response $res,
                                           PagesRepository $pagesRepo,
-                                          LayoutBlocksRepository $layoutBlocksRepo,
+                                          LayoutsRepository $layoutsRepo,
                                           SharedAPIContext $storage,
                                           TheWebsite $theWebsite): void {
         $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
@@ -73,24 +74,42 @@ final class PagesController {
         $page->layoutId = $req->params->layoutId;
         $page->id = "-";
         $page->type = $req->params->pageType;
-        $page->blocks = array_map([Block::class, "fromBlueprint"], array_merge(
-            [(object) [
-                "type" => Block::TYPE_PAGE_INFO,
-                "title" => "",
-                "defaultRenderer" => "sivujetti:block-auto",
-                "children" => [],
-                "initialData" => (object) ["overrides" => "[]"]
-            ]],
-            $pageType->blockFields
-        ));
+        $page->blocks = [];
         $page->status = Page::STATUS_DRAFT;
-        $page->layout = (object) ["blocks" => []];
+        $page->layout = $layoutsRepo->findById($req->params->layoutId);
+
+
+        foreach ($page->layout->structure as $part) {
+            if ($part->type === "globalBlock")
+                $page->blocks[] = Block::fromBlueprint((object) [
+                    "type" => Block::TYPE_GLOBAL_BLOCK_REF,
+                    "title" => "",
+                    "defaultRenderer" => "sivujetti:block-auto",
+                    "children" => [],
+                    "initialData" => (object) [
+                        "globalBlockTreeId" => $part->globalBlockTreeId,
+                    ],
+                ]);
+            elseif ($part->type === "pageContents")
+                array_push($page->blocks, ...array_map([Block::class, "fromBlueprint"], array_merge(
+                    [(object) [
+                        "type" => Block::TYPE_PAGE_INFO,
+                        "title" => "",
+                        "defaultRenderer" => "sivujetti:block-auto",
+                        "children" => [],
+                        "initialData" => (object) ["overrides" => "[]"]
+                    ]],
+                    $pageType->blockFields
+                )));
+        }
+
+
         foreach ($pageType->ownFields as $field) {
             $page->{$field->name} = $field->defaultValue;
         }
         //
         self::sendPageResponse($req, $res, $pagesRepo, $storage, $theWebsite,
-            $page, $pageType, $layoutBlocksRepo);
+            $page, $pageType);
     }
     /**
      * GET /_edit/[**:url]?: Renders the edit app.
@@ -111,7 +130,8 @@ final class PagesController {
                 "baseUrl" => SiteAwareTemplate::makeUrl("/", true),
                 "assetBaseUrl" => SiteAwareTemplate::makeUrl("/", false),
                 "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
-            ])
+            ]),
+            "isFirstRun" => false,
         ]));
     }
     /**
@@ -190,7 +210,6 @@ final class PagesController {
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\Page\Entities\Page $page
      * @param \Sivujetti\PageType\Entities\PageType $pageType
-     * @param ?\Sivujetti\Layout\LayoutBlocksRepository $layoutBlocksRepo = null
      * @throws \Pike\PikeException
      */
     private static function sendPageResponse(Request $req,
@@ -199,24 +218,14 @@ final class PagesController {
                                              SharedAPIContext $storage,
                                              TheWebsite $theWebsite,
                                              Page $page,
-                                             PageType $pageType,
-                                             ?LayoutBlocksRepository $layoutBlocksRepo = null) {
+                                             PageType $pageType) {
         $themeAPI = new UserThemeAPI("theme", $storage, new Translator);
         $_ = new Theme($themeAPI); // Note: mutates $storage->data
         $isPlaceholderPage = $page->id === "-";
         //
         $data = $storage->getDataHandle();
-        $layout = ArrayUtils::findByKey($data->pageLayouts, $page->layoutId, "id");
-        if (!$layout) throw new PikeException("Page layout #`{$page->layoutId}` not available",
-                                              PikeException::BAD_INPUT);
-        if ($isPlaceholderPage) {
-            $trees = $layoutBlocksRepo->getMany($page->layoutId);
-            $page->layout->blocks = $trees ? $trees[0]->blocks : [];
-        }
-        //
         self::runBlockBeforeRenderEvent($page->blocks, $data->blockTypes, $pagesRepo, $theWebsite);
-        self::runBlockBeforeRenderEvent($page->layout->blocks, $data->blockTypes, $pagesRepo, $theWebsite);
-        $html = (new SiteAwareTemplate($layout->relFilePath, cssAndJsFiles: $data->userDefinedAssets))->render([
+        $html = (new SiteAwareTemplate($page->layout->filePath, cssAndJsFiles: $data->userDefinedAssets))->render([
             "page" => $page,
             "site" => $theWebsite,
         ]);
@@ -225,8 +234,7 @@ final class PagesController {
             $html = substr($html, 0, $bodyEnd) .
                 "<script>window.sivujettiCurrentPageData = " . json_encode([
                     "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
-                    "layoutBlocks" => $page->layout->blocks,
-                    "layouts" => $storage->getDataHandle()->pageLayouts,
+                    "layout" => self::layoutToRaw($page->layout),
                 ]) . "</script>" .
                 "<script src=\"" . SiteAwareTemplate::makeUrl("public/sivujetti/sivujetti-webpage.js", false) . "\"></script>" .
             substr($html, $bodyEnd);
@@ -278,5 +286,15 @@ final class PagesController {
             $out->{$field->name} = $page->{$field->name};
         }
         return $out;
+    }
+    /**
+     * @param \Sivujetti\Layout\Entities\Layout $layout
+     * @return object
+     */
+    private static function layoutToRaw(Layout $layout): object {
+        return (object) [
+            "friendlyName" => $layout->friendlyName,
+            "structure" => $layout->structure,
+        ];
     }
 }

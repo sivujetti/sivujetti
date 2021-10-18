@@ -17,6 +17,12 @@ class SectionBlockEditForm extends preact.Component {
         })));
     }
     /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        this.form.destroy();
+    }
+    /**
      * @param {BlockEditFormProps} props
      * @access protected
      */

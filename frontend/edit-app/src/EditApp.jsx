@@ -2,6 +2,7 @@ import {__, signals, urlUtils} from '@sivujetti-commons';
 import {Toaster} from '../../commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
 import AddPageMainPanelView from './AddPageMainPanelView.jsx';
+import ConfigureLayoutMainPanelView from './ConfigureLayoutMainPanelView.jsx';
 import {FloatingDialog} from './FloatingDialog.jsx';
 import store, {setCurrentPage, setOpQueue} from './store.js';
 import SaveButton from './SaveButton.jsx';
@@ -19,7 +20,7 @@ class EditApp extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {isCreatePageModeOn: false};
+        this.state = {mode: 'default'};
         this.blockTrees = preact.createRef();
         this.currentWebPage = null;
         this.resizeHandleEl = preact.createRef();
@@ -35,9 +36,9 @@ class EditApp extends preact.Component {
      */
     handleWebPageLoaded(webPage, combinedBlockTree, blockRefs) {
         const dataFromWebPage = webPage.data;
-        if (dataFromWebPage.page.isPlaceholderPage !== this.state.isCreatePageModeOn) {
+        if (dataFromWebPage.page.isPlaceholderPage !== this.state.mode !== 'cp') {
             this.currentWebPage = dataFromWebPage.page;
-            this.setState({isCreatePageModeOn: dataFromWebPage.page.isPlaceholderPage});
+            this.setState({mode: !dataFromWebPage.page.isPlaceholderPage ? 'default' : 'cp'});
         }
         signals.emit('on-web-page-loaded');
         store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
@@ -46,7 +47,7 @@ class EditApp extends preact.Component {
     /**
      * @access protected
      */
-    render({webPageIframe}, {isCreatePageModeOn}) {
+    render({webPageIframe}, {mode}) {
         return <div>
             <header class="container d-flex flex-centered">
                 <a href={ urlUtils.makeUrl('_edit') } class="column">
@@ -58,23 +59,25 @@ class EditApp extends preact.Component {
                 </a>
                 <SaveButton/>
             </header>
-            { !isCreatePageModeOn
+            { mode === 'default'
                 ? <DefaultMainPanelView
                     blockTreesRef={ this.blockTrees }
                     startAddPageMode={ () =>
                         // Open to iframe to '/_edit/api/_placeholder-page...',
                         // which then triggers this.handleWebPageLoaded() and sets
-                        // this.state.isCreatePageModeOn to true
+                        // this.state.mode to 'cp'
                         webPageIframe.openPlaceholderPage('Pages')
                 }/>
-                : <AddPageMainPanelView
+                : mode === 'cp' ? <AddPageMainPanelView
                     blockTreesRef={ this.blockTrees }
                     cancelAddPage={ () => webPageIframe.goBack() }
+                    changePane={ then => this.setState({mode: 'cl', then}) }
                     reRenderWithAnotherLayout={ layoutId => {
-                        this.setState({isCreatePageModeOn: false});
+                        this.setState({mode: 'default'});
                         webPageIframe.openPlaceholderPage(this.currentWebPage.type, layoutId);
                     }}
                     pageType={ this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentWebPage.type) }/>
+                : <ConfigureLayoutMainPanelView then={ this.state.then }/>
             }
             <Toaster id="editAppMain"/>
             <FloatingDialog/>

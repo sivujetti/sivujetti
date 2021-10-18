@@ -18,8 +18,6 @@ final class SharedAPIContext {
         $this->data = (object) [
             /** @var object @see \Sivujetti\App::create()  */
             "blockTypes" => null,
-            /** @var \Sivujetti\Page\Entities\PageLayout[] @see \Sivujetti\UserTheme\UserThemeAPI->registerPageLayout()  */
-            "pageLayouts" => [],
             /** @var object {"css" => object[], "js" => object[]} @see \Sivujetti\UserTheme\UserThemeAPI->enqueueCss|JsFile() */
             "userDefinedAssets" => (object) ["css" => [], "js" => []],
             /** @var string[] \Sivujetti\UserSite\UserSiteAPI->registerBlockRenderer() */

@@ -22,21 +22,4 @@ final class UserThemeAPI extends BaseAPI {
         $this->storage = $storage;
         $this->translator = $translator;
     }
-    /**
-     * @param string $friendlyName
-     * @param string $relFilePath
-     * @param ?bool $isDefault = null
-     */
-    public function registerPageLayout(string $friendlyName,
-                                       string $relFilePath,
-                                       ?bool $isDefault = null): void {
-        ValidationUtils::checkIfValidaPathOrThrow($relFilePath);
-        $mut = $this->storage->getDataHandle();
-        $layout = new PageLayout;
-        $layout->id = strval(count($mut->pageLayouts) + 1);
-        $layout->friendlyName = $friendlyName;
-        $layout->relFilePath = $relFilePath;
-        $layout->isDefault = $isDefault ?? false;
-        $mut->pageLayouts[] = $layout;
-    }
 }

@@ -6,7 +6,7 @@ $dataTypeForMaxIndexableText = "VARCHAR(191) NOT NULL"; // 191 * 4 = 767 bytes =
 return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
-"DROP TABLE IF EXISTS `\${p}layoutBlocks`",
+"DROP TABLE IF EXISTS `\${p}layouts`",
 "DROP TABLE IF EXISTS `\${p}globalBlocks`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
@@ -76,9 +76,11 @@ return [
     `blocks` JSON
 ) DEFAULT CHARSET = utf8mb4",
 
-"CREATE TABLE `\${p}layoutBlocks` (
-    `blocks` JSON,
-    `layoutId` {$dataTypeForMaxIndexableText}
+"CREATE TABLE `\${p}layouts` (
+    `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `friendlyName` VARCHAR(92) NOT NULL,
+    `relFilePath` VARCHAR(260) NOT NULL,
+    `structure` JSON
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}files` (

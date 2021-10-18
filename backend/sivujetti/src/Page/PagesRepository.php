@@ -3,9 +3,10 @@
 namespace Sivujetti\Page;
 
 use Pike\{ArrayUtils, Db, PikeException};
-use Sivujetti\Block\{BlocksController, BlockTree};
+use Sivujetti\Block\{BlocksController, BlocksController2, BlockTree};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\Entities\BlockTypes;
+use Sivujetti\Layout\Entities\Layout;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\PageTypeValidator;
@@ -155,21 +156,21 @@ final class PagesRepository {
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
-     * @param bool $doIncludeLayoutBlocks
+     * @param bool $doIncludeLayous
      * @param string|string[] ...$filters
      * @return \Sivujetti\Page\Entities\Page[]
      */
     private function doGetMany(string|PageType $pageTypeOrPageTypeName,
-                               bool $doIncludeLayoutBlocks,
+                               bool $doIncludeLayouts,
                                ...$filters): array {
         $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
         $this->pageType = $pageType;
         [$filterCols, $filterVals, $joinsCols, $joins] = $this->filtersToQParts($pageType, ...$filters);
-        [$baseJoinCols, $baseJoin] = !$doIncludeLayoutBlocks
-            ? [",'[]' AS `layoutBlocksJson`",
+        [$baseJoinCols, $baseJoin] = !$doIncludeLayouts
+            ? [",NULL AS `layoutFilePath`",
                ""]
-            : [",IFNULL(lb.`blocks`, '[]') AS `layoutBlocksJson`",
-               " LEFT JOIN `\${p}layoutBlocks` lb ON (lb.`layoutId` = p.`layoutId`)"];
+            : [",'layout.default.tmpl.php' AS `layoutFilePath`",
+               " LEFT JOIN `\${p}layouts` l ON (l.`id` = p.`layoutId`)"];
         //
         $ownFieldCols = [];
         foreach ($pageType->ownFields as $f) {
@@ -201,7 +202,7 @@ final class PagesRepository {
     private function normalizeRs(array $rows): array {
         foreach ($rows as $row) {
             $row->blocks = self::blocksFromRs("pageBlocksJson", $row);
-            $row->layout = (object) ["blocks" => self::blocksFromRs("layoutBlocksJson", $row)];
+            $row->layout = (object) ["filePath" => $row->layoutFilePath];
             //
             foreach ($this->pageType->ownFields as $field) {
                 if ($field->dataType === "many-to-many") continue; // Not implemented yet

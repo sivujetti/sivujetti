@@ -2,7 +2,9 @@ import {__, http, urlUtils, signals, env} from '@sivujetti-commons';
 import {InputGroupInline} from '../../commons/Form.jsx';
 import toasters from '../../commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';
-import store, {deleteItemsFromOpQueueAfter, setOpQueue} from './store.js';
+import store, {deleteItemsFromOpQueueAfter, setOpQueue,
+pushItemToOpQueue
+} from './store.js';
 
 class AddPageMainPanelView extends preact.Component {
     // pageMetaData;
@@ -14,7 +16,7 @@ class AddPageMainPanelView extends preact.Component {
     constructor(props) {
         super(props);
         this.pageMetaData = {};
-        this.state = {layouts: BlockTrees.currentWebPage ? BlockTrees.currentWebPage.data.layouts : null};
+        this.state = {layouts: null};
         this.unregisterSignalListener = signals.on('on-page-info-form-value-changed',
         /**
          * @param {PageMetaRaw} pageMeta
@@ -22,12 +24,22 @@ class AddPageMainPanelView extends preact.Component {
         pageMeta => {
             this.pageMetaData = pageMeta;
         });
+        http.get('/api/layouts')
+            .then(layouts => { this.setState({layouts}); })
+            .catch(env.window.console.error);
     }
     /**
      * @access protected
      */
     componentDidMount() {
-        store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
+        store.dispatch(setOpQueue([{opName: 'meta', command: {
+                doHandle: () => {
+                    return Promise.resolve(['halt', conti => {
+                        this.props.changePane({then: conti});
+                    }]);
+                },
+                args: ['a'],
+            }},{opName: 'create-new-page', command: {
             doHandle: this.handleFormSubmitted.bind(this),
             args: []
         }}]));
@@ -75,7 +87,7 @@ class AddPageMainPanelView extends preact.Component {
             </div></section> : null }
             <section>
                 <BlockTrees
-                    onWebPageLoadHandled={ () => { this.setState({layouts: BlockTrees.currentWebPage.data.layouts}); }}
+                    onWebPageLoadHandled={ () => { 'this.setState({layouts: BlockTrees.currentWebPage.data.layouts})'; }}
                     containingView="AddPageMainPanelView"
                     ref={ blockTreesRef }/>
             </section>

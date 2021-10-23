@@ -2,10 +2,11 @@
 
 namespace Sivujetti\Block;
 
-use Pike\{Request, Response, Validation};
+use Pike\{ArrayUtils, Request, Response, Validation};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder};
 use Sivujetti\Page\{PagesController, PagesRepository, SiteAwareTemplate};
+use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\SharedAPIContext;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
@@ -42,8 +43,9 @@ final class BlocksController {
         //
         PagesController::runBlockBeforeRenderEvent([$block], $storage->getDataHandle()->blockTypes,
                                                    $pagesRepo, $theWebsite);
+        $pagePageType = ArrayUtils::findByKey($theWebsite->pageTypes, PageType::PAGE, "name");
         $html = (new SiteAwareTemplate($block->renderer, null, [
-            "page" => null,
+            "page" => PagesController::createEmptyPage($pagePageType),
             "site" => $theWebsite,
         ]))->renderBlocks([$block]);
         $res->json(["result" => $html]);

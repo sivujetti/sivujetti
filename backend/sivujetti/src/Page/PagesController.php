@@ -65,18 +65,10 @@ final class PagesController {
                                           SharedAPIContext $storage,
                                           TheWebsite $theWebsite): void {
         $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
-        //
-        $page = new Page;
-        $page->slug = "-";
-        $page->path = "-";
-        $page->level = 1;
-        $page->title = $pageType->defaultFields->title->defaultValue;
+        $page = self::createEmptyPage($pageType);
         $page->layoutId = $req->params->layoutId;
-        $page->id = "-";
-        $page->type = $req->params->pageType;
-        $page->blocks = [];
-        $page->status = Page::STATUS_DRAFT;
         $page->layout = $layoutsRepo->findById($req->params->layoutId);
+
 
 
         foreach ($page->layout->structure as $part) {
@@ -225,6 +217,7 @@ final class PagesController {
         //
         $data = $storage->getDataHandle();
         self::runBlockBeforeRenderEvent($page->blocks, $data->blockTypes, $pagesRepo, $theWebsite);
+        $storage->triggerEvent("sivujetti:onPageBeforeRender", $page);
         $html = (new SiteAwareTemplate($page->layout->filePath, cssAndJsFiles: $data->userDefinedAssets))->render([
             "page" => $page,
             "site" => $theWebsite,
@@ -296,5 +289,21 @@ final class PagesController {
             "friendlyName" => $layout->friendlyName,
             "structure" => $layout->structure,
         ];
+    }
+    /**
+     * @param \Sivujetti\PageType\Entities\PageType $pagePageType
+     * @return \Sivujetti\Page\Entities\Page
+     */
+    public static function createEmptyPage(PageType $pagePageType): Page {
+        $page = new Page;
+        $page->slug = "-";
+        $page->path = "-";
+        $page->level = 1;
+        $page->title = $pagePageType->defaultFields->title->defaultValue;
+        $page->id = "-";
+        $page->type = $pagePageType->name;
+        $page->blocks = [];
+        $page->status = Page::STATUS_DRAFT;
+        return $page;
     }
 }

@@ -13,6 +13,7 @@
         <?= $this->partial("MainMenu") ?>
     </header>
     <?= $this->renderBlocks($page->blocks),
-        $this->partial("Footer") ?>
+        $this->partial("Footer"),
+        $this->jsFiles() ?>
 </body>
 </html>

@@ -19,7 +19,7 @@ export default () => {
         ownPropNames: Object.keys(initialData),
         initialData,
         defaultRenderer: 'sivujetti:block-menu',
-        reRender(block) {
+        reRender(block, _renderChildren) {
             return http.post('/api/blocks/render', {block}).then(resp => {
                 const el = document.createElement('div');
                 el.innerHTML = resp.result;

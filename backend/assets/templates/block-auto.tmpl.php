@@ -9,6 +9,10 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_HEADING):
         $props->text, // @allow pre-validated html
         $this->renderChildren($props),
     "</{$tag}>";
+elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_IMAGE):
+    echo "<img src=\"{$this->assetUrl($props->src)}\" alt=\"\"",
+        ($props->cssClass ? " class=\"{$this->e($props->cssClass)}\"" : ""), ">",
+        $this->renderChildren($props);
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):
     echo "<p><a href=\"" . (!str_contains($props->linkTo, ".")
         ? $this->makeUrl($props->linkTo)

@@ -9,6 +9,7 @@ final class Block {
     public const TYPE_COLUMNS          = "Columns";
     public const TYPE_GLOBAL_BLOCK_REF = "GlobalBlockReference";
     public const TYPE_HEADING          = "Heading";
+    public const TYPE_IMAGE            = "Image";
     public const TYPE_MENU             = "Menu";
     public const TYPE_PAGE_INFO        = "PageInfo";
     public const TYPE_PARAGRAPH        = "Paragraph";
@@ -42,6 +43,10 @@ final class Block {
     /* If self::TYPE_HEADING
     public string $text;
     public int $level;
+    public string $cssClass; */
+
+    /* If self::TYPE_IMAGE
+    public string $src;
     public string $cssClass; */
 
     /* If "MyListing"

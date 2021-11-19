@@ -7,7 +7,7 @@ use Sivujetti\Auth\ACL;
 use Sivujetti\Block\BlocksModule;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, ColumnsBlockType, GlobalBlockReferenceBlockType,
-                         HeadingBlockType, MenuBlockType, PageInfoBlockType,
+                         HeadingBlockType, ImageBlockType, MenuBlockType, PageInfoBlockType,
                          ParagraphBlockType, RichTextBlockType, SectionBlockType};
 use Sivujetti\Page\PagesModule;
 use Sivujetti\PageType\Entities\PageType;
@@ -54,6 +54,7 @@ final class App {
             $blockTypes->{Block::TYPE_COLUMNS} = new ColumnsBlockType;
             $blockTypes->{Block::TYPE_GLOBAL_BLOCK_REF} = new GlobalBlockReferenceBlockType;
             $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
+            $blockTypes->{Block::TYPE_IMAGE} = new ImageBlockType;
             $blockTypes->{Block::TYPE_MENU} = new MenuBlockType;
             $blockTypes->{Block::TYPE_PAGE_INFO} = new PageInfoBlockType;
             $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;

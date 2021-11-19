@@ -9,6 +9,7 @@ import createButtonBlockType from './src/block-types/button.js';
 import createColumnsBlockType from './src/block-types/columns.js';
 import createGlobalBlockReferenceBlockType from './src/block-types/globalBlockReference.js';
 import createHeadingBlockType from './src/block-types/heading.js';
+import createImageBlockType from './src/block-types/image.js';
 import createListingBlockTypeCreator from './src/block-types/listing.js';
 import createPageInfoBlockType from './src/block-types/pageInfo.js';
 import createParagraphBlockType from './src/block-types/paragraph.js';
@@ -54,6 +55,7 @@ function configureServices() {
     blockTypes.register('Columns', createColumnsBlockType(internalSivujettiApi));
     blockTypes.register('GlobalBlockReference', createGlobalBlockReferenceBlockType(internalSivujettiApi));
     blockTypes.register('Heading', createHeadingBlockType(internalSivujettiApi));
+    blockTypes.register('Image', createImageBlockType(internalSivujettiApi));
     blockTypes.register('Listing', createListingBlockTypeCreator(internalSivujettiApi));
     blockTypes.register('PageInfo', createPageInfoBlockType(internalSivujettiApi));
     blockTypes.register('Paragraph', createParagraphBlockType(internalSivujettiApi));

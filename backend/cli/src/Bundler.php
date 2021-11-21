@@ -2,8 +2,9 @@
 
 namespace Sivujetti\Cli;
 
-use Pike\{FileSystem, PikeException};
-use Sivujetti\Update\{PackageStreamInterface, ZipPackageStream};
+use Pike\PikeException;
+use Sivujetti\FileSystem;
+use Sivujetti\Update\{PackageStreamInterface, Updater, ZipPackageStream};
 
 /**
  * Creates a zip file / directory with following structure:
@@ -11,7 +12,7 @@ use Sivujetti\Update\{PackageStreamInterface, ZipPackageStream};
  * /$backend      <-- literally directory named "$backend"
  *   /some-dir
  *     file2.php
- *  file1.php
+ *   file1.php
  * /$index
  *   some-file.js
  * $backend-files-list.php // Contains "<?php // ["$backend/some-dir/file2.php","$backend/file1.php"]"
@@ -19,23 +20,35 @@ use Sivujetti\Update\{PackageStreamInterface, ZipPackageStream};
  * ```
  */
 final class Bundler {
+    /** @var \Sivujetti\FileSystem */
     private FileSystem $fs;
     /** @var \Closure fn(...$args) => string */
     private \Closure $doPrint;
+    /** @var \Closure fn(string $command) => string|false|null */
+    private \Closure $shellExecFn;
     /** @var string SIVUJETTI_BACKEND_PATH */
     private string $sivujettiBackendPath;
     /** @var string SIVUJETTI_PUBLIC_PATH */
     private string $sivujettiIndexPath;
+    /** @var string SIVUJETTI_BACKEND_PATH . "bundler-temp" */
+    private string $tempDirForComposerInstall;
+    /** @var string SIVUJETTI_PUBLIC_PATH . "public/bundler-temp/public/sivujetti" */
+    private string $tempDirForNpmBuild;
     /**
-     * @param \Pike\FileSystem $fs
-     * @param ?\Closure $printFn = function ($msg) { echo $msg . PHP_EOL; }
+     * @param \Sivujetti\FileSystem $fs
+     * @param ?callable $printFn = function ($msg) { echo $msg . PHP_EOL; }
+     * @param ?callable $shellExecFn = function ($cmd) { return shell_exec($cmd); }
      */
     public function __construct(FileSystem $fs,
-                                ?\Closure $printFn = null) {
+                                ?callable $printFn = null,
+                                ?callable $shellExecFn = null) {
         $this->fs = $fs;
         $this->doPrint = $printFn ?? function ($msg) { echo $msg . PHP_EOL; };
+        $this->shellExecFn = $shellExecFn instanceof \Closure ? $shellExecFn : \Closure::fromCallable("shell_exec");
         $this->sivujettiBackendPath = SIVUJETTI_BACKEND_PATH;
         $this->sivujettiIndexPath = SIVUJETTI_PUBLIC_PATH;
+        $this->tempDirForComposerInstall = "{$this->sivujettiBackendPath}bundler-temp";
+        $this->tempDirForNpmBuild = "{$this->sivujettiIndexPath}public/bundler-temp/public/sivujetti";
     }
     /**
      * @param \Sivujetti\Update\PackageStreamInterface $to Zip or local directory
@@ -48,6 +61,9 @@ final class Bundler {
         $this->destryPreviousTargetOrThrow($to, $fileOrDirPath, $allowOverWrite);
         $to->open($fileOrDirPath, true);
         //
+        $this->createAndSetupTmpDirs();
+        $this->installBackendVendorDeps($this->tempDirForComposerInstall);
+        $this->bundleFrontend($this->tempDirForNpmBuild);
         $backendRelatedFileGroups = $this->makeBackendFilesFileListGroups();
         $publicRelatedFileGroups = $this->makePublicFilesFileListGroups();
         //
@@ -55,17 +71,8 @@ final class Bundler {
         $this->writeFiles($publicRelatedFileGroups, "index", $to);
         //
         $contents = $to->getResult();
+        $this->deleteTmpDirs();
         return $contents;
-    }
-    /**
-     * Returns a function that removes $basePath from the beginning of a string.
-     *
-     * @param string $basePath
-     * @return \Closure
-     */
-    public static function makeRelatifier(string $basePath): \Closure {
-        $after = strlen($basePath);
-        return static fn($fullPath) => substr($fullPath, $after);
     }
     /**
      * @see $this->makeRelease()
@@ -90,14 +97,77 @@ final class Bundler {
         }
     }
     /**
+     * Creates two temporary directories we'll be using during the bunding
+     * process.
+     *
+     * /backend
+     *   /bundler-temp     <- this
+     *     ..
+     *     composer.json
+     * /public
+     *   /bundler-temp
+     *     /public
+     *       /sivujetti    <- this
+     *     ...
+     * index.php
+     * ...
+     */
+    private function createAndSetupTmpDirs(): void {
+        $tempDirPaths = [$this->tempDirForComposerInstall,
+                         $this->tempDirForNpmBuild];
+        foreach ($tempDirPaths as $path) {
+            if (!$this->fs->isDir($path) && !$this->fs->mkDir($path))
+                throw new PikeException("Failed to create temp directory `{$path}`",
+                                        PikeException::FAILED_FS_OP);
+        }
+        if (!$this->fs->copy("{$this->sivujettiBackendPath}composer.json",
+                             "{$this->tempDirForComposerInstall}/composer.json"))
+            throw new PikeException("Failed to copy `composer.json` to temp directory",
+                                    PikeException::FAILED_FS_OP);
+    }
+    /**
+     * Writes optimized `backend/vendor/*` to $toDir using the `composer` command.
+     *
+     * @param string $toDir
+     */
+    private function installBackendVendorDeps(string $toDir): void {
+        $originalCwd = getcwd();
+        $this->doPrint->__invoke("cd <tempDirForComposerInstall>...");
+        chdir($toDir);
+        $this->doPrint->__invoke("Executing `composer install`...");
+        $this->shellExecFn->__invoke("composer install --no-dev --optimize-autoloader");
+        if (!$this->fs->isFile("{$toDir}/vendor/autoload.php"))
+            throw new PikeException("Failed to `composer install`",
+                                    PikeException::FAILED_FS_OP);
+        $this->doPrint->__invoke("cd <currentWorkingDir>...");
+        chdir($originalCwd);
+        $this->doPrint->__invoke("Done.");
+    }
+    /**
+     * Writes optimized `public/sivujetti/*.js` to $toDir using the `npm` command.
+     *
+     * @param string $toDir
+     */
+    private function bundleFrontend(string $toDir): void {
+        $this->doPrint->__invoke("Executing `npm run-script build`...");
+        // "/index/path/public/bundler-temp/public/sivujetti" -> "public/bundler-temp/public/sivujetti/"
+        $relDir = str_replace($this->sivujettiIndexPath, "", $toDir) . "/";
+        $this->shellExecFn->__invoke("npm --prefix {$this->sivujettiIndexPath} run-script build -- " .
+                                     "--configBundle all --configTargetRelDir {$relDir}");
+        if (!$this->fs->isFile("{$toDir}/sivujetti-edit-app.js"))
+            throw new PikeException("Failed to `npm run-script build`",
+                                    PikeException::FAILED_FS_OP);
+        $this->doPrint->__invoke("Done.");
+    }
+    /**
      * Constructs a list of files that will be included to the output package,
      * tagged as a backend file.
      *
      * @return \Sivujetti\Cli\FileGroup[]
      */
     private function makeBackendFilesFileListGroups(): array {
-        $b = $this->sivujettiBackendPath;
-        $relatifyPath = self::makeRelatifier($b);
+        $base1 = $this->sivujettiBackendPath;
+        $relatifyPath = Updater::makeRelatifier($base1);
         $prefix = PackageStreamInterface::FILE_NS_BACKEND;
         $prefixyAndRelatifyPath = fn($p) => "{$prefix}{$relatifyPath($p)}";
         // assets
@@ -105,33 +175,39 @@ final class Bundler {
             "{$prefix}assets/templates/_menu-print-branch.tmpl.php",
             "{$prefix}assets/templates/block-auto.tmpl.php",
             "{$prefix}assets/templates/block-generic-wrapper.tmpl.php",
-            "{$prefix}assets/templates/block-listing.tmpl.php",
             "{$prefix}assets/templates/block-menu.tmpl.php",
             "{$prefix}assets/templates/edit-app-wrapper.tmpl.php",
         ];
         // cli
-        $cliPaths = $this->fs->readDirRecursive("{$b}cli/src", "/^.*\.php$/");
+        $cliPaths = $this->fs->readDirRecursive("{$base1}cli/src", "/^.*\.php$/");
         $out = array_merge($out, array_map($prefixyAndRelatifyPath, $cliPaths));
         // installer
         $flags = \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::SKIP_DOTS;
-        $instPaths = $this->fs->readDirRecursive("{$b}installer",
+        $instPaths = $this->fs->readDirRecursive("{$base1}installer",
                                                   "/^[^.]+" .      // starts with "<anyExceptDot>"
                                                   "[^\\/]+\..+$/", // followed by "<anyExceptSlash>.<any>"
                                                   $flags);
-        $testsDir = "{$b}installer/tests/";
+        $testsDir = "{$base1}installer/tests/";
         foreach ($instPaths as $path) {
             if (str_starts_with($path, $testsDir) ||
                 str_ends_with($path, "config.in.php")) continue;
-            $relPath = $prefixyAndRelatifyPath($path);
-            $out[] = $relPath;
+            $out[] = $prefixyAndRelatifyPath($path);
         }
         // sivujetti
-        $sjetPaths = $this->fs->readDirRecursive("{$b}sivujetti/src", "/^.*\.php$/");
+        $sjetPaths = $this->fs->readDirRecursive("{$base1}sivujetti/src", "/^.*\.php$/");
         $out = array_merge($out, array_map($prefixyAndRelatifyPath, $sjetPaths));
         // vendor
-        // todo
+        $base2 = "{$this->tempDirForComposerInstall}/";
+        $vendorFilePaths = $this->fs->readDirRecursive("{$base2}vendor", "/.*/");
+        $relatifyPath2 = Updater::makeRelatifier($base2); // "/temp/dir/vendor/bar.php" -> "vendor/bar.php"
+        $out2 = [];
+        foreach ($vendorFilePaths as $path) {
+            if (str_contains($path, "/.")) continue;
+            $out2[] = "{$prefix}{$relatifyPath2($path)}";
+        }
         //
-        return [new FileGroup($this->sivujettiBackendPath, $out, $prefix)];
+        return [new FileGroup($base1, $out, $prefix),
+                new FileGroup($base2, $out2, $prefix)];
     }
     /**
      * Constructs a list of files that will be included to the output package,
@@ -140,20 +216,28 @@ final class Bundler {
      * @return \Sivujetti\Cli\FileGroup[]
      */
     private function makePublicFilesFileListGroups(): array {
+        $base1 = $this->sivujettiIndexPath;
+        $base2 = "{$this->sivujettiIndexPath}public/bundler-temp/";
         $prefix = PackageStreamInterface::FILE_NS_INDEX;
-        // public/sivujetti/assets/*.*
+        // $indexPath/public/sivujetti/assets/*.*
         // todo
-        // // public/sivujetti/vendor/*.*
+        // // $indexPath/public/sivujetti/vendor/*.*
         // todo
-        // // public/sivujetti/*.css
+        // // $indexPath/public/sivujetti/*.css
         // todo
         $out = [];
-        // *.*
+        // $indexPath/*.*
         $out = array_merge($out, ["{$prefix}index.php",
                                   "{$prefix}install.php",
                                   "{$prefix}LICENSE"]);
+        // $indexPath/public/sivujetti/*.js
+        $bundledFilePaths = $this->fs->readDir("$this->tempDirForNpmBuild");
+        // .../public/bundler-temp/public/sivujetti/*.js -> $indexPath/public/sivujetti/*.js
+        $relatify2 = Updater::makeRelatifier($base2);
+        $out2 = array_map(fn($p) => "{$prefix}{$relatify2($p)}", $bundledFilePaths);
         //
-        return [new FileGroup($this->sivujettiIndexPath, $out, $prefix)];
+        return [new FileGroup($base1, $out, $prefix),
+                new FileGroup($base2, $out2, $prefix)];
     }
     /**
      * Writes $fileGroups.* and their file lists to $out.
@@ -171,13 +255,30 @@ final class Bundler {
         //
         foreach ($fileGroups as $group) {
             $from = $group->basePathToCopyFrom;
-            $stripDirNs = self::makeRelatifier($group->dirNameSpace);
+            $stripDirNs = Updater::makeRelatifier($group->dirNameSpace);
             foreach ($group->nsdRelFilePaths as $path) {
                 // @allow \Pike\PikeException
                 $out->addFile("{$from}{$stripDirNs($path)}", $path);
             }
         }
         $this->doPrint->__invoke("Done.");
+    }
+    /**
+     */
+    private function deleteTmpDirs(): void {
+        $toWipe = $this->tempDirForComposerInstall;
+        $eachEntryMustStartWith = $this->sivujettiBackendPath;
+        if (($err = $this->fs->deleteFilesRecursive($toWipe,
+                                                    $eachEntryMustStartWith)))
+            throw new PikeException("Failed to delete temp directory: {$err}",
+                                    PikeException::FAILED_FS_OP);
+        // "public/bundler-temp/public/sivujetti" -> "public/bundler-temp"
+        $toWipe2 = dirname($this->tempDirForNpmBuild, 2);
+        $eachEntryMustStartWith2 = "{$this->sivujettiIndexPath}public/";
+        if (($err2 = $this->fs->deleteFilesRecursive($toWipe2,
+                                                     $eachEntryMustStartWith2)))
+            throw new PikeException("Failed to delete temp directory: {$err2}",
+                                    PikeException::FAILED_FS_OP);
     }
 }
 

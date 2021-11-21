@@ -35,7 +35,7 @@ final class UpdateCoreTest extends DbTestCase {
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
-        $state->inputData = (object) ["toVersion" => '1' . App::VERSION];
+        $state->inputData = (object) ["toVersion" => '99' . App::VERSION];
         $state->sivujettiApp = null;
         $state->spyingResponse = null;
         return $state;
@@ -104,14 +104,20 @@ final class UpdateCoreTest extends DbTestCase {
     ////////////////////////////////////////////////////////////////////////////
 
 
-    public function testUpdateCoreRejectsRequestIfToVersionIsOlderThanCurrentVersion(): void {
+    public function testUpdateCoreRejectsRequestIfToVersionIsOlderOrEqualThanCurrentVersion(): void {
         $state = $this->setupTest();
-        $state->inputData->toVersion = "0.0.0";
         $this->makeTestSivujettiApp($state);
-        $this->sendUpdateCoreRequest($state);
-        $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
-        $this->verifyResponseBodyEquals(["toVersion must be > than currentVersion"],
-                                        $state->spyingResponse);
+        $sendRequestAndVerify = function (string $input) use ($state) {
+            $state->spyingResponse = null;
+            $state->inputData->toVersion = $input;
+            $this->sendUpdateCoreRequest($state);
+            $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
+            $this->verifyResponseBodyEquals(["toVersion must be > than currentVersion"],
+                                            $state->spyingResponse);
+        };
+        //
+        $sendRequestAndVerify("0.0.0");
+        $sendRequestAndVerify(App::VERSION);
     }
 
 

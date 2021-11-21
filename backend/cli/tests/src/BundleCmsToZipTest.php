@@ -6,12 +6,20 @@ use Sivujetti\Cli\App;
 use Pike\{FileSystem, Request};
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 use Sivujetti\Cli\Bundler;
-use Sivujetti\Update\{PackageStreamInterface, Updater, ZipPackageStream};
+use Sivujetti\Update\{PackageStreamInterface as Pkg, Updater, ZipPackageStream};
 
 final class BundleCmsToZipTest extends DbTestCase {
     use HttpTestUtils;
     private string $actuallyWrittenZipFilePath;
     private string $actuallyWrittenSignatureFilePath;
+    private const FILES_GENERATED_BY_COMPOSER = [
+        "vendor/autoload.php" =>
+            "<?php // mock composer-generated autoload.php"
+    ];
+    private const FILES_GENERATED_BY_JS_BUNDLER = [
+        "sivujetti-edit-app.js" =>
+            "bundled js here"
+    ];
     protected function setUp(): void {
         parent::setUp();
         $this->actuallyWrittenZipFilePath = "";
@@ -46,7 +54,22 @@ final class BundleCmsToZipTest extends DbTestCase {
     private function makeTestCliApp(\TestState $state): void {
         $state->cliApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function ($di) {
             $di->define(Bundler::class, [
-                ':printFn' => function() { }
+                ":printFn" => function () { },
+                ":shellExecFn" => function ($cmd) {
+                    $composerTmpPath = SIVUJETTI_BACKEND_PATH . "bundler-temp/";
+                    $npmTmpPath = SIVUJETTI_PUBLIC_PATH . "public/bundler-temp/public/sivujetti";
+                    if ($cmd === "composer install --no-dev --optimize-autoloader") {
+                        mkdir("{$composerTmpPath}vendor", 0755);
+                        $mockFilePath = key(self::FILES_GENERATED_BY_COMPOSER);
+                        file_put_contents("{$composerTmpPath}{$mockFilePath}",
+                                          self::FILES_GENERATED_BY_COMPOSER[$mockFilePath]);
+                    } elseif ($cmd === "npm --prefix " . SIVUJETTI_PUBLIC_PATH . " run-script build -- " .
+                                       "--configBundle all --configTargetRelDir public/bundler-temp/public/sivujetti/") {
+                        $mockFilePath = key(self::FILES_GENERATED_BY_JS_BUNDLER);
+                        file_put_contents("{$npmTmpPath}/{$mockFilePath}",
+                                          self::FILES_GENERATED_BY_JS_BUNDLER[$mockFilePath]);
+                    }
+                }
             ]);
         });
     }
@@ -76,25 +99,50 @@ final class BundleCmsToZipTest extends DbTestCase {
         $this->verifyIncludedTheseFilesToZip("index-dir-files");
     }
     private function verifyIncludedTheseFilesToZip(string $which): void {
-        [$pathPrefix, $localDir, $zipFileListName] = match($which) {
-            "backend-dir-files" => [PackageStreamInterface::FILE_NS_BACKEND,
-                                    SIVUJETTI_BACKEND_PATH,
-                                    PackageStreamInterface::LOCAL_NAME_BACKEND_FILES_LIST],
-            "index-dir-files" => [PackageStreamInterface::FILE_NS_INDEX,
-                                  SIVUJETTI_PUBLIC_PATH,
-                                  PackageStreamInterface::LOCAL_NAME_INDEX_FILES_LIST],
-            default => throw new \RuntimeException("Invalid dirName"),
-        };
-        $expectedFiles = require dirname(__DIR__) . "/assets/cms-{$which}.php";
         $pkg = new ZipPackageStream(new FileSystem);
         $pkg->open($this->actuallyWrittenZipFilePath);
-        $stripDirNs = Bundler::makeRelatifier($pathPrefix);
-        foreach ($expectedFiles as $nsdRelFilePath) {
-            $relFilePath = $stripDirNs($nsdRelFilePath);
-            $this->assertStringEqualsFile("{$localDir}{$relFilePath}",
-                                          $pkg->read($nsdRelFilePath));
+        //
+        if ($which === "backend-dir-files") {
+            // Not vendor files
+            $expectedFiles1 = require dirname(__DIR__) . "/assets/cms-backend-dir-files.php";
+            $stripDirNs = Updater::makeRelatifier(Pkg::FILE_NS_BACKEND);
+            foreach ($expectedFiles1 as $nsdRelFilePath) {
+                $relFilePath = $stripDirNs($nsdRelFilePath);
+                $this->assertStringEqualsFile(SIVUJETTI_BACKEND_PATH . $relFilePath,
+                                              $pkg->read($nsdRelFilePath));
+            }
+            // Vendor files
+            $expectedFiles2 = require dirname(__DIR__) . "/assets/cms-backend-vendor-dir-files.php";
+            foreach ($expectedFiles2 as $nsdRelFilePath) {
+                $relFilePath = $stripDirNs($nsdRelFilePath);
+                $this->assertEquals(self::FILES_GENERATED_BY_COMPOSER[$relFilePath],
+                                    $pkg->read($nsdRelFilePath));
+            }
+            // file list
+            $actualFilesList = Updater::readSneakyJsonData(Pkg::LOCAL_NAME_BACKEND_FILES_LIST, $pkg);
+            $this->assertEquals(array_merge($expectedFiles1, $expectedFiles2), $actualFilesList);
+        } elseif ($which === "index-dir-files") {
+            // $indexPath/*.*
+            $expectedFiles = require dirname(__DIR__) . "/assets/cms-index-dir-files.php";
+            $stripDirNs = Updater::makeRelatifier(Pkg::FILE_NS_INDEX);
+            foreach ($expectedFiles as $nsdRelFilePath) {
+                $relFilePath = $stripDirNs($nsdRelFilePath);
+                $this->assertStringEqualsFile(SIVUJETTI_PUBLIC_PATH . $relFilePath,
+                                              $pkg->read($nsdRelFilePath));
+            }
+            // $indexPath/public/sivujetti/*.js
+            $expectedFiles2 = require dirname(__DIR__) . "/assets/cms-index-dir-sivujetti-files.php";
+            $stripDirNs2 = Updater::makeRelatifier(Pkg::FILE_NS_INDEX . "public/sivujetti/");
+            foreach ($expectedFiles2 as $nsdRelFilePath) {
+                $relFilePath = $stripDirNs2($nsdRelFilePath);
+                $this->assertEquals(self::FILES_GENERATED_BY_JS_BUNDLER[$relFilePath],
+                                    $pkg->read($nsdRelFilePath));
+            }
+            // file list
+            $actualFilesList = Updater::readSneakyJsonData(Pkg::LOCAL_NAME_INDEX_FILES_LIST, $pkg);
+            $this->assertEquals(array_merge($expectedFiles, $expectedFiles2), $actualFilesList);
+        } else {
+            throw new \RuntimeException("Invalid dirName");
         }
-        $actualFilesList = Updater::readSneakyJsonData($zipFileListName, $pkg);
-        $this->assertEquals($expectedFiles, $actualFilesList);
     }
 }

@@ -71,7 +71,7 @@ final class Updater {
                 $tasks[$currentTaskIdx]->exec(); // Copy files, migrate db etc..
             }
             $localState = "finalizing";
-            self::updateUpdateStateAsEnded();
+            $this->updateUpdateStateAsEnded();
             return self::RESULT_OK;
         } catch (\Exception $e) {
             if ($localState === "opening-zip" ||

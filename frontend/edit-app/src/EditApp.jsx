@@ -2,7 +2,6 @@ import {__, signals, urlUtils} from '@sivujetti-commons';
 import {Toaster} from '../../commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
 import AddPageMainPanelView from './AddPageMainPanelView.jsx';
-import ConfigureLayoutMainPanelView from './ConfigureLayoutMainPanelView.jsx';
 import {FloatingDialog} from './FloatingDialog.jsx';
 import store, {setCurrentPage, setOpQueue} from './store.js';
 import SaveButton from './SaveButton.jsx';
@@ -36,9 +35,9 @@ class EditApp extends preact.Component {
      */
     handleWebPageLoaded(webPage, combinedBlockTree, blockRefs) {
         const dataFromWebPage = webPage.data;
-        if (dataFromWebPage.page.isPlaceholderPage !== this.state.mode !== 'cp') {
+        if (dataFromWebPage.page.isPlaceholderPage && this.state.mode !== 'create-page') {
             this.currentWebPage = dataFromWebPage.page;
-            this.setState({mode: !dataFromWebPage.page.isPlaceholderPage ? 'default' : 'cp'});
+            this.setState({mode: !dataFromWebPage.page.isPlaceholderPage ? 'default' : 'create-page'});
         }
         signals.emit('on-web-page-loaded');
         store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
@@ -65,19 +64,17 @@ class EditApp extends preact.Component {
                     startAddPageMode={ () =>
                         // Open to iframe to '/_edit/api/_placeholder-page...',
                         // which then triggers this.handleWebPageLoaded() and sets
-                        // this.state.mode to 'cp'
+                        // this.state.mode to 'create-page'
                         webPageIframe.openPlaceholderPage('Pages')
                 }/>
-                : mode === 'cp' ? <AddPageMainPanelView
+                : <AddPageMainPanelView
                     blockTreesRef={ this.blockTrees }
                     cancelAddPage={ () => webPageIframe.goBack() }
-                    changePane={ then => this.setState({mode: 'cl', then}) }
                     reRenderWithAnotherLayout={ layoutId => {
                         this.setState({mode: 'default'});
                         webPageIframe.openPlaceholderPage(this.currentWebPage.type, layoutId);
                     }}
                     pageType={ this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentWebPage.type) }/>
-                : <ConfigureLayoutMainPanelView then={ this.state.then }/>
             }
             <Toaster id="editAppMain"/>
             <FloatingDialog/>
@@ -173,7 +170,7 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
             ].join('');
             const block = findBlockTemp(blockRef);
             highlightRectEl.current.setAttribute('data-title',
-                (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + __(block.type)
+                (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type)
             );
             prevHoverStartBlockRef = blockRef;
         },

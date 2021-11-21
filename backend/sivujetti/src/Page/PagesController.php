@@ -66,39 +66,13 @@ final class PagesController {
                                           TheWebsite $theWebsite): void {
         $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
         $page = self::createEmptyPage($pageType);
-        $page->layoutId = $req->params->layoutId;
-        $page->layout = $layoutsRepo->findById($req->params->layoutId);
-
-
-
-        foreach ($page->layout->structure as $part) {
-            if ($part->type === "globalBlock")
-                $page->blocks[] = Block::fromBlueprint((object) [
-                    "type" => Block::TYPE_GLOBAL_BLOCK_REF,
-                    "title" => "",
-                    "defaultRenderer" => "sivujetti:block-auto",
-                    "children" => [],
-                    "initialData" => (object) [
-                        "globalBlockTreeId" => $part->globalBlockTreeId,
-                    ],
-                ]);
-            elseif ($part->type === "pageContents")
-                array_push($page->blocks, ...array_map([Block::class, "fromBlueprint"], array_merge(
-                    [(object) [
-                        "type" => Block::TYPE_PAGE_INFO,
-                        "title" => "",
-                        "defaultRenderer" => "sivujetti:block-auto",
-                        "children" => [],
-                        "initialData" => (object) ["overrides" => "[]"]
-                    ]],
-                    $pageType->blockFields
-                )));
-        }
-
-
         foreach ($pageType->ownFields as $field) {
             $page->{$field->name} = $field->defaultValue;
         }
+        $layout = $layoutsRepo->findById($req->params->layoutId);
+        $page->layoutId = $layout->id;
+        $page->layout = $layout;
+        self::mergeLayoutBlocksTo($page, $page->layout, $pageType);
         //
         self::sendPageResponse($req, $res, $pagesRepo, $storage, $theWebsite,
             $page, $pageType);
@@ -218,7 +192,10 @@ final class PagesController {
         $data = $storage->getDataHandle();
         self::runBlockBeforeRenderEvent($page->blocks, $data->blockTypes, $pagesRepo, $theWebsite);
         $storage->triggerEvent("sivujetti:onPageBeforeRender", $page);
-        $html = (new SiteAwareTemplate($page->layout->filePath, cssAndJsFiles: $data->userDefinedAssets))->render([
+        $html = (new SiteAwareTemplate(
+            $page->layout->relFilePath,
+            cssAndJsFiles: $data->userDefinedAssets
+        ))->render([
             "page" => $page,
             "site" => $theWebsite,
         ]);
@@ -255,6 +232,39 @@ final class PagesController {
         }
     }
     /**
+     * @param \Sivujetti\Page\Entities\Page $toPage
+     * @param \Sivujetti\Layout\Entities\Layout $fromLayout
+     * @param \Sivujetti\PageType\Entities\PageType $pageType
+     */
+    private static function mergeLayoutBlocksTo(Page $toPage,
+                                                Layout $fromLayout,
+                                                PageType $pageType): void {
+        foreach ($fromLayout->structure as $part) {
+            if ($part->type === Layout::PART_TYPE_GLOBAL_BLOCK_TREE)
+                $toPage->blocks[] = Block::fromBlueprint((object) [
+                    "type" => Block::TYPE_GLOBAL_BLOCK_REF,
+                    "title" => "",
+                    "defaultRenderer" => "sivujetti:block-auto",
+                    "children" => [],
+                    "initialData" => (object) [
+                        "globalBlockTreeId" => $part->globalBlockTreeId,
+                        "overrides" => "",
+                    ],
+                ]);
+            elseif ($part->type === Layout::PART_TYPE_PAGE_CONTENTS)
+                array_push($toPage->blocks, ...array_map([Block::class, "fromBlueprint"], array_merge(
+                    [(object) [
+                        "type" => Block::TYPE_PAGE_INFO,
+                        "title" => "",
+                        "defaultRenderer" => "sivujetti:block-auto",
+                        "children" => [],
+                        "initialData" => (object) ["overrides" => "[]"]
+                    ]],
+                    $pageType->blockFields
+                )));
+        }
+    }
+    /**
      * @param \Sivujetti\Page\Entities\Page $page
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param bool $isPlaceholderPage
@@ -276,6 +286,10 @@ final class PagesController {
             "isPlaceholderPage" => $isPlaceholderPage,
         ];
         foreach ($pageType->ownFields as $field) {
+            if ($field->name === "categories") { // @todo
+                $out->categories = [];
+                continue;
+            }
             $out->{$field->name} = $page->{$field->name};
         }
         return $out;

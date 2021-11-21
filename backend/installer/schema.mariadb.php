@@ -80,7 +80,7 @@ return [
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `friendlyName` VARCHAR(92) NOT NULL,
     `relFilePath` VARCHAR(260) NOT NULL,
-    `structure` JSON
+    `structure` JSON -- see backend/sivujetti/src/Layout/Entities/Layout.php
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}files` (

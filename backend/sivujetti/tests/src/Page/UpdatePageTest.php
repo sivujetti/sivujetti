@@ -30,12 +30,13 @@ final class UpdatePageTest extends DbTestCase {
         $state->testPageData = $this->pageTestUtils->makeTestPageData();
         $state->testPageData->slug = "/update-page-test-page";
         $state->testPageData->path = "/update-page-test-page/";
+        $state->testPageData->layoutId .= "2";
         $state->inputData = (object) [
             "slug" => "/updated-update-page-test-page-slug",
             "path" => "/updated-update-page-test-page-slug/",
             "level" => "1",
             "title" => "Updated update page test page title",
-            "layoutId" => $state->testPageData->layoutId . "2",
+            "layoutId" => $state->testPageData->layoutId,
             "status" => $state->testPageData->status + 1,
             "categories" => $state->testPageData->categories,
         ];

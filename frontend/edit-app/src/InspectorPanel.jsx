@@ -91,15 +91,15 @@ class InspectorPanel extends preact.Component {
      * Note to self: this currently supports BlockEditForm only.
      *
      * @param {Block} block
+     * @param {Block|null} base
      * @param {BlockTree} blockTreeCmp
      * @access private
      */
-    open(block, blockTreeCmp) {
-        const blockTree = block.isStoredTo !== 'globalBlockTree' ? blockTreeCmp.state.blockTree : blockTreeCmp.getTreeFor(block);
+    open(block, base, blockTreeCmp) {
         const newRendererKey = `edit-block-tree-${block.id}`;
         if (this.rendererKey === newRendererKey) return;
         //
-        this.rendererProps = {block, blockTree, blockTreeCmp};
+        this.rendererProps = {block, blockTreeCmp, base};
         this.rendererKey = newRendererKey;
         this.setState({Renderer: BlockEditForm});
         this.props.rootEl.classList.add('inspector-panel-open');

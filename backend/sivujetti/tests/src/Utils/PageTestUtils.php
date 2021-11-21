@@ -5,9 +5,10 @@ namespace Sivujetti\Tests\Utils;
 use Pike\Db;
 use Sivujetti\Block\BlockValidator;
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\BlockType\{HeadingBlockType, ParagraphBlockType, SectionBlockType};
+use Sivujetti\BlockType\{GlobalBlockReferenceBlockType, HeadingBlockType,
+                         ParagraphBlockType, SectionBlockType};
 use Sivujetti\Page\Entities\Page;
-use Sivujetti\Page\{PagesRepository, SelectQuery};
+use Sivujetti\Page\{PagesRepository};
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\PageTypeValidator;
 use Sivujetti\SharedAPIContext;
@@ -15,6 +16,9 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\BlockType\Entities\BlockTypes;
 
 final class PageTestUtils {
+    public const TEST_LAYOUT_FILENAME = "layout.default.tmpl.php";
+    /** @var \Sivujetti\Tests\Utils\LayoutTestUtils */
+    public LayoutTestUtils $layoutTestUtils;
     /** @var \Sivujetti\Page\PagesRepository */
     private PagesRepository $pagesRepo;
     /** @var \Closure Overwrites $this->pagesRepo */
@@ -29,6 +33,7 @@ final class PageTestUtils {
         $pagePageType = $this->makeDefaultPageType();
         $fakeTheWebsite->pageTypes[] = $pagePageType;
         $testAppStorage = self::createTestAPIStorage($testAppStorage);
+        $this->layoutTestUtils = new LayoutTestUtils($db);
         $this->createPageRepo = function (\Closure $doBefore) use ($db, $fakeTheWebsite, $testAppStorage) {
             $doBefore($db, $fakeTheWebsite, $testAppStorage);
             $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite,
@@ -39,13 +44,15 @@ final class PageTestUtils {
         $this->createPageRepo->__invoke(function () {});
     }
     /**
-     * @param object $data 
+     * @param object $data \Sivujetti\Page\Entities\Page|object
      * @param ?\Sivujetti\PageType\Entities\PageType $pageType = null
      * @return ?string $lastInsertId or null
      */
     public function insertPage(object $data, ?PageType $pageType = null): ?string {
         if (!$pageType)
             $pageType = $this->makeDefaultPageType();
+        if ($data->layoutId)
+            $this->layoutTestUtils->insertLayout((object) ["id" => $data->layoutId]);
         return $this->pagesRepo->insert($pageType, $data, doValidateBlocks: false)
             ? $this->pagesRepo->lastInsertId
             : null;
@@ -56,7 +63,14 @@ final class PageTestUtils {
      * @return ?\Sivujetti\Page\Entities\Page
      */
     public function getPageBySlug(string $slug, ?PageType $pageType = null): ?Page {
-        return $this->t($pageType, ["slug" => $slug]);
+        if (($out = $this->t($pageType, ["slug" => $slug]))) {
+            unset($out->blocks);
+            unset($out->layout);
+            unset($out->layoutFriendlyName);
+            unset($out->layoutRelFilePath);
+            unset($out->layoutStructureJson);
+        }
+        return $out;
     }
     /**
      * @param string $id
@@ -64,7 +78,7 @@ final class PageTestUtils {
      * @return ?\Sivujetti\Page\Entities\Page
      */
     public function getPageById(string $id, ?PageType $pageType = null): ?Page {
-        return $this->t($pageType, ["id" => $id]);
+        return $this->t($pageType, ["p.`id`" => $id]);
     }
     /**
      * @return \Sivujetti\PageType\Entities\PageType
@@ -85,7 +99,7 @@ final class PageTestUtils {
             "path" => "/hello",
             "level" => 1,
             "title" => "<Hello>",
-            "layoutId" => 1,
+            "layoutId" => "1",
             "blocks" => $blocks ?? self::makeDefaultBlockTree(),
             "categories" => "[]",
             "status" => Page::STATUS_PUBLISHED,
@@ -150,6 +164,7 @@ final class PageTestUtils {
         $out = $initial ?? new SharedAPIContext;
         if ($out->getDataHandle()->blockTypes === null) {
             $blockTypes = new BlockTypes;
+            $blockTypes->{Block::TYPE_GLOBAL_BLOCK_REF} = new GlobalBlockReferenceBlockType;
             $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
             $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
             $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;

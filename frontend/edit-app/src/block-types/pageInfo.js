@@ -72,6 +72,8 @@ class PageInfoBlockEditForm extends preact.Component {
                     <InputError error={ errors.slug }/>
                 </InputGroupInline>
                 { this.pageType.ownFields.map(field => {
+                    if (field.dataType === 'many-to-many')
+                        return <p>todo (many-to-many)</p>;
                     const Widget = getWidget(field.dataType);
                     return <InputGroupInline classes={ classes[field.name] } key={ field.name }>
                         <label htmlFor={ field.name } class="form-label">{ __(field.friendlyName) }</label>
@@ -158,6 +160,10 @@ function makeSlug(title) {
 function createState(from, pageType) {
     const out = {title: from.title, slug: from.slug};
     for (const field of pageType.ownFields) {
+        if (field.dataType === 'many-to-many') {
+            out[field.name] = '[]';
+            continue;
+        }
         const val = from[field.name];
         out[field.name] = val !== null ? val : field.defaultValue;
     }

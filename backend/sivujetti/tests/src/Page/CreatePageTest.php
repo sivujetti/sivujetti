@@ -31,13 +31,14 @@ final class CreatePageTest extends DbTestCase {
             "path" => "/my-page/",
             "level" => 1,
             "title" => "My page",
-            "layoutId" => 1,
+            "layoutId" => "1",
             "blocks" => [],
             "status" => Page::STATUS_PUBLISHED,
             "categories" => "[]",
         ];
         $state->spyingResponse = null;
         $state->app = null;
+        $this->pageTestUtils->layoutTestUtils->insertDefaultLayout();
         return $state;
     }
     private function makeTestSivujettiApp(\TestState $state): void {
@@ -52,14 +53,12 @@ final class CreatePageTest extends DbTestCase {
     }
     private function verifyInsertedPageToDb(\TestState $state): void {
         $actual = $this->pageTestUtils->getPageBySlug($state->inputData->slug);
-        unset($actual->blocks);
-        unset($actual->layout);
         $this->assertEquals([
             "slug" => $state->inputData->slug,
             "path" => $state->inputData->path,
             "level" => $state->inputData->level,
             "title" => $state->inputData->title,
-            "layoutId" => strval($state->inputData->layoutId),
+            "layoutId" => $state->inputData->layoutId,
             "id" => $actual->id,
             "type" => PageType::PAGE,
             "status" => $state->inputData->status,
@@ -136,14 +135,12 @@ final class CreatePageTest extends DbTestCase {
     private function verifyInsertedCustomPageToDb(\TestState $state): void {
         $actual = $this->pageTestUtils->getPageBySlug($state->inputData->slug,
                                                       $state->customPageType);
-        unset($actual->blocks);
-        unset($actual->layout);
         $this->assertEquals([
             "slug" => $state->inputData->slug,
             "path" => $state->inputData->path,
             "level" => $state->inputData->level,
             "title" => $state->inputData->title,
-            "layoutId" => strval($state->inputData->layoutId),
+            "layoutId" => $state->inputData->layoutId,
             "id" => $actual->id,
             "type" => $state->customPageType->name,
             "status" => $state->inputData->status,

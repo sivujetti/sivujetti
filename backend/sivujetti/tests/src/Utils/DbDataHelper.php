@@ -45,4 +45,10 @@ final class DbDataHelper {
                                    $whereVals,
                                    \PDO::FETCH_ASSOC);
     }
+    /**
+     * @return \Pike\Db
+     */
+    public function getDb(): Db {
+        return $this->db;
+    }
 }

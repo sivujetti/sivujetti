@@ -32,7 +32,7 @@ class BlockTrees extends preact.Component {
      * @access public
      */
     getPageBlocks() {
-        return this.blockTree.current.getTree().filter(block => block.isStoredTo === 'page');
+        return this.blockTree.current.getTree();
     }
     /**
      * @access protected
@@ -83,7 +83,7 @@ class BlockTrees extends preact.Component {
     }
     /**
      * @param {Array<Block>} newBlockTree The root block tree (BlockTree.state.blockTree), or .blocks of a single GlobalBlockTree
-     * @param {'page'|'globalBlockTree'|'layout'} blockIsStoredTo
+     * @param {'page'|'globalBlockTree'} blockIsStoredTo
      * @param {String|null} blockTreeId
      * @returns {Promise<Boolean>}
      * @access private
@@ -93,8 +93,6 @@ class BlockTrees extends preact.Component {
         let url = '';
         if (blockIsStoredTo === 'page')
             url = `/api/pages/${page.type}/${page.id}/blocks`;
-        else if (blockIsStoredTo === 'layout')
-            url = `/api/layouts/${BlockTrees.currentWebPage.data.page.layoutId}/blocks`;
         else if (blockIsStoredTo === 'globalBlockTree' && blockTreeId)
             url = `/api/global-block-trees/${blockTreeId}/blocks`;
         else

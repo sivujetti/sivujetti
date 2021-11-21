@@ -48,7 +48,7 @@ return [
     "\$backend/sivujetti/src/Page/PagesRepository.php",
     "\$backend/sivujetti/src/Page/SiteAwareTemplate.php",
     "\$backend/sivujetti/src/Page/PagesModule.php",
-    "\$backend/sivujetti/src/Page/Entities/PageLayout.php",
+    "\$backend/sivujetti/src/Page/Entities/PageLayout.php", // @todo
     "\$backend/sivujetti/src/Page/Entities/Page.php",
     "\$backend/sivujetti/src/Page/PagesController.php",
     "\$backend/sivujetti/src/App.php",

@@ -22,13 +22,13 @@ class BlockEditForm extends preact.Component {
         this.currentDebounceType = null;
         this.blockType = blockTypes.get(this.props.block.type);
         this.unregisterSignalListener = signals.on('on-block-deleted',
-        /**
-         * @param {Block} _block
-         * @param {Boolean} wasCurrentlySelectedBlock
-         */
-        (_block, wasCurrentlySelectedBlock) => {
-            if (wasCurrentlySelectedBlock) this.props.inspectorPanel.close();
-        });
+            /**
+             * @param {Block} _block
+             * @param {Boolean} wasCurrentlySelectedBlock
+             */
+            (_block, wasCurrentlySelectedBlock) => {
+                if (wasCurrentlySelectedBlock) this.props.inspectorPanel.close();
+            });
     }
     /**
      * @access protected
@@ -37,7 +37,7 @@ class BlockEditForm extends preact.Component {
         this.unregisterSignalListener();
     }
     /**
-     * @param {{block: Block; blockTree: Array<Block>; blockTreeCmp: preact.Component;}} props
+     * @param {{block: Block; blockTreeCmp: preact.Component;}} props
      * @access protected
      */
     render({block, blockTreeCmp}) {
@@ -68,9 +68,21 @@ class BlockEditForm extends preact.Component {
      * @access private
      */
     commitChangeToQueue() {
-        store.dispatch(pushItemToOpQueue(`update-${this.props.block.isStoredTo}-block`, {
+        const blockIsStoredTo = !this.props.base
+            ? this.props.block.isStoredTo
+            : this.props.base.isStoredTo;
+        //
+        const blockTree = blockIsStoredTo !== 'globalBlockTree'
+            ? this.props.blockTreeCmp.getTree()
+            : this.props.blockTreeCmp.getTreeFor(this.props.block);
+        //
+        const blockTreeId = blockIsStoredTo !== 'globalBlockTree'
+            ? null
+            : this.props.block.globalBlockTreeId;
+        //
+        store.dispatch(pushItemToOpQueue(`update-${blockIsStoredTo}-block`, {
             doHandle: this.props.blockTreeCmp.props.onChangesApplied,
-            args: [this.props.blockTree, this.props.block.isStoredTo, this.props.block.globalBlockTreeId || null],
+            args: [blockTree, blockIsStoredTo, blockTreeId],
         }));
     }
     /**

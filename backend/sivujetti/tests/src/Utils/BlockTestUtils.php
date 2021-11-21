@@ -4,6 +4,7 @@ namespace Sivujetti\Tests\Utils;
 
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
+use Sivujetti\PushIdGenerator;
 
 final class BlockTestUtils {
     /** @var ?\Sivujetti\Tests\Utils\PageTestUtils */
@@ -20,18 +21,24 @@ final class BlockTestUtils {
      * @param ?string $renderer = null
      * @param object[]|null $children = null
      * @param array<string, mixed>|null $propsData = null
+     * @param ?string $id = null
      * @return object
      */
     public function makeBlockData(?string $type = null,
                                   ?string $title = null,
                                   ?string $renderer = null,
                                   ?array $children = null,
-                                  ?array $propsData = null): object {
+                                  ?array $propsData = null,
+                                  ?string $id = null): object {
         $out = new \stdClass;
         $out->type = $type ?? Block::TYPE_PARAGRAPH;
         $out->title = $title ?? "";
         $out->renderer = $renderer ?? "sivujetti:block-auto";
-        $out->id = "-bbbbbbbbbbbbbbbbbbb";
+        $out->id = match ($id) {
+            "@auto" => PushIdGenerator::generatePushId(),
+            null => "-bbbbbbbbbbbbbbbbbbb",
+            default => $id
+        };
         $out->children = $children ?? [];
         $out->propsData = [];
         foreach ($propsData as $key => $value) {

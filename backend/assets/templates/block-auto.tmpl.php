@@ -10,11 +10,11 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_HEADING):
         $this->renderChildren($props),
     "</{$tag}>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_IMAGE):
-    echo "<img src=\"{$this->assetUrl($props->src)}\" alt=\"\"",
+    echo "<span class=\"image\"><img src=\"{$this->assetUrl($props->src)}\" alt=\"\"",
         ($props->cssClass ? " class=\"{$this->e($props->cssClass)}\"" : ""), ">",
-        $this->renderChildren($props);
+        $this->renderChildren($props), "</span>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):
-    echo "<p><a href=\"" . (!str_contains($props->linkTo, ".")
+    echo "<p class=\"button\"><a href=\"" . (!str_contains($props->linkTo, ".")
         ? $this->makeUrl($props->linkTo)
         : (str_starts_with($props->linkTo, "//") || str_starts_with($props->linkTo, "http") ? "" : "//" . $props->linkTo)) .
         "\" class=\"btn",
@@ -23,6 +23,8 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_RICH_TEXT):
     echo $props->html, // @allow pre-validated html
          $this->renderChildren($props);
+elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_PAGE_INFO):
+    echo '';
 else:
     [$startTag, $endTag] = !(SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE) ? ["<!--", "-->"] : ["<div>", "</div>"];
     echo "{$startTag} block-auto.tmpl.php: Don't know how to render custom page type `{$props->type}` {$endTag}";

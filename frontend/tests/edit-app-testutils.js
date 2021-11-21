@@ -23,8 +23,17 @@ class MockEditApp extends preact.Component {
         return <>
             <SaveButton/>
             { view === 'DefaultView'
-                ? <BlockTrees containingView="DefaultMainPanelView" onWebPageLoadHandled={ onPageLoaded } ref={ pref }/>
-                : <AddPageMainPanelView pageType={ mockPageTypes[0] } ref={ pref } blockTreesRef={ preact.createRef() } noAutoFocus/>
+                ? <BlockTrees
+                    containingView="DefaultMainPanelView"
+                    onWebPageLoadHandled={ onPageLoaded }
+                    ref={ pref }/>
+                : <AddPageMainPanelView
+                    pageType={ mockPageTypes[0] }
+                    ref={ pref }
+                    blockTreesRef={ preact.createRef() }
+                    getLayouts={ () => Promise.resolve([{id: '1', friendlyName: 'Default'}]) }
+                    initialLayoutId="1"
+                    noAutoFocus/>
             }
             <InspectorPanel rootEl={ document.getElementById('render-container-el') } outerEl={ document.getElementById('render-container-el') }/>
         </>;
@@ -54,7 +63,7 @@ function renderMockEditAppIntoDom(view, then = null) {
 
 function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default') {
     //
-    const layoutBlocks = [{
+    const globalBlocks = [{
         "type": "Paragraph",
         "title": "",
         "renderer": "sivujetti:block-auto",
@@ -131,13 +140,15 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default') {
         "title": "",
         "renderer": "sivujetti:block-auto",
         "id": "-MlPupIvfXCsi7eHeTP4",
-        "propsData": [{"key": "globalBlockTreeId", "value": "10"}],
+        "propsData": [{"key": "globalBlockTreeId", "value": "10"},
+                      {"key": "overrides", "value": ""}],
         "children": [],
         "globalBlockTreeId": "10",
+        "overrides": "",
         "__globalBlockTree": {
             "id": "10",
             "name": "My stored",
-            "blocks": [Object.assign({}, layoutBlocks[0], {id: "-MlU72IZ110nBtvXt5sx"})]
+            "blocks": globalBlocks,
         },
     }] : []));
     document.getElementById('mock-page-container-el').innerHTML =
@@ -152,7 +163,6 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default') {
             + '</h2>') +
             blockUtils.decorateWithRef(pageBlocks[1].children[1], '<p>Hello</p>') +
         '</div></section>') +
-        blockUtils.decorateWithRef(layoutBlocks[0], '<p>© Mysite</p>') +
         (testBlocksBundle === 'withGlobalBlockReference'
             ? blockUtils.decorateWithRef(pageBlocks[2],
                 blockUtils.decorateWithRef(pageBlocks[2].__globalBlockTree.blocks[0], '<p>© Mysite</p>'
@@ -169,12 +179,11 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default') {
             blocks: pageBlocks,
         },
         layouts: [],
-        layoutBlocks: layoutBlocks,
     };
     const webPage = new EditAppAwareWebPage(mockSivujettiCurrentPageData);
     const blockRefs = webPage.scanBlockRefComments();
     const combinedBlockTree = webPage.getCombinedAndOrderedBlockTree(pageBlocks,
-        layoutBlocks, blockRefs, blockTreeUtils);
+        blockRefs, blockTreeUtils);
     store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
 }
 

@@ -11,8 +11,8 @@ final class RenderBasicPageTest extends RenderPageTestCase {
     public function testRenderPageRendersPage(): void {
         $state = $this->setupTest();
         $this->makeTestSivujettiApp($state);
+        $this->insertTestGlobalBlocksToDb($state);
         $this->insertTestPageToDb($state);
-        $this->insertTestLayoutBlocksToDb($state);
         $this->sendRenderPageRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
         $this->verifyRenderedCorrectPageAndLayout($state);
@@ -21,30 +21,33 @@ final class RenderBasicPageTest extends RenderPageTestCase {
     private function setupTest(): \TestState {
         $state = new \TestState;
         $btu = new BlockTestUtils();
-        $state->testLayoutBlocksTree = [
-            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Footer text", "cssClass" => ""])
+        $state->testGlobalBlockTree = [
+            $btu->makeBlockData(Block::TYPE_PARAGRAPH, id: "@auto", propsData: ["text" => "Footer text", "cssClass" => ""])
+        ];
+        $state->testGlobalBlockData = (object) [
+            "id" => "1",
+            "name" => "Footer",
+            "blocks" => BlockTree::toJson($state->testGlobalBlockTree),
         ];
         $state->testPageData = $this->pageTestUtils->makeTestPageData();
-        $state->testLayoutData = (object) [
-            "blocks" => BlockTree::toJson($state->testLayoutBlocksTree),
-        ];
+        $state->testPageData->blocks[] = $btu->makeBlockData(Block::TYPE_GLOBAL_BLOCK_REF,
+            propsData: ["globalBlockTreeId" => $state->testGlobalBlockData->id, "overrides" => ""]
+        );
         $state->spyingResponse = null;
         $state->app = null;
         return $state;
     }
-    private function insertTestLayoutBlocksToDb(\TestState $state): void {
-        $this->dbDataHelper->insertData((object) ["blocks" => $state->testLayoutData->blocks,
-                                                  "layoutId" => $state->testPageData->layoutId],
-                                        "layoutBlocks");
+    private function insertTestGlobalBlocksToDb(\TestState $state): void {
+        $this->dbDataHelper->insertData((object) ["id" => $state->testGlobalBlockData->id,
+                                                  "name" => $state->testGlobalBlockData->name,
+                                                  "blocks" => $state->testGlobalBlockData->blocks],
+                                        "globalBlocks");
     }
     private function verifyRenderedCorrectPageAndLayout(\TestState $state): void {
-        $expectedHeading = htmlspecialchars($state->testPageData->title);
-        $this->assertStringContainsString("<h1 data-prop=\"title\">{$expectedHeading}</h1>",
-                                          $state->spyingResponse->getActualBody());
         $expectedPageBlockHeading = $state->testPageData->blocks[0]->children[0]->propsData[0]->value;
         $this->assertStringContainsString("<h2>{$expectedPageBlockHeading}</h2>",
                                           $state->spyingResponse->getActualBody());
-        $expectedFooterText = $state->testLayoutBlocksTree[0]->propsData[0]->value;
+        $expectedFooterText = $state->testGlobalBlockTree[0]->propsData[0]->value;
         $this->assertStringContainsString("<p>{$expectedFooterText}</p>",
                                           $state->spyingResponse->getActualBody());
     }

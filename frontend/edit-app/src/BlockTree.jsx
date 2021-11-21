@@ -23,7 +23,7 @@ class BlockTree extends preact.Component {
     // onDragOver;
     // onDrop;
     /**
-     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>, blockIsStoredTo: 'page'|'globalBlockTree'|'layout') => Promise<Boolean>; BlockTrees: preact.ComponentClass;}} props
+     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>, blockIsStoredTo: 'page'|'globalBlockTree', globalBlockTreeId: String|null) => Promise<Boolean>; BlockTrees: preact.ComponentClass;}} props
      */
     constructor(props) {
         super(props);
@@ -218,7 +218,7 @@ class BlockTree extends preact.Component {
                     : <button onClick={ () => this.toggleBranchIsCollapsed(virtual) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="size-xs"/></button>
                 }
                 <div class="d-flex">
-                    <button onClick={ () => this.handleItemClicked(virtual) } class="block-handle columns" type="button">
+                    <button onClick={ () => this.handleItemClicked(virtual, block) } class="block-handle columns" type="button">
                         <Icon iconId="type" className="size-xs color-accent mr-1"/>
                         { virtual.title || __(virtual.type) }
                     </button>
@@ -238,7 +238,7 @@ class BlockTree extends preact.Component {
                 data-block-type="PageInfo"
                 key={ block.id }>
                 <div class="d-flex">
-                    <button onClick={ () => this.handleItemClicked(block) } class="block-handle columns" type="button">
+                    <button onClick={ () => this.handleItemClicked(block, null) } class="block-handle columns" type="button">
                         <Icon iconId="file" className="size-xs color-accent mr-1"/>
                         { block.title || __(block.type) }
                     </button>
@@ -246,6 +246,13 @@ class BlockTree extends preact.Component {
             </li>;
         });
         return <div class="pt-2">
+            <div class="p-relative"><button
+                onClick={ this.showBlockTreeHelpPopup.bind(this) }
+                class="btn btn-link p-absolute btn-sm"
+                type="button"
+                style="right: 0; top: .4rem">
+                <Icon iconId="info" className="size-xs"/>
+            </button></div>
             <ul class="block-tree" data-sort-group-id="r">{
                 blockTree.length
                     ? renderBranch(blockTree)
@@ -308,7 +315,6 @@ class BlockTree extends preact.Component {
             let wasCurrentlySelectedBlock = isSelectedRootCurrentlyClickedBlock() ||
                                             isSelectedRootChildOfCurrentlyClickedBlock();
             if (wasCurrentlySelectedBlock) this.selectedRoot = null;
-            if (this.state.blockWithNavOpened.isStoredTo === 'layout') throw new Error('Todo remove layout block context menu delete buttons');
             this.cancelAddBlock(this.state.blockWithNavOpened);
             store.dispatch(pushItemToOpQueue('delete-page-block', {
                 doHandle: this.props.onChangesApplied,
@@ -328,7 +334,7 @@ class BlockTree extends preact.Component {
     /**
      * @param {RawGlobalBlockTree} data
      * @param {Block} originalBlock The block tree we just turned global
-    */
+     */
     doConvertBlockToGlobal(data, originalBlock) {
         // todo emit to queue
         // todo start loadState
@@ -442,12 +448,13 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} block
+     * @param {Block|null} base
      * @access private
      */
-    handleItemClicked(block) {
+    handleItemClicked(block, base) {
         this.selectedRoot = block;
         const mutRef = this.state.treeState;
-        this.emitItemClickedOrAppendedSignal('clicked', block);
+        this.emitItemClickedOrAppendedSignal('clicked', block, !base || block.id === base.id ? null : base);
         if (mutRef[block.id].isSelected) return;
         //
         if (block.parentBlockIdPath) {
@@ -532,10 +539,11 @@ class BlockTree extends preact.Component {
     /**
      * @param {'clicked'|'focus-requested'} name
      * @param {Block} block
+     * @param {Block|null} base
      * @access private
      */
-    emitItemClickedOrAppendedSignal(name, block) {
-        signals.emit(`on-block-tree-item-${name}`, block, this);
+    emitItemClickedOrAppendedSignal(name, block, base) {
+        signals.emit(`on-block-tree-item-${name}`, block, base, this);
     }
     /**
      * @param {Block} block The parent block
@@ -551,8 +559,14 @@ class BlockTree extends preact.Component {
                 return state;
             }).then(newBlock => {
                 if (autoFocus)
-                    this.emitItemClickedOrAppendedSignal('focus-requested', newBlock);
+                    this.emitItemClickedOrAppendedSignal('focus-requested', newBlock, null);
             });
+    }
+    /**
+     * @access private
+     */
+    showBlockTreeHelpPopup() {
+        alert('todo');
     }
 }
 

@@ -35,6 +35,7 @@ stringBundles.push({
     'On this page': 'On this page',
     'My website': 'My website',
     'Pages': 'Pages',
+    'Create page': 'Create page',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Edit mode',
     'Page title': 'Page title',

@@ -75,7 +75,7 @@ return [
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `friendlyName` TEXT NOT NULL,
     `relFilePath` TEXT NOT NULL,
-    `structure` JSON
+    `structure` JSON -- see backend/sivujetti/src/Layout/Entities/Layout.php
 )",
 
 "CREATE TABLE `\${p}files` (

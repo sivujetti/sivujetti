@@ -7,6 +7,7 @@ use Sivujetti\Block\{BlocksController, BlocksController2, BlockTree};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\Layout\Entities\Layout;
+use Sivujetti\Layout\LayoutsRepository;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\PageTypeValidator;
@@ -167,9 +168,12 @@ final class PagesRepository {
         $this->pageType = $pageType;
         [$filterCols, $filterVals, $joinsCols, $joins] = $this->filtersToQParts($pageType, ...$filters);
         [$baseJoinCols, $baseJoin] = !$doIncludeLayouts
-            ? [",NULL AS `layoutFilePath`",
+            ? [",'' AS `layoutId`" .
+               ",'' AS `layoutFriendlyName`" .
+               ",'' AS `layoutRelFilePath`" .
+               ",'' AS `layoutStructureJson`",
                ""]
-            : [",'layout.default.tmpl.php' AS `layoutFilePath`",
+            : ["," . LayoutsRepository::FIELDS,
                " LEFT JOIN `\${p}layouts` l ON (l.`id` = p.`layoutId`)"];
         //
         $ownFieldCols = [];
@@ -200,9 +204,10 @@ final class PagesRepository {
      * @return \Sivujetti\Page\Entities\Page[]
      */
     private function normalizeRs(array $rows): array {
+        $doIncludeLayouts = ($rows[0]?->layoutId ?? null) !== null;
         foreach ($rows as $row) {
             $row->blocks = self::blocksFromRs("pageBlocksJson", $row);
-            $row->layout = (object) ["filePath" => $row->layoutFilePath];
+            $row->layout = $doIncludeLayouts ? Layout::fromParentRs($row) : new Layout;
             //
             foreach ($this->pageType->ownFields as $field) {
                 if ($field->dataType === "many-to-many") continue; // Not implemented yet
@@ -280,12 +285,15 @@ final class PagesRepository {
     private function filtersToQParts(PageType $pageType, ...$filters): array {
         $filterSql = "";
         $filterValues = [];
+        $escape = function (string $candidate): string {
+            return $candidate !== "p.`id`" ? $this->db->columnify($candidate) : $candidate;
+        };
         foreach ($filters as $inp) {
             // todo validate
             $column = key($inp);
             $cand = $inp[$column];
             $f = is_string($cand) ? ["", "", $column] : $inp;
-            $filterSql .= ($f[0] ?? " AND ") . $this->db->columnify($f[2]) . ($f[1] ?: "=") . "?";
+            $filterSql .= ($f[0] ?? " AND ") . $escape($f[2]) . ($f[1] ?: "=") . "?";
             $filterValues[] = $cand;
         }
         return [$filterSql, $filterValues, "", ""];

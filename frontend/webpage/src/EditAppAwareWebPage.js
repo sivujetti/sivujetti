@@ -51,30 +51,21 @@ class EditAppAwareWebPage {
     }
     /**
      * @param {Array<RawBlock>} pageBlocks
-     * @param {Array<RawBlock>} layoutBlocks
      * @param {Array<BlockRefComment>} blockRefComments
      * @param {blockTreeUtils} blockTreeUtils
      * @returns {Array<RawBlock>}
      * @access public
      */
-    getCombinedAndOrderedBlockTree(pageBlocks, layoutBlocks, blockRefComments, blockTreeUtils) {
-        const setBranchOrigins = (rootBlock, isStoredTo) => {
-            blockTreeUtils.traverseRecursively([rootBlock], block => {
-                block.isStoredTo = isStoredTo;
-            });
-        };
-        //
+    getCombinedAndOrderedBlockTree(pageBlocks, blockRefComments, blockTreeUtils) {
         const out = [];
         for (const _cref of blockRefComments) {
-            let block = pageBlocks.find(({id}) => id === _cref.blockId);
+            const block = pageBlocks.find(({id}) => id === _cref.blockId);
             if (block) {
-                setBranchOrigins(block, 'page');
-            } else {
-                block = layoutBlocks.find(({id}) => id === _cref.blockId);
-                if (!block) continue; // Child block, do nothing
-                setBranchOrigins(block, 'layout');
+                blockTreeUtils.traverseRecursively([block], b => {
+                    b.isStoredTo = 'page';
+                });
+                out.push(block);
             }
-            out.push(block);
         }
         return out;
     }

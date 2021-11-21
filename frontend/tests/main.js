@@ -24,7 +24,7 @@ const mockInternalSivujettiApi = {
     }
 };
 
-env.window = {location: {}};
+env.window = {location: {}, console: window.console};
 env.document = {};
 env.normalTypingDebounceMillis = 0;
 //

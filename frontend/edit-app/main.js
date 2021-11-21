@@ -95,11 +95,9 @@ function renderReactEditApp() {
         handleWebPageLoaded(webPage) {
             const editApp = editAppReactRef.current;
             webPage.data.page.blocks = blockTreeUtils.setParentIdPaths(webPage.data.page.blocks);
-            webPage.data.layoutBlocks = blockTreeUtils.setParentIdPaths(webPage.data.layoutBlocks);
             //
             const blockRefs = webPage.scanBlockRefComments();
             const ordered = webPage.getCombinedAndOrderedBlockTree(webPage.data.page.blocks,
-                                                                   webPage.data.layoutBlocks,
                                                                    blockRefs,
                                                                    blockTreeUtils);
             const filtered = !webPage.data.page.isPlaceholderPage

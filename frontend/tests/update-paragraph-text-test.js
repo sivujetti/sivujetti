@@ -36,7 +36,7 @@ QUnit.module('ParagraphBlock', () => {
     function simulateChangeParagraphTextInput(_s) {
         return new Promise(resolve => {
             const els = document.querySelectorAll('.block-tree li .block-handle');
-            const paragraphBlockHandle = els[els.length - 2];
+            const paragraphBlockHandle = els[els.length - 1];
             paragraphBlockHandle.click();
             resolve();
         }).then(() => {

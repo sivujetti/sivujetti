@@ -81,8 +81,8 @@ QUnit.module('BlockTrees', () => {
         };
         return new Promise(resolve => {
             const lis = document.querySelectorAll('.block-tree li');
-            const paragraphBlockLi = lis[lis.length - 2];
-            const headingBlockLi = lis[lis.length - 3];
+            const paragraphBlockLi = lis[lis.length - 1];
+            const headingBlockLi = lis[lis.length - 2];
             //
             if (direction === 'upwards') {
                 simulateDragStarted(paragraphBlockLi);

@@ -44,7 +44,7 @@ interface RawBlock {
     propsData: Array<{key: String; value: String;}>;
     children: Array<RawBlock>;
     parentBlockIdPath: String; // e.g. '/grand-parent/parent'
-    isStoredTo?: 'page'|'globalBlockTree'|'layout';
+    isStoredTo?: 'page'|'globalBlockTree';
     [key: String]: mixed;
 }
 
@@ -66,10 +66,22 @@ interface RawGlobalBlockTree {
     blocks: Array<RawBlock>;
 }
 
+interface Layout {
+    id: String;
+    friendlyName: String;
+}
+
 interface CurrentPageData {
     page: Page;
-    layoutBlocks: Array<RawBlock>;
-    layouts: Array<Object>;
+    layout: {
+        friendlyName: String;
+        structure: Array<LayoutPart>;
+    };
+}
+
+interface LayoutPart {
+    type: 'globalBlockTree'|'pageContents';
+    globalBlockTreeId?: String;
 }
 
 interface BlockBlueprint2 {
@@ -137,7 +149,7 @@ interface EditAppAwareWebPage {
     data: CurrentPageData;
     scanBlockRefComments(): Array<BlockRefComment>;
     registerEventHandlers(handlers: EditAwareWebPageEventHandlers, blockRefComments: Array<BlockRefComment>): void;
-    getCombinedAndOrderedBlockTree(pageBlocks: Array<RawBlock>, layoutBlocks: Array<RawBlock>, blockRefComments: Array<BlockRefComment>, blockTreeUtils: blockTreeUtils): Array<RawBlock>;
+    getCombinedAndOrderedBlockTree(pageBlocks: Array<RawBlock>, blockRefComments: Array<BlockRefComment>, blockTreeUtils: blockTreeUtils): Array<RawBlock>;
     appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<BlockRefComment>;
     appendClonedBlockBranchToDom(clonedBlock: Block, clonedFromBlock: Block, blockTreeUtils: blockTreeUtils): Promise<{[key: String]: BlockRefComment;}>;
     replaceBlockFromDomWith(currentBlock: Block, replacement: Block): Promise<BlockRefComment>;

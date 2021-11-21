@@ -2,13 +2,11 @@
 
 namespace Sivujetti\Tests\Page;
 
-use Sivujetti\App;
-use Sivujetti\AppContext;
-use Sivujetti\SharedAPIContext;
-use Sivujetti\Tests\Utils\PageTestUtils;
+use Sivujetti\{App, AppContext, SharedAPIContext};
+use Sivujetti\Tests\Utils\{DbDataHelper, PageTestUtils};
 use Pike\Request;
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
-use Sivujetti\Tests\Utils\DbDataHelper;
+use Sivujetti\Layout\Entities\Layout;
 
 abstract class RenderPageTestCase extends DbTestCase {
     use HttpTestUtils;
@@ -19,7 +17,7 @@ abstract class RenderPageTestCase extends DbTestCase {
         parent::setUp();
         $this->testAppStorage = new SharedAPIContext;
         $this->pageTestUtils = new PageTestUtils(self::$db, $this->testAppStorage);
-        if (!file_exists(SIVUJETTI_BACKEND_PATH . "site/templates/layout.default.tmpl.php"))
+        if (!file_exists(SIVUJETTI_BACKEND_PATH . "site/templates/" . PageTestUtils::TEST_LAYOUT_FILENAME))
             throw new \RuntimeException("Site not installed");
         $this->dbDataHelper = new DbDataHelper(self::$db);
     }

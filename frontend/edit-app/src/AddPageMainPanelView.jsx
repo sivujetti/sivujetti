@@ -2,29 +2,29 @@ import {__, http, urlUtils, signals, env} from '@sivujetti-commons';
 import {InputGroupInline} from '../../commons/Form.jsx';
 import toasters from '../../commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';
-import store, {deleteItemsFromOpQueueAfter, setOpQueue,
-pushItemToOpQueue
-} from './store.js';
+import store, {deleteItemsFromOpQueueAfter, setOpQueue} from './store.js';
 
 class AddPageMainPanelView extends preact.Component {
     // pageMetaData;
     // pageType;
     // unregisterSignalListener;
     /**
-     * @param {{cancelAddPage: () => void; pageType: PageType; reRenderWithAnotherLayout: (layoutId: String) => void; blockTreesRef: preact.Ref; noAutoFocus?: Boolean;}} props
+     * Note to self: getLayouts and initialLayoutId are for tests.
+     *
+     * @param {{cancelAddPage: () => void; pageType: PageType; reRenderWithAnotherLayout: (layoutId: String) => void; blockTreesRef: preact.Ref; noAutoFocus?: Boolean; getLayouts?: () => Promise<Array<Layout>>; initialLayoutId?: String;}} props
      */
     constructor(props) {
         super(props);
         this.pageMetaData = {};
-        this.state = {layouts: null};
+        this.state = {layouts: []};
         this.unregisterSignalListener = signals.on('on-page-info-form-value-changed',
-        /**
-         * @param {PageMetaRaw} pageMeta
-         */
-        pageMeta => {
-            this.pageMetaData = pageMeta;
-        });
-        http.get('/api/layouts')
+            /**
+             * @param {PageMetaRaw} pageMeta
+             */
+            pageMeta => {
+                this.pageMetaData = pageMeta;
+            });
+        (props.getLayouts ? props.getLayouts() : http.get('/api/layouts'))
             .then(layouts => { this.setState({layouts}); })
             .catch(env.window.console.error);
     }
@@ -32,14 +32,7 @@ class AddPageMainPanelView extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        store.dispatch(setOpQueue([{opName: 'meta', command: {
-                doHandle: () => {
-                    return Promise.resolve(['halt', conti => {
-                        this.props.changePane({then: conti});
-                    }]);
-                },
-                args: ['a'],
-            }},{opName: 'create-new-page', command: {
+        store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
             doHandle: this.handleFormSubmitted.bind(this),
             args: []
         }}]));
@@ -61,7 +54,7 @@ class AddPageMainPanelView extends preact.Component {
     /**
      * @access protected
      */
-    render({cancelAddPage, blockTreesRef}, {layouts}) {
+    render({cancelAddPage, blockTreesRef, initialLayoutId}, {layouts}) {
         return <form onSubmit={ this.handleFormSubmitted.bind(this) }>
             <header class="panel-section mb-2">
                 <h1 class="mb-2">{ __('Create %s', this.props.pageType.name) }</h1>
@@ -71,23 +64,22 @@ class AddPageMainPanelView extends preact.Component {
                     title={ __('Cancel add %s', this.props.pageType.name) }
                     type="button">&lt; { __('Back') }</button>
             </header>
-            { layouts && layouts.length > 1 ?
+            { layouts.length ?
             <section class="panel-section open pt-0"><div class="form-horizontal pt-0">
                 <InputGroupInline>
-                    <label class="form-label" htmlFor="pageLayout">{ __('Layout') }</label>
+                    <label class="form-label" htmlFor="layout">{ __('Layout') }</label>
                     <select
-                        value={ BlockTrees.currentWebPage.data.page.layoutId }
+                        value={ initialLayoutId || BlockTrees.currentWebPage.data.page.layoutId }
                         onChange={ e => this.props.reRenderWithAnotherLayout(e.target.value) }
                         class="form-select form-input tight"
-                        name="pageLayout"
-                        id="pageLayout">{ layouts.map(l =>
+                        name="layout"
+                        id="layout">{ layouts.map(l =>
                         <option value={ l.id }>{ __(l.friendlyName) }</option>
                     ) }</select>
                 </InputGroupInline>
             </div></section> : null }
             <section>
                 <BlockTrees
-                    onWebPageLoadHandled={ () => { 'this.setState({layouts: BlockTrees.currentWebPage.data.layouts})'; }}
                     containingView="AddPageMainPanelView"
                     ref={ blockTreesRef }/>
             </section>

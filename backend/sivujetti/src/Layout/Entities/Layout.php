@@ -22,7 +22,9 @@ final class Layout {
         $out->id = $row->layoutId;
         $out->friendlyName = $row->layoutFriendlyName;
         $out->relFilePath = $row->layoutRelFilePath;
-        $out->structure = json_decode($row->layoutStructureJson, flags: JSON_THROW_ON_ERROR);
+        $out->structure = $row->layoutStructureJson
+            ? json_decode($row->layoutStructureJson, flags: JSON_THROW_ON_ERROR)
+            : [];
         return $out;
     }
 }

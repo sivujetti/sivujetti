@@ -7,13 +7,8 @@
     <meta name="generator" content="Sivujetti">
     <?= $this->cssFiles() ?>
 </head>
-<body>
-    <header>
-        <h1 data-prop="title"><?= $this->e($page->title) ?></h1>
-        <?= $this->partial("MainMenu") ?>
-    </header>
+<body data-page-slug="<?= $page->slug ?>">
     <?= $this->renderBlocks($page->blocks),
-        $this->partial("Footer"),
         $this->jsFiles() ?>
 </body>
 </html>

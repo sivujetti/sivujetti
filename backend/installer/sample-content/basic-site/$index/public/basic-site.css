@@ -9,10 +9,10 @@ body {
     flex: 1;
 }
 
-header, .main, .aside-column, footer {
+section, .header, .main, .aside-column, .footer {
     padding: 1rem;
 }
-header {
+.header {
     background-color: #77ffd2;
 }
 .aside-column {

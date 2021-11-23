@@ -112,7 +112,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
             "    define('SIVUJETTI_QUERY_VAR', '{$actualConfig['mainQueryVar']}');\r\n" .
             "    define('SIVUJETTI_SECRET',    '{$actualConfig['secret']}');\r\n" .
             "    define('SIVUJETTI_DEVMODE',   1 << 1);\r\n" .
-            "    define('SIVUJETTI_FLAGS',     0);\r\n" .
+            "    define('SIVUJETTI_FLAGS',     SIVUJETTI_DEVMODE);\r\n" .
             "}\r\n" .
             "return [\r\n" .
             "    'db.driver'      => '{$actualConfig["db.driver"]}',\r\n" .

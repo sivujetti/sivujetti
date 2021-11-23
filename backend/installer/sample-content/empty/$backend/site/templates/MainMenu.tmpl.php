@@ -1,1 +1,0 @@
-<?= $this->renderBlocks(\Pike\ArrayUtils::filterByKey($page->layout->blocks, "Menu", "type")) ?>

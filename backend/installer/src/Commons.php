@@ -80,7 +80,7 @@ if (!defined('SIVUJETTI_BASE_URL')) {
     define('SIVUJETTI_QUERY_VAR', '{$config["mainQueryVar"]}');
     define('SIVUJETTI_SECRET',    '{$config["secret"]}');
     define('SIVUJETTI_DEVMODE',   1 << 1);
-    define('SIVUJETTI_FLAGS',     0);
+    define('SIVUJETTI_FLAGS',     {$config["flags"]});
 }
 return [
 " . (($config["db.driver"] ?? "") === "sqlite" ?

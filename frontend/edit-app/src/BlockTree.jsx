@@ -36,7 +36,9 @@ class BlockTree extends preact.Component {
             BlockTrees.currentWebPage.reOrderBlocksInDom(dragBlock, dropBlock, dropPosition);
             store.dispatch(pushItemToOpQueue(`swap-${dragBlock.isStoredTo}-blocks`, {
                 doHandle: this.props.onChangesApplied,
-                args: [mutatedTree, dragBlock.isStoredTo, dragBlock.globalBlockTreeId || null],
+                args: dragBlock.isStoredTo !== 'globalBlockTree'
+                    ? [mutatedTree, dragBlock.isStoredTo, null]
+                    : [this.getTreeFor(dragBlock), dragBlock.isStoredTo, dragBlock.globalBlockTreeId],
             }));
         });
         BlockTrees = props.BlockTrees;
@@ -206,12 +208,13 @@ class BlockTree extends preact.Component {
                 onDrop={ this.onDrop }
                 onDragEnd={ this.onDragEnd }
                 class={ [`${virtual.isStoredTo}-block`,
-                         !treeState[block.id].isSelected ? '' : ' selected',
-                         !treeState[block.id].isCollapsed ? '' : ' collapsed',
+                         !treeState[virtual.id].isSelected ? '' : ' selected',
+                         !treeState[virtual.id].isCollapsed ? '' : ' collapsed',
                          !virtual.children.length ? '' : ' with-children'].join('') }
-                data-block-id={ block.id }
+                data-block-id={ virtual.id }
                 data-drop-group={ virtual.isStoredTo }
-                key={ block.id }
+                data-block-tree-id={ virtual.globalBlockTreeId || '' }
+                key={ virtual.id }
                 draggable>
                 { !virtual.children.length
                     ? null

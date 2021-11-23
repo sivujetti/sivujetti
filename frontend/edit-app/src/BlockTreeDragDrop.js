@@ -1,6 +1,6 @@
 import blockTreeUtils from './blockTreeUtils.js';
 
-class BlockTreeDradDrop {
+class BlockTreeDragDrop {
     // blockTree;
     // onDropped;
     // startEl;
@@ -85,10 +85,16 @@ class BlockTreeDradDrop {
     handleDraggableDropped() {
         if (!this.curDropTypeCandidate) return;
         //
-        const [dragBlock, dragBranch] = blockTreeUtils.findBlock(this.startEl.getAttribute('data-block-id'),
-                                                                 this.blockTree.state.blockTree);
-        const [dropBlock, dropBranch] = blockTreeUtils.findBlock(this.curDropTypeCandidate.el.getAttribute('data-block-id'),
-                                                                 this.blockTree.state.blockTree);
+        const dragTreeId = this.startEl.getAttribute('data-block-tree-id');
+        const [dragBlock, dragBranch] = blockTreeUtils.findBlock(
+            this.startEl.getAttribute('data-block-id'),
+            dragTreeId === '' ? this.blockTree.state.blockTree : this.blockTree.getGlobalTrees().get(dragTreeId)
+        );
+        const dropTreeId = this.curDropTypeCandidate.el.getAttribute('data-block-tree-id');
+        const [dropBlock, dropBranch] = blockTreeUtils.findBlock(
+            this.curDropTypeCandidate.el.getAttribute('data-block-id'),
+            dropTreeId === '' ? this.blockTree.state.blockTree : this.blockTree.getGlobalTrees().get(dropTreeId)
+        );
         if (dragBranch !== dropBranch) {
             this.curDropTypeCandidate = null;
             alert('Swap between arrays not implemented yet');
@@ -153,4 +159,4 @@ class BlockTreeDradDrop {
     }
 }
 
-export default BlockTreeDradDrop;
+export default BlockTreeDragDrop;

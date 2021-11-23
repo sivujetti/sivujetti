@@ -73,10 +73,10 @@ function optimizeQueue(queue) {
                 opName === 'swap-page-blocks' ||
                 opName === 'delete-page-block') {
                 itm.opName = 'update-page-block';
-            } else if (opName === 'append-layout-block' ||
-                       opName === 'swap-layout-blocks' ||
-                       opName === 'delete-layout-block') {
-                itm.opName = 'update-layout-block';
+            } else if (opName === 'append-globalBlockTree-block' ||
+                       opName === 'swap-globalBlockTree-blocks' ||
+                       opName === 'delete-globalBlockTree-block') {
+                itm.opName = 'update-globalBlockTree-block';
             }
         });
         return queue;

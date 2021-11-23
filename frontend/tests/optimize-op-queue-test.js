@@ -1,19 +1,19 @@
 import {optimizeQueue} from '../edit-app/src/SaveButton.jsx';
 
 const testOps = [
-    {opName: 'update-layout-block',    command: {args: ['mock-update-layout-block-data-1'], doHandle: function () {}}},
-    {opName: 'update-page-block',      command: {args: ['mock-update-page-block-data-1'],   doHandle: function () {}}},
-    {opName: 'swap-layout-blocks',     command: {args: ['mock-update-layout-block-data-2'], doHandle: function () {}}},
-    {opName: 'delete-page-block',      command: {args: ['mock-update-page-block-data-2'],   doHandle: function () {}}},
-    {opName: 'update-page-basic-info', command: {args: ['mock-page-data-1'],                doHandle: function () {}}},
-    {opName: 'update-layout-block',    command: {args: ['mock-update-layout-block-data-3'], doHandle: function () {}}},
-    {opName: 'update-page-basic-info', command: {args: ['mock-page-data-2'],                doHandle: function () {}}},
+    {opName: 'update-globalBlockTree-block', command: {args: ['mock-update-globalBlockTree-block-data-1'], doHandle: function () {}}},
+    {opName: 'update-page-block',            command: {args: ['mock-update-page-block-data-1'],            doHandle: function () {}}},
+    {opName: 'swap-globalBlockTree-blocks',  command: {args: ['mock-update-globalBlockTree-block-data-2'], doHandle: function () {}}},
+    {opName: 'delete-page-block',            command: {args: ['mock-update-page-block-data-2'],            doHandle: function () {}}},
+    {opName: 'update-page-basic-info',       command: {args: ['mock-page-data-1'],                         doHandle: function () {}}},
+    {opName: 'update-globalBlockTree-block', command: {args: ['mock-update-globalBlockTree-block-data-3'], doHandle: function () {}}},
+    {opName: 'update-page-basic-info',       command: {args: ['mock-page-data-2'],                         doHandle: function () {}}},
 ];
 
 QUnit.module('QueueOptimizer', () => {
     QUnit.test('merges similar block update operations', assert => {
         const copy = JSON.parse(JSON.stringify(testOps));
-        const lastUpdateLayoutBlockOp = copy.find(o => o.command.args[0] === 'mock-update-layout-block-data-3');
+        const lastUpdateLayoutBlockOp = copy.find(o => o.command.args[0] === 'mock-update-globalBlockTree-block-data-3');
         const lastUpdatePageBlockOp = copy.find(o => o.command.args[0] === 'mock-update-page-block-data-2');
         //
         const optimized = optimizeQueue(copy);

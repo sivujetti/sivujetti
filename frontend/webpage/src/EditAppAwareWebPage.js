@@ -18,7 +18,7 @@ class EditAppAwareWebPage {
      */
     scanBlockRefComments() {
         return this.data.page.blocks.length
-            ? getBlockRefCommentsFromCurrentPage()
+            ? scanAndCreateBlockRefCommentsFrom(document.body)
             : [];
     }
     /**
@@ -146,7 +146,7 @@ class EditAppAwareWebPage {
     /**
      * @param {Block} block
      * @param {Block} replacement
-     * @returns {Promise<BlockRefComment>}
+     * @returns {Promise<BlockRefComment|{[blockId: String]: BlockRefComment;}>}
      * @access public
      */
     replaceBlockFromDomWith(currentBlock, replacement) {
@@ -160,9 +160,18 @@ class EditAppAwareWebPage {
         ).then(() => {
             if (currentBlock.type !== replacement.type)
                contents[0].textContent = makeStartingComment(replacement);
-            const cref = makeBlockRefComment(replacement, contents[0]);
-            this.replaceBlockMouseListeners(cref);
-            return cref;
+            if (replacement.type !== 'GlobalBlockReference') {
+                const cref = makeBlockRefComment(replacement, contents[0]);
+                this.replaceBlockMouseListeners(cref);
+                return cref;
+            }
+            replacement._cref = makeBlockRefComment(replacement, contents[0]);
+            const crefs = scanAndCreateBlockRefCommentsFrom(replacement.getRootDomNode());
+            const crefsOut = {[replacement.id]: replacement._cref};
+            for (const crefCom of crefs) {
+                crefsOut[crefCom.blockId] = crefCom;
+            }
+            return crefsOut;
         });
     }
     /**
@@ -284,6 +293,37 @@ class EditAppAwareWebPage {
         });
     }
     /**
+     * @param {BlockRefComment} blockRef
+     * @param {HTMLElement=} nextEl = null
+     * @access public
+     */
+    registerBlockMouseListeners(blockRef, nextEl = null) {
+        if (nextEl === null) {
+            const comment = blockRef.startingCommentNode;
+            nextEl = comment.nextElementSibling || comment.nextSibling;
+        }
+        nextEl.addEventListener('mouseover', e => {
+            if (e.target !== this.currentlyHoveredEl) {
+                this.currentlyHoveredEl = e.target;
+                e.stopPropagation();
+                if (this.currentlyHoveredRootEl !== nextEl) {
+                    this.currentlyHoveredRootEl = nextEl;
+                    this.currentlyHoveredBlockRef = blockRef;
+                    this.handlers.onHoverStarted(this.currentlyHoveredBlockRef, nextEl.getBoundingClientRect());
+                }
+            }
+        });
+        nextEl.addEventListener('mouseleave', e => {
+            if (e.target === this.currentlyHoveredRootEl) {
+                e.stopPropagation();
+                this.handlers.onHoverEnded(this.currentlyHoveredBlockRef);
+                this.currentlyHoveredEl = null;
+                this.currentlyHoveredBlockRef = null;
+                this.currentlyHoveredRootEl = null;
+            }
+        });
+    }
+    /**
      * @param {Block} block
      * @param {() => {parent: HTMLElement; before: HTMLElement|null; prevChildNodes?: Array<HTMLElement>;}} getSettings
      * @param {Boolean} doInsertCommentBoundaryComments = false
@@ -374,37 +414,6 @@ class EditAppAwareWebPage {
     }
     /**
      * @param {BlockRefComment} blockRef
-     * @param {HTMLElement=} nextEl = null
-     * @access private
-     */
-    registerBlockMouseListeners(blockRef, nextEl = null) {
-        if (nextEl === null) {
-            const comment = blockRef.startingCommentNode;
-            nextEl = comment.nextElementSibling || comment.nextSibling;
-        }
-        nextEl.addEventListener('mouseover', e => {
-            if (e.target !== this.currentlyHoveredEl) {
-                this.currentlyHoveredEl = e.target;
-                e.stopPropagation();
-                if (this.currentlyHoveredRootEl !== nextEl) {
-                    this.currentlyHoveredRootEl = nextEl;
-                    this.currentlyHoveredBlockRef = blockRef;
-                    this.handlers.onHoverStarted(this.currentlyHoveredBlockRef, nextEl.getBoundingClientRect());
-                }
-            }
-        });
-        nextEl.addEventListener('mouseleave', e => {
-            if (e.target === this.currentlyHoveredRootEl) {
-                e.stopPropagation();
-                this.handlers.onHoverEnded(this.currentlyHoveredBlockRef);
-                this.currentlyHoveredEl = null;
-                this.currentlyHoveredBlockRef = null;
-                this.currentlyHoveredRootEl = null;
-            }
-        });
-    }
-    /**
-     * @param {BlockRefComment} blockRef
      * @access private
      */
     replaceBlockMouseListeners(blockRef) {
@@ -442,13 +451,14 @@ function makeEndingComment(block) {
 }
 
 /**
+ * @param {HTMLElement} el = document.body
  * @returns {Array<BlockRefComment>}
  */
-function getBlockRefCommentsFromCurrentPage() {
+function scanAndCreateBlockRefCommentsFrom(el = document.body) {
     const L1 = /* <!-- */ ' block-start '.length;
     const L2 = ' '.length /* --> */;
     const out = [];
-    for (const c of getAllComments(document.body)) {
+    for (const c of getAllComments(el)) {
         if (!c.nodeValue.startsWith(' block-start '))
             continue;
         const pair = c.nodeValue.substr(L1, c.nodeValue.length - L1 - L2);

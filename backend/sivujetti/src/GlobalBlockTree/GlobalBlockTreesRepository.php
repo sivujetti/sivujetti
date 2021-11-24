@@ -3,6 +3,8 @@
 namespace Sivujetti\GlobalBlockTree;
 
 use Pike\Db;
+use Sivujetti\Block\{BlocksController, BlockTree};
+use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree;
 use Sivujetti\Page\PagesRepository;
 
@@ -23,6 +25,17 @@ final class GlobalBlockTreesRepository {
         [$qList, $values, $columns] = $this->db->makeInsertQParts($data);
         return $this->db->exec("INSERT INTO `\${p}globalBlocks` ({$columns})" .
                                " VALUES ({$qList})", $values) ? $this->db->lastInsertId() : "";
+    }
+    /**
+     * @return \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree[]
+     */
+    public function getMany(): array {
+        $rows = $this->db->fetchAll("SELECT `id`, `name`, `blocks` AS `blocksJson`" .
+                                    " FROM `\${p}globalBlocks` LIMIT 20",
+                                    [],
+                                    \PDO::FETCH_CLASS,
+                                    GlobalBlockTree::class);
+        return $this->normalizeRs($rows);
     }
     /**
      * @param string $globalBlockTreeId

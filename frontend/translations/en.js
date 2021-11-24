@@ -25,6 +25,8 @@ stringBundles.push({
     'Add new block': 'Add new block',
     'Add block': 'Add block',
     // edit-app/src/BlockTypeSelector.jsx
+    'Common': 'Common',
+    'Globals': 'Globals',
     'Cancel': 'Cancel',
     // edit-app/src/ConvertBlockToGlobalBlockTreeDialog.jsx
     'Store this block globally so you can use it later in other pages?': 'Store this block globally so you can use it later in other pages?',
@@ -39,6 +41,9 @@ stringBundles.push({
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Edit mode',
     'Page title': 'Page title',
+    // edit-app/src/GlobalBlockTreeSelector.jsx
+    'No %s found': 'No %s found',
+    'global blocks': 'global blocks',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Close',
     // edit-app/src/SaveButton.jsx

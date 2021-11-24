@@ -1,5 +1,9 @@
 import {__} from '@sivujetti-commons';
+import Tabs from '../../commons/Tabs.jsx';
 import blockTypes from './block-types/block-types.js';
+import Block from './Block.js';
+import blockTreeUtils from './blockTreeUtils.js';
+import GlobalBlockTreeSelector from './GlobalBlockTreeSelector.jsx';
 
 class BlockTypeSelector extends preact.Component {
     // selectableBlockTypes;
@@ -8,30 +12,54 @@ class BlockTypeSelector extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {blockBluePrint: {blockType: props.block.type}};
+        this.state = {
+            blockBluePrint: {blockType: props.block.type},
+            currentTabIdx: 0,
+        };
         this.selectableBlockTypes = Array.from(blockTypes.entries()).filter(([name, _]) =>
-            name !== 'PageInfo' && name !== 'Listing'
+            name !== 'PageInfo' && name !== 'Listing' && name !== 'GlobalBlockReference'
         );
     }
     /**
      * @access protected
      */
-    render(_, {blockBluePrint}) {
-        return <div class="dashed p-2">
-            <select
-                value={ blockBluePrint.blockType }
-                onChange={ e => this.selectBlockType(e.target.value) }
-                class="form-input form-select tight mb-2">{ this.selectableBlockTypes.map(([name, blockType]) =>
-                <option value={ name }>
-                    { __(blockType.friendlyName) }
-                </option>
-            ) }</select>
-            <button class="btn btn-sm btn-primary widen" onClick={ this.apply.bind(this) } type="button">Ok</button>
+    render(_, {blockBluePrint, currentTabIdx}) {
+        return <div class="dashed pt-1 pr-2 pb-2 pl-2">
+            <Tabs
+                links={ [__('Common'), __('Globals')] }
+                onTabChanged={ this.handeTabChanged.bind(this) }
+                className="text-tinyish mt-0 mb-2"/>
+            <div class={ currentTabIdx === 0 ? '' : 'd-none' }>
+                <select
+                    value={ blockBluePrint.blockType }
+                    onChange={ e => this.selectBlockType(e.target.value) }
+                    class="form-input form-select tight mb-2">{ this.selectableBlockTypes.map(([name, blockType]) =>
+                    <option value={ name }>
+                        { __(blockType.friendlyName) }
+                    </option>
+                ) }</select>
+            </div>
+            <div class={ currentTabIdx === 1 ? '' : 'd-none' }>
+                <GlobalBlockTreeSelector
+                    onItemSelected={ this.selectRefBlockType.bind(this) }
+                    isVisible={ currentTabIdx === 1 }/>
+            </div>
+            <button class="btn btn-sm btn-primary widen ml-0" onClick={ this.apply.bind(this) } type="button">Ok</button>
             <button class="btn btn-sm btn-link" onClick={ this.discard.bind(this) } type="button">{ __('Cancel') }</button>
         </div>;
     }
     /**
-     * @param {string} blockTypeName
+     * @param {Number} toIdx
+     * @access private
+     */
+    handeTabChanged(toIdx) {
+        const newState = {currentTabIdx: toIdx};
+        if (toIdx === 0)
+            this.selectBlockType('Paragraph');
+        this.setState(newState);
+    }
+    /**
+     * @param {String} blockTypeName
      * @access private
      */
     selectBlockType(blockTypeName) {
@@ -41,6 +69,24 @@ class BlockTypeSelector extends preact.Component {
         const blockBluePrint = !providedInitialData.blockType
             ? {blockType: blockType.name, data: providedInitialData, children: []}
             : providedInitialData;
+        this.setState({blockBluePrint});
+        this.props.onSelectionChanged(blockBluePrint, this.props.block);
+    }
+    /**
+     * @param {{globalBlockTreeId: String;}} initialData
+     * @access private
+     */
+    selectRefBlockType(t) {
+        const initialData = {globalBlockTreeId: t.id, overrides: '', __globalBlockTree: {
+            id: t.id,
+            name: t.name,
+            blocks: blockTreeUtils.mapRecursively(t.blocks, blockRaw => {
+                const b = Block.fromObject(blockRaw);
+                normalizeGlobalBlockTreeBlock(b, t.id);
+                return b;
+            }),
+        }};
+        const blockBluePrint = {blockType: 'GlobalBlockReference', data: initialData, children: []};
         this.setState({blockBluePrint});
         this.props.onSelectionChanged(blockBluePrint, this.props.block);
     }
@@ -58,4 +104,14 @@ class BlockTypeSelector extends preact.Component {
     }
 }
 
+/**
+ * @param {Block|RawBlock} block
+ * @param {String} globalBlockTreeId
+ */
+function normalizeGlobalBlockTreeBlock(block, globalBlockTreeId) {
+    block.isStoredTo = 'globalBlockTree';
+    block.globalBlockTreeId = globalBlockTreeId;
+}
+
 export default BlockTypeSelector;
+export {normalizeGlobalBlockTreeBlock};

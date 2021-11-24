@@ -2,7 +2,7 @@ import {__, signals, http, env} from '@sivujetti-commons';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import Icon from '../../commons/Icon.jsx';
 import toasters from '../../commons/Toaster.jsx';
-import BlockTypeSelector from './BlockTypeSelector.jsx';
+import BlockTypeSelector, {normalizeGlobalBlockTreeBlock} from './BlockTypeSelector.jsx';
 import Block from './Block.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from './store.js';
@@ -147,8 +147,7 @@ class BlockTree extends preact.Component {
             if (blockRaw.type === 'GlobalBlockReference') {
                 if (!globalBlockTreeBlocks.has(blockRaw.globalBlockTreeId))
                     globalBlockTreeBlocks.set(blockRaw.globalBlockTreeId, blockTreeUtils.mapRecursively(out.__globalBlockTree.blocks, sbRaw => {
-                        sbRaw.isStoredTo = 'globalBlockTree';
-                        sbRaw.globalBlockTreeId = blockRaw.globalBlockTreeId;
+                        normalizeGlobalBlockTreeBlock(sbRaw, blockRaw.globalBlockTreeId);
                         return createBlockAndPutToState(sbRaw);
                     }));
                 out.__globalBlockTree.blocks = globalBlockTreeBlocks.get(blockRaw.globalBlockTreeId);
@@ -397,24 +396,31 @@ class BlockTree extends preact.Component {
                                         origBlock.id,
                                         origBlock.isStoredTo);
         newBlock._cref = origBlock._cref;
-        BlockTrees.currentWebPage.replaceBlockFromDomWith(origBlock, newBlock).then(_cref => {
-            newBlock._cref = _cref;
-            // Replace children
-            if (blockBluePrint.children.length) {
-                const flat = [];
-                blockTreeUtils.traverseRecursively(blockBluePrint.children, blueprint => {
-                    flat.push(blueprint);
-                });
-                return Promise.all(flat.map(blueprint => {
-                    const b = Block.fromType(blueprint.blockType, blueprint.data, undefined,
-                        newBlock.isStoredTo);
-                    const after = this.getAfter(newBlock.children, newBlock);
-                    return BlockTrees.currentWebPage.appendBlockToDom(b, after).then(_cref => {
-                        b._cref = _cref;
-                        newBlock.children.push(b);
-                        treeStateMutRef[b.id] = createTreeStateItem();
+        BlockTrees.currentWebPage.replaceBlockFromDomWith(origBlock, newBlock).then(_crefOrCrefs => {
+            if (newBlock.type !== 'GlobalBlockReference') {
+                newBlock._cref = _crefOrCrefs;
+                // Replace children
+                if (blockBluePrint.children.length) {
+                    const flat = [];
+                    blockTreeUtils.traverseRecursively(blockBluePrint.children, blueprint => {
+                        flat.push(blueprint);
                     });
-                }));
+                    return Promise.all(flat.map(blueprint => {
+                        const b = Block.fromType(blueprint.blockType, blueprint.data, undefined,
+                            newBlock.isStoredTo);
+                        const after = this.getAfter(newBlock.children, newBlock);
+                        return BlockTrees.currentWebPage.appendBlockToDom(b, after).then(_cref => {
+                            b._cref = _cref;
+                            newBlock.children.push(b);
+                            treeStateMutRef[b.id] = createTreeStateItem();
+                        });
+                    }));
+                }
+            } else {
+                blockTreeUtils.traverseRecursively(newBlock.__globalBlockTree.blocks, b => {
+                    b._cref = _crefOrCrefs[b.id];
+                    treeStateMutRef[b.id] = createTreeStateItem();
+                });
             }
         })
         .then(() => {
@@ -422,7 +428,7 @@ class BlockTree extends preact.Component {
             const branch = blockTreeUtils.findBlock(origBlock.id, this.state.blockTree)[1];
             branch[branch.indexOf(origBlock)] = newBlock; // mutates this.state.blockTree
             this.setState({blockTree: this.state.blockTree,
-                        treeState: treeStateMutRef});
+                           treeState: treeStateMutRef});
         });
     }
     /**
@@ -432,6 +438,13 @@ class BlockTree extends preact.Component {
     confirmAddBlock(placeholderBlock) {
         const treeState = this.state.treeState;
         treeState[placeholderBlock.id].isNew = false;
+        //
+        if (placeholderBlock.type === 'GlobalBlockReference') {
+            globalBlockTreeBlocks.set(placeholderBlock.globalBlockTreeId, placeholderBlock.__globalBlockTree.blocks);
+            placeholderBlock.__globalBlockTree.blocks = globalBlockTreeBlocks.get(placeholderBlock.globalBlockTreeId);
+            blockTreeUtils.traverseRecursively(placeholderBlock.__globalBlockTree.blocks[0].children,
+                ({_cref}) => BlockTrees.currentWebPage.registerBlockMouseListeners(_cref));
+        }
         this.setState({treeState: treeState});
         //
         store.dispatch(pushItemToOpQueue(`append-${placeholderBlock.isStoredTo}-block`, {
@@ -606,8 +619,7 @@ function turnBranchToGlobal(branchRaw, containingBlockTree, globalBlockTreeId) {
     );
     // Turn them from normal block to a global tree block
     blockTreeUtils.traverseRecursively(currentBlocks, block => {
-        block.globalBlockTreeId = globalBlockTreeId;
-        block.isStoredTo = 'globalBlockTree';
+        normalizeGlobalBlockTreeBlock(block, globalBlockTreeId);
     });
     // Store and return
     globalBlockTreeBlocks.set(globalBlockTreeId, currentBlocks);

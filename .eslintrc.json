@@ -40,6 +40,7 @@
     "globals": {
         "preact": true,
         "preactRouter": true,
+        "preactHooks": true,
         "QUnit": true
     }
 }

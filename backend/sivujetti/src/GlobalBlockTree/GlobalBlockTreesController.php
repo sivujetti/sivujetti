@@ -38,11 +38,15 @@ final class GlobalBlockTreesController {
         $res->status($insertId !== "" ? 201 : 200)->json(["insertId" => $insertId]);
     }
     /**
-     * GET /api/global-block-trees: .
+     * GET /api/global-block-trees: Lists all global block trees.
      *
+     * @param \Pike\Response $res
+     * @param \Sivujetti\Block\GlobalBlockTreesRepository $globalBlocksRepo
      */
-    public function list(): void {
-        throw new \RuntimeException("Not implemented yet.");
+    public function list(Response $res,
+                         GlobalBlockTreesRepository $globalBlocksRepo): void {
+        $blocks = $globalBlocksRepo->getMany();
+        $res->json($blocks);
     }
     /**
      * PUT /api/global-block-trees/i:globalBlockTreeId/blocks: Overwrites the

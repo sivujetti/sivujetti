@@ -62,6 +62,7 @@ interface BlockRefComment {
 }
 
 interface RawGlobalBlockTree {
+    id: String;
     name: String;
     blocks: Array<RawBlock>;
 }
@@ -152,13 +153,14 @@ interface EditAppAwareWebPage {
     getCombinedAndOrderedBlockTree(pageBlocks: Array<RawBlock>, blockRefComments: Array<BlockRefComment>, blockTreeUtils: blockTreeUtils): Array<RawBlock>;
     appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<BlockRefComment>;
     appendClonedBlockBranchToDom(clonedBlock: Block, clonedFromBlock: Block, blockTreeUtils: blockTreeUtils): Promise<{[key: String]: BlockRefComment;}>;
-    replaceBlockFromDomWith(currentBlock: Block, replacement: Block): Promise<BlockRefComment>;
+    replaceBlockFromDomWith(currentBlock: Block, replacement: Block): Promise<BlockRefComment|{[blockId: String]: BlockRefComment;}>;
     deleteBlockFromDom(block: Block, doKeepBoundaryComments: Boolean = false): [Array, Array];
     reRenderBlockInPlace(block: Block): Promise<null>;
     reOrderBlocksInDom(blockToMove: Block, blockToMoveTo: Block, position: 'before'|'after'|'as-child'): void;
     convertToGlobal(globalBlockReference: Block, blockToConvert: Block): BlockRefComment;
     findEndingComment(block: Block): Commment|undefined;
     updateTitle(text: String): void;
+    registerBlockMouseListeners(blockRef: BlockRefComment, nextEl: HTMLElement = null): void;
 }
 
 interface WebPageIframe {

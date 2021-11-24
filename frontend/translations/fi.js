@@ -25,6 +25,8 @@ stringBundles.push({
     'Add new block': 'Lisää uusi lohko',
     'Add block': 'Lisää lohko',
     // edit-app/src/BlockTypeSelector.jsx
+    'Common': 'Yleiset',
+    'Globals': 'Globaalit',
     'Cancel': 'Peruuta',
     // edit-app/src/ConvertBlockToGlobalBlockTreeDialog.jsx
     'Store this block globally so you can use it later in other pages?': 'Tallenna tämä lohko globaalisti että voit käyttää sitä myöhemmin myös muilla sivuilla?',
@@ -39,6 +41,9 @@ stringBundles.push({
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Muokkaustila',
     'Page title': 'Sivuotsikko',
+    // edit-app/src/GlobalBlockTreeSelector.jsx
+    'No %s found': '%s ei löytynyt',
+    'global blocks': 'globaaleja lohkoja',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Sulje',
     // edit-app/src/SaveButton.jsx

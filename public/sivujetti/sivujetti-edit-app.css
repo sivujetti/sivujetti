@@ -80,6 +80,9 @@
 .text-tiny {
     font-size: .6rem !important;
 }
+.text-tinyish {
+    font-size: .65rem !important;
+}
 .form-horizontal .form-group {
     margin: .6rem 0;
 }
@@ -624,6 +627,12 @@ a.popup-close-area {
 }
 .block-tree li.collapsed > button > .feather {
     transform: rotate(-90deg);
+}
+.block-tree .dashed .tab-item {
+    border-left: none;
+}
+.block-tree .dashed .tab-item a {
+    color: var(--color-fg-dimmed);
 }
 
 /* EditApp: Block highligh rectangles */

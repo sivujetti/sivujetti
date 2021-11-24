@@ -115,6 +115,12 @@ class Block {
             propsMeta.push({key, value: partialBlock[key]});
         }
         partialBlock.propsData = propsMeta;
+        //
+        for (const key in customData) {
+            if (key.startsWith('__'))
+                partialBlock[key] = customData[key];
+        }
+        //
         return partialBlock;
     }
 }

@@ -49,7 +49,7 @@ const blockUtils = {
      */
     decorateWithRef(block, html) {
         return `<!-- block-start ${block.id}:${block.type} -->` +
-            html + // e.g. '<section id="initial-section">...</section>'
+            html + // e.g. '<section class="initial-section">...</section>'
         `<!-- block-end ${block.id} -->`;
     }
 };

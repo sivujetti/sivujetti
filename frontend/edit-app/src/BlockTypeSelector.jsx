@@ -73,16 +73,16 @@ class BlockTypeSelector extends preact.Component {
         this.props.onSelectionChanged(blockBluePrint, this.props.block);
     }
     /**
-     * @param {{globalBlockTreeId: String;}} initialData
+     * @param {RawGlobalBlockTree} globalBlockTree
      * @access private
      */
-    selectRefBlockType(t) {
-        const initialData = {globalBlockTreeId: t.id, overrides: '', __globalBlockTree: {
-            id: t.id,
-            name: t.name,
-            blocks: blockTreeUtils.mapRecursively(t.blocks, blockRaw => {
+    selectRefBlockType(globalBlockTree) {
+        const initialData = {globalBlockTreeId: globalBlockTree.id, overrides: '', __globalBlockTree: {
+            id: globalBlockTree.id,
+            name: globalBlockTree.name,
+            blocks: blockTreeUtils.mapRecursively(globalBlockTree.blocks, blockRaw => {
                 const b = Block.fromObject(blockRaw);
-                normalizeGlobalBlockTreeBlock(b, t.id);
+                normalizeGlobalBlockTreeBlock(b, globalBlockTree.id);
                 return b;
             }),
         }};

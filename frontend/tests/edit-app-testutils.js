@@ -2,12 +2,27 @@ import reactTestUtils, {blockUtils} from './my-test-utils.js';
 import store, {observeStore, setCurrentPage, selectOpQueue} from '../edit-app/src/store.js';
 import AddPageMainPanelView from '../edit-app/src/AddPageMainPanelView.jsx';
 import BlockTrees from '../edit-app/src/BlockTrees.jsx';
-import EditAppAwareWebPage from '../webpage/src/EditAppAwareWebPage.js';
+import blockTypes from '../edit-app/src/block-types/block-types.js';
 import InspectorPanel from '../edit-app/src/InspectorPanel.jsx';
 import SaveButton from '../edit-app/src/SaveButton.jsx';
 import blockTreeUtils from '../edit-app/src/blockTreeUtils.js';
+import EditAppAwareWebPage from '../webpage/src/EditAppAwareWebPage.js';
 
 const mockPageTypes = [{"name": "Pages", "ownFields": [],}];
+
+const testBlocks = [{
+    "type": "Paragraph",
+    "title": "",
+    "renderer": "sivujetti:block-auto",
+    "id": 'EsmAW0--AnViMcwnIaDP',
+    "children": [],
+    "propsData": [
+        {"key": "text", "value": "© Mysite"},
+        {"key": "cssClass", "value": ""}
+    ],
+    "text": "© Mysite",
+    "cssClass": ""
+}];
 
 function createTestState() {
     return {
@@ -62,20 +77,6 @@ function renderMockEditAppIntoDom(view, then = null) {
 }
 
 function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default') {
-    //
-    const globalBlocks = [{
-        "type": "Paragraph",
-        "title": "",
-        "renderer": "sivujetti:block-auto",
-        "id": 'EsmAW0--AnViMcwnIaDP',
-        "children": [],
-        "propsData": [
-            {"key": "text", "value": "© Mysite"},
-            {"key": "cssClass", "value": ""}
-        ],
-        "text": "© Mysite",
-        "cssClass": ""
-    }];
     const pageBlocks = [{
         "type": "PageInfo",
         "title": "",
@@ -93,10 +94,10 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default') {
         "id": '-MfgGtK5pnuk1s0Kws4u',
         "propsData": [
             {"key": "bgImage", "value": ""},
-            {"key": "cssClass", "value": ""}
+            {"key": "cssClass", "value": "initial-section"}
         ],
         "bgImage": "",
-        "cssClass": "",
+        "cssClass": "initial-section",
         "children": [{
             "type": "Heading",
             "title": "",
@@ -110,17 +111,20 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default') {
                 "children": [],
                 "propsData": [
                     {"key": "text", "value": "Sub text"},
+                    {"key": "level", "value": 2},
                     {"key": "cssClass", "value": "subtitle"}
                 ],
                 "text": "Sub text",
+                "level": 2,
                 "cssClass": "subtitle"
             }] : [],
             "propsData": [
                 {"key": "text", "value": "My page"},
-                {"key": "level", "value": "1"},
+                {"key": "level", "value": 2},
                 {"key": "cssClass", "value": ""}
             ],
             "text": "My page",
+            "level": 2,
             "cssClass": ""
         }, {
             "type": "Paragraph",
@@ -148,24 +152,24 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default') {
         "__globalBlockTree": {
             "id": "10",
             "name": "My stored",
-            "blocks": globalBlocks,
+            "blocks": testBlocks.slice(0),
         },
     }] : []));
     document.getElementById('mock-page-container-el').innerHTML =
         blockUtils.decorateWithRef(pageBlocks[0],
             '<!-- PageInfo dummy -->'
         ) +
-        blockUtils.decorateWithRef(pageBlocks[1], '<section id="initial-section"><div data-block-root>' +
-            blockUtils.decorateWithRef(pageBlocks[1].children[0], '<h2>My page' +
+        renderBlock(pageBlocks[1],
+            renderBlock(pageBlocks[1].children[0],
                 (testBlocksBundle === 'withNestedBlock'
-                    ? blockUtils.decorateWithRef(pageBlocks[1].children[0].children[0], '<p>Sub para</p>')
+                    ? renderBlock(pageBlocks[1].children[0].children[0])
                     : '')
             + '</h2>') +
-            blockUtils.decorateWithRef(pageBlocks[1].children[1], '<p>Hello</p>') +
-        '</div></section>') +
+            renderBlock(pageBlocks[1].children[1])
+        ) +
         (testBlocksBundle === 'withGlobalBlockReference'
             ? blockUtils.decorateWithRef(pageBlocks[2],
-                blockUtils.decorateWithRef(pageBlocks[2].__globalBlockTree.blocks[0], '<p>© Mysite</p>'
+                renderBlock(pageBlocks[2].__globalBlockTree.blocks[0],
             ))
             : '');
     //
@@ -195,5 +199,16 @@ function waitUntiSaveButtonHasRunQueuedOps() {
     });
 }
 
+/**
+ * @param {RawBlock} blockRaw
+ * @param {String} childHtml = ''
+ * @returns {String}
+ */
+function renderBlock(blockRaw, childHtml = '') {
+    const blockType = blockTypes.get(blockRaw.type);
+    return blockUtils.decorateWithRef(blockRaw, blockType.reRender(blockRaw, () => childHtml));
+}
+
 export {createTestState, renderMockEditAppIntoDom, simulatePageLoad,
-        waitUntiSaveButtonHasRunQueuedOps, mockPageTypes};
+        waitUntiSaveButtonHasRunQueuedOps, mockPageTypes, testBlocks,
+        renderBlock};

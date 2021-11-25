@@ -107,7 +107,7 @@ class BlockTreeDragDrop {
             const fromIndex = dragBranch.indexOf(dragBlock);
             // Mutates this.blockTree.state.blockTree x 2
             dragBranch.splice(refIndex + (!isBefore ? 1 : 0), 0, dragBlock);
-            dragBranch.splice(fromIndex + (isBefore ? 1 : 0), 1);
+            dragBranch.splice(fromIndex + (fromIndex > refIndex ? 1 : 0), 1);
             this.onDropped(this.blockTree.state.blockTree, dragBlock, dropBlock, this.curDropTypeCandidate.dropPosition);
         } else if (this.curDropTypeCandidate.dropPosition === 'as-child') {
             // Mutates this.blockTree.state.blockTree x 3

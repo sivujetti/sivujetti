@@ -121,7 +121,7 @@ QUnit.module('BlockTrees', () => {
         assert.equal(getLiContents(lis[1]), 'Heading');
     }
     function verifySwappedBlocksInDom(s, assert) {
-        const domBranchAfter = document.getElementById('initial-section').children[0].children;
+        const domBranchAfter = document.querySelector('.initial-section').children[0].children;
         assert.equal(domBranchAfter[0].tagName, 'P');
         assert.equal(domBranchAfter[1].tagName, 'H2');
     }
@@ -135,9 +135,9 @@ QUnit.module('BlockTrees', () => {
     function verifyMoveBlockToChildOfInDom(s, assert, draggedEl) {
         const [dragElTag, targetElTag] = draggedEl === 'h2' ? ['h2', 'p'] : ['p', 'h2'];
         //
-        assert.equal(document.querySelector(`#initial-section > * > ${dragElTag}`), undefined,
+        assert.equal(document.querySelector(`.initial-section > * > ${dragElTag}`), undefined,
                      'Should remove dragged item from outer element');
-        assert.equal(document.querySelector(`#initial-section > * > ${targetElTag} > ${dragElTag}`).nodeName,
+        assert.equal(document.querySelector(`.initial-section > * > ${targetElTag} > ${dragElTag}`).nodeName,
                      draggedEl === 'h2' ? 'H2' : 'P',
                      'Should move dragged item to target element');
     }

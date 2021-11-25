@@ -3,6 +3,7 @@ import {env, urlUtils} from '@sivujetti-commons';
 import {Validator} from '../commons/Form.jsx';
 import store, {FormStateStoreWrapper, setOpQueue} from '../edit-app/src/store.js';
 import blockTypes from '../edit-app/src/block-types/block-types.js';
+import createGlobalBlockReference from '../edit-app/src/block-types/globalBlockReference.js';
 import createHeadingBlockType from '../edit-app/src/block-types/heading.js';
 import createPageInfoBlockType from '../edit-app/src/block-types/pageInfo.js';
 import createParagraphBlockType from '../edit-app/src/block-types/paragraph.js';
@@ -28,12 +29,13 @@ env.window = {location: {}, console: window.console};
 env.document = {};
 env.normalTypingDebounceMillis = 0;
 //
-urlUtils.baseUrl = window.location.pathname.split('public/tests')[0];
-urlUtils.assetBaseUrl = urlUtils.baseUrl;
+urlUtils.assetBaseUrl = window.location.pathname.split('public/tests')[0];
+urlUtils.baseUrl = `${urlUtils.assetBaseUrl}index.php?q=/`;
 urlUtils.env = env;
 //
 Validator.registerStateWrapperImpl('default', FormStateStoreWrapper);
 //
+blockTypes.register('GlobalBlockReference', createGlobalBlockReference(mockInternalSivujettiApi));
 blockTypes.register('Heading', createHeadingBlockType(mockInternalSivujettiApi));
 blockTypes.register('PageInfo', createPageInfoBlockType(mockInternalSivujettiApi));
 blockTypes.register('Paragraph', createParagraphBlockType(mockInternalSivujettiApi));

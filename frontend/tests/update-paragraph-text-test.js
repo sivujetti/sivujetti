@@ -35,16 +35,18 @@ QUnit.module('ParagraphBlock', () => {
     }
     function simulateChangeParagraphTextInput(_s) {
         return new Promise(resolve => {
-            const els = document.querySelectorAll('.block-tree li .block-handle');
-            const paragraphBlockHandle = els[els.length - 1];
-            paragraphBlockHandle.click();
-            resolve();
+            setTimeout(() => {
+                const els = document.querySelectorAll('.block-tree li .block-handle');
+                const paragraphBlockHandle = els[els.length - 1];
+                paragraphBlockHandle.click();
+                resolve();
+            }, 0);
         }).then(() => {
             testUtils.fillWysiwygInput('<p>Updated.</p>', 'paragraph-text');
         });
     }
     function verifyUpdatedTextInDom(s, assert) {
-        const contentAfter = document.querySelector('#initial-section > * > p').textContent;
+        const contentAfter = document.querySelector('.initial-section > * > p').textContent;
         assert.equal(contentAfter, 'Updated.');
     }
     function clickSaveChangesButton(_s) {

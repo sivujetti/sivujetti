@@ -23,7 +23,7 @@ abstract class ValidationUtils {
                                     PikeException::BAD_INPUT);
     }
     /**
-     * @param array|\ArrayObject $properties pageType->ownFields for example
+     * @param array<int, object>|\ArrayObject $properties pageType->ownFields or $blockType->defineProperties()
      * @param \Pike\ObjectValidator $to
      * @return \Pike\ObjectValidator
      */

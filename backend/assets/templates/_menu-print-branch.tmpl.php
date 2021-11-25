@@ -1,20 +1,18 @@
 <?php
 // == <ul> ================
-if (!isset($props["treeStart"])) echo "<ul>";
-else echo str_replace("{depth}", $props["depth"], $props["treeStart"]);
+echo str_replace("{depth}", $props["depth"], $props["treeStart"]);
 //
 foreach ($props["branch"] as $i => $item) {
     // == <li> ================
     echo str_replace("{current}", $page && $page->slug === $item->slug ? " data-current" : "",
-        !isset($props["itemStart"]) ? "" : str_replace(
-                                               ["{i}", "{depth}"],
-                                               [$i, $props["depth"]],
-                                               $props["itemStart"]
-                                           )
+        str_replace("{depth}", $props["depth"], $props["itemStart"])
     );
     // == <a ...</a> ================
     echo "<a href=\"", $this->url($item->slug), "\"",
-            $props["itemAttrs"] !== "[]" ? $this->attrMapToStr(json_decode($props["itemAttrs"])) : "", ">",
+            $props["itemAttrs"] !== "[]"
+                ? $this->attrMapToStr(json_decode($props["itemAttrs"], flags: JSON_THROW_ON_ERROR))
+                : "",
+        ">",
         $item->text,
     "</a>";
     if ($item->children) {
@@ -23,7 +21,7 @@ foreach ($props["branch"] as $i => $item) {
                                  "depth" => $props["depth"] + 1]));
     }
     // == </li> ================
-    echo $props["itemEnd"] ?? "</li>";
+    echo $props["itemEnd"];
 }
 // == </ul> ================
-echo $props["treeEnd"] ?? "</ul>";
+echo $props["treeEnd"];

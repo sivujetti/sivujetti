@@ -6,12 +6,14 @@ export default () => {
     const initialData = {
         tree: JSON.stringify([makeLinkItem({slug: '/', text: __('Home')}),
                               makeLinkItem({slug: '/about', text: __('About')})]),
-        wrapStart: '',   // "<nav class=\"menu\">"
-        wrapEnd: '',     // "</nav>"
-        treeStart: '',   // "<ul>"
-        treeEnd: '',     // "</ul>"
-        itemAttrs: '[]', // "[]"
-        itemEnd: '',     // "</li>"
+        wrapStart: '<nav class="menu"><div>',
+        wrapEnd:   '</div></nav>',
+        treeStart: '<ul class="level-{depth}">',
+        treeEnd:   '</ul>',
+        itemAttrs: '[]',
+        // Example. '<li class="level-0" data-current>'
+        itemStart: '<li class="level-{depth}"{current}>',
+        itemEnd:   '</li>'
     };
     return {
         name: 'Menu',

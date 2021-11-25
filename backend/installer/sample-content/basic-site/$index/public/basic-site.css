@@ -9,6 +9,15 @@ body {
     flex: 1;
 }
 
+nav ul {
+    margin: 0;
+    list-style: none;
+    display: flex;
+}
+nav ul li {
+    margin: 0;
+}
+
 section, .header, .main, .aside-column, .footer {
     padding: 1rem;
 }

@@ -107,6 +107,7 @@ class MenuBlockEditForm extends preact.Component {
             treeStart: block.treeStart,
             treeEnd: block.treeEnd,
             itemAttrs: block.itemAttrs,
+            itemStart: block.itemStart,
             itemEnd: block.itemEnd,
         };
     }
@@ -145,6 +146,7 @@ function makeLinkItem(vals) {
  * @prop {String} treeStart
  * @prop {String} treeEnd
  * @prop {String} itemAttrs
+ * @prop {String} itemStart
  * @prop {String} itemEnd
  */
 

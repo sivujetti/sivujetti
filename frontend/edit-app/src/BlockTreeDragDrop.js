@@ -32,7 +32,7 @@ class BlockTreeDragDrop {
      */
     handleDraggedOver(e) {
         const li = e.target.nodeName === 'LI' ? e.target : e.target.closest('li');
-        if (!li || li.getAttribute('data-drop-group') !== this.startElDropGroup)
+        if (!li)
             return;
         //
         const distance = this.getLiIndex(li) - this.startLiIndex;
@@ -110,6 +110,12 @@ class BlockTreeDragDrop {
             dragBranch.splice(fromIndex + (fromIndex > refIndex ? 1 : 0), 1);
             this.onDropped(this.blockTree.state.blockTree, dragBlock, dropBlock, this.curDropTypeCandidate.dropPosition);
         } else if (this.curDropTypeCandidate.dropPosition === 'as-child') {
+            if (dropBlock.type === 'GlobalBlockReference') {
+                this.curDropTypeCandidate = null;
+                this.clearDragEl();
+                alert('Normal > Global drop not implemented yet');
+                return;
+            }
             // Mutates this.blockTree.state.blockTree x 3
             dragBlock.parentBlockIdPath = `${dropBlock.parentBlockIdPath}/${dropBlock.id}`; // todo verify this
             dropBlock.children.push(dragBlock);

@@ -101,7 +101,12 @@ export default () => {
             const href = linkTo.indexOf('.') < 0
                 ? urlUtils.makeUrl(linkTo)
                 : `${linkTo.startsWith('//') || linkTo.startsWith('http') ? '' : '//'}${linkTo}`;
-            return `<p><a href="${href}" class="btn${cssClass ? ` ${cssClass}` : ''}">${html}${renderChildren()}</a></p>`;
+            return ['<p class="button">',
+                '<a href="', href, '" class="btn', (cssClass ? ` ${cssClass}` : ''), '" data-block-root>',
+                    html,
+                    renderChildren(),
+                '</a>',
+            '</p>'].join('');
         },
         editForm: ButtonBlockEditForm,
     };

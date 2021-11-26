@@ -17,11 +17,14 @@ class Block {
      * @param {BlockType|String} blockType
      * @param {Object} data = {}
      * @param {String} id = generatePushID()
-     * @param {String} isStoredTo = 'page'
+     * @param {String|null} globalBlockTreeId = null
      * @returns {Block}
      * @access public
      */
-    static fromType(blockType, data = {}, id = generatePushID(), isStoredTo = 'page') {
+    static fromType(blockType,
+                    data = {},
+                    id = generatePushID(),
+                    globalBlockTreeId = null) {
         blockType = typeof blockType !== 'string' ? blockType : blockTypes.get(blockType);
         const completeOwnProps = Block.makeOwnData(blockType, data);
         return Block.fromObject(Object.assign({
@@ -29,7 +32,8 @@ class Block {
             type: blockType.name,
             title: '',
             renderer: blockType.defaultRenderer,
-            isStoredTo,
+            isStoredTo: !globalBlockTreeId ? 'page' : 'globalBlockTree',
+            globalBlockTreeId,
             children: []
         }, completeOwnProps));
     }
@@ -47,6 +51,7 @@ class Block {
                 type: block.type,
                 renderer: block.renderer,
                 isStoredTo: block.isStoredTo,
+                globalBlockTreeId: block.globalBlockTreeId,
             }, this.makeOwnData(blockTypes.get(block.type), block, 1)))
         );
         blockTreeUtils.setParentIdPaths(branch);

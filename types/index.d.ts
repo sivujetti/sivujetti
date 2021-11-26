@@ -26,7 +26,7 @@ interface Block {
     toHtml(): String;
     overwritePropsData(newPropsData: Object): void;
     static fromObject(data: RawBlock|Object): Block;
-    static fromType(blockType: BlockType|String, data?: Object, id?: String): Block;
+    static fromType(blockType: BlockType|String, data?: Object, id?: String, globalBlockTreeId?: String|null): Block;
     static clone(from: RawBlock|Object): Block;
 }
 

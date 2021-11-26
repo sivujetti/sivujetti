@@ -61,8 +61,8 @@ final class Block {
     public string $wrapEnd;
     public string $treeStart;
     public string $treeEnd;
-    public string $itemAttrs;
     public string $itemStart;
+    public string $itemAttrs;
     public string $itemEnd; */
 
     /* If self::TYPE_PARAGRAPH

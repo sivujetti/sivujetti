@@ -66,7 +66,7 @@ class ImageBlockEditForm extends preact.Component {
 }
 
 export default () => {
-    const initialData = {src: '', cssClass: ''};
+    const initialData = {src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=', cssClass: ''};
     return {
         name: 'Image',
         friendlyName: 'Image',
@@ -74,7 +74,10 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         reRender({src, cssClass}, renderChildren) {
-            return `<img src="${urlUtils.makeAssetUrl(src)}" alt=""${cssClass? ` class="${cssClass}"` : ''}>${renderChildren()}`;
+            return ['<span class="image', (cssClass ? ` ${cssClass}` : ''), '">',
+                '<img src="', !src.startsWith('data:') ? urlUtils.makeAssetUrl(src) : src, '" alt="">',
+                renderChildren(),
+            '</span>'].join('');
         },
         editForm: ImageBlockEditForm,
     };

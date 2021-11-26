@@ -13,8 +13,8 @@ final class MenuBlockType implements BlockTypeInterface {
             ->newProperty("wrapEnd", $builder::DATA_TYPE_TEXT)
             ->newProperty("treeStart", $builder::DATA_TYPE_TEXT)
             ->newProperty("treeEnd", $builder::DATA_TYPE_TEXT)
-            ->newProperty("itemAttrs", $builder::DATA_TYPE_TEXT)
             ->newProperty("itemStart", $builder::DATA_TYPE_TEXT)
+            ->newProperty("itemAttrs", $builder::DATA_TYPE_TEXT)
             ->newProperty("itemEnd", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }

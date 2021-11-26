@@ -10,16 +10,20 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_HEADING):
         $this->renderChildren($props),
     "</{$tag}>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_IMAGE):
-    echo "<span class=\"image\"><img src=\"{$this->assetUrl($props->src)}\" alt=\"\"",
-        ($props->cssClass ? " class=\"{$this->e($props->cssClass)}\"" : ""), ">",
-        $this->renderChildren($props), "</span>";
+    echo "<span class=\"image", ($props->cssClass ? " {$this->e($props->cssClass)}" : ""), "\">",
+        "<img src=\"", !str_starts_with($props->src, "data:") ? $this->assetUrl($props->src) : $this->e($props->src), "\" alt=\"\">",
+        $this->renderChildren($props),
+    "</span>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):
-    echo "<p class=\"button\"><a href=\"" . (!str_contains($props->linkTo, ".")
-        ? $this->makeUrl($props->linkTo)
-        : (str_starts_with($props->linkTo, "//") || str_starts_with($props->linkTo, "http") ? "" : "//" . $props->linkTo)) .
-        "\" class=\"btn",
-        ($props->cssClass ? " {$this->e($props->cssClass)}" : ""),
-        "\">{$props->html}{$this->renderChildren($props)}</a></p>"; // @allow pre-validated html
+    echo "<p class=\"button\">",
+        "<a href=\"", (!str_contains($props->linkTo, ".")
+            ? $this->makeUrl($props->linkTo)
+            : ((str_starts_with($props->linkTo, "//") || str_starts_with($props->linkTo, "http") ? "" : "//") . $props->linkTo)),
+            "\" class=\"btn", ($props->cssClass ? " {$this->e($props->cssClass)}" : ""), "\" data-block-root>",
+            $props->html, // @allow pre-validated html
+            $this->renderChildren($props),
+        "</a>",
+    "</p>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_RICH_TEXT):
     echo $props->html, // @allow pre-validated html
          $this->renderChildren($props);

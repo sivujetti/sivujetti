@@ -10,9 +10,9 @@ export default () => {
         wrapEnd:   '</div></nav>',
         treeStart: '<ul class="level-{depth}">',
         treeEnd:   '</ul>',
-        itemAttrs: '[]',
         // Example. '<li class="level-0" data-current>'
         itemStart: '<li class="level-{depth}"{current}>',
+        itemAttrs: '[]',
         itemEnd:   '</li>'
     };
     return {

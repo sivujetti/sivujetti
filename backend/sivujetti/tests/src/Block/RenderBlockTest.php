@@ -2,20 +2,9 @@
 
 namespace Sivujetti\Tests\Block;
 
-use Sivujetti\App;
-use Sivujetti\Tests\Utils\{BlockTestUtils, HttpApiTestTrait, PageTestUtils};
-use Pike\{PikeException, TestUtils\DbTestCase, TestUtils\HttpTestUtils};
+use Pike\PikeException;
 
-final class RenderBlockTest extends DbTestCase {
-    use HttpTestUtils;
-    use HttpApiTestTrait;
-    private BlockTestUtils $blockTestUtils;
-    private PageTestUtils $pageTestUtils;
-    protected function setUp(): void {
-        parent::setUp();
-        $this->pageTestUtils = new PageTestUtils(self::$db);
-        $this->blockTestUtils = new BlockTestUtils($this->pageTestUtils);
-    }
+final class RenderBlockTest extends RenderBlocksTestCase {
     public function testRenderBlockRendersBlockShallowly(): void {
         $state = $this->setupTest();
         $this->makeTestSivujettiApp($state);
@@ -23,28 +12,15 @@ final class RenderBlockTest extends DbTestCase {
         $this->verifyRequestFinishedSuccesfully($state);
         $this->verifyReturnedRenderOutput($state);
     }
-    private function setupTest(): \TestState {
-        $state = new \TestState;
+    protected function setupTest(): \TestState {
+        $state = parent::setupTest();
         $state->testBlock = $this->pageTestUtils->makeTestPageData()->blocks[0];
-        $state->spyingResponse = null;
-        $state->app = null;
         return $state;
     }
-    private function makeTestSivujettiApp(\TestState $state): void {
-        $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
-    }
-    private function sendRenderBlockRequest(\TestState $state): void {
-        $state->spyingResponse = $state->app->sendRequest(
-            $this->createApiRequest("/api/blocks/render",
-                "POST", (object) ["block" => $state->testBlock]));
-    }
-    private function verifyRequestFinishedSuccesfully(\TestState $state): void {
-        $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
-    }
     private function verifyReturnedRenderOutput(\TestState $state): void {
-        $expected = "<!-- block-start -bbbbbbbbbbbbbbbbbbb:Section -->" .
-                    "<section class=\"\"><div data-block-root><span id=\"temp-marker\"></span></div></section>" .
-                    "<!-- block-end -bbbbbbbbbbbbbbbbbbb -->";
+        $expected = $this->blockTestUtils->decorateWithRef($state->testBlock,
+            "<section class=\"\"><div data-block-root><span id=\"temp-marker\"></span></div></section>"
+        );
         $this->verifyResponseBodyEquals((object) ["result" => $expected],
                                         $state->spyingResponse);
     }

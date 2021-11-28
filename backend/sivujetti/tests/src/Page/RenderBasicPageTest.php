@@ -2,6 +2,7 @@
 
 namespace Sivujetti\Tests\Page;
 
+use MySite\Theme;
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\Page\SiteAwareTemplate;
@@ -52,7 +53,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
                                           $state->spyingResponse->getActualBody());
     }
     private function verifyThemeCanRegisterCssFiles(\TestState $state): void {
-        $expectedUrl = SiteAwareTemplate::makeUrl("/public/basic-site.css");
+        $expectedUrl = SiteAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME);
         $this->assertStringContainsString("<link href=\"{$expectedUrl}\" rel=\"stylesheet\">",
             $state->spyingResponse->getActualBody());
     }

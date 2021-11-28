@@ -8,7 +8,7 @@ use Sivujetti\UserSite\UserSiteAPI;
 
 final class RenderPageWithCustomBlockTest extends RenderPageTestCase {
     private const TEST_RENDERER_FILEID = "site:quote";
-    private const TEST_RENDERER_FILEPATH = SIVUJETTI_BACKEND_PATH . "site/templates/quote.tmpl.php";
+    private const TEST_RENDERER_FILEPATH = SIVUJETTI_SITE_PATH . "templates/quote.tmpl.php";
     public static function setupBeforeClass(): void {
         parent::setUpBeforeClass();
         if (!is_file(self::TEST_RENDERER_FILEPATH))

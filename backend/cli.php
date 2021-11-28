@@ -13,6 +13,8 @@ if (($argc ?? 0) < 2) die(
 
 define("SIVUJETTI_BACKEND_PATH", str_replace("\\", "/", __DIR__) . "/");
 define("SIVUJETTI_PUBLIC_PATH", dirname(SIVUJETTI_BACKEND_PATH) . "/");
+define("SIVUJETTI_SITE_PATH", "");
+define("SIVUJETTI_PLUGINS_PATH", "");
 
 $loader = require SIVUJETTI_BACKEND_PATH . "vendor/autoload.php";
 $loader->addPsr4("Sivujetti\\Cli\\", SIVUJETTI_BACKEND_PATH . "cli/src");

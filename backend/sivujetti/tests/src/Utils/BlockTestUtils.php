@@ -20,7 +20,7 @@ final class BlockTestUtils {
      * @param ?string $title = null
      * @param ?string $renderer = null
      * @param object[]|null $children = null
-     * @param array<string, mixed>|null $propsData = null
+     * @param array<string, mixed>|object|null $propsData = null
      * @param ?string $id = null
      * @return object
      */
@@ -28,7 +28,7 @@ final class BlockTestUtils {
                                   ?string $title = null,
                                   ?string $renderer = null,
                                   ?array $children = null,
-                                  ?array $propsData = null,
+                                  array|object|null $propsData = null,
                                   ?string $id = null): object {
         $out = new \stdClass;
         $out->type = $type ?? Block::TYPE_PARAGRAPH;
@@ -41,9 +41,11 @@ final class BlockTestUtils {
         };
         $out->children = $children ?? [];
         $out->propsData = [];
-        foreach ($propsData as $key => $value) {
-            $out->propsData[] = (object) ["key" => $key, "value" => $value];
-            $out->{$key} = $value;
+        if ($propsData) {
+            foreach ($propsData as $key => $value) {
+                $out->propsData[] = (object) ["key" => $key, "value" => $value];
+                $out->{$key} = $value;
+            }
         }
         return $out;
     }
@@ -56,5 +58,13 @@ final class BlockTestUtils {
         if (!($page = $this->pageTestUtils->getPageById($pageId)))
             return null;
         return BlockTree::findBlockById($id, $page->blocks);
+    }
+    /**
+     * @param object $rawBlock An object returned by $this->makeBlockData()
+     * @param string $html
+     * @return string
+     */
+    public static function decorateWithRef(object $rawBlock, string $html): string {
+        return "<!-- block-start {$rawBlock->id}:{$rawBlock->type} -->{$html}<!-- block-end {$rawBlock->id} -->";
     }
 }

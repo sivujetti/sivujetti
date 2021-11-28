@@ -44,7 +44,7 @@ class Template extends PikeTemplate {
             (isset($info["fragment"]) ? "#" . $info["fragment"] : "");
     }
     /**
-     * "foo.tmpl.php" -> SIVUJETTI_BACKEND_PATH . "site/templates/foo.tmpl.php"
+     * "foo.tmpl.php" -> SIVUJETTI_SITE_PATH . "templates/foo.tmpl.php"
      * "site:foo.tmpl.php" -> same as above
      * "sivujetti:block-auto.tmpl.php" -> SIVUJETTI_BACKEND_PATH . "assets/templates/block-auto.tmpl.php"
      * "unknown:something.tmpl.php" -> PikeException
@@ -59,7 +59,7 @@ class Template extends PikeTemplate {
         [$ns, $relFilePath] = count($pcs) > 1 ? $pcs : ["site", $pcs[0]];
         ValidationUtils::checkIfValidaPathOrThrow($relFilePath, !$allowSubFolders);
         $whiteList = ["sivujetti" => SIVUJETTI_BACKEND_PATH . "assets/templates/",
-                      "site" => SIVUJETTI_BACKEND_PATH . "site/templates/"];
+                      "site" => SIVUJETTI_SITE_PATH . "templates/"];
         if (!($root = $whiteList[$ns] ?? null))
             throw new PikeException("Renderer namespace must be " .
                 implode(" or ", array_keys($whiteList)) . " (yours was `{$ns}`.)",

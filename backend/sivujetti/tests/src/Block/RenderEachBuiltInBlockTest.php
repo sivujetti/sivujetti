@@ -3,10 +3,11 @@
 namespace Sivujetti\Tests\Block;
 
 use Sivujetti\Block\Entities\Block;
+use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\Template;
 use Sivujetti\Tests\Utils\DbDataHelper;
 
-final class RenderEachDefaultBlockTest extends RenderBlocksTestCase {
+final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
     public function testRenderBlockRendersButtons(): void {
         $makeExpectedHtml = fn($b, $lnk, $cls = "") => "<p class=\"button\">" .
             "<a href=\"{$lnk}\" class=\"btn{$cls}\" data-block-root>" .
@@ -59,9 +60,17 @@ final class RenderEachDefaultBlockTest extends RenderBlocksTestCase {
     public function testRenderBlockRendersGlobalBlockRefs(): void {
         $state = $this->setupRenderGlobalBlockRefBlocksTest();
         $this->makeTestSivujettiApp($state);
+        //
         $expectedInnerBlock = $state->testGlobalBlockTreeBlocks[0];
         $this->renderAndVerify($state, 0,
             $this->blockTestUtils->decorateWithRef($expectedInnerBlock, "<p>{$expectedInnerBlock->text}</p>")
+        );
+        //
+        $allOverrides = json_decode($state->testBlocks[1]->overrides);
+        $paragraphOverrides = $allOverrides->{$expectedInnerBlock->id};
+        $this->renderAndVerify($state, 1,
+            $this->blockTestUtils->decorateWithRef($expectedInnerBlock,
+                "<p class=\"{$paragraphOverrides->cssClass}\">{$paragraphOverrides->text}</p>")
         );
     }
     protected function setupRenderGlobalBlockRefBlocksTest(): \TestState {
@@ -80,7 +89,16 @@ final class RenderEachDefaultBlockTest extends RenderBlocksTestCase {
         //
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_GLOBAL_BLOCK_REF,
-                propsData: ["globalBlockTreeId" => $insertId, "overrides" => ""],
+                propsData: ["globalBlockTreeId" => $insertId, "overrides" =>
+                    GlobalBlockReferenceBlockType::EMPTY_OVERRIDES],
+                id: "@auto"),
+            $this->blockTestUtils->makeBlockData(Block::TYPE_GLOBAL_BLOCK_REF,
+                propsData: ["globalBlockTreeId" => $insertId, "overrides" => json_encode((object) [
+                    $state->testGlobalBlockTreeBlocks[0]->id => (object) [
+                        "text" => "Overriden",
+                        "cssClass" => "special-footer",
+                    ]
+                ])],
                 id: "@auto"),
         ];
         return $state;

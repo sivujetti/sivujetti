@@ -5,7 +5,8 @@ namespace Sivujetti\Tests\Page;
 use MySite\Theme;
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\Page\SiteAwareTemplate;
+use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
+use Sivujetti\Page\WebPageAwareTemplate;
 use Sivujetti\Tests\Utils\BlockTestUtils;
 
 final class RenderBasicPageTest extends RenderPageTestCase {
@@ -32,7 +33,8 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         ];
         $state->testPageData = $this->pageTestUtils->makeTestPageData();
         $state->testPageData->blocks[] = $btu->makeBlockData(Block::TYPE_GLOBAL_BLOCK_REF,
-            propsData: ["globalBlockTreeId" => $state->testGlobalBlockData->id, "overrides" => ""]
+            propsData: ["globalBlockTreeId" => $state->testGlobalBlockData->id, "overrides" =>
+                GlobalBlockReferenceBlockType::EMPTY_OVERRIDES]
         );
         $state->spyingResponse = null;
         $state->app = null;
@@ -53,7 +55,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
                                           $state->spyingResponse->getActualBody());
     }
     private function verifyThemeCanRegisterCssFiles(\TestState $state): void {
-        $expectedUrl = SiteAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME);
+        $expectedUrl = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME);
         $this->assertStringContainsString("<link href=\"{$expectedUrl}\" rel=\"stylesheet\">",
             $state->spyingResponse->getActualBody());
     }

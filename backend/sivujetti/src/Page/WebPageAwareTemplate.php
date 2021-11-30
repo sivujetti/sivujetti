@@ -2,11 +2,13 @@
 
 namespace Sivujetti\Page;
 
+use Pike\ArrayUtils;
 use Sivujetti\{Template, ValidationUtils};
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
+use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 
-final class SiteAwareTemplate extends Template {
+final class WebPageAwareTemplate extends Template {
     /** @var ?object */
     private ?object $__cssAndJsFiles;
     /**
@@ -77,13 +79,34 @@ final class SiteAwareTemplate extends Template {
      */
     public function renderBlocks(array $blocks): string {
         $out = "";
-        foreach ($blocks as $block) {
+        foreach ($blocks as $block)
             $out .= "<!-- block-start {$block->id}:{$block->type} -->" .
                 ($block->type !== Block::TYPE_GLOBAL_BLOCK_REF
                     ? $this->partial($block->renderer, $block)
-                    : $this->renderBlocks($block->__globalBlockTree?->blocks ?? [])) .
-            "<!-- block-end {$block->id} -->";}
+                    : $this->renderBlocks(self::getMutatedGlobalTreeBlocks($block))) .
+            "<!-- block-end {$block->id} -->";
         return $out;
+    }
+    /**
+     * Note: mutates $block->__blobalBlockTree->blocks*->*
+     *
+     * @param \Sivujetti\Block\Entities\Block $globalBlockRef
+     * @return \Sivujetti\Block\Entities\Block[]
+     */
+    private static function getMutatedGlobalTreeBlocks(Block $globalBlockRef): array {
+        $overrides = $globalBlockRef->overrides;
+        $blocks = $globalBlockRef->__globalBlockTree?->blocks ?? [];
+        if ($overrides === GlobalBlockReferenceBlockType::EMPTY_OVERRIDES || !$blocks) return $blocks;
+        //
+        foreach (json_decode($overrides, flags: JSON_THROW_ON_ERROR) as $blockId => $perBlockPropOverrides) {
+            $blockToOverride = BlockTree::findBlockById($blockId, $blocks);
+            foreach ($perBlockPropOverrides as $key => $val) {
+                $blockToOverride->{$key} = $val;
+                $default = ArrayUtils::findByKey($blockToOverride->propsData, $key, "key");
+                $default->value = $val;
+            }
+        }
+        return $blocks;
     }
     /**
      * @see \Sivujetti\Block\BlockTree::findBlock()

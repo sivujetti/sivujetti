@@ -13,9 +13,13 @@ final class GlobalBlockTreesModule {
             [GlobalBlockTreesController::class, "create", ["consumes" => "application/json",
                                                            "identifiedBy" => ["create", "globalBlockTrees"]]]
         );
+        $ctx->router->map("GET", "/api/global-block-trees/[i:globalBlockTreeId]",
+            [GlobalBlockTreesController::class, "getById", ["consumes" => "application/json",
+                                                            "identifiedBy" => ["read", "globalBlockTrees"]]]
+        );
         $ctx->router->map("GET", "/api/global-block-trees",
             [GlobalBlockTreesController::class, "list", ["consumes" => "application/json",
-                                                         "identifiedBy" => ["list", "globalBlockTrees"]]]
+                                                         "identifiedBy" => ["read", "globalBlockTrees"]]]
         );
         $ctx->router->map("PUT", "/api/global-block-trees/[i:globalBlockTreeId]/blocks",
             [GlobalBlockTreesController::class, "update", ["consumes" => "application/json",

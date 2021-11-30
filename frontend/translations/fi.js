@@ -12,6 +12,10 @@ stringBundles.push({
     'Slug': 'Url (slug)',
     'Content': 'Sisältö',
     'Something unexpected happened.': 'Jokin meni pieleen.',
+    // edit-app/src/BlockEditForm.jsx
+    'Specialize this global block': 'Spesialisoi tämä globaali lohko',
+    'Specialize': 'Spesialisoi',
+    'Use edited values on this\npage only': 'Käytä muokattuja tietoja\nvain tällä sivulla',
     // edit-app/src/BlockTree.jsx
     'Add child': 'Lisää lapsilohko',
     'Add child block': 'Lisää lapsilohko',

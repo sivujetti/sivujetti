@@ -11,6 +11,7 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
 use Sivujetti\BlockType\Entities\BlockTypes;
+use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\BlockType\ListeningBlockTypeInterface;
 use Sivujetti\Layout\Entities\Layout;
 use Sivujetti\Layout\LayoutsRepository;
@@ -89,12 +90,12 @@ final class PagesController {
                                          Response $res,
                                          TheWebsite $theWebsite,
                                          SharedAPIContext $storage): void {
-        $res->html((new SiteAwareTemplate("sivujetti:edit-app-wrapper.tmpl.php"))->render([
+        $res->html((new WebPageAwareTemplate("sivujetti:edit-app-wrapper.tmpl.php"))->render([
             "url" => $req->params->url ?? "",
             "userDefinedJsFiles" => $storage->getDataHandle()->adminJsFiles,
             "dataToFrontend" => json_encode((object) [
-                "baseUrl" => SiteAwareTemplate::makeUrl("/", true),
-                "assetBaseUrl" => SiteAwareTemplate::makeUrl("/", false),
+                "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
+                "assetBaseUrl" => WebPageAwareTemplate::makeUrl("/", false),
                 "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
             ]),
             "isFirstRun" => false,
@@ -192,7 +193,7 @@ final class PagesController {
         $data = $storage->getDataHandle();
         self::runBlockBeforeRenderEvent($page->blocks, $data->blockTypes, $pagesRepo, $theWebsite);
         $storage->triggerEvent("sivujetti:onPageBeforeRender", $page);
-        $html = (new SiteAwareTemplate(
+        $html = (new WebPageAwareTemplate(
             $page->layout->relFilePath,
             cssAndJsFiles: $data->userDefinedAssets
         ))->render([
@@ -206,7 +207,7 @@ final class PagesController {
                     "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
                     "layout" => self::layoutToRaw($page->layout),
                 ]) . "</script>" .
-                "<script src=\"" . SiteAwareTemplate::makeUrl("public/sivujetti/sivujetti-webpage.js", false) . "\"></script>" .
+                "<script src=\"" . WebPageAwareTemplate::makeUrl("public/sivujetti/sivujetti-webpage.js", false) . "\"></script>" .
             substr($html, $bodyEnd);
         }
         $res->html($html);
@@ -248,7 +249,7 @@ final class PagesController {
                     "children" => [],
                     "initialData" => (object) [
                         "globalBlockTreeId" => $part->globalBlockTreeId,
-                        "overrides" => "",
+                        "overrides" => GlobalBlockReferenceBlockType::EMPTY_OVERRIDES,
                     ],
                 ]);
             elseif ($part->type === Layout::PART_TYPE_PAGE_CONTENTS)

@@ -3,7 +3,7 @@
 namespace Sivujetti\Tests\Page;
 
 use Sivujetti\{App, AppContext, SharedAPIContext};
-use Sivujetti\Page\SiteAwareTemplate;
+use Sivujetti\Page\WebPageAwareTemplate;
 use Sivujetti\UserSite\UserSiteAPI;
 use Pike\{Request, TestUtils\DbTestCase, TestUtils\HttpTestUtils};
 
@@ -41,7 +41,7 @@ final class RenderEditAppWrapperTest extends DbTestCase {
         $this->verifyResponseMetaEquals(200, "text/html", $state->spyingResponse);
     }
     private function verifyInlcudedUserDefinedJsFiles(\TestState $state): void {
-        $expectedUrl = SiteAwareTemplate::makeUrl("/public/some-file.js");
+        $expectedUrl = WebPageAwareTemplate::makeUrl("/public/some-file.js");
         $this->assertStringContainsString("<script src=\"{$expectedUrl}\"></script>",
             $state->spyingResponse->getActualBody());
     }

@@ -38,6 +38,20 @@ final class GlobalBlockTreesController {
         $res->status($insertId !== "" ? 201 : 200)->json(["insertId" => $insertId]);
     }
     /**
+     * GET /api/global-block-trees/:globalBlockTreeId: Retrieves a single global
+     * block tree by id from the database.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Sivujetti\Block\GlobalBlockTreesRepository $globalBlocksRepo
+     */
+    public function getById(Request $req,
+                            Response $res,
+                            GlobalBlockTreesRepository $globalBlocksRepo): void {
+        $blocks = $globalBlocksRepo->getSingle($req->params->globalBlockTreeId);
+        $res->json($blocks);
+    }
+    /**
      * GET /api/global-block-trees: Lists all global block trees.
      *
      * @param \Pike\Response $res
@@ -49,7 +63,7 @@ final class GlobalBlockTreesController {
         $res->json($blocks);
     }
     /**
-     * PUT /api/global-block-trees/i:globalBlockTreeId/blocks: Overwrites the
+     * PUT /api/global-block-trees/:globalBlockTreeId/blocks: Overwrites the
      * block tree of $req->params->globalBlockTreeId to the database.
      *
      * @param \Pike\Request $req

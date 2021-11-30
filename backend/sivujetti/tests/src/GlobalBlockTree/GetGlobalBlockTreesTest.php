@@ -5,13 +5,13 @@ namespace Sivujetti\Tests\GlobalBlockTree;
 use Sivujetti\Block\BlockTree;
 
 final class GetGlobalBlockTreesTest extends GlobalBlockTreeControllerTestCase {
-    public function testListGlobalBlocksListsGlobalBlockTreesFromDb(): void {
+    public function testGetGlobalBlockTreeByIdReturnsGlobalBlockTreeFromDb(): void {
         $state = $this->setupTest();
         $this->insertTestGlobalBlockTreeToDb($state);
         $this->makeTestSivujettiApp($state);
-        $this->sendListGlobalBlockTreesRequest($state);
+        $this->sendGetGlobalBlockTreeByIdRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
-        $this->verifyListedAllGlobalBlockTrees($state);
+        $this->verifyReturnedSingleGlobalBlockTree($state);
     }
     protected function setupTest(): \TestState {
         $state = parent::setupTest();
@@ -22,19 +22,42 @@ final class GetGlobalBlockTreesTest extends GlobalBlockTreeControllerTestCase {
         return $state;
     }
     private function insertTestGlobalBlockTreeToDb(\TestState $state): void {
-        $this->dbDataHelper->insertData($state->testGlobalBlockTree, "globalBlocks");
+        $insertId = $this->dbDataHelper->insertData($state->testGlobalBlockTree, "globalBlocks");
+        $state->testGlobalBlockTree->id = $insertId;
+    }
+    private function sendGetGlobalBlockTreeByIdRequest(\TestState $state): void {
+        $state->spyingResponse = $state->app->sendRequest(
+            $this->createApiRequest("/api/global-block-trees/{$state->testGlobalBlockTree->id}", "GET"));
+    }
+    private function verifyRequestFinishedSuccesfully(\TestState $state): void {
+        $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
+    }
+    private function verifyReturnedSingleGlobalBlockTree(\TestState $state): void {
+        $actual = json_decode($state->spyingResponse->getActualBody(), flags: JSON_THROW_ON_ERROR);
+        $this->assertEquals($state->testGlobalBlockTree->name, $actual->name);
+        $this->assertEquals(json_decode($state->testGlobalBlockTree->blocks), $actual->blocks);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testListGlobalBlocksListsGlobalBlockTreesFromDb(): void {
+        $state = $this->setupTest();
+        $this->insertTestGlobalBlockTreeToDb($state);
+        $this->makeTestSivujettiApp($state);
+        $this->sendListGlobalBlockTreesRequest($state);
+        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifyListedAllGlobalBlockTrees($state);
     }
     private function sendListGlobalBlockTreesRequest(\TestState $state): void {
         $state->spyingResponse = $state->app->sendRequest(
             $this->createApiRequest("/api/global-block-trees", "GET"));
     }
-    private function verifyRequestFinishedSuccesfully(\TestState $state): void {
-        $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
-    }
     private function verifyListedAllGlobalBlockTrees(\TestState $state): void {
-        $actual = $this->dbDataHelper->fetch("globalBlocks")->fetchAll();
+        $actual = json_decode($state->spyingResponse->getActualBody(), flags: JSON_THROW_ON_ERROR);
         $this->assertCount(1, $actual);
         $this->assertEquals($state->testGlobalBlockTree->name, $actual[0]->name);
-        $this->assertEquals($state->testGlobalBlockTree->blocks, $actual[0]->blocks);
+        $this->assertEquals(json_decode($state->testGlobalBlockTree->blocks), $actual[0]->blocks);
     }
 }

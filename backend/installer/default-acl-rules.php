@@ -14,7 +14,7 @@ $out->resources = (object) [
     ],
     "globalBlockTrees" => (object) [
         "create"        => 0b00000010,
-        "list"          => 0b00000100,
+        "read"          => 0b00000100,
         "update"        => 0b00001000,
     ],
     "editMode" => (object) [

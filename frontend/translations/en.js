@@ -12,6 +12,10 @@ stringBundles.push({
     'Slug': 'Slug',
     'Content': 'Content',
     'Something unexpected happened.': 'Something unexpected happened.',
+    // edit-app/src/BlockEditForm.jsx
+    'Specialize this global block': 'Specialize this global block',
+    'Specialize': 'Specialize',
+    'Use edited values on this\npage only': 'Use edited values on this\npage only',
     // edit-app/src/BlockTree.jsx
     'Add child': 'Add child',
     'Add child block': 'Add child block',

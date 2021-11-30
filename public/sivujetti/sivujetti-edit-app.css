@@ -144,6 +144,7 @@ h2 {
     width: .8rem;
     height: .8rem;
 }
+
 .box {
     padding: 1rem;
     background-color: var(--color-bg-default);
@@ -211,6 +212,16 @@ ul.list {
 }
 .img-ratio img {
     position: absolute;
+}
+.mini-toggle {
+    margin: -.1rem 0 -.6rem -.4rem;
+}
+.mini-toggle .form-switch {
+    transform: scale(.85);
+}
+.mini-toggle > .tooltip .feather {
+    width: .7rem;
+    height: .7rem;
 }
 /* commons.css end */
 
@@ -539,7 +550,7 @@ a.popup-close-area {
     display: inline-block;
     opacity: .5;
 }
-.block-tree li[data-drop-group="globalBlockTree"] {
+.block-tree li.globalBlockTree-block {
     background-color: #eff8fe; /* rgba(--color-blue, .07) */
     border-radius: 3px;
 }
@@ -550,10 +561,6 @@ a.popup-close-area {
     border: 1px solid transparent;
     margin-left: -.4rem;
     border-left: none;
-}
-.block-tree > li.layout-block {
-    background-color: #ff57220d; /* rgba(--color-orange, .05) */
-    border-radius: 3px;
 }
 .block-tree li button {
     background: transparent;
@@ -585,10 +592,7 @@ a.popup-close-area {
 .block-tree li.selected > div > .block-handle {
     background: var(--color-bg-button);
 }
-.block-tree li.layout-block.selected > div > .block-handle {
-    background: #ff57220d /* rgba(--color-orange, .05) */
-}
-.block-tree li[data-drop-group="globalBlockTree"].selected > div > .block-handle {
+.block-tree li.globalBlockTree-block.selected > div > .block-handle {
     background: #2196f312; /* rgba(--color-blue, .07) */
 }
 .block-tree li.with-children > div > .block-handle {

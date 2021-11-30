@@ -92,7 +92,7 @@ class InspectorPanel extends preact.Component {
      *
      * @param {Block} block
      * @param {Block|null} base
-     * @param {BlockTree} blockTreeCmp
+     * @param {preact.Component} blockTreeCmp
      * @access private
      */
     open(block, base, blockTreeCmp) {

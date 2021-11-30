@@ -1,7 +1,9 @@
-import {__, signals} from '@sivujetti-commons';
+import {http, __, env, signals} from '@sivujetti-commons';
 import Icon from '../../commons/Icon.jsx';
 import blockTypes from './block-types/block-types.js';
+import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
+import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from './store.js';
 import {timingUtils} from './utils.js';
 
@@ -21,6 +23,7 @@ class BlockEditForm extends preact.Component {
         this.currentDebouceTime = null;
         this.currentDebounceType = null;
         this.blockType = blockTypes.get(this.props.block.type);
+        this.setState({doUseOverrides: this.props.base && this.props.base.overrides !== EMPTY_OVERRIDES});
         this.unregisterSignalListener = signals.on('on-block-deleted',
             /**
              * @param {Block} _block
@@ -37,23 +40,66 @@ class BlockEditForm extends preact.Component {
         this.unregisterSignalListener();
     }
     /**
-     * @param {{block: Block; blockTreeCmp: preact.Component;}} props
+     * @param {{block: Block; blockTreeCmp: preact.Component; base: Block|null;}} props
      * @access protected
      */
-    render({block, blockTreeCmp}) {
+    render({block, blockTreeCmp, base}, {doUseOverrides}) {
         return <>
             <div class="with-icon pb-1">
                 <Icon iconId="type" className="size-xs color-accent mr-1"/>
                 { __(block.type) }
             </div>
             <div class="mt-2">
+                { base !== null
+                    ? <div class="input-group mini-toggle">
+                        <label class="form-switch input-sm color-dimmed pr-0" title={ __('Specialize this global block') }>
+                            <input
+                                onChange={ this.handleDoInheritGlobalBlockValsChanged.bind(this) }
+                                type="checkbox"
+                                checked={ doUseOverrides }/>
+                            <i class="form-icon"></i> { __('Specialize') }
+                        </label>
+                        <span
+                            class="flex-centered tooltip tooltip-bottom"
+                            data-tooltip={ __('Use edited values on this\npage only') }>
+                            <Icon iconId="info"/>
+                        </span>
+                    </div>
+                    : null
+                }
                 { preact.createElement(this.blockType.editForm, {
                     block,
                     blockTree: blockTreeCmp,
                     onValueChanged: this.handleBlockValueChanged.bind(this),
+                    key: `${block.id}-${!doUseOverrides ? 'no-override' : 'with-overrides'}`,
                 }) }
             </div>
         </>;
+    }
+    /**
+     * @param {Event} e
+     * @access private
+     */
+    handleDoInheritGlobalBlockValsChanged(e) {
+        const newVal = e.target.checked;
+        const curVal = this.state.doUseOverrides;
+        if (newVal && !curVal) {
+            this.setState({doUseOverrides: true});
+        } else if (!newVal && curVal) {
+            // Update base's (globalBlockRef) overrides
+            const overrides = this.props.base.propsData.find(({key}) => key === 'overrides');
+            overrides.value = removeOverridesFor(this.props.block, JSON.parse(overrides.value));
+            this.props.base.overrides = overrides.value;
+            // Restore global block's defaults to inner block (globalBlockRef.__blockTree['someBlock'])
+            http.get(`/api/global-block-trees/${this.props.base.globalBlockTreeId}`)
+                .then(({blocks}) => {
+                    this.setState({doUseOverrides: false});
+                    const defaultProps = blockTreeUtils.findBlock(this.props.block.id, blocks)[0];
+                    this.b = () => this.commitChangeToQueue('page');
+                    this.reRenderBlock(defaultProps); // Note: mutates globalBlockTreeBlocks.someTree
+                })
+                .catch(env.window.console.error);
+        }
     }
     /**
      * @access private
@@ -65,24 +111,33 @@ class BlockEditForm extends preact.Component {
         });
     }
     /**
+     * @param {String|null} blockIsStoredTo = null
      * @access private
      */
-    commitChangeToQueue() {
-        const blockIsStoredTo = !this.props.base
-            ? this.props.block.isStoredTo
-            : this.props.base.isStoredTo;
+    commitChangeToQueue(blockIsStoredTo = null) {
+        if (!blockIsStoredTo) {
+            blockIsStoredTo = !this.props.base || !this.state.doUseOverrides
+                ? this.props.block.isStoredTo
+                : this.props.base.isStoredTo;
+        }
+        //
+        if (this.state.doUseOverrides) {
+            const overrides = this.props.base.propsData.find(({key}) => key === 'overrides');
+            overrides.value = addOverridesFor(this.props.block, JSON.parse(overrides.value));
+            this.props.base.overrides = overrides.value;
+        }
         //
         const blockTree = blockIsStoredTo !== 'globalBlockTree'
             ? this.props.blockTreeCmp.getTree()
             : this.props.blockTreeCmp.getTreeFor(this.props.block);
         //
-        const blockTreeId = blockIsStoredTo !== 'globalBlockTree'
+        const globalBlockTreeId = blockIsStoredTo !== 'globalBlockTree'
             ? null
             : this.props.block.globalBlockTreeId;
         //
         store.dispatch(pushItemToOpQueue(`update-${blockIsStoredTo}-block`, {
             doHandle: this.props.blockTreeCmp.props.onChangesApplied,
-            args: [blockTree, blockIsStoredTo, blockTreeId],
+            args: [blockTree, blockIsStoredTo, globalBlockTreeId],
         }));
     }
     /**
@@ -112,6 +167,29 @@ class BlockEditForm extends preact.Component {
         }
         this.a(newBlockPropsData);
     }
+}
+
+/**
+ * @param {Block} block The block whose props to add to $allOverrides
+ * @param {{[blockId: String]: Object;}} allOverrides
+ * @returns {String} Jsonified $allOverrides which now contains overrides for $block
+ */
+function addOverridesFor(block, allOverrides) {
+    allOverrides[block.id] = block.propsData.reduce((out, propData) => {
+        out[propData.key] = propData.value;
+        return out;
+    }, {});
+    return JSON.stringify(allOverrides);
+}
+
+/**
+ * @param {Block} block The block whose props to remove from $allOverrides
+ * @param {{[blockId: String]: Object;}} allOverrides
+ * @returns {String} Jsonified $allOverrides which no longer contains overrides for $block
+ */
+function removeOverridesFor(block, allOverrides) {
+    delete allOverrides[block.id];
+    return JSON.stringify(allOverrides);
 }
 
 export default BlockEditForm;

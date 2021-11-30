@@ -145,10 +145,10 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default') {
         "renderer": "sivujetti:block-auto",
         "id": "-MlPupIvfXCsi7eHeTP4",
         "propsData": [{"key": "globalBlockTreeId", "value": "10"},
-                      {"key": "overrides", "value": ""}],
+                      {"key": "overrides", "value": "{}"}],
         "children": [],
         "globalBlockTreeId": "10",
-        "overrides": "",
+        "overrides": "{}",
         "__globalBlockTree": {
             "id": "10",
             "name": "My stored",

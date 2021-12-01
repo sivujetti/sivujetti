@@ -1,9 +1,9 @@
-import {__, env} from '@sivujetti-commons';
-import {unParagraphify} from './paragraph.js';
-import {hookForm, InputGroup, InputGroupInline, InputError, Input, Select} from '../../../commons/Form.jsx';
-import QuillEditor from '../../../commons/QuillEditor.jsx';
-import Icon from '../../../commons/Icon.jsx';
+import {__, env} from '../commons/main.js';
+import {hookForm, InputGroup, InputGroupInline, InputError, Input, Select} from '../commons/Form.jsx';
+import QuillEditor from '../commons/QuillEditor.jsx';
+import Icon from '../commons/Icon.jsx';
 import {formValidation} from '../constants.js';
+import {unParagraphify} from './paragraph.js';
 import setFocusTo from './auto-focusers.js';
 
 class HeadingBlockEditForm extends preact.Component {

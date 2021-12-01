@@ -1,6 +1,6 @@
-import {__, http} from '@sivujetti-commons';
-import Icon from '../../commons/Icon.jsx';
-import toasters from '../../commons/Toaster.jsx';
+import {__, http} from './commons/main.js';
+import Icon from './commons/Icon.jsx';
+import toasters from './commons/Toaster.jsx';
 import BlockTree from './BlockTree.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {observeStore, selectCurrentPage} from './store.js';

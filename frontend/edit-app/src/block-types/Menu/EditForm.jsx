@@ -1,5 +1,5 @@
-import {__} from '@sivujetti-commons';
-import Icon from '../../../../commons/Icon.jsx';
+import {__} from '../../commons/main.js';
+import Icon from '../../commons/Icon.jsx';
 import EditItemPanel from './EditItemPanel.jsx';
 
 let counter = 0;

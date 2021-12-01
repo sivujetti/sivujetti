@@ -1,12 +1,18 @@
-import Http from './Http.js';
-import Translator from './Translator.js';
-import Signals from './Signals.js';
-import {urlUtils} from './utils.js';
+/*
+An entry point for global file sivujetti-commons.js
+*/
+import Http from './src/Http.js';
+import {urlUtils} from './src/utils.js';
 
-const translator = new Translator;
-const __ = translator.t.bind(translator);
-const http = new Http(undefined, urlUtils.makeUrl.bind(urlUtils));
-const signals = new Signals;
 const env = {};
+const http = new Http(undefined, urlUtils.makeUrl.bind(urlUtils));
 
-export {__, http, translator, signals, env, urlUtils};
+env.window = window;
+env.document = document;
+env.csrfToken = '<token>';
+//
+urlUtils.baseUrl = window.sivujettiBaseUrl || window.dataFromAdminBackend.baseUrl;
+urlUtils.assetBaseUrl = window.sivujettiAssetBaseUrl || window.dataFromAdminBackend.assetBaseUrl;
+urlUtils.env = env;
+
+export {http, env, urlUtils};

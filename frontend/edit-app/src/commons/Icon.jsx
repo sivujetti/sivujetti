@@ -1,4 +1,4 @@
-import {urlUtils} from '@sivujetti-commons';
+import {urlUtils} from './main.js';
 
 class FeatherSvg extends preact.Component {
     /**

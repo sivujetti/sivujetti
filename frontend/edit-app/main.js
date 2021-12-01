@@ -1,5 +1,5 @@
-import {translator, env, urlUtils} from '@sivujetti-commons';
-import {Validator} from '../commons/Form.jsx';
+import {translator, env, urlUtils} from './src/commons/main.js';
+import {Validator} from './src/commons/Form.jsx';
 import {sensibleDefaults} from './src/constants.js';
 import {FormStateStoreWrapper} from './src/store.js';
 import EditApp from './src/EditApp.jsx';
@@ -35,14 +35,7 @@ renderReactEditApp();
 hookUpSiteIframeUrlMirrorer();
 
 function configureServices() {
-    env.window = window;
-    env.document = document;
     env.normalTypingDebounceMillis = sensibleDefaults.normalTypingDebounceMillis;
-    env.csrfToken = '<token>';
-    //
-    urlUtils.baseUrl = window.dataFromAdminBackend.baseUrl;
-    urlUtils.assetBaseUrl = window.dataFromAdminBackend.assetBaseUrl;
-    urlUtils.env = env;
     //
     Validator.registerStateWrapperImpl('default', FormStateStoreWrapper);
     window.translationStringBundles.forEach(strings => {

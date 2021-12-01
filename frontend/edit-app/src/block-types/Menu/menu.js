@@ -1,4 +1,4 @@
-import {http, __} from '@sivujetti-commons';
+import {http, __} from '../../commons/main.js';
 import MenuBlockEditForm, {makeLinkItem} from './EditForm.jsx';
 import {markInternalLinksAsInternal} from '../../../../shared.js';
 

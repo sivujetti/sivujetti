@@ -1,5 +1,5 @@
-import {__, urlUtils, env} from '@sivujetti-commons';
-import {hookForm, InputGroupInline, InputError, Input} from '../../../commons/Form.jsx';
+import {__, urlUtils, env} from '../commons/main.js';
+import {hookForm, InputGroupInline, InputError, Input} from '../commons/Form.jsx';
 import ImagePicker from '../BlockWidget/ImagePicker.jsx';
 import {formValidation} from '../constants.js';
 import {UPLOADS_DIR_PATH} from '../Upload/UploadsManager.jsx';

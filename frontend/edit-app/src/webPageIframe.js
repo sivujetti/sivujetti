@@ -1,4 +1,4 @@
-import {env, urlUtils} from '@sivujetti-commons';
+import {env, urlUtils} from './commons/main.js';
 
 const webPageIframe = {
     /**

@@ -1,8 +1,8 @@
-import {__, urlUtils, http, env} from '@sivujetti-commons';
-import Icon from '../../../commons/Icon.jsx';
-import Tabs from '../../../commons/Tabs.jsx';
-import LoadingSpinner from '../../../commons/LoadingSpinner.jsx';
-import {timingUtils} from '../utils.js';
+import {__, urlUtils, http, env} from '../commons/main.js';
+import Icon from '../commons/Icon.jsx';
+import Tabs from '../commons/Tabs.jsx';
+import {timingUtils} from '../commons/utils.js';
+import LoadingSpinner from '../commons/LoadingSpinner.jsx';
 import UploadButton from './UploadButton.jsx';
 
 const INITIAL_CACHE_KEY = '';

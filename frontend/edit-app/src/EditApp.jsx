@@ -1,5 +1,5 @@
-import {__, signals, urlUtils} from '@sivujetti-commons';
-import {Toaster} from '../../commons/Toaster.jsx';
+import {__, signals, urlUtils} from './commons/main.js';
+import {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
 import AddPageMainPanelView from './AddPageMainPanelView.jsx';
 import {FloatingDialog} from './FloatingDialog.jsx';

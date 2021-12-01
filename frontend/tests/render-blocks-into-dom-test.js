@@ -1,4 +1,4 @@
-import * as commons from '@sivujetti-commons';
+import * as commons from '../edit-app/src/commons/main.js';
 import blockTypes from '../edit-app/src/block-types/block-types.js';
 import {blockUtils} from './my-test-utils.js';
 import * as appTestUtils from './edit-app-testutils.js';

@@ -1,9 +1,9 @@
-import {__, http, signals, env} from '@sivujetti-commons';
-import {hookForm, InputGroupInline, Input, InputError} from '../../../commons/Form.jsx';
-import toasters from '../../../commons/Toaster.jsx';
+import {__, http, signals, env} from '../commons/main.js';
+import {hookForm, InputGroupInline, Input, InputError} from '../commons/Form.jsx';
+import toasters from '../commons/Toaster.jsx';
+import {stringUtils, timingUtils} from '../commons/utils.js';
 import store, {pushItemToOpQueue} from '../store.js';
 import BlockTrees from '../BlockTrees.jsx';
-import {stringUtils, timingUtils} from '../utils.js';
 import getWidget from '../FieldWidget/all.jsx';
 import setFocusTo from './auto-focusers.js';
 

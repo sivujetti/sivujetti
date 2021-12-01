@@ -1,6 +1,6 @@
-import {__, env} from '@sivujetti-commons';
-import {hookForm, InputGroup, InputGroupInline, Input, InputError} from '../../../commons/Form.jsx';
-import QuillEditor from '../../../commons/QuillEditor.jsx';
+import {__, env} from '../commons/main.js';
+import {hookForm, InputGroup, InputGroupInline, Input, InputError} from '../commons/Form.jsx';
+import QuillEditor from '../commons/QuillEditor.jsx';
 import {formValidation} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
 

@@ -1,5 +1,5 @@
-import {__} from '@sivujetti-commons';
-import Icon from '../../commons/Icon.jsx';
+import {__} from './commons/main.js';
+import Icon from './commons/Icon.jsx';
 import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from './store.js';
 
 class SaveButton extends preact.Component {

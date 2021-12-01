@@ -1,5 +1,5 @@
-import {__} from '@sivujetti-commons';
-import Icon from '../../../commons/Icon.jsx';
+import {__} from '../commons/main.js';
+import Icon from '../commons/Icon.jsx';
 import floatingDialog from '../FloatingDialog.jsx';
 import UploadsManager from '../Upload/UploadsManager.jsx';
 

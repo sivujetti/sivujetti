@@ -1,6 +1,6 @@
-import {env} from '@sivujetti-commons';
-import QuillEditor from '../../../commons/QuillEditor.jsx';
-import {Input} from '../../../commons/Form.jsx';
+import {env} from '../commons/main.js';
+import QuillEditor from '../commons/QuillEditor.jsx';
+import {Input} from '../commons/Form.jsx';
 
 /**
  * @param {preact.Ref} elementRef

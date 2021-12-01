@@ -1,11 +1,11 @@
-import {http, __, env, signals} from '@sivujetti-commons';
-import Icon from '../../commons/Icon.jsx';
+import {http, __, env, signals} from './commons/main.js';
+import Icon from './commons/Icon.jsx';
+import {timingUtils} from './commons/utils.js';
 import blockTypes from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from './store.js';
-import {timingUtils} from './utils.js';
 
 class BlockEditForm extends preact.Component {
     // a; // Current reRender function closure

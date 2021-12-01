@@ -1,6 +1,6 @@
-import {__, http, urlUtils, signals, env} from '@sivujetti-commons';
-import {InputGroupInline} from '../../commons/Form.jsx';
-import toasters from '../../commons/Toaster.jsx';
+import {__, http, urlUtils, signals, env} from './commons/main.js';
+import {InputGroupInline} from './commons/Form.jsx';
+import toasters from './commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';
 import store, {deleteItemsFromOpQueueAfter, setOpQueue} from './store.js';
 

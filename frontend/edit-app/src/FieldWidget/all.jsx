@@ -1,5 +1,5 @@
-import {__} from '@sivujetti-commons';
-import {Input} from '../../../commons/Form.jsx';
+import {__} from '../commons/main.js';
+import {Input} from '../commons/Form.jsx';
 
 class TextFieldFieldWidget extends preact.Component {
     /**

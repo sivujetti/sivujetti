@@ -1,5 +1,5 @@
-import {__} from '@sivujetti-commons';
-import Tabs from '../../commons/Tabs.jsx';
+import {__} from './commons/main.js';
+import Tabs from './commons/Tabs.jsx';
 import blockTypes from './block-types/block-types.js';
 import Block from './Block.js';
 import blockTreeUtils from './blockTreeUtils.js';

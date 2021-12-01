@@ -10,6 +10,12 @@
     <script src="../sivujetti/vendor/vendor.bundle.min.js"></script>
     <script src="qunit-2.16.0.js"></script>
     <script src="sinon.min.js"></script>
+    <script>
+        // Will be overwritten at tests/main.js
+        window.sivujettiBaseUrl = '';
+        window.sivujettiAssetBaseUrl = '';
+    </script>
     <script src="../sivujetti/sivujetti-commons.js"></script>
+    <!-- See ../frontend/tests/main.js -->
     <script src="bundled-main.js"></script>
 </body>

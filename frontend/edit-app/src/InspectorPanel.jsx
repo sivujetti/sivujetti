@@ -1,5 +1,5 @@
-import {__, signals, env} from '@sivujetti-commons';
-import Icon from '../../commons/Icon.jsx';
+import {__, signals, env} from './commons/main.js';
+import Icon from './commons/Icon.jsx';
 import BlockEditForm from './BlockEditForm.jsx';
 
 const REVEAL_ANIM_DURATION = 200;

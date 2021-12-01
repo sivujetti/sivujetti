@@ -1,4 +1,4 @@
-import {__} from '@sivujetti-commons';
+import {__} from '../commons/main.js';
 
 class ColumnsBlockEditForm extends preact.Component {
     render() {

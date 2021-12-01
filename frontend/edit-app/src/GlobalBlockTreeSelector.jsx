@@ -1,5 +1,5 @@
-import {http, __, env} from '@sivujetti-commons';
-import LoadingSpinner from '../../commons/LoadingSpinner.jsx';
+import {http, __, env} from './commons/main.js';
+import LoadingSpinner from './commons/LoadingSpinner.jsx';
 
 /**
  * @param {{onItemSelected: (globalBlockTree: RawGlobalBlockTree) => void; isVisible: Boolean;}} props

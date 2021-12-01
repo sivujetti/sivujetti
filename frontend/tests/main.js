@@ -1,6 +1,6 @@
 // To run these tests, head to <devServerHost>/public/tests/index.html
-import {env, urlUtils} from '@sivujetti-commons';
-import {Validator} from '../commons/Form.jsx';
+import {env, urlUtils} from '../edit-app/src/commons/main.js';
+import {Validator} from '../edit-app/src/commons/Form.jsx';
 import store, {FormStateStoreWrapper, setOpQueue} from '../edit-app/src/store.js';
 import blockTypes from '../edit-app/src/block-types/block-types.js';
 import createGlobalBlockReference from '../edit-app/src/block-types/globalBlockReference.js';

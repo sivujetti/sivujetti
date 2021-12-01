@@ -1,5 +1,5 @@
-import {__} from '@sivujetti-commons';
-import {hookForm, InputGroupInline, Input, InputError} from '../../../../commons/Form.jsx';
+import {__} from '../../commons/main.js';
+import {hookForm, InputGroupInline, Input, InputError} from '../../commons/Form.jsx';
 import {formValidation} from '../../constants.js';
 
 class EditItemPanel extends preact.Component {

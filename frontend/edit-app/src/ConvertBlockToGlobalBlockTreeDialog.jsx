@@ -1,5 +1,5 @@
-import {__} from '@sivujetti-commons';
-import {hookForm, InputGroup, Input, InputError} from '../../commons/Form.jsx';
+import {__} from './commons/main.js';
+import {hookForm, InputGroup, Input, InputError} from './commons/Form.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import floatingDialog from './FloatingDialog.jsx';
 

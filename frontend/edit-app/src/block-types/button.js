@@ -1,8 +1,8 @@
-import {urlUtils, __, env} from '@sivujetti-commons';
-import {unParagraphify} from './paragraph.js';
-import {hookForm, InputGroup, InputGroupInline, InputError, Input} from '../../../commons/Form.jsx';
-import QuillEditor from '../../../commons/QuillEditor.jsx';
+import {urlUtils, __, env} from '../commons/main.js';
+import {hookForm, InputGroup, InputGroupInline, InputError, Input} from '../commons/Form.jsx';
+import QuillEditor from '../commons/QuillEditor.jsx';
 import {formValidation} from '../constants.js';
+import {unParagraphify} from './paragraph.js';
 import setFocusTo from './auto-focusers.js';
 
 class ButtonBlockEditForm extends preact.Component {

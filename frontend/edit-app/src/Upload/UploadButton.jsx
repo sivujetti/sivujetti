@@ -1,7 +1,7 @@
-import {__, http, env} from '@sivujetti-commons';
-import {hookForm, InputError, InputGroup, Input} from '../../../commons/Form.jsx';
-import Icon from '../../../commons/Icon.jsx';
-import toasters, {Toaster} from '../../../commons/Toaster.jsx';
+import {__, http, env} from '../commons/main.js';
+import {hookForm, InputError, InputGroup, Input} from '../commons/Form.jsx';
+import Icon from '../commons/Icon.jsx';
+import toasters, {Toaster} from '../commons/Toaster.jsx';
 
 const MAX_FILE_SIZE_MB = 8;
 

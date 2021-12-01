@@ -1,6 +1,6 @@
 import blockTypes from './block-types/block-types.js';
 import blockTreeUtils from './blockTreeUtils.js';
-import {generatePushID} from './utils.js';
+import {generatePushID} from './commons/utils.js';
 
 class Block {
     /**

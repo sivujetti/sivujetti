@@ -1,4 +1,4 @@
-import {__} from '@sivujetti-commons';
+import {__} from '../../../../../frontend/edit-app/src/commons/main.js';
 import createListingBlockType from '../../../../../frontend/edit-app/src/block-types/listing.js';
 
 window.sivujetti.blockTypes.register('ServicesListing', createListingBlockType({

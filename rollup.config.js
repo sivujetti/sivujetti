@@ -92,9 +92,7 @@ module.exports = args => {
             input: 'frontend/webpage/main.js',
             output: makeOutputCfg({
                 file: `${targetDirBase}sivujetti-webpage.js`,
-                globals: {[commonsPath]: 'sivujettiCommons'},
             }),
-            external: [commonsPath],
             plugins: postPlugins,
             watch: watchSettings
         });
@@ -113,24 +111,28 @@ module.exports = args => {
     }
     // == custom.js ============================================================
     if (!bundles.length && bundle !== 'all') {
-        const cfg = require(path.resolve(__dirname, args.configInput));
-        const out = {
-            input: cfg.input,
-            output: makeOutputCfg({globals: allGlobals, banner: ''}, cfg.output),
-            plugins: [
-                makeJsxPlugin(cfg.jsxTranspile
-                    ? cfg.jsxTranspile.include || []
-                    : []),
-            ].concat(...postPlugins),
-            external: allExternals,
-            watch: {
-                clearScreen: false
-            },
-        };
-        ['banner'].forEach(optionalKey => {
-            if (cfg[optionalKey]) out[optionalKey] = cfg[optionalKey];
+        const userDefined = require(path.resolve(__dirname, args.configInput));
+        const cfgs = !Array.isArray(userDefined) ? [userDefined] : userDefined;
+        //
+        return cfgs.map(cfg => {
+            const out = {
+                input: cfg.input,
+                output: makeOutputCfg({globals: allGlobals, banner: ''}, cfg.output),
+                plugins: [
+                    makeJsxPlugin(cfg.jsxTranspile
+                        ? cfg.jsxTranspile.include || []
+                        : []),
+                ].concat(...postPlugins),
+                external: allExternals,
+                watch: {
+                    clearScreen: false
+                },
+            };
+            ['banner'].forEach(optionalKey => {
+                if (cfg[optionalKey]) out[optionalKey] = cfg[optionalKey];
+            });
+            return out;
         });
-        return out;
     }
     return bundles;
 };

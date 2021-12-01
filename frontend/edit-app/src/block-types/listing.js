@@ -1,4 +1,4 @@
-import {__, http} from '@sivujetti-commons';
+import {__, http} from '../commons/main.js';
 import webPageIframe from '../webPageIframe.js';
 
 let internalSivujettiApi = null;

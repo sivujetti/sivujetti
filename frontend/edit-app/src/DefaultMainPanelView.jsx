@@ -1,5 +1,5 @@
-import {__, signals} from '@sivujetti-commons';
-import Icon from '../../commons/Icon.jsx';
+import {__, signals} from './commons/main.js';
+import Icon from './commons/Icon.jsx';
 import BlockTrees from './BlockTrees.jsx';
 
 class DefaultMainPanelView extends preact.Component {

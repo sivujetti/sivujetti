@@ -43,7 +43,7 @@ final class GlobalBlockTreesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Sivujetti\Block\GlobalBlockTreesRepository $globalBlocksRepo
+     * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository $globalBlocksRepo
      */
     public function getById(Request $req,
                             Response $res,
@@ -55,7 +55,7 @@ final class GlobalBlockTreesController {
      * GET /api/global-block-trees: Lists all global block trees.
      *
      * @param \Pike\Response $res
-     * @param \Sivujetti\Block\GlobalBlockTreesRepository $globalBlocksRepo
+     * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository $globalBlocksRepo
      */
     public function list(Response $res,
                          GlobalBlockTreesRepository $globalBlocksRepo): void {
@@ -68,7 +68,7 @@ final class GlobalBlockTreesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Sivujetti\Block\GlobalBlockTreesRepository $globalBlocksRepo
+     * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository $globalBlocksRepo
      * @param \Sivujetti\Block\BlockValidator $blockValidator
      * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      */

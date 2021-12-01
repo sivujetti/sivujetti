@@ -30,6 +30,7 @@ return [
     "\$backend/installer/sample-content/basic-site/\$index/public/basic-site.css",
     "\$backend/installer/sample-content/basic-site/\$index/public/basic-site-bundled.js",
     "\$backend/installer/sample-content/basic-site/db-data.php",
+    "\$backend/installer/sample-content/basic-site/public/basic-site-bundled.js",
     "\$backend/installer/sample-content/basic-site/config.in.sample.php",
     "\$backend/installer/sample-content/basic-site/\$backend-files-list.php",
     "\$backend/installer/schema.mariadb.php",

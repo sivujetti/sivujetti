@@ -218,22 +218,23 @@ final class Bundler {
     private function makePublicFilesFileListGroups(): array {
         $base1 = $this->sivujettiIndexPath;
         $base2 = "{$this->sivujettiIndexPath}public/bundler-temp/";
+        $relatifyPath = Updater::makeRelatifier($base1);
         $prefix = PackageStreamInterface::FILE_NS_INDEX;
+        $prefixyAndRelatifyPath = fn($p) => "{$prefix}{$relatifyPath($p)}";
         // $indexPath/public/sivujetti/assets/*.*
-        // todo
-        // // $indexPath/public/sivujetti/vendor/*.*
-        // todo
-        // // $indexPath/public/sivujetti/*.css
-        // todo
-        $out = [];
+        $assetFilePaths = $this->fs->readDir("{$base1}public/sivujetti/assets");
+        $out = array_map($prefixyAndRelatifyPath, $assetFilePaths);
+        // $indexPath/public/sivujetti/vendor/*.*
+        $vendorFilePaths = $this->fs->readDir("{$base1}public/sivujetti/vendor");
+        $out = array_merge($out, array_map($prefixyAndRelatifyPath, $vendorFilePaths));
+        // $indexPath/public/sivujetti/*.css
+        $out[] = "{$prefix}public/sivujetti/sivujetti-edit-app.css";
         // $indexPath/*.*
-        $out = array_merge($out, ["{$prefix}index.php",
-                                  "{$prefix}install.php",
-                                  "{$prefix}LICENSE"]);
+        $out = array_merge($out, ["{$prefix}index.php", "{$prefix}install.php", "{$prefix}LICENSE"]);
         // $indexPath/public/sivujetti/*.js
         $bundledFilePaths = $this->fs->readDir("$this->tempDirForNpmBuild");
-        // .../public/bundler-temp/public/sivujetti/*.js -> $indexPath/public/sivujetti/*.js
-        $relatify2 = Updater::makeRelatifier($base2);
+        $relatify2 = Updater::makeRelatifier($base2); // ../public/bundler-temp/public/sivujetti/*.js
+                                                      // -> $indexPath/public/sivujetti/*.js
         $out2 = array_map(fn($p) => "{$prefix}{$relatify2($p)}", $bundledFilePaths);
         //
         return [new FileGroup($base1, $out, $prefix),

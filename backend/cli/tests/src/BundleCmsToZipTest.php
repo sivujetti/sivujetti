@@ -13,12 +13,10 @@ final class BundleCmsToZipTest extends DbTestCase {
     private string $actuallyWrittenZipFilePath;
     private string $actuallyWrittenSignatureFilePath;
     private const FILES_GENERATED_BY_COMPOSER = [
-        "vendor/autoload.php" =>
-            "<?php // mock composer-generated autoload.php"
+        "vendor/autoload.php" => "<?php // mock composer-generated autoload.php"
     ];
     private const FILES_GENERATED_BY_JS_BUNDLER = [
-        "sivujetti-edit-app.js" =>
-            "bundled js here"
+        "sivujetti-edit-app.js" => "bundled js here",
     ];
     protected function setUp(): void {
         parent::setUp();
@@ -60,14 +58,12 @@ final class BundleCmsToZipTest extends DbTestCase {
                     $npmTmpPath = SIVUJETTI_PUBLIC_PATH . "public/bundler-temp/public/sivujetti";
                     if ($cmd === "composer install --no-dev --optimize-autoloader") {
                         mkdir("{$composerTmpPath}vendor", 0755);
-                        $mockFilePath = key(self::FILES_GENERATED_BY_COMPOSER);
-                        file_put_contents("{$composerTmpPath}{$mockFilePath}",
-                                          self::FILES_GENERATED_BY_COMPOSER[$mockFilePath]);
+                        foreach (self::FILES_GENERATED_BY_COMPOSER as $mockFilePath => $mockContents)
+                            file_put_contents("{$composerTmpPath}{$mockFilePath}", $mockContents);
                     } elseif ($cmd === "npm --prefix " . SIVUJETTI_PUBLIC_PATH . " run-script build -- " .
                                        "--configBundle all --configTargetRelDir public/bundler-temp/public/sivujetti/") {
-                        $mockFilePath = key(self::FILES_GENERATED_BY_JS_BUNDLER);
-                        file_put_contents("{$npmTmpPath}/{$mockFilePath}",
-                                          self::FILES_GENERATED_BY_JS_BUNDLER[$mockFilePath]);
+                        foreach (self::FILES_GENERATED_BY_JS_BUNDLER as $mockFilePath => $mockContents)
+                            file_put_contents("{$npmTmpPath}/{$mockFilePath}", $mockContents);
                     }
                 }
             ]);
@@ -93,56 +89,75 @@ final class BundleCmsToZipTest extends DbTestCase {
         $this->actuallyWrittenSignatureFilePath = $matches[2];
     }
     private function verifyIncludedBackendFilesToZip(\TestState $state): void {
-        $this->verifyIncludedTheseFilesToZip("backend-dir-files");
+        $pkg = $this->openAndGetActualWrittenZip();
+        // Not vendor files
+        $expectedFiles1 = require dirname(__DIR__) . "/assets/cms-backend-dir-files.php";
+        $stripDirNs = Updater::makeRelatifier(Pkg::FILE_NS_BACKEND);
+        foreach ($expectedFiles1 as $nsdRelFilePath) {
+            $relFilePath = $stripDirNs($nsdRelFilePath);
+            $this->assertStringEqualsFile(SIVUJETTI_BACKEND_PATH . $relFilePath,
+                                          $pkg->read($nsdRelFilePath));
+        }
+        // Vendor files
+        $expectedFiles2 = require dirname(__DIR__) . "/assets/cms-backend-vendor-dir-files.php";
+        foreach ($expectedFiles2 as $nsdRelFilePath) {
+            $relFilePath = $stripDirNs($nsdRelFilePath);
+            $this->assertEquals(self::FILES_GENERATED_BY_COMPOSER[$relFilePath],
+                                $pkg->read($nsdRelFilePath));
+        }
+        // file list
+        $actualFilesList = Updater::readSneakyJsonData(Pkg::LOCAL_NAME_BACKEND_FILES_LIST, $pkg);
+        $this->assertEquals(array_merge($expectedFiles1, $expectedFiles2), $actualFilesList);
     }
     private function verifyIncludedPublicFilesToZip(\TestState $state): void {
-        $this->verifyIncludedTheseFilesToZip("index-dir-files");
+        $pkg = $this->openAndGetActualWrittenZip();
+        $base = SIVUJETTI_PUBLIC_PATH;
+        // $indexPath/public/sivujetti/assets/*.*
+        $expectedAssetFiles = require dirname(__DIR__) . "/assets/cms-index-asset-dir-files.php";
+        $stripDirNs = Updater::makeRelatifier(Pkg::FILE_NS_INDEX);
+        foreach ($expectedAssetFiles as $nsdRelFilePath) {
+            $this->assertStringEqualsFile("{$base}{$stripDirNs($nsdRelFilePath)}",
+                                          $pkg->read($nsdRelFilePath));
+        }
+        // $indexPath/public/sivujetti/vendor/*.*
+        $expectedVendorFiles = require dirname(__DIR__) . "/assets/cms-index-vendor-dir-files.php";
+        foreach ($expectedVendorFiles as $nsdRelFilePath) {
+            $this->assertStringEqualsFile("{$base}{$stripDirNs($nsdRelFilePath)}",
+                                          $pkg->read($nsdRelFilePath));
+        }
+        // $indexPath/public/sivujetti/*.css
+        $expectedCssFiles = require dirname(__DIR__) . "/assets/cms-index-sivujetti-dir-css-files.php";
+        foreach ($expectedCssFiles as $nsdRelFilePath) {
+            $this->assertStringEqualsFile("{$base}{$stripDirNs($nsdRelFilePath)}",
+                                          $pkg->read($nsdRelFilePath));
+        }
+        // $indexPath/public/sivujetti/*.js
+        $expectedJsFiles = require dirname(__DIR__) . "/assets/cms-index-sivujetti-dir-js-files.php";
+        $stripDirNs2 = Updater::makeRelatifier(Pkg::FILE_NS_INDEX . "public/sivujetti/");
+        foreach ($expectedJsFiles as $nsdRelFilePath) {
+            $relFilePath = $stripDirNs2($nsdRelFilePath);
+            $this->assertEquals(self::FILES_GENERATED_BY_JS_BUNDLER[$relFilePath],
+                                $pkg->read($nsdRelFilePath));
+        }
+        // $indexPath/*.*
+        $expectedRootFiles = require dirname(__DIR__) . "/assets/cms-index-dir-files.php";
+        foreach ($expectedRootFiles as $nsdRelFilePath) {
+            $this->assertStringEqualsFile("{$base}{$stripDirNs($nsdRelFilePath)}",
+                                          $pkg->read($nsdRelFilePath));
+        }
+        // file list
+        $actualFilesList = Updater::readSneakyJsonData(Pkg::LOCAL_NAME_INDEX_FILES_LIST, $pkg);
+        $this->assertEquals(array_merge(
+            $expectedAssetFiles,
+            $expectedVendorFiles,
+            $expectedCssFiles,
+            $expectedRootFiles,
+            $expectedJsFiles
+        ), $actualFilesList);
     }
-    private function verifyIncludedTheseFilesToZip(string $which): void {
+    private function openAndGetActualWrittenZip(): ZipPackageStream {
         $pkg = new ZipPackageStream(new FileSystem);
         $pkg->open($this->actuallyWrittenZipFilePath);
-        //
-        if ($which === "backend-dir-files") {
-            // Not vendor files
-            $expectedFiles1 = require dirname(__DIR__) . "/assets/cms-backend-dir-files.php";
-            $stripDirNs = Updater::makeRelatifier(Pkg::FILE_NS_BACKEND);
-            foreach ($expectedFiles1 as $nsdRelFilePath) {
-                $relFilePath = $stripDirNs($nsdRelFilePath);
-                $this->assertStringEqualsFile(SIVUJETTI_BACKEND_PATH . $relFilePath,
-                                              $pkg->read($nsdRelFilePath));
-            }
-            // Vendor files
-            $expectedFiles2 = require dirname(__DIR__) . "/assets/cms-backend-vendor-dir-files.php";
-            foreach ($expectedFiles2 as $nsdRelFilePath) {
-                $relFilePath = $stripDirNs($nsdRelFilePath);
-                $this->assertEquals(self::FILES_GENERATED_BY_COMPOSER[$relFilePath],
-                                    $pkg->read($nsdRelFilePath));
-            }
-            // file list
-            $actualFilesList = Updater::readSneakyJsonData(Pkg::LOCAL_NAME_BACKEND_FILES_LIST, $pkg);
-            $this->assertEquals(array_merge($expectedFiles1, $expectedFiles2), $actualFilesList);
-        } elseif ($which === "index-dir-files") {
-            // $indexPath/*.*
-            $expectedFiles = require dirname(__DIR__) . "/assets/cms-index-dir-files.php";
-            $stripDirNs = Updater::makeRelatifier(Pkg::FILE_NS_INDEX);
-            foreach ($expectedFiles as $nsdRelFilePath) {
-                $relFilePath = $stripDirNs($nsdRelFilePath);
-                $this->assertStringEqualsFile(SIVUJETTI_PUBLIC_PATH . $relFilePath,
-                                              $pkg->read($nsdRelFilePath));
-            }
-            // $indexPath/public/sivujetti/*.js
-            $expectedFiles2 = require dirname(__DIR__) . "/assets/cms-index-dir-sivujetti-files.php";
-            $stripDirNs2 = Updater::makeRelatifier(Pkg::FILE_NS_INDEX . "public/sivujetti/");
-            foreach ($expectedFiles2 as $nsdRelFilePath) {
-                $relFilePath = $stripDirNs2($nsdRelFilePath);
-                $this->assertEquals(self::FILES_GENERATED_BY_JS_BUNDLER[$relFilePath],
-                                    $pkg->read($nsdRelFilePath));
-            }
-            // file list
-            $actualFilesList = Updater::readSneakyJsonData(Pkg::LOCAL_NAME_INDEX_FILES_LIST, $pkg);
-            $this->assertEquals(array_merge($expectedFiles, $expectedFiles2), $actualFilesList);
-        } else {
-            throw new \RuntimeException("Invalid dirName");
-        }
+        return $pkg;
     }
 }

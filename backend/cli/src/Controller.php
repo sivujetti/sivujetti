@@ -4,7 +4,8 @@ namespace Sivujetti\Cli;
 
 use Pike\{FileSystem, PikeException, Request, Response};
 use Sivujetti\App;
-use Sivujetti\Installer\{LocalDirInstaller, LocalDirPackage};
+use Sivujetti\FileSystem as SivujettiFileSystem;
+use Sivujetti\Installer\{LocalDirInstaller};
 use Sivujetti\Update\{Signer, ZipPackageStream};
 
 final class Controller {
@@ -57,10 +58,33 @@ final class Controller {
     /**
      * `php cli.php create-release to-local-dir`.
      */
-    public function createGithubRelease(Response $res,
-                                        Bundler $bundler,
-                                        LocalDirPackage $toPackage): void {
-        // todo
+    public function createGithubRelease(Bundler $bundler,
+                                        ZipPackageStream $toPackage): void {
+        $fs = new FileSystem;
+        $tempDirPath = SIVUJETTI_BACKEND_PATH . "sivujetti-" . App::VERSION . "-tmp";
+        if ($fs->isDir($tempDirPath))
+            throw new \Exception("Please remove previous release ({$tempDirPath}) first.");
+        $fs->mkDir($tempDirPath);
+        //
+        $zipFilePath = $bundler->makeRelease($toPackage, "@createTemp", resultFlags: ZipPackageStream::FLAG_AS_PATH);
+        $read = new ZipPackageStream($fs);
+        $read->open($zipFilePath);
+        //
+        $ALL_FILES = null;
+        $read->extractMany($tempDirPath, $ALL_FILES);
+        //
+        $outDirPath = "{$tempDirPath}/final";
+        // $index/index.php etc. -> final/index.php
+        $fs->move("{$tempDirPath}/\$index", $outDirPath);
+        // $backend/* etc -> final/backend/*
+        $fs->move("{$tempDirPath}/\$backend", "{$outDirPath}/backend");
+        $fs->copy("{$outDirPath}/backend/installer/sample-content/basic-site/config.in.sample.php",
+                  "{$outDirPath}/backend/installer/sample-content/basic-site/config.in.php");
+        $fs->copy("{$outDirPath}/backend/installer/sample-content/empty/config.in.sample.php",
+                  "{$outDirPath}/backend/installer/sample-content/empty/config.in.php");
+        $fs->copy(SIVUJETTI_BACKEND_PATH . "cli.php", "{$outDirPath}/backend/cli.php");
+        //
+        echo "Ok, created release to `{$outDirPath}`";
     }
     /**
      * `php cli.php print-acl-rules`.

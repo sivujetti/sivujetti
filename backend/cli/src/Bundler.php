@@ -54,10 +54,12 @@ final class Bundler {
      * @param \Sivujetti\Update\PackageStreamInterface $to Zip or local directory
      * @param string $fileOrDirPath Target path for PackageStreamInterface
      * @param bool $allowOverWrite = false
+     * @param int $resultFlags = 0 see PackageStreamInterface->getResult()
      */
     public function makeRelease(PackageStreamInterface $to,
                                 string $fileOrDirPath,
-                                bool $allowOverWrite = false): string {
+                                bool $allowOverWrite = false,
+                                int $resultFlags = 0): string {
         $this->destryPreviousTargetOrThrow($to, $fileOrDirPath, $allowOverWrite);
         $to->open($fileOrDirPath, true);
         //
@@ -70,7 +72,7 @@ final class Bundler {
         $this->writeFiles($backendRelatedFileGroups, "backend", $to);
         $this->writeFiles($publicRelatedFileGroups, "index", $to);
         //
-        $contents = $to->getResult();
+        $contents = $to->getResult($resultFlags);
         $this->deleteTmpDirs();
         return $contents;
     }

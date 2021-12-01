@@ -50,13 +50,13 @@ interface PackageStreamInterface {
     public function read(string $localName): string;
     /**
      * @param string $destinationPath
-     * @param string[]|string $localNames = []
+     * @param string[]|string|null $localNames = []
      * @param ?string $prefixToStripFromLocalNames = null
      * @return bool
      * @throws \Pike\PikeException
      */
     public function extractMany(string $destinationPath,
-                                $localNames = [],
+                                mixed $localNames = [],
                                 ?string $prefixToStripFromLocalNames = null): bool;
     /**
      * @param int $flags = 0

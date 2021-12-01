@@ -119,7 +119,7 @@ class ZipPackageStream implements PackageStreamInterface {
      * @inheritdoc
      */
     public function extractMany(string $destinationPath,
-                                $localNames = [],
+                                mixed $localNames = [],
                                 ?string $prefixToStripFromLocalNames = null): bool {
         ValidationUtils::checkIfValidaPathOrThrow($destinationPath);
         if (!$prefixToStripFromLocalNames) {

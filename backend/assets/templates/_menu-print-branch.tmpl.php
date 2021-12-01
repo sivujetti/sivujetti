@@ -4,7 +4,7 @@ echo str_replace("{depth}", $props["depth"], $props["treeStart"]);
 //
 foreach ($props["branch"] as $i => $item) {
     // == <li> ================
-    echo str_replace("{current}", $page && $page->slug === $item->slug ? " data-current" : "",
+    echo str_replace("{current}", $currentPage->slug === $item->slug ? " data-current" : "",
         str_replace("{depth}", $props["depth"], $props["itemStart"])
     );
     // == <a ...</a> ================

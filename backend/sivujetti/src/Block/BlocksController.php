@@ -44,8 +44,9 @@ final class BlocksController {
         PagesController::runBlockBeforeRenderEvent([$block], $storage->getDataHandle()->blockTypes,
                                                    $pagesRepo, $theWebsite);
         $pagePageType = ArrayUtils::findByKey($theWebsite->pageTypes, PageType::PAGE, "name");
-        $html = (new WebPageAwareTemplate($block->renderer, null, [
-            "page" => PagesController::createEmptyPage($pagePageType),
+        $html = (new WebPageAwareTemplate($block->renderer, initialLocals: [
+            "currentPage" => PagesController::createEmptyPage($pagePageType),
+            "currentUrl" => "",
             "site" => $theWebsite,
         ]))->renderBlocks([$block]);
         $res->json(["result" => $html]);

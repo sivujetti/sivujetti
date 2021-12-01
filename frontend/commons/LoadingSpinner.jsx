@@ -1,13 +1,10 @@
 /**
  * Inititally hidden loading indicator, which reveals itself after 500ms.
+ *
+ * @param {{className?: String;}} props
  */
-class LoadingSpinner {
-    /**
-     * @access protected
-     */
-    render() {
-        return <div class="show-after-05 dots-animation"></div>;
-    }
-}
+const LoadingSpinner = ({className}) =>
+    <div class={ 'show-after-05 dots-animation' + (className ? ` ${className}` : '') }></div>
+;
 
 export default LoadingSpinner;

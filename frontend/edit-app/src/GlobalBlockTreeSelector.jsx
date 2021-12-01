@@ -50,7 +50,7 @@ const GlobalBlockTreeSelector = ({onItemSelected, isVisible}) => {
         </select>
         : <p>{ __('No %s found', __('global blocks')) }</p>;
     //
-    return <LoadingSpinner/>;
+    return <LoadingSpinner className="mb-2 pb-2 ml-1"/>;
 };
 
 export default GlobalBlockTreeSelector;

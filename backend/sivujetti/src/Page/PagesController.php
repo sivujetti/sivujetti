@@ -197,7 +197,8 @@ final class PagesController {
             $page->layout->relFilePath,
             cssAndJsFiles: $data->userDefinedAssets
         ))->render([
-            "page" => $page,
+            "currentPage" => $page,
+            "currentUrl" => $req->path,
             "site" => $theWebsite,
         ]);
         if (($isPlaceholderPage || $req->queryVar("in-edit") !== null) &&

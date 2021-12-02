@@ -72,7 +72,7 @@ class BlockTree extends preact.Component {
         let after = context;
         //
         if (position === 'after' && context instanceof Block) {
-            const branch = blockTreeUtils.findBlock(context.id, this.state.blockTree)[1];
+            const branch = blockTreeUtils.findBlock(context.id, this.getTreeFor(context))[1];
             toArr = branch;
         } else if (position === 'after' && Array.isArray(context)) {
             toArr = context;
@@ -377,8 +377,9 @@ class BlockTree extends preact.Component {
             // 4. Commit to state
             this.setState({blockTree: this.state.blockTree,
                            treeState: treeStateMutRef});
-            // 5. Save to backend
-            return this.props.onChangesApplied(this.state.blockTree, blockWasStoredTo, null);
+            // 5. Save to backend if we're not currently inside AddPageMainPanelView
+            if (this.props.onChangesApplied)
+                this.props.onChangesApplied(this.state.blockTree, blockWasStoredTo, null);
         })
         .catch(err => {
             env.window.console.error(err);

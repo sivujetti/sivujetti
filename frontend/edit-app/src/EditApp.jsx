@@ -179,9 +179,13 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
          */
         onClicked: blockRef => {
             const treeCmp = blockTrees.current.blockTree.current;
-            const b = findBlockTemp(blockRef, treeCmp);
+            const block = findBlockTemp(blockRef, treeCmp);
             signals.emit('on-web-page-block-clicked');
-            treeCmp.handleItemClicked(b);
+            const base = block.isStoredTo !== 'globalBlockTree'
+                ? null
+                : blockTreeUtils.findRecursively(blockTrees.current.blockTree.current.getTree(),
+                    ({globalBlockTreeId}) => globalBlockTreeId === block.globalBlockTreeId);
+            treeCmp.handleItemClicked(block, base);
         },
         /**
          * @param {BlockRefComment} blockRef

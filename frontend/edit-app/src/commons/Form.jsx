@@ -275,7 +275,8 @@ class Form {
      * @access public
      */
     isSubmitting() {
-        return this.stateWrapper.getState().isSubmitting === true;
+        const state = this.stateWrapper.getState();
+        return state && state.isSubmitting === true;
     }
     /**
      * @param {Boolean} isSubmitting

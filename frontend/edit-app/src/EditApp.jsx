@@ -37,8 +37,8 @@ class EditApp extends preact.Component {
         const dataFromWebPage = webPage.data;
         if (dataFromWebPage.page.isPlaceholderPage && this.state.mode !== 'create-page') {
             this.currentWebPage = dataFromWebPage.page;
-            this.setState({mode: !dataFromWebPage.page.isPlaceholderPage ? 'default' : 'create-page'});
         }
+        this.setState({mode: !dataFromWebPage.page.isPlaceholderPage ? 'default' : 'create-page'});
         signals.emit('on-web-page-loaded');
         store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
         store.dispatch(setOpQueue([]));

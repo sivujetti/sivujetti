@@ -38,6 +38,12 @@ class RichTextBlockEditForm extends preact.Component {
     /**
      * @access protected
      */
+    componentWillUnmount() {
+        this.form.destroy();
+    }
+    /**
+     * @access protected
+     */
     render(_, {classes, errors}) {
         return <InputGroup classes={ classes.html } className="has-error">
             <QuillEditor

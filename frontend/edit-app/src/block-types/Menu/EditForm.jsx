@@ -1,4 +1,4 @@
-import {__} from '../../commons/main.js';
+import {__, env} from '../../commons/main.js';
 import Icon from '../../commons/Icon.jsx';
 import EditItemPanel from './EditItemPanel.jsx';
 
@@ -30,7 +30,8 @@ class MenuBlockEditForm extends preact.Component {
      * @access public
      */
     onTreeUpdated(mutatedTree) {
-        this.props.onValueChanged(this.createRawBlock(mutatedTree));
+        this.props.onValueChanged(this.createRawBlock(mutatedTree),
+                                  env.normalTypingDebounceMillis);
     }
     /**
      * @access protected

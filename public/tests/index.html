@@ -11,9 +11,8 @@
     <script src="qunit-2.16.0.js"></script>
     <script src="sinon.min.js"></script>
     <script>
-        // Will be overwritten at tests/main.js
-        window.sivujettiBaseUrl = '';
-        window.sivujettiAssetBaseUrl = '';
+        window.sivujettiBaseUrl = 'overridden-at-tests-main';
+        window.sivujettiAssetBaseUrl = 'overridden-at-tests-main';
     </script>
     <script src="../sivujetti/sivujetti-commons.js"></script>
     <!-- See ../frontend/tests/main.js -->

@@ -202,9 +202,8 @@ class EditAppAwareWebPage {
             return {parent: com.parentNode,
                     before: com.nextSibling,
                     prevChildNodes: keptChildren};
-        }).then(commentNode => {
+        }).then(() => {
             this.replaceBlockMouseListeners(block._cref);
-            return commentNode;
         });
     }
     /**

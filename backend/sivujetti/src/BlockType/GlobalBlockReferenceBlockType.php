@@ -17,6 +17,7 @@ final class GlobalBlockReferenceBlockType implements BlockTypeInterface,
         return $builder
             ->newProperty("globalBlockTreeId", $builder::DATA_TYPE_TEXT)
             ->newProperty("overrides", $builder::DATA_TYPE_TEXT)
+            ->newProperty("useOverrides", $builder::DATA_TYPE_UINT)
             ->getResult();
     }
     /**

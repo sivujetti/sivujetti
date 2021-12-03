@@ -34,7 +34,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $state->testPageData = $this->pageTestUtils->makeTestPageData();
         $state->testPageData->blocks[] = $btu->makeBlockData(Block::TYPE_GLOBAL_BLOCK_REF,
             propsData: ["globalBlockTreeId" => $state->testGlobalBlockData->id, "overrides" =>
-                GlobalBlockReferenceBlockType::EMPTY_OVERRIDES]
+                GlobalBlockReferenceBlockType::EMPTY_OVERRIDES, "useOverrides" => 0]
         );
         $state->spyingResponse = null;
         $state->app = null;

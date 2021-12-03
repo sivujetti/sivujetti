@@ -77,7 +77,8 @@ class BlockTypeSelector extends preact.Component {
      * @access private
      */
     selectRefBlockType(globalBlockTree) {
-        const initialData = {globalBlockTreeId: globalBlockTree.id, overrides: '', __globalBlockTree: {
+        const gbrBlockType = blockTypes.get('GlobalBlockReference');
+        const initialData = Object.assign({}, gbrBlockType.initialData, {globalBlockTreeId: globalBlockTree.id, __globalBlockTree: {
             id: globalBlockTree.id,
             name: globalBlockTree.name,
             blocks: blockTreeUtils.mapRecursively(globalBlockTree.blocks, blockRaw => {
@@ -85,7 +86,7 @@ class BlockTypeSelector extends preact.Component {
                 normalizeGlobalBlockTreeBlock(b, globalBlockTree.id);
                 return b;
             }),
-        }};
+        }});
         const blockBluePrint = {blockType: 'GlobalBlockReference', data: initialData, children: []};
         this.setState({blockBluePrint});
         this.props.onSelectionChanged(blockBluePrint, this.props.block);

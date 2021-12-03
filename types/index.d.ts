@@ -24,7 +24,7 @@ interface Block {
     type: 'Columns'|'Heading'|'Paragraph'|'Section'|String;
     _cref: BlockRefComment;
     toHtml(): String;
-    overwritePropsData(newPropsData: Object): void;
+    overwritePropsData(newPropsData: {[key: String]: any;}): void;
     static fromObject(data: RawBlock|Object): Block;
     static fromType(blockType: BlockType|String, data?: Object, id?: String, globalBlockTreeId?: String|null): Block;
     static clone(from: RawBlock|Object): Block;

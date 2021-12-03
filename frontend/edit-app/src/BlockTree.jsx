@@ -9,6 +9,7 @@ import store, {pushItemToOpQueue} from './store.js';
 import BlockTreeDragDrop from './BlockTreeDragDrop.js';
 import floatingDialog from './FloatingDialog.jsx';
 import ConvertBlockToGlobalDialog from './ConvertBlockToGlobalBlockTreeDialog.jsx';
+import {t} from './block-types/block-types.js';
 
 let BlockTrees;
 const globalBlockTreeBlocks = new Map;
@@ -225,12 +226,12 @@ class BlockTree extends preact.Component {
                     : <button onClick={ () => this.toggleBranchIsCollapsed(visible) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="size-xs"/></button>
                 }
                 <div class="d-flex">
-                    <button onClick={ () => this.handleItemClicked(visible, block) } class="block-handle columns" type="button">
-                        <Icon iconId="type" className="size-xs color-accent mr-1"/>
+                    <button onClick={ () => this.handleItemClicked(visible) } class="block-handle columns" type="button">
+                        <Icon iconId={t(visible.type)} className="size-xs color-accent mr-1"/>
                         { visible.title || __(visible.type) }
                     </button>
                     <button onClick={ e => this.openMoreMenu(block, e) } class={ `more-toggle ml-2${blockWithNavOpened !== block ? '' : ' opened'}` } type="button">
-                        <Icon iconId="more-horizontal" className="size-xs"/>
+                        <Icon iconId="dots" className="size-xs"/>
                     </button>
                 </div>
                 { visible.children.length
@@ -245,8 +246,8 @@ class BlockTree extends preact.Component {
                 data-block-type="PageInfo"
                 key={ block.id }>
                 <div class="d-flex">
-                    <button onClick={ () => this.handleItemClicked(block, null) } class="block-handle columns" type="button">
-                        <Icon iconId="file" className="size-xs color-accent mr-1"/>
+                    <button onClick={ () => this.handleItemClicked(block) } class="block-handle columns" type="button">
+                        <Icon iconId="file-info" className="size-xs color-accent mr-1"/>
                         { block.title || __(block.type) }
                     </button>
                 </div>
@@ -258,7 +259,7 @@ class BlockTree extends preact.Component {
                 class="btn btn-link p-absolute btn-sm"
                 type="button"
                 style="right: 0; top: .4rem">
-                <Icon iconId="info" className="size-xs"/>
+                <Icon iconId="info-circle" className="size-xs"/>
             </button></div>
             <ul class="block-tree" data-sort-group-id="r">{
                 blockTree.length
@@ -473,13 +474,16 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} block
-     * @param {Block|null} base
      * @access private
      */
-    handleItemClicked(block, base) {
+    handleItemClicked(block) {
         this.selectedRoot = block;
         const mutRef = this.state.treeState;
-        this.emitItemClickedOrAppendedSignal('clicked', block, !base || block.id === base.id ? null : base);
+        const base = block.isStoredTo !== 'globalBlockTree'
+            ? null
+            : blockTreeUtils.findRecursively(this.state.blockTree,
+                ({globalBlockTreeId}) => globalBlockTreeId === block.globalBlockTreeId);
+        this.emitItemClickedOrAppendedSignal('clicked', block, base);
         if (mutRef[block.id].isSelected) return;
         //
         if (block.parentBlockIdPath) {

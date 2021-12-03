@@ -90,7 +90,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_GLOBAL_BLOCK_REF,
                 propsData: ["globalBlockTreeId" => $insertId, "overrides" =>
-                    GlobalBlockReferenceBlockType::EMPTY_OVERRIDES],
+                    GlobalBlockReferenceBlockType::EMPTY_OVERRIDES, "useOverrides" => 0],
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_GLOBAL_BLOCK_REF,
                 propsData: ["globalBlockTreeId" => $insertId, "overrides" => json_encode((object) [
@@ -98,7 +98,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
                         "text" => "Overriden",
                         "cssClass" => "special-footer",
                     ]
-                ])],
+                ]), "useOverrides" => 1],
                 id: "@auto"),
         ];
         return $state;

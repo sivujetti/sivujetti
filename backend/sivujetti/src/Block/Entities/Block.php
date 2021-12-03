@@ -39,6 +39,7 @@ final class Block {
     /* If self::TYPE_TYPE_GLOBAL_BLOCK_REF
     public string $globalBlockTreeId;
     public string $overrides; e.g. "{"dVUdW0--E_k8uNy6d856":{"text":"Overrideen paragraph text.","cssClass":""}}"
+    public int $useOverrides;
     public ?\Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree $__globalBlockTree; */
 
     /* If self::TYPE_HEADING

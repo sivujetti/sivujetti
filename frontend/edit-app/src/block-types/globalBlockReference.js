@@ -12,6 +12,7 @@ export default () => {
     const initialData = {
         globalBlockTreeId: '1',
         overrides: EMPTY_OVERRIDES,
+        useOverrides: 0,
     };
     return {
         name: 'GlobalBlockReference',

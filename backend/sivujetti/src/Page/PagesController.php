@@ -251,6 +251,7 @@ final class PagesController {
                     "initialData" => (object) [
                         "globalBlockTreeId" => $part->globalBlockTreeId,
                         "overrides" => GlobalBlockReferenceBlockType::EMPTY_OVERRIDES,
+                        "useOverrides" => 0,
                     ],
                 ]);
             elseif ($part->type === Layout::PART_TYPE_PAGE_CONTENTS)

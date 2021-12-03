@@ -1,4 +1,11 @@
-/* commons.css start */
+/*
+Structure:
+- Global: Defaults
+- EditApp: Defaults
+- EditApp: Components
+- EditApp: *
+- Global: Utilies
+*/
 :root {
     --color-bg-default: rgb(255, 255, 255);
     --color-bg-dimmed: rgb(250, 252, 255);
@@ -21,14 +28,6 @@
     --color-bg-button: rgb(244, 244, 247);
     --color-bg-button-hover: rgb(236, 236, 239);
 }
-.color-default { color: var(--color-fg-default); }
-.color-dimmed { color: var(--color-fg-dimmed); }
-.color-accent { color: var(--color-accent); }
-.color-orange { color: var(--color-orange); }
-.color-purple { color: var(--color-purple); }
-.mt-8 { margin-top: .8rem !important; }
-.mb-8 { margin-bottom: 1rem !important; }
-
 /* Spectre-overrides */
 .btn {
     background: var(--color-bg-button);
@@ -80,9 +79,6 @@
 .text-tiny {
     font-size: .6rem !important;
 }
-.text-tinyish {
-    font-size: .65rem !important;
-}
 .form-horizontal .form-group {
     margin: .6rem 0;
 }
@@ -99,7 +95,9 @@
     margin-left: auto;
 }
 
-/* Commons / Global utilies */
+
+
+/* Global: Defaults */
 @font-face {
     font-family: "Fira Sans";
     src: url("assets/fira-sans-light.woff2") format("woff2");
@@ -127,108 +125,10 @@ body {
 h2 {
     font: 800 1.4rem/1.4rem "Fira Sans";
 }
-.feather {
-    width: 1rem;
-    height: 1rem;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    fill: none;
-}
-.feather.size-sm {
-    width: .9rem;
-    height: .9rem;
-}
-.feather.size-xs {
-    width: .8rem;
-    height: .8rem;
-}
-
-.box {
-    padding: 1rem;
-    background-color: var(--color-bg-default);
-    border-radius: 2px;
-    box-shadow: 2px 2px 4px rgba(0,0,0,.1);
-    font-weight: 400;
-}
-.dashed {
-    border: var(--border-dashed-box);
-    border-radius: 4px;
-}
-.btn.widen.btn-sm {
-    padding: .05rem .6rem;
-}
-.with-icon {
-    display: flex;
-    align-items: center;
-}
-.with-icon-inline {
-    display: inline-flex;
-    align-items: center;
-}
-.with-icon .feather {
-    margin-right: .4rem;
-}
-.form-input.tight {
-    padding: .1rem .35rem;
-    height: 1.4rem;
-}
-ul.list {
-    list-style: none;
-    margin: 0;
-}
-@keyframes show {
-    0% { visibility: hidden; }
-    100% { visibility: visible; }
-}
-.show-after-05 {
-    visibility: hidden;
-    animation: show 0s .5s forwards;
-}
-/* https://stackoverflow.com/a/40991531 */
-@keyframes dotty {
-    0%   { content: ''; }
-    25%  { content: '.'; }
-    50%  { content: '..'; }
-    75%  { content: '...'; }
-    100% { content: ''; }
-}
-.dots-animation {
-    font-size: 1.2rem;
-    line-height: 1.2rem;
-}
-.dots-animation:after {
-    display: inline-block;
-    animation: dotty steps(1,end) 1s infinite;
-    content: '';
-    letter-spacing: 2px;
-}
-.img-ratio {
-    padding-bottom: 56.25%;
-    overflow: hidden;
-    position: relative;
-    display: flex;
-}
-.img-ratio img {
-    position: absolute;
-}
-.mini-toggle {
-    margin: -.1rem 0 -.6rem -.4rem;
-}
-.mini-toggle .form-switch {
-    transform: scale(.85);
-}
-.mini-toggle > .tooltip .feather {
-    width: .7rem;
-    height: .7rem;
-}
-/* commons.css end */
 
 
 
-
-/* EditApp: commons */
+/* EditApp: Defaults */
 .ql-toolbar.ql-snow {
     border: none;
     padding: .1rem;
@@ -515,16 +415,18 @@ a.popup-close-area {
     border: none;
     background: transparent;
 }
-.panel-section.open > button > .feather:last-of-type {
+.panel-section.open > button > .icon-tabler:last-of-type {
     transition: transform linear .1s;
 }
-.panel-section.open > button > .feather:last-of-type {
+.panel-section.open > button > .icon-tabler:last-of-type {
     transform: rotate(90deg);
 }
 .panel-section > nav a {
     margin: .8rem 0;
     color: var(--color-fg-default);
 }
+
+
 
 /* EditApp: Main panel > Block tree */
 .block-tree {
@@ -626,10 +528,10 @@ a.popup-close-area {
     left: -9px;
     bottom: 0;
 }
-.block-tree li > button > .feather {
+.block-tree li > button > .icon-tabler {
     transition: transform linear .1s;
 }
-.block-tree li.collapsed > button > .feather {
+.block-tree li.collapsed > button > .icon-tabler {
     transform: rotate(-90deg);
 }
 .block-tree .dashed .tab-item {
@@ -638,6 +540,8 @@ a.popup-close-area {
 .block-tree .dashed .tab-item a {
     color: var(--color-fg-dimmed);
 }
+
+
 
 /* EditApp: Block highligh rectangles */
 .highlight-rect {
@@ -658,4 +562,110 @@ a.popup-close-area {
     padding: 0 .2rem;
     font-size: .6rem;
     border-radius: 2px;
+}
+
+
+
+/* Global: Utilies */
+.icon-tabler {
+    color: currentColor;
+    width: 1.2rem;
+    height: 1.2rem;
+    stroke-width: 1.25;
+}
+.icon-tabler.size-sm {
+    width: 1rem;
+    height: 1rem;
+}
+.icon-tabler.size-xs {
+    width: .85rem;
+    height: .85rem;
+}
+.color-default { color: var(--color-fg-default); }
+.color-dimmed { color: var(--color-fg-dimmed); }
+.color-accent { color: var(--color-accent); }
+.color-orange { color: var(--color-orange); }
+.color-purple { color: var(--color-purple); }
+.mt-8 { margin-top: .8rem !important; }
+.mb-8 { margin-bottom: 1rem !important; }
+.box {
+    padding: 1rem;
+    background-color: var(--color-bg-default);
+    border-radius: 2px;
+    box-shadow: 2px 2px 4px rgba(0,0,0,.1);
+    font-weight: 400;
+}
+.dashed {
+    border: var(--border-dashed-box);
+    border-radius: 4px;
+}
+.text-tinyish {
+    font-size: .65rem !important;
+}
+.btn.widen.btn-sm {
+    padding: .05rem .6rem;
+}
+.with-icon {
+    display: flex;
+    align-items: center;
+}
+.with-icon-inline {
+    display: inline-flex;
+    align-items: center;
+}
+.with-icon .icon-tabler {
+    margin-right: .4rem;
+}
+.form-input.tight {
+    padding: .1rem .35rem;
+    height: 1.4rem;
+}
+ul.list {
+    list-style: none;
+    margin: 0;
+}
+@keyframes show {
+    0% { visibility: hidden; }
+    100% { visibility: visible; }
+}
+.show-after-05 {
+    visibility: hidden;
+    animation: show 0s .5s forwards;
+}
+/* https://stackoverflow.com/a/40991531 */
+@keyframes dotty {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+    100% { content: ''; }
+}
+.dots-animation {
+    font-size: 1.2rem;
+    line-height: 1.2rem;
+}
+.dots-animation:after {
+    display: inline-block;
+    animation: dotty steps(1,end) 1s infinite;
+    content: '';
+    letter-spacing: 2px;
+}
+.img-ratio {
+    padding-bottom: 56.25%;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+}
+.img-ratio img {
+    position: absolute;
+}
+.mini-toggle {
+    margin: -.1rem 0 -.6rem -.4rem;
+}
+.mini-toggle .form-switch {
+    transform: scale(.85);
+}
+.mini-toggle > .tooltip .icon-tabler {
+    width: .8rem;
+    height: .8rem;
 }

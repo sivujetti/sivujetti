@@ -57,7 +57,7 @@ class MenuBlockEditForm extends preact.Component {
                 <ul class="list">{ parsedTree.map(item => <li class="ml-2"><div class="d-flex flex-centered" key={ item.id }>
                     <span>{ item.text }</span>
                     <button onClick={ () => this.openForEdit(item) } class="btn btn-sm btn-link col-ml-auto flex-centered" type="button">
-                        <Icon iconId="edit-2" className="size-xs"/>
+                        <Icon iconId="pencil" className="size-sm"/>
                     </button>
                 </div></li>) }</ul>
                 <button onClick={ this.appendItemToMenu.bind(this) }

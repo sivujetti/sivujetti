@@ -34,10 +34,10 @@ class UploadButton extends preact.Component {
                 type="file"
                 accept="image/*"
                 ref={ this.fileInput }/>
-            <label class={ !selectedImageSrc ? 'd-flex col-centered' : '' } htmlFor="image-input">
+            <label class={ !selectedImageSrc ? 'd-flex' : '' } htmlFor="image-input">
                 { !selectedImageSrc ? [
-                    <Icon iconId="image"/>,
-                    <span class="ml-2">{ __('Choose a picture') }</span>
+                    <Icon iconId="photo"/>,
+                    <span class="ml-2 flex-centered">{ __('Choose a picture') }</span>
                 ] : <img src={ selectedImageSrc }/> }
             </label>
             <div class="has-error"><InputError error={ validationError }/></div>

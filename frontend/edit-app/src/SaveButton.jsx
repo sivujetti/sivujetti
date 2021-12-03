@@ -35,9 +35,10 @@ class SaveButton extends preact.Component {
         return <button
             onClick={ this.execQueuedOps.bind(this) }
             disabled={ formState.isValidating || formState.isSubmitting || !formState.isValid }
-            class="btn btn-link pr-1"
+            class="btn btn-link pr-1 d-flex"
             title={ __('Save changes') }>
-            <Icon iconId="save" className="size-sm"/> *
+            <Icon iconId="device-floppy"/>
+            <span class="flex-centered mt-1 ml-1">*</span>
         </button>;
     }
     /**

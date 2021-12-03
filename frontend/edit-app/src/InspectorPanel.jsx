@@ -82,7 +82,7 @@ class InspectorPanel extends preact.Component {
         return <>
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
             <button onClick={ this.close.bind(this) } class="btn btn-link with-icon p-absolute p-1" title={ __('Close') } style="right:0;top:0" type="button">
-                <Icon iconId="x-circle" className="size-xs"/>
+                <Icon iconId="circle-x" className="size-sm"/>
             </button>
             { Renderer ? preact.createElement(Renderer, Object.assign({key: this.rendererKey, inspectorPanel: this}, this.rendererProps)) : null }
         </>;

@@ -113,7 +113,7 @@ final class UserPluginAPI extends UserSiteAPI {
             throw new PikeException("Expected ctrlClassPath (`{$ctrlClassPath}`) to start with `{$this->classNamespace}`",
                                     PikeException::BAD_INPUT);
         $this->router->map($method, $url,
-            [$ctrlClassPath, $ctrlMethodName]
+            [$ctrlClassPath, $ctrlMethodName, ["skipAuth" => true]]
         );
     }
     /**

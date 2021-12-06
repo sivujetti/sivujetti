@@ -4,6 +4,7 @@ namespace Sivujetti\Page;
 
 use MySite\Theme;
 use Pike\{ArrayUtils, PikeException, Request, Response};
+use Pike\Auth\Authenticator;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\{App, SharedAPIContext, Template, Translator};
@@ -100,6 +101,14 @@ final class PagesController {
             ]),
             "isFirstRun" => false,
         ]));
+    }
+    /**
+     * GET /jet-login: Renders a login page.
+     *
+     * @param \Pike\Response $res
+     */
+    public function renderLoginPage(Response $res): void {
+        $res->plain("todo");
     }
     /**
      * POST /api/pages/[w:pageType]: Inserts a new page to the database.

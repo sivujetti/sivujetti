@@ -28,8 +28,11 @@ final class PagesModule {
         $ctx->router->map("GET", "/_edit/[**:url]?",
             [PagesController::class, "renderEditAppWrapper", ["identifiedBy" => ["access", "editMode"]]]
         );
+        $ctx->router->map("GET", "/jet-login",
+            [PagesController::class, "renderLoginPage", ["skipAuth" => true]]
+        );
         $ctx->router->map("GET", "[**:url]",
-            [PagesController::class, "renderPage"]
+            [PagesController::class, "renderPage", ["skipAuth" => true]]
         );
     }
 }

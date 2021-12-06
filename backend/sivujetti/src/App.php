@@ -3,7 +3,6 @@
 namespace Sivujetti;
 
 use Auryn\Injector;
-use Sivujetti\Auth\ACL;
 use Sivujetti\Block\BlocksModule;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, ColumnsBlockType, GlobalBlockReferenceBlockType,
@@ -15,7 +14,11 @@ use Sivujetti\Plugin\Entities\Plugin;
 use Sivujetti\TheWebsite\TheWebsiteRepository;
 use Sivujetti\UserPlugin\{UserPluginAPI, UserPluginInterface};
 use Sivujetti\UserSite\{UserSiteAPI, UserSiteInterface};
-use Pike\{App as PikeApp, PikeException, Request, Response, Router, ServiceDefaults};
+use Pike\{App as PikeApp, NativeSession, PikeException, Request, Response, Router, ServiceDefaults};
+use Pike\Auth\Authenticator;
+use Pike\Auth\Defaults\DefaultCookieStorage;
+use Pike\Defaults\DefaultUserRepository;
+use Sivujetti\Auth\AuthModule;
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesModule;
 use Sivujetti\Layout\LayoutsModule;
@@ -37,8 +40,9 @@ final class App {
     public static function create($config = null,
                                   ?AppContext $initialCtx = null,
                                   ?Router $router = null): PikeApp {
-        return new PikeApp([
+        $out = new PikeApp([
             new self,
+            new AuthModule,
             new BlocksModule,
             new GlobalBlockTreesModule,
             new LayoutsModule,
@@ -48,6 +52,7 @@ final class App {
         ], function (AppContext $ctx, ServiceDefaults $defaults) use ($config): void {
             $ctx->config = $defaults->makeConfig($config);
             $ctx->db = $defaults->makeDb();
+            $ctx->auth = $defaults->makeAuth();
             $ctx->storage = $ctx->storage ?? new SharedAPIContext;
             $blockTypes = $ctx->storage->getDataHandle()->blockTypes ?? new BlockTypes;
             $blockTypes->{Block::TYPE_BUTTON} = new ButtonBlockType;
@@ -67,6 +72,23 @@ final class App {
                 "sivujetti:block-menu",
             ];
         }, $initialCtx ?? new AppContext, $router);
+        $out->setServiceInstantiator(fn(AppContext $ctx) =>
+            new class($ctx) extends ServiceDefaults {
+                /**
+                 * @inheritdoc
+                 */
+                public function makeAuth(): Authenticator {
+                    return new Authenticator(
+                        function ($_factory) { return new DefaultUserRepository($this->ctx->db); },
+                        function ($_factory) { return new NativeSession(autostart: false); },
+                        function ($_factory) { return new DefaultCookieStorage($this->ctx); },
+                        userRoleCookieName: "maybeLoggedInUserRole",
+                        doUseRememberMe: true
+                    );
+                }
+            }
+        );
+        return $out;
     }
     /**
      * @param \Sivujetti\AppContext $ctx
@@ -78,12 +100,14 @@ final class App {
             $this->openDbAndLoadState();
         }
         $ctx->router->on("*", function ($req, $res, $next) {
-            $req->myData = new \stdClass;
-            $doRequireLogin = str_starts_with($req->path, "/api/") ||
-                              str_starts_with($req->path, "/_edit/");
-            if ($doRequireLogin && !$this->validateRequestMeta($req, $res)) return;
+            $req->myData = (object) ["user" => null];
+            $devModeIsOn = (bool) (SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE);
+            if (($error = $this->validateRouteContext($req, $devModeIsOn))) {
+                if (!$devModeIsOn) { $res->plain("500")->status(500); return; }
+                throw new PikeException($error, PikeException::BAD_INPUT);
+            }
+            if (!$this->validateRequestMeta($req, $res)) return;
             $this->openDbAndLoadState();
-            if ($doRequireLogin && !$this->checkRequestUserPermissions($req, $res)) return;
             $next();
         });
     }
@@ -98,47 +122,29 @@ final class App {
     }
     /**
      * @param \Pike\Request $req
+     * @param bool $devModeIsOn
+     * @return string $error or ""
+     */
+    private function validateRouteContext(Request $req, bool $devModeIsOn): string {
+        $routeInfo = $req->routeInfo->myCtx ?? null;
+        if (!is_array($routeInfo))
+            return "All routes must define a context (router->map('A', 'B', <context>))";
+        if ($devModeIsOn && !($routeInfo["skipAuth"] ?? false) && !is_array($routeInfo["identifiedBy"] ?? null))
+            return "A route context must contain `identifiedBy` or `skipAuth`";
+        return "";
+    }
+    /**
+     * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @return bool $requestMetaWasOk
      * @throws \Pike\PikeException If the route definition (ctx->router->map) wasn't valid
      */
     private function validateRequestMeta(Request $req, Response $res): bool {
-        $routeInfo = $req->routeInfo->myCtx;
-        //
-        if (($consumesStr = $routeInfo["consumes"] ?? "") &&
+        if (($consumesStr = $req->routeInfo->myCtx["consumes"] ?? "") &&
             !str_starts_with($req->header("Content-Type", "text/html"), $consumesStr)) {
             $res->status(415)->plain("Unexpected content-type");
             return false;
         }
-        //
-        $todoUserRole = ACL::ROLE_ADMIN;
-        if (!$todoUserRole) {
-            $res->status(401)->plain("Login required");
-            return false;
-        }
-        //
-        return true;
-    }
-    /**
-     * @param \Pike\Request $req
-     * @param \Pike\Response $res
-     * @return bool $requestUserIsPermittedToAccessThisRoute
-     * @throws \Pike\PikeException If the database returned invalid aclRulesJson
-     */
-    private function checkRequestUserPermissions(Request $req, Response $res): bool {
-        $doThrowExceptions = (bool) (SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE);
-        $acl = new ACL($doThrowExceptions);
-        $theWebsite = $this->ctx->theWebsite;
-        if (($rules = json_decode($theWebsite->aclRulesJson)) === null)
-            throw new PikeException("Failed to parse acl rules",
-                                    PikeException::BAD_INPUT);
-        $acl->setRules($rules);
-        $todoUserRole = ACL::ROLE_ADMIN;
-        if (!$acl->can($todoUserRole, ...$req->routeInfo->myCtx["identifiedBy"])) {
-            $res->status(403)->plain("Not permitted");
-            return false;
-        }
-        //
         return true;
     }
     /**

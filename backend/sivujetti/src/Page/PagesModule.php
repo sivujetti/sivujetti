@@ -31,6 +31,9 @@ final class PagesModule {
         $ctx->router->map("GET", "/jet-login",
             [PagesController::class, "renderLoginPage", ["skipAuth" => true]]
         );
+        $ctx->router->map("GET", "/jet-reset-pass",
+            [PagesController::class, "renderRequestPassResetPage", ["skipAuth" => true]]
+        );
         $ctx->router->map("GET", "[**:url]",
             [PagesController::class, "renderPage", ["skipAuth" => true]]
         );

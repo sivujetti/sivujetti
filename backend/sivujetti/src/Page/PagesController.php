@@ -108,7 +108,19 @@ final class PagesController {
      * @param \Pike\Response $res
      */
     public function renderLoginPage(Response $res): void {
-        $res->plain("todo");
+        $res->html((new WebPageAwareTemplate("sivujetti:page-auth-view.tmpl.php"))->render([
+            "title" => "Login",
+            "appName" => "login",
+            "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
+        ]));
+    }
+    /**
+     * GET /jet-reset-pass: Renders a password reset request page.
+     *
+     * @param \Pike\Response $res
+     */
+    public function renderRequestPassResetPage(Response $res): void {
+        $res->html("Not implemented yet.");
     }
     /**
      * POST /api/pages/[w:pageType]: Inserts a new page to the database.

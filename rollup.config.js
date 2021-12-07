@@ -74,14 +74,26 @@ module.exports = args => {
     }
     // == lang-*.js ============================================================
     if (bundle === 'lang' || bundle === 'all') {
+        const globals = {'@sivujetti-string-bundles': 'translationStringBundles'};
+        const external = ['@sivujetti-string-bundles'];
         bundles.push({
             input: `frontend/translations/${selectedLang}.js`,
             output: {
                 format: 'iife',
                 file: `${targetDirBase}lang-${selectedLang}.js`,
-                globals: {'@sivujetti-string-bundles': 'translationStringBundles'},
+                globals,
             },
-            external: ['@sivujetti-string-bundles'],
+            external,
+            plugins: postPlugins,
+            watch: watchSettings
+        }, {
+            input: `frontend/translations/auth-apps.${selectedLang}.js`,
+            output: {
+                format: 'iife',
+                file: `${targetDirBase}lang-auth-${selectedLang}.js`,
+                globals,
+            },
+            external,
             plugins: postPlugins,
             watch: watchSettings
         });
@@ -94,6 +106,21 @@ module.exports = args => {
                 file: `${targetDirBase}sivujetti-webpage.js`,
             }),
             plugins: postPlugins,
+            watch: watchSettings
+        });
+    // == render-auth-app.js ===================================================
+    if (bundle === 'auth' || bundle === 'all')
+        bundles.push({
+            input: 'frontend/auth-apps/renderAuthApp.js',
+            output: makeOutputCfg({
+                name: 'sivujettiRenderAuthApp',
+                file: `${targetDirBase}sivujetti-render-auth-app.js`,
+                globals: allGlobals,
+            }),
+            external: allExternals,
+            plugins: [
+                makeJsxPlugin(['frontend/edit-app/src/**']),
+            ].concat(...postPlugins),
             watch: watchSettings
         });
     // == tests-bundled-main.js ================================================

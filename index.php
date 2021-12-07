@@ -13,5 +13,5 @@ $loader->addPsr4("MySite\\", SIVUJETTI_SITE_PATH);
 $loader->addPsr4("SitePlugins\\", SIVUJETTI_PLUGINS_PATH);
 
 \Sivujetti\App::create($config)->handleRequest(
-    ...(!SIVUJETTI_QUERY_VAR ? ["", SIVUJETTI_BASE_URL] : [$_GET[SIVUJETTI_QUERY_VAR], null])
+    ...(!SIVUJETTI_QUERY_VAR ? ["", SIVUJETTI_BASE_URL] : [$_GET[SIVUJETTI_QUERY_VAR] ?? "", null])
 );

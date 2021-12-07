@@ -179,6 +179,7 @@ final class Bundler {
             "{$prefix}assets/templates/block-generic-wrapper.tmpl.php",
             "{$prefix}assets/templates/block-menu.tmpl.php",
             "{$prefix}assets/templates/edit-app-wrapper.tmpl.php",
+            "{$prefix}assets/templates/page-auth-view.tmpl.php",
         ];
         // cli
         $cliPaths = $this->fs->readDirRecursive("{$base1}cli/src", "/^.*\.php$/");

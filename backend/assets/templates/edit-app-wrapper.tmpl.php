@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.css") ?>">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.css") ?>">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body>
         <div id="root" class="one-column-layout">

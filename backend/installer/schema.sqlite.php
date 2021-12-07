@@ -13,6 +13,23 @@ return [
 "DROP TABLE IF EXISTS `\${p}categories`",
 "DROP TABLE IF EXISTS `\${p}plugins`",
 "DROP TABLE IF EXISTS `\${p}theWebsite`",
+"DROP TABLE IF EXISTS `\${p}users`",
+
+"CREATE TABLE `\${p}users` (
+    `id` TEXT PRIMARY KEY,
+    `username` TEXT NOT NULL UNIQUE,
+    `email` TEXT NOT NULL UNIQUE,
+    `passwordHash` TEXT NOT NULL,
+    `role` INTEGER NOT NULL DEFAULT 8388608, -- 1 << 23
+    `accountStatus` INTEGER DEFAULT 1, -- 0=activated, 1=unactivated, 2=banned
+    `accountCreatedAt` INTEGER DEFAULT 0,
+    `activationKey` TEXT DEFAULT NULL,
+    `resetKey` TEXT DEFAULT NULL,
+    `resetRequestedAt` INTEGER DEFAULT 0,
+    `loginId` TEXT DEFAULT NULL,
+    `loginIdValidatorHash` TEXT DEFAULT NULL,
+    `loginData` TEXT
+)",
 
 "CREATE TABLE `\${p}theWebsite` (
     `name` TEXT NOT NULL,

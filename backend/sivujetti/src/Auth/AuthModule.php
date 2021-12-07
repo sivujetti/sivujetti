@@ -18,7 +18,7 @@ final class AuthModule {
             if (!$this->checkIfUserIsPermittedToAccessThisRoute($req, $res)) return;
             $next();
         });
-        $ctx->router->map("GET", "/api/auth/login",
+        $ctx->router->map("POST", "/api/auth/login",
             [AuthController::class, "processLoginAttempt", ["skipAuth" => true]]
         );
     }

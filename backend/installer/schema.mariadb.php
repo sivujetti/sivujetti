@@ -14,6 +14,24 @@ return [
 "DROP TABLE IF EXISTS `\${p}categories`",
 "DROP TABLE IF EXISTS `\${p}plugins`",
 "DROP TABLE IF EXISTS `\${p}theWebsite`",
+"DROP TABLE IF EXISTS `\${p}users`",
+
+"CREATE TABLE `\${p}users` (
+    `id` CHAR(36) NOT NULL,
+    `username` VARCHAR(42) NOT NULL UNIQUE,
+    `email` {$dataTypeForMaxIndexableText} UNIQUE,
+    `passwordHash` VARCHAR(255) NOT NULL,
+    `role` MEDIUMINT(8) UNSIGNED NOT NULL DEFAULT 8388608, -- 1 << 23
+    `accountStatus` TINYINT(1) UNSIGNED DEFAULT 1, -- 0=activated, 1=unactivated, 2=banned
+    `accountCreatedAt` {$dataTypeForTimestamps},
+    `activationKey` VARCHAR(512) DEFAULT NULL,
+    `resetKey` VARCHAR(512) DEFAULT NULL,
+    `resetRequestedAt` {$dataTypeForTimestamps},
+    `loginId` CHAR(32) DEFAULT NULL,
+    `loginIdValidatorHash` CHAR(64) DEFAULT NULL,
+    `loginData` TEXT,
+    PRIMARY KEY (`id`)
+) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}theWebsite` (
     `name` VARCHAR(92) NOT NULL,

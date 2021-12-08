@@ -66,11 +66,17 @@ stringBundles.push({
     'Link': 'Link',
     'Css classes': 'Css classes',
     'Button text': 'Button text',
+    // edit-app/src/block-types/columns.js
+    'Columns': 'Columns',
+    'Num columns': 'Num columns',
+    'Full width': 'Full width',
     // edit-app/src/block-types/heading.js
     'Level': 'Level',
     'Add block after': 'Add block after',
     'Heading text': 'Heading text',
     'Heading': 'Heading',
+    // edit-app/src/block-types/image.js
+    'Image': 'Image',
     // edit-app/src/block-types/listing.js
     'A list of %s': 'A list of %s',
     'Add new %s': 'Add new %s',

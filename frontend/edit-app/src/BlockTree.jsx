@@ -144,10 +144,10 @@ class BlockTree extends preact.Component {
     componentWillMount(props = this.props) {
         const blockRefs = BlockTrees.currentWebPageBlockRefs;
         const treeState = {};
-        const createBlockAndPutToState = blockRaw => {
+        const createBlockAndPutToState = (blockRaw, treeStateOverrides = {}) => {
             const block = Block.fromObject(blockRaw);
             block._cref = blockRefs.find(({blockId}) => blockId === block.id);
-            treeState[block.id] = createTreeStateItem();
+            treeState[block.id] = createTreeStateItem(treeStateOverrides);
             return block;
         };
         globalBlockTreeBlocks.clear();
@@ -157,7 +157,7 @@ class BlockTree extends preact.Component {
                 if (!globalBlockTreeBlocks.has(blockRaw.globalBlockTreeId))
                     globalBlockTreeBlocks.set(blockRaw.globalBlockTreeId, blockTreeUtils.mapRecursively(out.__globalBlockTree.blocks, sbRaw => {
                         normalizeGlobalBlockTreeBlock(sbRaw, blockRaw.globalBlockTreeId);
-                        return createBlockAndPutToState(sbRaw);
+                        return createBlockAndPutToState(sbRaw, sbRaw.id !== out.__globalBlockTree.blocks[0].id ? undefined : {isCollapsed: true});
                     }));
                 out.__globalBlockTree.blocks = globalBlockTreeBlocks.get(blockRaw.globalBlockTreeId);
             }

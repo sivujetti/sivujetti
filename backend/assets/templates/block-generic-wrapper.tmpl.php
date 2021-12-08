@@ -1,5 +1,8 @@
 <?php if ($props->type === \Sivujetti\Block\Entities\Block::TYPE_COLUMNS):
-    echo "<div class=\"", $this->e($props->cssClass ?: "columns"), "\">",
+    echo "<div class=\"jet-columns num-cols-{$this->e($props->numColumns)}",
+        ($props->takeFullWidth ? "" : " inline"),
+        (!$props->cssClass ? "" : " {$this->e($props->cssClass)}"),
+        "\">",
         $this->renderChildren($props),
     "</div>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_SECTION):

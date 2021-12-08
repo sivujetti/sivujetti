@@ -4,6 +4,15 @@ const validatorImplFactories = {
     'minLength': () =>
         ({doValidate: (value, min) => value.length >= min, errorMessageTmpl: __('minLength')})
     ,
+    'maxLength': () =>
+        ({doValidate: (value, max) => value.length <= max, errorMessageTmpl: __('maxLength')})
+    ,
+    'min': () =>
+        ({doValidate: (value, min) => value >= min, errorMessageTmpl: __('min')})
+    ,
+    'max': () =>
+        ({doValidate: (value, max) => value <= max, errorMessageTmpl: __('max')})
+    ,
 };
 
 /**
@@ -22,10 +31,10 @@ const formatError = (errorTmpl, label, args) => {
 /**
  * @param {String} id
  * @param {{validations: Array<[String, ...any]>; value?: String; label?: String; type?: String; className?: String; [key: String]: any;}|undefined} attrs = {}
- * @returns {InputState}
+ * @returns {InputState & {[key: String]: any;}}
  */
 const useField = (id, attrs = {}) => {
-    const [value, setValue] = preactHooks.useState(attrs.value || undefined);
+    const [value, setValue] = preactHooks.useState(attrs.value !== undefined ? attrs.value : undefined);
     const [errors, setErrors] = preactHooks.useState({});
     const [hasTouched, setHasTouched] = preactHooks.useState(false);
     const [isBlurred, setIsBlurred] = preactHooks.useState(false);
@@ -80,22 +89,25 @@ const useField = (id, attrs = {}) => {
 };
 
 /**
- * @param {Array<InputState>} inputStates
+ * @param {Array<InputState & {[key: String]: any;}>} inputStates
  * @returns {{hasValidationErrors: Boolean; validateAll: () => Number;}}
  */
 const useValidations = inputStates => {
     const [hasValidationErrors, setHasValidationErrors] = preactHooks.useState(false);
+    const [initialized, setIsInitialized] = preactHooks.useState(false);
     //
     const errArrs = inputStates.map(inputState =>
         inputState.getErrors()
     );
     const setHasErrorsFromEach = () => {
+        if (!initialized) setIsInitialized(true);
         setHasValidationErrors(errArrs.some(arr => arr.length > 0));
     };
     preactHooks.useEffect(setHasErrorsFromEach, errArrs.map(arr => arr.join(',')));
     //
     return {
         hasValidationErrors,
+        initialized,
         validateAll: () => {
             let numTouches = 0;
             let triggeredBlur = false;
@@ -118,7 +130,22 @@ const useValidations = inputStates => {
  * @type {preact.FunctionalComponent<{className?: String;}>}
  */
 const FormGroup = ({className, children}) =>
-    <div class={ 'form-group' + (className ? ` ${className}` : '') }>{ children }</div>
+    <div class={ 'form-group' + (!className ? '' : ` ${className}`) }>{ children }</div>
+;
+
+/**
+ * @type {preact.FunctionalComponent<{className?: String;}>}
+ */
+const FormGroupInline = ({children, className}) =>
+    <div className={ 'form-group' + (!className ? '' : ` ${className}`) }>
+        <div class="col-3 text-ellipsis">
+            { children[0] }
+        </div>
+        <div class="col-9">
+            { children[1] }
+        </div>
+        { children[2] || null }
+    </div>
 ;
 
 /**
@@ -143,4 +170,4 @@ const InputErrors = ({errors}) =>
  * @prop {String} className
  */
 
-export {useField, useValidations, FormGroup, InputErrors};
+export {useField, useValidations, FormGroup, FormGroupInline, InputErrors};

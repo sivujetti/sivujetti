@@ -26,7 +26,7 @@ class ImageBlockEditForm extends preact.Component {
      * @access protected
      */
     render(_, {classes, errors}) {
-        return <div class="form-horizontal">
+        return <div class="form-horizontal pt-0">
             <InputGroupInline>
                 <label class="form-label" htmlFor="src" title={ __('Image file') }>{ __('Image file') }</label>
                 <ImagePicker

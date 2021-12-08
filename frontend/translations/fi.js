@@ -66,11 +66,17 @@ stringBundles.push({
     'Link': 'Linkki',
     'Css classes': 'Css-luokat',
     'Button text': 'Napin teksti',
+    // edit-app/src/block-types/columns.js
+    'Columns': 'Sarakkeet',
+    'Num columns': 'Sarakkeita',
+    'Full width': 'Täysileveä',
     // edit-app/src/block-types/heading.js
     'Level': 'Taso',
     'Add block after': 'Lisää lohko jälkeen',
     'Heading text': 'Otsikon teksti',
     'Heading': 'Otsikko',
+    // edit-app/src/block-types/image.js
+    'Image': 'Kuva',
     // edit-app/src/block-types/listing.js
     'A list of %s': 'Lista %s:ja',
     'Add new %s': 'Lisää uusi %s',

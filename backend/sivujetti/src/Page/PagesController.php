@@ -103,7 +103,7 @@ final class PagesController {
         ]));
     }
     /**
-     * GET /jet-login: Renders a login page.
+     * GET /jet-login: Renders the login page.
      *
      * @param \Pike\Response $res
      */

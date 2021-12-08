@@ -2,8 +2,9 @@
 
 namespace Sivujetti\Auth;
 
-use Pike\{Request, Response};
+use Pike\{PikeException, Request, Response, Validation};
 use Pike\Auth\Authenticator;
+use Pike\Entities\User;
 
 final class AuthController {
     /**
@@ -16,6 +17,33 @@ final class AuthController {
     public function processLoginAttempt(Request $req,
                                         Response $res,
                                         Authenticator $auth): void {
-        $res->plain("todo");
+        if (($errors = $this->validateLoginFormInput($req->body))) {
+            $res->status(400)->json($errors);
+            return;
+        }
+        try {
+            $auth->login($req->body->username, $req->body->password, fn(User $user) => (object) [
+                "id" => $user->id,
+                "role" => $user->role,
+            ]);
+            $res->json(["ok" => "ok"]);
+        } catch (PikeException $e) {
+            if ($e->getCode() === Authenticator::CREDENTIAL_WAS_INVALID ||
+                $e->getCode() === Authenticator::ACCOUNT_STATUS_WAS_UNEXPECTED) {
+                $res->json(["errorCode" => $e->getCode(), "ok" => "err"]);
+                return;
+            }
+            throw $e;
+        }
+    }
+    /**
+     * @param object $input
+     * @return string[] Error messages or []
+     */
+    private function validateLoginFormInput(object $input): array {
+        return Validation::makeObjectValidator()
+            ->rule('username', 'minLength', 2)
+            ->rule('password', 'minLength', 1)
+            ->validate($input);
     }
 }

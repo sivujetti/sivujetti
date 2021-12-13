@@ -1,18 +1,12 @@
 import {__} from './main.js';
 
 const validatorImplFactories = {
-    'minLength': () =>
-        ({doValidate: (value, min) => value.length >= min, errorMessageTmpl: __('minLength')})
-    ,
-    'maxLength': () =>
-        ({doValidate: (value, max) => value.length <= max, errorMessageTmpl: __('maxLength')})
-    ,
-    'min': () =>
-        ({doValidate: (value, min) => value >= min, errorMessageTmpl: __('min')})
-    ,
-    'max': () =>
-        ({doValidate: (value, max) => value <= max, errorMessageTmpl: __('max')})
-    ,
+    'required':  () => ({doValidate: value => !!value, errorMessageTmpl: __('required')}),
+    'minLength': () => ({doValidate: (value, min) => value.length >= min, errorMessageTmpl: __('minLength')}),
+    'maxLength': () => ({doValidate: (value, max) => value.length <= max, errorMessageTmpl: __('maxLength')}),
+    'min':       () => ({doValidate: (value, min) => value >= min, errorMessageTmpl: __('min')}),
+    'max':       () => ({doValidate: (value, max) => value <= max, errorMessageTmpl: __('max')}),
+    'regexp':    () => ({doValidate: (value, pattern) => (new RegExp(pattern)).test(value), errorMessageTmpl: __('{field} contains forbidden characters')}),
 };
 
 /**
@@ -30,7 +24,7 @@ const formatError = (errorTmpl, label, args) => {
 
 /**
  * @param {String} id
- * @param {{validations: Array<[String, ...any]>; value?: String; label?: String; type?: String; className?: String; [key: String]: any;}|undefined} attrs = {}
+ * @param {{validations: Array<[String, ...any]>; value?: String; label?: String; type?: String; className?: String; [key: String]: any; onAfterValidation?: (value: any, hasErrors: Boolean) => void;}|undefined} attrs = {}
  * @returns {InputState & {[key: String]: any;}}
  */
 const useField = (id, attrs = {}) => {
@@ -43,11 +37,12 @@ const useField = (id, attrs = {}) => {
      * @param {Event} e
      */
     const onInput = e => {
+        if (attrs.onBeforeHandleInput) attrs.onBeforeHandleInput(e);
         setHasTouched(true);
         setValue(e.target.value);
     };
-    const doValidate = () => {
-        (attrs.validations || []).forEach(([validatorName, ...args]) => {
+    const doValidate = () =>
+        (attrs.validations || []).reduce((hasErrors, [validatorName, ...args]) => {
             const {doValidate, errorMessageTmpl} = validatorImplFactories[validatorName]();
             const prevIsValid = errors[validatorName] === undefined;
             const isValid = doValidate(value !== undefined ? value : '', ...args);
@@ -55,12 +50,14 @@ const useField = (id, attrs = {}) => {
                 setErrors(Object.assign({}, errors, {[validatorName]: formatError(errorMessageTmpl, attrs.label, args)}));
             else if (isValid && !prevIsValid)
                 setErrors(Object.assign({}, errors, {[validatorName]: undefined}));
-        });
-    };
+            return hasErrors ? true : isValid !== true;
+        }, false)
+    ;
     //
     preactHooks.useEffect(() => {
         if (!hasTouched) return;
-        doValidate();
+        const hasErrors = doValidate();
+        if (attrs.onAfterValidation) attrs.onAfterValidation(value, hasErrors);
     }, [value]);
     //
     return {

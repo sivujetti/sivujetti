@@ -1,23 +1,29 @@
-import {__, env} from '../commons/main.js';
-import {useField, useValidations, FormGroupInline, InputErrors} from '../commons/Form2.jsx';
+import {__} from '../commons/main.js';
+import {useField, FormGroupInline, InputErrors} from '../commons/Form2.jsx';
 import {formValidation} from '../constants.js';
 
 /**
- * @type {preact.FunctionalComponent<BlockEditFormProps>}
+ * @type {preact.FunctionalComponent<BlockEditFormProps2>}
  */
-const ColumnsBlockEditForm = ({block, onValueChanged}) => {
-    const numColumns = useField('numColumns', {value: block.numColumns, validations: [['min', 1], ['max', 12]], label: __('Num columns'), type: 'number', step: '1'});
-    const cssClass = useField('cssClass', {value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes')});
-    const form = useValidations([numColumns, cssClass]);
+const ColumnsBlockEditForm = ({block, funcsIn, funcsOut}) => {
+    const numColumns = useField('numColumns', {value: block.numColumns, validations: [['min', 0], ['max', 12]],
+        label: __('Num columns'), type: 'number', step: '1',
+        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'numColumns', hasErrors); }});
+    const cssClass = useField('cssClass', {value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
+        label: __('Css classes'),
+        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'cssClass', hasErrors); }});
     const [takeFullWidth, setTakeFullWidth] = preactHooks.useState(block.takeFullWidth);
+    const emitSetFullWidth = preactHooks.useCallback(e => {
+        const newVal = e.target.checked ? 1 : 0;
+        setTakeFullWidth(newVal);
+        funcsIn.onValueChanged(newVal, 'takeFullWidth');
+    }, [takeFullWidth]);
     //
-    preactHooks.useEffect(() => {
-        if (!form.initialized) return;
-        onValueChanged({numColumns: numColumns.value,
-                        takeFullWidth,
-                        cssClass: cssClass.value},
-                        env.normalTypingDebounceMillis);
-    }, [numColumns.value, takeFullWidth, cssClass.value]);
+    funcsOut.resetValues = preactHooks.useCallback((newData) => {
+        numColumns.onInput({target: {value: newData.numColumns}});
+        cssClass.onInput({target: {value: newData.cssClass}});
+        setTakeFullWidth(newData.takeFullWidth);
+    });
     //
     return <div class="form-horizontal pt-0">
         <FormGroupInline>
@@ -29,7 +35,7 @@ const ColumnsBlockEditForm = ({block, onValueChanged}) => {
             <span class="form-label">{ __('Full width') }</span>
             <label class="form-checkbox mt-0">
                 <input
-                    onClick={ e => setTakeFullWidth(e.target.checked ? 1 : 0) }
+                    onClick={ emitSetFullWidth }
                     checked={ takeFullWidth }
                     type="checkbox"
                     id="fullWidth"
@@ -63,6 +69,11 @@ export default () => {
                 '">',
                 renderChildren(),
             '</div>'].join('');
+        },
+        createSnapshot: from => {
+            return {numColumns: from.numColumns,
+                    takeFullWidth: from.takeFullWidth,
+                    cssClass: from.cssClass};
         },
         editForm: ColumnsBlockEditForm,
     };

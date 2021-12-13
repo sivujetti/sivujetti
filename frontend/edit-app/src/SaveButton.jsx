@@ -1,6 +1,8 @@
-import {__} from './commons/main.js';
+import {__, env} from './commons/main.js';
 import Icon from './commons/Icon.jsx';
 import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from './store.js';
+
+let isUndoKeyListenersAdded = false;
 
 class SaveButton extends preact.Component {
     // queuedOps;
@@ -11,6 +13,10 @@ class SaveButton extends preact.Component {
         super(props);
         this.state = {isVisible: false, formState: {}};
         this.queuedOps = [];
+        if (!isUndoKeyListenersAdded) {
+            this.addUndoKeyListener();
+            isUndoKeyListenersAdded = true;
+        }
         observeStore(selectOpQueue, ops => {
             this.queuedOps = ops;
             if (ops.length && !this.state.isVisible)
@@ -61,6 +67,42 @@ class SaveButton extends preact.Component {
         };
         next(optimizeQueue(this.queuedOps.slice(0)));
     }
+    /**
+     * @access private
+     */
+    addUndoKeyListener() {
+        const metaKey = getMetaKey();
+        const undoKey = 'z';
+        let metaKeyIsPressed = false;
+        env.window.addEventListener('keydown', e => {
+            if (e.key === metaKey) {
+                metaKeyIsPressed = true;
+                return;
+            }
+            if (metaKeyIsPressed && e.key === undoKey && this.queuedOps.length) {
+                // Prevent active input's onInput
+                e.preventDefault();
+                //
+                const head = this.queuedOps[this.queuedOps.length - 1].command;
+                head.doUndo(...head.args);
+                this.queuedOps.pop();
+                store.dispatch(setOpQueue(this.queuedOps.slice(0)));
+            }
+        });
+        env.window.addEventListener('keyup', e => {
+            if (e.key === metaKey) {
+                metaKeyIsPressed = false;
+            }
+        });
+    }
+}
+
+/**
+ * @returns {String} 'Meta' if macOS, 'Control' if Windows or anything else
+ */
+function getMetaKey() {
+    return ((navigator.userAgentData && navigator.userAgentData.platform === 'macOS') ||
+            (navigator.platform === 'MacIntel')) ? 'Meta' : 'Control';
 }
 
 /**

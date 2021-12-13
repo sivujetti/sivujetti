@@ -8,6 +8,10 @@ interface BlockTypes {
     entries(): IterableIterator<String, BlockType>;
 }
 
+interface RawBlockData {
+    [key: String]: any;
+}
+
 interface BlockType {
     name: String;
     friendlyName: String;
@@ -17,6 +21,7 @@ interface BlockType {
     reRender(props: {[key: String]: any}, renderChildren: () => String): String;
     editForm: preact.ComponentConstructor;
     infoFromBackend: {associatedRenderers: Array<String>;};
+    createSnapshot?: () => RawBlockData;
 }
 
 interface Block {
@@ -183,6 +188,12 @@ interface ContextMenuLink {
 interface BlockEditFormProps {
     block: Block;
     onValueChanged: (newBlockData: {[key: String]: any;}, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none') => Promise<null>;
+}
+
+interface BlockEditFormProps2 {
+    block: Block;
+    funcsIn: {onValueChanged: (newValue: any, key: String, hasErrors: Boolean = false) => Promise<null>;};
+    funcsOut: {resetValues?: (newSnapshot: {[key: String]: any;}) => void;};
 }
 
 interface InternalSivujettiApi {

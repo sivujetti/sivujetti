@@ -105,6 +105,7 @@ export default () => {
         ownPropNames: Object.keys(initialData),
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
+        icon: 'heading',
         reRender({level, text, cssClass}, renderChildren) {
             return `<h${level}${cssClass? ` class="${cssClass}"` : ''}>${text}${renderChildren()}</h${level}>`;
         },

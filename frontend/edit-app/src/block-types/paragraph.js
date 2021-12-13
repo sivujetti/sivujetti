@@ -101,6 +101,7 @@ export default () => {
         ownPropNames: Object.keys(initialData),
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
+        icon: 'letter-p',
         reRender({text, cssClass}, renderChildren) {
             return `<p${cssClass? ` class="${cssClass}"` : ''}>${text}${renderChildren()}</p>`;
         },

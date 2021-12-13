@@ -1,7 +1,7 @@
 import {http, __, env, signals} from './commons/main.js';
 import Icon from './commons/Icon.jsx';
 import {timingUtils} from './commons/utils.js';
-import blockTypes,{t} from './block-types/block-types.js';
+import blockTypes from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
@@ -49,7 +49,7 @@ class BlockEditForm extends preact.Component {
         const EditFormImpl = this.blockType.editForm;
         return <>
             <div class="with-icon pb-1">
-                <Icon iconId={t(block.type)} className="size-sm color-accent mr-1"/>
+                <Icon iconId={ this.blockType.icon } className="size-xs color-accent mr-1"/>
                 { __(block.type) }
             </div>
             <div class="mt-2">

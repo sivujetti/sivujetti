@@ -97,6 +97,7 @@ export default () => {
         ownPropNames: Object.keys(initialData),
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
+        icon: 'hand-finger',
         reRender({html, linkTo, cssClass}, renderChildren) {
             const href = linkTo.indexOf('.') < 0
                 ? urlUtils.makeUrl(linkTo)

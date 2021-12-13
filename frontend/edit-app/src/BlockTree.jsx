@@ -9,7 +9,7 @@ import store, {pushItemToOpQueue} from './store.js';
 import BlockTreeDragDrop from './BlockTreeDragDrop.js';
 import floatingDialog from './FloatingDialog.jsx';
 import ConvertBlockToGlobalDialog from './ConvertBlockToGlobalBlockTreeDialog.jsx';
-import {t} from './block-types/block-types.js';
+import blockTypes from './block-types/block-types.js';
 
 let BlockTrees;
 const globalBlockTreeBlocks = new Map;
@@ -227,7 +227,7 @@ class BlockTree extends preact.Component {
                 }
                 <div class="d-flex">
                     <button onClick={ () => this.handleItemClicked(visible) } class="block-handle columns" type="button">
-                        <Icon iconId={t(visible.type)} className="size-xs color-accent mr-1"/>
+                        <Icon iconId={ blockTypes.get(visible.type).icon } className="size-xs color-accent2 mr-1"/>
                         { visible.title || __(visible.type) }
                     </button>
                     <button onClick={ e => this.openMoreMenu(block, e) } class={ `more-toggle ml-2${blockWithNavOpened !== block ? '' : ' opened'}` } type="button">
@@ -247,7 +247,7 @@ class BlockTree extends preact.Component {
                 key={ block.id }>
                 <div class="d-flex">
                     <button onClick={ () => this.handleItemClicked(block) } class="block-handle columns" type="button">
-                        <Icon iconId="file-info" className="size-xs color-accent mr-1"/>
+                        <Icon iconId={ blockTypes.get('PageInfo').icon } className="size-xs color-accent2 mr-1"/>
                         { block.title || __(block.type) }
                     </button>
                 </div>

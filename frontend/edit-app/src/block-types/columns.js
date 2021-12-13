@@ -62,6 +62,7 @@ export default () => {
         ownPropNames: Object.keys(initialData),
         initialData,
         defaultRenderer: 'sivujetti:block-generic-wrapper',
+        icon: 'layout-columns',
         reRender({numColumns, takeFullWidth, cssClass}, renderChildren) {
             return ['<div class="jet-columns num-cols-', Math.floor(numColumns),
                 takeFullWidth ? '' : ' inline',

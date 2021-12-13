@@ -182,6 +182,7 @@ export default internalSivujettiApi => {
         ownPropNames: Object.keys(initialData),
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
+        icon: 'file-info',
         reRender() { throw new Error('Not supported'); },
         editForm: PageInfoBlockEditForm,
     };

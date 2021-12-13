@@ -73,6 +73,7 @@ export default () => {
         ownPropNames: Object.keys(initialData),
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
+        icon: 'photo',
         reRender({src, cssClass}, renderChildren) {
             return ['<span class="image', (cssClass ? ` ${cssClass}` : ''), '">',
                 '<img src="', !src.startsWith('data:') ? urlUtils.makeAssetUrl(src) : src, '" alt="">',

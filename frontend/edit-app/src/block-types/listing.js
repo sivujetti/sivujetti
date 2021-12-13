@@ -101,6 +101,7 @@ export default api => {
                 listFilters: settings.initialData.listFilters,
             },
             defaultRenderer: settings.defaultRenderer,
+            icon: settings.icon || 'layout-list',
             reRender(block, _) {
                 return http.post('/api/blocks/render', {block: block.toRaw()}).then(resp => resp.result);
             },

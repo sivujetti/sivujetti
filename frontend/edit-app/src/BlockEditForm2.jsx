@@ -53,7 +53,7 @@ const BlockEditForm2 = ({block, blockTreeCmp, base}, ctx) => {
     //
     return <>
         <div class="with-icon pb-1">
-            <Icon iconId="box" className="size-sm color-accent mr-1"/>
+            <Icon iconId={ blockType.icon } className="size-xs color-accent mr-1"/>
             { __(block.type) }
         </div>
         <div class="mt-2">

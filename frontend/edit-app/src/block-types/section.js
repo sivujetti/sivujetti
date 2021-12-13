@@ -81,6 +81,7 @@ export default () => {
         ownPropNames: Object.keys(initialData),
         initialData,
         defaultRenderer: 'sivujetti:block-generic-wrapper',
+        icon: 'layout-rows',
         reRender({bgImage, cssClass}, renderChildren) {
             return `<section${cssClass? ` class="${cssClass}"` : ''}` +
                 (bgImage ? ` style="background-image:url('${urlUtils.makeAssetUrl(bgImage)}')"` : '') +

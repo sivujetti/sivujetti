@@ -1,6 +1,7 @@
 import {env} from '../commons/main.js';
 import QuillEditor from '../commons/QuillEditor.jsx';
 import {Input} from '../commons/Form.jsx';
+import ImagePicker from '../BlockWidget/ImagePicker.jsx';
 
 /**
  * @param {preact.Ref} elementRef
@@ -13,6 +14,9 @@ function setFocusTo(elementRef) {
         quill.setSelection(quill.getLength(), 0);
     } else if (elementRef.current instanceof Input) {
         const inputEl = elementRef.current.inputEl;
+        inputEl.focus();
+    } else if (elementRef.current instanceof ImagePicker) {
+        const inputEl = elementRef.current.inputEl.current;
         inputEl.focus();
     } else {
         env.window.console.error('Don\'t know how to focus to', elementRef.current);

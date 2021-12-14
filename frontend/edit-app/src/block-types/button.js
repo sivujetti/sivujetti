@@ -1,93 +1,62 @@
 import {urlUtils, __, env} from '../commons/main.js';
-import {hookForm, InputGroup, InputGroupInline, InputError, Input} from '../commons/Form.jsx';
+import {useField, FormGroup, FormGroupInline, InputErrors} from '../commons/Form2.jsx';
 import QuillEditor from '../commons/QuillEditor.jsx';
 import {formValidation} from '../constants.js';
 import {unParagraphify} from './paragraph.js';
 import setFocusTo from './auto-focusers.js';
 
-class ButtonBlockEditForm extends preact.Component {
-    // editor;
-    /**
-     * @param {BlockEditFormProps} props
-     */
-    constructor(props) {
-        super(props);
-        this.state = {};
-        this.editor = preact.createRef();
-    }
-    /**
-     * @access protected
-     */
-    componentWillMount() {
-        this.setState(hookForm(this, {
-            linkTo: this.props.block.linkTo,
-            cssClass: this.props.block.cssClass,
-        }, {
-            html: {
-                value: this.props.block.html,
-                validations: [['required'], ['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
-                label: __('Content'),
-                props: {myOnChange: this.emitChange.bind(this)}
-            },
-        }));
-    }
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        setFocusTo(this.editor);
-    }
-    /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        this.form.destroy();
-    }
-    /**
-     * @param {BlockEditFormProps} _
-     * @access protected
-     */
-    render(_, {classes, errors}) {
-        return <>
-            <InputGroup classes={ classes.html } className="has-error">
-                <QuillEditor
-                    name="html"
-                    value={ this.props.block.html }
-                    onChange={ html => {
-                        this.form.triggerChange(html, "html");
-                    } }
-                    onBlur={ () => this.form.triggerBlur("html") }
-                    toolbarBundle="simplest"
-                    ref={ this.editor }/>
-                <InputError error={ errors.html }/>
-            </InputGroup>
-            <div class="form-horizontal pt-0">
-            <InputGroupInline classes={ classes.linkTo }>
-                <label class="form-label" htmlFor="linkTo">{ __('Link') }</label>
-                <Input vm={ this } name="linkTo" id="linkTo" errorLabel={ __('Link') } validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ this.emitChange.bind(this) }/>
-                <InputError error={ errors.linkTo }/>
-            </InputGroupInline>
-            <InputGroupInline classes={ classes.cssClass }>
-                <label class="form-label" htmlFor="cssClass" title={ __('Css classes') }>{ __('Css classes') }</label>
-                <Input vm={ this } name="cssClass" id="cssClass" errorLabel={ __('Css classes') } validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ this.emitChange.bind(this) }/>
-                <InputError error={ errors.cssClass }/>
-            </InputGroupInline>
-            </div>
-        </>;
-    }
-    /**
-     * @param {Object} newState
-     * @access private
-     */
-    emitChange(newState) {
-        this.props.onValueChanged({
-            html: unParagraphify(newState.values.html),
-            linkTo: newState.values.linkTo,
-            cssClass: newState.values.cssClass,
-        }, env.normalTypingDebounceMillis);
-        return newState;
-    }
-}
+/**
+ * @type {preact.FunctionalComponent<BlockEditFormProps2>}
+ */
+const ButtonBlockEditForm = ({block, funcsIn, funcsOut}) => {
+    const html = useField('html', {value: block.html, validations: [['required'], ['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
+        label: __('Content'),
+        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'html', hasErrors, env.normalTypingDebounceMillis); }});
+    const editor = preact.createRef();
+    const linkTo = useField('linkTo', {value: block.linkTo, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
+        label: __('Css classes'),
+        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'linkTo', hasErrors, env.normalTypingDebounceMillis); }});
+    const cssClass = useField('cssClass', {value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
+        label: __('Css classes'),
+        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }});
+    //
+    preactHooks.useEffect(() => {
+        setFocusTo(editor);
+    }, []);
+    //
+    funcsOut.resetValues = preactHooks.useCallback((newData) => {
+        editor.current.replaceContents(newData.html);
+        linkTo.triggerInput(newData.linkTo);
+        cssClass.triggerInput(newData.cssClass);
+    });
+    //
+    return <>
+        <FormGroup>
+            <QuillEditor
+                name="html"
+                value={ block.html }
+                onChange={ markup => {
+                    html.triggerInput(unParagraphify(markup));
+                } }
+                onBlur={ html.onBlur }
+                toolbarBundle="simplest"
+                ref={ editor }/>
+            <InputErrors errors={ html.getErrors() }/>
+        </FormGroup>
+        <div class="form-horizontal pt-0">
+            <FormGroupInline>
+                <label htmlFor="cssClass" class="form-label">{ __('Link') }</label>
+                <input { ...linkTo }/>
+                <InputErrors errors={ linkTo.getErrors() }/>
+            </FormGroupInline>
+            <FormGroupInline>
+                <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
+                <input { ...cssClass }/>
+                <InputErrors errors={ cssClass.getErrors() }/>
+            </FormGroupInline>
+        </div>
+    </>;
+};
 
 export default () => {
     const initialData = {html: `${__('Button text')}`, linkTo: '/', cssClass: ''};
@@ -109,6 +78,11 @@ export default () => {
                 '</a>',
             '</p>'].join('');
         },
+        createSnapshot: from => ({
+            html: from.html,
+            linkTo: from.linkTo,
+            cssClass: from.cssClass,
+        }),
         editForm: ButtonBlockEditForm,
     };
 };

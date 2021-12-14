@@ -18,16 +18,9 @@ class ImagePickerFieldWidget extends preact.Component {
     render({onImageSelected, initialImageFileName, inputId}) {
         const input = <input
             value={ initialImageFileName }
-            onClick={ () => {
-                floatingDialog.open(PickImageDialog, {
-                    title: __('Choose a picture'),
-                    className: 'image-picker-dialog',
-                }, {
-                    selectedImagePath: initialImageFileName,
-                    onSelected: file => onImageSelected(file)
-                });
-                this.inputEl.current.blur();
-            } }
+            onClick={ this.openPickerDialog.bind(this) }
+            onInput={ this.openPickerDialog.bind(this) }
+            onKeyUp={ e => { if (e.key === 'Enter' || e.key === 'ArrowDown') this.openPickerDialog(e); } }
             class="form-input"
             name={ inputId }
             id={ inputId }
@@ -41,6 +34,21 @@ class ImagePickerFieldWidget extends preact.Component {
                 <Icon iconId="x" className="size-xs"/>
             </button>
         </div> : input;
+    }
+    /**
+     * @param {Event} e
+     * @access private
+     */
+    openPickerDialog(e) {
+        e.preventDefault();
+        floatingDialog.open(PickImageDialog, {
+            title: __('Choose a picture'),
+            className: 'image-picker-dialog',
+        }, {
+            selectedImagePath: this.props.initialImageFileName,
+            onSelected: file => this.props.onImageSelected(file)
+        });
+        this.inputEl.current.blur();
     }
     /**
      * @access private

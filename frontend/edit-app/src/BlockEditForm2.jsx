@@ -1,55 +1,124 @@
-import {__} from './commons/main.js';
+import {__, signals} from './commons/main.js';
 import Icon from './commons/Icon.jsx';
+import {timingUtils} from './commons/utils.js';
 import blockTypes from './block-types/block-types.js';
 import BlockTrees from './BlockTrees.jsx';
 import store, {pushItemToOpQueue} from './store.js';
 
+let currentRenderFn = null;
+let currentCommitFn = null;
+let currentDebounceTime = null;
+let currentDebounceType = null;
+
 /**
- * @type {preact.FunctionalComponent<{block: Block; blockTreeCmp: preact.Component; base: Block|null;}>}
+ * @type {preact.FunctionalComponent<{block: Block; blockTreeCmp: preact.Component; base: Block|null; inspectorPanel: preact.Component;}>}
  */
-const BlockEditForm2 = ({block, blockTreeCmp, base}, ctx) => {
+const BlockEditForm2 = ({block, blockTreeCmp, base, inspectorPanel}, ctx) => {
+    preactHooks.useEffect(() => {
+        const unreg = signals.on('on-block-deleted',
+            /**
+             * @param {Block} _block
+             * @param {Boolean} wasCurrentlySelectedBlock
+             */
+            (_block, wasCurrentlySelectedBlock) => {
+                if (wasCurrentlySelectedBlock) inspectorPanel.close();
+            });
+        return unreg;
+    }, []);
+    //
     const blockType = blockTypes.get(block.type);
     const EditFormImpl = blockType.editForm;
     ctx.snapshot = preactHooks.useMemo(() => blockType.createSnapshot(block), []);
-    const funcsIn = preactHooks.useMemo(() => ({onValueChanged: (value, key, hasErrors = false) => {
-        if (ctx.undoTimeout !== undefined) { return; }
-        //
-        const oldValue = Object.assign({}, ctx.snapshot);
-        const newValue = Object.assign({}, ctx.snapshot, {[key]: value});
-        // 1. Re-render
-        block.overwritePropsData(newValue);
-        BlockTrees.currentWebPage.reRenderBlockInPlace(block);
-        // 2. Commit to queue
-        const s = createSaveBlockOpQueueArg(block, base, blockTreeCmp);
-        if (!hasErrors) {
-        store.dispatch(pushItemToOpQueue(`update-${s.blockIsStoredTo}-block`, {
-            /**
-             * @param {RawBlockData} _newVal
-             * @param {RawBlockData} _oldVal
-             * @param {SaveBlockOpSettings} settings
-             * @returns {Promise<false|any>}
-             */
-            doHandle: (_newVal, _oldVal, {blockTree, blockIsStoredTo, globalBlockTreeId}) =>
-                BlockTrees.saveExistingBlocksToBackend(blockTree, blockIsStoredTo, globalBlockTreeId)
-            ,
-            /**
-             * @param {RawBlockData} _newVal
-             * @param {RawBlockData} oldVal
-             * @param {SaveBlockOpSettings} settings
-             */
-            doUndo: (_newVal, oldVal, {block}) => {
-                block.overwritePropsData(oldVal);
-                BlockTrees.currentWebPage.reRenderBlockInPlace(block);
-                ctx.undoTimeout = setTimeout(() => { ctx.undoTimeout = undefined; }, 200);
-                funcsOut.resetValues(oldVal);
-                ctx.snapshot = oldVal;
-            },
-            args: [newValue, oldValue, s],
-        }));
+    //
+    const internalFuncs = preactHooks.useMemo(() => ({
+        renderedValues: [],
+        /**
+         * @param {Block} block
+         * @param {RawBlockData} newValue
+         * @param {RawBlockData} oldValue
+         * @param {Boolean} hasErrors
+         * @param {(newValue: RawBlockData, hasErrors: Boolean) => void} doCommit
+         */
+        overwritePropsAndRenderBlock: (block, newValue, oldValue, hasErrors, doCommit) => {
+            internalFuncs.renderedValues.push(oldValue);
+            block.overwritePropsData(newValue);
+            BlockTrees.currentWebPage.reRenderBlockInPlace(block);
+            doCommit(newValue, hasErrors);
+        },
+        /**
+         * @param {RawBlockData} newValue
+         * @param {Boolean} hasErrors
+         */
+        commitChangeToQueue: (newValue, hasErrors) => {
+            const oldValue = internalFuncs.renderedValues[0];
+            internalFuncs.renderedValues.length = 0;
+            //
+            const s = createSaveBlockOpQueueArg(block, base, blockTreeCmp);
+            if (!hasErrors) {
+            store.dispatch(pushItemToOpQueue(`update-${s.blockIsStoredTo}-block`, {
+                /**
+                 * @param {RawBlockData} _newValue
+                 * @param {RawBlockData} _oldValue
+                 * @param {SaveBlockOpSettings} settings
+                 * @returns {Promise<false|any>}
+                 */
+                doHandle: (_newValue, _oldValue, {blockTree, blockIsStoredTo, globalBlockTreeId}) =>
+                    BlockTrees.saveExistingBlocksToBackend(blockTree, blockIsStoredTo, globalBlockTreeId)
+                ,
+                /**
+                 * @param {RawBlockData} _newValue
+                 * @param {RawBlockData} oldValue
+                 * @param {SaveBlockOpSettings} settings
+                 */
+                doUndo: (_newValue, oldValue, {block}) => {
+                    block.overwritePropsData(oldValue);
+                    BlockTrees.currentWebPage.reRenderBlockInPlace(block);
+                    ctx.undoTimeout = setTimeout(() => { ctx.undoTimeout = undefined; }, 200);
+                    funcsOut.resetValues(oldValue);
+                    ctx.snapshot = oldValue;
+                },
+                args: [newValue, oldValue, s],
+            }));
+            }
+        },
+    }), []);
+    //
+    const funcsIn = preactHooks.useMemo(() => ({
+        /**
+         * @param {any} value
+         * @param {String} key
+         * @param {Boolean} hasErrors
+         * @param {Number} debounceMillis = 0
+         * @param {'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none'} debounceType = 'debounce-commit-to-queue'
+         */
+        onValueChanged: (value, key, hasErrors = false, debounceMillis = 0, debounceType = 'debounce-commit-to-queue') => {
+            if (ctx.undoTimeout !== undefined) { return; }
+            //
+            if (debounceMillis !== currentDebounceTime || debounceType !== currentDebounceType) {
+                // Run reRender immediately, but throttle commitChangeToQueue
+                if (debounceType === 'debounce-commit-to-queue') {
+                    currentRenderFn = internalFuncs.overwritePropsAndRenderBlock;
+                    currentCommitFn = timingUtils.debounce(internalFuncs.commitChangeToQueue, debounceMillis);
+                // Throttle reRender, which throttles commitToQueue as well
+                } else if (debounceType === 'debounce-re-render-and-commit-to-queue') {
+                    currentRenderFn = timingUtils.debounce(internalFuncs.overwritePropsAndRenderBlock, debounceMillis);
+                    currentCommitFn = internalFuncs.commitChangeToQueue;
+                // Run both immediately
+                } else {
+                    currentRenderFn = internalFuncs.overwritePropsAndRenderBlock;
+                    currentCommitFn = internalFuncs.commitChangeToQueue;
+                }
+                currentDebounceTime = debounceMillis;
+                currentDebounceType = debounceType;
+            }
+            //
+            const oldValue = Object.assign({}, ctx.snapshot);
+            const newValue = Object.assign({}, ctx.snapshot, {[key]: value});
+            currentRenderFn(block, newValue, oldValue, hasErrors, currentCommitFn);
+            ctx.snapshot = newValue;
         }
-        ctx.snapshot = newValue;
-    }}));
-    const funcsOut = {};
+    }));
+    const funcsOut = {}; // A storage where EditFormImpl can publish its own api
     //
     return <>
         <div class="with-icon pb-1">
@@ -57,7 +126,11 @@ const BlockEditForm2 = ({block, blockTreeCmp, base}, ctx) => {
             { __(block.type) }
         </div>
         <div class="mt-2">
-            <EditFormImpl block={ block } funcsIn={ funcsIn } funcsOut={ funcsOut }/>
+            <EditFormImpl
+                block={ block }
+                blockTree={ blockTreeCmp }
+                funcsIn={ funcsIn }
+                funcsOut={ funcsOut }/>
         </div>
     </>;
 };

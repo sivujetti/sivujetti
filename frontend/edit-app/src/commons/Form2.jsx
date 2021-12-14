@@ -34,12 +34,18 @@ const useField = (id, attrs = {}) => {
     const [isBlurred, setIsBlurred] = preactHooks.useState(false);
     //
     /**
+     * @param {any} val
+     */
+    const triggerInput = val => {
+        setHasTouched(true);
+        setValue(val);
+    };
+    /**
      * @param {Event} e
      */
     const onInput = e => {
         if (attrs.onBeforeHandleInput) attrs.onBeforeHandleInput(e);
-        setHasTouched(true);
-        setValue(e.target.value);
+        triggerInput(e.target.value);
     };
     const doValidate = () =>
         (attrs.validations || []).reduce((hasErrors, [validatorName, ...args]) => {
@@ -64,6 +70,8 @@ const useField = (id, attrs = {}) => {
         id,
         type: attrs.type || 'text',
         value,
+        onInput,
+        triggerInput,
         getErrors: () => {
            return !isBlurred
                 ? []
@@ -73,7 +81,6 @@ const useField = (id, attrs = {}) => {
         errors,
         isBlurred,
         hasTouched,
-        onInput,
         onBlur: () => {
             setIsBlurred(true);
             if (!hasTouched) {

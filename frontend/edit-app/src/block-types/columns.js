@@ -1,4 +1,4 @@
-import {__} from '../commons/main.js';
+import {__, env} from '../commons/main.js';
 import {useField, FormGroupInline, InputErrors} from '../commons/Form2.jsx';
 import {formValidation} from '../constants.js';
 
@@ -8,10 +8,10 @@ import {formValidation} from '../constants.js';
 const ColumnsBlockEditForm = ({block, funcsIn, funcsOut}) => {
     const numColumns = useField('numColumns', {value: block.numColumns, validations: [['min', 0], ['max', 12]],
         label: __('Num columns'), type: 'number', step: '1',
-        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'numColumns', hasErrors); }});
+        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'numColumns', hasErrors, env.normalTypingDebounceMillis); }});
     const cssClass = useField('cssClass', {value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
         label: __('Css classes'),
-        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'cssClass', hasErrors); }});
+        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }});
     const [takeFullWidth, setTakeFullWidth] = preactHooks.useState(block.takeFullWidth);
     const emitSetFullWidth = preactHooks.useCallback(e => {
         const newVal = e.target.checked ? 1 : 0;
@@ -20,8 +20,8 @@ const ColumnsBlockEditForm = ({block, funcsIn, funcsOut}) => {
     }, [takeFullWidth]);
     //
     funcsOut.resetValues = preactHooks.useCallback((newData) => {
-        numColumns.onInput({target: {value: newData.numColumns}});
-        cssClass.onInput({target: {value: newData.cssClass}});
+        numColumns.triggerInput(newData.numColumns);
+        cssClass.triggerInput(newData.cssClass);
         setTakeFullWidth(newData.takeFullWidth);
     });
     //

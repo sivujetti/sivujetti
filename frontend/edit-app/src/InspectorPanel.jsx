@@ -2,6 +2,7 @@ import {__, signals, env} from './commons/main.js';
 import Icon from './commons/Icon.jsx';
 import BlockEditForm from './BlockEditForm.jsx';
 import BlockEditForm2 from './BlockEditForm2.jsx';
+import blockTypes from './block-types/block-types.js';
 
 const REVEAL_ANIM_DURATION = 200;
 
@@ -102,7 +103,7 @@ class InspectorPanel extends preact.Component {
         //
         this.rendererProps = {block, blockTreeCmp, base};
         this.rendererKey = newRendererKey;
-        this.setState({Renderer: block.type !== 'Columns' ? BlockEditForm : BlockEditForm2});
+        this.setState({Renderer: !blockTypes.get(block.type).createSnapshot ? BlockEditForm : BlockEditForm2}); // todo remove this ternary after all block types has undo support
         this.props.rootEl.classList.add('inspector-panel-open');
         //
         setTimeout(() => {

@@ -31,6 +31,14 @@ class QuillEditor extends preact.Component {
         this.quill = null;
     }
     /**
+     * @param {String} newContents @allow raw html
+     * @access public
+     */
+    replaceContents(newContents) {
+        this.quill.clipboard.dangerouslyPasteHTML(newContents);
+        this.quill.setSelection(this.quill.getLength(), 0);
+    }
+    /**
      * @access protected
      */
     componentDidMount() {
@@ -38,7 +46,9 @@ class QuillEditor extends preact.Component {
         if (!toolbar) toolbar = toolbarBundles['simplest'];
         //
         this.quill = new window.Quill(`#editor-${this.props.name}`, {
-            modules: {toolbar},
+            modules: Object.assign({toolbar}, this.props.enableHistory === true
+                ? null
+                : {history: {maxStack: 0, userOnly: true,},}),
             theme: 'snow',
         });
         if (this.props.onInit) this.props.onInit(this);

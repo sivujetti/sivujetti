@@ -146,9 +146,13 @@ const BlockEditForm2 = ({block, blockTreeCmp, base, inspectorPanel}, ctx) => {
     const funcsOut = preactHooks.useMemo(() => ({}), []); // A storage where EditFormImpl can publish its own api
     ctx.funcsOut = funcsOut;
     //
-    return <>
-        <div class="with-icon pb-1">
-            <Icon iconId={ blockType.icon } className="size-xs color-accent mr-1"/>
+    return <div data-main>
+        <div class={ `with-icon pb-1${preactHooks.useMemo(() => {
+                if (block.isStoredTo === 'globalBlockTree' || block.type === 'GlobalBlockReference') return ' global-block-tree-block';
+                if (block.type === 'PageInfo') return ' page-info-block';
+                return '';
+            }, [])}` }>
+            <Icon iconId={ blockType.icon } className="size-xs mr-1"/>
             { __(block.type) }
         </div>
         <div class="mt-2">
@@ -160,7 +164,7 @@ const BlockEditForm2 = ({block, blockTreeCmp, base, inspectorPanel}, ctx) => {
                 snapshot={ ctx.snapshot }
                 key={ block.id }/>
         </div>
-    </>;
+    </div>;
 };
 
 /**

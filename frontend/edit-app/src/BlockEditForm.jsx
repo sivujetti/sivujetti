@@ -47,9 +47,12 @@ class BlockEditForm extends preact.Component {
      */
     render({block, blockTreeCmp}, {doUseOverrides, isOuterMost}) {
         const EditFormImpl = this.blockType.editForm;
-        return <>
-            <div class="with-icon pb-1">
-                <Icon iconId={ this.blockType.icon } className="size-xs color-accent mr-1"/>
+        let titleType = '';
+        if (block.type === 'PageInfo') titleType = ' page-info-block';
+        else if (block.isStoredTo === 'globalBlockTree' || block.type === 'GlobalBlockReference') titleType = ' global-block-tree-block';
+        return <div data-main>
+            <div class={ `with-icon pb-1${titleType}` }>
+                <Icon iconId={ this.blockType.icon } className="size-xs mr-1"/>
                 { __(block.type) }
             </div>
             <div class="mt-2">
@@ -77,7 +80,7 @@ class BlockEditForm extends preact.Component {
                     key: `${block.id}-${!doUseOverrides ? 'no-override' : 'with-overrides'}`,
                 }}/>
             </div>
-        </>;
+        </div>;
     }
     /**
      * @param {Event} e

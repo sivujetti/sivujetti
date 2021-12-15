@@ -3,28 +3,25 @@ import webPageIframe from '../webPageIframe.js';
 
 let internalSivujettiApi = null;
 
-class ListingBlockEditForm extends preact.Component {
-    /**
-     * @param {BlockEditFormProps} props
-     * @access protected
-     */
-    render({block}) {
-        return <div>
-            <p>{ __('A list of %s', block.listPageType) }.</p>
-            <a href="" onClick={ this.openAddPageView.bind(this) }>{ __('Add new %s', block.listPageType) }</a>
-        </div>;
-    }
+/**
+ * @type {preact.FunctionalComponent<BlockEditFormProps>}
+ */
+const ListingBlockEditForm = ({block}) => {
     /**
      * @param {Event} e
-     * @access private
      */
-    openAddPageView(e) {
+    const openAddPageView = e => {
         e.preventDefault();
-        const typeName = this.props.block.listPageType;
+        const typeName = block.listPageType;
         const pageType = internalSivujettiApi.getPageTypes().find(({name}) => name === typeName);
         webPageIframe.openPlaceholderPage(typeName, pageType.defaultLayoutId);
-    }
-}
+    };
+    //
+    return <div>
+        <p>{ __('A list of %s', block.listPageType) }.</p>
+        <a href="" onClick={ openAddPageView }>{ __('Add new %s', block.listPageType) }</a>
+    </div>;
+};
 
 function throwIfInvalidSettings(settings) {
     const errors = [];
@@ -105,7 +102,12 @@ export default api => {
             reRender(block, _) {
                 return http.post('/api/blocks/render', {block: block.toRaw()}).then(resp => resp.result);
             },
+            createSnapshot: from => ({
+                listPageType: from.listPageType,
+                listFilters: from.listFilters,
+            }),
             editForm: ListingBlockEditForm,
+            editFormProps: settings.editFormProps || null,
         };
     };
 };

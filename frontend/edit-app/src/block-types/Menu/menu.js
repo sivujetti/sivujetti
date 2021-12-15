@@ -30,6 +30,16 @@ export default () => {
                 return el.innerHTML;
             });
         },
+        createSnapshot: from => ({
+            tree: from.tree,
+            wrapStart: from.wrapStart,
+            wrapEnd: from.wrapEnd,
+            treeStart: from.treeStart,
+            treeEnd: from.treeEnd,
+            itemStart: from.itemStart,
+            itemAttrs: from.itemAttrs,
+            itemEnd: from.itemEnd,
+        }),
         editForm: MenuBlockEditForm,
     };
 };

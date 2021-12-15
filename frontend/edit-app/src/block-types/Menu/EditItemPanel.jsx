@@ -1,69 +1,57 @@
 import {__} from '../../commons/main.js';
-import {hookForm, InputGroupInline, Input, InputError} from '../../commons/Form.jsx';
+import {useField, FormGroupInline, InputErrors} from '../../commons/Form2.jsx';
 import {formValidation} from '../../constants.js';
 
-class EditItemPanel extends preact.Component {
-    // treeCopy;
-    // treeCopyItemRef;
-    /**
-     * @param {{link: MenuLink; cssClass: String; parent: MenuBlockEditForm; panelAHeight: Number;}} props
-     * @access proctected
-     */
-    componentWillReceiveProps(props) {
-        if (props.cssClass === 'reveal-from-right') {
-            this.setState(hookForm(this, {
-                linkText: props.link.text,
-                linkSlug: props.link.slug,
-            }));
-            this.treeCopy = JSON.parse(JSON.stringify(props.parent.state.parsedTree));
-            this.treeCopyItemRef = findLinkItem(this.treeCopy, props.link.id);
-        } else if (props.cssClass === 'fade-to-right') {
-            this.componentWillUnmount();
-        }
-    }
-    /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        if (this.form)
-            this.form.destroy();
-    }
-    /**
-     * @access protected
-     */
-    render({cssClass, panelAHeight}, {classes, errors}) {
-        return <div class={ cssClass } style={ `top: -${panelAHeight + 8}px` }>
-            { cssClass == 'reveal-from-right' ? [
-                <button onClick={ () => this.props.parent.endEditMode(this.treeCopy) } class="btn btn-sm" type="button"> &lt; </button>,
-                <div class="form-horizontal pt-0">
-                <InputGroupInline classes={ classes.linkText }>
-                    <label class="form-label" htmlFor="linkText" title={ __('Text') }>{ __('Text') }</label>
-                    <Input vm={ this } name="linkText" id="linkText" errorLabel={ __('Text') } validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ this.emitChange.bind(this) }/>
-                    <InputError error={ errors.linkText }/>
-                </InputGroupInline>
-                <InputGroupInline classes={ classes.linkSlug }>
-                    <label class="form-label" htmlFor="linkSlug" title={ __('Url') }>{ __('Url') }</label>
-                    <Input vm={ this } name="linkSlug" id="linkSlug" errorLabel={ __('Url') } placeholder={ __('e.g. %s or %s', '/my-page', 'https://page.com') }
-                        validations={ [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]] } myOnChange={ this.emitChange.bind(this) }/>
-                    <InputError error={ errors.linkSlug }/>
-                </InputGroupInline>
-                </div>
-            ] : null }
-        </div>;
-    }
-    /**
-     * @param {Object} newState
-     * @access private
-     */
-    emitChange(newState) {
-        // Mutates this.treeCopy
-        this.treeCopyItemRef.text = newState.values.linkText;
-        this.treeCopyItemRef.slug = newState.values.linkSlug;
-        this.props.parent.onTreeUpdated(this.treeCopy);
-        return newState;
-    }
-}
+/**
+ * @type {preact.FunctionalComponent<{funcsOut: {doOpen: (item: MenuLink, tree: Array<MenuLink>) => void;}; panelAHeight: Number; api: {onTreeUpdated: (mutatedTree: Array<MenuLink>) => void; endEditMode: (mutatedTree: Array<MenuLink>): void;};}>}
+ */
+const EditItemPanel = ({funcsOut, panelAHeight, api}) => {
+    const [cssClass, setCssClass] = preactHooks.useState('d-none');
+    const tree = preactHooks.useRef(null);
+    const onChange = preactHooks.useCallback((val, key) => {
+        const mut = findLinkItem(tree.current.tree, tree.current.itemId);
+        mut[key] = val; // Mutates tree.current.tree
+        api.onTreeUpdated(tree.current.tree);
+    });
+    const linkText = useField('linkText', {validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
+        label: __('Text'),
+        onAfterValidation: (val, hasErrors) => { if (!hasErrors) onChange(val, 'text'); }});
+    const linkSlug = useField('linkSlug', {validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
+        label: __('Url'),
+        onAfterValidation: (val, hasErrors) => { if (!hasErrors) onChange(val, 'slug'); }});
+    //
+    funcsOut.doOpen = preactHooks.useCallback((item, latestTree) => {
+        setCssClass('reveal-from-right');
+        tree.current = {tree: JSON.parse(JSON.stringify(latestTree)), itemId: item.id};
+        linkText.setValue(item.text);
+        linkSlug.setValue(item.slug);
+    });
+    //
+    return <div class={ cssClass } style={ `top: -${panelAHeight + 8}px` }>{ linkText.value !== undefined ? [
+        <button onClick={ () => {
+            api.endEditMode(tree.current.tree);
+            setCssClass('fade-to-right');
+        } } class="btn btn-sm" type="button"> &lt; </button>,
+        <div class="form-horizontal pt-0">
+            <FormGroupInline>
+                <label htmlFor="linkText" class="form-label">{ __('Text') }</label>
+                <input { ...linkText }/>
+                <InputErrors errors={ linkText.getErrors() }/>
+            </FormGroupInline>
+            <FormGroupInline>
+                <label htmlFor="linkSlug" class="form-label">{ __('Url') }</label>
+                <input { ...linkSlug } placeholder={ __('e.g. %s or %s', '/my-page', 'https://page.com') }/>
+                <InputErrors errors={ linkSlug.getErrors() }/>
+            </FormGroupInline>
+        </div>
+    ] : null }</div>;
+};
 
+/**
+ * @param {Array<MenuLink>} branch
+ * @param {String} id
+ * @returns {MenuLink|null}
+ */
 function findLinkItem(branch, id) {
     for (const link of branch) {
         if (link.id === id) return link;

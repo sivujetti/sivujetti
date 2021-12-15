@@ -185,15 +185,16 @@ interface ContextMenuLink {
     id: String;
 }
 
-interface BlockEditFormProps {
+interface BlockEditFormPropsOld {
     block: Block;
     onValueChanged: (newBlockData: {[key: String]: any;}, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none') => Promise<null>;
 }
 
-interface BlockEditFormProps2 {
+interface BlockEditFormProps {
     block: Block;
-    funcsIn: {onValueChanged: (newValue: any, key: String, hasErrors: Boolean = false) => Promise<null>;};
-    funcsOut: {resetValues?: (newSnapshot: {[key: String]: any;}) => void;};
+    blockTree: preact.Component; // BlockTree
+    funcsIn: {onValueChanged: (newValue: any, key: String, hasErrors: Boolean = false, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none') => Promise<null>;};
+    funcsOut: {resetValues?: (newSnapshot: RawBlockData) => void;};
 }
 
 interface InternalSivujettiApi {

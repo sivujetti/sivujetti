@@ -34,15 +34,17 @@ QUnit.module('ParagraphBlock', () => {
             .returns(Promise.resolve({ok: 'ok'}));
     }
     function simulateChangeParagraphTextInput(_s) {
-        return new Promise(resolve => {
+        const els = document.querySelectorAll('.block-tree li .block-handle');
+        const paragraphBlockHandle = els[els.length - 1];
+        paragraphBlockHandle.click();
+        //
+        return new Promise((resolve) => {
             setTimeout(() => {
-                const els = document.querySelectorAll('.block-tree li .block-handle');
-                const paragraphBlockHandle = els[els.length - 1];
-                paragraphBlockHandle.click();
-                resolve();
-            }, 0);
-        }).then(() => {
-            testUtils.fillWysiwygInput('<p>Updated.</p>', 'paragraph-text');
+                testUtils.fillWysiwygInput('<p>Updated.</p>', 'paragraph-text');
+                setTimeout(() => {
+                    resolve();
+                }, 1);
+            }, 1);
         });
     }
     function verifyUpdatedTextInDom(s, assert) {

@@ -6,13 +6,13 @@ import {unParagraphify} from './paragraph.js';
 import setFocusTo from './auto-focusers.js';
 
 /**
- * @type {preact.FunctionalComponent<BlockEditFormProps2>}
+ * @type {preact.FunctionalComponent<BlockEditFormProps>}
  */
 const ButtonBlockEditForm = ({block, funcsIn, funcsOut}) => {
     const html = useField('html', {value: block.html, validations: [['required'], ['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
         label: __('Content'),
         onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'html', hasErrors, env.normalTypingDebounceMillis); }});
-    const editor = preact.createRef();
+    const editor = preactHooks.useMemo(() => preact.createRef(), []);
     const linkTo = useField('linkTo', {value: block.linkTo, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
         label: __('Css classes'),
         onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'linkTo', hasErrors, env.normalTypingDebounceMillis); }});
@@ -24,11 +24,11 @@ const ButtonBlockEditForm = ({block, funcsIn, funcsOut}) => {
         setFocusTo(editor);
     }, []);
     //
-    funcsOut.resetValues = preactHooks.useCallback((newData) => {
-        editor.current.replaceContents(newData.html);
-        linkTo.triggerInput(newData.linkTo);
-        cssClass.triggerInput(newData.cssClass);
-    });
+    funcsOut.resetValues = preactHooks.useCallback((newValue) => {
+        editor.current.replaceContents(newValue.html);
+        linkTo.triggerInput(newValue.linkTo);
+        cssClass.triggerInput(newValue.cssClass);
+    }, []);
     //
     return <>
         <FormGroup>

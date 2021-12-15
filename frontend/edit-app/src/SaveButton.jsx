@@ -80,13 +80,10 @@ class SaveButton extends preact.Component {
                 return;
             }
             if (metaKeyIsPressed && e.key === undoKey && this.queuedOps.length) {
-                // Prevent active input's onInput
-                e.preventDefault();
-                //
+                e.preventDefault(); // Prevent active input's onInput
                 const head = this.queuedOps[this.queuedOps.length - 1].command;
                 head.doUndo(...head.args);
-                this.queuedOps.pop();
-                store.dispatch(setOpQueue(this.queuedOps.slice(0)));
+                store.dispatch(setOpQueue(this.queuedOps.slice(0, this.queuedOps.length - 1)));
             }
         });
         env.window.addEventListener('keyup', e => {

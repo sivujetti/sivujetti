@@ -7,14 +7,14 @@ import {UPLOADS_DIR_PATH} from '../Upload/UploadsManager.jsx';
 import setFocusTo from './auto-focusers.js';
 
 /**
- * @type {preact.FunctionalComponent<BlockEditFormProps2>}
+ * @type {preact.FunctionalComponent<BlockEditFormProps>}
  */
 const SectionBlockEditForm = ({block, funcsIn, funcsOut, blockTree}) => {
     const [bgImage, setBgImage] = preactHooks.useState(block.bgImage);
     const cssClass = useField('cssClass', {value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
         label: __('Css classes'),
         onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }});
-    const imagePicker = preact.createRef();
+    const imagePicker = preactHooks.useMemo(() => preact.createRef(), []);
     //
     preactHooks.useEffect(() => {
         setFocusTo(imagePicker);
@@ -26,12 +26,12 @@ const SectionBlockEditForm = ({block, funcsIn, funcsOut, blockTree}) => {
         const bgImage = img ? `/${UPLOADS_DIR_PATH}${img.baseDir}${img.fileName}` : '';
         setBgImage(bgImage);
         funcsIn.onValueChanged(bgImage, 'bgImage', false, 'debounce-none');
-    });
+    }, []);
     //
-    funcsOut.resetValues = preactHooks.useCallback((newData) => {
-        setBgImage(newData.bgImage);
-        cssClass.triggerInput(newData.cssClass);
-    });
+    funcsOut.resetValues = preactHooks.useCallback((newValue) => {
+        setBgImage(newValue.bgImage);
+        cssClass.triggerInput(newValue.cssClass);
+    }, []);
     //
     return <div class="form-horizontal pt-0">
         <FormGroupInline>

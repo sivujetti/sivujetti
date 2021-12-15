@@ -1,146 +1,81 @@
 import {__, http, signals, env} from '../commons/main.js';
-import {hookForm, InputGroupInline, Input, InputError} from '../commons/Form.jsx';
+import {useField, FormGroupInline, InputErrors} from '../commons/Form2.jsx';
 import toasters from '../commons/Toaster.jsx';
-import {stringUtils, timingUtils} from '../commons/utils.js';
-import store, {pushItemToOpQueue} from '../store.js';
+import {stringUtils} from '../commons/utils.js';
 import BlockTrees from '../BlockTrees.jsx';
-import getWidget from '../FieldWidget/all.jsx';
 import setFocusTo from './auto-focusers.js';
 
-class PageInfoBlockEditForm extends preact.Component {
-    // static internalSivujettiApi;
-    // commitNewPageValuesDebounced;
-    // currentPageIsPlaceholder;
-    // titleInputWrapper;
-    /**
-     * @param {BlockEditFormProps} props
-     */
-    constructor(props) {
-        super(props);
-        this.commitNewPageValuesDebounced = timingUtils.debounce(this.commitNewPageValues.bind(this),
-            env.normalTypingDebounceMillis);
-        this.currentPageIsPlaceholder = null;
-        this.pageType = null;
-        this.titleInputWrapper = preact.createRef();
-    }
-    /**
-     * @access protected
-     */
-    componentWillMount() {
-        const currentPage = BlockTrees.currentWebPage.data.page;
-        this.currentPageIsPlaceholder = currentPage.isPlaceholderPage;
-        this.pageType = PageInfoBlockEditForm.internalSivujettiApi.getPageTypes()
-            .find(({name}) => name === currentPage.type);
-        //
-        const state = createState(currentPage, this.pageType);
-        if (this.currentPageIsPlaceholder && state.slug === '-') {
-            state.slug = makeSlug(state.title);
-            currentPage.slug = state.slug; // Note: Mutates BlockTrees.currentWebPage.data.page
-            emitValueChangedSignal(state);
-        }
-        //
-        this.setState(hookForm(this, state));
-    }
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        setFocusTo(this.titleInputWrapper);
-    }
-    /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        this.form.destroy();
-    }
-    /**
-     * @access protected
-     */
-    render(_, {classes, errors}) {
-        return <>
-            <div class="form-horizontal pt-0">
-                <InputGroupInline classes={ classes.title }>
-                    <label htmlFor="title" class="form-label">{ __('Page title') }</label>
-                    <Input vm={ this } name="title" id="title" errorLabel={ __('Page title') }
-                        validations={ [['required'], ['maxLength', 92]] } myOnChange={ newState => this.handleValueChanged(newState, 'title') } ref={ this.titleInputWrapper }/>
-                    <InputError error={ errors.title }/>
-                </InputGroupInline>
-                <InputGroupInline classes={ classes.slug }>
-                    <label htmlFor="slug" class="form-label">{ __('Url (slug)') }</label>
-                    <Input vm={ this } name="slug" id="slug" errorLabel={ __('Url (slug)') }
-                        validations={ [['required'], ['maxLength', 92], ['regexp', '^/[a-zA-Z0-9_\\-$.+!*\'():,]*$', __(' contains forbidden characters')]] } myOnChange={ newState => this.handleValueChanged(newState, 'slug') }/>
-                    <InputError error={ errors.slug }/>
-                </InputGroupInline>
-                { this.pageType.ownFields.map(field => {
-                    if (field.dataType === 'many-to-many')
-                        return <p>todo (many-to-many)</p>;
-                    const Widget = getWidget(field.dataType);
-                    return <InputGroupInline classes={ classes[field.name] } key={ field.name }>
-                        <label htmlFor={ field.name } class="form-label">{ __(field.friendlyName) }</label>
-                        <Widget field={ field } parent={ this }/>
-                    </InputGroupInline>;
-                }) }
-            </div>
-        </>;
-    }
-    /**
-     * @access private
-     */
-    commitNewPageValues() {
-        const currentPage = BlockTrees.currentWebPage.data.page;
-        const state = createState(this.state.values, this.pageType);
-        Object.assign(currentPage, state); // Note: Mutates BlockTrees.currentWebPage.data.page
-        //
-        if (!this.currentPageIsPlaceholder) {
-            store.dispatch(pushItemToOpQueue('update-page-basic-info', {
-                doHandle: this.savePageToBackend.bind(this),
-                args: [],
-            }));
-        } else {
-            emitValueChangedSignal(state);
-        }
-    }
-    /**
-     * @access private
-     */
-    savePageToBackend() {
-        const currentPage = BlockTrees.currentWebPage.data.page;
-        const data = Object.assign({}, currentPage, createState(currentPage, this.pageType));
-        delete data.blocks;
-        delete data.isPlaceholderPage;
-        //
-        return http.put(`/api/pages/${currentPage.type}/${currentPage.id}`, data)
-            .then(resp => {
-                if (resp.ok !== 'ok') throw new Error('-');
-                return true;
-            })
-            .catch(err => {
-                window.console.error(err);
-                toasters.editAppMain(__('Something unexpected happened.'), 'error');
-                return false;
-            });
-    }
-    /**
-     * @param {Object} state
-     * @param {'title'|'slug'} prop
-     * @access private
-     */
-    handleValueChanged(state, prop) {
-        const value = state.values[prop];
-        if (value) {
-            this.setState({[prop]: value});
-            if (prop === 'title')
-                BlockTrees.currentWebPage.updateTitle(value);
-            this.commitNewPageValuesDebounced();
-        }
-        return state;
-    }
+/**
+ * @type {preact.FunctionalComponent<BlockEditFormProps>}
+ */
+const PageInfoBlockEditForm = ({snapshot, funcsIn, funcsOut}) => {
+    const title = useField('title', {value: snapshot.title, validations: [['required'], ['maxLength', 92]],
+        label: __('Page title'),
+        onAfterValidation: (val, hasErrors) => {
+            BlockTrees.currentWebPage.updateTitle(val);
+            funcsIn.onValueChanged(val, 'title', hasErrors, env.normalTypingDebounceMillis);
+        }});
+    const titleEl = preactHooks.useMemo(() => preact.createRef(), []);
+    const slug = useField('slug', {value: snapshot.slug, validations: [['required'], ['maxLength', 92], ['regexp', '^/[a-zA-Z0-9_\\-$.+!*\'():,]*$', __(' contains forbidden characters')]],
+        label: __('Url (slug)'),
+        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'slug', hasErrors, env.normalTypingDebounceMillis); }});
+    //
+    preactHooks.useEffect(() => {
+        setFocusTo(titleEl);
+    }, []);
+    //
+    funcsOut.commitOverrides = preactHooks.useMemo(() => ({
+        opKey: 'update-page-basic-info',
+        beforePushOp: (newValue) => { overwriteCurrentPageInfo(newValue); },
+        doHandle: savePageToBackend,
+        onUndo: (oldValue) => { overwriteCurrentPageInfo(oldValue); },
+    }), []);
+    funcsOut.resetValues = preactHooks.useCallback((newValue) => {
+        title.triggerInput(newValue.title);
+        slug.triggerInput(newValue.slug);
+    }, []);
+    //
+    return <div class="form-horizontal pt-0">
+        <FormGroupInline>
+            <label htmlFor="title" class="form-label">{ __('Page title') }</label>
+            <input { ...title } ref={ titleEl }/>
+            <InputErrors errors={ title.getErrors() }/>
+        </FormGroupInline>
+        <FormGroupInline>
+            <label htmlFor="slug" class="form-label">{ __('Url (slug)') }</label>
+            <input { ...slug }/>
+            <InputErrors errors={ slug.getErrors() }/>
+        </FormGroupInline>
+    </div>;
+};
+
+/**
+ * @param {RawBlockData} snapshot
+ * @returns {Promise<Boolean>}
+ */
+function savePageToBackend(snapshot) {
+    const currentPage = BlockTrees.currentWebPage.data.page;
+    const data = Object.assign({}, currentPage, snapshot);
+    delete data.blocks;
+    delete data.isPlaceholderPage;
+    //
+    return http.put(`/api/pages/${currentPage.type}/${currentPage.id}`, data)
+        .then(resp => {
+            if (resp.ok !== 'ok') throw new Error('-');
+            return true;
+        })
+        .catch(err => {
+            window.console.error(err);
+            toasters.editAppMain(__('Something unexpected happened.'), 'error');
+            return false;
+        });
 }
 
 /**
  * @param {PageMetaRaw} titleSlugAndOwnFields
  */
-function emitValueChangedSignal(titleSlugAndOwnFields) {
+function overwriteCurrentPageInfo(titleSlugAndOwnFields) {
+    Object.assign(BlockTrees.currentWebPage.data.page, titleSlugAndOwnFields); // Note: Mutates BlockTrees.currentWebPage.data.page
     signals.emit('on-page-info-form-value-changed', titleSlugAndOwnFields);
 }
 
@@ -157,7 +92,7 @@ function makeSlug(title) {
  * @param {PageType} pageType
  * @return {PageMetaRaw}
  */
-function createState(from, pageType) {
+function createPageData(from, pageType) {
     const out = {title: from.title, slug: from.slug};
     for (const field of pageType.ownFields) {
         if (field.dataType === 'many-to-many') {
@@ -183,7 +118,19 @@ export default internalSivujettiApi => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'file-info',
-        reRender() { throw new Error('Not supported'); },
+        reRender: () => '', // Do nothing
+        createSnapshot: () => {
+            const currentPage = BlockTrees.currentWebPage.data.page;
+            const pageType = PageInfoBlockEditForm.internalSivujettiApi.getPageTypes()
+                .find(({name}) => name === currentPage.type);
+            //
+            const out = createPageData(currentPage, pageType);
+            if (currentPage.isPlaceholderPage && out.slug === '-') {
+                out.slug = makeSlug(out.title);
+                currentPage.slug = out.slug; // Note: Mutates BlockTrees.currentWebPage.data.page
+            }
+            return out;
+        },
         editForm: PageInfoBlockEditForm,
     };
 };

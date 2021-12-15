@@ -4,7 +4,7 @@ import testUtils from './my-test-utils.js';
 import * as appTestUtils from './edit-app-testutils.js';
 
 QUnit.module('AddPageMainPanelView', () => {
-    QUnit.test('use can create page', assert => {
+    QUnit.test('user can create page', assert => {
         const done = assert.async();
         const s = createTestState();
         simulateHttpToReturnSuccesfully(s);
@@ -59,9 +59,12 @@ QUnit.module('AddPageMainPanelView', () => {
     }
     function fillPageTitleAndSlugInputs({testInput}) {
         return new Promise(resolve => {
-            testUtils.fillInput(testInput.title, document.querySelector('input[name="title"]'));
-            testUtils.fillInput(testInput.slug, document.querySelector('input[name="slug"]'));
-            resolve();
+            const unreg = commons.signals.on('on-page-info-form-value-changed', () => {
+                resolve();
+                unreg();
+            });
+            testUtils.fillInput(testInput.title, document.querySelector('input#title'));
+            testUtils.fillInput(testInput.slug, document.querySelector('input#slug'));
         });
     }
     function clickSaveChangesButton(_s) {

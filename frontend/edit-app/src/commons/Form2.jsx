@@ -72,6 +72,7 @@ const useField = (id, attrs = {}) => {
         value,
         onInput,
         triggerInput,
+        setValue,
         getErrors: () => {
            return !isBlurred
                 ? []

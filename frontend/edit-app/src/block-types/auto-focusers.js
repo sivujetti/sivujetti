@@ -15,6 +15,9 @@ function setFocusTo(elementRef) {
     } else if (elementRef.current instanceof Input) {
         const inputEl = elementRef.current.inputEl;
         inputEl.focus();
+    } else if (elementRef.current instanceof HTMLElement) {
+        const inputEl = elementRef.current;
+        inputEl.focus();
     } else if (elementRef.current instanceof ImagePicker) {
         const inputEl = elementRef.current.inputEl.current;
         inputEl.focus();

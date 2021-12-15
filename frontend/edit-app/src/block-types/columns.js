@@ -1,14 +1,16 @@
 import {__, env} from '../commons/main.js';
 import {useField, FormGroupInline, InputErrors} from '../commons/Form2.jsx';
 import {formValidation} from '../constants.js';
+import setFocusTo from './auto-focusers.js';
 
 /**
- * @type {preact.FunctionalComponent<BlockEditFormProps2>}
+ * @type {preact.FunctionalComponent<BlockEditFormProps>}
  */
 const ColumnsBlockEditForm = ({block, funcsIn, funcsOut}) => {
     const numColumns = useField('numColumns', {value: block.numColumns, validations: [['min', 0], ['max', 12]],
         label: __('Num columns'), type: 'number', step: '1',
-        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'numColumns', hasErrors, env.normalTypingDebounceMillis); }});
+        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(parseInt(val), 'numColumns', hasErrors, env.normalTypingDebounceMillis); }});
+    const numColumnsEl = preactHooks.useMemo(() => preact.createRef(), []);
     const cssClass = useField('cssClass', {value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
         label: __('Css classes'),
         onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }});
@@ -19,16 +21,20 @@ const ColumnsBlockEditForm = ({block, funcsIn, funcsOut}) => {
         funcsIn.onValueChanged(newVal, 'takeFullWidth');
     }, [takeFullWidth]);
     //
-    funcsOut.resetValues = preactHooks.useCallback((newData) => {
-        numColumns.triggerInput(newData.numColumns);
-        cssClass.triggerInput(newData.cssClass);
-        setTakeFullWidth(newData.takeFullWidth);
-    });
+    preactHooks.useEffect(() => {
+        setFocusTo(numColumnsEl);
+    }, []);
+    //
+    funcsOut.resetValues = preactHooks.useCallback((newValue) => {
+        numColumns.triggerInput(newValue.numColumns.toString());
+        cssClass.triggerInput(newValue.cssClass);
+        setTakeFullWidth(newValue.takeFullWidth);
+    }, []);
     //
     return <div class="form-horizontal pt-0">
         <FormGroupInline>
             <label htmlFor="numColumns" class="form-label">{ __('Num columns') }</label>
-            <input { ...numColumns }/>
+            <input { ...numColumns } ref={ numColumnsEl }/>
             <InputErrors errors={ numColumns.getErrors() }/>
         </FormGroupInline>
         <FormGroupInline>

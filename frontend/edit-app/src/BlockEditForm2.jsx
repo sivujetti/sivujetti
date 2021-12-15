@@ -12,10 +12,12 @@ let currentDebounceType = null;
 
 /**
  * @type {preact.FunctionalComponent<{block: Block; blockTreeCmp: preact.Component; base: Block|null; inspectorPanel: preact.Component;}>}
+ * @property {String} currentlyMountedBlockId
  */
 const BlockEditForm2 = ({block, blockTreeCmp, base, inspectorPanel}, ctx) => {
     preactHooks.useEffect(() => {
-        const unreg = signals.on('on-block-deleted',
+        BlockEditForm2.currentlyMountedBlockId = block.id;
+        const unregister = signals.on('on-block-deleted',
             /**
              * @param {Block} _block
              * @param {Boolean} wasCurrentlySelectedBlock
@@ -23,7 +25,12 @@ const BlockEditForm2 = ({block, blockTreeCmp, base, inspectorPanel}, ctx) => {
             (_block, wasCurrentlySelectedBlock) => {
                 if (wasCurrentlySelectedBlock) inspectorPanel.close();
             });
-        return unreg;
+        return () => {
+            BlockEditForm2.currentlyMountedBlockId = null;
+            currentDebounceTime = null;
+            currentDebounceType = null;
+            unregister();
+        };
     }, []);
     //
     const blockType = blockTypes.get(block.type);
@@ -31,31 +38,36 @@ const BlockEditForm2 = ({block, blockTreeCmp, base, inspectorPanel}, ctx) => {
     ctx.snapshot = preactHooks.useMemo(() => blockType.createSnapshot(block), []);
     //
     const internalFuncs = preactHooks.useMemo(() => ({
-        renderedValues: [],
+        oldVals: [],
         /**
-         * @param {Block} block
          * @param {RawBlockData} newValue
          * @param {RawBlockData} oldValue
          * @param {Boolean} hasErrors
+         * @param {Block} block
+         * @param {Block|null} base
          * @param {(newValue: RawBlockData, hasErrors: Boolean) => void} doCommit
          */
-        overwritePropsAndRenderBlock: (block, newValue, oldValue, hasErrors, doCommit) => {
-            internalFuncs.renderedValues.push(oldValue);
+        overwritePropsAndRenderBlock: (newValue, oldValue, hasErrors, block, base, doCommit) => {
+            internalFuncs.oldVals.push(oldValue);
             block.overwritePropsData(newValue);
             BlockTrees.currentWebPage.reRenderBlockInPlace(block);
-            doCommit(newValue, hasErrors);
+            doCommit(newValue, internalFuncs.oldVals[0], hasErrors, block, base);
         },
         /**
          * @param {RawBlockData} newValue
+         * @param {RawBlockData} oldValue
+         * @param {Boolean} hasErrors
+         * @param {Block} block
+         * @param {Block|null} base
          * @param {Boolean} hasErrors
          */
-        commitChangeToQueue: (newValue, hasErrors) => {
-            const oldValue = internalFuncs.renderedValues[0];
-            internalFuncs.renderedValues.length = 0;
+        commitChangeOpToQueue: (newValue, oldValue, hasErrors, block, base) => {
+            internalFuncs.oldVals = [];
             //
-            const s = createSaveBlockOpQueueArg(block, base, blockTreeCmp);
             if (!hasErrors) {
-            store.dispatch(pushItemToOpQueue(`update-${s.blockIsStoredTo}-block`, {
+            const s = createSaveBlockOpQueueArg(block, base, blockTreeCmp);
+            const {opKey, doHandle, onUndo, beforePushOp} = !funcsOut.commitOverrides ? {
+                opKey: `update-${s.blockIsStoredTo}-block`,
                 /**
                  * @param {RawBlockData} _newValue
                  * @param {RawBlockData} _oldValue
@@ -63,26 +75,39 @@ const BlockEditForm2 = ({block, blockTreeCmp, base, inspectorPanel}, ctx) => {
                  * @returns {Promise<false|any>}
                  */
                 doHandle: (_newValue, _oldValue, {blockTree, blockIsStoredTo, globalBlockTreeId}) =>
-                    BlockTrees.saveExistingBlocksToBackend(blockTree, blockIsStoredTo, globalBlockTreeId)
-                ,
+                    BlockTrees.saveExistingBlocksToBackend(blockTree, blockIsStoredTo, globalBlockTreeId),
+                /**
+                 * @param {RawBlockData} oldValue
+                 * @param {Block} block
+                 */
+                onUndo: (oldValue, block) => {
+                    block.overwritePropsData(oldValue);
+                    BlockTrees.currentWebPage.reRenderBlockInPlace(block);
+                },
+                beforePushOp: (_newValue) => {},
+            } : funcsOut.commitOverrides;
+            //
+            beforePushOp(newValue);
+            store.dispatch(pushItemToOpQueue(opKey, {
+                doHandle,
                 /**
                  * @param {RawBlockData} _newValue
                  * @param {RawBlockData} oldValue
                  * @param {SaveBlockOpSettings} settings
                  */
                 doUndo: (_newValue, oldValue, {block}) => {
-                    block.overwritePropsData(oldValue);
-                    BlockTrees.currentWebPage.reRenderBlockInPlace(block);
-                    ctx.undoTimeout = setTimeout(() => { ctx.undoTimeout = undefined; }, 200);
-                    funcsOut.resetValues(oldValue);
-                    ctx.snapshot = oldValue;
+                    onUndo(oldValue, block);
+                    if (block.id === BlockEditForm2.currentlyMountedBlockId) {
+                        ctx.undoTimeout = setTimeout(() => { ctx.undoTimeout = undefined; }, 200);
+                        ctx.funcsOut.resetValues(oldValue);
+                        ctx.snapshot = oldValue;
+                    }
                 },
                 args: [newValue, oldValue, s],
             }));
             }
         },
     }), []);
-    //
     const funcsIn = preactHooks.useMemo(() => ({
         /**
          * @param {any} value
@@ -95,18 +120,18 @@ const BlockEditForm2 = ({block, blockTreeCmp, base, inspectorPanel}, ctx) => {
             if (ctx.undoTimeout !== undefined) { return; }
             //
             if (debounceMillis !== currentDebounceTime || debounceType !== currentDebounceType) {
-                // Run reRender immediately, but throttle commitChangeToQueue
+                // Run reRender immediately, but throttle commitChangeOpToQueue
                 if (debounceType === 'debounce-commit-to-queue') {
                     currentRenderFn = internalFuncs.overwritePropsAndRenderBlock;
-                    currentCommitFn = timingUtils.debounce(internalFuncs.commitChangeToQueue, debounceMillis);
+                    currentCommitFn = timingUtils.debounce(internalFuncs.commitChangeOpToQueue, debounceMillis);
                 // Throttle reRender, which throttles commitToQueue as well
                 } else if (debounceType === 'debounce-re-render-and-commit-to-queue') {
                     currentRenderFn = timingUtils.debounce(internalFuncs.overwritePropsAndRenderBlock, debounceMillis);
-                    currentCommitFn = internalFuncs.commitChangeToQueue;
+                    currentCommitFn = internalFuncs.commitChangeOpToQueue;
                 // Run both immediately
                 } else {
                     currentRenderFn = internalFuncs.overwritePropsAndRenderBlock;
-                    currentCommitFn = internalFuncs.commitChangeToQueue;
+                    currentCommitFn = internalFuncs.commitChangeOpToQueue;
                 }
                 currentDebounceTime = debounceMillis;
                 currentDebounceType = debounceType;
@@ -114,11 +139,12 @@ const BlockEditForm2 = ({block, blockTreeCmp, base, inspectorPanel}, ctx) => {
             //
             const oldValue = Object.assign({}, ctx.snapshot);
             const newValue = Object.assign({}, ctx.snapshot, {[key]: value});
-            currentRenderFn(block, newValue, oldValue, hasErrors, currentCommitFn);
+            currentRenderFn(newValue, oldValue, hasErrors, block, base, currentCommitFn);
             ctx.snapshot = newValue;
         }
-    }));
-    const funcsOut = {}; // A storage where EditFormImpl can publish its own api
+    }), []);
+    const funcsOut = preactHooks.useMemo(() => ({}), []); // A storage where EditFormImpl can publish its own api
+    ctx.funcsOut = funcsOut;
     //
     return <>
         <div class="with-icon pb-1">
@@ -130,7 +156,9 @@ const BlockEditForm2 = ({block, blockTreeCmp, base, inspectorPanel}, ctx) => {
                 block={ block }
                 blockTree={ blockTreeCmp }
                 funcsIn={ funcsIn }
-                funcsOut={ funcsOut }/>
+                funcsOut={ funcsOut }
+                snapshot={ ctx.snapshot }
+                key={ block.id }/>
         </div>
     </>;
 };

@@ -82,6 +82,7 @@ class SaveButton extends preact.Component {
             if (metaKeyIsPressed && e.key === undoKey && this.queuedOps.length) {
                 e.preventDefault(); // Prevent active input's onInput
                 const head = this.queuedOps[this.queuedOps.length - 1].command;
+                if (!head.doUndo) return;
                 head.doUndo(...head.args);
                 store.dispatch(setOpQueue(this.queuedOps.slice(0, this.queuedOps.length - 1)));
             }

@@ -47,7 +47,7 @@ class DefaultMainPanelView extends preact.Component {
                     <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
                 </button>
                 <nav>
-                    <a class="with-icon">
+                    <a onClick={ e => (e.preventDefault(), alert('Not implemented yet.')) } class="with-icon">
                         <Icon iconId="file-info" className="size-sm color-dimmed"/>
                         <span class="color-dimmed">{ __('Pages') }</span>
                     </a>

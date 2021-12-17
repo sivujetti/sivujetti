@@ -1,7 +1,7 @@
 import {__, signals} from './commons/main.js';
 import Icon from './commons/Icon.jsx';
 import {timingUtils} from './commons/utils.js';
-import blockTypes from './block-types/block-types.js';
+import blockTypes, {getIcon} from './block-types/block-types.js';
 import BlockTrees from './BlockTrees.jsx';
 import store, {pushItemToOpQueue} from './store.js';
 
@@ -152,7 +152,7 @@ const BlockEditForm2 = ({block, blockTreeCmp, base, inspectorPanel}, ctx) => {
                 if (block.type === 'PageInfo') return ' page-info-block';
                 return '';
             }, [])}` }>
-            <Icon iconId={ blockType.icon } className="size-xs mr-1"/>
+            <Icon iconId={ getIcon(block.type) } className="size-xs mr-1"/>
             { __(block.type) }
         </div>
         <div class="mt-2">

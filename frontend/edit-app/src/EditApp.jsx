@@ -7,7 +7,7 @@ import store, {setCurrentPage, setOpQueue} from './store.js';
 import SaveButton from './SaveButton.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 
-let LEFT_PANEL_WIDTH = 274;
+let LEFT_PANEL_WIDTH = 300;
 
 class EditApp extends preact.Component {
     // blockTrees;

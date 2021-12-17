@@ -1,7 +1,7 @@
 import {http, __, env, signals} from './commons/main.js';
 import Icon from './commons/Icon.jsx';
 import {timingUtils} from './commons/utils.js';
-import blockTypes from './block-types/block-types.js';
+import blockTypes, {getIcon} from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
@@ -52,7 +52,7 @@ class BlockEditForm extends preact.Component {
         else if (block.isStoredTo === 'globalBlockTree' || block.type === 'GlobalBlockReference') titleType = ' global-block-tree-block';
         return <div data-main>
             <div class={ `with-icon pb-1${titleType}` }>
-                <Icon iconId={ this.blockType.icon } className="size-xs mr-1"/>
+                <Icon iconId={ getIcon(block.type) } className="size-xs mr-1"/>
                 { __(block.type) }
             </div>
             <div class="mt-2">

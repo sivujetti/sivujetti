@@ -31,4 +31,13 @@ const blockTypes = {
     }
 };
 
+/**
+ * @param {String} blockTypeName
+ * @returns {String} Icon for $blockTypeName or $fallBack
+ */
+function getIcon(blockTypeName, fallback = 'box') {
+    return blockTypes.get(blockTypeName).icon || fallback;
+}
+
 export default blockTypes;
+export {getIcon};

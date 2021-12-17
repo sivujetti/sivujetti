@@ -178,7 +178,7 @@ h2 {
 #main-panel,
 #inspector-panel {
     position: absolute;
-    width: 274px;
+    width: 300px;
     background-color: var(--color-bg-default);
     color: var(--color-fg-default);
     border-right: 1px solid var(--color-bg-dimmed2);
@@ -207,9 +207,9 @@ h2 {
 #sivujetti-site-iframe {
     position: absolute;
     height: 100%;
-    width: calc(100% - 274px);
+    width: calc(100% - 300px);
     border: none;
-    transform: translateX(274px);
+    transform: translateX(300px);
     height: 100%;
 }
 #inspector-panel {
@@ -236,7 +236,7 @@ h2 {
     margin-left: -60px;
 }
 #inspector-panel .resize-panel-handle {
-    width: 274px;
+    width: 300px;
     height: 8px;
     bottom: 0;
     cursor: row-resize;

@@ -25,9 +25,23 @@ stringBundles.push({
     'Delete block': 'Poista lohko',
     'Convert to global': 'Muunna globaaliksi',
     'Convert to global block': 'Muunna globaaliksi lohkoksi',
+    'Block tree': 'Lohkopuu',
     // edit-app/src/BlockTrees.jsx
     'Add new block': 'Lisää uusi lohko',
     'Add block': 'Lisää lohko',
+    // edit-app/src/BlockTreeShowHelpPopup.jsx
+    'Sivujetti stores the data of each page to blocks. You can drag them around with a mouse, and todo.': 'Sivujetissä sivujen sisältö tallennetaan lohkoihin. Voit järjestellä niitä hiirellä raahaamalla, ja luoda niistä sisäkkäisiä rakenteita.',
+    'Colorless': 'Väritön',
+    'Ordinary blocks, which don\'t have a background color, are ': 'Tavalliset lohkot, joilla ei ole taustaväriä, on ',
+    'stored to this page only': 'tallennettu vain tälle sivulle',
+    'Orange': 'Oranssi',
+    'A global block (e.g. Header) references to a ': 'Globaali lohko (esim. Header) viittaa ',
+    'separately stored data': 'erillisesti tallennettuun tietoon',
+    '. When you edit Header on one page, Headers on other pages changes.': '. Kun muokkaat yhden sivun Headeria, tieto tallentuu myös muiden sivujen Headereissa.',
+    'Violet': 'Violetti',
+    'Meta blocks contains ': 'Metalohkoihin on tallennettu ',
+    'additional data / metadata': 'lisä-, tai metatietoja',
+    ', and otherwise act like ordinary blocks.': ', ja käyttäytyvät muilta osin kuten tavalliset lohkot.',
     // edit-app/src/BlockTypeSelector.jsx
     'Common': 'Yleiset',
     'Globals': 'Globaalit',

@@ -16,13 +16,13 @@ class FloatingDialog extends preact.Component {
     }
     /**
      * @param {any} Renderer
-     * @param {{title: String;} & {[key: String]: any;}} settings
+     * @param {FloatingDialogSettingsInput & {[key: String]: any;}} settings
      * @param {any} rendererProps
      * @access public
      */
     open(Renderer, settings, rendererProps) {
         this.rendererProps = rendererProps;
-        this.setState(Object.assign({Renderer}, settings));
+        this.setState(createState(settings, {Renderer}));
     }
     /**
      * @access public
@@ -33,11 +33,11 @@ class FloatingDialog extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {Renderer, title, className}) {
+    render(_, {Renderer, title, className, width}) {
         return Renderer
-            ? <div class={ 'floating-dialog' + (!className ? '' : ` ${className}`) } style="width: 600px;transform: translate(200px, 60px);">
+            ? <div class={ 'floating-dialog' + (!className ? '' : ` ${className}`) } style={ `width: ${width}px;transform: translate(200px, 60px);` }>
                 <div class="box">
-                    <h2>{ title }</h2>
+                    { title.length ? <h2>{ title }</h2> : null }
                     <div class="main">{
                         preact.createElement(Renderer, this.rendererProps)
                     }</div>
@@ -46,6 +46,23 @@ class FloatingDialog extends preact.Component {
             : null;
     }
 }
+
+/**
+ * @param {FloatingDialogSettingsInput & {[key: String]: any;}} input
+ * @param {{Renderer: preact.AnyComponent;}} out
+ * @returns {{title: String; width: Number;}}
+ */
+function createState(input, out) {
+    Object.assign(out, input);
+    if (!out.width) out.width = 600;
+    return out;
+}
+
+/**
+ * @typedef FloatingDialogSettingsInput
+ * @prop {String} title
+ * @prop {Number?} width
+ */
 
 export default currentInstance;
 export {FloatingDialog};

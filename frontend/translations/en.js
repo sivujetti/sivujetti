@@ -25,9 +25,23 @@ stringBundles.push({
     'Delete block': 'Delete block',
     'Convert to global': 'Convert to global',
     'Convert to global block': 'Convert to global block',
+    'Block tree': 'Block tree',
     // edit-app/src/BlockTrees.jsx
     'Add new block': 'Add new block',
     'Add block': 'Add block',
+    // edit-app/src/BlockTreeShowHelopPopup.jsx
+    'Sivujetti stores the data of each page to blocks. You can drag them around with a mouse, and todo.': 'Sivujetti stores the data of each page to blocks. You can drag them around with a mouse, and todo.',
+    'Colorless': 'Colorless',
+    'Ordinary blocks, which don\'t have a background color, are ': 'Ordinary blocks, which don\'t have a background color, are ',
+    'stored to this page only': 'stored to this page only',
+    'Orange': 'Orange',
+    'A global block (e.g. Header) references to a ': 'A global block (e.g. Header) references to a ',
+    'separately stored data': 'separately stored data',
+    '. When you edit Header on one page, Headers on other pages changes.': '. When you edit Header on one page, Headers on other pages changes.',
+    'Violet': 'Violet',
+    'Meta blocks contains ': 'Meta blocks contains ',
+    'additional data / metadata': 'additional data / metadata',
+    ', and otherwise act like ordinary blocks.': ', and otherwise act like ordinary blocks.',
     // edit-app/src/BlockTypeSelector.jsx
     'Common': 'Common',
     'Globals': 'Globals',

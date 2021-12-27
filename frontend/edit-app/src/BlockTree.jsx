@@ -3,6 +3,7 @@ import ContextMenu from './commons/ContextMenu.jsx';
 import Icon from './commons/Icon.jsx';
 import toasters from './commons/Toaster.jsx';
 import BlockTypeSelector, {normalizeGlobalBlockTreeBlock} from './BlockTypeSelector.jsx';
+import BlockTreeShowHelpPopup from './BlockTreeShowHelpPopup.jsx';
 import Block from './Block.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from './store.js';
@@ -404,7 +405,7 @@ class BlockTree extends preact.Component {
         const newBlock = Block.fromType(blockBluePrint.blockType,
                                         blockBluePrint.data,
                                         origBlock.id,
-                                        origBlock.globalBlockTreeId);
+                                        origBlock.type !== 'GlobalBlockReference' ? origBlock.globalBlockTreeId : undefined);
         newBlock._cref = origBlock._cref;
         BlockTrees.currentWebPage.replaceBlockFromDomWith(origBlock, newBlock).then(_crefOrCrefs => {
             if (newBlock.type !== 'GlobalBlockReference') {
@@ -595,7 +596,10 @@ class BlockTree extends preact.Component {
      * @access private
      */
     showBlockTreeHelpPopup() {
-        alert('todo');
+        floatingDialog.open(BlockTreeShowHelpPopup, {
+            title: __('Block tree'),
+            width: 448,
+        }, {});
     }
 }
 

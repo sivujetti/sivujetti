@@ -193,7 +193,7 @@ interface BlockEditFormPropsOld {
 interface BlockEditFormProps {
     block: Block;
     blockTree: preact.Component; // BlockTree
-    funcsIn: {onValueChanged: (newValue: any, key: String, hasErrors: Boolean = false, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none') => Promise<null>;};
+    onValueChanged: (newValue: any, key: String, hasErrors: Boolean = false, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none') => Promise<null>;
     funcsOut: {resetValues?: (newSnapshot: RawBlockData) => void;};
 }
 

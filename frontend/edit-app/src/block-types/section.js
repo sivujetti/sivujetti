@@ -1,59 +1,81 @@
 import {__, urlUtils, env} from '../commons/main.js';
-import {useField, FormGroupInline, InputErrors} from '../commons/Form2.jsx';
+import hookForm, {unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '../commons/Form3.jsx';
 import Icon from '../commons/Icon.jsx';
 import {formValidation} from '../constants.js';
 import ImagePicker from '../BlockWidget/ImagePicker.jsx';
 import {UPLOADS_DIR_PATH} from '../Upload/UploadsManager.jsx';
 import setFocusTo from './auto-focusers.js';
 
-/**
- * @type {preact.FunctionalComponent<BlockEditFormProps>}
- */
-const SectionBlockEditForm = ({block, funcsIn, funcsOut, blockTree}) => {
-    const [bgImage, setBgImage] = preactHooks.useState(block.bgImage);
-    const cssClass = useField('cssClass', {value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
-        label: __('Css classes'),
-        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }});
-    const imagePicker = preactHooks.useMemo(() => preact.createRef(), []);
-    //
-    preactHooks.useEffect(() => {
-        setFocusTo(imagePicker);
-    }, []);
+class SectionBlockEditForm extends preact.Component {
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        const {block, onValueChanged} = this.props;
+        this.imagePicker = preact.createRef();
+        this.setState(hookForm(this, [
+            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
+             onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
+        ], {
+            bgImage: block.bgImage,
+        }));
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        setFocusTo(this.imagePicker);
+    }
+    /**
+     * @param {RawBlockData} snapshot
+     * @access protected
+     */
+    overrideValues(snapshot) {
+        reHookValues(this, [{name: 'cssClass', value: snapshot.cssClass}]);
+        this.setState({bgImage: snapshot.bgImage});
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        unhookForm(this);
+    }
+    /**
+     * @param {BlockEditFormProps} props
+     * @access protected
+     */
+    render({blockTree, block}, {bgImage}) {
+        if (!this.state.values) return;
+        return <div class="form-horizontal pt-0">
+            <FormGroupInline>
+                <label htmlFor="bgImage" class="form-label">{ __('Background') }</label>
+                <ImagePicker
+                    onImageSelected={ this.handleBgImageChanged.bind(this) }
+                    initialImageFileName={ bgImage }
+                    inputId="bgImage"
+                    ref={ this.imagePicker }/>
+            </FormGroupInline>
+            <FormGroupInline>
+                <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
+                <Input vm={ this } prop="cssClass"/>
+                <InputErrors vm={ this } prop="cssClass"/>
+            </FormGroupInline>
+            <a onClick={ e => (e.preventDefault(), blockTree.appendBlockToTreeAsChildOf(block)) }
+                class="btn btn-link btn-sm text-tiny with-icon-inline color-dimmed"
+                href="#add-child-block">
+                <Icon iconId="plus" className="size-xs mr-1"/> { __('Add child block') }
+            </a>
+        </div>;
+    }
     /**
      * @param {UploadsEntry|null} img
      */
-    const handleBgImageChanged = preactHooks.useCallback(img => {
+    handleBgImageChanged(img) {
         const bgImage = img ? `/${UPLOADS_DIR_PATH}${img.baseDir}${img.fileName}` : '';
-        setBgImage(bgImage);
-        funcsIn.onValueChanged(bgImage, 'bgImage', false, 'debounce-none');
-    }, []);
-    //
-    funcsOut.resetValues = preactHooks.useCallback((newValue) => {
-        setBgImage(newValue.bgImage);
-        cssClass.triggerInput(newValue.cssClass);
-    }, []);
-    //
-    return <div class="form-horizontal pt-0">
-        <FormGroupInline>
-            <label htmlFor="bgImage" class="form-label">{ __('Background') }</label>
-            <ImagePicker
-                onImageSelected={ handleBgImageChanged }
-                initialImageFileName={ bgImage }
-                inputId="bgImage"
-                ref={ imagePicker }/>
-        </FormGroupInline>
-        <FormGroupInline>
-            <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
-            <input { ...cssClass }/>
-            <InputErrors errors={ cssClass.getErrors() }/>
-        </FormGroupInline>
-        <a onClick={ e => (e.preventDefault(), blockTree.appendBlockToTreeAsChildOf(block)) }
-            class="btn btn-link btn-sm text-tiny with-icon-inline color-dimmed"
-            href="#add-child-block">
-            <Icon iconId="plus" className="size-xs mr-1"/> { __('Add child block') }
-        </a>
-    </div>;
-};
+        this.setState({bgImage});
+        this.props.onValueChanged(bgImage, 'bgImage', false, 'debounce-none');
+    }
+}
 
 export default () => {
     const initialData = {bgImage: '', cssClass: ''};

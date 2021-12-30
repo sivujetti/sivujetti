@@ -23,6 +23,11 @@ export default () => {
         reRender(block, _renderChildren) {
             return http.post('/api/blocks/render', {block: block.toRaw()}).then(resp => resp.result);
         },
+        createSnapshot: from => ({
+            globalBlockTreeId: from.globalBlockTreeId,
+            overrides: from.overrides,
+            useOverrides: from.useOverrides,
+        }),
         editForm: GlobalBlockReferenceBlockEditForm,
     };
 };

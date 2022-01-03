@@ -63,8 +63,8 @@ QUnit.module('AddPageMainPanelView', () => {
                 resolve();
                 unreg();
             });
-            testUtils.fillInput(testInput.title, document.querySelector('input#title'));
-            testUtils.fillInput(testInput.slug, document.querySelector('input#slug'));
+            testUtils.fillInput(testInput.title, document.querySelector('input[name="title"]'));
+            testUtils.fillInput(testInput.slug, document.querySelector('input[name="slug"]'));
         });
     }
     function clickSaveChangesButton(_s) {

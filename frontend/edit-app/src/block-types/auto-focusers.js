@@ -1,6 +1,7 @@
 import {env} from '../commons/main.js';
 import QuillEditor from '../commons/QuillEditor.jsx';
-import {Input} from '../commons/Form.jsx';
+import {Input as InputOld} from '../commons/Form.jsx';
+import {Input} from '../commons/Form3.jsx';
 import ImagePicker from '../BlockWidget/ImagePicker.jsx';
 
 /**
@@ -12,13 +13,14 @@ function setFocusTo(elementRef) {
     if (elementRef.current instanceof QuillEditor) {
         const quill = elementRef.current.quill;
         quill.setSelection(quill.getLength(), 0);
-    } else if (elementRef.current instanceof Input) {
+    } else if (elementRef.current instanceof InputOld) {
         const inputEl = elementRef.current.inputEl;
         inputEl.focus();
     } else if (elementRef.current instanceof HTMLElement) {
         const inputEl = elementRef.current;
         inputEl.focus();
-    } else if (elementRef.current instanceof ImagePicker) {
+    } else if (elementRef.current instanceof Input ||
+               elementRef.current instanceof ImagePicker) {
         const inputEl = elementRef.current.inputEl.current;
         inputEl.focus();
     } else {

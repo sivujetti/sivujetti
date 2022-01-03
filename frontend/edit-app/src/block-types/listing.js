@@ -3,25 +3,28 @@ import webPageIframe from '../webPageIframe.js';
 
 let internalSivujettiApi = null;
 
-/**
- * @type {preact.FunctionalComponent<BlockEditFormProps>}
- */
-const ListingBlockEditForm = ({block}) => {
+class ListingBlockEditForm extends preact.Component {
+    /**
+     * @param {BlockEditFormProps} props
+     * @access protected
+     */
+    render({block}) {
+        return <div>
+            <p>{ __('A list of %s', block.listPageType) }.</p>
+            <a href="" onClick={ this.openAddPageView.bind(this) }>{ __('Add new %s', block.listPageType) }</a>
+        </div>;
+    }
     /**
      * @param {Event} e
+     * @access private
      */
-    const openAddPageView = e => {
+    openAddPageView(e) {
         e.preventDefault();
-        const typeName = block.listPageType;
+        const typeName = this.props.block.listPageType;
         const pageType = internalSivujettiApi.getPageTypes().find(({name}) => name === typeName);
         webPageIframe.openPlaceholderPage(typeName, pageType.defaultLayoutId);
-    };
-    //
-    return <div>
-        <p>{ __('A list of %s', block.listPageType) }.</p>
-        <a href="" onClick={ openAddPageView }>{ __('Add new %s', block.listPageType) }</a>
-    </div>;
-};
+    }
+}
 
 function throwIfInvalidSettings(settings) {
     const errors = [];

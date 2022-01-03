@@ -135,14 +135,14 @@ QUnit.module('BlockTrees', () => {
         const blockSelectorOuterEl = document.querySelector('.block-tree li .dashed');
         const tabLinks = blockSelectorOuterEl.querySelectorAll('.tab-item a');
         tabLinks[1].click();
-        // wait for htt.get
+        // wait for http.get
         return new Promise(resolve => {
             setTimeout(() => {
                 s.listGlobalBlockTreesHttpStub.getCall(0).returnValue
                     .then(() => {
                         resolve();
                     });
-            }, 0);
+            }, 10);
         });
     }
     function verifyAppendedParagraphAfter(s, assert, expectedText = '') {

@@ -1,53 +1,97 @@
 import {__, http, signals, env} from '../commons/main.js';
-import {useField, FormGroupInline, InputErrors} from '../commons/Form2.jsx';
+import hookForm, {unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '../commons/Form3.jsx';
 import toasters from '../commons/Toaster.jsx';
 import {stringUtils} from '../commons/utils.js';
 import BlockTrees from '../BlockTrees.jsx';
 import setFocusTo from './auto-focusers.js';
 
-/**
- * @type {preact.FunctionalComponent<BlockEditFormProps>}
- */
-const PageInfoBlockEditForm = ({snapshot, funcsIn, funcsOut}) => {
-    const title = useField('title', {value: snapshot.title, validations: [['required'], ['maxLength', 92]],
-        label: __('Page title'),
-        onAfterValidation: (val, hasErrors) => {
-            BlockTrees.currentWebPage.updateTitle(val);
-            funcsIn.onValueChanged(val, 'title', hasErrors, env.normalTypingDebounceMillis);
-        }});
-    const titleEl = preactHooks.useMemo(() => preact.createRef(), []);
-    const slug = useField('slug', {value: snapshot.slug, validations: [['required'], ['maxLength', 92], ['regexp', '^/[a-zA-Z0-9_\\-$.+!*\'():,]*$', __(' contains forbidden characters')]],
-        label: __('Url (slug)'),
-        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'slug', hasErrors, env.normalTypingDebounceMillis); }});
-    //
-    preactHooks.useEffect(() => {
-        setFocusTo(titleEl);
-    }, []);
-    //
-    funcsOut.commitOverrides = preactHooks.useMemo(() => ({
-        opKey: 'update-page-basic-info',
-        beforePushOp: (newValue) => { overwriteCurrentPageInfo(newValue); },
-        doHandle: savePageToBackend,
-        onUndo: (oldValue) => { overwriteCurrentPageInfo(oldValue); },
-    }), []);
-    funcsOut.resetValues = preactHooks.useCallback((newValue) => {
-        title.triggerInput(newValue.title);
-        slug.triggerInput(newValue.slug);
-    }, []);
-    //
-    return <div class="form-horizontal pt-0">
-        <FormGroupInline>
-            <label htmlFor="title" class="form-label">{ __('Page title') }</label>
-            <input { ...title } ref={ titleEl }/>
-            <InputErrors errors={ title.getErrors() }/>
-        </FormGroupInline>
-        <FormGroupInline>
-            <label htmlFor="slug" class="form-label">{ __('Url (slug)') }</label>
-            <input { ...slug }/>
-            <InputErrors errors={ slug.getErrors() }/>
-        </FormGroupInline>
-    </div>;
-};
+class PageInfoBlockEditForm extends preact.Component {
+    // titleEl;
+    /**
+     * @param {RawBlockData} snapshot
+     * @access public
+     */
+    overrideValues(snapshot) {
+        reHookValues(this, [{name: 'title', value: snapshot.title},
+                            {name: 'slug', value: snapshot.slug}]);
+    }
+    /**
+     * @access public
+     */
+    getCommitSettings() {
+        return {
+            opKey: 'update-page-basic-info',
+            beforePushOp(a) {
+                overwriteCurrentPageInfo(a.valAfter);
+            },
+            doHandle($a, _$b) {
+                return !BlockTrees.currentWebPage.data.page.isPlaceholderPage
+                    ? savePageToBackend($a.valAfter)
+                    : Promise.resolve(true);
+            },
+            onUndo($a, _$b) {
+                overwriteCurrentPageInfo($a.valBefore);
+            },
+        };
+    }
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        const {snapshot, onValueChanged} = this.props;
+        this.titleEl = preact.createRef();
+        this.setState(hookForm(this, [
+            {name: 'title', value: snapshot.title, validations: [['required'], ['maxLength', 92]],
+             label: __('Page title'), onAfterValueChanged: (value, hasErrors) => {
+                onValueChanged(value, 'title', hasErrors, env.normalTypingDebounceMillis); }},
+            {name: 'slug', value: snapshot.slug, validations: [['required'], ['maxLength', 92], ['regexp', '^/[a-zA-Z0-9_\\-$.+!*\'():,]*$', __(' contains forbidden characters')]],
+             label: __('Url (slug)'), onAfterValueChanged: (value, hasErrors) => {
+                 onValueChanged(value, 'slug', hasErrors, env.normalTypingDebounceMillis); }},
+        ], {
+            takeFullWidth: snapshot.takeFullWidth,
+        }));
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        setFocusTo(this.titleEl);
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        unhookForm(this);
+    }
+    /**
+     * @param {BlockEditFormProps} props
+     * @access protected
+     */
+    render() {
+        if (!this.state.values) return;
+        return <div class="form-horizontal pt-0">
+            <FormGroupInline>
+                <label htmlFor="title" class="form-label">{ __('Page title') }</label>
+                <Input vm={ this } prop="title" ref={ this.titleEl }/>
+                <InputErrors vm={ this } prop="title"/>
+            </FormGroupInline>
+            <FormGroupInline>
+                <label htmlFor="slug" class="form-label">{ __('Url (slug)') }</label>
+                <Input vm={ this } prop="slug"/>
+                <InputErrors vm={ this } prop="slug"/>
+            </FormGroupInline>
+        </div>;
+    }
+    /**
+     * @param {Event} e
+     * @access private
+     */
+    emitSetFullWidth(e) {
+        const takeFullWidth = e.target.checked ? 1 : 0;
+        this.setState({takeFullWidth});
+        this.props.onValueChanged(takeFullWidth, 'takeFullWidth');
+    }
+}
 
 /**
  * @param {RawBlockData} snapshot
@@ -134,3 +178,5 @@ export default internalSivujettiApi => {
         editForm: PageInfoBlockEditForm,
     };
 };
+
+export {savePageToBackend};

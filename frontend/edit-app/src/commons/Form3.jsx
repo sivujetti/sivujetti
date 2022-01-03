@@ -88,12 +88,50 @@ function unhookForm(cmp) {
 
 /**
  * @param {preact.Component} cmp
+ * @returns {Boolean}
+ */
+function validateAll(cmp) {
+    const inputApis = cmp.inputApis;
+    let numErrors = 0;
+    const newErrors = Object.assign({}, cmp.state.errors);
+    for (const k in inputApis) {
+        const errors = inputApis[k].doValidate(cmp.state.values[k]);
+        if (errors && !numErrors) {
+            newErrors[k] = errors;
+        }
+        numErrors += errors.length;
+    }
+    cmp.setState({errors: newErrors});
+    return numErrors === 0;
+}
+
+/**
+ * @param {preact.Component} cmp
+ * @returns {Boolean}
+ */
+function hasErrors(cmp) {
+    const errs = cmp.state.errors;
+    for (const k in errs) {
+        if (errs[k].length) return true;
+    }
+    return false;
+}
+
+/**
+ * @param {preact.Component} cmp
  * @param {Array<todo>} inps
  */
 function reHookValues(cmp, inps) {
+    const newState = {values: Object.assign({}, cmp.state.values),
+                      errors: Object.assign({}, cmp.state.errors)};
     inps.forEach(inp => {
-        cmp.inputApis[mkKey(inp)].triggerInput(inp.value, true);
+        const k = mkKey(inp);
+        const out2 = cmp.inputApis[k];
+        const errors = out2.doValidate(inp.value);
+        newState.values[k] = inp.value;
+        newState.errors[k] = errors;
     });
+    cmp.setState(newState);
 }
 
 /**
@@ -105,14 +143,24 @@ function mkKey(inp) {
 }
 
 class Input extends preact.Component {
+    // inputEl;
     /**
      * @param {{vm: preact.Component; prop: String;}} props
+     */
+    constructor(props) {
+        super(props);
+        this.inputEl = preact.createRef();
+    }
+    /**
      * @access protected
      */
-    render({vm, prop}) {
+    render(props) {
+        const {vm, prop} = props;
         return <input
             { ...vm.inputApis[prop] }
-            value={ vm.state.values[prop] }/>;
+            { ...props }
+            value={ vm.state.values[prop] }
+            ref={ this.inputEl }/>;
     }
 }
 
@@ -154,4 +202,4 @@ class FormGroupInline extends preact.Component {
 }
 
 export default hookForm;
-export {unhookForm, reHookValues, Input, InputErrors, FormGroup, FormGroupInline};
+export {unhookForm, reHookValues, validateAll, hasErrors, Input, InputErrors, FormGroup, FormGroupInline};

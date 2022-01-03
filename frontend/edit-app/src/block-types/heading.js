@@ -1,71 +1,89 @@
 import {__, env} from '../commons/main.js';
-import {useField, FormGroup, FormGroupInline, InputErrors} from '../commons/Form2.jsx';
+import hookForm, {unhookForm, reHookValues, Input, InputErrors, FormGroup, FormGroupInline} from '../commons/Form3.jsx';
 import QuillEditor from '../commons/QuillEditor.jsx';
 import Icon from '../commons/Icon.jsx';
 import {formValidation} from '../constants.js';
 import {unParagraphify} from './paragraph.js';
 import setFocusTo from './auto-focusers.js';
 
-/**
- * @type {preact.FunctionalComponent<BlockEditFormProps>}
- */
-const HeadingBlockEditForm = ({block, funcsIn, funcsOut, blockTree}) => {
-    const text = useField('text', {value: block.text, validations: [['required'], ['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
-        label: __('Content'),
-        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'text', hasErrors, env.normalTypingDebounceMillis); }});
-    const editor = preactHooks.useMemo(() => preact.createRef(), []);
-    const level = useField('level', {value: block.level, validations: [],
-        label: __('Level'),
-        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(parseInt(val), 'level', hasErrors, env.normalTypingDebounceMillis); },
-        className: 'form-input form-select'});
-    const cssClass = useField('cssClass', {value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
-        label: __('Css classes'),
-        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }});
-    //
-    preactHooks.useEffect(() => {
-        setFocusTo(editor);
-    }, []);
-    //
-    funcsOut.resetValues = preactHooks.useCallback((newValue) => {
-        editor.current.replaceContents(newValue.text);
-        level.triggerInput(newValue.level.toString());
-        cssClass.triggerInput(newValue.cssClass);
-    }, []);
-    //
-    return <>
-        <FormGroup>
-            <QuillEditor
-                name="text"
-                value={ block.text }
-                onChange={ markup => {
-                    text.triggerInput(unParagraphify(markup));
-                } }
-                onBlur={ text.onBlur }
-                toolbarBundle="simplest"
-                ref={ editor }/>
-            <InputErrors errors={ text.getErrors() }/>
-        </FormGroup>
-        <div class="form-horizontal pt-0">
-            <FormGroupInline>
-                <label htmlFor="cssClass" class="form-label">{ __('Link') }</label>
-                <select { ...level }>{ [1, 2, 3, 4, 5, 6].map(n =>
-                    <option value={ n }>{ `<h${n}>` }</option>
-                ) }</select>
-                <InputErrors errors={ level.getErrors() }/>
-            </FormGroupInline>
-            <FormGroupInline>
-                <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
-                <input { ...cssClass }/>
-                <InputErrors errors={ cssClass.getErrors() }/>
-            </FormGroupInline>
-        </div>
-        <a onClick={ e => (e.preventDefault(), blockTree.appendBlockToTreeAfter(block)) }
-            class="btn btn-link btn-sm text-tiny with-icon-inline color-dimmed"
-            href="#add-block-after">
-            <Icon iconId="plus" className="size-xs mr-1"/> { __('Add block after') }
-        </a>
-    </>;
-};
+class HeadingBlockEditForm extends preact.Component {
+    // editor;
+    /**
+     * @param {RawBlockData} snapshot
+     * @access public
+     */
+    overrideValues(snapshot) {
+        this.editor.current.replaceContents(snapshot.text);
+        this.setState({level: snapshot.level.toString()});
+        reHookValues(this, [{name: 'cssClass', value: snapshot.cssClass}]);
+    }
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        const {block, onValueChanged} = this.props;
+        this.editor = preact.createRef();
+        this.setState(hookForm(this, [
+            {name: 'text', value: block.text, validations: [['required'], ['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
+             label: __('Content'), onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'text', hasErrors, env.normalTypingDebounceMillis); }},
+            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
+             onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
+        ], {
+            level: block.level.toString(),
+        }));
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        setFocusTo(this.editor);
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        unhookForm(this);
+    }
+    /**
+     * @param {BlockEditFormProps} props
+     * @access protected
+     */
+    render({blockTree, block, onValueChanged}, {level}) {
+        if (!this.state.values) return;
+        return <>
+            <FormGroup>
+                <QuillEditor
+                    name="text"
+                    value={ block.text }
+                    onChange={ markup => {
+                        this.inputApis.text.triggerInput(unParagraphify(markup));
+                    } }
+                    onBlur={ e => this.inputApis.text.onBlur(e) }
+                    toolbarBundle="simplest"
+                    ref={ this.editor }/>
+                <InputErrors vm={ this } prop="text"/>
+            </FormGroup>
+            <div class="form-horizontal pt-0">
+                <FormGroupInline>
+                    <label htmlFor="cssClass" class="form-label">{ __('Link') }</label>
+                    <select value={ level } onChange={ e => onValueChanged(parseInt(e.target.value), 'level', false, env.normalTypingDebounceMillis) } class="form-input form-select">{ [1, 2, 3, 4, 5, 6].map(n =>
+                        <option value={ n }>{ `<h${n}>` }</option>
+                    ) }</select>
+                </FormGroupInline>
+                <FormGroupInline>
+                    <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
+                    <Input vm={ this } prop="cssClass"/>
+                    <InputErrors vm={ this } prop="cssClass"/>
+                </FormGroupInline>
+            </div>
+            <a onClick={ e => (e.preventDefault(), blockTree.appendBlockToTreeAfter(block)) }
+                class="btn btn-link btn-sm text-tiny with-icon-inline color-dimmed"
+                href="#add-block-after">
+                <Icon iconId="plus" className="size-xs mr-1"/> { __('Add block after') }
+            </a>
+        </>;
+    }
+}
 
 export default () => {
     const initialData = {text: __('Heading text'), level: 2, cssClass: ''};

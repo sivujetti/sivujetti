@@ -73,6 +73,9 @@ function createApi(cmp, k, inp) {
     out.onInput = e => {
         out.triggerInput(e.target.value);
     };
+    out.onBlur = e => {
+        e;
+    };
     return out;
 }
 
@@ -124,6 +127,15 @@ class InputErrors extends preact.Component {
     }
 }
 
+class FormGroup extends preact.Component {
+    /**
+     * @param {{className?: String;}} props
+     */
+    render({children, className}) {
+        return <div class={ 'form-group' + (!className ? '' : ` ${className}`) }>{ children }</div>;
+    }
+}
+
 class FormGroupInline extends preact.Component {
     /**
      * @param {{className?: String;}} props
@@ -142,4 +154,4 @@ class FormGroupInline extends preact.Component {
 }
 
 export default hookForm;
-export {unhookForm, reHookValues, Input, InputErrors, FormGroupInline};
+export {unhookForm, reHookValues, Input, InputErrors, FormGroup, FormGroupInline};

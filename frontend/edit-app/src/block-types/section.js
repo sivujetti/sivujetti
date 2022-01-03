@@ -7,6 +7,15 @@ import {UPLOADS_DIR_PATH} from '../Upload/UploadsManager.jsx';
 import setFocusTo from './auto-focusers.js';
 
 class SectionBlockEditForm extends preact.Component {
+    // imagePicker;
+    /**
+     * @param {RawBlockData} snapshot
+     * @access public
+     */
+    overrideValues(snapshot) {
+        reHookValues(this, [{name: 'cssClass', value: snapshot.cssClass}]);
+        this.setState({bgImage: snapshot.bgImage});
+    }
     /**
      * @access protected
      */
@@ -25,14 +34,6 @@ class SectionBlockEditForm extends preact.Component {
      */
     componentDidMount() {
         setFocusTo(this.imagePicker);
-    }
-    /**
-     * @param {RawBlockData} snapshot
-     * @access protected
-     */
-    overrideValues(snapshot) {
-        reHookValues(this, [{name: 'cssClass', value: snapshot.cssClass}]);
-        this.setState({bgImage: snapshot.bgImage});
     }
     /**
      * @access protected

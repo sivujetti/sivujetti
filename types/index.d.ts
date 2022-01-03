@@ -21,7 +21,7 @@ interface BlockType {
     reRender(props: {[key: String]: any}, renderChildren: () => String): String;
     editForm: preact.ComponentConstructor;
     infoFromBackend: {associatedRenderers: Array<String>;};
-    createSnapshot?: () => RawBlockData;
+    createSnapshot: (from: Block|RawBlock) => RawBlockData;
 }
 
 interface Block {

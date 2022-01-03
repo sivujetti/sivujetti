@@ -1,62 +1,82 @@
 import {urlUtils, __, env} from '../commons/main.js';
-import {useField, FormGroup, FormGroupInline, InputErrors} from '../commons/Form2.jsx';
+import hookForm, {unhookForm, reHookValues, Input, InputErrors, FormGroup, FormGroupInline} from '../commons/Form3.jsx';
 import QuillEditor from '../commons/QuillEditor.jsx';
 import {formValidation} from '../constants.js';
 import {unParagraphify} from './paragraph.js';
 import setFocusTo from './auto-focusers.js';
 
-/**
- * @type {preact.FunctionalComponent<BlockEditFormProps>}
- */
-const ButtonBlockEditForm = ({block, funcsIn, funcsOut}) => {
-    const html = useField('html', {value: block.html, validations: [['required'], ['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
-        label: __('Content'),
-        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'html', hasErrors, env.normalTypingDebounceMillis); }});
-    const editor = preactHooks.useMemo(() => preact.createRef(), []);
-    const linkTo = useField('linkTo', {value: block.linkTo, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
-        label: __('Css classes'),
-        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'linkTo', hasErrors, env.normalTypingDebounceMillis); }});
-    const cssClass = useField('cssClass', {value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
-        label: __('Css classes'),
-        onAfterValidation: (val, hasErrors) => { funcsIn.onValueChanged(val, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }});
-    //
-    preactHooks.useEffect(() => {
-        setFocusTo(editor);
-    }, []);
-    //
-    funcsOut.resetValues = preactHooks.useCallback((newValue) => {
-        editor.current.replaceContents(newValue.html);
-        linkTo.triggerInput(newValue.linkTo);
-        cssClass.triggerInput(newValue.cssClass);
-    }, []);
-    //
-    return <>
-        <FormGroup>
-            <QuillEditor
-                name="html"
-                value={ block.html }
-                onChange={ markup => {
-                    html.triggerInput(unParagraphify(markup));
-                } }
-                onBlur={ html.onBlur }
-                toolbarBundle="simplest"
-                ref={ editor }/>
-            <InputErrors errors={ html.getErrors() }/>
-        </FormGroup>
-        <div class="form-horizontal pt-0">
-            <FormGroupInline>
-                <label htmlFor="cssClass" class="form-label">{ __('Link') }</label>
-                <input { ...linkTo }/>
-                <InputErrors errors={ linkTo.getErrors() }/>
-            </FormGroupInline>
-            <FormGroupInline>
-                <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
-                <input { ...cssClass }/>
-                <InputErrors errors={ cssClass.getErrors() }/>
-            </FormGroupInline>
-        </div>
-    </>;
-};
+class ButtonBlockEditForm extends preact.Component {
+    // editor;
+    /**
+     * @param {RawBlockData} snapshot
+     * @access public
+     */
+    overrideValues(snapshot) {
+        this.editor.current.replaceContents(snapshot.html);
+        reHookValues(this, [{name: 'linkTo', value: snapshot.linkTo},
+                            {name: 'cssClass', value: snapshot.cssClass}]);
+    }
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        const {block, onValueChanged} = this.props;
+        this.editor = preact.createRef();
+        this.setState(hookForm(this, [
+            {name: 'html', value: block.html, validations: [['required'], ['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]],
+             label: __('Content'), onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'html', hasErrors, env.normalTypingDebounceMillis); }},
+            {name: 'linkTo', value: block.linkTo, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link'),
+             onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'linkTo', hasErrors, env.normalTypingDebounceMillis); }},
+            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
+             onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
+        ]));
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        setFocusTo(this.editor);
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        unhookForm(this);
+    }
+    /**
+     * @param {BlockEditFormProps} props
+     * @access protected
+     */
+    render({block}) {
+        if (!this.state.values) return;
+        return <>
+            <FormGroup>
+                <QuillEditor
+                    name="html"
+                    value={ block.html }
+                    onChange={ markup => {
+                        this.inputApis.html.triggerInput(unParagraphify(markup));
+                    } }
+                    onBlur={ e => this.inputApis.html.onBlur(e) }
+                    toolbarBundle="simplest"
+                    ref={ this.editor }/>
+                <InputErrors vm={ this } prop="html"/>
+            </FormGroup>
+            <div class="form-horizontal pt-0">
+                <FormGroupInline>
+                    <label htmlFor="linkTo" class="form-label">{ __('Link') }</label>
+                    <Input vm={ this } prop="linkTo"/>
+                    <InputErrors vm={ this } prop="linkTo"/>
+                </FormGroupInline>
+                <FormGroupInline>
+                    <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
+                    <Input vm={ this } prop="cssClass"/>
+                    <InputErrors vm={ this } prop="cssClass"/>
+                </FormGroupInline>
+            </div>
+        </>;
+    }
+}
 
 export default () => {
     const initialData = {html: `${__('Button text')}`, linkTo: '/', cssClass: ''};

@@ -1,6 +1,5 @@
 import {http, __} from '../../commons/main.js';
 import MenuBlockEditForm, {makeLinkItem} from './EditForm.jsx';
-import {markInternalLinksAsInternal} from '../../../../shared.js';
 
 export default () => {
     const initialData = {
@@ -26,7 +25,6 @@ export default () => {
             return http.post('/api/blocks/render', {block}).then(resp => {
                 const el = document.createElement('div');
                 el.innerHTML = resp.result;
-                markInternalLinksAsInternal(el);
                 return el.innerHTML;
             });
         },

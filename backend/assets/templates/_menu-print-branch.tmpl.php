@@ -8,7 +8,7 @@ foreach ($props["branch"] as $i => $item) {
         str_replace("{depth}", $props["depth"], $props["itemStart"])
     );
     // == <a ...</a> ================
-    echo "<a href=\"", $this->url($item->slug), "\"",
+    echo "<a href=\"", $this->maybeExternalUrl($item->slug), "\"",
             $props["itemAttrs"] !== "[]"
                 ? $this->attrMapToStr(json_decode($props["itemAttrs"], flags: JSON_THROW_ON_ERROR))
                 : "",

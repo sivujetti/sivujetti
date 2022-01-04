@@ -16,9 +16,7 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_IMAGE):
     "</span>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):
     echo "<p class=\"button\">",
-        "<a href=\"", (!str_contains($props->linkTo, ".")
-            ? $this->makeUrl($props->linkTo)
-            : ((str_starts_with($props->linkTo, "//") || str_starts_with($props->linkTo, "http") ? "" : "//") . $props->linkTo)),
+        "<a href=\"", $this->maybeExternalUrl($props->linkTo),
             "\" class=\"btn", ($props->cssClass ? " {$this->e($props->cssClass)}" : ""), "\" data-block-root>",
             $props->html, // @allow pre-validated html
             $this->renderChildren($props),

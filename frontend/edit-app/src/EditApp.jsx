@@ -14,6 +14,7 @@ class EditApp extends preact.Component {
     // currentWebPage;
     // resizeHandleEl;
     // highlightRectEl;
+    // localLinkClickTimerEl;
     /**
      * @param {{webPageIframe: WebPageIframe; dataFromAdminBackend: TheWebsite; outerEl: HTMLElement; inspectorPanelRef: preact.Ref;}} props
      */
@@ -24,7 +25,9 @@ class EditApp extends preact.Component {
         this.currentWebPage = null;
         this.resizeHandleEl = preact.createRef();
         this.highlightRectEl = preact.createRef();
+        this.localLinkClickTimerEl = preact.createRef();
         this.websiteEventHandlers = createWebsiteEventHandlers(this.highlightRectEl,
+                                                               this.localLinkClickTimerEl,
                                                                this.blockTrees);
     }
     /**
@@ -79,6 +82,7 @@ class EditApp extends preact.Component {
             <Toaster id="editAppMain"/>
             <FloatingDialog/>
             <span class="highlight-rect" ref={ this.highlightRectEl }></span>
+            <span class="local-link-click-timer" ref={ this.localLinkClickTimerEl }></span>
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         </div>;
     }
@@ -133,10 +137,11 @@ class EditApp extends preact.Component {
 
 /**
  * @param {preact.Ref} highlightRectEl
+ * @param {preact.Ref} localLinkClickTimerEl
  * @param {preact.Ref} blockTrees
  * @returns {EditAwareWebPageEventHandlers}
  */
-function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
+function createWebsiteEventHandlers(highlightRectEl, localLinkClickTimerEl, blockTrees) {
     let prevHoverStartBlockRef = null;
     const hideRect = () => {
         highlightRectEl.current.setAttribute('data-title', '');
@@ -159,7 +164,7 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
          * @param {BlockRefComment} blockRef
          * @param {ClientRect} r
          */
-        onHoverStarted: (blockRef, r) => {
+        onHoverStarted(blockRef, r) {
             if (prevHoverStartBlockRef === blockRef)
                 return;
             highlightRectEl.current.style.cssText = [
@@ -177,7 +182,7 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
         /**
          * @param {BlockRefComment} blockRef
          */
-        onClicked: blockRef => {
+        onClicked(blockRef) {
             const treeCmp = blockTrees.current.blockTree.current;
             const block = findBlockTemp(blockRef, treeCmp);
             signals.emit('on-web-page-block-clicked');
@@ -190,13 +195,29 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
         /**
          * @param {BlockRefComment} blockRef
          */
-        onHoverEnded: (blockRef, _r) => {
+        onHoverEnded(blockRef, _r) {
             setTimeout(() => {
-                if (blockRef === prevHoverStartBlockRef) {
+                if (blockRef === prevHoverStartBlockRef)
                     hideRect();
-                }
             }, 80);
-        }
+        },
+        /**
+         * @param {Event} e
+         */
+        onLocalLinkClickStarted(e) {
+            const el = localLinkClickTimerEl.current;
+            el.style.left = `${LEFT_PANEL_WIDTH + e.clientX}px`;
+            el.style.top = `${e.clientY}px`;
+            el.innerHTML = ['<span class="wrapper" data-anim="base wrapper">',
+                '<span class="circle" data-anim="base left"></span>',
+                '<span class="circle" data-anim="base right"></span>',
+            '</span>'].join('');
+        },
+        /**
+         */
+        onLocalLinkClickEnded() {
+            localLinkClickTimerEl.current.innerHTML = '';
+        },
     };
 }
 

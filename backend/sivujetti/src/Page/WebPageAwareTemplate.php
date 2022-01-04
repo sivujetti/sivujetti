@@ -52,6 +52,15 @@ final class WebPageAwareTemplate extends Template {
      * @param string $url
      * @return string
      */
+    public function maybeExternalUrl(string $url): string {
+        return !str_contains($url, ".")
+            ? $this->makeUrl($url)
+            : (((str_starts_with($url, "//") || str_starts_with($url, "http")) ? "" : "//") . $url);
+    }
+    /**
+     * @param string $url
+     * @return string
+     */
     public function assetUrl(string $url): string {
         return self::makeUrl($url, false);
     }

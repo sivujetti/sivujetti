@@ -3,6 +3,8 @@ class EditAppAwareWebPage {
     // currentlyHoveredEl;
     // currentlyHoveredRootEl;
     // currentlyHoveredBlockRef;
+    // allowClick:
+    // isLocalLink:
     /**
      * @param {CurrentPageData} dataFromAdminBackend
      */
@@ -11,6 +13,8 @@ class EditAppAwareWebPage {
         this.currentlyHoveredEl = null;
         this.currentlyHoveredRootEl = null;
         this.currentlyHoveredBlockRef = null;
+        this.allowClick = false;
+        this.isLocalLink = createIsLocalLinkCheckFn();
     }
     /**
      * @returns {Array<BlockRefComment>}
@@ -32,9 +36,8 @@ class EditAppAwareWebPage {
         this.handlers = handlers;
         document.body.addEventListener('click', e => {
             if (!this.currentlyHoveredEl) return;
-            if (e.target.nodeName === 'A' && e.target.hostname === location.hostname) {
+            if (e.target.nodeName === 'A' && !this.allowClick)
                 return;
-            }
             this.handlers.onClicked(this.currentlyHoveredBlockRef);
         });
         blockRefComments.forEach(blockRef => {
@@ -48,6 +51,7 @@ class EditAppAwareWebPage {
                 });
             }
         });
+        this.registerLocalLinkEventHandlers();
     }
     /**
      * @param {Array<RawBlock>} pageBlocks
@@ -140,6 +144,7 @@ class EditAppAwareWebPage {
         }
         for (const clonedBlockId in _crefs) {
             this.registerBlockMouseListeners(_crefs[clonedBlockId]);
+            this.registerLocalLinkEventHandlers(_crefs[clonedBlockId].startingCommentNode.parentElement);
         }
         return Promise.resolve(_crefs);
     }
@@ -162,7 +167,7 @@ class EditAppAwareWebPage {
                contents[0].textContent = makeStartingComment(replacement);
             if (replacement.type !== 'GlobalBlockReference') {
                 const cref = makeBlockRefComment(replacement, contents[0]);
-                this.replaceBlockMouseListeners(cref);
+                this.replaceBlockMouseListeners(cref, replacement);
                 return cref;
             }
             replacement._cref = makeBlockRefComment(replacement, contents[0]);
@@ -203,7 +208,43 @@ class EditAppAwareWebPage {
                     before: com.nextSibling,
                     prevChildNodes: keptChildren};
         }).then(() => {
-            this.replaceBlockMouseListeners(block._cref);
+            this.replaceBlockMouseListeners(block._cref, block);
+        });
+    }
+    /**
+     * @param {HTMLElement} outerEl = document.body
+     * @access private
+     */
+    registerLocalLinkEventHandlers(outerEl = document.body) {
+        let currentOrigHref = '';
+        let timeout = null;
+        Array.from(outerEl.querySelectorAll('a')).forEach(a => {
+            if (a.hasListener)
+                return;
+            a.addEventListener('mousedown', e => {
+                if (e.button !== 0) return;
+                this.allowClick = false;
+                currentOrigHref = e.target.href;
+                this.handlers.onLocalLinkClickStarted(e);
+                timeout = setTimeout(() => {
+                    if (!currentOrigHref) return;
+                    this.handlers.onLocalLinkClickEnded();
+                    timeout = null;
+                    window.location.href = this.isLocalLink(a)
+                        ? `${currentOrigHref}${a.search[0] !== '?' ? '?' : '&'}in-edit`
+                        : currentOrigHref;
+                }, 325);
+            });
+            a.addEventListener('click', e => {
+                if (e.button !== 0) return;
+                e.preventDefault();
+            });
+            a.addEventListener('mouseup', e => {
+                if (e.button !== 0) return;
+                if (timeout) { this.allowClick = true; clearTimeout(timeout); timeout = null; }
+                this.handlers.onLocalLinkClickEnded();
+            });
+            a.hasListener = true;
         });
     }
     /**
@@ -413,10 +454,12 @@ class EditAppAwareWebPage {
     }
     /**
      * @param {BlockRefComment} blockRef
+     * @param {Block} block
      * @access private
      */
-    replaceBlockMouseListeners(blockRef) {
+    replaceBlockMouseListeners(blockRef, block) {
         this.registerBlockMouseListeners(blockRef);
+        this.registerLocalLinkEventHandlers(block._cref.startingCommentNode.parentElement);
     }
 }
 
@@ -496,6 +539,17 @@ function getAllComments(rootElem) {
  */
 function getTitleEls() {
     return Array.from(document.querySelectorAll('[data-prop="title"]'));
+}
+
+/**
+ * https://stackoverflow.com/a/2911045
+ *
+ * @param {Location} location = window.location
+ * @returns {(link: HTMLAnchorElement) => Boolean}
+ */
+function createIsLocalLinkCheckFn(location = window.location) {
+    const host = location.hostname;
+    return a => a.hostname === host || !a.hostname.length;
 }
 
 export default EditAppAwareWebPage;

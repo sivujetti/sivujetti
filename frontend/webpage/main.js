@@ -1,4 +1,3 @@
-import {markInternalLinksAsInternal} from '../shared.js';
 import EditAppAwareWebPage from './src/EditAppAwareWebPage.js';
 
 let tries = 0;
@@ -7,8 +6,6 @@ const informEditAppWeJustLoaded = () => {
     const editApp = (window.parent || {}).editApp;
     //
     if (editApp) {
-        markInternalLinksAsInternal(document);
-
         const webPage = new EditAppAwareWebPage(window.sivujettiCurrentPageData || {});
         editApp.handleWebPageLoaded(webPage);
     // edit-app/main.js is not ready yet

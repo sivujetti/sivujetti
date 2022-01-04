@@ -247,6 +247,9 @@ h2 {
     top: 0;
     left: 0;
 }
+.floating-dialog .box {
+    box-shadow: rgba(50,50,93,.25) 0 13px 27px -5px, rgba(0,0,0,.3) 0 8px 16px -8px, rgba(0,0,0,.2) 0 -6px 16px -6px;
+}
 .has-icon-right .form-input {
     padding-right: 1.6rem;
 }
@@ -479,7 +482,7 @@ a.popup-close-area {
 .block-tree > li[data-block-type="PageInfo"] {
     background-color: var(--color-bg-meta-block);
 }
-.block-tree > li.globalBlockTree-block {
+.block-tree li.globalBlockTree-block {
     background-color: var(--color-bg-global-block);
 }
 .block-tree li button {
@@ -603,6 +606,68 @@ a.popup-close-area {
     border-radius: 2px;
 }
 
+/* EditApp: link click timer indicators. https://fromanegg.com/post/2013/01/23/100-pure-css-radial-progress-bar/ */
+.local-link-click-timer {
+    --fullSize: 20px;
+    --halfSize: 10px;
+    --borderWidth: 2px;
+    --fullDuration: .2s;
+    --halfDuration: .15s;
+    position: fixed;
+    z-index: 1;
+}
+.wrapper {
+    box-sizing: initial;
+    display: block;
+    width: var(--fullSize);
+    height: var(--fullSize);
+    position: absolute; /* Enable clipping */
+    clip: rect(0px, var(--fullSize), var(--fullSize), var(--halfSize)); /* Hide half of the progress bar */
+}
+/* Set the sizes of the elements that make up the progress bar */
+.circle {
+    display: block;
+    width: 16px; /* --fullSize - --borderWidth * 2 */
+    height: 16px;
+    border: var(--borderWidth) solid var(--color-accent);
+    border-radius: var(--halfSize);
+    position: absolute;
+    clip: rect(0px, var(--halfSize), var(--fullSize), 0px);
+}
+/* Using the data attributes for the animation selectors. */
+/* Base settings for all animated elements */
+span[data-anim~=base] {
+    animation-iteration-count: 1;  /* Only run once */
+    animation-fill-mode: forwards; /* Hold the last keyframe */
+    animation-timing-function:linear; /* Linear animation */
+}
+.wrapper[data-anim~=wrapper] {
+    animation-duration: 0.01s; /* Complete keyframes asap */
+    animation-delay: var(--halfDuration);
+    animation-name: close-wrapper; /* Keyframes name */
+}
+.circle[data-anim~=left] {
+    animation-duration: var(--fullDuration);
+    animation-name: left-spin;
+}
+.circle[data-anim~=right] {
+    animation-duration: var(--halfDuration);
+    animation-name: right-spin;
+}
+/* Rotate the right side of the progress bar from 0 to 180 degrees */
+@keyframes right-spin {
+    from { transform: rotate(45deg); }
+    to { transform: rotate(180deg); }
+}
+/* Rotate the left side of the progress bar from 0 to 360 degrees */
+@keyframes left-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+/* Set the wrapper clip to auto, effectively removing the clip */
+@keyframes close-wrapper {
+    to { clip: rect(auto, auto, auto, auto); }
+}
 
 
 /* Global: Utilies */

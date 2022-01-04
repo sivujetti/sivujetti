@@ -71,7 +71,8 @@ class PickImageDialog extends preact.Component {
                     onSelected(imageEntry);
                     floatingDialog.close();
                 }}
-                onlyImages/>
+                onlyImages
+                autoFocus/>
             <button
                 onClick={ () => floatingDialog.close() }
                 class="btn mt-8"

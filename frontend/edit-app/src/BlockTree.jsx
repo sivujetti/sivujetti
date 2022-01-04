@@ -47,11 +47,12 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} block After
+     * @param {String|null} initialText = null
      * @param {Boolean} autoFocus = true
      * @access public
      */
-    appendBlockToTreeAfter(block, autoFocus = true) {
-        this.doAppendBlockAndUpdateState(block, 'after', autoFocus);
+    appendBlockToTreeAfter(block, initialText = null, autoFocus = true) {
+        this.doAppendBlockAndUpdateState(block, 'after', initialText, autoFocus);
     }
     /**
      * @param {Block} block The parent block
@@ -59,17 +60,20 @@ class BlockTree extends preact.Component {
      * @access public
      */
     appendBlockToTreeAsChildOf(block, autoFocus = true) {
-        this.doAppendBlockAndUpdateState(block, 'as-child', autoFocus);
+        this.doAppendBlockAndUpdateState(block, 'as-child', null, autoFocus);
     }
     /**
      * @param {Block|Array<Block>|undefined} context = this.state.blockTree
      * @param {'after'|'as-child'} position = 'after'
+     * @param {(state: {blockTree: Array<Block>; treeState: {[key: String]: TreeStateItem;};}, newBlock: Block) => {blockTree: Array<Block>; treeState: {[key: String]: TreeStateItem;};}} alterState = null
+     * @param {String|null} initialText = null
      * @returns {Promise<Block>}
      * @access public
      */
     appendNewBlockPlaceholder(context = this.state.blockTree,
                               position = 'after',
-                              alterState = null) {
+                              alterState = null,
+                              initialText = null) {
         let toArr;
         let after = context;
         //
@@ -91,8 +95,8 @@ class BlockTree extends preact.Component {
         //
         const newBlock = Block.fromType(
             'Paragraph',
-            undefined, // data
-            undefined, // id
+            initialText === null ? undefined : {text: initialText}, // data
+            undefined,                                              // id
             context instanceof Block ? context.globalBlockTreeId : undefined
         );
         return BlockTrees.currentWebPage.appendBlockToDom(newBlock, after).then(_cref => {
@@ -578,19 +582,19 @@ class BlockTree extends preact.Component {
     /**
      * @param {Block} block The parent block
      * @param {'after'|'as-child'} position
+     * @param {String|null} initialText
      * @param {Boolean} autoFocus
      * @access private
      */
-    doAppendBlockAndUpdateState(block, position, autoFocus) {
-        this.appendNewBlockPlaceholder(block, position,
-            (state, newBlock) => {
-                state.treeState = this.setBlockAsSelected(newBlock, state.treeState);
-                state.treeState[newBlock.id].isNew = false;
-                return state;
-            }).then(newBlock => {
-                if (autoFocus)
-                    this.emitItemClickedOrAppendedSignal('focus-requested', newBlock, null);
-            });
+    doAppendBlockAndUpdateState(block, position, initialText, autoFocus) {
+        this.appendNewBlockPlaceholder(block, position, (state, newBlock) => {
+            state.treeState = this.setBlockAsSelected(newBlock, state.treeState);
+            state.treeState[newBlock.id].isNew = false;
+            return state;
+        }, initialText).then(newBlock => {
+            if (autoFocus)
+                this.emitItemClickedOrAppendedSignal('focus-requested', newBlock, null);
+        });
     }
     /**
      * @access private
@@ -605,7 +609,7 @@ class BlockTree extends preact.Component {
 
 /**
  * @param {Object} overrides = {}
- * @returns {{isSelected: Boolean; isCollapsed: Boolean; isNew: Boolean;}}
+ * @returns {TreeStateItem}
  */
 function createTreeStateItem(overrides = {}) {
     return Object.assign({
@@ -652,5 +656,13 @@ function getVisibleBlock(block) {
         ? block
         : block.__globalBlockTree.blocks[0];
 }
+
+
+/**
+ * @typedef TreeStateItem
+ * @prop {Boolean} isSelected
+ * @prop {Boolean} isCollapsed
+ * @prop {Boolean} isNew
+ */
 
 export default BlockTree;

@@ -11,6 +11,7 @@ const UPLOADS_DIR_PATH = 'public/uploads/';
 class UploadsManager extends preact.Component {
     // title;
     // tabs;
+    // inputEl;
     // searchResultCache;
     // onSearchTermTypedDebounced;
     // searchTerm;
@@ -23,10 +24,18 @@ class UploadsManager extends preact.Component {
         this.state = {files: null, currentTabIdx: 0, fetching: true, showEditButtons: false};
         this.title = props.onlyImages !== true ? __('Documents') : __('Images');
         this.tabs = preact.createRef();
+        this.inputEl = preact.createRef();
         this.searchResultCache = new Map();
         this.onSearchTermTypedDebounced = timingUtils.debounce(
             this.onSearchTermTyped.bind(this), 200);
         this.fetchFilesAndSetToState(props.onlyImages, INITIAL_CACHE_KEY, true);
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        if (this.props.autoFocus)
+            this.inputEl.current.focus();
     }
     /**
      * @access protected
@@ -40,7 +49,7 @@ class UploadsManager extends preact.Component {
             <div class={ currentTabIdx === 0 ? 'mt-8' : 'd-none' }>
                 <div class="container"><div class="columns mt-8 mb-8">
                     <div class="has-icon-right col-10">
-                        <input class="form-input" placeholder={ __('Search') } onInput={ this.onSearchTermTypedDebounced }/>
+                        <input class="form-input" placeholder={ __('Search') } onInput={ this.onSearchTermTypedDebounced } ref={ this.inputEl }/>
                         <i class="sivujetti-form-icon"><Icon iconId="search" className="size-sm"/></i>
                     </div>
                 </div></div>

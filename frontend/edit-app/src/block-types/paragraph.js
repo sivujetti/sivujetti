@@ -61,7 +61,7 @@ class ParagraphBlockEditForm extends preact.Component {
                         editor.quill.keyboard.bindings[13].unshift({
                             key: 13,
                             handler: (_range, _context) => {
-                                blockTree.appendBlockToTreeAfter(block);
+                                blockTree.appendBlockToTreeAfter(block, '');
                                 return false;
                             }
                         });

@@ -1,6 +1,6 @@
 import * as commons from '../edit-app/src/commons/main.js';
-import testUtils from './my-test-utils.js';
 import * as appTestUtils from './edit-app-testutils.js';
+import {simulateChangeParagraphTextInput, verifyUpdatedTextInDom} from './render-blocks-testutils.js';
 
 QUnit.module('ParagraphBlock', () => {
     QUnit.test('text can be edited and saved to backend', assert => {
@@ -32,24 +32,6 @@ QUnit.module('ParagraphBlock', () => {
     function simulateHttpToReturnSuccesfully(s) {
         s.httpPutStub = window.sinon.stub(commons.http, 'put')
             .returns(Promise.resolve({ok: 'ok'}));
-    }
-    function simulateChangeParagraphTextInput(_s) {
-        const els = document.querySelectorAll('.block-tree li .block-handle');
-        const paragraphBlockHandle = els[els.length - 1];
-        paragraphBlockHandle.click();
-        //
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                testUtils.fillWysiwygInput('<p>Updated.</p>', 'paragraph-text');
-                setTimeout(() => {
-                    resolve();
-                }, 1);
-            }, 1);
-        });
-    }
-    function verifyUpdatedTextInDom(s, assert) {
-        const contentAfter = document.querySelector('.initial-section > * > p').textContent;
-        assert.equal(contentAfter, 'Updated.');
     }
     function clickSaveChangesButton(_s) {
         const p = appTestUtils.waitUntiSaveButtonHasRunQueuedOps();

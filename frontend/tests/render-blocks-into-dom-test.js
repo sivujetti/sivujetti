@@ -1,7 +1,8 @@
 import * as commons from '../edit-app/src/commons/main.js';
-import blockTypes from '../edit-app/src/block-types/block-types.js';
 import {blockUtils} from './my-test-utils.js';
 import * as appTestUtils from './edit-app-testutils.js';
+import {clickAddBlockButton, verifyAppendedParagraphAfter,
+        verifyAppendedParagraphInside, clickContextMenuLink} from './render-blocks-testutils.js';
 
 QUnit.module('BlockTrees', () => {
     QUnit.test('user can add block to inner branch', assert => {
@@ -97,30 +98,6 @@ QUnit.module('BlockTrees', () => {
             renderBlockHttpStub: null,
         });
     }
-    function clickAddBlockButton(_s) {
-        const btn = document.querySelector('.block-tree').parentElement.previousElementSibling;
-        btn.click();
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve();
-            }, 0);
-        });
-    }
-    function clickContextMenuLink(s, linkId) {
-        return new Promise(resolve => {
-            const contextNavToggleBtn = document.querySelector('.block-tree > li:nth-of-type(2) .more-toggle');
-            contextNavToggleBtn.click();
-            setTimeout(() => {
-                const linkEl = Array.from(document.querySelectorAll('.popup-menu a'))
-                    .find(el => el.href.split('#')[1] === linkId);
-                if (!linkEl)
-                    throw new Error(`Invalid link id ${linkId} (should be 'add-child',` +
-                                    `'clone-block' or 'delete-block')`);
-                linkEl.click();
-                resolve();
-            }, 0);
-        });
-    }
     function simulateListGlobalBlockTreesHttpToReturnSuccesfully(s) {
         s.listGlobalBlockTreesHttpStub = window.sinon.stub(commons.http, 'get')
             .returns(Promise.resolve([s.testGlobalBlockTree]));
@@ -144,23 +121,6 @@ QUnit.module('BlockTrees', () => {
                     });
             }, 10);
         });
-    }
-    function verifyAppendedParagraphAfter(s, assert, expectedText = '') {
-        const initialSectionEl = document.querySelector('.initial-section');
-        const expectedNewPEl = initialSectionEl.nextElementSibling;
-        assert.equal(expectedNewPEl.tagName, 'P');
-        if (!expectedText) {
-            const paragraphType = blockTypes.get('Paragraph');
-            expectedText = paragraphType.initialData.text;
-        }
-        assert.equal(expectedNewPEl.textContent, expectedText);
-    }
-    function verifyAppendedParagraphInside(s, assert) {
-        const initialSectionElDiv = document.querySelector('.initial-section').children[0];
-        const expectedNewPEl = initialSectionElDiv.children[initialSectionElDiv.children.length - 1];
-        assert.equal(expectedNewPEl.tagName, 'P');
-        const paragraphType = blockTypes.get('Paragraph');
-        assert.equal(expectedNewPEl.textContent, paragraphType.initialData.text);
     }
     function verifyRecursivelyClonedSectionAfter(s, assert) {
         const initialSectionEl = document.querySelector('.initial-section');

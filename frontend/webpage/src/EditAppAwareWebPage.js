@@ -80,13 +80,7 @@ class EditAppAwareWebPage {
      * @access public
      */
     appendBlockToDom(block, after) {
-        let commentOrPseudoComment;
-        if (after._cref) { // Block
-            commentOrPseudoComment = this.getBlockContents(after).pop();
-            if (!commentOrPseudoComment) throw new Error(`Failed to ending comment for "${makeStartingComment(after)}"`);
-        } else { // Pseudo comment / marker
-            commentOrPseudoComment = after;
-        }
+        const commentOrPseudoComment = this.getAfterNode(after);
         return this.renderBlockInto(
             block,
             () => ({parent: commentOrPseudoComment.parentNode,
@@ -147,6 +141,22 @@ class EditAppAwareWebPage {
             this.registerLocalLinkEventHandlers(_crefs[clonedBlockId].startingCommentNode.parentElement);
         }
         return Promise.resolve(_crefs);
+    }
+    /**
+     * @param {Array<HTMLElement>} originalDomNodes A value returned from this.getBlockContents()
+     * @param {Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}} after
+     * @returns {Promise<void>}
+     * @access public
+     */
+    restoreBlockToDom(originalDomNodes, after) {
+        if (originalDomNodes[0].nodeType !== Node.COMMENT_NODE)
+            throw new Error('Expected $domNodes to be a return value of getBlockContents()');
+        const commentOrPseudoComment = this.getAfterNode(after);
+        const parent = commentOrPseudoComment.parentNode;
+        const before = commentOrPseudoComment.nextSibling;
+        if (before) originalDomNodes.forEach(el => { parent.insertBefore(el, before); });
+        else originalDomNodes.forEach(el => { parent.appendChild(el); });
+        return Promise.resolve();
     }
     /**
      * @param {Block} block
@@ -365,6 +375,29 @@ class EditAppAwareWebPage {
     }
     /**
      * @param {Block} block
+     * @param {Boolean} doIncludeBoundaryComments = true
+     * @returns {Array<HTMLElement>}
+     * @access public
+     */
+    getBlockContents(block, doIncludeBoundaryComments = true) {
+        const startingComment = block._cref.startingCommentNode;
+        let el = startingComment.nextSibling;
+        if (!el) throw new Error('?');
+        const expectedEndComment = makeEndingComment(block);
+        const out = doIncludeBoundaryComments ? [startingComment] : [];
+        while (el) {
+            if (el.nodeType === Node.COMMENT_NODE &&
+                el.nodeValue === expectedEndComment) {
+                    if (doIncludeBoundaryComments) out.push(el);
+                    break;
+                }
+            out.push(el);
+            el = el.nextSibling;
+        }
+        return out;
+    }
+    /**
+     * @param {Block} block
      * @param {() => {parent: HTMLElement; before: HTMLElement|null; prevChildNodes?: Array<HTMLElement>;}} getSettings
      * @param {Boolean} doInsertCommentBoundaryComments = false
      * @returns {Promise<Comment|null>}
@@ -407,29 +440,6 @@ class EditAppAwareWebPage {
         });
     }
     /**
-     * @param {Block} block
-     * @param {Boolean} doIncludeBoundaryComments = true
-     * @returns {Array<HTMLElement>}
-     * @access private
-     */
-    getBlockContents(block, doIncludeBoundaryComments = true) {
-        const startingComment = block._cref.startingCommentNode;
-        let el = startingComment.nextSibling;
-        if (!el) throw new Error('?');
-        const expectedEndComment = makeEndingComment(block);
-        const out = doIncludeBoundaryComments ? [startingComment] : [];
-        while (el) {
-            if (el.nodeType === Node.COMMENT_NODE &&
-                el.nodeValue === expectedEndComment) {
-                    if (doIncludeBoundaryComments) out.push(el);
-                    break;
-                }
-            out.push(el);
-            el = el.nextSibling;
-        }
-        return out;
-    }
-    /**
      * @param {Block} blockWithChildren
      * @returns {Array<HTMLElement>}
      * @access private
@@ -460,6 +470,21 @@ class EditAppAwareWebPage {
     replaceBlockMouseListeners(blockRef, block) {
         this.registerBlockMouseListeners(blockRef);
         this.registerLocalLinkEventHandlers(block._cref.startingCommentNode.parentElement);
+    }
+    /**
+     * @param {Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}} after
+     * @returns {Comment|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}}
+     * @access private
+     */
+    getAfterNode(after) {
+        let commentOrPseudoComment;
+        if (after._cref) { // Block
+            commentOrPseudoComment = this.getBlockContents(after).pop();
+            if (!commentOrPseudoComment) throw new Error(`Failed to ending comment for "${makeStartingComment(after)}"`);
+            return commentOrPseudoComment;
+        }
+        // Pseudo comment / marker
+        return after;
     }
 }
 

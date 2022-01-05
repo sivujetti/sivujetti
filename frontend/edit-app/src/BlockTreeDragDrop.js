@@ -9,7 +9,7 @@ class BlockTreeDragDrop {
     // curDropTypeCandidate;
     /**
      * @param {BlockTree} blockTree
-     * @param {(mutatedBlockTree: Array<Block>, dragBlock: Block, dropBlock: Block, dropPosition: 'before'|'after'|'as-child') => void} onDropped
+     * @param {(mutatedBlockTree: Array<Block>, dragBlock: Block, dropBlock: Block, dropInfo: {dropPosition: 'before'|'after'|'as-child'; dragBlockBranchBefore: Array<Block>;}) => void} onDropped
      */
     constructor(blockTree, onDropped) {
         this.blockTree = blockTree;
@@ -86,29 +86,31 @@ class BlockTreeDragDrop {
         if (!this.curDropTypeCandidate) return;
         //
         const dragTreeId = this.startEl.getAttribute('data-block-tree-id');
+        const dragBlockTree = dragTreeId === '' ? this.blockTree.state.blockTree : this.blockTree.getGlobalTrees().get(dragTreeId);
         const [dragBlock, dragBranch] = blockTreeUtils.findBlock(
             this.startEl.getAttribute('data-block-id'),
-            dragTreeId === '' ? this.blockTree.state.blockTree : this.blockTree.getGlobalTrees().get(dragTreeId)
+            dragBlockTree
         );
         const dropTreeId = this.curDropTypeCandidate.el.getAttribute('data-block-tree-id');
+        const dropBlockTree = dropTreeId === '' ? this.blockTree.state.blockTree : this.blockTree.getGlobalTrees().get(dropTreeId);
         const [dropBlock, dropBranch] = blockTreeUtils.findBlock(
             this.curDropTypeCandidate.el.getAttribute('data-block-id'),
-            dropTreeId === '' ? this.blockTree.state.blockTree : this.blockTree.getGlobalTrees().get(dropTreeId)
+            dropBlockTree
         );
         if (dragBranch !== dropBranch) {
             this.curDropTypeCandidate = null;
             alert('Swap between arrays not implemented yet');
             return;
         }
+        const dragBlockBranchBefore = dragBranch.slice(0);
         //
         const isBefore = this.curDropTypeCandidate.dropPosition === 'before';
         if (isBefore || this.curDropTypeCandidate.dropPosition === 'after') {
             const refIndex = dragBranch.indexOf(dropBlock);
             const fromIndex = dragBranch.indexOf(dragBlock);
-            // Mutates this.blockTree.state.blockTree x 2
+            // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 2
             dragBranch.splice(refIndex + (!isBefore ? 1 : 0), 0, dragBlock);
             dragBranch.splice(fromIndex + (fromIndex > refIndex ? 1 : 0), 1);
-            this.onDropped(this.blockTree.state.blockTree, dragBlock, dropBlock, this.curDropTypeCandidate.dropPosition);
         } else if (this.curDropTypeCandidate.dropPosition === 'as-child') {
             if (dropBlock.type === 'GlobalBlockReference') {
                 this.curDropTypeCandidate = null;
@@ -116,12 +118,15 @@ class BlockTreeDragDrop {
                 alert('Normal > Global drop not implemented yet');
                 return;
             }
-            // Mutates this.blockTree.state.blockTree x 3
+            // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 3
             dragBlock.parentBlockIdPath = `${dropBlock.parentBlockIdPath}/${dropBlock.id}`; // todo verify this
             dropBlock.children.push(dragBlock);
             dragBranch.splice(dragBranch.indexOf(dragBlock), 1);
-            this.onDropped(this.blockTree.state.blockTree, dragBlock, dropBlock, this.curDropTypeCandidate.dropPosition);
         }
+        this.onDropped(this.blockTree.state.blockTree, dragBlock, dropBlock, {
+            dropPosition: this.curDropTypeCandidate.dropPosition,
+            dragBlockBranchBefore,
+        });
         this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
         this.curDropTypeCandidate = null;
         this.clearDragEl();

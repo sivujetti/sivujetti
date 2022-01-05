@@ -158,6 +158,7 @@ interface EditAppAwareWebPage {
     getCombinedAndOrderedBlockTree(pageBlocks: Array<RawBlock>, blockRefComments: Array<BlockRefComment>, blockTreeUtils: blockTreeUtils): Array<RawBlock>;
     appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<BlockRefComment>;
     appendClonedBlockBranchToDom(clonedBlock: Block, clonedFromBlock: Block, blockTreeUtils: blockTreeUtils): Promise<{[key: String]: BlockRefComment;}>;
+    restoreBlockToDom(originalDomNodes: Array<HTMLElement>, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<void>;
     replaceBlockFromDomWith(currentBlock: Block, replacement: Block): Promise<BlockRefComment|{[blockId: String]: BlockRefComment;}>;
     deleteBlockFromDom(block: Block, doKeepBoundaryComments: Boolean = false): [Array, Array];
     reRenderBlockInPlace(block: Block): Promise<null>;
@@ -166,6 +167,7 @@ interface EditAppAwareWebPage {
     findEndingComment(block: Block): Commment|undefined;
     updateTitle(text: String): void;
     registerBlockMouseListeners(blockRef: BlockRefComment, nextEl: HTMLElement = null): void;
+    getBlockContents(block: Block, doIncludeBoundaryComments: Boolean = true): Array<HTMLElement>;
 }
 
 interface WebPageIframe {

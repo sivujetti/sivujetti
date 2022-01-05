@@ -33,14 +33,30 @@ class BlockTree extends preact.Component {
         this.selectedRoot = null;
         this.contextMenu = preact.createRef();
         this.lastRootBlockMarker = null;
-        this.dragDrop = new BlockTreeDragDrop(this, (mutatedTree, dragBlock, dropBlock, dropPosition) => {
+        this.dragDrop = new BlockTreeDragDrop(this, (mutatedTree, dragBlock, dropBlock, {dropPosition, dragBlockBranchBefore}) => {
+            const tree = dragBlock.isStoredTo !== 'globalBlockTree' ? mutatedTree : this.getTreeFor(dragBlock, true);
+            const i1 = dragBlockBranchBefore.indexOf(dragBlock);
+            const i2 = dragBlockBranchBefore.indexOf(dropBlock);
+            const other = dropPosition !== 'as-child'
+                ? dragBlockBranchBefore[dropPosition === 'after' ? i1 + 1 : i1 - 1]
+                : null;
             this.setState({blockTree: mutatedTree});
             BlockTrees.currentWebPage.reOrderBlocksInDom(dragBlock, dropBlock, dropPosition);
             store.dispatch(pushItemToOpQueue(`swap-${dragBlock.isStoredTo}-blocks`, {
                 doHandle: this.props.onChangesApplied,
+                doUndo($tree, _$blockIsStoredTo, _$blockTreeId, $dragBlock, $dropPos, i1, i2, $other, $this) {
+                    if (!$other) { alert('Not supported yet'); return; }
+                    const mutRef = blockTreeUtils.findBlock($dragBlock.id, $tree)[1];
+                    const isAfter = $dropPos === 'after';
+                    // Mutates ($this.blockTree.state.blockTree || globalBlockTrees.someTree) x 2
+                    mutRef.splice(i1 + (!isAfter ? 1 : 0), 0, dragBlock);
+                    mutRef.splice(i2 + (i2 > i1 ? 1 : 0), 1);
+                    $this.setState({blockTree: $this.state.blockTree});
+                    BlockTrees.currentWebPage.reOrderBlocksInDom($dragBlock, $other, isAfter ? 'before' : 'after');
+                },
                 args: dragBlock.isStoredTo !== 'globalBlockTree'
-                    ? [mutatedTree, dragBlock.isStoredTo, null]
-                    : [this.getTreeFor(dragBlock, true), dragBlock.isStoredTo, dragBlock.globalBlockTreeId],
+                    ? [tree, dragBlock.isStoredTo, null, dragBlock, dropPosition, i1, i2, other, this]
+                    : [tree, dragBlock.isStoredTo, dragBlock.globalBlockTreeId, dragBlock, dropPosition, i1, i2, other, this],
             }));
         });
         BlockTrees = props.BlockTrees;
@@ -312,31 +328,50 @@ class BlockTree extends preact.Component {
                 });
             });
         } else if (link.id === 'delete-block') {
+            const blockToDelete = this.state.blockWithNavOpened;
             const isSelectedRootCurrentlyClickedBlock = () => {
                 if (!this.selectedRoot)
                     return false;
-                return this.selectedRoot === this.state.blockWithNavOpened;
+                return this.selectedRoot === blockToDelete;
             };
             const isSelectedRootChildOfCurrentlyClickedBlock = () => {
                 if (!this.selectedRoot ||
                     !this.selectedRoot.parentBlockIdPath ||
-                    !this.state.blockWithNavOpened.children.length)
+                    !blockToDelete.children.length)
                     return false;
-                return blockTreeUtils.findRecursively(this.state.blockWithNavOpened.children,
+                return blockTreeUtils.findRecursively(blockToDelete.children,
                     b => b.id === this.selectedRoot.id);
             };
             //
             let wasCurrentlySelectedBlock = isSelectedRootCurrentlyClickedBlock() ||
                                             isSelectedRootChildOfCurrentlyClickedBlock();
             if (wasCurrentlySelectedBlock) this.selectedRoot = null;
-            this.cancelAddBlock(this.state.blockWithNavOpened);
-            store.dispatch(pushItemToOpQueue(`delete-${this.state.blockWithNavOpened.isStoredTo}-block`, {
+            const surroundings = this.getSurroundings(blockToDelete);
+            const originalContents = BlockTrees.currentWebPage.getBlockContents(blockToDelete);
+            this.cancelAddBlock(blockToDelete);
+            //
+            store.dispatch(pushItemToOpQueue(`delete-${blockToDelete.isStoredTo}-block`, {
                 doHandle: this.props.onChangesApplied,
-                args: [this.getTreeFor(this.state.blockWithNavOpened),
-                       this.state.blockWithNavOpened.isStoredTo,
-                       this.state.blockWithNavOpened.globalBlockTreeId || null],
+                doUndo(_$tree, _$blockIsStoredTo, _$blockTreeId, $block, [toArr, after], $originalContents, $this) {
+                    BlockTrees.currentWebPage.restoreBlockToDom($originalContents, after).then(() => {
+                        toArr.splice(toArr.indexOf(after) + 1, 0, $block); // Note: mutates this.state.blockTree or globalBlockTreeBlocks.someTree
+                        //
+                        const treeStateMutRef = $this.state.treeState;
+                        blockTreeUtils.traverseRecursively([$block], b => {
+                            treeStateMutRef[b.id] = createTreeStateItem(); // Note: mutates this.state.treeState
+                        });
+                        $this.setState({blockTree: $this.state.blockTree, treeState: treeStateMutRef});
+                    });
+                },
+                args: [this.getTreeFor(blockToDelete),
+                       blockToDelete.isStoredTo,
+                       blockToDelete.globalBlockTreeId || null,
+                       blockToDelete,
+                       surroundings,
+                       originalContents,
+                       this],
             }));
-            signals.emit('on-block-deleted', this.state.blockWithNavOpened, wasCurrentlySelectedBlock);
+            signals.emit('on-block-deleted', blockToDelete, wasCurrentlySelectedBlock);
         } else if (link.id === 'convert-block-to-global') {
             const blockTreeToStore = this.state.blockWithNavOpened;
             floatingDialog.open(ConvertBlockToGlobalDialog, {
@@ -464,8 +499,10 @@ class BlockTree extends preact.Component {
         //
         store.dispatch(pushItemToOpQueue(`append-${placeholderBlock.isStoredTo}-block`, {
             doHandle: this.props.onChangesApplied,
-            args: [this.getTreeFor(placeholderBlock), placeholderBlock.isStoredTo,
-                   placeholderBlock.globalBlockTreeId || null],
+            doUndo(_$tree, _$blockIsStoredTo, _$blockTreeId, $block, $this) {
+                $this.cancelAddBlock($block);
+            },
+            args: [this.getTreeFor(placeholderBlock), placeholderBlock.isStoredTo, placeholderBlock.globalBlockTreeId || null, placeholderBlock, this],
         }));
     }
     /**
@@ -515,12 +552,13 @@ class BlockTree extends preact.Component {
     /**
      * @param {Array<Block>} targetBranch
      * @param {Block} block
+     * @returns {Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}}
      * @access private
      */
-    getAfter(targetBranch, block) {
+    getAfter(targetBranch, block, at = null) {
         return targetBranch.length
             // Use block as `after`
-            ? targetBranch[targetBranch.length - 1]
+            ? targetBranch[(at === null ? targetBranch.length : at) - 1]
             // Use comment|pseudoComment as `after`
             : targetBranch !== this.state.blockTree
                 ? {parentNode: block.getRootDomNode(), nextSibling: null}
@@ -605,6 +643,21 @@ class BlockTree extends preact.Component {
             width: 448,
         }, {});
     }
+    /**
+     * @param {Block} block
+     * @return {[Array<Block>, Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}]}
+     * @access private
+     */
+    getSurroundings(block) {
+        const [_, branch, parent] = blockTreeUtils.findBlock(
+            block.id,
+            !(block.type === 'GlobalBlockReference' || block.isStoredTo === 'globalBlockTree')
+                ? this.state.blockTree
+                : this.getTreeFor(block)
+        );
+        const at = branch.indexOf(block);
+        return [branch, at > 0 ? this.getAfter(branch, block, at) : parent];
+    }
 }
 
 /**
@@ -656,7 +709,6 @@ function getVisibleBlock(block) {
         ? block
         : block.__globalBlockTree.blocks[0];
 }
-
 
 /**
  * @typedef TreeStateItem

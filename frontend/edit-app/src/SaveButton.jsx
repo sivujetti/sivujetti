@@ -3,6 +3,7 @@ import Icon from './commons/Icon.jsx';
 import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from './store.js';
 
 let isUndoKeyListenersAdded = false;
+let triggerUndo;
 
 class SaveButton extends preact.Component {
     // queuedOps;
@@ -13,6 +14,7 @@ class SaveButton extends preact.Component {
         super(props);
         this.state = {isVisible: false, formState: {}};
         this.queuedOps = [];
+        triggerUndo = this.doUndo.bind(this);
         if (!isUndoKeyListenersAdded) {
             this.addUndoKeyListener();
             isUndoKeyListenersAdded = true;
@@ -81,10 +83,7 @@ class SaveButton extends preact.Component {
             }
             if (metaKeyIsPressed && e.key === undoKey && this.queuedOps.length) {
                 e.preventDefault(); // Prevent active input's onInput
-                const head = this.queuedOps[this.queuedOps.length - 1].command;
-                if (!head.doUndo) return;
-                head.doUndo(...head.args);
-                store.dispatch(setOpQueue(this.queuedOps.slice(0, this.queuedOps.length - 1)));
+                this.doUndo();
             }
         });
         env.window.addEventListener('keyup', e => {
@@ -92,6 +91,15 @@ class SaveButton extends preact.Component {
                 metaKeyIsPressed = false;
             }
         });
+    }
+    /**
+     * @access private
+     */
+    doUndo() {
+        const head = this.queuedOps[this.queuedOps.length - 1].command;
+        if (!head.doUndo) return;
+        head.doUndo(...head.args);
+        store.dispatch(setOpQueue(this.queuedOps.slice(0, this.queuedOps.length - 1)));
     }
 }
 
@@ -145,4 +153,4 @@ function optimizeQueue(queue) {
 }
 
 export default SaveButton;
-export {optimizeQueue};
+export {optimizeQueue, triggerUndo};

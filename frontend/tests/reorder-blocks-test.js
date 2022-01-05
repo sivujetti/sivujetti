@@ -1,4 +1,5 @@
 import * as appTestUtils from './edit-app-testutils.js';
+import {simulateDragBlock, verifySectionChildTagsEqualInDom} from './render-blocks-testutils.js';
 
 QUnit.module('BlockTrees', () => {
     QUnit.test('blocks can be reordered inside inner branch by dragging upwards', assert => {
@@ -65,49 +66,8 @@ QUnit.module('BlockTrees', () => {
             done();
         });
     });
-    function simulateDragBlock(s, direction, t = null) {
-        const simulateDragStarted = liEl => {
-            const fakeDragStartEvent = {target: liEl};
-            s.blockTreesCmp.blockTree.current.dragDrop.handleDragStarted(fakeDragStartEvent);
-        };
-        const simulateDraggedOver = (liEl, simulatedMousePosition) => {
-            const fakeDragOverEvent = {target: liEl,
-                                       clientY: simulatedMousePosition,
-                                       preventDefault: () => null};
-            s.blockTreesCmp.blockTree.current.dragDrop.handleDraggedOver(fakeDragOverEvent);
-        };
-        const simulateDropped = () => {
-            s.blockTreesCmp.blockTree.current.dragDrop.handleDraggableDropped();
-        };
-        return new Promise(resolve => {
-            const lis = document.querySelectorAll('.block-tree li');
-            const paragraphBlockLi = lis[lis.length - 1];
-            const headingBlockLi = lis[lis.length - 2];
-            //
-            if (direction === 'upwards') {
-                simulateDragStarted(paragraphBlockLi);
-                if (t !== 'as-child')
-                    simulateDraggedOver(headingBlockLi,
-                                        // Simulate that mouse is above target li's center
-                                        -Infinity);
-                else
-                    simulateDraggedOver(headingBlockLi,
-                                        // Simulate that mouse is below target li's bottom treshold
-                                        Infinity);
-            } else {
-                simulateDragStarted(headingBlockLi);
-                if (t !== 'as-child')
-                    simulateDraggedOver(paragraphBlockLi,
-                                        // Simulate that mouse is below target li's center
-                                        Infinity);
-                else
-                    simulateDraggedOver(paragraphBlockLi,
-                                        // Simulate that mouse is above target li's top treshold
-                                        -Infinity);
-            }
-            simulateDropped();
-            resolve();
-        });
+    function verifySwappedBlocksInDom(s, assert) {
+        verifySectionChildTagsEqualInDom(s, assert, ['p', 'h2']);
     }
     function getBlockTreeListItems() {
         return document.querySelectorAll('.block-tree li ul li');
@@ -119,11 +79,6 @@ QUnit.module('BlockTrees', () => {
         const lis = getBlockTreeListItems();
         assert.equal(getLiContents(lis[0]), 'Paragraph');
         assert.equal(getLiContents(lis[1]), 'Heading');
-    }
-    function verifySwappedBlocksInDom(s, assert) {
-        const domBranchAfter = document.querySelector('.initial-section').children[0].children;
-        assert.equal(domBranchAfter[0].tagName, 'P');
-        assert.equal(domBranchAfter[1].tagName, 'H2');
     }
     function verifyMovedBlockToChildOfInTree(s, assert, draggedEl) {
         const sectionBranch = document.querySelectorAll('.block-tree > li > ul > li');

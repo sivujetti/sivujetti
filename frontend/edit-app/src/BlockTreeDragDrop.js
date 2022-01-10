@@ -99,7 +99,7 @@ class BlockTreeDragDrop {
         );
         if (dragBranch !== dropBranch) {
             this.curDropTypeCandidate = null;
-            alert('Swap between arrays not implemented yet');
+            alert('Swap between arrays not implemented yet, please reload page');
             return;
         }
         const dragBlockBranchBefore = dragBranch.slice(0);

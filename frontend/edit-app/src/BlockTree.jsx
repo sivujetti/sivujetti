@@ -45,7 +45,7 @@ class BlockTree extends preact.Component {
             store.dispatch(pushItemToOpQueue(`swap-${dragBlock.isStoredTo}-blocks`, {
                 doHandle: this.props.onChangesApplied,
                 doUndo($tree, _$blockIsStoredTo, _$blockTreeId, $dragBlock, $dropPos, i1, i2, $other, $this) {
-                    if (!$other) { alert('Not supported yet'); return; }
+                    if (!$other) { alert('Swap between arrays not implemented yet, please reload page'); return; }
                     const mutRef = blockTreeUtils.findBlock($dragBlock.id, $tree)[1];
                     const isAfter = $dropPos === 'after';
                     // Mutates ($this.blockTree.state.blockTree || globalBlockTrees.someTree) x 2
@@ -274,8 +274,8 @@ class BlockTree extends preact.Component {
                 </div>
             </li>;
         });
-        return <div class="pt-2">
-            <div class="p-relative"><button
+        return <div class="py-2">
+            <div class="p-relative" style="z-index: 1"><button
                 onClick={ this.showBlockTreeHelpPopup.bind(this) }
                 class="btn btn-link p-absolute btn-sm"
                 type="button"

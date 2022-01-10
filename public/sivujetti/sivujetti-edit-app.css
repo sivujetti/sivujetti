@@ -17,10 +17,11 @@ Structure:
     --color-accent2: hsl(var(--components-color-accent2));
     --color-accent3: rgb(65,255,209);
     --color-accent4: rgba(118,255,255,.33);
-    --color-fg-default: rgb(0,10,71);
-    --color-fg-dimmed: rgba(0,10,71,.75);
+    --components-color-fb-default: 0, 10, 71;
+    --color-fg-default: rgb(var(--components-color-fb-default));
+    --color-fg-dimmed: rgba(var(--components-color-fb-default),.75);
     --color-fg-dimmed2: #1c125a;
-    --color-fg-input: rgb(0,10,71);
+    --color-fg-input: var(--color-fg-default);
     --border-tree-guide: 1px dotted rgba(121, 125, 136, .56);
     --border-dashed-box: 1px dashed rgba(0,0,0,0.2);
     --color-input-border: #e1e4e8;
@@ -41,6 +42,7 @@ Structure:
     --color-icon-global-block: #625954;
     --color-bg-global-block: #fdf7f4; /* rgba(--color-orange, ~.04) */
     --color-bg-selected-global-block: #efe5e1; /* rgba(--color-orange, ~.06) */
+    --color-drop-indicator: rgba(var(--components-color-fb-default), .32);
 }
 /* Spectre-overrides */
 .btn {
@@ -456,8 +458,12 @@ a.popup-close-area {
 .block-tree ul ul {
     margin: .2rem 0 0 .7rem;
 }
+.block-tree li ul {
+    margin-bottom: .3rem !important;
+}
 .block-tree li {
     margin: 0;
+    position: relative;
     border-left: var(--border-tree-guide);
 }
 .block-tree li.collapsed {
@@ -504,19 +510,27 @@ a.popup-close-area {
 .block-tree li.globalBlockTree-block .block-handle .icon-tabler {
     color: var(--color-icon-global-block);
 }
-.block-tree li.maybe-drop-before .block-handle,
-.block-tree li.maybe-drop-after .block-handle,
-.block-tree li.maybe-drop-as-child .block-handle {
-    border-radius: 0;
+.block-tree li.maybe-drop-before:before,
+.block-tree li.maybe-drop-after:before,
+.block-tree li.maybe-drop-as-child:after {
+    background-color: var(--color-drop-indicator);
+    content: "";
+    height: 1px;
+    width: calc(100% - .4rem);
+    position: absolute;
+    left: .2rem;
 }
-.block-tree li.maybe-drop-before > div > .block-handle {
-    border-top-color: var(--color-orange);
+.block-tree li.maybe-drop-after:before {
+    margin-top: -1px;
+    top: 100%;
 }
-.block-tree li.maybe-drop-after > div > .block-handle {
-    border-bottom-color: var(--color-orange);
-}
-.block-tree li.maybe-drop-as-child > div > .block-handle {
-    border-color: var(--color-orange);
+.block-tree li.maybe-drop-as-child:after {
+    background-color: transparent;
+    border: 1px solid var(--color-drop-indicator);
+    height: 100%;
+    top: 0;
+    border-radius: 2px;
+    opacity: 0.8;
 }
 .block-tree li > button:hover {
     background: #0000000d;

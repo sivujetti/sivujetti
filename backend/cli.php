@@ -4,7 +4,7 @@ if (php_sapi_name() !== "cli")
     die("cli.php must be run on the command line.");
 
 if (($argc ?? 0) < 2) die(
-    "Usage: cli.php install-from-dir <relDirPath>[ <baseUrl>]\n" .
+    "Usage: cli.php install-from-dir <relDirPath> <initialUserUsername> <initialUserEmail> <initialUserPassword>[ <baseUrl>]\n" .
     "       cli.php generate-signing-keypair\n" .
     "       cli.php create-release to-zip[ <signingKey>]\n" .
     "       cli.php create-release to-local-dir\n" .

@@ -11,7 +11,7 @@ final class Module {
      * @param \Sivujetti\AppContext $ctx
      */
     public function init(AppContext $ctx): void {
-        $ctx->router->map("PSEUDO:CLI", "/install-from-dir/[*:relDirPath]/[*:baseUrl]?",
+        $ctx->router->map("PSEUDO:CLI", "/install-from-dir/[*:relDirPath]/[**:settings]",
             [Controller::class, "installCmsFromDir"]
         );
         $ctx->router->map("PSEUDO:CLI", "/generate-signing-keypair",

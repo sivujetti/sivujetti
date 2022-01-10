@@ -192,8 +192,7 @@ final class Bundler {
                                                   $flags);
         $testsDir = "{$base1}installer/tests/";
         foreach ($instPaths as $path) {
-            if (str_starts_with($path, $testsDir) ||
-                str_ends_with($path, "config.in.php")) continue;
+            if (str_starts_with($path, $testsDir)) continue;
             $out[] = $prefixyAndRelatifyPath($path);
         }
         // sivujetti

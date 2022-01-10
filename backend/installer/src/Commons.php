@@ -3,6 +3,8 @@
 namespace Sivujetti\Installer;
 
 use Pike\{Db, FileSystem, PikeException};
+use Pike\Auth\Authenticator;
+use Sivujetti\Auth\ACL;
 use Sivujetti\Update\{PackageStreamInterface, Updater};
 use Sivujetti\ValidationUtils;
 
@@ -56,6 +58,27 @@ final class Commons {
         $statements = Updater::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_DB_DATA,
                                                   $package);
         $this->runManyDbStatements($statements);
+    }
+    /**
+     * @param array $config
+     * @throws \Pike\PikeException
+     */
+    public function createUserZero(array $config): void {
+        [$qList, $values, $columns] = $this->db->makeInsertQParts((object) [
+            "username"         => $config["initialUserUsername"],
+            "email"            => $config["initialUserEmail"],
+            "passwordHash"     => $config["initialUserPasswordHash"],
+            "role"             => ACL::ROLE_SUPER_ADMIN,
+            "accountStatus"    => Authenticator::ACCOUNT_STATUS_ACTIVATED,
+            "accountCreatedAt" => time(),
+            "role"             => ACL::ROLE_SUPER_ADMIN,
+            "loginData"        => "",
+        ]);
+        // @allow \Pike\PikeException
+        if ($this->db->exec("INSERT INTO `\${p}users` ({$columns}) VALUES ({$qList})",
+                            $values) !== 1)
+            throw new PikeException("Failed to insert user zero",
+                                    PikeException::INEFFECTUAL_DB_OP);
     }
     /**
      * @param \Sivujetti\Update\PackageStreamInterface $package

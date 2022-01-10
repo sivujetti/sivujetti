@@ -3,12 +3,14 @@
 namespace Sivujetti\Cli\Tests;
 
 use Auryn\Injector;
-use Sivujetti\Cli\App;
+use Pike\Auth\{Authenticator, Crypto};
+use Pike\{Db, PikeException, Request};
+use Pike\TestUtils\{DbTestCase, HttpTestUtils, MockCrypto};
+use Sivujetti\FileSystem;
+use Sivujetti\Auth\ACL;
+use Sivujetti\Cli\{App, Controller};
 use Sivujetti\Installer\{Commons, LocalDirPackage};
 use Sivujetti\Tests\Utils\PageTestUtils;
-use Pike\{Db, Request};
-use Pike\TestUtils\{DbTestCase, HttpTestUtils};
-use Sivujetti\FileSystem;
 use Sivujetti\Update\{PackageStreamInterface, Updater};
 
 final class InstallCmsFromDirTest extends DbTestCase {
@@ -27,20 +29,32 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->cleanUp($this->state);
     }
     public function testInstallFromDirInstallsSiteFromLocalDirectory(): void {
-        $state = $this->setupTest();
-        $params = (object) ["baseUrl" => "/foo"];
+        $state = $this->setupTest((object) [
+            "initialUserUsername" => "username",
+            "initialUserEmail" => "e@ma.il",
+            "initialUserPassword" => "password",
+            "baseUrl" => "foo",
+        ]);
         $this->makeTestInstallerApp($state);
-        $this->invokeInstallFromDirFeature($state, $params);
+        $this->invokeInstallFromDirFeature($state);
         $this->verifyFeatureFinishedSuccesfully($state);
         $this->verifyCreatedDbAndSchema($state->getInstallerDb->__invoke());
         $this->verifyPopulatedDb($state->getInstallerDb->__invoke());
+        $this->verifyCreatedUserZero($state->getInstallerDb->__invoke(), $state);
         $this->verifyCopiedDefaultSiteFiles($state);
         $this->verifyCopiedUserThemeAndSiteFiles($state);
         $this->verifyCopiedUserThemePublicFiles($state);
-        $this->verifyCreatedConfigFile($state, $params);
+        $this->verifyCreatedConfigFile($state);
     }
-    private function setupTest(): \TestState {
+    private function setupTest(object $input): \TestState {
         $state = new \TestState;
+        $state->inputArgs = array_merge([
+            $input->initialUserUsername,
+            $input->initialUserEmail,
+            $input->initialUserPassword,
+        ], $input->baseUrl ? [
+            $input->baseUrl,
+        ] : []);
         $state->installerApp = null;
         $state->getInstallerDb = null;
         $state->getTargetSitePath = null;
@@ -57,12 +71,13 @@ final class InstallCmsFromDirTest extends DbTestCase {
                 $state->getTargetSitePath = fn($which = "site") => $instance->getTargetSitePath($which);
                 $state->getInstallerDb = fn() => $instance->getDb();
             });
+            $di->delegate(Crypto::class, fn() => new MockCrypto);
         });
     }
-    private function invokeInstallFromDirFeature(\TestState $state, object $params): void {
-        $tail = $params->baseUrl ? ("/" . urlencode($params->baseUrl)) : "";
+    private function invokeInstallFromDirFeature(\TestState $state): void {
+        $tail = urlencode(implode("/", $state->inputArgs));
         $state->spyingResponse = $state->installerApp->sendRequest(
-            new Request("/install-from-dir/basic-site{$tail}", "PSEUDO:CLI"));
+            new Request("/install-from-dir/basic-site/{$tail}", "PSEUDO:CLI"));
     }
     private function verifyFeatureFinishedSuccesfully(\TestState $state): void {
         $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
@@ -86,6 +101,20 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->assertStringStartsWith("{\"resources\":",
                                       $actual["aclRules"]);
     }
+    private function verifyCreatedUserZero(Db $installerDb, \TestState $state): void {
+        [$expectedUsername, $expectedEmail, $inputPassword] = $state->inputArgs;
+        $expectedPasswordHash = (new MockCrypto)->hashPass($inputPassword);
+        $actual = $installerDb->fetchOne("SELECT * FROM `users` WHERE `username`=?",
+                                         [$expectedUsername],
+                                         \PDO::FETCH_ASSOC);
+        $this->assertNotNull($actual);
+        $this->assertEquals($expectedUsername, $actual["username"]);
+        $this->assertEquals($expectedEmail, $actual["email"]);
+        $this->assertEquals($expectedPasswordHash, $actual["passwordHash"]);
+        $this->assertEquals(ACL::ROLE_SUPER_ADMIN, $actual["role"]);
+        $this->assertEquals(Authenticator::ACCOUNT_STATUS_ACTIVATED, $actual["accountStatus"]);
+        $this->assertGreaterThan(time() - 20, $actual["accountCreatedAt"]);
+    }
     private function verifyCopiedDefaultSiteFiles(\TestState $state): void {
         $a = fn($str) => SIVUJETTI_BACKEND_PATH . "installer/sample-content/basic-site/\$backend/site/{$str}";
         $b = fn($str) => "{$state->getTargetSitePath->__invoke()}{$str}";
@@ -102,9 +131,9 @@ final class InstallCmsFromDirTest extends DbTestCase {
                                                  $this->sitePackage);
         $this->assertCopiedTheseFiles($state, $filesList, "serverRoot");
     }
-    private function verifyCreatedConfigFile(\TestState $state, object $usedParams): void {
-        $actualConfig = $this->_getSiteConfig($state);
-        $expectedBaseUrl = $usedParams->baseUrl ?? "/";
+    private function verifyCreatedConfigFile(\TestState $state): void {
+        $actualConfig = $this->_createConfig($state);
+        $expectedBaseUrl = $state->inputArgs[3] ?? "/";
         $this->assertStringEqualsFile("{$state->getTargetSitePath->__invoke("serverRoot")}config.php",
             "<?php\r\n" .
             "if (!defined('SIVUJETTI_BASE_URL')) {\r\n" .
@@ -133,7 +162,14 @@ final class InstallCmsFromDirTest extends DbTestCase {
         }
     }
     private function cleanUp(\TestState $state): void {
-        $actualConfig = $this->_getSiteConfig($state);
+        try {
+        $actualConfig = $this->_createConfig($state);
+        } catch (PikeException $e) {
+            $username = $state->inputArgs[0];
+            $isValidationTest = $username === "";
+            if (!$isValidationTest) throw $e;
+            else return;
+        }
         $installerDb = $state->getInstallerDb->__invoke();
         if ($installerDb->attr(\PDO::ATTR_DRIVER_NAME) === "sqlite") {
             $this->fs->unlink($actualConfig["db.database"]);
@@ -147,10 +183,8 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $dir2 = $state->getTargetSitePath->__invoke("serverRoot");
         $this->fs->deleteFilesRecursive($dir2, SIVUJETTI_PUBLIC_PATH);
     }
-    private function _getSiteConfig(\TestState $state) {
-        $actualConfig = Updater::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_MAIN_CONFIG,
-                                                    $this->sitePackage,
-                                                    associative: true);
+    private function _createConfig(\TestState $state): array {
+        $actualConfig = Controller::createConfigOrThrow($state->inputArgs, new MockCrypto);
         foreach ($actualConfig as $key => $_)
             $actualConfig[$key] = str_replace("\${SIVUJETTI_BACKEND_PATH}",
                                               $state->getTargetSitePath->__invoke("backend"),
@@ -162,17 +196,43 @@ final class InstallCmsFromDirTest extends DbTestCase {
     ////////////////////////////////////////////////////////////////////////////
 
 
-    public function testInstallFromDirUsesDefaults(): void {
-        $state = $this->setupTest();
-        $params = (object) ["baseUrl" => null];
+    public function testInstallFromDirValidatesCredentialsFromInput(): void {
+        $state = $this->setupTest((object) [
+            "initialUserUsername" => "",
+            "initialUserEmail" => "",
+            "initialUserPassword" => "2short",
+            "baseUrl" => null,
+        ]);
         $this->makeTestInstallerApp($state);
-        $this->invokeInstallFromDirFeature($state, $params);
+        $this->expectException(PikeException::class);
+        $this->expectExceptionMessage(implode(PHP_EOL, [
+            "The length of username must be at least 2",
+            "The value of email did not pass the regexp",
+            "The length of password must be at least 8",
+        ]));
+        $this->invokeInstallFromDirFeature($state);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testInstallFromDirUsesDefaults(): void {
+        $state = $this->setupTest((object) [
+            "initialUserUsername" => "username",
+            "initialUserEmail" => "e@ma.il",
+            "initialUserPassword" => "password",
+            "baseUrl" => null,
+        ]);
+        $this->makeTestInstallerApp($state);
+        $this->invokeInstallFromDirFeature($state);
         $this->verifyFeatureFinishedSuccesfully($state);
         $this->verifyCreatedDbAndSchema($state->getInstallerDb->__invoke());
         $this->verifyPopulatedDb($state->getInstallerDb->__invoke());
+        $this->verifyCreatedUserZero($state->getInstallerDb->__invoke(), $state);
         $this->verifyCopiedDefaultSiteFiles($state);
         $this->verifyCopiedUserThemeAndSiteFiles($state);
         $this->verifyCopiedUserThemePublicFiles($state);
-        $this->verifyCreatedConfigFile($state, $params);
+        $this->verifyCreatedConfigFile($state);
     }
 }

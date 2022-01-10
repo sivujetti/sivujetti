@@ -7,7 +7,6 @@ interface PackageStreamInterface {
     public const FILE_NS_INDEX = "\$index/";
     public const LOCAL_NAME_BACKEND_FILES_LIST = "\$backend-files-list.php";
     public const LOCAL_NAME_INDEX_FILES_LIST = "\$index-files-list.php";
-    public const LOCAL_NAME_MAIN_CONFIG = "config.in.php";
     public const LOCAL_NAME_DB_DATA = "db-data.php";
     /**
      * @param string $filePath

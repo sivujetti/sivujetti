@@ -3,7 +3,6 @@
 .idea
 .vscode
 config.php
-config.in.php
 package-lock.json
 *.db
 

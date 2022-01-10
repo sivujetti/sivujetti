@@ -2,23 +2,24 @@
 
 namespace Sivujetti\Cli;
 
-use Pike\{FileSystem, PikeException, Request, Response};
+use Pike\Auth\Crypto;
+use Pike\{FileSystem, PikeException, Request, Response, Validation};
 use Sivujetti\App;
-use Sivujetti\FileSystem as SivujettiFileSystem;
-use Sivujetti\Installer\{LocalDirInstaller};
+use Sivujetti\Installer\LocalDirInstaller;
 use Sivujetti\Update\{Signer, ZipPackageStream};
 
 final class Controller {
     /**
-     * `php cli.php install-from-dir <relDirPath> <baseUrl>?`: Installs Sivujetti
+     * `php cli.php install-from-dir <relDirPath> settings...`: Installs Sivujetti
      * from local directory SIVUJETTI_BACKEND_PATH . "installer/sample-content/
      * {$req->params->relDirPath}/" to SIVUJETTI_BACKEND_PATH . "site".
      */
     public function installCmsFromDir(Request $req,
                                       Response $res,
+                                      Crypto $crypto,
                                       LocalDirInstaller $installer): void {
-        $installer->doInstall(urldecode($req->params->relDirPath),
-                              urldecode($req->params->baseUrl ?? "/"));
+        $config = self::createConfigOrThrow(explode("/", $req->params->settings), $crypto);
+        $installer->doInstall(urldecode($req->params->relDirPath), $config);
         $res->json(["ok" => "ok"]);
     }
     /**
@@ -78,10 +79,6 @@ final class Controller {
         $fs->move("{$tempDirPath}/\$index", $outDirPath);
         // $backend/* etc -> final/backend/*
         $fs->move("{$tempDirPath}/\$backend", "{$outDirPath}/backend");
-        $fs->copy("{$outDirPath}/backend/installer/sample-content/basic-site/config.in.sample.php",
-                  "{$outDirPath}/backend/installer/sample-content/basic-site/config.in.php");
-        $fs->copy("{$outDirPath}/backend/installer/sample-content/empty/config.in.sample.php",
-                  "{$outDirPath}/backend/installer/sample-content/empty/config.in.php");
         $fs->copy(SIVUJETTI_BACKEND_PATH . "cli.php", "{$outDirPath}/backend/cli.php");
         //
         echo "Ok, created release to `{$outDirPath}`";
@@ -92,6 +89,45 @@ final class Controller {
     public function printAclRules(Response $res): void {
         $fn = require SIVUJETTI_BACKEND_PATH . "installer/default-acl-rules.php";
         $res->json($fn());
+    }
+    /**
+     * Signs $fileContents with $secretKey and writes the signature to $filePath
+     * (as hex-encoded).
+     *
+     * @param string[] $args
+     * @param \Pike\Auth\Crypto $crypto
+     * @return array{db.driver: string, db.database: string, baseUrl: string, mainQueryVar: string, secret: string, initialUserUsername: string, initialUserEmail: string, initialUserPasswordHash: string, flags: string}
+     * @throws \Pike\PikeException
+     */
+    public static function createConfigOrThrow(array $vals, Crypto $crypto): array {
+        if (count($vals) < 3)
+            throw new PikeException("Invalid number of arguments", PikeException::BAD_INPUT);
+        $input = (object) [
+            "username" => $vals[0],
+            "email" => $vals[1],
+            "password" => $vals[2],
+            "baseUrl" => $vals[3] ?? "/",
+        ];
+        if (($errors = Validation::makeObjectValidator()
+            ->rule("username", "minLength", 2)
+            ->rule("email", "regexp", "/^.+@.+$/")
+            ->rule("password", "minLength", 8)
+            ->rule("baseUrl", "type", "string")
+            ->validate($input))) {
+            throw new PikeException(implode(PHP_EOL, $errors),
+                                    PikeException::BAD_INPUT);
+        }
+        return [
+            "db.driver" => "sqlite",
+            "db.database" => "\${SIVUJETTI_BACKEND_PATH}site/my-site.db",
+            "baseUrl" => $input->baseUrl,
+            "mainQueryVar" => "q",
+            "secret" => $crypto->genRandomToken(),
+            "initialUserUsername" => $input->username,
+            "initialUserEmail" => $input->email,
+            "initialUserPasswordHash" => $crypto->hashPass($input->password),
+            "flags" => "SIVUJETTI_DEVMODE",
+        ];
     }
     /**
      * Signs $fileContents with $secretKey and writes the signature to $filePath

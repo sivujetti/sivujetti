@@ -103,12 +103,12 @@ final class Updater {
     /**
      * @param string $sneakyJsonFileLocalName
      * @param \Sivujetti\Update\PackageStreamInterface $package
-     * @param bool $associative = fasle
+     * @param bool $associative = false
      * @return array|object Parsed json data
      */
     public static function readSneakyJsonData(string $sneakyJsonFileLocalName,
-                                               PackageStreamInterface $package,
-                                               bool $associative = false): array|object {
+                                              PackageStreamInterface $package,
+                                              bool $associative = false): array|object {
         $str = $package->read($sneakyJsonFileLocalName); // @allow \Pike\PikeException
         if (($parsed = json_decode(substr($str, strlen("<?php // ")),
                                    $associative,

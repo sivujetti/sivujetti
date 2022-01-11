@@ -7,20 +7,20 @@ class GlobalBlockTreeSelector extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.setState({globalBlockTrees: null, selectedGlobalBlockTreeId: '-'});
+        this.setState({globalBlockTrees: undefined, selectedGlobalBlockTreeId: '-'});
     }
     /**
      * @access protected
      */
-    componentWillReceiveProps(props) {
-        if (props.isVisible && this.state.globalBlockTrees === null)
+    componentWillReceiveProps({isVisible}) {
+        if (isVisible && this.state.globalBlockTrees === undefined)
             this.fetchGlobalBlockTreesAndPutToState();
     }
     /**
      * @access protected
      */
     render({isVisible}, {globalBlockTrees, selectedGlobalBlockTreeId}) {
-        if (!isVisible) return null;
+        if (!isVisible || globalBlockTrees === undefined) return null;
         //
         if (globalBlockTrees !== null) return globalBlockTrees.length
             ? <select
@@ -39,10 +39,11 @@ class GlobalBlockTreeSelector extends preact.Component {
      * @access private
      */
     fetchGlobalBlockTreesAndPutToState() {
+        this.setState({globalBlockTrees: null});
         http.get('/api/global-block-trees')
             .then(globalBlockTrees => {
                 if (globalBlockTrees.length) {
-                    this.setState({globalBlockTrees,
+                    this.setState({globalBlockTrees: globalBlockTrees,
                                    selectedGlobalBlockTreeId: globalBlockTrees[0].id});
                     this.props.onItemSelected(globalBlockTrees[0]);
                 } else {

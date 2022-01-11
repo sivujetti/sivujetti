@@ -8,7 +8,7 @@ import GlobalBlockTreeSelector from './GlobalBlockTreeSelector.jsx';
 class BlockTypeSelector extends preact.Component {
     // selectableBlockTypes;
     /**
-     * @param {{onSelectionConfirmed: (placeholderBlock: Block) => void; onSelectionChanged: (blockBluePrint: BlockBlueprint, placeholderBlock: Block) => void; onSelectionDiscarded: (placeholderBlock: Block) => void; block: Block;}} props
+     * @param {{onSelectionConfirmed: (placeholderBlock: Block) => void; onSelectionChanged: (blockBluePrint: BlockBlueprint, placeholderBlock: Block) => void; onSelectionDiscarded: (placeholderBlock: Block) => void; block: Block; targetParentBlock: Block|null;}} props
      */
     constructor(props) {
         super(props);
@@ -23,7 +23,7 @@ class BlockTypeSelector extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {blockBluePrint, currentTabIdx}) {
+    render({targetParentBlock}, {blockBluePrint, currentTabIdx}) {
         return <div class="dashed pt-1 pr-2 pb-2 pl-2">
             <Tabs
                 links={ [__('Common'), __('Globals')] }
@@ -40,9 +40,12 @@ class BlockTypeSelector extends preact.Component {
                 ) }</select>
             </div>
             <div class={ currentTabIdx === 1 ? '' : 'd-none' }>
-                <GlobalBlockTreeSelector
-                    onItemSelected={ this.selectRefBlockType.bind(this) }
-                    isVisible={ currentTabIdx === 1 }/>
+                { (!targetParentBlock || targetParentBlock.isStoredTo !== 'globalBlockTree')
+                    ? <GlobalBlockTreeSelector
+                        onItemSelected={ this.selectRefBlockType.bind(this) }
+                        isVisible={ currentTabIdx === 1 }/>
+                    : <p class="mt-0 mb-2 ml-1">Nested global blocks not supported yet</p>
+                }
             </div>
             <button class="btn btn-sm btn-primary widen ml-0" onClick={ this.apply.bind(this) } type="button">Ok</button>
             <button class="btn btn-sm btn-link" onClick={ this.discard.bind(this) } type="button">{ __('Cancel') }</button>

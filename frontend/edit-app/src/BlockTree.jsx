@@ -33,6 +33,7 @@ class BlockTree extends preact.Component {
         this.selectedRoot = null;
         this.contextMenu = preact.createRef();
         this.lastRootBlockMarker = null;
+        this.currentAddBlockTarget = null;
         this.dragDrop = new BlockTreeDragDrop(this, (mutatedTree, dragBlock, dropBlock, {dropPosition, dragBlockBranchBefore}) => {
             const tree = dragBlock.isStoredTo !== 'globalBlockTree' ? mutatedTree : this.getTreeFor(dragBlock, true);
             const i1 = dragBlockBranchBefore.indexOf(dragBlock);
@@ -103,6 +104,7 @@ class BlockTree extends preact.Component {
                 ? getLastPageBlock(this.state.blockTree)
                 : this.lastRootBlockMarker;
         } else if (position === 'as-child' && context instanceof Block) {
+            this.currentAddBlockTarget = context;
             toArr = context.children;
             after = this.getAfter(toArr, context);
         } else if (position === 'as-child' && Array.isArray(context)) {
@@ -222,6 +224,7 @@ class BlockTree extends preact.Component {
             if (treeState[block.id].isNew) return <li key={ block.id }>
                 <BlockTypeSelector
                     block={ block }
+                    targetParentBlock={ this.currentAddBlockTarget }
                     onSelectionChanged={ this.replacePlaceholderBlock.bind(this) }
                     onSelectionConfirmed={ this.confirmAddBlock.bind(this) }
                     onSelectionDiscarded={ this.cancelAddBlock.bind(this) }/>
@@ -305,8 +308,9 @@ class BlockTree extends preact.Component {
      */
     handleContextMenuLinkClicked(link) {
         if (link.id === 'add-child') {
-            const id = this.state.blockWithNavOpened.id;
-            this.appendNewBlockPlaceholder(getVisibleBlock(this.state.blockWithNavOpened), 'as-child',
+            const possibleChild = getVisibleBlock(this.state.blockWithNavOpened);
+            const id = possibleChild.id;
+            this.appendNewBlockPlaceholder(possibleChild, 'as-child',
                 state => {
                     state.treeState[id].isCollapsed = false;
                     return state;
@@ -440,6 +444,7 @@ class BlockTree extends preact.Component {
         const treeStateMutRef = this.state.treeState;
         for (const block of origBlock.children)
             delete treeStateMutRef[block.id];
+
         // Replace root block
         const newBlock = Block.fromType(blockBluePrint.blockType,
                                         blockBluePrint.data,
@@ -495,6 +500,7 @@ class BlockTree extends preact.Component {
             blockTreeUtils.traverseRecursively(placeholderBlock.__globalBlockTree.blocks[0].children,
                 ({_cref}) => BlockTrees.currentWebPage.registerBlockMouseListeners(_cref));
         }
+        this.currentAddBlockTarget = null;
         this.setState({treeState: treeState});
         //
         store.dispatch(pushItemToOpQueue(`append-${placeholderBlock.isStoredTo}-block`, {

@@ -12,7 +12,7 @@ if (($argc ?? 0) < 2) die(
 );
 
 define("SIVUJETTI_BACKEND_PATH", str_replace("\\", "/", __DIR__) . "/");
-define("SIVUJETTI_PUBLIC_PATH", dirname(SIVUJETTI_BACKEND_PATH) . "/");
+define("SIVUJETTI_INDEX_PATH", dirname(SIVUJETTI_BACKEND_PATH) . "/");
 define("SIVUJETTI_SITE_PATH", "");
 define("SIVUJETTI_PLUGINS_PATH", "");
 

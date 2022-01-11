@@ -55,12 +55,12 @@ final class BundleCmsToZipTest extends DbTestCase {
                 ":printFn" => function () { },
                 ":shellExecFn" => function ($cmd) {
                     $composerTmpPath = SIVUJETTI_BACKEND_PATH . "bundler-temp/";
-                    $npmTmpPath = SIVUJETTI_PUBLIC_PATH . "public/bundler-temp/public/sivujetti";
+                    $npmTmpPath = SIVUJETTI_INDEX_PATH . "public/bundler-temp/public/sivujetti";
                     if ($cmd === "composer install --no-dev --optimize-autoloader") {
                         mkdir("{$composerTmpPath}vendor", 0755);
                         foreach (self::FILES_GENERATED_BY_COMPOSER as $mockFilePath => $mockContents)
                             file_put_contents("{$composerTmpPath}{$mockFilePath}", $mockContents);
-                    } elseif ($cmd === "npm --prefix " . SIVUJETTI_PUBLIC_PATH . " run-script build -- " .
+                    } elseif ($cmd === "npm --prefix " . SIVUJETTI_INDEX_PATH . " run-script build -- " .
                                        "--configBundle all --configTargetRelDir public/bundler-temp/public/sivujetti/") {
                         foreach (self::FILES_GENERATED_BY_JS_BUNDLER as $mockFilePath => $mockContents)
                             file_put_contents("{$npmTmpPath}/{$mockFilePath}", $mockContents);
@@ -111,7 +111,7 @@ final class BundleCmsToZipTest extends DbTestCase {
     }
     private function verifyIncludedPublicFilesToZip(\TestState $state): void {
         $pkg = $this->openAndGetActualWrittenZip();
-        $base = SIVUJETTI_PUBLIC_PATH;
+        $base = SIVUJETTI_INDEX_PATH;
         // $indexPath/public/sivujetti/assets/*.*
         $expectedAssetFiles = require dirname(__DIR__) . "/assets/cms-index-asset-dir-files.php";
         $stripDirNs = Updater::makeRelatifier(Pkg::FILE_NS_INDEX);

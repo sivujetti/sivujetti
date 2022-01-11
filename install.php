@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
-define("SIVUJETTI_PUBLIC_PATH", str_replace("\\", "/", __DIR__) . "/");
-define("SIVUJETTI_BACKEND_PATH", SIVUJETTI_PUBLIC_PATH . "backend/");
+define("SIVUJETTI_INDEX_PATH", str_replace("\\", "/", __DIR__) . "/");
+define("SIVUJETTI_BACKEND_PATH", SIVUJETTI_INDEX_PATH . "backend/");
 
 // Do not edit below this line -------------------------------------------------
 

@@ -26,12 +26,12 @@ final class Updater {
      * @param \Pike\Db $db
      * @param \Pike\FileSystem $fs
      * @param string $targetBackendDirPath = SIVUJETTI_BACKEND_PATH Must end with "/", mainly used by tests
-     * @param string $targetIndexDirPath = SIVUJETTI_PUBLIC_PATH
+     * @param string $targetIndexDirPath = SIVUJETTI_INDEX_PATH
      */
     public function __construct(Db $db,
                                 FileSystem $fs,
                                 string $targetBackendDirPath = SIVUJETTI_BACKEND_PATH,
-                                string $targetIndexDirPath = SIVUJETTI_PUBLIC_PATH) {
+                                string $targetIndexDirPath = SIVUJETTI_INDEX_PATH) {
         $this->db = $db;
         $this->fs = $fs;
         $this->lastErrorDetails = "";

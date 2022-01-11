@@ -67,7 +67,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $state->installerApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function (Injector $di) use ($state) {
             $di->prepare(Commons::class, function (Commons $instance) use ($state) {
                 $instance->setTargetSitePaths(backendRelDirPath: "install-from-dir-test-backend/",
-                                              serverRootRelDirPath: "install-from-dir-test-root/");
+                                              serverIndexRelDirPath: "install-from-dir-test-root/");
                 $state->getTargetSitePath = fn($which = "site") => $instance->getTargetSitePath($which);
                 $state->getInstallerDb = fn() => $instance->getDb();
             });
@@ -129,12 +129,12 @@ final class InstallCmsFromDirTest extends DbTestCase {
     private function verifyCopiedUserThemePublicFiles(\TestState $state): void {
         $filesList = Updater::readSneakyJsonData(LocalDirPackage::LOCAL_NAME_INDEX_FILES_LIST,
                                                  $this->sitePackage);
-        $this->assertCopiedTheseFiles($state, $filesList, "serverRoot");
+        $this->assertCopiedTheseFiles($state, $filesList, "index");
     }
     private function verifyCreatedConfigFile(\TestState $state): void {
         $actualConfig = $this->_createConfig($state);
         $expectedBaseUrl = $state->inputArgs[3] ?? "/";
-        $this->assertStringEqualsFile("{$state->getTargetSitePath->__invoke("serverRoot")}config.php",
+        $this->assertStringEqualsFile("{$state->getTargetSitePath->__invoke("index")}config.php",
             "<?php\r\n" .
             "if (!defined('SIVUJETTI_BASE_URL')) {\r\n" .
             "    define('SIVUJETTI_BASE_URL',  '{$expectedBaseUrl}');\r\n" .
@@ -153,7 +153,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
     private function assertCopiedTheseFiles(\TestState $state, array $filesList, string $into = "site"): void {
         $a = fn($str) => SIVUJETTI_BACKEND_PATH . "installer/sample-content/basic-site/{$str}";
         $where = $state->getTargetSitePath->__invoke($into);
-        $where = $into !== "serverRoot" ? (dirname($where) . "/") : $where;
+        $where = $into !== "index" ? (dirname($where) . "/") : $where;
         $b = fn($str) => "{$where}{$str}";
         foreach ($filesList as $nsdRelFilePath) {
             $unPrefixified = str_replace([PackageStreamInterface::FILE_NS_BACKEND,
@@ -180,8 +180,8 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $dir = $state->getTargetSitePath->__invoke("backend");
         $this->fs->deleteFilesRecursive($dir, SIVUJETTI_BACKEND_PATH);
         // .../sivujetti/install-from-dir-test-root/
-        $dir2 = $state->getTargetSitePath->__invoke("serverRoot");
-        $this->fs->deleteFilesRecursive($dir2, SIVUJETTI_PUBLIC_PATH);
+        $dir2 = $state->getTargetSitePath->__invoke("index");
+        $this->fs->deleteFilesRecursive($dir2, SIVUJETTI_INDEX_PATH);
     }
     private function _createConfig(\TestState $state): array {
         $actualConfig = Controller::createConfigOrThrow($state->inputArgs, new MockCrypto);

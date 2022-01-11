@@ -10,7 +10,7 @@ final class UploadImageTest extends UploadsControllerTestCase {
         $state = $this->setupUploadImageTest();
         $this->makeTestSivujettiApp($state);
         $this->sendUploadImageRequest($state);
-        $this->verifyMovedUploadedFileTo(SIVUJETTI_PUBLIC_PATH . "public/uploads/" . self::TEST_FILE_NAME,
+        $this->verifyMovedUploadedFileTo(SIVUJETTI_INDEX_PATH . "public/uploads/" . self::TEST_FILE_NAME,
                                          $state);
         $this->verifyInsertedFileToDb(self::TEST_FILE_NAME);
     }
@@ -61,7 +61,7 @@ final class UploadImageTest extends UploadsControllerTestCase {
         $state->inputData->fileName = "myfile.png";
         $this->makeTestSivujettiApp($state);
         $this->sendUploadImageRequest($state);
-        $base = SIVUJETTI_PUBLIC_PATH . "public/uploads/";
+        $base = SIVUJETTI_INDEX_PATH . "public/uploads/";
         $this->verifyMovedUploadedFileTo("{$base}{$state->inputData->fileName}", $state);
         $this->verifyInsertedFileToDb($state->inputData->fileName);
     }

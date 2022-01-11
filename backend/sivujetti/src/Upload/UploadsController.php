@@ -46,7 +46,7 @@ final class UploadsController {
         }
         // @allow \Pike\PikeException
         $file = $uploader->upload($req->files->localFile,
-                                  SIVUJETTI_PUBLIC_PATH . "public/uploads",
+                                  SIVUJETTI_INDEX_PATH . "public/uploads",
                                   $req->body->fileName);
         $file->friendlyName = "";
         $file->createdAt = time();

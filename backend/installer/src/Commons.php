@@ -16,7 +16,7 @@ final class Commons {
     /** @var string Mainly for tests */
     private string $targetSiteBackendPath;
     /** @var string */
-    private string $targetSiteServerRoot;
+    private string $targetSiteIndexPath;
     /**
      * @param \Pike\FileSystem $fs
      */
@@ -24,14 +24,14 @@ final class Commons {
         self::checkEnvRequirementsAreMetOrDie();
         $this->fs = $fs;
         $this->targetSiteBackendPath = SIVUJETTI_BACKEND_PATH;
-        $this->targetSiteServerRoot = SIVUJETTI_PUBLIC_PATH;
+        $this->targetSiteIndexPath = SIVUJETTI_INDEX_PATH;
     }
     /**
      * @throws \Pike\PikeException
      */
     public function createTargetSiteDirs(): void {
         foreach (["{$this->targetSiteBackendPath}site/templates",
-                  "{$this->targetSiteServerRoot}public/uploads"] as $path) {
+                  "{$this->targetSiteIndexPath}public/uploads"] as $path) {
             if (!$this->fs->isDir($path) && !$this->fs->mkDir($path))
                 throw new PikeException("Failed to create `{$path}`",
                                         PikeException::FAILED_FS_OP);
@@ -96,7 +96,7 @@ final class Commons {
      */
     private function generateAndWriteConfigFile(array $config): void {
         if (!$this->fs->write(
-            "{$this->targetSiteServerRoot}config.php",
+            "{$this->targetSiteIndexPath}config.php",
 "<?php
 if (!defined('SIVUJETTI_BASE_URL')) {
     define('SIVUJETTI_BASE_URL',  '{$config["baseUrl"]}');
@@ -118,7 +118,7 @@ return [
     'db.charset'     => '{$config["db.charset"]}',") . "
 ];
 "
-        )) throw new PikeException("Failed to generate `{$this->targetSiteServerRoot}config.php`",
+        )) throw new PikeException("Failed to generate `{$this->targetSiteIndexPath}config.php`",
                                    PikeException::FAILED_FS_OP);
     }
     /**
@@ -127,24 +127,24 @@ return [
     public function getTargetSitePath(string $which = "site"): string {
         return match ($which) {
             "backend" => $this->targetSiteBackendPath,
-            "serverRoot" => $this->targetSiteServerRoot,
+            "index" => $this->targetSiteIndexPath,
             default => "{$this->targetSiteBackendPath}site/",
         };
     }
     /**
      * @param ?string $backendRelDirPath = SIVUJETTI_BACKEND_PATH
-     * @param ?string $serverRootRelDirPath = SIVUJETTI_PUBLIC_PATH
+     * @param ?string $serverIndexRelDirPath = SIVUJETTI_INDEX_PATH
      * @throws \Pike\PikeException If path is not valid
      */
     public function setTargetSitePaths(?string $backendRelDirPath = null,
-                                       ?string $serverRootRelDirPath = null): void {
+                                       ?string $serverIndexRelDirPath = null): void {
         if ($backendRelDirPath) {
             ValidationUtils::checkIfValidaPathOrThrow($backendRelDirPath);
             $this->targetSiteBackendPath = SIVUJETTI_BACKEND_PATH . $backendRelDirPath;
         }
-        if ($serverRootRelDirPath) {
-            ValidationUtils::checkIfValidaPathOrThrow($serverRootRelDirPath);
-            $this->targetSiteServerRoot = SIVUJETTI_PUBLIC_PATH . $serverRootRelDirPath;
+        if ($serverIndexRelDirPath) {
+            ValidationUtils::checkIfValidaPathOrThrow($serverIndexRelDirPath);
+            $this->targetSiteIndexPath = SIVUJETTI_INDEX_PATH . $serverIndexRelDirPath;
         }
     }
     /**
@@ -175,7 +175,7 @@ return [
     private function writePublicFiles(PackageStreamInterface $package): void {
         $localFileNames = Updater::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_INDEX_FILES_LIST,
                                                       $package);
-        $package->extractMany($this->targetSiteServerRoot, $localFileNames, PackageStreamInterface::FILE_NS_INDEX);
+        $package->extractMany($this->targetSiteIndexPath, $localFileNames, PackageStreamInterface::FILE_NS_INDEX);
     }
     /**
      * @param array $statements

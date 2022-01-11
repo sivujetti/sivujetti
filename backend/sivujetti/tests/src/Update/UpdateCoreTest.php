@@ -11,8 +11,8 @@ use Sivujetti\Update\{PackageStreamInterface, Updater, ZipPackageStream};
 final class UpdateCoreTest extends DbTestCase {
     use HttpTestUtils;
     use HttpApiTestTrait;
-    private const CMS_CLONE_BACKEND_PATH = SIVUJETTI_PUBLIC_PATH . "cms-clone-tmp/backend";
-    private const CMS_CLONE_INDEX_PATH = SIVUJETTI_PUBLIC_PATH . "cms-clone-tmp";
+    private const CMS_CLONE_BACKEND_PATH = SIVUJETTI_INDEX_PATH . "cms-clone-tmp/backend";
+    private const CMS_CLONE_INDEX_PATH = SIVUJETTI_INDEX_PATH . "cms-clone-tmp";
     private FileSystem $fs;
     protected function setUp(): void {
         parent::setUp();
@@ -22,8 +22,11 @@ final class UpdateCoreTest extends DbTestCase {
     protected function tearDown(): void {
         parent::tearDown();
         $this->fs->deleteFilesRecursive(self::CMS_CLONE_INDEX_PATH,
-                                        SIVUJETTI_PUBLIC_PATH);
+                                        SIVUJETTI_INDEX_PATH);
     }
+    /**
+     * @group intensives
+     */
     public function testUpdateCoreUpdatesCms(): void {
         $state = $this->setupTest();
         $this->writeTestUpdateZip($state);

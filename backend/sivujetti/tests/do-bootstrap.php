@@ -15,7 +15,7 @@ return function (?string $testSitePath = null,
                  ?string $testPluginsPath = null,
                  ?\Closure $alterPsr4Loader = null) {
     define("SIVUJETTI_BACKEND_PATH", str_replace("\\", "/", dirname(__DIR__, 2)) . "/");
-    define("SIVUJETTI_PUBLIC_PATH", str_replace("\\", "/", dirname(SIVUJETTI_BACKEND_PATH)) . "/");
+    define("SIVUJETTI_INDEX_PATH", str_replace("\\", "/", dirname(SIVUJETTI_BACKEND_PATH)) . "/");
     define("SIVUJETTI_SITE_PATH", $testSitePath ?? (__DIR__ . "/test-site/"));
     define("SIVUJETTI_PLUGINS_PATH", $testPluginsPath ?? (SIVUJETTI_BACKEND_PATH . "plugins/"));
 

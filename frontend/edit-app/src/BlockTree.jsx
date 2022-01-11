@@ -503,13 +503,7 @@ class BlockTree extends preact.Component {
         this.currentAddBlockTarget = null;
         this.setState({treeState: treeState});
         //
-        store.dispatch(pushItemToOpQueue(`append-${placeholderBlock.isStoredTo}-block`, {
-            doHandle: this.props.onChangesApplied,
-            doUndo(_$tree, _$blockIsStoredTo, _$blockTreeId, $block, $this) {
-                $this.cancelAddBlock($block);
-            },
-            args: [this.getTreeFor(placeholderBlock), placeholderBlock.isStoredTo, placeholderBlock.globalBlockTreeId || null, placeholderBlock, this],
-        }));
+        this.pushCommitChangesOp(placeholderBlock);
     }
     /**
      * @param {Block} placeholderBlock
@@ -636,8 +630,14 @@ class BlockTree extends preact.Component {
             state.treeState[newBlock.id].isNew = false;
             return state;
         }, initialText).then(newBlock => {
-            if (autoFocus)
-                this.emitItemClickedOrAppendedSignal('focus-requested', newBlock, null);
+            this.pushCommitChangesOp(newBlock);
+            if (autoFocus) this.emitItemClickedOrAppendedSignal(
+                'focus-requested',
+                newBlock,
+                block.isStoredTo !== 'globalBlockTree' ? null : blockTreeUtils.findRecursively(this.state.blockTree, sb =>
+                    sb.type === 'GlobalBlockReference' && sb.globalBlockTreeId === block.globalBlockTreeId
+                )
+            );
         });
     }
     /**
@@ -663,6 +663,19 @@ class BlockTree extends preact.Component {
         );
         const at = branch.indexOf(block);
         return [branch, at > 0 ? this.getAfter(branch, block, at) : parent];
+    }
+    /**
+     * @param {Block} block
+     * @access private
+     */
+    pushCommitChangesOp(block) {
+        store.dispatch(pushItemToOpQueue(`append-${block.isStoredTo}-block`, {
+            doHandle: this.props.onChangesApplied,
+            doUndo(_$tree, _$blockIsStoredTo, _$blockTreeId, $block, $this) {
+                $this.cancelAddBlock($block);
+            },
+            args: [this.getTreeFor(block), block.isStoredTo, block.globalBlockTreeId || null, block, this],
+        }));
     }
 }
 

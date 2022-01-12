@@ -282,7 +282,7 @@ class BlockTree extends preact.Component {
                 onClick={ this.showBlockTreeHelpPopup.bind(this) }
                 class="btn btn-link p-absolute btn-sm"
                 type="button"
-                style="right: 0; top: .4rem">
+                style="right: 0;top: 0;padding-top: .24rem;">
                 <Icon iconId="info-circle" className="size-xs"/>
             </button></div>
             <ul class="block-tree" data-sort-group-id="r">{

@@ -22,7 +22,7 @@ Structure:
     --color-fg-dimmed: rgba(var(--components-color-fb-default),.75);
     --color-fg-dimmed2: #1c125a;
     --color-fg-input: var(--color-fg-default);
-    --border-tree-guide: 1px dotted rgba(121, 125, 136, .56);
+    --border-tree-guide: 1px dotted rgba(var(--components-color-fb-default),.4);
     --border-dashed-box: 1px dashed rgba(0,0,0,0.2);
     --color-input-border: #e1e4e8;
     --color-blue: #2196f3;
@@ -204,7 +204,7 @@ h2 {
 }
 .inspector-panel-open #inspector-panel {
     animation-name: adjust-inspector-panel;
-    z-index: initial;
+    z-index: 1;
 }
 #sivujetti-site-iframe {
     position: absolute;
@@ -448,59 +448,32 @@ a.popup-close-area {
 
 
 /* EditApp: Main panel > Block tree */
+.block-tree, .block-tree ul:not(.dashed ul) {
+    list-style: none;
+    margin: 0 0 0 .8rem;
+}
 .block-tree {
     margin: 0;
 }
-.block-tree, .block-tree ul {
-    list-style: none;
-    margin-top: .2rem;
-}
-.block-tree ul ul {
-    margin: .2rem 0 0 .7rem;
-}
-.block-tree li ul {
-    margin-bottom: .3rem !important;
-}
-.block-tree li {
-    margin: 0;
-    position: relative;
-    border-left: var(--border-tree-guide);
-}
-.block-tree li.collapsed {
-    /* : .9rem (line-height) + .4rem (padding * 2) + .2rem (?) + 2px (border  * 2) -> ~1.6rem */
-    max-height: 1.6rem;
-    overflow: hidden;
-}
-.block-tree li.dragging {
-    display: inline-block;
-    opacity: .5;
+.block-tree ul:not(.dashed ul) {
+    margin: 0 0 0 .7rem;
 }
 .block-tree li.collapsed ul {
     display: none;
 }
-.block-tree > li {
-    border: 1px solid transparent;
-    margin-left: -.4rem;
-    border-left: none;
-    border-radius: 3px;
-    margin-bottom: .2rem;
+.block-tree li {
+    margin: 0;
 }
-.block-tree > li[data-block-type="PageInfo"] {
+.block-tree li.dragging {
+    opacity: .5;
+}
+.block-tree li[data-block-type="PageInfo"] {
     background-color: var(--color-bg-meta-block);
 }
 .block-tree li.globalBlockTree-block {
     background-color: var(--color-bg-global-block);
 }
-.block-tree li button {
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--color-fg-default);
-    padding: .2rem;
-    margin-left: .4rem;
-    position: relative;
-    border-radius: 4px;
-    font-weight: 300;
-}
+
 .block-tree li .block-handle .icon-tabler {
     color: var(--color-icon-normal-block);
 }
@@ -509,47 +482,70 @@ a.popup-close-area {
 }
 .block-tree li.globalBlockTree-block .block-handle .icon-tabler {
     color: var(--color-icon-global-block);
+    border-radius: 3px;
 }
-.block-tree li.maybe-drop-before:before,
-.block-tree li.maybe-drop-after:before,
-.block-tree li.maybe-drop-as-child:after {
-    background-color: var(--color-drop-indicator);
+
+.block-tree button {
+    background: transparent;
+    border: 1px solid transparent;
+    font-weight: 300;
+}
+.block-tree .toggle {
+    padding: .24rem 0 0 .24rem;
+    cursor: pointer;
+    z-index: 1;
+}
+.block-tree .block-handle {
+    margin-left: 0;
+    padding: .24rem .24rem .24rem .44rem;
+}
+.block-tree li.maybe-drop-before > .d-flex > .block-handle {
+    border-top-color:  var(--color-drop-indicator);
+}
+.block-tree li.maybe-drop-as-child > .d-flex > .block-handle {
+    border-color:  var(--color-drop-indicator);
+}
+.block-tree li.maybe-drop-after > .d-flex > .block-handle {
+    border-bottom-color:  var(--color-drop-indicator);
+}
+.block-tree .block-handle:before {
     content: "";
-    height: 1px;
-    width: calc(100% - .4rem);
+    border-top: var(--border-tree-guide);
+    width: .3rem;
     position: absolute;
-    left: .2rem;
+    top: 50%;
+    left: 1px;
 }
-.block-tree li.maybe-drop-after:before {
-    margin-top: -1px;
-    top: 100%;
+.block-tree > li > .d-flex .block-handle:before,
+.block-tree li.collapsed .block-handle:before,
+.block-tree ul > li.with-children:not(.collapsed) + li.with-children:not(.collapsed) > .d-flex .block-handle:before {
+    content: initial;
 }
-.block-tree li.maybe-drop-as-child:after {
-    background-color: transparent;
-    border: 1px solid var(--color-drop-indicator);
-    height: 100%;
-    top: 0;
-    border-radius: 2px;
-    opacity: 0.8;
+.block-tree li.with-children > .d-flex > .block-handle:before {
+    left: -1rem;
+    width: .2rem
 }
-.block-tree li > button:hover {
-    background: #0000000d;
+
+.block-tree li > .d-flex {
+    position: relative;
+    z-index: 0;
 }
-.block-tree li.selected > div > .block-handle {
+.block-tree li.selected > .d-flex {
     background: var(--color-bg-selected-normal-block);
 }
-.block-tree li.globalBlockTree-block.selected > div > .block-handle {
+.block-tree li.globalBlockTree-block.selected > .d-flex {
     background: var(--color-bg-selected-global-block);
 }
-.block-tree li[data-block-type="PageInfo"].selected .block-handle {
+.block-tree li[data-block-type="PageInfo"].selected > .d-flex {
     background: var(--color-bg-selected-meta-block);
 }
-.block-tree li.with-children > div > .block-handle {
-    margin-left: 1.5rem;
-}
+
 .block-tree .more-toggle {
     opacity: 0;
     transition: opacity .125s ease-out;
+    top: 2px;
+    position: relative;
+    left: -.2rem;
 }
 .block-tree .block-handle:hover + .more-toggle,
 .block-tree .block-handle:focus + .more-toggle,
@@ -558,34 +554,38 @@ a.popup-close-area {
 .block-tree .more-toggle.opened {
     opacity: 1;
 }
-.block-tree ul li > .d-flex > .block-handle:before {
-    content: "";
-    position: absolute;
-    border-top: var(--border-tree-guide);
-    width: 10px;
-    left: -.4rem;
-    top: 50%;
+.block-tree li.with-children > .d-flex > button {
+    position: relative;
+    left: 1rem;
+    z-index: 1;
 }
-.block-tree ul > li:last-of-type .block-handle:after {
-    content: "";
-    position: absolute;
-    background-color: var(--color-bg-dimmed);
-    width: 1px;
-    height: 50%;
-    left: -9px;
-    bottom: 0;
+.block-tree li.with-children > .d-flex > .more-toggle {
+    left: .8rem;
 }
-.block-tree li > button > .icon-tabler {
-    transition: transform linear .1s;
-}
-.block-tree li.collapsed > button > .icon-tabler {
-    transform: rotate(-90deg);
-}
-.block-tree .dashed .tab-item {
+
+.block-tree ul > li.with-children:not(.collapsed):not(:last-child) > .d-flex {
     border-left: none;
 }
-.block-tree .dashed .tab-item a {
-    color: var(--color-fg-dimmed);
+.block-tree ul > li.with-children:not(.collapsed) + li.with-children:not(.collapsed) > .d-flex:before {
+    content: initial;
+}
+li.with-children > ul > li > .d-flex {
+    border-left: var(--border-tree-guide);
+}
+li.with-children > ul > li:last-of-type > .d-flex {
+    border-color: transparent;
+}
+.block-tree ul > li.with-children:not(.collapsed):not(:last-child) > .d-flex:before,
+li.with-children > ul > li:last-of-type > .d-flex:before {
+    content: "";
+    border-left: var(--border-tree-guide);
+    height: 50%;
+    width: 1px;
+    position: absolute;
+    margin-left: -1px;
+}
+.block-tree ul > li.with-children:not(.collapsed):not(:last-child) > .d-flex:before {
+    margin-left: 0;
 }
 
 /* EditApp: Inspector panel */

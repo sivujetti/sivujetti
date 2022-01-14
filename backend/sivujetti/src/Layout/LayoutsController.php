@@ -30,7 +30,7 @@ final class LayoutsController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Sivujetti\Layout\LayoutRepository $layoutsRepo
+     * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
      */
     public function updateLayoutStructure(Request $req,
                                           Response $res,

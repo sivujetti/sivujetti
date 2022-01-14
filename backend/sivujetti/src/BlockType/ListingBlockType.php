@@ -31,7 +31,7 @@ class ListingBlockType implements BlockTypeInterface, ListeningBlockTypeInterfac
     /**
      * @param \Sivujetti\Block\Entities\Block $block
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
-     * @param \Sivujetti\TheWebsite $theWebsite
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
     */
     public function doPerformBeforeRender(Block $block,
                                           PagesRepository $pagesRepo,

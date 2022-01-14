@@ -37,7 +37,7 @@ final class SharedAPIContext {
     }
     /**
      * @param string $eventName
-     * @param mixed[] ...$args
+     * @param mixed ...$args
      */
     public function triggerEvent(string $eventName, mixed ...$args): void {
         foreach ($this->eventListeners[$eventName] ?? [] as $fn)

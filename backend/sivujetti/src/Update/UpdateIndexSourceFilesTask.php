@@ -16,10 +16,10 @@ final class UpdateIndexSourceFilesTask implements UpdateProcessTaskInterface {
     /** @var string[] */
     private array $fileContentsBefore;
     /**
-     * @var \Sivujetti\Update\ZipPackageStream $zip
-     * @var \Pike\FileSystem $fs
-     * @var string[] $nsdRelFilePaths e.g ["$index/install.php"]
-     * @var string $targetDirPath e.g. "/var/www/html/"
+     * @param \Sivujetti\Update\ZipPackageStream $zip
+     * @param \Pike\FileSystem $fs
+     * @param string[] $nsdRelFilePaths e.g ["$index/install.php"]
+     * @param string $targetDirPath e.g. "/var/www/html/"
      */
     function __construct(ZipPackageStream $zip,
                          FileSystem $fs,

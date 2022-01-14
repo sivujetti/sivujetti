@@ -130,7 +130,7 @@ final class Updater {
     /**
      * @param string $toVersion
      * @param string $currentVersion
-     * @return ["<validVersionNumber>", null] or [null, "Error message"]
+     * @return array ["<validVersionNumber>", null] or [null, "Error message"]
      */
     private static function getValidToVersion(string $toVersion,
                                               string $currentVersion): array {
@@ -148,8 +148,8 @@ final class Updater {
         return [$validToVersion, null];
     }
     /**
-     * @return string $candidate
-     * @return string "<validVersionNumber>" or null
+     * @param int $flags = 0
+     * @return ?string "<validVersionNumber>" or null
      */
     private static function getValidVersionNumberOrNull(string $candidate): ?string {
         $trimmed = trim($candidate);

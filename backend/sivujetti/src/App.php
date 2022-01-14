@@ -26,7 +26,7 @@ use Sivujetti\Update\UpdatesModule;
 use Sivujetti\Upload\UploadsModule;
 
 final class App {
-    public const VERSION = "0.7.0-dev";
+    public const VERSION = "0.7.0";
     /** @var ?\Auryn\Injector */
     public static ?Injector $di;
     /** @var \Sivujetti\AppContext */
@@ -164,7 +164,7 @@ final class App {
     /**
      */
     private function loadSite(): void {
-        $this->ctx->sivujettiSite = $this->instantiatePluginOrSite(null);
+        $this->ctx->userSite = $this->instantiatePluginOrSite(null);
     }
     /**
      */

@@ -2,6 +2,20 @@
 
 ...
 
+# 0.7.0 (2021-01-14)
+
+## Added
+- Initial support for undoing stuff
+- Columns block type
+- Authentication
+
+## Fixed
+- Bugs
+
+## Changed
+- The icon library ([Feather](https://feathericons.com/) > [Tabler](https://tablericons.com/))
+- Blocks now have a color that indicates where their data is stored
+
 # 0.6.0 (2021-12-01)
 
 ## Added

@@ -5,8 +5,8 @@ class BlockTreeDragDrop {
     // onDropped;
     // startEl;
     // startElDropGroup;
-    // startLiIndex;
     // curDropTypeCandidate;
+    // startLiDivRect;
     /**
      * @param {BlockTree} blockTree
      * @param {(mutatedBlockTree: Array<Block>, dragBlock: Block, dropBlock: Block, dropInfo: {dropPosition: 'before'|'after'|'as-child'; dragBlockBranchBefore: Array<Block>;}) => void} onDropped
@@ -23,7 +23,7 @@ class BlockTreeDragDrop {
         this.startEl = e.target;
         this.startElDropGroup = this.startEl.getAttribute('data-drop-group');
         this.startEl.classList.add('dragging');
-        this.startLiIndex = this.getLiIndex(this.startEl);
+        this.startLiDivRect = this.startEl.querySelector('.d-flex').getBoundingClientRect();
         this.curDropTypeCandidate = {dropPosition: 'self', dragDirection: null, el: null};
     }
     /**
@@ -34,8 +34,12 @@ class BlockTreeDragDrop {
         const li = e.target.nodeName === 'LI' ? e.target : e.target.closest('li');
         if (!li)
             return;
+        const div = li.querySelector('.d-flex');
+        if (!div)
+            return;
         //
-        const distance = this.getLiIndex(li) - this.startLiIndex;
+        const rect = div.getBoundingClientRect();
+        const distance = this.getDistance(rect);
         if (distance === 0 && this.curDropTypeCandidate.el === li)
             return;
         // Enable handleDraggableDropped (developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/Drag_operations#specifying_drop_targets)
@@ -43,26 +47,25 @@ class BlockTreeDragDrop {
         //
         const newCandidate = {dropPosition: null, dragDirection: null, el: li};
         const edge = 10;
-        const rect = newCandidate.el.getBoundingClientRect();
         //
         if (distance !== 0) {
             /*
                        ___________________________
-                  /   |            10             |  <- First if
+                  /   |            10             |  <- Last if
                  |    | ------------------------- |
                 /     .                           .
             30 -      |            20             |  <- Second if
                 \     .                           .
                  |    | _________________________ |
-                  \   |            10             | <- Last if
+                  \   |            10             | <- First if
                       `---------------------------`
             */
-            if (e.clientY < rect.top + edge) {
-                newCandidate.dropPosition = distance !== 1 ? 'before' : 'as-child';
-            } else if (e.clientY > rect.top + edge && e.clientY < rect.top + rect.height - edge) {
-                newCandidate.dropPosition = 'as-child';
-            } else if (e.clientY > this.getCenter(rect)) {
+            if (e.clientY > rect.top + rect.height - edge) {
                 newCandidate.dropPosition = distance !== -1 ? 'after' : 'as-child';
+            } else if (e.clientY > rect.top + edge) {
+                newCandidate.dropPosition = 'as-child';
+            } else { // if (e.clientY > rect.top) {
+                newCandidate.dropPosition = distance !== 1 ? 'before' : 'as-child';
             }
         } else {
             newCandidate.dropPosition = 'self';
@@ -97,7 +100,7 @@ class BlockTreeDragDrop {
             this.curDropTypeCandidate.el.getAttribute('data-block-id'),
             dropBlockTree
         );
-        if (dragBranch !== dropBranch) {
+        if (dragBranch !== dropBranch && this.curDropTypeCandidate.dropPosition !== 'as-child') {
             this.curDropTypeCandidate = null;
             alert('Swap between arrays not implemented yet, please reload page');
             return;
@@ -140,12 +143,14 @@ class BlockTreeDragDrop {
         this.clearDragEl();
     }
     /**
-     * https://stackoverflow.com/a/23528539
-     * @param {HTMLElement} el
+     * @param {ClientRect} toRect
+     * @returns {Number}
      * @access private
      */
-    getLiIndex(el) {
-        return Array.prototype.indexOf.call(el.parentElement.children, el);
+    getDistance(toRect) {
+        const {top, height} = this.startLiDivRect;
+        const diff = toRect.top - top;
+        return diff / height;
     }
     /**
      * @param {DOMRect} rect

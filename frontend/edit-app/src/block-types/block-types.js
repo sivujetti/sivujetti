@@ -6,15 +6,18 @@ const storage = new Map;
 const blockTypes = {
     /**
      * @param {String} name
-     * @returns {BlockType|(...any) => BlockType|undefined}
+     * @returns {BlockType|(...any) => BlockType}
      * @access public
      */
     get(name) {
-        return storage.get(name);
+        const out = storage.get(name);
+        if (!out)
+            throw new Error(`Block type \`${name}\` not registered.`);
+        return out;
     },
     /**
      * @param {String} name
-     * @param {BlockType|(...any) => BlockType}
+     * @param {BlockType|(...any) => BlockType} blockTypeOrFactory
      * @access public
      */
     register(name, blockTypeOrFactory) {

@@ -103,7 +103,7 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default') {
             "title": "",
             "renderer": "sivujetti:block-auto",
             "id": '-Me3jYWcEOlLTgJhzqL8',
-            "children": testBlocksBundle === 'withNestedBlock' ? [{
+            "children": testBlocksBundle.startsWith('withNestedBlock') ? [{
                 "type": "Paragraph",
                 "title": "",
                 "renderer": "sivujetti:block-auto",
@@ -157,17 +157,23 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default') {
             "blocks": testBlocks.slice(0),
         },
     }] : []));
+    //
+    if (testBlocksBundle === 'withNestedBlockReversed')
+        pageBlocks[1].children = pageBlocks[1].children.reverse();
+    //
     document.getElementById('mock-page-container-el').innerHTML =
         blockUtils.decorateWithRef(pageBlocks[0],
             '<!-- PageInfo dummy -->'
         ) +
-        renderBlock(pageBlocks[1],
-            renderBlock(pageBlocks[1].children[0],
+        renderBlock(pageBlocks[1], // Section
+            renderBlock(pageBlocks[1].children[0], // Heading or Paragraph
                 (testBlocksBundle === 'withNestedBlock'
                     ? renderBlock(pageBlocks[1].children[0].children[0])
-                    : '')
-            + '</h2>') +
-            renderBlock(pageBlocks[1].children[1])
+                    : '')) +
+            renderBlock(pageBlocks[1].children[1], // Heading or Paragraph
+                (testBlocksBundle === 'withNestedBlockReversed'
+                    ? renderBlock(pageBlocks[1].children[1].children[0])
+                    : ''))
         ) +
         (testBlocksBundle === 'withGlobalBlockReference'
             ? blockUtils.decorateWithRef(pageBlocks[2],

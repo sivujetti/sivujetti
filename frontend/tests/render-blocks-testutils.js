@@ -67,18 +67,19 @@ function clickContextMenuLink(s, linkId, treeItemSelector = null) {
 /**
  * @param {any} s
  * @param {'downwards'|'upwards'} direction
- * @param {'as-child'} t = null
+ * @param {'as-child'?} t = null
+ * @param {HTMLLIElement?} otherBlockLiEl = null
  * @returns {Promise<void>}
  */
-function simulateDragBlock(s, direction, t = null) {
+function simulateDragBlock(s, direction, t = null, otherBlockLiEl = null) {
     const simulateDragStarted = liEl => {
         const fakeDragStartEvent = {target: liEl};
         s.blockTreesCmp.blockTree.current.dragDrop.handleDragStarted(fakeDragStartEvent);
     };
     const simulateDraggedOver = (liEl, simulatedMousePosition) => {
         const fakeDragOverEvent = {target: liEl,
-                                    clientY: simulatedMousePosition,
-                                    preventDefault: () => null};
+                                   clientY: simulatedMousePosition,
+                                   preventDefault: () => null};
         s.blockTreesCmp.blockTree.current.dragDrop.handleDraggedOver(fakeDragOverEvent);
     };
     const simulateDropped = () => {
@@ -86,29 +87,38 @@ function simulateDragBlock(s, direction, t = null) {
     };
     return new Promise(resolve => {
         const lis = document.querySelectorAll('.block-tree li');
-        const paragraphBlockLi = lis[lis.length - 1];
-        const headingBlockLi = lis[lis.length - 2];
         //
         if (direction === 'upwards') {
-            simulateDragStarted(paragraphBlockLi);
+            const dragBlockLi = lis[lis.length - 1];
+            const otherBlockLi = lis[lis.length - 2];
+            simulateDragStarted(dragBlockLi);
             if (t !== 'as-child')
-                simulateDraggedOver(headingBlockLi,
+                simulateDraggedOver(otherBlockLi,
                                     // Simulate that mouse is above target li's center
                                     -Infinity);
             else
-                simulateDraggedOver(headingBlockLi,
+                simulateDraggedOver(otherBlockLi,
                                     // Simulate that mouse is below target li's bottom treshold
                                     Infinity);
         } else {
-            simulateDragStarted(headingBlockLi);
+            const dragBlockLi = !otherBlockLiEl ? lis[lis.length - 2] : lis[lis.length - 3];
+            const otherBlockLi = otherBlockLiEl || lis[lis.length - 1];
+            //
+            const edge = 10;
+            const treshold = !otherBlockLiEl
+                ? -Infinity
+                : otherBlockLi.querySelector('.d-flex').getBoundingClientRect().top + edge + 2;
+            //
+            simulateDragStarted(dragBlockLi);
             if (t !== 'as-child')
-                simulateDraggedOver(paragraphBlockLi,
+                simulateDraggedOver(otherBlockLi,
                                     // Simulate that mouse is below target li's center
                                     Infinity);
             else
-                simulateDraggedOver(paragraphBlockLi,
-                                    // Simulate that mouse is above target li's top treshold
-                                    -Infinity);
+                simulateDraggedOver(otherBlockLi,
+                                    // Simulate that mouse is above target li's center treshold
+                                    // and below its "above" treshold
+                                    treshold);
         }
         simulateDropped();
         resolve();

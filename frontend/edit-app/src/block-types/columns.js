@@ -61,7 +61,6 @@ class ColumnsBlockEditForm extends preact.Component {
                         onClick={ this.emitSetFullWidth.bind(this) }
                         checked={ takeFullWidth }
                         type="checkbox"
-                        id="fullWidth"
                         class="form-input"/><i class="form-icon"></i>
                 </label>
             </FormGroupInline>

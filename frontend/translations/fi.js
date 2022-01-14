@@ -1,4 +1,5 @@
 import stringBundles from '@sivujetti-string-bundles';
+import validationStrings from './include-internal/validation.fi.js';
 
 stringBundles.push({
     // edit-app/src/AddPageMainPanelView.jsx
@@ -97,7 +98,6 @@ stringBundles.push({
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metatiedot',
     'Url (slug)': 'Urli (slug)',
-    ' contains forbidden characters': ' sisältää kiellettyjä merkkejä',
     // edit-app/src/block-types/paragraph.js
     'Paragraph': 'Tekstikappale',
     'Paragraph text': 'Tekstikappaleen teksti',
@@ -123,12 +123,4 @@ stringBundles.push({
     'Search': 'Hae',
     'No results for "%s"': 'Ei tuloksia hakusanalla "%s"',
     'No uploads yet': 'Ei vielä latauksia',
-    //
-    required: '{field} vaaditaan',
-    minLength: '{field} tulee olla vähintään {arg0} merkkiä pitkä',
-    maxLength: '{field} tulee olla enintään {arg0} merkkiä pitkä',
-    min: '{field} tulee olla vähintään {arg0}',
-    max: '{field} tulee olla enintään {arg0}',
-    notIn: '{field} on jo käytössä',
-    regexp: ' ei kelpaa',
-});
+}, validationStrings);

@@ -45,7 +45,7 @@ class UploadButton extends preact.Component {
                 <InputGroup classes={ this.state.classes.fileName }>
                     <label htmlFor="fileName" class="form-label">{ __('File name') }</label>
                     <Input vm={ this } name="fileName" id="fileName" errorLabel={ __('File name') }
-                        validations={ [['regexp', '^[^/]*$', __(' is not valid')], ['maxLength', 255]] }/>
+                        validations={ [['regexp', '^[^/]*$'], ['maxLength', 255]] }/>
                     <InputError error={ this.state.errors.fileName }/>
                 </InputGroup>,
                 <div class="form-buttons mt-8">

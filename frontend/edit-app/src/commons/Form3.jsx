@@ -6,7 +6,7 @@ const validatorImplFactories = {
     'maxLength': () => ({doValidate: (value, max) => value.length <= max, errorMessageTmpl: __('maxLength')}),
     'min':       () => ({doValidate: (value, min) => value >= min, errorMessageTmpl: __('min')}),
     'max':       () => ({doValidate: (value, max) => value <= max, errorMessageTmpl: __('max')}),
-    'regexp':    () => ({doValidate: (value, pattern) => (new RegExp(pattern)).test(value), errorMessageTmpl: __('{field} contains forbidden characters')}),
+    'regexp':    () => ({doValidate: (value, pattern) => (new RegExp(pattern)).test(value), errorMessageTmpl: __('regexp')}),
 };
 
 /**
@@ -171,7 +171,16 @@ class InputErrors extends preact.Component {
      */
     render({vm, prop}) {
         const errors = vm.state.errors[prop];
-        return !errors.length ? null : <span>{ errors.map(({message}) => <span>{ message }</span>) }</span>;
+        const lastIdx = errors.length - 1;
+        return lastIdx < 0
+            ? null
+            : <span class="has-error mt-1 d-inline-block">{
+                errors.map(({message}, i) =>
+                    <span class={ `form-input-hint${i !== lastIdx ? ' mr-1' : ''}` }>
+                        { message }
+                    </span>
+                )
+            }</span>;
     }
 }
 

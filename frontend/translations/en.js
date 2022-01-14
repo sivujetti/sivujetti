@@ -1,4 +1,5 @@
 import stringBundles from '@sivujetti-string-bundles';
+import validationStrings from './include-internal/validation.en.js';
 
 stringBundles.push({
     // edit-app/src/AddPageMainPanelView.jsx
@@ -97,7 +98,6 @@ stringBundles.push({
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metadata',
     'Url (slug)': 'Url (slug)',
-    ' contains forbidden characters': ' contains forbidden characters',
     // edit-app/src/block-types/paragraph.js
     'Paragraph': 'Paragraph',
     'Paragraph text': 'Paragraph text',
@@ -123,12 +123,4 @@ stringBundles.push({
     'Search': 'Search',
     'No results for "%s"': 'No results for "%s"',
     'No uploads yet': 'No uploads yet',
-    //
-    required: '{field} is required',
-    minLength: '{field} must be at least {arg0} characters long',
-    maxLength: '{field} must be {arg0} characters long or less',
-    min: '{field} must be {arg0} or greater',
-    max: '{field} must be {arg0} or less',
-    notIn: '{field} is already used',
-    regexp: ' is not valid',
-});
+}, validationStrings);

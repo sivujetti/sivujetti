@@ -44,7 +44,7 @@ class PageInfoBlockEditForm extends preact.Component {
             {name: 'title', value: snapshot.title, validations: [['required'], ['maxLength', 92]],
              label: __('Page title'), onAfterValueChanged: (value, hasErrors) => {
                 onValueChanged(value, 'title', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'slug', value: snapshot.slug, validations: [['required'], ['maxLength', 92], ['regexp', '^/[a-zA-Z0-9_\\-$.+!*\'():,]*$', __(' contains forbidden characters')]],
+            {name: 'slug', value: snapshot.slug, validations: [['required'], ['maxLength', 92], ['regexp', '^/[a-zA-Z0-9_\\-$.+!*\'():,]*$']],
              label: __('Url (slug)'), onAfterValueChanged: (value, hasErrors) => {
                  onValueChanged(value, 'slug', hasErrors, env.normalTypingDebounceMillis); }},
         ], {

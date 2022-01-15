@@ -1,5 +1,5 @@
 /*
-An entry point for global file sivujetti-commons.js
+An entry point for global file sivujetti-commons-for-web-pages.js
 */
 import Http from './src/Http.js';
 import {urlUtils} from './src/utils.js';

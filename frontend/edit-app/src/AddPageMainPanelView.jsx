@@ -1,4 +1,4 @@
-import {__, http, urlUtils, signals, env} from './commons/main.js';
+import {__, http, urlUtils, signals, env} from '@sivujetti-commons-for-edit-app';
 import {InputGroupInline} from './commons/Form.jsx';
 import toasters from './commons/Toaster.jsx';
 import BlockTrees from './BlockTrees.jsx';

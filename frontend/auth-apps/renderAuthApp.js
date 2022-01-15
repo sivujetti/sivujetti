@@ -1,4 +1,4 @@
-import {translator} from '../edit-app/src/commons/main.js';
+import {translator} from '@sivujetti-commons-for-edit-app';
 import LoginApp from './LoginApp.jsx';
 
 /**

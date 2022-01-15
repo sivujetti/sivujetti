@@ -1,4 +1,4 @@
-import {__, http, env} from '../commons/main.js';
+import {__, http, env} from '@sivujetti-commons-for-edit-app';
 import {hookForm, InputError, InputGroup, Input} from '../commons/Form.jsx';
 import Icon from '../commons/Icon.jsx';
 import toasters, {Toaster} from '../commons/Toaster.jsx';

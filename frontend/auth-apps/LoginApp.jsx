@@ -1,5 +1,4 @@
-import {http, __, env, urlUtils} from '../edit-app/src/commons/main.js';
-import hookForm, {hasErrors, validateAll, Input, InputErrors, FormGroup} from '../edit-app/src/commons/Form3.jsx';
+import {http, __, env, urlUtils, hookForm, hasErrors, validateAll, Input, InputErrors, FormGroup} from '@sivujetti-commons-for-edit-app';
 
 /**
  * Renders a login form.

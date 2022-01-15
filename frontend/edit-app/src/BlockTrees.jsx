@@ -1,4 +1,4 @@
-import {__, http} from './commons/main.js';
+import {__, http} from '@sivujetti-commons-for-edit-app';
 import Icon from './commons/Icon.jsx';
 import toasters from './commons/Toaster.jsx';
 import BlockTree from './BlockTree.jsx';

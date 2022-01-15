@@ -1,7 +1,7 @@
-import {__} from '../../../../../frontend/edit-app/src/commons/main.js';
-import createListingBlockType from '../../../../../frontend/edit-app/src/block-types/listing.js';
+import {__} from '@sivujetti-commons-for-edit-app';
+import createListingBlockTypeCreator from '../../../../../frontend/edit-app/src/block-types/listing.js';
 
-window.sivujetti.blockTypes.register('ServicesListing', createListingBlockType({
+window.sivujetti.blockTypes.register('ServicesListing', createListingBlockTypeCreator({
     name: 'ServicesListing',
     friendlyName: 'Services list',
     defaultRenderer: 'site:block-services-listing',

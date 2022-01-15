@@ -1,4 +1,4 @@
-import * as commons from '../edit-app/src/commons/main.js';
+import * as commons from '@sivujetti-commons-for-edit-app';
 import * as appTestUtils from './edit-app-testutils.js';
 import {simulateChangeParagraphTextInput, verifyUpdatedTextInDom} from './render-blocks-testutils.js';
 

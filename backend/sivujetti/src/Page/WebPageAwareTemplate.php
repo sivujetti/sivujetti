@@ -144,7 +144,7 @@ final class WebPageAwareTemplate extends Template {
             return "";
         return implode(" ", array_map(function ($f) {
             $attrsMap = $f->attrs;
-            $pre = $f->url !== "sivujetti/sivujetti-commons.js"
+            $pre = $f->url !== "sivujetti/sivujetti-commons-for-web-pages.js"
                 ? ""
                 : "<script>window.sivujettiBaseUrl='{$this->makeUrl("/", true)}';
                            window.sivujettiAssetBaseUrl='{$this->makeUrl("/", false)}';</script>";

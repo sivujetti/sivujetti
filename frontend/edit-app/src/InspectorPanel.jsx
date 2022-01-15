@@ -1,4 +1,4 @@
-import {__, signals, env} from './commons/main.js';
+import {__, signals, env} from '@sivujetti-commons-for-edit-app';
 import Icon from './commons/Icon.jsx';
 import BlockEditForm from './BlockEditForm.jsx';
 

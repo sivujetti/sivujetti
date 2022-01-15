@@ -1,5 +1,4 @@
-import {__, env} from '../commons/main.js';
-import hookForm, {unhookForm, reHookValues, Input, InputErrors, FormGroup, FormGroupInline} from '../commons/Form3.jsx';
+import {__, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroup, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import QuillEditor from '../commons/QuillEditor.jsx';
 import Icon from '../commons/Icon.jsx';
 import {formValidation} from '../constants.js';

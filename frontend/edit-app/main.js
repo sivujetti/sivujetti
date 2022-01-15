@@ -1,4 +1,4 @@
-import {translator, env, urlUtils} from './src/commons/main.js';
+import {translator, env, urlUtils} from '@sivujetti-commons-for-edit-app';
 import {Validator} from './src/commons/Form.jsx';
 import {sensibleDefaults} from './src/constants.js';
 import {FormStateStoreWrapper} from './src/store.js';

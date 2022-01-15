@@ -22,7 +22,7 @@
         <script>window.sivujettiBaseUrl = '<?= $baseUrl ?>'; window.sivujettiAssetBaseUrl = ' ';</script>
         <script>window.translationStringBundles = []</script>
         <script src="<?= $this->assetUrl("public/sivujetti/lang-auth-fi.js") ?>"></script>
-        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons.js") ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-edit-app.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-render-auth-app.js") ?>"></script>
         <script>sivujettiRenderAuthApp('<?= $appName ?>')</script>
     </body>

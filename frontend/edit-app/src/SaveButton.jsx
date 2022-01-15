@@ -1,4 +1,4 @@
-import {__, env} from './commons/main.js';
+import {__, env} from '@sivujetti-commons-for-edit-app';
 import Icon from './commons/Icon.jsx';
 import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from './store.js';
 

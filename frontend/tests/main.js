@@ -1,5 +1,5 @@
 // To run these tests, head to <devServerHost>/public/tests/index.html
-import {env, urlUtils} from '@sivujetti-commons';
+import {env, urlUtils} from '@sivujetti-commons-for-edit-app';
 import {Validator} from '../edit-app/src/commons/Form.jsx';
 import store, {FormStateStoreWrapper, setOpQueue} from '../edit-app/src/store.js';
 import blockTypes from '../edit-app/src/block-types/block-types.js';

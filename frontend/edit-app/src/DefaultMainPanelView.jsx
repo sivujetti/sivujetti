@@ -1,4 +1,4 @@
-import {__, signals} from './commons/main.js';
+import {__, signals} from '@sivujetti-commons-for-edit-app';
 import Icon from './commons/Icon.jsx';
 import BlockTrees from './BlockTrees.jsx';
 

@@ -1,4 +1,4 @@
-import {__} from './commons/main.js';
+import {__} from '@sivujetti-commons-for-edit-app';
 import Icon from './commons/Icon.jsx';
 import floatingDialog from './FloatingDialog.jsx';
 

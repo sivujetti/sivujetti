@@ -1,4 +1,4 @@
-import {__} from './commons/main.js';
+import {__} from '@sivujetti-commons-for-edit-app';
 import Tabs from './commons/Tabs.jsx';
 import blockTypes from './block-types/block-types.js';
 import Block from './Block.js';

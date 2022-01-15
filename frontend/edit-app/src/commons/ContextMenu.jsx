@@ -1,4 +1,4 @@
-import {__} from './main.js';
+import {__} from '@sivujetti-commons-for-edit-app';
 
 class ContextMenu extends preact.Component {
     // pos;

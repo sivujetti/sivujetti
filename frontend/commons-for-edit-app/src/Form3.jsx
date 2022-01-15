@@ -1,4 +1,4 @@
-import {__} from './main.js';
+let __;
 
 const validatorImplFactories = {
     'required':  () => ({doValidate: value => !!value, errorMessageTmpl: __('required')}),
@@ -210,5 +210,11 @@ class FormGroupInline extends preact.Component {
     }
 }
 
-export default hookForm;
-export {unhookForm, reHookValues, validateAll, hasErrors, Input, InputErrors, FormGroup, FormGroupInline};
+/**
+ * @param {(key: String, ...args: any) => String} doTranslate
+ */
+export default doTranslate => {
+    __ = doTranslate;
+};
+
+export {hookForm, unhookForm, reHookValues, validateAll, hasErrors, Input, InputErrors, FormGroup, FormGroupInline};

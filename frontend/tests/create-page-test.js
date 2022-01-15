@@ -1,4 +1,4 @@
-import * as commons from '../edit-app/src/commons/main.js';
+import * as commons from '@sivujetti-commons-for-edit-app';
 import {observeStore, selectCurrentPage} from '../edit-app/src/store.js';
 import testUtils from './my-test-utils.js';
 import * as appTestUtils from './edit-app-testutils.js';

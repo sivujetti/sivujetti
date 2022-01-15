@@ -1,5 +1,4 @@
-import {__, http, signals, env} from '../commons/main.js';
-import hookForm, {unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '../commons/Form3.jsx';
+import {__, http, signals, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
 import {stringUtils} from '../commons/utils.js';
 import BlockTrees from '../BlockTrees.jsx';

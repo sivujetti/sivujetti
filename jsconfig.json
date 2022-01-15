@@ -4,7 +4,8 @@
         "target": "es2017",
         "baseUrl": "./",
         "paths": {
-            "@sivujetti-commons": ["frontend/commons/main.js"],
+            "@sivujetti-commons-for-web-pages": ["frontend/commons-for-web-pages/main.js"],
+            "@sivujetti-commons-for-edit-app": ["frontend/commons-for-edit-app/main.js"],
         }
     }
 }

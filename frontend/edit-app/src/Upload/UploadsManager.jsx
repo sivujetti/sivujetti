@@ -1,4 +1,4 @@
-import {__, urlUtils, http, env} from '../commons/main.js';
+import {__, urlUtils, http, env} from '@sivujetti-commons-for-edit-app';
 import Icon from '../commons/Icon.jsx';
 import Tabs from '../commons/Tabs.jsx';
 import {timingUtils} from '../commons/utils.js';

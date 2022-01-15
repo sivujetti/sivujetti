@@ -26,7 +26,7 @@ use Sivujetti\Update\UpdatesModule;
 use Sivujetti\Upload\UploadsModule;
 
 final class App {
-    public const VERSION = "0.7.0";
+    public const VERSION = "0.8.0-dev";
     /** @var ?\Auryn\Injector */
     public static ?Injector $di;
     /** @var \Sivujetti\AppContext */

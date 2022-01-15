@@ -10,7 +10,7 @@ const makeOutputCfg = (...myCfg) => {
     const out = Object.assign({format: 'iife'}, ...myCfg);
     if (!out.banner) out.banner =
 `/*!
- * ${out.file.split('/').pop().split('.')[0]} 0.7.0
+ * ${out.file.split('/').pop().split('.')[0]} 0.8.0-dev
  * https://github.com/sivujetti/sivujetti
  * @license GPLv3
  */`;
@@ -33,9 +33,9 @@ const watchSettings = {
 ////////////////////////////////////////////////////////////////////////////////
 module.exports = args => {
     //
-    const commonsPath = '@sivujetti-commons';
-    const allGlobals = {[commonsPath]: 'sivujettiCommons'};
-    const allExternals = [commonsPath];
+    const editAppCommonsPath = '@sivujetti-commons-for-edit-app';
+    const editAppGlobals = {[editAppCommonsPath]: 'sivujettiCommonsEditApp'};
+    const editAppExternals = [editAppCommonsPath];
     const bundle = !args.configInput ? args.configBundle || 'main' : 'custom';
     const bundles = [];
     const selectedLang = args.configLang || 'fi';
@@ -51,21 +51,23 @@ module.exports = args => {
     // == sivujetti-edit-app.js ================================================
     if (bundle === 'main' || bundle === 'all') {
         bundles.push({
-            input: 'frontend/commons/main.js',
+            input: 'frontend/commons-for-edit-app/main.js',
             output: makeOutputCfg({
-                name: 'sivujettiCommons',
-                file: `${targetDirBase}sivujetti-commons.js`,
+                name: editAppGlobals[editAppCommonsPath],
+                file: `${targetDirBase}sivujetti-commons-for-edit-app.js`,
             }),
-            plugins: postPlugins,
+            plugins: [
+                makeJsxPlugin(['frontend/edit-app/src/**']),
+            ].concat(...postPlugins),
             watch: watchSettings
         }, {
             input: 'frontend/edit-app/main.js',
             output: makeOutputCfg({
                 name: 'sivujettiEditApp',
                 file: `${targetDirBase}sivujetti-edit-app.js`,
-                globals: allGlobals,
+                globals: editAppGlobals,
             }),
-            external: allExternals,
+            external: editAppExternals,
             plugins: [
                 makeJsxPlugin(['frontend/edit-app/src/**']),
             ].concat(...postPlugins),
@@ -99,15 +101,28 @@ module.exports = args => {
         });
     }
     // == sivujetti-webpage.js =================================================
-    if (bundle === 'webpage' || bundle === 'all')
+    if (bundle === 'webpage' || bundle === 'all') {
+        const webPagesCommonsPath = '@sivujetti-commons-for-web-pages';
+        const webPagesGlobals = {[webPagesCommonsPath]: 'sivujettiCommonsForWebPages'};
         bundles.push({
-            input: 'frontend/webpage/main.js',
+            input: 'frontend/commons-for-web-pages/main.js',
             output: makeOutputCfg({
-                file: `${targetDirBase}sivujetti-webpage.js`,
+                name: webPagesGlobals[webPagesCommonsPath],
+                file: `${targetDirBase}sivujetti-commons-for-web-pages.js`,
             }),
             plugins: postPlugins,
             watch: watchSettings
+        }, {
+            input: 'frontend/webpage/main.js',
+            output: makeOutputCfg({
+                file: `${targetDirBase}sivujetti-webpage.js`,
+                globals: webPagesGlobals,
+            }),
+            external: [webPagesCommonsPath],
+            plugins: postPlugins,
+            watch: watchSettings
         });
+    }
     // == render-auth-app.js ===================================================
     if (bundle === 'auth' || bundle === 'all')
         bundles.push({
@@ -115,9 +130,9 @@ module.exports = args => {
             output: makeOutputCfg({
                 name: 'sivujettiRenderAuthApp',
                 file: `${targetDirBase}sivujetti-render-auth-app.js`,
-                globals: allGlobals,
+                globals: editAppGlobals,
             }),
-            external: allExternals,
+            external: editAppExternals,
             plugins: [
                 makeJsxPlugin(['frontend/edit-app/src/**']),
             ].concat(...postPlugins),
@@ -129,10 +144,10 @@ module.exports = args => {
             input: 'frontend/tests/main.js',
             output: makeOutputCfg({
                 file: 'public/tests/bundled-main.js',
-                globals: allGlobals,
+                globals: editAppGlobals,
             }),
             plugins: [makeJsxPlugin(['frontend/edit-app/src/**'])].concat(...postPlugins),
-            external: allExternals,
+            external: editAppExternals,
             watch: watchSettings
         });
     }
@@ -144,13 +159,13 @@ module.exports = args => {
         return cfgs.map(cfg => {
             const out = {
                 input: cfg.input,
-                output: makeOutputCfg({globals: allGlobals, banner: ''}, cfg.output),
+                output: makeOutputCfg({globals: editAppGlobals, banner: ''}, cfg.output),
                 plugins: [
                     makeJsxPlugin(cfg.jsxTranspile
                         ? cfg.jsxTranspile.include || []
                         : []),
                 ].concat(...postPlugins),
-                external: allExternals,
+                external: editAppExternals,
                 watch: {
                     clearScreen: false
                 },

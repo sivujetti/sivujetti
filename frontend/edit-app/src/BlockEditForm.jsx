@@ -1,4 +1,4 @@
-import {http, __, env} from './commons/main.js';
+import {http, __, env} from '@sivujetti-commons-for-edit-app';
 import Icon from './commons/Icon.jsx';
 import {timingUtils} from './commons/utils.js';
 import blockTypes, {getIcon} from './block-types/block-types.js';

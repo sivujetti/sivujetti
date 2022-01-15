@@ -1,4 +1,4 @@
-import {http, __} from '../commons/main.js';
+import {http, __} from '@sivujetti-commons-for-edit-app';
 
 const EMPTY_OVERRIDES = '{}';
 

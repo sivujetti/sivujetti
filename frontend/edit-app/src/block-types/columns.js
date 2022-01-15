@@ -1,5 +1,4 @@
-import {__, env} from '../commons/main.js';
-import hookForm, {unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '../commons/Form3.jsx';
+import {__, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import {formValidation} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
 

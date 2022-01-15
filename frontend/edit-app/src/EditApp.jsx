@@ -1,4 +1,4 @@
-import {__, signals, urlUtils} from './commons/main.js';
+import {__, signals, urlUtils} from '@sivujetti-commons-for-edit-app';
 import {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
 import AddPageMainPanelView from './AddPageMainPanelView.jsx';

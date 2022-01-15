@@ -1,4 +1,4 @@
-import {__, signals, http, env} from './commons/main.js';
+import {__, signals, http, env} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from './commons/ContextMenu.jsx';
 import Icon from './commons/Icon.jsx';
 import toasters from './commons/Toaster.jsx';

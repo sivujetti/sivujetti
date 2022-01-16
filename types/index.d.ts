@@ -1,5 +1,6 @@
 interface SivujettiFrontendApi {
     blockTypes: BlockTypes;
+    registerTranslationStrings(strings: {[key: String]: String}): void;
 }
 
 interface BlockTypes {
@@ -204,4 +205,8 @@ interface UploadsEntry {
     fileName: String;
     friendlyName: String;
     mime: String;
+}
+
+interface TranspileArgs {
+    selectedLang: String;
 }

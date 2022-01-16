@@ -99,6 +99,7 @@ final class PagesController {
                 "assetBaseUrl" => WebPageAwareTemplate::makeUrl("/", false),
                 "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
             ]),
+            "uiLang" => "fi",
             "isFirstRun" => false,
         ]));
     }
@@ -112,6 +113,7 @@ final class PagesController {
             "title" => "Login",
             "appName" => "login",
             "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
+            "uiLang" => "fi",
         ]));
     }
     /**

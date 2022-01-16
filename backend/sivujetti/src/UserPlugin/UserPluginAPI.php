@@ -117,6 +117,14 @@ final class UserPluginAPI extends UserSiteAPI {
         );
     }
     /**
+     * Returns currently selected edit app interface language "en", "fi" etc.
+     *
+     * @return string
+     */
+    public function getCurrentLang(): string {
+        return "fi";
+    }
+    /**
      * @return string
      */
     private function getDashifiedNs(): string {

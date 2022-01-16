@@ -59,6 +59,7 @@ function configureServices() {
 function publishFrontendApi() {
     window.sivujetti = {
         blockTypes,
+        registerTranslationStrings: translator.addStrings.bind(translator),
     };
 }
 

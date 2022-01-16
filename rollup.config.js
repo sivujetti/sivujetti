@@ -153,7 +153,8 @@ module.exports = args => {
     }
     // == custom.js ============================================================
     if (!bundles.length && bundle !== 'all') {
-        const userDefined = require(path.resolve(__dirname, args.configInput));
+        let userDefined = require(path.resolve(__dirname, args.configInput));
+        if (typeof userDefined === 'function') userDefined = userDefined({selectedLang});
         const cfgs = !Array.isArray(userDefined) ? [userDefined] : userDefined;
         //
         return cfgs.map(cfg => {

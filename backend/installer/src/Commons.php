@@ -65,6 +65,7 @@ final class Commons {
      */
     public function createUserZero(array $config): void {
         [$qList, $values, $columns] = $this->db->makeInsertQParts((object) [
+            "id"               => $config["initialUserId"],
             "username"         => $config["initialUserUsername"],
             "email"            => $config["initialUserEmail"],
             "passwordHash"     => $config["initialUserPasswordHash"],

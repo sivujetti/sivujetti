@@ -108,6 +108,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
                                          [$expectedUsername],
                                          \PDO::FETCH_ASSOC);
         $this->assertNotNull($actual);
+        $this->assertEquals((new MockCrypto)->guidv4(), $actual["id"]);
         $this->assertEquals($expectedUsername, $actual["username"]);
         $this->assertEquals($expectedEmail, $actual["email"]);
         $this->assertEquals($expectedPasswordHash, $actual["passwordHash"]);

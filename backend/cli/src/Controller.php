@@ -7,6 +7,7 @@ use Pike\{FileSystem, PikeException, Request, Response, Validation};
 use Sivujetti\App;
 use Sivujetti\Installer\LocalDirInstaller;
 use Sivujetti\Update\{Signer, ZipPackageStream};
+use Sivujetti\ValidationUtils;
 
 final class Controller {
     /**
@@ -96,7 +97,7 @@ final class Controller {
      *
      * @param string[] $args
      * @param \Pike\Auth\Crypto $crypto
-     * @return array{db.driver: string, db.database: string, baseUrl: string, mainQueryVar: string, secret: string, initialUserUsername: string, initialUserEmail: string, initialUserPasswordHash: string, flags: string}
+     * @return array{db.driver: string, db.database: string, baseUrl: string, mainQueryVar: string, secret: string, initialUserId: string, initialUserUsername: string, initialUserEmail: string, initialUserPasswordHash: string, flags: string}
      * @throws \Pike\PikeException
      */
     public static function createConfigOrThrow(array $vals, Crypto $crypto): array {
@@ -110,7 +111,7 @@ final class Controller {
         ];
         if (($errors = Validation::makeObjectValidator()
             ->rule("username", "minLength", 2)
-            ->rule("email", "regexp", "/^.+@.+$/")
+            ->rule("email", "regexp", ValidationUtils::EMAIL_REGEXP_SIMPLE)
             ->rule("password", "minLength", 8)
             ->rule("baseUrl", "type", "string")
             ->validate($input))) {
@@ -123,6 +124,7 @@ final class Controller {
             "baseUrl" => $input->baseUrl,
             "mainQueryVar" => "q",
             "secret" => $crypto->genRandomToken(),
+            "initialUserId" => $crypto->guidv4(),
             "initialUserUsername" => $input->username,
             "initialUserEmail" => $input->email,
             "initialUserPasswordHash" => $crypto->hashPass($input->password),

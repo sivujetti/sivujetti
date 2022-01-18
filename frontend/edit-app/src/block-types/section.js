@@ -1,6 +1,6 @@
 import {__, urlUtils, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import Icon from '../commons/Icon.jsx';
-import {formValidation} from '../constants.js';
+import {validationConstraints} from '../constants.js';
 import ImagePicker from '../BlockWidget/ImagePicker.jsx';
 import {UPLOADS_DIR_PATH} from '../Upload/UploadsManager.jsx';
 import setFocusTo from './auto-focusers.js';
@@ -22,7 +22,7 @@ class SectionBlockEditForm extends preact.Component {
         const {block, onValueChanged} = this.props;
         this.imagePicker = preact.createRef();
         this.setState(hookForm(this, [
-            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
+            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
              onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
         ], {
             bgImage: block.bgImage,

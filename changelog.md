@@ -2,6 +2,17 @@
 
 ...
 
+# 0.8.0-dev (not yet released)
+
+## Added
+- tagType -property to Button blocks (`link` -> `<a href ...>`, `button` -> `<button type="button" ...>`, `submit` -> `<button type="submit" ...>`)
+
+## Fixed
+- ...
+
+## Changed
+- ...
+
 # 0.7.0 (2021-01-14)
 
 ## Added

@@ -78,8 +78,12 @@ stringBundles.push({
     'About': 'Meistä',
     // edit-app/src/block-types/button.js
     'Button': 'Nappi',
+    'Link element': 'Linkkielementti',
+    'Normal button': 'Nappi',
+    'Submit button': 'Lähetä-nappi',
     'Link': 'Linkki',
     'Css classes': 'Css-luokat',
+    'Tag type': 'Elementin tyyppi',
     'Button text': 'Napin teksti',
     // edit-app/src/block-types/columns.js
     'Columns': 'Sarakkeet',

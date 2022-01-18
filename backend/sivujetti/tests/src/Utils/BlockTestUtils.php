@@ -4,7 +4,8 @@ namespace Sivujetti\Tests\Utils;
 
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\PushIdGenerator;
+use Sivujetti\BlockType\ButtonBlockType;
+use Sivujetti\{PushIdGenerator, Template};
 
 final class BlockTestUtils {
     /** @var ?\Sivujetti\Tests\Utils\PageTestUtils */
@@ -66,5 +67,28 @@ final class BlockTestUtils {
      */
     public static function decorateWithRef(object $rawBlock, string $html): string {
         return "<!-- block-start {$rawBlock->id}:{$rawBlock->type} -->{$html}<!-- block-end {$rawBlock->id} -->";
+    }
+    /**
+     * @param object $rawBlock
+     * @param ?string $lnk = null
+     * @param ?string $cls = null
+     * @param string $childMarker = ""
+     */
+    public function getExpectedButtonBlockOutput(object $rawBlock,
+                                                 ?string $lnk = null,
+                                                 ?string $cls = null,
+                                                 string $childMarker = ""): string {
+        if ($lnk === null) $lnk = Template::makeUrl($rawBlock->linkTo);
+        if ($cls === null) $cls = !$rawBlock->cssClass ? "" : (" " . Template::e($rawBlock->cssClass));
+        [$start, $end] = match ($rawBlock->tagType) {
+            ButtonBlockType::TAG_TYPE_NORMAL_BUTTON => ["<button type=\"button\"", "</button>"],
+            ButtonBlockType::TAG_TYPE_SUBMIT_BUTTON => ["<button type=\"submit\"", "</button>"],
+            default => ["<a href=\"{$lnk}\"", "</a>"],
+        };
+        return "<p class=\"button\">" .
+            "{$start} class=\"btn{$cls}\" data-block-root>" .
+                "{$rawBlock->html}{$childMarker}" .
+            $end .
+        "</p>";
     }
 }

@@ -1,4 +1,4 @@
-const formValidation = Object.freeze({
+const validationConstraints = Object.freeze({
     HARD_SHORT_TEXT_MAX_LEN: 1024,
     HARD_LONG_TEXT_MAX_LEN: 128000,
 });
@@ -7,4 +7,4 @@ const sensibleDefaults = Object.freeze({
     normalTypingDebounceMillis: 400,
 });
 
-export {formValidation, sensibleDefaults};
+export {validationConstraints, sensibleDefaults};

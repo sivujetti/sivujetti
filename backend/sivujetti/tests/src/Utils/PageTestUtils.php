@@ -5,7 +5,7 @@ namespace Sivujetti\Tests\Utils;
 use Pike\Db;
 use Sivujetti\Block\BlockValidator;
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\BlockType\{GlobalBlockReferenceBlockType, HeadingBlockType,
+use Sivujetti\BlockType\{ButtonBlockType, GlobalBlockReferenceBlockType, HeadingBlockType,
                          ParagraphBlockType, SectionBlockType};
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\Page\{PagesRepository};
@@ -164,6 +164,7 @@ final class PageTestUtils {
         $out = $initial ?? new SharedAPIContext;
         if ($out->getDataHandle()->blockTypes === null) {
             $blockTypes = new BlockTypes;
+            $blockTypes->{Block::TYPE_BUTTON} = new ButtonBlockType;
             $blockTypes->{Block::TYPE_GLOBAL_BLOCK_REF} = new GlobalBlockReferenceBlockType;
             $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
             $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;

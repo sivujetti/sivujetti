@@ -1,5 +1,5 @@
 import {__, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
-import {formValidation} from '../../constants.js';
+import {validationConstraints} from '../../constants.js';
 
 class EditItemPanel extends preact.Component {
     // link;
@@ -11,9 +11,9 @@ class EditItemPanel extends preact.Component {
         if (props.link && !this.link) {
             this.link = Object.assign({}, props.link);
             this.setState(hookForm(this, [
-                {name: 'linkText', value: this.link.text, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link text'),
+                {name: 'linkText', value: this.link.text, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link text'),
                 onAfterValueChanged: (value, hasErrors) => { this.emiChange(value, 'text', hasErrors); }},
-                {name: 'linkSlug', value: this.link.slug, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]], label: __('Url'),
+                {name: 'linkSlug', value: this.link.slug, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Url'),
                 onAfterValueChanged: (value, hasErrors) => { this.emiChange(value, 'slug', hasErrors); }},
             ]));
         } else if (!props.link && this.link) {

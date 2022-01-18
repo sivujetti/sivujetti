@@ -3,17 +3,15 @@
 namespace Sivujetti\Tests\Block;
 
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
+use Sivujetti\BlockType\{ButtonBlockType, GlobalBlockReferenceBlockType};
 use Sivujetti\Template;
 use Sivujetti\Tests\Utils\DbDataHelper;
 
 final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
     public function testRenderBlockRendersButtons(): void {
-        $makeExpectedHtml = fn($b, $lnk, $cls = "") => "<p class=\"button\">" .
-            "<a href=\"{$lnk}\" class=\"btn{$cls}\" data-block-root>" .
-                "{$b->html}[childMarker]" .
-            "</a>" .
-        "</p>";
+        $makeExpectedHtml = fn($b, $lnk, $cls = "") =>
+            $this->blockTestUtils->getExpectedButtonBlockOutput($b, $lnk, $cls, "[childMarker]")
+        ;
         //
         $state = $this->setupRenderButtonBlocksTest();
         $this->makeTestSivujettiApp($state);
@@ -26,18 +24,35 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         //
         $expectedHtml2 = $makeExpectedHtml($b[2], $b[2]->linkTo, " {$b[2]->cssClass}");
         $this->renderAndVerify($state, 2, $expectedHtml2);
+        //
+        $expectedHtml3 = $makeExpectedHtml($b[3], null, null);
+        $this->renderAndVerify($state, 3, $expectedHtml3);
+        //
+        $expectedHtml4 = $makeExpectedHtml($b[4], null, " {$b[4]->cssClass}");
+        $this->renderAndVerify($state, 4, $expectedHtml4);
     }
     protected function setupRenderButtonBlocksTest(): \TestState {
         $state = parent::setupTest();
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_BUTTON,
-                propsData: ["html" => "Link text", "linkTo" => "/local", "cssClass" => ""],
+                propsData: ["html" => "Link text", "linkTo" => "/local",
+                            "tagType" => ButtonBlockType::TAG_TYPE_LINK, "cssClass" => ""],
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_BUTTON,
-                propsData: ["html" => "Pre <validated>", "linkTo" => "https://external1.com", "cssClass" => "escape<"],
+                propsData: ["html" => "Pre <validated>", "linkTo" => "https://external1.com",
+                            "tagType" => ButtonBlockType::TAG_TYPE_LINK, "cssClass" => "escape<"],
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_BUTTON,
-                propsData: ["html" => "Pre <validated>", "linkTo" => "//external2.com", "cssClass" => "some classes"],
+                propsData: ["html" => "Pre <validated>", "linkTo" => "//external2.com",
+                            "tagType" => ButtonBlockType::TAG_TYPE_LINK, "cssClass" => "some classes"],
+                id: "@auto"),
+            $this->blockTestUtils->makeBlockData(Block::TYPE_BUTTON,
+                propsData: ["html" => "Button text", "linkTo" => "",
+                            "tagType" => ButtonBlockType::TAG_TYPE_NORMAL_BUTTON, "cssClass" => ""],
+                id: "@auto"),
+            $this->blockTestUtils->makeBlockData(Block::TYPE_BUTTON,
+                propsData: ["html" => "Submit button text", "linkTo" => "",
+                            "tagType" => ButtonBlockType::TAG_TYPE_SUBMIT_BUTTON, "cssClass" => "foo"],
                 id: "@auto"),
         ];
         return $state;

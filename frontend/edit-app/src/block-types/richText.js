@@ -1,6 +1,6 @@
 import {__, env, hookForm, unhookForm, InputErrors, FormGroup} from '@sivujetti-commons-for-edit-app';
 import QuillEditor from '../commons/QuillEditor.jsx';
-import {formValidation} from '../constants.js';
+import {validationConstraints} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
 
 class RichTextBlockEditForm extends preact.Component {
@@ -19,7 +19,7 @@ class RichTextBlockEditForm extends preact.Component {
         const {block, onValueChanged} = this.props;
         this.editor = preact.createRef();
         this.setState(hookForm(this, [
-            {name: 'html', value: block.html, validations: [['required'], ['maxLength', formValidation.HARD_LONG_TEXT_MAX_LEN]],
+            {name: 'html', value: block.html, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]],
              label: __('Content'), onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'html', hasErrors, env.normalTypingDebounceMillis); }},
         ]));
     }

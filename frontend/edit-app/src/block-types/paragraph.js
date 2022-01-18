@@ -1,6 +1,6 @@
 import {__, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroup, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import QuillEditor from '../commons/QuillEditor.jsx';
-import {formValidation} from '../constants.js';
+import {validationConstraints} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
 
 const minPossibleLen = '<p></p>'.length;
@@ -22,9 +22,9 @@ class ParagraphBlockEditForm extends preact.Component {
         const {block, onValueChanged} = this.props;
         this.editor = preact.createRef();
         this.setState(hookForm(this, [
-            {name: 'text', value: block.text, validations: [['required'], ['maxLength', formValidation.HARD_LONG_TEXT_MAX_LEN]],
+            {name: 'text', value: block.text, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]],
              label: __('Text'), onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'text', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
+            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
              onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
         ]));
     }

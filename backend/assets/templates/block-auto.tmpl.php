@@ -15,12 +15,16 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_IMAGE):
         $this->renderChildren($props),
     "</span>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):
-    echo "<p class=\"button\">",
-        "<a href=\"", $this->maybeExternalUrl($props->linkTo),
-            "\" class=\"btn", ($props->cssClass ? " {$this->e($props->cssClass)}" : ""), "\" data-block-root>",
+    [$startInnerTag, $closeInnerTag] = match ($props->tagType) {
+        "button" => ["<button type=\"button\"", "</button>"],
+        "submit" => ["<button type=\"submit\"", "</button>"],
+        default => ["<a href=\"{$this->maybeExternalUrl($props->linkTo)}\"", "</a>"],
+    };
+    echo "<p class=\"button\">", $startInnerTag, " class=\"btn",
+        ($props->cssClass ? " {$this->e($props->cssClass)}" : ""), "\" data-block-root>",
             $props->html, // @allow pre-validated html
             $this->renderChildren($props),
-        "</a>",
+        $closeInnerTag,
     "</p>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_RICH_TEXT):
     echo $props->html, // @allow pre-validated html
@@ -29,5 +33,5 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_PAGE_INFO):
     echo '';
 else:
     [$startTag, $endTag] = !(SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE) ? ["<!--", "-->"] : ["<div>", "</div>"];
-    echo "{$startTag} block-auto.tmpl.php: Don't know how to render custom page type `{$props->type}` {$endTag}";
+    echo "{$startTag} block-auto.tmpl.php: Don't know how to render custom block type `{$props->type}` {$endTag}";
 endif; ?>

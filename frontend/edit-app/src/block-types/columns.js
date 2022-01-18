@@ -1,5 +1,5 @@
 import {__, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
-import {formValidation} from '../constants.js';
+import {validationConstraints} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
 
 class ColumnsBlockEditForm extends preact.Component {
@@ -23,7 +23,7 @@ class ColumnsBlockEditForm extends preact.Component {
             {name: 'numColumns', value: block.numColumns, validations: [['min', 0], ['max', 12]],
              label: __('Num columns'), type: 'number', step: '1', onAfterValueChanged: (value, hasErrors) => {
                  onValueChanged(parseInt(value), 'numColumns', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', formValidation.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
+            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
              onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
         ], {
             takeFullWidth: block.takeFullWidth,

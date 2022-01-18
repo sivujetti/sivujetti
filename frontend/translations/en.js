@@ -78,8 +78,12 @@ stringBundles.push({
     'About': 'About',
     // edit-app/src/block-types/button.js
     'Button': 'Button',
+    'Link element': 'Link element',
+    'Normal button': 'Normal button',
+    'Submit button': 'Submit button',
     'Link': 'Link',
     'Css classes': 'Css classes',
+    'Tag type': 'Tag type',
     'Button text': 'Button text',
     // edit-app/src/block-types/columns.js
     'Columns': 'Columns',

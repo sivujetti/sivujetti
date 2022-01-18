@@ -28,9 +28,10 @@ final class Block {
     /** @var \Sivujetti\Block\Entities\Block[] */
     public array $children;
 
-    /* If self::TYPE_COLUMNS
+    /* If self::TYPE_BUTTON
     public string $html;
-    public string $linkTo;
+    public string $linkTo; e.g. "/my-page", "https://foo.com", "//foo.com"
+    public string $tagType; "link"|"button"|"submit"
     public string $cssClass; */
 
     /* If self::TYPE_COLUMNS

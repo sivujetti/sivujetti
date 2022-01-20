@@ -17,8 +17,11 @@ final class TheWebsiteRepository {
             "SELECT" .
                 " ws.`name`, ws.`lang`, ws.`aclRules` AS `aclRulesJson`" .
                 ", p.`name` AS `pluginName`, p.`isActive` AS `pluginIsActive`" .
-                ", pt.`name` AS `pageTypeName`" .
-                ", pt.`slug` AS `pageTypeSlug`, pt.`fields` AS `pageTypeFieldsJson`" .
+                ", pt.`name` AS `pageTypeName`, pt.`slug` AS `pageTypeSlug`" .
+                ", pt.`friendlyName` AS `pageTypeFriendlyName`" .
+                ", pt.`friendlyNamePlural` AS `pageTypeFriendlyNamePlural`" .
+                ", pt.`description` AS `pageTypeDescription`" .
+                ", pt.`fields` AS `pageTypeFieldsJson`" .
                 ", pt.`defaultLayoutId` AS `pageTypeDefaultLayoutId`" .
                 ", pt.`isListable` AS `pageTypeIsListable`" .
             " FROM \${p}theWebsite ws" .

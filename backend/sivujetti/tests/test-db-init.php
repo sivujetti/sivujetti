@@ -8,9 +8,16 @@ $statements = array_merge($statements, [
 "INSERT INTO `theWebsite` (`name`,`lang`,`aclRules`) VALUES
 ('Test suite website','fi','".json_encode($getRules())."')",
 
-"INSERT INTO `pageTypes` VALUES
-(1,'Pages','pages','" . json_encode([
-    "ownFields" => [(object) ["name" => "categories", "dataType" => "many-to-many", "friendlyName" => "Categories", "defaultValue" => "[]"]],
+"INSERT INTO `pageTypes` (`id`,`name`,`slug`,`friendlyName`,`friendlyNamePlural`,`description`" .
+                          ",`fields`,`defaultLayoutId`,`isListable`) VALUES
+(1,'Pages','pages','Page','Pages','','" . json_encode([
+    "ownFields" => [(object) [
+        "name" => "categories",
+        "friendlyName" => "Categories",
+        "dataType" => (object) ["type" => "many-to-many"],
+        "defaultValue" => "[]",
+        "isNullable" => false,
+    ]],
     "blockFields" => [(object) ["type" => "Paragraph", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
                                 "initialData" => (object) ["text" => "Paragraph text", "cssClass" => ""],
                                 "children" => []]],

@@ -98,7 +98,7 @@ final class PagesRepository {
                 $data->{$optional} = (int) $inputData->{$optional};
         }
         foreach ($pageType->ownFields as $f) {
-            if ($f->dataType === "many-to-many") continue; // Not implemented yet
+            if ($f->dataType->type === "many-to-many") continue; // Not implemented yet
             $data->{$f->name} = $inputData->{$f->name};
         }
         //
@@ -134,7 +134,7 @@ final class PagesRepository {
             $updateData = self::makeStorablePageDataFromValidInput($input, $pageType);
             $theseColumnsOnly = self::DEFAULT_FIELDS;
             foreach ($pageType->ownFields as $field) {
-                if ($field->dataType === "many-to-many") continue; // Not implemented yet
+                if ($field->dataType->type === "many-to-many") continue; // Not implemented yet
                 $theseColumnsOnly[] = $field->name;
             }
         } elseif (count($theseColumnsOnly) === 1 && $theseColumnsOnly[0] === "blocks") {
@@ -178,7 +178,7 @@ final class PagesRepository {
         //
         $ownFieldCols = [];
         foreach ($pageType->ownFields as $f) {
-            if ($f->dataType === "many-to-many") continue; // Not implemented yet
+            if ($f->dataType->type === "many-to-many") continue; // Not implemented yet
             $ownFieldCols[] = "p.`$f->name` AS `$f->name`";
         }
         //
@@ -210,7 +210,7 @@ final class PagesRepository {
             $row->layout = $doIncludeLayouts ? Layout::fromParentRs($row) : new Layout;
             //
             foreach ($this->pageType->ownFields as $field) {
-                if ($field->dataType === "many-to-many") continue; // Not implemented yet
+                if ($field->dataType->type === "many-to-many") continue; // Not implemented yet
                 $row->{$field->name} = strval($row->{"{$field->name}"}); // todo cast type?
             }
         }

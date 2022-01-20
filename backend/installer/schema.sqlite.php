@@ -58,6 +58,9 @@ return [
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
     `slug` TEXT NOT NULL,
+    `friendlyName` TEXT NOT NULL,
+    `friendlyNamePlural` TEXT NOT NULL,
+    `description` TEXT NOT NULL,
     `fields` JSON,
     `defaultLayoutId` TEXT NOT NULL,
     `isListable` INTEGER DEFAULT 1

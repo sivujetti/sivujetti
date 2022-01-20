@@ -7,6 +7,6 @@ final class BlockProperty {
     public const DATA_TYPE_UINT = "uint";
     /** @var string */
     public string $name;
-    /** @var string self::DATA_TYPE_* */
-    public string $dataType;
+    /** @var object {type: self::DATA_TYPE_*, length?: int, validationRules?: array} */
+    public object $dataType;
 }

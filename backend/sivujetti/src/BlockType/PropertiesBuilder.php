@@ -29,10 +29,18 @@ final class PropertiesBuilder {
     }
     /**
      * @param string $dataType self::DATA_TYPE_*
+     * @param ?int $length = null
+     * @param ?array $validationRules = null
      * @return $this
      */
-    public function dataType(string $dataType): PropertiesBuilder {
-        $this->head->dataType = $dataType;
+    public function dataType(string $type,
+                             ?int $length = null,
+                             ?array $validationRules = null): PropertiesBuilder {
+        $this->head->dataType = (object) [
+            "type" => $type,
+            "length" => $length,
+            "validationRules" => $validationRules
+        ];
         return $this;
     }
     /**

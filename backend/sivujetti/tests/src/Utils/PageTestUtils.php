@@ -86,7 +86,13 @@ final class PageTestUtils {
     public function makeDefaultPageType(): PageType {
         $pageType = new PageType;
         $pageType->name = PageType::PAGE;
-        $pageType->ownFields = [(object) ["name" => "categories", "dataType" => "many-to-many"]];
+        $pageType->ownFields = [(object) [
+            "name" => "categories",
+            "friendlyName" => "",
+            "dataType" => (object) ["type" => "many-to-many"],
+            "defaultValue" => "",
+            "isNullable" => false,
+        ]];
         return $pageType;
     }
     /**
@@ -112,8 +118,10 @@ final class PageTestUtils {
         $pageType = new PageType;
         $pageType->name = "MyProducts";
         $pageType->ownFields = [
-            (object) ["name" => "ownField1", "dataType" => "text", "friendlyName" => "Some prop", "defaultValue" => "foo"],
-            (object) ["name" => "ownField2", "dataType" => "uint", "friendlyName" => "Some prop2", "defaultValue" => 123],
+            (object) ["name" => "ownField1", "dataType" => (object) ["type" => "text"],
+                      "friendlyName" => "Some prop", "defaultValue" => "foo"],
+            (object) ["name" => "ownField2", "dataType" => (object) ["type" => "uint"],
+                      "friendlyName" => "Some prop2", "defaultValue" => 123],
         ];
         //
         $this->createPageRepo->__invoke(function ($db, $fakeTheWebsite, $_testAppStorage) use ($pageType) {
@@ -132,14 +140,24 @@ final class PageTestUtils {
                 `ownField1` TEXT,
                 `ownField2` INTEGER
             )");
-            $db->exec("INSERT INTO `pageTypes` VALUES
-                ({$id},'MyProducts','my-products','" . json_encode([
+            [$qList, $vals, $cols] = $db->makeInsertQParts((object) [
+                "id" => $id,
+                "name" => "MyProducts",
+                "slug" => "my-products",
+                "friendlyName" => "Product",
+                "friendlyNamePlural" => "Products",
+                "description" => "",
+                "fields" => json_encode([
                     "ownFields" => $pageType->ownFields,
                     "blockFields" => [(object) ["type" => "Paragraph", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
                                                 "initialData" => (object) ["text" => "Paragraph text", "cssClass" => ""],
                                                 "children" => []]],
                     "defaultFields" => (object) ["title" => (object) ["defaultValue" => "Product name"]],
-                ]) . "','1',1)");
+                ]),
+                "defaultLayoutId" => "1",
+                "isListable" => 1,
+            ]);
+            $db->exec("INSERT INTO `pageTypes` ({$cols}) VALUES ({$qList})", $vals);
         });
         return $pageType;
     }

@@ -8,10 +8,16 @@ final class PageType {
     /** @var string */
     public string $name;
     /** @var string */
+    public string $friendlyName;
+    /** @var string */
+    public string $friendlyNamePlural;
+    /** @var string */
+    public string $description;
+    /** @var string */
     public string $slug;
     /** @var array */
     public array $blockFields;
-    /** @var array e.g. [{name: "price", "friendlyName": "Price", dataType: "text", "defaultValue": "1999"...}...] */
+    /** @var array e.g. [{name: "price", "friendlyName": "Price", dataType: {"type": "text"}, "defaultValue": "1999"...}...] */
     public array $ownFields;
     /** @var array e.g. {title: {defaultValue: "My page"}...} */
     public object $defaultFields;
@@ -27,6 +33,9 @@ final class PageType {
         $out = new self;
         $out->name = $row->pageTypeName;
         $out->slug = $row->pageTypeSlug;
+        $out->friendlyName = $row->pageTypeFriendlyName;
+        $out->friendlyNamePlural = $row->pageTypeFriendlyNamePlural;
+        $out->description = $row->pageTypeDescription;
         $fields = json_decode($row->pageTypeFieldsJson, flags: JSON_THROW_ON_ERROR);
         $out->blockFields = $fields->blockFields;
         $out->ownFields = $fields->ownFields;

@@ -22,6 +22,7 @@ use Sivujetti\Auth\AuthModule;
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesModule;
 use Sivujetti\Layout\LayoutsModule;
+use Sivujetti\PageType\PageTypesModule;
 use Sivujetti\Update\UpdatesModule;
 use Sivujetti\Upload\UploadsModule;
 
@@ -46,6 +47,7 @@ final class App {
             new BlocksModule,
             new GlobalBlockTreesModule,
             new LayoutsModule,
+            new PageTypesModule,
             new UpdatesModule,
             new UploadsModule,
             new PagesModule,

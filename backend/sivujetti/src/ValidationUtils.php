@@ -9,6 +9,8 @@ abstract class ValidationUtils {
     public const HARD_LONG_TEXT_MAX_LEN = 128000;
     public const HARD_JSON_TEXT_MAX_LEN = 256000;
     public const EMAIL_REGEXP_SIMPLE = "/^.+@.+$/";
+    public const SLUG_MAX_LENGTH = 92;
+    public const SLUG_REGEXP_SIMPLE = "/^[a-zA-Z_-]+$/";
     private const VALID_RULES = ["type", "minLength", "maxLength", "min",
                                  "max", "in", "identifier", "regexp"];
     /**
@@ -37,10 +39,10 @@ abstract class ValidationUtils {
                 "many-to-many" => [["type", "string"]],
                 "int" =>  [["type", "number"]],
                 "uint" => [["type", "number"], ["min", 0]],
-            ][$prop->dataType] ?? null;
+            ][$prop->dataType->type] ?? null;
             if (!$rules)
                 throw new \RuntimeException("Shouldn't happen");
-            $userRules = $prop->validationRules ?? [];
+            $userRules = $prop->dataType->validationRules ?? [];
             if ($userRules) { // e.g. [ ["required"], ["min", 4] ]
                 foreach ($userRules as $ruleParts) {
                     if (!is_array($ruleParts) || !in_array($ruleParts[0], self::VALID_RULES, true))

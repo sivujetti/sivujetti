@@ -29,6 +29,9 @@ $out->resources = (object) [
         "updateBlocksOf" => 0b00000100,
         "update"         => 0b00001000,
     ],
+    "pageTypes" => (object) [
+        "create"         => 0b00000010,
+    ],
     "uploads" => (object) [
         "view"           => 0b00000010,
         "upload"         => 0b00000100,

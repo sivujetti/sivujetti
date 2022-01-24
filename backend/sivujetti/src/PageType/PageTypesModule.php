@@ -9,9 +9,9 @@ final class PageTypesModule {
      * @param \Sivujetti\AppContext $ctx
      */
     public function init(AppContext $ctx): void {
-        $ctx->router->map("POST", "/api/page-types",
-            [PageTypesController::class, "createPageType", ["consumes" => "application/json",
-                                                            "identifiedBy" => ["create", "pageTypes"]]],
+        $ctx->router->map("POST", "/api/page-types/as-placeholder",
+            [PageTypesController::class, "createPlaceholderPageType", ["consumes" => "application/json",
+                                                                       "identifiedBy" => ["create", "pageTypes"]]],
         );
     }
 }

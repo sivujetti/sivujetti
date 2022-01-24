@@ -67,6 +67,7 @@ return [
     `description` TEXT NOT NULL,
     `fields` JSON,
     `defaultLayoutId` {$dataTypeForMaxIndexableText},
+    `status` TINYINT(1) DEFAULT 1, -- 0 = complete, 1 = draft
     `isListable` TINYINT(1) DEFAULT 1,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",

@@ -63,6 +63,7 @@ return [
     `description` TEXT NOT NULL,
     `fields` JSON,
     `defaultLayoutId` TEXT NOT NULL,
+    `status` INTEGER DEFAULT 1, -- 0 = complete, 1 = draft
     `isListable` INTEGER DEFAULT 1
 )",
 

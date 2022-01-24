@@ -5,6 +5,8 @@ namespace Sivujetti\PageType\Entities;
 final class PageType {
     public const PAGE = "Pages";
     public const SLUG_PAGE = "pages";
+    public const STATUS_COMPLETE = 0;
+    public const STATUS_DRAFT = 1;
     /** @var string */
     public string $name;
     /** @var string */
@@ -23,6 +25,8 @@ final class PageType {
     public object $defaultFields;
     /** @var string */
     public string $defaultLayoutId;
+    /** @var int self::STATUS_* */
+    public int $status;
     /** @var bool */
     public bool $isListable;
     /**
@@ -41,6 +45,7 @@ final class PageType {
         $out->ownFields = $fields->ownFields;
         $out->defaultFields = $fields->defaultFields;
         $out->defaultLayoutId = $row->pageTypeDefaultLayoutId;
+        $out->status = (int) $row->pageTypeStatus;
         $out->isListable = (bool) $row->pageTypeIsListable;
         return $out;
     }

@@ -155,6 +155,7 @@ final class PageTestUtils {
                     "defaultFields" => (object) ["title" => (object) ["defaultValue" => "Product name"]],
                 ]),
                 "defaultLayoutId" => "1",
+                "status" => PageType::STATUS_COMPLETE,
                 "isListable" => 1,
             ]);
             $db->exec("INSERT INTO `pageTypes` ({$cols}) VALUES ({$qList})", $vals);

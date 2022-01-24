@@ -23,6 +23,7 @@ final class TheWebsiteRepository {
                 ", pt.`description` AS `pageTypeDescription`" .
                 ", pt.`fields` AS `pageTypeFieldsJson`" .
                 ", pt.`defaultLayoutId` AS `pageTypeDefaultLayoutId`" .
+                ", pt.`status` AS `pageTypeStatus`" .
                 ", pt.`isListable` AS `pageTypeIsListable`" .
             " FROM \${p}theWebsite ws" .
             " LEFT JOIN \${p}plugins p ON (1)" .
@@ -59,9 +60,12 @@ class Collector {
      */
     public function collect(string $ClassString, string $mainProp): \ArrayAccess {
         $out = $this->out ?? new \ArrayObject;
+        $map = [];
         foreach ($this->rows as $row) {
-            if (!$row->{$mainProp})
+            $id = $row->{$mainProp};
+            if (!$id || array_key_exists($id, $map))
                 continue;
+            $map[$id] = 1;
             $out[] = call_user_func("$ClassString::fromParentRs", $row);
         }
         return $out;

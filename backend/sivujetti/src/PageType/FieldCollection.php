@@ -11,7 +11,7 @@ class FieldCollection extends \ArrayObject implements \JsonSerializable {
     /**
      * @param \Closure $formatterFn = null fn(\Sivujetti\PageType\Entities\Field $field): string
      * @param string[] $onlyThese = []
-     * @return string '`name`, `name2`'
+     * @return string "`name`, `name2`"
      */
     public function toSqlCols(\Closure $formatterFn = null,
                               array $onlyThese = []): string {
@@ -20,16 +20,16 @@ class FieldCollection extends \ArrayObject implements \JsonSerializable {
             if ($onlyThese && !in_array($f->name, $onlyThese, true)) continue;
             $names[] = $f->toSqlCol($formatterFn);
         }
-        return implode(', ', $names);
+        return implode(", ", $names);
     }
     /**
-     * @return string '`name` TEXT, `name2` INT UNSIGNED'
+     * @return string "`name` TEXT, `name2` INT UNSIGNED"
      */
     public function toSqlTableFields(): string {
         $fields = [];
         foreach ($this as $f)
             $fields[] = $f->toSqlTableField();
-        return implode(', ', $fields);
+        return implode(", ", $fields);
     }
     /**
      * @return array

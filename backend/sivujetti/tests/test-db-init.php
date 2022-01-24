@@ -9,7 +9,7 @@ $statements = array_merge($statements, [
 ('Test suite website','fi','".json_encode($getRules())."')",
 
 "INSERT INTO `pageTypes` (`id`,`name`,`slug`,`friendlyName`,`friendlyNamePlural`,`description`" .
-                          ",`fields`,`defaultLayoutId`,`isListable`) VALUES
+                          ",`fields`,`defaultLayoutId`,`status`,`isListable`) VALUES
 (1,'Pages','pages','Page','Pages','','" . json_encode([
     "ownFields" => [(object) [
         "name" => "categories",
@@ -22,7 +22,7 @@ $statements = array_merge($statements, [
                                 "initialData" => (object) ["text" => "Paragraph text", "cssClass" => ""],
                                 "children" => []]],
     "defaultFields" => (object) ["title" => (object) ["defaultValue" => "New page"]],
-]) . "','1',1)",
+]) . "','1',0,1)",
 
 ]);
 

@@ -36,7 +36,9 @@ final class PageTypeValidator {
             ->rule("friendlyNamePlural", "maxLength", self::MAX_FRIENDLY_NAME_LENGTH)
             ->rule("description", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
             ->rule("defaultLayoutId", "type", "string")
+            ->rule("status", "in", [PageType::STATUS_COMPLETE, PageType::STATUS_DRAFT])
             ->rule("isListable", "type", "bool")
+            //
             ->rule("ownFields", "type", "array")
             ->rule("ownFields.*.name", "identifier")
             ->rule("ownFields.*.name", "maxLength", self::MAX_NAME_LEN)
@@ -46,18 +48,12 @@ final class PageTypeValidator {
             ->rule("ownFields.*.dataType.length?", "type", "int")
             ->rule("ownFields.*.dataType.validationRules?", "type", "array")
             ->rule("ownFields.*.defaultValue", "maxLength", ValidationUtils::HARD_LONG_TEXT_MAX_LEN)
-            ->rule("ownFields.*.isNullable", "type", "bool");
-        //
-        $errors3 = is_object($input->defaultFields) &&
-            $input->defaultFields->title?->defaultValue === "<my type>'s title"
-            ? []
-            : ["Invalid defaultFields"];
-        //
-        $errors4 = $this->blockValidator->validateMany($input->blockFields);
+            ->rule("ownFields.*.isNullable", "type", "bool")
+            //
+            ->rule("defaultFields.title.defaultValue", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN);
         //
         return array_merge($validator->validate($input),
-                           $errors3,
-                           $errors4);
+                           $this->blockValidator->validateMany($input->blockFields));
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType $pageType

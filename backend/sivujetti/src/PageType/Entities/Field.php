@@ -51,34 +51,34 @@ class DataType {
     /** @var ?array */
     public ?array $validationRules;
     /**
-     * @return string 'TEXT', 'INT(64)'
+     * @return string "TEXT", "INT(64)"
      */
     public function toSql(): string {
         $len = $this->length ?? 0;
         switch ($this->type) {
-        case 'text':
-            $t = (!$len ? 'TEXT' : 'VARCHAR') . '%s';
+        case "text":
+            $t = (!$len ? "TEXT" : "VARCHAR") . "%s";
             break;
-        case 'json':
-            $t = 'JSON';
+        case "json":
+            $t = "JSON";
             $len = 0;
             break;
-        case 'int':
-            $t = 'INT%s';
+        case "int":
+            $t = "INT%s";
             break;
-        case 'uint':
-            $t = 'INT%s UNSIGNED';
+        case "uint":
+            $t = "INT%s UNSIGNED";
             break;
         default:
-            $t = 'TEXT%s';
+            $t = "TEXT%s";
         }
-        return sprintf($t, !$len ? '' : "({$len})");
+        return sprintf($t, !$len ? "" : "({$len})");
     }
     /**
-     * @return string 'text', 'int64'
+     * @return string "text", "int64"
      */
     public function __toString(): string {
-        return $this->type . ($this->length ?? '');
+        return $this->type . ($this->length ?? "");
     }
     /**
      * @param object $obj {type: string, length?: int, validationRules?: array}

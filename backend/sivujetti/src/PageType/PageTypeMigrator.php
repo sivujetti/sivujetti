@@ -23,10 +23,12 @@ final class PageTypeMigrator {
     }
     /**
      * @param object $input $req->body of `POST /api/page-types`
+     * @param bool $asPlaceholder = false
+     * @return string $lastInsertId or ""
      * @throws \Pike\PikeException
      */
-    public function install(object $input): void {
-        if (($input->name ?? "") === self::MAGIC_PAGE_TYPE_NAME)
+    public function install(object $input, bool $asPlaceholder = false): string {
+        if (!$asPlaceholder && ($input->name ?? "") === self::MAGIC_PAGE_TYPE_NAME)
             throw new PikeException("Invalid input", PikeException::BAD_INPUT);
         // @allow \Pike\PikeException
         if (($errors = $this->pageTypeValidator->validate($input)))
@@ -35,8 +37,11 @@ final class PageTypeMigrator {
         $fields = FieldCollection::fromValidatedInput($input->ownFields);
         $pageTypeRaw = self::createRawPageType($input, $fields);
         //
-        $this->createPageType($pageTypeRaw->name, $fields); // @allow \Pike\PikeException
-        $this->addToInstalledContentTypes($pageTypeRaw); // @allow \Pike\PikeException
+        if (!$asPlaceholder)
+            $this->createPageType($pageTypeRaw->name, $fields); // @allow \Pike\PikeException
+        $insertId = $this->addToInstalledPageTypes($pageTypeRaw); // @allow \Pike\PikeException
+        if (!$insertId) throw new PikeException("", PikeException::INEFFECTUAL_DB_OP);
+        return $insertId;
     }
     /**
      * @param object $input
@@ -61,6 +66,7 @@ final class PageTypeMigrator {
             ]],
         ], JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
         $pageTypeRaw->defaultLayoutId = $input->defaultLayoutId;
+        $pageTypeRaw->status = $input->status;
         $pageTypeRaw->isListable = $input->isListable;
         return $pageTypeRaw;
     }
@@ -104,11 +110,13 @@ final class PageTypeMigrator {
     }
     /**
      * @param \RadCms\ContentType\ContentTypeCollection $contentTypes
+     * @return string $lastInsertId or ""
      */
-    private function addToInstalledContentTypes(object $pageTypeRaw): void {
+    private function addToInstalledPageTypes(object $pageTypeRaw): string {
         [$qList, $values, $columns] = $this->db->makeInsertQParts($pageTypeRaw);
-        $this->db->exec("INSERT INTO `\${p}pageTypes` ({$columns}) VALUES ({$qList})",
-                        $values);
+        $numRows = $this->db->exec("INSERT INTO `\${p}pageTypes` ({$columns}) VALUES ({$qList})",
+                                   $values);
+        return $numRows === 1 ? $this->db->lastInsertId() : "";
     }
     /**
      * @param object|\Sivujetti\Block\Entities\Block $blueprint

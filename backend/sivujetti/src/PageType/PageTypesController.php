@@ -19,15 +19,35 @@ final class PageTypesController {
     public function createPlaceholderPageType(Response $res,
                                               PageTypeMigrator $migrator): void {
         // @allow \Pike\PikeException
-        $migrator->install(self::createEmptyPageType(), true);
-        $res->status(201)->json(["ok" => "ok"]);
+        $newPageType = $migrator->install(self::createEmptyPageTypeInput(), true);
+        $res->status(201)->json(["ok" => "ok",
+                                 "newEntity" => $newPageType]);
     }
     /**
-     * @return object
+     * PUT /api/page-types/:name/:asPlaceholder?: Updates page type $req->params->name
+     * to the database.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Sivujetti\PageType\PageTypeMigrator $migrator
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      */
-    public static function createEmptyPageType(): object {
+    public function updatePlaceholderPageType(Request $req,
+                                              Response $res,
+                                              PageTypeMigrator $migrator,
+                                              TheWebsite $theWebsite): void {
+        if (!($cur = ArrayUtils::findByKey($theWebsite->pageTypes, $migrator::MAGIC_PAGE_TYPE_NAME, "name")))
+            throw new PikeException("Unknown page type `{$req->params->name}`.");
+        // @allow \Pike\PikeException
+        $migrator->update($req->body, $cur, property_exists($req->params, "asPlaceholder"));
+        $res->status(200)->json(["ok" => "ok"]);
+    }
+    /**
+     * @return object Same as $req->body of `PUT /api/page-types`
+     */
+    public static function createEmptyPageTypeInput(): object {
         $out = new \stdClass;
-        $out->name = "Draft";
+        $out->name = PageTypeMigrator::MAGIC_PAGE_TYPE_NAME;
         $out->slug = "draft";
         $out->friendlyName = "_";
         $out->friendlyNamePlural = "_";

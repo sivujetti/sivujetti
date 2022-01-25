@@ -31,6 +31,7 @@ $out->resources = (object) [
     ],
     "pageTypes" => (object) [
         "create"         => 0b00000010,
+        "update"         => 0b00000100,
     ],
     "uploads" => (object) [
         "view"           => 0b00000010,

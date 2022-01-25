@@ -49,4 +49,21 @@ final class PageType {
         $out->isListable = (bool) $row->pageTypeIsListable;
         return $out;
     }
+    /**
+     * @param object $row
+     * @return self
+     */
+    public static function fromRawPageType(object $raw): PageType {
+        return self::fromParentRs((object) [
+            "pageTypeName" => $raw->name,
+            "pageTypeSlug" => $raw->slug,
+            "pageTypeFriendlyName" => $raw->friendlyName,
+            "pageTypeFriendlyNamePlural" => $raw->friendlyNamePlural,
+            "pageTypeDescription" => $raw->description,
+            "pageTypeFieldsJson" => $raw->fields,
+            "pageTypeDefaultLayoutId" => $raw->defaultLayoutId,
+            "pageTypeStatus" => $raw->status,
+            "pageTypeIsListable" => $raw->isListable,
+        ]);
+    }
 }

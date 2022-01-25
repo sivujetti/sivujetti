@@ -4,18 +4,20 @@ namespace Sivujetti\PageType;
 
 use Pike\Db;
 use Pike\PikeException;
+use Sivujetti\PageType\Entities\PageType;
 
 /**
  * Installs / removes page types to / from the database.
  */
 final class PageTypeMigrator {
-    private const MAGIC_PAGE_TYPE_NAME = "Draft";
+    public const MAGIC_PAGE_TYPE_NAME = "Draft";
     /** @var \Pike\Db */
     private Db $db;
     /** @var \Sivujetti\PageType\PageTypeValidator */
     private PageTypeValidator $pageTypeValidator;
     /**
      * @param \Pike\Db $db
+     * @param \Sivujetti\PageType\PageTypeValidator $pageTypeValidator
      */
     public function __construct(Db $db, PageTypeValidator $pageTypeValidator) {
         $this->db = $db;
@@ -24,13 +26,12 @@ final class PageTypeMigrator {
     /**
      * @param object $input $req->body of `POST /api/page-types`
      * @param bool $asPlaceholder = false
-     * @return string $lastInsertId or ""
+     * @return \Sivujetti\PageType\Entities\PageType
      * @throws \Pike\PikeException
      */
-    public function install(object $input, bool $asPlaceholder = false): string {
+    public function install(object $input, bool $asPlaceholder = false): PageType {
         if (!$asPlaceholder && ($input->name ?? "") === self::MAGIC_PAGE_TYPE_NAME)
             throw new PikeException("Invalid input", PikeException::BAD_INPUT);
-        // @allow \Pike\PikeException
         if (($errors = $this->pageTypeValidator->validate($input)))
             throw new PikeException(implode(PHP_EOL, $errors), PikeException::BAD_INPUT);
         //
@@ -38,18 +39,48 @@ final class PageTypeMigrator {
         $pageTypeRaw = self::createRawPageType($input, $fields);
         //
         if (!$asPlaceholder)
-            $this->createPageType($pageTypeRaw->name, $fields); // @allow \Pike\PikeException
+            $this->createDataStore($pageTypeRaw->name, $fields); // @allow \Pike\PikeException
         $insertId = $this->addToInstalledPageTypes($pageTypeRaw); // @allow \Pike\PikeException
         if (!$insertId) throw new PikeException("", PikeException::INEFFECTUAL_DB_OP);
-        return $insertId;
+        return PageType::fromRawPageType($pageTypeRaw);
+    }
+    /**
+     * @param object $input $req->body of `PUT /api/page-types`
+     * @param \Sivujetti\PageType\Entities\PageType $current
+     * @param bool $asPlaceholder = false
+     * @throws \Pike\PikeException
+     */
+    public function update(object $input,
+                           PageType $current,
+                           bool $asPlaceholder = true): void {
+        if (($errors = $this->pageTypeValidator->validate($input)))
+            throw new PikeException(implode(PHP_EOL, $errors), PikeException::BAD_INPUT);
+        if (!$asPlaceholder && $input->name === self::MAGIC_PAGE_TYPE_NAME)
+            throw new PikeException("Page type name `{$input->name}` is reserved.",
+                                    PikeException::BAD_INPUT);
+        //
+        $fields = FieldCollection::fromValidatedInput($input->ownFields);
+        $newPageTypeRaw = self::createRawPageType($input, $fields);
+        $newPageTypeRaw->status = $asPlaceholder ? PageType::STATUS_DRAFT : PageType::STATUS_COMPLETE;
+        //
+        [$columns, $values] = $this->db->makeUpdateQParts($newPageTypeRaw);
+        // @allow \Pike\PikeException
+        $this->db->exec("UPDATE `\${p}pageTypes` SET {$columns} WHERE `name` = ?",
+                        array_merge($values, [$current->name]));
+        //
+        if ($newPageTypeRaw->status === PageType::STATUS_COMPLETE &&
+            $current->status === PageType::STATUS_DRAFT) {
+            // @allow \Pike\PikeException
+            $this->createDataStore($newPageTypeRaw->name, $fields);
+        }
     }
     /**
      * @param object $input
      * @param \Sivujetti\PageType\FieldCollection $fields
      * @return object
      */
-    private static function createRawPageType(object $input,
-                                              FieldCollection $fields): object {
+    public static function createRawPageType(object $input,
+                                             \Sivujetti\PageType\FieldCollection $fields): object {
         $pageTypeRaw = new \stdClass;
         $pageTypeRaw->name = $input->name;
         $pageTypeRaw->slug = $input->slug;
@@ -74,7 +105,7 @@ final class PageTypeMigrator {
      * @param string $name Validated name for the new page type
      * @param \Sivujetti\PageType\FieldCollection $fields
      */
-    private function createPageType(string $name, FieldCollection $fields): void {
+    private function createDataStore(string $name, FieldCollection $fields): void {
         $dt = $this->db->attr(\PDO::ATTR_DRIVER_NAME) === "sqlite" ? [
             "id" => "INTEGER PRIMARY KEY AUTOINCREMENT",
             "slug" => "TEXT",

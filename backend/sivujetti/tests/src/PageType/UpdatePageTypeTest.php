@@ -2,17 +2,23 @@
 
 namespace Sivujetti\Tests\PageType;
 
-use Pike\ArrayUtils;
 use Pike\PikeException;
-use Sivujetti\App;
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\PageType\PageTypeMigrator;
-use Sivujetti\TheWebsite\TheWebsiteRepository;
+use Sivujetti\PageType\{FieldCollection, PageTypeMigrator, PageTypesController};
+use Sivujetti\Tests\Utils\DbDataHelper;
 
 final class UpdatePageTypeTest extends PageTypeControllerTestCase {
-    public function testUpdatePageTypeUpdatesNewPageTypeFromDb(): void {
+    protected const TEST_NAME = "MyCustomArticles";
+    protected function tearDown(): void {
+        parent::tearDown();
+        self::$db->exec("DELETE FROM `pageTypes` WHERE `name` = ?", [self::TEST_NAME]);
+    }
+    public function testUpdatePlaceholderPageTypeUpdatesPageTypeToDb(): void {
         $state = $this->setupTest();
-        $this->assertTrue(true);
+        $this->insertPlaceholderPageTypeToDb();
+        $this->makeTestSivujettiApp($state);
+        $this->sendUpdatePlaceholderPageTypeRequest($state);
+        $this->verifyUpdatePageTypeToDb($state);
     }
     private function setupTest(array $inputData = null, ?string $hints = null): \TestState {
         $state = new \TestState;
@@ -63,6 +69,25 @@ final class UpdatePageTypeTest extends PageTypeControllerTestCase {
             "junk" => "prop 3",
         ]];
     }
+    private function insertPlaceholderPageTypeToDb(): void {
+        $dataHelper = (new DbDataHelper(self::$db));
+        $pageTypeInput = PageTypesController::createEmptyPageTypeInput();
+        $raawPageType = PageTypeMigrator::createRawPageType(
+            $pageTypeInput,
+            FieldCollection::fromValidatedInput($pageTypeInput->ownFields)
+        );
+        $dataHelper->insertData($raawPageType, "pageTypes");
+    }
+    private function sendUpdatePlaceholderPageTypeRequest(\TestState $state, bool $asDraft = true): void {
+        $url = "/api/page-types/" . PageTypeMigrator::MAGIC_PAGE_TYPE_NAME;
+        if ($asDraft) $url .= "/as-placeholder";
+        $state->spyingResponse = $state->app->sendRequest(
+            $this->createApiRequest($url, "PUT", $state->inputData));
+    }
+    private function verifyUpdatePageTypeToDb(\TestState $state, bool $asDraft = true): void {
+        $s = $asDraft ? PageType::STATUS_DRAFT : PageType::STATUS_COMPLETE;
+        $this->verifyPageTypeInDbEquals($state->inputData, $s);
+    }
     private function verifyCreatedUnderlyingDataStore(\TestState $state): void {
         // Created the table?
         $c = require TEST_CONFIG_DIR_PATH . "config.php";
@@ -88,19 +113,32 @@ final class UpdatePageTypeTest extends PageTypeControllerTestCase {
                 ; // Not implemented yet
         }
     }
-    /*
 
 
     ////////////////////////////////////////////////////////////////////////////
 
 
-    public function testCreatePageTypeRejectsInvalidBasicFieldsInputs(): void {
+    public function testCommitPlaceholderPageTypeUpdatesPageTypeAndCreatesDataStoreToDb(): void {
+        $state = $this->setupTest();
+        $this->insertPlaceholderPageTypeToDb();
+        $this->makeTestSivujettiApp($state);
+        $this->sendUpdatePlaceholderPageTypeRequest($state, asDraft: false);
+        $this->verifyCreatedUnderlyingDataStore($state);
+        $this->verifyUpdatePageTypeToDb($state, asDraft: false);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testUpdatePlaceholderPageTypeRejectsInvalidBasicFieldsInputs(): void {
         $state = $this->setupTest([
             // Omit name, slug, friendlyName, friendlyNamePlural, description, defaultLayoutId, status, isListable
             "blockFields" => $this->createBlockFieldsInput(),
             "defaultFields" => self::createDefaultFieldsInput(),
             "ownFields" => self::createOwnFieldsInput(),
         ]);
+        $this->insertPlaceholderPageTypeToDb();
         $this->makeTestSivujettiApp($state);
         $this->expectException(PikeException::class);
         $this->expectExceptionMessage(implode(PHP_EOL, [
@@ -117,14 +155,14 @@ final class UpdatePageTypeTest extends PageTypeControllerTestCase {
             "The value of status was not in the list",
             "isListable must be bool",
         ]));
-        $this->sendCreatePageTypeRequest($state);
+        $this->sendUpdatePlaceholderPageTypeRequest($state);
     }
 
 
     ////////////////////////////////////////////////////////////////////////////
 
 
-    public function testCreatePageTypeRejectsInvalidDefaultFieldsAndOwnFieldsInputs(): void {
+    public function testUpdatePlaceholderPageTypeRejectsInvalidDefaultFieldsAndOwnFieldsInputs(): void {
         $state = $this->setupTest([
             "blockFields" => $this->createBlockFieldsInput(),
             "defaultFields" => (object) ["title" => (object) ["partial" => "object"]],
@@ -133,6 +171,7 @@ final class UpdatePageTypeTest extends PageTypeControllerTestCase {
                 "validationRules" => "not-an-array"
             ]]],
         ], "completeBasicFields");
+        $this->insertPlaceholderPageTypeToDb();
         $this->makeTestSivujettiApp($state);
         $this->expectException(PikeException::class);
         $this->expectExceptionMessage(implode(PHP_EOL, [
@@ -147,22 +186,23 @@ final class UpdatePageTypeTest extends PageTypeControllerTestCase {
             "ownFields.0.isNullable must be bool",
             "The length of defaultFields.title.defaultValue must be 1024 or less",
         ]));
-        $this->sendCreatePageTypeRequest($state);
+        $this->sendUpdatePlaceholderPageTypeRequest($state);
     }
 
 
     ////////////////////////////////////////////////////////////////////////////
 
 
-    public function testCreatePageTypeRejectsInvalidBlockFieldsInputs(): void {
+    public function testUpdatePlaceholderPageTypeRejectsInvalidBlockFieldsInputs(): void {
         $state = $this->setupTest([
             "blockFields" => [(object) ["type" => "not-valid-block"]],
             "defaultFields" => self::createDefaultFieldsInput(),
             "ownFields" => self::createOwnFieldsInput(),
         ], "completeBasicFields");
+        $this->insertPlaceholderPageTypeToDb();
         $this->makeTestSivujettiApp($state);
         $this->expectException(PikeException::class);
         $this->expectExceptionMessage("Unknown block type `not-valid-block`");
-        $this->sendCreatePageTypeRequest($state);
-    }*/
+        $this->sendUpdatePlaceholderPageTypeRequest($state);
+    }
 }

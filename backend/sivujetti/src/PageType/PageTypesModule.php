@@ -13,5 +13,9 @@ final class PageTypesModule {
             [PageTypesController::class, "createPlaceholderPageType", ["consumes" => "application/json",
                                                                        "identifiedBy" => ["create", "pageTypes"]]],
         );
+        $ctx->router->map("PUT", "/api/page-types/[w:name]/[as-placeholder:asPlaceholder]?",
+            [PageTypesController::class, "updatePlaceholderPageType", ["consumes" => "application/json",
+                                                                       "identifiedBy" => ["update", "pageTypes"]]],
+        );
     }
 }

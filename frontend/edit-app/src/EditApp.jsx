@@ -60,7 +60,13 @@ class EditApp extends preact.Component {
                     <img src={ urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo.png') }/>
                     <span class="d-inline-block ml-1">
                         <span class="d-inline-block col-12">Sivujetti</span>
-                        <span>{ __('Edit mode') }</span>
+                        <select onClick={ e => e.stopPropagation() } onChange={ e => {
+                            console.log('change');
+                        } } class="form-select">
+                        <option value="edit-mode">Muokkaustila</option>
+                        <option value="dashboard">{ __('Go to dashboard') }</option>
+                        <option value="web-page">{ __('Go to page') }</option>
+                        </select>
                     </span>
                 </a>
                 <SaveButton/>
@@ -95,11 +101,10 @@ class EditApp extends preact.Component {
                         pageType={ pageType }/>
                     : <CreatePageTypeMainPanelView
                         blockTreesRef={ this.blockTrees }
-                        cancelAddPageType={ () => { 'todo http.delete(api/page-types/Draft)'; webPageIframe.goBack(); } }
-                        onPageTypeCreated={ _submittedData => {
-                            // todo mutate this.props.dataFromAdminBackend.pageTypes
-                            // todo urlUtils.redirect(`/_edit`);
+                        cancelAddPageType={ () => {
+                            webPageIframe.goBack(); // This will trigger CreatePageTypeMainPanelView's componentWillUnmount
                         } }
+                        onPageTypeCreated={ this.handlePageTypeCreated.bind(this) }
                         pageType={ pageType }/>
             }
             <Toaster id="editAppMain"/>
@@ -108,6 +113,18 @@ class EditApp extends preact.Component {
             <span class="local-link-click-timer" ref={ this.localLinkClickTimerEl }></span>
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         </div>;
+    }
+    /**
+     * @param {PageType} submittedData
+     * @access private
+     */
+    handlePageTypeCreated(submittedData) {
+        const mutRef = this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentWebPage.type);
+        Object.assign(mutRef, submittedData);
+        //
+        toasters.editAppMain(__('Created new %s.', __('page type')), 'success');
+        //
+        urlUtils.redirect('/_edit');
     }
     /**
      * @access protected

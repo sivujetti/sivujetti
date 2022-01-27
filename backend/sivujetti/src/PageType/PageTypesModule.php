@@ -17,5 +17,9 @@ final class PageTypesModule {
             [PageTypesController::class, "updatePageType", ["consumes" => "application/json",
                                                             "identifiedBy" => ["update", "pageTypes"]]],
         );
+        $ctx->router->map("DELETE", "/api/page-types/[w:name]/[as-placeholder:asPlaceholder]?",
+            [PageTypesController::class, "deletePageType", ["consumes" => "application/json",
+                                                            "identifiedBy" => ["delete", "pageTypes"]]],
+        );
     }
 }

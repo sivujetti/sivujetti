@@ -5,8 +5,8 @@ namespace Sivujetti\Tests\PageType;
 use Pike\ArrayUtils;
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 use Sivujetti\App;
-use Sivujetti\PageType\PageTypeMigrator;
-use Sivujetti\Tests\Utils\{BlockTestUtils, HttpApiTestTrait};
+use Sivujetti\PageType\{FieldCollection, PageTypeMigrator, PageTypesController};
+use Sivujetti\Tests\Utils\{BlockTestUtils, DbDataHelper, HttpApiTestTrait};
 use Sivujetti\TheWebsite\TheWebsiteRepository;
 
 abstract class PageTypeControllerTestCase extends DbTestCase {
@@ -24,6 +24,20 @@ abstract class PageTypeControllerTestCase extends DbTestCase {
     }
     protected function makeTestSivujettiApp(\TestState $state): void {
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
+    }
+    protected function insertPlaceholderPageTypeToDb(): void {
+        $dataHelper = (new DbDataHelper(self::$db));
+        $pageTypeInput = PageTypesController::createEmptyPageTypeInput();
+        $raawPageType = PageTypeMigrator::createRawPageType(
+            $pageTypeInput,
+            FieldCollection::fromValidatedInput($pageTypeInput->ownFields)
+        );
+        $dataHelper->insertData($raawPageType, "pageTypes");
+    }
+    protected function verifyRequestReturnedSuccesfully(\TestState $state, int $expectedStatusCode = 200): void {
+        $this->verifyResponseMetaEquals($expectedStatusCode, "application/json", $state->spyingResponse);
+        $actualBody = json_decode($state->spyingResponse->getActualBody(), flags: JSON_THROW_ON_ERROR);
+        $this->assertEquals("ok", $actualBody->ok);
     }
     protected function verifyPageTypeInDbEquals(object $expected, int $expectedStatus): void {
         $all = (new TheWebsiteRepository())->fetchActive(self::$db)->pageTypes;

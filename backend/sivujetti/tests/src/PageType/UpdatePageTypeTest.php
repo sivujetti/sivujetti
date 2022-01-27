@@ -4,20 +4,21 @@ namespace Sivujetti\Tests\PageType;
 
 use Pike\PikeException;
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\PageType\{FieldCollection, PageTypeMigrator, PageTypesController};
-use Sivujetti\Tests\Utils\DbDataHelper;
+use Sivujetti\PageType\{PageTypeMigrator};
 
 final class UpdatePageTypeTest extends PageTypeControllerTestCase {
     protected const TEST_NAME = "MyCustomArticles";
     protected function tearDown(): void {
         parent::tearDown();
         self::$db->exec("DELETE FROM `pageTypes` WHERE `name` = ?", [self::TEST_NAME]);
+        self::$db->exec("DROP TABLE IF EXISTS `" . self::TEST_NAME . "`");
     }
     public function testUpdatePlaceholderPageTypeUpdatesPageTypeToDb(): void {
         $state = $this->setupTest();
         $this->insertPlaceholderPageTypeToDb();
         $this->makeTestSivujettiApp($state);
         $this->sendUpdatePlaceholderPageTypeRequest($state);
+        $this->verifyRequestReturnedSuccesfully($state);
         $this->verifyUpdatePageTypeToDb($state);
     }
     private function setupTest(array $inputData = null, ?string $hints = null): \TestState {
@@ -68,15 +69,6 @@ final class UpdatePageTypeTest extends PageTypeControllerTestCase {
             "isNullable" => false,
             "junk" => "prop 3",
         ]];
-    }
-    private function insertPlaceholderPageTypeToDb(): void {
-        $dataHelper = (new DbDataHelper(self::$db));
-        $pageTypeInput = PageTypesController::createEmptyPageTypeInput();
-        $raawPageType = PageTypeMigrator::createRawPageType(
-            $pageTypeInput,
-            FieldCollection::fromValidatedInput($pageTypeInput->ownFields)
-        );
-        $dataHelper->insertData($raawPageType, "pageTypes");
     }
     private function sendUpdatePlaceholderPageTypeRequest(\TestState $state, bool $asDraft = true): void {
         $url = "/api/page-types/" . PageTypeMigrator::MAGIC_PAGE_TYPE_NAME;

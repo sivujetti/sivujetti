@@ -55,6 +55,9 @@ final class PageTypeMigrator {
                            bool $asPlaceholder = true): void {
         if (($errors = $this->pageTypeValidator->validate($input)))
             throw new PikeException(implode(PHP_EOL, $errors), PikeException::BAD_INPUT);
+        if ($current->name === PageType::PAGE && $input->name !== PageType::PAGE)
+            throw new PikeException("Renaming page type `{$current->name}` not supported yet.",
+                                    PikeException::BAD_INPUT);
         if (!$asPlaceholder && $input->name === self::MAGIC_PAGE_TYPE_NAME)
             throw new PikeException("Page type name `{$input->name}` is reserved.",
                                     PikeException::BAD_INPUT);
@@ -73,6 +76,23 @@ final class PageTypeMigrator {
             // @allow \Pike\PikeException
             $this->createDataStore($newPageTypeRaw->name, $fields);
         }
+    }
+    /**
+     * @param \Sivujetti\PageType\Entities\PageType $current
+     * @param bool $asPlaceholder = true
+     * @throws \Pike\PikeException
+     */
+    public function delete(PageType $current,
+                           bool $asPlaceholder = true): void {
+        if ($asPlaceholder === false)
+            throw new PikeException("Not supported yet",
+                                    PikeException::BAD_INPUT);
+        if ($current->name === PageType::PAGE)
+            throw new PikeException("Deleting page type `{$current->name}` not supported yet.",
+                                    PikeException::BAD_INPUT);
+        // @allow \Pike\PikeException
+        $this->db->exec("DELETE FROM `\${p}pageTypes` WHERE `name` = ?",
+                        [$current->name]);
     }
     /**
      * @param object $input

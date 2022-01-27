@@ -42,6 +42,24 @@ final class PageTypesController {
         $res->status(200)->json(["ok" => "ok"]);
     }
     /**
+     * PUT /api/page-types/:name/:asPlaceholder?: Updates page type $req->params->name
+     * to the database.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Sivujetti\PageType\PageTypeMigrator $migrator
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
+     */
+    public function deletePageType(Request $req,
+                                   Response $res,
+                                   PageTypeMigrator $migrator,
+                                   TheWebsite $theWebsite): void {
+        $cur = self::getPageTypeOrThrow($theWebsite->pageTypes);
+        // @allow \Pike\PikeException
+        $migrator->delete($cur, property_exists($req->params, "asPlaceholder"));
+        $res->status(200)->json(["ok" => "ok"]);
+    }
+    /**
      * @return object Same as $req->body of `PUT /api/page-types`
      */
     public static function createEmptyPageTypeInput(): object {

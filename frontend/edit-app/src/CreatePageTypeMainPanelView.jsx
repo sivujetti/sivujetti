@@ -9,6 +9,8 @@ import PageTypeOwnFieldsConfigurationForm from './PageTypeOwnFieldsConfiguration
 class CreatePageTypeMainPanelView extends preact.Component {
     // basicInfoWorkingCopy;
     // fieldsWorkingCopy;
+    // formWasSubmitted;
+    // lastCommittedPageName;
     /**
      * @param {{cancelAddPageType: () => void; pageType: PageType; blockTreesRef: preact.Ref;}} props
      */
@@ -24,6 +26,7 @@ class CreatePageTypeMainPanelView extends preact.Component {
             status: props.pageType.status,
             isListable: props.pageType.isListable,
         };
+        this.lastCommittedName = props.pageType.name;
         this.fieldsWorkingCopy = props.pageType.ownFields.map(f => Object.assign({}, f));
         this.state = {layouts: [], sectionAIsCollapsed: false,
             sectionBIsCollapsed: false, sectionCIsCollapsed: false};
@@ -35,6 +38,7 @@ class CreatePageTypeMainPanelView extends preact.Component {
      * @access protected
      */
     componentDidMount() {
+        this.formWasSubmitted = false;
         store.dispatch(setOpQueue([{opName: 'create-new-page-type', command: {
             doHandle: this.handleFormSubmitted.bind(this),
             args: []
@@ -44,7 +48,11 @@ class CreatePageTypeMainPanelView extends preact.Component {
      * @access protected
      */
     componentWillUnmount() {
+        if (this.formWasSubmitted) return;
         store.dispatch(deleteItemsFromOpQueueAfter('create-new-page-type'));
+        http.delete(`/api/page-types/${this.lastCommittedName}/as-placeholder`)
+            .then(resp => { if (resp.ok !== 'ok') throw new Error('-'); })
+            .catch(env.window.console.error);
     }
     /**
      * @access protected
@@ -123,6 +131,7 @@ class CreatePageTypeMainPanelView extends preact.Component {
         const l = this.state.layouts.find(({id}) => id === this.basicInfoWorkingCopy.defaultLayoutId);
         // {name, friendlyName ...}
         const data = Object.assign({}, this.basicInfoWorkingCopy);
+        if (!data.description) data.description = '';
         const belongsToLayout = b => b.type === 'PageInfo' ||
             (b.type === 'GlobalBlockReference' && l.structure.some(p =>
                 p.type === 'globalBlockTree' &&
@@ -132,7 +141,8 @@ class CreatePageTypeMainPanelView extends preact.Component {
         data.defaultFields = this.props.pageType.defaultFields;
         data.ownFields = this.fieldsWorkingCopy;
         //
-        return http.put(`/api/page-types/${this.props.pageType.name}`, data)
+        this.formWasSubmitted = true;
+        return http.put(`/api/page-types/${this.lastCommittedName}`, data)
             .then(resp => {
                 if (resp.ok !== 'ok') throw new Error('-');
                 this.props.onPageTypeCreated(data);

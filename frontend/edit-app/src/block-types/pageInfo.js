@@ -138,7 +138,7 @@ function makeSlug(title) {
 function createPageData(from, pageType) {
     const out = {title: from.title, slug: from.slug};
     for (const field of pageType.ownFields) {
-        if (field.dataType === 'many-to-many') {
+        if (field.dataType.type === 'many-to-many') {
             out[field.name] = '[]';
             continue;
         }

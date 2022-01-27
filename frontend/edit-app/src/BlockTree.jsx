@@ -25,7 +25,7 @@ class BlockTree extends preact.Component {
     // onDragOver;
     // onDrop;
     /**
-     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>, blockIsStoredTo: 'page'|'globalBlockTree', globalBlockTreeId: String|null) => Promise<Boolean>; BlockTrees: preact.ComponentClass;}} props
+     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>, blockIsStoredTo: 'page'|'globalBlockTree', globalBlockTreeId: String|null) => Promise<Boolean>; BlockTrees: preact.ComponentClass; disablePageInfo?: Boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -270,7 +270,11 @@ class BlockTree extends preact.Component {
                 data-block-type="PageInfo"
                 key={ block.id }>
                 <div class="d-flex">
-                    <button onClick={ () => this.handleItemClicked(block) } class="block-handle columns" type="button">
+                    <button
+                        onClick={ () => !this.props.disablePageInfo ? this.handleItemClicked(block) : function(){} }
+                        class="block-handle columns"
+                        type="button"
+                        disabled={ this.props.disablePageInfo }>
                         <Icon iconId={ getIcon('PageInfo') } className="size-xs mr-1"/>
                         { block.title || __(block.type) }
                     </button>
@@ -280,9 +284,9 @@ class BlockTree extends preact.Component {
         return <div class="py-2">
             <div class="p-relative" style="z-index: 1"><button
                 onClick={ this.showBlockTreeHelpPopup.bind(this) }
-                class="btn btn-link p-absolute btn-sm"
+                class="btn btn-link p-absolute btn-sm pt-1"
                 type="button"
-                style="right: 0;top: 0;padding-top: .24rem;">
+                style="right: 0;top: 0;">
                 <Icon iconId="info-circle" className="size-xs"/>
             </button></div>
             <ul class="block-tree" data-sort-group-id="r">{

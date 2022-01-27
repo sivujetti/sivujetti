@@ -36,6 +36,9 @@ module.exports = args => {
     const editAppCommonsPath = '@sivujetti-commons-for-edit-app';
     const editAppGlobals = {[editAppCommonsPath]: 'sivujettiCommonsEditApp'};
     const editAppExternals = [editAppCommonsPath];
+    const webPagesCommonsPath = '@sivujetti-commons-for-web-pages';
+    const webPagesGlobals = {[webPagesCommonsPath]: 'sivujettiCommonsForWebPages'};
+    const webPageExternals = [webPagesCommonsPath];
     const bundle = !args.configInput ? args.configBundle || 'main' : 'custom';
     const bundles = [];
     const selectedLang = args.configLang || 'fi';
@@ -102,8 +105,6 @@ module.exports = args => {
     }
     // == sivujetti-webpage.js =================================================
     if (bundle === 'webpage' || bundle === 'all') {
-        const webPagesCommonsPath = '@sivujetti-commons-for-web-pages';
-        const webPagesGlobals = {[webPagesCommonsPath]: 'sivujettiCommonsForWebPages'};
         bundles.push({
             input: 'frontend/commons-for-web-pages/main.js',
             output: makeOutputCfg({
@@ -118,7 +119,7 @@ module.exports = args => {
                 file: `${targetDirBase}sivujetti-webpage.js`,
                 globals: webPagesGlobals,
             }),
-            external: [webPagesCommonsPath],
+            external: webPageExternals,
             plugins: postPlugins,
             watch: watchSettings
         });
@@ -160,13 +161,16 @@ module.exports = args => {
         return cfgs.map(cfg => {
             const out = {
                 input: cfg.input,
-                output: makeOutputCfg({globals: editAppGlobals, banner: ''}, cfg.output),
+                output: makeOutputCfg({
+                    globals: Object.assign({}, editAppGlobals, webPagesGlobals),
+                    banner: ''
+                }, cfg.output),
                 plugins: [
                     makeJsxPlugin(cfg.jsxTranspile
                         ? cfg.jsxTranspile.include || []
                         : []),
                 ].concat(...postPlugins),
-                external: editAppExternals,
+                external: [...editAppExternals, ...webPageExternals],
                 watch: {
                     clearScreen: false
                 },

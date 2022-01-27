@@ -1,12 +1,13 @@
 let __;
 
 const validatorImplFactories = {
-    'required':  () => ({doValidate: value => !!value, errorMessageTmpl: __('required')}),
-    'minLength': () => ({doValidate: (value, min) => value.length >= min, errorMessageTmpl: __('minLength')}),
-    'maxLength': () => ({doValidate: (value, max) => value.length <= max, errorMessageTmpl: __('maxLength')}),
-    'min':       () => ({doValidate: (value, min) => value >= min, errorMessageTmpl: __('min')}),
-    'max':       () => ({doValidate: (value, max) => value <= max, errorMessageTmpl: __('max')}),
-    'regexp':    () => ({doValidate: (value, pattern) => (new RegExp(pattern)).test(value), errorMessageTmpl: __('regexp')}),
+    'required':   () => ({doValidate: value => !!value, errorMessageTmpl: __('required')}),
+    'minLength':  () => ({doValidate: (value, min) => value.length >= min, errorMessageTmpl: __('minLength')}),
+    'maxLength':  () => ({doValidate: (value, max) => value.length <= max, errorMessageTmpl: __('maxLength')}),
+    'min':        () => ({doValidate: (value, min) => value >= min, errorMessageTmpl: __('min')}),
+    'max':        () => ({doValidate: (value, max) => value <= max, errorMessageTmpl: __('max')}),
+    'identifier': () => ({doValidate: value => /^[a-zA-Z_]{1}\w*$/.test(value), errorMessageTmpl: __('identifier')}),
+    'regexp':     () => ({doValidate: (value, pattern) => (new RegExp(pattern)).test(value), errorMessageTmpl: __('regexp')}),
 };
 
 /**
@@ -39,7 +40,15 @@ function hookForm(cmp, inps, initialState = {}) {
         inputApis[k] = createApi(cmp, k, inp);
     });
     cmp.inputApis = inputApis;
+    cmp.formIsHooked = true;
     return Object.assign(initialState, {values, errors});
+}
+
+/**
+ * @param {preact.Component} cmp
+ */
+function unhookForm(cmp) {
+    cmp.formIsHooked = false;
 }
 
 /**
@@ -74,16 +83,17 @@ function createApi(cmp, k, inp) {
         out.triggerInput(e.target.value);
     };
     out.onBlur = e => {
-        e;
+        if (!e) return;
+        setTimeout(() => {
+            if (!cmp.formIsHooked)
+                return;
+            const val = e.target.value;
+            if (val === cmp.state.values[e.target.getAttribute('prop')])
+                return;
+            out.triggerInput(val);
+        }, 100);
     };
     return out;
-}
-
-/**
- * @param {preact.Component} cmp
- */
-function unhookForm(cmp) {
-    'todo', cmp;
 }
 
 /**
@@ -127,6 +137,7 @@ function reHookValues(cmp, inps) {
     inps.forEach(inp => {
         const k = mkKey(inp);
         const out2 = cmp.inputApis[k];
+        if (!out2) throw new Error(`No such input "${k}"`);
         const errors = out2.doValidate(inp.value);
         newState.values[k] = inp.value;
         newState.errors[k] = errors;
@@ -161,6 +172,20 @@ class Input extends preact.Component {
             { ...props }
             value={ vm.state.values[prop] }
             ref={ this.inputEl }/>;
+    }
+}
+
+class Textarea extends Input {
+    /**
+     * @access protected
+     */
+    render(props) {
+        const {vm, prop} = props;
+        return <textarea
+            { ...vm.inputApis[prop] }
+            { ...props }
+            value={ vm.state.values[prop] }
+            ref={ this.inputEl }></textarea>;
     }
 }
 
@@ -217,4 +242,4 @@ export default doTranslate => {
     __ = doTranslate;
 };
 
-export {hookForm, unhookForm, reHookValues, validateAll, hasErrors, Input, InputErrors, FormGroup, FormGroupInline};
+export {hookForm, unhookForm, reHookValues, validateAll, hasErrors, Input, Textarea, InputErrors, FormGroup, FormGroupInline};

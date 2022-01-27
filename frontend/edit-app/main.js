@@ -16,7 +16,6 @@ import createParagraphBlockType from './src/block-types/paragraph.js';
 import createRichTextBlockType from './src/block-types/richText.js';
 import createSectionBlockType from './src/block-types/section.js';
 import InspectorPanel from './src/InspectorPanel.jsx';
-import webPageIframe from './src/webPageIframe.js';
 import blockTreeUtils from './src/blockTreeUtils.js';
 
 const editAppReactRef = preact.createRef();
@@ -68,7 +67,6 @@ function renderReactEditApp() {
     const inspectorPanelOuterEl = document.getElementById('inspector-panel');
     const inspectorPanelReactRef = preact.createRef();
     preact.render(preact.createElement(EditApp, {
-        webPageIframe,
         outerEl: mainPanelOuterEl,
         inspectorPanelRef: inspectorPanelReactRef,
         dataFromAdminBackend: window.dataFromAdminBackend,

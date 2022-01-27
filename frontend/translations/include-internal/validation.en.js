@@ -5,5 +5,6 @@ export default {
     min: '{field} must be {arg0} or greater',
     max: '{field} must be {arg0} or less',
     notIn: '{field} is already used',
+    identifier: '{field} must be valid identifier',
     regexp: '{field} contains forbidden characters',
 };

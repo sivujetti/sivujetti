@@ -32,12 +32,11 @@ final class PageTypesController {
      * @param \Sivujetti\PageType\PageTypeMigrator $migrator
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      */
-    public function updatePlaceholderPageType(Request $req,
-                                              Response $res,
-                                              PageTypeMigrator $migrator,
-                                              TheWebsite $theWebsite): void {
-        if (!($cur = ArrayUtils::findByKey($theWebsite->pageTypes, $migrator::MAGIC_PAGE_TYPE_NAME, "name")))
-            throw new PikeException("Unknown page type `{$req->params->name}`.");
+    public function updatePageType(Request $req,
+                                   Response $res,
+                                   PageTypeMigrator $migrator,
+                                   TheWebsite $theWebsite): void {
+        $cur = self::getPageTypeOrThrow($theWebsite->pageTypes);
         // @allow \Pike\PikeException
         $migrator->update($req->body, $cur, property_exists($req->params, "asPlaceholder"));
         $res->status(200)->json(["ok" => "ok"]);
@@ -74,6 +73,17 @@ final class PageTypesController {
         $out->defaultLayoutId = "1";
         $out->status = PageType::STATUS_DRAFT;
         $out->isListable = true;
+        return $out;
+    }
+    /**
+     * @param \ArrayObject $pageTypes
+     * @return \Sivujetti\PageType\Entities\PageType
+     * @throws \Pike\PikeException
+     */
+    private static function getPageTypeOrThrow(\ArrayObject $pageTypes) {
+        $name = PageTypeMigrator::MAGIC_PAGE_TYPE_NAME;
+        if (!($out = ArrayUtils::findByKey($pageTypes, $name, "name")))
+            throw new PikeException("Unknown page type `{$name}`.");
         return $out;
     }
 }

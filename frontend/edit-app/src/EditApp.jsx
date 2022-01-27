@@ -1,11 +1,13 @@
 import {__, signals, urlUtils} from '@sivujetti-commons-for-edit-app';
-import {Toaster} from './commons/Toaster.jsx';
+import toasters, {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
 import AddPageMainPanelView from './AddPageMainPanelView.jsx';
+import CreatePageTypeMainPanelView, {createPlaceholderPageType} from './CreatePageTypeMainPanelView.jsx';
 import {FloatingDialog} from './FloatingDialog.jsx';
 import store, {setCurrentPage, setOpQueue} from './store.js';
 import SaveButton from './SaveButton.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
+import webPageIframe from './webPageIframe.js';
 
 let LEFT_PANEL_WIDTH = 300;
 
@@ -16,7 +18,7 @@ class EditApp extends preact.Component {
     // highlightRectEl;
     // localLinkClickTimerEl;
     /**
-     * @param {{webPageIframe: WebPageIframe; dataFromAdminBackend: TheWebsite; outerEl: HTMLElement; inspectorPanelRef: preact.Ref;}} props
+     * @param {{dataFromAdminBackend: TheWebsite; outerEl: HTMLElement; inspectorPanelRef: preact.Ref;}} props
      */
     constructor(props) {
         super(props);
@@ -49,7 +51,9 @@ class EditApp extends preact.Component {
     /**
      * @access protected
      */
-    render({webPageIframe}, {mode}) {
+    render(_, {mode}) {
+        const showMainPanel = mode === 'default';
+        const pageType = showMainPanel ? null : this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentWebPage.type);
         return <div>
             <header class="container d-flex flex-centered">
                 <a href={ urlUtils.makeUrl('_edit') } class="column">
@@ -64,20 +68,39 @@ class EditApp extends preact.Component {
             { mode === 'default'
                 ? <DefaultMainPanelView
                     blockTreesRef={ this.blockTrees }
-                    startAddPageMode={ () =>
+                    startAddPageMode={ () => {
                         // Open to iframe to '/_edit/api/_placeholder-page...',
                         // which then triggers this.handleWebPageLoaded() and sets
                         // this.state.mode to 'create-page'
-                        webPageIframe.openPlaceholderPage('Pages')
-                }/>
-                : <AddPageMainPanelView
-                    blockTreesRef={ this.blockTrees }
-                    cancelAddPage={ () => webPageIframe.goBack() }
-                    reRenderWithAnotherLayout={ layoutId => {
-                        this.setState({mode: 'default'});
-                        webPageIframe.openPlaceholderPage(this.currentWebPage.type, layoutId);
-                    }}
-                    pageType={ this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentWebPage.type) }/>
+                        webPageIframe.openPlaceholderPage('Pages');
+                    } }
+                    startAddPageTypeMode={ () => {
+                        // todo prevent double
+                        createPlaceholderPageType()
+                        .then(pageType => {
+                            if (!pageType) { toasters.editAppMain(__('Something unexpected happened.'), 'error'); return; }
+                            this.props.dataFromAdminBackend.pageTypes.push(pageType);
+                            // Does same as startAddPageMode above
+                            webPageIframe.openPlaceholderPage('Draft');
+                        });
+                    } }/>
+                : !isPlaceholderPageType(pageType)
+                    ? <AddPageMainPanelView
+                        blockTreesRef={ this.blockTrees }
+                        cancelAddPage={ () => webPageIframe.goBack() }
+                        reRenderWithAnotherLayout={ layoutId => {
+                            this.setState({mode: 'default'});
+                            webPageIframe.openPlaceholderPage(this.currentWebPage.type, layoutId);
+                        } }
+                        pageType={ pageType }/>
+                    : <CreatePageTypeMainPanelView
+                        blockTreesRef={ this.blockTrees }
+                        cancelAddPageType={ () => { 'todo http.delete(api/page-types/Draft)'; webPageIframe.goBack(); } }
+                        onPageTypeCreated={ _submittedData => {
+                            // todo mutate this.props.dataFromAdminBackend.pageTypes
+                            // todo urlUtils.redirect(`/_edit`);
+                        } }
+                        pageType={ pageType }/>
             }
             <Toaster id="editAppMain"/>
             <FloatingDialog/>
@@ -92,7 +115,7 @@ class EditApp extends preact.Component {
     componentDidMount() {
         const el = this.resizeHandleEl.current;
         const mainPanelEl = this.props.outerEl;
-        const iframeEl = this.props.webPageIframe.getEl();
+        const iframeEl = webPageIframe.getEl();
         el.style.transform = `translateX(${mainPanelEl.getBoundingClientRect().width}px`;
         //
         const startTreshold = 2;
@@ -133,6 +156,18 @@ class EditApp extends preact.Component {
             el.classList.remove('dragging');
         });
     }
+}
+
+/**
+ * @param {PageType} pageType
+ * @returns {Boolean}
+ */
+function isPlaceholderPageType(pageType) {
+    const pageTypeStatus = Object.freeze({
+        STATUS_COMPLETE: 0,
+        STATUS_DRAFT: 1,
+    });
+    return (pageType.status) === pageTypeStatus.STATUS_DRAFT;
 }
 
 /**

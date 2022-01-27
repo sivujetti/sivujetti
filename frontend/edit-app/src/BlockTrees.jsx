@@ -11,7 +11,7 @@ class BlockTrees extends preact.Component {
     // static currentWebPage;
     // static currentWebPageBlockRefs;
     /**
-     * @param {{containingView: String; onWebPageLoadHandled?: () => void;}} props
+     * @param {{containingView: 'DefaultMainPanelView'|'AddPageMainPanelView'|'CreatePageTypeMainPanelView'; onWebPageLoadHandled?: () => void;}} props
      */
     constructor(props) {
         super(props);
@@ -22,7 +22,8 @@ class BlockTrees extends preact.Component {
             if (// `this` is still attached to <DefaultMainPanelView/>, but placeholder page is loaded
                 (this.props.containingView === 'DefaultMainPanelView' && dataFromWebPage.page.isPlaceholderPage) ||
                 // `this` is still attached to <AddPageMainPanelViwe/>, but reqular page is loaded
-                (this.props.containingView === 'AddPageMainPanelView' && !dataFromWebPage.page.isPlaceholderPage))
+                ((this.props.containingView === 'AddPageMainPanelView' ||
+                 this.props.containingView === 'CreatePageTypeMainPanelView') && !dataFromWebPage.page.isPlaceholderPage))
                 return;
             this.handleWebPageDataReceived(value);
         });
@@ -78,7 +79,8 @@ class BlockTrees extends preact.Component {
                     ? BlockTrees.saveExistingBlocksToBackend
                     : null }
                 BlockTrees={ BlockTrees }
-                ref={ this.blockTree }/>
+                ref={ this.blockTree }
+                disablePageInfo={ containingView === 'CreatePageTypeMainPanelView' }/>
         </div>;
     }
     /**

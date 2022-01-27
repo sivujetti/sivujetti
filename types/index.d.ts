@@ -102,21 +102,26 @@ interface BlockBlueprint2 {
 interface PageTypeField {
     name: String;
     friendlyName: String;
-    dataType: 'text'|'uint';
+    dataType: {type: 'text'|'uint', length?: Number; validationRules?: Array};
     defaultValue: String|null;
+    isNullable: Boolean;
 }
 
 interface PageType {
     name: String;
+    friendlyName: String;
+    friendlyNamePlural: String;
+    description: String;
     slug: String;
-    ownFields: Array<PageTypeField>;
     blockFields: Array<BlockBlueprint2>;
+    ownFields: Array<PageTypeField>;
     defaultFields: {
         [key: String]: {
             defaultValue: String;
         };
     };
     defaultLayoutId: String;
+    status: Number;
     isListable: Boolean;
 }
 

@@ -25,11 +25,11 @@ final class PageTypeMigrator {
     }
     /**
      * @param object $input $req->body of `POST /api/page-types`
-     * @param bool $asPlaceholder = false
+     * @param bool $asPlaceholder = true
      * @return \Sivujetti\PageType\Entities\PageType
      * @throws \Pike\PikeException
      */
-    public function install(object $input, bool $asPlaceholder = false): PageType {
+    public function install(object $input, bool $asPlaceholder = true): PageType {
         if (!$asPlaceholder && ($input->name ?? "") === self::MAGIC_PAGE_TYPE_NAME)
             throw new PikeException("Invalid input", PikeException::BAD_INPUT);
         if (($errors = $this->pageTypeValidator->validate($input)))
@@ -47,7 +47,7 @@ final class PageTypeMigrator {
     /**
      * @param object $input $req->body of `PUT /api/page-types`
      * @param \Sivujetti\PageType\Entities\PageType $current
-     * @param bool $asPlaceholder = false
+     * @param bool $asPlaceholder = true
      * @throws \Pike\PikeException
      */
     public function update(object $input,

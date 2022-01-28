@@ -48,7 +48,7 @@ final class UpdateGlobalBlockTreeTest extends GlobalBlockTreeControllerTestCase 
         $this->assertEquals($state->originalData->name, $actual["name"],
             "Shouldn't update name");
         $normalized = BlocksController::makeStorableBlocksDataFromValidInput($state->inputData->blocks,
-            PageTestUtils::createTestAPIStorage()->getDataHandle()->blockTypes);
+            PageTestUtils::createTestApiCtx()->blockTypes);
         $this->assertEquals(BlockTree::toJson($normalized),
                             $actual["blocks"]);
     }

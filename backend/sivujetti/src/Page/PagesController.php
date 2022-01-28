@@ -4,7 +4,6 @@ namespace Sivujetti\Page;
 
 use MySite\Theme;
 use Pike\{ArrayUtils, PikeException, Request, Response};
-use Pike\Auth\Authenticator;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\{App, SharedAPIContext, Template, Translator};
@@ -24,13 +23,13 @@ final class PagesController {
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
-     * @param \Sivujetti\SharedAPIContext $storage
+     * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      */
     public function renderPage(Request $req,
                                Response $res,
                                PagesRepository $pagesRepo,
-                               SharedAPIContext $storage,
+                               SharedAPIContext $apiCtx,
                                TheWebsite $theWebsite): void {
         $pcs = explode("/", $req->params->url, 3);
         [$pageTypeSlug, $slug] = count($pcs) > 2
@@ -46,7 +45,7 @@ final class PagesController {
             $res->status(404)->html("404");
             return;
         }
-        self::sendPageResponse($req, $res, $pagesRepo, $storage, $theWebsite, $page, $pageType);
+        self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite, $page, $pageType);
     }
     /**
      * GET /api/_placeholder-page/[w:pageType]/[i:layoutId]: renders a placeholder
@@ -56,7 +55,7 @@ final class PagesController {
      * @param \Pike\Response $res
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
-     * @param \Sivujetti\SharedAPIContext $storage
+     * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @throws \Pike\PikeException
      */
@@ -64,7 +63,7 @@ final class PagesController {
                                           Response $res,
                                           PagesRepository $pagesRepo,
                                           LayoutsRepository $layoutsRepo,
-                                          SharedAPIContext $storage,
+                                          SharedAPIContext $apiCtx,
                                           TheWebsite $theWebsite): void {
         $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
         $page = self::createEmptyPage($pageType);
@@ -72,11 +71,14 @@ final class PagesController {
             $page->{$field->name} = $field->defaultValue;
         }
         $layout = $layoutsRepo->findById($req->params->layoutId);
+        if (!$layout)
+            throw new PikeException("Layout `{$req->params->layoutId}` doesn't exist",
+                                    PikeException::BAD_INPUT);
         $page->layoutId = $layout->id;
         $page->layout = $layout;
         self::mergeLayoutBlocksTo($page, $page->layout, $pageType);
         //
-        self::sendPageResponse($req, $res, $pagesRepo, $storage, $theWebsite,
+        self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
             $page, $pageType);
     }
     /**
@@ -85,15 +87,15 @@ final class PagesController {
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
-     * @param \Sivujetti\SharedAPIContext $storage 
+     * @param \Sivujetti\SharedAPIContext $apiCtx
      */
     public function renderEditAppWrapper(Request $req,
                                          Response $res,
                                          TheWebsite $theWebsite,
-                                         SharedAPIContext $storage): void {
+                                         SharedAPIContext $apiCtx): void {
         $res->html((new WebPageAwareTemplate("sivujetti:edit-app-wrapper.tmpl.php"))->render([
             "url" => $req->params->url ?? "",
-            "userDefinedJsFiles" => $storage->getDataHandle()->adminJsFiles,
+            "userDefinedJsFiles" => $apiCtx->adminJsFiles,
             "dataToFrontend" => json_encode((object) [
                 "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
                 "assetBaseUrl" => WebPageAwareTemplate::makeUrl("/", false),
@@ -196,7 +198,7 @@ final class PagesController {
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
-     * @param \Sivujetti\SharedAPIContext $storage
+     * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\Page\Entities\Page $page
      * @param \Sivujetti\PageType\Entities\PageType $pageType
@@ -205,20 +207,19 @@ final class PagesController {
     private static function sendPageResponse(Request $req,
                                              Response $res,
                                              PagesRepository $pagesRepo,
-                                             SharedAPIContext $storage,
+                                             SharedAPIContext $apiCtx,
                                              TheWebsite $theWebsite,
                                              Page $page,
                                              PageType $pageType) {
-        $themeAPI = new UserThemeAPI("theme", $storage, new Translator);
-        $_ = new Theme($themeAPI); // Note: mutates $storage->data
+        $themeAPI = new UserThemeAPI("theme", $apiCtx, new Translator);
+        $_ = new Theme($themeAPI); // Note: mutates $apiCtx->userDefinesAssets|etc
         $isPlaceholderPage = $page->id === "-";
         //
-        $data = $storage->getDataHandle();
-        self::runBlockBeforeRenderEvent($page->blocks, $data->blockTypes, $pagesRepo, $theWebsite);
-        $storage->triggerEvent("sivujetti:onPageBeforeRender", $page);
+        self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo, $theWebsite);
+        $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
         $html = (new WebPageAwareTemplate(
             $page->layout->relFilePath,
-            cssAndJsFiles: $data->userDefinedAssets
+            cssAndJsFiles: $apiCtx->userDefinedAssets
         ))->render([
             "currentPage" => $page,
             "currentUrl" => $req->path,

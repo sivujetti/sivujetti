@@ -21,14 +21,14 @@ final class BlocksController {
      * @param \Sivujetti\Block\BlockValidator $blockValidator
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
-     * @param \Sivujetti\SharedAPIContext $storage
+     * @param \Sivujetti\SharedAPIContext $apiCtx
      */
     public function render(Request $req,
                            Response $res,
                            BlockValidator $blockValidator,
                            TheWebsite $theWebsite,
                            PagesRepository $pagesRepo,
-                           SharedAPIContext $storage): void {
+                           SharedAPIContext $apiCtx): void {
         if (($errors = self::validateRenderBlockInput($req->body)) ||
             ($errors = $blockValidator->validateInsertOrUpdateData($req->body->block->type,
                                                                    $req->body->block))) {
@@ -41,7 +41,7 @@ final class BlocksController {
         $marker->type = "__marker";
         $block->children = [$marker];
         //
-        PagesController::runBlockBeforeRenderEvent([$block], $storage->getDataHandle()->blockTypes,
+        PagesController::runBlockBeforeRenderEvent([$block], $apiCtx->blockTypes,
                                                    $pagesRepo, $theWebsite);
         $pagePageType = ArrayUtils::findByKey($theWebsite->pageTypes, PageType::PAGE, "name");
         $html = (new WebPageAwareTemplate($block->renderer, initialLocals: [

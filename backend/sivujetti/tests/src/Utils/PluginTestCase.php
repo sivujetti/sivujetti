@@ -26,7 +26,7 @@ abstract class PluginTestCase extends RenderPageTestCase {
         return $this;
     }
     protected function useBlockType(string $name, BlockTypeInterface $type): PluginTestCase {
-        $this->testAppStorage->getDataHandle()->blockTypes->{$name} = $type;
+        $this->testApiCtx->blockTypes->{$name} = $type;
         return $this;
     }
     protected function withPageData(\Closure $doMutateTestPageData): PluginTestCase {

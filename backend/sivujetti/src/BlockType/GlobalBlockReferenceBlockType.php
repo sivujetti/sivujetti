@@ -5,7 +5,6 @@ namespace Sivujetti\BlockType;
 use Auryn\Injector;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository;
-use Sivujetti\SharedAPIContext;
 
 final class GlobalBlockReferenceBlockType implements BlockTypeInterface,
                                                      ListeningBlockTypeInterface {

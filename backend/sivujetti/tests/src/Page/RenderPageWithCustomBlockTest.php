@@ -37,7 +37,7 @@ final class RenderPageWithCustomBlockTest extends RenderPageTestCase {
         return $state;
     }
     private function registerCustomBlock(\TestState $state): void {
-        $api = new UserSiteAPI("site", $this->testAppStorage);
+        $api = new UserSiteAPI("site", $this->testApiCtx);
         $api->registerBlockRenderer(self::TEST_RENDERER_FILEID);
         $api->registerBlockType("Quote", new class implements BlockTypeInterface {
             public function defineProperties(PropertiesBuilder $builder): \ArrayObject {

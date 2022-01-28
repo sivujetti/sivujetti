@@ -2,29 +2,38 @@
 
 namespace Sivujetti;
 
+use Sivujetti\BlockType\Entities\BlockTypes;
+
 /**
  * Stuff registered by Site.php, Theme.php, SomePlugin.php. Gets populated on
  * every request.
  */
 final class SharedAPIContext {
+    public const PHASE_INITIAL = 0;
+    public const PHASE_READY_FOR_ROUTING = 1;
+    public const PHASE_READY_TO_EXECUTE_ROUTE_CONTROLLER = 2;
+    /** @var int */
+    private int $appPhase;
     /** @var array<string, callable[]> */
     private array $eventListeners;
-    /** @var object A flexible blob of data (mutated by WebsiteAPI, PluginAPI etc. instances) */
-    private object $data;
-    /**
-     */
+    /** @var object @see \Sivujetti\App::create()  */
+    public BlockTypes $blockTypes;
+    /** @var object {"css" => object[], "js" => object[]} @see \Sivujetti\UserTheme\UserThemeAPI->enqueueCss|JsFile() */
+    public object $userDefinedAssets;
+    /** @var string[] \Sivujetti\UserSite\UserSiteAPI->registerBlockRenderer() */
+    public array $validBlockRenderers;
+    /** @var string[] \Sivujetti\UserSite\UserSiteAPI->enqueueEditAppJsFile() */
+    public array $adminJsFiles;
+    /** @var \Sivujetti\UserPlugin\UserPluginInterface[] */
+    public array $userPlugins;
+    /***/
     public function __construct() {
+        $this->appPhase = 0;
         $this->eventListeners = [];
-        $this->data = (object) [
-            /** @var object @see \Sivujetti\App::create()  */
-            "blockTypes" => null,
-            /** @var object {"css" => object[], "js" => object[]} @see \Sivujetti\UserTheme\UserThemeAPI->enqueueCss|JsFile() */
-            "userDefinedAssets" => (object) ["css" => [], "js" => []],
-            /** @var string[] \Sivujetti\UserSite\UserSiteAPI->registerBlockRenderer() */
-            "validBlockRenderers" => [],
-            /** @var string[] \Sivujetti\UserSite\UserSiteAPI->enqueueEditAppJsFile() */
-            "adminJsFiles" => [],
-        ];
+        $this->userDefinedAssets = (object) ["css" => [], "js" => []];
+        $this->validBlockRenderers = [];
+        $this->adminJsFiles = [];
+        $this->userPlugins = [];
     }
     /**
      * @param string $eventName
@@ -44,9 +53,15 @@ final class SharedAPIContext {
             call_user_func_array($fn, $args);
     }
     /**
-     * @return object
+     * @return int self::APP_PHASE_*
      */
-    public function getDataHandle(): object {
-        return $this->data;
+    public function getAppPhase(): int {
+        return $this->appPhase;
+    }
+    /**
+     * @param int $phase self::APP_PHASE_*
+     */
+    public function setAppPhase(int $phase): void {
+        $this->appPhase = $phase;
     }
 }

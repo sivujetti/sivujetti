@@ -10,17 +10,17 @@ use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 abstract class RenderPageTestCase extends DbTestCase {
     use HttpTestUtils;
     protected PageTestUtils $pageTestUtils;
-    protected SharedAPIContext $testAppStorage;
+    protected SharedAPIContext $testApiCtx;
     protected DbDataHelper $dbDataHelper;
     protected function setUp(): void {
         parent::setUp();
-        $this->testAppStorage = new SharedAPIContext;
-        $this->pageTestUtils = new PageTestUtils(self::$db, $this->testAppStorage);
+        $this->testApiCtx = new SharedAPIContext;
+        $this->pageTestUtils = new PageTestUtils(self::$db, $this->testApiCtx);
         $this->dbDataHelper = new DbDataHelper(self::$db);
     }
     protected function makeTestSivujettiApp(\TestState $state): void {
         $ctx = new AppContext;
-        $ctx->storage = $this->testAppStorage;
+        $ctx->apiCtx = $this->testApiCtx;
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig(), $ctx));
     }
     protected function insertTestPageToDb(\TestState $state): void {

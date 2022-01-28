@@ -6,6 +6,7 @@
 
 ## Added
 - tagType -property to Button blocks (`link` -> `<a href ...>`, `button` -> `<button type="button" ...>`, `submit` -> `<button type="submit" ...>`)
+- `UserSite|PluginApi->getPlugin(string $name)` so plugins can publish their own APIs.
 
 ## Fixed
 - ...

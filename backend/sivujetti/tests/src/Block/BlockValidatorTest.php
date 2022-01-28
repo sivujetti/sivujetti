@@ -37,16 +37,16 @@ final class BlockValidatorTest extends TestCase {
             "cssClass" => "foo",
         ];
         $state->validationErrors = null;
-        $state->sharedAPIContext = PageTestUtils::createTestAPIStorage();
-        $state->sharedAPIContext->getDataHandle()->validBlockRenderers = ["sivujetti:block-auto"];
+        $state->apiCtx = PageTestUtils::createSharedAPIContext();
+        $state->apiCtx->validBlockRenderers = ["sivujetti:block-auto"];
         return $state;
     }
     private function invokeValidation(\TestState $state): void {
-        $v = new BlockValidator($state->sharedAPIContext);
+        $v = new BlockValidator($state->apiCtx);
         $state->validationErrors = $v->validateInsertOrUpdateData(Block::TYPE_PARAGRAPH, $state->inputData);
     }
     private function registerAdditionalRenderer(string $fileId, \TestState $state): void {
-        $userSiteApi = new UserSiteAPI("site", $state->sharedAPIContext);
+        $userSiteApi = new UserSiteAPI("site", $state->apiCtx);
         $userSiteApi->registerBlockRenderer($fileId);
     }
     private function verifyResultErrorsEquals(array $expectedErrors, \TestState $state): void {

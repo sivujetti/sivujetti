@@ -51,12 +51,30 @@ final class App {
             new UpdatesModule,
             new UploadsModule,
             new PagesModule,
+            new class () {
+                /** @var \Sivujetti\AppContext */
+                private AppContext $ctx;
+                /**
+                 * @param \Sivujetti\AppContext $ctx
+                 */
+                public function init(AppContext $ctx): void {
+                    $this->ctx = $ctx;
+                }
+                /**
+                 * @param \Auryn\Injector $di
+                 */
+                public function alterDi(Injector $di): void {
+                    // Do nothing with $di
+                    $this->ctx->apiCtx->setAppPhase(SharedAPIContext::PHASE_READY_TO_EXECUTE_ROUTE_CONTROLLER);
+                    $this->ctx->apiCtx->triggerEvent(UserSiteAPI::ON_ROUTE_CONTROLLER_BEFORE_EXEC);
+                }
+            }
         ], function (AppContext $ctx, ServiceDefaults $defaults) use ($config): void {
             $ctx->config = $defaults->makeConfig($config);
             $ctx->db = $defaults->makeDb();
             $ctx->auth = $defaults->makeAuth();
-            $ctx->storage = $ctx->storage ?? new SharedAPIContext;
-            $blockTypes = $ctx->storage->getDataHandle()->blockTypes ?? new BlockTypes;
+            $ctx->apiCtx = $ctx->apiCtx ?? new SharedAPIContext;
+            $blockTypes = $ctx->apiCtx->blockTypes ?? new BlockTypes;
             $blockTypes->{Block::TYPE_BUTTON} = new ButtonBlockType;
             $blockTypes->{Block::TYPE_COLUMNS} = new ColumnsBlockType;
             $blockTypes->{Block::TYPE_GLOBAL_BLOCK_REF} = new GlobalBlockReferenceBlockType;
@@ -67,8 +85,8 @@ final class App {
             $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
             $blockTypes->{Block::TYPE_RICH_TEXT} = new RichTextBlockType;
             $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
-            $ctx->storage->getDataHandle()->blockTypes = $blockTypes;
-            $ctx->storage->getDataHandle()->validBlockRenderers = [
+            $ctx->apiCtx->blockTypes = $blockTypes;
+            $ctx->apiCtx->validBlockRenderers = [
                 "sivujetti:block-auto", // Heading, Paragraph etc.
                 "sivujetti:block-generic-wrapper", // Columns, Section
                 "sivujetti:block-menu",
@@ -118,8 +136,9 @@ final class App {
      */
     public function alterDi(Injector $di): void {
         self::$di = $di;
-        $di->share($this->ctx->storage);
-        $di->share($this->ctx->storage->getDataHandle()->blockTypes);
+        $di->share($this->ctx->db->getPdo());
+        $di->share($this->ctx->apiCtx);
+        $di->share($this->ctx->apiCtx->blockTypes);
         $di->share($this->ctx->theWebsite);
     }
     /**
@@ -159,20 +178,23 @@ final class App {
             if (empty($entity->pageTypes) || $entity->pageTypes[0]->name !== PageType::PAGE)
                 throw new PikeException("Invalid database state", 301010);
             $this->ctx->theWebsite = $entity;
-            $this->loadSite();
-            $this->loadPlugins();
+            $this->instantiateSite();
+            $this->instantiatePlugins();
+            $this->ctx->apiCtx->setAppPhase(SharedAPIContext::PHASE_READY_FOR_ROUTING);
         }
     }
     /**
      */
-    private function loadSite(): void {
+    private function instantiateSite(): void {
         $this->ctx->userSite = $this->instantiatePluginOrSite(null);
     }
     /**
      */
-    private function loadPlugins(): void {
-        foreach ($this->ctx->theWebsite->plugins as $plugin) {
-            $_ignore = $this->instantiatePluginOrSite($plugin);
+    private function instantiatePlugins(): void {
+        $instances =& $this->ctx->userPlugins; // Note: reference
+        foreach ($this->ctx->theWebsite->plugins as $fromDb) {
+            if (array_key_exists($fromDb->name, $instances)) continue;
+            $instances[$fromDb->name] = $this->instantiatePluginOrSite($fromDb);
         }
     }
     /**
@@ -193,7 +215,7 @@ final class App {
                                               : ("Site.php (\"{$Ctor}\") must implement " . UserSiteInterface::class),
                                     PikeException::BAD_INPUT);
         if ($isPlugin)
-            return new $Ctor(new UserPluginAPI($plugin->name, $this->ctx->storage, $this->ctx->router));
-        return new $Ctor(new UserSiteAPI("site", $this->ctx->storage));
+            return new $Ctor(new UserPluginAPI($plugin->name, $this->ctx->apiCtx, $this->ctx->router));
+        return new $Ctor(new UserSiteAPI("site", $this->ctx->apiCtx));
     }
 }

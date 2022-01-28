@@ -11,9 +11,9 @@ use Sivujetti\Page\Entities\Page;
 use Sivujetti\Page\{PagesRepository};
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\PageTypeValidator;
-use Sivujetti\SharedAPIContext;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\BlockType\Entities\BlockTypes;
+use Sivujetti\SharedAPIContext;
 
 final class PageTestUtils {
     public const TEST_LAYOUT_FILENAME = "layout.default.tmpl.php";
@@ -25,20 +25,20 @@ final class PageTestUtils {
     private \Closure $createPageRepo;
     /**
      * @param \Pike\Db $db
-     * @param ?\Sivujetti\SharedAPIContext $testAppStorage = null
+     * @param ?\Sivujetti\SharedAPIContext $testApiCtx = null
      */
-    public function __construct(Db $db, ?SharedAPIContext $testAppStorage = null) {
+    public function __construct(Db $db, ?SharedAPIContext $testApiCtx = null) {
         $fakeTheWebsite = new TheWebsite;
         $fakeTheWebsite->pageTypes = new \ArrayObject;
         $pagePageType = $this->makeDefaultPageType();
         $fakeTheWebsite->pageTypes[] = $pagePageType;
-        $testAppStorage = self::createTestAPIStorage($testAppStorage);
+        $testApiCtx = self::createTestApiCtx($testApiCtx);
         $this->layoutTestUtils = new LayoutTestUtils($db);
-        $this->createPageRepo = function (\Closure $doBefore) use ($db, $fakeTheWebsite, $testAppStorage) {
-            $doBefore($db, $fakeTheWebsite, $testAppStorage);
+        $this->createPageRepo = function (\Closure $doBefore) use ($db, $fakeTheWebsite, $testApiCtx) {
+            $doBefore($db, $fakeTheWebsite, $testApiCtx);
             $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite,
-                $testAppStorage->getDataHandle()->blockTypes,
-                new PageTypeValidator(new BlockValidator($testAppStorage))
+                $testApiCtx->blockTypes,
+                new PageTypeValidator(new BlockValidator($testApiCtx))
             );
         };
         $this->createPageRepo->__invoke(function () {});
@@ -124,7 +124,7 @@ final class PageTestUtils {
                       "friendlyName" => "Some prop2", "defaultValue" => 123],
         ];
         //
-        $this->createPageRepo->__invoke(function ($db, $fakeTheWebsite, $_testAppStorage) use ($pageType) {
+        $this->createPageRepo->__invoke(function ($db, $fakeTheWebsite, $_testApiCtx) use ($pageType) {
             $fakeTheWebsite->pageTypes[] = $pageType;
             $id = 100 + array_search($pageType, $fakeTheWebsite->pageTypes->getArrayCopy());
             //
@@ -166,7 +166,7 @@ final class PageTestUtils {
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      */
     public function dropCustomPageType(PageType $pageType): void {
-        $this->createPageRepo->__invoke(function ($db, $fakeTheWebsite, $_testAppStorage) use ($pageType) {
+        $this->createPageRepo->__invoke(function ($db, $fakeTheWebsite, $_testApiCtx) use ($pageType) {
             $idx = array_search($pageType, $fakeTheWebsite->pageTypes->getArrayCopy());
             $fakeTheWebsite->pageTypes->offsetUnset($idx);
             $id = 100 + $idx;
@@ -179,16 +179,16 @@ final class PageTestUtils {
      * @param ?SharedAPIContext $initial = null
      * @return \Sivujetti\SharedAPIContext
      */
-    public static function createTestAPIStorage(?SharedAPIContext $initial = null): SharedAPIContext {
+    public static function createTestApiCtx(?SharedAPIContext $initial = null): SharedAPIContext {
         $out = $initial ?? new SharedAPIContext;
-        if ($out->getDataHandle()->blockTypes === null) {
+        if (!isset($out->blockTypes)) {
             $blockTypes = new BlockTypes;
             $blockTypes->{Block::TYPE_BUTTON} = new ButtonBlockType;
             $blockTypes->{Block::TYPE_GLOBAL_BLOCK_REF} = new GlobalBlockReferenceBlockType;
             $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
             $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
             $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
-            $out->getDataHandle()->blockTypes = $blockTypes;
+            $out->blockTypes = $blockTypes;
         }
         return $out;
     }

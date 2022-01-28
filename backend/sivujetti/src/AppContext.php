@@ -8,9 +8,11 @@ use Pike\AppContext as PikeAppContext;
 
 final class AppContext extends PikeAppContext {
     /** @var \Sivujetti\SharedAPIContext */
-    public SharedAPIContext $storage;
+    public SharedAPIContext $apiCtx;
     /** @var \Sivujetti\TheWebsite\Entities\TheWebsite */
     public TheWebsite $theWebsite;
     /** @var \MySite\Site */
     public Site $userSite;
+    /** @var array<string, \Sivujetti\BlockType\BlockTypeInterface> */
+    public array $userPlugins = [];
 }

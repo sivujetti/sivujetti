@@ -19,13 +19,13 @@ final class UserPluginAPI extends UserSiteAPI {
     private ?string $dashifiedNamespace;
     /**
      * @param string $namespace
-     * @param \Sivujetti\SharedAPIContext $storage
+     * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Pike\Router $router
      */
     public function __construct(string $namespace,
-                                SharedAPIContext $storage,
+                                SharedAPIContext $apiCtx,
                                 Router $router) {
-        parent::__construct($namespace, $storage);
+        parent::__construct($namespace, $apiCtx);
         $this->router = $router;
         $this->classNamespace = "SitePlugins\\{$namespace}\\";
         $this->dashifiedNamespace = null;

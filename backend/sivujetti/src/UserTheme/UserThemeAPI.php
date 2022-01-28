@@ -11,13 +11,13 @@ final class UserThemeAPI extends BaseAPI {
     private ?Translator $translator;
     /**
      * @param string $namespace
-     * @param \Sivujetti\SharedAPIContext $storage
+     * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param ?\Sivujetti\Translator $translator = null
      */
     public function __construct(string $namespace,
-                                SharedAPIContext $storage,
+                                SharedAPIContext $apiCtx,
                                 ?Translator $translator = null) {
-        parent::__construct($namespace, $storage);
+        parent::__construct($namespace, $apiCtx);
         $this->translator = $translator;
     }
 }

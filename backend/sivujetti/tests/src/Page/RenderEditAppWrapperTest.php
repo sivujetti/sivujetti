@@ -19,18 +19,18 @@ final class RenderEditAppWrapperTest extends DbTestCase {
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
-        $state->sharedAPIContext = new SharedAPIContext;
+        $state->apiCtx = new SharedAPIContext;
         $state->spyingResponse = null;
         $state->app = null;
         return $state;
     }
     private function registerJsFile(string $url, \TestState $state): void {
-        $api = new UserSiteAPI("site", $state->sharedAPIContext);
+        $api = new UserSiteAPI("site", $state->apiCtx);
         $api->enqueueEditAppJsFile($url);
     }
     private function makeTestSivujettiApp(\TestState $state): void {
         $ctx = new AppContext;
-        $ctx->storage = $state->sharedAPIContext;
+        $ctx->apiCtx = $state->apiCtx;
         $state->app = $this->makeApp(fn() => App::create(self::setGetConfig(), $ctx));
     }
     private function sendRenderEditAppWrapperRequest(\TestState $state): void {

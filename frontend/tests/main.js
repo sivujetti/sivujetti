@@ -10,6 +10,7 @@ import createParagraphBlockType from '../edit-app/src/block-types/paragraph.js';
 import createSectionBlockType from '../edit-app/src/block-types/section.js';
 import {mockPageTypes} from './edit-app-testutils.js';
 import './create-page-test.js';
+import './create-page-type-test.js';
 import './render-blocks-into-dom-test.js';
 import './reorder-blocks-test.js';
 import './optimize-op-queue-test.js';

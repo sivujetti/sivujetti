@@ -11,7 +11,7 @@ QUnit.module('BlockTrees', () => {
         const s = appTestUtils.createTestState();
         appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
             s.blockTreesCmp = cmp;
-            appTestUtils.simulatePageLoad(s);
+            return appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             simulateChangeParagraphTextInput(s)
@@ -28,9 +28,9 @@ QUnit.module('BlockTrees', () => {
     QUnit.test('user can undo adding block', assert => {
         const done = assert.async();
         const s = appTestUtils.createTestState();
-        appTestUtils.renderMockEditAppIntoDom('DefaultView', () => {
-            appTestUtils.simulatePageLoad(s);
-        })
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', () =>
+            appTestUtils.simulatePageLoad(s)
+        )
         .then(() =>
             clickAddBlockButton(s)
         )
@@ -58,9 +58,9 @@ QUnit.module('BlockTrees', () => {
     QUnit.test('user can undo removing block', assert => {
         const done = assert.async();
         const s = appTestUtils.createTestState();
-        appTestUtils.renderMockEditAppIntoDom('DefaultView', () => {
-            appTestUtils.simulatePageLoad(s);
-        })
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', () =>
+            appTestUtils.simulatePageLoad(s)
+        )
         .then(() =>
             //                                                          Section          Paragraph
             clickContextMenuLink(s, 'delete-block', '.block-tree > li:nth-of-type(2) li:nth-of-type(2)')
@@ -86,7 +86,7 @@ QUnit.module('BlockTrees', () => {
         const s = appTestUtils.createTestState();
         appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
             s.blockTreesCmp = cmp;
-            appTestUtils.simulatePageLoad(s);
+            return appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             simulateDragBlock(s, 'upwards')

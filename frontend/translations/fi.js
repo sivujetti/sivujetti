@@ -52,6 +52,11 @@ stringBundles.push({
     'Name': 'Nimi',
     'e.g. Header, Footer': 'esim. Header, Footer',
     'Convert': 'Muunna',
+    // edit-app/src/CreatePageTypeMainPanelView.jsx
+    'page type': 'sivutyyppi',
+    'Default content': 'Oletussisältö',
+    'Settings': 'Tiedot',
+    'Fields': 'Kentät',
     // edit-app/src/DefaultMainPanelView.jsx
     'On this page': 'Tällä sivulla',
     'My website': 'Sivustoni',
@@ -65,6 +70,12 @@ stringBundles.push({
     'global blocks': 'globaaleja lohkoja',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Sulje',
+    // edit-app/src/PageTypeBasicInfoConfigurationForm.jsx
+    'Name (for computers)': 'Nimi (konekielinen)',
+    'Name (plural)': 'Nimi (monikossa)',
+    'Description': 'Kuvaus',
+    'Listable': 'Listattava',
+    'Default layout': 'Oletusivupohja',
     // edit-app/src/SaveButton.jsx
     'Save changes': 'Tallenna muutokset',
     // edit-app/src/block-types/Menu/EditItemPanel.jsx

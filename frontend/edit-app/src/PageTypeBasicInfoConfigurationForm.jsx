@@ -8,11 +8,11 @@ class PageTypeBasicInfoConfigurationForm extends preact.Component {
     constructor(props) {
         super(props);
         this.state = hookForm(this, [
-            {name: 'name', value: props.data.name, validations: [['identifier'], ['maxLength', 64]], label: __('Name'),
+            {name: 'name', value: props.data.name, validations: [['identifier'], ['maxLength', 64]], label: __('Name (for computers)'),
              onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) this.emitPropChanged('name', value); }},
-            {name: 'friendlyName', value: props.data.friendlyName, validations: [['minLength', 1], ['maxLength', 92]], label: __('Friendly name'),
+            {name: 'friendlyName', value: props.data.friendlyName, validations: [['minLength', 1], ['maxLength', 92]], label: __('Name'),
              onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) this.emitPropChanged('friendlyName', value); }},
-            {name: 'friendlyNamePlural', value: props.data.friendlyNamePlural, validations: [['minLength', 1], ['maxLength', 92]], label: __('Friendly name (plural)'),
+            {name: 'friendlyNamePlural', value: props.data.friendlyNamePlural, validations: [['minLength', 1], ['maxLength', 92]], label: __('Name (plural)'),
              onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) this.emitPropChanged('friendlyNamePlural', value); }},
             {name: 'description', value: props.data.description, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Description'),
              onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) this.emitPropChanged('description', value); }},
@@ -35,17 +35,17 @@ class PageTypeBasicInfoConfigurationForm extends preact.Component {
     render({layouts}, {isListable, defaultLayoutId}) {
         return <div class="form-horizontal pt-0">
             <FormGroupInline>
-                <label htmlFor="name" class="form-label">{ __('Name') }</label>
+                <label htmlFor="name" class="form-label">{ __('Name (for computers)') }</label>
                 <Input vm={ this } prop="name" placeholder="Articles, Products"/>
                 <InputErrors vm={ this } prop="name"/>
             </FormGroupInline>
             <FormGroupInline>
-                <label htmlFor="friendlyName" class="form-label">{ __('Friendly name') }</label>
+                <label htmlFor="friendlyName" class="form-label">{ __('Name') }</label>
                 <Input vm={ this } prop="friendlyName" placeholder="Article, Product"/>
                 <InputErrors vm={ this } prop="friendlyName"/>
             </FormGroupInline>
             <FormGroupInline>
-                <label htmlFor="friendlyNamePlural" class="form-label">{ __('Friendly name (plural)') }</label>
+                <label htmlFor="friendlyNamePlural" class="form-label">{ __('Name (plural)') }</label>
                 <Input vm={ this } prop="friendlyNamePlural" placeholder="Articles, Products"/>
                 <InputErrors vm={ this } prop="friendlyNamePlural"/>
             </FormGroupInline>

@@ -12,7 +12,9 @@ class CreatePageTypeMainPanelView extends preact.Component {
     // formWasSubmitted;
     // lastCommittedPageName;
     /**
-     * @param {{cancelAddPageType: () => void; pageType: PageType; blockTreesRef: preact.Ref;}} props
+     * Note to self: getLayouts is for tests.
+     *
+     * @param {{cancelAddPageType: () => void; pageType: PageType; blockTreesRef: preact.Ref; getLayouts?: () => Promise<Array<Layout>>;}} props
      */
     constructor(props) {
         super(props);

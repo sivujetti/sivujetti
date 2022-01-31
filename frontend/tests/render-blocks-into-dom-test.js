@@ -8,9 +8,9 @@ QUnit.module('BlockTrees', () => {
     QUnit.test('user can add block to inner branch', assert => {
         const done = assert.async();
         const s = appTestUtils.createTestState();
-        appTestUtils.renderMockEditAppIntoDom('DefaultView', () => {
-            appTestUtils.simulatePageLoad(s);
-        })
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', () =>
+            appTestUtils.simulatePageLoad(s)
+        )
         .then(() =>
             clickAddBlockButton(s)
         )
@@ -22,9 +22,9 @@ QUnit.module('BlockTrees', () => {
     QUnit.test('user can add block to inner branch by using the context menu', assert => {
         const done = assert.async();
         const s = appTestUtils.createTestState();
-        appTestUtils.renderMockEditAppIntoDom('DefaultView', () => {
-            appTestUtils.simulatePageLoad(s);
-        })
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', () =>
+            appTestUtils.simulatePageLoad(s)
+        )
         .then(() =>
             clickContextMenuLink(s, 'add-child')
         )
@@ -36,9 +36,9 @@ QUnit.module('BlockTrees', () => {
     QUnit.test('user can clone block using the context menu', assert => {
         const done = assert.async();
         const s = appTestUtils.createTestState();
-        appTestUtils.renderMockEditAppIntoDom('DefaultView', () => {
-            appTestUtils.simulatePageLoad(s);
-        })
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', () =>
+            appTestUtils.simulatePageLoad(s)
+        )
         .then(() =>
             clickContextMenuLink(s, 'clone-block')
         )
@@ -52,9 +52,9 @@ QUnit.module('BlockTrees', () => {
         const done = assert.async();
         const s = appTestUtils.createTestState();
         s.useDeeplyNestedBlock = true;
-        appTestUtils.renderMockEditAppIntoDom('DefaultView', () => {
-            appTestUtils.simulatePageLoad(s, undefined, 'withNestedBlock');
-        })
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', () =>
+            appTestUtils.simulatePageLoad(s, undefined, 'withNestedBlock')
+        )
         .then(() =>
             clickContextMenuLink(s, 'clone-block')
         )
@@ -69,9 +69,9 @@ QUnit.module('BlockTrees', () => {
         const s = createAddGlobalBlockReferenceTestState();
         simulateListGlobalBlockTreesHttpToReturnSuccesfully(s);
         simulateRenderGlobalBlockHttpToReturnSuccesfully(s);
-        appTestUtils.renderMockEditAppIntoDom('DefaultView', () => {
-            appTestUtils.simulatePageLoad(s);
-        })
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', () =>
+            appTestUtils.simulatePageLoad(s)
+        )
         .then(() =>
             clickAddBlockButton(s)
         )

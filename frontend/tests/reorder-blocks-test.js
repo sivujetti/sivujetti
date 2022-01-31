@@ -7,7 +7,7 @@ QUnit.module('BlockTrees', () => {
         const s = appTestUtils.createTestState();
         appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
             s.blockTreesCmp = cmp;
-            appTestUtils.simulatePageLoad(s);
+            return appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             simulateDragBlock(s, 'upwards')
@@ -23,7 +23,7 @@ QUnit.module('BlockTrees', () => {
         const s = appTestUtils.createTestState();
         appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
             s.blockTreesCmp = cmp;
-            appTestUtils.simulatePageLoad(s);
+            return appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             simulateDragBlock(s, 'downwards')
@@ -39,7 +39,7 @@ QUnit.module('BlockTrees', () => {
         const s = appTestUtils.createTestState();
         appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
             s.blockTreesCmp = cmp;
-            appTestUtils.simulatePageLoad(s);
+            return appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             simulateDragBlock(s, 'upwards', 'as-child')
@@ -55,7 +55,7 @@ QUnit.module('BlockTrees', () => {
         const s = appTestUtils.createTestState();
         appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
             s.blockTreesCmp = cmp;
-            appTestUtils.simulatePageLoad(s);
+            return appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
             simulateDragBlock(s, 'downwards', 'as-child')
@@ -71,7 +71,7 @@ QUnit.module('BlockTrees', () => {
         const s = appTestUtils.createTestState();
         appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
             s.blockTreesCmp = cmp;
-            appTestUtils.simulatePageLoad(s, undefined, 'withNestedBlockReversed');
+            return appTestUtils.simulatePageLoad(s, undefined, 'withNestedBlockReversed');
         })
         .then(() =>
             simulateDragBlock(s, 'downwards', 'as-child', document.querySelector('.block-tree li ul li ul li'))

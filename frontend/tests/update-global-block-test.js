@@ -9,7 +9,7 @@ QUnit.module('ParagraphBlock2', () => {
         simulateHttpToReturnSuccesfully(s);
         appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
             s.blockTreesCmp = cmp;
-            appTestUtils.simulatePageLoad(s, undefined, 'withGlobalBlockReference');
+            return appTestUtils.simulatePageLoad(s, undefined, 'withGlobalBlockReference');
         })
         .then(() =>
             simulateChangeParagraphTextInput(s)

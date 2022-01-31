@@ -52,6 +52,11 @@ stringBundles.push({
     'Name': 'Name',
     'e.g. Header, Footer': 'e.g. Header, Footer',
     'Convert': 'Convert',
+    // edit-app/src/CreatePageTypeMainPanelView.jsx
+    'page type': 'page type',
+    'Default content': 'Default content',
+    'Settings': 'Settings',
+    'Fields': 'Fields',
     // edit-app/src/DefaultMainPanelView.jsx
     'On this page': 'On this page',
     'My website': 'My website',
@@ -65,6 +70,12 @@ stringBundles.push({
     'global blocks': 'global blocks',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Close',
+    // edit-app/src/PageTypeBasicInfoConfigurationForm.jsx
+    'Name (for computers)': 'Name (for computers)',
+    'Name (plural)': 'Name (plural)',
+    'Description': 'Description',
+    'Listable': 'Listable',
+    'Default layout': 'Default layout',
     // edit-app/src/SaveButton.jsx
     'Save changes': 'Save changes',
     // edit-app/src/block-types/Menu/EditItemPanel.jsx

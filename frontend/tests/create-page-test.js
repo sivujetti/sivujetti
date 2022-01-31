@@ -1,14 +1,14 @@
 import * as commons from '@sivujetti-commons-for-edit-app';
-import {observeStore, selectCurrentPage} from '../edit-app/src/store.js';
 import testUtils from './my-test-utils.js';
 import * as appTestUtils from './edit-app-testutils.js';
+import {simulatePlaceholderPageLoad, clickSubmitButton} from './utils/create-stuff-test-utils.js';
 
 QUnit.module('AddPageMainPanelView', () => {
     QUnit.test('user can create page', assert => {
         const done = assert.async();
         const s = createTestState();
         simulateHttpToReturnSuccesfully(s);
-        appTestUtils.renderMockEditAppIntoDom('AddPageView').then(() =>
+        appTestUtils.renderMockEditAppIntoDom('AddPageView', _cmp =>
             simulatePlaceholderPageLoad()
         )
         .then(() =>
@@ -35,17 +35,6 @@ QUnit.module('AddPageMainPanelView', () => {
             httpPostStub: null,
         });
     }
-    function simulatePlaceholderPageLoad() {
-        // Wait for next "selectCurrentPage"
-        const p = new Promise(resolve => {
-            observeStore(selectCurrentPage, () => {
-                resolve();
-            });
-        });
-        // Simulate page load (which triggers "selectCurrentPage")
-        appTestUtils.simulatePageLoad(null, true);
-        return p;
-    }
     function simulateHttpToReturnSuccesfully(s) {
         s.httpPostStub = window.sinon.stub(commons.http, 'post')
             .returns(Promise.resolve({ok: 'ok'}));
@@ -68,11 +57,7 @@ QUnit.module('AddPageMainPanelView', () => {
         });
     }
     function clickSaveChangesButton(_s) {
-        const p = appTestUtils.waitUntiSaveButtonHasRunQueuedOps();
-        setTimeout(() => {
-            document.querySelector('#render-container-el button').click();
-        }, 1);
-        return p;
+        return clickSubmitButton();
     }
     function verifySavedPageToBacked(s, assert) {
         assert.ok(s.httpPostStub.called);

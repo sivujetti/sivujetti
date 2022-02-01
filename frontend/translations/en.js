@@ -64,6 +64,9 @@ stringBundles.push({
     'Create page': 'Create page',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Edit mode',
+    'Exit edit mode': 'Exit edit mode',
+    'Go to dashboard': 'Go to dashboard',
+    'Created new %s': 'Created new %s',
     'Page title': 'Page title',
     // edit-app/src/GlobalBlockTreeSelector.jsx
     'No %s found': 'No %s found',

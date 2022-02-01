@@ -173,6 +173,7 @@ interface EditAppAwareWebPage {
     findEndingComment(block: Block): Commment|undefined;
     updateTitle(text: String): void;
     registerBlockMouseListeners(blockRef: BlockRefComment, nextEl: HTMLElement = null): void;
+    setIsMouseListenersDisabled(isDisabled: Boolean): void;
     getBlockContents(block: Block, doIncludeBoundaryComments: Boolean = true): Array<HTMLElement>;
 }
 

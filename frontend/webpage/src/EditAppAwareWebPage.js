@@ -222,42 +222,6 @@ class EditAppAwareWebPage {
         });
     }
     /**
-     * @param {HTMLElement} outerEl = document.body
-     * @access private
-     */
-    registerLocalLinkEventHandlers(outerEl = document.body) {
-        let currentOrigHref = '';
-        let timeout = null;
-        Array.from(outerEl.querySelectorAll('a')).forEach(a => {
-            if (a.hasListener)
-                return;
-            a.addEventListener('mousedown', e => {
-                if (e.button !== 0) return;
-                this.allowClick = false;
-                currentOrigHref = e.target.href;
-                this.handlers.onLocalLinkClickStarted(e);
-                timeout = setTimeout(() => {
-                    if (!currentOrigHref) return;
-                    this.handlers.onLocalLinkClickEnded();
-                    timeout = null;
-                    window.location.href = this.isLocalLink(a)
-                        ? `${currentOrigHref}${a.search[0] !== '?' ? '?' : '&'}in-edit`
-                        : currentOrigHref;
-                }, 325);
-            });
-            a.addEventListener('click', e => {
-                if (e.button !== 0) return;
-                e.preventDefault();
-            });
-            a.addEventListener('mouseup', e => {
-                if (e.button !== 0) return;
-                if (timeout) { this.allowClick = true; clearTimeout(timeout); timeout = null; }
-                this.handlers.onLocalLinkClickEnded();
-            });
-            a.hasListener = true;
-        });
-    }
-    /**
      * @param {Block} blockToMove
      * @param {Block} blockToMoveTo
      * @param {'before'|'after'|'as-child'} position
@@ -353,6 +317,7 @@ class EditAppAwareWebPage {
             nextEl = comment.nextElementSibling || comment.nextSibling;
         }
         nextEl.addEventListener('mouseover', e => {
+            if (this.isMouseListenersDisabled) return;
             if (e.target !== this.currentlyHoveredEl) {
                 this.currentlyHoveredEl = e.target;
                 e.stopPropagation();
@@ -372,6 +337,13 @@ class EditAppAwareWebPage {
                 this.currentlyHoveredRootEl = null;
             }
         });
+    }
+    /**
+     * @param {Boolean} isDisabled
+     * @access public
+     */
+    setIsMouseListenersDisabled(isDisabled) {
+        this.isMouseListenersDisabled = isDisabled;
     }
     /**
      * @param {Block} block
@@ -395,6 +367,43 @@ class EditAppAwareWebPage {
             el = el.nextSibling;
         }
         return out;
+    }
+    /**
+     * @param {HTMLElement} outerEl = document.body
+     * @access private
+     */
+    registerLocalLinkEventHandlers(outerEl = document.body) {
+        let timeout = null;
+        const doFollowLink = el => {
+            window.location.href = this.isLocalLink(el)
+                ? `${el.href}${el.search[0] !== '?' ? '?' : '&'}in-edit`
+                : el.href;
+        };
+        Array.from(outerEl.querySelectorAll('a')).forEach(a => {
+            if (a.hasListener)
+                return;
+            a.addEventListener('mousedown', e => {
+                if (e.button !== 0 || this.isMouseListenersDisabled) return;
+                this.allowClick = false;
+                this.handlers.onLocalLinkClickStarted(e);
+                timeout = setTimeout(() => {
+                    this.handlers.onLocalLinkClickEnded();
+                    timeout = null;
+                    doFollowLink(a);
+                }, 325);
+            });
+            a.addEventListener('click', e => {
+                if (e.button !== 0) return;
+                e.preventDefault();
+                if (this.isMouseListenersDisabled) doFollowLink(a);
+            });
+            a.addEventListener('mouseup', e => {
+                if (e.button !== 0 || this.isMouseListenersDisabled) return;
+                if (timeout) { this.allowClick = true; clearTimeout(timeout); timeout = null; }
+                this.handlers.onLocalLinkClickEnded();
+            });
+            a.hasListener = true;
+        });
     }
     /**
      * @param {Block} block

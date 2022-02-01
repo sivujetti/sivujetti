@@ -243,6 +243,18 @@ h2 {
     bottom: 0;
     cursor: row-resize;
 }
+.panels-hidden #main-panel {
+    width: 0;
+    z-index: 1;
+}
+.panels-hidden #inspector-panel {
+    display: none;
+}
+.panels-hidden #sivujetti-site-iframe {
+    width: 100%;
+    transform: initial;
+}
+
 .floating-dialog {
     position: fixed;
     z-index: 2;
@@ -384,27 +396,30 @@ a.popup-close-area {
     padding: 0 .4rem;
 }
 #main-panel header {
-    margin: .4rem 0 .3rem 0;
+    margin: .4rem 0 0 0;
 }
-#main-panel header a {
-    display: inline-block;
-    padding: .2rem;
+#main-panel .mode-chooser a {
     text-decoration: none;
 }
-#main-panel header img {
+#main-panel .mode-chooser a img {
     width: 24px;
-    margin: .1rem .2rem .1rem 0;
     filter: contrast(0.8);
 }
-#main-panel header img + span {
-    position: relative;
-    line-height: .7rem;
-    top: -.12rem;
+#main-panel .mode-chooser span {
     font-size: .65rem;
 }
-#main-panel header img + span > span:last-child {
+#main-panel .mode-chooser > span {
+    line-height: .65rem;
+}
+#main-panel .mode-chooser span > select {
     opacity: 0.4;
     font-size: .6rem;
+    width: auto;
+    padding: 0;
+    height: 1rem;
+    line-height: .6rem;
+    border: none;
+    cursor: pointer;
 }
 .panel-section {
     padding: .8rem 0 .4rem .4rem;
@@ -443,6 +458,45 @@ a.popup-close-area {
 .panel-section > nav a {
     margin: .8rem 0;
     color: var(--color-fg-default);
+}
+
+
+
+/* EditApp: Main panel > Back to edit app label */
+#back-to-edit-corner {
+    top: -110px;
+    left: -110px;
+    position: fixed;
+    border-right: 1px solid #0000001f;
+    transform: rotate(45deg);
+    width: 140px;
+    box-shadow: rgba(50,50,93,.25) 0 13px 27px -5px, rgba(0,0,0,.3) 0 8px 16px -8px, rgba(0,0,0,.2) 0 -6px 16px -6px;
+    background-color: var(--color-accent);
+    height: 140px;
+}
+#back-to-edit-corner:hover {
+    top: -71px;
+    left: -70px;
+}
+#back-to-edit-corner img {
+    display: none;
+    width: 26px;
+    transform: rotate(-45deg);
+    position: absolute;
+    right: 15px;
+    bottom: 55px;
+}
+#back-to-edit-corner svg {
+    display: none;
+    position: absolute;
+    transform: rotate(-45deg);
+    bottom: 56px;
+    right: 5px;
+    color: #fff;
+}
+#back-to-edit-corner:hover img,
+#back-to-edit-corner:hover svg {
+    display: initial;
 }
 
 

@@ -64,6 +64,9 @@ stringBundles.push({
     'Create page': 'Luo sivu',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Muokkaustila',
+    'Exit edit mode': 'Poistu muokkaustilasta',
+    'Go to dashboard': 'Siirry dashboardiin',
+    'Created new %s': 'Luotiin uusi %s',
     'Page title': 'Sivuotsikko',
     // edit-app/src/GlobalBlockTreeSelector.jsx
     'No %s found': '%s ei löytynyt',

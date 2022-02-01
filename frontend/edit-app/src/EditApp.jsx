@@ -1,4 +1,5 @@
-import {__, signals, urlUtils} from '@sivujetti-commons-for-edit-app';
+import {__, signals, env, urlUtils} from '@sivujetti-commons-for-edit-app';
+import Icon from './commons/Icon.jsx';
 import toasters, {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
 import AddPageMainPanelView from './AddPageMainPanelView.jsx';
@@ -10,21 +11,33 @@ import blockTreeUtils from './blockTreeUtils.js';
 import webPageIframe from './webPageIframe.js';
 
 let LEFT_PANEL_WIDTH = 300;
+const PANELS_HIDDEN_CLS = 'panels-hidden';
 
 class EditApp extends preact.Component {
+    // changeViewOptions;
     // blockTrees;
     // currentWebPage;
+    // currentPageData;
     // resizeHandleEl;
     // highlightRectEl;
     // localLinkClickTimerEl;
     /**
-     * @param {{dataFromAdminBackend: TheWebsite; outerEl: HTMLElement; inspectorPanelRef: preact.Ref;}} props
+     * @param {{dataFromAdminBackend: TheWebsite; outerEl: HTMLElement; inspectorPanelRef: preact.Ref; rootEl: HTMLElement;}} props
      */
     constructor(props) {
         super(props);
-        this.state = {mode: 'default'};
+        this.changeViewOptions = [
+            {name: 'edit-mode', label: __('Edit mode')},
+            {name: 'go-to-web-page', label: __('Exit edit mode')},
+        ].concat(props.dataFromAdminBackend.showGoToDashboardMode
+            ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
+            : []
+        );
+        this.state = {currentMainPanel: 'default', hidePanels: getArePanelsHidden()};
+        if (this.state.hidePanels) props.rootEl.classList.add(PANELS_HIDDEN_CLS);
         this.blockTrees = preact.createRef();
         this.currentWebPage = null;
+        this.currentPageData = null;
         this.resizeHandleEl = preact.createRef();
         this.highlightRectEl = preact.createRef();
         this.localLinkClickTimerEl = preact.createRef();
@@ -39,11 +52,13 @@ class EditApp extends preact.Component {
      * @access public
      */
     handleWebPageLoaded(webPage, combinedBlockTree, blockRefs) {
-        const dataFromWebPage = webPage.data;
-        if (dataFromWebPage.page.isPlaceholderPage && this.state.mode !== 'create-page') {
-            this.currentWebPage = dataFromWebPage.page;
+        webPage.setIsMouseListenersDisabled(getArePanelsHidden());
+        const webPagePage = webPage.data.page;
+        this.currentWebPage = webPage;
+        if (webPagePage.isPlaceholderPage && this.state.currentMainPanel !== 'create-page') {
+            this.currentPageData = webPagePage;
         }
-        this.setState({mode: !dataFromWebPage.page.isPlaceholderPage ? 'default' : 'create-page'});
+        this.setState({currentMainPanel: !webPagePage.isPlaceholderPage ? 'default' : 'create-page'});
         signals.emit('on-web-page-loaded');
         store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
         store.dispatch(setOpQueue([]));
@@ -51,33 +66,44 @@ class EditApp extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {mode}) {
-        const showMainPanel = mode === 'default';
-        const pageType = showMainPanel ? null : this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentWebPage.type);
+    render(_, {currentMainPanel, hidePanels}) {
+        const showMainPanel = currentMainPanel === 'default';
+        const pageType = showMainPanel ? null : this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentPageData.type);
+        const logoUrl = urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo.png');
         return <div>
-            <header class="container d-flex flex-centered">
-                <a href={ urlUtils.makeUrl('_edit') } class="column">
-                    <img src={ urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo.png') }/>
+            { !hidePanels ? null : <a onClick={ e => (e.preventDefault(), this.handlePanelsAreHiddenChanged(false)) } id="back-to-edit-corner" href="">
+                <img src={ logoUrl }/>
+                <Icon iconId="arrow-back-up"/>
+            </a> }
+            <header class={ !hidePanels ? 'd-flex' : 'd-none' }>
+                <div class="mode-chooser ml-2 d-flex p-1" style="margin-bottom: -.2rem; margin-top: .1rem;">
+                    <a href={ urlUtils.makeUrl('_edit') } class="d-inline-block mr-1">
+                        <img src={ logoUrl }/>
+                    </a>
                     <span class="d-inline-block ml-1">
-                        <span class="d-inline-block col-12">Sivujetti</span>
-                        <select onClick={ e => e.stopPropagation() } onChange={ e => {
-                            console.log('change');
+                        <span class="d-block">Sivujetti</span>
+                        <select value={ this.changeViewOptions[!hidePanels ? 0 : 1].name } onChange={ e => {
+                            if (e.target.value === this.changeViewOptions[1].name) {
+                                this.handlePanelsAreHiddenChanged(true);
+                            } else if (e.target.value === (this.changeViewOptions[2] || {}).name)
+                                env.window.location.href = this.props.dataFromAdminBackend.dashboardUrl;
+                            else
+                                throw new Error(`Unkown option ${e.target.value}`);
                         } } class="form-select">
-                        <option value="edit-mode">Muokkaustila</option>
-                        <option value="dashboard">{ __('Go to dashboard') }</option>
-                        <option value="web-page">{ __('Go to page') }</option>
-                        </select>
+                        { this.changeViewOptions.map(({name, label}) =>
+                            <option value={ name }>{ label }</option>
+                        ) }</select>
                     </span>
-                </a>
+                </div>
                 <SaveButton/>
             </header>
-            { mode === 'default'
+            { showMainPanel
                 ? <DefaultMainPanelView
                     blockTreesRef={ this.blockTrees }
                     startAddPageMode={ () => {
                         // Open to iframe to '/_edit/api/_placeholder-page...',
                         // which then triggers this.handleWebPageLoaded() and sets
-                        // this.state.mode to 'create-page'
+                        // this.state.currentMainPanel to 'create-page'
                         webPageIframe.openPlaceholderPage('Pages');
                     } }
                     startAddPageTypeMode={ () => {
@@ -95,8 +121,8 @@ class EditApp extends preact.Component {
                         blockTreesRef={ this.blockTrees }
                         cancelAddPage={ () => webPageIframe.goBack() }
                         reRenderWithAnotherLayout={ layoutId => {
-                            this.setState({mode: 'default'});
-                            webPageIframe.openPlaceholderPage(this.currentWebPage.type, layoutId);
+                            this.setState({currentMainPanel: 'default'});
+                            webPageIframe.openPlaceholderPage(this.currentPageData.type, layoutId);
                         } }
                         pageType={ pageType }/>
                     : <CreatePageTypeMainPanelView
@@ -119,10 +145,10 @@ class EditApp extends preact.Component {
      * @access private
      */
     handlePageTypeCreated(submittedData) {
-        const mutRef = this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentWebPage.type);
+        const mutRef = this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentPageData.type);
         Object.assign(mutRef, submittedData);
         //
-        toasters.editAppMain(__('Created new %s.', __('page type')), 'success');
+        toasters.editAppMain(`${__('Created new %s', __('page type'))}.`, 'success');
         //
         urlUtils.redirect('/_edit');
     }
@@ -172,6 +198,16 @@ class EditApp extends preact.Component {
             currentHandle = null;
             el.classList.remove('dragging');
         });
+    }
+    /**
+     * @param {Boolean} to
+     * @access private
+     */
+    handlePanelsAreHiddenChanged(to) {
+        this.currentWebPage.setIsMouseListenersDisabled(to);
+        this.props.rootEl.classList.toggle(PANELS_HIDDEN_CLS);
+        env.window.localStorage.sivujettiDoHidePanels = to ? 'yes' : 'no';
+        this.setState({hidePanels: to});
     }
 }
 
@@ -271,6 +307,13 @@ function createWebsiteEventHandlers(highlightRectEl, localLinkClickTimerEl, bloc
             localLinkClickTimerEl.current.innerHTML = '';
         },
     };
+}
+
+/**
+ * @returns {Boolean}
+ */
+function getArePanelsHidden() {
+    return env.window.localStorage.sivujettiDoHidePanels === 'yes';
 }
 
 export default EditApp;

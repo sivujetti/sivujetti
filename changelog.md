@@ -8,6 +8,7 @@
 - An ability to create new page types (from the edip app's main menu)
 - tagType -property to Button blocks (`link` -> `<a href ...>`, `button` -> `<button type="button" ...>`, `submit` -> `<button type="submit" ...>`)
 - `UserSite|PluginApi->getPlugin(string $name)` so plugins can publish their own APIs.
+- "Exit from edit mode" and "Return to edit mode" feature
 
 ## Fixed
 - ...

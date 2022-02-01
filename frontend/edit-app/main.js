@@ -66,16 +66,18 @@ function renderReactEditApp() {
     const mainPanelOuterEl = document.getElementById('main-panel');
     const inspectorPanelOuterEl = document.getElementById('inspector-panel');
     const inspectorPanelReactRef = preact.createRef();
+    const rootEl = document.getElementById('root');
     preact.render(preact.createElement(EditApp, {
         outerEl: mainPanelOuterEl,
         inspectorPanelRef: inspectorPanelReactRef,
         dataFromAdminBackend: window.dataFromAdminBackend,
+        rootEl,
         ref: editAppReactRef,
     }), mainPanelOuterEl);
 
     preact.render(preact.createElement(InspectorPanel, {
         outerEl: inspectorPanelOuterEl,
-        rootEl: document.getElementById('root'),
+        rootEl,
         ref: inspectorPanelReactRef,
     }), inspectorPanelOuterEl);
 

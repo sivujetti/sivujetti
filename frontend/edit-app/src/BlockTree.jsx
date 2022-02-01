@@ -162,6 +162,29 @@ class BlockTree extends preact.Component {
         return tree;
     }
     /**
+     * @param {Block} block
+     * @access public
+     */
+    handleItemClicked(block) {
+        this.selectedRoot = block;
+        const mutRef = this.state.treeState;
+        const base = block.isStoredTo !== 'globalBlockTree'
+            ? null
+            : blockTreeUtils.findRecursively(this.state.blockTree,
+                ({globalBlockTreeId}) => globalBlockTreeId === block.globalBlockTreeId);
+        this.emitItemClickedOrAppendedSignal('clicked', block, base);
+        //
+        if (!base && block.parentBlockIdPath) {
+            const ids = block.parentBlockIdPath.split('/'); // '/foo/bar' -> ['', 'foo', 'bar']
+            ids.shift();                                    //            -> ['foo', 'bar']
+            ids.concat(block.id).forEach(id => { mutRef[id].isCollapsed = false; });
+        } else if (base) {
+            mutRef[getVisibleBlock(base).id].isCollapsed = false;
+        }
+        //
+        this.setState({treeState: this.setBlockAsSelected(block, mutRef)});
+    }
+    /**
      * @access protected
      */
     componentWillMount(props = this.props) {
@@ -394,6 +417,7 @@ class BlockTree extends preact.Component {
     /**
      * @param {RawGlobalBlockTree} data
      * @param {Block} originalBlock The block tree we just turned global
+     * @access private
      */
     doConvertBlockToGlobal(data, originalBlock) {
         // todo emit to queue
@@ -518,28 +542,6 @@ class BlockTree extends preact.Component {
         const [block, containingBranch] = blockTreeUtils.findBlock(placeholderBlock.id, this.getTreeFor(placeholderBlock));
         BlockTrees.currentWebPage.deleteBlockFromDom(block);
         this.deleteBlock(block, containingBranch);
-    }
-    /**
-     * @param {Block} block
-     * @access private
-     */
-    handleItemClicked(block) {
-        this.selectedRoot = block;
-        const mutRef = this.state.treeState;
-        const base = block.isStoredTo !== 'globalBlockTree'
-            ? null
-            : blockTreeUtils.findRecursively(this.state.blockTree,
-                ({globalBlockTreeId}) => globalBlockTreeId === block.globalBlockTreeId);
-        this.emitItemClickedOrAppendedSignal('clicked', block, base);
-        if (mutRef[block.id].isSelected) return;
-        //
-        if (block.parentBlockIdPath) {
-            const ids = block.parentBlockIdPath.split('/'); // '/foo/bar' -> ['', 'foo', 'bar']
-            ids.shift();                                    //            -> ['foo', 'bar']
-            ids.forEach(id => { mutRef[id].isCollapsed = false; });
-        }
-        //
-        this.setState({treeState: this.setBlockAsSelected(block, mutRef)});
     }
     /**
      * @param {Block} block

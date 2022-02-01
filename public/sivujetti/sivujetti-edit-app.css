@@ -673,6 +673,9 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     font-size: .6rem;
     border-radius: 2px;
 }
+.highlight-rect[data-adjust-title-from-top="yes"]:before {
+    margin: initial;
+}
 
 /* EditApp: link click timer indicators. https://fromanegg.com/post/2013/01/23/100-pure-css-radial-progress-bar/ */
 .local-link-click-timer {

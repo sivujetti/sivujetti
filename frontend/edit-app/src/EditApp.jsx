@@ -135,7 +135,7 @@ class EditApp extends preact.Component {
             }
             <Toaster id="editAppMain"/>
             <FloatingDialog/>
-            <span class="highlight-rect" ref={ this.highlightRectEl }></span>
+            <span class="highlight-rect" data-adjust-title-from-top="no" ref={ this.highlightRectEl }></span>
             <span class="local-link-click-timer" ref={ this.localLinkClickTimerEl }></span>
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         </div>;
@@ -231,6 +231,7 @@ function isPlaceholderPageType(pageType) {
  */
 function createWebsiteEventHandlers(highlightRectEl, localLinkClickTimerEl, blockTrees) {
     let prevHoverStartBlockRef = null;
+    const TITLE_LABEL_HEIGHT = 18; // at least
     const hideRect = () => {
         highlightRectEl.current.setAttribute('data-title', '');
         highlightRectEl.current.style.cssText = '';
@@ -262,6 +263,7 @@ function createWebsiteEventHandlers(highlightRectEl, localLinkClickTimerEl, bloc
                 'left:', r.left + LEFT_PANEL_WIDTH, 'px'
             ].join('');
             const block = findBlockTemp(blockRef);
+            highlightRectEl.current.setAttribute('data-adjust-title-from-top', r.top > TITLE_LABEL_HEIGHT ? 'no' : 'yes');
             highlightRectEl.current.setAttribute('data-title',
                 (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type)
             );
@@ -274,11 +276,7 @@ function createWebsiteEventHandlers(highlightRectEl, localLinkClickTimerEl, bloc
             const treeCmp = blockTrees.current.blockTree.current;
             const block = findBlockTemp(blockRef, treeCmp);
             signals.emit('on-web-page-block-clicked');
-            const base = block.isStoredTo !== 'globalBlockTree'
-                ? null
-                : blockTreeUtils.findRecursively(blockTrees.current.blockTree.current.getTree(),
-                    ({globalBlockTreeId}) => globalBlockTreeId === block.globalBlockTreeId);
-            treeCmp.handleItemClicked(block, base);
+            treeCmp.handleItemClicked(block);
         },
         /**
          * @param {BlockRefComment} blockRef

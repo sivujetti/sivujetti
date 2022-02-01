@@ -31,6 +31,8 @@ class BlockTreeDragDrop {
      * @access public
      */
     handleDraggedOver(e) {
+        if (!this.startEl)
+            return;
         const li = e.target.nodeName === 'LI' ? e.target : e.target.closest('li');
         if (!li)
             return;

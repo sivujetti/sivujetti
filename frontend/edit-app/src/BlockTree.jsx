@@ -335,6 +335,7 @@ class BlockTree extends preact.Component {
                     treeState: treeStateMutRef
                 });
             });
+            this.pushCommitChangesOp(clonedBlock);
         } else if (link.id === 'delete-block') {
             const blockToDelete = this.state.blockWithNavOpened;
             const isSelectedRootCurrentlyClickedBlock = () => {

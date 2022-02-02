@@ -1,4 +1,4 @@
-import {http, __, env} from '@sivujetti-commons-for-edit-app';
+import {http, __, signals, env} from '@sivujetti-commons-for-edit-app';
 import Icon from './commons/Icon.jsx';
 import {timingUtils} from './commons/utils.js';
 import blockTypes, {getIcon} from './block-types/block-types.js';
@@ -48,6 +48,9 @@ class BlockEditForm extends preact.Component {
         this.editFormImplRef = preact.createRef();
         this.dirtyQueue = [];
         this.setState({useOverrides: base && base.useOverrides});
+        this.unregisterSignalListener = signals.on('on-block-deleted', ({id}) => {
+            if (id === block.id) this.props.inspectorPanel.close();
+        });
     }
     /**
      * @access protected
@@ -68,6 +71,7 @@ class BlockEditForm extends preact.Component {
         this.currentEmitChangesOpFn = undefined;
         this.currentDebounceTime = undefined;
         this.currentDebounceType = undefined;
+        this.unregisterSignalListener();
     }
     /**
      * @param {{block: Block; blockTreeCmp: preact.Component; base: Block|null; inspectorPanel: preact.Component;}} props

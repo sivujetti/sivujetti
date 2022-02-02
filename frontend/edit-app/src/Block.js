@@ -99,9 +99,21 @@ class Block {
      * @access public
      */
     getRootDomNode() {
-        // <!-- block-start ... --><section> <- this element
+        /*
+        <!-- block-start ... -->
+        <section> <- this element
+          ...
+        */
         const firstEl = this._cref.startingCommentNode.nextElementSibling;
-        return firstEl.querySelector('[data-block-root]') || firstEl;
+        /*
+        <section>
+          <div data-block-root>           <- this element
+            foo
+            <button><span data-block-root <- but not this
+            ...
+        */
+        return firstEl.querySelector(':scope > [data-block-root]') ||
+               firstEl;
     }
     /**
      * @param {BlockType} blockType

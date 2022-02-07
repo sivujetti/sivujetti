@@ -2,7 +2,7 @@
 
 namespace Sivujetti\UserSite;
 
-use Sivujetti\{BaseAPI, SharedAPIContext, Template};
+use Sivujetti\{BaseAPI, Template};
 use Sivujetti\BlockType\BlockTypeInterface;
 use Pike\{PikeException, Validation};
 use Sivujetti\UserPlugin\UserPluginInterface;
@@ -45,16 +45,9 @@ class UserSiteAPI extends BaseAPI {
         $this->apiCtx->validBlockRenderers[] = str_contains($fileId, ":") ? $fileId : "site:{$fileId}";
     }
     /**
-     * @param string $name
-     * @return \Sivujetti\UserPlugin\UserPluginInterface|null
-     * @throws \Pike\PikeException
+     * @see \Sivujetti\SharedAPIContext->getPlugin()
      */
     public function getPlugin(string $name): ?UserPluginInterface {
-        if ($this->apiCtx->getAppPhase() < SharedAPIContext::PHASE_READY_TO_EXECUTE_ROUTE_CONTROLLER)
-            throw new PikeException("You should call \$api->getPlugin() inside \$api->on(\$api::ON_ROUTE_" .
-                                    "CONTROLLER_BEFORE_EXEC) or \$api->on(\$api::ON_PAGE_BEFORE_RENDER) " .
-                                    "to ensure they're all loaded",
-                                    PikeException::ERROR_EXCEPTION);
-        return $this->apiCtx->userPlugins[$name] ?? null;
+        return $this->apiCtx->getPlugin($name);
     }
 }

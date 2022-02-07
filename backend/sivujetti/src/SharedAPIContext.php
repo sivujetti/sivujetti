@@ -2,7 +2,10 @@
 
 namespace Sivujetti;
 
+use Pike\PikeException;
 use Sivujetti\BlockType\Entities\BlockTypes;
+use Sivujetti\UserPlugin\UserPluginInterface;
+use Sivujetti\UserSite\UserSiteInterface;
 
 /**
  * Stuff registered by Site.php, Theme.php, SomePlugin.php. Gets populated on
@@ -24,8 +27,10 @@ final class SharedAPIContext {
     public array $validBlockRenderers;
     /** @var string[] \Sivujetti\UserSite\UserSiteAPI->enqueueEditAppJsFile() */
     public array $adminJsFiles;
-    /** @var \Sivujetti\UserPlugin\UserPluginInterface[] */
+    /** @var array<string, \Sivujetti\UserPlugin\UserPluginInterface> */
     public array $userPlugins;
+    /** @var \Sivujetti\UserSite\UserSiteInterface i.e. \MySite\Site */
+    public UserSiteInterface $userSite;
     /***/
     public function __construct() {
         $this->appPhase = 0;
@@ -63,5 +68,18 @@ final class SharedAPIContext {
      */
     public function setAppPhase(int $phase): void {
         $this->appPhase = $phase;
+    }
+    /**
+     * @param string $name
+     * @return \Sivujetti\UserPlugin\UserPluginInterface|null
+     * @throws \Pike\PikeException
+     */
+    public function getPlugin(string $name): ?UserPluginInterface {
+        if ($this->getAppPhase() < SharedAPIContext::PHASE_READY_TO_EXECUTE_ROUTE_CONTROLLER)
+            throw new PikeException("You should call \$api->getPlugin() inside \$api->on(\$api::ON_ROUTE_" .
+                                    "CONTROLLER_BEFORE_EXEC) or \$api->on(\$api::ON_PAGE_BEFORE_RENDER) " .
+                                    "to ensure they're all loaded",
+                                    PikeException::ERROR_EXCEPTION);
+        return $this->userPlugins[$name] ?? null;
     }
 }

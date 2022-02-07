@@ -3,7 +3,6 @@
 namespace Sivujetti;
 
 use Sivujetti\TheWebsite\Entities\TheWebsite;
-use MySite\Site;
 use Pike\AppContext as PikeAppContext;
 
 final class AppContext extends PikeAppContext {
@@ -11,8 +10,4 @@ final class AppContext extends PikeAppContext {
     public SharedAPIContext $apiCtx;
     /** @var \Sivujetti\TheWebsite\Entities\TheWebsite */
     public TheWebsite $theWebsite;
-    /** @var \MySite\Site */
-    public Site $userSite;
-    /** @var array<string, \Sivujetti\BlockType\BlockTypeInterface> */
-    public array $userPlugins = [];
 }

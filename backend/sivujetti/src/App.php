@@ -3,28 +3,28 @@
 namespace Sivujetti;
 
 use Auryn\Injector;
-use Sivujetti\Block\BlocksModule;
-use Sivujetti\Block\Entities\Block;
-use Sivujetti\BlockType\{ButtonBlockType, ColumnsBlockType, GlobalBlockReferenceBlockType,
-                         HeadingBlockType, ImageBlockType, MenuBlockType, PageInfoBlockType,
-                         ParagraphBlockType, RichTextBlockType, SectionBlockType};
-use Sivujetti\Page\PagesModule;
-use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\Plugin\Entities\Plugin;
-use Sivujetti\TheWebsite\TheWebsiteRepository;
-use Sivujetti\UserPlugin\{UserPluginAPI, UserPluginInterface};
-use Sivujetti\UserSite\{UserSiteAPI, UserSiteInterface};
 use Pike\{App as PikeApp, NativeSession, PikeException, Request, Response, Router, ServiceDefaults};
 use Pike\Auth\Authenticator;
 use Pike\Auth\Defaults\DefaultCookieStorage;
 use Pike\Defaults\DefaultUserRepository;
 use Sivujetti\Auth\AuthModule;
+use Sivujetti\Block\BlocksModule;
+use Sivujetti\Block\Entities\Block;
+use Sivujetti\BlockType\{ButtonBlockType, ColumnsBlockType, GlobalBlockReferenceBlockType,
+                         HeadingBlockType, ImageBlockType, MenuBlockType, PageInfoBlockType,
+                         ParagraphBlockType, RichTextBlockType, SectionBlockType};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesModule;
 use Sivujetti\Layout\LayoutsModule;
+use Sivujetti\Page\PagesModule;
+use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\PageTypesModule;
+use Sivujetti\Plugin\Entities\Plugin;
+use Sivujetti\TheWebsite\TheWebsiteRepository;
 use Sivujetti\Update\UpdatesModule;
 use Sivujetti\Upload\UploadsModule;
+use Sivujetti\UserPlugin\{UserPluginAPI, UserPluginInterface};
+use Sivujetti\UserSite\{UserSiteAPI, UserSiteInterface};
 
 final class App {
     public const VERSION = "0.8.0-dev";
@@ -186,12 +186,12 @@ final class App {
     /**
      */
     private function instantiateSite(): void {
-        $this->ctx->userSite = $this->instantiatePluginOrSite(null);
+        $this->ctx->apiCtx->userSite = $this->instantiatePluginOrSite(null);
     }
     /**
      */
     private function instantiatePlugins(): void {
-        $instances =& $this->ctx->userPlugins; // Note: reference
+        $instances =& $this->ctx->apiCtx->userPlugins; // Note: reference
         foreach ($this->ctx->theWebsite->plugins as $fromDb) {
             if (array_key_exists($fromDb->name, $instances)) continue;
             $instances[$fromDb->name] = $this->instantiatePluginOrSite($fromDb);

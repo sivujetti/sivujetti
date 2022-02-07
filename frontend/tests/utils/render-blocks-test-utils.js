@@ -1,4 +1,4 @@
-import blockTypes from '../edit-app/src/block-types/block-types.js';
+import {api} from '@sivujetti-commons-for-edit-app';
 import testUtils from './my-test-utils.js';
 
 /**
@@ -25,7 +25,7 @@ function verifyAppendedParagraphAfter(s, assert, expectedText = '') {
     const expectedNewPEl = initialSectionEl.nextElementSibling;
     assert.equal(expectedNewPEl.tagName, 'P');
     if (!expectedText) {
-        const paragraphType = blockTypes.get('Paragraph');
+        const paragraphType = api.blockTypes.get('Paragraph');
         expectedText = paragraphType.initialData.text;
     }
     assert.equal(expectedNewPEl.textContent, expectedText);
@@ -40,7 +40,7 @@ function verifyAppendedParagraphInside(s, assert, expectedText = '') {
     const initialSectionElDiv = document.querySelector('.initial-section').children[0];
     const expectedNewPEl = initialSectionElDiv.children[initialSectionElDiv.children.length - 1];
     assert.equal(expectedNewPEl.tagName, 'P');
-    assert.equal(expectedNewPEl.textContent, expectedText || blockTypes.get('Paragraph').initialData.text);
+    assert.equal(expectedNewPEl.textContent, expectedText || api.blockTypes.get('Paragraph').initialData.text);
 }
 
 /**

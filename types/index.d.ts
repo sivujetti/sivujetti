@@ -1,11 +1,12 @@
 interface SivujettiFrontendApi {
     blockTypes: BlockTypes;
     registerTranslationStrings(strings: {[key: String]: String}): void;
+    getPageTypes(): Array<PageType>;
 }
 
 interface BlockTypes {
     get(name: String): BlockType|undefined;
-    register(name: String, blockType: BlockType): void;
+    register(name: String, blockTypeFactory: () => BlockType): void;
     entries(): IterableIterator<String, BlockType>;
 }
 
@@ -199,10 +200,6 @@ interface BlockEditFormProps {
     blockTree: preact.Component; // BlockTree
     onValueChanged: (newValue: any, key: String, hasErrors: Boolean = false, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none') => Promise<null>;
     funcsOut: {resetValues?: (newSnapshot: RawBlockData) => void;};
-}
-
-interface InternalSivujettiApi {
-    getPageTypes(): Array<PageType>;
 }
 
 interface UploadsEntry {

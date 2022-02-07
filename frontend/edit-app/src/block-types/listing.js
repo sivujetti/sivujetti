@@ -1,17 +1,26 @@
-import {__, http} from '@sivujetti-commons-for-edit-app';
+import {__, http, api} from '@sivujetti-commons-for-edit-app';
 import webPageIframe from '../webPageIframe.js';
 
-let internalSivujettiApi = null;
-
 class ListingBlockEditForm extends preact.Component {
+    // pageType;
+    // pageTypeFriendlyName;
+    // pageTypeFriendlyNamePlural;
     /**
      * @param {BlockEditFormProps} props
+     */
+    componentWillMount() {
+        const typeName = this.props.block.listPageType;
+        this.pageType = api.getPageTypes().find(({name}) => name === typeName);
+        this.pageTypeFriendlyName = __(this.pageType.friendlyName).toLowerCase();
+        this.pageTypeFriendlyNamePlural = __(this.pageType.friendlyNamePlural).toLowerCase();
+    }
+    /**
      * @access protected
      */
-    render({block}) {
+    render() {
         return <div>
-            <p>{ __('A list of %s', block.listPageType) }.</p>
-            <a href="" onClick={ this.openAddPageView.bind(this) }>{ __('Add new %s', block.listPageType) }</a>
+            <p>{ __('A list of %s', this.pageTypeFriendlyNamePlural) }.</p>
+            <a href="" onClick={ this.openAddPageView.bind(this) }>{ __('Add new %s', this.pageTypeFriendlyName) }</a>
         </div>;
     }
     /**
@@ -21,8 +30,7 @@ class ListingBlockEditForm extends preact.Component {
     openAddPageView(e) {
         e.preventDefault();
         const typeName = this.props.block.listPageType;
-        const pageType = internalSivujettiApi.getPageTypes().find(({name}) => name === typeName);
-        webPageIframe.openPlaceholderPage(typeName, pageType.defaultLayoutId);
+        webPageIframe.openPlaceholderPage(typeName, this.pageType.defaultLayoutId);
     }
 }
 
@@ -52,65 +60,64 @@ function throwIfInvalidSettings(settings) {
     if (errors.length) throw new Error(errors.join('\n'));
 }
 
-export default api => {
-    internalSivujettiApi = api;
-    /**
-     * Usage:
-     * This requires three pieces of code:
-     *
-     * 1. Custom block type (backend)
-     * ```php
-     * class Site implements UserSiteInterface {
-     *     public function __construct(UserSiteAPI $api) {
-     *         $api->registerBlockType("ArticlesListing", new Sivujetti\BlockType\ListingBlockType);
-     *         ...
-     * ```
-     *
-     * 2. Custom renderer
-     * ```php
-     * class Site implements UserSiteInterface {
-     *     public function __construct(UserSiteAPI $api) {
-     *         ...
-     *         $api->registerBlockRenderer("block-articles-listing");
-     * ```
-     *
-     * 3. Custom block type (frontend)
-     * ```
-     * window.sivujetti.blockTypes.register('ArticlesListing', createListingBlockType({
-     *     name: 'ArticlesListing',
-     *     friendlyName: 'Article list',
-     *     defaultRenderer: 'site:block-articles-listing',
-     *     initialData: {
-     *         listPageType: 'Pages',
-     *         listFilters: JSON.stringify([{'categories.slug': 'news'}]),
-     *     }
-     * }));
-     * ```
-     *
-     * @param {{name: String; friendlyName?: String; initialData: {listPageType?: String; listFilters: String;}; defaultRenderer: String;}} settings
-     */
-    return settings => {
-        throwIfInvalidSettings(settings);
-        //
-        return {
-            name: settings.name,
-            friendlyName: settings.friendlyName || settings.name,
-            ownPropNames: Object.keys(settings.initialData),
-            initialData: {
-                listPageType: settings.initialData.listPageType || 'Pages',
-                listFilters: settings.initialData.listFilters,
-            },
-            defaultRenderer: settings.defaultRenderer,
-            icon: settings.icon || 'layout-list',
-            reRender(block, _) {
-                return http.post('/api/blocks/render', {block: block.toRaw()}).then(resp => resp.result);
-            },
-            createSnapshot: from => ({
-                listPageType: from.listPageType,
-                listFilters: from.listFilters,
-            }),
-            editForm: ListingBlockEditForm,
-            editFormProps: settings.editFormProps || null,
-        };
+/**
+ * Usage:
+ * This requires three pieces of code:
+ *
+ * 1. Custom block type (backend)
+ * ```php
+ * class Site implements UserSiteInterface {
+ *     public function __construct(UserSiteAPI $api) {
+ *         $api->registerBlockType("ArticlesListing", new Sivujetti\BlockType\ListingBlockType);
+ *         ...
+ * ```
+ *
+ * 2. Custom renderer
+ * ```php
+ * class Site implements UserSiteInterface {
+ *     public function __construct(UserSiteAPI $api) {
+ *         ...
+ *         $api->registerBlockRenderer("block-articles-listing");
+ * ```
+ *
+ * 3. Custom block type (frontend)
+ * ```
+ * import {api} from '@sivujetti-commons-for-edit-app';
+ * import createListingBlockType from '../../../../../frontend/edit-app/src/block-types/listing.js';
+ * api.blockTypes.register('ArticlesListing', () => createListingBlockType({
+ *     name: 'ArticlesListing',
+ *     friendlyName: 'Article list',
+ *     defaultRenderer: 'site:block-articles-listing',
+ *     initialData: {
+ *         listPageType: 'Pages',
+ *         listFilters: JSON.stringify([{'categories.slug': 'news'}]),
+ *     }
+ * }));
+ * ```
+ *
+ * @param {{name: String; friendlyName?: String; initialData: {listPageType?: String; listFilters: String;}; defaultRenderer: String;}} settings
+ */
+export default settings => {
+    throwIfInvalidSettings(settings);
+    //
+    return {
+        name: settings.name,
+        friendlyName: settings.friendlyName || settings.name,
+        ownPropNames: Object.keys(settings.initialData),
+        initialData: {
+            listPageType: settings.initialData.listPageType || 'Pages',
+            listFilters: settings.initialData.listFilters,
+        },
+        defaultRenderer: settings.defaultRenderer,
+        icon: settings.icon || 'layout-list',
+        reRender(block, _) {
+            return http.post('/api/blocks/render', {block: block.toRaw()}).then(resp => resp.result);
+        },
+        createSnapshot: from => ({
+            listPageType: from.listPageType,
+            listFilters: from.listFilters,
+        }),
+        editForm: ListingBlockEditForm,
+        editFormProps: settings.editFormProps || null,
     };
 };

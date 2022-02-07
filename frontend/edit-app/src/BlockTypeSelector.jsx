@@ -1,6 +1,5 @@
-import {__} from '@sivujetti-commons-for-edit-app';
+import {__, api} from '@sivujetti-commons-for-edit-app';
 import Tabs from './commons/Tabs.jsx';
-import blockTypes from './block-types/block-types.js';
 import Block from './Block.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import GlobalBlockTreeSelector from './GlobalBlockTreeSelector.jsx';
@@ -16,7 +15,7 @@ class BlockTypeSelector extends preact.Component {
             blockBluePrint: {blockType: props.block.type},
             currentTabIdx: 0,
         };
-        this.selectableBlockTypes = Array.from(blockTypes.entries()).filter(([name, _]) =>
+        this.selectableBlockTypes = Array.from(api.blockTypes.entries()).filter(([name, _]) =>
             name !== 'PageInfo' && name !== 'Listing' && name !== 'GlobalBlockReference'
         );
     }
@@ -35,7 +34,7 @@ class BlockTypeSelector extends preact.Component {
                     onChange={ e => this.selectBlockType(e.target.value) }
                     class="form-input form-select tight mb-2">{ this.selectableBlockTypes.map(([name, blockType]) =>
                     <option value={ name }>
-                        { __(blockType.friendlyName) }
+                        { __((typeof blockType !== 'function' ? blockType : blockType()).friendlyName || name) }
                     </option>
                 ) }</select>
             </div>
@@ -67,7 +66,7 @@ class BlockTypeSelector extends preact.Component {
      */
     selectBlockType(blockTypeName) {
         if (this.state.blockBluePrint.blockType === blockTypeName) return;
-        const blockType = blockTypes.get(blockTypeName);
+        const blockType = api.blockTypes.get(blockTypeName);
         const providedInitialData = blockType.initialData; // BlockBlueprint|Object
         const blockBluePrint = !providedInitialData.blockType
             ? {blockType: blockType.name, data: providedInitialData, children: []}
@@ -80,7 +79,7 @@ class BlockTypeSelector extends preact.Component {
      * @access private
      */
     selectRefBlockType(globalBlockTree) {
-        const gbrBlockType = blockTypes.get('GlobalBlockReference');
+        const gbrBlockType = api.blockTypes.get('GlobalBlockReference');
         const initialData = Object.assign({}, gbrBlockType.initialData, {globalBlockTreeId: globalBlockTree.id, __globalBlockTree: {
             id: globalBlockTree.id,
             name: globalBlockTree.name,

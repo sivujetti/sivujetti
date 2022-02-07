@@ -9,7 +9,9 @@ const translator = new Translator;
 const __ = translator.t.bind(translator);
 const signals = new Signals;
 setDoTranslate(__);
+/** @type {SivujettiFrontendApi} */
+const api = {}; // see frontend/edit-app/main.js
 
 export * from '../commons-for-web-pages/main.js';
 export * from './src/Form3.jsx';
-export {__, translator, signals};
+export {__, translator, signals, api};

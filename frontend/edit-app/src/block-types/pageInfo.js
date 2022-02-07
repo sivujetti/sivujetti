@@ -1,4 +1,4 @@
-import {__, http, signals, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+import {__, api, http, signals, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
 import {stringUtils} from '../commons/utils.js';
 import BlockTrees from '../BlockTrees.jsx';
@@ -148,12 +148,8 @@ function createPageData(from, pageType) {
     return out;
 }
 
-/**
- * @param {InternalSivujettiApi} internalSivujettiApi
- */
-export default internalSivujettiApi => {
+export default () => {
     const initialData = {overrides: '[]'};
-    PageInfoBlockEditForm.internalSivujettiApi = internalSivujettiApi;
     return {
         name: 'PageInfo',
         friendlyName: 'PageInfo',
@@ -164,7 +160,7 @@ export default internalSivujettiApi => {
         reRender: () => '', // Do nothing
         createSnapshot: () => {
             const currentPage = BlockTrees.currentWebPage.data.page;
-            const pageType = PageInfoBlockEditForm.internalSivujettiApi.getPageTypes()
+            const pageType = api.getPageTypes()
                 .find(({name}) => name === currentPage.type);
             //
             const out = createPageData(currentPage, pageType);

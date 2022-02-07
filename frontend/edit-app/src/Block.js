@@ -1,4 +1,4 @@
-import blockTypes from './block-types/block-types.js';
+import {api} from '@sivujetti-commons-for-edit-app';
 import blockTreeUtils from './blockTreeUtils.js';
 import {generatePushID} from './commons/utils.js';
 
@@ -25,7 +25,7 @@ class Block {
                     data = {},
                     id = generatePushID(),
                     globalBlockTreeId = null) {
-        blockType = typeof blockType !== 'string' ? blockType : blockTypes.get(blockType);
+        blockType = typeof blockType !== 'string' ? blockType : api.blockTypes.get(blockType);
         const completeOwnProps = Block.makeOwnData(blockType, data);
         return Block.fromObject(Object.assign({
             id,
@@ -52,7 +52,7 @@ class Block {
                 renderer: block.renderer,
                 isStoredTo: block.isStoredTo,
                 globalBlockTreeId: block.globalBlockTreeId,
-            }, this.makeOwnData(blockTypes.get(block.type), block, 1)))
+            }, this.makeOwnData(api.blockTypes.get(block.type), block, 1)))
         );
         blockTreeUtils.setParentIdPaths(branch);
         return branch[0];
@@ -72,7 +72,7 @@ class Block {
      * @access public
      */
     overwritePropsData(newPropsData) {
-        const completeOwnProps = Block.makeOwnData(blockTypes.get(this.type), newPropsData);
+        const completeOwnProps = Block.makeOwnData(api.blockTypes.get(this.type), newPropsData);
         Object.assign(this, completeOwnProps);
     }
     /**
@@ -91,7 +91,7 @@ class Block {
      * @access public
      */
     toHtml(children = null) {
-        return blockTypes.get(this.type).reRender(this,
+        return api.blockTypes.get(this.type).reRender(this,
             () => children || (this.children ? this.children.map(b => b.toHtml()).join('') : ''));
     }
     /**

@@ -1,6 +1,6 @@
 import * as commons from '@sivujetti-commons-for-edit-app';
-import * as appTestUtils from './edit-app-testutils.js';
-import {simulateChangeParagraphTextInput, verifyUpdatedTextInDom} from './render-blocks-testutils.js';
+import * as appTestUtils from './utils/edit-app-test-utils.js';
+import {simulateChangeParagraphTextInput, verifyUpdatedTextInDom} from './utils/render-blocks-test-utils.js';
 
 QUnit.module('ParagraphBlock', () => {
     QUnit.test('text can be edited and saved to backend', assert => {

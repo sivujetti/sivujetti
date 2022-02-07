@@ -1,19 +1,19 @@
+import {api} from '@sivujetti-commons-for-edit-app';
 import reactTestUtils, {blockUtils} from './my-test-utils.js';
-import store, {observeStore, setCurrentPage, selectOpQueue} from '../edit-app/src/store.js';
-import AddPageMainPanelView from '../edit-app/src/AddPageMainPanelView.jsx';
-import CreatePageTypeMainPanelView from '../edit-app/src/CreatePageTypeMainPanelView.jsx';
-import BlockTrees from '../edit-app/src/BlockTrees.jsx';
-import blockTypes from '../edit-app/src/block-types/block-types.js';
-import InspectorPanel from '../edit-app/src/InspectorPanel.jsx';
-import SaveButton from '../edit-app/src/SaveButton.jsx';
-import blockTreeUtils from '../edit-app/src/blockTreeUtils.js';
-import EditAppAwareWebPage from '../webpage/src/EditAppAwareWebPage.js';
+import store, {observeStore, setCurrentPage, selectOpQueue} from '../../edit-app/src/store.js';
+import AddPageMainPanelView from '../../edit-app/src/AddPageMainPanelView.jsx';
+import CreatePageTypeMainPanelView from '../../edit-app/src/CreatePageTypeMainPanelView.jsx';
+import BlockTrees from '../../edit-app/src/BlockTrees.jsx';
+import InspectorPanel from '../../edit-app/src/InspectorPanel.jsx';
+import SaveButton from '../../edit-app/src/SaveButton.jsx';
+import blockTreeUtils from '../../edit-app/src/blockTreeUtils.js';
+import EditAppAwareWebPage from '../../webpage/src/EditAppAwareWebPage.js';
 
 const mockPageTypes = [{
     name: 'Pages',
     defaultLayoutId: '1',
     isListable: true,
-    ownFields: [{}],
+    ownFields: [{dataType: {type: 'text'}}],
 }];
 const draftPageType = Object.assign({}, mockPageTypes[0], {
     name: 'Draft',
@@ -224,7 +224,7 @@ function waitUntiSaveButtonHasRunQueuedOps() {
  * @returns {String}
  */
 function renderBlock(blockRaw, childHtml = '') {
-    const blockType = blockTypes.get(blockRaw.type);
+    const blockType = api.blockTypes.get(blockRaw.type);
     return blockUtils.decorateWithRef(blockRaw, blockType.reRender(blockRaw, () => childHtml));
 }
 

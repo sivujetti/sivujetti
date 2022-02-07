@@ -1,9 +1,18 @@
 const storage = new Map;
+let created = false;
 
 /**
  * See also ../../main.js.
  */
-const blockTypes = {
+class BlockTypes {
+    /**
+     * @param {any} internalSivujettiApi
+     */
+    constructor(internalSivujettiApi) {
+        if (created) throw new Error('There can be only one..');
+        this.internalSivujettiApi = internalSivujettiApi;
+        created = true;
+    }
     /**
      * @param {String} name
      * @returns {BlockType|(...any) => BlockType}
@@ -14,17 +23,17 @@ const blockTypes = {
         if (!out)
             throw new Error(`Block type \`${name}\` not registered.`);
         return out;
-    },
+    }
     /**
      * @param {String} name
-     * @param {BlockType|(...any) => BlockType} blockTypeOrFactory
+     * @param {() => BlockType} blockTypeFactory
      * @access public
      */
-    register(name, blockTypeOrFactory) {
-        if (typeof blockTypeOrFactory !== 'function')
-            blockTypeOrFactory.ownPropNames = blockTypeOrFactory.ownPropNames.filter(key => key !== 'children');
-        storage.set(name, blockTypeOrFactory);
-    },
+    register(name, blockTypeFactory) {
+        const baked = blockTypeFactory();
+        baked.ownPropNames = baked.ownPropNames.filter(key => key !== 'children');
+        storage.set(name, baked);
+    }
     /**
      * @returns {IterableIterator<String, BlockType|(...any) => BlockType>}
      * @access public
@@ -32,15 +41,15 @@ const blockTypes = {
     entries() {
         return storage.entries();
     }
-};
+}
 
 /**
  * @param {String} blockTypeName
  * @returns {String} Icon for $blockTypeName or $fallBack
  */
 function getIcon(blockTypeName, fallback = 'box') {
-    return blockTypes.get(blockTypeName).icon || fallback;
+    return storage.get(blockTypeName).icon || fallback;
 }
 
-export default blockTypes;
+export default BlockTypes;
 export {getIcon};

@@ -1,13 +1,17 @@
-import {http, __, signals, env} from '@sivujetti-commons-for-edit-app';
+import {http, __, api, signals, env} from '@sivujetti-commons-for-edit-app';
 import Icon from './commons/Icon.jsx';
 import {timingUtils} from './commons/utils.js';
-import blockTypes, {getIcon} from './block-types/block-types.js';
+import {getIcon} from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from './store.js';
 
+/** @var {BlockTypes} */
+let blockTypes;
+
 const snapshots = new Map;
+
 /**
  * @param {Block} block
  * @param {BlockType} blockType
@@ -35,6 +39,13 @@ class BlockEditForm extends preact.Component {
     // currentDebounceType;
     // static currentInstance;
     // static undoingLockIsOn;
+    /**
+     * @param {{block: Block; blockTreeCmp: preact.Component; base: Block|null; inspectorPanel: preact.Component;}} props
+     */
+    constructor(props) {
+        super(props);
+        blockTypes = api.blockTypes;
+    }
     /**
      * @access protected
      */
@@ -74,7 +85,6 @@ class BlockEditForm extends preact.Component {
         this.unregisterSignalListener();
     }
     /**
-     * @param {{block: Block; blockTreeCmp: preact.Component; base: Block|null; inspectorPanel: preact.Component;}} props
      * @access protected
      */
     render({block, blockTreeCmp}, {useOverrides}) {

@@ -1,9 +1,9 @@
-import * as appTestUtils from './edit-app-testutils.js';
+import * as appTestUtils from './utils/edit-app-test-utils.js';
 import {triggerUndo} from '../edit-app/src/SaveButton.jsx';
 import {clickAddBlockButton, verifyAppendedParagraphAfter,
         verifyAppendedParagraphInside, clickContextMenuLink,
         simulateDragBlock, verifySectionChildTagsEqualInDom,
-        simulateChangeParagraphTextInput, verifyUpdatedTextInDom} from './render-blocks-testutils.js';
+        simulateChangeParagraphTextInput, verifyUpdatedTextInDom} from './utils/render-blocks-test-utils.js';
 
 QUnit.module('BlockTrees', () => {
     QUnit.test('user can undo changing paragraph text', assert => {

@@ -1,6 +1,6 @@
 import * as commons from '@sivujetti-commons-for-edit-app';
-import testUtils from './my-test-utils.js';
-import * as appTestUtils from './edit-app-testutils.js';
+import testUtils from './utils/my-test-utils.js';
+import * as appTestUtils from './utils/edit-app-test-utils.js';
 
 QUnit.module('ParagraphBlock2', () => {
     QUnit.test('text can be edited and saved to backend', assert => {

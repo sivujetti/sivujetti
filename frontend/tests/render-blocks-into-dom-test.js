@@ -1,8 +1,8 @@
 import * as commons from '@sivujetti-commons-for-edit-app';
-import {blockUtils} from './my-test-utils.js';
-import * as appTestUtils from './edit-app-testutils.js';
+import {blockUtils} from './utils/my-test-utils.js';
+import * as appTestUtils from './utils/edit-app-test-utils.js';
 import {clickAddBlockButton, verifyAppendedParagraphAfter,
-        verifyAppendedParagraphInside, clickContextMenuLink} from './render-blocks-testutils.js';
+        verifyAppendedParagraphInside, clickContextMenuLink} from './utils/render-blocks-test-utils.js';
 
 QUnit.module('BlockTrees', () => {
     QUnit.test('user can add block to inner branch', assert => {

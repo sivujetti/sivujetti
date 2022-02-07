@@ -1,5 +1,5 @@
 import {observeStore, selectCurrentPage} from '../../edit-app/src/store.js';
-import * as appTestUtils from '../edit-app-testutils.js';
+import * as appTestUtils from './edit-app-test-utils.js';
 
 /**
  * @param {Boolean} isDrafPageType = false

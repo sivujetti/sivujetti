@@ -1,16 +1,15 @@
-import {translator, env, urlUtils} from '@sivujetti-commons-for-edit-app';
+import {translator, api, env, urlUtils} from '@sivujetti-commons-for-edit-app';
 import {Validator} from './src/commons/Form.jsx';
 import {sensibleDefaults} from './src/constants.js';
 import {FormStateStoreWrapper} from './src/store.js';
 import EditApp from './src/EditApp.jsx';
-import blockTypes from './src/block-types/block-types.js';
+import BlockTypes from './src/block-types/block-types.js';
 import createMenuBlockType from './src/block-types/Menu/menu.js';
 import createButtonBlockType from './src/block-types/button.js';
 import createColumnsBlockType from './src/block-types/columns.js';
 import createGlobalBlockReferenceBlockType from './src/block-types/globalBlockReference.js';
 import createHeadingBlockType from './src/block-types/heading.js';
 import createImageBlockType from './src/block-types/image.js';
-import createListingBlockTypeCreator from './src/block-types/listing.js';
 import createPageInfoBlockType from './src/block-types/pageInfo.js';
 import createParagraphBlockType from './src/block-types/paragraph.js';
 import createRichTextBlockType from './src/block-types/richText.js';
@@ -19,17 +18,9 @@ import InspectorPanel from './src/InspectorPanel.jsx';
 import blockTreeUtils from './src/blockTreeUtils.js';
 
 const editAppReactRef = preact.createRef();
-const internalSivujettiApi = {
-    /**
-     * @returns {Array<PageType>}
-     */
-    getPageTypes() {
-        return editAppReactRef.current.props.dataFromAdminBackend.pageTypes;
-    }
-};
 
+populateFrontendApi();
 configureServices();
-publishFrontendApi();
 renderReactEditApp();
 hookUpSiteIframeUrlMirrorer();
 
@@ -38,28 +29,27 @@ function configureServices() {
     //
     Validator.registerStateWrapperImpl('default', FormStateStoreWrapper);
     window.translationStringBundles.forEach(strings => {
-        translator.addStrings(strings);
+        api.registerTranslationStrings(strings);
         if (strings.minLength) Validator.setValidationStrings(strings);
     });
     //
-    blockTypes.register('Menu', createMenuBlockType(internalSivujettiApi));
-    blockTypes.register('Button', createButtonBlockType(internalSivujettiApi));
-    blockTypes.register('Columns', createColumnsBlockType(internalSivujettiApi));
-    blockTypes.register('GlobalBlockReference', createGlobalBlockReferenceBlockType(internalSivujettiApi));
-    blockTypes.register('Heading', createHeadingBlockType(internalSivujettiApi));
-    blockTypes.register('Image', createImageBlockType(internalSivujettiApi));
-    blockTypes.register('Listing', createListingBlockTypeCreator(internalSivujettiApi));
-    blockTypes.register('PageInfo', createPageInfoBlockType(internalSivujettiApi));
-    blockTypes.register('Paragraph', createParagraphBlockType(internalSivujettiApi));
-    blockTypes.register('RichText', createRichTextBlockType(internalSivujettiApi));
-    blockTypes.register('Section', createSectionBlockType(internalSivujettiApi));
+    const blockTypes = new BlockTypes(api);
+    blockTypes.register('Menu', createMenuBlockType);
+    blockTypes.register('Button', createButtonBlockType);
+    blockTypes.register('Columns', createColumnsBlockType);
+    blockTypes.register('GlobalBlockReference', createGlobalBlockReferenceBlockType);
+    blockTypes.register('Heading', createHeadingBlockType);
+    blockTypes.register('Image', createImageBlockType);
+    blockTypes.register('PageInfo', createPageInfoBlockType);
+    blockTypes.register('Paragraph', createParagraphBlockType);
+    blockTypes.register('RichText', createRichTextBlockType);
+    blockTypes.register('Section', createSectionBlockType);
+    api.blockTypes = blockTypes;
 }
 
-function publishFrontendApi() {
-    window.sivujetti = {
-        blockTypes,
-        registerTranslationStrings: translator.addStrings.bind(translator),
-    };
+function populateFrontendApi() {
+    api.getPageTypes = () => editAppReactRef.current.props.dataFromAdminBackend.pageTypes;
+    api.registerTranslationStrings = translator.addStrings.bind(translator);
 }
 
 function renderReactEditApp() {

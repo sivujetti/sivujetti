@@ -1,5 +1,5 @@
-import * as appTestUtils from './edit-app-testutils.js';
-import {simulateDragBlock, verifySectionChildTagsEqualInDom} from './render-blocks-testutils.js';
+import * as appTestUtils from './utils/edit-app-test-utils.js';
+import {simulateDragBlock, verifySectionChildTagsEqualInDom} from './utils/render-blocks-test-utils.js';
 
 QUnit.module('BlockTrees', () => {
     QUnit.test('blocks can be reordered inside inner branch by dragging upwards', assert => {

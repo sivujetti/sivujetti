@@ -2,15 +2,13 @@ import {__, signals, env} from '@sivujetti-commons-for-edit-app';
 import Icon from './commons/Icon.jsx';
 import BlockEditForm from './BlockEditForm.jsx';
 
-const REVEAL_ANIM_DURATION = 200;
-
 class InspectorPanel extends preact.Component {
     // rendererProps;
     // rendererKey;
     // resizeHandleEl;
     // lastHeight;
     /**
-     * @param {{outerEl: HTMLElement; rootEl: HTMLElement;}} props
+     * @param {{outerEl: HTMLElement; rootEl: HTMLElement; mainPanelOuterEl: HTMLElement;}} props
      */
     constructor(props) {
         super(props);
@@ -52,7 +50,6 @@ class InspectorPanel extends preact.Component {
             currentHandle = e.target;
             startHeight = inspectorPanelEl.getBoundingClientRect().height;
             startScreenY = e.screenY;
-            inspectorPanelEl.style.animationFillMode = 'none';
             inspectorPanelEl.style.height = `${startHeight}px`;
             maxHeight = env.window.innerHeight - MAIN_PANEL_HEADER_HEIGHT;
         });
@@ -70,8 +67,10 @@ class InspectorPanel extends preact.Component {
             dragEl.style.transform = `translateY(-${h}px)`;
         });
         document.addEventListener('mouseup', () => {
-            if (currentHandle)
-                this.lastHeight = parseFloat(dragEl.style.transform.split('translateY(')[1]);
+            if (currentHandle) {
+                this.lastHeight = Math.abs(parseFloat(dragEl.style.transform.split('translateY(')[1]));
+                this.props.mainPanelOuterEl.style.height = `calc(100% - ${this.lastHeight}px)`;
+            }
             currentHandle = null;
         });
     }
@@ -79,13 +78,13 @@ class InspectorPanel extends preact.Component {
      * @access protected
      */
     render(_, {Renderer}) {
-        return <>
+        return <div>
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
             <button onClick={ this.close.bind(this) } class="btn btn-link with-icon p-absolute p-1" title={ __('Close') } style="right:0;top:0" type="button">
                 <Icon iconId="circle-x" className="size-sm"/>
             </button>
             { Renderer ? preact.createElement(Renderer, Object.assign({key: this.rendererKey, inspectorPanel: this}, this.rendererProps)) : null }
-        </>;
+        </div>;
     }
     /**
      * Note to self: this currently supports BlockEditForm only.
@@ -104,14 +103,13 @@ class InspectorPanel extends preact.Component {
         this.setState({Renderer: BlockEditForm});
         this.props.rootEl.classList.add('inspector-panel-open');
         //
-        setTimeout(() => {
-            if (this.lastHeight === null) {
-                const inspectorPanelHeight = this.props.outerEl.getBoundingClientRect().height;
-                this.lastHeight = inspectorPanelHeight;
-                this.resizeHandleEl.current.style.transform = `translateY(-${inspectorPanelHeight}px)`;
-            }
-            signals.emit('on-inspector-panel-revealed', this);
-        }, REVEAL_ANIM_DURATION + 100);
+        if (!this.lastHeight) {
+            const height = this.lastHeight || (env.window.innerHeight / 100 * 30);
+            this.props.outerEl.style.height = `${height}px`;
+            this.props.mainPanelOuterEl.style.height = `calc(100% - ${height}px)`;
+            this.resizeHandleEl.current.style.transform = `translateY(-${height}px)`;
+        }
+        signals.emit('on-inspector-panel-revealed', this);
     }
     /**
      * @access private
@@ -120,7 +118,9 @@ class InspectorPanel extends preact.Component {
         if (!this.state.Renderer) return;
         this.setState({Renderer: null});
         this.props.rootEl.classList.remove('inspector-panel-open');
+        this.props.mainPanelOuterEl.style.height = '';
         this.rendererKey = null;
+        this.lastHeight = null;
         signals.emit('on-inspector-panel-closed', this);
     }
 }

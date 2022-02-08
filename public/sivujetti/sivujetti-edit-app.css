@@ -181,29 +181,36 @@ h2 {
 #inspector-panel {
     position: absolute;
     width: 300px;
-    background-color: var(--color-bg-default);
     color: var(--color-fg-default);
     border-right: 1px solid var(--color-bg-dimmed2);
-    overflow-y: auto;
     transition: opacity .1s linear;
+    overflow-y: auto;
 }
 #main-panel {
     height: 100%;
+    background-color: var(--color-bg-default);
 }
 #inspector-panel {
+    bottom: 0;
+    height: 0;
+    opacity: 0;
+    background: transparent;
+    box-shadow: -5px 0 8px 0px rgba(var(--components-color-fb-default),.16);
+    border-top: 1px solid rgba(var(--components-color-fb-default),.14);
     z-index: -1;
+}
+#inspector-panel > div {
+    background-color: var(--color-bg-default);
+    padding: .4rem;
 }
 .inspector-panel-open #main-panel,
 .inspector-panel-open #inspector-panel {
     opacity: 1;
-    animation-duration: .2s;
-    animation-fill-mode: forwards;
 }
 .inspector-panel-open #main-panel {
-    animation-name: adjust-main-panel;
+    height: initial;
 }
 .inspector-panel-open #inspector-panel {
-    animation-name: adjust-inspector-panel;
     z-index: 1;
 }
 #sivujetti-site-iframe {
@@ -213,13 +220,6 @@ h2 {
     border: none;
     transform: translateX(300px);
     height: 100%;
-}
-#inspector-panel {
-    bottom: 0;
-    border-top: 1px solid var(--color-bg-dimmed2);
-    height: 0;
-    opacity: 0;
-    padding: .4rem;
 }
 .resize-panel-handle {
     position: fixed;

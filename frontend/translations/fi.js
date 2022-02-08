@@ -61,7 +61,7 @@ stringBundles.push({
     'On this page': 'Tällä sivulla',
     'My website': 'Sivustoni',
     'Pages': 'Sivut',
-    'Create page': 'Luo sivu',
+    'page': 'sivu',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Muokkaustila',
     'Exit edit mode': 'Poistu muokkaustilasta',

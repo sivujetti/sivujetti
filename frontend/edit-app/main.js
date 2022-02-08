@@ -67,6 +67,7 @@ function renderReactEditApp() {
 
     preact.render(preact.createElement(InspectorPanel, {
         outerEl: inspectorPanelOuterEl,
+        mainPanelOuterEl,
         rootEl,
         ref: inspectorPanelReactRef,
     }), inspectorPanelOuterEl);

@@ -53,7 +53,7 @@ class AddPageMainPanelView extends preact.Component {
     render({pageType, cancelAddPage, blockTreesRef, initialLayoutId}, {layouts}) {
         return <form onSubmit={ this.handleFormSubmitted.bind(this) }>
             <header class="panel-section mb-2">
-                <h1 class="mb-2">{ __('Create %s', pageType.friendlyNameSingular || 'sivu') }</h1>
+                <h1 class="mb-2">{ __('Create %s', __(pageType.friendlyNameSingular || 'page')) }</h1>
                 <button
                     onClick={ cancelAddPage }
                     class="btn btn-link btn-sm"

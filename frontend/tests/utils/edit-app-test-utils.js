@@ -40,6 +40,8 @@ function createTestState() {
     };
 }
 
+const mockEl = document.createElement('div');
+
 class MockEditApp extends preact.Component {
     /**
      * @param {{view: 'DefaultView'|'AddPageView'|'CreatePageTypeView'; pref: preact.Ref;}} props
@@ -65,7 +67,10 @@ class MockEditApp extends preact.Component {
         return <>
             <SaveButton/>
             { viewContent }
-            <InspectorPanel rootEl={ document.getElementById('render-container-el') } outerEl={ document.getElementById('render-container-el') }/>
+            <InspectorPanel
+                rootEl={ document.getElementById('render-container-el') }
+                outerEl={ document.getElementById('render-container-el') }
+                mainPanelOuterEl={ mockEl }/>
         </>;
     }
 }

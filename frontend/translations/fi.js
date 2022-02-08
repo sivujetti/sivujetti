@@ -81,13 +81,17 @@ stringBundles.push({
     'Default layout': 'Oletusivupohja',
     // edit-app/src/SaveButton.jsx
     'Save changes': 'Tallenna muutokset',
+    // edit-app/src/block-types/Menu/EditForm.jsx
+    'Add link': 'Lisää linkki',
+    'Edit': 'Muokkaa',
+    'Edit link': 'Muokkaa linkkiä',
+    'Delete link': 'Poista linkki',
     // edit-app/src/block-types/Menu/EditItemPanel.jsx
-    'Text': 'Teksti',
+    'Link text': 'Linkin teksti',
     'Url': 'Urli',
+    'e.g. %s or %s': 'esim. %s tai %s',
     // edit-app/src/block-types/Menu/menu.js
     'Menu': 'Valikko',
-    'Add item': 'Lisää linkki',
-    'Link text': 'Linkin teksti',
     'Home': 'Etusivu',
     'About': 'Meistä',
     // edit-app/src/block-types/button.js
@@ -118,6 +122,7 @@ stringBundles.push({
     'Url (slug)': 'Urli (slug)',
     // edit-app/src/block-types/paragraph.js
     'Paragraph': 'Tekstikappale',
+    'Text': 'Teksti',
     'Paragraph text': 'Tekstikappaleen teksti',
     // edit-app/src/block-types/richText.js
     'RichText': 'Rikasteteksti',

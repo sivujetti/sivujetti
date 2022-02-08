@@ -81,13 +81,17 @@ stringBundles.push({
     'Default layout': 'Default layout',
     // edit-app/src/SaveButton.jsx
     'Save changes': 'Save changes',
+    // edit-app/src/block-types/Menu/EditForm.jsx
+    'Add link': 'Add link',
+    'Edit': 'Edit',
+    'Edit link': 'Edit link',
+    'Delete link': 'Delete link',
     // edit-app/src/block-types/Menu/EditItemPanel.jsx
-    'Text': 'Text',
+    'Link text': 'Link text',
     'Url': 'Url',
+    'e.g. %s or %s': 'e.g. %s or %s',
     // edit-app/src/block-types/Menu/menu.js
     'Menu': 'Menu',
-    'Add item': 'Add item',
-    'Link text': 'Link text',
     'Home': 'Home',
     'About': 'About',
     // edit-app/src/block-types/button.js
@@ -118,6 +122,7 @@ stringBundles.push({
     'Url (slug)': 'Url (slug)',
     // edit-app/src/block-types/paragraph.js
     'Paragraph': 'Paragraph',
+    'Text': 'Text',
     'Paragraph text': 'Paragraph text',
     // edit-app/src/block-types/richText.js
     'RichText': 'Rich text',

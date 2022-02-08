@@ -64,6 +64,10 @@ class BlockTreeDragDrop {
             */
             if (e.clientY > rect.top + rect.height - edge) {
                 newCandidate.dropPosition = distance !== -1 ? 'after' : 'as-child';
+                if (newCandidate.dropPosition === 'after' && li.classList.contains('with-children')) {
+                    newCandidate.dropPosition = 'before';
+                    newCandidate.el = li.querySelector(':scope ul > li');
+                }
             } else if (e.clientY > rect.top + edge) {
                 newCandidate.dropPosition = 'as-child';
             } else { // if (e.clientY > rect.top) {

@@ -14,7 +14,7 @@
 - ...
 
 ## Changed
-- ...
+- Menu blocks' links can be deleted
 
 # 0.7.0 (2021-01-14)
 

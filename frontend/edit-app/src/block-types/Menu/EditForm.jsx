@@ -1,5 +1,6 @@
 import {__} from '@sivujetti-commons-for-edit-app';
 import Icon from '../../commons/Icon.jsx';
+import ContextMenu from '../../commons/ContextMenu.jsx';
 import EditItemPanel from './EditItemPanel.jsx';
 
 let counter = 0;
@@ -31,8 +32,10 @@ class MenuBlockEditForm extends preact.Component {
      */
     componentDidMount() {
         this.setState({parsedTree: getSetTree(this.props.block),
-                       editPanelState: createEditPanelState()});
+                       editPanelState: createEditPanelState(),
+                       linkWithNavOpened: null});
         this.outerEl = preact.createRef();
+        this.contextMenu = preact.createRef();
     }
     /**
      * @param {BlockEditFormProps} props
@@ -44,15 +47,23 @@ class MenuBlockEditForm extends preact.Component {
             <div class={ editPanelState.leftClass } ref={ this.outerEl }>
                 <ul class="list">{ parsedTree.map(item => <li class="ml-2" key={ item.id }><div class="d-flex flex-centered">
                     <span>{ item.text }</span>
-                    <button onClick={ () => this.openItemForEdit(item) } class="btn btn-sm btn-link col-ml-auto flex-centered" type="button">
-                        <Icon iconId="pencil" className="size-sm"/>
+                    <button onClick={ e => this.openMoreMenu(item, e) } class="btn btn-sm btn-link col-ml-auto flex-centered" type="button">
+                        <Icon iconId="dots" className="size-sm"/>
                     </button>
                 </div></li>) }</ul>
                 <button onClick={ this.appendItemToMenu.bind(this) }
                     class="btn btn-sm text-tiny with-icon-inline color-dimmed mt-1" type="button">
-                    <Icon iconId="plus" className="size-xs mr-1"/> { __('Add item') }
+                    <Icon iconId="plus" className="size-xs mr-1"/> { __('Add link') }
                 </button>
             </div>
+            <ContextMenu
+                links={ [
+                    {text: __('Edit'), title: __('Edit link'), id: 'edit'},
+                    {text: __('Delete'), title: __('Delete link'), id: 'delete'},
+                ] }
+                onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
+                onMenuClosed={ () => this.setState({linkWithNavOpened: null}) }
+                ref={ this.contextMenu }/>
             <EditItemPanel
                 link={ editPanelState.link }
                 cssClass={ editPanelState.rightClass }
@@ -72,19 +83,39 @@ class MenuBlockEditForm extends preact.Component {
         </div>;
     }
     /**
+     * @param {MenuLink} item
+     * @param {Event} e
+     * @access private
+     */
+    openMoreMenu(item, e) {
+        this.setState({linkWithNavOpened: item});
+        this.contextMenu.current.open(e);
+    }
+    /**
+     * @param {ContextMenuLink} link
+     * @access private
+     */
+    handleContextMenuLinkClicked(link) {
+        if (link.id === 'edit')
+            this.setState({editPanelState: {link: this.state.linkWithNavOpened,
+                                            leftClass: 'fade-to-left',
+                                            rightClass: 'reveal-from-right'}});
+        else if (link.id === 'delete')
+        this.applyAndEmit(this.state.parsedTree.filter(link => link !== this.state.linkWithNavOpened));
+    }
+    /**
      * @access private
      */
     appendItemToMenu() {
-        const newParsed = this.state.parsedTree.concat(makeLinkItem({slug: '/', text: __('Link text')}));
-        this.setState({parsedTree: newParsed});
-        this.props.onValueChanged(JSON.stringify(newParsed), 'tree', false);
+        this.applyAndEmit(this.state.parsedTree.concat(makeLinkItem({slug: '/', text: __('Link text')})));
     }
     /**
-     * @param {MenuLink} item
+     * @param {Array<MenuLink>} newParsedTree
      * @access private
      */
-    openItemForEdit(item) {
-        this.setState({editPanelState: {link: item, leftClass: 'fade-to-left', rightClass: 'reveal-from-right'}});
+    applyAndEmit(newParsedTree) {
+        this.setState({parsedTree: newParsedTree});
+        this.props.onValueChanged(JSON.stringify(newParsedTree), 'tree', false);
     }
 }
 

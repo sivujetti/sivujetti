@@ -9,6 +9,8 @@ final class TheWebsite {
     public string $lang;
     /** @var string */
     public string $aclRulesJson;
+    /** @var string */
+    public string $firstRunsJson;
     /** @var \Sivujetti\Plugin\Entities\Plugin[] */
     public \ArrayObject $plugins;
     /** @var \Sivujetti\PageType\Entities\PageType[] */

@@ -37,6 +37,7 @@ return [
     `name` VARCHAR(92) NOT NULL,
     `lang` VARCHAR(12) NOT NULL,
     `aclRules` JSON,
+    `firstRuns` JSON, -- {'userId': 'y', 'another': 'y'}
     `lastUpdatedAt` {$dataTypeForTimestamps},
     `newestCoreVersionLastChecked` {$dataTypeForTimestamps}
 ) DEFAULT CHARSET = utf8mb4",

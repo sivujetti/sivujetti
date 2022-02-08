@@ -9,6 +9,7 @@
 - tagType -property to Button blocks (`link` -> `<a href ...>`, `button` -> `<button type="button" ...>`, `submit` -> `<button type="submit" ...>`)
 - `UserSite|PluginApi->getPlugin(string $name)` so plugins can publish their own APIs.
 - "Exit from edit mode" and "Return to edit mode" feature
+- intro.js introduction for the edit app
 
 ## Fixed
 - ...

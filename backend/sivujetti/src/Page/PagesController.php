@@ -3,7 +3,7 @@
 namespace Sivujetti\Page;
 
 use MySite\Theme;
-use Pike\{ArrayUtils, PikeException, Request, Response};
+use Pike\{ArrayUtils, Db, PikeException, Request, Response};
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\{App, SharedAPIContext, Template, Translator};
@@ -88,11 +88,20 @@ final class PagesController {
      * @param \Pike\Response $res
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\SharedAPIContext $apiCtx
+     * @param \Pike\Db $db
      */
     public function renderEditAppWrapper(Request $req,
                                          Response $res,
                                          TheWebsite $theWebsite,
-                                         SharedAPIContext $apiCtx): void {
+                                         SharedAPIContext $apiCtx,
+                                         Db $db): void {
+        $parsed = json_decode($theWebsite->firstRunsJson, flags: JSON_THROW_ON_ERROR);
+        $isFirstRun = ($parsed->{$req->myData->user->id} ?? null) !== "y";
+        if ($isFirstRun) {
+            $parsed->{$req->myData->user->id} = "y";
+            // todo theWebsiteRepo->update()->fields(["firstRun"])->exec(json_encode())
+            $db->exec("UPDATE `\${p}theWebsite` SET `firstRuns`=?", [json_encode($parsed)]);
+        }
         $res->html((new WebPageAwareTemplate("sivujetti:edit-app-wrapper.tmpl.php"))->render([
             "url" => $req->params->url ?? "",
             "userDefinedJsFiles" => $apiCtx->adminJsFiles,
@@ -102,7 +111,7 @@ final class PagesController {
                 "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
             ]),
             "uiLang" => "fi",
-            "isFirstRun" => false,
+            "isFirstRun" => $isFirstRun || $req->queryVar("first-run") !== null,
         ]));
     }
     /**
@@ -124,7 +133,7 @@ final class PagesController {
      * @param \Pike\Response $res
      */
     public function renderRequestPassResetPage(Response $res): void {
-        $res->html("Not implemented yet.");
+        $res->html("This feature is currently disabled.");
     }
     /**
      * POST /api/pages/[w:pageType]: Inserts a new page to the database.

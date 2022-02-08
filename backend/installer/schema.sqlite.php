@@ -35,6 +35,7 @@ return [
     `name` TEXT NOT NULL,
     `lang` TEXT NOT NULL,
     `aclRules` JSON,
+    `firstRuns` JSON, -- {'userId': 'y', 'another': 'y'}
     `lastUpdatedAt` {$dataTypeForTimestamps},
     `newestCoreVersionLastChecked` {$dataTypeForTimestamps}
 )",

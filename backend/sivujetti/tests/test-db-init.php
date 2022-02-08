@@ -5,8 +5,8 @@ $getRules = require dirname(__DIR__, 2) . "/installer/default-acl-rules.php";
 
 $statements = array_merge($statements, [
 
-"INSERT INTO `theWebsite` (`name`,`lang`,`aclRules`) VALUES
-('Test suite website','fi','".json_encode($getRules())."')",
+"INSERT INTO `theWebsite` (`name`,`lang`,`aclRules`,`firstRuns`) VALUES
+('Test suite website','fi','".json_encode($getRules())."','{}')",
 
 "INSERT INTO `pageTypes` (`id`,`name`,`slug`,`friendlyName`,`friendlyNamePlural`,`description`" .
                           ",`fields`,`defaultLayoutId`,`status`,`isListable`) VALUES

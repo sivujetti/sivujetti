@@ -16,6 +16,7 @@ final class TheWebsiteRepository {
         if (!($rows = $db->fetchAll(
             "SELECT" .
                 " ws.`name`, ws.`lang`, ws.`aclRules` AS `aclRulesJson`" .
+                ", ws.`firstRuns` as `firstRunsJson`" .
                 ", p.`name` AS `pluginName`, p.`isActive` AS `pluginIsActive`" .
                 ", pt.`name` AS `pageTypeName`, pt.`slug` AS `pageTypeSlug`" .
                 ", pt.`friendlyName` AS `pageTypeFriendlyName`" .

@@ -94,12 +94,13 @@ final class InstallCmsFromDirTest extends DbTestCase {
                                          \PDO::FETCH_ASSOC);
         $this->assertNotNull($actual);
         $this->assertNotNull((new PageTestUtils($installerDb))->getPageBySlug("/"));
-        $actual = $installerDb->fetchOne("SELECT `aclRules` FROM `theWebsite` LIMIT 1",
+        $actual = $installerDb->fetchOne("SELECT `aclRules`,`firstRuns` FROM `theWebsite` LIMIT 1",
                                          [],
                                          \PDO::FETCH_ASSOC);
         $this->assertNotNull($actual);
         $this->assertStringStartsWith("{\"resources\":",
                                       $actual["aclRules"]);
+        $this->assertEquals("{}", $actual["firstRuns"]);
     }
     private function verifyCreatedUserZero(Db $installerDb, \TestState $state): void {
         [$expectedUsername, $expectedEmail, $inputPassword] = $state->inputArgs;

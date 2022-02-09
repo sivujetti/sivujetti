@@ -703,7 +703,16 @@ function createTreeStateItem(overrides = {}) {
  * @returns {Block|null}
  */
 function getLastPageBlock(blockTree) {
-    return blockTree.reduce((last, b) => b.isStoredTo === 'page' ? b : last, null);
+    /** @type {Array<LayoutPart>} */
+    const structure = BlockTrees.currentWebPage.data.layout.structure;
+    const globalJustAfter = structure[structure.findIndex(({type}) => type === 'pageContents') + 1] || null;
+    const inTreeIdx = globalJustAfter
+        ? blockTree.findIndex(({type, globalBlockTreeId}) =>
+            type === 'GlobalBlockReference' &&
+            globalBlockTreeId === globalJustAfter.globalBlockTreeId
+        )
+        : null;
+    return blockTree[(inTreeIdx ? inTreeIdx : blockTree.length) - 1];
 }
 
 /**

@@ -20,7 +20,6 @@ class EditApp extends preact.Component {
     // currentPageData;
     // resizeHandleEl;
     // highlightRectEl;
-    // localLinkClickTimerEl;
     /**
      * @param {{dataFromAdminBackend: TheWebsite; outerEl: HTMLElement; inspectorPanelRef: preact.Ref; rootEl: HTMLElement;}} props
      */
@@ -40,9 +39,7 @@ class EditApp extends preact.Component {
         this.currentPageData = null;
         this.resizeHandleEl = preact.createRef();
         this.highlightRectEl = preact.createRef();
-        this.localLinkClickTimerEl = preact.createRef();
         this.websiteEventHandlers = createWebsiteEventHandlers(this.highlightRectEl,
-                                                               this.localLinkClickTimerEl,
                                                                this.blockTrees);
     }
     /**
@@ -138,7 +135,6 @@ class EditApp extends preact.Component {
             <Toaster id="editAppMain"/>
             <FloatingDialog/>
             <span class="highlight-rect" data-adjust-title-from-top="no" ref={ this.highlightRectEl }></span>
-            <span class="local-link-click-timer" ref={ this.localLinkClickTimerEl }></span>
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         </div>;
     }
@@ -240,11 +236,10 @@ function isPlaceholderPageType(pageType) {
 
 /**
  * @param {preact.Ref} highlightRectEl
- * @param {preact.Ref} localLinkClickTimerEl
  * @param {preact.Ref} blockTrees
  * @returns {EditAwareWebPageEventHandlers}
  */
-function createWebsiteEventHandlers(highlightRectEl, localLinkClickTimerEl, blockTrees) {
+function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
     let prevHoverStartBlockRef = null;
     const TITLE_LABEL_HEIGHT = 18; // at least
     const hideRect = () => {
@@ -301,23 +296,6 @@ function createWebsiteEventHandlers(highlightRectEl, localLinkClickTimerEl, bloc
                 if (blockRef === prevHoverStartBlockRef)
                     hideRect();
             }, 80);
-        },
-        /**
-         * @param {Event} e
-         */
-        onLocalLinkClickStarted(e) {
-            const el = localLinkClickTimerEl.current;
-            el.style.left = `${LEFT_PANEL_WIDTH + e.clientX}px`;
-            el.style.top = `${e.clientY}px`;
-            el.innerHTML = ['<span class="wrapper" data-anim="base wrapper">',
-                '<span class="circle" data-anim="base left"></span>',
-                '<span class="circle" data-anim="base right"></span>',
-            '</span>'].join('');
-        },
-        /**
-         */
-        onLocalLinkClickEnded() {
-            localLinkClickTimerEl.current.innerHTML = '';
         },
     };
 }

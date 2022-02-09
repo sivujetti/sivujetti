@@ -205,7 +205,9 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default', p
             layoutId: '1',
             blocks: pageBlocks,
         },
-        layouts: [],
+        layout: {
+            structure: [{type: 'pageContents'}],
+        },
     };
     const webPage = new EditAppAwareWebPage(mockSivujettiCurrentPageData);
     const blockRefs = webPage.scanBlockRefComments();

@@ -3,7 +3,7 @@ class EditAppAwareWebPage {
     // currentlyHoveredEl;
     // currentlyHoveredRootEl;
     // currentlyHoveredBlockRef;
-    // allowClick:
+    // allowOpenBlockClick:
     // isLocalLink:
     /**
      * @param {CurrentPageData} dataFromAdminBackend
@@ -13,7 +13,7 @@ class EditAppAwareWebPage {
         this.currentlyHoveredEl = null;
         this.currentlyHoveredRootEl = null;
         this.currentlyHoveredBlockRef = null;
-        this.allowClick = false;
+        this.allowOpenBlockClick = true;
         this.isLocalLink = createIsLocalLinkCheckFn();
     }
     /**
@@ -36,7 +36,7 @@ class EditAppAwareWebPage {
         this.handlers = handlers;
         document.body.addEventListener('click', e => {
             if (!this.currentlyHoveredEl) return;
-            if (e.target.nodeName === 'A' && !this.allowClick)
+            if (e.target.nodeName === 'A' && !this.allowOpenBlockClick)
                 return;
             this.handlers.onClicked(this.currentlyHoveredBlockRef);
         });
@@ -373,34 +373,27 @@ class EditAppAwareWebPage {
      * @access private
      */
     registerLocalLinkEventHandlers(outerEl = document.body) {
-        let timeout = null;
         const doFollowLink = el => {
             window.location.href = this.isLocalLink(el)
                 ? `${el.href}${el.search[0] !== '?' ? '?' : '&'}in-edit`
                 : el.href;
         };
+        let lastClickedAt = 0;
         Array.from(outerEl.querySelectorAll('a')).forEach(a => {
             if (a.hasListener)
                 return;
-            a.addEventListener('mousedown', e => {
-                if (e.button !== 0 || this.isMouseListenersDisabled) return;
-                this.allowClick = false;
-                this.handlers.onLocalLinkClickStarted(e);
-                timeout = setTimeout(() => {
-                    this.handlers.onLocalLinkClickEnded();
-                    timeout = null;
-                    doFollowLink(a);
-                }, 325);
-            });
             a.addEventListener('click', e => {
                 if (e.button !== 0) return;
                 e.preventDefault();
-                if (this.isMouseListenersDisabled) doFollowLink(a);
-            });
-            a.addEventListener('mouseup', e => {
-                if (e.button !== 0 || this.isMouseListenersDisabled) return;
-                if (timeout) { this.allowClick = true; clearTimeout(timeout); timeout = null; }
-                this.handlers.onLocalLinkClickEnded();
+                if (this.isMouseListenersDisabled) {
+                    doFollowLink(a);
+                } else {
+                    if (lastClickedAt && Date.now() - lastClickedAt < 300) {
+                        doFollowLink(a);
+                        lastClickedAt = 0;
+                    }
+                    lastClickedAt = Date.now();
+                }
             });
             a.hasListener = true;
         });

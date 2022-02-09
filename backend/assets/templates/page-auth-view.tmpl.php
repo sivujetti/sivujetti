@@ -25,6 +25,6 @@
         <script src="<?= $this->assetUrl("public/sivujetti/lang-auth-{$uiLang}.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-edit-app.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-render-auth-app.js") ?>"></script>
-        <script>sivujettiRenderAuthApp('<?= $appName ?>')</script>
+        <script>sivujettiRenderAuthApp('<?= $appName ?>', '<?= $dashboardUrl ?>')</script>
     </body>
 </html>

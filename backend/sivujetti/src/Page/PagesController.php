@@ -3,7 +3,7 @@
 namespace Sivujetti\Page;
 
 use MySite\Theme;
-use Pike\{ArrayUtils, Db, PikeException, Request, Response};
+use Pike\{AppConfig, ArrayUtils, Db, PikeException, Request, Response};
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\{App, SharedAPIContext, Template, Translator};
@@ -88,12 +88,14 @@ final class PagesController {
      * @param \Pike\Response $res
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\SharedAPIContext $apiCtx
+     * @param \Pike\AppConfig $config
      * @param \Pike\Db $db
      */
     public function renderEditAppWrapper(Request $req,
                                          Response $res,
                                          TheWebsite $theWebsite,
                                          SharedAPIContext $apiCtx,
+                                         AppConfig $config,
                                          Db $db): void {
         $parsed = json_decode($theWebsite->firstRunsJson, flags: JSON_THROW_ON_ERROR);
         $isFirstRun = ($parsed->{$req->myData->user->id} ?? null) !== "y";
@@ -109,6 +111,8 @@ final class PagesController {
                 "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
                 "assetBaseUrl" => WebPageAwareTemplate::makeUrl("/", false),
                 "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
+                "showGoToDashboardMode" => $config->get("app.showGoToDashboardMode", false),
+                "dashboardUrl" => $config->get("app.dashboardUrl", ""),
             ]),
             "uiLang" => "fi",
             "isFirstRun" => $isFirstRun || $req->queryVar("first-run") !== null,
@@ -118,13 +122,15 @@ final class PagesController {
      * GET /jet-login: Renders the login page.
      *
      * @param \Pike\Response $res
+     * @param \Pike\AppConfig $config
      */
-    public function renderLoginPage(Response $res): void {
+    public function renderLoginPage(Response $res, AppConfig $config): void {
         $res->html((new WebPageAwareTemplate("sivujetti:page-auth-view.tmpl.php"))->render([
             "title" => "Login",
             "appName" => "login",
             "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
             "uiLang" => "fi",
+            "dashboardUrl" => $config->get("app.dashboardUrl", ""),
         ]));
     }
     /**

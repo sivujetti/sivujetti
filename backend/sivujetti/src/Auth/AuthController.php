@@ -37,13 +37,24 @@ final class AuthController {
         }
     }
     /**
+     *  POST /api/auth/logout: Logs the user out.
+     *
+     * @param \Pike\Response $res
+     * @param \Pike\Auth\Authenticator $auth
+     */
+    public function processLogoutAttempt(Response $res,
+                                         Authenticator $auth): void {
+        $auth->logout();
+        $res->json(["ok" => "ok"]);
+    }
+    /**
      * @param object $input
      * @return string[] Error messages or []
      */
     private function validateLoginFormInput(object $input): array {
         return Validation::makeObjectValidator()
-            ->rule('username', 'minLength', 2)
-            ->rule('password', 'minLength', 1)
+            ->rule("username", "minLength", 2)
+            ->rule("password", "minLength", 1)
             ->validate($input);
     }
 }

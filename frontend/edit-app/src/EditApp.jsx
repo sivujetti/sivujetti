@@ -1,4 +1,4 @@
-import {__, signals, env, urlUtils} from '@sivujetti-commons-for-edit-app';
+import {__, signals, http, env, urlUtils} from '@sivujetti-commons-for-edit-app';
 import Icon from './commons/Icon.jsx';
 import toasters, {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
@@ -32,7 +32,7 @@ class EditApp extends preact.Component {
         ].concat(props.dataFromAdminBackend.showGoToDashboardMode
             ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
             : []
-        );
+        ).concat({name: 'log-out', label: __('Log out')});
         this.state = {currentMainPanel: 'default', hidePanels: getArePanelsHidden()};
         if (this.state.hidePanels) props.rootEl.classList.add(PANELS_HIDDEN_CLS);
         this.blockTrees = preact.createRef();
@@ -85,7 +85,9 @@ class EditApp extends preact.Component {
                         <select value={ this.changeViewOptions[!hidePanels ? 0 : 1].name } onChange={ e => {
                             if (e.target.value === this.changeViewOptions[1].name) {
                                 this.handlePanelsAreHiddenChanged(true);
-                            } else if (e.target.value === (this.changeViewOptions[2] || {}).name)
+                            } else if (e.target.value === (this.changeViewOptions[this.changeViewOptions.length - 1]).name)
+                                this.logUserOut();
+                             else if (e.target.value === (this.changeViewOptions[2] || {}).name)
                                 env.window.location.href = this.props.dataFromAdminBackend.dashboardUrl;
                             else
                                 throw new Error(`Unkown option ${e.target.value}`);
@@ -208,6 +210,19 @@ class EditApp extends preact.Component {
         this.props.rootEl.classList.toggle(PANELS_HIDDEN_CLS);
         env.window.localStorage.sivujettiDoHidePanels = to ? 'yes' : 'no';
         this.setState({hidePanels: to});
+    }
+    /**
+     * @access private
+     */
+    logUserOut() {
+        http.post('/api/auth/logout')
+            .then(() => {
+                urlUtils.redirect('/');
+            })
+            .catch(err => {
+                window.console.error(err);
+                toasters.editAppMain(__('Something unexpected happened.'), 'error');
+            });
     }
 }
 

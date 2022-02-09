@@ -66,6 +66,7 @@ stringBundles.push({
     'Edit mode': 'Edit mode',
     'Exit edit mode': 'Exit edit mode',
     'Go to dashboard': 'Go to dashboard',
+    'Log out': 'Log out',
     'Created new %s': 'Created new %s',
     'Page title': 'Page title',
     // edit-app/src/GlobalBlockTreeSelector.jsx

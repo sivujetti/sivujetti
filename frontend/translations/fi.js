@@ -66,6 +66,7 @@ stringBundles.push({
     'Edit mode': 'Muokkaustila',
     'Exit edit mode': 'Poistu muokkaustilasta',
     'Go to dashboard': 'Siirry dashboardiin',
+    'Log out': 'Kirjaudu ulos',
     'Created new %s': 'Luotiin uusi %s',
     'Page title': 'Sivuotsikko',
     // edit-app/src/GlobalBlockTreeSelector.jsx

@@ -19,7 +19,12 @@ final class AuthModule {
             $next();
         });
         $ctx->router->map("POST", "/api/auth/login",
-            [AuthController::class, "processLoginAttempt", ["skipAuth" => true]]
+            [AuthController::class, "processLoginAttempt", ["consumes" => "application/json",
+                                                            "skipAuth" => true]]
+        );
+        $ctx->router->map("POST", "/api/auth/logout",
+            [AuthController::class, "processLogoutAttempt", ["consumes" => "application/json",
+                                                             "skipAuth" => true]]
         );
     }
     /**

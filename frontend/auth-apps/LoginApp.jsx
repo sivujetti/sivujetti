@@ -1,9 +1,13 @@
-import {http, __, env, urlUtils, hookForm, hasErrors, validateAll, Input, InputErrors, FormGroup} from '@sivujetti-commons-for-edit-app';
+import {http, __, env, urlUtils, hookForm, hasErrors, validateAll, Input,
+        InputErrors, FormGroup} from '@sivujetti-commons-for-edit-app';
 
 /**
  * Renders a login form.
  */
 class LoginApp extends preact.Component {
+    /**
+     * @param {{dashboardUrl?: String;}} props
+     */
     constructor(props) {
         super(props);
         this.state = hookForm(this, [
@@ -52,7 +56,14 @@ class LoginApp extends preact.Component {
         })
         .then(resp => {
             if (resp.ok === "ok") {
-                urlUtils.redirect('/_edit');
+                const hash = env.window.location.hash;
+                const at = hash.indexOf('?');
+                const vars = at > 0 ? hash.substr(at + 1).split('&') : [];
+                const returnToVar = vars.find(v => v.startsWith('return-to='));
+                if (!returnToVar)
+                    urlUtils.redirect('/_edit');
+                else if (returnToVar === 'return-to=dashboard')
+                    env.window.location.href = this.props.dashboardUrl;
                 return;
             }
             const errorMessage = errorCodeToMessage(resp.errorCode);

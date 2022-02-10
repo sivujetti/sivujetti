@@ -94,7 +94,7 @@ class EditApp extends preact.Component {
                         ) }</select>
                     </span>
                 </div>
-                <SaveButton/>
+                <SaveButton mainPanelOuterEl={ this.props.outerEl }/>
             </header>
             { showMainPanel
                 ? <DefaultMainPanelView

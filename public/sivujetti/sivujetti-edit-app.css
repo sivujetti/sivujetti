@@ -421,6 +421,17 @@ a.popup-close-area {
     border: none;
     cursor: pointer;
 }
+#main-panel .mode-chooser + .btn {
+    margin-top: .1rem;
+    margin-right: -.2rem;
+}
+#main-panel .mode-chooser + .btn.stickied {
+    position: fixed;
+    left: 232px; /* 300 - 68 */
+    margin: initial;
+    background-color: rgba(255,255,255,0.8);
+    z-index: 2;
+}
 .panel-section {
     padding: .8rem 0 .4rem .4rem;
 }

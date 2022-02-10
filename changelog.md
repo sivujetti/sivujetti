@@ -10,12 +10,14 @@
 - `UserSite|PluginApi->getPlugin(string $name)` so plugins can publish their own APIs.
 - "Exit from edit mode" and "Return to edit mode" feature
 - intro.js introduction for the edit app
+- Log out
 
 ## Fixed
 - ...
 
 ## Changed
 - Menu blocks' links can be deleted
+- The save button's position from static to sticky
 
 # 0.7.0 (2021-01-14)
 

@@ -40,7 +40,7 @@ function createTestState() {
     };
 }
 
-const mockEl = document.createElement('div');
+const mockMainPanelOuterEl = document.createElement('div');
 
 class MockEditApp extends preact.Component {
     /**
@@ -65,12 +65,12 @@ class MockEditApp extends preact.Component {
             containingView='DefaultMainPanelView'
             ref={ pref }/>;
         return <>
-            <SaveButton/>
+            <SaveButton mainPanelOuterEl={ mockMainPanelOuterEl }/>
             { viewContent }
             <InspectorPanel
                 rootEl={ document.getElementById('render-container-el') }
                 outerEl={ document.getElementById('render-container-el') }
-                mainPanelOuterEl={ mockEl }/>
+                mainPanelOuterEl={ mockMainPanelOuterEl }/>
         </>;
     }
 }

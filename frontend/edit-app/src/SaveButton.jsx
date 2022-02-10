@@ -8,11 +8,11 @@ let triggerUndo;
 class SaveButton extends preact.Component {
     // queuedOps;
     /**
-     * @param {Object} props
+     * @param {{mainPanelOuterEl: HTMLElement;}} props
      */
     constructor(props) {
         super(props);
-        this.state = {isVisible: false, formState: {}};
+        this.state = {isVisible: false, formState: {}, isStickied: false};
         this.queuedOps = [];
         triggerUndo = this.doUndo.bind(this);
         if (!isUndoKeyListenersAdded) {
@@ -38,16 +38,26 @@ class SaveButton extends preact.Component {
     /**
      * @access protected
      */
-    render (_, {isVisible, formState}) {
+    componentDidMount() {
+        this.props.mainPanelOuterEl.addEventListener('scroll', e => {
+            if (e.target.scrollTop > 27 && !this.state.isStickied)
+                this.setState({isStickied: true});
+            else if (e.target.scrollTop < 27 && this.state.isStickied)
+                this.setState({isStickied: false});
+        });
+    }
+    /**
+     * @access protected
+     */
+    render (_, {isVisible, formState, isStickied}) {
         if (!isVisible) return;
         return <button
             onClick={ this.execQueuedOps.bind(this) }
             disabled={ formState.isValidating || formState.isSubmitting || !formState.isValid }
-            class="btn btn-link d-flex col-ml-auto"
-            title={ __('Save changes') }
-            style="margin-top: .08rem;">
-            <Icon iconId="device-floppy"/>
-            <span class="flex-centered mt-1 ml-1">*</span>
+            class={ `btn btn-link flex-centered d-flex col-ml-auto${!isStickied ? '' : ' btn-sm stickied'}` }
+            title={ __('Save changes') }>
+            <Icon iconId="device-floppy" className={ !isStickied ? '' : 'size-sm' }/>
+            <span class="mt-1 ml-1">*</span>
         </button>;
     }
     /**

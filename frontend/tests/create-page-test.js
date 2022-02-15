@@ -3,7 +3,7 @@ import testUtils from './utils/my-test-utils.js';
 import * as appTestUtils from './utils/edit-app-test-utils.js';
 import {simulatePlaceholderPageLoad, clickSubmitButton} from './utils/create-stuff-test-utils.js';
 
-QUnit.module('AddPageMainPanelView', () => {
+QUnit.module('PageCreateMainPanelView', () => {
     QUnit.test('user can create page', assert => {
         const done = assert.async();
         const s = createTestState();
@@ -48,7 +48,8 @@ QUnit.module('AddPageMainPanelView', () => {
     }
     function fillPageTitleAndSlugInputs({testInput}) {
         return new Promise(resolve => {
-            const unreg = commons.signals.on('on-page-info-form-value-changed', () => {
+            const unreg = commons.signals.on('on-page-info-form-value-changed', (_, isInit) => {
+                if (isInit) return;
                 resolve();
                 unreg();
             });

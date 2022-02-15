@@ -2,7 +2,7 @@ import stringBundles from '@sivujetti-string-bundles';
 import validationStrings from './include-internal/validation.fi.js';
 
 stringBundles.push({
-    // edit-app/src/AddPageMainPanelView.jsx
+    // edit-app/src/Page/PageCreateMainPanelView.jsx
     'New page': 'Uusi sivu',
     'Create %s': 'Luo %s',
     'Cancel add %s': 'Peruuta %s luonti',
@@ -52,7 +52,7 @@ stringBundles.push({
     'Name': 'Nimi',
     'e.g. Header, Footer': 'esim. Header, Footer',
     'Convert': 'Muunna',
-    // edit-app/src/CreatePageTypeMainPanelView.jsx
+    // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'sivutyyppi',
     'Default content': 'Oletussisältö',
     'Settings': 'Tiedot',
@@ -74,7 +74,7 @@ stringBundles.push({
     'global blocks': 'globaaleja lohkoja',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Sulje',
-    // edit-app/src/PageTypeBasicInfoConfigurationForm.jsx
+    // edit-app/src/PageType/PageTypeBasicInfoConfigurationForm.jsx
     'Name (for computers)': 'Nimi (konekielinen)',
     'Name (plural)': 'Nimi (monikossa)',
     'Description': 'Kuvaus',

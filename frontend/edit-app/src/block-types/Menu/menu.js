@@ -1,10 +1,11 @@
 import {http, __} from '@sivujetti-commons-for-edit-app';
-import MenuBlockEditForm, {makeLinkItem} from './EditForm.jsx';
+import MenuBlockEditForm, {CountingLinkItemFactory} from './EditForm.jsx';
 
 export default () => {
+    const linkCreator = new CountingLinkItemFactory;
     const initialData = {
-        tree: JSON.stringify([makeLinkItem({slug: '/', text: __('Home')}),
-                              makeLinkItem({slug: '/about', text: __('About')})]),
+        tree: JSON.stringify([linkCreator.makeLinkItem({slug: '/', text: __('Home')}),
+                              linkCreator.makeLinkItem({slug: '/about', text: __('About')})]),
         wrapStart: '<nav class="menu"><div>',
         wrapEnd:   '</div></nav>',
         treeStart: '<ul class="level-{depth}">',

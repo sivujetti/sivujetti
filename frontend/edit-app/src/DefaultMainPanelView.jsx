@@ -38,7 +38,7 @@ class DefaultMainPanelView extends preact.Component {
                     <span class="pl-1 color-default">{ __('On this page') }</span>
                     <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
                 </button>
-                <BlockTrees containingView="DefaultMainPanelView" ref={ blockTreesRef }/>
+                <BlockTrees containingView="Default" ref={ blockTreesRef }/>
             </section>
             <section class={ `panel-section${sectionBIsCollapsed ? '' : ' open'}` }>
                 <button class="d-flex col-12 flex-centered pr-2" onClick={ () => { this.setState({sectionBIsCollapsed: !sectionBIsCollapsed}); } }>

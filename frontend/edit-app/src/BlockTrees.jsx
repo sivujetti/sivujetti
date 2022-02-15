@@ -11,7 +11,7 @@ class BlockTrees extends preact.Component {
     // static currentWebPage;
     // static currentWebPageBlockRefs;
     /**
-     * @param {{containingView: 'DefaultMainPanelView'|'AddPageMainPanelView'|'CreatePageTypeMainPanelView'; onWebPageLoadHandled?: () => void;}} props
+     * @param {{containingView: 'CreatePage'|'CreatePageType'|'Default'; onWebPageLoadHandled?: () => void;}} props
      */
     constructor(props) {
         super(props);
@@ -20,10 +20,10 @@ class BlockTrees extends preact.Component {
         this.doCleanStoreSubs = observeStore(s => selectCurrentPage(s), value => {
             const dataFromWebPage = value.webPage.data;
             if (// `this` is still attached to <DefaultMainPanelView/>, but placeholder page is loaded
-                (this.props.containingView === 'DefaultMainPanelView' && dataFromWebPage.page.isPlaceholderPage) ||
-                // `this` is still attached to <AddPageMainPanelViwe/>, but reqular page is loaded
-                ((this.props.containingView === 'AddPageMainPanelView' ||
-                 this.props.containingView === 'CreatePageTypeMainPanelView') && !dataFromWebPage.page.isPlaceholderPage))
+                (this.props.containingView === 'Default' && dataFromWebPage.page.isPlaceholderPage) ||
+                // `this` is still attached to <PageCreateMainPanelView/>, but reqular page is loaded
+                ((this.props.containingView === 'CreatePage' ||
+                 this.props.containingView === 'CreatePageType') && !dataFromWebPage.page.isPlaceholderPage))
                 return;
             this.handleWebPageDataReceived(value);
         });
@@ -75,12 +75,12 @@ class BlockTrees extends preact.Component {
             </button>
             <BlockTree
                 blocksInput={ blocksInput }
-                onChangesApplied={ containingView === 'DefaultMainPanelView'
+                onChangesApplied={ containingView === 'Default'
                     ? BlockTrees.saveExistingBlocksToBackend
                     : null }
                 BlockTrees={ BlockTrees }
                 ref={ this.blockTree }
-                disablePageInfo={ containingView === 'CreatePageTypeMainPanelView' }/>
+                disablePageInfo={ containingView === 'CreatePageType' }/>
         </div>;
     }
     /**
@@ -88,7 +88,7 @@ class BlockTrees extends preact.Component {
      * @param {'page'|'globalBlockTree'} blockIsStoredTo
      * @param {String|null} blockTreeId
      * @returns {Promise<Boolean>}
-     * @access private
+     * @access public
      */
     static saveExistingBlocksToBackend(newBlockTree, blockIsStoredTo, blockTreeId, _block) {
         const page = BlockTrees.currentWebPage.data.page;

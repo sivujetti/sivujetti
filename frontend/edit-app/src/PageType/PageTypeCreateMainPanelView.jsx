@@ -1,12 +1,12 @@
 import {__, http, env} from '@sivujetti-commons-for-edit-app';
-import Icon from './commons/Icon.jsx';
-import toasters from './commons/Toaster.jsx';
-import BlockTrees from './BlockTrees.jsx';
-import store, {deleteItemsFromOpQueueAfter, setOpQueue} from './store.js';
+import Icon from '../commons/Icon.jsx';
+import toasters from '../commons/Toaster.jsx';
+import BlockTrees from '../BlockTrees.jsx';
+import store, {deleteItemsFromOpQueueAfter, setOpQueue} from '../store.js';
 import PageTypeBasicInfoConfigurationForm from './PageTypeBasicInfoConfigurationForm.jsx';
 import PageTypeOwnFieldsConfigurationForm from './PageTypeOwnFieldsConfigurationForm.jsx';
 
-class CreatePageTypeMainPanelView extends preact.Component {
+class PageTypeCreateMainPanelView extends preact.Component {
     // basicInfoWorkingCopy;
     // fieldsWorkingCopy;
     // formWasSubmitted;
@@ -82,7 +82,7 @@ class CreatePageTypeMainPanelView extends preact.Component {
                     <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
                 </button>
                 <BlockTrees
-                    containingView="CreatePageTypeMainPanelView"
+                    containingView="CreatePageType"
                     ref={ blockTreesRef }/>
             </section>
             <section class={ `panel-section${sectionCIsCollapsed ? '' : ' open'}` }>
@@ -175,4 +175,4 @@ function createPlaceholderPageType() {
 
 export {createPlaceholderPageType};
 
-export default CreatePageTypeMainPanelView;
+export default PageTypeCreateMainPanelView;

@@ -23,11 +23,10 @@ class PageInfoBlockEditForm extends preact.Component {
             beforePushOp(a) {
                 overwriteCurrentPageInfo(a.valAfter);
             },
-            doHandle($a, _$b) {
-                return !BlockTrees.currentWebPage.data.page.isPlaceholderPage
-                    ? savePageToBackend($a.valAfter)
-                    : Promise.resolve(true);
-            },
+            doHandle: !BlockTrees.currentWebPage.data.page.isPlaceholderPage
+                ? ($a, _$b) => savePageToBackend($a.valAfter)
+                : null
+            ,
             onUndo($a, _$b) {
                 overwriteCurrentPageInfo($a.valBefore);
             },
@@ -55,6 +54,7 @@ class PageInfoBlockEditForm extends preact.Component {
      */
     componentDidMount() {
         setFocusTo(this.titleEl);
+        signals.emit('on-page-info-form-value-changed', this.props.snapshot, true);
     }
     /**
      * @access protected
@@ -119,7 +119,7 @@ function savePageToBackend(snapshot) {
  */
 function overwriteCurrentPageInfo(titleSlugAndOwnFields) {
     Object.assign(BlockTrees.currentWebPage.data.page, titleSlugAndOwnFields); // Note: Mutates BlockTrees.currentWebPage.data.page
-    signals.emit('on-page-info-form-value-changed', titleSlugAndOwnFields);
+    signals.emit('on-page-info-form-value-changed', titleSlugAndOwnFields, false);
 }
 
 /**

@@ -3,15 +3,14 @@ import Icon from '../../commons/Icon.jsx';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import EditItemPanel from './EditItemPanel.jsx';
 
-let counter = 0;
-
 class MenuBlockEditForm extends preact.Component {
+    // linkCreator;
     /**
      * @param {RawBlockData} snapshot
      * @access public
      */
     overrideValues(snapshot) {
-        const newState = {parsedTree: getSetTree(snapshot)};
+        const newState = {parsedTree: this.linkCreator.setGetCounterUsingTree(snapshot)};
         const editPanelState = this.state.editPanelState;
         if (editPanelState.link)
             newState.editPanelState = createEditPanelState(
@@ -31,7 +30,8 @@ class MenuBlockEditForm extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        this.setState({parsedTree: getSetTree(this.props.block),
+        this.linkCreator = new CountingLinkItemFactory();
+        this.setState({parsedTree: this.linkCreator.setGetCounterUsingTree(this.props.block),
                        editPanelState: createEditPanelState(),
                        linkWithNavOpened: null});
         this.outerEl = preact.createRef();
@@ -107,7 +107,7 @@ class MenuBlockEditForm extends preact.Component {
      * @access private
      */
     appendItemToMenu() {
-        this.applyAndEmit(this.state.parsedTree.concat(makeLinkItem({slug: '/', text: __('Link text')})));
+        this.applyAndEmit(this.state.parsedTree.concat(this.linkCreator.makeLinkItem({slug: '/', text: __('Link text')})));
     }
     /**
      * @param {Array<MenuLink>} newParsedTree
@@ -119,15 +119,36 @@ class MenuBlockEditForm extends preact.Component {
     }
 }
 
-/**
- * @param {Block|RawBlockData} from
- * @returns {Array<MenuLink>}
- * @access private
- */
-function getSetTree(from) {
-    const parsedTree = JSON.parse(from.tree);
-    counter = getMaxId(parsedTree);
-    return parsedTree;
+class CountingLinkItemFactory {
+    // counter;
+    /**
+     */
+    constructor() {
+        this.counter = 0;
+    }
+    /**
+     * @param {Block|RawBlockData} newTree
+     * @returns {Array<MenuLink>}
+     * @access public
+     */
+    setGetCounterUsingTree(newTree) {
+        const parsedTree = JSON.parse(newTree.tree);
+        this.counter = getMaxId(parsedTree);
+        return parsedTree;
+    }
+    /**
+     * @param {{text: String; slug: String; [key: String]: any;}} vals
+     * @returns {MenuLink}
+     * @access public
+     */
+    makeLinkItem(vals) {
+        const out = Object.assign({}, vals);
+        if (!Object.prototype.hasOwnProperty.call(out, 'id'))
+            out.id = ++this.counter;
+        if (!Object.prototype.hasOwnProperty.call(out, 'children'))
+            out.children = [];
+        return out;
+    }
 }
 
 /**
@@ -138,19 +159,6 @@ function getSetTree(from) {
  */
 function createEditPanelState(link = null, leftClass = '', rightClass = '') {
     return {link, leftClass, rightClass};
-}
-
-/**
- * @param {{text: String; slug: String; [key: String]: any;}} vals
- * @returns {MenuLink}
- */
-function makeLinkItem(vals) {
-    const out = Object.assign({}, vals);
-    if (!Object.prototype.hasOwnProperty.call(out, 'id'))
-        out.id = ++counter;
-    if (!Object.prototype.hasOwnProperty.call(out, 'children'))
-        out.children = [];
-    return out;
 }
 
 /**
@@ -200,4 +208,4 @@ function getMaxId(branch) {
  */
 
 export default MenuBlockEditForm;
-export {makeLinkItem};
+export {CountingLinkItemFactory};

@@ -32,11 +32,6 @@ class BlockEditForm extends preact.Component {
     // editFormImpl;
     // snapshot;
     // editFormImplRef;
-    // dirtyQueue;
-    // currentMutateAndRenderFn;
-    // currentEmitChangesOpFn;
-    // currentDebounceTime;
-    // currentDebounceType;
     // static currentInstance;
     // static undoingLockIsOn;
     /**
@@ -51,13 +46,13 @@ class BlockEditForm extends preact.Component {
      */
     componentWillMount() {
         const {block, base} = this.props;
+        this.blockVals = new BlockValMutator(this.props);
         BlockEditForm.undoingLockIsOn = false;
         this.isOutermostBlockOfGlobalBlockTree = base && block.id === base.__globalBlockTree.blocks[0].id;
         const blockType = blockTypes.get(block.type);
         this.editFormImpl = blockType.editForm;
         this.snapshot = putOrGetSnapshot(block, blockType);
         this.editFormImplRef = preact.createRef();
-        this.dirtyQueue = [];
         this.setState({useOverrides: base && base.useOverrides});
         this.unregisterSignalListener = signals.on('on-block-deleted', ({id}) => {
             if (id === block.id) this.props.inspectorPanel.close();
@@ -68,6 +63,7 @@ class BlockEditForm extends preact.Component {
      */
     componentDidMount() {
         BlockEditForm.currentInstance = this;
+        this.blockVals.setCurrentEditFormImplRef(BlockEditForm.currentInstance.editFormImplRef);
     }
     /**
      * @access protected
@@ -78,10 +74,6 @@ class BlockEditForm extends preact.Component {
         this.editFormImpl = undefined;
         this.snapshot = undefined;
         this.editFormImplRef = undefined;
-        this.currentMutateAndRenderFn = undefined;
-        this.currentEmitChangesOpFn = undefined;
-        this.currentDebounceTime = undefined;
-        this.currentDebounceType = undefined;
         this.unregisterSignalListener();
     }
     /**
@@ -119,12 +111,137 @@ class BlockEditForm extends preact.Component {
                 <EditFormImpl
                     block={ block }
                     blockTree={ blockTreeCmp }
-                    onValueChanged={ this.handleValueChanged.bind(this) }
+                    onValueChanged={ this.blockVals.handleValueChanged.bind(this.blockVals) }
                     snapshot={ this.snapshot }
                     ref={ this.editFormImplRef }
                     key={ block.id }/>
             </div>
         </div>;
+    }
+    /**
+     * @param {Event} e
+     * @access private
+     */
+    handleDoInheritGlobalBlockValsChanged(e) {
+        const oldUseOverrides = this.state.useOverrides;
+        const newUseOverrides = e.target.checked;
+        const {base} = this.props;
+        const valBefore = Object.assign({}, putOrGetSnapshot(base, blockTypes.get('GlobalBlockReference')));
+        if (!oldUseOverrides && newUseOverrides) {
+            const valAfter = Object.assign({}, valBefore, {useOverrides: 1});
+            internalOverwriteData(valAfter, base);
+            this.blockVals.handleValueChangedNoMutate(
+                [{valBefore, valAfter, block: base}],
+                {valBefore: null, valAfter: null, block: null}
+            );
+        } else if (oldUseOverrides && !newUseOverrides) {
+            const valAfter = Object.assign({}, valBefore, {useOverrides: 0,
+                                                           overrides: EMPTY_OVERRIDES});
+            const current = base.__globalBlockTree.blocks;
+            const ids = Object.keys(JSON.parse(base.overrides));
+            const valBefore2 = [];
+            // 1. Gather valBefore2
+            ids.forEach(id => {
+                const block = blockTreeUtils.findBlock(id, current)[0];
+                valBefore2.push({block, snapshot: blockTypes.get(block.type).createSnapshot(block)});
+            });
+            // 2. Gather valAfter2 and mutate overridden blocks to their original state
+            const valAfter2 = [];
+            http.get(`/api/global-block-trees/${base.globalBlockTreeId}`)
+                .then(({blocks}) => {
+                    ids.forEach((id, i) => {
+                        const blockOrigState = blockTreeUtils.findBlock(id, blocks)[0];
+                        const block = valBefore2[i].block;
+                        const lastIdx = valAfter2.push({block, snapshot: putOrGetSnapshot(blockOrigState, blockTypes.get(block.type), true)}) - 1;
+                        internalOverwriteData(valAfter2[lastIdx].snapshot, block);
+                        BlockTrees.currentWebPage.reRenderBlockInPlace(block);
+                        if (this.props.block.id === block.id)
+                            updateFormValues(this, valAfter2[lastIdx].snapshot);
+                    });
+                    // 3. Override reference block's overrides and commit
+                    internalOverwriteData(valAfter, base);
+                    this.blockVals.handleValueChangedNoMutate(
+                        [{valBefore, valAfter, block: base}],
+                        {valBefore: valBefore2, valAfter: valAfter2, block: null}
+                    );
+                })
+                .catch(env.window.console.error);
+        }
+    }
+}
+
+class BlockValMutator {
+    // props;
+    // dirtyQueue;
+    // editFormImplRef;
+    // currentMutateAndRenderFn;
+    // currentEmitChangesOpFn;
+    // currentDebounceTime;
+    // currentDebounceType;
+    /**
+     * @param {{block: Block; base: Block|null; blockTreeCmp: preact.Component;}} props
+     */
+    constructor(props) {
+        this.props = props;
+        this.dirtyQueue = [];
+        this.editFormImplRef = null;
+    }
+    /**
+     * @param {any} value
+     * @param {String} key
+     * @param {Boolean} hasErrors
+     * @param {Number} debounceMillis = 0
+     * @param {'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none'} debounceType = 'debounce-commit-to-queue'
+     * @access public
+     */
+    handleValueChanged(value, key, hasErrors = false, debounceMillis = 0, debounceType = 'debounce-commit-to-queue') {
+        if (BlockEditForm.undoingLockIsOn)
+            return;
+        if (debounceMillis !== this.currentDebounceTime || debounceType !== this.currentDebounceType) {
+            // Run reRender immediately, but throttle commitChangeOpToQueue
+            if (debounceType === 'debounce-commit-to-queue') {
+                this.currentMutateAndRenderFn = this.mutateAndRender.bind(this);
+                this.currentEmitChangesOpFn = timingUtils.debounce(this.emitCommitChangesFn.bind(this), debounceMillis);
+            // Throttle reRender, which throttles commitToQueue as well
+            } else if (debounceType === 'debounce-re-render-and-commit-to-queue') {
+                this.currentMutateAndRenderFn = timingUtils.debounce(this.mutateAndRender.bind(this), debounceMillis);
+                this.currentEmitChangesOpFn = this.emitCommitChangesFn.bind(this);
+            // Run both immediately
+            } else {
+                this.currentMutateAndRenderFn = this.mutateAndRender.bind(this);
+                this.currentEmitChangesOpFn = this.emitCommitChangesFn.bind(this);
+            }
+            this.currentDebounceTime = debounceMillis;
+            this.currentDebounceType = debounceType;
+        }
+        //
+        const ret = this.currentMutateAndRenderFn(value, key, hasErrors);
+        if (ret) {
+            this.dirtyQueue.push(ret.block1);
+            this.currentEmitChangesOpFn(this.dirtyQueue, ret.block2);
+        }
+    }
+    /**
+     * @param {Array<CommandContext>} aq
+     * @param {CommandContext} b
+     * @access public
+     */
+    handleValueChangedNoMutate(aq, b) {
+        this.emitCommitChangesFn(aq, b);
+    }
+    /**
+     * @param {preact.RefObject} editFormImplRef
+     * @access public
+     */
+    setCurrentEditFormImplRef(editFormImplRef) {
+        this.editFormImplRef = editFormImplRef;
+    }
+    /**
+     * @return {Block}
+     * @access public
+     */
+    getBlock() {
+        return this.props.block;
     }
     /**
      * @param {any} value
@@ -170,15 +287,19 @@ class BlockEditForm extends preact.Component {
      * @access private
      */
     emitCommitChangesFn(aq, b) {
-        const getOverrides = BlockEditForm.currentInstance.editFormImplRef.current.getCommitSettings;
+        const getOverrides = this.editFormImplRef ? this.editFormImplRef.current.getCommitSettings : null;
         const {opKey, doHandle, onUndo, beforePushOp} = typeof getOverrides !== 'function'
             ? {
-                opKey: `update-${aq[0].block.blockIsStoredTo}-block`,
-                doHandle: ([$a], _$b) => BlockTrees.saveExistingBlocksToBackend(
-                    $a.block.isStoredTo !== 'globalBlockTree' ? this.props.blockTreeCmp.getTree() : this.props.blockTreeCmp.getTreeFor($a.block),
-                    $a.block.isStoredTo,
-                    $a.block.globalBlockTreeId
-                ),
+                opKey: `update-${aq[0].block.isStoredTo}-block`,
+                doHandle: aq[0].block.isStoredTo === 'globalBlockTree' || !BlockTrees.currentWebPage.data.page.isPlaceholderPage
+                    ? ([$a], _$b) => BlockTrees.saveExistingBlocksToBackend(
+                        $a.block.isStoredTo !== 'globalBlockTree'
+                            ? this.props.blockTreeCmp.getTree()
+                            : this.props.blockTreeCmp.getTreeFor($a.block),
+                        $a.block.isStoredTo,
+                        $a.block.globalBlockTreeId
+                    )
+                    : null,
                 onUndo: () => {},
                 beforePushOp: () => {}
             }
@@ -194,87 +315,6 @@ class BlockEditForm extends preact.Component {
             args: [aq, b],
         }));
         this.dirtyQueue = [];
-    }
-    /**
-     * @param {any} value
-     * @param {String} key
-     * @param {Boolean} hasErrors
-     * @param {Number} debounceMillis = 0
-     * @param {'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none'} debounceType = 'debounce-commit-to-queue'
-     * @access private
-     */
-    handleValueChanged(value, key, hasErrors = false, debounceMillis = 0, debounceType = 'debounce-commit-to-queue') {
-        if (BlockEditForm.undoingLockIsOn)
-            return;
-        if (debounceMillis !== this.currentDebounceTime || debounceType !== this.currentDebounceType) {
-            // Run reRender immediately, but throttle commitChangeOpToQueue
-            if (debounceType === 'debounce-commit-to-queue') {
-                this.currentMutateAndRenderFn = this.mutateAndRender.bind(this);
-                this.currentEmitChangesOpFn = timingUtils.debounce(this.emitCommitChangesFn.bind(this), debounceMillis);
-            // Throttle reRender, which throttles commitToQueue as well
-            } else if (debounceType === 'debounce-re-render-and-commit-to-queue') {
-                this.currentMutateAndRenderFn = timingUtils.debounce(this.mutateAndRender.bind(this), debounceMillis);
-                this.currentEmitChangesOpFn = this.emitCommitChangesFn.bind(this);
-            // Run both immediately
-            } else {
-                this.currentMutateAndRenderFn = this.mutateAndRender.bind(this);
-                this.currentEmitChangesOpFn = this.emitCommitChangesFn.bind(this);
-            }
-            this.currentDebounceTime = debounceMillis;
-            this.currentDebounceType = debounceType;
-        }
-        //
-        const ret = this.currentMutateAndRenderFn(value, key, hasErrors);
-        if (ret) {
-            this.dirtyQueue.push(ret.block1);
-            this.currentEmitChangesOpFn(this.dirtyQueue, ret.block2);
-        }
-    }
-    /**
-     * @param {Event} e
-     * @access private
-     */
-    handleDoInheritGlobalBlockValsChanged(e) {
-        const oldUseOverrides = this.state.useOverrides;
-        const newUseOverrides = e.target.checked;
-        const {base} = this.props;
-        const valBefore = Object.assign({}, putOrGetSnapshot(base, blockTypes.get('GlobalBlockReference')));
-        if (!oldUseOverrides && newUseOverrides) {
-            const valAfter = Object.assign({}, valBefore, {useOverrides: 1});
-            internalOverwriteData(valAfter, base);
-            this.emitCommitChangesFn([{valBefore, valAfter, block: base}],
-                                     {valBefore: null, valAfter: null, block: null});
-        } else if (oldUseOverrides && !newUseOverrides) {
-            const valAfter = Object.assign({}, valBefore, {useOverrides: 0,
-                                                           overrides: EMPTY_OVERRIDES});
-            const current = base.__globalBlockTree.blocks;
-            const ids = Object.keys(JSON.parse(base.overrides));
-            const valBefore2 = [];
-            // 1. Gather valBefore2
-            ids.forEach(id => {
-                const block = blockTreeUtils.findBlock(id, current)[0];
-                valBefore2.push({block, snapshot: blockTypes.get(block.type).createSnapshot(block)});
-            });
-            // 2. Gather valAfter2 and mutate overridden blocks to their original state
-            const valAfter2 = [];
-            http.get(`/api/global-block-trees/${base.globalBlockTreeId}`)
-                .then(({blocks}) => {
-                    ids.forEach((id, i) => {
-                        const blockOrigState = blockTreeUtils.findBlock(id, blocks)[0];
-                        const block = valBefore2[i].block;
-                        const lastIdx = valAfter2.push({block, snapshot: putOrGetSnapshot(blockOrigState, blockTypes.get(block.type), true)}) - 1;
-                        internalOverwriteData(valAfter2[lastIdx].snapshot, block);
-                        BlockTrees.currentWebPage.reRenderBlockInPlace(block);
-                        if (this.props.block.id === block.id)
-                            updateFormValues(this, valAfter2[lastIdx].snapshot);
-                    });
-                    // 3. Override reference block's overrides and commit
-                    internalOverwriteData(valAfter, base);
-                    this.emitCommitChangesFn([{valBefore, valAfter, block: base}],
-                                             {valBefore: valBefore2, valAfter: valAfter2, block: null});
-                })
-                .catch(env.window.console.error);
-        }
     }
 }
 
@@ -363,3 +403,4 @@ function updateFormValues($this, snapshot) {
  */
 
 export default BlockEditForm;
+export {BlockValMutator};

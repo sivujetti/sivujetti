@@ -5,6 +5,7 @@ namespace Sivujetti\Block;
 use Pike\{ArrayUtils, Request, Response, Validation};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder};
+use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository;
 use Sivujetti\Page\{PagesController, PagesRepository, WebPageAwareTemplate};
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\SharedAPIContext;
@@ -50,6 +51,26 @@ final class BlocksController {
             "site" => $theWebsite,
         ]))->renderBlocks([$block]);
         $res->json(["result" => $html]);
+    }
+    /**
+     * POST /api/blocks/[w:type]: @todo.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository $globalBlocksRepo
+     */
+    public function list(Request $req,
+                         Response $res,
+                         GlobalBlockTreesRepository $globalBlocksRepo): void {
+        $gbts = $globalBlocksRepo->getMany();
+        $out = [];
+        $onlyOfType = $req->params->type;
+        $predicate = fn($block) => $block->type === $onlyOfType;
+        foreach ($gbts as $gbt) {
+            foreach (BlockTree::filterBlocks($gbt->blocks, $predicate) as $block)
+                $out[$block->id] = (object) ["block" => $block, "containingGlobalBlockTree" => $gbt];
+        }
+        $res->json(array_values($out));
     }
     /**
      * @return \Sivujetti\BlockType\BlockTypeInterface $blockType

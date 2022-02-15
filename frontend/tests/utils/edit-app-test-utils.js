@@ -1,8 +1,8 @@
 import {api} from '@sivujetti-commons-for-edit-app';
 import reactTestUtils, {blockUtils} from './my-test-utils.js';
 import store, {observeStore, setCurrentPage, selectOpQueue} from '../../edit-app/src/store.js';
-import AddPageMainPanelView from '../../edit-app/src/AddPageMainPanelView.jsx';
-import CreatePageTypeMainPanelView from '../../edit-app/src/CreatePageTypeMainPanelView.jsx';
+import PageCreateMainPanelView from '../../edit-app/src/Page/PageCreateMainPanelView.jsx';
+import PageTypeCreateMainPanelView from '../../edit-app/src/PageType/PageTypeCreateMainPanelView.jsx';
 import BlockTrees from '../../edit-app/src/BlockTrees.jsx';
 import InspectorPanel from '../../edit-app/src/InspectorPanel.jsx';
 import SaveButton from '../../edit-app/src/SaveButton.jsx';
@@ -48,21 +48,21 @@ class MockEditApp extends preact.Component {
      */
     render({view, pref}) {
         let viewContent = null;
-        if (view === 'AddPageView') viewContent = <AddPageMainPanelView
+        if (view === 'AddPageView') viewContent = <PageCreateMainPanelView
             pageType={ mockPageTypes[0] }
             ref={ pref }
             blockTreesRef={ preact.createRef() }
             getLayouts={ () => Promise.resolve([{id: '1', friendlyName: 'Default'}]) }
             initialLayoutId='1'
             noAutoFocus/>;
-        else if (view === 'CreatePageTypeView') viewContent = <CreatePageTypeMainPanelView
+        else if (view === 'CreatePageTypeView') viewContent = <PageTypeCreateMainPanelView
             pageType={ draftPageType }
             ref={ pref }
             blockTreesRef={ preact.createRef() }
             getLayouts={ () => Promise.resolve([{id: '1', friendlyName: 'Default'}]) }
             onPageTypeCreated={ () => {} }/>;
         else viewContent = <BlockTrees
-            containingView='DefaultMainPanelView'
+            containingView='Default'
             ref={ pref }/>;
         return <>
             <SaveButton mainPanelOuterEl={ mockMainPanelOuterEl }/>

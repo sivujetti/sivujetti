@@ -2,7 +2,7 @@ import stringBundles from '@sivujetti-string-bundles';
 import validationStrings from './include-internal/validation.en.js';
 
 stringBundles.push({
-    // edit-app/src/AddPageMainPanelView.jsx
+    // edit-app/src/Page/PageCreateMainPanelView.jsx
     'New page': 'New page',
     'Create %s': 'Create %s',
     'Cancel add %s': 'Cancel add %s',
@@ -52,7 +52,7 @@ stringBundles.push({
     'Name': 'Name',
     'e.g. Header, Footer': 'e.g. Header, Footer',
     'Convert': 'Convert',
-    // edit-app/src/CreatePageTypeMainPanelView.jsx
+    // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'page type',
     'Default content': 'Default content',
     'Settings': 'Settings',
@@ -74,7 +74,7 @@ stringBundles.push({
     'global blocks': 'global blocks',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Close',
-    // edit-app/src/PageTypeBasicInfoConfigurationForm.jsx
+    // edit-app/src/PageType/PageTypeBasicInfoConfigurationForm.jsx
     'Name (for computers)': 'Name (for computers)',
     'Name (plural)': 'Name (plural)',
     'Description': 'Description',

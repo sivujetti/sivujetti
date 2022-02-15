@@ -3,7 +3,7 @@ import testUtils from './utils/my-test-utils.js';
 import * as appTestUtils from './utils/edit-app-test-utils.js';
 import {simulatePlaceholderPageLoad, clickSubmitButton} from './utils/create-stuff-test-utils.js';
 
-QUnit.module('CreatePageTypeMainPanelView', () => {
+QUnit.module('PageTypeCreateMainPanelView', () => {
     QUnit.test('user can create page type', assert => {
         const done = assert.async();
         const s = createTestState();

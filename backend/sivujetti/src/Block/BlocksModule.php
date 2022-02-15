@@ -13,5 +13,9 @@ final class BlocksModule {
             [BlocksController::class, "render", ["consumes" => "application/json",
                                                  "identifiedBy" => ["render", "blocks"]]]
         );
+        $ctx->router->map("GET", "/api/blocks/[w:type]",
+            [BlocksController::class, "list", ["consumes" => "application/json",
+                                               "identifiedBy" => ["render", "blocks"]]] // @todo list
+        );
     }
 }

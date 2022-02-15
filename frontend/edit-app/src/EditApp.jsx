@@ -2,8 +2,8 @@ import {__, signals, http, env, urlUtils} from '@sivujetti-commons-for-edit-app'
 import Icon from './commons/Icon.jsx';
 import toasters, {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
-import AddPageMainPanelView from './AddPageMainPanelView.jsx';
-import CreatePageTypeMainPanelView, {createPlaceholderPageType} from './CreatePageTypeMainPanelView.jsx';
+import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
+import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType/PageTypeCreateMainPanelView.jsx';
 import {FloatingDialog} from './FloatingDialog.jsx';
 import store, {setCurrentPage, setOpQueue} from './store.js';
 import SaveButton from './SaveButton.jsx';
@@ -116,7 +116,7 @@ class EditApp extends preact.Component {
                         });
                     } }/>
                 : !isPlaceholderPageType(pageType)
-                    ? <AddPageMainPanelView
+                    ? <PageCreateMainPanelView
                         blockTreesRef={ this.blockTrees }
                         cancelAddPage={ () => webPageIframe.goBack() }
                         reRenderWithAnotherLayout={ layoutId => {
@@ -124,10 +124,10 @@ class EditApp extends preact.Component {
                             webPageIframe.openPlaceholderPage(this.currentPageData.type, layoutId);
                         } }
                         pageType={ pageType }/>
-                    : <CreatePageTypeMainPanelView
+                    : <PageTypeCreateMainPanelView
                         blockTreesRef={ this.blockTrees }
                         cancelAddPageType={ () => {
-                            webPageIframe.goBack(); // This will trigger CreatePageTypeMainPanelView's componentWillUnmount
+                            webPageIframe.goBack(); // This will trigger PageTypeCreateMainPanelView's componentWillUnmount
                         } }
                         onPageTypeCreated={ this.handlePageTypeCreated.bind(this) }
                         pageType={ pageType }/>
@@ -285,7 +285,7 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
         onClicked(blockRef) {
             const treeCmp = blockTrees.current.blockTree.current;
             const block = findBlockTemp(blockRef, treeCmp);
-            signals.emit('on-web-page-block-clicked');
+            signals.emit('on-web-page-block-clicked', blockRef);
             treeCmp.handleItemClicked(block);
         },
         /**

@@ -53,7 +53,8 @@ final class BlocksController {
         $res->json(["result" => $html]);
     }
     /**
-     * POST /api/blocks/[w:type]: @todo.
+     * GET /api/blocks/[w:type]: Returns a list of global block tree blocks with
+     * type $req->params->type.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res

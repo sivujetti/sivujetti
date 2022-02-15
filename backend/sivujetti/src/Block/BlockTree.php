@@ -36,6 +36,22 @@ final class BlockTree {
         return null;
     }
     /**
+     * @param \Sivujetti\Block\Entities\Block[] $blocks
+     * @param callable $predicate callable(\Sivujetti\Block\Entities\Block $block): bool
+     * @return \Sivujetti\Block\Entities\Block[]
+     */
+    public static function filterBlocks(array $branch, callable $predicate): array {
+        $out = [];
+        foreach ($branch as $block) {
+            if (call_user_func($predicate, $block)) $out[] = $block;
+            if ($block->children) {
+                $c = self::filterBlocks($block->children, $predicate);
+                if ($c) $out = array_merge($out, $c);
+            }
+        }
+        return $out;
+    }
+    /**
      * @param \Sivujetti\Block\Entities\Block[] $branch
      * @return string
      */

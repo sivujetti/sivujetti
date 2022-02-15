@@ -3,12 +3,11 @@ import validationStrings from './include-internal/validation.en.js';
 
 stringBundles.push({
     // edit-app/src/Page/PageCreateMainPanelView.jsx
-    'New page': 'New page',
     'Create %s': 'Create %s',
     'Cancel add %s': 'Cancel add %s',
     'Back': 'Back',
     'Layout': 'Layout',
-    'Default fields': 'Default fields',
+    'Add to menu': 'Add to menu',
     'Title': 'Title',
     'Slug': 'Slug',
     'Content': 'Content',

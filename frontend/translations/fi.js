@@ -3,12 +3,11 @@ import validationStrings from './include-internal/validation.fi.js';
 
 stringBundles.push({
     // edit-app/src/Page/PageCreateMainPanelView.jsx
-    'New page': 'Uusi sivu',
     'Create %s': 'Luo %s',
     'Cancel add %s': 'Peruuta %s luonti',
     'Back': 'Takaisin',
     'Layout': 'Sivupohja',
-    'Default fields': 'Oletuskentät',
+    'Add to menu': 'Lisää valikkoon',
     'Title': 'Otsikko',
     'Slug': 'Url (slug)',
     'Content': 'Sisältö',

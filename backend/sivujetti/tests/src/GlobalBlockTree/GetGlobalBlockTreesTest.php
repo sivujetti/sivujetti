@@ -16,6 +16,7 @@ final class GetGlobalBlockTreesTest extends GlobalBlockTreeControllerTestCase {
     protected function setupTest(): \TestState {
         $state = parent::setupTest();
         $state->testGlobalBlockTree = (object) [
+            // "id" will be set in $this->insertTestGlobalBlockTreeToDb()
             "name" => $state->inputData->name,
             "blocks" => BlockTree::toJson($state->inputData->blocks)
         ];

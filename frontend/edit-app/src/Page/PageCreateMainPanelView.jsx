@@ -11,17 +11,17 @@ const ID_NONE = '-';
 
 class PageCreateMainPanelView extends preact.Component {
     // pageMetaData;
-    // linkedNavBlockVals;
+    // linkedMenuBlockVals;
     // unregisterSignalListener;
     /**
-     * Note to self: getLayouts and initialLayoutId are for tests.
+     * Note to self: getLayouts, initialLayoutId and getMenus are for tests.
      *
-     * @param {{cancelAddPage: () => void; pageType: PageType; reRenderWithAnotherLayout: (layoutId: String) => void; blockTreesRef: preact.Ref; noAutoFocus?: Boolean; getLayouts?: () => Promise<Array<Layout>>; initialLayoutId?: String;}} props
+     * @param {{cancelAddPage: () => void; pageType: PageType; reRenderWithAnotherLayout: (layoutId: String) => void; blockTreesRef: preact.Ref; noAutoFocus?: Boolean; getLayouts?: () => Promise<Array<Layout>>; initialLayoutId?: String; getMenus?: () => Promise<Array<{block: Block; containingGlobalBlockTree: RawGlobalBlockTree;}>>}} props
      */
     constructor(props) {
         super(props);
         this.pageMetaData = {};
-        this.linkedNavBlockVals = null;
+        this.linkedMenuBlockVals = null;
         this.state = {layouts: [], menuInfos: [], addToMenuId: ID_NONE};
         this.unregisterSignalListener = signals.on('on-page-info-form-value-changed',
             /**
@@ -30,11 +30,11 @@ class PageCreateMainPanelView extends preact.Component {
              */
             (pageMeta, _isInit) => {
                 this.pageMetaData = pageMeta;
-                if (this.linkedNavBlockVals) {
-                    const parsed = JSON.parse(this.linkedNavBlockVals.getBlock().tree);
+                if (this.linkedMenuBlockVals) {
+                    const parsed = JSON.parse(this.linkedMenuBlockVals.getBlock().tree);
                     const ref = parsed[parsed.length - 1];
                     Object.assign(ref, {slug: pageMeta.slug, text: pageMeta.title});
-                    this.linkedNavBlockVals.handleValueChanged(JSON.stringify(parsed), 'tree', false, 0, 'debounce-none');
+                    this.linkedMenuBlockVals.handleValueChanged(JSON.stringify(parsed), 'tree', false, 0, 'debounce-none');
                 }
             });
         (props.getLayouts ? props.getLayouts() : http.get('/api/layouts'))
@@ -100,7 +100,7 @@ class PageCreateMainPanelView extends preact.Component {
                     <label class="form-label" htmlFor="layout">{ __('Add to menu') }</label>
                     <select
                         value={ this.state.addToMenuId }
-                        onChange={ this.handleAddToNavChanged.bind(this) }
+                        onChange={ this.handleAddToMenuChanged.bind(this) }
                         class="form-select form-input tight"
                         name="addToMenu"
                         id="addToMenu">{ menuInfos.map(({block, containingGlobalBlockTree}) =>
@@ -121,31 +121,35 @@ class PageCreateMainPanelView extends preact.Component {
      * @param {Event} e
      * @access private
      */
-    handleAddToNavChanged(e) {
+    handleAddToMenuChanged(e) {
         const newValue = e.target.value;
         //
-        if (this.state.addToMenuId !== ID_NONE && this.linkedNavBlockVals) {
-            const parsed = JSON.parse(this.linkedNavBlockVals.getBlock().tree);
-            this.linkedNavBlockVals.handleValueChanged(JSON.stringify(parsed.slice(0, parsed.length - 1)), 'tree');
-            this.linkedNavBlockVals = null;
+        if (this.state.addToMenuId !== ID_NONE && this.linkedMenuBlockVals) {
+            const parsed = JSON.parse(this.linkedMenuBlockVals.getBlock().tree);
+            this.linkedMenuBlockVals.handleValueChanged(JSON.stringify(parsed.slice(0, parsed.length - 1)), 'tree');
+            this.linkedMenuBlockVals = null;
         }
-        //
-        if (newValue !== ID_NONE) {
-            const info = this.state.menuInfos.find(({block}) => block.id === newValue);
+        // Find selected menu's parent GlobalBlockReference block from current blockTree
+        const linkedMenuBase = newValue === ID_NONE ? null : (function (menuInfos, blockTreesRef) {
+            const info = menuInfos.find(({block}) => block.id === newValue);
             const containingGbtId = info.containingGlobalBlockTree.id;
-            // Find selected nav's parent GlobalBlockReference block from current blockTree
-            const curPageBlocks = this.props.blockTreesRef.current.getPageBlocks();
-            const base = blockTreeUtils.findRecursively(curPageBlocks, b => {
+            const curPageBlocks = blockTreesRef.current.getPageBlocks();
+            return blockTreeUtils.findRecursively(curPageBlocks, b => {
                 return b.type === 'GlobalBlockReference' && b.globalBlockTreeId === containingGbtId;
             });
-            if (base) { // Current block tree does contain the selected nav
-            const block = blockTreeUtils.findBlock(newValue, base.__globalBlockTree.blocks)[0];
+        })(this.state.menuInfos, this.props.blockTreesRef);
+        //
+        if (linkedMenuBase) {
+            const block = blockTreeUtils.findBlock(newValue, linkedMenuBase.__globalBlockTree.blocks)[0];
+            //
             const linkCreator = new CountingLinkItemFactory();
             const parsed = linkCreator.setGetCounterUsingTree(block);
-            parsed.push(linkCreator.makeLinkItem({slug: this.pageMetaData.slug, text: this.pageMetaData.title}));
-            this.linkedNavBlockVals = new BlockValMutator({block, base, blockTreeCmp: this.props.blockTreesRef.current.blockTree.current});
-            this.linkedNavBlockVals.handleValueChanged(JSON.stringify(parsed), 'tree', false, 0, 'debounce-none');
-            }
+            const newLink = linkCreator.makeLinkItem({slug: this.pageMetaData.slug, text: this.pageMetaData.title});
+            parsed.push(newLink);
+            //
+            const metaProps = {block, base: linkedMenuBase, blockTreeCmp: this.props.blockTreesRef.current.blockTree.current};
+            this.linkedMenuBlockVals = new BlockValMutator(metaProps);
+            this.linkedMenuBlockVals.handleValueChanged(JSON.stringify(parsed), 'tree', false, 0, 'debounce-none');
         }
         this.setState({addToMenuId: newValue});
     }

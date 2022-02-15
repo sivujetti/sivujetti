@@ -6,7 +6,7 @@ $out = new \stdClass;
 $out->resources = (object) [
     "blocks" => (object) [
         "create"         => 0b00000010,
-        "render"         => 0b00000100,
+        "renderOrView"   => 0b00000100,
     ],
     "coreUpdates" => (object) [
         "checkAvailable" => 0b00000010,

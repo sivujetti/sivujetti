@@ -53,6 +53,7 @@ class MockEditApp extends preact.Component {
             ref={ pref }
             blockTreesRef={ preact.createRef() }
             getLayouts={ () => Promise.resolve([{id: '1', friendlyName: 'Default'}]) }
+            getMenus={ () => Promise.resolve([]) }
             initialLayoutId='1'
             noAutoFocus/>;
         else if (view === 'CreatePageTypeView') viewContent = <PageTypeCreateMainPanelView

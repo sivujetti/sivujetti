@@ -11,11 +11,11 @@ final class BlocksModule {
     public function init(AppContext $ctx): void {
         $ctx->router->map("POST", "/api/blocks/render",
             [BlocksController::class, "render", ["consumes" => "application/json",
-                                                 "identifiedBy" => ["render", "blocks"]]]
+                                                 "identifiedBy" => ["renderOrView", "blocks"]]]
         );
         $ctx->router->map("GET", "/api/blocks/[w:type]",
             [BlocksController::class, "list", ["consumes" => "application/json",
-                                               "identifiedBy" => ["render", "blocks"]]] // @todo list
+                                               "identifiedBy" => ["renderOrView", "blocks"]]]
         );
     }
 }

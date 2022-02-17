@@ -16,6 +16,8 @@ import createRichTextBlockType from './src/block-types/richText.js';
 import createSectionBlockType from './src/block-types/section.js';
 import InspectorPanel from './src/InspectorPanel.jsx';
 import blockTreeUtils from './src/blockTreeUtils.js';
+import WebPageIframe from './src/WebPageIframe.js';
+import MainPanel from './src/MainPanel.js';
 
 const editAppReactRef = preact.createRef();
 
@@ -50,10 +52,12 @@ function configureServices() {
 function populateFrontendApi() {
     api.getPageTypes = () => editAppReactRef.current.props.dataFromAdminBackend.pageTypes;
     api.registerTranslationStrings = translator.addStrings.bind(translator);
+    api.webPageIframe = new WebPageIframe(document.getElementById('sivujetti-site-iframe'), env, urlUtils);
+    api.mainPanel = new MainPanel(document.getElementById('main-panel'), env);
 }
 
 function renderReactEditApp() {
-    const mainPanelOuterEl = document.getElementById('main-panel');
+    const mainPanelOuterEl = api.mainPanel.getEl();
     const inspectorPanelOuterEl = document.getElementById('inspector-panel');
     const inspectorPanelReactRef = preact.createRef();
     const rootEl = document.getElementById('root');
@@ -97,7 +101,7 @@ function renderReactEditApp() {
 }
 
 function hookUpSiteIframeUrlMirrorer() {
-    document.getElementById('sivujetti-site-iframe').addEventListener('load', e => {
+    api.webPageIframe.getEl().addEventListener('load', e => {
         let p = e.target.contentWindow.location.href.split('#')[0]
             .replace('&in-edit', '')
             .replace('?in-edit', '')

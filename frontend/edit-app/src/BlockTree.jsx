@@ -1,4 +1,4 @@
-import {__, signals, http, env} from '@sivujetti-commons-for-edit-app';
+import {__, signals, http, env, api} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from './commons/ContextMenu.jsx';
 import Icon from './commons/Icon.jsx';
 import toasters from './commons/Toaster.jsx';
@@ -128,6 +128,9 @@ class BlockTree extends preact.Component {
             }, newBlock));
             //
             return newBlock;
+        }).then(newBlock => {
+            signals.emit('on-block-tree-placeholder-block-appended', newBlock, position, after);
+            return newBlock;
         });
     }
     /**
@@ -244,7 +247,7 @@ class BlockTree extends preact.Component {
         if (blockTree === null) return;
         const renderBranch = branch => branch.map(block => {
             //
-            if (treeState[block.id].isNew) return <li key={ block.id }>
+            if (treeState[block.id].isNew) return <li data-placeholder-block-id={ block.id } key={ block.id }>
                 <BlockTypeSelector
                     block={ block }
                     targetParentBlock={ this.currentAddBlockTarget }
@@ -357,6 +360,10 @@ class BlockTree extends preact.Component {
                     blockTree: this.state.blockTree,
                     treeState: treeStateMutRef
                 });
+            })
+            .then(newBlock => {
+                signals.emit('on-block-tree-block-cloned', clonedBlock);
+                return newBlock;
             });
             this.pushCommitChangesOp(clonedBlock);
         } else if (link.id === 'delete-block') {

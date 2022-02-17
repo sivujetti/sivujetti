@@ -1,4 +1,4 @@
-import {__, signals, http, env, urlUtils} from '@sivujetti-commons-for-edit-app';
+import {__, api, signals, http, env, urlUtils} from '@sivujetti-commons-for-edit-app';
 import Icon from './commons/Icon.jsx';
 import toasters, {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultMainPanelView.jsx';
@@ -7,8 +7,7 @@ import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType
 import {FloatingDialog} from './FloatingDialog.jsx';
 import store, {setCurrentPage, setOpQueue} from './store.js';
 import SaveButton from './SaveButton.jsx';
-import blockTreeUtils from './blockTreeUtils.js';
-import webPageIframe from './webPageIframe.js';
+import {findBlockTemp} from './BlockTrees.jsx';
 
 let LEFT_PANEL_WIDTH = 300;
 const PANELS_HIDDEN_CLS = 'panels-hidden';
@@ -103,7 +102,7 @@ class EditApp extends preact.Component {
                         // Open to iframe to '/_edit/api/_placeholder-page...',
                         // which then triggers this.handleWebPageLoaded() and sets
                         // this.state.currentMainPanel to 'create-page'
-                        webPageIframe.openPlaceholderPage('Pages');
+                        api.webPageIframe.openPlaceholderPage('Pages');
                     } }
                     startAddPageTypeMode={ () => {
                         // todo prevent double
@@ -112,22 +111,22 @@ class EditApp extends preact.Component {
                             if (!pageType) { toasters.editAppMain(__('Something unexpected happened.'), 'error'); return; }
                             this.props.dataFromAdminBackend.pageTypes.push(pageType);
                             // Does same as startAddPageMode above
-                            webPageIframe.openPlaceholderPage('Draft');
+                            api.webPageIframe.openPlaceholderPage('Draft');
                         });
                     } }/>
                 : !isPlaceholderPageType(pageType)
                     ? <PageCreateMainPanelView
                         blockTreesRef={ this.blockTrees }
-                        cancelAddPage={ () => webPageIframe.goBack() }
+                        cancelAddPage={ () => api.webPageIframe.goBack() }
                         reRenderWithAnotherLayout={ layoutId => {
                             this.setState({currentMainPanel: 'default'});
-                            webPageIframe.openPlaceholderPage(this.currentPageData.type, layoutId);
+                            api.webPageIframe.openPlaceholderPage(this.currentPageData.type, layoutId);
                         } }
                         pageType={ pageType }/>
                     : <PageTypeCreateMainPanelView
                         blockTreesRef={ this.blockTrees }
                         cancelAddPageType={ () => {
-                            webPageIframe.goBack(); // This will trigger PageTypeCreateMainPanelView's componentWillUnmount
+                            api.webPageIframe.goBack(); // This will trigger PageTypeCreateMainPanelView's componentWillUnmount
                         } }
                         onPageTypeCreated={ this.handlePageTypeCreated.bind(this) }
                         pageType={ pageType }/>
@@ -156,7 +155,7 @@ class EditApp extends preact.Component {
     componentDidMount() {
         const el = this.resizeHandleEl.current;
         const mainPanelEl = this.props.outerEl;
-        const iframeEl = webPageIframe.getEl();
+        const iframeEl = api.webPageIframe.getEl();
         el.style.transform = `translateX(${mainPanelEl.getBoundingClientRect().width}px`;
         //
         const startTreshold = 2;
@@ -247,17 +246,6 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
         highlightRectEl.current.style.cssText = '';
         prevHoverStartBlockRef = null;
     };
-    function findBlockTemp(blockRef, blockTreeCmp = blockTrees.current.blockTree.current) {
-        // todo optimize this out by adding isStoredTo to BlockRefComment and then globalBlockTreeBlocks.get(blockRef.treeId)
-        let block = blockTreeUtils.findRecursively(blockTreeCmp.getTree(), ({id}) => id === blockRef.blockId);
-        if (!block) {
-            for (const [_, tree] of blockTreeCmp.getGlobalTrees()) {
-                block = blockTreeUtils.findRecursively(tree, ({id}) => id === blockRef.blockId);
-                if (block) break;
-            }
-        }
-        return block;
-    }
     return {
         /**
          * @param {BlockRefComment} blockRef
@@ -272,7 +260,7 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
                 'top:', r.top, 'px;',
                 'left:', r.left + LEFT_PANEL_WIDTH, 'px'
             ].join('');
-            const block = findBlockTemp(blockRef);
+            const block = findBlockTemp(blockRef, blockTrees.current.blockTree.current);
             highlightRectEl.current.setAttribute('data-adjust-title-from-top', r.top > TITLE_LABEL_HEIGHT ? 'no' : 'yes');
             highlightRectEl.current.setAttribute('data-title',
                 (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type)

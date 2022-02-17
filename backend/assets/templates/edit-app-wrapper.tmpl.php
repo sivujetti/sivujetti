@@ -87,5 +87,6 @@
             setTimeout(showIntroIfPageHasLoaded, waitMs);
         })()</script>
         <?php endif; ?>
+        <script src="https://unpkg.com/draggabilly@3/dist/draggabilly.pkgd.min.js"></script>
     </body>
 </html>

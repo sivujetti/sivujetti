@@ -1,7 +1,21 @@
 interface SivujettiFrontendApi {
     blockTypes: BlockTypes;
+    webPageIframe: WebPageIframe;
+    mainPanel: MainPanel;
     registerTranslationStrings(strings: {[key: String]: String}): void;
     getPageTypes(): Array<PageType>;
+}
+
+interface WebPageIframe {
+    openPlaceholderPage(pageTypeName: String, layoutId: String = '1');
+    goBack();
+    scrollTo(block: Block);
+    getEl(): HTMLElement;
+}
+
+interface MainPanel {
+    scrollTo(block: Block|null, behavior: 'smooth'|'auto' = 'smooth');
+    getEl(): HTMLElement;
 }
 
 interface BlockTypes {

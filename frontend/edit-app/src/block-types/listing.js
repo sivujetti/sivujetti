@@ -1,5 +1,4 @@
 import {__, http, api} from '@sivujetti-commons-for-edit-app';
-import webPageIframe from '../webPageIframe.js';
 
 class ListingBlockEditForm extends preact.Component {
     // pageType;
@@ -30,7 +29,7 @@ class ListingBlockEditForm extends preact.Component {
     openAddPageView(e) {
         e.preventDefault();
         const typeName = this.props.block.listPageType;
-        webPageIframe.openPlaceholderPage(typeName, this.pageType.defaultLayoutId);
+        api.webPageIframe.openPlaceholderPage(typeName, this.pageType.defaultLayoutId);
     }
 }
 

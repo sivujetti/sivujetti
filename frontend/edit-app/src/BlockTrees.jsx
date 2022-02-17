@@ -1,4 +1,4 @@
-import {__, http} from '@sivujetti-commons-for-edit-app';
+import {__, http, signals, api} from '@sivujetti-commons-for-edit-app';
 import Icon from './commons/Icon.jsx';
 import toasters from './commons/Toaster.jsx';
 import BlockTree from './BlockTree.jsx';
@@ -27,6 +27,35 @@ class BlockTrees extends preact.Component {
                 return;
             this.handleWebPageDataReceived(value);
         });
+        this.signalListeners = [signals.on('on-block-tree-placeholder-block-appended',
+        /**
+         * @param {Block} block
+         * @param {'after'|'as-child'} position
+         * @param {Block|Array<Block>|{parentNode: HTMLElement;nextSibling: HTMLElement;}} after
+         */
+        (block, position, after) => {
+            if (position === 'after' && after)
+                api.mainPanel.scrollTo(undefined, 'auto');
+            api.webPageIframe.scrollTo(block);
+        }),
+        /**
+         * @param {Block} block
+         */
+        signals.on('on-block-tree-block-cloned', block => {
+            api.webPageIframe.scrollTo(block);
+        }),
+        /**
+         * @param {Block} block
+         */
+        signals.on('on-block-tree-item-clicked', block => {
+            api.webPageIframe.scrollTo(block);
+        }),
+        /**
+         * @param {BlockRefComment} blockRef
+         */
+        signals.on('on-web-page-block-clicked', blockRef => {
+            api.mainPanel.scrollTo(findBlockTemp(blockRef, this.blockTree.current));
+        })];
     }
     /**
      * @returns {Array<Block>}
@@ -49,6 +78,7 @@ class BlockTrees extends preact.Component {
      */
     componentWillUnmount() {
         this.doCleanStoreSubs();
+        this.signalListeners.forEach(unreg => unreg());
     }
     /**
      * @param {{webPage: EditAppAwareWebPage; combinedBlockTree: Array<RawBlock>; blockRefs: Array<BlockRefComment>;}} d
@@ -113,4 +143,21 @@ class BlockTrees extends preact.Component {
     }
 }
 
+/**
+ * @param {BlockRefComment} blockRef
+ * @param {preact.Component} blockTreeCmp
+*/
+function findBlockTemp(blockRef, blockTreeCmp) {
+    // todo optimize this out by adding isStoredTo to BlockRefComment and then globalBlockTreeBlocks.get(blockRef.treeId)
+    let block = blockTreeUtils.findRecursively(blockTreeCmp.getTree(), ({id}) => id === blockRef.blockId);
+    if (!block) {
+        for (const [_, tree] of blockTreeCmp.getGlobalTrees()) {
+            block = blockTreeUtils.findRecursively(tree, ({id}) => id === blockRef.blockId);
+            if (block) break;
+        }
+    }
+    return block;
+}
+
 export default BlockTrees;
+export {findBlockTemp};

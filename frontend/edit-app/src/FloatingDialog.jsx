@@ -28,15 +28,15 @@ class FloatingDialog extends preact.Component {
      * @access public
      */
     close() {
-        this.setState({Renderer: null, title: null});
+        this.setState({Renderer: null, title: null, className: ''});
     }
     /**
      * @access protected
      */
     render(_, {Renderer, title, className, width}) {
         return Renderer
-            ? <div class={ 'floating-dialog' + (!className ? '' : ` ${className}`) } style={ `width: ${width}px;transform: translate(200px, 60px);` }>
-                <div class="box">
+            ? <div class={ 'floating-dialog' + (!className ? '' : ` ${className}`) } ref={ handleDialogElChanged }>
+                <div class="box" style={ `width: ${width}px;transform: translate(200px, 60px);` }>
                     { title.length ? <h2>{ title }</h2> : null }
                     <div class="main">{
                         preact.createElement(Renderer, this.rendererProps)
@@ -44,6 +44,17 @@ class FloatingDialog extends preact.Component {
                 </div>
             </div>
             : null;
+    }
+}
+
+let last = null;
+/**
+ * @param {HTMLElement?} el
+ */
+function handleDialogElChanged(el) {
+    if (el && el !== last) {
+        last = el;
+        new window.Draggabilly(el, {});
     }
 }
 

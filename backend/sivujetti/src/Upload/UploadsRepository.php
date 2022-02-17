@@ -33,7 +33,7 @@ final class UploadsRepository {
         // @allow \Pike\PikeException
         return $this->db->fetchAll("SELECT * FROM `\${p}files`" .
                                    " WHERE {$whereSql}" .
-                                   " LIMIT 20",
+                                   " LIMIT 40",
                                    $whereVals,
                                    \PDO::FETCH_CLASS,
                                    UploadsEntry::class);

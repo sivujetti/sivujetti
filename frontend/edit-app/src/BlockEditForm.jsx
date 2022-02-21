@@ -31,6 +31,7 @@ class BlockEditForm extends preact.Component {
     // isOutermostBlockOfGlobalBlockTree;
     // editFormImpl;
     // snapshot;
+    // blockType;
     // editFormImplRef;
     // static currentInstance;
     // static undoingLockIsOn;
@@ -49,9 +50,9 @@ class BlockEditForm extends preact.Component {
         this.blockVals = new BlockValMutator(this.props);
         BlockEditForm.undoingLockIsOn = false;
         this.isOutermostBlockOfGlobalBlockTree = base && block.id === base.__globalBlockTree.blocks[0].id;
-        const blockType = blockTypes.get(block.type);
-        this.editFormImpl = blockType.editForm;
-        this.snapshot = putOrGetSnapshot(block, blockType);
+        this.blockType = blockTypes.get(block.type);
+        this.editFormImpl = this.blockType.editForm;
+        this.snapshot = putOrGetSnapshot(block, this.blockType);
         this.editFormImplRef = preact.createRef();
         this.setState({useOverrides: base && base.useOverrides});
         this.unregisterSignalListener = signals.on('on-block-deleted', ({id}) => {
@@ -87,8 +88,8 @@ class BlockEditForm extends preact.Component {
                     if (block.type === 'PageInfo') return ' page-info-block';
                     return '';
                 }, [])}` }>
-                <Icon iconId={ getIcon(block.type) } className="size-xs mr-1"/>
-                { __(block.type) }
+                <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
+                { __(block.title || this.blockType.friendlyName) }
             </div>
             <div class="mt-2">
                 { this.isOutermostBlockOfGlobalBlockTree

@@ -26,6 +26,13 @@ configureServices();
 renderReactEditApp();
 hookUpSiteIframeUrlMirrorer();
 
+function populateFrontendApi() {
+    api.getPageTypes = () => editAppReactRef.current.props.dataFromAdminBackend.pageTypes;
+    api.registerTranslationStrings = translator.addStrings.bind(translator);
+    api.webPageIframe = new WebPageIframe(document.getElementById('sivujetti-site-iframe'), env, urlUtils);
+    api.mainPanel = new MainPanel(document.getElementById('main-panel'), env);
+}
+
 function configureServices() {
     env.normalTypingDebounceMillis = sensibleDefaults.normalTypingDebounceMillis;
     //
@@ -47,13 +54,16 @@ function configureServices() {
     blockTypes.register('RichText', createRichTextBlockType);
     blockTypes.register('Section', createSectionBlockType);
     api.blockTypes = blockTypes;
-}
-
-function populateFrontendApi() {
-    api.getPageTypes = () => editAppReactRef.current.props.dataFromAdminBackend.pageTypes;
-    api.registerTranslationStrings = translator.addStrings.bind(translator);
-    api.webPageIframe = new WebPageIframe(document.getElementById('sivujetti-site-iframe'), env, urlUtils);
-    api.mainPanel = new MainPanel(document.getElementById('main-panel'), env);
+    //
+    const Quill = window.Quill;
+    Quill.debug('error');
+    const Keyboard = Quill.import('modules/keyboard');
+    class CustomKeyboard extends Keyboard { }
+    CustomKeyboard.DEFAULTS = Object.assign({}, Keyboard.DEFAULTS, Object.assign(
+        {bindings: Keyboard.DEFAULTS.bindings},
+        {bindings: {['list autofill']: undefined,}}
+    ));
+    Quill.register('modules/keyboard', CustomKeyboard);
 }
 
 function renderReactEditApp() {

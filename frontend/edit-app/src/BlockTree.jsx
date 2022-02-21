@@ -258,6 +258,7 @@ class BlockTree extends preact.Component {
             //
             if (block.type !== 'PageInfo') {
             const visible = getVisibleBlock(block);
+            const type = api.blockTypes.get(visible.type);
             return <li
                 onDragStart={ this.onDragStart }
                 onDragOver={ this.onDragOver }
@@ -276,9 +277,9 @@ class BlockTree extends preact.Component {
                     : <button onClick={ () => this.toggleBranchIsCollapsed(visible) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="size-xs"/></button>
                 }
                 <div class="d-flex">
-                    <button onClick={ () => this.handleItemClicked(visible) } class="block-handle columns" type="button">
-                        <Icon iconId={ getIcon(visible.type) } className="size-xs mr-1"/>
-                        { visible.title || __(visible.type) }
+                    <button onClick={ () => this.handleItemClicked(visible) } class="block-handle columns text-ellipsis" type="button">
+                        <Icon iconId={ getIcon(type) } className="size-xs mr-1"/>
+                        <span class="text-ellipsis">{ getShortFriendlyName(visible, type) }</span>
                     </button>
                     <button onClick={ e => this.openMoreMenu(block, e) } class={ `more-toggle ml-2${blockWithNavOpened !== block ? '' : ' opened'}` } type="button">
                         <Icon iconId="dots" className="size-xs"/>
@@ -750,6 +751,18 @@ function getVisibleBlock(block) {
     return block.type !== 'GlobalBlockReference'
         ? block
         : block.__globalBlockTree.blocks[0];
+}
+
+/**
+ * @param {Block} block
+ * @param {BlockType} type
+ * @returns {String}
+ */
+function getShortFriendlyName(block, type) {
+    if (block.title)
+        return block.title;
+    const translated = __(type.friendlyName);
+    return translated.split(': ')[1] || translated; // 'Plugin: Foo' -> 'Foo'
 }
 
 /**

@@ -2,7 +2,7 @@
 
 ...
 
-# 0.8.0-dev (not yet released)
+# 0.8.0 (2022-02-22)
 
 ## Added
 - An ability to create new page types (from the edip app's main menu)
@@ -11,6 +11,7 @@
 - "Exit from edit mode" and "Return to edit mode" feature
 - intro.js introduction for the edit app
 - An ability to automatically add page to a menu (when creating pages)
+- An ability to choose sqlite or mysql when installing
 
 ## Fixed
 - Bugs

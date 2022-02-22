@@ -17,7 +17,7 @@ class DefaultMainPanelView extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        this.unregisterSignalListener = signals.on('on-web-page-block-clicked', _blockRef => {
+        this.unregisterSignalListener = signals.on('on-web-page-block-clicked', _visibleBlock => {
             if (this.state.sectionAIsCollapsed) this.setState({sectionAIsCollapsed: false});
         });
     }

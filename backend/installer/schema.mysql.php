@@ -96,14 +96,16 @@ return [
 "CREATE TABLE `\${p}globalBlocks` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92) NOT NULL,
-    `blocks` JSON
+    `blocks` JSON,
+    PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}layouts` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `friendlyName` VARCHAR(92) NOT NULL,
     `relFilePath` VARCHAR(260) NOT NULL,
-    `structure` JSON -- see backend/sivujetti/src/Layout/Entities/Layout.php
+    `structure` JSON, -- see backend/sivujetti/src/Layout/Entities/Layout.php
+    PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}files` (
@@ -117,7 +119,7 @@ return [
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}jobs` (
-    `id` SMALLINT UNSIGNED NOT NULL,
+    `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `jobName` VARCHAR(64) NOT NULL,
     `startedAt` {$dataTypeForTimestamps},
     PRIMARY KEY (`id`)

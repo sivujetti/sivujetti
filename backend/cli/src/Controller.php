@@ -97,30 +97,52 @@ final class Controller {
      *
      * @param string[] $args
      * @param \Pike\Auth\Crypto $crypto
-     * @return array{db.driver: string, db.database: string, baseUrl: string, mainQueryVar: string, secret: string, initialUserId: string, initialUserUsername: string, initialUserEmail: string, initialUserPasswordHash: string, flags: string}
+     * @return array{db.driver: string, db.database: string, db.host?: string, db.user?: string, db.pass?: string, db.tablePrefix?: string, db.charset?: string, baseUrl: string, mainQueryVar: string, secret: string, initialUserId: string, initialUserUsername: string, initialUserEmail: string, initialUserPasswordHash: string, flags: string}
      * @throws \Pike\PikeException
      */
     public static function createConfigOrThrow(array $vals, Crypto $crypto): array {
         if (count($vals) < 3)
-            throw new PikeException("Invalid number of arguments", PikeException::BAD_INPUT);
+            throw new PikeException("Expected at least 3 arguments (<username> <email> <password>)",
+                                    PikeException::BAD_INPUT);
         $input = (object) [
-            "username" => $vals[0],
-            "email" => $vals[1],
-            "password" => $vals[2],
-            "baseUrl" => $vals[3] ?? "/",
+            "username"   => $vals[0],
+            "email"      => $vals[1],
+            "password"   => $vals[2],
+            "dbDriver"   => $vals[3] ?? "sqlite",
+            "dbDatabase" => $vals[4] ?? "",
+            "dbUser"     => $vals[5] ?? "",
+            "dbPass"     => $vals[6] ?? "",
+            "baseUrl"    => $vals[7] ?? "/",
         ];
-        if (($errors = Validation::makeObjectValidator()
+        $v = Validation::makeObjectValidator()
             ->rule("username", "minLength", 2)
             ->rule("email", "regexp", ValidationUtils::EMAIL_REGEXP_SIMPLE)
             ->rule("password", "minLength", 8)
-            ->rule("baseUrl", "type", "string")
-            ->validate($input))) {
+            ->rule("baseUrl", "type", "string");
+        $useSqlite = $input->dbDriver === "sqlite";
+        if (!$useSqlite) {
+            $v->rule("dbDriver", "in", ["sqlite", "mysql"])
+            ->rule("dbDatabase", "identifier")
+            ->rule("dbDatabase", "minLength", 1)
+            ->rule("dbUser", "minLength", 1)
+            ->rule("dbPass", "type", "string");
+        }
+        if (($errors = $v->validate($input))) {
             throw new PikeException(implode(PHP_EOL, $errors),
                                     PikeException::BAD_INPUT);
         }
-        return [
-            "db.driver" => "sqlite",
-            "db.database" => "\${SIVUJETTI_BACKEND_PATH}site/my-site.db",
+        return array_merge([
+            "db.driver" => $input->dbDriver,
+        ], $useSqlite ? [
+            "db.database" => "\${SIVUJETTI_BACKEND_PATH}site/my-site.db"
+        ] : [
+            "db.host"        => "127.0.0.1",
+            "db.database"    => $input->dbDatabase,
+            "db.user"        => $input->dbUser,
+            "db.pass"        => $input->dbPass,
+            "db.tablePrefix" => "",
+            "db.charset"     => "utf8mb4",
+        ], [
             "baseUrl" => $input->baseUrl,
             "mainQueryVar" => "q",
             "secret" => $crypto->genRandomToken(),
@@ -129,7 +151,7 @@ final class Controller {
             "initialUserEmail" => $input->email,
             "initialUserPasswordHash" => $crypto->hashPass($input->password),
             "flags" => "SIVUJETTI_DEVMODE",
-        ];
+        ]);
     }
     /**
      * Signs $fileContents with $secretKey and writes the signature to $filePath

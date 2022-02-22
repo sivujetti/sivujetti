@@ -49,15 +49,16 @@ final class Commons {
     public function createMainSchema(): void {
         $driver = $this->db->attr(\PDO::ATTR_DRIVER_NAME);
         $statements = require SIVUJETTI_BACKEND_PATH . "installer/schema.{$driver}.php";
-        $this->runManyDbStatements($statements);
+        $this->runManyDbStatements($statements, $driver === "sqlite");
     }
     /**
      * @param \Sivujetti\Update\PackageStreamInterface $package
+     * @param array $config
      */
-    public function populateDb(PackageStreamInterface $package): void {
-        $statements = Updater::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_DB_DATA,
-                                                  $package);
-        $this->runManyDbStatements($statements);
+    public function populateDb(PackageStreamInterface $package, array $config): void {
+        $localName = sprintf(PackageStreamInterface::LOCAL_NAME_DB_DATA, $config["db.driver"]);
+        $statements = Updater::readSneakyJsonData($localName, $package);
+        $this->runManyDbStatements($statements, $config["db.driver"] === "sqlite");
     }
     /**
      * @param array $config
@@ -85,8 +86,7 @@ final class Commons {
      * @param \Sivujetti\Update\PackageStreamInterface $package
      * @param array $config
      */
-    public function writeFiles(PackageStreamInterface $package,
-                               array $config): void {
+    public function writeFiles(PackageStreamInterface $package, array $config): void {
         $this->writeDefaultFiles($package); // @allow \Pike\PikeException
         $this->writeSiteSourceFiles($package); // @allow \Pike\PikeException
         $this->writePublicFiles($package); // @allow \Pike\PikeException
@@ -107,7 +107,7 @@ if (!defined('SIVUJETTI_BASE_URL')) {
     define('SIVUJETTI_FLAGS',     {$config["flags"]});
 }
 return [
-" . (($config["db.driver"] ?? "") === "sqlite" ?
+" . ($config["db.driver"] === "sqlite" ?
 "    'db.driver'      => 'sqlite',
     'db.database'    => '".str_replace(SIVUJETTI_BACKEND_PATH, "'.SIVUJETTI_BACKEND_PATH.'",$config["db.database"])."',
     'db.tablePrefix' => ''," :
@@ -180,20 +180,28 @@ return [
     }
     /**
      * @param array $statements
+     * @param bool $isSqlite
      */
-    private function runManyDbStatements(array $statements): void {
-        $this->db->exec("BEGIN TRANSACTION");
+    private function runManyDbStatements(array $statements, bool $isSqlite): void {
+        $tail = $isSqlite ? " TRANSACTION" : "";
+        $this->db->exec("BEGIN{$tail}");
         foreach ($statements as $stmt)
             $this->db->exec($stmt);
-        $this->db->exec("COMMIT TRANSACTION");
+        $this->db->exec("COMMIT{$tail}");
     }
     /**
      */
     private static function checkEnvRequirementsAreMetOrDie(): void {
         if (version_compare(phpversion(), "8.0.0", "<"))
             die("Sivujetti requires PHP 8.0.0 or later.");
+        if (!defined("SODIUM_LIBRARY_VERSION") || !function_exists("sodium_bin2hex"))
+            die("Sivujetti requires sodium.");
+        if (!function_exists("session_id"))
+            die("!function_exists(\"session_id\") for some reason.");
         if (!function_exists("random_bytes"))
             die("!function_exists(\"random_bytes\") for some reason.");
+        if (!class_exists("PDO"))
+            die("Sivujetti requires PDO.");
         if (!extension_loaded("pdo_mysql") && !extension_loaded("pdo_sqlite"))
             die("pdo_mysql OR pdo_sqlite is required by Sivujetti.");
         foreach (["mbstring", "fileinfo"] as $ext)

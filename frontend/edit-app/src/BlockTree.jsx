@@ -268,7 +268,8 @@ class BlockTree extends preact.Component {
                          !treeState[visible.id].isSelected ? '' : ' selected',
                          !treeState[visible.id].isCollapsed ? '' : ' collapsed',
                          !visible.children.length ? '' : ' with-children'].join('') }
-                data-block-id={ block.id }
+                data-block-id={ visible.id }
+                data-base-block-id={ block.id }
                 data-block-tree-id={ block.isStoredTo !== 'globalBlockTree' ? '' : block.globalBlockTreeId }
                 key={ block.id }
                 draggable>
@@ -766,6 +767,23 @@ function getShortFriendlyName(block, type) {
 }
 
 /**
+ * @param {BlockRefComment} blockRef
+ * @param {preact.Component} blockTreeCmp
+ * @returns {Block|null}
+ */
+function findBlockTemp(blockRef, blockTreeCmp) {
+    // todo optimize this out by adding isStoredTo to BlockRefComment and then globalBlockTreeBlocks.get(blockRef.treeId)
+    let block = blockTreeUtils.findRecursively(blockTreeCmp.getTree(), ({id}) => id === blockRef.blockId);
+    if (!block) {
+        for (const [_, tree2] of blockTreeCmp.getGlobalTrees()) {
+            block = blockTreeUtils.findRecursively(tree2, ({id}) => id === blockRef.blockId);
+            if (block) break;
+        }
+    }
+    return block;
+}
+
+/**
  * @typedef TreeStateItem
  * @prop {Boolean} isSelected
  * @prop {Boolean} isCollapsed
@@ -773,3 +791,4 @@ function getShortFriendlyName(block, type) {
  */
 
 export default BlockTree;
+export {findBlockTemp};

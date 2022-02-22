@@ -23,7 +23,7 @@ final class LocalDirInstaller {
      * sample-content/{$relDirPath}/" to SIVUJETTI_BACKEND_PATH . "site".
      *
      * @param string $relDirPath e.g. "basic-site"
-     * @param array{db.driver: string, db.database: string, baseUrl: string, mainQueryVar: string, secret: string, initialUserId: string, initialUserUsername: string, initialUserEmail: string, initialUserPasswordHash: string, flags: string} $config
+     * @param array{db.driver: string, db.database: string, db.host?: string, db.user?: string, db.pass?: string, db.tablePrefix?: string, db.charset?: string, baseUrl: string, mainQueryVar: string, secret: string, initialUserId: string, initialUserUsername: string, initialUserEmail: string, initialUserPasswordHash: string, flags: string} $config
      */
     public function doInstall(string $relDirPath, array $config): void {
         $package = new LocalDirPackage($this->fs);
@@ -35,7 +35,7 @@ final class LocalDirInstaller {
         $this->commons->createTargetSiteDirs(); // @allow \Pike\PikeException
         $this->commons->createOrOpenDb($config); // @allow \Pike\PikeException
         $this->commons->createMainSchema(); // @allow \Pike\PikeException
-        $this->commons->populateDb($package); // @allow \Pike\PikeException
+        $this->commons->populateDb($package, $config); // @allow \Pike\PikeException
         $this->commons->createUserZero($config); // @allow \Pike\PikeException
         $this->commons->writeFiles($package, $config); // @allow \Pike\PikeException
     }

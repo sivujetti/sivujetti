@@ -52,6 +52,10 @@ final class InstallCmsFromDirTest extends DbTestCase {
             $input->initialUserUsername,
             $input->initialUserEmail,
             $input->initialUserPassword,
+            "sqlite",
+            "-",
+            "-",
+            "-",
         ], $input->baseUrl ? [
             $input->baseUrl,
         ] : []);
@@ -135,7 +139,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
     }
     private function verifyCreatedConfigFile(\TestState $state): void {
         $actualConfig = $this->_createConfig($state);
-        $expectedBaseUrl = $state->inputArgs[3] ?? "/";
+        $expectedBaseUrl = $state->inputArgs[7] ?? "/";
         $this->assertStringEqualsFile("{$state->getTargetSitePath->__invoke("index")}config.php",
             "<?php\r\n" .
             "if (!defined('SIVUJETTI_BASE_URL')) {\r\n" .

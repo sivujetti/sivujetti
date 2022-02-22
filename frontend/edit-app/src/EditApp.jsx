@@ -7,7 +7,7 @@ import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType
 import {FloatingDialog} from './FloatingDialog.jsx';
 import store, {setCurrentPage, setOpQueue} from './store.js';
 import SaveButton from './SaveButton.jsx';
-import {findBlockTemp} from './BlockTrees.jsx';
+import {findBlockTemp} from './BlockTree.jsx';
 
 let LEFT_PANEL_WIDTH = 300;
 const PANELS_HIDDEN_CLS = 'panels-hidden';
@@ -273,7 +273,7 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
         onClicked(blockRef) {
             const treeCmp = blockTrees.current.blockTree.current;
             const block = findBlockTemp(blockRef, treeCmp);
-            signals.emit('on-web-page-block-clicked', blockRef);
+            signals.emit('on-web-page-block-clicked', block);
             treeCmp.handleItemClicked(block);
         },
         /**

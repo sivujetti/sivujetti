@@ -51,10 +51,10 @@ class BlockTrees extends preact.Component {
             api.webPageIframe.scrollTo(block);
         }),
         /**
-         * @param {BlockRefComment} blockRef
+         * @param {Block} visibleBlock
          */
-        signals.on('on-web-page-block-clicked', blockRef => {
-            api.mainPanel.scrollTo(findBlockTemp(blockRef, this.blockTree.current));
+        signals.on('on-web-page-block-clicked', visibleBlock => {
+            api.mainPanel.scrollTo(visibleBlock);
         })];
     }
     /**
@@ -143,21 +143,4 @@ class BlockTrees extends preact.Component {
     }
 }
 
-/**
- * @param {BlockRefComment} blockRef
- * @param {preact.Component} blockTreeCmp
-*/
-function findBlockTemp(blockRef, blockTreeCmp) {
-    // todo optimize this out by adding isStoredTo to BlockRefComment and then globalBlockTreeBlocks.get(blockRef.treeId)
-    let block = blockTreeUtils.findRecursively(blockTreeCmp.getTree(), ({id}) => id === blockRef.blockId);
-    if (!block) {
-        for (const [_, tree] of blockTreeCmp.getGlobalTrees()) {
-            block = blockTreeUtils.findRecursively(tree, ({id}) => id === blockRef.blockId);
-            if (block) break;
-        }
-    }
-    return block;
-}
-
 export default BlockTrees;
-export {findBlockTemp};

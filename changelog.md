@@ -2,15 +2,26 @@
 
 ...
 
+# 0.9.0 (not yet released)
+
+## Added
+- .
+
+## Fixed
+- Bugs
+
+## Changed
+- .
+
 # 0.8.0 (2022-02-22)
 
 ## Added
-- An ability to create new page types (from the edip app's main menu)
+- An ability to create new page types (from the edit app's main menu)
 - tagType -property to Button blocks (`link` -> `<a href ...>`, `button` -> `<button type="button" ...>`, `submit` -> `<button type="submit" ...>`)
 - `UserSite|PluginApi->getPlugin(string $name)` so plugins can publish their own APIs.
 - "Exit from edit mode" and "Return to edit mode" feature
 - intro.js introduction for the edit app
-- An ability to automatically add page to a menu (when creating pages)
+- An ability to automatically add pages to a menu (when creating them)
 - An ability to choose sqlite or mysql when installing
 
 ## Fixed

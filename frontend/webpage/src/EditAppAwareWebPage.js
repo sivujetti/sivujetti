@@ -410,7 +410,8 @@ class EditAppAwareWebPage {
         const temp = document.createElement('template');
         const markerHtml = !block.children.length ? null : '<span id="temp-marker"></span>';
         const htmlOrPromise = block.toHtml(markerHtml);
-        return (typeof htmlOrPromise === 'string'
+        const isBackendRender = typeof htmlOrPromise !== 'string';
+        return (!isBackendRender
             ? Promise.resolve(htmlOrPromise)
             : htmlOrPromise.then(newHtml => {
                 const startAt = `<!--${makeStartingComment(block)}-->`.length;
@@ -429,12 +430,11 @@ class EditAppAwareWebPage {
             if (before) parent.insertBefore(temp.content, before);
             else parent.appendChild(temp.content);
             //
-            if (markerHtml) {
-                const markerEl = document.getElementById('temp-marker');
+            const markerEl = markerHtml || isBackendRender ? document.getElementById('temp-marker') : null;
+            if (markerHtml)
                 prevChildNodes.forEach(el => { markerEl.parentNode.insertBefore(el, markerEl); });
+            if (markerEl)
                 markerEl.parentNode.removeChild(markerEl);
-                // re-set _crefs ??
-            }
             //
             return !doInsertCommentBoundaryComments
                 ? null

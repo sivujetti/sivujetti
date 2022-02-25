@@ -27,7 +27,7 @@ use Sivujetti\UserPlugin\{UserPluginAPI, UserPluginInterface};
 use Sivujetti\UserSite\{UserSiteAPI, UserSiteInterface};
 
 final class App {
-    public const VERSION = "0.8.0";
+    public const VERSION = "0.9.0-dev";
     /** @var ?\Auryn\Injector */
     public static ?Injector $di;
     /** @var \Sivujetti\AppContext */

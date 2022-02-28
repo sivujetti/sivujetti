@@ -64,10 +64,8 @@ class BlockTreeDragDrop {
             */
             if (e.clientY > rect.top + rect.height - edge) {
                 newCandidate.dropPosition = distance !== -1 ? 'after' : 'as-child';
-                if (newCandidate.dropPosition === 'after' && li.classList.contains('with-children')) {
-                    newCandidate.dropPosition = 'before';
-                    newCandidate.el = li.querySelector(':scope ul > li');
-                }
+                if (newCandidate.dropPosition === 'after' && distance < 0 && !doAcceptEdgeDrop(li))
+                    return;
             } else if (e.clientY > rect.top + edge) {
                 newCandidate.dropPosition = 'as-child';
             } else { // if (e.clientY > rect.top) {
@@ -97,12 +95,14 @@ class BlockTreeDragDrop {
         const dragTreeId = this.startEl.getAttribute('data-block-tree-id');
         const dragBlockTree = dragTreeId === '' ? this.blockTree.state.blockTree : this.blockTree.getGlobalTrees().get(dragTreeId);
         const [dragBlock, dragBranch] = blockTreeUtils.findBlock(
+            this.startEl.getAttribute('data-base-block-id') ||
             this.startEl.getAttribute('data-block-id'),
             dragBlockTree
         );
         const dropTreeId = this.curDropTypeCandidate.el.getAttribute('data-block-tree-id');
         const dropBlockTree = dropTreeId === '' ? this.blockTree.state.blockTree : this.blockTree.getGlobalTrees().get(dropTreeId);
         const [dropBlock, dropBranch] = blockTreeUtils.findBlock(
+            this.curDropTypeCandidate.el.getAttribute('data-base-block-id') ||
             this.curDropTypeCandidate.el.getAttribute('data-block-id'),
             dropBlockTree
         );
@@ -179,6 +179,18 @@ class BlockTreeDragDrop {
         this.startEl.classList.remove('dragging');
         this.startEl = null;
     }
+}
+
+/**
+ * @param {HTMLLIElement} li
+ * @returns {Boolean}
+ */
+function doAcceptEdgeDrop(li) {
+    if (li.classList.contains('with-children')) return false;
+    const liUpper = li.parentElement.parentElement;
+    if (!liUpper || !liUpper.classList.contains('with-children')) return true;
+    const ul = li.parentElement;
+    return ul.childElementCount > 1 && ul.lastElementChild === li ? false : true;
 }
 
 export default BlockTreeDragDrop;

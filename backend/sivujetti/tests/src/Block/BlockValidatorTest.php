@@ -38,7 +38,9 @@ final class BlockValidatorTest extends TestCase {
         ];
         $state->validationErrors = null;
         $state->apiCtx = PageTestUtils::createSharedAPIContext();
-        $state->apiCtx->validBlockRenderers = ["sivujetti:block-auto"];
+        $state->apiCtx->validBlockRenderers = [["fileId" => "sivujetti:block-auto",
+                                                "friendlyName" => null,
+                                                "associatedWith" => null]];
         return $state;
     }
     private function invokeValidation(\TestState $state): void {

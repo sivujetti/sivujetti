@@ -87,9 +87,10 @@ final class App {
             $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
             $ctx->apiCtx->blockTypes = $blockTypes;
             $ctx->apiCtx->validBlockRenderers = [
-                "sivujetti:block-auto", // Heading, Paragraph etc.
-                "sivujetti:block-generic-wrapper", // Columns, Section
-                "sivujetti:block-menu",
+                ["fileId" => "sivujetti:block-auto", "friendlyName" => null, "associatedWith" => null], // Heading, Paragraph etc.
+                ["fileId" => "sivujetti:block-generic-wrapper", "friendlyName" => null, "associatedWith" => null], // Columns, Section
+                ["fileId" => "sivujetti:block-listing-pages-default", "friendlyName" => "Pages listing", "associatedWith" => PageType::PAGE],
+                ["fileId" => "sivujetti:block-menu", "friendlyName" => null, "associatedWith" => null],
             ];
         }, $initialCtx ?? new AppContext, $router);
         $out->setServiceInstantiator(fn(AppContext $ctx) =>

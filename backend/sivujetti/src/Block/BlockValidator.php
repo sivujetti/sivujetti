@@ -15,12 +15,13 @@ final class BlockValidator {
      * @param \Sivujetti\SharedAPIContext $apiCtx
      */
     public function __construct(SharedAPIContext $apiCtx) {
-        $mixed = $apiCtx->validBlockRenderers;
-        // ["site:my-file",...] -> ["site:my-file","my-file",...]
-        $withPrefs = array_filter($mixed, fn($fileId) => str_starts_with($fileId, "site:"));
-        $withBoth = array_merge($mixed, array_map(fn($fileId) => explode(":", $fileId)[1], $withPrefs));
-        $this->validBlockRenderers = $withBoth;
-        //
+        $expandedFileIds = [];
+        foreach ($apiCtx->validBlockRenderers as $renderer) {
+            $fileId = $renderer["fileId"];
+            $expandedFileIds[] = $fileId;
+            if (str_starts_with($fileId, "site:")) $expandedFileIds[] = explode(":", $fileId)[1];
+        }
+        $this->validBlockRenderers = $expandedFileIds;
         $this->blockTypes = $apiCtx->blockTypes;
     }
     /**

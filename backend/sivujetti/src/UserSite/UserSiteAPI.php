@@ -37,12 +37,20 @@ class UserSiteAPI extends BaseAPI {
      * Adds $fileId to a list of names that can be used as $block->renderer.
      *
      * @param string $fileId "my-file", "site:my-file", "sivujetti:block-auto"
+     * @param ?string $friendlyName = null "Pages listing"
+     * @param ?string $for = null "Pages", "Articles"
      * @see \Sivujetti\Template::completePath()
      */
-    public function registerBlockRenderer(string $fileId): void {
+    public function registerBlockRenderer(string $fileId,
+                                          ?string $friendlyName = null,
+                                          ?string $for = null): void {
         // @allow \Pike\PikeException
         Template::completePath($fileId, allowSubFolders: true);
-        $this->apiCtx->validBlockRenderers[] = str_contains($fileId, ":") ? $fileId : "site:{$fileId}";
+        $this->apiCtx->validBlockRenderers[] = [
+            "fileId" => str_contains($fileId, ":") ? $fileId : "site:{$fileId}",
+            "friendlyName" => $friendlyName,
+            "associatedWith" => $for
+        ];
     }
     /**
      * @see \Sivujetti\SharedAPIContext->getPlugin()

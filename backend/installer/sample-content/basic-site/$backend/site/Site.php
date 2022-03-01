@@ -12,6 +12,6 @@ class Site implements UserSiteInterface {
     public function __construct(UserSiteAPI $api) {
         $api->enqueueEditAppJsFile("basic-site-bundled.js");
         $api->registerBlockType("ServicesListing", new ListingBlockType);
-        $api->registerBlockRenderer("block-services-listing");
+        $api->registerBlockRenderer("block-services-listing", "Services listing", "Services");
     }
 }

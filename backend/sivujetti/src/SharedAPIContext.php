@@ -23,7 +23,7 @@ final class SharedAPIContext {
     public BlockTypes $blockTypes;
     /** @var object {"css" => object[], "js" => object[]} @see \Sivujetti\UserTheme\UserThemeAPI->enqueueCss|JsFile() */
     public object $userDefinedAssets;
-    /** @var string[] \Sivujetti\UserSite\UserSiteAPI->registerBlockRenderer() */
+    /** @var array<int, array{fileId: string, friendlyName: string|null, associatedWith: string|null}> \Sivujetti\UserSite\UserSiteAPI->registerBlockRenderer() */
     public array $validBlockRenderers;
     /** @var string[] \Sivujetti\UserSite\UserSiteAPI->enqueueEditAppJsFile() */
     public array $adminJsFiles;

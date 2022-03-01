@@ -75,14 +75,16 @@ final class UserPluginAPI extends UserSiteAPI {
     /**
      * @inheritdoc
      */
-    public function registerBlockRenderer(string $fileId): void {
+    public function registerBlockRenderer(string $fileId,
+                                          ?string $friendlyName = null,
+                                          ?string $for = null): void {
         $filePathPart = str_contains($fileId, ":") ? explode(":", $fileId, 2)[1] : $fileId;
         $expected = "{$this->getDashifiedNs()}-";
         if (!str_starts_with($filePathPart, $expected))
             throw new PikeException("Expected file path part of fileId (`{$fileId}`)" .
                                     " to start with `{$expected}`",
                                     PikeException::BAD_INPUT);
-        parent::registerBlockRenderer($fileId);
+        parent::registerBlockRenderer($fileId, $friendlyName, $for);
     }
     /**
      * Registers a http route and its controller. Example:

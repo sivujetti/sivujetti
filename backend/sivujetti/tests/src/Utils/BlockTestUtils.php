@@ -2,6 +2,7 @@
 
 namespace Sivujetti\Tests\Utils;
 
+use Pike\{ArrayUtils, PikeException};
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\ButtonBlockType;
@@ -67,6 +68,33 @@ final class BlockTestUtils {
      */
     public static function decorateWithRef(object $rawBlock, string $html): string {
         return "<!-- block-start {$rawBlock->id}:{$rawBlock->type} -->{$html}<!-- block-end {$rawBlock->id} -->";
+    }
+    /**
+     * @param object $rawBlock
+     * @param string $key
+     * @param mixed $val
+     */
+    public static function setBlockProp(object $rawBlock, string $key, mixed $val): void {
+        $idx = ArrayUtils::findIndexByKey($rawBlock->propsData, $key, "key");
+        if ($idx < 0) throw new PikeException("Raw block has no property `{$key}`",
+                                              PikeException::BAD_INPUT);
+        $rawBlock->propsData[$idx]->value = $val;
+        $rawBlock->{$key} = $val;
+    }
+    /**
+     * @param string $fileId
+     * @param ?string $friendlyName = null
+     * @param ?string $for = null
+     * @return array{fileId: string, friendlyName: string|null, associatedWith: string|null}
+     */
+    public static function createBlockRenderer(string $fileId,
+                                               ?string $friendlyName = null,
+                                               ?string $for = null): array {
+        return [
+            "fileId" => $fileId,
+            "friendlyName" => $friendlyName,
+            "associatedWith" => $for
+        ];
     }
     /**
      * @param object $rawBlock

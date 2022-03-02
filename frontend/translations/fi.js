@@ -115,7 +115,11 @@ stringBundles.push({
     // edit-app/src/block-types/image.js
     'Image': 'Kuva',
     // edit-app/src/block-types/listing.js
-    'A list of %s': 'Lista %s:ja',
+    'Listing': 'Listaus',
+    'todo1': 'Sivutyyppi, jota listataan',
+    'List': 'Listaa',
+    'todo2': 'Templaatti, jota käytetään\nlistauksessa',
+    'Renderer': 'Ulkoasu',
     'Add new %s': 'Lisää uusi %s',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metatiedot',

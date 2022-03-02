@@ -2,12 +2,27 @@
 
 namespace Sivujetti\Tests\Block;
 
+use Sivujetti\{App, AppContext, SharedAPIContext, Template};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, GlobalBlockReferenceBlockType};
-use Sivujetti\Template;
 use Sivujetti\Tests\Utils\DbDataHelper;
 
 final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
+    private const TEST_RENDERER_NAME = "listing-custom";
+    private const TEST_RENDERER_PATH = SIVUJETTI_SITE_PATH . "templates/" . self::TEST_RENDERER_NAME . ".tmpl.php";
+    public static function setupBeforeClass(): void {
+        parent::setUpBeforeClass();
+        if (!is_file(self::TEST_RENDERER_PATH)) {
+            $tmpl = "<p><?= \$this->e(\$props->listPageType), \"-\", count(\$props->__pages)" .
+                ", \"-\", \$props->__pages ? \$props->__pages[0]->title : \"nil\" ?></p>";
+            file_put_contents(self::TEST_RENDERER_PATH, $tmpl);
+        }
+    }
+    public static function tearDownAfterClass(): void {
+        parent::tearDownAfterClass();
+        if (is_file(self::TEST_RENDERER_PATH))
+            unlink(self::TEST_RENDERER_PATH);
+    }
     public function testRenderBlockRendersButtons(): void {
         $makeExpectedHtml = fn($b, $lnk, $cls = "") =>
             $this->blockTestUtils->getExpectedButtonBlockOutput($b, $lnk, $cls, "[childMarker]")
@@ -31,7 +46,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         $expectedHtml4 = $makeExpectedHtml($b[4], null, " {$b[4]->cssClass}");
         $this->renderAndVerify($state, 4, $expectedHtml4);
     }
-    protected function setupRenderButtonBlocksTest(): \TestState {
+    private function setupRenderButtonBlocksTest(): \TestState {
         $state = parent::setupTest();
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_BUTTON,
@@ -57,7 +72,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         ];
         return $state;
     }
-    protected function renderAndVerify(\TestState $state, int $testBlockIdx, string $expectedHtml): void {
+    private function renderAndVerify(\TestState $state, int $testBlockIdx, string $expectedHtml): void {
         $block = $state->testBlocks[$testBlockIdx];
         $this->sendRenderBlockRequest($state, $block);
         $this->verifyRequestFinishedSuccesfully($state);
@@ -93,7 +108,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         $expectedHtml = $makeExpectedHtml($b[3], cls: " some classes");
         $this->renderAndVerify($state, 3, $expectedHtml);
     }
-    protected function setupRenderColumnBlocksTest(): \TestState {
+    private function setupRenderColumnBlocksTest(): \TestState {
         $state = parent::setupTest();
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_COLUMNS,
@@ -136,7 +151,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
                 "<p class=\"{$paragraphOverrides->cssClass}\">{$paragraphOverrides->text}</p>")
         );
     }
-    protected function setupRenderGlobalBlockRefBlocksTest(): \TestState {
+    private function setupRenderGlobalBlockRefBlocksTest(): \TestState {
         $state = parent::setupTest();
         $state->testGlobalBlockTreeBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_PARAGRAPH,
@@ -182,7 +197,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         $this->renderAndVerify($state, 4, "<h5>{$b[4]->text}[childMarker]</h5>");
         $this->renderAndVerify($state, 5, "<h6>{$b[5]->text}[childMarker]</h6>");
     }
-    protected function setupRenderHeadingBlocksTest(): \TestState {
+    private function setupRenderHeadingBlocksTest(): \TestState {
         $state = parent::setupTest();
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_HEADING,
@@ -227,7 +242,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         $expectedHtml = $makeExpectedHtml($b[2]->src, " {$b[2]->cssClass}");
         $this->renderAndVerify($state, 2, $expectedHtml);
     }
-    protected function setupRenderImageBlocksTest(): \TestState {
+    private function setupRenderImageBlocksTest(): \TestState {
         $state = parent::setupTest();
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_IMAGE,
@@ -247,6 +262,78 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
     ////////////////////////////////////////////////////////////////////////////
 
 
+    public function testRenderBlockRendersListings(): void {
+        $state = $this->setupRenderListingBlocksTest();
+        $this->makeTestSivujettiApp($state);
+        $expectedHtml = "    <p>No pages found.</p>\r\n";
+        $this->renderAndVerify($state, 0, $expectedHtml);
+        //
+        $this->insertTestPages($state);
+        $expectedHtml = $state->makeExpectedHtml->__invoke($state->testPageData);
+        $this->renderAndVerify($state, 0, $expectedHtml);
+    }
+    private function setupRenderListingBlocksTest(): \TestState {
+        $state = parent::setupTest();
+        $state->testPageData = $this->pageTestUtils->makeTestPageData();
+        $state->testBlocks = [
+            $this->blockTestUtils->makeBlockData(Block::TYPE_LISTING,
+                renderer: "sivujetti:block-listing-pages-default",
+                propsData: ["listPageType" => "Pages",
+                    "renderWith" => "sivujetti:block-listing-pages-default",
+                    "listFilters" => "[]"],
+                id: "@auto"),
+        ];
+        $state->makeExpectedHtml = fn(object $pageData) => "<div class=\"listing listing-pages\">\r\n" .
+        "        <article class=\"list-item list-item-/hello\">\r\n" .
+        "        <h2>".Template::e($pageData->title)."</h2>\r\n" .
+        "        <div><a href=\"".Template::makeUrl($pageData->slug)."\">Read more</a></div>\r\n" .
+        "    </article>\r\n" .
+        "    </div>\r\n";
+        return $state;
+    }
+    private function insertTestPages(\TestState $state): void {
+        $this->pageTestUtils->insertPage($state->testPageData, $state->customPageType ?? null);
+    }
+    public function testRenderBlockRendersCustomListings(): void {
+        $makeExpectedHtml = fn($pageCount, $firstPageTitle) =>
+            "<p>MyProducts-{$pageCount}-{$firstPageTitle}</p>"
+        ;
+        $state = $this->setupRenderCustomListingBlocksTest();
+        $this->registerCustomPageType($state);
+        $ctx = new AppContext;
+        $ctx->apiCtx = new SharedAPIContext;
+        $ctx->apiCtx->validBlockRenderers[] = $this->blockTestUtils->createBlockRenderer(self::TEST_RENDERER_NAME, "MyProducts");
+        $state->app = $this->makeApp(fn() => App::create(self::setGetConfig(), $ctx));
+        //
+        $expectedHtml = $makeExpectedHtml("0", "nil");
+        $this->renderAndVerify($state, 0, $expectedHtml);
+        //
+        $this->insertTestPages($state);
+        $expectedHtml = $makeExpectedHtml("1", "<Hello>");
+        $this->renderAndVerify($state, 0, $expectedHtml);
+        $this->dropCustomPageType($state);
+    }
+    private function setupRenderCustomListingBlocksTest(): \TestState {
+        $state = $this->setupRenderListingBlocksTest();
+        $state->testPageData->ownField1 = "foo";
+        $state->testPageData->ownField2 = 1;
+        $state->testBlocks[0]->renderer = self::TEST_RENDERER_NAME;
+        $this->blockTestUtils->setBlockProp($state->testBlocks[0], "renderWith", self::TEST_RENDERER_NAME);
+        $this->blockTestUtils->setBlockProp($state->testBlocks[0], "listPageType", "MyProducts");
+        $state->customPageType = null;
+        return $state;
+    }
+    private function registerCustomPageType(\TestState $state): void {
+        $state->customPageType = $this->pageTestUtils->registerTestCustomPageType();
+    }
+    private function dropCustomPageType(\TestState $state): void {
+        $this->pageTestUtils->dropCustomPageType($state->customPageType);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
     public function testRenderBlockRendersMenus(): void {
         $state = $this->setupRenderMenuBlocksTest();
         $this->makeTestSivujettiApp($state);
@@ -255,7 +342,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
             "<li><a href=\"/sivujetti/\" data-prop=\"val\"></a></li>" .
         "</ul>[childMarker]</nav>");
     }
-    protected function setupRenderMenuBlocksTest(): \TestState {
+    private function setupRenderMenuBlocksTest(): \TestState {
         $state = parent::setupTest();
         $createMenuData = fn($links) => [
             "tree" => json_encode($links),
@@ -288,7 +375,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         $this->renderAndVerify($state, 0, "<p>{$state->testBlocks[0]->text}[childMarker]</p>");
         $this->renderAndVerify($state, 1, "<p class=\"escape&lt;\">{$state->testBlocks[1]->text}[childMarker]</p>");
     }
-    protected function setupRenderParagraphBlocksTest(): \TestState {
+    private function setupRenderParagraphBlocksTest(): \TestState {
         $state = parent::setupTest();
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_PARAGRAPH,
@@ -310,7 +397,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         $this->makeTestSivujettiApp($state);
         $this->renderAndVerify($state, 0, "{$state->testBlocks[0]->html}[childMarker]");
     }
-    protected function setupRenderRichTextBlocksTest(): \TestState {
+    private function setupRenderRichTextBlocksTest(): \TestState {
         $state = parent::setupTest();
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_RICH_TEXT,
@@ -342,7 +429,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
             " style=\"background-image:url('".Template::makeUrl($b[2]->bgImage)."')\"");
         $this->renderAndVerify($state, 2, $expectedHtml);
     }
-    protected function setupRenderSectionBlocksTest(): \TestState {
+    private function setupRenderSectionBlocksTest(): \TestState {
         $state = parent::setupTest();
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_SECTION,

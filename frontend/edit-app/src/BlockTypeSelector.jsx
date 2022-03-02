@@ -16,7 +16,7 @@ class BlockTypeSelector extends preact.Component {
             currentTabIdx: 0,
         };
         this.selectableBlockTypes = Array.from(api.blockTypes.entries()).filter(([name, _]) =>
-            name !== 'PageInfo' && name !== 'Listing' && name !== 'GlobalBlockReference'
+            name !== 'PageInfo' && name !== 'GlobalBlockReference'
         );
     }
     /**

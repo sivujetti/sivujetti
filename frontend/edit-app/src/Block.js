@@ -76,13 +76,20 @@ class Block {
         Object.assign(this, completeOwnProps);
     }
     /**
+     * @param {Boolean} includeInternals = false
      * @returns {RawBlock}
      * @access public
      */
-    toRaw() {
+    toRaw(includeInternals = false) {
         const out = Object.assign({}, this);
         out.children = [];
         delete out._cref;
+        if (!includeInternals) {
+            for (const key in out) {
+                if (Object.prototype.hasOwnProperty.call(out, key) && key.startsWith('__'))
+                    delete out[key];
+            }
+        }
         return out;
     }
     /**

@@ -27,6 +27,7 @@ urlUtils.baseUrl = `${urlUtils.assetBaseUrl}index.php?q=/`;
 urlUtils.env = env;
 //
 api.getPageTypes = () => mockPageTypes;
+api.getBlockRenderers = () => [];
 api.webPageIframe = {scrollTo: () => null};
 api.mainPanel = {scrollTo: () => null};
 //

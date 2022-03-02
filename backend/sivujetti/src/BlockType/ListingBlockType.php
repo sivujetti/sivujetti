@@ -15,6 +15,7 @@ class ListingBlockType implements BlockTypeInterface, ListeningBlockTypeInterfac
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
         return $builder
             ->newProperty("listPageType", $builder::DATA_TYPE_TEXT)
+            ->newProperty("renderWith", $builder::DATA_TYPE_TEXT)
             ->newProperty("listFilters", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }

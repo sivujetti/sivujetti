@@ -1,26 +1,101 @@
-import {__, http, api} from '@sivujetti-commons-for-edit-app';
+import {__, env, http, api, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+import Icon from '../commons/Icon.jsx';
 
 class ListingBlockEditForm extends preact.Component {
-    // pageType;
-    // pageTypeFriendlyName;
-    // pageTypeFriendlyNamePlural;
+    // selectedPageTypeBundle;
+    // selectedPageTypeFriendlyName;
     /**
-     * @param {BlockEditFormProps} props
+     * @param {RawBlockData} snapshot
+     * @access public
      */
-    componentWillMount() {
-        const typeName = this.props.block.listPageType;
-        this.pageType = api.getPageTypes().find(({name}) => name === typeName);
-        this.pageTypeFriendlyName = __(this.pageType.friendlyName).toLowerCase();
-        this.pageTypeFriendlyNamePlural = __(this.pageType.friendlyNamePlural).toLowerCase();
+    overrideValues(snapshot) {
+        this.setSelectedPageTypeBundle(snapshot.listPageType);
+        this.applyState({listPageType: snapshot.listPageType,
+                         renderWith: snapshot.renderWith,
+                         listOrder: snapshot.listOrder});
     }
     /**
      * @access protected
      */
-    render() {
-        return <div>
-            <p>{ __('A list of %s', this.pageTypeFriendlyNamePlural) }.</p>
-            <a href="" onClick={ this.openAddPageView.bind(this) }>{ __('Add new %s', this.pageTypeFriendlyName) }</a>
+    componentWillMount() {
+        const r = api.getBlockRenderers();
+        this.pageTypeBundles = api.getPageTypes()
+            .map(pageType => ({pageType, renderers: r.filter(({associatedWith}) => associatedWith === pageType.name)}))
+            .filter(({renderers}) => renderers.length > 0);
+        this.setSelectedPageTypeBundle(this.props.block.listPageType);
+        //
+        const block = this.props.block;
+        this.setState({
+            listPageType: block.listPageType,
+            renderWith: block.rendered,
+            listOrder: block.listOrder,
+        });
+    }
+    /**
+     * @param {BlockEditFormProps} props
+     * @access protected
+     */
+    render(_, {listPageType, renderWith}) {
+        if (!listPageType) return;
+        const tooltipCss = "right: calc(75% - .2rem);margin-top: .34rem;background-color: #fff;";
+        return <div class="form-horizontal pt-0">
+            <span
+                class="tooltip tooltip-right p-absolute"
+                data-tooltip={ __('todo1') }
+                style={ tooltipCss }>
+                <Icon iconId="info-circle" className="size-xs"/>
+            </span>
+            <FormGroupInline>
+                <label htmlFor="listPageType" class="form-label">{ __('List') }</label>
+                <select value={ listPageType } onChange={ this.handlePageTypeChanged.bind(this) } class="form-input form-select">{
+                    this.pageTypeBundles.map(({pageType}) =>
+                        <option value={ pageType.name }>{ __(pageType.friendlyName) }</option>
+                    )
+                }</select>
+            </FormGroupInline>
+            <span
+                class="tooltip tooltip-right p-absolute"
+                data-tooltip={ __('todo2') }
+                style={ tooltipCss }>
+                <Icon iconId="info-circle" className="size-xs"/>
+            </span>
+            <FormGroupInline>
+                <label htmlFor="renderWith" class="form-label">{ __('Renderer') }</label>
+                <select value={ renderWith } onChange={ this.handleRendererChanged.bind(this) } class="form-input form-select">{
+                    this.selectedPageTypeBundle.renderers.map(({fileId, friendlyName}) =>
+                        <option value={ fileId }>{ friendlyName ? __(friendlyName) : fileId }</option>
+                    )
+                }</select>
+            </FormGroupInline>
+            <div class="pt-1">
+                <hr/>
+                <a onClick={ this.openAddPageView.bind(this) } class="d-inline-block mt-2">{ __('Add new %s', this.selectedPageTypeFriendlyName) }</a>
+            </div>
         </div>;
+    }
+    /**
+     * @param {Event} e
+     * @access private
+     */
+    handlePageTypeChanged(e) {
+        const newSelectedPageTypeName = e.target.value;
+        this.setSelectedPageTypeBundle(newSelectedPageTypeName);
+        //
+        const partialState = {
+            listPageType: newSelectedPageTypeName,
+            renderWith: this.pageTypeBundles.find(({pageType}) => pageType.name === newSelectedPageTypeName).renderers[0].fileId};
+        this.applyState(partialState);
+        //
+        this.props.onValueChanged(newSelectedPageTypeName, 'listPageType', false, env.normalTypingDebounceMillis);
+    }
+    /**
+     * @param {Event} e
+     * @access private
+     */
+    handleRendererChanged(e) {
+        const renderer = e.target.value;
+        this.applyState({renderWith: renderer});
+        this.props.onValueChanged(renderer, 'renderWith', false, env.normalTypingDebounceMillis);
     }
     /**
      * @param {Event} e
@@ -28,95 +103,48 @@ class ListingBlockEditForm extends preact.Component {
      */
     openAddPageView(e) {
         e.preventDefault();
-        const typeName = this.props.block.listPageType;
-        api.webPageIframe.openPlaceholderPage(typeName, this.pageType.defaultLayoutId);
+        const typeName = this.state.listPageType;
+        api.webPageIframe.openPlaceholderPage(typeName, this.selectedPageTypeBundle.pageType.defaultLayoutId);
+    }
+    /**
+     * @param {String} selectedPageTypeName
+     * @access private
+     */
+    setSelectedPageTypeBundle(selectedPageTypeName) {
+        this.selectedPageTypeBundle = this.pageTypeBundles.find(({pageType}) => pageType.name === selectedPageTypeName);
+        this.selectedPageTypeFriendlyName = __(this.selectedPageTypeBundle.pageType.friendlyName).toLowerCase();
+    }
+    /**
+     * @access private
+     */
+    applyState(newState) {
+        if (newState.renderWith)
+            this.props.block.renderer = newState.renderWith;
+        this.setState(newState);
     }
 }
 
-function throwIfInvalidSettings(settings) {
-    const errors = [];
-    //
-    if (typeof settings.name !== 'string')
-        errors.push('settings.name is required');
-    if (Object.prototype.hasOwnProperty.call(settings, 'friendlyName') &&
-        typeof settings.friendlyName !== 'string')
-        errors.push('settings.friednlyName must be string');
-    if (typeof settings.defaultRenderer !== 'string')
-        errors.push('settings.defaultRenderer is required');
-    if (typeof settings.initialData !== 'object')
-        errors.push('settings.initialData is required');
-    else {
-        if (Object.prototype.hasOwnProperty.call(settings.initialData, 'listPageType') &&
-            typeof settings.initialData.listPageType !== 'string')
-            errors.push('settings.initialData.listPageType must be string');
-        try {
-            JSON.parse(settings.initialData.listFilters);
-        } catch (e) {
-            errors.push('settings.initialData.listFilters must be valid json string');
-        }
-    }
-    //
-    if (errors.length) throw new Error(errors.join('\n'));
-}
-
-/**
- * Usage:
- * This requires three pieces of code:
- *
- * 1. Custom block type (backend)
- * ```php
- * class Site implements UserSiteInterface {
- *     public function __construct(UserSiteAPI $api) {
- *         $api->registerBlockType("ArticlesListing", new Sivujetti\BlockType\ListingBlockType);
- *         ...
- * ```
- *
- * 2. Custom renderer
- * ```php
- * class Site implements UserSiteInterface {
- *     public function __construct(UserSiteAPI $api) {
- *         ...
- *         $api->registerBlockRenderer("block-articles-listing");
- * ```
- *
- * 3. Custom block type (frontend)
- * ```
- * import {api} from '@sivujetti-commons-for-edit-app';
- * import createListingBlockType from '../../../../../frontend/edit-app/src/block-types/listing.js';
- * api.blockTypes.register('ArticlesListing', () => createListingBlockType({
- *     name: 'ArticlesListing',
- *     friendlyName: 'Article list',
- *     defaultRenderer: 'site:block-articles-listing',
- *     initialData: {
- *         listPageType: 'Pages',
- *         listFilters: JSON.stringify([{'categories.slug': 'news'}]),
- *     }
- * }));
- * ```
- *
- * @param {{name: String; friendlyName?: String; initialData: {listPageType?: String; listFilters: String;}; defaultRenderer: String;}} settings
- */
-export default settings => {
-    throwIfInvalidSettings(settings);
-    //
+export default () => {
+    const initialData = {
+        listPageType: 'Pages',
+        renderWith: 'sivujetti:block-listing-pages-default', // Mirrored to block.renderer
+        listFilters: '[]'
+    };
     return {
-        name: settings.name,
-        friendlyName: settings.friendlyName || settings.name,
-        ownPropNames: Object.keys(settings.initialData),
-        initialData: {
-            listPageType: settings.initialData.listPageType || 'Pages',
-            listFilters: settings.initialData.listFilters,
-        },
-        defaultRenderer: settings.defaultRenderer,
-        icon: settings.icon || 'layout-list',
+        name: 'Listing',
+        friendlyName: 'Listing',
+        ownPropNames: Object.keys(initialData),
+        initialData,
+        defaultRenderer: initialData.renderWith,
+        icon: 'layout-list',
         reRender(block, _) {
             return http.post('/api/blocks/render', {block: block.toRaw()}).then(resp => resp.result);
         },
         createSnapshot: from => ({
             listPageType: from.listPageType,
+            renderWith: from.renderWith,
             listFilters: from.listFilters,
         }),
         editForm: ListingBlockEditForm,
-        editFormProps: settings.editFormProps || null,
     };
 };

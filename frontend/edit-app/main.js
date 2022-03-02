@@ -10,6 +10,7 @@ import createColumnsBlockType from './src/block-types/columns.js';
 import createGlobalBlockReferenceBlockType from './src/block-types/globalBlockReference.js';
 import createHeadingBlockType from './src/block-types/heading.js';
 import createImageBlockType from './src/block-types/image.js';
+import createListingBlockType from './src/block-types/listing.js';
 import createPageInfoBlockType from './src/block-types/pageInfo.js';
 import createParagraphBlockType from './src/block-types/paragraph.js';
 import createRichTextBlockType from './src/block-types/richText.js';
@@ -28,6 +29,7 @@ hookUpSiteIframeUrlMirrorer();
 
 function populateFrontendApi() {
     api.getPageTypes = () => editAppReactRef.current.props.dataFromAdminBackend.pageTypes;
+    api.getBlockRenderers = () => editAppReactRef.current.props.dataFromAdminBackend.blockRenderers;
     api.registerTranslationStrings = translator.addStrings.bind(translator);
     api.webPageIframe = new WebPageIframe(document.getElementById('sivujetti-site-iframe'), env, urlUtils);
     api.mainPanel = new MainPanel(document.getElementById('main-panel'), env);
@@ -49,6 +51,7 @@ function configureServices() {
     blockTypes.register('GlobalBlockReference', createGlobalBlockReferenceBlockType);
     blockTypes.register('Heading', createHeadingBlockType);
     blockTypes.register('Image', createImageBlockType);
+    blockTypes.register('Listing', createListingBlockType);
     blockTypes.register('PageInfo', createPageInfoBlockType);
     blockTypes.register('Paragraph', createParagraphBlockType);
     blockTypes.register('RichText', createRichTextBlockType);

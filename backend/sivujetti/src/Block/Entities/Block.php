@@ -10,6 +10,7 @@ final class Block {
     public const TYPE_GLOBAL_BLOCK_REF = "GlobalBlockReference";
     public const TYPE_HEADING          = "Heading";
     public const TYPE_IMAGE            = "Image";
+    public const TYPE_LISTING          = "Listing";
     public const TYPE_MENU             = "Menu";
     public const TYPE_PAGE_INFO        = "PageInfo";
     public const TYPE_PARAGRAPH        = "Paragraph";
@@ -54,6 +55,7 @@ final class Block {
 
     /* If "MyListing"
     public string $listPageType; e.g. "Pages"
+    public string $renderWith; e.g. "sivujetti:block-listing-pages-default"
     public string $listFilters; e.g. "[{"slug":"foo"}]"
     public ?array $__pages; ?array<int, \Sivujetti\Page\Entities\Page>
     public ?\Sivujetti\PageType\Entities\PageType $__pageType; */

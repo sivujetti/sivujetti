@@ -11,8 +11,9 @@ use Sivujetti\Auth\AuthModule;
 use Sivujetti\Block\BlocksModule;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, ColumnsBlockType, GlobalBlockReferenceBlockType,
-                         HeadingBlockType, ImageBlockType, MenuBlockType, PageInfoBlockType,
-                         ParagraphBlockType, RichTextBlockType, SectionBlockType};
+                         HeadingBlockType, ImageBlockType, ListingBlockType, MenuBlockType,
+                         PageInfoBlockType, ParagraphBlockType, RichTextBlockType,
+                         SectionBlockType};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesModule;
 use Sivujetti\Layout\LayoutsModule;
@@ -80,18 +81,19 @@ final class App {
             $blockTypes->{Block::TYPE_GLOBAL_BLOCK_REF} = new GlobalBlockReferenceBlockType;
             $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
             $blockTypes->{Block::TYPE_IMAGE} = new ImageBlockType;
+            $blockTypes->{Block::TYPE_LISTING} = new ListingBlockType;
             $blockTypes->{Block::TYPE_MENU} = new MenuBlockType;
             $blockTypes->{Block::TYPE_PAGE_INFO} = new PageInfoBlockType;
             $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
             $blockTypes->{Block::TYPE_RICH_TEXT} = new RichTextBlockType;
             $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
             $ctx->apiCtx->blockTypes = $blockTypes;
-            $ctx->apiCtx->validBlockRenderers = [
+            $ctx->apiCtx->validBlockRenderers = array_merge($ctx->apiCtx->validBlockRenderers, [
                 ["fileId" => "sivujetti:block-auto", "friendlyName" => null, "associatedWith" => null], // Heading, Paragraph etc.
                 ["fileId" => "sivujetti:block-generic-wrapper", "friendlyName" => null, "associatedWith" => null], // Columns, Section
                 ["fileId" => "sivujetti:block-listing-pages-default", "friendlyName" => "Pages listing", "associatedWith" => PageType::PAGE],
                 ["fileId" => "sivujetti:block-menu", "friendlyName" => null, "associatedWith" => null],
-            ];
+            ]);
         }, $initialCtx ?? new AppContext, $router);
         $out->setServiceInstantiator(fn(AppContext $ctx) =>
             new class($ctx) extends ServiceDefaults {

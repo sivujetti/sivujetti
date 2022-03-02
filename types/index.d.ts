@@ -4,6 +4,7 @@ interface SivujettiFrontendApi {
     mainPanel: MainPanel;
     registerTranslationStrings(strings: {[key: String]: String}): void;
     getPageTypes(): Array<PageType>;
+    getBlockRenderers(): Array<BlockRenderer>;
 }
 
 interface WebPageIframe {
@@ -160,10 +161,17 @@ interface PageMetaRaw {
     [key: String]: any; // Own fields
 }
 
+interface BlockRenderer {
+    fileId: String;
+    friendlyName: String|null;
+    associatedWith: String|null;
+}
+
 interface TheWebsite {
     baseUrl: String;
     assetBaseUrl: String;
     pageTypes: Array<PageType>;
+    blockRenderers: Array<BlockRenderer>;
 }
 
 interface EditAwareWebPageEventHandlers {

@@ -5,7 +5,7 @@
 # 0.9.0 (not yet released)
 
 ## Added
-- .
+- &lt;selectPageType&gt; -dropdown to Listing blocks
 
 ## Fixed
 - Bugs

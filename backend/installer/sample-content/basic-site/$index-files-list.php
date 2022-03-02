@@ -1,1 +1,1 @@
-<?php // ["$index/public/uploads/sample.jpg", "$index/public/basic-site.css", "$index/public/basic-site-bundled.js"]
+<?php // ["$index/public/uploads/sample.jpg", "$index/public/basic-site.css"]

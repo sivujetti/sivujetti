@@ -3,7 +3,7 @@
 namespace Sivujetti;
 
 use Auryn\Injector;
-use Pike\{App as PikeApp, NativeSession, PikeException, Request, Response, Router, ServiceDefaults};
+use Pike\{App as PikeApp, FluentDb, NativeSession, PikeException, Request, Response, Router, ServiceDefaults};
 use Pike\Auth\Authenticator;
 use Pike\Auth\Defaults\DefaultCookieStorage;
 use Pike\Defaults\DefaultUserRepository;
@@ -73,6 +73,7 @@ final class App {
         ], function (AppContext $ctx, ServiceDefaults $defaults) use ($config): void {
             $ctx->config = $defaults->makeConfig($config);
             $ctx->db = $defaults->makeDb();
+            $ctx->fluentDb = new FluentDb($ctx->db);
             $ctx->auth = $defaults->makeAuth();
             $ctx->apiCtx = $ctx->apiCtx ?? new SharedAPIContext;
             $blockTypes = $ctx->apiCtx->blockTypes ?? new BlockTypes;
@@ -139,7 +140,7 @@ final class App {
      */
     public function alterDi(Injector $di): void {
         self::$di = $di;
-        $di->share($this->ctx->db->getPdo());
+        $di->share($this->ctx->fluentDb);
         $di->share($this->ctx->apiCtx);
         $di->share($this->ctx->apiCtx->blockTypes);
         $di->share($this->ctx->theWebsite);
@@ -176,7 +177,7 @@ final class App {
     private function openDbAndLoadState(): void {
         if (!isset($this->ctx->theWebsite)) {
             $this->ctx->db->open([\PDO::ATTR_EMULATE_PREPARES => 0]);
-            if (!($entity = TheWebsiteRepository::fetchActive($this->ctx->db)))
+            if (!($entity = TheWebsiteRepository::fetchActive($this->ctx->fluentDb)))
                 throw new PikeException("Site not installed", 301010);
             if (empty($entity->pageTypes) || $entity->pageTypes[0]->name !== PageType::PAGE)
                 throw new PikeException("Invalid database state", 301010);

@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Page;
 
-use Pike\ArrayUtils;
+use Pike\{ArrayUtils, PikeException};
 use Sivujetti\{Template, ValidationUtils};
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
@@ -11,18 +11,23 @@ use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 final class WebPageAwareTemplate extends Template {
     /** @var ?object */
     private ?object $__cssAndJsFiles;
+    /** @var object[] */
+    private array $__globalStyles;
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
      * @param ?array<string, mixed> $initialLocals = null
      * @param ?object $cssAndJsFiles = null
+     * @param array<int, object>|null $globalStyles = null
      */
     public function __construct(string $file,
                                 ?array $vars = null,
                                 ?array $initialLocals = null,
-                                ?object $cssAndJsFiles = null) {
+                                ?object $cssAndJsFiles = null,
+                                ?array $globalStyles = null) {
         parent::__construct($file, $vars, $initialLocals);
         $this->__cssAndJsFiles = $cssAndJsFiles;
+        $this->__globalStyles = $globalStyles ?? [];
     }
     /**
      * @param string $name
@@ -129,12 +134,20 @@ final class WebPageAwareTemplate extends Template {
     public function cssFiles(): string {
         if (!$this->__cssAndJsFiles)
             return "";
+        // External files
         return implode(" ", array_map(function ($f) {
             $attrsMap = $f->attrs;
             if (!array_key_exists("rel", $attrsMap)) $attrsMap["rel"] = "stylesheet";
             return "<link href=\"{$this->assetUrl("public/{$this->e($f->url)}")}\"" .
                 $this->attrMapToStr($attrsMap) . ">";
-        }, $this->__cssAndJsFiles->css));
+        }, $this->__cssAndJsFiles->css)) .
+        // Inline styles
+        "<style>:root {" .
+            implode("", array_map(fn($style) =>
+                // Note: these are pre-validated
+                "    --{$style->name}: {$this->cssValueToString($style->value)};"
+            , $this->__globalStyles)) .
+        "}</style>";
     }
     /**
      * @return string
@@ -153,7 +166,7 @@ final class WebPageAwareTemplate extends Template {
         }, $this->__cssAndJsFiles->js));
     }
     /**
-     * ['id' => 'foo', 'class' => 'bar'] -> ' id="foo" class="bar"'
+     * ["id" => "foo", "class" => "bar"] -> ' id="foo" class="bar"'
      *
      * @param array<string, string>|object $map
      * @return string
@@ -162,5 +175,15 @@ final class WebPageAwareTemplate extends Template {
         $pairs = [];
         foreach ($map as $key => $val) $pairs[] = " {$key}=\"{$val}\"";
         return $this->e(implode("", $pairs), ENT_NOQUOTES);
+    }
+    /**
+     * @param object $value {type: "color", value: ["00","00","00","00"]}
+     * @return string
+     */
+    protected function cssValueToString(object $value): string {
+        return match($value->type) {
+            "color" => "#" . implode("", $value->value),
+            "default" => throw new PikeException("Bad variable", PikeException::BAD_INPUT),
+        };
     }
 }

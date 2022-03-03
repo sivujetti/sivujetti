@@ -8,6 +8,9 @@ $statements = array_merge($statements, [
 "INSERT INTO `theWebsite` (`name`,`lang`,`aclRules`,`firstRuns`) VALUES
 ('Test suite website','fi','".json_encode($getRules())."','{}')",
 
+"INSERT INTO `themes` (`id`,`name`,`globalStyles`,`isActive`) VALUES
+('1','test-suite-theme','[]',1)",
+
 "INSERT INTO `pageTypes` (`id`,`name`,`slug`,`friendlyName`,`friendlyNamePlural`,`description`" .
                           ",`fields`,`defaultLayoutId`,`status`,`isListable`) VALUES
 (1,'Pages','pages','Page','Pages','','" . json_encode([

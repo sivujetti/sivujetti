@@ -2,73 +2,60 @@
 
 namespace Sivujetti\TheWebsite;
 
-use Pike\Db;
+use Pike\FluentDb;
+use Pike\Db\NoDupeMapper;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Plugin\Entities\Plugin;
+use Sivujetti\Theme\Entities\Theme;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class TheWebsiteRepository {
     /**
-     * @param \Pike\Db $db
+     * @param \Pike\FluentDb $db
      * @return ?\Sivujetti\TheWebsite\Entities\TheWebsite
      */
-    public static function fetchActive(Db $db): ?TheWebsite {
-        if (!($rows = $db->fetchAll(
-            "SELECT" .
-                " ws.`name`, ws.`lang`, ws.`aclRules` AS `aclRulesJson`" .
-                ", ws.`firstRuns` as `firstRunsJson`" .
-                ", p.`name` AS `pluginName`, p.`isActive` AS `pluginIsActive`" .
-                ", pt.`name` AS `pageTypeName`, pt.`slug` AS `pageTypeSlug`" .
-                ", pt.`friendlyName` AS `pageTypeFriendlyName`" .
-                ", pt.`friendlyNamePlural` AS `pageTypeFriendlyNamePlural`" .
-                ", pt.`description` AS `pageTypeDescription`" .
-                ", pt.`fields` AS `pageTypeFieldsJson`" .
-                ", pt.`defaultLayoutId` AS `pageTypeDefaultLayoutId`" .
-                ", pt.`status` AS `pageTypeStatus`" .
-                ", pt.`isListable` AS `pageTypeIsListable`" .
-            " FROM \${p}theWebsite ws" .
-            " LEFT JOIN \${p}plugins p ON (1)" .
-            " LEFT JOIN \${p}pageTypes pt ON (1)",
-            [],
-            \PDO::FETCH_CLASS,
-            TheWebsite::class
-        ))) return null;
-        $out = $rows[0];
-        $out->plugins = (new Collector($rows))->collect(Plugin::class, "pluginName");
-        $out->pageTypes = (new Collector($rows))->collect(PageType::class, "pageTypeName");
-        return $out;
-    }
-}
-
-// todo
-class Collector {
-    /** @var object[] $rows */
-    private array $rows;
-    /** @var \ArrayAccess|null $out */
-    private ?\ArrayAccess $out;
-    /**
-     * @param object[] $rows
-     * @param \ArrayAccess|null $out = null
-     */
-    public function __construct(array $rows, ?\ArrayAccess $out = null) {
-        $this->rows = $rows;
-        $this->out = $out;
-    }
-    /**
-     * @param class-string $ClassString
-     * @param string $mainProp
-     * @return \ArrayAccess
-     */
-    public function collect(string $ClassString, string $mainProp): \ArrayAccess {
-        $out = $this->out ?? new \ArrayObject;
-        $map = [];
-        foreach ($this->rows as $row) {
-            $id = $row->{$mainProp};
-            if (!$id || array_key_exists($id, $map))
-                continue;
-            $map[$id] = 1;
-            $out[] = call_user_func("$ClassString::fromParentRs", $row);
-        }
-        return $out;
+    public static function fetchActive(FluentDb $db): ?TheWebsite {
+        return $db->select("\${p}theWebsite ws", TheWebsite::class)
+            ->fields([
+                "ws.`name`", "ws.`lang`", "ws.`aclRules` AS `aclRulesJson`",
+                "ws.`firstRuns` as `firstRunsJson`",
+                "p.`name` AS `pluginName`", "p.`isActive` AS `pluginIsActive`",
+                "pt.`name` AS `pageTypeName`", "pt.`slug` AS `pageTypeSlug`",
+                "pt.`friendlyName` AS `pageTypeFriendlyName`",
+                "pt.`friendlyNamePlural` AS `pageTypeFriendlyNamePlural`",
+                "pt.`description` AS `pageTypeDescription`",
+                "pt.`fields` AS `pageTypeFieldsJson`",
+                "pt.`defaultLayoutId` AS `pageTypeDefaultLayoutId`",
+                "pt.`status` AS `pageTypeStatus`",
+                "pt.`isListable` AS `pageTypeIsListable`",
+                "t.`name` AS `themeName`", "t.`globalStyles` AS `themeGlobalStylesJson`"
+            ])
+            ->leftJoin("\${p}plugins p ON (1)")
+            ->leftJoin("\${p}pageTypes pt ON (1)")
+            ->leftJoin("\${p}themes t ON (t.`isActive` = 1)")
+            ->mapWith(new class("name") extends NoDupeMapper {
+                public function doMapRow(object $row, int $i, array $allRows): object {
+                    $keys = [];
+                    $row->plugins = new \ArrayObject;
+                    foreach ($allRows as $row2) {
+                        if (!$row2->pluginName || array_key_exists($row2->pluginName, $keys)) continue;
+                        $row->plugins[] = Plugin::fromParentRs($row2);
+                        $keys[$row2->pluginName] = 1;
+                    }
+                    //
+                    $keys = [];
+                    $row->pageTypes = new \ArrayObject;
+                    foreach ($allRows as $row2) {
+                        if (!$row2->pageTypeName || array_key_exists($row2->pageTypeName, $keys)) continue;
+                        $row->pageTypes[] = PageType::fromParentRs($row2);
+                        $keys[$row2->pageTypeName] = 1;
+                    }
+                    //
+                    if (!isset($row->activeTheme) && $row2->themeName)
+                        $row->activeTheme = Theme::fromParentRs($row2);
+                    return $row;
+                }
+            })
+            ->fetchAll()[0] ?? null;
     }
 }

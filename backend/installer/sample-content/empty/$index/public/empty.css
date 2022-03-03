@@ -1,6 +1,6 @@
 body {
     margin: 0;
-    color: #444444;
+    color: var(--defaultTextColor);
 }
 
 nav ul {

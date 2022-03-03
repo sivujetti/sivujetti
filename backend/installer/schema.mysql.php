@@ -13,6 +13,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}pageTypes`",
 "DROP TABLE IF EXISTS `\${p}categories`",
 "DROP TABLE IF EXISTS `\${p}plugins`",
+"DROP TABLE IF EXISTS `\${p}themes`",
 "DROP TABLE IF EXISTS `\${p}theWebsite`",
 "DROP TABLE IF EXISTS `\${p}users`",
 
@@ -40,6 +41,14 @@ return [
     `firstRuns` JSON, -- {'userId': 'y', 'another': 'y'}
     `lastUpdatedAt` {$dataTypeForTimestamps},
     `newestCoreVersionLastChecked` {$dataTypeForTimestamps}
+) DEFAULT CHARSET = utf8mb4",
+
+"CREATE TABLE `\${p}themes` (
+    `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(92) NOT NULL,
+    `globalStyles` JSON,
+    `isActive` TINYINT(1) NOT NULL,
+    PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}plugins` (

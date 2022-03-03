@@ -235,7 +235,8 @@ final class PagesController {
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
         $html = (new WebPageAwareTemplate(
             $page->layout->relFilePath,
-            cssAndJsFiles: $apiCtx->userDefinedAssets
+            cssAndJsFiles: $apiCtx->userDefinedAssets,
+            globalStyles: $theWebsite->activeTheme->globalStyles
         ))->render([
             "currentPage" => $page,
             "currentUrl" => $req->path,

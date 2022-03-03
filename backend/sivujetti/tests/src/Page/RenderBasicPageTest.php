@@ -19,6 +19,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->verifyRequestFinishedSuccesfully($state);
         $this->verifyRenderedCorrectPageAndLayout($state);
         $this->verifyThemeCanRegisterCssFiles($state);
+        $this->verifyRenderedGlobalStyles($state);
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
@@ -57,6 +58,11 @@ final class RenderBasicPageTest extends RenderPageTestCase {
     private function verifyThemeCanRegisterCssFiles(\TestState $state): void {
         $expectedUrl = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME);
         $this->assertStringContainsString("<link href=\"{$expectedUrl}\" rel=\"stylesheet\">",
+            $state->spyingResponse->getActualBody());
+    }
+    private function verifyRenderedGlobalStyles(\TestState $state): void {
+        $noStyles = ""; // backend/sivujetti/tests/test-db-init.php (INSERT INTO themes)
+        $this->assertStringContainsString("<style>:root {" . $noStyles . "}</style>",
             $state->spyingResponse->getActualBody());
     }
 }

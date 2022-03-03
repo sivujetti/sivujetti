@@ -2,6 +2,8 @@
 
 namespace Sivujetti\TheWebsite\Entities;
 
+use Sivujetti\Theme\Entities\Theme;
+
 final class TheWebsite {
     /** @var string e.g. "My site" */
     public string $name;
@@ -15,4 +17,6 @@ final class TheWebsite {
     public \ArrayObject $plugins;
     /** @var \Sivujetti\PageType\Entities\PageType[] */
     public \ArrayObject $pageTypes;
+    /** @var \Sivujetti\Theme\Entities\Theme */
+    public Theme $activeTheme;
 }

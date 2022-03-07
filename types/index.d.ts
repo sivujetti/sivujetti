@@ -5,6 +5,7 @@ interface SivujettiFrontendApi {
     registerTranslationStrings(strings: {[key: String]: String}): void;
     getPageTypes(): Array<PageType>;
     getBlockRenderers(): Array<BlockRenderer>;
+    getActiveTheme(): {id: String;};
 }
 
 interface WebPageIframe {
@@ -171,6 +172,7 @@ interface TheWebsite {
     baseUrl: String;
     assetBaseUrl: String;
     pageTypes: Array<PageType>;
+    activeThemeId: String;
     blockRenderers: Array<BlockRenderer>;
 }
 
@@ -198,6 +200,7 @@ interface EditAppAwareWebPage {
     registerBlockMouseListeners(blockRef: BlockRefComment, nextEl: HTMLElement = null): void;
     setIsMouseListenersDisabled(isDisabled: Boolean): void;
     getBlockContents(block: Block, doIncludeBoundaryComments: Boolean = true): Array<HTMLElement>;
+    setCssVarValue(varName: String, to: RawCssValue): void;
 }
 
 interface WebPageIframe {
@@ -234,4 +237,15 @@ interface UploadsEntry {
 
 interface TranspileArgs {
     selectedLang: String;
+}
+
+interface RawCssRule {
+    name: String;
+    friendlyName: String;
+    value: RawCscValue;
+}
+
+interface RawCssValue {
+    type: 'color';
+    value: [String, String, String, String];
 }

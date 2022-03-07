@@ -30,6 +30,7 @@ hookUpSiteIframeUrlMirrorer();
 function populateFrontendApi() {
     api.getPageTypes = () => editAppReactRef.current.props.dataFromAdminBackend.pageTypes;
     api.getBlockRenderers = () => editAppReactRef.current.props.dataFromAdminBackend.blockRenderers;
+    api.getActiveTheme = () => ({themeId: editAppReactRef.current.props.dataFromAdminBackend.activeThemeId});
     api.registerTranslationStrings = translator.addStrings.bind(translator);
     api.webPageIframe = new WebPageIframe(document.getElementById('sivujetti-site-iframe'), env, urlUtils);
     api.mainPanel = new MainPanel(document.getElementById('main-panel'), env);

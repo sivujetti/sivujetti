@@ -1,16 +1,18 @@
 import {__, signals} from '@sivujetti-commons-for-edit-app';
-import Icon from './commons/Icon.jsx';
-import BlockTrees from './BlockTrees.jsx';
+import Icon from '../commons/Icon.jsx';
+import BlockTrees from '../BlockTrees.jsx';
+import GlobalStylesSection from './GlobalStylesSection.jsx';
 
 class DefaultMainPanelView extends preact.Component {
     // unregisterSignalListener;
     /**
-     * @param {{startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref;}} props
+     * @param {{startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;}} props
      */
     constructor(props) {
         super(props);
         this.state = {sectionAIsCollapsed: false,
-                      sectionBIsCollapsed: false};
+                      sectionBIsCollapsed: false,
+                      sectionCIsCollapsed: false};
         this.unregisterSignalListener = null;
     }
     /**
@@ -30,7 +32,8 @@ class DefaultMainPanelView extends preact.Component {
     /**
      * @access protected
      */
-    render({startAddPageMode, startAddPageTypeMode, blockTreesRef}, {sectionAIsCollapsed, sectionBIsCollapsed}) {
+    render({startAddPageMode, startAddPageTypeMode, blockTreesRef},
+           {sectionAIsCollapsed, sectionBIsCollapsed, sectionCIsCollapsed}) {
         return <>
             <section class={ `panel-section${sectionAIsCollapsed ? '' : ' open'}` }>
                 <button class="d-flex col-12 flex-centered pr-2" onClick={ () => { this.setState({sectionAIsCollapsed: !sectionAIsCollapsed}); } }>
@@ -43,7 +46,7 @@ class DefaultMainPanelView extends preact.Component {
             <section class={ `panel-section${sectionBIsCollapsed ? '' : ' open'}` }>
                 <button class="d-flex col-12 flex-centered pr-2" onClick={ () => { this.setState({sectionBIsCollapsed: !sectionBIsCollapsed}); } }>
                     <Icon iconId="star" className="size-sm mr-2 color-orange"/>
-                    <span class="pl-1 color-default">{ __('My website') }</span>
+                    <span class="pl-1 color-default">{ __('Content') }</span>
                     <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
                 </button>
                 <nav>
@@ -60,6 +63,16 @@ class DefaultMainPanelView extends preact.Component {
                         <span class="color-dimmed">{ __('Create %s', __('page type')) }</span>
                     </a>
                 </nav>
+            </section>
+            <section class={ `panel-section${sectionCIsCollapsed ? '' : ' open'}` }>
+                <button class="d-flex col-12 flex-centered pr-2" onClick={ () => { this.setState({sectionCIsCollapsed: !sectionCIsCollapsed}); } }>
+                    <Icon iconId="palette" className="size-sm mr-2 color-pink"/>
+                    <span class="pl-1 color-default">{ __('GlobalStylesSection') }</span>
+                    <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
+                </button>
+                <GlobalStylesSection
+                    isVisible={ !sectionCIsCollapsed }
+                    onVarChanged={ (...args) => this.props.currentWebPage.setCssVarValue(...args) }/>
             </section>
         </>;
     }

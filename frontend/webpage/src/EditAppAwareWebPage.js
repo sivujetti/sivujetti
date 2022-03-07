@@ -369,6 +369,17 @@ class EditAppAwareWebPage {
         return out;
     }
     /**
+     * @param {String} varName
+     * @param {RawCssValue} to
+     */
+    setCssVarValue(varName, {type, value}) {
+        if (!/^[a-zA-Z_]{1}\w*$/.test(varName))
+            throw new Error(`\`${varName}\` is not valid var name`);
+        if (type !== 'color')
+            throw new Error('Not implemented yet');
+        document.documentElement.style.setProperty(`--${varName}`, `#${value.join('')}`);
+    }
+    /**
      * @param {HTMLElement} outerEl = document.body
      * @access private
      */

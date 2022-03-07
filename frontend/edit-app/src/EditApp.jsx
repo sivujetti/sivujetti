@@ -1,7 +1,7 @@
 import {__, api, signals, http, env, urlUtils} from '@sivujetti-commons-for-edit-app';
 import Icon from './commons/Icon.jsx';
 import toasters, {Toaster} from './commons/Toaster.jsx';
-import DefaultMainPanelView from './DefaultMainPanelView.jsx';
+import DefaultMainPanelView from './DefaultView/DefaultMainPanelView.jsx';
 import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
 import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType/PageTypeCreateMainPanelView.jsx';
 import {FloatingDialog} from './FloatingDialog.jsx';
@@ -113,7 +113,8 @@ class EditApp extends preact.Component {
                             // Does same as startAddPageMode above
                             api.webPageIframe.openPlaceholderPage('Draft');
                         });
-                    } }/>
+                    } }
+                    currentWebPage={ this.currentWebPage }/>
                 : !isPlaceholderPageType(pageType)
                     ? <PageCreateMainPanelView
                         blockTreesRef={ this.blockTrees }

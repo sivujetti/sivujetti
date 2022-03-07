@@ -28,6 +28,7 @@ urlUtils.env = env;
 //
 api.getPageTypes = () => mockPageTypes;
 api.getBlockRenderers = () => [];
+api.getActiveTheme = () => ({id: '1'});
 api.webPageIframe = {scrollTo: () => null};
 api.mainPanel = {scrollTo: () => null};
 //

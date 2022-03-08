@@ -2,8 +2,7 @@
 
 namespace Sivujetti\TheWebsite;
 
-use Pike\FluentDb;
-use Pike\Db\NoDupeMapper;
+use Pike\Db\{FluentDb, NoDupeRowMapper};
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Plugin\Entities\Plugin;
 use Sivujetti\Theme\Entities\Theme;
@@ -11,7 +10,7 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class TheWebsiteRepository {
     /**
-     * @param \Pike\FluentDb $db
+     * @param \Pike\Db\FluentDb $db
      * @return ?\Sivujetti\TheWebsite\Entities\TheWebsite
      */
     public static function fetchActive(FluentDb $db): ?TheWebsite {
@@ -33,7 +32,7 @@ final class TheWebsiteRepository {
             ->leftJoin("\${p}plugins p ON (1)")
             ->leftJoin("\${p}pageTypes pt ON (1)")
             ->leftJoin("\${p}themes t ON (t.`isActive` = 1)")
-            ->mapWith(new class("name") extends NoDupeMapper {
+            ->mapWith(new class("name") extends NoDupeRowMapper {
                 public function doMapRow(object $row, int $i, array $allRows): object {
                     $keys = [];
                     $row->plugins = new \ArrayObject;

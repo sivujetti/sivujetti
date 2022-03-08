@@ -13,7 +13,7 @@ class GlobalStylesSection extends preact.Component {
     componentDidMount() {
         this.setState({numStyles: null});
         this.activeThemeId = api.getActiveTheme().id;
-        mockHttpGet(`/api/themes/${this.activeThemeId}/allStyles`)
+        http.get(`/api/themes/${this.activeThemeId}/styles`)
             .then(allStyles => {
                 this.allStyles = allStyles;
                 this.pickers = new Map;
@@ -26,9 +26,11 @@ class GlobalStylesSection extends preact.Component {
      * @param {{isVisible: Boolean; onVarChanged: (varName: String, value: String) => void;}} props
      * @access protected
      */
-    render({isVisible}, {numStyles}) {
-        if (!isVisible || numStyles === undefined) return;
-        if (numStyles === null) return <LoadingSpinner/>;
+    render(_, {numStyles}) {
+        if (numStyles === undefined)
+            return null;
+        if (numStyles === null)
+            return <LoadingSpinner/>;
         return <div class="mt-2 global-styles">
             { this.allStyles.map(({name, friendlyName}) =>
             <div class="d-flex">
@@ -78,7 +80,7 @@ class GlobalStylesSection extends preact.Component {
      */
     applyNewColorAndEmitChangeOp(instance, varName, color = instance.getColor()) {
         instance.setHSVA(color.h, color.s, color.v, color.a);
-        // mutate
+        // mutate this.allStyles
         const before = JSON.parse(JSON.stringify(this.allStyles));
         const idx = this.allStyles.findIndex(s => s.name === varName);
         this.allStyles[idx].value.value = instance.getColor().toHEXA().slice(0, 4);
@@ -131,17 +133,6 @@ class GlobalStylesSection extends preact.Component {
         this.setState({[varName]: hexa.toString(), [`${varName}IsValid`]: true});
         this.props.onVarChanged(varName, {type: 'color', value: hexa.slice(0, 4)});
     }
-}
-
-function mockHttpGet(_url) {
-    return new Promise(resolve => {
-        setTimeout(() => {
-            resolve([
-                {"name":"defaultTextColor","friendlyName":"Text (default)","value":{"type":"color","value":["44", "44", "44", "ff"]}},
-                {"name":"secondaryTextColor","friendlyName":"Text (secondary)","value":{"type":"color","value":["21","96","f3","ff"]}},
-            ]);
-        }, 40);
-    });
 }
 
 /**

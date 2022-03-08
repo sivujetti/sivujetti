@@ -4,6 +4,8 @@ namespace Sivujetti\Theme\Entities;
 
 final class Theme {
     /** @var string */
+    public string $id;
+    /** @var string */
     public string $name;
     /** @var object[] [{name: string, friendlyName: string, value: {type: "color", value: string[]}}] */
     public array $globalStyles;
@@ -13,6 +15,7 @@ final class Theme {
      */
     public static function fromParentRs(object $row): Theme {
         $out = new self;
+        $out->id = "1";
         $out->name = $row->themeName;
         $out->globalStyles = json_decode($row->themeGlobalStylesJson, flags: JSON_THROW_ON_ERROR);
         return $out;

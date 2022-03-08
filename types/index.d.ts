@@ -172,7 +172,7 @@ interface TheWebsite {
     baseUrl: String;
     assetBaseUrl: String;
     pageTypes: Array<PageType>;
-    activeThemeId: String;
+    activeTheme: {id: String;};
     blockRenderers: Array<BlockRenderer>;
 }
 

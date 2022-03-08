@@ -3,9 +3,10 @@
 namespace Sivujetti;
 
 use Auryn\Injector;
-use Pike\{App as PikeApp, FluentDb, NativeSession, PikeException, Request, Response, Router, ServiceDefaults};
+use Pike\{App as PikeApp, NativeSession, PikeException, Request, Response, Router, ServiceDefaults};
 use Pike\Auth\Authenticator;
 use Pike\Auth\Defaults\DefaultCookieStorage;
+use Pike\Db\FluentDb;
 use Pike\Defaults\DefaultUserRepository;
 use Sivujetti\Auth\AuthModule;
 use Sivujetti\Block\BlocksModule;
@@ -21,6 +22,7 @@ use Sivujetti\Page\PagesModule;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\PageTypesModule;
 use Sivujetti\Plugin\Entities\Plugin;
+use Sivujetti\Theme\ThemesModule;
 use Sivujetti\TheWebsite\TheWebsiteRepository;
 use Sivujetti\Update\UpdatesModule;
 use Sivujetti\Upload\UploadsModule;
@@ -49,6 +51,7 @@ final class App {
             new GlobalBlockTreesModule,
             new LayoutsModule,
             new PageTypesModule,
+            new ThemesModule,
             new UpdatesModule,
             new UploadsModule,
             new PagesModule,

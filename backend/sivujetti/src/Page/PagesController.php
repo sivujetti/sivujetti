@@ -111,6 +111,7 @@ final class PagesController {
                 "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
                 "assetBaseUrl" => WebPageAwareTemplate::makeUrl("/", false),
                 "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
+                "activeTheme" => (object) ["id" => $theWebsite->activeTheme],
                 "blockRenderers" => $apiCtx->validBlockRenderers,
                 "showGoToDashboardMode" => $config->get("app.showGoToDashboardMode", false),
                 "dashboardUrl" => $config->get("app.dashboardUrl", ""),

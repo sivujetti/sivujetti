@@ -2,11 +2,12 @@
 
 namespace Sivujetti;
 
-use Pike\{AppContext as PikeAppContext, FluentDb};
+use Pike\AppContext as PikeAppContext;
+use Pike\Db\FluentDb;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class AppContext extends PikeAppContext {
-    /** @var \Pike\FluentDb */
+    /** @var \Pike\Db\FluentDb */
     public FluentDb $fluentDb;
     /** @var \Sivujetti\SharedAPIContext */
     public SharedAPIContext $apiCtx;

@@ -34,6 +34,9 @@ $out->resources = (object) [
         "update"         => 0b00000100,
         "delete"         => 0b00001000,
     ],
+    "themes" => (object) [
+        "view"           => 0b00000010,
+    ],
     "uploads" => (object) [
         "view"           => 0b00000010,
         "upload"         => 0b00000100,
@@ -47,6 +50,7 @@ $out->userPermissions = (object) [
         "editMode"         => ACL::makePermissions("*", $out->resources->editMode),
         "layouts"          => ACL::makePermissions("*", $out->resources->layouts),
         "pages"            => ACL::makePermissions("*", $out->resources->pages),
+        "themes"           => ACL::makePermissions("*", $out->resources->themes),
         "uploads"          => ACL::makePermissions("*", $out->resources->uploads),
     ]
 ];

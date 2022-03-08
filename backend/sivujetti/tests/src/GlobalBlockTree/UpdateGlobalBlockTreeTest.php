@@ -6,7 +6,7 @@ use Pike\PikeException;
 use Sivujetti\Block\{BlocksController, BlockTree};
 use Sivujetti\Tests\Utils\PageTestUtils;
 
-final class UpdateGlobalBlockTreeTest extends GlobalBlockTreeControllerTestCase {
+final class UpdateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase {
     public function testUpdateGlobalBlockTreeBlocksWritesUpdatedDataToDb(): void {
         $state = $this->setupTest();
         $this->insertTestGlobalBlockTreeToDb($state);

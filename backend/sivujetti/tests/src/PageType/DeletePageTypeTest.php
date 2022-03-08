@@ -6,7 +6,7 @@ use Pike\ArrayUtils;
 use Sivujetti\PageType\{PageTypeMigrator};
 use Sivujetti\TheWebsite\TheWebsiteRepository;
 
-final class DeletePageTypeTest extends PageTypeControllerTestCase {
+final class DeletePageTypeTest extends PageTypesControllerTestCase {
     public function testDeletePlaceholderPageTypeDeletesPageTypeToDb(): void {
         $state = $this->setupTest();
         $this->insertPlaceholderPageTypeToDb();
@@ -26,7 +26,7 @@ final class DeletePageTypeTest extends PageTypeControllerTestCase {
         $state->spyingResponse = $state->app->sendRequest($this->createApiRequest($url, "DELETE"));
     }
     private function verifyDeletePageTypeFromDb(\TestState $state): void {
-        $all = (new TheWebsiteRepository())->fetchActive(self::$db)->pageTypes;
+        $all = (new TheWebsiteRepository())->fetchActive(new \Pike\Db\FluentDb(self::$db))->pageTypes;
         $actual = ArrayUtils::findByKey($all, PageTypeMigrator::MAGIC_PAGE_TYPE_NAME, "name");
         $this->assertNull($actual);
     }

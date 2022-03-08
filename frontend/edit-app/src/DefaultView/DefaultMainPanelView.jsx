@@ -67,7 +67,7 @@ class DefaultMainPanelView extends preact.Component {
             <section class={ `panel-section${sectionCIsCollapsed ? '' : ' open'}` }>
                 <button class="d-flex col-12 flex-centered pr-2" onClick={ () => { this.setState({sectionCIsCollapsed: !sectionCIsCollapsed}); } }>
                     <Icon iconId="palette" className="size-sm mr-2 color-pink"/>
-                    <span class="pl-1 color-default">{ __('GlobalStylesSection') }</span>
+                    <span class="pl-1 color-default">{ __('Global styles') }</span>
                     <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
                 </button>
                 <GlobalStylesSection

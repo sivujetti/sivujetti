@@ -1,5 +1,6 @@
 import {api, http, __, env} from '@sivujetti-commons-for-edit-app';
 import LoadingSpinner from '../commons/LoadingSpinner.jsx';
+import toasters from '../commons/Toaster.jsx';
 import store, {pushItemToOpQueue} from '../store.js';
 
 class GlobalStylesSection extends preact.Component {
@@ -17,7 +18,7 @@ class GlobalStylesSection extends preact.Component {
             .then(allStyles => {
                 this.allStyles = allStyles;
                 this.pickers = new Map;
-                // {style1: color, style2: color ...}
+                // {style1: color, style1IsValid: true, style2: color, style2IsValid: true ...}
                 this.setState(createState(this.allStyles));
             })
             .catch(env.window.console.error);
@@ -31,11 +32,11 @@ class GlobalStylesSection extends preact.Component {
             return null;
         if (numStyles === null)
             return <LoadingSpinner/>;
-        return <div class="mt-2 global-styles">
+        return <div class="global-styles mt-2 pt-2">
             { this.allStyles.map(({name, friendlyName}) =>
             <div class="d-flex">
-                { /* div.pickr will appear here */ }
-                <label ref={ el => this.createColorPickerFor(name, el) }>
+                <div ref={ el => this.createColorPickerFor(name, el) }></div>
+                <label>
                     <span>{ __(friendlyName) }</span>
                     <input
                         onInput={ e => this.handleColorInputValChanged(e, name) }
@@ -83,12 +84,22 @@ class GlobalStylesSection extends preact.Component {
         // mutate this.allStyles
         const before = JSON.parse(JSON.stringify(this.allStyles));
         const idx = this.allStyles.findIndex(s => s.name === varName);
-        this.allStyles[idx].value.value = instance.getColor().toHEXA().slice(0, 4);
+        const hexOrHexa = instance.getColor().toHEXA().slice(0, 4);
+        this.allStyles[idx].value.value = hexOrHexa.length === 4 ? hexOrHexa : hexOrHexa.concat('ff');
         const after = JSON.parse(JSON.stringify(this.allStyles));
         //
         store.dispatch(pushItemToOpQueue('update-theme-allStyles', {
-            doHandle: ($newStyles, _$stylesBefore, $this) => {
-                // todo
+            doHandle: (_$newStyles, _$stylesBefore, $this) => {
+                return http.put(`/api/themes/${$this.activeThemeId}/styles`, {allStyles: $this.allStyles})
+                    .then(resp => {
+                        if (resp.ok !== 'ok') throw new Error('-');
+                        return true;
+                    })
+                    .catch(err => {
+                        env.window.console.error(err);
+                        toasters.editAppMain(__('Something unexpected happened.'), 'error');
+                        return false;
+                    });
             },
             doUndo(_$newStyles, $stylesBefore, $this) {
                 $this.allStyles = $stylesBefore; // Mutate

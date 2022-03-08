@@ -6,7 +6,7 @@ use Pike\PikeException;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\{PageTypeMigrator};
 
-final class UpdatePageTypeTest extends PageTypeControllerTestCase {
+final class UpdatePageTypeTest extends PageTypesControllerTestCase {
     protected const TEST_NAME = "MyCustomArticles";
     protected function tearDown(): void {
         parent::tearDown();

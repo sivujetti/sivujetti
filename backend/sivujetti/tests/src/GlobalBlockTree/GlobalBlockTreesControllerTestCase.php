@@ -7,7 +7,7 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\Tests\Utils\{BlockTestUtils, DbDataHelper, HttpApiTestTrait};
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 
-abstract class GlobalBlockTreeControllerTestCase extends DbTestCase {
+abstract class GlobalBlockTreesControllerTestCase extends DbTestCase {
     use HttpTestUtils;
     use HttpApiTestTrait;
     protected DbDataHelper $dbDataHelper;

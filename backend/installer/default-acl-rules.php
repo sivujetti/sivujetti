@@ -36,6 +36,7 @@ $out->resources = (object) [
     ],
     "themes" => (object) [
         "view"           => 0b00000010,
+        "update"         => 0b00000100,
     ],
     "uploads" => (object) [
         "view"           => 0b00000010,

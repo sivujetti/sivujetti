@@ -395,6 +395,9 @@ a.popup-close-area {
     flex: 1;
     flex-direction: column-reverse;
 }
+.global-styles > div > .pickr + div {
+    display: none;
+}
 .global-styles .pickr {
     align-self: end;
     margin-left: .26rem;
@@ -463,7 +466,7 @@ a.popup-close-area {
 }
 .panel-section.open > div,
 .panel-section.open > nav {
-    display: initial;
+    display: block;
 }
 .panel-section > button {
     font-size: .75rem;
@@ -672,7 +675,8 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 }
 
 /* EditApp: Main panel > Global Styles -section */
-.hidden-helper-picker + .pickr {
+.hidden-helper-picker + .pickr,
+.global-styles > .pickr {
     display: none;
 }
 

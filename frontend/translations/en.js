@@ -61,6 +61,7 @@ stringBundles.push({
     'My website': 'My website',
     'Pages': 'Pages',
     'page': 'page',
+    'Global styles': 'Global styles',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Edit mode',
     'Exit edit mode': 'Exit edit mode',

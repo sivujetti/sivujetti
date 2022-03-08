@@ -6,6 +6,7 @@
 
 ## Added
 - &lt;selectPageType&gt; -dropdown to Listing blocks
+- Global styles for themes
 
 ## Fixed
 - Bugs

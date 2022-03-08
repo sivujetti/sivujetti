@@ -13,5 +13,9 @@ final class ThemesModule {
             [ThemesController::class, "getStyles", ["consumes" => "application/json",
                                                     "identifiedBy" => ["view", "themes"]]],
         );
+        $ctx->router->map("PUT", "/api/themes/[i:themeId]/styles",
+            [ThemesController::class, "updateStyles", ["consumes" => "application/json",
+                                                       "identifiedBy" => ["update", "themes"]]],
+        );
     }
 }

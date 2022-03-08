@@ -9,7 +9,7 @@ use Sivujetti\PageType\{FieldCollection, PageTypeMigrator, PageTypesController};
 use Sivujetti\Tests\Utils\{BlockTestUtils, DbDataHelper, HttpApiTestTrait};
 use Sivujetti\TheWebsite\TheWebsiteRepository;
 
-abstract class PageTypeControllerTestCase extends DbTestCase {
+abstract class PageTypesControllerTestCase extends DbTestCase {
     use HttpTestUtils;
     use HttpApiTestTrait;
     protected BlockTestUtils $blockTestUtils;
@@ -40,7 +40,7 @@ abstract class PageTypeControllerTestCase extends DbTestCase {
         $this->assertEquals("ok", $actualBody->ok);
     }
     protected function verifyPageTypeInDbEquals(object $expected, int $expectedStatus): void {
-        $all = (new TheWebsiteRepository())->fetchActive(self::$db)->pageTypes;
+        $all = (new TheWebsiteRepository())->fetchActive(new \Pike\Db\FluentDb(self::$db))->pageTypes;
         $actual = ArrayUtils::findByKey($all, $expected->name, "name");
         $this->assertNotNull($actual);
         $this->assertEquals($expected->slug, $actual->slug);

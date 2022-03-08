@@ -3,40 +3,13 @@
 namespace Sivujetti\Tests\Theme;
 
 use Sivujetti\App;
-use Sivujetti\Tests\Utils\{DbDataHelper, HttpApiTestTrait};
-use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 
-final class GetThemeStylesTest extends DbTestCase {
-    use HttpTestUtils;
-    use HttpApiTestTrait;
-    protected DbDataHelper $dbDataHelper;
-    protected function setUp(): void {
-        parent::setUp();
-        $this->dbDataHelper = new DbDataHelper(self::$db);
-    }
+final class GetThemeStylesTest extends ThemesControllerTestCase {
     public function testListStylesReturnsListOfThemesStyles(): void {
-        $state = $this->setupTest();
+        $state = parent::createDefaultTestState();
         $this->insertTestTheme($state);
         $this->sendListThemeStylesRequest($state);
         $this->verifyReturnedThemesStylesFromDb($state);
-    }
-    private function setupTest(): \TestState {
-        $state = new \TestState;
-        $state->testStyles = [
-            (object)["name"=>"textColor","friendlyName"=>"1",
-                     "value"=>(object)["type"=>"color","value"=>["ff","00","00","ff"]]],
-            (object)["name"=>"headerColor","friendlyName"=>"2",
-                     "value"=>(object)["type"=>"color","value"=>["00","ff","00","ff"]]],
-        ];
-        $state->testThemeId = null;
-        $state->spyingResponse = null;
-        return $state;
-    }
-    private function insertTestTheme(\TestState $state): void {
-        $state->testThemeId = $this->dbDataHelper->insertData((object) [
-            "name" => "get-styles-test-theme",
-            "globalStyles" => json_encode($state->testStyles),
-        ], "themes");
     }
     private function sendListThemeStylesRequest(\TestState $state): void {
         $app = $this->makeApp(fn() => App::create(self::setGetConfig()));
@@ -58,7 +31,7 @@ final class GetThemeStylesTest extends DbTestCase {
 
 
     public function testListStylesReturnsNothingIfThemeDoesNotExist(): void {
-        $state = $this->setupTest();
+        $state = parent::createDefaultTestState();
         $state->testThemeId = "999";
         $this->sendListThemeStylesRequest($state);
         $this->verifyReturnedNothingFromDb($state);

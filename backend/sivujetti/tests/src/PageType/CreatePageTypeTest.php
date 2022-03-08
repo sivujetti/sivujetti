@@ -5,7 +5,7 @@ namespace Sivujetti\Tests\PageType;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\PageTypesController;
 
-final class CreatePageTypeTest extends PageTypeControllerTestCase {
+final class CreatePageTypeTest extends PageTypesControllerTestCase {
     public function testCreatePageTypeInsertsNewPageTypeWithOwnFieldsToDb(): void {
         $state = $this->setupTest();
         $this->makeTestSivujettiApp($state);

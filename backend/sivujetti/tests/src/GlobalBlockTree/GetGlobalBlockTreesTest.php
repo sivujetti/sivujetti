@@ -4,7 +4,7 @@ namespace Sivujetti\Tests\GlobalBlockTree;
 
 use Sivujetti\Block\BlockTree;
 
-final class GetGlobalBlockTreesTest extends GlobalBlockTreeControllerTestCase {
+final class GetGlobalBlockTreesTest extends GlobalBlockTreesControllerTestCase {
     public function testGetGlobalBlockTreeByIdReturnsGlobalBlockTreeFromDb(): void {
         $state = $this->setupTest();
         $this->insertTestGlobalBlockTreeToDb($state);

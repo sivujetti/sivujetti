@@ -4,7 +4,7 @@ namespace Sivujetti\Tests\GlobalBlockTree;
 
 use Pike\PikeException;
 
-final class CreateGlobalBlockTreeTest extends GlobalBlockTreeControllerTestCase {
+final class CreateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase {
     public function testCreateGlobalBlockTreeInsertsDataToDb(): void {
         $state = $this->setupTest();
         $this->makeTestSivujettiApp($state);

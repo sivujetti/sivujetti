@@ -61,6 +61,7 @@ stringBundles.push({
     'My website': 'Sivustoni',
     'Pages': 'Sivut',
     'page': 'sivu',
+    'Global styles': 'Globaalit tyylit',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Muokkaustila',
     'Exit edit mode': 'Poistu muokkaustilasta',

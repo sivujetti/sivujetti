@@ -408,6 +408,17 @@ class EditAppAwareWebPage {
             });
             a.hasListener = true;
         });
+        Array.from(outerEl.querySelectorAll('.jet-form button[type="submit"]')).forEach(btn => {
+            if (btn.hasListener)
+                return;
+            btn.addEventListener('click', e => {
+                if (e.button !== 0) return;
+                e.preventDefault();
+                if (this.isMouseListenersDisabled)
+                    btn.click();
+            });
+            btn.hasListener = true;
+        });
     }
     /**
      * @param {Block} block

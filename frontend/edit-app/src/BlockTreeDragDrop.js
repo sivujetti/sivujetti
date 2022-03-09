@@ -4,6 +4,8 @@ class BlockTreeDragDrop {
     // blockTree;
     // onDropped;
     // startEl;
+    // startElChildUl;
+    // startElParentUl;
     // startElDropGroup;
     // curDropTypeCandidate;
     // startLiDivRect;
@@ -21,6 +23,8 @@ class BlockTreeDragDrop {
      */
     handleDragStarted(e) {
         this.startEl = e.target;
+        this.startElChildUl = this.startEl.classList.contains('with-children') ? this.startEl.querySelector('ul') : null;
+        this.startElParentUl = this.startEl.parentElement;
         this.startElDropGroup = this.startEl.getAttribute('data-drop-group');
         this.startEl.classList.add('dragging');
         this.startLiDivRect = this.startEl.querySelector('.d-flex').getBoundingClientRect();
@@ -44,6 +48,8 @@ class BlockTreeDragDrop {
         const distance = this.getDistance(rect);
         if (distance === 0 && this.curDropTypeCandidate.el === li)
             return;
+        if (distance > 0 && this.startElChildUl && this.startElChildUl.contains(li))
+            return;
         // Enable handleDraggableDropped (developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/Drag_operations#specifying_drop_targets)
         e.preventDefault();
         //
@@ -64,7 +70,10 @@ class BlockTreeDragDrop {
             */
             if (e.clientY > rect.top + rect.height - edge) {
                 newCandidate.dropPosition = distance !== -1 ? 'after' : 'as-child';
-                if (newCandidate.dropPosition === 'after' && distance < 0 && !doAcceptEdgeDrop(li))
+                // Disallow 'after + :last-child' -drops outside the tree
+                if (newCandidate.dropPosition === 'after' && distance !== 0 &&
+                    li.parentElement !== this.startElParentUl &&
+                    li.parentElement.lastElementChild === li)
                     return;
             } else if (e.clientY > rect.top + edge) {
                 newCandidate.dropPosition = 'as-child';
@@ -77,6 +86,10 @@ class BlockTreeDragDrop {
         //
         if (newCandidate.dropPosition === this.curDropTypeCandidate.dropPosition &&
             newCandidate.el === this.curDropTypeCandidate.el) return;
+        // Disallow child > parent drops
+        if (newCandidate.dropPosition === 'as-child' && newCandidate.el.classList.contains('with-children') &&
+            this.startElParentUl === newCandidate.el.querySelector('ul'))
+            return;
         //
         if (this.curDropTypeCandidate.el && this.curDropTypeCandidate.dropPosition !== 'self') {
             this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
@@ -179,18 +192,6 @@ class BlockTreeDragDrop {
         this.startEl.classList.remove('dragging');
         this.startEl = null;
     }
-}
-
-/**
- * @param {HTMLLIElement} li
- * @returns {Boolean}
- */
-function doAcceptEdgeDrop(li) {
-    if (li.classList.contains('with-children')) return false;
-    const liUpper = li.parentElement.parentElement;
-    if (!liUpper || !liUpper.classList.contains('with-children')) return true;
-    const ul = li.parentElement;
-    return ul.childElementCount > 1 && ul.lastElementChild === li ? false : true;
 }
 
 export default BlockTreeDragDrop;

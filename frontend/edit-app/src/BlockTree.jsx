@@ -121,15 +121,16 @@ class BlockTree extends preact.Component {
             newBlock._cref = _cref;
             toArr.splice(toArr.indexOf(after) + 1, 0, newBlock); // Note: mutates this.state.blockTree or globalBlockTreeBlocks.someTree
             //
-            this.setState((alterState || function (s, _) { return s; })({
+            const newState = (alterState || function (s, _) { return s; })({
                 blockTree: this.state.blockTree,
                 treeState: Object.assign(this.state.treeState,
                     {[newBlock.id]: createTreeStateItem({isNew: true})})
-            }, newBlock));
-            //
-            return newBlock;
-        }).then(newBlock => {
-            signals.emit('on-block-tree-placeholder-block-appended', newBlock, position, after);
+            }, newBlock);
+            this.setState(newState);
+            return {newState, newBlock};
+        }).then(({newState, newBlock}) => {
+            if (newState.treeState[newBlock.id].isNew)
+                signals.emit('on-block-tree-placeholder-block-appended', newBlock, position, after);
             return newBlock;
         });
     }

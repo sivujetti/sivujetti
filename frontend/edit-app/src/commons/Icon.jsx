@@ -2,7 +2,7 @@ import {urlUtils} from '@sivujetti-commons-for-edit-app';
 
 class Icon extends preact.Component {
     /**
-     * @param {{iconId: string; className?: string;}} props
+     * @param {{iconId: String; className?: String;}} props
      * @access protected
      */
     render({iconId, className}) {
@@ -12,4 +12,16 @@ class Icon extends preact.Component {
     }
 }
 
+/**
+ * @param {String} iconId
+ * @param {String?} className
+ * @returns {String}
+ */
+function asString(iconId, className) {
+    return '<svg class="icon-tabler' + (!className ? '' : ` ${className}`) + '" width="24" height="24">' +
+        `<use xlink:href="${urlUtils.assetBaseUrl}public/sivujetti/assets/tabler-sprite-custom.svg#tabler-${iconId}"/>` +
+    '</svg>';
+}
+
 export default Icon;
+export {asString};

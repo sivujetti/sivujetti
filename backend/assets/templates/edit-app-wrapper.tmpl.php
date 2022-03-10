@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.css") ?>">
+        <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/jspanel-custom.min.css") ?>">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/pickr-theme-nano.min.css") ?>">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.css") ?>">
         <?php if ($isFirstRun): ?>
@@ -28,6 +29,7 @@
             <iframe src="<?= $this->url("{$url}?in-edit") ?>" id="sivujetti-site-iframe"></iframe>
         </div>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.js") ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/vendor/jspanel.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/pickr.min.js") ?>"></script>
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
         <script>window.translationStringBundles = []</script>
@@ -89,6 +91,5 @@
             setTimeout(showIntroIfPageHasLoaded, waitMs);
         })()</script>
         <?php endif; ?>
-        <script src="https://unpkg.com/draggabilly@3/dist/draggabilly.pkgd.min.js"></script>
     </body>
 </html>

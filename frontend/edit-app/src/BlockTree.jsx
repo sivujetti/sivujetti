@@ -417,7 +417,8 @@ class BlockTree extends preact.Component {
         } else if (link.id === 'convert-block-to-global') {
             const blockTreeToStore = this.state.blockWithNavOpened;
             floatingDialog.open(ConvertBlockToGlobalDialog, {
-                title: __('Convert to global')
+                title: __('Convert to global'),
+                height: 238,
             }, {
                 blockToConvertAndStore: blockTreeToStore,
                 onConfirmed: data => this.doConvertBlockToGlobal(data, blockTreeToStore),

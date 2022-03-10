@@ -167,6 +167,15 @@ h2 {
 .ql-snow .ql-tooltip {
     z-index: 1;
 }
+.jsPanel .jsPanel-content {
+    padding: 0 1rem 1rem 1rem;
+}
+.jsPanel-headerbar {
+    padding: 1rem;
+}
+.jsPanel-titlebar .jsPanel-title {
+    font: 800 1.4rem/1.4rem "Fira Sans"
+}
 @keyframes adjust-main-panel {
     to {
         height: 70%;
@@ -255,15 +264,6 @@ h2 {
     transform: initial;
 }
 
-.floating-dialog {
-    position: fixed;
-    z-index: 2;
-    top: 0;
-    left: 0;
-}
-.floating-dialog .box {
-    box-shadow: rgba(50,50,93,.25) 0 13px 27px -5px, rgba(0,0,0,.3) 0 8px 16px -8px, rgba(0,0,0,.2) 0 -6px 16px -6px;
-}
 .has-icon-right .form-input {
     padding-right: 1.6rem;
 }

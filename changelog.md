@@ -7,6 +7,7 @@
 ## Added
 - &lt;selectPageType&gt; -dropdown to Listing blocks
 - Global styles for themes
+- Resizable floating dialogs
 
 ## Fixed
 - Bugs

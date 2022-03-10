@@ -59,8 +59,13 @@ function configureServices() {
     blockTypes.register('Section', createSectionBlockType);
     api.blockTypes = blockTypes;
     //
+    patchQuillEditor();
+}
+
+function patchQuillEditor() {
     const Quill = window.Quill;
     Quill.debug('error');
+    //
     const Keyboard = Quill.import('modules/keyboard');
     class CustomKeyboard extends Keyboard { }
     CustomKeyboard.DEFAULTS = Object.assign({}, Keyboard.DEFAULTS, Object.assign(
@@ -68,6 +73,27 @@ function configureServices() {
         {bindings: {['list autofill']: undefined,}}
     ));
     Quill.register('modules/keyboard', CustomKeyboard);
+    //
+    // https://codepen.io/anon/pen/GNMXZa
+    const Link = Quill.import('formats/link');
+    class CustomLink extends Link {
+        static create(value) {
+            const node = super.create(value);
+            if (node.host === env.window.location.host) {
+                node.removeAttribute('rel');
+                node.removeAttribute('target');
+            }
+            return node;
+        }
+        static sanitize(url) {
+            if (url.startsWith(urlUtils.baseUrl))
+                return super.sanitize(url);
+            return super.sanitize(url.indexOf('.') < 0
+                ? urlUtils.makeUrl(url)
+                : `${url.startsWith('//') || url.startsWith('http') ? '' : '//'}${url}`);
+        }
+    }
+    Quill.register(CustomLink);
 }
 
 function renderReactEditApp() {

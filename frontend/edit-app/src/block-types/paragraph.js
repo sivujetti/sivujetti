@@ -82,15 +82,16 @@ class ParagraphBlockEditForm extends preact.Component {
 
 export default () => {
     const initialData = {text: __('Paragraph text'), cssClass: ''};
+    const name = 'Paragraph';
     return {
-        name: 'Paragraph',
+        name,
         friendlyName: 'Paragraph',
         ownPropNames: Object.keys(initialData),
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'letter-p',
         reRender({text, cssClass}, renderChildren) {
-            return `<p${cssClass? ` class="${cssClass}"` : ''}>${text}${renderChildren()}</p>`;
+            return `<p${cssClass? ` class="${cssClass}"` : ''} data-block-type="${name}">${text}${renderChildren()}</p>`;
         },
         createSnapshot: from => ({
             text: from.text,

@@ -87,8 +87,9 @@ export default () => {
         takeFullWidth: 1,
         cssClass: ''
     };
+    const name = 'Columns';
     return {
-        name: 'Columns',
+        name,
         friendlyName: 'Columns',
         ownPropNames: Object.keys(initialData),
         initialData,
@@ -98,7 +99,7 @@ export default () => {
             return ['<div class="jet-columns num-cols-', Math.floor(numColumns),
                 takeFullWidth ? '' : ' inline',
                 !cssClass ? '' : ` ${cssClass}`,
-                '">',
+                '" data-block-type="', name, '">',
                 renderChildren(),
             '</div>'].join('');
         },

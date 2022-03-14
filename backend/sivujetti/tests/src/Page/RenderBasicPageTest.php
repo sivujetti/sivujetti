@@ -20,6 +20,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->verifyRenderedCorrectPageAndLayout($state);
         $this->verifyThemeCanRegisterCssFiles($state);
         $this->verifyRenderedGlobalStyles($state);
+        $this->verifyRenderedBlockTypeBaseStyles($state);
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
@@ -64,5 +65,11 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $noStyles = ""; // backend/sivujetti/tests/test-db-init.php (INSERT INTO themes)
         $this->assertStringContainsString("<style>:root {" . $noStyles . "}</style>",
             $state->spyingResponse->getActualBody());
+    }
+    private function verifyRenderedBlockTypeBaseStyles(\TestState $state): void {
+        $t = "\"Section\"";
+        $expectedCss = "[data-block-type={$t}] { padding: 4rem 2rem; }";
+        $this->assertStringContainsString("<style data-styles-for-block-type={$t}>{$expectedCss}</style>",
+                                          $state->spyingResponse->getActualBody());
     }
 }

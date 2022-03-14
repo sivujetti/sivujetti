@@ -13,6 +13,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}pageTypes`",
 "DROP TABLE IF EXISTS `\${p}categories`",
 "DROP TABLE IF EXISTS `\${p}plugins`",
+"DROP TABLE IF EXISTS `\${p}themeBlockTypeStyles`",
 "DROP TABLE IF EXISTS `\${p}themes`",
 "DROP TABLE IF EXISTS `\${p}theWebsite`",
 "DROP TABLE IF EXISTS `\${p}users`",
@@ -49,6 +50,14 @@ return [
     `globalStyles` JSON,
     `isActive` TINYINT(1) NOT NULL,
     PRIMARY KEY (`id`)
+) DEFAULT CHARSET = utf8mb4",
+
+"CREATE TABLE `\${p}themeBlockTypeStyles` (
+    `styles` TEXT,
+    `blockTypeName` VARCHAR(92) NOT NULL,
+    `themeId` SMALLINT UNSIGNED NOT NULL,
+    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
+    PRIMARY KEY (`blockTypeName`, `themeId`)
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}plugins` (

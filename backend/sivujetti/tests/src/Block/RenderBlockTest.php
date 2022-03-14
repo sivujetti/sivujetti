@@ -19,7 +19,9 @@ final class RenderBlockTest extends RenderBlocksTestCase {
     }
     private function verifyReturnedRenderOutput(\TestState $state): void {
         $expected = $this->blockTestUtils->decorateWithRef($state->testBlock,
-            "<section class=\"\"><div data-block-root><span id=\"temp-marker\"></span></div></section>"
+            "<section class=\"\" data-block-type=\"Section\">" .
+                "<div data-block-root><span id=\"temp-marker\"></span></div>" .
+            "</section>"
         );
         $this->verifyResponseBodyEquals((object) ["result" => $expected],
                                         $state->spyingResponse);

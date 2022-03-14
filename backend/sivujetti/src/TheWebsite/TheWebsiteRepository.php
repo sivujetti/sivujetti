@@ -27,31 +27,18 @@ final class TheWebsiteRepository {
                 "pt.`defaultLayoutId` AS `pageTypeDefaultLayoutId`",
                 "pt.`status` AS `pageTypeStatus`",
                 "pt.`isListable` AS `pageTypeIsListable`",
-                "t.`name` AS `themeName`", "t.`globalStyles` AS `themeGlobalStylesJson`"
+                "t.`id` AS `themeId`", "t.`name` AS `themeName`", "t.`globalStyles` AS `themeGlobalStylesJson`",
+                "tbts.`blockTypeName` AS `themeBlockStylesBlockTypeName`", "tbts.`styles` AS `themeBlockStylesStyles`"
             ])
             ->leftJoin("\${p}plugins p ON (1)")
             ->leftJoin("\${p}pageTypes pt ON (1)")
             ->leftJoin("\${p}themes t ON (t.`isActive` = 1)")
+            ->leftJoin("\${p}themeBlockTypeStyles tbts ON (tbts.`themeId` = t.`id`)")
             ->mapWith(new class("name") extends NoDupeRowMapper {
                 public function doMapRow(object $row, int $i, array $allRows): object {
-                    $keys = [];
-                    $row->plugins = new \ArrayObject;
-                    foreach ($allRows as $row2) {
-                        if (!$row2->pluginName || array_key_exists($row2->pluginName, $keys)) continue;
-                        $row->plugins[] = Plugin::fromParentRs($row2);
-                        $keys[$row2->pluginName] = 1;
-                    }
-                    //
-                    $keys = [];
-                    $row->pageTypes = new \ArrayObject;
-                    foreach ($allRows as $row2) {
-                        if (!$row2->pageTypeName || array_key_exists($row2->pageTypeName, $keys)) continue;
-                        $row->pageTypes[] = PageType::fromParentRs($row2);
-                        $keys[$row2->pageTypeName] = 1;
-                    }
-                    //
-                    if (!isset($row->activeTheme) && $row2->themeName)
-                        $row->activeTheme = Theme::fromParentRs($row2);
+                    $row->plugins = self::collectOnce($allRows, fn($row2) => Plugin::fromParentRs($row2), "pluginName");
+                    $row->pageTypes = self::collectOnce($allRows, fn($row2) => PageType::fromParentRs($row2), "pageTypeName");
+                    $row->activeTheme = Theme::fromParentRs($row, $allRows);
                     return $row;
                 }
             })

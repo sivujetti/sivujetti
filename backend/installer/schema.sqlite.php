@@ -12,6 +12,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}pageTypes`",
 "DROP TABLE IF EXISTS `\${p}categories`",
 "DROP TABLE IF EXISTS `\${p}plugins`",
+"DROP TABLE IF EXISTS `\${p}themeBlockTypeStyles`",
 "DROP TABLE IF EXISTS `\${p}themes`",
 "DROP TABLE IF EXISTS `\${p}theWebsite`",
 "DROP TABLE IF EXISTS `\${p}users`",
@@ -46,6 +47,14 @@ return [
     `name` TEXT NOT NULL,
     `globalStyles` JSON,
     `isActive` INTEGER NOT NULL DEFAULT 0
+)",
+
+"CREATE TABLE `\${p}themeBlockTypeStyles` (
+    `styles` TEXT,
+    `blockTypeName` TEXT NOT NULL,
+    `themeId` INTEGER NOT NULL,
+    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
+    PRIMARY KEY (`blockTypeName`, `themeId`)
 )",
 
 "CREATE TABLE `\${p}plugins` (

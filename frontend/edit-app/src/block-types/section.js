@@ -79,8 +79,9 @@ class SectionBlockEditForm extends preact.Component {
 
 export default () => {
     const initialData = {bgImage: '', cssClass: ''};
+    const name = 'Section';
     return {
-        name: 'Section',
+        name,
         friendlyName: 'Section',
         ownPropNames: Object.keys(initialData),
         initialData,
@@ -89,7 +90,7 @@ export default () => {
         reRender({bgImage, cssClass}, renderChildren) {
             return `<section${cssClass? ` class="${cssClass}"` : ''}` +
                 (bgImage ? ` style="background-image:url('${urlUtils.makeAssetUrl(bgImage)}')"` : '') +
-                '><div data-block-root>' +
+                ` data-block-type="${name}"><div data-block-root>` +
                 renderChildren() +
             '</div></section>';
         },

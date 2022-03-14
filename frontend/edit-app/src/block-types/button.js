@@ -119,8 +119,9 @@ class ButtonBlockEditForm extends preact.Component {
 
 export default () => {
     const initialData = {html: `${__('Button text')}`, linkTo: '/', tagType: 'link', cssClass: ''};
+    const name = 'Button';
     return {
-        name: 'Button',
+        name,
         friendlyName: 'Button',
         ownPropNames: Object.keys(initialData),
         initialData,
@@ -134,7 +135,7 @@ export default () => {
                 [tagTypes.NORMAL_BUTTON]: ['<button type="button"', '</button>'],
                 [tagTypes.SUBMIT_BUTTON]: ['<button type="submit"', '</button>'],
             }[tagType] || [`<a href="${maybeExternalUrl(linkTo)}"`, '</a>'];
-            return ['<p class="button">', startInnerTag, ' class="btn',
+            return ['<p class="button" data-block-type="', name, '">', startInnerTag, ' class="btn',
                 (cssClass ? ` ${cssClass}` : ''), '" data-block-root>',
                     html,
                     renderChildren(),

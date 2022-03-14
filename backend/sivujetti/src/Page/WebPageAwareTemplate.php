@@ -7,27 +7,30 @@ use Sivujetti\{Template, ValidationUtils};
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
+use Sivujetti\Theme\Entities\Theme;
 
 final class WebPageAwareTemplate extends Template {
     /** @var ?object */
     private ?object $__cssAndJsFiles;
-    /** @var object[] */
-    private array $__globalStyles;
+    /** @var \Sivujetti\Theme\Entities\Theme */
+    private ?Theme $__theme;
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
      * @param ?array<string, mixed> $initialLocals = null
      * @param ?object $cssAndJsFiles = null
-     * @param array<int, object>|null $globalStyles = null
+     * @param ?\Sivujetti\Theme\Entities\Theme $theme = null
      */
     public function __construct(string $file,
                                 ?array $vars = null,
                                 ?array $initialLocals = null,
                                 ?object $cssAndJsFiles = null,
-                                ?array $globalStyles = null) {
+                                ?Theme $theme = null,
+                                ?array $blockStyles = null,
+                                ?bool $doUseEditableStyles = null) {
         parent::__construct($file, $vars, $initialLocals);
         $this->__cssAndJsFiles = $cssAndJsFiles;
-        $this->__globalStyles = $globalStyles ?? [];
+        $this->__theme = $theme;
     }
     /**
      * @param string $name
@@ -141,13 +144,19 @@ final class WebPageAwareTemplate extends Template {
             return "<link href=\"{$this->assetUrl("public/{$this->e($f->url)}")}\"" .
                 $this->attrMapToStr($attrsMap) . ">";
         }, $this->__cssAndJsFiles->css)) .
-        // Inline styles
+        // Global variables
         "<style>:root {" .
             implode("", array_map(fn($style) =>
                 // Note: these are pre-validated
                 "    --{$style->name}: {$this->cssValueToString($style->value)};"
-            , $this->__globalStyles)) .
-        "}</style>";
+            , $this->__theme->globalStyles)) .
+        "}</style>" .
+        // Base styles for each block type
+        implode("", array_map(function ($style)  {
+            return "<style data-styles-for-block-type=\"{$style->blockTypeName}\">" .
+                "[data-block-type=\"{$style->blockTypeName}\"] {$style->styles}" .
+            "</style>";
+        }, $this->__theme?->blockTypeStyles ?? []));
     }
     /**
      * @return string

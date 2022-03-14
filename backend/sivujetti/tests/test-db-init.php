@@ -11,6 +11,9 @@ $statements = array_merge($statements, [
 "INSERT INTO `themes` (`id`,`name`,`globalStyles`,`isActive`) VALUES
 ('1','test-suite-theme','[]',1)",
 
+"INSERT INTO `themeBlockTypeStyles` (`styles`,`blockTypeName`,`themeId`) VALUES
+('{ padding: 4rem 2rem; }','Section','1')",
+
 "INSERT INTO `pageTypes` (`id`,`name`,`slug`,`friendlyName`,`friendlyNamePlural`,`description`" .
                           ",`fields`,`defaultLayoutId`,`status`,`isListable`) VALUES
 (1,'Pages','pages','Page','Pages','','" . json_encode([

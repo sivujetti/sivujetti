@@ -14,4 +14,6 @@ const api = {}; // see frontend/edit-app/main.js
 
 export * from '../commons-for-web-pages/main.js';
 export * from './src/Form3.jsx';
+export * from './src/FloatingDialog.jsx';
+export * from './src/Icon.jsx';
 export {__, translator, signals, api};

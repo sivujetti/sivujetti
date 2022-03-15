@@ -1,5 +1,4 @@
-import {__, http, env} from '@sivujetti-commons-for-edit-app';
-import Icon from '../commons/Icon.jsx';
+import {__, http, env, Icon} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
 import BlockTrees from '../BlockTrees.jsx';
 import store, {deleteItemsFromOpQueueAfter, setOpQueue} from '../store.js';

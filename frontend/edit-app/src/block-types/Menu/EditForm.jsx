@@ -1,5 +1,4 @@
-import {__} from '@sivujetti-commons-for-edit-app';
-import Icon from '../../commons/Icon.jsx';
+import {__, Icon} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import EditItemPanel from './EditItemPanel.jsx';
 

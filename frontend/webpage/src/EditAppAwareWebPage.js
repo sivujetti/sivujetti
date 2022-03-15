@@ -373,11 +373,28 @@ class EditAppAwareWebPage {
      * @param {RawCssValue} to
      */
     setCssVarValue(varName, {type, value}) {
-        if (!/^[a-zA-Z_]{1}\w*$/.test(varName))
+        if (!isValidIdentifier(varName))
             throw new Error(`\`${varName}\` is not valid var name`);
         if (type !== 'color')
             throw new Error('Not implemented yet');
         document.documentElement.style.setProperty(`--${varName}`, `#${value.join('')}`);
+    }
+    /**
+     * Note: this method does not validate the input css in any way.
+     *
+     * @param {{type: 'singleBlock'|'blockType'|'global'; id: String;}} style
+     * @param {String} css
+     */
+    updateCssStyles({type, id}, css) {
+        if (type === 'singleBlock') {
+            // todo
+        } else if (type === 'blockType') {
+            if (!isValidIdentifier(id))
+                throw new Error(`\`${id}\` is not valid block type name`);
+            document.head.querySelector(`style[data-styles-for-block-type="${id}"]`).innerHTML=`[data-block-type="${id}"]${css}`;
+        } else if (type === 'global') {
+            // todo
+        } else throw new Error();
     }
     /**
      * @param {HTMLElement} outerEl = document.body
@@ -599,6 +616,14 @@ function getTitleEls() {
 function createIsLocalLinkCheckFn(location = window.location) {
     const host = location.hostname;
     return a => a.hostname === host || !a.hostname.length;
+}
+
+/**
+ * @param {String} str
+ * @returns {Boolean}
+ */
+function isValidIdentifier(str) {
+    return /^[a-zA-Z_]{1}\w*$/.test(str);
 }
 
 export default EditAppAwareWebPage;

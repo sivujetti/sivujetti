@@ -1,5 +1,4 @@
-import {__, env} from '@sivujetti-commons-for-edit-app';
-import Icon from './commons/Icon.jsx';
+import {__, env, Icon} from '@sivujetti-commons-for-edit-app';
 import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from './store.js';
 
 let isUndoKeyListenersAdded = false;

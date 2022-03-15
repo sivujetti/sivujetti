@@ -1,6 +1,4 @@
-import {__} from '@sivujetti-commons-for-edit-app';
-import Icon from '../commons/Icon.jsx';
-import floatingDialog from '../FloatingDialog.jsx';
+import {__, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import UploadsManager from '../Upload/UploadsManager.jsx';
 
 class ImagePickerFieldWidget extends preact.Component {

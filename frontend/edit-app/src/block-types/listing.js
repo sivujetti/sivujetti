@@ -1,5 +1,4 @@
-import {__, env, http, api, FormGroupInline} from '@sivujetti-commons-for-edit-app';
-import Icon from '../commons/Icon.jsx';
+import {__, env, http, api, FormGroupInline, Icon} from '@sivujetti-commons-for-edit-app';
 
 class ListingBlockEditForm extends preact.Component {
     // selectedPageTypeBundle;

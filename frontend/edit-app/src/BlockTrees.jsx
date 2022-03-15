@@ -1,5 +1,4 @@
-import {__, http, signals, api} from '@sivujetti-commons-for-edit-app';
-import Icon from './commons/Icon.jsx';
+import {__, http, signals, api, Icon} from '@sivujetti-commons-for-edit-app';
 import toasters from './commons/Toaster.jsx';
 import BlockTree from './BlockTree.jsx';
 import blockTreeUtils from './blockTreeUtils.js';

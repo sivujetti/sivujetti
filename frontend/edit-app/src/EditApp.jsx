@@ -1,10 +1,8 @@
-import {__, api, signals, http, env, urlUtils} from '@sivujetti-commons-for-edit-app';
-import Icon from './commons/Icon.jsx';
+import {__, api, signals, http, env, urlUtils, FloatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import toasters, {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultView/DefaultMainPanelView.jsx';
 import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
 import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType/PageTypeCreateMainPanelView.jsx';
-import {FloatingDialog} from './FloatingDialog.jsx';
 import store, {setCurrentPage, setOpQueue} from './store.js';
 import SaveButton from './SaveButton.jsx';
 import {findBlockTemp} from './BlockTree.jsx';
@@ -97,6 +95,7 @@ class EditApp extends preact.Component {
             </header>
             { showMainPanel
                 ? <DefaultMainPanelView
+                    sections={ ['content', 'globalStyles'] }
                     blockTreesRef={ this.blockTrees }
                     startAddPageMode={ () => {
                         // Open to iframe to '/_edit/api/_placeholder-page...',

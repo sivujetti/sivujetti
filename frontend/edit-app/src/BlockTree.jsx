@@ -1,6 +1,5 @@
-import {__, signals, http, env, api} from '@sivujetti-commons-for-edit-app';
+import {__, signals, http, env, api, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from './commons/ContextMenu.jsx';
-import Icon from './commons/Icon.jsx';
 import toasters from './commons/Toaster.jsx';
 import BlockTypeSelector, {normalizeGlobalBlockTreeBlock} from './BlockTypeSelector.jsx';
 import BlockTreeShowHelpPopup from './BlockTreeShowHelpPopup.jsx';
@@ -8,7 +7,6 @@ import Block from './Block.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from './store.js';
 import BlockTreeDragDrop from './BlockTreeDragDrop.js';
-import floatingDialog from './FloatingDialog.jsx';
 import ConvertBlockToGlobalDialog from './ConvertBlockToGlobalBlockTreeDialog.jsx';
 import {getIcon} from './block-types/block-types.js';
 

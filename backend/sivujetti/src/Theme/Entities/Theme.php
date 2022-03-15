@@ -3,6 +3,7 @@
 namespace Sivujetti\Theme\Entities;
 
 use Pike\Db\NoDupeRowMapper;
+use Sivujetti\BlockType\Entities\BlockTypeStyles;
 
 final class Theme {
     /** @var string */
@@ -24,11 +25,8 @@ final class Theme {
         $out->name = $row->themeName;
         $out->globalStyles = json_decode($row->themeGlobalStylesJson, flags: JSON_THROW_ON_ERROR);
         $out->blockTypeStyles = NoDupeRowMapper::collectOnce($rows, fn($row2) =>
-            $row2->themeId === $out->id ? (object) [
-                "blockTypeName" => $row->themeBlockStylesBlockTypeName,
-                "styles" => $row->themeBlockStylesStyles,
-            ] : null
-        , "themeBlockStylesBlockTypeName", []);
+            $row2->themeId === $out->id ? BlockTypeStyles::fromParentRs($row) : null
+        , "themeBlockTypeStylesBlockTypeName", []);
         return $out;
     }
 }

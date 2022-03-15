@@ -1,4 +1,4 @@
-import Icon from './Icon.jsx';
+import {Icon} from '@sivujetti-commons-for-edit-app';
 
 const validationStrings = {};
 

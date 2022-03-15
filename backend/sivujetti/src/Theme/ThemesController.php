@@ -2,8 +2,9 @@
 
 namespace Sivujetti\Theme;
 
-use Pike\Db\FluentDb;
+use Pike\Db\{FluentDb, NoDupeRowMapper};
 use Pike\{Request, Response, Validation};
+use Sivujetti\BlockType\Entities\BlockTypeStyles;
 use Sivujetti\ValidationUtils;
 
 final class ThemesController {
@@ -15,15 +16,33 @@ final class ThemesController {
      * @param \Pike\Db\FluentDb $db
      */
     public function getStyles(Request $req, Response $res, FluentDb $db): void {
-        $obj = $db->select("themes", "stdClass")
-            ->fields(["`globalStyles` AS `stylesJson`"])
-            ->where("`id` = ?", [$req->params->themeId])
-            ->fetch();
+        $obj = $db->select("\${p}`themes` t", "stdClass")
+            ->fields([
+                "t.`id` as `themeId`",
+                "t.`globalStyles` AS `globalStyles`",
+                "tbts.`blockTypeName` AS `themeBlockTypeStylesBlockTypeName`",
+                "tbts.`styles` AS `themeBlockTypeStylesStyles`"
+            ])
+            ->leftJoin("`\${p}themeBlockTypeStyles` tbts ON (tbts.`themeId` = t.`id`)")
+            ->mapWith(new class("themeId") extends NoDupeRowMapper {
+                public function doMapRow(object $row, int $i, array $allRows): object {
+                    $row->globalStyles = json_decode($row->globalStyles, flags: JSON_THROW_ON_ERROR);
+                    $row->blockTypeStyles = self::collectOnce($allRows, fn($row) =>
+                        BlockTypeStyles::fromParentRs($row)
+                    , "themeBlockTypeStylesBlockTypeName", []);
+                    unset($row->themeId);
+                    unset($row->themeBlockTypeStylesBlockTypeName);
+                    unset($row->themeBlockTypeStylesStyles);
+                    return $row;
+                }
+            })
+            ->where("t.`id` = ?", [$req->params->themeId])
+            ->fetchAll()[0] ?? null;
         if (!$obj) {
             $res->status(404)->json([]);
             return;
         }
-        $res->json(json_decode($obj->stylesJson, flags: JSON_THROW_ON_ERROR));
+        $res->json($obj);
     }
     /**
      * PUT /api/themes/:themeId/styles: Overwrites $req->params->themeId theme's styles.
@@ -33,11 +52,11 @@ final class ThemesController {
      * @param \Pike\Db\FluentDb $db
      */
     public function updateStyles(Request $req, Response $res, FluentDb $db): void {
-        if (($errors = $this->validateOverwriteStylesInput($req->body))) {
+        if (($errors = $this->validateOverwriteGlobalStylesInput($req->body))) {
             $res->status(400)->json($errors);
             return;
         }
-        $numRows = $db->update("themes")
+        $numRows = $db->update("\${p}themes")
             ->values((object) ["globalStyles" => json_encode($req->body->allStyles, JSON_UNESCAPED_UNICODE)])
             ->where("`id` = ?", [$req->params->themeId])
             ->execute();
@@ -51,7 +70,7 @@ final class ThemesController {
      * @param object $input
      * @return string[] Error messages or []
      */
-    private function validateOverwriteStylesInput(object $input): array {
+    private function validateOverwriteGlobalStylesInput(object $input): array {
         return Validation::makeObjectValidator()
             ->rule("allStyles", "minLength", 1, "array")
             ->rule("allStyles.*.name", "identifier")

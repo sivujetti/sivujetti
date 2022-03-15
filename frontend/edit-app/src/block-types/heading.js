@@ -1,6 +1,5 @@
-import {__, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroup, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+import {__, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroup, FormGroupInline, Icon} from '@sivujetti-commons-for-edit-app';
 import QuillEditor from '../commons/QuillEditor.jsx';
-import Icon from '../commons/Icon.jsx';
 import {validationConstraints} from '../constants.js';
 import {unParagraphify} from './paragraph.js';
 import setFocusTo from './auto-focusers.js';

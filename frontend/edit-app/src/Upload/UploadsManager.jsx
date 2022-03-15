@@ -1,5 +1,4 @@
-import {__, urlUtils, http, env} from '@sivujetti-commons-for-edit-app';
-import Icon from '../commons/Icon.jsx';
+import {__, urlUtils, http, env, Icon} from '@sivujetti-commons-for-edit-app';
 import Tabs from '../commons/Tabs.jsx';
 import {timingUtils} from '../commons/utils.js';
 import LoadingSpinner from '../commons/LoadingSpinner.jsx';

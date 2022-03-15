@@ -8,8 +8,12 @@ final class GetThemeStylesTest extends ThemesControllerTestCase {
     public function testListStylesReturnsListOfThemesStyles(): void {
         $state = parent::createDefaultTestState();
         $this->insertTestTheme($state);
+        $this->insertTestBlockTypeStylesForTestTheme($state);
         $this->sendListThemeStylesRequest($state);
         $this->verifyReturnedThemesStylesFromDb($state);
+    }
+    private function insertTestBlockTypeStylesForTestTheme(\TestState $state): void {
+        $this->dbDataHelper->insertData($state->testBlockTypeStyles, "themeBlockTypeStyles");
     }
     private function sendListThemeStylesRequest(\TestState $state): void {
         $app = $this->makeApp(fn() => App::create(self::setGetConfig()));
@@ -18,12 +22,22 @@ final class GetThemeStylesTest extends ThemesControllerTestCase {
     }
     private function verifyReturnedThemesStylesFromDb(\TestState $state): void {
         $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
-        $actualStyles = json_decode($state->spyingResponse->getActualBody(), flags: JSON_THROW_ON_ERROR);
-        $this->assertCount(2, $actualStyles);
-        $this->assertEquals("textColor", $actualStyles[0]->name);
-        $this->assertEquals("ff0000ff", implode("", $actualStyles[0]->value->value));
-        $this->assertEquals("headerColor", $actualStyles[1]->name);
-        $this->assertEquals("00ff00ff", implode("", $actualStyles[1]->value->value));
+        $resp = json_decode($state->spyingResponse->getActualBody(), flags: JSON_THROW_ON_ERROR);
+        $actualGlobalStyles = $resp->globalStyles;
+        $this->assertCount(2, $actualGlobalStyles);
+        $this->assertEquals("textColor", $actualGlobalStyles[0]->name);
+        $this->assertEquals("ff0000ff", implode("", $actualGlobalStyles[0]->value->value));
+        $this->assertEquals("headerColor", $actualGlobalStyles[1]->name);
+        $this->assertEquals("00ff00ff", implode("", $actualGlobalStyles[1]->value->value));
+        //
+        $expectedBlockTypeStyles = $state->testBlockTypeStyles;
+        $actualBlockTypeStyles = $resp->blockTypeStyles;
+        $this->assertCount(2, $actualBlockTypeStyles);
+        usort($actualBlockTypeStyles, fn($a, $b) => $b->blockTypeName <=> $a->blockTypeName);
+        $this->assertEquals($expectedBlockTypeStyles[0]->blockTypeName, $actualBlockTypeStyles[0]->blockTypeName);
+        $this->assertEquals($expectedBlockTypeStyles[0]->styles, $actualBlockTypeStyles[0]->styles);
+        $this->assertEquals($expectedBlockTypeStyles[1]->blockTypeName, $actualBlockTypeStyles[1]->blockTypeName);
+        $this->assertEquals($expectedBlockTypeStyles[1]->styles, $actualBlockTypeStyles[1]->styles);
     }
 
 

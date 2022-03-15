@@ -1,7 +1,6 @@
-import {__} from '@sivujetti-commons-for-edit-app';
+import {__, floatingDialog} from '@sivujetti-commons-for-edit-app';
 import {hookForm, InputGroup, Input, InputError} from './commons/Form.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
-import floatingDialog from './FloatingDialog.jsx';
 
 class ConvertBlockToGlobalBlockTreeDialog extends preact.Component {
     /**

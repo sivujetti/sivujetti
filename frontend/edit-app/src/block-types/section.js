@@ -1,5 +1,4 @@
-import {__, urlUtils, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
-import Icon from '../commons/Icon.jsx';
+import {__, urlUtils, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline, Icon} from '@sivujetti-commons-for-edit-app';
 import {validationConstraints} from '../constants.js';
 import ImagePicker from '../BlockWidget/ImagePicker.jsx';
 import {UPLOADS_DIR_PATH} from '../Upload/UploadsManager.jsx';

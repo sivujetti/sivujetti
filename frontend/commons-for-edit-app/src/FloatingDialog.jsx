@@ -1,4 +1,4 @@
-import {asString} from './commons/Icon.jsx';
+import {iconAsString} from './Icon.jsx';
 
 let currentInstance = {
     open: null,
@@ -68,7 +68,7 @@ class FloatingDialog extends preact.Component {
                 smallify: 'remove',
             },
             callback: panel => {
-                panel.querySelector('.jsPanel-btn-close').innerHTML = asString('circle-x');
+                panel.querySelector('.jsPanel-btn-close').innerHTML = iconAsString('circle-x');
             },
             onbeforeclose: () => {
                 this.currentEl = null;
@@ -108,5 +108,4 @@ function createState(input, out) {
  * @prop {Number?} height
  */
 
-export default currentInstance;
-export {FloatingDialog};
+export {FloatingDialog, currentInstance as floatingDialog};

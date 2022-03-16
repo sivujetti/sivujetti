@@ -42,4 +42,7 @@ abstract class ThemesControllerTestCase extends DbTestCase {
             $state->testBlockTypeStyles[$i]->themeId = $state->testThemeId;
         }
     }
+    protected function insertTestBlockTypeStylesForTestTheme(\TestState $state): void {
+        $this->dbDataHelper->insertData($state->testBlockTypeStyles, "themeBlockTypeStyles");
+    }
 }

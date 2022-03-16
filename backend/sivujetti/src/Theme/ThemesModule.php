@@ -13,9 +13,13 @@ final class ThemesModule {
             [ThemesController::class, "getStyles", ["consumes" => "application/json",
                                                     "identifiedBy" => ["view", "themes"]]],
         );
-        $ctx->router->map("PUT", "/api/themes/[i:themeId]/styles",
-            [ThemesController::class, "updateStyles", ["consumes" => "application/json",
-                                                       "identifiedBy" => ["update", "themes"]]],
+        $ctx->router->map("PUT", "/api/themes/[i:themeId]/styles/block-type/[w:blockTypeName]",
+            [ThemesController::class, "updateBlockTypeStyles", ["consumes" => "application/json",
+                                                                "identifiedBy" => ["update", "themes"]]],
+        );
+        $ctx->router->map("PUT", "/api/themes/[i:themeId]/styles/global",
+            [ThemesController::class, "updateGlobalStyles", ["consumes" => "application/json",
+                                                             "identifiedBy" => ["update", "themes"]]],
         );
     }
 }

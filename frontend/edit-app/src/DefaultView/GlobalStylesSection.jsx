@@ -109,8 +109,8 @@ class GlobalStylesSection extends Section {
             this.setState(newState);
             return;
         }
-        this.applyGlobalVarToState(varName, canonicalized);
-        this.applyNewColorAndEmitChangeOp(this.pickers.get(varName), varName, this.helperPicker.getColor());
+        this.applyGlobalVarToState(varName, canonicalized.slice(0, 4));
+        this.applyNewColorAndEmitChangeOp('global', varName, this.helperPicker.getColor(), this.pickers.get(varName));
     }
     /**
      * @param {String} blockTypeName
@@ -118,70 +118,65 @@ class GlobalStylesSection extends Section {
      * @access private
      */
     handleBlockTypeCssChanged(blockTypeName, newStyles) {
+        newStyles = newStyles.trim();
         this.applyBlockStylesToState(blockTypeName, newStyles);
-        this.applyNewColorAndEmitChangeOp2(blockTypeName, newStyles);
+        this.applyNewColorAndEmitChangeOp('blockType', blockTypeName, newStyles);
     }
     /**
-     * @param {Object} instance
-     * @param {String} varName
-     * @param {PickrColor|null} color = instance.getColor()
+     * @param {'global'|'blockType'} type
+     * @param {String} id Global var name or block type name
+     * @param {String|PickrColor} newStyles
      * @access private
      */
-    applyNewColorAndEmitChangeOp(instance, varName, color = instance.getColor()) {
-        instance.setHSVA(color.h, color.s, color.v, color.a);
-        // mutate this.allStyles
-        const before = JSON.parse(JSON.stringify(this.styles.globalStyles));
-        const idx = this.styles.globalStyles.findIndex(s => s.name === varName);
-        const hexOrHexa = instance.getColor().toHEXA().slice(0, 4);
-        this.styles.globalStyles[idx].value.value = hexOrHexa.length === 4 ? hexOrHexa : hexOrHexa.concat('ff');
-        const after = JSON.parse(JSON.stringify(this.styles.globalStyles));
+    applyNewColorAndEmitChangeOp(type, id, newStyles) {
+        const findStyle = (from, id, key) => from.findIndex(s => s[key] === id, key);
+        let reverse, url, data;
+        // mutate this.allStyles or this.styles.blockTypeStyles
+        if (type === 'global') {
+            arguments[3].setHSVA(newStyles.h, newStyles.s, newStyles.v, newStyles.a);
+            //
+            const idx = findStyle(this.styles.globalStyles, id, 'name');
+            const before = this.styles.globalStyles[idx].value.value;
+            const hexOrHexa = newStyles.toHEXA().slice(0, 4);
+            this.styles.globalStyles[idx].value.value = hexOrHexa.length === 4 ? hexOrHexa : hexOrHexa.concat('ff');
+            //
+            url = `/api/themes/${this.activeThemeId}/styles/global`;
+            data = {allStyles: this.styles.globalStyles};
+            //
+            reverse = () => {
+                const idx = findStyle(this.styles.globalStyles, id, 'name');
+                this.styles.globalStyles[idx].value.value = before;
+                const asString = this.applyGlobalVarToState(id, before);
+                this.pickers.get(id).setColor(asString);
+            };
+        } else if (type === 'blockType') {
+            const idx = findStyle(this.styles.blockTypeStyles, id, 'blockTypeName');
+            const before = this.styles.blockTypeStyles[idx].styles;
+            this.styles.blockTypeStyles[idx].styles = newStyles;
+            //
+            url = `/api/themes/${this.activeThemeId}/styles/block-type/${id}`;
+            data = {styles: newStyles};
+            //
+            reverse = () => {
+                const idx = findStyle(this.styles.blockTypeStyles, id, 'blockTypeName');
+                this.styles.blockTypeStyles[idx].styles = before;
+                this.applyBlockStylesToState(id, before);
+            };
+        } else {
+            throw new Error();
+        }
+        const commit = () => http.put(url, data)
+            .then(resp => {
+                if (resp.ok !== 'ok') throw new Error('-');
+                return true;
+            })
+            .catch(err => {
+                env.window.console.error(err);
+                toasters.editAppMain(__('Something unexpected happened.'), 'error');
+                return false;
+            });
         //
-        store.dispatch(pushItemToOpQueue('update-theme-global-styles', {
-            doHandle: (_$newStyles, _$stylesBefore, $this) => {
-                return http.put(`/api/themes/${$this.activeThemeId}/global-styles`, {allStyles: $this.styles.globalStyles})
-                    .then(resp => {
-                        if (resp.ok !== 'ok') throw new Error('-');
-                        return true;
-                    })
-                    .catch(err => {
-                        env.window.console.error(err);
-                        toasters.editAppMain(__('Something unexpected happened.'), 'error');
-                        return false;
-                    });
-            },
-            doUndo(_$newStyles, $stylesBefore, $this) {
-                $this.styles.globalStyles = $stylesBefore; // Mutate
-                const newState = createState($this.styles.globalStyles);
-                $this.setState(newState);
-                $this.styles.globalStyles.forEach(({name}) => {
-                    $this.pickers.get(name).setColor(newState[name]);
-                });
-            },
-            args: [after, before, this],
-        }));
-    }
-    /**
-     * @param {String} blockTypeName
-     * @param {String} newStyles
-     * @access private
-     */
-    applyNewColorAndEmitChangeOp2(blockTypeName, newStyles) {
-        const findStyle = (all, name) => all.findIndex(s => s.blockTypeName === name);
-        // mutate this.styles.blockTypeStyles
-        const idx = findStyle(this.styles.blockTypeStyles, blockTypeName);
-        const before = this.styles.blockTypeStyles[idx].styles;
-        this.styles.blockTypeStyles[idx].styles = newStyles;
-        //
-        const commit = () =>  {
-            // todo
-        };
-        const reverse = () => {
-            const idx = findStyle(this.styles.blockTypeStyles, blockTypeName);
-            this.styles.blockTypeStyles[idx].styles = before;
-            this.applyBlockStylesToState(blockTypeName, before);
-        };
-        //
-        store.dispatch(pushItemToOpQueue('update-theme-block-type-styles', {
+        store.dispatch(pushItemToOpQueue(`update-theme-${type}-styles`, {
             doHandle: ($commit, _$reverse) =>
                 $commit()
             ,
@@ -207,21 +202,24 @@ class GlobalStylesSection extends Section {
             components: {preview: true, opacity: true, hue: true, interaction: {}}
         });
         pickr.on('change', (color, _source, _instance) => {
-            this.applyGlobalVarToState(varName, color.toHEXA());
+            this.applyGlobalVarToState(varName, color.toHEXA().slice(0, 4));
         }).on('changestop', (_source, instance) => {
-            this.applyNewColorAndEmitChangeOp(instance, varName);
+            this.applyNewColorAndEmitChangeOp('global', varName, instance.getColor(), instance);
         });
         //
         this.pickers.set(varName, pickr);
     }
     /**
      * @param {String} varName
-     * @param {PickrColor} hexa
+     * @param {[String, String, String, String]} hexa ['ff','00','00','ff']
+     * @returns {String} '#ff0000ff'
      * @access private
      */
     applyGlobalVarToState(varName, hexa) {
-        this.setState({[varName]: hexa.toString(), [`${varName}IsValid`]: true});
-        this.props.currentWebPage.setCssVarValue(varName, {type: 'color', value: hexa.slice(0, 4)});
+        const asString = `#${hexa.join('')}`;
+        this.setState({[varName]: asString, [`${varName}IsValid`]: true});
+        this.props.currentWebPage.setCssVarValue(varName, {type: 'color', value: hexa});
+        return asString;
     }
     /**
      * @param {String} blockTypeName

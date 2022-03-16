@@ -4,11 +4,11 @@ namespace Sivujetti\Tests\Theme;
 
 use Sivujetti\App;
 
-final class OverwriteThemeStylesTest extends ThemesControllerTestCase {
-    public function testUpdateStylesOverwritesThemesStyles(): void {
+final class OverwriteThemeGlobalStylesTest extends ThemesControllerTestCase {
+    public function testUpdateGlobalStylesOverwritesThemesStyles(): void {
         $state = $this->setupTest();
         $this->insertTestTheme($state);
-        $this->sendUpdateThemeStylesRequest($state);
+        $this->sendUpdateThemeGlobalStylesRequest($state);
         $this->verifyUpdatedThemesStylesToDb($state);
     }
     private function setupTest(): \TestState {
@@ -21,10 +21,11 @@ final class OverwriteThemeStylesTest extends ThemesControllerTestCase {
         ]];
         return $state;
     }
-    private function sendUpdateThemeStylesRequest(\TestState $state): void {
+    private function sendUpdateThemeGlobalStylesRequest(\TestState $state): void {
         $app = $this->makeApp(fn() => App::create(self::setGetConfig()));
         $state->spyingResponse = $app->sendRequest(
-            $this->createApiRequest("/api/themes/{$state->testThemeId}/styles", "PUT",
+            $this->createApiRequest("/api/themes/{$state->testThemeId}/styles/global",
+                                    "PUT",
                                     $state->testInput));
     }
     private function verifyUpdatedThemesStylesToDb(\TestState $state): void {
@@ -41,11 +42,11 @@ final class OverwriteThemeStylesTest extends ThemesControllerTestCase {
     ////////////////////////////////////////////////////////////////////////////
 
 
-    public function testUpdateStylesRejectsInvalidInputs(): void {
+    public function testUpdateGlobalStylesRejectsInvalidInputs(): void {
         $state = $this->setupTest();
         $state->testThemeId = "1";
         $state->testInput->allStyles = [];
-        $this->sendUpdateThemeStylesRequest($state);
+        $this->sendUpdateThemeGlobalStylesRequest($state);
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals(["The length of allStyles must be at least 1"], $state->spyingResponse);
 
@@ -59,7 +60,7 @@ final class OverwriteThemeStylesTest extends ThemesControllerTestCase {
                 ]
             ]
         ];
-        $this->sendUpdateThemeStylesRequest($state);
+        $this->sendUpdateThemeGlobalStylesRequest($state);
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals([
             "allStyles.0.name must contain only [a-zA-Z0-9_] and start with [a-zA-Z_]",
@@ -84,7 +85,7 @@ final class OverwriteThemeStylesTest extends ThemesControllerTestCase {
     public function testListStylesReturnsNothingIfThemeDoesNotExist(): void {
         $state = $this->setupTest();
         $state->testThemeId = "999";
-        $this->sendUpdateThemeStylesRequest($state);
+        $this->sendUpdateThemeGlobalStylesRequest($state);
         $this->verifyResponseMetaEquals(404, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals(["ok" => "err"], $state->spyingResponse);
     }

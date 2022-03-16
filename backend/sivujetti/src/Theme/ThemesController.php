@@ -4,6 +4,7 @@ namespace Sivujetti\Theme;
 
 use Pike\Db\{FluentDb, NoDupeRowMapper};
 use Pike\{Request, Response, Validation};
+use Sabberworm\CSS\Parser as CssParser;
 use Sivujetti\BlockType\Entities\BlockTypeStyles;
 use Sivujetti\ValidationUtils;
 
@@ -45,13 +46,37 @@ final class ThemesController {
         $res->json($obj);
     }
     /**
-     * PUT /api/themes/:themeId/styles: Overwrites $req->params->themeId theme's styles.
+     * PUT /api/themes/:themeId/styles/block-type/:blockTypeName: Overwrites
+     * $req->params->blockTypeName's styles of $req->params->themeId theme.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Pike\Db\FluentDb $db
      */
-    public function updateStyles(Request $req, Response $res, FluentDb $db): void {
+    public function updateBlockTypeStyles(Request $req, Response $res, FluentDb $db): void {
+        if (($errors = $this->validateOverwriteBlockTypeStylesInput($req->body))) {
+            $res->status(400)->json($errors);
+            return;
+        }
+        $numRows = $db->update("\${p}themeBlockTypeStyles")
+            ->values((object) ["styles" => $req->body->styles])
+            ->where("`blockTypeName` = ? AND `themeId` = ?", [$req->params->blockTypeName, $req->params->themeId])
+            ->execute();
+        if ($numRows !== 1) {
+            $res->status(404)->json(["ok" => "err"]);
+            return;
+        }
+        $res->json(["ok" => "ok"]);
+    }
+    /**
+     * PUT /api/themes/:themeId/styles/global: Overwrites $req->params->themeId
+     * theme's global styles.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Pike\Db\FluentDb $db
+     */
+    public function updateGlobalStyles(Request $req, Response $res, FluentDb $db): void {
         if (($errors = $this->validateOverwriteGlobalStylesInput($req->body))) {
             $res->status(400)->json($errors);
             return;
@@ -65,6 +90,26 @@ final class ThemesController {
             return;
         }
         $res->json(["ok" => "ok"]);
+    }
+    /**
+     * @param object $input
+     * @return string[] Error messages or []
+     */
+    private function validateOverwriteBlockTypeStylesInput(object $input): array {
+        return Validation::makeObjectValidator()
+            ->addRuleImpl("validCss", function ($value) {
+                if (!is_string($value))
+                    return false;
+                if (!strlen($value))
+                    return true;
+                $parser = new CssParser($value);
+                $cssDocument = $parser->parse();
+                return count($cssDocument->getAllDeclarationBlocks()) > 0;
+            }, "%s is not valid CSS")
+            ->rule("styles", "type", "string")
+            ->rule("styles", "maxLength", 512000)
+            ->rule("styles", "validCss")
+            ->validate($input);
     }
     /**
      * @param object $input

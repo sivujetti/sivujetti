@@ -12,9 +12,6 @@ final class GetThemeStylesTest extends ThemesControllerTestCase {
         $this->sendListThemeStylesRequest($state);
         $this->verifyReturnedThemesStylesFromDb($state);
     }
-    private function insertTestBlockTypeStylesForTestTheme(\TestState $state): void {
-        $this->dbDataHelper->insertData($state->testBlockTypeStyles, "themeBlockTypeStyles");
-    }
     private function sendListThemeStylesRequest(\TestState $state): void {
         $app = $this->makeApp(fn() => App::create(self::setGetConfig()));
         $state->spyingResponse = $app->sendRequest(

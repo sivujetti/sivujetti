@@ -1,6 +1,6 @@
 <?php
 if ($props->__pages ?? null): ?>
-<div class="listing listing-<?= strtolower($props->listPageType) ?>" data-block-type="<?= \Sivujetti\Block\Entities\Block::TYPE_LISTING ?>">
+<div class="listing listing-<?= strtolower($props->listPageType) ?>" data-block-type="<?= \Sivujetti\Block\Entities\Block::TYPE_LISTING ?>" data-block="<?= $props->id ?>">
     <?php foreach ($props->__pages as $page): ?>
     <article class="list-item list-item-<?= $page->slug ?>">
         <h2><?= $this->e($page->title) ?></h2>

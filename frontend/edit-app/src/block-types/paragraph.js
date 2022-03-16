@@ -90,8 +90,8 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'letter-p',
-        reRender({text, cssClass}, renderChildren) {
-            return `<p${cssClass? ` class="${cssClass}"` : ''} data-block-type="${name}">${text}${renderChildren()}</p>`;
+        reRender({text, cssClass, id}, renderChildren) {
+            return `<p${cssClass? ` class="${cssClass}"` : ''} data-block-type="${name}" data-block="${id}">${text}${renderChildren()}</p>`;
         },
         createSnapshot: from => ({
             text: from.text,

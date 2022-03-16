@@ -113,10 +113,22 @@ final class BlockTestUtils {
             ButtonBlockType::TAG_TYPE_SUBMIT_BUTTON => ["<button type=\"submit\"", "</button>"],
             default => ["<a href=\"{$lnk}\"", "</a>"],
         };
-        return "<p class=\"button\" data-block-type=\"Button\">" .
+        return "<p class=\"button\" data-block-type=\"Button\" data-block=\"{$rawBlock->id}\">" .
             "{$start} class=\"btn{$cls}\" data-block-root>" .
                 "{$rawBlock->html}{$childMarker}" .
             $end .
+        "</p>";
+    }
+    /**
+     * @param object $rawBlock
+     * @param ?string $cls = null
+     * @param string $childMarker = ""
+     */
+    public function getExpectedParagraphBlockOutput(object $rawBlock,
+                                                    ?string $cls = null,
+                                                    string $childMarker = ""): string {
+        return "<p{$cls} data-block-type=\"Paragraph\" data-block=\"{$rawBlock->id}\">" .
+            "{$rawBlock->text}{$childMarker}" .
         "</p>";
     }
 }

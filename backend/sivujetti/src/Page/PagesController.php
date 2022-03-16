@@ -237,7 +237,8 @@ final class PagesController {
         $html = (new WebPageAwareTemplate(
             $page->layout->relFilePath,
             cssAndJsFiles: $apiCtx->userDefinedAssets,
-            theme: $theWebsite->activeTheme
+            theme: $theWebsite->activeTheme,
+            blockStyles: $page->blockStyles
         ))->render([
             "currentPage" => $page,
             "currentUrl" => $req->path,

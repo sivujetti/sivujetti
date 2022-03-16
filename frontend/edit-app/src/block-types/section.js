@@ -86,10 +86,10 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-generic-wrapper',
         icon: 'layout-rows',
-        reRender({bgImage, cssClass}, renderChildren) {
+        reRender({bgImage, cssClass, id}, renderChildren) {
             return `<section${cssClass? ` class="${cssClass}"` : ''}` +
                 (bgImage ? ` style="background-image:url('${urlUtils.makeAssetUrl(bgImage)}')"` : '') +
-                ` data-block-type="${name}"><div data-block-root>` +
+                ` data-block-type="${name}" data-block="${id}"><div data-block-root>` +
                 renderChildren() +
             '</div></section>';
         },

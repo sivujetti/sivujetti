@@ -12,25 +12,31 @@ use Sivujetti\Theme\Entities\Theme;
 final class WebPageAwareTemplate extends Template {
     /** @var ?object */
     private ?object $__cssAndJsFiles;
-    /** @var \Sivujetti\Theme\Entities\Theme */
+    /** @var \Sivujetti\Theme\Entities\Theme */ 
     private ?Theme $__theme;
+    /** @var object[] [{blockId: string, styles: string}] */
+    private array $__blockStyles;
+    /** @var object[] [{blockId: string, styles: string}] */
+    private array $__secondPassBlockStyles;
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
      * @param ?array<string, mixed> $initialLocals = null
      * @param ?object $cssAndJsFiles = null
      * @param ?\Sivujetti\Theme\Entities\Theme $theme = null
+     * @param ?array<int, object> $blockStyles = null
      */
     public function __construct(string $file,
                                 ?array $vars = null,
                                 ?array $initialLocals = null,
                                 ?object $cssAndJsFiles = null,
                                 ?Theme $theme = null,
-                                ?array $blockStyles = null,
-                                ?bool $doUseEditableStyles = null) {
+                                ?array $blockStyles = null) {
         parent::__construct($file, $vars, $initialLocals);
         $this->__cssAndJsFiles = $cssAndJsFiles;
         $this->__theme = $theme;
+        $this->__blockStyles = $blockStyles ?? [];
+        $this->__secondPassBlockStyles = [];
     }
     /**
      * @param string $name
@@ -100,21 +106,26 @@ final class WebPageAwareTemplate extends Template {
             $out .= "<!-- block-start {$block->id}:{$block->type} -->" .
                 ($block->type !== Block::TYPE_GLOBAL_BLOCK_REF
                     ? $this->partial($block->renderer, $block)
-                    : $this->renderBlocks(self::getMutatedGlobalTreeBlocks($block))) .
+                    : $this->renderBlocks($this->getMutatedGlobalTreeBlocks($block))) .
             "<!-- block-end {$block->id} -->";
         return $out;
     }
     /**
-     * Note: mutates $block->__blobalBlockTree->blocks*->*
+     * Note: mutates $block->__blobalBlockTree->blocks*->* and $this->__secondPassBlockStyles
      *
      * @param \Sivujetti\Block\Entities\Block $globalBlockRef
      * @return \Sivujetti\Block\Entities\Block[]
      */
-    private static function getMutatedGlobalTreeBlocks(Block $globalBlockRef): array {
+    private function getMutatedGlobalTreeBlocks(Block $globalBlockRef): array {
         $overrides = $globalBlockRef->overrides;
-        $blocks = $globalBlockRef->__globalBlockTree?->blocks ?? [];
-        if ($overrides === GlobalBlockReferenceBlockType::EMPTY_OVERRIDES || !$blocks) return $blocks;
+        $gbt = $globalBlockRef->__globalBlockTree;
+        $blocks = $gbt->blocks;
         //
+        $this->__secondPassBlockStyles = array_merge($this->__secondPassBlockStyles,
+                                                     $gbt->blockStyles ?? []);
+        //
+        if ($overrides === GlobalBlockReferenceBlockType::EMPTY_OVERRIDES)
+            return $blocks;
         foreach (json_decode($overrides, flags: JSON_THROW_ON_ERROR) as $blockId => $perBlockPropOverrides) {
             $blockToOverride = BlockTree::findBlockById($blockId, $blocks);
             foreach ($perBlockPropOverrides as $key => $val) {
@@ -123,6 +134,7 @@ final class WebPageAwareTemplate extends Template {
                 $default->value = $val;
             }
         }
+        //
         return $blocks;
     }
     /**
@@ -137,26 +149,32 @@ final class WebPageAwareTemplate extends Template {
     public function cssFiles(): string {
         if (!$this->__cssAndJsFiles)
             return "";
+        return (
+        // Global variables
+        "<style>:root {" .
+            implode("\r\n", array_map(fn($style) =>
+                // Note: these are pre-validated
+                "    --{$style->name}: {$this->cssValueToString($style->value)};"
+            , $this->__theme->globalStyles)) .
+        "}</style>" .
         // External files
-        return implode(" ", array_map(function ($f) {
+        implode("\r\n", array_map(function ($f) {
             $attrsMap = $f->attrs;
             if (!array_key_exists("rel", $attrsMap)) $attrsMap["rel"] = "stylesheet";
             return "<link href=\"{$this->assetUrl("public/{$this->e($f->url)}")}\"" .
                 $this->attrMapToStr($attrsMap) . ">";
         }, $this->__cssAndJsFiles->css)) .
-        // Global variables
-        "<style>:root {" .
-            implode("", array_map(fn($style) =>
-                // Note: these are pre-validated
-                "    --{$style->name}: {$this->cssValueToString($style->value)};"
-            , $this->__theme->globalStyles)) .
-        "}</style>" .
         // Base styles for each block type
-        implode("", array_map(function ($style)  {
+        implode("\r\n", array_map(function ($style)  {
             return "<style data-styles-for-block-type=\"{$style->blockTypeName}\">" .
-                "[data-block-type=\"{$style->blockTypeName}\"] {$style->styles}" .
+                "[data-block-type=\"{$style->blockTypeName}\"]{$style->styles}" .
             "</style>";
-        }, $this->__theme?->blockTypeStyles ?? []));
+        }, $this->__theme->blockTypeStyles)) .
+        // Styles for this page's global block tree blocks
+        "<!-- ::editModeGlobalBlockStylesPlaceholder:: -->" .
+        // Styles for this page's blocks
+        self::renderEditModeBlockStyles($this->__blockStyles)
+        );
     }
     /**
      * @return string
@@ -173,6 +191,18 @@ final class WebPageAwareTemplate extends Template {
             return "{$pre}<script src=\"{$this->assetUrl("public/{$this->e($f->url)}")}\"" .
                 $this->attrMapToStr($attrsMap) . "></script>";
         }, $this->__cssAndJsFiles->js));
+    }
+    /**
+     * @inheritdoc
+     */
+    public function render(array $locals = []): string {
+        // First pass
+        $output = parent::render($locals);
+        // Seconds pass
+        $output = str_replace("<!-- ::editModeGlobalBlockStylesPlaceholder:: -->",
+                              self::renderEditModeBlockStyles($this->__secondPassBlockStyles),
+                              $output);
+        return $output;
     }
     /**
      * ["id" => "foo", "class" => "bar"] -> ' id="foo" class="bar"'
@@ -194,5 +224,17 @@ final class WebPageAwareTemplate extends Template {
             "color" => "#" . implode("", $value->value),
             "default" => throw new PikeException("Bad variable", PikeException::BAD_INPUT),
         };
+    }
+    /**
+     * @param object[] $styles [{blockId: string, styles: string}]
+     * @return string `<style data-styles-for-block="<blockid>">...`
+     */
+    private static function renderEditModeBlockStyles(array $styles): string {
+        return implode("\r\n", array_map(function ($style)  {
+            $selector = "[data-block=\"{$style->blockId}\"]";
+            return "<style data-styles-for-block=\"{$style->blockId}\">" .
+                $selector . str_replace("[[scope]]", $selector, $style->styles) .
+            "</style>";
+        }, $styles));
     }
 }

@@ -93,8 +93,8 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'heading',
-        reRender({level, text, cssClass}, renderChildren) {
-            return `<h${level}${cssClass? ` class="${cssClass}"` : ''} data-block-type="${name}">${text}${renderChildren()}</h${level}>`;
+        reRender({level, text, cssClass, id}, renderChildren) {
+            return `<h${level}${cssClass? ` class="${cssClass}"` : ''} data-block-type="${name}" data-block="${id}">${text}${renderChildren()}</h${level}>`;
         },
         createSnapshot: from => ({
             text: from.text,

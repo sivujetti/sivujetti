@@ -81,8 +81,9 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'photo',
-        reRender({src, cssClass}, renderChildren) {
-            return ['<span class="image', (cssClass ? ` ${cssClass}` : ''), '" data-block-type="', name ,'">',
+        reRender({src, cssClass, id}, renderChildren) {
+            return ['<span class="image', (cssClass ? ` ${cssClass}` : ''), '" data-block-type="', name,
+                '" data-block="', id, '">',
                 '<img src="', !src.startsWith('data:') ? urlUtils.makeAssetUrl(src) : src, '" alt="">',
                 renderChildren(),
             '</span>'].join('');

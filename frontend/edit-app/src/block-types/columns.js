@@ -95,11 +95,11 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-generic-wrapper',
         icon: 'layout-columns',
-        reRender({numColumns, takeFullWidth, cssClass}, renderChildren) {
+        reRender({numColumns, takeFullWidth, cssClass, id}, renderChildren) {
             return ['<div class="jet-columns num-cols-', Math.floor(numColumns),
                 takeFullWidth ? '' : ' inline',
                 !cssClass ? '' : ` ${cssClass}`,
-                '" data-block-type="', name, '">',
+                '" data-block-type="', name, '" data-block="', id, '">',
                 renderChildren(),
             '</div>'].join('');
         },

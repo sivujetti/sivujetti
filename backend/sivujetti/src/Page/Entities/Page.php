@@ -2,6 +2,8 @@
 
 namespace Sivujetti\Page\Entities;
 
+use Sivujetti\Layout\Entities\Layout;
+
 final class Page {
     public const STATUS_PUBLISHED = 0;
     public const STATUS_DRAFT = 1;
@@ -21,8 +23,10 @@ final class Page {
     public string $type;
     /** @var \Sivujetti\Block\Entities\Block[] */
     public array $blocks;
+    /** @var object[] [{blockId: string, styles: string}] */
+    public array $blockStyles;
     /** @var int self::STATUS_* */
     public int $status;
-    /** @var object */
-    public object $layout;
+    /** @var \Sivujetti\Layout\Entities\Layout */
+    public Layout $layout;
 }

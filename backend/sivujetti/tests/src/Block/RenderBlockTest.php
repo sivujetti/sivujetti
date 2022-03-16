@@ -19,7 +19,7 @@ final class RenderBlockTest extends RenderBlocksTestCase {
     }
     private function verifyReturnedRenderOutput(\TestState $state): void {
         $expected = $this->blockTestUtils->decorateWithRef($state->testBlock,
-            "<section class=\"\" data-block-type=\"Section\">" .
+            "<section class=\"\" data-block-type=\"Section\" data-block=\"{$state->testBlock->id}\">" .
                 "<div data-block-root><span id=\"temp-marker\"></span></div>" .
             "</section>"
         );

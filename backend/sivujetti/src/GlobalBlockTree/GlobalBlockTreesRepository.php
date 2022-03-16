@@ -3,19 +3,22 @@
 namespace Sivujetti\GlobalBlockTree;
 
 use Pike\Db;
-use Sivujetti\Block\{BlocksController, BlockTree};
-use Sivujetti\BlockType\Entities\BlockTypes;
+use Pike\Db\FluentDb;
+use Pike\Interfaces\RowMapperInterface;
 use Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree;
 use Sivujetti\Page\PagesRepository;
 
 final class GlobalBlockTreesRepository {
     /** @var \Pike\Db */
     private Db $db;
+    /** @var \Pike\Db\FluentDb */
+    private FluentDb $db2;
     /**
-     * @param \Pike\Db $db
+     * @param \Pike\Db\FluentDb $db
      */
-    public function __construct(Db $db) {
-        $this->db = $db;
+    public function __construct(FluentDb $db) {
+        $this->db = $db->getDb();
+        $this->db2 = $db;
     }
     /**
      * @param object $data
@@ -31,7 +34,9 @@ final class GlobalBlockTreesRepository {
      */
     public function getMany(): array {
         $rows = $this->db->fetchAll("SELECT `id`, `name`, `blocks` AS `blocksJson`" .
-                                    " FROM `\${p}globalBlocks` LIMIT 20",
+                                    ", NULL AS `blockStylesJson`" .
+                                    " FROM `\${p}globalBlocks`" .
+                                    " LIMIT 20",
                                     [],
                                     \PDO::FETCH_CLASS,
                                     GlobalBlockTree::class);
@@ -42,13 +47,20 @@ final class GlobalBlockTreesRepository {
      * @return \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree|null
      */
     public function getSingle(string $globalBlockTreeId): ?GlobalBlockTree {
-        $rows = $this->db->fetchAll("SELECT `id`, `name`, `blocks` AS `blocksJson`" .
-                                    " FROM `\${p}globalBlocks` WHERE `id` = ?",
-                                    [$globalBlockTreeId],
-                                    \PDO::FETCH_CLASS,
-                                    GlobalBlockTree::class);
-        if (!$rows) return null;
-        return $this->normalizeRs($rows)[0];
+        return $this->db2
+            ->select("\${p}globalBlocks gb", GlobalBlockTree::class)
+            ->fields(["gb.`id`", "gb.`name`", "gb.`blocks` AS `blocksJson`",
+                      "gbs.`styles` AS `blockStylesJson`"])
+            ->leftJoin("\${p}globalBlockStyles gbs ON (gbs.`globalBlockTreeId` = gb.`id`)")
+            ->mapWith(new class implements RowMapperInterface {
+                public function mapRow(object $row, int $_rowNum, array $_rows): ?object {
+                    GlobalBlockTreesRepository::normalizeSingle($row);
+                    return $row;
+                }
+            })
+            ->where("gb.`id` = ?", [$globalBlockTreeId])
+            ->limit(20)
+            ->fetchAll()[0] ?? null;
     }
     /**
      * @param string $id
@@ -67,9 +79,15 @@ final class GlobalBlockTreesRepository {
      * @return \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree[]
      */
     private function normalizeRs(array $rows): array {
-        foreach ($rows as $row) {
-            $row->blocks = $row->blocksJson ? PagesRepository::blocksFromRs("blocksJson", $row) : null;
-        }
+        foreach ($rows as $row)
+            self::normalizeSingle($row);
         return $rows;
+    }
+    /**
+     * @param \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree $row
+     */
+    public static function normalizeSingle(object $row): void {
+        $row->blocks = $row->blocksJson ? PagesRepository::blocksFromRs("blocksJson", $row) : null;
+        $row->blockStyles = $row->blockStylesJson ? json_decode($row->blockStylesJson) : [];
     }
 }

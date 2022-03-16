@@ -127,7 +127,7 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'hand-finger',
-        reRender({html, linkTo, tagType, cssClass}, renderChildren) {
+        reRender({html, linkTo, tagType, cssClass, id}, renderChildren) {
            const maybeExternalUrl = url => url.indexOf('.') < 0
                 ? urlUtils.makeUrl(url)
                 : `${url.startsWith('//') || url.startsWith('http') ? '' : '//'}${url}`;
@@ -135,7 +135,8 @@ export default () => {
                 [tagTypes.NORMAL_BUTTON]: ['<button type="button"', '</button>'],
                 [tagTypes.SUBMIT_BUTTON]: ['<button type="submit"', '</button>'],
             }[tagType] || [`<a href="${maybeExternalUrl(linkTo)}"`, '</a>'];
-            return ['<p class="button" data-block-type="', name, '">', startInnerTag, ' class="btn',
+            return ['<p class="button" data-block-type="', name, '" data-block="', id, '">',
+                startInnerTag, ' class="btn',
                 (cssClass ? ` ${cssClass}` : ''), '" data-block-root>',
                     html,
                     renderChildren(),

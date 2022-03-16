@@ -6,9 +6,11 @@ return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
+"DROP TABLE IF EXISTS `\${p}globalBlockStyles`",
 "DROP TABLE IF EXISTS `\${p}globalBlocks`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
+"DROP TABLE IF EXISTS `\${p}pageBlocksStyles`",
 "DROP TABLE IF EXISTS `\${p}pageTypes`",
 "DROP TABLE IF EXISTS `\${p}categories`",
 "DROP TABLE IF EXISTS `\${p}plugins`",
@@ -85,6 +87,13 @@ return [
     `isListable` INTEGER DEFAULT 1
 )",
 
+"CREATE TABLE `\${p}pageBlocksStyles` (
+    `styles` TEXT,
+    `pageId` INTEGER NOT NULL,
+    `pageTypeName` TEXT NOT NULL,
+    PRIMARY KEY (`pageId`, `pageTypeName`)
+)",
+
 "CREATE TABLE `\${p}Pages` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `slug` TEXT NOT NULL,
@@ -108,6 +117,13 @@ return [
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
     `blocks` JSON
+)",
+
+"CREATE TABLE `\${p}globalBlockStyles` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `styles` TEXT,
+    `globalBlockTreeId` INTEGER NOT NULL,
+    FOREIGN KEY (`globalBlockTreeId`) REFERENCES `\${p}globalBlocks`(`id`)
 )",
 
 "CREATE TABLE `\${p}layouts` (

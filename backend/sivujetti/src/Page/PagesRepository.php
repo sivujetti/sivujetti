@@ -167,14 +167,22 @@ final class PagesRepository {
         $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
         $this->pageType = $pageType;
         [$filterCols, $filterVals, $joinsCols, $joins] = $this->filtersToQParts($pageType, ...$filters);
-        [$baseJoinCols, $baseJoin] = !$doIncludeLayouts
-            ? [",'' AS `layoutId`" .
-               ",'' AS `layoutFriendlyName`" .
-               ",'' AS `layoutRelFilePath`" .
-               ",'' AS `layoutStructureJson`",
-               ""]
-            : ["," . LayoutsRepository::FIELDS,
-               " LEFT JOIN `\${p}layouts` l ON (l.`id` = p.`layoutId`)"];
+        //
+        [$baseJoinCols, $baseJoin] = [
+            ",pbs.`styles` AS `pageBlocksStylesJson`",
+            " LEFT JOIN `\${p}pageBlocksStyles` pbs ON (pbs.`pageId` = p.`id` AND pbs.`pageTypeName` = ?)",
+        ];
+        array_unshift($filterVals, $pageType->name);
+        //
+        if (!$doIncludeLayouts) {
+            $baseJoinCols .= ",'' AS `layoutId`" .
+                ",'' AS `layoutFriendlyName`" .
+                ",'' AS `layoutRelFilePath`" .
+                ",'' AS `layoutStructureJson`";
+        } else {
+            $baseJoinCols .= "," . LayoutsRepository::FIELDS;
+            $baseJoin .= " LEFT JOIN `\${p}layouts` l ON (l.`id` = p.`layoutId`)";
+        }
         //
         $ownFieldCols = [];
         foreach ($pageType->ownFields as $f) {
@@ -207,7 +215,12 @@ final class PagesRepository {
         $doIncludeLayouts = ($rows[0]?->layoutId ?? null) !== null;
         foreach ($rows as $row) {
             $row->blocks = self::blocksFromRs("pageBlocksJson", $row);
-            $row->layout = $doIncludeLayouts ? Layout::fromParentRs($row) : new Layout;
+            $row->blockStyles = $row->pageBlocksStylesJson
+                ? json_decode($row->pageBlocksStylesJson, flags: JSON_THROW_ON_ERROR)
+                : [];
+            $row->layout = $doIncludeLayouts
+                ? Layout::fromParentRs($row)
+                : new Layout;
             //
             foreach ($this->pageType->ownFields as $field) {
                 if ($field->dataType->type === "many-to-many") continue; // Not implemented yet

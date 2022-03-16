@@ -7,9 +7,11 @@ return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
+"DROP TABLE IF EXISTS `\${p}globalBlockStyles`",
 "DROP TABLE IF EXISTS `\${p}globalBlocks`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
+"DROP TABLE IF EXISTS `\${p}pageBlocksStyles`",
 "DROP TABLE IF EXISTS `\${p}pageTypes`",
 "DROP TABLE IF EXISTS `\${p}categories`",
 "DROP TABLE IF EXISTS `\${p}plugins`",
@@ -91,6 +93,13 @@ return [
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 
+"CREATE TABLE `\${p}pageBlocksStyles` (
+    `styles` TEXT,
+    `pageId` SMALLINT UNSIGNED NOT NULL,
+    `pageTypeName` VARCHAR(92) NOT NULL,
+    PRIMARY KEY (`pageId`, `pageTypeName`)
+) DEFAULT CHARSET = utf8mb4",
+
 "CREATE TABLE `\${p}Pages` (
     `id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `slug` VARCHAR(92) NOT NULL,
@@ -115,6 +124,14 @@ return [
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92) NOT NULL,
     `blocks` JSON,
+    PRIMARY KEY (`id`)
+) DEFAULT CHARSET = utf8mb4",
+
+"CREATE TABLE `\${p}globalBlockStyles` (
+    `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `styles` TEXT,
+    `globalBlockTreeId` SMALLINT UNSIGNED NOT NULL,
+    FOREIGN KEY (`globalBlockTreeId`) REFERENCES `\${p}globalBlocks`(`id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

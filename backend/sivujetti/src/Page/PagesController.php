@@ -234,12 +234,13 @@ final class PagesController {
         //
         self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo, $theWebsite);
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
-        $html = (new WebPageAwareTemplate(
+        $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
             cssAndJsFiles: $apiCtx->userDefinedAssets,
             theme: $theWebsite->activeTheme,
             blockStyles: $page->blockStyles
-        ))->render([
+        );
+        $html = $tmpl->render([
             "currentPage" => $page,
             "currentUrl" => $req->path,
             "site" => $theWebsite,
@@ -249,6 +250,7 @@ final class PagesController {
             $html = substr($html, 0, $bodyEnd) .
                 "<script>window.sivujettiCurrentPageData = " . json_encode([
                     "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
+                    "globalBlockStyles" => $tmpl->getGlobalBlockStyles(),
                     "layout" => self::layoutToRaw($page->layout),
                 ]) . "</script>" .
                 "<script src=\"" . WebPageAwareTemplate::makeUrl("public/sivujetti/sivujetti-webpage.js", false) . "\"></script>" .
@@ -329,6 +331,7 @@ final class PagesController {
             "layoutId" => $page->layoutId,
             "status" => $page->status,
             "blocks" => $page->blocks,
+            "blockStyles" => $page->blockStyles,
             "isPlaceholderPage" => $isPlaceholderPage,
         ];
         foreach ($pageType->ownFields as $field) {

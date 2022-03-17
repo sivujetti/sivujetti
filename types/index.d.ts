@@ -101,6 +101,7 @@ interface CurrentPageData {
         friendlyName: String;
         structure: Array<LayoutPart>;
     };
+    globalBlocksStyles: Array<RawBlockStyle>;
 }
 
 interface LayoutPart {
@@ -152,8 +153,14 @@ interface Page {
     layoutId: String;
     status: Number;
     blocks: Array<RawBlock>;
+    blockStyles: Array<RawBlockStyle>;
     isPlaceholderPage: Boolean;
     [ownFieldName: String]: any; // Custom fields (PageType.ownFields)
+}
+
+interface RawBlockStyle {
+    blockId: String;
+    styles: String;
 }
 
 interface PageMetaRaw {

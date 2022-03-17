@@ -3,7 +3,8 @@ import toasters, {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultView/DefaultMainPanelView.jsx';
 import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
 import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType/PageTypeCreateMainPanelView.jsx';
-import store, {setCurrentPage, setOpQueue} from './store.js';
+import store, {observeStore, setCurrentPage, setGlobalBlockStyles, setPageBlockStyles,
+               setOpQueue, selectPageBlockStyles, selectGlobalBlockStyles} from './store.js';
 import SaveButton from './SaveButton.jsx';
 import {findBlockTemp} from './BlockTree.jsx';
 
@@ -17,6 +18,8 @@ class EditApp extends preact.Component {
     // currentPageData;
     // resizeHandleEl;
     // highlightRectEl;
+    // websiteEventHandlers;
+    // receivingData;
     /**
      * @param {{dataFromAdminBackend: TheWebsite; outerEl: HTMLElement; inspectorPanelRef: preact.Ref; rootEl: HTMLElement;}} props
      */
@@ -38,6 +41,17 @@ class EditApp extends preact.Component {
         this.highlightRectEl = preact.createRef();
         this.websiteEventHandlers = createWebsiteEventHandlers(this.highlightRectEl,
                                                                this.blockTrees);
+        this.receivingData = true;
+        /** @param {Array<RawBlockStyle} allStyles */
+        const updateBlockStyles = allStyles => {
+            if (this.receivingData)
+                return;
+            allStyles.forEach(style => {
+                this.currentWebPage.updateCssStylesIfChanged('singleBlock', style.blockId, style.styles);
+            });
+        };
+        observeStore(s => selectPageBlockStyles(s), updateBlockStyles.bind(this));
+        observeStore(s => selectGlobalBlockStyles(s), updateBlockStyles.bind(this));
     }
     /**
      * @param {EditAppAwareWebPage} webPage
@@ -46,6 +60,7 @@ class EditApp extends preact.Component {
      * @access public
      */
     handleWebPageLoaded(webPage, combinedBlockTree, blockRefs) {
+        this.receivingData = true;
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         const webPagePage = webPage.data.page;
         this.currentWebPage = webPage;
@@ -55,7 +70,10 @@ class EditApp extends preact.Component {
         this.setState({currentMainPanel: !webPagePage.isPlaceholderPage ? 'default' : 'create-page'});
         signals.emit('on-web-page-loaded');
         store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
+        store.dispatch(setGlobalBlockStyles(webPage.data.globalBlockStyles));
+        store.dispatch(setPageBlockStyles(webPage.data.page.blockStyles));
         store.dispatch(setOpQueue([]));
+        this.receivingData = false;
     }
     /**
      * @access protected

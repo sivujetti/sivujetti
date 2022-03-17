@@ -387,7 +387,7 @@ class EditAppAwareWebPage {
      */
     updateCssStyles({type, id}, css) {
         if (type === 'singleBlock') {
-            // todo
+            document.head.querySelector(`style[data-styles-for-block="${id}"]`).innerHTML=temp2(type, id, css);
         } else if (type === 'blockType') {
             if (!isValidIdentifier(id))
                 throw new Error(`\`${id}\` is not valid block type name`);
@@ -395,6 +395,28 @@ class EditAppAwareWebPage {
         } else if (type === 'global') {
             // todo
         } else throw new Error();
+    }
+    /**
+     * Note: this method does not validate the input css in any way.
+     *
+     * @param {'singleBlock'|'blockType'|'global'} target
+     * @param {String} id Target's identifier (block id, or block type name)
+     * @param {String} css
+     */
+    updateCssStylesIfChanged(type, id, css) {
+        if (type !== 'singleBlock')
+            throw new Error('Not implemented yet');
+        const attrName = temp1(type);
+        const sel = `style[${attrName}="${id}"]`;
+        if (!document.head.querySelector(sel)) {
+            const node = document.createElement('style');
+            node.setAttribute(attrName, id);
+            document.head.appendChild(node);
+        }
+        const current = document.head.querySelector(sel);
+        const newv = temp2(type, id, css);
+        if (current.innerHTML !== newv)
+            current.innerHTML = newv;
     }
     /**
      * @param {HTMLElement} outerEl = document.body
@@ -624,6 +646,18 @@ function createIsLocalLinkCheckFn(location = window.location) {
  */
 function isValidIdentifier(str) {
     return /^[a-zA-Z_]{1}\w*$/.test(str);
+}
+
+function temp1(type) {
+    if (type === 'singleBlock')
+        return 'data-styles-for-block';
+}
+function temp2(type, id, css) {
+    if (type === 'singleBlock') {
+        
+        const sel = `[data-block="${id}"]`;
+        return sel + css.replace(/\[\[scope\]\]/g, sel);
+    }
 }
 
 export default EditAppAwareWebPage;

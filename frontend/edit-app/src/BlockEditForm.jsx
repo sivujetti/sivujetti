@@ -1,11 +1,12 @@
-import {http, __, api, signals, env} from '@sivujetti-commons-for-edit-app';
-import Icon from './commons/Icon.jsx';
+import {http, __, api, signals, env, Icon} from '@sivujetti-commons-for-edit-app';
+import Tabs from './commons/Tabs.jsx';
 import {timingUtils} from './commons/utils.js';
 import {getIcon} from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
-import store, {pushItemToOpQueue} from './store.js';
+import store, {observeStore, selectGlobalBlockStyles, pushItemToOpQueue,
+               setGlobalBlockStyles, selectPageBlockStyles, setPageBlockStyles} from './store.js';
 
 /** @var {BlockTypes} */
 let blockTypes;
@@ -28,11 +29,15 @@ function putOrGetSnapshot(block, blockType, override = false) {
 }
 
 class BlockEditForm extends preact.Component {
+    // blockVals;
     // isOutermostBlockOfGlobalBlockTree;
+    // blockType;
+    // isGlobalBlock;
     // editFormImpl;
     // snapshot;
-    // blockType;
     // editFormImplRef;
+    // borrowedStyles;
+    // unregistrables;
     // static currentInstance;
     // static undoingLockIsOn;
     /**
@@ -41,6 +46,7 @@ class BlockEditForm extends preact.Component {
     constructor(props) {
         super(props);
         blockTypes = api.blockTypes;
+        this.state = {currentTabIdx: 0, stylesString: undefined};
     }
     /**
      * @access protected
@@ -51,13 +57,31 @@ class BlockEditForm extends preact.Component {
         BlockEditForm.undoingLockIsOn = false;
         this.isOutermostBlockOfGlobalBlockTree = base && block.id === base.__globalBlockTree.blocks[0].id;
         this.blockType = blockTypes.get(block.type);
+        this.isGlobalBlock = block.isStoredTo === 'globalBlockTree' || block.type === 'GlobalBlockReference';
         this.editFormImpl = this.blockType.editForm;
         this.snapshot = putOrGetSnapshot(block, this.blockType);
         this.editFormImplRef = preact.createRef();
-        this.setState({useOverrides: base && base.useOverrides});
-        this.unregisterSignalListener = signals.on('on-block-deleted', ({id}) => {
+        //
+        const func = !this.isGlobalBlock ? selectPageBlockStyles : selectGlobalBlockStyles;
+        this.borrowedStyles = func(store.getState());
+        //
+        this.unregistrables = [observeStore(s => func(s), allStyles => {
+            const latest = findBlockStyles(allStyles, block.id);
+            if (!latest)
+                return;
+            if (this.state.stylesString !== latest.styles) {
+                this.setState({stylesString: latest.styles});
+                this.borrowedStyles = allStyles;
+            }
+        }),
+        signals.on('on-block-deleted', ({id}) => {
             if (id === block.id) this.props.inspectorPanel.close();
-        });
+        })];
+        //
+        const styles = findBlockStyles(this.borrowedStyles, block.id);
+        this.setState({useOverrides: base && base.useOverrides,
+                       currentTabIdx: 0,
+                       stylesString: styles ? styles.styles : ''});
     }
     /**
      * @access protected
@@ -75,22 +99,27 @@ class BlockEditForm extends preact.Component {
         this.editFormImpl = undefined;
         this.snapshot = undefined;
         this.editFormImplRef = undefined;
-        this.unregisterSignalListener();
+        this.unregistrables.forEach(unreg => unreg());
     }
     /**
      * @access protected
      */
-    render({block, blockTreeCmp}, {useOverrides}) {
+    render({block, blockTreeCmp}, {useOverrides, currentTabIdx, stylesString}) {
         const EditFormImpl = this.editFormImpl;
         return <div data-main>
-            <div class={ `with-icon pb-1${preactHooks.useMemo(() => {
-                    if (block.isStoredTo === 'globalBlockTree' || block.type === 'GlobalBlockReference') return ' global-block-tree-block';
-                    if (block.type === 'PageInfo') return ' page-info-block';
-                    return '';
-                }, [])}` }>
-                <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
-                { __(block.title || this.blockType.friendlyName) }
-            </div>
+        <div class={ `with-icon pb-1${preactHooks.useMemo(() => {
+                if (block.isStoredTo === 'globalBlockTree' || block.type === 'GlobalBlockReference') return ' global-block-tree-block';
+                if (block.type === 'PageInfo') return ' page-info-block';
+                return '';
+            }, [])}` }>
+            <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
+            { __(block.title || this.blockType.friendlyName) }
+        </div>
+        <Tabs
+            links={ [__('Content'), __('Styles')] }
+            onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
+            className="text-tinyish mt-0 mb-2"/>
+        <div class={ currentTabIdx === 0 ? '' : 'd-none' }>
             <div class="mt-2">
                 { this.isOutermostBlockOfGlobalBlockTree
                     ? <div class="input-group mini-toggle">
@@ -117,6 +146,36 @@ class BlockEditForm extends preact.Component {
                     ref={ this.editFormImplRef }
                     key={ block.id }/>
             </div>
+        </div>
+        <div class={ currentTabIdx === 0 ? 'd-none' : '' }>
+            <textarea
+                value={ stylesString }
+                onChange={ e => {
+                    const orig = this.state.stylesString;
+                    const func = !this.isGlobalBlock ? setPageBlockStyles : setGlobalBlockStyles;
+                    dispatchNewBlockStyles(this.borrowedStyles, e.target.value, block.id, func);
+                    //
+                    const commit = () => {
+                        // todo
+                    };
+                    const reverse = () => {
+                        dispatchNewBlockStyles(this.borrowedStyles, orig, block.id, func);
+                    };
+                    //
+                    const t = !this.isGlobalBlock ? 'global' : 'page';
+                    store.dispatch(pushItemToOpQueue(`update-theme-${t}-block-styles`, {
+                        doHandle: ($commit, _$reverse) =>
+                            $commit()
+                        ,
+                        doUndo(_$commit, $reverse) {
+                            $reverse();
+                        },
+                        args: [commit.bind(this), reverse.bind(this)],
+                    }));
+                } }
+                class="form-input"
+                rows="4"></textarea>
+        </div>
         </div>;
     }
     /**
@@ -389,12 +448,38 @@ function internalUndoVal($a, $b) { // todo add useOverrides snapshot para
 
 /**
  * @param {preact.Component} $this
- * @prop {RawBlockData} snapshot
+ * @param {RawBlockData} snapshot
  */
 function updateFormValues($this, snapshot) {
     BlockEditForm.undoingLockIsOn = true;
     $this.editFormImplRef.current.overrideValues(snapshot);
     setTimeout(() => { BlockEditForm.undoingLockIsOn = false; }, 200);
+}
+
+/**
+ * @param {Array<RawBlockStyle>} allStyles
+ * @param {String} newVal e.g. '{ color: red; }'
+ * @param {String} blockId
+ */
+function dispatchNewBlockStyles(allStyles, newVal, blockId, func = setGlobalBlockStyles) {
+    const clone = JSON.parse(JSON.stringify(allStyles));
+    const currentStyles = findBlockStyles(clone, blockId);
+    if (currentStyles) {
+        currentStyles.styles = newVal;
+    } else {
+        clone.push({blockId, styles: newVal});
+    }
+    store.dispatch(func(clone)); // see also observeStore from this.componentWillMount
+                                 // and observeStore @ EditApp.constructor
+}
+
+/**
+ * @param {Array<RawBlockStyle>} from
+ * @param {String} blockId
+ * @returns {RawBlockStyle|undefined}
+ */
+function findBlockStyles(from, blockId) {
+    return from.find(s => s.blockId === blockId);
 }
 
 /**

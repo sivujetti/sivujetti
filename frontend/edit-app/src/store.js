@@ -18,6 +18,40 @@ const selectCurrentPage = state => state.currentPage;
 
 
 /**
+ * @param {Object} state
+ * @param {Object} action
+ */
+const globalBlocksStylesReducer = (state = [], action) => {
+    switch (action.type) {
+    case 'globalBlocksStyles/set':
+        return action.value;
+    default:
+        return state;
+    }
+};
+
+const setGlobalBlockStyles = value => ({type: 'globalBlocksStyles/set', value});
+const selectGlobalBlockStyles = state => state.globalBlocksStyles;
+
+
+/**
+ * @param {Object} state
+ * @param {Object} action
+ */
+const pageBlocksStylesReducer = (state = [], action) => {
+    switch (action.type) {
+    case 'pageBlocksStyles/set':
+        return action.value;
+    default:
+        return state;
+    }
+};
+
+const setPageBlockStyles = value => ({type: 'pageBlocksStyles/set', value});
+const selectPageBlockStyles = state => state.pageBlocksStyles;
+
+
+/**
  * @param {Array<{opName: String; command: OpQueueCommand;}>} state
  * @param {Object} action
  */
@@ -92,6 +126,8 @@ const selectFormState = (state, id) => state.formStates[id];
 
 const mainStore = createManageableStore(undefined, {
     currentPage: currentPageReducer,
+    globalBlocksStyles: globalBlocksStylesReducer,
+    pageBlocksStyles: pageBlocksStylesReducer,
     opQueue: opQueueReducer,
     formStates: formStatesReducer,
 });
@@ -147,12 +183,14 @@ class FormStateStoreWrapper {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-export {// Current page
-        setCurrentPage, selectCurrentPage,
-        // OpQueue
+export {setCurrentPage, selectCurrentPage,
+        //
+        setGlobalBlockStyles, selectGlobalBlockStyles,
+        setPageBlockStyles, selectPageBlockStyles,
+        //
         setOpQueue, pushItemToOpQueue, deleteItemFromOpQueue, deleteItemsFromOpQueueAfter,
         selectOpQueue,
-        // Form state
+        //
         FormStateStoreWrapper, selectFormStates,
         //
         observeMainStore as observeStore};

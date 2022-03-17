@@ -205,6 +205,12 @@ final class WebPageAwareTemplate extends Template {
         return $output;
     }
     /**
+     * @return object[]
+     */
+    public function getGlobalBlockStyles(): array {
+        return $this->__secondPassBlockStyles;
+    }
+    /**
      * ["id" => "foo", "class" => "bar"] -> ' id="foo" class="bar"'
      *
      * @param array<string, string>|object $map

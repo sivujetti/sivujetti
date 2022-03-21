@@ -2,10 +2,10 @@
 
 namespace Sivujetti\Tests\Block;
 
-use Sivujetti\{App, AppContext, SharedAPIContext, Template};
+use Sivujetti\{SharedAPIContext, Template};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, GlobalBlockReferenceBlockType};
-use Sivujetti\Tests\Utils\DbDataHelper;
+use Sivujetti\Tests\Utils\{DbDataHelper, TestEnvBootstrapper};
 
 final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
     private const TEST_RENDERER_NAME = "listing-custom";
@@ -314,10 +314,11 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         ;
         $state = $this->setupRenderCustomListingBlocksTest();
         $this->registerCustomPageType($state);
-        $ctx = new AppContext;
-        $ctx->apiCtx = new SharedAPIContext;
-        $ctx->apiCtx->validBlockRenderers[] = $this->blockTestUtils->createBlockRenderer(self::TEST_RENDERER_NAME, "MyProducts");
-        $state->app = $this->makeApp(fn() => App::create(self::setGetConfig(), $ctx));
+        $this->makeTestSivujettiApp($state, function (TestEnvBootstrapper $bootModule) {
+            $apiCtx = new SharedAPIContext;
+            $apiCtx->validBlockRenderers[] = $this->blockTestUtils->createBlockRenderer(self::TEST_RENDERER_NAME, "MyProducts");
+            $bootModule->useMock("apiCtx", [$apiCtx]);
+        });
         //
         $expectedHtml = $makeExpectedHtml("0", "nil");
         $this->renderAndVerify($state, 0, $expectedHtml);

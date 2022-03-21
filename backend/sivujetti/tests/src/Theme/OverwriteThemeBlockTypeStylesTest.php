@@ -2,8 +2,6 @@
 
 namespace Sivujetti\Tests\Theme;
 
-use Sivujetti\App;
-
 final class OverwriteThemeBlockTypeStylesTest extends ThemesControllerTestCase {
     public function testUpdateBlockTypeStylesOverwritesThemesStyles(): void {
         $state = $this->setupTest();
@@ -18,8 +16,8 @@ final class OverwriteThemeBlockTypeStylesTest extends ThemesControllerTestCase {
         return $state;
     }
     private function sendUpdateBlockTypeStylesRequest(\TestState $state): void {
-        $app = $this->makeApp(fn() => App::create(self::setGetConfig()));
-        $state->spyingResponse = $app->sendRequest(
+        $this->makeTestSivujettiApp($state);
+        $state->spyingResponse = $state->app->sendRequest(
             $this->createApiRequest("/api/themes/{$state->testThemeId}/styles/block-type/Section",
                                     "PUT",
                                     $state->testInput));

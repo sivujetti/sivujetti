@@ -2,7 +2,6 @@
 
 namespace Sivujetti\Tests\GlobalBlockTree;
 
-use Sivujetti\App;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\Tests\Utils\{BlockTestUtils, DbDataHelper, HttpApiTestTrait};
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
@@ -14,6 +13,9 @@ abstract class GlobalBlockTreesControllerTestCase extends DbTestCase {
     protected function setUp(): void {
         parent::setUp();
         $this->dbDataHelper = new DbDataHelper(self::$db);
+    }
+    public static function getDbConfig(): array {
+        return require TEST_CONFIG_FILE_PATH;
     }
     protected function setupTest(): \TestState {
         $state = new \TestState;
@@ -27,8 +29,5 @@ abstract class GlobalBlockTreesControllerTestCase extends DbTestCase {
         $state->spyingResponse = null;
         $state->app = null;
         return $state;
-    }
-    protected function makeTestSivujettiApp(\TestState $state): void {
-        $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
     }
 }

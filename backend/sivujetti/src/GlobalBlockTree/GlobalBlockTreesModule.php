@@ -2,26 +2,26 @@
 
 namespace Sivujetti\GlobalBlockTree;
 
-use Sivujetti\AppContext;
+use Pike\Router;
 
 final class GlobalBlockTreesModule {
     /**
-     * @param \Sivujetti\AppContext $ctx
+     * @param \Pike\Router $router
      */
-    public function init(AppContext $ctx): void {
-        $ctx->router->map("POST", "/api/global-block-trees",
+    public function init(Router $router): void {
+        $router->map("POST", "/api/global-block-trees",
             [GlobalBlockTreesController::class, "create", ["consumes" => "application/json",
                                                            "identifiedBy" => ["create", "globalBlockTrees"]]]
         );
-        $ctx->router->map("GET", "/api/global-block-trees/[i:globalBlockTreeId]",
+        $router->map("GET", "/api/global-block-trees/[i:globalBlockTreeId]",
             [GlobalBlockTreesController::class, "getById", ["consumes" => "application/json",
                                                             "identifiedBy" => ["read", "globalBlockTrees"]]]
         );
-        $ctx->router->map("GET", "/api/global-block-trees",
+        $router->map("GET", "/api/global-block-trees",
             [GlobalBlockTreesController::class, "list", ["consumes" => "application/json",
                                                          "identifiedBy" => ["read", "globalBlockTrees"]]]
         );
-        $ctx->router->map("PUT", "/api/global-block-trees/[i:globalBlockTreeId]/blocks",
+        $router->map("PUT", "/api/global-block-trees/[i:globalBlockTreeId]/blocks",
             [GlobalBlockTreesController::class, "update", ["consumes" => "application/json",
                                                            "identifiedBy" => ["update", "globalBlockTrees"]]]
         );

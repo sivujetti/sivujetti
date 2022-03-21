@@ -2,13 +2,11 @@
 
 namespace Sivujetti\Tests\Upload;
 
-use Sivujetti\App;
-
 final class GetUploadsTest extends UploadsControllerTestCase {
     public function testGetUploadsReturnsOnlyImages(): void {
         $state = $this->setupListUploadsTest();
         $this->dbDataHelper->insertData($state->testFiles, "files");
-        $this->makeTestSivujettiApp($state);
+        $this->makeSivujettiAppForUploadsTest($state);
         $this->sendGetUploadsRequest($state, '{"mime":{"$eq":"image/*"}}');
         $this->verifyListedTheseFiles(array_slice($state->testFiles, 0, 2), $state);
     }

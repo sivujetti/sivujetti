@@ -20,6 +20,6 @@ $loader = require SIVUJETTI_BACKEND_PATH . "vendor/autoload.php";
 $loader->addPsr4("Sivujetti\\Cli\\", SIVUJETTI_BACKEND_PATH . "cli/src");
 $loader->addPsr4("Sivujetti\\Installer\\", SIVUJETTI_BACKEND_PATH . "installer/src");
 
-$app = \Sivujetti\Cli\App::create();
+$app = new Sivujetti\Cli\App;
 $path = implode("/", array_map("urlencode", array_slice($argv, 1)));
 $app->handleRequest(new \Pike\Request("/{$path}", "PSEUDO:CLI"));

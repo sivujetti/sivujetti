@@ -2,30 +2,35 @@
 
 namespace Sivujetti\Auth;
 
-use Pike\{Request, Response};
-use Sivujetti\AppContext;
-use Sivujetti\Auth\ACL;
+use Pike\{Injector, Request, Response, Router};
+use Pike\Auth\Authenticator;
+use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class AuthModule {
-    /** @var \Sivujetti\AppContext */
-    private AppContext $ctx;
+    /** @var \Pike\Injector */
+    private Injector $di;
     /**
-     * @param \Sivujetti\AppContext $ctx
+     * @param \Pike\Router $router
      */
-    public function init(AppContext $ctx): void {
-        $this->ctx = $ctx;
-        $ctx->router->on("*", function ($req, $res, $next) {
+    public function init(Router $router): void {
+        $router->on("*", function ($req, $res, $next) {
             if (!$this->checkIfUserIsPermittedToAccessThisRoute($req, $res)) return;
             $next();
         });
-        $ctx->router->map("POST", "/api/auth/login",
+        $router->map("POST", "/api/auth/login",
             [AuthController::class, "processLoginAttempt", ["consumes" => "application/json",
                                                             "skipAuth" => true]]
         );
-        $ctx->router->map("POST", "/api/auth/logout",
+        $router->map("POST", "/api/auth/logout",
             [AuthController::class, "processLogoutAttempt", ["consumes" => "application/json",
                                                              "skipAuth" => true]]
         );
+    }
+    /**
+     * @param \Pike\Injector $di
+     */
+    public function beforeExecCtrl(Injector $di): void {
+        $this->di = $di;
     }
     /**
      * @param \Pike\Request $req
@@ -40,14 +45,14 @@ final class AuthModule {
             return true;
         }
         // User not found from the session nor the rememberMe data
-        $req->myData->user = $this->ctx->auth->getIdentity();
+        $req->myData->user = $this->di->make(Authenticator::class)->getIdentity();
         if (!($userRole = $req->myData->user?->role)) {
             $res->status(401)->plain("Login required");
             return false;
         }
         //
         $acl = new ACL(doThrowDevWarnings: (bool) (SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE));
-        $theWebsite = $this->ctx->theWebsite;
+        $theWebsite = $this->di->make(TheWebsite::class);
         $acl->setRules(json_decode($theWebsite->aclRulesJson, flags: JSON_THROW_ON_ERROR));
         // User not permitted to access this route
         if (!$acl->can($userRole, ...$req->routeInfo->myCtx["identifiedBy"])) {

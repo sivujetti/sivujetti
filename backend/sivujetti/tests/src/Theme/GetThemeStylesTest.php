@@ -2,8 +2,6 @@
 
 namespace Sivujetti\Tests\Theme;
 
-use Sivujetti\App;
-
 final class GetThemeStylesTest extends ThemesControllerTestCase {
     public function testListStylesReturnsListOfThemesStyles(): void {
         $state = parent::createDefaultTestState();
@@ -13,8 +11,8 @@ final class GetThemeStylesTest extends ThemesControllerTestCase {
         $this->verifyReturnedThemesStylesFromDb($state);
     }
     private function sendListThemeStylesRequest(\TestState $state): void {
-        $app = $this->makeApp(fn() => App::create(self::setGetConfig()));
-        $state->spyingResponse = $app->sendRequest(
+        $this->makeTestSivujettiApp($state);
+        $state->spyingResponse = $state->app->sendRequest(
             $this->createApiRequest("/api/themes/{$state->testThemeId}/styles", "GET"));
     }
     private function verifyReturnedThemesStylesFromDb(\TestState $state): void {

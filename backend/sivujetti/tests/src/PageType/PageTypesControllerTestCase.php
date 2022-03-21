@@ -22,8 +22,8 @@ abstract class PageTypesControllerTestCase extends DbTestCase {
         self::$db->exec("DELETE FROM `pageTypes` WHERE `name` = ?", [PageTypeMigrator::MAGIC_PAGE_TYPE_NAME]);
         self::$db->exec("DROP TABLE IF EXISTS `" . PageTypeMigrator::MAGIC_PAGE_TYPE_NAME . "`");
     }
-    protected function makeTestSivujettiApp(\TestState $state): void {
-        $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
+    public static function getDbConfig(): array {
+        return require TEST_CONFIG_FILE_PATH;
     }
     protected function insertPlaceholderPageTypeToDb(): void {
         $dataHelper = (new DbDataHelper(self::$db));

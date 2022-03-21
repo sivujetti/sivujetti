@@ -8,7 +8,7 @@ final class UploadImageTest extends UploadsControllerTestCase {
     private const TEST_FILE_NAME = "file.jpg";
     public function testUploadFileUploadsImage(): void {
         $state = $this->setupUploadImageTest();
-        $this->makeTestSivujettiApp($state);
+        $this->makeSivujettiAppForUploadsTest($state);
         $this->sendUploadImageRequest($state);
         $this->verifyMovedUploadedFileTo(SIVUJETTI_INDEX_PATH . "public/uploads/" . self::TEST_FILE_NAME,
                                          $state);
@@ -59,7 +59,7 @@ final class UploadImageTest extends UploadsControllerTestCase {
     public function testUploadFileUsesInputFileNameAsFileName(): void {
         $state = $this->setupUploadImageTest();
         $state->inputData->fileName = "myfile.png";
-        $this->makeTestSivujettiApp($state);
+        $this->makeSivujettiAppForUploadsTest($state);
         $this->sendUploadImageRequest($state);
         $base = SIVUJETTI_INDEX_PATH . "public/uploads/";
         $this->verifyMovedUploadedFileTo("{$base}{$state->inputData->fileName}", $state);
@@ -73,7 +73,7 @@ final class UploadImageTest extends UploadsControllerTestCase {
     public function testUploadFileRejectsInvalidInput(): void {
         $state = $this->setupUploadImageTest();
         $state->inputData->fileName = [];
-        $this->makeTestSivujettiApp($state);
+        $this->makeSivujettiAppForUploadsTest($state);
         $this->sendUploadImageRequest($state);
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals([

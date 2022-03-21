@@ -2,22 +2,22 @@
 
 namespace Sivujetti\Theme;
 
-use Sivujetti\AppContext;
+use Pike\Router;
 
 final class ThemesModule {
     /**
-     * @param \Sivujetti\AppContext $ctx
+     * @param \Pike\Router $router
      */
-    public function init(AppContext $ctx): void {
-        $ctx->router->map("GET", "/api/themes/[i:themeId]/styles",
+    public function init(Router $router): void {
+        $router->map("GET", "/api/themes/[i:themeId]/styles",
             [ThemesController::class, "getStyles", ["consumes" => "application/json",
                                                     "identifiedBy" => ["view", "themes"]]],
         );
-        $ctx->router->map("PUT", "/api/themes/[i:themeId]/styles/block-type/[w:blockTypeName]",
+        $router->map("PUT", "/api/themes/[i:themeId]/styles/block-type/[w:blockTypeName]",
             [ThemesController::class, "updateBlockTypeStyles", ["consumes" => "application/json",
                                                                 "identifiedBy" => ["update", "themes"]]],
         );
-        $ctx->router->map("PUT", "/api/themes/[i:themeId]/styles/global",
+        $router->map("PUT", "/api/themes/[i:themeId]/styles/global",
             [ThemesController::class, "updateGlobalStyles", ["consumes" => "application/json",
                                                              "identifiedBy" => ["update", "themes"]]],
         );

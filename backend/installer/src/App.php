@@ -2,23 +2,16 @@
 
 namespace Sivujetti\Installer;
 
-use Sivujetti\AppContext;
-use Pike\{App as PikeApp, Router, ServiceDefaults};
+use Pike\App as PikeApp;
 
-final class App {
+final class App extends PikeApp {
     /**
-     * @param array|object|null $config
-     * @param ?\Sivujetti\AppContext $initialCtx = null
-     * @param ?\Pike\Router $router = null
-     * @return \Pike\App
+     * @param ?object $bootModule = null
      */
-    public static function create($config = null,
-                                  ?AppContext $initialCtx = null,
-                                  ?Router $router = null): PikeApp {
-        return new PikeApp([
+    public function __construct(?object $bootModule = null) {
+        parent::__construct();
+        $this->setModules(array_merge($bootModule ? [$bootModule] : [], [
             new Module,
-        ], function (AppContext $ctx, ServiceDefaults $defaults) use ($config): void {
-            //
-        }, $initialCtx ?? new AppContext, $router);
+        ]));
     }
 }

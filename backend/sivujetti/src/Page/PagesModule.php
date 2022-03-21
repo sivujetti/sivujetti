@@ -2,39 +2,39 @@
 
 namespace Sivujetti\Page;
 
-use Sivujetti\AppContext;
+use Pike\Router;
 
 final class PagesModule {
     /**
-     * @param \Sivujetti\AppContext $ctx
+     * @param \Pike\Router $router
      */
-    public function init(AppContext $ctx): void {
-        $ctx->router->map("GET", "/api/_placeholder-page/[w:pageType]/[i:layoutId]",
+    public function init(Router $router): void {
+        $router->map("GET", "/api/_placeholder-page/[w:pageType]/[i:layoutId]",
             [PagesController::class, "renderPlaceholderPage", ["consumes" => "text/html",
-                                                               "identifiedBy" => ["create", "pages"]]],
+                                                               "identifiedBy" => ["create", "pages"]]]
         );
-        $ctx->router->map("POST", "/api/pages/[w:pageType]",
+        $router->map("POST", "/api/pages/[w:pageType]",
             [PagesController::class, "createPage", ["consumes" => "application/json",
-                                                    "identifiedBy" => ["create", "pages"]]],
+                                                    "identifiedBy" => ["create", "pages"]]]
         );
-        $ctx->router->map("PUT", "/api/pages/[w:pageType]/[i:pageId]/blocks",
+        $router->map("PUT", "/api/pages/[w:pageType]/[i:pageId]/blocks",
             [PagesController::class, "updatePageBlocks", ["consumes" => "application/json",
-                                                          "identifiedBy" => ["updateBlocksOf", "pages"]]],
+                                                          "identifiedBy" => ["updateBlocksOf", "pages"]]]
         );
-        $ctx->router->map("PUT", "/api/pages/[w:pageType]/[i:pageId]",
+        $router->map("PUT", "/api/pages/[w:pageType]/[i:pageId]",
             [PagesController::class, "updatePage", ["consumes" => "application/json",
-                                                    "identifiedBy" => ["update", "pages"]]],
+                                                    "identifiedBy" => ["update", "pages"]]]
         );
-        $ctx->router->map("GET", "/_edit/[**:url]?",
+        $router->map("GET", "/_edit/[**:url]?",
             [PagesController::class, "renderEditAppWrapper", ["identifiedBy" => ["access", "editMode"]]]
         );
-        $ctx->router->map("GET", "/jet-login",
+        $router->map("GET", "/jet-login",
             [PagesController::class, "renderLoginPage", ["skipAuth" => true]]
         );
-        $ctx->router->map("GET", "/jet-reset-pass",
+        $router->map("GET", "/jet-reset-pass",
             [PagesController::class, "renderRequestPassResetPage", ["skipAuth" => true]]
         );
-        $ctx->router->map("GET", "[**:url]",
+        $router->map("GET", "[**:url]",
             [PagesController::class, "renderPage", ["skipAuth" => true]]
         );
     }

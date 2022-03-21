@@ -2,13 +2,15 @@
 
 namespace Sivujetti\Tests\Page;
 
-use Sivujetti\{App, AppContext, SharedAPIContext};
-use Sivujetti\Tests\Utils\{DbDataHelper, PageTestUtils};
 use Pike\Request;
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
+use Sivujetti\SharedAPIContext;
+use Sivujetti\Tests\Utils\{DbDataHelper, HttpApiTestTrait, PageTestUtils,
+                           TestEnvBootstrapper};
 
 abstract class RenderPageTestCase extends DbTestCase {
     use HttpTestUtils;
+    use HttpApiTestTrait;
     protected PageTestUtils $pageTestUtils;
     protected SharedAPIContext $testApiCtx;
     protected DbDataHelper $dbDataHelper;
@@ -18,10 +20,13 @@ abstract class RenderPageTestCase extends DbTestCase {
         $this->pageTestUtils = new PageTestUtils(self::$db, $this->testApiCtx);
         $this->dbDataHelper = new DbDataHelper(self::$db);
     }
-    protected function makeTestSivujettiApp(\TestState $state): void {
-        $ctx = new AppContext;
-        $ctx->apiCtx = $this->testApiCtx;
-        $state->app = $this->makeApp(fn() => App::create(self::setGetConfig(), $ctx));
+    public static function getDbConfig(): array {
+        return require TEST_CONFIG_FILE_PATH;
+    }
+    public function makeRenderPageTestApp(\TestState $state): void {
+        $this->makeTestSivujettiApp($state, function (TestEnvBootstrapper $bootModule) {
+            $bootModule->useMock("apiCtx", [$this->testApiCtx]);
+        });
     }
     protected function insertTestPageToDb(\TestState $state): void {
         $this->pageTestUtils->insertPage($state->testPageData);

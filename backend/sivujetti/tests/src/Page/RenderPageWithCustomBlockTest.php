@@ -23,7 +23,7 @@ final class RenderPageWithCustomBlockTest extends RenderPageTestCase {
     public function testRenderPageRendersCustomBlock(): void {
         $state = $this->setupTest();
         $this->registerCustomBlock($state);
-        $this->makeTestSivujettiApp($state);
+        $this->makeRenderPageTestApp($state);
         $this->insertTestPageToDb($state);
         $this->sendRenderPageRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
@@ -37,7 +37,8 @@ final class RenderPageWithCustomBlockTest extends RenderPageTestCase {
         return $state;
     }
     private function registerCustomBlock(\TestState $state): void {
-        $api = new UserSiteAPI("site", $this->testApiCtx);
+        $mutRef = $this->testApiCtx;
+        $api = new UserSiteAPI("site", $mutRef);
         $api->registerBlockRenderer(self::TEST_RENDERER_FILEID);
         $api->registerBlockType("Quote", new class implements BlockTypeInterface {
             public function defineProperties(PropertiesBuilder $builder): \ArrayObject {

@@ -3,21 +3,23 @@
 namespace Sivujetti\Cli\Tests;
 
 use Sivujetti\Cli\App;
-use Pike\{FileSystem, Request};
+use Pike\{FileSystem, Injector, Request};
+use Pike\Interfaces\FileSystemInterface;
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 use Sivujetti\Cli\Bundler;
+use Sivujetti\Cli\Tests\BundleCmsToZipTest as TestsBundleCmsToZipTest;
 use Sivujetti\Update\{PackageStreamInterface as Pkg, Updater, ZipPackageStream};
 
 final class BundleCmsToZipTest extends DbTestCase {
     use HttpTestUtils;
-    private string $actuallyWrittenZipFilePath;
-    private string $actuallyWrittenSignatureFilePath;
-    private const FILES_GENERATED_BY_COMPOSER = [
+    public const FILES_GENERATED_BY_COMPOSER = [
         "vendor/autoload.php" => "<?php // mock composer-generated autoload.php"
     ];
-    private const FILES_GENERATED_BY_JS_BUNDLER = [
+    public const FILES_GENERATED_BY_JS_BUNDLER = [
         "sivujetti-edit-app.js" => "bundled js here",
     ];
+    private string $actuallyWrittenZipFilePath;
+    private string $actuallyWrittenSignatureFilePath;
     protected function setUp(): void {
         parent::setUp();
         $this->actuallyWrittenZipFilePath = "";
@@ -27,6 +29,9 @@ final class BundleCmsToZipTest extends DbTestCase {
         parent::tearDown();
         if ($this->actuallyWrittenZipFilePath) unlink($this->actuallyWrittenZipFilePath);
         if ($this->actuallyWrittenSignatureFilePath) unlink($this->actuallyWrittenSignatureFilePath);
+    }
+    public static function getDbConfig(): array {
+        return require TEST_CONFIG_FILE_PATH;
     }
     public function testCreateZipReleaseBundlesEverythingToZipFile(): void {
         $state = $this->setupTest();
@@ -50,24 +55,30 @@ final class BundleCmsToZipTest extends DbTestCase {
         return $state;
     }
     private function makeTestCliApp(\TestState $state): void {
-        $state->cliApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function ($di) {
-            $di->define(Bundler::class, [
-                ":printFn" => function () { },
-                ":shellExecFn" => function ($cmd) {
-                    $composerTmpPath = SIVUJETTI_BACKEND_PATH . "bundler-temp/";
-                    $npmTmpPath = SIVUJETTI_INDEX_PATH . "public/bundler-temp/public/sivujetti";
-                    if ($cmd === "composer install --no-dev --optimize-autoloader") {
-                        mkdir("{$composerTmpPath}vendor", 0755);
-                        foreach (self::FILES_GENERATED_BY_COMPOSER as $mockFilePath => $mockContents)
-                            file_put_contents("{$composerTmpPath}{$mockFilePath}", $mockContents);
-                    } elseif ($cmd === "npm --prefix " . SIVUJETTI_INDEX_PATH . " run-script build -- " .
-                                       "--configBundle all --configTargetRelDir public/bundler-temp/public/sivujetti/") {
-                        foreach (self::FILES_GENERATED_BY_JS_BUNDLER as $mockFilePath => $mockContents)
-                            file_put_contents("{$npmTmpPath}/{$mockFilePath}", $mockContents);
+        $state->cliApp = $this->buildApp(new App(new class {
+            public function init(\Pike\Router $r) {
+                //
+            }
+            public function beforeExecCtrl(Injector $di): void {
+                $di->alias(FileSystemInterface::class, FileSystem::class);
+                $di->define(Bundler::class, [
+                    ":printFn" => function () { },
+                    ":shellExecFn" => function ($cmd) {
+                        $composerTmpPath = SIVUJETTI_BACKEND_PATH . "bundler-temp/";
+                        $npmTmpPath = SIVUJETTI_INDEX_PATH . "public/bundler-temp/public/sivujetti";
+                        if ($cmd === "composer install --no-dev --optimize-autoloader") {
+                            mkdir("{$composerTmpPath}vendor", 0755);
+                            foreach (TestsBundleCmsToZipTest::FILES_GENERATED_BY_COMPOSER as $mockFilePath => $mockContents)
+                                file_put_contents("{$composerTmpPath}{$mockFilePath}", $mockContents);
+                        } elseif ($cmd === "npm --prefix " . SIVUJETTI_INDEX_PATH . " run-script build -- " .
+                                        "--configBundle all --configTargetRelDir public/bundler-temp/public/sivujetti/") {
+                            foreach (TestsBundleCmsToZipTest::FILES_GENERATED_BY_JS_BUNDLER as $mockFilePath => $mockContents)
+                                file_put_contents("{$npmTmpPath}/{$mockFilePath}", $mockContents);
+                        }
                     }
-                }
-            ]);
-        });
+                ]);
+            }
+        }));
     }
     private function invokeCreateZipReleaseFeature(\TestState $state): void {
         $state->spyingResponse = $state->cliApp->sendRequest(

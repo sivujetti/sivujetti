@@ -2,15 +2,15 @@
 
 namespace Sivujetti\Installer;
 
-use Sivujetti\AppContext;
+use Pike\Router;
 
 final class Module {
     /**
      * Registers routes for install.php?q=*
      *
-     * @param \Sivujetti\AppContext $ctx
+     * @param \Pike\Router $router
      */
-    public function init(AppContext $ctx): void {
+    public function init(Router $router): void {
         //
     }
 }

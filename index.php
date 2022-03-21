@@ -12,6 +12,6 @@ $loader = require SIVUJETTI_BACKEND_PATH . "vendor/autoload.php";
 $loader->addPsr4("MySite\\", SIVUJETTI_SITE_PATH);
 $loader->addPsr4("SitePlugins\\", SIVUJETTI_PLUGINS_PATH);
 
-\Sivujetti\App::create($config)->handleRequest(
+(new \Sivujetti\App($config))->handleRequest(
     ...(!SIVUJETTI_QUERY_VAR ? ["", SIVUJETTI_BASE_URL] : [$_GET[SIVUJETTI_QUERY_VAR] ?? "", null])
 );

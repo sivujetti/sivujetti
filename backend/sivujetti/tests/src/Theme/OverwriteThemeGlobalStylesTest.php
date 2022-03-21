@@ -22,8 +22,8 @@ final class OverwriteThemeGlobalStylesTest extends ThemesControllerTestCase {
         return $state;
     }
     private function sendUpdateThemeGlobalStylesRequest(\TestState $state): void {
-        $app = $this->makeApp(fn() => App::create(self::setGetConfig()));
-        $state->spyingResponse = $app->sendRequest(
+        $this->makeTestSivujettiApp($state);
+        $state->spyingResponse = $state->app->sendRequest(
             $this->createApiRequest("/api/themes/{$state->testThemeId}/styles/global",
                                     "PUT",
                                     $state->testInput));

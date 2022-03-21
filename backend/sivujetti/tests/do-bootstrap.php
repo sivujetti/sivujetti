@@ -1,6 +1,7 @@
 <?php
 
 define("TEST_CONFIG_DIR_PATH", str_replace("\\", "/", __DIR__) . "/");
+define("TEST_CONFIG_FILE_PATH", TEST_CONFIG_DIR_PATH . "config.php");
 
 class TestState extends \stdClass {
     //

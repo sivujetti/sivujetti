@@ -2,10 +2,11 @@
 
 namespace Sivujetti\Tests\Update;
 
+use Pike\Injector;
 use Sivujetti\{App, FileSystem};
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 use Sivujetti\Cli\Bundler;
-use Sivujetti\Tests\Utils\HttpApiTestTrait;
+use Sivujetti\Tests\Utils\{HttpApiTestTrait, TestEnvBootstrapper};
 use Sivujetti\Update\{PackageStreamInterface, Updater, ZipPackageStream};
 
 final class UpdateCoreTest extends DbTestCase {
@@ -24,13 +25,16 @@ final class UpdateCoreTest extends DbTestCase {
         $this->fs->deleteFilesRecursive(self::CMS_CLONE_INDEX_PATH,
                                         SIVUJETTI_INDEX_PATH);
     }
+    public static function getDbConfig(): array {
+        return require TEST_CONFIG_FILE_PATH;
+    }
     /**
      * @group intensives
      */
     public function testUpdateCoreUpdatesCms(): void {
         $state = $this->setupTest();
         $this->writeTestUpdateZip($state);
-        $this->makeTestSivujettiApp($state);
+        $this->makeUpdateTestApp($state);
         $this->sendUpdateCoreRequest($state);
         $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
         $this->verifyOverwroteBackendSourceFiles($state);
@@ -39,7 +43,7 @@ final class UpdateCoreTest extends DbTestCase {
     private function setupTest(): \TestState {
         $state = new \TestState;
         $state->inputData = (object) ["toVersion" => '99' . App::VERSION];
-        $state->sivujettiApp = null;
+        $state->app = null;
         $state->spyingResponse = null;
         return $state;
     }
@@ -49,16 +53,18 @@ final class UpdateCoreTest extends DbTestCase {
         $pkg = new ZipPackageStream($fs);
         (new Bundler($fs, function () { }))->makeRelease($pkg, $outFilePath, true);
     }
-    private function makeTestSivujettiApp(\TestState $state): void {
-        $state->sivujettiApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function ($di) {
-            $di->define(Updater::class, [
-                ':targetBackendDirPath' => self::CMS_CLONE_BACKEND_PATH . "/",
-                ':targetIndexDirPath' => self::CMS_CLONE_INDEX_PATH . "/",
-            ]);
+    private function makeUpdateTestApp(\TestState $state): void {
+        $this->makeTestSivujettiApp($state, function (TestEnvBootstrapper $bootModule) {
+            $bootModule->useMockAlterer(function (Injector $di) {
+                $di->define(Updater::class, [
+                    ':targetBackendDirPath' => self::CMS_CLONE_BACKEND_PATH . "/",
+                    ':targetIndexDirPath' => self::CMS_CLONE_INDEX_PATH . "/",
+                ]);
+            });
         });
     }
     private function sendUpdateCoreRequest(\TestState $state): void {
-        $state->spyingResponse = $state->sivujettiApp->sendRequest(
+        $state->spyingResponse = $state->app->sendRequest(
             $this->createApiRequest("/api/updates/core", "PUT", $state->inputData));
     }
     private function verifyOverwroteBackendSourceFiles(\TestState $state): void {
@@ -96,7 +102,7 @@ final class UpdateCoreTest extends DbTestCase {
     public function testUpdateCoreRejectsRequestIfToVersionIsNotValidSemVerVersion(): void {
         $state = $this->setupTest();
         $state->inputData->toVersion = "not-valid-version";
-        $this->makeTestSivujettiApp($state);
+        $this->makeUpdateTestApp($state);
         $this->sendUpdateCoreRequest($state);
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals(["toVersion is not valid"],
@@ -109,7 +115,7 @@ final class UpdateCoreTest extends DbTestCase {
 
     public function testUpdateCoreRejectsRequestIfToVersionIsOlderOrEqualThanCurrentVersion(): void {
         $state = $this->setupTest();
-        $this->makeTestSivujettiApp($state);
+        $this->makeUpdateTestApp($state);
         $sendRequestAndVerify = function (string $input) use ($state) {
             $state->spyingResponse = null;
             $state->inputData->toVersion = $input;
@@ -129,7 +135,7 @@ final class UpdateCoreTest extends DbTestCase {
 
     public function testUpdateCoreReturnsIfUpdateWasAlreadyInProgress(): void {
         $state = $this->setupTest();
-        $this->makeTestSivujettiApp($state);
+        $this->makeUpdateTestApp($state);
         $this->simulateUpdateIsAlreadyStartedByAnotherRequest($state);
         $this->sendUpdateCoreRequest($state);
         $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);

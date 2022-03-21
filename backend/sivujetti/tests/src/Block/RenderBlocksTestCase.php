@@ -2,7 +2,6 @@
 
 namespace Sivujetti\Tests\Block;
 
-use Sivujetti\App;
 use Sivujetti\Tests\Utils\{BlockTestUtils, HttpApiTestTrait, PageTestUtils};
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 
@@ -22,8 +21,8 @@ abstract class RenderBlocksTestCase extends DbTestCase {
         $state->app = null;
         return $state;
     }
-    protected function makeTestSivujettiApp(\TestState $state): void {
-        $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
+    public static function getDbConfig(): array {
+        return require TEST_CONFIG_FILE_PATH;
     }
     protected function sendRenderBlockRequest(\TestState $state, ?object $block = null): void {
         $state->spyingResponse = $state->app->sendRequest(

@@ -13,6 +13,9 @@ abstract class ThemesControllerTestCase extends DbTestCase {
         parent::setUp();
         $this->dbDataHelper = new DbDataHelper(self::$db);
     }
+    public static function getDbConfig(): array {
+        return require TEST_CONFIG_FILE_PATH;
+    }
     protected function createDefaultTestState(): \TestState {
         $state = new \TestState;
         $state->testGlobalStyles = [

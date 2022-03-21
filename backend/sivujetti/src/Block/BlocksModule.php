@@ -2,18 +2,18 @@
 
 namespace Sivujetti\Block;
 
-use Sivujetti\AppContext;
+use Pike\Router;
 
 final class BlocksModule {
     /**
-     * @param \Sivujetti\AppContext $ctx
+     * @param \Pike\Router $router
      */
-    public function init(AppContext $ctx): void {
-        $ctx->router->map("POST", "/api/blocks/render",
+    public function init(Router $router): void {
+        $router->map("POST", "/api/blocks/render",
             [BlocksController::class, "render", ["consumes" => "application/json",
                                                  "identifiedBy" => ["renderOrView", "blocks"]]]
         );
-        $ctx->router->map("GET", "/api/blocks/[w:type]",
+        $router->map("GET", "/api/blocks/[w:type]",
             [BlocksController::class, "list", ["consumes" => "application/json",
                                                "identifiedBy" => ["renderOrView", "blocks"]]]
         );

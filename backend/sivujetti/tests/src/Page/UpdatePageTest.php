@@ -2,21 +2,12 @@
 
 namespace Sivujetti\Tests\Page;
 
-use Sivujetti\App;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\Tests\Utils\{HttpApiTestTrait, PageTestUtils};
-use Pike\{PikeException, TestUtils\DbTestCase, TestUtils\HttpTestUtils};
+use Pike\PikeException;
 use Sivujetti\Block\BlockTree;
 
-final class UpdatePageTest extends DbTestCase {
-    use HttpTestUtils;
-    use HttpApiTestTrait;
-    private PageTestUtils $pageTestUtils;
-    protected function setUp(): void {
-        parent::setUp();
-        $this->pageTestUtils = new PageTestUtils(self::$db);
-    }
+final class UpdatePageTest extends PagesControllerTestCase {
     public function testUpdatePageWritesUpdatedDataToDb(): void {
         $state = $this->setupTest();
         $this->makeTestSivujettiApp($state);
@@ -43,9 +34,6 @@ final class UpdatePageTest extends DbTestCase {
         $state->spyingResponse = null;
         $state->app = null;
         return $state;
-    }
-    private function makeTestSivujettiApp(\TestState $state): void {
-        $state->app = $this->makeApp(fn() => App::create(self::setGetConfig()));
     }
     private function insertTestPageDataToDb(\TestState $state, ?PageType $pageType = null): void {
         $insertId = $this->pageTestUtils->insertPage($state->testPageData,

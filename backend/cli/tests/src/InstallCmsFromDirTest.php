@@ -2,13 +2,15 @@
 
 namespace Sivujetti\Cli\Tests;
 
-use Auryn\Injector;
 use Pike\Auth\{Authenticator, Crypto};
-use Pike\{Db, PikeException, Request};
+use Pike\{AppConfig, Db, Injector, PikeException, Request};
+use Pike\Db\{FluentDb};
+use Pike\Interfaces\FileSystemInterface;
 use Pike\TestUtils\{DbTestCase, HttpTestUtils, MockCrypto};
 use Sivujetti\FileSystem;
 use Sivujetti\Auth\ACL;
 use Sivujetti\Cli\{App, Controller};
+use Sivujetti\Cli\Tests\InstallCmsFromDirTest as TestsInstallCmsFromDirTest;
 use Sivujetti\Installer\{Commons, LocalDirPackage};
 use Sivujetti\Tests\Utils\PageTestUtils;
 use Sivujetti\Update\{PackageStreamInterface, Updater};
@@ -27,6 +29,9 @@ final class InstallCmsFromDirTest extends DbTestCase {
     protected function tearDown(): void {
         parent::tearDown();
         $this->cleanUp($this->state);
+    }
+    public static function getDbConfig(): array {
+        return require TEST_CONFIG_FILE_PATH;
     }
     public function testInstallFromDirInstallsSiteFromLocalDirectory(): void {
         $state = $this->setupTest((object) [
@@ -68,15 +73,29 @@ final class InstallCmsFromDirTest extends DbTestCase {
         return $state;
     }
     private function makeTestInstallerApp(\TestState $state): void {
-        $state->installerApp = $this->makeApp(fn() => App::create(self::setGetConfig()), function (Injector $di) use ($state) {
-            $di->prepare(Commons::class, function (Commons $instance) use ($state) {
-                $instance->setTargetSitePaths(backendRelDirPath: "install-from-dir-test-backend/",
-                                              serverIndexRelDirPath: "install-from-dir-test-root/");
-                $state->getTargetSitePath = fn($which = "site") => $instance->getTargetSitePath($which);
-                $state->getInstallerDb = fn() => $instance->getDb();
-            });
-            $di->delegate(Crypto::class, fn() => new MockCrypto);
-        });
+        $state->installerApp = $this->buildApp(new App(new class($state, self::$db) {
+            public function __construct(
+                private \TestState $state,
+                private Db $testDb
+            ) { }
+            public function init(\Pike\Router $r) {
+                //
+            }
+            public function beforeExecCtrl(Injector $di): void {
+                $di->share(new AppConfig(TestsInstallCmsFromDirTest::getDbConfig()));
+                $di->share($this->testDb);
+                $di->alias(Db::class, SingleConnectionDb::class);
+                $di->share(new FluentDb($this->testDb));
+                $di->alias(FileSystemInterface::class, FileSystem::class);
+                $di->prepare(Commons::class, function (Commons $instance) {
+                    $instance->setTargetSitePaths(backendRelDirPath: "install-from-dir-test-backend/",
+                                                serverIndexRelDirPath: "install-from-dir-test-root/");
+                    $this->state->getTargetSitePath = fn($which = "site") => $instance->getTargetSitePath($which);
+                    $this->state->getInstallerDb = fn() => $instance->getDb();
+                });
+                $di->delegate(Crypto::class, fn() => new MockCrypto);
+            }
+        }));
     }
     private function invokeInstallFromDirFeature(\TestState $state): void {
         $tail = urlencode(implode("/", $state->inputArgs));

@@ -2,18 +2,18 @@
 
 namespace Sivujetti\Layout;
 
-use Sivujetti\AppContext;
+use Pike\Router;
 
 final class LayoutsModule {
     /**
-     * @param \Sivujetti\AppContext $ctx
+     * @param \Pike\Router $router
      */
-    public function init(AppContext $ctx): void {
-        $ctx->router->map("GET", "/api/layouts",
+    public function init(Router $router): void {
+        $router->map("GET", "/api/layouts",
             [LayoutsController::class, "list", ["consumes" => "application/json",
                                                 "identifiedBy" => ["list", "layouts"]]],
         );
-        $ctx->router->map("PUT", "/api/layouts/[i:layoutId]/structure",
+        $router->map("PUT", "/api/layouts/[i:layoutId]/structure",
             [LayoutsController::class, "updateLayoutStructure", ["consumes" => "application/json",
                                                                  "identifiedBy" => ["updateStructureOf", "layouts"]]],
         );

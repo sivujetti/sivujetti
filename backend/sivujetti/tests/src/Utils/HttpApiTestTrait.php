@@ -2,7 +2,9 @@
 
 namespace Sivujetti\Tests\Utils;
 
+use Pike\Interfaces\SessionInterface;
 use Pike\Request;
+use Sivujetti\App;
 
 trait HttpApiTestTrait {
     /**
@@ -19,5 +21,17 @@ trait HttpApiTestTrait {
             array_merge(['HTTP_X_REQUESTED_WITH' => 'js-fetch',
                          'CONTENT_TYPE' => 'application/json'],
                         $serverVars ?? []), $queryVars, $cookies);
+    }
+    /**
+     * @param \TestState $state
+     * @param \Closure ...$bootModuleAltererFns
+     */
+    public function makeTestSivujettiApp(\TestState $state, \Closure ...$bootModuleAltererFns): void {
+        $bootModule = (new TestEnvBootstrapper(require TEST_CONFIG_FILE_PATH, self::$db));
+        $bootModule->useMock("auth", [":session" => $this->createMock(SessionInterface::class)]);
+        foreach ($bootModuleAltererFns as $arg) {
+            $arg($bootModule);
+        }
+        $state->app = $this->buildApp(new App($bootModule));
     }
 }

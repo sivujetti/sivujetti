@@ -2,18 +2,18 @@
 
 namespace Sivujetti\Upload;
 
-use Sivujetti\AppContext;
+use Pike\Router;
 
 final class UploadsModule {
     /**
-     * @param \Sivujetti\AppContext $ctx
+     * @param \Pike\Router $router
      */
-    public function init(AppContext $ctx): void {
-        $ctx->router->map("GET", "/api/uploads/[*:filters]?",
+    public function init(Router $router): void {
+        $router->map("GET", "/api/uploads/[*:filters]?",
             [UploadsController::class, "getUploads", ["consumes" => "application/json",
                                                       "identifiedBy" => ["view", "uploads"]]]
         );
-        $ctx->router->map("POST", "/api/uploads",
+        $router->map("POST", "/api/uploads",
             [UploadsController::class, "uploadFile", ["consumes" => "multipart/form-data",
                                                       "identifiedBy" => ["upload", "uploads"]]]
         );

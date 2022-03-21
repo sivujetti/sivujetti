@@ -2,14 +2,14 @@
 
 namespace Sivujetti\Update;
 
-use Sivujetti\AppContext;
+use Pike\Router;
 
 final class UpdatesModule {
     /**
-     * @param \Sivujetti\AppContext $ctx
+     * @param \Pike\Router $router
      */
-    public function init(AppContext $ctx): void {
-        $ctx->router->map("PUT", "/api/updates/core",
+    public function init(Router $router): void {
+        $router->map("PUT", "/api/updates/core",
             [UpdatesController::class, "tryToUpdateCore", ["consumes" => "application/json",
                                                            "identifiedBy" => ["install", "coreUpdates"]]]
         );

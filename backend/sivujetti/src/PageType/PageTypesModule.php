@@ -2,22 +2,22 @@
 
 namespace Sivujetti\PageType;
 
-use Sivujetti\AppContext;
+use Pike\Router;
 
 final class PageTypesModule {
     /**
-     * @param \Sivujetti\AppContext $ctx
+     * @param \Pike\Router $router
      */
-    public function init(AppContext $ctx): void {
-        $ctx->router->map("POST", "/api/page-types/as-placeholder",
+    public function init(Router $router): void {
+        $router->map("POST", "/api/page-types/as-placeholder",
             [PageTypesController::class, "createPlaceholderPageType", ["consumes" => "application/json",
                                                                        "identifiedBy" => ["create", "pageTypes"]]],
         );
-        $ctx->router->map("PUT", "/api/page-types/[w:name]/[as-placeholder:asPlaceholder]?",
+        $router->map("PUT", "/api/page-types/[w:name]/[as-placeholder:asPlaceholder]?",
             [PageTypesController::class, "updatePageType", ["consumes" => "application/json",
                                                             "identifiedBy" => ["update", "pageTypes"]]],
         );
-        $ctx->router->map("DELETE", "/api/page-types/[w:name]/[as-placeholder:asPlaceholder]?",
+        $router->map("DELETE", "/api/page-types/[w:name]/[as-placeholder:asPlaceholder]?",
             [PageTypesController::class, "deletePageType", ["consumes" => "application/json",
                                                             "identifiedBy" => ["delete", "pageTypes"]]],
         );

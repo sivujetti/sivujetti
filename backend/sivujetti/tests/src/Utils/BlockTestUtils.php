@@ -24,7 +24,7 @@ final class BlockTestUtils {
      * @param object[]|null $children = null
      * @param array<string, mixed>|object|null $propsData = null
      * @param ?string $id = null
-     * @return object
+     * @return object object{type: string, title: string, renderer: string, id: string, children: array<int, object>, propsData: array<int, object{key: string, value: mixed}>}
      */
     public function makeBlockData(?string $type = null,
                                   ?string $title = null,

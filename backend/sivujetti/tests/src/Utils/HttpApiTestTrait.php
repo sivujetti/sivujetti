@@ -34,4 +34,14 @@ trait HttpApiTestTrait {
         }
         $state->app = $this->buildApp(new App($bootModule));
     }
+    /**
+     * @param \TestState $state
+     * @param int $withStatusCode = 200
+     */
+    protected function verifyRequestFinishedSuccesfully(\TestState $state,
+                                                        int $withStatusCode = 200): void {
+        $this->verifyResponseMetaEquals($withStatusCode,
+                                        "application/json",
+                                        $state->spyingResponse);
+    }
 }

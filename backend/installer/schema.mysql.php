@@ -7,7 +7,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
-"DROP TABLE IF EXISTS `\${p}globalBlockStyles`",
+"DROP TABLE IF EXISTS `\${p}globalBlocksStyles`",
 "DROP TABLE IF EXISTS `\${p}globalBlocks`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
@@ -127,7 +127,7 @@ return [
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 
-"CREATE TABLE `\${p}globalBlockStyles` (
+"CREATE TABLE `\${p}globalBlocksStyles` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `styles` TEXT,
     `globalBlockTreeId` SMALLINT UNSIGNED NOT NULL,

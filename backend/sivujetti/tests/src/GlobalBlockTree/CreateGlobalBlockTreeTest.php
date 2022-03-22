@@ -21,7 +21,8 @@ final class CreateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
         $state->spyingResponse = $state->app->sendRequest(
             $this->createApiRequest("/api/global-block-trees", "POST", $state->inputData));
     }
-    private function verifyRequestFinishedSuccesfully(\TestState $state): void {
+    /** @override (\Sivujetti\Tests\Utils\HttpApiTestTrait) */
+    protected function verifyRequestFinishedSuccesfully(\TestState $state, int $withStatus = 200): void {
         $this->verifyResponseMetaEquals(201, "application/json", $state->spyingResponse);
         $state->actualInsertId = json_decode($state->spyingResponse->getActualBody())->insertId;
         $this->assertEquals("string", gettype($state->actualInsertId));

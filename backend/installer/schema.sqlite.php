@@ -6,7 +6,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
-"DROP TABLE IF EXISTS `\${p}globalBlockStyles`",
+"DROP TABLE IF EXISTS `\${p}globalBlocksStyles`",
 "DROP TABLE IF EXISTS `\${p}globalBlocks`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
@@ -119,7 +119,7 @@ return [
     `blocks` JSON
 )",
 
-"CREATE TABLE `\${p}globalBlockStyles` (
+"CREATE TABLE `\${p}globalBlocksStyles` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `styles` TEXT,
     `globalBlockTreeId` INTEGER NOT NULL,

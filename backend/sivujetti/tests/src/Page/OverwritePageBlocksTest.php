@@ -29,18 +29,11 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
         $state->app = null;
         return $state;
     }
-    private function insertTestPageDataToDb(\TestState $state): void {
-        $insertId = $this->pageTestUtils->insertPage($state->testPageData);
-        $state->testPageData->id = $insertId;
-    }
     private function sendOverwritePageBlocksRequest(\TestState $state): void {
         $state->spyingResponse = $state->app->sendRequest($this->createApiRequest(
             "/api/pages/" . PageType::PAGE . "/{$state->testPageData->id}/blocks",
             "PUT",
             $state->inputData));
-    }
-    private function verifyRequestFinishedSuccesfully(\TestState $state): void {
-        $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
     }
     private function verifyOverwrotePageBlocksToDb(\TestState $state): void {
         $actual = $this->pageTestUtils->getPageById($state->testPageData->id);

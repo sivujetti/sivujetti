@@ -27,19 +27,10 @@ final class UpdateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
         //
         return $state;
     }
-    private function insertTestGlobalBlockTreeToDb(\TestState $state): void {
-        $data = clone $state->originalData;
-        $data->blocks = BlockTree::toJson($state->originalData->blocks);
-        $insertId = $this->dbDataHelper->insertData($data, "globalBlocks");
-        $state->originalData->id = $insertId;
-    }
     private function sendUpdateGlobalBlockTreeRequest(\TestState $state): void {
         $state->spyingResponse = $state->app->sendRequest(
             $this->createApiRequest("/api/global-block-trees/{$state->originalData->id}/blocks",
                 "PUT", $state->inputData));
-    }
-    private function verifyRequestFinishedSuccesfully(\TestState $state): void {
-        $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
     }
     private function verifyWroteNewDataToDb(\TestState $state): void {
         $actual = $this->dbDataHelper->getRow("globalBlocks",

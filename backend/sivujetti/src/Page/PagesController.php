@@ -4,6 +4,7 @@ namespace Sivujetti\Page;
 
 use MySite\Theme;
 use Pike\{AppConfig, ArrayUtils, Db, PikeException, Request, Response};
+use Pike\Db\FluentDb;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\{App, SharedAPIContext, Template, Translator};
@@ -13,6 +14,7 @@ use Sivujetti\UserTheme\UserThemeAPI;
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\BlockType\ListeningBlockTypeInterface;
+use Sivujetti\GlobalBlockTree\GlobalBlocksOrPageBlocksUpserter as StylesUpserter;
 use Sivujetti\Layout\Entities\Layout;
 use Sivujetti\Layout\LayoutsRepository;
 
@@ -191,6 +193,40 @@ final class PagesController {
         $res->status(200)->json(["ok" => "ok"]);
     }
     /**
+     * PUT /api/pages/:pageType/:pageId/block-styles: Overwrites the styles of
+     * $req->params->pageId's blocks.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Pike\Db\FluentDb $db
+     * @param \Sivujetti\Page\PagesRepository $pagesRepo
+     */
+    public function updateBlockStyles(Request $req,
+                                      Response $res,
+                                      FluentDb $db,
+                                      PagesRepository $pagesRepo): void {
+        $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
+        //
+        if (($errors = StylesUpserter::validateInput($req->body))) {
+            $res->status(400)->json($errors);
+            return;
+        }
+        //
+        [$result, $stylesExistedAlready] = StylesUpserter::upsertStyles($req, $db, "pageBlocksStyles", $pageType);
+        //
+        if ($stylesExistedAlready) {
+            if ($result !== 1)
+                throw new PikeException("Expected \$numAffectedRows to equal 1 but got {$result}",
+                    PikeException::INEFFECTUAL_DB_OP);
+            $res->status(200)->json(["ok" => "ok"]);
+            return;
+        }
+        if ($result === "")
+            throw new PikeException("Expected \$lastInsertId not to equal \"\"",
+                PikeException::INEFFECTUAL_DB_OP);
+        $res->status(201)->json(["ok" => "ok", "insertId" => $result]);
+    }
+    /**
      * PUT /api/pages/[w:pageType]/[i:pageId]: updates basic info of $req->params
      * ->pageId to the database.
      *
@@ -250,8 +286,8 @@ final class PagesController {
             $html = substr($html, 0, $bodyEnd) .
                 "<script>window.sivujettiCurrentPageData = " . json_encode([
                     "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
-                    "globalBlockStyles" => $tmpl->getGlobalBlockStyles(),
                     "layout" => self::layoutToRaw($page->layout),
+                    "globalBlocksStyles" => $tmpl->getGlobalBlockStyles(),
                 ]) . "</script>" .
                 "<script src=\"" . WebPageAwareTemplate::makeUrl("public/sivujetti/sivujetti-webpage.js", false) . "\"></script>" .
             substr($html, $bodyEnd);
@@ -273,7 +309,7 @@ final class PagesController {
                 continue;
             $blockType = $blockTypes->{$block->type};
             if (array_key_exists(ListeningBlockTypeInterface::class, class_implements($blockType)))
-                $blockType->onBeforeRender($block, $blockType, App::$di);
+                $blockType->onBeforeRender($block, $blockType, App::$adi);
             if ($block->children)
                 self::runBlockBeforeRenderEvent($block->children, $blockTypes, $pagesRepo, $theWebsite);
         }
@@ -366,6 +402,7 @@ final class PagesController {
         $page->id = "-";
         $page->type = $pagePageType->name;
         $page->blocks = [];
+        $page->blockStyles = [];
         $page->status = Page::STATUS_DRAFT;
         return $page;
     }

@@ -51,7 +51,7 @@ final class GlobalBlockTreesRepository {
             ->select("\${p}globalBlocks gb", GlobalBlockTree::class)
             ->fields(["gb.`id`", "gb.`name`", "gb.`blocks` AS `blocksJson`",
                       "gbs.`styles` AS `blockStylesJson`"])
-            ->leftJoin("\${p}globalBlockStyles gbs ON (gbs.`globalBlockTreeId` = gb.`id`)")
+            ->leftJoin("\${p}globalBlocksStyles gbs ON (gbs.`globalBlockTreeId` = gb.`id`)")
             ->mapWith(new class implements RowMapperInterface {
                 public function mapRow(object $row, int $_rowNum, array $_rows): ?object {
                     GlobalBlockTreesRepository::normalizeSingle($row);

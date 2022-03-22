@@ -13,7 +13,7 @@ final class CreatePageTest extends PagesControllerTestCase {
         $state = $this->setupTest();
         $this->makeTestSivujettiApp($state);
         $this->sendCreatePageRequest($state);
-        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifyRequestFinishedSuccesfully($state, 201);
         $this->verifyInsertedPageToDb($state);
     }
     private function setupTest(): \TestState {
@@ -36,9 +36,6 @@ final class CreatePageTest extends PagesControllerTestCase {
     private function sendCreatePageRequest(\TestState $state, string $pageTypeName = PageType::PAGE): void {
         $state->spyingResponse = $state->app->sendRequest(
             $this->createApiRequest("/api/pages/{$pageTypeName}", "POST", $state->inputData));
-    }
-    private function verifyRequestFinishedSuccesfully(\TestState $state): void {
-        $this->verifyResponseMetaEquals(201, "application/json", $state->spyingResponse);
     }
     private function verifyInsertedPageToDb(\TestState $state): void {
         $actual = $this->pageTestUtils->getPageBySlug($state->inputData->slug);
@@ -107,7 +104,7 @@ final class CreatePageTest extends PagesControllerTestCase {
         $this->registerCustomPageType($state);
         $this->makeTestSivujettiApp($state);
         $this->sendCreatePageRequest($state, $state->customPageType->name);
-        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifyRequestFinishedSuccesfully($state, 201);
         $this->verifyInsertedCustomPageToDb($state);
         $this->dropCustomPageType($state);
     }

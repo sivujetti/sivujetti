@@ -112,6 +112,18 @@ final class PageTestUtils {
         ];
     }
     /**
+     * @param object $testPageData
+     * @return object
+     */
+    public function makePageBlockStylesData(object $testPageData): object {
+        $someBlock = $testPageData->blocks[0];
+        return (object) [
+            "styles" => json_encode([(object) ["blockId" => $someBlock->id, "styles" => "{ color: red; }"]]),
+            "pageId" => "@later",
+            "pageTypeName" => PageType::PAGE,
+        ];
+    }
+    /**
      * @return \Sivujetti\PageType\Entities\PageType
      */
     public function registerTestCustomPageType(): PageType {

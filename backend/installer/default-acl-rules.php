@@ -13,9 +13,10 @@ $out->resources = (object) [
         "install"        => 0b00000100,
     ],
     "globalBlockTrees" => (object) [
-        "create"        => 0b00000010,
-        "read"          => 0b00000100,
-        "update"        => 0b00001000,
+        "create"         => 0b00000010,
+        "read"           => 0b00000100,
+        "update"         => 0b00001000,
+        "updateStylesOf" => 0b00010000,
     ],
     "editMode" => (object) [
         "access"         => 0b00000010,
@@ -28,6 +29,7 @@ $out->resources = (object) [
         "create"         => 0b00000010,
         "updateBlocksOf" => 0b00000100,
         "update"         => 0b00001000,
+        "updateStylesOf" => 0b00010000,
     ],
     "pageTypes" => (object) [
         "create"         => 0b00000010,

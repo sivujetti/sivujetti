@@ -2,7 +2,8 @@
 
 namespace Sivujetti\GlobalBlockTree;
 
-use Pike\{ObjectValidator, PikeException, Request, Response, Validation};
+use Pike\Db\FluentDb;
+use Pike\{PikeException, Request, Response, Validation};
 use Sivujetti\Block\{BlocksController, BlockTree, BlockValidator};
 use Sivujetti\BlockType\Entities\BlockTypes;
 
@@ -94,6 +95,39 @@ final class GlobalBlockTreesController {
         $res->status(200)->json(["ok" => "ok"]);
     }
     /**
+     * PUT /api/global-block-trees/:globalBlockTreeId/block-styles: Overwrites the
+     * styles of $req->params->globalBlockTreeId's blocks.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Pike\Db\FluentDb $db
+     */
+    public function updateOrCreateStyles(Request $req,
+                                         Response $res,
+                                         FluentDb $db): void {
+        if (($errors = GlobalBlocksOrPageBlocksUpserter::validateInput($req->body))) {
+            $res->status(400)->json($errors);
+            return;
+        }
+        //
+        [$result, $stylesExistedAlready] = GlobalBlocksOrPageBlocksUpserter::upsertStyles($req, $db, "globalBlocksStyles");
+        //
+        if ($stylesExistedAlready) {
+            if ($result !== 1)
+                throw new PikeException("Expected \$numAffectedRows to equal 1 but got {$result}",
+                    PikeException::INEFFECTUAL_DB_OP);
+            $res->status(200)->json(["ok" => "ok"]);
+            return;
+        }
+        if ($result === "")
+            throw new PikeException("Expected \$lastInsertId not to equal \"\"",
+                PikeException::INEFFECTUAL_DB_OP);
+        $res->status(201)->json(["ok" => "ok", "insertId" => $result]);
+    }
+    /**
+     * @param object $input
+     * @param \Sivujetti\Block\BlockValidator $blockValidator
+     * @return string[] Error messages or []
      */
     private function validateInput(object $input,
                                    BlockValidator $blockValidator,

@@ -4,8 +4,8 @@ namespace Sivujetti\Theme;
 
 use Pike\Db\{FluentDb, NoDupeRowMapper};
 use Pike\{Request, Response, Validation};
-use Sabberworm\CSS\Parser as CssParser;
 use Sivujetti\BlockType\Entities\BlockTypeStyles;
+use Sivujetti\GlobalBlockTree\GlobalBlocksOrPageBlocksUpserter;
 use Sivujetti\ValidationUtils;
 
 final class ThemesController {
@@ -31,9 +31,6 @@ final class ThemesController {
                     $row->blockTypeStyles = self::collectOnce($allRows, fn($row) =>
                         BlockTypeStyles::fromParentRs($row)
                     , "themeBlockTypeStylesBlockTypeName", []);
-                    unset($row->themeId);
-                    unset($row->themeBlockTypeStylesBlockTypeName);
-                    unset($row->themeBlockTypeStylesStyles);
                     return $row;
                 }
             })
@@ -96,19 +93,7 @@ final class ThemesController {
      * @return string[] Error messages or []
      */
     private function validateOverwriteBlockTypeStylesInput(object $input): array {
-        return Validation::makeObjectValidator()
-            ->addRuleImpl("validCss", function ($value) {
-                if (!is_string($value))
-                    return false;
-                if (!strlen($value))
-                    return true;
-                $parser = new CssParser($value);
-                $cssDocument = $parser->parse();
-                return count($cssDocument->getAllDeclarationBlocks()) > 0;
-            }, "%s is not valid CSS")
-            ->rule("styles", "type", "string")
-            ->rule("styles", "maxLength", 512000)
-            ->rule("styles", "validCss")
+        return GlobalBlocksOrPageBlocksUpserter::addStylesValidationRules(Validation::makeObjectValidator())
             ->validate($input);
     }
     /**

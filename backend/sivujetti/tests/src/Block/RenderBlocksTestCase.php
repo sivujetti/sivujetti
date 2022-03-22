@@ -29,7 +29,4 @@ abstract class RenderBlocksTestCase extends DbTestCase {
             $this->createApiRequest("/api/blocks/render",
                 "POST", (object) ["block" => $block ?? $state->testBlock]));
     }
-    protected function verifyRequestFinishedSuccesfully(\TestState $state): void {
-        $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
-    }
 }

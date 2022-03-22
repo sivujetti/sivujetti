@@ -35,19 +35,11 @@ final class UpdatePageTest extends PagesControllerTestCase {
         $state->app = null;
         return $state;
     }
-    private function insertTestPageDataToDb(\TestState $state, ?PageType $pageType = null): void {
-        $insertId = $this->pageTestUtils->insertPage($state->testPageData,
-                                                     $pageType);
-        $state->testPageData->id = $insertId;
-    }
     private function sendUpdatePageRequest(\TestState $state, string $pageTypeName = PageType::PAGE): void {
         $state->spyingResponse = $state->app->sendRequest($this->createApiRequest(
             "/api/pages/{$pageTypeName}/{$state->testPageData->id}",
             "PUT",
             $state->inputData));
-    }
-    private function verifyRequestFinishedSuccesfully(\TestState $state): void {
-        $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
     }
     private function verifyWroteDefaultFieldsToDb(\TestState $state, ?PageType $pageType = null): void {
         $actual = $this->pageTestUtils->getPageById($state->testPageData->id,

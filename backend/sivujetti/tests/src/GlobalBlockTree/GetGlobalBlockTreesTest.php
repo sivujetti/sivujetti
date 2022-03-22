@@ -22,16 +22,13 @@ final class GetGlobalBlockTreesTest extends GlobalBlockTreesControllerTestCase {
         ];
         return $state;
     }
-    private function insertTestGlobalBlockTreeToDb(\TestState $state): void {
+    protected function insertTestGlobalBlockTreeToDb(\TestState $state, object $d = null): void {
         $insertId = $this->dbDataHelper->insertData($state->testGlobalBlockTree, "globalBlocks");
         $state->testGlobalBlockTree->id = $insertId;
     }
     private function sendGetGlobalBlockTreeByIdRequest(\TestState $state): void {
         $state->spyingResponse = $state->app->sendRequest(
             $this->createApiRequest("/api/global-block-trees/{$state->testGlobalBlockTree->id}", "GET"));
-    }
-    private function verifyRequestFinishedSuccesfully(\TestState $state): void {
-        $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
     }
     private function verifyReturnedSingleGlobalBlockTree(\TestState $state): void {
         $actual = json_decode($state->spyingResponse->getActualBody(), flags: JSON_THROW_ON_ERROR);

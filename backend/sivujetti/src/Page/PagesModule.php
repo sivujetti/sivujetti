@@ -21,6 +21,10 @@ final class PagesModule {
             [PagesController::class, "updatePageBlocks", ["consumes" => "application/json",
                                                           "identifiedBy" => ["updateBlocksOf", "pages"]]]
         );
+        $router->map("PUT", "/api/pages/[w:pageType]/[i:pageId]/block-styles",
+            [PagesController::class, "updateBlockStyles", ["consumes" => "application/json",
+                                                           "identifiedBy" => ["updateStylesOf", "pages"]]]
+        );
         $router->map("PUT", "/api/pages/[w:pageType]/[i:pageId]",
             [PagesController::class, "updatePage", ["consumes" => "application/json",
                                                     "identifiedBy" => ["update", "pages"]]]

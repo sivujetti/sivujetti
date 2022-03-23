@@ -19,7 +19,7 @@ final class Controller {
                                       Response $res,
                                       Crypto $crypto,
                                       LocalDirInstaller $installer): void {
-        $config = self::createConfigOrThrow(explode("/", $req->params->settings), $crypto);
+        $config = self::createConfigOrThrow(array_map("urldecode", explode("/", $req->params->settings)), $crypto);
         $installer->doInstall(urldecode($req->params->relDirPath), $config);
         $res->json(["ok" => "ok"]);
     }
@@ -104,15 +104,21 @@ final class Controller {
         if (count($vals) < 3)
             throw new PikeException("Expected at least 3 arguments (<username> <email> <password>)",
                                     PikeException::BAD_INPUT);
+        // @todo replace this with sebastian/cli-parser
+        $dbDriver = $vals[3] ?? "-";
+        $dbDataBase = $vals[4] ?? "-";
+        $dbUser = $vals[5] ?? "-";
+        $dbPass = $vals[6] ?? "-";
+        $baseUrl = $vals[7] ?? "-";
         $input = (object) [
             "username"   => $vals[0],
             "email"      => $vals[1],
             "password"   => $vals[2],
-            "dbDriver"   => $vals[3] ?? "sqlite",
-            "dbDatabase" => $vals[4] ?? "",
-            "dbUser"     => $vals[5] ?? "",
-            "dbPass"     => $vals[6] ?? "",
-            "baseUrl"    => $vals[7] ?? "/",
+            "dbDriver"   => $dbDriver !== "-" ? $dbDriver : "sqlite",
+            "dbDatabase" => $dbDataBase !== "-" ? $dbDataBase : "",
+            "dbUser"     => $dbUser !== "-" ? $dbUser : "",
+            "dbPass"     => $dbPass !== "-" ? $dbPass : "",
+            "baseUrl"    => $baseUrl !== "-" ? $baseUrl : "/",
         ];
         $v = Validation::makeObjectValidator()
             ->rule("username", "minLength", 2)

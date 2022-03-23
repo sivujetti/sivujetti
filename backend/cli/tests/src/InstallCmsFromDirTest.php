@@ -38,7 +38,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
             "initialUserUsername" => "username",
             "initialUserEmail" => "e@ma.il",
             "initialUserPassword" => "password",
-            "baseUrl" => "foo",
+            "baseUrl" => "/sub-dir/",
         ]);
         $this->makeTestInstallerApp($state);
         $this->invokeInstallFromDirFeature($state);
@@ -98,7 +98,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         }));
     }
     private function invokeInstallFromDirFeature(\TestState $state): void {
-        $tail = urlencode(implode("/", $state->inputArgs));
+        $tail = implode("/", array_map("urlencode", $state->inputArgs));
         $state->spyingResponse = $state->installerApp->sendRequest(
             new Request("/install-from-dir/basic-site/{$tail}", "PSEUDO:CLI"));
     }

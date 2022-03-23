@@ -2,7 +2,8 @@
 
 namespace Sivujetti\Cli;
 
-use Pike\App as PikeApp;
+use Pike\{App as PikeApp, FileSystem, Injector, Router};
+use Pike\Interfaces\FileSystemInterface;
 
 final class App extends PikeApp {
     /**
@@ -10,8 +11,13 @@ final class App extends PikeApp {
      */
     public function __construct(?object $bootModule = null) {
         parent::__construct();
-        $this->setModules(array_merge($bootModule ? [$bootModule] : [], [
-            new Module,
-        ]));
+        $this->setModules([$bootModule ?? new class() {
+            public function init(Router $_router) {
+                //
+            }
+            public function beforeExecCtrl(Injector $di): void {
+                $di->alias(FileSystemInterface::class, FileSystem::class);
+            }
+        }, new Module]);
     }
 }

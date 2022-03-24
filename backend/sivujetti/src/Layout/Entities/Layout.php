@@ -19,7 +19,7 @@ final class Layout {
      */
     public static function fromParentRs(object $row): Layout {
         $out = new self;
-        $out->id = $row->layoutId;
+        $out->id = strval($row->layoutId);
         $out->friendlyName = $row->layoutFriendlyName;
         $out->relFilePath = $row->layoutRelFilePath;
         $out->structure = $row->layoutStructureJson

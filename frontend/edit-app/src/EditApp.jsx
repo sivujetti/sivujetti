@@ -70,7 +70,7 @@ class EditApp extends preact.Component {
         this.setState({currentMainPanel: !webPagePage.isPlaceholderPage ? 'default' : 'create-page'});
         signals.emit('on-web-page-loaded');
         store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
-        store.dispatch(setGlobalBlockStyles(webPage.data.globalBlockStyles));
+        store.dispatch(setGlobalBlockStyles(webPage.data.globalBlocksStyles));
         store.dispatch(setPageBlockStyles(webPage.data.page.blockStyles));
         store.dispatch(setOpQueue([]));
         this.receivingData = false;
@@ -113,7 +113,7 @@ class EditApp extends preact.Component {
             </header>
             { showMainPanel
                 ? <DefaultMainPanelView
-                    sections={ ['content', 'globalStyles'] }
+                    sections={ Array.from(api.mainPanel.getSections().keys()) }
                     blockTreesRef={ this.blockTrees }
                     startAddPageMode={ () => {
                         // Open to iframe to '/_edit/api/_placeholder-page...',

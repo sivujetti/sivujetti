@@ -1,13 +1,4 @@
-import {__, signals} from '@sivujetti-commons-for-edit-app';
-import OnThisPageSection from './OnThisPageSection.jsx';
-import ContentSection from './ContentSection.jsx';
-import GlobalStylesSection from './GlobalStylesSection.jsx';
-
-const sectionRenderers = {
-    'onThisPage': OnThisPageSection,
-    'content': ContentSection,
-    'globalStyles': GlobalStylesSection,
-};
+import {signals, api} from '@sivujetti-commons-for-edit-app';
 
 class DefaultMainPanelView extends preact.Component {
     // unregisterSignalListener;
@@ -31,9 +22,8 @@ class DefaultMainPanelView extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.sections.join(',') !== this.props.sections.join(',')) {
+        if (props.sections.join(',') !== this.props.sections.join(','))
             this.setState(createState(props.sections));
-        }
     }
     /**
      * @access protected
@@ -46,7 +36,7 @@ class DefaultMainPanelView extends preact.Component {
      */
     render(_, {sections}) {
         return <>{ sections.map(sectionName => {
-            const Renderer = sectionRenderers[sectionName];
+            const Renderer = api.mainPanel.getSection(sectionName);
             return <Renderer {...this.props}/>;
         }) }</>;
     }
@@ -57,7 +47,7 @@ class DefaultMainPanelView extends preact.Component {
  * @returns {{sections: Array<String>;}}
  */
 function createState(sectionsInput) {
-    return {sections: ['onThisPage'].concat(sectionsInput)};
+    return {sections: sectionsInput.slice(0)};
 }
 
 export default DefaultMainPanelView;

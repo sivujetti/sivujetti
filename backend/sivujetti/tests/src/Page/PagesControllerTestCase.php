@@ -11,10 +11,17 @@ abstract class PagesControllerTestCase extends DbTestCase {
     use HttpApiTestTrait;
     protected PageTestUtils $pageTestUtils;
     protected DbDataHelper $dbDataHelper;
+    protected ?\Closure $onTearDown;
     protected function setUp(): void {
         parent::setUp();
         $this->pageTestUtils = new PageTestUtils(self::$db);
         $this->dbDataHelper = new DbDataHelper(self::$db);
+        $this->onTearDown = null;
+    }
+    protected function tearDown(): void {
+        parent::tearDown();
+        if ($this->onTearDown)
+            $this->onTearDown->__invoke();
     }
     public static function getDbConfig(): array {
         return require TEST_CONFIG_FILE_PATH;

@@ -135,7 +135,7 @@ final class CreatePageTest extends PagesControllerTestCase {
         ], (array) $actual);
     }
     private function dropCustomPageType(\TestState $state): void {
-        $this->pageTestUtils->dropCustomPageType($state->customPageType);
+        $this->onTearDown = fn() => $this->pageTestUtils->dropCustomPageType($state->customPageType);
     }
 
 

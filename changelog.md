@@ -5,9 +5,11 @@
 # 0.9.0 (not yet released)
 
 ## Added
+- An ability to change theme's global variable values in edit app
+- An ability to apply base CSS for block types in edit app
+- An ability to apply CSS for individual blocks in edit app
 - &lt;selectPageType&gt; -dropdown to Listing blocks
-- Global styles for themes
-- Resizable floating dialogs
+- Resizable floating dialogs (Draggabilly -> jsPanel)
 
 ## Fixed
 - Bugs

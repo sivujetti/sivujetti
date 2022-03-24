@@ -4,7 +4,6 @@ namespace Sivujetti\Tests\PageType;
 
 use Pike\ArrayUtils;
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
-use Sivujetti\App;
 use Sivujetti\PageType\{FieldCollection, PageTypeMigrator, PageTypesController};
 use Sivujetti\Tests\Utils\{BlockTestUtils, DbDataHelper, HttpApiTestTrait};
 use Sivujetti\TheWebsite\TheWebsiteRepository;

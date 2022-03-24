@@ -3,10 +3,11 @@ import MenuBlockEditForm, {CountingLinkItemFactory} from './EditForm.jsx';
 
 export default () => {
     const linkCreator = new CountingLinkItemFactory;
+    const name = 'Menu';
     const initialData = {
         tree: JSON.stringify([linkCreator.makeLinkItem({slug: '/', text: __('Home')}),
                               linkCreator.makeLinkItem({slug: '/about', text: __('About')})]),
-        wrapStart: '<nav class="nav"><div>',
+        wrapStart: '<nav class="nav"{defaultAttrs}><div>',
         wrapEnd:   '</div></nav>',
         treeStart: '<ul class="level-{depth}">',
         treeEnd:   '</ul>',
@@ -16,7 +17,7 @@ export default () => {
         itemEnd:   '</li>'
     };
     return {
-        name: 'Menu',
+        name,
         friendlyName: 'Menu',
         ownPropNames: Object.keys(initialData),
         initialData,
@@ -26,6 +27,11 @@ export default () => {
             return http.post('/api/blocks/render', {block}).then(resp => {
                 const el = document.createElement('div');
                 el.innerHTML = resp.result;
+                const root = el.firstElementChild;
+                if (!root.getAttribute('data-block-type'))
+                    root.setAttribute('data-block-type', name);
+                if (!root.getAttribute('data-block'))
+                    root.setAttribute('data-block', block.id);
                 return el.innerHTML;
             });
         },

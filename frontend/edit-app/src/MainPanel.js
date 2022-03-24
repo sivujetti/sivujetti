@@ -1,5 +1,8 @@
 let env;
 
+// see also frontend/edit-app/main.js
+const sectionRenderers = new Map;
+
 class MainPanel {
     /**
      * @param {HTMLElement} el
@@ -35,6 +38,34 @@ class MainPanel {
      */
     getEl() {
         return this.el;
+    }
+    /**
+     * @param {String} name
+     * @param {preact.AnyComponent} Cls
+     * @access public
+     */
+    registerSection(name, Cls) {
+        if (sectionRenderers.has(name))
+            throw new Error(`Renderer named "${name}" already exists.`);
+        sectionRenderers.set(name, Cls);
+    }
+    /**
+     * @param {String} name
+     * @returns {preact.AnyComponent}
+     * @throws {Error}
+     * @access public
+     */
+    getSection(name) {
+        const out = sectionRenderers.get(name);
+        if (!out) throw new Error(`Renderer "${name}" not found.`);
+        return out;
+    }
+    /**
+     * @returns {Map<preact.AnyComponent>}
+     * @access public
+     */
+    getSections() {
+        return sectionRenderers;
     }
 }
 

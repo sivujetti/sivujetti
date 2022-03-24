@@ -19,6 +19,9 @@ import InspectorPanel from './src/InspectorPanel.jsx';
 import blockTreeUtils from './src/blockTreeUtils.js';
 import WebPageIframe from './src/WebPageIframe.js';
 import MainPanel from './src/MainPanel.js';
+import OnThisPageSection from './src/DefaultView/OnThisPageSection.jsx';
+import ContentSection from './src/DefaultView/ContentSection.jsx';
+import GlobalStylesSection from './src/DefaultView/GlobalStylesSection.jsx';
 
 const editAppReactRef = preact.createRef();
 
@@ -33,7 +36,8 @@ function populateFrontendApi() {
     api.getActiveTheme = () => editAppReactRef.current.props.dataFromAdminBackend.activeTheme;
     api.registerTranslationStrings = translator.addStrings.bind(translator);
     api.webPageIframe = new WebPageIframe(document.getElementById('sivujetti-site-iframe'), env, urlUtils);
-    api.mainPanel = new MainPanel(document.getElementById('main-panel'), env);
+    // blockTypes, see configureServices
+    // mainPanel see configureServices
 }
 
 function configureServices() {
@@ -58,6 +62,12 @@ function configureServices() {
     blockTypes.register('RichText', createRichTextBlockType);
     blockTypes.register('Section', createSectionBlockType);
     api.blockTypes = blockTypes;
+    //
+    const mainPanel = new MainPanel(document.getElementById('main-panel'), env);
+    mainPanel.registerSection('onThisPage', OnThisPageSection);
+    mainPanel.registerSection('content', ContentSection);
+    mainPanel.registerSection('globalStyles', GlobalStylesSection);
+    api.mainPanel = mainPanel;
     //
     patchQuillEditor();
 }

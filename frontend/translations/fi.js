@@ -13,6 +13,7 @@ stringBundles.push({
     'Content': 'Sisältö',
     'Something unexpected happened.': 'Jokin meni pieleen.',
     // edit-app/src/BlockEditForm.jsx
+    'Styles': 'Tyylit',
     'Specialize this global block': 'Spesialisoi tämä globaali lohko',
     'Specialize': 'Spesialisoi',
     'Use edited values on this\npage only': 'Käytä muokattuja tietoja\nvain tällä sivulla',
@@ -51,6 +52,8 @@ stringBundles.push({
     'Name': 'Nimi',
     'e.g. Header, Footer': 'esim. Header, Footer',
     'Convert': 'Muunna',
+    // edit-app/src/DefaultView/GlobalStylesSection.jsx
+    'Block types': 'Lohkotyypit',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'sivutyyppi',
     'Default content': 'Oletussisältö',

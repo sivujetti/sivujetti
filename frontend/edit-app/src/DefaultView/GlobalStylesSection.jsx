@@ -130,7 +130,7 @@ class GlobalStylesSection extends Section {
      */
     applyNewColorAndEmitChangeOp(type, id, newStyles) {
         const findStyle = (from, id, key) => from.findIndex(s => s[key] === id, key);
-        let reverse, url, data;
+        let revert, url, data;
         // mutate this.allStyles or this.styles.blockTypeStyles
         if (type === 'global') {
             arguments[3].setHSVA(newStyles.h, newStyles.s, newStyles.v, newStyles.a);
@@ -143,7 +143,7 @@ class GlobalStylesSection extends Section {
             url = `/api/themes/${this.activeThemeId}/styles/global`;
             data = {allStyles: this.styles.globalStyles};
             //
-            reverse = () => {
+            revert = () => {
                 const idx = findStyle(this.styles.globalStyles, id, 'name');
                 this.styles.globalStyles[idx].value.value = before;
                 const asString = this.applyGlobalVarToState(id, before);
@@ -157,7 +157,7 @@ class GlobalStylesSection extends Section {
             url = `/api/themes/${this.activeThemeId}/styles/block-type/${id}`;
             data = {styles: newStyles};
             //
-            reverse = () => {
+            revert = () => {
                 const idx = findStyle(this.styles.blockTypeStyles, id, 'blockTypeName');
                 this.styles.blockTypeStyles[idx].styles = before;
                 this.applyBlockStylesToState(id, before);
@@ -177,13 +177,9 @@ class GlobalStylesSection extends Section {
             });
         //
         store.dispatch(pushItemToOpQueue(`update-theme-${type}-styles`, {
-            doHandle: ($commit, _$reverse) =>
-                $commit()
-            ,
-            doUndo(_$commit, $reverse) {
-                $reverse();
-            },
-            args: [commit.bind(this), reverse.bind(this)],
+            doHandle: ($commit, _$revert) => $commit(),
+            doUndo(_$commit, $revert) { $revert(); },
+            args: [commit.bind(this), revert.bind(this)],
         }));
     }
     /**

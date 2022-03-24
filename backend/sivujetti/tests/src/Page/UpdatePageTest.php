@@ -111,7 +111,7 @@ final class UpdatePageTest extends PagesControllerTestCase {
         $this->verifyRequestFinishedSuccesfully($state);
         $this->verifyWroteDefaultFieldsToDb($state, $state->customPageType);
         $this->verifyWroteCustomPagesOwnFieldsToDb($state);
-        $this->pageTestUtils->dropCustomPageType($state->customPageType);
+        $this->onTearDown = fn() => $this->pageTestUtils->dropCustomPageType($state->customPageType);
     }
     private function setupUpdateCustomPageTest(): \TestState {
         $state = $this->setupTest();
@@ -148,6 +148,6 @@ final class UpdatePageTest extends PagesControllerTestCase {
             "The value of ownField2 must be 0 or greater",
         ]));
         $this->sendUpdatePageRequest($state, $state->customPageType->name);
-        $this->pageTestUtils->dropCustomPageType($state->customPageType);
+        $this->onTearDown = fn() => $this->pageTestUtils->dropCustomPageType($state->customPageType);
     }
 }

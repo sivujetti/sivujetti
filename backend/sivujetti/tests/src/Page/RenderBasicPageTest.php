@@ -49,11 +49,14 @@ final class RenderBasicPageTest extends RenderPageTestCase {
                                         "globalBlocks");
     }
     private function verifyRenderedCorrectPageAndLayout(\TestState $state): void {
-        $expectedPageBlockHeading = $state->testPageData->blocks[0]->children[0]->propsData[0]->value;
-        $this->assertStringContainsString("<h2>{$expectedPageBlockHeading}</h2>",
+        $headingBlock = $state->testPageData->blocks[0]->children[0];
+        $expectedPageBlockHeading = $headingBlock->propsData[0]->value;
+        $attrs = " data-block-type=\"Heading\" data-block=\"{$headingBlock->id}\"";
+        $this->assertStringContainsString("<h2{$attrs}>{$expectedPageBlockHeading}</h2>",
                                           $state->spyingResponse->getActualBody());
-        $expectedFooterText = $state->testGlobalBlockTree[0]->propsData[0]->value;
-        $this->assertStringContainsString("<p>{$expectedFooterText}</p>",
+        $paragraphBlock = $state->testGlobalBlockTree[0];
+        $expectedPageBlockHeading = $paragraphBlock->propsData[0]->value;
+        $this->assertStringContainsString((new BlockTestUtils($this->pageTestUtils))->getExpectedParagraphBlockOutput($paragraphBlock),
                                           $state->spyingResponse->getActualBody());
     }
     private function verifyThemeCanRegisterCssFiles(\TestState $state): void {
@@ -68,7 +71,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
     }
     private function verifyRenderedBlockTypeBaseStyles(\TestState $state): void {
         $t = "\"Section\"";
-        $expectedCss = "[data-block-type={$t}] { padding: 4rem 2rem; }";
+        $expectedCss = "[data-block-type={$t}]{ padding: 4rem 2rem; }";
         $this->assertStringContainsString("<style data-styles-for-block-type={$t}>{$expectedCss}</style>",
                                           $state->spyingResponse->getActualBody());
     }

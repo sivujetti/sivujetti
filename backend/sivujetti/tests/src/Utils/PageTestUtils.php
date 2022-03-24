@@ -69,6 +69,8 @@ final class PageTestUtils {
             unset($out->layoutFriendlyName);
             unset($out->layoutRelFilePath);
             unset($out->layoutStructureJson);
+            unset($out->blockStyles);
+            unset($out->pageBlocksStylesJson);
         }
         return $out;
     }
@@ -183,7 +185,7 @@ final class PageTestUtils {
             $fakeTheWebsite->pageTypes->offsetUnset($idx);
             $id = 100 + $idx;
             //
-            $db->exec("DROP TABLE `\${p}{$pageType->name}`");
+            $db->exec("DROP TABLE IF EXISTS `\${p}{$pageType->name}`");
             $db->exec("DELETE FROM `pageTypes` WHERE `id` = ?", [$id]);
         });
     }

@@ -21,11 +21,11 @@ final class Theme {
      */
     public static function fromParentRs(object $row, array $rows): Theme {
         $out = new self;
-        $out->id = $row->themeId;
+        $out->id = strval($row->themeId);
         $out->name = $row->themeName;
         $out->globalStyles = json_decode($row->themeGlobalStylesJson, flags: JSON_THROW_ON_ERROR);
         $out->blockTypeStyles = NoDupeRowMapper::collectOnce($rows, fn($row2) =>
-            $row2->themeId === $out->id ? BlockTypeStyles::fromParentRs($row) : null
+            $row2->themeId === $out->id ? BlockTypeStyles::fromParentRs($row2) : null
         , "themeBlockTypeStylesBlockTypeName", []);
         return $out;
     }

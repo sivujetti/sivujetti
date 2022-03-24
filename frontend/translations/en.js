@@ -13,6 +13,7 @@ stringBundles.push({
     'Content': 'Content',
     'Something unexpected happened.': 'Something unexpected happened.',
     // edit-app/src/BlockEditForm.jsx
+    'Styles': 'Styles',
     'Specialize this global block': 'Specialize this global block',
     'Specialize': 'Specialize',
     'Use edited values on this\npage only': 'Use edited values on this\npage only',
@@ -51,6 +52,8 @@ stringBundles.push({
     'Name': 'Name',
     'e.g. Header, Footer': 'e.g. Header, Footer',
     'Convert': 'Convert',
+    // edit-app/src/DefaultView/GlobalStylesSection.jsx
+    'Block types': 'Block types',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'page type',
     'Default content': 'Default content',

@@ -102,7 +102,7 @@ class EditAppAwareWebPage {
     appendClonedBlockBranchToDom(clonedBlock, clonedFromBlock, blockTreeUtils) {
         const contentToClone = this.getBlockContents(clonedFromBlock);
         const clonedContentEls = [document.createComment(makeStartingComment(clonedBlock)),
-                                  contentToClone[1].cloneNode(true),
+                                  updateClonedBlockElAttrs(contentToClone[1].cloneNode(true), clonedBlock.id),
                                   document.createComment(makeEndingComment(clonedBlock))];
         //
         const childBlockMap = {};
@@ -121,6 +121,7 @@ class EditAppAwareWebPage {
             startingCommentNode.textContent = makeStartingComment(cloned); // Note: mutates clonedContentEls
             endindCommentNode.textContent = makeEndingComment(cloned); // Note: mutates clonedContentEls
             childBlockMap[key].startingCommentNode = startingCommentNode;
+            updateClonedBlockElAttrs(startingCommentNode.nextElementSibling, cloned.id);
         }
         // Append new contents to the DOM
         const referenceEndingComment = contentToClone[contentToClone.length - 1];
@@ -646,6 +647,18 @@ function createIsLocalLinkCheckFn(location = window.location) {
  */
 function isValidIdentifier(str) {
     return /^[a-zA-Z_]{1}\w*$/.test(str);
+}
+
+/**
+ * @param {HTMLElement} clonedDomNode
+ * @param {String} blockId
+ * @returns {HTMLElement}
+ */
+function updateClonedBlockElAttrs(clonedDomNode, blockId) {
+    if (!clonedDomNode.getAttribute('data-block')) // probably RichText
+        return clonedDomNode;
+    clonedDomNode.setAttribute('data-block', blockId);
+    return clonedDomNode;
 }
 
 function temp1(type) {

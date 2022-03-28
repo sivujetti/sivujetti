@@ -712,16 +712,21 @@ function createTreeStateItem(overrides = {}) {
  * @returns {Block|null}
  */
 function getLastPageBlock(blockTree) {
+    const getLastBlockTreeBlock = () => blockTree[blockTree.length - 1];
     /** @type {Array<LayoutPart>} */
     const structure = BlockTrees.currentWebPage.data.layout.structure;
-    const globalJustAfter = structure[structure.findIndex(({type}) => type === 'pageContents') + 1] || null;
-    const inTreeIdx = globalJustAfter
-        ? blockTree.findIndex(({type, globalBlockTreeId}) =>
-            type === 'GlobalBlockReference' &&
-            globalBlockTreeId === globalJustAfter.globalBlockTreeId
-        )
-        : null;
-    return blockTree[(inTreeIdx ? inTreeIdx : blockTree.length) - 1];
+    const firstGlobalTreeRefAfterPageContents = structure[structure.findIndex(({type}) => type === 'pageContents') + 1] || null;
+    //
+    if (!firstGlobalTreeRefAfterPageContents)
+        return getLastBlockTreeBlock();
+    //
+    const getPrevious = indexOfFirstGlobalTreeRefAfter =>
+        indexOfFirstGlobalTreeRefAfter > 0 ? blockTree[indexOfFirstGlobalTreeRefAfter - 1] : getLastBlockTreeBlock()
+    ;
+    return getPrevious(blockTree.findIndex(({type, globalBlockTreeId}) =>
+        type === 'GlobalBlockReference' &&
+        globalBlockTreeId === firstGlobalTreeRefAfterPageContents.globalBlockTreeId
+    ));
 }
 
 /**

@@ -102,9 +102,13 @@ Structure:
     padding: .2rem 0;
     color: var(--color-fg-dimmed2);
 }
-.form-horizontal .form-input {
+.form-horizontal .form-input,
+.form-horizontal .input-group .input-group-addon {
     padding: .1rem .35rem;
     height: 1.6rem;
+}
+.form-horizontal .input-group .input-group-addon {
+    padding: .1rem .2rem;
 }
 .form-horizontal .form-group > .col-9 {
     width: calc(75% - .2rem);

@@ -5,7 +5,7 @@ if ($props->__pages ?? null): ?>
     <article class="list-item list-item-<?= $page->slug ?>">
         <h2><?= $this->e($page->title) ?></h2>
         <div><a href="<?= $this->url(
-            ($props->listPageType === "Pages" ? "" : "/{$props->__pageType->slug}") . $page->slug
+            ($props->listPageType === "Pages" ? "" : $props->__pageType->slug) . $page->slug
         ) ?>"><?= $this->__("Read more") ?></a></div>
     </article>
     <?php endforeach; ?>

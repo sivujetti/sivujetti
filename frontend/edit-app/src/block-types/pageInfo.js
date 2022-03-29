@@ -6,6 +6,7 @@ import setFocusTo from './auto-focusers.js';
 
 class PageInfoBlockEditForm extends preact.Component {
     // titleEl;
+    // pageType;
     /**
      * @param {RawBlockData} snapshot
      * @access public
@@ -36,15 +37,17 @@ class PageInfoBlockEditForm extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        const {snapshot, onValueChanged} = this.props;
+        const {snapshot, onValueChanged, onManyValuesChanged} = this.props;
         this.titleEl = preact.createRef();
+        const currentPage = BlockTrees.currentWebPage.data.page;
+        this.pageType = api.getPageTypes().find(({name}) => name === currentPage.type);
         this.setState(hookForm(this, [
             {name: 'title', value: snapshot.title, validations: [['required'], ['maxLength', 92]],
              label: __('Page title'), onAfterValueChanged: (value, hasErrors) => {
                 onValueChanged(value, 'title', hasErrors, env.normalTypingDebounceMillis); }},
             {name: 'slug', value: snapshot.slug, validations: [['required'], ['maxLength', 92], ['regexp', '^/[a-zA-Z0-9_\\-$.+!*\'():,]*$']],
              label: __('Url (slug)'), onAfterValueChanged: (value, hasErrors) => {
-                 onValueChanged(value, 'slug', hasErrors, env.normalTypingDebounceMillis); }},
+                 onManyValuesChanged({slug: value, path: makePath(value, this.pageType)}, hasErrors, env.normalTypingDebounceMillis); }},
         ], {
             takeFullWidth: snapshot.takeFullWidth,
         }));
@@ -68,6 +71,12 @@ class PageInfoBlockEditForm extends preact.Component {
      */
     render() {
         if (!this.state.values) return;
+        const wrap = input => this.pageType.name === 'Pages'
+            ? input
+            : <div class="input-group">
+                <span class="input-group-addon addon-sm">{ this.pageType.slug }</span>
+                { input }
+            </div>;
         return <div class="form-horizontal pt-0">
             <FormGroupInline>
                 <label htmlFor="title" class="form-label">{ __('Page title') }</label>
@@ -76,7 +85,7 @@ class PageInfoBlockEditForm extends preact.Component {
             </FormGroupInline>
             <FormGroupInline>
                 <label htmlFor="slug" class="form-label">{ __('Url (slug)') }</label>
-                <Input vm={ this } prop="slug"/>
+                { wrap(<Input vm={ this } prop="slug"/>) }
                 <InputErrors vm={ this } prop="slug"/>
             </FormGroupInline>
         </div>;
@@ -131,12 +140,21 @@ function makeSlug(title) {
 }
 
 /**
+ * @param {String} slug e.g. "/my-page"
+ * @param {PageType} pageType
+ * @returns {String} e.g. "my-page/", "articles/my-article/"
+ */
+function makePath(slug, pageType) {
+    return `${((pageType.name === 'Pages' ? '' : pageType.slug) + slug).substring(1)}/`;
+}
+
+/**
  * @param {Page|Object} from
  * @param {PageType} pageType
  * @return {PageMetaRaw}
  */
 function createPageData(from, pageType) {
-    const out = {title: from.title, slug: from.slug};
+    const out = {title: from.title, slug: from.slug, path: from.path};
     for (const field of pageType.ownFields) {
         if (field.dataType.type === 'many-to-many') {
             out[field.name] = '[]';
@@ -166,6 +184,7 @@ export default () => {
             const out = createPageData(currentPage, pageType);
             if (currentPage.isPlaceholderPage && out.slug === '-') {
                 out.slug = makeSlug(out.title);
+                out.path = makePath(out.slug, pageType);
                 currentPage.slug = out.slug; // Note: Mutates BlockTrees.currentWebPage.data.page
             }
             return out;

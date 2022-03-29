@@ -26,7 +26,7 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
         $state->inputData = (object) array_merge(
             $inputData === null || $hints === "completeBasicFields" ? [
                 "name" => self::TEST_NAME,
-                "slug" => "my-custom-articles",
+                "slug" => "/my-custom-articles",
                 "friendlyName" => "Custom article",
                 "friendlyNamePlural" => "Custom articles",
                 "description" => "Foo bar",

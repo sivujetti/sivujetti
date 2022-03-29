@@ -16,7 +16,7 @@ class PageTypeBasicInfoConfigurationForm extends preact.Component {
              onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) this.emitPropChanged('friendlyNamePlural', value); }},
             {name: 'description', value: props.data.description, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Description'),
              onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) this.emitPropChanged('description', value); }},
-            {name: 'slug', value: props.data.slug, validations: [['regexp', '^[a-zA-Z_-]+$'], ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Slug'),
+            {name: 'slug', value: props.data.slug, validations: [['regexp', '^/[a-zA-Z_-]+$'], ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Slug'),
              onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) this.emitPropChanged('slug', value); }},
         ], {
             isListable: props.data.isListable,
@@ -56,7 +56,7 @@ class PageTypeBasicInfoConfigurationForm extends preact.Component {
             </FormGroupInline>
             <FormGroupInline>
                 <label htmlFor="slug" class="form-label">{ __('Slug') }</label>
-                <Input vm={ this } prop="slug" placeholder="articles, products"/>
+                <Input vm={ this } prop="slug" placeholder="/articles, /products"/>
                 <InputErrors vm={ this } prop="slug"/>
             </FormGroupInline>
             <FormGroupInline>

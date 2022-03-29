@@ -33,8 +33,8 @@ class PageCreateMainPanelView extends preact.Component {
                 if (this.linkedMenuBlockVals) {
                     const parsed = JSON.parse(this.linkedMenuBlockVals.getBlock().tree);
                     const ref = parsed[parsed.length - 1];
-                    Object.assign(ref, {slug: pageMeta.slug, text: pageMeta.title});
-                    this.linkedMenuBlockVals.handleValueChanged(JSON.stringify(parsed), 'tree', false, 0, 'debounce-none');
+                    Object.assign(ref, {slug: pathToFullSlug(pageMeta.path), text: pageMeta.title});
+                    this.linkedMenuBlockVals.handleSingleValueChanged(JSON.stringify(parsed), 'tree', false, 0, 'debounce-none');
                 }
             });
         (props.getLayouts ? props.getLayouts() : http.get('/api/layouts'))
@@ -126,7 +126,7 @@ class PageCreateMainPanelView extends preact.Component {
         //
         if (this.state.addToMenuId !== ID_NONE && this.linkedMenuBlockVals) {
             const parsed = JSON.parse(this.linkedMenuBlockVals.getBlock().tree);
-            this.linkedMenuBlockVals.handleValueChanged(JSON.stringify(parsed.slice(0, parsed.length - 1)), 'tree');
+            this.linkedMenuBlockVals.handleSingleValueChanged(JSON.stringify(parsed.slice(0, parsed.length - 1)), 'tree');
             this.linkedMenuBlockVals = null;
         }
         // Find selected menu's parent GlobalBlockReference block from current blockTree
@@ -144,12 +144,12 @@ class PageCreateMainPanelView extends preact.Component {
             //
             const linkCreator = new CountingLinkItemFactory();
             const parsed = linkCreator.setGetCounterUsingTree(block);
-            const newLink = linkCreator.makeLinkItem({slug: this.pageMetaData.slug, text: this.pageMetaData.title});
+            const newLink = linkCreator.makeLinkItem({slug: pathToFullSlug(this.pageMetaData.path), text: this.pageMetaData.title});
             parsed.push(newLink);
             //
             const metaProps = {block, base: linkedMenuBase, blockTreeCmp: this.props.blockTreesRef.current.blockTree.current};
             this.linkedMenuBlockVals = new BlockValMutator(metaProps);
-            this.linkedMenuBlockVals.handleValueChanged(JSON.stringify(parsed), 'tree', false, 0, 'debounce-none');
+            this.linkedMenuBlockVals.handleSingleValueChanged(JSON.stringify(parsed), 'tree', false, 0, 'debounce-none');
         }
         this.setState({addToMenuId: newValue});
     }
@@ -160,9 +160,8 @@ class PageCreateMainPanelView extends preact.Component {
      */
     handleFormSubmitted(e) {
         if (e) e.preventDefault();
-        // {title, slug, customField1, customField2 ...}
+        // {title, slug, path, customField1, customField2 ...}
         const data = Object.assign({}, this.pageMetaData);
-        data.path = `${data.slug.substr(1)}/`;
         data.level = 1;
         data.layoutId = BlockTrees.currentWebPage.data.page.layoutId;
         data.blocks = this.props.blockTreesRef.current.getPageBlocks();
@@ -170,10 +169,7 @@ class PageCreateMainPanelView extends preact.Component {
         //
         return http.post(`/api/pages/${this.props.pageType.name}`, data).then(resp => {
                 if (resp.ok !== 'ok') throw new Error('-');
-                if (this.props.pageType.name === 'Pages')
-                    urlUtils.redirect(`/_edit${data.slug}`);
-                else
-                    window.console.log('todo');
+                urlUtils.redirect(`/_edit${pathToFullSlug(data.path, '')}`);
                 return true;
             })
             .catch(err => {
@@ -183,6 +179,17 @@ class PageCreateMainPanelView extends preact.Component {
                 return false;
             });
     }
+}
+
+/**
+ * @param {String} path
+ * @param {String} fallback = '/'
+ * @returns {String} 'foo/' -> '/foo'
+ */
+function pathToFullSlug(path, fallback = '/') {
+    return path !== '/'
+        ? `/${path.substring(0, path.length - 1)}` // 'foo/' -> '/foo'
+        : fallback;
 }
 
 export default PageCreateMainPanelView;

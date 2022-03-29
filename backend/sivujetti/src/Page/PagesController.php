@@ -35,8 +35,8 @@ final class PagesController {
                                TheWebsite $theWebsite): void {
         $pcs = explode("/", $req->params->url, 3);
         [$pageTypeSlug, $slug] = count($pcs) > 2
-            ? [$pcs[1], "/{$pcs[2]}"]
-            : [PageType::SLUG_PAGE, "/{$pcs[1]}"];
+            ? ["/" . $pcs[1], "/{$pcs[2]}"]
+            : ["/" . PageType::SLUG_PAGE, "/{$pcs[1]}"];
         if (!($pageType = ArrayUtils::findByKey($theWebsite->pageTypes,
                                                 $pageTypeSlug,
                                                 "slug"))) {

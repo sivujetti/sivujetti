@@ -10,7 +10,7 @@ abstract class ValidationUtils {
     public const HARD_JSON_TEXT_MAX_LEN = 256000;
     public const EMAIL_REGEXP_SIMPLE = "/^.+@.+$/";
     public const SLUG_MAX_LENGTH = 92;
-    public const SLUG_REGEXP_SIMPLE = "/^[a-zA-Z_-]+$/";
+    public const SLUG_REGEXP_SIMPLE = "/^\/[a-zA-Z_-]+$/";
     private const VALID_RULES = ["type", "minLength", "maxLength", "min",
                                  "max", "in", "identifier", "regexp"];
     /**

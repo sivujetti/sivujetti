@@ -169,6 +169,7 @@ interface RawBlockStyle {
 interface PageMetaRaw {
     title: String;
     slug: String;
+    path: String;
     [key: String]: any; // Own fields
 }
 
@@ -234,6 +235,7 @@ interface BlockEditFormProps {
     block: Block;
     blockTree: preact.Component; // BlockTree
     onValueChanged: (newValue: any, key: String, hasErrors: Boolean = false, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none') => Promise<null>;
+    onManyValuesChanged: (newValues: Object, hasErrors: Boolean = false, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none') => Promise<null>;
     funcsOut: {resetValues?: (newSnapshot: RawBlockData) => void;};
 }
 

@@ -148,7 +148,8 @@ class BlockEditForm extends preact.Component {
                 <EditFormImpl
                     block={ block }
                     blockTree={ blockTreeCmp }
-                    onValueChanged={ this.blockVals.handleValueChanged.bind(this.blockVals) }
+                    onValueChanged={ this.blockVals.handleSingleValueChanged.bind(this.blockVals) }
+                    onManyValuesChanged={ this.blockVals.handleValuesChanged.bind(this.blockVals) }
                     snapshot={ this.snapshot }
                     ref={ this.editFormImplRef }
                     key={ block.id }/>
@@ -276,7 +277,17 @@ class BlockValMutator {
      * @param {'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none'} debounceType = 'debounce-commit-to-queue'
      * @access public
      */
-    handleValueChanged(value, key, hasErrors = false, debounceMillis = 0, debounceType = 'debounce-commit-to-queue') {
+    handleSingleValueChanged(value, key, hasErrors = false, debounceMillis = 0, debounceType = 'debounce-commit-to-queue') {
+        this.handleValuesChanged({[key]: value}, hasErrors, debounceMillis, debounceType);
+    }
+    /**
+     * @param {Object} obj
+     * @param {Boolean} hasErrors
+     * @param {Number} debounceMillis = 0
+     * @param {'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none'} debounceType = 'debounce-commit-to-queue'
+     * @access public
+     */
+    handleValuesChanged(obj, hasErrors = false, debounceMillis = 0, debounceType = 'debounce-commit-to-queue') {
         if (BlockEditForm.undoingLockIsOn)
             return;
         if (debounceMillis !== this.currentDebounceTime || debounceType !== this.currentDebounceType) {
@@ -297,7 +308,7 @@ class BlockValMutator {
             this.currentDebounceType = debounceType;
         }
         //
-        const ret = this.currentMutateAndRenderFn(value, key, hasErrors);
+        const ret = this.currentMutateAndRenderFn(obj, hasErrors);
         if (ret) {
             this.dirtyQueue.push(ret.block1);
             this.currentEmitChangesOpFn(this.dirtyQueue, ret.block2);
@@ -326,16 +337,15 @@ class BlockValMutator {
         return this.props.block;
     }
     /**
-     * @param {any} value
-     * @param {String} key
+     * @param {Object} obj
      * @param {Boolean} hasErrors
      * @returns {CommandContext|null}
      * @access private
      */
-    mutateAndRender(value, key, hasErrors) {
+    mutateAndRender(obj, hasErrors) {
         const {block, base} = this.props;
         const valBefore = Object.assign({}, putOrGetSnapshot(block, blockTypes.get(block.type)));
-        const valAfter = Object.assign({}, valBefore, {[key]: value});
+        const valAfter = Object.assign({}, valBefore, obj);
         // - Mutate $block
         // - Tell emitCommitChangesFn to commit changes to the root tree using $block (block1.block)
         // - Instruct internalUndoVal to overwrite $block's data using block1.valBefore

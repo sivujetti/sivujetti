@@ -30,7 +30,7 @@ QUnit.module('PageTypeCreateMainPanelView', () => {
                 friendlyName: 'Product',
                 friendlyNamePlural: 'Products',
                 description: '...',
-                slug: 'products',
+                slug: '/products',
             },
             httpPostStub: null,
         });

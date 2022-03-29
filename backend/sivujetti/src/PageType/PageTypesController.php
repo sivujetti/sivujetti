@@ -65,7 +65,7 @@ final class PageTypesController {
     public static function createEmptyPageTypeInput(): object {
         $out = new \stdClass;
         $out->name = PageTypeMigrator::MAGIC_PAGE_TYPE_NAME;
-        $out->slug = "draft";
+        $out->slug = "/draft";
         $out->friendlyName = "_";
         $out->friendlyNamePlural = "_";
         $out->description = "_";

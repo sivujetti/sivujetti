@@ -16,7 +16,7 @@ $statements = array_merge($statements, [
 
 "INSERT INTO `pageTypes` (`id`,`name`,`slug`,`friendlyName`,`friendlyNamePlural`,`description`" .
                           ",`fields`,`defaultLayoutId`,`status`,`isListable`) VALUES
-(1,'Pages','pages','Page','Pages','','" . json_encode([
+(1,'Pages','/pages','Page','Pages','','" . json_encode([
     "ownFields" => [(object) [
         "name" => "categories",
         "friendlyName" => "Categories",

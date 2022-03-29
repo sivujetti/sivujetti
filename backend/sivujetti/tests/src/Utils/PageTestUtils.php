@@ -58,7 +58,7 @@ final class PageTestUtils {
             : null;
     }
     /**
-     * @param string $slug 
+     * @param string $slug
      * @param ?\Sivujetti\PageType\Entities\PageType $pageType = null
      * @return ?\Sivujetti\Page\Entities\Page
      */

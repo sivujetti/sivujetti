@@ -48,7 +48,9 @@ return [
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
     `globalStyles` JSON,
-    `isActive` INTEGER NOT NULL DEFAULT 0
+    `isActive` INTEGER NOT NULL DEFAULT 0,
+    `generatedBlockTypeBaseCss` TEXT NOT NULL,
+    `generatedBlockCss` TEXT NOT NULL
 )",
 
 "CREATE TABLE `\${p}themeBlockTypeStyles` (

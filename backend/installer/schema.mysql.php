@@ -51,6 +51,8 @@ return [
     `name` VARCHAR(92) NOT NULL,
     `globalStyles` JSON,
     `isActive` TINYINT(1) NOT NULL,
+    `generatedBlockTypeBaseCss` TEXT NOT NULL,
+    `generatedBlockCss` TEXT NOT NULL,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

@@ -91,6 +91,18 @@ abstract class GlobalBlocksOrPageBlocksUpserter {
             ->rule($propPath, "validCss");
     }
     /**
+     * @param object $input
+     * @return array{0: string|null, 1: string|null}
+     */
+    public static function compileStyle(object $input): array {
+        $uncompiled = $input->styles ?? null;
+        if (!is_string($uncompiled))
+            return [null, "Expected \$input->styles to be a string"];
+        return $uncompiled
+            ? ["[data-foo]" . str_replace("[[scope]]", "[data-foo]", $uncompiled), null]
+            : ["", null];
+    }
+    /**
      * @param object[] $input $req->body->styles
      * @return string Clean json
      */
@@ -115,14 +127,12 @@ abstract class GlobalBlocksOrPageBlocksUpserter {
         foreach ($ar as $i => $style) {
             if (!is_object($style))
                 return [null, "Expected \$input->styles[{$i}] to be an object"];
-            $uncompiled = $style->styles ?? null;
-            if (!is_string($uncompiled))
-                return [null, "Expected \$input->styles[{$i}]->styles to be a string"];
+            [$compiled, $err] = self::compileStyle($style);
+            if ($err)
+                return [null, str_replace("->styles", "->styles[{$i}]->styles", $err)];
             $comp[] = (object) [
                 "blockId" => $style->blockId ?? null,
-                "styles" => $uncompiled
-                    ? (".foo " . str_replace("[[scope]]", ".foo", $uncompiled))
-                    : ""
+                "styles" => $compiled
             ];
         }
         return [$comp, null];

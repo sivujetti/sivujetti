@@ -17,6 +17,7 @@ use Sivujetti\BlockType\ListeningBlockTypeInterface;
 use Sivujetti\GlobalBlockTree\GlobalBlocksOrPageBlocksUpserter as StylesUpserter;
 use Sivujetti\Layout\Entities\Layout;
 use Sivujetti\Layout\LayoutsRepository;
+use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
 
 final class PagesController {
     /**
@@ -43,7 +44,9 @@ final class PagesController {
             $res->status(404)->html("Unknown page type `" . Template::e($pageTypeSlug) . "`.");
             return;
         }
-        if (!($page = $pagesRepo->getSingle($pageType, ["slug" => $slug]))) {
+        if (!($page = $pagesRepo->getSingle($pageType,
+                                            $theWebsite->activeTheme->id,
+                                            ["slug" => $slug]))) {
             $res->status(404)->html("404");
             return;
         }
@@ -193,18 +196,21 @@ final class PagesController {
         $res->status(200)->json(["ok" => "ok"]);
     }
     /**
-     * PUT /api/pages/:pageType/:pageId/block-styles: Overwrites the styles of
-     * $req->params->pageId's blocks.
+     * PUT /api/pages/:pageType/:pageId/block-styles/:themeId: Overwrites the
+     * styles of $req->params->pageId's blocks that are linked to
+     * $req->params->themeId.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Pike\Db\FluentDb $db
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
+     * @param \Sivujetti\Theme\ThemeCssFileUpdaterWriter $cssGen
      */
     public function updateBlockStyles(Request $req,
                                       Response $res,
                                       FluentDb $db,
-                                      PagesRepository $pagesRepo): void {
+                                      PagesRepository $pagesRepo,
+                                      ThemeCssFileUpdaterWriter $cssGen): void {
         $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
         //
         if (($errors = StylesUpserter::validateInput($req->body))) {
@@ -212,19 +218,15 @@ final class PagesController {
             return;
         }
         //
-        [$result, $stylesExistedAlready] = StylesUpserter::upsertStyles($req, $db, "pageBlocksStyles", $pageType);
+        [$result, $error, $stylesExistedAlready] = StylesUpserter::upsertStyles($req, $db,
+            "pageBlocksStyles", $cssGen, $pageType);
         //
-        if ($stylesExistedAlready) {
-            if ($result !== 1)
-                throw new PikeException("Expected \$numAffectedRows to equal 1 but got {$result}",
-                    PikeException::INEFFECTUAL_DB_OP);
+        if ($error)
+            throw new PikeException($error, PikeException::ERROR_EXCEPTION);
+        if ($stylesExistedAlready)
             $res->status(200)->json(["ok" => "ok"]);
-            return;
-        }
-        if ($result === "")
-            throw new PikeException("Expected \$lastInsertId not to equal \"\"",
-                PikeException::INEFFECTUAL_DB_OP);
-        $res->status(201)->json(["ok" => "ok", "insertId" => $result]);
+        else
+            $res->status(201)->json(["ok" => "ok", "insertId" => $result]);
     }
     /**
      * PUT /api/pages/[w:pageType]/[i:pageId]: updates basic info of $req->params
@@ -270,19 +272,20 @@ final class PagesController {
         //
         self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo, $theWebsite);
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
+        $editModeIsOn = $isPlaceholderPage || ($req->queryVar("in-edit") !== null);
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
             cssAndJsFiles: $apiCtx->userDefinedAssets,
             theme: $theWebsite->activeTheme,
-            blockStyles: $page->blockStyles
+            blockStyles: $page->blockStyles,
+            useInlineCssStyles: $editModeIsOn
         );
         $html = $tmpl->render([
             "currentPage" => $page,
             "currentUrl" => $req->path,
             "site" => $theWebsite,
         ]);
-        if (($isPlaceholderPage || $req->queryVar("in-edit") !== null) &&
-            ($bodyEnd = strrpos($html, "</body>")) > 0) {
+        if ($editModeIsOn && ($bodyEnd = strrpos($html, "</body>")) > 0) {
             $html = substr($html, 0, $bodyEnd) .
                 "<script>window.sivujettiCurrentPageData = " . json_encode([
                     "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),

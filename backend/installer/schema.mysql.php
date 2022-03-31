@@ -51,8 +51,8 @@ return [
     `name` VARCHAR(92) NOT NULL,
     `globalStyles` JSON,
     `isActive` TINYINT(1) NOT NULL,
-    `generatedBlockTypeBaseCss` TEXT NOT NULL,
-    `generatedBlockCss` TEXT NOT NULL,
+    `generatedBlockTypeBaseCss` TEXT,
+    `generatedBlockCss` TEXT,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 
@@ -99,7 +99,9 @@ return [
     `styles` TEXT,
     `pageId` SMALLINT UNSIGNED NOT NULL,
     `pageTypeName` VARCHAR(92) NOT NULL,
-    PRIMARY KEY (`pageId`, `pageTypeName`)
+    `themeId` SMALLINT UNSIGNED NOT NULL,
+    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
+    PRIMARY KEY (`pageId`, `pageTypeName`, `themeId`)
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}Pages` (
@@ -126,6 +128,8 @@ return [
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92) NOT NULL,
     `blocks` JSON,
+    `themeId` SMALLINT UNSIGNED NOT NULL,
+    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

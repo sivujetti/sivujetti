@@ -223,6 +223,6 @@ final class PageTestUtils {
     private function t(?PageType $pageType = null, ...$filters): ?Page {
         if (!$pageType)
             $pageType = $this->makeDefaultPageType();
-        return $this->pagesRepo->getSingle($pageType, ...$filters);
+        return $this->pagesRepo->getSingle($pageType, "1", ...$filters);
     }
 }

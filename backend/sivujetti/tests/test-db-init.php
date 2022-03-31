@@ -8,8 +8,9 @@ $statements = array_merge($statements, [
 "INSERT INTO `theWebsite` (`name`,`lang`,`aclRules`,`firstRuns`) VALUES
 ('Test suite website','fi','".json_encode($getRules())."','{}')",
 
-"INSERT INTO `themes` (`id`,`name`,`globalStyles`,`isActive`) VALUES
-('1','test-suite-theme','[]',1)",
+"INSERT INTO `themes` (`id`,`name`,`globalStyles`,`isActive`" .
+                       ",`generatedBlockTypeBaseCss`,`generatedBlockCss`) VALUES
+('1','test-suite-theme','[]',1,'','')",
 
 "INSERT INTO `themeBlockTypeStyles` (`styles`,`blockTypeName`,`themeId`) VALUES
 ('{ padding: 4rem 2rem; }','Section','1')",

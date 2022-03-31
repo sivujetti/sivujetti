@@ -6,12 +6,13 @@ use Pike\Db\FluentDb;
 use Pike\{ObjectValidator, Request, Validation};
 use Sabberworm\CSS\Parser as CssParser;
 use Sivujetti\PageType\Entities\PageType;
+use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
 
 /**
  * Shared funtionality for PUT /api/global-block-trees/:globalBlockTreeId/block-styles
  * and PUT /api/pages/:pageType/:pageId/block-styles.
  */
-abstract class GlobalBlocksOrPageBlocksUpserter {
+final class GlobalBlocksOrPageBlocksUpserter {
     /**
      * @param object $input
      * @return string[] Error messages or []
@@ -29,44 +30,83 @@ abstract class GlobalBlocksOrPageBlocksUpserter {
      * @param \Pike\Request $req
      * @param \Pike\Db\FluentDb $db
      * @param string $tableName
+     * @param \Sivujetti\Theme\ThemeCssFileUpdaterWriter $cssGen
      * @param ?\Sivujetti\PageType\Entities\PageType $pageType = null
-     * @return array{0: int|string, 1: bool} [$insertIdOrNumAffectedRows, $stylesExistedAlreadyInDb]
+     * @return array{0: int|string|null, 1: string|null, 2: bool|null} [$insertIdOrNumAffectedRows, $error, $stylesExistedAlreadyInDb]
      */
     public static function upsertStyles(Request $req,
                                         FluentDb $db,
                                         string $tableName,
+                                        ThemeCssFileUpdaterWriter $cssGen,
                                         ?PageType $pageType = null): array {
-        [$selectQ, $where] = $tableName === "globalBlocksStyles"
-            ? [
-                $db->select("\${p}globalBlocksStyles")->fields(["globalBlockTreeId"]),
-                ["globalBlockTreeId = ?", [$req->params->globalBlockTreeId]],
-            ]
-            : [
-                $db->select("\${p}pageBlocksStyles")->fields(["pageId"]),
-                ["pageId=? AND pageTypeName=?", [$req->params->pageId, $pageType->name]],
-            ];
-        //
-        $doesExist = !!$selectQ
-            ->where(...$where)
-            ->fetch();
-        //
-        $asCleanJson = self::createStyles($req->body->styles);
-        $result = ($doesExist
-            ? $db->update($tableName)
-                ->values((object) ["styles" => $asCleanJson])
-                ->where(...$where)
-            : $db->insert($tableName)
-                ->values((object) array_merge([
-                    "styles" => $asCleanJson,
-                ], $tableName === "globalBlocksStyles" ? [
-                    "globalBlockTreeId" => $where[1][0],
-                ] : [
-                    "pageId" => $where[1][0],
-                    "pageTypeName" => $where[1][1],
-                ]))
-        )->execute();
-        //
-        return [$result, $doesExist];
+        $isGlobalTreeBlock = $tableName === "globalBlocksStyles";
+        return $db->getDb()->runInTransaction(function () use ($db, $req, $pageType, $isGlobalTreeBlock, $cssGen) {
+            $themeId = $req->params->themeId;
+            [$t, $whereQ, $whereVals] = $isGlobalTreeBlock
+                ? [
+                    "\${p}globalBlocksStyles",
+                    "themeId = ? AND globalBlockTreeId = ?",
+                    [$themeId, $req->params->globalBlockTreeId],
+                ]
+                : [
+                    "\${p}pageBlocksStyles",
+                    "themeId = ? AND pageId=? AND pageTypeName=?",
+                    [$themeId, $req->params->pageId, $pageType->name],
+                ];
+
+            // 1. Select current styles
+            $current = $db->select("\${p}themes t", "stdClass")
+                ->fields(["t.name AS themeName", "t.generatedBlockTypeBaseCss",
+                          "t.generatedBlockCss", "bs.styles AS stylesJson"])
+                ->leftJoin("mutateThis AS bs ON (1=1)")
+                ->mutateQWith(function ($q) use ($t, $whereQ) {
+                    $join = "(SELECT styles FROM {$t} WHERE {$whereQ})";
+                    return str_replace("mutateThis AS", "{$join}", $q);
+                })
+                ->where("t.id = ?", [...$whereVals, $whereVals[0]])
+                ->fetch();
+
+            // 2. Upsert
+            $asCleanJson = self::createStyles($req->body->styles);
+            $result = ($current->stylesJson
+                ? $db->update($t)
+                    ->values((object) ["styles" => $asCleanJson])
+                    ->where($whereQ, $whereVals)
+                : $db->insert($t)
+                    ->values((object) array_merge([
+                        "styles" => $asCleanJson,
+                        "themeId" => $themeId,
+                    ], $isGlobalTreeBlock ? [
+                        "globalBlockTreeId" => $whereVals[1],
+                    ] : [
+                        "pageId" => $whereVals[1],
+                        "pageTypeName" => $whereVals[2],
+                    ]))
+            )->execute();
+            if ($current->stylesJson && $result !== 1)
+                return [$result, "Expected \$numAffectedRows of update {$t} to equal 1 but got {$result}", null];
+            elseif (!$current->stylesJson && !$result)
+                return [$result, "Expected \$lastInsertId not to equal \"\"", null];
+
+            // 3. Write to "{$themeName}-generated.css"
+            $generated = (object) ["generatedBlockTypeBaseCss" => $current->generatedBlockTypeBaseCss,
+                                   "generatedBlockCss" => $current->generatedBlockCss];
+            $cssGen->overwriteBlockStylesToDisk($req->body->styles,
+                                                $generated,
+                                                $current->themeName);
+
+            // 4. Cache to themes
+            $result2 = $db->update("\${p}themes")
+                ->values($generated)
+                ->fields(["generatedBlockCss"])
+                ->where("id = ?", [$themeId])
+                ->execute();
+            if ($result2 !== 1)
+                return [$result2, "Expected \$numAffectedRows of update themes to equal 1 but got {$result}", null];
+
+            //
+            return [$result, null, !!$current];
+        });
     }
     /**
      * @param \Pike\ObjectValidator $validator

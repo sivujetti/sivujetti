@@ -5,6 +5,7 @@ namespace Sivujetti\BlockType;
 use Auryn\Injector;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository;
+use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class GlobalBlockReferenceBlockType implements BlockTypeInterface,
                                                      ListeningBlockTypeInterface {
@@ -25,8 +26,20 @@ final class GlobalBlockReferenceBlockType implements BlockTypeInterface,
     public function onBeforeRender(Block $block,
                                    BlockTypeInterface $blockType,
                                    Injector $di): void {
-        $entry = $di->make(GlobalBlockTreesRepository::class)
-            ->getSingle($block->globalBlockTreeId);
+        $di->execute([$this, "doPerformBeforeRender"], [
+            ":block" => $block,
+        ]);
+    }
+    /**
+     * @param \Sivujetti\Block\Entities\Block $block
+     * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository $gbtRepo
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
+    */
+    public function doPerformBeforeRender(Block $block,
+                                          GlobalBlockTreesRepository $gbtRepo,
+                                          TheWebsite $theWebsite): void {
+        $entry = $gbtRepo->getSingle($block->globalBlockTreeId,
+                                     $theWebsite->activeTheme->id);
         $block->__globalBlockTree = $entry;
     }
 }

@@ -79,8 +79,8 @@ final class ThemesController {
             $cssGen->overwriteBlockTypeBaseStylesToDisk(
                 $req->params->blockTypeName,
                 $req->body->styles,
-                (object) ["blockTypeBaseStyles" => $current->generatedBlockTypeBaseCss,
-                          "blockStyles" => $current->generatedBlockCss],
+                (object) ["generatedBlockTypeBaseCss" => $current->generatedBlockTypeBaseCss,
+                          "generatedBlockCss" => $current->generatedBlockCss],
                 $current->themeName);
             return true;
         });
@@ -133,7 +133,7 @@ final class ThemesController {
             ->rule("allStyles.*.value.type", "in", ["color"])
             ->rule("allStyles.*.value.value", "minLength", 4, "array")
             ->rule("allStyles.*.value.value.*", "maxLength", 2)
-            ->rule("allStyles.*.value.value.*", "type", "hexDigitString")
+            ->rule("allStyles.*.value.value.*", "stringType", "xdigit")
             ->validate($input);
     }
 }

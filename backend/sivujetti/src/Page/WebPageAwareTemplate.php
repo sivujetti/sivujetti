@@ -8,6 +8,7 @@ use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\Theme\Entities\Theme;
+use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
 
 final class WebPageAwareTemplate extends Template {
     /** @var ?object */
@@ -16,8 +17,10 @@ final class WebPageAwareTemplate extends Template {
     private ?Theme $__theme;
     /** @var object[] [{blockId: string, styles: string}] */
     private array $__blockStyles;
-    /** @var object[] [{blockId: string, styles: string}] */
-    private array $__secondPassBlockStyles;
+    /** @var array<string, object[]> array<string, array<int, {blockId: string, styles: string}>> */
+    private array $__dynamicGlobalBlockTreeBlocksStyles;
+    /** @var bool */
+    private bool $__useInlineCssStyles;
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
@@ -25,18 +28,21 @@ final class WebPageAwareTemplate extends Template {
      * @param ?object $cssAndJsFiles = null
      * @param ?\Sivujetti\Theme\Entities\Theme $theme = null
      * @param ?array<int, object> $blockStyles = null
+     * @param ?bool $useInlineCssStyles = null
      */
     public function __construct(string $file,
                                 ?array $vars = null,
                                 ?array $initialLocals = null,
                                 ?object $cssAndJsFiles = null,
                                 ?Theme $theme = null,
-                                ?array $blockStyles = null) {
+                                ?array $blockStyles = null,
+                                ?bool $useInlineCssStyles = null) {
         parent::__construct($file, $vars, $initialLocals);
         $this->__cssAndJsFiles = $cssAndJsFiles;
         $this->__theme = $theme;
         $this->__blockStyles = $blockStyles ?? [];
-        $this->__secondPassBlockStyles = [];
+        $this->__dynamicGlobalBlockTreeBlocksStyles = [];
+        $this->__useInlineCssStyles = $useInlineCssStyles ?? true;
     }
     /**
      * @param string $name
@@ -111,7 +117,7 @@ final class WebPageAwareTemplate extends Template {
         return $out;
     }
     /**
-     * Note: mutates $block->__blobalBlockTree->blocks*->* and $this->__secondPassBlockStyles
+     * Note: mutates $block->__blobalBlockTree->blocks*->* and $this->__dynamicGlobalBlockTreeBlocksStyles
      *
      * @param \Sivujetti\Block\Entities\Block $globalBlockRef
      * @return \Sivujetti\Block\Entities\Block[]
@@ -121,8 +127,8 @@ final class WebPageAwareTemplate extends Template {
         $gbt = $globalBlockRef->__globalBlockTree;
         $blocks = $gbt->blocks;
         //
-        $this->__secondPassBlockStyles = array_merge($this->__secondPassBlockStyles,
-                                                     $gbt->blockStyles ?? []);
+        if ($gbt->blockStyles)
+            $this->__dynamicGlobalBlockTreeBlocksStyles["_{$gbt->id}"] = $gbt->blockStyles;
         //
         if ($overrides === GlobalBlockReferenceBlockType::EMPTY_OVERRIDES)
             return $blocks;
@@ -149,31 +155,52 @@ final class WebPageAwareTemplate extends Template {
     public function cssFiles(): string {
         if (!$this->__cssAndJsFiles)
             return "";
-        return (
-        // Global variables
-        "<style>:root {" .
-            implode("\r\n", array_map(fn($style) =>
-                // Note: these are pre-validated
-                "    --{$style->name}: {$this->cssValueToString($style->value)};"
-            , $this->__theme->globalStyles)) .
-        "}</style>" .
-        // External files
-        implode("\r\n", array_map(function ($f) {
+        $rf = function ($f) {
             $attrsMap = $f->attrs;
             if (!array_key_exists("rel", $attrsMap)) $attrsMap["rel"] = "stylesheet";
             return "<link href=\"{$this->assetUrl("public/{$this->e($f->url)}")}\"" .
                 $this->attrMapToStr($attrsMap) . ">";
-        }, $this->__cssAndJsFiles->css)) .
-        // Base styles for each block type
-        implode("\r\n", array_map(function ($style)  {
-            return "<style data-styles-for-block-type=\"{$style->blockTypeName}\">" .
-                "[data-block-type=\"{$style->blockTypeName}\"]{$style->styles}" .
-            "</style>";
-        }, $this->__theme->blockTypeStyles)) .
-        // Styles for this page's global block tree blocks
-        "<!-- ::editModeGlobalBlockStylesPlaceholder:: -->" .
-        // Styles for this page's blocks
-        self::renderEditModeBlockStyles($this->__blockStyles)
+        };
+        // Global variables
+        $out = "<style>:root {" .
+            implode("\n", array_map(fn($style) =>
+                // Note: these are pre-validated
+                "    --{$style->name}: {$this->cssValueToString($style->value)};"
+            , $this->__theme->globalStyles)) .
+        "}</style>\n";
+        //
+        if (!$this->__useInlineCssStyles) {
+            /*
+            []         -> [gen]
+            [b1]       -> [b1,gen]
+            [b1,b2]    -> [b1,gen,b2]
+            [b1,b2,b3] -> [b1,b2,gen,b3]
+            */
+            $generated = (object) ["url" => "{$this->__theme->name}-generated.css?t=" . time(),
+                                   "attrs" => []];
+            if (count($this->__cssAndJsFiles->css) < 2) {
+                $this->__cssAndJsFiles->css[] = $generated;
+            } else {
+                $secondLast = count($this->__cssAndJsFiles->css) - 1;
+                array_splice($this->__cssAndJsFiles->css, $secondLast, 0, [$generated]);
+            }
+            return $out . implode("\n", array_map($rf,
+                $this->__cssAndJsFiles->css
+            ));
+        }
+        return $out . (
+            // External files
+            implode("\n", array_map($rf, $this->__cssAndJsFiles->css)) .
+            //
+            "\n<!-- Note to devs: these inline styles appear here only when you're logged in -->\n" .
+            // Base styles for each block type
+            implode("\n", array_map(fn($styles) => "<style data-styles-for-block-type=\"{$styles->blockTypeName}\">\n"
+                . ThemeCssFileUpdaterWriter::compileBlockTypeBaseCss($styles) .
+            "</style>", $this->__theme->blockTypeStyles)) .
+            // Styles for this page's global block tree blocks
+            "<!-- ::editModeGlobalBlockStylesPlaceholder:: -->" .
+            // Styles for this page's blocks
+            self::renderEditModeBlockStyles($this->__blockStyles)
         );
     }
     /**
@@ -199,16 +226,24 @@ final class WebPageAwareTemplate extends Template {
         // First pass
         $output = parent::render($locals);
         // Seconds pass
-        $output = str_replace("<!-- ::editModeGlobalBlockStylesPlaceholder:: -->",
-                              self::renderEditModeBlockStyles($this->__secondPassBlockStyles),
-                              $output);
+        if ($this->__useInlineCssStyles)
+            return str_replace(
+                "<!-- ::editModeGlobalBlockStylesPlaceholder:: -->",
+                implode("\n", array_map(fn($styles) =>
+                    self::renderEditModeBlockStyles($styles)
+                , $this->__dynamicGlobalBlockTreeBlocksStyles)),
+                $output
+            );
         return $output;
     }
     /**
-     * @return object[]
+     * @return object[] {globalBlockTreeId: string, styles: array<int, {blockId: string, styles: string}>}[]
      */
     public function getGlobalBlockStyles(): array {
-        return $this->__secondPassBlockStyles;
+        $out = [];
+        foreach ($this->__dynamicGlobalBlockTreeBlocksStyles as $globalBlockTreeId => $styles)
+            $out[] = (object) ["globalBlockTreeId" => substr($globalBlockTreeId, 1), "styles" => $styles];
+        return $out;
     }
     /**
      * ["id" => "foo", "class" => "bar"] -> ' id="foo" class="bar"'
@@ -236,11 +271,8 @@ final class WebPageAwareTemplate extends Template {
      * @return string `<style data-styles-for-block="<blockid>">...`
      */
     private static function renderEditModeBlockStyles(array $styles): string {
-        return implode("\r\n", array_map(function ($style)  {
-            $selector = "[data-block=\"{$style->blockId}\"]";
-            return "<style data-styles-for-block=\"{$style->blockId}\">" .
-                $selector . str_replace("[[scope]]", $selector, $style->styles) .
-            "</style>";
-        }, $styles));
+        return implode("\n", array_map(fn($styles) => "<style data-styles-for-block=\"{$styles->blockId}\">\n"
+            . ThemeCssFileUpdaterWriter::compileBlockCss($styles) .
+        "</style>", $styles));
     }
 }

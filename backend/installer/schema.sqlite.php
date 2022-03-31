@@ -49,8 +49,8 @@ return [
     `name` TEXT NOT NULL,
     `globalStyles` JSON,
     `isActive` INTEGER NOT NULL DEFAULT 0,
-    `generatedBlockTypeBaseCss` TEXT NOT NULL,
-    `generatedBlockCss` TEXT NOT NULL
+    `generatedBlockTypeBaseCss` TEXT,
+    `generatedBlockCss` TEXT
 )",
 
 "CREATE TABLE `\${p}themeBlockTypeStyles` (
@@ -93,7 +93,9 @@ return [
     `styles` TEXT,
     `pageId` INTEGER NOT NULL,
     `pageTypeName` TEXT NOT NULL,
-    PRIMARY KEY (`pageId`, `pageTypeName`)
+    `themeId` INTEGER NOT NULL,
+    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
+    PRIMARY KEY (`pageId`, `pageTypeName`, `themeId`)
 )",
 
 "CREATE TABLE `\${p}Pages` (
@@ -125,6 +127,8 @@ return [
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `styles` TEXT,
     `globalBlockTreeId` INTEGER NOT NULL,
+    `themeId` INTEGER NOT NULL,
+    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
     FOREIGN KEY (`globalBlockTreeId`) REFERENCES `\${p}globalBlocks`(`id`)
 )",
 

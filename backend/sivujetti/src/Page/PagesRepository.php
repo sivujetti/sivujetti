@@ -3,7 +3,7 @@
 namespace Sivujetti\Page;
 
 use Pike\{ArrayUtils, Db, PikeException};
-use Sivujetti\Block\{BlocksController, BlocksController2, BlockTree};
+use Sivujetti\Block\{BlocksController, BlockTree};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\Layout\Entities\Layout;
@@ -48,20 +48,26 @@ final class PagesRepository {
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
+     * @param string $themeId
      * @param string|string[] ...$filters
      * @return \Sivujetti\Page\Entities\Page|null
      */
-    public function getSingle(string|PageType $pageTypeOrPageTypeName, ...$filters): ?Page {
-        $rows = $this->doGetMany($pageTypeOrPageTypeName, true, ...$filters);
+    public function getSingle(string|PageType $pageTypeOrPageTypeName,
+                              string $themeId,
+                              ...$filters): ?Page {
+        $rows = $this->doGetMany($pageTypeOrPageTypeName, true, $themeId, ...$filters);
         return $rows[0] ?? null;
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
+     * @param string $themeId
      * @param string|string[] ...$filters
      * @return \Sivujetti\Page\Entities\Page[]
      */
-    public function getMany(string|PageType $pageTypeOrPageTypeName, ...$filters): array {
-        return $this->doGetMany($pageTypeOrPageTypeName, false, ...$filters);
+    public function getMany(string|PageType $pageTypeOrPageTypeName,
+                            string $themeId,
+                            ...$filters): array {
+        return $this->doGetMany($pageTypeOrPageTypeName, false, $themeId, ...$filters);
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType $pageType
@@ -157,12 +163,14 @@ final class PagesRepository {
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
-     * @param bool $doIncludeLayous
+     * @param bool $doIncludeLayouts
+     * @param string $themeId
      * @param string|string[] ...$filters
      * @return \Sivujetti\Page\Entities\Page[]
      */
     private function doGetMany(string|PageType $pageTypeOrPageTypeName,
                                bool $doIncludeLayouts,
+                               string $themeId,
                                ...$filters): array {
         $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
         $this->pageType = $pageType;
@@ -170,9 +178,10 @@ final class PagesRepository {
         //
         [$baseJoinCols, $baseJoin] = [
             ",pbs.`styles` AS `pageBlocksStylesJson`",
-            " LEFT JOIN `\${p}pageBlocksStyles` pbs ON (pbs.`pageId` = p.`id` AND pbs.`pageTypeName` = ?)",
+            " LEFT JOIN `\${p}pageBlocksStyles` pbs ON (pbs.`pageId` = p.`id` AND" .
+            " pbs.`pageTypeName` = ? AND pbs.`themeId` = ?)",
         ];
-        array_unshift($filterVals, $pageType->name);
+        array_unshift($filterVals, $pageType->name, $themeId);
         //
         if (!$doIncludeLayouts) {
             $baseJoinCols .= ",'' AS `layoutId`" .

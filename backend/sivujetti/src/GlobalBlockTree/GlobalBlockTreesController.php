@@ -6,6 +6,7 @@ use Pike\Db\FluentDb;
 use Pike\{PikeException, Request, Response, Validation};
 use Sivujetti\Block\{BlocksController, BlockTree, BlockValidator};
 use Sivujetti\BlockType\Entities\BlockTypes;
+use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
 
 final class GlobalBlockTreesController {
     private const MAX_NAME_LEN = 92;
@@ -95,34 +96,33 @@ final class GlobalBlockTreesController {
         $res->status(200)->json(["ok" => "ok"]);
     }
     /**
-     * PUT /api/global-block-trees/:globalBlockTreeId/block-styles: Overwrites the
-     * styles of $req->params->globalBlockTreeId's blocks.
+     * PUT /api/global-block-trees/:globalBlockTreeId/block-styles/:themeId: Overwrites
+     * the styles of $req->params->globalBlockTreeId's blocks that are linked to
+     * $req->params->themeId.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Pike\Db\FluentDb $db
+     * @param \Sivujetti\Theme\ThemeCssFileUpdaterWriter $cssGen
      */
     public function updateOrCreateStyles(Request $req,
                                          Response $res,
-                                         FluentDb $db): void {
+                                         FluentDb $db,
+                                         ThemeCssFileUpdaterWriter $cssGen): void {
         if (($errors = GlobalBlocksOrPageBlocksUpserter::validateInput($req->body))) {
             $res->status(400)->json($errors);
             return;
         }
         //
-        [$result, $stylesExistedAlready] = GlobalBlocksOrPageBlocksUpserter::upsertStyles($req, $db, "globalBlocksStyles");
+        [$result, $error, $stylesExistedAlready] = GlobalBlocksOrPageBlocksUpserter::upsertStyles(
+            $req, $db, "globalBlocksStyles", $cssGen);
         //
-        if ($stylesExistedAlready) {
-            if ($result !== 1)
-                throw new PikeException("Expected \$numAffectedRows to equal 1 but got {$result}",
-                    PikeException::INEFFECTUAL_DB_OP);
+        if ($error)
+            throw new PikeException($error, PikeException::ERROR_EXCEPTION);
+        if ($stylesExistedAlready)
             $res->status(200)->json(["ok" => "ok"]);
-            return;
-        }
-        if ($result === "")
-            throw new PikeException("Expected \$lastInsertId not to equal \"\"",
-                PikeException::INEFFECTUAL_DB_OP);
-        $res->status(201)->json(["ok" => "ok", "insertId" => $result]);
+        else
+            $res->status(201)->json(["ok" => "ok", "insertId" => $result]);
     }
     /**
      * @param object $input

@@ -6,8 +6,8 @@ import {getIcon} from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
-import store, {observeStore, selectGlobalBlockStyles, pushItemToOpQueue,
-               setGlobalBlockStyles, selectPageBlockStyles, setPageBlockStyles,
+import store, {observeStore, selectGlobalBlockTreeBlocksStyles, pushItemToOpQueue,
+               setGlobalBlockTreeBlocksStyles, selectPageBlockStyles, setPageBlockStyles,
                selectCurrentPage} from './store.js';
 
 /** @var {BlockTypes} */
@@ -39,7 +39,7 @@ class BlockEditForm extends preact.Component {
     // snapshot;
     // editFormImplRef;
     // borrowedStyles;
-    // stylesResourceId;
+    // stylesResourceUrl;
     // unregistrables;
     // static currentInstance;
     // static undoingLockIsOn;
@@ -65,15 +65,24 @@ class BlockEditForm extends preact.Component {
         this.snapshot = putOrGetSnapshot(block, this.blockType);
         this.editFormImplRef = preact.createRef();
         //
-        const selectStateFunc = !this.isPartOfGlobalBlockTree ? selectPageBlockStyles : selectGlobalBlockStyles;
+        const [selectStateFunc, findBlockStylesFunc] = !this.isPartOfGlobalBlockTree
+            ? [selectPageBlockStyles, findStylesForPageBlocks]
+            : [selectGlobalBlockTreeBlocksStyles, findStylesForGlobalBlockTreeBlocks];
         const state = store.getState();
         this.borrowedStyles = selectStateFunc(state);
-        this.stylesResourceId = !this.isPartOfGlobalBlockTree
-            ? (function (page) { return `${page.type}/${page.id}`; })(selectCurrentPage(state).webPage.data.page)
-            : block.globalBlockTreeId;
+        if (!this.isPartOfGlobalBlockTree) {
+            const page = selectCurrentPage(state).webPage.data.page;
+            this.stylesResourceUrl = `/api/pages/${page.type}/${page.id}/block-styles/${api.getActiveTheme().id}`;
+        } else {
+            this.stylesResourceUrl = `/api/global-block-trees/${block.globalBlockTreeId}/block-styles/${api.getActiveTheme().id}`;
+        }
         //
-        this.unregistrables = [observeStore(s => selectStateFunc(s), allStyles => {
-            const latest = findBlockStyles(allStyles, block.id);
+        this.unregistrables = [observeStore(s => selectStateFunc(s),
+        /**
+         * @param {Array<RawBlockStyle>|Array<RawGlobalBlockTreeBlocksStyles>} allStyles
+         */
+        allStyles => {
+            const latest = findBlockStylesFunc(allStyles, block);
             if (!latest)
                 return;
             if (this.state.stylesString !== latest.styles) {
@@ -85,7 +94,7 @@ class BlockEditForm extends preact.Component {
             if (id === block.id) this.props.inspectorPanel.close();
         })];
         //
-        const styles = findBlockStyles(this.borrowedStyles, block.id);
+        const styles = findBlockStylesFunc(this.borrowedStyles, block);
         this.setState({useOverrides: base && base.useOverrides,
                        currentTabIdx: 0,
                        stylesString: styles ? styles.styles : ''});
@@ -155,21 +164,20 @@ class BlockEditForm extends preact.Component {
                     key={ block.id }/>
             </div>
         </div>
-        <div class={ currentTabIdx === 0 ? 'd-none' : '' }>{ !this.stylesResourceId.endsWith('/-')
+        <div class={ currentTabIdx === 0 ? 'd-none' : '' }>{ this.stylesResourceUrl.indexOf('/-') < 0
             ? <textarea
                 value={ stylesString }
                 onChange={ e => {
                     const orig = this.state.stylesString;
-                    const selectStateFunc = !this.isPartOfGlobalBlockTree ? setPageBlockStyles : setGlobalBlockStyles;
-                    const newAll = dispatchNewBlockStyles(this.borrowedStyles, e.target.value, block.id, selectStateFunc);
+                    const newAll = dispatchNewBlockStyles(this.borrowedStyles, e.target.value,
+                                                          block, this.isPartOfGlobalBlockTree);
                     //
-                    const commit = this.createCommitFn(this.isPartOfGlobalBlockTree, newAll);
+                    const commit = this.createCommitFn(newAll, block);
                     const revert = () => {
-                        dispatchNewBlockStyles(this.borrowedStyles, orig, block.id, selectStateFunc);
+                        dispatchNewBlockStyles(this.borrowedStyles, orig, block, this.isPartOfGlobalBlockTree);
                     };
                     //
-                    const t = !this.isPartOfGlobalBlockTree ? 'global' : 'page';
-                    store.dispatch(pushItemToOpQueue(`update-or-create-theme-${t}-block-styles`, {
+                    store.dispatch(pushItemToOpQueue(`update-or-create-theme-${this.stylesResourceUrl}-block-styles`, {
                         doHandle: ($commit, _$revert) => $commit(),
                         doUndo(_$commit, $revert) { $revert(); },
                         args: [commit, revert],
@@ -182,24 +190,27 @@ class BlockEditForm extends preact.Component {
         </div>;
     }
     /**
-     * @param {Boolean} isPartOfGlobalBlockTree
-     * @param {Array<RawBlockStyle>} newStyles
+     * @param {Array<RawBlockStyle>|Array<RawGlobalBlockTreeBlocksStyles>} newStyles
+     * @param {Block} block
+     * @returns {() => Promise<Boolean>}
      * @access private
      */
-    createCommitFn(isPartOfGlobalBlockTree, newStyles) {
-        const url = !isPartOfGlobalBlockTree
-            ? `/api/pages/${this.stylesResourceId}/block-styles`
-            : `/api/global-block-trees/${this.stylesResourceId}/block-styles`;
-        return () => http.put(url, {styles: newStyles})
-            .then(resp => {
-                if (resp.ok !== 'ok') throw new Error('-');
-                return true;
-            })
-            .catch(err => {
-                env.window.console.error(err);
-                toasters.editAppMain(__('Something unexpected happened.'), 'error');
-                return false;
-            });
+    createCommitFn(newStylesAll, block) {
+        return () => {
+            const newStyles = !this.isPartOfGlobalBlockTree
+                ? newStylesAll
+                : newStylesAll.find(bag => bag.globalBlockTreeId === block.globalBlockTreeId).styles;
+            return http.put(this.stylesResourceUrl, {styles: newStyles})
+                .then(resp => {
+                    if (resp.ok !== 'ok') throw new Error('-');
+                    return true;
+                })
+                .catch(err => {
+                    env.window.console.error(err);
+                    toasters.editAppMain(__('Something unexpected happened.'), 'error');
+                    return false;
+                });
+        };
     }
     /**
      * @param {Event} e
@@ -489,31 +500,49 @@ function updateFormValues($this, snapshot) {
 }
 
 /**
- * @param {Array<RawBlockStyle>} allStyles
+ * @param {Array<RawBlockStyle>|Array<RawGlobalBlockTreeBlocksStyles>} allStyles
  * @param {String} newVal e.g. '{ color: red; }'
- * @param {String} blockId
- * @returns {Array<RawBlockStyle>}
+ * @param {Block} block
+ * @param {Boolean} isPartOfGlobalBlockTree
+ * @returns {Array<RawBlockStyle>|Array<RawGlobalBlockTreeBlocksStyles>}
  */
-function dispatchNewBlockStyles(allStyles, newVal, blockId, selectFunc = setGlobalBlockStyles) {
+function dispatchNewBlockStyles(allStyles, newVal, block, isPartOfGlobalBlockTree) {
     const clone = JSON.parse(JSON.stringify(allStyles));
-    const currentStyles = findBlockStyles(clone, blockId);
+    const [updateStateFunc, findBlockStylesFunc] = !isPartOfGlobalBlockTree
+        ? [setPageBlockStyles, findStylesForPageBlocks]
+        : [setGlobalBlockTreeBlocksStyles, findStylesForGlobalBlockTreeBlocks];
+    //
+    const currentStyles = findBlockStylesFunc(clone, block);
     if (currentStyles) {
         currentStyles.styles = newVal;
     } else {
-        clone.push({blockId, styles: newVal});
+        const target = !isPartOfGlobalBlockTree ? clone : currentStyles;
+        target.push({blockId: block.id, styles: newVal});
     }
-    store.dispatch(selectFunc(clone)); // see also observeStore from this.componentWillMount
-                                       // and observeStore @ EditApp.constructor
+    //
+    store.dispatch(updateStateFunc(clone)); // see also observeStore from this.componentWillMount
+                                            // and observeStore @ EditApp.constructor
     return clone;
 }
 
 /**
  * @param {Array<RawBlockStyle>} from
- * @param {String} blockId
+ * @param {Block} block
  * @returns {RawBlockStyle|undefined}
  */
-function findBlockStyles(from, blockId) {
-    return from.find(s => s.blockId === blockId);
+function findStylesForPageBlocks(from, {id}) {
+    return from.find(s => s.blockId === id);
+}
+
+/**
+ * @param {Array<RawGlobalBlockTreeBlocksStyles>} from
+ * @param {Block} block
+ * @returns {RawBlockStyle|undefined}
+ */
+function findStylesForGlobalBlockTreeBlocks(from, block) {
+    const {globalBlockTreeId} = block;
+    const singleTreeStyles = from.find(bag => bag.globalBlockTreeId === globalBlockTreeId).styles;
+    return findStylesForPageBlocks(singleTreeStyles, block);
 }
 
 /**

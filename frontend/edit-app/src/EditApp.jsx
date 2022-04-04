@@ -3,8 +3,8 @@ import toasters, {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultView/DefaultMainPanelView.jsx';
 import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
 import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType/PageTypeCreateMainPanelView.jsx';
-import store, {observeStore, setCurrentPage, setGlobalBlockStyles, setPageBlockStyles,
-               setOpQueue, selectPageBlockStyles, selectGlobalBlockStyles} from './store.js';
+import store, {observeStore, setCurrentPage, setGlobalBlockTreeBlocksStyles, setPageBlockStyles,
+               setOpQueue, selectGlobalBlockTreeBlocksStyles, selectPageBlockStyles} from './store.js';
 import SaveButton from './SaveButton.jsx';
 import {findBlockTemp} from './BlockTree.jsx';
 
@@ -42,16 +42,26 @@ class EditApp extends preact.Component {
         this.websiteEventHandlers = createWebsiteEventHandlers(this.highlightRectEl,
                                                                this.blockTrees);
         this.receivingData = true;
-        /** @param {Array<RawBlockStyle} allStyles */
-        const updateBlockStyles = allStyles => {
+        /** @param {Array<RawBlockStyle} pageBlocksStyles */
+        const updateBlockStyles = pageBlocksStyles => {
             if (this.receivingData)
                 return;
-            allStyles.forEach(style => {
+            pageBlocksStyles.forEach(style => {
                 this.currentWebPage.updateCssStylesIfChanged('singleBlock', style.blockId, style.styles);
             });
         };
         observeStore(s => selectPageBlockStyles(s), updateBlockStyles.bind(this));
-        observeStore(s => selectGlobalBlockStyles(s), updateBlockStyles.bind(this));
+        /** @param {Array<RawGlobalBlockTreeBlocksStyles} blockTreeBlocksStyles */
+        const updateBlockStyles2 = blockTreeBlocksStyles => {
+            if (this.receivingData)
+                return;
+            blockTreeBlocksStyles.forEach(({styles}) => {
+                styles.forEach(style => {
+                    this.currentWebPage.updateCssStylesIfChanged('singleBlock', style.blockId, style.styles);
+                });
+            });
+        };
+        observeStore(s => selectGlobalBlockTreeBlocksStyles(s), updateBlockStyles2.bind(this));
     }
     /**
      * @param {EditAppAwareWebPage} webPage
@@ -70,7 +80,7 @@ class EditApp extends preact.Component {
         this.setState({currentMainPanel: !webPagePage.isPlaceholderPage ? 'default' : 'create-page'});
         signals.emit('on-web-page-loaded');
         store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
-        store.dispatch(setGlobalBlockStyles(webPage.data.globalBlocksStyles));
+        store.dispatch(setGlobalBlockTreeBlocksStyles(webPage.data.globalBlocksStyles));
         store.dispatch(setPageBlockStyles(webPage.data.page.blockStyles));
         store.dispatch(setOpQueue([]));
         this.receivingData = false;

@@ -21,17 +21,17 @@ const selectCurrentPage = state => state.currentPage;
  * @param {Object} state
  * @param {Object} action
  */
-const globalBlocksStylesReducer = (state = [], action) => {
+const globalBlockTreeBlocksStylesReducer = (state = [], action) => {
     switch (action.type) {
-    case 'globalBlocksStyles/set':
+    case 'globalBlockTreeBlocksStyles/set':
         return action.value;
     default:
         return state;
     }
 };
 
-const setGlobalBlockStyles = value => ({type: 'globalBlocksStyles/set', value});
-const selectGlobalBlockStyles = state => state.globalBlocksStyles;
+const setGlobalBlockTreeBlocksStyles = value => ({type: 'globalBlockTreeBlocksStyles/set', value});
+const selectGlobalBlockTreeBlocksStyles = state => state.globalBlockTreeBlocksStyles;
 
 
 /**
@@ -126,7 +126,7 @@ const selectFormState = (state, id) => state.formStates[id];
 
 const mainStore = createManageableStore(undefined, {
     currentPage: currentPageReducer,
-    globalBlocksStyles: globalBlocksStylesReducer,
+    globalBlockTreeBlocksStyles: globalBlockTreeBlocksStylesReducer,
     pageBlocksStyles: pageBlocksStylesReducer,
     opQueue: opQueueReducer,
     formStates: formStatesReducer,
@@ -185,7 +185,7 @@ class FormStateStoreWrapper {
 
 export {setCurrentPage, selectCurrentPage,
         //
-        setGlobalBlockStyles, selectGlobalBlockStyles,
+        setGlobalBlockTreeBlocksStyles, selectGlobalBlockTreeBlocksStyles,
         setPageBlockStyles, selectPageBlockStyles,
         //
         setOpQueue, pushItemToOpQueue, deleteItemFromOpQueue, deleteItemsFromOpQueueAfter,

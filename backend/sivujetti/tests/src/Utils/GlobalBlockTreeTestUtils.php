@@ -33,14 +33,16 @@ final class GlobalBlockTreeTestUtils {
     }
     /**
      * @param object $globalBlockTree See $this->makeGlobalBlockTreeData()
+     * @param string $themeId
      * @return object RawGlobalBlockStyles
      */
-    public function makeGlobalBlockStylesData(object $globalBlockTree): object {
+    public function makeGlobalBlockStylesData(object $globalBlockTree, string $themeId): object {
         $sectionBlock = $globalBlockTree->blocks[0];
         return (object) [
             "id" => "@later",
             "styles" => json_encode([(object) ["blockId" => $sectionBlock->id, "styles" => "{ color: red; }"]]),
             "globalBlockTreeId" => $globalBlockTree->id,
+            "themeId" => $themeId,
         ];
     }
 }

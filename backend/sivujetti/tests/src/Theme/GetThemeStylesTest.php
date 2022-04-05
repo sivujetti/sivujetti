@@ -5,7 +5,7 @@ namespace Sivujetti\Tests\Theme;
 final class GetThemeStylesTest extends ThemesControllerTestCase {
     public function testListStylesReturnsListOfThemesStyles(): void {
         $state = parent::createDefaultTestState();
-        $this->insertTestTheme($state);
+        $this->insertTestTheme($state, "get-styles-test-theme");
         $this->insertTestBlockTypeStylesForTestTheme($state);
         $this->sendListThemeStylesRequest($state);
         $this->verifyReturnedThemesStylesFromDb($state);
@@ -13,7 +13,7 @@ final class GetThemeStylesTest extends ThemesControllerTestCase {
     private function sendListThemeStylesRequest(\TestState $state): void {
         $this->makeTestSivujettiApp($state);
         $state->spyingResponse = $state->app->sendRequest(
-            $this->createApiRequest("/api/themes/{$state->testThemeId}/styles", "GET"));
+            $this->createApiRequest("/api/themes/{$state->testTheme->id}/styles", "GET"));
     }
     private function verifyReturnedThemesStylesFromDb(\TestState $state): void {
         $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
@@ -41,7 +41,7 @@ final class GetThemeStylesTest extends ThemesControllerTestCase {
 
     public function testListStylesReturnsNothingIfThemeDoesNotExist(): void {
         $state = parent::createDefaultTestState();
-        $state->testThemeId = "999";
+        $state->testTheme = (object) ["id" => "999"];
         $this->sendListThemeStylesRequest($state);
         $this->verifyReturnedNothingFromDb($state);
     }

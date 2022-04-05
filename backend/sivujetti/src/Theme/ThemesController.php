@@ -65,6 +65,7 @@ final class ThemesController {
                 ->fields(["t.name AS themeName", "t.generatedBlockTypeBaseCss",
                           "t.generatedBlockCss", "tbts.styles AS stylesJson"])
                 ->innerJoin("\${p}themeBlockTypeStyles tbts ON (tbts.themeId = t.id)")
+                ->where("t.id = ?", [$req->params->themeId])
                 ->fetch();
             if (!$current)
                 throw new \RuntimeException("Inserting styles not implemented yet.");

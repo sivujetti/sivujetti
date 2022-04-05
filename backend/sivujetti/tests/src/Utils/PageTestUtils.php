@@ -115,14 +115,16 @@ final class PageTestUtils {
     }
     /**
      * @param object $testPageData
+     * @param string $themeId
      * @return object
      */
-    public function makePageBlockStylesData(object $testPageData): object {
+    public function makePageBlockStylesData(object $testPageData, string $themeId): object {
         $someBlock = $testPageData->blocks[0];
         return (object) [
             "styles" => json_encode([(object) ["blockId" => $someBlock->id, "styles" => "{ color: red; }"]]),
             "pageId" => "@later",
             "pageTypeName" => PageType::PAGE,
+            "themeId" => $themeId,
         ];
     }
     /**

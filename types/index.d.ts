@@ -166,6 +166,11 @@ interface RawBlockStyle {
     styles: String;
 }
 
+interface RawGlobalBlockTreeBlocksStyles {
+    globalBlockTreeId: String;
+    styles: Array<RawBlockStyle>;
+}
+
 interface PageMetaRaw {
     title: String;
     slug: String;

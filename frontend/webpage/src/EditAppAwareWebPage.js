@@ -388,11 +388,11 @@ class EditAppAwareWebPage {
      */
     updateCssStyles({type, id}, css) {
         if (type === 'singleBlock') {
-            document.head.querySelector(`style[data-styles-for-block="${id}"]`).innerHTML=temp2(type, id, css);
+            document.head.querySelector(`style[${temp1(type)}="${id}"]`).innerHTML=temp2(type, id, css);
         } else if (type === 'blockType') {
             if (!isValidIdentifier(id))
                 throw new Error(`\`${id}\` is not valid block type name`);
-            document.head.querySelector(`style[data-styles-for-block-type="${id}"]`).innerHTML=`[data-block-type="${id}"]${css}`;
+            document.head.querySelector(`style[${temp1(type)}="${id}"]`).innerHTML=temp2(type, id, css);
         } else if (type === 'global') {
             // todo
         } else throw new Error();
@@ -664,13 +664,17 @@ function updateClonedBlockElAttrs(clonedDomNode, blockId) {
 function temp1(type) {
     if (type === 'singleBlock')
         return 'data-styles-for-block';
+    if (type === 'blockType')
+        return 'data-styles-for-block-type';
 }
 function temp2(type, id, css) {
-    if (type === 'singleBlock') {
-        
-        const sel = `[data-block="${id}"]`;
-        return sel + css.replace(/\[\[scope\]\]/g, sel);
-    }
+    if (type === 'singleBlock')
+        return temp4(`[data-block="${id}"]`, css);
+    if (type === 'blockType')
+        return temp4(`[data-block-type="${id}"]`, css);
+}
+function temp4(sel, css) {
+    return css.replace(/\[\[scope\]\]/g, sel);
 }
 
 export default EditAppAwareWebPage;

@@ -65,10 +65,11 @@ final class GlobalBlocksOrPageBlocksUpserter {
                 })
                 ->where("t.id = ?", [...$whereVals, $whereVals[0]])
                 ->fetch();
+            $hadStylesBefore = !!$current->stylesJson;
 
             // 2. Upsert
             $asCleanJson = self::createStyles($req->body->styles);
-            $result = ($current->stylesJson
+            $result = ($hadStylesBefore
                 ? $db->update($t)
                     ->values((object) ["styles" => $asCleanJson])
                     ->where($whereQ, $whereVals)
@@ -83,29 +84,20 @@ final class GlobalBlocksOrPageBlocksUpserter {
                         "pageTypeName" => $whereVals[2],
                     ]))
             )->execute();
-            if ($current->stylesJson && $result !== 1)
+            if ($hadStylesBefore && $result !== 1)
                 return [$result, "Expected \$numAffectedRows of update {$t} to equal 1 but got {$result}", null];
-            elseif (!$current->stylesJson && !$result)
+            elseif (!$hadStylesBefore && !$result)
                 return [$result, "Expected \$lastInsertId not to equal \"\"", null];
 
-            // 3. Write to "{$themeName}-generated.css"
-            $generated = (object) ["generatedBlockTypeBaseCss" => $current->generatedBlockTypeBaseCss,
-                                   "generatedBlockCss" => $current->generatedBlockCss];
-            $cssGen->overwriteBlockStylesToDisk($req->body->styles,
-                                                $generated,
-                                                $current->themeName);
-
-            // 4. Cache to themes
-            $result2 = $db->update("\${p}themes")
-                ->values($generated)
-                ->fields(["generatedBlockCss"])
-                ->where("id = ?", [$themeId])
-                ->execute();
-            if ($result2 !== 1)
-                return [$result2, "Expected \$numAffectedRows of update themes to equal 1 but got {$result}", null];
+            // 3. Update "{$themeName}-generated.css"
+            $cssGen->overwriteBlockStylesToDisk(
+                $req->body->styles,
+                (object) ["generatedBlockTypeBaseCss" => $current->generatedBlockTypeBaseCss,
+                          "generatedBlockCss" => $current->generatedBlockCss],
+                $current->themeName);
 
             //
-            return [$result, null, !!$current];
+            return [$result, null, $hadStylesBefore];
         });
     }
     /**
@@ -139,7 +131,7 @@ final class GlobalBlocksOrPageBlocksUpserter {
         if (!is_string($uncompiled))
             return [null, "Expected \$input->styles to be a string"];
         return $uncompiled
-            ? ["[data-foo]" . str_replace("[[scope]]", "[data-foo]", $uncompiled), null]
+            ? [str_replace("[[scope]]", "[data-foo]", $uncompiled), null]
             : ["", null];
     }
     /**

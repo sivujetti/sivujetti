@@ -2,7 +2,19 @@
 
 namespace Sivujetti\Tests\GlobalBlockTree;
 
+use Sivujetti\Tests\Utils\CssGenTestUtils;
+
 final class UpsertGlobalBlockStylesTest extends GlobalBlockTreesControllerTestCase {
+    private CssGenTestUtils $cssGenTestUtils;
+    protected function setUp(): void {
+        parent::setUp();
+        $this->cssGenTestUtils = new CssGenTestUtils(self::$db);
+        $this->cssGenTestUtils->prepareStylesFor("test-suite-theme");
+    }
+    protected function tearDown(): void {
+        parent::tearDown();
+        $this->cssGenTestUtils->cleanUp();
+    }
     public function testUpsertGlobalBlockTreeBlocksUpdatesStyles(): void {
         $state = $this->setupTest();
         $this->insertTestGlobalBlockTreeToDb($state, $state->testGlobalBlockTreeData);
@@ -11,14 +23,18 @@ final class UpsertGlobalBlockStylesTest extends GlobalBlockTreesControllerTestCa
         $this->sendUpsertGlobalBlockStylesRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
         $this->verifyOverwroteStylesToDb($state);
+        $this->verifyCachedGeneratedCssToDb($state);
+        $this->verifyOverwroteGeneratedCssFile($state);
     }
     protected function setupTest(): \TestState {
         $state = new \TestState;
+        $state->testTheme = (object) ["id" => "1", "name" => "test-suite-theme"];
         $state->testGlobalBlockTreeData = $this->globalBlockTreeTestUtils->makeGlobalBlockTreeData();
-        $state->originalData = $this->globalBlockTreeTestUtils->makeGlobalBlockStylesData($state->testGlobalBlockTreeData);
+        $state->originalData = $this->globalBlockTreeTestUtils->makeGlobalBlockStylesData($state->testGlobalBlockTreeData,
+            $state->testTheme->id);
         $state->inputData = (object) ["styles" => json_decode($state->originalData->styles),
                                       "junk" => "junk-data-root"];
-        $state->inputData->styles[0]->styles = "{ color: var(--updated) }";
+        $state->inputData->styles[0]->styles = "[[scope]] { color: var(--updated) }";
         $state->inputData->styles[0]->junk = "junk-data-styles";
         $state->spyingResponse = null;
         $state->app = null;
@@ -29,11 +45,15 @@ final class UpsertGlobalBlockStylesTest extends GlobalBlockTreesControllerTestCa
         unset($data->id);
         $insertId = $this->dbDataHelper->insertData($data, "globalBlocksStyles");
         $state->originalData->id = $insertId;
+        $parsed = json_decode($state->originalData->styles);
+        $this->cssGenTestUtils->getCssGenCache()->updateBlocksCss(
+            $this->cssGenTestUtils->generateCachedBlockStyles($parsed),
+            $state->testTheme->name);
     }
     private function sendUpsertGlobalBlockStylesRequest(\TestState $state): void {
         $state->spyingResponse = $state->app->sendRequest(
-            $this->createApiRequest("/api/global-block-trees/{$state->testGlobalBlockTreeData->id}/block-styles",
-                "PUT", $state->inputData));
+            $this->createApiRequest("/api/global-block-trees/{$state->testGlobalBlockTreeData->id}/block-styles" .
+                "/{$state->testTheme->id}", "PUT", $state->inputData));
     }
     private function verifyOverwroteStylesToDb(\TestState $state): void {
         $actual = $this->dbDataHelper->getRow("globalBlocksStyles",
@@ -48,6 +68,17 @@ final class UpsertGlobalBlockStylesTest extends GlobalBlockTreesControllerTestCa
         ];
         $this->assertEquals(array_map($removeJunk, $state->inputData->styles),
                             json_decode($actual["styles"]));
+    }
+    private function verifyCachedGeneratedCssToDb(\TestState $state): void {
+        $row = $this->dbDataHelper->getRow("themes", "id=?", [$state->testTheme->id]);
+        $expected = $this->cssGenTestUtils->generateCachedBlockStyles($state->inputData->styles);
+        $this->assertEquals($expected, $row["generatedBlockCss"]);
+    }
+    private function verifyOverwroteGeneratedCssFile(\TestState $state): void {
+        $expectedBlockStylePart = $this->cssGenTestUtils->generateCachedBlockStyles($state->inputData->styles);
+        $actual = $this->cssGenTestUtils->getActualGeneratedCss();
+        $expected = $this->cssGenTestUtils->generateExpectedGeneratedCssContent(expectedBlockStyles: $expectedBlockStylePart);
+        $this->assertEquals($expected, $actual);
     }
 
 
@@ -66,6 +97,8 @@ final class UpsertGlobalBlockStylesTest extends GlobalBlockTreesControllerTestCa
     private function verifyInsertedStylesToDb(\TestState $state): void {
         $state->originalData->id = json_decode($state->spyingResponse->getActualBody())->insertId;
         $this->verifyOverwroteStylesToDb($state);
+        $this->verifyCachedGeneratedCssToDb($state);
+        $this->verifyOverwroteGeneratedCssFile($state);
     }
 
 

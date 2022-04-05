@@ -7,7 +7,7 @@ class Section extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {isCollapsed: false};
+        this.state = {isCollapsed: !(this instanceof OnThisPageSection)};
     }
     /**
      * @access protected

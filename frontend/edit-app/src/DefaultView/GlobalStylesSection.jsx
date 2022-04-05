@@ -14,17 +14,8 @@ class GlobalStylesSection extends Section {
      * @access protected
      */
     componentDidMount() {
-        this.setState({numStyles: null, currentTabIdx: 0});
+        this.setState({numStyles: undefined, currentTabIdx: 0});
         this.activeThemeId = api.getActiveTheme().id;
-        http.get(`/api/themes/${this.activeThemeId}/styles`)
-            .then(styles => {
-                this.styles = styles;
-                this.pickers = new Map;
-                // {style1: color, style1IsValid: true, style2: color, style2IsValid: true ...} &&
-                // {blockType_Section: String, blockType_Another: String ...}
-                this.setState(createState(this.styles));
-            })
-            .catch(env.window.console.error);
     }
     /**
      * @param {{sections: Array<String>; startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;}} props
@@ -73,11 +64,11 @@ class GlobalStylesSection extends Section {
                         class="form-input"
                         rows="4"></textarea>
                 </div>
-            </div>) }
-        </div>
+                </div>) }
+            </div>
         </>;
         return <section class={ `panel-section${isCollapsed ? '' : ' open'}` }>
-            <button class="d-flex col-12 flex-centered pr-2" onClick={ () => { this.setState({isCollapsed: !isCollapsed}); } }>
+            <button class="d-flex col-12 flex-centered pr-2" onClick={ this.toggleIsCollapsed.bind(this) }>
                 <Icon iconId="palette" className="size-sm mr-2 color-pink"/>
                 <span class="pl-1 color-default">{ __('Styles') }</span>
                 <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
@@ -90,6 +81,25 @@ class GlobalStylesSection extends Section {
             { content }
             </div>
         </section>;
+    }
+    /**
+     * @access private
+     */
+    toggleIsCollapsed() {
+        const newState = {isCollapsed: !this.state.isCollapsed};
+        if (newState.isCollapsed === false && this.state.numStyles === undefined) {
+            newState.numStyles === null;
+            http.get(`/api/themes/${this.activeThemeId}/styles`)
+                .then(styles => {
+                    this.styles = styles;
+                    this.pickers = new Map;
+                    // {style1: color, style1IsValid: true, style2: color, style2IsValid: true ...} &&
+                    // {blockType_Section: String, blockType_Another: String ...}
+                    this.setState(createState(this.styles));
+                })
+                .catch(env.window.console.error);
+        }
+        this.setState(newState);
     }
     /**
      * @param {String} varName

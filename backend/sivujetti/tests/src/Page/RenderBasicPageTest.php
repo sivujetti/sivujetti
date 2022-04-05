@@ -70,9 +70,12 @@ final class RenderBasicPageTest extends RenderPageTestCase {
             $state->spyingResponse->getActualBody());
     }
     private function verifyRenderedBlockTypeBaseStyles(\TestState $state): void {
-        $t = "\"Section\"";
-        $expectedCss = "[data-block-type={$t}]{ padding: 4rem 2rem; }";
-        $this->assertStringContainsString("<style data-styles-for-block-type={$t}>{$expectedCss}</style>",
-                                          $state->spyingResponse->getActualBody());
+        $expectedUrl = WebPageAwareTemplate::makeUrl("/public/test-suite-theme-generated.css");
+        $html = $state->spyingResponse->getActualBody();
+        $this->assertStringContainsString("<link href=\"{$expectedUrl}", $html);
+        $registeredByTheme = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME);
+        $automaticallyGenerated = "<link href=\"{$expectedUrl}";
+        $this->assertGreaterThan(strpos($html, $registeredByTheme),
+                                 strpos($html, $automaticallyGenerated));
     }
 }

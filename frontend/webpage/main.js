@@ -1,20 +1,16 @@
-import EditAppAwareWebPage from './src/EditAppAwareWebPage.js';
+import EditAppAwareWebPage, {createTrier} from './src/EditAppAwareWebPage.js';
 
-let tries = 0;
-
-const informEditAppWeJustLoaded = () => {
+const singleWaitMillis = 200;
+const maxTries = 10;
+const waitForEditAppAndInformWeJustLoaded = createTrier(() => {
     const editApp = (window.parent || {}).editApp;
-    //
-    if (editApp) {
-        const webPage = new EditAppAwareWebPage(window.sivujettiCurrentPageData || {});
-        editApp.handleWebPageLoaded(webPage);
-    // edit-app/main.js is not ready yet
-    } else {
-        if (++tries < 4)
-            setTimeout(informEditAppWeJustLoaded, 200);
-        else
-            window.console.error(`Edit app did not appear after ${200*tries}ms`);
-    }
-};
+    // edit-app/main.js is not ready yet, wait $singleWaitMillis
+    if (!editApp)
+        return false;
+    // edit-app/main.js is ready, stop calling this function
+    const webPage = new EditAppAwareWebPage(window.sivujettiCurrentPageData || {});
+    editApp.handleWebPageLoaded(webPage);
+    return true;
+}, singleWaitMillis, maxTries, 'Edit app did not appear after %sms');
 
-informEditAppWeJustLoaded();
+waitForEditAppAndInformWeJustLoaded();

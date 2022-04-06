@@ -1,4 +1,5 @@
 let __;
+let env;
 
 const validatorImplFactories = {
     'required':   () => ({doValidate: value => !!value, errorMessageTmpl: __('required')}),
@@ -40,8 +41,34 @@ function hookForm(cmp, inps, initialState = {}) {
         inputApis[k] = createApi(cmp, k, inp);
     });
     cmp.inputApis = inputApis;
-    cmp.formIsHooked = true;
-    return Object.assign(initialState, {values, errors});
+    const overallFormState = {formIsSubmitting: false,
+                              formIsSubmittingClass: ''};
+    return Object.assign(initialState, {values, errors}, overallFormState);
+}
+
+/**
+ * @param {preact.Component} cmp
+ * @param {() => Promise<any>} fn
+ * @param {Event=} e = null
+ */
+function handleSubmit(cmp, fn, e = null) {
+    if (e) e.preventDefault();
+    if (cmp.state.formIsSubmitting)
+        return null;
+    if (!validateAll(cmp))
+        return false;
+    cmp.setState({formIsSubmitting: true,
+                  formIsSubmittingClass: ' loading'});
+    fn()
+        .then(() => {
+            //
+        })
+        .catch(env.window.console.error)
+        .finally(() => {
+            cmp.setState({formIsSubmitting: false,
+                          formIsSubmittingClass: ''});
+        });
+    return true;
 }
 
 /**
@@ -236,10 +263,10 @@ class FormGroupInline extends preact.Component {
 }
 
 /**
- * @param {(key: String, ...args: any) => String} doTranslate
+ * @param {{__: (key: String, ...args: any) => String; env: Object;}} services
  */
-export default doTranslate => {
-    __ = doTranslate;
+export default services => {
+    ({__, env} = services);
 };
 
-export {hookForm, unhookForm, reHookValues, validateAll, hasErrors, Input, Textarea, InputErrors, FormGroup, FormGroupInline};
+export {hookForm, unhookForm, reHookValues, validateAll, handleSubmit, hasErrors, Input, Textarea, InputErrors, FormGroup, FormGroupInline};

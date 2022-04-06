@@ -38,6 +38,18 @@ final class BlockTree {
     /**
      * @param \Sivujetti\Block\Entities\Block[] $blocks
      * @param callable $predicate callable(\Sivujetti\Block\Entities\Block $block): bool
+     */
+    public static function traverse(array $branch, callable $fn): void {
+        foreach ($branch as $i => $block) {
+            if (call_user_func($fn, $block, $i) === false)
+                return;
+            if ($block->children)
+                self::traverse($block->children, $fn);
+        }
+    }
+    /**
+     * @param \Sivujetti\Block\Entities\Block[] $blocks
+     * @param callable $predicate callable(\Sivujetti\Block\Entities\Block $block): bool
      * @return \Sivujetti\Block\Entities\Block[]
      */
     public static function filterBlocks(array $branch, callable $predicate): array {

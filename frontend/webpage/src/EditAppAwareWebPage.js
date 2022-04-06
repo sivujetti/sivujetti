@@ -183,7 +183,9 @@ class EditAppAwareWebPage {
             }
             replacement._cref = makeBlockRefComment(replacement, contents[0]);
             const crefs = scanAndCreateBlockRefCommentsFrom(replacement.getRootDomNode());
-            const crefsOut = {[replacement.id]: replacement._cref};
+            const first = replacement.__globalBlockTree.blocks[0];
+            const crefsOut = {[replacement.id]: replacement._cref,
+                              [first.id]: makeBlockRefComment(first, replacement._cref.startingCommentNode.nextSibling)};
             for (const crefCom of crefs) {
                 crefsOut[crefCom.blockId] = crefCom;
             }
@@ -677,4 +679,37 @@ function temp4(sel, css) {
     return css.replace(/\[\[scope\]\]/g, sel);
 }
 
+/**
+ * Calls $fn once every $tryEveryMillis until it returns true or $stopTryingAfterNTimes
+ * is reached.
+ *
+ * @param {() => Boolean} fn
+ * @param {Number} tryEveryMillis = 200
+ * @param {Number} stopTryingAfterNTimes = 5
+ * @param {String} messageTmpl = 'fn() did not return true after %sms'
+ * @returns {fn() => void}
+ */
+function createTrier(fn,
+                     tryEveryMillis = 200,
+                     stopTryingAfterNTimes = 5,
+                     messageTmpl = 'fn() did not return true after %sms') {
+    let tries = 0;
+    const callTryFn = () => {
+        const ret = fn();
+        if (ret === true) {
+            return;
+        }
+        if (ret === false) {
+            if (++tries < stopTryingAfterNTimes)
+                setTimeout(callTryFn, tryEveryMillis);
+            else
+                window.console.error(messageTmpl.replace('%s', tries * tryEveryMillis));
+        } else {
+            throw new Error('fn must return true or false, got: ', ret);
+        }
+    };
+    return callTryFn;
+}
+
 export default EditAppAwareWebPage;
+export {createTrier};

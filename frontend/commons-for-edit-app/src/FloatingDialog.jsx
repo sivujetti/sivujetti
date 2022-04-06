@@ -19,9 +19,9 @@ class FloatingDialog extends preact.Component {
         currentInstance.close = this.close.bind(this);
     }
     /**
-     * @param {any} Renderer
+     * @param {preact.ComponentType|string} Renderer
      * @param {FloatingDialogSettingsInput & {[key: String]: any;}} settings
-     * @param {any} rendererProps
+     * @param {Object} rendererProps
      * @access public
      */
     open(Renderer, settings, rendererProps) {
@@ -100,12 +100,5 @@ function createState(input, out) {
     out.height = out.height ? parseInt(out.height, 10) : 480;
     return out;
 }
-
-/**
- * @typedef FloatingDialogSettingsInput
- * @prop {String} title
- * @prop {Number?} width
- * @prop {Number?} height
- */
 
 export {FloatingDialog, currentInstance as floatingDialog};

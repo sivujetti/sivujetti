@@ -266,3 +266,14 @@ interface RawCssValue {
     type: 'color';
     value: [String, String, String, String];
 }
+
+interface FloatingDialog {
+    open(Renderer: preact.ComponentType|string, settings: FloatingDialogSettingsInput & {[key: String]: any;}, rendererProps: Object): void;
+    close(): void;
+}
+
+interface FloatingDialogSettingsInput {
+    title: String;
+    width?: Number;
+    height?: Number;
+}

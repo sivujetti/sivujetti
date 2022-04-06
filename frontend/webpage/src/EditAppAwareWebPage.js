@@ -35,10 +35,14 @@ class EditAppAwareWebPage {
             return;
         this.handlers = handlers;
         document.body.addEventListener('click', e => {
-            if (!this.currentlyHoveredEl) return;
-            if (e.target.nodeName === 'A' && !this.allowOpenBlockClick)
-                return;
-            this.handlers.onClicked(this.currentlyHoveredBlockRef);
+            let target;
+            if (!this.currentlyHoveredEl)
+                target = null;
+            else if (e.target.nodeName === 'A' && !this.allowOpenBlockClick)
+                target = null;
+            else
+                target = this.currentlyHoveredBlockRef;
+            this.handlers.onClicked(target);
         });
         blockRefComments.forEach(blockRef => {
             if (blockRef.blockType === 'GlobalBlockReference')

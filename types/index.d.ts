@@ -194,7 +194,7 @@ interface TheWebsite {
 
 interface EditAwareWebPageEventHandlers {
     onHoverStarted(blockRef: BlockRefComment, rect: ClientRect): void;
-    onClicked(blockRef: BlockRefComment): void;
+    onClicked(blockRef: BlockRefComment|null): void;
     onHoverEnded(blockRef: BlockRefComment): void;
 }
 

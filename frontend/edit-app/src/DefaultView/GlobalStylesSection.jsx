@@ -1,4 +1,4 @@
-import {api, http, __, env, Icon} from '@sivujetti-commons-for-edit-app';
+import {api, signals, http, __, env, Icon} from '@sivujetti-commons-for-edit-app';
 import Tabs from '../commons/Tabs.jsx';
 import LoadingSpinner from '../commons/LoadingSpinner.jsx';
 import toasters from '../commons/Toaster.jsx';
@@ -7,8 +7,10 @@ import {Section} from './OnThisPageSection.jsx';
 
 class GlobalStylesSection extends Section {
     // activeThemeId;
+    // unregisterSignalListener;
     // styles;
     // pickers;
+    // varNameOfCurrentlyOpenPicker;
     // helperPicker;
     /**
      * @access protected
@@ -16,6 +18,16 @@ class GlobalStylesSection extends Section {
     componentDidMount() {
         this.setState({numStyles: undefined, currentTabIdx: 0});
         this.activeThemeId = api.getActiveTheme().id;
+        this.unregisterSignalListener = signals.on('on-web-page-click-received', () => {
+            if (!this.varNameOfCurrentlyOpenPicker) return;
+            this.pickers.get(this.varNameOfCurrentlyOpenPicker).hide();
+        });
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        this.unregisterSignalListener();
     }
     /**
      * @param {{sections: Array<String>; startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;}} props
@@ -207,7 +219,11 @@ class GlobalStylesSection extends Section {
             default: this.state[varName],
             components: {preview: true, opacity: true, hue: true, interaction: {}}
         });
-        pickr.on('change', (color, _source, _instance) => {
+        pickr.on('show', (_color, _instance) => {
+            this.varNameOfCurrentlyOpenPicker = varName;
+        }).on('hide', _instance => {
+            this.varNameOfCurrentlyOpenPicker = null;
+        }).on('change', (color, _source, _instance) => {
             this.applyGlobalVarToState(varName, color.toHEXA().slice(0, 4));
         }).on('changestop', (_source, instance) => {
             this.applyNewColorAndEmitChangeOp('global', varName, instance.getColor(), instance);

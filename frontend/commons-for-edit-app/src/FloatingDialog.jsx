@@ -7,6 +7,7 @@ let currentInstance = {
 
 class FloatingDialog extends preact.Component {
     // currentEl;
+    // currenTitle;
     // currentJsPanel;
     /**
      * @param {any} props
@@ -34,6 +35,7 @@ class FloatingDialog extends preact.Component {
     close() {
         if (this.currentEl) {
             this.currentEl = null;
+            this.currenTitle = null;
             this.currentJsPanel.close();
         }
         this.currentJsPanel = null;
@@ -55,11 +57,20 @@ class FloatingDialog extends preact.Component {
      * @param {HTMLElement?} el
      */
     handleDialogElChanged(el) {
-        if (!el || el === this.currentEl) return;
+        if (!el)
+            return;
+        if (el === this.currentEl) {
+            if (this.state.title !== this.currenTitle) {
+                this.currenTitle = this.state.title;
+                this.currentJsPanel.setHeaderTitle(this.state.title);
+            }
+            return;
+        }
         this.currentEl = el;
+        this.currenTitle = this.state.title || 'title';
         this.currentJsPanel = window.jsPanel.create({
             content: el,
-            headerTitle: this.state.title || 'title',
+            headerTitle: this.currenTitle,
             theme: 'none',
             headerControls: {
                 minimize: 'remove',

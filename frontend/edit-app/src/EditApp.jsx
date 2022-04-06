@@ -296,9 +296,11 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
             prevHoverStartBlockRef = blockRef;
         },
         /**
-         * @param {BlockRefComment} blockRef
+         * @param {BlockRefComment|null} blockRef
          */
         onClicked(blockRef) {
+            signals.emit('on-web-page-click-received');
+            if (!blockRef) return;
             const treeCmp = blockTrees.current.blockTree.current;
             const block = findBlockTemp(blockRef, treeCmp);
             signals.emit('on-web-page-block-clicked', block);

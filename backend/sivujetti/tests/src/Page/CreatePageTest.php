@@ -6,17 +6,16 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Tests\Utils\{BlockTestUtils};
-use Pike\{PikeException};
 
 final class CreatePageTest extends PagesControllerTestCase {
     public function testCreateNormalPageInsertsPageToDb(): void {
-        $state = $this->setupTest();
+        $state = $this->setupCreateNormalPageTest();
         $this->makeTestSivujettiApp($state);
         $this->sendCreatePageRequest($state);
         $this->verifyRequestFinishedSuccesfully($state, 201);
         $this->verifyInsertedPageToDb($state);
     }
-    private function setupTest(): \TestState {
+    private function setupCreateNormalPageTest(): \TestState {
         $state = new \TestState;
         $state->inputData = (object) [
             "slug" => "/my-page",
@@ -56,11 +55,12 @@ final class CreatePageTest extends PagesControllerTestCase {
 
 
     public function testCreateNormalPageRejectsInvalidInputs(): void {
-        $state = $this->setupTest();
+        $state = $this->setupCreateNormalPageTest();
         $state->inputData = (object) [];
         $this->makeTestSivujettiApp($state);
-        $this->expectException(PikeException::class);
-        $this->expectExceptionMessage(implode(PHP_EOL, [
+        $this->sendCreatePageRequest($state);
+        $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
+        $this->verifyResponseBodyEquals([
             "slug must be string",
             "path must be string",
             "level must be number",
@@ -71,8 +71,7 @@ final class CreatePageTest extends PagesControllerTestCase {
             "status must be number",
             "The value of status must be 0 or greater",
             "categories must be string",
-        ]));
-        $this->sendCreatePageRequest($state);
+        ], $state->spyingResponse);
     }
 
 
@@ -80,7 +79,7 @@ final class CreatePageTest extends PagesControllerTestCase {
 
 
     public function testCreateNormalPageValidatesBlocksRecursively(): void {
-        $state = $this->setupTest();
+        $state = $this->setupCreateNormalPageTest();
         $btu = new BlockTestUtils();
         $notValidBlock = (object) ["type" => Block::TYPE_PARAGRAPH];
         $validBlock = $btu->makeBlockData(Block::TYPE_SECTION, "Main", "sivujetti:block-generic-wrapper", children: [
@@ -88,11 +87,33 @@ final class CreatePageTest extends PagesControllerTestCase {
         ], propsData: ["bgImage" => "", "cssClass" => ""]);
         $state->inputData->blocks = [$validBlock];
         $this->makeTestSivujettiApp($state);
-        $this->expectException(PikeException::class);
-        $this->expectExceptionMessage(implode(PHP_EOL, [
-            "The value of renderer was not in the list",
-        ]));
         $this->sendCreatePageRequest($state);
+        $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
+        $errors = json_decode($state->spyingResponse->getActualBody());
+        $this->assertContains("The value of renderer was not in the list", $errors);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testCreateNormalPageRejectsIfPageWithSameSlugAlreadyExists(): void {
+        $state = $this->setupCreateDuplicateNormalPageTest();
+        $state->inputData->slug = $state->testPageData->slug;
+        $this->makeTestSivujettiApp($state);
+        $this->insertTestPageDataToDb($state);
+        $this->sendCreatePageRequest($state);
+        $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
+        $this->verifyResponseBodyEquals([
+            "Page with identical slug already exists",
+        ], $state->spyingResponse);
+    }
+    private function setupCreateDuplicateNormalPageTest(): \TestState {
+        $state = $this->setupCreateNormalPageTest();
+        $state->testPageData = $this->pageTestUtils->makeTestPageData();
+        $state->testPageData->slug = "/try-to-create-duplicate-normal-page-test-page";
+        $state->testPageData->path = "/try-to-create-duplicate-normal-page-test-page/";
+        return $state;
     }
 
 
@@ -109,7 +130,7 @@ final class CreatePageTest extends PagesControllerTestCase {
         $this->dropCustomPageType($state);
     }
     private function setupCreateCustomPageTest(): \TestState {
-        $state = $this->setupTest();
+        $state = $this->setupCreateNormalPageTest();
         $state->inputData->ownField1 = "Value";
         $state->inputData->ownField2 = 456;
         $state->customPageType = null;
@@ -148,14 +169,41 @@ final class CreatePageTest extends PagesControllerTestCase {
         $state->inputData->ownField2 = [];
         $this->registerCustomPageType($state);
         $this->makeTestSivujettiApp($state);
-        $this->expectException(PikeException::class);
-        $this->expectExceptionMessage(implode(PHP_EOL, [
+        $this->sendCreatePageRequest($state, $state->customPageType->name);
+        $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
+        $this->verifyResponseBodyEquals([
             "ownField1 must be string",
             "The length of ownField1 must be 1024 or less",
             "ownField2 must be number",
             "The value of ownField2 must be 0 or greater",
-        ]));
-        $this->sendCreatePageRequest($state, $state->customPageType->name);
+        ], $state->spyingResponse);
         $this->dropCustomPageType($state);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testCustomPageRejectsIfPageWithSameSlugAlreadyExists(): void {
+        $state = $this->setupCreateDuplicateCustomPageTest();
+        $this->registerCustomPageType($state);
+        $state->inputData->slug = $state->testPageData->slug;
+        $this->makeTestSivujettiApp($state);
+        $this->insertTestPageDataToDb($state, $state->customPageType);
+        $this->sendCreatePageRequest($state, $state->customPageType->name);
+        $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
+        $this->verifyResponseBodyEquals([
+            "Page with identical slug already exists",
+        ], $state->spyingResponse);
+        $this->dropCustomPageType($state);
+    }
+    private function setupCreateDuplicateCustomPageTest(): \TestState {
+        $state = $this->setupCreateCustomPageTest();
+        $state->testPageData = $this->pageTestUtils->makeTestPageData();
+        $state->testPageData->slug = "/try-to-create-duplicate-custom-page-test-page";
+        $state->testPageData->path = "/try-to-create-duplicate-custom-page-test-page/";
+        $state->testPageData->ownField1 = $state->inputData->ownField1;
+        $state->testPageData->ownField2 = $state->inputData->ownField2;
+        return $state;
     }
 }

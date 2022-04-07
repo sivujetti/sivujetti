@@ -168,6 +168,10 @@ class PageCreateMainPanelView extends preact.Component {
         data.status = 0;
         //
         return http.post(`/api/pages/${this.props.pageType.name}`, data).then(resp => {
+                if (Array.isArray(resp) && resp[0] === 'Page with identical slug already exists') {
+                    toasters.editAppMain(__('Page "%s" already exist.', data.slug), 'error');
+                    return false;
+                }
                 if (resp.ok !== 'ok') throw new Error('-');
                 urlUtils.redirect(`/_edit${pathToFullSlug(data.path, '')}`);
                 return true;

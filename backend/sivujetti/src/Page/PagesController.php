@@ -160,11 +160,15 @@ final class PagesController {
                                PagesRepository $pagesRepo): void {
         $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
         //
-        $num = $pagesRepo->insert($pageType, $req->body);
+        [$numAffectedRows, $errors] = $pagesRepo->insert($pageType, $req->body);
         //
-        if ($num !== 1)
-            throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",
-                PikeException::INEFFECTUAL_DB_OP);
+        if ($errors) {
+            $res->status(400)->json($errors);
+            return;
+        }
+        if ($numAffectedRows !== 1) throw new PikeException(
+            "Expected \$numAffectedRows to equal 1 but got {$numAffectedRows}",
+            PikeException::INEFFECTUAL_DB_OP);
         //
         $res->status(201)->json(["ok" => "ok"]);
     }
@@ -184,14 +188,14 @@ final class PagesController {
         $pseudoPage = new \stdClass;
         $pseudoPage->type = $req->params->pageType;
         $pseudoPage->blocks = $req->body->blocks;
-        $num = $pagesRepo->updateById($pageType,
-                                      $req->params->pageId,
-                                      $pseudoPage,
-                                      theseColumnsOnly: ["blocks"]);
+        $numAffectedRows = $pagesRepo->updateById($pageType,
+                                                  $req->params->pageId,
+                                                  $pseudoPage,
+                                                  theseColumnsOnly: ["blocks"]);
         //
-        if ($num !== 1)
-            throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",
-                PikeException::INEFFECTUAL_DB_OP);
+        if ($numAffectedRows !== 1) throw new PikeException(
+            "Expected \$numAffectedRows to equal 1 but got {$numAffectedRows}",
+            PikeException::INEFFECTUAL_DB_OP);
         //
         $res->status(200)->json(["ok" => "ok"]);
     }
@@ -241,11 +245,12 @@ final class PagesController {
                                PagesRepository $pagesRepo): void {
         $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
         //
-        $num = $pagesRepo->updateById($pageType, $req->params->pageId, $req->body);
+        $numAffectedRows = $pagesRepo->updateById($pageType, $req->params->pageId,
+                                                  $req->body);
         //
-        if ($num !== 1)
-            throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",
-                PikeException::INEFFECTUAL_DB_OP);
+        if ($numAffectedRows !== 1) throw new PikeException(
+            "Expected \$numAffectedRows to equal 1 but got {$numAffectedRows}",
+            PikeException::INEFFECTUAL_DB_OP);
         //
         $res->status(200)->json(["ok" => "ok"]);
     }

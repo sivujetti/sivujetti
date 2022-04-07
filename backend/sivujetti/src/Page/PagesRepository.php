@@ -48,24 +48,24 @@ final class PagesRepository {
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
-     * @param string $themeId
+     * @param ?string $themeId
      * @param string|string[] ...$filters
      * @return \Sivujetti\Page\Entities\Page|null
      */
     public function getSingle(string|PageType $pageTypeOrPageTypeName,
-                              string $themeId,
+                              ?string $themeId,
                               ...$filters): ?Page {
         $rows = $this->doGetMany($pageTypeOrPageTypeName, true, $themeId, ...$filters);
         return $rows[0] ?? null;
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
-     * @param string $themeId
+     * @param ?string $themeId
      * @param string|string[] ...$filters
      * @return \Sivujetti\Page\Entities\Page[]
      */
     public function getMany(string|PageType $pageTypeOrPageTypeName,
-                            string $themeId,
+                            ?string $themeId,
                             ...$filters): array {
         return $this->doGetMany($pageTypeOrPageTypeName, false, $themeId, ...$filters);
     }
@@ -74,19 +74,20 @@ final class PagesRepository {
      * @param object $inputData
      * @param bool $doInsertRevision = false
      * @param bool $doInsertAsDraft = false
-     * @return int $numAffectedRows
+     * @return array{0: int, 1: null|string} [$numAffectedRows, $errors]
      * @throws \Pike\PikeException If $inputData is not valid
      */
     public function insert(PageType $pageType,
                            object $inputData,
                            bool $doInsertRevision = false,
                            bool $doInsertAsDraft = false,
-                           bool $doValidateBlocks = true): int {
+                           bool $doValidateBlocks = true): array {
         $this->lastInsertId = "0";
         if (($errors = $this->pageTypeValidator->validateInsertData($pageType, $inputData,
             $doValidateBlocks)))
-            throw new PikeException(implode(PHP_EOL, $errors),
-                                    PikeException::BAD_INPUT);
+            return [0, $errors];
+        if ($this->getSingle($pageType, null, ["slug" => $inputData->slug]))
+            return [0, ["Page with identical slug already exists"]];
         $data = new \stdClass;
         foreach ([["slug","string"],
                   ["path","string"],
@@ -114,11 +115,11 @@ final class PagesRepository {
         $numRows = $this->db->exec("INSERT INTO `\${p}{$pageType->name}` ({$columns})" .
                                    " VALUES ({$qList})", $values);
         if (!$numRows || !($this->lastInsertId = $this->db->lastInsertId()))
-            return 0;
+            return [0, ["Ineffectual db op"]];
         if ($doInsertRevision)
             $numRows += $this->insertRevision(self::makeSnapshot($data, $pageType->ownFields), $doInsertAsDraft);
         $this->db->commit();
-        return $numRows;
+        return [$numRows, 0];
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType $pageType
@@ -164,24 +165,28 @@ final class PagesRepository {
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
      * @param bool $doIncludeLayouts
-     * @param string $themeId
+     * @param ?string $themeId
      * @param string|string[] ...$filters
      * @return \Sivujetti\Page\Entities\Page[]
      */
     private function doGetMany(string|PageType $pageTypeOrPageTypeName,
                                bool $doIncludeLayouts,
-                               string $themeId,
+                               ?string $themeId,
                                ...$filters): array {
         $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
         $this->pageType = $pageType;
         [$filterCols, $filterVals, $joinsCols, $joins] = $this->filtersToQParts($pageType, ...$filters);
         //
-        [$baseJoinCols, $baseJoin] = [
-            ",pbs.`styles` AS `pageBlocksStylesJson`",
-            " LEFT JOIN `\${p}pageBlocksStyles` pbs ON (pbs.`pageId` = p.`id` AND" .
-            " pbs.`pageTypeName` = ? AND pbs.`themeId` = ?)",
-        ];
-        array_unshift($filterVals, $pageType->name, $themeId);
+        $baseJoinCols = "";
+        $baseJoin = "";
+        if (!$themeId) {
+            $baseJoinCols .= ",NULL AS `pageBlocksStylesJson`";
+        } else {
+            $baseJoinCols .= ",pbs.`styles` AS `pageBlocksStylesJson`";
+            $baseJoin .= " LEFT JOIN `\${p}pageBlocksStyles` pbs ON (pbs.`pageId` = p.`id` AND" .
+                        " pbs.`pageTypeName` = ? AND pbs.`themeId` = ?)";
+            array_unshift($filterVals, $pageType->name, $themeId);
+        }
         //
         if (!$doIncludeLayouts) {
             $baseJoinCols .= ",'' AS `layoutId`" .

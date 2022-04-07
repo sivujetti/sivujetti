@@ -11,6 +11,7 @@ stringBundles.push({
     'Title': 'Title',
     'Slug': 'Slug',
     'Content': 'Content',
+    'Page "%s" already exist.': 'Page "%s" already exist.',
     'Something unexpected happened.': 'Something unexpected happened.',
     // edit-app/src/BlockEditForm.jsx
     'Styles': 'Styles',

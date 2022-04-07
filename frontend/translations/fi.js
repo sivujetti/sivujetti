@@ -11,6 +11,7 @@ stringBundles.push({
     'Title': 'Otsikko',
     'Slug': 'Url (slug)',
     'Content': 'Sisältö',
+    'Page "%s" already exist.': 'Sivu "%s" on jo olemassa.',
     'Something unexpected happened.': 'Jokin meni pieleen.',
     // edit-app/src/BlockEditForm.jsx
     'Styles': 'Tyylit',

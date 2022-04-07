@@ -1,6 +1,5 @@
-import {__, signals, http, env, api, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, signals, http, api, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from './commons/ContextMenu.jsx';
-import toasters from './commons/Toaster.jsx';
 import BlockTypeSelector, {normalizeGlobalBlockTreeBlock} from './BlockTypeSelector.jsx';
 import BlockTreeShowHelpPopup from './BlockTreeShowHelpPopup.jsx';
 import Block from './Block.js';
@@ -435,8 +434,7 @@ class BlockTree extends preact.Component {
             name: data.name,
             blocks: data.blocks,
         };
-        http.post('/api/global-block-trees', postData)
-        .then(resp => {
+        return http.post('/api/global-block-trees', postData).then(resp => {
             if (!resp.insertId) throw new Error('-');
             const blockWasStoredTo = originalBlock.isStoredTo;
             const blockRefs = BlockTrees.currentWebPageBlockRefs;
@@ -463,13 +461,6 @@ class BlockTree extends preact.Component {
             // 5. Save to backend if we're not currently inside AddPageMainPanelView
             if (this.props.onChangesApplied)
                 this.props.onChangesApplied(this.state.blockTree, blockWasStoredTo, null);
-        })
-        .catch(err => {
-            env.window.console.error(err);
-            toasters.editAppMain(__('Something unexpected happened.'));
-        })
-        .finally(() => {
-            // todo end loadState
         });
     }
     /**

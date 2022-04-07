@@ -1,40 +1,41 @@
-import {__, floatingDialog} from '@sivujetti-commons-for-edit-app';
-import {hookForm, InputGroup, Input, InputError} from './commons/Form.jsx';
+import {__, hookForm, unhookForm, handleSubmit, FormGroup, Input, InputErrors, floatingDialog} from '@sivujetti-commons-for-edit-app';
 import blockTreeUtils from './blockTreeUtils.js';
 
 class ConvertBlockToGlobalBlockTreeDialog extends preact.Component {
+    // applyCreateGlobalBlockTree;
     /**
      * @param {{blockToConvertAndStore: Block; onConfirmed: (data: RawGlobalBlockTree) => any;}} props
      */
     constructor(props) {
         super(props);
-        this.state = hookForm(this, {
-            name: '',
-        });
+        this.setState(hookForm(this, [
+            {name: 'name', value: undefined, validations: [['minLength', 1],
+                ['maxLength', 92]], label: __('Name')},
+        ]));
+        this.boundDoHandleSubmit = this.applyCreateGlobalBlockTree.bind(this);
     }
     /**
      * @access protected
      */
     componentWillUnmount() {
-        this.form.destroy();
+        unhookForm(this);
     }
     /**
      * @access protected
      */
-    render(_, {classes, errors}) {
-        return <form onSubmit={ this.applyCreateGlobalBlockTree.bind(this) }>
+    render(_, {formIsSubmitting}) {
+        return <form onSubmit={ e => handleSubmit(this, this.boundDoHandleSubmit, e) }>
             <div class="mb-1">{ __('Store this block globally so you can use it later in other pages?') }</div>
-            <InputGroup classes={ classes.name }>
-                <label class="form-label" htmlFor="name">{ __('Name') }</label>
-                <Input vm={ this } name="name" id="name" placeholder={ __('e.g. Header, Footer') }
-                    errorLabel={ __('Name') } validations={ [['maxLength', 92]] }/>
-                <InputError error={ errors.name }/>
-            </InputGroup>
-            {/*todo use formbutttons*/}
+            <FormGroup>
+                <label htmlFor="name" class="form-label">{ __('Name') }</label>
+                <Input vm={ this } prop="name" placeholder={ __('e.g. Header, Footer') }/>
+                <InputErrors vm={ this } prop="name"/>
+            </FormGroup>
             <div class="mt-8">
                 <button
                     class="btn btn-primary mr-2"
-                    type="submit">{ __('Convert') }</button>
+                    type="submit"
+                    disabled={ formIsSubmitting }>{ __('Convert') }</button>
                 <button
                     onClick={ () => floatingDialog.close() }
                     class="btn btn-link"
@@ -43,17 +44,18 @@ class ConvertBlockToGlobalBlockTreeDialog extends preact.Component {
         </form>;
     }
     /**
+     * @returns {Promise<void>}
      * @access private
      */
-    applyCreateGlobalBlockTree(e) {
-        if (!this.form.handleSubmit(e))
-            return;
-        this.props.onConfirmed({
-            name: this.state.values.name,
-            blocks: blockTreeUtils.mapRecursively([this.props.blockToConvertAndStore],
-                                                  block => block.toRaw())
-        });
-        floatingDialog.close();
+    applyCreateGlobalBlockTree() {
+        return this.props
+            .onConfirmed({
+                name: this.state.values.name,
+                blocks: blockTreeUtils.mapRecursively([this.props.blockToConvertAndStore],
+                                                       block => block.toRaw())
+            }).finally(() => {
+                floatingDialog.close();
+            });
     }
 }
 

@@ -19,7 +19,7 @@ final class PagesRepository {
                                     "layoutId", "status"];
     /** @var \Pike\Db */
     private Db $db;
-    /** @var \Sivujetti\PageType\Entities\PageType[] */
+    /** @var \ArrayObject<int, \Sivujetti\PageType\Entities\PageType> */
     private \ArrayObject $pageTypes;
     /** @var object */
     private object $blockTypes;
@@ -74,7 +74,7 @@ final class PagesRepository {
      * @param object $inputData
      * @param bool $doInsertRevision = false
      * @param bool $doInsertAsDraft = false
-     * @return array{0: int, 1: null|string} [$numAffectedRows, $errors]
+     * @return array{0: int, 1: null|array} [$numAffectedRows, $errors]
      * @throws \Pike\PikeException If $inputData is not valid
      */
     public function insert(PageType $pageType,
@@ -119,7 +119,7 @@ final class PagesRepository {
         if ($doInsertRevision)
             $numRows += $this->insertRevision(self::makeSnapshot($data, $pageType->ownFields), $doInsertAsDraft);
         $this->db->commit();
-        return [$numRows, 0];
+        return [$numRows, []];
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType $pageType

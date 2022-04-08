@@ -13,9 +13,9 @@ final class TheWebsite {
     public string $aclRulesJson;
     /** @var string */
     public string $firstRunsJson;
-    /** @var \Sivujetti\Plugin\Entities\Plugin[] */
+    /** @var \ArrayObject<int, \Sivujetti\Plugin\Entities\Plugin> */
     public \ArrayObject $plugins;
-    /** @var \Sivujetti\PageType\Entities\PageType[] */
+    /** @var \ArrayObject<int, \Sivujetti\PageType\Entities\PageType> */
     public \ArrayObject $pageTypes;
     /** @var \Sivujetti\Theme\Entities\Theme */
     public Theme $activeTheme;

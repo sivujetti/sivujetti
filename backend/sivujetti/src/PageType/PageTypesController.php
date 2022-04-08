@@ -94,11 +94,11 @@ final class PageTypesController {
         return $out;
     }
     /**
-     * @param \ArrayObject $pageTypes
+     * @param \ArrayObject<int, \Sivujetti\PageType\Entities\PageType> $pageTypes
      * @return \Sivujetti\PageType\Entities\PageType
      * @throws \Pike\PikeException
      */
-    private static function getPageTypeOrThrow(\ArrayObject $pageTypes) {
+    private static function getPageTypeOrThrow(\ArrayObject $pageTypes): PageType {
         $name = PageTypeMigrator::MAGIC_PAGE_TYPE_NAME;
         if (!($out = ArrayUtils::findByKey($pageTypes, $name, "name")))
             throw new PikeException("Unknown page type `{$name}`.");

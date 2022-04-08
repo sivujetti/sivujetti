@@ -263,7 +263,7 @@ final class WebPageAwareTemplate extends Template {
     protected function cssValueToString(object $value): string {
         return match($value->type) {
             "color" => "#" . implode("", $value->value),
-            "default" => throw new PikeException("Bad variable", PikeException::BAD_INPUT),
+            default => throw new PikeException("Bad variable", PikeException::BAD_INPUT),
         };
     }
     /**

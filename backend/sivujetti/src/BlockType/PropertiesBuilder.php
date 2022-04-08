@@ -7,7 +7,7 @@ use Sivujetti\BlockType\Entities\BlockProperty;
 final class PropertiesBuilder {
     public const DATA_TYPE_TEXT = BlockProperty::DATA_TYPE_TEXT;
     public const DATA_TYPE_UINT = BlockProperty::DATA_TYPE_UINT;
-    /** @var \Sivujetti\BlockType\Entities\BlockProperty[] */
+    /** @var \ArrayObject<int, \Sivujetti\BlockType\Entities\BlockProperty> */
     private \ArrayObject $props;
     /** @var \Sivujetti\BlockType\Entities\BlockProperty */
     private BlockProperty $head;
@@ -44,7 +44,7 @@ final class PropertiesBuilder {
         return $this;
     }
     /**
-     * @return \Sivujetti\BlockType\Entities\BlockProperty[]
+     * @return \ArrayObject<int, \Sivujetti\BlockType\Entities\BlockProperty>
      */
     public function getResult(): \ArrayObject {
         return $this->props;

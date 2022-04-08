@@ -21,7 +21,7 @@ final class PageType {
     public array $blockFields;
     /** @var array e.g. [{name: "price", "friendlyName": "Price", dataType: {"type": "text"}, "defaultValue": "1999"...}...] */
     public array $ownFields;
-    /** @var array e.g. {title: {defaultValue: "My page"}...} */
+    /** @var object e.g. {title: {defaultValue: "My page"}...} */
     public object $defaultFields;
     /** @var string */
     public string $defaultLayoutId;

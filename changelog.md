@@ -2,7 +2,7 @@
 
 ...
 
-# 0.9.0 (not yet released)
+# 0.9.0 (2022-04-08)
 
 ## Added
 - An ability to change theme's global variable values in edit app

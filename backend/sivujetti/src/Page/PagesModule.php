@@ -10,8 +10,7 @@ final class PagesModule {
      */
     public function init(Router $router): void {
         $router->map("GET", "/api/_placeholder-page/[w:pageType]/[i:layoutId]",
-            [PagesController::class, "renderPlaceholderPage", ["consumes" => "text/html",
-                                                               "identifiedBy" => ["create", "pages"]]]
+            [PagesController::class, "renderPlaceholderPage", ["identifiedBy" => ["create", "pages"]]]
         );
         $router->map("POST", "/api/pages/[w:pageType]",
             [PagesController::class, "createPage", ["consumes" => "application/json",

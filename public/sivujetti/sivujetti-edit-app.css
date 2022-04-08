@@ -257,15 +257,15 @@ h2 {
     cursor: row-resize;
 }
 .panels-hidden #main-panel {
-    width: 0;
+    width: 0 !important;
     z-index: 1;
 }
 .panels-hidden #inspector-panel {
     display: none;
 }
 .panels-hidden #sivujetti-site-iframe {
-    width: 100%;
-    transform: initial;
+    width: 100% !important;
+    transform: initial !important;
 }
 
 .has-icon-right .form-input {

@@ -17,6 +17,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}themeBlockTypeStyles`",
 "DROP TABLE IF EXISTS `\${p}themes`",
 "DROP TABLE IF EXISTS `\${p}theWebsite`",
+"DROP TABLE IF EXISTS `\${p}storedObjects`",
 "DROP TABLE IF EXISTS `\${p}users`",
 
 "CREATE TABLE `\${p}users` (
@@ -33,6 +34,12 @@ return [
     `loginId` TEXT DEFAULT NULL,
     `loginIdValidatorHash` TEXT DEFAULT NULL,
     `loginData` TEXT
+)",
+
+"CREATE TABLE `\${p}storedObjects` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `objectName` TEXT NOT NULL UNIQUE,
+    `data` JSON
 )",
 
 "CREATE TABLE `\${p}theWebsite` (

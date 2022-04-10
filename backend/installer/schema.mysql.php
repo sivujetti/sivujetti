@@ -18,6 +18,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}themeBlockTypeStyles`",
 "DROP TABLE IF EXISTS `\${p}themes`",
 "DROP TABLE IF EXISTS `\${p}theWebsite`",
+"DROP TABLE IF EXISTS `\${p}storedObjects`",
 "DROP TABLE IF EXISTS `\${p}users`",
 
 "CREATE TABLE `\${p}users` (
@@ -34,6 +35,13 @@ return [
     `loginId` CHAR(32) DEFAULT NULL,
     `loginIdValidatorHash` CHAR(64) DEFAULT NULL,
     `loginData` TEXT,
+    PRIMARY KEY (`id`)
+) DEFAULT CHARSET = utf8mb4",
+
+"CREATE TABLE `\${p}storedObjects` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `objectName` VARCHAR(92) NOT NULL UNIQUE,
+    `data` JSON,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

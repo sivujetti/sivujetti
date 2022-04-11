@@ -5,7 +5,7 @@ import toasters from './commons/Toaster.jsx';
 import {getIcon} from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
-import blockTreeUtils from './blockTreeUtils.js';
+import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
 import store, {observeStore, selectGlobalBlockTreeBlocksStyles, pushItemToOpQueue,
                setGlobalBlockTreeBlocksStyles, selectPageBlockStyles, setPageBlockStyles,
                selectCurrentPage} from './store.js';
@@ -124,7 +124,7 @@ class BlockEditForm extends preact.Component {
         const EditFormImpl = this.editFormImpl;
         return <div data-main>
         <div class={ `with-icon pb-1${preactHooks.useMemo(() => {
-                if (block.isStoredTo === 'globalBlockTree' || block.type === 'GlobalBlockReference') return ' global-block-tree-block';
+                if (isGlobalBlockTreeRefOrPartOfOne(block)) return ' global-block-tree-block';
                 if (block.type === 'PageInfo') return ' page-info-block';
                 return '';
             }, [])}` }>
@@ -341,7 +341,7 @@ class BlockValMutator {
         this.editFormImplRef = editFormImplRef;
     }
     /**
-     * @return {Block}
+     * @returns {Block}
      * @access public
      */
     getBlock() {

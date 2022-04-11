@@ -151,7 +151,7 @@ function makePath(slug, pageType) {
 /**
  * @param {Page|Object} from
  * @param {PageType} pageType
- * @return {PageMetaRaw}
+ * @returns {PageMetaRaw}
  */
 function createPageData(from, pageType) {
     const out = {title: from.title, slug: from.slug, path: from.path};

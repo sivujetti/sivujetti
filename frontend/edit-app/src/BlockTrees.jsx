@@ -119,7 +119,7 @@ class BlockTrees extends preact.Component {
      * @returns {Promise<Boolean>}
      * @access public
      */
-    static saveExistingBlocksToBackend(newBlockTree, blockIsStoredTo, blockTreeId, _block) {
+    static saveExistingBlocksToBackend(newBlockTree, blockIsStoredTo, blockTreeId) {
         const page = BlockTrees.currentWebPage.data.page;
         let url = '';
         if (blockIsStoredTo === 'page')

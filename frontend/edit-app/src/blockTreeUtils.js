@@ -76,3 +76,13 @@ export default {
         });
     },
 };
+
+/**
+ * @param {Block} block
+ * @returns {Boolean}
+ */
+function isGlobalBlockTreeRefOrPartOfOne(block) {
+    return block.type === 'GlobalBlockReference' || block.isStoredTo === 'globalBlockTree';
+}
+
+export {isGlobalBlockTreeRefOrPartOfOne};

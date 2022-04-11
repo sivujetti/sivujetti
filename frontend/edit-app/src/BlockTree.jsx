@@ -3,7 +3,7 @@ import ContextMenu from './commons/ContextMenu.jsx';
 import BlockTypeSelector, {normalizeGlobalBlockTreeBlock} from './BlockTypeSelector.jsx';
 import BlockTreeShowHelpPopup from './BlockTreeShowHelpPopup.jsx';
 import Block from './Block.js';
-import blockTreeUtils from './blockTreeUtils.js';
+import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from './store.js';
 import BlockTreeDragDrop from './BlockTreeDragDrop.js';
 import ConvertBlockToGlobalDialog from './ConvertBlockToGlobalBlockTreeDialog.jsx';
@@ -31,30 +31,23 @@ class BlockTree extends preact.Component {
         this.contextMenu = preact.createRef();
         this.lastRootBlockMarker = null;
         this.currentAddBlockTarget = null;
-        this.dragDrop = new BlockTreeDragDrop(this, (mutatedTree, dragBlock, dropBlock, {dropPosition, dragBlockBranchBefore}) => {
+        this.dragDrop = new BlockTreeDragDrop(this, (mutatedTree, {dragBlock, dropBlock, dropPosition, doRevert}) => {
             const tree = dragBlock.isStoredTo !== 'globalBlockTree' ? mutatedTree : this.getTreeFor(dragBlock, true);
-            const i1 = dragBlockBranchBefore.indexOf(dragBlock);
-            const i2 = dragBlockBranchBefore.indexOf(dropBlock);
-            const other = dropPosition !== 'as-child'
-                ? dragBlockBranchBefore[dropPosition === 'after' ? i1 + 1 : i1 - 1]
-                : null;
+            //
             this.setState({blockTree: mutatedTree});
             BlockTrees.currentWebPage.reOrderBlocksInDom(dragBlock, dropBlock, dropPosition);
+            const boundUndo = () => {
+                const info = doRevert();
+                this.setState({blockTree: this.state.blockTree});
+                BlockTrees.currentWebPage.reOrderBlocksInDom(dragBlock, info.referenceBlock, info.revertPosition);
+            };
+            //
             store.dispatch(pushItemToOpQueue(`swap-${dragBlock.isStoredTo}-blocks`, {
                 doHandle: this.props.onChangesApplied,
-                doUndo($tree, _$blockIsStoredTo, _$blockTreeId, $dragBlock, $dropPos, i1, i2, $other, $this) {
-                    if (!$other) { alert('Swap between arrays not implemented yet, please reload page'); return; }
-                    const mutRef = blockTreeUtils.findBlock($dragBlock.id, $tree)[1];
-                    const isAfter = $dropPos === 'after';
-                    // Mutates ($this.blockTree.state.blockTree || globalBlockTrees.someTree) x 2
-                    mutRef.splice(i1 + (!isAfter ? 1 : 0), 0, dragBlock);
-                    mutRef.splice(i2 + (i2 > i1 ? 1 : 0), 1);
-                    $this.setState({blockTree: $this.state.blockTree});
-                    BlockTrees.currentWebPage.reOrderBlocksInDom($dragBlock, $other, isAfter ? 'before' : 'after');
-                },
+                doUndo: boundUndo,
                 args: dragBlock.isStoredTo !== 'globalBlockTree'
-                    ? [tree, dragBlock.isStoredTo, null, dragBlock, dropPosition, i1, i2, other, this]
-                    : [tree, dragBlock.isStoredTo, dragBlock.globalBlockTreeId, dragBlock, dropPosition, i1, i2, other, this],
+                    ? [tree, dragBlock.isStoredTo, null]
+                    : [tree, dragBlock.isStoredTo, dragBlock.globalBlockTreeId],
             }));
         });
         BlockTrees = props.BlockTrees;
@@ -385,30 +378,27 @@ class BlockTree extends preact.Component {
             let wasCurrentlySelectedBlock = isSelectedRootCurrentlyClickedBlock() ||
                                             isSelectedRootChildOfCurrentlyClickedBlock();
             if (wasCurrentlySelectedBlock) this.selectedRoot = null;
-            const surroundings = this.getSurroundings(blockToDelete);
+            const [toArr, after] = this.getSurroundings(blockToDelete);
             const originalContents = BlockTrees.currentWebPage.getBlockContents(blockToDelete);
             this.cancelAddBlock(blockToDelete);
             //
+            const boundUndo = () => {
+                BlockTrees.currentWebPage.restoreBlockToDom(originalContents, after).then(() => {
+                    toArr.splice(toArr.indexOf(after) + 1, 0, blockToDelete); // Note: mutates this.state.blockTree or globalBlockTreeBlocks.someTree
+                    //
+                    const treeStateMutRef = this.state.treeState;
+                    blockTreeUtils.traverseRecursively([blockToDelete], b => {
+                        treeStateMutRef[b.id] = createTreeStateItem(); // Note: mutates this.state.treeState
+                    });
+                    this.setState({blockTree: this.state.blockTree, treeState: treeStateMutRef});
+                });
+            };
             store.dispatch(pushItemToOpQueue(`delete-${blockToDelete.isStoredTo}-block`, {
                 doHandle: this.props.onChangesApplied,
-                doUndo(_$tree, _$blockIsStoredTo, _$blockTreeId, $block, [toArr, after], $originalContents, $this) {
-                    BlockTrees.currentWebPage.restoreBlockToDom($originalContents, after).then(() => {
-                        toArr.splice(toArr.indexOf(after) + 1, 0, $block); // Note: mutates this.state.blockTree or globalBlockTreeBlocks.someTree
-                        //
-                        const treeStateMutRef = $this.state.treeState;
-                        blockTreeUtils.traverseRecursively([$block], b => {
-                            treeStateMutRef[b.id] = createTreeStateItem(); // Note: mutates this.state.treeState
-                        });
-                        $this.setState({blockTree: $this.state.blockTree, treeState: treeStateMutRef});
-                    });
-                },
+                doUndo: boundUndo,
                 args: [this.getTreeFor(blockToDelete),
                        blockToDelete.isStoredTo,
-                       blockToDelete.globalBlockTreeId || null,
-                       blockToDelete,
-                       surroundings,
-                       originalContents,
-                       this],
+                       blockToDelete.globalBlockTreeId || null],
             }));
             signals.emit('on-block-deleted', blockToDelete, wasCurrentlySelectedBlock);
         } else if (link.id === 'convert-block-to-global') {
@@ -658,13 +648,13 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} block
-     * @return {[Array<Block>, Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}]}
+     * @returns {[Array<Block>, Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}]}
      * @access private
      */
     getSurroundings(block) {
         const [_, branch, parent] = blockTreeUtils.findBlock(
             block.id,
-            !(block.type === 'GlobalBlockReference' || block.isStoredTo === 'globalBlockTree')
+            !isGlobalBlockTreeRefOrPartOfOne(block)
                 ? this.state.blockTree
                 : this.getTreeFor(block)
         );
@@ -742,7 +732,7 @@ function turnBranchToGlobal(branchRaw, containingBlockTree, globalBlockTreeId) {
 
 /**
  * @param {Block} block
- * @return {Block} block.__globalBlockTree.blocks[0] or block
+ * @returns {Block} block.__globalBlockTree.blocks[0] or block
  */
 function getVisibleBlock(block) {
     return block.type !== 'GlobalBlockReference'

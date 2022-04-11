@@ -630,7 +630,7 @@ function getAllComments(rootElem) {
 }
 
 /**
- * @return {Array<HTMLElement>}
+ * @returns {Array<HTMLElement>}
  */
 function getTitleEls() {
     return Array.from(document.querySelectorAll('[data-prop="title"]'));

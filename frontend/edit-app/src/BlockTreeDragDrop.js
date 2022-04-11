@@ -1,4 +1,4 @@
-import blockTreeUtils from './blockTreeUtils.js';
+import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
 
 class BlockTreeDragDrop {
     // blockTree;
@@ -70,11 +70,11 @@ class BlockTreeDragDrop {
             */
             if (e.clientY > rect.top + rect.height - edge) {
                 newCandidate.dropPosition = distance !== -1 ? 'after' : 'as-child';
-                // Disallow 'after + :last-child' -drops outside the tree
                 if (newCandidate.dropPosition === 'after' && distance !== 0 &&
-                    li.parentElement !== this.startElParentUl &&
-                    li.parentElement.lastElementChild === li)
-                    return;
+                    newCandidate.el.classList.contains('with-children')) {
+                    newCandidate.dropPosition = 'before';
+                    newCandidate.el = li.querySelector(':scope ul > li');
+                }
             } else if (e.clientY > rect.top + edge) {
                 newCandidate.dropPosition = 'as-child';
             } else { // if (e.clientY > rect.top) {
@@ -114,40 +114,92 @@ class BlockTreeDragDrop {
         );
         const dropTreeId = this.curDropTypeCandidate.el.getAttribute('data-block-tree-id');
         const dropBlockTree = dropTreeId === '' ? this.blockTree.state.blockTree : this.blockTree.getGlobalTrees().get(dropTreeId);
-        const [dropBlock, dropBranch] = blockTreeUtils.findBlock(
+        const [dropBlock, dropBranch, dropBlockParent] = blockTreeUtils.findBlock(
             this.curDropTypeCandidate.el.getAttribute('data-base-block-id') ||
             this.curDropTypeCandidate.el.getAttribute('data-block-id'),
             dropBlockTree
         );
-        if (dragBranch !== dropBranch && this.curDropTypeCandidate.dropPosition !== 'as-child') {
-            this.curDropTypeCandidate = null;
-            alert('Swap between arrays not implemented yet, please reload page');
-            return;
-        }
-        const dragBlockBranchBefore = dragBranch.slice(0);
         //
+        let doRevert = null;
         const isBefore = this.curDropTypeCandidate.dropPosition === 'before';
+        const revertInfo = {revertPosition: null, referenceBlock: null};
+        if (this.startElParentUl.children.length === 1) {
+            revertInfo.revertPosition = 'as-child';
+            revertInfo.referenceBlock = dropBlockParent;
+        } else {
+            const hasBlocksAfter = this.startEl.nextElementSibling;
+            revertInfo.revertPosition = hasBlocksAfter ? 'before' : 'after';
+            revertInfo.referenceBlock = dragBranch[dragBranch.indexOf(dragBlock) + (hasBlocksAfter ? 1 : -1)];
+        }
+        //
         if (isBefore || this.curDropTypeCandidate.dropPosition === 'after') {
-            const refIndex = dragBranch.indexOf(dropBlock);
-            const fromIndex = dragBranch.indexOf(dragBlock);
-            // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 2
-            dragBranch.splice(refIndex + (!isBefore ? 1 : 0), 0, dragBlock);
-            dragBranch.splice(fromIndex + (fromIndex > refIndex ? 1 : 0), 1);
+            if (dragBranch === dropBranch) {
+                const toIdx = dragBranch.indexOf(dropBlock);
+                const fromIndex = dragBranch.indexOf(dragBlock);
+                const realTo = isBefore ? toIdx : toIdx + 1;
+                // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 2
+                dragBranch.splice(realTo, 0, dragBlock);
+                dragBranch.splice(fromIndex + (fromIndex > realTo ? 1 : 0), 1);
+                // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 2
+                doRevert = () => {
+                    dragBranch.splice(fromIndex + (fromIndex > realTo ? 1 : 0), 0, dragBlock);
+                    dragBranch.splice(realTo, 1);
+                    return revertInfo;
+                };
+            } else {
+                const a = isGlobalBlockTreeRefOrPartOfOne(dragBlock);
+                const b = isGlobalBlockTreeRefOrPartOfOne(dropBlock);
+                if (!a && b) {
+                    this.handleDropNotAllowed('Normal > Global drop not supported yet');
+                    return;
+                } else if ((!b && a) || (a && dropBlock.type === 'GlobalBlockReference' && dropBlock.globalBlockTreeId === dragBlock.globalBlockTreeId)) {
+                    this.handleDropNotAllowed('Global > Normal drop not supported yet');
+                    return;
+                } else if (a && b) {
+                    this.handleDropNotAllowed('Drop between global blocks banches supported yet');
+                    return;
+                }
+                const dragBranchIdx = dragBranch.indexOf(dragBlock);
+                const dropBranchIdx = dropBranch.indexOf(dropBlock);
+                const pos = dropBranchIdx + (isBefore ? 0 : 1);
+                // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 3
+                const oldParentPath = dragBlock.parentBlockIdPath;
+                dragBlock.parentBlockIdPath = dropBlock.parentBlockIdPath;
+                dropBranch.splice(pos, 0, dragBlock);
+                dragBranch.splice(dragBranchIdx, 1);
+                // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 3
+                doRevert = () => {
+                    dragBlock.parentBlockIdPath = oldParentPath;
+                    dragBranch.splice(dragBranchIdx, 0, dragBlock);
+                    dropBranch.splice(pos, 1);
+                    return revertInfo;
+                };
+            }
         } else if (this.curDropTypeCandidate.dropPosition === 'as-child') {
-            if (dropBlock.type === 'GlobalBlockReference') {
-                this.curDropTypeCandidate = null;
-                this.clearDragEl();
-                alert('Normal > Global drop not implemented yet');
+            if (isGlobalBlockTreeRefOrPartOfOne(dropBlock) !==
+                isGlobalBlockTreeRefOrPartOfOne(dragBlock)) {
+                this.handleDropNotAllowed('Normal > Global drop not supported yet');
                 return;
             }
             // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 3
-            dragBlock.parentBlockIdPath = `${dropBlock.parentBlockIdPath}/${dropBlock.id}`; // todo verify this
+            const oldParentPath = dragBlock.parentBlockIdPath;
+            dragBlock.parentBlockIdPath = `${dropBlock.parentBlockIdPath}/${dropBlock.id}`;
             dropBlock.children.push(dragBlock);
-            dragBranch.splice(dragBranch.indexOf(dragBlock), 1);
-        }
-        this.onDropped(this.blockTree.state.blockTree, dragBlock, dropBlock, {
+            const pos = dragBranch.indexOf(dragBlock);
+            dragBranch.splice(pos, 1);
+            // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 3
+            doRevert = () => {
+                dragBlock.parentBlockIdPath = oldParentPath;
+                dropBlock.children.pop();
+                dragBranch.splice(pos, 0, dragBlock);
+                return revertInfo;
+            };
+        } else return;
+        this.onDropped(this.blockTree.state.blockTree, {
+            dragBlock,
+            dropBlock,
             dropPosition: this.curDropTypeCandidate.dropPosition,
-            dragBlockBranchBefore,
+            doRevert,
         });
         this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
         this.curDropTypeCandidate = null;
@@ -191,6 +243,16 @@ class BlockTreeDragDrop {
     clearDragEl() {
         this.startEl.classList.remove('dragging');
         this.startEl = null;
+    }
+    /**
+     * @param {String} message
+     * @access private
+     */
+    handleDropNotAllowed(message) {
+        this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
+        this.curDropTypeCandidate = null;
+        this.clearDragEl();
+        alert(message);
     }
 }
 

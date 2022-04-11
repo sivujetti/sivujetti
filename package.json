@@ -5,14 +5,16 @@
   "scripts": {
     "start": "rollup -c -w",
     "build": "rollup -c",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx nightwatch --env chrome"
   },
   "author": "ut4",
   "license": "GPLv3",
   "devDependencies": {
     "@rollup/plugin-sucrase": "^3.1.0",
+    "chromedriver": "^99.0.0",
     "eslint": "^7.27.0",
     "eslint-plugin-react": "^7.23.2",
+    "nightwatch": "^2.1.0",
     "preact": "^10.5.13",
     "rollup": "^2.50.2",
     "rollup-plugin-terser": "^7.0.2"

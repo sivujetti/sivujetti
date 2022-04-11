@@ -15,8 +15,10 @@ node_modules
 /docs/
 /internal/
 !*/**/Internal
+/logs/
 /public/*.*
 /public/uploads
 /public/sivujetti/*.js
 /public/tests/bundled-main.js
 /sdk/
+/tests_output/

@@ -21,8 +21,8 @@ function clickAddBlockButton(_s) {
  * @param {String} expectedText = ''
  */
 function verifyAppendedParagraphAfter(s, assert, expectedText = '') {
-    const initialSectionEl = document.querySelector('.initial-section');
-    const expectedNewPEl = initialSectionEl.nextElementSibling;
+    const lastBlockElInDom = document.querySelector('.initial-section').nextElementSibling;
+    const expectedNewPEl = lastBlockElInDom.nextElementSibling;
     assert.equal(expectedNewPEl.tagName, 'P');
     if (!expectedText) {
         const paragraphType = api.blockTypes.get('Paragraph');
@@ -67,11 +67,12 @@ function clickContextMenuLink(s, linkId, treeItemSelector = null) {
 /**
  * @param {any} s
  * @param {'downwards'|'upwards'} direction
+ * @param {Number} dragIdx = -1 Index of the li element to drag
+ * @param {Number} otherIdx = -2 Index of the li element to drag to
  * @param {'as-child'?} t = null
- * @param {HTMLLIElement?} otherBlockLiEl = null
  * @returns {Promise<void>}
  */
-function simulateDragBlock(s, direction, t = null, otherBlockLiEl = null) {
+function simulateDragBlock(s, direction, dragIdx = -1, otherIdx = -2, t = null) {
     const simulateDragStarted = liEl => {
         const fakeDragStartEvent = {target: liEl};
         s.blockTreesCmp.blockTree.current.dragDrop.handleDragStarted(fakeDragStartEvent);
@@ -89,8 +90,8 @@ function simulateDragBlock(s, direction, t = null, otherBlockLiEl = null) {
         const lis = document.querySelectorAll('.block-tree li');
         //
         if (direction === 'upwards') {
-            const dragBlockLi = lis[lis.length - 1];
-            const otherBlockLi = lis[lis.length - 2];
+            const dragBlockLi = lis[dragIdx < 0 ? lis.length + dragIdx : dragIdx];
+            const otherBlockLi = lis[otherIdx < 0 ? lis.length + otherIdx : otherIdx];
             simulateDragStarted(dragBlockLi);
             if (t !== 'as-child')
                 simulateDraggedOver(otherBlockLi,
@@ -101,13 +102,10 @@ function simulateDragBlock(s, direction, t = null, otherBlockLiEl = null) {
                                     // Simulate that mouse is below target li's bottom treshold
                                     Infinity);
         } else {
-            const dragBlockLi = !otherBlockLiEl ? lis[lis.length - 2] : lis[lis.length - 3];
-            const otherBlockLi = otherBlockLiEl || lis[lis.length - 1];
-            //
+            const dragBlockLi = lis[dragIdx < 0 ? lis.length + dragIdx : dragIdx];
+            const otherBlockLi = lis[otherIdx < 0 ? lis.length + otherIdx : otherIdx];
             const edge = 10;
-            const treshold = !otherBlockLiEl
-                ? -Infinity
-                : otherBlockLi.querySelector('.d-flex').getBoundingClientRect().top + edge + 2;
+            const treshold = otherBlockLi.querySelector('.d-flex').getBoundingClientRect().top + edge + 2;
             //
             simulateDragStarted(dragBlockLi);
             if (t !== 'as-child')
@@ -130,6 +128,19 @@ function simulateDragBlock(s, direction, t = null, otherBlockLiEl = null) {
  * @param {Assert} assert
  * @param {Array<String>} expectedTagNames
  */
+function verifyRootChildTagsEqualInDom(_s, assert, expectedTagNames) {
+    const domBranchAfter = document.querySelector('.initial-section').parentElement.children;
+    assert.equal(domBranchAfter.length, expectedTagNames.length);
+    expectedTagNames.forEach((tagName, i) => {
+        assert.equal(domBranchAfter[i].tagName, tagName.toUpperCase());
+    });
+}
+
+/**
+ * @param {any} _s
+ * @param {Assert} assert
+ * @param {Array<String>} expectedTagNames
+ */
 function verifySectionChildTagsEqualInDom(_s, assert, expectedTagNames) {
     const domBranchAfter = document.querySelector('.initial-section').children[0].children;
     assert.equal(domBranchAfter.length, expectedTagNames.length);
@@ -144,7 +155,7 @@ function verifySectionChildTagsEqualInDom(_s, assert, expectedTagNames) {
  */
 function simulateChangeParagraphTextInput(_s) {
     const els = document.querySelectorAll('.block-tree li .block-handle');
-    const paragraphBlockHandle = els[els.length - 1];
+    const paragraphBlockHandle = els[els.length - 2];
     paragraphBlockHandle.click();
     //
     return new Promise((resolve) => {
@@ -169,4 +180,5 @@ function verifyUpdatedTextInDom(s, assert, expectedText = '') {
 
 export {clickAddBlockButton, verifyAppendedParagraphAfter, verifyAppendedParagraphInside,
         clickContextMenuLink, simulateDragBlock, verifySectionChildTagsEqualInDom,
-        simulateChangeParagraphTextInput, verifyUpdatedTextInDom};
+        verifyRootChildTagsEqualInDom, simulateChangeParagraphTextInput,
+        verifyUpdatedTextInDom};

@@ -1,5 +1,6 @@
 import * as appTestUtils from './utils/edit-app-test-utils.js';
-import {simulateDragBlock, verifySectionChildTagsEqualInDom} from './utils/render-blocks-test-utils.js';
+import {simulateDragBlock, verifySectionChildTagsEqualInDom,
+        verifyRootChildTagsEqualInDom} from './utils/render-blocks-test-utils.js';
 
 QUnit.module('BlockTrees', () => {
     QUnit.test('blocks can be reordered inside inner branch by dragging upwards', assert => {
@@ -10,7 +11,9 @@ QUnit.module('BlockTrees', () => {
             return appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
-            simulateDragBlock(s, 'upwards')
+            simulateDragBlock(s, 'upwards',
+                                3, // Which li to move
+                                2) // li to move above
         )
         .then(() => {
             verifySwappedBlocksInTree(s, assert);
@@ -26,7 +29,7 @@ QUnit.module('BlockTrees', () => {
             return appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
-            simulateDragBlock(s, 'downwards')
+            simulateDragBlock(s, 'downwards', 2, 3)
         )
         .then(() => {
             verifySwappedBlocksInTree(s, assert);
@@ -42,7 +45,7 @@ QUnit.module('BlockTrees', () => {
             return appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
-            simulateDragBlock(s, 'upwards', 'as-child')
+            simulateDragBlock(s, 'upwards', 3, 2, 'as-child')
         )
         .then(() => {
             verifyMovedBlockToChildOfInTree(s, assert, 'p');
@@ -58,7 +61,7 @@ QUnit.module('BlockTrees', () => {
             return appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
-            simulateDragBlock(s, 'downwards', 'as-child')
+            simulateDragBlock(s, 'downwards', 2, 3, 'as-child')
         )
         .then(() => {
             verifyMovedBlockToChildOfInTree(s, assert, 'h2');
@@ -74,7 +77,7 @@ QUnit.module('BlockTrees', () => {
             return appTestUtils.simulatePageLoad(s, undefined, 'withNestedBlockReversed');
         })
         .then(() =>
-            simulateDragBlock(s, 'downwards', 'as-child', document.querySelector('.block-tree li ul li ul li'))
+            simulateDragBlock(s, 'downwards', 2, 4, 'as-child')
         )
         .then(() => {
             verifyMovedBlockToChildOfInnerBlockInTree(s, assert);
@@ -97,6 +100,44 @@ QUnit.module('BlockTrees', () => {
             assert.equal(origBranch.length, 1, 'Should remove dragged item from outer branch');
         }
     });
+    QUnit.test('blocks can be moved from inner branch to outer branch by dragging upwrads', assert => {
+        const done = assert.async();
+        const s = appTestUtils.createTestState();
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
+            s.blockTreesCmp = cmp;
+            return appTestUtils.simulatePageLoad(s);
+        })
+        .then(() =>
+            simulateDragBlock(s, 'upwards', 3, 1)
+        )
+        .then(() => {
+            verifyMovedParagraphBlockFromInnerBranchToOuterOneInTree(s, assert, 1, 1);
+            verifyMovedParagraphFromInnerElemToOuterOneInDom(s, assert);
+            done();
+        });
+        function verifyMovedParagraphFromInnerElemToOuterOneInDom(s, assert) {
+            verifyRootChildTagsEqualInDom(s, assert, ['p', 'section', 'p']);
+        }
+    });
+    QUnit.test('blocks can be moved from inner branch to outer branch by dragging downwards', assert => {
+        const done = assert.async();
+        const s = appTestUtils.createTestState();
+        appTestUtils.renderMockEditAppIntoDom('DefaultView', cmp => {
+            s.blockTreesCmp = cmp;
+            return appTestUtils.simulatePageLoad(s);
+        })
+        .then(() =>
+            simulateDragBlock(s, 'downwards', -2, -1)
+        )
+        .then(() => {
+            verifyMovedParagraphBlockFromInnerBranchToOuterOneInTree(s, assert, 2, 2);
+            verifyMovedParagraphFromInnerElemToOuterOneInDom(s, assert);
+            done();
+        });
+        function verifyMovedParagraphFromInnerElemToOuterOneInDom(s, assert) {
+            verifyRootChildTagsEqualInDom(s, assert, ['section', 'p', 'p']);
+        }
+    });
     function verifySwappedBlocksInDom(s, assert) {
         verifySectionChildTagsEqualInDom(s, assert, ['p', 'h2']);
     }
@@ -105,6 +146,9 @@ QUnit.module('BlockTrees', () => {
     }
     function getLiContents(li) {
         return li.querySelector('button.block-handle').textContent;
+    }
+    function getLiId(li) {
+        return li.getAttribute('data-block-id');
     }
     function verifySwappedBlocksInTree(s, assert) {
         const lis = getBlockTreeListItems();
@@ -117,6 +161,12 @@ QUnit.module('BlockTrees', () => {
         assert.equal(getLiContents(h2Branch[0]), draggedEl === 'p' ? 'Paragraph' : 'Heading',
                                    'Should move dragged item to target inner branch');
         assert.equal(sectionBranch.length, 1, 'Should remove dragged item from outer branch');
+    }
+    function verifyMovedParagraphBlockFromInnerBranchToOuterOneInTree(s, assert, expectedNewPos, testBlockIdx) {
+        const outerLis = document.querySelectorAll('.block-tree > li');
+        assert.equal(getLiId(outerLis[expectedNewPos]), appTestUtils.testBlocks[testBlockIdx].id);
+        const innerLis = document.querySelectorAll('.block-tree li ul li');
+        assert.equal(innerLis.length, 1);
     }
     function verifyMoveBlockToChildOfInDom(s, assert, draggedEl) {
         const [dragElTag, targetElTag] = draggedEl === 'h2' ? ['h2', 'p'] : ['p', 'h2'];

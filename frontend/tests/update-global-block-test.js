@@ -48,7 +48,7 @@ QUnit.module('ParagraphBlock2', () => {
         });
     }
     function verifyUpdatedTextInDom(s, assert) {
-        const contentAfter = document.querySelector('.initial-section + p').textContent;
+        const contentAfter = document.querySelector('.initial-section + p + p').textContent;
         assert.equal(contentAfter, 'Updated.');
     }
     function clickSaveChangesButton(_s) {

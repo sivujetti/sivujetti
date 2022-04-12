@@ -5,7 +5,7 @@
 # 0.10.0 (not yet released)
 
 ## Added
-- .
+- An ability to drag blocks between block tree's branches
 
 ## Fixed
 - .

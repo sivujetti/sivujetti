@@ -46,8 +46,8 @@ QUnit.module('BlockTrees', () => {
             done();
         });
         function verifyRemovedParagraphAfter(s, assert) {
-            const initialSectionEl = document.querySelector('.initial-section');
-            const appendedPEl = initialSectionEl.nextElementSibling;
+            const lastBlockDomEl = document.querySelector('.initial-section').nextElementSibling;
+            const appendedPEl = lastBlockDomEl.nextElementSibling;
             assert.equal(appendedPEl, undefined);
         }
         function clickConfirmAddBlockButton(_s) {
@@ -89,7 +89,7 @@ QUnit.module('BlockTrees', () => {
             return appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
-            simulateDragBlock(s, 'upwards')
+            simulateDragBlock(s, 'upwards', 3, 2)
         )
         .then(() => {
             verifySectionChildTagsEqualInDom(s, assert, ['p', 'h2']);

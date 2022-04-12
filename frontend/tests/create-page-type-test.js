@@ -68,7 +68,7 @@ QUnit.module('PageTypeCreateMainPanelView', () => {
         assert.equal(data.defaultLayoutId, '1');
         // status irrelevant
         assert.equal(data.isListable, true);
-        assert.equal(data.blockFields.length, 1);
+        assert.equal(data.blockFields.length, 2); // ??
         assert.deepEqual(data.defaultFields, {title: {defaultValue: 'Title'}});
         assert.equal(data.ownFields.length, 1);
     }

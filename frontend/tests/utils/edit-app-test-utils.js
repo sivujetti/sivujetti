@@ -32,6 +32,30 @@ const testBlocks = [{
     ],
     text: '© Mysite',
     cssClass: ''
+}, {
+    type: 'Paragraph',
+    title: '',
+    renderer: 'sivujetti:block-auto',
+    id: '-Me3jYWcEOlLTgJhzqLA',
+    children: [],
+    propsData: [
+        {key: 'text', value: 'Hello'},
+        {key: 'cssClass', value: ''}
+    ],
+    text: 'Hello',
+    cssClass: ''
+}, {
+    type: 'Paragraph',
+    title: '',
+    renderer: 'sivujetti:block-auto',
+    id: '-MsUInJenFgw3yW0k_JG',
+    children: [],
+    propsData: [
+        {key: 'text', value: 'Another paragraph'},
+        {key: 'cssClass', value: 'another-p'}
+    ],
+    text: 'Another paragraph',
+    cssClass: 'another-p'
 }];
 
 function createTestState() {
@@ -142,20 +166,11 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default', p
             text: 'My page',
             level: 2,
             cssClass: ''
-        }, {
-            type: 'Paragraph',
-            title: '',
-            renderer: 'sivujetti:block-auto',
-            id: '-Me3jYWcEOlLTgJhzqLA',
-            children: [],
-            propsData: [
-                {key: 'text', value: 'Hello'},
-                {key: 'cssClass', value: ''}
-            ],
-            text: 'Hello',
-            cssClass: ''
-        }]
-    }].concat(...(testBlocksBundle === 'withGlobalBlockReference' ? [{
+        },
+        testBlocks[1]]
+    },
+    testBlocks[2]
+    ].concat(...(testBlocksBundle === 'withGlobalBlockReference' ? [{
         type: 'GlobalBlockReference',
         title: '',
         renderer: 'sivujetti:block-auto',
@@ -170,7 +185,7 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default', p
         __globalBlockTree: {
             id: '10',
             name: 'My stored',
-            blocks: testBlocks.slice(0),
+            blocks: [testBlocks[0]],
         },
     }] : []));
     //
@@ -191,9 +206,10 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default', p
                     ? renderBlock(pageBlocks[1].children[1].children[0])
                     : ''))
         ) +
+        renderBlock(pageBlocks[2]) +
         (testBlocksBundle === 'withGlobalBlockReference'
-            ? blockUtils.decorateWithRef(pageBlocks[2],
-                renderBlock(pageBlocks[2].__globalBlockTree.blocks[0],
+            ? blockUtils.decorateWithRef(pageBlocks[3],
+                renderBlock(pageBlocks[3].__globalBlockTree.blocks[0],
             ))
             : '');
     //

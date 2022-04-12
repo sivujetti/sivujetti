@@ -71,6 +71,6 @@ QUnit.module('PageCreateMainPanelView', () => {
         assert.equal(data.path, `${s.testInput.slug.substr(1)}/`);
         assert.equal(data.level, 1);
         assert.equal(data.layoutId, '1');
-        assert.equal(data.blocks.length, 2);
+        assert.equal(data.blocks.length, 3);
     }
 });

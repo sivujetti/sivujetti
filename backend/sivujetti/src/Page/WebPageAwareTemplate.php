@@ -193,14 +193,24 @@ final class WebPageAwareTemplate extends Template {
             implode("\n", array_map($rf, $this->__cssAndJsFiles->css)) .
             //
             "\n<!-- Note to devs: these inline styles appear here only when you're logged in -->\n" .
-            // Base styles for each block type
-            implode("\n", array_map(fn($styles) => "<style data-styles-for-block-type=\"{$styles->blockTypeName}\">\n"
-                . ThemeCssFileUpdaterWriter::compileBlockTypeBaseCss($styles) .
-            "</style>", $this->__theme->blockTypeStyles)) .
-            // Styles for this page's global block tree blocks
-            "<!-- ::editModeGlobalBlockStylesPlaceholder:: -->" .
-            // Styles for this page's blocks
-            self::renderEditModeBlockStyles($this->__blockStyles)
+            // Inject each style bundle via javascript instead of echoing them directly (to
+            // allow things such `content: "</style>"` or `/* </style> */`)
+            "<script>document.head.appendChild([\n" .
+                // Base styles for each block type
+                json_encode(array_map(fn($styles) => (object) [
+                    "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockTypeBaseCss($styles)), "type" => "block-type", "id" => $styles->blockTypeName,
+                ], $this->__theme->blockTypeStyles)) . ",\n" .
+                // Styles for this page's global block tree blocks
+                "'<!-- ::editModeGlobalBlockStylesPlaceholder:: -->',\n" .
+                // Styles for this page's blocks
+                self::renderEditModeBlockStyles($this->__blockStyles) . ",\n" .
+            "].flat().reduce((out, {css, type, id}) => {\n" .
+                "const bundle = document.createElement('style');\n" .
+                "bundle.innerHTML = atob(css);\n" .
+                "bundle.setAttribute(`data-styles-for-\${type}`, id);\n" .
+                "out.appendChild(bundle);\n" .
+                "return (out);\n" .
+            "}, document.createDocumentFragment()))</script>"
         );
     }
     /**
@@ -228,10 +238,10 @@ final class WebPageAwareTemplate extends Template {
         // Seconds pass
         if ($this->__useInlineCssStyles)
             return str_replace(
-                "<!-- ::editModeGlobalBlockStylesPlaceholder:: -->",
-                implode("\n", array_map(fn($styles) =>
+                "'<!-- ::editModeGlobalBlockStylesPlaceholder:: -->'",
+                $this->__dynamicGlobalBlockTreeBlocksStyles ? implode(",\n", array_map(fn($styles) =>
                     self::renderEditModeBlockStyles($styles)
-                , $this->__dynamicGlobalBlockTreeBlocksStyles)),
+                , $this->__dynamicGlobalBlockTreeBlocksStyles)) : "[]",
                 $output
             );
         return $output;
@@ -268,11 +278,11 @@ final class WebPageAwareTemplate extends Template {
     }
     /**
      * @param object[] $styles [{blockId: string, styles: string}]
-     * @return string `<style data-styles-for-block="<blockid>">...`
+     * @return string `[{"css":<base64EncodedCss>,"type":"block","id":<blockId>}...]`
      */
-    private static function renderEditModeBlockStyles(array $styles): string {
-        return implode("\n", array_map(fn($styles) => "<style data-styles-for-block=\"{$styles->blockId}\">\n"
-            . ThemeCssFileUpdaterWriter::compileBlockCss($styles) .
-        "</style>", $styles));
+    private static function renderEditModeBlockStyles(array $stylesAll): string {
+        return json_encode(array_map(fn($styles) => (object) [
+            "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockCss($styles)), "type" => "block", "id" => $styles->blockId,
+        ], $stylesAll));
     }
 }

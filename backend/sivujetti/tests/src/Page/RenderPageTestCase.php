@@ -31,9 +31,10 @@ abstract class RenderPageTestCase extends DbTestCase {
     protected function insertTestPageToDb(\TestState $state): void {
         $this->pageTestUtils->insertPage($state->testPageData);
     }
-    protected function sendRenderPageRequest(\TestState $state): void {
+    protected function sendRenderPageRequest(\TestState $state, bool $inEditMode = false): void {
         $state->spyingResponse = $state->app->sendRequest(
-            new Request($state->testPageData->slug, "GET"));
+            new Request($state->testPageData->slug, "GET", null, null, null,
+                !$inEditMode ? null : ["in-edit" => ""]));
     }
     protected function verifyRequestFinishedSuccesfully(\TestState $state): void {
         $this->verifyResponseMetaEquals(200, "text/html", $state->spyingResponse);

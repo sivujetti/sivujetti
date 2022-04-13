@@ -8,7 +8,7 @@
 - An ability to drag blocks between block tree's branches
 
 ## Fixed
-- .
+- The page doesn't blow up in edit mode anymore, if some of the blocks contain some unusual css
 
 ## Changed
 - .

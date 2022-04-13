@@ -2,12 +2,14 @@
 
 namespace Sivujetti\Tests\Page;
 
+use Laminas\Dom\Query;
 use MySite\Theme;
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\Page\WebPageAwareTemplate;
 use Sivujetti\Tests\Utils\BlockTestUtils;
+use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
 
 final class RenderBasicPageTest extends RenderPageTestCase {
     public function testRenderPageRendersPage(): void {
@@ -77,5 +79,49 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $automaticallyGenerated = "<link href=\"{$expectedUrl}";
         $this->assertGreaterThan(strpos($html, $registeredByTheme),
                                  strpos($html, $automaticallyGenerated));
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testRenderPageEscapesInlineStylesWhereRenderingPageInEditMode(): void {
+        $state = $this->setupTest();
+        $this->makeRenderPageTestApp($state);
+        $this->insertTestGlobalBlocksToDb($state);
+        $this->insertTestPageToDb($state);
+        $this->sendRenderPageRequest($state, inEditMode: true);
+        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifyInjectedInlineStylesViaJavascript($state);
+    }
+    private function verifyInjectedInlineStylesViaJavascript(\TestState $state): void {
+        $dom = new Query($state->spyingResponse->getActualBody());
+        /** @var \DOMElement[] */
+        $scriptEls = $dom->execute("head script") ?? [];
+        $this->assertNotEmpty($scriptEls);
+        $injectJs = $scriptEls[count($scriptEls) - 1]->nodeValue;
+        $expectedBlockStyle1 = json_encode((object) [
+            // see backend/sivujetti/tests/test-db-init.php (INSERT INTO themeBlockTypeStyles)
+            "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockTypeBaseCss((object) [
+                "styles" => "{ padding: 4rem 2rem; }",
+                "blockTypeName" => "Section",
+            ])),
+            "type" => "block-type",
+            "id" => "Section",
+        ]);
+        $this->assertEquals(
+            "document.head.appendChild([\n" .
+                "[{$expectedBlockStyle1}],\n" .
+                "[],\n" .
+                "[],\n" .
+            "].flat().reduce((out, {css, type, id}) => {\n" .
+                "const bundle = document.createElement('style');\n" .
+                "bundle.innerHTML = atob(css);\n" .
+                "bundle.setAttribute(`data-styles-for-\${type}`, id);\n" .
+                "out.appendChild(bundle);\n" .
+                "return (out);\n" .
+            "}, document.createDocumentFragment()))",
+            $injectJs
+        );
     }
 }

@@ -129,6 +129,7 @@ stringBundles.push({
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metadata',
     'Url (slug)': 'Url (slug)',
+    'Meta description': 'Meta description',
     // edit-app/src/block-types/paragraph.js
     'Paragraph': 'Paragraph',
     'Text': 'Text',

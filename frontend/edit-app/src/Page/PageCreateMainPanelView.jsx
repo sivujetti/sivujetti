@@ -33,6 +33,7 @@ class PageCreateMainPanelView extends preact.Component {
                 if (this.linkedMenuBlockVals) {
                     const parsed = JSON.parse(this.linkedMenuBlockVals.getBlock().tree);
                     const ref = parsed[parsed.length - 1];
+                    if (ref.text === pageMeta.title && ref.slug === pageMeta.slug) return;
                     Object.assign(ref, {slug: pathToFullSlug(pageMeta.path), text: pageMeta.title});
                     this.linkedMenuBlockVals.handleSingleValueChanged(JSON.stringify(parsed), 'tree', false, 0, 'debounce-none');
                 }
@@ -160,7 +161,7 @@ class PageCreateMainPanelView extends preact.Component {
      */
     handleFormSubmitted(e) {
         if (e) e.preventDefault();
-        // {title, slug, path, customField1, customField2 ...}
+        // {title, slug, path, meta, customField1, customField2 ...}
         const data = Object.assign({}, this.pageMetaData);
         data.level = 1;
         data.layoutId = BlockTrees.currentWebPage.data.page.layoutId;

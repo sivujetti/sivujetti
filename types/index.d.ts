@@ -175,6 +175,7 @@ interface PageMetaRaw {
     title: String;
     slug: String;
     path: String;
+    meta: {description?: String;};
     [key: String]: any; // Own fields
 }
 

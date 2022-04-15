@@ -5,7 +5,7 @@ namespace Sivujetti\Tests\Page;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\Tests\Utils\{BlockTestUtils};
+use Sivujetti\Tests\Utils\{BlockTestUtils, PageTestUtils};
 
 final class CreatePageTest extends PagesControllerTestCase {
     public function testCreateNormalPageInsertsPageToDb(): void {
@@ -22,6 +22,8 @@ final class CreatePageTest extends PagesControllerTestCase {
             "path" => "/my-page/",
             "level" => 1,
             "title" => "My page",
+            "meta" => (object) ["description" => "Description.",
+                                "junk" => "data"],
             "layoutId" => "1",
             "blocks" => [],
             "status" => Page::STATUS_PUBLISHED,
@@ -43,6 +45,7 @@ final class CreatePageTest extends PagesControllerTestCase {
             "path" => $state->inputData->path,
             "level" => $state->inputData->level,
             "title" => $state->inputData->title,
+            "meta" => PageTestUtils::createCleanMetaFromInput($state->inputData->meta),
             "layoutId" => $state->inputData->layoutId,
             "id" => $actual->id,
             "type" => PageType::PAGE,
@@ -65,11 +68,13 @@ final class CreatePageTest extends PagesControllerTestCase {
             "path must be string",
             "level must be number",
             "title must be string",
+            "Expected `meta` to be an object",
+            "Expected `meta` to be an object",
             "layoutId must be number",
             "The value of layoutId must be 1 or greater",
-            "blocks must be array",
             "status must be number",
             "The value of status must be 0 or greater",
+            "blocks must be array",
             "categories must be string",
         ], $state->spyingResponse);
     }
@@ -147,6 +152,7 @@ final class CreatePageTest extends PagesControllerTestCase {
             "path" => $state->inputData->path,
             "level" => $state->inputData->level,
             "title" => $state->inputData->title,
+            "meta" => PageTestUtils::createCleanMetaFromInput($state->inputData->meta),
             "layoutId" => $state->inputData->layoutId,
             "id" => $actual->id,
             "type" => $state->customPageType->name,

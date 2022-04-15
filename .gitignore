@@ -13,6 +13,7 @@ node_modules
 /backend/site/
 /backend/translations/
 /docs/
+/e2e-tests/config.js
 /internal/
 !*/**/Internal
 /logs/

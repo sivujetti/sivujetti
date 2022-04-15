@@ -16,7 +16,7 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
 final class PagesRepository {
     /** @var string[] Fields that all page types share */
     private const DEFAULT_FIELDS = ["id", "slug", "path", "level", "title",
-                                    "layoutId", "status"];
+                                    "meta", "layoutId", "status"];
     /** @var \Pike\Db */
     private Db $db;
     /** @var \ArrayObject<int, \Sivujetti\PageType\Entities\PageType> */
@@ -75,7 +75,6 @@ final class PagesRepository {
      * @param bool $doInsertRevision = false
      * @param bool $doInsertAsDraft = false
      * @return array{0: int, 1: null|array} [$numAffectedRows, $errors]
-     * @throws \Pike\PikeException If $inputData is not valid
      */
     public function insert(PageType $pageType,
                            object $inputData,
@@ -88,26 +87,12 @@ final class PagesRepository {
             return [0, $errors];
         if ($this->getSingle($pageType, null, ["slug" => $inputData->slug]))
             return [0, ["Page with identical slug already exists"]];
-        $data = new \stdClass;
-        foreach ([["slug","string"],
-                  ["path","string"],
-                  ["level","int"],
-                  ["title","string"],
-                  ["meta","string"],
-                  ["layoutId","int"]] as [$defaultFieldName, $valueType]) {
-            $data->{$defaultFieldName} = $valueType === "string"
-                ? $inputData->{$defaultFieldName}
-                : (int) $inputData->{$defaultFieldName};
-        }
+        $data = self::makeStorablePageDataFromValidInput($inputData, $pageType);
         $data->blocks = BlockTree::toJson(BlocksController::makeStorableBlocksDataFromValidInput(
             $inputData->blocks, $this->blockTypes));
         foreach (["id", "status"] as $optional) {
             if (($inputData->{$optional} ?? null) !== null)
                 $data->{$optional} = (int) $inputData->{$optional};
-        }
-        foreach ($pageType->ownFields as $f) {
-            if ($f->dataType->type === "many-to-many") continue; // Not implemented yet
-            $data->{$f->name} = $inputData->{$f->name};
         }
         //
         [$qList, $values, $columns] = $this->db->makeInsertQParts($data);
@@ -300,6 +285,7 @@ final class PagesRepository {
             "status" => (int) $input->status,
         ];
         foreach ($pageType->ownFields as $field) {
+            if ($field->dataType->type === "many-to-many") continue; // Not implemented yet
             $out->{$field->name} = $input->{$field->name} ?? null;
         }
         return $out;

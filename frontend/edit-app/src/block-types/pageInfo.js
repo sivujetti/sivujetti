@@ -1,4 +1,5 @@
-import {__, api, http, signals, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+import {__, api, http, signals, env, hookForm, unhookForm, reHookValues, Input,
+        InputErrors, FormGroupInline, Textarea} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
 import {stringUtils} from '../commons/utils.js';
 import BlockTrees from '../BlockTrees.jsx';
@@ -6,6 +7,7 @@ import setFocusTo from './auto-focusers.js';
 
 class PageInfoBlockEditForm extends preact.Component {
     // titleEl;
+    // descriptionEl;
     // pageType;
     /**
      * @param {RawBlockData} snapshot
@@ -13,7 +15,8 @@ class PageInfoBlockEditForm extends preact.Component {
      */
     overrideValues(snapshot) {
         reHookValues(this, [{name: 'title', value: snapshot.title},
-                            {name: 'slug', value: snapshot.slug}]);
+                            {name: 'slug', value: snapshot.slug},
+                            {name: 'description', value: snapshot.description}]);
     }
     /**
      * @access public
@@ -25,7 +28,7 @@ class PageInfoBlockEditForm extends preact.Component {
                 overwriteCurrentPageInfo(a.valAfter);
             },
             doHandle: !BlockTrees.currentWebPage.data.page.isPlaceholderPage
-                ? ($a, _$b) => savePageToBackend($a.valAfter)
+                ? (_$a, _$b) => savePageToBackend()
                 : null
             ,
             onUndo($a, _$b) {
@@ -39,6 +42,7 @@ class PageInfoBlockEditForm extends preact.Component {
     componentWillMount() {
         const {snapshot, onValueChanged, onManyValuesChanged} = this.props;
         this.titleEl = preact.createRef();
+        this.descriptionEl = preact.createRef();
         const currentPage = BlockTrees.currentWebPage.data.page;
         this.pageType = api.getPageTypes().find(({name}) => name === currentPage.type);
         this.setState(hookForm(this, [
@@ -48,16 +52,18 @@ class PageInfoBlockEditForm extends preact.Component {
             {name: 'slug', value: snapshot.slug, validations: [['required'], ['maxLength', 92], ['regexp', '^/[a-zA-Z0-9_\\-$.+!*\'():,]*$']],
              label: __('Url (slug)'), onAfterValueChanged: (value, hasErrors) => {
                  onManyValuesChanged({slug: value, path: makePath(value, this.pageType)}, hasErrors, env.normalTypingDebounceMillis); }},
-        ], {
-            takeFullWidth: snapshot.takeFullWidth,
-        }));
+            {name: 'description', value: snapshot.description, validations: [['maxLength', 206]],
+             label: __('Meta description'), onAfterValueChanged: (value, hasErrors) => {
+                onValueChanged(value, 'description', hasErrors, env.normalTypingDebounceMillis); }},
+        ]));
     }
     /**
      * @access protected
      */
     componentDidMount() {
         setFocusTo(this.titleEl);
-        signals.emit('on-page-info-form-value-changed', this.props.snapshot, true);
+        window.autosize(this.descriptionEl.current.inputEl.current);
+        signals.emit('on-page-info-form-value-changed', snapshotToPageMeta(this.props.snapshot), true);
     }
     /**
      * @access protected
@@ -88,26 +94,21 @@ class PageInfoBlockEditForm extends preact.Component {
                 { wrap(<Input vm={ this } prop="slug"/>) }
                 <InputErrors vm={ this } prop="slug"/>
             </FormGroupInline>
+            <FormGroupInline>
+                <label htmlFor="description" class="form-label">{ __('Meta description') }</label>
+                <Textarea vm={ this } prop="description" ref={ this.descriptionEl }/>
+                <InputErrors vm={ this } prop="description"/>
+            </FormGroupInline>
         </div>;
-    }
-    /**
-     * @param {Event} e
-     * @access private
-     */
-    emitSetFullWidth(e) {
-        const takeFullWidth = e.target.checked ? 1 : 0;
-        this.setState({takeFullWidth});
-        this.props.onValueChanged(takeFullWidth, 'takeFullWidth');
     }
 }
 
 /**
- * @param {RawBlockData} snapshot
  * @returns {Promise<Boolean>}
  */
-function savePageToBackend(snapshot) {
+function savePageToBackend() {
     const currentPage = BlockTrees.currentWebPage.data.page;
-    const data = Object.assign({}, currentPage, snapshot);
+    const data = Object.assign({}, currentPage);
     delete data.blocks;
     delete data.isPlaceholderPage;
     //
@@ -124,11 +125,12 @@ function savePageToBackend(snapshot) {
 }
 
 /**
- * @param {PageMetaRaw} titleSlugAndOwnFields
+ * @param {Object} state
  */
-function overwriteCurrentPageInfo(titleSlugAndOwnFields) {
-    Object.assign(BlockTrees.currentWebPage.data.page, titleSlugAndOwnFields); // Note: Mutates BlockTrees.currentWebPage.data.page
-    signals.emit('on-page-info-form-value-changed', titleSlugAndOwnFields, false);
+function overwriteCurrentPageInfo(state) {
+    const newData = snapshotToPageMeta(state);
+    Object.assign(BlockTrees.currentWebPage.data.page, newData); // Note: Mutates BlockTrees.currentWebPage.data.page
+    signals.emit('on-page-info-form-value-changed', newData, false);
 }
 
 /**
@@ -151,10 +153,13 @@ function makePath(slug, pageType) {
 /**
  * @param {Page|Object} from
  * @param {PageType} pageType
- * @returns {PageMetaRaw}
+ * @returns {PageInfoSnapshot}
  */
 function createPageData(from, pageType) {
-    const out = {title: from.title, slug: from.slug, path: from.path};
+    const out = {title: from.title,
+                 slug: from.slug,
+                 description: from.meta.description || '',
+                 path: from.path};
     for (const field of pageType.ownFields) {
         if (field.dataType.type === 'many-to-many') {
             out[field.name] = '[]';
@@ -164,6 +169,16 @@ function createPageData(from, pageType) {
         out[field.name] = val !== null ? val : field.defaultValue;
     }
     return out;
+}
+
+/**
+ * @param {PageInfoSnapshot} snapshot
+ * @returns {PageMetaRaw}
+ */
+function snapshotToPageMeta(snapshot) {
+    const toPageData = Object.assign({meta: {description: snapshot.description}}, snapshot);
+    delete toPageData.description;
+    return toPageData;
 }
 
 export default () => {
@@ -192,5 +207,15 @@ export default () => {
         editForm: PageInfoBlockEditForm,
     };
 };
+
+/**
+ * @typedef PageInfoSnapshot
+ *
+ * @prop {String} title
+ * @prop {String} slug
+ * @prop {String} path
+ * @prop {String} description
+ * ... possibly more props (Own fields)
+ */
 
 export {savePageToBackend};

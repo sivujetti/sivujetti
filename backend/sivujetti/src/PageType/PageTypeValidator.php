@@ -6,7 +6,7 @@ use Sivujetti\Block\BlockValidator;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\ValidationUtils;
-use Pike\{Validation};
+use Pike\{ObjectValidator, Validation};
 
 final class PageTypeValidator {
     public const FIELD_DATA_TYPES = ["text", "json", "int", "uint"];
@@ -65,16 +65,8 @@ final class PageTypeValidator {
                                        object $input,
                                        bool $doValidateBlockTypes = false): array {
         $v = ValidationUtils::addRulesForProperties($pageType->ownFields,
-            Validation::makeObjectValidator()
-                ->rule("slug", "type", "string")
-                ->rule("path", "type", "string")
-                ->rule("level", "type", "number")
-                ->rule("title", "type", "string")
-                ->rule("layoutId", "type", "number")
-                ->rule("layoutId", "min", 1)
+            self::withCommonRules(Validation::makeObjectValidator())
                 ->rule("blocks", "type", "array")
-                ->rule("status", "type", "number")
-                ->rule("status", "min", Page::STATUS_PUBLISHED)
         );
         if (!($errors = $v->validate($input)) && $doValidateBlockTypes)
             $errors = $this->blockValidator->validateMany($input->blocks);
@@ -90,15 +82,7 @@ final class PageTypeValidator {
                                        object $input,
                                        bool $doValidateBlockTypes = false): array {
         $v = ValidationUtils::addRulesForProperties($pageType->ownFields,
-            Validation::makeObjectValidator()
-                ->rule("slug", "type", "string")
-                ->rule("path", "type", "string")
-                ->rule("level", "type", "number")
-                ->rule("title", "type", "string")
-                ->rule("layoutId", "type", "number")
-                ->rule("layoutId", "min", 1)
-                ->rule("status", "type", "number")
-                ->rule("status", "min", Page::STATUS_PUBLISHED)
+            self::withCommonRules(Validation::makeObjectValidator())
         );
         if (!($errors = $v->validate($input)) && $doValidateBlockTypes)
             $errors = $this->blockValidator->validateMany($input->blocks);
@@ -115,5 +99,21 @@ final class PageTypeValidator {
             return $errors;
         }
         return $this->blockValidator->validateMany($input->blocks);
+    }
+    /**
+     * @param \Pike\ObjectValidator $v
+     * @return \Pike\ObjectValidator
+     */
+    private static function withCommonRules(ObjectValidator $v): ObjectValidator {
+        return $v->rule("slug", "type", "string")
+            ->rule("path", "type", "string")
+            ->rule("level", "type", "number")
+            ->rule("title", "type", "string")
+            ->rule("meta.description?", "type", "string")
+            ->rule("meta.description?", "maxLength", 206) // Preferably 150 - 160
+            ->rule("layoutId", "type", "number")
+            ->rule("layoutId", "min", 1)
+            ->rule("status", "type", "number")
+            ->rule("status", "min", Page::STATUS_PUBLISHED);
     }
 }

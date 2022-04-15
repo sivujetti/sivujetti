@@ -99,7 +99,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertEquals($expectedTitle, $titleEl2->getAttribute("content"));
         $this->assertEquals($expectedTitle, $ldWebPage->name);
         //
-        $expectedDescr = $retainEntities(Template::e(json_decode($state->testPageData->meta)->description));
+        $expectedDescr = $retainEntities(Template::e($state->testPageData->meta->description));
         $descrEl1 = $dom->execute("head meta[name=\"description\"]")[0] ?? null;
         $descrEl2 = $dom->execute("head meta[property=\"og:description\"]")[0] ?? null;
         $this->assertNotNull($descrEl1);

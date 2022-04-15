@@ -71,6 +71,7 @@ final class PageTestUtils {
             unset($out->layoutStructureJson);
             unset($out->blockStyles);
             unset($out->pageBlocksStylesJson);
+            unset($out->metaJson);
         }
         return $out;
     }
@@ -107,7 +108,7 @@ final class PageTestUtils {
             "path" => "/hello",
             "level" => 1,
             "title" => "<Hello>",
-            "meta" => json_encode(["description" => "Greetings >"]),
+            "meta" => (object) ["description" => "Greetings >"],
             "layoutId" => "1",
             "blocks" => $blocks ?? self::makeDefaultBlockTree(),
             "categories" => "[]",
@@ -151,6 +152,7 @@ final class PageTestUtils {
                 `path` TEXT,
                 `level` INTEGER NOT NULL DEFAULT 1,
                 `title` TEXT NOT NULL,
+                `meta` JSON,
                 `layoutId` TEXT NOT NULL,
                 `blocks` JSON,
                 `status` INTEGER NOT NULL DEFAULT 0,
@@ -208,6 +210,13 @@ final class PageTestUtils {
             $out->blockTypes = $blockTypes;
         }
         return $out;
+    }
+    /**
+     * @param object $input
+     * @return object {description: string}
+     */
+    public static function createCleanMetaFromInput(object $input): object {
+        return (object) ["description" => $input->description];
     }
     /**
      * @return \Sivujetti\Block\Entities\Block[]

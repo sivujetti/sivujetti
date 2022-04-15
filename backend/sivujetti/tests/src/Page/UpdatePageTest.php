@@ -6,6 +6,7 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\PageType\Entities\PageType;
 use Pike\PikeException;
 use Sivujetti\Block\BlockTree;
+use Sivujetti\Tests\Utils\PageTestUtils;
 
 final class UpdatePageTest extends PagesControllerTestCase {
     public function testUpdatePageWritesUpdatedDataToDb(): void {
@@ -27,6 +28,10 @@ final class UpdatePageTest extends PagesControllerTestCase {
             "path" => "/updated-update-page-test-page-slug/",
             "level" => "1",
             "title" => "Updated update page test page title",
+            "meta" => (object) [
+                "description" => $state->testPageData->meta->description,
+                "junk" => "data",
+            ],
             "layoutId" => $state->testPageData->layoutId,
             "status" => $state->testPageData->status + 1,
             "categories" => $state->testPageData->categories,
@@ -48,6 +53,8 @@ final class UpdatePageTest extends PagesControllerTestCase {
         $this->assertEquals($state->inputData->path, $actual->path);
         $this->assertEquals((int) $state->inputData->level, $actual->level);
         $this->assertEquals($state->inputData->title, $actual->title);
+        $this->assertEquals(PageTestUtils::createCleanMetaFromInput($state->inputData->meta),
+                            $actual->meta);
         $this->assertEquals($state->inputData->layoutId, $actual->layoutId);
         $this->assertEquals((int) $state->inputData->status, $actual->status);
     }
@@ -58,7 +65,7 @@ final class UpdatePageTest extends PagesControllerTestCase {
 
     public function testUpdatePageRejectsInvalidInputs(): void {
         $state = $this->setupTest();
-        $state->inputData = (object) [];
+        $state->inputData = (object) ["meta" => (object) ["description" => ["not-a-string"]]];
         $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
         $this->expectException(PikeException::class);
@@ -67,6 +74,8 @@ final class UpdatePageTest extends PagesControllerTestCase {
             "path must be string",
             "level must be number",
             "title must be string",
+            "meta.description must be string",
+            "The length of meta.description must be 206 or less",
             "layoutId must be number",
             "The value of layoutId must be 1 or greater",
             "status must be number",

@@ -217,6 +217,7 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default', p
         page: {
             id: '1',
             title: 'Page',
+            meta: {description: 'Description.'},
             isPlaceholderPage: isNewPage,
             type: pageType,
             layoutId: '1',

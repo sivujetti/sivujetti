@@ -129,6 +129,7 @@ stringBundles.push({
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metatiedot',
     'Url (slug)': 'Urli (slug)',
+    'Meta description': 'Meta-selostus',
     // edit-app/src/block-types/paragraph.js
     'Paragraph': 'Tekstikappale',
     'Text': 'Teksti',

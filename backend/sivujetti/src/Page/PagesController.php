@@ -12,8 +12,7 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
 use Sivujetti\BlockType\Entities\BlockTypes;
-use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
-use Sivujetti\BlockType\ListeningBlockTypeInterface;
+use Sivujetti\BlockType\{GlobalBlockReferenceBlockType, ListeningBlockTypeInterface};
 use Sivujetti\GlobalBlockTree\GlobalBlocksOrPageBlocksUpserter as StylesUpserter;
 use Sivujetti\Layout\Entities\Layout;
 use Sivujetti\Layout\LayoutsRepository;
@@ -372,6 +371,7 @@ final class PagesController {
             "level" => $page->level,
             "type" => $page->type,
             "title" => $page->title,
+            "meta" => $page->meta,
             "layoutId" => $page->layoutId,
             "status" => $page->status,
             "blocks" => $page->blocks,
@@ -407,6 +407,7 @@ final class PagesController {
         $page->path = "-";
         $page->level = 1;
         $page->title = $pagePageType->defaultFields->title->defaultValue;
+        $page->meta = new \stdClass;
         $page->id = "-";
         $page->type = $pagePageType->name;
         $page->blocks = [];

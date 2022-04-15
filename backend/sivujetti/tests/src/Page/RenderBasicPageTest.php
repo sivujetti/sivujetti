@@ -4,10 +4,12 @@ namespace Sivujetti\Tests\Page;
 
 use Laminas\Dom\Query;
 use MySite\Theme;
+use Pike\ArrayUtils;
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\Page\WebPageAwareTemplate;
+use Sivujetti\Template;
 use Sivujetti\Tests\Utils\BlockTestUtils;
 use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
 
@@ -23,6 +25,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->verifyThemeCanRegisterCssFiles($state);
         $this->verifyRenderedGlobalStyles($state);
         $this->verifyRenderedBlockTypeBaseStyles($state);
+        $this->verifyRenderedHead($state);
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
@@ -79,6 +82,37 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $automaticallyGenerated = "<link href=\"{$expectedUrl}";
         $this->assertGreaterThan(strpos($html, $registeredByTheme),
                                  strpos($html, $automaticallyGenerated));
+    }
+    private function verifyRenderedHead(\TestState $state): void {
+        $retainEntities = \Closure::fromCallable([self::class, "escapeEntities"]);
+        $dom = new Query($retainEntities($state->spyingResponse->getActualBody()));
+        $ldJsonScriptEl = $dom->execute("head script[type=\"application/ld+json\"]")[0] ?? null;
+        $this->assertNotNull($ldJsonScriptEl);
+        $actualJdJson = json_decode($ldJsonScriptEl->nodeValue, flags: JSON_THROW_ON_ERROR);
+        $ldWebPage = ArrayUtils::findByKey($actualJdJson->{"@graph"}, "WebPage", "@type");
+        $expectedTitle = $retainEntities(Template::e($state->testPageData->title)) . " - Test suite website";
+        $titleEl1 = $dom->execute("head title")[0] ?? null;
+        $titleEl2 = $dom->execute("head meta[property=\"og:title\"]")[0] ?? null;
+        $this->assertNotNull($titleEl1);
+        $this->assertNotNull($titleEl2);
+        $this->assertEquals($expectedTitle, $titleEl1->nodeValue);
+        $this->assertEquals($expectedTitle, $titleEl2->getAttribute("content"));
+        $this->assertEquals($expectedTitle, $ldWebPage->name);
+        //
+        $expectedDescr = $retainEntities(Template::e(json_decode($state->testPageData->meta)->description));
+        $descrEl1 = $dom->execute("head meta[name=\"description\"]")[0] ?? null;
+        $descrEl2 = $dom->execute("head meta[property=\"og:description\"]")[0] ?? null;
+        $this->assertNotNull($descrEl1);
+        $this->assertNotNull($descrEl2);
+        $this->assertEquals($expectedDescr, $descrEl1->getAttribute("content"));
+        $this->assertEquals($expectedDescr, $descrEl2->getAttribute("content"));
+        $this->assertEquals($expectedDescr, $ldWebPage->description);
+    }
+    public static function escapeEntities(string $html): string {
+        // \DomDocument likes to decode all html entities ("&gt;" -> ">") from the markup it parses.
+        // We don't want that, because we often need to verify if some parts of markup are escaped or not.
+        // So the fix is to convert all entities &gt; -> %gt; which \DomDocument can't tamper with
+        return preg_replace("/&([#A-Za-z0-9]+);/", "%\$1;", $html);
     }
 
 

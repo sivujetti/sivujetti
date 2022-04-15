@@ -15,6 +15,8 @@ final class Page {
     public int $level;
     /** @var string */
     public string $title;
+    /** @var ?object {description: ?string} */
+    public ?object $meta;
     /** @var string */
     public string $layoutId;
     /** @var string */

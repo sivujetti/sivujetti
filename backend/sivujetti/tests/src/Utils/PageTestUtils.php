@@ -107,6 +107,7 @@ final class PageTestUtils {
             "path" => "/hello",
             "level" => 1,
             "title" => "<Hello>",
+            "meta" => json_encode(["description" => "Greetings >"]),
             "layoutId" => "1",
             "blocks" => $blocks ?? self::makeDefaultBlockTree(),
             "categories" => "[]",

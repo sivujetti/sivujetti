@@ -93,6 +93,7 @@ final class PagesRepository {
                   ["path","string"],
                   ["level","int"],
                   ["title","string"],
+                  ["meta","string"],
                   ["layoutId","int"]] as [$defaultFieldName, $valueType]) {
             $data->{$defaultFieldName} = $valueType === "string"
                 ? $inputData->{$defaultFieldName}
@@ -205,7 +206,7 @@ final class PagesRepository {
         }
         //
         $rows = $this->db->fetchAll(
-            "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`layoutId`," .
+            "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`meta` AS `metaJson`,p.`layoutId`," .
                 "p.`blocks` AS `pageBlocksJson`,'{$pageType->name}' AS `type`,p.`status`" .
                 $baseJoinCols .
                 ($ownFieldCols ? ("," . implode(',', $ownFieldCols)) : "") .
@@ -228,6 +229,9 @@ final class PagesRepository {
     private function normalizeRs(array $rows): array {
         $doIncludeLayouts = ($rows[0]?->layoutId ?? null) !== null;
         foreach ($rows as $row) {
+            $row->meta = $row->metaJson
+                ? json_decode($row->metaJson, flags: JSON_THROW_ON_ERROR)
+                : null;
             $row->blocks = self::blocksFromRs("pageBlocksJson", $row);
             $row->blockStyles = $row->pageBlocksStylesJson
                 ? json_decode($row->pageBlocksStylesJson, flags: JSON_THROW_ON_ERROR)
@@ -282,11 +286,16 @@ final class PagesRepository {
      */
     private static function makeStorablePageDataFromValidInput(object $input,
                                                                PageType $pageType): object {
+        $meta = (object) [];
+        if (($descr = $input->meta->description ?? null))
+            $meta->description = $descr;
+        //
         $out = (object) [
             "slug" => $input->slug,
             "path" => $input->path,
             "level" => (int) $input->level,
             "title" => $input->title,
+            "meta" => json_encode($meta),
             "layoutId" => $input->layoutId,
             "status" => (int) $input->status,
         ];

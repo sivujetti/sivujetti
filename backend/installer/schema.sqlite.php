@@ -111,6 +111,7 @@ return [
     `path` TEXT,
     `level` INTEGER NOT NULL DEFAULT 1,
     `title` TEXT NOT NULL,
+    `meta` JSON,
     `layoutId` TEXT NOT NULL,
     `blocks` JSON,
     `status` INTEGER NOT NULL DEFAULT 0

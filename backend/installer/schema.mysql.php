@@ -118,6 +118,7 @@ return [
     `path` {$dataTypeForMaxIndexableText},
     `level` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1,
     `title` VARCHAR(92) NOT NULL,
+    `meta` JSON,
     `layoutId` {$dataTypeForMaxIndexableText},
     `blocks` JSON,
     `status` TINYINT(1) NOT NULL DEFAULT 0,

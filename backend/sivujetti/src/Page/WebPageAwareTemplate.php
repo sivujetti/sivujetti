@@ -7,8 +7,10 @@ use Sivujetti\{Template, ValidationUtils};
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
+use Sivujetti\Page\Entities\Page;
 use Sivujetti\Theme\Entities\Theme;
 use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
+use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class WebPageAwareTemplate extends Template {
     /** @var ?object */
@@ -150,6 +152,26 @@ final class WebPageAwareTemplate extends Template {
         return BlockTree::findBlock($branch, $predicate);
     }
     /**
+     * @param ?\Sivujetti\Page\Entities\Page $page = null
+     * @param ?\Sivujetti\TheWebsite\Entities\TheWebsite $site = null
+     * @return string
+     */
+    public function head(?Page $currentPage = null, ?TheWebsite $site = null): string {
+        if (!$currentPage) $currentPage = $this->__locals["currentPage"];
+        if (!$site) $site = $this->__locals["site"];
+        [$title, $metaMarkup] = $this->__buildSeoMetaMarkup($currentPage, $site);
+        // Note: all variables are already escaped
+        return "<html lang=\"{$site->lang}\">\n" .
+            "<head>\n" .
+            "    <meta charset=\"utf-8\">\n" .
+            "    <title>{$title}</title>\n" .
+            "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n" .
+            "    <meta name=\"generator\" content=\"Sivujetti\">\n" .
+            "    {$metaMarkup}" .
+            "    {$this->cssFiles()}\n" .
+            "</head>\n";
+    }
+    /**
      * @return string
      */
     public function cssFiles(): string {
@@ -203,7 +225,7 @@ final class WebPageAwareTemplate extends Template {
                 // Styles for this page's global block tree blocks
                 "'<!-- ::editModeGlobalBlockStylesPlaceholder:: -->',\n" .
                 // Styles for this page's blocks
-                self::renderEditModeBlockStyles($this->__blockStyles) . ",\n" .
+                self::__renderEditModeBlockStyles($this->__blockStyles) . ",\n" .
             "].flat().reduce((out, {css, type, id}) => {\n" .
                 "const bundle = document.createElement('style');\n" .
                 "bundle.innerHTML = atob(css);\n" .
@@ -240,7 +262,7 @@ final class WebPageAwareTemplate extends Template {
             return str_replace(
                 "'<!-- ::editModeGlobalBlockStylesPlaceholder:: -->'",
                 $this->__dynamicGlobalBlockTreeBlocksStyles ? implode(",\n", array_map(fn($styles) =>
-                    self::renderEditModeBlockStyles($styles)
+                    self::__renderEditModeBlockStyles($styles)
                 , $this->__dynamicGlobalBlockTreeBlocksStyles)) : "[]",
                 $output
             );
@@ -280,9 +302,43 @@ final class WebPageAwareTemplate extends Template {
      * @param object[] $styles [{blockId: string, styles: string}]
      * @return string `[{"css":<base64EncodedCss>,"type":"block","id":<blockId>}...]`
      */
-    private static function renderEditModeBlockStyles(array $stylesAll): string {
+    private static function __renderEditModeBlockStyles(array $stylesAll): string {
         return json_encode(array_map(fn($styles) => (object) [
             "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockCss($styles)), "type" => "block", "id" => $styles->blockId,
         ], $stylesAll));
+    }
+    /**
+     * @param \Sivujetti\Page\Entities\Page $page
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $site
+     * @return array{0: string, 1: string} [$title, $metaMarkup]
+     */
+    private function __buildSeoMetaMarkup(Page $currentPage, TheWebsite $site): array {
+        $metasIn = $currentPage->meta ?? new \stdClass;
+        $metasNativeOut = [];
+        $metasOgOut = [];
+        $ldWebPage = ["@type" => "WebPage"];
+        // Title
+        $escapedTitle = "{$this->e($currentPage->title)} - {$site->name}";
+        $metasOgOut[] = "<meta property=\"og:title\" content=\"{$escapedTitle}\">";
+        $ldWebPage["name"] = $escapedTitle;
+        // Description
+        if (($description = $metasIn->description ?? null)) {
+            $escapedDescr = $this->e($description);
+            $metasNativeOut[] = "<meta name=\"description\" content=\"{$escapedDescr}\">";
+            $metasOgOut[] = "<meta property=\"og:description\" content=\"{$escapedDescr}\">";
+            $ldWebPage["description"] = $escapedDescr;
+        }
+        // ld+json
+        $metasOgOut[] = "<script type=\"application/ld+json\">" . json_encode([
+            "@context" => "https://schema.org",
+            "@graph" => [$ldWebPage]
+        ]) . "</script>\n";
+        //
+        return [
+            $escapedTitle,
+            implode("\n    ", $metasNativeOut) .
+            "\n    " .
+            implode("\n    ", $metasOgOut)
+        ];
     }
 }

@@ -18,6 +18,7 @@ stringBundles.push({
     'Specialize this global block': 'Spesialisoi tämä globaali lohko',
     'Specialize': 'Spesialisoi',
     'Use edited values on this\npage only': 'Käytä muokattuja tietoja\nvain tällä sivulla',
+    'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
     // edit-app/src/BlockTree.jsx
     'Add child': 'Lisää lapsilohko',
     'Add child block': 'Lisää lapsilohko',

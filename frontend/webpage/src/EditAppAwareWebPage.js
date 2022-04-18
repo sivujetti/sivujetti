@@ -675,11 +675,11 @@ function temp1(type) {
 }
 function temp2(type, id, css) {
     if (type === 'singleBlock')
-        return temp4(`[data-block="${id}"]`, css);
+        return compileSivujettiFlavoredCss(`[data-block="${id}"]`, css);
     if (type === 'blockType')
-        return temp4(`[data-block-type="${id}"]`, css);
+        return compileSivujettiFlavoredCss(`[data-block-type="${id}"]`, css);
 }
-function temp4(sel, css) {
+function compileSivujettiFlavoredCss(sel, css) {
     return css.replace(/\[\[scope\]\]/g, sel);
 }
 
@@ -716,4 +716,4 @@ function createTrier(fn,
 }
 
 export default EditAppAwareWebPage;
-export {createTrier};
+export {createTrier, compileSivujettiFlavoredCss};

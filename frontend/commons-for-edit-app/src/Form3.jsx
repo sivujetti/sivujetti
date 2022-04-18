@@ -216,13 +216,26 @@ class Textarea extends Input {
     }
 }
 
-class InputErrors extends preact.Component {
+class InputError extends preact.Component {
     /**
-     * @param {{vm: preact.Component; prop: String;}} props
+     * @param {{errorMessage?: String;}} props
      * @access protected
      */
-    render({vm, prop}) {
-        const errors = vm.state.errors[prop];
+    render({errorMessage}) {
+        return !errorMessage ? null : <InputErrors errors={ [{message: errorMessage}] }/>;
+    }
+}
+
+class InputErrors extends preact.Component {
+    /**
+     * @param {{vm?: preact.Component; prop?: String; errors?: Array<{message: String;}>;}} props
+     * @access protected
+     */
+    render({vm, prop, errors}) {
+        if (!Array.isArray(errors)) {
+            if (!vm || !prop) throw new Error('Usage: <InputErrora vm={ this } prop="inputName"/> or <InputErrora errors={ [{message: "Some error"}] }/>');
+            errors = vm.state.errors[prop];
+        }
         const lastIdx = errors.length - 1;
         return lastIdx < 0
             ? null
@@ -269,4 +282,5 @@ export default services => {
     ({__, env} = services);
 };
 
-export {hookForm, unhookForm, reHookValues, validateAll, handleSubmit, hasErrors, Input, Textarea, InputErrors, FormGroup, FormGroupInline};
+export {hookForm, unhookForm, reHookValues, validateAll, handleSubmit, hasErrors,
+        Input, Textarea, InputErrors, InputError, FormGroup, FormGroupInline};

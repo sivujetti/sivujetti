@@ -83,6 +83,9 @@ Structure:
     font-size: .7rem;
     color: var(--color-fg-input);
 }
+.form-input.border-default {
+    border-color: var(--color-input-border);
+}
 .form-group > .form-input-hint {
     margin-bottom: -.2rem;
 }

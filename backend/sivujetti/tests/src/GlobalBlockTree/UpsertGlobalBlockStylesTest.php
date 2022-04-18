@@ -129,11 +129,10 @@ final class UpsertGlobalBlockStylesTest extends GlobalBlockTreesControllerTestCa
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals(["Expected \$input->styles[0]->styles to be a string"], $state->spyingResponse);
         //
-        $state->inputData = (object) ["styles" => [(object) ["styles" => "not valid css %€&/="]]];
+        $state->inputData = (object) ["styles" => [(object) ["styles" => "/* css */"]]];
         $this->sendUpsertGlobalBlockStylesRequest($state);
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals([
-            "styles.0.styles is not valid CSS",
             "The length of styles.0.blockId must be at least 20",
         ], $state->spyingResponse);
     }

@@ -68,11 +68,11 @@ final class OverwriteThemeBlockTypeStylesTest extends ThemesControllerTestCase {
     public function testUpdateBlockTypeStylesRejectsInvalidInputs(): void {
         $state = $this->setupTest();
         $state->testTheme = (object) ["id" => "1"];
-        $state->testInput->styles = "&€% not val1d c$$";
+        $state->testInput->styles = ["not-a-string"];
         $this->sendUpdateBlockTypeStylesRequest($state);
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals([
-            "styles is not valid CSS",
+            "Expected \$input->styles to be a string",
         ], $state->spyingResponse);
     }
 }

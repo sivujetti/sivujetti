@@ -4,7 +4,6 @@ namespace Sivujetti\GlobalBlockTree;
 
 use Pike\Db\FluentDb;
 use Pike\{ObjectValidator, Request, Validation};
-use Sabberworm\CSS\Parser as CssParser;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
 
@@ -107,20 +106,9 @@ final class GlobalBlocksOrPageBlocksUpserter {
      */
     public static function addStylesValidationRules(ObjectValidator $validator,
                                                     string $propPath = "styles"): ObjectValidator {
-        if (!$validator->hasRuleImpl("validCss"))
-            $validator->addRuleImpl("validCss", function ($value) {
-                if (!is_string($value))
-                    return false;
-                if (!strlen($value))
-                    return true;
-                $parser = new CssParser($value);
-                $cssDocument = $parser->parse();
-                return count($cssDocument->getAllDeclarationBlocks()) > 0;
-            }, "%s is not valid CSS");
         return $validator
             ->rule($propPath, "type", "string")
-            ->rule($propPath, "maxLength", 512000)
-            ->rule($propPath, "validCss");
+            ->rule($propPath, "maxLength", 512000);
     }
     /**
      * @param object $input

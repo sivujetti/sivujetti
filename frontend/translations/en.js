@@ -18,6 +18,7 @@ stringBundles.push({
     'Specialize this global block': 'Specialize this global block',
     'Specialize': 'Specialize',
     'Use edited values on this\npage only': 'Use edited values on this\npage only',
+    'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
     // edit-app/src/BlockTree.jsx
     'Add child': 'Add child',
     'Add child block': 'Add child block',

@@ -131,13 +131,15 @@ final class PagesController {
      * @param \Pike\AppConfig $config
      */
     public function renderLoginPage(Response $res, AppConfig $config): void {
-        $res->html((new WebPageAwareTemplate("sivujetti:page-auth-view.tmpl.php"))->render([
-            "title" => "Login",
-            "appName" => "login",
-            "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
-            "uiLang" => "fi",
-            "dashboardUrl" => $config->get("app.dashboardUrl", ""),
-        ]));
+        $res
+            ->header("Cache-Control", "no-store, must-revalidate")
+            ->html((new WebPageAwareTemplate("sivujetti:page-auth-view.tmpl.php"))->render([
+                "title" => "Login",
+                "appName" => "login",
+                "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
+                "uiLang" => "fi",
+                "dashboardUrl" => $config->get("app.dashboardUrl", ""),
+            ]));
     }
     /**
      * GET /jet-reset-pass: Renders a password reset request page.

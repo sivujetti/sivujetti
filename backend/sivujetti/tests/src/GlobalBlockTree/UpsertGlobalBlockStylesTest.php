@@ -76,7 +76,7 @@ final class UpsertGlobalBlockStylesTest extends GlobalBlockTreesControllerTestCa
     }
     private function verifyOverwroteGeneratedCssFile(\TestState $state): void {
         $expectedBlockStylePart = $this->cssGenTestUtils->generateCachedBlockStyles($state->inputData->styles);
-        $actual = $this->cssGenTestUtils->getActualGeneratedCss();
+        $actual = $this->cssGenTestUtils->getActualGeneratedCss(ignore: "blockTypeBaseCss");
         $expected = $this->cssGenTestUtils->generateExpectedGeneratedCssContent(expectedBlockStyles: $expectedBlockStylePart);
         $this->assertEquals($expected, $actual);
     }

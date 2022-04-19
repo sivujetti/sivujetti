@@ -43,6 +43,8 @@ final class Controller {
         $fs = (new \Pike\FileSystem);
         $fs->unlink(E2E_TEST_DB_PATH);
         $fs->move(SIVUJETTI_INDEX_PATH . "config.php.restore", SIVUJETTI_INDEX_PATH . "config.php");
+        $possibleCssFile = SIVUJETTI_INDEX_PATH . "public/test-suite-theme-generated.css";
+        if ($fs->isFile($possibleCssFile)) $fs->unlink($possibleCssFile);
         echo json_encode(["ok" => "ok"]);
     }
     /**

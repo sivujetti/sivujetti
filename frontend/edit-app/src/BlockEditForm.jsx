@@ -1,8 +1,8 @@
 import {http, __, api, signals, env, Icon, InputError} from '@sivujetti-commons-for-edit-app';
-import {compileSivujettiFlavoredCss} from '../../webpage/src/EditAppAwareWebPage.js';
 import Tabs from './commons/Tabs.jsx';
 import {timingUtils} from './commons/utils.js';
 import toasters from './commons/Toaster.jsx';
+import CssStylesValidatorHelper from './commons/CssStylesValidatorHelper.js';
 import {getIcon} from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
@@ -32,6 +32,7 @@ function putOrGetSnapshot(block, blockType, override = false) {
 }
 
 class BlockEditForm extends preact.Component {
+    // cssValidator;
     // blockVals;
     // isOutermostBlockOfGlobalBlockTree;
     // blockType;
@@ -39,10 +40,11 @@ class BlockEditForm extends preact.Component {
     // editFormImpl;
     // snapshot;
     // editFormImplRef;
-    // helperStyleEl;
+    // stylesTextareaEl;
     // borrowedStyles;
     // stylesResourceUrl;
     // unregistrables;
+    // handleCssInputChangedThrottled;
     // static currentInstance;
     // static undoingLockIsOn;
     /**
@@ -51,6 +53,7 @@ class BlockEditForm extends preact.Component {
     constructor(props) {
         super(props);
         blockTypes = api.blockTypes;
+        this.cssValidator = new CssStylesValidatorHelper;
         this.state = {currentTabIdx: 0, stylesString: undefined, stylesError: ''};
     }
     /**
@@ -66,8 +69,7 @@ class BlockEditForm extends preact.Component {
         this.editFormImpl = this.blockType.editForm;
         this.snapshot = putOrGetSnapshot(block, this.blockType);
         this.editFormImplRef = preact.createRef();
-        this.helperStyleEl = document.createElement('style');
-        document.head.appendChild(this.helperStyleEl);
+        this.stylesTextareaEl = preact.createRef();
         //
         const [selectStateFunc, findBlockStylesFunc] = !this.isPartOfGlobalBlockTree
             ? [selectPageBlockStyles, findBlockStyles]
@@ -117,6 +119,7 @@ class BlockEditForm extends preact.Component {
     componentDidMount() {
         BlockEditForm.currentInstance = this;
         this.blockVals.setCurrentEditFormImplRef(BlockEditForm.currentInstance.editFormImplRef);
+        window.autosize(this.stylesTextareaEl.current);
     }
     /**
      * @access protected
@@ -128,7 +131,6 @@ class BlockEditForm extends preact.Component {
         this.snapshot = undefined;
         this.editFormImplRef = undefined;
         this.unregistrables.forEach(unreg => unreg());
-        document.head.removeChild(this.helperStyleEl);
     }
     /**
      * @access protected
@@ -183,7 +185,7 @@ class BlockEditForm extends preact.Component {
                     value={ stylesStringNotCommitted }
                     onInput={ this.handleCssInputChangedThrottled }
                     class={ `form-input${!stylesError ? '' : ' is-error border-default'}` }
-                    rows="4"></textarea>
+                    ref={ this.stylesTextareaEl }></textarea>
                 <InputError errorMessage={ stylesError }/>
             </>
             : <div style="color: var(--color-fg-dimmed)">Tyylejä voi muokata sivun luomisen jälkeen.</div>
@@ -269,24 +271,14 @@ class BlockEditForm extends preact.Component {
  * @param {Event} e
  */
 function handleCssInputChanged(e) {
-    const input = e.target.value;
     const committed = this.state.stylesString;
-    // Empty input -> do not commit
-    if (input.length < 3) {
-        this.setState({stylesStringNotCommitted: input, stylesError: ''});
+    const [shouldCommit, result] = this.cssValidator.validate(e, committed);
+    if (!shouldCommit) {
+        this.setState(result);
         return;
     }
-    const compiled = compileSivujettiFlavoredCss('[data-dummy="dummy"]', input);
-    const styleEl = this.helperStyleEl;
-    styleEl.innerHTML = compiled;
-    // Had non-empty input, but css doesn't contain any rules -> do not commit
-    if (!styleEl.sheet.cssRules.length) {
-        this.setState({stylesStringNotCommitted: input, stylesError: __('Styles must contain at least one CSS-rule')});
-        return;
-    }
-    // Had non-empty input, and css does contain rules -> commit changes to the store
     const {block} = this.props;
-    const newAll = dispatchNewBlockStyles(this.borrowedStyles, input,
+    const newAll = dispatchNewBlockStyles(this.borrowedStyles, result.stylesStringNotCommitted,
                                           block, this.isPartOfGlobalBlockTree);
     //
     const commit = this.createCommitFn(newAll, block);

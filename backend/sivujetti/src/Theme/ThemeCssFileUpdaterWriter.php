@@ -88,6 +88,37 @@ final class ThemeCssFileUpdaterWriter {
         return self::compileCss($styles->styles, "[data-block=\"{$styles->blockId}\"]");
     }
     /**
+     * Replaces every line between $startLine and $endLine with $startLine + $withLines
+     * from $from.
+     *
+     * @param string $from The haystack
+     * @param string $withLines Lines to add after $startLine
+     * @param string $startLine Add $withLines after this line or offset
+     * @param string $endLine
+     * @param ?int $startLineStartPos = null
+     * @return string
+     * @throws \Pike\PikeException If $from doesn't contain $startLine or $endLine
+     */
+    public static function replaceLinesBetween(string $from,
+                                                string $withLines,
+                                                string $startLine,
+                                                string $endLine,
+                                                ?int $startLineStartPos = null): string {
+        if ($startLineStartPos === null && ($startLineStartPos = strpos($from, $startLine)) === false)
+            throw new PikeException("\$from doesn't contain line `{$startLine}`",
+                                    PikeException::ERROR_EXCEPTION);
+        $beginningOfLineAfterStartLinePos = $startLineStartPos + strlen($startLine);
+        $endLineStartPos = strpos($from, $endLine, $beginningOfLineAfterStartLinePos);
+        if ($endLineStartPos === false)
+            throw new PikeException("\$from doesn't contain line `{$endLine}`",
+                                    PikeException::ERROR_EXCEPTION);
+        return (
+            substr($from, 0, $beginningOfLineAfterStartLinePos) .
+            $withLines .
+            substr($from, $endLineStartPos)
+        );
+    }
+    /**
      * @param object $stylesAll
      * @param string $themeName
      */
@@ -129,36 +160,5 @@ final class ThemeCssFileUpdaterWriter {
             return self::replaceLinesBetween($from, $withLines, $startLine, $endLine, $startLineStartPos);
         }
         return "{$from}{$startLine}{$withLines}{$endLine}";
-    }
-    /**
-     * Replaces every line between $startLine and $endLine with $startLine + $withLines
-     * from $from.
-     *
-     * @param string $from The haystack
-     * @param string $withLines Lines to add after $startLine
-     * @param string $startLine Add $withLines after this line or offset
-     * @param string $endLine
-     * @param ?int $startLineStartPos = null
-     * @return string
-     * @throws \Pike\PikeException If $from doesn't contain $startLine or $endLine
-     */
-    private static function replaceLinesBetween(string $from,
-                                                string $withLines,
-                                                string $startLine,
-                                                string $endLine,
-                                                ?int $startLineStartPos = null): string {
-        if ($startLineStartPos === null && ($startLineStartPos = strpos($from, $startLine)) === false)
-            throw new PikeException("\$from doesn't contain line `{$startLine}`",
-                                    PikeException::ERROR_EXCEPTION);
-        $beginningOfLineAfterStartLinePos = $startLineStartPos + strlen($startLine);
-        $endLineStartPos = strpos($from, $endLine, $beginningOfLineAfterStartLinePos);
-        if ($endLineStartPos === false)
-            throw new PikeException("\$from doesn't contain line `{$endLine}`",
-                                    PikeException::ERROR_EXCEPTION);
-        return (
-            substr($from, 0, $beginningOfLineAfterStartLinePos) .
-            $withLines .
-            substr($from, $endLineStartPos)
-        );
     }
 }

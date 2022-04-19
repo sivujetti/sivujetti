@@ -11,6 +11,7 @@ use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\Page\WebPageAwareTemplate;
 use Sivujetti\Template;
 use Sivujetti\Tests\Utils\BlockTestUtils;
+use Sivujetti\Tests\Utils\TestData;
 use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
 
 final class RenderBasicPageTest extends RenderPageTestCase {
@@ -65,7 +66,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
                                           $state->spyingResponse->getActualBody());
     }
     private function verifyThemeCanRegisterCssFiles(\TestState $state): void {
-        $expectedUrl = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME);
+        $expectedUrl = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME, false);
         $this->assertStringContainsString("<link href=\"{$expectedUrl}\" rel=\"stylesheet\">",
             $state->spyingResponse->getActualBody());
     }
@@ -75,10 +76,10 @@ final class RenderBasicPageTest extends RenderPageTestCase {
             $state->spyingResponse->getActualBody());
     }
     private function verifyRenderedBlockTypeBaseStyles(\TestState $state): void {
-        $expectedUrl = WebPageAwareTemplate::makeUrl("/public/test-suite-theme-generated.css");
+        $expectedUrl = WebPageAwareTemplate::makeUrl("/public/test-suite-theme-generated.css", false);
         $html = $state->spyingResponse->getActualBody();
         $this->assertStringContainsString("<link href=\"{$expectedUrl}", $html);
-        $registeredByTheme = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME);
+        $registeredByTheme = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME, false);
         $automaticallyGenerated = "<link href=\"{$expectedUrl}";
         $this->assertGreaterThan(strpos($html, $registeredByTheme),
                                  strpos($html, $automaticallyGenerated));
@@ -129,23 +130,24 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->verifyInjectedInlineStylesViaJavascript($state);
     }
     private function verifyInjectedInlineStylesViaJavascript(\TestState $state): void {
+        $bs = TestData::getBlockTypeBaseStyles();
         $dom = new Query($state->spyingResponse->getActualBody());
         /** @var \DOMElement[] */
         $scriptEls = $dom->execute("head script") ?? [];
         $this->assertNotEmpty($scriptEls);
         $injectJs = $scriptEls[count($scriptEls) - 1]->nodeValue;
-        $expectedBlockStyle1 = json_encode((object) [
-            // see backend/sivujetti/tests/test-db-init.php (INSERT INTO themeBlockTypeStyles)
-            "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockTypeBaseCss((object) [
-                "styles" => "{ padding: 4rem 2rem; }",
-                "blockTypeName" => "Section",
-            ])),
+        $expectedBlockStyles = json_encode([(object) [
+            "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockTypeBaseCss($bs[1])),
             "type" => "block-type",
-            "id" => "Section",
-        ]);
+            "id" => $bs[1]->blockTypeName,
+        ], (object) [
+            "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockTypeBaseCss($bs[0])),
+            "type" => "block-type",
+            "id" => $bs[0]->blockTypeName,
+        ]]);
         $this->assertEquals(
             "document.head.appendChild([\n" .
-                "[{$expectedBlockStyle1}],\n" .
+                "{$expectedBlockStyles},\n" .
                 "[],\n" .
                 "[],\n" .
             "].flat().reduce((out, {css, type, id}) => {\n" .

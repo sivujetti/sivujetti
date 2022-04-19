@@ -55,7 +55,7 @@ final class OverwriteThemeBlockTypeStylesTest extends ThemesControllerTestCase {
     private function verifyOverwroteGeneratedCssFile(\TestState $state): void {
         $expectedBlockTypeBaseStylesPart = $this->cssGenTestUtils
             ->generateCachedBlockTypeBaseStyles($state->testBlockTypeStyles);
-        $actual = $this->cssGenTestUtils->getActualGeneratedCss();
+        $actual = $this->cssGenTestUtils->getActualGeneratedCss(ignore: "none");
         $expected = $this->cssGenTestUtils
             ->generateExpectedGeneratedCssContent(expectedBlockTypeBaseStyles: $expectedBlockTypeBaseStylesPart);
         $this->assertEquals($expected, $actual);

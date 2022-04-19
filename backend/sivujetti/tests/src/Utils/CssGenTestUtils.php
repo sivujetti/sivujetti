@@ -27,10 +27,27 @@ final class CssGenTestUtils {
         if (is_file($this->TEST_THEME_GENERATED_FILE_PATH))
             unlink($this->TEST_THEME_GENERATED_FILE_PATH);
     }
-    public function getActualGeneratedCss(): string {
+    public function getActualGeneratedCss(string $ignore = "blockTypeBaseCss"): string {
         $full = file_get_contents($this->TEST_THEME_GENERATED_FILE_PATH);
-        [$header, $contents] = explode("UTC */\n\n", $full);
-        return $contents;
+        [$_header, $contents] = explode("UTC */\n\n", $full);
+        return match ($ignore) {
+            // Return all
+            "none" => $contents,
+            // Replace the $ignore part with "\n"
+            "blockTypeBaseCss" => CssGen::replaceLinesBetween(
+                from: $contents,
+                withLines: "\n",
+                startLine: "/* > Base styles for all block types start */",
+                endLine: "/* < Base styles for all block types end */"
+            ),
+            "individualBlocksCss" => CssGen::replaceLinesBetween(
+                from: $contents,
+                withLines: "\n",
+                startLine: "/* > Styles for all individual blocks start */",
+                endLine: "/* < Styles for all individual blocks end */"
+            ),
+            default => throw new \RuntimeException(""),
+        };
     }
     public function generateExpectedGeneratedCssContent(?string $expectedBlockTypeBaseStyles = "",
                                                         ?string $expectedBlockStyles = ""): string {

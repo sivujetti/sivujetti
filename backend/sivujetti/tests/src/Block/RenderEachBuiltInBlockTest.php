@@ -357,7 +357,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
                 " data-block=\"{$state->testBlocks[0]->id}\"", $tmpl)
         ;
         $this->renderAndVerify($state, 0, $replaceAttrs("<nav{defaultAttrs}><ul>") .
-            "<li><a href=\"/sivujetti/\" data-prop=\"val\"></a></li>" .
+            "<li><a href=\"" . Template::makeUrl("/") . "\" data-prop=\"val\"></a></li>" .
         "</ul>[childMarker]</nav>");
     }
     private function setupRenderMenuBlocksTest(): \TestState {
@@ -443,11 +443,11 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
         $expectedHtml = $makeExpectedHtml($b[1], "escape&lt;",
-            " style=\"background-image:url('".Template::makeUrl($b[1]->bgImage)."')\"");
+            " style=\"background-image:url('".Template::makeUrl($b[1]->bgImage, false)."')\"");
         $this->renderAndVerify($state, 1, $expectedHtml);
         //
         $expectedHtml = $makeExpectedHtml($b[2], "some classes",
-            " style=\"background-image:url('".Template::makeUrl($b[2]->bgImage)."')\"");
+            " style=\"background-image:url('".Template::makeUrl($b[2]->bgImage, false)."')\"");
         $this->renderAndVerify($state, 2, $expectedHtml);
     }
     private function setupRenderSectionBlocksTest(): \TestState {

@@ -1,17 +1,38 @@
-import {api, signals, http, __, env, Icon} from '@sivujetti-commons-for-edit-app';
+import {api, signals, http, __, env, Icon, InputError} from '@sivujetti-commons-for-edit-app';
 import Tabs from '../commons/Tabs.jsx';
 import LoadingSpinner from '../commons/LoadingSpinner.jsx';
 import toasters from '../commons/Toaster.jsx';
+import {timingUtils} from '../commons/utils.js';
+import CssStylesValidatorHelper from '../commons/CssStylesValidatorHelper.js';
 import store, {pushItemToOpQueue} from '../store.js';
 import {Section} from './OnThisPageSection.jsx';
 
 class GlobalStylesSection extends Section {
+    // cssValidator;
+    // handleCssInputChangedThrottled;
     // activeThemeId;
     // unregisterSignalListener;
     // styles;
     // pickers;
+    // blockTypeBaseStylesTextareaEls;
+    // blockTypeBaseStylesAutoSizersHookedUp;
     // varNameOfCurrentlyOpenPicker;
     // helperPicker;
+    /**
+     * @param {{sections: Array<String>; startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;}} props
+     */
+    constructor(props) {
+        super(props);
+        this.cssValidator = new CssStylesValidatorHelper;
+    }
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        this.handleCssInputChangedThrottled = timingUtils.debounce(
+            handleCssInputChanged.bind(this),
+            env.normalTypingDebounceMillis);
+    }
     /**
      * @access protected
      */
@@ -30,7 +51,6 @@ class GlobalStylesSection extends Section {
         this.unregisterSignalListener();
     }
     /**
-     * @param {{sections: Array<String>; startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;}} props
      * @access protected
      */
     render(_, {numStyles, isCollapsed, currentTabIdx}) {
@@ -71,10 +91,12 @@ class GlobalStylesSection extends Section {
                 </label>
                 <div class="accordion-body">
                     <textarea
-                        value={ this.state[`blockType_${bs.blockTypeName}`] }
-                        onChange={ e => this.handleBlockTypeCssChanged(bs.blockTypeName, e.target.value) }
-                        class="form-input"
-                        rows="4"></textarea>
+                        value={ this.state[`blockType_${bs.blockTypeName}_baseCssNotCommitted`] }
+                        onInput={ this.handleCssInputChangedThrottled }
+                        data-block-type-name={ bs.blockTypeName }
+                        class={ `form-input${!this.state[`blockType_${bs.blockTypeName}_baseCssError`] ? '' : ' is-error border-default'}` }
+                        ref={ this.blockTypeBaseStylesTextareaEls[i] }></textarea>
+                    <InputError errorMessage={ this.state[`blockType_${bs.blockTypeName}_baseCssError`] }/>
                 </div>
                 </div>) }
             </div>
@@ -88,11 +110,24 @@ class GlobalStylesSection extends Section {
             <div>
             <Tabs
                 links={ [__('Globals'), __('Block types')] }
-                onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
+                onTabChanged={ this.switchTab.bind(this) }
                 className="text-tinyish mt-0 mb-2"/>
             { content }
             </div>
         </section>;
+    }
+    /**
+     * @param {Number} toIdx
+     * @access private
+     */
+    switchTab(toIdx) {
+        this.setState({currentTabIdx: toIdx});
+        if (toIdx === 1 && !this.blockTypeBaseStylesAutoSizersHookedUp) {
+            this.blockTypeBaseStylesTextareaEls.forEach(ref => {
+                window.autosize(ref.current);
+            });
+            this.blockTypeBaseStylesAutoSizersHookedUp = true;
+        }
     }
     /**
      * @access private
@@ -105,8 +140,11 @@ class GlobalStylesSection extends Section {
                 .then(styles => {
                     this.styles = styles;
                     this.pickers = new Map;
+                    this.blockTypeBaseStylesTextareaEls = styles.blockTypeStyles.map(_ => preact.createRef());
+                    this.blockTypeBaseStylesAutoSizersHookedUp = false;
                     // {style1: color, style1IsValid: true, style2: color, style2IsValid: true ...} &&
-                    // {blockType_Section: String, blockType_Another: String ...}
+                    // {blockType_Section_baseCss: String, blockType_Section_baseCssNotCommitted: String, blockType_Section_baseCssError: String,
+                    //  blockType_Another_baseCss: String ...}
                     this.setState(createState(this.styles));
                 })
                 .catch(env.window.console.error);
@@ -249,7 +287,9 @@ class GlobalStylesSection extends Section {
      * @access private
      */
     applyBlockStylesToState(blockTypeName, newStyles) {
-        this.setState({[`blockType_${blockTypeName}`]: newStyles});
+        this.setState({[`blockType_${blockTypeName}_baseCss`]: newStyles,
+                       [`blockType_${blockTypeName}_baseCssNotCommitted`]: newStyles,
+                       [`blockType_${blockTypeName}_baseCssError`]: ''});
         this.props.currentWebPage.updateCssStyles({type: 'blockType', id: blockTypeName}, newStyles);
     }
 }
@@ -264,10 +304,29 @@ function createState({globalStyles, blockTypeStyles}) {
     , {numStyles: Infinity});
     //
     blockTypeStyles.forEach(({blockTypeName, styles}) => {
-        a[`blockType_${blockTypeName}`] = styles;
+        a[`blockType_${blockTypeName}_baseCss`] = styles;
+        a[`blockType_${blockTypeName}_baseCssNotCommitted`] = styles;
+        a[`blockType_${blockTypeName}_baseCssError`] = '';
     });
     //
     return a;
+}
+
+/**
+ * @param {Event} e
+ */
+function handleCssInputChanged(e) {
+    const blockTypeName = e.target.getAttribute('data-block-type-name');
+    const committed = this.state[`blockType_${blockTypeName}_baseCss`];
+    const [shouldCommit, result] = this.cssValidator.validate(e, committed);
+    if (!shouldCommit) {
+        this.setState({[`blockType_${blockTypeName}_baseCssNotCommitted`]: result.stylesStringNotCommitted,
+                       [`blockType_${blockTypeName}_baseCssError`]: result.stylesError});
+        return;
+    }
+    const newStyles = result.stylesStringNotCommitted;
+    this.applyBlockStylesToState(blockTypeName, newStyles);
+    this.applyNewColorAndEmitChangeOp('blockType', blockTypeName, newStyles);
 }
 
 /**

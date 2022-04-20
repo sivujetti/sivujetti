@@ -154,16 +154,16 @@ class BlockEditForm extends preact.Component {
             <div class="mt-2">
                 { this.isOutermostBlockOfGlobalBlockTree
                     ? <div class="input-group mini-toggle">
-                        <label class="form-switch input-sm color-dimmed pr-0" title={ __('Specialize this global block') }>
+                        <label class="form-switch input-sm color-dimmed pr-0">
                             <input
                                 onChange={ this.handleDoInheritGlobalBlockValsChanged.bind(this) }
                                 type="checkbox"
                                 checked={ useOverrides }/>
-                            <i class="form-icon"></i> { __('Specialize') }
+                            <i class="form-icon"></i> { __('Use specializations') }
                         </label>
                         <span
                             class="flex-centered tooltip tooltip-bottom"
-                            data-tooltip={ __('Use edited values on this\npage only') }>
+                            data-tooltip={ __('If on, any changes made to this\nglobal block tree won\'t affect\nthe original') }>
                             <Icon iconId="info-circle" className="size-xs"/>
                         </span>
                     </div>

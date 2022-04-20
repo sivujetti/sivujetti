@@ -15,9 +15,8 @@ stringBundles.push({
     'Something unexpected happened.': 'Something unexpected happened.',
     // edit-app/src/BlockEditForm.jsx
     'Styles': 'Styles',
-    'Specialize this global block': 'Specialize this global block',
-    'Specialize': 'Specialize',
-    'Use edited values on this\npage only': 'Use edited values on this\npage only',
+    'Use specializations': 'Use specializations',
+    'If on, any changes made to this\nglobal block tree won\'t affect\nthe original': 'If on, any changes made to this\nglobal block tree won\'t affect\nthe original',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
     // edit-app/src/BlockTree.jsx
     'Add child': 'Add child',

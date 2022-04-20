@@ -15,9 +15,8 @@ stringBundles.push({
     'Something unexpected happened.': 'Jokin meni pieleen.',
     // edit-app/src/BlockEditForm.jsx
     'Styles': 'Tyylit',
-    'Specialize this global block': 'Spesialisoi tämä globaali lohko',
-    'Specialize': 'Spesialisoi',
-    'Use edited values on this\npage only': 'Käytä muokattuja tietoja\nvain tällä sivulla',
+    'Use specializations': 'Käytä spesialisointeja',
+    'If on, any changes made to this\nglobal block tree won\'t affect\nthe original': 'Jos päällä, tähän globaaaliin lohko-\npuuhun tehdyt muutokset ei\nvaikuta alkuperäiseen',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
     // edit-app/src/BlockTree.jsx
     'Add child': 'Lisää lapsilohko',

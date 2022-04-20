@@ -42,16 +42,18 @@ class MenuBlockEditForm extends preact.Component {
      */
     render({onValueChanged}, {parsedTree, editPanelState}) {
         if (!editPanelState) return;
-        return <div class="anim-outer">
+        return <div class="anim-outer pt-1">
             <div class={ editPanelState.leftClass } ref={ this.outerEl }>
-                <ul class="list">{ parsedTree.map(item => <li class="ml-2" key={ item.id }><div class="d-flex flex-centered">
-                    <span>{ item.text }</span>
-                    <button onClick={ e => this.openMoreMenu(item, e) } class="btn btn-sm btn-link col-ml-auto flex-centered" type="button">
-                        <Icon iconId="dots" className="size-sm"/>
-                    </button>
-                </div></li>) }</ul>
+                <ul class="list">{ parsedTree.map((item, i) =>
+                    <li class={ `ml-2${i > 0 ? '' : ' mt-0'}` } key={ item.id }><div class="d-flex flex-centered">
+                        <span>{ item.text }</span>
+                        <button onClick={ e => this.openMoreMenu(item, e) } class="btn btn-sm btn-link col-ml-auto flex-centered" type="button">
+                            <Icon iconId="dots" className="size-sm"/>
+                        </button>
+                    </div></li>
+                ) }</ul>
                 <button onClick={ this.appendItemToMenu.bind(this) }
-                    class="btn btn-sm text-tiny with-icon-inline color-dimmed mt-1" type="button">
+                    class="btn btn-sm text-tiny with-icon-inline color-dimmed mt-2" type="button">
                     <Icon iconId="plus" className="size-xs mr-1"/> { __('Add link') }
                 </button>
             </div>

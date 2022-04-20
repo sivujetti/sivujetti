@@ -818,7 +818,7 @@ ul.list {
     position: absolute;
 }
 .mini-toggle {
-    margin: -.1rem 0 -.6rem -.4rem;
+    margin: -.1rem 0 0 -.4rem;
 }
 .mini-toggle .form-switch {
     transform: scale(.85);

@@ -12,6 +12,19 @@ $loader = require SIVUJETTI_BACKEND_PATH . "vendor/autoload.php";
 $loader->addPsr4("MySite\\", SIVUJETTI_SITE_PATH);
 $loader->addPsr4("SitePlugins\\", SIVUJETTI_PLUGINS_PATH);
 
+$myExceptionHandler = function ($e) {
+    $doDisplayErrors = (ini_get("display_errors") ?? "") === "1";
+    http_response_code(500);
+    if ($doDisplayErrors) throw $e;
+    else echo "<h1>500 Internal Server Error</h1>
+                An internal server error has been occurred.<br>
+                Please try again later.";
+};
+
+if (!(SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE))
+    set_exception_handler($myExceptionHandler);
+// else let the errors to be thrown
+
 (new \Sivujetti\App($config))->handleRequest(
     ...(!SIVUJETTI_QUERY_VAR ? ["", SIVUJETTI_BASE_URL] : [$_GET[SIVUJETTI_QUERY_VAR] ?? "", null])
 );

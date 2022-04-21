@@ -45,7 +45,7 @@ final class PagesController {
         }
         if (!($page = $pagesRepo->getSingle($pageType,
                                             $theWebsite->activeTheme->id,
-                                            ["slug" => $slug]))) {
+                                            ["filters" => [["slug", $slug]]]))) {
             $res->status(404)->html("404");
             return;
         }

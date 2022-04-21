@@ -14,7 +14,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         parent::setUpBeforeClass();
         if (!is_file(self::TEST_RENDERER_PATH)) {
             $tmpl = "<article>" .
-                "<?= \$this->e(\$props->listPageType), \"-\", count(\$props->__pages)" .
+                "<?= \$this->e(\$props->filterPageType), \"-\", count(\$props->__pages)" .
                 ", \"-\", \$props->__pages ? \$props->__pages[0]->title : \"nil\" ?>" .
             "</article>";
             file_put_contents(self::TEST_RENDERER_PATH, $tmpl);
@@ -291,9 +291,11 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_LISTING,
                 renderer: "sivujetti:block-listing-pages-default",
-                propsData: ["listPageType" => "Pages",
-                    "renderWith" => "sivujetti:block-listing-pages-default",
-                    "listFilters" => "[]"],
+                propsData: ["filterPageType" => "Pages",
+                    "filterLimit" => 0,
+                    "filterOrder" => "desc",
+                    "filterAdditional" => "[]",
+                    "renderWith" => "sivujetti:block-listing-pages-default"],
                 id: "@auto"),
         ];
         $state->makeExpectedHtml = fn(object $b, object $pageData) =>
@@ -334,7 +336,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         $state->testPageData->ownField2 = 1;
         $state->testBlocks[0]->renderer = self::TEST_RENDERER_NAME;
         $this->blockTestUtils->setBlockProp($state->testBlocks[0], "renderWith", self::TEST_RENDERER_NAME);
-        $this->blockTestUtils->setBlockProp($state->testBlocks[0], "listPageType", "MyProducts");
+        $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterPageType", "MyProducts");
         $state->customPageType = null;
         return $state;
     }

@@ -2,8 +2,7 @@
 
 namespace Sivujetti\BlockType;
 
-use Auryn\Injector;
-use Pike\ArrayUtils;
+use Pike\{ArrayUtils, Injector};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\Page\PagesRepository;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
@@ -14,9 +13,11 @@ class ListingBlockType implements BlockTypeInterface, ListeningBlockTypeInterfac
      */
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
         return $builder
-            ->newProperty("listPageType", $builder::DATA_TYPE_TEXT)
+            ->newProperty("filterPageType", $builder::DATA_TYPE_TEXT)
+            ->newProperty("filterLimit", $builder::DATA_TYPE_UINT)
+            ->newProperty("filterOrder", $builder::DATA_TYPE_TEXT)
+            ->newProperty("filterAdditional", $builder::DATA_TYPE_TEXT)
             ->newProperty("renderWith", $builder::DATA_TYPE_TEXT)
-            ->newProperty("listFilters", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }
     /**
@@ -37,11 +38,18 @@ class ListingBlockType implements BlockTypeInterface, ListeningBlockTypeInterfac
     public function doPerformBeforeRender(Block $block,
                                           PagesRepository $pagesRepo,
                                           TheWebsite $theWebsite): void {
-        $filters = json_decode($block->listFilters, true, JSON_THROW_ON_ERROR);
-        // @allow \Pike\PikeException (if listPageType does not exist)
-        $block->__pages = $pagesRepo->getMany($block->listPageType,
+        $filters = [
+            "filters" => [],
+            "order" => $block->filterOrder,
+            "limit" => $block->filterLimit,
+        ];
+        if (($additional = json_decode($block->filterAdditional, flags: JSON_THROW_ON_ERROR))) {
+            ; // Not implemented yet
+        }
+        // @allow \Pike\PikeException (if filterPageType does not exist)
+        $block->__pages = $pagesRepo->getMany($block->filterPageType,
                                               $theWebsite->activeTheme->id,
-                                              ...$filters);
-        $block->__pageType = ArrayUtils::findByKey($theWebsite->pageTypes, $block->listPageType, "name");
+                                              $filters);
+        $block->__pageType = ArrayUtils::findByKey($theWebsite->pageTypes, $block->filterPageType, "name");
     }
 }

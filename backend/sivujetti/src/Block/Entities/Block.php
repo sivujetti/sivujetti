@@ -54,9 +54,11 @@ final class Block {
     public string $cssClass; */
 
     /* If "MyListing"
-    public string $listPageType; e.g. "Pages"
+    public string $filterPageType; e.g. "Pages"
+    public string $filterLimit; e.g. 10
+    public string $filterOrder; "desc"|"asc"|"rand"
+    public string $filterAdditional; e.g. "[{"slug":"foo"}]"
     public string $renderWith; e.g. "sivujetti:block-listing-pages-default"
-    public string $listFilters; e.g. "[{"slug":"foo"}]"
     public ?array $__pages; ?array<int, \Sivujetti\Page\Entities\Page>
     public ?\Sivujetti\PageType\Entities\PageType $__pageType; */
 

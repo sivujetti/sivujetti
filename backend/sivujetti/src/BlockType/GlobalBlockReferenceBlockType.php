@@ -2,7 +2,7 @@
 
 namespace Sivujetti\BlockType;
 
-use Auryn\Injector;
+use Pike\Injector;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository;
 use Sivujetti\TheWebsite\Entities\TheWebsite;

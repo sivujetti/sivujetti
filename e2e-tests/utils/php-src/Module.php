@@ -2,9 +2,8 @@
 
 namespace Sivujetti\E2eTests;
 
-use Auryn\Injector;
 use Pike\Db\FluentDb;
-use Pike\{Db, Router};
+use Pike\{Db, Injector, Router};
 
 final class Module {
     /** @var array<string, mixed> */

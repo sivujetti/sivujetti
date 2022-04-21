@@ -15,6 +15,9 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\SharedAPIContext;
 
+/**
+ * @psalm-import-type SelectFilters from \Sivujetti\Page{PagesRepository
+*/
 final class PageTestUtils {
     public const TEST_LAYOUT_FILENAME = "layout.default.tmpl.php";
     /** @var \Sivujetti\Tests\Utils\LayoutTestUtils */
@@ -63,7 +66,9 @@ final class PageTestUtils {
      * @return ?\Sivujetti\Page\Entities\Page
      */
     public function getPageBySlug(string $slug, ?PageType $pageType = null): ?Page {
-        if (($out = $this->t($pageType, ["slug" => $slug]))) {
+        if (($out = $this->t(["filters" => [
+            ["slug", $slug],
+        ]], $pageType))) {
             unset($out->blocks);
             unset($out->layout);
             unset($out->layoutFriendlyName);
@@ -81,7 +86,9 @@ final class PageTestUtils {
      * @return ?\Sivujetti\Page\Entities\Page
      */
     public function getPageById(string $id, ?PageType $pageType = null): ?Page {
-        return $this->t($pageType, ["p.`id`" => $id]);
+        return $this->t(["filters" => [
+            ["p.`id`", $id],
+        ]], $pageType);
     }
     /**
      * @return \Sivujetti\PageType\Entities\PageType
@@ -229,12 +236,13 @@ final class PageTestUtils {
         ], propsData: ["bgImage" => "", "cssClass" => ""])];
     }
     /**
+     * @psalm-param SelectFilters $filters
      * @param ?\Sivujetti\PageType\Entities\PageType $pageType = null
      * @return ?\Sivujetti\Page\Entities\Page
      */
-    private function t(?PageType $pageType = null, ...$filters): ?Page {
+    private function t(array $filters, ?PageType $pageType = null): ?Page {
         if (!$pageType)
             $pageType = $this->makeDefaultPageType();
-        return $this->pagesRepo->getSingle($pageType, "1", ...$filters);
+        return $this->pagesRepo->getSingle($pageType, "1", $filters);
     }
 }

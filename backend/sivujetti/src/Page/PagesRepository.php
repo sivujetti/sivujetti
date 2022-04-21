@@ -13,6 +13,10 @@ use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\PageTypeValidator;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
+/**
+ * @psalm-type SelectFilter = array{0: string, 1: string}
+ * @psalm-type SelectFilters = array{filters: array<int, SelectFilter>, order?: string, limit?: string}
+ */
 final class PagesRepository {
     /** @var string[] Fields that all page types share */
     private const DEFAULT_FIELDS = ["id", "slug", "path", "level", "title",
@@ -49,25 +53,25 @@ final class PagesRepository {
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
      * @param ?string $themeId
-     * @param string|string[] ...$filters
+     * @psalm-param SelectFilters $filters
      * @return \Sivujetti\Page\Entities\Page|null
      */
     public function getSingle(string|PageType $pageTypeOrPageTypeName,
                               ?string $themeId,
-                              ...$filters): ?Page {
-        $rows = $this->doGetMany($pageTypeOrPageTypeName, true, $themeId, ...$filters);
+                              array $filters): ?Page {
+        $rows = $this->doGetMany($pageTypeOrPageTypeName, true, $themeId, $filters);
         return $rows[0] ?? null;
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
      * @param ?string $themeId
-     * @param string|string[] ...$filters
+     * @psalm-param SelectFilters $filters
      * @return \Sivujetti\Page\Entities\Page[]
      */
     public function getMany(string|PageType $pageTypeOrPageTypeName,
                             ?string $themeId,
-                            ...$filters): array {
-        return $this->doGetMany($pageTypeOrPageTypeName, false, $themeId, ...$filters);
+                            array $filters): array {
+        return $this->doGetMany($pageTypeOrPageTypeName, false, $themeId, $filters);
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType $pageType
@@ -85,7 +89,7 @@ final class PagesRepository {
         if (($errors = $this->pageTypeValidator->validateInsertData($pageType, $inputData,
             $doValidateBlocks)))
             return [0, $errors];
-        if ($this->getSingle($pageType, null, ["slug" => $inputData->slug]))
+        if ($this->getSingle($pageType, null, ["filters" => [ ["slug", $inputData->slug] ]]))
             return [0, ["Page with identical slug already exists"]];
         $data = self::makeStorablePageDataFromValidInput($inputData, $pageType);
         $data->blocks = BlockTree::toJson(BlocksController::makeStorableBlocksDataFromValidInput(
@@ -152,16 +156,16 @@ final class PagesRepository {
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
      * @param bool $doIncludeLayouts
      * @param ?string $themeId
-     * @param string|string[] ...$filters
+     * @psalm-param SelectFilters $filters
      * @return \Sivujetti\Page\Entities\Page[]
      */
     private function doGetMany(string|PageType $pageTypeOrPageTypeName,
                                bool $doIncludeLayouts,
                                ?string $themeId,
-                               ...$filters): array {
+                               array $filters): array {
         $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
         $this->pageType = $pageType;
-        [$filterCols, $filterVals, $joinsCols, $joins] = $this->filtersToQParts($pageType, ...$filters);
+        [$filterCols, $filterVals, $joinsCols, $joins] = $this->filtersToQParts($pageType, $filters["filters"]);
         //
         $baseJoinCols = "";
         $baseJoin = "";
@@ -190,6 +194,9 @@ final class PagesRepository {
             $ownFieldCols[] = "p.`$f->name` AS `$f->name`";
         }
         //
+        $order = $filters["order"] ?? null;
+        $limit = $filters["limit"] ?? 40; // null -> 40
+        $limit = min($limit > 0 ? $limit : 40, 100); // 0 -> 40, 1 -> 1, 120 -> 100
         $rows = $this->db->fetchAll(
             "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`meta` AS `metaJson`,p.`layoutId`," .
                 "p.`blocks` AS `pageBlocksJson`,'{$pageType->name}' AS `type`,p.`status`" .
@@ -200,7 +207,13 @@ final class PagesRepository {
             $baseJoin .
             $joins .
             ($filterCols ? " WHERE {$filterCols}" : "") .
-            " LIMIT 40",
+            ($order ? (" ORDER BY " . match($order) {
+                "desc" => " p.`id` DESC",
+                "asc" => " p.`id` ASC",
+                "rand" => $this->db->attr(\PDO::ATTR_DRIVER_NAME) === "sqlite" ? "RANDOM()" : "RAND()",
+                default => throw new PikeException("Sanity", PikeException::BAD_INPUT),
+            }) : "") .
+            (" LIMIT " . ((int) $limit)),
             $filterVals,
             \PDO::FETCH_CLASS,
             Page::class
@@ -304,19 +317,16 @@ final class PagesRepository {
     /**
      * todo
      */
-    private function filtersToQParts(PageType $pageType, ...$filters): array {
+    private function filtersToQParts(PageType $pageType, array $filters): array {
         $filterSql = "";
         $filterValues = [];
         $escape = function (string $candidate): string {
             return $candidate !== "p.`id`" ? $this->db->columnify($candidate) : $candidate;
         };
-        foreach ($filters as $inp) {
-            // todo validate
-            $column = key($inp);
-            $cand = $inp[$column];
-            $f = is_string($cand) ? ["", "", $column] : $inp;
-            $filterSql .= ($f[0] ?? " AND ") . $escape($f[2]) . ($f[1] ?: "=") . "?";
-            $filterValues[] = $cand;
+        foreach ($filters as $filter) {
+            [$col, $val] = $filter;
+            $filterSql .= "{$escape($col)} = ?";
+            $filterValues[] = $val;
         }
         return [$filterSql, $filterValues, "", ""];
     }

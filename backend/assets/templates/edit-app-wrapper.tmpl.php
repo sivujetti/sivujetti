@@ -32,6 +32,7 @@
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/jspanel.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/pickr.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/csstree.min.js") ?>" async></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/vendor/popper.min.js") ?>" async></script>
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
         <script>window.translationStringBundles = []</script>
         <script src="<?= $this->assetUrl("public/sivujetti/lang-{$uiLang}.js") ?>"></script>

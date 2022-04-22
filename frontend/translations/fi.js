@@ -2,6 +2,10 @@ import stringBundles from '@sivujetti-string-bundles';
 import validationStrings from './include-internal/validation.fi.js';
 
 stringBundles.push({
+    'Page': 'Sivu',
+    'Services': 'Palvelut',
+    'Services#partitive': 'Palvelua',
+    'Service': 'Palvelu',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Luo %s',
     'Cancel add %s': 'Peruuta %s luonti',
@@ -64,6 +68,7 @@ stringBundles.push({
     'On this page': 'Tällä sivulla',
     'My website': 'Sivustoni',
     'Pages': 'Sivut',
+    'Pages#partitive': 'Sivua',
     'page': 'sivu',
     'Global styles': 'Globaalit tyylit',
     // edit-app/src/EditApp.jsx
@@ -121,10 +126,18 @@ stringBundles.push({
     'Image': 'Kuva',
     // edit-app/src/block-types/listing.js
     'Listing': 'Listaus',
-    'todo1': 'Sivutyyppi, jota listataan',
     'List': 'Listaa',
-    'todo2': 'Templaatti, jota käytetään\nlistauksessa',
-    'Renderer': 'Ulkoasu',
+    'at most': 'enintään',
+    'all': 'kaikki',
+    'single': 'yksi',
+    'Type amount': 'Syötä lukumääärä',
+    'ordered by': 'järjestäen ne',
+    'newest to oldest': 'uusimmasta vanhimpaan',
+    'oldest to newest': 'vanhimmasta uusimpaan',
+    'randomly': 'satunnaisesti',
+    'rendering %s using template': 'tulostaen %s templaatilla',
+    'it': 'sen',
+    'them': 'ne',
     'Add new %s': 'Lisää uusi %s',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metatiedot',

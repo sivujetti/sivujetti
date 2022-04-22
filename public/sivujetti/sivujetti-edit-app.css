@@ -409,6 +409,46 @@ a.popup-close-area {
     align-self: end;
     margin-left: .26rem;
 }
+.my-tooltip  {
+    display: none;
+    font-size: .7rem;
+    padding: .2rem .6rem;
+    background-color: var(--color-bg-default);
+    border-radius: 4px;
+    border: 1px solid var(--color-border-popup);
+}
+.my-tooltip.visible {
+    display: block;
+}
+.popper-arrow,
+.popper-arrow::before {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--color-bg-default);
+    border-top: 1px solid var(--color-border-popup);
+    border-left: 1px solid var(--color-border-popup);
+}
+.popper-arrow {
+    visibility: hidden;
+}
+.popper-arrow::before {
+    visibility: visible;
+    content: '';
+    transform: rotate(45deg);
+}
+.my-tooltip[data-popper-placement^='top'] > .popper-arrow {
+    bottom: -4px;
+}
+.my-tooltip[data-popper-placement^='bottom'] > .popper-arrow {
+    top: -4px;
+}
+.my-tooltip[data-popper-placement^='left'] > .popper-arrow {
+    right: -4px;
+}
+.my-tooltip[data-popper-placement^='right'] > .popper-arrow {
+    left: -4px;
+}
 
 
 
@@ -826,4 +866,67 @@ ul.list {
 .mini-toggle > .tooltip .icon-tabler {
     width: .8rem;
     height: .8rem;
+}
+
+
+/* ?? */
+.listing-instructions {
+    flex-wrap: wrap;
+    align-items: center;
+}
+.listing-instructions > * {
+    margin-bottom: .2rem;
+    border-radius: 4px;
+    display: flex;
+    border: 2px solid transparent;
+    min-height: 1.6rem;
+    align-items: center;
+}
+
+.listing-instructions button.form-select {
+    border: none;
+    width: initial;
+    font-size: inherit;
+    padding: .1rem .4rem;
+    background-color: transparent !important;
+    white-space: nowrap;
+    color: inherit;
+    height: 1.4rem;
+}
+
+.listing-instructions .popup {
+    position: absolute;
+    display: inline;
+    font-size: .7rem;
+    padding: .2rem .6rem;
+    margin: 6.7rem 0 0 -1.4rem;
+}
+
+.listing-instructions .group-1 {
+    background-color: #d8fa696b;
+}
+.listing-instructions .group-2 {
+    background-color: #00a1ff38
+}
+.listing-instructions .group-2.perhaps {
+    background-color: #00a1ff12;
+}
+.listing-instructions .group-3 {
+    background-color: #c752e124;
+}
+.listing-instructions .group-4 {
+    background-color: #dcbda44a;
+}
+
+.listing-instructions .perhaps {
+    border: 2px dashed rgba(0,0,0,0.2);
+}
+
+.listing-instructions .form-radio .form-input {
+    clip: initial;
+    height: initial;
+    margin: initial;
+    overflow: initial;
+    position: static;
+    width: initial;
 }

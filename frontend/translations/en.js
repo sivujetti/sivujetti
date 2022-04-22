@@ -2,6 +2,10 @@ import stringBundles from '@sivujetti-string-bundles';
 import validationStrings from './include-internal/validation.en.js';
 
 stringBundles.push({
+    'Page': 'Page',
+    'Services': 'Services',
+    'Services#partitive': 'Services',
+    'Service': 'Service',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Create %s',
     'Cancel add %s': 'Cancel add %s',
@@ -64,6 +68,7 @@ stringBundles.push({
     'On this page': 'On this page',
     'My website': 'My website',
     'Pages': 'Pages',
+    'Pages#partitive': 'Pages',
     'page': 'page',
     'Global styles': 'Global styles',
     // edit-app/src/EditApp.jsx
@@ -121,10 +126,18 @@ stringBundles.push({
     'Image': 'Image',
     // edit-app/src/block-types/listing.js
     'Listing': 'Listing',
-    'todo1': 'todo1', // 'Sivutyyppi, jota listataan'
     'List': 'List',
-    'todo2': 'todo2', // 'Templaatti, jota käytetään\nlistauksessa'
-    'Renderer': 'Renderer',
+    'at most': 'at most',
+    'all': 'all',
+    'single': 'single',
+    'Type amount': 'Type amount',
+    'ordered by': 'ordered by',
+    'newest to oldest': 'newest to oldest',
+    'oldest to newest': 'oldest to newest',
+    'randomly': 'randomly',
+    'rendering %s using template': 'rendering %s using template',
+    'it': 'it',
+    'them': 'them',
     'Add new %s': 'Add new %s',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metadata',

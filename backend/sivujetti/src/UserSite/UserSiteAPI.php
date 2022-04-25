@@ -38,7 +38,7 @@ class UserSiteAPI extends BaseAPI {
      *
      * @param string $fileId "my-file", "site:my-file", "sivujetti:block-auto"
      * @param ?string $friendlyName = null "Pages listing"
-     * @param ?string $for = null "Pages", "Articles"
+     * @param ?string $for = null "Pages", "Articles", "*"
      * @see \Sivujetti\Template::completePath()
      */
     public function registerBlockRenderer(string $fileId,

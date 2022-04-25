@@ -2,9 +2,10 @@
 
 namespace Sivujetti\E2eTests;
 
-use Pike\{Db, Request};
+use Pike\{Db, DbUtils, Request};
 use Pike\TestUtils\DbTestCase;
 use Sivujetti\FileSystem;
+use Sivujetti\PageType\Entities\PageType;
 
 /**
  * @psalm-import-type TestDataBundle from \Sivujetti\E2eTests\TestDataBundles
@@ -15,8 +16,9 @@ final class Controller {
      * and overrides SIVUJETTI_INDEX_PATH . 'config.php' to use that db.
      */
     public function beginE2eMode(Request $req, TestDataBundles $dataBundles): void {
-        $datas = $dataBundles->createBundle($req->params->bundleName);
-        $statements = array_map(fn($itm) => self::dataToSql($itm), $datas);
+        $datas = $dataBundles->createBundle(urldecode($req->params->bundleName));
+        $statements = [];
+        foreach ($datas as $itm) $statements = array_merge($statements, self::dataToSqlStatements($itm));
         // Create db
         $config = require SIVUJETTI_BACKEND_PATH . "sivujetti/tests/config.php";
         // Override ":memory:"
@@ -48,23 +50,24 @@ final class Controller {
         echo json_encode(["ok" => "ok"]);
     }
     /**
-     * @param TestDataBundle $item
+     * @psalm-param TestDataBundle $item
      * @return string
      * @throws \RuntimeException
      */
-    private static function dataToSql(array $item): string {
+    private static function dataToSqlStatements(array $item): array {
         if ($item["table"] === "Layouts") {
             $data = $item["data"];
-            return sprintf("INSERT INTO `\${p}Layouts` VALUES ('%d','%s','%s','%s')",
+            return [sprintf("INSERT INTO `\${p}Layouts` VALUES ('%d','%s','%s','%s')",
                 $data["id"],
                 $data["friendlyName"],
                 $data["relFilePath"],
                 json_encode($data["structure"], flags: JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),
-            );
+            )];
         }
-        if ($item["table"] === "Pages") {
+        if ($item["table"] === "Pages" || $item["table"] === "Articles") {
+            $table = $item["table"];
             $data = $item["data"];
-            return sprintf("INSERT INTO `\${p}Pages` VALUES ('%s','%s','%s',%d,'%s','%s','%d','%s',%d)",
+            return [sprintf("INSERT INTO `\${p}{$table}` VALUES ('%s','%s','%s',%d,'%s','%s','%d','%s',%d)",
                 $data["id"],
                 $data["slug"],
                 $data["path"],
@@ -74,7 +77,36 @@ final class Controller {
                 $data["layoutId"],
                 json_encode($data["blocks"], flags: JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),
                 $data["status"]
-            );
+            )];
+        }
+        if ($item["table"] === "@create" && $item["data"]["name"] === "Articles") {
+            $data = $item["data"];
+            return [
+                "CREATE TABLE `Articles` (
+                    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                    `slug` TEXT NOT NULL,
+                    `path` TEXT,
+                    `level` INTEGER NOT NULL DEFAULT 1,
+                    `title` TEXT NOT NULL,
+                    `meta` JSON,
+                    `layoutId` TEXT NOT NULL,
+                    `blocks` JSON,
+                    `status` INTEGER NOT NULL DEFAULT 0
+                )",
+                sprintf("INSERT INTO `pageTypes` (name,slug,friendlyName,friendlyNamePlural" .
+                    ",description,fields,defaultLayoutId,status,isListable) VALUES " .
+                    "('%s','%s','%s',%d,'%s','%s','%s','%s',%d)",
+                    $data["name"],
+                    $data["slug"],
+                    $data["friendlyName"],
+                    $data["friendlyNamePlural"],
+                    $data["description"],
+                    json_encode($data["fields"], flags: JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),
+                    $data["defaultLayoutId"],
+                    $data["status"],
+                    $data["isListable"],
+                )
+            ];
         }
         throw new \RuntimeException("No such table `{$item}`.");
     }

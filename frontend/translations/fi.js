@@ -139,6 +139,8 @@ stringBundles.push({
     'it': 'sen',
     'them': 'ne',
     'Add new %s': 'Lisää uusi %s',
+    '%s must be a number': '%s tulisi olla numero',
+    'This value': 'Tämä arvo',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metatiedot',
     'Url (slug)': 'Urli (slug)',

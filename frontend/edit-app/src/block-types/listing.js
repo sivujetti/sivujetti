@@ -1,4 +1,4 @@
-import {__, env, http, api, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, env, http, api, Icon, InputError} from '@sivujetti-commons-for-edit-app';
 
 const orderToText = {
     desc: 'newest to oldest',
@@ -16,6 +16,7 @@ class ListingBlockEditForm extends preact.Component {
     // selectedPageTypeBundle;
     // selectedPageTypeFriendlyName;
     // selectedPageTypeFriendlyNamePlural;
+    // selectedPageTypeFriendlyNamePartitive;
     constructor(props) {
         super(props);
         this.defineLimitPopup = preact.createRef();
@@ -38,7 +39,8 @@ class ListingBlockEditForm extends preact.Component {
     componentWillMount() {
         const r = api.getBlockRenderers();
         this.pageTypeBundles = api.getPageTypes()
-            .map(pageType => ({pageType, renderers: r.filter(({associatedWith}) => associatedWith === pageType.name)}))
+            .map(pageType => ({pageType, renderers: r.filter(({associatedWith}) =>
+                associatedWith === '*' || associatedWith === pageType.name)}))
             .filter(({renderers}) => renderers.length > 0);
         this.setSelectedPageTypeBundle(this.props.block.filterPageType);
         //
@@ -48,7 +50,8 @@ class ListingBlockEditForm extends preact.Component {
      * @param {BlockEditFormProps} props
      * @access protected
      */
-    render(_, {filterPageType, howManyType, howManyAmount, howManyAmountNotCommitted, order, renderWith}) {
+    render(_, {filterPageType, howManyType, howManyAmount, howManyAmountNotCommitted,
+               howManyAmountError, order, renderWith}) {
         if (!filterPageType) return;
         /*
                1      2          3                                    4                                    5
@@ -96,8 +99,9 @@ class ListingBlockEditForm extends preact.Component {
                                 value={ howManyAmountNotCommitted }
                                 placeholder={ __('Type amount') }
                                 inputMode="numeric"
-                                class="form-input py-0"
+                                class={ `form-input py-0${!howManyAmountError ? '' : ' is-error'}` }
                                 type="text"/>
+                        <InputError errorMessage={ howManyAmountError }/>
                     </label>
                 </Popup>
             </div>
@@ -108,11 +112,13 @@ class ListingBlockEditForm extends preact.Component {
                     class="form-select"
                     type="button">{
                     howManyType !== 'single'
-                        ? this.selectedPageTypeFriendlyNamePlural
+                        ? howManyType !== 'custom'
+                            ? this.selectedPageTypeFriendlyNamePlural
+                            : this.selectedPageTypeFriendlyNamePartitive
                         : this.selectedPageTypeFriendlyName
                 }</button>
                 <Popup ref={ this.definePageTypePopup }>{
-                    this.pageTypeBundles.length > 10 ? this.pageTypeBundles.map(({pageType}) =>
+                    this.pageTypeBundles.length > 1 ? this.pageTypeBundles.map(({pageType}) =>
                         <label class="form-radio" key={ pageType.name }>
                             <input
                                 onClick={ this.handlePageTypeChanged.bind(this) }
@@ -120,7 +126,7 @@ class ListingBlockEditForm extends preact.Component {
                                 name="filterPageType"
                                 value={ pageType.name }
                                 checked={ filterPageType === pageType.name }/><i class="form-icon"></i> { __(howManyType !== 'single'
-                                    ? pageType.friendlyNamePlural
+                                    ? `${pageType.friendlyNamePlural}${howManyType !== 'custom' ? '' : '#partitive'}`
                                     : pageType.friendlyName
                                 ).toLowerCase() }
                         </label>
@@ -144,7 +150,7 @@ class ListingBlockEditForm extends preact.Component {
             </div>
 
             { howManyType !== 'single' && (howManyAmount === 0 || howManyAmount > 1) ? [
-            <span class="group-3 ml-1 px-2"> järjestäen ne </span>,
+            <span class="group-3 ml-1 px-2"> { __('ordered by') } </span>,
             <div class="group-3">
                 <button
                     onClick={ () => this.openPartPopup('defineOrder') }
@@ -166,7 +172,7 @@ class ListingBlockEditForm extends preact.Component {
             }
 
             { this.selectedPageTypeBundle.renderers.length > 1 ? [
-            <span class="group-4 ml-1 px-2">tulostaen { howManyType !== 'single' ? 'ne' : 'sen' } templaatilla</span>,
+            <span class="group-4 ml-1 px-2">{ __('rendering %s using template', __(howManyType !== 'single' ? 'them' : 'it')) }</span>,
             <div class="group-4">
                 <button
                     onClick={ () => this.openPartPopup('chooseRenderer') }
@@ -206,10 +212,11 @@ class ListingBlockEditForm extends preact.Component {
     handleHowManyTypeChanged(e) {
         const newValue = e.target.value;
         if (this.state.howManyType !== newValue) {
-            // todo custom -> non-custom transition
+            const newState = {howManyType: newValue};
             const newLimit = newValue === 'single' ? 1 : 0;
+            if (newValue !== 'custom') newState.howManyAmountNotCommitted = newLimit > 1 ? newLimit : null;
             this.props.onValueChanged(newLimit, 'filterLimit', false, 'debounce-none');
-            this.setState({howManyType: newValue });
+            this.setState(newState);
         }
     }
     /**
@@ -217,13 +224,17 @@ class ListingBlockEditForm extends preact.Component {
      * @access private
      */
     handleHowManyAmountChanged(e) {
-        const s = {howManyAmountNotCommitted: e.target.value};
-        const n = parseInt(e.target.value, 10);
-        if (!isNaN(n)) {
-            s.howManyAmount = n;
-            this.props.onValueChanged(n, 'filterLimit', false, 'debounce-none');
+        const val = parseInt(e.target.value, 10);
+        const newState = {howManyAmountNotCommitted: e.target.value,
+                          howManyAmountError: !isNaN(val) ? '' : __('%s must be a number', __('This value'))};
+        if (!newState.howManyAmountError && newState.howManyAmountNotCommitted > 10000) {
+            newState.howManyAmountError = __('max').replace('{field}', __('This value')).replace('{arg0}', '10 000');
         }
-        this.setState(s);
+        if (!newState.howManyAmountError) {
+            newState.howManyAmount = val;
+            this.props.onValueChanged(val, 'filterLimit', false, 'debounce-none');
+        }
+        this.setState(newState);
     }
     /**
      * @param {Event} e
@@ -274,6 +285,7 @@ class ListingBlockEditForm extends preact.Component {
         this.selectedPageTypeBundle = this.pageTypeBundles.find(({pageType}) => pageType.name === selectedPageTypeName);
         this.selectedPageTypeFriendlyName = __(this.selectedPageTypeBundle.pageType.friendlyName).toLowerCase();
         this.selectedPageTypeFriendlyNamePlural = __(this.selectedPageTypeBundle.pageType.friendlyNamePlural).toLowerCase();
+        this.selectedPageTypeFriendlyNamePartitive = __(`${this.selectedPageTypeBundle.pageType.friendlyNamePlural}#partitive`).toLowerCase();
     }
     /**
      * @access private
@@ -300,6 +312,7 @@ function createState(from) {
         howManyType,
         howManyAmount: from.filterLimit,
         howManyAmountNotCommitted: from.filterLimit > 1 ? from.filterLimit : null,
+        howManyAmountError: '',
         renderWith: from.renderWith,
         order: from.filterOrder,
     };

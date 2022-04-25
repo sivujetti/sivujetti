@@ -139,6 +139,8 @@ stringBundles.push({
     'it': 'it',
     'them': 'them',
     'Add new %s': 'Add new %s',
+    '%s must be a number': '%s must be a number',
+    'This value': 'This value',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metadata',
     'Url (slug)': 'Url (slug)',

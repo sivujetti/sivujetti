@@ -8,7 +8,7 @@ import store, {observeStore, setCurrentPage, setGlobalBlockTreeBlocksStyles, set
 import SaveButton from './SaveButton.jsx';
 import {findBlockTemp} from './BlockTree.jsx';
 
-let LEFT_PANEL_WIDTH = 300;
+let LEFT_PANEL_WIDTH = 318;
 const PANELS_HIDDEN_CLS = 'panels-hidden';
 
 class EditApp extends preact.Component {

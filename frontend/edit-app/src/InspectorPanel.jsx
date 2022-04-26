@@ -103,7 +103,7 @@ class InspectorPanel extends preact.Component {
         this.props.rootEl.classList.add('inspector-panel-open');
         //
         if (!this.lastHeight) {
-            const height = this.lastHeight || (env.window.innerHeight / 100 * 30);
+            const height = this.lastHeight || clamp(env.window.innerHeight / 100 * 30, 375, 467);
             this.props.outerEl.style.height = `${height}px`;
             this.props.mainPanelOuterEl.style.height = `calc(100% - ${height}px)`;
             this.resizeHandleEl.current.style.transform = `translateY(-${height}px)`;
@@ -122,6 +122,18 @@ class InspectorPanel extends preact.Component {
         this.lastHeight = null;
         signals.emit('on-inspector-panel-closed', this);
     }
+}
+
+/**
+ * https://stackoverflow.com/a/11409978
+ *
+ * @param {Number} number
+ * @param {Number} min
+ * @param {Number} max
+ * @returns {Number}
+ */
+function clamp(number, min, max) {
+    return Math.max(min, Math.min(number, max));
 }
 
 export default InspectorPanel;

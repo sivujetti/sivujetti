@@ -148,7 +148,7 @@ class BlockEditForm extends preact.Component {
         </div>
         <Tabs
             links={ [__('Content'), __('Styles')] }
-            onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
+            onTabChanged={ this.changeTab.bind(this) }
             className="text-tinyish mt-0 mb-2"/>
         <div class={ currentTabIdx === 0 ? '' : 'd-none' }>
             <div class="mt-2">
@@ -184,13 +184,24 @@ class BlockEditForm extends preact.Component {
                 <textarea
                     value={ stylesStringNotCommitted }
                     onInput={ this.handleCssInputChangedThrottled }
-                    class={ `form-input${!stylesError ? '' : ' is-error border-default'}` }
-                    ref={ this.stylesTextareaEl }></textarea>
+                    class={ `form-input code${!stylesError ? '' : ' is-error'}` }
+                    placeholder={ '[[scope]] {\n  color: red;\n}\n[[scope]].specialized {\n  color: blue;\n}' }
+                    ref={ this.stylesTextareaEl }>{stylesStringNotCommitted}</textarea>
                 <InputError errorMessage={ stylesError }/>
             </>
             : <div style="color: var(--color-fg-dimmed)">Tyylejä voi muokata sivun luomisen jälkeen.</div>
         }</div>
         </div>;
+    }
+    /**
+     * @param {Number} toIdx
+     * @access private
+     */
+    changeTab(toIdx) {
+        this.setState({currentTabIdx: toIdx});
+        if (toIdx === 1) setTimeout(() => {
+            window.autosize.update(this.stylesTextareaEl.current);
+        }, 1);
     }
     /**
      * @param {Array<RawBlockStyle>|Array<RawGlobalBlockTreeBlocksStyles>} newStyles

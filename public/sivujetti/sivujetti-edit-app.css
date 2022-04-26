@@ -22,6 +22,7 @@ Structure:
     --color-fg-dimmed: rgba(var(--components-color-fb-default),.75);
     --color-fg-dimmed2: #1c125a;
     --color-fg-input: var(--color-fg-default);
+    --color-fg-code: var(--color-fg-dimmed);
     --border-tree-guide: 1px dotted rgba(var(--components-color-fb-default),.4);
     --border-dashed-box: 1px dashed rgba(0,0,0,0.2);
     --color-input-border: #e1e4e8;
@@ -43,6 +44,9 @@ Structure:
     --color-bg-global-block: #fdf7f4; /* rgba(--color-orange, ~.04) */
     --color-bg-selected-global-block: #efe5e1; /* rgba(--color-orange, ~.06) */
     --color-drop-indicator: rgba(var(--components-color-fb-default), .32);
+
+    --color-bg-default: #fff;
+    --color-border-popup: rgba(var(--components-color-fb-default),.5);
 }
 /* Spectre-overrides */
 .btn {
@@ -82,9 +86,6 @@ Structure:
     font-weight: 300;
     font-size: .7rem;
     color: var(--color-fg-input);
-}
-.form-input.border-default {
-    border-color: var(--color-input-border);
 }
 .form-group > .form-input-hint {
     margin-bottom: -.2rem;
@@ -196,7 +197,7 @@ h2 {
 #main-panel,
 #inspector-panel {
     position: absolute;
-    width: 300px;
+    width: 318px;
     color: var(--color-fg-default);
     border-right: 1px solid var(--color-bg-dimmed2);
     transition: opacity .1s linear;
@@ -232,9 +233,9 @@ h2 {
 #sivujetti-site-iframe {
     position: absolute;
     height: 100%;
-    width: calc(100% - 300px);
+    width: calc(100% - 318px);
     border: none;
-    transform: translateX(300px);
+    transform: translateX(318px);
     height: 100%;
 }
 .resize-panel-handle {
@@ -254,7 +255,7 @@ h2 {
     margin-left: -60px;
 }
 #inspector-panel .resize-panel-handle {
-    width: 300px;
+    width: 318px;
     height: 8px;
     bottom: 0;
     cursor: row-resize;
@@ -489,7 +490,7 @@ a.popup-close-area {
 }
 #main-panel .mode-chooser + .btn.stickied {
     position: fixed;
-    left: 232px; /* 300 - 68 */
+    left: 250px; /* 318 - 68 */
     margin: initial;
     background-color: rgba(255,255,255,0.8);
     z-index: 2;
@@ -817,6 +818,14 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 .form-input.tight {
     padding: .1rem .35rem;
     height: 1.4rem;
+}
+.form-input.code {
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 17px;
+    min-height: 114px;
+    border-color: var(--color-input-border);
+    color: var(--color-fg-code);
 }
 ul.list {
     list-style: none;

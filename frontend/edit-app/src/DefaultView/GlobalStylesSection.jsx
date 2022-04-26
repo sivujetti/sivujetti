@@ -94,7 +94,7 @@ class GlobalStylesSection extends Section {
                         value={ this.state[`blockType_${bs.blockTypeName}_baseCssNotCommitted`] }
                         onInput={ this.handleCssInputChangedThrottled }
                         data-block-type-name={ bs.blockTypeName }
-                        class={ `form-input${!this.state[`blockType_${bs.blockTypeName}_baseCssError`] ? '' : ' is-error border-default'}` }
+                        class={ `form-input code${!this.state[`blockType_${bs.blockTypeName}_baseCssError`] ? '' : ' is-error'}` }
                         ref={ this.blockTypeBaseStylesTextareaEls[i] }></textarea>
                     <InputError errorMessage={ this.state[`blockType_${bs.blockTypeName}_baseCssError`] }/>
                 </div>
@@ -123,9 +123,11 @@ class GlobalStylesSection extends Section {
     switchTab(toIdx) {
         this.setState({currentTabIdx: toIdx});
         if (toIdx === 1 && !this.blockTypeBaseStylesAutoSizersHookedUp) {
-            this.blockTypeBaseStylesTextareaEls.forEach(ref => {
-                window.autosize(ref.current);
-            });
+            setTimeout(() => {
+                this.blockTypeBaseStylesTextareaEls.forEach(ref => {
+                    window.autosize(ref.current);
+                });
+            }, 1);
             this.blockTypeBaseStylesAutoSizersHookedUp = true;
         }
     }

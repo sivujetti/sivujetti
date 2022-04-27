@@ -32,7 +32,7 @@ final class ThemeCssFileUpdaterWriter {
                                                        object $currentStylesCached,
                                                        string $themeName): void {
         // 1. Mutate $currentStylesCached
-        $currentStylesCached->generatedBlockTypeBaseCss = self::replaceLinesBetween(
+        $currentStylesCached->generatedBlockTypeBaseCss = self::addOrReplaceLines(
             from: $currentStylesCached->generatedBlockTypeBaseCss,
             withLines: self::compileCss($updatedStyles, "[data-block-type=\"{$blockTypeName}\"]"),
             startLine: "/* >> Base styles for block type \"{$blockTypeName}\" start */\n",

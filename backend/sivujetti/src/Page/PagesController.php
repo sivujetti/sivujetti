@@ -211,7 +211,7 @@ final class PagesController {
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\Theme\ThemeCssFileUpdaterWriter $cssGen
      */
-    public function updateBlockStyles(Request $req,
+    public function upsertBlockStyles(Request $req,
                                       Response $res,
                                       FluentDb $db,
                                       PagesRepository $pagesRepo,
@@ -263,7 +263,6 @@ final class PagesController {
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\Page\Entities\Page $page
      * @param \Sivujetti\PageType\Entities\PageType $pageType
-     * @throws \Pike\PikeException
      */
     private static function sendPageResponse(Request $req,
                                              Response $res,

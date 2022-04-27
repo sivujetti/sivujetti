@@ -62,8 +62,12 @@ final class GlobalBlocksOrPageBlocksUpserter {
                     $join = "(SELECT styles FROM {$t} WHERE {$whereQ})";
                     return str_replace("mutateThis AS", "{$join}", $q);
                 })
-                ->where("t.id = ?", [...$whereVals, $whereVals[0]])
+                ->where("t.id = ?", [...$whereVals, // for join
+                                     $themeId       // for where
+                                     ])
                 ->fetch();
+            if (!$current)
+                return [null, "Theme `{$themeId}` doesn't exist", false];
             $hadStylesBefore = !!$current->stylesJson;
 
             // 2. Upsert

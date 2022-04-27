@@ -14,12 +14,12 @@ final class ThemesModule {
                                                     "identifiedBy" => ["view", "themes"]]],
         );
         $router->map("PUT", "/api/themes/[i:themeId]/styles/block-type/[w:blockTypeName]",
-            [ThemesController::class, "updateBlockTypeStyles", ["consumes" => "application/json",
-                                                                "identifiedBy" => ["update", "themes"]]],
+            [ThemesController::class, "upsertBlockTypeStyles", ["consumes" => "application/json",
+                                                                "identifiedBy" => ["upsertBlockTypeBaseStylesOf", "themes"]]],
         );
         $router->map("PUT", "/api/themes/[i:themeId]/styles/global",
             [ThemesController::class, "updateGlobalStyles", ["consumes" => "application/json",
-                                                             "identifiedBy" => ["update", "themes"]]],
+                                                             "identifiedBy" => ["updateGlobalStylesOf", "themes"]]],
         );
     }
 }

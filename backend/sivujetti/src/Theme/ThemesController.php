@@ -3,9 +3,10 @@
 namespace Sivujetti\Theme;
 
 use Pike\Db\{FluentDb, NoDupeRowMapper};
-use Pike\{Request, Response, Validation};
+use Pike\{PikeException, Request, Response, Validation};
 use Sivujetti\BlockType\Entities\BlockTypeStyles;
 use Sivujetti\{ValidationUtils};
+use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\GlobalBlockTree\GlobalBlocksOrPageBlocksUpserter;
 
 final class ThemesController {
@@ -50,44 +51,77 @@ final class ThemesController {
      * @param \Pike\Response $res
      * @param \Pike\Db\FluentDb $db
      * @param \Sivujetti\Theme\ThemeCssFileUpdaterWriter $cssGen
+     * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      */
-    public function updateBlockTypeStyles(Request $req,
+    public function upsertBlockTypeStyles(Request $req,
                                           Response $res,
                                           FluentDb $db,
-                                          ThemeCssFileUpdaterWriter $cssGen): void {
+                                          ThemeCssFileUpdaterWriter $cssGen,
+                                          BlockTypes $blockTypes): void {
         if (($errors = $this->validateOverwriteBlockTypeStylesInput($req->body))) {
             $res->status(400)->json($errors);
             return;
         }
+        if (!property_exists($blockTypes, $req->params->blockTypeName))
+            throw new PikeException("Unknown block type `{$req->params->blockTypeName}`.",
+                                    PikeException::BAD_INPUT);
         // Force other requests to wait here until this callback has been run
-        $allDone = $db->getDb()->runInTransaction(function () use ($db, $req, $cssGen) {
+        [$result, $error, $stylesExistedAlready] = $db->getDb()->runInTransaction(function () use ($db, $req, $cssGen) {
+            $t = "\${p}themeBlockTypeStyles";
+            $themeId = $req->params->themeId;
+            [$whereQ, $whereVals] = ["themeId = ? AND blockTypeName = ?", [$themeId, $req->params->blockTypeName]];
+
+            // 1. Select current styles
             $current = $db->select("\${p}themes t", "stdClass")
                 ->fields(["t.name AS themeName", "t.generatedBlockTypeBaseCss",
                           "t.generatedBlockCss", "tbts.styles AS stylesJson"])
-                ->innerJoin("\${p}themeBlockTypeStyles tbts ON (tbts.themeId = t.id)")
-                ->where("t.id = ?", [$req->params->themeId])
+                ->leftJoin("mutateThis AS tbts ON (1=1)")
+                ->mutateQWith(function ($q) use ($t) {
+                    $join = "(SELECT styles FROM {$t} WHERE themeId = ? AND blockTypeName = ?)";
+                    return str_replace("mutateThis AS", "{$join}", $q);
+                })
+                ->where("t.id = ?", [...$whereVals, // join
+                                     $themeId])     // where
                 ->fetch();
             if (!$current)
-                throw new \RuntimeException("Inserting styles not implemented yet.");
-            //
-            $numRows = $db->update("\${p}themeBlockTypeStyles")
-                ->values((object) ["styles" => $req->body->styles])
-                ->where("`blockTypeName` = ? AND `themeId` = ?", [$req->params->blockTypeName, $req->params->themeId])
-                ->execute();
-            if ($numRows !== 1)
-                return false;
-            //
+                return [null, "Theme `{$themeId}` doesn't exist", false];
+            $hadStylesBefore = $current->stylesJson !== null;
+
+            // 2. Upsert
+            $result = ($hadStylesBefore
+                ? $db->update($t)
+                    ->values((object) ["styles" => $req->body->styles])
+                    ->where($whereQ, $whereVals)
+                : $db->insert($t)
+                    ->values((object) [
+                        "styles" => $req->body->styles,
+                        "blockTypeName" => $req->params->blockTypeName,
+                        "themeId" => $themeId,
+                    ])
+            )->execute();
+            if ($hadStylesBefore && $result !== 1)
+                return [$result, "Expected \$numAffectedRows of update {$t} to equal 1 but got {$result}", null];
+            elseif (!$hadStylesBefore && !$result)
+                return [$result, "Expected \$lastInsertId not to equal \"\"", null];
+
+            // 3. Update "{$themeName}-generated.css"
             $cssGen->overwriteBlockTypeBaseStylesToDisk(
                 $req->params->blockTypeName,
                 $req->body->styles,
                 (object) ["generatedBlockTypeBaseCss" => $current->generatedBlockTypeBaseCss,
                           "generatedBlockCss" => $current->generatedBlockCss],
                 $current->themeName);
-            return true;
+
+            //
+            return [$result, null, $hadStylesBefore];
         });
         //
-        if ($allDone) $res->json(["ok" => "ok"]);
-        else $res->status(404)->json(["ok" => "err"]);
+        if ($error)
+            throw new PikeException($error, PikeException::ERROR_EXCEPTION);
+        if ($stylesExistedAlready)
+            $res->status(200)->json(["ok" => "ok"]);
+        else
+            $res->status(201)->json(["ok" => "ok", "insertId" => $result]);
     }
     /**
      * PUT /api/themes/:themeId/styles/global: Overwrites $req->params->themeId

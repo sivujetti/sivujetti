@@ -105,10 +105,10 @@ final class GlobalBlockTreesController {
      * @param \Pike\Db\FluentDb $db
      * @param \Sivujetti\Theme\ThemeCssFileUpdaterWriter $cssGen
      */
-    public function updateOrCreateStyles(Request $req,
-                                         Response $res,
-                                         FluentDb $db,
-                                         ThemeCssFileUpdaterWriter $cssGen): void {
+    public function upsertStyles(Request $req,
+                                 Response $res,
+                                 FluentDb $db,
+                                 ThemeCssFileUpdaterWriter $cssGen): void {
         if (($errors = GlobalBlocksOrPageBlocksUpserter::validateInput($req->body))) {
             $res->status(400)->json($errors);
             return;

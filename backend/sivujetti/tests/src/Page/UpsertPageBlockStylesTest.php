@@ -17,7 +17,7 @@ final class UpsertPageBlockStylesTest extends PagesControllerTestCase {
         parent::tearDown();
         $this->cssGenTestUtils->cleanUp();
     }
-    public function testUpsertPageBlockBlocksUpdatesStyles(): void {
+    public function testUpsertPageBlocksStylesUpdatesStyles(): void {
         $state = $this->setupTest();
         $this->insertTestPageDataToDb($state);
         $this->insertTestPageBlockStylesToDb($state);
@@ -82,7 +82,7 @@ final class UpsertPageBlockStylesTest extends PagesControllerTestCase {
     ////////////////////////////////////////////////////////////////////////////
 
 
-    public function testUpsertPageBlockBlocksInsertsStylesIfNotYetCreated(): void {
+    public function testUpsertPageBlocksStylesInsertsStylesIfNotYetCreated(): void {
         $state = $this->setupTest();
         $this->insertTestPageDataToDb($state);
         $this->makeTestSivujettiApp($state);

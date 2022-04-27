@@ -322,7 +322,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         $this->registerCustomPageType($state);
         $this->makeTestSivujettiApp($state, function (TestEnvBootstrapper $bootModule) {
             $apiCtx = new SharedAPIContext;
-            $apiCtx->validBlockRenderers[] = $this->blockTestUtils->createBlockRenderer(self::TEST_RENDERER_NAME, "MyProducts");
+            $apiCtx->blockRenderers[] = $this->blockTestUtils->createBlockRenderer(self::TEST_RENDERER_NAME, "MyProducts");
             $bootModule->useMock("apiCtx", [$apiCtx]);
         });
         //

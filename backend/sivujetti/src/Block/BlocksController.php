@@ -45,11 +45,14 @@ final class BlocksController {
         PagesController::runBlockBeforeRenderEvent([$block], $apiCtx->blockTypes,
                                                    $pagesRepo, $theWebsite);
         $pagePageType = ArrayUtils::findByKey($theWebsite->pageTypes, PageType::PAGE, "name");
-        $html = (new WebPageAwareTemplate($block->renderer, initialLocals: [
-            "currentPage" => PagesController::createEmptyPage($pagePageType),
-            "currentUrl" => "",
-            "site" => $theWebsite,
-        ]))->renderBlocks([$block]);
+        $html = (new WebPageAwareTemplate($block->renderer,
+            initialLocals: [
+                "currentPage" => PagesController::createEmptyPage($pagePageType),
+                "currentUrl" => "",
+                "site" => $theWebsite,
+            ],
+            pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy())
+        ))->renderBlocks([$block]);
         $res->json(["result" => $html]);
     }
     /**

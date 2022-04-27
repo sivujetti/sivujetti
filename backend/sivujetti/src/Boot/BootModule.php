@@ -140,7 +140,7 @@ class BootModule {
         if ($doCreateBlockTypes) $apiCtx->blockTypes = $blockTypes;
         $di->share($blockTypes);
         //
-        $apiCtx->validBlockRenderers = array_merge($apiCtx->validBlockRenderers, [
+        $apiCtx->blockRenderers = array_merge($apiCtx->blockRenderers, [
             ["fileId" => "sivujetti:block-auto", "friendlyName" => null, "associatedWith" => null], // Heading, Paragraph etc.
             ["fileId" => "sivujetti:block-generic-wrapper", "friendlyName" => null, "associatedWith" => null], // Columns, Section
             ["fileId" => "sivujetti:block-listing-pages-default", "friendlyName" => "Pages listing", "associatedWith" => "*"],

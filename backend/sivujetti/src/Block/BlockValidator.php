@@ -16,7 +16,7 @@ final class BlockValidator {
      */
     public function __construct(SharedAPIContext $apiCtx) {
         $expandedFileIds = [];
-        foreach ($apiCtx->validBlockRenderers as $renderer) {
+        foreach ($apiCtx->blockRenderers as $renderer) {
             $fileId = $renderer["fileId"];
             $expandedFileIds[] = $fileId;
             if (str_starts_with($fileId, "site:")) $expandedFileIds[] = explode(":", $fileId)[1];

@@ -78,9 +78,8 @@ final class UserPluginAPI extends UserSiteAPI {
     public function registerBlockRenderer(string $fileId,
                                           ?string $friendlyName = null,
                                           ?string $for = null): void {
-        $filePathPart = str_contains($fileId, ":") ? explode(":", $fileId, 2)[1] : $fileId;
-        $expected = "{$this->getDashifiedNs()}-";
-        if (!str_starts_with($filePathPart, $expected))
+        $expected = "plugins/{$this->namespace}:";
+        if (!str_starts_with($fileId, $expected))
             throw new PikeException("Expected file path part of fileId (`{$fileId}`)" .
                                     " to start with `{$expected}`",
                                     PikeException::BAD_INPUT);

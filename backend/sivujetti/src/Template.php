@@ -13,7 +13,7 @@ class Template extends PikeTemplate {
     public function __construct(string $file,
                                 ?array $vars = null,
                                 ?array $initialLocals = null) {
-        parent::__construct(self::completePath($file, allowSubFolders: true), $vars);
+        parent::__construct(self::getValidPathOrThrow($file, allowSubFolders: true), $vars);
         $this->__locals = $initialLocals ?? [];
     }
     /**
@@ -53,10 +53,11 @@ class Template extends PikeTemplate {
      * @param bool $allowSubFolders = false
      * @return string
      */
-    public static function completePath(string $fileId,
-                                        bool $allowSubFolders = false): string {
-        $pcs = explode(":", $fileId, 2);
-        [$ns, $relFilePath] = count($pcs) > 1 ? $pcs : ["site", $pcs[0]];
+    public static function getValidPathOrThrow(string $fileId,
+                                               bool $allowSubFolders = false): string {
+        [$ns, $relFilePath] = self::getFileIdParts($fileId);
+        if (str_starts_with($ns, "plugins/"))
+            return "";
         ValidationUtils::checkIfValidaPathOrThrow($relFilePath, !$allowSubFolders);
         $whiteList = ["sivujetti" => SIVUJETTI_BACKEND_PATH . "assets/templates/",
                       "site" => SIVUJETTI_SITE_PATH . "templates/"];
@@ -65,5 +66,13 @@ class Template extends PikeTemplate {
                 implode(" or ", array_keys($whiteList)) . " (yours was `{$ns}`.)",
                 PikeException::BAD_INPUT);
         return "{$root}{$relFilePath}";
+    }
+    /**
+     * @param string $fileId
+     * @return array{0: string, 1: string}
+     */
+    protected static function getFileIdParts(string $fileId): array {
+        $pcs = explode(":", $fileId, 2);
+        return count($pcs) > 1 ? $pcs : ["site", $pcs[0]];
     }
 }

@@ -19,6 +19,8 @@ final class WebPageAwareTemplate extends Template {
     private ?Theme $__theme;
     /** @var object[] [{blockId: string, styles: string}] */
     private array $__blockStyles;
+    /** @var string[] */
+    private array $__pluginNames;
     /** @var array<string, object[]> array<string, array<int, {blockId: string, styles: string}>> */
     private array $__dynamicGlobalBlockTreeBlocksStyles;
     /** @var bool */
@@ -30,6 +32,7 @@ final class WebPageAwareTemplate extends Template {
      * @param ?object $cssAndJsFiles = null
      * @param ?\Sivujetti\Theme\Entities\Theme $theme = null
      * @param ?array<int, object> $blockStyles = null
+     * @param ?array<string> $pluginNames = null
      * @param ?bool $useInlineCssStyles = null
      */
     public function __construct(string $file,
@@ -38,6 +41,7 @@ final class WebPageAwareTemplate extends Template {
                                 ?object $cssAndJsFiles = null,
                                 ?Theme $theme = null,
                                 ?array $blockStyles = null,
+                                ?array $pluginNames = null,
                                 ?bool $useInlineCssStyles = null) {
         parent::__construct($file, $vars, $initialLocals);
         $this->__cssAndJsFiles = $cssAndJsFiles;
@@ -45,6 +49,8 @@ final class WebPageAwareTemplate extends Template {
         $this->__blockStyles = $blockStyles ?? [];
         $this->__dynamicGlobalBlockTreeBlocksStyles = [];
         $this->__useInlineCssStyles = $useInlineCssStyles ?? true;
+        $this->__pluginNames = $pluginNames ?? [];
+        if ($this->__file === "") $this->__file = $this->completePath($file);
     }
     /**
      * @param string $name
@@ -57,10 +63,30 @@ final class WebPageAwareTemplate extends Template {
             ValidationUtils::checkIfValidaPathOrThrow($name, strict: true);
             $templateFilePath = "{$this->__dir}{$name}.tmpl.php";
         } else
-            $templateFilePath = self::completePath($name) . ".tmpl.php";
+            $templateFilePath = "{$this->completePath($name)}.tmpl.php";
         //
         return $this->doRender($templateFilePath,
             array_merge($this->__locals, ["props" => $props]));
+    }
+    /**
+     * @param string $fileId
+     * @return string
+     * @throws \Pike\PikeException
+     */
+    private function completePath(string $fileId): string {
+        [$ns, $relFilePath] = parent::getFileIdParts($fileId);
+        ValidationUtils::checkIfValidaPathOrThrow($relFilePath, strict: false);
+        if (str_contains($ns, "/")) {
+            $pcs = explode("/", $ns, 2);
+            if ($pcs[0] !== "plugins")
+                throw new PikeException("Only `plugins` namespace can have multiple levels (you had `{$pcs[0]}`)",
+                                        PikeException::BAD_INPUT);
+            if (!in_array($pcs[1], $this->__pluginNames, true)) {
+                throw new PikeException("No such plugin ({$pcs[1]})",
+                                        PikeException::BAD_INPUT);}
+            return SIVUJETTI_PLUGINS_PATH . "{$pcs[1]}/templates/{$relFilePath}";
+        }
+        return parent::getValidPathOrThrow($fileId, allowSubFolders: true);
     }
     /**
      * @param string $url

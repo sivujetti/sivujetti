@@ -2,7 +2,7 @@
 
 namespace Sivujetti\UserSite;
 
-use Sivujetti\{BaseAPI, Template};
+use Sivujetti\{BaseAPI};
 use Sivujetti\BlockType\BlockTypeInterface;
 use Pike\{PikeException, Validation};
 use Sivujetti\UserPlugin\UserPluginInterface;
@@ -39,14 +39,11 @@ class UserSiteAPI extends BaseAPI {
      * @param string $fileId "my-file", "site:my-file", "sivujetti:block-auto"
      * @param ?string $friendlyName = null "Pages listing"
      * @param ?string $for = null "Pages", "Articles", "*"
-     * @see \Sivujetti\Template::completePath()
      */
     public function registerBlockRenderer(string $fileId,
                                           ?string $friendlyName = null,
                                           ?string $for = null): void {
-        // @allow \Pike\PikeException
-        Template::completePath($fileId, allowSubFolders: true);
-        $this->apiCtx->validBlockRenderers[] = [
+        $this->apiCtx->blockRenderers[] = [
             "fileId" => str_contains($fileId, ":") ? $fileId : "site:{$fileId}",
             "friendlyName" => $friendlyName,
             "associatedWith" => $for

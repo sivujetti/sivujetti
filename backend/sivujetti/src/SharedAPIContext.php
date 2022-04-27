@@ -24,7 +24,7 @@ final class SharedAPIContext {
     /** @var object {"css" => object[], "js" => object[]} @see \Sivujetti\UserTheme\UserThemeAPI->enqueueCss|JsFile() */
     public object $userDefinedAssets;
     /** @var array<int, array{fileId: string, friendlyName: string|null, associatedWith: string|null}> \Sivujetti\UserSite\UserSiteAPI->registerBlockRenderer() */
-    public array $validBlockRenderers;
+    public array $blockRenderers;
     /** @var string[] \Sivujetti\UserSite\UserSiteAPI->enqueueEditAppJsFile() */
     public array $adminJsFiles;
     /** @var array<string, \Sivujetti\UserPlugin\UserPluginInterface> */
@@ -36,7 +36,7 @@ final class SharedAPIContext {
         $this->appPhase = 0;
         $this->eventListeners = [];
         $this->userDefinedAssets = (object) ["css" => [], "js" => []];
-        $this->validBlockRenderers = [];
+        $this->blockRenderers = [];
         $this->adminJsFiles = [];
         $this->userPlugins = [];
     }

@@ -116,7 +116,7 @@ final class PagesController {
                 "assetBaseUrl" => WebPageAwareTemplate::makeUrl("/", false),
                 "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
                 "activeTheme" => (object) ["id" => $theWebsite->activeTheme->id],
-                "blockRenderers" => $apiCtx->validBlockRenderers,
+                "blockRenderers" => $apiCtx->blockRenderers,
                 "showGoToDashboardMode" => $config->get("app.showGoToDashboardMode", false),
                 "dashboardUrl" => $config->get("app.dashboardUrl", ""),
             ]),
@@ -284,6 +284,7 @@ final class PagesController {
             cssAndJsFiles: $apiCtx->userDefinedAssets,
             theme: $theWebsite->activeTheme,
             blockStyles: $page->blockStyles,
+            pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy()),
             useInlineCssStyles: $editModeIsOn
         );
         $html = $tmpl->render([

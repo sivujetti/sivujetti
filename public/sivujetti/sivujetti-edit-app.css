@@ -7,7 +7,8 @@ Structure:
 - Global: Utilies
 */
 :root {
-    --color-bg-default: rgb(255, 255, 255);
+    --components-color-bg-default: 255, 255, 255;
+    --color-bg-default: rgb(var(--components-color-bg-default));
     --color-bg-dimmed: rgb(250, 252, 255);
     --color-bg-dimmed2: rgb(235, 237, 243);
     --components-color-accent: 165, 82%, 51%;
@@ -410,6 +411,15 @@ a.popup-close-area {
     align-self: end;
     margin-left: .26rem;
 }
+.global-styles .pcr-button {
+    border: 1px solid rgba(var(--components-color-bg-default), .24);
+    height: calc(1.4rem + 2px);
+    width: calc(1.4rem + 2px);
+    top: 1px;
+}
+.global-styles .is-very-light-color .pcr-button {
+    border-color: rgba(var(--components-color-fb-default),.12);
+}
 .my-tooltip  {
     display: none;
     font-size: .7rem;
@@ -450,10 +460,10 @@ a.popup-close-area {
     transform: rotate(45deg);
 }
 .my-tooltip[data-popper-placement^='top'] > .popper-arrow {
-    bottom: -4px;
+    bottom: -3px;
 }
 .my-tooltip[data-popper-placement^='bottom'] > .popper-arrow {
-    top: -4px;
+    top: -5px;
 }
 .my-tooltip[data-popper-placement^='left'] > .popper-arrow {
     right: -4px;

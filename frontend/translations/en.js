@@ -62,13 +62,16 @@ stringBundles.push({
     'Convert': 'Convert',
     // edit-app/src/DefaultView/GlobalStylesSection.jsx
     'Styles': 'Styles',
+    // edit-app/src/DefaultView/OnThisPageSection.jsx
+    'On this page': 'On this page',
+    // edit-app/src/DefaultView/WebsiteSection.jsx
+    'Website': 'Website',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'page type',
     'Default content': 'Default content',
     'Settings': 'Settings',
     'Fields': 'Fields',
     // edit-app/src/DefaultMainPanelView.jsx
-    'On this page': 'On this page',
     'My website': 'My website',
     'Pages': 'Pages',
     'Pages#partitive': 'Pages',

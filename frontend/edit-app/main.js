@@ -20,8 +20,8 @@ import blockTreeUtils from './src/blockTreeUtils.js';
 import WebPageIframe from './src/WebPageIframe.js';
 import MainPanel from './src/MainPanel.js';
 import OnThisPageSection from './src/DefaultView/OnThisPageSection.jsx';
-import ContentSection from './src/DefaultView/ContentSection.jsx';
 import GlobalStylesSection from './src/DefaultView/GlobalStylesSection.jsx';
+import WebsiteSection from './src/DefaultView/WebsiteSection.jsx';
 
 const editAppReactRef = preact.createRef();
 
@@ -65,8 +65,8 @@ function configureServices() {
     //
     const mainPanel = new MainPanel(document.getElementById('main-panel'), env);
     mainPanel.registerSection('onThisPage', OnThisPageSection);
-    mainPanel.registerSection('content', ContentSection);
     mainPanel.registerSection('globalStyles', GlobalStylesSection);
+    mainPanel.registerSection('website', WebsiteSection);
     api.mainPanel = mainPanel;
     //
     patchQuillEditor();

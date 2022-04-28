@@ -62,13 +62,16 @@ stringBundles.push({
     'Convert': 'Muunna',
     // edit-app/src/DefaultView/GlobalStylesSection.jsx
     'Styles': 'Tyylit',
+    // edit-app/src/DefaultView/OnThisPageSection.jsx
+    'On this page': 'Tällä sivulla',
+    // edit-app/src/DefaultView/WebsiteSection.jsx
+    'Website': 'Sivusto',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'sivutyyppi',
     'Default content': 'Oletussisältö',
     'Settings': 'Tiedot',
     'Fields': 'Kentät',
     // edit-app/src/DefaultMainPanelView.jsx
-    'On this page': 'Tällä sivulla',
     'My website': 'Sivustoni',
     'Pages': 'Sivut',
     'Pages#partitive': 'Sivua',

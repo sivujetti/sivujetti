@@ -1,4 +1,4 @@
-import {__, api, signals, http, env, urlUtils, FloatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, api, signals, http, env, urlUtils, FloatingDialog, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import toasters, {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultView/DefaultMainPanelView.jsx';
 import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
@@ -111,6 +111,7 @@ class EditApp extends preact.Component {
                         // which then triggers this.handleWebPageLoaded() and sets
                         // this.state.currentMainPanel to 'create-page'
                         api.webPageIframe.openPlaceholderPage('Pages');
+                        floatingDialog.close();
                     } }
                     startAddPageTypeMode={ () => {
                         // todo prevent double
@@ -120,6 +121,7 @@ class EditApp extends preact.Component {
                             this.props.dataFromAdminBackend.pageTypes.push(pageType);
                             // Does same as startAddPageMode above
                             api.webPageIframe.openPlaceholderPage('Draft');
+                            floatingDialog.close();
                         });
                     } }
                     currentWebPage={ this.currentWebPage }/>

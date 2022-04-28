@@ -33,6 +33,8 @@ class FloatingDialog extends preact.Component {
      * @access public
      */
     close() {
+        if (!this.state.Renderer)
+            return;
         if (this.currentEl) {
             this.currentEl = null;
             this.currenTitle = null;

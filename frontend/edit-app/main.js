@@ -78,10 +78,11 @@ function patchQuillEditor() {
     //
     const Keyboard = Quill.import('modules/keyboard');
     class CustomKeyboard extends Keyboard { }
-    CustomKeyboard.DEFAULTS = Object.assign({}, Keyboard.DEFAULTS, Object.assign(
-        {bindings: Keyboard.DEFAULTS.bindings},
-        {bindings: {['list autofill']: undefined,}}
-    ));
+    CustomKeyboard.DEFAULTS = Object.assign({}, Keyboard.DEFAULTS, {
+        bindings: Object.assign({}, Keyboard.DEFAULTS.bindings, {
+            ['list autofill']: undefined
+        })
+    });
     Quill.register('modules/keyboard', CustomKeyboard);
     //
     // https://codepen.io/anon/pen/GNMXZa

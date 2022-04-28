@@ -18,7 +18,8 @@ stringBundles.push({
     'Page "%s" already exist.': 'Page "%s" already exist.',
     'Something unexpected happened.': 'Something unexpected happened.',
     // edit-app/src/BlockEditForm.jsx
-    'Styles': 'Styles',
+    'Own styles': 'Own styles',
+    'Base styles': 'Base styles',
     'Use specializations': 'Use specializations',
     'If on, any changes made to this\nglobal block tree won\'t affect\nthe original': 'If on, any changes made to this\nglobal block tree won\'t affect\nthe original',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
@@ -48,6 +49,8 @@ stringBundles.push({
     'Meta blocks contains ': 'Meta blocks contains ',
     'additional data / metadata': 'additional data / metadata',
     ', and otherwise act like ordinary blocks.': ', and otherwise act like ordinary blocks.',
+    // edit-app/src/BlockTypeBaseStylesTab.jsx
+    'These styles will affect all %s blocks': 'These styles will affect all %s blocks',
     // edit-app/src/BlockTypeSelector.jsx
     'Common': 'Common',
     'Globals': 'Globals',
@@ -58,7 +61,7 @@ stringBundles.push({
     'e.g. Header, Footer': 'e.g. Header, Footer',
     'Convert': 'Convert',
     // edit-app/src/DefaultView/GlobalStylesSection.jsx
-    'Block types': 'Block types',
+    'Styles': 'Styles',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'page type',
     'Default content': 'Default content',
@@ -81,6 +84,8 @@ stringBundles.push({
     // edit-app/src/GlobalBlockTreeSelector.jsx
     'No %s found': 'No %s found',
     'global blocks': 'global blocks',
+    // edit-app/src/IndividualBlockStylesTab.jsx
+    'These styles will affect this individual block only': 'These styles will affect this individual block only',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Close',
     // edit-app/src/PageType/PageTypeBasicInfoConfigurationForm.jsx

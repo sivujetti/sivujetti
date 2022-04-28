@@ -1,43 +1,21 @@
-import {api, signals, http, __, env, Icon, InputError} from '@sivujetti-commons-for-edit-app';
-import Tabs from '../commons/Tabs.jsx';
+import {api, signals, http, __, env, Icon} from '@sivujetti-commons-for-edit-app';
 import LoadingSpinner from '../commons/LoadingSpinner.jsx';
 import toasters from '../commons/Toaster.jsx';
-import {timingUtils} from '../commons/utils.js';
-import CssStylesValidatorHelper from '../commons/CssStylesValidatorHelper.js';
 import store, {pushItemToOpQueue} from '../store.js';
 import {Section} from './OnThisPageSection.jsx';
 
 class GlobalStylesSection extends Section {
-    // cssValidator;
-    // handleCssInputChangedThrottled;
     // activeThemeId;
     // unregisterSignalListener;
-    // styles;
+    // globalStyles;
     // pickers;
-    // blockTypeBaseStylesTextareaEls;
-    // blockTypeBaseStylesAutoSizersHookedUp;
     // varNameOfCurrentlyOpenPicker;
     // helperPicker;
-    /**
-     * @param {{sections: Array<String>; startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;}} props
-     */
-    constructor(props) {
-        super(props);
-        this.cssValidator = new CssStylesValidatorHelper;
-    }
-    /**
-     * @access protected
-     */
-    componentWillMount() {
-        this.handleCssInputChangedThrottled = timingUtils.debounce(
-            handleCssInputChanged.bind(this),
-            env.normalTypingDebounceMillis);
-    }
     /**
      * @access protected
      */
     componentDidMount() {
-        this.setState({numStyles: undefined, currentTabIdx: 0});
+        this.setState({numStyles: undefined});
         this.activeThemeId = api.getActiveTheme().id;
         this.unregisterSignalListener = signals.on('on-web-page-click-received', () => {
             if (!this.varNameOfCurrentlyOpenPicker) return;
@@ -51,18 +29,19 @@ class GlobalStylesSection extends Section {
         this.unregisterSignalListener();
     }
     /**
+     * @param {any} state
+     * @param {{sections: Array<String>; startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;}} props
      * @access protected
      */
-    render(_, {numStyles, isCollapsed, currentTabIdx}) {
+    render(_, {numStyles, isCollapsed}) {
         let content;
         if (numStyles === undefined)
             content = null;
         else if (numStyles === null)
             content = <LoadingSpinner/>;
-        else content = <>
-        <div class={ `global-styles mt-2 pt-2${currentTabIdx === 0 ? '' : ' d-none'}` }>
-            { this.styles.globalStyles.map(({name, friendlyName}) =>
-            <div class="d-flex">
+        else content = <div class="global-styles mt-2 pt-2">
+            { this.globalStyles.map(({name, friendlyName}) =>
+            <div class={ `d-flex${wc_hex_is_light(this.state[name], 220) ? ' is-very-light-color' : '' }` }>
                 <div ref={ el => this.createColorPickerFor(name, el) }></div>
                 <label>
                     <span>{ __(friendlyName) }</span>
@@ -78,58 +57,15 @@ class GlobalStylesSection extends Section {
                     components: {preview: false, opacity: false, hue: false, interaction: {}}
                 });
             } }></div>
-        </div>
-        <div class={ `mt-2 pt-2${currentTabIdx === 0 ? ' d-none' : ''}` }>
-            { this.styles.blockTypeStyles.map((bs, i) => <div class="accordion">
-                <input id={ `accordion-${i}` } type="radio" name="accordion-radio" defaultChecked={ i === 0 } hidden/>
-                <label class="accordion-header c-hand pl-0" htmlFor={ `accordion-${i}` }>
-                    <i class="icon icon-arrow-right mr-1"></i>
-                    <i class="icon d-inline-block mr-1">
-                        <Icon iconId="chevron-right" className="size-xs"/>
-                    </i>
-                    { __(api.blockTypes.get(bs.blockTypeName).friendlyName) }
-                </label>
-                <div class="accordion-body">
-                    <textarea
-                        value={ this.state[`blockType_${bs.blockTypeName}_baseCssNotCommitted`] }
-                        onInput={ this.handleCssInputChangedThrottled }
-                        data-block-type-name={ bs.blockTypeName }
-                        class={ `form-input code${!this.state[`blockType_${bs.blockTypeName}_baseCssError`] ? '' : ' is-error'}` }
-                        ref={ this.blockTypeBaseStylesTextareaEls[i] }></textarea>
-                    <InputError errorMessage={ this.state[`blockType_${bs.blockTypeName}_baseCssError`] }/>
-                </div>
-                </div>) }
-            </div>
-        </>;
+        </div>;
         return <section class={ `panel-section${isCollapsed ? '' : ' open'}` }>
             <button class="d-flex col-12 flex-centered pr-2" onClick={ this.toggleIsCollapsed.bind(this) }>
                 <Icon iconId="palette" className="size-sm mr-2 color-pink"/>
                 <span class="pl-1 color-default">{ __('Styles') }</span>
                 <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
             </button>
-            <div>
-            <Tabs
-                links={ [__('Globals'), __('Block types')] }
-                onTabChanged={ this.switchTab.bind(this) }
-                className="text-tinyish mt-0 mb-2"/>
-            { content }
-            </div>
+            <div>{ content }</div>
         </section>;
-    }
-    /**
-     * @param {Number} toIdx
-     * @access private
-     */
-    switchTab(toIdx) {
-        this.setState({currentTabIdx: toIdx});
-        if (toIdx === 1 && !this.blockTypeBaseStylesAutoSizersHookedUp) {
-            setTimeout(() => {
-                this.blockTypeBaseStylesTextareaEls.forEach(ref => {
-                    window.autosize(ref.current);
-                });
-            }, 1);
-            this.blockTypeBaseStylesAutoSizersHookedUp = true;
-        }
     }
     /**
      * @access private
@@ -138,18 +74,13 @@ class GlobalStylesSection extends Section {
         const newState = {isCollapsed: !this.state.isCollapsed};
         if (newState.isCollapsed === false && this.state.numStyles === undefined) {
             newState.numStyles === null;
-            http.get(`/api/themes/${this.activeThemeId}/styles`)
-                .then(styles => {
-                    this.styles = styles;
-                    this.pickers = new Map;
-                    this.blockTypeBaseStylesTextareaEls = styles.blockTypeStyles.map(_ => preact.createRef());
-                    this.blockTypeBaseStylesAutoSizersHookedUp = false;
-                    // {style1: color, style1IsValid: true, style2: color, style2IsValid: true ...} &&
-                    // {blockType_Section_baseCss: String, blockType_Section_baseCssNotCommitted: String, blockType_Section_baseCssError: String,
-                    //  blockType_Another_baseCss: String ...}
-                    this.setState(createState(this.styles));
-                })
-                .catch(env.window.console.error);
+            fetchThemeStyles().then(({globalStyles}) => {
+                this.globalStyles = globalStyles;
+                this.pickers = new Map;
+                // {style1: color, style1IsValid: true, style2: color, style2IsValid: true ...}
+                this.setState(createState(this.globalStyles));
+            })
+            .catch(env.window.console.error);
         }
         this.setState(newState);
     }
@@ -172,61 +103,33 @@ class GlobalStylesSection extends Section {
             return;
         }
         this.applyGlobalVarToState(varName, canonicalized.slice(0, 4));
-        this.applyNewColorAndEmitChangeOp('global', varName, this.helperPicker.getColor(), this.pickers.get(varName));
+        this.applyNewColorAndEmitChangeOp(varName, this.helperPicker.getColor(), this.pickers.get(varName));
     }
     /**
-     * @param {String} blockTypeName
-     * @param {String} newStyles
-     * @access private
-     */
-    handleBlockTypeCssChanged(blockTypeName, newStyles) {
-        newStyles = newStyles.trim();
-        this.applyBlockStylesToState(blockTypeName, newStyles);
-        this.applyNewColorAndEmitChangeOp('blockType', blockTypeName, newStyles);
-    }
-    /**
-     * @param {'global'|'blockType'} type
      * @param {String} id Global var name or block type name
      * @param {String|PickrColor} newStyles
      * @access private
      */
-    applyNewColorAndEmitChangeOp(type, id, newStyles) {
+    applyNewColorAndEmitChangeOp(id, newStyles) {
         const findStyle = (from, id, key) => from.findIndex(s => s[key] === id, key);
         let revert, url, data;
-        // mutate this.allStyles or this.styles.blockTypeStyles
-        if (type === 'global') {
-            arguments[3].setHSVA(newStyles.h, newStyles.s, newStyles.v, newStyles.a);
-            //
-            const idx = findStyle(this.styles.globalStyles, id, 'name');
-            const before = this.styles.globalStyles[idx].value.value;
-            const hexOrHexa = newStyles.toHEXA().slice(0, 4);
-            this.styles.globalStyles[idx].value.value = hexOrHexa.length === 4 ? hexOrHexa : hexOrHexa.concat('ff');
-            //
-            url = `/api/themes/${this.activeThemeId}/styles/global`;
-            data = {allStyles: this.styles.globalStyles};
-            //
-            revert = () => {
-                const idx = findStyle(this.styles.globalStyles, id, 'name');
-                this.styles.globalStyles[idx].value.value = before;
-                const asString = this.applyGlobalVarToState(id, before);
-                this.pickers.get(id).setColor(asString);
-            };
-        } else if (type === 'blockType') {
-            const idx = findStyle(this.styles.blockTypeStyles, id, 'blockTypeName');
-            const before = this.styles.blockTypeStyles[idx].styles;
-            this.styles.blockTypeStyles[idx].styles = newStyles;
-            //
-            url = `/api/themes/${this.activeThemeId}/styles/block-type/${id}`;
-            data = {styles: newStyles};
-            //
-            revert = () => {
-                const idx = findStyle(this.styles.blockTypeStyles, id, 'blockTypeName');
-                this.styles.blockTypeStyles[idx].styles = before;
-                this.applyBlockStylesToState(id, before);
-            };
-        } else {
-            throw new Error();
-        }
+        // mutate this.allStyles
+        arguments[2].setHSVA(newStyles.h, newStyles.s, newStyles.v, newStyles.a);
+        //
+        const idx = findStyle(this.globalStyles, id, 'name');
+        const before = this.globalStyles[idx].value.value;
+        const hexOrHexa = newStyles.toHEXA().slice(0, 4);
+        this.globalStyles[idx].value.value = hexOrHexa.length === 4 ? hexOrHexa : hexOrHexa.concat('ff');
+        //
+        url = `/api/themes/${this.activeThemeId}/styles/global`;
+        data = {allStyles: this.globalStyles};
+        //
+        revert = () => {
+            const idx = findStyle(this.globalStyles, id, 'name');
+            this.globalStyles[idx].value.value = before;
+            const asString = this.applyGlobalVarToState(id, before);
+            this.pickers.get(id).setColor(asString);
+        };
         const commit = () => http.put(url, data)
             .then(resp => {
                 if (resp.ok !== 'ok') throw new Error('-');
@@ -238,7 +141,7 @@ class GlobalStylesSection extends Section {
                 return false;
             });
         //
-        store.dispatch(pushItemToOpQueue(`update-theme-${type}-styles`, {
+        store.dispatch(pushItemToOpQueue('update-theme-global-styles', {
             doHandle: ($commit, _$revert) => $commit(),
             doUndo(_$commit, $revert) { $revert(); },
             args: [commit.bind(this), revert.bind(this)],
@@ -266,7 +169,7 @@ class GlobalStylesSection extends Section {
         }).on('change', (color, _source, _instance) => {
             this.applyGlobalVarToState(varName, color.toHEXA().slice(0, 4));
         }).on('changestop', (_source, instance) => {
-            this.applyNewColorAndEmitChangeOp('global', varName, instance.getColor(), instance);
+            this.applyNewColorAndEmitChangeOp(varName, instance.getColor(), instance);
         });
         //
         this.pickers.set(varName, pickr);
@@ -288,47 +191,53 @@ class GlobalStylesSection extends Section {
      * @param {String} newStyles
      * @access private
      */
-    applyBlockStylesToState(blockTypeName, newStyles) {
-        this.setState({[`blockType_${blockTypeName}_baseCss`]: newStyles,
-                       [`blockType_${blockTypeName}_baseCssNotCommitted`]: newStyles,
-                       [`blockType_${blockTypeName}_baseCssError`]: ''});
+    _applyBlockStylesToState(blockTypeName, newStyles) {
         this.props.currentWebPage.updateCssStyles({type: 'blockType', id: blockTypeName}, newStyles);
     }
 }
 
+let stylesCached = null;
+
 /**
- * @param {{globalStyles: Array<RawCssRule>; blockTypeStyles: Array<{blockTypeName: String; styles: String;}>;}} styles
+ * @returns {Promise<{globalStyles: Array<RawCssRule>; blockTypeStyles: Array<RawBlockTypeBaseStyles>;}>}
+ */
+function fetchThemeStyles() {
+    if (stylesCached)
+        return Promise.resolve(stylesCached);
+    return http.get(`/api/themes/${api.getActiveTheme().id}/styles`)
+        .then(styles => {
+            stylesCached = styles;
+            return stylesCached;
+        });
+}
+
+/**
+ * https://stackoverflow.com/a/51567564
+ *
+ * @param {String} hexa
+ * @param {Number} howLight = 155
+ * @param {Boolean} multiplyByAlpha = false
+ * @param {Boolean}
+ */
+function wc_hex_is_light(hexa, howLight = 155, multiplyByAlpha = false) {
+    const c_r = parseInt(hexa.substring(1, 3), 16);
+    const c_g = parseInt(hexa.substring(3, 5), 16);
+    const c_b = parseInt(hexa.substring(5, 7), 16);
+    const a = !multiplyByAlpha ? 1 : (parseInt(hexa.substring(7, 9), 16) / 255);
+    const brightness = (((c_r * 299) + (c_g * 587) + (c_b * 114)) * a) / 1000;
+    return brightness > howLight;
+}
+
+/**
+ * @param {Array<RawCssRule>} globalStyles
  * @returns {{[key: String]: String;}}
  */
-function createState({globalStyles, blockTypeStyles}) {
+function createState(globalStyles) {
     const a = globalStyles.filter(({value}) => value.type === 'color').reduce((obj, {name, value}) =>
         Object.assign(obj, {[name]: `#${value.value.join('')}`, [`${name}IsValid`]: true})
     , {numStyles: Infinity});
     //
-    blockTypeStyles.forEach(({blockTypeName, styles}) => {
-        a[`blockType_${blockTypeName}_baseCss`] = styles;
-        a[`blockType_${blockTypeName}_baseCssNotCommitted`] = styles;
-        a[`blockType_${blockTypeName}_baseCssError`] = '';
-    });
-    //
     return a;
-}
-
-/**
- * @param {Event} e
- */
-function handleCssInputChanged(e) {
-    const blockTypeName = e.target.getAttribute('data-block-type-name');
-    const committed = this.state[`blockType_${blockTypeName}_baseCss`];
-    const [shouldCommit, result] = this.cssValidator.validate(e, committed);
-    if (!shouldCommit) {
-        this.setState({[`blockType_${blockTypeName}_baseCssNotCommitted`]: result.stylesStringNotCommitted,
-                       [`blockType_${blockTypeName}_baseCssError`]: result.stylesError});
-        return;
-    }
-    const newStyles = result.stylesStringNotCommitted;
-    this.applyBlockStylesToState(blockTypeName, newStyles);
-    this.applyNewColorAndEmitChangeOp('blockType', blockTypeName, newStyles);
 }
 
 /**
@@ -336,3 +245,4 @@ function handleCssInputChanged(e) {
  */
 
 export default GlobalStylesSection;
+export {fetchThemeStyles};

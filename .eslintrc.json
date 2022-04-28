@@ -6,7 +6,7 @@
         "no-console": 1,
         "semi": 1,
         "no-unused-vars": [1,{ "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
-        "no-use-before-define": ["error", {"functions": false, "classes": true, "variables": true}],
+        "no-use-before-define": ["error", {"functions": false, "classes": false, "variables": true}],
         "no-case-declarations": 0,
         "comma-dangle": 0,
         "react/prop-types": 0,

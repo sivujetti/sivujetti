@@ -15,43 +15,82 @@ describe('Block', () => {
     it('User can edit styles', browser => {
         const testBlock = testPageData.blocks.find(({type}) => type === 'Paragraph');
         const testBlockBlockTreeBtnLocator = `.block-tree li[data-block-id="${testBlock.id}"] button`;
-        const stylesTabBtnLocator = `${vars.inspectorPanelLocator} > ul .tab-item:nth-child(2)`;
-        const stylesTextareaLocator = `${vars.inspectorPanelLocator} > div:last-of-type textarea`;
-        const validationErrorLocator = `${stylesTextareaLocator} + *`;
+        const ownStylesTabNth = 2;
+        const ownStylesTabBtnLocator = `${vars.inspectorPanelLocator} > ul .tab-item:nth-child(${ownStylesTabNth})`;
+        const headingNth = 1;
+        const ownStylesTextareaLocator = `${vars.inspectorPanelLocator} > div:nth-of-type(${ownStylesTabNth+headingNth}) textarea`;
+        const validationErrorLocator = `${ownStylesTextareaLocator} + *`;
         const testBlockInPageLocator = `body [data-block="${testBlock.id}"]`;
 
         //
-        browser
-            .waitForElementVisible(vars.editAppElLocator)
-            .waitForElementVisible(testBlockBlockTreeBtnLocator)
-            .click(testBlockBlockTreeBtnLocator)
-            .waitForElementVisible(stylesTabBtnLocator)
-            .click(stylesTabBtnLocator)
-            .waitForElementVisible(stylesTextareaLocator)
-            .setValue(stylesTextareaLocator, '"#€%€#&?€ 52€"')
-            .assert.elementPresent(validationErrorLocator)
-            .setValue(stylesTextareaLocator, '[[scope]] { color: red; }')
-            .assert.not.elementPresent(validationErrorLocator)
-            //
-            .frame(0)
-            .execute(testBlockLocator =>
-                window.getComputedStyle(document.querySelector(testBlockLocator)).color
-            , [testBlockInPageLocator], result => {
-                browser.assert.equal(result.value, 'rgb(255, 0, 0)');
-            })
-            .frameParent()
-            //
-            .waitForElementPresent(vars.saveButtonLocator)
-            .click(vars.saveButtonLocator)
-            .waitForElementNotPresent(vars.saveButtonLocator)
-            //
-            .navigateTo(env.makeUrl(testPageData.slug))
-            .waitForElementPresent(testBlockInPageLocator)
-            .execute(testBlockLocator =>
-                window.getComputedStyle(document.querySelector(testBlockLocator)).color
-            , [testBlockInPageLocator], result => {
-                browser.assert.equal(result.value, 'rgb(255, 0, 0)');
-            });
+        waitForMainMenuToAppear(browser);
+        openTestBlockToInspectorPanel(browser);
+        switchToOwnStylesTab(browser);
+        typeTestCssToStyleInput(browser, '"#€%€#&?€ 52€"');
+        verifyValidationErrorIsVisible(browser);
+        typeTestCssToStyleInput(browser, '[[scope]] { color: red; }');
+        verifyValidationErrorIsNotVisible(browser);
+        verifyChangedStylesInWebpageIframe(browser);
+        saveChanges(browser);
+        goToWebPageWhichStylesWeJustSaved(browser);
+        verifyBlockNowHasNewStyles(browser);
+
+        //
+        function waitForMainMenuToAppear(browser) {
+            return browser
+                .waitForElementVisible(vars.editAppElLocator);
+        }
+        function openTestBlockToInspectorPanel(browser) {
+            return browser
+                .waitForElementVisible(testBlockBlockTreeBtnLocator)
+                .click(testBlockBlockTreeBtnLocator);
+        }
+        function switchToOwnStylesTab(browser) {
+            return browser
+                .waitForElementVisible(ownStylesTabBtnLocator)
+                .click(ownStylesTabBtnLocator);
+        }
+        function typeTestCssToStyleInput(browser, testCss) {
+            return browser
+                .waitForElementVisible(ownStylesTextareaLocator)
+                .setValue(ownStylesTextareaLocator, testCss);
+        }
+        function verifyValidationErrorIsVisible(browser) {
+            browser.assert.elementPresent(validationErrorLocator);
+            return browser;
+        }
+        function verifyValidationErrorIsNotVisible(browser) {
+            browser.assert.not.elementPresent(validationErrorLocator);
+            return browser;
+        }
+        function verifyChangedStylesInWebpageIframe(browser) {
+            return browser
+                .frame(0)
+                .execute(testBlockLocator =>
+                    window.getComputedStyle(document.querySelector(testBlockLocator)).color
+                , [testBlockInPageLocator], result => {
+                    browser.assert.equal(result.value, 'rgb(255, 0, 0)');
+                })
+                .frameParent();
+        }
+        function saveChanges(browser) {
+            return browser
+                .waitForElementPresent(vars.saveButtonLocator)
+                .click(vars.saveButtonLocator)
+                .waitForElementNotPresent(vars.saveButtonLocator);
+        }
+        function goToWebPageWhichStylesWeJustSaved(browser) {
+            return browser.navigateTo(env.makeUrl(testPageData.slug));
+        }
+        function verifyBlockNowHasNewStyles(browser) {
+            return browser
+                .waitForElementPresent(testBlockInPageLocator)
+                .execute(testBlockLocator =>
+                    window.getComputedStyle(document.querySelector(testBlockLocator)).color
+                , [testBlockInPageLocator], result => {
+                    browser.assert.equal(result.value, 'rgb(255, 0, 0)');
+                });
+        }
     });
 
     after((browser, done) => {

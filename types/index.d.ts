@@ -74,13 +74,6 @@ interface RawBlock {
     [key: String]: mixed;
 }
 
-interface BlockType {
-    name: String;
-    friendlyName: String;
-    initialData: {[key: String]: any;};
-    defaultRenderer: String;
-}
-
 interface BlockRefComment {
     blockId: String;
     blockType: String;
@@ -169,6 +162,11 @@ interface RawBlockStyle {
 interface RawGlobalBlockTreeBlocksStyles {
     globalBlockTreeId: String;
     styles: Array<RawBlockStyle>;
+}
+
+interface RawBlockTypeBaseStyles {
+    blockTypeName: String;
+    styles: String;
 }
 
 interface PageMetaRaw {

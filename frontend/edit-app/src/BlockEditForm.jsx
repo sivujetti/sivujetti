@@ -1,15 +1,13 @@
-import {http, __, api, signals, env, Icon, InputError} from '@sivujetti-commons-for-edit-app';
+import {http, __, api, signals, env, Icon} from '@sivujetti-commons-for-edit-app';
 import Tabs from './commons/Tabs.jsx';
 import {timingUtils} from './commons/utils.js';
-import toasters from './commons/Toaster.jsx';
-import CssStylesValidatorHelper from './commons/CssStylesValidatorHelper.js';
 import {getIcon} from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
 import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
-import store, {observeStore, selectGlobalBlockTreeBlocksStyles, pushItemToOpQueue,
-               setGlobalBlockTreeBlocksStyles, selectPageBlockStyles, setPageBlockStyles,
-               selectCurrentPage} from './store.js';
+import store, {pushItemToOpQueue} from './store.js';
+import IndividualBlockStylesTab from './IndividualBlockStylesTab.jsx';
+import BlockTypeBaseStylesTab from './BlockTypeBaseStylesTab.jsx';
 
 /** @var {BlockTypes} */
 let blockTypes;
@@ -32,19 +30,13 @@ function putOrGetSnapshot(block, blockType, override = false) {
 }
 
 class BlockEditForm extends preact.Component {
-    // cssValidator;
     // blockVals;
     // isOutermostBlockOfGlobalBlockTree;
     // blockType;
-    // isPartOfGlobalBlockTree;
     // editFormImpl;
     // snapshot;
     // editFormImplRef;
-    // stylesTextareaEl;
-    // borrowedStyles;
-    // stylesResourceUrl;
     // unregistrables;
-    // handleCssInputChangedThrottled;
     // static currentInstance;
     // static undoingLockIsOn;
     /**
@@ -53,8 +45,7 @@ class BlockEditForm extends preact.Component {
     constructor(props) {
         super(props);
         blockTypes = api.blockTypes;
-        this.cssValidator = new CssStylesValidatorHelper;
-        this.state = {currentTabIdx: 0, stylesString: undefined, stylesError: ''};
+        this.state = {currentTabIdx: 0};
     }
     /**
      * @access protected
@@ -65,53 +56,14 @@ class BlockEditForm extends preact.Component {
         BlockEditForm.undoingLockIsOn = false;
         this.isOutermostBlockOfGlobalBlockTree = base && block.id === base.__globalBlockTree.blocks[0].id;
         this.blockType = blockTypes.get(block.type);
-        this.isPartOfGlobalBlockTree = block.isStoredTo === 'globalBlockTree';
         this.editFormImpl = this.blockType.editForm;
         this.snapshot = putOrGetSnapshot(block, this.blockType);
         this.editFormImplRef = preact.createRef();
-        this.stylesTextareaEl = preact.createRef();
-        //
-        const [selectStateFunc, findBlockStylesFunc] = !this.isPartOfGlobalBlockTree
-            ? [selectPageBlockStyles, findBlockStyles]
-            : [selectGlobalBlockTreeBlocksStyles, findStylesForGlobalBlockTreeBlocks];
-        const state = store.getState();
-        this.borrowedStyles = selectStateFunc(state);
-        if (!this.isPartOfGlobalBlockTree) {
-            const page = selectCurrentPage(state).webPage.data.page;
-            this.stylesResourceUrl = `/api/pages/${page.type}/${page.id}/block-styles/${api.getActiveTheme().id}`;
-        } else {
-            this.stylesResourceUrl = `/api/global-block-trees/${block.globalBlockTreeId}/block-styles/${api.getActiveTheme().id}`;
-        }
-        //
-        this.unregistrables = [observeStore(s => selectStateFunc(s),
-        /**
-         * @param {Array<RawBlockStyle>|Array<RawGlobalBlockTreeBlocksStyles>} allStyles
-         */
-        allStyles => {
-            const latest = findBlockStylesFunc(allStyles, block);
-            if (!latest)
-                return;
-            if (this.state.stylesString !== latest.styles) {
-                this.setState({stylesString: latest.styles,
-                               stylesStringNotCommitted: latest.styles,
-                               stylesError: ''});
-                this.borrowedStyles = allStyles;
-            }
-        }),
-        signals.on('on-block-deleted', ({id}) => {
+        this.unregistrables = [signals.on('on-block-deleted', ({id}) => {
             if (id === block.id) this.props.inspectorPanel.close();
         })];
-        this.handleCssInputChangedThrottled = timingUtils.debounce(
-            handleCssInputChanged.bind(this),
-            env.normalTypingDebounceMillis);
-        //
-        const styles = this.borrowedStyles.length ? findBlockStylesFunc(this.borrowedStyles, block) : null;
-        const stylesString = styles ? styles.styles : '';
         this.setState({useOverrides: base && base.useOverrides,
-                       currentTabIdx: 0,
-                       stylesString,
-                       stylesStringNotCommitted: stylesString,
-                       stylesError: ''});
+                       currentTabIdx: 0});
     }
     /**
      * @access protected
@@ -119,7 +71,6 @@ class BlockEditForm extends preact.Component {
     componentDidMount() {
         BlockEditForm.currentInstance = this;
         this.blockVals.setCurrentEditFormImplRef(BlockEditForm.currentInstance.editFormImplRef);
-        window.autosize(this.stylesTextareaEl.current);
     }
     /**
      * @access protected
@@ -135,7 +86,7 @@ class BlockEditForm extends preact.Component {
     /**
      * @access protected
      */
-    render({block, blockTreeCmp}, {useOverrides, currentTabIdx, stylesStringNotCommitted, stylesError}) {
+    render({block, blockTreeCmp}, {useOverrides, currentTabIdx}) {
         const EditFormImpl = this.editFormImpl;
         return <div data-main>
         <div class={ `with-icon pb-1${preactHooks.useMemo(() => {
@@ -147,8 +98,8 @@ class BlockEditForm extends preact.Component {
             { __(block.title || this.blockType.friendlyName) }
         </div>
         <Tabs
-            links={ [__('Content'), __('Styles')] }
-            onTabChanged={ this.changeTab.bind(this) }
+            links={ [__('Content'), __('Own styles'), __('Base styles')] }
+            onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
             className="text-tinyish mt-0 mb-2"/>
         <div class={ currentTabIdx === 0 ? '' : 'd-none' }>
             <div class="mt-2">
@@ -179,52 +130,10 @@ class BlockEditForm extends preact.Component {
                     key={ block.id }/>
             </div>
         </div>
-        <div class={ currentTabIdx === 0 ? 'd-none' : '' }>{ this.stylesResourceUrl.indexOf('/-') < 0
-            ? <>
-                <textarea
-                    value={ stylesStringNotCommitted }
-                    onInput={ this.handleCssInputChangedThrottled }
-                    class={ `form-input code${!stylesError ? '' : ' is-error'}` }
-                    placeholder={ '[[scope]] {\n  color: red;\n}\n[[scope]].specialized {\n  color: blue;\n}' }
-                    ref={ this.stylesTextareaEl }>{stylesStringNotCommitted}</textarea>
-                <InputError errorMessage={ stylesError }/>
-            </>
-            : <div style="color: var(--color-fg-dimmed)">Tyylejä voi muokata sivun luomisen jälkeen.</div>
-        }</div>
+        <IndividualBlockStylesTab block={ this.props.block } isVisible={ currentTabIdx === 1 }/>
+        <BlockTypeBaseStylesTab block={ this.props.block } isVisible={ currentTabIdx === 2 }
+            blockTypeNameTranslated={ __(this.blockType.friendlyName) }/>
         </div>;
-    }
-    /**
-     * @param {Number} toIdx
-     * @access private
-     */
-    changeTab(toIdx) {
-        this.setState({currentTabIdx: toIdx});
-        if (toIdx === 1) setTimeout(() => {
-            window.autosize.update(this.stylesTextareaEl.current);
-        }, 1);
-    }
-    /**
-     * @param {Array<RawBlockStyle>|Array<RawGlobalBlockTreeBlocksStyles>} newStyles
-     * @param {Block} block
-     * @returns {() => Promise<Boolean>}
-     * @access private
-     */
-    createCommitFn(newStylesAll, block) {
-        return () => {
-            const newStyles = !this.isPartOfGlobalBlockTree
-                ? newStylesAll
-                : newStylesAll.find(bag => bag.globalBlockTreeId === block.globalBlockTreeId).styles;
-            return http.put(this.stylesResourceUrl, {styles: newStyles})
-                .then(resp => {
-                    if (resp.ok !== 'ok') throw new Error('-');
-                    return true;
-                })
-                .catch(err => {
-                    env.window.console.error(err);
-                    toasters.editAppMain(__('Something unexpected happened.'), 'error');
-                    return false;
-                });
-        };
     }
     /**
      * @param {Event} e
@@ -276,32 +185,6 @@ class BlockEditForm extends preact.Component {
                 .catch(env.window.console.error);
         }
     }
-}
-
-/**
- * @param {Event} e
- */
-function handleCssInputChanged(e) {
-    const committed = this.state.stylesString;
-    const [shouldCommit, result] = this.cssValidator.validate(e, committed);
-    if (!shouldCommit) {
-        this.setState(result);
-        return;
-    }
-    const {block} = this.props;
-    const newAll = dispatchNewBlockStyles(this.borrowedStyles, result.stylesStringNotCommitted,
-                                          block, this.isPartOfGlobalBlockTree);
-    //
-    const commit = this.createCommitFn(newAll, block);
-    const revert = () => {
-        dispatchNewBlockStyles(this.borrowedStyles, committed, block, this.isPartOfGlobalBlockTree);
-    };
-    //
-    store.dispatch(pushItemToOpQueue(`update-or-create-theme-${this.stylesResourceUrl}-block-styles`, {
-        doHandle: ($commit, _$revert) => $commit(),
-        doUndo(_$commit, $revert) { $revert(); },
-        args: [commit, revert],
-    }));
 }
 
 class BlockValMutator {
@@ -537,71 +420,6 @@ function updateFormValues($this, snapshot) {
     BlockEditForm.undoingLockIsOn = true;
     $this.editFormImplRef.current.overrideValues(snapshot);
     setTimeout(() => { BlockEditForm.undoingLockIsOn = false; }, 200);
-}
-
-/**
- * @param {Array<RawBlockStyle>|Array<RawGlobalBlockTreeBlocksStyles>} allStyles
- * @param {String} newVal e.g. '{ color: red; }'
- * @param {Block} block
- * @param {Boolean} isPartOfGlobalBlockTree
- * @returns {Array<RawBlockStyle>|Array<RawGlobalBlockTreeBlocksStyles>}
- */
-function dispatchNewBlockStyles(allStyles, newVal, block, isPartOfGlobalBlockTree) {
-    const clone = JSON.parse(JSON.stringify(allStyles));
-
-    // 1. Find containing array
-    const stylesRef = (function () {
-        // Page block, style are always in the same array
-        if (!isPartOfGlobalBlockTree) return clone;
-        // Global tree block, find or create the array
-        const {globalBlockTreeId} = block;
-        let bag = clone.find(bag => bag.globalBlockTreeId === globalBlockTreeId);
-        if (!bag) {
-            const newBag = {globalBlockTreeId: block.globalBlockTreeId, styles: []};
-            const newLen = clone.push(newBag);
-            bag = clone[newLen - 1];
-        }
-        return bag.styles;
-    })();
-
-    // 2. Mutate the array or styles object in it
-    // currentStyle references to pageBlockStyles[blockPos] (if isPartOfGlobalBlockTree = true)
-    //                            globalBlockTreeBlocksStyles[globalTreeIdPos].styles[blockPos] (if isPartOfGlobalBlockTree = false)
-    const currentStyles = findBlockStyles(stylesRef, block);
-    if (currentStyles) {
-        currentStyles.styles = newVal;
-    } else {
-        stylesRef.push({blockId: block.id, styles: newVal});
-    }
-
-    // 3. Commit
-    const updateStateFunc = !isPartOfGlobalBlockTree
-        ? setPageBlockStyles
-        : setGlobalBlockTreeBlocksStyles;
-    store.dispatch(updateStateFunc(clone)); // see also observeStore from this.componentWillMount
-                                            // and observeStore @ EditApp.constructor
-    return clone;
-}
-
-/**
- * @param {Array<RawBlockStyle>} from
- * @param {Block} block
- * @returns {RawBlockStyle|undefined}
- */
-function findBlockStyles(from, {id}) {
-    return from.find(s => s.blockId === id);
-}
-
-/**
- * @param {Array<RawGlobalBlockTreeBlocksStyles>} from
- * @param {Block} block
- * @returns {RawBlockStyle|undefined}
- */
-function findStylesForGlobalBlockTreeBlocks(from, block) {
-    const {globalBlockTreeId} = block;
-    const bag = from.find(bag => bag.globalBlockTreeId === globalBlockTreeId);
-    if (!bag) return undefined;
-    return findBlockStyles(bag.styles, block);
 }
 
 /**

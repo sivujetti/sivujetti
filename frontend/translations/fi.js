@@ -18,7 +18,8 @@ stringBundles.push({
     'Page "%s" already exist.': 'Sivu "%s" on jo olemassa.',
     'Something unexpected happened.': 'Jokin meni pieleen.',
     // edit-app/src/BlockEditForm.jsx
-    'Styles': 'Tyylit',
+    'Own styles': 'Omat tyylit',
+    'Base styles': 'Pohjatyylit',
     'Use specializations': 'Käytä spesialisointeja',
     'If on, any changes made to this\nglobal block tree won\'t affect\nthe original': 'Jos päällä, tähän globaaaliin lohko-\npuuhun tehdyt muutokset ei\nvaikuta alkuperäiseen',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
@@ -48,6 +49,8 @@ stringBundles.push({
     'Meta blocks contains ': 'Metalohkoihin on tallennettu ',
     'additional data / metadata': 'lisä-, tai metatietoja',
     ', and otherwise act like ordinary blocks.': ', ja käyttäytyvät muilta osin kuten tavalliset lohkot.',
+    // edit-app/src/BlockTypeBaseStylesTab.jsx
+    'These styles will affect all %s blocks': 'Nämä tyylit vaikuuttaa kaikkiin %s-lohkoihin',
     // edit-app/src/BlockTypeSelector.jsx
     'Common': 'Yleiset',
     'Globals': 'Globaalit',
@@ -58,7 +61,7 @@ stringBundles.push({
     'e.g. Header, Footer': 'esim. Header, Footer',
     'Convert': 'Muunna',
     // edit-app/src/DefaultView/GlobalStylesSection.jsx
-    'Block types': 'Lohkotyypit',
+    'Styles': 'Tyylit',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'sivutyyppi',
     'Default content': 'Oletussisältö',
@@ -81,6 +84,8 @@ stringBundles.push({
     // edit-app/src/GlobalBlockTreeSelector.jsx
     'No %s found': '%s ei löytynyt',
     'global blocks': 'globaaleja lohkoja',
+    // edit-app/src/IndividualBlockStylesTab.jsx
+    'These styles will affect this individual block only': 'Nämä tyylit vaikuuttaa vain tähän yksittäiseen lohkoon',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Sulje',
     // edit-app/src/PageType/PageTypeBasicInfoConfigurationForm.jsx

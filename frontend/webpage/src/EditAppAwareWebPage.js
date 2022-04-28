@@ -411,7 +411,7 @@ class EditAppAwareWebPage {
      * @param {String} css
      */
     updateCssStylesIfChanged(type, id, css) {
-        if (type !== 'singleBlock')
+        if (type !== 'singleBlock' && type !== 'blockType')
             throw new Error('Not implemented yet');
         const attrName = temp1(type);
         const sel = `style[${attrName}="${id}"]`;

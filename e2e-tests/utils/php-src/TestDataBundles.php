@@ -66,7 +66,7 @@ final class TestDataBundles {
                 "title" => "Home",
                 "meta" => (object) ["description" => "Description here."],
                 "layoutId" => "1",
-                "blocks" => [$block1, $block2],
+                "blocks" => [$block1, $block2, $block4],
                 "status" => 0
             ]],
             ["table" => "Pages", "data" => [

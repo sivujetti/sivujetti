@@ -13,69 +13,65 @@ describe('Block type', () => {
     });
 
     it('User can edit styles', browser => {
-        const testBlock = testPageData.blocks.find(({type}) => type === 'Paragraph');
-        const globalStylesMainPanelSectionLocator = '#main-panel .panel-section:nth-of-type(3)';
-        const stylesSectionTitleBtnLocator = `${globalStylesMainPanelSectionLocator} > button`;
-        const stylesSectionStylesTabLocator = `${globalStylesMainPanelSectionLocator} > div .global-styles + div`;
-        const paragraphBlockTypeStyleAccordionLocator = `${stylesSectionStylesTabLocator} .accordion:nth-child(2)`;
-        const paragraphBaseStylesTextareaLocator = `${paragraphBlockTypeStyleAccordionLocator} textarea`;
-        const validationErrorLocator = `${paragraphBaseStylesTextareaLocator} + *`;
-        const testBlockInPageLocator = `body [data-block-type="${testBlock.type}"]`;
+        const firstParagraphBlock = testPageData.blocks.find(({type}) => type === 'Paragraph');
+        const testBlockBlockTreeBtnLocator = `.block-tree li[data-block-id="${firstParagraphBlock.id}"] button`;
+        const baseStylesTabNth = 3;
+        const baseStylesTabBtnLocator = `${vars.inspectorPanelLocator} > ul .tab-item:nth-child(${baseStylesTabNth})`;
+        const headingNth = 1;
+        const baseStylesTextareaLocator = `${vars.inspectorPanelLocator} > div:nth-of-type(${baseStylesTabNth+headingNth}) textarea`;
+        const validationErrorLocator = `${baseStylesTextareaLocator} + *`;
+        const testBlocksInPageLocator = `body [data-block-type="Paragraph"]`;
 
         //
         waitForMainMenuToAppear(browser);
-        openGlobalStylesMainMenuSection(browser);
-        switchToBlockTypeBaseStylesTab(browser);
-        openParagraphBaseStylesAccordion(browser);
-        typeToStylesTextarea(browser, '"#€%€#&?€ 52€"');
+        openTestBlockToInspectorPanel(browser);
+        switchToBaseStylesTab(browser);
+        typeTestCssToStyleInput(browser, '"#€%€#&?€ 52€"');
         verifyValidationErrorIsVisible(browser);
-        typeToStylesTextarea(browser, '[[scope]] { color: red; }');
+        typeTestCssToStyleInput(browser, '[[scope]] { color: red; }');
         verifyValidationErrorIsNotVisible(browser);
-        verifyChangedStylesInWebpageIframe(browser, testBlockInPageLocator);
+        verifyChangedStylesInWebpageIframe(browser);
         saveChanges(browser);
         goToWebPageWhichStylesWeJustSaved(browser);
-        verifyBlockHasNowBlockTypesBaseStyles(browser);
+        verifyAllParagraphBlocksNowHaveNewStyles(browser);
 
         //
         function waitForMainMenuToAppear(browser) {
             return browser
                 .waitForElementVisible(vars.editAppElLocator);
         }
-        function openGlobalStylesMainMenuSection(browser) {
+        function openTestBlockToInspectorPanel(browser) {
             return browser
-                .waitForElementVisible(stylesSectionTitleBtnLocator)
-                .click(stylesSectionTitleBtnLocator);
+                .waitForElementVisible(testBlockBlockTreeBtnLocator)
+                .click(testBlockBlockTreeBtnLocator);
         }
-        function switchToBlockTypeBaseStylesTab(browser) {
-            const stylesSectionStylesTabBtnLocator = `${globalStylesMainPanelSectionLocator} > div .tab-item:nth-child(2)`;
+        function switchToBaseStylesTab(browser) {
             return browser
-                .waitForElementVisible(stylesSectionStylesTabBtnLocator)
-                .click(stylesSectionStylesTabBtnLocator);
+                .waitForElementVisible(baseStylesTabBtnLocator)
+                .click(baseStylesTabBtnLocator);
         }
-        function openParagraphBaseStylesAccordion(browser) {
-            const paragraphBaseStylesAccordionLabelLocator = `${paragraphBlockTypeStyleAccordionLocator} label`;
-            browser
-                .waitForElementVisible(paragraphBaseStylesAccordionLabelLocator)
-                .click(paragraphBaseStylesAccordionLabelLocator);
-        }
-        function typeToStylesTextarea(browser, css) {
+        function typeTestCssToStyleInput(browser, testCss) {
             return browser
-                .waitForElementVisible(paragraphBaseStylesTextareaLocator)
-                .setValue(paragraphBaseStylesTextareaLocator, css);
+                .waitForElementVisible(baseStylesTextareaLocator)
+                .setValue(baseStylesTextareaLocator, testCss);
         }
         function verifyValidationErrorIsVisible(browser) {
-            return browser.assert.elementPresent(validationErrorLocator);
+            browser.assert.elementPresent(validationErrorLocator);
+            return browser;
         }
         function verifyValidationErrorIsNotVisible(browser) {
-            return browser.assert.not.elementPresent(validationErrorLocator);
+            browser.assert.not.elementPresent(validationErrorLocator);
+            return browser;
         }
-        function verifyChangedStylesInWebpageIframe(browser, testBlockInPageLocator) {
+        function verifyChangedStylesInWebpageIframe(browser) {
             return browser
                 .frame(0)
-                .execute(testBlockLocator =>
-                    window.getComputedStyle(document.querySelector(testBlockLocator)).color
-                , [testBlockInPageLocator], result => {
-                    browser.assert.equal(result.value, 'rgb(255, 0, 0)');
+                .execute(testBlocksLocator =>
+                    Array.from(document.querySelectorAll(testBlocksLocator))
+                        .map(el => window.getComputedStyle(el).color)
+                , [testBlocksInPageLocator], result => {
+                    browser.assert.equal(result.value[0], 'rgb(255, 0, 0)');
+                    browser.assert.equal(result.value[1], 'rgb(255, 0, 0)');
                 })
                 .frameParent();
         }
@@ -88,13 +84,15 @@ describe('Block type', () => {
         function goToWebPageWhichStylesWeJustSaved(browser) {
             return browser.navigateTo(env.makeUrl(testPageData.slug));
         }
-        function verifyBlockHasNowBlockTypesBaseStyles(browser) {
+        function verifyAllParagraphBlocksNowHaveNewStyles(browser) {
             return browser
-                .waitForElementPresent(testBlockInPageLocator)
-                .execute(testBlockLocator =>
-                    window.getComputedStyle(document.querySelector(testBlockLocator)).color
-                , [testBlockInPageLocator], result => {
-                    browser.assert.equal(result.value, 'rgb(255, 0, 0)');
+                .waitForElementPresent(testBlocksInPageLocator)
+                .execute(testBlocksLocator =>
+                    Array.from(document.querySelectorAll(testBlocksLocator))
+                        .map(el => window.getComputedStyle(el).color)
+                , [testBlocksInPageLocator], result => {
+                    browser.assert.equal(result.value[0], 'rgb(255, 0, 0)');
+                    browser.assert.equal(result.value[1], 'rgb(255, 0, 0)');
                 });
         }
     });

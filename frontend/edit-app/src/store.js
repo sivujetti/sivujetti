@@ -47,8 +47,25 @@ const pageBlocksStylesReducer = (state = [], action) => {
     }
 };
 
-const setPageBlockStyles = value => ({type: 'pageBlocksStyles/set', value});
-const selectPageBlockStyles = state => state.pageBlocksStyles;
+const setPageBlocksStyles = value => ({type: 'pageBlocksStyles/set', value});
+const selectPageBlocksStyles = state => state.pageBlocksStyles;
+
+
+/**
+ * @param {Object} state
+ * @param {Object} action
+ */
+const blockTypesBaseStylesReducer = (state = [], action) => {
+    switch (action.type) {
+    case 'blockTypesBaseStyles/set':
+        return action.value;
+    default:
+        return state;
+    }
+};
+
+const setBlockTypesBaseStyles = value => ({type: 'blockTypesBaseStyles/set', value});
+const selectBlockTypesBaseStyles = state => state.blockTypesBaseStyles;
 
 
 /**
@@ -128,6 +145,7 @@ const mainStore = createManageableStore(undefined, {
     currentPage: currentPageReducer,
     globalBlockTreeBlocksStyles: globalBlockTreeBlocksStylesReducer,
     pageBlocksStyles: pageBlocksStylesReducer,
+    blockTypesBaseStyles: blockTypesBaseStylesReducer,
     opQueue: opQueueReducer,
     formStates: formStatesReducer,
 });
@@ -186,7 +204,8 @@ class FormStateStoreWrapper {
 export {setCurrentPage, selectCurrentPage,
         //
         setGlobalBlockTreeBlocksStyles, selectGlobalBlockTreeBlocksStyles,
-        setPageBlockStyles, selectPageBlockStyles,
+        setPageBlocksStyles, selectPageBlocksStyles,
+        setBlockTypesBaseStyles, selectBlockTypesBaseStyles,
         //
         setOpQueue, pushItemToOpQueue, deleteItemFromOpQueue, deleteItemsFromOpQueueAfter,
         selectOpQueue,

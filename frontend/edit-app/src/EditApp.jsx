@@ -3,8 +3,8 @@ import toasters, {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultView/DefaultMainPanelView.jsx';
 import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
 import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType/PageTypeCreateMainPanelView.jsx';
-import store, {observeStore, setCurrentPage, setGlobalBlockTreeBlocksStyles, setPageBlockStyles,
-               setOpQueue, selectGlobalBlockTreeBlocksStyles, selectPageBlockStyles} from './store.js';
+import store, {observeStore, setCurrentPage, setGlobalBlockTreeBlocksStyles, setPageBlocksStyles,
+               setOpQueue, selectGlobalBlockTreeBlocksStyles, selectPageBlocksStyles, selectBlockTypesBaseStyles} from './store.js';
 import SaveButton from './SaveButton.jsx';
 import {findBlockTemp} from './BlockTree.jsx';
 
@@ -42,26 +42,7 @@ class EditApp extends preact.Component {
         this.websiteEventHandlers = createWebsiteEventHandlers(this.highlightRectEl,
                                                                this.blockTrees);
         this.receivingData = true;
-        /** @param {Array<RawBlockStyle} pageBlocksStyles */
-        const updateBlockStyles = pageBlocksStyles => {
-            if (this.receivingData)
-                return;
-            pageBlocksStyles.forEach(style => {
-                this.currentWebPage.updateCssStylesIfChanged('singleBlock', style.blockId, style.styles);
-            });
-        };
-        observeStore(s => selectPageBlockStyles(s), updateBlockStyles.bind(this));
-        /** @param {Array<RawGlobalBlockTreeBlocksStyles} blockTreeBlocksStyles */
-        const updateBlockStyles2 = blockTreeBlocksStyles => {
-            if (this.receivingData)
-                return;
-            blockTreeBlocksStyles.forEach(({styles}) => {
-                styles.forEach(style => {
-                    this.currentWebPage.updateCssStylesIfChanged('singleBlock', style.blockId, style.styles);
-                });
-            });
-        };
-        observeStore(s => selectGlobalBlockTreeBlocksStyles(s), updateBlockStyles2.bind(this));
+        this.registerWebPageIframeStylesUpdaters();
     }
     /**
      * @param {EditAppAwareWebPage} webPage
@@ -81,7 +62,7 @@ class EditApp extends preact.Component {
         signals.emit('on-web-page-loaded');
         store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
         store.dispatch(setGlobalBlockTreeBlocksStyles(webPage.data.globalBlocksStyles));
-        store.dispatch(setPageBlockStyles(webPage.data.page.blockStyles));
+        store.dispatch(setPageBlocksStyles(webPage.data.page.blockStyles));
         store.dispatch(setOpQueue([]));
         this.receivingData = false;
     }
@@ -246,6 +227,42 @@ class EditApp extends preact.Component {
                 window.console.error(err);
                 toasters.editAppMain(__('Something unexpected happened.'), 'error');
             });
+    }
+    /**
+     * @access private
+     */
+    registerWebPageIframeStylesUpdaters() {
+        /** @param {Array<RawBlockStyle>} pageBlocksStyles */
+        const updateBlockStyles = pageBlocksStyles => {
+            if (this.receivingData)
+                return;
+            pageBlocksStyles.forEach(({blockId, styles}) => {
+                this.currentWebPage.updateCssStylesIfChanged('singleBlock', blockId, styles);
+            });
+        };
+        observeStore(s => selectPageBlocksStyles(s), updateBlockStyles.bind(this));
+
+        /** @param {Array<RawGlobalBlockTreeBlocksStyles>} blockTreeBlocksStyles */
+        const updateBlockStyles2 = blockTreeBlocksStyles => {
+            if (this.receivingData)
+                return;
+            blockTreeBlocksStyles.forEach(tree => {
+                tree.styles.forEach(({blockId, styles}) => {
+                    this.currentWebPage.updateCssStylesIfChanged('singleBlock', blockId, styles);
+                });
+            });
+        };
+        observeStore(s => selectGlobalBlockTreeBlocksStyles(s), updateBlockStyles2.bind(this));
+
+        /** @param {Array<RawBlockTypeBaseStyles>} blockTypeBaseStyles */
+        const updateBlockStyles3 = blockTypeBaseStyles => {
+            if (this.receivingData)
+                return;
+            blockTypeBaseStyles.forEach(({blockTypeName, styles}) => {
+                this.currentWebPage.updateCssStylesIfChanged('blockType', blockTypeName, styles);
+            });
+        };
+        observeStore(s => selectBlockTypesBaseStyles(s), updateBlockStyles3.bind(this));
     }
 }
 

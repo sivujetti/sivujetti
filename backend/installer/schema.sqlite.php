@@ -44,7 +44,9 @@ return [
 
 "CREATE TABLE `\${p}theWebsite` (
     `name` TEXT NOT NULL,
-    `lang` TEXT NOT NULL,
+    `lang` TEXT NOT NULL, -- two letter language code (bcp47)
+    `country` TEXT DEFAULT NULL, -- two letter country code (ISO3166 alpha 2)
+    `description` TEXT,
     `aclRules` JSON,
     `firstRuns` JSON, -- {'userId': 'y', 'another': 'y'}
     `lastUpdatedAt` {$dataTypeForTimestamps},

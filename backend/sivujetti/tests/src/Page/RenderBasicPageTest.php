@@ -98,7 +98,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertEquals("{$expectedSiteUrlFull}#website", $ldWebSite->{"@id"});
         $this->assertEquals((object) ["@id" => $ldWebSite->{"@id"}], $ldWebPage->isPartOf);
         // Title
-        $expectedTitle = $retainEntities(Template::e($state->testPageData->title) . " - Test suite website >");
+        $expectedTitle = $retainEntities(Template::e($state->testPageData->title)) . " - Test suite website xss %gt;";
         $titleEl1 = $dom->execute("head title")[0] ?? null;
         $titleEl2 = $dom->execute("head meta[property=\"og:title\"]")[0] ?? null;
         $this->assertNotNull($titleEl1);
@@ -133,11 +133,12 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertEquals("{$expectedPageUrlFull}#webpage", $ldWebPage->{"@id"});
         $this->assertEquals((object) ["@type" => "ReadAction", "target" => [$expectedPageUrlFull]],
                             $ldWebPage->potentialAction[0]);
-        // Name
+        // Site name + description
         $siteNameEl = $dom->execute("head meta[property=\"og:site_name\"]")[0] ?? null;
-        $expectedSiteName = "Test suite website %gt;";
+        $expectedSiteName = "Test suite website xss %gt;";
         $this->assertEquals($expectedSiteName, $siteNameEl->getAttribute("content"));
         $this->assertEquals($expectedSiteName, $ldWebSite->name);
+        $this->assertEquals("xss %gt;", $ldWebSite->description);
     }
     public static function escapeEntities(string $html): string {
         // \DomDocument likes to decode all html entities ("&gt;" -> ">") from the markup it parses.

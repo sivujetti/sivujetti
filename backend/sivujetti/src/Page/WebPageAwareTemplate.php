@@ -350,7 +350,8 @@ final class WebPageAwareTemplate extends Template {
         $ldWebSite["@id"] = "{$webSiteUrl}#website";
         $ldWebPage["isPartOf"] = ["@id" => $ldWebSite["@id"]];
         // Title
-        $escapedTitle = "{$this->e($currentPage->title)} - {$site->name}";
+        $siteNameEscaped = $this->e($site->name);
+        $escapedTitle = "{$this->e($currentPage->title)} - {$siteNameEscaped}";
         $metasOgOut[] = "<meta property=\"og:title\" content=\"{$escapedTitle}\">";
         $ldWebPage["name"] = $escapedTitle;
         // Description
@@ -361,7 +362,7 @@ final class WebPageAwareTemplate extends Template {
             $ldWebPage["description"] = $escapedDescr;
         }
         // Locale & lang
-        $countryCode = strtoupper($site->lang);
+        $countryCode = strtoupper($site->country ?? $site->lang);
         $metasOgOut[] = "<meta property=\"og:locale\" content=\"{$site->lang}_{$countryCode}\">";
         $ldWebSite["inLanguage"] = $site->lang;
         $ldWebPage["inLanguage"] = $site->lang;
@@ -372,10 +373,10 @@ final class WebPageAwareTemplate extends Template {
         $ldWebPage["url"] = $permaFull;
         $ldWebPage["@id"] = "{$permaFull}#webpage";
         $ldWebPage["potentialAction"][] = ["@type" => "ReadAction", "target" => [$permaFull]];
-        // Name
-        $siteNameEscaped = self::e($site->name);
+        // Site name + description
         $metasOgOut[] = "<meta property=\"og:site_name\" content=\"{$siteNameEscaped}\">";
         $ldWebSite["name"] = $siteNameEscaped;
+        $ldWebSite["description"] = $this->e($site->description);
         //
         $metasOgOut[] = "<script type=\"application/ld+json\">" . self::withoutEscapedBackslashes(json_encode([
             "@context" => "https://schema.org",

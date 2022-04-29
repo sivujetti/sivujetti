@@ -16,8 +16,8 @@ final class TheWebsiteRepository {
     public static function fetchActive(FluentDb $db): ?TheWebsite {
         return $db->select("\${p}theWebsite ws", TheWebsite::class)
             ->fields([
-                "ws.`name`", "ws.`lang`", "ws.`aclRules` AS `aclRulesJson`",
-                "ws.`firstRuns` as `firstRunsJson`",
+                "ws.`name`", "ws.`lang`", "ws.`country`", "ws.`description`",
+                "ws.`aclRules` AS `aclRulesJson`", "ws.`firstRuns` as `firstRunsJson`",
                 "p.`name` AS `pluginName`", "p.`isActive` AS `pluginIsActive`",
                 "pt.`name` AS `pageTypeName`", "pt.`slug` AS `pageTypeSlug`",
                 "pt.`friendlyName` AS `pageTypeFriendlyName`",

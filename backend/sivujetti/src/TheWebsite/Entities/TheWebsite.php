@@ -9,6 +9,10 @@ final class TheWebsite {
     public string $name;
     /** @var string e.g. "fi", "en" */
     public string $lang;
+    /** @var ?string e.g. "FI", "US" */
+    public ?string $country;
+    /** @var string e.g. "My website" */
+    public string $decription;
     /** @var string */
     public string $aclRulesJson;
     /** @var string */

@@ -343,6 +343,12 @@ final class WebPageAwareTemplate extends Template {
         $metasNativeOut = [];
         $metasOgOut = [];
         $ldWebPage = ["@type" => "WebPage"];
+        $ldWebSite = ["@type" => "WebSite"];
+        // ld+json general
+        $webSiteUrl = "{$this->__vars["serverHost"]}{$this->makeUrl("/", withIndexFile: false)}";
+        $ldWebSite["url"] = $webSiteUrl;
+        $ldWebSite["@id"] = "{$webSiteUrl}#website";
+        $ldWebPage["isPartOf"] = ["@id" => $ldWebSite["@id"]];
         // Title
         $escapedTitle = "{$this->e($currentPage->title)} - {$site->name}";
         $metasOgOut[] = "<meta property=\"og:title\" content=\"{$escapedTitle}\">";
@@ -354,11 +360,27 @@ final class WebPageAwareTemplate extends Template {
             $metasOgOut[] = "<meta property=\"og:description\" content=\"{$escapedDescr}\">";
             $ldWebPage["description"] = $escapedDescr;
         }
-        // ld+json
-        $metasOgOut[] = "<script type=\"application/ld+json\">" . json_encode([
+        // Locale & lang
+        $countryCode = strtoupper($site->lang);
+        $metasOgOut[] = "<meta property=\"og:locale\" content=\"{$site->lang}_{$countryCode}\">";
+        $ldWebSite["inLanguage"] = $site->lang;
+        $ldWebPage["inLanguage"] = $site->lang;
+        // Permalink
+        $permaFull = "{$this->__vars["serverHost"]}{$this->makeUrl($currentPage->slug)}";
+        $metasNativeOut[] = "<link rel=\"canonical\" href=\"{$permaFull}\">";
+        $metasOgOut[] = "<meta property=\"og:url\" content=\"{$permaFull}\">";
+        $ldWebPage["url"] = $permaFull;
+        $ldWebPage["@id"] = "{$permaFull}#webpage";
+        $ldWebPage["potentialAction"][] = ["@type" => "ReadAction", "target" => [$permaFull]];
+        // Name
+        $siteNameEscaped = self::e($site->name);
+        $metasOgOut[] = "<meta property=\"og:site_name\" content=\"{$siteNameEscaped}\">";
+        $ldWebSite["name"] = $siteNameEscaped;
+        //
+        $metasOgOut[] = "<script type=\"application/ld+json\">" . self::withoutEscapedBackslashes(json_encode([
             "@context" => "https://schema.org",
-            "@graph" => [$ldWebPage]
-        ]) . "</script>\n";
+            "@graph" => [$ldWebSite, $ldWebPage]
+        ])) . "</script>\n";
         //
         return [
             $escapedTitle,
@@ -366,5 +388,12 @@ final class WebPageAwareTemplate extends Template {
             "\n    " .
             implode("\n    ", $metasOgOut)
         ];
+    }
+    /**
+     * @param string $str
+     * @return string
+     */
+    private static function withoutEscapedBackslashes(string $str): string {
+        return str_replace("\\/", "/", $str);
     }
 }

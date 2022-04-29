@@ -280,6 +280,7 @@ final class PagesController {
         $editModeIsOn = $isPlaceholderPage || ($req->queryVar("in-edit") !== null);
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
+            ["serverHost" => self::getServerHost($req)],
             cssAndJsFiles: $apiCtx->userDefinedAssets,
             theme: $theWebsite->activeTheme,
             blockStyles: $page->blockStyles,
@@ -322,6 +323,24 @@ final class PagesController {
             if ($block->children)
                 self::runBlockBeforeRenderEvent($block->children, $blockTypes, $pagesRepo, $theWebsite);
         }
+    }
+    /**
+     * @param \Sivujetti\PageType\Entities\PageType $pagePageType
+     * @return \Sivujetti\Page\Entities\Page
+     */
+    public static function createEmptyPage(PageType $pagePageType): Page {
+        $page = new Page;
+        $page->slug = "-";
+        $page->path = "-";
+        $page->level = 1;
+        $page->title = $pagePageType->defaultFields->title->defaultValue;
+        $page->meta = new \stdClass;
+        $page->id = "-";
+        $page->type = $pagePageType->name;
+        $page->blocks = [];
+        $page->blockStyles = [];
+        $page->status = Page::STATUS_DRAFT;
+        return $page;
     }
     /**
      * @param \Sivujetti\Page\Entities\Page $toPage
@@ -400,21 +419,14 @@ final class PagesController {
         ];
     }
     /**
-     * @param \Sivujetti\PageType\Entities\PageType $pagePageType
-     * @return \Sivujetti\Page\Entities\Page
+     * @param \Pike\Request $req
+     * @return string "http://localhost", "https://server.com"
      */
-    public static function createEmptyPage(PageType $pagePageType): Page {
-        $page = new Page;
-        $page->slug = "-";
-        $page->path = "-";
-        $page->level = 1;
-        $page->title = $pagePageType->defaultFields->title->defaultValue;
-        $page->meta = new \stdClass;
-        $page->id = "-";
-        $page->type = $pagePageType->name;
-        $page->blocks = [];
-        $page->blockStyles = [];
-        $page->status = Page::STATUS_DRAFT;
-        return $page;
+    private static function getServerHost(Request $req): string {
+        // https://stackoverflow.com/a/16076965
+        $s = ($req->attr("HTTPS") === "on" ||
+            $req->attr("HTTP_X_FORWARDED_PROTO") === "https" ||
+            $req->attr("HTTP_X_FORWARDED_SSL") === "on") ? "s" : "";
+        return "http{$s}://{$req->attr("HTTP_HOST")}";
     }
 }

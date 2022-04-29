@@ -10,8 +10,7 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\Page\WebPageAwareTemplate;
 use Sivujetti\Template;
-use Sivujetti\Tests\Utils\BlockTestUtils;
-use Sivujetti\Tests\Utils\TestData;
+use Sivujetti\Tests\Utils\{BlockTestUtils, TestData};
 use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
 
 final class RenderBasicPageTest extends RenderPageTestCase {
@@ -89,9 +88,17 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $dom = new Query($retainEntities($state->spyingResponse->getActualBody()));
         $ldJsonScriptEl = $dom->execute("head script[type=\"application/ld+json\"]")[0] ?? null;
         $this->assertNotNull($ldJsonScriptEl);
-        $actualJdJson = json_decode($ldJsonScriptEl->nodeValue, flags: JSON_THROW_ON_ERROR);
+        $this->assertStringNotContainsString("\\/", $ldJsonScriptEl->nodeValue, "ld+json should not contain escaped backslashes");
+        $actualJdJson = json_decode(self::withEscapedBackslashes($ldJsonScriptEl->nodeValue), flags: JSON_THROW_ON_ERROR);
         $ldWebPage = ArrayUtils::findByKey($actualJdJson->{"@graph"}, "WebPage", "@type");
-        $expectedTitle = $retainEntities(Template::e($state->testPageData->title)) . " - Test suite website";
+        $ldWebSite = ArrayUtils::findByKey($actualJdJson->{"@graph"}, "WebSite", "@type");
+        // ld+json general
+        $expectedSiteUrlFull = "http://localhost" . Template::makeUrl("/", withIndexFile: false);
+        $this->assertEquals($expectedSiteUrlFull, $ldWebSite->url);
+        $this->assertEquals("{$expectedSiteUrlFull}#website", $ldWebSite->{"@id"});
+        $this->assertEquals((object) ["@id" => $ldWebSite->{"@id"}], $ldWebPage->isPartOf);
+        // Title
+        $expectedTitle = $retainEntities(Template::e($state->testPageData->title) . " - Test suite website >");
         $titleEl1 = $dom->execute("head title")[0] ?? null;
         $titleEl2 = $dom->execute("head meta[property=\"og:title\"]")[0] ?? null;
         $this->assertNotNull($titleEl1);
@@ -99,7 +106,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertEquals($expectedTitle, $titleEl1->nodeValue);
         $this->assertEquals($expectedTitle, $titleEl2->getAttribute("content"));
         $this->assertEquals($expectedTitle, $ldWebPage->name);
-        //
+        // Description
         $expectedDescr = $retainEntities(Template::e($state->testPageData->meta->description));
         $descrEl1 = $dom->execute("head meta[name=\"description\"]")[0] ?? null;
         $descrEl2 = $dom->execute("head meta[property=\"og:description\"]")[0] ?? null;
@@ -108,12 +115,38 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertEquals($expectedDescr, $descrEl1->getAttribute("content"));
         $this->assertEquals($expectedDescr, $descrEl2->getAttribute("content"));
         $this->assertEquals($expectedDescr, $ldWebPage->description);
+        // Locale
+        $localeEl = $dom->execute("head meta[property=\"og:locale\"]")[0] ?? null;
+        $this->assertNotNull($localeEl);
+        $this->assertEquals("fi_FI", $localeEl->getAttribute("content"));
+        $this->assertEquals("fi", $ldWebSite->inLanguage);
+        $this->assertEquals("fi", $ldWebPage->inLanguage);
+        // Permalink
+        $expectedPageUrlFull = "http://localhost" . Template::makeUrl($state->testPageData->path);
+        $permaEl1 = $dom->execute("head link[rel=\"canonical\"]")[0] ?? null;
+        $permaEl2 = $dom->execute("head meta[property=\"og:url\"]")[0] ?? null;
+        $this->assertNotNull($permaEl1);
+        $this->assertNotNull($permaEl2);
+        $this->assertEquals($expectedPageUrlFull, $permaEl1->getAttribute("href"));
+        $this->assertEquals($expectedPageUrlFull, $permaEl2->getAttribute("content"));
+        $this->assertEquals($expectedPageUrlFull, $ldWebPage->url);
+        $this->assertEquals("{$expectedPageUrlFull}#webpage", $ldWebPage->{"@id"});
+        $this->assertEquals((object) ["@type" => "ReadAction", "target" => [$expectedPageUrlFull]],
+                            $ldWebPage->potentialAction[0]);
+        // Name
+        $siteNameEl = $dom->execute("head meta[property=\"og:site_name\"]")[0] ?? null;
+        $expectedSiteName = "Test suite website %gt;";
+        $this->assertEquals($expectedSiteName, $siteNameEl->getAttribute("content"));
+        $this->assertEquals($expectedSiteName, $ldWebSite->name);
     }
     public static function escapeEntities(string $html): string {
         // \DomDocument likes to decode all html entities ("&gt;" -> ">") from the markup it parses.
-        // We don't want that, because we often need to verify if some parts of markup are escaped or not.
-        // So the fix is to convert all entities &gt; -> %gt; which \DomDocument can't tamper with
+        // We don't want that, because we often need to verify that some parts of the markup are
+        // escaped. The fix: convert all entities &gt; -> %gt; which \DomDocument can't tamper with
         return preg_replace("/&([#A-Za-z0-9]+);/", "%\$1;", $html);
+    }
+    private static function withEscapedBackslashes(string $str): string {
+        return str_replace("/", "\\/", $str);
     }
 
 

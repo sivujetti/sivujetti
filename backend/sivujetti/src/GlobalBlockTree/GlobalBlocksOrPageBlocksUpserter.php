@@ -123,7 +123,7 @@ final class GlobalBlocksOrPageBlocksUpserter {
         if (!is_string($uncompiled))
             return [null, "Expected \$input->styles to be a string"];
         return $uncompiled
-            ? [str_replace("[[scope]]", "[data-foo]", $uncompiled), null]
+            ? [str_replace(":self", "[data-foo]", $uncompiled), null]
             : ["", null];
     }
     /**
@@ -137,7 +137,7 @@ final class GlobalBlocksOrPageBlocksUpserter {
         ], $input), JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
     }
     /**
-     * input = {styles: [{blockId: "1", styles: "[[scope]] > .bar { color: red; }", junk: "foo"}]}
+     * input = {styles: [{blockId: "1", styles: ":self > .bar { color: red; }", junk: "foo"}]}
      * output = {styles: [{blockId: "1", styles: ".foo > .bar { color: red; }"}]}
      *
      * @param object $input $req->body

@@ -28,7 +28,7 @@ describe('Block type', () => {
         switchToBaseStylesTab(browser);
         typeTestCssToStyleInput(browser, '"#€%€#&?€ 52€"');
         verifyValidationErrorIsVisible(browser);
-        typeTestCssToStyleInput(browser, '[[scope]] { color: red; }');
+        typeTestCssToStyleInput(browser, ':self { color: red; }');
         verifyValidationErrorIsNotVisible(browser);
         verifyChangedStylesInWebpageIframe(browser);
         saveChanges(browser);

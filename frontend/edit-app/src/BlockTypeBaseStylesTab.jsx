@@ -29,7 +29,7 @@ class BlockTypeBaseStylesTab extends preact.Component {
         this.handleCssInputChangedThrottled = timingUtils.debounce(
             this.handleCssInputChanged.bind(this),
             env.normalTypingDebounceMillis);
-        this.unregisterStoreListener = observeStore(s => selectBlockTypesBaseStyles(s),
+        this.unregisterStoreListener = props.allowEditing ? observeStore(s => selectBlockTypesBaseStyles(s),
             /**
              * @param {Array<RawBlockTypeBaseStyles>} allStyles
              */
@@ -41,7 +41,7 @@ class BlockTypeBaseStylesTab extends preact.Component {
                     this.setState(createState(latest.styles));
                     this.borrowedStyles = allStyles;
                 }
-            });
+            }) : function() {};
         this.state = createState(null);
     }
     /**
@@ -54,7 +54,7 @@ class BlockTypeBaseStylesTab extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps({block, isVisible}) {
-        if (!this.props.isVisible && isVisible) {
+        if (this.props.allowEditing && !this.props.isVisible && isVisible) {
             fetchThemeStyles().then(({blockTypeStyles}) => {
                 if (!isBaseStyleStorePopulated) {
                     store.dispatch(setBlockTypesBaseStyles(blockTypeStyles));
@@ -74,23 +74,26 @@ class BlockTypeBaseStylesTab extends preact.Component {
     /**
      * @access protected
      */
-    render({blockTypeNameTranslated, isVisible}, {stylesStringNotCommitted, stylesError}) {
-        return <div class={ isVisible ? '' : 'd-none' }>
-            <div class="p-absolute" style="right: 0; z-index: 1; margin: .3rem .67rem 0 0;">
-                <Icon iconId="info-circle" className="size-xs color-dimmed3"/>
-                <span ref={ createPopper.bind(this) } class="my-tooltip dark">
-                    <span>{ __('These styles will affect all %s blocks', blockTypeNameTranslated.toLowerCase()) }</span>
-                    <span class="popper-arrow" data-popper-arrow></span>
-                </span>
-            </div>
-            <textarea
-                value={ stylesStringNotCommitted }
-                onInput={ this.handleCssInputChangedThrottled }
-                class={ `form-input code${!stylesError ? '' : ' is-error'}` }
-                placeholder={ '[[scope]] {\n  color: red;\n}\n[[scope]].specialized {\n  color: blue;\n}' }
-                ref={ this.stylesTextareaEl }></textarea>
-            <InputError errorMessage={ stylesError }/>
-        </div>;
+    render({blockTypeNameTranslated, isVisible, allowEditing}, {stylesStringNotCommitted, stylesError}) {
+        return <div class={ isVisible ? '' : 'd-none' }>{ allowEditing ?
+            [
+                <div class="p-absolute" style="right: 0; z-index: 1; margin: .3rem .67rem 0 0;">
+                    <Icon iconId="info-circle" className="size-xs color-dimmed3"/>
+                    <span ref={ createPopper.bind(this) } class="my-tooltip dark">
+                        <span>{ __('These styles will affect all %s blocks', blockTypeNameTranslated.toLowerCase()) }</span>
+                        <span class="popper-arrow" data-popper-arrow></span>
+                    </span>
+                </div>,
+                <textarea
+                    value={ stylesStringNotCommitted }
+                    onInput={ this.handleCssInputChangedThrottled }
+                    class={ `form-input code${!stylesError ? '' : ' is-error'}` }
+                    placeholder={ ':self {\n  color: red;\n}\n:self.specialized {\n  color: blue;\n}' }
+                    ref={ this.stylesTextareaEl }></textarea>,
+                <InputError errorMessage={ stylesError }/>
+            ]
+            : <div style="color: var(--color-fg-dimmed)">Voit muokata tyylejä sivun luomisen jälkeen.</div>
+        }</div>;
     }
     /**
      * @param {Event} e
@@ -133,7 +136,7 @@ class BlockTypeBaseStylesTab extends preact.Component {
 
 /**
  * @param {Array<RawBlockTypeBaseStyles>} allStyles
- * @param {String} newVal e.g. '[[scope]] { color: red; }'
+ * @param {String} newVal e.g. ':self { color: red; }'
  * @param {Block} block
  * @returns {RawBlockTypeBaseStyles}
  */

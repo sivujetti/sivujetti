@@ -14,12 +14,9 @@ class CssStylesValidatorHelper {
         if (input.length < 3) {
             return [previousCommittedValue ? true : false, {stylesStringNotCommitted: input, stylesError: ''}];
         }
-        const ast = window.csstree.parse(compileSivujettiFlavoredCss('[data-dummy="dummy"]', input));
-        const nodesThatCount = window.csstree.findAll(ast, (node, _item, _list) =>
-            node.type === 'Selector'
-        );
+        const ast = window.stylis.compile(compileSivujettiFlavoredCss('[data-dummy="dummy"]', input));
         // Had non-empty input, but css doesn't contain any rules -> do not commit
-        if (!nodesThatCount.length) {
+        if (ast.reduce((amount, {type}) => amount + (type === 'rule' ? 1 : 0), 0) < 1) {
             return [false, {stylesStringNotCommitted: input, stylesError: __('Styles must contain at least one CSS-rule')}];
         }
         // Had non-empty input, and css does contain rules -> commit changes to the store

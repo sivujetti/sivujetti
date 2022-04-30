@@ -36,7 +36,7 @@ final class UpsertPageBlockStylesTest extends PagesControllerTestCase {
             ->makePageBlockStylesData($state->testPageData, $state->testTheme->id);
         $state->inputData = (object) ["styles" => json_decode($state->originalData->styles),
                                       "junk" => "junk-outer-object"];
-        $state->inputData->styles[0]->styles = "[[scope]] { color: var(--updated) }";
+        $state->inputData->styles[0]->styles = ":self { color: var(--updated) }";
         $state->inputData->styles[0]->junk = "junk-inner-object";
         $state->spyingResponse = null;
         $state->app = null;

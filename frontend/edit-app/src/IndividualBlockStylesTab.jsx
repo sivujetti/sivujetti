@@ -35,7 +35,7 @@ class IndividualBlockStylesTab extends preact.Component {
             this.resourceUrl = `/api/global-block-trees/${block.globalBlockTreeId}/block-styles/${api.getActiveTheme().id}`;
         }
         this.borrowedStyles = selectStateFunc(state);
-        this.unregisterStoreListener = observeStore(s => selectStateFunc(s),
+        this.unregisterStoreListener = props.allowEditing ? observeStore(s => selectStateFunc(s),
             /**
              * @param {Array<RawBlockStyle>|Array<RawGlobalBlockTreeBlocksStyles>} allStyles
              */
@@ -49,7 +49,7 @@ class IndividualBlockStylesTab extends preact.Component {
                                    stylesError: ''});
                     this.borrowedStyles = allStyles;
                 }
-            });
+            }) : function() {};
         const styles = this.borrowedStyles.length ? findBlockStylesFunc(this.borrowedStyles, block) : null;
         const stylesString = styles ? styles.styles : '';
         this.state = {stylesString,
@@ -63,7 +63,7 @@ class IndividualBlockStylesTab extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps({isVisible}) {
-        if (!this.props.isVisible && isVisible) {
+        if (this.props.allowEditing && !this.props.isVisible && isVisible) {
             setTimeout(() => {
                 window.autosize(this.stylesTextareaEl.current);
             }, 1);
@@ -78,8 +78,8 @@ class IndividualBlockStylesTab extends preact.Component {
     /**
      * @access protected
      */
-    render({isVisible}, {stylesStringNotCommitted, stylesError}) {
-        return <div class={ isVisible ? '' : 'd-none' }>{ this.resourceUrl.indexOf('/-') < 0 ?
+    render({isVisible, allowEditing}, {stylesStringNotCommitted, stylesError}) {
+        return <div class={ isVisible ? '' : 'd-none' }>{ allowEditing ?
             [
                 <div class="p-absolute" style="right: 0; z-index: 1; margin: .3rem .67rem 0 0;">
                     <Icon iconId="info-circle" className="size-xs color-dimmed3"/>
@@ -92,11 +92,11 @@ class IndividualBlockStylesTab extends preact.Component {
                     value={ stylesStringNotCommitted }
                     onInput={ this.handleCssInputChangedThrottled }
                     class={ `form-input code${!stylesError ? '' : ' is-error'}` }
-                    placeholder={ '[[scope]] {\n  color: red;\n}\n[[scope]].specialized {\n  color: blue;\n}' }
+                    placeholder={ ':self {\n  color: red;\n}\n:self.specialized {\n  color: blue;\n}' }
                     ref={ this.stylesTextareaEl }></textarea>,
                 <InputError errorMessage={ stylesError }/>,
             ]
-            : <div style="color: var(--color-fg-dimmed)">Tyylejä voi muokata sivun luomisen jälkeen.</div>
+            : <div style="color: var(--color-fg-dimmed)">Voit muokata tyylejä sivun luomisen jälkeen.</div>
         }</div>;
     }
     /**
@@ -152,7 +152,7 @@ class IndividualBlockStylesTab extends preact.Component {
 
 /**
  * @param {Array<RawBlockStyle>|Array<RawGlobalBlockTreeBlocksStyles>} allStyles
- * @param {String} newVal e.g. '[[scope]] { color: red; }'
+ * @param {String} newVal e.g. ':self { color: red; }'
  * @param {Block} block
  * @param {Boolean} isPartOfGlobalBlockTree
  * @returns {Array<RawBlockStyle>|Array<RawGlobalBlockTreeBlocksStyles>}

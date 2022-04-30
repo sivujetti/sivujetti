@@ -27,7 +27,7 @@ final class UpsertThemeBlockTypeStylesTest extends ThemesControllerTestCase {
     }
     private function setupTest(): \TestState {
         $state = parent::createDefaultTestState();
-        $state->testInput = (object) ["styles" => "[[scope]] { color: salmon; }"];
+        $state->testInput = (object) ["styles" => ":self { color: salmon; }"];
         $state->testBlockTypeStylesAfterUpsert = null;
         return $state;
     }

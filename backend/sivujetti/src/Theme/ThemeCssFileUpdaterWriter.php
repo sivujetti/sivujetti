@@ -140,9 +140,9 @@ final class ThemeCssFileUpdaterWriter {
      * @return string
      */
     private static function compileCss(string $input, string $selector): string {
-        $withLfEndings = $input ? str_replace("\r", "", $input) : "[[scope]] { }\n";
+        $withLfEndings = $input ? str_replace("\r", "", $input) : ":self { }\n";
         $withNewline = $withLfEndings[-1] === "\n" ? $withLfEndings : "{$withLfEndings}\n";
-        return str_replace("[[scope]]", $selector, $withNewline);
+        return str_replace(":self", $selector, $withNewline);
     }
     /**
      * @param string $from The haystack

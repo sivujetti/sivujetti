@@ -34,7 +34,7 @@ final class UpsertGlobalBlockStylesTest extends GlobalBlockTreesControllerTestCa
             $state->testTheme->id);
         $state->inputData = (object) ["styles" => json_decode($state->originalData->styles),
                                       "junk" => "junk-data-root"];
-        $state->inputData->styles[0]->styles = "[[scope]] { color: var(--updated) }";
+        $state->inputData->styles[0]->styles = ":self { color: var(--updated) }";
         $state->inputData->styles[0]->junk = "junk-data-styles";
         $state->spyingResponse = null;
         $state->app = null;

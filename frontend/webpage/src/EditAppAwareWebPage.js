@@ -680,7 +680,7 @@ function temp2(type, id, css) {
         return compileSivujettiFlavoredCss(`[data-block-type="${id}"]`, css);
 }
 function compileSivujettiFlavoredCss(sel, css) {
-    return css.replace(/\[\[scope\]\]/g, sel);
+    return css.replace(/:self/g, sel);
 }
 
 /**

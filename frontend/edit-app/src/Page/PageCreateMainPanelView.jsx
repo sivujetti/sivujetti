@@ -75,7 +75,7 @@ class PageCreateMainPanelView extends preact.Component {
      * @access protected
      */
     render({pageType, cancelAddPage, blockTreesRef, initialLayoutId}, {layouts, menuInfos}) {
-        return <form onSubmit={ this.handleFormSubmitted.bind(this) }>
+        return <form>
             <header class="panel-section mb-2">
                 <h1 class="mb-2">{ __('Create %s', __(pageType.friendlyNameSingular || 'page')) }</h1>
                 <button

@@ -60,7 +60,7 @@ class PageTypeCreateMainPanelView extends preact.Component {
      */
     render({cancelAddPageType, blockTreesRef},
            {layouts, sectionAIsCollapsed, sectionBIsCollapsed, sectionCIsCollapsed}) {
-        return <form onSubmit={ this.handleFormSubmitted.bind(this) }>
+        return <form>
             <header class="panel-section mb-0">
                 <h1 class="mb-2">{ __('Create %s', __('page type')) }</h1>
                 <button

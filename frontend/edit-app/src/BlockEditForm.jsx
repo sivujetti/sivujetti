@@ -5,7 +5,7 @@ import {getIcon} from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
 import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
-import store, {pushItemToOpQueue} from './store.js';
+import store, {pushItemToOpQueue, selectCurrentPage} from './store.js';
 import IndividualBlockStylesTab from './IndividualBlockStylesTab.jsx';
 import BlockTypeBaseStylesTab from './BlockTypeBaseStylesTab.jsx';
 
@@ -35,6 +35,7 @@ class BlockEditForm extends preact.Component {
     // blockType;
     // editFormImpl;
     // snapshot;
+    // allowStylesEditing;
     // editFormImplRef;
     // unregistrables;
     // static currentInstance;
@@ -58,6 +59,7 @@ class BlockEditForm extends preact.Component {
         this.blockType = blockTypes.get(block.type);
         this.editFormImpl = this.blockType.editForm;
         this.snapshot = putOrGetSnapshot(block, this.blockType);
+        this.allowStylesEditing = !selectCurrentPage(store.getState()).webPage.data.page.isPlaceholderPage;
         this.editFormImplRef = preact.createRef();
         this.unregistrables = [signals.on('on-block-deleted', ({id}) => {
             if (id === block.id) this.props.inspectorPanel.close();
@@ -130,8 +132,12 @@ class BlockEditForm extends preact.Component {
                     key={ block.id }/>
             </div>
         </div>
-        <IndividualBlockStylesTab block={ this.props.block } isVisible={ currentTabIdx === 1 }/>
-        <BlockTypeBaseStylesTab block={ this.props.block } isVisible={ currentTabIdx === 2 }
+        <IndividualBlockStylesTab block={ this.props.block }
+            allowEditing={ this.allowStylesEditing }
+            isVisible={ currentTabIdx === 1 }/>
+        <BlockTypeBaseStylesTab block={ this.props.block }
+            allowEditing={ this.allowStylesEditing }
+            isVisible={ currentTabIdx === 2 }
             blockTypeNameTranslated={ __(this.blockType.friendlyName) }/>
         </div>;
     }

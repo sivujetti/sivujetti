@@ -8,10 +8,10 @@ class TestData {
      */
     public static function getBlockTypeBaseStyles(): array {
         return [(object) [
-            "styles" => "[[scope]] { padding: 4rem 2rem; }",
+            "styles" => ":self { padding: 4rem 2rem; }",
             "blockTypeName" => "Section",
         ], (object) [
-            "styles" => "[[scope]] { font-size: 1rem; }",
+            "styles" => ":self { font-size: 1rem; }",
             "blockTypeName" => "Paragraph",
         ]];
     }

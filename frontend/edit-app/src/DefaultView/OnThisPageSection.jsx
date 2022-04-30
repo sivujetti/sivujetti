@@ -1,24 +1,13 @@
-import {__, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, Icon, MenuSection} from '@sivujetti-commons-for-edit-app';
 import BlockTrees from '../BlockTrees.jsx';
 
-class Section extends preact.Component {
+class OnThisPageSection extends MenuSection {
     /**
-     * @param {{sections: Array<String>; startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;}} props
+     * @inheritdoc
      */
     constructor(props) {
-        super(props);
-        this.state = {isCollapsed: !(this instanceof OnThisPageSection)};
+        super(Object.assign(props, {initiallyIsCollapsed: false}));
     }
-    /**
-     * @access protected
-     */
-    // eslint-disable-next-line react/require-render-return
-    render() {
-        throw new Error('Abstract method not implented.');
-    }
-}
-
-class OnThisPageSection extends Section {
     /**
      * @param {{blockTreesRef: preact.Ref;} && {[key: String]: any;}} props
      */
@@ -35,4 +24,3 @@ class OnThisPageSection extends Section {
 }
 
 export default OnThisPageSection;
-export {Section};

@@ -1,10 +1,9 @@
-import {api, signals, http, __, env, Icon} from '@sivujetti-commons-for-edit-app';
+import {api, signals, http, __, env, Icon, MenuSection} from '@sivujetti-commons-for-edit-app';
 import LoadingSpinner from '../commons/LoadingSpinner.jsx';
 import toasters from '../commons/Toaster.jsx';
 import store, {pushItemToOpQueue} from '../store.js';
-import {Section} from './OnThisPageSection.jsx';
 
-class GlobalStylesSection extends Section {
+class GlobalStylesSection extends MenuSection {
     // activeThemeId;
     // unregisterSignalListener;
     // globalStyles;

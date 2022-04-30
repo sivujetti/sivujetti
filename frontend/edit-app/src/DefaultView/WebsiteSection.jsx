@@ -1,7 +1,6 @@
-import {__, Icon} from '@sivujetti-commons-for-edit-app';
-import {Section} from './OnThisPageSection.jsx';
+import {__, Icon, MenuSection} from '@sivujetti-commons-for-edit-app';
 
-class WebsiteSection extends Section {
+class WebsiteSection extends MenuSection {
     /**
      * @param {{startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref;} && {[key: String]: any;}} props
      */

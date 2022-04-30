@@ -4,7 +4,9 @@ namespace Sivujetti\StoredObjects;
 
 use Pike\Db\FluentDb;
 use Pike\Interfaces\RowMapperInterface;
+use Pike\PikeException;
 use Sivujetti\StoredObjects\Entities\Entry;
+use Sivujetti\ValidationUtils;
 
 class StoredObjectsRepository {
     private const T = "\${p}storedObjects";
@@ -31,5 +33,23 @@ class StoredObjectsRepository {
                 }
             })
             ->fetch() ?? null;
+    }
+    /**
+     * Important: $validateData must be validated before calling this method!
+     *
+     * @param string $objectName e.g. "JetForms:mailSendSettings"
+     * @param object $validatedData e.g. {sendingMethod: "mail", ...}
+     * @return int $numAffectedRows
+     * @throws \Pike\PikeException If length of $validatedData->* too big
+     */
+    public function updateEntryData(string $objectName, object $validatedData): int {
+        $asJson = json_encode($validatedData, flags: JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+        if (strlen($asJson) > (ValidationUtils::HARD_JSON_TEXT_MAX_LEN * 16)) // ~4MB
+            throw new PikeException("Json too large", PikeException::BAD_INPUT);
+        return $this->db
+            ->update(self::T)
+            ->values((object) ["data" => $asJson])
+            ->where("objectName = ?", [$objectName])
+            ->execute();
     }
 }

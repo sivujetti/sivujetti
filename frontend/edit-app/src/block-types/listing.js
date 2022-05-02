@@ -17,6 +17,9 @@ class ListingBlockEditForm extends preact.Component {
     // selectedPageTypeFriendlyName;
     // selectedPageTypeFriendlyNamePlural;
     // selectedPageTypeFriendlyNamePartitive;
+    /**
+     * @param {BlockEditFormProps} props
+     */
     constructor(props) {
         super(props);
         this.defineLimitPopup = preact.createRef();
@@ -47,7 +50,6 @@ class ListingBlockEditForm extends preact.Component {
         this.setState(createState(this.props.block));
     }
     /**
-     * @param {BlockEditFormProps} props
      * @access protected
      */
     render(_, {filterPageType, howManyType, howManyAmount, howManyAmountNotCommitted,
@@ -244,7 +246,7 @@ class ListingBlockEditForm extends preact.Component {
         const newValue = e.target.value;
         if (this.state.order !== newValue) {
             this.props.onValueChanged(newValue, propName, false, 'debounce-none');
-            this.setState({[stateKey]: newValue});
+            this.applyState({[stateKey]: newValue});
         }
     }
     /**
@@ -292,6 +294,7 @@ class ListingBlockEditForm extends preact.Component {
      */
     applyState(newState) {
         if (newState.renderWith)
+            // Note: mutates BlockTrees.currentWebPage.data.page
             this.props.block.renderer = newState.renderWith;
         this.setState(newState);
     }
@@ -313,7 +316,7 @@ function createState(from) {
         howManyAmount: from.filterLimit,
         howManyAmountNotCommitted: from.filterLimit > 1 ? from.filterLimit : null,
         howManyAmountError: '',
-        renderWith: from.renderWith,
+        renderWith: from.renderer || from.renderWith,
         order: from.filterOrder,
     };
 }
@@ -399,12 +402,12 @@ export default () => {
         filterLimit: 0,
         filterOrder: 'desc',
         filterAdditional: '[]',
-        renderWith: 'sivujetti:block-listing-pages-default', // Mirrored to block.renderer
+        renderWith: 'sivujetti:block-listing-pages-default', // Only exists in frontend, mirrored to block.renderer
     };
     return {
         name: 'Listing',
         friendlyName: 'Listing',
-        ownPropNames: Object.keys(initialData),
+        ownPropNames: Object.keys(initialData).filter(k => k !== 'renderWith'),
         initialData,
         defaultRenderer: initialData.renderWith,
         icon: 'layout-list',

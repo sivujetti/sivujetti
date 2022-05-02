@@ -17,7 +17,6 @@ class ListingBlockType implements BlockTypeInterface, ListeningBlockTypeInterfac
             ->newProperty("filterLimit", $builder::DATA_TYPE_UINT)
             ->newProperty("filterOrder", $builder::DATA_TYPE_TEXT)
             ->newProperty("filterAdditional", $builder::DATA_TYPE_TEXT)
-            ->newProperty("renderWith", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }
     /**

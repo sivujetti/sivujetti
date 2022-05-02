@@ -294,8 +294,7 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
                 propsData: ["filterPageType" => "Pages",
                     "filterLimit" => 0,
                     "filterOrder" => "desc",
-                    "filterAdditional" => "[]",
-                    "renderWith" => "sivujetti:block-listing-pages-default"],
+                    "filterAdditional" => "[]"],
                 id: "@auto"),
         ];
         $makeExpectedListItem = fn(object $pageData) =>
@@ -339,7 +338,6 @@ final class RenderEachBuiltInBlockTest extends RenderBlocksTestCase {
         $state->testPageData->ownField1 = "foo";
         $state->testPageData->ownField2 = 1;
         $state->testBlocks[0]->renderer = self::TEST_RENDERER_NAME;
-        $this->blockTestUtils->setBlockProp($state->testBlocks[0], "renderWith", self::TEST_RENDERER_NAME);
         $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterPageType", "MyProducts");
         $state->customPageType = null;
         return $state;

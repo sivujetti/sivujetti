@@ -57,7 +57,7 @@ final class Block {
     public string $filterPageType; e.g. "Pages"
     public string $filterLimit; e.g. 10
     public string $filterOrder; "desc"|"asc"|"rand"
-    public string $filterAdditional; e.g. "[{"slug":"foo"}]"
+    public string $filterAdditional; e.g. "{"slug":{"$startsWith":"foo"}}"
     public ?array $__pages; ?array<int, \Sivujetti\Page\Entities\Page>
     public ?\Sivujetti\PageType\Entities\PageType $__pageType; */
 

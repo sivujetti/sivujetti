@@ -2,9 +2,9 @@
 
 namespace Sivujetti\BlockType;
 
-use Pike\{ArrayUtils, Injector};
+use Pike\{ArrayUtils, Injector, PikeException};
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\Page\PagesRepository;
+use Sivujetti\Page\PagesRepository2;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 class ListingBlockType implements BlockTypeInterface, ListeningBlockTypeInterface {
@@ -31,24 +31,25 @@ class ListingBlockType implements BlockTypeInterface, ListeningBlockTypeInterfac
     }
     /**
      * @param \Sivujetti\Block\Entities\Block $block
-     * @param \Sivujetti\Page\PagesRepository $pagesRepo
+     * @param \Sivujetti\Page\PagesRepository2 $pagesRepo
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
     */
     public function doPerformBeforeRender(Block $block,
-                                          PagesRepository $pagesRepo,
+                                          PagesRepository2 $pagesRepo,
                                           TheWebsite $theWebsite): void {
-        $filters = [
-            "filters" => [],
-            "order" => $block->filterOrder,
-            "limit" => $block->filterLimit,
-        ];
-        if (($additional = json_decode($block->filterAdditional, flags: JSON_THROW_ON_ERROR))) {
-            ; // Not implemented yet
-        }
-        // @allow \Pike\PikeException (if filterPageType does not exist)
-        $block->__pages = $pagesRepo->getMany($block->filterPageType,
-                                              $theWebsite->activeTheme->id,
-                                              $filters);
+        $q = $pagesRepo->fetch($block->filterPageType);
+        if ($block->filterAdditional !== "{}")
+            $q = $q->mongoWhere($block->filterAdditional);
+        if ($block->filterLimit)
+            $q = $q->limit($block->filterLimit);
+        if ($block->filterOrder)
+            $q = $q->orderBy(match($block->filterOrder) {
+                "desc" => "p.`id` DESC",
+                "asc" => "p.`id` ASC",
+                "rand" => "RANDOM()",
+                default => throw new PikeException("Sanity", PikeException::BAD_INPUT),
+            });
+        $block->__pages = $q->fetchAll();
         $block->__pageType = ArrayUtils::findByKey($theWebsite->pageTypes, $block->filterPageType, "name");
     }
 }

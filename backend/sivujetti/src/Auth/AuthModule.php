@@ -30,6 +30,7 @@ final class AuthModule {
      * @param \Pike\Injector $di
      */
     public function beforeExecCtrl(Injector $di): void {
+        $di->share(new ACL(doThrowDevWarnings: (bool) (SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE)));
         $this->di = $di;
     }
     /**
@@ -51,7 +52,7 @@ final class AuthModule {
             return false;
         }
         //
-        $acl = new ACL(doThrowDevWarnings: (bool) (SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE));
+        $acl = $this->di->make(ACL::class);
         $theWebsite = $this->di->make(TheWebsite::class);
         $acl->setRules(json_decode($theWebsite->aclRulesJson, flags: JSON_THROW_ON_ERROR));
         // User not permitted to access this route

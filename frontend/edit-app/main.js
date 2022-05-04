@@ -10,7 +10,7 @@ import createColumnsBlockType from './src/block-types/columns.js';
 import createGlobalBlockReferenceBlockType from './src/block-types/globalBlockReference.js';
 import createHeadingBlockType from './src/block-types/heading.js';
 import createImageBlockType from './src/block-types/image.js';
-import createListingBlockType from './src/block-types/listing.js';
+import createListingBlockType from './src/block-types/Listing/listing.js';
 import createPageInfoBlockType from './src/block-types/pageInfo.js';
 import createParagraphBlockType from './src/block-types/paragraph.js';
 import createRichTextBlockType from './src/block-types/richText.js';
@@ -31,9 +31,13 @@ renderReactEditApp();
 hookUpSiteIframeUrlMirrorer();
 
 function populateFrontendApi() {
-    api.getPageTypes = () => editAppReactRef.current.props.dataFromAdminBackend.pageTypes;
-    api.getBlockRenderers = () => editAppReactRef.current.props.dataFromAdminBackend.blockRenderers;
-    api.getActiveTheme = () => editAppReactRef.current.props.dataFromAdminBackend.activeTheme;
+    const d = window.dataFromAdminBackend;
+    api.getPageTypes = () => d.pageTypes;
+    api.getBlockRenderers = () => d.blockRenderers;
+    api.getActiveTheme = () => d.activeTheme;
+    api.user = { can(doWhat) {
+        return d.userPermissions[`can${capitalize(doWhat)}`] === true;
+    } };
     api.registerTranslationStrings = translator.addStrings.bind(translator);
     api.webPageIframe = new WebPageIframe(document.getElementById('sivujetti-site-iframe'), env, urlUtils);
     // blockTypes, see configureServices
@@ -65,7 +69,9 @@ function configureServices() {
     //
     const mainPanel = new MainPanel(document.getElementById('main-panel'), env);
     mainPanel.registerSection('onThisPage', OnThisPageSection);
-    mainPanel.registerSection('globalStyles', GlobalStylesSection);
+    if (api.user.can('editThemeStyles')) {
+        mainPanel.registerSection('globalStyles', GlobalStylesSection);
+    }
     mainPanel.registerSection('website', WebsiteSection);
     api.mainPanel = mainPanel;
     //
@@ -162,4 +168,8 @@ function hookUpSiteIframeUrlMirrorer() {
         if (window.location.href !== `${window.location.origin}${p}`)
             history.replaceState(null, null, p);
     });
+}
+
+function capitalize(str) {
+    return `${str.charAt(0).toUpperCase()}${str.substring(1, str.length)}`;
 }

@@ -8,6 +8,7 @@ use Pike\Db\FluentDb;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\{App, SharedAPIContext, Template, Translator};
+use Sivujetti\Auth\ACL;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
@@ -92,6 +93,7 @@ final class PagesController {
      * @param \Pike\Response $res
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\SharedAPIContext $apiCtx
+     * @param \Sivujetti\Auth\ACL $acl
      * @param \Pike\AppConfig $config
      * @param \Pike\Db $db
      */
@@ -99,6 +101,7 @@ final class PagesController {
                                          Response $res,
                                          TheWebsite $theWebsite,
                                          SharedAPIContext $apiCtx,
+                                         ACL $acl,
                                          AppConfig $config,
                                          Db $db): void {
         $parsed = json_decode($theWebsite->firstRunsJson, flags: JSON_THROW_ON_ERROR);
@@ -108,6 +111,7 @@ final class PagesController {
             // todo theWebsiteRepo->update()->fields(["firstRun"])->exec(json_encode())
             $db->exec("UPDATE `\${p}theWebsite` SET `firstRuns`=?", [json_encode($parsed)]);
         }
+        $userRole = $req->myData->user->role;
         $res->html((new WebPageAwareTemplate("sivujetti:edit-app-wrapper.tmpl.php"))->render([
             "url" => $req->params->url ?? "",
             "userDefinedJsFiles" => $apiCtx->adminJsFiles,
@@ -119,6 +123,11 @@ final class PagesController {
                 "blockRenderers" => $apiCtx->blockRenderers,
                 "showGoToDashboardMode" => $config->get("app.showGoToDashboardMode", false),
                 "dashboardUrl" => $config->get("app.dashboardUrl", ""),
+                "userPermissions" => [
+                    "canDoAnything" => $userRole === ACL::ROLE_SUPER_ADMIN,
+                    "canEditCssStyles" => $acl->can($userRole, "upsertStylesOf", "pages"),
+                    "canEditThemeStyles" => $acl->can($userRole, "updateGlobalStylesOf", "themes"),
+                ],
             ]),
             "uiLang" => "fi",
             "isFirstRun" => $isFirstRun || $req->queryVar("first-run") !== null,

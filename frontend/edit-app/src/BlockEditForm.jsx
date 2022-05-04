@@ -47,6 +47,7 @@ class BlockEditForm extends preact.Component {
         super(props);
         blockTypes = api.blockTypes;
         this.state = {currentTabIdx: 0};
+        this.userCanEditCss = api.user.can('editCssStyles');
     }
     /**
      * @access protected
@@ -99,10 +100,13 @@ class BlockEditForm extends preact.Component {
             <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
             { __(block.title || this.blockType.friendlyName) }
         </div>
-        <Tabs
-            links={ [__('Content'), __('Own styles'), __('Base styles')] }
-            onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
-            className="text-tinyish mt-0 mb-2"/>
+        { this.userCanEditCss
+            ? <Tabs
+                links={ [__('Content'), __('Own styles'), __('Base styles')] }
+                onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
+                className="text-tinyish mt-0 mb-2"/>
+            : null
+        }
         <div class={ currentTabIdx === 0 ? '' : 'd-none' }>
             <div class="mt-2">
                 { this.isOutermostBlockOfGlobalBlockTree
@@ -132,13 +136,15 @@ class BlockEditForm extends preact.Component {
                     key={ block.id }/>
             </div>
         </div>
+        { this.userCanEditCss ? [
         <IndividualBlockStylesTab block={ this.props.block }
             allowEditing={ this.allowStylesEditing }
-            isVisible={ currentTabIdx === 1 }/>
+            isVisible={ currentTabIdx === 1 }/>,
         <BlockTypeBaseStylesTab block={ this.props.block }
             allowEditing={ this.allowStylesEditing }
             isVisible={ currentTabIdx === 2 }
             blockTypeNameTranslated={ __(this.blockType.friendlyName) }/>
+        ] : null }
         </div>;
     }
     /**

@@ -6,6 +6,9 @@ interface SivujettiFrontendApi {
     getPageTypes(): Array<PageType>;
     getBlockRenderers(): Array<BlockRenderer>;
     getActiveTheme(): {id: String;};
+    user: {
+        can(doWhat: 'doAnything'|'editCssStyles'|'editThemeStyles'): Boolean;
+    }
 }
 
 interface WebPageIframe {
@@ -189,6 +192,13 @@ interface TheWebsite {
     pageTypes: Array<PageType>;
     activeTheme: {id: String;};
     blockRenderers: Array<BlockRenderer>;
+    userPermissions: {
+        canDoAnything: Boolean;
+        canEditCssStyles: Boolean;
+        canEditThemeStyles: Boolean;
+    };
+    showGoToDashboardMode?: Boolean;
+    dashboardUrl?: String;
 }
 
 interface EditAwareWebPageEventHandlers {

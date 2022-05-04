@@ -3,6 +3,7 @@ import {__, api, http, signals, env, hookForm, unhookForm, reHookValues, Input,
 import toasters from '../commons/Toaster.jsx';
 import {stringUtils} from '../commons/utils.js';
 import BlockTrees from '../BlockTrees.jsx';
+import {validationConstraints} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
 
 class PageInfoBlockEditForm extends preact.Component {
@@ -49,7 +50,7 @@ class PageInfoBlockEditForm extends preact.Component {
             {name: 'title', value: snapshot.title, validations: [['required'], ['maxLength', 92]],
              label: __('Page title'), onAfterValueChanged: (value, hasErrors) => {
                 onValueChanged(value, 'title', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'slug', value: snapshot.slug, validations: [['required'], ['maxLength', 92], ['regexp', '^/[a-zA-Z0-9_\\-$.+!*\'():,]*$']],
+            {name: 'slug', value: snapshot.slug, validations: [['required'], ['maxLength', 92], ['regexp', validationConstraints.SLUG_REGEXP]],
              label: __('Url (slug)'), onAfterValueChanged: (value, hasErrors) => {
                  onManyValuesChanged({slug: value, path: makePath(value, this.pageType)}, hasErrors, env.normalTypingDebounceMillis); }},
             {name: 'description', value: snapshot.description, validations: [['maxLength', 206]],

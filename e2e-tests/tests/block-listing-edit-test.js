@@ -110,7 +110,7 @@ describe('Listing block', () => {
         waitForMainMenuToAppear(browser);
         openListingBlockToInspectorPanel(browser, testBlock);
         openDefineOrderPopup(browser);
-        chnageOrderFromDescToAsc(browser);
+        changeOrderFromDescToAsc(browser);
         verifyReRenderedListingPagesInPreviewFrame(browser);
         saveChanges(browser);
         goToWebPageWhichListingBlockWeJustEdited(browser);
@@ -123,7 +123,7 @@ describe('Listing block', () => {
                 .waitForElementVisible(openPopupLocator)
                 .click(openPopupLocator);
         }
-        function chnageOrderFromDescToAsc(browser) {
+        function changeOrderFromDescToAsc(browser) {
             // 1 = newest to oldert, 2 = oldest to newest, 3 = random
             const radioItemLocator = `${orderFilterPartGroupLocator} .form-radio:nth-of-type(2)`;
             return browser
@@ -140,6 +140,70 @@ describe('Listing block', () => {
         function verifyListingNowListsPagesFromOldestToNewest(browser) {
             browser.expect.element(firstListingPageHeadingLocator).text.to.equal(testPage1Data.title);
             browser.expect.element(secondListingPageHeadingLocator).text.to.equal(testPage2Data.title);
+            return browser;
+        }
+    });
+
+    it('User can add urlStartsWith filter', browser => {
+        const addAdditionalFilterBtnLocator = '#inspector-panel .listing-instructions > .perhaps';
+        const urlStartsWithFilterPartLocator = '#inspector-panel .listing-instructions > [data-filter-part-kind="urlStartsWith"].group-2';
+        const testBlock = getListingBlock();
+
+        //
+        waitForMainMenuToAppear(browser);
+        openListingBlockToInspectorPanel(browser, testBlock);
+        openAddAdditionalFilterPartsPopup(browser);
+        selectUrlStartsWithFilterPart(browser);
+        verifyAddedUrlStartsWithFilterPartToBuilder(browser);
+        openDefineUrlStartsWithTermPopup(browser);
+        typeNewUrlStartsWithTerm(browser);
+        verifyReRenderedListingPagesInPreviewFrame(browser);
+        saveChanges(browser);
+        goToWebPageWhichListingBlockWeJustEdited(browser);
+        verifyListingNowUsesUrlStartsWithFilter(browser);
+
+        //
+        function openAddAdditionalFilterPartsPopup(browser) {
+            const openPopupLocator = `${addAdditionalFilterBtnLocator} button`;
+            return browser
+                .waitForElementVisible(openPopupLocator)
+                .click(openPopupLocator);
+        }
+        function selectUrlStartsWithFilterPart(browser) {
+            const chosenFilterBtnLocator = `${addAdditionalFilterBtnLocator} .group-2.poppable`;
+            return browser
+                .waitForElementVisible(chosenFilterBtnLocator)
+                .click(chosenFilterBtnLocator);
+        }
+        function verifyAddedUrlStartsWithFilterPartToBuilder(browser) {
+            return browser
+                .waitForElementVisible(urlStartsWithFilterPartLocator);
+        }
+        function openDefineUrlStartsWithTermPopup(browser) {
+            const openPopupLocator = `${urlStartsWithFilterPartLocator} .poppable`;
+            return browser
+                .waitForElementVisible(openPopupLocator)
+                .click(openPopupLocator);
+        }
+        function typeNewUrlStartsWithTerm(browser) {
+            const termInputLocator = `${urlStartsWithFilterPartLocator} input`;
+            const validationErrorLocator = `${termInputLocator} + .has-error`;
+            return browser
+                .waitForElementVisible(termInputLocator)
+                .setValue(termInputLocator, '%&€')
+                .assert.elementPresent(validationErrorLocator)
+                .setValue(termInputLocator, '/pag')
+                .assert.not.elementPresent(validationErrorLocator);
+        }
+        function verifyReRenderedListingPagesInPreviewFrame(browser) {
+            const frame = browser
+                .frame(0);
+            verifyListingNowUsesUrlStartsWithFilter(frame);
+            return browser.frame(null);
+        }
+        function verifyListingNowUsesUrlStartsWithFilter(browserOrFrame) {
+            browserOrFrame.assert.not.elementPresent(secondListingPageHeadingLocator);
+            browserOrFrame.expect.element(firstListingPageHeadingLocator).text.to.equal(testPage2Data.title);
             return browser;
         }
     });

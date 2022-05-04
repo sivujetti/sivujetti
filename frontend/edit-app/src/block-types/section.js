@@ -72,7 +72,7 @@ class SectionBlockEditForm extends preact.Component {
     handleBgImageChanged(img) {
         const bgImage = img ? `/${UPLOADS_DIR_PATH}${img.baseDir}${img.fileName}` : '';
         this.setState({bgImage});
-        this.props.onValueChanged(bgImage, 'bgImage', false, 'debounce-none');
+        this.props.onValueChanged(bgImage, 'bgImage', false, 0, 'debounce-none');
     }
 }
 

@@ -4,6 +4,8 @@ import {validationConstraints} from '../constants.js';
 import {UPLOADS_DIR_PATH} from '../Upload/UploadsManager.jsx';
 import setFocusTo from './auto-focusers.js';
 
+const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=';
+
 class ImageBlockEditForm extends preact.Component {
     // imagePicker;
     /**
@@ -65,14 +67,14 @@ class ImageBlockEditForm extends preact.Component {
      * @param {UploadsEntry|null} img
      */
     handleImageChanged(img) {
-        const src = img ? `/${UPLOADS_DIR_PATH}${img.baseDir}${img.fileName}` : '';
+        const src = img ? `/${UPLOADS_DIR_PATH}${img.baseDir}${img.fileName}` : placeholderImageSrc;
         this.setState({src});
-        this.props.onValueChanged(src, 'src', false, 'debounce-none');
+        this.props.onValueChanged(src, 'src', false, 0, 'debounce-none');
     }
 }
 
 export default () => {
-    const initialData = {src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=', cssClass: ''};
+    const initialData = {src: placeholderImageSrc, cssClass: ''};
     const name = 'Image';
     return {
         name,

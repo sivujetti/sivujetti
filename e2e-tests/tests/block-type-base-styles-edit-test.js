@@ -19,7 +19,7 @@ describe('Block type', () => {
         const baseStylesTabBtnLocator = `${vars.inspectorPanelLocator} > ul .tab-item:nth-child(${baseStylesTabNth})`;
         const headingNth = 1;
         const baseStylesTextareaLocator = `${vars.inspectorPanelLocator} > div:nth-of-type(${baseStylesTabNth+headingNth}) textarea`;
-        const validationErrorLocator = `${baseStylesTextareaLocator} + *`;
+        const validationErrorLocator = `${baseStylesTextareaLocator} + .has-error`;
         const testBlocksInPageLocator = `body [data-block-type="Paragraph"]`;
 
         //

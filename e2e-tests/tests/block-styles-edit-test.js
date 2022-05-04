@@ -19,7 +19,7 @@ describe('Block', () => {
         const ownStylesTabBtnLocator = `${vars.inspectorPanelLocator} > ul .tab-item:nth-child(${ownStylesTabNth})`;
         const headingNth = 1;
         const ownStylesTextareaLocator = `${vars.inspectorPanelLocator} > div:nth-of-type(${ownStylesTabNth+headingNth}) textarea`;
-        const validationErrorLocator = `${ownStylesTextareaLocator} + *`;
+        const validationErrorLocator = `${ownStylesTextareaLocator} + .has-error`;
         const testBlockInPageLocator = `body [data-block="${testBlock.id}"]`;
 
         //

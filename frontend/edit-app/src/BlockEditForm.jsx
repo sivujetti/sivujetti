@@ -233,26 +233,22 @@ class BlockValMutator {
         if (debounceMillis !== this.currentDebounceTime || debounceType !== this.currentDebounceType) {
             // Run reRender immediately, but throttle commitChangeOpToQueue
             if (debounceType === 'debounce-commit-to-queue') {
-                this.currentMutateAndRenderFn = this.mutateAndRender.bind(this);
                 this.currentEmitChangesOpFn = timingUtils.debounce(this.emitCommitChangesFn.bind(this), debounceMillis);
+                this.currentMutateAndRenderFn = this.mutateRenderAndThenCallCommit.bind(this);
             // Throttle reRender, which throttles commitToQueue as well
             } else if (debounceType === 'debounce-re-render-and-commit-to-queue') {
-                this.currentMutateAndRenderFn = timingUtils.debounce(this.mutateAndRender.bind(this), debounceMillis);
                 this.currentEmitChangesOpFn = this.emitCommitChangesFn.bind(this);
+                this.currentMutateAndRenderFn = timingUtils.debounce(this.mutateRenderAndThenCallCommit.bind(this), debounceMillis);
             // Run both immediately
             } else {
-                this.currentMutateAndRenderFn = this.mutateAndRender.bind(this);
                 this.currentEmitChangesOpFn = this.emitCommitChangesFn.bind(this);
+                this.currentMutateAndRenderFn = this.mutateRenderAndThenCallCommit.bind(this);
             }
             this.currentDebounceTime = debounceMillis;
             this.currentDebounceType = debounceType;
         }
-        //
-        const ret = this.currentMutateAndRenderFn(obj, hasErrors);
-        if (ret) {
-            this.dirtyQueue.push(ret.block1);
-            this.currentEmitChangesOpFn(this.dirtyQueue, ret.block2);
-        }
+        // Call render, which then calls commit
+        this.currentMutateAndRenderFn(obj, hasErrors);
     }
     /**
      * @param {Array<CommandContext>} aq
@@ -282,17 +278,18 @@ class BlockValMutator {
      * @returns {CommandContext|null}
      * @access private
      */
-    mutateAndRender(obj, hasErrors) {
+    mutateRenderAndThenCallCommit(obj, hasErrors) {
         const {block, base} = this.props;
         const valBefore = Object.assign({}, putOrGetSnapshot(block, blockTypes.get(block.type)));
         const valAfter = Object.assign({}, valBefore, obj);
+        let ret;
         // - Mutate $block
         // - Tell emitCommitChangesFn to commit changes to the root tree using $block (block1.block)
         // - Instruct internalUndoVal to overwrite $block's data using block1.valBefore
         if (block.isStoredTo === 'page') {
             internalOverwriteData(valAfter, block);
             BlockTrees.currentWebPage.reRenderBlockInPlace(block);
-            return !hasErrors ? {block1: {valBefore, valAfter, block}, block2: {valBefore: null, valAfter: null, block: null}} : null;
+            ret = !hasErrors ? {block1: {valBefore, valAfter, block}, block2: {valBefore: null, valAfter: null, block: null}} : null;
         } else {
             // - Mutate $block
             // - Instruct emitCommitChangesFn to commit changes to $block's global block tree
@@ -300,8 +297,8 @@ class BlockValMutator {
             if (!base.useOverrides) {
                 internalOverwriteData(valAfter, block);
                 BlockTrees.currentWebPage.reRenderBlockInPlace(block);
-                return !hasErrors ? {block1: {valBefore, valAfter, block}, block2: {valBefore: null, valAfter: null, block: base}} : null;
-            }
+                ret = !hasErrors ? {block1: {valBefore, valAfter, block}, block2: {valBefore: null, valAfter: null, block: base}} : null;
+            } else {
             // - Mutate $block and $base
             // - Tell emitCommitChangesFn to commit changes to the root tree using $base (block1.block)
             // - Instruct internalUndoVal to overwrite $block's data with block2.valBefore and $base's data using block1.valBefore
@@ -310,7 +307,12 @@ class BlockValMutator {
             const valBefore2 = Object.assign({}, putOrGetSnapshot(base, blockTypes.get(base.type)));
             const valAfter2 = Object.assign({}, valBefore2, {overrides: setOverridesOf(block, JSON.parse(valBefore2.overrides))});
             internalOverwriteData(valAfter2, base);
-            return !hasErrors ? {block1: {valBefore: valBefore2, valAfter: valAfter2, block: base}, block2: {valBefore, valAfter, block}} : null;
+            ret = !hasErrors ? {block1: {valBefore: valBefore2, valAfter: valAfter2, block: base}, block2: {valBefore, valAfter, block}} : null;
+            }
+        }
+        if (ret) {
+            this.dirtyQueue.push(ret.block1);
+            this.currentEmitChangesOpFn(this.dirtyQueue, ret.block2);
         }
     }
     /**

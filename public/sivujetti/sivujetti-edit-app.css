@@ -122,7 +122,7 @@ Structure:
 
 
 
-/* Global: Defaults */
+/* == Global: Defaults ====================================================== */
 @font-face {
     font-family: "Fira Sans";
     src: url("assets/fira-sans-light.woff2") format("woff2");
@@ -153,7 +153,7 @@ h2 {
 
 
 
-/* EditApp: Defaults */
+/* == EditApp: Defaults ===================================================== */
 .ql-toolbar.ql-snow {
     border: none;
     padding: .1rem;
@@ -293,7 +293,7 @@ h2 {
 
 
 
-/* EditApp: Components */
+/* == EditApp: Components ============================================== */
 ul.popup-menu.menu {
     position: fixed;
     z-index: 2;
@@ -474,6 +474,7 @@ a.popup-close-area {
 
 
 
+/* == EditApp: * ============================================================ */
 /* EditApp: Main panel */
 #main-panel > div {
     display: block;
@@ -556,7 +557,6 @@ a.popup-close-area {
 }
 
 
-
 /* EditApp: Main panel > Back to edit app label */
 #back-to-edit-corner {
     top: -110px;
@@ -593,7 +593,6 @@ a.popup-close-area {
 #back-to-edit-corner:hover svg {
     display: initial;
 }
-
 
 
 /* EditApp: Main panel > Block tree */
@@ -743,11 +742,14 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     margin-left: 0;
 }
 
+
+
 /* EditApp: Main panel > Global Styles -section */
 .hidden-helper-picker + .pickr,
 .global-styles > .pickr {
     display: none;
 }
+
 
 /* EditApp: Inspector panel */
 #inspector-panel [data-main] > .with-icon .icon-tabler {
@@ -759,6 +761,7 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 #inspector-panel [data-main] > .with-icon.global-block-tree-block .icon-tabler {
     color: var(--color-icon-global-block);
 }
+
 
 /* EditApp: Block highligh rectangles */
 .highlight-rect {
@@ -785,7 +788,79 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 }
 
 
-/* Global: Utilies */
+/* EditApp: Inspector panel > Listing block filters builder */
+.listing-instructions {
+    flex-wrap: wrap;
+    align-items: center;
+}
+.listing-instructions > * {
+    margin-bottom: .2rem;
+    border-radius: 4px;
+    display: flex;
+    border: 2px solid transparent;
+    min-height: 1.6rem;
+    align-items: center;
+}
+.listing-instructions .poppable {
+    border: none;
+    width: initial;
+    font-size: inherit;
+    padding: .1rem .4rem;
+    white-space: nowrap;
+    color: inherit;
+    height: 1.4rem;
+    font-weight: 300;
+    cursor: pointer;
+}
+.listing-instructions .poppable,
+.listing-instructions .form-select.poppable {
+    background-color: transparent;
+}
+.listing-instructions .popup {
+    position: absolute;
+    display: inline;
+    font-size: .7rem;
+    padding: .2rem .6rem;
+    margin: 6.7rem 0 0 -1.4rem;
+}
+.listing-instructions .group-1 {
+    background-color: #d8fa696b;
+}
+.listing-instructions .group-2 {
+    background-color: #00a1ff38;
+}
+.listing-instructions .group-2.perhaps {
+    background-color: #00a1ff12;
+}
+.listing-instructions .group-3 {
+    background-color: #c752e124;
+}
+.listing-instructions .group-4 {
+    background-color: #dcbda44a;
+}
+.listing-instructions .perhaps {
+    border: 2px dashed rgba(0,0,0,0.2);
+}
+.listing-instructions .form-radio .form-input {
+    clip: initial;
+    height: initial;
+    margin: initial;
+    overflow: initial;
+    position: static;
+    width: initial;
+}
+.listing-instructions .no-round-right {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.listing-instructions .no-round-left {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+
+
+/* == Global: Utilies ======================================================= */
 .icon-tabler {
     color: currentColor;
     width: 1.2rem;
@@ -799,6 +874,10 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 .icon-tabler.size-xs {
     width: .85rem;
     height: .85rem;
+}
+.icon-tabler.size-xxs {
+    width: .7rem;
+    height: .7rem;
 }
 .color-default { color: var(--color-fg-default); }
 .color-dimmed { color: var(--color-fg-dimmed); }
@@ -897,67 +976,4 @@ ul.list {
 .mini-toggle > .tooltip .icon-tabler {
     width: .8rem;
     height: .8rem;
-}
-
-
-/* ?? */
-.listing-instructions {
-    flex-wrap: wrap;
-    align-items: center;
-}
-.listing-instructions > * {
-    margin-bottom: .2rem;
-    border-radius: 4px;
-    display: flex;
-    border: 2px solid transparent;
-    min-height: 1.6rem;
-    align-items: center;
-}
-
-.listing-instructions button.form-select {
-    border: none;
-    width: initial;
-    font-size: inherit;
-    padding: .1rem .4rem;
-    background-color: transparent !important;
-    white-space: nowrap;
-    color: inherit;
-    height: 1.4rem;
-}
-
-.listing-instructions .popup {
-    position: absolute;
-    display: inline;
-    font-size: .7rem;
-    padding: .2rem .6rem;
-    margin: 6.7rem 0 0 -1.4rem;
-}
-
-.listing-instructions .group-1 {
-    background-color: #d8fa696b;
-}
-.listing-instructions .group-2 {
-    background-color: #00a1ff38
-}
-.listing-instructions .group-2.perhaps {
-    background-color: #00a1ff12;
-}
-.listing-instructions .group-3 {
-    background-color: #c752e124;
-}
-.listing-instructions .group-4 {
-    background-color: #dcbda44a;
-}
-
-.listing-instructions .perhaps {
-    border: 2px dashed rgba(0,0,0,0.2);
-}
-
-.listing-instructions .form-radio .form-input {
-    clip: initial;
-    height: initial;
-    margin: initial;
-    overflow: initial;
-    position: static;
-    width: initial;
 }

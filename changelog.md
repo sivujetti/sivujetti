@@ -6,14 +6,15 @@
 
 ## Added
 - An ability to drag blocks between block tree's branches
-- `filterLimit` to Listing blocks
+- `filterLimit`, and `filterAdditional.'p.url'.$startsWith` to listing blocks
+- `WebPageAwareTemplate->head()`, which renders most common SEO-tags by default
 
 ## Fixed
-- An issue, where the page blew up in edit mode, if some of the blocks contained some unusual css
+- An issue, where the page blew up in edit mode, if some of the blocks contained specific type of css
 
 ## Changed
 - The event type (onChange -> onInput) that refreshes styles preview in edit mode
-- The UI of Listing blocks
+- The UI of listing blocks
 
 # 0.9.0 (2022-04-08)
 

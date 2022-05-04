@@ -1,8 +1,16 @@
-import {__, Icon, MenuSection} from '@sivujetti-commons-for-edit-app';
+import {__, Icon, MenuSection, api} from '@sivujetti-commons-for-edit-app';
 
 class WebsiteSection extends MenuSection {
+    // userCanCreatePageTypes;
     /**
      * @param {{startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref;} && {[key: String]: any;}} props
+     */
+    constructor(props) {
+        super(props);
+        this.userCanCreatePageTypes = api.user.can('createPageTypes');
+    }
+    /**
+     * @access protected
      */
     render({startAddPageMode, startAddPageTypeMode}, {isCollapsed}) {
         return <section class={ `panel-section${isCollapsed ? '' : ' open'}` }>
@@ -20,10 +28,10 @@ class WebsiteSection extends MenuSection {
                     <Icon iconId="circle-plus" className="size-sm color-dimmed"/>
                     <span class="color-dimmed">{ __('Create %s', __('page')) }</span>
                 </a>
-                <a onClick={ e => (e.preventDefault(), startAddPageTypeMode()) } class="with-icon">
+                { this.userCanCreatePageTypes ? <a onClick={ e => (e.preventDefault(), startAddPageTypeMode()) } class="with-icon">
                     <Icon iconId="circle-plus" className="size-sm color-dimmed"/>
                     <span class="color-dimmed">{ __('Create %s', __('page type')) }</span>
-                </a>
+                </a> : null }
             </nav>
         </section>;
     }

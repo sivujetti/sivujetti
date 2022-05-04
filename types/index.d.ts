@@ -7,7 +7,7 @@ interface SivujettiFrontendApi {
     getBlockRenderers(): Array<BlockRenderer>;
     getActiveTheme(): {id: String;};
     user: {
-        can(doWhat: 'doAnything'|'editCssStyles'|'editThemeStyles'): Boolean;
+        can(doWhat: 'doAnything'|'editCssStyles'|'editThemeStyles'|'createPageTypes'|'createPages'|'specializeGlobalBlocks'): Boolean;
     }
 }
 
@@ -196,6 +196,9 @@ interface TheWebsite {
         canDoAnything: Boolean;
         canEditCssStyles: Boolean;
         canEditThemeStyles: Boolean;
+        canCreatePageTypes: Boolean;
+        canCreatePages: Boolean;
+        canSpecializeGlobalBlocks: Boolean;
     };
     showGoToDashboardMode?: Boolean;
     dashboardUrl?: String;

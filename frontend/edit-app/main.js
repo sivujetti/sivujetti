@@ -72,7 +72,9 @@ function configureServices() {
     if (api.user.can('editThemeStyles')) {
         mainPanel.registerSection('globalStyles', GlobalStylesSection);
     }
-    mainPanel.registerSection('website', WebsiteSection);
+    if (api.user.can('createPages')) {
+        mainPanel.registerSection('website', WebsiteSection);
+    }
     api.mainPanel = mainPanel;
     //
     patchQuillEditor();

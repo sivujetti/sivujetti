@@ -32,6 +32,7 @@ function putOrGetSnapshot(block, blockType, override = false) {
 class BlockEditForm extends preact.Component {
     // blockVals;
     // isOutermostBlockOfGlobalBlockTree;
+    // userCanSpecializeGlobalBlocks;
     // blockType;
     // editFormImpl;
     // snapshot;
@@ -57,6 +58,7 @@ class BlockEditForm extends preact.Component {
         this.blockVals = new BlockValMutator(this.props);
         BlockEditForm.undoingLockIsOn = false;
         this.isOutermostBlockOfGlobalBlockTree = base && block.id === base.__globalBlockTree.blocks[0].id;
+        this.userCanSpecializeGlobalBlocks = api.user.can('specializeGlobalBlocks');
         this.blockType = blockTypes.get(block.type);
         this.editFormImpl = this.blockType.editForm;
         this.snapshot = putOrGetSnapshot(block, this.blockType);
@@ -109,7 +111,7 @@ class BlockEditForm extends preact.Component {
         }
         <div class={ currentTabIdx === 0 ? '' : 'd-none' }>
             <div class="mt-2">
-                { this.isOutermostBlockOfGlobalBlockTree
+                { this.userCanSpecializeGlobalBlocks && this.isOutermostBlockOfGlobalBlockTree
                     ? <div class="input-group mini-toggle">
                         <label class="form-switch input-sm color-dimmed pr-0">
                             <input

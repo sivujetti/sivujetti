@@ -63,7 +63,7 @@ $out->userPermissions = (object) [
         "coreUpdates"       => ACL::makePermissions("*", $out->resources->coreUpdates),
         "globalBlockTrees"  => ACL::makePermissions(["create","read","update"], $out->resources->globalBlockTrees),
         "editMode"          => ACL::makePermissions(["access"], $out->resources->editMode),
-        // layouts          -> none
+        "layouts"           => ACL::makePermissions(["list"], $out->resources->layouts),
         "pages"             => ACL::makePermissions(["create","updateBlocksOf","update"], $out->resources->pages),
         // pageTypes        -> none
         "themes"            => ACL::makePermissions(["view","updateGlobalStylesOf"], $out->resources->themes),

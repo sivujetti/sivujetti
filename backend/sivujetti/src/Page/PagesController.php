@@ -127,6 +127,9 @@ final class PagesController {
                     "canDoAnything" => $userRole === ACL::ROLE_SUPER_ADMIN,
                     "canEditCssStyles" => $acl->can($userRole, "upsertStylesOf", "pages"),
                     "canEditThemeStyles" => $acl->can($userRole, "updateGlobalStylesOf", "themes"),
+                    "canCreatePageTypes" => $acl->can($userRole, "create", "pageTypes"),
+                    "canCreatePages" => $acl->can($userRole, "create", "pages"),
+                    "canSpecializeGlobalBlocks" => $userRole <= ACL::ROLE_ADMIN,
                 ],
             ]),
             "uiLang" => "fi",
@@ -334,18 +337,18 @@ final class PagesController {
         }
     }
     /**
-     * @param \Sivujetti\PageType\Entities\PageType $pagePageType
+     * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @return \Sivujetti\Page\Entities\Page
      */
-    public static function createEmptyPage(PageType $pagePageType): Page {
+    public static function createEmptyPage(PageType $pageType): Page {
         $page = new Page;
         $page->slug = "-";
         $page->path = "-";
         $page->level = 1;
-        $page->title = $pagePageType->defaultFields->title->defaultValue;
+        $page->title = $pageType->defaultFields->title->defaultValue;
         $page->meta = new \stdClass;
         $page->id = "-";
-        $page->type = $pagePageType->name;
+        $page->type = $pageType->name;
         $page->blocks = [];
         $page->blockStyles = [];
         $page->status = Page::STATUS_DRAFT;

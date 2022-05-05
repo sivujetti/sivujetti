@@ -55,9 +55,7 @@ class EditApp extends preact.Component {
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         const webPagePage = webPage.data.page;
         this.currentWebPage = webPage;
-        if (webPagePage.isPlaceholderPage && this.state.currentMainPanel !== 'create-page') {
-            this.currentPageData = webPagePage;
-        }
+        this.currentPageData = webPagePage;
         this.setState({currentMainPanel: !webPagePage.isPlaceholderPage ? 'default' : 'create-page'});
         signals.emit('on-web-page-loaded');
         store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
@@ -71,7 +69,7 @@ class EditApp extends preact.Component {
      */
     render(_, {currentMainPanel, hidePanels}) {
         const showMainPanel = currentMainPanel === 'default';
-        const pageType = showMainPanel ? null : this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentPageData.type);
+        const pageType = this.currentPageData ? this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentPageData.type) : null;
         const logoUrl = urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo.png');
         return <div>
             { !hidePanels ? null : <a onClick={ e => (e.preventDefault(), this.handlePanelsAreHiddenChanged(false)) } id="back-to-edit-corner" href="">
@@ -110,7 +108,7 @@ class EditApp extends preact.Component {
                         // Open to iframe to '/_edit/api/_placeholder-page...',
                         // which then triggers this.handleWebPageLoaded() and sets
                         // this.state.currentMainPanel to 'create-page'
-                        api.webPageIframe.openPlaceholderPage('Pages');
+                        api.webPageIframe.openPlaceholderPage('Pages', pageType.defaultLayoutId);
                         floatingDialog.close();
                     } }
                     startAddPageTypeMode={ () => {
@@ -323,7 +321,7 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
             const treeCmp = blockTrees.current.blockTree.current;
             const block = findBlockTemp(blockRef, treeCmp);
             signals.emit('on-web-page-block-clicked', block);
-            treeCmp.handleItemClicked(block);
+            treeCmp.handleItemClicked(block, false);
         },
         /**
          * @param {BlockRefComment} blockRef

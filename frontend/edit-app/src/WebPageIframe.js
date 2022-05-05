@@ -33,17 +33,22 @@ class WebPageIframe {
         const win = this.getEl().contentWindow;
         const inPageElRect = block.getRootDomNode().getBoundingClientRect();
         const inPageElTop = inPageElRect.top;
-        const min = (a, b) => a >= b ? a : b;
-        if (inPageElTop > win.innerHeight)
+        const elBottom = inPageElRect.bottom;
+        const quarterVisible = win.innerHeight / 4;
+        const scrollToInPageEl = () => {
             win.scrollTo({
-                top: inPageElTop + min(inPageElRect.heigth * 0.5, 100),
+                top: inPageElTop + win.scrollY - 40,
                 behavior: 'smooth'
             });
-        else if (inPageElTop < 0)
-            win.scrollTo({
-                top: win.scrollY - Math.abs(inPageElTop) - min(inPageElRect.heigth * 0.5, 100),
-                behavior: 'smooth'
-            });
+        };
+        //
+        if (inPageElTop <= 0 && elBottom <= (quarterVisible * 3)) {
+            scrollToInPageEl();
+        } else if (elBottom < 0) {
+            scrollToInPageEl();
+        } else if (inPageElTop > quarterVisible) {
+            scrollToInPageEl();
+        }
     }
     /**
      * @returns {HTMLElement}

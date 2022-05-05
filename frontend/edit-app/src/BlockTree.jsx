@@ -157,16 +157,18 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} block
+     * @param {Boolean} isDirectClick = true
      * @access public
      */
-    handleItemClicked(block) {
+    handleItemClicked(block, isDirectClick = true) {
         this.selectedRoot = block;
         const mutRef = this.state.treeState;
         const base = block.isStoredTo !== 'globalBlockTree'
             ? null
             : blockTreeUtils.findRecursively(this.state.blockTree,
                 ({globalBlockTreeId}) => globalBlockTreeId === block.globalBlockTreeId);
-        this.emitItemClickedOrAppendedSignal('clicked', block, base);
+        this.emitItemClickedOrAppendedSignal('focus-requested', block, base);
+        if (isDirectClick) this.emitItemClickedOrAppendedSignal('clicked', block, base);
         //
         if (!base && block.parentBlockIdPath) {
             const ids = block.parentBlockIdPath.split('/'); // '/foo/bar' -> ['', 'foo', 'bar']

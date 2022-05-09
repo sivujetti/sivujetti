@@ -1,4 +1,4 @@
-import {__, urlUtils, http, env, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, urlUtils, http, env} from '@sivujetti-commons-for-edit-app';
 import Tabs from '../commons/Tabs.jsx';
 import {timingUtils} from '../commons/utils.js';
 import LoadingSpinner from '../commons/LoadingSpinner.jsx';
@@ -32,13 +32,6 @@ class UploadsManager extends preact.Component {
     /**
      * @access protected
      */
-    componentDidMount() {
-        if (this.props.autoFocus)
-            this.inputEl.current.focus();
-    }
-    /**
-     * @access protected
-     */
     render(_, {files, currentTabIdx}) {
         return <div>
             <Tabs
@@ -46,12 +39,7 @@ class UploadsManager extends preact.Component {
                 onTabChanged={ idx => this.setState({currentTabIdx: idx}) }
                 ref={ this.tabs }/>
             <div class={ currentTabIdx === 0 ? 'mt-8' : 'd-none' }>
-                <div class="container"><div class="columns mt-8 mb-8">
-                    <div class="has-icon-right col-10">
-                        <input class="form-input" placeholder={ __('Search') } onInput={ this.onSearchTermTypedDebounced } ref={ this.inputEl }/>
-                        <i class="sivujetti-form-icon"><Icon iconId="search" className="size-sm"/></i>
-                    </div>
-                </div></div>
+                <div class="pb-2"></div>
                 { files ? files.length
                     ? <div class="item-grid image-grid img-auto">{ files.map(entry =>
                         <button

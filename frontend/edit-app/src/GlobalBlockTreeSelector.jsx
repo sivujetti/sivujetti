@@ -31,7 +31,7 @@ class GlobalBlockTreeSelector extends preact.Component {
                     <option value={ gbt.id }>{ gbt.name }</option>
                 ) }
             </select>
-            : <p>{ __('No %s found', __('global blocks')) }</p>;
+            : <p>{ __('No %s found', __('global content')) }</p>;
         //
         return <LoadingSpinner className="mb-2 pb-2 ml-1"/>;
     }

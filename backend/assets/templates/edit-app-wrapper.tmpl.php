@@ -64,11 +64,11 @@
                     }, {
                         title: 'Lisätiedot-paneeli',
                         element: document.querySelector('#inspector-panel'),
-                        intro: 'Tämä suljettava osio <b>näyttää sen sisällön (<i>lohkon</i>) tiedot</b>, jonka olet klikannut auki sivulta tai päävalikko-paneelin lohkopuusta.'
+                        intro: 'Tämä suljettava osio <b>näyttää sen sisällön tiedot</b>, jota olet juuri muokkaamassa.'
                     }, {
                         title: 'Sivusto',
                         element: document.getElementById('sivujetti-site-iframe'),
-                        intro: 'Sivuston sisältö päivittyy reaaliajassa, kun muokkaat sitä lisätiedot-paneelissa. Voit avata sivulla näkyviä <i>lohkoja</i> <b>lisätiedot-paneeliin klikkaamalla niitä</b>.'
+                        intro: 'Sivuston sisältö päivittyy reaaliajassa, kun muokkaat sitä. <b>Kun klikkaat</b> sivun eri osioita, ne avautuu lisätiedot-paneeliin muokattavaksi.'
                     }, {
                         title: 'Lopettaminen',
                         element: document.querySelector('.mode-chooser .form-select'),

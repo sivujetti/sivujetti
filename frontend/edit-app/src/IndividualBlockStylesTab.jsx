@@ -84,7 +84,7 @@ class IndividualBlockStylesTab extends preact.Component {
                 <div class="p-absolute" style="right: 0; z-index: 1; margin: .3rem .67rem 0 0;">
                     <Icon iconId="info-circle" className="size-xs color-dimmed3"/>
                     <span ref={ createPopper.bind(this) } class="my-tooltip dark">
-                        <span>{ __('These styles will affect this individual block only') }</span>
+                        <span>{ __('These styles will affect this individual content only') }</span>
                         <span class="popper-arrow" data-popper-arrow></span>
                     </span>
                 </div>,

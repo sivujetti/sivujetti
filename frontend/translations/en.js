@@ -21,42 +21,40 @@ stringBundles.push({
     'Own styles': 'Own styles',
     'Base styles': 'Base styles',
     'Use specializations': 'Use specializations',
-    'If on, any changes made to this\nglobal block tree won\'t affect\nthe original': 'If on, any changes made to this\nglobal block tree won\'t affect\nthe original',
+    'If on, any changes made to this\nglobal content tree won\'t affect\nthe original': 'If on, any changes made to this\nglobal content tree won\'t affect\nthe original',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
     // edit-app/src/BlockTree.jsx
-    'Add child': 'Add child',
-    'Add child block': 'Add child block',
+    'Add child content': 'Add child content',
     'Clone': 'Clone',
-    'Clone block or branch': 'Clone block or branch',
+    'Clone content': 'Clone content',
     'Delete': 'Delete',
-    'Delete block': 'Delete block',
+    'Delete content': 'Delete content',
     'Convert to global': 'Convert to global',
-    'Convert to global block': 'Convert to global block',
-    'Block tree': 'Block tree',
+    'Convert to global content': 'Convert to global content',
+    'Content tree': 'Content tree', // ctrl + f 'Block tree'
     // edit-app/src/BlockTrees.jsx
-    'Add new block': 'Add new block',
-    'Add block': 'Add block',
+    'Add content to this page': 'Add content to this page',
     // edit-app/src/BlockTreeShowHelopPopup.jsx
-    'Sivujetti stores the data of each page to blocks. You can drag them around with a mouse, and todo.': 'Sivujetti stores the data of each page to blocks. You can drag them around with a mouse, and todo.',
+    'todo.': 'todo.',
     'Colorless': 'Colorless',
-    'Ordinary blocks, which don\'t have a background color, are ': 'Ordinary blocks, which don\'t have a background color, are ',
+    'Ordinary content, which don\'t have a background color, are ': 'Ordinary content, which don\'t have a background color, are ',
     'stored to this page only': 'stored to this page only',
     'Orange': 'Orange',
-    'A global block (e.g. Header) references to a ': 'A global block (e.g. Header) references to a ',
+    'Global content (e.g. Header) references to a ': 'Global content (e.g. Header) references to a ',
     'separately stored data': 'separately stored data',
     '. When you edit Header on one page, Headers on other pages changes.': '. When you edit Header on one page, Headers on other pages changes.',
     'Violet': 'Violet',
-    'Meta blocks contains ': 'Meta blocks contains ',
+    'Meta content contains ': 'Meta content contains ',
     'additional data / metadata': 'additional data / metadata',
-    ', and otherwise act like ordinary blocks.': ', and otherwise act like ordinary blocks.',
+    ', and otherwise act like ordinary content.': ', and otherwise act like ordinary content.',
     // edit-app/src/BlockTypeBaseStylesTab.jsx
-    'These styles will affect all %s blocks': 'These styles will affect all %s blocks',
+    'These styles will affect all %s content': 'These styles will affect all %s content',
     // edit-app/src/BlockTypeSelector.jsx
     'Common': 'Common',
     'Globals': 'Globals',
     'Cancel': 'Cancel',
     // edit-app/src/ConvertBlockToGlobalBlockTreeDialog.jsx
-    'Store this block globally so you can use it later in other pages?': 'Store this block globally so you can use it later in other pages?',
+    'Store this content globally so you can use it later in other pages?': 'Store this content globally so you can use it later in other pages?',
     'Name': 'Name',
     'e.g. Header, Footer': 'e.g. Header, Footer',
     'Convert': 'Convert',
@@ -86,9 +84,9 @@ stringBundles.push({
     'Page title': 'Page title',
     // edit-app/src/GlobalBlockTreeSelector.jsx
     'No %s found': 'No %s found',
-    'global blocks': 'global blocks',
+    'global content': 'global content',
     // edit-app/src/IndividualBlockStylesTab.jsx
-    'These styles will affect this individual block only': 'These styles will affect this individual block only',
+    'These styles will affect this individual content only': 'These styles will affect this individual content only',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Close',
     // edit-app/src/PageType/PageTypeBasicInfoConfigurationForm.jsx
@@ -127,7 +125,7 @@ stringBundles.push({
     'Full width': 'Full width',
     // edit-app/src/block-types/heading.js
     'Level': 'Level',
-    'Add block after': 'Add block after',
+    'Add content after': 'Add content after',
     'Heading text': 'Heading text',
     'Heading': 'Heading',
     // edit-app/src/block-types/image.js

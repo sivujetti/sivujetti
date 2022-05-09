@@ -317,10 +317,10 @@ class BlockTree extends preact.Component {
             }</ul>
             <ContextMenu
                 links={ [
-                    {text: __('Add child'), title: __('Add child block'), id: 'add-child'},
-                    {text: __('Clone'), title: __('Clone block or branch'), id: 'clone-block'},
-                    {text: __('Delete'), title: __('Delete block'), id: 'delete-block'},
-                    {text: __('Convert to global'), title: __('Convert to global block'), id: 'convert-block-to-global'},
+                    {text: __('Add child content'), title: __('Add child content'), id: 'add-child'},
+                    {text: __('Clone'), title: __('Clone content'), id: 'clone-block'},
+                    {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
+                    {text: __('Convert to global'), title: __('Convert to global content'), id: 'convert-block-to-global'},
                 ] }
                 onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
                 onMenuClosed={ () => this.setState({blockWithNavOpened: null}) }
@@ -644,7 +644,7 @@ class BlockTree extends preact.Component {
      */
     showBlockTreeHelpPopup() {
         floatingDialog.open(BlockTreeShowHelpPopup, {
-            title: __('Block tree'),
+            title: __('Content tree'),
             width: 448,
         }, {});
     }

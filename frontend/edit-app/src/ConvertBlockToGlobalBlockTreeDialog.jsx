@@ -25,7 +25,7 @@ class ConvertBlockToGlobalBlockTreeDialog extends preact.Component {
      */
     render(_, {formIsSubmitting}) {
         return <form onSubmit={ e => handleSubmit(this, this.boundDoHandleSubmit, e) }>
-            <div class="mb-1">{ __('Store this block globally so you can use it later in other pages?') }</div>
+            <div class="mb-1">{ __('Store this content globally so you can use it later in other pages?') }</div>
             <FormGroup>
                 <label htmlFor="name" class="form-label">{ __('Name') }</label>
                 <Input vm={ this } prop="name" placeholder={ __('e.g. Header, Footer') }/>

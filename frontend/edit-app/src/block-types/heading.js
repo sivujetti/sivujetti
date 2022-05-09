@@ -77,7 +77,7 @@ class HeadingBlockEditForm extends preact.Component {
             <a onClick={ e => (e.preventDefault(), blockTree.appendBlockToTreeAfter(block)) }
                 class="btn btn-link btn-sm text-tiny with-icon-inline color-dimmed"
                 href="#add-block-after">
-                <Icon iconId="plus" className="size-xs mr-1"/> { __('Add block after') }
+                <Icon iconId="plus" className="size-xs mr-1"/> { __('Add content after') }
             </a>
         </>;
     }

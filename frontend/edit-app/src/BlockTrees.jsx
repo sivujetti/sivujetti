@@ -99,8 +99,8 @@ class BlockTrees extends preact.Component {
             <button
                 onClick={ () => this.blockTree.current.appendNewBlockPlaceholder() }
                 class="btn btn-sm with-icon my-2"
-                title={ __('Add new block') } type="button">
-                <Icon iconId="plus" className="size-sm"/> { __('Add block') }
+                title={ __('Add content to this page') } type="button">
+                <Icon iconId="plus" className="size-sm"/> { __('Add content to this page') }
             </button>
             <BlockTree
                 blocksInput={ blocksInput }

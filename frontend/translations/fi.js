@@ -21,42 +21,40 @@ stringBundles.push({
     'Own styles': 'Omat tyylit',
     'Base styles': 'Pohjatyylit',
     'Use specializations': 'Käytä spesialisointeja',
-    'If on, any changes made to this\nglobal block tree won\'t affect\nthe original': 'Jos päällä, tähän globaaaliin lohko-\npuuhun tehdyt muutokset ei\nvaikuta alkuperäiseen',
+    'If on, any changes made to this\nglobal content tree won\'t affect\nthe original': 'Jos päällä, tähän globaaaliin sisältö-\npuuhun tehdyt muutokset ei\nvaikuta alkuperäiseen',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
     // edit-app/src/BlockTree.jsx
-    'Add child': 'Lisää lapsilohko',
-    'Add child block': 'Lisää lapsilohko',
+    'Add child content': 'Lisää lapsisisältöä',
     'Clone': 'Kloonaa',
-    'Clone block or branch': 'Kloonaa lohko tai haara',
+    'Clone content': 'Kloonaa sisältö',
     'Delete': 'Poista',
-    'Delete block': 'Poista lohko',
+    'Delete content': 'Poista sisältö',
     'Convert to global': 'Muunna globaaliksi',
-    'Convert to global block': 'Muunna globaaliksi lohkoksi',
-    'Block tree': 'Lohkopuu',
+    'Convert to global content': 'Muunna globaaliksi sisällöksi',
+    'Content tree': 'Sisältöpuu',
     // edit-app/src/BlockTrees.jsx
-    'Add new block': 'Lisää uusi lohko',
-    'Add block': 'Lisää lohko',
+    'Add content to this page': 'Lisää sisältöä tälle sivulle',
     // edit-app/src/BlockTreeShowHelpPopup.jsx
-    'Sivujetti stores the data of each page to blocks. You can drag them around with a mouse, and todo.': 'Sivujetissä sivujen sisältö tallennetaan lohkoihin. Voit järjestellä niitä hiirellä raahaamalla, ja luoda niistä sisäkkäisiä rakenteita.',
+    'todo.': 'Sivujetissä sivujen sisältö esitetään tällaisena puurakenteena: yksi puun rivi (tai haara) vastaa yhtä sivun osiota tai sisältöä. Voit järjestellä sivun eri osioita sisältöpuun rivejä raahaamalla. Voit lisätä sivuun uutta sisältää sisältöpuun yläpuolella olevasta "Lisää sisältöä tälle sivulle" -painikkeesta tai sisältöpuun rivien ●●● painikkeista.',
     'Colorless': 'Väritön',
-    'Ordinary blocks, which don\'t have a background color, are ': 'Tavalliset lohkot, joilla ei ole taustaväriä, on ',
+    'Ordinary content, which don\'t have a background color, are ': 'Tavallinen sisältö, joilla ei ole taustaväriä, on ',
     'stored to this page only': 'tallennettu vain tälle sivulle',
     'Orange': 'Oranssi',
-    'A global block (e.g. Header) references to a ': 'Globaali lohko (esim. Header) viittaa ',
+    'Global content (e.g. Header) references to a ': 'Globaali sisältö (esim. Header) viittaa ',
     'separately stored data': 'erillisesti tallennettuun tietoon',
     '. When you edit Header on one page, Headers on other pages changes.': '. Kun muokkaat yhden sivun Headeria, tieto tallentuu myös muiden sivujen Headereissa.',
     'Violet': 'Violetti',
-    'Meta blocks contains ': 'Metalohkoihin on tallennettu ',
+    'Meta content contains ': 'Metasisältöön on tallennettu ',
     'additional data / metadata': 'lisä-, tai metatietoja',
-    ', and otherwise act like ordinary blocks.': ', ja käyttäytyvät muilta osin kuten tavalliset lohkot.',
+    ', and otherwise act like ordinary content.': ', ja käyttäytyvät muilta osin kuten tavallinen sisältö.',
     // edit-app/src/BlockTypeBaseStylesTab.jsx
-    'These styles will affect all %s blocks': 'Nämä tyylit vaikuuttaa kaikkiin %s-lohkoihin',
+    'These styles will affect all %s content': 'Nämä tyylit vaikuuttaa kaikkiin %s-sisältöihin',
     // edit-app/src/BlockTypeSelector.jsx
     'Common': 'Yleiset',
     'Globals': 'Globaalit',
     'Cancel': 'Peruuta',
     // edit-app/src/ConvertBlockToGlobalBlockTreeDialog.jsx
-    'Store this block globally so you can use it later in other pages?': 'Tallenna tämä lohko globaalisti että voit käyttää sitä myöhemmin myös muilla sivuilla?',
+    'Store this content globally so you can use it later in other pages?': 'Tallenna tämä sisältö globaalisti että voit käyttää sitä myöhemmin myös muilla sivuilla?',
     'Name': 'Nimi',
     'e.g. Header, Footer': 'esim. Header, Footer',
     'Convert': 'Muunna',
@@ -86,9 +84,9 @@ stringBundles.push({
     'Page title': 'Sivuotsikko',
     // edit-app/src/GlobalBlockTreeSelector.jsx
     'No %s found': '%s ei löytynyt',
-    'global blocks': 'globaaleja lohkoja',
+    'global content': 'globaalia sisältöä',
     // edit-app/src/IndividualBlockStylesTab.jsx
-    'These styles will affect this individual block only': 'Nämä tyylit vaikuuttaa vain tähän yksittäiseen lohkoon',
+    'These styles will affect this individual content only': 'Nämä tyylit vaikuuttaa vain tähän yksittäiseen sisältöön',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Sulje',
     // edit-app/src/PageType/PageTypeBasicInfoConfigurationForm.jsx
@@ -127,7 +125,7 @@ stringBundles.push({
     'Full width': 'Täysileveä',
     // edit-app/src/block-types/heading.js
     'Level': 'Taso',
-    'Add block after': 'Lisää lohko jälkeen',
+    'Add content after': 'Lisää sisältöä jälkeen',
     'Heading text': 'Otsikon teksti',
     'Heading': 'Otsikko',
     // edit-app/src/block-types/image.js

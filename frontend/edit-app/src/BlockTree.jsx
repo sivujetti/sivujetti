@@ -125,6 +125,14 @@ class BlockTree extends preact.Component {
         });
     }
     /**
+     * @param {Block} block
+     * @returns {BlockTreeItemState|undefined}
+     * @access public
+     */
+    getTreeStateOf({id}) {
+        return this.state.treeState[id];
+    }
+    /**
      * @returns {Array<Block>}
      * @access public
      */
@@ -161,6 +169,7 @@ class BlockTree extends preact.Component {
      * @access public
      */
     handleItemClicked(block, isDirectClick = true) {
+        if (this.getTreeStateOf(block).isNew) return;
         this.selectedRoot = block;
         const mutRef = this.state.treeState;
         const base = block.isStoredTo !== 'globalBlockTree'
@@ -680,7 +689,7 @@ class BlockTree extends preact.Component {
 
 /**
  * @param {Object} overrides = {}
- * @returns {TreeStateItem}
+ * @returns {BlockTreeItemState}
  */
 function createTreeStateItem(overrides = {}) {
     return Object.assign({
@@ -770,13 +779,6 @@ function findBlockTemp(blockRef, blockTreeCmp) {
     }
     return block;
 }
-
-/**
- * @typedef TreeStateItem
- * @prop {Boolean} isSelected
- * @prop {Boolean} isCollapsed
- * @prop {Boolean} isNew
- */
 
 export default BlockTree;
 export {findBlockTemp};

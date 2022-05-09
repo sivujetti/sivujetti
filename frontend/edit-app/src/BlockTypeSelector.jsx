@@ -23,7 +23,10 @@ class BlockTypeSelector extends preact.Component {
      * @access protected
      */
     render({targetParentBlock}, {blockBluePrint, currentTabIdx}) {
-        return <div class="dashed pt-1 pr-2 pb-2 pl-2">
+        return <div class="dashed pt-1 pr-2 pb-2 pl-2" draggable onDragStart={ e => {
+                e.preventDefault();
+                e.stopPropagation();
+            } }>
             <Tabs
                 links={ [__('Common'), __('Globals')] }
                 onTabChanged={ this.handeTabChanged.bind(this) }

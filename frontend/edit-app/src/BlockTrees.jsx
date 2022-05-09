@@ -53,7 +53,9 @@ class BlockTrees extends preact.Component {
          * @param {Block} visibleBlock
          */
         signals.on('on-web-page-block-clicked', visibleBlock => {
-            api.mainPanel.scrollTo(visibleBlock);
+            const treeState = this.blockTree.current.getTreeStateOf(visibleBlock);
+            if (!treeState) return;
+            api.mainPanel.scrollTo(!treeState.isNew ? visibleBlock : null);
         })];
     }
     /**

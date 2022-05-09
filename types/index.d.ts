@@ -289,3 +289,9 @@ interface FloatingDialogSettingsInput {
     width?: Number;
     height?: Number;
 }
+
+interface BlockTreeItemState {
+    isSelected: Boolean;
+    isCollapsed: Boolean;
+    isNew: Boolean;
+}

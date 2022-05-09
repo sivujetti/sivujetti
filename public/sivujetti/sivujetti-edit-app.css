@@ -25,7 +25,7 @@ Structure:
     --color-fg-input: var(--color-fg-default);
     --color-fg-code: var(--color-fg-dimmed);
     --border-tree-guide: 1px dotted rgba(var(--components-color-fb-default),.4);
-    --border-dashed-box: 1px dashed rgba(0,0,0,0.2);
+    --border-dashed-box: 1px dashed var(--color-fg-dimmed);
     --color-input-border: #e1e4e8;
     --color-blue: #2196f3;
     --color-orange: #ff5722;

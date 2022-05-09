@@ -46,7 +46,6 @@ class Block {
         const branch = blockTreeUtils.mapRecursively([from], block =>
             Block.fromObject(Object.assign({
                 id: generatePushID(),
-                parentBlockIdPath: '',
                 title: block.title,
                 type: block.type,
                 renderer: block.renderer,
@@ -54,7 +53,6 @@ class Block {
                 globalBlockTreeId: block.globalBlockTreeId,
             }, this.makeOwnData(api.blockTypes.get(block.type), block, 1)))
         );
-        blockTreeUtils.setParentIdPaths(branch);
         return branch[0];
     }
     /**

@@ -162,14 +162,11 @@ class BlockTreeDragDrop {
                 const dragBranchIdx = dragBranch.indexOf(dragBlock);
                 const dropBranchIdx = dropBranch.indexOf(dropBlock);
                 const pos = dropBranchIdx + (isBefore ? 0 : 1);
-                // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 3
-                const oldParentPath = dragBlock.parentBlockIdPath;
-                dragBlock.parentBlockIdPath = dropBlock.parentBlockIdPath;
+                // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 2
                 dropBranch.splice(pos, 0, dragBlock);
                 dragBranch.splice(dragBranchIdx, 1);
-                // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 3
+                // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 2
                 doRevert = () => {
-                    dragBlock.parentBlockIdPath = oldParentPath;
                     dragBranch.splice(dragBranchIdx, 0, dragBlock);
                     dropBranch.splice(pos, 1);
                     return revertInfo;
@@ -181,15 +178,12 @@ class BlockTreeDragDrop {
                 this.handleDropNotAllowed('Normal > Global drop not supported yet');
                 return;
             }
-            // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 3
-            const oldParentPath = dragBlock.parentBlockIdPath;
-            dragBlock.parentBlockIdPath = `${dropBlock.parentBlockIdPath}/${dropBlock.id}`;
+            // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 2
             dropBlock.children.push(dragBlock);
             const pos = dragBranch.indexOf(dragBlock);
             dragBranch.splice(pos, 1);
-            // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 3
+            // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 2
             doRevert = () => {
-                dragBlock.parentBlockIdPath = oldParentPath;
                 dropBlock.children.pop();
                 dragBranch.splice(pos, 0, dragBlock);
                 return revertInfo;

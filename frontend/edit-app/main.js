@@ -143,7 +143,6 @@ function renderReactEditApp() {
          */
         handleWebPageLoaded(webPage) {
             const editApp = editAppReactRef.current;
-            webPage.data.page.blocks = blockTreeUtils.setParentIdPaths(webPage.data.page.blocks);
             //
             const blockRefs = webPage.scanBlockRefComments();
             const ordered = webPage.getCombinedAndOrderedBlockTree(webPage.data.page.blocks,

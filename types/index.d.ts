@@ -72,7 +72,6 @@ interface RawBlock {
     renderer: String;
     propsData: Array<{key: String; value: String;}>;
     children: Array<RawBlock>;
-    parentBlockIdPath: String; // e.g. '/grand-parent/parent'
     isStoredTo?: 'page'|'globalBlockTree';
     [key: String]: mixed;
 }

@@ -33,17 +33,19 @@ const formatError = (errorTmpl, label, args) => {
 function hookForm(cmp, inps, initialState = {}) {
     const values = {};
     const errors = {};
+    const blurStates = {};
     const inputApis = {};
     inps.forEach(inp => {
         const k = mkKey(inp);
         values[k] = inp.value;
         errors[k] = [];
+        blurStates[k] = false;
         inputApis[k] = createApi(cmp, k, inp);
     });
     cmp.inputApis = inputApis;
     const overallFormState = {formIsSubmitting: false,
                               formIsSubmittingClass: ''};
-    return Object.assign(initialState, {values, errors}, overallFormState);
+    return Object.assign(initialState, {values, errors, blurStates}, overallFormState);
 }
 
 /**
@@ -99,10 +101,10 @@ function createApi(cmp, k, inp) {
                 return errors;
         }, [])
     ;
-    out.triggerInput = (value, isProgrammatic = false) => {
+    out.triggerInput = (value, isProgrammatic = false, newState = {}) => {
         const errors = out.doValidate(value);
-        const newState = {values: Object.assign({}, cmp.state.values, {[k]: value}),
-                          errors: Object.assign({}, cmp.state.errors, {[k]: errors})};
+        newState.values = Object.assign({}, cmp.state.values, {[k]: value});
+        newState.errors = Object.assign({}, cmp.state.errors, {[k]: errors});
         cmp.setState(newState);
         if (!isProgrammatic && inp.onAfterValueChanged) inp.onAfterValueChanged(value, errors.length);
     };
@@ -112,12 +114,15 @@ function createApi(cmp, k, inp) {
     out.onBlur = e => {
         if (!e) return;
         setTimeout(() => {
-            if (!cmp.formIsHooked)
+            if (cmp.formIsHooked === false)
                 return;
+            const newState = {};
+            if (!cmp.state.blurStates[k])
+                newState.blurStates = Object.assign({}, cmp.state.blurStates, {[k]: true});
             const val = e.target.value;
-            if (val === cmp.state.values[e.target.getAttribute('prop')])
-                return;
-            out.triggerInput(val);
+            if (val === cmp.state.values[k])
+                cmp.setState(newState);
+            else out.triggerInput(val, false, newState);
         }, 100);
     };
     return out;
@@ -232,14 +237,16 @@ class InputErrors extends preact.Component {
      * @access protected
      */
     render({vm, prop, errors}) {
+        let doShowError = true;
         if (!Array.isArray(errors)) {
             if (!vm || !prop) throw new Error('Usage: <InputErrora vm={ this } prop="inputName"/> or <InputErrora errors={ [{message: "Some error"}] }/>');
             errors = vm.state.errors[prop];
+            doShowError = vm.state.blurStates[prop] === true;
         }
         const lastIdx = errors.length - 1;
         return lastIdx < 0
             ? null
-            : <span class="has-error mt-1 d-inline-block">{
+            : <span class={ `has-error mt-1 d-${doShowError ? 'inline-block' : 'none' }` }>{
                 errors.map(({message}, i) =>
                     <span class={ `form-input-hint${i !== lastIdx ? ' mr-1' : ''}` }>
                         { message }

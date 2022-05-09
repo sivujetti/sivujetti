@@ -125,7 +125,6 @@ function simulatePageLoad(_s, isNewPage = false, testBlocksBundle = 'default', p
         propsData: [{key: 'overrides', value: '[]'}],
         children: [],
         overrides: '[]',
-        parentBlockIdPath: '',
         isStoredTo: 'page'
     }, {
         type: 'Section',

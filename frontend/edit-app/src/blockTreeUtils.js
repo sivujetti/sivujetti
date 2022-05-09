@@ -1,16 +1,5 @@
 export default {
     /**
-     * @param {Array<Block>} branch
-     * @returns {Array<Block>}
-     * @access public
-     */
-    setParentIdPaths(branch) {
-        this.traverseRecursively(branch, (b, _i, _parentI, parentIdPath) => {
-            b.parentBlockIdPath = parentIdPath;
-        });
-        return branch;
-    },
-    /**
      * @param {String} id
      * @param {Array<Block>} branch
      * @param {Block=} parentBlock = null

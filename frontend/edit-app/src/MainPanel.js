@@ -17,11 +17,12 @@ class MainPanel {
         signals.on('on-inspector-panel-closed', () => { inspectorPanelIsOpen = false; });
     }
     /**
-     * @param {Block|null} block = null
+     * @param {Block} block
+     * @param {Boolean} isNew = false
      * @param {'smooth'|'auto'} behavior = 'smooth'
      */
-    scrollTo(block = null, behavior = 'smooth') {
-        const subSelector = !block ? 'data-placeholder-block-id' : `data-block-id="${block.id}"`;
+    scrollTo(block, isNew = false, behavior = 'smooth') {
+        const subSelector = `data-${!isNew ? '' : 'placeholder-'}block-id="${block.id}"`;
         const target = env.document.querySelector(`.block-tree li[${subSelector}]`);
         const liHeight = 30;
         // Note: contains main.scrollTop

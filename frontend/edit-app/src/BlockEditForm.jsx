@@ -64,8 +64,8 @@ class BlockEditForm extends preact.Component {
         this.snapshot = putOrGetSnapshot(block, this.blockType);
         this.allowStylesEditing = !selectCurrentPage(store.getState()).webPage.data.page.isPlaceholderPage;
         this.editFormImplRef = preact.createRef();
-        this.unregistrables = [signals.on('on-block-deleted', ({id}, isChildOfCurrentlyOpenBlock) => {
-            if (isChildOfCurrentlyOpenBlock || id === block.id) this.props.inspectorPanel.close();
+        this.unregistrables = [signals.on('on-block-deleted', ({id}, isChildOfOrCurrentlyOpenBlock) => {
+            if (isChildOfOrCurrentlyOpenBlock || id === block.id) this.props.inspectorPanel.close();
         })];
         this.setState({useOverrides: base && base.useOverrides,
                        currentTabIdx: 0});

@@ -19,7 +19,7 @@ interface WebPageIframe {
 }
 
 interface MainPanel {
-    scrollTo(block: Block|null, behavior: 'smooth'|'auto' = 'smooth');
+    scrollTo(block: Block, isNew: Boolean = false, behavior: 'smooth'|'auto' = 'smooth');
     getEl(): HTMLElement;
     registerSection(name: String, Cls: preact.AnyComponent): void;
     getSection(name: String): preact.AnyComponent;

@@ -305,11 +305,14 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
                 'top:', r.top, 'px;',
                 'left:', r.left + LEFT_PANEL_WIDTH, 'px'
             ].join('');
-            const block = findBlockTemp(blockRef, blockTrees.current.blockTree.current);
+            const blockTreeCmp = blockTrees.current.blockTree.current;
+            const block = findBlockTemp(blockRef, blockTreeCmp);
+            const isNewBlock = blockTreeCmp.isNewBlock(block)[0];
             highlightRectEl.current.setAttribute('data-adjust-title-from-top', r.top > TITLE_LABEL_HEIGHT ? 'no' : 'yes');
             highlightRectEl.current.setAttribute('data-title',
                 (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type)
             );
+            highlightRectEl.current.setAttribute('data-is-new', isNewBlock ? 'y' : 'n');
             prevHoverStartBlockRef = blockRef;
         },
         /**

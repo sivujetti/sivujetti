@@ -155,7 +155,7 @@ class BlockTreeDragDrop {
                 } else if ((!b && a) || (a && dropBlock.type === 'GlobalBlockReference' && dropBlock.globalBlockTreeId === dragBlock.globalBlockTreeId)) {
                     this.handleDropNotAllowed('Global > Normal drop not supported yet');
                     return;
-                } else if (a && b) {
+                } else if (a && b && dragBlock.globalBlockTreeId !== dropBlock.globalBlockTreeId) {
                     this.handleDropNotAllowed('Drop between global blocks banches supported yet');
                     return;
                 }
@@ -173,9 +173,13 @@ class BlockTreeDragDrop {
                 };
             }
         } else if (this.curDropTypeCandidate.dropPosition === 'as-child') {
-            if (isGlobalBlockTreeRefOrPartOfOne(dropBlock) !==
-                isGlobalBlockTreeRefOrPartOfOne(dragBlock)) {
+            const a = isGlobalBlockTreeRefOrPartOfOne(dropBlock);
+            const b = isGlobalBlockTreeRefOrPartOfOne(dragBlock);
+            if (a !== b) {
                 this.handleDropNotAllowed('Normal > Global drop not supported yet');
+                return;
+            } else if (a && b && dropBlock.globalBlockTreeId !== dragBlock.globalBlockTreeId) {
+                this.handleDropNotAllowed('Nested global blocks not allowed');
                 return;
             }
             // Mutates (this.blockTree.state.blockTree || globalBlockTrees.someTree) x 2

@@ -125,14 +125,6 @@ class BlockTree extends preact.Component {
         });
     }
     /**
-     * @param {Block} block
-     * @returns {BlockTreeItemState|undefined}
-     * @access public
-     */
-    getTreeStateOf({id}) {
-        return this.state.treeState[id];
-    }
-    /**
      * @returns {Array<Block>}
      * @access public
      */
@@ -169,7 +161,7 @@ class BlockTree extends preact.Component {
      * @access public
      */
     handleItemClicked(block, isDirectClick = true) {
-        if (this.getTreeStateOf(block).isNew) return;
+        if (this.isNewBlock(block)[0]) return;
         this.selectedRoot = block;
         const mutRef = this.state.treeState;
         const base = block.isStoredTo !== 'globalBlockTree'
@@ -185,9 +177,7 @@ class BlockTree extends preact.Component {
                 // Found block, has no children
                 if (!path) return [block.id];
                 // Found block, has children
-                const pieces = path.split('/'); // '/foo/bar' -> ['', 'foo', 'bar']
-                pieces.shift();                 //            -> ['foo', 'bar']
-                return pieces;
+                return splitPath(path);
             });
             ids.concat(block.id).forEach(id => { mutRef[id].isCollapsed = false; });
         } else {
@@ -195,6 +185,38 @@ class BlockTree extends preact.Component {
         }
         //
         this.setState({treeState: this.setBlockAsSelected(block, mutRef)});
+    }
+    /**
+     * Tells if $block or it's parent is a new (placeholder) block.
+     *
+     * @param {Block} block
+     * @returns {[Boolean, Block|null]}
+     * @access public
+     */
+    isNewBlock(block) {
+        if (block.isStoredTo === 'globalBlockTree') {
+            const base = blockTreeUtils.findRecursively(this.state.blockTree,
+                ({globalBlockTreeId}) => globalBlockTreeId === block.globalBlockTreeId);
+            const outermost = base.__globalBlockTree.blocks[0];
+            const isNew = this.getTreeStateOf(outermost).isNew;
+            return [isNew, isNew ? outermost : null];
+        }
+        let isNew = this.getTreeStateOf(block).isNew;
+        let outermostBlockId = block.id;
+        if (!isNew) {
+            const tree = this.state.blockTree;
+            const parentPath = findBlockWithParentIdPath(tree, (b, p) => {
+                return b.id === block.id ? p : null;
+            });
+            if (parentPath) {
+                const outermost = splitPath(parentPath)[0];
+                if (this.getTreeStateOf(outermost).isNew) {
+                    isNew = true;
+                    outermostBlockId = outermost;
+                }
+            }
+        }
+        return [isNew, !isNew ? null : blockTreeUtils.findBlock(outermostBlockId, this.state.blockTree)[0]];
     }
     /**
      * @access protected
@@ -256,7 +278,7 @@ class BlockTree extends preact.Component {
         if (blockTree === null) return;
         const renderBranch = branch => branch.map(block => {
             //
-            if (treeState[block.id].isNew) return <li data-placeholder-block-id={ block.id } key={ block.id }>
+            if (treeState[block.id].isNew) return <li data-placeholder-block-id={ getVisibleBlock(block).id } key={ block.id }>
                 <BlockTypeSelector
                     block={ block }
                     tree={ blockTree }
@@ -380,15 +402,18 @@ class BlockTree extends preact.Component {
             this.pushCommitChangesOp(clonedBlock);
         } else if (link.id === 'delete-block') {
             const blockToDelete = this.state.blockWithNavOpened;
+            const visible = getVisibleBlock(blockToDelete);
             const isSelectedRootCurrentlyClickedBlock = () => {
                 if (!this.selectedRoot)
                     return false;
-                return this.selectedRoot === blockToDelete;
+                return this.selectedRoot === visible;
             };
             const isSelectedRootChildOfCurrentlyClickedBlock = () => {
-                if (!this.selectedRoot || !blockToDelete.children.length)
+                if (!this.selectedRoot)
                     return false;
-                return !!blockTreeUtils.findRecursively(blockToDelete.children,
+                if (!visible.children.length)
+                    return false;
+                return !!blockTreeUtils.findRecursively(visible.children,
                     b => b.id === this.selectedRoot.id);
             };
             //
@@ -478,9 +503,7 @@ class BlockTree extends preact.Component {
     replacePlaceholderBlock(blockBluePrint, origBlock) {
         // Remove previous placeholderBlock.children from treeState (if any)
         const treeStateMutRef = this.state.treeState;
-        for (const block of origBlock.children)
-            delete treeStateMutRef[block.id];
-
+        this.deleteFromTreeState(origBlock, treeStateMutRef);
         // Replace root block
         const newBlock = Block.fromType(blockBluePrint.blockType,
                                         blockBluePrint.data,
@@ -488,6 +511,7 @@ class BlockTree extends preact.Component {
                                         origBlock.type !== 'GlobalBlockReference' ? origBlock.globalBlockTreeId : undefined);
         newBlock._cref = origBlock._cref;
         BlockTrees.currentWebPage.replaceBlockFromDomWith(origBlock, newBlock).then(_crefOrCrefs => {
+            this.addToTreeState(newBlock, treeStateMutRef);
             if (newBlock.type !== 'GlobalBlockReference') {
                 newBlock._cref = _crefOrCrefs;
                 // Replace children
@@ -508,9 +532,12 @@ class BlockTree extends preact.Component {
                     }));
                 }
             } else {
+                if (!globalBlockTreeBlocks.get(newBlock.globalBlockTreeId)) {
+                    globalBlockTreeBlocks.set(newBlock.globalBlockTreeId, newBlock.__globalBlockTree.blocks);
+                    newBlock.__globalBlockTree.blocks = globalBlockTreeBlocks.get(newBlock.globalBlockTreeId);
+                }
                 blockTreeUtils.traverseRecursively(newBlock.__globalBlockTree.blocks, b => {
                     b._cref = _crefOrCrefs[b.id];
-                    treeStateMutRef[b.id] = createTreeStateItem();
                 });
             }
         })
@@ -527,17 +554,16 @@ class BlockTree extends preact.Component {
      * @access private
      */
     confirmAddBlock(placeholderBlock) {
-        const treeState = this.state.treeState;
-        treeState[placeholderBlock.id].isNew = false;
+        const treeStateMutRef = this.state.treeState;
+        treeStateMutRef[placeholderBlock.id].isNew = false;
         //
         if (placeholderBlock.type === 'GlobalBlockReference') {
-            globalBlockTreeBlocks.set(placeholderBlock.globalBlockTreeId, placeholderBlock.__globalBlockTree.blocks);
-            placeholderBlock.__globalBlockTree.blocks = globalBlockTreeBlocks.get(placeholderBlock.globalBlockTreeId);
             blockTreeUtils.traverseRecursively(placeholderBlock.__globalBlockTree.blocks[0].children,
                 ({_cref}) => BlockTrees.currentWebPage.registerBlockMouseListeners(_cref));
+            treeStateMutRef[placeholderBlock.__globalBlockTree.blocks[0].id].isNew = false;
         }
         this.currentAddBlockTarget = null;
-        this.setState({treeState: treeState});
+        this.setState({treeState: treeStateMutRef});
         //
         this.pushCommitChangesOp(placeholderBlock);
     }
@@ -558,10 +584,37 @@ class BlockTree extends preact.Component {
     deleteBlock(block, containingBranch) {
         containingBranch.splice(containingBranch.indexOf(block), 1); // Note: mutates this.state.blockTree or globalBlockTreeBlocks.someTree
         const mutRef = this.state.treeState;
-        for (const c of block.children) delete mutRef[c.id];
-        delete mutRef[block.id]; // Mutates this.state.treeState
+        this.deleteFromTreeState(block, mutRef);
         this.setState({blockTree: this.state.blockTree,
                        treeState: mutRef});
+    }
+    /**
+     * @param {Block} block
+     * @param {Object} treeStateMutRef
+     * @access private
+     */
+    addToTreeState(newBlock, treeStateMutRef) {
+        treeStateMutRef[newBlock.id] = createTreeStateItem({isNew: true});
+        //
+        if (newBlock.type === 'GlobalBlockReference')
+            blockTreeUtils.traverseRecursively(newBlock.__globalBlockTree.blocks, (b, i, i2) => {
+                treeStateMutRef[b.id] = createTreeStateItem((i + i2) > 0 ? undefined : {isNew: true});
+            });
+    }
+    /**
+     * @param {Block} block
+     * @param {Object} treeStateMutRef
+     * @access private
+     */
+    deleteFromTreeState(origBlock, treeStateMutRef) {
+        for (const block of origBlock.children)
+            delete treeStateMutRef[block.id];
+        delete treeStateMutRef[origBlock.id];
+        //
+        if (origBlock.type === 'GlobalBlockReference')
+            blockTreeUtils.traverseRecursively(origBlock.__globalBlockTree.blocks, b => {
+                delete treeStateMutRef[b.id];
+            });
     }
     /**
      * @param {Array<Block>} targetBranch
@@ -691,6 +744,15 @@ class BlockTree extends preact.Component {
             args: [this.getTreeFor(block), block.isStoredTo, block.globalBlockTreeId || null, block, this],
         }));
     }
+    /**
+     * @param {Block|String} blockOrBlockId
+     * @returns {BlockTreeItemState|undefined}
+     * @access private
+     */
+    getTreeStateOf(blockOrBlockId) {
+        const id = typeof blockOrBlockId !== 'string' ? blockOrBlockId.id : blockOrBlockId;
+        return this.state.treeState[id];
+    }
 }
 
 /**
@@ -801,6 +863,16 @@ function findBlockWithParentIdPath(blocks, fn, parentIdPath = '') {
             if (ret2) return ret2;
         }
     }
+}
+
+/**
+ * @param {String} path e.g. '/foo/bar'
+ * @returns {Array<String>} e.g. ['foo', 'bar']
+ */
+function splitPath(path) {
+    const pieces = path.split('/'); // '/foo/bar' -> ['', 'foo', 'bar']
+    pieces.shift();                 //            -> ['foo', 'bar']
+    return pieces;
 }
 
 export default BlockTree;

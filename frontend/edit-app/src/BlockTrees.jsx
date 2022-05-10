@@ -34,7 +34,7 @@ class BlockTrees extends preact.Component {
          */
         (block, position, after) => {
             if (position === 'after' && after)
-                api.mainPanel.scrollTo(undefined, 'auto');
+                api.mainPanel.scrollTo(block, true, 'auto');
             api.webPageIframe.scrollTo(block);
         }),
         /**
@@ -53,9 +53,9 @@ class BlockTrees extends preact.Component {
          * @param {Block} visibleBlock
          */
         signals.on('on-web-page-block-clicked', visibleBlock => {
-            const treeState = this.blockTree.current.getTreeStateOf(visibleBlock);
-            if (!treeState) return;
-            api.mainPanel.scrollTo(!treeState.isNew ? visibleBlock : null);
+            const [isNew, placeholderBlock] = this.blockTree.current.isNewBlock(visibleBlock);
+            if (!isNew) api.mainPanel.scrollTo(visibleBlock, false);
+            else api.mainPanel.scrollTo(placeholderBlock, true);
         })];
     }
     /**

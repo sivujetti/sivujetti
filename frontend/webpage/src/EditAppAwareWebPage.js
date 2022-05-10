@@ -190,7 +190,11 @@ class EditAppAwareWebPage {
             const first = replacement.__globalBlockTree.blocks[0];
             const crefsOut = {[replacement.id]: replacement._cref,
                               [first.id]: makeBlockRefComment(first, replacement._cref.startingCommentNode.nextSibling)};
+            const pseudo = {_cref: crefsOut[first.id]};
+            this.replaceBlockMouseListeners(pseudo._cref, pseudo);
             for (const crefCom of crefs) {
+                const pseudo2 = {_cref: crefCom};
+                this.replaceBlockMouseListeners(pseudo2._cref, pseudo2);
                 crefsOut[crefCom.blockId] = crefCom;
             }
             return crefsOut;

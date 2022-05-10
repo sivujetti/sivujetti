@@ -124,10 +124,10 @@ stringBundles.push({
     'Num columns': 'Num columns',
     'Full width': 'Full width',
     // edit-app/src/block-types/heading.js
+    'Heading': 'Heading',
     'Level': 'Level',
     'Add content after': 'Add content after',
     'Heading text': 'Heading text',
-    'Heading': 'Heading',
     // edit-app/src/block-types/image.js
     'Image': 'Image',
     // edit-app/src/block-types/listing.js

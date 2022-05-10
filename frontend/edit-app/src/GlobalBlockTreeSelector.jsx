@@ -3,7 +3,7 @@ import LoadingSpinner from './commons/LoadingSpinner.jsx';
 
 class GlobalBlockTreeSelector extends preact.Component {
     /**
-     * @param {{onItemSelected: (globalBlockTree: RawGlobalBlockTree) => void; isVisible: Boolean;}} props
+     * @param {{onItemSelected: (globalBlockTree: RawGlobalBlockTree) => void; isVisible: Boolean; filterSelectables: (item: RawGlobalBlockTree) => Boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -31,7 +31,7 @@ class GlobalBlockTreeSelector extends preact.Component {
                     <option value={ gbt.id }>{ gbt.name }</option>
                 ) }
             </select>
-            : <p>{ __('No %s found', __('global content')) }</p>;
+            : <p class="mt-1 mb-2">{ __('No %s found', __('global content')) }.</p>;
         //
         return <LoadingSpinner className="mb-2 pb-2 ml-1"/>;
     }
@@ -42,6 +42,7 @@ class GlobalBlockTreeSelector extends preact.Component {
         this.setState({globalBlockTrees: null});
         http.get('/api/global-block-trees')
             .then(globalBlockTrees => {
+                globalBlockTrees = globalBlockTrees.filter(this.props.filterSelectables);
                 if (globalBlockTrees.length) {
                     this.setState({globalBlockTrees: globalBlockTrees,
                                    selectedGlobalBlockTreeId: globalBlockTrees[0].id});

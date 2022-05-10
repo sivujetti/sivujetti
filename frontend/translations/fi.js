@@ -124,10 +124,10 @@ stringBundles.push({
     'Num columns': 'Sarakkeita',
     'Full width': 'Täysileveä',
     // edit-app/src/block-types/heading.js
+    'Heading': 'Otsikko',
     'Level': 'Taso',
     'Add content after': 'Lisää sisältöä jälkeen',
     'Heading text': 'Otsikon teksti',
-    'Heading': 'Otsikko',
     // edit-app/src/block-types/image.js
     'Image': 'Kuva',
     // edit-app/src/block-types/listing.js

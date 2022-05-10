@@ -259,6 +259,7 @@ class BlockTree extends preact.Component {
             if (treeState[block.id].isNew) return <li data-placeholder-block-id={ block.id } key={ block.id }>
                 <BlockTypeSelector
                     block={ block }
+                    tree={ blockTree }
                     targetParentBlock={ this.currentAddBlockTarget }
                     onSelectionChanged={ this.replacePlaceholderBlock.bind(this) }
                     onSelectionConfirmed={ this.confirmAddBlock.bind(this) }

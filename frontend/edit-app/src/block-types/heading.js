@@ -63,7 +63,7 @@ class HeadingBlockEditForm extends preact.Component {
             </FormGroup>
             <div class="form-horizontal pt-0">
                 <FormGroupInline>
-                    <label htmlFor="cssClass" class="form-label">{ __('Link') }</label>
+                    <label htmlFor="cssClass" class="form-label">{ __('Level') }</label>
                     <select value={ level } onChange={ e => onValueChanged(parseInt(e.target.value), 'level', false, env.normalTypingDebounceMillis) } class="form-input form-select">{ [1, 2, 3, 4, 5, 6].map(n =>
                         <option value={ n }>{ `<h${n}>` }</option>
                     ) }</select>

@@ -7,7 +7,7 @@ import GlobalBlockTreeSelector from './GlobalBlockTreeSelector.jsx';
 class BlockTypeSelector extends preact.Component {
     // selectableBlockTypes;
     /**
-     * @param {{onSelectionConfirmed: (placeholderBlock: Block) => void; onSelectionChanged: (blockBluePrint: BlockBlueprint, placeholderBlock: Block) => void; onSelectionDiscarded: (placeholderBlock: Block) => void; block: Block; targetParentBlock: Block|null;}} props
+     * @param {{onSelectionConfirmed: (placeholderBlock: Block) => void; onSelectionChanged: (blockBluePrint: BlockBlueprint, placeholderBlock: Block) => void; onSelectionDiscarded: (placeholderBlock: Block) => void; block: Block; targetParentBlock: Block|null; tree: Array<Block>;}} props
      */
     constructor(props) {
         super(props);
@@ -44,6 +44,14 @@ class BlockTypeSelector extends preact.Component {
             <div class={ currentTabIdx === 1 ? '' : 'd-none' }>
                 { (!targetParentBlock || targetParentBlock.isStoredTo !== 'globalBlockTree')
                     ? <GlobalBlockTreeSelector
+                        filterSelectables={
+                        /**
+                         * @param {RawGlobalBlockTree} item
+                         * @returns {Boolean}
+                         */
+                        ({id}) => blockTreeUtils.findRecursively(this.props.tree,
+                            b => b.type === 'GlobalBlockReference' && b.globalBlockTreeId === id) === null
+                        }
                         onItemSelected={ this.selectRefBlockType.bind(this) }
                         isVisible={ currentTabIdx === 1 }/>
                     : <p class="mt-0 mb-2 ml-1">Nested global blocks not supported yet</p>

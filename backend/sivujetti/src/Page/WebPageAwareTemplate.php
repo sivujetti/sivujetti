@@ -18,11 +18,9 @@ final class WebPageAwareTemplate extends Template {
     /** @var \Sivujetti\Theme\Entities\Theme */ 
     private ?Theme $__theme;
     /** @var object[] [{blockId: string, styles: string}] */
-    private array $__blockStyles;
+    private array $__blocksStyles;
     /** @var string[] */
     private array $__pluginNames;
-    /** @var array<string, object[]> array<string, array<int, {blockId: string, styles: string}>> */
-    private array $__dynamicGlobalBlockTreeBlocksStyles;
     /** @var bool */
     private bool $__useInlineCssStyles;
     /**
@@ -31,7 +29,7 @@ final class WebPageAwareTemplate extends Template {
      * @param ?array<string, mixed> $initialLocals = null
      * @param ?object $cssAndJsFiles = null
      * @param ?\Sivujetti\Theme\Entities\Theme $theme = null
-     * @param ?array<int, object> $blockStyles = null
+     * @param ?array<int, object> $blocksStyles = null
      * @param ?array<string> $pluginNames = null
      * @param ?bool $useInlineCssStyles = null
      */
@@ -40,13 +38,13 @@ final class WebPageAwareTemplate extends Template {
                                 ?array $initialLocals = null,
                                 ?object $cssAndJsFiles = null,
                                 ?Theme $theme = null,
-                                ?array $blockStyles = null,
+                                ?array $blocksStyles = null,
                                 ?array $pluginNames = null,
                                 ?bool $useInlineCssStyles = null) {
         parent::__construct($file, $vars, $initialLocals);
         $this->__cssAndJsFiles = $cssAndJsFiles;
         $this->__theme = $theme;
-        $this->__blockStyles = $blockStyles ?? [];
+        $this->__blocksStyles = $blocksStyles ?? [];
         $this->__dynamicGlobalBlockTreeBlocksStyles = [];
         $this->__useInlineCssStyles = $useInlineCssStyles ?? true;
         $this->__pluginNames = $pluginNames ?? [];
@@ -155,9 +153,6 @@ final class WebPageAwareTemplate extends Template {
         $gbt = $globalBlockRef->__globalBlockTree;
         $blocks = $gbt->blocks;
         //
-        if ($gbt->blockStyles)
-            $this->__dynamicGlobalBlockTreeBlocksStyles["_{$gbt->id}"] = $gbt->blockStyles;
-        //
         if ($overrides === GlobalBlockReferenceBlockType::EMPTY_OVERRIDES)
             return $blocks;
         foreach (json_decode($overrides, flags: JSON_THROW_ON_ERROR) as $blockId => $perBlockPropOverrides) {
@@ -248,10 +243,8 @@ final class WebPageAwareTemplate extends Template {
                 json_encode(array_map(fn($styles) => (object) [
                     "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockTypeBaseCss($styles)), "type" => "block-type", "id" => $styles->blockTypeName,
                 ], $this->__theme->blockTypeStyles)) . ",\n" .
-                // Styles for this page's global block tree blocks
-                "'<!-- ::editModeGlobalBlockStylesPlaceholder:: -->',\n" .
-                // Styles for this page's blocks
-                self::__renderEditModeBlockStyles($this->__blockStyles) . ",\n" .
+                // Styles for all global blocks, and this page's blocks
+                self::__renderEditModeBlockStyles($this->__blocksStyles) . ",\n" .
             "].flat().reduce((out, {css, type, id}) => {\n" .
                 "const bundle = document.createElement('style');\n" .
                 "bundle.innerHTML = atob(css);\n" .
@@ -276,32 +269,6 @@ final class WebPageAwareTemplate extends Template {
             return "{$pre}<script src=\"{$this->assetUrl("public/{$this->e($f->url)}")}\"" .
                 $this->attrMapToStr($attrsMap) . "></script>";
         }, $this->__cssAndJsFiles->js));
-    }
-    /**
-     * @inheritdoc
-     */
-    public function render(array $locals = []): string {
-        // First pass
-        $output = parent::render($locals);
-        // Seconds pass
-        if ($this->__useInlineCssStyles)
-            return str_replace(
-                "'<!-- ::editModeGlobalBlockStylesPlaceholder:: -->'",
-                $this->__dynamicGlobalBlockTreeBlocksStyles ? implode(",\n", array_map(fn($styles) =>
-                    self::__renderEditModeBlockStyles($styles)
-                , $this->__dynamicGlobalBlockTreeBlocksStyles)) : "[]",
-                $output
-            );
-        return $output;
-    }
-    /**
-     * @return object[] {globalBlockTreeId: string, styles: array<int, {blockId: string, styles: string}>}[]
-     */
-    public function getGlobalBlockStyles(): array {
-        $out = [];
-        foreach ($this->__dynamicGlobalBlockTreeBlocksStyles as $globalBlockTreeId => $styles)
-            $out[] = (object) ["globalBlockTreeId" => substr($globalBlockTreeId, 1), "styles" => $styles];
-        return $out;
     }
     /**
      * ["id" => "foo", "class" => "bar"] -> ' id="foo" class="bar"'
@@ -330,7 +297,9 @@ final class WebPageAwareTemplate extends Template {
      */
     private static function __renderEditModeBlockStyles(array $stylesAll): string {
         return json_encode(array_map(fn($styles) => (object) [
-            "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockCss($styles)), "type" => "block", "id" => $styles->blockId,
+            "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockCss($styles)),
+            "type" => "block",
+            "id" => $styles->blockId,
         ], $stylesAll));
     }
     /**

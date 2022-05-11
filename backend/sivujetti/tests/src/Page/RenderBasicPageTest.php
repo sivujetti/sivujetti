@@ -183,7 +183,6 @@ final class RenderBasicPageTest extends RenderPageTestCase {
             "document.head.appendChild([\n" .
                 "{$expectedBlockStyles},\n" .
                 "[],\n" .
-                "[],\n" .
             "].flat().reduce((out, {css, type, id}) => {\n" .
                 "const bundle = document.createElement('style');\n" .
                 "bundle.innerHTML = atob(css);\n" .

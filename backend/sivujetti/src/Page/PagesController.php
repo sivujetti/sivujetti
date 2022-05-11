@@ -5,6 +5,7 @@ namespace Sivujetti\Page;
 use MySite\Theme;
 use Pike\{AppConfig, ArrayUtils, Db, PikeException, Request, Response};
 use Pike\Db\FluentDb;
+use Pike\Interfaces\RowMapperInterface;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\{App, SharedAPIContext, Template, Translator};
@@ -25,12 +26,14 @@ final class PagesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
+     * @param \Pike\Db\FluentDb $db
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      */
     public function renderPage(Request $req,
                                Response $res,
+                               FluentDb $db,
                                PagesRepository $pagesRepo,
                                SharedAPIContext $apiCtx,
                                TheWebsite $theWebsite): void {
@@ -50,7 +53,8 @@ final class PagesController {
             $res->status(404)->html("404");
             return;
         }
-        self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite, $page, $pageType);
+        self::sendPageResponse($req, $res, $db, $pagesRepo, $apiCtx, $theWebsite,
+            $page, $pageType);
     }
     /**
      * GET /api/_placeholder-page/[w:pageType]/[i:layoutId]: renders a placeholder
@@ -58,6 +62,7 @@ final class PagesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
+     * @param \Pike\Db\FluentDb $db
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
      * @param \Sivujetti\SharedAPIContext $apiCtx
@@ -66,6 +71,7 @@ final class PagesController {
      */
     public function renderPlaceholderPage(Request $req,
                                           Response $res,
+                                          FluentDb $db,
                                           PagesRepository $pagesRepo,
                                           LayoutsRepository $layoutsRepo,
                                           SharedAPIContext $apiCtx,
@@ -83,7 +89,7 @@ final class PagesController {
         $page->layout = $layout;
         self::mergeLayoutBlocksTo($page, $page->layout, $pageType);
         //
-        self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
+        self::sendPageResponse($req, $res, $db, $pagesRepo, $apiCtx, $theWebsite,
             $page, $pageType);
     }
     /**
@@ -270,6 +276,7 @@ final class PagesController {
     /**
      * @param \Pike\Request $req
      * @param \Pike\Response $res
+     * @param \Pike\Db\FluentDb $db
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
@@ -278,6 +285,7 @@ final class PagesController {
      */
     private static function sendPageResponse(Request $req,
                                              Response $res,
+                                             FluentDb $db,
                                              PagesRepository $pagesRepo,
                                              SharedAPIContext $apiCtx,
                                              TheWebsite $theWebsite,
@@ -290,12 +298,28 @@ final class PagesController {
         self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo, $theWebsite);
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
         $editModeIsOn = $isPlaceholderPage || ($req->queryVar("in-edit") !== null);
+        $globalBlocksStyles = !$editModeIsOn ? [] : $db->select("\${p}globalBlocksStyles", "stdClass")
+                ->fields(["globalBlockTreeId", "styles AS stylesJson"])
+                ->mapWith(new class implements RowMapperInterface {
+                    public function mapRow(object $row, int $_rowNum, array $_rows): ?object {
+                        $row->styles = json_decode($row->stylesJson, flags: JSON_THROW_ON_ERROR);
+                        return $row;
+                    }
+                })
+                ->fetchAll();
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
             ["serverHost" => self::getServerHost($req)],
             cssAndJsFiles: $apiCtx->userDefinedAssets,
             theme: $theWebsite->activeTheme,
-            blockStyles: $page->blockStyles,
+            blocksStyles: array_merge(
+                // Styles for all global block tree blocks
+                !$globalBlocksStyles ? [] : array_reduce($globalBlocksStyles, fn($out, $gbs) =>
+                    array_merge($out, $gbs->styles)
+                , []),
+                // Styles for this page's blocks
+                $page->blockStyles
+            ),
             pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy()),
             useInlineCssStyles: $editModeIsOn
         );
@@ -309,7 +333,7 @@ final class PagesController {
                 "<script>window.sivujettiCurrentPageData = " . json_encode([
                     "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
                     "layout" => self::layoutToRaw($page->layout),
-                    "globalBlocksStyles" => $tmpl->getGlobalBlockStyles(),
+                    "globalBlocksStyles" => $globalBlocksStyles,
                 ]) . "</script>" .
                 "<script src=\"" . WebPageAwareTemplate::makeUrl("public/sivujetti/sivujetti-webpage.js", false) . "\"></script>" .
             substr($html, $bodyEnd);

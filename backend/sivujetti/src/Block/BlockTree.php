@@ -50,14 +50,15 @@ final class BlockTree {
     /**
      * @param \Sivujetti\Block\Entities\Block[] $blocks
      * @param callable $predicate callable(\Sivujetti\Block\Entities\Block $block): bool
+     * @param bool $recursive = true
      * @return \Sivujetti\Block\Entities\Block[]
      */
-    public static function filterBlocks(array $branch, callable $predicate): array {
+    public static function filterBlocks(array $branch, callable $predicate, bool $recursive = true): array {
         $out = [];
         foreach ($branch as $block) {
             if (call_user_func($predicate, $block)) $out[] = $block;
-            if ($block->children) {
-                $c = self::filterBlocks($block->children, $predicate);
+            if ($recursive && $block->children) {
+                $c = self::filterBlocks($block->children, $predicate, true);
                 if ($c) $out = array_merge($out, $c);
             }
         }

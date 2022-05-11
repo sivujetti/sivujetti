@@ -101,7 +101,7 @@ class BlockTypeBaseStylesTab extends preact.Component {
      */
     handleCssInputChanged(e) {
         const committed = this.state.stylesString;
-        const [shouldCommit, result] = this.cssValidator.validate(e, committed);
+        const [shouldCommit, result] = this.cssValidator.validateAndCompile(e, committed);
         if (!shouldCommit) {
             this.setState(result);
             return;
@@ -111,7 +111,9 @@ class BlockTypeBaseStylesTab extends preact.Component {
                                             block);
         //
         const commit = () => {
-            return http.put(this.resourceUrl, newSingle)
+            const copy = Object.assign({}, newSingle);
+            copy.styles = result.stylesStringCompiled;
+            return http.put(this.resourceUrl, copy)
                 .then(resp => {
                     if (resp.ok !== 'ok') throw new Error('-');
                     return true;

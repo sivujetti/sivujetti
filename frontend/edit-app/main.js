@@ -85,6 +85,30 @@ function patchQuillEditor() {
     const Quill = window.Quill;
     Quill.debug('error');
     //
+    const Clipboard = Quill.import('modules/clipboard');
+    const Delta = Quill.import('delta');
+    class PlainClipboard extends Clipboard {
+        onPaste(e) {
+            // https://github.com/quilljs/quill/blob/d462f8000ffbaa3aab853809fb08f7809f828475/modules/clipboard.js#L178
+            if (e.defaultPrevented || !this.quill.isEnabled()) return;
+            e.preventDefault();
+            const range = this.quill.getSelection(true);
+            if (range == null) return;
+            // https://github.com/quilljs/quill/issues/1298#issuecomment-403657657
+            const text = e.clipboardData.getData('text/plain');
+            const delta = new Delta()
+                .retain(range.index)
+                .delete(range.length)
+                .insert(text);
+            const index = text.length + range.index;
+            const length = 0;
+            this.quill.updateContents(delta, Quill.sources.USER);
+            this.quill.setSelection(index, length, Quill.sources.SILENT);
+            this.quill.scrollIntoView();
+        }
+    }
+    Quill.register('modules/clipboard', PlainClipboard);
+    //
     const Keyboard = Quill.import('modules/keyboard');
     class CustomKeyboard extends Keyboard { }
     CustomKeyboard.DEFAULTS = Object.assign({}, Keyboard.DEFAULTS, {

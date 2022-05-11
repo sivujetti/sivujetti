@@ -105,7 +105,7 @@ class IndividualBlockStylesTab extends preact.Component {
      */
     handleCssInputChanged(e) {
         const committed = this.state.stylesString;
-        const [shouldCommit, result] = this.cssValidator.validate(e, committed);
+        const [shouldCommit, result] = this.cssValidator.validateAndCompile(e, committed);
         if (!shouldCommit) {
             this.setState(result);
             return;
@@ -113,8 +113,38 @@ class IndividualBlockStylesTab extends preact.Component {
         const {block} = this.props;
         const newAll = dispatchNewBlockStyles(this.borrowedStyles, result.stylesStringNotCommitted,
                                               block, this.isPartOfGlobalBlockTree);
+
+
+        const hadCompletions = result.stylesStringCompiled !== result.stylesStringNotCommitted;
+        const a = !hadCompletions ? newAll : JSON.parse(JSON.stringify(newAll));
+        const newStyles = !this.isPartOfGlobalBlockTree ? a : a.find(bag => bag.globalBlockTreeId === block.globalBlockTreeId).styles;
+
+        if (hadCompletions) // Mutate newStyles
+            findBlockStyles(newStyles, block).styles = result.stylesStringCompiled;
+
+        /*
+        let yyy;
+        if (result.stylesStringCompiled !== result.stylesStringNotCommitted) {
+            let aaa = JSON.parse(JSON.stringify(newAll));
+            if (!this.isPartOfGlobalBlockTree) {
+                yyy = aaa;
+            } else {
+                yyy = aaa.find(bag => bag.globalBlockTreeId === block.globalBlockTreeId).styles;
+            }
+            //console.log('a ' , JSON.parse(JSON.stringify(aaa)));
+            findBlockStyles(yyy, block).styles = result.stylesStringCompiled;
+            //console.log('b ' , JSON.parse(JSON.stringify(aaa)));
+        } else {
+            if (!this.isPartOfGlobalBlockTree) {
+                yyy = newAll;
+            } else {
+                yyy = newAll.find(bag => bag.globalBlockTreeId === block.globalBlockTreeId).styles;
+            }
+        }
+        */
+
         //
-        const commit = this.createCommitFn(newAll, block);
+        const commit = this.createCommitFn(newStyles);
         const revert = () => {
             dispatchNewBlockStyles(this.borrowedStyles, committed, block, this.isPartOfGlobalBlockTree);
         };
@@ -126,27 +156,22 @@ class IndividualBlockStylesTab extends preact.Component {
         }));
     }
     /**
-     * @param {Array<RawBlockStyle>|Array<RawGlobalBlockTreeBlocksStyles>} newStyles
+     * @param {Array<RawBlockStyle>} newStyles
      * @param {Block} block
      * @returns {() => Promise<Boolean>}
      * @access private
      */
-    createCommitFn(newStylesAll, block) {
-        return () => {
-            const newStyles = !this.isPartOfGlobalBlockTree
-                ? newStylesAll
-                : newStylesAll.find(bag => bag.globalBlockTreeId === block.globalBlockTreeId).styles;
-            return http.put(this.resourceUrl, {styles: newStyles})
-                .then(resp => {
-                    if (resp.ok !== 'ok') throw new Error('-');
-                    return true;
-                })
-                .catch(err => {
-                    env.window.console.error(err);
-                    toasters.editAppMain(__('Something unexpected happened.'), 'error');
-                    return false;
-                });
-        };
+    createCommitFn(newStyles) {
+        return () => http.put(this.resourceUrl, {styles: newStyles})
+            .then(resp => {
+                if (resp.ok !== 'ok') throw new Error('-');
+                return true;
+            })
+            .catch(err => {
+                env.window.console.error(err);
+                toasters.editAppMain(__('Something unexpected happened.'), 'error');
+                return false;
+            });
     }
 }
 

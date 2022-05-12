@@ -611,6 +611,7 @@ a.popup-close-area {
 }
 .block-tree li {
     margin: 0;
+    position: relative;
 }
 .block-tree li.dragging {
     opacity: .5;
@@ -620,6 +621,10 @@ a.popup-close-area {
 }
 .block-tree li.globalBlockTree-block {
     background-color: var(--color-bg-global-block);
+}
+.block-tree > li[data-last] {
+    float: left;
+    width: 100%;
 }
 
 .block-tree li .block-handle .icon-tabler {
@@ -653,15 +658,26 @@ a.popup-close-area {
     margin-left: 0;
     padding: .24rem .24rem .24rem .44rem;
 }
-.block-tree li.maybe-drop-before > .d-flex > .block-handle {
-    border-top-color: var(--color-drop-indicator);
+.block-tree li.maybe-drop-before:before,
+.block-tree li.maybe-drop-after:after {
+    content: "";
+    position: absolute;
+    background-color: var(--color-drop-indicator);
+    width: 100%;
+    height: 1px;
+}
+.block-tree li ul li.maybe-drop-before:before,
+.block-tree li ul li.maybe-drop-after:after {
+    width: 60%;
+    min-width: 80px;
 }
 .block-tree li.maybe-drop-as-child > .d-flex > .block-handle {
     border-color: var(--color-drop-indicator);
 }
-.block-tree li.maybe-drop-after > .d-flex > .block-handle {
-    border-bottom-color: var(--color-drop-indicator);
+.block-tree li.maybe-drop-after:after {
+    margin-top: -1px;
 }
+
 .block-tree .block-handle:before {
     content: "";
     border-top: var(--border-tree-guide);

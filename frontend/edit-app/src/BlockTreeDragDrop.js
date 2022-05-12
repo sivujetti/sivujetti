@@ -70,11 +70,6 @@ class BlockTreeDragDrop {
             */
             if (e.clientY > rect.top + rect.height - edge) {
                 newCandidate.dropPosition = distance !== -1 ? 'after' : 'as-child';
-                if (newCandidate.dropPosition === 'after' && distance !== 0 &&
-                    newCandidate.el.classList.contains('with-children')) {
-                    newCandidate.dropPosition = 'before';
-                    newCandidate.el = li.querySelector(':scope ul > li');
-                }
             } else if (e.clientY > rect.top + edge) {
                 newCandidate.dropPosition = 'as-child';
             } else { // if (e.clientY > rect.top) {
@@ -84,12 +79,24 @@ class BlockTreeDragDrop {
             newCandidate.dropPosition = 'self';
         }
         //
-        if (newCandidate.dropPosition === this.curDropTypeCandidate.dropPosition &&
-            newCandidate.el === this.curDropTypeCandidate.el) return;
-        // Disallow child > parent drops
-        if (newCandidate.dropPosition === 'as-child' && newCandidate.el.classList.contains('with-children') &&
-            this.startElParentUl === newCandidate.el.querySelector('ul'))
-            return;
+        const {el} = newCandidate;
+        if (!el.getAttribute('data-last')) {
+            if (newCandidate.dropPosition === this.curDropTypeCandidate.dropPosition &&
+                el === this.curDropTypeCandidate.el) return;
+            // Disallow no-move
+            if (this.startElChildUl && (newCandidate.dropPosition === 'before' &&
+                el === this.startEl.nextElementSibling) ||
+                (newCandidate.dropPosition === 'after' &&
+                el === this.startEl.previousElementSibling))
+                return;
+            // Disallow child > parent drops
+            if (newCandidate.dropPosition === 'as-child' && el.classList.contains('with-children') &&
+                this.startElParentUl === el.querySelector('ul'))
+                return;
+        } else {
+            newCandidate.dropPosition = 'after';
+            newCandidate.el = newCandidate.el.previousElementSibling;
+         }
         //
         if (this.curDropTypeCandidate.el && this.curDropTypeCandidate.dropPosition !== 'self') {
             this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
@@ -106,19 +113,23 @@ class BlockTreeDragDrop {
         if (!this.curDropTypeCandidate) return;
         //
         const dragTreeId = this.startEl.getAttribute('data-block-tree-id');
-        const dragBlockTree = dragTreeId === '' ? this.blockTree.state.blockTree : this.blockTree.getGlobalTrees().get(dragTreeId);
+        const dragBlockTree = !dragTreeId ? this.blockTree.state.blockTree : this.blockTree.getGlobalTrees().get(dragTreeId);
         const [dragBlock, dragBranch] = blockTreeUtils.findBlock(
             this.startEl.getAttribute('data-base-block-id') ||
             this.startEl.getAttribute('data-block-id'),
             dragBlockTree
         );
         const dropTreeId = this.curDropTypeCandidate.el.getAttribute('data-block-tree-id');
-        const dropBlockTree = dropTreeId === '' ? this.blockTree.state.blockTree : this.blockTree.getGlobalTrees().get(dropTreeId);
-        const [dropBlock, dropBranch, dropBlockParent] = blockTreeUtils.findBlock(
-            this.curDropTypeCandidate.el.getAttribute('data-base-block-id') ||
-            this.curDropTypeCandidate.el.getAttribute('data-block-id'),
+        const dropBlockTree = !dropTreeId ? this.blockTree.state.blockTree : this.blockTree.getGlobalTrees().get(dropTreeId);
+        const {el} = this.curDropTypeCandidate;
+        const [dropBlock, dropBranch, dropBlockParent] = !el.getAttribute('data-last') ? blockTreeUtils.findBlock(
+            el.getAttribute('data-base-block-id') || el.getAttribute('data-block-id'),
             dropBlockTree
-        );
+        ) : [
+            dropBlockTree[dropBlockTree.length - 1],
+            dropBlockTree,
+            null,
+        ];
         //
         let doRevert = null;
         const isBefore = this.curDropTypeCandidate.dropPosition === 'before';
@@ -148,7 +159,7 @@ class BlockTreeDragDrop {
                 };
             } else {
                 const a = isGlobalBlockTreeRefOrPartOfOne(dragBlock);
-                const b = isGlobalBlockTreeRefOrPartOfOne(dropBlock);
+                const b = dropBlock.isStoredTo === 'globalBlockTree';
                 if (!a && b) {
                     this.handleDropNotAllowed('Normal > Global drop not supported yet');
                     return;

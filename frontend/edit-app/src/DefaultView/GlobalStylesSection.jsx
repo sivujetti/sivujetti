@@ -1,5 +1,4 @@
-import {api, signals, http, __, env, Icon, MenuSection} from '@sivujetti-commons-for-edit-app';
-import LoadingSpinner from '../commons/LoadingSpinner.jsx';
+import {api, signals, http, __, env, Icon, MenuSection, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
 import store, {pushItemToOpQueue} from '../store.js';
 

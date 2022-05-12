@@ -15,7 +15,7 @@ final class UploadsController {
     public function getUploads(Request $req,
                                Response $res,
                                UploadsRepository $uploadsRepo): void {
-        if ($req->params->filters !== '{"mime":{"$eq":"image/*"}}')
+        if (urldecode($req->params->filters) !== '{"mime":{"$eq":"image/*"}}')
             throw new \RuntimeException("Not implemented");
         $files = $uploadsRepo->getMany((new UploadsQFilters)->byMime("image/*"));
         $res->json($files);

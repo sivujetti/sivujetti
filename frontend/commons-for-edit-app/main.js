@@ -17,4 +17,5 @@ export * from './src/Form3.jsx';
 export * from './src/FloatingDialog.jsx';
 export * from './src/Icon.jsx';
 export * from './src/MenuSection.jsx';
+export * from './src/LoadingSpinner.jsx';
 export {http, env, urlUtils, __, translator, signals, api};

@@ -19,7 +19,7 @@ import './update-global-block-test.js';
 import './update-paragraph-text-test.js';
 
 env.window = {location: {}, console: window.console, addEventListener: () => {}};
-env.document = {};
+env.document = {createElement: (e, o=undefined) => document.createElement(e, o), head: document.head};
 env.normalTypingDebounceMillis = 0;
 //
 urlUtils.assetBaseUrl = window.location.pathname.split('public/tests')[0];

@@ -1,5 +1,4 @@
-import {http, __, env} from '@sivujetti-commons-for-edit-app';
-import LoadingSpinner from './commons/LoadingSpinner.jsx';
+import {http, __, env, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
 
 class GlobalBlockTreeSelector extends preact.Component {
     /**

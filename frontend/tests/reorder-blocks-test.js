@@ -127,7 +127,7 @@ QUnit.module('BlockTrees', () => {
             return appTestUtils.simulatePageLoad(s);
         })
         .then(() =>
-            simulateDragBlock(s, 'downwards', -2, -1)
+            simulateDragBlock(s, 'downwards', -3, -2)
         )
         .then(() => {
             verifyMovedParagraphBlockFromInnerBranchToOuterOneInTree(s, assert, 2, 2);

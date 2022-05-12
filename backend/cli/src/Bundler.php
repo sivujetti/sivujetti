@@ -177,6 +177,7 @@ final class Bundler {
             "{$prefix}assets/templates/_menu-print-branch.tmpl.php",
             "{$prefix}assets/templates/block-auto.tmpl.php",
             "{$prefix}assets/templates/block-generic-wrapper.tmpl.php",
+            "{$prefix}assets/templates/block-listing-pages-default.tmpl.php",
             "{$prefix}assets/templates/block-menu.tmpl.php",
             "{$prefix}assets/templates/edit-app-wrapper.tmpl.php",
             "{$prefix}assets/templates/page-auth-view.tmpl.php",

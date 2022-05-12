@@ -1,7 +1,6 @@
-import {__, urlUtils, http, env} from '@sivujetti-commons-for-edit-app';
+import {__, urlUtils, http, env, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
 import Tabs from '../commons/Tabs.jsx';
 import {timingUtils} from '../commons/utils.js';
-import LoadingSpinner from '../commons/LoadingSpinner.jsx';
 import UploadButton from './UploadButton.jsx';
 
 const INITIAL_CACHE_KEY = '';

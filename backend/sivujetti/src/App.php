@@ -15,7 +15,7 @@ use Sivujetti\Update\UpdatesModule;
 use Sivujetti\Upload\UploadsModule;
 
 final class App extends PikeApp {
-    public const VERSION = "0.10.0-dev";
+    public const VERSION = "0.10.0";
     /** @var \Pike\Injector */
     public static Injector $adi;
     /**

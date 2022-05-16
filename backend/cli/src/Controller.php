@@ -104,7 +104,6 @@ final class Controller {
         if (count($vals) < 3)
             throw new PikeException("Expected at least 3 arguments (<username> <email> <password>)",
                                     PikeException::BAD_INPUT);
-        // @todo replace this with sebastian/cli-parser
         $dbDriver = $vals[3] ?? "-";
         $dbDataBase = $vals[4] ?? "-";
         $dbUser = $vals[5] ?? "-";

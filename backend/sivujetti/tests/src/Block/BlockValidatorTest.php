@@ -31,16 +31,16 @@ final class BlockValidatorTest extends TestCase {
         $state = new \TestState;
         $state->inputData = (object) [
             "title" => "",
-            "renderer" => null,
+            "renderer" => "sivujetti:block-auto",
             "id" => "aaaaaaaaaaaaaaaaaaaa",
             "text" => "Some text",
             "cssClass" => "foo",
         ];
         $state->validationErrors = null;
-        $state->apiCtx = PageTestUtils::createSharedAPIContext();
-        $state->apiCtx->validBlockRenderers = [["fileId" => "sivujetti:block-auto",
-                                                "friendlyName" => null,
-                                                "associatedWith" => null]];
+        $state->apiCtx = PageTestUtils::createTestApiCtx();
+        $state->apiCtx->blockRenderers = [["fileId" => "sivujetti:block-auto",
+                                           "friendlyName" => null,
+                                           "associatedWith" => null]];
         return $state;
     }
     private function invokeValidation(\TestState $state): void {

@@ -114,7 +114,6 @@ final class PagesController {
         $isFirstRun = ($parsed->{$req->myData->user->id} ?? null) !== "y";
         if ($isFirstRun) {
             $parsed->{$req->myData->user->id} = "y";
-            // todo theWebsiteRepo->update()->fields(["firstRun"])->exec(json_encode())
             $db->exec("UPDATE `\${p}theWebsite` SET `firstRuns`=?", [json_encode($parsed)]);
         }
         $userRole = $req->myData->user->role;

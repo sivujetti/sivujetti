@@ -149,7 +149,7 @@ return [
         }
     }
     /**
-     * @param todo 
+     * @return \Pike\Db
      */
     public function getDb(): Db {
         return $this->db;

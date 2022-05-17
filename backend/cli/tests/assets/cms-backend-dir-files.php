@@ -71,6 +71,7 @@ return [
     "\$backend/sivujetti/src/Auth/AuthModule.php",
     "\$backend/sivujetti/src/Auth/AuthController.php",
     "\$backend/sivujetti/src/Auth/ACL.php",
+    "\$backend/sivujetti/src/Auth/ACLRulesBuilder.php",
     "\$backend/sivujetti/src/BlockType/SectionBlockType.php",
     "\$backend/sivujetti/src/BlockType/ColumnsBlockType.php",
     "\$backend/sivujetti/src/BlockType/PageInfoBlockType.php",

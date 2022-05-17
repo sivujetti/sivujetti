@@ -2,8 +2,9 @@
 
 namespace Sivujetti\Auth;
 
-use Pike\{Injector, Request, Response, Router};
+use Pike\{Injector, PikeException, Request, Response, Router};
 use Pike\Auth\Authenticator;
+use Sivujetti\SharedAPIContext;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class AuthModule {
@@ -30,7 +31,7 @@ final class AuthModule {
      * @param \Pike\Injector $di
      */
     public function beforeExecCtrl(Injector $di): void {
-        $di->share(new ACL(doThrowDevWarnings: (bool) (SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE)));
+        $di->share(self::createEmptyAcl());
         $this->di = $di;
     }
     /**
@@ -41,6 +42,7 @@ final class AuthModule {
      */
     private function checkIfUserIsPermittedToAccessThisRoute(Request $req,
                                                              Response $res): bool {
+
         // Route explicitly marked as public / not protected -> do nothing
         if (($req->routeInfo->myCtx["skipAuth"] ?? null) === true) {
             return true;
@@ -52,15 +54,46 @@ final class AuthModule {
             return false;
         }
         //
-        $acl = $this->di->make(ACL::class);
-        $theWebsite = $this->di->make(TheWebsite::class);
-        $acl->setRules(json_decode($theWebsite->aclRulesJson, flags: JSON_THROW_ON_ERROR));
+        $aclInfo = $req->routeInfo->myCtx["identifiedBy"];
+        [$rules, $isPlugin] = $this->getAclRulesFor($aclInfo);
+        $acl = !$isPlugin ? $this->di->make(ACL::class) : self::createEmptyAcl();
+        $acl->setRules($rules);
         // User not permitted to access this route
-        if (!$acl->can($userRole, ...$req->routeInfo->myCtx["identifiedBy"])) {
+        if (!$acl->can($userRole, ...$aclInfo)) {
             $res->status(403)->plain("Not permitted");
             return false;
         }
         // User was permitted to access this route
         return true;
+    }
+    /**
+     * @param array{0: string, 1: string} $identifiedBy [$aclActionName, $aclResourceName]
+     * @return array{0: object, 1: bool} [$rules, $isIdentifiedByDefinedByPlugin]
+     * @throws \Pike\PikeException
+     */
+    public function getAclRulesFor(array $identifiedBy): array {
+        $aclRes = $identifiedBy[1];
+        // Normal api-request
+        if (!str_starts_with($aclRes, "plugins/")) {
+            $theWebsite = $this->di->make(TheWebsite::class);
+            return [json_decode($theWebsite->aclRulesJson, flags: JSON_THROW_ON_ERROR), false];
+        }
+        // Request handled by a plugin
+        $ns = explode(":", $aclRes)[0]; // "plugins/JetForms:resourceName" -> "plugins/JetForms"
+        $pluginName = substr($ns, strlen("plugins/")); // "plugins/JetForms" -> "JetForms"
+        if (!($plugin = $this->di->make(SharedAPIContext::class)->userPlugins[$pluginName] ?? null))
+            throw new PikeException("Sanity", PikeException::BAD_INPUT);
+        if (!method_exists($plugin, "defineAclRules"))
+            throw new PikeException("", PikeException::BAD_INPUT);
+        //
+        $builder = $plugin->defineAclRules(new ACLRulesBuilder("{$ns}:"));
+        $rules = $builder->toObject();
+        return [$rules, true];
+    }
+    /**
+     * @return \Sivujetti\Auth\ACL
+     */
+    private static function createEmptyAcl(): ACL {
+        return new ACL(doThrowDevWarnings: (bool) (SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE));
     }
 }

@@ -2,6 +2,9 @@
 
 namespace Sivujetti\UserPlugin;
 
+/**
+ * @method \Sivujetti\Auto\ACLRulesBuilder defineAclRules(\Sivujetti\Auto\ACLRulesBuilder $builder)
+ */
 interface UserPluginInterface {
     /**
      * @param \Sivujetti\UserPlugin\UserPluginAPI $api

@@ -93,7 +93,8 @@ final class UserPluginAPI extends UserSiteAPI {
      *     // See http://altorouter.com/usage/mapping-routes.html
      *     "/plugins/my-plugin/foo/[i:id]/[w:name]",
      *     MyController::class,
-     *     "doSomething"
+     *     "doSomething",
+     *     ["do", "something"]
      * )
      * ```
      *
@@ -101,11 +102,13 @@ final class UserPluginAPI extends UserSiteAPI {
      * @param string $url
      * @param string $ctrlClassPath
      * @param string $ctrlMethodName
+     * @param array{consumes?: string, identifiedBy?: array{0: string, 1: string}} $annotations = null e.g. {consumes: "application/json", identifiedBy: ["read", "something"]}
      */
     public function registerHttpRoute(string $method,
                                       string $url,
                                       string $ctrlClassPath,
-                                      string $ctrlMethodName): void {
+                                      string $ctrlMethodName,
+                                      ?array $annotations = null): void {
         $expected = "/plugins/{$this->getDashifiedNs()}";
         if (!str_starts_with($url, $expected))
             throw new PikeException("Expected route (`{$url}`) to start with `{$expected}`",
@@ -114,7 +117,9 @@ final class UserPluginAPI extends UserSiteAPI {
             throw new PikeException("Expected ctrlClassPath (`{$ctrlClassPath}`) to start with `{$this->classNamespace}`",
                                     PikeException::BAD_INPUT);
         $this->router->map($method, $url,
-            [$ctrlClassPath, $ctrlMethodName, ["skipAuth" => true]]
+            [$ctrlClassPath, $ctrlMethodName, $annotations
+                ? $this->completeAndValidateRouteAnnotations($annotations)
+                : ["identifiedBy" => [$ctrlMethodName, $ctrlClassPath]]]
         );
     }
     /**
@@ -134,5 +139,24 @@ final class UserPluginAPI extends UserSiteAPI {
             $this->dashifiedNamespace = strtolower($dashified);
         }
         return $this->dashifiedNamespace;
+    }
+    /**
+     * @param array{consumes?: string, identifiedBy?: array{0: string, 1: string}} $annotations
+     * @return array{consumes?: string, identifiedBy?: array{0: string, 1: string}}
+     * @throws \Pike\PikeException
+     */
+    private function completeAndValidateRouteAnnotations(array $annotations): array {
+        if (($pair = ($annotations["identifiedBy"] ?? null))) { // [aclActionName, aclResourceName]
+            if (!is_string($pair[0] ?? null))
+                throw new PikeException("\$annotations[\"identifiedBy\"][0] must be a string",
+                                        PikeException::BAD_INPUT);
+            if (!is_string($pair[1] ?? null))
+                throw new PikeException("\$annotations[\"identifiedBy\"][1] must be a string",
+                                        PikeException::BAD_INPUT);
+            $resourceName = $pair[1];
+            if (!str_starts_with($resourceName, "plugins/{$this->namespace}:"))
+                $annotations["identifiedBy"][1] = "plugins/{$this->namespace}:{$resourceName}";
+        }
+        return $annotations;
     }
 }

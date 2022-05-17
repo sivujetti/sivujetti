@@ -5,7 +5,7 @@
 # 0.11.0 (not yet released)
 
 ## Added
-- .
+- `$annotations parameter to PluginAPI->registerHttpRoute()` (Plugin developer can define ACL-rules for routes)
 
 ## Fixed
 - .

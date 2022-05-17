@@ -73,7 +73,7 @@ class TestEnvBootstrapper extends BootModule {
                 throw new PikeException("First arg of useMock(\"session\") must be " .
                     "PHPUnit\Framework\MockObject\MockObject",
                     PikeException::BAD_INPUT);
-            $args[":session"]->method("get")->with("user")->willReturn((object) ["id" => "1", "role" => 1]);
+            $args[":session"]->method("get")->with("user")->willReturn((object) ["id" => "1", "role" => $args[":userRole"] ?? 1]);
             $this->authTemp = ["@auto", $args];
         } elseif ($name === "apiCtx") {
             $this->apiCtxTemp = $args[0];

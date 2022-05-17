@@ -153,7 +153,7 @@ final class Updater {
      */
     private static function getValidVersionNumberOrNull(string $candidate): ?string {
         $trimmed = trim($candidate);
-        if (preg_match('/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)[a-zA-Z-]*$/', $trimmed))
+        if (preg_match('/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)[a-zA-Z0-9-]*$/', $trimmed))
             return $trimmed;
         return null;
     }

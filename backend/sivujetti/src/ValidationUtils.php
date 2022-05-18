@@ -33,26 +33,30 @@ abstract class ValidationUtils {
     public static function addRulesForProperties(array|\ArrayObject $properties,
                                                  ObjectValidator $to): ObjectValidator {
         foreach ($properties as $prop) {
+            $dt = $prop->dataType->type;
             $rules = [
-                "text" => [["type", "string"], ["maxLength", self::HARD_SHORT_TEXT_MAX_LEN]],
-                "json" => [["type", "string"], ["maxLength", self::HARD_JSON_TEXT_MAX_LEN]],
-                "many-to-many" => [["type", "string"]],
-                "int" =>  [["type", "number"]],
-                "uint" => [["type", "number"], ["min", 0]],
-            ][$prop->dataType->type] ?? null;
+                "text"         => [["", "type", "string"], ["", "maxLength", self::HARD_SHORT_TEXT_MAX_LEN]],
+                "json"         => [["", "type", "string"], ["", "maxLength", self::HARD_JSON_TEXT_MAX_LEN]],
+                "many-to-many" => [["", "type", "array"],  ["%s.*", "type", "number"]],
+                "int"          => [["", "type", "number"]],
+                "uint"         => [["", "type", "number"], ["", "min", 0]],
+            ][$dt] ?? null;
             if (!$rules)
                 throw new \RuntimeException("Shouldn't happen");
             $userRules = $prop->dataType->validationRules ?? [];
-            if ($userRules) { // e.g. [ ["required"], ["min", 4] ]
+            if ($userRules) { // e.g. [ ["", "required"], ["%s.foo", "min", 4] ]
                 foreach ($userRules as $ruleParts) {
-                    if (!is_array($ruleParts) || !in_array($ruleParts[0], self::VALID_RULES, true))
+                    if (!is_array($ruleParts) || !is_string($ruleParts[0]) ||
+                        !in_array($ruleParts[1], self::VALID_RULES, true))
                         throw new PikeException("Invalid validation rule",
                                                 PikeException::BAD_INPUT);
                 }
                 $rules = array_merge($rules, $userRules);
             }
-            foreach ($rules as $ruleArgs) {
-                $to->rule("{$prop->name}", ...$ruleArgs);
+            foreach ($rules as $parts) {
+                $pathTmpl = array_shift($parts);
+                $propPath = !$pathTmpl ? $prop->name : sprintf($pathTmpl, $prop->name);
+                $to->rule($propPath, ...$parts);
             }
         }
         return $to;

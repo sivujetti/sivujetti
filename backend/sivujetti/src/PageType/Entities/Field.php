@@ -48,7 +48,7 @@ class DataType {
     public string $type;
     /** @var ?int */
     public ?int $length;
-    /** @var ?array */
+    /** @var ?array<int, mixed[]> */
     public ?array $validationRules;
     /**
      * @return string "TEXT", "INT(64)"
@@ -81,7 +81,7 @@ class DataType {
         return $this->type . ($this->length ?? "");
     }
     /**
-     * @param object $obj {type: string, length?: int, validationRules?: array}
+     * @param object $obj {type: string, length?: int, validationRules?: array<int, mixed[]>}
      * @return \Sivujetti\PageType\Entities\DataType
      */
     public static function fromValidatedObject(object $obj): DataType {

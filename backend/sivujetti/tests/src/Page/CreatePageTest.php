@@ -27,7 +27,7 @@ final class CreatePageTest extends PagesControllerTestCase {
             "layoutId" => "1",
             "blocks" => [],
             "status" => Page::STATUS_PUBLISHED,
-            "categories" => "[]",
+            "categories" => [],
         ];
         $state->spyingResponse = null;
         $state->app = null;
@@ -50,6 +50,7 @@ final class CreatePageTest extends PagesControllerTestCase {
             "id" => $actual->id,
             "type" => PageType::PAGE,
             "status" => $state->inputData->status,
+            "categories" => [],
         ], (array) $actual);
     }
 
@@ -75,7 +76,8 @@ final class CreatePageTest extends PagesControllerTestCase {
             "status must be number",
             "The value of status must be 0 or greater",
             "blocks must be array",
-            "categories must be string",
+            "categories must be array",
+            "Expected `categories` to be an array",
         ], $state->spyingResponse);
     }
 

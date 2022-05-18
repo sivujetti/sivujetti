@@ -31,4 +31,5 @@ final class Page {
     public int $status;
     /** @var \Sivujetti\Layout\Entities\Layout */
     public Layout $layout;
+    /* Own props here */
 }

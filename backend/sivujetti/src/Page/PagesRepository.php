@@ -130,10 +130,8 @@ final class PagesRepository {
                                         PikeException::BAD_INPUT);
             $updateData = self::makeStorablePageDataFromValidInput($input, $pageType);
             $theseColumnsOnly = self::DEFAULT_FIELDS;
-            foreach ($pageType->ownFields as $field) {
-                if ($field->dataType->type === "many-to-many") continue; // Not implemented yet
+            foreach ($pageType->ownFields as $field)
                 $theseColumnsOnly[] = $field->name;
-            }
         } elseif (count($theseColumnsOnly) === 1 && $theseColumnsOnly[0] === "blocks") {
             if (($errors = $this->pageTypeValidator->validateBlocksUpdateData($input)))
                 throw new PikeException(implode(PHP_EOL, $errors),
@@ -189,10 +187,8 @@ final class PagesRepository {
         }
         //
         $ownFieldCols = [];
-        foreach ($pageType->ownFields as $f) {
-            if ($f->dataType->type === "many-to-many") continue; // Not implemented yet
+        foreach ($pageType->ownFields as $f)
             $ownFieldCols[] = "p.`$f->name` AS `$f->name`";
-        }
         //
         $order = $filters["order"] ?? null;
         $limit = $filters["limit"] ?? 40; // null -> 40
@@ -238,10 +234,10 @@ final class PagesRepository {
                 ? Layout::fromParentRs($row)
                 : new Layout;
             //
-            foreach ($this->pageType->ownFields as $field) {
-                if ($field->dataType->type === "many-to-many") continue; // Not implemented yet
-                $row->{$field->name} = strval($row->{"{$field->name}"}); // todo cast type?
-            }
+            foreach ($this->pageType->ownFields as $field)
+                $row->{$field->name} = $field->dataType->type !== "many-to-many"
+                    ? strval($row->{$field->name})
+                    : json_decode($row->{$field->name}, flags: JSON_THROW_ON_ERROR);
         }
         return $rows;
     }
@@ -297,10 +293,10 @@ final class PagesRepository {
             "layoutId" => $input->layoutId,
             "status" => (int) $input->status,
         ];
-        foreach ($pageType->ownFields as $field) {
-            if ($field->dataType->type === "many-to-many") continue; // Not implemented yet
-            $out->{$field->name} = $input->{$field->name} ?? null;
-        }
+        foreach ($pageType->ownFields as $field)
+            $out->{$field->name} = $field->dataType->type !== "many-to-many"
+                ? $input->{$field->name} ?? null
+                : json_encode($input->{$field->name}, JSON_THROW_ON_ERROR);
         return $out;
     }
     /**

@@ -100,7 +100,7 @@ final class PageTestUtils {
             "name" => "categories",
             "friendlyName" => "",
             "dataType" => (object) ["type" => "many-to-many"],
-            "defaultValue" => "",
+            "defaultValue" => [],
             "isNullable" => false,
         ]];
         return $pageType;
@@ -118,7 +118,7 @@ final class PageTestUtils {
             "meta" => (object) ["description" => "Greetings >"],
             "layoutId" => "1",
             "blocks" => $blocks ?? self::makeDefaultBlockTree(),
-            "categories" => "[]",
+            "categories" => [],
             "status" => Page::STATUS_PUBLISHED,
         ];
     }

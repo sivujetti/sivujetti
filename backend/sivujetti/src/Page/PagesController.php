@@ -434,13 +434,8 @@ final class PagesController {
             "blockStyles" => $page->blockStyles,
             "isPlaceholderPage" => $isPlaceholderPage,
         ];
-        foreach ($pageType->ownFields as $field) {
-            if ($field->name === "categories") { // @todo
-                $out->categories = [];
-                continue;
-            }
+        foreach ($pageType->ownFields as $field)
             $out->{$field->name} = $page->{$field->name};
-        }
         return $out;
     }
     /**

@@ -112,7 +112,7 @@ final class PageTestUtils {
     public function makeTestPageData(?array $blocks = null): object {
         return (object) [
             "slug" => "/hello",
-            "path" => "/hello",
+            "path" => "hello/",
             "level" => 1,
             "title" => "<Hello>",
             "meta" => (object) ["description" => "Greetings >"],

@@ -122,7 +122,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertEquals("fi", $ldWebSite->inLanguage);
         $this->assertEquals("fi", $ldWebPage->inLanguage);
         // Permalink
-        $expectedPageUrlFull = "http://localhost" . Template::makeUrl($state->testPageData->path);
+        $expectedPageUrlFull = "http://localhost" . rtrim(Template::makeUrl($state->testPageData->path), "/");
         $permaEl1 = $dom->execute("head link[rel=\"canonical\"]")[0] ?? null;
         $permaEl2 = $dom->execute("head meta[property=\"og:url\"]")[0] ?? null;
         $this->assertNotNull($permaEl1);

@@ -27,9 +27,10 @@ $out->resources = (object) [
     ],
     "pages" => (object) [
         "create"            => 0b00000010,
-        "updateBlocksOf"    => 0b00000100,
-        "update"            => 0b00001000,
-        "upsertStylesOf"    => 0b00010000,
+        "list"              => 0b00000100,
+        "updateBlocksOf"    => 0b00001000,
+        "update"            => 0b00010000,
+        "upsertStylesOf"    => 0b00100000,
     ],
     "pageTypes" => (object) [
         "create"            => 0b00000010,

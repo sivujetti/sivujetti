@@ -26,9 +26,12 @@ abstract class PagesControllerTestCase extends DbTestCase {
     public static function getDbConfig(): array {
         return require TEST_CONFIG_FILE_PATH;
     }
-    protected function insertTestPageDataToDb(\TestState $state, ?PageType $pageType = null): void {
-        $insertId = $this->pageTestUtils->insertPage($state->testPageData,
-                                                     $pageType);
-        $state->testPageData->id = $insertId;
+    protected function insertTestPageDataToDb(object $stateOrPageData,
+                                              ?PageType $pageType = null): void {
+        $mutRef = $stateOrPageData instanceof \TestState
+            ? $stateOrPageData->testPageData
+            : $stateOrPageData;
+        $insertId = $this->pageTestUtils->insertPage($mutRef, $pageType);
+        $mutRef->id = $insertId;
     }
 }

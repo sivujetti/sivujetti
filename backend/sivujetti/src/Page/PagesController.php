@@ -191,6 +191,24 @@ final class PagesController {
         $res->status(201)->json(["ok" => "ok"]);
     }
     /**
+     * GET /api/pages/[w:pageType]: Lists all $req->params->pageType's pages ordered
+     * by newest to oldest.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Sivujetti\Page\PagesRepository2 $pagesRepo
+     */
+    public function listPages(Request $req,
+                              Response $res,
+                              PagesRepository2 $pagesRepo): void {
+        $pages = $pagesRepo
+            ->fetch($req->params->pageType, fields: "@simple")
+            ->orderBy("`id` DESC")
+            ->limit($pagesRepo::HARD_LIMIT)
+            ->fetchAll();
+        $res->json($pages);
+    }
+    /**
      * PUT /api/pages/[w:pageType]/[i:pageId]/blocks: Overwrites the block tree
      * of $req->params->pageId to the database.
      *

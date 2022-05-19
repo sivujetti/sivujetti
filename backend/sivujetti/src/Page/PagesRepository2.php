@@ -7,10 +7,12 @@ use Pike\{ArrayUtils, PikeException};
 use Pike\Db\FluentDb;
 use Pike\Interfaces\RowMapperInterface;
 use Sivujetti\Block\Entities\Block;
+use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class PagesRepository2 {
+    public const HARD_LIMIT = 200;
     /** @var \Pike\Db\FluentDb */
     private FluentDb $fluentDb;
     /** @var \ArrayObject<int, \Sivujetti\PageType\Entities\PageType> */
@@ -25,17 +27,20 @@ final class PagesRepository2 {
     }
     /**
      * @param string $pageTypeName = "Pages"
+     * @param string $fields = "@all" "@all"|"@simple"
      * @return \Pike\Db\MySelect
      */
-    public function fetch(string $pageTypeName = "Pages"): Select {
+    public function fetch(string $pageTypeName = "Pages", string $fields = "@all"): Select {
         $pageType = $this->getPageTypeOrThrow($pageTypeName);
         return $this->fluentDb->select("\${p}{$pageType->name} p", Page::class)
-            ->fields(["id","slug","path","level","title","layoutId","blocks AS blocksJson","status"])
+            ->fields(["id","slug","path","level","title","layoutId","status",(($fields === "@simple" ? "NULL" : "blocks") . " AS blocksJson")])
             ->mapWith(new class implements RowMapperInterface {
                 public function mapRow(object $page, int $_numRow, array $_rows): object {
-                    $page->blocks = array_map(fn($blockRaw) =>
+                    $blocksJson = $page->blocksJson ?? null;
+                    $page->blocks = $blocksJson ? array_map(fn($blockRaw) =>
                         Block::fromObject($blockRaw)
-                    , json_decode($page->blocksJson, flags: JSON_THROW_ON_ERROR));
+                    , json_decode($blocksJson, flags: JSON_THROW_ON_ERROR)) : [];
+                    unset($page->blocksJson);
                     return $page;
                 }
             });

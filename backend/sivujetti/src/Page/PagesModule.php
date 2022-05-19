@@ -16,6 +16,9 @@ final class PagesModule {
             [PagesController::class, "createPage", ["consumes" => "application/json",
                                                     "identifiedBy" => ["create", "pages"]]]
         );
+        $router->map("GET", "/api/pages/[w:pageType]",
+            [PagesController::class, "listPages", ["identifiedBy" => ["list", "pages"]]]
+        );
         $router->map("PUT", "/api/pages/[w:pageType]/[i:pageId]/blocks",
             [PagesController::class, "updatePageBlocks", ["consumes" => "application/json",
                                                           "identifiedBy" => ["updateBlocksOf", "pages"]]]

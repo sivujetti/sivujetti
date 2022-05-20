@@ -62,6 +62,7 @@ final class TestDataBundles {
                 "id" => "1",
                 "slug" => "/",
                 "path" => "/",
+                "categories" => "[]",
                 "level" => 1,
                 "title" => "Home",
                 "meta" => (object) ["description" => "Description here."],

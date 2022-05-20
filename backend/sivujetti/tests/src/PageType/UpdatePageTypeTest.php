@@ -94,6 +94,14 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
                                   [$state->inputData->name, $c["db.database"]],
                                   \PDO::FETCH_ASSOC);
         $this->assertNotNull($row);
+        // Created default fields?
+        if ($isSqlite) {
+            $this->assertStringContainsString("`meta` JSON,", $row["sql"]);
+            $this->assertStringContainsString("`createdAt` INTEGER NOT NULL DEFAULT 0,", $row["sql"]);
+            $this->assertStringContainsString("`lastUpdatedAt` INTEGER NOT NULL DEFAULT 0", $row["sql"]);
+        } else {
+            // Not implemented yet
+        }
         // Created custom fields?
         if (count($state->inputData->ownFields)) {
             $field1 = $state->inputData->ownFields[0];

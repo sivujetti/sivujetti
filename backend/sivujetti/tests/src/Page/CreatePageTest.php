@@ -40,6 +40,10 @@ final class CreatePageTest extends PagesControllerTestCase {
     }
     private function verifyInsertedPageToDb(\TestState $state): void {
         $actual = $this->pageTestUtils->getPageBySlug($state->inputData->slug);
+        $createdAt = $actual->createdAt;
+        $lastUpdatedAt = $actual->lastUpdatedAt;
+        unset($actual->createdAt);
+        unset($actual->lastUpdatedAt);
         $this->assertEquals([
             "slug" => $state->inputData->slug,
             "path" => $state->inputData->path,
@@ -52,6 +56,8 @@ final class CreatePageTest extends PagesControllerTestCase {
             "status" => $state->inputData->status,
             "categories" => [],
         ], (array) $actual);
+        $this->assertGreaterThan(time() - 3, $createdAt);
+        $this->assertEquals($createdAt, $lastUpdatedAt);
     }
 
 
@@ -149,6 +155,10 @@ final class CreatePageTest extends PagesControllerTestCase {
     private function verifyInsertedCustomPageToDb(\TestState $state): void {
         $actual = $this->pageTestUtils->getPageBySlug($state->inputData->slug,
                                                       $state->customPageType);
+        $createdAt = $actual->createdAt;
+        $lastUpdatedAt = $actual->lastUpdatedAt;
+        unset($actual->createdAt);
+        unset($actual->lastUpdatedAt);
         $this->assertEquals([
             "slug" => $state->inputData->slug,
             "path" => $state->inputData->path,
@@ -162,6 +172,8 @@ final class CreatePageTest extends PagesControllerTestCase {
             "ownField1" => $state->inputData->ownField1,
             "ownField2" => $state->inputData->ownField2,
         ], (array) $actual);
+        $this->assertGreaterThan(time() - 3, $createdAt);
+        $this->assertEquals($createdAt, $lastUpdatedAt);
     }
     private function dropCustomPageType(\TestState $state): void {
         $this->onTearDown = fn() => $this->pageTestUtils->dropCustomPageType($state->customPageType);

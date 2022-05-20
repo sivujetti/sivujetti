@@ -57,6 +57,8 @@ final class UpdatePageTest extends PagesControllerTestCase {
                             $actual->meta);
         $this->assertEquals($state->inputData->layoutId, $actual->layoutId);
         $this->assertEquals((int) $state->inputData->status, $actual->status);
+        $this->assertEquals($state->testPageData->createdAt, $actual->createdAt);
+        $this->assertEquals($state->testPageData->lastUpdatedAt, $actual->lastUpdatedAt);
     }
 
 
@@ -80,7 +82,7 @@ final class UpdatePageTest extends PagesControllerTestCase {
             "The value of layoutId must be 1 or greater",
             "status must be number",
             "The value of status must be 0 or greater",
-            "categories must be string",
+            "categories must be array",
         ]));
         $this->sendUpdatePageRequest($state);
     }

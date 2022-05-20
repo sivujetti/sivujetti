@@ -56,7 +56,7 @@ final class PageTestUtils {
             $pageType = $this->makeDefaultPageType();
         if ($data->layoutId)
             $this->layoutTestUtils->insertLayout((object) ["id" => $data->layoutId]);
-        return $this->pagesRepo->insert($pageType, $data, doValidateBlocks: false)
+        return $this->pagesRepo->insert($pageType, $data, doValidateBlocks: false)[0]
             ? $this->pagesRepo->lastInsertId
             : null;
     }
@@ -110,6 +110,7 @@ final class PageTestUtils {
      * @return object
      */
     public function makeTestPageData(?array $blocks = null): object {
+        $now = time();
         return (object) [
             "slug" => "/hello",
             "path" => "hello/",
@@ -120,6 +121,8 @@ final class PageTestUtils {
             "blocks" => $blocks ?? self::makeDefaultBlockTree(),
             "categories" => [],
             "status" => Page::STATUS_PUBLISHED,
+            "createdAt" => $now,
+            "lastUpdatedAt" => $now,
         ];
     }
     /**
@@ -157,14 +160,16 @@ final class PageTestUtils {
                 `id` INTEGER PRIMARY KEY AUTOINCREMENT,
                 `slug` TEXT NOT NULL,
                 `path` TEXT,
+                `ownField1` TEXT,
+                `ownField2` INTEGER,
                 `level` INTEGER NOT NULL DEFAULT 1,
                 `title` TEXT NOT NULL,
                 `meta` JSON,
                 `layoutId` TEXT NOT NULL,
                 `blocks` JSON,
                 `status` INTEGER NOT NULL DEFAULT 0,
-                `ownField1` TEXT,
-                `ownField2` INTEGER
+                `createdAt` INTEGER NOT NULL DEFAULT 0,
+                `lastUpdatedAt` INTEGER NOT NULL DEFAULT 0
             )");
             [$qList, $vals, $cols] = $db->makeInsertQParts((object) [
                 "id" => $id,

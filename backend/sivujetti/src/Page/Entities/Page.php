@@ -29,6 +29,10 @@ final class Page {
     public array $blockStyles;
     /** @var int self::STATUS_* */
     public int $status;
+    /** @var int Unix timestamp */
+    public int $createdAt;
+    /** @var int Unix timestamp. If new page, has the same value as createdAt. */
+    public int $lastUpdatedAt;
     /** @var \Sivujetti\Layout\Entities\Layout */
     public Layout $layout;
     /* Own props here */

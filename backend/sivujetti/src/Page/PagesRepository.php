@@ -20,7 +20,8 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
 final class PagesRepository {
     /** @var string[] Fields that all page types share */
     private const DEFAULT_FIELDS = ["id", "slug", "path", "level", "title",
-                                    "meta", "layoutId", "status"];
+                                    "meta", "layoutId", "status", "createdAt",
+                                    "lastUpdatedAt"];
     /** @var \Pike\Db */
     private Db $db;
     /** @var \ArrayObject<int, \Sivujetti\PageType\Entities\PageType> */
@@ -94,11 +95,13 @@ final class PagesRepository {
         $data = self::makeStorablePageDataFromValidInput($inputData, $pageType);
         $data->blocks = BlockTree::toJson(BlocksController::makeStorableBlocksDataFromValidInput(
             $inputData->blocks, $this->blockTypes));
-        foreach (["id", "status"] as $optional) {
+        foreach (["id", "status","createdAt","lastUpdatedAt"] as $optional) {
             if (($inputData->{$optional} ?? null) !== null)
                 $data->{$optional} = (int) $inputData->{$optional};
         }
         //
+        $data->createdAt = time();
+        $data->lastUpdatedAt = $data->createdAt;
         [$qList, $values, $columns] = $this->db->makeInsertQParts($data);
         // @allow \Pike\PikeException
         $this->db->beginTransaction();
@@ -144,6 +147,7 @@ final class PagesRepository {
             throw new \InvalidArgumentException("\$theseColumnsOnly supports only ['blocks'] and null");
         }
         //
+        $updateData->lastUpdatedAt = time();
         [$columns, $values] = $this->db->makeUpdateQParts($updateData, $theseColumnsOnly);
         if ($doInsertRevision)
             throw new \RuntimeException("Not implemented yet.");
@@ -195,7 +199,8 @@ final class PagesRepository {
         $limit = min($limit > 0 ? $limit : 40, 100); // 0 -> 40, 1 -> 1, 120 -> 100
         $rows = $this->db->fetchAll(
             "SELECT p.`id`,p.`slug`,p.`path`,p.`level`,p.`title`,p.`meta` AS `metaJson`,p.`layoutId`," .
-                "p.`blocks` AS `pageBlocksJson`,'{$pageType->name}' AS `type`,p.`status`" .
+                "p.`blocks` AS `pageBlocksJson`,'{$pageType->name}' AS `type`,p.`status`," .
+                "p.`createdAt`,p.`lastUpdatedAt`" .
                 $baseJoinCols .
                 ($ownFieldCols ? ("," . implode(',', $ownFieldCols)) : "") .
                 $joinsCols .

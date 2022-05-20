@@ -113,6 +113,8 @@ return [
     `layoutId` {$dataTypeForMaxIndexableText},
     `blocks` JSON,
     `status` TINYINT(1) NOT NULL DEFAULT 0,
+    `createdAt` {$dataTypeForTimestamps},
+    `lastUpdatedAt` {$dataTypeForTimestamps},
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 
@@ -120,13 +122,15 @@ return [
     `id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `slug` VARCHAR(92) NOT NULL,
     `path` {$dataTypeForMaxIndexableText},
+    `categories` JSON,
     `level` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1,
     `title` VARCHAR(92) NOT NULL,
     `meta` JSON,
     `layoutId` {$dataTypeForMaxIndexableText},
     `blocks` JSON,
     `status` TINYINT(1) NOT NULL DEFAULT 0,
-    `categories` JSON,
+    `createdAt` {$dataTypeForTimestamps},
+    `lastUpdatedAt` {$dataTypeForTimestamps},
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

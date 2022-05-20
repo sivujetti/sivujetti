@@ -178,6 +178,8 @@ final class PagesController {
                                PagesRepository $pagesRepo): void {
         $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
         //
+        unset($req->body->createdAt);
+        unset($req->body->lastUpdatedAt);
         [$numAffectedRows, $errors] = $pagesRepo->insert($pageType, $req->body);
         //
         if ($errors) {
@@ -393,6 +395,8 @@ final class PagesController {
         $page->blocks = [];
         $page->blockStyles = [];
         $page->status = Page::STATUS_DRAFT;
+        $page->createdAt = time();
+        $page->lastUpdatedAt = $page->createdAt;
         return $page;
     }
     /**
@@ -448,6 +452,8 @@ final class PagesController {
             "meta" => $page->meta,
             "layoutId" => $page->layoutId,
             "status" => $page->status,
+            "createdAt" => $page->createdAt,
+            "lastUpdatedAt" => $page->lastUpdatedAt,
             "blocks" => $page->blocks,
             "blockStyles" => $page->blockStyles,
             "isPlaceholderPage" => $isPlaceholderPage,

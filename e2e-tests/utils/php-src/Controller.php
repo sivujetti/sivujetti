@@ -64,9 +64,29 @@ final class Controller {
                 json_encode($data["structure"], flags: JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),
             )];
         }
-        if ($item["table"] === "Pages" || $item["table"] === "Articles") {
+        if ($item["table"] === "Pages") {
             $table = $item["table"];
             $data = $item["data"];
+            $now = time();
+            return [sprintf("INSERT INTO `\${p}{$table}` VALUES ('%s','%s','%s','%s',%d,'%s','%s','%d','%s',%d)",
+                $data["id"],
+                $data["slug"],
+                $data["path"],
+                $data["categories"],
+                $data["level"],
+                $data["title"],
+                json_encode($data["meta"]),
+                $data["layoutId"],
+                json_encode($data["blocks"], flags: JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),
+                $data["status"],
+                $now,
+                $now
+            )];
+        }
+        if ($item["table"] === "Articles") {
+            $table = $item["table"];
+            $data = $item["data"];
+            $now = time();
             return [sprintf("INSERT INTO `\${p}{$table}` VALUES ('%s','%s','%s',%d,'%s','%s','%d','%s',%d)",
                 $data["id"],
                 $data["slug"],
@@ -76,11 +96,14 @@ final class Controller {
                 json_encode($data["meta"]),
                 $data["layoutId"],
                 json_encode($data["blocks"], flags: JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),
-                $data["status"]
+                $data["status"],
+                $now,
+                $now
             )];
         }
         if ($item["table"] === "@create" && $item["data"]["name"] === "Articles") {
             $data = $item["data"];
+            $dataTypeForTimestamps = "INTEGER NOT NULL DEFAULT 0";
             return [
                 "CREATE TABLE `Articles` (
                     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -91,7 +114,9 @@ final class Controller {
                     `meta` JSON,
                     `layoutId` TEXT NOT NULL,
                     `blocks` JSON,
-                    `status` INTEGER NOT NULL DEFAULT 0
+                    `status` INTEGER NOT NULL DEFAULT 0,
+                    `createdAt` {$dataTypeForTimestamps},
+                    `lastUpdatedAt` {$dataTypeForTimestamps}
                 )",
                 sprintf("INSERT INTO `pageTypes` (name,slug,friendlyName,friendlyNamePlural" .
                     ",description,fields,defaultLayoutId,status,isListable) VALUES " .

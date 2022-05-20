@@ -134,6 +134,7 @@ final class PageTypeMigrator {
             "title" => "TEXT",
             "layoutId" => "TEXT",
             "status" => "INTEGER",
+            "unixTime" => "INTEGER NOT NULL DEFAULT 0",
             "tail" => ")",
         ] : [
             "id" => "MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT",
@@ -143,19 +144,23 @@ final class PageTypeMigrator {
             "title" => "VARCHAR(92)",
             "layoutId" => "VARCHAR(191)",
             "status" => "TINYINT(1)",
+            "unixTime" => "INT(10) UNSIGNED NOT NULL DEFAULT 0",
             "tail" => ", PRIMARY KEY (`id`) ) DEFAULT CHARSET = utf8mb4",
         ];
         // @allow \Pike\PikeException
         $this->db->exec("CREATE TABLE `\${p}{$name}` (
             `id` {$dt["id"]},
-            " . (count($fields) ? "{$fields->toSqlTableFields()}," : "") . "
             `slug` {$dt["slug"]} NOT NULL,
             `path` {$dt["path"]} NOT NULL,
+            " . (count($fields) ? "{$fields->toSqlTableFields()}," : "") . "
             `level` {$dt["level"]} NOT NULL DEFAULT 1,
             `title` {$dt["title"]} NOT NULL,
+            `meta` JSON,
             `layoutId` {$dt["layoutId"]} NOT NULL,
             `blocks` JSON,
-            `status` {$dt["status"]} NOT NULL DEFAULT 0
+            `status` {$dt["status"]} NOT NULL DEFAULT 0,
+            `createdAt` {$dt["unixTime"]},
+            `lastUpdatedAt` {$dt["unixTime"]}
             {$dt["tail"]}"
         );
     }

@@ -106,20 +106,24 @@ return [
     `meta` JSON,
     `layoutId` TEXT NOT NULL,
     `blocks` JSON,
-    `status` INTEGER NOT NULL DEFAULT 0
+    `status` INTEGER NOT NULL DEFAULT 0,
+    `createdAt` {$dataTypeForTimestamps},
+    `lastUpdatedAt` {$dataTypeForTimestamps}
 )",
 
 "CREATE TABLE `\${p}Pages` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `slug` TEXT NOT NULL,
     `path` TEXT,
+    `categories` JSON,
     `level` INTEGER NOT NULL DEFAULT 1,
     `title` TEXT NOT NULL,
     `meta` JSON,
     `layoutId` TEXT NOT NULL,
     `blocks` JSON,
     `status` INTEGER NOT NULL DEFAULT 0,
-    `categories` JSON
+    `createdAt` {$dataTypeForTimestamps},
+    `lastUpdatedAt` {$dataTypeForTimestamps}
 )",
 
 "CREATE TABLE `\${p}globalBlocks` (

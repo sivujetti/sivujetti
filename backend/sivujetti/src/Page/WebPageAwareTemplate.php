@@ -342,15 +342,20 @@ final class WebPageAwareTemplate extends Template {
         $ldWebPage["url"] = $permaFull;
         $ldWebPage["@id"] = "{$permaFull}#webpage";
         $ldWebPage["potentialAction"][] = ["@type" => "ReadAction", "target" => [$permaFull]];
+        // Published at + Last modified at
+        $lastUpdatedAtW3C = date("Y-m-d\TH:i:sP", $currentPage->lastUpdatedAt);
+        $metasNativeOut[] = "<meta property=\"article:modified_time\" content=\"{$lastUpdatedAtW3C}\">";
+        $ldWebPage["datePublished"] = date("Y-m-d\TH:i:sP", $currentPage->createdAt);
+        $ldWebPage["dateModified"] = $lastUpdatedAtW3C;
         // Site name + description
         $metasOgOut[] = "<meta property=\"og:site_name\" content=\"{$siteNameEscaped}\">";
         $ldWebSite["name"] = $siteNameEscaped;
         $ldWebSite["description"] = $this->e($site->description);
         //
-        $metasOgOut[] = "<script type=\"application/ld+json\">" . self::withoutEscapedBackslashes(json_encode([
+        $metasOgOut[] = "<script type=\"application/ld+json\">" . json_encode([
             "@context" => "https://schema.org",
             "@graph" => [$ldWebSite, $ldWebPage]
-        ])) . "</script>\n";
+        ], JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) . "</script>\n";
         //
         return [
             $escapedTitle,
@@ -358,12 +363,5 @@ final class WebPageAwareTemplate extends Template {
             "\n    " .
             implode("\n    ", $metasOgOut)
         ];
-    }
-    /**
-     * @param string $str
-     * @return string
-     */
-    private static function withoutEscapedBackslashes(string $str): string {
-        return str_replace("\\/", "/", $str);
     }
 }

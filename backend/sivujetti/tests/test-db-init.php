@@ -10,7 +10,7 @@ $blockTypeBaseStyles = \Sivujetti\Tests\Utils\TestData::getBlockTypeBaseStyles()
 $statements = array_merge($statements, [
 
 "INSERT INTO `theWebsite` (`name`,`lang`,`country`,`description`,`aclRules`,`firstRuns`) VALUES
-('Test suite website xss >','fi','FI','xss >','".json_encode($getRules())."','".json_encode([
+('Test suitö website xss >','fi','FI','xss >','".json_encode($getRules())."','".json_encode([
     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" => "y"
 ])."')",
 

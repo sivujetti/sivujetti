@@ -39,6 +39,8 @@ final class RenderBasicPageTest extends RenderPageTestCase {
             "blocks" => BlockTree::toJson($state->testGlobalBlockTree),
         ];
         $state->testPageData = $this->pageTestUtils->makeTestPageData();
+        $state->testPageData->createdAt = time();
+        $state->testPageData->lastUpdatedAt = $state->testPageData->createdAt;
         $state->testPageData->blocks[] = $btu->makeBlockData(Block::TYPE_GLOBAL_BLOCK_REF,
             propsData: ["globalBlockTreeId" => $state->testGlobalBlockData->id, "overrides" =>
                 GlobalBlockReferenceBlockType::EMPTY_OVERRIDES, "useOverrides" => 0]
@@ -89,6 +91,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $ldJsonScriptEl = $dom->execute("head script[type=\"application/ld+json\"]")[0] ?? null;
         $this->assertNotNull($ldJsonScriptEl);
         $this->assertStringNotContainsString("\\/", $ldJsonScriptEl->nodeValue, "ld+json should not contain escaped backslashes");
+        $this->assertStringNotContainsString("\\u0", $ldJsonScriptEl->nodeValue, "ld+json should not contain escaped unicode points");
         $actualJdJson = json_decode(self::withEscapedBackslashes($ldJsonScriptEl->nodeValue), flags: JSON_THROW_ON_ERROR);
         $ldWebPage = ArrayUtils::findByKey($actualJdJson->{"@graph"}, "WebPage", "@type");
         $ldWebSite = ArrayUtils::findByKey($actualJdJson->{"@graph"}, "WebSite", "@type");
@@ -98,7 +101,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertEquals("{$expectedSiteUrlFull}#website", $ldWebSite->{"@id"});
         $this->assertEquals((object) ["@id" => $ldWebSite->{"@id"}], $ldWebPage->isPartOf);
         // Title
-        $expectedTitle = $retainEntities(Template::e($state->testPageData->title)) . " - Test suite website xss %gt;";
+        $expectedTitle = $retainEntities(Template::e($state->testPageData->title)) . " - Test suitö website xss %gt;";
         $titleEl1 = $dom->execute("head title")[0] ?? null;
         $titleEl2 = $dom->execute("head meta[property=\"og:title\"]")[0] ?? null;
         $this->assertNotNull($titleEl1);
@@ -133,9 +136,15 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertEquals("{$expectedPageUrlFull}#webpage", $ldWebPage->{"@id"});
         $this->assertEquals((object) ["@type" => "ReadAction", "target" => [$expectedPageUrlFull]],
                             $ldWebPage->potentialAction[0]);
+        // Published at + Last modified at
+        $lastModEl = $dom->execute("head meta[property=\"article:modified_time\"]")[0] ?? null;
+        $this->assertNotNull($lastModEl);
+        $this->assertEquals(date("Y-m-d\TH:i:sP", $state->testPageData->lastUpdatedAt), $lastModEl->getAttribute("content"));
+        $this->assertEquals(date("Y-m-d\TH:i:sP", $state->testPageData->createdAt), $ldWebPage->datePublished);
+        $this->assertEquals(date("Y-m-d\TH:i:sP", $state->testPageData->lastUpdatedAt), $ldWebPage->dateModified);
         // Site name + description
         $siteNameEl = $dom->execute("head meta[property=\"og:site_name\"]")[0] ?? null;
-        $expectedSiteName = "Test suite website xss %gt;";
+        $expectedSiteName = "Test suitö website xss %gt;";
         $this->assertEquals($expectedSiteName, $siteNameEl->getAttribute("content"));
         $this->assertEquals($expectedSiteName, $ldWebSite->name);
         $this->assertEquals("xss %gt;", $ldWebSite->description);

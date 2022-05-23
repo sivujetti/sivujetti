@@ -26,11 +26,18 @@ $statements = array_merge($statements, [
 
 "INSERT INTO `pageTypes` (`id`,`name`,`slug`,`friendlyName`,`friendlyNamePlural`,`description`" .
                           ",`fields`,`defaultLayoutId`,`status`,`isListable`) VALUES
+(2,'PagesCategories','/pages-categories','Page category','Page categories','','" . json_encode([
+    "ownFields" => [],
+    "blockFields" => [(object) ["type" => "Paragraph", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
+                                "initialData" => (object) ["text" => "Category", "cssClass" => ""],
+                                "children" => []]],
+    "defaultFields" => (object) ["title" => (object) ["defaultValue" => "New category"]],
+]) . "','1',0,1),
 (1,'Pages','/pages','Page','Pages','','" . json_encode([
     "ownFields" => [(object) [
         "name" => "categories",
         "friendlyName" => "Categories",
-        "dataType" => (object) ["type" => "many-to-many"],
+        "dataType" => (object) ["type" => "many-to-many", "rel" => "PagesCategories"],
         "defaultValue" => [],
         "isNullable" => false,
     ]],

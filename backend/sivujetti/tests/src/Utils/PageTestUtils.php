@@ -10,7 +10,7 @@ use Sivujetti\BlockType\{ButtonBlockType, GlobalBlockReferenceBlockType, Heading
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\Page\{PagesRepository};
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\PageType\PageTypeValidator;
+use Sivujetti\PageType\{PageTypeMigrator, PageTypesController, PageTypeValidator};
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\SharedAPIContext;
@@ -48,12 +48,12 @@ final class PageTestUtils {
     }
     /**
      * @param object $data \Sivujetti\Page\Entities\Page|object
-     * @param ?\Sivujetti\PageType\Entities\PageType $pageType = null
+     * @param \Sivujetti\PageType\Entities\PageType|string|null $pageType = null
      * @return ?string $lastInsertId or null
      */
-    public function insertPage(object $data, ?PageType $pageType = null): ?string {
-        if (!$pageType)
-            $pageType = $this->makeDefaultPageType();
+    public function insertPage(object $data, PageType|string|null $pageType = null): ?string {
+        if (!($pageType instanceof PageType))
+            $pageType = $this->makeDefaultPageType($pageType);
         if ($data->layoutId)
             $this->layoutTestUtils->insertLayout((object) ["id" => $data->layoutId]);
         return $this->pagesRepo->insert($pageType, $data, doValidateBlocks: false)[0]
@@ -91,18 +91,24 @@ final class PageTestUtils {
         ]], $pageType);
     }
     /**
+     * @param ?string $input
      * @return \Sivujetti\PageType\Entities\PageType
      */
-    public function makeDefaultPageType(): PageType {
+    public function makeDefaultPageType(?string $input = null): PageType {
         $pageType = new PageType;
-        $pageType->name = PageType::PAGE;
-        $pageType->ownFields = [(object) [
-            "name" => "categories",
-            "friendlyName" => "",
-            "dataType" => (object) ["type" => "many-to-many"],
-            "defaultValue" => [],
-            "isNullable" => false,
-        ]];
+        if ($input === "PagesCategories") {
+            $pageType->name = "PagesCategories";
+            $pageType->ownFields = [];
+        } else { // null or "Pages"
+            $pageType->name = PageType::PAGE;
+            $pageType->ownFields = [(object) [
+                "name" => "categories",
+                "friendlyName" => "",
+                "dataType" => (object) ["type" => "many-to-many", "rel" => "PagesCategories"],
+                "defaultValue" => [],
+                "isNullable" => false,
+            ]];
+        }
         return $pageType;
     }
     /**
@@ -115,7 +121,7 @@ final class PageTestUtils {
             "slug" => "/hello",
             "path" => "hello/",
             "level" => 1,
-            "title" => "<Hello>",
+            "title" => "<Hellö>",
             "meta" => (object) ["description" => "Greetings >"],
             "layoutId" => "1",
             "blocks" => $blocks ?? self::makeDefaultBlockTree(),
@@ -146,50 +152,33 @@ final class PageTestUtils {
         $pageType = new PageType;
         $pageType->name = "MyProducts";
         $pageType->ownFields = [
-            (object) ["name" => "ownField1", "dataType" => (object) ["type" => "text"],
-                      "friendlyName" => "Some prop", "defaultValue" => "foo"],
-            (object) ["name" => "ownField2", "dataType" => (object) ["type" => "uint"],
-                      "friendlyName" => "Some prop2", "defaultValue" => 123],
+            (object) ["name" => "ownField1", "dataType" => (object) ["type" => "text",
+                        "length" => null, "validationRules" => null],
+                      "friendlyName" => "Some prop", "defaultValue" => "foo", "isNullable" => false],
+            (object) ["name" => "ownField2", "dataType" => (object) ["type" => "uint",
+                        "length" => null, "validationRules" => null],
+                      "friendlyName" => "Some prop2", "defaultValue" => 123, "isNullable" => false],
         ];
         //
-        $this->createPageRepo->__invoke(function ($db, $fakeTheWebsite, $_testApiCtx) use ($pageType) {
+        $this->createPageRepo->__invoke(function ($db, $fakeTheWebsite, $testApiCtx) use ($pageType) {
             $fakeTheWebsite->pageTypes[] = $pageType;
             $id = 100 + array_search($pageType, $fakeTheWebsite->pageTypes->getArrayCopy());
             //
-            $db->exec("CREATE TABLE `\${p}MyProducts` (
-                `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-                `slug` TEXT NOT NULL,
-                `path` TEXT,
-                `ownField1` TEXT,
-                `ownField2` INTEGER,
-                `level` INTEGER NOT NULL DEFAULT 1,
-                `title` TEXT NOT NULL,
-                `meta` JSON,
-                `layoutId` TEXT NOT NULL,
-                `blocks` JSON,
-                `status` INTEGER NOT NULL DEFAULT 0,
-                `createdAt` INTEGER NOT NULL DEFAULT 0,
-                `lastUpdatedAt` INTEGER NOT NULL DEFAULT 0
-            )");
-            [$qList, $vals, $cols] = $db->makeInsertQParts((object) [
-                "id" => $id,
-                "name" => "MyProducts",
-                "slug" => "my-products",
-                "friendlyName" => "Product",
-                "friendlyNamePlural" => "Products",
-                "description" => "",
-                "fields" => json_encode([
-                    "ownFields" => $pageType->ownFields,
-                    "blockFields" => [(object) ["type" => "Paragraph", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
-                                                "initialData" => (object) ["text" => "Paragraph text", "cssClass" => ""],
-                                                "children" => []]],
-                    "defaultFields" => (object) ["title" => (object) ["defaultValue" => "Product name"]],
-                ]),
-                "defaultLayoutId" => "1",
-                "status" => PageType::STATUS_COMPLETE,
-                "isListable" => 1,
-            ]);
-            $db->exec("INSERT INTO `pageTypes` ({$cols}) VALUES ({$qList})", $vals);
+            $m = new PageTypeMigrator($db, new PageTypeValidator(new BlockValidator($testApiCtx)));
+            $cfg = PageTypesController::createEmptyPageTypeInput();
+            $cfg->id = $id;
+            $cfg->name = "MyProducts";
+            $cfg->slug = "/my-products";
+            $cfg->friendlyName = "Products";
+            $cfg->friendlyNamePlural = "Products";
+            // $cfg->description = use default;
+            // $cfg->blockFields = use default;
+            $cfg->ownFields = $pageType->ownFields;
+            $cfg->defaultFields->title->defaultValue = "Product name";
+            // $cfg->defaultLayoutId = use default;
+            $cfg->status = PageType::STATUS_COMPLETE;
+            // $cfg->isListable = use default;
+            $m->install($cfg, asPlaceholder: false);
         });
         return $pageType;
     }
@@ -221,6 +210,11 @@ final class PageTestUtils {
             $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
             $out->blockTypes = $blockTypes;
         }
+        if (!$out->blockRenderers)
+            $out->blockRenderers = array_merge($out->blockRenderers, [
+                ["fileId" => "sivujetti:block-auto", "friendlyName" => null, "associatedWith" => null], // Heading, Paragraph etc.
+                ["fileId" => "sivujetti:block-generic-wrapper", "friendlyName" => null, "associatedWith" => null], // Columns, Section
+            ]);
         return $out;
     }
     /**

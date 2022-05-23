@@ -10,7 +10,7 @@ abstract class RenderBuiltInBlocksTestCase extends RenderBlocksTestCase {
         $expected = $this->blockTestUtils->decorateWithRef($block,
             str_replace("[childMarker]", "<span id=\"temp-marker\"></span>", $expectedHtml)
         );
-        $this->verifyResponseBodyEquals((object) ["result" => $expected],
+        $this->verifyResponseBodyEquals(json_encode((object) ["result" => $expected], JSON_UNESCAPED_UNICODE),
                                         $state->spyingResponse);
     }
 }

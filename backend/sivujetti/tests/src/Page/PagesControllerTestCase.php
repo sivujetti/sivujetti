@@ -27,7 +27,7 @@ abstract class PagesControllerTestCase extends DbTestCase {
         return require TEST_CONFIG_FILE_PATH;
     }
     protected function insertTestPageDataToDb(object $stateOrPageData,
-                                              ?PageType $pageType = null): void {
+                                              PageType|string|null $pageType = null): void {
         $mutRef = $stateOrPageData instanceof \TestState
             ? $stateOrPageData->testPageData
             : $stateOrPageData;

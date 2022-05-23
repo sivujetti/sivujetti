@@ -9,7 +9,7 @@ use Sivujetti\ValidationUtils;
 use Pike\{ObjectValidator, Validation};
 
 final class PageTypeValidator {
-    public const FIELD_DATA_TYPES = ["text", "json", "int", "uint"];
+    public const FIELD_DATA_TYPES = ["text", "json", "int", "uint", "many-to-many"];
     private const MAX_NAME_LEN = 64;
     private const MAX_FRIENDLY_NAME_LENGTH = 92;
     /** @var \Sivujetti\Block\BlockValidator */
@@ -47,12 +47,34 @@ final class PageTypeValidator {
             ->rule("ownFields.*.dataType.type", "in", self::FIELD_DATA_TYPES)
             ->rule("ownFields.*.dataType.length?", "type", "int")
             ->rule("ownFields.*.dataType.validationRules?", "type", "array")
-            ->rule("ownFields.*.defaultValue", "maxLength", ValidationUtils::HARD_LONG_TEXT_MAX_LEN)
+            //->rule("ownFields.*.defaultValue") see below, "maxLength", ValidationUtils::HARD_LONG_TEXT_MAX_LEN)
             ->rule("ownFields.*.isNullable", "type", "bool")
             //
             ->rule("defaultFields.title.defaultValue", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN);
+        $errors = $validator->validate($input);
+        if (!$errors) foreach ($input->ownFields as $i => $f) {
+            if (property_exists($f, "defaultValue")) {
+                $type = $f->dataType->type;
+                if ($type === "many-to-many" &&
+                    !Validation::is($f->defaultValue, "array"))
+                    $errors[] = "ownFields.{$i}.dataType.defaultValue must be array";
+                elseif ($type === "text" &&
+                    !Validation::isLessOrEqualLength($f->defaultValue, ValidationUtils::HARD_LONG_TEXT_MAX_LEN))
+                    $errors[] = "The length of ownFields.{$i}.dataType.defaultValue must be " .
+                        ValidationUtils::HARD_LONG_TEXT_MAX_LEN . " or less";
+                elseif ($type === "json" &&
+                    !Validation::isLessOrEqualLength($f->defaultValue, ValidationUtils::HARD_JSON_TEXT_MAX_LEN))
+                    $errors[] = "The length of ownFields.{$i}.dataType.defaultValue must be " .
+                        ValidationUtils::HARD_LONG_TEXT_MAX_LEN . " or less";
+                elseif (($type === "int" || $type === "uint") &&
+                    !Validation::is($f->defaultValue, "int"))
+                    $errors[] = "ownFields.{$i}.dataType.defaultValue must be integer";
+            } else {
+                $errors[] = "ownFields.{$i}.dataType.defaultValue is required";
+            }
+        }
         //
-        return array_merge($validator->validate($input),
+        return array_merge($errors,
                            $this->blockValidator->validateMany($input->blockFields));
     }
     /**

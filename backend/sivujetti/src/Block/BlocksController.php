@@ -53,7 +53,7 @@ final class BlocksController {
             ],
             pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy())
         ))->renderBlocks([$block]);
-        $res->json(["result" => $html]);
+        $res->json(json_encode(["result" => $html], JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE));
     }
     /**
      * GET /api/blocks/[w:type]: Returns a list of global block tree blocks with

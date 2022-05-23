@@ -12,6 +12,8 @@ final class UpdatePageTest extends PagesControllerTestCase {
     public function testUpdatePageWritesUpdatedDataToDb(): void {
         $state = $this->setupTest();
         $this->makeTestSivujettiApp($state);
+        $catId = $this->insertTestCatToDb($state);
+        $state->inputData->categories[0] = $catId;
         $this->insertTestPageDataToDb($state);
         $this->sendUpdatePageRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
@@ -23,6 +25,13 @@ final class UpdatePageTest extends PagesControllerTestCase {
         $state->testPageData->slug = "/update-page-test-page";
         $state->testPageData->path = "/update-page-test-page/";
         $state->testPageData->layoutId .= "2";
+        //
+        $state->testCatData = $this->pageTestUtils->makeTestPageData();
+        $state->testCatData->slug = "/uncategorized";
+        $state->testCatData->path = "pages-categories/uncategorized/";
+        $state->testCatData->title = "Uncategorized";
+        unset($state->testCatData->categories);
+        //
         $state->inputData = (object) [
             "slug" => "/updated-update-page-test-page-slug",
             "path" => "/updated-update-page-test-page-slug/",
@@ -34,11 +43,15 @@ final class UpdatePageTest extends PagesControllerTestCase {
             ],
             "layoutId" => $state->testPageData->layoutId,
             "status" => $state->testPageData->status + 1,
-            "categories" => $state->testPageData->categories,
+            "categories" => [],
         ];
         $state->spyingResponse = null;
         $state->app = null;
         return $state;
+    }
+    private function insertTestCatToDb(\TestState $state): string {
+        $this->insertTestPageDataToDb($state->testCatData, "PagesCategories");
+        return $state->testCatData->id;
     }
     private function sendUpdatePageRequest(\TestState $state, string $pageTypeName = PageType::PAGE): void {
         $state->spyingResponse = $state->app->sendRequest($this->createApiRequest(

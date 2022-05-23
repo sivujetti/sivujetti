@@ -162,19 +162,15 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
     ////////////////////////////////////////////////////////////////////////////
 
 
-    public function testUpdatePlaceholderPageTypeRejectsInvalidDefaultFieldsAndOwnFieldsInputs(): void {
-        $state = $this->setupTest([
+    public function testUpdatePlaceholderPageTypeRejectsInvalidDefaultFieldsAndOwnFieldsInputs1(): void {
+        $this->runValidateOwnOrDefaultFieldsTest([
             "blockFields" => $this->createBlockFieldsInput(),
             "defaultFields" => (object) ["title" => (object) ["partial" => "object"]],
             "ownFields" => [(object) ["nothing" => "here", "dataType" => (object) [
                 "length" => "not-a-number",
                 "validationRules" => "not-an-array"
             ]]],
-        ], "completeBasicFields");
-        $this->insertPlaceholderPageTypeToDb();
-        $this->makeTestSivujettiApp($state);
-        $this->expectException(PikeException::class);
-        $this->expectExceptionMessage(implode(PHP_EOL, [
+        ], [
             "ownFields.0.name must contain only [a-zA-Z0-9_] and start with [a-zA-Z_]",
             "The length of ownFields.0.name must be 64 or less",
             "The length of ownFields.0.friendlyName must be at least 1",
@@ -182,11 +178,50 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
             "The value of ownFields.0.dataType.type was not in the list",
             "ownFields.0.dataType.length must be int",
             "ownFields.0.dataType.validationRules must be array",
-            "The length of ownFields.0.defaultValue must be 128000 or less",
             "ownFields.0.isNullable must be bool",
             "The length of defaultFields.title.defaultValue must be 1024 or less",
-        ]));
+        ]);
+    }
+    private function runValidateOwnOrDefaultFieldsTest(array $setupTestInput, array $expectedErrors): void {
+        $state = $this->setupTest($setupTestInput, "completeBasicFields");
+        $this->insertPlaceholderPageTypeToDb();
+        $this->makeTestSivujettiApp($state);
+        $this->expectException(PikeException::class);
+        $this->expectExceptionMessage(implode(PHP_EOL, $expectedErrors));
         $this->sendUpdatePlaceholderPageTypeRequest($state);
+    }
+    public function testUpdatePlaceholderPageTypeRejectsInvalidDefaultFieldsAndOwnFieldsInputs2(): void {
+        $completeField = fn($inp) => (object) array_merge($inp, [
+            "name" => "name",
+            "friendlyName" => "friendlyName",
+            "isNullable" => false,
+        ]);
+        $this->runValidateOwnOrDefaultFieldsTest([
+            "blockFields" => $this->createBlockFieldsInput(),
+            "defaultFields" => self::createDefaultFieldsInput(),
+            "ownFields" => [$completeField([
+                "defaultValue" => ["not-a-string"],
+                "dataType" => (object) ["type" => "text",]
+            ]), $completeField([
+                "defaultValue" => ["not-a-string"],
+                "dataType" => (object) ["type" => "json",]
+            ]), $completeField([
+                "defaultValue" => "not-an-int",
+                "dataType" => (object) ["type" => "int",]
+            ]), $completeField([
+                "defaultValue" => "not-an-int",
+                "dataType" => (object) ["type" => "uint",]
+            ]), $completeField([
+                "defaultValue" => "not-an-array",
+                "dataType" => (object) ["type" => "many-to-many",]
+            ])],
+        ], [
+            "The length of ownFields.0.dataType.defaultValue must be 128000 or less",
+            "The length of ownFields.1.dataType.defaultValue must be 128000 or less",
+            "ownFields.2.dataType.defaultValue must be integer",
+            "ownFields.3.dataType.defaultValue must be integer",
+            "ownFields.4.dataType.defaultValue must be array",
+        ]);
     }
 
 

@@ -9,8 +9,8 @@ final class Field {
     public string $friendlyName;
     /** @var \Sivujetti\PageType\Entities\DataType */
     public DataType $dataType;
-    /** @var string */
-    public string $defaultValue;
+    /** @var string|int|mixed[] */
+    public string|int|array $defaultValue;
     /** @var bool */
     public bool $isNullable;
     /**
@@ -29,7 +29,7 @@ final class Field {
         return "`{$this->name}` {$this->dataType->toSql()}";
     }
     /**
-     * @param object $input {name: string, friendlyName: string, dataType: {type: string, length?: int, validationRules?: array[]}, defaultValue: string, isNullable: bool}
+     * @param object $input {name: string, friendlyName: string, dataType: {type: string, length?: int, validationRules?: array[]}, defaultValue:  string|int|mixed[], isNullable: bool}
      * @return \Sivujetti\PageType\Entities\Field
      */
     public static function fromValidatedObject(object $input): Field {

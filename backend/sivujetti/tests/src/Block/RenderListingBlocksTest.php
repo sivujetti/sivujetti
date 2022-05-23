@@ -84,7 +84,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
         $this->insertTestPages($state);
-        $expectedHtml = $makeExpectedHtml("1", "<Hello>");
+        $expectedHtml = $makeExpectedHtml("1", "<Hellö>");
         $this->renderAndVerify($state, 0, $expectedHtml);
         $this->dropCustomPageType($state);
     }

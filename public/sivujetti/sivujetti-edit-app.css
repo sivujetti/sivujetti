@@ -107,7 +107,7 @@ Structure:
     padding: .2rem 0;
     color: var(--color-fg-dimmed2);
 }
-.form-horizontal .form-input,
+.form-horizontal .form-input:not(textarea),
 .form-horizontal .input-group .input-group-addon {
     padding: .1rem .35rem;
     height: 1.6rem;
@@ -541,14 +541,22 @@ a.popup-close-area {
 .panel-section > button {
     font-size: .75rem;
     font-weight: 300;
-    padding: .6rem 0;
+    padding: .2rem 0 1rem 0;
     border: none;
     background: transparent;
 }
+.panel-section > button > span {
+    position: relative;
+}
+.panel-section > button > span > span.text-tiny.text-ellipsis {
+    position: absolute;
+    left: .2rem;
+    top: .8rem;
+    opacity: .6;
+}
+
 .panel-section.open > button > .icon-tabler:last-of-type {
     transition: transform linear .1s;
-}
-.panel-section.open > button > .icon-tabler:last-of-type {
     transform: rotate(90deg);
 }
 .panel-section > nav a {

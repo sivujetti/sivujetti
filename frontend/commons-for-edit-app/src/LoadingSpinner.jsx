@@ -7,4 +7,4 @@ const LoadingSpinner = ({className}) =>
     <div class={ 'show-after-05 dots-animation' + (className ? ` ${className}` : '') }></div>
 ;
 
-export default LoadingSpinner;
+export {LoadingSpinner};

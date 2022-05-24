@@ -16,7 +16,10 @@ class WebsiteSection extends MenuSection {
         return <section class={ `panel-section${isCollapsed ? '' : ' open'}` }>
             <button class="d-flex col-12 flex-centered pr-2" onClick={ () => { this.setState({isCollapsed: !isCollapsed}); } }>
                 <Icon iconId="database" className="size-sm mr-2 color-orange"/>
-                <span class="pl-1 color-default">{ __('Website') }</span>
+                <span class="pl-1 color-default">
+                    { __('Website') }
+                    <span class="text-ellipsis text-tiny">{ __('Content management') }</span>
+                </span>
                 <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
             </button>
             <nav>

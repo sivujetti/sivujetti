@@ -60,10 +60,13 @@ stringBundles.push({
     'Convert': 'Convert',
     // edit-app/src/DefaultView/GlobalStylesSection.jsx
     'Styles': 'Styles',
+    'Colours and fonts': 'Colours and fonts',
     // edit-app/src/DefaultView/OnThisPageSection.jsx
     'On this page': 'On this page',
+    'Content of page %s': 'Content of %s-page',
     // edit-app/src/DefaultView/WebsiteSection.jsx
     'Website': 'Website',
+    'Content management': 'Content management',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'page type',
     'Default content': 'Default content',

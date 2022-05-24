@@ -33,12 +33,12 @@ stringBundles.push({
     'Convert to global content': 'Muunna globaaliksi sisällöksi',
     'Content tree': 'Sisältöpuu',
     // edit-app/src/BlockTrees.jsx
-    'Add content to this page': 'Lisää sisältöä tälle sivulle',
+    'Add content to this page': 'Lisää sisältöä tähän sivuun',
     // edit-app/src/BlockTreeShowHelpPopup.jsx
-    'todo.': 'Sivujetissä sivujen sisältö esitetään tällaisena puurakenteena: yksi puun rivi (tai haara) vastaa yhtä sivun osiota tai sisältöä. Voit järjestellä sivun eri osioita sisältöpuun rivejä raahaamalla. Voit lisätä sivuun uutta sisältää sisältöpuun yläpuolella olevasta "Lisää sisältöä tälle sivulle" -painikkeesta tai sisältöpuun rivien ●●● painikkeista.',
+    'todo.': 'Sivujetissä sivujen sisältö esitetään tällaisena puurakenteena: yksi puun rivi (tai haara) vastaa yhtä sivun osiota tai sisältöä. Voit järjestellä sivun eri osioita sisältöpuun rivejä raahaamalla. Voit lisätä sivuun uutta sisältää sisältöpuun yläpuolella olevasta "Lisää sisältöä tähän sivuun" -painikkeesta tai sisältöpuun rivien ●●● painikkeista.',
     'Colorless': 'Väritön',
     'Ordinary content, which don\'t have a background color, are ': 'Tavallinen sisältö, joilla ei ole taustaväriä, on ',
-    'stored to this page only': 'tallennettu vain tälle sivulle',
+    'stored to this page only': 'tallennettu vain tähän sivuun',
     'Orange': 'Oranssi',
     'Global content (e.g. Header) references to a ': 'Globaali sisältö (esim. Header) viittaa ',
     'separately stored data': 'erillisesti tallennettuun tietoon',
@@ -60,10 +60,13 @@ stringBundles.push({
     'Convert': 'Muunna',
     // edit-app/src/DefaultView/GlobalStylesSection.jsx
     'Styles': 'Tyylit',
+    'Colours and fonts': 'Sivuston värit ja fontit',
     // edit-app/src/DefaultView/OnThisPageSection.jsx
-    'On this page': 'Tällä sivulla',
+    'On this page': 'Tämä sivu',
+    'Content of page %s': '%s-sivun sisältö',
     // edit-app/src/DefaultView/WebsiteSection.jsx
     'Website': 'Sivusto',
+    'Content management': 'Sisällönhallinta',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'sivutyyppi',
     'Default content': 'Oletussisältö',

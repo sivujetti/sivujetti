@@ -8,6 +8,7 @@ use Sivujetti\UserSite\UserSiteAPI;
 use PHPUnit\Framework\TestCase;
 use Sivujetti\Tests\Utils\PageTestUtils;
 
+/* See also Block/RenderBlockTest.php and Page/OverwritePageBlocksTest.php */
 final class BlockValidatorTest extends TestCase {
     public function testValidateInsertOrUpdateDataRejectsUnkownRenderers(): void {
         $state = $this->setupTest();

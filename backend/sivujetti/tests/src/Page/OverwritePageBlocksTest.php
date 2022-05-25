@@ -61,6 +61,29 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
     ////////////////////////////////////////////////////////////////////////////
 
 
+    public function testOverwritePageBlocksRejectsInvalidInputs2(): void {
+        $state = $this->setupTest();
+        $state->inputData = (object) ["blocks" => [(object) ["type" => "Paragraph", "id" => "not-valid"]]];
+        $this->makeTestSivujettiApp($state);
+        $this->insertTestPageDataToDb($state);
+        $this->expectException(PikeException::class);
+        $this->expectExceptionMessage(implode("\n", [
+            "title must be string",
+            "The length of title must be 1024 or less",
+            "The value of renderer was not in the list",
+            "id is not valid push id",
+            "text must be string",
+            "The length of text must be 1024 or less",
+            "cssClass must be string",
+            "The length of cssClass must be 1024 or less",
+        ]));
+        $this->sendOverwritePageBlocksRequest($state);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
     public function testOverwritePageRejectsIfPageDoesNotExist(): void {
         $state = $this->setupTest();
         $state->testPageData->id = "4040";

@@ -40,6 +40,7 @@ final class RenderBlockTest extends RenderBlocksTestCase {
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals([
             "The value of renderer was not in the list",
+            "id is not valid push id",
             "cssClass must be string",
             "The length of cssClass must be 1024 or less"
         ], $state->spyingResponse);
@@ -50,6 +51,7 @@ final class RenderBlockTest extends RenderBlocksTestCase {
     }
     private function setInvalidPropData(\TestState $state): void {
         $sectionBlock = $state->testBlock;
+        $sectionBlock->id = "not-valid";
         $sectionBlock->cssClass = [];
         $sectionBlock->propsData[0]->value = []; // cssClass
     }

@@ -42,11 +42,15 @@ final class BlockValidator {
         return ValidationUtils::addRulesForProperties(
             $blockTypeFinal->defineProperties(new PropertiesBuilder),
             Validation::makeObjectValidator()
+                ->addRuleImpl("pushId", fn($value) =>
+                    is_string($value) &&
+                    strlen($value) === 20 &&
+                    Validation::isStringType(str_replace(["_", "-"], "", $value), "alnum")
+                , "%s is not valid push id")
                 ->rule("title", "type", "string")
                 ->rule("title", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
                 ->rule("renderer", "in", $this->validBlockRenderers)
-                ->rule("id", "minLength", 20)
-                ->rule("id", "maxLength", 20)
+                ->rule("id", "pushId")
         )->validate($input);
     }
     /**

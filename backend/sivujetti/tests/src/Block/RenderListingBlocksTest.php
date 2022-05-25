@@ -62,6 +62,10 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
     private function insertTestPages(\TestState $state): void {
         foreach (!is_array($state->testPageData) ? [$state->testPageData] : $state->testPageData as $pageData)
             $this->pageTestUtils->insertPage($pageData, $state->customPageType ?? null);
+        if (isset($state->testCatData)) {
+            $insertId = $this->pageTestUtils->insertPage($state->testCatData, "PagesCategories");
+            $state->testCatData->id = $insertId;
+        }
     }
 
 
@@ -129,6 +133,10 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $page2->slug = "/something-else";
         $page2->path = "something-else/";
         $state->testPageData = [$state->testPageData, $page2];
+        //
+        $state->testCatData = $this->pageTestUtils->makeTestPageData(null, "PagesCategories");
+        $state->testCatData->id = "1";
+        //
         return  $state;
     }
 
@@ -171,6 +179,28 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
         $f = json_encode(["p.slug" => ["\$startsWith" => "/hello"]]);
+        $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f);
+        $expectedListItemsWithLimit = [$state->testPageData[0]];
+        $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithLimit);
+        $this->renderAndVerify($state, 0, $expectedHtml);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testListingBlockUsesHasCategoryFilter(): void {
+        $state = $this->setupRenderListingBlockHavingManyListItemsTest();
+        $state->testPageData[0]->categories = [$state->testCatData->id];
+        $this->makeTestSivujettiApp($state);
+        $this->insertTestPages($state);
+        $fn = $state->makeExpectedHtml;
+        //
+        $expectedListItemsWithoutLimit = [$state->testPageData[1], $state->testPageData[0]];
+        $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithoutLimit);
+        $this->renderAndVerify($state, 0, $expectedHtml);
+        //
+        $f = json_encode(["p.categories[0]" => ["\$eq" => $state->testCatData->id]]);
         $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f);
         $expectedListItemsWithLimit = [$state->testPageData[0]];
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithLimit);

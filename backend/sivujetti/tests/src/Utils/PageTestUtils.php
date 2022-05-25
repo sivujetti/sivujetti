@@ -113,9 +113,18 @@ final class PageTestUtils {
     }
     /**
      * @param ?array<int, \Sivujetti\Block\Entities\Block> $blocks = null
+     * @param ?string $pageTypeName = null
      * @return object
      */
-    public function makeTestPageData(?array $blocks = null): object {
+    public function makeTestPageData(?array $blocks = null, ?string $pageTypeName = null): object {
+        if ($pageTypeName === "PagesCategories") {
+            $out = $this->makeTestPageData($blocks, null);
+            $out->slug = "/uncategorized";
+            $out->path = "pages-categories/uncategorized/";
+            $out->title = "Uncategorized";
+            unset($out->categories);
+            return $out;
+        }
         $now = time();
         return (object) [
             "slug" => "/hello",

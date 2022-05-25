@@ -7,6 +7,7 @@ use Pike\{ArrayUtils, PikeException};
 use Pike\Db\FluentDb;
 use Pike\Interfaces\RowMapperInterface;
 use Sivujetti\Block\Entities\Block;
+use Sivujetti\Db\TempJsonCompatSelect;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
@@ -32,8 +33,10 @@ final class PagesRepository2 {
      */
     public function fetch(string $pageTypeName = "Pages", string $fields = "@all"): Select {
         $pageType = $this->getPageTypeOrThrow($pageTypeName);
-        return $this->fluentDb->select("\${p}{$pageType->name} p", Page::class)
-            ->fields(["id","slug","path","level","title","layoutId","status",(($fields === "@simple" ? "NULL" : "blocks") . " AS blocksJson")])
+        $sqliteVersion = "3.37";
+        $compatCls = version_compare($sqliteVersion, "3.38", ">=") ? null : TempJsonCompatSelect::class;
+        return $this->fluentDb->select("\${p}{$pageType->name} p", Page::class, $compatCls)
+            ->fields(self::createSelectFields($fields, $pageType))
             ->mapWith(new class implements RowMapperInterface {
                 public function mapRow(object $page, int $_numRow, array $_rows): object {
                     $blocksJson = $page->blocksJson ?? null;
@@ -54,5 +57,17 @@ final class PagesRepository2 {
         if (($possible = ArrayUtils::findByKey($this->pageTypes, $candidate, "name")))
             return $possible;
         throw new PikeException("Unknown page type `{$candidate}`.");
+    }
+    /**
+     * @param string $hint "@simple"
+     * @param \Sivujetti\PageType\Entities\PageType
+     * @return string[]
+     */
+    private static function createSelectFields(string $hint, PageType $pageType): array {
+        $isSimple = $hint === "@simple";
+        $out = ["id", "slug", "path", "level", "title", "layoutId", "status", ($isSimple ? "NULL" : "blocks") . " AS blocksJson"];
+        if (!$isSimple)
+            foreach ($pageType->ownFields as $f) $out[] = "`$f->name`";
+        return $out;
     }
 }

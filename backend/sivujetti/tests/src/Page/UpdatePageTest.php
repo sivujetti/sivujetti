@@ -26,11 +26,7 @@ final class UpdatePageTest extends PagesControllerTestCase {
         $state->testPageData->path = "/update-page-test-page/";
         $state->testPageData->layoutId .= "2";
         //
-        $state->testCatData = $this->pageTestUtils->makeTestPageData();
-        $state->testCatData->slug = "/uncategorized";
-        $state->testCatData->path = "pages-categories/uncategorized/";
-        $state->testCatData->title = "Uncategorized";
-        unset($state->testCatData->categories);
+        $state->testCatData = $this->pageTestUtils->makeTestPageData(null, "PagesCategories");
         //
         $state->inputData = (object) [
             "slug" => "/updated-update-page-test-page-slug",

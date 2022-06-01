@@ -28,10 +28,10 @@ final class PagesRepository2 {
     }
     /**
      * @param string $pageTypeName = "Pages"
-     * @param string $fields = "@all" "@all"|"@simple"
+     * @param string[] $fields = [] array<int, "@simple"|"@blocks">
      * @return \Pike\Db\MySelect
      */
-    public function fetch(string $pageTypeName = "Pages", string $fields = "@all"): Select {
+    public function fetch(string $pageTypeName = "Pages", array $fields = []): Select {
         $pageType = $this->getPageTypeOrThrow($pageTypeName);
         $sqliteVersion = "3.37";
         $compatCls = version_compare($sqliteVersion, "3.38", ">=") ? null : TempJsonCompatSelect::class;
@@ -59,14 +59,13 @@ final class PagesRepository2 {
         throw new PikeException("Unknown page type `{$candidate}`.");
     }
     /**
-     * @param string $hint "@simple"
+     * @param string[] $fields ["@simple"]
      * @param \Sivujetti\PageType\Entities\PageType
      * @return string[]
      */
-    private static function createSelectFields(string $hint, PageType $pageType): array {
-        $isSimple = $hint === "@simple";
-        $out = ["id", "slug", "path", "level", "title", "layoutId", "status", ($isSimple ? "NULL" : "blocks") . " AS blocksJson"];
-        if (!$isSimple)
+    private static function createSelectFields(array $fields, PageType $pageType): array {
+        $out = ["id", "slug", "path", "level", "title", "layoutId", "status", (in_array("@blocks", $fields, true) ? "blocks" : "NULL") . " AS blocksJson"];
+        if (in_array("@own", $fields, true))
             foreach ($pageType->ownFields as $f) $out[] = "`$f->name`";
         return $out;
     }

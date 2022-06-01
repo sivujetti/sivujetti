@@ -118,9 +118,8 @@ interface BlockBlueprint2 {
 interface PageTypeField {
     name: String;
     friendlyName: String;
-    dataType: {type: 'text'|'uint', length?: Number; validationRules?: Array};
+    dataType: {type: 'text'|'json'|'int'|'uint'; isNullable: Boolean; length?: Number; validationRules?: Array;};
     defaultValue: String|null;
-    isNullable: Boolean;
 }
 
 interface PageType {

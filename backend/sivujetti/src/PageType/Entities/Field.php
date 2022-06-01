@@ -11,8 +11,6 @@ final class Field {
     public DataType $dataType;
     /** @var string|int|mixed[] */
     public string|int|array $defaultValue;
-    /** @var bool */
-    public bool $isNullable;
     /**
      * @param \Closure $formatterFn = null fn(\Sivujetti\PageType\Entities\Field $field): string
      * @return string '`name`, `name2`'
@@ -29,7 +27,7 @@ final class Field {
         return "`{$this->name}` {$this->dataType->toSql()}";
     }
     /**
-     * @param object $input {name: string, friendlyName: string, dataType: {type: string, length?: int, validationRules?: array[]}, defaultValue:  string|int|mixed[], isNullable: bool}
+     * @param object $input {name: string, friendlyName: string, dataType: {type: string, isNullable?: bool, length?: int, validationRules?: array[]}, defaultValue: string|int|mixed[]}
      * @return \Sivujetti\PageType\Entities\Field
      */
     public static function fromValidatedObject(object $input): Field {
@@ -38,7 +36,6 @@ final class Field {
         $out->friendlyName = $input->friendlyName;
         $out->dataType = DataType::fromValidatedObject($input->dataType);
         $out->defaultValue = $input->defaultValue;
-        $out->isNullable = $input->isNullable;
         return $out;
     }
 }
@@ -46,6 +43,8 @@ final class Field {
 class DataType {
     /** @var string */
     public string $type;
+    /** @var bool */
+    public bool $isNullable;
     /** @var ?int */
     public ?int $length;
     /** @var ?array<int, mixed[]> */
@@ -81,12 +80,13 @@ class DataType {
         return $this->type . ($this->length ?? "");
     }
     /**
-     * @param object $obj {type: string, length?: int, validationRules?: array<int, mixed[]>}
+     * @param object $obj {type: string, isNullable?: bool, length?: int, validationRules?: array<int, mixed[]>}
      * @return \Sivujetti\PageType\Entities\DataType
      */
     public static function fromValidatedObject(object $obj): DataType {
         $out = new DataType;
         $out->type = $obj->type;
+        $out->isNullable = $obj->isNullable ?? false;
         $out->length = $obj->length ?? null;
         $out->validationRules = $obj->validationRules ?? null;
         return $out;

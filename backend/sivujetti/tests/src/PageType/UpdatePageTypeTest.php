@@ -62,11 +62,11 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
             "name" => "field1",
             "dataType" => (object) [
                 "type" => "text",
+                "isNullable" => false,
                 "junk" => "prop 4",
             ],
             "friendlyName" => "Field 1",
             "defaultValue" => "Hello",
-            "isNullable" => false,
             "junk" => "prop 3",
         ]];
     }
@@ -167,6 +167,7 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
             "blockFields" => $this->createBlockFieldsInput(),
             "defaultFields" => (object) ["title" => (object) ["partial" => "object"]],
             "ownFields" => [(object) ["nothing" => "here", "dataType" => (object) [
+                "isNullable" => "not-a-boolean",
                 "length" => "not-a-number",
                 "validationRules" => "not-an-array"
             ]]],
@@ -176,9 +177,9 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
             "The length of ownFields.0.friendlyName must be at least 1",
             "The length of ownFields.0.friendlyName must be 92 or less",
             "The value of ownFields.0.dataType.type was not in the list",
+            "ownFields.0.dataType.isNullable must be bool",
             "ownFields.0.dataType.length must be int",
             "ownFields.0.dataType.validationRules must be array",
-            "ownFields.0.isNullable must be bool",
             "The length of defaultFields.title.defaultValue must be 1024 or less",
         ]);
     }
@@ -194,23 +195,22 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
         $completeField = fn($inp) => (object) array_merge($inp, [
             "name" => "name",
             "friendlyName" => "friendlyName",
-            "isNullable" => false,
         ]);
         $this->runValidateOwnOrDefaultFieldsTest([
             "blockFields" => $this->createBlockFieldsInput(),
             "defaultFields" => self::createDefaultFieldsInput(),
             "ownFields" => [$completeField([
                 "defaultValue" => ["not-a-string"],
-                "dataType" => (object) ["type" => "text",]
+                "dataType" => (object) ["type" => "text", "isNullable" => false,]
             ]), $completeField([
                 "defaultValue" => ["not-a-string"],
-                "dataType" => (object) ["type" => "json",]
+                "dataType" => (object) ["type" => "json", "isNullable" => false,]
             ]), $completeField([
                 "defaultValue" => "not-an-int",
-                "dataType" => (object) ["type" => "int",]
+                "dataType" => (object) ["type" => "int", "isNullable" => false,]
             ]), $completeField([
                 "defaultValue" => "not-an-int",
-                "dataType" => (object) ["type" => "uint",]
+                "dataType" => (object) ["type" => "uint", "isNullable" => false,]
             ]), $completeField([
                 "defaultValue" => "not-an-array",
                 "dataType" => (object) ["type" => "many-to-many",]

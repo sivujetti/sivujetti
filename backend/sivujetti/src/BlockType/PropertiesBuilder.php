@@ -29,17 +29,20 @@ final class PropertiesBuilder {
     }
     /**
      * @param string $dataType self::DATA_TYPE_*
+     * @param ?bool $isNullable = null
      * @param ?int $length = null
      * @param ?array $validationRules = null
      * @return $this
      */
     public function dataType(string $type,
+                             ?bool $isNullable = null,
                              ?int $length = null,
                              ?array $validationRules = null): PropertiesBuilder {
         $this->head->dataType = (object) [
             "type" => $type,
+            "isNullable" => $isNullable !== null ? $isNullable : false,
             "length" => $length,
-            "validationRules" => $validationRules
+            "validationRules" => $validationRules ? array_map(fn(array $r) => ["", ...$r], $validationRules) : null
         ];
         return $this;
     }

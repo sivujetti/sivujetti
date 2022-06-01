@@ -11,8 +11,8 @@ abstract class ValidationUtils {
     public const EMAIL_REGEXP_SIMPLE = "/^.+@.+$/";
     public const SLUG_MAX_LENGTH = 92;
     public const SLUG_REGEXP_SIMPLE = "/^\/[a-zA-Z_-]+$/";
-    private const VALID_RULES = ["type", "minLength", "maxLength", "min",
-                                 "max", "in", "identifier", "regexp"];
+    private const VALID_RULES = ["type","stringType","minLength","maxLength","min","max",
+                                 "in","contains","notContains","identifier","regexp"];
     /**
      * Throws an exception if $path contains "./", "../", or "/" (strict).
      *
@@ -33,20 +33,21 @@ abstract class ValidationUtils {
     public static function addRulesForProperties(array|\ArrayObject $properties,
                                                  ObjectValidator $to): ObjectValidator {
         foreach ($properties as $prop) {
-            $dt = $prop->dataType->type;
+            $dt = $prop->dataType;
             $rules = [
                 "text"         => [["", "type", "string"], ["", "maxLength", self::HARD_SHORT_TEXT_MAX_LEN]],
                 "json"         => [["", "type", "string"], ["", "maxLength", self::HARD_JSON_TEXT_MAX_LEN]],
                 "many-to-many" => [["", "type", "array"],  ["%s.*", "type", "number"]],
                 "int"          => [["", "type", "number"]],
                 "uint"         => [["", "type", "number"], ["", "min", 0]],
-            ][$dt] ?? null;
+            ][$dt->type] ?? null;
             if (!$rules)
                 throw new \RuntimeException("Shouldn't happen");
-            $userRules = $prop->dataType->validationRules ?? [];
+            $userRules = $dt->validationRules ?? [];
             if ($userRules) { // e.g. [ ["", "required"], ["%s.foo", "min", 4] ]
                 foreach ($userRules as $ruleParts) {
-                    if (!is_array($ruleParts) || !is_string($ruleParts[0]) ||
+                    if (!is_array($ruleParts) ||
+                        !is_string($ruleParts[0]) ||
                         !in_array($ruleParts[1], self::VALID_RULES, true))
                         throw new PikeException("Invalid validation rule",
                                                 PikeException::BAD_INPUT);
@@ -55,7 +56,8 @@ abstract class ValidationUtils {
             }
             foreach ($rules as $parts) {
                 $pathTmpl = array_shift($parts);
-                $propPath = !$pathTmpl ? $prop->name : sprintf($pathTmpl, $prop->name);
+                $propPath = (!$pathTmpl ? $prop->name : sprintf($pathTmpl, $prop->name)) .
+                            (!$dt->isNullable ? "" : "?");
                 $to->rule($propPath, ...$parts);
             }
         }

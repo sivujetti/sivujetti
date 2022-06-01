@@ -37,7 +37,7 @@ class ListingBlockType implements BlockTypeInterface, ListeningBlockTypeInterfac
     public function doPerformBeforeRender(Block $block,
                                           PagesRepository2 $pagesRepo,
                                           TheWebsite $theWebsite): void {
-        $q = $pagesRepo->fetch($block->filterPageType);
+        $q = $pagesRepo->fetch($block->filterPageType, ["@own"]);
         if ($block->filterAdditional !== "{}")
             $q = $q->mongoWhere($block->filterAdditional);
         if ($block->filterLimit)

@@ -5,7 +5,7 @@ namespace Sivujetti\Tests\Page;
 use Sivujetti\PageType\Entities\PageType;
 
 final class ListPagesTest extends PagesControllerTestCase {
-    public function testListStylesReturnsListOfPages(): void {
+    public function testListPagesReturnsListOfPages(): void {
         $state = $this->setupTest();
         $this->insertTestPageDataToDb($state->testPageData1);
         $this->insertTestPageDataToDb($state->testPageData2);

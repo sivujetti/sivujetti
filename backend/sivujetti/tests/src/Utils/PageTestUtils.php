@@ -104,9 +104,8 @@ final class PageTestUtils {
             $pageType->ownFields = [(object) [
                 "name" => "categories",
                 "friendlyName" => "",
-                "dataType" => (object) ["type" => "many-to-many", "rel" => "PagesCategories"],
+                "dataType" => (object) ["type" => "many-to-many", "isNullable" => false, "rel" => "PagesCategories"],
                 "defaultValue" => [],
-                "isNullable" => false,
             ]];
         }
         return $pageType;
@@ -162,11 +161,11 @@ final class PageTestUtils {
         $pageType->name = "MyProducts";
         $pageType->ownFields = [
             (object) ["name" => "ownField1", "dataType" => (object) ["type" => "text",
-                        "length" => null, "validationRules" => null],
-                      "friendlyName" => "Some prop", "defaultValue" => "foo", "isNullable" => false],
+                        "isNullable" => false, "length" => null, "validationRules" => null],
+                      "friendlyName" => "Some prop", "defaultValue" => "foo"],
             (object) ["name" => "ownField2", "dataType" => (object) ["type" => "uint",
-                        "length" => null, "validationRules" => null],
-                      "friendlyName" => "Some prop2", "defaultValue" => 123, "isNullable" => false],
+                        "isNullable" => false, "length" => null, "validationRules" => null],
+                      "friendlyName" => "Some prop2", "defaultValue" => 123],
         ];
         //
         $this->createPageRepo->__invoke(function ($db, $fakeTheWebsite, $testApiCtx) use ($pageType) {

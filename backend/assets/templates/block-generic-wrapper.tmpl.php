@@ -15,5 +15,5 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_SECTION):
     "</div></section>";
 else:
     [$startTag, $endTag] = !(SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE) ? ["<!--", "-->"] : ["<div>", "</div>"];
-    echo "{$startTag} sivujetti:block-generic-wrapper.tmpl.php: can only render TYPE_COLUMN|SECTIONs (your type was `{$props->type}`) {$endTag} ";
+    echo $startTag, " sivujetti:block-generic-wrapper.tmpl.php: can only render TYPE_COLUMN|SECTIONs (your type was `", $this->e($props->type), "`) ", $endTag;
 endif; ?>

@@ -4,7 +4,7 @@ namespace Sivujetti\Tests\Block;
 
 use Sivujetti\{Template};
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\BlockType\{ButtonBlockType, GlobalBlockReferenceBlockType};
+use Sivujetti\BlockType\{ButtonBlockType, GlobalBlockReferenceBlockType, ImageBlockType};
 use Sivujetti\Tests\Utils\{DbDataHelper};
 
 final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
@@ -212,20 +212,17 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
 
     public function testRenderBlockRendersImages(): void {
         $makeExpectedHtml = fn($b, $url, $cls = "") =>
-            "<span class=\"image{$cls}\" data-block-type=\"Image\" data-block=\"{$b->id}\">" .
+            "<figure{$cls} data-block-type=\"Image\" data-block=\"{$b->id}\">" .
                 "<img src=\"{$url}\" alt=\"\">[childMarker]" .
-            "</span>";
+            "</figure>";
         $state = $this->setupRenderImageBlocksTest();
         $this->makeTestSivujettiApp($state);
         $b = $state->testBlocks;
-        $expectedHtml = $makeExpectedHtml($b[0], Template::makeUrl($b[0]->src, false));
+        $expectedHtml = $makeExpectedHtml($b[0], Template::makeUrl("public/uploads/{$b[0]->src}", false));
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
-        $expectedHtml = $makeExpectedHtml($b[1], Template::makeUrl($b[1]->src, false), " escape&lt;");
+        $expectedHtml = $makeExpectedHtml($b[1], ImageBlockType::PLACEHOLDER_SRC, " class=\"escape&lt;\"");
         $this->renderAndVerify($state, 1, $expectedHtml);
-        //
-        $expectedHtml = $makeExpectedHtml($b[2], $b[2]->src, " {$b[2]->cssClass}");
-        $this->renderAndVerify($state, 2, $expectedHtml);
     }
     private function setupRenderImageBlocksTest(): \TestState {
         $state = parent::setupTest();
@@ -234,10 +231,7 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
                 propsData: ["src" => "local-pic.png", "cssClass" => ""],
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_IMAGE,
-                propsData: ["src" => "local-dir/local-pic.jpg", "cssClass" => "escape<"],
-                id: "@auto"),
-            $this->blockTestUtils->makeBlockData(Block::TYPE_IMAGE,
-                propsData: ["src" => "data:image/png...", "cssClass" => "some classes"],
+                propsData: ["src" => null, "cssClass" => "escape<"],
                 id: "@auto"),
         ];
         return $state;

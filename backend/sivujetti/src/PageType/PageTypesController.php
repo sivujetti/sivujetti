@@ -81,11 +81,11 @@ final class PageTypesController {
             "friendlyName" => "Field 1",
             "dataType" => (object) [
                 "type" => BlockProperty::DATA_TYPE_TEXT,
+                "isNullable" => false,
                 "length" => null,
                 "validationRules" => null
             ],
             "defaultValue" => "",
-            "isNullable" => false
         ]];
         $out->defaultFields = (object) ["title" => (object) ["defaultValue" => "Title"]];
         $out->defaultLayoutId = "1";

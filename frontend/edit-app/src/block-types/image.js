@@ -1,7 +1,6 @@
 import {__, urlUtils, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import ImagePicker from '../BlockWidget/ImagePicker.jsx';
 import {validationConstraints} from '../constants.js';
-import {UPLOADS_DIR_PATH} from '../Upload/UploadsManager.jsx';
 import setFocusTo from './auto-focusers.js';
 
 const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=';
@@ -67,14 +66,14 @@ class ImageBlockEditForm extends preact.Component {
      * @param {UploadsEntry|null} img
      */
     handleImageChanged(img) {
-        const src = img ? `/${UPLOADS_DIR_PATH}${img.baseDir}${img.fileName}` : placeholderImageSrc;
+        const src = img ? img.fileName : null;
         this.setState({src});
         this.props.onValueChanged(src, 'src', false, 0, 'debounce-none');
     }
 }
 
 export default () => {
-    const initialData = {src: placeholderImageSrc, cssClass: ''};
+    const initialData = {src: null, cssClass: ''};
     const name = 'Image';
     return {
         name,
@@ -84,11 +83,13 @@ export default () => {
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'photo',
         reRender({src, cssClass, id}, renderChildren) {
-            return ['<span class="image', (cssClass ? ` ${cssClass}` : ''), '" data-block-type="', name,
-                '" data-block="', id, '">',
-                '<img src="', !src.startsWith('data:') ? urlUtils.makeAssetUrl(src) : src, '" alt="">',
+            return ['<figure', cssClass ? ` class="${cssClass}"` : '',
+                ' data-block-type="', name, '"',
+                ' data-block="', id, '">',
+                '<img src="', src ? urlUtils.makeAssetUrl(`public/uploads/${src}`) : placeholderImageSrc, '" alt="">',
                 renderChildren(),
-            '</span>'].join('');
+            '</figure>'
+            ].join('');
         },
         createSnapshot: from => ({
             src: from.src,

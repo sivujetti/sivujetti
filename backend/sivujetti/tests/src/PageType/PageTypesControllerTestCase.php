@@ -67,12 +67,12 @@ abstract class PageTypesControllerTestCase extends DbTestCase {
             "name" => $itm->name,
             "dataType" => (object) [
                 "type" => $itm->dataType->type,
+                "isNullable" => $itm->dataType->isNullable,
                 "length" => null,
                 "validationRules" => null,
             ],
             "friendlyName" => $itm->friendlyName,
             "defaultValue" => $itm->defaultValue,
-            "isNullable" => $itm->isNullable,
         ];
         return array_map($stripJunk, $input->ownFields);
     }

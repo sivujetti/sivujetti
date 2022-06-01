@@ -9,7 +9,9 @@ final class HeadingBlockType implements BlockTypeInterface {
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
         return $builder
             ->newProperty("text", $builder::DATA_TYPE_TEXT)
-            ->newProperty("level", $builder::DATA_TYPE_UINT)
+            ->newProperty("level")->dataType($builder::DATA_TYPE_UINT, validationRules: [
+                ["in", [1, 2, 3, 4, 5, 6]]
+            ])
             ->newProperty("cssClass", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }

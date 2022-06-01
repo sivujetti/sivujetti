@@ -204,7 +204,7 @@ final class PagesController {
                               Response $res,
                               PagesRepository2 $pagesRepo): void {
         $pages = $pagesRepo
-            ->fetch($req->params->pageType, fields: "@simple")
+            ->fetch($req->params->pageType)
             ->orderBy("`id` DESC")
             ->limit($pagesRepo::HARD_LIMIT)
             ->fetchAll();

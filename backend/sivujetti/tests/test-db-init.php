@@ -37,9 +37,8 @@ $statements = array_merge($statements, [
     "ownFields" => [(object) [
         "name" => "categories",
         "friendlyName" => "Categories",
-        "dataType" => (object) ["type" => "many-to-many", "rel" => "PagesCategories"],
+        "dataType" => (object) ["type" => "many-to-many", "isNullable" => false, "rel" => "PagesCategories"],
         "defaultValue" => [],
-        "isNullable" => false,
     ]],
     "blockFields" => [(object) ["type" => "Paragraph", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
                                 "initialData" => (object) ["text" => "Paragraph text", "cssClass" => ""],

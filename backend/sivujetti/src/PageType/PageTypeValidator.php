@@ -45,10 +45,10 @@ final class PageTypeValidator {
             ->rule("ownFields.*.friendlyName", "minLength", 1)
             ->rule("ownFields.*.friendlyName", "maxLength", self::MAX_FRIENDLY_NAME_LENGTH)
             ->rule("ownFields.*.dataType.type", "in", self::FIELD_DATA_TYPES)
+            ->rule("ownFields.*.dataType.isNullable?", "type", "bool")
             ->rule("ownFields.*.dataType.length?", "type", "int")
             ->rule("ownFields.*.dataType.validationRules?", "type", "array")
             //->rule("ownFields.*.defaultValue") see below, "maxLength", ValidationUtils::HARD_LONG_TEXT_MAX_LEN)
-            ->rule("ownFields.*.isNullable", "type", "bool")
             //
             ->rule("defaultFields.title.defaultValue", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN);
         $errors = $validator->validate($input);

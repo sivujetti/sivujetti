@@ -93,7 +93,7 @@ function createApi(cmp, k, inp) {
     out.className = inp.className || 'form-input';
     out.doValidate = value =>
         (inp.validations || []).reduce((errors, [validatorName, ...args]) => {
-            const {doValidate, errorMessageTmpl} = validatorImplFactories[validatorName]();
+            const {doValidate, errorMessageTmpl} = typeof validatorName === 'string' ? validatorImplFactories[validatorName]() : validatorName;
             const isValid = doValidate(value !== undefined ? value : '', ...args);
             if (!isValid)
                 return errors.concat({type: validatorName, message: formatError(errorMessageTmpl, inp.label, args)});

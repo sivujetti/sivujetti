@@ -99,9 +99,11 @@ final class WebPageAwareTemplate extends Template {
      * @return string
      */
     public function maybeExternalUrl(string $url): string {
-        return !str_contains($url, ".")
+        $first = $url[0] ?? "";
+        $isLocal = $first === "/";
+        return $isLocal
             ? $this->makeUrl($url)
-            : (((str_starts_with($url, "//") || str_starts_with($url, "http")) ? "" : "//") . $url);
+            : self::escAttr(str_starts_with($url, "http://") || str_starts_with($url, "https://") ? $url : "//{$url}");
     }
     /**
      * @param string $url

@@ -71,7 +71,7 @@ final class CreatePageTest extends PagesControllerTestCase {
         $this->sendCreatePageRequest($state);
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals([
-            "slug must be string",
+            "slug is not valid",
             "path must be string",
             "level must be number",
             "title must be string",

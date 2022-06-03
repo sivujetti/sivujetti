@@ -81,7 +81,7 @@ final class UpdatePageTest extends PagesControllerTestCase {
         $this->insertTestPageDataToDb($state);
         $this->expectException(PikeException::class);
         $this->expectExceptionMessage(implode("\n", [
-            "slug must be string",
+            "slug is not valid",
             "path must be string",
             "level must be number",
             "title must be string",
@@ -93,6 +93,20 @@ final class UpdatePageTest extends PagesControllerTestCase {
             "The value of status must be 0 or greater",
             "categories must be array",
         ]));
+        $this->sendUpdatePageRequest($state);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testUpdatePageRejectsInvalidInputs2(): void {
+        $state = $this->setupTest();
+        $state->inputData = (object) ["slug" => "foo.com"];
+        $this->makeTestSivujettiApp($state);
+        $this->insertTestPageDataToDb($state);
+        $this->expectException(PikeException::class);
+        $this->expectExceptionMessageMatches("/slug is not valid/");
         $this->sendUpdatePageRequest($state);
     }
 

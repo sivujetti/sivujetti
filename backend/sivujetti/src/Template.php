@@ -25,7 +25,15 @@ class Template extends PikeTemplate {
     public static function e(string $str,
                              int $flags = ENT_QUOTES | ENT_HTML5,
                              bool $doubleEncode = true): string {
-        return htmlspecialchars($str, $flags, "UTF-8", $doubleEncode);
+        return \htmlspecialchars($str, $flags, "UTF-8", $doubleEncode);
+    }
+    /**
+     * @param string $url
+     * @param bool $isWrappedByDoubleQuote = true
+     * @return string
+     */
+    public static function escAttr(string $url, bool $isWrappedByDoubleQuote = true): string {
+        return $isWrappedByDoubleQuote ? \str_replace("\"", "&#34;", $url) : \str_replace("'", "&#39;", $url);
     }
     /**
      * @param string $url
@@ -36,12 +44,9 @@ class Template extends PikeTemplate {
         static $indexFile = !SIVUJETTI_QUERY_VAR ? "" : ("index.php?" . SIVUJETTI_QUERY_VAR . "=/");
         if (!$withIndexFile || !$indexFile) return SIVUJETTI_BASE_URL . self::e(ltrim($url, "/"));
         // "/path?myvar=val" -> "index.php?q=/path&myvar=val"
-        $info = parse_url(self::e(ltrim($url, "/")));
-        return SIVUJETTI_BASE_URL .
-            $indexFile .
-            ($info["path"] ?? "") .
-            (isset($info["query"]) ? "&amp;" . $info["query"] : "") .
-            (isset($info["fragment"]) ? "#" . $info["fragment"] : "");
+        $pcs = explode("?", ltrim($url, "/"), 2);
+        return SIVUJETTI_BASE_URL . $indexFile . self::escAttr($pcs[0]) .
+            (count($pcs) === 1 ? "" : ("&amp;" . self::escAttr($pcs[1])));
     }
     /**
      * "foo.tmpl.php" -> SIVUJETTI_SITE_PATH . "templates/foo.tmpl.php"

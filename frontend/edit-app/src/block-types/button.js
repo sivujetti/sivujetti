@@ -3,6 +3,7 @@ import QuillEditor from '../commons/QuillEditor.jsx';
 import {validationConstraints} from '../constants.js';
 import {unParagraphify} from './paragraph.js';
 import setFocusTo from './auto-focusers.js';
+import {urlValidatorImpl} from './pageInfo.js';
 
 const tagTypes = Object.freeze({
     LINK: 'link',
@@ -43,7 +44,8 @@ class ButtonBlockEditForm extends preact.Component {
         this.setState(hookForm(this, [
             {name: 'html', value: block.html, validations: [['required'], ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
              label: __('Content'), onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'html', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'linkTo', value: block.linkTo, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link'),
+            {name: 'linkTo', value: block.linkTo, validations: [[urlValidatorImpl, {allowExternal: true, allowEmpty: true}],
+                ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link'),
              onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'linkTo', hasErrors, env.normalTypingDebounceMillis); }},
             {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
              onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},

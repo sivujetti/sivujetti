@@ -25,11 +25,11 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $expectedHtml2 = $makeExpectedHtml($b[2], $b[2]->linkTo, " {$b[2]->cssClass}");
         $this->renderAndVerify($state, 2, $expectedHtml2);
         //
-        $expectedHtml3 = $makeExpectedHtml($b[3], null, null);
+        $expectedHtml3 = $makeExpectedHtml($b[3], "//{$b[3]->linkTo}", null);
         $this->renderAndVerify($state, 3, $expectedHtml3);
         //
         $expectedHtml4 = $makeExpectedHtml($b[4], null, " {$b[4]->cssClass}");
-        $this->renderAndVerify($state, 4, $expectedHtml4);
+        $this->renderAndVerify($state, 4, $expectedHtml4, 1);
     }
     private function setupRenderButtonBlocksTest(): \TestState {
         $state = parent::setupTest();
@@ -43,15 +43,15 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
                             "tagType" => ButtonBlockType::TAG_TYPE_LINK, "cssClass" => "escape<"],
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_BUTTON,
-                propsData: ["html" => "Pre <validated>", "linkTo" => "//external2.com",
+                propsData: ["html" => "Pre <validated>", "linkTo" => "http://external2.com",
                             "tagType" => ButtonBlockType::TAG_TYPE_LINK, "cssClass" => "some classes"],
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_BUTTON,
-                propsData: ["html" => "Button text", "linkTo" => "",
+                propsData: ["html" => "Button text", "linkTo" => "external3.com",
                             "tagType" => ButtonBlockType::TAG_TYPE_NORMAL_BUTTON, "cssClass" => ""],
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_BUTTON,
-                propsData: ["html" => "Submit button text", "linkTo" => "",
+                propsData: ["html" => "Submit button text", "linkTo" => null,
                             "tagType" => ButtonBlockType::TAG_TYPE_SUBMIT_BUTTON, "cssClass" => "foo"],
                 id: "@auto"),
         ];
@@ -268,7 +268,7 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
             $this->blockTestUtils->makeBlockData(Block::TYPE_MENU,
                 renderer: "sivujetti:block-menu",
                 propsData: $createMenuData([
-                    (object) ["id" => "", "slug" => "", "text" => "", "children" => []]
+                    (object) ["id" => "", "slug" => "/", "text" => "", "children" => []]
                 ]),
                 id: "@auto"),
         ];

@@ -6,6 +6,30 @@ import BlockTrees from '../BlockTrees.jsx';
 import {validationConstraints} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
 
+const urlValidatorImpl = {doValidate: (val, hints = {}) => {
+    const [allowExternal, allowEmpty] = [
+        Object.prototype.hasOwnProperty.call(hints, 'allowExternal') ? hints.allowExternal : true,
+        Object.prototype.hasOwnProperty.call(hints, 'allowEmpty') ? hints.allowEmpty : false,
+    ];
+    //
+    const [comp, isLocal] = createCanonicalUrl(val);
+    if (!comp)
+        return !!allowEmpty;
+    if (isLocal)
+        return new RegExp(validationConstraints.SLUG_REGEXP).test(comp);
+    // External
+    if (!allowExternal)
+        return false;
+    try {
+        const u = new URL(comp);
+        if (!u.protocol || ['https:', 'http:'].indexOf(u.protocol) < 0) return false;
+        if (!u.host || u.host === env.window.location.host) return false;
+        return true;
+    } catch (e) {
+        return false;
+    }
+}, errorMessageTmpl: '{field} is not valid'};
+
 class PageInfoBlockEditForm extends preact.Component {
     // titleEl;
     // descriptionEl;
@@ -50,7 +74,7 @@ class PageInfoBlockEditForm extends preact.Component {
             {name: 'title', value: snapshot.title, validations: [['required'], ['maxLength', 92]],
              label: __('Page title'), onAfterValueChanged: (value, hasErrors) => {
                 onValueChanged(value, 'title', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'slug', value: snapshot.slug, validations: [['required'], ['maxLength', 92], ['regexp', validationConstraints.SLUG_REGEXP]],
+            {name: 'slug', value: snapshot.slug, validations: [['required'], ['maxLength', 92], [urlValidatorImpl, {allowExternal: false, allowEmpty: true}]],
              label: __('Url (slug)'), onAfterValueChanged: (value, hasErrors) => {
                  onManyValuesChanged({slug: value, path: makePath(value, this.pageType)}, hasErrors, env.normalTypingDebounceMillis); }},
             {name: 'description', value: snapshot.description, validations: [['maxLength', 206]],
@@ -210,6 +234,20 @@ export default () => {
 };
 
 /**
+ * @param {String} input
+ * @returns {String}
+ */
+function createCanonicalUrl(input) {
+    if (!input.length)
+        return '';
+    if (input.indexOf('.') < 0) { // treat as local
+        return [input.startsWith('/') ? input : `/${input}`, true];
+    } else { // treat as external
+        return [input.startsWith('http://') || input.startsWith('https://') ? input : `https://${input}`, false];
+    }
+}
+
+/**
  * @typedef PageInfoSnapshot
  *
  * @prop {String} title
@@ -219,4 +257,4 @@ export default () => {
  * ... possibly more props (Own fields)
  */
 
-export {savePageToBackend};
+export {savePageToBackend, urlValidatorImpl};

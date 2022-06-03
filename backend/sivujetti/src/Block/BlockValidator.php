@@ -47,6 +47,7 @@ final class BlockValidator {
                     strlen($value) === 20 &&
                     Validation::isStringType(str_replace(["_", "-"], "", $value), "alnum")
                 , "%s is not valid push id")
+                ->addRuleImpl(...ValidationUtils::createUrlValidatorImpl())
                 ->rule("title", "type", "string")
                 ->rule("title", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
                 ->rule("renderer", "in", $this->validBlockRenderers)

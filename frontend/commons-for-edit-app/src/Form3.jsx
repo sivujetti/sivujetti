@@ -101,11 +101,13 @@ function createApi(cmp, k, inp) {
                 return errors;
         }, [])
     ;
+    const useFeatureReduxBlockTrees = window.useReduxBlockTree;
     out.triggerInput = (value, isProgrammatic = false, newState = {}) => {
         const errors = out.doValidate(value);
         newState.values = Object.assign({}, cmp.state.values, {[k]: value});
         newState.errors = Object.assign({}, cmp.state.errors, {[k]: errors});
         cmp.setState(newState);
+        if (useFeatureReduxBlockTrees) cmp.state.values = newState.values;
         if (!isProgrammatic && inp.onAfterValueChanged) inp.onAfterValueChanged(value, errors.length);
     };
     out.onInput = e => {

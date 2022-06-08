@@ -1,7 +1,7 @@
 import {translator, api, env, urlUtils, signals} from '@sivujetti-commons-for-edit-app';
 import {Validator} from './src/commons/Form.jsx';
 import {sensibleDefaults} from './src/constants.js';
-import {FormStateStoreWrapper} from './src/store.js';
+import store, {FormStateStoreWrapper, observeStore, createSelectBlockTree} from './src/store.js';
 import EditApp from './src/EditApp.jsx';
 import BlockTypes from './src/block-types/block-types.js';
 import createMenuBlockType from './src/block-types/Menu/menu.js';
@@ -179,6 +179,11 @@ function renderReactEditApp() {
                 : blockRefs.filter(({blockId}) => blockTreeUtils.findBlock(blockId, webPage.data.page.blocks)[0] !== null);
             webPage.registerEventHandlers(editApp.websiteEventHandlers, filtered);
             editApp.handleWebPageLoaded(webPage, ordered, blockRefs);
+            const useFeatureReduxBlockTrees = window.useReduxBlockTree;
+            if (useFeatureReduxBlockTrees) {
+                const fn = webPage.createBlockTreeChangeListener(blockTreeUtils, api.blockTypes);
+                observeStore(createSelectBlockTree('root'), fn);
+            }
         }
     };
 }

@@ -58,6 +58,26 @@ class EditAppAwareWebPage {
         this.registerLocalLinkEventHandlers();
     }
     /**
+     * @param {blockTreeUtils} blockTreeUtils
+     * @param {BlockTypes} blockTypes
+     * @returns {(blockTreeState: {tree: Array<RawBlock2>; context: ['update-single-value'|'undo-single-value', String, String, String|null];}) => void}
+     */
+    createBlockTreeChangeListener(blockTreeUtils, blockTypes) {
+        return ({tree, context}) => {
+            const bid = context[0] === 'update-single-value' || context[0] === 'undo-single-value' ? context[1] : null;
+            if (!bid) return;
+            blockTreeUtils.traverseRecursively(tree, block => {
+                if (block.id !== bid) return;
+                const el = document.body.querySelector(`[data-block="${block.id}"]`);
+                const bt = blockTypes.get(block.type);
+                const upd = bt.reRender(block, () => '');
+                const temp = document.createElement('template');
+                temp.innerHTML = upd;
+                el.replaceWith(temp.content);
+            });
+        };
+    }
+    /**
      * @param {Array<RawBlock>} pageBlocks
      * @param {Array<BlockRefComment>} blockRefComments
      * @param {blockTreeUtils} blockTreeUtils

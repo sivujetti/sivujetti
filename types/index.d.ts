@@ -76,6 +76,14 @@ interface RawBlock {
     [key: String]: mixed;
 }
 
+interface RawBlock2 {
+    id: String;
+    type: String;
+    children: Array<RawBlock>;
+    // todo
+    [key: String]: mixed;
+}
+
 interface BlockRefComment {
     blockId: String;
     blockType: String;

@@ -29,14 +29,17 @@ class QuillEditor extends preact.Component {
     constructor(props) {
         super(props);
         this.quill = null;
+        this.emitChagesLockIsOn = false;
     }
     /**
      * @param {String} newContents @allow raw html
      * @access public
      */
     replaceContents(newContents) {
+        this.emitChagesLockIsOn = true;
         this.quill.clipboard.dangerouslyPasteHTML(newContents);
         this.quill.setSelection(this.quill.getLength(), 0);
+        setTimeout(() => { this.emitChagesLockIsOn = false; }, 100);
     }
     /**
      * @access protected
@@ -53,6 +56,8 @@ class QuillEditor extends preact.Component {
         });
         if (this.props.onInit) this.props.onInit(this);
         this.quill.on('text-change', (_delta, _oldDelta, _source) => {
+            if (this.emitChagesLockIsOn)
+                return;
             if (this.quill.container.firstChild)
                 this.props.onChange(this.quill.container.firstChild.innerHTML);
         });

@@ -33,6 +33,18 @@ export default {
     },
     /**
      * @param {Array<Object>} branch
+     * @param {(item: Object, i: Number) => any} fn
+     * @returns {Array<Object>}
+     * @access public
+     */
+    mapRecursivelyManual(branch, fn) {
+        return branch.map((b, i) => {
+            const child = b.children.length ? this.mapRecursivelyManual(b.children, fn) : [];
+            return fn(b, i, child);
+        });
+    },
+    /**
+     * @param {Array<Object>} branch
      * @param {(item: Object, i: Number) => Boolean} fn
      * @returns {Object}
      * @access public

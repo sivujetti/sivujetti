@@ -1,4 +1,5 @@
 import {createManageableStore, observeStore} from './redux-utils.js';
+import blockTreeUtils from './blockTreeUtils.js';
 
 /**
  * @param {Object} state
@@ -15,6 +16,27 @@ const currentPageReducer = (state = {}, action) => {
 
 const setCurrentPage = value => ({type: 'currentPage/set', value});
 const selectCurrentPage = state => state.currentPage;
+
+
+/**
+ * @param {String} trid
+ * @returns {(state: {tree: Array<RawBlock2>; context: ['update-single-value'|'undo-single-value', String, String, String|null];}, action: Object) => Object}
+ */
+const createBlockTreeReducer = trid => (state = {}, action) => {
+    switch (action.type) {
+    case `blockTree_${trid}/set`:
+        return {tree: action.tree, context: action.context};
+    case `blockTree_${trid}/updateDataOf`:
+        return {tree: blockTreeUtils.mapRecursivelyManual(state.tree, (b, i, children) =>
+            Object.assign(b.id !== action.blockId ? b : Object.assign({}, b, action.data), {children})
+        ), context: action.context};
+    default:
+        return state;
+    }
+};
+const createSetBlockTree = trid => (tree, context) => ({type: `blockTree_${trid}/set`, tree, context});
+const createUpdateBlockTreeItemData = trid => (data, blockId, context) => ({type: `blockTree_${trid}/updateDataOf`, data, blockId, context});
+const createSelectBlockTree = trid => state => state[`blockTree_${trid}`];
 
 
 /**
@@ -143,6 +165,7 @@ const selectFormState = (state, id) => state.formStates[id];
 
 const mainStore = createManageableStore(undefined, {
     currentPage: currentPageReducer,
+    blockTree_root: createBlockTreeReducer('root'),
     globalBlockTreeBlocksStyles: globalBlockTreeBlocksStylesReducer,
     pageBlocksStyles: pageBlocksStylesReducer,
     blockTypesBaseStyles: blockTypesBaseStylesReducer,
@@ -202,6 +225,8 @@ class FormStateStoreWrapper {
 
 
 export {setCurrentPage, selectCurrentPage,
+        //
+        createSetBlockTree, createUpdateBlockTreeItemData, createSelectBlockTree,
         //
         setGlobalBlockTreeBlocksStyles, selectGlobalBlockTreeBlocksStyles,
         setPageBlocksStyles, selectPageBlocksStyles,

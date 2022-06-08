@@ -5,7 +5,8 @@ import {getIcon} from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
 import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
-import store, {pushItemToOpQueue, selectCurrentPage} from './store.js';
+import store, {selectCurrentPage, createSelectBlockTree, pushItemToOpQueue, observeStore,
+               createUpdateBlockTreeItemData} from './store.js';
 import IndividualBlockStylesTab from './IndividualBlockStylesTab.jsx';
 import BlockTypeBaseStylesTab from './BlockTypeBaseStylesTab.jsx';
 
@@ -46,6 +47,7 @@ class BlockEditForm extends preact.Component {
      */
     constructor(props) {
         super(props);
+        this.useFeatureReduxBlockTrees = window.useReduxBlockTree && this.props.block.type === 'Paragraph';
         blockTypes = api.blockTypes;
         this.state = {currentTabIdx: 0};
         this.userCanEditCss = api.user.can('editCssStyles');
@@ -69,23 +71,43 @@ class BlockEditForm extends preact.Component {
         })];
         this.setState({useOverrides: base && base.useOverrides,
                        currentTabIdx: 0});
+        if (this.useFeatureReduxBlockTrees) {
+            this.currentDebounceTime = null;
+            this.currentDebounceType = null;
+            this.boundEmitStickyChange = null;
+            this.boundEmitFastChange = null;
+            this.unregistrables = [observeStore(createSelectBlockTree('root'), ({tree, context}) => {
+                if (!this.editFormImplsChangeGrabber)
+                    return;
+                if (context[0] !== 'update-single-value' && context[0] !== 'undo-single-value')
+                    return;
+                const block = blockTreeUtils.findBlock(this.props.block.id, tree)[0];
+                if (context[1] !== block.id)
+                    return;
+                this.editFormImplsChangeGrabber(JSON.parse(JSON.stringify(block)), context[0]);
+            })];
+        }
     }
     /**
      * @access protected
      */
     componentDidMount() {
+        if (!this.useFeatureReduxBlockTrees) {
         BlockEditForm.currentInstance = this;
         this.blockVals.setCurrentEditFormImplRef(BlockEditForm.currentInstance.editFormImplRef);
+        }
     }
     /**
      * @access protected
      */
     componentWillUnmount() {
+        if (!this.useFeatureReduxBlockTrees) {
         BlockEditForm.currentInstance = undefined;
         this.isOutermostBlockOfGlobalBlockTree = undefined;
         this.editFormImpl = undefined;
         this.snapshot = undefined;
         this.editFormImplRef = undefined;
+        }
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
@@ -128,6 +150,7 @@ class BlockEditForm extends preact.Component {
                     </div>
                     : null
                 }
+                { !this.useFeatureReduxBlockTrees ?
                 <EditFormImpl
                     block={ block }
                     blockTree={ blockTreeCmp }
@@ -135,7 +158,14 @@ class BlockEditForm extends preact.Component {
                     onManyValuesChanged={ this.blockVals.handleValuesChanged.bind(this.blockVals) }
                     snapshot={ this.snapshot }
                     ref={ this.editFormImplRef }
-                    key={ block.id }/>
+                    key={ block.id }/> :
+                <EditFormImpl
+                    blockId={ block.id }
+                    grabChanges={ withFn => { this.editFormImplsChangeGrabber = withFn; } }
+                    emitValueChanged={ (val, key, hasErrors, debounceMillis) => { this.handleValueValuesChanged({[key]: val}, hasErrors, debounceMillis); } }
+                    emitManyValuesChanged={ this.handleValueValuesChanged.bind(this) }
+                    ref={ this.editFormImplRef }
+                    key={ block.id }/> }
             </div>
         </div>
         { this.userCanEditCss ? [
@@ -148,6 +178,77 @@ class BlockEditForm extends preact.Component {
             blockTypeNameTranslated={ __(this.blockType.friendlyName) }/>
         ] : null }
         </div>;
+    }
+    /**
+     * @param {Object} changes
+     * @param {Boolean} hasErrors
+     * @param {Number} debounceMillis = 0
+     * @param {'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none'} debounceType = 'debounce-commit-to-queue'
+     * @access public
+     */
+    handleValueValuesChanged(changes, hasErrors = false, debounceMillis = 0, debounceType = 'debounce-commit-to-queue') {
+        if (this.currentDebounceTime !== debounceMillis || this.currentDebounceType !== debounceType) {
+            const boundEmitStickyChange = (oldData, partialContext) => {
+                this.emitSticky(oldData, partialContext);
+            };
+            const boundEmitFastChange = (newData, oldData, partialContext, hasErrors) => {
+                this.emitFast(newData, partialContext);
+                if (!hasErrors) this.boundEmitStickyChange(oldData, partialContext);
+                else env.console.log('Not implemented yet');
+            };
+            // Run reRender immediately, but throttle commitChangeOpToQueue
+            if (debounceType === 'debounce-commit-to-queue') {
+                this.boundEmitStickyChange = timingUtils.debounce(boundEmitStickyChange, debounceMillis);
+                this.boundEmitFastChange = boundEmitFastChange;
+            // Throttle reRender, which throttles commitToQueue as well
+            } else if (debounceType === 'debounce-re-render-and-commit-to-queue') {
+                this.boundEmitStickyChange = boundEmitStickyChange;
+                this.boundEmitFastChange = timingUtils.debounce(boundEmitFastChange, debounceMillis);
+            // Run both immediately
+            } else {
+                this.boundEmitStickyChange = boundEmitStickyChange;
+                this.boundEmitFastChange = boundEmitFastChange;
+            }
+            this.currentDebounceTime = debounceMillis;
+            this.currentDebounceType = debounceType;
+        }
+        const {tree} = createSelectBlockTree('root')(store.getState());
+        const block = blockTreeUtils.findBlock(this.props.block.id, tree)[0];
+        const oldData = cloneFrom(Object.keys(changes), block);
+        const trid = block.isStoredToTreeId;
+        const partialContext = [block.id, block.type, trid];
+        // Call emitFastChange, which then calls emitCommitChange
+        this.boundEmitFastChange(changes, oldData, partialContext, hasErrors);
+    }
+    /**
+     */
+    emitFast(newData, partialContext) {
+        store.dispatch(createUpdateBlockTreeItemData('root')(
+            newData,
+            partialContext[0],
+            ['update-single-value', ...partialContext]
+        ));
+    }
+    /**
+     */
+    emitSticky(oldData, partialContext) {
+        store.dispatch(pushItemToOpQueue(`update-page-block-data`, {
+            doHandle: () => {
+                // todo return if placeholder page
+                const {tree} = createSelectBlockTree('root')(store.getState());
+                const prevImplTree = this.props.blockTreeCmp.getTree();
+                const newImplMergedToPrevImp = combineTrees(tree, prevImplTree);
+                return BlockTrees.saveExistingBlocksToBackend(newImplMergedToPrevImp, 'page', null);
+            },
+            doUndo: () => {
+                store.dispatch(createUpdateBlockTreeItemData('root')(
+                    oldData,
+                    partialContext[0],
+                    ['undo-single-value', ...partialContext]
+                ));
+            },
+            args: [],
+        }));
     }
     /**
      * @param {Event} e
@@ -199,6 +300,24 @@ class BlockEditForm extends preact.Component {
                 .catch(env.window.console.error);
         }
     }
+}
+
+/**
+ * @param {Array<String>} keys
+ * @param {Object} fromObject
+ * @returns {Object}
+ */
+function cloneFrom(keys, fromObj) {
+    return keys.reduce((out, key) => {
+        const v = fromObj[key];
+        if (Array.isArray(v))
+            out[key] = v;
+        else if (typeof v === 'object')
+            out[key] = JSON.parse(JSON.stringify(v));
+        else
+            out[key] = v;
+        return out;
+    }, {});
 }
 
 class BlockValMutator {
@@ -436,6 +555,16 @@ function updateFormValues($this, snapshot) {
     BlockEditForm.undoingLockIsOn = true;
     $this.editFormImplRef.current.overrideValues(snapshot);
     setTimeout(() => { BlockEditForm.undoingLockIsOn = false; }, 200);
+}
+
+function combineTrees(newImplTree, oldImplTree) {
+    const cloned = JSON.parse(JSON.stringify(oldImplTree));
+    blockTreeUtils.traverseRecursively(cloned, b => {
+        if (b.type !== 'Paragraph') return;
+        const fromNewImplTree = blockTreeUtils.findBlock(b.id, newImplTree)[0];
+        Object.assign(b, fromNewImplTree);
+    });
+    return cloned;
 }
 
 /**

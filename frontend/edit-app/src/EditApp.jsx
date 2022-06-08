@@ -4,7 +4,8 @@ import DefaultMainPanelView from './DefaultView/DefaultMainPanelView.jsx';
 import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
 import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType/PageTypeCreateMainPanelView.jsx';
 import store, {observeStore, setCurrentPage, setGlobalBlockTreeBlocksStyles, setPageBlocksStyles,
-               setOpQueue, selectGlobalBlockTreeBlocksStyles, selectPageBlocksStyles, selectBlockTypesBaseStyles} from './store.js';
+               setOpQueue, selectGlobalBlockTreeBlocksStyles, selectPageBlocksStyles, selectBlockTypesBaseStyles,
+               createSetBlockTree} from './store.js';
 import SaveButton from './SaveButton.jsx';
 import {findBlockTemp} from './BlockTree.jsx';
 
@@ -63,6 +64,12 @@ class EditApp extends preact.Component {
         store.dispatch(setPageBlocksStyles(webPage.data.page.blockStyles));
         store.dispatch(setOpQueue([]));
         this.receivingData = false;
+
+        const useFeatureReduxBlockTrees = window.useReduxBlockTree;
+        if (useFeatureReduxBlockTrees) {
+            const clone = JSON.parse(JSON.stringify(combinedBlockTree));
+            store.dispatch(createSetBlockTree('root')(clone, ['init']));
+        }
     }
     /**
      * @access protected

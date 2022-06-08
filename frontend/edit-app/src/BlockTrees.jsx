@@ -130,8 +130,19 @@ class BlockTrees extends preact.Component {
             url = `/api/global-block-trees/${blockTreeId}/blocks`;
         else
             throw new Error('Bad input');
+        const useFeatureReduxBlockTrees = window.useReduxBlockTree;
         return http.put(url,
-            {blocks: blockTreeUtils.mapRecursively(newBlockTree, block => block.toRaw())})
+            !useFeatureReduxBlockTrees
+                ? {blocks: blockTreeUtils.mapRecursively(newBlockTree, block => block.toRaw())}
+                : {blocks: blockTreeUtils.mapRecursivelyManual(newBlockTree, (b, _i, children) => {
+                    b.children = children;
+                    for (const key in b) {
+                        if (Object.prototype.hasOwnProperty.call(b, key) && key.startsWith('__'))
+                            delete b[key];
+                    }
+                    return b;
+                })}
+            )
             .then(resp => {
                 if (resp.ok !== 'ok') throw new Error('-');
                 return true;

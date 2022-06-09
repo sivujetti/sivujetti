@@ -4,6 +4,8 @@ import BlockTree from './BlockTree.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {observeStore, selectCurrentPage} from './store.js';
 
+let useFeatureReduxBlockTrees;
+
 class BlockTrees extends preact.Component {
     // blockTree;
     // doCleanStoreSubs;
@@ -69,6 +71,7 @@ class BlockTrees extends preact.Component {
      * @access protected
      */
     componentWillMount() {
+        useFeatureReduxBlockTrees = window.useReduxBlockTree;
         const value = selectCurrentPage(store.getState());
         if (value.dataFromWebPage) {
             this.handleWebPageDataReceived(value);
@@ -98,12 +101,12 @@ class BlockTrees extends preact.Component {
         if (blocksInput === null)
             return;
         return <div>
-            <button
+            { !useFeatureReduxBlockTrees ? <button
                 onClick={ () => this.blockTree.current.appendNewBlockPlaceholder() }
                 class="btn btn-sm with-icon my-2"
                 title={ __('Add content to this page') } type="button">
                 <Icon iconId="plus" className="size-sm"/> { __('Add content to this page') }
-            </button>
+            </button> : null }
             <BlockTree
                 blocksInput={ blocksInput }
                 onChangesApplied={ containingView === 'Default'
@@ -130,7 +133,6 @@ class BlockTrees extends preact.Component {
             url = `/api/global-block-trees/${blockTreeId}/blocks`;
         else
             throw new Error('Bad input');
-        const useFeatureReduxBlockTrees = window.useReduxBlockTree;
         return http.put(url,
             !useFeatureReduxBlockTrees
                 ? {blocks: blockTreeUtils.mapRecursively(newBlockTree, block => block.toRaw())}

@@ -20,7 +20,7 @@ const selectCurrentPage = state => state.currentPage;
 
 /**
  * @param {String} trid
- * @returns {(state: {tree: Array<RawBlock2>; context: ['update-single-value'|'undo-single-value', String, String, String|null];}, action: Object) => Object}
+ * @returns {(state: {tree: Array<RawBlock2>; context: ['update-single-value'|'undo-single-value'|'add-single-block'|'undo-add-single-block', String|null, String|null, String|null];}, action: Object) => Object}
  */
 const createBlockTreeReducer = trid => (state = {}, action) => {
     switch (action.type) {

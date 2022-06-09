@@ -60,10 +60,38 @@ class EditAppAwareWebPage {
     /**
      * @param {blockTreeUtils} blockTreeUtils
      * @param {BlockTypes} blockTypes
-     * @returns {(blockTreeState: {tree: Array<RawBlock2>; context: ['update-single-value'|'undo-single-value', String, String, String|null];}) => void}
+     * @returns {(blockTreeState: {tree: Array<RawBlock2>; context: ['update-single-value'|'undo-single-value'|'add-single-block'|'undo-add-single-block', String|null, String|null, String|null];}) => void}
      */
     createBlockTreeChangeListener(blockTreeUtils, blockTypes) {
         return ({tree, context}) => {
+            if (context[0] === 'add-single-block') {
+                const [block, containingBranch, parent] = blockTreeUtils.findBlock(context[1], tree);
+                const bt = blockTypes.get(block.type);
+                const upd = bt.reRender(block, () => '');
+                const temp = document.createElement('template');
+                temp.innerHTML = upd;
+                const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
+                const treeRootEl = document.body;
+                const nextEl = nextBlock ? treeRootEl.querySelector(`[data-block="${nextBlock.id}"]`) : null;
+                if ((nextEl && !parent) || (nextEl && parent)) {
+                    nextEl.parentElement.insertBefore(temp.content, nextEl);
+                } else if (!nextEl && parent) {
+                    const parentEl = treeRootEl.querySelector(`[data-block="${parent.id}"]`);
+                    getBlockContentRoot(parentEl).appendChild(temp.content);
+                } else if (!nextEl && !parent) {
+                    treeRootEl.appendChild(temp.content);
+                }
+                return;
+            }
+
+
+            if (context[0] === 'undo-add-single-block') {
+                const treeRootEl = document.body;
+                const el = treeRootEl.querySelector(`[data-block="${context[1]}"]`);
+                el.parentElement.removeChild(el);
+                return;
+            }
+
             const bid = context[0] === 'update-single-value' || context[0] === 'undo-single-value' ? context[1] : null;
             if (!bid) return;
             blockTreeUtils.traverseRecursively(tree, block => {
@@ -737,6 +765,10 @@ function createTrier(fn,
         }
     };
     return callTryFn;
+}
+
+function getBlockContentRoot(el) {
+    return el.querySelector(':scope > [data-block-root]') || el;
 }
 
 export default EditAppAwareWebPage;

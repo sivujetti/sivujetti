@@ -31,7 +31,15 @@ class WebPageIframe {
      */
     scrollTo(block) {
         const win = this.getEl().contentWindow;
-        const inPageElRect = block.getRootDomNode().getBoundingClientRect();
+        const useFeatureReduxBlockTrees = window.useReduxBlockTree;
+        let inPageElRect;
+        if (!useFeatureReduxBlockTrees) {
+        inPageElRect = block.getRootDomNode().getBoundingClientRect();
+        } else {
+        const firstEl = this.getEl().contentDocument.body.querySelector(`[data-block="${block.id}"]`);
+        inPageElRect = firstEl.querySelector(':scope > [data-block-root]') ||
+               firstEl.getBoundingClientRect();
+        }
         const inPageElTop = inPageElRect.top;
         const elBottom = inPageElRect.bottom;
         const quarterVisible = win.innerHeight / 4;

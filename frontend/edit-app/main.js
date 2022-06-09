@@ -54,17 +54,25 @@ function configureServices() {
     });
     //
     const blockTypes = new BlockTypes(api);
-    blockTypes.register('Menu', createMenuBlockType);
-    blockTypes.register('Button', createButtonBlockType);
-    blockTypes.register('Columns', createColumnsBlockType);
-    blockTypes.register('GlobalBlockReference', createGlobalBlockReferenceBlockType);
-    blockTypes.register('Heading', createHeadingBlockType);
-    blockTypes.register('Image', createImageBlockType);
-    blockTypes.register('Listing', createListingBlockType);
-    blockTypes.register('PageInfo', createPageInfoBlockType);
+    const useFeatureReduxBlockTrees = window.useReduxBlockTree;
+    const maybeDisableEdit = orig => !useFeatureReduxBlockTrees ? orig : function (...args) {
+        const out = orig(...args);
+        out.editForm = class extends preact.Component {
+            render() { return 'Not supported yet'; }
+        };
+        return out;
+    };
+    blockTypes.register('Menu', maybeDisableEdit(createMenuBlockType));
+    blockTypes.register('Button', maybeDisableEdit(createButtonBlockType));
+    blockTypes.register('Columns', maybeDisableEdit(createColumnsBlockType));
+    blockTypes.register('GlobalBlockReference', maybeDisableEdit(createGlobalBlockReferenceBlockType));
+    blockTypes.register('Heading', maybeDisableEdit(createHeadingBlockType));
+    blockTypes.register('Image', maybeDisableEdit(createImageBlockType));
+    blockTypes.register('Listing', maybeDisableEdit(createListingBlockType));
+    blockTypes.register('PageInfo', maybeDisableEdit(createPageInfoBlockType));
     blockTypes.register('Paragraph', createParagraphBlockType);
-    blockTypes.register('RichText', createRichTextBlockType);
-    blockTypes.register('Section', createSectionBlockType);
+    blockTypes.register('RichText', maybeDisableEdit(createRichTextBlockType));
+    blockTypes.register('Section', maybeDisableEdit(createSectionBlockType));
     api.blockTypes = blockTypes;
     //
     const mainPanel = new MainPanel(document.getElementById('main-panel'),
@@ -172,14 +180,24 @@ function renderReactEditApp() {
             const ordered = webPage.getCombinedAndOrderedBlockTree(webPage.data.page.blocks,
                                                                    blockRefs,
                                                                    blockTreeUtils);
+            const useFeatureReduxBlockTrees = window.useReduxBlockTree;
+            let second = null;
+            if (useFeatureReduxBlockTrees) {
+                const clone = JSON.parse(JSON.stringify(ordered));
+                blockTreeUtils.traverseRecursively(clone, b => {
+                    if (b.type === 'Paragraph') return;
+                    wipe(b);
+                });
+                second = clone;
+            }
+
             const filtered = !webPage.data.page.isPlaceholderPage
                 // Accept all
                 ? blockRefs
                 // Only if page block
                 : blockRefs.filter(({blockId}) => blockTreeUtils.findBlock(blockId, webPage.data.page.blocks)[0] !== null);
             webPage.registerEventHandlers(editApp.websiteEventHandlers, filtered);
-            editApp.handleWebPageLoaded(webPage, ordered, blockRefs);
-            const useFeatureReduxBlockTrees = window.useReduxBlockTree;
+            editApp.handleWebPageLoaded(webPage, ordered, blockRefs, second);
             if (useFeatureReduxBlockTrees) {
                 const fn = webPage.createBlockTreeChangeListener(blockTreeUtils, api.blockTypes);
                 observeStore(createSelectBlockTree('root'), fn);
@@ -203,4 +221,13 @@ function hookUpSiteIframeUrlMirrorer() {
 
 function capitalize(str) {
     return `${str.charAt(0).toUpperCase()}${str.substring(1, str.length)}`;
+}
+
+function wipe(block) {
+    for (const key in block) {
+        if (!Object.prototype.hasOwnProperty.call(block, key)) continue;
+        if (key === 'id' || key === 'type' || key === 'children') continue;
+        else delete block[key];
+    }
+    block.__wiped = true;
 }

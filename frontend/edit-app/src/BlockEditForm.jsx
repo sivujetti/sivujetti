@@ -236,9 +236,7 @@ class BlockEditForm extends preact.Component {
             doHandle: () => {
                 // todo return if placeholder page
                 const {tree} = createSelectBlockTree('root')(store.getState());
-                const prevImplTree = this.props.blockTreeCmp.getTree();
-                const newImplMergedToPrevImp = combineTrees(tree, prevImplTree);
-                return BlockTrees.saveExistingBlocksToBackend(newImplMergedToPrevImp, 'page', null);
+                return BlockTrees.saveExistingBlocksToBackend(tree, 'page', 'root');
             },
             doUndo: () => {
                 store.dispatch(createUpdateBlockTreeItemData('root')(
@@ -555,16 +553,6 @@ function updateFormValues($this, snapshot) {
     BlockEditForm.undoingLockIsOn = true;
     $this.editFormImplRef.current.overrideValues(snapshot);
     setTimeout(() => { BlockEditForm.undoingLockIsOn = false; }, 200);
-}
-
-function combineTrees(newImplTree, oldImplTree) {
-    const cloned = JSON.parse(JSON.stringify(oldImplTree));
-    blockTreeUtils.traverseRecursively(cloned, b => {
-        if (b.type !== 'Paragraph') return;
-        const fromNewImplTree = blockTreeUtils.findBlock(b.id, newImplTree)[0];
-        Object.assign(b, fromNewImplTree);
-    });
-    return cloned;
 }
 
 /**

@@ -49,9 +49,10 @@ class EditApp extends preact.Component {
      * @param {EditAppAwareWebPage} webPage
      * @param {Array<RawBlock} combinedBlockTree
      * @param {Array<BlockRefComment>} blockRefs
+     * @param {Array<RawBlock2>|null} second
      * @access public
      */
-    handleWebPageLoaded(webPage, combinedBlockTree, blockRefs) {
+    handleWebPageLoaded(webPage, combinedBlockTree, blockRefs, second = null) {
         this.receivingData = true;
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         const webPagePage = webPage.data.page;
@@ -67,8 +68,7 @@ class EditApp extends preact.Component {
 
         const useFeatureReduxBlockTrees = window.useReduxBlockTree;
         if (useFeatureReduxBlockTrees) {
-            const clone = JSON.parse(JSON.stringify(combinedBlockTree));
-            store.dispatch(createSetBlockTree('root')(clone, ['init']));
+            store.dispatch(createSetBlockTree('root')(second, ['init']));
         }
     }
     /**
@@ -298,12 +298,15 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
         highlightRectEl.current.style.cssText = '';
         prevHoverStartBlockRef = null;
     };
+    const useFeatureReduxBlockTrees = window.useReduxBlockTree;
     return {
         /**
          * @param {BlockRefComment} blockRef
          * @param {ClientRect} r
          */
         onHoverStarted(blockRef, r) {
+            if (useFeatureReduxBlockTrees && !findBlockTemp(blockRef, blockTrees.current.blockTree.current))
+                return;
             if (prevHoverStartBlockRef === blockRef)
                 return;
             highlightRectEl.current.style.cssText = [
@@ -326,6 +329,8 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
          * @param {BlockRefComment|null} blockRef
          */
         onClicked(blockRef) {
+            if (useFeatureReduxBlockTrees && (!blockRef || !findBlockTemp(blockRef, blockTrees.current.blockTree.current)))
+                return;
             signals.emit('on-web-page-click-received');
             if (!blockRef) return;
             const treeCmp = blockTrees.current.blockTree.current;

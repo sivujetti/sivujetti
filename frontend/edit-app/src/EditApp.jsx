@@ -5,7 +5,7 @@ import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
 import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType/PageTypeCreateMainPanelView.jsx';
 import store, {observeStore, setCurrentPage, setGlobalBlockTreeBlocksStyles, setPageBlocksStyles,
                setOpQueue, selectGlobalBlockTreeBlocksStyles, selectPageBlocksStyles, selectBlockTypesBaseStyles,
-               createSetBlockTree} from './store.js';
+               createSetBlockTree, createBlockTreeReducerPair} from './store.js';
 import SaveButton from './SaveButton.jsx';
 import {findBlockTemp} from './BlockTree.jsx';
 
@@ -49,10 +49,10 @@ class EditApp extends preact.Component {
      * @param {EditAppAwareWebPage} webPage
      * @param {Array<RawBlock} combinedBlockTree
      * @param {Array<BlockRefComment>} blockRefs
-     * @param {Array<RawBlock2>|null} second
+     * @param {Map<String, Array<RawBlock2>>|null} trees = null
      * @access public
      */
-    handleWebPageLoaded(webPage, combinedBlockTree, blockRefs, second = null) {
+    handleWebPageLoaded(webPage, combinedBlockTree, blockRefs, trees = null) {
         this.receivingData = true;
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         const webPagePage = webPage.data.page;
@@ -68,7 +68,16 @@ class EditApp extends preact.Component {
 
         const useFeatureReduxBlockTrees = window.useReduxBlockTree;
         if (useFeatureReduxBlockTrees) {
-            store.dispatch(createSetBlockTree('root')(second, ['init']));
+            if (trees.keys().next().value !== 'main') throw new Error('Sanity');
+
+            for (const [trid, tree] of trees) {
+                if (trid !== 'main') {
+                    const [storeStateKey, reducer] = createBlockTreeReducerPair(trid);
+                    if (store.reducerManager.has(storeStateKey)) continue;
+                    store.reducerManager.add(storeStateKey, reducer);
+                }
+                store.dispatch(createSetBlockTree(trid)(tree, ['init']));
+            }
         }
     }
     /**

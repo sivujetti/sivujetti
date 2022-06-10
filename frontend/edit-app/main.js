@@ -181,14 +181,32 @@ function renderReactEditApp() {
                                                                    blockRefs,
                                                                    blockTreeUtils);
             const useFeatureReduxBlockTrees = window.useReduxBlockTree;
-            let second = null;
+            const trees = new Map;
             if (useFeatureReduxBlockTrees) {
+                if (window.currentBlockTreeCmp) {
+                    window.currentBlockTreeCmp.componentWillUnmount();
+                }
+
                 const clone = JSON.parse(JSON.stringify(ordered));
-                blockTreeUtils.traverseRecursively(clone, b => {
-                    if (b.type === 'Paragraph') return;
-                    wipe(b);
-                });
-                second = clone;
+
+                //
+                const [mutatedClone, separatedTrees] = separate(clone);
+
+                trees.set('main', mutatedClone);
+                for (const [trid, tree] of separatedTrees) {
+                    blockTreeUtils.traverseRecursively(tree, b => {
+                        b.isStoredTo = 'globalBlockTree';
+                        b.isStoredToTreeId = trid;
+                    });
+                    trees.set(trid, tree);
+                }
+
+                for (const [_, tree] of trees) {
+                    blockTreeUtils.traverseRecursively(tree, b => {
+                        if (b.type === 'Paragraph' || b.type === 'GlobalBlockReference') return;
+                        wipe(b);
+                    });
+                }
             }
 
             const filtered = !webPage.data.page.isPlaceholderPage
@@ -197,13 +215,29 @@ function renderReactEditApp() {
                 // Only if page block
                 : blockRefs.filter(({blockId}) => blockTreeUtils.findBlock(blockId, webPage.data.page.blocks)[0] !== null);
             webPage.registerEventHandlers(editApp.websiteEventHandlers, filtered);
-            editApp.handleWebPageLoaded(webPage, ordered, blockRefs, second);
+            editApp.handleWebPageLoaded(webPage, ordered, blockRefs, trees);
             if (useFeatureReduxBlockTrees) {
-                const fn = webPage.createBlockTreeChangeListener(blockTreeUtils, api.blockTypes);
-                observeStore(createSelectBlockTree('root'), fn);
+                for (const [trid, _] of trees) {
+                    const fn = webPage.createBlockTreeChangeListener(trid, blockTreeUtils, api.blockTypes);
+                    observeStore(createSelectBlockTree(trid), fn);
+                }
             }
         }
     };
+}
+
+/**
+ * @param {Array<RawBlock>} mainTreeBlocks
+ * @returns {[Array<RawBlock>, Map<String, Array<RawBlock>>]}
+ */
+function separate(mainTreeBlocks) {
+    const separatedGlobalTreesBlocks = new Map;
+    blockTreeUtils.traverseRecursively(mainTreeBlocks, b => {
+        if (b.type !== 'GlobalBlockReference') return;
+        separatedGlobalTreesBlocks.set(b.globalBlockTreeId, b.__globalBlockTree.blocks);
+        delete b.__globalBlockTree.blocks;
+    });
+    return [mainTreeBlocks, separatedGlobalTreesBlocks];
 }
 
 function hookUpSiteIframeUrlMirrorer() {
@@ -226,7 +260,7 @@ function capitalize(str) {
 function wipe(block) {
     for (const key in block) {
         if (!Object.prototype.hasOwnProperty.call(block, key)) continue;
-        if (key === 'id' || key === 'type' || key === 'children') continue;
+        if (['id', 'type', 'isStoredTo', 'isStoredToTreeId', 'children'].indexOf(key) > -1) continue;
         else delete block[key];
     }
     block.__wiped = true;

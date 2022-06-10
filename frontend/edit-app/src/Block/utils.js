@@ -4,10 +4,10 @@ import {generatePushID} from '../commons/utils.js';
 /**
  * @param {BlockType|String} blockType
  * @param {String} id = generatePushID()
- * @param {String} trid = 'root'
+ * @param {String} trid = 'main'
  * @returns {RawBlock2}
  */
-function createBlockFromType(blockType, id = generatePushID(), trid = 'root') {
+function createBlockFromType(blockType, id = generatePushID(), trid = 'main') {
     blockType = typeof blockType !== 'string' ? blockType : api.blockTypes.get(blockType);
     const typeSpecific = createOwnData(blockType);
     return Object.assign({
@@ -15,7 +15,7 @@ function createBlockFromType(blockType, id = generatePushID(), trid = 'root') {
         type: blockType.name,
         title: '',
         renderer: blockType.defaultRenderer,
-        isStoredTo: trid === 'root' ? 'page' : 'globalBlockTree',
+        isStoredTo: trid === 'main' ? 'page' : 'globalBlockTree',
         isStoredToTreeId: trid,
         children: []
     }, typeSpecific);

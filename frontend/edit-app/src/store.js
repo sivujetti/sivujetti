@@ -20,7 +20,7 @@ const selectCurrentPage = state => state.currentPage;
 
 /**
  * @param {String} trid
- * @returns {(state: {tree: Array<RawBlock2>; context: ['update-single-value'|'undo-single-value'|'add-single-block'|'undo-add-single-block', String|null, String|null, String|null];}, action: Object) => Object}
+ * @returns {(state: BlockTreeReduxState, action: Object) => Object}
  */
 const createBlockTreeReducer = trid => (state = {}, action) => {
     switch (action.type) {
@@ -37,7 +37,7 @@ const createBlockTreeReducer = trid => (state = {}, action) => {
 const createSetBlockTree = trid => (tree, context) => ({type: `blockTree_${trid}/set`, tree, context});
 const createUpdateBlockTreeItemData = trid => (data, blockId, context) => ({type: `blockTree_${trid}/updateDataOf`, data, blockId, context});
 const createSelectBlockTree = trid => state => state[`blockTree_${trid}`];
-
+const createBlockTreeReducerPair = trid => [`blockTree_${trid}`, createBlockTreeReducer(trid)];
 
 /**
  * @param {Object} state
@@ -163,9 +163,10 @@ const selectFormState = (state, id) => state.formStates[id];
 ////////////////////////////////////////////////////////////////////////////////
 
 
+const [mainTreeStateKey, mainTreeReducer] = createBlockTreeReducerPair('main');
 const mainStore = createManageableStore(undefined, {
     currentPage: currentPageReducer,
-    blockTree_root: createBlockTreeReducer('root'),
+    [mainTreeStateKey]: mainTreeReducer,
     globalBlockTreeBlocksStyles: globalBlockTreeBlocksStylesReducer,
     pageBlocksStyles: pageBlocksStylesReducer,
     blockTypesBaseStyles: blockTypesBaseStylesReducer,
@@ -227,6 +228,7 @@ class FormStateStoreWrapper {
 export {setCurrentPage, selectCurrentPage,
         //
         createSetBlockTree, createUpdateBlockTreeItemData, createSelectBlockTree,
+        createBlockTreeReducerPair,
         //
         setGlobalBlockTreeBlocksStyles, selectGlobalBlockTreeBlocksStyles,
         setPageBlocksStyles, selectPageBlocksStyles,

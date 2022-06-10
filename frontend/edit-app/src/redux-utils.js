@@ -60,6 +60,8 @@ function createReducerManager(initialReducers) {
       combinedReducer = combineReducers(reducers);
     },
 
+    has: key => Object.prototype.hasOwnProperty.call(reducers, key),
+
     // Removes a reducer with the specified key
     remove: key => {
       if (key === '__proto__');// @todo

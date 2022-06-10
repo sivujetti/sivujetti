@@ -139,7 +139,7 @@ class BlockTrees extends preact.Component {
                 : {blocks: blockTreeUtils.mapRecursivelyManual(newBlockTree, (b, _i, children) => {
                     b.children = children;
                     for (const key in b) {
-                        if (Object.prototype.hasOwnProperty.call(b, key) && key.startsWith('__'))
+                        if (Object.prototype.hasOwnProperty.call(b, key) && (key.startsWith('__') || key === 'propsData'))
                             delete b[key];
                     }
                     return b;

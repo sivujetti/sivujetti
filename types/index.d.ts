@@ -301,3 +301,8 @@ interface BlockTreeItemState {
     isCollapsed: Boolean;
     isNew: Boolean;
 }
+
+interface BlockTreeReduxState {
+    tree: Array<RawBlock2>;
+    context: ['update-single-value'|'undo-single-value'|'add-single-block'|'undo-add-single-block', String|null, String|null, String|null];
+}

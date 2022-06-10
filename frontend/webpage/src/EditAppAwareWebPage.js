@@ -58,11 +58,12 @@ class EditAppAwareWebPage {
         this.registerLocalLinkEventHandlers();
     }
     /**
+     * @param {String} trid
      * @param {blockTreeUtils} blockTreeUtils
      * @param {BlockTypes} blockTypes
-     * @returns {(blockTreeState: {tree: Array<RawBlock2>; context: ['update-single-value'|'undo-single-value'|'add-single-block'|'undo-add-single-block', String|null, String|null, String|null];}) => void}
+     * @returns {(blockTreeState: BlockTreeReduxState) => void}
      */
-    createBlockTreeChangeListener(blockTreeUtils, blockTypes) {
+    createBlockTreeChangeListener(trid, blockTreeUtils, blockTypes) {
         return ({tree, context}) => {
             if (context[0] === 'add-single-block') {
                 const [block, containingBranch, parent] = blockTreeUtils.findBlock(context[1], tree);
@@ -84,7 +85,6 @@ class EditAppAwareWebPage {
                 return;
             }
 
-
             if (context[0] === 'undo-add-single-block') {
                 const treeRootEl = document.body;
                 const el = treeRootEl.querySelector(`[data-block="${context[1]}"]`);
@@ -92,17 +92,18 @@ class EditAppAwareWebPage {
                 return;
             }
 
-            const bid = context[0] === 'update-single-value' || context[0] === 'undo-single-value' ? context[1] : null;
-            if (!bid) return;
-            blockTreeUtils.traverseRecursively(tree, block => {
-                if (block.id !== bid) return;
-                const el = document.body.querySelector(`[data-block="${block.id}"]`);
-                const bt = blockTypes.get(block.type);
-                const upd = bt.reRender(block, () => '');
-                const temp = document.createElement('template');
-                temp.innerHTML = upd;
-                el.replaceWith(temp.content);
-            });
+            if (context[0] === 'update-single-value' || context[0] === 'undo-single-value') {
+                const blockId = context[1];
+                blockTreeUtils.traverseRecursively(tree, block => {
+                    if (block.id !== blockId) return;
+                    const el = document.body.querySelector(`[data-block="${block.id}"]`);
+                    const bt = blockTypes.get(block.type);
+                    const upd = bt.reRender(block, () => '');
+                    const temp = document.createElement('template');
+                    temp.innerHTML = upd;
+                    el.replaceWith(temp.content);
+                });
+            }
         };
     }
     /**

@@ -76,7 +76,8 @@ class BlockEditForm extends preact.Component {
             this.currentDebounceType = null;
             this.boundEmitStickyChange = null;
             this.boundEmitFastChange = null;
-            this.unregistrables = [observeStore(createSelectBlockTree('root'), ({tree, context}) => {
+            const trid = this.props.block.isStoredToTreeId || 'main';
+            this.unregistrables = [observeStore(createSelectBlockTree(trid), ({tree, context}) => {
                 if (!this.editFormImplsChangeGrabber)
                     return;
                 if (context[0] !== 'update-single-value' && context[0] !== 'undo-single-value')
@@ -161,6 +162,7 @@ class BlockEditForm extends preact.Component {
                     key={ block.id }/> :
                 <EditFormImpl
                     blockId={ block.id }
+                    blockIsStoredToTreeId={ block.isStoredToTreeId }
                     grabChanges={ withFn => { this.editFormImplsChangeGrabber = withFn; } }
                     emitValueChanged={ (val, key, hasErrors, debounceMillis) => { this.handleValueValuesChanged({[key]: val}, hasErrors, debounceMillis); } }
                     emitManyValuesChanged={ this.handleValueValuesChanged.bind(this) }
@@ -212,10 +214,10 @@ class BlockEditForm extends preact.Component {
             this.currentDebounceTime = debounceMillis;
             this.currentDebounceType = debounceType;
         }
-        const {tree} = createSelectBlockTree('root')(store.getState());
+        const trid = this.props.block.isStoredToTreeId || 'main';
+        const {tree} = createSelectBlockTree(trid)(store.getState());
         const block = blockTreeUtils.findBlock(this.props.block.id, tree)[0];
         const oldData = cloneFrom(Object.keys(changes), block);
-        const trid = block.isStoredToTreeId;
         const partialContext = [block.id, block.type, trid];
         // Call emitFastChange, which then calls emitCommitChange
         this.boundEmitFastChange(changes, oldData, partialContext, hasErrors);
@@ -223,7 +225,7 @@ class BlockEditForm extends preact.Component {
     /**
      */
     emitFast(newData, partialContext) {
-        store.dispatch(createUpdateBlockTreeItemData('root')(
+        store.dispatch(createUpdateBlockTreeItemData(partialContext[2])(
             newData,
             partialContext[0],
             ['update-single-value', ...partialContext]
@@ -235,11 +237,12 @@ class BlockEditForm extends preact.Component {
         store.dispatch(pushItemToOpQueue(`update-page-block-data`, {
             doHandle: () => {
                 // todo return if placeholder page
-                const {tree} = createSelectBlockTree('root')(store.getState());
-                return BlockTrees.saveExistingBlocksToBackend(tree, 'page', 'root');
+                const trid = partialContext[2];
+                const {tree} = createSelectBlockTree(trid)(store.getState());
+                return BlockTrees.saveExistingBlocksToBackend(tree, !trid ? 'page' : 'globalBlockTree', trid);
             },
             doUndo: () => {
-                store.dispatch(createUpdateBlockTreeItemData('root')(
+                store.dispatch(createUpdateBlockTreeItemData(partialContext[2])(
                     oldData,
                     partialContext[0],
                     ['undo-single-value', ...partialContext]

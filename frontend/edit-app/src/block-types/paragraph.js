@@ -91,7 +91,7 @@ class ParagraphBlockEditForm2 extends preact.Component {
     componentWillMount() {
         this.editor = preact.createRef();
         const {blockId, blockIsStoredToTreeId, emitValueChanged, grabChanges} = this.props;
-        const block = blockTreeUtils.findBlock(blockId, createSelectBlockTree(blockIsStoredToTreeId || 'main')(store.getState()).tree)[0];
+        const block = blockTreeUtils.findBlock(blockId, createSelectBlockTree(blockIsStoredToTreeId)(store.getState()).tree)[0];
         this.initialText = block.text;
         this.setState(hookForm(this, [
             {name: 'text', value: block.text, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]],

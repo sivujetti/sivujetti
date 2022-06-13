@@ -76,7 +76,7 @@ class BlockEditForm extends preact.Component {
             this.currentDebounceType = null;
             this.boundEmitStickyChange = null;
             this.boundEmitFastChange = null;
-            const trid = this.props.block.isStoredToTreeId || 'main';
+            const trid = this.props.block.isStoredToTreeId;
             this.unregistrables = [observeStore(createSelectBlockTree(trid), ({tree, context}) => {
                 if (!this.editFormImplsChangeGrabber)
                     return;
@@ -214,7 +214,7 @@ class BlockEditForm extends preact.Component {
             this.currentDebounceTime = debounceMillis;
             this.currentDebounceType = debounceType;
         }
-        const trid = this.props.block.isStoredToTreeId || 'main';
+        const trid = this.props.block.isStoredToTreeId;
         const {tree} = createSelectBlockTree(trid)(store.getState());
         const block = blockTreeUtils.findBlock(this.props.block.id, tree)[0];
         const oldData = cloneFrom(Object.keys(changes), block);
@@ -239,7 +239,7 @@ class BlockEditForm extends preact.Component {
                 // todo return if placeholder page
                 const trid = partialContext[2];
                 const {tree} = createSelectBlockTree(trid)(store.getState());
-                return BlockTrees.saveExistingBlocksToBackend(tree, !trid ? 'page' : 'globalBlockTree', trid);
+                return BlockTrees.saveExistingBlocksToBackend(tree, trid);
             },
             doUndo: () => {
                 store.dispatch(createUpdateBlockTreeItemData(partialContext[2])(

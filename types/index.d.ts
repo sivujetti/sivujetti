@@ -73,12 +73,15 @@ interface RawBlock {
     propsData: Array<{key: String; value: String;}>;
     children: Array<RawBlock>;
     isStoredTo?: 'page'|'globalBlockTree';
+    isStoredToTreeId: String;
     [key: String]: mixed;
 }
 
 interface RawBlock2 {
     id: String;
     type: String;
+    isStoredTo?: 'page'|'globalBlockTree';
+    isStoredToTreeId: String;
     children: Array<RawBlock>;
     // todo
     [key: String]: mixed;

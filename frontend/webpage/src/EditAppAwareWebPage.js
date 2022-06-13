@@ -120,6 +120,7 @@ class EditAppAwareWebPage {
             if (block) {
                 blockTreeUtils.traverseRecursively([block], b => {
                     b.isStoredTo = 'page';
+                    b.isStoredToTreeId = 'main';
                 });
                 out.push(block);
             }

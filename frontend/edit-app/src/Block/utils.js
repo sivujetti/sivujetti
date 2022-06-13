@@ -3,11 +3,11 @@ import {generatePushID} from '../commons/utils.js';
 
 /**
  * @param {BlockType|String} blockType
- * @param {String} id = generatePushID()
  * @param {String} trid = 'main'
+ * @param {String} id = generatePushID()
  * @returns {RawBlock2}
  */
-function createBlockFromType(blockType, id = generatePushID(), trid = 'main') {
+function createBlockFromType(blockType, trid = 'main', id = generatePushID()) {
     blockType = typeof blockType !== 'string' ? blockType : api.blockTypes.get(blockType);
     const typeSpecific = createOwnData(blockType);
     return Object.assign({

@@ -194,7 +194,7 @@ class BlockTree extends preact.Component {
         this.emitItemClickedOrAppendedSignal('focus-requested', block, null);
         if (isDirectClick) this.emitItemClickedOrAppendedSignal('clicked', block, null);
         const mutRef = this.state.treeState;
-        const tree = !block.isStoredToTreeId ? this.state.blockTree : createSelectBlockTree(block.isStoredToTreeId)(store.getState()).tree;
+        const {tree} = createSelectBlockTree(block.isStoredToTreeId)(store.getState());
         const ids = findBlockWithParentIdPath(tree, ({id}, path) => {
             if (id !== block.id) return null;
             // Found block, has no children
@@ -304,7 +304,7 @@ class BlockTree extends preact.Component {
      */
     onMainTreeChanged({tree, context}) {
         if ((context[0] === 'init' && !this.state.blockTree.length) || context[0] === 'add-single-block' || context[0] === 'undo-add-single-block') {
-            this.setState({blockTree: tree, treeState: createTreeState(tree)});
+            this.setState({blockTree: tree, treeState: createTreeState(tree, context[0] !== 'init')});
         }
     }
     /**
@@ -316,7 +316,7 @@ class BlockTree extends preact.Component {
             const newTreeTreeState = createTreeState(tree);
             this.setState({treeState: Object.assign({}, this.state.treeState, newTreeTreeState)});
         } else if (context[0] === 'add-single-block' || context[0] === 'undo-add-single-block') {
-            window.console.log('not implemented yet');
+            this.setState({treeState: createTreeState(tree, true)});
         }
     }
     /**
@@ -587,8 +587,13 @@ class BlockTree extends preact.Component {
         }
     }
     addParagraph(openBlock, where) {
-        const newBlock = createBlockFromType('Paragraph');
-        const {tree} = createSelectBlockTree('main')(store.getState());
+        let trid = openBlock.isStoredToTreeId;
+        if (trid !== 'main' && where === 'after' && openBlock.id === createSelectBlockTree(trid)(store.getState()).tree[0].id) {
+            trid = 'main';
+            openBlock = findRefBlockOf(openBlock, createSelectBlockTree('main')(store.getState()).tree);
+        }
+        const newBlock = createBlockFromType('Paragraph', trid);
+        const {tree} = createSelectBlockTree(trid)(store.getState());
         const treeBefore = JSON.parse(JSON.stringify(tree));
         if (where === 'after') {
             const [after, branch] = blockTreeUtils.findBlock(openBlock.id, tree);
@@ -598,15 +603,15 @@ class BlockTree extends preact.Component {
         } else {
             throw new Error('Invalid where');
         }
-        store.dispatch(createSetBlockTree('main')(tree, ['add-single-block',
-            newBlock.id, newBlock.type, 'main']));
-        store.dispatch(pushItemToOpQueue(`append-page-block`, {
+        store.dispatch(createSetBlockTree(trid)(tree, ['add-single-block',
+            newBlock.id, newBlock.type, trid]));
+        store.dispatch(pushItemToOpQueue(`append-${trid === 'main' ? 'page' : 'globalBlockTree'}-block`, {
             doHandle: () =>
-                BlockTrees.saveExistingBlocksToBackend(tree, 'page', 'main')
+                BlockTrees.saveExistingBlocksToBackend(tree, trid)
             ,
             doUndo: () => {
-                store.dispatch(createSetBlockTree('main')(treeBefore, ['undo-add-single-block',
-                    newBlock.id, newBlock.type, 'main']));
+                store.dispatch(createSetBlockTree(trid)(treeBefore, ['undo-add-single-block',
+                    newBlock.id, newBlock.type, trid]));
             },
             args: [],
         }));
@@ -1034,13 +1039,40 @@ function splitPath(path) {
 
 /**
  * @param {Array<RawBlock2>} tree
+ * @param {Boolean} full = false
+ * @returns {{[key: String]: BlockTreeItemState;}}
  */
-function createTreeState(tree) {
+function createTreeState(tree, full = false) {
     const out = {};
-    blockTreeUtils.traverseRecursively(tree, block => {
-        out[block.id] = createTreeStateItem();
-    });
+    if (!full) {
+        blockTreeUtils.traverseRecursively(tree, block => {
+            out[block.id] = createTreeStateItem();
+        });
+    } else {
+        blockTreeUtils.traverseRecursively(createSelectBlockTree('main')(store.getState()).tree, block => {
+            if (block.type !== 'GlobalBlockReference')
+                out[block.id] = createTreeStateItem();
+            else {
+                const trid = block.globalBlockTreeId;
+                blockTreeUtils.traverseRecursively(createSelectBlockTree(trid)(store.getState()).tree, block2 => {
+                    out[block2.id] = createTreeStateItem();
+                });
+            }
+        });
+    }
     return out;
+}
+
+/**
+ * @param {RawBlock2} innerTreeBlock
+ * @param {Array<RawBlock2>} tree
+ * @returns {RawBlock2} {type: 'GlobalBlockReference'}
+ */
+function findRefBlockOf(innerTreeBlock, tree) {
+    const trid = innerTreeBlock.isStoredToTreeId;
+    return blockTreeUtils.findRecursively(tree, block =>
+        block.type === 'GlobalBlockReference' && block.globalBlockTreeId === trid
+    );
 }
 
 /**

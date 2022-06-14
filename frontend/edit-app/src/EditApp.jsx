@@ -66,8 +66,7 @@ class EditApp extends preact.Component {
         store.dispatch(setOpQueue([]));
         this.receivingData = false;
 
-        const useFeatureReduxBlockTrees = window.useReduxBlockTree;
-        if (useFeatureReduxBlockTrees) {
+        if (window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
             if (trees.keys().next().value !== 'main') throw new Error('Sanity');
 
             for (const [trid, tree] of trees) {
@@ -76,7 +75,7 @@ class EditApp extends preact.Component {
                     if (store.reducerManager.has(storeStateKey)) continue;
                     store.reducerManager.add(storeStateKey, reducer);
                 }
-                store.dispatch(createSetBlockTree(trid)(tree, ['init']));
+                store.dispatch(createSetBlockTree(trid)(tree, ['@init']));
             }
         }
     }
@@ -307,14 +306,14 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
         highlightRectEl.current.style.cssText = '';
         prevHoverStartBlockRef = null;
     };
-    const useFeatureReduxBlockTrees = window.useReduxBlockTree;
+    const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
     return {
         /**
          * @param {BlockRefComment} blockRef
          * @param {ClientRect} r
          */
         onHoverStarted(blockRef, r) {
-            if (useFeatureReduxBlockTrees && !findBlockTemp(blockRef, blockTrees.current.blockTree.current))
+            if (featureFlagConditionUseReduxBlockTree && !findBlockTemp(blockRef, blockTrees.current.blockTree.current))
                 return;
             if (prevHoverStartBlockRef === blockRef)
                 return;
@@ -338,7 +337,7 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
          * @param {BlockRefComment|null} blockRef
          */
         onClicked(blockRef) {
-            if (useFeatureReduxBlockTrees && (!blockRef || !findBlockTemp(blockRef, blockTrees.current.blockTree.current)))
+            if (featureFlagConditionUseReduxBlockTree && (!blockRef || !findBlockTemp(blockRef, blockTrees.current.blockTree.current)))
                 return;
             signals.emit('on-web-page-click-received');
             if (!blockRef) return;

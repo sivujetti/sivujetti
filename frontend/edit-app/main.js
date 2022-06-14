@@ -54,8 +54,8 @@ function configureServices() {
     });
     //
     const blockTypes = new BlockTypes(api);
-    const useFeatureReduxBlockTrees = window.useReduxBlockTree;
-    const maybeDisableEdit = orig => !useFeatureReduxBlockTrees ? orig : function (...args) {
+    // @featureFlagConditionUseReduxBlockTree
+    const maybeDisableEdit = orig => !window.useReduxBlockTree ? orig : function (...args) {
         const out = orig(...args);
         out.editForm = class extends preact.Component {
             render() { return 'Not supported yet'; }
@@ -176,13 +176,14 @@ function renderReactEditApp() {
         handleWebPageLoaded(webPage) {
             const editApp = editAppReactRef.current;
             //
-            const blockRefs = webPage.scanBlockRefComments();
+            const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
+            const blockRefs = webPage.scanBlockRefComments(featureFlagConditionUseReduxBlockTree);
             const ordered = webPage.getCombinedAndOrderedBlockTree(webPage.data.page.blocks,
                                                                    blockRefs,
                                                                    blockTreeUtils);
-            const useFeatureReduxBlockTrees = window.useReduxBlockTree;
-            const trees = new Map;
-            if (useFeatureReduxBlockTrees) {
+            let trees = null;
+            if (featureFlagConditionUseReduxBlockTree) {
+                trees = new Map;
                 if (window.currentBlockTreeCmp) {
                     window.currentBlockTreeCmp.componentWillUnmount();
                 }
@@ -203,7 +204,7 @@ function renderReactEditApp() {
 
                 for (const [_, tree] of trees) {
                     blockTreeUtils.traverseRecursively(tree, b => {
-                        if (b.type === 'Paragraph' || b.type === 'GlobalBlockReference') return;
+                        if (b.type === 'Paragraph' || b.type === 'GlobalBlockReference' || b.type === 'Section') return;
                         wipe(b);
                     });
                 }
@@ -216,9 +217,10 @@ function renderReactEditApp() {
                 : blockRefs.filter(({blockId}) => blockTreeUtils.findBlock(blockId, webPage.data.page.blocks)[0] !== null);
             webPage.registerEventHandlers(editApp.websiteEventHandlers, filtered);
             editApp.handleWebPageLoaded(webPage, ordered, blockRefs, trees);
-            if (useFeatureReduxBlockTrees) {
+            if (featureFlagConditionUseReduxBlockTree) {
+                const getTree = trid => createSelectBlockTree(trid)(store.getState()).tree;
                 for (const [trid, _] of trees) {
-                    const fn = webPage.createBlockTreeChangeListener(trid, blockTreeUtils, api.blockTypes);
+                    const fn = webPage.createBlockTreeChangeListener(trid, blockTreeUtils, api.blockTypes, getTree);
                     observeStore(createSelectBlockTree(trid), fn);
                 }
             }

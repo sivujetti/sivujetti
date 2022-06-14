@@ -136,7 +136,7 @@ class ParagraphBlockEditForm2 extends preact.Component {
                         editor.quill.keyboard.bindings[13].unshift({
                             key: 13,
                             handler: (_range, _context) => {
-                                // useFeatureReduxBlockTrees
+                                // featureFlagConditionUseReduxBlockTree
                                 // this.props.blockTree.appendBlockToTreeAfter(block, '');
                                 return false;
                             }
@@ -157,7 +157,6 @@ class ParagraphBlockEditForm2 extends preact.Component {
     }
 }
 
-const useFeatureReduxBlockTrees = window.useReduxBlockTree;
 export default () => {
     const initialData = {text: __('Paragraph text'), cssClass: ''};
     const name = 'Paragraph';
@@ -175,7 +174,8 @@ export default () => {
             text: from.text,
             cssClass: from.cssClass,
         }),
-        editForm: !useFeatureReduxBlockTrees ? ParagraphBlockEditForm : ParagraphBlockEditForm2,
+        // @featureFlagConditionUseReduxBlockTree
+        editForm: !window.useReduxBlockTree ? ParagraphBlockEditForm : ParagraphBlockEditForm2,
     };
 };
 

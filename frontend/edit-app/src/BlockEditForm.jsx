@@ -47,7 +47,7 @@ class BlockEditForm extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.useFeatureReduxBlockTrees = window.useReduxBlockTree && this.props.block.type === 'Paragraph';
+        this.featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree && this.props.block.type === 'Paragraph';
         blockTypes = api.blockTypes;
         this.state = {currentTabIdx: 0};
         this.userCanEditCss = api.user.can('editCssStyles');
@@ -71,7 +71,7 @@ class BlockEditForm extends preact.Component {
         })];
         this.setState({useOverrides: base && base.useOverrides,
                        currentTabIdx: 0});
-        if (this.useFeatureReduxBlockTrees) {
+        if (this.featureFlagConditionUseReduxBlockTree) {
             this.currentDebounceTime = null;
             this.currentDebounceType = null;
             this.boundEmitStickyChange = null;
@@ -80,7 +80,7 @@ class BlockEditForm extends preact.Component {
             this.unregistrables = [observeStore(createSelectBlockTree(trid), ({tree, context}) => {
                 if (!this.editFormImplsChangeGrabber)
                     return;
-                if (context[0] !== 'update-single-value' && context[0] !== 'undo-single-value')
+                if (context[0] !== 'update-single-value' && context[0] !== 'undo-update-single-value')
                     return;
                 const block = blockTreeUtils.findBlock(this.props.block.id, tree)[0];
                 if (context[1] !== block.id)
@@ -93,7 +93,7 @@ class BlockEditForm extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        if (!this.useFeatureReduxBlockTrees) {
+        if (!this.featureFlagConditionUseReduxBlockTree) {
         BlockEditForm.currentInstance = this;
         this.blockVals.setCurrentEditFormImplRef(BlockEditForm.currentInstance.editFormImplRef);
         }
@@ -102,7 +102,7 @@ class BlockEditForm extends preact.Component {
      * @access protected
      */
     componentWillUnmount() {
-        if (!this.useFeatureReduxBlockTrees) {
+        if (!this.featureFlagConditionUseReduxBlockTree) {
         BlockEditForm.currentInstance = undefined;
         this.isOutermostBlockOfGlobalBlockTree = undefined;
         this.editFormImpl = undefined;
@@ -151,7 +151,7 @@ class BlockEditForm extends preact.Component {
                     </div>
                     : null
                 }
-                { !this.useFeatureReduxBlockTrees ?
+                { !this.featureFlagConditionUseReduxBlockTree ?
                 <EditFormImpl
                     block={ block }
                     blockTree={ blockTreeCmp }
@@ -245,7 +245,7 @@ class BlockEditForm extends preact.Component {
                 store.dispatch(createUpdateBlockTreeItemData(partialContext[2])(
                     oldData,
                     partialContext[0],
-                    ['undo-single-value', ...partialContext]
+                    ['undo-update-single-value', ...partialContext]
                 ));
             },
             args: [],

@@ -307,5 +307,6 @@ interface BlockTreeItemState {
 
 interface BlockTreeReduxState {
     tree: Array<RawBlock2>;
-    context: ['update-single-value'|'undo-single-value'|'add-single-block'|'undo-add-single-block', String|null, String|null, String|null];
+    // [actionName, blockId, blockType, blockIsStoredToTreeId, visibleBlockIsStoredToId]
+    context: ['update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block', String|null, String|null, String|null, String|null];
 }

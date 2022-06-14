@@ -7,6 +7,7 @@ define("SIVUJETTI_PLUGINS_PATH", SIVUJETTI_BACKEND_PATH . "plugins/");
 
 // Do not edit below this line -------------------------------------------------
 
+define("useReduxBlockTree", true);
 $config = require "config.php";
 $loader = require SIVUJETTI_BACKEND_PATH . "vendor/autoload.php";
 $loader->addPsr4("MySite\\", SIVUJETTI_SITE_PATH);

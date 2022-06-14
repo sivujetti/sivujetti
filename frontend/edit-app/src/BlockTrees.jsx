@@ -4,7 +4,7 @@ import BlockTree from './BlockTree.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {observeStore, selectCurrentPage} from './store.js';
 
-let useFeatureReduxBlockTrees;
+const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
 
 class BlockTrees extends preact.Component {
     // blockTree;
@@ -71,7 +71,6 @@ class BlockTrees extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        useFeatureReduxBlockTrees = window.useReduxBlockTree;
         const value = selectCurrentPage(store.getState());
         if (value.dataFromWebPage) {
             this.handleWebPageDataReceived(value);
@@ -101,7 +100,7 @@ class BlockTrees extends preact.Component {
         if (blocksInput === null)
             return;
         return <div>
-            { !useFeatureReduxBlockTrees ? <button
+            { !featureFlagConditionUseReduxBlockTree ? <button
                 onClick={ () => this.blockTree.current.appendNewBlockPlaceholder() }
                 class="btn btn-sm with-icon my-2"
                 title={ __('Add content to this page') } type="button">
@@ -127,7 +126,7 @@ class BlockTrees extends preact.Component {
     static saveExistingBlocksToBackend(newBlockTree, a, b) {
         let blockTreeId;
         let blockIsStoredTo;
-        if (!useFeatureReduxBlockTrees) {
+        if (!featureFlagConditionUseReduxBlockTree) {
         blockIsStoredTo = a;
         blockTreeId = b;
         } else {
@@ -143,7 +142,7 @@ class BlockTrees extends preact.Component {
         else
             throw new Error('Bad input');
         return http.put(url,
-            !useFeatureReduxBlockTrees
+            !featureFlagConditionUseReduxBlockTree
                 ? {blocks: blockTreeUtils.mapRecursively(newBlockTree, block => block.toRaw())}
                 : {blocks: blockTreeUtils.mapRecursivelyManual(newBlockTree, (b, _i, children) => {
                     b.children = children;

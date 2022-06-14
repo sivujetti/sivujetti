@@ -1,3 +1,9 @@
+
+let featureFlagConditionUseReduxBlockTree;
+
+const CHILDREN_START = ' children-start ';
+const CHILDREN_END = ' children-end ';
+
 class EditAppAwareWebPage {
     // data;
     // currentlyHoveredEl;
@@ -17,10 +23,15 @@ class EditAppAwareWebPage {
         this.isLocalLink = createIsLocalLinkCheckFn();
     }
     /**
+     * @param {Boolean} pfeatureFlagConditionUseReduxBlockTree = false
      * @returns {Array<BlockRefComment>}
      * @access public
      */
-    scanBlockRefComments() {
+    scanBlockRefComments(pfeatureFlagConditionUseReduxBlockTree = false) {
+        featureFlagConditionUseReduxBlockTree = pfeatureFlagConditionUseReduxBlockTree;
+        if (featureFlagConditionUseReduxBlockTree) {
+            this.deletedInnerContentStorage = new Map;
+        }
         return this.data.page.blocks.length
             ? scanAndCreateBlockRefCommentsFrom(document.body)
             : [];
@@ -61,38 +72,46 @@ class EditAppAwareWebPage {
      * @param {String} trid
      * @param {blockTreeUtils} blockTreeUtils
      * @param {BlockTypes} blockTypes
+     * @param {(trid: String) => Array<RawBlock2>} getTree
      * @returns {(blockTreeState: BlockTreeReduxState) => void}
      */
-    createBlockTreeChangeListener(trid, blockTreeUtils, blockTypes) {
+    createBlockTreeChangeListener(trid, blockTreeUtils, blockTypes, getTree) {
         return ({tree, context}) => {
-            if (context[0] === 'add-single-block') {
-                const [block, containingBranch, parent] = blockTreeUtils.findBlock(context[1], tree);
+            const event = context[0];
+            if (event === 'add-single-block' || event === 'undo-delete-single-block') {
+                const [block, containingBranch, parent] = findVisibleBlock(context[1], tree, blockTreeUtils, getTree);
                 const bt = blockTypes.get(block.type);
-                const upd = bt.reRender(block, () => '');
+                const upd = bt.reRender(block, () => [`<!--${CHILDREN_START}-->`, this.getAndWipeStordInnerContent(block), `<!--${CHILDREN_END}-->`].join(''));
                 const temp = document.createElement('template');
                 temp.innerHTML = upd;
                 const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
                 const treeRootEl = document.body;
-                const nextEl = nextBlock ? treeRootEl.querySelector(`[data-block="${nextBlock.id}"]`) : null;
+                const getVisibleBlockId = b => b.type !== 'GlobalBlockReference' ? b.id : getTree(b.globalBlockTreeId)[0].id;
+                const nextEl = nextBlock ? treeRootEl.querySelector(`[data-block="${getVisibleBlockId(nextBlock)}"]`) : null;
                 if ((nextEl && !parent) || (nextEl && parent)) {
                     nextEl.parentElement.insertBefore(temp.content, nextEl);
                 } else if (!nextEl && parent) {
                     const parentEl = treeRootEl.querySelector(`[data-block="${parent.id}"]`);
-                    getBlockContentRoot(parentEl).appendChild(temp.content);
+                    const endcom = getChildEndComment(getBlockContentRoot(parentEl));
+                    endcom.parentElement.insertBefore(temp.content, endcom);
                 } else if (!nextEl && !parent) {
                     treeRootEl.appendChild(temp.content);
                 }
                 return;
             }
 
-            if (context[0] === 'undo-add-single-block') {
+            if (event === 'delete-single-block' || event === 'undo-add-single-block') {
                 const treeRootEl = document.body;
-                const el = treeRootEl.querySelector(`[data-block="${context[1]}"]`);
+                const getVisibleBlockId2 = (blockId, blockType, isStoredToTreeId) => blockType !== 'GlobalBlockReference' ? blockId : getTree(isStoredToTreeId)[0].id;
+                const blockId = getVisibleBlockId2(context[1], context[2], context[4] || null);
+                const el = treeRootEl.querySelector(`[data-block="${blockId}"]`);
+                const html = getChildContentEls(getBlockContentRoot(el));
+                if (html) this.deletedInnerContentStorage.set(blockId, html);
                 el.parentElement.removeChild(el);
                 return;
             }
 
-            if (context[0] === 'update-single-value' || context[0] === 'undo-single-value') {
+            if (event === 'update-single-value' || event === 'undo-update-single-value') {
                 const blockId = context[1];
                 blockTreeUtils.traverseRecursively(tree, block => {
                     if (block.id !== blockId) return;
@@ -610,6 +629,17 @@ class EditAppAwareWebPage {
         // Pseudo comment / marker
         return after;
     }
+    /**
+     * @param {RawBlock2} block
+     * @returns {String|undefined}
+     * @access private
+     */
+    getAndWipeStordInnerContent(block) {
+        const cached = this.deletedInnerContentStorage.get(block.id);
+        if (!cached) return null;
+        this.deletedInnerContentStorage.delete(block.id);
+        return cached;
+    }
 }
 
 /**
@@ -771,6 +801,69 @@ function createTrier(fn,
 
 function getBlockContentRoot(el) {
     return el.querySelector(':scope > [data-block-root]') || el;
+}
+
+/**
+ * @param {HTMLElement} of
+ * @returns {String}
+ */
+function getChildContentEls(of) {
+    const start = getChildStartComment(of);
+    if (!start) return '';
+    //
+    let el = start.nextSibling;
+    const htmls = [];
+    while (el) {
+        if (el.nodeType === Node.COMMENT_NODE && el.nodeValue === CHILDREN_END)
+            break;
+        htmls.push(el.outerHTML);
+        el = el.nextSibling;
+    }
+    return htmls.join('');
+}
+
+/**
+ * @param {String} blockId
+ * @param {Array<RawBlock2>} tree
+ * @param {blockTreeUtils} blockTreeUtils
+ * @param {(trid: String) => Array<RawBlock2>} getTree
+ * @returns {[RawBlock2, Array<RawBlock2>, RawBlock2|null]}
+ */
+function findVisibleBlock(blockId, tree, blockTreeUtils, getTree) {
+    const candidate1 = blockTreeUtils.findBlock(blockId, tree);
+    const block = candidate1[0];
+    if (block.type !== 'GlobalBlockReference')
+        return candidate1;
+    const innerTree = getTree(block.globalBlockTreeId);
+    return blockTreeUtils.findBlock(innerTree[0].id, innerTree);
+}
+
+/**
+ * @param {HTMLElement} of
+ * @returns {Comment|null}
+ */
+function getChildStartComment(of) {
+    let el = of.firstChild;
+    while (el) {
+        if (el.nodeType === Node.COMMENT_NODE && el.nodeValue === CHILDREN_START)
+            return el;
+        el = el.nextSibling;
+    }
+    return null;
+}
+
+/**
+ * @param {HTMLElement} of
+ * @returns {Comment|null}
+ */
+function getChildEndComment(of) {
+    let el = of.lastChild;
+    while (el) {
+        if (el.nodeType === Node.COMMENT_NODE && el.nodeValue === CHILDREN_END)
+            return el;
+        el = el.previousSibling;
+    }
+    return null;
 }
 
 export default EditAppAwareWebPage;

@@ -125,10 +125,19 @@ final class WebPageAwareTemplate extends Template {
      * @return string
      */
     public function renderChildren(Block $block): string {
+        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         if (!$block->children) return "";
         return $block->children[0]->type !== "__marker"
             ? $this->renderBlocks($block->children)
             : "<span id=\"temp-marker\"></span>";
+        } else {
+        return "<!-- children-start -->" . ($block->children ? (
+            $block->children[0]->type !== "__marker"
+                ? $this->renderBlocks($block->children)
+                : "<span id=\"temp-marker\"></span>"
+            ) : ""
+        ) . "<!-- children-end -->";
+        }
     }
     /**
      * @param \Sivujetti\Block\Entities\Block[] $blocks

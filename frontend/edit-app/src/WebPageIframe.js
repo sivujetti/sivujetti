@@ -31,9 +31,8 @@ class WebPageIframe {
      */
     scrollTo(block) {
         const win = this.getEl().contentWindow;
-        const useFeatureReduxBlockTrees = window.useReduxBlockTree;
         let inPageElRect;
-        if (!useFeatureReduxBlockTrees) {
+        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         inPageElRect = block.getRootDomNode().getBoundingClientRect();
         } else {
         const firstEl = this.getEl().contentDocument.body.querySelector(`[data-block="${block.id}"]`);

@@ -90,8 +90,7 @@ class ParagraphBlockEditForm2 extends preact.Component {
      */
     componentWillMount() {
         this.editor = preact.createRef();
-        const {blockId, blockIsStoredToTreeId, emitValueChanged, grabChanges} = this.props;
-        const block = blockTreeUtils.findBlock(blockId, createSelectBlockTree(blockIsStoredToTreeId)(store.getState()).tree)[0];
+        const {block, emitValueChanged, grabChanges} = this.props;
         this.initialText = block.text;
         this.setState(hookForm(this, [
             {name: 'text', value: block.text, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]],
@@ -99,8 +98,8 @@ class ParagraphBlockEditForm2 extends preact.Component {
             {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
              onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
         ]));
-        grabChanges((block, origin) => {
-            if (!origin.startsWith('undo-')) return;
+        grabChanges((block, origin, isUndo) => {
+            if (!isUndo) return;
             if (this.state.values.text !== block.text)
                 this.editor.current.replaceContents(block.text);
             reHookValues(this, [{name: 'cssClass', value: block.cssClass}]);

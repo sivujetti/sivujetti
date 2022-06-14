@@ -80,8 +80,7 @@ class EditAppAwareWebPage {
             const event = context[0];
             if (event === 'add-single-block' || event === 'undo-delete-single-block') {
                 const [block, containingBranch, parent] = findVisibleBlock(context[1], tree, blockTreeUtils, getTree);
-                const bt = blockTypes.get(block.type);
-                const upd = bt.reRender(block, () => [`<!--${CHILDREN_START}-->`, this.getAndWipeStordInnerContent(block), `<!--${CHILDREN_END}-->`].join(''));
+                const upd = blockTypes.get(block.type).reRender(block, () => this.getAndWipeStordInnerContent(block));
                 const temp = document.createElement('template');
                 temp.innerHTML = upd;
                 const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
@@ -99,29 +98,37 @@ class EditAppAwareWebPage {
                 }
                 return;
             }
-
+            //
             if (event === 'delete-single-block' || event === 'undo-add-single-block') {
                 const treeRootEl = document.body;
                 const getVisibleBlockId2 = (blockId, blockType, isStoredToTreeId) => blockType !== 'GlobalBlockReference' ? blockId : getTree(isStoredToTreeId)[0].id;
                 const blockId = getVisibleBlockId2(context[1], context[2], context[4] || null);
                 const el = treeRootEl.querySelector(`[data-block="${blockId}"]`);
-                const html = getChildContentEls(getBlockContentRoot(el));
+                const html = getChildContentEls(getBlockContentRoot(el), true);
                 if (html) this.deletedInnerContentStorage.set(blockId, html);
                 el.parentElement.removeChild(el);
                 return;
             }
-
-            if (event === 'update-single-value' || event === 'undo-update-single-value') {
+            //
+            const isNormalUpdate = event === 'update-single-value';
+            if (isNormalUpdate || event === 'undo-update-single-value') {
+                const treeRootEl = document.body;
                 const blockId = context[1];
-                blockTreeUtils.traverseRecursively(tree, block => {
-                    if (block.id !== blockId) return;
-                    const el = document.body.querySelector(`[data-block="${block.id}"]`);
-                    const bt = blockTypes.get(block.type);
-                    const upd = bt.reRender(block, () => '');
-                    const temp = document.createElement('template');
-                    temp.innerHTML = upd;
-                    el.replaceWith(temp.content);
+                const block = blockTreeUtils.findBlock(blockId, tree)[0];
+                const el = treeRootEl.querySelector(`[data-block="${block.id}"]`);
+                const updated = blockTypes.get(block.type).reRender(block, () => {
+                    if (isNormalUpdate) { // Not undo -> cache current child content
+                        const html = getChildContentEls(getBlockContentRoot(el), true);
+                        this.deletedInnerContentStorage.set(blockId, html);
+                        return html;
+                    }
+                    // Undo -> use previously cached child content
+                    const html = this.getAndWipeStordInnerContent(block);
+                    return html || getChildContentEls(getBlockContentRoot(el), true);
                 });
+                const temp = document.createElement('template');
+                temp.innerHTML = updated;
+                el.replaceWith(temp.content);
             }
         };
     }
@@ -804,25 +811,6 @@ function getBlockContentRoot(el) {
 }
 
 /**
- * @param {HTMLElement} of
- * @returns {String}
- */
-function getChildContentEls(of) {
-    const start = getChildStartComment(of);
-    if (!start) return '';
-    //
-    let el = start.nextSibling;
-    const htmls = [];
-    while (el) {
-        if (el.nodeType === Node.COMMENT_NODE && el.nodeValue === CHILDREN_END)
-            break;
-        htmls.push(el.outerHTML);
-        el = el.nextSibling;
-    }
-    return htmls.join('');
-}
-
-/**
  * @param {String} blockId
  * @param {Array<RawBlock2>} tree
  * @param {blockTreeUtils} blockTreeUtils
@@ -836,6 +824,28 @@ function findVisibleBlock(blockId, tree, blockTreeUtils, getTree) {
         return candidate1;
     const innerTree = getTree(block.globalBlockTreeId);
     return blockTreeUtils.findBlock(innerTree[0].id, innerTree);
+}
+
+/**
+ * @param {HTMLElement} of
+ * @param {Boolean} doIncludeBoundaryComments = false
+ * @returns {String}
+ */
+function getChildContentEls(of, doIncludeBoundaryComments = false) {
+    const start = getChildStartComment(of);
+    if (!start) return '';
+    //
+    const htmls = doIncludeBoundaryComments ? [`<!--${start.nodeValue}-->`] : [];
+    let el = start.nextSibling;
+    while (el) {
+        if (el.nodeType === Node.COMMENT_NODE && el.nodeValue === CHILDREN_END) {
+            if (doIncludeBoundaryComments) htmls.push(`<!--${CHILDREN_END}-->`);
+            break;
+        }
+        htmls.push(el.outerHTML);
+        el = el.nextSibling;
+    }
+    return htmls.join('');
 }
 
 /**

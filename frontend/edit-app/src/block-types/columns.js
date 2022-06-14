@@ -81,6 +81,83 @@ class ColumnsBlockEditForm extends preact.Component {
     }
 }
 
+class ColumnsBlockEditForm2 extends preact.Component {
+    // numColumnsEl;
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        this.numColumnsEl = preact.createRef();
+        const {block, emitValueChanged, grabChanges} = this.props;
+        this.setState(hookForm(this, [
+            {name: 'numColumns', value: block.numColumns, validations: [['min', 0], ['max', 12]],
+             label: __('Num columns'), type: 'number', step: '1', onAfterValueChanged: (value, hasErrors) => {
+                 emitValueChanged(parseInt(value), 'numColumns', hasErrors, env.normalTypingDebounceMillis); }},
+            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
+             onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
+        ], {
+            takeFullWidth: block.takeFullWidth,
+        }));
+        grabChanges((block, origin, isUndo) => {
+            if (isUndo && (this.state.values.cssClass !== block.cssClass ||
+                           this.state.values.cssClass !== block.cssClass))
+                reHookValues(this, [{name: 'numColumns', value: block.numColumns.toString()},
+                                    {name: 'cssClass', value: block.cssClass}]);
+            if (this.state.takeFullWidth !== block.takeFullWidth)
+                this.setState({takeFullWidth: block.takeFullWidth});
+        });
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        setFocusTo(this.numColumnsEl);
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        unhookForm(this);
+    }
+    /**
+     * @param {BlockEditFormProps} props
+     * @access protected
+     */
+    render(_, {takeFullWidth}) {
+        if (!this.state.values) return;
+        return <div class="form-horizontal pt-0">
+            <FormGroupInline>
+                <label htmlFor="numColumns" class="form-label">{ __('Num columns') }</label>
+                <Input vm={ this } prop="numColumns" ref={ this.numColumnsEl }/>
+                <InputErrors vm={ this } prop="numColumns"/>
+            </FormGroupInline>
+            <FormGroupInline>
+                <span class="form-label">{ __('Full width') }</span>
+                <label class="form-checkbox mt-0">
+                    <input
+                        onClick={ this.emitSetFullWidth.bind(this) }
+                        checked={ takeFullWidth }
+                        type="checkbox"
+                        class="form-input"/><i class="form-icon"></i>
+                </label>
+            </FormGroupInline>
+            <FormGroupInline>
+                <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
+                <Input vm={ this } prop="cssClass"/>
+                <InputErrors vm={ this } prop="cssClass"/>
+            </FormGroupInline>
+        </div>;
+    }
+    /**
+     * @param {Event} e
+     * @access private
+     */
+    emitSetFullWidth(e) {
+        const takeFullWidth = e.target.checked ? 1 : 0;
+        this.props.emitValueChanged(takeFullWidth, 'takeFullWidth');
+    }
+}
+
 export default () => {
     const initialData = {
         numColumns: 2,
@@ -108,6 +185,7 @@ export default () => {
                     takeFullWidth: from.takeFullWidth,
                     cssClass: from.cssClass};
         },
-        editForm: ColumnsBlockEditForm,
+        // @featureFlagConditionUseReduxBlockTree
+        editForm: !window.useReduxBlockTree ? ColumnsBlockEditForm : ColumnsBlockEditForm2,
     };
 };

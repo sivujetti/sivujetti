@@ -76,6 +76,70 @@ class SectionBlockEditForm extends preact.Component {
     }
 }
 
+class SectionBlockEditForm2 extends preact.Component {
+    // imagePicker;
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        const {block, emitValueChanged, grabChanges} = this.props;
+        this.imagePicker = preact.createRef();
+        this.setState(hookForm(this, [
+            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
+             onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
+        ], {
+            bgImage: block.bgImage,
+        }));
+        grabChanges((block, origin, isUndo) => {
+            if (isUndo && this.state.values.cssClass !== block.cssClass)
+                reHookValues(this, [{name: 'cssClass', value: block.cssClass}]);
+            if (this.state.bgImage !== block.bgImage)
+                this.setState({bgImage: block.bgImage});
+        });
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        setFocusTo(this.imagePicker);
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        unhookForm(this);
+    }
+    /**
+     * @param {BlockEditFormProps2} props
+     * @access protected
+     */
+    render(_, {bgImage}) {
+        if (!this.state.values) return;
+        return <div class="form-horizontal pt-0">
+            <FormGroupInline>
+                <label htmlFor="bgImage" class="form-label">{ __('Background') }</label>
+                <ImagePicker
+                    onImageSelected={ this.handleBgImageChanged.bind(this) }
+                    initialImageFileName={ bgImage }
+                    inputId="bgImage"
+                    ref={ this.imagePicker }/>
+            </FormGroupInline>
+            <FormGroupInline>
+                <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
+                <Input vm={ this } prop="cssClass"/>
+                <InputErrors vm={ this } prop="cssClass"/>
+            </FormGroupInline>
+        </div>;
+    }
+    /**
+     * @param {UploadsEntry|null} img
+     */
+    handleBgImageChanged(img) {
+        const bgImage = img ? `/${UPLOADS_DIR_PATH}${img.baseDir}${img.fileName}` : '';
+        this.props.emitValueChanged(bgImage, 'bgImage', false, 0, 'debounce-none');
+    }
+}
+
 export default () => {
     const initialData = {bgImage: '', cssClass: ''};
     const name = 'Section';
@@ -97,6 +161,7 @@ export default () => {
             bgImage: from.bgImage,
             cssClass: from.cssClass,
         }),
-        editForm: SectionBlockEditForm,
+        // @featureFlagConditionUseReduxBlockTree
+        editForm: !window.useReduxBlockTree ? SectionBlockEditForm : SectionBlockEditForm2,
     };
 };

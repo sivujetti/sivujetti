@@ -64,7 +64,7 @@ function configureServices() {
     };
     blockTypes.register('Menu', maybeDisableEdit(createMenuBlockType));
     blockTypes.register('Button', maybeDisableEdit(createButtonBlockType));
-    blockTypes.register('Columns', maybeDisableEdit(createColumnsBlockType));
+    blockTypes.register('Columns', createColumnsBlockType);
     blockTypes.register('GlobalBlockReference', maybeDisableEdit(createGlobalBlockReferenceBlockType));
     blockTypes.register('Heading', maybeDisableEdit(createHeadingBlockType));
     blockTypes.register('Image', maybeDisableEdit(createImageBlockType));
@@ -72,7 +72,7 @@ function configureServices() {
     blockTypes.register('PageInfo', maybeDisableEdit(createPageInfoBlockType));
     blockTypes.register('Paragraph', createParagraphBlockType);
     blockTypes.register('RichText', maybeDisableEdit(createRichTextBlockType));
-    blockTypes.register('Section', maybeDisableEdit(createSectionBlockType));
+    blockTypes.register('Section', createSectionBlockType);
     api.blockTypes = blockTypes;
     //
     const mainPanel = new MainPanel(document.getElementById('main-panel'),
@@ -204,7 +204,7 @@ function renderReactEditApp() {
 
                 for (const [_, tree] of trees) {
                     blockTreeUtils.traverseRecursively(tree, b => {
-                        if (b.type === 'Paragraph' || b.type === 'GlobalBlockReference' || b.type === 'Section') return;
+                        if (['Columns', 'Paragraph', 'Section'].indexOf(b.type) > -1 || b.type === 'GlobalBlockReference') return;
                         wipe(b);
                     });
                 }

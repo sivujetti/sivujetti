@@ -47,7 +47,7 @@ class BlockEditForm extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree && this.props.block.type === 'Paragraph';
+        this.featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree && ['Columns', 'Paragraph', 'Section'].indexOf(this.props.block.type) > -1;
         blockTypes = api.blockTypes;
         this.state = {currentTabIdx: 0};
         this.userCanEditCss = api.user.can('editCssStyles');
@@ -85,7 +85,7 @@ class BlockEditForm extends preact.Component {
                 const block = blockTreeUtils.findBlock(this.props.block.id, tree)[0];
                 if (context[1] !== block.id)
                     return;
-                this.editFormImplsChangeGrabber(JSON.parse(JSON.stringify(block)), context[0]);
+                this.editFormImplsChangeGrabber(JSON.parse(JSON.stringify(block)), context[0], context[0].startsWith('undo-'));
             })];
         }
     }
@@ -161,10 +161,9 @@ class BlockEditForm extends preact.Component {
                     ref={ this.editFormImplRef }
                     key={ block.id }/> :
                 <EditFormImpl
-                    blockId={ block.id }
-                    blockIsStoredToTreeId={ block.isStoredToTreeId }
+                    block={ JSON.parse(JSON.stringify(blockTreeUtils.findBlock(block.id, createSelectBlockTree(block.isStoredToTreeId)(store.getState()).tree)[0])) }
                     grabChanges={ withFn => { this.editFormImplsChangeGrabber = withFn; } }
-                    emitValueChanged={ (val, key, hasErrors, debounceMillis) => { this.handleValueValuesChanged({[key]: val}, hasErrors, debounceMillis); } }
+                    emitValueChanged={ (val, key, ...vargs) => { this.handleValueValuesChanged({[key]: val}, ...vargs); } }
                     emitManyValuesChanged={ this.handleValueValuesChanged.bind(this) }
                     ref={ this.editFormImplRef }
                     key={ block.id }/> }

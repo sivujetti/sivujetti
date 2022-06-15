@@ -813,10 +813,19 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 .highlight-rect[data-is-new="y"]:before {
     background: rgba(var(--components-color-fb-default),.2);
 }
+/* @featureFlagConditionUseReduxBlockTree if false: */
 .highlight-rect[data-adjust-title-from-top="yes"]:before {
     margin: initial;
 }
-
+/* else: */
+.highlight-rect[data-position="top-inside"]:before {
+    margin: initial;
+}
+span.highlight-rect[data-position="bottom-inside"]:before {
+    top: 100%;
+    margin-top: -18px;
+}
+/* end; */
 
 /* EditApp: Inspector panel > Listing block filters builder */
 .listing-instructions {

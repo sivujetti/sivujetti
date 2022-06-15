@@ -1,4 +1,3 @@
-
 let featureFlagConditionUseReduxBlockTree;
 
 const CHILDREN_START = ' children-start ';
@@ -84,17 +83,16 @@ class EditAppAwareWebPage {
         this.registerLocalLinkEventHandlers();
     }
     /**
-     * @param {EditAwareWebPageEventHandlers} handlers
-     * @param {Array<HTMLElement>} els
+     * @param {EditAwareWebPageEventHandlers2} handlers
+     * @param {(blockEl: HTMLElement) => Boolean} disableHoverFor = null
      * @access public
      */
-    registerEventHandlers2(handlers, els) {
+    registerEventHandlers2(handlers, disableHoverFor = null) {
         if (this.handlers)
             return;
         this.handlers = handlers;
         //
         document.body.addEventListener('click', e => {
-            return;
             let target;
             if (!this.currentlyHoveredBlockEl)
                 target = null;
@@ -110,16 +108,17 @@ class EditAppAwareWebPage {
             if (this.isMouseListenersDisabled) return;
             //
             let targ;
-            if (inBody) {
+            if (inBody && this.currentlyHoveredBlockEl) {
                 targ = e.target;
             } else {
                 targ = e.target.closest('[data-block-type]');
+                if (!targ) return;
                 inBody = true;
             }
             //
             if (this.currentlyHoveredBlockEl) {
                 const b = e.target.getAttribute('data-block-type') ? e.target : e.target.closest('[data-block-type]');
-                if (els.indexOf(b) < 0)
+                if (disableHoverFor && disableHoverFor(b))
                     return;
                 if (this.currentlyHoveredBlockEl.contains(b) && this.currentlyHoveredBlockEl !== b) {
                     this.handlers.onHoverEnded(this.currentlyHoveredBlockEl);
@@ -127,7 +126,7 @@ class EditAppAwareWebPage {
                     this.handlers.onHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
                 }
             } else {
-                if (!targ.getAttribute('data-block-type') || els.indexOf(targ) < 0) return;
+                if (!targ.getAttribute('data-block-type') || (disableHoverFor && disableHoverFor(targ))) return;
                 this.currentlyHoveredBlockEl = targ;
                 this.handlers.onHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
             }
@@ -143,6 +142,7 @@ class EditAppAwareWebPage {
                 }
             } else if (e.target === document.body) {
                 inBody = false;
+                this.currentlyHoveredBlockEl = null;
             }
         }, true);
         this.registerLocalLinkEventHandlers();

@@ -55,9 +55,13 @@ class BlockTrees extends preact.Component {
          * @param {Block} visibleBlock
          */
         signals.on('on-web-page-block-clicked', visibleBlock => {
+            if (!featureFlagConditionUseReduxBlockTree) {
             const [isNew, placeholderBlock] = this.blockTree.current.isNewBlock(visibleBlock);
             if (!isNew) api.mainPanel.scrollTo(visibleBlock, false);
             else api.mainPanel.scrollTo(placeholderBlock, true);
+            } else {
+            api.mainPanel.scrollTo(visibleBlock, false);
+            }
         })];
     }
     /**

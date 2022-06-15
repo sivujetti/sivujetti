@@ -17,7 +17,8 @@ class BlockTree extends preact.Component {
     // selectedRoot;
     // contextMenu;
     // lastRootBlockMarker;
-    // unregistrables;
+    // unregistrablesLong;
+    // unregistrablesShort;
     // dragDrop;
     // onDragStart;
     // onDragOver;
@@ -53,7 +54,8 @@ class BlockTree extends preact.Component {
             }));
         });
         BlockTrees = props.BlockTrees;
-        this.unregistrables = [];
+        this.unregistrablesLong = [];
+        this.unregistrablesShort = [];
     }
     /**
      * @param {Block} block After
@@ -269,12 +271,36 @@ class BlockTree extends preact.Component {
             ? {nextSibling: com.nextSibling, parentNode: com.parentNode}
             : {nextSibling: null, parentNode: com.parentNode};
         this.setState({blockTree, treeState});
+        //
+        this.unregistrablesLong.push(signals.on('on-inspector-panel-closed', () => {
+            this.deSelectAllBlocks();
+        }));
         } else {
+        this.registerOrReRegisterBlockTreeListeners();
+        //
+        this.unregistrablesLong.push(signals.on('on-inspector-panel-closed', () => {
+            this.deSelectAllBlocks();
+        }), signals.on('on-web-page-block-clicked', block => {
+            this.handleItemClicked(block, false);
+        }));
+        }
+        //
+        this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
+        this.onDragOver = this.dragDrop.handleDraggedOver.bind(this.dragDrop);
+        this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
+        this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
+    }
+    /**
+     * @access private
+     */
+    registerOrReRegisterBlockTreeListeners() {
+        this.unregistrablesShort.forEach(unreg => unreg());
+        this.unregistrablesShort = [];
 
         const trids = getRegisteredReduxTreeIds();
         const [a, b] = [this.onMainTreeChanged.bind(this), this.onInnerTreeChanged.bind(this)];
         for (const trid of trids) {
-            this.unregistrables.push(observeStore(createSelectBlockTree(trid), trid === 'main'
+            this.unregistrablesShort.push(observeStore(createSelectBlockTree(trid), trid === 'main'
                 ? a
                 : b));
         }
@@ -285,18 +311,6 @@ class BlockTree extends preact.Component {
             Object.assign(treeState, createTreeState(createSelectBlockTree(trid)(storeState).tree));
         }
         this.setState({blockTree: createSelectBlockTree('main')(storeState).tree, treeState});
-        window.currentBlockTreeCmp = this;
-        }
-
-        //
-        this.unregistrables.push(signals.on('on-inspector-panel-closed', () => {
-            this.deSelectAllBlocks();
-        }));
-        //
-        this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
-        this.onDragOver = this.dragDrop.handleDraggedOver.bind(this.dragDrop);
-        this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
-        this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
     }
     /**
      * @param {BlockTreeReduxState}
@@ -328,15 +342,19 @@ class BlockTree extends preact.Component {
      * @access protected
      */
     componentWillUnmount() {
-        this.unregistrables.forEach(unreg => unreg());
-        this.unregistrables = [];
+        this.unregistrablesLong.forEach(unreg => unreg());
     }
     /**
      * @access protected
      */
     componentWillReceiveProps(props) {
+        if (!this.featureFlagConditionUseReduxBlockTree) {
         if (props.blocksInput !== this.props.blocksInput)
             this.componentWillMount(props);
+        } else {
+        if (props.blocksInput !== this.props.blocksInput)
+            this.registerOrReRegisterBlockTreeListeners();
+        }
     }
     /**
      * @access protected

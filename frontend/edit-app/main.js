@@ -225,12 +225,8 @@ function renderReactEditApp() {
                 });
             }
             //
-            const filtered = !webPage.data.page.isPlaceholderPage
-                // Accept all
-                ? els
-                // Only if page block
-                : els.filter(({el}) => blockTreeUtils.findBlock(el.getAttribute('data-block'), mutatedOrdered)[0] !== null);
-            webPage.registerEventHandlers2(editApp.websiteEventHandlers, filtered);
+            const disableHoverFor = !webPage.data.page.isPlaceholderPage ? null : () => false;
+            webPage.registerEventHandlers2(editApp.websiteEventHandlers, disableHoverFor);
             editApp.handleWebPageLoaded(webPage, ordered, els, trees);
 
             const getTree = trid => createSelectBlockTree(trid)(store.getState()).tree;

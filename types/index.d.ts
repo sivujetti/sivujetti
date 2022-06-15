@@ -219,10 +219,18 @@ interface EditAwareWebPageEventHandlers {
     onHoverEnded(blockRef: BlockRefComment): void;
 }
 
+interface EditAwareWebPageEventHandlers2 {
+    onHoverStarted(blockEl: HTMLElement, rect: ClientRect): void;
+    onClicked(blockEl: HTMLElement|null): void;
+    onHoverEnded(blockEl: HTMLElement): void;
+}
+
 interface EditAppAwareWebPage {
     data: CurrentPageData;
     scanBlockRefComments(): Array<BlockRefComment>;
+    scanBlockElements(): Array<HTMLElement>;
     registerEventHandlers(handlers: EditAwareWebPageEventHandlers, blockRefComments: Array<BlockRefComment>): void;
+    registerEventHandlers2(handlers: EditAwareWebPageEventHandlers2, disableHoverFor: (blockEl: HTMLElement) => Boolean = null): void;
     getCombinedAndOrderedBlockTree(pageBlocks: Array<RawBlock>, blockRefComments: Array<BlockRefComment>, blockTreeUtils: blockTreeUtils): Array<RawBlock>;
     appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<BlockRefComment>;
     appendClonedBlockBranchToDom(clonedBlock: Block, clonedFromBlock: Block, blockTreeUtils: blockTreeUtils): Promise<{[key: String]: BlockRefComment;}>;
@@ -238,6 +246,7 @@ interface EditAppAwareWebPage {
     setIsMouseListenersDisabled(isDisabled: Boolean): void;
     getBlockContents(block: Block, doIncludeBoundaryComments: Boolean = true): Array<HTMLElement>;
     setCssVarValue(varName: String, to: RawCssValue): void;
+    setTridAttr(blockId: String, trid: String): void;
 }
 
 interface WebPageIframe {
@@ -268,7 +277,7 @@ interface BlockEditFormProps {
 type blockChangeEvent = 'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block';
 
 interface BlockEditFormProps2 {
-    block: RawBlock2;
+    block: RawBlock2; // Cloned data
     grabChanges(withFn: (block: RawBlock2, origin: blockChangeEvent, isUndo: Boolean) => void): void;
     emitValueChanged(val: any, key: String, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;
     emitManyValuesChanged(partialData: {[key: String]: any;}, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;

@@ -5,9 +5,10 @@ import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
 import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType/PageTypeCreateMainPanelView.jsx';
 import store, {observeStore, setCurrentPage, setGlobalBlockTreeBlocksStyles, setPageBlocksStyles,
                setOpQueue, selectGlobalBlockTreeBlocksStyles, selectPageBlocksStyles, selectBlockTypesBaseStyles,
-               createSetBlockTree, createBlockTreeReducerPair} from './store.js';
+               createSetBlockTree, createBlockTreeReducerPair, createSelectBlockTree} from './store.js';
 import SaveButton from './SaveButton.jsx';
 import {findBlockTemp} from './BlockTree.jsx';
+import blockTreeUtils from './blockTreeUtils.js';
 
 let LEFT_PANEL_WIDTH = 318;
 const PANELS_HIDDEN_CLS = 'panels-hidden';
@@ -40,15 +41,20 @@ class EditApp extends preact.Component {
         this.currentPageData = null;
         this.resizeHandleEl = preact.createRef();
         this.highlightRectEl = preact.createRef();
+        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         this.websiteEventHandlers = createWebsiteEventHandlers(this.highlightRectEl,
                                                                this.blockTrees);
+        } else {
+        this.websiteEventHandlers = createWebsiteEventHandlers2(this.highlightRectEl,
+                                                                this.blockTrees);
+        }
         this.receivingData = true;
         this.registerWebPageIframeStylesUpdaters();
     }
     /**
      * @param {EditAppAwareWebPage} webPage
      * @param {Array<RawBlock} combinedBlockTree
-     * @param {Array<BlockRefComment>} blockRefs
+     * @param {Array<BlockRefComment>|Array<HTMLElement>} blockRefs
      * @param {Map<String, Array<RawBlock2>>|null} trees = null
      * @access public
      */
@@ -157,7 +163,10 @@ class EditApp extends preact.Component {
             }
             <Toaster id="editAppMain"/>
             <FloatingDialog/>
-            <span class="highlight-rect" data-adjust-title-from-top="no" ref={ this.highlightRectEl }></span>
+            { window.useReduxBlockTree // @featureFlagConditionUseReduxBlockTree
+                ? <span class="highlight-rect" data-adjust-title-from-top="no" ref={ this.highlightRectEl }></span>
+                : <span class="highlight-rect" data-position="top-outside" ref={ this.highlightRectEl }></span>
+            }
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         </div>;
     }
@@ -306,15 +315,12 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
         highlightRectEl.current.style.cssText = '';
         prevHoverStartBlockRef = null;
     };
-    const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
     return {
         /**
          * @param {BlockRefComment} blockRef
          * @param {ClientRect} r
          */
         onHoverStarted(blockRef, r) {
-            if (featureFlagConditionUseReduxBlockTree && !findBlockTemp(blockRef, blockTrees.current.blockTree.current))
-                return;
             if (prevHoverStartBlockRef === blockRef)
                 return;
             highlightRectEl.current.style.cssText = [
@@ -337,8 +343,6 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
          * @param {BlockRefComment|null} blockRef
          */
         onClicked(blockRef) {
-            if (featureFlagConditionUseReduxBlockTree && (!blockRef || !findBlockTemp(blockRef, blockTrees.current.blockTree.current)))
-                return;
             signals.emit('on-web-page-click-received');
             if (!blockRef) return;
             const treeCmp = blockTrees.current.blockTree.current;
@@ -352,6 +356,68 @@ function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
         onHoverEnded(blockRef, _r) {
             setTimeout(() => {
                 if (blockRef === prevHoverStartBlockRef)
+                    hideRect();
+            }, 80);
+        },
+    };
+}
+
+/**
+ * @param {preact.Ref} highlightRectEl
+ * @returns {EditAwareWebPageEventHandlers2}
+ */
+function createWebsiteEventHandlers2(highlightRectEl) {
+    let prevHoverStartBlockEl = null;
+    const TITLE_LABEL_HEIGHT = 18; // at least
+    const hideRect = () => {
+        highlightRectEl.current.setAttribute('data-title', '');
+        highlightRectEl.current.style.cssText = '';
+        prevHoverStartBlockEl = null;
+    };
+    const findBlock = blockEl => {
+        const {tree} = createSelectBlockTree(blockEl.getAttribute('data-trid'))(store.getState());
+        return blockTreeUtils.findBlock(blockEl.getAttribute('data-block'), tree)[0];
+    };
+    return {
+        /**
+         * @param {HTMLElement} blockEl
+         * @param {ClientRect} r
+         */
+        onHoverStarted(blockEl, r) {
+            if (prevHoverStartBlockEl === blockEl)
+                return;
+            highlightRectEl.current.style.cssText = [
+                'width:', r.width, 'px;',
+                'height:', r.height, 'px;',
+                'top:', r.top, 'px;',
+                'left:', r.left + LEFT_PANEL_WIDTH, 'px'
+            ].join('');
+            const block = findBlock(blockEl);
+            if (r.top < -TITLE_LABEL_HEIGHT)
+                highlightRectEl.current.setAttribute('data-position', 'bottom-inside');
+            else if (r.top > TITLE_LABEL_HEIGHT)
+                highlightRectEl.current.setAttribute('data-position', 'top-outside');
+            else
+                highlightRectEl.current.setAttribute('data-position', 'top-inside');
+            highlightRectEl.current.setAttribute('data-title',
+                (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type)
+            );
+            prevHoverStartBlockEl = blockEl;
+        },
+        /**
+         * @param {HTMLElement|null} blockEl
+         */
+        onClicked(blockEl) {
+            signals.emit('on-web-page-click-received');
+            if (!blockEl) return;
+            signals.emit('on-web-page-block-clicked', findBlock(blockEl));
+        },
+        /**
+         * @param {HTMLElement} blockEl
+         */
+        onHoverEnded(blockEl, _r) {
+            setTimeout(() => {
+                if (blockEl === prevHoverStartBlockEl)
                     hideRect();
             }, 80);
         },

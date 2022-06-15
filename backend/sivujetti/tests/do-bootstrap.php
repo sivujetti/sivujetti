@@ -21,6 +21,7 @@ return function (?string $testSitePath = null,
     define("SIVUJETTI_SITE_PATH", $testSitePath ?? (__DIR__ . "/test-site/"));
     define("SIVUJETTI_PLUGINS_PATH", $testPluginsPath ?? (SIVUJETTI_BACKEND_PATH . "plugins/"));
 
+    define("useReduxBlockTree", true);
     // Defines SIVUJETTI_BASE_URL etc.
     $config = require __DIR__ . "/config.php";
 

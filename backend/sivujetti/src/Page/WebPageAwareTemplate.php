@@ -145,12 +145,21 @@ final class WebPageAwareTemplate extends Template {
      */
     public function renderBlocks(array $blocks): string {
         $out = "";
+        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         foreach ($blocks as $block)
             $out .= "<!-- block-start {$block->id}:{$block->type} -->" .
                 ($block->type !== Block::TYPE_GLOBAL_BLOCK_REF
                     ? $this->partial($block->renderer, $block)
                     : $this->renderBlocks($this->getMutatedGlobalTreeBlocks($block))) .
             "<!-- block-end {$block->id} -->";
+        } else {
+        foreach ($blocks as $block)
+            $out .= $block->type !== Block::TYPE_GLOBAL_BLOCK_REF
+                ? $this->partial($block->renderer, $block)
+                : ("<!-- block-start {$block->id}:{$block->type} -->" .
+                    $this->renderBlocks($this->getMutatedGlobalTreeBlocks($block)) .
+                "<!-- block-end {$block->id} -->");
+        }
         return $out;
     }
     /**

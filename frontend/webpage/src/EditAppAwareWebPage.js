@@ -23,18 +23,33 @@ class EditAppAwareWebPage {
         this.isLocalLink = createIsLocalLinkCheckFn();
     }
     /**
-     * @param {Boolean} pfeatureFlagConditionUseReduxBlockTree = false
      * @returns {Array<BlockRefComment>}
      * @access public
      */
-    scanBlockRefComments(pfeatureFlagConditionUseReduxBlockTree = false) {
-        featureFlagConditionUseReduxBlockTree = pfeatureFlagConditionUseReduxBlockTree;
-        if (featureFlagConditionUseReduxBlockTree) {
-            this.deletedInnerContentStorage = new Map;
-        }
+    scanBlockRefComments() {
+        featureFlagConditionUseReduxBlockTree = false;
         return this.data.page.blocks.length
             ? scanAndCreateBlockRefCommentsFrom(document.body)
             : [];
+    }
+    /**
+     * @returns {Array<HTMLElement}
+     * @access public
+     */
+    scanBlockElements() {
+        featureFlagConditionUseReduxBlockTree = true;
+        this.deletedInnerContentStorage = new Map;
+        this.currentlyHoveredBlockEl = null;
+        return Array.from(document.body.querySelectorAll('[data-block-type]'));
+    }
+    /**
+     * @param {String} blockId
+     * @param {String} trid
+     * @access public
+     */
+    setTridAttr(blockId, trid) {
+        const el = document.body.querySelector(`[data-block="${blockId}"]`);
+        el.setAttribute('data-trid', trid);
     }
     /**
      * @param {EditAwareWebPageEventHandlers} handlers
@@ -69,6 +84,70 @@ class EditAppAwareWebPage {
         this.registerLocalLinkEventHandlers();
     }
     /**
+     * @param {EditAwareWebPageEventHandlers} handlers
+     * @param {Array<HTMLElement>} els
+     * @access public
+     */
+    registerEventHandlers2(handlers, els) {
+        if (this.handlers)
+            return;
+        this.handlers = handlers;
+        //
+        document.body.addEventListener('click', e => {
+            return;
+            let target;
+            if (!this.currentlyHoveredBlockEl)
+                target = null;
+            else if (e.target.nodeName === 'A' && !this.allowOpenBlockClick)
+                target = null;
+            else
+                target = this.currentlyHoveredBlockEl;
+            this.handlers.onClicked(target);
+        });
+        //
+        let inBody = false;
+        document.body.addEventListener('mouseover', e => {
+            if (this.isMouseListenersDisabled) return;
+            //
+            let targ;
+            if (inBody) {
+                targ = e.target;
+            } else {
+                targ = e.target.closest('[data-block-type]');
+                inBody = true;
+            }
+            //
+            if (this.currentlyHoveredBlockEl) {
+                const b = e.target.getAttribute('data-block-type') ? e.target : e.target.closest('[data-block-type]');
+                if (els.indexOf(b) < 0)
+                    return;
+                if (this.currentlyHoveredBlockEl.contains(b) && this.currentlyHoveredBlockEl !== b) {
+                    this.handlers.onHoverEnded(this.currentlyHoveredBlockEl);
+                    this.currentlyHoveredBlockEl = b;
+                    this.handlers.onHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
+                }
+            } else {
+                if (!targ.getAttribute('data-block-type') || els.indexOf(targ) < 0) return;
+                this.currentlyHoveredBlockEl = targ;
+                this.handlers.onHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
+            }
+        }, true);
+        //
+        document.body.addEventListener('mouseleave', e => {
+            if (this.isMouseListenersDisabled) return;
+            //
+            if (this.currentlyHoveredBlockEl) {
+                if (e.target === this.currentlyHoveredBlockEl) {
+                    this.handlers.onHoverEnded(this.currentlyHoveredBlockEl);
+                    this.currentlyHoveredBlockEl = null;
+                }
+            } else if (e.target === document.body) {
+                inBody = false;
+            }
+        }, true);
+        this.registerLocalLinkEventHandlers();
+    }
+    /**
      * @param {String} trid
      * @param {blockTreeUtils} blockTreeUtils
      * @param {BlockTypes} blockTypes
@@ -82,7 +161,7 @@ class EditAppAwareWebPage {
                 const [block, containingBranch, parent] = findVisibleBlock(context[1], tree, blockTreeUtils, getTree);
                 const upd = blockTypes.get(block.type).reRender(block, () => this.getAndWipeStordInnerContent(block));
                 const temp = document.createElement('template');
-                temp.innerHTML = upd;
+                temp.innerHTML = withTrid(upd, trid);
                 const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
                 const treeRootEl = document.body;
                 const getVisibleBlockId = b => b.type !== 'GlobalBlockReference' ? b.id : getTree(b.globalBlockTreeId)[0].id;
@@ -127,7 +206,7 @@ class EditAppAwareWebPage {
                     return html || getChildContentEls(getBlockContentRoot(el), true);
                 });
                 const temp = document.createElement('template');
-                temp.innerHTML = updated;
+                temp.innerHTML = withTrid(updated, trid);
                 el.replaceWith(temp.content);
             }
         };
@@ -874,6 +953,15 @@ function getChildEndComment(of) {
         el = el.previousSibling;
     }
     return null;
+}
+
+/**
+ * @param {String} html
+ * @param {String} trid
+ * @returns {String}
+ */
+function withTrid(html, trid) {
+    return html.replace(' data-block=', `data-trid="${trid}" data-block=`);
 }
 
 export default EditAppAwareWebPage;

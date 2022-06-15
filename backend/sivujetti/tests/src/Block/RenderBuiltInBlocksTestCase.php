@@ -7,9 +7,15 @@ abstract class RenderBuiltInBlocksTestCase extends RenderBlocksTestCase {
         $block = $state->testBlocks[$testBlockIdx];
         $this->sendRenderBlockRequest($state, $block);
         $this->verifyRequestFinishedSuccesfully($state);
+        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         $expected = $this->blockTestUtils->decorateWithRef($block,
             str_replace("[childMarker]", "<span id=\"temp-marker\"></span>", $expectedHtml)
         );
+        } else {
+        $expected = $this->blockTestUtils->decorateWithRef($block,
+            str_replace("[childMarker]", "<!-- children-start --><span id=\"temp-marker\"></span><!-- children-end -->", $expectedHtml)
+        );
+        }
         $this->verifyResponseBodyEquals(json_encode((object) ["result" => $expected], JSON_UNESCAPED_UNICODE),
                                         $state->spyingResponse);
     }

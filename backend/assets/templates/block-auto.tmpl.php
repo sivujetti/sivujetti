@@ -38,8 +38,16 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):
         $closeInnerTag,
     "</p>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_RICH_TEXT):
+if (useReduxBlockTree):
     echo $props->html, // @allow pre-validated html
          $this->renderChildren($props);
+else:
+    echo "<div data-block-type=\"", \Sivujetti\Block\Entities\Block::TYPE_RICH_TEXT,
+                "\" data-block=\"", $props->id, "\">",
+        $props->html, // @allow pre-validated html
+        $this->renderChildren($props),
+    "</div>";
+endif;
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_PAGE_INFO):
     echo "";
 else:

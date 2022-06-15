@@ -58,13 +58,23 @@ final class RenderBasicPageTest extends RenderPageTestCase {
     private function verifyRenderedCorrectPageAndLayout(\TestState $state): void {
         $headingBlock = $state->testPageData->blocks[0]->children[0];
         $expectedPageBlockHeading = $headingBlock->propsData[0]->value;
-        $attrs = " data-block-type=\"Heading\" data-block=\"{$headingBlock->id}\"";
-        $this->assertStringContainsString("<h2{$attrs}>{$expectedPageBlockHeading}</h2>",
+        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
+        $this->assertStringContainsString("<h2 data-block-type=\"Heading\" data-block=\"{$headingBlock->id}\">{$expectedPageBlockHeading}</h2>",
                                           $state->spyingResponse->getActualBody());
+        } else {
+        $this->assertStringContainsString("<h2 data-block-type=\"Heading\" data-block=\"{$headingBlock->id}\">{$expectedPageBlockHeading}<!-- children-start --><!-- children-end --></h2>",
+                                          $state->spyingResponse->getActualBody());
+        }
         $paragraphBlock = $state->testGlobalBlockTree[0];
         $expectedPageBlockHeading = $paragraphBlock->propsData[0]->value;
+        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         $this->assertStringContainsString((new BlockTestUtils($this->pageTestUtils))->getExpectedParagraphBlockOutput($paragraphBlock),
                                           $state->spyingResponse->getActualBody());
+        } else {
+        $this->assertStringContainsString((new BlockTestUtils($this->pageTestUtils))->getExpectedParagraphBlockOutput($paragraphBlock,
+                                          childMarker: "<!-- children-start --><!-- children-end -->"),
+                                          $state->spyingResponse->getActualBody());
+        }
     }
     private function verifyThemeCanRegisterCssFiles(\TestState $state): void {
         $expectedUrl = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME, false);

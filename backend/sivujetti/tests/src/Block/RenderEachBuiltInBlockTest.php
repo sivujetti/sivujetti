@@ -117,7 +117,12 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $this->makeTestSivujettiApp($state);
         //
         $expectedInnerBlock = $state->testGlobalBlockTreeBlocks[0];
+        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         $exp = $this->blockTestUtils->getExpectedParagraphBlockOutput($expectedInnerBlock);
+        } else {
+        $exp = $this->blockTestUtils->getExpectedParagraphBlockOutput($expectedInnerBlock,
+            childMarker: "<!-- children-start --><!-- children-end -->");
+        }
         $this->renderAndVerify($state, 0,
             $this->blockTestUtils->decorateWithRef($expectedInnerBlock, $exp)
         );
@@ -125,7 +130,12 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $allOverrides = json_decode($state->testBlocks[1]->overrides);
         $paragraphOverrides = $allOverrides->{$expectedInnerBlock->id};
         $paragraphOverrides->id = $expectedInnerBlock->id;
+        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         $exp = $this->blockTestUtils->getExpectedParagraphBlockOutput($paragraphOverrides, " class=\"$paragraphOverrides->cssClass\"");
+        } else {
+        $exp = $this->blockTestUtils->getExpectedParagraphBlockOutput($paragraphOverrides, " class=\"$paragraphOverrides->cssClass\"",
+            childMarker: "<!-- children-start --><!-- children-end -->");
+        }
         $this->renderAndVerify($state, 1,
             $this->blockTestUtils->decorateWithRef($expectedInnerBlock, $exp)
         );

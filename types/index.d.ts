@@ -274,7 +274,7 @@ interface BlockEditFormProps {
     funcsOut: {resetValues?: (newSnapshot: RawBlockData) => void;};
 }
 
-type blockChangeEvent = 'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block';
+type blockChangeEvent = 'init'|'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block'|'swap-blocks'|'undo-swap-blocks'|'@init';
 
 interface BlockEditFormProps2 {
     block: RawBlock2; // Cloned data
@@ -325,6 +325,14 @@ interface BlockTreeItemState {
 
 interface BlockTreeReduxState {
     tree: Array<RawBlock2>;
-    // [actionName, blockId, blockType, blockIsStoredToTreeId, visibleBlockIsStoredToId]
-    context: [blockChangeEvent, String|null, String|null, String|null, String|null];
+    // [actionName, blockId|SwapChangeEventData, blockType, blockIsStoredToTreeId, visibleBlockIsStoredToId]
+    context: [blockChangeEvent, String|null|SwapChangeEventData, String|null, String|null, String|null];
+}
+
+interface SwapChangeEventData {
+    trid: String;
+    dragBlock: RawBlock2;
+    dropBlock: RawBlock2;
+    tree: Array<RawBlock2>;
+    doRevert(): void;
 }

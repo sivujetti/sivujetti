@@ -155,8 +155,42 @@ class EditAppAwareWebPage {
      * @returns {(blockTreeState: BlockTreeReduxState) => void}
      */
     createBlockTreeChangeListener(trid, blockTreeUtils, blockTypes, getTree) {
+        /**
+         * @param {HTMLElement|DocumentFragment} content
+         * @param {RawBlock2} parent
+         * @param {HTMLElement} treeRootEl
+         */
+        const insertAsFirstChild = (content, parent, treeRootEl) => {
+            const parentEl = treeRootEl.querySelector(`[data-block="${parent.id}"]`);
+            const endcom = getChildEndComment(getBlockContentRoot(parentEl));
+            endcom.parentElement.insertBefore(content, endcom);
+        };
+        /**
+         * @param {RawBlock2} b
+         * @returns {String}
+         */
+        const getVisibleBlockId = b =>
+            b.type !== 'GlobalBlockReference' ? b.id : getTree(b.globalBlockTreeId)[0].id
+        ;
         return ({tree, context}) => {
             const event = context[0];
+            const treeRootEl = document.body;
+            if (event === 'swap-blocks' || event === 'undo-swap-blocks') {
+                const {dragBlock} = context[1];
+                const [block, containingBranch, parent] = blockTreeUtils.findBlock(dragBlock.id, tree);
+                const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
+                if ((parent && containingBranch.length === 1) || // Dropped as first child
+                    (parent && !nextBlock)) {
+                    insertAsFirstChild(treeRootEl.querySelector(`[data-block="${dragBlock.id}"]`), parent, treeRootEl);
+                } else if (!parent && !nextBlock) {
+                    window.console.error('todo insert after root\'s last');
+                } else if (nextBlock) {
+                    const nextEl = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(nextBlock)}"]`);
+                    nextEl.parentElement.insertBefore(treeRootEl.querySelector(`[data-block="${dragBlock.id}"]`), nextEl);
+                }
+                return;
+            }
+            //
             const isAdd = event === 'add-single-block';
             if (isAdd || event === 'undo-delete-single-block') {
                 const [block, containingBranch, parent] = findVisibleBlock(context[1], tree, blockTreeUtils, getTree);
@@ -168,15 +202,11 @@ class EditAppAwareWebPage {
                     const temp = document.createElement('template');
                     temp.innerHTML = withTrid(updatedHtml, trid);
                     const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
-                    const treeRootEl = document.body;
-                    const getVisibleBlockId = b => b.type !== 'GlobalBlockReference' ? b.id : getTree(b.globalBlockTreeId)[0].id;
                     const nextEl = nextBlock ? treeRootEl.querySelector(`[data-block="${getVisibleBlockId(nextBlock)}"]`) : null;
                     if ((nextEl && !parent) || (nextEl && parent)) {
                         nextEl.parentElement.insertBefore(temp.content, nextEl);
                     } else if (!nextEl && parent) {
-                        const parentEl = treeRootEl.querySelector(`[data-block="${parent.id}"]`);
-                        const endcom = getChildEndComment(getBlockContentRoot(parentEl));
-                        endcom.parentElement.insertBefore(temp.content, endcom);
+                        insertAsFirstChild(temp.content, parent, treeRootEl);
                     } else if (!nextEl && !parent) {
                         treeRootEl.appendChild(temp.content);
                     }
@@ -185,7 +215,6 @@ class EditAppAwareWebPage {
             }
             //
             if (event === 'delete-single-block' || event === 'undo-add-single-block') {
-                const treeRootEl = document.body;
                 const getVisibleBlockId2 = (blockId, blockType, isStoredToTreeId) => blockType !== 'GlobalBlockReference' ? blockId : getTree(isStoredToTreeId)[0].id;
                 const blockId = getVisibleBlockId2(context[1], context[2], context[4] || null);
                 const el = treeRootEl.querySelector(`[data-block="${blockId}"]`);
@@ -197,7 +226,6 @@ class EditAppAwareWebPage {
             //
             const isNormalUpdate = event === 'update-single-value';
             if (isNormalUpdate || event === 'undo-update-single-value') {
-                const treeRootEl = document.body;
                 const blockId = context[1];
                 const block = blockTreeUtils.findBlock(blockId, tree)[0];
                 const el = treeRootEl.querySelector(`[data-block="${block.id}"]`);
@@ -894,6 +922,10 @@ function createTrier(fn,
     return callTryFn;
 }
 
+/**
+ * @param {HTMLElement} el
+ * @returns {HTMLElement}
+ */
 function getBlockContentRoot(el) {
     return el.querySelector(':scope > [data-block-root]') || el;
 }

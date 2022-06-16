@@ -34,6 +34,7 @@ class BlockTree extends preact.Component {
         this.contextMenu = preact.createRef();
         this.lastRootBlockMarker = null;
         this.currentAddBlockTarget = null;
+        if (!this.featureFlagConditionUseReduxBlockTree) {
         this.dragDrop = new BlockTreeDragDrop(this, (mutatedTree, {dragBlock, dropBlock, dropPosition, doRevert}) => {
             const tree = dragBlock.isStoredTo !== 'globalBlockTree' ? mutatedTree : this.getTreeFor(dragBlock, true);
             //
@@ -53,6 +54,21 @@ class BlockTree extends preact.Component {
                     : [tree, dragBlock.isStoredTo, dragBlock.globalBlockTreeId],
             }));
         });
+        } else {
+        this.dragDrop = new BlockTreeDragDrop(this, (mutation1, mutation2 = null) => {
+        store.dispatch(createSetBlockTree(mutation1.trid)(mutation1.tree, ['swap-blocks', mutation1]));
+        store.dispatch(pushItemToOpQueue(`swap-${mutation1.trid==='main'?'page':'globalBlockTree'}-blocks`, {
+            doHandle: () =>
+                BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(mutation1.trid)(store.getState()).tree, mutation1.trid)
+            ,
+            doUndo: () => {
+                const treeBefore = mutation1.doRevert();
+                store.dispatch(createSetBlockTree(mutation1.trid)(treeBefore, ['undo-swap-blocks', mutation1]));
+            },
+            args: [],
+        }));
+        });
+        }
         BlockTrees = props.BlockTrees;
         this.unregistrablesLong = [];
         this.unregistrablesShort = [];
@@ -298,11 +314,30 @@ class BlockTree extends preact.Component {
         this.unregistrablesShort = [];
 
         const trids = getRegisteredReduxTreeIds();
-        const [a, b] = [this.onMainTreeChanged.bind(this), this.onInnerTreeChanged.bind(this)];
+        const [onMainTreeChanged, onInnerTreeChanged] = [({tree, context}) => {
+            if ((context[0] === 'init' && !this.state.blockTree.length) || [
+                'add-single-block',
+                'undo-add-single-block',
+                'delete-single-block',
+                'undo-delete-single-block',
+                'swap-blocks',
+                'undo-swap-blocks',
+            ].indexOf(context[0]) > -1) {
+                this.setState({blockTree: tree, treeState: createTreeState(tree, context[0] !== 'init')});
+            }
+        }, ({tree, context}) => {
+            if (context[0] === 'init') {
+                const newTreeTreeState = createTreeState(tree);
+                this.setState({treeState: Object.assign({}, this.state.treeState, newTreeTreeState)});
+            } else if (context[0] === 'add-single-block' || context[0] === 'undo-add-single-block' ||
+                context[0] === 'delete-single-block' || context[0] === 'undo-delete-single-block') {
+                this.setState({treeState: createTreeState(tree, true)});
+            }
+        }];
         for (const trid of trids) {
             this.unregistrablesShort.push(observeStore(createSelectBlockTree(trid), trid === 'main'
-                ? a
-                : b));
+                ? onMainTreeChanged
+                : onInnerTreeChanged));
         }
 
         const storeState = store.getState();
@@ -311,32 +346,6 @@ class BlockTree extends preact.Component {
             Object.assign(treeState, createTreeState(createSelectBlockTree(trid)(storeState).tree));
         }
         this.setState({blockTree: createSelectBlockTree('main')(storeState).tree, treeState});
-    }
-    /**
-     * @param {BlockTreeReduxState}
-     * @access private
-     */
-    onMainTreeChanged({tree, context}) {
-        if ((context[0] === 'init' && !this.state.blockTree.length) ||
-            context[0] === 'add-single-block' ||
-            context[0] === 'undo-add-single-block' ||
-            context[0] === 'delete-single-block' ||
-            context[0] === 'undo-delete-single-block') {
-            this.setState({blockTree: tree, treeState: createTreeState(tree, context[0] !== 'init')});
-        }
-    }
-    /**
-     * @param {BlockTreeReduxState}
-     * @access private
-     */
-    onInnerTreeChanged({tree, context}) {
-        if (context[0] === 'init') {
-            const newTreeTreeState = createTreeState(tree);
-            this.setState({treeState: Object.assign({}, this.state.treeState, newTreeTreeState)});
-        } else if (context[0] === 'add-single-block' || context[0] === 'undo-add-single-block' ||
-            context[0] === 'delete-single-block' || context[0] === 'undo-delete-single-block') {
-            this.setState({treeState: createTreeState(tree, true)});
-        }
     }
     /**
      * @access protected
@@ -441,8 +450,7 @@ class BlockTree extends preact.Component {
                          !treeState[block.id].isCollapsed ? '' : ' collapsed',
                          !block.children.length ? '' : ' with-children'].join('') }
                 data-block-id={ block.id }
-                data-base-block-id={ block.id }
-                data-block-tree-id={ block.isStoredTo !== 'globalBlockTree' ? '' : block.globalBlockTreeId }
+                data-trid={ block.isStoredToTreeId }
                 key={ block.id }
                 draggable>
                 { !block.children.length

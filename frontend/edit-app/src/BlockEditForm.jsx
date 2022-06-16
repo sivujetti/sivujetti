@@ -47,7 +47,7 @@ class BlockEditForm extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree && ['Columns', 'Paragraph', 'Section'].indexOf(this.props.block.type) > -1;
+        this.featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree && ['Columns', 'Menu', 'Paragraph', 'Section'].indexOf(this.props.block.type) > -1;
         blockTypes = api.blockTypes;
         this.state = {currentTabIdx: 0};
         this.userCanEditCss = api.user.can('editCssStyles');

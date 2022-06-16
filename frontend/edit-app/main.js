@@ -62,7 +62,7 @@ function configureServices() {
         };
         return out;
     };
-    blockTypes.register('Menu', maybeDisableEdit(createMenuBlockType));
+    blockTypes.register('Menu', createMenuBlockType);
     blockTypes.register('Button', maybeDisableEdit(createButtonBlockType));
     blockTypes.register('Columns', createColumnsBlockType);
     blockTypes.register('GlobalBlockReference', maybeDisableEdit(createGlobalBlockReferenceBlockType));
@@ -220,7 +220,7 @@ function renderReactEditApp() {
             }
             for (const [_, tree] of trees) {
                 blockTreeUtils.traverseRecursively(tree, b => {
-                    if (['Columns', 'Paragraph', 'Section'].indexOf(b.type) > -1 || b.type === 'GlobalBlockReference') return;
+                    if (['Columns', 'Menu', 'Paragraph', 'Section'].indexOf(b.type) > -1 || b.type === 'GlobalBlockReference') return;
                     wipe(b);
                 });
             }

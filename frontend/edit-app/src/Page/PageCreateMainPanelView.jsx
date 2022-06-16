@@ -144,7 +144,7 @@ class PageCreateMainPanelView extends preact.Component {
             const block = blockTreeUtils.findBlock(newValue, linkedMenuBase.__globalBlockTree.blocks)[0];
             //
             const linkCreator = new CountingLinkItemFactory();
-            const parsed = linkCreator.setGetCounterUsingTree(block);
+            const parsed = linkCreator.setGetCounterUsingTreeOf(block);
             const newLink = linkCreator.makeLinkItem({slug: pathToFullSlug(this.pageMetaData.path), text: this.pageMetaData.title});
             parsed.push(newLink);
             //

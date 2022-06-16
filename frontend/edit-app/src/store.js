@@ -17,7 +17,6 @@ const currentPageReducer = (state = {}, action) => {
 const setCurrentPage = value => ({type: 'currentPage/set', value});
 const selectCurrentPage = state => state.currentPage;
 
-
 /**
  * @param {String} trid
  * @returns {(state: BlockTreeReduxState, action: Object) => Object}
@@ -27,8 +26,8 @@ const createBlockTreeReducer = trid => (state = {}, action) => {
     case `blockTree_${trid}/set`:
         return {tree: action.tree, context: action.context};
     case `blockTree_${trid}/updateDataOf`:
-        return {tree: blockTreeUtils.mapRecursivelyManual(state.tree, (b, i, children) =>
-            Object.assign(b.id !== action.blockId ? b : Object.assign({}, b, action.data), {children})
+        return {tree: blockTreeUtils.mapRecursivelyManual(state.tree, (b, _i, children) =>
+            Object.assign(b.id !== action.blockId ? b : overrideData(b, action.data), {children})
         ), context: action.context};
     default:
         return state;
@@ -38,6 +37,17 @@ const createSetBlockTree = trid => (tree, context) => ({type: `blockTree_${trid}
 const createUpdateBlockTreeItemData = trid => (data, blockId, context) => ({type: `blockTree_${trid}/updateDataOf`, data, blockId, context});
 const createSelectBlockTree = trid => state => state[`blockTree_${trid}`];
 const createBlockTreeReducerPair = trid => [`blockTree_${trid}`, createBlockTreeReducer(trid)];
+function overrideData(block, data) {
+    const out = Object.assign({}, block);
+    for (const key1 in data) {
+        // b.*
+        out[key1] = data[key1];
+        // b.propsData[*].value
+        const idx = out.propsData.findIndex(({key}) => key === key1);
+        if (idx > -1) out.propsData[idx].value = data[key1];
+    }
+    return out;
+}
 
 /**
  * @param {Object} state

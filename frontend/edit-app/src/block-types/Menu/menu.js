@@ -1,5 +1,5 @@
 import {http, __} from '@sivujetti-commons-for-edit-app';
-import MenuBlockEditForm, {CountingLinkItemFactory} from './EditForm.jsx';
+import MenuBlockEditForm, {MenuBlockEditForm2, CountingLinkItemFactory} from './EditForm.jsx';
 
 export default () => {
     const linkCreator = new CountingLinkItemFactory;
@@ -45,6 +45,7 @@ export default () => {
             itemAttrs: from.itemAttrs,
             itemEnd: from.itemEnd,
         }),
-        editForm: MenuBlockEditForm,
+        // @featureFlagConditionUseReduxBlockTree
+        editForm: !window.useReduxBlockTree ? MenuBlockEditForm : MenuBlockEditForm2,
     };
 };

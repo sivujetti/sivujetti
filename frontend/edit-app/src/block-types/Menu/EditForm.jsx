@@ -9,7 +9,7 @@ class MenuBlockEditForm extends preact.Component {
      * @access public
      */
     overrideValues(snapshot) {
-        const newState = {parsedTree: this.linkCreator.setGetCounterUsingTree(snapshot)};
+        const newState = {parsedTree: this.linkCreator.setGetCounterUsingTreeOf(snapshot)};
         const editPanelState = this.state.editPanelState;
         if (editPanelState.link)
             newState.editPanelState = createEditPanelState(
@@ -30,7 +30,7 @@ class MenuBlockEditForm extends preact.Component {
      */
     componentDidMount() {
         this.linkCreator = new CountingLinkItemFactory();
-        this.setState({parsedTree: this.linkCreator.setGetCounterUsingTree(this.props.block),
+        this.setState({parsedTree: this.linkCreator.setGetCounterUsingTreeOf(this.props.block),
                        editPanelState: createEditPanelState(),
                        linkWithNavOpened: null});
         this.outerEl = preact.createRef();
@@ -120,6 +120,115 @@ class MenuBlockEditForm extends preact.Component {
     }
 }
 
+class MenuBlockEditForm2 extends preact.Component {
+    // linkCreator;
+    // outerEl;
+    // contextMenu;
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        this.linkCreator = new CountingLinkItemFactory();
+        this.outerEl = preact.createRef();
+        this.contextMenu = preact.createRef();
+        const {block, grabChanges} = this.props;
+        this.setState({parsedTree: this.linkCreator.setGetCounterUsingTreeOf(block),
+                       editPanelState: createEditPanelState(),
+                       linkWithNavOpened: null});
+        grabChanges((block, origin, isUndo) => {
+            const newState = {parsedTree: this.linkCreator.setGetCounterUsingTreeOf(block)};
+            if (isUndo && this.state.editPanelState.link) {
+                newState.editPanelState = createEditPanelState(
+                    findLinkItem(newState.parsedTree, this.state.editPanelState.link.id),
+                    this.state.editPanelState.leftClass,
+                    this.state.editPanelState.rightClass
+                );
+            }
+            this.setState(newState);
+        });
+    }
+    /**
+     * @param {BlockEditFormProps2} props
+     * @access protected
+     */
+    render(_, {parsedTree, editPanelState}) {
+        if (!editPanelState) return;
+        return <div class="anim-outer pt-1">
+            <div class={ editPanelState.leftClass } ref={ this.outerEl }>
+                <ul class="list">{ parsedTree.map((item, i) =>
+                    <li class={ `ml-2${i > 0 ? '' : ' mt-0'}` } key={ item.id }><div class="d-flex flex-centered">
+                        <span>{ item.text }</span>
+                        <button onClick={ e => this.openMoreMenu(item, e) } class="btn btn-sm btn-link col-ml-auto flex-centered" type="button">
+                            <Icon iconId="dots" className="size-sm"/>
+                        </button>
+                    </div></li>
+                ) }</ul>
+                <button onClick={ this.appendItemToMenu.bind(this) }
+                    class="btn btn-sm text-tiny with-icon-inline color-dimmed mt-2" type="button">
+                    <Icon iconId="plus" className="size-xs mr-1"/> { __('Add link') }
+                </button>
+            </div>
+            <ContextMenu
+                links={ [
+                    {text: __('Edit'), title: __('Edit link'), id: 'edit'},
+                    {text: __('Delete'), title: __('Delete link'), id: 'delete'},
+                ] }
+                onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
+                onMenuClosed={ () => this.setState({linkWithNavOpened: null}) }
+                ref={ this.contextMenu }/>
+            <EditItemPanel
+                link={ editPanelState.link }
+                cssClass={ editPanelState.rightClass }
+                onLinkUpdated={ mutatedLink => {
+                    const ref = findLinkItem(this.state.parsedTree, mutatedLink.id);
+                    Object.assign(ref, mutatedLink); // Mutates this.state.parsedTree
+                    this.applyAndEmit(this.state.parsedTree);
+                } }
+                endEditMode={ () => {
+                    this.setState({editPanelState: createEditPanelState(null, 'reveal-from-left', 'fade-to-right')});
+                } }
+                panelHeight={ editPanelState.leftClass === ''
+                    ? 0
+                    : this.outerEl.current.getBoundingClientRect().height
+                }/>
+        </div>;
+    }
+    /**
+     * @param {MenuLink} item
+     * @param {Event} e
+     * @access private
+     */
+    openMoreMenu(item, e) {
+        this.setState({linkWithNavOpened: item});
+        this.contextMenu.current.open(e);
+    }
+    /**
+     * @param {ContextMenuLink} link
+     * @access private
+     */
+    handleContextMenuLinkClicked(link) {
+        if (link.id === 'edit')
+            this.setState({editPanelState: {link: this.state.linkWithNavOpened,
+                                            leftClass: 'fade-to-left',
+                                            rightClass: 'reveal-from-right'}});
+        else if (link.id === 'delete')
+        this.applyAndEmit(this.state.parsedTree.filter(link => link !== this.state.linkWithNavOpened));
+    }
+    /**
+     * @access private
+     */
+    appendItemToMenu() {
+        this.applyAndEmit(this.state.parsedTree.concat(this.linkCreator.makeLinkItem({slug: '/', text: __('Link text')})));
+    }
+    /**
+     * @param {Array<MenuLink>} newParsedTree
+     * @access private
+     */
+    applyAndEmit(newParsedTree) {
+        this.props.emitValueChanged(JSON.stringify(newParsedTree), 'tree', false);
+    }
+}
+
 class CountingLinkItemFactory {
     // counter;
     /**
@@ -128,11 +237,11 @@ class CountingLinkItemFactory {
         this.counter = 0;
     }
     /**
-     * @param {Block|RawBlockData} newTree
+     * @param {Block|RawBlock2|RawBlockData} newTree
      * @returns {Array<MenuLink>}
      * @access public
      */
-    setGetCounterUsingTree(newTree) {
+    setGetCounterUsingTreeOf(newTree) {
         const parsedTree = JSON.parse(newTree.tree);
         this.counter = getMaxId(parsedTree);
         return parsedTree;
@@ -209,4 +318,4 @@ function getMaxId(branch) {
  */
 
 export default MenuBlockEditForm;
-export {CountingLinkItemFactory};
+export {MenuBlockEditForm2, CountingLinkItemFactory};

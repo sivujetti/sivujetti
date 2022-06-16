@@ -157,24 +157,30 @@ class EditAppAwareWebPage {
     createBlockTreeChangeListener(trid, blockTreeUtils, blockTypes, getTree) {
         return ({tree, context}) => {
             const event = context[0];
-            if (event === 'add-single-block' || event === 'undo-delete-single-block') {
+            const isAdd = event === 'add-single-block';
+            if (isAdd || event === 'undo-delete-single-block') {
                 const [block, containingBranch, parent] = findVisibleBlock(context[1], tree, blockTreeUtils, getTree);
-                const upd = blockTypes.get(block.type).reRender(block, () => this.getAndWipeStordInnerContent(block));
-                const temp = document.createElement('template');
-                temp.innerHTML = withTrid(upd, trid);
-                const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
-                const treeRootEl = document.body;
-                const getVisibleBlockId = b => b.type !== 'GlobalBlockReference' ? b.id : getTree(b.globalBlockTreeId)[0].id;
-                const nextEl = nextBlock ? treeRootEl.querySelector(`[data-block="${getVisibleBlockId(nextBlock)}"]`) : null;
-                if ((nextEl && !parent) || (nextEl && parent)) {
-                    nextEl.parentElement.insertBefore(temp.content, nextEl);
-                } else if (!nextEl && parent) {
-                    const parentEl = treeRootEl.querySelector(`[data-block="${parent.id}"]`);
-                    const endcom = getChildEndComment(getBlockContentRoot(parentEl));
-                    endcom.parentElement.insertBefore(temp.content, endcom);
-                } else if (!nextEl && !parent) {
-                    treeRootEl.appendChild(temp.content);
-                }
+                const stringOrPromise = blockTypes.get(block.type).reRender(block, () => isAdd
+                    ? `<!--${CHILDREN_START}--><!--${CHILDREN_END}-->`
+                    : this.getAndWipeStordInnerContent(block)
+                );
+                getBlockReRenderResult(stringOrPromise, updatedHtml => {
+                    const temp = document.createElement('template');
+                    temp.innerHTML = withTrid(updatedHtml, trid);
+                    const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
+                    const treeRootEl = document.body;
+                    const getVisibleBlockId = b => b.type !== 'GlobalBlockReference' ? b.id : getTree(b.globalBlockTreeId)[0].id;
+                    const nextEl = nextBlock ? treeRootEl.querySelector(`[data-block="${getVisibleBlockId(nextBlock)}"]`) : null;
+                    if ((nextEl && !parent) || (nextEl && parent)) {
+                        nextEl.parentElement.insertBefore(temp.content, nextEl);
+                    } else if (!nextEl && parent) {
+                        const parentEl = treeRootEl.querySelector(`[data-block="${parent.id}"]`);
+                        const endcom = getChildEndComment(getBlockContentRoot(parentEl));
+                        endcom.parentElement.insertBefore(temp.content, endcom);
+                    } else if (!nextEl && !parent) {
+                        treeRootEl.appendChild(temp.content);
+                    }
+                });
                 return;
             }
             //
@@ -195,7 +201,8 @@ class EditAppAwareWebPage {
                 const blockId = context[1];
                 const block = blockTreeUtils.findBlock(blockId, tree)[0];
                 const el = treeRootEl.querySelector(`[data-block="${block.id}"]`);
-                const updated = blockTypes.get(block.type).reRender(block, () => {
+                //
+                const stringOrPromise = blockTypes.get(block.type).reRender(block, () => {
                     if (isNormalUpdate) { // Not undo -> cache current child content
                         const html = getChildContentEls(getBlockContentRoot(el), true);
                         this.deletedInnerContentStorage.set(blockId, html);
@@ -205,9 +212,11 @@ class EditAppAwareWebPage {
                     const html = this.getAndWipeStordInnerContent(block);
                     return html || getChildContentEls(getBlockContentRoot(el), true);
                 });
-                const temp = document.createElement('template');
-                temp.innerHTML = withTrid(updated, trid);
-                el.replaceWith(temp.content);
+                getBlockReRenderResult(stringOrPromise, updatedHtml => {
+                    const temp = document.createElement('template');
+                    temp.innerHTML = withTrid(updatedHtml, trid);
+                    el.replaceWith(temp.content);
+                });
             }
         };
     }
@@ -962,6 +971,17 @@ function getChildEndComment(of) {
  */
 function withTrid(html, trid) {
     return html.replace(' data-block=', `data-trid="${trid}" data-block=`);
+}
+
+/**
+ * @param {String|Promise<String>} result
+ * @param {(html: String) => void} then
+ */
+function getBlockReRenderResult(result, then) {
+    if (typeof result === 'string')
+        then(result);
+    else
+        result.then(html => { then(html); });
 }
 
 export default EditAppAwareWebPage;

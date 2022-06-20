@@ -212,6 +212,7 @@ function renderReactEditApp() {
                     webPage.setTridAttr(b.id, trid);
                 });
             }
+            webPage.addRootBoundingEls(ordered[ordered.length - 1]);
             //
             const trees = new Map;
             trees.set('main', mutatedOrdered);

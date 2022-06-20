@@ -42,6 +42,21 @@ class EditAppAwareWebPage {
         return Array.from(document.body.querySelectorAll('[data-block-type]'));
     }
     /**
+     * Adds <!-- children-start|end --> comments to document.body.
+     *
+     * @param {RawBlock2} lastBlock
+     * @access public
+     */
+    addRootBoundingEls(lastBlock) {
+        const rootEl = document.body;
+        rootEl.insertBefore(document.createComment(' children-start '), rootEl.firstChild);
+        const lastEl = lastBlock.type !== 'GlobalBlockReference' ? rootEl.querySelector(`[data-block="${lastBlock.id}"]`)
+            : findCommentR(rootEl, ` block-end ${lastBlock.id} `);
+        const nextOfLast = lastEl.nextSibling;
+        if (nextOfLast) nextOfLast.parentElement.insertBefore(document.createComment(' children-end '), nextOfLast);
+        else lastEl.parentElement.appendChild(document.createComment(' children-end '));
+    }
+    /**
      * @param {String} blockId
      * @param {String} trid
      * @access public
@@ -156,7 +171,7 @@ class EditAppAwareWebPage {
      */
     createBlockTreeChangeListener(trid, blockTreeUtils, blockTypes, getTree) {
         /**
-         * @param {HTMLElement|DocumentFragment} content
+         * @param {HTMLElement|DocumentFragment|Comment} content
          * @param {RawBlock2} parent
          * @param {HTMLElement} treeRootEl
          */
@@ -172,21 +187,66 @@ class EditAppAwareWebPage {
         const getVisibleBlockId = b =>
             b.type !== 'GlobalBlockReference' ? b.id : getTree(b.globalBlockTreeId)[0].id
         ;
+        /**
+         * @param {RawBlock2|null} of
+         * @param {Array<RawBlock2>} tree
+         * @param {HTMLElement} treeRootEl
+         */
+        const getInsertRefEl = (of, tree, treeRootEl) => {
+            const el = of ? treeRootEl.querySelector(`[data-block="${getVisibleBlockId(of)}"]`) : null;
+            if (!el) return null;
+            //
+            return of.type !== 'GlobalBlockReference'
+                // <some-el> <- this
+                //   ...
+                ? el
+                // <!-- block-start...:GlobalBlockReference...--> <- this
+                // <some-el>
+                //   ...
+                : el.previousSibling;
+        };
         return ({tree, context}) => {
             const event = context[0];
             const treeRootEl = document.body;
             if (event === 'swap-blocks' || event === 'undo-swap-blocks') {
-                const {dragBlock} = context[1];
-                const [block, containingBranch, parent] = blockTreeUtils.findBlock(dragBlock.id, tree);
+                const [blockA, dragTree] = [context[1].blockA, context[1].tree];
+                const [block, containingBranch, parent] = blockTreeUtils.findBlock(blockA.id, dragTree);
                 const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
                 if ((parent && containingBranch.length === 1) || // Dropped as first child
                     (parent && !nextBlock)) {
-                    insertAsFirstChild(treeRootEl.querySelector(`[data-block="${dragBlock.id}"]`), parent, treeRootEl);
+                    if (blockA.type !== 'GlobalBlockReference') {
+                        insertAsFirstChild(treeRootEl.querySelector(`[data-block="${blockA.id}"]`), parent, treeRootEl);
+                    } else {
+                        const commentAbove = getInsertRefEl(blockA, dragTree, treeRootEl);
+                        const mainEl = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(blockA)}"]`);
+                        const commentBelow = mainEl.nextSibling;
+                        insertAsFirstChild(commentAbove, parent, treeRootEl);
+                        insertAsFirstChild(mainEl, parent, treeRootEl);
+                        insertAsFirstChild(commentBelow, parent, treeRootEl);
+                    }
                 } else if (!parent && !nextBlock) {
-                    window.console.error('todo insert after root\'s last');
+                    const endcom = getChildEndComment(treeRootEl);
+                    if (blockA.type !== 'GlobalBlockReference') {
+                        treeRootEl.insertBefore(treeRootEl.querySelector(`[data-block="${blockA.id}"]`), endcom);
+                    } else {
+                        const commentAbove = getInsertRefEl(blockA, dragTree, treeRootEl);
+                        const mainEl = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(blockA)}"]`);
+                        const commentBelow = mainEl.nextSibling;
+                        treeRootEl.insertBefore(commentAbove, endcom);
+                        treeRootEl.insertBefore(mainEl, endcom);
+                        treeRootEl.insertBefore(commentBelow, endcom);
+                    }
                 } else if (nextBlock) {
-                    const nextEl = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(nextBlock)}"]`);
-                    nextEl.parentElement.insertBefore(treeRootEl.querySelector(`[data-block="${dragBlock.id}"]`), nextEl);
+                    if (blockA.type === 'GlobalBlockReference') {
+                        const ref = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(blockA)}"]`).nextSibling.nextSibling;
+                        ref.parentElement.insertBefore(treeRootEl.querySelector(`[data-block="${context[1].blockB.id}"]`), ref);
+                    } else if (context[1].blockB.type === 'GlobalBlockReference') {
+                        const ref = getInsertRefEl(context[1].blockB, null, treeRootEl);
+                        ref.parentElement.insertBefore(treeRootEl.querySelector(`[data-block="${blockA.id}"]`), ref);
+                    } else {
+                        const nextEl = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(nextBlock)}"]`);
+                        nextEl.parentElement.insertBefore(treeRootEl.querySelector(`[data-block="${getVisibleBlockId(blockA)}"]`), nextEl);
+                    }
                 }
                 return;
             }
@@ -202,7 +262,7 @@ class EditAppAwareWebPage {
                     const temp = document.createElement('template');
                     temp.innerHTML = withTrid(updatedHtml, trid);
                     const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
-                    const nextEl = nextBlock ? treeRootEl.querySelector(`[data-block="${getVisibleBlockId(nextBlock)}"]`) : null;
+                    const nextEl = getInsertRefEl(nextBlock, tree, treeRootEl);
                     if ((nextEl && !parent) || (nextEl && parent)) {
                         nextEl.parentElement.insertBefore(temp.content, nextEl);
                     } else if (!nextEl && parent) {
@@ -987,9 +1047,18 @@ function getChildStartComment(of) {
  * @returns {Comment|null}
  */
 function getChildEndComment(of) {
+    return findCommentR(of, CHILDREN_END);
+}
+
+/**
+ * @param {HTMLElement} of
+ * @param {String} find
+ * @returns {Comment|null}
+ */
+function findCommentR(of, find) {
     let el = of.lastChild;
     while (el) {
-        if (el.nodeType === Node.COMMENT_NODE && el.nodeValue === CHILDREN_END)
+        if (el.nodeType === Node.COMMENT_NODE && el.nodeValue === find)
             return el;
         el = el.previousSibling;
     }

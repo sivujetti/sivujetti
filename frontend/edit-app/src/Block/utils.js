@@ -1,5 +1,6 @@
 import {api} from '@sivujetti-commons-for-edit-app';
 import {generatePushID} from '../commons/utils.js';
+import blockTreeUtils from '../blockTreeUtils.js';
 
 /**
  * @param {BlockType|String} blockType
@@ -35,4 +36,25 @@ function createOwnData(blockType) {
     return Object.assign(flat, {propsData: asMetaArr});
 }
 
-export {createBlockFromType};
+/**
+ * @param {RawBlock2|String} blockOrBlockId
+ * @param {Array<RawBlock2>} tree
+ * @returns {Boolean}
+ */
+function isTreesOutermostBlock(blockOrBlockId, tree) {
+    return (typeof blockOrBlockId === 'string' ? blockOrBlockId : blockOrBlockId.id) === tree[0].id;
+}
+
+/**
+ * @param {RawBlock2} innerTreeBlock
+ * @param {Array<RawBlock2>} tree
+ * @returns {RawBlock2} {type: 'GlobalBlockReference'}
+ */
+function findRefBlockOf(innerTreeBlock, tree) {
+    const trid = innerTreeBlock.isStoredToTreeId;
+    return blockTreeUtils.findRecursively(tree, block =>
+        block.type === 'GlobalBlockReference' && block.globalBlockTreeId === trid
+    );
+}
+
+export {createBlockFromType, isTreesOutermostBlock, findRefBlockOf};

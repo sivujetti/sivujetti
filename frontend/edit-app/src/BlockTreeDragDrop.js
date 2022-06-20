@@ -1,5 +1,6 @@
 import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
 import store, {createSelectBlockTree} from './store.js';
+import {findRefBlockOf, isTreesOutermostBlock} from './Block/utils.js';
 
 class BlockTreeDragDrop {
     // blockTree;
@@ -124,8 +125,13 @@ class BlockTreeDragDrop {
         );
         } else {
         dragBlockTree = createSelectBlockTree(this.startEl.getAttribute('data-trid'))(store.getState()).tree;
-        [dragBlock, dragBranch] = blockTreeUtils.findBlock(this.startEl.getAttribute('data-block-id'),
-            dragBlockTree);
+        const blockId = this.startEl.getAttribute('data-block-id');
+        [dragBlock, dragBranch] = blockTreeUtils.findBlock(blockId, dragBlockTree);
+        if (dragBlock.isStoredToTreeId !== 'main' && isTreesOutermostBlock(blockId, dragBlockTree)) {
+            dragBlockTree = createSelectBlockTree('main')(store.getState()).tree;
+            const blockId2 = findRefBlockOf(dragBlock, dragBlockTree).id;
+            [dragBlock, dragBranch] = blockTreeUtils.findBlock(blockId2, dragBlockTree);
+        }
         }
         let dropBlockTree, dropBlock, dropBranch, dropBlockParent;
         if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
@@ -141,16 +147,23 @@ class BlockTreeDragDrop {
             null,
         ];
         } else {
-        dropBlockTree = createSelectBlockTree(this.startEl.getAttribute('data-trid'))(store.getState()).tree;
         const {el} = this.curDropTypeCandidate;
-        [dropBlock, dropBranch, dropBlockParent] = !el.getAttribute('data-last') ? blockTreeUtils.findBlock(
-            el.getAttribute('data-block-id'),
-            dropBlockTree
-        ) : [
-            dropBlockTree[dropBlockTree.length - 1],
-            dropBlockTree,
-            null,
-        ];
+        dropBlockTree = createSelectBlockTree(el.getAttribute('data-trid'))(store.getState()).tree;
+        if (!el.getAttribute('data-last')) {
+            const blockId = el.getAttribute('data-block-id');
+            [dropBlock, dropBranch, dropBlockParent] = blockTreeUtils.findBlock(blockId, dropBlockTree);
+            if (dropBlock.isStoredToTreeId !== 'main' && isTreesOutermostBlock(blockId, dropBlockTree)) {
+                dropBlockTree = createSelectBlockTree('main')(store.getState()).tree;
+                const blockId2 = findRefBlockOf(dropBlock, dropBlockTree).id;
+                [dropBlock, dropBranch, dropBlockParent] = blockTreeUtils.findBlock(blockId2, dropBlockTree);
+            }
+        } else {
+            [dropBlock, dropBranch, dropBlockParent] = [
+                dropBlockTree[dropBlockTree.length - 1],
+                dropBlockTree,
+                null,
+            ];
+        }
         }
         //
         let doRevert = null;
@@ -186,22 +199,14 @@ class BlockTreeDragDrop {
                 const toIdx = dragBranch.indexOf(dropBlock);
                 const fromIndex = dragBranch.indexOf(dragBlock);
                 const realTo = isBefore ? toIdx : toIdx + 1;
-                // Mutates tree x 2
                 dragBranch.splice(realTo, 0, dragBlock);
                 dragBranch.splice(fromIndex + (fromIndex > realTo ? 1 : 0), 1);
                 //
-                mut1 = {
-                    trid: dragBlock.isStoredToTreeId,
-                    dragBlock,
-                    dropBlock,
-                    tree: dragBlockTree,
-                    // Mutates tree x 2
-                    doRevert: () => {
-                        dragBranch.splice(fromIndex + (fromIndex > realTo ? 1 : 0), 0, dragBlock);
-                        dragBranch.splice(realTo, 1);
-                        return dragBlockTree;
-                    }
-                };
+                mut1 = createMutationInfo(dragBlock, dropBlock, dragBlockTree, () => {
+                    dragBranch.splice(fromIndex + (fromIndex > realTo ? 1 : 0), 0, dragBlock);
+                    dragBranch.splice(realTo, 1);
+                    return dragBlockTree;
+                }, isBefore);
                 }
             } else {
             if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
@@ -230,29 +235,27 @@ class BlockTreeDragDrop {
                     return revertInfo;
                 };
             } else {
-                if (dragBlock.isStoredToTreeId !== dropBlock.isStoredToTreeId) {
-                    this.handleDropNotAllowed('todo');
+                const aIsNorm = dragBlock.isStoredToTreeId === 'main';
+                const bIsNorm = dropBlock.isStoredToTreeId === 'main';
+                if (aIsNorm && !bIsNorm && dropBlock.id !== dropBlockTree[0].id) {
+                    this.handleDropNotAllowed('Normal > Global drop not supported yet');
+                    return;
+                } else if (bIsNorm && !aIsNorm && dragBlock.id !== dragBlockTree[0].id) {
+                    this.handleDropNotAllowed('Global > Normal drop not supported yet');
                     return;
                 }
+                //
                 const dragBranchIdx = dragBranch.indexOf(dragBlock);
                 const dropBranchIdx = dropBranch.indexOf(dropBlock);
                 const pos = dropBranchIdx + (isBefore ? 0 : 1);
-                // Mutates tree x 2
                 dropBranch.splice(pos, 0, dragBlock);
                 dragBranch.splice(dragBranchIdx, 1);
                 //
-                mut1 = {
-                    trid: dragBlock.isStoredToTreeId,
-                    dragBlock,
-                    dropBlock,
-                    tree: dragBlockTree,
-                    // Mutates tree x 2
-                    doRevert: () => {
-                        dragBranch.splice(dragBranchIdx, 0, dragBlock);
-                        dropBranch.splice(pos, 1);
-                        return dragBlockTree;
-                    }
-                };
+                mut1 = createMutationInfo(dragBlock, dropBlock, dragBlockTree, () => {
+                    dragBranch.splice(dragBranchIdx, 0, dragBlock);
+                    dropBranch.splice(pos, 1);
+                    return dragBlockTree;
+                }, isBefore);
             }
             }
         } else if (this.curDropTypeCandidate.dropPosition === 'as-child') {
@@ -277,27 +280,22 @@ class BlockTreeDragDrop {
                 return revertInfo;
             };
             } else {
-            if (dragBlock.isStoredToTreeId !== dropBlock.isStoredToTreeId) {
-                this.handleDropNotAllowed('todo');
+            if (dropBlock.type === 'GlobalBlockReference' || dropBlock.isStoredTo === 'globalBlockTree') {
+                this.handleDropNotAllowed('Global > Normal drop not supported yet');
+                return;
+            } else if (dragBlock.isStoredToTreeId !== 'main' && dropBlock.isStoredToTreeId === 'main') {
+                this.handleDropNotAllowed('Global > Normal (as child) drop not supported yet');
                 return;
             }
-            // Mutates tree x 2
             dropBlock.children.push(dragBlock);
             const pos = dragBranch.indexOf(dragBlock);
             dragBranch.splice(pos, 1);
             //
-            mut1 = {
-                trid: dragBlock.isStoredToTreeId,
-                dragBlock,
-                dropBlock,
-                tree: dragBlockTree,
-                // Mutates tree x 2
-                doRevert: () => {
-                    dropBlock.children.pop();
-                    dragBranch.splice(pos, 0, dragBlock);
-                    return dragBlockTree;
-                }
-            };
+            mut1 = createMutationInfo(dragBlock, dropBlock, dragBlockTree, () => {
+                dropBlock.children.pop();
+                dragBranch.splice(pos, 0, dragBlock);
+                return dragBlockTree;
+            }, true);
             }
         } else return;
         if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
@@ -363,6 +361,23 @@ class BlockTreeDragDrop {
         this.clearDragEl();
         alert(message);
     }
+}
+
+/**
+ * @param {RawBlock2} dragBlock
+ * @param {RawBlock2} dropBlock
+ * @param {Array<RawBlock2>} dragBlockTree
+ * @param {() => Array<RawBlock2>} doRevert
+ * @param {Boolean} isBefore
+ */
+function createMutationInfo(dragBlock, dropBlock, dragBlockTree, doRevert, isBefore) {
+    return {
+        trid: dragBlock.isStoredToTreeId,
+        blockA: isBefore ? dragBlock : dropBlock,
+        blockB: isBefore ? dropBlock : dragBlock,
+        tree: dragBlockTree,
+        doRevert,
+    };
 }
 
 export default BlockTreeDragDrop;

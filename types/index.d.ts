@@ -231,6 +231,7 @@ interface EditAppAwareWebPage {
     scanBlockElements(): Array<HTMLElement>;
     registerEventHandlers(handlers: EditAwareWebPageEventHandlers, blockRefComments: Array<BlockRefComment>): void;
     registerEventHandlers2(handlers: EditAwareWebPageEventHandlers2, disableHoverFor: (blockEl: HTMLElement) => Boolean = null): void;
+    addRootBoundingEls(lastBlock: RawBlock2): void;
     getCombinedAndOrderedBlockTree(pageBlocks: Array<RawBlock>, blockRefComments: Array<BlockRefComment>, blockTreeUtils: blockTreeUtils): Array<RawBlock>;
     appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<BlockRefComment>;
     appendClonedBlockBranchToDom(clonedBlock: Block, clonedFromBlock: Block, blockTreeUtils: blockTreeUtils): Promise<{[key: String]: BlockRefComment;}>;
@@ -331,8 +332,8 @@ interface BlockTreeReduxState {
 
 interface SwapChangeEventData {
     trid: String;
-    dragBlock: RawBlock2;
-    dropBlock: RawBlock2;
+    blockA: RawBlock2;
+    blockB: RawBlock2;
     tree: Array<RawBlock2>;
     doRevert(): void;
 }

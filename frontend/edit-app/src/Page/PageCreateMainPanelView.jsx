@@ -2,12 +2,13 @@ import {__, http, urlUtils, signals, env} from '@sivujetti-commons-for-edit-app'
 import {InputGroupInline} from '../commons/Form.jsx';
 import toasters from '../commons/Toaster.jsx';
 import BlockTrees from '../BlockTrees.jsx';
-import store, {deleteItemsFromOpQueueAfter, setOpQueue} from '../store.js';
+import store, {deleteItemsFromOpQueueAfter, observeStore, selectCurrentPageDataBundle, setOpQueue} from '../store.js';
 import blockTreeUtils from '../blockTreeUtils.js';
 import {CountingLinkItemFactory} from '../block-types/Menu/EditForm.jsx';
 import {BlockValMutator} from '../BlockEditForm.jsx';
 
 const ID_NONE = '-';
+const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
 
 class PageCreateMainPanelView extends preact.Component {
     // pageMetaData;
@@ -22,7 +23,17 @@ class PageCreateMainPanelView extends preact.Component {
         super(props);
         this.pageMetaData = {};
         this.linkedMenuBlockVals = null;
-        this.state = {layouts: [], menuInfos: [], addToMenuId: ID_NONE};
+        if (!featureFlagConditionUseReduxBlockTree) {
+        this.state = {layouts: [], menuInfos: [], addToMenuId: ID_NONE, currentPage: null};
+        } else {
+        const state = {layouts: [], menuInfos: [], addToMenuId: ID_NONE, currentPage: selectCurrentPageDataBundle(store.getState()).page};
+        if (!state.currentPage) this.unreg = observeStore(s => selectCurrentPageDataBundle(s), value => {
+            if (!value.page) return;
+            this.setState({currentPage: value.page});
+            this.unreg();
+        });
+        this.state = state;
+        }
         this.unregisterSignalListener = signals.on('on-page-info-form-value-changed',
             /**
              * @param {PageMetaRaw} pageMeta
@@ -60,9 +71,11 @@ class PageCreateMainPanelView extends preact.Component {
             doHandle: this.handleFormSubmitted.bind(this),
             args: []
         }}]));
+        if (!featureFlagConditionUseReduxBlockTree) {
         if (!this.props.noAutoFocus) setTimeout(() => {
             env.document.querySelector('.block-tree li[data-block-type="PageInfo"] .block-handle').click();
         }, 1);
+        }
     }
     /**
      * @access protected
@@ -75,13 +88,14 @@ class PageCreateMainPanelView extends preact.Component {
      * @access protected
      */
     render({pageType, cancelAddPage, blockTreesRef, initialLayoutId}, {layouts, menuInfos}) {
+        const name = __(pageType ? pageType.friendlyName : 'page');
         return <form>
             <header class="panel-section mb-2">
-                <h1 class="mb-2">{ __('Create %s', __(pageType.friendlyNameSingular || 'page')) }</h1>
+                <h1 class="mb-2">{ __('Create %s', name) }</h1>
                 <button
                     onClick={ cancelAddPage }
                     class="btn btn-link btn-sm"
-                    title={ __('Cancel add %s', pageType.name) }
+                    title={ __('Cancel add %s', name) }
                     type="button">&lt; { __('Back') }</button>
             </header>
             { layouts.length || menuInfos.length ?
@@ -89,7 +103,7 @@ class PageCreateMainPanelView extends preact.Component {
                 <InputGroupInline>
                     <label class="form-label" htmlFor="layout">{ __('Layout') }</label>
                     <select
-                        value={ initialLayoutId || BlockTrees.currentWebPage.data.page.layoutId }
+                        value={ initialLayoutId || (this.getCurrentPage() || {layoutId: '-'}).layoutId }
                         onChange={ e => this.props.reRenderWithAnotherLayout(e.target.value) }
                         class="form-select form-input tight"
                         name="layout"
@@ -164,7 +178,7 @@ class PageCreateMainPanelView extends preact.Component {
         // {title, slug, path, meta, customField1, customField2 ...}
         const data = Object.assign({}, this.pageMetaData);
         data.level = 1;
-        data.layoutId = BlockTrees.currentWebPage.data.page.layoutId;
+        data.layoutId = this.getCurrentPage().layoutId;
         data.blocks = this.props.blockTreesRef.current.getPageBlocks();
         data.status = 0;
         //
@@ -183,6 +197,15 @@ class PageCreateMainPanelView extends preact.Component {
                 this.form.setIsSubmitting(false);
                 return false;
             });
+    }
+    /**
+     * @returns {Page|undefined}
+     * @access private
+     */
+    getCurrentPage() {
+        return !featureFlagConditionUseReduxBlockTree
+            ? BlockTrees.currentWebPage.data.page
+            : this.state.currentPage;
     }
 }
 

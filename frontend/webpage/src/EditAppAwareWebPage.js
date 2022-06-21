@@ -206,6 +206,7 @@ class EditAppAwareWebPage {
                 : el.previousSibling;
         };
         return ({tree, context}) => {
+            if (!context) return;
             const event = context[0];
             const treeRootEl = document.body;
             if (event === 'swap-blocks' || event === 'undo-swap-blocks') {

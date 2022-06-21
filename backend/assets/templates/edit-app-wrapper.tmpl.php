@@ -26,7 +26,7 @@
         <div id="root" class="one-column-layout">
             <div id="main-panel"></div>
             <div id="inspector-panel"></div>
-            <iframe src="<?= $this->url("{$url}?in-edit") ?>" id="sivujetti-site-iframe"></iframe>
+            <iframe src="<?= $this->url("{$url}?in-edit") ?>" id="site-preview-iframe"></iframe>
         </div>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/jspanel.min.js") ?>"></script>
@@ -68,7 +68,7 @@
                         intro: 'Tämä suljettava osio <b>näyttää sen sisällön tiedot</b>, jota olet juuri muokkaamassa.'
                     }, {
                         title: 'Sivusto',
-                        element: document.getElementById('sivujetti-site-iframe'),
+                        element: document.getElementById('site-preview-iframe'),
                         intro: 'Sivuston sisältö päivittyy reaaliajassa, kun muokkaat sitä. <b>Kun klikkaat</b> sivun eri osioita, ne avautuu lisätiedot-paneeliin muokattavaksi.'
                     }, {
                         title: 'Lopettaminen',

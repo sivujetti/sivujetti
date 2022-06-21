@@ -231,7 +231,7 @@ h2 {
 .inspector-panel-open #inspector-panel {
     z-index: 1;
 }
-#sivujetti-site-iframe {
+#site-preview-iframe {
     position: absolute;
     height: 100%;
     width: calc(100% - 318px);
@@ -250,7 +250,7 @@ h2 {
     top: 0;
     cursor: col-resize;
 }
-/* Increase width to prevent #sivujetti-site-iframe from disrupting the mouse drag events */
+/* Increase width to prevent #site-preview-iframe from disrupting the mouse drag events */
 #main-panel .resize-panel-handle.dragging {
     width: 120px;
     margin-left: -60px;
@@ -268,7 +268,7 @@ h2 {
 .panels-hidden #inspector-panel {
     display: none;
 }
-.panels-hidden #sivujetti-site-iframe {
+.panels-hidden #site-preview-iframe {
     width: 100% !important;
     transform: initial !important;
 }

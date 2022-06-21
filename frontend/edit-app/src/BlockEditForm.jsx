@@ -5,7 +5,7 @@ import {getIcon} from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
 import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
-import store, {selectCurrentPage, createSelectBlockTree, pushItemToOpQueue, observeStore,
+import store, {selectCurrentPage, selectCurrentPageDataBundle, createSelectBlockTree, pushItemToOpQueue, observeStore,
                createUpdateBlockTreeItemData} from './store.js';
 import IndividualBlockStylesTab from './IndividualBlockStylesTab.jsx';
 import BlockTypeBaseStylesTab from './BlockTypeBaseStylesTab.jsx';
@@ -64,7 +64,11 @@ class BlockEditForm extends preact.Component {
         this.blockType = blockTypes.get(block.type);
         this.editFormImpl = this.blockType.editForm;
         this.snapshot = putOrGetSnapshot(block, this.blockType);
+        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         this.allowStylesEditing = !selectCurrentPage(store.getState()).webPage.data.page.isPlaceholderPage;
+        } else {
+        this.allowStylesEditing = !selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
+        }
         this.editFormImplRef = preact.createRef();
         this.unregistrables = [signals.on('on-block-deleted', ({id}, isChildOfOrCurrentlyOpenBlock) => {
             if (isChildOfOrCurrentlyOpenBlock || id === block.id) this.props.inspectorPanel.close();

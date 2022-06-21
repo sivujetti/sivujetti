@@ -39,7 +39,7 @@ function populateFrontendApi() {
         return d.userPermissions[`can${capitalize(doWhat)}`] === true;
     } };
     api.registerTranslationStrings = translator.addStrings.bind(translator);
-    api.webPageIframe = new WebPageIframe(document.getElementById('sivujetti-site-iframe'), env, urlUtils);
+    api.webPageIframe = new WebPageIframe(document.getElementById('site-preview-iframe'), env, urlUtils);
     // blockTypes, see configureServices
     // mainPanel see configureServices
 }
@@ -228,13 +228,7 @@ function renderReactEditApp() {
             //
             const disableHoverFor = !webPage.data.page.isPlaceholderPage ? null : () => false;
             webPage.registerEventHandlers2(editApp.websiteEventHandlers, disableHoverFor);
-            editApp.handleWebPageLoaded(webPage, ordered, els, trees);
-
-            const getTree = trid => createSelectBlockTree(trid)(store.getState()).tree;
-            for (const [trid, _] of trees) {
-                const fn = webPage.createBlockTreeChangeListener(trid, blockTreeUtils, api.blockTypes, getTree);
-                observeStore(createSelectBlockTree(trid), fn);
-            }
+            editApp.handleWebPageLoaded2(webPage, trees);
             }
         }
     };

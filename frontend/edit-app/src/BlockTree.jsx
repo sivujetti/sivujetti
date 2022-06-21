@@ -12,6 +12,8 @@ import {createBlockFromType, findRefBlockOf, isTreesOutermostBlock} from './Bloc
 
 let BlockTrees;
 const globalBlockTreeBlocks = new Map;
+/** @type {Page} */
+let pageCurrentlyLoading;
 
 class BlockTree extends preact.Component {
     // selectedRoot;
@@ -292,7 +294,17 @@ class BlockTree extends preact.Component {
             this.deSelectAllBlocks();
         }));
         } else {
-        this.registerOrReRegisterBlockTreeListeners();
+        if (pageCurrentlyLoading) {
+            this.registerOrReRegisterBlockTreeListeners(getRegisteredReduxTreeIds());
+            pageCurrentlyLoading = null;
+        }
+        this.unregistrablesLong.push(signals.on('on-web-page-changed', (toPage, fromPage) => {
+            if (toPage.isPlaceholderPage !== fromPage.isPlaceholderPage)
+                pageCurrentlyLoading = toPage;
+        }));
+        this.unregistrablesLong.push(signals.on('on-web-page-loaded', () => {
+            this.registerOrReRegisterBlockTreeListeners(getRegisteredReduxTreeIds());
+        }));
         //
         this.unregistrablesLong.push(signals.on('on-inspector-panel-closed', () => {
             this.deSelectAllBlocks();
@@ -307,13 +319,20 @@ class BlockTree extends preact.Component {
         this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
     }
     /**
+     * @param {Array<String>} currentPageTrids
      * @access private
      */
-    registerOrReRegisterBlockTreeListeners() {
+    registerOrReRegisterBlockTreeListeners(currentPageTrids) {
+        //
+        const storeState = store.getState();
+        const treeState = {};
+        for (const trid of currentPageTrids) {
+            Object.assign(treeState, createTreeState(createSelectBlockTree(trid)(storeState).tree));
+        }
+        this.setState({blockTree: createSelectBlockTree('main')(storeState).tree, treeState});
+        //
         this.unregistrablesShort.forEach(unreg => unreg());
         this.unregistrablesShort = [];
-
-        const trids = getRegisteredReduxTreeIds();
         const refreshAllEvents = [
             'add-single-block',
             'undo-add-single-block',
@@ -323,11 +342,12 @@ class BlockTree extends preact.Component {
             'undo-swap-blocks',
         ];
         const [onMainTreeChanged, onInnerTreeChanged] = [({tree, context}) => {
-            if ((context[0] === 'init' && !this.state.blockTree.length) ||
-                refreshAllEvents.indexOf(context[0]) > -1) {
+            if (pageCurrentlyLoading) return;
+            if (refreshAllEvents.indexOf(context[0]) > -1) {
                 this.setState({blockTree: tree, treeState: createTreeState(tree, context[0] !== 'init')});
             }
         }, ({tree, context}) => {
+            if (pageCurrentlyLoading) return;
             if (context[0] === 'init') {
                 const newTreeTreeState = createTreeState(tree);
                 this.setState({treeState: Object.assign({}, this.state.treeState, newTreeTreeState)});
@@ -335,23 +355,17 @@ class BlockTree extends preact.Component {
                 this.setState({treeState: createTreeState(tree, true)});
             }
         }];
-        for (const trid of trids) {
+        for (const trid of currentPageTrids) {
             this.unregistrablesShort.push(observeStore(createSelectBlockTree(trid), trid === 'main'
                 ? onMainTreeChanged
                 : onInnerTreeChanged));
         }
-
-        const storeState = store.getState();
-        const treeState = {};
-        for (const trid of trids) {
-            Object.assign(treeState, createTreeState(createSelectBlockTree(trid)(storeState).tree));
-        }
-        this.setState({blockTree: createSelectBlockTree('main')(storeState).tree, treeState});
     }
     /**
      * @access protected
      */
     componentWillUnmount() {
+        this.unregistrablesShort.forEach(unreg => unreg());
         this.unregistrablesLong.forEach(unreg => unreg());
     }
     /**
@@ -361,9 +375,6 @@ class BlockTree extends preact.Component {
         if (!this.featureFlagConditionUseReduxBlockTree) {
         if (props.blocksInput !== this.props.blocksInput)
             this.componentWillMount(props);
-        } else {
-        if (props.blocksInput !== this.props.blocksInput)
-            this.registerOrReRegisterBlockTreeListeners();
         }
     }
     /**

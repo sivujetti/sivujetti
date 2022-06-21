@@ -275,7 +275,7 @@ interface BlockEditFormProps {
     funcsOut: {resetValues?: (newSnapshot: RawBlockData) => void;};
 }
 
-type blockChangeEvent = 'init'|'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block'|'swap-blocks'|'undo-swap-blocks'|'@init';
+type blockChangeEvent = 'init'|'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block'|'swap-blocks'|'undo-swap-blocks';
 
 interface BlockEditFormProps2 {
     block: RawBlock2; // Cloned data

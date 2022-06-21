@@ -3,7 +3,7 @@ import toasters, {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultView/DefaultMainPanelView.jsx';
 import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
 import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType/PageTypeCreateMainPanelView.jsx';
-import store, {observeStore, setCurrentPage, setGlobalBlockTreeBlocksStyles, setPageBlocksStyles,
+import store, {observeStore, setCurrentPage, setCurrentPageDataBundle, setGlobalBlockTreeBlocksStyles, setPageBlocksStyles,
                setOpQueue, selectGlobalBlockTreeBlocksStyles, selectPageBlocksStyles, selectBlockTypesBaseStyles,
                createSetBlockTree, createBlockTreeReducerPair, createSelectBlockTree} from './store.js';
 import SaveButton from './SaveButton.jsx';
@@ -34,7 +34,13 @@ class EditApp extends preact.Component {
             ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
             : []
         ).concat({name: 'log-out', label: __('Log out')});
+        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         this.state = {currentMainPanel: 'default', hidePanels: getArePanelsHidden()};
+        } else {
+        this.state = {currentMainPanel: determineViewNameFrom(env.window.location.href),
+                      hidePanels: getArePanelsHidden(),
+                      currentPage: null};
+        }
         if (this.state.hidePanels) props.rootEl.classList.add(PANELS_HIDDEN_CLS);
         this.blockTrees = preact.createRef();
         this.currentWebPage = null;
@@ -54,11 +60,10 @@ class EditApp extends preact.Component {
     /**
      * @param {EditAppAwareWebPage} webPage
      * @param {Array<RawBlock} combinedBlockTree
-     * @param {Array<BlockRefComment>|Array<HTMLElement>} blockRefs
-     * @param {Map<String, Array<RawBlock2>>|null} trees = null
+     * @param {Array<BlockRefComment>} blockRefs
      * @access public
      */
-    handleWebPageLoaded(webPage, combinedBlockTree, blockRefs, trees = null) {
+    handleWebPageLoaded(webPage, combinedBlockTree, blockRefs) {
         this.receivingData = true;
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         const webPagePage = webPage.data.page;
@@ -71,27 +76,65 @@ class EditApp extends preact.Component {
         store.dispatch(setPageBlocksStyles(webPage.data.page.blockStyles));
         store.dispatch(setOpQueue([]));
         this.receivingData = false;
-
-        if (window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-            if (trees.keys().next().value !== 'main') throw new Error('Sanity');
-
-            for (const [trid, tree] of trees) {
-                if (trid !== 'main') {
-                    const [storeStateKey, reducer] = createBlockTreeReducerPair(trid);
-                    if (store.reducerManager.has(storeStateKey)) continue;
-                    store.reducerManager.add(storeStateKey, reducer);
-                }
-                store.dispatch(createSetBlockTree(trid)(tree, ['@init']));
-            }
+    }
+    /**
+     * @param {EditAppAwareWebPage} webPage
+     * @param {Map<String, Array<RawBlock2>>|null} trees
+     * @access public
+     */
+    handleWebPageLoaded2(webPage, trees) {
+        this.receivingData = true;
+        const {page} = webPage.data;
+        const isDefaultToCreateTrans = this.state.currentMainPanel === 'default' && page.isPlaceholderPage;
+        const isCreateToDefaultTrans = this.state.currentMainPanel === 'create-page' && !page.isPlaceholderPage;
+        if (isDefaultToCreateTrans || isCreateToDefaultTrans) signals.emit('on-web-page-changed', page, this.state.currentPage);
+        webPage.setIsMouseListenersDisabled(getArePanelsHidden());
+        //
+        if (trees.keys().next().value !== 'main') throw new Error('Sanity');
+        const getTree = trid => createSelectBlockTree(trid)(store.getState()).tree;
+        for (const [trid, _] of trees) {
+            const fn = webPage.createBlockTreeChangeListener(trid, blockTreeUtils, api.blockTypes, getTree);
+            observeStore(createSelectBlockTree(trid), fn);
         }
+        //
+        const {data} = webPage;
+        store.dispatch(setCurrentPageDataBundle(data)); // Page2 -> pageBundle
+        store.dispatch(setGlobalBlockTreeBlocksStyles(data.globalBlocksStyles));
+        store.dispatch(setPageBlocksStyles(page.blockStyles));
+        store.dispatch(setOpQueue([]));
+        //
+        for (const [trid, tree] of trees) {
+            if (trid === 'main') continue;
+            const [storeStateKey, reducer] = createBlockTreeReducerPair(trid);
+            if (store.reducerManager.has(storeStateKey)) continue;
+            store.reducerManager.add(storeStateKey, reducer);
+            store.dispatch(createSetBlockTree(trid)(tree, ['init']));
+        }
+        store.dispatch(createSetBlockTree('main')(trees.get('main'), ['init']));
+        signals.emit('on-web-page-loaded');
+        const newState = {currentPage: page};
+        if (isDefaultToCreateTrans) {
+            newState.currentMainPanel = 'create-page';
+        } else if (isCreateToDefaultTrans) {
+            newState.currentMainPanel = 'default';
+        }
+        this.setState(newState);
+        this.receivingData = false;
     }
     /**
      * @access protected
      */
-    render(_, {currentMainPanel, hidePanels}) {
+    render(_, {currentPage, currentMainPanel, hidePanels}) {
         const showMainPanel = currentMainPanel === 'default';
-        const pageType = this.currentPageData ? this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentPageData.type) : null;
+        const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
+        let pageType = !featureFlagConditionUseReduxBlockTree
+            ? this.currentPageData ? this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentPageData.type) : null
+            : currentPage ? this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === currentPage.type) : null;
         const logoUrl = urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo.png');
+        const t = () => {
+            if (!featureFlagConditionUseReduxBlockTree) return !isPlaceholderPageType(pageType);
+            return currentMainPanel !== 'create-page-type';
+        };
         return <div>
             { !hidePanels ? null : <a onClick={ e => (e.preventDefault(), this.handlePanelsAreHiddenChanged(false)) } id="back-to-edit-corner" href="">
                 <img src={ logoUrl }/>
@@ -144,7 +187,7 @@ class EditApp extends preact.Component {
                         });
                     } }
                     currentWebPage={ this.currentWebPage }/>
-                : !isPlaceholderPageType(pageType)
+                : t()
                     ? <PageCreateMainPanelView
                         blockTreesRef={ this.blockTrees }
                         cancelAddPage={ () => api.webPageIframe.goBack() }
@@ -163,7 +206,7 @@ class EditApp extends preact.Component {
             }
             <Toaster id="editAppMain"/>
             <FloatingDialog/>
-            { window.useReduxBlockTree // @featureFlagConditionUseReduxBlockTree
+            { !featureFlagConditionUseReduxBlockTree
                 ? <span class="highlight-rect" data-adjust-title-from-top="no" ref={ this.highlightRectEl }></span>
                 : <span class="highlight-rect" data-position="top-outside" ref={ this.highlightRectEl }></span>
             }
@@ -429,6 +472,18 @@ function createWebsiteEventHandlers2(highlightRectEl) {
  */
 function getArePanelsHidden() {
     return env.window.localStorage.sivujettiDoHidePanels === 'yes';
+}
+
+/**
+ * @param {String} currentUrl
+ * @returns {'default'|'create-page'|'create-page-type'}
+ */
+function determineViewNameFrom(currentUrl) {
+    if (currentUrl.indexOf('_placeholder-page/') < 0)
+        return 'default';
+    return currentUrl.indexOf('_placeholder-page/Draft') < 0
+        ? 'create-page'
+        : 'create-page-type';
 }
 
 export default EditApp;

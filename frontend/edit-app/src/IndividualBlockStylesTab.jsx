@@ -4,7 +4,7 @@ import toasters from './commons/Toaster.jsx';
 import CssStylesValidatorHelper from './commons/CssStylesValidatorHelper.js';
 import store, {observeStore, selectGlobalBlockTreeBlocksStyles, pushItemToOpQueue,
                setGlobalBlockTreeBlocksStyles, selectPageBlocksStyles, setPageBlocksStyles,
-               selectCurrentPage} from './store.js';
+               selectCurrentPage, selectCurrentPageDataBundle} from './store.js';
 
 class IndividualBlockStylesTab extends preact.Component {
     // isPartOfGlobalBlockTree;
@@ -29,7 +29,9 @@ class IndividualBlockStylesTab extends preact.Component {
             : [selectGlobalBlockTreeBlocksStyles, findStylesForGlobalBlockTreeBlocks];
         const state = store.getState();
         if (!this.isPartOfGlobalBlockTree) {
-            const page = selectCurrentPage(state).webPage.data.page;
+            const page = !window.useReduxBlockTree // @featureFlagConditionUseReduxBlockTree
+                ? selectCurrentPage(state).webPage.data.page
+                : selectCurrentPageDataBundle(state).page;
             this.resourceUrl = `/api/pages/${page.type}/${page.id}/block-styles/${api.getActiveTheme().id}`;
         } else {
             this.resourceUrl = `/api/global-block-trees/${block.globalBlockTreeId}/block-styles/${api.getActiveTheme().id}`;

@@ -18,6 +18,7 @@ class BlockTrees extends preact.Component {
         super(props);
         this.state = {blocksInput: null};
         this.blockTree = preact.createRef();
+        if (!featureFlagConditionUseReduxBlockTree) {
         this.doCleanStoreSubs = observeStore(s => selectCurrentPage(s), value => {
             const dataFromWebPage = value.webPage.data;
             if (// `this` is still attached to <DefaultMainPanelView/>, but placeholder page is loaded
@@ -28,6 +29,7 @@ class BlockTrees extends preact.Component {
                 return;
             this.handleWebPageDataReceived(value);
         });
+        }
         this.signalListeners = [signals.on('on-block-tree-placeholder-block-appended',
         /**
          * @param {Block} block
@@ -75,16 +77,20 @@ class BlockTrees extends preact.Component {
      * @access protected
      */
     componentWillMount() {
+        if (!featureFlagConditionUseReduxBlockTree) {
         const value = selectCurrentPage(store.getState());
         if (value.dataFromWebPage) {
             this.handleWebPageDataReceived(value);
+        }
         }
     }
     /**
      * @access protected
      */
     componentWillUnmount() {
+        if (!featureFlagConditionUseReduxBlockTree) {
         this.doCleanStoreSubs();
+        }
         this.signalListeners.forEach(unreg => unreg());
     }
     /**
@@ -101,7 +107,7 @@ class BlockTrees extends preact.Component {
      * @access protected
      */
     render({containingView}, {blocksInput}) {
-        if (blocksInput === null)
+        if (!featureFlagConditionUseReduxBlockTree && blocksInput === null)
             return;
         return <div>
             { !featureFlagConditionUseReduxBlockTree ? <button

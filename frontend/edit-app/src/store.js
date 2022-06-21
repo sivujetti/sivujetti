@@ -18,6 +18,22 @@ const setCurrentPage = value => ({type: 'currentPage/set', value});
 const selectCurrentPage = state => state.currentPage;
 
 /**
+ * @param {CurrentPageData} state
+ * @param {{type: 'currentPageDataBundle/set';, value: CurrentPageData;}} action
+ */
+const currentPageDataBundleReducer = (state = {}, action) => {
+    switch (action.type) {
+    case 'currentPageDataBundle/set':
+        return Object.assign({}, state, action.value);
+    default:
+        return state;
+    }
+};
+
+const setCurrentPageDataBundle = value => ({type: 'currentPageDataBundle/set', value});
+const selectCurrentPageDataBundle = state => state.currentPageDataBundle;
+
+/**
  * @param {String} trid
  * @returns {(state: BlockTreeReduxState, action: Object) => Object}
  */
@@ -174,15 +190,22 @@ const selectFormState = (state, id) => state.formStates[id];
 
 
 const [mainTreeStateKey, mainTreeReducer] = createBlockTreeReducerPair('main');
-const mainStore = createManageableStore(undefined, {
-    currentPage: currentPageReducer,
-    [mainTreeStateKey]: mainTreeReducer,
-    globalBlockTreeBlocksStyles: globalBlockTreeBlocksStylesReducer,
-    pageBlocksStyles: pageBlocksStylesReducer,
-    blockTypesBaseStyles: blockTypesBaseStylesReducer,
-    opQueue: opQueueReducer,
-    formStates: formStatesReducer,
-});
+const mainStore = createManageableStore(undefined, Object.assign(
+    !window.useReduxBlockTree // @featureFlagConditionUseReduxBlockTree
+        ? {
+            currentPage: currentPageReducer,
+        } : {
+            currentPageDataBundle: currentPageDataBundleReducer,
+        },
+    {
+        [mainTreeStateKey]: mainTreeReducer,
+        globalBlockTreeBlocksStyles: globalBlockTreeBlocksStylesReducer,
+        pageBlocksStyles: pageBlocksStylesReducer,
+        blockTypesBaseStyles: blockTypesBaseStylesReducer,
+        opQueue: opQueueReducer,
+        formStates: formStatesReducer,
+    }
+));
 
 const observeMainStore = (select, onChange, triggerImmediately = false) =>
     observeStore(mainStore, select, onChange, triggerImmediately)
@@ -236,6 +259,7 @@ class FormStateStoreWrapper {
 
 
 export {setCurrentPage, selectCurrentPage,
+        setCurrentPageDataBundle, selectCurrentPageDataBundle,
         //
         createSetBlockTree, createUpdateBlockTreeItemData, createSelectBlockTree,
         createBlockTreeReducerPair,

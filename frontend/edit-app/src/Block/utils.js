@@ -57,4 +57,20 @@ function findRefBlockOf(innerTreeBlock, tree) {
     );
 }
 
-export {createBlockFromType, isTreesOutermostBlock, findRefBlockOf};
+/**
+ * @param {Array<RawBlock2>} tree
+ * @returns {Array<{[key: String]: any;}>}
+ */
+function treeToTransferable(tree) {
+    return blockTreeUtils.mapRecursivelyManual(tree, (b, _i, children) => {
+        b.children = children;
+        for (const key in b) {
+            if (Object.prototype.hasOwnProperty.call(b, key) && (key.startsWith('__') || key === 'propsData'))
+                delete b[key];
+        }
+        return b;
+    });
+}
+
+export {createBlockFromType, isTreesOutermostBlock, findRefBlockOf,
+        treeToTransferable};

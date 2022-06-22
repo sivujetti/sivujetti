@@ -99,10 +99,9 @@ class EditAppAwareWebPage {
     }
     /**
      * @param {EditAwareWebPageEventHandlers2} handlers
-     * @param {(blockEl: HTMLElement) => Boolean} disableHoverFor = null
      * @access public
      */
-    registerEventHandlers2(handlers, disableHoverFor = null) {
+    registerEventHandlers2(handlers) {
         if (this.handlers)
             return;
         this.handlers = handlers;
@@ -133,15 +132,13 @@ class EditAppAwareWebPage {
             //
             if (this.currentlyHoveredBlockEl) {
                 const b = e.target.getAttribute('data-block-type') ? e.target : e.target.closest('[data-block-type]');
-                if (disableHoverFor && disableHoverFor(b))
-                    return;
                 if (this.currentlyHoveredBlockEl.contains(b) && this.currentlyHoveredBlockEl !== b) {
                     this.handlers.onHoverEnded(this.currentlyHoveredBlockEl);
                     this.currentlyHoveredBlockEl = b;
                     this.handlers.onHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
                 }
             } else {
-                if (!targ.getAttribute('data-block-type') || (disableHoverFor && disableHoverFor(targ))) return;
+                if (!targ.getAttribute('data-block-type')) return;
                 this.currentlyHoveredBlockEl = targ;
                 this.handlers.onHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
             }

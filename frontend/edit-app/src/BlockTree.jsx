@@ -4,7 +4,8 @@ import BlockTypeSelector, {normalizeGlobalBlockTreeBlock} from './BlockTypeSelec
 import BlockTreeShowHelpPopup from './BlockTreeShowHelpPopup.jsx';
 import Block from './Block.js';
 import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
-import store, {observeStore, createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} from './store.js';
+import store, {observeStore, createSelectBlockTree, createSetBlockTree, pushItemToOpQueue,
+               selectCurrentPageDataBundle} from './store.js';
 import BlockTreeDragDrop from './BlockTreeDragDrop.js';
 import ConvertBlockToGlobalDialog from './ConvertBlockToGlobalBlockTreeDialog.jsx';
 import {getIcon} from './block-types/block-types.js';
@@ -59,9 +60,10 @@ class BlockTree extends preact.Component {
         } else {
         this.dragDrop = new BlockTreeDragDrop(this, (mutation1, mutation2 = null) => {
         store.dispatch(createSetBlockTree(mutation1.trid)(mutation1.tree, ['swap-blocks', mutation1]));
-        store.dispatch(pushItemToOpQueue(`swap-${mutation1.trid==='main'?'page':'globalBlockTree'}-blocks`, {
-            doHandle: () =>
-                BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(mutation1.trid)(store.getState()).tree, mutation1.trid)
+        store.dispatch(pushItemToOpQueue(`swap-blocks-of-tree##${mutation1.trid}`, {
+            doHandle: mutation1.trid !== 'main' || !this.currentPageIsPlaceholder
+                ? () => BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(mutation1.trid)(store.getState()).tree, mutation1.trid)
+                : null
             ,
             doUndo: () => {
                 const treeBefore = mutation1.doRevert();
@@ -348,7 +350,7 @@ class BlockTree extends preact.Component {
             }
         }, ({tree, context}) => {
             if (pageCurrentlyLoading) return;
-            if (context[0] === 'init') {
+            if (context[0] === 'init' && tree.length && !this.state.treeState[tree[0].id]) {
                 const newTreeTreeState = createTreeState(tree);
                 this.setState({treeState: Object.assign({}, this.state.treeState, newTreeTreeState)});
             } else if (refreshAllEvents.indexOf(context[0]) > -1) {
@@ -360,6 +362,7 @@ class BlockTree extends preact.Component {
                 ? onMainTreeChanged
                 : onInnerTreeChanged));
         }
+        this.currentPageIsPlaceholder = selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
     }
     /**
      * @access protected
@@ -496,7 +499,7 @@ class BlockTree extends preact.Component {
                         type="button"
                         disabled={ this.props.disablePageInfo }>
                         <Icon iconId={ getIcon('PageInfo') } className="size-xs mr-1"/>
-                        { block.title || __(block.type) }
+                        { block.title || __('PageInfo') }
                     </button>
                 </div>
             </li>;
@@ -645,7 +648,7 @@ class BlockTree extends preact.Component {
                 blockToDeleteVisible = findRefBlockOf(blockToDeleteVisible, createSelectBlockTree('main')(store.getState()).tree);
             }
             const trid = blockToDeleteVisible.isStoredToTreeId;
-            const {id, type, isStoredTo} = blockToDeleteVisible;
+            const {id, type, isStoredToTreeId} = blockToDeleteVisible;
             const {tree} = createSelectBlockTree(trid)(store.getState());
             const treeBefore = JSON.parse(JSON.stringify(tree));
             //
@@ -654,9 +657,10 @@ class BlockTree extends preact.Component {
             //
             store.dispatch(createSetBlockTree(trid)(tree, ['delete-single-block',
                 id, type, trid, blockToDeleteMaybeNotVisible.isStoredToTreeId]));
-            store.dispatch(pushItemToOpQueue(`delete-${isStoredTo}-block`, {
-                doHandle: () =>
-                    BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
+            store.dispatch(pushItemToOpQueue(`delete-block-from-tree#${isStoredToTreeId}`, {
+                doHandle: isStoredToTreeId !== 'main' || !this.currentPageIsPlaceholder
+                    ? () => BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
+                    : null
                 ,
                 doUndo: () => {
                     store.dispatch(createSetBlockTree(trid)(treeBefore, ['undo-delete-single-block',
@@ -696,9 +700,10 @@ class BlockTree extends preact.Component {
         }
         store.dispatch(createSetBlockTree(trid)(tree, ['add-single-block',
             newBlock.id, newBlock.type, trid]));
-        store.dispatch(pushItemToOpQueue(`append-${trid === 'main' ? 'page' : 'globalBlockTree'}-block`, {
-            doHandle: () =>
-                BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
+        store.dispatch(pushItemToOpQueue(`append-block-to-tree#${trid}`, {
+            doHandle: trid !== 'main' || !this.currentPageIsPlaceholder
+                ? () => BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
+                : null
             ,
             doUndo: () => {
                 store.dispatch(createSetBlockTree(trid)(treeBefore, ['undo-add-single-block',

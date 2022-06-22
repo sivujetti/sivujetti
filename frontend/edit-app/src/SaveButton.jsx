@@ -125,7 +125,9 @@ function getMetaKey() {
  * Note: may mutate queue.*.opName
  */
 function optimizeQueue(queue) {
-    const unifyBlockOpNames = queue => {
+    let unifyBlockOpNames;
+    if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
+    unifyBlockOpNames = queue => {
         queue.forEach(itm => {
             const opName = itm.opName;
             if (opName === 'append-page-block' ||
@@ -140,6 +142,20 @@ function optimizeQueue(queue) {
         });
         return queue;
     };
+    } else {
+    unifyBlockOpNames = queue => {
+        queue.forEach(itm => {
+            const opName = itm.opName;
+            // 'something#<trid>' -> 'update-block-tree#<trid>'
+            if (opName.startsWith('append-block-to-tree#') ||
+                opName.startsWith('swap-blocks-of-tree#') ||
+                opName.startsWith('delete-block-from-tree#')) {
+                itm.opName = `update-block-tree#${opName.split('#')[1]}`;
+            }
+        });
+        return queue;
+    };
+    }
     const findLastSimilar = (itm, state) => {
         let last = null;
         queue.forEach((cand, i) => {

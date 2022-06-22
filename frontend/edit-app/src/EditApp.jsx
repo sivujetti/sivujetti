@@ -8,10 +8,12 @@ import store, {observeStore, setCurrentPage, setCurrentPageDataBundle, setGlobal
                createSetBlockTree, createBlockTreeReducerPair, createSelectBlockTree} from './store.js';
 import SaveButton from './SaveButton.jsx';
 import {findBlockTemp} from './BlockTree.jsx';
+import {makePath, makeSlug} from './block-types/pageInfo.js';
 import blockTreeUtils from './blockTreeUtils.js';
 
 let LEFT_PANEL_WIDTH = 318;
 const PANELS_HIDDEN_CLS = 'panels-hidden';
+let webPageDomUpdaters = [];
 
 class EditApp extends preact.Component {
     // changeViewOptions;
@@ -78,13 +80,19 @@ class EditApp extends preact.Component {
         this.receivingData = false;
     }
     /**
-     * @param {EditAppAwareWebPage} webPage
+     * @param {EditAppAwareWebPage2} webPage
+     * @param {CurrentPageData} data
      * @param {Map<String, Array<RawBlock2>>|null} trees
      * @access public
      */
-    handleWebPageLoaded2(webPage, trees) {
+    handleWebPageLoaded2(webPage, data, trees) {
         this.receivingData = true;
-        const {page} = webPage.data;
+        if (webPageDomUpdaters.length) {
+            webPageDomUpdaters.forEach(fn => fn());
+            webPageDomUpdaters = [];
+        }
+        data.page = maybePatchTitleAndSlug(data.page);
+        const {page} = data;
         const isDefaultToCreateTrans = this.state.currentMainPanel === 'default' && page.isPlaceholderPage;
         const isCreateToDefaultTrans = this.state.currentMainPanel === 'create-page' && !page.isPlaceholderPage;
         if (isDefaultToCreateTrans || isCreateToDefaultTrans) signals.emit('on-web-page-changed', page, this.state.currentPage);
@@ -94,11 +102,10 @@ class EditApp extends preact.Component {
         const getTree = trid => createSelectBlockTree(trid)(store.getState()).tree;
         for (const [trid, _] of trees) {
             const fn = webPage.createBlockTreeChangeListener(trid, blockTreeUtils, api.blockTypes, getTree);
-            observeStore(createSelectBlockTree(trid), fn);
+            webPageDomUpdaters.push(observeStore(createSelectBlockTree(trid), fn));
         }
         //
-        const {data} = webPage;
-        store.dispatch(setCurrentPageDataBundle(data)); // Page2 -> pageBundle
+        store.dispatch(setCurrentPageDataBundle(data));
         store.dispatch(setGlobalBlockTreeBlocksStyles(data.globalBlocksStyles));
         store.dispatch(setPageBlocksStyles(page.blockStyles));
         store.dispatch(setOpQueue([]));
@@ -484,6 +491,20 @@ function determineViewNameFrom(currentUrl) {
     return currentUrl.indexOf('_placeholder-page/Draft') < 0
         ? 'create-page'
         : 'create-page-type';
+}
+
+/**
+ * @param {Page} page
+ * @returns {Page}
+ */
+function maybePatchTitleAndSlug(page) {
+    if (page.isPlaceholderPage) {
+        page.title = __(page.title);
+        page.slug = makeSlug(page.title);
+        const pageType = api.getPageTypes().find(({name}) => name === page.type);
+        page.path = makePath(page.slug, pageType);
+    }
+    return page;
 }
 
 export default EditApp;

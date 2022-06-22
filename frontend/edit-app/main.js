@@ -1,7 +1,7 @@
 import {translator, api, env, urlUtils, signals} from '@sivujetti-commons-for-edit-app';
 import {Validator} from './src/commons/Form.jsx';
 import {sensibleDefaults} from './src/constants.js';
-import store, {FormStateStoreWrapper, observeStore, createSelectBlockTree} from './src/store.js';
+import {FormStateStoreWrapper} from './src/store.js';
 import EditApp from './src/EditApp.jsx';
 import BlockTypes from './src/block-types/block-types.js';
 import createMenuBlockType from './src/block-types/Menu/menu.js';
@@ -69,7 +69,7 @@ function configureServices() {
     blockTypes.register('Heading', maybeDisableEdit(createHeadingBlockType));
     blockTypes.register('Image', maybeDisableEdit(createImageBlockType));
     blockTypes.register('Listing', maybeDisableEdit(createListingBlockType));
-    blockTypes.register('PageInfo', maybeDisableEdit(createPageInfoBlockType));
+    blockTypes.register('PageInfo', createPageInfoBlockType);
     blockTypes.register('Paragraph', createParagraphBlockType);
     blockTypes.register('RichText', maybeDisableEdit(createRichTextBlockType));
     blockTypes.register('Section', createSectionBlockType);
@@ -191,11 +191,12 @@ function renderReactEditApp() {
             } else {
             const editApp = editAppReactRef.current;
             const els = webPage.scanBlockElements();
-            const ordered = [];
+            const {blocks} = webPage.data.page;
+            const ordered = [blocks.find(({type}) => type === 'PageInfo')];
             for (const el of els) {
                 const [isPartOfGlobalBlockTree, globalBlockRefBlockId] = t(el);
                 const blockId = !isPartOfGlobalBlockTree ? el.getAttribute('data-block') : globalBlockRefBlockId;
-                const block = webPage.data.page.blocks.find(({id}) => id === blockId);
+                const block = blocks.find(({id}) => id === blockId);
                 if (block) ordered.push(block);
             }
             //
@@ -203,7 +204,7 @@ function renderReactEditApp() {
             blockTreeUtils.traverseRecursively(mutatedOrdered, b => {
                 b.isStoredTo = 'page';
                 b.isStoredToTreeId = 'main';
-                if (b.type !== 'GlobalBlockReference') webPage.setTridAttr(b.id, 'main');
+                if (b.type !== 'GlobalBlockReference' && b.type !== 'PageInfo') webPage.setTridAttr(b.id, 'main');
             });
             for (const [trid, tree] of separatedTrees) {
                 blockTreeUtils.traverseRecursively(tree, b => {
@@ -221,14 +222,15 @@ function renderReactEditApp() {
             }
             for (const [_, tree] of trees) {
                 blockTreeUtils.traverseRecursively(tree, b => {
-                    if (['Columns', 'Menu', 'Paragraph', 'Section'].indexOf(b.type) > -1 || b.type === 'GlobalBlockReference') return;
+                    if (['Columns', 'Menu', 'PageInfo', 'Paragraph', 'Section'].indexOf(b.type) > -1 || b.type === 'GlobalBlockReference') return;
                     wipe(b);
                 });
             }
             //
-            const disableHoverFor = !webPage.data.page.isPlaceholderPage ? null : () => false;
-            webPage.registerEventHandlers2(editApp.websiteEventHandlers, disableHoverFor);
-            editApp.handleWebPageLoaded2(webPage, trees);
+            webPage.registerEventHandlers2(editApp.websiteEventHandlers);
+            const {data} = webPage;
+            delete webPage.data;
+            editApp.handleWebPageLoaded2(webPage, data, trees);
             }
         }
     };

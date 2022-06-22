@@ -4,7 +4,10 @@ import toasters from '../commons/Toaster.jsx';
 import {stringUtils} from '../commons/utils.js';
 import BlockTrees from '../BlockTrees.jsx';
 import {validationConstraints} from '../constants.js';
+import store, {observeStore, pushItemToOpQueue, selectCurrentPageDataBundle, setCurrentPageDataBundle} from '../store.js';
 import setFocusTo from './auto-focusers.js';
+
+const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
 
 const urlValidatorImpl = {doValidate: (val, hints = {}) => {
     const [allowExternal, allowEmpty] = [
@@ -29,6 +32,103 @@ const urlValidatorImpl = {doValidate: (val, hints = {}) => {
         return false;
     }
 }, errorMessageTmpl: '{field} is not valid'};
+
+class PageInfoBlockEditForm2 extends preact.Component {
+    // pageType;
+    // currentPageIsPlaceholder;
+    // titleEl;
+    // descriptionEl;
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        const curPage = selectCurrentPageDataBundle(store.getState()).page;
+        this.currentPageIsPlaceholder = curPage.isPlaceholderPage;
+        this.pageType = api.getPageTypes().find(({name}) => name === curPage.type);
+        this.titleEl = preact.createRef();
+        this.descriptionEl = preact.createRef();
+        const emitChanges = mutateProps => {
+            const mut = selectCurrentPageDataBundle(store.getState());
+            const orig = JSON.parse(JSON.stringify(mut));
+            //
+            mutateProps(mut.page);
+            store.dispatch(setCurrentPageDataBundle(mut));
+            //
+            store.dispatch(pushItemToOpQueue('update-page-basic-info', {
+                doHandle: !this.currentPageIsPlaceholder ? savePageToBackend : null,
+                doUndo: () => {
+                    store.dispatch(setCurrentPageDataBundle(orig));
+                },
+                args: [],
+            }));
+        };
+        this.setState(hookForm(this, [
+            {name: 'title', value: curPage.title, validations: [['required'], ['maxLength', 92]],
+             label: __('Page title'), onAfterValueChanged: (value, hasErrors) => {
+                if (!hasErrors) emitChanges(mut => { mut.title = value; });
+            }},
+            {name: 'slug', value: curPage.slug, validations: [['required'], ['maxLength', 92],
+                [urlValidatorImpl, {allowExternal: false, allowEmpty: true}]],
+             label: __('Url (slug)'), onAfterValueChanged: (value, hasErrors) => {
+                if (!hasErrors) emitChanges(mut => { mut.slug = value; mut.path = makePath(value, this.pageType); });
+            }},
+            {name: 'description', value: curPage.meta.description, validations: [['maxLength', 206]],
+             label: __('Meta description'), onAfterValueChanged: (value, hasErrors) => {
+                if (!hasErrors) emitChanges(mut => { mut.meta.description = value; });
+             }},
+        ]));
+        observeStore(s => selectCurrentPageDataBundle(s), ({page}) => {
+            if (page.title !== this.state.values.title ||
+                page.slug !== this.state.values.slug ||
+                page.meta.description !== this.state.values.description) {
+                reHookValues(this, [{name: 'title', value: page.title},
+                            {name: 'slug', value: page.slug},
+                            {name: 'description', value: page.meta.description || ''}]);
+            }
+        });
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        setFocusTo(this.titleEl);
+        window.autosize(this.descriptionEl.current.inputEl.current);
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        unhookForm(this);
+    }
+    /**
+     * @access protected
+     */
+    render() {
+        const wrap = input => !this.pageType || this.pageType.name === 'Pages'
+            ? input
+            : <div class="input-group">
+                <span class="input-group-addon addon-sm">{ this.pageType.slug }</span>
+                { input }
+            </div>;
+        return <div class="form-horizontal pt-0">
+            <FormGroupInline>
+                <label htmlFor="title" class="form-label">{ __('Page title') }</label>
+                <Input vm={ this } prop="title" ref={ this.titleEl }/>
+                <InputErrors vm={ this } prop="title"/>
+            </FormGroupInline>
+            <FormGroupInline>
+                <label htmlFor="slug" class="form-label">{ __('Url (slug)') }</label>
+                { wrap(<Input vm={ this } prop="slug"/>) }
+                <InputErrors vm={ this } prop="slug"/>
+            </FormGroupInline>
+            <FormGroupInline>
+                <label htmlFor="description" class="form-label">{ __('Meta description') }</label>
+                <Textarea vm={ this } prop="description" ref={ this.descriptionEl }/>
+                <InputErrors vm={ this } prop="description"/>
+            </FormGroupInline>
+        </div>;
+    }
+}
 
 class PageInfoBlockEditForm extends preact.Component {
     // titleEl;
@@ -132,12 +232,17 @@ class PageInfoBlockEditForm extends preact.Component {
  * @returns {Promise<Boolean>}
  */
 function savePageToBackend() {
-    const currentPage = BlockTrees.currentWebPage.data.page;
-    const data = Object.assign({}, currentPage);
+    let data;
+    if (!featureFlagConditionUseReduxBlockTree) {
+    data = Object.assign({}, BlockTrees.currentWebPage.data.page);
+    } else {
+    data = Object.assign({}, selectCurrentPageDataBundle(store.getState()).page);
+    delete data.blockStyles;
+    }
     delete data.blocks;
     delete data.isPlaceholderPage;
     //
-    return http.put(`/api/pages/${currentPage.type}/${currentPage.id}`, data)
+    return http.put(`/api/pages/${data.type}/${data.id}`, data)
         .then(resp => {
             if (resp.ok !== 'ok') throw new Error('-');
             return true;
@@ -217,6 +322,7 @@ export default () => {
         icon: 'file-info',
         reRender: () => '', // Do nothing
         createSnapshot: () => {
+            if (featureFlagConditionUseReduxBlockTree) return {};
             const currentPage = BlockTrees.currentWebPage.data.page;
             const pageType = api.getPageTypes()
                 .find(({name}) => name === currentPage.type);
@@ -229,7 +335,7 @@ export default () => {
             }
             return out;
         },
-        editForm: PageInfoBlockEditForm,
+        editForm: !featureFlagConditionUseReduxBlockTree ? PageInfoBlockEditForm : PageInfoBlockEditForm2,
     };
 };
 
@@ -257,4 +363,4 @@ function createCanonicalUrl(input) {
  * ... possibly more props (Own fields)
  */
 
-export {savePageToBackend, urlValidatorImpl};
+export {savePageToBackend, urlValidatorImpl, makeSlug, makePath};

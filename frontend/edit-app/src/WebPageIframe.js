@@ -35,6 +35,7 @@ class WebPageIframe {
         if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         inPageElRect = block.getRootDomNode().getBoundingClientRect();
         } else {
+        if (block.type === 'PageInfo') return;
         const firstEl = this.getEl().contentDocument.body.querySelector(`[data-block="${block.id}"]`);
         inPageElRect = firstEl.querySelector(':scope > [data-block-root]') ||
                firstEl.getBoundingClientRect();

@@ -230,7 +230,31 @@ interface EditAppAwareWebPage {
     scanBlockRefComments(): Array<BlockRefComment>;
     scanBlockElements(): Array<HTMLElement>;
     registerEventHandlers(handlers: EditAwareWebPageEventHandlers, blockRefComments: Array<BlockRefComment>): void;
-    registerEventHandlers2(handlers: EditAwareWebPageEventHandlers2, disableHoverFor: (blockEl: HTMLElement) => Boolean = null): void;
+    registerEventHandlers2(handlers: EditAwareWebPageEventHandlers2): void;
+    addRootBoundingEls(lastBlock: RawBlock2): void;
+    getCombinedAndOrderedBlockTree(pageBlocks: Array<RawBlock>, blockRefComments: Array<BlockRefComment>, blockTreeUtils: blockTreeUtils): Array<RawBlock>;
+    appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<BlockRefComment>;
+    appendClonedBlockBranchToDom(clonedBlock: Block, clonedFromBlock: Block, blockTreeUtils: blockTreeUtils): Promise<{[key: String]: BlockRefComment;}>;
+    restoreBlockToDom(originalDomNodes: Array<HTMLElement>, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<void>;
+    replaceBlockFromDomWith(currentBlock: Block, replacement: Block): Promise<BlockRefComment|{[blockId: String]: BlockRefComment;}>;
+    deleteBlockFromDom(block: Block, doKeepBoundaryComments: Boolean = false): [Array, Array];
+    reRenderBlockInPlace(block: Block): Promise<null>;
+    reOrderBlocksInDom(blockToMove: Block, blockToMoveTo: Block, position: 'before'|'after'|'as-child'): void;
+    convertToGlobal(globalBlockReference: Block, blockToConvert: Block): BlockRefComment;
+    findEndingComment(block: Block): Commment|undefined;
+    updateTitle(text: String): void;
+    registerBlockMouseListeners(blockRef: BlockRefComment, nextEl: HTMLElement = null): void;
+    setIsMouseListenersDisabled(isDisabled: Boolean): void;
+    getBlockContents(block: Block, doIncludeBoundaryComments: Boolean = true): Array<HTMLElement>;
+    setCssVarValue(varName: String, to: RawCssValue): void;
+    setTridAttr(blockId: String, trid: String): void;
+}
+
+interface EditAppAwareWebPage2 {
+    scanBlockRefComments(): Array<BlockRefComment>;
+    scanBlockElements(): Array<HTMLElement>;
+    registerEventHandlers(handlers: EditAwareWebPageEventHandlers, blockRefComments: Array<BlockRefComment>): void;
+    registerEventHandlers2(handlers: EditAwareWebPageEventHandlers2): void;
     addRootBoundingEls(lastBlock: RawBlock2): void;
     getCombinedAndOrderedBlockTree(pageBlocks: Array<RawBlock>, blockRefComments: Array<BlockRefComment>, blockTreeUtils: blockTreeUtils): Array<RawBlock>;
     appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<BlockRefComment>;

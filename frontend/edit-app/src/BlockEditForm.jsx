@@ -10,8 +10,11 @@ import store, {selectCurrentPage, selectCurrentPageDataBundle, createSelectBlock
 import IndividualBlockStylesTab from './IndividualBlockStylesTab.jsx';
 import BlockTypeBaseStylesTab from './BlockTypeBaseStylesTab.jsx';
 
-/** @var {BlockTypes} */
+/** @type {BlockTypes} */
 let blockTypes;
+
+/** @type {Boolean} */
+let currentPageIsPlaceholderPage;
 
 const snapshots = new Map;
 
@@ -47,7 +50,7 @@ class BlockEditForm extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree && ['Columns', 'Menu', 'Paragraph', 'Section'].indexOf(this.props.block.type) > -1;
+        this.featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree && ['Columns', 'Menu', 'PageInfo', 'Paragraph', 'Section'].indexOf(this.props.block.type) > -1;
         blockTypes = api.blockTypes;
         this.state = {currentTabIdx: 0};
         this.userCanEditCss = api.user.can('editCssStyles');
@@ -81,6 +84,7 @@ class BlockEditForm extends preact.Component {
             this.boundEmitStickyChange = null;
             this.boundEmitFastChange = null;
             const trid = this.props.block.isStoredToTreeId;
+            currentPageIsPlaceholderPage = selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
             this.unregistrables = [observeStore(createSelectBlockTree(trid), ({tree, context}) => {
                 if (!this.editFormImplsChangeGrabber)
                     return;
@@ -194,10 +198,10 @@ class BlockEditForm extends preact.Component {
     handleValueValuesChanged(changes, hasErrors = false, debounceMillis = 0, debounceType = 'debounce-commit-to-queue') {
         if (this.currentDebounceTime !== debounceMillis || this.currentDebounceType !== debounceType) {
             const boundEmitStickyChange = (oldData, partialContext) => {
-                this.emitSticky(oldData, partialContext);
+                emitPushStickyOp(oldData, partialContext);
             };
             const boundEmitFastChange = (newData, oldData, partialContext, hasErrors) => {
-                this.emitFast(newData, partialContext);
+                emitMutateBlockProp(newData, partialContext);
                 if (!hasErrors) this.boundEmitStickyChange(oldData, partialContext);
                 else env.console.log('Not implemented yet');
             };
@@ -224,35 +228,6 @@ class BlockEditForm extends preact.Component {
         const partialContext = [block.id, block.type, trid];
         // Call emitFastChange, which then calls emitCommitChange
         this.boundEmitFastChange(changes, oldData, partialContext, hasErrors);
-    }
-    /**
-     */
-    emitFast(newData, partialContext) {
-        store.dispatch(createUpdateBlockTreeItemData(partialContext[2])(
-            newData,
-            partialContext[0],
-            ['update-single-value', ...partialContext]
-        ));
-    }
-    /**
-     */
-    emitSticky(oldData, partialContext) {
-        store.dispatch(pushItemToOpQueue(`update-page-block-data`, {
-            doHandle: () => {
-                // todo return if placeholder page
-                const trid = partialContext[2];
-                const {tree} = createSelectBlockTree(trid)(store.getState());
-                return BlockTrees.saveExistingBlocksToBackend(tree, trid);
-            },
-            doUndo: () => {
-                store.dispatch(createUpdateBlockTreeItemData(partialContext[2])(
-                    oldData,
-                    partialContext[0],
-                    ['undo-update-single-value', ...partialContext]
-                ));
-            },
-            args: [],
-        }));
     }
     /**
      * @param {Event} e
@@ -559,6 +534,42 @@ function updateFormValues($this, snapshot) {
     BlockEditForm.undoingLockIsOn = true;
     $this.editFormImplRef.current.overrideValues(snapshot);
     setTimeout(() => { BlockEditForm.undoingLockIsOn = false; }, 200);
+}
+
+/**
+ * @param {{[key]: any;}} newData
+ * @param {Array} partialContext
+ */
+function emitMutateBlockProp(newData, partialContext) {
+    store.dispatch(createUpdateBlockTreeItemData(partialContext[2])(
+        newData,
+        partialContext[0],
+        ['update-single-value', ...partialContext]
+    ));
+}
+
+/**
+ * @param {{[key]: any;}} newData
+ * @param {Array} partialContext
+ */
+function emitPushStickyOp(oldData, partialContext) {
+    store.dispatch(pushItemToOpQueue(`update-block-tree#${partialContext[2]}`, {
+        doHandle: partialContext[2] !== 'main' || !currentPageIsPlaceholderPage
+            ? () => {
+                const trid = partialContext[2];
+                const {tree} = createSelectBlockTree(trid)(store.getState());
+                return BlockTrees.saveExistingBlocksToBackend(tree, trid);
+            }
+            : null,
+        doUndo: () => {
+            store.dispatch(createUpdateBlockTreeItemData(partialContext[2])(
+                oldData,
+                partialContext[0],
+                ['undo-update-single-value', ...partialContext]
+            ));
+        },
+        args: [],
+    }));
 }
 
 /**

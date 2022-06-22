@@ -1,8 +1,9 @@
 import {__, http, signals, api, Icon} from '@sivujetti-commons-for-edit-app';
 import toasters from './commons/Toaster.jsx';
+import {treeToTransferable} from './Block/utils.js';
 import BlockTree from './BlockTree.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
-import store, {observeStore, selectCurrentPage} from './store.js';
+import store, {observeStore, selectCurrentPage, selectCurrentPageDataBundle} from './store.js';
 
 const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
 
@@ -143,25 +144,20 @@ class BlockTrees extends preact.Component {
         blockIsStoredTo = a === 'main' ? 'page' : 'globalBlockTree';
         blockTreeId = a;
         }
-        const page = BlockTrees.currentWebPage.data.page;
         let url = '';
-        if (blockIsStoredTo === 'page')
+        if (blockIsStoredTo === 'page') {
+            const page = !featureFlagConditionUseReduxBlockTree
+                ? BlockTrees.currentWebPage.data.page
+                : selectCurrentPageDataBundle(store.getState()).page;
             url = `/api/pages/${page.type}/${page.id}/blocks`;
-        else if (blockIsStoredTo === 'globalBlockTree' && blockTreeId)
+        } else if (blockIsStoredTo === 'globalBlockTree' && blockTreeId)
             url = `/api/global-block-trees/${blockTreeId}/blocks`;
         else
             throw new Error('Bad input');
         return http.put(url,
             !featureFlagConditionUseReduxBlockTree
                 ? {blocks: blockTreeUtils.mapRecursively(newBlockTree, block => block.toRaw())}
-                : {blocks: blockTreeUtils.mapRecursivelyManual(newBlockTree, (b, _i, children) => {
-                    b.children = children;
-                    for (const key in b) {
-                        if (Object.prototype.hasOwnProperty.call(b, key) && (key.startsWith('__') || key === 'propsData'))
-                            delete b[key];
-                    }
-                    return b;
-                })}
+                : {blocks: treeToTransferable(newBlockTree)}
             )
             .then(resp => {
                 if (resp.ok !== 'ok') throw new Error('-');

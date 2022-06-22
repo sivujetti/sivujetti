@@ -2,7 +2,9 @@ import {__, http, urlUtils, signals, env} from '@sivujetti-commons-for-edit-app'
 import {InputGroupInline} from '../commons/Form.jsx';
 import toasters from '../commons/Toaster.jsx';
 import BlockTrees from '../BlockTrees.jsx';
-import store, {deleteItemsFromOpQueueAfter, observeStore, selectCurrentPageDataBundle, setOpQueue} from '../store.js';
+import store, {deleteItemsFromOpQueueAfter, observeStore, selectCurrentPageDataBundle,
+               setOpQueue, createSelectBlockTree, selectOpQueue} from '../store.js';
+import {treeToTransferable} from '../Block/utils.js';
 import blockTreeUtils from '../blockTreeUtils.js';
 import {CountingLinkItemFactory} from '../block-types/Menu/EditForm.jsx';
 import {BlockValMutator} from '../BlockEditForm.jsx';
@@ -14,6 +16,7 @@ class PageCreateMainPanelView extends preact.Component {
     // pageMetaData;
     // linkedMenuBlockVals;
     // unregisterSignalListener;
+    // submitOpResult;
     /**
      * Note to self: getLayouts, initialLayoutId and getMenus are for tests.
      *
@@ -27,13 +30,16 @@ class PageCreateMainPanelView extends preact.Component {
         this.state = {layouts: [], menuInfos: [], addToMenuId: ID_NONE, currentPage: null};
         } else {
         const state = {layouts: [], menuInfos: [], addToMenuId: ID_NONE, currentPage: selectCurrentPageDataBundle(store.getState()).page};
-        if (!state.currentPage) this.unreg = observeStore(s => selectCurrentPageDataBundle(s), value => {
+        if (state.currentPage) this.onLoad();
+        else this.unreg = observeStore(s => selectCurrentPageDataBundle(s), value => {
             if (!value.page) return;
             this.setState({currentPage: value.page});
+            setTimeout(() => this.onLoad(), 1);
             this.unreg();
         });
         this.state = state;
         }
+        if (!featureFlagConditionUseReduxBlockTree) {
         this.unregisterSignalListener = signals.on('on-page-info-form-value-changed',
             /**
              * @param {PageMetaRaw} pageMeta
@@ -62,19 +68,53 @@ class PageCreateMainPanelView extends preact.Component {
                 });
             })
             .catch(env.window.console.error);
+        }
+    }
+    /**
+     * @access private
+     */
+    onLoad() {
+        if (!featureFlagConditionUseReduxBlockTree) {
+        store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
+            doHandle: this.handleFormSubmitted.bind(this),
+            args: []
+        }}]));
+        } else {
+            this.emitCreatePageOp();
+        }
+        if (this.props.noAutoFocus)
+            return;
+        setTimeout(() => {
+            env.document.querySelector('.block-tree li[data-block-type="PageInfo"] .block-handle').click();
+        }, 1);
+    }
+    /**
+     * @access private
+     */
+    emitCreatePageOp() {
+        store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
+            doHandle: () => {
+                //
+                this.unreg = observeStore(s => selectOpQueue(s), queue => {
+                    if (queue.length !== 0) return;
+                    if (this.submitOpResult)
+                        urlUtils.redirect(this.submitOpResult.redirectTo);
+                    else
+                        this.emitCreatePageOp();
+                    this.unreg();
+                });
+                //
+                return this.handleFormSubmitted();
+            },
+            args: []
+        }}]));
     }
     /**
      * @access protected
      */
     componentDidMount() {
-        store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
-            doHandle: this.handleFormSubmitted.bind(this),
-            args: []
-        }}]));
         if (!featureFlagConditionUseReduxBlockTree) {
-        if (!this.props.noAutoFocus) setTimeout(() => {
-            env.document.querySelector('.block-tree li[data-block-type="PageInfo"] .block-handle').click();
-        }, 1);
+        this.onLoad();
         }
     }
     /**
@@ -82,14 +122,16 @@ class PageCreateMainPanelView extends preact.Component {
      */
     componentWillUnmount() {
         store.dispatch(deleteItemsFromOpQueueAfter('create-new-page'));
+        if (!featureFlagConditionUseReduxBlockTree) {
         this.unregisterSignalListener();
+        }
     }
     /**
      * @access protected
      */
     render({pageType, cancelAddPage, blockTreesRef, initialLayoutId}, {layouts, menuInfos}) {
         const name = __(pageType ? pageType.friendlyName : 'page');
-        return <form>
+        return !featureFlagConditionUseReduxBlockTree ? <form>
             <header class="panel-section mb-2">
                 <h1 class="mb-2">{ __('Create %s', name) }</h1>
                 <button
@@ -130,6 +172,20 @@ class PageCreateMainPanelView extends preact.Component {
                     containingView="CreatePage"
                     ref={ blockTreesRef }/>
             </section>
+        </form> : <form>
+            <header class="panel-section pb-0">
+                <h1 class="mb-2">{ __('Create %s', name) }</h1>
+                <button
+                    onClick={ cancelAddPage }
+                    class="btn btn-link btn-sm"
+                    title={ __('Cancel add %s', name) }
+                    type="button">&lt; { __('Back') }</button>
+            </header>
+            <section>
+                <BlockTrees
+                    containingView="CreatePage"
+                    ref={ blockTreesRef }/>
+            </section>
         </form>;
     }
     /**
@@ -138,6 +194,7 @@ class PageCreateMainPanelView extends preact.Component {
      */
     handleAddToMenuChanged(e) {
         const newValue = e.target.value;
+        if (!featureFlagConditionUseReduxBlockTree) {
         //
         if (this.state.addToMenuId !== ID_NONE && this.linkedMenuBlockVals) {
             const parsed = JSON.parse(this.linkedMenuBlockVals.getBlock().tree);
@@ -167,6 +224,7 @@ class PageCreateMainPanelView extends preact.Component {
             this.linkedMenuBlockVals.handleSingleValueChanged(JSON.stringify(parsed), 'tree', false, 0, 'debounce-none');
         }
         this.setState({addToMenuId: newValue});
+        }
     }
     /**
      * @param {Event|undefined} e
@@ -175,20 +233,30 @@ class PageCreateMainPanelView extends preact.Component {
      */
     handleFormSubmitted(e) {
         if (e) e.preventDefault();
+        let data;
+        if (!featureFlagConditionUseReduxBlockTree) {
         // {title, slug, path, meta, customField1, customField2 ...}
         const data = Object.assign({}, this.pageMetaData);
         data.level = 1;
         data.layoutId = this.getCurrentPage().layoutId;
         data.blocks = this.props.blockTreesRef.current.getPageBlocks();
         data.status = 0;
+        } else {
+        data = JSON.parse(JSON.stringify(selectCurrentPageDataBundle(store.getState()).page));
+        data.blocks = treeToTransferable(createSelectBlockTree('main')(store.getState()).tree);
+        this.submitOpResult = null;
+        }
         //
         return http.post(`/api/pages/${this.props.pageType.name}`, data).then(resp => {
                 if (Array.isArray(resp) && resp[0] === 'Page with identical slug already exists') {
                     toasters.editAppMain(__('Page "%s" already exist.', data.slug), 'error');
-                    return false;
+                    return true;
                 }
                 if (resp.ok !== 'ok') throw new Error('-');
-                urlUtils.redirect(`/_edit${pathToFullSlug(data.path, '')}`);
+                if (!featureFlagConditionUseReduxBlockTree)
+                    urlUtils.redirect(`/_edit${pathToFullSlug(data.path, '')}`);
+                else
+                    this.submitOpResult = {ok: 'ok', redirectTo: `/_edit${pathToFullSlug(data.path, '')}`};
                 return true;
             })
             .catch(err => {

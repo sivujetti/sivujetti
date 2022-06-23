@@ -88,18 +88,19 @@ class ColumnsBlockEditForm2 extends preact.Component {
      */
     componentWillMount() {
         this.numColumnsEl = preact.createRef();
-        const {block, emitValueChanged, grabChanges} = this.props;
+        const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
+        const {numColumns, cssClass, takeFullWidth} = getBlockCopy();
         this.setState(hookForm(this, [
-            {name: 'numColumns', value: block.numColumns, validations: [['min', 0], ['max', 12]],
+            {name: 'numColumns', value: numColumns, validations: [['min', 0], ['max', 12]],
              label: __('Num columns'), type: 'number', step: '1', onAfterValueChanged: (value, hasErrors) => {
                  emitValueChanged(parseInt(value), 'numColumns', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
+            {name: 'cssClass', value: cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
              onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
         ], {
-            takeFullWidth: block.takeFullWidth,
+            takeFullWidth: takeFullWidth,
         }));
-        grabChanges((block, origin, isUndo) => {
-            if (isUndo && (this.state.values.cssClass !== block.cssClass ||
+        grabChanges((block, _origin, isUndo) => {
+            if (isUndo && (this.state.values.numColumns !== block.numColumns ||
                            this.state.values.cssClass !== block.cssClass))
                 reHookValues(this, [{name: 'numColumns', value: block.numColumns.toString()},
                                     {name: 'cssClass', value: block.cssClass}]);
@@ -120,7 +121,7 @@ class ColumnsBlockEditForm2 extends preact.Component {
         unhookForm(this);
     }
     /**
-     * @param {BlockEditFormProps} props
+     * @param {BlockEditFormProps2} props
      * @access protected
      */
     render(_, {takeFullWidth}) {

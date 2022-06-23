@@ -84,7 +84,7 @@ describe('Listing block', () => {
                 .click(openPopupLocator);
         }
         function setLimitToSinglePage(browser) {
-            // 1 = all, 2 = single, 3 = custom
+            // 1 = all, 2 = single, 3 = atMost
             const radioItemLocator = `${limitFilterPartGroupLocator} .form-radio:nth-of-type(2)`;
             return browser
                 .waitForElementVisible(radioItemLocator)

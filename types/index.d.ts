@@ -302,7 +302,7 @@ interface BlockEditFormProps {
 type blockChangeEvent = 'init'|'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block'|'swap-blocks'|'undo-swap-blocks';
 
 interface BlockEditFormProps2 {
-    block: RawBlock2; // Cloned data
+    getBlockCopy(): RawBlock2;
     grabChanges(withFn: (block: RawBlock2, origin: blockChangeEvent, isUndo: Boolean) => void): void;
     emitValueChanged(val: any, key: String, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;
     emitManyValuesChanged(partialData: {[key: String]: any;}, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;

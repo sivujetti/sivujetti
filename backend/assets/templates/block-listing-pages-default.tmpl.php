@@ -1,6 +1,5 @@
-<?php
-if ($props->__pages ?? null): ?>
 <div class="listing listing-<?= strtolower($props->filterPageType) ?>" data-block-type="<?= \Sivujetti\Block\Entities\Block::TYPE_LISTING ?>" data-block="<?= $props->id ?>">
+<?php if ($props->__pages ?? null): ?>
     <?php foreach ($props->__pages as $page): ?>
     <article class="list-item list-item-<?= $page->slug ?>">
         <h2><?= $this->e($page->title) ?></h2>
@@ -9,7 +8,7 @@ if ($props->__pages ?? null): ?>
         ) ?>"><?= $this->__("Read more") ?></a></div>
     </article>
     <?php endforeach; ?>
-</div>
 <?php else: ?>
     <p><?= $this->__("No %s found.", strtolower($props->__pageType->friendlyNamePlural)) ?></p>
 <?php endif; ?>
+</div>

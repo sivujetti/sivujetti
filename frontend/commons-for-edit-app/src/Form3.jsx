@@ -101,14 +101,14 @@ function createApi(cmp, k, inp) {
                 return errors;
         }, [])
     ;
-    out.triggerInput = (value, isProgrammatic = false, newState = {}) => {
+    out.triggerInput = (value, source = 'default', newState = {}) => {
         const errors = out.doValidate(value);
         newState.values = Object.assign({}, cmp.state.values, {[k]: value});
         newState.errors = Object.assign({}, cmp.state.errors, {[k]: errors});
         cmp.setState(newState);
         if (window.useReduxBlockTree) // @featureFlagConditionUseReduxBlockTree
             cmp.state.values = newState.values;
-        if (!isProgrammatic && inp.onAfterValueChanged) inp.onAfterValueChanged(value, errors.length);
+        if (inp.onAfterValueChanged) inp.onAfterValueChanged(value, errors.length, source);
     };
     out.onInput = e => {
         out.triggerInput(e.target.value);
@@ -124,7 +124,7 @@ function createApi(cmp, k, inp) {
             const val = e.target.value;
             if (val === cmp.state.values[k])
                 cmp.setState(newState);
-            else out.triggerInput(val, false, newState);
+            else out.triggerInput(val, undefined, newState);
         }, 100);
     };
     return out;

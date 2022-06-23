@@ -1,8 +1,6 @@
 import {__, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroup, FormGroupInline} from '@sivujetti-commons-for-edit-app';
-import blockTreeUtils from '../blockTreeUtils.js';
 import QuillEditor from '../commons/QuillEditor.jsx';
 import {validationConstraints} from '../constants.js';
-import store, {createSelectBlockTree} from '../store.js';
 import setFocusTo from './auto-focusers.js';
 
 const minPossibleLen = '<p></p>'.length;
@@ -90,19 +88,20 @@ class ParagraphBlockEditForm2 extends preact.Component {
      */
     componentWillMount() {
         this.editor = preact.createRef();
-        const {block, emitValueChanged, grabChanges} = this.props;
-        this.initialText = block.text;
+        const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
+        const {text, cssClass} = getBlockCopy();
+        this.initialText = text;
         this.setState(hookForm(this, [
-            {name: 'text', value: block.text, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]],
-             label: __('Text'), onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'text', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
+            {name: 'text', value: text, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]],
+             label: __('Text'), onAfterValueChanged: (value, hasErrors, source) => { if (source !== 'undo') emitValueChanged(value, 'text', hasErrors, env.normalTypingDebounceMillis); }},
+            {name: 'cssClass', value: cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
              onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
         ]));
-        grabChanges((block, origin, isUndo) => {
-            if (!isUndo) return;
-            if (this.state.values.text !== block.text)
-                this.editor.current.replaceContents(block.text);
-            reHookValues(this, [{name: 'cssClass', value: block.cssClass}]);
+        grabChanges((block, _origin, isUndo) => {
+            if (isUndo && this.state.values.text !== block.text)
+                this.editor.current.replaceContents(block.text, 'undo');
+            if (isUndo && this.state.values.cssClass !== block.cssClass)
+                reHookValues(this, [{name: 'cssClass', value: block.cssClass}]);
         });
     }
     /**
@@ -126,8 +125,8 @@ class ParagraphBlockEditForm2 extends preact.Component {
                 <QuillEditor
                     name="paragraph-text"
                     value={ this.initialText }
-                    onChange={ markup => {
-                        this.inputApis.text.triggerInput(unParagraphify(markup));
+                    onChange={ (markup, source) => {
+                        this.inputApis.text.triggerInput(unParagraphify(markup), source);
                     } }
                     onBlur={ e => this.inputApis.text.onBlur(e) }
                     onInit={ editor => {

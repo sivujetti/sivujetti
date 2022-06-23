@@ -38,7 +38,7 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):
         $closeInnerTag,
     "</p>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_RICH_TEXT):
-if (useReduxBlockTree):
+if (!useReduxBlockTree):
     echo $props->html, // @allow pre-validated html
          $this->renderChildren($props);
 else:

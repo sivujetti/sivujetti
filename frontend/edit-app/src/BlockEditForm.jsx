@@ -33,6 +33,8 @@ function putOrGetSnapshot(block, blockType, override = false) {
     return snap;
 }
 
+const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
+
 class BlockEditForm extends preact.Component {
     // blockVals;
     // isOutermostBlockOfGlobalBlockTree;
@@ -50,7 +52,6 @@ class BlockEditForm extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree && ['Columns', 'Menu', 'PageInfo', 'Paragraph', 'Section'].indexOf(this.props.block.type) > -1;
         blockTypes = api.blockTypes;
         this.state = {currentTabIdx: 0};
         this.userCanEditCss = api.user.can('editCssStyles');
@@ -67,7 +68,7 @@ class BlockEditForm extends preact.Component {
         this.blockType = blockTypes.get(block.type);
         this.editFormImpl = this.blockType.editForm;
         this.snapshot = putOrGetSnapshot(block, this.blockType);
-        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
+        if (!featureFlagConditionUseReduxBlockTree) {
         this.allowStylesEditing = !selectCurrentPage(store.getState()).webPage.data.page.isPlaceholderPage;
         } else {
         this.allowStylesEditing = !selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
@@ -78,7 +79,7 @@ class BlockEditForm extends preact.Component {
         })];
         this.setState({useOverrides: base && base.useOverrides,
                        currentTabIdx: 0});
-        if (this.featureFlagConditionUseReduxBlockTree) {
+        if (featureFlagConditionUseReduxBlockTree) {
             this.currentDebounceTime = null;
             this.currentDebounceType = null;
             this.boundEmitStickyChange = null;
@@ -101,7 +102,7 @@ class BlockEditForm extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        if (!this.featureFlagConditionUseReduxBlockTree) {
+        if (!featureFlagConditionUseReduxBlockTree) {
         BlockEditForm.currentInstance = this;
         this.blockVals.setCurrentEditFormImplRef(BlockEditForm.currentInstance.editFormImplRef);
         }
@@ -110,7 +111,7 @@ class BlockEditForm extends preact.Component {
      * @access protected
      */
     componentWillUnmount() {
-        if (!this.featureFlagConditionUseReduxBlockTree) {
+        if (!featureFlagConditionUseReduxBlockTree) {
         BlockEditForm.currentInstance = undefined;
         this.isOutermostBlockOfGlobalBlockTree = undefined;
         this.editFormImpl = undefined;
@@ -159,7 +160,7 @@ class BlockEditForm extends preact.Component {
                     </div>
                     : null
                 }
-                { !this.featureFlagConditionUseReduxBlockTree ?
+                { !featureFlagConditionUseReduxBlockTree ?
                 <EditFormImpl
                     block={ block }
                     blockTree={ blockTreeCmp }
@@ -169,7 +170,7 @@ class BlockEditForm extends preact.Component {
                     ref={ this.editFormImplRef }
                     key={ block.id }/> :
                 <EditFormImpl
-                    block={ JSON.parse(JSON.stringify(blockTreeUtils.findBlock(block.id, createSelectBlockTree(block.isStoredToTreeId)(store.getState()).tree)[0])) }
+                    getBlockCopy={ () => JSON.parse(JSON.stringify(blockTreeUtils.findBlock(block.id, createSelectBlockTree(block.isStoredToTreeId)(store.getState()).tree)[0])) }
                     grabChanges={ withFn => { this.editFormImplsChangeGrabber = withFn; } }
                     emitValueChanged={ (val, key, ...vargs) => { this.handleValueValuesChanged({[key]: val}, ...vargs); } }
                     emitManyValuesChanged={ this.handleValueValuesChanged.bind(this) }
@@ -549,7 +550,7 @@ function emitMutateBlockProp(newData, partialContext) {
 }
 
 /**
- * @param {{[key]: any;}} newData
+ * @param {{[key]: any;}} oldData
  * @param {Array} partialContext
  */
 function emitPushStickyOp(oldData, partialContext) {

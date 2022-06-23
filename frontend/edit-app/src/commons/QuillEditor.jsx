@@ -29,17 +29,29 @@ class QuillEditor extends preact.Component {
     constructor(props) {
         super(props);
         this.quill = null;
+        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         this.emitChagesLockIsOn = false;
+        } else {
+        this.myChangeSource = 'default';
+        }
     }
     /**
      * @param {String} newContents @allow raw html
+     * @param {'default'|'undo'} source = 'default'
      * @access public
      */
-    replaceContents(newContents) {
+    replaceContents(newContents, source = 'default') {
+        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         this.emitChagesLockIsOn = true;
         this.quill.clipboard.dangerouslyPasteHTML(newContents);
         this.quill.setSelection(this.quill.getLength(), 0);
         setTimeout(() => { this.emitChagesLockIsOn = false; }, 100);
+        } else {
+        this.myChangeSource = source;
+        this.quill.clipboard.dangerouslyPasteHTML(newContents);
+        this.quill.setSelection(this.quill.getLength(), 0);
+        setTimeout(() => { this.myChangeSource = 'default'; }, 100);
+        }
     }
     /**
      * @access protected
@@ -55,12 +67,20 @@ class QuillEditor extends preact.Component {
             theme: 'snow',
         });
         if (this.props.onInit) this.props.onInit(this);
+        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         this.quill.on('text-change', (_delta, _oldDelta, _source) => {
             if (this.emitChagesLockIsOn)
                 return;
             if (this.quill.container.firstChild)
                 this.props.onChange(this.quill.container.firstChild.innerHTML);
         });
+        } else {
+        this.quill.on('text-change', (_delta, _oldDelta, _source) => {
+            if (this.quill.container.firstChild)
+                this.props.onChange(this.quill.container.firstChild.innerHTML,
+                                    this.myChangeSource);
+        });
+        }
         if (this.props.onBlur)
             this.quill.on('selection-change', range => {
                 if (!range) this.props.onBlur();

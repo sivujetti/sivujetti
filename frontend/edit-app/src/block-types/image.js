@@ -72,6 +72,71 @@ class ImageBlockEditForm extends preact.Component {
     }
 }
 
+class ImageBlockEditForm2 extends preact.Component {
+    // imagePicker;
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        this.imagePicker = preact.createRef();
+        const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
+        const {cssClass, src} = getBlockCopy();
+        this.setState(hookForm(this, [
+            {name: 'cssClass', value: cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
+             onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
+        ], {
+            src,
+        }));
+        grabChanges((block, _origin, isUndo) => {
+            if (isUndo && this.state.values.cssClass !== block.cssClass)
+                reHookValues(this, [{name: 'cssClass', value: block.cssClass}]);
+            if (this.state.src !== block.src)
+                this.setState({src: block.src});
+        });
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        setFocusTo(this.imagePicker);
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        unhookForm(this);
+    }
+    /**
+     * @param {BlockEditFormProps2} props
+     * @access protected
+     */
+    render(_, {src}) {
+        if (!this.state.values) return;
+        return <div class="form-horizontal pt-0">
+            <FormGroupInline>
+                <label htmlFor="src" class="form-label">{ __('Image file') }</label>
+                <ImagePicker
+                    onImageSelected={ this.handleImageChanged.bind(this) }
+                    initialImageFileName={ src }
+                    inputId="src"
+                    ref={ this.imagePicker }/>
+            </FormGroupInline>
+            <FormGroupInline>
+                <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
+                <Input vm={ this } prop="cssClass"/>
+                <InputErrors vm={ this } prop="cssClass"/>
+            </FormGroupInline>
+        </div>;
+    }
+    /**
+     * @param {UploadsEntry|null} img
+     */
+    handleImageChanged(img) {
+        const src = img ? img.fileName : null;
+        this.props.emitValueChanged(src, 'src', false, 0, 'debounce-none');
+    }
+}
+
 export default () => {
     const initialData = {src: null, cssClass: ''};
     const name = 'Image';
@@ -95,6 +160,7 @@ export default () => {
             src: from.src,
             cssClass: from.cssClass,
         }),
-        editForm: ImageBlockEditForm,
+        // @featureFlagConditionUseReduxBlockTree
+        editForm: !window.useReduxBlockTree ? ImageBlockEditForm : ImageBlockEditForm2,
     };
 };

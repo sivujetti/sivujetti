@@ -43,6 +43,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
                 renderer: "sivujetti:block-listing-pages-default",
                 propsData: ["filterPageType" => "Pages",
                     "filterLimit" => 0,
+                    "filterLimitType" => "all",
                     "filterOrder" => "desc",
                     "filterAdditional" => "{}"],
                 id: "@auto"),

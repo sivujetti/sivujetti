@@ -93,6 +93,7 @@ final class TestDataBundles {
             renderer: "sivujetti:block-listing-pages-default",
             propsData: ["filterPageType" => "Pages",
                 "filterLimit" => 0,
+                "filterLimitType" => "all",
                 "filterOrder" => "desc",
                 "filterAdditional" => "{}"],
             id: "@auto");

@@ -58,17 +58,26 @@ function findRefBlockOf(innerTreeBlock, tree) {
 }
 
 /**
+ * @param {RawBlock2} block
+ * @returns {{[key: String]: any;}}
+ */
+function temp(block) {
+    const clone = JSON.parse(JSON.stringify(block));
+    for (const key in clone) {
+        if (key.startsWith('__'))// || key === 'propsData')
+            delete clone[key];
+    }
+    return clone;
+}
+
+/**
  * @param {Array<RawBlock2>} tree
  * @returns {Array<{[key: String]: any;}>}
  */
 function treeToTransferable(tree) {
     return blockTreeUtils.mapRecursivelyManual(tree, (b, _i, children) => {
         b.children = children;
-        for (const key in b) {
-            if (Object.prototype.hasOwnProperty.call(b, key) && (key.startsWith('__') || key === 'propsData'))
-                delete b[key];
-        }
-        return b;
+        return temp(b);
     });
 }
 

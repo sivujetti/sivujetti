@@ -119,6 +119,116 @@ class ButtonBlockEditForm extends preact.Component {
     }
 }
 
+class ButtonBlockEditForm2 extends preact.Component {
+    // editor;
+    // tagTypeOptions;
+    // initialHtml;
+    /**
+     * @param {BlockEditFormProps2} props
+     */
+    constructor(props) {
+        super(props);
+        this.editor = preact.createRef();
+        this.tagTypeOptions = [
+            {name: tagTypes.LINK, friendlyName: __('Link element')},
+            {name: tagTypes.NORMAL_BUTTON, friendlyName: __('Normal button')},
+            {name: tagTypes.SUBMIT_BUTTON, friendlyName: __('Submit button')},
+        ];
+    }
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
+        const {html, linkTo, cssClass, tagType} = getBlockCopy();
+        this.initialHtml = html;
+        this.setState(hookForm(this, [
+            {name: 'html', value: html, validations: [['required'], ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
+             label: __('Content'), onAfterValueChanged: (value, hasErrors, source) => { if (source !== 'undo') emitValueChanged(value, 'html', hasErrors, env.normalTypingDebounceMillis); }},
+            {name: 'linkTo', value: linkTo, validations: [[urlValidatorImpl, {allowExternal: true, allowEmpty: true}],
+                ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link'),
+             onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'linkTo', hasErrors, env.normalTypingDebounceMillis); }},
+            {name: 'cssClass', value: cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
+             onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
+        ], {
+            tagType,
+        }));
+        grabChanges((block, _origin, isUndo) => {
+            if (isUndo && this.state.values.html !== block.html)
+                this.editor.current.replaceContents(block.html, 'undo');
+            if (isUndo && (this.state.values.linkTo !== block.linkTo ||
+                           this.state.values.cssClass !== block.cssClass))
+                reHookValues(this, [{name: 'linkTo', value: block.linkTo},
+                                    {name: 'cssClass', value: block.cssClass}]);
+            if (this.state.tagType !== block.tagType)
+                this.setState({tagType: block.tagType});
+        });
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        setFocusTo(this.editor);
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        unhookForm(this);
+    }
+    /**
+     * @access protected
+     */
+    render(_, {tagType}) {
+        if (!this.state.values) return;
+        return [
+            <FormGroup>
+                <QuillEditor
+                    name="html"
+                    value={ this.initialHtml }
+                    onChange={ (markup, source) => {
+                        this.inputApis.html.triggerInput(unParagraphify(markup), source);
+                    } }
+                    onBlur={ e => this.inputApis.html.onBlur(e) }
+                    toolbarBundle="simplest"
+                    ref={ this.editor }/>
+                <InputErrors vm={ this } prop="html"/>
+            </FormGroup>,
+            <div class="form-horizontal pt-0">
+                <FormGroupInline>
+                    <label htmlFor="tagType" class="form-label">{ __('Tag type') }</label>
+                    <select value={ tagType } onChange={ this.handleTagTypeChanged.bind(this) } class="form-input form-select">{
+                        this.tagTypeOptions.map(({name, friendlyName}) =>
+                            <option value={ name }>{ friendlyName }</option>
+                        )
+                    }</select>
+                </FormGroupInline>
+                { tagType === tagTypes.LINK
+                    ? <FormGroupInline>
+                        <label htmlFor="linkTo" class="form-label">{ __('Link') }</label>
+                        <Input vm={ this } prop="linkTo"/>
+                        <InputErrors vm={ this } prop="linkTo"/>
+                    </FormGroupInline>
+                    : null
+                }
+                <FormGroupInline>
+                    <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
+                    <Input vm={ this } prop="cssClass"/>
+                    <InputErrors vm={ this } prop="cssClass"/>
+                </FormGroupInline>
+            </div>
+        ];
+    }
+    /**
+     * @param {Event} e
+     * @access private
+     */
+    handleTagTypeChanged(e) {
+        const newVal = e.target.value;
+        this.props.emitValueChanged(newVal, 'tagType', false, env.normalTypingDebounceMillis);
+    }
+}
+
 export default () => {
     const initialData = {html: `${__('Button text')}`, linkTo: '/', tagType: 'link', cssClass: ''};
     const name = 'Button';
@@ -151,6 +261,7 @@ export default () => {
             tagType: from.tagType,
             cssClass: from.cssClass,
         }),
-        editForm: ButtonBlockEditForm,
+        // @featureFlagConditionUseReduxBlockTree
+        editForm: !window.useReduxBlockTree ? ButtonBlockEditForm : ButtonBlockEditForm2,
     };
 };

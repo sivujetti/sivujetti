@@ -82,13 +82,14 @@ class SectionBlockEditForm2 extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        const {block, emitValueChanged, grabChanges} = this.props;
+        const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
+        const {cssClass, bgImage} = getBlockCopy();
         this.imagePicker = preact.createRef();
         this.setState(hookForm(this, [
-            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
+            {name: 'cssClass', value: cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
              onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
         ], {
-            bgImage: block.bgImage,
+            bgImage,
         }));
         grabChanges((block, origin, isUndo) => {
             if (isUndo && this.state.values.cssClass !== block.cssClass)

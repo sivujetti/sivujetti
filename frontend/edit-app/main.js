@@ -54,24 +54,16 @@ function configureServices() {
     });
     //
     const blockTypes = new BlockTypes(api);
-    // @featureFlagConditionUseReduxBlockTree
-    const maybeDisableEdit = orig => !window.useReduxBlockTree ? orig : function (...args) {
-        const out = orig(...args);
-        out.editForm = class extends preact.Component {
-            render() { return 'Not supported yet'; }
-        };
-        return out;
-    };
     blockTypes.register('Menu', createMenuBlockType);
-    blockTypes.register('Button', maybeDisableEdit(createButtonBlockType));
+    blockTypes.register('Button', createButtonBlockType);
     blockTypes.register('Columns', createColumnsBlockType);
-    blockTypes.register('GlobalBlockReference', maybeDisableEdit(createGlobalBlockReferenceBlockType));
-    blockTypes.register('Heading', maybeDisableEdit(createHeadingBlockType));
-    blockTypes.register('Image', maybeDisableEdit(createImageBlockType));
-    blockTypes.register('Listing', maybeDisableEdit(createListingBlockType));
+    blockTypes.register('GlobalBlockReference', createGlobalBlockReferenceBlockType);
+    blockTypes.register('Heading', createHeadingBlockType);
+    blockTypes.register('Image', createImageBlockType);
+    blockTypes.register('Listing', createListingBlockType);
     blockTypes.register('PageInfo', createPageInfoBlockType);
     blockTypes.register('Paragraph', createParagraphBlockType);
-    blockTypes.register('RichText', maybeDisableEdit(createRichTextBlockType));
+    blockTypes.register('RichText', createRichTextBlockType);
     blockTypes.register('Section', createSectionBlockType);
     api.blockTypes = blockTypes;
     //
@@ -222,7 +214,7 @@ function renderReactEditApp() {
             }
             for (const [_, tree] of trees) {
                 blockTreeUtils.traverseRecursively(tree, b => {
-                    if (['Columns', 'Menu', 'PageInfo', 'Paragraph', 'Section'].indexOf(b.type) > -1 || b.type === 'GlobalBlockReference') return;
+                    if (b.type === 'GlobalBlockReference') return;
                     wipe(b);
                 });
             }

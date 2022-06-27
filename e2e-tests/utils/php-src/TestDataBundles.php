@@ -74,6 +74,7 @@ final class TestDataBundles {
                 "id" => "2",
                 "slug" => "/page2",
                 "path" => "page2/",
+                "categories" => "[]",
                 "level" => 1,
                 "title" => "Another",
                 "meta" => (object) ["description" => "Another pages description."],

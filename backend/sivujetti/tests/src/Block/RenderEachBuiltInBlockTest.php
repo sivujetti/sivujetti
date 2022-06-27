@@ -317,7 +317,10 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
     public function testRenderBlockRendersRichTexts(): void {
         $state = $this->setupRenderRichTextBlocksTest();
         $this->makeTestSivujettiApp($state);
-        $this->renderAndVerify($state, 0, "{$state->testBlocks[0]->html}[childMarker]");
+        $b = $state->testBlocks[0];
+        $this->renderAndVerify($state, 0, "<div data-block-type=\"RichText\" data-block=\"{$b->id}\">" .
+            "{$b->html}[childMarker]" .
+        "</div>");
     }
     private function setupRenderRichTextBlocksTest(): \TestState {
         $state = parent::setupTest();

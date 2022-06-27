@@ -236,7 +236,7 @@ class PageCreateMainPanelView extends preact.Component {
         let data;
         if (!featureFlagConditionUseReduxBlockTree) {
         // {title, slug, path, meta, customField1, customField2 ...}
-        const data = Object.assign({}, this.pageMetaData);
+        data = Object.assign({}, this.pageMetaData);
         data.level = 1;
         data.layoutId = this.getCurrentPage().layoutId;
         data.blocks = this.props.blockTreesRef.current.getPageBlocks();

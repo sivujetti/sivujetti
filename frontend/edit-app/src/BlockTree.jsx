@@ -306,6 +306,7 @@ class BlockTree extends preact.Component {
         }));
         this.unregistrablesLong.push(signals.on('on-web-page-loaded', () => {
             this.registerOrReRegisterBlockTreeListeners(getRegisteredReduxTreeIds());
+            setTimeout(() => { pageCurrentlyLoading = null; }, 1);
         }));
         //
         this.unregistrablesLong.push(signals.on('on-inspector-panel-closed', () => {

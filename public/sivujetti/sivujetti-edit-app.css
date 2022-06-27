@@ -261,6 +261,9 @@ h2 {
     bottom: 0;
     cursor: row-resize;
 }
+.panels-hidden #main-panel .resize-panel-handle {
+    display: none;
+}
 .panels-hidden #main-panel {
     width: 0 !important;
     z-index: 1;

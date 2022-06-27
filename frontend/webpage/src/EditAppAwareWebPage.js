@@ -1,5 +1,3 @@
-let featureFlagConditionUseReduxBlockTree;
-
 const CHILDREN_START = ' children-start ';
 const CHILDREN_END = ' children-end ';
 
@@ -26,7 +24,6 @@ class EditAppAwareWebPage {
      * @access public
      */
     scanBlockRefComments() {
-        featureFlagConditionUseReduxBlockTree = false;
         return this.data.page.blocks.length
             ? scanAndCreateBlockRefCommentsFrom(document.body)
             : [];
@@ -36,7 +33,6 @@ class EditAppAwareWebPage {
      * @access public
      */
     scanBlockElements() {
-        featureFlagConditionUseReduxBlockTree = true;
         this.deletedInnerContentStorage = new Map;
         this.currentlyHoveredBlockEl = null;
         return Array.from(document.body.querySelectorAll('[data-block-type]'));
@@ -106,14 +102,33 @@ class EditAppAwareWebPage {
             return;
         this.handlers = handlers;
         //
+        let lastClickedAt = 0;
         document.body.addEventListener('click', e => {
-            let target;
-            if (!this.currentlyHoveredBlockEl)
-                target = null;
-            else if (e.target.nodeName === 'A' && !this.allowOpenBlockClick)
-                target = null;
-            else
+            let target = null;
+            if (this.currentlyHoveredBlockEl || this.isMouseListenersDisabled) {
                 target = this.currentlyHoveredBlockEl;
+                //
+                const a = e.button === 0 && e.target.nodeName === 'A' ? e.target : e.target.closest('a');
+                if (a) {
+                    e.preventDefault();
+                    if (this.isMouseListenersDisabled) {
+                        this.doFollowLink(a);
+                    } else {
+                        if (lastClickedAt && Date.now() - lastClickedAt < 300) {
+                            this.doFollowLink(a);
+                            lastClickedAt = 0;
+                        }
+                        lastClickedAt = Date.now();
+                    }
+                }
+                //
+                const b = e.button === 0 && e.target.nodeName === 'BUTTON' ? e.target.closest('[data-block-type="Button"]') : null;
+                if (b) {
+                    e.preventDefault();
+                    if (this.isMouseListenersDisabled)
+                        b.click();
+                }
+            }
             this.handlers.onClicked(target);
         });
         //
@@ -157,7 +172,6 @@ class EditAppAwareWebPage {
                 this.currentlyHoveredBlockEl = null;
             }
         }, true);
-        this.registerLocalLinkEventHandlers();
     }
     /**
      * @param {String} trid
@@ -684,11 +698,6 @@ class EditAppAwareWebPage {
      * @access private
      */
     registerLocalLinkEventHandlers(outerEl = document.body) {
-        const doFollowLink = el => {
-            window.location.href = this.isLocalLink(el)
-                ? `${el.href}${el.search[0] !== '?' ? '?' : '&'}in-edit`
-                : el.href;
-        };
         let lastClickedAt = 0;
         Array.from(outerEl.querySelectorAll('a')).forEach(a => {
             if (a.hasListener)
@@ -697,10 +706,10 @@ class EditAppAwareWebPage {
                 if (e.button !== 0) return;
                 e.preventDefault();
                 if (this.isMouseListenersDisabled) {
-                    doFollowLink(a);
+                    this.doFollowLink(a);
                 } else {
                     if (lastClickedAt && Date.now() - lastClickedAt < 300) {
-                        doFollowLink(a);
+                        this.doFollowLink(a);
                         lastClickedAt = 0;
                     }
                     lastClickedAt = Date.now();
@@ -820,6 +829,15 @@ class EditAppAwareWebPage {
         if (!cached) return null;
         this.deletedInnerContentStorage.delete(block.id);
         return cached;
+    }
+    /**
+     * @param {HTMLAnchorElement} el
+     * @access private
+     */
+    doFollowLink(el) {
+        window.location.href = this.isLocalLink(el)
+            ? `${el.href}${el.search[0] !== '?' ? '?' : '&'}in-edit`
+            : el.href;
     }
 }
 

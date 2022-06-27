@@ -27,7 +27,11 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
     public function testListingBlockListsAllPages(): void {
         $state = $this->setupRenderListingBlocksTest();
         $this->makeTestSivujettiApp($state);
-        $expectedHtml = "    <p>No pages found.</p>\r\n";
+        $expectedHtml = (
+            "<div class=\"listing listing-pages\" data-block-type=\"Listing\" data-block=\"{$state->testBlocks[0]->id}\">\r\n" .
+                "    <p>No pages found.</p>\r\n" .
+            "</div>"
+        );
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
         $this->insertTestPages($state);
@@ -57,7 +61,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
             "<div class=\"listing listing-pages\" data-block-type=\"Listing\" data-block=\"{$b->id}\">\r\n" .
                 ($makeExpectedListItem($page1Data)) .
                 ($page2Data ? $makeExpectedListItem($page2Data) : "") .
-            "    </div>\r\n";
+            "    </div>";
         return $state;
     }
     private function insertTestPages(\TestState $state): void {

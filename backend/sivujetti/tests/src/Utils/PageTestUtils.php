@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Tests\Utils;
 
-use Pike\Db;
+use Pike\{Db, PikeException};
 use Sivujetti\Block\BlockValidator;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, GlobalBlockReferenceBlockType, HeadingBlockType,
@@ -56,9 +56,10 @@ final class PageTestUtils {
             $pageType = $this->makeDefaultPageType($pageType);
         if ($data->layoutId)
             $this->layoutTestUtils->insertLayout((object) ["id" => $data->layoutId]);
-        return $this->pagesRepo->insert($pageType, $data, doValidateBlocks: false)[0]
-            ? $this->pagesRepo->lastInsertId
-            : null;
+        [$_numAffectedRows, $errors] = $this->pagesRepo->insert($pageType, $data, doValidateBlocks: false);
+        if ($errors)
+            throw new PikeException(implode("\n", $errors));
+        return $this->pagesRepo->lastInsertId;
     }
     /**
      * @param string $slug

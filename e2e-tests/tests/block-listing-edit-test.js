@@ -42,7 +42,8 @@ describe('Listing block', () => {
                 .click(openPopupLocator);
         }
         function selectAnotherPageType(browser) {
-            const radioItemLocator = `${pageTypeFilterPartGroupLocator} .form-radio:nth-of-type(2)`;
+            // 1 = Pages, 2 = Page cateogories, 3 = Articles
+            const radioItemLocator = `${pageTypeFilterPartGroupLocator} .form-radio:nth-of-type(3)`;
             return browser
                 .waitForElementVisible(radioItemLocator)
                 .click(radioItemLocator);

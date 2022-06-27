@@ -5,7 +5,6 @@ namespace Sivujetti\E2eTests;
 use Pike\{Db, DbUtils, Request};
 use Pike\TestUtils\DbTestCase;
 use Sivujetti\FileSystem;
-use Sivujetti\PageType\Entities\PageType;
 
 /**
  * @psalm-import-type TestDataBundle from \Sivujetti\E2eTests\TestDataBundles
@@ -68,7 +67,7 @@ final class Controller {
             $table = $item["table"];
             $data = $item["data"];
             $now = time();
-            return [sprintf("INSERT INTO `\${p}{$table}` VALUES ('%s','%s','%s','%s',%d,'%s','%s','%d','%s',%d)",
+            return [sprintf("INSERT INTO `\${p}{$table}` VALUES ('%s','%s','%s','%s',%d,'%s','%s','%d','%s',%d,%d,%d)",
                 $data["id"],
                 $data["slug"],
                 $data["path"],
@@ -87,7 +86,7 @@ final class Controller {
             $table = $item["table"];
             $data = $item["data"];
             $now = time();
-            return [sprintf("INSERT INTO `\${p}{$table}` VALUES ('%s','%s','%s',%d,'%s','%s','%d','%s',%d)",
+            return [sprintf("INSERT INTO `\${p}{$table}` VALUES ('%s','%s','%s',%d,'%s','%s','%d','%s',%d,%d,%d)",
                 $data["id"],
                 $data["slug"],
                 $data["path"],

@@ -15,11 +15,14 @@ abstract class PluginTestCase extends RenderPageTestCase {
         $this->blockTestUtils = new BlockTestUtils;
         $this->state = new TestState;
     }
-    protected function setupRenderPageTest(): PluginTestCase {
+    protected function setupPageTest(): PluginTestCase {
         $this->state->testPageData = $this->pageTestUtils->makeTestPageData();
         $this->state->spyingResponse = null;
         $this->state->app = null;
         return $this;
+    }
+    protected function setupRenderPageTest(): PluginTestCase {
+        return $this->setupPageTest();
     }
     protected function usePlugin(string $name): PluginTestCase {
         $this->dbDataHelper->insertData((object) ["name" => $name, "isActive" => true], "plugins");
@@ -29,14 +32,36 @@ abstract class PluginTestCase extends RenderPageTestCase {
         $this->testApiCtx->blockTypes->{$name} = $type;
         return $this;
     }
+    /**
+     * @param \Closure $doMutateTestPageData \Closure(object $testPageData): void
+     * @return $this
+     */
     protected function withPageData(\Closure $doMutateTestPageData): PluginTestCase {
         $doMutateTestPageData($this->state->testPageData);
         return $this;
     }
-    protected function execute(): MutedSpyingResponse {
-        $this->makeTestSivujettiApp($this->state);
+    /**
+     * @param \Closure $alterer \Closure(\Sivujetti\Tests\Utils\TestEnvBootstrapper $bootModule): void
+     * @return $this
+     */
+    protected function withBootModuleAlterer(\Closure $alterer): PluginTestCase {
+        $this->makeTestSivujettiApp($this->state, $alterer);
+        return $this;
+    }
+    /**
+     * @param \Closure $useRequest = null \Closure(): \Pike\Request
+     * @return $this
+     */
+    protected function execute(\Closure $useRequest = null): MutedSpyingResponse {
+        if (!$this->state->app)
+            $this->makeTestSivujettiApp($this->state);
         $this->insertTestPageToDb($this->state);
-        $this->sendRenderPageRequest($this->state);
+        if (!$useRequest) {
+            $this->sendRenderPageRequest($this->state);
+        } else {
+            $req = $useRequest();
+            $this->state->spyingResponse = $this->state->app->sendRequest($req);
+        }
         return $this->state->spyingResponse;
     }
 }

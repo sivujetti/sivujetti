@@ -81,16 +81,20 @@ class EditApp extends preact.Component {
     }
     /**
      * @param {EditAppAwareWebPage2} webPage
-     * @param {CurrentPageData} data
      * @param {Map<String, Array<RawBlock2>>|null} trees
      * @access public
      */
-    handleWebPageLoaded2(webPage, data, trees) {
+    handleWebPageLoaded2(webPage, trees) {
         this.receivingData = true;
+        const {data} = webPage;
+        delete webPage.data;
+        //
         if (webPageDomUpdaters.length) {
             webPageDomUpdaters.forEach(fn => fn());
             webPageDomUpdaters = [];
         }
+        this.currentWebPage = webPage;
+        webPage.registerEventHandlers2(this.websiteEventHandlers);
         data.page = maybePatchTitleAndSlug(data.page);
         const {page} = data;
         const isDefaultToCreateTrans = this.state.currentMainPanel === 'default' && page.isPlaceholderPage;

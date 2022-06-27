@@ -212,10 +212,7 @@ function renderReactEditApp() {
             for (const [trid, tree] of separatedTrees)
                 trees.set(trid, tree);
             //
-            webPage.registerEventHandlers2(editApp.websiteEventHandlers);
-            const {data} = webPage;
-            delete webPage.data;
-            editApp.handleWebPageLoaded2(webPage, data, trees);
+            editApp.handleWebPageLoaded2(webPage, trees);
             }
         }
     };

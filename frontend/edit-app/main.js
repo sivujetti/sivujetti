@@ -209,15 +209,8 @@ function renderReactEditApp() {
             //
             const trees = new Map;
             trees.set('main', mutatedOrdered);
-            for (const [trid, tree] of separatedTrees) {
+            for (const [trid, tree] of separatedTrees)
                 trees.set(trid, tree);
-            }
-            for (const [_, tree] of trees) {
-                blockTreeUtils.traverseRecursively(tree, b => {
-                    if (b.type === 'GlobalBlockReference') return;
-                    wipe(b);
-                });
-            }
             //
             webPage.registerEventHandlers2(editApp.websiteEventHandlers);
             const {data} = webPage;
@@ -268,13 +261,4 @@ function hookUpSiteIframeUrlMirrorer() {
 
 function capitalize(str) {
     return `${str.charAt(0).toUpperCase()}${str.substring(1, str.length)}`;
-}
-
-function wipe(block) {
-    for (const key in block) {
-        if (!Object.prototype.hasOwnProperty.call(block, key)) continue;
-        if (['id', 'type', 'isStoredTo', 'isStoredToTreeId', 'children'].indexOf(key) > -1) continue;
-        else delete block[key];
-    }
-    block.__wiped = true;
 }

@@ -301,7 +301,7 @@ class BlockTree extends preact.Component {
             pageCurrentlyLoading = null;
         }
         this.unregistrablesLong.push(signals.on('on-web-page-changed', (toPage, fromPage) => {
-            if (toPage.isPlaceholderPage !== fromPage.isPlaceholderPage)
+            if (toPage.id !== fromPage.id)
                 pageCurrentlyLoading = toPage;
         }));
         this.unregistrablesLong.push(signals.on('on-web-page-loaded', () => {
@@ -311,6 +311,7 @@ class BlockTree extends preact.Component {
         this.unregistrablesLong.push(signals.on('on-inspector-panel-closed', () => {
             this.deSelectAllBlocks();
         }), signals.on('on-web-page-block-clicked', block => {
+            if (!pageCurrentlyLoading)
             this.handleItemClicked(block, false);
         }));
         }
@@ -325,13 +326,6 @@ class BlockTree extends preact.Component {
      * @access private
      */
     registerOrReRegisterBlockTreeListeners(currentPageTrids) {
-        //
-        const storeState = store.getState();
-        const treeState = {};
-        for (const trid of currentPageTrids) {
-            Object.assign(treeState, createTreeState(createSelectBlockTree(trid)(storeState).tree));
-        }
-        this.setState({blockTree: createSelectBlockTree('main')(storeState).tree, treeState});
         //
         this.unregistrablesShort.forEach(unreg => unreg());
         this.unregistrablesShort = [];
@@ -363,6 +357,21 @@ class BlockTree extends preact.Component {
                 : onInnerTreeChanged));
         }
         this.currentPageIsPlaceholder = selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
+        //
+        const storeState = store.getState();
+        const treeState = {};
+        for (const trid of currentPageTrids) {
+            Object.assign(treeState, createTreeState(createSelectBlockTree(trid)(storeState).tree));
+        }
+        this.setState(Object.assign(
+            // predux has a weird bug where the value of state.treeState does not
+            // get updatd in render() after calling setState here. Using a "swap"
+            // object fixes this.
+            !!this.state.treeState && !this.state.treeStateSwap
+                ? {treeStateSwap: treeState, treeState: null}  // use treeStateSwap in next render()
+                : {treeStateSwap: null, treeState: treeState}, // use treeState in next render()
+            {blockTree: createSelectBlockTree('main')(storeState).tree}
+        ));
     }
     /**
      * @access protected
@@ -453,6 +462,8 @@ class BlockTree extends preact.Component {
             if (block.type === 'GlobalBlockReference')
                 return renderBranch(createSelectBlockTree(block.globalBlockTreeId)(store.getState()).tree);
             //
+            treeState = this.state.treeStateSwap || treeState;
+
             if (block.type !== 'PageInfo') {
             const type = api.blockTypes.get(block.type);
             return <li

@@ -131,8 +131,8 @@ class MenuBlockEditForm2 extends preact.Component {
         this.linkCreator = new CountingLinkItemFactory();
         this.outerEl = preact.createRef();
         this.contextMenu = preact.createRef();
-        const {block, grabChanges} = this.props;
-        this.setState({parsedTree: this.linkCreator.setGetCounterUsingTreeOf(block),
+        const {getBlockCopy, grabChanges} = this.props;
+        this.setState({parsedTree: this.linkCreator.setGetCounterUsingTreeOf(getBlockCopy()),
                        editPanelState: createEditPanelState(),
                        linkWithNavOpened: null});
         grabChanges((block, origin, isUndo) => {

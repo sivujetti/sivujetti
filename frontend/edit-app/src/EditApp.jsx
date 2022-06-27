@@ -95,7 +95,7 @@ class EditApp extends preact.Component {
         const {page} = data;
         const isDefaultToCreateTrans = this.state.currentMainPanel === 'default' && page.isPlaceholderPage;
         const isCreateToDefaultTrans = this.state.currentMainPanel === 'create-page' && !page.isPlaceholderPage;
-        if (isDefaultToCreateTrans || isCreateToDefaultTrans) signals.emit('on-web-page-changed', page, this.state.currentPage);
+        if (this.state.currentPage) signals.emit('on-web-page-changed', page, this.state.currentPage);
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         //
         if (trees.keys().next().value !== 'main') throw new Error('Sanity');
@@ -118,7 +118,6 @@ class EditApp extends preact.Component {
             store.dispatch(createSetBlockTree(trid)(tree, ['init']));
         }
         store.dispatch(createSetBlockTree('main')(trees.get('main'), ['init']));
-        signals.emit('on-web-page-loaded');
         const newState = {currentPage: page};
         if (isDefaultToCreateTrans) {
             newState.currentMainPanel = 'create-page';
@@ -126,6 +125,7 @@ class EditApp extends preact.Component {
             newState.currentMainPanel = 'default';
         }
         this.setState(newState);
+        signals.emit('on-web-page-loaded');
         this.receivingData = false;
     }
     /**

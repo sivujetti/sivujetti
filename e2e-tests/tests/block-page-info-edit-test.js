@@ -4,18 +4,19 @@ const {vars} = require('../vars.js');
 describe('PageInfo block', () => {
     let testPageData;
 
-    before((browser, done) => {
-        envUtils.setupTestSite('minimal')
+    beforeEach((browser, done) => {
+        envUtils.setupTestSite('minimal+page-categories')
             .then(testDataBundles => {
-                testPageData = testDataBundles[1].data; // [0] = layout, [1] = page
+                testPageData = testDataBundles[1].data; // [0] = layout, [1] = page, [2] = another page, [3] = page category
                 browser.navigateTo(env.makeAutoLoginUrl(env.makeUrl('/_edit')), done);
             });
     });
 
     it('User can edit description', browser => {
         const blockTreeBtnLocator = `.block-tree li[data-block-type="PageInfo"] button`;
-        const descrTextareaLocator = `${vars.inspectorPanelLocator} textarea[name="description"]`;
-        const validationErrorLocator = locateWith(By.tagName('span')).below(By.css(descrTextareaLocator));
+        const textAreaOuterElLocator = `${vars.inspectorPanelLocator} .form-group:nth-of-type(3)`; // (1) = url, (2) = slug
+        const descrTextareaLocator = `${textAreaOuterElLocator} textarea[name="description"]`;
+        const validationErrorLocator = `${textAreaOuterElLocator} .has-error`;
 
         const descrMetaEl1Locator = 'head meta[name="description"]';
         const descrMetaEl2Locator = 'head meta[property="og:description"]';
@@ -39,7 +40,28 @@ describe('PageInfo block', () => {
             .assert.attributeEquals(descrMetaEl2Locator, 'content', 'Updated descr');
     });
 
-    after((browser, done) => {
+    if (env.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
+    it('User can add page to existing category', browser => {
+        const blockTreeBtnLocator = `.block-tree li[data-block-type="PageInfo"] button`;
+        const categoriesInputLocator = `${vars.inspectorPanelLocator} .prop-widget-many-to-many`;
+        const firstCategoryCheckboxLabelLocator = `${categoriesInputLocator} .form-checkbox`;
+        const firstCategoryCheckboxLocator = `${firstCategoryCheckboxLabelLocator} input`;
+        //
+        browser
+            .waitForElementVisible(vars.editAppElLocator)
+            .waitForElementVisible(blockTreeBtnLocator)
+            .click(blockTreeBtnLocator)
+            .waitForElementVisible(firstCategoryCheckboxLabelLocator)
+            .verify.elementNotPresent(`${firstCategoryCheckboxLocator}:checked`)
+            .click(firstCategoryCheckboxLabelLocator)
+            .assert.elementPresent(`${firstCategoryCheckboxLocator}:checked`)
+            .waitForElementPresent(vars.saveButtonLocator)
+            // verify what here ??
+            ;
+    });
+    }
+
+    afterEach((browser, done) => {
         envUtils.destroyTestSite()
             .then(_resp => {
                 browser.end(done);

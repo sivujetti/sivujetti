@@ -107,8 +107,10 @@ final class PagesRepository {
         $this->db->beginTransaction();
         $numRows = $this->db->exec("INSERT INTO `\${p}{$pageType->name}` ({$columns})" .
                                    " VALUES ({$qList})", $values);
-        if (!$numRows || !($this->lastInsertId = $this->db->lastInsertId()))
+        if (!$numRows || !($this->lastInsertId = strval($data->id ?? $this->db->lastInsertId()))) {
+            $this->db->rollBack();
             return [0, ["Ineffectual db op"]];
+        }
         if ($doInsertRevision)
             $numRows += $this->insertRevision(self::makeSnapshot($data, $pageType->ownFields), $doInsertAsDraft);
         $this->db->commit();

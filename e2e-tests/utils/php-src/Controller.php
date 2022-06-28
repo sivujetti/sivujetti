@@ -82,7 +82,7 @@ final class Controller {
                 $now
             )];
         }
-        if ($item["table"] === "Articles") {
+        if ($item["table"] === "Articles" || $item["table"] === "PagesCategories") {
             $table = $item["table"];
             $data = $item["data"];
             $now = time();

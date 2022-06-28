@@ -110,6 +110,7 @@ return [
     "\$backend/sivujetti/src/TheWebsite/TheWebsiteRepository.php",
     "\$backend/sivujetti/src/TheWebsite/Entities/TheWebsite.php",
     "\$backend/sivujetti/src/ValidationUtils.php",
+    "\$backend/sivujetti/src/Db/TempJsonCompatSelect.php",
     "\$backend/sivujetti/src/GlobalBlockTree/GlobalBlocksOrPageBlocksUpserter.php",
     "\$backend/sivujetti/src/GlobalBlockTree/GlobalBlockTreesRepository.php",
     "\$backend/sivujetti/src/GlobalBlockTree/GlobalBlockTreesModule.php",

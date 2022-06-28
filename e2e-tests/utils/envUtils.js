@@ -17,12 +17,13 @@ exports.env = {
      */
     makeAutoLoginUrl(urlToRedirectAfter) {
         return config.baseUrl.replace('/index.php?q=', '/e2e-tests/utils/autologin.php?urlToRedirectAfter=' + encodeURIComponent(urlToRedirectAfter));
-    }
+    },
+    useReduxBlockTree: true,
 };
 
 exports.envUtils = {
     /**
-     * @param {'minimal'} dataBundleName
+     * @param {String} dataBundleName e.g. 'minimal' or 'minimal+page-categories' or 'with-listing-block+another-page-type'
      * @returns {Promise<Object>}
      */
     setupTestSite(dataBundleName) {

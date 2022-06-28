@@ -67,7 +67,7 @@ final class UpdatePageTest extends PagesControllerTestCase {
         $this->assertEquals($state->inputData->layoutId, $actual->layoutId);
         $this->assertEquals((int) $state->inputData->status, $actual->status);
         $this->assertEquals($state->testPageData->createdAt, $actual->createdAt);
-        $this->assertEquals($state->testPageData->lastUpdatedAt, $actual->lastUpdatedAt);
+        $this->assertGreaterThanOrEqual($state->testPageData->lastUpdatedAt, $actual->lastUpdatedAt);
     }
 
 
@@ -116,7 +116,7 @@ final class UpdatePageTest extends PagesControllerTestCase {
 
     public function testUpdatePageDoesNotUpdateIdOrBlocks(): void {
         $state = $this->setupTest();
-        $state->inputData->id = "updated-uuid";
+        $state->inputData->id = 91;
         $state->inputData->blocks = BlockTree::toJson([$state->testPageData->blocks[0]->children[0]]);
         $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);

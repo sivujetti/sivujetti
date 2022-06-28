@@ -128,6 +128,7 @@ final class PageTypeValidator {
      */
     private static function withCommonRules(ObjectValidator $v): ObjectValidator {
         return $v->addRuleImpl(...ValidationUtils::createUrlValidatorImpl())
+            ->rule("id?", "type", "number")
             ->rule("slug", "pageUrl", ["allowExternal" => false])
             ->rule("path", "type", "string")
             ->rule("level", "type", "number")

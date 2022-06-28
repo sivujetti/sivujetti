@@ -3,6 +3,7 @@
 namespace Sivujetti\E2eTests;
 
 use Sivujetti\Block\Entities\Block;
+use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Tests\Utils\BlockTestUtils;
 
@@ -18,6 +19,7 @@ final class TestDataBundles {
     public function createBundle(string $name): array {
         $bundleNameToMethod = [
             "minimal" => "makeMinimalDataBundle",
+            "page-categories" => "addPageCategoriesToDataBundle",
             "with-listing-block" => "makePageWithListingBlockDataBundle",
             "another-page-type" => "makeExtraPageTypeDataBundle",
         ];
@@ -68,7 +70,7 @@ final class TestDataBundles {
                 "meta" => (object) ["description" => "Description here."],
                 "layoutId" => "1",
                 "blocks" => [$block1, $block2, $block4],
-                "status" => 0
+                "status" => Page::STATUS_PUBLISHED,
             ]],
             ["table" => "Pages", "data" => [
                 "id" => "2",
@@ -80,9 +82,36 @@ final class TestDataBundles {
                 "meta" => (object) ["description" => "Another pages description."],
                 "layoutId" => "1",
                 "blocks" => [$block3, $block4],
-                "status" => 0
+                "status" => Page::STATUS_PUBLISHED,
             ]]
         ];
+    }
+    /**
+     * @psalm-param TestDataBundle[] $previous
+     * @psalm-return TestDataBundle[]
+     */
+    private function addPageCategoriesToDataBundle(array $previous): array {
+        $btu = new BlockTestUtils();
+        $block1 = $btu->makeBlockData(Block::TYPE_PAGE_INFO,
+            propsData: ["overrides" => "[]"],
+            id: "@auto");
+        $block2 = $btu->makeBlockData(Block::TYPE_PARAGRAPH,
+            propsData: ["text" => "Uncategorized", "cssClass" => ""],
+            id: "@auto");
+        //
+        return array_merge($previous, [
+            ["table" => "PagesCategories", "data" => [
+                "id" => "1",
+                "slug" => "/uncategorized",
+                "path" => "uncategorized/",
+                "level" => 1,
+                "title" => "Uncategorized",
+                "meta" => (object) [],
+                "layoutId" => "1",
+                "blocks" => [$block1, $block2],
+                "status" => Page::STATUS_PUBLISHED,
+            ]]
+        ]);
     }
     /**
      * @psalm-param TestDataBundle[] $previous
@@ -130,7 +159,7 @@ final class TestDataBundles {
                 "meta" => (object) ["description" => "Article 1s description."],
                 "layoutId" => "1",
                 "blocks" => [],
-                "status" => 0
+                "status" => Page::STATUS_PUBLISHED,
             ]],
             ["table" => "Articles", "data" => [
                 "id" => "2",
@@ -141,7 +170,7 @@ final class TestDataBundles {
                 "meta" => (object) ["description" => "Article 2s description."],
                 "layoutId" => "1",
                 "blocks" => [],
-                "status" => 0
+                "status" => Page::STATUS_PUBLISHED,
             ]]
         ]);
     }

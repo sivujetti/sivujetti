@@ -2,6 +2,7 @@ import {__, api, http, signals, env, hookForm, unhookForm, reHookValues, Input,
         InputErrors, FormGroupInline, Textarea} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
 import {stringUtils} from '../commons/utils.js';
+import ManyToManyField from '../Page/ManyToManyField.jsx';
 import BlockTrees from '../BlockTrees.jsx';
 import {validationConstraints} from '../constants.js';
 import store, {observeStore, pushItemToOpQueue, selectCurrentPageDataBundle, setCurrentPageDataBundle} from '../store.js';
@@ -34,8 +35,9 @@ const urlValidatorImpl = {doValidate: (val, hints = {}) => {
 }, errorMessageTmpl: '{field} is not valid'};
 
 class PageInfoBlockEditForm2 extends preact.Component {
-    // pageType;
     // currentPageIsPlaceholder;
+    // pageType;
+    // ownFields;
     // titleEl;
     // descriptionEl;
     /**
@@ -45,45 +47,31 @@ class PageInfoBlockEditForm2 extends preact.Component {
         const curPage = selectCurrentPageDataBundle(store.getState()).page;
         this.currentPageIsPlaceholder = curPage.isPlaceholderPage;
         this.pageType = api.getPageTypes().find(({name}) => name === curPage.type);
+        this.ownFields = this.pageType.ownFields.filter(({dataType}) => dataType.type === 'many-to-many');
         this.titleEl = preact.createRef();
         this.descriptionEl = preact.createRef();
-        const emitChanges = mutateProps => {
-            const mut = selectCurrentPageDataBundle(store.getState());
-            const orig = JSON.parse(JSON.stringify(mut));
-            //
-            mutateProps(mut.page);
-            store.dispatch(setCurrentPageDataBundle(mut));
-            //
-            store.dispatch(pushItemToOpQueue('update-page-basic-info', {
-                doHandle: !this.currentPageIsPlaceholder ? savePageToBackend : null,
-                doUndo: () => {
-                    store.dispatch(setCurrentPageDataBundle(orig));
-                },
-                args: [],
-            }));
-        };
         this.setState(hookForm(this, [
             {name: 'title', value: curPage.title, validations: [['required'], ['maxLength', 92]],
              label: __('Page title'), onAfterValueChanged: (value, hasErrors) => {
-                if (!hasErrors) emitChanges(mut => { mut.title = value; });
+                if (!hasErrors) this.emitChanges(mut => { mut.title = value; });
             }},
             {name: 'slug', value: curPage.slug, validations: [['required'], ['maxLength', 92],
                 [urlValidatorImpl, {allowExternal: false, allowEmpty: true}]],
              label: __('Url (slug)'), onAfterValueChanged: (value, hasErrors) => {
-                if (!hasErrors) emitChanges(mut => { mut.slug = value; mut.path = makePath(value, this.pageType); });
+                if (!hasErrors) this.emitChanges(mut => { mut.slug = value; mut.path = makePath(value, this.pageType); });
             }},
             {name: 'description', value: curPage.meta.description, validations: [['maxLength', 206]],
              label: __('Meta description'), onAfterValueChanged: (value, hasErrors) => {
-                if (!hasErrors) emitChanges(mut => { mut.meta.description = value; });
+                if (!hasErrors) this.emitChanges(mut => { mut.meta.description = value; });
              }},
         ]));
         observeStore(s => selectCurrentPageDataBundle(s), ({page}) => {
-            if (page.title !== this.state.values.title ||
-                page.slug !== this.state.values.slug ||
-                page.meta.description !== this.state.values.description) {
+            if (this.state.values.title !== page.title ||
+                this.state.values.slug !== page.slug ||
+                this.state.values.description !== page.meta.description) {
                 reHookValues(this, [{name: 'title', value: page.title},
-                            {name: 'slug', value: page.slug},
-                            {name: 'description', value: page.meta.description || ''}]);
+                                    {name: 'slug', value: page.slug},
+                                    {name: 'description', value: page.meta.description || ''}]);
             }
         });
     }
@@ -126,7 +114,31 @@ class PageInfoBlockEditForm2 extends preact.Component {
                 <Textarea vm={ this } prop="description" ref={ this.descriptionEl }/>
                 <InputErrors vm={ this } prop="description"/>
             </FormGroupInline>
+            { this.ownFields ? this.ownFields.map(field =>
+                <ManyToManyField
+                    field={ field }
+                    emitChanges={ this.emitChanges.bind(this) }
+                    key={ field.name }/>
+            ) : null }
         </div>;
+    }
+    /**
+     * @param {(pageToMutate: Page) => void} mutateProps
+     */
+    emitChanges(mutateProps) {
+        const mut = selectCurrentPageDataBundle(store.getState());
+        const orig = JSON.parse(JSON.stringify(mut));
+        //
+        mutateProps(mut.page);
+        store.dispatch(setCurrentPageDataBundle(mut));
+        //
+        store.dispatch(pushItemToOpQueue('update-page-basic-info', {
+            doHandle: !this.currentPageIsPlaceholder ? savePageToBackend : null,
+            doUndo: () => {
+                store.dispatch(setCurrentPageDataBundle(orig));
+            },
+            args: [],
+        }));
     }
 }
 

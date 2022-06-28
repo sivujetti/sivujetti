@@ -71,6 +71,8 @@ class CssStylesValidatorHelper {
             if (!rule.style || !rule.style.backgroundImage || replaced.has(rule.style.backgroundImage))
                 return;
             replaced.set(rule.style.backgroundImage, 1);
+            if (rule.style.backgroundImage.indexOf('url("') < 0)
+                return;
             // 'url("foobar")' -> 'foobar';
             const urlNormalized = rule.style.backgroundImage.slice('url("'.length, -('")'.length));
             //

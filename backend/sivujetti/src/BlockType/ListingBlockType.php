@@ -13,10 +13,16 @@ class ListingBlockType implements BlockTypeInterface, ListeningBlockTypeInterfac
      */
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
         return $builder
-            ->newProperty("filterPageType", $builder::DATA_TYPE_TEXT)
+            ->newProperty("filterPageType")->dataType($builder::DATA_TYPE_TEXT, validationRules: [
+                ["identifier"]
+            ])
             ->newProperty("filterLimit", $builder::DATA_TYPE_UINT)
-            ->newProperty("filterLimitType", $builder::DATA_TYPE_TEXT)
-            ->newProperty("filterOrder", $builder::DATA_TYPE_TEXT)
+            ->newProperty("filterLimitType")->dataType($builder::DATA_TYPE_TEXT, validationRules: [
+                ["in", ["all", "single", "atMost"]]
+            ])
+            ->newProperty("filterOrder")->dataType($builder::DATA_TYPE_TEXT, validationRules: [
+                ["in", ["desc", "asc", "rand"]]
+            ])
             ->newProperty("filterAdditional", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }
@@ -34,7 +40,7 @@ class ListingBlockType implements BlockTypeInterface, ListeningBlockTypeInterfac
      * @param \Sivujetti\Block\Entities\Block $block
      * @param \Sivujetti\Page\PagesRepository2 $pagesRepo
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
-    */
+     */
     public function doPerformBeforeRender(Block $block,
                                           PagesRepository2 $pagesRepo,
                                           TheWebsite $theWebsite): void {

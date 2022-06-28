@@ -6,12 +6,13 @@
 
 ## Added
 - `$annotations parameter to PluginAPI->registerHttpRoute()` (Plugin developer can define ACL-rules for routes)
+- Support for many-to-many properties
 
 ## Fixed
 - .
 
 ## Changed
-- .
+- Image block type's default output (`<span><img>` -> `<figure><img>`)
 
 # 0.10.0 (2022-05-12)
 

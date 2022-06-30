@@ -770,6 +770,40 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 }
 
 
+/* EditApp: Main panel > Block spawner */
+.new-block-spawner {
+    position: fixed;
+    top: 113px;
+    left: 290px;
+    max-width: 210px;
+    z-index: 2;
+}
+.new-block-spawner.open {
+    padding: .4rem;
+    border-radius: 4px;
+    box-shadow: 0 14px 28px rgba(0, 0, 0, .04), 0 10px 10px rgba(0, 0, 0, .1);
+    height: calc(100% - 113px - .4rem);
+}
+.scroller {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 100%;
+}
+
+.new-block-spawner .block-tree li {
+    padding: .1rem 0;
+}
+.new-block-spawner .block-tree .block-handle {
+    cursor: grab;
+}
+
+.new-block-spawner.open > .btn {
+    position: absolute;
+    right: 0;
+    background: transparent;
+    z-index: 1;
+}
+
 
 /* EditApp: Main panel > Global Styles -section */
 .hidden-helper-picker + .pickr,
@@ -829,6 +863,7 @@ span.highlight-rect[data-position="bottom-inside"]:before {
     margin-top: -18px;
 }
 /* end; */
+
 
 /* EditApp: Inspector panel > Listing block filters builder */
 .listing-instructions {

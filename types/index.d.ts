@@ -361,3 +361,7 @@ interface SwapChangeEventData {
     tree: Array<RawBlock2>;
     doRevert(): void;
 }
+
+interface DragEventReceiver {
+    draggedOverFirstTime(li: HTMLLIElement): void;
+}

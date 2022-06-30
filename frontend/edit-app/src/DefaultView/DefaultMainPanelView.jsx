@@ -35,10 +35,10 @@ class DefaultMainPanelView extends preact.Component {
      * @access protected
      */
     render(_, {sections}) {
-        return <>{ sections.map(sectionName => {
+        return sections.map(sectionName => {
             const Renderer = api.mainPanel.getSection(sectionName);
             return <Renderer {...this.props}/>;
-        }) }</>;
+        });
     }
 }
 

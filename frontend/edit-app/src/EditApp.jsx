@@ -7,7 +7,7 @@ import store, {observeStore, setCurrentPage, setCurrentPageDataBundle, setGlobal
                setOpQueue, selectGlobalBlockTreeBlocksStyles, selectPageBlocksStyles, selectBlockTypesBaseStyles,
                createSetBlockTree, createBlockTreeReducerPair, createSelectBlockTree} from './store.js';
 import SaveButton from './SaveButton.jsx';
-import {findBlockTemp} from './BlockTree.jsx';
+import {findBlockTemp} from './BlockTreeOld.jsx';
 import {makePath, makeSlug} from './block-types/pageInfo.js';
 import blockTreeUtils from './blockTreeUtils.js';
 

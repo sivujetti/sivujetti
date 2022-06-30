@@ -2,6 +2,7 @@ import {__, http, signals, api, Icon} from '@sivujetti-commons-for-edit-app';
 import toasters from './commons/Toaster.jsx';
 import {treeToTransferable} from './Block/utils.js';
 import BlockTree from './BlockTree.jsx';
+import BlockTreeOld from './BlockTreeOld.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {observeStore, selectCurrentPage, selectCurrentPageDataBundle} from './store.js';
 
@@ -110,14 +111,15 @@ class BlockTrees extends preact.Component {
     render({containingView}, {blocksInput}) {
         if (!featureFlagConditionUseReduxBlockTree && blocksInput === null)
             return;
-        return <div>
-            { !featureFlagConditionUseReduxBlockTree ? <button
+        const Impl = !featureFlagConditionUseReduxBlockTree ? BlockTreeOld : BlockTree;
+        return [
+            !featureFlagConditionUseReduxBlockTree ? <button
                 onClick={ () => this.blockTree.current.appendNewBlockPlaceholder() }
                 class="btn btn-sm with-icon my-2"
                 title={ __('Add content to this page') } type="button">
                 <Icon iconId="plus" className="size-sm"/> { __('Add content to this page') }
-            </button> : null }
-            <BlockTree
+            </button> : null,
+            <Impl
                 blocksInput={ blocksInput }
                 onChangesApplied={ containingView === 'Default'
                     ? BlockTrees.saveExistingBlocksToBackend
@@ -125,7 +127,7 @@ class BlockTrees extends preact.Component {
                 BlockTrees={ BlockTrees }
                 ref={ this.blockTree }
                 disablePageInfo={ containingView === 'CreatePageType' }/>
-        </div>;
+        ];
     }
     /**
      * @param {Array<Block>} newBlockTree The root block tree (BlockTree.state.blockTree), or .blocks of a single GlobalBlockTree

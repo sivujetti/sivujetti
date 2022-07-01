@@ -350,8 +350,14 @@ interface BlockTreeItemState {
 
 interface BlockTreeReduxState {
     tree: Array<RawBlock2>;
-    // [actionName, blockId|SwapChangeEventData, blockType, blockIsStoredToTreeId, visibleBlockIsStoredToId]
-    context: [blockChangeEvent, String|null|SwapChangeEventData, String|null, String|null, String|null];
+    // [actionName, DefaultChangeEventData|SwapChangeEventData, visibleBlockIsStoredToId]
+    context: [blockChangeEvent, DefaultChangeEventData|SwapChangeEventData|{}, String|null];
+}
+
+interface DefaultChangeEventData {
+    blockId: String;
+    blockType: String;
+    trid: String;
 }
 
 interface SwapChangeEventData {
@@ -363,5 +369,6 @@ interface SwapChangeEventData {
 }
 
 interface DragEventReceiver {
-    draggedOverFirstTime(li: HTMLLIElement): void;
+    draggedOverFirstTime(block: RawBlock2): void;
+    swappedBlocks(mutationInfos: [SwapChangeEventData, SwapChangeEventData|null]): void;
 }

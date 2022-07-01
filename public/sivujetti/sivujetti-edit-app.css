@@ -625,7 +625,7 @@ a.popup-close-area {
     position: relative;
 }
 .block-tree li.dragging {
-    opacity: .5;
+    opacity: .4;
 }
 .block-tree li[data-block-type="PageInfo"] {
     background-color: var(--color-bg-meta-block);
@@ -773,8 +773,8 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 /* EditApp: Main panel > Block spawner */
 .new-block-spawner {
     position: fixed;
-    top: 113px;
-    left: 290px;
+    top: 115px;
+    left: 303px;
     max-width: 210px;
     z-index: 2;
 }
@@ -782,7 +782,10 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     padding: .4rem;
     border-radius: 4px;
     box-shadow: 0 14px 28px rgba(0, 0, 0, .04), 0 10px 10px rgba(0, 0, 0, .1);
-    height: calc(100% - 113px - .4rem);
+    height: calc(100% - 115px - .4rem);
+}
+.new-block-spawner.drag-exited-left {
+    opacity: .5;
 }
 .scroller {
     overflow-y: auto;

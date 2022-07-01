@@ -92,7 +92,7 @@ class BlockEditForm extends preact.Component {
                 if (context[0] !== 'update-single-value' && context[0] !== 'undo-update-single-value')
                     return;
                 const block = blockTreeUtils.findBlock(this.props.block.id, tree)[0];
-                if (context[1] !== block.id)
+                if (context[1].blockId !== block.id)
                     return;
                 this.editFormImplsChangeGrabber(JSON.parse(JSON.stringify(block)), context[0], context[0].startsWith('undo-'));
             })];
@@ -198,12 +198,12 @@ class BlockEditForm extends preact.Component {
      */
     handleValueValuesChanged(changes, hasErrors = false, debounceMillis = 0, debounceType = 'debounce-commit-to-queue') {
         if (this.currentDebounceTime !== debounceMillis || this.currentDebounceType !== debounceType) {
-            const boundEmitStickyChange = (oldData, partialContext) => {
-                emitPushStickyOp(oldData, partialContext);
+            const boundEmitStickyChange = (oldData, contextData) => {
+                emitPushStickyOp(oldData, contextData);
             };
-            const boundEmitFastChange = (newData, oldData, partialContext, hasErrors) => {
-                emitMutateBlockProp(newData, partialContext);
-                if (!hasErrors) this.boundEmitStickyChange(oldData, partialContext);
+            const boundEmitFastChange = (newData, oldData, contextData, hasErrors) => {
+                emitMutateBlockProp(newData, contextData);
+                if (!hasErrors) this.boundEmitStickyChange(oldData, contextData);
                 else env.console.log('Not implemented yet');
             };
             // Run reRender immediately, but throttle commitChangeOpToQueue
@@ -226,9 +226,9 @@ class BlockEditForm extends preact.Component {
         const {tree} = createSelectBlockTree(trid)(store.getState());
         const block = blockTreeUtils.findBlock(this.props.block.id, tree)[0];
         const oldData = cloneFrom(Object.keys(changes), block);
-        const partialContext = [block.id, block.type, trid];
+        const contextData = {blockId: block.id, blockType: block.type, trid};
         // Call emitFastChange, which then calls emitCommitChange
-        this.boundEmitFastChange(changes, oldData, partialContext, hasErrors);
+        this.boundEmitFastChange(changes, oldData, contextData, hasErrors);
     }
     /**
      * @param {Event} e
@@ -539,34 +539,34 @@ function updateFormValues($this, snapshot) {
 
 /**
  * @param {{[key]: any;}} newData
- * @param {Array} partialContext
+ * @param {DefaultChangeEventData} contextData
  */
-function emitMutateBlockProp(newData, partialContext) {
-    store.dispatch(createUpdateBlockTreeItemData(partialContext[2])(
+function emitMutateBlockProp(newData, contextData) {
+    store.dispatch(createUpdateBlockTreeItemData(contextData.trid)(
         newData,
-        partialContext[0],
-        ['update-single-value', ...partialContext]
+        contextData.blockId,
+        ['update-single-value', contextData]
     ));
 }
 
 /**
  * @param {{[key]: any;}} oldData
- * @param {Array} partialContext
+ * @param {DefaultChangeEventData} contextData
  */
-function emitPushStickyOp(oldData, partialContext) {
-    store.dispatch(pushItemToOpQueue(`update-block-tree#${partialContext[2]}`, {
-        doHandle: partialContext[2] !== 'main' || !currentPageIsPlaceholderPage
+function emitPushStickyOp(oldData, contextData) {
+    store.dispatch(pushItemToOpQueue(`update-block-tree#${contextData.trid}`, {
+        doHandle: contextData.trid !== 'main' || !currentPageIsPlaceholderPage
             ? () => {
-                const trid = partialContext[2];
+                const {trid} = contextData;
                 const {tree} = createSelectBlockTree(trid)(store.getState());
                 return BlockTrees.saveExistingBlocksToBackend(tree, trid);
             }
             : null,
         doUndo: () => {
-            store.dispatch(createUpdateBlockTreeItemData(partialContext[2])(
+            store.dispatch(createUpdateBlockTreeItemData(contextData.trid)(
                 oldData,
-                partialContext[0],
-                ['undo-update-single-value', ...partialContext]
+                contextData.blockId,
+                ['undo-update-single-value', contextData]
             ));
         },
         args: [],

@@ -265,7 +265,7 @@ class EditAppAwareWebPage {
             //
             const isAdd = event === 'add-single-block';
             if (isAdd || event === 'undo-delete-single-block') {
-                const [block, containingBranch, parent] = findVisibleBlock(context[1], tree, blockTreeUtils, getTree);
+                const [block, containingBranch, parent] = findVisibleBlock(context[1].blockId, tree, blockTreeUtils, getTree);
                 const stringOrPromise = blockTypes.get(block.type).reRender(block, () => isAdd
                     ? `<!--${CHILDREN_START}--><!--${CHILDREN_END}-->`
                     : this.getAndWipeStordInnerContent(block)
@@ -288,7 +288,7 @@ class EditAppAwareWebPage {
             //
             if (event === 'delete-single-block' || event === 'undo-add-single-block') {
                 const getVisibleBlockId2 = (blockId, blockType, isStoredToTreeId) => blockType !== 'GlobalBlockReference' ? blockId : getTree(isStoredToTreeId)[0].id;
-                const blockId = getVisibleBlockId2(context[1], context[2], context[4] || null);
+                const blockId = getVisibleBlockId2(context[1].blockId, context[1].blockType, context[3] || null);
                 const el = treeRootEl.querySelector(`[data-block="${blockId}"]`);
                 const html = getChildContentEls(getBlockContentRoot(el), true);
                 if (html) this.deletedInnerContentStorage.set(blockId, html);
@@ -298,7 +298,7 @@ class EditAppAwareWebPage {
             //
             const isNormalUpdate = event === 'update-single-value';
             if (isNormalUpdate || event === 'undo-update-single-value') {
-                const blockId = context[1];
+                const {blockId} = context[1];
                 const block = blockTreeUtils.findBlock(blockId, tree)[0];
                 const el = treeRootEl.querySelector(`[data-block="${block.id}"]`);
                 //

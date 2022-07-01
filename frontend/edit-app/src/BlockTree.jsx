@@ -258,7 +258,7 @@ class BlockTree extends preact.Component {
         ];
         const [onMainTreeChanged, onInnerTreeChanged] = [({tree, context}) => {
             if (pageCurrentlyLoading) return;
-            if (refreshAllEvents.indexOf(context[0]) > -1) {
+            if (refreshAllEvents.indexOf(context[0]) > -1 && context[2] !== 'dnd-spawner') {
                 this.setState({blockTree: tree, treeState: createTreeState(tree, context[0] !== 'init')});
             }
         }, ({tree, context}) => {
@@ -465,7 +465,7 @@ class BlockTree extends preact.Component {
             refBranch.splice(refBranch.indexOf(ref), 1); // Mutates $tree temporarily
             //
             store.dispatch(createSetBlockTree(trid)(tree, ['delete-single-block',
-                id, type, trid, blockToDeleteMaybeNotVisible.isStoredToTreeId]));
+                {blockId: id, blockType: type, trid}, null, blockToDeleteMaybeNotVisible.isStoredToTreeId]));
             store.dispatch(pushItemToOpQueue(`delete-block-from-tree#${isStoredToTreeId}`, {
                 doHandle: isStoredToTreeId !== 'main' || !this.currentPageIsPlaceholder
                     ? () => BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
@@ -473,7 +473,7 @@ class BlockTree extends preact.Component {
                 ,
                 doUndo: () => {
                     store.dispatch(createSetBlockTree(trid)(treeBefore, ['undo-delete-single-block',
-                        id, type, trid, blockToDeleteMaybeNotVisible.isStoredToTreeId]));
+                        {blockId: id, blockType: type, trid}, null, blockToDeleteMaybeNotVisible.isStoredToTreeId]));
                 },
                 args: [],
             }));
@@ -507,7 +507,7 @@ class BlockTree extends preact.Component {
             throw new Error('Invalid where');
         }
         store.dispatch(createSetBlockTree(trid)(tree, ['add-single-block',
-            newBlock.id, newBlock.type, trid]));
+            {blockId: newBlock.id, blockType: newBlock.type, trid}]));
         store.dispatch(pushItemToOpQueue(`append-block-to-tree#${trid}`, {
             doHandle: trid !== 'main' || !this.currentPageIsPlaceholder
                 ? () => BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
@@ -515,7 +515,7 @@ class BlockTree extends preact.Component {
             ,
             doUndo: () => {
                 store.dispatch(createSetBlockTree(trid)(treeBefore, ['undo-add-single-block',
-                    newBlock.id, newBlock.type, trid]));
+                    {blockId: newBlock.id, blockType: newBlock.type, trid}]));
             },
             args: [],
         }));

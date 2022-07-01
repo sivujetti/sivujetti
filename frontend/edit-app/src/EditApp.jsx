@@ -119,9 +119,9 @@ class EditApp extends preact.Component {
             const [storeStateKey, reducer] = createBlockTreeReducerPair(trid);
             if (store.reducerManager.has(storeStateKey)) continue;
             store.reducerManager.add(storeStateKey, reducer);
-            store.dispatch(createSetBlockTree(trid)(tree, ['init']));
+            store.dispatch(createSetBlockTree(trid)(tree, ['init', {}]));
         }
-        store.dispatch(createSetBlockTree('main')(trees.get('main'), ['init']));
+        store.dispatch(createSetBlockTree('main')(trees.get('main'), ['init', {}]));
         const newState = {currentPage: page};
         if (isDefaultToCreateTrans) {
             newState.currentMainPanel = 'create-page';

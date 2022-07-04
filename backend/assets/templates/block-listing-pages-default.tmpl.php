@@ -11,4 +11,5 @@
 <?php else: ?>
     <p><?= $this->__("No %s found.", strtolower($props->__pageType->friendlyNamePlural)) ?></p>
 <?php endif; ?>
+<?= $this->renderChildren($props); ?>
 </div>

@@ -266,13 +266,9 @@ class EditAppAwareWebPage {
             const isAdd = event === 'add-single-block';
             if (isAdd || event === 'undo-delete-single-block') {
                 const [block, containingBranch, parent] = findVisibleBlock(context[1].blockId, tree, blockTreeUtils, getTree);
-                const stringOrPromise = blockTypes.get(block.type).reRender(block, () => isAdd
-                    ? `<!--${CHILDREN_START}--><!--${CHILDREN_END}-->`
-                    : this.getAndWipeStordInnerContent(block)
-                );
-                getBlockReRenderResult(stringOrPromise, updatedHtml => {
+                const addHtmlToDom = html => {
                     const temp = document.createElement('template');
-                    temp.innerHTML = withTrid(updatedHtml, trid);
+                    temp.innerHTML = withTrid(html, trid);
                     const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
                     const nextEl = getInsertRefEl(nextBlock, tree, treeRootEl);
                     if ((nextEl && !parent) || (nextEl && parent)) {
@@ -282,7 +278,12 @@ class EditAppAwareWebPage {
                     } else if (!nextEl && !parent) {
                         treeRootEl.appendChild(temp.content);
                     }
-                });
+                };
+                const possiblePreRender = context[4];
+                if (typeof possiblePreRender !== 'string')
+                    renderBlockAndThen(block, addHtmlToDom, blockTypes, isAdd ? null : this.getAndWipeStoredInnerContent(block));
+                else
+                    addHtmlToDom(possiblePreRender);
                 return;
             }
             //
@@ -309,7 +310,7 @@ class EditAppAwareWebPage {
                         return html;
                     }
                     // Undo -> use previously cached child content
-                    const html = this.getAndWipeStordInnerContent(block);
+                    const html = this.getAndWipeStoredInnerContent(block);
                     return html || getChildContentEls(getBlockContentRoot(el), true);
                 });
                 getBlockReRenderResult(stringOrPromise, updatedHtml => {
@@ -824,7 +825,7 @@ class EditAppAwareWebPage {
      * @returns {String|undefined}
      * @access private
      */
-    getAndWipeStordInnerContent(block) {
+    getAndWipeStoredInnerContent(block) {
         const cached = this.deletedInnerContentStorage.get(block.id);
         if (!cached) return null;
         this.deletedInnerContentStorage.delete(block.id);
@@ -1095,11 +1096,23 @@ function withTrid(html, trid) {
  * @param {(html: String) => void} then
  */
 function getBlockReRenderResult(result, then) {
-    if (typeof result === 'string')
-        then(result);
-    else
-        result.then(html => { then(html); });
+    if (typeof result === 'string') then(result);
+    else result.then(html => { then(html); });
+}
+
+/**
+ * @param {RawBlock2} block
+ * @param {(html: String) => void} then
+ * @param {BlockTypes} blockTypes
+ * @param {String} childContent = null
+ */
+function renderBlockAndThen(block, then, blockTypes, childContent = null) {
+    const stringOrPromise = blockTypes.get(block.type).reRender(
+        block,
+        () => childContent || `<!--${CHILDREN_START}--><!--${CHILDREN_END}-->`
+    );
+    getBlockReRenderResult(stringOrPromise, then);
 }
 
 export default EditAppAwareWebPage;
-export {createTrier, compileSivujettiFlavoredCss};
+export {createTrier, compileSivujettiFlavoredCss, renderBlockAndThen};

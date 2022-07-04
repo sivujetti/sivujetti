@@ -369,6 +369,6 @@ interface SwapChangeEventData {
 }
 
 interface DragEventReceiver {
-    draggedOverFirstTime(block: RawBlock2): void;
+    draggedOverFirstTime(block: RawBlock2): {blockId: String; trid: String;}|null;
     swappedBlocks(mutationInfos: [SwapChangeEventData, SwapChangeEventData|null]): void;
 }

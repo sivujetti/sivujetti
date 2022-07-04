@@ -44,9 +44,11 @@ class BlockTreeDragDrop {
         if (!div)
             return;
         if (this.dragEventReceiver && !this.startEl) {
-            this.beginDrag(li, true);
-            this.externalElData = this.dragEventReceiver.draggedOverFirstTime(blockTreeUtils.findBlock(li.getAttribute('data-block-id'),
+            const cand = this.dragEventReceiver.draggedOverFirstTime(blockTreeUtils.findBlock(li.getAttribute('data-block-id'),
                 createSelectBlockTree(li.getAttribute('data-trid'))(store.getState()).tree)[0]);
+            if (!cand) return; // Receiver / Pre-render not ready yet
+            this.externalElData = cand;
+            this.beginDrag(li, true);
             return;
         }
         //
@@ -158,6 +160,7 @@ class BlockTreeDragDrop {
         this.curDropTypeCandidate = {dropPosition: 'self', dragDirection: null, el: null};
     }
     /**
+     * @param {DropCandidate} dropInfo
      * @param {{blockId: String; trid: String;}} externalElData = {}
      * @returns {[SwapChangeEventData, SwapChangeEventData|null]}
      * @access private
@@ -246,7 +249,7 @@ class BlockTreeDragDrop {
                 dropBlock.children.pop();
                 dragBranch.splice(pos, 0, dragBlock);
                 return dragBlockTree;
-            }, true);
+            }, dragBlock.isStoredTo !== dropBlock.isStoredTo || pos < dropBranch.indexOf(dropBlock) ? true : false);
         } else return null;
         return [mut1, mut2];
     }
@@ -276,7 +279,7 @@ class BlockTreeDragDrop {
         return rect.top + rect.height / 2;
     }
     /**
-     * @param {{dropPosition: 'before'|'after'; dragDirection: 'upwards'|'downwards'|null; el: HTMLElement;}} previousDropCandidate
+     * @param {DropCandidate} previousDropCandidate
      * @access private
      */
     clearPreviousDroppableBorder(previousDropCandidate) {
@@ -308,14 +311,20 @@ class BlockTreeDragDrop {
  * @returns {SwapChangeEventData}
  */
 function createMutationInfo(dragBlock, dropBlock, dragBlockTree, doRevert, isBefore) {
-    isBefore=true;
     return {
         trid: dragBlock.isStoredToTreeId,
-        blockA: isBefore ? dragBlock : dropBlock,
-        blockB: isBefore ? dropBlock : dragBlock,
+        blockA: isBefore ? dropBlock : dragBlock,
+        blockB: isBefore ? dragBlock : dropBlock,
         tree: dragBlockTree,
         doRevert,
     };
 }
+
+/**
+ * @typedef DropCandidate
+ * @prop {'before'|'after'|'as-child'} dropPosition
+ * @prop {'upwards'|'downwards'} dragDirection
+ * @prop {HTMLElement} el
+ */
 
 export default BlockTreeDragDrop;

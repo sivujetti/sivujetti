@@ -32,7 +32,7 @@ class BlockTree extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {blockTree: null, treeState: null, blockWithNavOpened: null};
+        this.state = {blockTree: null, treeState: null, blockWithNavOpened: null, loading: false};
         this.selectedRoot = null;
         this.contextMenu = preact.createRef();
         this.lastRootBlockMarker = null;
@@ -302,7 +302,7 @@ class BlockTree extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {blockTree, treeState, blockWithNavOpened}) {
+    render(_, {blockTree, treeState, blockWithNavOpened, loading}) {
         if (blockTree === null) return;
         const renderBranch = branch => branch.map(block => {
             if (block.type === 'GlobalBlockReference')
@@ -369,8 +369,8 @@ class BlockTree extends preact.Component {
                 style="right: 0;top: 0;">
                 <Icon iconId="info-circle" className="size-xs"/>
             </button></div>
-            <BlockDnDSpawner mainTreeDnd={ this.dragDrop }/>
-            <ul class="block-tree" data-sort-group-id="r">{
+            <BlockDnDSpawner mainTreeDnd={ this.dragDrop } mainTree={ this }/>
+            <ul class={ `block-tree${!loading ? '' : ' loading'}` } data-sort-group-id="r">{
                 blockTree.length
                     ? renderBranch(blockTree).concat(<li
                         data-last="y"

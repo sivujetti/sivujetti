@@ -11,7 +11,7 @@ class SaveButton extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {isVisible: false, formState: {}, isStickied: false};
+        this.state = {isVisible: false, hasUndoableOps: false, formState: {}, isStickied: false};
         this.queuedOps = [];
         triggerUndo = this.doUndo.bind(this);
         if (!isUndoKeyListenersAdded) {
@@ -24,6 +24,7 @@ class SaveButton extends preact.Component {
                 this.setState({isVisible: true});
             else if (!ops.length && this.state.isVisible)
                 this.setState({isVisible: false});
+            this.setState({hasUndoableOps: ops.length ? ops.some(({command}) => !!command.doUndo) : false});
         });
         observeStore(selectFormStates, formStates => {
             let aggregated = {isValid: true};
@@ -48,16 +49,28 @@ class SaveButton extends preact.Component {
     /**
      * @access protected
      */
-    render (_, {isVisible, formState, isStickied}) {
+    render (_, {isVisible, hasUndoableOps, formState, isStickied}) {
         if (!isVisible) return;
-        return <button
-            onClick={ this.execQueuedOps.bind(this) }
-            disabled={ formState.isValidating || formState.isSubmitting || !formState.isValid }
-            class={ `btn btn-link flex-centered d-flex col-ml-auto${!isStickied ? '' : ' btn-sm stickied'}` }
-            title={ __('Save changes') }>
-            <Icon iconId="device-floppy" className={ !isStickied ? '' : 'size-sm' }/>
-            <span class="mt-1 ml-1">*</span>
-        </button>;
+        const saveBtnIsDisabled = formState.isValidating || formState.isSubmitting || !formState.isValid;
+        const undoButtonIsHidden = saveBtnIsDisabled ? true : hasUndoableOps === false;
+        return <div class={ `d-flex col-ml-auto flex-centered${!isStickied ? '' : ' stickied'}` }>
+            <button
+                onClick={ this.doUndo.bind(this) }
+                class={ `btn btn-link px-1 pt-2${!undoButtonIsHidden ? '' : ' d-none'}` }
+                title={ __('Undo latest change') }>
+				<span class="d-flex" style="transform: rotate(181deg)">
+                    <Icon iconId="rotate" className={ `${!isStickied ? 'size-sm' : 'size-xs'} color-dimmed3` }/>
+                </span>
+			</button>
+            <button
+                onClick={ this.execQueuedOps.bind(this) }
+                disabled={ saveBtnIsDisabled }
+                class="btn btn-link flex-centered px-2"
+                title={ __('Save changes') }>
+                <Icon iconId="device-floppy" className={ !isStickied ? '' : 'size-sm' }/>
+                <span class="mt-1 ml-1">*</span>
+            </button>
+        </div>;
     }
     /**
      * @access private

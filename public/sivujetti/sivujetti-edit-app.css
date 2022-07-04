@@ -513,12 +513,13 @@ a.popup-close-area {
     margin-top: .1rem;
     margin-right: -.2rem;
 }
-#main-panel .mode-chooser + .btn.stickied {
+#main-panel .mode-chooser + .stickied {
     position: fixed;
-    left: 250px; /* 318 - 68 */
+    left: 222px; /* 318 (main-panel-width) - 103 (stickied-with); */
     margin: initial;
-    background-color: rgba(255,255,255,0.8);
+    background-color: rgba(var(--components-color-bg-default),.9);
     z-index: 2;
+    top: .2rem;
 }
 .panel-section {
     padding: .8rem 0 .4rem .4rem;

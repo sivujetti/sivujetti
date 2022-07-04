@@ -99,6 +99,7 @@ stringBundles.push({
     'Listable': 'Listattava',
     'Default layout': 'Oletusivupohja',
     // edit-app/src/SaveButton.jsx
+    'Undo latest change': 'Peruuta viimeisin muutos',
     'Save changes': 'Tallenna muutokset',
     // edit-app/src/block-types/Menu/EditForm.jsx
     'Add link': 'Lisää linkki',

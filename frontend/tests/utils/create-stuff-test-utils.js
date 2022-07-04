@@ -24,7 +24,7 @@ function simulatePlaceholderPageLoad(isDrafPageType = false) {
 function clickSubmitButton(_s) {
     const p = appTestUtils.waitUntiSaveButtonHasRunQueuedOps();
     setTimeout(() => {
-        document.querySelector('#render-container-el button').click();
+        document.querySelector('#render-container-el button + button').click();
     }, 1);
     return p;
 }

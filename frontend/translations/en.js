@@ -99,6 +99,7 @@ stringBundles.push({
     'Listable': 'Listable',
     'Default layout': 'Default layout',
     // edit-app/src/SaveButton.jsx
+    'Undo latest change': 'Undo latest change',
     'Save changes': 'Save changes',
     // edit-app/src/block-types/Menu/EditForm.jsx
     'Add link': 'Add link',

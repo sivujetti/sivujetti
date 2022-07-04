@@ -299,7 +299,7 @@ interface BlockEditFormProps {
     funcsOut: {resetValues?: (newSnapshot: RawBlockData) => void;};
 }
 
-type blockChangeEvent = 'init'|'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block'|'swap-blocks'|'undo-swap-blocks';
+type blockChangeEvent = 'init'|'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block'|'swap-blocks'|'undo-swap-blocks'|'commit-add-single-block';
 
 interface BlockEditFormProps2 {
     getBlockCopy(): RawBlock2;
@@ -350,8 +350,8 @@ interface BlockTreeItemState {
 
 interface BlockTreeReduxState {
     tree: Array<RawBlock2>;
-    // [actionName, DefaultChangeEventData|SwapChangeEventData, visibleBlockIsStoredToId]
-    context: [blockChangeEvent, DefaultChangeEventData|SwapChangeEventData|{}, String|null];
+    // [eventName, eventData, eventOrigin, visibleBlockIsStoredToId, preRender]
+    context: [blockChangeEvent, DefaultChangeEventData|SwapChangeEventData|{}, 'dnd-spawner'|null, String|null, String|null];
 }
 
 interface DefaultChangeEventData {
@@ -371,4 +371,5 @@ interface SwapChangeEventData {
 interface DragEventReceiver {
     draggedOverFirstTime(block: RawBlock2): {blockId: String; trid: String;}|null;
     swappedBlocks(mutationInfos: [SwapChangeEventData, SwapChangeEventData|null]): void;
+    dropped(): void;
 }

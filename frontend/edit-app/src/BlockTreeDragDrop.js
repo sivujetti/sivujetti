@@ -28,6 +28,7 @@ class BlockTreeDragDrop {
      */
     handleDragStarted(e) {
         this.beginDrag(e.target, false);
+        this.dragEventReceiver = null;
         this.startEl.classList.add('dragging');
     }
     /**
@@ -124,8 +125,10 @@ class BlockTreeDragDrop {
     handleDraggableDropped() {
         if (!this.curDropTypeCandidate) return;
         //
+        if (!this.dragEventReceiver) {
         const mutationInfos = this.applySwap(this.curDropTypeCandidate);
         if (mutationInfos) this.onDropped(...mutationInfos);
+        } else this.dragEventReceiver.dropped();
         this.endDrag();
     }
     /**

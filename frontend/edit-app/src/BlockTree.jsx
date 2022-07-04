@@ -250,6 +250,7 @@ class BlockTree extends preact.Component {
         this.unregistrablesShort = [];
         const refreshAllEvents = [
             'add-single-block',
+            'commit-add-single-block',
             'undo-add-single-block',
             'delete-single-block',
             'undo-delete-single-block',
@@ -369,7 +370,10 @@ class BlockTree extends preact.Component {
                 style="right: 0;top: 0;">
                 <Icon iconId="info-circle" className="size-xs"/>
             </button></div>
-            <BlockDnDSpawner mainTreeDnd={ this.dragDrop } mainTree={ this }/>
+            <BlockDnDSpawner
+                mainTreeDnd={ this.dragDrop }
+                mainTree={ this }
+                saveExistingBlocksToBackend={ BlockTree.saveExistingBlocksToBackend }/>
             <ul class={ `block-tree${!loading ? '' : ' loading'}` } data-sort-group-id="r">{
                 blockTree.length
                     ? renderBranch(blockTree).concat(<li

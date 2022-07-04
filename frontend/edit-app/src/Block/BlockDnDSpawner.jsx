@@ -1,7 +1,7 @@
-import {__, Icon, api, signals} from '@sivujetti-commons-for-edit-app';
+import {__, Icon, api} from '@sivujetti-commons-for-edit-app';
 import {renderBlockAndThen} from '../../../webpage/src/EditAppAwareWebPage.js';
 import {getIcon} from '../block-types/block-types.js';
-import store, {createSelectBlockTree, createSetBlockTree} from '../store.js';
+import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} from '../store.js';
 import {createBlockFromType} from './utils.js';
 import blockTreeUtils from '../blockTreeUtils.js';
 
@@ -17,7 +17,7 @@ class BlockDnDSpawner extends preact.Component {
     // onDragEnd;
     // onMouseMove;
     /**
-     * @param {{mainTreeDnd: BlockTreeDragDrop; mainTree: BlockTree;}} props
+     * @param {{mainTreeDnd: BlockTreeDragDrop; mainTree: BlockTree; saveExistingBlocksToBackend: (blocks: Array<RawBlock2>, trid: 'String') => Promise<Boolean>;}} props
      */
     constructor(props) {
         super(props);
@@ -84,15 +84,9 @@ class BlockDnDSpawner extends preact.Component {
         if (!currentlyIsOpen) {
             const spawner = this;
             if (!this.mainDndEventReceiver) this.mainDndEventReceiver = {
-                draggedOverFirstTime(block) {
-                    return spawner.handleMainDndStartedDrop(block);
-                },
-                swappedBlocks(mutationInfos) {
-                    spawner.handleMainDndSwappedBlocks(mutationInfos);
-                },
-                dropped() {
-                    //
-                },
+                draggedOverFirstTime: spawner.handleMainDndStartedDrop.bind(spawner),
+                swappedBlocks: spawner.handleMainDndSwappedBlocks.bind(spawner),
+                dropped: spawner.handleMainDndGotDrop.bind(spawner),
             };
             this.rootElLeft = this.rootEl.current.getBoundingClientRect().left;
             document.addEventListener('dragover', this.onMouseMove);
@@ -135,6 +129,8 @@ class BlockDnDSpawner extends preact.Component {
             this.preRender = null;
             this.hideLoadingIndicatorIfVisible();
         }
+        if (this.state.dragExitedLeft)
+            this.setState({dragExitedLeft: false});
     }
     /**
      * @param {RawBlock2} asChildOf
@@ -161,15 +157,39 @@ class BlockDnDSpawner extends preact.Component {
     /**
      * @access private
      */
+    handleMainDndGotDrop() {
+        if (this.blockAddPhase === 'added') {
+        const trid = this.newWaitingBlock.isStoredToTreeId;
+        store.dispatch(createSetBlockTree(trid)(createSelectBlockTree(trid)(store.getState()).tree, ['commit-add-single-block',
+            {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid}]));
+        const undoInfo = {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid};
+        store.dispatch(pushItemToOpQueue(`update-block-tree#${trid}`, {
+            doHandle: trid !== 'main' || !this.currentPageIsPlaceholder
+                ? () => this.props.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
+                : null
+            ,
+            doUndo: () => {
+                const {tree} = createSelectBlockTree(trid)(store.getState());
+                deleteBlockFromTree(undoInfo.blockId, tree);
+                store.dispatch(createSetBlockTree(trid)(tree, ['undo-add-single-block',
+                    undoInfo]));
+            },
+            args: [],
+        }));
+        }
+        this.handleDragEnded();
+    }
+    /**
+     * @access private
+     */
     handleDragReturnedFromMainDndWithoutDrop() {
         if (this.blockAddPhase === 'added') {
-            const trid = 'main';
+            const trid = this.newWaitingBlock.isStoredToTreeId;
             const {tree} = createSelectBlockTree(trid)(store.getState());
-            const [b, br] = blockTreeUtils.findBlock(this.newWaitingBlock.id, tree);
-            br.splice(br.indexOf(b), 1); // Mutate tree temporarily
+            deleteBlockFromTree(this.newWaitingBlock.id, tree);
             store.dispatch(createSetBlockTree(trid)(tree, ['delete-single-block',
-                {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid}, 'dnd-spawner',
-                this.newWaitingBlock.isStoredToTreeId]));
+                {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid},
+                'dnd-spawner', trid]));
         }
         this.handleDragEnded();
     }
@@ -186,6 +206,17 @@ class BlockDnDSpawner extends preact.Component {
         if (this.props.mainTree.state.loading)
             this.props.mainTree.setState({loading: false});
     }
+}
+
+/**
+ * Note: mutates $tree
+ *
+ * @param {String} blockId
+ * @param {Array<RawBlock2>} tree
+ */
+function deleteBlockFromTree(blockId, tree) {
+    const [b, br] = blockTreeUtils.findBlock(blockId, tree);
+    br.splice(br.indexOf(b), 1); // Mutate tree temporarily
 }
 
 export default BlockDnDSpawner;

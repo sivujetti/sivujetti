@@ -105,7 +105,7 @@ class EditApp extends preact.Component {
         if (trees.keys().next().value !== 'main') throw new Error('Sanity');
         const getTree = trid => createSelectBlockTree(trid)(store.getState()).tree;
         for (const [trid, _] of trees) {
-            const fn = webPage.createBlockTreeChangeListener(trid, blockTreeUtils, api.blockTypes, getTree);
+            const fn = webPage.createBlockTreeChangeListener(trid, blockTreeUtils, api.blockTypes, getTree, this);
             webPageDomUpdaters.push(observeStore(createSelectBlockTree(trid), fn));
         }
         //

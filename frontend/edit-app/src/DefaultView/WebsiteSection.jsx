@@ -14,13 +14,13 @@ class WebsiteSection extends MenuSection {
      */
     render({startAddPageMode, startAddPageTypeMode}, {isCollapsed}) {
         return <section class={ `panel-section${isCollapsed ? '' : ' open'}` }>
-            <button class="d-flex col-12 flex-centered pr-2" onClick={ () => { this.setState({isCollapsed: !isCollapsed}); } }>
-                <Icon iconId="database" className="size-sm mr-2 color-orange"/>
-                <span class="pl-1 color-default">
+            <button class="flex-centered pr-2 section-title col-12" onClick={ () => { this.setState({isCollapsed: !isCollapsed}); } }>
+                <Icon iconId="database" className="p-absolute size-sm mr-2 color-orange"/>
+                <span class="pl-1 d-block col-12 color-default">
                     { __('Website') }
-                    <span class="text-ellipsis text-tiny">{ __('Content management') }</span>
+                    <span class="text-ellipsis text-tiny col-12">{ __('Content management') }</span>
                 </span>
-                <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
+                <Icon iconId="chevron-right" className="p-absolute size-xs"/>
             </button>
             <nav>
                 <a onClick={ e => (e.preventDefault(), alert('This feature is currently disabled.')) } class="with-icon">

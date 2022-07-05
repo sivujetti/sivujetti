@@ -63,7 +63,7 @@ stringBundles.push({
     'Colours and fonts': 'Sivuston värit ja fontit',
     // edit-app/src/DefaultView/OnThisPageSection.jsx
     'On this page': 'Tämä sivu',
-    'Content of page %s': '%s-sivun sisältö',
+    'Content of page %s': '%s -sivun sisältö',
     // edit-app/src/DefaultView/WebsiteSection.jsx
     'Website': 'Sivusto',
     'Content management': 'Sisällönhallinta',

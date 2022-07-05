@@ -569,6 +569,17 @@ a.popup-close-area {
     color: var(--color-fg-default);
 }
 
+.section-title > .icon-tabler {
+    left: .8rem;
+}
+.section-title > span {
+    margin: 0 .85rem 0 1.3rem;
+    text-align: left;
+}
+.section-title > .icon-tabler:last-child {
+    right: .8rem;
+    left: initial;
+}
 
 /* EditApp: Main panel > Back to edit app label */
 #back-to-edit-corner {

@@ -57,13 +57,13 @@ class GlobalStylesSection extends MenuSection {
             } }></div>
         </div>;
         return <section class={ `panel-section${isCollapsed ? '' : ' open'}` }>
-            <button class="d-flex col-12 flex-centered pr-2" onClick={ this.toggleIsCollapsed.bind(this) }>
-                <Icon iconId="palette" className="size-sm mr-2 color-pink"/>
-                <span class="pl-1 color-default">
+            <button class="flex-centered pr-2 section-title col-12" onClick={ this.toggleIsCollapsed.bind(this) }>
+                <Icon iconId="palette" className="p-absolute size-sm mr-2 color-pink"/>
+                <span class="pl-1 d-block col-12 color-default">
                     { __('Styles') }
-                    <span class="text-ellipsis text-tiny">{ __('Colours and fonts') }</span>
+                    <span class="text-ellipsis text-tiny col-12">{ __('Colours and fonts') }</span>
                 </span>
-                <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
+                <Icon iconId="chevron-right" className="p-absolute size-xs"/>
             </button>
             <div>{ content }</div>
         </section>;

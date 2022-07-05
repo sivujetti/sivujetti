@@ -179,9 +179,10 @@ class EditAppAwareWebPage {
      * @param {blockTreeUtils} blockTreeUtils
      * @param {BlockTypes} blockTypes
      * @param {(trid: String) => Array<RawBlock2>} getTree
+     * @param {hack} t
      * @returns {(blockTreeState: BlockTreeReduxState) => void}
      */
-    createBlockTreeChangeListener(trid, blockTreeUtils, blockTypes, getTree) {
+    createBlockTreeChangeListener(trid, blockTreeUtils, blockTypes, getTree, t) {
         /**
          * @param {RawBlock2} b
          * @returns {String}
@@ -281,7 +282,7 @@ class EditAppAwareWebPage {
             throw new Error();
         };
         return ({tree, context}) => {
-            if (!context) return;
+            if (!context || (context[0] !== 'init' && t.receivingData)) return;
             const event = context[0];
             const treeRootEl = document.body;
             if (event === 'swap-blocks') {

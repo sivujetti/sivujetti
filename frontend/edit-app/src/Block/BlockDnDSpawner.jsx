@@ -10,6 +10,7 @@ class BlockDnDSpawner extends preact.Component {
     // newWaitingBlock;
     // blockAddPhase;
     // preRender;
+    // started;
     // rootEl;
     // rootElLeft;
     // mainDndEventReceiver;
@@ -28,6 +29,7 @@ class BlockDnDSpawner extends preact.Component {
         this.newWaitingBlock = null;
         this.blockAddPhase = null;
         this.preRender = null;
+        this.started = false;
         this.rootEl = preact.createRef();
         this.rootElLeft = null;
         this.mainDndEventReceiver = null;
@@ -37,6 +39,7 @@ class BlockDnDSpawner extends preact.Component {
             if (!this.newWaitingBlock) return;
             if (!this.state.dragExitedLeft && e.clientX < this.rootElLeft) {
                 this.setState({dragExitedLeft: true});
+                this.started = true;
                 this.props.mainTreeDnd.setDragEventReceiver(this.mainDndEventReceiver);
             } else if (this.state.dragExitedLeft && e.clientX > this.rootElLeft) {
                 this.setState({dragExitedLeft: false});
@@ -51,6 +54,8 @@ class BlockDnDSpawner extends preact.Component {
     render(_, {isOpen, dragExitedLeft}) {
         return <div
             class={ `new-block-spawner${!isOpen ? '' : ' open box'}${!dragExitedLeft ? '' : ' drag-exited-left'}` }
+            onMouseEnter={ () => { if (this.started) this.setState({dragExitedLeft: false}); } }
+            onMouseLeave={ () => { if (this.started) this.setState({dragExitedLeft: true}); } }
             ref={ this.rootEl }>
             <button
                 onClick={ this.toggleIsOpen.bind(this) }
@@ -93,6 +98,7 @@ class BlockDnDSpawner extends preact.Component {
         } else {
             document.removeEventListener('dragover', this.onMouseMove);
         }
+        this.started = false;
         this.setState({isOpen: !currentlyIsOpen});
     }
     /**
@@ -100,14 +106,18 @@ class BlockDnDSpawner extends preact.Component {
      * @access private
      */
     handleDragStarted(e) {
-        if (this.newWaitingBlock) return;
         const dragEl = e.target.nodeName === 'BUTTON' ? e.target : e.target.closest('button');
-        const trid = 'main';
-        this.newWaitingBlock = createBlockFromType(dragEl.getAttribute('data-block-type'), trid);
+        const newType = dragEl.getAttribute('data-block-type');
+        if (this.newWaitingBlock && this.newWaitingBlock.type === newType) return;
+        //
+        this.newWaitingBlock = createBlockFromType(newType, 'main');
+        this.newWaitingBlock.isStoredTo = 'don\'t-know-yet';
+        this.newWaitingBlock.isStoredToTreeId = 'don\'t-know-yet';
         this.blockAddPhase = 'rendering-started';
         this.preRender = null;
         renderBlockAndThen(this.newWaitingBlock, html => {
-            if (this.blockAddPhase !== 'rendering-started') return;
+            if (this.blockAddPhase !== 'rendering-started' ||
+                this.newWaitingBlock.type !== newType) return;
             this.blockAddPhase = 'rendering-finished';
             this.preRender = html;
             this.hideLoadingIndicatorIfVisible();
@@ -120,17 +130,17 @@ class BlockDnDSpawner extends preact.Component {
     }
     /**
      * @param {DragEvent?} _e
+     * @param {Boolean} dropped = false
      * @access private
      */
-    handleDragEnded(_e) {
-        if (this.blockAddPhase !== null) {
+    handleDragEnded(_e, dropped = false) {
+        if (dropped) {
             this.newWaitingBlock = null;
             this.blockAddPhase = null;
             this.preRender = null;
-            this.hideLoadingIndicatorIfVisible();
         }
-        if (this.state.dragExitedLeft)
-            this.setState({dragExitedLeft: false});
+        this.dragging = false;
+        this.hideLoadingIndicatorIfVisible();
     }
     /**
      * @param {RawBlock2} asChildOf
@@ -139,7 +149,9 @@ class BlockDnDSpawner extends preact.Component {
      */
     handleMainDndStartedDrop(asChildOf) {
         if (this.blockAddPhase !== 'rendering-finished') return null; // Pre-render of this.newWaitingBlock not rendering-finished yet
-        const trid = this.newWaitingBlock.isStoredToTreeId;
+        const trid = asChildOf.isStoredToTreeId;
+        this.newWaitingBlock.isStoredToTreeId = trid;
+        this.newWaitingBlock.isStoredTo = asChildOf.isStoredTo;
         const {tree} = createSelectBlockTree(trid)(store.getState());
         asChildOf.children.push(this.newWaitingBlock); // Mutate tree temporarily
         store.dispatch(createSetBlockTree(trid)(tree, ['add-single-block',
@@ -152,13 +164,16 @@ class BlockDnDSpawner extends preact.Component {
      * @access private
      */
     handleMainDndSwappedBlocks([mutation1]) {
-        store.dispatch(createSetBlockTree(mutation1.trid)(mutation1.tree, ['swap-blocks', mutation1, 'dnd-spawner']));
+        const trid = mutation1.blockToMove.isStoredToTreeId;
+        const {tree} = createSelectBlockTree(trid)(store.getState());
+        store.dispatch(createSetBlockTree(trid)(tree, ['swap-blocks', mutation1, 'dnd-spawner']));
     }
     /**
      * @access private
      */
     handleMainDndGotDrop() {
-        if (this.blockAddPhase === 'added') {
+        const acceptDrop = this.blockAddPhase === 'added';
+        if (acceptDrop) {
         const trid = this.newWaitingBlock.isStoredToTreeId;
         store.dispatch(createSetBlockTree(trid)(createSelectBlockTree(trid)(store.getState()).tree, ['commit-add-single-block',
             {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid}]));
@@ -177,7 +192,7 @@ class BlockDnDSpawner extends preact.Component {
             args: [],
         }));
         }
-        this.handleDragEnded();
+        this.handleDragEnded(null, acceptDrop);
     }
     /**
      * @access private
@@ -190,6 +205,7 @@ class BlockDnDSpawner extends preact.Component {
             store.dispatch(createSetBlockTree(trid)(tree, ['delete-single-block',
                 {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid},
                 'dnd-spawner', trid]));
+            this.blockAddPhase = 'rendering-finished';
         }
         this.handleDragEnded();
     }

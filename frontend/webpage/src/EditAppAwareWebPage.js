@@ -35,6 +35,7 @@ class EditAppAwareWebPage {
     scanBlockElements() {
         this.deletedInnerContentStorage = new Map;
         this.currentlyHoveredBlockEl = null;
+        this.revertSwapStack = [];
         return Array.from(document.body.querySelectorAll('[data-block-type]'));
     }
     /**
@@ -182,16 +183,6 @@ class EditAppAwareWebPage {
      */
     createBlockTreeChangeListener(trid, blockTreeUtils, blockTypes, getTree) {
         /**
-         * @param {HTMLElement|DocumentFragment|Comment} content
-         * @param {RawBlock2} parent
-         * @param {HTMLElement} treeRootEl
-         */
-        const insertAsFirstChild = (content, parent, treeRootEl) => {
-            const parentEl = treeRootEl.querySelector(`[data-block="${parent.id}"]`);
-            const endcom = getChildEndComment(getBlockContentRoot(parentEl));
-            endcom.parentElement.insertBefore(content, endcom);
-        };
-        /**
          * @param {RawBlock2} b
          * @returns {String}
          */
@@ -200,10 +191,9 @@ class EditAppAwareWebPage {
         ;
         /**
          * @param {RawBlock2|null} of
-         * @param {Array<RawBlock2>} tree
          * @param {HTMLElement} treeRootEl
          */
-        const getInsertRefEl = (of, tree, treeRootEl) => {
+        const getInsertRefEl = (of, treeRootEl) => {
             const el = of ? treeRootEl.querySelector(`[data-block="${getVisibleBlockId(of)}"]`) : null;
             if (!el) return null;
             //
@@ -216,50 +206,101 @@ class EditAppAwareWebPage {
                 //   ...
                 : el.previousSibling;
         };
+        /**
+         * @param {HTMLElement} el
+         * @returns {[HTMLElement|Comment, () => void]}
+         */
+        const createNextRef = el => {
+            const next = el.nextSibling;
+            if (next) return [!isGlobalBlockTreeRefsEndMarker(next) ? next : next.nextSibling, noop];
+            const marker = document.createComment(' temp ');
+            el.parentElement.appendChild(marker);
+            return [marker, () => { marker.parentElement.removeChild(marker); }];
+        };
+        /**
+         * @param {RawBlock2} moveBlock
+         * @param {HTMLElement} treeRootEl
+         * @returns {Array<HTMLElement|Comment>}
+         */
+        const getElsToMove = (moveBlock, treeRootEl) => {
+            const el = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(moveBlock)}"]`);
+            return moveBlock.type !== 'GlobalBlockReference' ? [el] : [el.previousSibling, el, el.nextSibling];
+        };
+        /**
+         * @param {RawBlock2} beforeBlock
+         * @param {RawBlock2} moveBlock
+         * @param {HTMLElement} treeRootEl
+         */
+        const moveBefore = (beforeBlock, moveBlock, treeRootEl) => {
+            const movables = getElsToMove(moveBlock, treeRootEl);
+            const moveToEl = beforeBlock.type !== 'GlobalBlockReference'
+                ? treeRootEl.querySelector(`[data-block="${beforeBlock.id}"]`)
+                : getInsertRefEl(beforeBlock, treeRootEl);
+            movables.forEach(movable => moveToEl.parentElement.insertBefore(movable, moveToEl));
+        };
+        /**
+         * @param {RawBlock2} afterBlock
+         * @param {RawBlock2} moveBlock
+         * @param {HTMLElement} treeRootEl
+         */
+        const moveAfter = (afterBlock, moveBlock, treeRootEl) => {
+            const movables = getElsToMove(moveBlock, treeRootEl);
+            const [ref, cleanUp] = createNextRef(treeRootEl.querySelector(`[data-block="${getVisibleBlockId(afterBlock)}"]`));
+            movables.forEach(movable => ref.parentElement.insertBefore(movable, ref));
+            cleanUp();
+        };
+        /**
+         * @param {RawBlock2} parentBlock
+         * @param {RawBlock2} moveBlock
+         * @param {HTMLElement} treeRootEl
+         */
+        const moveToChild = (parentBlock, moveBlock, treeRootEl) => {
+            const el = treeRootEl.querySelector(`[data-block="${parentBlock.id}"]`);
+            const endcom = getChildEndComment(getBlockContentRoot(el));
+            endcom.parentElement.insertBefore(treeRootEl.querySelector(`[data-block="${moveBlock.id}"]`), endcom);
+        };
+        /**
+         * @param {RawBlock2} blockToMove
+         * @param {HTMLElement} treeRootEl
+         * @returns {() => void}
+         */
+        const createGetRevertRef = (blockToMove, treeRootEl) => {
+            let next = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(blockToMove)}"]`).nextSibling;
+            if (blockToMove.type === 'GlobalBlockReference') next = next.nextSibling;
+            if (next.nodeType === Node.COMMENT_NODE && next.nodeValue === CHILDREN_END) {
+                const p = next.parentElement;
+                const blockId = p !== treeRootEl ? p.getAttribute('data-block') || p.closest('[data-block]').getAttribute('data-block') : '';
+                return () => getChildEndComment(getBlockContentRoot(blockId ? treeRootEl.querySelector(`[data-block="${blockId}"]`) : treeRootEl));
+            }
+            if (isGlobalBlockTreeRefsStartMarker(next)) {
+                const blockId = next.nextSibling.getAttribute('data-block');
+                return () => treeRootEl.querySelector(`[data-block="${blockId}"]`).previousSibling;
+            }
+            const blockId = next.getAttribute('data-block');
+            if (blockId) return () => treeRootEl.querySelector(`[data-block="${blockId}"]`);
+            throw new Error();
+        };
         return ({tree, context}) => {
             if (!context) return;
             const event = context[0];
             const treeRootEl = document.body;
-            if (event === 'swap-blocks' || event === 'undo-swap-blocks') {
-                const [blockA, dragTree] = [context[1].blockA, context[1].tree];
-                const [block, containingBranch, parent] = blockTreeUtils.findBlock(blockA.id, dragTree);
-                const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
-                if ((parent && containingBranch.length === 1) || // Dropped as first child
-                    (parent && !nextBlock)) {
-                    if (blockA.type !== 'GlobalBlockReference') {
-                        insertAsFirstChild(treeRootEl.querySelector(`[data-block="${blockA.id}"]`), parent, treeRootEl);
-                    } else {
-                        const commentAbove = getInsertRefEl(blockA, dragTree, treeRootEl);
-                        const mainEl = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(blockA)}"]`);
-                        const commentBelow = mainEl.nextSibling;
-                        insertAsFirstChild(commentAbove, parent, treeRootEl);
-                        insertAsFirstChild(mainEl, parent, treeRootEl);
-                        insertAsFirstChild(commentBelow, parent, treeRootEl);
-                    }
-                } else if (!parent && !nextBlock) {
-                    const endcom = getChildEndComment(treeRootEl);
-                    if (blockA.type !== 'GlobalBlockReference') {
-                        treeRootEl.insertBefore(treeRootEl.querySelector(`[data-block="${blockA.id}"]`), endcom);
-                    } else {
-                        const commentAbove = getInsertRefEl(blockA, dragTree, treeRootEl);
-                        const mainEl = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(blockA)}"]`);
-                        const commentBelow = mainEl.nextSibling;
-                        treeRootEl.insertBefore(commentAbove, endcom);
-                        treeRootEl.insertBefore(mainEl, endcom);
-                        treeRootEl.insertBefore(commentBelow, endcom);
-                    }
-                } else if (nextBlock) {
-                    if (blockA.type === 'GlobalBlockReference') {
-                        const ref = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(blockA)}"]`).nextSibling.nextSibling;
-                        ref.parentElement.insertBefore(treeRootEl.querySelector(`[data-block="${context[1].blockB.id}"]`), ref);
-                    } else if (context[1].blockB.type === 'GlobalBlockReference') {
-                        const ref = getInsertRefEl(context[1].blockB, null, treeRootEl);
-                        ref.parentElement.insertBefore(treeRootEl.querySelector(`[data-block="${blockA.id}"]`), ref);
-                    } else {
-                        const nextEl = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(nextBlock)}"]`);
-                        nextEl.parentElement.insertBefore(treeRootEl.querySelector(`[data-block="${getVisibleBlockId(blockA)}"]`), nextEl);
-                    }
-                }
+            if (event === 'swap-blocks') {
+                const {position, blockToMove, blockToMoveTo} = context[1];
+                this.revertSwapStack.push(createGetRevertRef(blockToMove, treeRootEl));
+                if (position === 'before')
+                    moveBefore(blockToMoveTo, blockToMove, treeRootEl);
+                else if (position === 'after')
+                    moveAfter(blockToMoveTo, blockToMove, treeRootEl);
+                else if (position === 'as-child')
+                    moveToChild(blockToMoveTo, blockToMove, treeRootEl);
+                return;
+            }
+            if (event === 'undo-swap-blocks') {
+                const {blockToMove} = context[1];
+                const getNext = this.revertSwapStack.pop();
+                const next = getNext();
+                const movables = getElsToMove(blockToMove, treeRootEl);
+                movables.forEach(movable => next.parentElement.insertBefore(movable, next));
                 return;
             }
             //
@@ -270,11 +311,13 @@ class EditAppAwareWebPage {
                     const temp = document.createElement('template');
                     temp.innerHTML = withTrid(html, trid);
                     const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
-                    const nextEl = getInsertRefEl(nextBlock, tree, treeRootEl);
+                    const nextEl = getInsertRefEl(nextBlock, treeRootEl);
                     if ((nextEl && !parent) || (nextEl && parent)) {
                         nextEl.parentElement.insertBefore(temp.content, nextEl);
                     } else if (!nextEl && parent) {
-                        insertAsFirstChild(temp.content, parent, treeRootEl);
+                        const parentEl = treeRootEl.querySelector(`[data-block="${parent.id}"]`);
+                        const endcom = getChildEndComment(getBlockContentRoot(parentEl));
+                        endcom.parentElement.insertBefore(temp.content, endcom);
                     } else if (!nextEl && !parent) {
                         treeRootEl.appendChild(temp.content);
                     }
@@ -1112,6 +1155,26 @@ function renderBlockAndThen(block, then, blockTypes, childContent = null) {
         () => childContent || `<!--${CHILDREN_START}--><!--${CHILDREN_END}-->`
     );
     getBlockReRenderResult(stringOrPromise, then);
+}
+
+/**
+ * @param {Node} node
+ * @returns {Boolean}
+ */
+function isGlobalBlockTreeRefsStartMarker(node) {
+    return node.nodeType === Node.COMMENT_NODE && node.nodeValue.endsWith(':GlobalBlockReference ');
+}
+
+/**
+ * @param {Node} node
+ * @returns {Boolean}
+ */
+function isGlobalBlockTreeRefsEndMarker(node) {
+    return node.nodeType === Node.COMMENT_NODE && node.nodeValue.indexOf(' block-end ') > -1;
+}
+
+function noop() {
+    //
 }
 
 export default EditAppAwareWebPage;

@@ -136,7 +136,7 @@ class BlockTreeDragDrop {
      */
     handleDragEnded() {
         if (!this.startEl) return;
-        if (this.curDropTypeCandidate) this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
+        this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
         this.clearDragEl();
     }
     /**
@@ -208,19 +208,19 @@ class BlockTreeDragDrop {
                 dragBranch.splice(realTo, 0, dragBlock);
                 dragBranch.splice(fromIndex + (fromIndex > realTo ? 1 : 0), 1);
                 //
-                mut1 = createMutationInfo(dragBlock, dropBlock, dragBlockTree, () => {
+                mut1 = createMutationInfo(dragBlock, dropBlock, dropInfo, () => {
                     dragBranch.splice(fromIndex + (fromIndex > realTo ? 1 : 0), 0, dragBlock);
                     dragBranch.splice(realTo, 1);
                     return dragBlockTree;
-                }, isBefore);
+                });
             } else {
                 const aIsNorm = dragBlock.isStoredToTreeId === 'main';
                 const bIsNorm = dropBlock.isStoredToTreeId === 'main';
                 if (aIsNorm && !bIsNorm && dropBlock.id !== dropBlockTree[0].id) {
-                    this.handleDropNotAllowed('Normal > Global drop not supported yet');
+                    if (!trid) this.handleDropNotAllowed('Normal > Global drop not supported yet');
                     return;
                 } else if (bIsNorm && !aIsNorm && dragBlock.id !== dragBlockTree[0].id) {
-                    this.handleDropNotAllowed('Global > Normal drop not supported yet');
+                    if (!trid) this.handleDropNotAllowed('Global > Normal drop not supported yet');
                     return;
                 }
                 //
@@ -230,29 +230,29 @@ class BlockTreeDragDrop {
                 dropBranch.splice(pos, 0, dragBlock);
                 dragBranch.splice(dragBranchIdx, 1);
                 //
-                mut1 = createMutationInfo(dragBlock, dropBlock, dragBlockTree, () => {
+                mut1 = createMutationInfo(dragBlock, dropBlock, dropInfo, () => {
                     dragBranch.splice(dragBranchIdx, 0, dragBlock);
                     dropBranch.splice(pos, 1);
                     return dragBlockTree;
-                }, isBefore);
+                });
             }
         } else if (dropInfo.dropPosition === 'as-child') {
             if (dropBlock.type === 'GlobalBlockReference' || dropBlock.isStoredTo === 'globalBlockTree') {
-                this.handleDropNotAllowed('Global > Normal drop not supported yet');
+                if (!trid) this.handleDropNotAllowed('Global > Normal (as child) drop not supported yet');
                 return;
             } else if (dragBlock.isStoredToTreeId !== 'main' && dropBlock.isStoredToTreeId === 'main') {
-                this.handleDropNotAllowed('Global > Normal (as child) drop not supported yet');
+                if (!trid) this.handleDropNotAllowed('Normal > Global (as child) drop not supported yet');
                 return;
             }
             dropBlock.children.push(dragBlock);
             const pos = dragBranch.indexOf(dragBlock);
             dragBranch.splice(pos, 1);
             //
-            mut1 = createMutationInfo(dragBlock, dropBlock, dragBlockTree, () => {
+            mut1 = createMutationInfo(dragBlock, dropBlock, dropInfo, () => {
                 dropBlock.children.pop();
                 dragBranch.splice(pos, 0, dragBlock);
                 return dragBlockTree;
-            }, dragBlock.isStoredTo !== dropBlock.isStoredTo || pos < dropBranch.indexOf(dropBlock) ? true : false);
+            });//, dragBlock.isStoredTo !== dropBlock.isStoredTo || pos < dropBranch.indexOf(dropBlock) ? true : false, 'as-child');
         } else return null;
         return [mut1, mut2];
     }
@@ -286,7 +286,8 @@ class BlockTreeDragDrop {
      * @access private
      */
     clearPreviousDroppableBorder(previousDropCandidate) {
-        previousDropCandidate.el.classList.remove(`maybe-drop-${previousDropCandidate.dropPosition}`);
+        if (previousDropCandidate)
+            previousDropCandidate.el.classList.remove(`maybe-drop-${previousDropCandidate.dropPosition}`);
     }
     /**
      * @access private
@@ -308,17 +309,15 @@ class BlockTreeDragDrop {
 /**
  * @param {RawBlock2} dragBlock
  * @param {RawBlock2} dropBlock
- * @param {Array<RawBlock2>} dragBlockTree
+ * @param {DropCandidate} dropInfo
  * @param {() => Array<RawBlock2>} doRevert
- * @param {Boolean} isBefore
  * @returns {SwapChangeEventData}
  */
-function createMutationInfo(dragBlock, dropBlock, dragBlockTree, doRevert, isBefore) {
+function createMutationInfo(dragBlock, dropBlock, dropInfo, doRevert) {
     return {
-        trid: dragBlock.isStoredToTreeId,
-        blockA: isBefore ? dropBlock : dragBlock,
-        blockB: isBefore ? dragBlock : dropBlock,
-        tree: dragBlockTree,
+        blockToMove: dragBlock,
+        blockToMoveTo: dropBlock,
+        position: dropInfo.dropPosition,
         doRevert,
     };
 }

@@ -411,12 +411,7 @@ class BlockTree extends preact.Component {
             </button></div>
             <ul class="block-tree" data-sort-group-id="r">{
                 blockTree.length
-                    ? [<li
-                        data-placeholder="y"
-                        onDragOver={ this.onDragOver }
-                        onDrop={ this.onDrop }
-                        onDragEnd={ this.onDragEnd }
-                        draggable><div class="d-flex">&nbsp;</div></li>].concat(...renderBranch(blockTree)).concat(<li
+                    ? renderBranch(blockTree).concat(<li
                         data-last="y"
                         onDragOver={ this.onDragOver }
                         onDrop={ this.onDrop }

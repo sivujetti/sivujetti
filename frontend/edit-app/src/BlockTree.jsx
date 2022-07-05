@@ -38,15 +38,17 @@ class BlockTree extends preact.Component {
         this.lastRootBlockMarker = null;
         this.currentAddBlockTarget = null;
         this.dragDrop = new BlockTreeDragDrop(this, (mutation1, mutation2 = null) => {
-        store.dispatch(createSetBlockTree(mutation1.trid)(mutation1.tree, ['swap-blocks', mutation1]));
-        store.dispatch(pushItemToOpQueue(`swap-blocks-of-tree##${mutation1.trid}`, {
-            doHandle: mutation1.trid !== 'main' || !this.currentPageIsPlaceholder
-                ? () => BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(mutation1.trid)(store.getState()).tree, mutation1.trid)
+        const trid = mutation1.blockToMove.isStoredToTreeId;
+        const {tree} = createSelectBlockTree(trid)(store.getState());
+        store.dispatch(createSetBlockTree(trid)(tree, ['swap-blocks', mutation1]));
+        store.dispatch(pushItemToOpQueue(`swap-blocks-of-tree##${trid}`, {
+            doHandle: trid !== 'main' || !this.currentPageIsPlaceholder
+                ? () => BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
                 : null
             ,
             doUndo: () => {
                 const treeBefore = mutation1.doRevert();
-                store.dispatch(createSetBlockTree(mutation1.trid)(treeBefore, ['undo-swap-blocks', mutation1]));
+                store.dispatch(createSetBlockTree(trid)(treeBefore, ['undo-swap-blocks', mutation1]));
             },
             args: [],
         }));
@@ -267,7 +269,7 @@ class BlockTree extends preact.Component {
             if (context[0] === 'init' && tree.length && !this.state.treeState[tree[0].id]) {
                 const newTreeTreeState = createTreeState(tree);
                 this.setState({treeState: Object.assign({}, this.state.treeState, newTreeTreeState)});
-            } else if (refreshAllEvents.indexOf(context[0]) > -1) {
+            } else if (refreshAllEvents.indexOf(context[0]) > -1 && context[2] !== 'dnd-spawner') {
                 this.setState({treeState: createTreeState(tree, true)});
             }
         }];

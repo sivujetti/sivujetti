@@ -361,10 +361,9 @@ interface DefaultChangeEventData {
 }
 
 interface SwapChangeEventData {
-    trid: String;
-    blockA: RawBlock2;
-    blockB: RawBlock2;
-    tree: Array<RawBlock2>;
+    dragBlock: RawBlock2;
+    dropBlock: RawBlock2;
+    position: 'before'|'after'|'as-child';
     doRevert(): void;
 }
 

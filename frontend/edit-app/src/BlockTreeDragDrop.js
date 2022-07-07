@@ -107,7 +107,7 @@ class BlockTreeDragDrop {
         } else {
             newCandidate.dropPosition = 'after';
             newCandidate.el = newCandidate.el.previousElementSibling;
-         }
+        }
         //
         if (this.curDropTypeCandidate.el && this.curDropTypeCandidate.dropPosition !== 'self') {
             this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
@@ -160,7 +160,12 @@ class BlockTreeDragDrop {
         this.startElParentUl = this.startEl.parentElement;
         this.startElDropGroup = this.startEl.getAttribute('data-drop-group');
         this.startLiDivRect = this.startEl.querySelector('.d-flex').getBoundingClientRect();
-        this.curDropTypeCandidate = {dropPosition: 'self', dragDirection: null, el: null};
+        if (!isExternal)
+            this.curDropTypeCandidate = {dropPosition: 'self', dragDirection: null, el: null};
+        else {
+            this.curDropTypeCandidate = {dropPosition: 'as-child', dragDirection: null, el: li};
+            li.classList.add('maybe-drop-as-child');
+        }
     }
     /**
      * @param {DropCandidate} dropInfo

@@ -1,4 +1,5 @@
 import {http, __} from '@sivujetti-commons-for-edit-app';
+import {withTrid} from '../../../webpage/src/EditAppAwareWebPage.js';
 
 const EMPTY_OVERRIDES = '{}';
 
@@ -21,7 +22,7 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         reRender(block, _renderChildren) {
-            return http.post('/api/blocks/render', {block: block.toRaw()}).then(resp => resp.result);
+            return http.post('/api/blocks/render', {block}).then(resp => withTrid(resp.result, block.globalBlockTreeId));
         },
         createSnapshot: from => ({
             globalBlockTreeId: from.globalBlockTreeId,

@@ -238,7 +238,7 @@ function separate(mainTreeBlocks) {
     blockTreeUtils.traverseRecursively(mainTreeBlocks, b => {
         if (b.type !== 'GlobalBlockReference') return;
         separatedGlobalTreesBlocks.set(b.globalBlockTreeId, b.__globalBlockTree.blocks);
-        delete b.__globalBlockTree.blocks;
+        delete b.__globalBlockTree;
     });
     return [mainTreeBlocks, separatedGlobalTreesBlocks];
 }

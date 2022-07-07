@@ -1,4 +1,4 @@
-import {__, Icon, api} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app';
 import {renderBlockAndThen} from '../../../webpage/src/EditAppAwareWebPage.js';
 import {getIcon} from '../block-types/block-types.js';
 import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} from '../store.js';
@@ -18,11 +18,11 @@ class BlockDnDSpawner extends preact.Component {
     // onDragEnd;
     // onMouseMove;
     /**
-     * @param {{mainTreeDnd: BlockTreeDragDrop; mainTree: BlockTree; saveExistingBlocksToBackend: (blocks: Array<RawBlock2>, trid: 'String') => Promise<Boolean>;}} props
+     * @param {{mainTreeDnd: BlockTreeDragDrop; mainTree: BlockTree; saveExistingBlocksToBackend: (blocks: Array<RawBlock2>, trid: 'String') => Promise<Boolean>; currentPageIsPlaceholder: Boolean;}} props
      */
     constructor(props) {
         super(props);
-        this.state = {isOpen: false, dragExitedLeft: false};
+        this.state = {isOpen: false, dragExitedLeft: false, globalBlockTrees: []};
         this.selectableBlockTypes = Array.from(api.blockTypes.entries()).filter(([name, _]) =>
             name !== 'PageInfo' && name !== 'GlobalBlockReference'
         );
@@ -51,7 +51,7 @@ class BlockDnDSpawner extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {isOpen, dragExitedLeft}) {
+    render(_, {isOpen, dragExitedLeft, globalBlockTrees}) {
         return <div
             class={ `new-block-spawner${!isOpen ? '' : ' open box'}${!dragExitedLeft ? '' : ' drag-exited-left'}` }
             onMouseEnter={ () => { if (this.started) this.setState({dragExitedLeft: false}); } }
@@ -64,17 +64,20 @@ class BlockDnDSpawner extends preact.Component {
                 type="button">
                 <Icon iconId={ !isOpen ? 'plus' : 'x' } className="mr-0 size-xs"/>
             </button>
-            { isOpen ? <div class="scroller"><ul class="block-tree">{ this.selectableBlockTypes.map(([name, blockType]) =>
-                <li class="page-block ml-0"><div class="d-flex">
+            { isOpen ? <div class="scroller"><ul class="block-tree">{ globalBlockTrees.map(({id, blocks, name}) =>
+                [name, blocks[0].type, id]
+            ).concat(this.selectableBlockTypes).map(([name, blockType, trid]) =>
+                <li class={ `${!trid ? 'page' : 'globalBlockTree'}-block ml-0` }><div class="d-flex">
                     <button
                         onDragStart={ this.onDragStart }
                         onDragEnd={ this.onDragEnd }
                         class="block-handle columns"
-                        data-block-type={ name }
+                        data-block-type={ !trid ? name : 'GlobalBlockReference' }
+                        data-trid={ trid || 'main' }
                         type="button"
                         draggable>
                         <Icon iconId={ getIcon(blockType) } className="size-xs mr-1"/>
-                        { __(blockType.friendlyName) }
+                        { !trid ? __(blockType.friendlyName) : name }
                     </button>
                 </div></li>
             ) }
@@ -87,6 +90,10 @@ class BlockDnDSpawner extends preact.Component {
     toggleIsOpen() {
         const currentlyIsOpen = this.state.isOpen;
         if (!currentlyIsOpen) {
+            http.get('/api/global-block-trees')
+                .then(this.receiveGlobalBlocks.bind(this))
+                .catch(env.window.console.error);
+            //
             const spawner = this;
             if (!this.mainDndEventReceiver) this.mainDndEventReceiver = {
                 draggedOverFirstTime: spawner.handleMainDndStartedDrop.bind(spawner),
@@ -108,9 +115,18 @@ class BlockDnDSpawner extends preact.Component {
     handleDragStarted(e) {
         const dragEl = e.target.nodeName === 'BUTTON' ? e.target : e.target.closest('button');
         const newType = dragEl.getAttribute('data-block-type');
-        if (this.newWaitingBlock && this.newWaitingBlock.type === newType) return;
-        //
-        this.newWaitingBlock = createBlockFromType(newType, 'main');
+        const willBeOverridden = 'main';
+        let gbt;
+        if (newType !== 'GlobalBlockReference') {
+            if (this.newWaitingBlock && this.newWaitingBlock.type === newType) return;
+            this.newWaitingBlock = createBlockFromType(newType, willBeOverridden);
+        } else {
+            gbt = this.state.globalBlockTrees.find(({id}) => id === dragEl.getAttribute('data-trid'));
+            if (this.newWaitingBlock && this.newWaitingBlock.globalBlockTreeId === gbt.id) return;
+            this.newWaitingBlock = createBlockFromType(newType, willBeOverridden, undefined, {
+                globalBlockTreeId: gbt.id,
+            });
+        }
         this.newWaitingBlock.isStoredTo = 'don\'t-know-yet';
         this.newWaitingBlock.isStoredToTreeId = 'don\'t-know-yet';
         this.blockAddPhase = 'rendering-started';
@@ -118,6 +134,8 @@ class BlockDnDSpawner extends preact.Component {
         renderBlockAndThen(this.newWaitingBlock, html => {
             if (this.blockAddPhase !== 'rendering-started' ||
                 this.newWaitingBlock.type !== newType) return;
+            if (this.newWaitingBlock.type === 'GlobalBlockReference')
+                signals.emit('on-block-dnd-global-block-reference-block-drag-started', gbt);
             this.blockAddPhase = 'rendering-finished';
             this.preRender = html;
             this.hideLoadingIndicatorIfVisible();
@@ -179,7 +197,7 @@ class BlockDnDSpawner extends preact.Component {
             {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid}]));
         const undoInfo = {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid};
         store.dispatch(pushItemToOpQueue(`update-block-tree#${trid}`, {
-            doHandle: trid !== 'main' || !this.currentPageIsPlaceholder
+            doHandle: trid !== 'main' || !this.props.currentPageIsPlaceholder
                 ? () => this.props.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
                 : null
             ,
@@ -191,6 +209,8 @@ class BlockDnDSpawner extends preact.Component {
             },
             args: [],
         }));
+        if (this.newWaitingBlock.type === 'GlobalBlockReference')
+            signals.emit('on-block-dnd-global-block-reference-block-dropped', this.newWaitingBlock.globalBlockTreeId);
         }
         this.handleDragEnded(null, acceptDrop);
     }
@@ -208,6 +228,19 @@ class BlockDnDSpawner extends preact.Component {
             this.blockAddPhase = 'rendering-finished';
         }
         this.handleDragEnded();
+    }
+    /**
+     * @param {Array<RawGlobalBlockTree>} globalBlockTrees
+     * @access private
+     */
+    receiveGlobalBlocks(globalBlockTrees) {
+        globalBlockTrees.forEach(gbt => {
+            blockTreeUtils.traverseRecursively(gbt.blocks, b => {
+                b.isStoredTo = 'globalBlockTree';
+                b.isStoredToTreeId = gbt.id;
+            });
+        });
+        this.setState({globalBlockTrees});
     }
     /**
      * @access private

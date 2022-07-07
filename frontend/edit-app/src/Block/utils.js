@@ -6,11 +6,12 @@ import blockTreeUtils from '../blockTreeUtils.js';
  * @param {BlockType|String} blockType
  * @param {String} trid = 'main'
  * @param {String} id = generatePushID()
+ * @param {{[key: String]: any;}} props = null
  * @returns {RawBlock2}
  */
-function createBlockFromType(blockType, trid = 'main', id = generatePushID()) {
+function createBlockFromType(blockType, trid = 'main', id = generatePushID(), props = null) {
     blockType = typeof blockType !== 'string' ? blockType : api.blockTypes.get(blockType);
-    const typeSpecific = createOwnData(blockType);
+    const typeSpecific = createOwnData(blockType, props);
     return Object.assign({
         id,
         type: blockType.name,
@@ -24,14 +25,22 @@ function createBlockFromType(blockType, trid = 'main', id = generatePushID()) {
 
 /**
  * @param {BlockType} blockType
- * @returns {{[key: String]: any;}}
+ * @param {{[key: String]: any;}} props = null
+ * @returns {{[key: String]: any; propsData: Array<{key: String; value: any;}>;}}
  */
-function createOwnData(blockType) {
+function createOwnData(blockType, props = null) {
     const flat = {};
     const asMetaArr = [];
-    for (const key of blockType.ownPropNames) {
-        flat[key] = blockType.initialData[key];
+    const setProp = (key, value) => {
+        flat[key] = value;
         asMetaArr.push({key, value: flat[key]});
+    };
+    for (const key of blockType.ownPropNames) {
+        setProp(key, blockType.initialData[key]);
+    }
+    if (props) for (const key in props) {
+        if (!Object.prototype.hasOwnProperty.call(props, key)) continue;
+        setProp(key, props[key]);
     }
     return Object.assign(flat, {propsData: asMetaArr});
 }

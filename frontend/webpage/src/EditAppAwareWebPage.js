@@ -258,7 +258,8 @@ class EditAppAwareWebPage {
         const moveToChild = (parentBlock, moveBlock, treeRootEl) => {
             const el = treeRootEl.querySelector(`[data-block="${parentBlock.id}"]`);
             const endcom = getChildEndComment(getBlockContentRoot(el));
-            endcom.parentElement.insertBefore(treeRootEl.querySelector(`[data-block="${moveBlock.id}"]`), endcom);
+            const movables = getElsToMove(moveBlock, treeRootEl);
+            movables.forEach(movable => endcom.parentElement.insertBefore(movable, endcom));
         };
         /**
          * @param {RawBlock2} blockToMove
@@ -315,12 +316,10 @@ class EditAppAwareWebPage {
                     const nextEl = getInsertRefEl(nextBlock, treeRootEl);
                     if ((nextEl && !parent) || (nextEl && parent)) {
                         nextEl.parentElement.insertBefore(temp.content, nextEl);
-                    } else if (!nextEl && parent) {
-                        const parentEl = treeRootEl.querySelector(`[data-block="${parent.id}"]`);
-                        const endcom = getChildEndComment(getBlockContentRoot(parentEl));
+                    } else if (!nextEl) {
+                        const cont = parent ? treeRootEl.querySelector(`[data-block="${parent.id}"]`) : treeRootEl;
+                        const endcom = getChildEndComment(getBlockContentRoot(cont));
                         endcom.parentElement.insertBefore(temp.content, endcom);
-                    } else if (!nextEl && !parent) {
-                        treeRootEl.appendChild(temp.content);
                     }
                 };
                 const possiblePreRender = context[4];
@@ -1132,7 +1131,7 @@ function findCommentR(of, find) {
  * @returns {String}
  */
 function withTrid(html, trid) {
-    return html.replace(' data-block=', `data-trid="${trid}" data-block=`);
+    return html.replace(trid === 'main' ? ' data-block=' : / data-block=/g, `data-trid="${trid}" data-block=`);
 }
 
 /**
@@ -1179,4 +1178,4 @@ function noop() {
 }
 
 export default EditAppAwareWebPage;
-export {createTrier, compileSivujettiFlavoredCss, renderBlockAndThen};
+export {createTrier, compileSivujettiFlavoredCss, renderBlockAndThen, withTrid};

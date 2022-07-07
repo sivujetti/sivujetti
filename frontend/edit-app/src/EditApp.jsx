@@ -11,9 +11,22 @@ import {findBlockTemp} from './BlockTreeOld.jsx';
 import {makePath, makeSlug} from './block-types/pageInfo.js';
 import blockTreeUtils from './blockTreeUtils.js';
 
+/** @type {EditApp} */
+let instance;
+
 let LEFT_PANEL_WIDTH = 318;
 const PANELS_HIDDEN_CLS = 'panels-hidden';
-let webPageDomUpdaters = [];
+const webPageDomUpdaters = new Map;
+
+signals.on('on-block-dnd-global-block-reference-block-drag-started', gbt => {
+    if (gbt.blocks[0].isStoredTo !== 'globalBlockTree' || gbt.blocks[0].isStoredToTreeId !== gbt.id)
+        throw new Error('globalBlockTree.blocks not initialized');
+    instance.createStoreForInnerTree(gbt.id, gbt.blocks);
+});
+
+signals.on('on-block-dnd-global-block-reference-block-dropped', trid => {
+    instance.registerWebPageDomUpdater(trid);
+});
 
 class EditApp extends preact.Component {
     // changeViewOptions;
@@ -29,6 +42,7 @@ class EditApp extends preact.Component {
      */
     constructor(props) {
         super(props);
+        instance = this;
         this.changeViewOptions = [
             {name: 'edit-mode', label: __('Edit mode')},
             {name: 'go-to-web-page', label: __('Exit edit mode')},
@@ -89,9 +103,9 @@ class EditApp extends preact.Component {
         const {data} = webPage;
         delete webPage.data;
         //
-        if (webPageDomUpdaters.length) {
-            webPageDomUpdaters.forEach(fn => fn());
-            webPageDomUpdaters = [];
+        if (webPageDomUpdaters.size) {
+            for (const fn of webPageDomUpdaters.values()) fn();
+            webPageDomUpdaters.clear();
         }
         this.currentWebPage = webPage;
         webPage.registerEventHandlers2(this.websiteEventHandlers);
@@ -103,10 +117,8 @@ class EditApp extends preact.Component {
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         //
         if (trees.keys().next().value !== 'main') throw new Error('Sanity');
-        const getTree = trid => createSelectBlockTree(trid)(store.getState()).tree;
         for (const [trid, _] of trees) {
-            const fn = webPage.createBlockTreeChangeListener(trid, blockTreeUtils, api.blockTypes, getTree, this);
-            webPageDomUpdaters.push(observeStore(createSelectBlockTree(trid), fn));
+            this.registerWebPageDomUpdater(trid);
         }
         //
         store.dispatch(setCurrentPageDataBundle(data));
@@ -116,10 +128,7 @@ class EditApp extends preact.Component {
         //
         for (const [trid, tree] of trees) {
             if (trid === 'main') continue;
-            const [storeStateKey, reducer] = createBlockTreeReducerPair(trid);
-            if (store.reducerManager.has(storeStateKey)) continue;
-            store.reducerManager.add(storeStateKey, reducer);
-            store.dispatch(createSetBlockTree(trid)(tree, ['init', {}]));
+            this.createStoreForInnerTree(trid, tree);
         }
         store.dispatch(createSetBlockTree('main')(trees.get('main'), ['init', {}]));
         const newState = {currentPage: page};
@@ -223,6 +232,26 @@ class EditApp extends preact.Component {
             }
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         </div>;
+    }
+    /**
+     * @param {String} trid
+     * @access private
+     */
+    registerWebPageDomUpdater(trid) {
+        if (webPageDomUpdaters.has(trid)) return;
+        const fn = this.currentWebPage.createBlockTreeChangeListener(trid, blockTreeUtils, api.blockTypes, getTree, this);
+        webPageDomUpdaters.set(trid, observeStore(createSelectBlockTree(trid), fn));
+    }
+    /**
+     * @param {String} trid
+     * @param {Array<RawBlock2>} tree
+     * @access private
+     */
+    createStoreForInnerTree(trid, tree) {
+        const [storeStateKey, reducer] = createBlockTreeReducerPair(trid);
+        if (store.reducerManager.has(storeStateKey)) return;
+        store.reducerManager.add(storeStateKey, reducer);
+        store.dispatch(createSetBlockTree(trid)(tree, ['init', {}]));
     }
     /**
      * @param {PageType} submittedData
@@ -509,6 +538,14 @@ function maybePatchTitleAndSlug(page) {
         page.path = makePath(page.slug, pageType);
     }
     return page;
+}
+
+/**
+ * @param {String} trid
+ * @returns {Array<RawBlock2>}
+ */
+function getTree(trid) {
+    return createSelectBlockTree(trid)(store.getState()).tree;
 }
 
 export default EditApp;

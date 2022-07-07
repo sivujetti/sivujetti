@@ -63,7 +63,11 @@ class BlockEditForm extends preact.Component {
         const {block, base} = this.props;
         this.blockVals = new BlockValMutator(this.props);
         BlockEditForm.undoingLockIsOn = false;
+        if (!featureFlagConditionUseReduxBlockTree) {
         this.isOutermostBlockOfGlobalBlockTree = base && block.id === base.__globalBlockTree.blocks[0].id;
+        } else {
+        this.isOutermostBlockOfGlobalBlockTree = false;
+        }
         this.userCanSpecializeGlobalBlocks = api.user.can('specializeGlobalBlocks');
         this.blockType = blockTypes.get(block.type);
         this.editFormImpl = this.blockType.editForm;

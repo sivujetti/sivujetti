@@ -375,7 +375,8 @@ class BlockTree extends preact.Component {
             <BlockDnDSpawner
                 mainTreeDnd={ this.dragDrop }
                 mainTree={ this }
-                saveExistingBlocksToBackend={ BlockTree.saveExistingBlocksToBackend }/>
+                saveExistingBlocksToBackend={ BlockTrees.saveExistingBlocksToBackend }
+                currentPageIsPlaceholder={ this.currentPageIsPlaceholder }/>
             <ul class={ `block-tree${!loading ? '' : ' loading'}` } data-sort-group-id="r">{
                 blockTree.length
                     ? renderBranch(blockTree).concat(<li
@@ -711,10 +712,9 @@ class BlockTree extends preact.Component {
     openMoreMenu(block, e) {
         this.setState({blockWithNavOpened: block});
         this.contextMenu.current.open(e, links => {
-            if (block.type === 'GlobalBlockReference')
-                return links.filter(({id}) => id !== 'convert-block-to-global' &&
-                                              id !== 'clone-block');
-            return links;
+            const notThese = []
+                .concat(block.isStoredTo === 'page' ? [] : ['convert-block-to-global', 'clone-block']);
+            return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
         });
     }
     /**

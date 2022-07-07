@@ -2,6 +2,8 @@
 
 namespace Sivujetti\BlockType;
 
+use Sivujetti\Auth\ACL;
+
 final class MenuBlockType implements BlockTypeInterface {
     /**
      * @inheritdoc
@@ -9,13 +11,13 @@ final class MenuBlockType implements BlockTypeInterface {
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
         return $builder
             ->newProperty("tree", $builder::DATA_TYPE_TEXT)
-            ->newProperty("wrapStart", $builder::DATA_TYPE_TEXT)
-            ->newProperty("wrapEnd", $builder::DATA_TYPE_TEXT)
-            ->newProperty("treeStart", $builder::DATA_TYPE_TEXT)
-            ->newProperty("treeEnd", $builder::DATA_TYPE_TEXT)
-            ->newProperty("itemStart", $builder::DATA_TYPE_TEXT)
-            ->newProperty("itemAttrs", $builder::DATA_TYPE_TEXT)
-            ->newProperty("itemEnd", $builder::DATA_TYPE_TEXT)
+            ->newProperty("wrapStart")->dataType($builder::DATA_TYPE_TEXT, canBeEditedBy: ACL::ROLE_ADMIN)
+            ->newProperty("wrapEnd")->dataType($builder::DATA_TYPE_TEXT, canBeEditedBy: ACL::ROLE_ADMIN)
+            ->newProperty("treeStart")->dataType($builder::DATA_TYPE_TEXT, canBeEditedBy: ACL::ROLE_ADMIN)
+            ->newProperty("treeEnd")->dataType($builder::DATA_TYPE_TEXT, canBeEditedBy: ACL::ROLE_ADMIN)
+            ->newProperty("itemStart")->dataType($builder::DATA_TYPE_TEXT, canBeEditedBy: ACL::ROLE_ADMIN)
+            ->newProperty("itemAttrs")->dataType($builder::DATA_TYPE_TEXT, canBeEditedBy: ACL::ROLE_ADMIN)
+            ->newProperty("itemEnd")->dataType($builder::DATA_TYPE_TEXT, canBeEditedBy: ACL::ROLE_ADMIN)
             ->getResult();
     }
 }

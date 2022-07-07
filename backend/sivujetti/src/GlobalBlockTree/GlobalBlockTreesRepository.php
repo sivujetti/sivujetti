@@ -71,18 +71,6 @@ final class GlobalBlockTreesRepository {
             ->fetchAll()[0] ?? null;
     }
     /**
-     * @param string $id
-     * @param object $data
-     * @param bool $doInsertRevision = false
-     * @return int $numAffectedRows
-     */
-    public function updateById(string $id, object $data, bool $updateTreeOnly = true): int {
-        if ($updateTreeOnly !== true)
-            throw new \RuntimeException("");
-        return $this->db->exec("UPDATE `\${p}globalBlocks` SET `blocks` = ? WHERE `id` = ?",
-                               [$data->blocks, $id]);
-    }
-    /**
      * @param \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree[]
      * @return \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree[]
      */

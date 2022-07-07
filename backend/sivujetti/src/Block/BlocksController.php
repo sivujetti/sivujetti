@@ -5,6 +5,7 @@ namespace Sivujetti\Block;
 use Pike\{ArrayUtils, Request, Response, Validation};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder};
+use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository;
 use Sivujetti\Page\{PagesController, PagesRepository, WebPageAwareTemplate};
 use Sivujetti\PageType\Entities\PageType;
@@ -97,11 +98,11 @@ final class BlocksController {
     }
     /**
      * @param object[] $branch
-     * @return object $blockTypes
-     * @return object
+     * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
+     * @return array
      */
     public static function makeStorableBlocksDataFromValidInput(array $branch,
-                                                                object $blockTypes): array {
+                                                                BlockTypes $blockTypes): array {
         $out = [];
         foreach ($branch as $blockData) {
             $b = self::makeStorableBlockDataFromValidInput($blockTypes->{$blockData->type}, $blockData);

@@ -48,6 +48,7 @@ final class PageTypeValidator {
             ->rule("ownFields.*.dataType.isNullable?", "type", "bool")
             ->rule("ownFields.*.dataType.length?", "type", "int")
             ->rule("ownFields.*.dataType.validationRules?", "type", "array")
+            ->rule("ownFields.*.dataType.canBeEditedBy?", "type", "int")
             //->rule("ownFields.*.defaultValue") see below, "maxLength", ValidationUtils::HARD_LONG_TEXT_MAX_LEN)
             //
             ->rule("defaultFields.title.defaultValue", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN);
@@ -109,18 +110,6 @@ final class PageTypeValidator {
         if (!($errors = $v->validate($input)) && $doValidateBlockTypes)
             $errors = $this->blockValidator->validateMany($input->blocks);
         return $errors;
-    }
-    /**
-     * @param object $input
-     * @return string[] Error messages or []
-     */
-    public function validateBlocksUpdateData(object $input): array {
-        if (($errors = Validation::makeObjectValidator()
-            ->rule("blocks", "minLength", "1", "array")
-            ->validate($input))) {
-            return $errors;
-        }
-        return $this->blockValidator->validateMany($input->blocks);
     }
     /**
      * @param \Pike\ObjectValidator $v

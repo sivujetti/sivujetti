@@ -32,17 +32,20 @@ final class PropertiesBuilder {
      * @param ?bool $isNullable = null
      * @param ?int $length = null
      * @param ?array $validationRules = null
+     * @param ?int $canBeEditedBy = null
      * @return $this
      */
     public function dataType(string $type,
                              ?bool $isNullable = null,
                              ?int $length = null,
-                             ?array $validationRules = null): PropertiesBuilder {
+                             ?array $validationRules = null,
+                             ?int $canBeEditedBy = null): PropertiesBuilder {
         $this->head->dataType = (object) [
             "type" => $type,
             "isNullable" => $isNullable !== null ? $isNullable : false,
             "length" => $length,
-            "validationRules" => $validationRules ? array_map(fn(array $r) => ["", ...$r], $validationRules) : null
+            "validationRules" => $validationRules ? array_map(fn(array $r) => ["", ...$r], $validationRules) : null,
+            "canBeEditedBy" => $canBeEditedBy,
         ];
         return $this;
     }

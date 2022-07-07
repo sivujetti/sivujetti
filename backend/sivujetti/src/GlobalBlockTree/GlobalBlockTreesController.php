@@ -4,7 +4,7 @@ namespace Sivujetti\GlobalBlockTree;
 
 use Pike\Db\FluentDb;
 use Pike\{PikeException, Request, Response, Validation};
-use Sivujetti\Block\{BlocksController, BlockTree, BlockValidator};
+use Sivujetti\Block\{BlockPropDiffChecker, BlocksController, BlockTree, BlockValidator};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
 
@@ -24,7 +24,7 @@ final class GlobalBlockTreesController {
                            GlobalBlockTreesRepository $globalBlocksRepo,
                            BlockValidator $blockValidator,
                            BlockTypes $blockTypes): void {
-        if (($errors = $this->validateInput($req->body, $blockValidator, "all"))) {
+        if (($errors = $this->validateInput($req->body, $blockValidator))) {
             $res->status(400)->json($errors);
             return;
         }
@@ -70,28 +70,27 @@ final class GlobalBlockTreesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository $globalBlocksRepo
-     * @param \Sivujetti\Block\BlockValidator $blockValidator
-     * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
+     * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository2 $globalBlocksRepo
+     * @param \Sivujetti\Block\BlockPropDiffChecker $checker
      */
-    public function update(Request $req,
-                           Response $res,
-                           GlobalBlockTreesRepository $globalBlocksRepo,
-                           BlockValidator $blockValidator,
-                           BlockTypes $blockTypes): void {
-        if (($errors = $this->validateInput($req->body, $blockValidator, "blocks"))) {
-            $res->status(400)->json($errors);
-            return;
-        }
-        $num = $globalBlocksRepo->updateById($req->params->globalBlockTreeId, (object) [
-            "blocks" => BlockTree::toJson(
-                BlocksController::makeStorableBlocksDataFromValidInput($req->body->blocks, $blockTypes)
-            )
-        ]);
+    public function updateBlocks(Request $req,
+                                 Response $res,
+                                 GlobalBlockTreesRepository2 $gbtRepo,
+                                 BlockPropDiffChecker $checker): void {
+        $validStorableBlocksJson = $checker->runChecksAndMutateResp(fn() => $gbtRepo->select()
+            ->where("id = ?", [$req->params->globalBlockTreeId])
+            ->fetch()
+            ?->blocks, $req, $res);
+        if (!$validStorableBlocksJson) return;
         //
-        if ($num !== 1)
-            throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",
-                PikeException::INEFFECTUAL_DB_OP);
+        $numAffectedRows = $gbtRepo->update()
+            ->values((object) ["blocks" => $validStorableBlocksJson])
+            ->where("id = ?", $req->params->globalBlockTreeId)
+            ->execute();
+        //
+        if ($numAffectedRows !== 1) throw new PikeException(
+            "Expected \$numAffectedRows to equal 1 but got {$numAffectedRows}",
+            PikeException::INEFFECTUAL_DB_OP);
         //
         $res->status(200)->json(["ok" => "ok"]);
     }
@@ -130,15 +129,10 @@ final class GlobalBlockTreesController {
      * @return string[] Error messages or []
      */
     private function validateInput(object $input,
-                                   BlockValidator $blockValidator,
-                                   string $fields = "all"): array {
-        $validator = Validation::makeObjectValidator();
-        if ($fields === "all") {
-            $validator
-                ->rule("name", "type", "string")
-                ->rule("name", "maxLength", self::MAX_NAME_LEN);
-        }
-        if (($errors = $validator
+                                   BlockValidator $blockValidator): array {
+        if (($errors = Validation::makeObjectValidator()
+            ->rule("name", "type", "string")
+            ->rule("name", "maxLength", self::MAX_NAME_LEN)
             ->rule("blocks", "minLength", "1", "array")
             ->validate($input))) {
             return $errors;

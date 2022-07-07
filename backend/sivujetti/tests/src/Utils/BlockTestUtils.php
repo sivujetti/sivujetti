@@ -137,4 +137,18 @@ final class BlockTestUtils {
             "{$rawBlock->text}{$childMarker}" .
         "</p>";
     }
+    public function createMenuBlockData(array $links = null): array {
+        if (!$links)
+            $links = (object) ["id" => "", "slug" => "/", "text" => "", "children" => []];
+        return [
+            "tree" => json_encode($links),
+            "wrapStart" => "<nav{defaultAttrs}>",
+            "wrapEnd" => "</nav>",
+            "treeStart" => "<ul>",
+            "treeEnd" => "</ul>",
+            "itemAttrs" => json_encode(["data-prop" => "val"]),
+            "itemStart" => "<li>",
+            "itemEnd" => "</li>",
+        ];
+    }
 }

@@ -70,6 +70,7 @@ abstract class PageTypesControllerTestCase extends DbTestCase {
                 "isNullable" => $itm->dataType->isNullable,
                 "length" => null,
                 "validationRules" => null,
+                "canBeEditedBy" => null,
             ],
             "friendlyName" => $itm->friendlyName,
             "defaultValue" => $itm->defaultValue,

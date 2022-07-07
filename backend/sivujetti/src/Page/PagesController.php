@@ -10,6 +10,7 @@ use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\{App, SharedAPIContext, Template, Translator};
 use Sivujetti\Auth\ACL;
+use Sivujetti\Block\{BlockPropDiffChecker};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
@@ -204,7 +205,7 @@ final class PagesController {
                               Response $res,
                               PagesRepository2 $pagesRepo): void {
         $pages = $pagesRepo
-            ->fetch($req->params->pageType)
+            ->select($req->params->pageType)
             ->orderBy("`id` DESC")
             ->limit($pagesRepo::HARD_LIMIT)
             ->fetchAll();
@@ -216,20 +217,25 @@ final class PagesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Sivujetti\Page\PagesRepository $pagesRepo
+     * @param \Sivujetti\Page\PagesRepository $pagesRepoOld
+     * @param \Sivujetti\Page\PagesRepository2 $pagesRepo
+     * @param \Sivujetti\Block\BlockPropDiffChecker $checker
      */
     public function updatePageBlocks(Request $req,
                                      Response $res,
-                                     PagesRepository $pagesRepo): void {
-        $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
+                                     PagesRepository $pagesRepoOld,
+                                     PagesRepository2 $pagesRepo,
+                                     BlockPropDiffChecker $checker): void {
+        $pageType = $pagesRepoOld->getPageTypeOrThrow($req->params->pageType);
+        $validStorableBlocksJson = $checker->runChecksAndMutateResp(fn() => $pagesRepo->select($pageType->name, ["@blocks"])
+            ->where("id = ?", $req->params->pageId)
+            ->fetch()?->blocks, $req, $res);
+        if (!$validStorableBlocksJson) return;
         //
-        $pseudoPage = new \stdClass;
-        $pseudoPage->type = $req->params->pageType;
-        $pseudoPage->blocks = $req->body->blocks;
-        $numAffectedRows = $pagesRepo->updateById($pageType,
-                                                  $req->params->pageId,
-                                                  $pseudoPage,
-                                                  theseColumnsOnly: ["blocks"]);
+        $numAffectedRows = $pagesRepo->update($pageType->name)
+            ->values((object) ["blocks" => $validStorableBlocksJson])
+            ->where("id = ?", $req->params->pageId)
+            ->execute();
         //
         if ($numAffectedRows !== 1) throw new PikeException(
             "Expected \$numAffectedRows to equal 1 but got {$numAffectedRows}",

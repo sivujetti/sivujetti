@@ -27,7 +27,7 @@ final class Field {
         return "`{$this->name}` {$this->dataType->toSql()}";
     }
     /**
-     * @param object $input {name: string, friendlyName: string, dataType: {type: string, isNullable?: bool, length?: int, validationRules?: array[]}, defaultValue: string|int|mixed[]}
+     * @param object $input {name: string, friendlyName: string, dataType: {type: string, isNullable?: bool, length?: int, validationRules?: array[], canBeEditedBy?: int}, defaultValue: string|int|mixed[]}
      * @return \Sivujetti\PageType\Entities\Field
      */
     public static function fromValidatedObject(object $input): Field {
@@ -49,6 +49,8 @@ class DataType {
     public ?int $length;
     /** @var ?array<int, mixed[]> */
     public ?array $validationRules;
+    /** @var ?int */
+    public ?int $canBeEditedBy;
     /**
      * @return string "TEXT", "INT(64)"
      */
@@ -80,7 +82,7 @@ class DataType {
         return $this->type . ($this->length ?? "");
     }
     /**
-     * @param object $obj {type: string, isNullable?: bool, length?: int, validationRules?: array<int, mixed[]>}
+     * @param object $obj {type: string, isNullable?: bool, length?: int, validationRules?: array<int, mixed[]>, canBeEditedBy?: int}
      * @return \Sivujetti\PageType\Entities\DataType
      */
     public static function fromValidatedObject(object $obj): DataType {
@@ -89,6 +91,7 @@ class DataType {
         $out->isNullable = $obj->isNullable ?? false;
         $out->length = $obj->length ?? null;
         $out->validationRules = $obj->validationRules ?? null;
+        $out->canBeEditedBy = $obj->canBeEditedBy ?? null;
         return $out;
     }
 }

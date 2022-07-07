@@ -121,33 +121,19 @@ final class PagesRepository {
      * @param string $id
      * @param object|\Sivujetti\Page\Entities\Page $input
      * @param bool $doInsertRevision = false
-     * @param ?array $theseColumnsOnly = null
      * @return int $numAffectedRows
      */
     public function updateById(PageType $pageType,
                                string $id,
                                object $input,
-                               bool $doInsertRevision = false,
-                               ?array $theseColumnsOnly = null): int {
-        if ($theseColumnsOnly === null) {
-            if (($errors = $this->pageTypeValidator->validateUpdateData($pageType, $input)))
-                throw new PikeException(implode(PHP_EOL, $errors),
-                                        PikeException::BAD_INPUT);
-            $updateData = self::makeStorablePageDataFromValidInput($input, $pageType);
-            $theseColumnsOnly = self::DEFAULT_FIELDS;
-            foreach ($pageType->ownFields as $field)
-                $theseColumnsOnly[] = $field->name;
-        } elseif (count($theseColumnsOnly) === 1 && $theseColumnsOnly[0] === "blocks") {
-            if (($errors = $this->pageTypeValidator->validateBlocksUpdateData($input)))
-                throw new PikeException(implode(PHP_EOL, $errors),
-                                        PikeException::BAD_INPUT);
-            $updateData = (object) ["blocks" =>
-                BlockTree::toJson(BlocksController::makeStorableBlocksDataFromValidInput(
-                                  $input->blocks, $this->blockTypes))
-            ];
-        } else {
-            throw new \InvalidArgumentException("\$theseColumnsOnly supports only ['blocks'] and null");
-        }
+                               bool $doInsertRevision = false): int {
+        if (($errors = $this->pageTypeValidator->validateUpdateData($pageType, $input)))
+            throw new PikeException(implode(PHP_EOL, $errors),
+                                    PikeException::BAD_INPUT);
+        $updateData = self::makeStorablePageDataFromValidInput($input, $pageType);
+        $theseColumnsOnly = self::DEFAULT_FIELDS;
+        foreach ($pageType->ownFields as $field)
+            $theseColumnsOnly[] = $field->name;
         //
         $updateData->lastUpdatedAt = time();
         [$columns, $values] = $this->db->makeUpdateQParts($updateData, $theseColumnsOnly);

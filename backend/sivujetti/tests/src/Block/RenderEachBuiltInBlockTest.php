@@ -264,20 +264,10 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
     }
     private function setupRenderMenuBlocksTest(): \TestState {
         $state = parent::setupTest();
-        $createMenuData = fn($links) => [
-            "tree" => json_encode($links),
-            "wrapStart" => "<nav{defaultAttrs}>",
-            "wrapEnd" => "</nav>",
-            "treeStart" => "<ul>",
-            "treeEnd" => "</ul>",
-            "itemAttrs" => json_encode(["data-prop" => "val"]),
-            "itemStart" => "<li>",
-            "itemEnd" => "</li>",
-        ];
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_MENU,
                 renderer: "sivujetti:block-menu",
-                propsData: $createMenuData([
+                propsData: $this->blockTestUtils->createMenuBlockData([
                     (object) ["id" => "", "slug" => "/", "text" => "", "children" => []]
                 ]),
                 id: "@auto"),

@@ -2,9 +2,12 @@
 
 namespace Sivujetti\Tests\GlobalBlockTree;
 
+use Pike\Interfaces\SessionInterface;
 use Pike\PikeException;
+use Sivujetti\Auth\ACL;
 use Sivujetti\Block\{BlocksController, BlockTree};
-use Sivujetti\Tests\Utils\PageTestUtils;
+use Sivujetti\Block\Entities\Block;
+use Sivujetti\Tests\Utils\{BlockTestUtils, PageTestUtils};
 
 final class UpdateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase {
     public function testUpdateGlobalBlockTreeBlocksWritesUpdatedDataToDb(): void {
@@ -48,7 +51,7 @@ final class UpdateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
     ////////////////////////////////////////////////////////////////////////////
 
 
-    public function testUpdateGlobalBlockTreeRejectsInvalidBlocksInput(): void {
+    public function testUpdateGlobalBlockTreeBlocksCatchesInvalidBlockTypes(): void {
         $state = $this->setupTest();
         $state->inputData->blocks = [(object) ["type" => "not-valid"]];
         $this->insertTestGlobalBlockTreeToDb($state);
@@ -56,5 +59,60 @@ final class UpdateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
         $this->expectException(PikeException::class);
         $this->expectExceptionMessage("Unknown block type `not-valid`");
         $this->sendUpdateGlobalBlockTreeRequest($state);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testUpdateGlobalBlockTreeBlocksCatchesInvalidBasicProps(): void {
+        $state = $this->setupTest();
+        $state->inputData = (object) ["blocks" => [(object) ["type" => "Paragraph", "id" => "not-valid"]]];
+        $this->insertTestGlobalBlockTreeToDb($state);
+        $this->makeTestSivujettiApp($state);
+        $this->sendUpdateGlobalBlockTreeRequest($state);
+        $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
+        $this->verifyResponseBodyEquals([
+            "title must be string",
+            "The length of title must be 1024 or less",
+            "The value of renderer was not in the list",
+            "id is not valid push id",
+            "text must be string",
+            "The length of text must be 1024 or less",
+            "cssClass must be string",
+            "The length of cssClass must be 1024 or less",
+        ], $state->spyingResponse);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testUpdateGlobalBlockTreeBlocksFailsIfUserTriesToUpdateBlockPropWithoutSufficientPermission(): void {
+        $state = $this->setupTryToUpdateBlockWithoutSufficientPermissionTest();
+        $this->simulateMenuBlocksSensitiveDataChanges($state);
+        $this->insertTestGlobalBlockTreeToDb($state);
+        $this->createAppUsingThatUsesThisAsLoggedInUserRole(ACL::ROLE_ADMIN_EDITOR, $state);
+        $this->sendUpdateGlobalBlockTreeRequest($state);
+        $this->verifyResponseMetaEquals(403, "application/json", $state->spyingResponse);
+        $this->verifyResponseBodyEquals(["err" => "Not permitted."], $state->spyingResponse);
+    }
+    private function setupTryToUpdateBlockWithoutSufficientPermissionTest(): \TestState {
+        $state = parent::setupTest();
+        $btu = new BlockTestUtils();
+        $state->inputData->blocks = [$btu->makeBlockData(Block::TYPE_MENU,
+            renderer: "sivujetti:block-menu", propsData: $btu->createMenuBlockData(), id: "@auto")];
+        $state->originalData = json_decode(json_encode($state->inputData));
+        return $state;
+    }
+    private function simulateMenuBlocksSensitiveDataChanges(\TestState $state): void {
+        $menuBlock = $state->inputData->blocks[0];
+        (new BlockTestUtils())->setBlockProp($menuBlock, "itemStart", "<li><img onerror=\"xss\">...");
+    }
+    private function createAppUsingThatUsesThisAsLoggedInUserRole(int $userRole, \TestState $state): void {
+        $this->makeTestSivujettiApp($state, function ($bootModule) use ($userRole) {
+            $bootModule->useMock("auth", [":session" => $this->createMock(SessionInterface::class),
+                                          ":userRole" => $userRole]);
+        });
     }
 }

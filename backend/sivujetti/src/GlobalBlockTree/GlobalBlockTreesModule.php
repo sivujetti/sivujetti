@@ -22,8 +22,8 @@ final class GlobalBlockTreesModule {
                                                          "identifiedBy" => ["read", "globalBlockTrees"]]]
         );
         $router->map("PUT", "/api/global-block-trees/[i:globalBlockTreeId]/blocks",
-            [GlobalBlockTreesController::class, "update", ["consumes" => "application/json",
-                                                           "identifiedBy" => ["update", "globalBlockTrees"]]]
+            [GlobalBlockTreesController::class, "updateBlocks", ["consumes" => "application/json",
+                                                                 "identifiedBy" => ["updateBlocksOf", "globalBlockTrees"]]]
         );
         $router->map("PUT", "/api/global-block-trees/[i:globalBlockTreeId]/block-styles/[i:themeId]",
             [GlobalBlockTreesController::class, "upsertStyles", ["consumes" => "application/json",

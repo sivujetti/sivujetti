@@ -4,7 +4,7 @@ namespace Sivujetti\Page;
 
 use Envms\FluentPDO\Queries\Select;
 use Pike\{ArrayUtils, PikeException};
-use Pike\Db\FluentDb;
+use Pike\Db\{FluentDb, MyUpdate};
 use Pike\Interfaces\RowMapperInterface;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\Db\TempJsonCompatSelect;
@@ -31,7 +31,7 @@ final class PagesRepository2 {
      * @param string[] $fields = [] array<int, "@simple"|"@blocks">
      * @return \Pike\Db\MySelect
      */
-    public function fetch(string $pageTypeName = "Pages", array $fields = []): Select {
+    public function select(string $pageTypeName = "Pages", array $fields = []): Select {
         $pageType = $this->getPageTypeOrThrow($pageTypeName);
         $sqliteVersion = "3.37";
         $compatCls = version_compare($sqliteVersion, "3.38", ">=") ? null : TempJsonCompatSelect::class;
@@ -47,6 +47,14 @@ final class PagesRepository2 {
                     return $page;
                 }
             });
+    }
+    /**
+     * @param string $pageTypeName = "Pages"
+     * @return \Pike\Db\MyUpdate
+     */
+    public function update(string $pageTypeName = "Pages"): MyUpdate {
+        $pageType = $this->getPageTypeOrThrow($pageTypeName);
+        return $this->fluentDb->update("\${p}{$pageType->name}");
     }
     /**
      * @param string $candidate

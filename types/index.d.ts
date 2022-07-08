@@ -129,7 +129,7 @@ interface BlockBlueprint2 {
 interface PageTypeField {
     name: String;
     friendlyName: String;
-    dataType: {type: 'text'|'json'|'int'|'uint'; isNullable: Boolean; length?: Number; validationRules?: Array;};
+    dataType: {type: 'text'|'json'|'int'|'uint'; isNullable: Boolean; length?: Number; validationRules?: Array; canBeEditedBy?: Number;};
     defaultValue: String|null;
 }
 
@@ -350,8 +350,8 @@ interface BlockTreeItemState {
 
 interface BlockTreeReduxState {
     tree: Array<RawBlock2>;
-    // [eventName, eventData, eventOrigin, visibleBlockIsStoredToId, preRender]
-    context: [blockChangeEvent, DefaultChangeEventData|SwapChangeEventData|{}, 'dnd-spawner'|null, String|null, String|null];
+    // [eventName, eventData, eventOrigin, preRender]
+    context: [blockChangeEvent, DefaultChangeEventData|SwapChangeEventData|DeleteChangeEventData|{}, 'dnd-spawner'?, String?];
 }
 
 interface DefaultChangeEventData {
@@ -367,8 +367,17 @@ interface SwapChangeEventData {
     doRevert(): void;
 }
 
+interface DeleteChangeEventData extends DefaultChangeEventData {
+    isRootOfOfTrid: String|null;
+}
+
 interface DragEventReceiver {
     draggedOverFirstTime(block: RawBlock2): {blockId: String; trid: String;}|null;
     swappedBlocks(mutationInfos: [SwapChangeEventData, SwapChangeEventData|null]): void;
     dropped(): void;
+}
+
+interface BlockRendctor {
+    html: String;
+    onAfterInsertedToDom(html: String): void;
 }

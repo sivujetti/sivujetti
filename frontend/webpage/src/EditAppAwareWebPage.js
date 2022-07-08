@@ -308,22 +308,23 @@ class EditAppAwareWebPage {
             //
             const isAdd = event === 'add-single-block';
             if (isAdd || event === 'undo-delete-single-block') {
-                const [block, containingBranch, parent] = findVisibleBlock(context[1].blockId, tree, blockTreeUtils, getTree);
-                const addHtmlToDom = html => {
+                const [block, containingBranch, parent] = blockTreeUtils.findBlock(context[1].blockId, tree);
+                const addHtmlToDom = ({html, onAfterInsertedToDom}) => {
                     const temp = document.createElement('template');
                     temp.innerHTML = withTrid(html, trid);
                     const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
                     const nextEl = getInsertRefEl(nextBlock, treeRootEl);
-                    if ((nextEl && !parent) || (nextEl && parent)) {
+                    if (nextEl)
                         nextEl.parentElement.insertBefore(temp.content, nextEl);
-                    } else if (!nextEl) {
+                    else {
                         const cont = parent ? treeRootEl.querySelector(`[data-block="${parent.id}"]`) : treeRootEl;
                         const endcom = getChildEndComment(getBlockContentRoot(cont));
                         endcom.parentElement.insertBefore(temp.content, endcom);
                     }
+                    onAfterInsertedToDom(html);
                 };
-                const possiblePreRender = context[4];
-                if (typeof possiblePreRender !== 'string')
+                const possiblePreRender = context[3];
+                if (typeof possiblePreRender !== 'object')
                     renderBlockAndThen(block, addHtmlToDom, blockTypes, isAdd ? null : this.getAndWipeStoredInnerContent(block));
                 else
                     addHtmlToDom(possiblePreRender);
@@ -331,12 +332,19 @@ class EditAppAwareWebPage {
             }
             //
             if (event === 'delete-single-block' || event === 'undo-add-single-block') {
-                const getVisibleBlockId2 = (blockId, blockType, isStoredToTreeId) => blockType !== 'GlobalBlockReference' ? blockId : getTree(isStoredToTreeId)[0].id;
-                const blockId = getVisibleBlockId2(context[1].blockId, context[1].blockType, context[3] || null);
-                const el = treeRootEl.querySelector(`[data-block="${blockId}"]`);
-                const html = getChildContentEls(getBlockContentRoot(el), true);
-                if (html) this.deletedInnerContentStorage.set(blockId, html);
-                el.parentElement.removeChild(el);
+                const data = context[1];
+                if (data.blockType !== 'GlobalBlockReference') {
+                    const {blockId} = data;
+                    const el = treeRootEl.querySelector(`[data-block="${blockId}"]`);
+                    const html = getChildContentEls(getBlockContentRoot(el), true);
+                    if (html) this.deletedInnerContentStorage.set(blockId, html);
+                    el.parentElement.removeChild(el);
+                } else {
+                    const blockId = getTree(data.isRootOfOfTrid)[0].id;
+                    const el = treeRootEl.querySelector(`[data-block="${blockId}"]`);
+                    const deletables = [el.previousSibling, el, el.nextSibling];
+                    deletables.forEach(el => el.parentElement.removeChild(el));
+                }
                 return;
             }
             //
@@ -346,7 +354,7 @@ class EditAppAwareWebPage {
                 const block = blockTreeUtils.findBlock(blockId, tree)[0];
                 const el = treeRootEl.querySelector(`[data-block="${block.id}"]`);
                 //
-                const stringOrPromise = blockTypes.get(block.type).reRender(block, () => {
+                const stringOrPromiseOrObj = blockTypes.get(block.type).reRender(block, () => {
                     if (isNormalUpdate) { // Not undo -> cache current child content
                         const html = getChildContentEls(getBlockContentRoot(el), true);
                         this.deletedInnerContentStorage.set(blockId, html);
@@ -356,10 +364,11 @@ class EditAppAwareWebPage {
                     const html = this.getAndWipeStoredInnerContent(block);
                     return html || getChildContentEls(getBlockContentRoot(el), true);
                 });
-                getBlockReRenderResult(stringOrPromise, updatedHtml => {
+                getBlockReRenderResult(stringOrPromiseOrObj, ({html, onAfterInsertedToDom}) => {
                     const temp = document.createElement('template');
-                    temp.innerHTML = withTrid(updatedHtml, trid);
+                    temp.innerHTML = withTrid(html, trid);
                     el.replaceWith(temp.content);
+                    onAfterInsertedToDom(html);
                 });
             }
         };
@@ -1051,22 +1060,6 @@ function getBlockContentRoot(el) {
 }
 
 /**
- * @param {String} blockId
- * @param {Array<RawBlock2>} tree
- * @param {blockTreeUtils} blockTreeUtils
- * @param {(trid: String) => Array<RawBlock2>} getTree
- * @returns {[RawBlock2, Array<RawBlock2>, RawBlock2|null]}
- */
-function findVisibleBlock(blockId, tree, blockTreeUtils, getTree) {
-    const candidate1 = blockTreeUtils.findBlock(blockId, tree);
-    const block = candidate1[0];
-    if (block.type !== 'GlobalBlockReference')
-        return candidate1;
-    const innerTree = getTree(block.globalBlockTreeId);
-    return blockTreeUtils.findBlock(innerTree[0].id, innerTree);
-}
-
-/**
  * @param {HTMLElement} of
  * @param {Boolean} doIncludeBoundaryComments = false
  * @returns {String}
@@ -1136,25 +1129,29 @@ function withTrid(html, trid) {
 
 /**
  * @param {String|Promise<String>} result
- * @param {(html: String) => void} then
+ * @param {(result: BlockRendctor) => void} to
  */
-function getBlockReRenderResult(result, then) {
-    if (typeof result === 'string') then(result);
-    else result.then(html => { then(html); });
+function getBlockReRenderResult(result, to) {
+    if (typeof result === 'string')
+        to({html: result, onAfterInsertedToDom: noop});
+    else if (result instanceof Promise)
+        result.then(html => { to({html, onAfterInsertedToDom: noop}); });
+    else
+        to(result);
 }
 
 /**
  * @param {RawBlock2} block
- * @param {(html: String) => void} then
+ * @param {(result: BlockRendctor) => void} then
  * @param {BlockTypes} blockTypes
  * @param {String} childContent = null
  */
 function renderBlockAndThen(block, then, blockTypes, childContent = null) {
-    const stringOrPromise = blockTypes.get(block.type).reRender(
+    const stringOrPromiseOrObj = blockTypes.get(block.type).reRender(
         block,
         () => childContent || `<!--${CHILDREN_START}--><!--${CHILDREN_END}-->`
     );
-    getBlockReRenderResult(stringOrPromise, then);
+    getBlockReRenderResult(stringOrPromiseOrObj, then);
 }
 
 /**

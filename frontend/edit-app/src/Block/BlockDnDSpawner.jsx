@@ -5,6 +5,13 @@ import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} fro
 import {createBlockFromType} from './utils.js';
 import blockTreeUtils from '../blockTreeUtils.js';
 
+const BlockAddPhase = Object.freeze({
+    RENDERING_STARTED: 'rendering-started',
+    RENDERING_FINISHED: 'rendering-finished',
+    WAITING_DOM_INSERTION: 'waiting-dom-insertion',
+    DONE: 'done',
+});
+
 class BlockDnDSpawner extends preact.Component {
     // selectableBlockTypes;
     // newWaitingBlock;
@@ -129,20 +136,20 @@ class BlockDnDSpawner extends preact.Component {
         }
         this.newWaitingBlock.isStoredTo = 'don\'t-know-yet';
         this.newWaitingBlock.isStoredToTreeId = 'don\'t-know-yet';
-        this.blockAddPhase = 'rendering-started';
+        this.blockAddPhase = BlockAddPhase.RENDERING_STARTED;
         this.preRender = null;
-        renderBlockAndThen(this.newWaitingBlock, html => {
-            if (this.blockAddPhase !== 'rendering-started' ||
+        renderBlockAndThen(this.newWaitingBlock, ({html}) => {
+            if (this.blockAddPhase !== BlockAddPhase.RENDERING_STARTED ||
                 this.newWaitingBlock.type !== newType) return;
             if (this.newWaitingBlock.type === 'GlobalBlockReference')
                 signals.emit('on-block-dnd-global-block-reference-block-drag-started', gbt);
-            this.blockAddPhase = 'rendering-finished';
+            this.blockAddPhase = BlockAddPhase.RENDERING_FINISHED;
             this.preRender = html;
             this.hideLoadingIndicatorIfVisible();
         }, api.blockTypes);
         //
         setTimeout(() => {
-            if (this.blockAddPhase === 'rendering-started')
+            if (this.blockAddPhase === BlockAddPhase.RENDERING_STARTED)
                 this.showLoadingIndicator();
         }, 200);
     }
@@ -161,21 +168,53 @@ class BlockDnDSpawner extends preact.Component {
         this.hideLoadingIndicatorIfVisible();
     }
     /**
-     * @param {RawBlock2} asChildOf
+     * @param {RawBlock2} block
      * @returns {{blockId: String; trid: String;}|null}
      * @access private
      */
-    handleMainDndStartedDrop(asChildOf) {
-        if (this.blockAddPhase !== 'rendering-finished') return null; // Pre-render of this.newWaitingBlock not rendering-finished yet
-        const trid = asChildOf.isStoredToTreeId;
-        this.newWaitingBlock.isStoredToTreeId = trid;
-        this.newWaitingBlock.isStoredTo = asChildOf.isStoredTo;
-        const {tree} = createSelectBlockTree(trid)(store.getState());
-        asChildOf.children.push(this.newWaitingBlock); // Mutate tree temporarily
-        store.dispatch(createSetBlockTree(trid)(tree, ['add-single-block',
-            {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid}, 'dnd-spawner', null, this.preRender]));
-        this.blockAddPhase = 'added';
-        return {blockId: this.newWaitingBlock.id, trid: this.newWaitingBlock.isStoredToTreeId};
+    handleMainDndStartedDrop(block, position) {
+        // Waiting for RENDERING_FINISHED -> skip
+        if (this.blockAddPhase === BlockAddPhase.RENDERING_STARTED) {
+            return null;
+        }
+        // Rendering finished -> emit block to the store and start waiting for onAfterInsertedToDom
+        if (this.blockAddPhase === BlockAddPhase.RENDERING_FINISHED) {
+            this.blockAddPhase = BlockAddPhase.WAITING_DOM_INSERTION;
+            const trid = block.isStoredToTreeId;
+            const {tree} = createSelectBlockTree(trid)(store.getState());
+            if (trid !== 'main') return null;
+            this.newWaitingBlock.isStoredToTreeId = trid;
+            this.newWaitingBlock.isStoredTo = block.isStoredTo;
+            let blockId = this.newWaitingBlock.id;
+            //
+            if (position === 'before') {
+                const before = block;
+                const br = blockTreeUtils.findBlock(before.id, tree)[1];
+                br.splice(br.indexOf(before), 0, this.newWaitingBlock);
+            } else if (position === 'after') {
+                const after = block;
+                const br = blockTreeUtils.findBlock(after.id, tree)[1];
+                br.splice(br.indexOf(after) + 1, 0, this.newWaitingBlock);
+            } else {
+                const asChildOf = block;
+                asChildOf.children.push(this.newWaitingBlock);
+            }
+            store.dispatch(createSetBlockTree(trid)(tree, ['add-single-block',
+                {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid},
+                'dnd-spawner',
+                {html: this.preRender, onAfterInsertedToDom: () => {
+                    if (this.blockAddPhase !== BlockAddPhase.WAITING_DOM_INSERTION || this.newWaitingBlock.id !== blockId) return;
+                    this.blockAddPhase = BlockAddPhase.DONE;
+                }}
+            ]));
+            if (this.blockAddPhase === BlockAddPhase.WAITING_DOM_INSERTION) // onAfterInsertedToDom not triggered yet
+                return null;
+            // else fall through
+        }
+        // onAfterInsertedToDom done -> accept
+        if (this.blockAddPhase === BlockAddPhase.DONE)
+            return {blockId: this.newWaitingBlock.id, trid: this.newWaitingBlock.isStoredToTreeId};
+        return null;
     }
     /**
      * @param {[SwapChangeEventData, SwapChangeEventData|null]} mutationInfos
@@ -190,12 +229,12 @@ class BlockDnDSpawner extends preact.Component {
      * @access private
      */
     handleMainDndGotDrop() {
-        const acceptDrop = this.blockAddPhase === 'added';
+        const acceptDrop = this.blockAddPhase === BlockAddPhase.DONE;
         if (acceptDrop) {
         const trid = this.newWaitingBlock.isStoredToTreeId;
         store.dispatch(createSetBlockTree(trid)(createSelectBlockTree(trid)(store.getState()).tree, ['commit-add-single-block',
             {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid}]));
-        const undoInfo = {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid};
+        const data = this.createDeleteEventData(trid);
         store.dispatch(pushItemToOpQueue(`update-block-tree#${trid}`, {
             doHandle: trid !== 'main' || !this.props.currentPageIsPlaceholder
                 ? () => this.props.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
@@ -203,9 +242,8 @@ class BlockDnDSpawner extends preact.Component {
             ,
             doUndo: () => {
                 const {tree} = createSelectBlockTree(trid)(store.getState());
-                deleteBlockFromTree(undoInfo.blockId, tree);
-                store.dispatch(createSetBlockTree(trid)(tree, ['undo-add-single-block',
-                    undoInfo]));
+                deleteBlockFromTree(data.blockId, tree);
+                store.dispatch(createSetBlockTree(trid)(tree, ['undo-add-single-block', data]));
             },
             args: [],
         }));
@@ -218,14 +256,13 @@ class BlockDnDSpawner extends preact.Component {
      * @access private
      */
     handleDragReturnedFromMainDndWithoutDrop() {
-        if (this.blockAddPhase === 'added') {
+        if (this.blockAddPhase === BlockAddPhase.DONE) {
             const trid = this.newWaitingBlock.isStoredToTreeId;
             const {tree} = createSelectBlockTree(trid)(store.getState());
             deleteBlockFromTree(this.newWaitingBlock.id, tree);
-            store.dispatch(createSetBlockTree(trid)(tree, ['delete-single-block',
-                {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid},
-                'dnd-spawner', trid]));
-            this.blockAddPhase = 'rendering-finished';
+            const data = this.createDeleteEventData(trid);
+            store.dispatch(createSetBlockTree(trid)(tree, ['delete-single-block', data, 'dnd-spawner']));
+            this.blockAddPhase = BlockAddPhase.RENDERING_FINISHED;
         }
         this.handleDragEnded();
     }
@@ -241,6 +278,15 @@ class BlockDnDSpawner extends preact.Component {
             });
         });
         this.setState({globalBlockTrees});
+    }
+    /**
+     * @param {String} trid
+     * @returns {DeleteChangeEventData}
+     * @access private
+     */
+    createDeleteEventData(trid) {
+        return {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid,
+            isRootOfOfTrid: this.newWaitingBlock.type !== 'GlobalBlockReference' ? null : this.newWaitingBlock.globalBlockTreeId};
     }
     /**
      * @access private

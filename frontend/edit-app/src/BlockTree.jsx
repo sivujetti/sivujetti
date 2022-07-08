@@ -37,7 +37,7 @@ class BlockTree extends preact.Component {
         this.contextMenu = preact.createRef();
         this.lastRootBlockMarker = null;
         this.currentAddBlockTarget = null;
-        this.dragDrop = new BlockTreeDragDrop(this, (mutation1, mutation2 = null) => {
+        this.dragDrop = new BlockTreeDragDrop(this, (mutation1, _mutation2 = null) => {
         const trid = mutation1.blockToMove.isStoredToTreeId;
         const {tree} = createSelectBlockTree(trid)(store.getState());
         store.dispatch(createSetBlockTree(trid)(tree, ['swap-blocks', mutation1]));
@@ -439,18 +439,18 @@ class BlockTree extends preact.Component {
             });
             this.pushCommitChangesOp(clonedBlock);
         } else if (link.id === 'delete-block') {
-            const blockToDeleteMaybeNotVisible = this.state.blockWithNavOpened;
+            const blockVisible = this.state.blockWithNavOpened;
             const isSelectedRootCurrentlyClickedBlock = () => {
                 if (!this.selectedRoot)
                     return false;
-                return this.selectedRoot.id === blockToDeleteMaybeNotVisible.id;
+                return this.selectedRoot.id === blockVisible.id;
             };
             const isSelectedRootChildOfCurrentlyClickedBlock = () => {
                 if (!this.selectedRoot)
                     return false;
-                if (!blockToDeleteMaybeNotVisible.children.length)
+                if (!blockVisible.children.length)
                     return false;
-                return !!blockTreeUtils.findRecursively(blockToDeleteMaybeNotVisible.children,
+                return !!blockTreeUtils.findRecursively(blockVisible.children,
                     b => b.id === this.selectedRoot.id);
             };
             //
@@ -458,13 +458,13 @@ class BlockTree extends preact.Component {
                                             isSelectedRootChildOfCurrentlyClickedBlock();
             if (wasCurrentlySelectedBlock) this.selectedRoot = null;
             //
-            let blockToDeleteVisible = blockToDeleteMaybeNotVisible;
-            if (blockToDeleteVisible.isStoredToTreeId !== 'main' &&
-                isTreesOutermostBlock(blockToDeleteVisible, createSelectBlockTree(blockToDeleteVisible.isStoredToTreeId)(store.getState()).tree)) {
-                blockToDeleteVisible = findRefBlockOf(blockToDeleteVisible, createSelectBlockTree('main')(store.getState()).tree);
-            }
-            const trid = blockToDeleteVisible.isStoredToTreeId;
-            const {id, type, isStoredToTreeId} = blockToDeleteVisible;
+            const base = (blockVisible.isStoredToTreeId !== 'main' &&
+                isTreesOutermostBlock(blockVisible, createSelectBlockTree(blockVisible.isStoredToTreeId)(store.getState()).tree))
+                ? findRefBlockOf(blockVisible, createSelectBlockTree('main')(store.getState()).tree)
+                : null;
+            const trid = (base || blockVisible).isStoredToTreeId;
+            const isRootOfOfTrid = !base ? null : base.globalBlockTreeId;
+            const {id, type, isStoredToTreeId} = (base || blockVisible);
             const {tree} = createSelectBlockTree(trid)(store.getState());
             const treeBefore = JSON.parse(JSON.stringify(tree));
             //
@@ -472,7 +472,7 @@ class BlockTree extends preact.Component {
             refBranch.splice(refBranch.indexOf(ref), 1); // Mutates $tree temporarily
             //
             store.dispatch(createSetBlockTree(trid)(tree, ['delete-single-block',
-                {blockId: id, blockType: type, trid}, null, blockToDeleteMaybeNotVisible.isStoredToTreeId]));
+                {blockId: id, blockType: type, trid, isRootOfOfTrid}]));
             store.dispatch(pushItemToOpQueue(`delete-block-from-tree#${isStoredToTreeId}`, {
                 doHandle: isStoredToTreeId !== 'main' || !this.currentPageIsPlaceholder
                     ? () => BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
@@ -480,11 +480,11 @@ class BlockTree extends preact.Component {
                 ,
                 doUndo: () => {
                     store.dispatch(createSetBlockTree(trid)(treeBefore, ['undo-delete-single-block',
-                        {blockId: id, blockType: type, trid}, null, blockToDeleteMaybeNotVisible.isStoredToTreeId]));
+                        {blockId: id, blockType: type, trid, isRootOfOfTrid}]));
                 },
                 args: [],
             }));
-            signals.emit('on-block-deleted', blockToDeleteVisible, wasCurrentlySelectedBlock);
+            signals.emit('on-block-deleted', (base || blockVisible), wasCurrentlySelectedBlock);
         } else if (link.id === 'convert-block-to-global') {
             const blockTreeToStore = this.state.blockWithNavOpened;
             floatingDialog.open(ConvertBlockToGlobalDialog, {

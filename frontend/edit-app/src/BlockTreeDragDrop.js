@@ -27,7 +27,7 @@ class BlockTreeDragDrop {
      * @access public
      */
     handleDragStarted(e) {
-        this.beginDrag(e.target, false);
+        this.beginDrag(e.target);
         this.dragEventReceiver = null;
         this.startEl.classList.add('dragging');
     }
@@ -44,19 +44,11 @@ class BlockTreeDragDrop {
         const div = li.querySelector('.d-flex');
         if (!div)
             return;
-        if (this.dragEventReceiver && !this.startEl) {
-            const cand = this.dragEventReceiver.draggedOverFirstTime(blockTreeUtils.findBlock(li.getAttribute('data-block-id'),
-                createSelectBlockTree(li.getAttribute('data-trid'))(store.getState()).tree)[0]);
-            if (!cand) return; // Receiver / Pre-render not ready yet
-            this.externalElData = cand;
-            this.beginDrag(li, true);
-            return;
-        }
         //
         const rect = div.getBoundingClientRect();
         const distance = this.getDistance(rect);
         if (!this.dragOriginIsExternal) {
-        if (distance === 0 && this.curDropTypeCandidate.el === li)
+        if (distance === 0 && (this.curDropTypeCandidate || {}).el === li)
             return;
         if (distance > 0 && this.startElChildUl && this.startElChildUl.contains(li))
             return;
@@ -91,7 +83,12 @@ class BlockTreeDragDrop {
         }
         //
         const {el} = newCandidate;
-        if (!el.getAttribute('data-last')) {
+        if (el.getAttribute('data-last')) {
+            newCandidate.dropPosition = 'after';
+            newCandidate.el = newCandidate.el.previousElementSibling;
+        }
+        //
+        if (this.curDropTypeCandidate) {
             if (newCandidate.dropPosition === this.curDropTypeCandidate.dropPosition &&
                 el === this.curDropTypeCandidate.el) return;
             // Disallow no-move
@@ -104,14 +101,22 @@ class BlockTreeDragDrop {
             if (newCandidate.dropPosition === 'as-child' && el.classList.contains('with-children') &&
                 this.startElParentUl === el.querySelector('ul'))
                 return;
-        } else {
-            newCandidate.dropPosition = 'after';
-            newCandidate.el = newCandidate.el.previousElementSibling;
+            this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
+        } else if (this.dragEventReceiver && !this.startEl) {
+            const liAdj = !li.getAttribute('data-last') ? li : li.previousElementSibling;
+            const trid = liAdj.getAttribute('data-trid');
+            const blockId = liAdj.getAttribute('data-block-id');
+            const block = trid === 'main' || !isTreesOutermostBlock(blockId, createSelectBlockTree(trid)(store.getState()).tree)
+                ? blockTreeUtils.findBlock(blockId, createSelectBlockTree(trid)(store.getState()).tree)[0]
+                : findRefBlockOf(trid, createSelectBlockTree('main')(store.getState()).tree);
+            //
+            const cand = this.dragEventReceiver.draggedOverFirstTime(block, newCandidate.dropPosition);
+            if (cand === null) return;
+            this.externalElData = cand;
+            this.beginDrag(liAdj);
+            this.curDropTypeCandidate = newCandidate;
         }
         //
-        if (this.curDropTypeCandidate.el && this.curDropTypeCandidate.dropPosition !== 'self') {
-            this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
-        }
         newCandidate.el.classList.add(`maybe-drop-${newCandidate.dropPosition}`);
         if (this.dragOriginIsExternal && newCandidate.dropPosition !== this.curDropTypeCandidate.dropPosition) {
             const mutationInfos = this.applySwap(newCandidate, this.externalElData);
@@ -144,28 +149,22 @@ class BlockTreeDragDrop {
      * @access public
      */
     setDragEventReceiver(receiver) {
+        if (receiver)
+            this.dragOriginIsExternal = true;
         if (!receiver && this.startEl)
             this.endDrag();
         this.dragEventReceiver = receiver;
     }
     /**
      * @param {HTMLLIElement} li
-     * @param {Boolean} isExternal
      * @access private
      */
-    beginDrag(li, isExternal) {
+    beginDrag(li) {
         this.startEl = li;
-        this.dragOriginIsExternal = isExternal;
         this.startElChildUl = this.startEl.classList.contains('with-children') ? this.startEl.querySelector('ul') : null;
         this.startElParentUl = this.startEl.parentElement;
         this.startElDropGroup = this.startEl.getAttribute('data-drop-group');
         this.startLiDivRect = this.startEl.querySelector('.d-flex').getBoundingClientRect();
-        if (!isExternal)
-            this.curDropTypeCandidate = {dropPosition: 'self', dragDirection: null, el: null};
-        else {
-            this.curDropTypeCandidate = {dropPosition: 'as-child', dragDirection: null, el: li};
-            li.classList.add('maybe-drop-as-child');
-        }
     }
     /**
      * @param {DropCandidate} dropInfo
@@ -183,19 +182,19 @@ class BlockTreeDragDrop {
             const blockId2 = findRefBlockOf(dragBlock, dragBlockTree).id;
             [dragBlock, dragBranch] = blockTreeUtils.findBlock(blockId2, dragBlockTree);
         }
-        let dropBlockTree, dropBlock, dropBranch, dropBlockParent;
+        let dropBlockTree, dropBlock, dropBranch, _dropBlockParent;
         const {el} = dropInfo;
         dropBlockTree = createSelectBlockTree(el.getAttribute('data-trid'))(store.getState()).tree;
         if (!el.getAttribute('data-last')) {
             const blockId = el.getAttribute('data-block-id');
-            [dropBlock, dropBranch, dropBlockParent] = blockTreeUtils.findBlock(blockId, dropBlockTree);
+            [dropBlock, dropBranch, _dropBlockParent] = blockTreeUtils.findBlock(blockId, dropBlockTree);
             if (dropBlock.isStoredToTreeId !== 'main' && isTreesOutermostBlock(blockId, dropBlockTree)) {
                 dropBlockTree = createSelectBlockTree('main')(store.getState()).tree;
                 const blockId2 = findRefBlockOf(dropBlock, dropBlockTree).id;
-                [dropBlock, dropBranch, dropBlockParent] = blockTreeUtils.findBlock(blockId2, dropBlockTree);
+                [dropBlock, dropBranch, _dropBlockParent] = blockTreeUtils.findBlock(blockId2, dropBlockTree);
             }
         } else {
-            [dropBlock, dropBranch, dropBlockParent] = [
+            [dropBlock, dropBranch, _dropBlockParent] = [
                 dropBlockTree[dropBlockTree.length - 1],
                 dropBlockTree,
                 null,
@@ -267,6 +266,7 @@ class BlockTreeDragDrop {
     endDrag() {
         this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
         this.curDropTypeCandidate = null;
+        this.dragOriginIsExternal = null;
         this.clearDragEl();
     }
     /**
@@ -275,6 +275,7 @@ class BlockTreeDragDrop {
      * @access private
      */
     getDistance(toRect) {
+        if (!this.startLiDivRect) return 0;
         const {top, height} = this.startLiDivRect;
         const diff = toRect.top - top;
         return diff / height;

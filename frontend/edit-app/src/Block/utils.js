@@ -55,12 +55,12 @@ function isTreesOutermostBlock(blockOrBlockId, tree) {
 }
 
 /**
- * @param {RawBlock2} innerTreeBlock
+ * @param {RawBlock2|String} innerTreeBlockOrTrid
  * @param {Array<RawBlock2>} tree
  * @returns {RawBlock2} {type: 'GlobalBlockReference'}
  */
-function findRefBlockOf(innerTreeBlock, tree) {
-    const trid = innerTreeBlock.isStoredToTreeId;
+function findRefBlockOf(innerTreeBlockOrTrid, tree) {
+    const trid = typeof innerTreeBlockOrTrid !== 'string' ? innerTreeBlockOrTrid.isStoredToTreeId : innerTreeBlockOrTrid;
     return blockTreeUtils.findRecursively(tree, block =>
         block.type === 'GlobalBlockReference' && block.globalBlockTreeId === trid
     );

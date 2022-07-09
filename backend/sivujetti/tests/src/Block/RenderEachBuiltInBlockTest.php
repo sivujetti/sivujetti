@@ -62,6 +62,38 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
     ////////////////////////////////////////////////////////////////////////////
 
 
+    public function testRenderBlockRendersCodeBlocks(): void {
+        $makeExpectedHtml = fn($b, $cls = "") =>
+            "<div{$cls} data-block-type=\"Code\" data-block=\"{$b->id}\">" .
+                "{$b->code}[childMarker]" .
+            "</div>";
+        //
+        $state = $this->setupRenderCodeBlocksTest();
+        $this->makeTestSivujettiApp($state);
+        $b = $state->testBlocks;
+        $expectedHtml = $makeExpectedHtml($b[0]);
+        $this->renderAndVerify($state, 0, $expectedHtml);
+        //
+        $expectedHtml2 = $makeExpectedHtml($b[1], " class=\"escape&lt;\"");
+        $this->renderAndVerify($state, 1, $expectedHtml2);
+    }
+    private function setupRenderCodeBlocksTest(): \TestState {
+        $state = parent::setupTest();
+        $state->testBlocks = [
+            $this->blockTestUtils->makeBlockData(Block::TYPE_CODE,
+                propsData: ["code" => "<iframe></iframe>", "cssClasses" => ""],
+                id: "@auto"),
+            $this->blockTestUtils->makeBlockData(Block::TYPE_CODE,
+                propsData: ["code" => "<iframe></iframe>", "cssClasses" => "escape<"],
+                id: "@auto"),
+        ];
+        return $state;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
     public function testRenderBlockRendersColumns(): void {
         $makeExpectedHtml = fn($b, $inline = "", $cls = "") =>
             "<div class=\"jet-columns num-cols-{$b->numColumns}{$inline}{$cls}\"" .

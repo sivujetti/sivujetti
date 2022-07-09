@@ -84,6 +84,7 @@ return [
     "\$backend/sivujetti/src/BlockType/HeadingBlockType.php",
     "\$backend/sivujetti/src/BlockType/PropertiesBuilder.php",
     "\$backend/sivujetti/src/BlockType/ImageBlockType.php",
+    "\$backend/sivujetti/src/BlockType/CodeBlockType.php",
     "\$backend/sivujetti/src/BlockType/RichTextBlockType.php",
     "\$backend/sivujetti/src/BlockType/Entities/BlockProperty.php",
     "\$backend/sivujetti/src/BlockType/Entities/BlockTypes.php",

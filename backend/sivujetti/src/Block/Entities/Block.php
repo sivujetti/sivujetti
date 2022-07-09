@@ -6,6 +6,7 @@ use Sivujetti\PushIdGenerator;
 
 final class Block {
     public const TYPE_BUTTON           = "Button";
+    public const TYPE_CODE             = "Code";
     public const TYPE_COLUMNS          = "Columns";
     public const TYPE_GLOBAL_BLOCK_REF = "GlobalBlockReference";
     public const TYPE_HEADING          = "Heading";
@@ -34,6 +35,9 @@ final class Block {
     public string $linkTo; e.g. "/my-page", "https://foo.com", "//foo.com"
     public string $tagType; "link"|"button"|"submit"
     public string $cssClass; */
+
+    /* If self::TYPE_CODE
+    public string $code; */
 
     /* If self::TYPE_COLUMNS
     public string $cssClass; */

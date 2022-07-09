@@ -123,6 +123,10 @@ stringBundles.push({
     'Css classes': 'Css classes',
     'Tag type': 'Tag type',
     'Button text': 'Button text',
+    // edit-app/src/block-types/code.js
+    'Code': 'Code',
+    'My code ...': 'My code ...',
+    'Waits for configuration ...': 'Waits for configuration ...',
     // edit-app/src/block-types/columns.js
     'Columns': 'Columns',
     'Num columns': 'Num columns',

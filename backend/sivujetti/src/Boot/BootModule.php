@@ -10,10 +10,10 @@ use Pike\Auth\Defaults\DefaultCookieStorage;
 use Pike\Defaults\DefaultUserRepository;
 use Pike\Interfaces\{FileSystemInterface, SessionInterface};
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\BlockType\{ButtonBlockType, ColumnsBlockType, GlobalBlockReferenceBlockType,
-                         HeadingBlockType, ImageBlockType, ListingBlockType, MenuBlockType,
-                         PageInfoBlockType, ParagraphBlockType, RichTextBlockType,
-                         SectionBlockType};
+use Sivujetti\BlockType\{ButtonBlockType, CodeBlockType, ColumnsBlockType,
+                         GlobalBlockReferenceBlockType, HeadingBlockType, ImageBlockType,
+                         ListingBlockType, MenuBlockType, PageInfoBlockType,
+                         ParagraphBlockType, RichTextBlockType, SectionBlockType};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Plugin\Entities\Plugin;
@@ -127,6 +127,7 @@ class BootModule {
         $doCreateBlockTypes = !isset($apiCtx->blockTypes);
         $blockTypes = $doCreateBlockTypes ? new BlockTypes : $apiCtx->blockTypes;
         $blockTypes->{Block::TYPE_BUTTON} = new ButtonBlockType;
+        $blockTypes->{Block::TYPE_CODE} = new CodeBlockType;
         $blockTypes->{Block::TYPE_COLUMNS} = new ColumnsBlockType;
         $blockTypes->{Block::TYPE_GLOBAL_BLOCK_REF} = new GlobalBlockReferenceBlockType;
         $blockTypes->{Block::TYPE_HEADING} = new HeadingBlockType;
@@ -149,7 +150,10 @@ class BootModule {
 
         //
         $fluentDb = $di->make(FluentDb::class);
-        $fluentDb->getDb()->open([\PDO::ATTR_EMULATE_PREPARES => 0]);
+        $fluentDb->getDb()->open(array_merge([\PDO::ATTR_EMULATE_PREPARES => 0], $this->config["db.driver"] === "sqlite"
+            ? []
+            : [\PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE"]
+        ));
         $apiCtx = $di->make(SharedAPIContext::class);
         if (!($theWebsite = TheWebsiteRepository::fetchActive($fluentDb)))
             throw new PikeException("Site not installed", 301010);

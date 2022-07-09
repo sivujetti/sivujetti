@@ -7,6 +7,7 @@ import BlockTypes from './src/block-types/block-types.js';
 import createMenuBlockType from './src/block-types/Menu/menu.js';
 import createButtonBlockType from './src/block-types/button.js';
 import createColumnsBlockType from './src/block-types/columns.js';
+import createCodeBlockType from './src/block-types/code.js';
 import createGlobalBlockReferenceBlockType from './src/block-types/globalBlockReference.js';
 import createHeadingBlockType from './src/block-types/heading.js';
 import createImageBlockType from './src/block-types/image.js';
@@ -56,6 +57,7 @@ function configureServices() {
     const blockTypes = new BlockTypes(api);
     blockTypes.register('Menu', createMenuBlockType);
     blockTypes.register('Button', createButtonBlockType);
+    blockTypes.register('Code', createCodeBlockType);
     blockTypes.register('Columns', createColumnsBlockType);
     blockTypes.register('GlobalBlockReference', createGlobalBlockReferenceBlockType);
     blockTypes.register('Heading', createHeadingBlockType);

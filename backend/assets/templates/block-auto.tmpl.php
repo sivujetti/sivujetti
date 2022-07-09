@@ -48,6 +48,15 @@ else:
         $this->renderChildren($props),
     "</div>";
 endif;
+elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_CODE):
+    echo "<div", $props->cssClasses ? " class=\"{$this->e($props->cssClasses)}\"" : "",
+            " data-block-type=\"", \Sivujetti\Block\Entities\Block::TYPE_CODE,
+            "\" data-block=\"", $props->id, "\">",
+        $props->code
+            ? $props->code // @allow raw html/css/js
+            : $this->__("Waits for configuration ..."),
+        $this->renderChildren($props),
+    "</div>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_PAGE_INFO):
     echo "";
 else:

@@ -123,6 +123,10 @@ stringBundles.push({
     'Css classes': 'Css-luokat',
     'Tag type': 'Elementin tyyppi',
     'Button text': 'Napin teksti',
+    // edit-app/src/block-types/code.js
+    'Code': 'Koodi',
+    'My code ...': 'Koodia ...',
+    'Waits for configuration ...': 'Odottaa konfigurointia ...',
     // edit-app/src/block-types/columns.js
     'Columns': 'Sarakkeet',
     'Num columns': 'Sarakkeita',

@@ -317,16 +317,24 @@ class EditAppAwareWebPage {
                     if (nextEl)
                         nextEl.parentElement.insertBefore(temp.content, nextEl);
                     else {
-                        const cont = parent ? treeRootEl.querySelector(`[data-block="${parent.id}"]`) : treeRootEl;
+                        const cont = parent ? treeRootEl.querySelector(`[data-block="${getVisibleBlockId(parent)}"]`) : treeRootEl;
                         const endcom = getChildEndComment(getBlockContentRoot(cont));
                         endcom.parentElement.insertBefore(temp.content, endcom);
                     }
                     onAfterInsertedToDom(html);
                 };
                 const possiblePreRender = context[3];
-                if (typeof possiblePreRender !== 'object')
-                    renderBlockAndThen(block, addHtmlToDom, blockTypes, isAdd ? null : this.getAndWipeStoredInnerContent(block));
-                else
+                if (typeof possiblePreRender !== 'object') {
+                    const inner = isAdd
+                        ? !context[1].cloneOf
+                            ? null
+                            : cloneChildEls(blockTreeUtils.findBlock(context[1].cloneOf, tree)[0],
+                                blockTreeUtils.findBlock(context[1].blockId, tree)[0],
+                                blockTreeUtils,
+                                treeRootEl)
+                        : this.getAndWipeStoredInnerContent(block);
+                    renderBlockAndThen(block, addHtmlToDom, blockTypes, inner);
+                } else
                     addHtmlToDom(possiblePreRender);
                 return;
             }
@@ -336,7 +344,7 @@ class EditAppAwareWebPage {
                 if (data.blockType !== 'GlobalBlockReference') {
                     const {blockId} = data;
                     const el = treeRootEl.querySelector(`[data-block="${blockId}"]`);
-                    const html = getChildContentEls(getBlockContentRoot(el), true);
+                    const html = getChildContentEls(el, true);
                     if (html) this.deletedInnerContentStorage.set(blockId, html);
                     el.parentElement.removeChild(el);
                 } else {
@@ -356,13 +364,13 @@ class EditAppAwareWebPage {
                 //
                 const stringOrPromiseOrObj = blockTypes.get(block.type).reRender(block, () => {
                     if (isNormalUpdate) { // Not undo -> cache current child content
-                        const html = getChildContentEls(getBlockContentRoot(el), true);
+                        const html = getChildContentEls(el, true);
                         this.deletedInnerContentStorage.set(blockId, html);
                         return html;
                     }
                     // Undo -> use previously cached child content
                     const html = this.getAndWipeStoredInnerContent(block);
-                    return html || getChildContentEls(getBlockContentRoot(el), true);
+                    return html || getChildContentEls(el, true);
                 });
                 getBlockReRenderResult(stringOrPromiseOrObj, ({html, onAfterInsertedToDom}) => {
                     const temp = document.createElement('template');
@@ -1065,7 +1073,7 @@ function getBlockContentRoot(el) {
  * @returns {String}
  */
 function getChildContentEls(of, doIncludeBoundaryComments = false) {
-    const start = getChildStartComment(of);
+    const start = getChildStartComment(getBlockContentRoot(of));
     if (!start) return '';
     //
     const htmls = doIncludeBoundaryComments ? [`<!--${start.nodeValue}-->`] : [];
@@ -1079,6 +1087,28 @@ function getChildContentEls(of, doIncludeBoundaryComments = false) {
         el = el.nextSibling;
     }
     return htmls.join('');
+}
+
+/**
+ * @param {RawBlock2} original
+ * @param {RawBlock2} cloned
+ * @param {blockTreeUtils} blockTreeUtils
+ * @param {HTMLElement} treeRootEl
+ * @returns {HTMLElement}
+ */
+function cloneChildEls(original, cloned, blockTreeUtils, treeRootEl) {
+    const flatOriginal = [];
+    blockTreeUtils.traverseRecursively(original.children, b2 => {
+        flatOriginal.push(b2);
+    });
+    const flatCloned = [];
+    blockTreeUtils.traverseRecursively(cloned.children, b1 => {
+        flatCloned.push(b1);
+    });
+    const clonedEl = treeRootEl.querySelector(`[data-block="${original.id}"]`).cloneNode(true);
+    for (let i = 0; i < flatOriginal.length; ++i)
+        clonedEl.querySelector(`[data-block="${flatOriginal[i].id}"]`).setAttribute('data-block', flatCloned[i].id);
+    return getChildContentEls(clonedEl, true);
 }
 
 /**

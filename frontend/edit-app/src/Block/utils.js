@@ -24,6 +24,18 @@ function createBlockFromType(blockType, trid = 'main', id = generatePushID(), pr
 }
 
 /**
+ * @param {RawBlock2} block
+ * @returns {RawBlock2}
+ */
+function cloneDeep(block) {
+    const cloned = JSON.parse(JSON.stringify(block));
+    blockTreeUtils.traverseRecursively([cloned], block => {
+        block.id = generatePushID();
+    });
+    return cloned;
+}
+
+/**
  * @param {BlockType} blockType
  * @param {{[key: String]: any;}} props = null
  * @returns {{[key: String]: any; propsData: Array<{key: String; value: any;}>;}}
@@ -91,4 +103,4 @@ function treeToTransferable(tree) {
 }
 
 export {createBlockFromType, isTreesOutermostBlock, findRefBlockOf,
-        treeToTransferable};
+        treeToTransferable, cloneDeep};

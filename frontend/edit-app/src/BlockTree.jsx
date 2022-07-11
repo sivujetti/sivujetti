@@ -9,7 +9,7 @@ import store, {observeStore, createSelectBlockTree, createSetBlockTree, pushItem
 import BlockTreeDragDrop from './BlockTreeDragDrop.js';
 import ConvertBlockToGlobalDialog from './ConvertBlockToGlobalBlockTreeDialog.jsx';
 import {getIcon} from './block-types/block-types.js';
-import {createBlockFromType, findRefBlockOf, isTreesOutermostBlock} from './Block/utils.js';
+import {cloneDeep, createBlockFromType, findRefBlockOf, isTreesOutermostBlock} from './Block/utils.js';
 import BlockDnDSpawner from './Block/BlockDnDSpawner.jsx';
 
 let BlockTrees;
@@ -418,26 +418,7 @@ class BlockTree extends preact.Component {
                     return state;
                 });
         } else if (link.id === 'clone-block') {
-            const clonedBlock = Block.cloneDeep(this.state.blockWithNavOpened);
-            const [cloneFrom, branch] = blockTreeUtils.findBlock(this.state.blockWithNavOpened.id,
-                this.getTreeFor(this.state.blockWithNavOpened));
-            BlockTrees.currentWebPage.appendClonedBlockBranchToDom(clonedBlock, cloneFrom, blockTreeUtils).then(_crefs => {
-                const treeStateMutRef = this.state.treeState;
-                blockTreeUtils.traverseRecursively([clonedBlock], b => {
-                    b._cref = _crefs[b.id];                        // Note: mutates this.state.blockTree or globalBlockTreeBlocks.someTree
-                    treeStateMutRef[b.id] = createTreeStateItem(); // Note: mutates this.state.treeState
-                });
-                branch.splice(branch.indexOf(cloneFrom) + 1, 0, clonedBlock); // mutates this.state.blockTree or globalBlockTreeBlocks.someTree
-                this.setState({
-                    blockTree: this.state.blockTree,
-                    treeState: treeStateMutRef
-                });
-            })
-            .then(newBlock => {
-                signals.emit('on-block-tree-block-cloned', clonedBlock);
-                return newBlock;
-            });
-            this.pushCommitChangesOp(clonedBlock);
+            this.cloneBlock(this.state.blockWithNavOpened);
         } else if (link.id === 'delete-block') {
             const blockVisible = this.state.blockWithNavOpened;
             const isSelectedRootCurrentlyClickedBlock = () => {
@@ -496,6 +477,17 @@ class BlockTree extends preact.Component {
             });
         }
     }
+    cloneBlock(openBlock) {
+        const trid = openBlock.isStoredToTreeId;
+        if (trid !== 'main') throw new Error();
+        const {tree} = createSelectBlockTree(trid)(store.getState());
+        const treeBefore = JSON.parse(JSON.stringify(tree));
+        const [toClone, branch] = blockTreeUtils.findBlock(openBlock.id, tree);
+        const cloned = cloneDeep(toClone);
+        branch.splice(branch.indexOf(toClone) + 1, 0, cloned);
+        this.emitAddBlock(trid, tree, cloned, treeBefore, toClone.id);
+        signals.emit('on-block-tree-block-cloned', cloned);
+    }
     addParagraph(openBlock, where) {
         let trid = openBlock.isStoredToTreeId;
         if (trid !== 'main' && where === 'after' && isTreesOutermostBlock(openBlock, createSelectBlockTree(trid)(store.getState()).tree)) {
@@ -513,8 +505,11 @@ class BlockTree extends preact.Component {
         } else {
             throw new Error('Invalid where');
         }
+        this.emitAddBlock(trid, tree, newBlock, treeBefore);
+    }
+    emitAddBlock(trid, tree, newBlock, treeBefore, cloneOf = null) {
         store.dispatch(createSetBlockTree(trid)(tree, ['add-single-block',
-            {blockId: newBlock.id, blockType: newBlock.type, trid}]));
+            {blockId: newBlock.id, blockType: newBlock.type, trid, cloneOf}]));
         store.dispatch(pushItemToOpQueue(`append-block-to-tree#${trid}`, {
             doHandle: trid !== 'main' || !this.currentPageIsPlaceholder
                 ? () => BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)

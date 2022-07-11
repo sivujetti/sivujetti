@@ -351,13 +351,14 @@ interface BlockTreeItemState {
 interface BlockTreeReduxState {
     tree: Array<RawBlock2>;
     // [eventName, eventData, eventOrigin, preRender]
-    context: [blockChangeEvent, DefaultChangeEventData|SwapChangeEventData|DeleteChangeEventData|{}, 'dnd-spawner'?, String?];
+    context: [blockChangeEvent, DefaultChangeEventData|SwapChangeEventData|DeleteChangeEventData|AddChangeEvent|{}, 'dnd-spawner'?, String?];
 }
 
 interface DefaultChangeEventData {
     blockId: String;
     blockType: String;
     trid: String;
+    cloneOf?: String;
 }
 
 interface SwapChangeEventData {
@@ -369,6 +370,10 @@ interface SwapChangeEventData {
 
 interface DeleteChangeEventData extends DefaultChangeEventData {
     isRootOfOfTrid: String|null;
+}
+
+interface AddChangeEvent extends DefaultChangeEventData {
+    cloneOf: String|null;
 }
 
 interface DragEventReceiver {

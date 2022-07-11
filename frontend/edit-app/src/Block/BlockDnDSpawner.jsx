@@ -200,7 +200,7 @@ class BlockDnDSpawner extends preact.Component {
                 asChildOf.children.push(this.newWaitingBlock);
             }
             store.dispatch(createSetBlockTree(trid)(tree, ['add-single-block',
-                {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid},
+                {blockId: this.newWaitingBlock.id, blockType: this.newWaitingBlock.type, trid, cloneOf: null},
                 'dnd-spawner',
                 {html: this.preRender, onAfterInsertedToDom: () => {
                     if (this.blockAddPhase !== BlockAddPhase.WAITING_DOM_INSERTION || this.newWaitingBlock.id !== blockId) return;

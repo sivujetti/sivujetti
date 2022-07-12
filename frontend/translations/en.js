@@ -3,9 +3,13 @@ import validationStrings from './include-internal/validation.en.js';
 
 stringBundles.push({
     'Page': 'Page',
+    'Categories': 'Categories',
     'Services': 'Services',
     'Services#partitive': 'Services',
     'Service': 'Service',
+    // edit-app/src/Block/BlockDnDSpawner.jsx
+    'Start adding content': 'Start adding content',
+    'Filter': 'Filter',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Create %s',
     'Cancel add %s': 'Cancel add %s',
@@ -35,7 +39,12 @@ stringBundles.push({
     // edit-app/src/BlockTrees.jsx
     'Add content to this page': 'Add content to this page',
     // edit-app/src/BlockTreeShowHelopPopup.jsx
-    'todo.': 'todo.',
+    'todo1': 'todo1',
+    'todo2': 'todo2',
+    'todo3': 'todo3',
+    'todo4': 'todo4',
+    'todo5': 'todo5',
+    'todo6': 'todo6',
     'Colorless': 'Colorless',
     'Ordinary content, which don\'t have a background color, are ': 'Ordinary content, which don\'t have a background color, are ',
     'stored to this page only': 'stored to this page only',

@@ -8,6 +8,7 @@ import {treeToTransferable} from '../Block/utils.js';
 import blockTreeUtils from '../blockTreeUtils.js';
 import {CountingLinkItemFactory} from '../block-types/Menu/EditForm.jsx';
 import {BlockValMutator} from '../BlockEditForm.jsx';
+import OnThisPageSection from '../DefaultView/OnThisPageSection.jsx';
 
 const ID_NONE = '-';
 const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
@@ -172,7 +173,7 @@ class PageCreateMainPanelView extends preact.Component {
                     containingView="CreatePage"
                     ref={ blockTreesRef }/>
             </section>
-        </form> : <form>
+        </form> : <form class="page-create">
             <header class="panel-section pb-0">
                 <h1 class="mb-2">{ __('Create %s', name) }</h1>
                 <button
@@ -181,11 +182,7 @@ class PageCreateMainPanelView extends preact.Component {
                     title={ __('Cancel add %s', name) }
                     type="button">&lt; { __('Back') }</button>
             </header>
-            <section>
-                <BlockTrees
-                    containingView="CreatePage"
-                    ref={ blockTreesRef }/>
-            </section>
+            <OnThisPageSection containingView="CreatePage" blockTreesRef={ blockTreesRef }/>
         </form>;
     }
     /**

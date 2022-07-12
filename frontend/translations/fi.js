@@ -3,9 +3,13 @@ import validationStrings from './include-internal/validation.fi.js';
 
 stringBundles.push({
     'Page': 'Sivu',
+    'Categories': 'Kategoriat',
     'Services': 'Palvelut',
     'Services#partitive': 'Palvelua',
     'Service': 'Palvelu',
+    // edit-app/src/Block/BlockDnDSpawner.jsx
+    'Start adding content': 'Aloita lisäämään sisältöä',
+    'Filter': 'Suodata',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Luo %s',
     'Cancel add %s': 'Peruuta %s luonti',
@@ -35,7 +39,12 @@ stringBundles.push({
     // edit-app/src/BlockTrees.jsx
     'Add content to this page': 'Lisää sisältöä tähän sivuun',
     // edit-app/src/BlockTreeShowHelpPopup.jsx
-    'todo.': 'Sivujetissä sivujen sisältö esitetään tällaisena puurakenteena: yksi puun rivi (tai haara) vastaa yhtä sivun osiota tai sisältöä. Voit järjestellä sivun eri osioita sisältöpuun rivejä raahaamalla. Voit lisätä sivuun uutta sisältää sisältöpuun yläpuolella olevasta "Lisää sisältöä tähän sivuun" -painikkeesta tai sisältöpuun rivien ●●● painikkeista.',
+    'todo1': 'Sivujetissä sivujen sisältö esitetään tällaisena puurakenteena: yksi puun rivi tai haara vastaa yhtä sivun osiota tai sisältöä. Voit ',
+    'todo2': 'järjestellä',
+    'todo3': ' sivun eri osioita sisältöpuun rivejä raahaamalla. Voit aloittaa ',
+    'todo4': 'lisäämään sisältöä',
+    'todo5': ' -napista',
+    'todo6': ' sivun vasemmalla reunalla.',
     'Colorless': 'Väritön',
     'Ordinary content, which don\'t have a background color, are ': 'Tavallinen sisältö, joilla ei ole taustaväriä, on ',
     'stored to this page only': 'tallennettu vain tähän sivuun',

@@ -12,14 +12,16 @@ const BlockAddPhase = Object.freeze({
     DONE: 'done',
 });
 
+/** @type {() => void} */
+let unregScrollListener;
+
 class BlockDnDSpawner extends preact.Component {
     // selectableBlockTypes;
     // newWaitingBlock;
     // blockAddPhase;
     // preRender;
-    // started;
     // rootEl;
-    // rootElLeft;
+    // rootElRight;
     // mainDndEventReceiver;
     // onDragStart;
     // onDragEnd;
@@ -29,27 +31,25 @@ class BlockDnDSpawner extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {isOpen: false, dragExitedLeft: false, globalBlockTrees: []};
+        this.state = {isOpen: false, dragExitedRight: false, globalBlockTrees: [], isMounted: false};
         this.selectableBlockTypes = Array.from(api.blockTypes.entries()).filter(([name, _]) =>
             name !== 'PageInfo' && name !== 'GlobalBlockReference'
         );
         this.newWaitingBlock = null;
         this.blockAddPhase = null;
         this.preRender = null;
-        this.started = false;
         this.rootEl = preact.createRef();
-        this.rootElLeft = null;
+        this.rootElRight = null;
         this.mainDndEventReceiver = null;
         this.onDragStart = this.handleDragStarted.bind(this);
         this.onDragEnd = this.handleDragEnded.bind(this);
         this.onMouseMove = e => {
             if (!this.newWaitingBlock) return;
-            if (!this.state.dragExitedLeft && e.clientX < this.rootElLeft) {
-                this.setState({dragExitedLeft: true});
-                this.started = true;
+            if (!this.state.dragExitedRight && e.clientX > this.rootElRight) {
+                this.setState({dragExitedRight: true});
                 this.props.mainTreeDnd.setDragEventReceiver(this.mainDndEventReceiver);
-            } else if (this.state.dragExitedLeft && e.clientX > this.rootElLeft) {
-                this.setState({dragExitedLeft: false});
+            } else if (this.state.dragExitedRight && e.clientX < this.rootElRight) {
+                this.setState({dragExitedRight: false});
                 this.handleDragReturnedFromMainDndWithoutDrop();
                 this.props.mainTreeDnd.setDragEventReceiver(null);
             }
@@ -58,37 +58,84 @@ class BlockDnDSpawner extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {isOpen, dragExitedLeft, globalBlockTrees}) {
+    componentDidMount() {
+        if (unregScrollListener) unregScrollListener();
+        const blockTreeEl = this.rootEl.current.nextElementSibling;
+        const blockTreeOuterEl = blockTreeEl.parentElement;
+        let blockTreeBottom;
+        let invalidateBlockTreeBottom = null;
+        const blockTreeTop = blockTreeEl.getBoundingClientRect().top;
+        this.rootEl.current.style.top = `${blockTreeTop}px`;
+        this.rootEl.current.style.height = `calc(100% - ${blockTreeTop}px)`;
+        this.setState({isMounted: true});
+        const handleScroll = e => {
+            const rootEl = this.rootEl.current;
+            if (!rootEl) return;
+            //
+            if (blockTreeBottom === null)
+                blockTreeBottom = blockTreeOuterEl.offsetTop + blockTreeOuterEl.getBoundingClientRect().height - 40;
+            else {
+                clearTimeout(invalidateBlockTreeBottom);
+                invalidateBlockTreeBottom = setTimeout(() => { blockTreeBottom = null; }, 2000);
+            }
+            //
+            let a = blockTreeTop - e.target.scrollTop;
+            if (e.target.scrollTop > blockTreeBottom) a = a; else if (a < 4) a = 4;
+            rootEl.style.top = `${a}px`;
+            rootEl.style.height = `calc(100% - ${a}px)`;
+        };
+        const mainPanelEl = this.rootEl.current.closest('#main-panel');
+        mainPanelEl.addEventListener('scroll', handleScroll);
+        unregScrollListener = () => {
+            mainPanelEl.removeEventListener('scroll', handleScroll);
+        };
+        if (this.props.currentPageIsPlaceholder)
+            this.toggleIsOpen();
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        if (this.state.isOpen)
+            this.toggleIsOpen();
+    }
+    /**
+     * @access protected
+     */
+    render(_, {isMounted, isOpen, dragExitedRight, globalBlockTrees}) {
         return <div
-            class={ `new-block-spawner${!isOpen ? '' : ' open box'}${!dragExitedLeft ? '' : ' drag-exited-left'}` }
-            onMouseEnter={ () => { if (this.started) this.setState({dragExitedLeft: false}); } }
-            onMouseLeave={ () => { if (this.started) this.setState({dragExitedLeft: true}); } }
+            class={ `new-block-spawner${!dragExitedRight ? '' : ' drag-exited-right'}` }
             ref={ this.rootEl }>
             <button
                 onClick={ this.toggleIsOpen.bind(this) }
-                class={ `btn btn-sm d-flex with-icon ${!isOpen ? 'btn-primary' : 'mr-1'}` }
+                class={ `p-0 btn btn-sm d-flex with-icon btn-primary${isMounted ? '' : ' d-none'}` }
                 title={ __('Start adding content') }
                 type="button">
-                <Icon iconId={ !isOpen ? 'plus' : 'x' } className="mr-0 size-xs"/>
+                <Icon iconId="chevron-right" className="mr-0 size-xs"/>
             </button>
-            { isOpen ? <div class="scroller"><ul class="block-tree">{ globalBlockTrees.map(({id, blocks, name}) =>
-                [name, blocks[0].type, id]
-            ).concat(this.selectableBlockTypes).map(([name, blockType, trid]) =>
-                <li class={ `${!trid ? 'page' : 'globalBlockTree'}-block ml-0` }><div class="d-flex">
-                    <button
-                        onDragStart={ this.onDragStart }
-                        onDragEnd={ this.onDragEnd }
-                        class="block-handle columns"
-                        data-block-type={ !trid ? name : 'GlobalBlockReference' }
-                        data-trid={ trid || 'main' }
-                        type="button"
-                        draggable>
-                        <Icon iconId={ getIcon(blockType) } className="size-xs mr-1"/>
-                        { !trid ? __(blockType.friendlyName) : name }
-                    </button>
-                </div></li>
-            ) }
-            </ul></div> : null }
+            { isOpen ? [
+                <input class="form-input mb-1" placeholder={ __('Filter') } style="width: calc(100% - .5rem)" disabled/>,
+                <div class="scroller"><ul class="block-tree">{ globalBlockTrees.map(({id, blocks, name}) =>
+                    [name, blocks[0].type, id]
+                ).concat(this.selectableBlockTypes).map(([name, blockType, trid]) => {
+                    const label = !trid ? __(blockType.friendlyName) : name;
+                    return <li class={ `${!trid ? 'page' : 'globalBlockTree'}-block ml-0` }><div class="d-flex">
+                        <button
+                            onDragStart={ this.onDragStart }
+                            onDragEnd={ this.onDragEnd }
+                            class="block-handle text-ellipsis"
+                            data-block-type={ !trid ? name : 'GlobalBlockReference' }
+                            data-trid={ trid || 'main' }
+                            title={ label }
+                            type="button"
+                            draggable>
+                            <Icon iconId={ getIcon(blockType) } className="size-xs p-absolute"/>
+                            <span class="text-ellipsis">{ label }</span>
+                        </button>
+                    </div></li>;
+                }) }
+                </ul></div>
+            ] : null }
         </div>;
     }
     /**
@@ -107,12 +154,12 @@ class BlockDnDSpawner extends preact.Component {
                 swappedBlocks: spawner.handleMainDndSwappedBlocks.bind(spawner),
                 dropped: spawner.handleMainDndGotDrop.bind(spawner),
             };
-            this.rootElLeft = this.rootEl.current.getBoundingClientRect().left;
+            signals.emit('on-block-dnd-opened');
+            this.rootElRight = this.rootEl.current.getBoundingClientRect().right;
             document.addEventListener('dragover', this.onMouseMove);
         } else {
-            document.removeEventListener('dragover', this.onMouseMove);
+            signals.emit('on-block-dnd-closed');
         }
-        this.started = false;
         this.setState({isOpen: !currentlyIsOpen});
     }
     /**
@@ -164,7 +211,7 @@ class BlockDnDSpawner extends preact.Component {
             this.blockAddPhase = null;
             this.preRender = null;
         }
-        this.dragging = false;
+        this.setState({dragExitedRight: false});
         this.hideLoadingIndicatorIfVisible();
     }
     /**

@@ -217,9 +217,18 @@ h2 {
     border-top: 1px solid rgba(var(--components-color-fb-default),.14);
     z-index: -1;
 }
+#inspector-panel:before {
+    content: "";
+    background: var(--color-bg-default);
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    z-index: 0;
+}
 #inspector-panel > div {
     background-color: var(--color-bg-default);
     padding: .4rem;
+    position: relative;
 }
 .inspector-panel-open #main-panel,
 .inspector-panel-open #inspector-panel {
@@ -229,7 +238,7 @@ h2 {
     height: initial;
 }
 .inspector-panel-open #inspector-panel {
-    z-index: 1;
+    z-index: 2;
 }
 #site-preview-iframe {
     position: absolute;
@@ -525,6 +534,10 @@ a.popup-close-area {
 .panel-section {
     padding: .8rem 0 .4rem .4rem;
 }
+.new-block-spawner-opened .panel-section {
+    margin-left: 170px;
+    position: relative;
+}
 .panel-section:not(:last-of-type) {
     border-bottom: 1px solid #ebedf3;
 }
@@ -550,15 +563,6 @@ a.popup-close-area {
     border: none;
     background: transparent;
 }
-.panel-section > button > span {
-    position: relative;
-}
-.panel-section > button > span > span.text-tiny.text-ellipsis {
-    position: absolute;
-    left: .2rem;
-    top: .8rem;
-    opacity: .6;
-}
 
 .panel-section.open > button > .icon-tabler:last-of-type {
     transition: transform linear .1s;
@@ -570,12 +574,23 @@ a.popup-close-area {
 }
 
 .section-title > .icon-tabler {
-    left: .8rem;
+    left: .7rem;
+}
+.new-block-spawner-opened .panel-section .section-title > .icon-tabler:first-child {
+    left: .5rem;
 }
 .section-title > span {
+    position: relative;
     margin: 0 .85rem 0 1.3rem;
     text-align: left;
 }
+.section-title > span > span.text-tiny.text-ellipsis {
+    position: absolute;
+    left: .2rem;
+    top: .8rem;
+    opacity: .6;
+}
+
 .section-title > .icon-tabler:last-child {
     right: .8rem;
     left: initial;
@@ -645,6 +660,12 @@ a.popup-close-area {
 }
 .block-tree li.globalBlockTree-block {
     background-color: var(--color-bg-global-block);
+}
+.block-tree > li:first-of-type {
+    padding-left: .2rem;
+}
+.new-block-spawner-opened .block-tree > li:first-of-type {
+    padding-left: 0;
 }
 .block-tree > li[data-last] {
     float: left;
@@ -786,25 +807,25 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 /* EditApp: Main panel > Block spawner */
 .new-block-spawner {
     position: fixed;
-    top: 115px;
-    left: 303px;
-    max-width: 210px;
+    left: -2px;
+    width: 170px;
+    max-width: 40px;
     z-index: 2;
     transition: opacity .275s ease-out;
 }
-.new-block-spawner.open {
-    padding: .4rem;
-    border-radius: 4px;
-    box-shadow: 0 14px 28px rgba(0, 0, 0, .04), 0 10px 10px rgba(0, 0, 0, .1);
-    height: calc(100% - 115px - .4rem);
+.new-block-spawner-opened .new-block-spawner {
+    height: calc(100% - 2.1rem);
+    left: .2rem;
+    max-width: 210px;
 }
-.new-block-spawner.drag-exited-left {
-    opacity: .2;
+.new-block-spawner-opened .page-create .new-block-spawner {
+    transform: translateY(-43px);
 }
 .scroller {
     overflow-y: auto;
     overflow-x: hidden;
     height: 100%;
+    margin-left: .2rem;
 }
 
 .new-block-spawner .block-tree li {
@@ -814,11 +835,14 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     cursor: grab;
 }
 
-.new-block-spawner.open > .btn {
+.new-block-spawner-opened .new-block-spawner > .btn {
     position: absolute;
-    right: 0;
-    background: transparent;
     z-index: 1;
+    left: -8px;
+    top: 42px;
+}
+.new-block-spawner-opened .new-block-spawner > .btn > .icon-tabler {
+    transform: rotate(180deg);
 }
 
 

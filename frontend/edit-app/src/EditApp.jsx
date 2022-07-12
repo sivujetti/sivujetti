@@ -290,6 +290,17 @@ class EditApp extends preact.Component {
             el.classList.add('dragging');
             inspectorPanel = this.props.inspectorPanelRef.current;
         });
+        const setPanelWidths = (w) => {
+            mainPanelEl.style.width = `${w}px`;
+            inspectorPanel.resizeX(w);
+            iframeEl.style.width = `calc(100% - ${w}px)`;
+            iframeEl.style.transform = `translateX(${w}px)`;
+            //
+            el.style.transform = `translateX(${w}px)`;
+        };
+        const commitPanelWidths = () => {
+            LEFT_PANEL_WIDTH = parseFloat(mainPanelEl.style.width);
+        };
         document.addEventListener('mousemove', e => {
             if (!currentHandle) return;
             //
@@ -299,17 +310,23 @@ class EditApp extends preact.Component {
             let w = startWidth + delta;
             if (w < minWidth) w = minWidth;
             //
-            mainPanelEl.style.width = `${w}px`;
-            inspectorPanel.resizeX(w);
-            iframeEl.style.width = `calc(100% - ${w}px)`;
-            iframeEl.style.transform = `translateX(${w}px)`;
-            //
-            el.style.transform = `translateX(${w}px)`;
+            setPanelWidths(w);
         });
         document.addEventListener('mouseup', () => {
-            if (currentHandle) LEFT_PANEL_WIDTH = parseFloat(mainPanelEl.style.width);
+            if (currentHandle) commitPanelWidths();
             currentHandle = null;
             el.classList.remove('dragging');
+        });
+        signals.on('on-block-dnd-opened', () => {
+            inspectorPanel = this.props.inspectorPanelRef.current;
+            setPanelWidths(LEFT_PANEL_WIDTH + 124);
+            commitPanelWidths();
+            this.props.rootEl.classList.add('new-block-spawner-opened');
+        });
+        signals.on('on-block-dnd-closed', () => {
+            setPanelWidths(LEFT_PANEL_WIDTH - 124);
+            commitPanelWidths();
+            this.props.rootEl.classList.remove('new-block-spawner-opened');
         });
     }
     /**

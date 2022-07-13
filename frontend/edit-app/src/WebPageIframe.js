@@ -1,3 +1,5 @@
+import {createTrier} from "../../../frontend/webpage/src/EditAppAwareWebPage.js";
+
 let env;
 let urlUtils;
 
@@ -28,34 +30,46 @@ class WebPageIframe {
     }
     /**
      * @param {Block} block
+     * @param {Boolean} isStillMaybeInsertingToDom = false
      */
-    scrollTo(block) {
+    scrollTo(block, isStillMaybeInsertingToDom = false) {
         const win = this.getEl().contentWindow;
-        let inPageElRect;
-        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        inPageElRect = block.getRootDomNode().getBoundingClientRect();
-        } else {
-        if (block.type === 'PageInfo') return;
-        const firstEl = this.getEl().contentDocument.body.querySelector(`[data-block="${block.id}"]`);
-        inPageElRect = firstEl.querySelector(':scope > [data-block-root]') ||
-               firstEl.getBoundingClientRect();
-        }
-        const inPageElTop = inPageElRect.top;
-        const elBottom = inPageElRect.bottom;
-        const quarterVisible = win.innerHeight / 4;
-        const scrollToInPageEl = () => {
-            win.scrollTo({
-                top: inPageElTop + win.scrollY - 40,
-                behavior: 'smooth'
-            });
+        const doScroll = inPageElRect => {
+            const inPageElTop = inPageElRect.top;
+            const elBottom = inPageElRect.bottom;
+            const quarterVisible = win.innerHeight / 4;
+            const scrollToInPageEl = () => {
+                win.scrollTo({
+                    top: inPageElTop + win.scrollY - 40,
+                    behavior: 'smooth'
+                });
+            };
+            //
+            if (inPageElTop <= 0 && elBottom <= (quarterVisible * 3)) {
+                scrollToInPageEl();
+            } else if (elBottom < 0) {
+                scrollToInPageEl();
+            } else if (inPageElTop > quarterVisible) {
+                scrollToInPageEl();
+            }
         };
         //
-        if (inPageElTop <= 0 && elBottom <= (quarterVisible * 3)) {
-            scrollToInPageEl();
-        } else if (elBottom < 0) {
-            scrollToInPageEl();
-        } else if (inPageElTop > quarterVisible) {
-            scrollToInPageEl();
+        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
+            doScroll(block.getRootDomNode().getBoundingClientRect());
+        } else {
+            if (block.type === 'PageInfo') return;
+            const body = this.getEl().contentDocument.body;
+            const getRect = firstEl => firstEl.querySelector(':scope > [data-block-root]') ||
+                   firstEl.getBoundingClientRect();
+            if (!isStillMaybeInsertingToDom) {
+                doScroll(getRect(body.querySelector(`[data-block="${block.id}"]`)));
+            } else {
+                createTrier(() => {
+                    const el = body.querySelector(`[data-block="${block.id}"]`);
+                    if (el) { doScroll(getRect(el)); return true; }
+                    else return false;
+                }, 80, 800)();
+            }
         }
     }
     /**

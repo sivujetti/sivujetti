@@ -1162,12 +1162,18 @@ function withTrid(html, trid) {
  * @param {(result: BlockRendctor) => void} to
  */
 function getBlockReRenderResult(result, to) {
-    if (typeof result === 'string')
+    if (typeof result === 'string') {
         to({html: result, onAfterInsertedToDom: noop});
-    else if (result instanceof Promise)
+        return;
+    }
+    if (typeof result !== 'object') {
+        throw new TypeError('Invalid argumnt');
+    }
+    if (typeof result.then === 'function') {
         result.then(html => { to({html, onAfterInsertedToDom: noop}); });
-    else
-        to(result);
+        return;
+    }
+    to(result);
 }
 
 /**

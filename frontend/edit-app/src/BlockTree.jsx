@@ -312,7 +312,6 @@ class BlockTree extends preact.Component {
                 return renderBranch(createSelectBlockTree(block.globalBlockTreeId)(store.getState()).tree);
             //
             treeState = this.state.treeStateSwap || treeState;
-
             if (block.type !== 'PageInfo') {
             const type = api.blockTypes.get(block.type);
             return <li
@@ -333,8 +332,8 @@ class BlockTree extends preact.Component {
                     : <button onClick={ () => this.toggleBranchIsCollapsed(block) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="size-xs"/></button>
                 }
                 <div class="d-flex">
-                    <button onClick={ () => this.handleItemClicked(block) } class="block-handle columns text-ellipsis" type="button">
-                        <Icon iconId={ getIcon(type) } className="size-xs mr-1"/>
+                    <button onClick={ () => this.handleItemClicked(block) } class="block-handle text-ellipsis" type="button">
+                        <Icon iconId={ getIcon(type) } className="size-xs p-absolute"/>
                         <span class="text-ellipsis">{ getShortFriendlyName(block, type) }</span>
                     </button>
                     <button onClick={ e => this.openMoreMenu(block, e) } class={ `more-toggle ml-2${blockWithNavOpened !== block ? '' : ' opened'}` } type="button">
@@ -351,15 +350,16 @@ class BlockTree extends preact.Component {
             return <li
                 class={ [!treeState[block.id].isSelected ? '' : 'selected'].join(' ') }
                 data-block-type="PageInfo"
+                data-block-id={ block.id }
                 key={ block.id }>
                 <div class="d-flex">
                     <button
                         onClick={ () => !this.props.disablePageInfo ? this.handleItemClicked(block) : function(){} }
-                        class="block-handle columns"
+                        class="block-handle text-ellipsis"
                         type="button"
                         disabled={ this.props.disablePageInfo }>
-                        <Icon iconId={ getIcon('PageInfo') } className="size-xs mr-1"/>
-                        { block.title || __('PageInfo') }
+                        <Icon iconId={ getIcon('PageInfo') } className="size-xs p-absolute"/>
+                        <span class="text-ellipsis">{ block.title || __('PageInfo') }</span>
                     </button>
                 </div>
             </li>;

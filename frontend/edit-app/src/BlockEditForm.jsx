@@ -16,6 +16,9 @@ let blockTypes;
 /** @type {Boolean} */
 let currentPageIsPlaceholderPage;
 
+/** @type {Array} */
+let fastChangesQueue;
+
 const snapshots = new Map;
 
 /**
@@ -36,6 +39,7 @@ function putOrGetSnapshot(block, blockType, override = false) {
 const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
 
 class BlockEditForm extends preact.Component {
+    // userCanEditCss;
     // blockVals;
     // isOutermostBlockOfGlobalBlockTree;
     // userCanSpecializeGlobalBlocks;
@@ -55,6 +59,7 @@ class BlockEditForm extends preact.Component {
         blockTypes = api.blockTypes;
         this.state = {currentTabIdx: 0};
         this.userCanEditCss = api.user.can('editCssStyles');
+        fastChangesQueue = [];
     }
     /**
      * @access protected
@@ -202,12 +207,12 @@ class BlockEditForm extends preact.Component {
      */
     handleValueValuesChanged(changes, hasErrors = false, debounceMillis = 0, debounceType = 'debounce-commit-to-queue') {
         if (this.currentDebounceTime !== debounceMillis || this.currentDebounceType !== debounceType) {
-            const boundEmitStickyChange = (oldData, contextData) => {
-                emitPushStickyOp(oldData, contextData);
+            const boundEmitStickyChange = (oldDataQ, contextData) => {
+                emitPushStickyOp(oldDataQ, contextData);
             };
-            const boundEmitFastChange = (newData, oldData, contextData, hasErrors) => {
+            const boundEmitFastChange = (newData, oldDataQ, contextData, hasErrors) => {
                 emitMutateBlockProp(newData, contextData);
-                if (!hasErrors) this.boundEmitStickyChange(oldData, contextData);
+                if (!hasErrors) this.boundEmitStickyChange(oldDataQ, contextData);
                 else env.console.log('Not implemented yet');
             };
             // Run reRender immediately, but throttle commitChangeOpToQueue
@@ -229,10 +234,10 @@ class BlockEditForm extends preact.Component {
         const trid = this.props.block.isStoredToTreeId;
         const {tree} = createSelectBlockTree(trid)(store.getState());
         const block = blockTreeUtils.findBlock(this.props.block.id, tree)[0];
-        const oldData = cloneFrom(Object.keys(changes), block);
+        fastChangesQueue.push(cloneFrom(Object.keys(changes), block));
         const contextData = {blockId: block.id, blockType: block.type, trid};
         // Call emitFastChange, which then calls emitCommitChange
-        this.boundEmitFastChange(changes, oldData, contextData, hasErrors);
+        this.boundEmitFastChange(changes, fastChangesQueue, contextData, hasErrors);
     }
     /**
      * @param {Event} e
@@ -554,10 +559,13 @@ function emitMutateBlockProp(newData, contextData) {
 }
 
 /**
- * @param {{[key]: any;}} oldData
+ * @param {Array<{[key]: any;}>} oldDataQ
  * @param {DefaultChangeEventData} contextData
  */
-function emitPushStickyOp(oldData, contextData) {
+function emitPushStickyOp(oldDataQ, contextData) {
+    const oldData = takeOldestValues(oldDataQ);
+    oldDataQ.splice(0, oldDataQ.length);
+    //
     store.dispatch(pushItemToOpQueue(`update-block-tree#${contextData.trid}`, {
         doHandle: contextData.trid !== 'main' || !currentPageIsPlaceholderPage
             ? () => {
@@ -575,6 +583,25 @@ function emitPushStickyOp(oldData, contextData) {
         },
         args: [],
     }));
+}
+
+/**
+ * In: [{text: 'Fo'}, {text: 'Foo'}, {level: 2}]
+ * Out: {text: 'Fo', level: 2}
+ *
+ * @param {Array<{[key]: any;}>} oldDataQ
+ * @returns {{[key]: any;}}
+ */
+function takeOldestValues(oldDataQ) {
+    const out = {};
+    for (const obj of oldDataQ) {
+        for (const key in obj) {
+            if (!Object.prototype.hasOwnProperty.call(out, key))
+                out[key] = obj[key];
+            // else ignore newer value obj[key]
+        }
+    }
+    return out;
 }
 
 /**

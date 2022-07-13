@@ -104,8 +104,8 @@ class BlockTreeDragDrop {
             this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
         } else if (this.dragEventReceiver && !this.startEl) {
             const liAdj = !li.getAttribute('data-last') ? li : li.previousElementSibling;
-            const trid = liAdj.getAttribute('data-trid');
             const blockId = liAdj.getAttribute('data-block-id');
+            const trid = liAdj.getAttribute('data-trid') || 'main';
             const block = trid === 'main' || !isTreesOutermostBlock(blockId, createSelectBlockTree(trid)(store.getState()).tree)
                 ? blockTreeUtils.findBlock(blockId, createSelectBlockTree(trid)(store.getState()).tree)[0]
                 : findRefBlockOf(trid, createSelectBlockTree('main')(store.getState()).tree);

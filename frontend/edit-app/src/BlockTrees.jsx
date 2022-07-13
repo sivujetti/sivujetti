@@ -47,7 +47,7 @@ class BlockTrees extends preact.Component {
          * @param {Block} block
          */
         signals.on('on-block-tree-block-cloned', block => {
-            api.webPageIframe.scrollTo(block);
+            api.webPageIframe.scrollTo(block, true);
         }),
         /**
          * @param {Block} block

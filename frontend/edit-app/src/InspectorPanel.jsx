@@ -17,7 +17,7 @@ class InspectorPanel extends preact.Component {
         this.resizeHandleEl = preact.createRef();
         this.lastHeight = null;
         signals.on('on-block-tree-item-focus-requested', this.open.bind(this));
-        signals.on('on-web-page-loaded', this.close.bind(this));
+        signals.on('on-web-page-click-received', (blockEl, linkEl) => { if (linkEl && !blockEl) this.close(); });
     }
     /**
      * @param {Number} width

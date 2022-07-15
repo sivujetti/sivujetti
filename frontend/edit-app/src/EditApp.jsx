@@ -21,7 +21,7 @@ const webPageDomUpdaters = new Map;
 signals.on('on-block-dnd-global-block-reference-block-drag-started', gbt => {
     if (gbt.blocks[0].isStoredTo !== 'globalBlockTree' || gbt.blocks[0].isStoredToTreeId !== gbt.id)
         throw new Error('globalBlockTree.blocks not initialized');
-    instance.createStoreForInnerTree(gbt.id, gbt.blocks);
+    instance.createStoreAndDispatchInnerTree(gbt.id, gbt.blocks);
 });
 
 signals.on('on-block-dnd-global-block-reference-block-dropped', trid => {
@@ -111,35 +111,33 @@ class EditApp extends preact.Component {
         webPage.registerEventHandlers2(this.websiteEventHandlers);
         data.page = maybePatchTitleAndSlug(data.page);
         const {page} = data;
-        const isDefaultToCreateTrans = this.state.currentMainPanel === 'default' && page.isPlaceholderPage;
-        const isCreateToDefaultTrans = this.state.currentMainPanel === 'create-page' && !page.isPlaceholderPage;
-        if (this.state.currentPage) signals.emit('on-web-page-changed', page, this.state.currentPage);
+        signals.emit('on-web-page-loading-started', page, this.state.currentPage);
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
-        //
-        if (trees.keys().next().value !== 'main') throw new Error('Sanity');
-        for (const [trid, _] of trees) {
-            this.registerWebPageDomUpdater(trid);
-        }
-        //
-        store.dispatch(setCurrentPageDataBundle(data));
-        store.dispatch(setGlobalBlockTreeBlocksStyles(data.globalBlocksStyles));
-        store.dispatch(setPageBlocksStyles(page.blockStyles));
-        store.dispatch(setOpQueue([]));
-        //
-        for (const [trid, tree] of trees) {
-            if (trid === 'main') continue;
-            this.createStoreForInnerTree(trid, tree);
-        }
-        store.dispatch(createSetBlockTree('main')(trees.get('main'), ['init', {}]));
-        const newState = {currentPage: page};
-        if (isDefaultToCreateTrans) {
-            newState.currentMainPanel = 'create-page';
-        } else if (isCreateToDefaultTrans) {
-            newState.currentMainPanel = 'default';
-        }
+        const newState = {currentPage: page, currentMainPanel: page.isPlaceholderPage ? 'create-page' : 'default'};
         this.setState(newState);
-        signals.emit('on-web-page-loaded');
-        this.receivingData = false;
+        const dispatchData = () => {
+            //
+            if (trees.keys().next().value !== 'main') throw new Error('Sanity');
+            for (const [trid, _] of trees)
+                this.registerWebPageDomUpdater(trid);
+            //
+            store.dispatch(setCurrentPageDataBundle(data));
+            store.dispatch(setGlobalBlockTreeBlocksStyles(data.globalBlocksStyles));
+            store.dispatch(setPageBlocksStyles(page.blockStyles));
+            store.dispatch(setOpQueue([]));
+            //
+            for (const [trid, tree] of trees) {
+                if (trid === 'main') continue;
+                this.createStoreAndDispatchInnerTree(trid, tree);
+            }
+            store.dispatch(createSetBlockTree('main')(trees.get('main'), ['init', {}]));
+            signals.emit('on-web-page-loaded');
+            this.receivingData = false;
+        };
+        if (newState.currentMainPanel !== this.state.currentMainPanel)
+            setTimeout(() => dispatchData(), 1);
+        else
+            dispatchData();
     }
     /**
      * @access protected
@@ -190,9 +188,9 @@ class EditApp extends preact.Component {
                     blockTreesRef={ this.blockTrees }
                     startAddPageMode={ () => {
                         // Open to iframe to '/_edit/api/_placeholder-page...',
-                        // which then triggers this.handleWebPageLoaded() and sets
-                        // this.state.currentMainPanel to 'create-page'
+                        // which then triggers this.handleWebPageLoaded2()
                         api.webPageIframe.openPlaceholderPage('Pages', pageType.defaultLayoutId);
+                        this.setState({currentMainPanel: 'create-page'});
                         floatingDialog.close();
                     } }
                     startAddPageTypeMode={ () => {
@@ -247,7 +245,7 @@ class EditApp extends preact.Component {
      * @param {Array<RawBlock2>} tree
      * @access private
      */
-    createStoreForInnerTree(trid, tree) {
+    createStoreAndDispatchInnerTree(trid, tree) {
         const [storeStateKey, reducer] = createBlockTreeReducerPair(trid);
         if (store.reducerManager.has(storeStateKey)) return;
         store.reducerManager.add(storeStateKey, reducer);
@@ -506,9 +504,10 @@ function createWebsiteEventHandlers2(highlightRectEl) {
         },
         /**
          * @param {HTMLElement|null} blockEl
+         * @param {HTMLAnchorElement|null} link
          */
-        onClicked(blockEl) {
-            signals.emit('on-web-page-click-received');
+        onClicked(blockEl, link) {
+            signals.emit('on-web-page-click-received', blockEl, link);
             if (!blockEl) return;
             signals.emit('on-web-page-block-clicked', findBlock(blockEl));
         },

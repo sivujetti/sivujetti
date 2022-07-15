@@ -31,7 +31,9 @@ class PageCreateMainPanelView extends preact.Component {
         this.state = {layouts: [], menuInfos: [], addToMenuId: ID_NONE, currentPage: null};
         } else {
         const state = {layouts: [], menuInfos: [], addToMenuId: ID_NONE, currentPage: selectCurrentPageDataBundle(store.getState()).page};
-        if (state.currentPage) this.onLoad();
+        // Placeholder page already loaded
+        if (state.currentPage && state.currentPage.isPlaceholderPage) this.onLoad();
+        // Placeholder page not loaded yet, wait for next setCurrentPageDataBundle (EditApp.handleWebPageLoaded())
         else this.unreg = observeStore(s => selectCurrentPageDataBundle(s), value => {
             if (!value.page) return;
             this.setState({currentPage: value.page});
@@ -80,14 +82,14 @@ class PageCreateMainPanelView extends preact.Component {
             doHandle: this.handleFormSubmitted.bind(this),
             args: []
         }}]));
-        } else {
-            this.emitCreatePageOp();
-        }
         if (this.props.noAutoFocus)
             return;
         setTimeout(() => {
             env.document.querySelector('.block-tree li[data-block-type="PageInfo"] .block-handle').click();
         }, 1);
+        } else {
+            this.emitCreatePageOp();
+        }
     }
     /**
      * @access private

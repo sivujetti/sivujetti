@@ -99,51 +99,53 @@ class EditAppAwareWebPage {
      * @access public
      */
     registerEventHandlers2(handlers) {
-        if (this.handlers)
-            return;
+        if (this.handlers) return;
         this.handlers = handlers;
         //
-        let lastClickedAt = 0;
+        let isDown = false;
+        let lastDownLink = null;
+        let lastDownLinkAlreadyHandled = false;
+        document.body.addEventListener('mousedown', e => {
+            if (!(this.currentlyHoveredBlockEl || this.isMouseListenersDisabled)) return;
+            isDown = true;
+            const a = e.button !== 0 ? null : e.target.nodeName === 'A' ? e.target : e.target.closest('a');
+            if (!a || a.classList.contains('j-Button')) return;
+            lastDownLink = a;
+            lastDownLinkAlreadyHandled = false;
+            setTimeout(() => {
+                if (isDown && e.button === 0) {
+                    lastDownLinkAlreadyHandled = true;
+                    this.handlers.onClicked(this.currentlyHoveredBlockEl);
+                }
+            }, 80);
+        });
         document.body.addEventListener('click', e => {
-            let target = null;
-            if (this.currentlyHoveredBlockEl || this.isMouseListenersDisabled) {
-                target = this.currentlyHoveredBlockEl;
-                //
-                const a = e.button === 0 && e.target.nodeName === 'A' ? e.target : e.target.closest('a');
-                if (a) {
-                    e.preventDefault();
-                    if (this.isMouseListenersDisabled) {
-                        this.doFollowLink(a);
-                    } else {
-                        if (lastClickedAt && Date.now() - lastClickedAt < 300) {
-                            this.doFollowLink(a);
-                            lastClickedAt = 0;
-                        }
-                        lastClickedAt = Date.now();
-                    }
+            const currentBlock = this.currentlyHoveredBlockEl;
+            isDown = false;
+            if (!lastDownLink) {
+                if (this.isMouseListenersDisabled) { this.handlers.onClicked(currentBlock); return; }
+                const b = e.button !== 0 ? null : e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button');
+                if (b) e.preventDefault();
+                this.handlers.onClicked(currentBlock);
+            } else {
+                e.preventDefault();
+                if (!lastDownLinkAlreadyHandled) {
+                    this.handlers.onClicked(null, lastDownLink);
+                    this.doFollowLink(lastDownLink);
                 }
-                //
-                const b = e.button === 0 && e.target.nodeName === 'BUTTON' ? e.target.closest('[data-block-type="Button"]') : null;
-                if (b) {
-                    e.preventDefault();
-                    if (this.isMouseListenersDisabled)
-                        b.click();
-                }
+                lastDownLink = null;
             }
-            this.handlers.onClicked(target);
         });
         //
-        let inBody = false;
         document.body.addEventListener('mouseover', e => {
             if (this.isMouseListenersDisabled) return;
             //
             let targ;
-            if (inBody && this.currentlyHoveredBlockEl) {
+            if (this.currentlyHoveredBlockEl) {
                 targ = e.target;
             } else {
                 targ = e.target.closest('[data-block-type]');
                 if (!targ) return;
-                inBody = true;
             }
             //
             if (this.currentlyHoveredBlockEl) {
@@ -168,9 +170,6 @@ class EditAppAwareWebPage {
                     this.handlers.onHoverEnded(this.currentlyHoveredBlockEl);
                     this.currentlyHoveredBlockEl = null;
                 }
-            } else if (e.target === document.body) {
-                inBody = false;
-                this.currentlyHoveredBlockEl = null;
             }
         }, true);
     }

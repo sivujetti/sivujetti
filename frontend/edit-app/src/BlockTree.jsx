@@ -4,8 +4,7 @@ import {normalizeGlobalBlockTreeBlock} from './BlockTypeSelector.jsx';
 import BlockTreeShowHelpPopup from './BlockTreeShowHelpPopup.jsx';
 import Block from './Block.js';
 import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
-import store, {observeStore, createSelectBlockTree, createSetBlockTree, pushItemToOpQueue,
-               selectCurrentPageDataBundle} from './store.js';
+import store, {observeStore, createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} from './store.js';
 import BlockTreeDragDrop from './BlockTreeDragDrop.js';
 import ConvertBlockToGlobalDialog from './ConvertBlockToGlobalBlockTreeDialog.jsx';
 import {getIcon} from './block-types/block-types.js';
@@ -14,15 +13,59 @@ import BlockDnDSpawner from './Block/BlockDnDSpawner.jsx';
 
 let BlockTrees;
 const globalBlockTreeBlocks = new Map;
-/** @type {Page} */
-let pageCurrentlyLoading;
+const unregistrables = [];
+let currentInstance;
+let loading = false;
+
+signals.on('on-web-page-loading-started', page => {
+    loading = true;
+    if (currentInstance)
+        currentInstance.currentPageIsPlaceholder = page.isPlaceholderPage;
+    if (unregistrables.length) {
+        unregistrables.forEach(unreg => unreg());
+        unregistrables.splice(0, unregistrables.length);
+    }
+});
+
+signals.on('on-web-page-loaded', () => {
+    const currentPageTrids = getRegisteredReduxTreeIds();
+    const refreshAllEvents = [
+        'add-single-block',
+        'commit-add-single-block',
+        'undo-add-single-block',
+        'delete-single-block',
+        'undo-delete-single-block',
+        'swap-blocks',
+        'undo-swap-blocks',
+    ];
+    unregistrables.push(...currentPageTrids.map(trid =>
+         observeStore(createSelectBlockTree(trid), ({tree, context}) => {
+            if (!context || (context[0] === 'init' && loading))
+                return;
+            if (refreshAllEvents.indexOf(context[0]) > -1 && context[2] !== 'dnd-spawner') {
+                if (!currentInstance || loading) return;
+                currentInstance.setState({blockTree: tree, treeState: createTreeState([], true)});
+            }
+        }, true)
+    ));
+    currentInstance.setBlockTree(createSelectBlockTree('main')(store.getState()).tree);
+    loading = false;
+});
+
+signals.on('on-inspector-panel-closed', () => {
+    if (currentInstance)
+        currentInstance.deSelectAllBlocks();
+});
+
+signals.on('on-web-page-block-clicked', block => {
+    if (!loading)
+        currentInstance.handleItemClicked(block, false);
+});
 
 class BlockTree extends preact.Component {
     // selectedRoot;
     // contextMenu;
     // lastRootBlockMarker;
-    // unregistrablesLong;
-    // unregistrablesShort;
     // dragDrop;
     // onDragStart;
     // onDragOver;
@@ -32,6 +75,8 @@ class BlockTree extends preact.Component {
      */
     constructor(props) {
         super(props);
+        currentInstance = this;
+        //
         this.state = {blockTree: null, treeState: null, blockWithNavOpened: null, loading: false};
         this.selectedRoot = null;
         this.contextMenu = preact.createRef();
@@ -54,8 +99,17 @@ class BlockTree extends preact.Component {
         }));
         });
         BlockTrees = props.BlockTrees;
-        this.unregistrablesLong = [];
-        this.unregistrablesShort = [];
+        this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
+        this.onDragOver = this.dragDrop.handleDraggedOver.bind(this.dragDrop);
+        this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
+        this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
+    }
+    /**
+     * @param {Array<RawBlock2>} mainTree
+     * @access public
+     */
+    setBlockTree(mainTree) {
+        this.setState({blockTree: mainTree, treeState: createTreeState([], true)});
     }
     /**
      * @param {Block} block After
@@ -216,102 +270,12 @@ class BlockTree extends preact.Component {
     /**
      * @access protected
      */
-    componentWillMount() {
-        if (pageCurrentlyLoading) {
-            this.registerOrReRegisterBlockTreeListeners(getRegisteredReduxTreeIds());
-            pageCurrentlyLoading = null;
-        }
-        this.unregistrablesLong.push(signals.on('on-web-page-changed', (toPage, fromPage) => {
-            if (toPage.id !== fromPage.id)
-                pageCurrentlyLoading = toPage;
-        }));
-        this.unregistrablesLong.push(signals.on('on-web-page-loaded', () => {
-            this.registerOrReRegisterBlockTreeListeners(getRegisteredReduxTreeIds());
-            setTimeout(() => { pageCurrentlyLoading = null; }, 1);
-        }));
-        //
-        this.unregistrablesLong.push(signals.on('on-inspector-panel-closed', () => {
-            this.deSelectAllBlocks();
-        }), signals.on('on-web-page-block-clicked', block => {
-            if (!pageCurrentlyLoading)
-            this.handleItemClicked(block, false);
-        }));
-        //
-        this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
-        this.onDragOver = this.dragDrop.handleDraggedOver.bind(this.dragDrop);
-        this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
-        this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
-    }
-    /**
-     * @param {Array<String>} currentPageTrids
-     * @access private
-     */
-    registerOrReRegisterBlockTreeListeners(currentPageTrids) {
-        //
-        this.unregistrablesShort.forEach(unreg => unreg());
-        this.unregistrablesShort = [];
-        const refreshAllEvents = [
-            'add-single-block',
-            'commit-add-single-block',
-            'undo-add-single-block',
-            'delete-single-block',
-            'undo-delete-single-block',
-            'swap-blocks',
-            'undo-swap-blocks',
-        ];
-        const [onMainTreeChanged, onInnerTreeChanged] = [({tree, context}) => {
-            if (pageCurrentlyLoading) return;
-            if (refreshAllEvents.indexOf(context[0]) > -1 && context[2] !== 'dnd-spawner') {
-                this.setState({blockTree: tree, treeState: createTreeState(tree, context[0] !== 'init')});
-            }
-        }, ({tree, context}) => {
-            if (pageCurrentlyLoading) return;
-            if (context[0] === 'init' && tree.length && !this.state.treeState[tree[0].id]) {
-                const newTreeTreeState = createTreeState(tree);
-                this.setState({treeState: Object.assign({}, this.state.treeState, newTreeTreeState)});
-            } else if (refreshAllEvents.indexOf(context[0]) > -1 && context[2] !== 'dnd-spawner') {
-                this.setState({treeState: createTreeState(tree, true)});
-            }
-        }];
-        for (const trid of currentPageTrids) {
-            this.unregistrablesShort.push(observeStore(createSelectBlockTree(trid), trid === 'main'
-                ? onMainTreeChanged
-                : onInnerTreeChanged));
-        }
-        this.currentPageIsPlaceholder = selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
-        //
-        const storeState = store.getState();
-        const treeState = {};
-        for (const trid of currentPageTrids) {
-            Object.assign(treeState, createTreeState(createSelectBlockTree(trid)(storeState).tree));
-        }
-        this.setState(Object.assign(
-            // predux has a weird bug where the value of state.treeState does not
-            // get updatd in render() after calling setState here. Using a "swap"
-            // object fixes this.
-            !!this.state.treeState && !this.state.treeStateSwap
-                ? {treeStateSwap: treeState, treeState: null}  // use treeStateSwap in next render()
-                : {treeStateSwap: null, treeState: treeState}, // use treeState in next render()
-            {blockTree: createSelectBlockTree('main')(storeState).tree}
-        ));
-    }
-    /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        this.unregistrablesShort.forEach(unreg => unreg());
-        this.unregistrablesLong.forEach(unreg => unreg());
-    }
-    /**
-     * @access protected
-     */
     render(_, {blockTree, treeState, blockWithNavOpened, loading}) {
         if (blockTree === null) return;
         const renderBranch = branch => branch.map(block => {
             if (block.type === 'GlobalBlockReference')
                 return renderBranch(createSelectBlockTree(block.globalBlockTreeId)(store.getState()).tree);
             //
-            treeState = this.state.treeStateSwap || treeState;
             if (block.type !== 'PageInfo') {
             const type = api.blockTypes.get(block.type);
             return <li

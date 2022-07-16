@@ -1,3 +1,7 @@
+import {__, floatingDialog} from '@sivujetti-commons-for-edit-app';
+import PickUrlDialog, {getHeight} from './PickUrlDialog.jsx';
+import {determineModeFrom} from './common.js';
+
 const common = ['bold', 'italic', 'underline', 'strike'];
 const simplest = common.concat('clean');
 const simplestWithLink = common.concat('link', 'clean');
@@ -60,11 +64,25 @@ class QuillEditor extends preact.Component {
         let toolbar = toolbarBundles[this.props.toolbarBundle || 'simplest'];
         if (!toolbar) toolbar = toolbarBundles['simplest'];
         //
+        const dhis = this;
         this.quill = new window.Quill(`#editor-${this.props.name}`, {
             modules: Object.assign({toolbar}, this.props.enableHistory === true
                 ? null
                 : {history: {maxStack: 0, userOnly: true,},}),
             theme: 'snow',
+            sivujettiApi: {openUrlPicker(_linkText, url) {
+                const [mode, title] = determineModeFrom(url);
+                floatingDialog.open(PickUrlDialog, {
+                    title,
+                    width: 514,
+                    height: getHeight('default')[0],
+                }, {
+                    mode,
+                    url,
+                    dialog: floatingDialog,
+                    quill: dhis.quill,
+                });
+            }},
         });
         if (this.props.onInit) this.props.onInit(this);
         if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree

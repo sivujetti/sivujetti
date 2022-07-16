@@ -15,7 +15,7 @@ class UploadsManager extends preact.Component {
     // searchTerm;
     // searchedAtLeastOnce;
     /**
-     * @param {{onEntryClicked: (image: UploadsEntry) => void; onlyImages?: Boolean;}} props
+     * @param {{onEntryClicked: (image: UploadsEntry) => void; onlyImages?: Boolean; hideTabs?: Boolean; numColumns?: Number;}} props
      */
     constructor(props) {
         super(props);
@@ -31,19 +31,23 @@ class UploadsManager extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {files, currentTabIdx}) {
+    render({hideTabs, numColumns}, {files, currentTabIdx}) {
         return <div>
-            <Tabs
-                links={ [this.title, __('Upload')] }
-                onTabChanged={ idx => this.setState({currentTabIdx: idx}) }
-                ref={ this.tabs }/>
+            { !hideTabs
+                ? <Tabs
+                    links={ [this.title, __('Upload')] }
+                    onTabChanged={ idx => this.setState({currentTabIdx: idx}) }
+                    ref={ this.tabs }/>
+                : null
+            }
             <div class={ currentTabIdx === 0 ? 'mt-8' : 'd-none' }>
                 <div class="pb-2"></div>
                 { files ? files.length
-                    ? <div class="item-grid image-grid img-auto">{ files.map(entry =>
-                        <button
+                    ? <div class={ `item-grid image-grid img-auto${!numColumns ? '' : ({"3": " three"}[numColumns] || '')}`} >{ files.map(entry =>
+                         <button
                             onClick={ () => { this.props.onEntryClicked(entry); } }
                             className="btn btn-icon"
+                            title={ entry.fileName }
                             type="button">
                             { entry.mime.startsWith('image/')
                                 ? <span class="img-ratio"><img src={ `${urlUtils.assetBaseUrl}${UPLOADS_DIR_PATH}${entry.baseDir}${entry.fileName}` }/></span>

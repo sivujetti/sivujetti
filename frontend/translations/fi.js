@@ -21,6 +21,17 @@ stringBundles.push({
     'Content': 'Sisältö',
     'Page "%s" already exist.': 'Sivu "%s" on jo olemassa.',
     'Something unexpected happened.': 'Jokin meni pieleen.',
+    // edit-app/src/Quill/*
+    'Image': 'Kuva',
+    'External': 'Ulkoinen',
+    'website.com': 'sivusto.com',
+    'Choose link type': 'Valitse linkin tyyppi',
+    'Pick a page': 'Valitse sivu',
+    'Pick an image': 'Valitse kuva',
+    'Type an address': 'Kirjoita osoite',
+    'Link to a page: ': 'Linkki sivuun: ',
+    'Link to an image: ': 'Linkki kuvaan: ',
+    'Link to an address: ': 'Linkki osoitteeseen: ',
     // edit-app/src/BlockEditForm.jsx
     'Own styles': 'Omat tyylit',
     'Base styles': 'Pohjatyylit',

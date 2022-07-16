@@ -4,35 +4,11 @@ import toasters from '../commons/Toaster.jsx';
 import {stringUtils} from '../commons/utils.js';
 import ManyToManyField from '../Page/ManyToManyField.jsx';
 import BlockTrees from '../BlockTrees.jsx';
-import {validationConstraints} from '../constants.js';
 import store, {observeStore, pushItemToOpQueue, selectCurrentPageDataBundle, setCurrentPageDataBundle} from '../store.js';
 import setFocusTo from './auto-focusers.js';
+import {urlValidatorImpl} from '../validation.js';
 
 const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
-
-const urlValidatorImpl = {doValidate: (val, hints = {}) => {
-    const [allowExternal, allowEmpty] = [
-        Object.prototype.hasOwnProperty.call(hints, 'allowExternal') ? hints.allowExternal : true,
-        Object.prototype.hasOwnProperty.call(hints, 'allowEmpty') ? hints.allowEmpty : false,
-    ];
-    //
-    const [comp, isLocal] = createCanonicalUrl(val);
-    if (!comp)
-        return !!allowEmpty;
-    if (isLocal)
-        return new RegExp(validationConstraints.SLUG_REGEXP).test(comp);
-    // External
-    if (!allowExternal)
-        return false;
-    try {
-        const u = new URL(comp);
-        if (!u.protocol || ['https:', 'http:'].indexOf(u.protocol) < 0) return false;
-        if (!u.host || u.host === env.window.location.host) return false;
-        return true;
-    } catch (e) {
-        return false;
-    }
-}, errorMessageTmpl: '{field} is not valid'};
 
 class PageInfoBlockEditForm2 extends preact.Component {
     // currentPageIsPlaceholder;
@@ -352,20 +328,6 @@ export default () => {
 };
 
 /**
- * @param {String} input
- * @returns {String}
- */
-function createCanonicalUrl(input) {
-    if (!input.length)
-        return '';
-    if (input.indexOf('.') < 0) { // treat as local
-        return [input.startsWith('/') ? input : `/${input}`, true];
-    } else { // treat as external
-        return [input.startsWith('http://') || input.startsWith('https://') ? input : `https://${input}`, false];
-    }
-}
-
-/**
  * @typedef PageInfoSnapshot
  *
  * @prop {String} title
@@ -375,4 +337,4 @@ function createCanonicalUrl(input) {
  * ... possibly more props (Own fields)
  */
 
-export {savePageToBackend, urlValidatorImpl, makeSlug, makePath};
+export {savePageToBackend, makeSlug, makePath};

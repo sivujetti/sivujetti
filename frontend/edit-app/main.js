@@ -23,6 +23,7 @@ import MainPanel from './src/MainPanel.js';
 import OnThisPageSection from './src/DefaultView/OnThisPageSection.jsx';
 import GlobalStylesSection from './src/DefaultView/GlobalStylesSection.jsx';
 import WebsiteSection from './src/DefaultView/WebsiteSection.jsx';
+import {MyClipboard, MyKeyboard, MyLink, MySnowTheme} from './src/Quill/quill-customizations.js';
 
 const editAppReactRef = preact.createRef();
 
@@ -87,59 +88,10 @@ function patchQuillEditor() {
     const Quill = window.Quill;
     Quill.debug('error');
     //
-    const Clipboard = Quill.import('modules/clipboard');
-    const Delta = Quill.import('delta');
-    class PlainClipboard extends Clipboard {
-        onPaste(e) {
-            // https://github.com/quilljs/quill/blob/d462f8000ffbaa3aab853809fb08f7809f828475/modules/clipboard.js#L178
-            if (e.defaultPrevented || !this.quill.isEnabled()) return;
-            e.preventDefault();
-            const range = this.quill.getSelection(true);
-            if (range == null) return;
-            // https://github.com/quilljs/quill/issues/1298#issuecomment-403657657
-            const text = e.clipboardData.getData('text/plain');
-            const delta = new Delta()
-                .retain(range.index)
-                .delete(range.length)
-                .insert(text);
-            const index = text.length + range.index;
-            const length = 0;
-            this.quill.updateContents(delta, Quill.sources.USER);
-            this.quill.setSelection(index, length, Quill.sources.SILENT);
-            this.quill.scrollIntoView();
-        }
-    }
-    Quill.register('modules/clipboard', PlainClipboard);
-    //
-    const Keyboard = Quill.import('modules/keyboard');
-    class CustomKeyboard extends Keyboard { }
-    CustomKeyboard.DEFAULTS = Object.assign({}, Keyboard.DEFAULTS, {
-        bindings: Object.assign({}, Keyboard.DEFAULTS.bindings, {
-            ['list autofill']: undefined
-        })
-    });
-    Quill.register('modules/keyboard', CustomKeyboard);
-    //
-    // https://codepen.io/anon/pen/GNMXZa
-    const Link = Quill.import('formats/link');
-    class CustomLink extends Link {
-        static create(value) {
-            const node = super.create(value);
-            if (node.host === env.window.location.host) {
-                node.removeAttribute('rel');
-                node.removeAttribute('target');
-            }
-            return node;
-        }
-        static sanitize(url) {
-            if (url.startsWith(urlUtils.baseUrl))
-                return super.sanitize(url);
-            return super.sanitize(url.indexOf('.') < 0
-                ? urlUtils.makeUrl(url)
-                : `${url.startsWith('//') || url.startsWith('http') ? '' : '//'}${url}`);
-        }
-    }
-    Quill.register(CustomLink);
+    Quill.register('themes/snow', MySnowTheme);
+    Quill.register('modules/clipboard', MyClipboard);
+    Quill.register('modules/keyboard', MyKeyboard);
+    Quill.register(MyLink);
 }
 
 function renderReactEditApp() {

@@ -1,5 +1,5 @@
 import {env, Input} from '@sivujetti-commons-for-edit-app';
-import QuillEditor from '../commons/QuillEditor.jsx';
+import QuillEditor from '../Quill/QuillEditor.jsx';
 import ImagePicker from '../BlockWidget/ImagePicker.jsx';
 
 /**

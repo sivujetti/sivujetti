@@ -2,13 +2,19 @@ import {iconAsString} from './Icon.jsx';
 
 let currentInstance = {
     open: null,
-    close: null
+    close: null,
+    setTitle: null,
+    setOnBeforeClose: null,
+    setHeight: null,
 };
 
 class FloatingDialog extends preact.Component {
     // currentEl;
     // currenTitle;
     // currentJsPanel;
+    // currentHeight;
+    // timeout;
+    // closing;
     /**
      * @param {any} props
      */
@@ -18,6 +24,21 @@ class FloatingDialog extends preact.Component {
         this.state = {Renderer: null, title: null};
         currentInstance.open = this.open.bind(this);
         currentInstance.close = this.close.bind(this);
+        currentInstance.setTitle = title => { this.currenTitle = title; this.currentJsPanel.setHeaderTitle(title); };
+        currentInstance.setOnBeforeClose = fn => { this.onBeforeClose = fn; };
+        currentInstance.setHeight = (height, instructions = '') => {
+            if (this.currentHeight === height)
+                return;
+            this.currentHeight = height;
+            if (instructions === 'animate') {
+                if (this.timeout) clearTimeout(this.timeout);
+                this.currentJsPanel.classList.add('animating');
+            }
+            this.currentJsPanel.resize({height});
+            if (instructions === 'animate') {
+                this.timeout = setTimeout(() => { this.currentJsPanel.classList.remove('animating'); }, 400);
+            }
+        };
     }
     /**
      * @param {preact.ComponentType|string} Renderer
@@ -27,7 +48,9 @@ class FloatingDialog extends preact.Component {
      */
     open(Renderer, settings, rendererProps) {
         this.rendererProps = rendererProps;
-        this.setState(createState(settings, {Renderer}));
+        const state = createState(settings, {Renderer});
+        this.currentHeight = state.height;
+        this.setState(state);
     }
     /**
      * @access public
@@ -35,13 +58,16 @@ class FloatingDialog extends preact.Component {
     close() {
         if (!this.state.Renderer)
             return;
-        if (this.currentEl) {
-            this.currentEl = null;
-            this.currenTitle = null;
+        if (!this.closing) {
+            // Call currentJsPanel.close(), which then calls this method again (see onbeforeclose)
             this.currentJsPanel.close();
+        } else {
+            this.currenTitle = null;
+            this.currentJsPanel = null;
+            if (this.onBeforeClose) this.onBeforeClose();
+            this.setState({Renderer: null, title: null, className: ''});
+            this.closing = false;
         }
-        this.currentJsPanel = null;
-        this.setState({Renderer: null, title: null, className: ''});
     }
     /**
      * @access protected
@@ -62,10 +88,8 @@ class FloatingDialog extends preact.Component {
         if (!el)
             return;
         if (el === this.currentEl) {
-            if (this.state.title !== this.currenTitle) {
-                this.currenTitle = this.state.title;
-                this.currentJsPanel.setHeaderTitle(this.state.title);
-            }
+            if (this.state.title !== this.currenTitle)
+                currentInstance.setTitle(this.state.title);
             return;
         }
         this.currentEl = el;
@@ -84,7 +108,7 @@ class FloatingDialog extends preact.Component {
                 panel.querySelector('.jsPanel-btn-close').innerHTML = iconAsString('circle-x');
             },
             onbeforeclose: () => {
-                this.currentEl = null;
+                this.closing = true;
                 this.close();
                 return true;
             },

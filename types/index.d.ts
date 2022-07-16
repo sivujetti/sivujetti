@@ -12,10 +12,10 @@ interface SivujettiFrontendApi {
 }
 
 interface WebPageIframe {
-    openPlaceholderPage(pageTypeName: String, layoutId: String = '1');
-    goBack();
+    openPlaceholderPage(pageTypeName: String, layoutId: String = '1'): void;
+    goBack(): void;
     scrollTo(block: Block);
-    getEl(): HTMLElement;
+    getEl(): HTMLIFrameElement;
 }
 
 interface MainPanel {
@@ -274,12 +274,6 @@ interface EditAppAwareWebPage2 {
     setTridAttr(blockId: String, trid: String): void;
 }
 
-interface WebPageIframe {
-    openPlaceholderPage(pageType: String, layoutId: String = '1'): void;
-    goBack(): void;
-    getEl(): HTMLIFrameElement;
-}
-
 interface Env {
     window: Window;
     document: Document;
@@ -334,6 +328,9 @@ interface RawCssValue {
 interface FloatingDialog {
     open(Renderer: preact.ComponentType|string, settings: FloatingDialogSettingsInput & {[key: String]: any;}, rendererProps: Object): void;
     close(): void;
+    setTitle(title: String): void;
+    setOnBeforeClose(fn: () => void): void;
+    setHeight(height: Number, instructions: 'animate'|'' = ''): void;
 }
 
 interface FloatingDialogSettingsInput {

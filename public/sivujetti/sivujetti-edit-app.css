@@ -174,7 +174,21 @@ h2 {
     font: 300 .7rem/.9rem "Fira Sans";
 }
 .ql-snow .ql-tooltip {
+    min-width: 146px;
+    max-width: 200px;
+    padding: .4rem .5rem;
     z-index: 1;
+}
+.ql-snow .ql-tooltip a.btn {
+    color: var(--color-fg-default);
+}
+.ql-snow .ql-tooltip::before,
+.ql-snow .ql-tooltip a.ql-remove::before,
+.ql-snow .ql-tooltip a.ql-action::after {
+    content: initial;
+}
+.jsPanel.animating {
+    transition: height cubic-bezier(0.73, -0.32, 0.58, 1) .325s;
 }
 .jsPanel .jsPanel-content {
     padding: 0 1rem 1rem 1rem;
@@ -375,14 +389,25 @@ a.popup-close-area {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: .4rem;
 }
+.item-grid.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 .image-grid button, .image-grid img {
     border-radius: 2px;
 }
-.image-grid > button {
-    background-color: var(--color-bg-default);
-    padding: 0 0 2rem;
-    height: initial;
-    position: relative;
+.item-grid.large-buttons > button {
+    justify-content: center;
+    flex-wrap: wrap;
+    height: 4.6rem;
+    color: var(--color-fg-default);
+    padding: 1rem .6rem;
+}
+.item-grid.large-buttons > button .icon-tabler {
+    width: 1.4rem;
+    height: 1.4rem;
+    flex: 0 0 100%;
+    color: var(--color-fg-dimmed);
+    margin: 0 0 .4rem 0;
 }
 .image-grid .caption {
     position: absolute;
@@ -390,6 +415,12 @@ a.popup-close-area {
     width: 100%;
     bottom: 0;
     padding: .34rem;
+}
+.image-grid > button {
+    background-color: var(--color-bg-default);
+    padding: 0 0 2rem;
+    height: initial;
+    position: relative;
 }
 .image-selected img {
     min-width: 160px;

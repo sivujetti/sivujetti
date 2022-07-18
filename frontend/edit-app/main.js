@@ -37,11 +37,17 @@ function populateFrontendApi() {
     api.getPageTypes = () => d.pageTypes;
     api.getBlockRenderers = () => d.blockRenderers;
     api.getActiveTheme = () => d.activeTheme;
+    api.registerTranslationStrings = translator.addStrings.bind(translator);
+    api.webPageIframe = new WebPageIframe(document.getElementById('site-preview-iframe'), env, urlUtils);
     api.user = { can(doWhat) {
         return d.userPermissions[`can${capitalize(doWhat)}`] === true;
     } };
-    api.registerTranslationStrings = translator.addStrings.bind(translator);
-    api.webPageIframe = new WebPageIframe(document.getElementById('site-preview-iframe'), env, urlUtils);
+    api.editApp = {
+        addBlockTree(trid, blocks) { editAppReactRef.current.addBlockTree(trid, blocks); },
+        registerWebPageDomUpdaterForBlockTree(trid) { editAppReactRef.current.registerWebPageDomUpdaterForBlockTree(trid); },
+        unRegisterWebPageDomUpdaterForBlockTree(trid) { editAppReactRef.current.unRegisterWebPageDomUpdaterForBlockTree(trid); },
+        removeBlockTree(trid) { editAppReactRef.current.removeBlockTree(trid); },
+    };
     // blockTypes, see configureServices
     // mainPanel see configureServices
 }
@@ -114,60 +120,58 @@ function renderReactEditApp() {
         ref: inspectorPanelReactRef,
     }), inspectorPanelOuterEl);
 
-    window.editApp = {
-        /**
-         * @param {EditAppAwareWebPage} webPage
-         * @access public
-         */
-        handleWebPageLoaded(webPage) {
-            if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-            const editApp = editAppReactRef.current;
-            //
-            const blockRefs = webPage.scanBlockRefComments();
-            const ordered = webPage.getCombinedAndOrderedBlockTree(webPage.data.page.blocks,
-                                                                   blockRefs,
-                                                                   blockTreeUtils);
-            const filtered = !webPage.data.page.isPlaceholderPage
-                // Accept all
-                ? blockRefs
-                // Only if page block
-                : blockRefs.filter(({blockId}) => blockTreeUtils.findBlock(blockId, webPage.data.page.blocks)[0] !== null);
-            webPage.registerEventHandlers(editApp.websiteEventHandlers, filtered);
-            editApp.handleWebPageLoaded(webPage, ordered, blockRefs, null);
-            } else {
-            const editApp = editAppReactRef.current;
-            const els = webPage.scanBlockElements();
-            const {blocks} = webPage.data.page;
-            const ordered = [blocks.find(({type}) => type === 'PageInfo')];
-            for (const el of els) {
-                const [isPartOfGlobalBlockTree, globalBlockRefBlockId] = t(el);
-                const blockId = !isPartOfGlobalBlockTree ? el.getAttribute('data-block') : globalBlockRefBlockId;
-                const block = blocks.find(({id}) => id === blockId);
-                if (block) ordered.push(block);
-            }
-            //
-            const [mutatedOrdered, separatedTrees] = separate(ordered);
-            blockTreeUtils.traverseRecursively(mutatedOrdered, b => {
-                b.isStoredTo = 'page';
-                b.isStoredToTreeId = 'main';
-                if (b.type !== 'GlobalBlockReference' && b.type !== 'PageInfo') webPage.setTridAttr(b.id, 'main');
+    /**
+     * @param {EditAppAwareWebPage} webPage
+     * @access public
+     */
+    window.passWebPageToEditApp = (webPage) => {
+        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
+        const editApp = editAppReactRef.current;
+        //
+        const blockRefs = webPage.scanBlockRefComments();
+        const ordered = webPage.getCombinedAndOrderedBlockTree(webPage.data.page.blocks,
+                                                               blockRefs,
+                                                               blockTreeUtils);
+        const filtered = !webPage.data.page.isPlaceholderPage
+            // Accept all
+            ? blockRefs
+            // Only if page block
+            : blockRefs.filter(({blockId}) => blockTreeUtils.findBlock(blockId, webPage.data.page.blocks)[0] !== null);
+        webPage.registerEventHandlers(editApp.websiteEventHandlers, filtered);
+        editApp.handleWebPageLoaded(webPage, ordered, blockRefs, null);
+        } else {
+        const editApp = editAppReactRef.current;
+        const els = webPage.scanBlockElements();
+        const {blocks} = webPage.data.page;
+        const ordered = [blocks.find(({type}) => type === 'PageInfo')];
+        for (const el of els) {
+            const [isPartOfGlobalBlockTree, globalBlockRefBlockId] = t(el);
+            const blockId = !isPartOfGlobalBlockTree ? el.getAttribute('data-block') : globalBlockRefBlockId;
+            const block = blocks.find(({id}) => id === blockId);
+            if (block) ordered.push(block);
+        }
+        //
+        const [mutatedOrdered, separatedTrees] = separate(ordered);
+        blockTreeUtils.traverseRecursively(mutatedOrdered, b => {
+            b.isStoredTo = 'page';
+            b.isStoredToTreeId = 'main';
+            if (b.type !== 'GlobalBlockReference' && b.type !== 'PageInfo') webPage.setTridAttr(b.id, 'main');
+        });
+        for (const [trid, tree] of separatedTrees) {
+            blockTreeUtils.traverseRecursively(tree, b => {
+                b.isStoredTo = 'globalBlockTree';
+                b.isStoredToTreeId = trid;
+                webPage.setTridAttr(b.id, trid);
             });
-            for (const [trid, tree] of separatedTrees) {
-                blockTreeUtils.traverseRecursively(tree, b => {
-                    b.isStoredTo = 'globalBlockTree';
-                    b.isStoredToTreeId = trid;
-                    webPage.setTridAttr(b.id, trid);
-                });
-            }
-            webPage.addRootBoundingEls(ordered[ordered.length - 1]);
-            //
-            const trees = new Map;
-            trees.set('main', mutatedOrdered);
-            for (const [trid, tree] of separatedTrees)
-                trees.set(trid, tree);
-            //
-            editApp.handleWebPageLoaded2(webPage, trees);
-            }
+        }
+        webPage.addRootBoundingEls(ordered[ordered.length - 1]);
+        //
+        const trees = new Map;
+        trees.set('main', mutatedOrdered);
+        for (const [trid, tree] of separatedTrees)
+            trees.set(trid, tree);
+        //
+        editApp.handleWebPageLoaded2(webPage, trees);
         }
     };
 }

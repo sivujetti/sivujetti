@@ -11,22 +11,9 @@ import {findBlockTemp} from './BlockTreeOld.jsx';
 import {makePath, makeSlug} from './block-types/pageInfo.js';
 import blockTreeUtils from './blockTreeUtils.js';
 
-/** @type {EditApp} */
-let instance;
-
 let LEFT_PANEL_WIDTH = 318;
 const PANELS_HIDDEN_CLS = 'panels-hidden';
 const webPageDomUpdaters = new Map;
-
-signals.on('on-block-dnd-global-block-reference-block-drag-started', gbt => {
-    if (gbt.blocks[0].isStoredTo !== 'globalBlockTree' || gbt.blocks[0].isStoredToTreeId !== gbt.id)
-        throw new Error('globalBlockTree.blocks not initialized');
-    instance.createStoreAndDispatchInnerTree(gbt.id, gbt.blocks);
-});
-
-signals.on('on-block-dnd-global-block-reference-block-dropped', trid => {
-    instance.registerWebPageDomUpdater(trid);
-});
 
 class EditApp extends preact.Component {
     // changeViewOptions;
@@ -42,7 +29,6 @@ class EditApp extends preact.Component {
      */
     constructor(props) {
         super(props);
-        instance = this;
         this.changeViewOptions = [
             {name: 'edit-mode', label: __('Edit mode')},
             {name: 'go-to-web-page', label: __('Exit edit mode')},
@@ -138,6 +124,41 @@ class EditApp extends preact.Component {
             setTimeout(() => dispatchData(), 1);
         else
             dispatchData();
+    }
+    /**
+     * @param {String} trid
+     * @param {Array<RawBlock2>} blocks
+     * @access public
+     */
+    addBlockTree(trid, blocks) {
+        if (blocks[0].isStoredTo !== 'globalBlockTree' || blocks[0].isStoredToTreeId !== trid)
+            throw new Error('blocks not initialized');
+        this.createStoreAndDispatchInnerTree(trid, blocks);
+    }
+    /**
+     * @param {String} trid
+     * @access public
+     */
+    registerWebPageDomUpdaterForBlockTree(trid) {
+        this.registerWebPageDomUpdater(trid);
+    }
+    /**
+     * @param {String} trid
+     * @access public
+     */
+    unRegisterWebPageDomUpdaterForBlockTree(trid) {
+        const unreg = webPageDomUpdaters.get(trid);
+        if (!unreg) return;
+        unreg();
+        webPageDomUpdaters.delete(trid);
+    }
+    /**
+     * @param {String} trid
+     * @access public
+     */
+    removeBlockTree(trid) {
+        const [storeStateKey, _] = createBlockTreeReducerPair(trid);
+        store.reducerManager.remove(storeStateKey);
     }
     /**
      * @access protected

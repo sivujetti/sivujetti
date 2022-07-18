@@ -189,7 +189,7 @@ class BlockDnDSpawner extends preact.Component {
             if (this.blockAddPhase !== BlockAddPhase.RENDERING_STARTED ||
                 this.newWaitingBlock.type !== newType) return;
             if (this.newWaitingBlock.type === 'GlobalBlockReference')
-                signals.emit('on-block-dnd-global-block-reference-block-drag-started', gbt);
+                api.editApp.addBlockTree(gbt.id, gbt.blocks);
             this.blockAddPhase = BlockAddPhase.RENDERING_FINISHED;
             this.preRender = html;
             this.hideLoadingIndicatorIfVisible();
@@ -295,7 +295,7 @@ class BlockDnDSpawner extends preact.Component {
             args: [],
         }));
         if (this.newWaitingBlock.type === 'GlobalBlockReference')
-            signals.emit('on-block-dnd-global-block-reference-block-dropped', this.newWaitingBlock.globalBlockTreeId);
+            api.editApp.registerWebPageDomUpdaterForBlockTree(this.newWaitingBlock.globalBlockTreeId);
         }
         this.handleDragEnded(null, acceptDrop);
     }

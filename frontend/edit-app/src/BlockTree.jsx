@@ -1,6 +1,6 @@
 import {__, signals, http, api, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from './commons/ContextMenu.jsx';
-import {normalizeGlobalBlockTreeBlock} from './BlockTypeSelector.jsx';
+import {generatePushID} from './commons/utils.js';
 import BlockTreeShowHelpPopup from './BlockTreeShowHelpPopup.jsx';
 import Block from './Block.js';
 import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
@@ -8,7 +8,8 @@ import store, {observeStore, createSelectBlockTree, createSetBlockTree, pushItem
 import BlockTreeDragDrop from './BlockTreeDragDrop.js';
 import ConvertBlockToGlobalDialog from './ConvertBlockToGlobalBlockTreeDialog.jsx';
 import {getIcon} from './block-types/block-types.js';
-import {cloneDeep, createBlockFromType, findRefBlockOf, isTreesOutermostBlock} from './Block/utils.js';
+import {cloneDeep, createBlockFromType, findRefBlockOf, isTreesOutermostBlock,
+        treeToTransferable} from './Block/utils.js';
 import BlockDnDSpawner from './Block/BlockDnDSpawner.jsx';
 
 let BlockTrees;
@@ -37,6 +38,8 @@ signals.on('on-web-page-loaded', () => {
         'undo-delete-single-block',
         'swap-blocks',
         'undo-swap-blocks',
+        'convert-block-to-global',
+        'undo-convert-block-to-global',
     ];
     unregistrables.push(...currentPageTrids.map(trid =>
          observeStore(createSelectBlockTree(trid), ({tree, context}) => {
@@ -64,12 +67,14 @@ signals.on('on-web-page-block-clicked', block => {
 
 class BlockTree extends preact.Component {
     // selectedRoot;
-    // contextMenu;
+    // moreMenu;
     // lastRootBlockMarker;
     // dragDrop;
     // onDragStart;
     // onDragOver;
     // onDrop;
+    // blockWithMoreMenuOpened;
+    // refElOfOpenMoreMenu;
     /**
      * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>, blockIsStoredTo: 'page'|'globalBlockTree', globalBlockTreeId: String|null) => Promise<Boolean>; BlockTrees: preact.ComponentClass; disablePageInfo?: Boolean;}} props
      */
@@ -77,9 +82,9 @@ class BlockTree extends preact.Component {
         super(props);
         currentInstance = this;
         //
-        this.state = {blockTree: null, treeState: null, blockWithNavOpened: null, loading: false};
+        this.state = {blockTree: null, treeState: null, loading: false};
         this.selectedRoot = null;
-        this.contextMenu = preact.createRef();
+        this.moreMenu = preact.createRef();
         this.lastRootBlockMarker = null;
         this.currentAddBlockTarget = null;
         this.dragDrop = new BlockTreeDragDrop(this, (mutation1, _mutation2 = null) => {
@@ -270,7 +275,7 @@ class BlockTree extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {blockTree, treeState, blockWithNavOpened, loading}) {
+    render(_, {blockTree, treeState, loading}) {
         if (blockTree === null) return;
         const renderBranch = branch => branch.map(block => {
             if (block.type === 'GlobalBlockReference')
@@ -300,7 +305,7 @@ class BlockTree extends preact.Component {
                         <Icon iconId={ getIcon(type) } className="size-xs p-absolute"/>
                         <span class="text-ellipsis">{ getShortFriendlyName(block, type) }</span>
                     </button>
-                    <button onClick={ e => this.openMoreMenu(block, e) } class={ `more-toggle ml-2${blockWithNavOpened !== block ? '' : ' opened'}` } type="button">
+                    <button onClick={ e => this.openMoreMenu(block, e) } class="more-toggle ml-2" type="button">
                         <Icon iconId="dots" className="size-xs"/>
                     </button>
                 </div>
@@ -357,11 +362,13 @@ class BlockTree extends preact.Component {
                     {text: 'Add paragraph as child', title: 'Add paragraph as child', id: 'add-paragraph-child'},
                     {text: __('Clone'), title: __('Clone content'), id: 'clone-block'},
                     {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
-                    {text: __('Convert to global'), title: __('Convert to global content'), id: 'convert-block-to-global'},
-                ] }
+                ].concat(api.user.can('createGlobalBlockTrees')
+                    ? [{text: __('Convert to global'), title: __('Convert to global content'), id: 'convert-block-to-global'}]
+                    : []
+                ) }
                 onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
-                onMenuClosed={ () => this.setState({blockWithNavOpened: null}) }
-                ref={ this.contextMenu }/>
+                onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
+                ref={ this.moreMenu }/>
         </div>;
     }
     /**
@@ -370,11 +377,11 @@ class BlockTree extends preact.Component {
      */
     handleContextMenuLinkClicked(link) {
         if (link.id === 'add-paragraph-after') {
-            this.addParagraph(this.state.blockWithNavOpened, 'after');
+            this.addParagraph(this.blockWithMoreMenuOpened, 'after');
         } else if (link.id === 'add-paragraph-child') {
-            this.addParagraph(this.state.blockWithNavOpened, 'as-child');
+            this.addParagraph(this.blockWithMoreMenuOpened, 'as-child');
         } else if (link.id === 'add-child') {
-            const possibleChild = getVisibleBlock(this.state.blockWithNavOpened);
+            const possibleChild = getVisibleBlock(this.blockWithMoreMenuOpened);
             const id = possibleChild.id;
             this.appendNewBlockPlaceholder(possibleChild, 'as-child',
                 state => {
@@ -382,9 +389,9 @@ class BlockTree extends preact.Component {
                     return state;
                 });
         } else if (link.id === 'clone-block') {
-            this.cloneBlock(this.state.blockWithNavOpened);
+            this.cloneBlock(this.blockWithMoreMenuOpened);
         } else if (link.id === 'delete-block') {
-            const blockVisible = this.state.blockWithNavOpened;
+            const blockVisible = this.blockWithMoreMenuOpened;
             const isSelectedRootCurrentlyClickedBlock = () => {
                 if (!this.selectedRoot)
                     return false;
@@ -431,7 +438,7 @@ class BlockTree extends preact.Component {
             }));
             signals.emit('on-block-deleted', (base || blockVisible), wasCurrentlySelectedBlock);
         } else if (link.id === 'convert-block-to-global') {
-            const blockTreeToStore = this.state.blockWithNavOpened;
+            const blockTreeToStore = this.blockWithMoreMenuOpened;
             floatingDialog.open(ConvertBlockToGlobalDialog, {
                 title: __('Convert to global'),
                 height: 238,
@@ -487,45 +494,64 @@ class BlockTree extends preact.Component {
         }));
     }
     /**
-     * @param {RawGlobalBlockTree} data
+     * @param {{name: String;}} data
      * @param {Block} originalBlock The block tree we just turned global
      * @access private
      */
     doConvertBlockToGlobal(data, originalBlock) {
-        // todo emit to queue
-        // todo start loadState
-        const postData = {
+        if (originalBlock.isStoredToTreeId !== 'main') throw new Error('Sanity');
+
+        // #1
+        const newGbt = {
+            id: generatePushID(),
             name: data.name,
-            blocks: data.blocks,
+            blocks: [originalBlock],
         };
-        return http.post('/api/global-block-trees', postData).then(resp => {
-            if (!resp.insertId) throw new Error('-');
-            const blockWasStoredTo = originalBlock.isStoredTo;
-            const blockRefs = BlockTrees.currentWebPageBlockRefs;
-            // 1. Create new block, update dom
-            const newBlock = Block.fromType('GlobalBlockReference',
-                                            {globalBlockTreeId: resp.insertId});
-            newBlock._cref = BlockTrees.currentWebPage.convertToGlobal(newBlock, originalBlock);
-            blockRefs.splice(blockRefs.indexOf(originalBlock._cref), 0, newBlock._cref);
-            const mutated = turnBranchToGlobal(postData.blocks, // Note: mutates entries of this.state.blockTree
-                                               this.state.blockTree,
-                                               newBlock.globalBlockTreeId);
-            newBlock.__globalBlockTree = {id: resp.insertId,
-                                          name: postData.name,
-                                          blocks: mutated};
-            // 2. Update treeState
-            const treeStateMutRef = this.state.treeState;
-            treeStateMutRef[newBlock.id] = createTreeStateItem();
-            // 3. Replace block in blockTree
-            const branch = blockTreeUtils.findBlock(originalBlock.id, this.state.blockTree)[1];
-            branch.splice(branch.indexOf(originalBlock), 1, newBlock); // Note: mutates this.state.blockTree
-            // 4. Commit to state
-            this.setState({blockTree: this.state.blockTree,
-                           treeState: treeStateMutRef});
-            // 5. Save to backend if we're not currently inside AddPageMainPanelView
-            if (this.props.onChangesApplied)
-                this.props.onChangesApplied(this.state.blockTree, blockWasStoredTo, null);
+        const {tree} = createSelectBlockTree('main')(store.getState());
+        const treeBefore = JSON.parse(JSON.stringify(tree));
+        blockTreeUtils.traverseRecursively(newGbt.blocks, b => { // Note: mutates original block
+            b.isStoredTo = 'globalBlockTree';
+            b.isStoredToTreeId = newGbt.id;
         });
+
+        // #2
+        api.editApp.addBlockTree(newGbt.id, newGbt.blocks);
+        // #3
+        api.editApp.registerWebPageDomUpdaterForBlockTree(newGbt.id);
+
+        // #4
+        let [b, br] = blockTreeUtils.findBlock(originalBlock.id, tree);
+        const turned = createBlockFromType('GlobalBlockReference', 'main', undefined, {
+            globalBlockTreeId: newGbt.id,
+        });
+        br[br.indexOf(b)] = turned;
+        const eventData = {blockId: turned.id, blockType: turned.blockType, trid: 'main', isRootOfOfTrid: newGbt.id};
+        store.dispatch(createSetBlockTree('main')(tree, ['convert-block-to-global', eventData]));
+
+        store.dispatch(pushItemToOpQueue('convert-block-to-global', {
+            doHandle: () => {
+                const {tree} = createSelectBlockTree(newGbt.id)(store.getState());
+                const gbt = {id: newGbt.id, name: newGbt.name, blocks: treeToTransferable(tree)};
+                return http.post('/api/global-block-trees', gbt).then(resp => {
+                    if (resp.ok !== 'ok') throw new Error('-');
+                    return BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree('main')(store.getState()).tree, 'main');
+                });
+            },
+            doUndo: () => {
+                // No need to revert #1
+
+                // Revert #3
+                api.editApp.unRegisterWebPageDomUpdaterForBlockTree(newGbt.id);
+
+                // Revert #4
+                store.dispatch(createSetBlockTree('main')(treeBefore, ['undo-convert-block-to-global', eventData]));
+                setTimeout(() => {
+                // No need to revert #2
+                    api.editApp.removeBlockTree(newGbt.id);
+                }, 4000);
+            },
+            args: [],
+        }));
     }
     /**
      * @param {BlockBlueprint} blockBluePrint
@@ -669,8 +695,10 @@ class BlockTree extends preact.Component {
      * @access private
      */
     openMoreMenu(block, e) {
-        this.setState({blockWithNavOpened: block});
-        this.contextMenu.current.open(e, links => {
+        this.blockWithMoreMenuOpened = block;
+        this.refElOfOpenMoreMenu = e.target;
+        this.refElOfOpenMoreMenu.style.opacity = '1';
+        this.moreMenu.current.open(e, links => {
             const notThese = []
                 .concat(block.isStoredTo === 'page' ? [] : ['convert-block-to-global', 'clone-block']);
             return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
@@ -704,7 +732,7 @@ class BlockTree extends preact.Component {
         const mutRef = this.state.treeState;
         for (const key in mutRef) mutRef[key].isSelected = false;
         this.selectedRoot = null;
-        this.setState({treeState: mutRef, blockWithNavOpened: null});
+        this.setState({treeState: mutRef});
     }
     /**
      * @param {'clicked'|'focus-requested'} name
@@ -818,26 +846,6 @@ function getLastPageBlock(blockTree) {
         type === 'GlobalBlockReference' &&
         globalBlockTreeId === firstGlobalTreeRefAfterPageContents.globalBlockTreeId
     ));
-}
-
-/**
- * @param {Array<RawBlock>} branchRaw
- * @param {Array<Block>} containingBlockTree i.e. BlockTree.state.blockTree
- * @param {String} globalBlockTreeId
- * @returns {Array<Block>}
- */
-function turnBranchToGlobal(branchRaw, containingBlockTree, globalBlockTreeId) {
-    // Find each corresponding block from currentContainingBranch
-    const currentBlocks = blockTreeUtils.mapRecursively(branchRaw, sbRaw =>
-        blockTreeUtils.findBlock(sbRaw.id, containingBlockTree)[0]
-    );
-    // Turn them from normal block to a global tree block
-    blockTreeUtils.traverseRecursively(currentBlocks, block => {
-        normalizeGlobalBlockTreeBlock(block, globalBlockTreeId);
-    });
-    // Store and return
-    globalBlockTreeBlocks.set(globalBlockTreeId, currentBlocks);
-    return globalBlockTreeBlocks.get(globalBlockTreeId);
 }
 
 /**

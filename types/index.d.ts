@@ -9,6 +9,12 @@ interface SivujettiFrontendApi {
     user: {
         can(doWhat: 'doAnything'|'editCssStyles'|'editThemeStyles'|'createPageTypes'|'createPages'|'specializeGlobalBlocks'): Boolean;
     }
+    editApp: {
+        addBlockTree(trid: String, blocks: Array<RawBlock2>): void;
+        registerWebPageDomUpdaterForBlockTree(trid: String): void;
+        unRegisterWebPageDomUpdaterForBlockTree(trid: String): void;
+        removeBlockTree(trid: String): void;
+    };
 }
 
 interface WebPageIframe {
@@ -207,6 +213,7 @@ interface TheWebsite {
         canEditThemeStyles: Boolean;
         canCreatePageTypes: Boolean;
         canCreatePages: Boolean;
+        canCreateGlobalBlockTrees: Boolean;
         canSpecializeGlobalBlocks: Boolean;
     };
     showGoToDashboardMode?: Boolean;
@@ -293,7 +300,7 @@ interface BlockEditFormProps {
     funcsOut: {resetValues?: (newSnapshot: RawBlockData) => void;};
 }
 
-type blockChangeEvent = 'init'|'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block'|'swap-blocks'|'undo-swap-blocks'|'commit-add-single-block';
+type blockChangeEvent = 'init'|'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block'|'swap-blocks'|'undo-swap-blocks'|'commit-add-single-block'|'convert-block-to-global'|'undo-convert-block-to-global';
 
 interface BlockEditFormProps2 {
     getBlockCopy(): RawBlock2;
@@ -348,7 +355,7 @@ interface BlockTreeItemState {
 interface BlockTreeReduxState {
     tree: Array<RawBlock2>;
     // [eventName, eventData, eventOrigin, preRender]
-    context: [blockChangeEvent, DefaultChangeEventData|SwapChangeEventData|DeleteChangeEventData|AddChangeEvent|{}, 'dnd-spawner'?, String?];
+    context: [blockChangeEvent, DefaultChangeEventData|SwapChangeEventData|DeleteOrConvertChangeEventData|AddChangeEvent|{}, 'dnd-spawner'?, String?];
 }
 
 interface DefaultChangeEventData {
@@ -365,7 +372,7 @@ interface SwapChangeEventData {
     doRevert(): void;
 }
 
-interface DeleteChangeEventData extends DefaultChangeEventData {
+interface DeleteOrConvertChangeEventData extends DefaultChangeEventData {
     isRootOfOfTrid: String|null;
 }
 

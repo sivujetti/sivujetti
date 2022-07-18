@@ -1,10 +1,10 @@
-import {__, hookForm, unhookForm, handleSubmit, FormGroup, Input, InputErrors, floatingDialog} from '@sivujetti-commons-for-edit-app';
-import blockTreeUtils from './blockTreeUtils.js';
+import {__, hookForm, unhookForm, handleSubmit, FormGroup, Input, InputErrors,
+        floatingDialog} from '@sivujetti-commons-for-edit-app';
 
 class ConvertBlockToGlobalBlockTreeDialog extends preact.Component {
-    // applyCreateGlobalBlockTree;
+    // boundDoHandleSubmit;
     /**
-     * @param {{blockToConvertAndStore: Block; onConfirmed: (data: RawGlobalBlockTree) => any;}} props
+     * @param {{blockToConvertAndStore: RawBlock2; onConfirmed: (data: {name: String;}) => any;}} props
      */
     constructor(props) {
         super(props);
@@ -23,7 +23,7 @@ class ConvertBlockToGlobalBlockTreeDialog extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {formIsSubmitting}) {
+    render() {
         return <form onSubmit={ e => handleSubmit(this, this.boundDoHandleSubmit, e) }>
             <div class="mb-1">{ __('Store this content globally so you can use it later in other pages?') }</div>
             <FormGroup>
@@ -34,8 +34,7 @@ class ConvertBlockToGlobalBlockTreeDialog extends preact.Component {
             <div class="mt-8">
                 <button
                     class="btn btn-primary mr-2"
-                    type="submit"
-                    disabled={ formIsSubmitting }>{ __('Convert') }</button>
+                    type="submit">{ __('Convert') }</button>
                 <button
                     onClick={ () => floatingDialog.close() }
                     class="btn btn-link"
@@ -48,14 +47,9 @@ class ConvertBlockToGlobalBlockTreeDialog extends preact.Component {
      * @access private
      */
     applyCreateGlobalBlockTree() {
-        return this.props
-            .onConfirmed({
-                name: this.state.values.name,
-                blocks: blockTreeUtils.mapRecursively([this.props.blockToConvertAndStore],
-                                                       block => block.toRaw())
-            }).finally(() => {
-                floatingDialog.close();
-            });
+        this.props.onConfirmed({name: this.state.values.name});
+        floatingDialog.close();
+        return Promise.resolve();
     }
 }
 

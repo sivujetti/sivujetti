@@ -377,6 +377,28 @@ class EditAppAwareWebPage {
                     el.replaceWith(temp.content);
                     onAfterInsertedToDom(html);
                 });
+                return;
+            }
+            //
+            if (event === 'convert-block-to-global') {
+                const newGbtBlocks = getTree(context[1].isRootOfOfTrid);
+                const originalBlockId = newGbtBlocks[0];
+                const el = treeRootEl.querySelector(`[data-block="${originalBlockId.id}"]`);
+                el.parentElement.insertBefore(document.createComment(` block-start ${context[1].blockId}:GlobalBlockReference `), el);
+                (function (endcom, nextEl) {
+                    if (nextEl) nextEl.parentElement.insertBefore(endcom, nextEl);
+                    else el.parentElement.appendChild(endcom);
+                })(document.createComment(` block-end ${context[1].blockId} `), el.nextSibling);
+                blockTreeUtils.traverseRecursively(newGbtBlocks, b => this.setTridAttr(b.id, context[1].isRootOfOfTrid));
+                return;
+            }
+            //
+            if (event === 'undo-convert-block-to-global') {
+                const gbtBlocks = getTree(context[1].isRootOfOfTrid);
+                const outermost = treeRootEl.querySelector(`[data-block="${gbtBlocks[0].id}"]`);
+                [outermost.previousSibling, outermost.nextSibling].forEach(com => outermost.parentElement.removeChild(com));
+                blockTreeUtils.traverseRecursively(gbtBlocks, b => this.setTridAttr(b.id, 'main'));
+                return;
             }
         };
     }

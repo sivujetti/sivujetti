@@ -17,6 +17,7 @@ function createBlockFromType(blockType, trid = 'main', id = generatePushID(), pr
         type: blockType.name,
         title: '',
         renderer: blockType.defaultRenderer,
+        styleClasses: '',
         isStoredTo: trid === 'main' ? 'page' : 'globalBlockTree',
         isStoredToTreeId: trid,
         children: []
@@ -85,7 +86,7 @@ function findRefBlockOf(innerTreeBlockOrTrid, tree) {
 function temp(block) {
     const clone = JSON.parse(JSON.stringify(block));
     for (const key in clone) {
-        if (key.startsWith('__'))// || key === 'propsData')
+        if (key.startsWith('__'))
             delete clone[key];
     }
     return clone;

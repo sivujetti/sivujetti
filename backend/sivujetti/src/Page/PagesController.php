@@ -135,6 +135,7 @@ final class PagesController {
                     "canEditThemeStyles" => $acl->can($userRole, "updateGlobalStylesOf", "themes"),
                     "canCreatePageTypes" => $acl->can($userRole, "create", "pageTypes"),
                     "canCreatePages" => $acl->can($userRole, "create", "pages"),
+                    "canCreateGlobalBlockTrees" => $acl->can($userRole, "create", "globalBlockTrees"),
                     "canSpecializeGlobalBlocks" => $userRole <= ACL::ROLE_ADMIN,
                 ],
             ]),

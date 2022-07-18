@@ -6,7 +6,7 @@ use Pike\{ArrayUtils, Request, Response, Validation};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder};
 use Sivujetti\BlockType\Entities\BlockTypes;
-use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository;
+use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository2;
 use Sivujetti\Page\{PagesController, PagesRepository, WebPageAwareTemplate};
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\SharedAPIContext;
@@ -62,12 +62,12 @@ final class BlocksController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository $globalBlocksRepo
+     * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository2 $gbtRepo
      */
     public function list(Request $req,
                          Response $res,
-                         GlobalBlockTreesRepository $globalBlocksRepo): void {
-        $gbts = $globalBlocksRepo->getMany();
+                         GlobalBlockTreesRepository2 $gbtRepo): void {
+        $gbts = $gbtRepo->select()->fetchAll();
         $out = [];
         $onlyOfType = $req->params->type;
         $predicate = fn($block) => $block->type === $onlyOfType;

@@ -2,7 +2,7 @@
 
 namespace Sivujetti;
 
-use Pike\{ObjectValidator, PikeException};
+use Pike\{ObjectValidator, PikeException, Validation};
 
 abstract class ValidationUtils {
     public const HARD_SHORT_TEXT_MAX_LEN = 1024;
@@ -73,6 +73,16 @@ abstract class ValidationUtils {
 
             return true;
         }, "%s is not valid"];
+    }
+    /**
+     * @return array{0: string, 1: \Closure, 2: string}
+     */
+    public static function createPushIdValidatorImpl(): array {
+        return ["pushId", fn($value) =>
+            is_string($value) &&
+            strlen($value) === 20 &&
+            Validation::isStringType(str_replace(["_", "-"], "", $value), "alnum")
+        , "%s is not valid push id"];
     }
     /**
      * @param array<int, object>|\ArrayObject $properties pageType->ownFields or $blockType->defineProperties()

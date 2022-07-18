@@ -7,7 +7,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
 "DROP TABLE IF EXISTS `\${p}globalBlocksStyles`",
-"DROP TABLE IF EXISTS `\${p}globalBlocks`",
+"DROP TABLE IF EXISTS `\${p}globalBlockTrees`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}pageBlocksStyles`",
@@ -126,8 +126,8 @@ return [
     `lastUpdatedAt` {$dataTypeForTimestamps}
 )",
 
-"CREATE TABLE `\${p}globalBlocks` (
-    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+"CREATE TABLE `\${p}globalBlockTrees` (
+    `id` TEXT PRIMARY KEY,
     `name` TEXT NOT NULL,
     `blocks` JSON
 )",
@@ -135,10 +135,10 @@ return [
 "CREATE TABLE `\${p}globalBlocksStyles` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `styles` TEXT,
-    `globalBlockTreeId` INTEGER NOT NULL,
+    `globalBlockTreeId` TEXT NOT NULL,
     `themeId` INTEGER NOT NULL,
     FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
-    FOREIGN KEY (`globalBlockTreeId`) REFERENCES `\${p}globalBlocks`(`id`)
+    FOREIGN KEY (`globalBlockTreeId`) REFERENCES `\${p}globalBlockTrees`(`id`)
 )",
 
 "CREATE TABLE `\${p}layouts` (

@@ -3,6 +3,7 @@
 namespace Sivujetti\Tests\Utils;
 
 use Sivujetti\Block\Entities\Block;
+use Sivujetti\PushIdGenerator;
 
 /**
  * @x-psalm-type RawBlock = object{type: string, title: string, renderer: string, id: string, children: array<int, object>, propsData: array<int, object{key: string, value: mixed}>}
@@ -24,7 +25,7 @@ final class GlobalBlockTreeTestUtils {
     public function makeGlobalBlockTreeData(): object {
         $btu = $this->blockTestUtils;
         return (object) [
-            "id" => "1",
+            "id" => PushIdGenerator::generatePushId(),
             "name" => "My footer",
             "blocks" => [$btu->makeBlockData(Block::TYPE_SECTION, "Footer", "sivujetti:block-generic-wrapper", children: [
                 $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "© Year My Site", "cssClass" => ""]),

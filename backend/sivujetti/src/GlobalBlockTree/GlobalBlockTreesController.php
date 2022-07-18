@@ -7,6 +7,7 @@ use Pike\{PikeException, Request, Response, Validation};
 use Sivujetti\Block\{BlockPropDiffChecker, BlocksController, BlockTree, BlockValidator};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
+use Sivujetti\ValidationUtils;
 
 final class GlobalBlockTreesController {
     private const MAX_NAME_LEN = 92;
@@ -15,13 +16,13 @@ final class GlobalBlockTreesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository $globalBlocksRepo
+     * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository2 $gbtRepo
      * @param \Sivujetti\Block\BlockValidator $blockValidator
      * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      */
     public function create(Request $req,
                            Response $res,
-                           GlobalBlockTreesRepository $globalBlocksRepo,
+                           GlobalBlockTreesRepository2 $gbtRepo,
                            BlockValidator $blockValidator,
                            BlockTypes $blockTypes): void {
         if (($errors = $this->validateInput($req->body, $blockValidator))) {
@@ -29,15 +30,18 @@ final class GlobalBlockTreesController {
             return;
         }
         //
-        $insertId = $globalBlocksRepo->insert((object) [
-            "name" => $req->body->name,
-            "blocks" => BlockTree::toJson(
-                BlocksController::makeStorableBlocksDataFromValidInput($req->body->blocks,
-                    $blockTypes)
-            ),
-        ]);
+        $ok = $gbtRepo->insert()
+            ->values((object) [
+                "id" => $req->body->id,
+                "name" => $req->body->name,
+                "blocks" => BlockTree::toJson(
+                    BlocksController::makeStorableBlocksDataFromValidInput($req->body->blocks,
+                        $blockTypes)
+                )
+            ])
+            ->execute(return: "numRows") === 1;
         //
-        $res->status($insertId !== "" ? 201 : 200)->json(["insertId" => $insertId]);
+        $res->status($ok ? 201 : 200)->json(["ok" => $ok ? "ok" : "err"]);
     }
     /**
      * GET /api/global-block-trees/:globalBlockTreeId: Retrieves a single global
@@ -57,11 +61,11 @@ final class GlobalBlockTreesController {
      * GET /api/global-block-trees: Lists all global block trees.
      *
      * @param \Pike\Response $res
-     * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository $globalBlocksRepo
+     * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository2 $globalBlocksRepo
      */
     public function list(Response $res,
-                         GlobalBlockTreesRepository $globalBlocksRepo): void {
-        $blocks = $globalBlocksRepo->getMany();
+                         GlobalBlockTreesRepository2 $gbtRepo): void {
+        $blocks = $gbtRepo->select()->fetchAll();
         $res->json($blocks);
     }
     /**
@@ -131,6 +135,8 @@ final class GlobalBlockTreesController {
     private function validateInput(object $input,
                                    BlockValidator $blockValidator): array {
         if (($errors = Validation::makeObjectValidator()
+            ->addRuleImpl(...ValidationUtils::createPushIdValidatorImpl())
+            ->rule("id", "pushId")
             ->rule("name", "type", "string")
             ->rule("name", "maxLength", self::MAX_NAME_LEN)
             ->rule("blocks", "minLength", "1", "array")

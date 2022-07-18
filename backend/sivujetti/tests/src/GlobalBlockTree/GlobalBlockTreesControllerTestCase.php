@@ -29,7 +29,7 @@ abstract class GlobalBlockTreesControllerTestCase extends DbTestCase {
     protected function insertTestGlobalBlockTreeToDb(\TestState $state, object $data = null): void {
         $globalBlockTreeData = clone ($data ?? $state->originalData);
         $globalBlockTreeData->blocks = BlockTree::toJson($globalBlockTreeData->blocks);
-        $insertId = $this->dbDataHelper->insertData($globalBlockTreeData, "globalBlocks");
+        $insertId = $this->dbDataHelper->insertData($globalBlockTreeData, "globalBlockTrees");
         $globalBlockTreeData->id = $insertId;
     }
 }

@@ -16,15 +16,14 @@ final class GetGlobalBlockTreesTest extends GlobalBlockTreesControllerTestCase {
     protected function setupTest(): \TestState {
         $state = parent::setupTest();
         $state->testGlobalBlockTree = (object) [
-            // "id" will be set in $this->insertTestGlobalBlockTreeToDb()
+            "id" => "-1234567890abcdefghi",
             "name" => $state->inputData->name,
             "blocks" => BlockTree::toJson($state->inputData->blocks)
         ];
         return $state;
     }
     protected function insertTestGlobalBlockTreeToDb(\TestState $state, object $d = null): void {
-        $insertId = $this->dbDataHelper->insertData($state->testGlobalBlockTree, "globalBlocks");
-        $state->testGlobalBlockTree->id = $insertId;
+        $this->dbDataHelper->insertData($d ?? $state->testGlobalBlockTree, "globalBlockTrees");
     }
     private function sendGetGlobalBlockTreeByIdRequest(\TestState $state): void {
         $state->spyingResponse = $state->app->sendRequest(
@@ -41,12 +40,19 @@ final class GetGlobalBlockTreesTest extends GlobalBlockTreesControllerTestCase {
 
 
     public function testListGlobalBlocksListsGlobalBlockTreesFromDb(): void {
-        $state = $this->setupTest();
+        $state = $this->setupListTest();
         $this->insertTestGlobalBlockTreeToDb($state);
+        $this->insertTestGlobalBlockTreeToDb($state, $state->testGlobalBlockTree2);
         $this->makeTestSivujettiApp($state);
         $this->sendListGlobalBlockTreesRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
         $this->verifyListedAllGlobalBlockTrees($state);
+    }
+    protected function setupListTest(): \TestState {
+        $state = $this->setupTest();
+        $state->testGlobalBlockTree2 = clone $state->testGlobalBlockTree;
+        $state->testGlobalBlockTree2->id[1] = "2";
+        return $state;
     }
     private function sendListGlobalBlockTreesRequest(\TestState $state): void {
         $state->spyingResponse = $state->app->sendRequest(
@@ -54,8 +60,11 @@ final class GetGlobalBlockTreesTest extends GlobalBlockTreesControllerTestCase {
     }
     private function verifyListedAllGlobalBlockTrees(\TestState $state): void {
         $actual = json_decode($state->spyingResponse->getActualBody(), flags: JSON_THROW_ON_ERROR);
-        $this->assertCount(1, $actual);
+        $this->assertCount(2, $actual);
+        usort($actual, fn($a, $b) => $a->name <=> $b->name);
         $this->assertEquals($state->testGlobalBlockTree->name, $actual[0]->name);
         $this->assertEquals(json_decode($state->testGlobalBlockTree->blocks), $actual[0]->blocks);
+        $this->assertEquals($state->testGlobalBlockTree2->name, $actual[1]->name);
+        $this->assertEquals(json_decode($state->testGlobalBlockTree2->blocks), $actual[1]->blocks);
     }
 }

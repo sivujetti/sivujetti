@@ -3,13 +3,13 @@
 namespace Sivujetti\GlobalBlockTree;
 
 use Envms\FluentPDO\Queries\Select;
-use Pike\Db\{FluentDb, MyUpdate};
+use Pike\Db\{FluentDb, MyInsert, MyUpdate};
 use Pike\Interfaces\RowMapperInterface;
 use Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree;
 use Sivujetti\Page\PagesRepository;
 
 final class GlobalBlockTreesRepository2 {
-    private const T = "\${p}globalBlocks";
+    private const T = "\${p}globalBlockTrees";
     /** @var \Pike\Db\FluentDb */
     private FluentDb $fluentDb;
     /**
@@ -17,6 +17,12 @@ final class GlobalBlockTreesRepository2 {
      */
     public function __construct(FluentDb $fluentDb) {
         $this->fluentDb = $fluentDb;
+    }
+    /**
+     * @return \Pike\Dd\MyInsert
+     */
+    public function insert(): MyInsert {
+        return $this->fluentDb->insert(self::T);
     }
     /**
      * @return \Pike\Db\MySelect
@@ -29,7 +35,8 @@ final class GlobalBlockTreesRepository2 {
                     GlobalBlockTreesRepository2::normalizeSingle($row);
                     return $row;
                 }
-            });
+            })
+            ->limit(20);
     }
     /**
      * @return \Pike\Dd\MyUpdate

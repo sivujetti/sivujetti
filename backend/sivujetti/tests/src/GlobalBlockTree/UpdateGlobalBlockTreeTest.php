@@ -36,7 +36,7 @@ final class UpdateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
                 "PUT", $state->inputData));
     }
     private function verifyWroteNewDataToDb(\TestState $state): void {
-        $actual = $this->dbDataHelper->getRow("globalBlocks",
+        $actual = $this->dbDataHelper->getRow("globalBlockTrees",
                                               "`id` = ?",
                                               [$state->originalData->id]);
         $this->assertEquals($state->originalData->name, $actual["name"],

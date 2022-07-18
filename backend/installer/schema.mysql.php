@@ -8,7 +8,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
 "DROP TABLE IF EXISTS `\${p}globalBlocksStyles`",
-"DROP TABLE IF EXISTS `\${p}globalBlocks`",
+"DROP TABLE IF EXISTS `\${p}globalBlockTrees`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}pageBlocksStyles`",
@@ -134,8 +134,8 @@ return [
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 
-"CREATE TABLE `\${p}globalBlocks` (
-    `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+"CREATE TABLE `\${p}globalBlockTrees` (
+    `id` CHAR(20) NOT NULL,
     `name` VARCHAR(92) NOT NULL,
     `blocks` JSON,
     `themeId` SMALLINT UNSIGNED NOT NULL,
@@ -146,8 +146,8 @@ return [
 "CREATE TABLE `\${p}globalBlocksStyles` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `styles` TEXT,
-    `globalBlockTreeId` SMALLINT UNSIGNED NOT NULL,
-    FOREIGN KEY (`globalBlockTreeId`) REFERENCES `\${p}globalBlocks`(`id`),
+    `globalBlockTreeId` CHAR(20) NOT NULL,
+    FOREIGN KEY (`globalBlockTreeId`) REFERENCES `\${p}globalBlockTrees`(`id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

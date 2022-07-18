@@ -181,18 +181,20 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         ];
         //
         $ddh = new DbDataHelper(self::$db);
-        $insertId = $ddh->insertData((object) [
+        $gbt = (object) [
+            "id" => "-3456789012abcdefghi",
             "name" => "My footer",
             "blocks" => json_encode($state->testGlobalBlockTreeBlocks)
-        ], "globalBlocks");
+        ];
+        $ddh->insertData($gbt, "globalBlockTrees");
         //
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_GLOBAL_BLOCK_REF,
-                propsData: ["globalBlockTreeId" => $insertId, "overrides" =>
+                propsData: ["globalBlockTreeId" => $gbt->id, "overrides" =>
                     GlobalBlockReferenceBlockType::EMPTY_OVERRIDES, "useOverrides" => 0],
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_GLOBAL_BLOCK_REF,
-                propsData: ["globalBlockTreeId" => $insertId, "overrides" => json_encode((object) [
+                propsData: ["globalBlockTreeId" => $gbt->id, "overrides" => json_encode((object) [
                     $state->testGlobalBlockTreeBlocks[0]->id => (object) [
                         "text" => "Overriden",
                         "cssClass" => "special-footer",

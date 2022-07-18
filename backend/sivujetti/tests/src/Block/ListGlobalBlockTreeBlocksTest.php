@@ -32,15 +32,14 @@ final class ListGlobalBlockTreeBlocksTest extends RenderBlocksTestCase {
                 id: "@auto"),
         ];
         $state->testGlobalBlockTree = (object) [
-            // "id" will be set in $this->insertTestGlobalBlockTreeToDb()
+            "id" => "-2345678901abcdefghi",
             "name" => "Irrelevant",
             "blocks" => BlockTree::toJson($state->testBlocks)
         ];
         return $state;
     }
     private function insertTestData(\TestState $state): void {
-        $insertId = $this->dbDataHelper->insertData($state->testGlobalBlockTree, "globalBlocks");
-        $state->testGlobalBlockTree->id = $insertId;
+        $this->dbDataHelper->insertData($state->testGlobalBlockTree, "globalBlockTrees");
     }
     private function sendListGlobalBlockTreeBlocksRequest(\TestState $state): void {
         $state->spyingResponse = $state->app->sendRequest(

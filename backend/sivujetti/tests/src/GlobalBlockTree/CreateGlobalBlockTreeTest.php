@@ -9,28 +9,21 @@ final class CreateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
         $state = $this->setupTest();
         $this->makeTestSivujettiApp($state);
         $this->sendCreateGlobalBlockTreeRequest($state);
-        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifyRequestFinishedSuccesfully($state, 201);
         $this->verifyInsertedGlobalBlockTreeToDb($state);
     }
     protected function setupTest(): \TestState {
         $state = parent::setupTest();
-        $state->actualInsertId = null;
         return $state;
     }
     private function sendCreateGlobalBlockTreeRequest(\TestState $state): void {
         $state->spyingResponse = $state->app->sendRequest(
             $this->createApiRequest("/api/global-block-trees", "POST", $state->inputData));
     }
-    /** @override (\Sivujetti\Tests\Utils\HttpApiTestTrait) */
-    protected function verifyRequestFinishedSuccesfully(\TestState $state, int $withStatus = 200): void {
-        $this->verifyResponseMetaEquals(201, "application/json", $state->spyingResponse);
-        $state->actualInsertId = json_decode($state->spyingResponse->getActualBody())->insertId;
-        $this->assertEquals("string", gettype($state->actualInsertId));
-    }
     private function verifyInsertedGlobalBlockTreeToDb(\TestState $state): void {
-        $actual = $this->dbDataHelper->getRow("globalBlocks",
+        $actual = $this->dbDataHelper->getRow("globalBlockTrees",
                                               "`id` = ?",
-                                              [$state->actualInsertId]);
+                                              [$state->inputData->id]);
         $this->assertEquals($state->inputData->name, $actual["name"]);
         $tree = json_decode($actual["blocks"], flags: JSON_THROW_ON_ERROR);
         $this->assertCount(1, $tree);
@@ -48,6 +41,7 @@ final class CreateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
         $this->sendCreateGlobalBlockTreeRequest($state);
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals([
+            "id is not valid push id",
             "name must be string",
             "The length of name must be 92 or less",
             "The length of blocks must be at least 1",

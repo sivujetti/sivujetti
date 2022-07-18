@@ -53,7 +53,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->dbDataHelper->insertData((object) ["id" => $state->testGlobalBlockData->id,
                                                   "name" => $state->testGlobalBlockData->name,
                                                   "blocks" => $state->testGlobalBlockData->blocks],
-                                        "globalBlocks");
+                                        "globalBlockTrees");
     }
     private function verifyRenderedCorrectPageAndLayout(\TestState $state): void {
         $headingBlock = $state->testPageData->blocks[0]->children[0];

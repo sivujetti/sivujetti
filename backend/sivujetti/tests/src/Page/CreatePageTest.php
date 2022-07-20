@@ -97,7 +97,7 @@ final class CreatePageTest extends PagesControllerTestCase {
         $notValidBlock = (object) ["type" => Block::TYPE_PARAGRAPH];
         $validBlock = $btu->makeBlockData(Block::TYPE_SECTION, "Main", "sivujetti:block-generic-wrapper", children: [
             $notValidBlock,
-        ], propsData: ["bgImage" => "", "cssClass" => ""]);
+        ], propsData: ["bgImage" => ""]);
         $state->inputData->blocks = [$validBlock];
         $this->makeTestSivujettiApp($state);
         $this->sendCreatePageRequest($state);

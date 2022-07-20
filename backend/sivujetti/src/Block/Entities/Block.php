@@ -27,35 +27,35 @@ final class Block {
     public string $id;
     /** @var array array<int, {key: string, value: string}> */
     public array $propsData;
+    /** @var string e.g. "j-Section-default j-Section-header" */
+    public string $styleClasses;
     /** @var \Sivujetti\Block\Entities\Block[] */
     public array $children;
 
     /* If self::TYPE_BUTTON
     public string $html;
     public string $linkTo; e.g. "/my-page", "https://foo.com", "//foo.com"
-    public string $tagType; "link"|"button"|"submit"
-    public string $cssClass; */
+    public string $tagType; "link"|"button"|"submit" */
 
     /* If self::TYPE_CODE
     public string $code; */
 
     /* If self::TYPE_COLUMNS
-    public string $cssClass; */
+    public int $numColumns;
+    public int $takeFullWidth; */
 
     /* If self::TYPE_TYPE_GLOBAL_BLOCK_REF
     public string $globalBlockTreeId;
-    public string $overrides; e.g. "{"dVUdW0--E_k8uNy6d856":{"text":"Overrideen paragraph text.","cssClass":""}}"
+    public string $overrides; e.g. "{"dVUdW0--E_k8uNy6d856":{"text":"Overrideen paragraph text."}}"
     public int $useOverrides;
     public ?\Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree $__globalBlockTree; */
 
     /* If self::TYPE_HEADING
     public string $text;
-    public int $level;
-    public string $cssClass; */
+    public int $level; */
 
     /* If self::TYPE_IMAGE
-    public string $src;
-    public string $cssClass; */
+    public string $src; */
 
     /* If "MyListing"
     public string $filterPageType; e.g. "Pages"
@@ -77,15 +77,13 @@ final class Block {
     public string $itemEnd; */
 
     /* If self::TYPE_PARAGRAPH
-    public string $text;
-    public string $cssClass; */
+    public string $text; */
 
     /* If self::TYPE_RICH_TEXT
     public string $html; */
 
     /* If self::TYPE_SECTION
-    public string $bgImage;
-    public string $cssClass; */
+    public string $bgImage; */
 
     /**
      * @param object $data
@@ -98,6 +96,7 @@ final class Block {
         $out->renderer = $data->renderer;
         $out->id = $data->id;
         $out->propsData = $data->propsData;
+        $out->styleClasses = $data->styleClasses ?? "";
         $out->children = [];
         foreach ($data->children as $child)
             $out->children[] = self::fromObject($child);
@@ -117,6 +116,7 @@ final class Block {
         $out->renderer = $blueprint->defaultRenderer;
         $out->id = PushIdGenerator::generatePushId();
         $out->propsData = [];
+        $out->styleClasses = $blueprint->styleClasses ?? "";
         $out->children = [];
         foreach ($blueprint->children as $child)
             $out->children[] = self::fromBlueprint($child);

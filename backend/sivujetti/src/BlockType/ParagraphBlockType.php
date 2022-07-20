@@ -9,7 +9,6 @@ final class ParagraphBlockType implements BlockTypeInterface {
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
         return $builder
             ->newProperty("text", $builder::DATA_TYPE_TEXT)
-            ->newProperty("cssClass", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }
 }

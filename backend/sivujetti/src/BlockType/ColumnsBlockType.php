@@ -10,7 +10,6 @@ final class ColumnsBlockType implements BlockTypeInterface {
         return $builder
             ->newProperty("numColumns", $builder::DATA_TYPE_UINT)
             ->newProperty("takeFullWidth", $builder::DATA_TYPE_UINT)
-            ->newProperty("cssClass", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }
 }

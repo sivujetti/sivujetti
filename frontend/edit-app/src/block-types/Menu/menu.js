@@ -7,7 +7,7 @@ export default () => {
     const initialData = {
         tree: JSON.stringify([linkCreator.makeLinkItem({slug: '/', text: __('Home')}),
                               linkCreator.makeLinkItem({slug: '/about', text: __('About')})]),
-        wrapStart: '<nav class="nav"{defaultAttrs}><div data-block-root>',
+        wrapStart: '<nav {defaultAttrs}><div data-block-root>',
         wrapEnd:   '</div></nav>',
         treeStart: '<ul class="level-{depth}">',
         treeEnd:   '</ul>',

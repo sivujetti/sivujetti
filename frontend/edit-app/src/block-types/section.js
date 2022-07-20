@@ -142,7 +142,7 @@ class SectionBlockEditForm2 extends preact.Component {
 }
 
 export default () => {
-    const initialData = {bgImage: '', cssClass: ''};
+    const initialData = {bgImage: ''};
     const name = 'Section';
     return {
         name,
@@ -151,16 +151,15 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-generic-wrapper',
         icon: 'layout-rows',
-        reRender({bgImage, cssClass, id}, renderChildren) {
-            return `<section${cssClass? ` class="${cssClass}"` : ''}` +
-                (bgImage ? ` style="background-image:url('${urlUtils.makeAssetUrl(bgImage)}')"` : '') +
-                ` data-block-type="${name}" data-block="${id}"><div data-block-root>` +
+        reRender({bgImage, styleClasses, id}, renderChildren) {
+            return ['<section class="j-', name, styleClasses ? ` ${styleClasses}` : '', '"',
+                bgImage ? ` style="background-image:url('${urlUtils.makeAssetUrl(bgImage)}')"` : '',
+                ' data-block-type="', name, '" data-block="', id, '"><div data-block-root>',
                 renderChildren() +
-            '</div></section>';
+            '</div></section>'].join('');
         },
         createSnapshot: from => ({
             bgImage: from.bgImage,
-            cssClass: from.cssClass,
         }),
         // @featureFlagConditionUseReduxBlockTree
         editForm: !window.useReduxBlockTree ? SectionBlockEditForm : SectionBlockEditForm2,

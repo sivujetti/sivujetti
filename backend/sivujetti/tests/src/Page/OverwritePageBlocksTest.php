@@ -25,7 +25,7 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
         $state->testPageData->slug = "/overwrite-blocks-test-page";
         $state->testPageData->path = "/overwrite-blocks-test-page/";
         $state->inputData = (object) ["blocks" =>
-            [$btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Hello", "cssClass" => ""])]
+            [$btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Hello"])]
         ];
         $state->spyingResponse = null;
         $state->app = null;
@@ -51,7 +51,7 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
 
     public function testOverwritePageBlocksCatchesInvalidBlockTypes(): void {
         $state = $this->setupTest();
-        $state->inputData = (object) ["blocks" => [(object) ["type" => "not-valid", "cssClass" => ""]]];
+        $state->inputData = (object) ["blocks" => [(object) ["type" => "not-valid"]]];
         $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
         $this->expectException(PikeException::class);
@@ -65,7 +65,8 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
 
     public function testOverwritePageBlocksCatchesInvalidBasicProps(): void {
         $state = $this->setupTest();
-        $state->inputData = (object) ["blocks" => [(object) ["type" => "Paragraph", "id" => "not-valid"]]];
+        $state->inputData = (object) ["blocks" => [(object) ["type" => "Paragraph", "id" => "not-valid",
+            "styleClasses" => ["not-a-string"]]]];
         $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
         $this->sendOverwritePageBlocksRequest($state);
@@ -75,10 +76,10 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
             "The length of title must be 1024 or less",
             "The value of renderer was not in the list",
             "id is not valid push id",
+            "styleClasses must be string",
+            "The length of styleClasses must be 1024 or less",
             "text must be string",
             "The length of text must be 1024 or less",
-            "cssClass must be string",
-            "The length of cssClass must be 1024 or less",
         ], $state->spyingResponse);
     }
 

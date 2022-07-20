@@ -33,7 +33,7 @@ class Template extends PikeTemplate {
      * @return string
      */
     public static function escAttr(string $url, bool $isWrappedByDoubleQuote = true): string {
-        return $isWrappedByDoubleQuote ? \str_replace("\"", "&#34;", $url) : \str_replace("'", "&#39;", $url);
+        return $isWrappedByDoubleQuote ? \str_replace("\"", "&quot;", $url) : \str_replace("'", "&apos;", $url);
     }
     /**
      * @param string $url

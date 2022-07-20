@@ -163,7 +163,6 @@ export default () => {
     const initialData = {
         numColumns: 2,
         takeFullWidth: 1,
-        cssClass: ''
     };
     const name = 'Columns';
     return {
@@ -173,18 +172,17 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-generic-wrapper',
         icon: 'layout-columns',
-        reRender({numColumns, takeFullWidth, cssClass, id}, renderChildren) {
-            return ['<div class="jet-columns num-cols-', Math.floor(numColumns),
+        reRender({numColumns, takeFullWidth, styleClasses, id}, renderChildren) {
+            return ['<div class="j-', name, ' num-cols-', parseInt(numColumns),
                 takeFullWidth ? '' : ' inline',
-                !cssClass ? '' : ` ${cssClass}`,
+                !styleClasses ? '' : ` ${styleClasses}`,
                 '" data-block-type="', name, '" data-block="', id, '">',
                 renderChildren(),
             '</div>'].join('');
         },
         createSnapshot: from => {
             return {numColumns: from.numColumns,
-                    takeFullWidth: from.takeFullWidth,
-                    cssClass: from.cssClass};
+                    takeFullWidth: from.takeFullWidth};
         },
         // @featureFlagConditionUseReduxBlockTree
         editForm: !window.useReduxBlockTree ? ColumnsBlockEditForm : ColumnsBlockEditForm2,

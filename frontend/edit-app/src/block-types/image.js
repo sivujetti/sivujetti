@@ -138,7 +138,7 @@ class ImageBlockEditForm2 extends preact.Component {
 }
 
 export default () => {
-    const initialData = {src: null, cssClass: ''};
+    const initialData = {src: null};
     const name = 'Image';
     return {
         name,
@@ -147,18 +147,17 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'photo',
-        reRender({src, cssClass, id}, renderChildren) {
-            return ['<figure', cssClass ? ` class="${cssClass}"` : '',
-                ' data-block-type="', name, '"',
-                ' data-block="', id, '">',
-                '<img src="', src ? urlUtils.makeAssetUrl(`public/uploads/${src}`) : placeholderImageSrc, '" alt="">',
+        reRender({src, styleClasses, id}, renderChildren) {
+            return ['<figure class="j-', name, styleClasses ? ` ${styleClasses}` : '',
+                '" data-block-type="', name,
+                '" data-block="', id,
+                '"><img src="', src ? urlUtils.makeAssetUrl(`public/uploads/${src}`) : placeholderImageSrc, '" alt="">',
                 renderChildren(),
             '</figure>'
             ].join('');
         },
         createSnapshot: from => ({
             src: from.src,
-            cssClass: from.cssClass,
         }),
         // @featureFlagConditionUseReduxBlockTree
         editForm: !window.useReduxBlockTree ? ImageBlockEditForm : ImageBlockEditForm2,

@@ -12,7 +12,6 @@ final class HeadingBlockType implements BlockTypeInterface {
             ->newProperty("level")->dataType($builder::DATA_TYPE_UINT, validationRules: [
                 ["in", [1, 2, 3, 4, 5, 6]]
             ])
-            ->newProperty("cssClass", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }
 }

@@ -230,7 +230,7 @@ class ButtonBlockEditForm2 extends preact.Component {
 }
 
 export default () => {
-    const initialData = {html: `${__('Button text')}`, linkTo: '/', tagType: 'link', cssClass: ''};
+    const initialData = {html: `${__('Button text')}`, linkTo: '/', tagType: 'link'};
     const name = 'Button';
     return {
         name,
@@ -239,27 +239,25 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'hand-finger',
-        reRender({html, linkTo, tagType, cssClass, id}, renderChildren) {
-           const maybeExternalUrl = url => url.indexOf('.') < 0
+        reRender({html, linkTo, tagType, styleClasses, id}, renderChildren) {
+            const maybeExternalUrl = url => url.indexOf('.') < 0
                 ? urlUtils.makeUrl(url)
                 : `${url.startsWith('//') || url.startsWith('http') ? '' : '//'}${url}`;
-            let [startInnerTag, closeInnerTag] = {
+            const [start, close] = {
                 [tagTypes.NORMAL_BUTTON]: ['<button type="button"', '</button>'],
                 [tagTypes.SUBMIT_BUTTON]: ['<button type="submit"', '</button>'],
-            }[tagType] || [`<a href="${maybeExternalUrl(linkTo)}"`, '</a>'];
-            return ['<p class="button" data-block-type="', name, '" data-block="', id, '">',
-                startInnerTag, ' class="btn',
-                (cssClass ? ` ${cssClass}` : ''), '" data-block-root>',
-                    html,
-                    renderChildren(),
-                closeInnerTag,
-            '</p>'].join('');
+            }[tagType] || [`<a href="${maybeExternalUrl(linkTo)}"`, "</a>"];
+            return [start, ' class="j-', name, ' btn', (styleClasses ? ` ${styleClasses}` : ''),
+                '" data-block-type="', name,
+                '" data-block="', id, '">',
+                html,
+                renderChildren(),
+            close].join('');
         },
         createSnapshot: from => ({
             html: from.html,
             linkTo: from.linkTo,
             tagType: from.tagType,
-            cssClass: from.cssClass,
         }),
         // @featureFlagConditionUseReduxBlockTree
         editForm: !window.useReduxBlockTree ? ButtonBlockEditForm : ButtonBlockEditForm2,

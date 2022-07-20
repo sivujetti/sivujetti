@@ -48,6 +48,8 @@ final class BlockValidator {
                 ->rule("title", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
                 ->rule("renderer", "in", $this->validBlockRenderers)
                 ->rule("id", "pushId")
+                ->rule("styleClasses", "type", "string")
+                ->rule("styleClasses", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
         )->validate($input);
     }
     /**

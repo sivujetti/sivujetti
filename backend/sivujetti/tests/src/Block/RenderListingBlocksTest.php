@@ -28,7 +28,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $state = $this->setupRenderListingBlocksTest();
         $this->makeTestSivujettiApp($state);
         $expectedHtml = (
-            "<div class=\"listing listing-pages\" data-block-type=\"Listing\" data-block=\"{$state->testBlocks[0]->id}\">\r\n" .
+            "<div class=\"j-Listing page-type-pages\" data-block-type=\"Listing\" data-block=\"{$state->testBlocks[0]->id}\">\r\n" .
                 "    <p>No pages found.</p>\r\n<!-- children-start --><span id=\"temp-marker\"></span><!-- children-end -->" .
             "</div>"
         );
@@ -58,7 +58,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
             "        <div><a href=\"".Template::makeUrl($pageData->slug)."\">Read more</a></div>\r\n" .
             "    </article>\r\n";
         $state->makeExpectedHtml = fn(object $b, object $page1Data, object $page2Data = null) =>
-            "<div class=\"listing listing-pages\" data-block-type=\"Listing\" data-block=\"{$b->id}\">\r\n" .
+            "<div class=\"j-Listing page-type-pages\" data-block-type=\"Listing\" data-block=\"{$b->id}\">\r\n" .
                 ($makeExpectedListItem($page1Data)) .
                 ($page2Data ? $makeExpectedListItem($page2Data) : "") .
             "    <!-- children-start --><span id=\"temp-marker\"></span><!-- children-end --></div>";

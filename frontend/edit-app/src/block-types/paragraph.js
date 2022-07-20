@@ -156,7 +156,7 @@ class ParagraphBlockEditForm2 extends preact.Component {
 }
 
 export default () => {
-    const initialData = {text: __('Paragraph text'), cssClass: ''};
+    const initialData = {text: __('Paragraph text')};
     const name = 'Paragraph';
     return {
         name,
@@ -165,12 +165,11 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'letter-p',
-        reRender({text, cssClass, id}, renderChildren) {
-            return `<p${cssClass? ` class="${cssClass}"` : ''} data-block-type="${name}" data-block="${id}">${text}${renderChildren()}</p>`;
+        reRender({text, styleClasses, id}, renderChildren) {
+            return `<p class="j-${name}${styleClasses ? ` ${styleClasses}` : ''}" data-block-type="${name}" data-block="${id}">${text}${renderChildren()}</p>`;
         },
         createSnapshot: from => ({
             text: from.text,
-            cssClass: from.cssClass,
         }),
         // @featureFlagConditionUseReduxBlockTree
         editForm: !window.useReduxBlockTree ? ParagraphBlockEditForm : ParagraphBlockEditForm2,

@@ -44,13 +44,13 @@ final class TestDataBundles {
             propsData: ["overrides" => "[]"],
             id: "@auto");
         $block2 = $btu->makeBlockData(Block::TYPE_PARAGRAPH,
-            propsData: ["text" => "1. e2e test page text", "cssClass" => ""],
+            propsData: ["text" => "1. e2e test page text"],
             id: "@auto");
         $block3 = $btu->makeBlockData(Block::TYPE_PAGE_INFO,
             propsData: ["overrides" => "[]"],
             id: "@auto");
         $block4 = $btu->makeBlockData(Block::TYPE_PARAGRAPH,
-            propsData: ["text" => "2. e2e test page text", "cssClass" => ""],
+            propsData: ["text" => "2. e2e test page text"],
             id: "@auto");
         //
         return [
@@ -96,7 +96,7 @@ final class TestDataBundles {
             propsData: ["overrides" => "[]"],
             id: "@auto");
         $block2 = $btu->makeBlockData(Block::TYPE_PARAGRAPH,
-            propsData: ["text" => "Uncategorized", "cssClass" => ""],
+            propsData: ["text" => "Uncategorized"],
             id: "@auto");
         //
         return array_merge($previous, [

@@ -124,7 +124,8 @@ export default () => {
         // @featureFlagConditionUseReduxBlockTree
         reRender: !window.useReduxBlockTree
             ? ({html}, renderChildren) => `${html}${renderChildren()}`
-            : ({html, id}, renderChildren) => ['<div data-block-type="', name, '" data-block="', id, '">',
+            : ({html, id, styleClasses}, renderChildren) => ['<div class="j-', name, styleClasses ? ` ${styleClasses}` : '',
+                '" data-block-type="', name, '" data-block="', id, '">',
                 html,
                 renderChildren(),
             '</div>'].join('')

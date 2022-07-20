@@ -240,9 +240,9 @@ final class PageTestUtils {
     private static function makeDefaultBlockTree(): array {
         $btu = new BlockTestUtils();
         return [$btu->makeBlockData(Block::TYPE_SECTION, "Main", "sivujetti:block-generic-wrapper", children: [
-            $btu->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Hello", "level" => 2, "cssClass" => ""]),
-            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Text", "cssClass" => ""]),
-        ], propsData: ["bgImage" => "", "cssClass" => ""])];
+            $btu->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Hello", "level" => 2]),
+            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Text"]),
+        ], propsData: ["bgImage" => ""])];
     }
     /**
      * @psalm-param SelectFilters $filters

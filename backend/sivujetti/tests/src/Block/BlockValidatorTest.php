@@ -34,8 +34,8 @@ final class BlockValidatorTest extends TestCase {
             "title" => "",
             "renderer" => "sivujetti:block-auto",
             "id" => "aaaaaaaaaaaaaaaaaaaa",
+            "styleClasses" => "foo",
             "text" => "Some text",
-            "cssClass" => "foo",
         ];
         $state->validationErrors = null;
         $state->apiCtx = PageTestUtils::createTestApiCtx();

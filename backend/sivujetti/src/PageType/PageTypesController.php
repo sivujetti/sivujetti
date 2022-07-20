@@ -73,7 +73,7 @@ final class PageTypesController {
             "type" => Block::TYPE_PARAGRAPH,
             "title" => "",
             "defaultRenderer" => "sivujetti:block-auto",
-            "initialData" => (object) ["text" => "Paragraph text.", "cssClass" => ""],
+            "initialData" => (object) ["text" => "Paragraph text."],
             "children" => [],
         ])];
         $out->ownFields = [(object) [

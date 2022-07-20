@@ -1,5 +1,5 @@
-import {__, api, env, hookForm, unhookForm, reHookValues, Input, Textarea,
-        InputErrors, FormGroup, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, hookForm, unhookForm, reHookValues, Textarea,
+        InputErrors, FormGroup} from '@sivujetti-commons-for-edit-app';
 import {validationConstraints} from '../constants.js';
 
 class CodeBlockEditForm extends preact.Component {
@@ -9,19 +9,15 @@ class CodeBlockEditForm extends preact.Component {
      */
     componentWillMount() {
         const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
-        const {code, cssClasses} = getBlockCopy();
+        const {code} = getBlockCopy();
         this.codeInputEl = preact.createRef();
         this.setState(hookForm(this, [
             {name: 'code', value: code, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]], label: __('Code'),
              onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'code', hasErrors, env.normalTypingDebounceMillis, 'debounce-re-render-and-commit-to-queue'); }},
-            {name: 'cssClasses', value: cssClasses, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
-             onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClasses', hasErrors, env.normalTypingDebounceMillis, 'debounce-re-render-and-commit-to-queue'); }},
         ]));
         grabChanges((block, _origin, isUndo) => {
-            if (isUndo && (this.state.values.code !== block.code ||
-                           this.state.values.cssClasses !== block.cssClasses))
-                reHookValues(this, [{name: 'code', value: block.code},
-                                    {name: 'cssClasses', value: block.cssClasses}]);
+            if (isUndo && this.state.values.code !== block.code)
+                reHookValues(this, [{name: 'code', value: block.code}]);
         });
     }
     /**
@@ -47,17 +43,12 @@ class CodeBlockEditForm extends preact.Component {
                 <Textarea vm={ this } prop="code" class="form-input code" placeholder={ `<div>${__('My code ...')}</div>` } ref={ this.codeInputEl }/>
                 <InputErrors vm={ this } prop="code"/>
             </FormGroup>
-            <FormGroupInline>
-                <label htmlFor="cssClasses" class="form-label">{ __('Css classes') }</label>
-                <Input vm={ this } prop="cssClasses"/>
-                <InputErrors vm={ this } prop="cssClasses"/>
-            </FormGroupInline>
         </div>;
     }
 }
 
 export default () => {
-    const initialData = {code: '', cssClasses: ''};
+    const initialData = {code: ''};
     const name = 'Code';
     return {
         name,
@@ -66,10 +57,10 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'code',
-        reRender({code, cssClasses, id}, renderChildren) {
+        reRender({code, styleClasses, id}, renderChildren) {
             return {
-                html: ['<div', cssClasses ? ` class="${cssClasses}"` : '',
-                        ' data-block-type="', name, '" data-block="', id, '">',
+                html: ['<div class="j-', name, styleClasses ? ` ${styleClasses}` : '',
+                        '" data-block-type="', name, '" data-block="', id, '">',
                     code || __('Waits for configuration ...'),
                     renderChildren(),
                 '</div>'].join(''),
@@ -90,7 +81,6 @@ export default () => {
         },
         createSnapshot: from => ({
             code: from.code,
-            cssClasses: from.cssClasses,
         }),
         editForm: CodeBlockEditForm,
     };

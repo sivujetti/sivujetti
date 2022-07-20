@@ -91,6 +91,7 @@ final class BlocksController {
             "id" => $input->id,
             "children" => [],
             "propsData" => [],
+            "styleClasses" => $input->styleClasses,
         ];
         foreach ($blockType->defineProperties(new PropertiesBuilder) as $prop)
             $out->propsData[] = (object) ["key" => $prop->name, "value" => $input->{$prop->name}];
@@ -119,7 +120,6 @@ final class BlocksController {
     private static function validateRenderBlockInput(object $input): array {
         return Validation::makeObjectValidator()
             ->rule("block.type", "type", "string")
-            ->rule("block.renderer", "type", "string")
             ->validate($input);
     }
 }

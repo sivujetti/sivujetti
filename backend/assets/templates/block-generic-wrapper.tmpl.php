@@ -1,13 +1,13 @@
 <?php if ($props->type === \Sivujetti\Block\Entities\Block::TYPE_COLUMNS):
-    echo "<div class=\"jet-columns num-cols-{$this->e($props->numColumns)}",
+    echo "<div class=\"j-", $props->type, " num-cols-", $this->e($props->numColumns),
         ($props->takeFullWidth ? "" : " inline"),
-        (!$props->cssClass ? "" : " {$this->e($props->cssClass)}"),
+        (!$props->styleClasses ? "" : " {$this->escAttr($props->styleClasses)}"),
         "\" data-block-type=\"", \Sivujetti\Block\Entities\Block::TYPE_COLUMNS,
         "\" data-block=\"{$props->id}\">",
         $this->renderChildren($props),
     "</div>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_SECTION):
-    echo "<section class=\"", $this->e($props->cssClass), "\"",
+    echo "<section class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""), "\"",
         ($props->bgImage ? " style=\"background-image:url('{$this->assetUrl($props->bgImage)}')\"" : ""),
         " data-block-type=\"", \Sivujetti\Block\Entities\Block::TYPE_SECTION,
         "\" data-block=\"{$props->id}\"><div data-block-root>",

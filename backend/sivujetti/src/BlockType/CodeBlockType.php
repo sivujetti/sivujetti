@@ -12,7 +12,6 @@ final class CodeBlockType implements BlockTypeInterface {
         return $builder
             ->newProperty("code")
                 ->dataType($builder::DATA_TYPE_TEXT, canBeEditedBy: ACL::ROLE_ADMIN|ACL::ROLE_ADMIN_EDITOR)
-            ->newProperty("cssClasses", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }
 }

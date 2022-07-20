@@ -1,56 +1,54 @@
 <?php if ($props->type === \Sivujetti\Block\Entities\Block::TYPE_PARAGRAPH):
-    echo "<p", ($props->cssClass ? " class=\"{$this->e($props->cssClass)}\"" : ""),
-        " data-block-type=\"", \Sivujetti\Block\Entities\Block::TYPE_PARAGRAPH, "\"",
-        " data-block=\"", $props->id, "\">",
+    echo "<p class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
+        "\" data-block-type=\"", $props->type,
+        "\" data-block=\"", $props->id, "\">",
         $props->text, // @allow pre-validated html
         $this->renderChildren($props),
     "</p>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_HEADING):
     $whiteListed = [0, 1, 2, 3, 4, 5, 6][$props->level] ?? 6;
-    echo "<h", $whiteListed, ($props->cssClass ? " class=\"{$this->e($props->cssClass)}\"" : ""),
-        " data-block-type=\"", \Sivujetti\Block\Entities\Block::TYPE_HEADING, "\"",
-        " data-block=\"", $props->id, "\">",
+    echo "<h", $whiteListed, " class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
+        "\" data-block-type=\"", $props->type,
+        "\" data-block=\"", $props->id, "\">",
         $props->text, // @allow pre-validated html
         $this->renderChildren($props),
     "</h", $whiteListed, ">";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_IMAGE):
-    echo "<figure", ($props->cssClass ? " class=\"{$this->e($props->cssClass)}\"" : ""),
-        " data-block-type=\"", \Sivujetti\Block\Entities\Block::TYPE_IMAGE, "\"",
-        " data-block=\"", $props->id, "\">",
-        "<img src=\"", $props->src
+    echo "<figure class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
+        "\" data-block-type=\"", $props->type,
+        "\" data-block=\"", $props->id,
+        "\"><img src=\"", $props->src
             ? $this->assetUrl("public/uploads/" . str_replace("/", "", $props->src))
             : \Sivujetti\BlockType\ImageBlockType::PLACEHOLDER_SRC, "\" alt=\"\">",
         $this->renderChildren($props),
     "</figure>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):
-    [$startInnerTag, $closeInnerTag] = match ($props->tagType) {
+    [$start, $close] = match ($props->tagType) {
         "button" => ["<button type=\"button\"", "</button>"],
         "submit" => ["<button type=\"submit\"", "</button>"],
         default => ["<a href=\"{$this->maybeExternalUrl($props->linkTo)}\"", "</a>"],
     };
-    echo "<p class=\"button\" data-block-type=\"", \Sivujetti\Block\Entities\Block::TYPE_BUTTON,
+    echo $start, " class=\"j-", $props->type, " btn", ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
+        "\" data-block-type=\"", $props->type,
         "\" data-block=\"", $props->id, "\">",
-        $startInnerTag, " class=\"btn",
-        ($props->cssClass ? " {$this->e($props->cssClass)}" : ""), "\"",
-            " data-block-root>",
-            $props->html, // @allow pre-validated html
-            $this->renderChildren($props),
-        $closeInnerTag,
-    "</p>";
+        $props->html, // @allow pre-validated html
+        $this->renderChildren($props),
+    $close;
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_RICH_TEXT):
 if (!useReduxBlockTree):
     echo $props->html, // @allow pre-validated html
          $this->renderChildren($props);
 else:
-    echo "<div data-block-type=\"", \Sivujetti\Block\Entities\Block::TYPE_RICH_TEXT,
-                "\" data-block=\"", $props->id, "\">",
+    echo "<div class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
+            "\" data-block-type=\"", $props->type,
+            "\" data-block=\"", $props->id, "\">",
         $props->html, // @allow pre-validated html
         $this->renderChildren($props),
     "</div>";
 endif;
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_CODE):
-    echo "<div", $props->cssClasses ? " class=\"{$this->e($props->cssClasses)}\"" : "",
-            " data-block-type=\"", \Sivujetti\Block\Entities\Block::TYPE_CODE,
+    echo "<div class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
+            "\" data-block-type=\"", $props->type,
             "\" data-block=\"", $props->id, "\">",
         $props->code
             ? $props->code // @allow raw html/css/js

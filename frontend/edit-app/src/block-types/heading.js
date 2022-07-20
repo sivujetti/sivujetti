@@ -160,7 +160,7 @@ class HeadingBlockEditForm2 extends preact.Component {
 }
 
 export default () => {
-    const initialData = {text: __('Heading text'), level: 2, cssClass: ''};
+    const initialData = {text: __('Heading text'), level: 2};
     const name = 'Heading';
     return {
         name,
@@ -169,13 +169,12 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'heading',
-        reRender({level, text, cssClass, id}, renderChildren) {
-            return `<h${level}${cssClass? ` class="${cssClass}"` : ''} data-block-type="${name}" data-block="${id}">${text}${renderChildren()}</h${level}>`;
+        reRender({level, text, styleClasses, id}, renderChildren) {
+            return `<h${level} class="j-${name}${styleClasses ? ` ${styleClasses}` : ''}" data-block-type="${name}" data-block="${id}">${text}${renderChildren()}</h${level}>`;
         },
         createSnapshot: from => ({
             text: from.text,
             level: from.level,
-            cssClass: from.cssClass,
         }),
         // @featureFlagConditionUseReduxBlockTree
         editForm: !window.useReduxBlockTree ? HeadingBlockEditForm : HeadingBlockEditForm2,

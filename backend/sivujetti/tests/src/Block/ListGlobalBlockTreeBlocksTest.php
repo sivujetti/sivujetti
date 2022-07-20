@@ -24,12 +24,9 @@ final class ListGlobalBlockTreeBlocksTest extends RenderBlocksTestCase {
         $state = parent::setupTest();
         $btu = $this->blockTestUtils;
         $state->testBlocks = [
-            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Foo", "cssClass" => ""],
-                id: "@auto"),
-            $btu->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Fos", "level" => 1, "cssClass" => ""],
-                id: "@auto"),
-            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Bar", "cssClass" => ""],
-                id: "@auto"),
+            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Foo"], id: "@auto"),
+            $btu->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Fos", "level" => 1], id: "@auto"),
+            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Bar"], id: "@auto"),
         ];
         $state->testGlobalBlockTree = (object) [
             "id" => "-2345678901abcdefghi",

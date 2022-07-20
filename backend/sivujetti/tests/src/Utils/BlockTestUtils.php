@@ -24,6 +24,7 @@ final class BlockTestUtils {
      * @param object[]|null $children = null
      * @param array<string, mixed>|object|null $propsData = null
      * @param ?string $id = null
+     * @param ?string $styleClasses = null
      * @return object object{type: string, title: string, renderer: string, id: string, children: array<int, object>, propsData: array<int, object{key: string, value: mixed}>}
      */
     public function makeBlockData(?string $type = null,
@@ -31,7 +32,8 @@ final class BlockTestUtils {
                                   ?string $renderer = null,
                                   ?array $children = null,
                                   array|object|null $propsData = null,
-                                  ?string $id = null): object {
+                                  ?string $id = null,
+                                  ?string $styleClasses = null): object {
         $out = new \stdClass;
         $out->type = $type ?? Block::TYPE_PARAGRAPH;
         $out->title = $title ?? "";
@@ -42,6 +44,7 @@ final class BlockTestUtils {
             default => $id
         };
         $out->children = $children ?? [];
+        $out->styleClasses = $styleClasses ?? "";
         $out->propsData = [];
         if ($propsData) {
             foreach ($propsData as $key => $value) {
@@ -113,17 +116,15 @@ final class BlockTestUtils {
                                                  ?string $cls = null,
                                                  string $childMarker = ""): string {
         if ($lnk === null && $rawBlock->linkTo) $lnk = Template::makeUrl($rawBlock->linkTo);
-        if ($cls === null) $cls = !$rawBlock->cssClass ? "" : (" " . Template::e($rawBlock->cssClass));
+        if ($cls === null) $cls = !$rawBlock->styleClasses ? "" : (" " . Template::escAttr($rawBlock->styleClasses));
         [$start, $end] = match ($rawBlock->tagType) {
             ButtonBlockType::TAG_TYPE_NORMAL_BUTTON => ["<button type=\"button\"", "</button>"],
             ButtonBlockType::TAG_TYPE_SUBMIT_BUTTON => ["<button type=\"submit\"", "</button>"],
             default => ["<a href=\"{$lnk}\"", "</a>"],
         };
-        return "<p class=\"button\" data-block-type=\"Button\" data-block=\"{$rawBlock->id}\">" .
-            "{$start} class=\"btn{$cls}\" data-block-root>" .
-                "{$rawBlock->html}{$childMarker}" .
-            $end .
-        "</p>";
+        return "{$start} class=\"j-Button btn{$cls}\" data-block-type=\"Button\" data-block=\"{$rawBlock->id}\">" .
+            "{$rawBlock->html}{$childMarker}" .
+        $end;
     }
     /**
      * @param object $rawBlock
@@ -133,7 +134,7 @@ final class BlockTestUtils {
     public function getExpectedParagraphBlockOutput(object $rawBlock,
                                                     ?string $cls = null,
                                                     string $childMarker = ""): string {
-        return "<p{$cls} data-block-type=\"Paragraph\" data-block=\"{$rawBlock->id}\">" .
+        return "<p class=\"j-Paragraph{$cls}\" data-block-type=\"Paragraph\" data-block=\"{$rawBlock->id}\">" .
             "{$rawBlock->text}{$childMarker}" .
         "</p>";
     }

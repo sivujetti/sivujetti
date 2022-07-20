@@ -26,7 +26,7 @@ final class RenderBlockTest extends RenderBlocksTestCase {
         );
         } else {
         $expected = $this->blockTestUtils->decorateWithRef($state->testBlock,
-            "<section class=\"\" data-block-type=\"Section\" data-block=\"{$state->testBlock->id}\">" .
+            "<section class=\"j-Section\" data-block-type=\"Section\" data-block=\"{$state->testBlock->id}\">" .
                 "<div data-block-root><!-- children-start --><span id=\"temp-marker\"></span><!-- children-end --></div>" .
             "</section>"
         );
@@ -49,8 +49,8 @@ final class RenderBlockTest extends RenderBlocksTestCase {
         $this->verifyResponseBodyEquals([
             "The value of renderer was not in the list",
             "id is not valid push id",
-            "cssClass must be string",
-            "The length of cssClass must be 1024 or less"
+            "bgImage must be string",
+            "The length of bgImage must be 1024 or less"
         ], $state->spyingResponse);
     }
     private function setInvalidRenderer(\TestState $state): void {
@@ -60,8 +60,7 @@ final class RenderBlockTest extends RenderBlocksTestCase {
     private function setInvalidPropData(\TestState $state): void {
         $sectionBlock = $state->testBlock;
         $sectionBlock->id = "not-valid";
-        $sectionBlock->cssClass = [];
-        $sectionBlock->propsData[0]->value = []; // cssClass
+        $this->blockTestUtils->setBlockProp($sectionBlock, "bgImage", []);
     }
 
 

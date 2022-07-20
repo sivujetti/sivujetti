@@ -29,7 +29,7 @@ $statements = array_merge($statements, [
 (2,'PagesCategories','/pages-categories','Page category','Page categories','','" . json_encode([
     "ownFields" => [],
     "blockFields" => [(object) ["type" => "Paragraph", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
-                                "initialData" => (object) ["text" => "Category", "cssClass" => ""],
+                                "initialData" => (object) ["text" => "Category"],
                                 "children" => []]],
     "defaultFields" => (object) ["title" => (object) ["defaultValue" => "New category"]],
 ]) . "','1',0,1),
@@ -41,7 +41,7 @@ $statements = array_merge($statements, [
         "defaultValue" => [],
     ]],
     "blockFields" => [(object) ["type" => "Paragraph", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
-                                "initialData" => (object) ["text" => "Paragraph text", "cssClass" => ""],
+                                "initialData" => (object) ["text" => "Paragraph text"],
                                 "children" => []]],
     "defaultFields" => (object) ["title" => (object) ["defaultValue" => "New page"]],
 ]) . "','1',0,1)",

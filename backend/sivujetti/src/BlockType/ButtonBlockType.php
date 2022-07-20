@@ -18,7 +18,6 @@ final class ButtonBlockType implements BlockTypeInterface {
             ->newProperty("tagType")->dataType($builder::DATA_TYPE_TEXT, validationRules: [
                 ["in", [self::TAG_TYPE_LINK, self::TAG_TYPE_NORMAL_BUTTON, self::TAG_TYPE_SUBMIT_BUTTON]]
             ])
-            ->newProperty("cssClass", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }
 }

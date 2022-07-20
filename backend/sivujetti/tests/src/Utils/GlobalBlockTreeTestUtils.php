@@ -28,8 +28,8 @@ final class GlobalBlockTreeTestUtils {
             "id" => PushIdGenerator::generatePushId(),
             "name" => "My footer",
             "blocks" => [$btu->makeBlockData(Block::TYPE_SECTION, "Footer", "sivujetti:block-generic-wrapper", children: [
-                $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "© Year My Site", "cssClass" => ""]),
-            ], propsData: ["bgImage" => "", "cssClass" => ""])]
+                $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "© Year My Site"]),
+            ], propsData: ["bgImage" => ""])]
         ];
     }
     /**

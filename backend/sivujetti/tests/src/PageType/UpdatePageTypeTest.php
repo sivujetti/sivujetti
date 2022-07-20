@@ -46,7 +46,7 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
     }
     private function createBlockFieldsInput(): array {
         $pure = $this->blockTestUtils->makeBlockData(
-            propsData: (object) ["text" => "My page type's initial block", "cssClass" => ""],
+            propsData: (object) ["text" => "My page type's initial block"],
             id: "@auto"
         );
         $pure->junk = "prop 1";

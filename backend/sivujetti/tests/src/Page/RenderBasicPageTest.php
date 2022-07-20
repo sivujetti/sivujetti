@@ -31,7 +31,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $state = new \TestState;
         $btu = new BlockTestUtils();
         $state->testGlobalBlockTree = [
-            $btu->makeBlockData(Block::TYPE_PARAGRAPH, id: "@auto", propsData: ["text" => "Footer text", "cssClass" => ""])
+            $btu->makeBlockData(Block::TYPE_PARAGRAPH, id: "@auto", propsData: ["text" => "Footer text"])
         ];
         $state->testGlobalBlockData = (object) [
             "id" => "1",

@@ -10,6 +10,9 @@ stringBundles.push({
     // edit-app/src/Block/BlockDnDSpawner.jsx
     'Start adding content': 'Aloita lisäämään sisältöä',
     'Filter': 'Suodata',
+    // edit-app/src/Block/BlockStylesTab.jsx
+    'Use style': 'Käytä muotoilua',
+    'Add styles': 'Lisää tyyli',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Luo %s',
     'Cancel add %s': 'Peruuta %s luonti',
@@ -33,8 +36,7 @@ stringBundles.push({
     'Link to an image: ': 'Linkki kuvaan: ',
     'Link to an address: ': 'Linkki osoitteeseen: ',
     // edit-app/src/BlockEditForm.jsx
-    'Own styles': 'Omat tyylit',
-    'Base styles': 'Pohjatyylit',
+    'Styles': 'Muotoilut',
     'Use specializations': 'Käytä spesialisointeja',
     'If on, any changes made to this\nglobal content tree won\'t affect\nthe original': 'Jos päällä, tähän globaaaliin sisältö-\npuuhun tehdyt muutokset ei\nvaikuta alkuperäiseen',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
@@ -67,8 +69,6 @@ stringBundles.push({
     'Meta content contains ': 'Metasisältöön on tallennettu ',
     'additional data / metadata': 'lisä-, tai metatietoja',
     ', and otherwise act like ordinary content.': ', ja käyttäytyvät muilta osin kuten tavallinen sisältö.',
-    // edit-app/src/BlockTypeBaseStylesTab.jsx
-    'These styles will affect all %s content': 'Nämä tyylit vaikuuttaa kaikkiin %s-sisältöihin',
     // edit-app/src/BlockTypeSelector.jsx
     'Common': 'Yleiset',
     'Globals': 'Globaalit',
@@ -108,8 +108,6 @@ stringBundles.push({
     // edit-app/src/GlobalBlockTreeSelector.jsx
     'No %s found': '%s ei löytynyt',
     'global content': 'globaalia sisältöä',
-    // edit-app/src/IndividualBlockStylesTab.jsx
-    'These styles will affect this individual content only': 'Nämä tyylit vaikuuttaa vain tähän yksittäiseen sisältöön',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Sulje',
     // edit-app/src/PageType/PageTypeBasicInfoConfigurationForm.jsx

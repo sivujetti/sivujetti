@@ -1,14 +1,13 @@
 import {http, __, api, signals, env, Icon} from '@sivujetti-commons-for-edit-app';
 import Tabs from './commons/Tabs.jsx';
 import {timingUtils} from './commons/utils.js';
+import BlockStylesTab from './Block/BlockStylesTab.jsx';
 import {getIcon} from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
 import BlockTrees from './BlockTrees.jsx';
 import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
 import store, {selectCurrentPage, selectCurrentPageDataBundle, createSelectBlockTree, pushItemToOpQueue, observeStore,
                createUpdateBlockTreeItemData} from './store.js';
-import IndividualBlockStylesTab from './IndividualBlockStylesTab.jsx';
-import BlockTypeBaseStylesTab from './BlockTypeBaseStylesTab.jsx';
 
 /** @type {BlockTypes} */
 let blockTypes;
@@ -143,13 +142,10 @@ class BlockEditForm extends preact.Component {
             <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
             { __(block.title || this.blockType.friendlyName) }
         </div>
-        { this.userCanEditCss
-            ? <Tabs
-                links={ [__('Content'), __('Own styles'), __('Base styles')] }
-                onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
-                className="text-tinyish mt-0 mb-2"/>
-            : null
-        }
+        <Tabs
+            links={ [__('Content'), __('Styles')] }
+            onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
+            className="text-tinyish mt-0 mb-2"/>
         <div class={ currentTabIdx === 0 ? '' : 'd-none' }>
             <div class="mt-2">
                 { this.userCanSpecializeGlobalBlocks && this.isOutermostBlockOfGlobalBlockTree
@@ -179,7 +175,7 @@ class BlockEditForm extends preact.Component {
                     ref={ this.editFormImplRef }
                     key={ block.id }/> :
                 <EditFormImpl
-                    getBlockCopy={ () => JSON.parse(JSON.stringify(blockTreeUtils.findBlock(block.id, createSelectBlockTree(block.isStoredToTreeId)(store.getState()).tree)[0])) }
+                    getBlockCopy={ getBlockCopy.bind(this) }
                     grabChanges={ withFn => { this.editFormImplsChangeGrabber = withFn; } }
                     emitValueChanged={ (val, key, ...vargs) => { this.handleValueValuesChanged({[key]: val}, ...vargs); } }
                     emitManyValuesChanged={ this.handleValueValuesChanged.bind(this) }
@@ -187,15 +183,10 @@ class BlockEditForm extends preact.Component {
                     key={ block.id }/> }
             </div>
         </div>
-        { this.userCanEditCss ? [
-        <IndividualBlockStylesTab block={ this.props.block }
-            allowEditing={ this.allowStylesEditing }
-            isVisible={ currentTabIdx === 1 }/>,
-        <BlockTypeBaseStylesTab block={ this.props.block }
-            allowEditing={ this.allowStylesEditing }
-            isVisible={ currentTabIdx === 2 }
-            blockTypeNameTranslated={ __(this.blockType.friendlyName) }/>
-        ] : null }
+        <BlockStylesTab
+            getBlockCopy={ getBlockCopy.bind(this) }
+            userCanEditCss={ this.userCanEditCss }
+            isVisible={ currentTabIdx === 1 }/>
         </div>;
     }
     /**
@@ -602,6 +593,13 @@ function takeOldestValues(oldDataQ) {
         }
     }
     return out;
+}
+
+/**
+ * @returns {RawBlock2}
+ */
+function getBlockCopy() {
+    return JSON.parse(JSON.stringify(blockTreeUtils.findBlock(this.props.block.id, createSelectBlockTree(this.props.block.isStoredToTreeId)(store.getState()).tree)[0]));
 }
 
 /**

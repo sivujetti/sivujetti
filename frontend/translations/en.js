@@ -10,6 +10,9 @@ stringBundles.push({
     // edit-app/src/Block/BlockDnDSpawner.jsx
     'Start adding content': 'Start adding content',
     'Filter': 'Filter',
+    // edit-app/src/Block/BlockStylesTab.jsx
+    'Use style': 'Use style',
+    'Add styles': 'Add styles',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Create %s',
     'Cancel add %s': 'Cancel add %s',
@@ -33,8 +36,7 @@ stringBundles.push({
     'Link to an image: ': 'Link to an image: ',
     'Link to an address: ': 'Link to an address: ',
     // edit-app/src/BlockEditForm.jsx
-    'Own styles': 'Own styles',
-    'Base styles': 'Base styles',
+    'Styles': 'Styles',
     'Use specializations': 'Use specializations',
     'If on, any changes made to this\nglobal content tree won\'t affect\nthe original': 'If on, any changes made to this\nglobal content tree won\'t affect\nthe original',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
@@ -67,8 +69,6 @@ stringBundles.push({
     'Meta content contains ': 'Meta content contains ',
     'additional data / metadata': 'additional data / metadata',
     ', and otherwise act like ordinary content.': ', and otherwise act like ordinary content.',
-    // edit-app/src/BlockTypeBaseStylesTab.jsx
-    'These styles will affect all %s content': 'These styles will affect all %s content',
     // edit-app/src/BlockTypeSelector.jsx
     'Common': 'Common',
     'Globals': 'Globals',
@@ -108,8 +108,6 @@ stringBundles.push({
     // edit-app/src/GlobalBlockTreeSelector.jsx
     'No %s found': 'No %s found',
     'global content': 'global content',
-    // edit-app/src/IndividualBlockStylesTab.jsx
-    'These styles will affect this individual content only': 'These styles will affect this individual content only',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Close',
     // edit-app/src/PageType/PageTypeBasicInfoConfigurationForm.jsx

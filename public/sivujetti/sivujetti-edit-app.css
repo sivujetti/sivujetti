@@ -48,6 +48,8 @@ Structure:
 
     --color-bg-default: #fff;
     --color-border-popup: rgba(var(--components-color-fb-default),.5);
+
+    --small-rect-radius: 4px;
 }
 /* Spectre-overrides */
 .btn {
@@ -57,7 +59,7 @@ Structure:
     font-size: .7rem;
     font-weight: 400;
     padding: .25rem .6rem;
-    border-radius: 4px;
+    border-radius: var(--small-rect-radius);
 }
 .btn:hover {
     background: var(--color-bg-button-hover);
@@ -81,9 +83,13 @@ Structure:
 .btn.btn-sm {
     font-size: .65rem;
 }
+.btn.no-color {
+    background-color: transparent !important;
+    border-color: transparent !important;
+}
 .form-input, .form-select {
     border: 1px solid var(--color-input-border);
-    border-radius: 4px;
+    border-radius: var(--small-rect-radius);
     font-weight: 300;
     font-size: .7rem;
     color: var(--color-fg-input);
@@ -161,7 +167,7 @@ h2 {
 }
 .ql-container.ql-snow {
     border: 1px solid var(--color-input-border);
-    border-radius: 4px;
+    border-radius: var(--small-rect-radius);
 }
 .ql-snow.ql-toolbar button, .ql-snow .ql-toolbar button {
     padding: .2rem;
@@ -311,11 +317,6 @@ h2 {
     display: flex;
     align-items: center;
     padding: .2rem .4rem;
-}
-.has-icon-right button.sivujetti-form-icon {
-    background: transparent;
-    border: none;
-    cursor: pointer;
 }
 
 
@@ -469,7 +470,7 @@ a.popup-close-area {
     font-size: .7rem;
     padding: .2rem .6rem;
     background-color: var(--color-bg-default);
-    border-radius: 4px;
+    border-radius: var(--small-rect-radius);
     border: 1px solid var(--color-border-popup);
 }
 .my-tooltip.dark  {
@@ -514,6 +515,22 @@ a.popup-close-area {
 }
 .my-tooltip[data-popper-placement^='right'] > .popper-arrow {
     left: -4px;
+}
+ul.styles-list > li {
+    background: rgba(var(--components-color-fb-default),.022);
+    border-radius: var(--small-rect-radius);
+}
+ul.styles-list > li > div {
+    display: none;
+}
+ul.styles-list > li.open > header > .btn > .icon-tabler {
+    transition: transform .175s;
+}
+ul.styles-list > li.open > div {
+    display: initial;
+}
+ul.styles-list > li.open > header > .btn > .icon-tabler {
+    transform: rotate(180deg);
 }
 
 
@@ -947,7 +964,7 @@ span.highlight-rect[data-position="bottom-inside"]:before {
 }
 .listing-instructions > * {
     margin-bottom: .2rem;
-    border-radius: 4px;
+    border-radius: var(--small-rect-radius);
     display: flex;
     border: 2px solid transparent;
     min-height: 1.6rem;
@@ -1049,7 +1066,7 @@ span.highlight-rect[data-position="bottom-inside"]:before {
 }
 .dashed {
     border: var(--border-dashed-box);
-    border-radius: 4px;
+    border-radius: var(--small-rect-radius);
 }
 .text-tinyish {
     font-size: .65rem !important;

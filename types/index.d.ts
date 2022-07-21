@@ -390,3 +390,14 @@ interface BlockRendctor {
     html: String;
     onAfterInsertedToDom(html: String): void;
 }
+
+interface ThemeStyle {
+    units: Array<ThemeStyleUnit>;
+    blockTypeName: String;
+}
+
+interface ThemeStyleUnit {
+    title: String;
+    scss: String;
+    generatedCss: String;
+}

@@ -1,5 +1,4 @@
-import {__, urlUtils, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline, Icon} from '@sivujetti-commons-for-edit-app';
-import {validationConstraints} from '../constants.js';
+import {__, urlUtils, unhookForm, FormGroupInline, Icon} from '@sivujetti-commons-for-edit-app';
 import ImagePicker from '../BlockWidget/ImagePicker.jsx';
 import {UPLOADS_DIR_PATH} from '../Upload/UploadsManager.jsx';
 import setFocusTo from './auto-focusers.js';
@@ -11,21 +10,15 @@ class SectionBlockEditForm extends preact.Component {
      * @access public
      */
     overrideValues(snapshot) {
-        reHookValues(this, [{name: 'cssClass', value: snapshot.cssClass}]);
         this.setState({bgImage: snapshot.bgImage});
     }
     /**
      * @access protected
      */
     componentWillMount() {
-        const {block, onValueChanged} = this.props;
+        const {block} = this.props;
         this.imagePicker = preact.createRef();
-        this.setState(hookForm(this, [
-            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
-             onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
-        ], {
-            bgImage: block.bgImage,
-        }));
+        this.setState({bgImage: block.bgImage});
     }
     /**
      * @access protected
@@ -54,11 +47,6 @@ class SectionBlockEditForm extends preact.Component {
                     inputId="bgImage"
                     ref={ this.imagePicker }/>
             </FormGroupInline>
-            <FormGroupInline>
-                <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
-                <Input vm={ this } prop="cssClass"/>
-                <InputErrors vm={ this } prop="cssClass"/>
-            </FormGroupInline>
             <a onClick={ e => (e.preventDefault(), blockTree.appendBlockToTreeAsChildOf(block)) }
                 class="btn btn-link btn-sm text-tiny with-icon-inline color-dimmed"
                 href="#add-child-block">
@@ -82,18 +70,10 @@ class SectionBlockEditForm2 extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
-        const {cssClass, bgImage} = getBlockCopy();
+        const {getBlockCopy, grabChanges} = this.props;
         this.imagePicker = preact.createRef();
-        this.setState(hookForm(this, [
-            {name: 'cssClass', value: cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
-             onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
-        ], {
-            bgImage,
-        }));
-        grabChanges((block, origin, isUndo) => {
-            if (isUndo && this.state.values.cssClass !== block.cssClass)
-                reHookValues(this, [{name: 'cssClass', value: block.cssClass}]);
+        this.setState({bgImage: getBlockCopy().bgImage});
+        grabChanges((block, _origin, _isUndo) => {
             if (this.state.bgImage !== block.bgImage)
                 this.setState({bgImage: block.bgImage});
         });
@@ -105,17 +85,10 @@ class SectionBlockEditForm2 extends preact.Component {
         setFocusTo(this.imagePicker);
     }
     /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        unhookForm(this);
-    }
-    /**
      * @param {BlockEditFormProps2} props
      * @access protected
      */
     render(_, {bgImage}) {
-        if (!this.state.values) return;
         return <div class="form-horizontal pt-0">
             <FormGroupInline>
                 <label htmlFor="bgImage" class="form-label">{ __('Background') }</label>
@@ -124,11 +97,6 @@ class SectionBlockEditForm2 extends preact.Component {
                     initialImageFileName={ bgImage }
                     inputId="bgImage"
                     ref={ this.imagePicker }/>
-            </FormGroupInline>
-            <FormGroupInline>
-                <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
-                <Input vm={ this } prop="cssClass"/>
-                <InputErrors vm={ this } prop="cssClass"/>
             </FormGroupInline>
         </div>;
     }

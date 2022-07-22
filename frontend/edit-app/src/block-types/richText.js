@@ -95,7 +95,6 @@ class RichTextBlockEditForm2 extends preact.Component {
      * @access protected
      */
     render() {
-        if (!this.state.values) return;
         return <FormGroup>
             <QuillEditor
                 name={ this.editorId }

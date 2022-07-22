@@ -1,6 +1,6 @@
 const {createStoreon} = window.storeon;
 
-function themeStyles(store) {
+function themeStylesStore(store) {
     store.on('themeStyles/setAll',
     /**
      * @param {Object} state
@@ -17,8 +17,18 @@ function themeStyles(store) {
      * @param {[ThemeStyle]} args
      * @returns {Object}
      */
-    (_state, [style]) =>
+    ({themeStyles}, [style]) =>
         ({themeStyles: [style].concat(themeStyles)})
+    );
+
+    store.on('themeStyles/removeStyle',
+    /**
+     * @param {Object} state
+     * @param {[String]} args
+     * @returns {Object}
+     */
+    ({themeStyles}, [blockTypeName]) =>
+        ({themeStyles: themeStyles.filter(s => s.blockTypeName !== blockTypeName)})
     );
 
     store.on('themeStyles/addUnitTo',
@@ -28,27 +38,51 @@ function themeStyles(store) {
      * @returns {Object}
      */
     ({themeStyles}, [blockTypeName, unit]) => {
-        const toAddIdx = themeStyles.findIndex((s) => s.blockTypeName === blockTypeName);
+        const toAddIdx = findStyleIndex(themeStyles, blockTypeName);
         return {themeStyles: themeStyles.map((s, i) =>
             i !== toAddIdx ? s : Object.assign({}, s, {units: [unit].concat(s.units)})
         )};
     });
+
+    store.on('themeStyles/removeUnitFrom',
+    /**
+     * @param {Object} state
+     * @param {[String, ThemeStyleUnit]} args
+     * @returns {Object}
+     */
+    ({themeStyles}, [blockTypeName, unit]) => {
+        const toRemIdx = findStyleIndex(themeStyles, blockTypeName);
+        return {themeStyles: themeStyles.map((s, i) =>
+            i !== toRemIdx ? s : Object.assign({}, s, {units: s.units.filter(({title}) => title !== unit.title)})
+        )};
+    });
 }
 
-///////
+/**
+ * @param {Array<ThemeStyle>} from
+ * @param {String} blockTypeName
+ * @returns {Number}
+ */
+function findStyleIndex(from, blockTypeName) {
+    return from.findIndex(s => s.blockTypeName === blockTypeName);
+}
 
-const mainStore = createStoreon([themeStyles]);
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+const mainStore = createStoreon([themeStylesStore]);
 
 /**
  * @param {String} namespace
- * @param {(state: Object, [String, Object, Object]) => void} fn
+ * @param {(state: Object, eventInfo: [String, Array<any>, Object]) => void} fn
  * @returns {() => void} unregister
  */
 function observeStore(namespace, fn) {
     let nextChangeArgs = null;
     const unreg1 = mainStore.on('@dispatch', (_state, args) => {
         if (!nextChangeArgs && args[0] !== '@changed' && args[0].startsWith(`${namespace}/`))
-            nextChangeArgs = args;
+            nextChangeArgs = args; // [String, any]
     });
     const unreg2 = mainStore.on('@changed', (state, changes) => {
         if (nextChangeArgs) {

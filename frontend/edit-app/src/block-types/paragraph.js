@@ -1,4 +1,4 @@
-import {__, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroup, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+import {__, env, hookForm, unhookForm, InputErrors, FormGroup} from '@sivujetti-commons-for-edit-app';
 import QuillEditor from '../Quill/QuillEditor.jsx';
 import {validationConstraints} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
@@ -13,7 +13,6 @@ class ParagraphBlockEditForm extends preact.Component {
      */
     overrideValues(snapshot) {
         this.editor.current.replaceContents(snapshot.text);
-        reHookValues(this, [{name: 'cssClass', value: snapshot.cssClass}]);
     }
     /**
      * @access protected
@@ -24,8 +23,6 @@ class ParagraphBlockEditForm extends preact.Component {
         this.setState(hookForm(this, [
             {name: 'text', value: block.text, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]],
              label: __('Text'), onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'text', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
-             onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
         ]));
     }
     /**
@@ -69,13 +66,6 @@ class ParagraphBlockEditForm extends preact.Component {
                     ref={ this.editor }/>
                 <InputErrors vm={ this } prop="text"/>
             </FormGroup>
-            <div class="form-horizontal pt-0">
-                <FormGroupInline>
-                    <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
-                    <Input vm={ this } prop="cssClass"/>
-                    <InputErrors vm={ this } prop="cssClass"/>
-                </FormGroupInline>
-            </div>
         </>;
     }
 }
@@ -89,19 +79,15 @@ class ParagraphBlockEditForm2 extends preact.Component {
     componentWillMount() {
         this.editor = preact.createRef();
         const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
-        const {text, cssClass} = getBlockCopy();
+        const {text} = getBlockCopy();
         this.initialText = text;
         this.setState(hookForm(this, [
             {name: 'text', value: text, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]],
              label: __('Text'), onAfterValueChanged: (value, hasErrors, source) => { if (source !== 'undo') emitValueChanged(value, 'text', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'cssClass', value: cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
-             onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
         ]));
         grabChanges((block, _origin, isUndo) => {
             if (isUndo && this.state.values.text !== block.text)
                 this.editor.current.replaceContents(block.text, 'undo');
-            if (isUndo && this.state.values.cssClass !== block.cssClass)
-                reHookValues(this, [{name: 'cssClass', value: block.cssClass}]);
         });
     }
     /**
@@ -120,38 +106,29 @@ class ParagraphBlockEditForm2 extends preact.Component {
      * @access protected
      */
     render() {
-        return [
-            <FormGroup>
-                <QuillEditor
-                    name="paragraph-text"
-                    value={ this.initialText }
-                    onChange={ (markup, source) => {
-                        this.inputApis.text.triggerInput(unParagraphify(markup), source);
-                    } }
-                    onBlur={ e => this.inputApis.text.onBlur(e) }
-                    onInit={ editor => {
-                        // https://stackoverflow.com/a/63803445
-                        editor.quill.keyboard.bindings[13].unshift({
-                            key: 13,
-                            handler: (_range, _context) => {
-                                // featureFlagConditionUseReduxBlockTree
-                                // this.props.blockTree.appendBlockToTreeAfter(block, '');
-                                return false;
-                            }
-                        });
-                    } }
-                    toolbarBundle="simplestWithLink"
-                    ref={ this.editor }/>
-                <InputErrors vm={ this } prop="text"/>
-            </FormGroup>,
-            <div class="form-horizontal pt-0">
-                <FormGroupInline>
-                    <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
-                    <Input vm={ this } prop="cssClass"/>
-                    <InputErrors vm={ this } prop="cssClass"/>
-                </FormGroupInline>
-            </div>
-        ];
+        return <FormGroup>
+            <QuillEditor
+                name="paragraph-text"
+                value={ this.initialText }
+                onChange={ (markup, source) => {
+                    this.inputApis.text.triggerInput(unParagraphify(markup), source);
+                } }
+                onBlur={ e => this.inputApis.text.onBlur(e) }
+                onInit={ editor => {
+                    // https://stackoverflow.com/a/63803445
+                    editor.quill.keyboard.bindings[13].unshift({
+                        key: 13,
+                        handler: (_range, _context) => {
+                            // featureFlagConditionUseReduxBlockTree
+                            // this.props.blockTree.appendBlockToTreeAfter(block, '');
+                            return false;
+                        }
+                    });
+                } }
+                toolbarBundle="simplestWithLink"
+                ref={ this.editor }/>
+            <InputErrors vm={ this } prop="text"/>
+        </FormGroup>;
     }
 }
 

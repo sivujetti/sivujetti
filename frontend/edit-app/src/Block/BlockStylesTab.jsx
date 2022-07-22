@@ -1,25 +1,31 @@
-import {__, Icon, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, http, Icon, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
 import {stringUtils} from '../commons/utils.js';
 import {fetchThemeStyles} from '../DefaultView/GlobalStylesSection.jsx';
-import store, {observeStore} from '../store2.js';
+import store2, {observeStore as observeStore2} from '../store2.js';
+import store, {pushItemToOpQueue} from '../store.js';
+import {triggerUndo} from '../SaveButton.jsx';
 let compile, serialize, stringify;
 
 class BlockStylesTab extends preact.Component {
-    // blockCopy;
     // handleCssInputChangedThrottled;
+    // unregistrables;
     /**
-     * @param {{getBlockCopy: () => RawBlock2; userCanEditCss: Boolean; isVisible: Boolean;}} props
+     * @param {{emitAddStyleToBlock: (newStyleClass: String, block: RawBlock2) => void; getBlockCopy: () => RawBlock2; grabChanges: (withFn: (block: RawBlock2, origin: blockChangeEvent, isUndo: Boolean) => void) => void; userCanEditCss: Boolean; isVisible: Boolean;}} props
      */
     constructor(props) {
         super(props);
         ({compile, serialize, stringify} = window.stylis);
-        this.state = {units: [], collapseds: []};
-        this.blockCopy = props.getBlockCopy();
+        this.state = {units: [], collapseds: [], blockCopy: props.getBlockCopy()};
         this.handleCssInputChangedThrottled = () => {};
-        observeStore('themeStyles', ({themeStyles}) => {
-            const {units} = this.getCurrentBlockTypeStyles(themeStyles);
+        this.unregistrables = [observeStore2('themeStyles', ({themeStyles}) => {
+            const {units} = (findBlockTypeStyles(themeStyles, this.state.blockCopy.type) || {});
             if (this.state.units !== units)
-                this.setState({units, collapseds: createCollapseds(units)});
+                this.updateUnitsState(units);
+        }),
+        ];
+        props.grabChanges((block, _origin, _isUndo) => {
+            if (this.state.blockCopy.styleClasses !== block.styleClasses)
+                this.setState({blockCopy: block});
         });
     }
     /**
@@ -27,13 +33,13 @@ class BlockStylesTab extends preact.Component {
      */
     componentWillReceiveProps({isVisible}) {
         if (isVisible && !this.props.isVisible) {
-            const {themeStyles} = store.get();
-            if (themeStyles) {
-                this.setState({units: this.getCurrentBlockTypeStyles(themeStyles).units});
-            } else {
+            const {themeStyles} = store2.get();
+            if (themeStyles)
+                this.updateUnitsState((findBlockTypeStyles(themeStyles, this.state.blockCopy.type) || {}).units);
+            else {
                 this.setState({themeStyles: null});
                 fetchThemeStyles().then(({styles}) =>
-                    store.dispatch('themeStyles/setAll', [styles])
+                    store2.dispatch('themeStyles/setAll', [styles])
                 );
             }
         }
@@ -41,23 +47,31 @@ class BlockStylesTab extends preact.Component {
     /**
      * @access protected
      */
-    render({userCanEditCss}, {units, collapseds}) {
+    componentWillUnmount() {
+        this.unregistrables.forEach(unreg => unreg());
+    }
+    /**
+     * @access protected
+     */
+    render({userCanEditCss, isVisible}, {units, collapseds}) {
+        if (!isVisible) return null;
         return [
-            units !== null ? units.length ? <ul class="list styles-list mb-2">{ units.map((unit, i) =>
-                <li class={ collapseds[i] }>
+            units !== null ? units.length ? <ul class="list styles-list mb-2">{ units.map((unit, i) => {
+                const cls = this.createClass(unit.title);
+                return <li class={ collapseds[i] }>
                     <header class="flex-centered p-relative">
                         <button
-                            onClick={ this.setAsNotCollapsed.bind(this) }
+                            onClick={ () => this.toggleIsCollapsed(i) }
                             class="col-12 btn btn-link text-ellipsis with-icon pl-2 mr-1 no-color"
-                            data-row-idx={ i }
+                            title={ userCanEditCss ? `.${cls}` : __('Use style') }
                             type="button">
                             <Icon iconId="chevron-down" className={ `size-xs${userCanEditCss ? '' : ' d-none'}` }/>
                             <span class="text-ellipsis">{ unit.title }</span>
                         </button>
                         <label class="form-checkbox p-absolute" title={ __('Use style') } style="right:-.28rem">
                             <input
-                                onClick={ this.toggleStyleIsActivated.bind(this) }
-                                checked={ this.blockCopy.styleClasses.indexOf(this.createClass(unit.title)) > -1 }
+                                onClick={ e => this.toggleStyleIsActivated(cls, e) }
+                                checked={ this.state.blockCopy.styleClasses.indexOf(cls) > -1 }
                                 value={ unit.title }
                                 type="checkbox"/>
                             <i class="form-icon"></i>
@@ -73,8 +87,8 @@ class BlockStylesTab extends preact.Component {
                     </div>
                     : null
                     }
-                </li>
-            ) }</ul> : null : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
+                </li>;
+            }) }</ul> : null : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
         ].concat(userCanEditCss ? [
             <button
                 onClick={ this.addStyleUnit.bind(this) }
@@ -83,34 +97,88 @@ class BlockStylesTab extends preact.Component {
         ] : []);
     }
     /**
+     * @param {Array<ThemeStyleUnit>|undefined} candidate
+     * @access private
+     */
+    updateUnitsState(candidate) {
+        const units = candidate || [];
+        this.setState({units, collapseds: createCollapseds(units)});
+    }
+    /**
+     * @param {String} cls
      * @param {Event} e
      * @access private
      */
-    toggleStyleIsActivated(e) {
-        e;
+    toggleStyleIsActivated(cls, e) {
+        const currentlyHas = this.currentBlockHasStyle(cls);
+        if (e.checked && !currentlyHas) {
+            //
+        } else if (!e.checked && currentlyHas) {
+            //
+        }
     }
     /**
      * @access private
      */
     addStyleUnit() {
-        const current = this.getCurrentBlockTypeStyles(store.get().themeStyles);
-        const title = createTitle('Specialized', current ? current.units : []);
+        const {type} = this.state.blockCopy;
+        const current = findBlockTypeStyles(store2.get().themeStyles, type);
+        const title = createTitle('Special', current ? current.units : []);
         const scss = 'color: green';
-        const newUnit = {title, scss, generatedCss: this.compileStylis(title, scss)};
-        if (current)
-            store.dispatch('themeStyles/addUnitTo', [this.blockCopy.type, newUnit]);
-        else
-            store.dispatch('themeStyles/addStyle', [{units: [newUnit], blockTypeName: this.blockCopy.type}]);
+        const cls = this.createClass(title);
+
+        // #2
+        const addedStyleToBlock = !this.currentBlockHasStyle(cls);
+        if (addedStyleToBlock)
+            this.props.emitAddStyleToBlock(cls, this.state.blockCopy);
+
+        // #1
+        const newUnit = {title, scss, generatedCss: this.compileStylis(cls, scss)};
+        if (current) store2.dispatch('themeStyles/addUnitTo', [type, newUnit]);
+        else store2.dispatch('themeStyles/addStyle', [{units: [newUnit], blockTypeName: type}]);
+
+        //
+        const url = `/api/themes/${api.getActiveTheme().id}/styles/scope-block-type/${type}`;
+        store.dispatch(pushItemToOpQueue(`upsert-theme-style#${url}`, {
+            doHandle: () => {
+                const style = findBlockTypeStyles(store2.get().themeStyles, type);
+                return http.put(url, {units: style.units})
+                    .then(resp => {
+                        if (resp.ok !== 'ok') throw new Error('-');
+                        return true;
+                    })
+                    .catch(err => {
+                        env.window.console.error(err);
+                        return true;
+                    });
+            },
+            doUndo: () => {
+                // Revert # 1
+                if (current) store2.dispatch('themeStyles/removeUnitFrom', [type, newUnit]);
+                else store2.dispatch('themeStyles/removeStyle', [type]);
+
+                // Revert # 2
+                if (addedStyleToBlock) setTimeout(() => { triggerUndo(); }, 100);
+            },
+            args: [],
+        }));
     }
     /**
-     * @param {String} title
+     * @param {String} cls
+     * @returns {Boolean}
+     * @access private
+     */
+    currentBlockHasStyle(cls) {
+        return this.state.blockCopy.styleClasses.split(' ').indexOf(cls) > -1;
+    }
+    /**
+     * @param {String} cls
      * @param {String} scss
      * @returns {String}
      * @access private
      */
-    compileStylis(title, scss) {
-        const sel = this.createClass(title);
-        return serialize(compile(`.${sel}{${scss}}`), stringify);
+    compileStylis(cls, scss) {
+        return serialize(compile(`.${cls}{${scss}}`), stringify);
     }
     /**
      * @param {String} title
@@ -118,24 +186,18 @@ class BlockStylesTab extends preact.Component {
      * @access private
      */
     createClass(title) {
-        return `j-${this.blockCopy.type}-${stringUtils.slugify(title)}`;
+        return `j-${this.state.blockCopy.type}-${stringUtils.slugify(title)}`;
     }
     /**
-     * @param {Array<ThemeStyle>} from
-     * @returns {ThemeStyle|undefined}
+     * @param {Number} rowIdx
      * @access private
      */
-    getCurrentBlockTypeStyles(from) {
-        const {type} = this.blockCopy;
-        return from.find(({blockTypeName}) => blockTypeName === type);
-    }
-    /**
-     * @param {Event} e
-     * @access private
-     */
-    setAsNotCollapsed(e) {
-        if (!this.props.userCanEditCss) { e.target.nextElementSibling.click(); return; }
-        this.setState({collapseds: createCollapseds(this.state.units, parseInt(e.target.getAttribute('data-row-idx')))});
+    toggleIsCollapsed(rowIdx) {
+        if (!this.props.userCanEditCss) { this.toggleStyleIsActivated('?', '?'); return; }
+        if (this.state.collapseds[rowIdx] !== ' open') // Hide all except $rowIdx
+            this.setState({collapseds: createCollapseds(this.state.units, rowIdx)});
+        else // Hide all
+            this.setState({collapseds: createCollapseds(this.state.units, -1)});
     }
 }
 
@@ -145,7 +207,11 @@ class BlockStylesTab extends preact.Component {
  * @returns {String}
  */
 function createTitle(candidate, notThese) {
-    return !notThese.length || !notThese.some(({title}) => title === candidate) ? candidate : `${candidate} new`;
+    if (!notThese.length) return 'Default';
+    const similar = notThese.filter(({title}) => title === candidate || title.startsWith(`${candidate} new`));
+    if (!similar.length) return candidate;
+    const longest = similar.reduce((out, {title}) => title.length > out.length ? title : out, similar[0].title);
+    return `${longest} new`;
 }
 
 /**
@@ -155,6 +221,15 @@ function createTitle(candidate, notThese) {
  */
 function createCollapseds(units, openIdx = 0) {
     return units.map((_, i) => i !== openIdx ? '' : ' open');
+}
+
+/**
+ * @param {Array<ThemeStyle>} from
+ * @param {String} blockTypeName
+ * @returns {ThemeStyle|undefined}
+ */
+function findBlockTypeStyles(from, blockTypeName) {
+    return from.find(s => s.blockTypeName === blockTypeName);
 }
 
 export default BlockStylesTab;

@@ -200,7 +200,7 @@ class GlobalStylesSection extends MenuSection {
 let stylesCached = null;
 
 /**
- * @returns {Promise<{globalStyles: Array<RawCssRule>; blockTypeStyles: Array<RawBlockTypeBaseStyles>;}>}
+ * @returns {Promise<{globalStyles: Array<RawCssRule>; styles: Array<ThemeStyle>;}>}
  */
 function fetchThemeStyles() {
     if (stylesCached)

@@ -31,8 +31,7 @@ class ButtonBlockEditForm extends preact.Component {
      */
     overrideValues(snapshot) {
         this.editor.current.replaceContents(snapshot.html);
-        reHookValues(this, [{name: 'linkTo', value: snapshot.linkTo},
-                            {name: 'cssClass', value: snapshot.cssClass}]);
+        reHookValues(this, [{name: 'linkTo', value: snapshot.linkTo}]);
         this.setState({tagType: snapshot.tagType});
     }
     /**
@@ -47,8 +46,6 @@ class ButtonBlockEditForm extends preact.Component {
             {name: 'linkTo', value: block.linkTo, validations: [[urlValidatorImpl, {allowExternal: true, allowEmpty: true}],
                 ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link'),
              onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'linkTo', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
-             onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
         ], {
             tagType: block.tagType,
         }));
@@ -100,11 +97,6 @@ class ButtonBlockEditForm extends preact.Component {
                     </FormGroupInline>
                     : null
                 }
-                <FormGroupInline>
-                    <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
-                    <Input vm={ this } prop="cssClass"/>
-                    <InputErrors vm={ this } prop="cssClass"/>
-                </FormGroupInline>
             </div>
         </>;
     }
@@ -140,7 +132,7 @@ class ButtonBlockEditForm2 extends preact.Component {
      */
     componentWillMount() {
         const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
-        const {html, linkTo, cssClass, tagType} = getBlockCopy();
+        const {html, linkTo, tagType} = getBlockCopy();
         this.initialHtml = html;
         this.setState(hookForm(this, [
             {name: 'html', value: html, validations: [['required'], ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
@@ -148,18 +140,14 @@ class ButtonBlockEditForm2 extends preact.Component {
             {name: 'linkTo', value: linkTo, validations: [[urlValidatorImpl, {allowExternal: true, allowEmpty: true}],
                 ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link'),
              onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'linkTo', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'cssClass', value: cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
-             onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
         ], {
             tagType,
         }));
         grabChanges((block, _origin, isUndo) => {
             if (isUndo && this.state.values.html !== block.html)
                 this.editor.current.replaceContents(block.html, 'undo');
-            if (isUndo && (this.state.values.linkTo !== block.linkTo ||
-                           this.state.values.cssClass !== block.cssClass))
-                reHookValues(this, [{name: 'linkTo', value: block.linkTo},
-                                    {name: 'cssClass', value: block.cssClass}]);
+            if (isUndo && this.state.values.linkTo !== block.linkTo)
+                reHookValues(this, [{name: 'linkTo', value: block.linkTo}]);
             if (this.state.tagType !== block.tagType)
                 this.setState({tagType: block.tagType});
         });
@@ -180,7 +168,6 @@ class ButtonBlockEditForm2 extends preact.Component {
      * @access protected
      */
     render(_, {tagType}) {
-        if (!this.state.values) return;
         return [
             <FormGroup>
                 <QuillEditor
@@ -211,11 +198,6 @@ class ButtonBlockEditForm2 extends preact.Component {
                     </FormGroupInline>
                     : null
                 }
-                <FormGroupInline>
-                    <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
-                    <Input vm={ this } prop="cssClass"/>
-                    <InputErrors vm={ this } prop="cssClass"/>
-                </FormGroupInline>
             </div>
         ];
     }

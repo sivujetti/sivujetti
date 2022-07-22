@@ -403,6 +403,37 @@ class EditAppAwareWebPage {
         };
     }
     /**
+     * @returns {(state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void}
+     */
+    createThemeStylesChangeListener() {
+        const upsertInlineStyle = (blockTypeName, style) => {
+            const css = style.units.map(({generatedCss}) => generatedCss).join('\n');
+            const node = document.head.querySelector(`style[data-style-units-for="${blockTypeName}"]`);
+            if (node) {
+                node.innerHTML = css;
+            } else {
+                const node = document.createElement('style');
+                node.setAttribute('data-style-units-for', blockTypeName);
+                node.innerHTML = css;
+                document.head.appendChild(node);
+            }
+        };
+        return ({themeStyles}, [event, data]) => {
+            if (event === 'themeStyles/addUnitTo' || event === 'themeStyles/removeUnitFrom') {
+                const blockTypeName = data[0]; // data: [String]
+                const style = themeStyles.find(s => s.blockTypeName === blockTypeName);
+                upsertInlineStyle(blockTypeName, style);
+            } else if (event === 'themeStyles/addStyle') {
+                const {blockTypeName} = data[0]; // data: [ThemeStyle]
+                upsertInlineStyle(blockTypeName, data[0]);
+            } else if (event === 'themeStyles/removeStyle') {
+                const blockTypeName = data[0]; // data: [String]
+                const node = document.head.querySelector(`style[data-style-units-for="${blockTypeName}"]`);
+                node.parentElement.removeChild(node);
+            }
+        };
+    }
+    /**
      * @param {Array<RawBlock>} pageBlocks
      * @param {Array<BlockRefComment>} blockRefComments
      * @param {blockTreeUtils} blockTreeUtils

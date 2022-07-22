@@ -1,6 +1,5 @@
-import {__, urlUtils, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+import {__, urlUtils, unhookForm, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import ImagePicker from '../BlockWidget/ImagePicker.jsx';
-import {validationConstraints} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
 
 const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=';
@@ -12,21 +11,17 @@ class ImageBlockEditForm extends preact.Component {
      * @access public
      */
     overrideValues(snapshot) {
-        reHookValues(this, [{name: 'cssClass', value: snapshot.cssClass}]);
         this.setState({src: snapshot.src});
     }
     /**
      * @access protected
      */
     componentWillMount() {
-        const {block, onValueChanged} = this.props;
+        const {block} = this.props;
         this.imagePicker = preact.createRef();
-        this.setState(hookForm(this, [
-            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
-             onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
-        ], {
+        this.setState({
             src: block.src,
-        }));
+        });
     }
     /**
      * @access protected
@@ -55,11 +50,6 @@ class ImageBlockEditForm extends preact.Component {
                     inputId="src"
                     ref={ this.imagePicker }/>
             </FormGroupInline>
-            <FormGroupInline>
-                <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
-                <Input vm={ this } prop="cssClass"/>
-                <InputErrors vm={ this } prop="cssClass"/>
-            </FormGroupInline>
         </div>;
     }
     /**
@@ -79,17 +69,9 @@ class ImageBlockEditForm2 extends preact.Component {
      */
     componentWillMount() {
         this.imagePicker = preact.createRef();
-        const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
-        const {cssClass, src} = getBlockCopy();
-        this.setState(hookForm(this, [
-            {name: 'cssClass', value: cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
-             onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
-        ], {
-            src,
-        }));
-        grabChanges((block, _origin, isUndo) => {
-            if (isUndo && this.state.values.cssClass !== block.cssClass)
-                reHookValues(this, [{name: 'cssClass', value: block.cssClass}]);
+        const {getBlockCopy, grabChanges} = this.props;
+        this.setState({src: getBlockCopy().src});
+        grabChanges((block, _origin, _isUndo) => {
             if (this.state.src !== block.src)
                 this.setState({src: block.src});
         });
@@ -101,17 +83,10 @@ class ImageBlockEditForm2 extends preact.Component {
         setFocusTo(this.imagePicker);
     }
     /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        unhookForm(this);
-    }
-    /**
      * @param {BlockEditFormProps2} props
      * @access protected
      */
     render(_, {src}) {
-        if (!this.state.values) return;
         return <div class="form-horizontal pt-0">
             <FormGroupInline>
                 <label htmlFor="src" class="form-label">{ __('Image file') }</label>
@@ -120,11 +95,6 @@ class ImageBlockEditForm2 extends preact.Component {
                     initialImageFileName={ src }
                     inputId="src"
                     ref={ this.imagePicker }/>
-            </FormGroupInline>
-            <FormGroupInline>
-                <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
-                <Input vm={ this } prop="cssClass"/>
-                <InputErrors vm={ this } prop="cssClass"/>
             </FormGroupInline>
         </div>;
     }

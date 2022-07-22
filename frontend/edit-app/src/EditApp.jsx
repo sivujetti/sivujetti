@@ -6,6 +6,7 @@ import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType
 import store, {observeStore, setCurrentPage, setCurrentPageDataBundle, setGlobalBlockTreeBlocksStyles, setPageBlocksStyles,
                setOpQueue, selectGlobalBlockTreeBlocksStyles, selectPageBlocksStyles, selectBlockTypesBaseStyles,
                createSetBlockTree, createBlockTreeReducerPair, createSelectBlockTree} from './store.js';
+import {observeStore as observeStore2} from './store2.js';
 import SaveButton from './SaveButton.jsx';
 import {findBlockTemp} from './BlockTreeOld.jsx';
 import {makePath, makeSlug} from './block-types/pageInfo.js';
@@ -13,7 +14,7 @@ import blockTreeUtils from './blockTreeUtils.js';
 
 let LEFT_PANEL_WIDTH = 318;
 const PANELS_HIDDEN_CLS = 'panels-hidden';
-const webPageDomUpdaters = new Map;
+const webPageUnregistrables = new Map;
 
 class EditApp extends preact.Component {
     // changeViewOptions;
@@ -52,12 +53,12 @@ class EditApp extends preact.Component {
         if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         this.websiteEventHandlers = createWebsiteEventHandlers(this.highlightRectEl,
                                                                this.blockTrees);
+        this.registerWebPageIframeStylesUpdaters();
         } else {
         this.websiteEventHandlers = createWebsiteEventHandlers2(this.highlightRectEl,
                                                                 this.blockTrees);
         }
         this.receivingData = true;
-        this.registerWebPageIframeStylesUpdaters();
     }
     /**
      * @param {EditAppAwareWebPage} webPage
@@ -89,9 +90,9 @@ class EditApp extends preact.Component {
         const {data} = webPage;
         delete webPage.data;
         //
-        if (webPageDomUpdaters.size) {
-            for (const fn of webPageDomUpdaters.values()) fn();
-            webPageDomUpdaters.clear();
+        if (webPageUnregistrables.size) {
+            for (const fn of webPageUnregistrables.values()) fn();
+            webPageUnregistrables.clear();
         }
         this.currentWebPage = webPage;
         webPage.registerEventHandlers2(this.websiteEventHandlers);
@@ -118,6 +119,8 @@ class EditApp extends preact.Component {
             }
             store.dispatch(createSetBlockTree('main')(trees.get('main'), ['init', {}]));
             signals.emit('on-web-page-loaded');
+            const fn = this.currentWebPage.createThemeStylesChangeListener();
+            webPageUnregistrables.set('themeStyles', observeStore2('themeStyles', fn));
             this.receivingData = false;
         };
         if (newState.currentMainPanel !== this.state.currentMainPanel)
@@ -147,10 +150,10 @@ class EditApp extends preact.Component {
      * @access public
      */
     unRegisterWebPageDomUpdaterForBlockTree(trid) {
-        const unreg = webPageDomUpdaters.get(trid);
+        const unreg = webPageUnregistrables.get(trid);
         if (!unreg) return;
         unreg();
-        webPageDomUpdaters.delete(trid);
+        webPageUnregistrables.delete(trid);
     }
     /**
      * @param {String} trid
@@ -257,9 +260,9 @@ class EditApp extends preact.Component {
      * @access private
      */
     registerWebPageDomUpdater(trid) {
-        if (webPageDomUpdaters.has(trid)) return;
+        if (webPageUnregistrables.has(trid)) return;
         const fn = this.currentWebPage.createBlockTreeChangeListener(trid, blockTreeUtils, api.blockTypes, getTree, this);
-        webPageDomUpdaters.set(trid, observeStore(createSelectBlockTree(trid), fn));
+        webPageUnregistrables.set(trid, observeStore(createSelectBlockTree(trid), fn));
     }
     /**
      * @param {String} trid

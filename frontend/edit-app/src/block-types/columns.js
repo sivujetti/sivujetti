@@ -1,5 +1,4 @@
 import {__, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
-import {validationConstraints} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
 
 class ColumnsBlockEditForm extends preact.Component {
@@ -9,8 +8,7 @@ class ColumnsBlockEditForm extends preact.Component {
      * @access public
      */
     overrideValues(snapshot) {
-        reHookValues(this, [{name: 'numColumns', value: snapshot.numColumns.toString()},
-                            {name: 'cssClass', value: snapshot.cssClass}]);
+        reHookValues(this, [{name: 'numColumns', value: snapshot.numColumns.toString()}]);
         this.setState({takeFullWidth: snapshot.takeFullWidth});
     }
     /**
@@ -23,8 +21,6 @@ class ColumnsBlockEditForm extends preact.Component {
             {name: 'numColumns', value: block.numColumns, validations: [['min', 0], ['max', 12]],
              label: __('Num columns'), type: 'number', step: '1', onAfterValueChanged: (value, hasErrors) => {
                  onValueChanged(parseInt(value), 'numColumns', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'cssClass', value: block.cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
-             onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
         ], {
             takeFullWidth: block.takeFullWidth,
         }));
@@ -63,11 +59,6 @@ class ColumnsBlockEditForm extends preact.Component {
                         class="form-input"/><i class="form-icon"></i>
                 </label>
             </FormGroupInline>
-            <FormGroupInline>
-                <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
-                <Input vm={ this } prop="cssClass"/>
-                <InputErrors vm={ this } prop="cssClass"/>
-            </FormGroupInline>
         </div>;
     }
     /**
@@ -89,21 +80,17 @@ class ColumnsBlockEditForm2 extends preact.Component {
     componentWillMount() {
         this.numColumnsEl = preact.createRef();
         const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
-        const {numColumns, cssClass, takeFullWidth} = getBlockCopy();
+        const {numColumns, takeFullWidth} = getBlockCopy();
         this.setState(hookForm(this, [
             {name: 'numColumns', value: numColumns, validations: [['min', 0], ['max', 12]],
              label: __('Num columns'), type: 'number', step: '1', onAfterValueChanged: (value, hasErrors) => {
                  emitValueChanged(parseInt(value), 'numColumns', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'cssClass', value: cssClass, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Css classes'),
-             onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'cssClass', hasErrors, env.normalTypingDebounceMillis); }},
         ], {
             takeFullWidth: takeFullWidth,
         }));
         grabChanges((block, _origin, isUndo) => {
-            if (isUndo && (this.state.values.numColumns !== block.numColumns ||
-                           this.state.values.cssClass !== block.cssClass))
-                reHookValues(this, [{name: 'numColumns', value: block.numColumns.toString()},
-                                    {name: 'cssClass', value: block.cssClass}]);
+            if (isUndo && this.state.values.numColumns !== block.numColumns)
+                reHookValues(this, [{name: 'numColumns', value: block.numColumns.toString()}]);
             if (this.state.takeFullWidth !== block.takeFullWidth)
                 this.setState({takeFullWidth: block.takeFullWidth});
         });
@@ -125,7 +112,6 @@ class ColumnsBlockEditForm2 extends preact.Component {
      * @access protected
      */
     render(_, {takeFullWidth}) {
-        if (!this.state.values) return;
         return <div class="form-horizontal pt-0">
             <FormGroupInline>
                 <label htmlFor="numColumns" class="form-label">{ __('Num columns') }</label>
@@ -141,11 +127,6 @@ class ColumnsBlockEditForm2 extends preact.Component {
                         type="checkbox"
                         class="form-input"/><i class="form-icon"></i>
                 </label>
-            </FormGroupInline>
-            <FormGroupInline>
-                <label htmlFor="cssClass" class="form-label">{ __('Css classes') }</label>
-                <Input vm={ this } prop="cssClass"/>
-                <InputErrors vm={ this } prop="cssClass"/>
             </FormGroupInline>
         </div>;
     }

@@ -95,14 +95,17 @@ class BlockEditForm extends preact.Component {
             const trid = this.props.block.isStoredToTreeId;
             currentPageIsPlaceholderPage = selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
             this.unregistrables = [observeStore(createSelectBlockTree(trid), ({tree, context}) => {
-                if (!this.editFormImplsChangeGrabber)
+                if (!this.editFormImplsChangeGrabber && !this.stylesFormChangeGrabber)
                     return;
                 if (context[0] !== 'update-single-value' && context[0] !== 'undo-update-single-value')
                     return;
                 const block = blockTreeUtils.findBlock(this.props.block.id, tree)[0];
                 if (context[1].blockId !== block.id)
                     return;
-                this.editFormImplsChangeGrabber(JSON.parse(JSON.stringify(block)), context[0], context[0].startsWith('undo-'));
+                if (this.editFormImplsChangeGrabber)
+                    this.editFormImplsChangeGrabber(JSON.parse(JSON.stringify(block)), context[0], context[0].startsWith('undo-'));
+                if (this.stylesFormChangeGrabber)
+                    this.stylesFormChangeGrabber(JSON.parse(JSON.stringify(block)), context[0], context[0].startsWith('undo-'));
             })];
         }
     }
@@ -183,10 +186,19 @@ class BlockEditForm extends preact.Component {
                     key={ block.id }/> }
             </div>
         </div>
-        <BlockStylesTab
-            getBlockCopy={ getBlockCopy.bind(this) }
-            userCanEditCss={ this.userCanEditCss }
-            isVisible={ currentTabIdx === 1 }/>
+        <div class={ currentTabIdx === 1 ? '' : 'd-none' }>
+            <BlockStylesTab
+                getBlockCopy={ getBlockCopy.bind(this) }
+                grabChanges={ withFn => { this.stylesFormChangeGrabber = withFn; } }
+                userCanEditCss={ this.userCanEditCss }
+                emitAddStyleToBlock={ (newStyleClass, {id, type, isStoredToTreeId, styleClasses}) => {
+                    const contextData = {blockId: id, blockType: type, trid: isStoredToTreeId};
+                    const dataBefore = {styleClasses};
+                    emitMutateBlockProp({styleClasses: styleClasses ? `${styleClasses} ${newStyleClass}` : newStyleClass}, contextData);
+                    emitPushStickyOp([dataBefore], contextData);
+                } }
+                isVisible={ currentTabIdx === 1 }/>
+        </div>
         </div>;
     }
     /**

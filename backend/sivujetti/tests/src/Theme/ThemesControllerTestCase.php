@@ -28,6 +28,16 @@ abstract class ThemesControllerTestCase extends DbTestCase {
             (object)["name"=>"headerColor","friendlyName"=>"2",
                      "value"=>(object)["type"=>"color","value"=>["00","ff","00","ff"]]],
         ];
+        $state->testStyles = [
+            (object)["units" => json_encode([["title"=>"Default","scss"=>"padding: 6rem 3rem",
+                                  "generatedCss"=>".j-Section-default{padding:6rem 3rem;}"]]),
+                     "themeId"=>"@filledAfter",
+                     "blockTypeName"=>"Section"],
+            (object)["units" => json_encode([["title"=>"Default","scss"=>"color: #444",
+                                  "generatedCss"=>".j-Paragraph-default{color:#444;}"]]),
+                     "themeId"=>"@filledAfter",
+                     "blockTypeName"=>"Paragraph"],
+        ];
         $state->testBlockTypeStyles = [
             (object)["styles" => "{ padding: 6rem 3rem; }",
                      "themeId"=>"@filledAfter",
@@ -48,9 +58,13 @@ abstract class ThemesControllerTestCase extends DbTestCase {
             ], "themes"),
             "name" => $themeName
         ];
-        for ($i = 0; $i < count($state->testBlockTypeStyles); ++$i) {
+        for ($i = 0; $i < count($state->testStyles); ++$i)
+            $state->testStyles[$i]->themeId = $state->testTheme->id;
+        for ($i = 0; $i < count($state->testBlockTypeStyles); ++$i)
             $state->testBlockTypeStyles[$i]->themeId = $state->testTheme->id;
-        }
+    }
+    protected function insertTestStylesForTestTheme(\TestState $state): void {
+        $this->dbDataHelper->insertData($state->testStyles, "themeStyles");
     }
     protected function insertTestBlockTypeStylesForTestTheme(\TestState $state): void {
         $this->dbDataHelper->insertData($state->testBlockTypeStyles, "themeBlockTypeStyles");

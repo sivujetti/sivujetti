@@ -12,8 +12,10 @@ final class Theme {
     public string $name;
     /** @var object[] [{name: string, friendlyName: string, value: {type: "color", value: string[]}}] */
     public array $globalStyles;
-    /** @var object[] [{blockTypeName: string, styles: string}] */
+    /** @var \Sivujetti\BlockType\Entities\BlockTypeStyles[] */
     public array $blockTypeStyles;
+    /** @var \Sivujetti\Theme\Entities\Style[] */
+    public array $styles;
     /**
      * @param object $row
      * @param object[] $rows
@@ -27,6 +29,9 @@ final class Theme {
         $out->blockTypeStyles = NoDupeRowMapper::collectOnce($rows, fn($row2) =>
             $row2->themeId === $out->id ? BlockTypeStyles::fromParentRs($row2) : null
         , "themeBlockTypeStylesBlockTypeName", []);
+        $out->styles = NoDupeRowMapper::collectOnce($rows, fn($row2) =>
+            $row2->themeId === $out->id ? Style::fromParentRs($row2) : null
+        , "themeStylesBlockTypeName", []);
         return $out;
     }
 }

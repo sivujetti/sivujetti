@@ -3,9 +3,10 @@
 namespace Sivujetti\Tests\Theme;
 
 final class GetThemeStylesTest extends ThemesControllerTestCase {
-    public function testListStylesReturnsListOfThemesStyles(): void {
+    public function testListStylesReturnsAllStyles(): void {
         $state = parent::createDefaultTestState();
         $this->insertTestTheme($state, "get-styles-test-theme");
+        $this->insertTestStylesForTestTheme($state);
         $this->insertTestBlockTypeStylesForTestTheme($state);
         $this->sendListThemeStylesRequest($state);
         $this->verifyReturnedThemesStylesFromDb($state);
@@ -24,6 +25,15 @@ final class GetThemeStylesTest extends ThemesControllerTestCase {
         $this->assertEquals("ff0000ff", implode("", $actualGlobalStyles[0]->value->value));
         $this->assertEquals("headerColor", $actualGlobalStyles[1]->name);
         $this->assertEquals("00ff00ff", implode("", $actualGlobalStyles[1]->value->value));
+        //
+        $expectedStyles = $state->testStyles;
+        $actualStyles = $resp->styles;
+        $this->assertCount(2, $actualStyles);
+        usort($actualStyles, fn($a, $b) => $b->blockTypeName <=> $a->blockTypeName);
+        $this->assertEquals($expectedStyles[0]->blockTypeName, $actualStyles[0]->blockTypeName);
+        $this->assertEquals($expectedStyles[0]->units, json_encode($actualStyles[0]->units));
+        $this->assertEquals($expectedStyles[1]->blockTypeName, $actualStyles[1]->blockTypeName);
+        $this->assertEquals($expectedStyles[1]->units, json_encode($actualStyles[1]->units));
         //
         $expectedBlockTypeStyles = $state->testBlockTypeStyles;
         $actualBlockTypeStyles = $resp->blockTypeStyles;

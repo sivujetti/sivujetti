@@ -5,6 +5,7 @@ require_once __DIR__ . "/src/Utils/TestData.php";
 
 $statements = require dirname(__DIR__, 2) . "/installer/schema.sqlite.php";
 $getRules = require dirname(__DIR__, 2) . "/installer/default-acl-rules.php";
+$styles = \Sivujetti\Tests\Utils\TestData::getThemeStyles();
 $blockTypeBaseStyles = \Sivujetti\Tests\Utils\TestData::getBlockTypeBaseStyles();
 
 $statements = array_merge($statements, [
@@ -19,6 +20,10 @@ $statements = array_merge($statements, [
 ('1','test-suite-theme','[]',1,'" .
     \Sivujetti\Tests\Utils\CssGenTestUtils::generateCachedBlockTypeBaseStyles($blockTypeBaseStyles)
 . "','')",
+
+"INSERT INTO `themeStyles` (`units`,`themeId`,`blockTypeName`) VALUES
+('{$styles[0]->units}','1','{$styles[0]->blockTypeName}'),
+('{$styles[1]->units}','1','{$styles[1]->blockTypeName}')",
 
 "INSERT INTO `themeBlockTypeStyles` (`styles`,`blockTypeName`,`themeId`) VALUES
 ('{$blockTypeBaseStyles[0]->styles}','{$blockTypeBaseStyles[0]->blockTypeName}','1'),

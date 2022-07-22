@@ -15,6 +15,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}pageTypes`",
 "DROP TABLE IF EXISTS `\${p}plugins`",
 "DROP TABLE IF EXISTS `\${p}themeBlockTypeStyles`",
+"DROP TABLE IF EXISTS `\${p}themeStyles`",
 "DROP TABLE IF EXISTS `\${p}themes`",
 "DROP TABLE IF EXISTS `\${p}theWebsite`",
 "DROP TABLE IF EXISTS `\${p}storedObjects`",
@@ -63,6 +64,14 @@ return [
     `generatedBlockTypeBaseCss` TEXT,
     `generatedBlockCss` TEXT,
     PRIMARY KEY (`id`)
+) DEFAULT CHARSET = utf8mb4",
+
+"CREATE TABLE `\${p}themeStyles` (
+    `units` JSON NOT NULL, -- see backend/sivujetti/src/Theme/Entities/Style.php
+    `themeId` SMALLINT UNSIGNED NOT NULL,
+    `blockTypeName` VARCHAR(92) NOT NULL,
+    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
+    PRIMARY KEY (`themeId`, `blockTypeName`)
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}themeBlockTypeStyles` (

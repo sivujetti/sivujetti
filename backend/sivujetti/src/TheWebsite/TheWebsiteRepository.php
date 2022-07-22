@@ -29,12 +29,15 @@ final class TheWebsiteRepository {
                 "pt.`isListable` AS `pageTypeIsListable`",
                 "t.`id` AS `themeId`", "t.`name` AS `themeName`", "t.`globalStyles` AS `themeGlobalStylesJson`",
                 "tbts.`blockTypeName` AS `themeBlockTypeStylesBlockTypeName`",
-                "tbts.`styles` AS `themeBlockTypeStylesStyles`"
+                "tbts.`styles` AS `themeBlockTypeStylesStyles`",
+                "ts.`units` AS `themeStylesUnits`",
+                "ts.`blockTypeName` AS `themeStylesBlockTypeName`",
             ])
             ->leftJoin("\${p}plugins p ON (1)")
             ->leftJoin("\${p}pageTypes pt ON (1)")
             ->leftJoin("\${p}themes t ON (t.`isActive` = 1)")
             ->leftJoin("\${p}themeBlockTypeStyles tbts ON (tbts.`themeId` = t.`id`)")
+            ->leftJoin("\${p}themeStyles ts ON (ts.`themeId` = t.`id`)")
             ->orderBy("p.id ASC")
             ->mapWith(new class("name") extends NoDupeRowMapper {
                 public function doMapRow(object $row, int $i, array $allRows): object {

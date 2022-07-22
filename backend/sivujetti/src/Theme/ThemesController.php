@@ -8,6 +8,7 @@ use Sivujetti\BlockType\Entities\BlockTypeStyles;
 use Sivujetti\{ValidationUtils};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\GlobalBlockTree\GlobalBlocksOrPageBlocksUpserter;
+use Sivujetti\Theme\Entities\Style;
 
 final class ThemesController {
     /**
@@ -23,15 +24,21 @@ final class ThemesController {
                 "t.`id` as `themeId`",
                 "t.`globalStyles` AS `globalStyles`",
                 "tbts.`blockTypeName` AS `themeBlockTypeStylesBlockTypeName`",
-                "tbts.`styles` AS `themeBlockTypeStylesStyles`"
+                "tbts.`styles` AS `themeBlockTypeStylesStyles`",
+                "ts.`units` AS `themeStylesUnits`",
+                "ts.`blockTypeName` AS `themeStylesBlockTypeName`",
             ])
             ->leftJoin("`\${p}themeBlockTypeStyles` tbts ON (tbts.`themeId` = t.`id`)")
+            ->leftJoin("`\${p}themeStyles` ts ON (ts.`themeId` = t.`id`)")
             ->mapWith(new class("themeId") extends NoDupeRowMapper {
                 public function doMapRow(object $row, int $i, array $allRows): object {
                     $row->globalStyles = json_decode($row->globalStyles, flags: JSON_THROW_ON_ERROR);
                     $row->blockTypeStyles = self::collectOnce($allRows, fn($row) =>
                         BlockTypeStyles::fromParentRs($row)
                     , "themeBlockTypeStylesBlockTypeName", []);
+                    $row->styles = self::collectOnce($allRows, fn($row) =>
+                        Style::fromParentRs($row)
+                    , "themeStylesBlockTypeName", [], 1);
                     return $row;
                 }
             })

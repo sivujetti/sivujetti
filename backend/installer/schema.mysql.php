@@ -61,6 +61,7 @@ return [
     `name` VARCHAR(92) NOT NULL,
     `globalStyles` JSON,
     `isActive` TINYINT(1) NOT NULL,
+    `generatedScopedStylesCss` TEXT,
     `generatedBlockTypeBaseCss` TEXT,
     `generatedBlockCss` TEXT,
     PRIMARY KEY (`id`)

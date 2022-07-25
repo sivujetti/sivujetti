@@ -17,6 +17,10 @@ final class ThemesModule {
             [ThemesController::class, "upsertBlockTypeStyles", ["consumes" => "application/json",
                                                                 "identifiedBy" => ["upsertBlockTypeBaseStylesOf", "themes"]]],
         );
+        $router->map("PUT", "/api/themes/[i:themeId]/styles/scope-block-type/[w:blockTypeName]",
+            [ThemesController::class, "upsertBlockTypeScopedStyles", ["consumes" => "application/json",
+                                                                      "identifiedBy" => ["upsertBlockTypeScopedStyles", "themes"]]],
+        );
         $router->map("PUT", "/api/themes/[i:themeId]/styles/global",
             [ThemesController::class, "updateGlobalStyles", ["consumes" => "application/json",
                                                              "identifiedBy" => ["updateGlobalStylesOf", "themes"]]],

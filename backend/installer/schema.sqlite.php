@@ -58,6 +58,7 @@ return [
     `name` TEXT NOT NULL,
     `globalStyles` JSON,
     `isActive` INTEGER NOT NULL DEFAULT 0,
+    `generatedScopedStylesCss` TEXT,
     `generatedBlockTypeBaseCss` TEXT,
     `generatedBlockCss` TEXT
 )",

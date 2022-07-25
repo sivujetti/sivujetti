@@ -65,6 +65,10 @@ abstract class ThemesControllerTestCase extends DbTestCase {
     }
     protected function insertTestStylesForTestTheme(\TestState $state): void {
         $this->dbDataHelper->insertData($state->testStyles, "themeStyles");
+        (new FluentDb(self::$db))->update("\${p}themes")
+            ->values((object) ["generatedScopedStylesCss" => CssGenTestUtils::generateScopedStyles($state->testStyles)])
+            ->where("id=?", [$state->testTheme->id])
+            ->execute();
     }
     protected function insertTestBlockTypeStylesForTestTheme(\TestState $state): void {
         $this->dbDataHelper->insertData($state->testBlockTypeStyles, "themeBlockTypeStyles");

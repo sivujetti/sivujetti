@@ -27,7 +27,12 @@ final class CssGenTestUtils {
         if (is_file($this->TEST_THEME_GENERATED_FILE_PATH))
             unlink($this->TEST_THEME_GENERATED_FILE_PATH);
     }
-    public function getActualGeneratedCss(string $ignore = "blockTypeBaseCss"): string {
+    public function getActualGeneratedCss(): string {
+        $full = file_get_contents($this->TEST_THEME_GENERATED_FILE_PATH);
+        $lines = explode("\n", $full); // [<header>, <emptyLine>, <scopedStylesStartMarker>, <scopedStyle>*, <scopedStylesEndMarker>]
+        return implode("\n", array_slice($lines, 3, count($lines) - 4 - 1)) . "\n";
+    }
+    public function getActualGeneratedCssO(string $ignore = "blockTypeBaseCss"): string {
         $full = file_get_contents($this->TEST_THEME_GENERATED_FILE_PATH);
         [$_header, $contents] = explode("UTC */\n\n", $full);
         return match ($ignore) {
@@ -62,6 +67,15 @@ final class CssGenTestUtils {
     }
     public function getCssGenCache(): CssGenCache {
         return $this->cssGenCache;
+    }
+    public static function generateScopedStyles(array $styles): string {
+        return implode("", array_map(fn($style) =>
+            "/* -- .j-{$style->blockTypeName} classes start -- */\n" .
+            implode("\n", array_map(fn($b) =>
+                $b->generatedCss,
+            is_array($style->units) ? $style->units : json_decode($style->units))) . "\n" .
+            "/* -- .j-{$style->blockTypeName} classes end -- */\n"
+        , $styles));
     }
     public static function generateCachedBlockTypeBaseStyles(array $styles): string {
         return implode("", array_map(fn($style) =>

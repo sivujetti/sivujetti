@@ -15,9 +15,11 @@ $statements = array_merge($statements, [
     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" => "y"
 ])."')",
 
-"INSERT INTO `themes` (`id`,`name`,`globalStyles`,`isActive`" .
+"INSERT INTO `themes` (`id`,`name`,`globalStyles`,`isActive`,`generatedScopedStylesCss`" .
                        ",`generatedBlockTypeBaseCss`,`generatedBlockCss`) VALUES
 ('1','test-suite-theme','[]',1,'" .
+    \Sivujetti\Tests\Utils\CssGenTestUtils::generateScopedStyles($styles) .
+"','" .
     \Sivujetti\Tests\Utils\CssGenTestUtils::generateCachedBlockTypeBaseStyles($blockTypeBaseStyles)
 . "','')",
 

@@ -41,7 +41,7 @@ $out->resources = (object) [
     "themes" => (object) [
         "view"                        => 0b00000010,
         "updateGlobalStylesOf"        => 0b00000100,
-        "upsertBlockTypeBaseStylesOf" => 0b00001000,
+        "upsertBlockTypeScopedStyles" => 0b00001000,
     ],
     "uploads" => (object) [
         "view"              => 0b00000010,

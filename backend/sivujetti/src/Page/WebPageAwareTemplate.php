@@ -233,20 +233,9 @@ final class WebPageAwareTemplate extends Template {
         "}</style>\n";
         //
         if (!$this->__useInlineCssStyles) {
-            /*
-            []         -> [gen]
-            [b1]       -> [b1,gen]
-            [b1,b2]    -> [b1,gen,b2]
-            [b1,b2,b3] -> [b1,b2,gen,b3]
-            */
             $generated = (object) ["url" => "{$this->__theme->name}-generated.css?t=" . time(),
                                    "attrs" => []];
-            if (count($this->__cssAndJsFiles->css) < 2) {
-                $this->__cssAndJsFiles->css[] = $generated;
-            } else {
-                $secondLast = count($this->__cssAndJsFiles->css) - 1;
-                array_splice($this->__cssAndJsFiles->css, $secondLast, 0, [$generated]);
-            }
+            $this->__cssAndJsFiles->css[] = $generated;
             return $out . implode("\n", array_map($rf,
                 $this->__cssAndJsFiles->css
             ));
@@ -259,18 +248,17 @@ final class WebPageAwareTemplate extends Template {
             // Inject each style bundle via javascript instead of echoing them directly (to
             // allow things such `content: "</style>"` or `/* </style> */`)
             "<script>document.head.appendChild([\n" .
-                // Base styles for each block type
-                json_encode(array_map(fn($styles) => (object) [
-                    "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockTypeBaseCss($styles)), "type" => "block-type", "id" => $styles->blockTypeName,
-                ], $this->__theme->blockTypeStyles)) . ",\n" .
-                // Styles for all global blocks, and this page's blocks
-                self::__renderEditModeBlockStyles($this->__blocksStyles) . ",\n" .
-            "].flat().reduce((out, {css, type, id}) => {\n" .
+                // Scoped styles
+                json_encode(array_map(fn($itm) => (object) [
+                    "css" => base64_encode(implode("\n", array_map(fn($u) => $u->generatedCss, $itm->units))),
+                    "blockTypeName" => $itm->blockTypeName,
+                ], $this->__theme->styles), JSON_UNESCAPED_UNICODE) . ",\n" .
+            "].flat().reduce((out, {css, blockTypeName}) => {\n" .
                 "const bundle = document.createElement('style');\n" .
                 "bundle.innerHTML = atob(css);\n" .
-                "bundle.setAttribute(`data-styles-for-\${type}`, id);\n" .
+                "bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
                 "out.appendChild(bundle);\n" .
-                "return (out);\n" .
+                "return out;\n" .
             "}, document.createDocumentFragment()))</script>"
         );
     }

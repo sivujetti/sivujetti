@@ -1,5 +1,4 @@
 import {__, env, urlUtils} from '@sivujetti-commons-for-edit-app';
-import {compileSivujettiFlavoredCss} from '../../../webpage/src/EditAppAwareWebPage.js';
 
 /** @type {HTMLStyleElement} */
 let helperStyleTag;
@@ -17,25 +16,27 @@ class CssStylesValidatorHelper {
     }
     /**
      * @param {Event} e
+     * @param {(input: String) => String} completeInput
      * @param {String} previousCommittedValue
-     * @returns {Array<Boolean|{stylesStringNotCommitted: String; stylesStringCompiled: String; stylesError: String;}>}
+     * @returns {Array<Boolean|{generatedCss: String|null; error: String;}>}
      * @access public
      */
-    validateAndCompile(e, previousCommittedValue) {
+    validateAndCompileScss(e, completeInput, previousCommittedValue) {
         const input = e.target.value;
         // Empty input -> commit only if previousCommittedValue is not ''
         if (input.length < 3) {
-            return [previousCommittedValue ? true : false, {stylesStringNotCommitted: input, stylesStringCompiled: input, stylesError: ''}];
+            return [previousCommittedValue ? true : false, {generatedCss: null, error: ''}];
         }
-        const ast = window.stylis.compile(compileSivujettiFlavoredCss('[data-dummy="dummy"]', input));
+        const ast = window.stylis.compile(completeInput(input));
+        let numDecls = 0;
+        traverse(ast, node => { if (node.type === 'decl') numDecls += 1; });
         // Had non-empty input, but css doesn't contain any rules -> do not commit
-        if (ast.reduce((amount, {type}) => amount + (type === 'rule' ? 1 : 0), 0) < 1) {
-            return [false, {stylesStringNotCommitted: input, stylesStringCompiled: input, stylesError: __('Styles must contain at least one CSS-rule')}];
+        if (numDecls < 1) {
+            return [false, {generatedCss: null, error: __('Styles must contain at least one CSS-rule')}];
         }
         // Had non-empty input, and css does contain rules -> commit changes to the store
-        return [true, {stylesStringNotCommitted: input,
-                       stylesStringCompiled: this.completeUrls(ast, input),
-                       stylesError: ''}];
+        return [true, {generatedCss: this.completeUrls(ast, window.stylis.serialize(ast, window.stylis.stringify)),
+                       error: ''}];
     }
     /**
      * @param {Array<Object>} ast
@@ -44,15 +45,11 @@ class CssStylesValidatorHelper {
      */
     completeUrls(ast, input) {
         // 1. Find css blocks with background, or background-image rules
-        const allRulesWithBgs = ast
-            .map(it => it.type === 'rule'
-                ? it.children.filter(it2 =>
-                    it2.type === 'decl' && (it2.props === 'background' || it2.props === 'background-image')
-                )
-                : null
-            )
-            .filter(r => r !== null)
-            .flat();
+        const allRulesWithBgs = [];
+        traverse(ast, node => {
+            if (node.type === 'decl' && (node.props === 'background' || node.props === 'background-image'))
+                allRulesWithBgs.push(node);
+        });
         if (!allRulesWithBgs)
             return input;
 
@@ -83,6 +80,18 @@ class CssStylesValidatorHelper {
                 input = input.replace(urlNormalized, urlUtils.makeAssetUrl(urlNormalized));
         });
         return input;
+    }
+}
+
+/**
+ * @param {Array<{children: String|Array<Object>} & {[key: String]: any;}>} arr
+ * @param {(Object) => void} fn
+ */
+function traverse(arr, fn) {
+    for (const item of arr) {
+        fn(item);
+        if (typeof item.children !== 'string' && item.children.length)
+            traverse(item.children, fn);
     }
 }
 

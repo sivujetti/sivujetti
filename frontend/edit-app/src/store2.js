@@ -56,6 +56,19 @@ function themeStylesStore(store) {
             i !== toRemIdx ? s : Object.assign({}, s, {units: s.units.filter(({title}) => title !== unit.title)})
         )};
     });
+
+    store.on('themeStyles/updateUnitOf',
+    /**
+     * @param {Object} state
+     * @param {[String, String, {[key: String]: any;}]} args
+     * @returns {Object}
+     */
+    ({themeStyles}, [blockTypeName, unitTitle, newUnitData]) => {
+        const toUpdIdx = findStyleIndex(themeStyles, blockTypeName);
+        return {themeStyles: themeStyles.map((s, i) =>
+            i !== toUpdIdx ? s : Object.assign({}, s, {units: s.units.map(u => u.title !== unitTitle ? u : Object.assign({}, u, newUnitData))})
+        )};
+    });
 }
 
 /**

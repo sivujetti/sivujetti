@@ -419,8 +419,8 @@ class EditAppAwareWebPage {
             }
         };
         return ({themeStyles}, [event, data]) => {
-            if (event === 'themeStyles/addUnitTo' || event === 'themeStyles/removeUnitFrom') {
-                const blockTypeName = data[0]; // data: [String]
+            if (event === 'themeStyles/updateUnitOf' || event === 'themeStyles/addUnitTo' || event === 'themeStyles/removeUnitFrom') {
+                const blockTypeName = data[0]; // data: [String, String, {[key: String]: String;}]|[String]
                 const style = themeStyles.find(s => s.blockTypeName === blockTypeName);
                 upsertInlineStyle(blockTypeName, style);
             } else if (event === 'themeStyles/addStyle') {
@@ -1263,4 +1263,4 @@ function noop() {
 }
 
 export default EditAppAwareWebPage;
-export {createTrier, compileSivujettiFlavoredCss, renderBlockAndThen, withTrid};
+export {createTrier, renderBlockAndThen, withTrid};

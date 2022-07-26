@@ -189,13 +189,17 @@ class BlockEditForm extends preact.Component {
         <div class={ currentTabIdx === 1 ? '' : 'd-none' }>
             <BlockStylesTab
                 getBlockCopy={ getBlockCopy.bind(this) }
-                grabChanges={ withFn => { this.stylesFormChangeGrabber = withFn; } }
+                grabBlockChanges={ withFn => { this.stylesFormChangeGrabber = withFn; } }
                 userCanEditCss={ this.userCanEditCss }
-                emitAddStyleToBlock={ (newStyleClass, {id, type, isStoredToTreeId, styleClasses}) => {
-                    const contextData = {blockId: id, blockType: type, trid: isStoredToTreeId};
-                    const dataBefore = {styleClasses};
-                    emitMutateBlockProp({styleClasses: styleClasses ? `${styleClasses} ${newStyleClass}` : newStyleClass}, contextData);
-                    emitPushStickyOp([dataBefore], contextData);
+                emitAddStyleToBlock={ (styleClassToAdd, b) => {
+                    const currentClasses = b.styleClasses;
+                    const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
+                    this.updateBlockStyleClasses(newClasses, b);
+                } }
+                emitRemoveStyleFromBlock={ (styleClassToRemove, b) => {
+                    const currentClasses = b.styleClasses;
+                    const newClasses = currentClasses.replace(styleClassToRemove, '').trim();
+                    this.updateBlockStyleClasses(newClasses, b);
                 } }
                 isVisible={ currentTabIdx === 1 }/>
         </div>
@@ -209,6 +213,7 @@ class BlockEditForm extends preact.Component {
      * @access public
      */
     handleValueValuesChanged(changes, hasErrors = false, debounceMillis = 0, debounceType = 'debounce-commit-to-queue') {
+        if (this.state.currentTabIdx === 1) return;
         if (this.currentDebounceTime !== debounceMillis || this.currentDebounceType !== debounceType) {
             const boundEmitStickyChange = (oldDataQ, contextData) => {
                 emitPushStickyOp(oldDataQ, contextData);
@@ -291,6 +296,17 @@ class BlockEditForm extends preact.Component {
                 })
                 .catch(env.window.console.error);
         }
+    }
+    /**
+     * @param {String} newStyleClasses
+     * @param {RawBlock2} blockCopy
+     * @access private
+     */
+    updateBlockStyleClasses(newStyleClasses, {id, type, isStoredToTreeId, styleClasses}) {
+        const contextData = {blockId: id, blockType: type, trid: isStoredToTreeId};
+        const dataBefore = {styleClasses};
+        emitMutateBlockProp({styleClasses: newStyleClasses}, contextData);
+        emitPushStickyOp([dataBefore], contextData);
     }
 }
 

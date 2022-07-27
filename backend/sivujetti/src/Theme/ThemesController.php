@@ -172,6 +172,7 @@ final class ThemesController {
         $db->update("\${p}themeStyles")
             ->values((object) ["units" => BlockTree::toJson(array_map(fn($b) => (object) [
                 "title" => $b->title,
+                "id" => $b->id,
                 "scss" => $b->scss,
                 "generatedCss" => $b->generatedCss,
             ], $req->body->units))])
@@ -242,6 +243,7 @@ final class ThemesController {
     private function validateUpsertScopedStyleInput(object $input): array {
         return Validation::makeObjectValidator()
             ->rule("units", "minLength", 1, "array")
+            ->rule("units.*.id", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
             ->rule("units.*.title", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
             ->rule("units.*.scss", "type", "string")
             ->rule("units.*.generatedCss", "type", "string")

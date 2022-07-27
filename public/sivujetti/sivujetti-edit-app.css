@@ -472,6 +472,7 @@ a.popup-close-area {
     background-color: var(--color-bg-default);
     border-radius: var(--small-rect-radius);
     border: 1px solid var(--color-border-popup);
+    z-index: 1;
 }
 .my-tooltip.dark  {
     background-color: #333;
@@ -529,8 +530,16 @@ ul.styles-list > li.open > header > .btn > .icon-tabler {
 ul.styles-list > li.open > div {
     display: initial;
 }
-ul.styles-list > li.open > header > .btn > .icon-tabler {
+ul.styles-list > li.open > header > .btn > .icon-tabler:first-child {
     transform: rotate(180deg);
+}
+ul.styles-list > li > header > .btn > span.edit-icon-outer {
+    opacity: 0;
+    transition: opacity .125s ease-out;
+}
+ul.styles-list > li > header > .btn > span:hover + div + span.edit-icon-outer,
+ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
+    opacity: 1;
 }
 
 

@@ -3,7 +3,7 @@
 namespace Sivujetti\Theme\Entities;
 
 final class Style {
-    /** @var object[] array<int, {title: string, scss: string, generatedCss: string}> */  
+    /** @var object[] array<int, {title: string, id: string, scss: string, generatedCss: string}> */
     public array $units;
     /** @var string e.g. "Heading" */ 
     public string $blockTypeName;

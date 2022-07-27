@@ -13,6 +13,7 @@ stringBundles.push({
     // edit-app/src/Block/BlockStylesTab.jsx
     'Use style': 'Käytä muotoilua',
     'Add styles': 'Lisää tyyli',
+    'Style name': 'Tyylin nimi',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Luo %s',
     'Cancel add %s': 'Peruuta %s luonti',

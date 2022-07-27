@@ -18,7 +18,7 @@ function themeStylesStore(store) {
      * @returns {Object}
      */
     ({themeStyles}, [style]) =>
-        ({themeStyles: [style].concat(themeStyles)})
+        ({themeStyles: [...themeStyles, style]})
     );
 
     store.on('themeStyles/removeStyle',
@@ -40,7 +40,7 @@ function themeStylesStore(store) {
     ({themeStyles}, [blockTypeName, unit]) => {
         const toAddIdx = findStyleIndex(themeStyles, blockTypeName);
         return {themeStyles: themeStyles.map((s, i) =>
-            i !== toAddIdx ? s : Object.assign({}, s, {units: [unit].concat(s.units)})
+            i !== toAddIdx ? s : Object.assign({}, s, {units: [...s.units, unit]})
         )};
     });
 
@@ -53,7 +53,7 @@ function themeStylesStore(store) {
     ({themeStyles}, [blockTypeName, unit]) => {
         const toRemIdx = findStyleIndex(themeStyles, blockTypeName);
         return {themeStyles: themeStyles.map((s, i) =>
-            i !== toRemIdx ? s : Object.assign({}, s, {units: s.units.filter(({title}) => title !== unit.title)})
+            i !== toRemIdx ? s : Object.assign({}, s, {units: s.units.filter(({id}) => id !== unit.id)})
         )};
     });
 
@@ -63,10 +63,10 @@ function themeStylesStore(store) {
      * @param {[String, String, {[key: String]: any;}]} args
      * @returns {Object}
      */
-    ({themeStyles}, [blockTypeName, unitTitle, newUnitData]) => {
+    ({themeStyles}, [blockTypeName, unitId, newUnitData]) => {
         const toUpdIdx = findStyleIndex(themeStyles, blockTypeName);
         return {themeStyles: themeStyles.map((s, i) =>
-            i !== toUpdIdx ? s : Object.assign({}, s, {units: s.units.map(u => u.title !== unitTitle ? u : Object.assign({}, u, newUnitData))})
+            i !== toUpdIdx ? s : Object.assign({}, s, {units: s.units.map(u => u.id !== unitId ? u : Object.assign({}, u, newUnitData))})
         )};
     });
 }

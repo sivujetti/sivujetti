@@ -29,11 +29,11 @@ abstract class ThemesControllerTestCase extends DbTestCase {
                      "value"=>(object)["type"=>"color","value"=>["00","ff","00","ff"]]],
         ];
         $state->testStyles = [
-            (object)["units" => json_encode([["title"=>"Default","scss"=>"padding: 6rem 3rem",
-                                  "generatedCss"=>".j-Section-default{padding:6rem 3rem;}"]]),
+            (object)["units" => json_encode([["title"=>"Default","id"=>"default","scss"=>"padding: 6rem 3rem",
+                                    "generatedCss"=>".j-Section-default{padding:6rem 3rem;}"]]),
                      "themeId"=>"@filledAfter",
                      "blockTypeName"=>"Section"],
-            (object)["units" => json_encode([["title"=>"Default","scss"=>"color: #444",
+            (object)["units" => json_encode([["title"=>"Default","id"=>"default","scss"=>"color: #444",
                                   "generatedCss"=>".j-Paragraph-default{color:#444;}"]]),
                      "themeId"=>"@filledAfter",
                      "blockTypeName"=>"Paragraph"],

@@ -634,3 +634,4 @@ function mergeToFilterAdditional(kind, val, current) {
 }
 
 export default ListingBlockEditForm;
+export {Popup};

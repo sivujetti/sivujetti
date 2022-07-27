@@ -47,6 +47,7 @@ final class UpsertThemeBlockTypeScopedStylesTest extends ThemesControllerTestCas
         $actualUnits = json_decode($row["units"]);
         $removeJunk = fn(object $input) => (object) [
             "title" => $input->title,
+            "id" => $input->id,
             "scss" => $input->scss,
             "generatedCss" => $input->generatedCss,
         ];

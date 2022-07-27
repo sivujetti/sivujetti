@@ -13,6 +13,7 @@ stringBundles.push({
     // edit-app/src/Block/BlockStylesTab.jsx
     'Use style': 'Use style',
     'Add styles': 'Add styles',
+    'Style name': 'Style name',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Create %s',
     'Cancel add %s': 'Cancel add %s',

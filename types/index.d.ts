@@ -399,6 +399,7 @@ interface ThemeStyle {
 
 interface ThemeStyleUnit {
     title: String;
+    id: String;
     scss: String;
     generatedCss: String;
 }

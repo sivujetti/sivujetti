@@ -1,6 +1,7 @@
 import {__, api, env, http, Icon, LoadingSpinner, InputError, FormGroup, hookForm,
         Input, InputErrors, hasErrors, unhookForm} from '@sivujetti-commons-for-edit-app';
 import {timingUtils} from '../commons/utils.js';
+import ContextMenu from '../commons/ContextMenu.jsx';
 import CssStylesValidatorHelper from '../commons/CssStylesValidatorHelper.js';
 import {fetchThemeStyles} from '../DefaultView/GlobalStylesSection.jsx';
 import store2, {observeStore as observeStore2} from '../store2.js';
@@ -13,7 +14,10 @@ let compile, serialize, stringify;
 
 class BlockStylesTab extends preact.Component {
     // editableTitleInstances;
+    // moreMenu;
     // unregistrables;
+    // liIdxOfOpenMoreMenu;
+    // refElOfOpenMoreMenu;
     /**
      * @param {{emitAddStyleToBlock: (styleClassToAdd: String, block: RawBlock2) => void; emitRemoveStyleFromBlock: (styleClassToRemove: String, block: RawBlock2) => void; getBlockCopy: () => RawBlock2; grabBlockChanges: (withFn: (block: RawBlock2, origin: blockChangeEvent, isUndo: Boolean) => void) => void; userCanEditCss: Boolean; isVisible: Boolean;}} props
      */
@@ -21,11 +25,16 @@ class BlockStylesTab extends preact.Component {
         super(props);
         ({compile, serialize, stringify} = window.stylis);
         this.editableTitleInstances = [];
+        this.moreMenu = preact.createRef();
         this.state = {units: [], liClasses: [], blockCopy: props.getBlockCopy()};
-        this.unregistrables = [observeStore2('themeStyles', ({themeStyles}) => {
+        this.unregistrables = [observeStore2('themeStyles', ({themeStyles}, [event]) => {
             const {units} = (findBlockTypeStyles(themeStyles, this.state.blockCopy.type) || {});
-            if (this.state.units !== units)
-                this.updateUnitsState(units, this.state.liClasses.length ? this.state.liClasses.findIndex(s => s !== '') : 0);
+            if (this.state.units !== units) {
+                const openLiIdx = event === 'themeStyles/addUnitTo' || event === 'themeStyles/addStyle'
+                    ? units.length - 1
+                    : this.state.liClasses.findIndex(s => s !== '');
+                this.updateUnitsState(units, openLiIdx);
+            }
         }),
         ];
         props.grabBlockChanges((block, _origin, _isUndo) => {
@@ -61,18 +70,16 @@ class BlockStylesTab extends preact.Component {
     render({userCanEditCss, isVisible}, {units, blockCopy, liClasses}) {
         if (!isVisible) return null;
         const emitSaveStylesToBackendOp = userCanEditCss ? this.emitCommitStylesOp.bind(this) : null;
-        const sub = units && units.length ? units.length - 1 : null;
         return [
-            units !== null ? units.length ? <ul class="list styles-list mb-2">{ liClasses.map((liCls, i) => {
-                const revi = sub - i;
-                const unit = units[revi];
+            units !== null ? units.length ? <ul class="list styles-list mb-2">{ units.map((unit, i) => {
+                const liCls = liClasses[i];
                 const cls = this.createClass(unit.id);
                 const isActivated = this.currentBlockHasStyle(cls);
                 const handleLiClick = userCanEditCss ? e => {
                     if (this.editableTitleInstances[i].current.isOpen()) return;
-                    const editNameEl = e.target.classList.contains('edit-icon-outer') ? e.target : e.target.closest('.edit-icon-outer');
-                    if (!editNameEl) this.toggleIsCollapsed(i);
-                    else this.editableTitleInstances[i].current.open();
+                    const moreMenuIconEl = e.target.classList.contains('edit-icon-outer') ? e.target : e.target.closest('.edit-icon-outer');
+                    if (!moreMenuIconEl) this.toggleIsCollapsed(i);
+                    else this.openMoreMenu(moreMenuIconEl, i);
                 } : () => this.toggleStyleIsActivated(cls, !isActivated);
                 return <li class={ liCls } key={ unit.id }>
                     <header class="flex-centered init-relative">
@@ -116,18 +123,48 @@ class BlockStylesTab extends preact.Component {
             <button
                 onClick={ this.addStyleUnit.bind(this) }
                 class="btn btn-sm"
-                type="button">{ __('Add styles') }</button>
+                type="button">{ __('Add styles') }</button>,
+            <ContextMenu
+                links={ [
+                    {text: __('Edit title'), title: __('Edit title'), id: 'edit-style-title'},
+                    {text: __('Delete'), title: __('Delete style'), id: 'delete-style'},
+                ] }
+                onItemClicked={ this.handleMoreMenuLinkClicked.bind(this) }
+                onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
+                ref={ this.moreMenu }/>
         ] : []);
     }
     /**
      * @param {Array<ThemeStyleUnit>|undefined} candidate
-     * @param {Number|undefined} currentOpenIdx = undefined
+     * @param {Number} currentOpenIdx = -1
      * @access private
      */
-    updateUnitsState(candidate, currentOpenIdx = undefined) {
+    updateUnitsState(candidate, currentOpenIdx = -1) {
         const units = candidate || [];
         this.editableTitleInstances = units.map(_ => preact.createRef());
         this.setState({units, liClasses: createLiClasses(units, currentOpenIdx)});
+    }
+    /**
+     * @param {HTMLSpanElement} iconEl
+     * @param {Number} liIdx
+     * @access private
+     */
+    openMoreMenu(iconEl, liIdx) {
+        this.liIdxOfOpenMoreMenu = liIdx;
+        this.refElOfOpenMoreMenu = iconEl;
+        this.refElOfOpenMoreMenu.style.opacity = '1';
+        this.moreMenu.current.open({target: iconEl});
+    }
+    /**
+     * @param {ContextMenuLink} link
+     * @access private
+     */
+    handleMoreMenuLinkClicked({id}) {
+        if (id === 'edit-style-title') {
+            this.editableTitleInstances[this.liIdxOfOpenMoreMenu].current.open();
+        } else if (id === 'delete-style') {
+            this.removeStyleUnit(this.state.units[this.liIdxOfOpenMoreMenu]);
+        }
     }
     /**
      * @param {String} cls
@@ -148,9 +185,9 @@ class BlockStylesTab extends preact.Component {
         const {type} = this.state.blockCopy;
         const current = findBlockTypeStyles(store2.get().themeStyles, type);
         const rolling = current ? getLargestPostfixNum(current.units) + 1 : 1;
-        const title = current ? `Unit-${rolling}` : 'Default';
+        const title = rolling > 1 ? `Unit ${rolling}` : 'Default';
         const id = `unit-${rolling}`;
-        const scss = 'color: green';
+        const scss = 'color: blueviolet';
         const cls = this.createClass(id);
 
         // #2
@@ -159,7 +196,7 @@ class BlockStylesTab extends preact.Component {
             this.props.emitAddStyleToBlock(cls, this.state.blockCopy);
 
         // #1
-        const newUnit = {title, id, scss, generatedCss: this.compileStylis(cls, scss)};
+        const newUnit = {title, id, scss, generatedCss: serialize(compile(`.${cls}{${scss}}`), stringify)};
         if (current) store2.dispatch('themeStyles/addUnitTo', [type, newUnit]);
         else store2.dispatch('themeStyles/addStyle', [{units: [newUnit], blockTypeName: type}]);
 
@@ -171,6 +208,19 @@ class BlockStylesTab extends preact.Component {
 
             // Revert # 2
             if (addedStyleToBlock) setTimeout(() => { triggerUndo(); }, 100);
+        });
+    }
+    /**
+     * @param {ThemeStyleUnit} unit
+     * @access private
+     */
+    removeStyleUnit(unit) {
+        const {type} = this.state.blockCopy;
+        store2.dispatch('themeStyles/removeUnitFrom', [type, unit]);
+        //
+        const clone = Object.assign({}, unit);
+        this.emitCommitStylesOp(type, () => {
+            store2.dispatch('themeStyles/addUnitTo', [type, clone]);
         });
     }
     /**
@@ -206,15 +256,6 @@ class BlockStylesTab extends preact.Component {
         return this.state.blockCopy.styleClasses.indexOf(cls) > -1;
     }
     /**
-     * @param {String} cls
-     * @param {String} scss
-     * @returns {String}
-     * @access private
-     */
-    compileStylis(cls, scss) {
-        return serialize(compile(`.${cls}{${scss}}`), stringify);
-    }
-    /**
      * @param {String} id
      * @returns {String}
      * @access private
@@ -223,12 +264,12 @@ class BlockStylesTab extends preact.Component {
         return `j-${this.state.blockCopy.type}-${id}`;
     }
     /**
-     * @param {Number} rowIdx
+     * @param {Number} liIdx
      * @access private
      */
-    toggleIsCollapsed(rowIdx) {
-        if (this.state.liClasses[rowIdx] !== ' open') // Hide all except $rowIdx
-            this.setState({liClasses: createLiClasses(this.state.units, rowIdx)});
+    toggleIsCollapsed(liIdx) {
+        if (this.state.liClasses[liIdx] !== ' open') // Hide all except $liIdx
+            this.setState({liClasses: createLiClasses(this.state.units, liIdx)});
         else // Hide all
             this.setState({liClasses: createLiClasses(this.state.units, -1)});
     }
@@ -283,7 +324,7 @@ class EditableTitle extends preact.Component {
             }
             </Popup> : null,
             <span class="pl-2 pt-1 edit-icon-outer">
-            <Icon iconId="pencil" className={ `size-xs color-dimmed${userCanEditCss ? '' : ' d-none'}` }/>
+            <Icon iconId="dots" className={ `size-xs color-dimmed${userCanEditCss ? '' : ' d-none'}` }/>
             </span>
         ];
     }
@@ -414,10 +455,10 @@ function getLargestPostfixNum(currentUnits) {
 
 /**
  * @param {Array<ThemeStyleUnit>} units
- * @param {Number} openIdx = 0
+ * @param {Number} openIdx
  * @returns {Array<String>}
  */
-function createLiClasses(units, openIdx = 0) {
+function createLiClasses(units, openIdx) {
     return units.map((_, i) => i !== openIdx ? '' : ' open');
 }
 

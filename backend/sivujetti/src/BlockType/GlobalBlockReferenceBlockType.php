@@ -33,13 +33,10 @@ final class GlobalBlockReferenceBlockType implements BlockTypeInterface,
     /**
      * @param \Sivujetti\Block\Entities\Block $block
      * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository $gbtRepo
-     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
     */
     public function doPerformBeforeRender(Block $block,
-                                          GlobalBlockTreesRepository $gbtRepo,
-                                          TheWebsite $theWebsite): void {
-        $entry = $gbtRepo->getSingle($block->globalBlockTreeId,
-                                     $theWebsite->activeTheme->id);
+                                          GlobalBlockTreesRepository $gbtRepo): void {
+        $entry = $gbtRepo->getSingle($block->globalBlockTreeId);
         $block->__globalBlockTree = $entry;
     }
 }

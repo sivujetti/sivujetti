@@ -29,7 +29,7 @@ final class GlobalBlockTreesRepository2 {
      */
     public function select(): Select {
         return $this->fluentDb->select(self::T, GlobalBlockTree::class)
-            ->fields(["id", "name", "blocks AS blocksJson", "NULL as blockStylesJson"])
+            ->fields(["id", "name", "blocks AS blocksJson"])
             ->mapWith(new class implements RowMapperInterface {
                 public function mapRow(object $row, int $_numRow, array $_rows): object {
                     GlobalBlockTreesRepository2::normalizeSingle($row);
@@ -49,8 +49,6 @@ final class GlobalBlockTreesRepository2 {
      */
     public static function normalizeSingle(object $row): void {
         $row->blocks = $row->blocksJson ? PagesRepository::blocksFromRs("blocksJson", $row) : null;
-        $row->blockStyles = $row->blockStylesJson ? json_decode($row->blockStylesJson) : [];
         unset($row->blocksJson);
-        unset($row->blockStylesJson);
     }
 }

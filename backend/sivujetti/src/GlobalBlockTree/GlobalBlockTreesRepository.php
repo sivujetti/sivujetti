@@ -18,23 +18,12 @@ final class GlobalBlockTreesRepository {
     }
     /**
      * @param string $globalBlockTreeId
-     * @param string $themeId
      * @return \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree|null
      */
-    public function getSingle(string $globalBlockTreeId,
-                              ?string $themeId = null): ?GlobalBlockTree {
-        $q = $this->db->select("\${p}globalBlockTrees gbt", GlobalBlockTree::class);
-        $fields = ["gbt.`id`", "gbt.`name`", "gbt.`blocks` AS `blocksJson`"];
-        //
-        return ($themeId
-            ? $q
-                ->leftJoin("\${p}globalBlocksStyles gbs ON (gbs.`globalBlockTreeId` = gbt.`id` AND gbs.`themeId` = ?)")
-                ->fields([...$fields, "gbs.`styles` AS `blockStylesJson`"])
-                ->where("gbt.`id` = ?", [$themeId, $globalBlockTreeId])
-            : $q
-                ->fields([...$fields, "NULL AS `blockStylesJson`"])
-                ->where("gbt.`id` = ?", [$globalBlockTreeId])
-        )
+    public function getSingle(string $globalBlockTreeId): ?GlobalBlockTree {
+        return $this->db->select("\${p}globalBlockTrees gbt", GlobalBlockTree::class)
+            ->fields(["gbt.`id`", "gbt.`name`", "gbt.`blocks` AS `blocksJson`"])
+            ->where("gbt.`id` = ?", [$globalBlockTreeId])
             ->mapWith(new class implements RowMapperInterface {
                 public function mapRow(object $row, int $_rowNum, array $_rows): ?object {
                     GlobalBlockTreesRepository::normalizeSingle($row);
@@ -49,6 +38,5 @@ final class GlobalBlockTreesRepository {
      */
     public static function normalizeSingle(object $row): void {
         $row->blocks = $row->blocksJson ? PagesRepository::blocksFromRs("blocksJson", $row) : null;
-        $row->blockStyles = $row->blockStylesJson ? json_decode($row->blockStylesJson) : [];
     }
 }

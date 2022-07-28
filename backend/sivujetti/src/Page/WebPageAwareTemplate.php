@@ -9,7 +9,6 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\Theme\Entities\Theme;
-use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class WebPageAwareTemplate extends Template {
@@ -17,8 +16,6 @@ final class WebPageAwareTemplate extends Template {
     private ?object $__cssAndJsFiles;
     /** @var \Sivujetti\Theme\Entities\Theme */ 
     private ?Theme $__theme;
-    /** @var object[] [{blockId: string, styles: string}] */
-    private array $__blocksStyles;
     /** @var string[] */
     private array $__pluginNames;
     /** @var bool */
@@ -29,7 +26,6 @@ final class WebPageAwareTemplate extends Template {
      * @param ?array<string, mixed> $initialLocals = null
      * @param ?object $cssAndJsFiles = null
      * @param ?\Sivujetti\Theme\Entities\Theme $theme = null
-     * @param ?array<int, object> $blocksStyles = null
      * @param ?array<string> $pluginNames = null
      * @param ?bool $useInlineCssStyles = null
      */
@@ -38,13 +34,11 @@ final class WebPageAwareTemplate extends Template {
                                 ?array $initialLocals = null,
                                 ?object $cssAndJsFiles = null,
                                 ?Theme $theme = null,
-                                ?array $blocksStyles = null,
                                 ?array $pluginNames = null,
                                 ?bool $useInlineCssStyles = null) {
         parent::__construct($file, $vars, $initialLocals);
         $this->__cssAndJsFiles = $cssAndJsFiles;
         $this->__theme = $theme;
-        $this->__blocksStyles = $blocksStyles ?? [];
         $this->__dynamicGlobalBlockTreeBlocksStyles = [];
         $this->__useInlineCssStyles = $useInlineCssStyles ?? true;
         $this->__pluginNames = $pluginNames ?? [];
@@ -298,17 +292,6 @@ final class WebPageAwareTemplate extends Template {
             "color" => "#" . implode("", $value->value),
             default => throw new PikeException("Bad variable", PikeException::BAD_INPUT),
         };
-    }
-    /**
-     * @param object[] $styles [{blockId: string, styles: string}]
-     * @return string `[{"css":<base64EncodedCss>,"type":"block","id":<blockId>}...]`
-     */
-    private static function __renderEditModeBlockStyles(array $stylesAll): string {
-        return json_encode(array_map(fn($styles) => (object) [
-            "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockCss($styles)),
-            "type" => "block",
-            "id" => $styles->blockId,
-        ], $stylesAll));
     }
     /**
      * @param \Sivujetti\Page\Entities\Page $page

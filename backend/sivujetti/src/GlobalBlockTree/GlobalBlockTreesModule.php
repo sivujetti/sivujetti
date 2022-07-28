@@ -25,9 +25,5 @@ final class GlobalBlockTreesModule {
             [GlobalBlockTreesController::class, "updateBlocks", ["consumes" => "application/json",
                                                                  "identifiedBy" => ["updateBlocksOf", "globalBlockTrees"]]]
         );
-        $router->map("PUT", "/api/global-block-trees/[w:globalBlockTreeId]/block-styles/[i:themeId]",
-            [GlobalBlockTreesController::class, "upsertStyles", ["consumes" => "application/json",
-                                                                 "identifiedBy" => ["upsertStylesOf", "globalBlockTrees"]]]
-        );
     }
 }

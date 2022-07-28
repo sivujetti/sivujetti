@@ -5,17 +5,14 @@ namespace Sivujetti\Tests\Theme;
 use Pike\Db\FluentDb;
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 use Sivujetti\Tests\Utils\{CssGenTestUtils, DbDataHelper, HttpApiTestTrait};
-use Sivujetti\Theme\{CssGenCache, ThemeCssFileUpdaterWriter as CssGen};
 
 abstract class ThemesControllerTestCase extends DbTestCase {
     use HttpTestUtils;
     use HttpApiTestTrait;
     protected DbDataHelper $dbDataHelper;
-    protected CssGenCache $cssGenCache;
     protected function setUp(): void {
         parent::setUp();
         $this->dbDataHelper = new DbDataHelper(self::$db);
-        $this->cssGenCache = new CssGenCache(new FluentDb(self::$db));
     }
     public static function getDbConfig(): array {
         return require TEST_CONFIG_FILE_PATH;
@@ -38,14 +35,6 @@ abstract class ThemesControllerTestCase extends DbTestCase {
                      "themeId"=>"@filledAfter",
                      "blockTypeName"=>"Paragraph"],
         ];
-        $state->testBlockTypeStyles = [
-            (object)["styles" => "{ padding: 6rem 3rem; }",
-                     "themeId"=>"@filledAfter",
-                     "blockTypeName"=>"Section"],
-            (object)["styles" => "{ color: #444; }",
-                     "themeId"=>"@filledAfter",
-                     "blockTypeName"=>"Paragraph"],
-        ];
         $state->testTheme = null;
         $state->spyingResponse = null;
         return $state;
@@ -60,8 +49,6 @@ abstract class ThemesControllerTestCase extends DbTestCase {
         ];
         for ($i = 0; $i < count($state->testStyles); ++$i)
             $state->testStyles[$i]->themeId = $state->testTheme->id;
-        for ($i = 0; $i < count($state->testBlockTypeStyles); ++$i)
-            $state->testBlockTypeStyles[$i]->themeId = $state->testTheme->id;
     }
     protected function insertTestStylesForTestTheme(\TestState $state): void {
         $this->dbDataHelper->insertData($state->testStyles, "themeStyles");
@@ -69,11 +56,5 @@ abstract class ThemesControllerTestCase extends DbTestCase {
             ->values((object) ["generatedScopedStylesCss" => CssGenTestUtils::generateScopedStyles($state->testStyles)])
             ->where("id=?", [$state->testTheme->id])
             ->execute();
-    }
-    protected function insertTestBlockTypeStylesForTestTheme(\TestState $state): void {
-        $this->dbDataHelper->insertData($state->testBlockTypeStyles, "themeBlockTypeStyles");
-        $this->cssGenCache->updateBlockTypeBaseCss(
-            CssGenTestUtils::generateCachedBlockTypeBaseStyles($state->testBlockTypeStyles),
-            $state->testTheme->name);
     }
 }

@@ -7,14 +7,11 @@ return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
-"DROP TABLE IF EXISTS `\${p}globalBlocksStyles`",
 "DROP TABLE IF EXISTS `\${p}globalBlockTrees`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
-"DROP TABLE IF EXISTS `\${p}pageBlocksStyles`",
 "DROP TABLE IF EXISTS `\${p}pageTypes`",
 "DROP TABLE IF EXISTS `\${p}plugins`",
-"DROP TABLE IF EXISTS `\${p}themeBlockTypeStyles`",
 "DROP TABLE IF EXISTS `\${p}themeStyles`",
 "DROP TABLE IF EXISTS `\${p}themes`",
 "DROP TABLE IF EXISTS `\${p}theWebsite`",
@@ -62,8 +59,6 @@ return [
     `globalStyles` JSON,
     `isActive` TINYINT(1) NOT NULL,
     `generatedScopedStylesCss` TEXT,
-    `generatedBlockTypeBaseCss` TEXT,
-    `generatedBlockCss` TEXT,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 
@@ -73,14 +68,6 @@ return [
     `blockTypeName` VARCHAR(92) NOT NULL,
     FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
     PRIMARY KEY (`themeId`, `blockTypeName`)
-) DEFAULT CHARSET = utf8mb4",
-
-"CREATE TABLE `\${p}themeBlockTypeStyles` (
-    `styles` TEXT,
-    `blockTypeName` VARCHAR(92) NOT NULL,
-    `themeId` SMALLINT UNSIGNED NOT NULL,
-    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
-    PRIMARY KEY (`blockTypeName`, `themeId`)
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}plugins` (
@@ -102,15 +89,6 @@ return [
     `status` TINYINT(1) DEFAULT 1, -- 0 = complete, 1 = draft
     `isListable` TINYINT(1) DEFAULT 1,
     PRIMARY KEY (`id`)
-) DEFAULT CHARSET = utf8mb4",
-
-"CREATE TABLE `\${p}pageBlocksStyles` (
-    `styles` TEXT,
-    `pageId` SMALLINT UNSIGNED NOT NULL,
-    `pageTypeName` VARCHAR(92) NOT NULL,
-    `themeId` SMALLINT UNSIGNED NOT NULL,
-    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
-    PRIMARY KEY (`pageId`, `pageTypeName`, `themeId`)
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}PagesCategories` (
@@ -150,14 +128,6 @@ return [
     `blocks` JSON,
     `themeId` SMALLINT UNSIGNED NOT NULL,
     FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARSET = utf8mb4",
-
-"CREATE TABLE `\${p}globalBlocksStyles` (
-    `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `styles` TEXT,
-    `globalBlockTreeId` CHAR(20) NOT NULL,
-    FOREIGN KEY (`globalBlockTreeId`) REFERENCES `\${p}globalBlockTrees`(`id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

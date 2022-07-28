@@ -109,8 +109,6 @@ class EditApp extends preact.Component {
                 this.registerWebPageDomUpdater(trid);
             //
             store.dispatch(setCurrentPageDataBundle(data));
-            store.dispatch(setGlobalBlockTreeBlocksStyles(data.globalBlocksStyles));
-            store.dispatch(setPageBlocksStyles(page.blockStyles));
             store.dispatch(setOpQueue([]));
             //
             for (const [trid, tree] of trees) {

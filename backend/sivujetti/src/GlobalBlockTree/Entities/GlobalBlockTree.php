@@ -9,6 +9,4 @@ final class GlobalBlockTree {
     public string $name;
     /** @var ?array<int, \Sivujetti\Block\Entities\Block> */
     public ?array $blocks;
-    /** @var ?array<int, object> [{blockId: string, styles: string}] */
-    public ?array $blockStyles;
 }

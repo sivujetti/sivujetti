@@ -7,7 +7,6 @@ final class GetThemeStylesTest extends ThemesControllerTestCase {
         $state = parent::createDefaultTestState();
         $this->insertTestTheme($state, "get-styles-test-theme");
         $this->insertTestStylesForTestTheme($state);
-        $this->insertTestBlockTypeStylesForTestTheme($state);
         $this->sendListThemeStylesRequest($state);
         $this->verifyReturnedThemesStylesFromDb($state);
     }
@@ -34,15 +33,6 @@ final class GetThemeStylesTest extends ThemesControllerTestCase {
         $this->assertEquals($expectedStyles[0]->units, json_encode($actualStyles[0]->units));
         $this->assertEquals($expectedStyles[1]->blockTypeName, $actualStyles[1]->blockTypeName);
         $this->assertEquals($expectedStyles[1]->units, json_encode($actualStyles[1]->units));
-        //
-        $expectedBlockTypeStyles = $state->testBlockTypeStyles;
-        $actualBlockTypeStyles = $resp->blockTypeStyles;
-        $this->assertCount(2, $actualBlockTypeStyles);
-        usort($actualBlockTypeStyles, fn($a, $b) => $b->blockTypeName <=> $a->blockTypeName);
-        $this->assertEquals($expectedBlockTypeStyles[0]->blockTypeName, $actualBlockTypeStyles[0]->blockTypeName);
-        $this->assertEquals($expectedBlockTypeStyles[0]->styles, $actualBlockTypeStyles[0]->styles);
-        $this->assertEquals($expectedBlockTypeStyles[1]->blockTypeName, $actualBlockTypeStyles[1]->blockTypeName);
-        $this->assertEquals($expectedBlockTypeStyles[1]->styles, $actualBlockTypeStyles[1]->styles);
     }
 
 

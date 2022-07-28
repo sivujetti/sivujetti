@@ -53,26 +53,22 @@ final class PagesRepository {
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
-     * @param ?string $themeId
      * @psalm-param SelectFilters $filters
      * @return \Sivujetti\Page\Entities\Page|null
      */
     public function getSingle(string|PageType $pageTypeOrPageTypeName,
-                              ?string $themeId,
                               array $filters): ?Page {
-        $rows = $this->doGetMany($pageTypeOrPageTypeName, true, $themeId, $filters);
+        $rows = $this->doGetMany($pageTypeOrPageTypeName, true, $filters);
         return $rows[0] ?? null;
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
-     * @param ?string $themeId
      * @psalm-param SelectFilters $filters
      * @return \Sivujetti\Page\Entities\Page[]
      */
     public function getMany(string|PageType $pageTypeOrPageTypeName,
-                            ?string $themeId,
                             array $filters): array {
-        return $this->doGetMany($pageTypeOrPageTypeName, false, $themeId, $filters);
+        return $this->doGetMany($pageTypeOrPageTypeName, false, $filters);
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType $pageType
@@ -90,7 +86,7 @@ final class PagesRepository {
         if (($errors = $this->pageTypeValidator->validateInsertData($pageType, $inputData,
             $doValidateBlocks)))
             return [0, $errors];
-        if ($this->getSingle($pageType, null, ["filters" => [ ["slug", $inputData->slug] ]]))
+        if ($this->getSingle($pageType, ["filters" => [ ["slug", $inputData->slug] ]]))
             return [0, ["Page with identical slug already exists"]];
         $data = self::makeStorablePageDataFromValidInput($inputData, $pageType);
         $data->blocks = BlockTree::toJson(BlocksController::makeStorableBlocksDataFromValidInput(
@@ -145,13 +141,11 @@ final class PagesRepository {
     /**
      * @param \Sivujetti\PageType\Entities\PageType|string $pageTypeOrPageTypeName
      * @param bool $doIncludeLayouts
-     * @param ?string $themeId
      * @psalm-param SelectFilters $filters
      * @return \Sivujetti\Page\Entities\Page[]
      */
     private function doGetMany(string|PageType $pageTypeOrPageTypeName,
                                bool $doIncludeLayouts,
-                               ?string $themeId,
                                array $filters): array {
         $pageType = $this->getPageTypeOrThrow($pageTypeOrPageTypeName);
         $this->pageType = $pageType;
@@ -159,14 +153,6 @@ final class PagesRepository {
         //
         $baseJoinCols = "";
         $baseJoin = "";
-        if (!$themeId) {
-            $baseJoinCols .= ",NULL AS `pageBlocksStylesJson`";
-        } else {
-            $baseJoinCols .= ",pbs.`styles` AS `pageBlocksStylesJson`";
-            $baseJoin .= " LEFT JOIN `\${p}pageBlocksStyles` pbs ON (pbs.`pageId` = p.`id` AND" .
-                        " pbs.`pageTypeName` = ? AND pbs.`themeId` = ?)";
-            array_unshift($filterVals, $pageType->name, $themeId);
-        }
         //
         if (!$doIncludeLayouts) {
             $baseJoinCols .= ",'' AS `layoutId`" .
@@ -220,9 +206,6 @@ final class PagesRepository {
                 ? json_decode($row->metaJson, flags: JSON_THROW_ON_ERROR)
                 : null;
             $row->blocks = self::blocksFromRs("pageBlocksJson", $row);
-            $row->blockStyles = $row->pageBlocksStylesJson
-                ? json_decode($row->pageBlocksStylesJson, flags: JSON_THROW_ON_ERROR)
-                : [];
             $row->layout = $doIncludeLayouts
                 ? Layout::fromParentRs($row)
                 : new Layout;

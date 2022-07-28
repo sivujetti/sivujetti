@@ -11,7 +11,6 @@ use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\Page\WebPageAwareTemplate;
 use Sivujetti\Template;
 use Sivujetti\Tests\Utils\{BlockTestUtils, TestData};
-use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
 
 final class RenderBasicPageTest extends RenderPageTestCase {
     public function testRenderPageRendersPage(): void {
@@ -62,7 +61,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertStringContainsString("<h2 data-block-type=\"Heading\" data-block=\"{$headingBlock->id}\">{$expectedPageBlockHeading}</h2>",
                                           $state->spyingResponse->getActualBody());
         } else {
-        $this->assertStringContainsString("<h2 data-block-type=\"Heading\" data-block=\"{$headingBlock->id}\">{$expectedPageBlockHeading}<!-- children-start --><!-- children-end --></h2>",
+        $this->assertStringContainsString("<h2 class=\"j-Heading\" data-block-type=\"Heading\" data-block=\"{$headingBlock->id}\">{$expectedPageBlockHeading}<!-- children-start --><!-- children-end --></h2>",
                                           $state->spyingResponse->getActualBody());
         }
         $paragraphBlock = $state->testGlobalBlockTree[0];
@@ -180,34 +179,29 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->insertTestPageToDb($state);
         $this->sendRenderPageRequest($state, inEditMode: true);
         $this->verifyRequestFinishedSuccesfully($state);
-        $this->verifyInjectedInlineStylesViaJavascript($state);
+        $this->verifyInjectedThemeStylesViaJavascript($state);
     }
-    private function verifyInjectedInlineStylesViaJavascript(\TestState $state): void {
-        $bs = TestData::getBlockTypeBaseStyles();
+    private function verifyInjectedThemeStylesViaJavascript(\TestState $state): void {
+        $ts = TestData::getThemeStyles();
         $dom = new Query($state->spyingResponse->getActualBody());
         /** @var \DOMElement[] */
         $scriptEls = $dom->execute("head script") ?? [];
         $this->assertNotEmpty($scriptEls);
         $injectJs = $scriptEls[count($scriptEls) - 1]->nodeValue;
-        $expectedBlockStyles = json_encode([(object) [
-            "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockTypeBaseCss($bs[1])),
-            "type" => "block-type",
-            "id" => $bs[1]->blockTypeName,
-        ], (object) [
-            "css" => base64_encode(ThemeCssFileUpdaterWriter::compileBlockTypeBaseCss($bs[0])),
-            "type" => "block-type",
-            "id" => $bs[0]->blockTypeName,
-        ]]);
+        $orderStyles = fn($styles) => [$styles[1], $styles[0]];
+        $expectedStyles = json_encode(array_map(fn($itm) => (object) [
+            "css" => base64_encode(implode("\n", array_map(fn($u) => $u->generatedCss, json_decode($itm->units)))),
+            "blockTypeName" => $itm->blockTypeName,
+        ], $orderStyles($ts)), JSON_UNESCAPED_UNICODE);
         $this->assertEquals(
             "document.head.appendChild([\n" .
-                "{$expectedBlockStyles},\n" .
-                "[],\n" .
-            "].flat().reduce((out, {css, type, id}) => {\n" .
+                "{$expectedStyles},\n" .
+            "].flat().reduce((out, {css, blockTypeName}) => {\n" .
                 "const bundle = document.createElement('style');\n" .
                 "bundle.innerHTML = atob(css);\n" .
-                "bundle.setAttribute(`data-styles-for-\${type}`, id);\n" .
+                "bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
                 "out.appendChild(bundle);\n" .
-                "return (out);\n" .
+                "return out;\n" .
             "}, document.createDocumentFragment()))",
             $injectJs
         );

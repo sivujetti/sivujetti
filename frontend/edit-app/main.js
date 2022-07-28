@@ -79,7 +79,7 @@ function configureServices() {
     const mainPanel = new MainPanel(document.getElementById('main-panel'),
         signals, env);
     mainPanel.registerSection('onThisPage', OnThisPageSection);
-    if (api.user.can('editThemeStyles')) {
+    if (api.user.can('editThemeColours')) {
         mainPanel.registerSection('globalStyles', GlobalStylesSection);
     }
     if (api.user.can('createPages')) {

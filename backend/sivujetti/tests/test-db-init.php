@@ -6,7 +6,6 @@ require_once __DIR__ . "/src/Utils/TestData.php";
 $statements = require dirname(__DIR__, 2) . "/installer/schema.sqlite.php";
 $getRules = require dirname(__DIR__, 2) . "/installer/default-acl-rules.php";
 $styles = \Sivujetti\Tests\Utils\TestData::getThemeStyles();
-$blockTypeBaseStyles = \Sivujetti\Tests\Utils\TestData::getBlockTypeBaseStyles();
 
 $statements = array_merge($statements, [
 
@@ -15,21 +14,14 @@ $statements = array_merge($statements, [
     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" => "y"
 ])."')",
 
-"INSERT INTO `themes` (`id`,`name`,`globalStyles`,`isActive`,`generatedScopedStylesCss`" .
-                       ",`generatedBlockTypeBaseCss`,`generatedBlockCss`) VALUES
+"INSERT INTO `themes` (`id`,`name`,`globalStyles`,`isActive`,`generatedScopedStylesCss`) VALUES
 ('1','test-suite-theme','[]',1,'" .
     \Sivujetti\Tests\Utils\CssGenTestUtils::generateScopedStyles($styles) .
-"','" .
-    \Sivujetti\Tests\Utils\CssGenTestUtils::generateCachedBlockTypeBaseStyles($blockTypeBaseStyles)
-. "','')",
+"')",
 
 "INSERT INTO `themeStyles` (`units`,`themeId`,`blockTypeName`) VALUES
 ('{$styles[0]->units}','1','{$styles[0]->blockTypeName}'),
 ('{$styles[1]->units}','1','{$styles[1]->blockTypeName}')",
-
-"INSERT INTO `themeBlockTypeStyles` (`styles`,`blockTypeName`,`themeId`) VALUES
-('{$blockTypeBaseStyles[0]->styles}','{$blockTypeBaseStyles[0]->blockTypeName}','1'),
-('{$blockTypeBaseStyles[1]->styles}','{$blockTypeBaseStyles[1]->blockTypeName}','1')",
 
 "INSERT INTO `pageTypes` (`id`,`name`,`slug`,`friendlyName`,`friendlyNamePlural`,`description`" .
                           ",`fields`,`defaultLayoutId`,`status`,`isListable`) VALUES

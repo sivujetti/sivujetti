@@ -57,7 +57,7 @@ class BlockEditForm extends preact.Component {
         super(props);
         blockTypes = api.blockTypes;
         this.state = {currentTabIdx: 0};
-        this.userCanEditCss = api.user.can('editCssStyles');
+        this.userCanEditCss = api.user.can('editThemeCss');
         fastChangesQueue = [];
     }
     /**

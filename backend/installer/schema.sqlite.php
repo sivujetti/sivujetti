@@ -6,14 +6,11 @@ return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
-"DROP TABLE IF EXISTS `\${p}globalBlocksStyles`",
 "DROP TABLE IF EXISTS `\${p}globalBlockTrees`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
-"DROP TABLE IF EXISTS `\${p}pageBlocksStyles`",
 "DROP TABLE IF EXISTS `\${p}pageTypes`",
 "DROP TABLE IF EXISTS `\${p}plugins`",
-"DROP TABLE IF EXISTS `\${p}themeBlockTypeStyles`",
 "DROP TABLE IF EXISTS `\${p}themeStyles`",
 "DROP TABLE IF EXISTS `\${p}themes`",
 "DROP TABLE IF EXISTS `\${p}theWebsite`",
@@ -58,9 +55,7 @@ return [
     `name` TEXT NOT NULL,
     `globalStyles` JSON,
     `isActive` INTEGER NOT NULL DEFAULT 0,
-    `generatedScopedStylesCss` TEXT,
-    `generatedBlockTypeBaseCss` TEXT,
-    `generatedBlockCss` TEXT
+    `generatedScopedStylesCss` TEXT
 )",
 
 "CREATE TABLE `\${p}themeStyles` (
@@ -69,14 +64,6 @@ return [
     `blockTypeName` TEXT NOT NULL,
     FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
     PRIMARY KEY (`themeId`, `blockTypeName`)
-)",
-
-"CREATE TABLE `\${p}themeBlockTypeStyles` (
-    `styles` TEXT,
-    `blockTypeName` TEXT NOT NULL,
-    `themeId` INTEGER NOT NULL,
-    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
-    PRIMARY KEY (`blockTypeName`, `themeId`)
 )",
 
 "CREATE TABLE `\${p}plugins` (
@@ -96,15 +83,6 @@ return [
     `defaultLayoutId` TEXT NOT NULL,
     `status` INTEGER DEFAULT 1, -- 0 = complete, 1 = draft
     `isListable` INTEGER DEFAULT 1
-)",
-
-"CREATE TABLE `\${p}pageBlocksStyles` (
-    `styles` TEXT,
-    `pageId` INTEGER NOT NULL,
-    `pageTypeName` TEXT NOT NULL,
-    `themeId` INTEGER NOT NULL,
-    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
-    PRIMARY KEY (`pageId`, `pageTypeName`, `themeId`)
 )",
 
 "CREATE TABLE `\${p}PagesCategories` (
@@ -140,15 +118,6 @@ return [
     `id` TEXT PRIMARY KEY,
     `name` TEXT NOT NULL,
     `blocks` JSON
-)",
-
-"CREATE TABLE `\${p}globalBlocksStyles` (
-    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-    `styles` TEXT,
-    `globalBlockTreeId` TEXT NOT NULL,
-    `themeId` INTEGER NOT NULL,
-    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
-    FOREIGN KEY (`globalBlockTreeId`) REFERENCES `\${p}globalBlockTrees`(`id`)
 )",
 
 "CREATE TABLE `\${p}layouts` (

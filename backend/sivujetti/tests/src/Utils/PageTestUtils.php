@@ -75,8 +75,6 @@ final class PageTestUtils {
             unset($out->layoutFriendlyName);
             unset($out->layoutRelFilePath);
             unset($out->layoutStructureJson);
-            unset($out->blockStyles);
-            unset($out->pageBlocksStylesJson);
             unset($out->metaJson);
         }
         return $out;
@@ -252,6 +250,6 @@ final class PageTestUtils {
     private function t(array $filters, ?PageType $pageType = null): ?Page {
         if (!$pageType)
             $pageType = $this->makeDefaultPageType();
-        return $this->pagesRepo->getSingle($pageType, "1", $filters);
+        return $this->pagesRepo->getSingle($pageType, $filters);
     }
 }

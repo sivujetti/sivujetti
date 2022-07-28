@@ -25,8 +25,6 @@ final class Page {
     public string $type;
     /** @var \Sivujetti\Block\Entities\Block[] */
     public array $blocks;
-    /** @var object[] [{blockId: string, styles: string}] */
-    public array $blockStyles;
     /** @var int self::STATUS_* */
     public int $status;
     /** @var int Unix timestamp */

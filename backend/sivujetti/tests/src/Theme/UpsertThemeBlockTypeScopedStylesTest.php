@@ -51,7 +51,8 @@ final class UpsertThemeBlockTypeScopedStylesTest extends ThemesControllerTestCas
             "scss" => $input->scss,
             "generatedCss" => $input->generatedCss,
         ];
-        $this->assertEquals([$removeJunk($state->testInput->units[0])], $actualUnits);
+        $expected = array_map($removeJunk, $state->testInput->units);
+        $this->assertEquals($expected, $actualUnits);
     }
     private function verifyUpdatedCachedGeneratedScopedCssToDb(\TestState $state): void {
         $row = $this->dbDataHelper->getRow("themes",
@@ -70,11 +71,34 @@ final class UpsertThemeBlockTypeScopedStylesTest extends ThemesControllerTestCas
     // [{units: <original>, blockTypeName: "Section", themeId: "1"}, ...] -> [{units: <updated>, blockTypeName: "Section", themeId: "1"}, ...]
     private function getUpdatedScopedStyles(array $testStyles, object $testInput): array {
         $all = json_decode(json_encode($testStyles));
+        if (count($testInput->units) > 0) {
         $sectionStylesUnits = json_decode($all[0]->units);
         $sectionStylesUnits[0]->scss = $testInput->units[0]->scss;
         $sectionStylesUnits[0]->generatedCss = $testInput->units[0]->generatedCss;
         $all[0]->units = json_encode($sectionStylesUnits);
+        } else  {
+        $all[0]->units = "[]";
+        }
         return $all;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testUpsertBlockTypeScopedStylesAcceptsEmptyUnits(): void {
+        $state = $this->setupEmptyUnitsTest();
+        $this->insertTestTheme($state, "overwrite-theme-styles-test-theme1");
+        $this->insertTestStylesForTestTheme($state);
+        $this->sendUpsertBlockTypeScopedStylesRequest($state);
+        $this->verifyUpdatedThemeBlockTypeScopedStylesToDb($state);
+        $this->verifyUpdatedCachedGeneratedScopedCssToDb($state);
+        $this->verifyOverwroteGeneratedCssFile($state);
+    }
+    private function setupEmptyUnitsTest(): \TestState {
+        $state = $this->setupTest();
+        $state->testInput = (object) ["units" => []];
+        return $state;
     }
 
 

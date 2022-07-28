@@ -5,7 +5,6 @@ namespace Sivujetti\Page;
 use MySite\Theme;
 use Pike\{AppConfig, ArrayUtils, Db, PikeException, Request, Response};
 use Pike\Db\FluentDb;
-use Pike\Interfaces\RowMapperInterface;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\{App, SharedAPIContext, Template, Translator};
@@ -16,10 +15,8 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\BlockType\{GlobalBlockReferenceBlockType, ListeningBlockTypeInterface};
-use Sivujetti\GlobalBlockTree\GlobalBlocksOrPageBlocksUpserter as StylesUpserter;
 use Sivujetti\Layout\Entities\Layout;
 use Sivujetti\Layout\LayoutsRepository;
-use Sivujetti\Theme\ThemeCssFileUpdaterWriter;
 
 final class PagesController {
     /**
@@ -49,7 +46,6 @@ final class PagesController {
             return;
         }
         if (!($page = $pagesRepo->getSingle($pageType,
-                                            $theWebsite->activeTheme->id,
                                             ["filters" => [["slug", $slug]]]))) {
             $res->status(404)->html("404");
             return;
@@ -131,8 +127,8 @@ final class PagesController {
                 "dashboardUrl" => $config->get("app.dashboardUrl", ""),
                 "userPermissions" => [
                     "canDoAnything" => $userRole === ACL::ROLE_SUPER_ADMIN,
-                    "canEditCssStyles" => $acl->can($userRole, "upsertStylesOf", "pages"),
-                    "canEditThemeStyles" => $acl->can($userRole, "updateGlobalStylesOf", "themes"),
+                    "canEditThemeColours" => $acl->can($userRole, "updateGlobalStylesOf", "themes"),
+                    "canEditThemeCss" => $acl->can($userRole, "upsertBlockTypeScopedStyles", "themes"),
                     "canCreatePageTypes" => $acl->can($userRole, "create", "pageTypes"),
                     "canCreatePages" => $acl->can($userRole, "create", "pages"),
                     "canCreateGlobalBlockTrees" => $acl->can($userRole, "create", "globalBlockTrees"),
@@ -245,39 +241,6 @@ final class PagesController {
         $res->status(200)->json(["ok" => "ok"]);
     }
     /**
-     * PUT /api/pages/:pageType/:pageId/block-styles/:themeId: Overwrites the
-     * styles of $req->params->pageId's blocks that are linked to
-     * $req->params->themeId.
-     *
-     * @param \Pike\Request $req
-     * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb $db
-     * @param \Sivujetti\Page\PagesRepository $pagesRepo
-     * @param \Sivujetti\Theme\ThemeCssFileUpdaterWriter $cssGen
-     */
-    public function upsertBlockStyles(Request $req,
-                                      Response $res,
-                                      FluentDb $db,
-                                      PagesRepository $pagesRepo,
-                                      ThemeCssFileUpdaterWriter $cssGen): void {
-        $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
-        //
-        if (($errors = StylesUpserter::validateInput($req->body))) {
-            $res->status(400)->json($errors);
-            return;
-        }
-        //
-        [$result, $error, $stylesExistedAlready] = StylesUpserter::upsertStyles($req, $db,
-            "pageBlocksStyles", $cssGen, $pageType);
-        //
-        if ($error)
-            throw new PikeException($error, PikeException::ERROR_EXCEPTION);
-        if ($stylesExistedAlready)
-            $res->status(200)->json(["ok" => "ok"]);
-        else
-            $res->status(201)->json(["ok" => "ok", "insertId" => $result]);
-    }
-    /**
      * PUT /api/pages/[w:pageType]/[i:pageId]: updates basic info of $req->params
      * ->pageId to the database.
      *
@@ -321,31 +284,14 @@ final class PagesController {
         $_ = new Theme($themeAPI); // Note: mutates $apiCtx->userDefinesAssets|etc
         $isPlaceholderPage = $page->id === "-";
         //
-        self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo, $theWebsite);
+        self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo);
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
         $editModeIsOn = $isPlaceholderPage || ($req->queryVar("in-edit") !== null);
-        $globalBlocksStyles = !$editModeIsOn ? [] : $db->select("\${p}globalBlocksStyles", "stdClass")
-                ->fields(["globalBlockTreeId", "styles AS stylesJson"])
-                ->mapWith(new class implements RowMapperInterface {
-                    public function mapRow(object $row, int $_rowNum, array $_rows): ?object {
-                        $row->styles = json_decode($row->stylesJson, flags: JSON_THROW_ON_ERROR);
-                        return $row;
-                    }
-                })
-                ->fetchAll();
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
             ["serverHost" => self::getServerHost($req)],
             cssAndJsFiles: $apiCtx->userDefinedAssets,
             theme: $theWebsite->activeTheme,
-            blocksStyles: array_merge(
-                // Styles for all global block tree blocks
-                !$globalBlocksStyles ? [] : array_reduce($globalBlocksStyles, fn($out, $gbs) =>
-                    array_merge($out, $gbs->styles)
-                , []),
-                // Styles for this page's blocks
-                $page->blockStyles
-            ),
             pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy()),
             useInlineCssStyles: $editModeIsOn
         );
@@ -359,7 +305,6 @@ final class PagesController {
                 "<script>window.sivujettiCurrentPageData = " . json_encode([
                     "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
                     "layout" => self::layoutToRaw($page->layout),
-                    "globalBlocksStyles" => $globalBlocksStyles,
                 ]) . "</script>" .
                 "<script src=\"" . WebPageAwareTemplate::makeUrl("public/sivujetti/sivujetti-webpage.js", false) . "\"></script>" .
             substr($html, $bodyEnd);
@@ -370,12 +315,10 @@ final class PagesController {
      * @param \Sivujetti\Block\Entities\Block[] $branch
      * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
-     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      */
     public static function runBlockBeforeRenderEvent(array $branch,
                                                      BlockTypes $blockTypes,
-                                                     PagesRepository $pagesRepo,
-                                                     TheWebsite $theWebsite): void {
+                                                     PagesRepository $pagesRepo): void {
         foreach ($branch as $block) {
             if ($block->type === "__marker")
                 continue;
@@ -383,7 +326,7 @@ final class PagesController {
             if (array_key_exists(ListeningBlockTypeInterface::class, class_implements($blockType)))
                 $blockType->onBeforeRender($block, $blockType, App::$adi);
             if ($block->children)
-                self::runBlockBeforeRenderEvent($block->children, $blockTypes, $pagesRepo, $theWebsite);
+                self::runBlockBeforeRenderEvent($block->children, $blockTypes, $pagesRepo);
         }
     }
     /**
@@ -400,7 +343,6 @@ final class PagesController {
         $page->id = "-";
         $page->type = $pageType->name;
         $page->blocks = [];
-        $page->blockStyles = [];
         $page->status = Page::STATUS_DRAFT;
         $page->createdAt = time();
         $page->lastUpdatedAt = $page->createdAt;
@@ -462,7 +404,6 @@ final class PagesController {
             "createdAt" => $page->createdAt,
             "lastUpdatedAt" => $page->lastUpdatedAt,
             "blocks" => $page->blocks,
-            "blockStyles" => $page->blockStyles,
             "isPlaceholderPage" => $isPlaceholderPage,
         ];
         foreach ($pageType->ownFields as $field)

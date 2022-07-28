@@ -13,10 +13,6 @@ final class ThemesModule {
             [ThemesController::class, "getStyles", ["consumes" => "application/json",
                                                     "identifiedBy" => ["view", "themes"]]],
         );
-        $router->map("PUT", "/api/themes/[i:themeId]/styles/block-type/[w:blockTypeName]",
-            [ThemesController::class, "upsertBlockTypeStyles", ["consumes" => "application/json",
-                                                                "identifiedBy" => ["upsertBlockTypeBaseStylesOf", "themes"]]],
-        );
         $router->map("PUT", "/api/themes/[i:themeId]/styles/scope-block-type/[w:blockTypeName]",
             [ThemesController::class, "upsertBlockTypeScopedStyles", ["consumes" => "application/json",
                                                                       "identifiedBy" => ["upsertBlockTypeScopedStyles", "themes"]]],

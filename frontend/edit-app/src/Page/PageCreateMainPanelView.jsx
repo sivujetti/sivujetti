@@ -243,7 +243,6 @@ class PageCreateMainPanelView extends preact.Component {
         } else {
         data = JSON.parse(JSON.stringify(selectCurrentPageDataBundle(store.getState()).page));
         delete data.id;
-        delete data.blockStyles;
         data.blocks = treeToTransferable(createSelectBlockTree('main')(store.getState()).tree);
         this.submitOpResult = null;
         }

@@ -7,7 +7,7 @@ interface SivujettiFrontendApi {
     getBlockRenderers(): Array<BlockRenderer>;
     getActiveTheme(): {id: String;};
     user: {
-        can(doWhat: 'doAnything'|'editCssStyles'|'editThemeStyles'|'createPageTypes'|'createPages'|'specializeGlobalBlocks'): Boolean;
+        can(doWhat: 'doAnything'|'editThemeColours'|'editThemeCss'|'createPageTypes'|'createPages'|'specializeGlobalBlocks'): Boolean;
     }
     editApp: {
         addBlockTree(trid: String, blocks: Array<RawBlock2>): void;
@@ -116,7 +116,6 @@ interface CurrentPageData {
         friendlyName: String;
         structure: Array<LayoutPart>;
     };
-    globalBlocksStyles: Array<RawBlockStyle>;
 }
 
 interface LayoutPart {
@@ -167,7 +166,6 @@ interface Page {
     layoutId: String;
     status: Number;
     blocks: Array<RawBlock>;
-    blockStyles: Array<RawBlockStyle>;
     isPlaceholderPage: Boolean;
     [ownFieldName: String]: any; // Custom fields (PageType.ownFields)
 }
@@ -209,8 +207,8 @@ interface TheWebsite {
     blockRenderers: Array<BlockRenderer>;
     userPermissions: {
         canDoAnything: Boolean;
-        canEditCssStyles: Boolean;
-        canEditThemeStyles: Boolean;
+        canEditThemeColours: Boolean;
+        canEditThemeCss: Boolean;
         canCreatePageTypes: Boolean;
         canCreatePages: Boolean;
         canCreateGlobalBlockTrees: Boolean;

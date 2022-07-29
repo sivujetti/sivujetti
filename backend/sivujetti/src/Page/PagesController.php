@@ -117,7 +117,7 @@ final class PagesController {
         $res->html((new WebPageAwareTemplate("sivujetti:edit-app-wrapper.tmpl.php"))->render([
             "url" => $req->params->url ?? "",
             "userDefinedJsFiles" => $apiCtx->adminJsFiles,
-            "dataToFrontend" => json_encode((object) [
+            "dataToFrontend" => self::escInlineJs(json_encode((object) [
                 "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
                 "assetBaseUrl" => WebPageAwareTemplate::makeUrl("/", false),
                 "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
@@ -134,7 +134,7 @@ final class PagesController {
                     "canCreateGlobalBlockTrees" => $acl->can($userRole, "create", "globalBlockTrees"),
                     "canSpecializeGlobalBlocks" => $userRole <= ACL::ROLE_ADMIN,
                 ],
-            ]),
+            ], JSON_UNESCAPED_UNICODE)),
             "uiLang" => "fi",
             "isFirstRun" => $isFirstRun || $req->queryVar("first-run") !== null,
         ]));
@@ -302,10 +302,10 @@ final class PagesController {
         ]);
         if ($editModeIsOn && ($bodyEnd = strrpos($html, "</body>")) > 0) {
             $html = substr($html, 0, $bodyEnd) .
-                "<script>window.sivujettiCurrentPageData = " . json_encode([
+                "<script>window.sivujettiCurrentPageData = " . self::escInlineJs(json_encode([
                     "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
                     "layout" => self::layoutToRaw($page->layout),
-                ]) . "</script>" .
+                ], JSON_UNESCAPED_UNICODE)) . "</script>" .
                 "<script src=\"" . WebPageAwareTemplate::makeUrl("public/sivujetti/sivujetti-webpage.js", false) . "\"></script>" .
             substr($html, $bodyEnd);
         }
@@ -430,5 +430,19 @@ final class PagesController {
             $req->attr("HTTP_X_FORWARDED_PROTO") === "https" ||
             $req->attr("HTTP_X_FORWARDED_SSL") === "on") ? "s" : "";
         return "http{$s}://{$req->attr("HTTP_HOST")}";
+    }
+    /**
+     * https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements
+     * https://stackoverflow.com/a/20942828
+     *
+     * @param string $json
+     * @return string
+     */
+    private static function escInlineJs(string $json): string {
+        return str_replace(
+            ["<!--", "<script", "</script"],
+            ['<"+"!--', '<"+"script', '</"+"script'],
+            $json
+        );
     }
 }

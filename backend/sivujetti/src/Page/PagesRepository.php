@@ -265,14 +265,14 @@ final class PagesRepository {
             "path" => $input->path,
             "level" => (int) $input->level,
             "title" => $input->title,
-            "meta" => json_encode($meta),
+            "meta" => json_encode($meta, JSON_UNESCAPED_UNICODE),
             "layoutId" => $input->layoutId,
             "status" => (int) $input->status,
         ];
         foreach ($pageType->ownFields as $field)
             $out->{$field->name} = $field->dataType->type !== "many-to-many"
                 ? $input->{$field->name} ?? null
-                : json_encode($input->{$field->name}, JSON_THROW_ON_ERROR);
+                : json_encode($input->{$field->name}, JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
         return $out;
     }
     /**

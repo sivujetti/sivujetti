@@ -1,6 +1,6 @@
 import {__, http} from '@sivujetti-commons-for-edit-app';
 import ListingBlockEditForm from './EditForm.jsx';
-import {treeToTransferable} from '../../Block/utils.js';
+import {toTransferable} from '../../Block/utils.js';
 
 export default () => {
     const initialData = {
@@ -21,7 +21,7 @@ export default () => {
         reRender(block, _) {
             return !window.useReduxBlockTree // @featureFlagConditionUseReduxBlockTree
                 ? http.post('/api/blocks/render', {block: block.toRaw()}).then(resp => resp.result)
-                : http.post('/api/blocks/render', {block: treeToTransferable([block])[0]}).then(resp => resp.result);
+                : http.post('/api/blocks/render', {block: toTransferable(block)}).then(resp => resp.result);
         },
         createSnapshot: from => ({
             filterPageType: from.filterPageType,

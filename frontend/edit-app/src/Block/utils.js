@@ -1,5 +1,5 @@
 import {api} from '@sivujetti-commons-for-edit-app';
-import {generatePushID} from '../commons/utils.js';
+import {generatePushID, objectUtils} from '../commons/utils.js';
 import blockTreeUtils from '../blockTreeUtils.js';
 
 /**
@@ -83,13 +83,11 @@ function findRefBlockOf(innerTreeBlockOrTrid, tree) {
  * @param {RawBlock2} block
  * @returns {{[key: String]: any;}}
  */
-function temp(block) {
-    const clone = JSON.parse(JSON.stringify(block));
-    for (const key in clone) {
-        if (key.startsWith('__'))
-            delete clone[key];
-    }
-    return clone;
+function toTransferable(block) {
+    const onlyTheseKeys = Object.keys(block).filter(key =>
+        ['children', 'isStoredTo', 'isStoredToTreeId'].indexOf(key) < 0
+    );
+    return objectUtils.clonePartially(onlyTheseKeys, block);
 }
 
 /**
@@ -97,11 +95,8 @@ function temp(block) {
  * @returns {Array<{[key: String]: any;}>}
  */
 function treeToTransferable(tree) {
-    return blockTreeUtils.mapRecursivelyManual(tree, (b, _i, children) => {
-        b.children = children;
-        return temp(b);
-    });
+    return blockTreeUtils.mapRecursively(tree, toTransferable);
 }
 
 export {createBlockFromType, isTreesOutermostBlock, findRefBlockOf,
-        treeToTransferable, cloneDeep};
+        toTransferable, treeToTransferable, cloneDeep};

@@ -1,6 +1,6 @@
 import {http, __, api, signals, env, Icon} from '@sivujetti-commons-for-edit-app';
 import Tabs from './commons/Tabs.jsx';
-import {timingUtils} from './commons/utils.js';
+import {timingUtils, objectUtils} from './commons/utils.js';
 import BlockStylesTab from './Block/BlockStylesTab.jsx';
 import {getIcon} from './block-types/block-types.js';
 import {EMPTY_OVERRIDES} from './block-types/globalBlockReference.js';
@@ -242,7 +242,7 @@ class BlockEditForm extends preact.Component {
         const trid = this.props.block.isStoredToTreeId;
         const {tree} = createSelectBlockTree(trid)(store.getState());
         const block = blockTreeUtils.findBlock(this.props.block.id, tree)[0];
-        fastChangesQueue.push(cloneFrom(Object.keys(changes), block));
+        fastChangesQueue.push(objectUtils.clonePartially(Object.keys(changes), block));
         const contextData = {blockId: block.id, blockType: block.type, trid};
         // Call emitFastChange, which then calls emitCommitChange
         this.boundEmitFastChange(changes, fastChangesQueue, contextData, hasErrors);
@@ -308,24 +308,6 @@ class BlockEditForm extends preact.Component {
         emitMutateBlockProp({styleClasses: newStyleClasses}, contextData);
         emitPushStickyOp([dataBefore], contextData);
     }
-}
-
-/**
- * @param {Array<String>} keys
- * @param {Object} fromObject
- * @returns {Object}
- */
-function cloneFrom(keys, fromObj) {
-    return keys.reduce((out, key) => {
-        const v = fromObj[key];
-        if (Array.isArray(v))
-            out[key] = v;
-        else if (typeof v === 'object')
-            out[key] = JSON.parse(JSON.stringify(v));
-        else
-            out[key] = v;
-        return out;
-    }, {});
 }
 
 class BlockValMutator {

@@ -267,7 +267,7 @@ class BlockTreeDragDrop {
         this.clearPreviousDroppableBorder(this.curDropTypeCandidate);
         this.curDropTypeCandidate = null;
         this.dragOriginIsExternal = null;
-        this.clearDragEl();
+        if (this.startEl) this.clearDragEl();
     }
     /**
      * @param {DOMRect} toRect

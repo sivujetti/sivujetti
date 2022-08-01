@@ -1,10 +1,14 @@
 import {api, signals, http, __, env, Icon, MenuSection, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
+import Tabs from '../commons/Tabs.jsx';
 import store, {pushItemToOpQueue} from '../store.js';
+import {observeStore as observeStore2} from '../store2.js';
+import {StyleTextarea, tempHack} from '../Block/BlockStylesTab.jsx';
 
 class GlobalStylesSection extends MenuSection {
     // activeThemeId;
-    // unregisterSignalListener;
+    // userCanEditCss;
+    // unregistrables;
     // globalStyles;
     // pickers;
     // varNameOfCurrentlyOpenPicker;
@@ -13,31 +17,37 @@ class GlobalStylesSection extends MenuSection {
      * @access protected
      */
     componentDidMount() {
-        this.setState({numStyles: undefined});
+        this.setState({numStyles: undefined, currentTabIdx: 0});
         this.activeThemeId = api.getActiveTheme().id;
-        this.unregisterSignalListener = signals.on('on-web-page-click-received', () => {
+        this.userCanEditCss = api.user.can('editThemeCss');
+        this.unregistrables = [signals.on('on-web-page-click-received', () => {
             if (!this.varNameOfCurrentlyOpenPicker) return;
             this.pickers.get(this.varNameOfCurrentlyOpenPicker).hide();
-        });
+        }), observeStore2('themeStyles', ({themeStyles}) => {
+            if (!this.state.bodyStyleMainUnit) return;
+            const latestUnit = themeStyles.find(s => s.blockTypeName === '_body_').units[0];
+            if (this.state.bodyStyleMainUnit !== latestUnit)
+                this.setState({bodyStyleMainUnit: latestUnit});
+        })];
     }
     /**
      * @access protected
      */
     componentWillUnmount() {
-        this.unregisterSignalListener();
+        this.unregistrables.forEach(unreg => unreg());
     }
     /**
      * @param {any} state
      * @param {{sections: Array<String>; startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;}} props
      * @access protected
      */
-    render(_, {numStyles, isCollapsed}) {
-        let content;
+    render(_, {numStyles, bodyStyleMainUnit, isCollapsed, currentTabIdx}) {
+        let firstTabContent;
         if (numStyles === undefined)
-            content = null;
+            firstTabContent = null;
         else if (numStyles === null)
-            content = <LoadingSpinner/>;
-        else content = <div class="global-styles mt-2 pt-2">
+            firstTabContent = <LoadingSpinner/>;
+        else firstTabContent = <div class={ `global-styles${this.userCanEditCss ? '' : ' mt-2 pt-2'}` }>
             { this.globalStyles.map(({name, friendlyName}) =>
             <div class={ `d-flex${wc_hex_is_light(this.state[name], 220) ? ' is-very-light-color' : '' }` }>
                 <div ref={ el => this.createColorPickerFor(name, el) }></div>
@@ -65,7 +75,22 @@ class GlobalStylesSection extends MenuSection {
                 </span>
                 <Icon iconId="chevron-right" className="p-absolute size-xs"/>
             </button>
-            <div>{ content }</div>
+            <div>
+                { this.userCanEditCss ? <Tabs
+                    links={ [__('Colours'), __('Root styles')] }
+                    onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
+                    className="text-tinyish mt-0 mb-2"/> : null }
+                <div class={ currentTabIdx === 0 ? '' : 'd-none' }>
+                    { firstTabContent }
+                </div>
+                <div class={ currentTabIdx === 0 ? 'd-none' : '' }>
+                    { this.userCanEditCss ? <StyleTextarea
+                        unitCopy={ Object.assign({}, bodyStyleMainUnit) }
+                        unitCls="j-_body_"
+                        blockTypeName="_body_"
+                        isVisible={ true }/> : null }
+                </div>
+            </div>
         </section>;
     }
     /**
@@ -75,13 +100,13 @@ class GlobalStylesSection extends MenuSection {
         const newState = {isCollapsed: !this.state.isCollapsed};
         if (newState.isCollapsed === false && this.state.numStyles === undefined) {
             newState.numStyles === null;
-            fetchThemeStyles().then(({globalStyles}) => {
+            tempHack(({globalStyles, styles}) => {
                 this.globalStyles = globalStyles;
                 this.pickers = new Map;
                 // {style1: color, style1IsValid: true, style2: color, style2IsValid: true ...}
-                this.setState(createState(this.globalStyles));
-            })
-            .catch(env.window.console.error);
+                const colourStylesState = createState(this.globalStyles);
+                this.setState(Object.assign({bodyStyleMainUnit: styles.find(s => s.blockTypeName === '_body_').units[0]}, colourStylesState));
+            });
         }
         this.setState(newState);
     }
@@ -197,21 +222,6 @@ class GlobalStylesSection extends MenuSection {
     }
 }
 
-let stylesCached = null;
-
-/**
- * @returns {Promise<{globalStyles: Array<RawCssRule>; styles: Array<ThemeStyle>;}>}
- */
-function fetchThemeStyles() {
-    if (stylesCached)
-        return Promise.resolve(stylesCached);
-    return http.get(`/api/themes/${api.getActiveTheme().id}/styles`)
-        .then(styles => {
-            stylesCached = styles;
-            return stylesCached;
-        });
-}
-
 /**
  * https://stackoverflow.com/a/51567564
  *
@@ -246,4 +256,3 @@ function createState(globalStyles) {
  */
 
 export default GlobalStylesSection;
-export {fetchThemeStyles};

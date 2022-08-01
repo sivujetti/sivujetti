@@ -12,6 +12,7 @@ stringBundles.push({
     'Filter': 'Filter',
     // edit-app/src/Block/BlockStylesTab.jsx
     'Use style': 'Use style',
+    'No editable styles': 'No editable styles',
     'Add styles': 'Add styles',
     'Style name': 'Style name',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
@@ -80,8 +81,9 @@ stringBundles.push({
     'e.g. Header, Footer': 'e.g. Header, Footer',
     'Convert': 'Convert',
     // edit-app/src/DefaultView/GlobalStylesSection.jsx
-    'Styles': 'Styles',
     'Colours and fonts': 'Colours and fonts',
+    'Colours': 'Colours',
+    'Root styles': 'Root styles',
     // edit-app/src/DefaultView/OnThisPageSection.jsx
     'On this page': 'On this page',
     'Content of page %s': 'Content of %s-page',
@@ -155,8 +157,6 @@ stringBundles.push({
     'Level': 'Level',
     'Add content after': 'Add content after',
     'Heading text': 'Heading text',
-    // edit-app/src/block-types/image.js
-    'Image': 'Image',
     // edit-app/src/block-types/listing.js
     'Listing': 'Listing',
     'List': 'List',

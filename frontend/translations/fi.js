@@ -11,7 +11,8 @@ stringBundles.push({
     'Start adding content': 'Aloita lisäämään sisältöä',
     'Filter': 'Suodata',
     // edit-app/src/Block/BlockStylesTab.jsx
-    'Use style': 'Käytä muotoilua',
+    'Use style': 'Käytä tyyliä',
+    'No editable styles': 'Ei muokattavia tyylejä',
     'Add styles': 'Lisää tyyli',
     'Style name': 'Tyylin nimi',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
@@ -37,7 +38,7 @@ stringBundles.push({
     'Link to an image: ': 'Linkki kuvaan: ',
     'Link to an address: ': 'Linkki osoitteeseen: ',
     // edit-app/src/BlockEditForm.jsx
-    'Styles': 'Muotoilut',
+    'Styles': 'Tyylit',
     'Use specializations': 'Käytä spesialisointeja',
     'If on, any changes made to this\nglobal content tree won\'t affect\nthe original': 'Jos päällä, tähän globaaaliin sisältö-\npuuhun tehdyt muutokset ei\nvaikuta alkuperäiseen',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
@@ -80,8 +81,9 @@ stringBundles.push({
     'e.g. Header, Footer': 'esim. Header, Footer',
     'Convert': 'Muunna',
     // edit-app/src/DefaultView/GlobalStylesSection.jsx
-    'Styles': 'Tyylit',
     'Colours and fonts': 'Sivuston värit ja fontit',
+    'Colours': 'Värit',
+    'Root styles': 'Juurityylit',
     // edit-app/src/DefaultView/OnThisPageSection.jsx
     'On this page': 'Tämä sivu',
     'Content of page %s': '%s -sivun sisältö',
@@ -155,8 +157,6 @@ stringBundles.push({
     'Level': 'Taso',
     'Add content after': 'Lisää sisältöä jälkeen',
     'Heading text': 'Otsikon teksti',
-    // edit-app/src/block-types/image.js
-    'Image': 'Kuva',
     // edit-app/src/block-types/listing.js
     'Listing': 'Listaus',
     'List': 'Listaa',

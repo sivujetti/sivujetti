@@ -58,7 +58,8 @@ final class ThemesController {
                                                 FluentDb $db,
                                                 BlockTypes $blockTypes,
                                                 FileSystem $fs): void {
-        if (!property_exists($blockTypes, $req->params->blockTypeName))
+        if ($req->params->blockTypeName !== "_body_" &&
+            !property_exists($blockTypes, $req->params->blockTypeName))
             throw new PikeException("Unknown block type `{$req->params->blockTypeName}`.",
                                     PikeException::BAD_INPUT);
         if (($errors = $this->validateUpsertScopedStyleInput($req->body))) {

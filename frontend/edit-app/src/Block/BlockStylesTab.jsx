@@ -3,7 +3,6 @@ import {__, api, env, http, Icon, LoadingSpinner, InputError, FormGroup, hookFor
 import {timingUtils} from '../commons/utils.js';
 import ContextMenu from '../commons/ContextMenu.jsx';
 import CssStylesValidatorHelper from '../commons/CssStylesValidatorHelper.js';
-import {fetchThemeStyles} from '../DefaultView/GlobalStylesSection.jsx';
 import store2, {observeStore as observeStore2} from '../store2.js';
 import store, {pushItemToOpQueue} from '../store.js';
 import {validationConstraints} from '../constants.js';
@@ -47,15 +46,11 @@ class BlockStylesTab extends preact.Component {
      */
     componentWillReceiveProps({isVisible}) {
         if (isVisible && !this.props.isVisible) {
-            const {themeStyles} = store2.get();
+            this.setState({themeStyles: null});
+            const themeStyles = tempHack();
             if (themeStyles)
                 this.updateUnitsState((findBlockTypeStyles(themeStyles, this.state.blockCopy.type) || {}).units);
-            else {
-                this.setState({themeStyles: null});
-                fetchThemeStyles().then(({styles}) =>
-                    store2.dispatch('themeStyles/setAll', [styles])
-                );
-            }
+            // else Wait for store2.dispatch('themeStyles/setAll')
         }
     }
     /**
@@ -69,7 +64,7 @@ class BlockStylesTab extends preact.Component {
      */
     render({userCanEditCss, isVisible}, {units, blockCopy, liClasses}) {
         if (!isVisible) return null;
-        const emitSaveStylesToBackendOp = userCanEditCss ? this.emitCommitStylesOp.bind(this) : null;
+        const emitSaveStylesToBackendOp = userCanEditCss ? emitCommitStylesOp : null;
         return [
             units !== null ? units.length ? <ul class="list styles-list mb-2">{ units.map((unit, i) => {
                 const liCls = liClasses[i];
@@ -118,7 +113,10 @@ class BlockStylesTab extends preact.Component {
                     : null
                     }
                 </li>;
-            }) }</ul> : null : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
+            }) }</ul> : (userCanEditCss
+                ? null
+                : <p class="pt-1 mb-0 color-dimmed">{ __('No editable styles') }.</p>
+            ) : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
         ].concat(userCanEditCss ? [
             <button
                 onClick={ this.addStyleUnit.bind(this) }
@@ -201,7 +199,7 @@ class BlockStylesTab extends preact.Component {
         else store2.dispatch('themeStyles/addStyle', [{units: [newUnit], blockTypeName: type}]);
 
         //
-        this.emitCommitStylesOp(type, () => {
+        emitCommitStylesOp(type, () => {
             // Revert # 1
             if (current) store2.dispatch('themeStyles/removeUnitFrom', [type, newUnit]);
             else store2.dispatch('themeStyles/removeStyle', [type]);
@@ -219,34 +217,11 @@ class BlockStylesTab extends preact.Component {
         store2.dispatch('themeStyles/removeUnitFrom', [type, unit]);
         //
         const clone = Object.assign({}, unit);
-        this.emitCommitStylesOp(type, () => {
+        emitCommitStylesOp(type, () => {
             store2.dispatch('themeStyles/addUnitTo', [type, clone]);
         });
     }
-    /**
-     * @param {String} blockTypeName
-     * @param {() => void} doUndo
-     * @access private
-     */
-    emitCommitStylesOp(blockTypeName, doUndo) {
-        const url = `/api/themes/${api.getActiveTheme().id}/styles/scope-block-type/${blockTypeName}`;
-        store.dispatch(pushItemToOpQueue(`upsert-theme-style#${url}`, {
-            doHandle: () => {
-                const style = findBlockTypeStyles(store2.get().themeStyles, blockTypeName);
-                return http.put(url, {units: style.units})
-                    .then(resp => {
-                        if (resp.ok !== 'ok') throw new Error('-');
-                        return true;
-                    })
-                    .catch(err => {
-                        env.window.console.error(err);
-                        return true;
-                    });
-            },
-            doUndo,
-            args: [],
-        }));
-    }
+
     /**
      * @param {String} cls
      * @returns {Boolean}
@@ -366,12 +341,16 @@ class EditableTitle extends preact.Component {
 
 class StyleTextarea extends preact.Component {
     // handleCssInputChangedThrottled;
+    // emitSaveStylesToBackendOp;
     /**
      * @access protected
      */
     componentWillMount() {
         this.init(this.props);
         this.updateState(this.props);
+        this.emitSaveStylesToBackendOp = typeof this.props.emitSaveStylesToBackendOp === 'function'
+            ? this.props.emitSaveStylesToBackendOp
+            : emitCommitStylesOp;
     }
     /**
      * @param {StyleTextareaProps} props
@@ -385,12 +364,19 @@ class StyleTextarea extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {scssNotCommitted, error}) {
+    render({blockTypeName}, {scssNotCommitted, error}) {
         return <div class="pb-2 pr-2">
+            { blockTypeName !== '_body_' ? null : <div class="p-absolute" style="right: 1.1rem;z-index: 1;margin: 0.3rem 0 0 0;">
+                <Icon iconId="info-circle" className="size-xs color-dimmed3"/>
+                <span ref={ tempHack2.bind(this) } class="my-tooltip dark">
+                    <span>&lt;body&gt; -elementin tyylit. Voit esim. määritellä tänne muuttujia ja käyttää niitä sisältölohkojen tyyleissä.</span>
+                    <span class="popper-arrow" data-popper-arrow></span>
+                </span>
+            </div> }
             <textarea
                 value={ scssNotCommitted }
                 onInput={ this.handleCssInputChangedThrottled }
-                class={ `form-input code m-2` }
+                class={ `form-input code${blockTypeName !== '_body_' ? ' m-2' : ''}` }
                 placeholder="color: green\n"></textarea>
             <InputError errorMessage={ error }/>
         </div>;
@@ -431,11 +417,11 @@ class StyleTextarea extends preact.Component {
         }
         // Was valid, dispatch to the store (which is grabbed by BlockStylesTab.contructor and then this.componentWillReceiveProps())
         const dataBefore = {scss: currentlyCommitted, generatedCss};
-        const {blockTypeName, emitSaveStylesToBackendOp} = this.props;
+        const {blockTypeName} = this.props;
         store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, id,
             {scss: e.target.value,
              generatedCss: result.generatedCss || ''}]);
-        emitSaveStylesToBackendOp(blockTypeName, () => {
+        this.emitSaveStylesToBackendOp(blockTypeName, () => {
             store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, id,
             dataBefore]);
         });
@@ -472,9 +458,103 @@ function findBlockTypeStyles(from, blockTypeName) {
 }
 
 /**
+ * @param {String} blockTypeName
+ * @param {() => void} doUndo
+ * @access private
+ */
+function emitCommitStylesOp(blockTypeName, doUndo) {
+    const url = `/api/themes/${api.getActiveTheme().id}/styles/scope-block-type/${blockTypeName}`;
+    store.dispatch(pushItemToOpQueue(`upsert-theme-style#${url}`, {
+        doHandle: () => {
+            const style = findBlockTypeStyles(store2.get().themeStyles, blockTypeName);
+            return http.put(url, {units: style.units})
+                .then(resp => {
+                    if (resp.ok !== 'ok') throw new Error('-');
+                    return true;
+                })
+                .catch(err => {
+                    env.window.console.error(err);
+                    return true;
+                });
+        },
+        doUndo,
+        args: [],
+    }));
+}
+
+let stylesCached = null;
+
+/**
+ * @returns {Promise<{globalStyles: Array<RawCssRule>; styles: Array<ThemeStyle>;}>}
+ */
+function fetchThemeStyles() {
+    if (stylesCached)
+        return Promise.resolve(stylesCached);
+    return http.get(`/api/themes/${api.getActiveTheme().id}/styles`)
+        .then(styles => {
+            stylesCached = styles;
+            return stylesCached;
+        })
+        .catch(env.window.console.error);
+}
+
+function tempHack(then = null) {
+    const {themeStyles} = store2.get();
+    if (!themeStyles) {
+        fetchThemeStyles().then(stylesCombined => {
+            store2.dispatch('themeStyles/setAll', [stylesCombined.styles]);
+            if (then) then(stylesCombined);
+        });
+        return null;
+    } else {
+        if (then) then(stylesCached);
+        return themeStyles;
+    }
+}
+
+function tempHack2(el) {
+if (!el || this.wait) return;
+this.wait = setTimeout(() => {
+    (createPopper.bind(this))(el);
+}, 100);
+}
+
+/**
+ * @param {HTMLElement} el
+ * @param {Number} overflowPadding = 8
+*/
+function createPopper(el, overflowPadding = 8) {
+    if (!el || this.popperInstance) return;
+    //
+    const ref = el.previousElementSibling;
+    const content = el;
+    this.popperInstance = window.Popper.createPopper(ref, content, {
+        placement: 'top',
+        modifiers: [{
+            name: 'offset',
+            options: {offset: [0, 8]},
+        }, {
+            name: 'preventOverflow',
+            options: {altAxis: true, padding: overflowPadding},
+        }],
+    });
+    ref.addEventListener('mouseenter', () => showPopper(content, this));
+    ref.addEventListener('mouseleave', () => hidePopper(content));
+}
+
+function showPopper(content, cmp) {
+    content.classList.add('visible');
+    cmp.popperInstance.update();
+}
+
+function hidePopper(content) {
+    content.classList.remove('visible');
+}
+
+/**
  * @typedef StyleTextareaProps
  * @prop {ThemeStyleUnit} unitCopy
- * @prop {emitSaveStylesToBackendOpFn} emitSaveStylesToBackendOp
+ * @prop {emitSaveStylesToBackendOpFn?} emitSaveStylesToBackendOp
  * @prop {String} unitCls
  * @prop {String} blockTypeName
  * @prop {Boolean} isVisible
@@ -483,3 +563,4 @@ function findBlockTypeStyles(from, blockTypeName) {
  */
 
 export default BlockStylesTab;
+export {StyleTextarea, tempHack};

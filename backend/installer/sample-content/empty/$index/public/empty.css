@@ -1,8 +1,3 @@
-body {
-    margin: 0;
-    color: var(--defaultTextColor);
-}
-
 nav ul {
     margin: 0;
     list-style: none;
@@ -12,14 +7,14 @@ nav ul li {
     margin: 0;
 }
 
-.jet-columns {
+.j-Columns {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-gap: .4rem;
 }
-.jet-columns.inline { display: inline-grid; }
-.jet-columns.inline > * { display: inherit; }
-.jet-columns.align-vertical { align-items: center; }
+.j-Columns.inline { display: inline-grid; }
+.j-Columns.inline > * { display: inherit; }
+.j-Columns.align-vertical { align-items: center; }
 .num-cols-1 { grid-template-columns: minmax(0, 1fr); }
 .num-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .num-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }

@@ -32,9 +32,9 @@ class BlockDnDSpawner extends preact.Component {
     constructor(props) {
         super(props);
         this.state = {isOpen: false, dragExitedRight: false, globalBlockTrees: [], isMounted: false};
-        this.selectableBlockTypes = Array.from(api.blockTypes.entries()).filter(([name, _]) =>
+        this.selectableBlockTypes = sort(Array.from(api.blockTypes.entries()).filter(([name, _]) =>
             name !== 'PageInfo' && name !== 'GlobalBlockReference'
-        );
+        ));
         this.newWaitingBlock = null;
         this.blockAddPhase = null;
         this.preRender = null;
@@ -114,12 +114,12 @@ class BlockDnDSpawner extends preact.Component {
                 <Icon iconId="chevron-right" className="mr-0 size-xs"/>
             </button>
             { isOpen ? [
-                <input class="form-input mb-1" placeholder={ __('Filter') } style="width: calc(100% - .5rem)" disabled/>,
+                <input class="form-input mb-2" placeholder={ __('Filter') } style="width: calc(100% - .5rem)" disabled/>,
                 <div class="scroller"><ul class="block-tree">{ globalBlockTrees.map(({id, blocks, name}) =>
                     [name, blocks[0].type, id]
                 ).concat(this.selectableBlockTypes).map(([name, blockType, trid]) => {
                     const label = !trid ? __(blockType.friendlyName) : name;
-                    return <li class={ `${!trid ? 'page' : 'globalBlockTree'}-block ml-0` }><div class="d-flex">
+                    return <li class={ `${!trid ? 'page' : 'globalBlockTree'}-block ml-0` } data-block-type={ name }><div class="d-flex">
                         <button
                             onDragStart={ this.onDragStart }
                             onDragEnd={ this.onDragEnd }
@@ -359,6 +359,36 @@ class BlockDnDSpawner extends preact.Component {
 function deleteBlockFromTree(blockId, tree) {
     const [b, br] = blockTreeUtils.findBlock(blockId, tree);
     br.splice(br.indexOf(b), 1); // Mutate tree temporarily
+}
+
+const ordinals = {
+    Section: 1,
+    Columns: 2,
+
+    Heading: 3,
+    Paragraph: 4,
+    RichText: 5,
+    Button: 6,
+    Image: 7,
+
+    Listing: 8,
+    Menu: 9,
+    Code: 10,
+    GlobalBlockReference: 11,
+    PageInfo: 12,
+};
+
+/**
+ * @param {Array<[blockTypeName, BlockType]>} selectableBlockTypes
+ * @returns {Array<[blockTypeName, BlockType]>}
+ */
+function sort(selectableBlockTypes) {
+    selectableBlockTypes.sort(([a], [b]) => {
+        const oA = ordinals[a] || Infinity;
+        const oB = ordinals[b] || Infinity;
+        return oA === oB ? 0 : oA < oB ? -1 : 1;
+    });
+    return selectableBlockTypes;
 }
 
 export default BlockDnDSpawner;

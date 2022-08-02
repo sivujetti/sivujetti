@@ -109,7 +109,7 @@ class PickPageTab extends preact.Component {
                     this.setState({pages: pages.sort(({slug}, _b) => slug === short ? -1 : 0),
                                    selectedIdx: 0});
                 } else
-                    this.setState({pages, selected: null});
+                    this.setState({pages, selectedIdx: null});
             })
             .catch(env.window.console.error);
     }
@@ -123,11 +123,11 @@ class PickPageTab extends preact.Component {
                 class="form-input"
                 placeholder={ __('Filter') }
                 disabled/>,
-            Array.isArray(pages) ? <ul class="list table-list">{ pages.map(({title, slug}, i) =>
+            Array.isArray(pages) ? <ul class={ `list table-list selectable-items${selectedIdx !== null ? ' has-first-item-selected' : '' }` }>{ pages.map(({title, slug}, i) =>
                 <li class="p-0"><button
                     class="btn btn-link my-0 col-12 text-left text-ellipsis"
                     onClick={ () => onPickurl(slug) }
-                    style={ `height: 2.2rem${i !== selectedIdx ? '' : ';background-color:var(--color-bg-dimmed2);'}` }>
+                    style="height: 2.2rem">
                         <span class="h6 my-0 mr-1">{ title }</span>
                         <i class="color-dimmed">{ slug }</i>
                     </button>

@@ -24,6 +24,7 @@ Structure:
     --color-fg-dimmed2: #1c125a;
     --color-fg-input: var(--color-fg-default);
     --color-fg-code: var(--color-fg-dimmed);
+    --color-section-separator: rgba(var(--components-color-fb-default),.08);
     --border-tree-guide: 1px dotted rgba(var(--components-color-fb-default),.4);
     --border-dashed-box: 1px dashed rgba(var(--components-color-fb-default),.3);
     --color-input-border: #e1e4e8;
@@ -396,19 +397,35 @@ a.popup-close-area {
 .image-grid button, .image-grid img {
     border-radius: 2px;
 }
-.item-grid.large-buttons > button {
+.selectable-items.has-first-item-selected > li:first-of-type .btn,
+.selectable-items.has-first-item-selected > .btn:first-of-type {
+    background-color: var(--color-bg-dimmed2) !important;
+}
+.item-grid.large-buttons > button,
+.item-grid.medium-buttons > button {
     justify-content: center;
     flex-wrap: wrap;
     height: 4.6rem;
     color: var(--color-fg-default);
     padding: 1rem .6rem;
 }
-.item-grid.large-buttons > button .icon-tabler {
+.item-grid.large-buttons > button .icon-tabler,
+.item-grid.medium-buttons > button .icon-tabler {
     width: 1.4rem;
     height: 1.4rem;
     flex: 0 0 100%;
     color: var(--color-fg-dimmed);
     margin: 0 0 .4rem 0;
+}
+.item-grid.medium-buttons {
+    row-gap: .6rem;
+}
+.item-grid.medium-buttons > button {
+    padding: .4rem .4rem 0;
+    height: 3.6rem;
+}
+.item-grid.medium-buttons > button .icon-tabler {
+    margin: 0;
 }
 .image-grid .caption {
     position: absolute;
@@ -592,11 +609,11 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     padding: .8rem 0 .4rem .4rem;
 }
 .new-block-spawner-opened .panel-section {
-    margin-left: 170px;
+    margin-left: calc(182px + .64rem);
     position: relative;
 }
 .panel-section:not(:last-of-type) {
-    border-bottom: 1px solid #ebedf3;
+    border-bottom: 1px solid var(--color-section-separator);
 }
 .panel-section.open:not(:last-of-type) {
     padding-bottom: 1rem;
@@ -869,37 +886,52 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 .new-block-spawner {
     position: fixed;
     left: -2px;
-    width: 170px;
+    width: 182px;
     max-width: 40px;
     z-index: 1;
 }
 .new-block-spawner-opened .new-block-spawner {
     height: 100%;
-    left: .2rem;
+    left: .6rem;
     max-width: 210px;
+    border-right: 1px solid rgba(var(--components-color-fb-default),.06);
 }
 .scroller {
     overflow-y: auto;
     overflow-x: hidden;
     height: 100%;
-    margin-left: .2rem;
 }
 input + .scroller {
     height: calc(100% - 2.1rem);
 }
 
+.new-block-spawner .block-tree {
+    opacity: .9;
+    margin-right: .4rem;
+}
 .new-block-spawner .block-tree li {
     padding: .1rem 0;
 }
+.new-block-spawner .block-tree li[data-block-type="Columns"]:after,
+.new-block-spawner .block-tree li[data-block-type="Image"]:after,
+.new-block-spawner .block-tree li[data-block-type="Code"]:not(:last-child):after {
+    content: "";
+    display: block;
+    height: 1px;
+    width: 100%;
+    background: var(--color-section-separator);
+    margin: .4rem 0 .2rem;
+}
 .new-block-spawner .block-tree .block-handle {
     cursor: grab;
+    filter: grayscale(.9);
 }
 
 .new-block-spawner-opened .new-block-spawner > .btn {
     position: absolute;
     z-index: 1;
-    left: -8px;
-    top: 42px;
+    left: -15px;
+    top: 45px;
 }
 .new-block-spawner-opened .new-block-spawner > .btn > .icon-tabler {
     transform: rotate(180deg);

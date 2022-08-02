@@ -198,8 +198,11 @@ class BlockEditForm extends preact.Component {
                 } }
                 emitRemoveStyleFromBlock={ (styleClassToRemove, b) => {
                     const currentClasses = b.styleClasses;
-                    const newClasses = currentClasses.replace(styleClassToRemove, '').trim();
+                    const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ');
                     this.updateBlockStyleClasses(newClasses, b);
+                } }
+                emitSetBlockStyles={ (newStyleClasses, b) => {
+                    this.updateBlockStyleClasses(newStyleClasses, b);
                 } }
                 isVisible={ currentTabIdx === 1 }/>
         </div>

@@ -8,24 +8,34 @@ import store, {pushItemToOpQueue} from '../store.js';
 import {validationConstraints} from '../constants.js';
 import {triggerUndo} from '../SaveButton.jsx';
 import {Popup} from '../block-types/Listing/EditForm.jsx';
+import {createTrier} from '../../../webpage/src/EditAppAwareWebPage.js';
 
 let compile, serialize, stringify;
 
 class BlockStylesTab extends preact.Component {
     // editableTitleInstances;
     // moreMenu;
+    // extraBlockStyleClassesTextareaEl;
+    // currentBlockUnitStyleClasses;
+    // throttledDoHandleUtilsClassesInput;
     // unregistrables;
     // liIdxOfOpenMoreMenu;
     // refElOfOpenMoreMenu;
     /**
-     * @param {{emitAddStyleToBlock: (styleClassToAdd: String, block: RawBlock2) => void; emitRemoveStyleFromBlock: (styleClassToRemove: String, block: RawBlock2) => void; getBlockCopy: () => RawBlock2; grabBlockChanges: (withFn: (block: RawBlock2, origin: blockChangeEvent, isUndo: Boolean) => void) => void; userCanEditCss: Boolean; isVisible: Boolean;}} props
+     * @param {{emitAddStyleToBlock: (styleClassToAdd: String, block: RawBlock2) => void; emitRemoveStyleFromBlock: (styleClassToRemove: String, block: RawBlock2) => void; emitSetBlockStyles: (newStyleClasses: String, block: RawBlock2) => void; getBlockCopy: () => RawBlock2; grabBlockChanges: (withFn: (block: RawBlock2, origin: blockChangeEvent, isUndo: Boolean) => void) => void; userCanEditCss: Boolean; isVisible: Boolean;}} props
      */
     constructor(props) {
         super(props);
         ({compile, serialize, stringify} = window.stylis);
         this.editableTitleInstances = [];
         this.moreMenu = preact.createRef();
-        this.state = {units: [], liClasses: [], blockCopy: props.getBlockCopy()};
+        this.extraBlockStyleClassesTextareaEl = preact.createRef();
+        this.currentBlockUnitStyleClasses = '';
+        this.throttledDoHandleUtilsClassesInput = timingUtils.debounce(
+            this.handleUtilClassesInputChanged.bind(this),
+            env.normalTypingDebounceMillis);
+        const blockCopy = props.getBlockCopy();
+        this.state = Object.assign({units: [], liClasses: [], blockCopy}, this.createBlockClassesState(blockCopy));
         this.unregistrables = [observeStore2('themeStyles', ({themeStyles}, [event]) => {
             const {units} = (findBlockTypeStyles(themeStyles, this.state.blockCopy.type) || {});
             if (this.state.units !== units) {
@@ -38,7 +48,7 @@ class BlockStylesTab extends preact.Component {
         ];
         props.grabBlockChanges((block, _origin, _isUndo) => {
             if (this.state.blockCopy.styleClasses !== block.styleClasses)
-                this.setState({blockCopy: block});
+                this.setState(this.createBlockClassesState(block));
         });
     }
     /**
@@ -62,7 +72,7 @@ class BlockStylesTab extends preact.Component {
     /**
      * @access protected
      */
-    render({userCanEditCss, isVisible}, {units, blockCopy, liClasses}) {
+    render({userCanEditCss, isVisible}, {units, blockCopy, liClasses, extraBlockStyleClassesNotCommitted, extraBlockStyleClassesError}) {
         if (!isVisible) return null;
         const emitSaveStylesToBackendOp = userCanEditCss ? emitCommitStylesOp : null;
         return [
@@ -122,6 +132,23 @@ class BlockStylesTab extends preact.Component {
                 onClick={ this.addStyleUnit.bind(this) }
                 class="btn btn-sm"
                 type="button">{ __('Add styles') }</button>,
+            <hr style="opacity: .14;margin: .8rem .1rem;"/>,
+            <textarea
+                value={ extraBlockStyleClassesNotCommitted }
+                onInput={ this.throttledDoHandleUtilsClassesInput }
+                class={ `form-input code mt-2${!extraBlockStyleClassesError ? '' : ' is-error'}` }
+                placeholder="float-left mt-2 mb-2"
+                rows="1"
+                style="min-height:unset"
+                ref={ this.extraBlockStyleClassesTextareaEl }></textarea>,
+            <div class="p-absolute" style="right: .8rem;z-index: 1;margin: -1.14rem 0 0;">
+                <Icon iconId="info-circle" className="size-xs color-dimmed3"/>
+                <span ref={ el => tempHack2(el, 'utilClasses', this) } class="my-tooltip dark">
+                    <span>Voit määritellä sekalaiset utility-luokat tähän.</span>
+                    <span class="popper-arrow" data-popper-arrow></span>
+                </span>
+            </div>,
+            <InputError errorMessage={ extraBlockStyleClassesError }/>,
             <ContextMenu
                 links={ [
                     {text: __('Edit title'), title: __('Edit title'), id: 'edit-style-title'},
@@ -141,6 +168,17 @@ class BlockStylesTab extends preact.Component {
         const units = candidate || [];
         this.editableTitleInstances = units.map(_ => preact.createRef());
         this.setState({units, liClasses: createLiClasses(units, currentOpenIdx)});
+    }
+    /**
+     * @param {RawBlock2} block
+     * @returns {{blockCopy: RawBlock2; extraBlockStyleClassesNotCommitted: String; extraBlockStyleClassesError: String;}}
+     * @access private
+     */
+    createBlockClassesState(block) {
+        const [unitClases, nonUnitClses] = splitUnitAndNonUnitClasses(block.styleClasses);
+        this.currentBlockUnitStyleClasses = unitClases;
+        return {blockCopy: block, extraBlockStyleClassesNotCommitted: nonUnitClses,
+            extraBlockStyleClassesError: ''};
     }
     /**
      * @param {HTMLSpanElement} iconEl
@@ -221,7 +259,26 @@ class BlockStylesTab extends preact.Component {
             store2.dispatch('themeStyles/addUnitTo', [type, clone]);
         });
     }
-
+    /**
+     * @param {Event} e
+     * @access private
+     */
+    handleUtilClassesInputChanged(e) {
+        const v = e.target.value;
+        let error = v.length <= validationConstraints.HARD_SHORT_TEXT_MAX_LEN ? ''
+            : __('maxLength').replace('{field}', __('Other classes')).replace('{arg0}', validationConstraints.HARD_SHORT_TEXT_MAX_LEN);
+        if (!error && v.split(' ').some(cls => cls.startsWith('j-')))
+            error = __('%s must not start with %s', __('Other classes'), '"j-"');
+        if (error) {
+            this.setState({extraBlockStyleClassesNotCommitted: v,
+                extraBlockStyleClassesError: error});
+            return;
+        }
+        const unitClses = this.currentBlockUnitStyleClasses;
+        const combAsString = unitClses + (unitClses ? ` ${v}` : v);
+        // emit > props.grabBlockChanges() @constructor -> setState()
+        this.props.emitSetBlockStyles(combAsString, this.state.blockCopy);
+    }
     /**
      * @param {String} cls
      * @returns {Boolean}
@@ -368,7 +425,7 @@ class StyleTextarea extends preact.Component {
         return <div class="pb-2 pr-2">
             { blockTypeName !== '_body_' ? null : <div class="p-absolute" style="right: 1.1rem;z-index: 1;margin: 0.3rem 0 0 0;">
                 <Icon iconId="info-circle" className="size-xs color-dimmed3"/>
-                <span ref={ tempHack2.bind(this) } class="my-tooltip dark">
+                <span ref={ el => tempHack2(el, 'bodyStyles', this) } class="my-tooltip dark">
                     <span>&lt;body&gt; -elementin tyylit. Voit esim. määritellä tänne muuttujia ja käyttää niitä sisältölohkojen tyyleissä.</span>
                     <span class="popper-arrow" data-popper-arrow></span>
                 </span>
@@ -512,23 +569,44 @@ function tempHack(then = null) {
     }
 }
 
-function tempHack2(el) {
-if (!el || this.wait) return;
-this.wait = setTimeout(() => {
-    (createPopper.bind(this))(el);
-}, 100);
+/**
+ * @param {String} styleClasses
+ * @returns {[String, String]} [unitClasses, nonUnitClasses]
+ */
+function splitUnitAndNonUnitClasses(styleClasses) {
+    const all = styleClasses.split(' ');
+    return all
+        .map(cls => cls.startsWith('j-'))
+        .reduce((arrs, isUnitCls, i) => {
+            arrs[isUnitCls ? 0 : 1].push(all[i]);
+            return arrs;
+        }, [[], []])
+        .map(clsList => clsList.join(' '));
+}
+
+function tempHack2(el, popperId, cmp) {
+    if (!el || cmp[`${popperId}-load`]) return;
+    cmp[`${popperId}-load`] = true;
+    createTrier(() => {
+        if (!window.Popper) return false;
+        createPopper(el, popperId, cmp);
+        cmp[`${popperId}-load`] = false;
+        return true;
+    }, 100, 20)();
 }
 
 /**
  * @param {HTMLElement} el
+ * @param {String} popperId
+ * @param {BlockStylesTab} cmp
  * @param {Number} overflowPadding = 8
-*/
-function createPopper(el, overflowPadding = 8) {
-    if (!el || this.popperInstance) return;
+ */
+function createPopper(el, popperId, cmp, overflowPadding = 8) {
+    if (!el || cmp[popperId]) return;
     //
     const ref = el.previousElementSibling;
     const content = el;
-    this.popperInstance = window.Popper.createPopper(ref, content, {
+    cmp[popperId] = window.Popper.createPopper(ref, content, {
         placement: 'top',
         modifiers: [{
             name: 'offset',
@@ -538,13 +616,13 @@ function createPopper(el, overflowPadding = 8) {
             options: {altAxis: true, padding: overflowPadding},
         }],
     });
-    ref.addEventListener('mouseenter', () => showPopper(content, this));
+    ref.addEventListener('mouseenter', () => showPopper(content, cmp[popperId]));
     ref.addEventListener('mouseleave', () => hidePopper(content));
 }
 
-function showPopper(content, cmp) {
+function showPopper(content, popperInstance) {
     content.classList.add('visible');
-    cmp.popperInstance.update();
+    popperInstance.update();
 }
 
 function hidePopper(content) {

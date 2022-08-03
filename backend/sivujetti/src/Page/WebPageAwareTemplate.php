@@ -128,7 +128,7 @@ final class WebPageAwareTemplate extends Template {
         return "<!-- children-start -->" . ($block->children ? (
             $block->children[0]->type !== "__marker"
                 ? $this->renderBlocks($block->children)
-                : "<span id=\"temp-marker\"></span>"
+                : "<!-- children-placeholder -->"
             ) : ""
         ) . "<!-- children-end -->";
         }

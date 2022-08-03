@@ -46,7 +46,8 @@ interface BlockType {
     name: String;
     friendlyName: String;
     ownPropNames: Array<String>;
-    initialData: {[key: String]: any}|BlockBlueprint,
+    initialData: {[key: String]: any};
+    initialChildren?: Array<BlockBlueprint>;
     defaultRenderer: String,
     reRender(props: {[key: String]: any}, renderChildren: () => String): String;
     editForm: preact.ComponentConstructor;
@@ -67,7 +68,7 @@ interface Block {
 
 interface BlockBlueprint {
     blockType: String;
-    data: Object;
+    props: {[key: String]: any;};
     children: Array<BlockBlueprint>;
 }
 
@@ -259,7 +260,7 @@ interface EditAppAwareWebPage2 {
     scanBlockRefComments(): Array<BlockRefComment>;
     scanBlockElements(): Array<HTMLElement>;
     registerEventHandlers2(handlers: EditAwareWebPageEventHandlers2): void;
-    createBlockTreeChangeListener(trid: String, blockTreeUtils: blockTreeUtils, blockTypes: BlockTypes, getTree: (trid: String) => Array<RawBlock2>, t: Object): (blockTreeState: BlockTreeReduxState) => void;
+    createBlockTreeChangeListener(trid: String, blockTreeUtils: blockTreeUtils, blockToTransferable: (block: RawBlock2) => {[key: String]: any;}, blockTypes: BlockTypes, getTree: (trid: String) => Array<RawBlock2>, t: Object): (blockTreeState: BlockTreeReduxState) => void;
     setIsMouseListenersDisabled(isDisabled: Boolean): void;
     createThemeStylesChangeListener(): (state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void;
     addRootBoundingEls(lastBlock: RawBlock2): void;

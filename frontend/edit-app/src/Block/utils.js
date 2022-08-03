@@ -10,7 +10,7 @@ import blockTreeUtils from '../blockTreeUtils.js';
  * @returns {RawBlock2}
  */
 function createBlockFromType(blockType, trid = 'main', id = generatePushID(), props = null) {
-    blockType = typeof blockType !== 'string' ? blockType : api.blockTypes.get(blockType);
+    if (typeof blockType === 'string') blockType = api.blockTypes.get(blockType);
     const typeSpecific = createOwnData(blockType, props);
     return Object.assign({
         id,
@@ -18,9 +18,10 @@ function createBlockFromType(blockType, trid = 'main', id = generatePushID(), pr
         title: '',
         renderer: blockType.defaultRenderer,
         styleClasses: '',
-        isStoredTo: trid === 'main' ? 'page' : 'globalBlockTree',
+        isStoredTo: trid !== 'don\'t-know-yet' ? trid === 'main' ? 'page' : 'globalBlockTree' : trid,
         isStoredToTreeId: trid,
-        children: []
+        children: !Array.isArray(blockType.initialChildren) ? [] : blockType.initialChildren.map(blueprint =>
+            createBlockFrom(blueprint.blockType, trid, undefined, blueprint.props))
     }, typeSpecific);
 }
 
@@ -84,10 +85,7 @@ function findRefBlockOf(innerTreeBlockOrTrid, tree) {
  * @returns {{[key: String]: any;}}
  */
 function toTransferable(block) {
-    const onlyTheseKeys = Object.keys(block).filter(key =>
-        ['children', 'isStoredTo', 'isStoredToTreeId'].indexOf(key) < 0
-    );
-    return objectUtils.clonePartially(onlyTheseKeys, block);
+    return treeToTransferable([block])[0];
 }
 
 /**
@@ -95,7 +93,12 @@ function toTransferable(block) {
  * @returns {Array<{[key: String]: any;}>}
  */
 function treeToTransferable(tree) {
-    return blockTreeUtils.mapRecursively(tree, toTransferable);
+    return blockTreeUtils.mapRecursively(tree, block => {
+        const onlyTheseKeys = Object.keys(block).filter(key =>
+            ['children', 'isStoredTo', 'isStoredToTreeId'].indexOf(key) < 0
+        );
+        return objectUtils.clonePartially(onlyTheseKeys, block);
+    });
 }
 
 export {createBlockFromType, isTreesOutermostBlock, findRefBlockOf,

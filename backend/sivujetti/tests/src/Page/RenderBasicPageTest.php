@@ -66,14 +66,8 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         }
         $paragraphBlock = $state->testGlobalBlockTree[0];
         $expectedPageBlockHeading = $paragraphBlock->propsData[0]->value;
-        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         $this->assertStringContainsString((new BlockTestUtils($this->pageTestUtils))->getExpectedParagraphBlockOutput($paragraphBlock),
                                           $state->spyingResponse->getActualBody());
-        } else {
-        $this->assertStringContainsString((new BlockTestUtils($this->pageTestUtils))->getExpectedParagraphBlockOutput($paragraphBlock,
-                                          childMarker: "<!-- children-start --><!-- children-end -->"),
-                                          $state->spyingResponse->getActualBody());
-        }
     }
     private function verifyThemeCanRegisterCssFiles(\TestState $state): void {
         $expectedUrl = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME, false);

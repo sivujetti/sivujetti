@@ -1,5 +1,6 @@
 const CHILDREN_START = ' children-start ';
 const CHILDREN_END = ' children-end ';
+const CHILD_CONTENT_PLACEHOLDER = '<!-- children-placeholder -->';
 
 class EditAppAwareWebPage {
     // data;
@@ -176,12 +177,13 @@ class EditAppAwareWebPage {
     /**
      * @param {String} trid
      * @param {blockTreeUtils} blockTreeUtils
+     * @param {(block: RawBlock2) => {[key: String]: any;}} blockToTransferable
      * @param {BlockTypes} blockTypes
      * @param {(trid: String) => Array<RawBlock2>} getTree
      * @param {hack} t
      * @returns {(blockTreeState: BlockTreeReduxState) => void}
      */
-    createBlockTreeChangeListener(trid, blockTreeUtils, blockTypes, getTree, t) {
+    createBlockTreeChangeListener(trid, blockTreeUtils, blockToTransferable, blockTypes, getTree, t) {
         /**
          * @param {RawBlock2} b
          * @returns {String}
@@ -308,9 +310,28 @@ class EditAppAwareWebPage {
             const isAdd = event === 'add-single-block';
             if (isAdd || event === 'undo-delete-single-block') {
                 const [block, containingBranch, parent] = blockTreeUtils.findBlock(context[1].blockId, tree);
-                const addHtmlToDom = ({html, onAfterInsertedToDom}) => {
+                const addHtmlToDom = ({html, onAfterInsertedToDom}, isPreRender) => {
                     const temp = document.createElement('template');
-                    temp.innerHTML = withTrid(html, trid);
+                    const hasPlace = html.indexOf(CHILD_CONTENT_PLACEHOLDER) > -1;
+                    const rendered = withTrid(html, trid, !hasPlace);
+                    let childRep;
+                    if (!isPreRender) {
+                        // Normal 'add-single-block' -> remove child placeholder
+                        childRep = '';
+                        // 'add-single-block' but cloneOf is provided -> replace child placeholder with its child content
+                        if (isAdd && context[1].cloneOf) childRep = cloneChildContent(blockTreeUtils.findBlock(context[1].cloneOf, tree)[0],
+                            blockTreeUtils.findBlock(context[1].blockId, tree)[0],
+                            blockTreeUtils,
+                            treeRootEl);
+                        // 'undo-delete-single-block' -> replace child placeholder with an entry from deleteCache
+                        else if (!isAdd)
+                            childRep = this.getAndWipeStoredInnerContent(block) || '';
+                    } else {
+                        // Pre-render, always remove child placeholder
+                        childRep = '';
+                    }
+                    const completed = hasPlace ? rendered.replace(CHILD_CONTENT_PLACEHOLDER, childRep) : rendered;
+                    temp.innerHTML = completed;
                     const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
                     const nextEl = getInsertRefEl(nextBlock, treeRootEl);
                     if (nextEl)
@@ -320,21 +341,13 @@ class EditAppAwareWebPage {
                         const endcom = getChildEndComment(getBlockContentRoot(cont));
                         endcom.parentElement.insertBefore(temp.content, endcom);
                     }
-                    onAfterInsertedToDom(html);
+                    onAfterInsertedToDom(completed);
                 };
                 const possiblePreRender = context[3];
-                if (typeof possiblePreRender !== 'object') {
-                    const inner = isAdd
-                        ? !context[1].cloneOf
-                            ? null
-                            : cloneChildEls(blockTreeUtils.findBlock(context[1].cloneOf, tree)[0],
-                                blockTreeUtils.findBlock(context[1].blockId, tree)[0],
-                                blockTreeUtils,
-                                treeRootEl)
-                        : this.getAndWipeStoredInnerContent(block);
-                    renderBlockAndThen(block, addHtmlToDom, blockTypes, inner);
-                } else
-                    addHtmlToDom(possiblePreRender);
+                if (!possiblePreRender)
+                    renderBlockAndThen(block, addHtmlToDom, blockTypes);
+                else
+                    addHtmlToDom(possiblePreRender, true);
                 return;
             }
             //
@@ -343,7 +356,7 @@ class EditAppAwareWebPage {
                 if (data.blockType !== 'GlobalBlockReference') {
                     const {blockId} = data;
                     const el = treeRootEl.querySelector(`[data-block="${blockId}"]`);
-                    const html = getChildContentEls(el, true);
+                    const html = getChildContent(el);
                     if (html) this.deletedInnerContentStorage.set(blockId, html);
                     el.parentElement.removeChild(el);
                 } else {
@@ -360,23 +373,22 @@ class EditAppAwareWebPage {
                 const {blockId} = context[1];
                 const block = blockTreeUtils.findBlock(blockId, tree)[0];
                 const el = treeRootEl.querySelector(`[data-block="${block.id}"]`);
-                //
-                const stringOrPromiseOrObj = blockTypes.get(block.type).reRender(block, () => {
+                const trans = (function (out) { out.children = []; return out; })(blockToTransferable(block));
+                renderBlockAndThen(trans, ({html, onAfterInsertedToDom}) => {
+                    let childContent = null;
                     if (isNormalUpdate) { // Not undo -> cache current child content
-                        const html = getChildContentEls(el, true);
-                        this.deletedInnerContentStorage.set(blockId, html);
-                        return html;
+                        childContent = getChildContent(el);
+                        this.deletedInnerContentStorage.set(blockId, childContent);
+                    } else {
+                        // Undo -> use previously cached child content
+                        childContent = this.getAndWipeStoredInnerContent(block) || getChildContent(el);
                     }
-                    // Undo -> use previously cached child content
-                    const html = this.getAndWipeStoredInnerContent(block);
-                    return html || getChildContentEls(el, true);
-                });
-                getBlockReRenderResult(stringOrPromiseOrObj, ({html, onAfterInsertedToDom}) => {
                     const temp = document.createElement('template');
-                    temp.innerHTML = withTrid(html, trid);
+                    const completed = withTrid(html, trid).replace(CHILD_CONTENT_PLACEHOLDER, childContent);
+                    temp.innerHTML = completed;
                     el.replaceWith(temp.content);
-                    onAfterInsertedToDom(html);
-                });
+                    onAfterInsertedToDom(completed);
+                }, blockTypes);
                 return;
             }
             //
@@ -1124,7 +1136,7 @@ function getBlockContentRoot(el) {
  * @param {Boolean} doIncludeBoundaryComments = false
  * @returns {String}
  */
-function getChildContentEls(of, doIncludeBoundaryComments = false) {
+function getChildContent(of, doIncludeBoundaryComments = false) {
     const start = getChildStartComment(getBlockContentRoot(of));
     if (!start) return '';
     //
@@ -1146,9 +1158,9 @@ function getChildContentEls(of, doIncludeBoundaryComments = false) {
  * @param {RawBlock2} cloned
  * @param {blockTreeUtils} blockTreeUtils
  * @param {HTMLElement} treeRootEl
- * @returns {HTMLElement}
+ * @returns {String}
  */
-function cloneChildEls(original, cloned, blockTreeUtils, treeRootEl) {
+function cloneChildContent(original, cloned, blockTreeUtils, treeRootEl) {
     const flatOriginal = [];
     blockTreeUtils.traverseRecursively(original.children, b2 => {
         flatOriginal.push(b2);
@@ -1160,7 +1172,7 @@ function cloneChildEls(original, cloned, blockTreeUtils, treeRootEl) {
     const clonedEl = treeRootEl.querySelector(`[data-block="${original.id}"]`).cloneNode(true);
     for (let i = 0; i < flatOriginal.length; ++i)
         clonedEl.querySelector(`[data-block="${flatOriginal[i].id}"]`).setAttribute('data-block', flatCloned[i].id);
-    return getChildContentEls(clonedEl, true);
+    return getChildContent(clonedEl);
 }
 
 /**
@@ -1203,10 +1215,11 @@ function findCommentR(of, find) {
 /**
  * @param {String} html
  * @param {String} trid
+ * @param {Boolean} recursive = false
  * @returns {String}
  */
-function withTrid(html, trid) {
-    return html.replace(trid === 'main' ? ' data-block=' : / data-block=/g, `data-trid="${trid}" data-block=`);
+function withTrid(html, trid, recursive = false) {
+    return html.replace(!recursive ? ' data-block=' : / data-block=/g, ` data-trid="${trid}" data-block=`);
 }
 
 /**
@@ -1234,10 +1247,10 @@ function getBlockReRenderResult(result, to) {
  * @param {BlockTypes} blockTypes
  * @param {String} childContent = null
  */
-function renderBlockAndThen(block, then, blockTypes, childContent = null) {
+function renderBlockAndThen(block, then, blockTypes) {
     const stringOrPromiseOrObj = blockTypes.get(block.type).reRender(
         block,
-        () => childContent || `<!--${CHILDREN_START}--><!--${CHILDREN_END}-->`
+        () => `<!--${CHILDREN_START}-->${CHILD_CONTENT_PLACEHOLDER}<!--${CHILDREN_END}-->`
     );
     getBlockReRenderResult(stringOrPromiseOrObj, then);
 }

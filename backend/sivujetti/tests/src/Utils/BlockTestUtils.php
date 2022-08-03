@@ -129,14 +129,29 @@ final class BlockTestUtils {
     /**
      * @param object $rawBlock
      * @param ?string $cls = null
-     * @param string $childMarker = ""
+     * @param string $childHtml = "<!-- children-start --><!-- children-end -->"
      */
     public function getExpectedParagraphBlockOutput(object $rawBlock,
                                                     ?string $cls = null,
-                                                    string $childMarker = ""): string {
+                                                    string $childHtml = "<!-- children-start --><!-- children-end -->"): string {
         return "<p class=\"j-Paragraph{$cls}\" data-block-type=\"Paragraph\" data-block=\"{$rawBlock->id}\">" .
-            "{$rawBlock->text}{$childMarker}" .
+            "{$rawBlock->text}{$childHtml}" .
         "</p>";
+    }
+    /**
+     * @param object $rawBlock
+     * @param ?string $expectedTag = null
+     * @param ?string $cls = null
+     * @param string $childHtml = "<!-- children-start --><!-- children-end -->"
+     */
+    public function getExpectedHeadingBlockOutput(object $rawBlock,
+                                                  ?string $expectedTag = null,
+                                                  ?string $cls = null,
+                                                  string $childHtml = "<!-- children-start --><!-- children-end -->"): string {
+        if (!$expectedTag) $expectedTag = "h{$rawBlock->level}";
+        return "<{$expectedTag} class=\"j-Heading{$cls}\" data-block-type=\"Heading\" data-block=\"{$rawBlock->id}\">" .
+            "{$rawBlock->text}{$childHtml}" .
+        "</{$expectedTag}>";
     }
     public function createMenuBlockData(array $links = null): array {
         if (!$links)

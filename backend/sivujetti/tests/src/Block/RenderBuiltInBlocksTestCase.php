@@ -13,7 +13,7 @@ abstract class RenderBuiltInBlocksTestCase extends RenderBlocksTestCase {
         );
         } else {
         $expected = $this->blockTestUtils->decorateWithRef($block,
-            str_replace("[childMarker]", "<!-- children-start --><span id=\"temp-marker\"></span><!-- children-end -->", $expectedHtml)
+            str_replace("[childMarker]", "<!-- children-start --><!-- children-placeholder --><!-- children-end -->", $expectedHtml)
         );
         }
         $this->verifyResponseBodyEquals(json_encode((object) ["result" => $expected], JSON_UNESCAPED_UNICODE),

@@ -2,7 +2,7 @@ import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app
 import {renderBlockAndThen} from '../../../webpage/src/EditAppAwareWebPage.js';
 import {getIcon} from '../block-types/block-types.js';
 import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} from '../store.js';
-import {createBlockFromType} from './utils.js';
+import {createBlockFromType, toTransferable} from './utils.js';
 import blockTreeUtils from '../blockTreeUtils.js';
 
 const BlockAddPhase = Object.freeze({
@@ -110,7 +110,8 @@ class BlockDnDSpawner extends preact.Component {
                 onClick={ this.toggleIsOpen.bind(this) }
                 class={ `p-0 btn btn-sm d-flex with-icon btn-primary${isMounted ? '' : ' d-none'}` }
                 title={ __('Start adding content') }
-                type="button">
+                type="button"
+                style="margin-top: -1px">
                 <Icon iconId="chevron-right" className="mr-0 size-xs"/>
             </button>
             { isOpen ? [
@@ -169,23 +170,20 @@ class BlockDnDSpawner extends preact.Component {
     handleDragStarted(e) {
         const dragEl = e.target.nodeName === 'BUTTON' ? e.target : e.target.closest('button');
         const newType = dragEl.getAttribute('data-block-type');
-        const willBeOverridden = 'main';
         let gbt;
         if (newType !== 'GlobalBlockReference') {
             if (this.newWaitingBlock && this.newWaitingBlock.type === newType) return;
-            this.newWaitingBlock = createBlockFromType(newType, willBeOverridden);
+            this.newWaitingBlock = createBlockFromType(newType, 'don\'t-know-yet');
         } else {
             gbt = this.state.globalBlockTrees.find(({id}) => id === dragEl.getAttribute('data-trid'));
             if (this.newWaitingBlock && this.newWaitingBlock.globalBlockTreeId === gbt.id) return;
-            this.newWaitingBlock = createBlockFromType(newType, willBeOverridden, undefined, {
+            this.newWaitingBlock = createBlockFromType(newType, 'don\'t-know-yet', undefined, {
                 globalBlockTreeId: gbt.id,
             });
         }
-        this.newWaitingBlock.isStoredTo = 'don\'t-know-yet';
-        this.newWaitingBlock.isStoredToTreeId = 'don\'t-know-yet';
         this.blockAddPhase = BlockAddPhase.RENDERING_STARTED;
         this.preRender = null;
-        renderBlockAndThen(this.newWaitingBlock, ({html}) => {
+        renderBlockAndThen(toTransferable(this.newWaitingBlock), ({html}) => {
             if (this.blockAddPhase !== BlockAddPhase.RENDERING_STARTED ||
                 this.newWaitingBlock.type !== newType) return;
             if (this.newWaitingBlock.type === 'GlobalBlockReference')
@@ -228,10 +226,12 @@ class BlockDnDSpawner extends preact.Component {
         if (this.blockAddPhase === BlockAddPhase.RENDERING_FINISHED) {
             this.blockAddPhase = BlockAddPhase.WAITING_DOM_INSERTION;
             const trid = block.isStoredToTreeId;
-            const {tree} = createSelectBlockTree(trid)(store.getState());
             if (trid !== 'main') return null;
-            this.newWaitingBlock.isStoredToTreeId = trid;
-            this.newWaitingBlock.isStoredTo = block.isStoredTo;
+            const {tree} = createSelectBlockTree(trid)(store.getState());
+            blockTreeUtils.traverseRecursively([this.newWaitingBlock], b => {
+                b.isStoredToTreeId = trid;
+                b.isStoredTo = block.isStoredTo;
+            });
             let blockId = this.newWaitingBlock.id;
             //
             if (position === 'before') {

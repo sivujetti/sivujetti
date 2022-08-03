@@ -25,11 +25,14 @@ final class RenderBlockTest extends RenderBlocksTestCase {
             "</section>"
         );
         } else {
-        $expected = $this->blockTestUtils->decorateWithRef($state->testBlock,
-            "<section class=\"j-Section\" data-block-type=\"Section\" data-block=\"{$state->testBlock->id}\">" .
-                "<div data-block-root><!-- children-start --><span id=\"temp-marker\"></span><!-- children-end --></div>" .
-            "</section>"
-        );
+        $section = $state->testBlock;
+        [$heading, $paragraph] = $section->children;
+        $expected = "<section class=\"j-Section\" data-block-type=\"Section\" data-block=\"{$state->testBlock->id}\">" .
+            "<div data-block-root><!-- children-start -->" .
+                $this->blockTestUtils->getExpectedHeadingBlockOutput($heading) .
+                $this->blockTestUtils->getExpectedParagraphBlockOutput($paragraph) .
+            "<!-- children-end --></div>" .
+        "</section>";
         }
         $this->verifyResponseBodyEquals((object) ["result" => $expected],
                                         $state->spyingResponse);

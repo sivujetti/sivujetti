@@ -22,7 +22,7 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         reRender(block, _renderChildren) {
-            return http.post('/api/blocks/render', {block}).then(resp => withTrid(resp.result, block.globalBlockTreeId));
+            return http.post('/api/blocks/render', {block}).then(resp => withTrid(resp.result, block.globalBlockTreeId, true));
         },
         createSnapshot: from => ({
             globalBlockTreeId: from.globalBlockTreeId,

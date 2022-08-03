@@ -545,7 +545,7 @@ ul.styles-list > li.open > header > .btn > .icon-tabler {
     transition: transform .175s;
 }
 ul.styles-list > li.open > div {
-    display: initial;
+    display: block;
 }
 ul.styles-list > li.open > header > .btn > .icon-tabler:first-child {
     transform: rotate(180deg);
@@ -887,7 +887,7 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     position: fixed;
     left: -2px;
     width: 182px;
-    max-width: 40px;
+    max-width: 4px;
     z-index: 1;
 }
 .new-block-spawner-opened .new-block-spawner {

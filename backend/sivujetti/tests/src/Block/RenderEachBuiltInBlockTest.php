@@ -155,12 +155,7 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $this->makeTestSivujettiApp($state);
         //
         $expectedInnerBlock = $state->testGlobalBlockTreeBlocks[0];
-        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         $exp = $this->blockTestUtils->getExpectedParagraphBlockOutput($expectedInnerBlock);
-        } else {
-        $exp = $this->blockTestUtils->getExpectedParagraphBlockOutput($expectedInnerBlock,
-            childMarker: "<!-- children-start --><!-- children-end -->");
-        }
         $this->renderAndVerify($state, 0,
             $this->blockTestUtils->decorateWithRef($expectedInnerBlock, $exp)
         );
@@ -168,12 +163,7 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $allOverrides = json_decode($state->testBlocks[1]->overrides);
         $paragraphOverrides = $allOverrides->{$expectedInnerBlock->id};
         $paragraphOverrides->id = $expectedInnerBlock->id;
-        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         $exp = $this->blockTestUtils->getExpectedParagraphBlockOutput($paragraphOverrides);
-        } else {
-        $exp = $this->blockTestUtils->getExpectedParagraphBlockOutput($paragraphOverrides,
-            childMarker: "<!-- children-start --><!-- children-end -->");
-        }
         $this->renderAndVerify($state, 1,
             $this->blockTestUtils->decorateWithRef($expectedInnerBlock, $exp)
         );
@@ -216,9 +206,8 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
 
     public function testRenderBlockRendersHeadings(): void {
         $makeExpextedOutput = fn($b, $expectedTag, $cls = "") =>
-            "<{$expectedTag} class=\"j-Heading{$cls}\" data-block-type=\"Heading\" data-block=\"{$b->id}\">" .
-                "{$b->text}[childMarker]" .
-            "</{$expectedTag}>";
+            $this->blockTestUtils->getExpectedHeadingBlockOutput($b, $expectedTag, $cls, "[childMarker]")
+        ;
         //
         $state = $this->setupRenderHeadingBlocksTest();
         $this->makeTestSivujettiApp($state);

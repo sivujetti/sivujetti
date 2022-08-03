@@ -39,9 +39,11 @@ final class BlocksController {
         }
         //
         $block = Block::fromObject($req->body->block);
-        $marker = new Block;
-        $marker->type = "__marker";
-        $block->children = [$marker];
+        if (!count($block->children)) {
+            $marker = new Block;
+            $marker->type = "__marker";
+            $block->children = [$marker];
+        }
         //
         PagesController::runBlockBeforeRenderEvent([$block], $apiCtx->blockTypes, $pagesRepo);
         $pagePageType = ArrayUtils::findByKey($theWebsite->pageTypes, PageType::PAGE, "name");

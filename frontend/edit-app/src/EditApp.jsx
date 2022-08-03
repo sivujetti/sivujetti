@@ -11,6 +11,7 @@ import SaveButton from './SaveButton.jsx';
 import {findBlockTemp} from './BlockTreeOld.jsx';
 import {makePath, makeSlug} from './block-types/pageInfo.js';
 import blockTreeUtils from './blockTreeUtils.js';
+import {toTransferable} from './Block/utils.js';
 
 let LEFT_PANEL_WIDTH = 318;
 const PANELS_HIDDEN_CLS = 'panels-hidden';
@@ -259,7 +260,7 @@ class EditApp extends preact.Component {
      */
     registerWebPageDomUpdater(trid) {
         if (webPageUnregistrables.has(trid)) return;
-        const fn = this.currentWebPage.createBlockTreeChangeListener(trid, blockTreeUtils, api.blockTypes, getTree, this);
+        const fn = this.currentWebPage.createBlockTreeChangeListener(trid, blockTreeUtils, toTransferable, api.blockTypes, getTree, this);
         webPageUnregistrables.set(trid, observeStore(createSelectBlockTree(trid), fn));
     }
     /**

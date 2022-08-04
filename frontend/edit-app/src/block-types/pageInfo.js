@@ -1,5 +1,5 @@
 import {__, api, http, signals, env, hookForm, unhookForm, reHookValues, Input,
-        InputErrors, FormGroupInline, Textarea} from '@sivujetti-commons-for-edit-app';
+        InputErrors, FormGroupInline, FormGroup, Textarea} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
 import {stringUtils} from '../commons/utils.js';
 import ManyToManyField from '../Page/ManyToManyField.jsx';
@@ -26,15 +26,28 @@ class PageInfoBlockEditForm2 extends preact.Component {
         this.ownFields = this.pageType.ownFields.filter(({dataType}) => dataType.type === 'many-to-many');
         this.titleEl = preact.createRef();
         this.descriptionEl = preact.createRef();
+        const createSlugAndPath = slug => ({slug, path: makePath(slug, this.pageType)});
+        const createSlugAndPathFromTitle = !this.currentPageIsPlaceholder
+            ? (_ => ({}))
+            : createSlugAndPath;
         this.setState(hookForm(this, [
             {name: 'title', value: curPage.title, validations: [['required'], ['maxLength', 92]],
              label: __('Page title'), onAfterValueChanged: (value, hasErrors) => {
-                if (!hasErrors) this.emitChanges(mut => { mut.title = value; });
+                if (!hasErrors) this.emitChanges(mut => {
+                    Object.assign(
+                        mut,
+                        {title: value},
+                        createSlugAndPathFromTitle(makeSlug(value)),
+                    );
+                });
             }},
             {name: 'slug', value: curPage.slug, validations: [['required'], ['maxLength', 92],
                 [urlValidatorImpl, {allowExternal: false, allowEmpty: true}]],
              label: __('Url (slug)'), onAfterValueChanged: (value, hasErrors) => {
-                if (!hasErrors) this.emitChanges(mut => { mut.slug = value; mut.path = makePath(value, this.pageType); });
+                if (!hasErrors) this.emitChanges(mut => { Object.assign(
+                    mut,
+                    createSlugAndPath(value),
+                ); });
             }},
             {name: 'description', value: curPage.meta.description, validations: [['maxLength', 206]],
              label: __('Meta description'), onAfterValueChanged: (value, hasErrors) => {
@@ -85,11 +98,11 @@ class PageInfoBlockEditForm2 extends preact.Component {
                 { wrap(<Input vm={ this } prop="slug"/>) }
                 <InputErrors vm={ this } prop="slug"/>
             </FormGroupInline>
-            <FormGroupInline>
+            <FormGroup>
                 <label htmlFor="description" class="form-label">{ __('Meta description') }</label>
                 <Textarea vm={ this } prop="description" ref={ this.descriptionEl }/>
                 <InputErrors vm={ this } prop="description"/>
-            </FormGroupInline>
+            </FormGroup>
             { this.ownFields ? this.ownFields.map(field =>
                 <ManyToManyField
                     field={ field }
@@ -225,7 +238,6 @@ function savePageToBackend() {
     data = Object.assign({}, BlockTrees.currentWebPage.data.page);
     } else {
     data = Object.assign({}, selectCurrentPageDataBundle(store.getState()).page);
-    delete data.blockStyles;
     }
     delete data.blocks;
     delete data.isPlaceholderPage;

@@ -7,7 +7,8 @@ interface SivujettiFrontendApi {
     getBlockRenderers(): Array<BlockRenderer>;
     getActiveTheme(): {id: String;};
     user: {
-        can(doWhat: 'doAnything'|'editThemeColours'|'editThemeCss'|'createPageTypes'|'createPages'|'specializeGlobalBlocks'): Boolean;
+        can(doWhat: 'doAnything'|'editThemeColours'|'editThemeCss'|'createPageTypes'|'createPages'|'createGlobalBlockTrees'|'specializeGlobalBlocks'): Boolean;
+        getRole(): Number;
     }
     editApp: {
         addBlockTree(trid: String, blocks: Array<RawBlock2>): void;
@@ -215,6 +216,7 @@ interface TheWebsite {
         canCreateGlobalBlockTrees: Boolean;
         canSpecializeGlobalBlocks: Boolean;
     };
+    userRole: Number;
     showGoToDashboardMode?: Boolean;
     dashboardUrl?: String;
 }

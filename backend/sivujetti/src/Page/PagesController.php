@@ -134,6 +134,7 @@ final class PagesController {
                     "canCreateGlobalBlockTrees" => $acl->can($userRole, "create", "globalBlockTrees"),
                     "canSpecializeGlobalBlocks" => $userRole <= ACL::ROLE_ADMIN,
                 ],
+                "userRole" => $userRole,
             ], JSON_UNESCAPED_UNICODE)),
             "uiLang" => "fi",
             "isFirstRun" => $isFirstRun || $req->queryVar("first-run") !== null,

@@ -1,4 +1,5 @@
-import {urlUtils, __, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroup, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, urlUtils, hookForm, unhookForm, reHookValues, Input,
+        InputErrors, FormGroup, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import QuillEditor from '../Quill/QuillEditor.jsx';
 import {validationConstraints} from '../constants.js';
 import {unParagraphify} from './paragraph.js';
@@ -113,6 +114,7 @@ class ButtonBlockEditForm extends preact.Component {
 
 class ButtonBlockEditForm2 extends preact.Component {
     // editor;
+    // userCanChangeTagType;
     // tagTypeOptions;
     // initialHtml;
     /**
@@ -121,6 +123,7 @@ class ButtonBlockEditForm2 extends preact.Component {
     constructor(props) {
         super(props);
         this.editor = preact.createRef();
+        this.userCanChangeTagType = api.user.getRole() <= 1 << 2; // ROLE_ADMIN_EDITOR
         this.tagTypeOptions = [
             {name: tagTypes.LINK, friendlyName: __('Link element')},
             {name: tagTypes.NORMAL_BUTTON, friendlyName: __('Normal button')},
@@ -182,14 +185,17 @@ class ButtonBlockEditForm2 extends preact.Component {
                 <InputErrors vm={ this } prop="html"/>
             </FormGroup>,
             <div class="form-horizontal pt-0">
-                <FormGroupInline>
-                    <label htmlFor="tagType" class="form-label">{ __('Tag type') }</label>
-                    <select value={ tagType } onChange={ this.handleTagTypeChanged.bind(this) } class="form-input form-select">{
-                        this.tagTypeOptions.map(({name, friendlyName}) =>
-                            <option value={ name }>{ friendlyName }</option>
-                        )
-                    }</select>
-                </FormGroupInline>
+                { this.userCanChangeTagType
+                    ? <FormGroupInline>
+                        <label htmlFor="tagType" class="form-label">{ __('Tag type') }</label>
+                        <select value={ tagType } onChange={ this.handleTagTypeChanged.bind(this) } class="form-input form-select">{
+                            this.tagTypeOptions.map(({name, friendlyName}) =>
+                                <option value={ name }>{ friendlyName }</option>
+                            )
+                        }</select>
+                    </FormGroupInline>
+                    : null
+                }
                 { tagType === tagTypes.LINK
                     ? <FormGroupInline>
                         <label htmlFor="linkTo" class="form-label">{ __('Link') }</label>

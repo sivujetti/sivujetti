@@ -2,6 +2,8 @@
 
 namespace Sivujetti\BlockType;
 
+use Sivujetti\Auth\ACL;
+
 final class ButtonBlockType implements BlockTypeInterface {
     public const TAG_TYPE_LINK = "link";
     public const TAG_TYPE_NORMAL_BUTTON = "button";
@@ -17,7 +19,7 @@ final class ButtonBlockType implements BlockTypeInterface {
             ])
             ->newProperty("tagType")->dataType($builder::DATA_TYPE_TEXT, validationRules: [
                 ["in", [self::TAG_TYPE_LINK, self::TAG_TYPE_NORMAL_BUTTON, self::TAG_TYPE_SUBMIT_BUTTON]]
-            ])
+            ], canBeEditedBy: ACL::ROLE_ADMIN|ACL::ROLE_ADMIN_EDITOR)
             ->getResult();
     }
 }

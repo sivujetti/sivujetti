@@ -39,9 +39,10 @@ function populateFrontendApi() {
     api.getActiveTheme = () => d.activeTheme;
     api.registerTranslationStrings = translator.addStrings.bind(translator);
     api.webPageIframe = new WebPageIframe(document.getElementById('site-preview-iframe'), env, urlUtils);
-    api.user = { can(doWhat) {
-        return d.userPermissions[`can${capitalize(doWhat)}`] === true;
-    } };
+    api.user = {
+        can(doWhat) { return d.userPermissions[`can${capitalize(doWhat)}`] === true; },
+        getRole() { return d.userRole; }
+    };
     api.editApp = {
         addBlockTree(trid, blocks) { editAppReactRef.current.addBlockTree(trid, blocks); },
         registerWebPageDomUpdaterForBlockTree(trid) { editAppReactRef.current.registerWebPageDomUpdaterForBlockTree(trid); },

@@ -7,8 +7,11 @@
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/pickr-theme-nano.min.css") ?>">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.css") ?>">
         <?php if ($isFirstRun): ?>
+        <?php if (defined("showIntroJsIntro")): ?>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/4.3.0/introjs.min.css" integrity="sha512-YZO1kAqr8VPYJMaOgT4ZAIP4OeCuAWoZqgdvVYjeqyfieNWrUTzZrrxpgAdDrS7nV3sAVTKdP6MSKhqaMU5Q4g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <?php endif; ?>
         <style>
+        <?php if (defined("showIntroJsIntro")): ?>
         div:not(.introjsFloatingElement.introjs-showElement) + .introjs-overlay + .introjs-helperLayer {
             box-shadow: none !important;
             border: 4px solid var(--color-accent);
@@ -17,6 +20,47 @@
         }
         .introjs-tooltip {
             margin-top: .6rem;
+        }
+        <?php endif; ?>
+        .drag-instructions-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: rgba(255,255,255,.64);
+            height: 100%;
+            backdrop-filter: blur(4px);
+            display: flex;
+            text-align: center;
+            transition: opacity .625s;
+
+            overflow: hidden;
+            opacity: 0;
+            width: 0;
+        }
+        .new-block-spawner-opened .drag-instructions-overlay {
+            overflow: visible;
+            padding-left: 2rem;
+            z-index: 4;
+        }
+        .new-block-spawner-opened .drag-instructions-overlay:not(.fade-away) {
+            opacity: 1;
+        }
+        .drag-instructions-overlay > div {
+            position: relative;
+            margin-top: 12rem;
+        }
+        .drag-instructions-overlay > div p {
+            text-shadow: 0px 0px 4px #fff;
+            font-size: .9rem;
+            font-weight: bold;
+            color: var(--color-fg-dimmed2);
+        }
+        .drag-instructions-overlay > div img {
+            margin-left: -54px;
+        }
+        .drag-instructions-overlay > div button {
+            right: 0;
+            top: 4rem;
         }</style>
         <?php endif; ?>
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -34,6 +78,7 @@
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/stylis.min.js") ?>" async></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/popper.min.js") ?>" async></script>
         <script>window.useReduxBlockTree = <?= useReduxBlockTree ? "true" : "false" ?></script>
+        <script>window.isFirstRun = <?= $isFirstRun ? "true" : "false" ?></script>
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
         <script>window.translationStringBundles = []</script>
         <script src="<?= $this->assetUrl("public/sivujetti/lang-{$uiLang}.js") ?>"></script>
@@ -42,7 +87,7 @@
         <?php foreach ($userDefinedJsFiles as $relUrl): ?>
             <script src="<?= $this->assetUrl("public/{$relUrl}") ?>"></script>
         <?php endforeach; ?>
-        <?php if ($isFirstRun): ?>
+        <?php if ($isFirstRun && defined("showIntroJsIntro")): ?>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/4.3.0/intro.min.js" integrity="sha512-WYNEDpX7FCz0ejmdUFl444n+v7gDgDFYmxy2YBx99v15UUk3zU5ZWYFBXFCvWYvd+nv/guwUnXmrecK7Ee0Wtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script>(function () {
             const startIntro = () => {

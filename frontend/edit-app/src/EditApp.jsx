@@ -16,6 +16,7 @@ import {toTransferable} from './Block/utils.js';
 let LEFT_PANEL_WIDTH = 318;
 const PANELS_HIDDEN_CLS = 'panels-hidden';
 const webPageUnregistrables = new Map;
+let showFirstTimeDragInstructions = !(!env.window.isFirstRun || localStorage.sivujettiDragInstructionsShown === 'yes');
 
 class EditApp extends preact.Component {
     // changeViewOptions;
@@ -205,6 +206,21 @@ class EditApp extends preact.Component {
                 </div>
                 <SaveButton mainPanelOuterEl={ this.props.outerEl }/>
             </header>
+            { !showFirstTimeDragInstructions ? null : <div class="drag-instructions-overlay"><div>
+                <p class="flex-centered">
+                    <Icon iconId="info-circle" className="size-lg mr-2"/>
+                    { __('Aloita lisäämään sisältöä raahaamalla') }
+                </p>
+                <img src={ urlUtils.makeAssetUrl('/public/sivujetti/assets/drag-right-illustration.png') } alt=""/>
+                <button onClick={ e => {
+                    env.window.localStorage.sivujettiDragInstructionsShown = 'yes';
+                    showFirstTimeDragInstructions = false;
+                    const el = e.target.closest('.drag-instructions-overlay');
+                    el.classList.add('fade-away');
+                    setTimeout(() => { el.parentElement.removeChild(el); }, 650);
+                } } class="btn btn-primary btn-sm p-absolute" type="button">{ __('Selvä!') }</button>
+            </div></div>
+            }
             { showMainPanel
                 ? <DefaultMainPanelView
                     sections={ Array.from(api.mainPanel.getSections().keys()) }
@@ -343,6 +359,8 @@ class EditApp extends preact.Component {
             setPanelWidths(LEFT_PANEL_WIDTH + 124);
             commitPanelWidths();
             this.props.rootEl.classList.add('new-block-spawner-opened');
+            if (showFirstTimeDragInstructions) env.document.querySelector('.drag-instructions-overlay').style.width =
+                `${LEFT_PANEL_WIDTH}px`;
         });
         signals.on('on-block-dnd-closed', () => {
             setPanelWidths(LEFT_PANEL_WIDTH - 124);

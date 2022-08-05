@@ -20,6 +20,8 @@ final class WebPageAwareTemplate extends Template {
     private array $__pluginNames;
     /** @var bool */
     private bool $__useInlineCssStyles;
+    /** @var string */
+    private string $__assetUrlAppendix;
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
@@ -35,7 +37,8 @@ final class WebPageAwareTemplate extends Template {
                                 ?object $cssAndJsFiles = null,
                                 ?Theme $theme = null,
                                 ?array $pluginNames = null,
-                                ?bool $useInlineCssStyles = null) {
+                                ?bool $useInlineCssStyles = null,
+                                ?string $assetUrlCacheBustStr = "") {
         parent::__construct($file, $vars, $initialLocals);
         $this->__cssAndJsFiles = $cssAndJsFiles;
         $this->__theme = $theme;
@@ -43,6 +46,7 @@ final class WebPageAwareTemplate extends Template {
         $this->__useInlineCssStyles = $useInlineCssStyles ?? true;
         $this->__pluginNames = $pluginNames ?? [];
         if ($this->__file === "") $this->__file = $this->completePath($file);
+        $this->__assetUrlAppendix = $this->escAttr($assetUrlCacheBustStr ?? "");
     }
     /**
      * @param string $name
@@ -104,7 +108,7 @@ final class WebPageAwareTemplate extends Template {
      * @return string
      */
     public function assetUrl(string $url): string {
-        return self::makeUrl($url, false);
+        return self::makeUrl($url, false) . $this->__assetUrlAppendix;
     }
     /**
      * @param string $str
@@ -262,14 +266,16 @@ final class WebPageAwareTemplate extends Template {
     public function jsFiles(): string {
         if (!$this->__cssAndJsFiles)
             return "";
-        return implode(" ", array_map(function ($f) {
+        return implode("\n", array_map(function ($f) {
             $attrsMap = $f->attrs;
-            $pre = $f->url !== "sivujetti/sivujetti-commons-for-web-pages.js"
-                ? ""
-                : "<script>window.sivujettiBaseUrl='{$this->makeUrl("/", true)}';
-                           window.sivujettiAssetBaseUrl='{$this->makeUrl("/", false)}';</script>";
-            return "{$pre}<script src=\"{$this->assetUrl("public/{$this->e($f->url)}")}\"" .
-                $this->attrMapToStr($attrsMap) . "></script>";
+            $pre = "";
+            $url = $this->assetUrl("public/{$this->e($f->url)}");
+            if (str_starts_with($f->url, "sivujetti/sivujetti-commons-for-web-pages.js")) {
+                $pre = "<script>window.sivujettiBaseUrl='{$this->makeUrl("/", true)}';\n" .
+                    "        window.sivujettiAssetBaseUrl='{$this->makeUrl("/", false)}';</script>";
+                $url .= (!str_contains($f->url, "?") ? "?" : "&") . "v={$this->__vars["versionId"]}";
+            }
+            return "{$pre}<script src=\"{$url}\"{$this->attrMapToStr($attrsMap)}></script>";
         }, $this->__cssAndJsFiles->js));
     }
     /**

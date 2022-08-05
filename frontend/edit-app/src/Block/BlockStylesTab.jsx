@@ -9,6 +9,7 @@ import {validationConstraints} from '../constants.js';
 import {triggerUndo} from '../SaveButton.jsx';
 import {Popup} from '../block-types/Listing/EditForm.jsx';
 import {createTrier} from '../../../webpage/src/EditAppAwareWebPage.js';
+import exampleScss from '../example-scss.js';
 
 let compile, serialize, stringify;
 
@@ -151,7 +152,7 @@ class BlockStylesTab extends preact.Component {
             <InputError errorMessage={ extraBlockStyleClassesError }/>,
             <ContextMenu
                 links={ [
-                    {text: __('Edit title'), title: __('Edit title'), id: 'edit-style-title'},
+                    {text: __('Edit name'), title: __('Edit name'), id: 'edit-style-title'},
                     {text: __('Delete'), title: __('Delete style'), id: 'delete-style'},
                 ] }
                 onItemClicked={ this.handleMoreMenuLinkClicked.bind(this) }
@@ -223,7 +224,18 @@ class BlockStylesTab extends preact.Component {
         const rolling = current ? getLargestPostfixNum(current.units) + 1 : 1;
         const title = rolling > 1 ? `Unit ${rolling}` : 'Default';
         const id = `unit-${rolling}`;
-        const scss = 'color: blueviolet';
+        const createInitialScss = blockTypeName => {
+            const e = exampleScss[blockTypeName];
+            if (!e) return 'color: blueviolet';
+            return [
+                `// ${__('Css for the outermost %s (%s)', __(!e.outermostElIsWrapper ? 'element': 'wrapper-element'), e.outermostEl)}`,
+                e.first,
+                '',
+                `// ${__('Css for the inner elements')}`,
+                e.second,
+            ].join('\n');
+        };
+        const scss = createInitialScss(type);
         const cls = this.createClass(id);
 
         // #2
@@ -334,7 +346,7 @@ class EditableTitle extends preact.Component {
      * @access public
      */
     isOpen() {
-        return this.state.popupIsOpen;
+        return this.timeout ? true : this.popup.current && this.popup.current.state.isOpen;
     }
     /**
      * @access protected
@@ -382,9 +394,11 @@ class EditableTitle extends preact.Component {
      */
     close() {
         this.popup.current.close();
+        this.setState({popupIsOpen: false, values: null, errors: null});
         // Prevent @BlockStyleTab.render()'s handleLiClick from triggering
+        this.timeout = 1;
         setTimeout(() => {
-            this.setState({popupIsOpen: false, values: null, errors: null});
+            this.timeout = false;
             unhookForm(this);
         }, 1);
     }
@@ -433,8 +447,9 @@ class StyleTextarea extends preact.Component {
             <textarea
                 value={ scssNotCommitted }
                 onInput={ this.handleCssInputChangedThrottled }
-                class={ `form-input code${blockTypeName !== '_body_' ? ' m-2' : ''}` }
-                placeholder="color: green\n"></textarea>
+                class="form-input code"
+                placeholder={ `color: green;\n.nested {\n  color: blue;\n}` }
+                rows="12"></textarea>
             <InputError errorMessage={ error }/>
         </div>;
     }

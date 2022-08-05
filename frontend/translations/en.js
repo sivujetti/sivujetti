@@ -14,6 +14,13 @@ stringBundles.push({
     'Use style': 'Use style',
     'No editable styles': 'No editable styles',
     'Add styles': 'Add styles',
+    'Edit name': 'Edit name',
+    'Delete style': 'Delete style',
+    'Css for the outermost %s (%s)': 'Css for the outermost %s (%s)',
+    'element': 'element',
+    'wrapper-element': 'wrapper-element',
+    'Css for the inner elements': 'Css for the inner elements',
+    'Other classes': 'Other classes',
     'Style name': 'Style name',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Create %s',
@@ -87,6 +94,7 @@ stringBundles.push({
     // edit-app/src/DefaultView/OnThisPageSection.jsx
     'On this page': 'On this page',
     'Content of page %s': 'Content of %s-page',
+    'New page content': 'New page content',
     // edit-app/src/DefaultView/WebsiteSection.jsx
     'Website': 'Website',
     'Content management': 'Content management',

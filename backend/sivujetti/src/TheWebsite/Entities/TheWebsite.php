@@ -16,6 +16,8 @@ final class TheWebsite {
     /** @var string */
     public string $aclRulesJson;
     /** @var string */
+    public string $versionId;
+    /** @var string */
     public string $firstRunsJson;
     /** @var \ArrayObject<int, \Sivujetti\Plugin\Entities\Plugin> */
     public \ArrayObject $plugins;

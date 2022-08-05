@@ -24,14 +24,12 @@ final class PagesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb $db
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      */
     public function renderPage(Request $req,
                                Response $res,
-                               FluentDb $db,
                                PagesRepository $pagesRepo,
                                SharedAPIContext $apiCtx,
                                TheWebsite $theWebsite): void {
@@ -50,7 +48,7 @@ final class PagesController {
             $res->status(404)->html("404");
             return;
         }
-        self::sendPageResponse($req, $res, $db, $pagesRepo, $apiCtx, $theWebsite,
+        self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
             $page, $pageType);
     }
     /**
@@ -59,7 +57,6 @@ final class PagesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb $db
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
      * @param \Sivujetti\SharedAPIContext $apiCtx
@@ -68,7 +65,6 @@ final class PagesController {
      */
     public function renderPlaceholderPage(Request $req,
                                           Response $res,
-                                          FluentDb $db,
                                           PagesRepository $pagesRepo,
                                           LayoutsRepository $layoutsRepo,
                                           SharedAPIContext $apiCtx,
@@ -86,7 +82,7 @@ final class PagesController {
         $page->layout = $layout;
         self::mergeLayoutBlocksTo($page, $page->layout, $pageType);
         //
-        self::sendPageResponse($req, $res, $db, $pagesRepo, $apiCtx, $theWebsite,
+        self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
             $page, $pageType);
     }
     /**
@@ -114,7 +110,8 @@ final class PagesController {
             $db->exec("UPDATE `\${p}theWebsite` SET `firstRuns`=?", [json_encode($parsed)]);
         }
         $userRole = $req->myData->user->role;
-        $res->html((new WebPageAwareTemplate("sivujetti:edit-app-wrapper.tmpl.php"))->render([
+        $res->html((new WebPageAwareTemplate("sivujetti:edit-app-wrapper.tmpl.php",
+                                             assetUrlCacheBustStr: "?v={$theWebsite->versionId}"))->render([
             "url" => $req->params->url ?? "",
             "userDefinedJsFiles" => $apiCtx->adminJsFiles,
             "dataToFrontend" => self::escInlineJs(json_encode((object) [
@@ -266,7 +263,6 @@ final class PagesController {
     /**
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb $db
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
@@ -275,7 +271,6 @@ final class PagesController {
      */
     private static function sendPageResponse(Request $req,
                                              Response $res,
-                                             FluentDb $db,
                                              PagesRepository $pagesRepo,
                                              SharedAPIContext $apiCtx,
                                              TheWebsite $theWebsite,
@@ -290,7 +285,7 @@ final class PagesController {
         $editModeIsOn = $isPlaceholderPage || ($req->queryVar("in-edit") !== null);
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
-            ["serverHost" => self::getServerHost($req)],
+            ["serverHost" => self::getServerHost($req), "versionId" => $theWebsite->versionId],
             cssAndJsFiles: $apiCtx->userDefinedAssets,
             theme: $theWebsite->activeTheme,
             pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy()),
@@ -307,7 +302,7 @@ final class PagesController {
                     "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
                     "layout" => self::layoutToRaw($page->layout),
                 ], JSON_UNESCAPED_UNICODE)) . "</script>" .
-                "<script src=\"" . WebPageAwareTemplate::makeUrl("public/sivujetti/sivujetti-webpage.js", false) . "\"></script>" .
+                "<script src=\"{$tmpl->assetUrl("public/sivujetti/sivujetti-webpage.js?v={$theWebsite->versionId}")}\"></script>" .
             substr($html, $bodyEnd);
         }
         $res->html($html);

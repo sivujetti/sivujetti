@@ -14,6 +14,13 @@ stringBundles.push({
     'Use style': 'Käytä tyyliä',
     'No editable styles': 'Ei muokattavia tyylejä',
     'Add styles': 'Lisää tyyli',
+    'Edit name': 'Muokkaa nimeä',
+    'Delete style': 'Poista tyyli',
+    'Css for the outermost %s (%s)': 'Uloimman %s (%s) css',
+    'element': 'elementin',
+    'wrapper-element': 'wräpperielementin',
+    'Css for the inner elements': 'Sisempien elementtien css',
+    'Other classes': 'Muut luokat',
     'Style name': 'Tyylin nimi',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Luo %s',
@@ -87,6 +94,7 @@ stringBundles.push({
     // edit-app/src/DefaultView/OnThisPageSection.jsx
     'On this page': 'Tämä sivu',
     'Content of page %s': '%s -sivun sisältö',
+    'New page content': 'Uuden sivun sisältö',
     // edit-app/src/DefaultView/WebsiteSection.jsx
     'Website': 'Sivusto',
     'Content management': 'Sisällönhallinta',

@@ -27,7 +27,7 @@ class BlockDnDSpawner extends preact.Component {
     // onDragEnd;
     // onMouseMove;
     /**
-     * @param {{mainTreeDnd: BlockTreeDragDrop; mainTree: BlockTree; saveExistingBlocksToBackend: (blocks: Array<RawBlock2>, trid: 'String') => Promise<Boolean>; currentPageIsPlaceholder: Boolean;}} props
+     * @param {{mainTreeDnd: BlockTreeDragDrop; mainTree: BlockTree; saveExistingBlocksToBackend: (blocks: Array<RawBlock2>, trid: 'String') => Promise<Boolean>; currentPageIsPlaceholder: Boolean; initiallyIsOpen?: Boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -89,7 +89,7 @@ class BlockDnDSpawner extends preact.Component {
         unregScrollListener = () => {
             mainPanelEl.removeEventListener('scroll', handleScroll);
         };
-        if (this.props.currentPageIsPlaceholder)
+        if (this.props.initiallyIsOpen)
             this.toggleIsOpen();
     }
     /**

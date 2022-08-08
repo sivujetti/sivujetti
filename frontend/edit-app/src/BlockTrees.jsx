@@ -125,8 +125,9 @@ class BlockTrees extends preact.Component {
                     ? BlockTrees.saveExistingBlocksToBackend
                     : null }
                 BlockTrees={ BlockTrees }
-                ref={ this.blockTree }
-                disablePageInfo={ containingView === 'CreatePageType' }/>
+                disablePageInfo={ containingView === 'CreatePageType' }
+                containingView={ containingView }
+                ref={ this.blockTree }/>
         ];
     }
     /**

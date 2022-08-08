@@ -76,7 +76,7 @@ class BlockTree extends preact.Component {
     // blockWithMoreMenuOpened;
     // refElOfOpenMoreMenu;
     /**
-     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>, blockIsStoredTo: 'page'|'globalBlockTree', globalBlockTreeId: String|null) => Promise<Boolean>; BlockTrees: preact.ComponentClass; disablePageInfo?: Boolean;}} props
+     * @param {{blocksInput: Array<RawBlock>; onChangesApplied?: (blockTree: Array<Block>, blockIsStoredTo: 'page'|'globalBlockTree', globalBlockTreeId: String|null) => Promise<Boolean>; BlockTrees: preact.ComponentClass; disablePageInfo?: Boolean; containingView: 'CreatePage'|'CreatePageType'|'Default';}} props
      */
     constructor(props) {
         super(props);
@@ -345,7 +345,8 @@ class BlockTree extends preact.Component {
                 mainTreeDnd={ this.dragDrop }
                 mainTree={ this }
                 saveExistingBlocksToBackend={ BlockTrees.saveExistingBlocksToBackend }
-                currentPageIsPlaceholder={ this.currentPageIsPlaceholder }/>
+                currentPageIsPlaceholder={ this.currentPageIsPlaceholder }
+                initiallyIsOpen={ this.currentPageIsPlaceholder && this.props.foo === 'CreatePage' }/>
             <ul class={ `block-tree${!loading ? '' : ' loading'}` } data-sort-group-id="r">{
                 blockTree.length
                     ? renderBranch(blockTree).concat(<li
@@ -358,8 +359,6 @@ class BlockTree extends preact.Component {
             }</ul>
             <ContextMenu
                 links={ [
-                    {text: 'Add paragraph after', title: 'Add paragraph after', id: 'add-paragraph-after'},
-                    {text: 'Add paragraph as child', title: 'Add paragraph as child', id: 'add-paragraph-child'},
                     {text: __('Clone'), title: __('Clone content'), id: 'clone-block'},
                     {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
                 ].concat(api.user.can('createGlobalBlockTrees')

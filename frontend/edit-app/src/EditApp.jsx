@@ -102,7 +102,7 @@ class EditApp extends preact.Component {
         const {page} = data;
         signals.emit('on-web-page-loading-started', page, this.state.currentPage);
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
-        const newState = {currentPage: page, currentMainPanel: page.isPlaceholderPage ? 'create-page' : 'default'};
+        const newState = {currentPage: page, currentMainPanel: determineViewNameFrom(page)};
         this.setState(newState);
         const dispatchData = () => {
             //
@@ -123,7 +123,8 @@ class EditApp extends preact.Component {
             webPageUnregistrables.set('themeStyles', observeStore2('themeStyles', fn));
             this.receivingData = false;
         };
-        if (newState.currentMainPanel !== this.state.currentMainPanel)
+        const fromDefaultToCreateOrViceVersa = newState.currentMainPanel.charAt(0) !== this.state.currentMainPanel.charAt(0);
+        if (fromDefaultToCreateOrViceVersa)
             setTimeout(() => dispatchData(), 1);
         else
             dispatchData();
@@ -167,16 +168,11 @@ class EditApp extends preact.Component {
      * @access protected
      */
     render(_, {currentPage, currentMainPanel, hidePanels}) {
-        const showMainPanel = currentMainPanel === 'default';
         const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
         let pageType = !featureFlagConditionUseReduxBlockTree
             ? this.currentPageData ? this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentPageData.type) : null
             : currentPage ? this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === currentPage.type) : null;
         const logoUrl = urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo.png');
-        const t = () => {
-            if (!featureFlagConditionUseReduxBlockTree) return !isPlaceholderPageType(pageType);
-            return currentMainPanel !== 'create-page-type';
-        };
         return <div>
             { !hidePanels ? null : <a onClick={ e => (e.preventDefault(), this.handlePanelsAreHiddenChanged(false)) } id="back-to-edit-corner" href="">
                 <img src={ logoUrl }/>
@@ -221,7 +217,7 @@ class EditApp extends preact.Component {
                 } } class="btn btn-primary btn-sm p-absolute" type="button">{ __('Selvä!') }</button>
             </div></div>
             }
-            { showMainPanel
+            { currentMainPanel === 'default'
                 ? <DefaultMainPanelView
                     sections={ Array.from(api.mainPanel.getSections().keys()) }
                     blockTreesRef={ this.blockTrees }
@@ -240,11 +236,12 @@ class EditApp extends preact.Component {
                             this.props.dataFromAdminBackend.pageTypes.push(pageType);
                             // Does same as startAddPageMode above
                             api.webPageIframe.openPlaceholderPage('Draft');
+                            this.setState({currentMainPanel: 'create-page-type'});
                             floatingDialog.close();
                         });
                     } }
                     currentWebPage={ this.currentWebPage }/>
-                : t()
+                : this.state.currentMainPanel !== 'create-page-type'
                     ? <PageCreateMainPanelView
                         blockTreesRef={ this.blockTrees }
                         cancelAddPage={ () => api.webPageIframe.goBack() }
@@ -295,7 +292,7 @@ class EditApp extends preact.Component {
      * @access private
      */
     handlePageTypeCreated(submittedData) {
-        const mutRef = this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentPageData.type);
+        const mutRef = this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === 'Draft');
         Object.assign(mutRef, submittedData);
         //
         toasters.editAppMain(`${__('Created new %s', __('page type'))}.`, 'success');
@@ -430,18 +427,6 @@ class EditApp extends preact.Component {
 }
 
 /**
- * @param {PageType} pageType
- * @returns {Boolean}
- */
-function isPlaceholderPageType(pageType) {
-    const pageTypeStatus = Object.freeze({
-        STATUS_COMPLETE: 0,
-        STATUS_DRAFT: 1,
-    });
-    return (pageType.status) === pageTypeStatus.STATUS_DRAFT;
-}
-
-/**
  * @param {preact.Ref} highlightRectEl
  * @param {preact.Ref} blockTrees
  * @returns {EditAwareWebPageEventHandlers}
@@ -572,15 +557,19 @@ function getArePanelsHidden() {
 }
 
 /**
- * @param {String} currentUrl
+ * @param {String|Page} currentUrlOrPage
  * @returns {'default'|'create-page'|'create-page-type'}
  */
-function determineViewNameFrom(currentUrl) {
-    if (currentUrl.indexOf('_placeholder-page/') < 0)
-        return 'default';
-    return currentUrl.indexOf('_placeholder-page/Draft') < 0
-        ? 'create-page'
-        : 'create-page-type';
+function determineViewNameFrom(currentUrlOrPage) {
+    let url;
+    if (typeof currentUrlOrPage === 'string') {
+        url = currentUrlOrPage;
+    } else{
+        url = !currentUrlOrPage.isPlaceholderPage ? '' : `_placeholder-page/${currentUrlOrPage.type}`;
+    }
+    const i = url.indexOf('_placeholder-page/');
+    if (i < 0) return 'default';
+    return url.substring(i).indexOf('_placeholder-page/Draft') < 0 ? 'create-page' : 'create-page-type';
 }
 
 /**

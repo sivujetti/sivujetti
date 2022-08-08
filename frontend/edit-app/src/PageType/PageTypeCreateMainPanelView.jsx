@@ -1,7 +1,7 @@
 import {__, http, env, Icon} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
-import BlockTrees from '../BlockTrees.jsx';
-import store, {deleteItemsFromOpQueueAfter, setOpQueue} from '../store.js';
+import store, {deleteItemsFromOpQueueAfter, setOpQueue, observeStore, selectOpQueue, createSelectBlockTree} from '../store.js';
+import OnThisPageSection from '../DefaultView/OnThisPageSection.jsx';
 import PageTypeBasicInfoConfigurationForm from './PageTypeBasicInfoConfigurationForm.jsx';
 import PageTypeOwnFieldsConfigurationForm from './PageTypeOwnFieldsConfigurationForm.jsx';
 
@@ -9,29 +9,14 @@ class PageTypeCreateMainPanelView extends preact.Component {
     // basicInfoWorkingCopy;
     // fieldsWorkingCopy;
     // formWasSubmitted;
-    // lastCommittedPageName;
+    // submitData;
     /**
-     * Note to self: getLayouts is for tests.
-     *
-     * @param {{cancelAddPageType: () => void; pageType: PageType; blockTreesRef: preact.Ref; getLayouts?: () => Promise<Array<Layout>>;}} props
+     * @param {{cancelAddPageType: () => void; pageType: PageType|null; blockTreesRef: preact.Ref;}} props
      */
     constructor(props) {
         super(props);
-        this.basicInfoWorkingCopy = {
-            name: undefined,
-            friendlyName: undefined,
-            friendlyNamePlural: undefined,
-            description: undefined,
-            slug: undefined,
-            defaultLayoutId: props.pageType.defaultLayoutId,
-            status: props.pageType.status,
-            isListable: props.pageType.isListable,
-        };
-        this.lastCommittedName = props.pageType.name;
-        this.fieldsWorkingCopy = props.pageType.ownFields.map(f => Object.assign({}, f));
-        this.state = {layouts: [], sectionAIsCollapsed: false,
-            sectionBIsCollapsed: false, sectionCIsCollapsed: false};
-        (props.getLayouts ? props.getLayouts() : http.get('/api/layouts'))
+        this.state = {layouts: [], webpageIsLoaded: false, sectionBIsCollapsed: false, sectionCIsCollapsed: false};
+        http.get('/api/layouts')
             .then(layouts => { this.setState({layouts}); })
             .catch(env.window.console.error);
     }
@@ -40,8 +25,35 @@ class PageTypeCreateMainPanelView extends preact.Component {
      */
     componentDidMount() {
         this.formWasSubmitted = false;
+    }
+    /**
+     * @access protected
+     */
+    componentWillReceiveProps(props) {
+        const {pageType} = props;
+        if (!pageType || this.state.webpageIsLoaded) return;
+        this.basicInfoWorkingCopy = {
+            name: undefined,
+            friendlyName: undefined,
+            friendlyNamePlural: undefined,
+            description: undefined,
+            slug: undefined,
+            defaultLayoutId: pageType.defaultLayoutId,
+            status: pageType.status,
+            isListable: pageType.isListable,
+        };
+        this.lastCommittedName = pageType.name;
+        this.fieldsWorkingCopy = pageType.ownFields.map(f => Object.assign({}, f));
+        this.setState({webpageIsLoaded: true});
         store.dispatch(setOpQueue([{opName: 'create-new-page-type', command: {
-            doHandle: this.handleFormSubmitted.bind(this),
+            doHandle: () => {
+                this.unreg = observeStore(selectOpQueue, queue => {
+                    if (queue.length !== 0) return;
+                    this.props.onPageTypeCreated(this.submitData);
+                    this.unreg();
+                });
+                return this.handleFormSubmitted();
+            },
             args: []
         }}]));
     }
@@ -59,9 +71,9 @@ class PageTypeCreateMainPanelView extends preact.Component {
      * @access protected
      */
     render({cancelAddPageType, blockTreesRef},
-           {layouts, sectionAIsCollapsed, sectionBIsCollapsed, sectionCIsCollapsed}) {
+           {webpageIsLoaded, layouts, sectionBIsCollapsed, sectionCIsCollapsed}) {
         return <form>
-            <header class="panel-section mb-0">
+            <header class="panel-section pb-0">
                 <h1 class="mb-2">{ __('Create %s', __('page type')) }</h1>
                 <button
                     onClick={ cancelAddPageType }
@@ -69,54 +81,47 @@ class PageTypeCreateMainPanelView extends preact.Component {
                     title={ __('Cancel add %s', __('page type')) }
                     type="button">&lt; { __('Back') }</button>
             </header>
-            <section class={ `pt-0 panel-section${sectionAIsCollapsed ? '' : ' open'}` }>
-                <button class="d-flex col-12 flex-centered pr-2" onClick={ () => this.toggleIsCollapsed('sectionAIsCollapsed') } type="button">
-                    <Icon iconId="star" className="size-sm mr-2 color-purple"/>
-                    <span class="flex-centered">
-                        <span class="pl-1 color-default mr-1">{ __('Default content') }</span>
-                        <span class="tooltip tooltip-bottom" data-tooltip={ `Oletussisältö joka näytetään aluksi\nkun luot tämän tyyppisiä\nsivuja` }>
-                            <Icon iconId="info-circle" className="size-xs"/>
-                        </span>
+            <OnThisPageSection containingView="CreatePageType" blockTreesRef={ blockTreesRef } initiallyIsCollapsed={ false }/>
+            <section class={ `on-this-page panel-section pl-0${sectionBIsCollapsed ? '' : ' open'}` }>
+                <button
+                    class="flex-centered pr-2 pl-1 section-title col-12"
+                    onClick={ () => this.toggleIsCollapsed('sectionBIsCollapsed') }
+                    type="button">
+                    <Icon iconId="pencil" className="p-absolute size-sm mr-2 color-blue"/>
+                    <span class="pl-1 d-block col-12 color-default">
+                        { __('Settings') }
+                        <span class="text-ellipsis text-tiny col-12">{ __('Uuden sivutyypin perustiedot') }</span>
                     </span>
-                    <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
+                    <Icon iconId="chevron-right" className="p-absolute size-xs"/>
                 </button>
-                <BlockTrees
-                    containingView="CreatePageType"
-                    ref={ blockTreesRef }/>
-            </section>
-            <section class={ `panel-section${sectionCIsCollapsed ? '' : ' open'}` }>
-                <button class="d-flex col-12 flex-centered pr-2" onClick={ () => this.toggleIsCollapsed('sectionCIsCollapsed') } type="button">
-                    <Icon iconId="pencil" className="size-sm mr-2 color-blue"/> { /* todo */ }
-                    <span class="pl-1 color-default">{ __('Settings') }</span>
-                    <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
-                </button>
-                <PageTypeBasicInfoConfigurationForm
+                { webpageIsLoaded ? <PageTypeBasicInfoConfigurationForm
                     data={ this.basicInfoWorkingCopy }
                     onPropChanged={ (key, val) => {
                         this.basicInfoWorkingCopy = Object.assign({},
                             this.basicInfoWorkingCopy, {[key]: val}); }
                     }
-                    layouts={ layouts }/>
+                    layouts={ layouts }/> : null }
             </section>
-            <section class={ `panel-section${sectionBIsCollapsed ? '' : ' open'}` }>
-                <button class="d-flex col-12 flex-centered pr-2" onClick={ () => this.toggleIsCollapsed('sectionBIsCollapsed') } type="button">
-                    <Icon iconId="layout-list" className="size-sm mr-2 color-orange"/>
-                    <span class="flex-centered">
-                        <span class="pl-1 color-default mr-1">{ __('Fields') }</span>
-                        <span class="tooltip" data-tooltip={ `Tämän sivutyypin omat kentät\ntodo` }>
-                            <Icon iconId="info-circle" className="size-xs"/>
-                        </span>
+            <section class={ `on-this-page panel-section pl-0${sectionCIsCollapsed ? '' : ' open'}` }>
+                <button
+                    class="flex-centered pr-2 pl-1 section-title col-12"
+                    onClick={ () => this.toggleIsCollapsed('sectionCIsCollapsed') }
+                    type="button">
+                    <Icon iconId="layout-list" className="p-absolute size-sm mr-2 color-orange"/>
+                    <span class="pl-1 d-block col-12 color-default">
+                        { __('Fields') }
+                        <span class="text-ellipsis text-tiny col-12">{ __('Uuden sivutyypin omat kentät') }</span>
                     </span>
-                    <Icon iconId="chevron-right" className="col-ml-auto size-xs"/>
+                    <Icon iconId="chevron-right" className="p-absolute size-xs"/>
                 </button>
-                <PageTypeOwnFieldsConfigurationForm
+                { webpageIsLoaded ? <PageTypeOwnFieldsConfigurationForm
                     fields={ this.fieldsWorkingCopy }
-                    onFieldsChanged={ newFields => { this.fieldsWorkingCopy = newFields.map(f => Object.assign({}, f)); } }/>
+                    onFieldsChanged={ newFields => { this.fieldsWorkingCopy = newFields.map(f => Object.assign({}, f)); } }/> : null }
             </section>
         </form>;
     }
     /**
-     * @param {'sectionAIsCollapsed'|'sectionBIsCollapsed'|'sectionCIsCollapsed'} e
+     * @param {'sectionCIsCollapsed'|'sectionBIsCollapsed'} e
      * @access private
      */
     toggleIsCollapsed(prop) {
@@ -138,7 +143,7 @@ class PageTypeCreateMainPanelView extends preact.Component {
                 p.type === 'globalBlockTree' &&
                 p.globalBlockTreeId === b.globalBlockTreeId
             ));
-        data.blockFields = this.props.blockTreesRef.current.getPageBlocks().filter(b => !belongsToLayout(b));
+        data.blockFields = createSelectBlockTree('main')(store.getState()).tree.filter(b => !belongsToLayout(b));
         data.defaultFields = this.props.pageType.defaultFields;
         data.ownFields = this.fieldsWorkingCopy;
         //
@@ -146,7 +151,7 @@ class PageTypeCreateMainPanelView extends preact.Component {
         return http.put(`/api/page-types/${this.lastCommittedName}`, data)
             .then(resp => {
                 if (resp.ok !== 'ok') throw new Error('-');
-                this.props.onPageTypeCreated(data);
+                this.submitData = data;
                 return true;
             })
             .catch(err => {

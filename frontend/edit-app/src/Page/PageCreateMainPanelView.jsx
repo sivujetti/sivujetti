@@ -27,21 +27,7 @@ class PageCreateMainPanelView extends preact.Component {
         super(props);
         this.pageMetaData = {};
         this.linkedMenuBlockVals = null;
-        if (!featureFlagConditionUseReduxBlockTree) {
         this.state = {layouts: [], menuInfos: [], addToMenuId: ID_NONE, currentPage: null};
-        } else {
-        const state = {layouts: [], menuInfos: [], addToMenuId: ID_NONE, currentPage: selectCurrentPageDataBundle(store.getState()).page};
-        // Placeholder page already loaded
-        if (state.currentPage && state.currentPage.isPlaceholderPage) this.onLoad();
-        // Placeholder page not loaded yet, wait for next setCurrentPageDataBundle (EditApp.handleWebPageLoaded())
-        else this.unreg = observeStore(s => selectCurrentPageDataBundle(s), value => {
-            if (!value.page) return;
-            this.setState({currentPage: value.page});
-            setTimeout(() => this.onLoad(), 1);
-            this.unreg();
-        });
-        this.state = state;
-        }
         if (!featureFlagConditionUseReduxBlockTree) {
         this.unregisterSignalListener = signals.on('on-page-info-form-value-changed',
             /**
@@ -74,51 +60,16 @@ class PageCreateMainPanelView extends preact.Component {
         }
     }
     /**
-     * @access private
+     * @access protected
      */
-    onLoad() {
-        if (!featureFlagConditionUseReduxBlockTree) {
-        store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
-            doHandle: this.handleFormSubmitted.bind(this),
-            args: []
-        }}]));
-        if (this.props.noAutoFocus)
-            return;
-        setTimeout(() => {
-            env.document.querySelector('.block-tree li[data-block-type="PageInfo"] .block-handle').click();
-        }, 1);
-        } else {
-            this.emitCreatePageOp();
-        }
-    }
-    /**
-     * @access private
-     */
-    emitCreatePageOp() {
-        store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
-            doHandle: () => {
-                //
-                this.unreg = observeStore(s => selectOpQueue(s), queue => {
-                    if (queue.length !== 0) return;
-                    if (this.submitOpResult)
-                        urlUtils.redirect(this.submitOpResult.redirectTo);
-                    else
-                        this.emitCreatePageOp();
-                    this.unreg();
-                });
-                //
-                return this.handleFormSubmitted();
-            },
-            args: []
-        }}]));
+    componentDidMount() {
+        if (!featureFlagConditionUseReduxBlockTree) this.onLoad();
     }
     /**
      * @access protected
      */
-    componentDidMount() {
-        if (!featureFlagConditionUseReduxBlockTree) {
-        this.onLoad();
-        }
+    componentWillReceiveProps(props) {
+        if (props.pageType && !this.state.currentPage) this.onLoad(props.pageType);
     }
     /**
      * @access protected
@@ -188,6 +139,40 @@ class PageCreateMainPanelView extends preact.Component {
         </form>;
     }
     /**
+     * @access private
+     */
+    onLoad() {
+        if (!featureFlagConditionUseReduxBlockTree) {
+        store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
+            doHandle: this.handleFormSubmitted.bind(this),
+            args: []
+        }}]));
+        if (this.props.noAutoFocus)
+            return;
+        setTimeout(() => {
+            env.document.querySelector('.block-tree li[data-block-type="PageInfo"] .block-handle').click();
+        }, 1);
+        } else {
+        this.setState({currentPage: selectCurrentPageDataBundle(store.getState()).page});
+        store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
+            doHandle: () => {
+                //
+                this.unreg = observeStore(s => selectOpQueue(s), queue => {
+                    if (queue.length !== 0) return;
+                    if (this.submitOpResult)
+                        urlUtils.redirect(this.submitOpResult.redirectTo);
+                    else
+                        this.emitCreatePageOp();
+                    this.unreg();
+                });
+                //
+                return this.handleFormSubmitted();
+            },
+            args: []
+        }}]));
+        }
+    }
+    /**
      * @param {Event} e
      * @access private
      */
@@ -239,13 +224,13 @@ class PageCreateMainPanelView extends preact.Component {
         data.level = 1;
         data.layoutId = this.getCurrentPage().layoutId;
         data.blocks = this.props.blockTreesRef.current.getPageBlocks();
-        data.status = 0;
         } else {
         data = JSON.parse(JSON.stringify(selectCurrentPageDataBundle(store.getState()).page));
         delete data.id;
         data.blocks = treeToTransferable(createSelectBlockTree('main')(store.getState()).tree);
         this.submitOpResult = null;
         }
+        data.status = 0;
         //
         return http.post(`/api/pages/${this.props.pageType.name}`, data).then(resp => {
                 if (Array.isArray(resp) && resp[0] === 'Page with identical slug already exists') {

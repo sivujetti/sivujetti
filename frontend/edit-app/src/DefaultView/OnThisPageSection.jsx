@@ -4,7 +4,7 @@ import store, {observeStore, selectCurrentPageDataBundle} from '../store.js';
 
 let currentInstance;
 observeStore(selectCurrentPageDataBundle, ({page}) => {
-    if (currentInstance) currentInstance.setState({subtitle: translateSubtitle(page)});
+    if (currentInstance) currentInstance.setState({subtitle: currentInstance.getSubtitle(page)});
 });
 
 class OnThisPageSection extends MenuSection {
@@ -21,7 +21,8 @@ class OnThisPageSection extends MenuSection {
     componentDidMount() {
         currentInstance = this;
         const {page} = selectCurrentPageDataBundle(store.getState());
-        this.setState({subtitle: translateSubtitle(page)});
+        this.setState({title: __(this.props.containingView === 'CreatePage' ? 'On this page' : 'Default content'),
+            subtitle: this.getSubtitle(page)});
     }
     /**
      * @access protected
@@ -30,17 +31,18 @@ class OnThisPageSection extends MenuSection {
         currentInstance = null;
     }
     /**
-     * @param {{blockTreesRef: preact.Ref; containingView?: String;} && {[key: String]: any;}} props
+     * @param {{blockTreesRef: preact.Ref; containingView?: 'CreatePage'|'CreatePageType';} && {[key: String]: any;}} props
      */
-    render({blockTreesRef, containingView}, {isCollapsed, subtitle}) {
+    render({blockTreesRef, containingView}, {isCollapsed, title, subtitle}) {
         return <section class={ `on-this-page panel-section pl-0${isCollapsed ? '' : ' open'}` }>
             <button
                 class="flex-centered pr-2 pl-1 section-title col-12"
                 onClick={ () => { this.setState({isCollapsed: !isCollapsed}); } }
+                title={ subtitle }
                 type="button">
                 <Icon iconId="map-pin" className="p-absolute size-sm mr-2 color-purple"/>
                 <span class="pl-1 d-block col-12 color-default">
-                    { __('On this page') }
+                    { title }
                     <span class="text-ellipsis text-tiny col-12">{ subtitle }</span>
                 </span>
                 <Icon iconId="chevron-right" className="p-absolute size-xs"/>
@@ -48,15 +50,15 @@ class OnThisPageSection extends MenuSection {
             <BlockTrees containingView={ containingView || 'Default' } ref={ blockTreesRef }/>
         </section>;
     }
-}
-
-/**
- * @param {Page?} page
- * @returns {String}
- */
-function translateSubtitle(page) {
-    if (!page) return __('Content of page %s', '/');
-    return !page.isPlaceholderPage ? __('Content of page %s', page.slug) : 'Uuden sivun sisältö';
+    /**
+     * @param {Page?} page
+     * @returns {String}
+     */
+    getSubtitle(page) {
+        if (!page) return __('Content of page %s', '/');
+        if (!page.isPlaceholderPage) return __('Content of page %s', page.slug);
+        return __(this.props.containingView === 'CreatePage' ? 'New page content' : 'Uuden sivutyypin oletussisältö');
+    }
 }
 
 export default OnThisPageSection;

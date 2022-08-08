@@ -1,5 +1,6 @@
 import {__, hookForm, unhookForm, Input, Textarea, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import {validationConstraints} from '../constants.js';
+import {urlValidatorImpl} from '../validation.js';
 
 class PageTypeBasicInfoConfigurationForm extends preact.Component {
     /**
@@ -16,7 +17,8 @@ class PageTypeBasicInfoConfigurationForm extends preact.Component {
              onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) this.emitPropChanged('friendlyNamePlural', value); }},
             {name: 'description', value: props.data.description, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Description'),
              onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) this.emitPropChanged('description', value); }},
-            {name: 'slug', value: props.data.slug, validations: [['regexp', '^/[a-zA-Z_-]+$'], ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Slug'),
+            {name: 'slug', value: props.data.slug, validations: [['required'], ['maxLength', 92],
+                [urlValidatorImpl, {allowExternal: false, allowEmpty: false}]], label: __('Slug'),
              onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) this.emitPropChanged('slug', value); }},
         ], {
             isListable: props.data.isListable,

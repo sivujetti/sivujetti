@@ -367,9 +367,11 @@ interface DefaultChangeEventData {
     cloneOf?: String;
 }
 
-interface SwapChangeEventData {
-    dragBlock: RawBlock2;
-    dropBlock: RawBlock2;
+type SwapChangeEventData = [SwapChangeEventEntry, SwapChangeEventEntry|null];
+
+interface SwapChangeEventEntry {
+    blockToMove: RawBlock2;
+    blockToMoveTo: RawBlock2;
     position: 'before'|'after'|'as-child';
     doRevert(): void;
 }
@@ -383,9 +385,16 @@ interface AddChangeEvent extends DefaultChangeEventData {
 }
 
 interface DragEventReceiver {
-    draggedOverFirstTime(block: RawBlock2): {blockId: String; trid: String;}|null;
-    swappedBlocks(mutationInfos: [SwapChangeEventData, SwapChangeEventData|null]): void;
-    dropped(): void;
+    draggedOverFirstTime(block: RawBlock2, position: 'before'|'after'|'as-child'): BlockDragDataInfo|null;
+    swappedBlocks(mutationInfos: SwapChangeEventData, dragData: BlockDragDataInfo): void;
+    dropped(dragData: BlockDragDataInfo): void;
+}
+
+interface BlockDragDataInfo {
+    blockId: String;
+    blockType: String;
+    trid: String;
+    globalBlockTreeId?: String;
 }
 
 interface BlockRendctor {

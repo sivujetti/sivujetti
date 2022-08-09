@@ -36,7 +36,7 @@ class EditAppAwareWebPage {
     scanBlockElements() {
         this.deletedInnerContentStorage = new Map;
         this.currentlyHoveredBlockEl = null;
-        this.revertSwapStack = [];
+        this.revertSwapStacks = new Map;
         return Array.from(document.body.querySelectorAll('[data-block-type]'));
     }
     /**
@@ -239,6 +239,7 @@ class EditAppAwareWebPage {
                 ? treeRootEl.querySelector(`[data-block="${beforeBlock.id}"]`)
                 : getInsertRefEl(beforeBlock, treeRootEl);
             movables.forEach(movable => moveToEl.parentElement.insertBefore(movable, moveToEl));
+            return movables;
         };
         /**
          * @param {RawBlock2} afterBlock
@@ -250,6 +251,7 @@ class EditAppAwareWebPage {
             const [ref, cleanUp] = createNextRef(treeRootEl.querySelector(`[data-block="${getVisibleBlockId(afterBlock)}"]`));
             movables.forEach(movable => ref.parentElement.insertBefore(movable, ref));
             cleanUp();
+            return movables;
         };
         /**
          * @param {RawBlock2} parentBlock
@@ -257,10 +259,11 @@ class EditAppAwareWebPage {
          * @param {HTMLElement} treeRootEl
          */
         const moveToChild = (parentBlock, moveBlock, treeRootEl) => {
-            const el = treeRootEl.querySelector(`[data-block="${parentBlock.id}"]`);
+            const el = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(parentBlock)}"]`);
             const endcom = getChildEndComment(getBlockContentRoot(el));
             const movables = getElsToMove(moveBlock, treeRootEl);
             movables.forEach(movable => endcom.parentElement.insertBefore(movable, endcom));
+            return movables;
         };
         /**
          * @param {RawBlock2} blockToMove
@@ -288,19 +291,37 @@ class EditAppAwareWebPage {
             const event = context[0];
             const treeRootEl = document.body;
             if (event === 'swap-blocks') {
-                const {position, blockToMove, blockToMoveTo} = context[1];
-                this.revertSwapStack.push(createGetRevertRef(blockToMove, treeRootEl));
-                if (position === 'before')
-                    moveBefore(blockToMoveTo, blockToMove, treeRootEl);
-                else if (position === 'after')
-                    moveAfter(blockToMoveTo, blockToMove, treeRootEl);
-                else if (position === 'as-child')
-                    moveToChild(blockToMoveTo, blockToMove, treeRootEl);
+                const [mut1, mut2] = context[1];
+                const {position, blockToMove, blockToMoveTo} = mut1;
+                if (context[2] !== 'dnd-spawner') {
+                    if (!this.revertSwapStacks.has(blockToMove.id)) this.revertSwapStacks.set(blockToMove.id, []);
+                    this.revertSwapStacks.get(blockToMove.id).push(createGetRevertRef(blockToMove, treeRootEl));
+                }
+                if (!mut2) {
+                    if (position === 'before')
+                        moveBefore(blockToMoveTo, blockToMove, treeRootEl);
+                    else if (position === 'after')
+                        moveAfter(blockToMoveTo, blockToMove, treeRootEl);
+                    else if (position === 'as-child')
+                        moveToChild(blockToMoveTo, blockToMove, treeRootEl);
+                } else {
+                    let newTrid = blockToMoveTo.isStoredToTreeId;
+                    let movables;
+                    if (position === 'before') {
+                        movables = moveBefore(blockToMoveTo, blockToMove, treeRootEl);
+                    } else if (position === 'after') {
+                        movables = moveAfter(blockToMoveTo, blockToMove, treeRootEl);
+                    } else if (position === 'as-child') {
+                        movables = moveToChild(blockToMoveTo, blockToMove, treeRootEl);
+                        if (blockToMoveTo.type === 'GlobalBlockReference') newTrid = blockToMoveTo.globalBlockTreeId;
+                    }
+                    movables.forEach(el => el.setAttribute('data-trid', newTrid));
+                }
                 return;
             }
             if (event === 'undo-swap-blocks') {
                 const {blockToMove} = context[1];
-                const getNext = this.revertSwapStack.pop();
+                const getNext = this.revertSwapStacks.get(blockToMove.id).pop();
                 const next = getNext();
                 const movables = getElsToMove(blockToMove, treeRootEl);
                 movables.forEach(movable => next.parentElement.insertBefore(movable, next));
@@ -337,8 +358,9 @@ class EditAppAwareWebPage {
                     if (nextEl)
                         nextEl.parentElement.insertBefore(temp.content, nextEl);
                     else {
-                        const cont = parent ? treeRootEl.querySelector(`[data-block="${getVisibleBlockId(parent)}"]`) : treeRootEl;
-                        const endcom = getChildEndComment(getBlockContentRoot(cont));
+                        const el = parent ? treeRootEl.querySelector(`[data-block="${getVisibleBlockId(parent)}"]`)
+                            : trid === 'main' ? treeRootEl : treeRootEl.querySelector(`[data-block="${tree[0].id}"]`);
+                        const endcom = getChildEndComment(getBlockContentRoot(el));
                         endcom.parentElement.insertBefore(temp.content, endcom);
                     }
                     onAfterInsertedToDom(completed);

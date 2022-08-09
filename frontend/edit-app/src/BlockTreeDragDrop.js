@@ -1,6 +1,6 @@
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {createSelectBlockTree} from './store.js';
-import {findRefBlockOf, isTreesOutermostBlock} from './Block/utils.js';
+import {findRefBlockOf, isTreesOutermostBlock, setTrids} from './Block/utils.js';
 
 class BlockTreeDragDrop {
     // blockTree;
@@ -13,10 +13,10 @@ class BlockTreeDragDrop {
     // curDropTypeCandidate;
     // startLiDivRect;
     // dragEventReceiver;
-    // externalElData;
+    // externalBlockInfo;
     /**
      * @param {BlockTree} blockTree
-     * @param {(mutationInfos: [SwapChangeEventData, SwapChangeEventData|null]) => void} onDropped
+     * @param {(mutationInfos: SwapChangeEventData) => void} onDropped
      */
     constructor(blockTree, onDropped) {
         this.blockTree = blockTree;
@@ -29,6 +29,8 @@ class BlockTreeDragDrop {
     handleDragStarted(e) {
         this.beginDrag(e.target);
         this.dragEventReceiver = null;
+        this.dragOriginIsExternal = false;
+        this.externalBlockInfo = null;
         this.startEl.classList.add('dragging');
     }
     /**
@@ -112,15 +114,19 @@ class BlockTreeDragDrop {
             //
             const cand = this.dragEventReceiver.draggedOverFirstTime(block, newCandidate.dropPosition);
             if (cand === null) return;
-            this.externalElData = cand;
+            this.externalBlockInfo = cand;
             this.beginDrag(liAdj);
             this.curDropTypeCandidate = newCandidate;
         }
         //
-        newCandidate.el.classList.add(`maybe-drop-${newCandidate.dropPosition}`);
-        if (this.dragOriginIsExternal && newCandidate.dropPosition !== this.curDropTypeCandidate.dropPosition) {
-            const mutationInfos = this.applySwap(newCandidate, this.externalElData);
-            if (mutationInfos) this.dragEventReceiver.swappedBlocks(mutationInfos);
+        if (!(this.dragOriginIsExternal && newCandidate.dropPosition !== this.curDropTypeCandidate.dropPosition)) {
+            newCandidate.el.classList.add(`maybe-drop-${newCandidate.dropPosition}`);
+        } else {
+            const mutationInfos = this.applySwap(newCandidate, this.externalBlockInfo);
+            if (mutationInfos) {
+                newCandidate.el.classList.add(`maybe-drop-${newCandidate.dropPosition}`);
+                this.dragEventReceiver.swappedBlocks(mutationInfos, this.externalBlockInfo);
+            }
         }
         this.curDropTypeCandidate = newCandidate;
     }
@@ -133,7 +139,7 @@ class BlockTreeDragDrop {
         if (!this.dragEventReceiver) {
         const mutationInfos = this.applySwap(this.curDropTypeCandidate);
         if (mutationInfos) this.onDropped(...mutationInfos);
-        } else this.dragEventReceiver.dropped();
+        } else this.dragEventReceiver.dropped(this.externalBlockInfo);
         this.endDrag();
     }
     /**
@@ -168,11 +174,11 @@ class BlockTreeDragDrop {
     }
     /**
      * @param {DropCandidate} dropInfo
-     * @param {{blockId: String; trid: String;}} externalElData = {}
-     * @returns {[SwapChangeEventData, SwapChangeEventData|null]}
+     * @param {BlockDragDataInfo} externalBlockInfo = {}
+     * @returns {SwapChangeEventData}
      * @access private
      */
-    applySwap(dropInfo, {blockId, trid} = {}) {
+    applySwap(dropInfo, {blockId, trid, globalBlockTreeId} = {}) {
         let dragBlockTree, dragBlock, dragBranch;
         dragBlockTree = createSelectBlockTree(trid || this.startEl.getAttribute('data-trid'))(store.getState()).tree;
         blockId = blockId || this.startEl.getAttribute('data-block-id');
@@ -183,12 +189,14 @@ class BlockTreeDragDrop {
             [dragBlock, dragBranch] = blockTreeUtils.findBlock(blockId2, dragBlockTree);
         }
         let dropBlockTree, dropBlock, dropBranch, _dropBlockParent;
+        let visibleBlock = null;
         const {el} = dropInfo;
         dropBlockTree = createSelectBlockTree(el.getAttribute('data-trid'))(store.getState()).tree;
         if (!el.getAttribute('data-last')) {
             const blockId = el.getAttribute('data-block-id');
             [dropBlock, dropBranch, _dropBlockParent] = blockTreeUtils.findBlock(blockId, dropBlockTree);
             if (dropBlock.isStoredToTreeId !== 'main' && isTreesOutermostBlock(blockId, dropBlockTree)) {
+                visibleBlock = dropBlock;
                 dropBlockTree = createSelectBlockTree('main')(store.getState()).tree;
                 const blockId2 = findRefBlockOf(dropBlock, dropBlockTree).id;
                 [dropBlock, dropBranch, _dropBlockParent] = blockTreeUtils.findBlock(blockId2, dropBlockTree);
@@ -201,6 +209,7 @@ class BlockTreeDragDrop {
             ];
         }
         //
+        const originIsExternal = !!blockId;
         let mut1 = null;
         let mut2 = null;
         const isBefore = dropInfo.dropPosition === 'before';
@@ -218,29 +227,44 @@ class BlockTreeDragDrop {
                     return dragBlockTree;
                 });
             } else {
-                const aIsNorm = dragBlock.isStoredToTreeId === 'main';
-                const bIsNorm = dropBlock.isStoredToTreeId === 'main';
-                if (aIsNorm && !bIsNorm && dropBlock.id !== dropBlockTree[0].id) {
+                const dragIsNorm = dragBlock.isStoredToTreeId === 'main';
+                const dropIsNorm = dropBlock.isStoredToTreeId === 'main';
+                if (!originIsExternal) {
+                if (dragIsNorm && !dropIsNorm && dropBlock.id !== dropBlockTree[0].id) {
                     if (!trid) this.handleDropNotAllowed('Normal > Global drop not supported yet');
                     return;
-                } else if (bIsNorm && !aIsNorm && dragBlock.id !== dragBlockTree[0].id) {
+                } else if (dropIsNorm && !dragIsNorm && dragBlock.id !== dragBlockTree[0].id) {
                     if (!trid) this.handleDropNotAllowed('Global > Normal drop not supported yet');
                     return;
                 }
                 //
-                const dragBranchIdx = dragBranch.indexOf(dragBlock);
-                const dropBranchIdx = dropBranch.indexOf(dropBlock);
-                const pos = dropBranchIdx + (isBefore ? 0 : 1);
-                dropBranch.splice(pos, 0, dragBlock);
-                dragBranch.splice(dragBranchIdx, 1);
-                //
-                mut1 = createMutationInfo(dragBlock, dropBlock, dropInfo, () => {
-                    dragBranch.splice(dragBranchIdx, 0, dragBlock);
-                    dropBranch.splice(pos, 1);
-                    return dragBlockTree;
+                mut1 = moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore, dropInfo, dragBlockTree);
+                } else {
+                // gbt > main or out of gbt's outermost
+                if (!dragIsNorm && dropIsNorm) {
+                setTrids([dragBlock], 'main');
+                this.externalBlockInfo.trid = 'main';
+                mut1 = moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore, dropInfo, dragBlockTree);
+                mut2 = createMutationInfo(dragBlock, dropBlock, dropInfo, () => {
+                    return dropBlockTree;
                 });
+                // main > gbt
+                } else if (dragIsNorm && !dropIsNorm) {
+                if (globalBlockTreeId) return null;
+                setTrids([dragBlock], dropBlock.isStoredToTreeId);
+                this.externalBlockInfo.trid = dropBlock.isStoredToTreeId;
+                mut1 = moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore, dropInfo, dragBlockTree);
+                mut2 = createMutationInfo(dragBlock, dropBlock, dropInfo, () => {
+                    return dropBlockTree;
+                });
+                // same > same
+                } else if ((dragIsNorm && dropIsNorm) || (!dragIsNorm && !dropIsNorm)) {
+                mut1 = moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore, dropInfo, dragBlockTree);
+                }
+                }
             }
         } else if (dropInfo.dropPosition === 'as-child') {
+            if (!originIsExternal) {
             if (dropBlock.type === 'GlobalBlockReference' || dropBlock.isStoredTo === 'globalBlockTree') {
                 if (!trid) this.handleDropNotAllowed('Global > Normal (as child) drop not supported yet');
                 return;
@@ -248,15 +272,30 @@ class BlockTreeDragDrop {
                 if (!trid) this.handleDropNotAllowed('Normal > Global (as child) drop not supported yet');
                 return;
             }
-            dropBlock.children.push(dragBlock);
-            const pos = dragBranch.indexOf(dragBlock);
-            dragBranch.splice(pos, 1);
-            //
-            mut1 = createMutationInfo(dragBlock, dropBlock, dropInfo, () => {
-                dropBlock.children.pop();
-                dragBranch.splice(pos, 0, dragBlock);
-                return dragBlockTree;
-            });//, dragBlock.isStoredTo !== dropBlock.isStoredTo || pos < dropBranch.indexOf(dropBlock) ? true : false, 'as-child');
+            mut1 = moveToChild(dropBlock, dropBlock, dragBlock, dragBranch, dragBlockTree, dropInfo);
+            } else {
+            if (globalBlockTreeId) return null;
+            const dragIsNorm = dragBlock.isStoredToTreeId === 'main';
+            const dropIsNorm = dropBlock.isStoredToTreeId === 'main';
+            // main > gbt or inside to gbt's outermost
+            if (dragIsNorm && (!dropIsNorm || visibleBlock)) {
+            const to = visibleBlock || dropBlock;
+            setTrids([dragBlock], to.isStoredToTreeId);
+            this.externalBlockInfo.trid = to.isStoredToTreeId;
+            mut1 = moveToChild(to, dropBlock, dragBlock, dragBranch, dragBlockTree, dropInfo);
+            mut2 = createMutationInfo(dragBlock, dropBlock, dropInfo, () => {
+                return dropBlockTree;
+            });
+            // gbt > main
+            } else if (!dragIsNorm && dropIsNorm) {
+            setTrids([dragBlock], 'main');
+            this.externalBlockInfo.trid = 'main';
+            mut1 = moveToChild(dropBlock, dropBlock, dragBlock, dragBranch, dragBlockTree, dropInfo);
+            // same > same
+            } else if ((dragIsNorm && dropIsNorm) || (!dragIsNorm && !dropIsNorm)) {
+            mut1 = moveToChild(dropBlock, dropBlock, dragBlock, dragBranch, dragBlockTree, dropInfo);
+            }
+            }
         } else return null;
         return [mut1, mut2];
     }
@@ -310,6 +349,51 @@ class BlockTreeDragDrop {
         this.endDrag();
         alert(message);
     }
+}
+
+/**
+ * @param {RawBlock2} dragBlock
+ * @param {Array<RawBlock2>} dragBranch
+ * @param {RawBlock2} dropBlock
+ * @param {Array<RawBlock2>} dropBranch
+ * @param {Boolean} isBefore
+ * @param {DropCandidate} dropInfo
+ * @param {Array<RawBlock2>} dragBlockTree
+ * @returns {SwapChangeEventData}
+ */
+function moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore, dropInfo, dragBlockTree) {
+    const dragBranchIdx = dragBranch.indexOf(dragBlock);
+    const dropBranchIdx = dropBranch.indexOf(dropBlock);
+    const pos = dropBranchIdx + (isBefore ? 0 : 1);
+    dropBranch.splice(pos, 0, dragBlock);
+    dragBranch.splice(dragBranchIdx, 1);
+    //
+    return createMutationInfo(dragBlock, dropBlock, dropInfo, () => {
+        dragBranch.splice(dragBranchIdx, 0, dragBlock);
+        dropBranch.splice(pos, 1);
+        return dragBlockTree;
+    });
+}
+
+/**
+ * @param {RawBlock2} to
+ * @param {RawBlock2} dropBlock
+ * @param {RawBlock2} dragBlock
+ * @param {Array<RawBlock2>} dragBranch
+ * @param {Array<RawBlock2>} dragBlockTree
+ * @param {DropCandidate} dropInfo
+ * @returns {SwapChangeEventData}
+ */
+function moveToChild(to, dropBlock, dragBlock, dragBranch, dragBlockTree, dropInfo) {
+    to.children.push(dragBlock);
+    const pos = dragBranch.indexOf(dragBlock);
+    dragBranch.splice(pos, 1);
+    //
+    return createMutationInfo(dragBlock, dropBlock, dropInfo, () => {
+        to.children.pop();
+        dragBranch.splice(pos, 0, dragBlock);
+        return dragBlockTree;
+    });
 }
 
 /**

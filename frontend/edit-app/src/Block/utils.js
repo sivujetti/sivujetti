@@ -21,7 +21,7 @@ function createBlockFromType(blockType, trid = 'main', id = generatePushID(), pr
         isStoredTo: trid !== 'don\'t-know-yet' ? trid === 'main' ? 'page' : 'globalBlockTree' : trid,
         isStoredToTreeId: trid,
         children: !Array.isArray(blockType.initialChildren) ? [] : blockType.initialChildren.map(blueprint =>
-            createBlockFrom(blueprint.blockType, trid, undefined, blueprint.props))
+            createBlockFromType(blueprint.blockType, trid, undefined, blueprint.props))
     }, typeSpecific);
 }
 
@@ -101,5 +101,17 @@ function treeToTransferable(tree) {
     });
 }
 
+/**
+ * @param {Array<RawBlock2>} branch
+ * @param {String} trid
+ */
+function setTrids(branch, trid) {
+    const isStoredTo = trid === 'main' ? 'page' : 'globalBlockTree';
+    blockTreeUtils.traverseRecursively(branch, b => {
+        b.isStoredToTreeId = trid;
+        b.isStoredTo = isStoredTo;
+    });
+}
+
 export {createBlockFromType, isTreesOutermostBlock, findRefBlockOf,
-        toTransferable, treeToTransferable, cloneDeep};
+        toTransferable, treeToTransferable, cloneDeep, setTrids};

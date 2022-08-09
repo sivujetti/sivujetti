@@ -9,7 +9,7 @@ import BlockTreeDragDrop from './BlockTreeDragDrop.js';
 import ConvertBlockToGlobalDialog from './ConvertBlockToGlobalBlockTreeDialog.jsx';
 import {getIcon} from './block-types/block-types.js';
 import {cloneDeep, createBlockFromType, findRefBlockOf, isTreesOutermostBlock,
-        treeToTransferable} from './Block/utils.js';
+        setTrids, treeToTransferable} from './Block/utils.js';
 import BlockDnDSpawner from './Block/BlockDnDSpawner.jsx';
 
 let BlockTrees;
@@ -47,7 +47,10 @@ signals.on('on-web-page-loaded', () => {
                 return;
             if (refreshAllEvents.indexOf(context[0]) > -1 && context[2] !== 'dnd-spawner') {
                 if (!currentInstance || loading) return;
-                currentInstance.setState({blockTree: tree, treeState: createTreeState([], true)});
+                currentInstance.setState(Object.assign(
+                    trid === 'main' ? {blockTree: tree} : {},
+                    {treeState: createTreeState([], true)}
+                ));
             }
         }, true)
     ));
@@ -90,7 +93,7 @@ class BlockTree extends preact.Component {
         this.dragDrop = new BlockTreeDragDrop(this, (mutation1, _mutation2 = null) => {
         const trid = mutation1.blockToMove.isStoredToTreeId;
         const {tree} = createSelectBlockTree(trid)(store.getState());
-        store.dispatch(createSetBlockTree(trid)(tree, ['swap-blocks', mutation1]));
+        store.dispatch(createSetBlockTree(trid)(tree, ['swap-blocks', [mutation1]]));
         store.dispatch(pushItemToOpQueue(`swap-blocks-of-tree##${trid}`, {
             doHandle: trid !== 'main' || !this.currentPageIsPlaceholder
                 ? () => BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
@@ -346,7 +349,7 @@ class BlockTree extends preact.Component {
                 mainTree={ this }
                 saveExistingBlocksToBackend={ BlockTrees.saveExistingBlocksToBackend }
                 currentPageIsPlaceholder={ this.currentPageIsPlaceholder }
-                initiallyIsOpen={ this.currentPageIsPlaceholder && this.props.foo === 'CreatePage' }/>
+                initiallyIsOpen={ this.currentPageIsPlaceholder && this.props.containingView === 'CreatePage' }/>
             <ul class={ `block-tree${!loading ? '' : ' loading'}` } data-sort-group-id="r">{
                 blockTree.length
                     ? renderBranch(blockTree).concat(<li
@@ -508,11 +511,7 @@ class BlockTree extends preact.Component {
         };
         const {tree} = createSelectBlockTree('main')(store.getState());
         const treeBefore = JSON.parse(JSON.stringify(tree));
-        blockTreeUtils.traverseRecursively(newGbt.blocks, b => { // Note: mutates original block
-            b.isStoredTo = 'globalBlockTree';
-            b.isStoredToTreeId = newGbt.id;
-        });
-
+        setTrids(newGbt.blocks, newGbt.id); // Note: mutates original block
         // #2
         api.editApp.addBlockTree(newGbt.id, newGbt.blocks);
         // #3

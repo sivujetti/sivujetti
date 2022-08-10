@@ -241,6 +241,12 @@ final class PagesRepository {
         throw new PikeException("Unknown page type `{$candidate}`.");
     }
     /**
+     * @return string
+     */
+    public function getLastInsertId(): string {
+        return $this->lastInsertId;
+    }
+    /**
      * @param string $snapshot
      * @param bool $doInsertRevisionAsCurrentDraft
      * @return int ok = 1, fail = 0

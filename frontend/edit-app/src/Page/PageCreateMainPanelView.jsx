@@ -3,7 +3,7 @@ import {InputGroupInline} from '../commons/Form.jsx';
 import toasters from '../commons/Toaster.jsx';
 import BlockTrees from '../BlockTrees.jsx';
 import store, {deleteItemsFromOpQueueAfter, observeStore, selectCurrentPageDataBundle,
-               setOpQueue, createSelectBlockTree, selectOpQueue} from '../store.js';
+               setOpQueue, createSelectBlockTree, selectOpQueue, setCurrentPageDataBundle} from '../store.js';
 import {treeToTransferable} from '../Block/utils.js';
 import blockTreeUtils from '../blockTreeUtils.js';
 import {CountingLinkItemFactory} from '../block-types/Menu/EditForm.jsx';
@@ -218,6 +218,7 @@ class PageCreateMainPanelView extends preact.Component {
     handleFormSubmitted(e) {
         if (e) e.preventDefault();
         let data;
+        let pageDataBundle;
         if (!featureFlagConditionUseReduxBlockTree) {
         // {title, slug, path, meta, customField1, customField2 ...}
         data = Object.assign({}, this.pageMetaData);
@@ -225,7 +226,8 @@ class PageCreateMainPanelView extends preact.Component {
         data.layoutId = this.getCurrentPage().layoutId;
         data.blocks = this.props.blockTreesRef.current.getPageBlocks();
         } else {
-        data = JSON.parse(JSON.stringify(selectCurrentPageDataBundle(store.getState()).page));
+        pageDataBundle = selectCurrentPageDataBundle(store.getState());
+        data = JSON.parse(JSON.stringify(pageDataBundle.page));
         delete data.id;
         data.blocks = treeToTransferable(createSelectBlockTree('main')(store.getState()).tree);
         this.submitOpResult = null;
@@ -240,8 +242,11 @@ class PageCreateMainPanelView extends preact.Component {
                 if (resp.ok !== 'ok') throw new Error('-');
                 if (!featureFlagConditionUseReduxBlockTree)
                     urlUtils.redirect(`/_edit${pathToFullSlug(data.path, '')}`);
-                else
+                else {
                     this.submitOpResult = {ok: 'ok', redirectTo: `/_edit${pathToFullSlug(data.path, '')}`};
+                    pageDataBundle.page.id = resp.insertId;
+                    setCurrentPageDataBundle(pageDataBundle);
+                }
                 return true;
             })
             .catch(err => {

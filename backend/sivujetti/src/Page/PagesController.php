@@ -186,7 +186,7 @@ final class PagesController {
             "Expected \$numAffectedRows to equal 1 but got {$numAffectedRows}",
             PikeException::INEFFECTUAL_DB_OP);
         //
-        $res->status(201)->json(["ok" => "ok"]);
+        $res->status(201)->json(["ok" => "ok", "insertId" => $pagesRepo->getLastInsertId()]);
     }
     /**
      * GET /api/pages/[w:pageType]: Lists all $req->params->pageType's pages ordered

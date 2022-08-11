@@ -54,7 +54,7 @@ class PageInfoBlockEditForm2 extends preact.Component {
                 if (!hasErrors) this.emitChanges(mut => { mut.meta.description = value; });
              }},
         ]));
-        observeStore(s => selectCurrentPageDataBundle(s), ({page}) => {
+        observeStore(selectCurrentPageDataBundle, ({page}) => {
             if (this.state.values.title !== page.title ||
                 this.state.values.slug !== page.slug ||
                 this.state.values.description !== page.meta.description) {

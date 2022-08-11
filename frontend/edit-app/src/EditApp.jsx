@@ -400,7 +400,7 @@ class EditApp extends preact.Component {
                 this.currentWebPage.updateCssStylesIfChanged('singleBlock', blockId, styles);
             });
         };
-        observeStore(s => selectPageBlocksStyles(s), updateBlockStyles.bind(this));
+        observeStore(selectPageBlocksStyles, updateBlockStyles.bind(this));
 
         /** @param {Array<RawGlobalBlockTreeBlocksStyles>} blockTreeBlocksStyles */
         const updateBlockStyles2 = blockTreeBlocksStyles => {
@@ -412,7 +412,7 @@ class EditApp extends preact.Component {
                 });
             });
         };
-        observeStore(s => selectGlobalBlockTreeBlocksStyles(s), updateBlockStyles2.bind(this));
+        observeStore(selectGlobalBlockTreeBlocksStyles, updateBlockStyles2.bind(this));
 
         /** @param {Array<RawBlockTypeBaseStyles>} blockTypeBaseStyles */
         const updateBlockStyles3 = blockTypeBaseStyles => {
@@ -422,7 +422,7 @@ class EditApp extends preact.Component {
                 this.currentWebPage.updateCssStylesIfChanged('blockType', blockTypeName, styles);
             });
         };
-        observeStore(s => selectBlockTypesBaseStyles(s), updateBlockStyles3.bind(this));
+        observeStore(selectBlockTypesBaseStyles, updateBlockStyles3.bind(this));
     }
 }
 

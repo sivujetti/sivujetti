@@ -157,7 +157,7 @@ class PageCreateMainPanelView extends preact.Component {
         store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
             doHandle: () => {
                 //
-                this.unreg = observeStore(s => selectOpQueue(s), queue => {
+                this.unreg = observeStore(selectOpQueue, queue => {
                     if (queue.length !== 0) return;
                     if (this.submitOpResult)
                         urlUtils.redirect(this.submitOpResult.redirectTo);

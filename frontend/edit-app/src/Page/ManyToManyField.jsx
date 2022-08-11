@@ -1,4 +1,4 @@
-import {__, http, env, FormGroupInline, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
+import {__, http, env, FormGroup, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
 import store, {observeStore, selectCurrentPageDataBundle} from '../store.js';
 
 class ManyToManyField extends preact.Component {
@@ -15,7 +15,7 @@ class ManyToManyField extends preact.Component {
             currentManyToManyIdList: getManyToManyValue(selectCurrentPageDataBundle(store.getState()).page, this.k),
             manyToManyPages: undefined,
         };
-        observeStore(s => selectCurrentPageDataBundle(s), ({page}) => {
+        observeStore(selectCurrentPageDataBundle, ({page}) => {
             if (this.state.currentManyToManyIdList.toString() !== page[this.k].toString())
                this.setState({currentManyToManyIdList: getManyToManyValue(page, this.k)});
         });
@@ -25,9 +25,9 @@ class ManyToManyField extends preact.Component {
      * @access protected
      */
     render({field}, {currentManyToManyIdList, manyToManyPages}) {
-        return <FormGroupInline className="prop-widget-many-to-many">
+        return <FormGroup className="prop-widget-many-to-many">
             <label class="form-label" htmlFor="layout">{ __(field.friendlyName) }</label>
-            { Array.isArray(manyToManyPages) ? manyToManyPages.length
+            <div class="col-12">{ Array.isArray(manyToManyPages) ? manyToManyPages.length
                 ? manyToManyPages.map(({id, title}) => <label class="form-checkbox mt-0 text-ellipsis" key={ id }>
                     <input
                         value={ id }
@@ -37,8 +37,8 @@ class ManyToManyField extends preact.Component {
                         class="form-input"/><i class="form-icon"></i> <span>{ title }</span>
                     </label>)
                 : <p>{ __('No %s found', __(field.friendlyNamePlural)) }</p>
-            : <LoadingSpinner/> }
-        </FormGroupInline>;
+            : <LoadingSpinner/> }</div>
+        </FormGroup>;
     }
     /**
      * @param {String} pageTypeName

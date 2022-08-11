@@ -74,7 +74,7 @@ class PickImageDialog extends preact.Component {
             <button
                 onClick={ () => floatingDialog.close() }
                 class="btn mt-8"
-                type="button">{ __('Cancel') }</button>
+                type="button">{ __('Close') }</button>
         </>;
     }
 }

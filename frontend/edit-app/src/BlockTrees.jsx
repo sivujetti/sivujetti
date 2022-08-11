@@ -21,7 +21,7 @@ class BlockTrees extends preact.Component {
         this.state = {blocksInput: null};
         this.blockTree = preact.createRef();
         if (!featureFlagConditionUseReduxBlockTree) {
-        this.doCleanStoreSubs = observeStore(s => selectCurrentPage(s), value => {
+        this.doCleanStoreSubs = observeStore(selectCurrentPage, value => {
             const dataFromWebPage = value.webPage.data;
             if (// `this` is still attached to <DefaultMainPanelView/>, but placeholder page is loaded
                 (this.props.containingView === 'Default' && dataFromWebPage.page.isPlaceholderPage) ||

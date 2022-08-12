@@ -34,7 +34,7 @@ final class RenderEditAppWrapperTest extends RenderPageTestCase {
     }
     private function verifyInlcudedUserDefinedJsFiles(\TestState $state): void {
         $expectedUrl = WebPageAwareTemplate::makeUrl("/public/some-file.js", false);
-        $this->assertStringContainsString("<script src=\"{$expectedUrl}\"></script>",
+        $this->assertStringContainsString("<script src=\"{$expectedUrl}?v=abcdefg1\"></script>",
             $state->spyingResponse->getActualBody());
     }
 }

@@ -1,3 +1,7 @@
+Asset: drag-right-illustration.png
+License: ?
+Link: ?
+
 Asset: fira-sans-heavy.woff2, fira-sans-light.woff2, fira-sans-regular.woff2
 License: SIL Open Font License v1.10
 Link: https://www.fontsquirrel.com/fonts/fira-sans

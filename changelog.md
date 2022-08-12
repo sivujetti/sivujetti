@@ -2,17 +2,24 @@
 
 ...
 
-# 0.11.0 (not yet released)
+# 0.11.0 (2022-08-15)
 
 ## Added
-- `$annotations parameter to PluginAPI->registerHttpRoute()` (Plugin developer can define ACL-rules for routes)
+- A better way to add content
+- Code/embed block type
+- An undo button
+- `$annotations` parameter to `PluginAPI->registerHttpRoute()` (Plugin developer can define ACL-rules for routes)
 - Support for many-to-many properties
 
 ## Fixed
 - .
 
 ## Changed
+- Replaced "Own Styles" and "Base styles" with "Styles"
 - Image block type's default output (`<span><img>` -> `<figure><img>`)
+- Button block type's default output (`<p><button|a>` -> `<button|a>`)
+- Started a noStateManager -> redux -> storeon -transition
+- Disabled `cli.php install-from-dir` temporarily
 
 # 0.10.0 (2022-05-12)
 

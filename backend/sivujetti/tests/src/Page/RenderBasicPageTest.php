@@ -57,13 +57,8 @@ final class RenderBasicPageTest extends RenderPageTestCase {
     private function verifyRenderedCorrectPageAndLayout(\TestState $state): void {
         $headingBlock = $state->testPageData->blocks[0]->children[0];
         $expectedPageBlockHeading = $headingBlock->propsData[0]->value;
-        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        $this->assertStringContainsString("<h2 data-block-type=\"Heading\" data-block=\"{$headingBlock->id}\">{$expectedPageBlockHeading}</h2>",
-                                          $state->spyingResponse->getActualBody());
-        } else {
         $this->assertStringContainsString("<h2 class=\"j-Heading\" data-block-type=\"Heading\" data-block=\"{$headingBlock->id}\">{$expectedPageBlockHeading}<!-- children-start --><!-- children-end --></h2>",
                                           $state->spyingResponse->getActualBody());
-        }
         $paragraphBlock = $state->testGlobalBlockTree[0];
         $expectedPageBlockHeading = $paragraphBlock->propsData[0]->value;
         $this->assertStringContainsString((new BlockTestUtils($this->pageTestUtils))->getExpectedParagraphBlockOutput($paragraphBlock),

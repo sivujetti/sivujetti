@@ -123,19 +123,12 @@ final class WebPageAwareTemplate extends Template {
      * @return string
      */
     public function renderChildren(Block $block): string {
-        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        if (!$block->children) return "";
-        return $block->children[0]->type !== "__marker"
-            ? $this->renderBlocks($block->children)
-            : "<span id=\"temp-marker\"></span>";
-        } else {
         return "<!-- children-start -->" . ($block->children ? (
             $block->children[0]->type !== "__marker"
                 ? $this->renderBlocks($block->children)
                 : "<!-- children-placeholder -->"
             ) : ""
         ) . "<!-- children-end -->";
-        }
     }
     /**
      * @param \Sivujetti\Block\Entities\Block[] $blocks
@@ -143,21 +136,12 @@ final class WebPageAwareTemplate extends Template {
      */
     public function renderBlocks(array $blocks): string {
         $out = "";
-        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        foreach ($blocks as $block)
-            $out .= "<!-- block-start {$block->id}:{$block->type} -->" .
-                ($block->type !== Block::TYPE_GLOBAL_BLOCK_REF
-                    ? $this->partial($block->renderer, $block)
-                    : $this->renderBlocks($this->getMutatedGlobalTreeBlocks($block))) .
-            "<!-- block-end {$block->id} -->";
-        } else {
         foreach ($blocks as $block)
             $out .= $block->type !== Block::TYPE_GLOBAL_BLOCK_REF
                 ? $this->partial($block->renderer, $block)
                 : ("<!-- block-start {$block->id}:{$block->type} -->" .
                     $this->renderBlocks($this->getMutatedGlobalTreeBlocks($block)) .
                 "<!-- block-end {$block->id} -->");
-        }
         return $out;
     }
     /**

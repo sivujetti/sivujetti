@@ -70,13 +70,9 @@ final class BlockTestUtils {
      * @return string
      */
     public static function decorateWithRef(object $rawBlock, string $html): string {
-        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        return "<!-- block-start {$rawBlock->id}:{$rawBlock->type} -->{$html}<!-- block-end {$rawBlock->id} -->";
-        } else {
         return $rawBlock->type !== Block::TYPE_GLOBAL_BLOCK_REF
             ? $html
             : "<!-- block-start {$rawBlock->id}:{$rawBlock->type} -->{$html}<!-- block-end {$rawBlock->id} -->";
-        }
     }
     /**
      * @param object $rawBlock

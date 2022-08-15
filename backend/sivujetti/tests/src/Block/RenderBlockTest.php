@@ -18,13 +18,6 @@ final class RenderBlockTest extends RenderBlocksTestCase {
         return $state;
     }
     private function verifyReturnedRenderOutput(\TestState $state): void {
-        if (!useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        $expected = $this->blockTestUtils->decorateWithRef($state->testBlock,
-            "<section class=\"\" data-block-type=\"Section\" data-block=\"{$state->testBlock->id}\">" .
-                "<div data-block-root><span id=\"temp-marker\"></span></div>" .
-            "</section>"
-        );
-        } else {
         $section = $state->testBlock;
         [$heading, $paragraph] = $section->children;
         $expected = "<section class=\"j-Section\" data-block-type=\"Section\" data-block=\"{$state->testBlock->id}\">" .
@@ -33,7 +26,6 @@ final class RenderBlockTest extends RenderBlocksTestCase {
                 $this->blockTestUtils->getExpectedParagraphBlockOutput($paragraph) .
             "<!-- children-end --></div>" .
         "</section>";
-        }
         $this->verifyResponseBodyEquals((object) ["result" => $expected],
                                         $state->spyingResponse);
     }

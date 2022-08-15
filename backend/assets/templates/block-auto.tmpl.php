@@ -35,17 +35,12 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):
         $this->renderChildren($props),
     $close;
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_RICH_TEXT):
-if (!useReduxBlockTree):
-    echo $props->html, // @allow pre-validated html
-         $this->renderChildren($props);
-else:
     echo "<div class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
             "\" data-block-type=\"", $props->type,
             "\" data-block=\"", $props->id, "\">",
         $props->html, // @allow pre-validated html
         $this->renderChildren($props),
     "</div>";
-endif;
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_CODE):
     echo "<div class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
             "\" data-block-type=\"", $props->type,

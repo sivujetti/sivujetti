@@ -77,7 +77,6 @@
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/pickr.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/stylis.min.js") ?>" async></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/popper.min.js") ?>" async></script>
-        <script>window.useReduxBlockTree = <?= useReduxBlockTree ? "true" : "false" ?></script>
         <script>window.isFirstRun = <?= $isFirstRun ? "true" : "false" ?></script>
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
         <script>window.translationStringBundles = []</script>

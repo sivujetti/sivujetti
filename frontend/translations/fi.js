@@ -58,8 +58,6 @@ stringBundles.push({
     'Convert to global': 'Muunna globaaliksi',
     'Convert to global content': 'Muunna globaaliksi sisällöksi',
     'Content tree': 'Sisältöpuu',
-    // edit-app/src/BlockTrees.jsx
-    'Add content to this page': 'Lisää sisältöä tähän sivuun',
     // edit-app/src/BlockTreeShowHelpPopup.jsx
     'todo1': 'Sivujetissä sivujen sisältö esitetään tällaisena puurakenteena: yksi puun rivi tai haara vastaa yhtä sivun osiota tai sisältöä. Voit ',
     'todo2': 'järjestellä',
@@ -78,10 +76,6 @@ stringBundles.push({
     'Meta content contains ': 'Metasisältöön on tallennettu ',
     'additional data / metadata': 'lisä-, tai metatietoja',
     ', and otherwise act like ordinary content.': ', ja käyttäytyvät muilta osin kuten tavallinen sisältö.',
-    // edit-app/src/BlockTypeSelector.jsx
-    'Common': 'Yleiset',
-    'Globals': 'Globaalit',
-    'Cancel': 'Peruuta',
     // edit-app/src/ConvertBlockToGlobalBlockTreeDialog.jsx
     'Store this content globally so you can use it later in other pages?': 'Tallenna tämä sisältö globaalisti että voit käyttää sitä myöhemmin myös muilla sivuilla?',
     'Name': 'Nimi',

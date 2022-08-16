@@ -4,124 +4,6 @@ import EditItemPanel from './EditItemPanel.jsx';
 
 class MenuBlockEditForm extends preact.Component {
     // linkCreator;
-    /**
-     * @param {RawBlockData} snapshot
-     * @access public
-     */
-    overrideValues(snapshot) {
-        const newState = {parsedTree: this.linkCreator.setGetCounterUsingTreeOf(snapshot)};
-        const editPanelState = this.state.editPanelState;
-        if (editPanelState.link)
-            newState.editPanelState = createEditPanelState(
-                findLinkItem(newState.parsedTree, editPanelState.link.id),
-                editPanelState.leftClass,
-                editPanelState.rightClass);
-        this.setState(newState);
-        // snapshot.wrapStart Not in use yet
-        // snapshot.wrapEnd Not in use yet
-        // snapshot.treeStart Not in use yet
-        // snapshot.treeEnd Not in use yet
-        // snapshot.itemStart Not in use yet
-        // snapshot.itemAttrs Not in use yet
-        // snapshot.itemEnd Not in use yet
-    }
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        this.linkCreator = new CountingLinkItemFactory();
-        this.setState({parsedTree: this.linkCreator.setGetCounterUsingTreeOf(this.props.block),
-                       editPanelState: createEditPanelState(),
-                       linkWithNavOpened: null});
-        this.outerEl = preact.createRef();
-        this.contextMenu = preact.createRef();
-    }
-    /**
-     * @param {BlockEditFormProps} props
-     * @access protected
-     */
-    render({onValueChanged}, {parsedTree, editPanelState}) {
-        if (!editPanelState) return;
-        return <div class="anim-outer pt-1">
-            <div class={ editPanelState.leftClass } ref={ this.outerEl }>
-                <ul class="list">{ parsedTree.map((item, i) =>
-                    <li class={ `ml-2${i > 0 ? '' : ' mt-0'}` } key={ item.id }><div class="d-flex flex-centered">
-                        <span>{ item.text }</span>
-                        <button onClick={ e => this.openMoreMenu(item, e) } class="btn btn-sm btn-link col-ml-auto flex-centered" type="button">
-                            <Icon iconId="dots" className="size-sm"/>
-                        </button>
-                    </div></li>
-                ) }</ul>
-                <button onClick={ this.appendItemToMenu.bind(this) }
-                    class="btn btn-sm text-tiny with-icon-inline color-dimmed mt-2" type="button">
-                    <Icon iconId="plus" className="size-xs mr-1"/> { __('Add link') }
-                </button>
-            </div>
-            <ContextMenu
-                links={ [
-                    {text: __('Edit'), title: __('Edit link'), id: 'edit'},
-                    {text: __('Delete'), title: __('Delete link'), id: 'delete'},
-                ] }
-                onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
-                onMenuClosed={ () => this.setState({linkWithNavOpened: null}) }
-                ref={ this.contextMenu }/>
-            <EditItemPanel
-                link={ editPanelState.link }
-                cssClass={ editPanelState.rightClass }
-                onLinkUpdated={ mutatedLink => {
-                    const ref = findLinkItem(this.state.parsedTree, mutatedLink.id);
-                    Object.assign(ref, mutatedLink); // Mutates this.state.parsedTree
-                    this.setState({parsedTree: this.state.parsedTree});
-                    onValueChanged(JSON.stringify(this.state.parsedTree), 'tree', false);
-                } }
-                endEditMode={ () => {
-                    this.setState({editPanelState: createEditPanelState(null, 'reveal-from-left', 'fade-to-right')});
-                } }
-                panelHeight={ editPanelState.leftClass === ''
-                    ? 0
-                    : this.outerEl.current.getBoundingClientRect().height
-                }/>
-        </div>;
-    }
-    /**
-     * @param {MenuLink} item
-     * @param {Event} e
-     * @access private
-     */
-    openMoreMenu(item, e) {
-        this.setState({linkWithNavOpened: item});
-        this.contextMenu.current.open(e);
-    }
-    /**
-     * @param {ContextMenuLink} link
-     * @access private
-     */
-    handleContextMenuLinkClicked(link) {
-        if (link.id === 'edit')
-            this.setState({editPanelState: {link: this.state.linkWithNavOpened,
-                                            leftClass: 'fade-to-left',
-                                            rightClass: 'reveal-from-right'}});
-        else if (link.id === 'delete')
-        this.applyAndEmit(this.state.parsedTree.filter(link => link !== this.state.linkWithNavOpened));
-    }
-    /**
-     * @access private
-     */
-    appendItemToMenu() {
-        this.applyAndEmit(this.state.parsedTree.concat(this.linkCreator.makeLinkItem({slug: '/', text: __('Link text')})));
-    }
-    /**
-     * @param {Array<MenuLink>} newParsedTree
-     * @access private
-     */
-    applyAndEmit(newParsedTree) {
-        this.setState({parsedTree: newParsedTree});
-        this.props.onValueChanged(JSON.stringify(newParsedTree), 'tree', false);
-    }
-}
-
-class MenuBlockEditForm2 extends preact.Component {
-    // linkCreator;
     // outerEl;
     // contextMenu;
     /**
@@ -148,7 +30,7 @@ class MenuBlockEditForm2 extends preact.Component {
         });
     }
     /**
-     * @param {BlockEditFormProps2} props
+     * @param {BlockEditFormProps} props
      * @access protected
      */
     render(_, {parsedTree, editPanelState}) {
@@ -237,7 +119,7 @@ class CountingLinkItemFactory {
         this.counter = 0;
     }
     /**
-     * @param {Block|RawBlock2|RawBlockData} newTree
+     * @param {RawBlock|RawBlockData} newTree
      * @returns {Array<MenuLink>}
      * @access public
      */
@@ -318,4 +200,4 @@ function getMaxId(branch) {
  */
 
 export default MenuBlockEditForm;
-export {MenuBlockEditForm2, CountingLinkItemFactory};
+export {CountingLinkItemFactory};

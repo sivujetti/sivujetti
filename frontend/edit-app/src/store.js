@@ -2,22 +2,6 @@ import {createManageableStore, observeStore} from './redux-utils.js';
 import blockTreeUtils from './blockTreeUtils.js';
 
 /**
- * @param {Object} state
- * @param {Object} action
- */
-const currentPageReducer = (state = {}, action) => {
-    switch (action.type) {
-    case 'currentPage/set':
-        return Object.assign({}, state, action.value);
-    default:
-        return state;
-    }
-};
-
-const setCurrentPage = value => ({type: 'currentPage/set', value});
-const selectCurrentPage = state => state.currentPage;
-
-/**
  * @param {CurrentPageData} state
  * @param {{type: 'currentPageDataBundle/set';, value: CurrentPageData;}} action
  */
@@ -64,56 +48,6 @@ function overrideData(block, data) {
         else block.propsData.push({key, value: data[key]});
     }
 }
-
-/**
- * @param {Object} state
- * @param {Object} action
- */
-const globalBlockTreeBlocksStylesReducer = (state = [], action) => {
-    switch (action.type) {
-    case 'globalBlockTreeBlocksStyles/set':
-        return action.value;
-    default:
-        return state;
-    }
-};
-
-const setGlobalBlockTreeBlocksStyles = value => ({type: 'globalBlockTreeBlocksStyles/set', value});
-const selectGlobalBlockTreeBlocksStyles = state => state.globalBlockTreeBlocksStyles;
-
-
-/**
- * @param {Object} state
- * @param {Object} action
- */
-const pageBlocksStylesReducer = (state = [], action) => {
-    switch (action.type) {
-    case 'pageBlocksStyles/set':
-        return action.value;
-    default:
-        return state;
-    }
-};
-
-const setPageBlocksStyles = value => ({type: 'pageBlocksStyles/set', value});
-const selectPageBlocksStyles = state => state.pageBlocksStyles;
-
-
-/**
- * @param {Object} state
- * @param {Object} action
- */
-const blockTypesBaseStylesReducer = (state = [], action) => {
-    switch (action.type) {
-    case 'blockTypesBaseStyles/set':
-        return action.value;
-    default:
-        return state;
-    }
-};
-
-const setBlockTypesBaseStyles = value => ({type: 'blockTypesBaseStyles/set', value});
-const selectBlockTypesBaseStyles = state => state.blockTypesBaseStyles;
 
 
 /**
@@ -190,22 +124,12 @@ const selectFormState = (state, id) => state.formStates[id];
 
 
 const [mainTreeStateKey, mainTreeReducer] = createBlockTreeReducerPair('main');
-const mainStore = createManageableStore(undefined, Object.assign(
-    !window.useReduxBlockTree // @featureFlagConditionUseReduxBlockTree
-        ? {
-            currentPage: currentPageReducer,
-        } : {
-            currentPageDataBundle: currentPageDataBundleReducer,
-        },
-    {
-        [mainTreeStateKey]: mainTreeReducer,
-        globalBlockTreeBlocksStyles: globalBlockTreeBlocksStylesReducer,
-        pageBlocksStyles: pageBlocksStylesReducer,
-        blockTypesBaseStyles: blockTypesBaseStylesReducer,
-        opQueue: opQueueReducer,
-        formStates: formStatesReducer,
-    }
-));
+const mainStore = createManageableStore(undefined, {
+    currentPageDataBundle: currentPageDataBundleReducer,
+    [mainTreeStateKey]: mainTreeReducer,
+    opQueue: opQueueReducer,
+    formStates: formStatesReducer,
+});
 
 const observeMainStore = (select, onChange, triggerImmediately = false) =>
     observeStore(mainStore, select, onChange, triggerImmediately)
@@ -258,15 +182,10 @@ class FormStateStoreWrapper {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-export {setCurrentPage, selectCurrentPage,
-        setCurrentPageDataBundle, selectCurrentPageDataBundle,
+export {setCurrentPageDataBundle, selectCurrentPageDataBundle,
         //
         createSetBlockTree, createUpdateBlockTreeItemData, createSelectBlockTree,
         createBlockTreeReducerPair,
-        //
-        setGlobalBlockTreeBlocksStyles, selectGlobalBlockTreeBlocksStyles,
-        setPageBlocksStyles, selectPageBlocksStyles,
-        setBlockTypesBaseStyles, selectBlockTypesBaseStyles,
         //
         setOpQueue, pushItemToOpQueue, deleteItemFromOpQueue, deleteItemsFromOpQueueAfter,
         selectOpQueue,

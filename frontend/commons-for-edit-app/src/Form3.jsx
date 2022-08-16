@@ -106,8 +106,7 @@ function createApi(cmp, k, inp) {
         newState.values = Object.assign({}, cmp.state.values, {[k]: value});
         newState.errors = Object.assign({}, cmp.state.errors, {[k]: errors});
         cmp.setState(newState);
-        if (window.useReduxBlockTree) // @featureFlagConditionUseReduxBlockTree
-            cmp.state.values = newState.values;
+        cmp.state.values = newState.values;
         if (inp.onAfterValueChanged) inp.onAfterValueChanged(value, errors.length, source);
     };
     out.onInput = e => {

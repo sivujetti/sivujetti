@@ -40,7 +40,6 @@ describe('PageInfo block', () => {
             .assert.attributeEquals(descrMetaEl2Locator, 'content', 'Updated descr');
     });
 
-    if (env.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
     it('User can add page to existing category', browser => {
         const blockTreeBtnLocator = `.block-tree li[data-block-type="PageInfo"] button`;
         const categoriesInputLocator = `${vars.inspectorPanelLocator} .prop-widget-many-to-many`;
@@ -59,7 +58,6 @@ describe('PageInfo block', () => {
             // verify what here ??
             ;
     });
-    }
 
     afterEach((browser, done) => {
         envUtils.destroyTestSite()

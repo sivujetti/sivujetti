@@ -1,4 +1,4 @@
-import {createTrier} from "../../../frontend/webpage/src/EditAppAwareWebPage.js";
+import {createTrier} from '../../../frontend/webpage/src/EditAppAwareWebPage.js';
 
 let env;
 let urlUtils;
@@ -29,7 +29,7 @@ class WebPageIframe {
         env.window.history.back();
     }
     /**
-     * @param {Block} block
+     * @param {RawBlock} block
      * @param {Boolean} isStillMaybeInsertingToDom = false
      */
     scrollTo(block, isStillMaybeInsertingToDom = false) {
@@ -54,22 +54,18 @@ class WebPageIframe {
             }
         };
         //
-        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-            doScroll(block.getRootDomNode().getBoundingClientRect());
+        if (block.type === 'PageInfo') return;
+        const body = this.getEl().contentDocument.body;
+        const getRect = firstEl => firstEl.querySelector(':scope > [data-block-root]') ||
+                firstEl.getBoundingClientRect();
+        if (!isStillMaybeInsertingToDom) {
+            doScroll(getRect(body.querySelector(`[data-block="${block.id}"]`)));
         } else {
-            if (block.type === 'PageInfo') return;
-            const body = this.getEl().contentDocument.body;
-            const getRect = firstEl => firstEl.querySelector(':scope > [data-block-root]') ||
-                   firstEl.getBoundingClientRect();
-            if (!isStillMaybeInsertingToDom) {
-                doScroll(getRect(body.querySelector(`[data-block="${block.id}"]`)));
-            } else {
-                createTrier(() => {
-                    const el = body.querySelector(`[data-block="${block.id}"]`);
-                    if (el) { doScroll(getRect(el)); return true; }
-                    else return false;
-                }, 80, 800)();
-            }
+            createTrier(() => {
+                const el = body.querySelector(`[data-block="${block.id}"]`);
+                if (el) { doScroll(getRect(el)); return true; }
+                else return false;
+            }, 80, 800)();
         }
     }
     /**

@@ -28,7 +28,7 @@ class BlockDnDSpawner extends preact.Component {
     // onDragEnd;
     // onMouseMove;
     /**
-     * @param {{mainTreeDnd: BlockTreeDragDrop; mainTree: BlockTree; saveExistingBlocksToBackend: (blocks: Array<RawBlock2>, trid: 'String') => Promise<Boolean>; currentPageIsPlaceholder: Boolean; initiallyIsOpen?: Boolean;}} props
+     * @param {{mainTreeDnd: BlockTreeDragDrop; mainTree: BlockTree; saveExistingBlocksToBackend: (blocks: Array<RawBlock>, trid: 'String') => Promise<Boolean>; currentPageIsPlaceholder: Boolean; initiallyIsOpen?: Boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -216,7 +216,7 @@ class BlockDnDSpawner extends preact.Component {
         this.hideLoadingIndicatorIfVisible();
     }
     /**
-     * @param {RawBlock2} block
+     * @param {RawBlock} block
      * @param {'before'|'after'|'as-child'} position
      * @returns {BlockDragDataInfo|null}
      * @access private
@@ -361,7 +361,7 @@ class BlockDnDSpawner extends preact.Component {
  * Note: mutates $tree
  *
  * @param {String} blockId
- * @param {Array<RawBlock2>} tree
+ * @param {Array<RawBlock>} tree
  */
 function deleteBlockFromTree(blockId, tree) {
     const [b, br] = blockTreeUtils.findBlock(blockId, tree);

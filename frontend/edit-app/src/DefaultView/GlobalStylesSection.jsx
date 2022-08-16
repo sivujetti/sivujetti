@@ -212,14 +212,6 @@ class GlobalStylesSection extends MenuSection {
         this.props.currentWebPage.setCssVarValue(varName, {type: 'color', value: hexa});
         return asString;
     }
-    /**
-     * @param {String} blockTypeName
-     * @param {String} newStyles
-     * @access private
-     */
-    _applyBlockStylesToState(blockTypeName, newStyles) {
-        this.props.currentWebPage.updateCssStyles({type: 'blockType', id: blockTypeName}, newStyles);
-    }
 }
 
 /**

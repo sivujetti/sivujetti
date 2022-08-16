@@ -1,69 +1,20 @@
-import {__, http, urlUtils, signals, env} from '@sivujetti-commons-for-edit-app';
-import {InputGroupInline} from '../commons/Form.jsx';
+import {__, http, urlUtils} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
-import BlockTrees from '../BlockTrees.jsx';
 import store, {deleteItemsFromOpQueueAfter, observeStore, selectCurrentPageDataBundle,
                setOpQueue, createSelectBlockTree, selectOpQueue, setCurrentPageDataBundle} from '../store.js';
 import {treeToTransferable} from '../Block/utils.js';
-import blockTreeUtils from '../blockTreeUtils.js';
-import {CountingLinkItemFactory} from '../block-types/Menu/EditForm.jsx';
-import {BlockValMutator} from '../BlockEditForm.jsx';
 import OnThisPageSection from '../DefaultView/OnThisPageSection.jsx';
 
-const ID_NONE = '-';
-const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
-
 class PageCreateMainPanelView extends preact.Component {
-    // pageMetaData;
-    // linkedMenuBlockVals;
-    // unregisterSignalListener;
     // submitOpResult;
     /**
      * Note to self: getLayouts, initialLayoutId and getMenus are for tests.
      *
-     * @param {{cancelAddPage: () => void; pageType: PageType; reRenderWithAnotherLayout: (layoutId: String) => void; blockTreesRef: preact.Ref; noAutoFocus?: Boolean; getLayouts?: () => Promise<Array<Layout>>; initialLayoutId?: String; getMenus?: () => Promise<Array<{block: Block; containingGlobalBlockTree: RawGlobalBlockTree;}>>}} props
+     * @param {{cancelAddPage: () => void; pageType: PageType; blockTreesRef: preact.Ref; getLayouts?: () => Promise<Array<Layout>>; initialLayoutId?: String; getMenus?: () => Promise<Array<{block: Block; containingGlobalBlockTree: RawGlobalBlockTree;}>>}} props
      */
     constructor(props) {
         super(props);
-        this.pageMetaData = {};
-        this.linkedMenuBlockVals = null;
-        this.state = {layouts: [], menuInfos: [], addToMenuId: ID_NONE, currentPage: null};
-        if (!featureFlagConditionUseReduxBlockTree) {
-        this.unregisterSignalListener = signals.on('on-page-info-form-value-changed',
-            /**
-             * @param {PageMetaRaw} pageMeta
-             * @param {Boolean} _isInit
-             */
-            (pageMeta, _isInit) => {
-                this.pageMetaData = pageMeta;
-                if (this.linkedMenuBlockVals) {
-                    const parsed = JSON.parse(this.linkedMenuBlockVals.getBlock().tree);
-                    const ref = parsed[parsed.length - 1];
-                    if (ref.text === pageMeta.title && ref.slug === pageMeta.slug) return;
-                    Object.assign(ref, {slug: pathToFullSlug(pageMeta.path), text: pageMeta.title});
-                    this.linkedMenuBlockVals.handleSingleValueChanged(JSON.stringify(parsed), 'tree', false, 0, 'debounce-none');
-                }
-            });
-        (props.getLayouts ? props.getLayouts() : http.get('/api/layouts'))
-            .then(layouts => {
-                this.setState({layouts});
-            })
-            .catch(env.window.console.error);
-        (props.getMenus ? props.getMenus() : http.get('/api/blocks/Menu'))
-            .then(menuInfos => {
-                this.setState({menuInfos: menuInfos.length
-                    ? [{block: {id: ID_NONE}, containingGlobalBlockTree: null}].concat(menuInfos)
-                    : []
-                });
-            })
-            .catch(env.window.console.error);
-        }
-    }
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        if (!featureFlagConditionUseReduxBlockTree) this.onLoad();
+        this.state = {currentPage: null};
     }
     /**
      * @access protected
@@ -76,57 +27,13 @@ class PageCreateMainPanelView extends preact.Component {
      */
     componentWillUnmount() {
         store.dispatch(deleteItemsFromOpQueueAfter('create-new-page'));
-        if (!featureFlagConditionUseReduxBlockTree) {
-        this.unregisterSignalListener();
-        }
     }
     /**
      * @access protected
      */
-    render({pageType, cancelAddPage, blockTreesRef, initialLayoutId}, {layouts, menuInfos}) {
+    render({pageType, cancelAddPage, blockTreesRef}) {
         const name = __(pageType ? pageType.friendlyName : 'page');
-        return !featureFlagConditionUseReduxBlockTree ? <form>
-            <header class="panel-section mb-2">
-                <h1 class="mb-2">{ __('Create %s', name) }</h1>
-                <button
-                    onClick={ cancelAddPage }
-                    class="btn btn-link btn-sm"
-                    title={ __('Cancel add %s', name) }
-                    type="button">&lt; { __('Back') }</button>
-            </header>
-            { layouts.length || menuInfos.length ?
-            <section class="panel-section open pt-0"><div class="form-horizontal pt-0">
-                <InputGroupInline>
-                    <label class="form-label" htmlFor="layout">{ __('Layout') }</label>
-                    <select
-                        value={ initialLayoutId || (this.getCurrentPage() || {layoutId: '-'}).layoutId }
-                        onChange={ e => this.props.reRenderWithAnotherLayout(e.target.value) }
-                        class="form-select form-input tight"
-                        name="layout"
-                        id="layout">{ layouts.map(l =>
-                        <option value={ l.id }>{ __(l.friendlyName) }</option>
-                    ) }</select>
-                </InputGroupInline>
-                { menuInfos.length ? <InputGroupInline>
-                    <label class="form-label" htmlFor="layout">{ __('Add to menu') }</label>
-                    <select
-                        value={ this.state.addToMenuId }
-                        onChange={ this.handleAddToMenuChanged.bind(this) }
-                        class="form-select form-input tight"
-                        name="addToMenu"
-                        id="addToMenu">{ menuInfos.map(({block, containingGlobalBlockTree}) =>
-                        <option value={ block.id }>
-                            { containingGlobalBlockTree ? `${containingGlobalBlockTree.name} > ${__('Menu')}` : '-' }
-                        </option>
-                    ) }</select>
-                </InputGroupInline> : null }
-            </div></section> : null }
-            <section>
-                <BlockTrees
-                    containingView="CreatePage"
-                    ref={ blockTreesRef }/>
-            </section>
-        </form> : <form class="page-create">
+        return <form class="page-create">
             <header class="panel-section pb-0">
                 <h1 class="mb-2">{ __('Create %s', name) }</h1>
                 <button
@@ -142,17 +49,6 @@ class PageCreateMainPanelView extends preact.Component {
      * @access private
      */
     onLoad() {
-        if (!featureFlagConditionUseReduxBlockTree) {
-        store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
-            doHandle: this.handleFormSubmitted.bind(this),
-            args: []
-        }}]));
-        if (this.props.noAutoFocus)
-            return;
-        setTimeout(() => {
-            env.document.querySelector('.block-tree li[data-block-type="PageInfo"] .block-handle').click();
-        }, 1);
-        } else {
         this.setState({currentPage: selectCurrentPageDataBundle(store.getState()).page});
         store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
             doHandle: () => {
@@ -170,45 +66,6 @@ class PageCreateMainPanelView extends preact.Component {
             },
             args: []
         }}]));
-        }
-    }
-    /**
-     * @param {Event} e
-     * @access private
-     */
-    handleAddToMenuChanged(e) {
-        const newValue = e.target.value;
-        if (!featureFlagConditionUseReduxBlockTree) {
-        //
-        if (this.state.addToMenuId !== ID_NONE && this.linkedMenuBlockVals) {
-            const parsed = JSON.parse(this.linkedMenuBlockVals.getBlock().tree);
-            this.linkedMenuBlockVals.handleSingleValueChanged(JSON.stringify(parsed.slice(0, parsed.length - 1)), 'tree');
-            this.linkedMenuBlockVals = null;
-        }
-        // Find selected menu's parent GlobalBlockReference block from current blockTree
-        const linkedMenuBase = newValue === ID_NONE ? null : (function (menuInfos, blockTreesRef) {
-            const info = menuInfos.find(({block}) => block.id === newValue);
-            const containingGbtId = info.containingGlobalBlockTree.id;
-            const curPageBlocks = blockTreesRef.current.getPageBlocks();
-            return blockTreeUtils.findRecursively(curPageBlocks, b => {
-                return b.type === 'GlobalBlockReference' && b.globalBlockTreeId === containingGbtId;
-            });
-        })(this.state.menuInfos, this.props.blockTreesRef);
-        //
-        if (linkedMenuBase) {
-            const block = blockTreeUtils.findBlock(newValue, linkedMenuBase.__globalBlockTree.blocks)[0];
-            //
-            const linkCreator = new CountingLinkItemFactory();
-            const parsed = linkCreator.setGetCounterUsingTreeOf(block);
-            const newLink = linkCreator.makeLinkItem({slug: pathToFullSlug(this.pageMetaData.path), text: this.pageMetaData.title});
-            parsed.push(newLink);
-            //
-            const metaProps = {block, base: linkedMenuBase, blockTreeCmp: this.props.blockTreesRef.current.blockTree.current};
-            this.linkedMenuBlockVals = new BlockValMutator(metaProps);
-            this.linkedMenuBlockVals.handleSingleValueChanged(JSON.stringify(parsed), 'tree', false, 0, 'debounce-none');
-        }
-        this.setState({addToMenuId: newValue});
-        }
     }
     /**
      * @param {Event|undefined} e
@@ -219,19 +76,11 @@ class PageCreateMainPanelView extends preact.Component {
         if (e) e.preventDefault();
         let data;
         let pageDataBundle;
-        if (!featureFlagConditionUseReduxBlockTree) {
-        // {title, slug, path, meta, customField1, customField2 ...}
-        data = Object.assign({}, this.pageMetaData);
-        data.level = 1;
-        data.layoutId = this.getCurrentPage().layoutId;
-        data.blocks = this.props.blockTreesRef.current.getPageBlocks();
-        } else {
         pageDataBundle = selectCurrentPageDataBundle(store.getState());
         data = JSON.parse(JSON.stringify(pageDataBundle.page));
         delete data.id;
         data.blocks = treeToTransferable(createSelectBlockTree('main')(store.getState()).tree);
         this.submitOpResult = null;
-        }
         data.status = 0;
         //
         return http.post(`/api/pages/${this.props.pageType.name}`, data).then(resp => {
@@ -240,13 +89,9 @@ class PageCreateMainPanelView extends preact.Component {
                     return true;
                 }
                 if (resp.ok !== 'ok') throw new Error('-');
-                if (!featureFlagConditionUseReduxBlockTree)
-                    urlUtils.redirect(`/_edit${pathToFullSlug(data.path, '')}`);
-                else {
-                    this.submitOpResult = {ok: 'ok', redirectTo: `/_edit${pathToFullSlug(data.path, '')}`};
-                    pageDataBundle.page.id = resp.insertId;
-                    setCurrentPageDataBundle(pageDataBundle);
-                }
+                this.submitOpResult = {ok: 'ok', redirectTo: `/_edit${pathToFullSlug(data.path, '')}`};
+                pageDataBundle.page.id = resp.insertId;
+                setCurrentPageDataBundle(pageDataBundle);
                 return true;
             })
             .catch(err => {
@@ -255,15 +100,6 @@ class PageCreateMainPanelView extends preact.Component {
                 this.form.setIsSubmitting(false);
                 return false;
             });
-    }
-    /**
-     * @returns {Page|undefined}
-     * @access private
-     */
-    getCurrentPage() {
-        return !featureFlagConditionUseReduxBlockTree
-            ? BlockTrees.currentWebPage.data.page
-            : this.state.currentPage;
     }
 }
 

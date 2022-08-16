@@ -19,9 +19,7 @@ export default () => {
         defaultRenderer: initialData.renderWith,
         icon: 'layout-list',
         reRender(block, _) {
-            return !window.useReduxBlockTree // @featureFlagConditionUseReduxBlockTree
-                ? http.post('/api/blocks/render', {block: block.toRaw()}).then(resp => resp.result)
-                : http.post('/api/blocks/render', {block: toTransferable(block)}).then(resp => resp.result);
+            return http.post('/api/blocks/render', {block: toTransferable(block)}).then(resp => resp.result);
         },
         createSnapshot: from => ({
             filterPageType: from.filterPageType,

@@ -352,13 +352,13 @@ class BlockTreeDragDrop {
 }
 
 /**
- * @param {RawBlock2} dragBlock
- * @param {Array<RawBlock2>} dragBranch
- * @param {RawBlock2} dropBlock
- * @param {Array<RawBlock2>} dropBranch
+ * @param {RawBlock} dragBlock
+ * @param {Array<RawBlock>} dragBranch
+ * @param {RawBlock} dropBlock
+ * @param {Array<RawBlock>} dropBranch
  * @param {Boolean} isBefore
  * @param {DropCandidate} dropInfo
- * @param {Array<RawBlock2>} dragBlockTree
+ * @param {Array<RawBlock>} dragBlockTree
  * @returns {SwapChangeEventData}
  */
 function moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore, dropInfo, dragBlockTree) {
@@ -376,11 +376,11 @@ function moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBef
 }
 
 /**
- * @param {RawBlock2} to
- * @param {RawBlock2} dropBlock
- * @param {RawBlock2} dragBlock
- * @param {Array<RawBlock2>} dragBranch
- * @param {Array<RawBlock2>} dragBlockTree
+ * @param {RawBlock} to
+ * @param {RawBlock} dropBlock
+ * @param {RawBlock} dragBlock
+ * @param {Array<RawBlock>} dragBranch
+ * @param {Array<RawBlock>} dragBlockTree
  * @param {DropCandidate} dropInfo
  * @returns {SwapChangeEventData}
  */
@@ -397,10 +397,10 @@ function moveToChild(to, dropBlock, dragBlock, dragBranch, dragBlockTree, dropIn
 }
 
 /**
- * @param {RawBlock2} dragBlock
- * @param {RawBlock2} dropBlock
+ * @param {RawBlock} dragBlock
+ * @param {RawBlock} dropBlock
  * @param {DropCandidate} dropInfo
- * @param {() => Array<RawBlock2>} doRevert
+ * @param {() => Array<RawBlock>} doRevert
  * @returns {SwapChangeEventData}
  */
 function createMutationInfo(dragBlock, dropBlock, dropInfo, doRevert) {

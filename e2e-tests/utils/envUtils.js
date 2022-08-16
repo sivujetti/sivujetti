@@ -18,7 +18,6 @@ exports.env = {
     makeAutoLoginUrl(urlToRedirectAfter) {
         return config.baseUrl.replace('/index.php?q=', '/e2e-tests/utils/autologin.php?urlToRedirectAfter=' + encodeURIComponent(urlToRedirectAfter));
     },
-    useReduxBlockTree: true,
 };
 
 exports.envUtils = {

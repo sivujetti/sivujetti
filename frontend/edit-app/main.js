@@ -126,21 +126,6 @@ function renderReactEditApp() {
      * @access public
      */
     window.passWebPageToEditApp = (webPage) => {
-        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        const editApp = editAppReactRef.current;
-        //
-        const blockRefs = webPage.scanBlockRefComments();
-        const ordered = webPage.getCombinedAndOrderedBlockTree(webPage.data.page.blocks,
-                                                               blockRefs,
-                                                               blockTreeUtils);
-        const filtered = !webPage.data.page.isPlaceholderPage
-            // Accept all
-            ? blockRefs
-            // Only if page block
-            : blockRefs.filter(({blockId}) => blockTreeUtils.findBlock(blockId, webPage.data.page.blocks)[0] !== null);
-        webPage.registerEventHandlers(editApp.websiteEventHandlers, filtered);
-        editApp.handleWebPageLoaded(webPage, ordered, blockRefs, null);
-        } else {
         const editApp = editAppReactRef.current;
         const els = webPage.scanBlockElements();
         const {blocks} = webPage.data.page;
@@ -172,8 +157,7 @@ function renderReactEditApp() {
         for (const [trid, tree] of separatedTrees)
             trees.set(trid, tree);
         //
-        editApp.handleWebPageLoaded2(webPage, trees);
-        }
+        editApp.handleWebPageLoaded(webPage, trees);
     };
 }
 

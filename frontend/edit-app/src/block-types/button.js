@@ -14,111 +14,11 @@ const tagTypes = Object.freeze({
 
 class ButtonBlockEditForm extends preact.Component {
     // editor;
-    // tagTypeOptions;
-    /**
-     * @param {BlockEditFormProps} props
-     */
-    constructor(props) {
-        super(props);
-        this.tagTypeOptions = [
-            {name: tagTypes.LINK, friendlyName: __('Link element')},
-            {name: tagTypes.NORMAL_BUTTON, friendlyName: __('Normal button')},
-            {name: tagTypes.SUBMIT_BUTTON, friendlyName: __('Submit button')},
-        ];
-    }
-    /**
-     * @param {RawBlockData} snapshot
-     * @access public
-     */
-    overrideValues(snapshot) {
-        this.editor.current.replaceContents(snapshot.html);
-        reHookValues(this, [{name: 'linkTo', value: snapshot.linkTo}]);
-        this.setState({tagType: snapshot.tagType});
-    }
-    /**
-     * @access protected
-     */
-    componentWillMount() {
-        const {block, onValueChanged} = this.props;
-        this.editor = preact.createRef();
-        this.setState(hookForm(this, [
-            {name: 'html', value: block.html, validations: [['required'], ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
-             label: __('Content'), onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'html', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'linkTo', value: block.linkTo, validations: [[urlValidatorImpl, {allowExternal: true, allowEmpty: true}],
-                ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link'),
-             onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'linkTo', hasErrors, env.normalTypingDebounceMillis); }},
-        ], {
-            tagType: block.tagType,
-        }));
-    }
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        setFocusTo(this.editor);
-    }
-    /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        unhookForm(this);
-    }
-    /**
-     * @access protected
-     */
-    render({block}, {tagType}) {
-        if (!this.state.values) return;
-        return <>
-            <FormGroup>
-                <QuillEditor
-                    name="html"
-                    value={ block.html }
-                    onChange={ markup => {
-                        this.inputApis.html.triggerInput(unParagraphify(markup));
-                    } }
-                    onBlur={ e => this.inputApis.html.onBlur(e) }
-                    toolbarBundle="simplest"
-                    ref={ this.editor }/>
-                <InputErrors vm={ this } prop="html"/>
-            </FormGroup>
-            <div class="form-horizontal pt-0">
-                <FormGroupInline>
-                    <label htmlFor="tagType" class="form-label">{ __('Tag type') }</label>
-                    <select value={ tagType } onChange={ this.handleTagTypeChanged.bind(this) } class="form-input form-select">{
-                        this.tagTypeOptions.map(({name, friendlyName}) =>
-                            <option value={ name }>{ friendlyName }</option>
-                        )
-                    }</select>
-                </FormGroupInline>
-                { tagType === tagTypes.LINK
-                    ? <FormGroupInline>
-                        <label htmlFor="linkTo" class="form-label">{ __('Link') }</label>
-                        <Input vm={ this } prop="linkTo"/>
-                        <InputErrors vm={ this } prop="linkTo"/>
-                    </FormGroupInline>
-                    : null
-                }
-            </div>
-        </>;
-    }
-    /**
-     * @param {Event} e
-     * @access private
-     */
-    handleTagTypeChanged(e) {
-        const newVal = e.target.value;
-        this.setState({tagType: newVal});
-        this.props.onValueChanged(newVal, 'tagType', false, env.normalTypingDebounceMillis);
-    }
-}
-
-class ButtonBlockEditForm2 extends preact.Component {
-    // editor;
     // userCanChangeTagType;
     // tagTypeOptions;
     // initialHtml;
     /**
-     * @param {BlockEditFormProps2} props
+     * @param {BlockEditFormProps} props
      */
     constructor(props) {
         super(props);
@@ -247,7 +147,6 @@ export default () => {
             linkTo: from.linkTo,
             tagType: from.tagType,
         }),
-        // @featureFlagConditionUseReduxBlockTree
-        editForm: !window.useReduxBlockTree ? ButtonBlockEditForm : ButtonBlockEditForm2,
+        editForm: ButtonBlockEditForm,
     };
 };

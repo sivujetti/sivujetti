@@ -3,12 +3,10 @@ import toasters, {Toaster} from './commons/Toaster.jsx';
 import DefaultMainPanelView from './DefaultView/DefaultMainPanelView.jsx';
 import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
 import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType/PageTypeCreateMainPanelView.jsx';
-import store, {observeStore, setCurrentPage, setCurrentPageDataBundle, setGlobalBlockTreeBlocksStyles, setPageBlocksStyles,
-               setOpQueue, selectGlobalBlockTreeBlocksStyles, selectPageBlocksStyles, selectBlockTypesBaseStyles,
-               createSetBlockTree, createBlockTreeReducerPair, createSelectBlockTree} from './store.js';
+import store, {observeStore, setCurrentPageDataBundle, setOpQueue, createSetBlockTree,
+               createBlockTreeReducerPair, createSelectBlockTree} from './store.js';
 import {observeStore as observeStore2} from './store2.js';
 import SaveButton from './SaveButton.jsx';
-import {findBlockTemp} from './BlockTreeOld.jsx';
 import {makePath, makeSlug} from './block-types/pageInfo.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import {toTransferable} from './Block/utils.js';
@@ -22,7 +20,6 @@ class EditApp extends preact.Component {
     // changeViewOptions;
     // blockTrees;
     // currentWebPage;
-    // currentPageData;
     // resizeHandleEl;
     // highlightRectEl;
     // websiteEventHandlers;
@@ -39,55 +36,24 @@ class EditApp extends preact.Component {
             ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
             : []
         ).concat({name: 'log-out', label: __('Log out')});
-        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        this.state = {currentMainPanel: 'default', hidePanels: getArePanelsHidden()};
-        } else {
         this.state = {currentMainPanel: determineViewNameFrom(env.window.location.href),
                       hidePanels: getArePanelsHidden(),
                       currentPage: null};
-        }
         if (this.state.hidePanels) props.rootEl.classList.add(PANELS_HIDDEN_CLS);
         this.blockTrees = preact.createRef();
         this.currentWebPage = null;
-        this.currentPageData = null;
         this.resizeHandleEl = preact.createRef();
         this.highlightRectEl = preact.createRef();
-        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        this.websiteEventHandlers = createWebsiteEventHandlers(this.highlightRectEl,
-                                                               this.blockTrees);
-        this.registerWebPageIframeStylesUpdaters();
-        } else {
         this.websiteEventHandlers = createWebsiteEventHandlers2(this.highlightRectEl,
                                                                 this.blockTrees);
-        }
         this.receivingData = true;
     }
     /**
      * @param {EditAppAwareWebPage} webPage
-     * @param {Array<RawBlock} combinedBlockTree
-     * @param {Array<BlockRefComment>} blockRefs
+     * @param {Map<String, Array<RawBlock>>|null} trees
      * @access public
      */
-    handleWebPageLoaded(webPage, combinedBlockTree, blockRefs) {
-        this.receivingData = true;
-        webPage.setIsMouseListenersDisabled(getArePanelsHidden());
-        const webPagePage = webPage.data.page;
-        this.currentWebPage = webPage;
-        this.currentPageData = webPagePage;
-        this.setState({currentMainPanel: !webPagePage.isPlaceholderPage ? 'default' : 'create-page'});
-        signals.emit('on-web-page-loaded');
-        store.dispatch(setCurrentPage({webPage, combinedBlockTree, blockRefs}));
-        store.dispatch(setGlobalBlockTreeBlocksStyles(webPage.data.globalBlocksStyles));
-        store.dispatch(setPageBlocksStyles(webPage.data.page.blockStyles));
-        store.dispatch(setOpQueue([]));
-        this.receivingData = false;
-    }
-    /**
-     * @param {EditAppAwareWebPage2} webPage
-     * @param {Map<String, Array<RawBlock2>>|null} trees
-     * @access public
-     */
-    handleWebPageLoaded2(webPage, trees) {
+    handleWebPageLoaded(webPage, trees) {
         this.receivingData = true;
         const {data} = webPage;
         delete webPage.data;
@@ -97,7 +63,7 @@ class EditApp extends preact.Component {
             webPageUnregistrables.clear();
         }
         this.currentWebPage = webPage;
-        webPage.registerEventHandlers2(this.websiteEventHandlers);
+        webPage.registerEventHandlers(this.websiteEventHandlers);
         data.page = maybePatchTitleAndSlug(data.page);
         const {page} = data;
         signals.emit('on-web-page-loading-started', page, this.state.currentPage);
@@ -131,7 +97,7 @@ class EditApp extends preact.Component {
     }
     /**
      * @param {String} trid
-     * @param {Array<RawBlock2>} blocks
+     * @param {Array<RawBlock>} blocks
      * @access public
      */
     addBlockTree(trid, blocks) {
@@ -168,10 +134,7 @@ class EditApp extends preact.Component {
      * @access protected
      */
     render(_, {currentPage, currentMainPanel, hidePanels}) {
-        const featureFlagConditionUseReduxBlockTree = window.useReduxBlockTree;
-        let pageType = !featureFlagConditionUseReduxBlockTree
-            ? this.currentPageData ? this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === this.currentPageData.type) : null
-            : currentPage ? this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === currentPage.type) : null;
+        const pageType = currentPage ? this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === currentPage.type) : null;
         const logoUrl = urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo.png');
         return <div>
             { !hidePanels ? null : <a onClick={ e => (e.preventDefault(), this.handlePanelsAreHiddenChanged(false)) } id="back-to-edit-corner" href="">
@@ -223,7 +186,7 @@ class EditApp extends preact.Component {
                     blockTreesRef={ this.blockTrees }
                     startAddPageMode={ () => {
                         // Open to iframe to '/_edit/api/_placeholder-page...',
-                        // which then triggers this.handleWebPageLoaded2()
+                        // which then triggers this.handleWebPageLoaded()
                         api.webPageIframe.openPlaceholderPage('Pages', pageType.defaultLayoutId);
                         this.setState({currentMainPanel: 'create-page'});
                         floatingDialog.close();
@@ -245,10 +208,6 @@ class EditApp extends preact.Component {
                     ? <PageCreateMainPanelView
                         blockTreesRef={ this.blockTrees }
                         cancelAddPage={ () => api.webPageIframe.goBack() }
-                        reRenderWithAnotherLayout={ layoutId => {
-                            this.setState({currentMainPanel: 'default'});
-                            api.webPageIframe.openPlaceholderPage(this.currentPageData.type, layoutId);
-                        } }
                         pageType={ pageType }/>
                     : <PageTypeCreateMainPanelView
                         blockTreesRef={ this.blockTrees }
@@ -260,10 +219,7 @@ class EditApp extends preact.Component {
             }
             <Toaster id="editAppMain"/>
             <FloatingDialog/>
-            { !featureFlagConditionUseReduxBlockTree
-                ? <span class="highlight-rect" data-adjust-title-from-top="no" ref={ this.highlightRectEl }></span>
-                : <span class="highlight-rect" data-position="top-outside" ref={ this.highlightRectEl }></span>
-            }
+            <span class="highlight-rect" data-position="top-outside" ref={ this.highlightRectEl }></span>
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         </div>;
     }
@@ -278,7 +234,7 @@ class EditApp extends preact.Component {
     }
     /**
      * @param {String} trid
-     * @param {Array<RawBlock2>} tree
+     * @param {Array<RawBlock>} tree
      * @access private
      */
     createStoreAndDispatchInnerTree(trid, tree) {
@@ -388,107 +344,11 @@ class EditApp extends preact.Component {
                 toasters.editAppMain(__('Something unexpected happened.'), 'error');
             });
     }
-    /**
-     * @access private
-     */
-    registerWebPageIframeStylesUpdaters() {
-        /** @param {Array<RawBlockStyle>} pageBlocksStyles */
-        const updateBlockStyles = pageBlocksStyles => {
-            if (this.receivingData)
-                return;
-            pageBlocksStyles.forEach(({blockId, styles}) => {
-                this.currentWebPage.updateCssStylesIfChanged('singleBlock', blockId, styles);
-            });
-        };
-        observeStore(selectPageBlocksStyles, updateBlockStyles.bind(this));
-
-        /** @param {Array<RawGlobalBlockTreeBlocksStyles>} blockTreeBlocksStyles */
-        const updateBlockStyles2 = blockTreeBlocksStyles => {
-            if (this.receivingData)
-                return;
-            blockTreeBlocksStyles.forEach(tree => {
-                tree.styles.forEach(({blockId, styles}) => {
-                    this.currentWebPage.updateCssStylesIfChanged('singleBlock', blockId, styles);
-                });
-            });
-        };
-        observeStore(selectGlobalBlockTreeBlocksStyles, updateBlockStyles2.bind(this));
-
-        /** @param {Array<RawBlockTypeBaseStyles>} blockTypeBaseStyles */
-        const updateBlockStyles3 = blockTypeBaseStyles => {
-            if (this.receivingData)
-                return;
-            blockTypeBaseStyles.forEach(({blockTypeName, styles}) => {
-                this.currentWebPage.updateCssStylesIfChanged('blockType', blockTypeName, styles);
-            });
-        };
-        observeStore(selectBlockTypesBaseStyles, updateBlockStyles3.bind(this));
-    }
 }
 
 /**
  * @param {preact.Ref} highlightRectEl
- * @param {preact.Ref} blockTrees
  * @returns {EditAwareWebPageEventHandlers}
- */
-function createWebsiteEventHandlers(highlightRectEl, blockTrees) {
-    let prevHoverStartBlockRef = null;
-    const TITLE_LABEL_HEIGHT = 18; // at least
-    const hideRect = () => {
-        highlightRectEl.current.setAttribute('data-title', '');
-        highlightRectEl.current.style.cssText = '';
-        prevHoverStartBlockRef = null;
-    };
-    return {
-        /**
-         * @param {BlockRefComment} blockRef
-         * @param {ClientRect} r
-         */
-        onHoverStarted(blockRef, r) {
-            if (prevHoverStartBlockRef === blockRef)
-                return;
-            highlightRectEl.current.style.cssText = [
-                'width:', r.width, 'px;',
-                'height:', r.height, 'px;',
-                'top:', r.top, 'px;',
-                'left:', r.left + LEFT_PANEL_WIDTH, 'px'
-            ].join('');
-            const blockTreeCmp = blockTrees.current.blockTree.current;
-            const block = findBlockTemp(blockRef, blockTreeCmp);
-            const isNewBlock = blockTreeCmp.isNewBlock(block)[0];
-            highlightRectEl.current.setAttribute('data-adjust-title-from-top', r.top > TITLE_LABEL_HEIGHT ? 'no' : 'yes');
-            highlightRectEl.current.setAttribute('data-title',
-                (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type)
-            );
-            highlightRectEl.current.setAttribute('data-is-new', isNewBlock ? 'y' : 'n');
-            prevHoverStartBlockRef = blockRef;
-        },
-        /**
-         * @param {BlockRefComment|null} blockRef
-         */
-        onClicked(blockRef) {
-            signals.emit('on-web-page-click-received');
-            if (!blockRef) return;
-            const treeCmp = blockTrees.current.blockTree.current;
-            const block = findBlockTemp(blockRef, treeCmp);
-            signals.emit('on-web-page-block-clicked', block);
-            treeCmp.handleItemClicked(block, false);
-        },
-        /**
-         * @param {BlockRefComment} blockRef
-         */
-        onHoverEnded(blockRef, _r) {
-            setTimeout(() => {
-                if (blockRef === prevHoverStartBlockRef)
-                    hideRect();
-            }, 80);
-        },
-    };
-}
-
-/**
- * @param {preact.Ref} highlightRectEl
- * @returns {EditAwareWebPageEventHandlers2}
  */
 function createWebsiteEventHandlers2(highlightRectEl) {
     let prevHoverStartBlockEl = null;
@@ -588,7 +448,7 @@ function maybePatchTitleAndSlug(page) {
 
 /**
  * @param {String} trid
- * @returns {Array<RawBlock2>}
+ * @returns {Array<RawBlock>}
  */
 function getTree(trid) {
     return createSelectBlockTree(trid)(store.getState()).tree;

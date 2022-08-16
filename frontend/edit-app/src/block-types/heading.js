@@ -1,81 +1,10 @@
-import {__, env, hookForm, unhookForm, InputErrors, FormGroup, FormGroupInline, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, env, hookForm, unhookForm, InputErrors, FormGroup, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import QuillEditor from '../Quill/QuillEditor.jsx';
 import {validationConstraints} from '../constants.js';
 import {unParagraphify} from './paragraph.js';
 import setFocusTo from './auto-focusers.js';
 
 class HeadingBlockEditForm extends preact.Component {
-    // editor;
-    /**
-     * @param {RawBlockData} snapshot
-     * @access public
-     */
-    overrideValues(snapshot) {
-        this.editor.current.replaceContents(snapshot.text);
-        this.setState({level: snapshot.level.toString()});
-    }
-    /**
-     * @access protected
-     */
-    componentWillMount() {
-        const {block, onValueChanged} = this.props;
-        this.editor = preact.createRef();
-        this.setState(hookForm(this, [
-            {name: 'text', value: block.text, validations: [['required'], ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
-             label: __('Content'), onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'text', hasErrors, env.normalTypingDebounceMillis); }},
-        ], {
-            level: block.level.toString(),
-        }));
-    }
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        setFocusTo(this.editor);
-    }
-    /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        unhookForm(this);
-    }
-    /**
-     * @param {BlockEditFormProps} props
-     * @access protected
-     */
-    render({blockTree, block, onValueChanged}, {level}) {
-        if (!this.state.values) return;
-        return <>
-            <FormGroup>
-                <QuillEditor
-                    name="text"
-                    value={ block.text }
-                    onChange={ markup => {
-                        this.inputApis.text.triggerInput(unParagraphify(markup));
-                    } }
-                    onBlur={ e => this.inputApis.text.onBlur(e) }
-                    toolbarBundle="simplest"
-                    ref={ this.editor }/>
-                <InputErrors vm={ this } prop="text"/>
-            </FormGroup>
-            <div class="form-horizontal pt-0">
-                <FormGroupInline>
-                    <label htmlFor="level" class="form-label">{ __('Level') }</label>
-                    <select value={ level } onChange={ e => onValueChanged(parseInt(e.target.value), 'level', false, env.normalTypingDebounceMillis) } class="form-input form-select">{ [1, 2, 3, 4, 5, 6].map(n =>
-                        <option value={ n }>{ `<h${n}>` }</option>
-                    ) }</select>
-                </FormGroupInline>
-            </div>
-            <a onClick={ e => (e.preventDefault(), blockTree.appendBlockToTreeAfter(block)) }
-                class="btn btn-link btn-sm text-tiny with-icon-inline color-dimmed"
-                href="#add-block-after">
-                <Icon iconId="plus" className="size-xs mr-1"/> { __('Add content after') }
-            </a>
-        </>;
-    }
-}
-
-class HeadingBlockEditForm2 extends preact.Component {
     // editor;
     // initialText;
     /**
@@ -112,7 +41,7 @@ class HeadingBlockEditForm2 extends preact.Component {
         unhookForm(this);
     }
     /**
-     * @param {BlockEditFormProps2} props
+     * @param {BlockEditFormProps} props
      * @access protected
      */
     render({emitValueChanged}, {level}) {
@@ -158,7 +87,6 @@ export default () => {
             text: from.text,
             level: from.level,
         }),
-        // @featureFlagConditionUseReduxBlockTree
-        editForm: !window.useReduxBlockTree ? HeadingBlockEditForm : HeadingBlockEditForm2,
+        editForm: HeadingBlockEditForm,
     };
 };

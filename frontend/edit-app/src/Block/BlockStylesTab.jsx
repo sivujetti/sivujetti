@@ -23,7 +23,7 @@ class BlockStylesTab extends preact.Component {
     // liIdxOfOpenMoreMenu;
     // refElOfOpenMoreMenu;
     /**
-     * @param {{emitAddStyleToBlock: (styleClassToAdd: String, block: RawBlock2) => void; emitRemoveStyleFromBlock: (styleClassToRemove: String, block: RawBlock2) => void; emitSetBlockStyles: (newStyleClasses: String, block: RawBlock2) => void; getBlockCopy: () => RawBlock2; grabBlockChanges: (withFn: (block: RawBlock2, origin: blockChangeEvent, isUndo: Boolean) => void) => void; userCanEditCss: Boolean; isVisible: Boolean;}} props
+     * @param {{emitAddStyleToBlock: (styleClassToAdd: String, block: RawBlock) => void; emitRemoveStyleFromBlock: (styleClassToRemove: String, block: RawBlock) => void; emitSetBlockStyles: (newStyleClasses: String, block: RawBlock) => void; getBlockCopy: () => RawBlock; grabBlockChanges: (withFn: (block: RawBlock, origin: blockChangeEvent, isUndo: Boolean) => void) => void; userCanEditCss: Boolean; isVisible: Boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -171,8 +171,8 @@ class BlockStylesTab extends preact.Component {
         this.setState({units, liClasses: createLiClasses(units, currentOpenIdx)});
     }
     /**
-     * @param {RawBlock2} block
-     * @returns {{blockCopy: RawBlock2; extraBlockStyleClassesNotCommitted: String; extraBlockStyleClassesError: String;}}
+     * @param {RawBlock} block
+     * @returns {{blockCopy: RawBlock; extraBlockStyleClassesNotCommitted: String; extraBlockStyleClassesError: String;}}
      * @access private
      */
     createBlockClassesState(block) {
@@ -322,7 +322,7 @@ class BlockStylesTab extends preact.Component {
 class EditableTitle extends preact.Component {
     // popup;
     /**
-     * @param {{unitId: String; currentTitle: String; blockCopy: RawBlock2; userCanEditCss: Boolean; emitSaveStylesToBackendOp: emitSaveStylesToBackendOpFn;}} props
+     * @param {{unitId: String; currentTitle: String; blockCopy: RawBlock; userCanEditCss: Boolean; emitSaveStylesToBackendOp: emitSaveStylesToBackendOpFn;}} props
      */
     constructor(props) {
         super(props);

@@ -11,7 +11,7 @@ interface SivujettiFrontendApi {
         getRole(): Number;
     }
     editApp: {
-        addBlockTree(trid: String, blocks: Array<RawBlock2>): void;
+        addBlockTree(trid: String, blocks: Array<RawBlock>): void;
         registerWebPageDomUpdaterForBlockTree(trid: String): void;
         unRegisterWebPageDomUpdaterForBlockTree(trid: String): void;
         removeBlockTree(trid: String): void;
@@ -53,18 +53,7 @@ interface BlockType {
     reRender(props: {[key: String]: any}, renderChildren: () => String): String;
     editForm: preact.ComponentConstructor;
     infoFromBackend: {associatedRenderers: Array<String>;};
-    createSnapshot: (from: Block|RawBlock) => RawBlockData;
-}
-
-interface Block {
-    id: String;
-    type: 'Columns'|'Heading'|'Paragraph'|'Section'|String;
-    _cref: BlockRefComment;
-    toHtml(): String;
-    overwritePropsData(newPropsData: {[key: String]: any;}): void;
-    static fromObject(data: RawBlock|Object): Block;
-    static fromType(blockType: BlockType|String, data?: Object, id?: String, globalBlockTreeId?: String|null): Block;
-    static clone(from: RawBlock|Object): Block;
+    createSnapshot: (from: RawBlock) => RawBlockData;
 }
 
 interface BlockBlueprint {
@@ -76,29 +65,11 @@ interface BlockBlueprint {
 interface RawBlock {
     id: String;
     type: String;
-    title: String;
-    renderer: String;
-    propsData: Array<{key: String; value: String;}>;
-    children: Array<RawBlock>;
-    isStoredTo?: 'page'|'globalBlockTree';
-    isStoredToTreeId: String;
-    [key: String]: mixed;
-}
-
-interface RawBlock2 {
-    id: String;
-    type: String;
     isStoredTo?: 'page'|'globalBlockTree';
     isStoredToTreeId: String;
     children: Array<RawBlock>;
     // todo
     [key: String]: mixed;
-}
-
-interface BlockRefComment {
-    blockId: String;
-    blockType: String;
-    startingCommentNode: Comment;   
 }
 
 interface RawGlobalBlockTree {
@@ -167,24 +138,8 @@ interface Page {
     title: String;
     layoutId: String;
     status: Number;
-    blocks: Array<RawBlock>;
     isPlaceholderPage: Boolean;
     [ownFieldName: String]: any; // Custom fields (PageType.ownFields)
-}
-
-interface RawBlockStyle {
-    blockId: String;
-    styles: String;
-}
-
-interface RawGlobalBlockTreeBlocksStyles {
-    globalBlockTreeId: String;
-    styles: Array<RawBlockStyle>;
-}
-
-interface RawBlockTypeBaseStyles {
-    blockTypeName: String;
-    styles: String;
 }
 
 interface PageMetaRaw {
@@ -222,12 +177,6 @@ interface TheWebsite {
 }
 
 interface EditAwareWebPageEventHandlers {
-    onHoverStarted(blockRef: BlockRefComment, rect: ClientRect): void;
-    onClicked(blockRef: BlockRefComment|null): void;
-    onHoverEnded(blockRef: BlockRefComment): void;
-}
-
-interface EditAwareWebPageEventHandlers2 {
     onHoverStarted(blockEl: HTMLElement, rect: ClientRect): void;
     onClicked(blockEl: HTMLElement|null): void;
     onHoverEnded(blockEl: HTMLElement): void;
@@ -235,52 +184,13 @@ interface EditAwareWebPageEventHandlers2 {
 
 interface EditAppAwareWebPage {
     data: CurrentPageData;
-    scanBlockRefComments(): Array<BlockRefComment>;
     scanBlockElements(): Array<HTMLElement>;
-    registerEventHandlers(handlers: EditAwareWebPageEventHandlers, blockRefComments: Array<BlockRefComment>): void;
-    registerEventHandlers2(handlers: EditAwareWebPageEventHandlers2): void;
-    addRootBoundingEls(lastBlock: RawBlock2): void;
-    getCombinedAndOrderedBlockTree(pageBlocks: Array<RawBlock>, blockRefComments: Array<BlockRefComment>, blockTreeUtils: blockTreeUtils): Array<RawBlock>;
-    appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<BlockRefComment>;
-    appendClonedBlockBranchToDom(clonedBlock: Block, clonedFromBlock: Block, blockTreeUtils: blockTreeUtils): Promise<{[key: String]: BlockRefComment;}>;
-    restoreBlockToDom(originalDomNodes: Array<HTMLElement>, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<void>;
-    replaceBlockFromDomWith(currentBlock: Block, replacement: Block): Promise<BlockRefComment|{[blockId: String]: BlockRefComment;}>;
-    deleteBlockFromDom(block: Block, doKeepBoundaryComments: Boolean = false): [Array, Array];
-    reRenderBlockInPlace(block: Block): Promise<null>;
-    reOrderBlocksInDom(blockToMove: Block, blockToMoveTo: Block, position: 'before'|'after'|'as-child'): void;
-    convertToGlobal(globalBlockReference: Block, blockToConvert: Block): BlockRefComment;
-    findEndingComment(block: Block): Commment|undefined;
-    updateTitle(text: String): void;
-    registerBlockMouseListeners(blockRef: BlockRefComment, nextEl: HTMLElement = null): void;
-    setIsMouseListenersDisabled(isDisabled: Boolean): void;
-    getBlockContents(block: Block, doIncludeBoundaryComments: Boolean = true): Array<HTMLElement>;
-    setCssVarValue(varName: String, to: RawCssValue): void;
+    addRootBoundingEls(lastBlock: RawBlock): void;
     setTridAttr(blockId: String, trid: String): void;
-}
-
-interface EditAppAwareWebPage2 {
-    scanBlockRefComments(): Array<BlockRefComment>;
-    scanBlockElements(): Array<HTMLElement>;
-    registerEventHandlers2(handlers: EditAwareWebPageEventHandlers2): void;
-    createBlockTreeChangeListener(trid: String, blockTreeUtils: blockTreeUtils, blockToTransferable: (block: RawBlock2) => {[key: String]: any;}, blockTypes: BlockTypes, getTree: (trid: String) => Array<RawBlock2>, t: Object): (blockTreeState: BlockTreeReduxState) => void;
-    setIsMouseListenersDisabled(isDisabled: Boolean): void;
+    createBlockTreeChangeListener(trid: String, blockTreeUtils: blockTreeUtils, blockToTransferable: (block: RawBlock) => {[key: String]: any;}, blockTypes: BlockTypes, getTree: (trid: String) => Array<RawBlock>, t: Object): (blockTreeState: BlockTreeReduxState) => void;
     createThemeStylesChangeListener(): (state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void;
-    addRootBoundingEls(lastBlock: RawBlock2): void;
-    getCombinedAndOrderedBlockTree(pageBlocks: Array<RawBlock>, blockRefComments: Array<BlockRefComment>, blockTreeUtils: blockTreeUtils): Array<RawBlock>;
-    appendBlockToDom(block: Block, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<BlockRefComment>;
-    appendClonedBlockBranchToDom(clonedBlock: Block, clonedFromBlock: Block, blockTreeUtils: blockTreeUtils): Promise<{[key: String]: BlockRefComment;}>;
-    restoreBlockToDom(originalDomNodes: Array<HTMLElement>, after: Block|{parentNode: HTMLElement|null; nextSibling: HTMLElement|null;}): Promise<void>;
-    replaceBlockFromDomWith(currentBlock: Block, replacement: Block): Promise<BlockRefComment|{[blockId: String]: BlockRefComment;}>;
-    deleteBlockFromDom(block: Block, doKeepBoundaryComments: Boolean = false): [Array, Array];
-    reRenderBlockInPlace(block: Block): Promise<null>;
-    reOrderBlocksInDom(blockToMove: Block, blockToMoveTo: Block, position: 'before'|'after'|'as-child'): void;
-    convertToGlobal(globalBlockReference: Block, blockToConvert: Block): BlockRefComment;
-    findEndingComment(block: Block): Commment|undefined;
-    updateTitle(text: String): void;
-    registerBlockMouseListeners(blockRef: BlockRefComment, nextEl: HTMLElement = null): void;
-    getBlockContents(block: Block, doIncludeBoundaryComments: Boolean = true): Array<HTMLElement>;
+    setIsMouseListenersDisabled(isDisabled: Boolean): void;
     setCssVarValue(varName: String, to: RawCssValue): void;
-    setTridAttr(blockId: String, trid: String): void;
 }
 
 interface Env {
@@ -294,19 +204,11 @@ interface ContextMenuLink {
     id: String;
 }
 
-interface BlockEditFormProps {
-    block: Block;
-    blockTree: preact.Component; // BlockTree
-    onValueChanged: (newValue: any, key: String, hasErrors: Boolean = false, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none') => Promise<null>;
-    onManyValuesChanged: (newValues: Object, hasErrors: Boolean = false, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none') => Promise<null>;
-    funcsOut: {resetValues?: (newSnapshot: RawBlockData) => void;};
-}
-
 type blockChangeEvent = 'init'|'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block'|'swap-blocks'|'undo-swap-blocks'|'commit-add-single-block'|'convert-block-to-global'|'undo-convert-block-to-global';
 
-interface BlockEditFormProps2 {
-    getBlockCopy(): RawBlock2;
-    grabChanges(withFn: (block: RawBlock2, origin: blockChangeEvent, isUndo: Boolean) => void): void;
+interface BlockEditFormProps {
+    getBlockCopy(): RawBlock;
+    grabChanges(withFn: (block: RawBlock, origin: blockChangeEvent, isUndo: Boolean) => void): void;
     emitValueChanged(val: any, key: String, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;
     emitManyValuesChanged(partialData: {[key: String]: any;}, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;
 }
@@ -355,7 +257,7 @@ interface BlockTreeItemState {
 }
 
 interface BlockTreeReduxState {
-    tree: Array<RawBlock2>;
+    tree: Array<RawBlock>;
     // [eventName, eventData, eventOrigin, preRender]
     context: [blockChangeEvent, DefaultChangeEventData|SwapChangeEventData|DeleteOrConvertChangeEventData|AddChangeEvent|{}, 'dnd-spawner'?, String?];
 }
@@ -370,8 +272,8 @@ interface DefaultChangeEventData {
 type SwapChangeEventData = [SwapChangeEventEntry, SwapChangeEventEntry|null];
 
 interface SwapChangeEventEntry {
-    blockToMove: RawBlock2;
-    blockToMoveTo: RawBlock2;
+    blockToMove: RawBlock;
+    blockToMoveTo: RawBlock;
     position: 'before'|'after'|'as-child';
     doRevert(): void;
 }
@@ -385,7 +287,7 @@ interface AddChangeEvent extends DefaultChangeEventData {
 }
 
 interface DragEventReceiver {
-    draggedOverFirstTime(block: RawBlock2, position: 'before'|'after'|'as-child'): BlockDragDataInfo|null;
+    draggedOverFirstTime(block: RawBlock, position: 'before'|'after'|'as-child'): BlockDragDataInfo|null;
     swappedBlocks(mutationInfos: SwapChangeEventData, dragData: BlockDragDataInfo): void;
     dropped(dragData: BlockDragDataInfo): void;
 }

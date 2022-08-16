@@ -1,68 +1,10 @@
-import {__, urlUtils, unhookForm, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+import {__, urlUtils, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import ImagePicker from '../BlockWidget/ImagePicker.jsx';
 import setFocusTo from './auto-focusers.js';
 
 const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=';
 
 class ImageBlockEditForm extends preact.Component {
-    // imagePicker;
-    /**
-     * @param {RawBlockData} snapshot
-     * @access public
-     */
-    overrideValues(snapshot) {
-        this.setState({src: snapshot.src});
-    }
-    /**
-     * @access protected
-     */
-    componentWillMount() {
-        const {block} = this.props;
-        this.imagePicker = preact.createRef();
-        this.setState({
-            src: block.src,
-        });
-    }
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        setFocusTo(this.imagePicker);
-    }
-    /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        unhookForm(this);
-    }
-    /**
-     * @param {BlockEditFormProps} props
-     * @access protected
-     */
-    render(_, {src}) {
-        if (!this.state.values) return;
-        return <div class="form-horizontal pt-0">
-            <FormGroupInline>
-                <label htmlFor="src" class="form-label">{ __('Image file') }</label>
-                <ImagePicker
-                    onImageSelected={ this.handleImageChanged.bind(this) }
-                    initialImageFileName={ src }
-                    inputId="src"
-                    ref={ this.imagePicker }/>
-            </FormGroupInline>
-        </div>;
-    }
-    /**
-     * @param {UploadsEntry|null} img
-     */
-    handleImageChanged(img) {
-        const src = img ? img.fileName : null;
-        this.setState({src});
-        this.props.onValueChanged(src, 'src', false, 0, 'debounce-none');
-    }
-}
-
-class ImageBlockEditForm2 extends preact.Component {
     // imagePicker;
     /**
      * @access protected
@@ -83,7 +25,7 @@ class ImageBlockEditForm2 extends preact.Component {
         setFocusTo(this.imagePicker);
     }
     /**
-     * @param {BlockEditFormProps2} props
+     * @param {BlockEditFormProps} props
      * @access protected
      */
     render(_, {src}) {
@@ -129,7 +71,6 @@ export default () => {
         createSnapshot: from => ({
             src: from.src,
         }),
-        // @featureFlagConditionUseReduxBlockTree
-        editForm: !window.useReduxBlockTree ? ImageBlockEditForm : ImageBlockEditForm2,
+        editForm: ImageBlockEditForm,
     };
 };

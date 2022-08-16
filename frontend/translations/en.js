@@ -57,9 +57,7 @@ stringBundles.push({
     'Delete content': 'Delete content',
     'Convert to global': 'Convert to global',
     'Convert to global content': 'Convert to global content',
-    'Content tree': 'Content tree', // ctrl + f 'Block tree'
-    // edit-app/src/BlockTrees.jsx
-    'Add content to this page': 'Add content to this page',
+    'Content tree': 'Content tree',
     // edit-app/src/BlockTreeShowHelopPopup.jsx
     'todo1': 'todo1',
     'todo2': 'todo2',
@@ -78,10 +76,6 @@ stringBundles.push({
     'Meta content contains ': 'Meta content contains ',
     'additional data / metadata': 'additional data / metadata',
     ', and otherwise act like ordinary content.': ', and otherwise act like ordinary content.',
-    // edit-app/src/BlockTypeSelector.jsx
-    'Common': 'Common',
-    'Globals': 'Globals',
-    'Cancel': 'Cancel',
     // edit-app/src/ConvertBlockToGlobalBlockTreeDialog.jsx
     'Store this content globally so you can use it later in other pages?': 'Store this content globally so you can use it later in other pages?',
     'Name': 'Name',

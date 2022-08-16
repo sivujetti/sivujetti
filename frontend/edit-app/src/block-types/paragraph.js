@@ -7,71 +7,6 @@ const minPossibleLen = '<p></p>'.length;
 
 class ParagraphBlockEditForm extends preact.Component {
     // editor;
-    /**
-     * @param {RawBlockData} snapshot
-     * @access public
-     */
-    overrideValues(snapshot) {
-        this.editor.current.replaceContents(snapshot.text);
-    }
-    /**
-     * @access protected
-     */
-    componentWillMount() {
-        const {block, onValueChanged} = this.props;
-        this.editor = preact.createRef();
-        this.setState(hookForm(this, [
-            {name: 'text', value: block.text, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]],
-             label: __('Text'), onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'text', hasErrors, env.normalTypingDebounceMillis); }},
-        ]));
-    }
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        setFocusTo(this.editor);
-    }
-    /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        unhookForm(this);
-    }
-    /**
-     * @param {BlockEditFormProps} props
-     * @access protected
-     */
-    render({blockTree, block}) {
-        if (!this.state.values) return;
-        return <>
-            <FormGroup>
-                <QuillEditor
-                    name="paragraph-text"
-                    value={ block.text }
-                    onChange={ markup => {
-                        this.inputApis.text.triggerInput(unParagraphify(markup));
-                    } }
-                    onBlur={ e => this.inputApis.text.onBlur(e) }
-                    onInit={ editor => {
-                        // https://stackoverflow.com/a/63803445
-                        editor.quill.keyboard.bindings[13].unshift({
-                            key: 13,
-                            handler: (_range, _context) => {
-                                blockTree.appendBlockToTreeAfter(block, '');
-                                return false;
-                            }
-                        });
-                    } }
-                    toolbarBundle="simplestWithLink"
-                    ref={ this.editor }/>
-                <InputErrors vm={ this } prop="text"/>
-            </FormGroup>
-        </>;
-    }
-}
-
-class ParagraphBlockEditForm2 extends preact.Component {
-    // editor;
     // initialText;
     /**
      * @access protected
@@ -114,16 +49,15 @@ class ParagraphBlockEditForm2 extends preact.Component {
                     this.inputApis.text.triggerInput(unParagraphify(markup), source);
                 } }
                 onBlur={ e => this.inputApis.text.onBlur(e) }
-                onInit={ editor => {
+                onInit={ _editor => {
                     // https://stackoverflow.com/a/63803445
-                    editor.quill.keyboard.bindings[13].unshift({
-                        key: 13,
-                        handler: (_range, _context) => {
-                            // featureFlagConditionUseReduxBlockTree
-                            // this.props.blockTree.appendBlockToTreeAfter(block, '');
-                            return false;
-                        }
-                    });
+                    // editor.quill.keyboard.bindings[13].unshift({
+                    //     key: 13,
+                    //     handler: (_range, _context) => {
+                    //         // this.props.blockTree.appendBlockToTreeAfter(block, '');
+                    //         return false;
+                    //     }
+                    // });
                 } }
                 toolbarBundle="simplestWithLink"
                 ref={ this.editor }/>
@@ -148,8 +82,7 @@ export default () => {
         createSnapshot: from => ({
             text: from.text,
         }),
-        // @featureFlagConditionUseReduxBlockTree
-        editForm: !window.useReduxBlockTree ? ParagraphBlockEditForm : ParagraphBlockEditForm2,
+        editForm: ParagraphBlockEditForm,
     };
 };
 

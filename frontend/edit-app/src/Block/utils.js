@@ -7,7 +7,7 @@ import blockTreeUtils from '../blockTreeUtils.js';
  * @param {String} trid = 'main'
  * @param {String} id = generatePushID()
  * @param {{[key: String]: any;}} props = null
- * @returns {RawBlock2}
+ * @returns {RawBlock}
  */
 function createBlockFromType(blockType, trid = 'main', id = generatePushID(), props = null) {
     if (typeof blockType === 'string') blockType = api.blockTypes.get(blockType);
@@ -26,8 +26,8 @@ function createBlockFromType(blockType, trid = 'main', id = generatePushID(), pr
 }
 
 /**
- * @param {RawBlock2} block
- * @returns {RawBlock2}
+ * @param {RawBlock} block
+ * @returns {RawBlock}
  */
 function cloneDeep(block) {
     const cloned = JSON.parse(JSON.stringify(block));
@@ -60,8 +60,8 @@ function createOwnData(blockType, props = null) {
 }
 
 /**
- * @param {RawBlock2|String} blockOrBlockId
- * @param {Array<RawBlock2>} tree
+ * @param {RawBlock|String} blockOrBlockId
+ * @param {Array<RawBlock>} tree
  * @returns {Boolean}
  */
 function isTreesOutermostBlock(blockOrBlockId, tree) {
@@ -69,9 +69,9 @@ function isTreesOutermostBlock(blockOrBlockId, tree) {
 }
 
 /**
- * @param {RawBlock2|String} innerTreeBlockOrTrid
- * @param {Array<RawBlock2>} tree
- * @returns {RawBlock2} {type: 'GlobalBlockReference'}
+ * @param {RawBlock|String} innerTreeBlockOrTrid
+ * @param {Array<RawBlock>} tree
+ * @returns {RawBlock} {type: 'GlobalBlockReference'}
  */
 function findRefBlockOf(innerTreeBlockOrTrid, tree) {
     const trid = typeof innerTreeBlockOrTrid !== 'string' ? innerTreeBlockOrTrid.isStoredToTreeId : innerTreeBlockOrTrid;
@@ -81,7 +81,7 @@ function findRefBlockOf(innerTreeBlockOrTrid, tree) {
 }
 
 /**
- * @param {RawBlock2} block
+ * @param {RawBlock} block
  * @returns {{[key: String]: any;}}
  */
 function toTransferable(block) {
@@ -89,7 +89,7 @@ function toTransferable(block) {
 }
 
 /**
- * @param {Array<RawBlock2>} tree
+ * @param {Array<RawBlock>} tree
  * @returns {Array<{[key: String]: any;}>}
  */
 function treeToTransferable(tree) {
@@ -102,7 +102,7 @@ function treeToTransferable(tree) {
 }
 
 /**
- * @param {Array<RawBlock2>} branch
+ * @param {Array<RawBlock>} branch
  * @param {String} trid
  */
 function setTrids(branch, trid) {

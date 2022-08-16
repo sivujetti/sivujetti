@@ -4,7 +4,7 @@ import {urlValidatorImpl} from '../validation.js';
 
 class PageTypeBasicInfoConfigurationForm extends preact.Component {
     /**
-     * @param {BlockEditFormProps} props
+     * @param {{data: PageType; onPropChanged: (key: String, val: String) => void; layouts: Array<Layout>;}} props
      */
     constructor(props) {
         super(props);

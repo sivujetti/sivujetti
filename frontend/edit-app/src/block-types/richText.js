@@ -5,59 +5,6 @@ import setFocusTo from './auto-focusers.js';
 
 class RichTextBlockEditForm extends preact.Component {
     // editor;
-    /**
-     * @param {RawBlockData} snapshot
-     * @access public
-     */
-    overrideValues(snapshot) {
-        this.editor.current.replaceContents(snapshot.html);
-    }
-    /**
-     * @access protected
-     */
-    componentWillMount() {
-        const {block, onValueChanged} = this.props;
-        this.editor = preact.createRef();
-        this.setState(hookForm(this, [
-            {name: 'html', value: block.html, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]],
-             label: __('Content'), onAfterValueChanged: (value, hasErrors) => { onValueChanged(value, 'html', hasErrors, env.normalTypingDebounceMillis); }},
-        ]));
-    }
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        setFocusTo(this.editor);
-    }
-    /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        unhookForm(this);
-    }
-    /**
-     * @param {BlockEditFormProps} props
-     * @access protected
-     */
-    render({block}) {
-        if (!this.state.values) return;
-        return <FormGroup>
-            <QuillEditor
-                name={ `rich-text-${block.id}` }
-                value={ block.html }
-                onChange={ markup => {
-                    this.inputApis.html.triggerInput(markup);
-                } }
-                onBlur={ e => this.inputApis.html.onBlur(e) }
-                toolbarBundle="simple"
-                ref={ this.editor }/>
-            <InputErrors vm={ this } prop="html"/>
-        </FormGroup>;
-    }
-}
-
-class RichTextBlockEditForm2 extends preact.Component {
-    // editor;
     // editorId;
     // initialHtml;
     /**
@@ -91,7 +38,7 @@ class RichTextBlockEditForm2 extends preact.Component {
         unhookForm(this);
     }
     /**
-     * @param {BlockEditFormProps2} props
+     * @param {BlockEditFormProps} props
      * @access protected
      */
     render() {
@@ -120,10 +67,8 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'blockquote',
-        // @featureFlagConditionUseReduxBlockTree
-        reRender: !window.useReduxBlockTree
-            ? ({html}, renderChildren) => `${html}${renderChildren()}`
-            : ({html, id, styleClasses}, renderChildren) => ['<div class="j-', name, styleClasses ? ` ${styleClasses}` : '',
+        reRender: ({html, id, styleClasses}, renderChildren) =>
+            ['<div class="j-', name, styleClasses ? ` ${styleClasses}` : '',
                 '" data-block-type="', name, '" data-block="', id, '">',
                 html,
                 renderChildren(),
@@ -132,7 +77,6 @@ export default () => {
         createSnapshot: from => ({
             html: from.html,
         }),
-        // @featureFlagConditionUseReduxBlockTree
-        editForm: !window.useReduxBlockTree ? RichTextBlockEditForm : RichTextBlockEditForm2,
+        editForm: RichTextBlockEditForm,
     };
 };

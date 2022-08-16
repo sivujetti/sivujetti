@@ -2,7 +2,7 @@ export default {
     /**
      * @param {String} id
      * @param {Array<Block>} branch
-     * @param {Block=} parentBlock = null
+     * @param {RawBlock=} parentBlock = null
      * @returns {[Block|null, Array<Block>|null, Block|null]} [block, containingBranch, parentBlock]
      * @access public
      */
@@ -79,7 +79,7 @@ export default {
 };
 
 /**
- * @param {Block} block
+ * @param {RawBlock} block
  * @returns {Boolean}
  */
 function isGlobalBlockTreeRefOrPartOfOne(block) {

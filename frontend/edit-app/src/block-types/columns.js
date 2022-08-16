@@ -4,77 +4,6 @@ import setFocusTo from './auto-focusers.js';
 class ColumnsBlockEditForm extends preact.Component {
     // numColumnsEl;
     /**
-     * @param {RawBlockData} snapshot
-     * @access public
-     */
-    overrideValues(snapshot) {
-        reHookValues(this, [{name: 'numColumns', value: snapshot.numColumns.toString()}]);
-        this.setState({takeFullWidth: snapshot.takeFullWidth});
-    }
-    /**
-     * @access protected
-     */
-    componentWillMount() {
-        const {block, onValueChanged} = this.props;
-        this.numColumnsEl = preact.createRef();
-        this.setState(hookForm(this, [
-            {name: 'numColumns', value: block.numColumns, validations: [['min', 0], ['max', 12]],
-             label: __('Num columns'), type: 'number', step: '1', onAfterValueChanged: (value, hasErrors) => {
-                 onValueChanged(parseInt(value), 'numColumns', hasErrors, env.normalTypingDebounceMillis); }},
-        ], {
-            takeFullWidth: block.takeFullWidth,
-        }));
-    }
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        setFocusTo(this.numColumnsEl);
-    }
-    /**
-     * @access protected
-     */
-    componentWillUnmount() {
-        unhookForm(this);
-    }
-    /**
-     * @param {BlockEditFormProps} props
-     * @access protected
-     */
-    render(_, {takeFullWidth}) {
-        if (!this.state.values) return;
-        return <div class="form-horizontal pt-0">
-            <FormGroupInline>
-                <label htmlFor="numColumns" class="form-label">{ __('Num columns') }</label>
-                <Input vm={ this } prop="numColumns" ref={ this.numColumnsEl }/>
-                <InputErrors vm={ this } prop="numColumns"/>
-            </FormGroupInline>
-            <FormGroupInline>
-                <span class="form-label">{ __('Full width') }</span>
-                <label class="form-checkbox mt-0">
-                    <input
-                        onClick={ this.emitSetFullWidth.bind(this) }
-                        checked={ takeFullWidth }
-                        type="checkbox"
-                        class="form-input"/><i class="form-icon"></i>
-                </label>
-            </FormGroupInline>
-        </div>;
-    }
-    /**
-     * @param {Event} e
-     * @access private
-     */
-    emitSetFullWidth(e) {
-        const takeFullWidth = e.target.checked ? 1 : 0;
-        this.setState({takeFullWidth});
-        this.props.onValueChanged(takeFullWidth, 'takeFullWidth');
-    }
-}
-
-class ColumnsBlockEditForm2 extends preact.Component {
-    // numColumnsEl;
-    /**
      * @access protected
      */
     componentWillMount() {
@@ -108,7 +37,7 @@ class ColumnsBlockEditForm2 extends preact.Component {
         unhookForm(this);
     }
     /**
-     * @param {BlockEditFormProps2} props
+     * @param {BlockEditFormProps} props
      * @access protected
      */
     render(_, {takeFullWidth}) {
@@ -165,7 +94,6 @@ export default () => {
             return {numColumns: from.numColumns,
                     takeFullWidth: from.takeFullWidth};
         },
-        // @featureFlagConditionUseReduxBlockTree
-        editForm: !window.useReduxBlockTree ? ColumnsBlockEditForm : ColumnsBlockEditForm2,
+        editForm: ColumnsBlockEditForm,
     };
 };

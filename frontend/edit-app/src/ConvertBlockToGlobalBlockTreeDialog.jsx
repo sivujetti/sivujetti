@@ -4,7 +4,7 @@ import {__, hookForm, unhookForm, handleSubmit, FormGroup, Input, InputErrors,
 class ConvertBlockToGlobalBlockTreeDialog extends preact.Component {
     // boundDoHandleSubmit;
     /**
-     * @param {{blockToConvertAndStore: RawBlock2; onConfirmed: (data: {name: String;}) => any;}} props
+     * @param {{blockToConvertAndStore: RawBlock; onConfirmed: (data: {name: String;}) => any;}} props
      */
     constructor(props) {
         super(props);

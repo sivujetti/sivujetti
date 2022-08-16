@@ -19,7 +19,7 @@ class ListingBlockEditForm extends preact.Component {
     // selectedPageTypeFriendlyNamePlural;
     // selectedPageTypeFriendlyNamePartitive;
     /**
-     * @param {BlockEditFormProps|BlockEditFormProps2} props
+     * @param {BlockEditFormProps} props
      */
     constructor(props) {
         super(props);
@@ -31,14 +31,6 @@ class ListingBlockEditForm extends preact.Component {
         this.chooseRendererPopup = preact.createRef();
     }
     /**
-     * @param {RawBlockData} snapshot
-     * @access public
-     */
-    overrideValues(snapshot) {
-        this.setSelectedPageTypeBundle(snapshot.filterPageType);
-        this.applyState(createState(snapshot));
-    }
-    /**
      * @access protected
      */
     componentWillMount() {
@@ -47,13 +39,10 @@ class ListingBlockEditForm extends preact.Component {
             .map(pageType => ({pageType, renderers: r.filter(({associatedWith}) =>
                 associatedWith === '*' || associatedWith === pageType.name)}))
             .filter(({renderers}) => renderers.length > 0);
-        const block = !window.useReduxBlockTree // @featureFlagConditionUseReduxBlockTree
-            ? this.props.block
-            : this.props.getBlockCopy();
+        const block = this.props.getBlockCopy();
         this.setSelectedPageTypeBundle(block.filterPageType);
         //
         this.setState(createState(block));
-        if (window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
         this.props.grabChanges((block, _origin, _isUndo) => {
             //
             if (this.state.filterPageType !== block.filterPageType) {
@@ -81,7 +70,6 @@ class ListingBlockEditForm extends preact.Component {
                                    urlStartsWithError: ''});
             }
         });
-        }
     }
     /**
      * @access protected
@@ -282,19 +270,9 @@ class ListingBlockEditForm extends preact.Component {
      */
     handleHowManyTypeChanged(e) {
         const newValue = e.target.value;
-        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        if (this.state.howManyType !== newValue) {
-            const newState = {howManyType: newValue};
-            const newLimit = newValue === 'single' ? 1 : 0;
-            if (newValue !== 'atMost') newState.howManyAmountNotCommitted = newLimit > 1 ? newLimit : null;
-            this.props.onValueChanged(newLimit, 'filterLimit', false, 0, 'debounce-none');
-            this.setState(newState);
-        }
-        } else {
         const newData = {filterLimitType: newValue,
             filterLimit: newValue === 'all' ? 0 : newValue === 'single' ? 1 : 3};
         this.props.emitManyValuesChanged(newData, false, 0, 'debounce-none');
-        }
     }
     /**
      * @param {Event} e
@@ -302,25 +280,12 @@ class ListingBlockEditForm extends preact.Component {
      */
     handleHowManyAmountChanged(e) {
         const val = parseInt(e.target.value, 10);
-        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        const newState = {howManyAmountNotCommitted: e.target.value,
-                          howManyAmountError: !isNaN(val) ? '' : __('%s must be a number', __('This value'))};
-        if (!newState.howManyAmountError && newState.howManyAmountNotCommitted > 10000) {
-            newState.howManyAmountError = __('max').replace('{field}', __('This value')).replace('{arg0}', '10 000');
-        }
-        if (!newState.howManyAmountError) {
-            newState.howManyAmount = val;
-            this.props.onValueChanged(val, 'filterLimit', false, 0, 'debounce-none');
-        }
-        this.setState(newState);
-        } else {
         let err = !isNaN(val) ? '' : __('%s must be a number', __('This value'));
         if (!err && e.target.value > 10000) {
             err = __('max').replace('{field}', __('This value')).replace('{arg0}', '10 000');
         }
         if (!err) this.props.emitValueChanged(val, 'filterLimit', false, 0, 'debounce-none');
         else this.setState({howManyAmountNotCommitted: e.target.value, howManyAmountError: err});
-        }
     }
     /**
      * @param {'filterOrder'|'renderWith'} propName
@@ -330,54 +295,27 @@ class ListingBlockEditForm extends preact.Component {
      */
     handleFilterPropMaybeChanged(propName, stateKey, e) {
         const newValue = e.target.value;
-        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        if (this.state[stateKey] !== newValue) {
-            this.applyState({[stateKey]: newValue});
-            this.props.onValueChanged(newValue, propName, false, 0, 'debounce-none');
-        }
-        } else {
         if (propName === 'renderWith') propName = 'renderer';
         this.props.emitValueChanged(newValue, propName, false, 0, 'debounce-none');
-        }
     }
     /**
      * @param {Event} e
      * @access private
      */
     handlePageTypeChanged(e) {
-        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        const newSelectedPageTypeName = e.target.value;
-        this.setSelectedPageTypeBundle(newSelectedPageTypeName);
-        const partialState = {
-            filterPageType: newSelectedPageTypeName,
-            renderWith: this.pageTypeBundles.find(({pageType}) => pageType.name === newSelectedPageTypeName).renderers[0].fileId,
-        };
-        this.applyState(partialState);
-        this.props.onManyValuesChanged(partialState, false, env.normalTypingDebounceMillis);
-        } else {
         const newSelectedPageTypeName = e.target.value;
         this.setSelectedPageTypeBundle(newSelectedPageTypeName);
         const newData = {filterPageType: newSelectedPageTypeName,
             renderer: this.pageTypeBundles.find(({pageType}) => pageType.name === newSelectedPageTypeName).renderers[0].fileId};
         this.props.emitManyValuesChanged(newData, false, env.normalTypingDebounceMillis);
-        }
     }
     /**
      * @param {String} v = ''
      * @access private
      */
     handleStartsWithFilterAddedOrRemoved(v = '') {
-        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        const newState = {urlStartsWith: v,
-                          urlStartsWithNotCommitted: v,
-                          urlStartsWithError: ''};
-        const updated = mergeToFilterAdditional('urlStartsWith', newState.urlStartsWith, this.props.block.filterAdditional);
-        this.props.onValueChanged(updated, 'filterAdditional', false, 0);
-        this.setState(newState);
-        } else {
         const updated = mergeToFilterAdditional('urlStartsWith', v, this.props.getBlockCopy().filterAdditional);
         this.props.emitValueChanged(updated, 'filterAdditional', false, 0);
-        }
     }
     /**
      * @param {Event} e
@@ -386,19 +324,6 @@ class ListingBlockEditForm extends preact.Component {
     handleStartsWithFilterValueChanged(e) {
         const val = e.target.value.trim();
         const isValid = str => str.length <= 92;
-        if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-        const newState = {urlStartsWithNotCommitted: e.target.value,
-                          urlStartsWithError: isValid(val) ? '' : __('maxLength').replace('{field}', __('This value')).replace('{arg0}', '92')};
-        if (!newState.urlStartsWithError && !(new RegExp(validationConstraints.SLUG_REGEXP)).test(val)) {
-            newState.urlStartsWithError = __('regexp').replace('{field}', __('This value'));
-        }
-        if (!newState.urlStartsWithError) {
-            newState.urlStartsWith = val;
-            const updated = mergeToFilterAdditional('urlStartsWith', val, this.props.block.filterAdditional);
-            this.props.onValueChanged(updated, 'filterAdditional', false, env.normalTypingDebounceMillis, 'debounce-re-render-and-commit-to-queue');
-        }
-        this.setState(newState);
-        } else {
         let err = isValid(val) ? '' : __('maxLength').replace('{field}', __('This value')).replace('{arg0}', '92');
         if (!err && !(new RegExp(validationConstraints.SLUG_REGEXP)).test(val)) {
             err = __('regexp').replace('{field}', __('This value'));
@@ -408,7 +333,6 @@ class ListingBlockEditForm extends preact.Component {
             this.props.emitValueChanged(updated, 'filterAdditional', false, env.normalTypingDebounceMillis, 'debounce-re-render-and-commit-to-queue');
         } else {
             this.setState({urlStartsWithNotCommitted: e.target.value, urlStartsWithError: err});
-        }
         }
     }
     /**
@@ -437,72 +361,13 @@ class ListingBlockEditForm extends preact.Component {
         this.selectedPageTypeFriendlyNamePlural = __(this.selectedPageTypeBundle.pageType.friendlyNamePlural).toLowerCase();
         this.selectedPageTypeFriendlyNamePartitive = __(`${this.selectedPageTypeBundle.pageType.friendlyNamePlural}#partitive`).toLowerCase();
     }
-    /**
-     * @access private
-     */
-    applyState(newState) {
-        if (newState.renderWith)
-            // Note: mutates BlockTrees.currentWebPage.data.page
-            this.props.block.renderer = newState.renderWith;
-        this.setState(newState);
-    }
 }
 
 /**
- * @param {Block|Snapshot} from
+ * @param {RawBlock} from
  * @returns {Object}
  */
 function createState(from) {
-    if (!window.useReduxBlockTree) { // @featureFlagConditionUseReduxBlockTree
-    return temp1(from);
-    } else {
-    return temp2(from);
-    }
-}
-
-/**
- * @param {Block|Snapshot} from
- * @returns {Object}
- */
-function temp1(from) {
-    let howManyType = null;
-    if (!from.filterLimit) howManyType = 'all';
-    else if (from.filterLimit > 1) howManyType = 'atMost';
-    else howManyType = 'single';
-    //
-    const out = {
-        filterPageType: from.filterPageType,
-        howManyType,
-        howManyAmount: from.filterLimit,
-        howManyAmountNotCommitted: from.filterLimit > 1 ? from.filterLimit : null,
-        howManyAmountError: '',
-        urlStartsWith: null,
-        urlStartsWithNotCommitted: null,
-        urlStartsWithError: '',
-        renderWith: from.renderer || from.renderWith,
-        order: from.filterOrder,
-    };
-    //
-    if (from.filterAdditional && !from.urlStartsWith) { // Block
-        const parsed = JSON.parse(from.filterAdditional);
-        const urlStartsWith = (parsed['p.slug'] || {}).$startsWith;
-        if (urlStartsWith) {
-            out.urlStartsWith = urlStartsWith;
-            out.urlStartsWithNotCommitted = urlStartsWith;
-        }
-    } else { // Snapshot
-        out.urlStartsWith = from.urlStartsWith;
-        out.urlStartsWithNotCommitted = from.urlStartsWithNotCommitted;
-    }
-    //
-    return out;
-}
-
-/**
- * @param {RawBlock2} from
- * @returns {Object}
- */
-function temp2(from) {
     //
     const out = {
         filterPageType: from.filterPageType,

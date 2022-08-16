@@ -17,7 +17,7 @@ class MainPanel {
         signals.on('on-inspector-panel-closed', () => { inspectorPanelIsOpen = false; });
     }
     /**
-     * @param {Block} block
+     * @param {RawBlock} block
      * @param {Boolean} isNew = false
      * @param {'smooth'|'auto'} behavior = 'smooth'
      */

@@ -15,7 +15,7 @@ final class ThemesModule {
         );
         $router->map("PUT", "/api/themes/[i:themeId]/styles/scope-block-type/[w:blockTypeName]",
             [ThemesController::class, "upsertBlockTypeScopedStyles", ["consumes" => "application/json",
-                                                                      "identifiedBy" => ["upsertBlockTypeScopedStyles", "themes"]]],
+                                                                      "identifiedBy" => ["upsertBlockTypeScopedVars", "themes"]]],
         );
         $router->map("PUT", "/api/themes/[i:themeId]/styles/global",
             [ThemesController::class, "updateGlobalStyles", ["consumes" => "application/json",

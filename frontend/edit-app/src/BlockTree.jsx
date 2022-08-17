@@ -157,9 +157,9 @@ class BlockTree extends preact.Component {
      */
     render(_, {blockTree, treeState, loading}) {
         if (blockTree === null) return;
-        const renderBranch = branch => branch.map(block => {
+        const renderBranch = (branch, root = null) => branch.map((block, i) => {
             if (block.type === 'GlobalBlockReference')
-                return renderBranch(createSelectBlockTree(block.globalBlockTreeId)(store.getState()).tree);
+                return renderBranch(createSelectBlockTree(block.globalBlockTreeId)(store.getState()).tree, block);
             //
             if (block.type !== 'PageInfo') {
             const type = api.blockTypes.get(block.type);
@@ -185,7 +185,7 @@ class BlockTree extends preact.Component {
                         <Icon iconId={ getIcon(type) } className="size-xs p-absolute"/>
                         <span class="text-ellipsis">{ getShortFriendlyName(block, type) }</span>
                     </button>
-                    <button onClick={ e => this.openMoreMenu(block, e) } class="more-toggle ml-2" type="button">
+                    <button onClick={ e => this.openMoreMenu(block, root && i === 0, e) } class="more-toggle ml-2" type="button">
                         <Icon iconId="dots" className="size-xs"/>
                     </button>
                 </div>
@@ -321,7 +321,6 @@ class BlockTree extends preact.Component {
     }
     cloneBlock(openBlock) {
         const trid = openBlock.isStoredToTreeId;
-        if (trid !== 'main') throw new Error();
         const {tree} = createSelectBlockTree(trid)(store.getState());
         const treeBefore = JSON.parse(JSON.stringify(tree));
         const [toClone, branch] = blockTreeUtils.findBlock(openBlock.id, tree);
@@ -422,16 +421,18 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {RawBlock} block
+     * @param {Boolean} blockIsGlobalBlockTreesOutermostBlock
      * @param {Event} e
      * @access private
      */
-    openMoreMenu(block, e) {
+    openMoreMenu(block, blockIsGlobalBlockTreesOutermostBlock, e) {
         this.blockWithMoreMenuOpened = block;
         this.refElOfOpenMoreMenu = e.target;
         this.refElOfOpenMoreMenu.style.opacity = '1';
         this.moreMenu.current.open(e, links => {
             const notThese = []
-                .concat(block.isStoredTo === 'page' ? [] : ['convert-block-to-global', 'clone-block']);
+                .concat(block.isStoredToTreeId !== 'main' ? ['convert-block-to-global'] : [])
+                .concat(blockIsGlobalBlockTreesOutermostBlock ? ['clone-block'] : []);
             return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
         });
     }

@@ -165,6 +165,7 @@ interface TheWebsite {
     userPermissions: {
         canDoAnything: Boolean;
         canEditThemeColours: Boolean;
+        canEditThemeVars: Boolean;
         canEditThemeCss: Boolean;
         canCreatePageTypes: Boolean;
         canCreatePages: Boolean;

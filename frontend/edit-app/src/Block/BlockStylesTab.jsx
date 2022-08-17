@@ -10,10 +10,13 @@ import {triggerUndo} from '../SaveButton.jsx';
 import {Popup} from '../block-types/Listing/EditForm.jsx';
 import {createTrier} from '../../../webpage/src/EditAppAwareWebPage.js';
 import exampleScss from '../example-scss.js';
+import VisualStyles from './VisualStyles.jsx';
 
 let compile, serialize, stringify;
 
 class BlockStylesTab extends preact.Component {
+    // userCanEditVars;
+    // userCanEditCss;
     // editableTitleInstances;
     // moreMenu;
     // extraBlockStyleClassesTextareaEl;
@@ -23,11 +26,13 @@ class BlockStylesTab extends preact.Component {
     // liIdxOfOpenMoreMenu;
     // refElOfOpenMoreMenu;
     /**
-     * @param {{emitAddStyleToBlock: (styleClassToAdd: String, block: RawBlock) => void; emitRemoveStyleFromBlock: (styleClassToRemove: String, block: RawBlock) => void; emitSetBlockStyles: (newStyleClasses: String, block: RawBlock) => void; getBlockCopy: () => RawBlock; grabBlockChanges: (withFn: (block: RawBlock, origin: blockChangeEvent, isUndo: Boolean) => void) => void; userCanEditCss: Boolean; isVisible: Boolean;}} props
+     * @param {{emitAddStyleToBlock: (styleClassToAdd: String, block: RawBlock) => void; emitRemoveStyleFromBlock: (styleClassToRemove: String, block: RawBlock) => void; emitSetBlockStyles: (newStyleClasses: String, block: RawBlock) => void; getBlockCopy: () => RawBlock; grabBlockChanges: (withFn: (block: RawBlock, origin: blockChangeEvent, isUndo: Boolean) => void) => void; isVisible: Boolean;}} props
      */
     constructor(props) {
         super(props);
         ({compile, serialize, stringify} = window.stylis);
+        this.userCanEditVars = api.user.can('editThemeVars');
+        this.userCanEditCss = api.user.can('editThemeCss');
         this.editableTitleInstances = [];
         this.moreMenu = preact.createRef();
         this.extraBlockStyleClassesTextareaEl = preact.createRef();
@@ -73,37 +78,35 @@ class BlockStylesTab extends preact.Component {
     /**
      * @access protected
      */
-    render({userCanEditCss, isVisible}, {units, blockCopy, liClasses, extraBlockStyleClassesNotCommitted, extraBlockStyleClassesError}) {
+    render({isVisible}, {units, blockCopy, liClasses, extraBlockStyleClassesNotCommitted, extraBlockStyleClassesError}) {
         if (!isVisible) return null;
+        const {userCanEditVars, userCanEditCss} = this;
         const emitSaveStylesToBackendOp = userCanEditCss ? emitCommitStylesOp : null;
         return [
             units !== null ? units.length ? <ul class="list styles-list mb-2">{ units.map((unit, i) => {
                 const liCls = liClasses[i];
                 const cls = this.createClass(unit.id);
                 const isActivated = this.currentBlockHasStyle(cls);
-                const handleLiClick = userCanEditCss ? e => {
-                    if (this.editableTitleInstances[i].current.isOpen()) return;
-                    const moreMenuIconEl = e.target.classList.contains('edit-icon-outer') ? e.target : e.target.closest('.edit-icon-outer');
-                    if (!moreMenuIconEl) this.toggleIsCollapsed(i);
-                    else this.openMoreMenu(moreMenuIconEl, i);
-                } : () => this.toggleStyleIsActivated(cls, !isActivated);
+                const showVisualStyles = !userCanEditCss && userCanEditVars;
+                const [cssVars, ast] = !showVisualStyles ? [[], []] : VisualStyles.extractVars(unit.scss, cls);
+                const doShowChevron = userCanEditCss || (showVisualStyles && cssVars.length);
                 return <li class={ liCls } key={ unit.id }>
                     <header class="flex-centered init-relative">
                         <button
-                            onClick={ handleLiClick }
+                            onClick={ e => this.handleLiClick(e, i) }
                             class="col-12 btn btn-link text-ellipsis with-icon pl-2 mr-1 no-color"
-                            title={ userCanEditCss ? `.${cls}` : __('Use style') }
+                            title={ userCanEditCss ? `.${cls}` : '' }
                             type="button">
-                            { userCanEditCss ? [
-                            <Icon iconId="chevron-down" className={ `size-xs${userCanEditCss ? '' : ' d-none'}` }/>,
-                            <EditableTitle
-                                unitId={ unit.id }
-                                currentTitle={ unit.title }
-                                blockCopy={ this.state.blockCopy }
-                                userCanEditCss={ userCanEditCss }
-                                emitSaveStylesToBackendOp={ emitSaveStylesToBackendOp }
-                                ref={ this.editableTitleInstances[i] }/>,
-                            ] : <span class="text-ellipsis">{ unit.title }</span> }
+                            <Icon iconId="chevron-down" className={ `size-xs${doShowChevron ? '' : ' d-none'}` }/>
+                            { userCanEditCss
+                                ? <EditableTitle
+                                    unitId={ unit.id }
+                                    currentTitle={ unit.title }
+                                    blockCopy={ this.state.blockCopy }
+                                    userCanEditCss={ userCanEditCss }
+                                    emitSaveStylesToBackendOp={ emitSaveStylesToBackendOp }
+                                    ref={ this.editableTitleInstances[i] }/>
+                                : <span class="text-ellipsis">{ unit.title }</span> }
                         </button>
                         <label class="form-checkbox init-absolute" title={ __('Use style') } style="right:-.28rem">
                             <input
@@ -115,13 +118,17 @@ class BlockStylesTab extends preact.Component {
                         </label>
                     </header>
                     { userCanEditCss
-                    ? <StyleTextarea
-                        unitCopy={ Object.assign({}, unit) }
-                        emitSaveStylesToBackendOp={ emitSaveStylesToBackendOp }
-                        unitCls={ cls }
-                        blockTypeName={ blockCopy.type }
-                        isVisible={ liCls !== '' }/>
-                    : null
+                        ? <StyleTextarea
+                            unitCopy={ Object.assign({}, unit) }
+                            emitSaveStylesToBackendOp={ emitSaveStylesToBackendOp }
+                            unitCls={ cls }
+                            blockTypeName={ blockCopy.type }
+                            isVisible={ liCls !== '' }/>
+                        : userCanEditVars
+                            ? <VisualStyles
+                                vars={ cssVars }
+                                ast={ ast }/>
+                            : null
                     }
                 </li>;
             }) }</ul> : (userCanEditCss
@@ -159,6 +166,18 @@ class BlockStylesTab extends preact.Component {
                 onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
                 ref={ this.moreMenu }/>
         ] : []);
+    }
+    /**
+     * @param {Event} e
+     * @param {Number} i
+     * @access private
+     */
+    handleLiClick(e, i) {
+        if (this.userCanEditCss && this.editableTitleInstances[i].current.isOpen()) return;
+        //
+        const moreMenuIconEl = e.target.classList.contains('edit-icon-outer') ? e.target : e.target.closest('.edit-icon-outer');
+        if (!moreMenuIconEl) this.toggleIsCollapsed(i);
+        else this.openMoreMenu(moreMenuIconEl, i);
     }
     /**
      * @param {Array<ThemeStyleUnit>|undefined} candidate

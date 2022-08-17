@@ -18,7 +18,6 @@ let currentPageIsPlaceholderPage;
 let fastChangesQueue;
 
 class BlockEditForm extends preact.Component {
-    // userCanEditCss;
     // isOutermostBlockOfGlobalBlockTree;
     // userCanSpecializeGlobalBlocks;
     // blockType;
@@ -33,7 +32,6 @@ class BlockEditForm extends preact.Component {
         super(props);
         blockTypes = api.blockTypes;
         this.state = {currentTabIdx: 0};
-        this.userCanEditCss = api.user.can('editThemeCss');
         fastChangesQueue = [];
     }
     /**
@@ -112,7 +110,6 @@ class BlockEditForm extends preact.Component {
             <BlockStylesTab
                 getBlockCopy={ getBlockCopy.bind(this) }
                 grabBlockChanges={ withFn => { this.stylesFormChangeGrabber = withFn; } }
-                userCanEditCss={ this.userCanEditCss }
                 emitAddStyleToBlock={ (styleClassToAdd, b) => {
                     const currentClasses = b.styleClasses;
                     const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;

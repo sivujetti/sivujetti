@@ -125,7 +125,8 @@ final class PagesController {
                 "userPermissions" => [
                     "canDoAnything" => $userRole === ACL::ROLE_SUPER_ADMIN,
                     "canEditThemeColours" => $acl->can($userRole, "updateGlobalStylesOf", "themes"),
-                    "canEditThemeCss" => $acl->can($userRole, "upsertBlockTypeScopedStyles", "themes"),
+                    "canEditThemeVars" => $acl->can($userRole, "upsertBlockTypeScopedVars", "themes"),
+                    "canEditThemeCss" => $acl->can($userRole, "upsertBlockTypeScopedCss", "themes"),
                     "canCreatePageTypes" => $acl->can($userRole, "create", "pageTypes"),
                     "canCreatePages" => $acl->can($userRole, "create", "pages"),
                     "canCreateGlobalBlockTrees" => $acl->can($userRole, "create", "globalBlockTrees"),

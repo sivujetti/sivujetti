@@ -37,9 +37,10 @@ $out->resources = (object) [
         "delete"            => 0b00001000,
     ],
     "themes" => (object) [
-        "view"                        => 0b00000010,
-        "updateGlobalStylesOf"        => 0b00000100,
-        "upsertBlockTypeScopedStyles" => 0b00001000,
+        "view"                      => 0b00000010,
+        "updateGlobalStylesOf"      => 0b00000100,
+        "upsertBlockTypeScopedVars" => 0b00001000,
+        "upsertBlockTypeScopedCss"  => 0b00010000,
     ],
     "uploads" => (object) [
         "view"              => 0b00000010,
@@ -77,7 +78,7 @@ $out->userPermissions = (object) [
         "layouts"           => ACL::makePermissions(["list"], $out->resources->layouts),
         "pages"             => ACL::makePermissions(["create","list","updateBlocksOf","update"], $out->resources->pages),
         // pageTypes        -> none
-        "themes"            => ACL::makePermissions(["view","updateGlobalStylesOf"], $out->resources->themes),
+        "themes"            => ACL::makePermissions(["view","updateGlobalStylesOf","upsertBlockTypeScopedVars"], $out->resources->themes),
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],
     ACL::ROLE_AUTHOR => (object) [

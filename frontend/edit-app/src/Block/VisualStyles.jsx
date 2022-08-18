@@ -1,8 +1,13 @@
+import {__, env, hookForm, FormGroupInline, Input, InputErrors} from '@sivujetti-commons-for-edit-app';
+import {stringUtils, timingUtils} from '../commons/utils';
+
+let compile, serialize, stringify;
+
 const valueEditors = new Map;
 
 class VisualStyles extends preact.Component {
     /**
-     * @param {{vars: Array<CssVar>; ast: Array<Object>;}} props
+     * @param {{vars: Array<CssVar>; ast: Array<Object>; emitVarValueChange: (getStyleUpdates: (unitCopy: ThemeStyleUnit) => {newScss: String; newGenerated: String;}) => void;}} props
      */
     constructor(props) {
         super(props);
@@ -21,27 +26,61 @@ class VisualStyles extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {vars}) {
+    render({emitVarValueChange, ast}, {vars}) {
         if (!vars) return;
-        return <div class="form-horizontal px-2 ">{ vars.map(v => {
+        return <div class="form-horizontal px-2">{ vars.map(v => {
             const Renderer = valueEditors.get(v.type);
-            return <div class="form-group mr-1">
-                <div class="col-3 text-ellipsis"><label class="form-label" title={ v.label }>{ v.label }</label></div>
-                <Renderer valueCopy={ Object.assign({}, v.value) }/>
-            </div>;
+            return <Renderer
+                valueCopy={ Object.assign({}, v.value) }
+                label={ v.label}
+                onVarValueChanged={ timingUtils.debounce(newValAsString => {
+                    emitVarValueChange(unitCopy => {
+                        const node = ast[0].children[v.__idx];
+                        const varDecl = node.props; // '--foo'
+                        node.value = `${varDecl}:${newValAsString};`;
+                        return {newScss: this.replaceVarValue(unitCopy.scss, node, newValAsString),
+                                newGenerated: serialize(ast, stringify)};
+                    });
+                }, env.normalTypingDebounceMillis) }/>;
         }) }</div>;
     }
     /**
-     * In: '// @exportAs(length)\n--fontSize: 2.4rem;\n// @exportAs(color)\n--fontColor:#000000'
-     * Out: [[{type: 'length', value: {num: '2.4'; unit: 'rem'}, label: 'fontSize', __idx: 1},
-     *        {type: 'color', value: {data: todo; type: 'hex'}, label: 'fontColor', __idx: 2}], [...]]
+     * @param {String} scss
+     * @param {Object} astNode
+     * @param {String} replaceWith
+     * @returns {String}
+     * @access private
+     */
+    replaceVarValue(scss, {line, column}, replaceWith) {
+        const lines = scss.split(/\n/g);
+        const linestr = lines[line - 1]; // '--varA: 1.4rem; --varB: 1;'
+        const before = linestr.substring(0, column); // '--varA: 1.4rem; '
+        const after = linestr.substring(column - 1); // ' --varB: 1;'
+        const pcs = before.split(':'); // [' --varB', ' 1;']
+        pcs[pcs.length - 1] = ` ${replaceWith};`;
+        lines[line - 1] = `${pcs.join(':')}${after}`;
+        return lines.join('\n');
+    }
+    /**
+     * In: ```
+     * // @exportAs(length)
+     * --fontSize: 2.4rem;
+     * // @exportAs(color)
+     * --fontColor:#000000;
+     * ```
+     *
+     * Out: ```
+     * [[{type: 'length', value: {num: '2.4'; unit: 'rem'}, label: 'fontSize', __idx: 1},
+     *   {type: 'color', value: {data: todo; type: 'hex'}, label: 'fontColor', __idx: 2}], [...]]
+     * ```
      *
      * @param {String} scss
      * @param {String} cls
      * @returns {[Array<CssVar>, Array<Object>]} [vars, stylisAst]
      */
     static extractVars(scss, cls) {
-        const ast = window.stylis.compile(`.${cls}{${scss}}`);
+        ({compile, serialize, stringify} = window.stylis);
+        const ast = compile(`.${cls}{${scss}}`);
         const nodes = ast[0].children;
         const out = [];
         for (let i = 0; i < nodes.length; ++i) {
@@ -63,21 +102,39 @@ class VisualStyles extends preact.Component {
 
 class LengthValueInput extends preact.Component {
     /**
-     * @param {{valueCopy: LengthValue;}} props
+     * @access protected
      */
-    render({valueCopy}) {
-        return <div class="col-9">
+    componentWillMount() {
+        const {num, unit} = this.props.valueCopy;
+        this.setState(hookForm(this, [
+            {name: 'num', value: num, validations: [['required'], ['maxLength', 32], [{doValidate: val =>
+                !isNaN(parseFloat(val))
+            , errorMessageTmpl: __('%s must be a number').replace('%', '{field}')}, null]],
+                label: this.props.label, onAfterValueChanged: (value, hasErrors) => {
+                    if (!hasErrors) this.props.onVarValueChanged(`${value}${unit}`);
+                }},
+        ]));
+    }
+    /**
+     * @param {{valueCopy: LengthValue; label: String; onVarValueChanged: (newVal: String) => any;}} props
+     * @access protected
+     */
+    render({label, valueCopy}) {
+        return <FormGroupInline>
+            <label htmlFor="num" class="form-label pt-1">{ label }</label>
             <div class="input-group">
-                <input class="form-input input-sm" type="text" value={ valueCopy.num } placeholder="1.4" onInput={ e=>'this.foo(e)' }/>
+                <Input vm={ this } prop="num" placeholder="1.4"/>
                 <span class="input-group-addon addon-sm">{ valueCopy.unit }</span>
             </div>
-        </div>;
+            <InputErrors vm={ this } prop="num"/>
+        </FormGroupInline>;
     }
 }
 
 class ColorValueInput extends preact.Component {
     /**
-     * @param {{valueCopy: ColorValue;}} props
+     * @param {{valueCopy: ColorValue; label: String; onVarValueChanged: (newVal: String) => any;}} props
+     * @access protected
      */
     render({valueCopy}) {
         return <p>todo</p>;
@@ -98,7 +155,7 @@ function inputToLength(input) {
  * @returns {String}
  */
 function varNameToLabel(varName) {
-    return varName;
+    return stringUtils.capitalize(varName.replace(/[A-Z]/g, letter => ` ${letter.toLowerCase()}`));
 }
 
 /**

@@ -13,6 +13,7 @@ import exampleScss from '../example-scss.js';
 import VisualStyles from './VisualStyles.jsx';
 
 let compile, serialize, stringify;
+let emitSaveStylesToBackendOp;
 
 class BlockStylesTab extends preact.Component {
     // userCanEditVars;
@@ -33,6 +34,7 @@ class BlockStylesTab extends preact.Component {
         ({compile, serialize, stringify} = window.stylis);
         this.userCanEditVars = api.user.can('editThemeVars');
         this.userCanEditCss = api.user.can('editThemeCss');
+        emitSaveStylesToBackendOp = this.userCanEditCss ? emitCommitStylesOp : null;
         this.editableTitleInstances = [];
         this.moreMenu = preact.createRef();
         this.extraBlockStyleClassesTextareaEl = preact.createRef();
@@ -81,7 +83,6 @@ class BlockStylesTab extends preact.Component {
     render({isVisible}, {units, blockCopy, liClasses, extraBlockStyleClassesNotCommitted, extraBlockStyleClassesError}) {
         if (!isVisible) return null;
         const {userCanEditVars, userCanEditCss} = this;
-        const emitSaveStylesToBackendOp = userCanEditCss ? emitCommitStylesOp : null;
         return [
             units !== null ? units.length ? <ul class="list styles-list mb-2">{ units.map((unit, i) => {
                 const liCls = liClasses[i];
@@ -104,7 +105,6 @@ class BlockStylesTab extends preact.Component {
                                     currentTitle={ unit.title }
                                     blockCopy={ this.state.blockCopy }
                                     userCanEditCss={ userCanEditCss }
-                                    emitSaveStylesToBackendOp={ emitSaveStylesToBackendOp }
                                     ref={ this.editableTitleInstances[i] }/>
                                 : <span class="text-ellipsis">{ unit.title }</span> }
                         </button>
@@ -120,14 +120,16 @@ class BlockStylesTab extends preact.Component {
                     { userCanEditCss
                         ? <StyleTextarea
                             unitCopy={ Object.assign({}, unit) }
-                            emitSaveStylesToBackendOp={ emitSaveStylesToBackendOp }
                             unitCls={ cls }
                             blockTypeName={ blockCopy.type }
                             isVisible={ liCls !== '' }/>
                         : userCanEditVars
                             ? <VisualStyles
                                 vars={ cssVars }
-                                ast={ ast }/>
+                                ast={ ast }
+                                emitVarValueChange={ getStyleUpdates => {
+                                    updateAndEmitUnitScss(Object.assign({}, unit), getStyleUpdates, blockCopy.type); }
+                                }/>
                             : null
                     }
                 </li>;
@@ -341,7 +343,7 @@ class BlockStylesTab extends preact.Component {
 class EditableTitle extends preact.Component {
     // popup;
     /**
-     * @param {{unitId: String; currentTitle: String; blockCopy: RawBlock; userCanEditCss: Boolean; emitSaveStylesToBackendOp: emitSaveStylesToBackendOpFn;}} props
+     * @param {{unitId: String; currentTitle: String; blockCopy: RawBlock; userCanEditCss: Boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -403,7 +405,7 @@ class EditableTitle extends preact.Component {
         const dataBefore = {title: currentTitle};
         const blockTypeName = this.props.blockCopy.type;
         store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, unitId, {title: newTitle}]);
-        this.props.emitSaveStylesToBackendOp(blockTypeName, () => {
+        emitSaveStylesToBackendOp(blockTypeName, () => {
             store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, unitId, dataBefore]);
         });
         this.close();
@@ -431,16 +433,12 @@ class EditableTitle extends preact.Component {
 
 class StyleTextarea extends preact.Component {
     // handleCssInputChangedThrottled;
-    // emitSaveStylesToBackendOp;
     /**
      * @access protected
      */
     componentWillMount() {
         this.init(this.props);
         this.updateState(this.props);
-        this.emitSaveStylesToBackendOp = typeof this.props.emitSaveStylesToBackendOp === 'function'
-            ? this.props.emitSaveStylesToBackendOp
-            : emitCommitStylesOp;
     }
     /**
      * @param {StyleTextareaProps} props
@@ -486,37 +484,43 @@ class StyleTextarea extends preact.Component {
     init(props) {
         if (props.isVisible && !this.handleCssInputChangedThrottled) {
             this.cssValidator = new CssStylesValidatorHelper;
-            this.handleCssInputChangedThrottled = timingUtils.debounce(
-                this.handleScssInputChanged.bind(this),
-                env.normalTypingDebounceMillis
-            );
+            this.handleCssInputChangedThrottled = timingUtils.debounce(e => {
+                updateAndEmitUnitScss(this.props.unitCopy, unitCopy => {
+                    const currentlyCommitted = unitCopy.scss;
+                    const [shouldCommit, result] = this.cssValidator.validateAndCompileScss(e,
+                        input => `.${this.props.unitCls}{${input}}`, currentlyCommitted);
+                    // Wasn't valid -> commit to local state only
+                    if (!shouldCommit) {
+                        this.setState({scssNotCommitted: e.target.value, error: result.error});
+                        return null;
+                    }
+                    // Was valid, dispatch to the store (which is grabbed by BlockStylesTab.contructor and then this.componentWillReceiveProps())
+                    return {newScss: e.target.value,
+                            newGenerated: result.generatedCss || ''};
+                }, this.props.blockTypeName);
+            }, env.normalTypingDebounceMillis);
         }
     }
-    /**
-     * @param {Event} e
-     * @access private
-     */
-    handleScssInputChanged(e) {
-        const {id, generatedCss, scss} = this.props.unitCopy;
-        const currentlyCommitted = scss;
-        const [shouldCommit, result] = this.cssValidator.validateAndCompileScss(e,
-            input => `.${this.props.unitCls}{${input}}`, currentlyCommitted);
-        // Wasn't valid -> commit to local state only
-        if (!shouldCommit) {
-            this.setState({scssNotCommitted: e.target.value, error: result.error});
-            return;
-        }
-        // Was valid, dispatch to the store (which is grabbed by BlockStylesTab.contructor and then this.componentWillReceiveProps())
-        const dataBefore = {scss: currentlyCommitted, generatedCss};
-        const {blockTypeName} = this.props;
+}
+
+/**
+ * @param {ThemeStyleUnit} unitCopy
+ * @param {(unitCopy: ThemeStyleUnit) => ({newScss: String; newGenerated: String;}|null)} getUpdates
+ * @param {String} blockTypeName
+ */
+function updateAndEmitUnitScss(unitCopy, getUpdates, blockTypeName) {
+    const {id, generatedCss, scss} = unitCopy;
+    const dataBefore = {scss, generatedCss};
+    //
+    const {newScss, newGenerated} = getUpdates(unitCopy);
+    if (!newScss) return;
+    //
+    store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, id,
+        {scss: newScss, generatedCss: newGenerated}]);
+    emitCommitStylesOp(blockTypeName, () => {
         store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, id,
-            {scss: e.target.value,
-             generatedCss: result.generatedCss || ''}]);
-        this.emitSaveStylesToBackendOp(blockTypeName, () => {
-            store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, id,
-            dataBefore]);
-        });
-    }
+        dataBefore]);
+    });
 }
 
 /**
@@ -666,12 +670,9 @@ function hidePopper(content) {
 /**
  * @typedef StyleTextareaProps
  * @prop {ThemeStyleUnit} unitCopy
- * @prop {emitSaveStylesToBackendOpFn?} emitSaveStylesToBackendOp
  * @prop {String} unitCls
  * @prop {String} blockTypeName
  * @prop {Boolean} isVisible
- *
- * @typedef {(blockTypeName: String, doUndo: () => void) => void} emitSaveStylesToBackendOpFn
  */
 
 export default BlockStylesTab;

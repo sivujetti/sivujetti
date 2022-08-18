@@ -14,6 +14,13 @@ const stringUtils = {
             .replace(/--+/g, '-')    // Replace multiple - with single -
             .replace(/^-+/, '')      // Trim - from start of text
             .replace(/-+$/, '');     // Trim - from end of text
+    },
+    /**
+     * @param {String} str
+     * @returns {String}
+     */
+    capitalize(str) {
+        return `${str.charAt(0).toUpperCase()}${str.substring(1, str.length)}`;
     }
 };
 

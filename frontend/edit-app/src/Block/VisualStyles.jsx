@@ -1,4 +1,4 @@
-import {__, env, hookForm, FormGroupInline, Input, InputErrors} from '@sivujetti-commons-for-edit-app';
+import {__, env, hookForm, FormGroupInline, Input, InputErrors, reHookValues} from '@sivujetti-commons-for-edit-app';
 import {stringUtils, timingUtils} from '../commons/utils';
 
 let compile, serialize, stringify;
@@ -6,42 +6,41 @@ let compile, serialize, stringify;
 const valueEditors = new Map;
 
 class VisualStyles extends preact.Component {
+    // debouncedEmitVarValueChange;
     /**
-     * @param {{vars: Array<CssVar>; ast: Array<Object>; emitVarValueChange: (getStyleUpdates: (unitCopy: ThemeStyleUnit) => {newScss: String; newGenerated: String;}) => void;}} props
+     * @param {{vars: Array<CssVar>; ast: Array<Object>; emitVarValueChange: (getStyleUpdates: (unitCopy: ThemeStyleUnit) => {newScss: String; newGenerated: String;}) => void; scss: String;}} props
+     * @access protected
      */
-    constructor(props) {
-        super(props);
-        if (!valueEditors.length) {
-            valueEditors.set('length', LengthValueInput);
-            valueEditors.set('color', ColorValueInput);
+    componentWillReceiveProps(props) {
+        if ((props.scss !== this.props.scss) || (props.vars.length && !this.state.vars)) {
+            const {ast, emitVarValueChange} = props;
+            this.debouncedEmitVarValueChange = timingUtils.debounce((newValAsString, astNodeIdx) => {
+                emitVarValueChange(unitCopy => {
+                    const node = ast[0].children[astNodeIdx];
+                    const varDecl = node.props; // '--foo'
+                    node.children = newValAsString;
+                    node.value = `${varDecl}:${newValAsString};`;
+                    return {newScss: this.replaceVarValue(unitCopy.scss, node, newValAsString),
+                            newGenerated: serialize(ast, stringify)};
+                });
+            }, env.normalTypingDebounceMillis);
+            this.setState({vars: props.vars}); // Note: reference / no copying
         }
     }
     /**
      * @access protected
      */
-    componentWillReceiveProps(props) {
-        if (props.vars.length && !this.state.vars)
-            this.setState({vars: props.vars}); // Note: reference / no copying
-    }
-    /**
-     * @access protected
-     */
-    render({emitVarValueChange, ast}, {vars}) {
+    render(_, {vars}) {
         if (!vars) return;
         return <div class="form-horizontal px-2">{ vars.map(v => {
             const Renderer = valueEditors.get(v.type);
             return <Renderer
                 valueCopy={ Object.assign({}, v.value) }
+                varName={ v.varName }
                 label={ v.label}
-                onVarValueChanged={ timingUtils.debounce(newValAsString => {
-                    emitVarValueChange(unitCopy => {
-                        const node = ast[0].children[v.__idx];
-                        const varDecl = node.props; // '--foo'
-                        node.value = `${varDecl}:${newValAsString};`;
-                        return {newScss: this.replaceVarValue(unitCopy.scss, node, newValAsString),
-                                newGenerated: serialize(ast, stringify)};
-                    });
-                }, env.normalTypingDebounceMillis) }/>;
+                onVarValueChanged={ newValAsString => {
+                    return this.debouncedEmitVarValueChange(newValAsString, v.__idx);
+                } }/>;
         }) }</div>;
     }
     /**
@@ -54,7 +53,7 @@ class VisualStyles extends preact.Component {
     replaceVarValue(scss, {line, column}, replaceWith) {
         const lines = scss.split(/\n/g);
         const linestr = lines[line - 1]; // '--varA: 1.4rem; --varB: 1;'
-        const before = linestr.substring(0, column); // '--varA: 1.4rem; '
+        const before = linestr.substring(0, column + 1); // '--varA: 1.4rem; '
         const after = linestr.substring(column - 1); // ' --varB: 1;'
         const pcs = before.split(':'); // [' --varB', ' 1;']
         pcs[pcs.length - 1] = ` ${replaceWith};`;
@@ -71,7 +70,7 @@ class VisualStyles extends preact.Component {
      *
      * Out: ```
      * [[{type: 'length', value: {num: '2.4'; unit: 'rem'}, label: 'fontSize', __idx: 1},
-     *   {type: 'color', value: {data: todo; type: 'hex'}, label: 'fontColor', __idx: 2}], [...]]
+     *   {type: 'color', value: {data: '#333333ff'; type: 'hexa'}, label: 'fontColor', __idx: 2}], [...]]
      * ```
      *
      * @param {String} scss
@@ -79,7 +78,11 @@ class VisualStyles extends preact.Component {
      * @returns {[Array<CssVar>, Array<Object>]} [vars, stylisAst]
      */
     static extractVars(scss, cls) {
-        ({compile, serialize, stringify} = window.stylis);
+        if (!valueEditors.length) {
+            valueEditors.set('length', LengthValueInput);
+            valueEditors.set('color', ColorValueInput);
+            ({compile, serialize, stringify} = window.stylis);
+        }
         const ast = compile(`.${cls}{${scss}}`);
         const nodes = ast[0].children;
         const out = [];
@@ -91,10 +94,15 @@ class VisualStyles extends preact.Component {
             //
             const ir = comm.children.trim().split('(')[1]; // '@exportAs(value)' -> 'value)'
             const varType = ir.split(')')[0].trim(); // 'value)' -> 'value'
-            if (varType === 'length') {
-                const value = inputToLength(decl.children);
-                if (value) out.push({type: 'length', value, label: varNameToLabel(decl.props.substring(2)), __idx: i});
-            }
+            const Cls = valueEditors.get(varType);
+            if (Cls) {
+                const varName = decl.props.substring(2);
+                const value = Cls.valueFromInput(decl.children);
+                if (value) out.push({type: varType, value,
+                varName,// <- tämä tuli lisää
+                label: varNameToLabel(varName), __idx: i});
+                else env.window.console.log(`Don't know how to parse ${varType} variable value "${decl.children}" yet.`);
+            } else env.window.console.log(`Variable type "${varType}" not recognized`);
         }
         return [out, ast];
     }
@@ -116,12 +124,19 @@ class LengthValueInput extends preact.Component {
         ]));
     }
     /**
-     * @param {{valueCopy: LengthValue; label: String; onVarValueChanged: (newVal: String) => any;}} props
+     * @param {ValueInputProps<LengthValue>} props
+     * @access protected
+     */
+    componentWillReceiveProps(props) {
+        if (this.state.values.num !== props.valueCopy.num)
+            reHookValues(this, [{name: 'num', value: props.valueCopy.num}]);
+    }
+    /**
      * @access protected
      */
     render({label, valueCopy}) {
         return <FormGroupInline>
-            <label htmlFor="num" class="form-label pt-1">{ label }</label>
+            <label htmlFor="num" class="form-label pt-1" title={ label }>{ label }</label>
             <div class="input-group">
                 <Input vm={ this } prop="num" placeholder="1.4"/>
                 <span class="input-group-addon addon-sm">{ valueCopy.unit }</span>
@@ -129,25 +144,91 @@ class LengthValueInput extends preact.Component {
             <InputErrors vm={ this } prop="num"/>
         </FormGroupInline>;
     }
+    /**
+     * @param {String} input examples: '1.4rem', '1.4 rem ', '12px'
+     * @returns {LengthValue|null}
+     */
+    static valueFromInput(input) {
+        if (input.indexOf('rem') > -1) return {num: input.replace('rem', '').trim(), unit: 'rem'};
+        if (input.indexOf('px') > -1) return {num: input.replace('px', '').trim(), unit: 'px'};
+        return null; // not supported
+    }
 }
 
 class ColorValueInput extends preact.Component {
     /**
-     * @param {{valueCopy: ColorValue; label: String; onVarValueChanged: (newVal: String) => any;}} props
+     * @param {ValueInputProps<LengthValue>} props
      * @access protected
      */
-    render({valueCopy}) {
-        return <p>todo</p>;
+    componentWillReceiveProps(props) {
+        if ((this.props.valueCopy.data !== props.valueCopy.data ||
+            this.props.valueCopy.type !== props.valueCopy.type) && this.pickr) {
+            this.pickr.setColor(props.valueCopy.data);
+        }
     }
-}
-
-/**
- * @param {String} input examples: '1.4rem', '1.4 rem '
- * @returns {LengthValue|null}
- */
-function inputToLength(input) {
-    if (input.indexOf('rem') > -1) return {num: input.replace('rem', '').trim(), unit: 'rem'};
-    return null; // not supported
+    /**
+     * @access protected
+     */
+    render({valueCopy, label}) {
+        return <FormGroupInline>
+            <label class="form-label pt-1" title={ label }>{ label }</label>
+            {/* the real div.pickr (this.movingPickContainer) will appear here */}
+            {/* this element will disappear after clicking */}
+            <div class="pickr disappearing-pickr">
+                <button
+                    onClick={ e => this.replaceDisappearingBox(e, this.props) }
+                    style={ `--pcr-color:${valueCopy.data};` }
+                    class="pcr-button"
+                    type="button"
+                    aria-label="toggle color picker dialog"
+                    role="button"></button>
+            </div>
+        </FormGroupInline>;
+    }
+    /**
+     * @param {Event} e
+     * @param {ValueInputProps<ColorValue>} props
+     * @access private
+     */
+    replaceDisappearingBox(e, {valueCopy, onVarValueChanged}) {
+        const disappearingColorBox = e.target.parentElement; // div.disappearing-pickr
+        disappearingColorBox.classList.add('d-none');
+        //
+        const realColorBox = document.createElement('div');
+        disappearingColorBox.parentElement.insertBefore(realColorBox, disappearingColorBox);
+        this.pickr = window.Pickr.create({
+            el: realColorBox,
+            theme: 'nano',
+            default: valueCopy.data,
+            components: {preview: true, opacity: true, hue: true, interaction: {}}
+        });
+        //
+        let nonCommittedHex;
+        this.pickr.on('change', (color, _source, _instance) => {
+            nonCommittedHex = `#${color.toHEXA().slice(0, 4).join('')}`;
+        }).on('changestop', (_source, instance) => {
+            if (this.props.valueCopy.data === nonCommittedHex) return;
+            // Update realColorBox's color
+            instance.setColor(nonCommittedHex);
+            // Commit
+            onVarValueChanged(nonCommittedHex);
+        });
+        setTimeout(() => {
+            this.pickr.show();
+        }, 10);
+    }
+    /**
+     * @param {String} input examples: '#000', ' #ffffff '
+     * @returns {ColorValue|null}
+     */
+    static valueFromInput(input) {
+        if (input.indexOf('#') > -1) {
+            const ir = input.trim();
+            const hexa = ir.length === 9 ? ir : ir.length === 7 ? `${ir}ff` : null;
+            if (hexa) return {data: hexa, type: 'hexa'};
+        }
+        return null; // not supported
+    }
 }
 
 /**
@@ -167,11 +248,18 @@ function varNameToLabel(varName) {
  *
  * @typedef LengthValue
  * @prop {String} num
- * @prop {'rem'} unit
+ * @prop {'rem'|'px'} unit
  *
  * @typedef ColorValue
  * @prop {String} data
- * @prop {'hex'} type
+ * @prop {'hexa'} type
+ *
+ * @template T
+ * @typedef ValueInputProps
+ * @prop {T} valueCopy
+ * @prop {String} label
+ * @prop {String} varName
+ * @prop {(newVal: String) => any} onVarValueChanged
  */
 
 export default VisualStyles;

@@ -127,9 +127,10 @@ class BlockStylesTab extends preact.Component {
                             ? <VisualStyles
                                 vars={ cssVars }
                                 ast={ ast }
+                                scss={ unit.scss }
                                 emitVarValueChange={ getStyleUpdates => {
-                                    updateAndEmitUnitScss(Object.assign({}, unit), getStyleUpdates, blockCopy.type); }
-                                }/>
+                                    updateAndEmitUnitScss(Object.assign({}, unit), getStyleUpdates, blockCopy.type);
+                                } }/>
                             : null
                     }
                 </li>;

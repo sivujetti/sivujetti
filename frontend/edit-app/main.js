@@ -22,7 +22,7 @@ import blockTreeUtils from './src/blockTreeUtils.js';
 import WebPageIframe from './src/WebPageIframe.js';
 import MainPanel from './src/MainPanel.js';
 import OnThisPageSection from './src/DefaultView/OnThisPageSection.jsx';
-import GlobalStylesSection from './src/DefaultView/GlobalStylesSection.jsx';
+import BaseStylesSection from './src/DefaultView/BaseStylesSection.jsx';
 import WebsiteSection from './src/DefaultView/WebsiteSection.jsx';
 import {MyClipboard, MyKeyboard, MyLink, MySnowTheme} from './src/Quill/quill-customizations.js';
 
@@ -82,7 +82,7 @@ function configureServices() {
         signals, env);
     mainPanel.registerSection('onThisPage', OnThisPageSection);
     if (api.user.can('editThemeColours')) {
-        mainPanel.registerSection('globalStyles', GlobalStylesSection);
+        mainPanel.registerSection('baseStyles', BaseStylesSection);
     }
     if (api.user.can('createPages')) {
         mainPanel.registerSection('website', WebsiteSection);

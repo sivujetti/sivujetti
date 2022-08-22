@@ -81,8 +81,11 @@ stringBundles.push({
     'Name': 'Name',
     'e.g. Header, Footer': 'e.g. Header, Footer',
     'Convert': 'Convert',
-    // edit-app/src/DefaultView/GlobalStylesSection.jsx
+    // edit-app/src/DefaultView/BaseStylesSection.jsx
     'Colours and fonts': 'Colours and fonts',
+    'Visual': 'Visual',
+    'Code': 'Code',
+    // edit-app/src/DefaultView/GlobalStylesSection.jsx
     'Colours': 'Colours',
     'Root styles': 'Root styles',
     // edit-app/src/DefaultView/OnThisPageSection.jsx

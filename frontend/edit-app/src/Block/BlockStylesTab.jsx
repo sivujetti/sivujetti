@@ -677,4 +677,4 @@ function hidePopper(content) {
  */
 
 export default BlockStylesTab;
-export {StyleTextarea, tempHack};
+export {StyleTextarea, tempHack, updateAndEmitUnitScss};

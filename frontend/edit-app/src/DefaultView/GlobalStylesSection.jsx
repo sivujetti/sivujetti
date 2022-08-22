@@ -4,6 +4,7 @@ import Tabs from '../commons/Tabs.jsx';
 import store, {pushItemToOpQueue} from '../store.js';
 import {observeStore as observeStore2} from '../store2.js';
 import {StyleTextarea, tempHack} from '../Block/BlockStylesTab.jsx';
+import {wc_hex_is_light} from '../Block/VisualStyles.jsx';
 
 class GlobalStylesSection extends MenuSection {
     // activeThemeId;
@@ -47,9 +48,9 @@ class GlobalStylesSection extends MenuSection {
             firstTabContent = null;
         else if (numStyles === null)
             firstTabContent = <LoadingSpinner/>;
-        else firstTabContent = <div class={ `global-styles${this.userCanEditCss ? '' : ' mt-2 pt-2'}` }>
+        else firstTabContent = <div class={ `global-styles has-color-pickers${this.userCanEditCss ? '' : ' mt-2 pt-2'}` }>
             { this.globalStyles.map(({name, friendlyName}) =>
-            <div class={ `d-flex${wc_hex_is_light(this.state[name], 220) ? ' is-very-light-color' : '' }` }>
+            <div class={ `d-flex${wc_hex_is_light(this.state[name]) ? ' is-very-light-color' : ''}` }>
                 <div ref={ el => this.createColorPickerFor(name, el) }></div>
                 <label>
                     <span>{ __(friendlyName) }</span>
@@ -212,23 +213,6 @@ class GlobalStylesSection extends MenuSection {
         this.props.currentWebPage.setCssVarValue(varName, {type: 'color', value: hexa});
         return asString;
     }
-}
-
-/**
- * https://stackoverflow.com/a/51567564
- *
- * @param {String} hexa
- * @param {Number} howLight = 155
- * @param {Boolean} multiplyByAlpha = false
- * @param {Boolean}
- */
-function wc_hex_is_light(hexa, howLight = 155, multiplyByAlpha = false) {
-    const c_r = parseInt(hexa.substring(1, 3), 16);
-    const c_g = parseInt(hexa.substring(3, 5), 16);
-    const c_b = parseInt(hexa.substring(5, 7), 16);
-    const a = !multiplyByAlpha ? 1 : (parseInt(hexa.substring(7, 9), 16) / 255);
-    const brightness = (((c_r * 299) + (c_g * 587) + (c_b * 114)) * a) / 1000;
-    return brightness > howLight;
 }
 
 /**

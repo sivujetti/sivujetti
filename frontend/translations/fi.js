@@ -81,8 +81,11 @@ stringBundles.push({
     'Name': 'Nimi',
     'e.g. Header, Footer': 'esim. Header, Footer',
     'Convert': 'Muunna',
-    // edit-app/src/DefaultView/GlobalStylesSection.jsx
+    // edit-app/src/DefaultView/BaseStylesSection.jsx
     'Colours and fonts': 'Sivuston värit ja fontit',
+    'Visual': 'Visuaalinen',
+    'Code': 'Koodi',
+    // edit-app/src/DefaultView/GlobalStylesSection.jsx
     'Colours': 'Värit',
     'Root styles': 'Juurityylit',
     // edit-app/src/DefaultView/OnThisPageSection.jsx

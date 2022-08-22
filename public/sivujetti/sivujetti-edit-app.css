@@ -323,6 +323,7 @@ h2 {
 
 
 /* == EditApp: Components ============================================== */
+/* EditApp: Components: popup-menu */
 ul.popup-menu.menu {
     position: fixed;
     z-index: 2;
@@ -386,6 +387,7 @@ a.popup-close-area {
     animation-fill-mode: forwards;
     position: relative;
 }
+/* EditApp: Components: grids */
 .item-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -458,30 +460,7 @@ a.popup-close-area {
 .file-input-outer > label {
     cursor: pointer;
 }
-.global-styles > div {
-    padding-bottom: .4rem;
-    flex-direction: row-reverse;
-}
-.global-styles > div > * {
-    flex: 1;
-    flex-direction: column-reverse;
-}
-.global-styles > div > .pickr + div {
-    display: none;
-}
-.global-styles .pickr {
-    align-self: end;
-    margin-left: .26rem;
-}
-.global-styles .pcr-button {
-    border: 1px solid rgba(var(--components-color-bg-default), .24);
-    height: calc(1.4rem + 2px);
-    width: calc(1.4rem + 2px);
-    top: 1px;
-}
-.global-styles .is-very-light-color .pcr-button {
-    border-color: rgba(var(--components-color-fb-default),.12);
-}
+/* EditApp: Components: tooltips */
 .my-tooltip  {
     display: none;
     font-size: .7rem;
@@ -534,6 +513,7 @@ a.popup-close-area {
 .my-tooltip[data-popper-placement^='right'] > .popper-arrow {
     left: -4px;
 }
+/* EditApp: Components: styles-list */
 ul.styles-list > li {
     background: rgba(var(--components-color-fb-default),.022);
     border-radius: var(--small-rect-radius);
@@ -558,7 +538,13 @@ ul.styles-list > li > header > .btn > span:hover + div + span.edit-icon-outer,
 ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     opacity: 1;
 }
-
+/* EditApp: Components: visual-style-inputs */
+.has-color-pickers .pcr-button {
+    border: 1px solid rgba(var(--components-color-bg-default), .24);
+}
+.has-color-pickers .is-very-light-color .pcr-button {
+    border-color: rgba(var(--components-color-fb-default),.12);
+}
 
 
 /* == EditApp: * ============================================================ */
@@ -669,6 +655,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     right: .8rem;
     left: initial;
 }
+
 
 /* EditApp: Main panel > Back to edit app label */
 #back-to-edit-corner {
@@ -939,6 +926,26 @@ input + .scroller {
 
 
 /* EditApp: Main panel > Global Styles -section */
+.global-styles > div {
+    padding-bottom: .4rem;
+    flex-direction: row-reverse;
+}
+.global-styles > div > * {
+    flex: 1;
+    flex-direction: column-reverse;
+}
+.global-styles > div > .pickr + div {
+    display: none;
+}
+.global-styles .pickr {
+    align-self: end;
+    margin-left: .26rem;
+}
+.global-styles .pcr-button {
+    height: calc(1.4rem + 2px);
+    width: calc(1.4rem + 2px);
+    top: 1px;
+}
 .hidden-helper-picker + .pickr,
 .global-styles > .pickr {
     display: none;

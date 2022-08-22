@@ -14,8 +14,10 @@ $statements = array_merge($statements, [
     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" => "y"
 ])."','abcdefg1')",
 
-"INSERT INTO `themes` (`id`,`name`,`globalStyles`,`isActive`,`generatedScopedStylesCss`) VALUES
-('1','test-suite-theme','[]',1,'" .
+"INSERT INTO `themes` (`id`,`name`,`stylesOrder`,`globalStyles`,`isActive`,`generatedScopedStylesCss`) VALUES
+('1','test-suite-theme','" .
+    json_encode(["Paragraph", "Section"])
+. "','[]',1,'" .
     \Sivujetti\Tests\Utils\CssGenTestUtils::generateScopedStyles($styles) .
 "')",
 

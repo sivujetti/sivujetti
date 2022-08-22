@@ -22,7 +22,6 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->verifyRequestFinishedSuccesfully($state);
         $this->verifyRenderedCorrectPageAndLayout($state);
         $this->verifyThemeCanRegisterCssFiles($state);
-        $this->verifyRenderedGlobalStyles($state);
         $this->verifyRenderedBlockTypeBaseStyles($state);
         $this->verifyRenderedHead($state);
     }
@@ -67,11 +66,6 @@ final class RenderBasicPageTest extends RenderPageTestCase {
     private function verifyThemeCanRegisterCssFiles(\TestState $state): void {
         $expectedUrl = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME, false);
         $this->assertStringContainsString("<link href=\"{$expectedUrl}\" rel=\"stylesheet\">",
-            $state->spyingResponse->getActualBody());
-    }
-    private function verifyRenderedGlobalStyles(\TestState $state): void {
-        $noStyles = ""; // backend/sivujetti/tests/test-db-init.php (INSERT INTO themes)
-        $this->assertStringContainsString("<style>:root {" . $noStyles . "}</style>",
             $state->spyingResponse->getActualBody());
     }
     private function verifyRenderedBlockTypeBaseStyles(\TestState $state): void {
@@ -179,18 +173,16 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $injectJs = $scriptEls[count($scriptEls) - 1]->nodeValue;
         $orderStyles = fn($styles) => [$styles[1], $styles[0]];
         $expectedStyles = json_encode(array_map(fn($itm) => (object) [
-            "css" => base64_encode(implode("\n", array_map(fn($u) => $u->generatedCss, json_decode($itm->units)))),
+            "css" => implode("\n", array_map(fn($u) => $u->generatedCss, json_decode($itm->units))),
             "blockTypeName" => $itm->blockTypeName,
         ], $orderStyles($ts)), JSON_UNESCAPED_UNICODE);
         $this->assertEquals(
-            "document.head.appendChild([\n" .
-                "{$expectedStyles},\n" .
-            "].flat().reduce((out, {css, blockTypeName}) => {\n" .
-                "const bundle = document.createElement('style');\n" .
-                "bundle.innerHTML = atob(css);\n" .
-                "bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
-                "out.appendChild(bundle);\n" .
-                "return out;\n" .
+            "document.head.appendChild({$expectedStyles}.reduce((out, {css, blockTypeName}) => {\n" .
+            "  const bundle = document.createElement('style');\n" .
+            "  bundle.innerHTML = css;\n" .
+            "  bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
+            "  out.appendChild(bundle);\n" .
+            "  return out;\n" .
             "}, document.createDocumentFragment()))",
             $injectJs
         );

@@ -3,7 +3,7 @@
 namespace Sivujetti\Page;
 
 use Pike\{ArrayUtils, PikeException};
-use Sivujetti\{Template, ValidationUtils};
+use Sivujetti\{JsonUtils, Template, ValidationUtils};
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
@@ -157,7 +157,7 @@ final class WebPageAwareTemplate extends Template {
         //
         if ($overrides === GlobalBlockReferenceBlockType::EMPTY_OVERRIDES)
             return $blocks;
-        foreach (json_decode($overrides, flags: JSON_THROW_ON_ERROR) as $blockId => $perBlockPropOverrides) {
+        foreach (JsonUtils::parse($overrides) as $blockId => $perBlockPropOverrides) {
             $blockToOverride = BlockTree::findBlockById($blockId, $blocks);
             foreach ($perBlockPropOverrides as $key => $val) {
                 $blockToOverride->{$key} = $val;
@@ -207,12 +207,12 @@ final class WebPageAwareTemplate extends Template {
                 $this->attrMapToStr($attrsMap) . ">";
         };
         // Global variables
-        $out = "<style>:root {" .
+        $out = $this->__theme->globalStyles ? "<style>:root {" .
             implode("\n", array_map(fn($style) =>
                 // Note: these are pre-validated
                 "    --{$style->name}: {$this->cssValueToString($style->value)};"
             , $this->__theme->globalStyles)) .
-        "}</style>\n";
+        "}</style>\n" : "";
         //
         if (!$this->__useInlineCssStyles) {
             $generated = (object) ["url" => "{$this->__theme->name}-generated.css?t=" . time(),
@@ -227,20 +227,19 @@ final class WebPageAwareTemplate extends Template {
             implode("\n", array_map($rf, $this->__cssAndJsFiles->css)) .
             //
             "\n<!-- Note to devs: these inline styles appear here only when you're logged in -->\n" .
-            // Inject each style bundle via javascript instead of echoing them directly (to
-            // allow things such `content: "</style>"` or `/* </style> */`)
-            "<script>document.head.appendChild([\n" .
-                // Scoped styles
-                json_encode(array_map(fn($itm) => (object) [
-                    "css" => base64_encode(implode("\n", array_map(fn($u) => $u->generatedCss, $itm->units))),
+            // Scoped styles: Inject each style bundle via javascript instead of echoing them directly
+            // (to allow things such as `content: "</style>"` or `/* </style> */`)
+            "<script>document.head.appendChild(" . self::escInlineJs(
+                JsonUtils::stringify(array_map(fn($itm) => (object) [
+                    "css" => implode("\n", array_map(fn($u) => $u->generatedCss, $itm->units)),
                     "blockTypeName" => $itm->blockTypeName,
-                ], $this->__theme->styles), JSON_UNESCAPED_UNICODE) . ",\n" .
-            "].flat().reduce((out, {css, blockTypeName}) => {\n" .
-                "const bundle = document.createElement('style');\n" .
-                "bundle.innerHTML = atob(css);\n" .
-                "bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
-                "out.appendChild(bundle);\n" .
-                "return out;\n" .
+                ], $this->__theme->styles))
+            ) . ".reduce((out, {css, blockTypeName}) => {\n" .
+            "  const bundle = document.createElement('style');\n" .
+            "  bundle.innerHTML = css;\n" .
+            "  bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
+            "  out.appendChild(bundle);\n" .
+            "  return out;\n" .
             "}, document.createDocumentFragment()))</script>"
         );
     }
@@ -261,6 +260,20 @@ final class WebPageAwareTemplate extends Template {
             }
             return "{$pre}<script src=\"{$url}\"{$this->attrMapToStr($attrsMap)}></script>";
         }, $this->__cssAndJsFiles->js));
+    }
+    /**
+     * https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements
+     * https://stackoverflow.com/a/20942828
+     *
+     * @param string $json
+     * @return string
+     */
+    public static function escInlineJs(string $json): string {
+        return str_replace(
+            ["<!--", "<script", "</script"],
+            ['<"+"!--', '<"+"script', '</"+"script'],
+            $json
+        );
     }
     /**
      * ["id" => "foo", "class" => "bar"] -> ' id="foo" class="bar"'
@@ -333,7 +346,7 @@ final class WebPageAwareTemplate extends Template {
         $ldWebSite["name"] = $siteNameEscaped;
         $ldWebSite["description"] = $this->e($site->description);
         //
-        $metasOgOut[] = "<script type=\"application/ld+json\">" . json_encode([
+        $metasOgOut[] = "<script type=\"application/ld+json\">" . JsonUtils::stringify([
             "@context" => "https://schema.org",
             "@graph" => [$ldWebSite, $ldWebPage]
         ], JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) . "</script>\n";

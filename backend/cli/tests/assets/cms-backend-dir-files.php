@@ -118,6 +118,7 @@ return [
     "\$backend/sivujetti/src/Template.php",
     "\$backend/sivujetti/src/StoredObjects/StoredObjectsRepository.php",
     "\$backend/sivujetti/src/StoredObjects/Entities/Entry.php",
+    "\$backend/sivujetti/src/JsonUtils.php",
     "\$backend/sivujetti/src/UserTheme/UserThemeInterface.php",
     "\$backend/sivujetti/src/UserTheme/UserThemeAPI.php",
     "\$backend/sivujetti/src/Upload/UploadsQFilters.php",

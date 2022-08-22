@@ -4,7 +4,6 @@ namespace Sivujetti\Page;
 
 use MySite\Theme;
 use Pike\{AppConfig, ArrayUtils, Db, PikeException, Request, Response};
-use Pike\Db\FluentDb;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\{App, SharedAPIContext, Template, Translator};
@@ -114,7 +113,7 @@ final class PagesController {
                                              assetUrlCacheBustStr: "?v={$theWebsite->versionId}"))->render([
             "url" => $req->params->url ?? "",
             "userDefinedJsFiles" => $apiCtx->adminJsFiles,
-            "dataToFrontend" => self::escInlineJs(json_encode((object) [
+            "dataToFrontend" => WebPageAwareTemplate::escInlineJs(json_encode((object) [
                 "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
                 "assetBaseUrl" => WebPageAwareTemplate::makeUrl("/", false),
                 "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
@@ -284,6 +283,7 @@ final class PagesController {
         self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo);
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
         $editModeIsOn = $isPlaceholderPage || ($req->queryVar("in-edit") !== null);
+        if ($editModeIsOn) $theWebsite->activeTheme->loadStyles();
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
             ["serverHost" => self::getServerHost($req), "versionId" => $theWebsite->versionId],
@@ -299,7 +299,7 @@ final class PagesController {
         ]);
         if ($editModeIsOn && ($bodyEnd = strrpos($html, "</body>")) > 0) {
             $html = substr($html, 0, $bodyEnd) .
-                "<script>window.sivujettiCurrentPageData = " . self::escInlineJs(json_encode([
+                "<script>window.sivujettiCurrentPageData = " . $tmpl->escInlineJs(json_encode([
                     "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
                     "layout" => self::layoutToRaw($page->layout),
                 ], JSON_UNESCAPED_UNICODE)) . "</script>" .
@@ -427,19 +427,5 @@ final class PagesController {
             $req->attr("HTTP_X_FORWARDED_PROTO") === "https" ||
             $req->attr("HTTP_X_FORWARDED_SSL") === "on") ? "s" : "";
         return "http{$s}://{$req->attr("HTTP_HOST")}";
-    }
-    /**
-     * https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements
-     * https://stackoverflow.com/a/20942828
-     *
-     * @param string $json
-     * @return string
-     */
-    private static function escInlineJs(string $json): string {
-        return str_replace(
-            ["<!--", "<script", "</script"],
-            ['<"+"!--', '<"+"script', '</"+"script'],
-            $json
-        );
     }
 }

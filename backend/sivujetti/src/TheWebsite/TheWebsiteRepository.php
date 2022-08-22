@@ -18,6 +18,7 @@ final class TheWebsiteRepository {
             ->fields([
                 "ws.`name`", "ws.`lang`", "ws.`country`", "ws.`description`",
                 "ws.`aclRules` AS `aclRulesJson`", "ws.`firstRuns` as `firstRunsJson`", "ws.`versionId`",
+                //
                 "p.`name` AS `pluginName`", "p.`isActive` AS `pluginIsActive`",
                 "pt.`name` AS `pageTypeName`", "pt.`slug` AS `pageTypeSlug`",
                 "pt.`friendlyName` AS `pageTypeFriendlyName`",
@@ -27,7 +28,10 @@ final class TheWebsiteRepository {
                 "pt.`defaultLayoutId` AS `pageTypeDefaultLayoutId`",
                 "pt.`status` AS `pageTypeStatus`",
                 "pt.`isListable` AS `pageTypeIsListable`",
-                "t.`id` AS `themeId`", "t.`name` AS `themeName`", "t.`globalStyles` AS `themeGlobalStylesJson`",
+                //
+                "t.`id` AS `themeId`", "t.`name` AS `themeName`", "t.`stylesOrder` AS `themeStylesOrderJson`",
+                "t.`globalStyles` AS `themeGlobalStylesJson`",
+                //
                 "ts.`units` AS `themeStylesUnits`",
                 "ts.`blockTypeName` AS `themeStylesBlockTypeName`",
             ])

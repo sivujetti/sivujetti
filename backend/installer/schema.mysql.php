@@ -57,6 +57,7 @@ return [
 "CREATE TABLE `\${p}themes` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92) NOT NULL,
+    `stylesOrder` JSON,
     `globalStyles` JSON,
     `isActive` TINYINT(1) NOT NULL,
     `generatedScopedStylesCss` TEXT,

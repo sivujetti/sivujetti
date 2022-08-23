@@ -55,6 +55,7 @@ class EditApp extends preact.Component {
      */
     handleWebPageLoaded(webPage, trees) {
         this.receivingData = true;
+        const isFirstLoad = !this.currentWebPage;
         const {data} = webPage;
         delete webPage.data;
         //
@@ -88,6 +89,9 @@ class EditApp extends preact.Component {
             const fn = this.currentWebPage.createThemeStylesChangeListener();
             webPageUnregistrables.set('themeStyles', observeStore2('themeStyles', fn));
             this.receivingData = false;
+            if (isFirstLoad) signals.on('visual-styles-var-value-changed-fast', (unitCls, varName, varValue, valueType) => {
+                this.currentWebPage.fastOverrideStyleUnitVar(unitCls, varName, varValue, valueType);
+            });
         };
         const fromDefaultToCreateOrViceVersa = newState.currentMainPanel.charAt(0) !== this.state.currentMainPanel.charAt(0);
         if (fromDefaultToCreateOrViceVersa)

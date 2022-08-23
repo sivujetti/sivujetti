@@ -26,16 +26,16 @@ class VisualStyles extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {vars}) {
+    render({unitCls}, {vars}) {
         if (!vars) return;
         return <div class="has-color-pickers form-horizontal px-2">{ vars.map(v => {
             const Renderer = valueEditors.get(v.type);
             return <Renderer
                 valueCopy={ Object.assign({}, v.value) }
-                label={ v.label}
-                onVarValueChanged={ newValAsString => {
-                    return this.debouncedEmitVarValueChange(newValAsString, v.__idx);
-                } }/>;
+                varName={ v.varName }
+                label={ v.label }
+                onVarValueChanged={ newValAsString => this.debouncedEmitVarValueChange(newValAsString, v.__idx) }
+                unitCls={ unitCls }/>;
         }) }</div>;
     }
     /**
@@ -111,7 +111,7 @@ class VisualStyles extends preact.Component {
             if (Cls) {
                 const varName = decl.props.substring(2);
                 const value = Cls.valueFromInput(decl.children);
-                if (value) out.push({type: varType, value, label: varNameToLabel(varName), __idx: i});
+                if (value) out.push({type: varType, value, varName, label: varNameToLabel(varName), __idx: i});
                 else env.window.console.log(`Don't know how to parse ${varType} variable value "${decl.children}" yet.`);
             } else env.window.console.log(`Variable type "${varType}" not recognized`);
         }
@@ -233,6 +233,7 @@ class ColorValueInput extends preact.Component {
         let nonCommittedHex;
         this.pickr.on('change', (color, _source, _instance) => {
             nonCommittedHex = `#${color.toHEXA().slice(0, 4).join('')}`;
+            signals.emit('visual-styles-var-value-changed-fast', this.props.unitCls, this.props.varName, nonCommittedHex, 'color');
         }).on('changestop', (_source, instance) => {
             if (this.props.valueCopy.data === nonCommittedHex) return;
             // Update realColorBox's color
@@ -287,6 +288,7 @@ function varNameToLabel(varName) {
  * @typedef CssVar
  * @prop {'length'} type
  * @prop {LengthValue|ColorValue} value
+ * @prop {String} varName
  * @prop {String} label
  * @prop {Number} __idx
  *
@@ -302,6 +304,7 @@ function varNameToLabel(varName) {
  * @typedef ValueInputProps
  * @prop {T} valueCopy
  * @prop {String} label
+ * @prop {String} varName
  * @prop {(newVal: String) => any} onVarValueChanged
  */
 
@@ -311,6 +314,7 @@ function varNameToLabel(varName) {
  * @prop {Array<Object>} ast
  * @prop {(getStyleUpdates: (unitCopy: ThemeStyleUnit) => {newScss: String; newGenerated: String;}) => void} emitVarValueChange
  * @prop {String} scss
+ * @prop {String} unitCls
  */
 
 export default VisualStyles;

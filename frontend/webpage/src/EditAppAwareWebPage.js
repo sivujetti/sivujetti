@@ -6,6 +6,8 @@ class EditAppAwareWebPage {
     // data;
     // currentlyHoveredRootEl;
     // isLocalLink:
+    // tempStyleOverrideNames:
+    // tempStyleOverrideElsRemoveTimeouts:
     /**
      * @param {CurrentPageData} dataFromAdminBackend
      */
@@ -13,6 +15,8 @@ class EditAppAwareWebPage {
         this.data = dataFromAdminBackend;
         this.currentlyHoveredRootEl = null;
         this.isLocalLink = createIsLocalLinkCheckFn();
+        this.tempStyleOverrideNames = new Map;
+        this.tempStyleOverrideElsRemoveTimeouts = new Map;
     }
     /**
      * @returns {Array<HTMLElement}
@@ -428,8 +432,37 @@ class EditAppAwareWebPage {
         this.isMouseListenersDisabled = isDisabled;
     }
     /**
+     * @param {String} unitCls Example 'j-Heading-unit-6'
+     * @param {String} varName Example 'textColor'
+     * @param {String} varValue Example '#f5f5f5'
+     * @param {'color'} valueType
+     * @access public
+     */
+    fastOverrideStyleUnitVar(unitCls, varName, varValue, valueType) {
+        if (valueType !== 'color') throw new Error();
+        let el;
+        if (!this.tempStyleOverrideNames.has(unitCls)) {
+            el = document.createElement('style');
+            el.setAttribute('data-temp-overrides-for', unitCls);
+            document.head.appendChild(el);
+            this.tempStyleOverrideNames.set(unitCls, 1);
+        } else {
+            el = document.head.querySelector(`[data-temp-overrides-for="${unitCls}"]`);
+        }
+        //
+        el.innerHTML = `.${unitCls} { --${varName}: ${varValue}; }`;
+        //
+        const timeoutId = this.tempStyleOverrideElsRemoveTimeouts.get(unitCls);
+        if (timeoutId) clearTimeout(timeoutId);
+        this.tempStyleOverrideElsRemoveTimeouts.set(unitCls, setTimeout(() => {
+            document.head.removeChild(document.head.querySelector(`[data-temp-overrides-for="${unitCls}"]`));
+            this.tempStyleOverrideNames.delete(unitCls);
+        }, 2000));
+    }
+    /**
      * @param {String} varName
      * @param {RawCssValue} to
+     * @access public
      */
     setCssVarValue(varName, {type, value}) {
         if (!isValidIdentifier(varName))

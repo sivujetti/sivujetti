@@ -191,6 +191,7 @@ interface EditAppAwareWebPage {
     createBlockTreeChangeListener(trid: String, blockTreeUtils: blockTreeUtils, blockToTransferable: (block: RawBlock) => {[key: String]: any;}, blockTypes: BlockTypes, getTree: (trid: String) => Array<RawBlock>, t: Object): (blockTreeState: BlockTreeReduxState) => void;
     createThemeStylesChangeListener(): (state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void;
     setIsMouseListenersDisabled(isDisabled: Boolean): void;
+    fastOverrideStyleUnitVar(unitCls: String, varNam: String, varValue: String, valueType: 'color'): void;
     setCssVarValue(varName: String, to: RawCssValue): void;
 }
 

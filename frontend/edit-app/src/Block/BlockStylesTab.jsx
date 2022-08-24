@@ -1,16 +1,17 @@
-import {__, api, env, http, Icon, LoadingSpinner, InputError, FormGroup, hookForm,
-        Input, InputErrors, hasErrors, unhookForm} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, http, signals, Icon, LoadingSpinner, hookForm, unhookForm, Input,
+    FormGroup, InputErrors, InputError, hasErrors} from '@sivujetti-commons-for-edit-app';
 import {timingUtils} from '../commons/utils.js';
 import ContextMenu from '../commons/ContextMenu.jsx';
 import CssStylesValidatorHelper from '../commons/CssStylesValidatorHelper.js';
 import store2, {observeStore as observeStore2} from '../store2.js';
-import store, {pushItemToOpQueue} from '../store.js';
+import store, {createSelectBlockTree, pushItemToOpQueue} from '../store.js';
 import {validationConstraints} from '../constants.js';
 import {triggerUndo} from '../SaveButton.jsx';
 import {Popup} from '../block-types/Listing/EditForm.jsx';
 import {createTrier} from '../../../webpage/src/EditAppAwareWebPage.js';
 import exampleScss from '../example-scss.js';
 import VisualStyles from './VisualStyles.jsx';
+import blockTreeUtils from '../blockTreeUtils.js';
 
 let compile, serialize, stringify;
 let emitSaveStylesToBackendOp;
@@ -18,6 +19,7 @@ let emitSaveStylesToBackendOp;
 class BlockStylesTab extends preact.Component {
     // userCanEditVars;
     // userCanEditCss;
+    // useVisualStyles;
     // editableTitleInstances;
     // moreMenu;
     // extraBlockStyleClassesTextareaEl;
@@ -34,6 +36,7 @@ class BlockStylesTab extends preact.Component {
         ({compile, serialize, stringify} = window.stylis);
         this.userCanEditVars = api.user.can('editThemeVars');
         this.userCanEditCss = api.user.can('editThemeCss');
+        this.useVisualStyles = !this.userCanEditCss && this.userCanEditVars;
         emitSaveStylesToBackendOp = this.userCanEditCss ? emitCommitStylesOp : null;
         this.editableTitleInstances = [];
         this.moreMenu = preact.createRef();
@@ -50,7 +53,7 @@ class BlockStylesTab extends preact.Component {
                 const openLiIdx = event === 'themeStyles/addUnitTo' || event === 'themeStyles/addStyle'
                     ? units.length - 1
                     : this.state.liClasses.findIndex(s => s !== '');
-                this.updateUnitsState(units, openLiIdx);
+                this.updateUnitsState(units, themeStyles, openLiIdx);
             }
         }),
         ];
@@ -67,7 +70,7 @@ class BlockStylesTab extends preact.Component {
             this.setState({themeStyles: null});
             const themeStyles = tempHack();
             if (themeStyles)
-                this.updateUnitsState((findBlockTypeStyles(themeStyles, this.state.blockCopy.type) || {}).units);
+                this.updateUnitsState((findBlockTypeStyles(themeStyles, this.state.blockCopy.type) || {}).units, themeStyles);
             // else Wait for store2.dispatch('themeStyles/setAll')
         }
     }
@@ -80,7 +83,8 @@ class BlockStylesTab extends preact.Component {
     /**
      * @access protected
      */
-    render({isVisible}, {units, blockCopy, liClasses, extraBlockStyleClassesNotCommitted, extraBlockStyleClassesError}) {
+    render({isVisible}, {units, blockCopy, liClasses, extraBlockStyleClassesNotCommitted, extraBlockStyleClassesError,
+                        parentStyleInfo}) {
         if (!isVisible) return null;
         const {userCanEditVars, userCanEditCss} = this;
         return [
@@ -88,10 +92,9 @@ class BlockStylesTab extends preact.Component {
                 const liCls = liClasses[i];
                 const cls = this.createClass(unit.id);
                 const isActivated = this.currentBlockHasStyle(cls);
-                const showVisualStyles = !userCanEditCss && userCanEditVars;
-                const [cssVars, ast] = !showVisualStyles ? [[], []] : VisualStyles.extractVars(unit.scss, cls);
-                const doShowChevron = userCanEditCss || (showVisualStyles && cssVars.length);
-                return <li class={ liCls } key={ unit.id }>
+                const [cssVars, ast] = !this.useVisualStyles ? [[], []] : VisualStyles.extractVars(unit.scss, cls);
+                const doShowChevron = userCanEditCss || (this.useVisualStyles && cssVars.length);
+                return <li class={ liCls } data-cls={ cls } key={ unit.id }>
                     <header class="flex-centered init-relative">
                         <button
                             onClick={ e => this.handleLiClick(e, i) }
@@ -137,9 +140,21 @@ class BlockStylesTab extends preact.Component {
                 </li>;
             }) }</ul> : (userCanEditCss
                 ? null
-                : <p class="pt-1 mb-0 color-dimmed">{ __('No editable styles') }.</p>
+                : <p class="pt-1 mb-2 color-dimmed">{ __('No own styles') }.</p>
             ) : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
-        ].concat(userCanEditCss ? [
+        ].concat(userCanEditVars && parentStyleInfo && parentStyleInfo[0] ? [
+            <button onClick={ () => {
+                signals.emit('on-web-page-block-clicked', parentStyleInfo[0]);
+                // Open styles tab
+                setTimeout(() => {
+                    env.document.querySelector('#inspector-panel .tab .tab-item:nth-of-type(2) a').click();
+                    // Open first unit accordion
+                    setTimeout(() => {
+                        document.querySelector(`#inspector-panel .styles-list > li[data-cls="${parentStyleInfo[1]}"] button`).click();
+                    }, 80);
+                }, 200);
+            } } class="btn btn-sm" type="button">{ __('Show parent styles') }</button>
+        ] : []).concat(userCanEditCss ? [
             <button
                 onClick={ this.addStyleUnit.bind(this) }
                 class="btn btn-sm"
@@ -185,13 +200,17 @@ class BlockStylesTab extends preact.Component {
     }
     /**
      * @param {Array<ThemeStyleUnit>|undefined} candidate
+     * @param {Array<ThemeStyle>} themeStyles
      * @param {Number} currentOpenIdx = -1
      * @access private
      */
-    updateUnitsState(candidate, currentOpenIdx = -1) {
+    updateUnitsState(candidate, themeStyles, currentOpenIdx = -1) {
         const units = candidate || [];
+        const isUnitStyleOn = ({id}) => this.currentBlockHasStyle(this.createClass(id));
+        if (this.useVisualStyles) units.sort((a, b) => isUnitStyleOn(b) - isUnitStyleOn(a));
         this.editableTitleInstances = units.map(_ => preact.createRef());
-        this.setState({units, liClasses: createLiClasses(units, currentOpenIdx)});
+        this.setState({units, liClasses: createLiClasses(units, currentOpenIdx),
+            parentStyleInfo: findParentStyleInfo(themeStyles, this.state.blockCopy)});
     }
     /**
      * @param {RawBlock} block
@@ -320,7 +339,7 @@ class BlockStylesTab extends preact.Component {
      * @access private
      */
     currentBlockHasStyle(cls) {
-        return this.state.blockCopy.styleClasses.indexOf(cls) > -1;
+        return blockHasStyle(cls, this.state.blockCopy);
     }
     /**
      * @param {String} id
@@ -328,7 +347,7 @@ class BlockStylesTab extends preact.Component {
      * @access private
      */
     createClass(id) {
-        return `j-${this.state.blockCopy.type}-${id}`;
+        return createUnitClass(id, this.state.blockCopy.type);
     }
     /**
      * @param {Number} liIdx
@@ -579,6 +598,24 @@ function emitCommitStylesOp(blockTypeName, doUndo) {
     }));
 }
 
+/**
+ * @param {String} id
+ * @param {String} blockTypeName
+ * @returns {String}
+ */
+function createUnitClass(id, blockTypeName) {
+    return `j-${blockTypeName}-${id}`;
+}
+
+/**
+ * @param {String} cls
+ * @param {RawBlock} block
+ * @returns {Boolean}
+ */
+function blockHasStyle(cls, {styleClasses}) {
+    return styleClasses.indexOf(cls) > -1;
+}
+
 let stylesCached = null;
 
 /**
@@ -622,6 +659,29 @@ function splitUnitAndNonUnitClasses(styleClasses) {
             return arrs;
         }, [[], []])
         .map(clsList => clsList.join(' '));
+}
+
+/**
+ * @param {Array<ThemeStyle>} themeStyles
+ * @param {RawBlock} block
+ * @param {Array<RawBlock>|null} tree = null
+ * @returns {[RawBlock|null, String|null]} [parentBlock, styleUnitClass]
+ */
+function findParentStyleInfo(themeStyles, block, tree = null) {
+    const {id, isStoredToTreeId} = block;
+    if (!tree) ({tree} = createSelectBlockTree(isStoredToTreeId)(store.getState()));
+    const parent = blockTreeUtils.findBlock(id, tree)[2];
+    if (!parent) return [null, null];
+    //
+    const {units} = (findBlockTypeStyles(themeStyles, parent.type) || {units: []});
+    if (units.length) {
+        const unitClses = units.map(({id}) => createUnitClass(id, parent.type));
+        const firstEnabledUnit = unitClses.find(cls => blockHasStyle(cls, parent));
+        if (firstEnabledUnit) return [parent, firstEnabledUnit];
+        // else keep looking
+    }
+    // keep looking
+    return findParentStyleInfo(themeStyles, parent, tree);
 }
 
 function tempHack2(el, popperId, cmp) {

@@ -21,7 +21,8 @@ class OnThisPageSection extends MenuSection {
     componentDidMount() {
         currentInstance = this;
         const {page} = selectCurrentPageDataBundle(store.getState());
-        this.setState({title: __(this.props.containingView === 'CreatePage' ? 'On this page' : 'Default content'),
+        const {containingView} = this.props;
+        this.setState({title: __(!containingView || containingView === 'CreatePage' ? 'On this page' : 'Default content'),
             subtitle: this.getSubtitle(page)});
     }
     /**

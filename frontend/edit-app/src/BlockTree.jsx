@@ -138,8 +138,8 @@ class BlockTree extends preact.Component {
      */
     handleItemClicked(block, isDirectClick = true) {
         this.selectedRoot = block;
-        this.emitItemClickedOrAppendedSignal('focus-requested', block, null);
-        if (isDirectClick) this.emitItemClickedOrAppendedSignal('clicked', block, null);
+        this.emitItemClickedOrAppendedSignal('focus-requested', block);
+        if (isDirectClick) this.emitItemClickedOrAppendedSignal('clicked', block);
         const mutRef = this.state.treeState;
         const {tree} = createSelectBlockTree(block.isStoredToTreeId)(store.getState());
         const ids = findBlockWithParentIdPath(tree, ({id}, path) => {
@@ -469,11 +469,10 @@ class BlockTree extends preact.Component {
     /**
      * @param {'clicked'|'focus-requested'} name
      * @param {RawBlock} block
-     * @param {RawBlock|null} base
      * @access private
      */
-    emitItemClickedOrAppendedSignal(name, block, base) {
-        signals.emit(`on-block-tree-item-${name}`, block, base, this);
+    emitItemClickedOrAppendedSignal(name, block) {
+        signals.emit(`on-block-tree-item-${name}`, block);
     }
     /**
      * @access private

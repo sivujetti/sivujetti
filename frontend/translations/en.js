@@ -12,7 +12,8 @@ stringBundles.push({
     'Filter': 'Filter',
     // edit-app/src/Block/BlockStylesTab.jsx
     'Use style': 'Use style',
-    'No editable styles': 'No editable styles',
+    'No own styles': 'No own styles',
+    'Show parent styles': 'Show parent styles',
     'Add styles': 'Add styles',
     'Edit name': 'Edit name',
     'Delete style': 'Delete style',
@@ -150,7 +151,6 @@ stringBundles.push({
     'Tag type': 'Tag type',
     'Button text': 'Button text',
     // edit-app/src/block-types/code.js
-    'Code': 'Code',
     'My code ...': 'My code ...',
     'Waits for configuration ...': 'Waits for configuration ...',
     // edit-app/src/block-types/columns.js

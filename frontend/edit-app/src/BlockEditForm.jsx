@@ -26,7 +26,7 @@ class BlockEditForm extends preact.Component {
     // unregistrables;
     // static undoingLockIsOn;
     /**
-     * @param {{block: Block; base: Block|null; inspectorPanel: preact.Component;}} props
+     * @param {{block: Block; inspectorPanel: preact.Component;}} props
      */
     constructor(props) {
         super(props);

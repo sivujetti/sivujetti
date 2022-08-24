@@ -12,7 +12,8 @@ stringBundles.push({
     'Filter': 'Suodata',
     // edit-app/src/Block/BlockStylesTab.jsx
     'Use style': 'Käytä tyyliä',
-    'No editable styles': 'Ei muokattavia tyylejä',
+    'No own styles': 'Ei omia tyylejä',
+    'Show parent styles': 'Näytä ulommat tyylit',
     'Add styles': 'Lisää tyyli',
     'Edit name': 'Muokkaa nimeä',
     'Delete style': 'Poista tyyli',
@@ -150,7 +151,6 @@ stringBundles.push({
     'Tag type': 'Elementin tyyppi',
     'Button text': 'Napin teksti',
     // edit-app/src/block-types/code.js
-    'Code': 'Koodi',
     'My code ...': 'Koodia ...',
     'Waits for configuration ...': 'Odottaa konfigurointia ...',
     // edit-app/src/block-types/columns.js

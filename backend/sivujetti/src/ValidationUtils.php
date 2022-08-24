@@ -67,7 +67,7 @@ abstract class ValidationUtils {
                 // If present, can contain anything except `//` and `./`
                 if (is_string($parts["path"] ?? null) && (
                     str_contains($parts["path"], "./") ||
-                    str_contains($noWhitespace, "//")
+                    str_contains($parts["path"], "//")
                 )) return false;
             }
 

@@ -1,4 +1,4 @@
-import VisualStyles from '../edit-app/src/Block/VisualStyles.jsx';
+import VisualStyles, {ColorValueInput, LengthValueInput} from '../edit-app/src/Block/VisualStyles.jsx';
 const {compile} = window.stylis;
 
 QUnit.module('VisualStyles.jsx', () => {
@@ -34,5 +34,38 @@ QUnit.module('VisualStyles.jsx', () => {
         const astNode5 = ast4[0].children[0]; // line 1, column 6
         const result5 = subject.replaceVarValue(testScss4, astNode5, replaceWith);
         assert.equal(result5, testScss4.replace('6px ; ', replaceWith + ';'));
+    });
+    QUnit.test('ColorValueInput.valueFromInput recognizes common color values', assert => {
+        [
+            ['#000000',        '#000000ff'],
+            ['#000',           '#000000ff'],
+            ['#000000bb',      '#000000bb'],
+            ['#00000045',      '#00000045'],
+            ['rgb(0,0,0,.27)', '#00000045'],
+            ['red',            '#ff0000ff'],
+            [' #00000045 ',    '#00000045'],
+            [' red ',          '#ff0000ff'],
+            ['foo',            '#000000ff'],
+        ].forEach(([input, expected]) => {
+            const actual = ColorValueInput.valueFromInput(input);
+            assert.deepEqual(actual, {data: expected, type: 'hexa'});
+        });
+    });
+    QUnit.test('LengthValueInput.valueFromInput recognizes common lengths', assert => {
+        [
+            ['1rem',      {num: '1',   unit: 'rem'}],
+            ['1.2rem',    {num: '1.2', unit: 'rem'}],
+            ['.2rem',     {num: '.2',  unit: 'rem'}],
+            ['1 rem',     {num: '1',   unit: 'rem'}],
+            ['1rem ',     {num: '1',   unit: 'rem'}],
+            ['1px',       {num: '1',   unit: 'px'}],
+            ['1em',       {num: '1',   unit: 'em'}],
+            ['1%',        {num: '1',   unit: '%'}],
+            ['foo',       null],
+            ['1',         null],
+        ].forEach(([input, expected]) => {
+            const actual = LengthValueInput.valueFromInput(input);
+            assert.deepEqual(actual, expected);
+        });
     });
 });

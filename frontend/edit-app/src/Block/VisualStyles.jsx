@@ -2,7 +2,7 @@ import {__, env, signals, hookForm, FormGroupInline, Input, InputErrors,
         reHookValues} from '@sivujetti-commons-for-edit-app';
 import {stringUtils, timingUtils} from '../commons/utils';
 
-let compile, serialize, stringify;
+let compile, serialize, stringify, tokenize;
 
 const valueEditors = new Map;
 
@@ -94,7 +94,7 @@ class VisualStyles extends preact.Component {
         if (!valueEditors.length) {
             valueEditors.set('length', LengthValueInput);
             valueEditors.set('color', ColorValueInput);
-            ({compile, serialize, stringify} = window.stylis);
+            ({compile, serialize, stringify, tokenize} = window.stylis);
         }
         const ast = compile(`.${cls}{${scss}}`);
         const nodes = ast[0].children;
@@ -160,12 +160,20 @@ class LengthValueInput extends preact.Component {
      * @returns {LengthValue|null}
      */
     static valueFromInput(input) {
-        if (input.indexOf('rem') > -1) return {num: input.replace('rem', '').trim(), unit: 'rem'};
-        if (input.indexOf('em') > -1) return {num: input.replace('em', '').trim(), unit: 'em'};
-        if (input.indexOf('px') > -1) return {num: input.replace('px', '').trim(), unit: 'px'};
+        const chars = input.split('').filter(ch => ch !== ' ');
+        const firstAlpha = chars.findIndex(ch => {
+            const cc = ch.charCodeAt(0);
+            return ((cc >= 65 && cc <= 90) || (cc >= 97 && cc <= 122)) || ch === '%';
+        });
+        if (firstAlpha > 0)
+            return {num: chars.slice(0, firstAlpha).join(''),
+                     unit: chars.slice(firstAlpha).join('')};
         return null; // not supported
     }
 }
+
+/** @type {CanvasRenderingContext2D} */
+let helperCanvasCtx;
 
 class ColorValueInput extends preact.Component {
     // unregisterSignalListener;
@@ -250,12 +258,24 @@ class ColorValueInput extends preact.Component {
      * @returns {ColorValue|null}
      */
     static valueFromInput(input) {
-        if (input.indexOf('#') > -1) {
-            const ir = input.trim();
-            const hexa = ir.length === 9 ? ir : ir.length === 7 ? `${ir}ff` : null;
-            if (hexa) return {data: hexa, type: 'hexa'};
-        }
-        return null; // not supported
+        // https://stackoverflow.com/a/47355187
+        if (!helperCanvasCtx) helperCanvasCtx = document.createElement('canvas').getContext('2d');
+        else helperCanvasCtx.fillStyle = '#000'; // clear previous
+        helperCanvasCtx.fillStyle = input;
+        const out = helperCanvasCtx.fillStyle;
+        // https://stackoverflow.com/a/49974627
+        return {data: out[0] === '#'
+            ? `${out}ff`
+            : '#' + (
+                out.substring('rgba('.length, out.length - 'rgba('.length - 1) // 'rgba(0, 0, 0, 0.73)' -> '0, 0, 0, 0.73'
+                    .split(',') // '0, 0, 0, 0.73' -> ['0', ' 0', ' 0', ' 0.73']
+                    .map((num, i) => i < 3
+                        ? (parseFloat(num) | 1 << 8).toString(16).slice(1)
+                        : parseFloat(num).toString(16).substring(2,4)
+                    ) // ['0', ' 0', ' 0', ' 0.73'] -> ['00', '00', '00' , 'bb']
+                    .join('')
+            ), type: 'hexa'
+        };
     }
 }
 
@@ -318,4 +338,4 @@ function varNameToLabel(varName) {
  */
 
 export default VisualStyles;
-export {wc_hex_is_light};
+export {wc_hex_is_light, ColorValueInput, LengthValueInput};

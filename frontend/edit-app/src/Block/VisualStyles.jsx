@@ -2,7 +2,7 @@ import {__, env, signals, hookForm, FormGroupInline, Input, InputErrors,
         reHookValues} from '@sivujetti-commons-for-edit-app';
 import {stringUtils, timingUtils} from '../commons/utils';
 
-let compile, serialize, stringify, tokenize;
+let compile, serialize, stringify;
 
 const valueEditors = new Map;
 
@@ -94,7 +94,7 @@ class VisualStyles extends preact.Component {
         if (!valueEditors.length) {
             valueEditors.set('length', LengthValueInput);
             valueEditors.set('color', ColorValueInput);
-            ({compile, serialize, stringify, tokenize} = window.stylis);
+            ({compile, serialize, stringify} = window.stylis);
         }
         const ast = compile(`.${cls}{${scss}}`);
         const nodes = ast[0].children;
@@ -267,11 +267,11 @@ class ColorValueInput extends preact.Component {
         return {data: out[0] === '#'
             ? `${out}ff`
             : '#' + (
-                out.substring('rgba('.length, out.length - 'rgba('.length - 1) // 'rgba(0, 0, 0, 0.73)' -> '0, 0, 0, 0.73'
+                out.substring('rgba('.length, out.length - 1) // 'rgba(0, 0, 0, 0.73)' -> '0, 0, 0, 0.73'
                     .split(',') // '0, 0, 0, 0.73' -> ['0', ' 0', ' 0', ' 0.73']
-                    .map((num, i) => i < 3
-                        ? (parseFloat(num) | 1 << 8).toString(16).slice(1)
-                        : parseFloat(num).toString(16).substring(2,4)
+                    .map((str, i) => i < 3
+                        ? (parseFloat(str) | 1 << 8).toString(16).slice(1)
+                        : (str != ' 0' ? parseFloat(str).toString(16).substring(2,4) : '00')
                     ) // ['0', ' 0', ' 0', ' 0.73'] -> ['00', '00', '00' , 'bb']
                     .join('')
             ), type: 'hexa'

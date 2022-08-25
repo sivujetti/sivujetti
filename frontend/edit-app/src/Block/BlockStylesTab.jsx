@@ -16,6 +16,8 @@ import blockTreeUtils from '../blockTreeUtils.js';
 let compile, serialize, stringify;
 let emitSaveStylesToBackendOp;
 
+const SPECIAL_BASE_UNIT_NAME = '_body_';
+
 class BlockStylesTab extends preact.Component {
     // userCanEditVars;
     // userCanEditCss;
@@ -142,18 +144,11 @@ class BlockStylesTab extends preact.Component {
                 ? null
                 : <p class="pt-1 mb-2 color-dimmed">{ __('No own styles') }.</p>
             ) : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
-        ].concat(userCanEditVars && parentStyleInfo && parentStyleInfo[0] ? [
-            <button onClick={ () => {
-                signals.emit('on-web-page-block-clicked', parentStyleInfo[0]);
-                // Open styles tab
-                setTimeout(() => {
-                    env.document.querySelector('#inspector-panel .tab .tab-item:nth-of-type(2) a').click();
-                    // Open first unit accordion
-                    setTimeout(() => {
-                        document.querySelector(`#inspector-panel .styles-list > li[data-cls="${parentStyleInfo[1]}"] button`).click();
-                    }, 80);
-                }, 200);
-            } } class="btn btn-sm" type="button">{ __('Show parent styles') }</button>
+        ].concat(userCanEditVars && parentStyleInfo && parentStyleInfo[2] ? [
+            <button
+                onClick={ () => this.goToStyle(parentStyleInfo) }
+                class="btn btn-sm"
+                type="button">{ __('Show parent styles') }</button>
         ] : []).concat(userCanEditCss ? [
             <button
                 onClick={ this.addStyleUnit.bind(this) }
@@ -256,6 +251,25 @@ class BlockStylesTab extends preact.Component {
             this.props.emitAddStyleToBlock(cls, this.state.blockCopy);
         else if (!newIsActivated && currentIsActivated)
             this.props.emitRemoveStyleFromBlock(cls, this.state.blockCopy);
+    }
+    /**
+     * @param {[RawBlock|null, String|null, 'parent'|'base']} parentStyleInfo
+     * @access private
+     */
+    goToStyle([block, unitCls, kind]) {
+        if (kind === 'parent') {
+            signals.emit('on-web-page-block-clicked', block);
+            // Open styles tab
+            setTimeout(() => {
+                env.document.querySelector('#inspector-panel .tab .tab-item:nth-of-type(2) a').click();
+                // Open first unit accordion
+                setTimeout(() => {
+                    document.querySelector(`#inspector-panel .styles-list > li[data-cls="${unitCls}"] button`).click();
+                }, 80);
+            }, 200);
+        } else {
+            signals.emit('on-block-styles-go-to-base-styles-button-clicked');
+        }
     }
     /**
      * @access private
@@ -475,7 +489,7 @@ class StyleTextarea extends preact.Component {
      */
     render({blockTypeName}, {scssNotCommitted, error}) {
         return <div class="pb-2 pr-2">
-            { blockTypeName !== '_body_' ? null : <div class="p-absolute" style="right: 1.1rem;z-index: 1;margin: 0.3rem 0 0 0;">
+            { blockTypeName !== SPECIAL_BASE_UNIT_NAME ? null : <div class="p-absolute" style="right: 1.1rem;z-index: 1;margin: 0.3rem 0 0 0;">
                 <Icon iconId="info-circle" className="size-xs color-dimmed3"/>
                 <span ref={ el => tempHack2(el, 'bodyStyles', this) } class="my-tooltip dark">
                     <span>&lt;body&gt; -elementin tyylit. Voit esim. määritellä tänne muuttujia ja käyttää niitä sisältölohkojen tyyleissä.</span>
@@ -664,24 +678,36 @@ function splitUnitAndNonUnitClasses(styleClasses) {
 /**
  * @param {Array<ThemeStyle>} themeStyles
  * @param {RawBlock} block
- * @param {Array<RawBlock>|null} tree = null
- * @returns {[RawBlock|null, String|null]} [parentBlock, styleUnitClass]
+ * @returns {[RawBlock|null, String|null, 'parent'|'base']} [parentBlock, styleUnitClass, styleType]
  */
-function findParentStyleInfo(themeStyles, block, tree = null) {
+function findParentStyleInfo(themeStyles, block) {
+    const scoped = findScopedParentStyle(themeStyles, block);
+    if (scoped[0]) return scoped;
+    //
+    return [null, `j-${SPECIAL_BASE_UNIT_NAME}`, 'base'];
+}
+
+/**
+ * @param {Array<ThemeStyle>} themeStyles
+ * @param {RawBlock} block
+ * @param {Array<RawBlock>|null} tree = null
+ * @returns {[RawBlock|null, String|null, 'parent'|null]} [parentBlock, styleUnitClass, type]
+ */
+function findScopedParentStyle(themeStyles, block, tree = null) {
     const {id, isStoredToTreeId} = block;
     if (!tree) ({tree} = createSelectBlockTree(isStoredToTreeId)(store.getState()));
     const parent = blockTreeUtils.findBlock(id, tree)[2];
-    if (!parent) return [null, null];
+    if (!parent) return [null, null, null];
     //
     const {units} = (findBlockTypeStyles(themeStyles, parent.type) || {units: []});
     if (units.length) {
         const unitClses = units.map(({id}) => createUnitClass(id, parent.type));
         const firstEnabledUnit = unitClses.find(cls => blockHasStyle(cls, parent));
-        if (firstEnabledUnit) return [parent, firstEnabledUnit];
+        if (firstEnabledUnit) return [parent, firstEnabledUnit, 'parent'];
         // else keep looking
     }
     // keep looking
-    return findParentStyleInfo(themeStyles, parent, tree);
+    return findScopedParentStyle(themeStyles, parent, tree);
 }
 
 function tempHack2(el, popperId, cmp) {
@@ -738,4 +764,4 @@ function hidePopper(content) {
  */
 
 export default BlockStylesTab;
-export {StyleTextarea, tempHack, updateAndEmitUnitScss};
+export {StyleTextarea, tempHack, updateAndEmitUnitScss, SPECIAL_BASE_UNIT_NAME};

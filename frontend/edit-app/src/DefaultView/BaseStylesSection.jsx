@@ -1,8 +1,10 @@
-import {__, api, Icon, MenuSection} from '@sivujetti-commons-for-edit-app';
+import {__, api, signals, Icon, MenuSection} from '@sivujetti-commons-for-edit-app';
 import Tabs from '../commons/Tabs.jsx';
-import {StyleTextarea, tempHack, updateAndEmitUnitScss} from '../Block/BlockStylesTab.jsx';
+import {StyleTextarea, tempHack, updateAndEmitUnitScss, SPECIAL_BASE_UNIT_NAME} from '../Block/BlockStylesTab.jsx';
 import VisualStyles from '../Block/VisualStyles.jsx';
 import {observeStore as observeStore2} from '../store2.js';
+
+const unitCls = `j-${SPECIAL_BASE_UNIT_NAME}`;
 
 class BaseStylesSection extends MenuSection {
     // userCanEditVars;
@@ -27,6 +29,9 @@ class BaseStylesSection extends MenuSection {
             const latest = findBodyMainUnit(themeStyles);
             if (this.state.bodyStyleMainUnit.scss !== latest.scss)
                 this.updateBaseStylesState(latest);
+        }), signals.on('on-block-styles-go-to-base-styles-button-clicked', () => {
+            if (this.state.isCollapsed) this.toggleIsCollapsed();
+            setTimeout(() => { api.mainPanel.scrollToSection('baseStyles'); }, 80);
         })];
     }
     /**
@@ -34,7 +39,7 @@ class BaseStylesSection extends MenuSection {
      * @access private
      */
     updateBaseStylesState(bodyStyleMainUnit) {
-        [this.cssVars, this.ast] = VisualStyles.extractVars(bodyStyleMainUnit.scss, 'j-_body_');
+        [this.cssVars, this.ast] = VisualStyles.extractVars(bodyStyleMainUnit.scss, unitCls);
         this.setState({bodyStyleMainUnit});
     }
     /**
@@ -47,7 +52,7 @@ class BaseStylesSection extends MenuSection {
      * @access protected
      */
     render(_, {bodyStyleMainUnit, currentTabIdx, isCollapsed}) {
-        return <section class={ `panel-section${isCollapsed ? '' : ' open'}` }>
+        return <section class={ `base-styles panel-section${isCollapsed ? '' : ' open'}` }>
             <button class="flex-centered pr-2 section-title col-12" onClick={ this.toggleIsCollapsed.bind(this) }>
                 <Icon iconId="palette" className="p-absolute size-sm mr-2 color-pink"/>
                 <span class="pl-1 d-block col-12 color-default">
@@ -68,8 +73,9 @@ class BaseStylesSection extends MenuSection {
                             ast={ this.ast }
                             scss={ bodyStyleMainUnit.scss }
                             emitVarValueChange={ getStyleUpdates => {
-                                updateAndEmitUnitScss(Object.assign({}, bodyStyleMainUnit), getStyleUpdates, '_body_');
-                            } }/>
+                                updateAndEmitUnitScss(Object.assign({}, bodyStyleMainUnit), getStyleUpdates, SPECIAL_BASE_UNIT_NAME);
+                            } }
+                            unitCls={ unitCls }/>
                         : null
                     }
                 </div>
@@ -77,8 +83,8 @@ class BaseStylesSection extends MenuSection {
                     { this.userCanEditCss && bodyStyleMainUnit
                         ? <StyleTextarea
                             unitCopy={ Object.assign({}, bodyStyleMainUnit) }
-                            unitCls="j-_body_"
-                            blockTypeName="_body_"
+                            unitCls={ unitCls }
+                            blockTypeName={ SPECIAL_BASE_UNIT_NAME }
                             isVisible={ true }/>
                         : null
                     }
@@ -104,7 +110,7 @@ class BaseStylesSection extends MenuSection {
  * @returns {ThemeStyleUnit}
 */
 function findBodyMainUnit(styles) {
-    return styles.find(s => s.blockTypeName === '_body_').units[0];
+    return styles.find(s => s.blockTypeName === SPECIAL_BASE_UNIT_NAME).units[0];
 }
 
 export default BaseStylesSection;

@@ -43,6 +43,22 @@ class MainPanel {
         });
     }
     /**
+     * @param {'onThisPage'|'baseStyles'} section
+     * @param {'smooth'|'auto'} behavior = 'smooth'
+     */
+    scrollToSection(section, behavior = 'smooth') {
+        const nameToSelector = {
+            onThisPage: '.panel-section.on-this-page',
+            baseStyles: '.panel-section.base-styles',
+        };
+        const selector = nameToSelector[section];
+        if (selector) {
+            const main = this.getEl();
+            const sectionTop = main.querySelector(selector).getBoundingClientRect().top;
+            main.scrollTo({top: sectionTop + main.scrollTop, behavior});
+        } else throw new Error(`Section name (${section}) must be ${Object.keys(nameToSelector).join(', ')}`);
+    }
+    /**
      * @returns {HTMLElement}
      */
     getEl() {

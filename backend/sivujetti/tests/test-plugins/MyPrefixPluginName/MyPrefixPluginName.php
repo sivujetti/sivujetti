@@ -8,6 +8,7 @@ use Sivujetti\UserPlugin\{UserPluginAPI, UserPluginInterface};
 final class MyPrefixPluginName implements UserPluginInterface {
     public static string $testInstructions = "";
     public static string $testRoute1Url = "/plugins/my-prefix-plugin-name/get-something";
+    public static string $testRoute2Url = "/plugins/my-prefix-plugin-name/update-something";
     /**
      * @inheritdoc
      */
@@ -17,6 +18,10 @@ final class MyPrefixPluginName implements UserPluginInterface {
                 SomethingController::class, "getSomething",
                 ["identifiedBy" => ["read", "something"]]
             );
+            $api->registerHttpRoute("PUT", self::$testRoute2Url,
+                SomethingController::class, "updateSomething",
+                ["identifiedBy" => ["update", "something"]]
+            );
         }
     }
     /**
@@ -25,8 +30,9 @@ final class MyPrefixPluginName implements UserPluginInterface {
     public function defineAclRules(ACLRulesBuilder $builder): ACLRulesBuilder {
         if (self::$testInstructions === "setTestRoutePermissions") {
             $builder
-                ->defineResource("something", ["read"])
-                ->setPermissions(ACL::ROLE_ADMIN, "*");
+                ->defineResource("something", ["read", "update"])
+                ->setPermissions(ACL::ROLE_ADMIN, "*")
+                ->setPermissions(ACL::ROLE_ADMIN_EDITOR, ["read"]);
         }
         return $builder;
     }

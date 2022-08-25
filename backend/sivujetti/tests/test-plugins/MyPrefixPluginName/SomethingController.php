@@ -8,4 +8,7 @@ final class SomethingController {
     public function getSomething(Response $res): void {
         $res->json([]);
     }
+    public function updateSomething(Response $res): void {
+        $res->json(["ok" => "ok"]);
+    }
 }

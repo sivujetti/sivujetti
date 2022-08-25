@@ -23,8 +23,17 @@ final class PluginAclRulesTest extends DbTestCase {
         $state = $this->setupTest();
         $this->insertTestPluginToDb();
         $this->instructTestPluginToDefineAclRulesForTestRouteDuringNextRequest();
-        $this->sendGetSomethingRequest($state);
-        $this->verifyResponseMetaEquals(403, "text/plain", $state->spyingResponse);
+        // ACL::ROLE_EDITOR
+        $this->sendSomethingRequest($state, ACL::ROLE_EDITOR, "getSomething");
+        $this->assertEquals(403, $state->spyingResponse->getActualStatusCode());
+        $this->sendSomethingRequest($state, ACL::ROLE_EDITOR, "updateSomething");
+        $this->assertEquals(403, $state->spyingResponse->getActualStatusCode());
+        // ACL::ROLE_ADMIN_EDITOR
+        $this->sendSomethingRequest($state, ACL::ROLE_ADMIN_EDITOR, "getSomething");
+        $this->assertEquals(200, $state->spyingResponse->getActualStatusCode());
+        $this->sendSomethingRequest($state, ACL::ROLE_ADMIN_EDITOR, "updateSomething");
+        $this->assertEquals(403, $state->spyingResponse->getActualStatusCode());
+        //
         $this->resetTestPluginInstructions();
     }
     private function setupTest(): \TestState {
@@ -38,13 +47,15 @@ final class PluginAclRulesTest extends DbTestCase {
     private function instructTestPluginToDefineAclRulesForTestRouteDuringNextRequest(): void {
         MyPrefixPluginName::$testInstructions = "setTestRoutePermissions";
     }
-    private function sendGetSomethingRequest(\TestState $state): void {
-        $this->makeTestSivujettiApp($state, function ($bootModule) {
+    private function sendSomethingRequest(\TestState $state, int $userRole, string $route): void {
+        $this->makeTestSivujettiApp($state, function ($bootModule) use ($userRole) {
             $bootModule->useMock("auth", [":session" => $this->createMock(SessionInterface::class),
-                                          ":userRole" => ACL::ROLE_EDITOR]);
+                                          ":userRole" => $userRole]);
         });
-        $state->spyingResponse = $state->app->sendRequest(
-            $this->createApiRequest(MyPrefixPluginName::$testRoute1Url, "GET"));
+        $state->spyingResponse = $state->app->sendRequest($route === "getSomething"
+            ? $this->createApiRequest(MyPrefixPluginName::$testRoute1Url, method: "GET")
+            : $this->createApiRequest(MyPrefixPluginName::$testRoute2Url, method: "PUT", body: (object)["dym" => "my"])
+        );
     }
     private function resetTestPluginInstructions(): void {
         MyPrefixPluginName::$testInstructions = "";

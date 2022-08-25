@@ -31,6 +31,14 @@ abstract class BaseAPI {
         return $this->apiCtx->addEventListener($when, $thenDo);
     }
     /**
+     * @param string $when e.g. "sivujetti:webPageGeneratedHeadHtml"
+     * @param callable $with
+     * @return int listener id
+     */
+    public function filter(string $what, callable $with): int {
+        return $this->apiCtx->addFilter($what, $with);
+    }
+    /**
      * @param string $url
      * @param array<string, string> $attrs = []
      */

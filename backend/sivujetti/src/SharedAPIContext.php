@@ -19,6 +19,8 @@ final class SharedAPIContext {
     private int $appPhase;
     /** @var array<string, callable[]> */
     private array $eventListeners;
+    /** @var array<string, callable[]> */
+    private array $filters;
     /** @var object @see \Sivujetti\App::create()  */
     public BlockTypes $blockTypes;
     /** @var object {"css" => object[], "js" => object[]} @see \Sivujetti\UserTheme\UserThemeAPI->enqueueCss|JsFile() */
@@ -35,6 +37,7 @@ final class SharedAPIContext {
     public function __construct() {
         $this->appPhase = 0;
         $this->eventListeners = [];
+        $this->filters = [];
         $this->userDefinedAssets = (object) ["css" => [], "js" => []];
         $this->blockRenderers = [];
         $this->adminJsFiles = [];
@@ -50,12 +53,31 @@ final class SharedAPIContext {
         return count($this->eventListeners[$eventName]) - 1;
     }
     /**
-     * @param string $eventName
+     * @param string $name
      * @param mixed ...$args
      */
-    public function triggerEvent(string $eventName, mixed ...$args): void {
-        foreach ($this->eventListeners[$eventName] ?? [] as $fn)
+    public function triggerEvent(string $name, mixed ...$args): void {
+        foreach (($this->eventListeners[$name] ?? []) as $fn)
             call_user_func_array($fn, $args);
+    }
+    /**
+     * @param string $for
+     * @param callable $fn
+     * @return int function id
+     */
+    public function addFilter(string $for, callable $fn): int {
+        $this->filters[$for][] = $fn;
+        return count($this->filters[$for]) - 1;
+    }
+    /**
+     * @param string $name
+     * @param mixed ...$args
+     * @return mixed
+     */
+    public function applyFilters(string $name, mixed ...$args): mixed {
+        foreach (($this->filters[$name] ?? []) as $fn)
+            $args[0] = call_user_func_array($fn, $args);
+        return $args[0];
     }
     /**
      * @return int self::APP_PHASE_*

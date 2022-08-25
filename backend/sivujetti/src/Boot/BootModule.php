@@ -83,9 +83,15 @@ class BootModule {
      * @throws \Pike\PikeException If the route definition (ctx->router->map) wasn't valid
      */
     private function validateRequestMeta(Request $req, Response $res): bool {
-        if (($consumesStr = $req->routeInfo->myCtx["consumes"] ?? "") &&
+        $ctx = $req->routeInfo->myCtx;
+        if (($consumesStr = $ctx["consumes"] ?? "") &&
             !str_starts_with($req->header("Content-Type", "text/html"), $consumesStr)) {
             $res->status(415)->plain("Unexpected content-type");
+            return false;
+        }
+        if (!($ctx["allowMissingRequestedWithHeader"] ?? false) &&
+            $req->header("X-Requested-With", null) === null) {
+            $res->status(400)->plain("X-Requested-With missing");
             return false;
         }
         return true;

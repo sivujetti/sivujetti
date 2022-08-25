@@ -2,15 +2,7 @@
 
 namespace Sivujetti\Tests\Auth;
 
-use Pike\TestUtils\HttpTestUtils;
-use Sivujetti\Tests\Utils\HttpApiTestTrait;
-
 final class LoginTest extends AuthControllerTestCase {
-    use HttpTestUtils;
-    use HttpApiTestTrait;
-    public static function getDbConfig(): array {
-        return require TEST_CONFIG_FILE_PATH;
-    }
     public function testDoLoginRejectsEmptyInput(): void {
         $state = $this->setupLoginTest();
         $this->makeTestSivujettiApp($state);

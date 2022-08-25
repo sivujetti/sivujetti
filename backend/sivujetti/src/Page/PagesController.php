@@ -287,7 +287,7 @@ final class PagesController {
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
             ["serverHost" => self::getServerHost($req), "versionId" => $theWebsite->versionId],
-            cssAndJsFiles: $apiCtx->userDefinedAssets,
+            apiCtx: $apiCtx,
             theme: $theWebsite->activeTheme,
             pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy()),
             useInlineCssStyles: $editModeIsOn

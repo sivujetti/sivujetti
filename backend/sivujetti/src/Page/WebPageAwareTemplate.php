@@ -3,7 +3,7 @@
 namespace Sivujetti\Page;
 
 use Pike\{ArrayUtils, PikeException};
-use Sivujetti\{JsonUtils, Template, ValidationUtils};
+use Sivujetti\{JsonUtils, SharedAPIContext, Template, ValidationUtils};
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
@@ -22,11 +22,13 @@ final class WebPageAwareTemplate extends Template {
     private bool $__useInlineCssStyles;
     /** @var string */
     private string $__assetUrlAppendix;
+    /** @var \Closure */
+    private \Closure $__applyFilters;
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
      * @param ?array<string, mixed> $initialLocals = null
-     * @param ?object $cssAndJsFiles = null
+     * @param ?\Sivujetti\SharedAPIContext $apiCtx = null
      * @param ?\Sivujetti\Theme\Entities\Theme $theme = null
      * @param ?array<string> $pluginNames = null
      * @param ?bool $useInlineCssStyles = null
@@ -34,19 +36,20 @@ final class WebPageAwareTemplate extends Template {
     public function __construct(string $file,
                                 ?array $vars = null,
                                 ?array $initialLocals = null,
-                                ?object $cssAndJsFiles = null,
+                                ?SharedAPIContext $apiCtx = null,
                                 ?Theme $theme = null,
                                 ?array $pluginNames = null,
                                 ?bool $useInlineCssStyles = null,
                                 ?string $assetUrlCacheBustStr = "") {
         parent::__construct($file, $vars, $initialLocals);
-        $this->__cssAndJsFiles = $cssAndJsFiles;
+        $this->__cssAndJsFiles = $apiCtx?->userDefinedAssets;
         $this->__theme = $theme;
         $this->__dynamicGlobalBlockTreeBlocksStyles = [];
         $this->__useInlineCssStyles = $useInlineCssStyles ?? true;
         $this->__pluginNames = $pluginNames ?? [];
         if ($this->__file === "") $this->__file = $this->completePath($file);
         $this->__assetUrlAppendix = $this->escAttr($assetUrlCacheBustStr ?? "");
+        $this->__applyFilters = $apiCtx ? \Closure::fromCallable([$apiCtx, "applyFilters"]) : fn() => null;
     }
     /**
      * @param string $name
@@ -184,7 +187,7 @@ final class WebPageAwareTemplate extends Template {
         if (!$site) $site = $this->__locals["site"];
         [$title, $metaMarkup] = $this->__buildSeoMetaMarkup($currentPage, $site);
         // Note: all variables are already escaped
-        return "<html lang=\"{$site->lang}\">\n" .
+        return $this->__applyFilters->__invoke("sivujetti:webPageGeneratedHeadHtml", "<html lang=\"{$site->lang}\">\n" .
             "<head>\n" .
             "    <meta charset=\"utf-8\">\n" .
             "    <title>{$title}</title>\n" .
@@ -192,7 +195,7 @@ final class WebPageAwareTemplate extends Template {
             "    <meta name=\"generator\" content=\"Sivujetti\">\n" .
             "    {$metaMarkup}" .
             "    {$this->cssFiles()}\n" .
-            "</head>\n";
+            "</head>\n");
     }
     /**
      * @return string
@@ -222,6 +225,7 @@ final class WebPageAwareTemplate extends Template {
                 $this->__cssAndJsFiles->css
             ));
         }
+        //
         return $out . (
             // External files
             implode("\n", array_map($rf, $this->__cssAndJsFiles->css)) .
@@ -229,12 +233,12 @@ final class WebPageAwareTemplate extends Template {
             "\n<!-- Note to devs: these inline styles appear here only when you're logged in -->\n" .
             // Scoped styles: Inject each style bundle via javascript instead of echoing them directly
             // (to allow things such as `content: "</style>"` or `/* </style> */`)
-            "<script>document.head.appendChild(" . self::escInlineJs(
-                JsonUtils::stringify(array_map(fn($itm) => (object) [
+            "<script>document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
+                array_merge(array_map(fn($itm) => (object) [
                     "css" => implode("\n", array_map(fn($u) => $u->generatedCss, $itm->units)),
                     "blockTypeName" => $itm->blockTypeName,
-                ], $this->__theme->styles))
-            ) . ".reduce((out, {css, blockTypeName}) => {\n" .
+                ], $this->__theme->styles), $this->__applyFilters->__invoke("sivujetti:editAppAdditionalStyleUnits", []))
+            )) . ".reduce((out, {css, blockTypeName}) => {\n" .
             "  const bundle = document.createElement('style');\n" .
             "  bundle.innerHTML = css;\n" .
             "  bundle.setAttribute('data-style-units-for', blockTypeName);\n" .

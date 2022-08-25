@@ -10,7 +10,8 @@ final class PagesModule {
      */
     public function init(Router $router): void {
         $router->map("GET", "/api/_placeholder-page/[w:pageType]/[i:layoutId]",
-            [PagesController::class, "renderPlaceholderPage", ["identifiedBy" => ["create", "pages"]]]
+            [PagesController::class, "renderPlaceholderPage", ["identifiedBy" => ["create", "pages"],
+                                                               "allowMissingRequestedWithHeader" => true]]
         );
         $router->map("POST", "/api/pages/[w:pageType]",
             [PagesController::class, "createPage", ["consumes" => "application/json",
@@ -28,16 +29,20 @@ final class PagesModule {
                                                     "identifiedBy" => ["update", "pages"]]]
         );
         $router->map("GET", "/_edit/[**:url]?",
-            [PagesController::class, "renderEditAppWrapper", ["identifiedBy" => ["access", "editMode"]]]
+            [PagesController::class, "renderEditAppWrapper", ["identifiedBy" => ["access", "editMode"],
+                                                              "allowMissingRequestedWithHeader" => true]]
         );
         $router->map("GET", "/jet-login",
-            [PagesController::class, "renderLoginPage", ["skipAuth" => true]]
+            [PagesController::class, "renderLoginPage", ["allowMissingRequestedWithHeader" => true,
+                                                         "skipAuth" => true]]
         );
         $router->map("GET", "/jet-reset-pass",
-            [PagesController::class, "renderRequestPassResetPage", ["skipAuth" => true]]
+            [PagesController::class, "renderRequestPassResetPage", ["allowMissingRequestedWithHeader" => true,
+                                                                    "skipAuth" => true]]
         );
         $router->map("GET", "[**:url]",
-            [PagesController::class, "renderPage", ["skipAuth" => true]]
+            [PagesController::class, "renderPage", ["allowMissingRequestedWithHeader" => true,
+                                                    "skipAuth" => true]]
         );
     }
 }

@@ -1,4 +1,4 @@
-import {__} from '@sivujetti-commons-for-edit-app';
+import {__, env} from '@sivujetti-commons-for-edit-app';
 
 class ContextMenu extends preact.Component {
     // pos;
@@ -21,7 +21,8 @@ class ContextMenu extends preact.Component {
      */
     open(e, getShowableLinks) {
         if (this.state.isOpen) return;
-        this.pos = e.target.getBoundingClientRect();
+        const r = e.target.getBoundingClientRect();
+        this.pos = {top: r.top, left: r.left};
         this.doFilterLinks = getShowableLinks || function(links) { return links; };
         this.setState({isOpen: true});
     }
@@ -39,12 +40,19 @@ class ContextMenu extends preact.Component {
      */
     render({links}, {isOpen}) {
         if (!isOpen) return;
-        return <>
-            <a href="#close" class="popup-close-area" onClick={ this.close.bind(this) }></a>
-            <ul class="popup-menu menu" style={ `left:${this.pos.left+10}px;top:${this.pos.top+10}px` }>{ this.doFilterLinks(links).map(link =>
+        return [
+            <a href="#close" class="popup-close-area" onClick={ this.close.bind(this) }></a>,
+            <ul class="popup-menu menu" style={ `left:${this.pos.left+10}px;top:${this.pos.top+10}px` } ref={ el => {
+                if (!el) return;
+                const hiddenPortion = el.getBoundingClientRect().bottom - env.window.innerHeight;
+                if (hiddenPortion > 0) {
+                    this.pos.top -= hiddenPortion;
+                    el.style.top = `${this.pos.top}px`;
+                }
+            } }>{ this.doFilterLinks(links).map(link =>
                 <li class="menu-item"><a onClick={ e => this.emitItemClick(link, e) } href={ `#${link.id}` } title={ link.title }>{ link.text }</a></li>
             ) }</ul>
-        </>;
+        ];
     }
     /**
      * @param {ContextMenuLink} link

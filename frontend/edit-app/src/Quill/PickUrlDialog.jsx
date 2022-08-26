@@ -13,7 +13,7 @@ class PickUrlDialog extends preact.Component {
         super(props);
         this.state = {mode: props.mode};
         props.dialog.setOnBeforeClose(() => {
-            if (this.state.mode === 'type-external-url') this.save(this.currentExternalUrl, false);
+            if (this.state.mode === 'type-external-url' && this.currentExternalUrl) this.save(this.currentExternalUrl, false);
         });
         this.currentExternalUrl = null;
     }

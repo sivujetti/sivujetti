@@ -1,11 +1,12 @@
-nav ul {
-    margin: 0;
-    list-style: none;
-    display: flex;
-}
-nav ul li {
+figure {
     margin: 0;
 }
+img {
+    max-width: 100%;
+    object-fit: cover;
+}
+
+
 
 .j-Columns {
     display: grid;
@@ -26,3 +27,12 @@ nav ul li {
 .num-cols-10 { grid-template-columns: repeat(10, minmax(0, 1fr)); }
 .num-cols-11 { grid-template-columns: repeat(11, minmax(0, 1fr)); }
 .num-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+
+
+.j-Menu ul {
+    list-style: none;
+    margin: 0;
+}
+.j-Menu li {
+    margin: 0;
+}

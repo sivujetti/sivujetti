@@ -128,8 +128,6 @@ return [
     `id` CHAR(20) NOT NULL,
     `name` VARCHAR(92) NOT NULL,
     `blocks` JSON,
-    `themeId` SMALLINT UNSIGNED NOT NULL,
-    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

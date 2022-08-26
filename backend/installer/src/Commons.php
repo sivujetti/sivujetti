@@ -111,7 +111,8 @@ return [
 "    'db.driver'      => 'sqlite',
     'db.database'    => '".str_replace(SIVUJETTI_BACKEND_PATH, "'.SIVUJETTI_BACKEND_PATH.'",$config["db.database"])."',
     'db.tablePrefix' => ''," :
-"    'db.host'        => '{$config["db.host"]}',
+"    'db.driver'      => 'mysql',
+    'db.host'        => '{$config["db.host"]}',
     'db.database'    => '{$config["db.database"]}',
     'db.user'        => '{$config["db.user"]}',
     'db.pass'        => '{$config["db.pass"]}',

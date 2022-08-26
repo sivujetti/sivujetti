@@ -22,6 +22,4 @@ $loader->addPsr4("Sivujetti\\Installer\\", SIVUJETTI_BACKEND_PATH . "installer/s
 
 $app = new Sivujetti\Cli\App;
 $path = implode("/", array_map("urlencode", array_slice($argv, 1)));
-if (str_starts_with($path, "install-from-dir/"))
-    die("This feature is currently disabled.");
 $app->handleRequest(new \Pike\Request("/{$path}", "PSEUDO:CLI"));

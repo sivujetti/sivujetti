@@ -56,8 +56,7 @@ class WebPageIframe {
         //
         if (block.type === 'PageInfo') return;
         const body = this.getEl().contentDocument.body;
-        const getRect = firstEl => firstEl.querySelector(':scope > [data-block-root]') ||
-                firstEl.getBoundingClientRect();
+        const getRect = firstEl => firstEl.getBoundingClientRect();
         if (!isStillMaybeInsertingToDom) {
             doScroll(getRect(body.querySelector(`[data-block="${block.id}"]`)));
         } else {

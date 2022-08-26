@@ -59,9 +59,9 @@ class BlockEditForm extends preact.Component {
                 return;
             if (context[0] !== 'update-single-value' && context[0] !== 'undo-update-single-value')
                 return;
-            const block = blockTreeUtils.findBlock(this.props.block.id, tree)[0];
-            if (context[1].blockId !== block.id)
+            if (context[1].blockId !== this.props.block.id)
                 return;
+            const block = blockTreeUtils.findBlock(this.props.block.id, tree)[0];
             if (this.editFormImplsChangeGrabber)
                 this.editFormImplsChangeGrabber(JSON.parse(JSON.stringify(block)), context[0], context[0].startsWith('undo-'));
             if (this.stylesFormChangeGrabber)

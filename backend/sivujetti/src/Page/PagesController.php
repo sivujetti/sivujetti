@@ -8,12 +8,12 @@ use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\{App, SharedAPIContext, Template, Translator};
 use Sivujetti\Auth\ACL;
-use Sivujetti\Block\{BlockPropDiffChecker};
+use Sivujetti\Block\{BlocksInputValidatorScanner};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
 use Sivujetti\BlockType\Entities\BlockTypes;
-use Sivujetti\BlockType\{GlobalBlockReferenceBlockType, ListeningBlockTypeInterface};
+use Sivujetti\BlockType\{GlobalBlockReferenceBlockType, RenderAwareBlockTypeInterface};
 use Sivujetti\Layout\Entities\Layout;
 use Sivujetti\Layout\LayoutsRepository;
 
@@ -168,15 +168,24 @@ final class PagesController {
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
+     * @param \Sivujetti\Block\BlocksInputValidatorScanner $scanner
      */
     public function createPage(Request $req,
                                Response $res,
-                               PagesRepository $pagesRepo): void {
+                               PagesRepository $pagesRepo,
+                               BlocksInputValidatorScanner $scanner): void {
         $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
         //
         unset($req->body->createdAt);
         unset($req->body->lastUpdatedAt);
-        [$numAffectedRows, $errors] = $pagesRepo->insert($pageType, $req->body);
+        [$validStorableBlocksJson, $errors, $errCode] = $scanner->createStorableBlocks(fn() => [], $req,
+            isInsert: true);
+        if ($errCode) {
+            $res->status($errCode)->json($errors);
+            return;
+        }
+        [$numAffectedRows, $errors] = $pagesRepo->insert($pageType, $req->body,
+            $validStorableBlocksJson);
         //
         if ($errors) {
             $res->status(400)->json($errors);
@@ -214,18 +223,21 @@ final class PagesController {
      * @param \Pike\Response $res
      * @param \Sivujetti\Page\PagesRepository $pagesRepoOld
      * @param \Sivujetti\Page\PagesRepository2 $pagesRepo
-     * @param \Sivujetti\Block\BlockPropDiffChecker $checker
+     * @param \Sivujetti\Block\BlocksInputValidatorScanner $scanner
      */
     public function updatePageBlocks(Request $req,
                                      Response $res,
                                      PagesRepository $pagesRepoOld,
                                      PagesRepository2 $pagesRepo,
-                                     BlockPropDiffChecker $checker): void {
+                                     BlocksInputValidatorScanner $scanner): void {
         $pageType = $pagesRepoOld->getPageTypeOrThrow($req->params->pageType);
-        $validStorableBlocksJson = $checker->runChecksAndMutateResp(fn() => $pagesRepo->select($pageType->name, ["@blocks"])
+        [$validStorableBlocksJson, $errors, $errCode] = $scanner->createStorableBlocks(fn() => $pagesRepo->select($pageType->name, ["@blocks"])
             ->where("id = ?", $req->params->pageId)
-            ->fetch()?->blocks, $req, $res);
-        if (!$validStorableBlocksJson) return;
+            ->fetch()?->blocks, $req);
+        if ($errCode) {
+            $res->status($errCode)->json($errors);
+            return;
+        }
         //
         $numAffectedRows = $pagesRepo->update($pageType->name)
             ->values((object) ["blocks" => $validStorableBlocksJson])
@@ -320,7 +332,7 @@ final class PagesController {
             if ($block->type === "__marker")
                 continue;
             $blockType = $blockTypes->{$block->type};
-            if (array_key_exists(ListeningBlockTypeInterface::class, class_implements($blockType)))
+            if (array_key_exists(RenderAwareBlockTypeInterface::class, class_implements($blockType)))
                 $blockType->onBeforeRender($block, $blockType, App::$adi);
             if ($block->children)
                 self::runBlockBeforeRenderEvent($block->children, $blockTypes, $pagesRepo);

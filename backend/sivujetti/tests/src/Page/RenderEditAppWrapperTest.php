@@ -12,9 +12,9 @@ final class RenderEditAppWrapperTest extends RenderPageTestCase {
     public function testRenderEditAppWrapperIncludesUserDefinedJsFiles(): void {
         $state = $this->setupTest();
         $this->registerJsFile("some-file.js", $state);
-        $this->makeRenderPageTestApp($state);
+        $this->makePagesControllerTestApp($state);
         $this->sendRenderEditAppWrapperRequest($state);
-        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifyRequestFinishedSuccesfully($state, withContentType: "text/html");
         $this->verifyInlcudedUserDefinedJsFiles($state);
     }
     private function setupTest(): \TestState {

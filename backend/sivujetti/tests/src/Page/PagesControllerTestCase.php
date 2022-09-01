@@ -2,19 +2,25 @@
 
 namespace Sivujetti\Tests\Page;
 
+use Pike\{ArrayUtils, Injector};
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
+use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder, SaveAwareBlockTypeInterface};
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\Tests\Utils\{DbDataHelper, HttpApiTestTrait, PageTestUtils};
+use Sivujetti\SharedAPIContext;
+use Sivujetti\Tests\Utils\{DbDataHelper, HttpApiTestTrait, PageTestUtils, TestEnvBootstrapper};
+use Sivujetti\UserSite\UserSiteAPI;
 
 abstract class PagesControllerTestCase extends DbTestCase {
     use HttpTestUtils;
     use HttpApiTestTrait;
     protected PageTestUtils $pageTestUtils;
+    protected SharedAPIContext $testApiCtx;
     protected DbDataHelper $dbDataHelper;
     protected ?\Closure $onTearDown;
     protected function setUp(): void {
         parent::setUp();
-        $this->pageTestUtils = new PageTestUtils(self::$db);
+        $this->testApiCtx = new SharedAPIContext;
+        $this->pageTestUtils = new PageTestUtils(self::$db, $this->testApiCtx);
         $this->dbDataHelper = new DbDataHelper(self::$db);
         $this->onTearDown = null;
     }
@@ -26,6 +32,11 @@ abstract class PagesControllerTestCase extends DbTestCase {
     public static function getDbConfig(): array {
         return require TEST_CONFIG_FILE_PATH;
     }
+    public function makePagesControllerTestApp(\TestState $state): void {
+        $this->makeTestSivujettiApp($state, function (TestEnvBootstrapper $bootModule) {
+            $bootModule->useMock("apiCtx", [$this->testApiCtx]);
+        });
+    }
     protected function insertTestPageDataToDb(object $stateOrPageData,
                                               PageType|string|null $pageType = null): void {
         $mutRef = $stateOrPageData instanceof \TestState
@@ -33,5 +44,28 @@ abstract class PagesControllerTestCase extends DbTestCase {
             : $stateOrPageData;
         $insertId = $this->pageTestUtils->insertPage($mutRef, $pageType);
         $mutRef->id = $insertId;
+    }
+    protected function registerTestCustomBlockType(): string {
+        $mutRef = $this->testApiCtx;
+        $api = new UserSiteAPI("site", $mutRef);
+        $api->registerBlockType("Icon", new class implements BlockTypeInterface, SaveAwareBlockTypeInterface {
+            public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
+                return $builder
+                    ->newProperty("iconId", $builder::DATA_TYPE_TEXT)
+                    ->getResult();
+            }
+            public function onBeforeSave(bool $isInsert,
+                                         object $storableBlock,
+                                         BlockTypeInterface $blockType,
+                                         Injector $di): void {
+                $someDataSource = ["check-circle" => "<svg>1"];
+                $iconId = ArrayUtils::findByKey($storableBlock->propsData, "iconId", "key")->value;
+                $storableBlock->propsData[] = (object) [
+                    "key" => "__alwaysAddedDynamicProp",
+                    "value" => $someDataSource[$iconId] ?? "not-found"
+                ];
+            }
+        });
+        return "Icon";
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Sivujetti\Tests\Page;
 
+use Pike\ArrayUtils;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
@@ -9,13 +10,13 @@ use Sivujetti\Tests\Utils\{BlockTestUtils, PageTestUtils};
 
 final class CreatePageTest extends PagesControllerTestCase {
     public function testCreateNormalPageInsertsPageToDb(): void {
-        $state = $this->setupCreateNormalPageTest();
+        $state = $this->setupCreateNormalPageTest(addDefaultBlocks: true);
         $this->makeTestSivujettiApp($state);
         $this->sendCreatePageRequest($state);
         $this->verifyRequestFinishedSuccesfully($state, 201);
         $this->verifyInsertedPageToDb($state);
     }
-    private function setupCreateNormalPageTest(): \TestState {
+    private function setupCreateNormalPageTest(bool $addDefaultBlocks = false): \TestState {
         $state = new \TestState;
         $state->inputData = (object) [
             "slug" => "/my-page",
@@ -25,7 +26,7 @@ final class CreatePageTest extends PagesControllerTestCase {
             "meta" => (object) ["description" => "Description.",
                                 "junk" => "data"],
             "layoutId" => "1",
-            "blocks" => [],
+            "blocks" => !$addDefaultBlocks ? [] : $this->pageTestUtils->makeTestPageData()->blocks,
             "status" => Page::STATUS_PUBLISHED,
             "categories" => [],
         ];
@@ -65,8 +66,8 @@ final class CreatePageTest extends PagesControllerTestCase {
 
 
     public function testCreateNormalPageRejectsInvalidInputs(): void {
-        $state = $this->setupCreateNormalPageTest();
-        $state->inputData = (object) [];
+        $state = $this->setupCreateNormalPageTest(addDefaultBlocks: true);
+        $state->inputData = (object) ["blocks" => $state->inputData->blocks];
         $this->makeTestSivujettiApp($state);
         $this->sendCreatePageRequest($state);
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
@@ -81,7 +82,6 @@ final class CreatePageTest extends PagesControllerTestCase {
             "The value of layoutId must be 1 or greater",
             "status must be number",
             "The value of status must be 0 or greater",
-            "blocks must be array",
             "categories must be array",
             "Expected `categories` to be an array",
         ], $state->spyingResponse);
@@ -92,7 +92,7 @@ final class CreatePageTest extends PagesControllerTestCase {
 
 
     public function testCreateNormalPageValidatesBlocksRecursively(): void {
-        $state = $this->setupCreateNormalPageTest();
+        $state = $this->setupCreateNormalPageTest(addDefaultBlocks: false);
         $btu = new BlockTestUtils();
         $notValidBlock = (object) ["type" => Block::TYPE_PARAGRAPH];
         $validBlock = $btu->makeBlockData(Block::TYPE_SECTION, "Main", "sivujetti:block-generic-wrapper", children: [
@@ -104,6 +104,22 @@ final class CreatePageTest extends PagesControllerTestCase {
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $errors = json_decode($state->spyingResponse->getActualBody());
         $this->assertContains("The value of renderer was not in the list", $errors);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testCreateNormalPageWithSaveAwareBlocksPassesThemToOnBeforeSaveEvent(): void {
+        $state = $this->setupCreateNormalPageTest(addDefaultBlocks: false);
+        $this->registerTestCustomBlockType();
+        $state->inputData->blocks = [(new BlockTestUtils())->makeBlockData("Icon",
+                propsData: ["iconId" => "check-circle"])];
+        $this->makePagesControllerTestApp($state);
+        $this->sendCreatePageRequest($state);
+        $this->verifyRequestFinishedSuccesfully($state, 201);
+        $actual = $this->pageTestUtils->getPageById(json_decode($state->spyingResponse->getActualBody())->insertId);
+        $this->assertEquals("<svg>1", ArrayUtils::findByKey($actual->blocks[0]->propsData, "__alwaysAddedDynamicProp", "key")?->value);
     }
 
 
@@ -122,7 +138,7 @@ final class CreatePageTest extends PagesControllerTestCase {
         ], $state->spyingResponse);
     }
     private function setupCreateDuplicateNormalPageTest(): \TestState {
-        $state = $this->setupCreateNormalPageTest();
+        $state = $this->setupCreateNormalPageTest(addDefaultBlocks: true);
         $state->testPageData = $this->pageTestUtils->makeTestPageData();
         $state->testPageData->slug = "/try-to-create-duplicate-normal-page-test-page";
         $state->testPageData->path = "/try-to-create-duplicate-normal-page-test-page/";
@@ -143,7 +159,7 @@ final class CreatePageTest extends PagesControllerTestCase {
         $this->dropCustomPageType($state);
     }
     private function setupCreateCustomPageTest(): \TestState {
-        $state = $this->setupCreateNormalPageTest();
+        $state = $this->setupCreateNormalPageTest(addDefaultBlocks: true);
         $state->inputData->ownField1 = "Value";
         $state->inputData->ownField2 = 456;
         $state->customPageType = null;

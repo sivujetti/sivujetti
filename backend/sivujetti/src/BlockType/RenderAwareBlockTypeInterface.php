@@ -5,7 +5,7 @@ namespace Sivujetti\BlockType;
 use Pike\Injector;
 use Sivujetti\Block\Entities\Block;
 
-interface ListeningBlockTypeInterface {
+interface RenderAwareBlockTypeInterface {
     /**
      * @param \Sivujetti\Block\Entities\Block $block
      * @param \Sivujetti\BlockType\BlockTypeInterface $blockType

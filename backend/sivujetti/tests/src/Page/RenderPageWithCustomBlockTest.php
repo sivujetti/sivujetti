@@ -23,10 +23,10 @@ final class RenderPageWithCustomBlockTest extends RenderPageTestCase {
     public function testRenderPageRendersCustomBlock(): void {
         $state = $this->setupTest();
         $this->registerCustomBlock($state);
-        $this->makeRenderPageTestApp($state);
+        $this->makePagesControllerTestApp($state);
         $this->insertTestPageToDb($state);
         $this->sendRenderPageRequest($state);
-        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifyRequestFinishedSuccesfully($state, withContentType: "text/html");
         $this->verifyRenderedCustomBlock($state);
     }
     private function setupTest(): \TestState {

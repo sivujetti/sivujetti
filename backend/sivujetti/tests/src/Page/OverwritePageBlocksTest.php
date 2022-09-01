@@ -5,7 +5,7 @@ namespace Sivujetti\Tests\Page;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Tests\Utils\{BlockTestUtils};
-use Pike\{PikeException};
+use Pike\{ArrayUtils, PikeException};
 use Pike\Interfaces\SessionInterface;
 use Sivujetti\Auth\ACL;
 
@@ -43,6 +43,35 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
         $this->assertEmpty($actual->blocks[0]->children);
         $this->assertEquals($state->inputData->blocks[0]->type, $actual->blocks[0]->type);
         $this->assertEquals($state->inputData->blocks[0]->id, $actual->blocks[0]->id);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testOverwritePageBlocksPassesSaveAwareBlocksToOnBeforeSaveEvent(): void {
+        $state = $this->setupOnBeforeSaveEventsTest();
+        $this->makePagesControllerTestApp($state);
+        $this->insertTestPageDataToDb($state);
+        $this->sendOverwritePageBlocksRequest($state);
+        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifyOverwrotePageBlocksToDb2($state);
+    }
+    private function setupOnBeforeSaveEventsTest(): \TestState {
+        $state = $this->setupTest();
+        $this->registerTestCustomBlockType();
+        $state->inputData = (object) ["blocks" =>
+            [(new BlockTestUtils())->makeBlockData("Icon",
+                propsData: ["iconId" => "check-circle"])]
+        ];
+        return $state;
+    }
+    private function verifyOverwrotePageBlocksToDb2(\TestState $state): void {
+        $actual = $this->pageTestUtils->getPageById($state->testPageData->id);
+        $this->assertCount(1, $actual->blocks);
+        $this->assertEmpty($actual->blocks[0]->children);
+        $v = ArrayUtils::findByKey($actual->blocks[0]->propsData, "__alwaysAddedDynamicProp", "key")?->value;
+        $this->assertEquals("<svg>1", $v);
     }
 
 

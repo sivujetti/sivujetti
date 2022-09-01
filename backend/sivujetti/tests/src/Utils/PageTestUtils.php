@@ -3,7 +3,7 @@
 namespace Sivujetti\Tests\Utils;
 
 use Pike\{Db, PikeException};
-use Sivujetti\Block\BlockValidator;
+use Sivujetti\Block\{BlocksController, BlockValidator};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, GlobalBlockReferenceBlockType, HeadingBlockType,
                          MenuBlockType, ParagraphBlockType, SectionBlockType};
@@ -13,7 +13,7 @@ use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\{PageTypeMigrator, PageTypesController, PageTypeValidator};
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\BlockType\Entities\BlockTypes;
-use Sivujetti\SharedAPIContext;
+use Sivujetti\{JsonUtils, SharedAPIContext};
 
 /**
  * @psalm-import-type SelectFilters from \Sivujetti\Page{PagesRepository
@@ -24,6 +24,8 @@ final class PageTestUtils {
     public LayoutTestUtils $layoutTestUtils;
     /** @var \Sivujetti\Page\PagesRepository */
     private PagesRepository $pagesRepo;
+    /** @var \Sivujetti\BlockType\Entities\BlockTypes */
+    private BlockTypes $blockTypes;
     /** @var \Closure Overwrites $this->pagesRepo */
     private \Closure $createPageRepo;
     /**
@@ -36,11 +38,11 @@ final class PageTestUtils {
         $pagePageType = $this->makeDefaultPageType();
         $fakeTheWebsite->pageTypes[] = $pagePageType;
         $testApiCtx = self::createTestApiCtx($testApiCtx);
+        $this->blockTypes = $testApiCtx->blockTypes;
         $this->layoutTestUtils = new LayoutTestUtils($db);
         $this->createPageRepo = function (\Closure $doBefore) use ($db, $fakeTheWebsite, $testApiCtx) {
             $doBefore($db, $fakeTheWebsite, $testApiCtx);
             $this->pagesRepo = new PagesRepository($db, $fakeTheWebsite,
-                $testApiCtx->blockTypes,
                 new PageTypeValidator(new BlockValidator($testApiCtx))
             );
         };
@@ -56,7 +58,9 @@ final class PageTestUtils {
             $pageType = $this->makeDefaultPageType($pageType);
         if ($data->layoutId)
             $this->layoutTestUtils->insertLayout((object) ["id" => $data->layoutId]);
-        [$_numAffectedRows, $errors] = $this->pagesRepo->insert($pageType, $data, doValidateBlocks: false);
+        [$_numAffectedRows, $errors] = $this->pagesRepo->insert($pageType, $data,
+            JsonUtils::stringify(BlocksController::makeStorableBlocksDataFromValidInput(
+                $data->blocks, $this->blockTypes)));
         if ($errors)
             throw new PikeException(implode("\n", $errors));
         return $this->pagesRepo->lastInsertId;

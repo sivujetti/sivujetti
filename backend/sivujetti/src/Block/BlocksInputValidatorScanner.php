@@ -2,15 +2,16 @@
 
 namespace Sivujetti\Block;
 
-use Pike\{ArrayUtils, PikeException, Request, Response, Validation};
+use Pike\{ArrayUtils, PikeException, Request, Validation};
+use Sivujetti\App;
 use Sivujetti\Auth\ACL;
 use Sivujetti\BlockType\Entities\BlockTypes;
-use Sivujetti\BlockType\PropertiesBuilder;
+use Sivujetti\BlockType\{PropertiesBuilder, SaveAwareBlockTypeInterface};
 
 /**
  * @psalm-type PropModification = array{propName: string}
  */
-final class BlockPropDiffChecker {
+final class BlocksInputValidatorScanner {
     /** @var \Sivujetti\BlockType\Entities\BlockTypes */
     private BlockTypes $blockTypes;
     /** @var \Sivujetti\Block\BlockValidator */
@@ -27,20 +28,19 @@ final class BlockPropDiffChecker {
     /**
      * @param \Closure $getCurrentBlocks fn(): array<int, object>
      * @param \Pike\Request $req
-     * @param \Pike\Response $res
-     * @return string
+     * @param bool $isInsert = false
+     * @return array{0: string, 1: array<int, string>|array<string, string>, 2: int}
+     * @throws \Pike\PikeException
      */
-    public function runChecksAndMutateResp(\Closure $getCurrentBlocks,
-                                           Request $req,
-                                           Response $res): ?string {
+    public function createStorableBlocks(\Closure $getCurrentBlocks,
+                                         Request $req,
+                                         bool $isInsert = false): array {
         $currentBlocks = $getCurrentBlocks();
         if (!is_array($currentBlocks))
             throw new PikeException("\$currentBlocks can't be null", PikeException::BAD_INPUT);
         //
-        if (($errors = $this->validateBlocksUpdateData($req->body))) {
-            $res->status(400)->json($errors);
-            return null;
-        }
+        if (($errors = $this->validateBlocksUpdateData($req->body)))
+            return [null, $errors, 400];
         //
         $storable = BlocksController::makeStorableBlocksDataFromValidInput(
             $req->body->blocks, $this->blockTypes);
@@ -52,15 +52,19 @@ final class BlockPropDiffChecker {
                 $props = $this->blockTypes->{$ref["blockType"]}->defineProperties(new PropertiesBuilder);
                 foreach ($ref["mods"] as $pInfo) {
                     $roles = ArrayUtils::findByKey($props, $pInfo["propName"], "name")->dataType->canBeEditedBy;
-                    if ($roles !== null && !($roles & $userRole)) {
-                        $res->status(403)->json(["err" => "Not permitted."]);
-                        return null;
-                    }
+                    if ($roles !== null && !($roles & $userRole))
+                        return [null, ["err" => "Not permitted."], 403];
                 }
             }
         }
         //
-        return BlockTree::toJson($storable);
+        BlockTree::traverse($storable, function ($b) use ($isInsert) {
+            $blockType = $this->blockTypes->{$b->type};
+            if (array_key_exists(SaveAwareBlockTypeInterface::class, class_implements($blockType)))
+                $blockType->onBeforeSave($isInsert, $b, $blockType, App::$adi);
+        });
+        //
+        return [BlockTree::toJson($storable), null, 0];
     }
     /**
      * @param array $current

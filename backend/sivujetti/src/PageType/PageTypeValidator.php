@@ -81,17 +81,17 @@ final class PageTypeValidator {
     /**
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param object $input
-     * @param bool $doValidateBlockTypes = false
+     * @param bool $doValidateBlocks = false
      * @return string[] Error messages or []
      */
     public function validateInsertData(PageType $pageType,
                                        object $input,
-                                       bool $doValidateBlockTypes = false): array {
+                                       bool $doValidateBlocks = false): array {
         $v = ValidationUtils::addRulesForProperties($pageType->ownFields,
             self::withCommonRules(Validation::makeObjectValidator())
                 ->rule("blocks", "type", "array")
         );
-        if (!($errors = $v->validate($input)) && $doValidateBlockTypes)
+        if (!($errors = $v->validate($input)) && $doValidateBlocks)
             $errors = $this->blockValidator->validateMany($input->blocks);
         return $errors;
     }

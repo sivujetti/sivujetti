@@ -37,11 +37,13 @@ trait HttpApiTestTrait {
     /**
      * @param \TestState $state
      * @param int $withStatusCode = 200
+     * @param string $withContentType = "application/json"
      */
     protected function verifyRequestFinishedSuccesfully(\TestState $state,
-                                                        int $withStatusCode = 200): void {
+                                                        int $withStatusCode = 200,
+                                                        string $withContentType = "application/json"): void {
         $this->verifyResponseMetaEquals($withStatusCode,
-                                        "application/json",
+                                        $withContentType,
                                         $state->spyingResponse);
     }
 }

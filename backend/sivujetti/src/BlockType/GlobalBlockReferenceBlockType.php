@@ -5,10 +5,9 @@ namespace Sivujetti\BlockType;
 use Pike\Injector;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository;
-use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class GlobalBlockReferenceBlockType implements BlockTypeInterface,
-                                                     ListeningBlockTypeInterface {
+                                                     RenderAwareBlockTypeInterface {
     public const EMPTY_OVERRIDES = "{}";
     /**
      * @inheritdoc

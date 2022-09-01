@@ -3,9 +3,7 @@
 namespace Sivujetti\Page;
 
 use Pike\{ArrayUtils, Db, PikeException};
-use Sivujetti\Block\{BlocksController, BlockTree};
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\Layout\Entities\Layout;
 use Sivujetti\Layout\LayoutsRepository;
 use Sivujetti\Page\Entities\Page;
@@ -26,8 +24,6 @@ final class PagesRepository {
     private Db $db;
     /** @var \ArrayObject<int, \Sivujetti\PageType\Entities\PageType> */
     private \ArrayObject $pageTypes;
-    /** @var object */
-    private object $blockTypes;
     /** @var ?\Sivujetti\PageType\Entities\PageType */
     private ?PageType $pageType;
     /** @var \Sivujetti\PageType\PageTypeValidator */
@@ -37,16 +33,13 @@ final class PagesRepository {
     /**
      * @param \Pike\Db $db
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
-     * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      * @param \Sivujetti\PageType\PageTypeValidator $pageTypeValidator
      */
     public function __construct(Db $db,
                                 TheWebsite $theWebsite,
-                                BlockTypes $blockTypes,
                                 PageTypeValidator $pageTypeValidator) {
         $this->db = $db;
         $this->pageTypes = $theWebsite->pageTypes;
-        $this->blockTypes = $blockTypes;
         $this->pageType = null;
         $this->pageTypeValidator = $pageTypeValidator;
         $this->lastInsertId = "0";
@@ -73,24 +66,23 @@ final class PagesRepository {
     /**
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param object $inputData
+     * @param string $validBlocksJson
      * @param bool $doInsertRevision = false
      * @param bool $doInsertAsDraft = false
      * @return array{0: int, 1: null|array} [$numAffectedRows, $errors]
      */
     public function insert(PageType $pageType,
                            object $inputData,
+                           string $validBlocksJson,
                            bool $doInsertRevision = false,
-                           bool $doInsertAsDraft = false,
-                           bool $doValidateBlocks = true): array {
+                           bool $doInsertAsDraft = false): array {
         $this->lastInsertId = "0";
-        if (($errors = $this->pageTypeValidator->validateInsertData($pageType, $inputData,
-            $doValidateBlocks)))
+        if (($errors = $this->pageTypeValidator->validateInsertData($pageType, $inputData, false)))
             return [0, $errors];
         if ($this->getSingle($pageType, ["filters" => [ ["slug", $inputData->slug] ]]))
             return [0, ["Page with identical slug already exists"]];
         $data = self::makeStorablePageDataFromValidInput($inputData, $pageType);
-        $data->blocks = BlockTree::toJson(BlocksController::makeStorableBlocksDataFromValidInput(
-            $inputData->blocks, $this->blockTypes));
+        $data->blocks = $validBlocksJson;
         foreach (["id", "status","createdAt","lastUpdatedAt"] as $optional) {
             if (($inputData->{$optional} ?? null) !== null)
                 $data->{$optional} = (int) $inputData->{$optional};

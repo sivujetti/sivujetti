@@ -7,7 +7,7 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\Page\PagesRepository2;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
-class ListingBlockType implements BlockTypeInterface, ListeningBlockTypeInterface {
+class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterface {
     /**
      * @inheritdoc
      */

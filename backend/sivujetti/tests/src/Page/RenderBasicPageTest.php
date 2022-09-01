@@ -15,11 +15,11 @@ use Sivujetti\Tests\Utils\{BlockTestUtils, TestData};
 final class RenderBasicPageTest extends RenderPageTestCase {
     public function testRenderPageRendersPage(): void {
         $state = $this->setupTest();
-        $this->makeRenderPageTestApp($state);
+        $this->makePagesControllerTestApp($state);
         $this->insertTestGlobalBlocksToDb($state);
         $this->insertTestPageToDb($state);
         $this->sendRenderPageRequest($state);
-        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifyRequestFinishedSuccesfully($state, withContentType: "text/html");
         $this->verifyRenderedCorrectPageAndLayout($state);
         $this->verifyThemeCanRegisterCssFiles($state);
         $this->verifyRenderedBlockTypeBaseStyles($state);
@@ -157,11 +157,11 @@ final class RenderBasicPageTest extends RenderPageTestCase {
 
     public function testRenderPageEscapesInlineStylesWhereRenderingPageInEditMode(): void {
         $state = $this->setupTest();
-        $this->makeRenderPageTestApp($state);
+        $this->makePagesControllerTestApp($state);
         $this->insertTestGlobalBlocksToDb($state);
         $this->insertTestPageToDb($state);
         $this->sendRenderPageRequest($state, inEditMode: true);
-        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifyRequestFinishedSuccesfully($state, withContentType: "text/html");
         $this->verifyInjectedThemeStylesViaJavascript($state);
     }
     private function verifyInjectedThemeStylesViaJavascript(\TestState $state): void {

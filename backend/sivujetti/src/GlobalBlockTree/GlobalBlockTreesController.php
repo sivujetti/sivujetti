@@ -3,7 +3,7 @@
 namespace Sivujetti\GlobalBlockTree;
 
 use Pike\{PikeException, Request, Response, Validation};
-use Sivujetti\Block\{BlockPropDiffChecker, BlocksController, BlockTree, BlockValidator};
+use Sivujetti\Block\{BlocksController, BlocksInputValidatorScanner, BlockTree, BlockValidator};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\ValidationUtils;
 
@@ -73,17 +73,20 @@ final class GlobalBlockTreesController {
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository2 $globalBlocksRepo
-     * @param \Sivujetti\Block\BlockPropDiffChecker $checker
+     * @param \Sivujetti\Block\BlocksInputValidatorScanner $scanner
      */
     public function updateBlocks(Request $req,
                                  Response $res,
                                  GlobalBlockTreesRepository2 $gbtRepo,
-                                 BlockPropDiffChecker $checker): void {
-        $validStorableBlocksJson = $checker->runChecksAndMutateResp(fn() => $gbtRepo->select()
+                                 BlocksInputValidatorScanner $scanner): void {
+        [$validStorableBlocksJson, $errors, $errCode] = $scanner->createStorableBlocks(fn() => $gbtRepo->select()
             ->where("id = ?", [$req->params->globalBlockTreeId])
             ->fetch()
-            ?->blocks, $req, $res);
-        if (!$validStorableBlocksJson) return;
+            ?->blocks, $req);
+        if ($errCode) {
+            $res->status($errCode)->json($errors);
+            return;
+        }
         //
         $numAffectedRows = $gbtRepo->update()
             ->values((object) ["blocks" => $validStorableBlocksJson])

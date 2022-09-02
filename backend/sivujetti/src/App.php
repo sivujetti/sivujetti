@@ -10,6 +10,7 @@ use Sivujetti\GlobalBlockTree\GlobalBlockTreesModule;
 use Sivujetti\Layout\LayoutsModule;
 use Sivujetti\Page\PagesModule;
 use Sivujetti\PageType\PageTypesModule;
+use Sivujetti\ReusableBranch\ReusableBranchesModule;
 use Sivujetti\Theme\ThemesModule;
 use Sivujetti\Update\UpdatesModule;
 use Sivujetti\Upload\UploadsModule;
@@ -30,6 +31,7 @@ final class App extends PikeApp {
             new GlobalBlockTreesModule,
             new LayoutsModule,
             new PageTypesModule,
+            new ReusableBranchesModule,
             new ThemesModule,
             new UpdatesModule,
             new UploadsModule,

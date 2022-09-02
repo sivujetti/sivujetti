@@ -56,6 +56,8 @@ return [
     "\$backend/sivujetti/src/App.php",
     "\$backend/sivujetti/src/Boot/PostBootModule.php",
     "\$backend/sivujetti/src/Boot/BootModule.php",
+    "\$backend/sivujetti/src/ReusableBranch/ReusableBranchesModule.php",
+    "\$backend/sivujetti/src/ReusableBranch/ReusableBranchesController.php",
     "\$backend/sivujetti/src/Update/Signer.php",
     "\$backend/sivujetti/src/Update/UpdatesModule.php",
     "\$backend/sivujetti/src/Update/UpdateIndexSourceFilesTask.php",

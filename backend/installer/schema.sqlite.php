@@ -6,6 +6,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
+"DROP TABLE IF EXISTS `\${p}reusableBranches`",
 "DROP TABLE IF EXISTS `\${p}globalBlockTrees`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
@@ -120,6 +121,11 @@ return [
     `id` TEXT PRIMARY KEY,
     `name` TEXT NOT NULL,
     `blocks` JSON
+)",
+
+"CREATE TABLE `\${p}reusableBranches` (
+    `id` TEXT PRIMARY KEY,
+    `blockBlueprints` JSON
 )",
 
 "CREATE TABLE `\${p}layouts` (

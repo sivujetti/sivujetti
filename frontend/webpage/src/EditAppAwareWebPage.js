@@ -666,12 +666,14 @@ function getBlockReRenderResult(result, to) {
  * @param {RawBlock} block
  * @param {(result: BlockRendctor) => void} then
  * @param {BlockTypes} blockTypes
+ * @param {Boolean} shouldBackendRender = false
  * @param {String} childContent = null
  */
-function renderBlockAndThen(block, then, blockTypes) {
+function renderBlockAndThen(block, then, blockTypes, shouldBackendRender = false) {
     const stringOrPromiseOrObj = blockTypes.get(block.type).reRender(
         block,
-        () => `<!--${CHILDREN_START}-->${CHILD_CONTENT_PLACEHOLDER}<!--${CHILDREN_END}-->`
+        () => `<!--${CHILDREN_START}-->${CHILD_CONTENT_PLACEHOLDER}<!--${CHILDREN_END}-->`,
+        shouldBackendRender
     );
     getBlockReRenderResult(stringOrPromiseOrObj, then);
 }

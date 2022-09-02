@@ -545,6 +545,9 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .has-color-pickers .is-very-light-color .pcr-button {
     border-color: rgba(var(--components-color-fb-default),.12);
 }
+.has-color-pickers > .form-group:first-child {
+    margin-top: .2rem;
+}
 
 
 /* == EditApp: * ============================================================ */
@@ -875,13 +878,14 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     left: -2px;
     width: 182px;
     max-width: 4px;
-    z-index: 1;
+    z-index: 2;
 }
 .new-block-spawner-opened .new-block-spawner {
     height: 100%;
     left: .6rem;
     max-width: 210px;
     border-right: 1px solid rgba(var(--components-color-fb-default),.06);
+    z-index: 1;
 }
 .scroller {
     overflow-y: auto;
@@ -912,6 +916,16 @@ input + .scroller {
 .new-block-spawner .block-tree .block-handle {
     cursor: grab;
     filter: grayscale(.9);
+}
+.new-block-spawner .block-tree .block-handle[data-flavor="reusableBranch"] {
+    padding-right: .8rem;
+}
+.new-block-spawner .block-tree .block-handle[data-flavor="reusableBranch"]:after {
+    content: "☆";
+    font-size: .5rem;
+    opacity: .9;
+    position: absolute;
+    right: .1rem;
 }
 
 .new-block-spawner-opened .new-block-spawner > .btn {

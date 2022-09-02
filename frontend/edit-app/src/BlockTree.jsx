@@ -163,6 +163,7 @@ class BlockTree extends preact.Component {
             //
             if (block.type !== 'PageInfo') {
             const type = api.blockTypes.get(block.type);
+            const title = getShortFriendlyName(block, type);
             return <li
                 onDragStart={ this.onDragStart }
                 onDragOver={ this.onDragOver }
@@ -175,6 +176,7 @@ class BlockTree extends preact.Component {
                 data-block-id={ block.id }
                 data-trid={ block.isStoredToTreeId }
                 key={ block.id }
+                title={ title }
                 draggable>
                 { !block.children.length
                     ? null
@@ -183,7 +185,7 @@ class BlockTree extends preact.Component {
                 <div class="d-flex">
                     <button onClick={ () => this.handleItemClicked(block) } class="block-handle text-ellipsis" type="button">
                         <Icon iconId={ getIcon(type) } className="size-xs p-absolute"/>
-                        <span class="text-ellipsis">{ getShortFriendlyName(block, type) }</span>
+                        <span class="text-ellipsis">{ title }</span>
                     </button>
                     <button onClick={ e => this.openMoreMenu(block, root && i === 0, e) } class="more-toggle ml-2" type="button">
                         <Icon iconId="dots" className="size-xs"/>
@@ -196,10 +198,12 @@ class BlockTree extends preact.Component {
             </li>;
             }
             //
+            const title = block.title || __('PageInfo');
             return <li
                 class={ [!treeState[block.id].isSelected ? '' : 'selected'].join(' ') }
                 data-block-type="PageInfo"
                 data-block-id={ block.id }
+                title={ title }
                 key={ block.id }>
                 <div class="d-flex">
                     <button
@@ -208,7 +212,7 @@ class BlockTree extends preact.Component {
                         type="button"
                         disabled={ this.props.disablePageInfo }>
                         <Icon iconId={ getIcon('PageInfo') } className="size-xs p-absolute"/>
-                        <span class="text-ellipsis">{ block.title || __('PageInfo') }</span>
+                        <span class="text-ellipsis">{ title }</span>
                     </button>
                 </div>
             </li>;
@@ -239,10 +243,10 @@ class BlockTree extends preact.Component {
             }</ul>
             <ContextMenu
                 links={ [
-                    {text: __('Clone'), title: __('Clone content'), id: 'clone-block'},
+                    {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
                     {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
                 ].concat(api.user.can('createGlobalBlockTrees')
-                    ? [{text: __('Convert to global'), title: __('Convert to global content'), id: 'convert-block-to-global'}]
+                    ? [{text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}]
                     : []
                 ) }
                 onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
@@ -259,7 +263,7 @@ class BlockTree extends preact.Component {
             this.addParagraph(this.blockWithMoreMenuOpened, 'after');
         } else if (link.id === 'add-paragraph-child') {
             this.addParagraph(this.blockWithMoreMenuOpened, 'as-child');
-        } else if (link.id === 'clone-block') {
+        } else if (link.id === 'duplicate-block') {
             this.cloneBlock(this.blockWithMoreMenuOpened);
         } else if (link.id === 'delete-block') {
             const blockVisible = this.blockWithMoreMenuOpened;
@@ -387,9 +391,9 @@ class BlockTree extends preact.Component {
 
         // #4
         let [b, br] = blockTreeUtils.findBlock(originalBlock.id, tree);
-        const turned = createBlockFromType('GlobalBlockReference', 'main', undefined, {
-            globalBlockTreeId: newGbt.id,
-        });
+        const turned = createBlockFromType('GlobalBlockReference', 'main', undefined,
+            {globalBlockTreeId: newGbt.id},
+        );
         br[br.indexOf(b)] = turned;
         const eventData = {blockId: turned.id, blockType: turned.blockType, trid: 'main', isRootOfOfTrid: newGbt.id};
         store.dispatch(createSetBlockTree('main')(tree, ['convert-block-to-global', eventData]));
@@ -419,6 +423,9 @@ class BlockTree extends preact.Component {
             args: [],
         }));
     }
+    doSaveBlockAsReusable(data, block) {
+        // todo
+    }
     /**
      * @param {RawBlock} block
      * @param {Boolean} blockIsGlobalBlockTreesOutermostBlock
@@ -432,7 +439,8 @@ class BlockTree extends preact.Component {
         this.moreMenu.current.open(e, links => {
             const notThese = []
                 .concat(block.isStoredToTreeId !== 'main' ? ['convert-block-to-global'] : [])
-                .concat(blockIsGlobalBlockTreesOutermostBlock ? ['clone-block'] : []);
+                .concat(blockIsGlobalBlockTreesOutermostBlock ? ['duplicate-block'] : [])
+                .concat(['Columns','Section'].indexOf(block.type) < 0 ? ['save-block-as-reusable'] : []);
             return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
         });
     }

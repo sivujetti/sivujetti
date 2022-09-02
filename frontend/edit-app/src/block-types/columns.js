@@ -1,4 +1,4 @@
-import {__, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+import {__, http, env, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import setFocusTo from './auto-focusers.js';
 
 class ColumnsBlockEditForm extends preact.Component {
@@ -82,7 +82,10 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-generic-wrapper',
         icon: 'layout-columns',
-        reRender({numColumns, takeFullWidth, styleClasses, id}, renderChildren) {
+        reRender(block, renderChildren, shouldBackendRender) {
+            if (shouldBackendRender)
+                return http.post(`/api/blocks/render`, {block}).then(resp => resp.result);
+            const {numColumns, takeFullWidth, styleClasses, id} = block;
             return ['<div class="j-', name, ' num-cols-', parseInt(numColumns),
                 takeFullWidth ? '' : ' inline',
                 !styleClasses ? '' : ` ${styleClasses}`,

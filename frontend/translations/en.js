@@ -52,12 +52,12 @@ stringBundles.push({
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
     // edit-app/src/BlockTree.jsx
     'Add child content': 'Add child content',
-    'Clone': 'Clone',
-    'Clone content': 'Clone content',
+    'Duplicate': 'Duplicate',
+    'Duplicate content': 'Duplicate content',
     'Delete': 'Delete',
     'Delete content': 'Delete content',
-    'Convert to global': 'Convert to global',
-    'Convert to global content': 'Convert to global content',
+    'Save as reusable': 'Save as reusable',
+    'Save as reusable content': 'Save as reusable content',
     'Content tree': 'Content tree',
     // edit-app/src/BlockTreeShowHelopPopup.jsx
     'todo1': 'todo1',

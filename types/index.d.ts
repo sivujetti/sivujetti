@@ -57,10 +57,16 @@ interface BlockType {
     createSnapshot: (from: RawBlock) => RawBlockData;
 }
 
+interface ReusableBranch {
+    id: String;
+    blockBlueprints: Array<BlockBlueprint>;
+}
+
 interface BlockBlueprint {
     blockType: String;
-    props: {[key: String]: any;};
-    children: Array<BlockBlueprint>;
+    initialOwnData: {[key: String]: any;};
+    initialDefaultsData: {title: String|null; renderer: String; styleClasses: String};
+    initialChildren: Array<BlockBlueprint>;
 }
 
 interface RawBlock {

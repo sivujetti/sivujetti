@@ -7,6 +7,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
+"DROP TABLE IF EXISTS `\${p}reusableBranches`",
 "DROP TABLE IF EXISTS `\${p}globalBlockTrees`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
@@ -128,6 +129,12 @@ return [
     `id` CHAR(20) NOT NULL,
     `name` VARCHAR(92) NOT NULL,
     `blocks` JSON,
+    PRIMARY KEY (`id`)
+) DEFAULT CHARSET = utf8mb4",
+
+"CREATE TABLE `\${p}reusableBranches` (
+    `id` CHAR(20) NOT NULL,
+    `blockBlueprints` JSON,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

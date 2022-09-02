@@ -36,6 +36,9 @@ $out->resources = (object) [
         "update"            => 0b00000100,
         "delete"            => 0b00001000,
     ],
+    "reusableBranches" => (object) [
+        "list"              => 0b00000010,
+    ],
     "themes" => (object) [
         "view"                      => 0b00000010,
         "updateGlobalStylesOf"      => 0b00000100,
@@ -56,6 +59,7 @@ $out->userPermissions = (object) [
         "layouts"           => ACL::makePermissions("*", $out->resources->layouts),
         "pages"             => ACL::makePermissions("*", $out->resources->pages),
         "pageTypes"         => ACL::makePermissions("*", $out->resources->pageTypes),
+        "reusableBranches"  => ACL::makePermissions("*", $out->resources->reusableBranches),
         "themes"            => ACL::makePermissions("*", $out->resources->themes),
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],
@@ -67,6 +71,7 @@ $out->userPermissions = (object) [
         "layouts"           => ACL::makePermissions("*", $out->resources->layouts),
         "pages"             => ACL::makePermissions("*", $out->resources->pages),
         // pageTypes        -> none
+        "reusableBranches"  => ACL::makePermissions("*", $out->resources->reusableBranches),
         "themes"            => ACL::makePermissions("*", $out->resources->themes),
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],
@@ -78,6 +83,7 @@ $out->userPermissions = (object) [
         "layouts"           => ACL::makePermissions(["list"], $out->resources->layouts),
         "pages"             => ACL::makePermissions(["create","list","updateBlocksOf","update"], $out->resources->pages),
         // pageTypes        -> none
+        "reusableBranches"  => ACL::makePermissions(["list"], $out->resources->reusableBranches),
         "themes"            => ACL::makePermissions(["view","updateGlobalStylesOf","upsertBlockTypeScopedVars"], $out->resources->themes),
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],
@@ -89,6 +95,7 @@ $out->userPermissions = (object) [
         // layouts          -> none
         "pages"             => ACL::makePermissions(["list"], $out->resources->pages),
         // pageTypes        -> none
+        // reusableBranches -> none
         // themes           -> none
         // uploads          -> none
     ]

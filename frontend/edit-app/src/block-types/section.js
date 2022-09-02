@@ -1,4 +1,4 @@
-import {__, urlUtils, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+import {__, http, urlUtils, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import ImagePicker from '../BlockWidget/ImagePicker.jsx';
 import {UPLOADS_DIR_PATH} from '../Upload/UploadsManager.jsx';
 import setFocusTo from './auto-focusers.js';
@@ -58,7 +58,10 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-generic-wrapper',
         icon: 'layout-rows',
-        reRender({bgImage, styleClasses, id}, renderChildren) {
+        reRender(block, renderChildren, shouldBackendRender) {
+            if (shouldBackendRender)
+                return http.post(`/api/blocks/render`, {block}).then(resp => resp.result);
+            const {bgImage, styleClasses, id} = block;
             return ['<section class="j-', name, styleClasses ? ` ${styleClasses}` : '', '"',
                 bgImage ? ` style="background-image:url('${urlUtils.makeAssetUrl(bgImage)}')"` : '',
                 ' data-block-type="', name, '" data-block="', id, '"><div data-block-root>',

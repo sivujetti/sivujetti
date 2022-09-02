@@ -2,7 +2,7 @@ import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app
 import {renderBlockAndThen} from '../../../webpage/src/EditAppAwareWebPage.js';
 import {getIcon} from '../block-types/block-types.js';
 import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} from '../store.js';
-import {createBlockFromType, setTrids, toTransferable} from './utils.js';
+import {createBlockFromBlueprint, createBlockFromType, setTrids, toTransferable} from './utils.js';
 import blockTreeUtils from '../blockTreeUtils.js';
 
 const BlockAddPhase = Object.freeze({
@@ -103,7 +103,7 @@ class BlockDnDSpawner extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {isMounted, isOpen, dragExitedRight, globalBlockTrees}) {
+    render(_, {isMounted, isOpen, dragExitedRight, globalBlockTrees, reusables}) {
         return <div
             class={ `new-block-spawner${!dragExitedRight ? '' : ' drag-exited-right'}` }
             ref={ this.rootEl }>
@@ -117,26 +117,37 @@ class BlockDnDSpawner extends preact.Component {
             </button>
             { isOpen ? [
                 <input class="form-input mb-2" placeholder={ __('Filter') } style="width: calc(100% - .5rem)" disabled/>,
-                <div class="scroller"><ul class="block-tree">{ globalBlockTrees.map(({id, blocks, name}) =>
-                    [name, blocks[0].type, id]
-                ).concat(this.selectableBlockTypes).map(([name, blockType, trid]) => {
-                    const label = !trid ? __(blockType.friendlyName) : name;
-                    return <li class={ `${!trid ? 'page' : 'globalBlockTree'}-block ml-0` } data-block-type={ name }><div class="d-flex">
-                        <button
-                            onDragStart={ this.onDragStart }
-                            onDragEnd={ this.onDragEnd }
-                            class="block-handle text-ellipsis"
-                            data-block-type={ !trid ? name : 'GlobalBlockReference' }
-                            data-trid={ trid || 'main' }
-                            title={ label }
-                            type="button"
-                            draggable>
-                            <Icon iconId={ getIcon(blockType) } className="size-xs p-absolute"/>
-                            <span class="text-ellipsis">{ label }</span>
-                        </button>
-                    </div></li>;
-                }) }
-                </ul></div>
+                <div class="scroller"><ul class="block-tree">{
+                    (reusables || []).map((cb, i) => {
+                        const rootReusable = cb.blockBlueprints[0];
+                        const blockType = api.blockTypes.get(rootReusable.blockType);
+                        return [rootReusable.initialDefaultsData.title || __(blockType.friendlyName), 'reusableBranch', cb.blockBlueprints[0].blockType,
+                            [i.toString()]];
+                    })
+                    .concat(this.selectableBlockTypes.map(([name, blockType]) =>
+                        [__(blockType.friendlyName), 'blockType', name, []])
+                    )
+                    .concat(globalBlockTrees.map(({id, blocks, name}) =>
+                        [name, 'globalBlockTree', blocks[0].type, [id]]
+                    )).map(([label, flavor, rootBlockTypeName, vargs]) => {
+                        const isNotGbt = flavor !== 'globalBlockTree';
+                        return <li class={ `${isNotGbt ? 'page' : 'globalBlockTree'}-block ml-0` } data-block-type={ rootBlockTypeName }><div class="d-flex">
+                            <button
+                                onDragStart={ this.onDragStart }
+                                onDragEnd={ this.onDragEnd }
+                                class="block-handle text-ellipsis"
+                                data-block-type={ isNotGbt ? rootBlockTypeName : 'GlobalBlockReference' }
+                                data-trid={ isNotGbt ? 'main' : vargs[0] }
+                                data-flavor={ flavor }
+                                data-reusable-branch-idx={ flavor !== 'reusableBranch' ? '' : vargs[0] }
+                                title={ label }
+                                type="button"
+                                draggable>
+                                <Icon iconId={ getIcon(rootBlockTypeName) } className="size-xs p-absolute"/>
+                                <span class="text-ellipsis">{ label }</span>
+                            </button>
+                        </div></li>;
+                    }) }</ul></div>
             ] : null }
         </div>;
     }
@@ -148,6 +159,9 @@ class BlockDnDSpawner extends preact.Component {
         if (!currentlyIsOpen) {
             http.get('/api/global-block-trees')
                 .then(this.receiveGlobalBlocks.bind(this))
+                .catch(env.window.console.error);
+            http.get('/api/reusable-branches')
+                .then((reusables) => { this.setState({reusables}); })
                 .catch(env.window.console.error);
             //
             const spawner = this;
@@ -170,15 +184,18 @@ class BlockDnDSpawner extends preact.Component {
      */
     handleDragStarted(e) {
         const dragEl = e.target.nodeName === 'BUTTON' ? e.target : e.target.closest('button');
-        const newType = dragEl.getAttribute('data-block-type');
+        const typeStr = dragEl.getAttribute('data-block-type');
+        const cbIdx = dragEl.getAttribute('data-reusable-branch-idx');
+        const isReusable = cbIdx !== '';
         let gbt;
-        if (newType !== 'GlobalBlockReference') {
-            if (this.dragData && this.dragData.blockType === newType) return;
-            this.newBlock = createBlockFromType(newType, 'don\'t-know-yet');
+        if (typeStr !== 'GlobalBlockReference') {
+            if (this.dragData && this.dragData.blockType === typeStr) return;
+            this.newBlock = !isReusable ? createBlockFromType(typeStr, 'don\'t-know-yet')
+                : createBlockFromBlueprint(this.state.reusables[parseInt(cbIdx, 10)].blockBlueprints[0], 'don\'t-know-yet');
         } else {
             gbt = this.state.globalBlockTrees.find(({id}) => id === dragEl.getAttribute('data-trid'));
             if (this.newBlock && this.newBlock.globalBlockTreeId === gbt.id) return;
-            this.newBlock = createBlockFromType(newType, 'don\'t-know-yet', undefined, {
+            this.newBlock = createBlockFromType(typeStr, 'don\'t-know-yet', undefined, {
                 globalBlockTreeId: gbt.id,
             });
         }
@@ -188,13 +205,13 @@ class BlockDnDSpawner extends preact.Component {
         this.preRender = null;
         renderBlockAndThen(toTransferable(this.newBlock), ({html}) => {
             if (this.blockAddPhase !== BlockAddPhase.RENDERING_STARTED ||
-                (this.dragData || {}).blockType !== newType) return;
+                (this.dragData || {}).blockType !== typeStr) return;
             if (this.dragData.blockType === 'GlobalBlockReference')
                 api.editApp.addBlockTree(gbt.id, gbt.blocks);
             this.blockAddPhase = BlockAddPhase.RENDERING_FINISHED;
             this.preRender = html;
             this.hideLoadingIndicatorIfVisible();
-        }, api.blockTypes);
+        }, api.blockTypes, isReusable);
         //
         setTimeout(() => {
             if (this.blockAddPhase === BlockAddPhase.RENDERING_STARTED)

@@ -52,12 +52,12 @@ stringBundles.push({
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
     // edit-app/src/BlockTree.jsx
     'Add child content': 'Lisää lapsisisältöä',
-    'Clone': 'Kloonaa',
-    'Clone content': 'Kloonaa sisältö',
+    'Duplicate': 'Monista',
+    'Duplicate content': 'Monista sisältö',
     'Delete': 'Poista',
     'Delete content': 'Poista sisältö',
-    'Convert to global': 'Muunna globaaliksi',
-    'Convert to global content': 'Muunna globaaliksi sisällöksi',
+    'Save as reusable': 'Tallenna uudelleenkäytettäväksi',
+    'Save as reusable content': 'Tallenna uudelleenkäytettäväksi sisällöksi',
     'Content tree': 'Sisältöpuu',
     // edit-app/src/BlockTreeShowHelpPopup.jsx
     'todo1': 'Sivujetissä sivujen sisältö esitetään tällaisena puurakenteena: yksi puun rivi tai haara vastaa yhtä sivun osiota tai sisältöä. Voit ',

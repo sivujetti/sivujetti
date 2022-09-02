@@ -6,22 +6,47 @@ import blockTreeUtils from '../blockTreeUtils.js';
  * @param {BlockType|String} blockType
  * @param {String} trid = 'main'
  * @param {String} id = generatePushID()
- * @param {{[key: String]: any;}} props = null
+ * @param {{[key: String]: any;}} initialOwnData = null
  * @returns {RawBlock}
  */
-function createBlockFromType(blockType, trid = 'main', id = generatePushID(), props = null) {
+function createBlockFromType(blockType, trid = 'main', id = generatePushID(), initialOwnData = null) {
     if (typeof blockType === 'string') blockType = api.blockTypes.get(blockType);
-    const typeSpecific = createOwnData(blockType, props);
+    return createBlock(blockType, trid, id, initialOwnData || {}, {},
+        blockType.initialChildren || null);
+}
+
+/**
+ * @param {BlockBlueprint} blueprint
+ * @param {String} trid = 'main'
+ * @returns {RawBlock}
+ */
+function createBlockFromBlueprint(blueprint, trid = 'main') {
+    const {initialOwnData, initialDefaultsData, initialChildren} = blueprint;
+    return createBlock(api.blockTypes.get(blueprint.blockType), trid, generatePushID(),
+        initialOwnData, initialDefaultsData, initialChildren);
+}
+
+/**
+ * @param {BlockType} blockType
+ * @param {String} trid
+ * @param {String} id
+ * @param {{[key: String]: any;}} initialOwnData
+ * @param {{title: String|null; renderer: String; styleClasses: String}|{[key: String]: any;}} initialDefaultsData
+ * @param {Array<BlockBlueprint>|null} initialChildren
+ * @returns {RawBlock}
+ */
+function createBlock(blockType, trid, id, initialOwnData, initialDefaultsData, initialChildren) {
+    const typeSpecific = createOwnData(blockType, initialOwnData);
     return Object.assign({
         id,
         type: blockType.name,
-        title: '',
-        renderer: blockType.defaultRenderer,
-        styleClasses: '',
+        title: initialDefaultsData.title || '',
+        renderer: initialDefaultsData.renderer || blockType.defaultRenderer,
+        styleClasses: initialDefaultsData.styleClasses || '',
         isStoredTo: trid !== 'don\'t-know-yet' ? trid === 'main' ? 'page' : 'globalBlockTree' : trid,
         isStoredToTreeId: trid,
-        children: !Array.isArray(blockType.initialChildren) ? [] : blockType.initialChildren.map(blueprint =>
-            createBlockFromType(blueprint.blockType, trid, undefined, blueprint.props))
+        children: !Array.isArray(initialChildren) ? [] : initialChildren.map(blueprint =>
+            createBlockFromBlueprint(blueprint, trid))
     }, typeSpecific);
 }
 
@@ -113,5 +138,5 @@ function setTrids(branch, trid) {
     });
 }
 
-export {createBlockFromType, isTreesOutermostBlock, findRefBlockOf,
-        toTransferable, treeToTransferable, cloneDeep, setTrids};
+export {createBlockFromType, createBlockFromBlueprint, isTreesOutermostBlock,
+        findRefBlockOf, toTransferable, treeToTransferable, cloneDeep, setTrids};

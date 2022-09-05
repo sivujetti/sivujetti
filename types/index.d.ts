@@ -7,7 +7,7 @@ interface SivujettiFrontendApi {
     getBlockRenderers(): Array<BlockRenderer>;
     getActiveTheme(): {id: String;};
     user: {
-        can(doWhat: 'doAnything'|'editThemeColours'|'editThemeCss'|'createPageTypes'|'createPages'|'createGlobalBlockTrees'|'specializeGlobalBlocks'): Boolean;
+        can(doWhat: 'doAnything'|'editThemeColours'|'editThemeCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'): Boolean;
         getRole(): Number;
     }
     editApp: {
@@ -103,14 +103,6 @@ interface LayoutPart {
     globalBlockTreeId?: String;
 }
 
-interface BlockBlueprint2 {
-    type: String;
-    title: String;
-    defaultRenderer: String;
-    initialData: {[key: String]: String;};
-    children: Array<BlockBlueprint2>;
-}
-
 interface PageTypeField {
     name: String;
     friendlyName: String;
@@ -176,6 +168,7 @@ interface TheWebsite {
         canEditThemeCss: Boolean;
         canCreatePageTypes: Boolean;
         canCreatePages: Boolean;
+        canCreateReusableBranches: Boolean;
         canCreateGlobalBlockTrees: Boolean;
         canSpecializeGlobalBlocks: Boolean;
     };

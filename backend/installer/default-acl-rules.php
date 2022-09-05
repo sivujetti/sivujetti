@@ -37,7 +37,8 @@ $out->resources = (object) [
         "delete"            => 0b00001000,
     ],
     "reusableBranches" => (object) [
-        "list"              => 0b00000010,
+        "create"           => 0b00000010,
+        "list"             => 0b00000100,
     ],
     "themes" => (object) [
         "view"                      => 0b00000010,

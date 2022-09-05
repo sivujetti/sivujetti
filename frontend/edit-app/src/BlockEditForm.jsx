@@ -3,16 +3,12 @@ import Tabs from './commons/Tabs.jsx';
 import {timingUtils, objectUtils} from './commons/utils.js';
 import BlockStylesTab from './Block/BlockStylesTab.jsx';
 import {getIcon} from './block-types/block-types.js';
-import BlockTrees from './BlockTrees.jsx';
+import {emitMutateBlockProp, emitPushStickyOp} from './BlockTree.jsx';
 import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
-import store, {selectCurrentPageDataBundle, createSelectBlockTree, pushItemToOpQueue, observeStore,
-               createUpdateBlockTreeItemData} from './store.js';
+import store, {selectCurrentPageDataBundle, createSelectBlockTree, observeStore} from './store.js';
 
 /** @type {BlockTypes} */
 let blockTypes;
-
-/** @type {Boolean} */
-let currentPageIsPlaceholderPage;
 
 /** @type {Array} */
 let fastChangesQueue;
@@ -51,7 +47,6 @@ class BlockEditForm extends preact.Component {
         this.boundEmitStickyChange = null;
         this.boundEmitFastChange = null;
         const trid = this.props.block.isStoredToTreeId;
-        currentPageIsPlaceholderPage = selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
         this.unregistrables = [signals.on('on-block-deleted', ({id}, isChildOfOrCurrentlyOpenBlock) => {
             if (isChildOfOrCurrentlyOpenBlock || id === block.id) this.props.inspectorPanel.close();
         }), observeStore(createSelectBlockTree(trid), ({tree, context}) => {
@@ -180,64 +175,6 @@ class BlockEditForm extends preact.Component {
         emitMutateBlockProp({styleClasses: newStyleClasses}, contextData);
         emitPushStickyOp([dataBefore], contextData);
     }
-}
-
-/**
- * @param {{[key]: any;}} newData
- * @param {DefaultChangeEventData} contextData
- */
-function emitMutateBlockProp(newData, contextData) {
-    store.dispatch(createUpdateBlockTreeItemData(contextData.trid)(
-        newData,
-        contextData.blockId,
-        ['update-single-value', contextData]
-    ));
-}
-
-/**
- * @param {Array<{[key]: any;}>} oldDataQ
- * @param {DefaultChangeEventData} contextData
- */
-function emitPushStickyOp(oldDataQ, contextData) {
-    const oldData = takeOldestValues(oldDataQ);
-    oldDataQ.splice(0, oldDataQ.length);
-    //
-    store.dispatch(pushItemToOpQueue(`update-block-tree#${contextData.trid}`, {
-        doHandle: contextData.trid !== 'main' || !currentPageIsPlaceholderPage
-            ? () => {
-                const {trid} = contextData;
-                const {tree} = createSelectBlockTree(trid)(store.getState());
-                return BlockTrees.saveExistingBlocksToBackend(tree, trid);
-            }
-            : null,
-        doUndo: () => {
-            store.dispatch(createUpdateBlockTreeItemData(contextData.trid)(
-                oldData,
-                contextData.blockId,
-                ['undo-update-single-value', contextData]
-            ));
-        },
-        args: [],
-    }));
-}
-
-/**
- * In: [{text: 'Fo'}, {text: 'Foo'}, {level: 2}]
- * Out: {text: 'Fo', level: 2}
- *
- * @param {Array<{[key]: any;}>} oldDataQ
- * @returns {{[key]: any;}}
- */
-function takeOldestValues(oldDataQ) {
-    const out = {};
-    for (const obj of oldDataQ) {
-        for (const key in obj) {
-            if (!Object.prototype.hasOwnProperty.call(out, key))
-                out[key] = obj[key];
-            // else ignore newer value obj[key]
-        }
-    }
-    return out;
 }
 
 /**

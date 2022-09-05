@@ -128,6 +128,7 @@ final class PagesController {
                     "canEditThemeCss" => $acl->can($userRole, "upsertBlockTypeScopedCss", "themes"),
                     "canCreatePageTypes" => $acl->can($userRole, "create", "pageTypes"),
                     "canCreatePages" => $acl->can($userRole, "create", "pages"),
+                    "canCreateReusableBranches" => $acl->can($userRole, "create", "reusableBranches"),
                     "canCreateGlobalBlockTrees" => $acl->can($userRole, "create", "globalBlockTrees"),
                     "canSpecializeGlobalBlocks" => $userRole <= ACL::ROLE_ADMIN,
                 ],

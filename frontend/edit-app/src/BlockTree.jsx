@@ -3,9 +3,12 @@ import ContextMenu from './commons/ContextMenu.jsx';
 import {generatePushID} from './commons/utils.js';
 import BlockTreeShowHelpPopup from './BlockTreeShowHelpPopup.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
-import store, {observeStore, createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} from './store.js';
+import store, {observeStore, createSelectBlockTree, createSetBlockTree, pushItemToOpQueue,
+                createUpdateBlockTreeItemData} from './store.js';
+import store2 from './store2.js';
 import BlockTreeDragDrop from './BlockTreeDragDrop.js';
-import ConvertBlockToGlobalDialog from './ConvertBlockToGlobalBlockTreeDialog.jsx';
+import TreeDragDrop from './TreeDragDrop.js';
+import SaveBlockAsReusableDialog from './SaveBlockAsReusableDialog.jsx';
 import {getIcon} from './block-types/block-types.js';
 import {cloneDeep, createBlockFromType, findRefBlockOf, isTreesOutermostBlock,
         setTrids, treeToTransferable} from './Block/utils.js';
@@ -15,6 +18,7 @@ let BlockTrees;
 const unregistrables = [];
 let currentInstance;
 let loading = false;
+const useNoUlBlockTree = false;
 
 signals.on('on-web-page-loading-started', page => {
     loading = true;
@@ -85,6 +89,8 @@ class BlockTree extends preact.Component {
         this.state = {blockTree: null, treeState: null, loading: false};
         this.selectedRoot = null;
         this.moreMenu = preact.createRef();
+        BlockTrees = props.BlockTrees;
+        if (!useNoUlBlockTree) {
         this.dragDrop = new BlockTreeDragDrop(this, (mutation1, _mutation2 = null) => {
         const trid = mutation1.blockToMove.isStoredToTreeId;
         const {tree} = createSelectBlockTree(trid)(store.getState());
@@ -101,7 +107,83 @@ class BlockTree extends preact.Component {
             args: [],
         }));
         });
-        BlockTrees = props.BlockTrees;
+        } else {
+        this.boundDoRenderBranch = this.doRenderBranch.bind(this);
+        const info = {initial: null, latest: null};
+        this.dragDrop = new TreeDragDrop({
+            begin(inf) {
+                console.log('inf');
+                info.initial = inf;
+            },
+            drop() {
+                const {latest} = info;
+                if (!latest) return;
+                let mutation1;
+                const dragTree = createSelectBlockTree(info.initial.li.getAttribute('data-trid'))(store.getState()).tree;
+                const [dragBlock, dragBranch] = blockTreeUtils.findBlock(info.initial.li.getAttribute('data-block-id'), dragTree);
+                const dropTree = createSelectBlockTree(latest.li.getAttribute('data-trid'))(store.getState()).tree;
+                const [dropBlock, dropBranch] = blockTreeUtils.findBlock(latest.li.getAttribute('data-block-id'), dropTree);
+                //
+                if (latest.pos === 'before' || latest.pos === 'after') {
+                if (dragBranch === dropBranch) {
+                const toIdx = dropBranch.indexOf(dropBlock);
+                const fromIndex = dragBranch.indexOf(dragBlock);
+                const realTo = latest.pos === 'before' ? toIdx : toIdx + 1;
+                dragBranch.splice(realTo, 0, dragBlock);
+                dragBranch.splice(fromIndex + (fromIndex > realTo ? 1 : 0), 1);
+
+                mutation1 = {
+                    blockToMove: dragBlock,
+                    blockToMoveTo: dropBlock,
+                    position: latest.pos,
+                    doRevert() {},
+                };
+                } else throw new Error();
+                } else if (latest.pos === 'as-child') {
+                    const moveToChild = (to, dropBlock, dragBlock, dragBranch, dragBlockTree, dropInfo) => {
+                        to.children.push(dragBlock);
+                        const pos = dragBranch.indexOf(dragBlock);
+                        dragBranch.splice(pos, 1);
+                        //
+                        return {
+                            blockToMove: dragBlock,
+                            blockToMoveTo: dropBlock,
+                            position: dropInfo.pos,
+                            doRevert: () => {
+                            to.children.pop();
+                            dragBranch.splice(pos, 0, dragBlock);
+                            return dragBlockTree;
+                            }
+                        };
+                    };
+                    mutation1 = moveToChild(dropBlock, dropBlock, dragBlock, dragBranch, dragTree, latest);
+                }
+
+                const trid = mutation1.blockToMove.isStoredToTreeId;
+                const {tree} = createSelectBlockTree(trid)(store.getState());
+                store.dispatch(createSetBlockTree(trid)(tree, ['swap-blocks', [mutation1]]));
+                store.dispatch(pushItemToOpQueue(`swap-blocks-of-tree##${trid}`, {
+                    doHandle: trid !== 'main' || !this.currentPageIsPlaceholder
+                        ? () => BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
+                        : null
+                    ,
+                    doUndo: () => {
+                        const treeBefore = mutation1.doRevert();
+                        store.dispatch(createSetBlockTree(trid)(treeBefore, ['undo-swap-blocks', mutation1]));
+                    },
+                    args: [],
+                }));
+            },
+            swap(inf, prevInf) {
+                window.console.log('swapped %s > %s', (prevInf || {}).pos || '(none)', inf.pos);
+                info.latest = inf;
+            },
+            end() {
+                window.console.log('end');
+                // ??
+            }
+        });
+        }
         this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
         this.onDragOver = this.dragDrop.handleDraggedOver.bind(this.dragDrop);
         this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
@@ -152,11 +234,110 @@ class BlockTree extends preact.Component {
         ids.concat(block.id).forEach(id => { mutRef[id].isCollapsed = false; });
         this.setState({treeState: this.setBlockAsSelected(block, mutRef)});
     }
+    doRenderBranch(branch, depth = 1, parent = null, root = null) { return branch.map((block, i) => {
+        if (block.type === 'GlobalBlockReference')
+            return this.boundDoRenderBranch(createSelectBlockTree(block.globalBlockTreeId)(store.getState()).tree, depth, block, block);
+        const lastIxd = branch.length - 1;
+        //
+        if (block.type !== 'PageInfo') {
+        const type = api.blockTypes.get(block.type);
+        const title = getShortFriendlyName(block, type);
+        const c = !block.children.length ? [] : this.boundDoRenderBranch(block.children, depth + 1, block);
+        return [<li
+            onDragStart={ this.onDragStart }
+            onDragOver={ this.onDragOver }
+            onDrop={ this.onDrop }
+            onDragEnd={ this.onDragEnd }
+            data-block-id={ block.id }
+            data-trid={ block.isStoredToTreeId }
+            data-depth={ depth }
+            data-has-children={ c.length > 0 }
+            data-is-children-of={ parent ? parent.id : '-' }
+            data-first-child={ i === 0 }
+            data-last-child={ i === lastIxd }
+            data-draggable={ true }
+            title={ title }
+            key={ block.id }
+            draggable>
+            { !c.length ? null : <button onClick={ () => this.toggleBranchIsCollapsed(block) } class="toggle p-absolute" type="button">
+                <Icon iconId="chevron-down" className="size-xs"/>
+            </button> }
+            <div class="d-flex">
+                <button onClick={ () => this.handleItemClicked(block) } class="block-handle text-ellipsis" type="button">
+                    <Icon iconId={ getIcon(type) } className="size-xs p-absolute"/>
+                    <span class="text-ellipsis">{ title }</span>
+                </button>
+                <button onClick={ e => this.openMoreMenu(block, root && i === 0, e) } class="more-toggle ml-2" type="button">
+                    <Icon iconId="dots" className="size-xs"/>
+                </button>
+            </div>
+        </li>].concat(c);
+        }
+        //
+        const title = block.title || __('PageInfo');
+        return <li
+            data-block-id={ block.id }
+            data-block-type="PageInfo"
+            data-depth={ depth }
+            title={ title }
+            key={ block.id }>
+            <div class="d-flex">
+                <button
+                    onClick={ () => !this.props.disablePageInfo ? this.handleItemClicked(block) : function(){} }
+                    class="block-handle text-ellipsis"
+                    type="button"
+                    disabled={ this.props.disablePageInfo }>
+                    <Icon iconId={ getIcon('PageInfo') } className="size-xs p-absolute"/>
+                    <span class="text-ellipsis">{ title }</span>
+                </button>
+            </div>
+        </li>;
+    }); }
     /**
      * @access protected
      */
     render(_, {blockTree, treeState, loading}) {
         if (blockTree === null) return;
+        if (useNoUlBlockTree) {
+        return <div class="py-2">
+            <div class="p-relative" style="z-index: 1"><button
+                onClick={ this.showBlockTreeHelpPopup.bind(this) }
+                class="btn btn-link p-absolute btn-sm pt-1"
+                type="button"
+                style="right: 0;top: 0;">
+                <Icon iconId="info-circle" className="size-xs"/>
+            </button></div>
+            <BlockDnDSpawner
+                foo={ receiver => {
+                    this.fooobar = receiver;
+                } }
+                mainTreeDnd={ this.dragDrop }
+                mainTree={ this }
+                saveExistingBlocksToBackend={ BlockTrees.saveExistingBlocksToBackend }
+                currentPageIsPlaceholder={ this.currentPageIsPlaceholder }
+                initiallyIsOpen={ this.currentPageIsPlaceholder && this.props.containingView === 'CreatePage' }
+                useNoUlBlockTree={ true }/>
+            <ul class={ `block-tree2 ml-1${!loading ? '' : ' loading'}` } ref={ el => {
+                if (!el) return;
+                this.dragDrop.attachOrUpdate(el);
+            } }>{
+                blockTree.length
+                    ? this.boundDoRenderBranch(blockTree)
+                    : <li>-</li>
+            }</ul>
+            <ContextMenu
+                links={ [
+                    {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
+                    {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
+                ].concat(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees')
+                    ? [{text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}]
+                    : []
+                ) }
+                onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
+                onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
+                ref={ this.moreMenu }/>
+        </div>;
+        } else {
         const renderBranch = (branch, root = null) => branch.map((block, i) => {
             if (block.type === 'GlobalBlockReference')
                 return renderBranch(createSelectBlockTree(block.globalBlockTreeId)(store.getState()).tree, block);
@@ -230,7 +411,8 @@ class BlockTree extends preact.Component {
                 mainTree={ this }
                 saveExistingBlocksToBackend={ BlockTrees.saveExistingBlocksToBackend }
                 currentPageIsPlaceholder={ this.currentPageIsPlaceholder }
-                initiallyIsOpen={ this.currentPageIsPlaceholder && this.props.containingView === 'CreatePage' }/>
+                initiallyIsOpen={ this.currentPageIsPlaceholder && this.props.containingView === 'CreatePage' }
+                useNoUlBlockTree={ false }/>
             <ul class={ `block-tree${!loading ? '' : ' loading'}` } data-sort-group-id="r">{
                 blockTree.length
                     ? renderBranch(blockTree).concat(<li
@@ -245,7 +427,7 @@ class BlockTree extends preact.Component {
                 links={ [
                     {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
                     {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
-                ].concat(api.user.can('createGlobalBlockTrees')
+                ].concat(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees')
                     ? [{text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}]
                     : []
                 ) }
@@ -253,6 +435,7 @@ class BlockTree extends preact.Component {
                 onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
                 ref={ this.moreMenu }/>
         </div>;
+        }
     }
     /**
      * @param {ContextMenuLink} link
@@ -312,14 +495,17 @@ class BlockTree extends preact.Component {
                 args: [],
             }));
             signals.emit('on-block-deleted', (base || blockVisible), wasCurrentlySelectedBlock);
-        } else if (link.id === 'convert-block-to-global') {
-            const blockTreeToStore = this.blockWithMoreMenuOpened;
-            floatingDialog.open(ConvertBlockToGlobalDialog, {
-                title: __('Convert to global'),
-                height: 238,
+        } else if (link.id === 'save-block-as-reusable') {
+            const blockToStore = this.blockWithMoreMenuOpened;
+            const userCanCreateGlobalBlockTrees = api.user.can('createGlobalBlockTrees');
+            floatingDialog.open(SaveBlockAsReusableDialog, {
+                title: __('Save as reusable'),
+                height: userCanCreateGlobalBlockTrees ? 360 : 254,
             }, {
-                blockToConvertAndStore: blockTreeToStore,
-                onConfirmed: data => this.doConvertBlockToGlobal(data, blockTreeToStore),
+                blockToConvertAndStore: blockToStore,
+                onConfirmed: data => data.saveAsUnique ? this.doConvertBlockToGlobal(data, blockToStore) :
+                    this.doSaveBlockAsReusable(data, blockToStore),
+                userCanCreateGlobalBlockTrees,
             });
         }
     }
@@ -423,8 +609,42 @@ class BlockTree extends preact.Component {
             args: [],
         }));
     }
+    /**
+     * @param {{name: String;}} data
+     * @param {RawBlock} block
+     * @access private
+     */
     doSaveBlockAsReusable(data, block) {
-        // todo
+        const {tree} = createSelectBlockTree(block.isStoredToTreeId)(store.getState());
+        const treeBefore = JSON.parse(JSON.stringify(tree));
+
+        // #1 Mutate title of the existing block
+        const contextData = {blockId: block.id, blockType: block.type, trid: block.isStoredToTreeId};
+        const eventData = {title: data.name};
+        emitMutateBlockProp(eventData, contextData);
+
+        // #2 Push item to reusableBranches
+        const newReusableBranch = {id: generatePushID(), blockBlueprints: [blockToBlueprint(treeToTransferable([block])[0])]};
+        store2.dispatch('reusableBranches/addItem', [newReusableBranch]);
+
+        // Push saveToBackend op
+        store.dispatch(pushItemToOpQueue('create-reusable-branch', {
+            doHandle: () => {
+                const postData = Object.assign({}, newReusableBranch);
+                http.post('/api/reusable-branches', postData).then(resp => {
+                    if (resp.ok !== 'ok') throw new Error('-');
+                    return BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(contextData.trid)(store.getState()).tree,
+                        contextData.trid);
+                });
+            },
+            doUndo: () => {
+                // Revert #1
+                store.dispatch(createSetBlockTree(contextData.trid)(treeBefore, ['undo-update-single-value', contextData]));
+                // Revert #2
+                store2.dispatch('reusableBranches/removeItem', [newReusableBranch.id]);
+            },
+            args: [],
+        }));
     }
     /**
      * @param {RawBlock} block
@@ -438,9 +658,8 @@ class BlockTree extends preact.Component {
         this.refElOfOpenMoreMenu.style.opacity = '1';
         this.moreMenu.current.open(e, links => {
             const notThese = []
-                .concat(block.isStoredToTreeId !== 'main' ? ['convert-block-to-global'] : [])
                 .concat(blockIsGlobalBlockTreesOutermostBlock ? ['duplicate-block'] : [])
-                .concat(['Columns','Section'].indexOf(block.type) < 0 ? ['save-block-as-reusable'] : []);
+                .concat(['Columns', 'Section'].indexOf(block.type) < 0 ? ['save-block-as-reusable'] : []);
             return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
         });
     }
@@ -579,4 +798,89 @@ function getRegisteredReduxTreeIds() {
         .map(storeKey => storeKey.split('blockTree_')[1]));
 }
 
+/**
+ * @param {{[key]: any;}} newData
+ * @param {DefaultChangeEventData} contextData
+ */
+function emitMutateBlockProp(newData, contextData) {
+    store.dispatch(createUpdateBlockTreeItemData(contextData.trid)(
+        newData,
+        contextData.blockId,
+        ['update-single-value', contextData]
+    ));
+}
+
+/**
+ * @param {Array<{[key]: any;}>} oldDataQ
+ * @param {DefaultChangeEventData} contextData
+ */
+function emitPushStickyOp(oldDataQ, contextData) {
+    const oldData = takeOldestValues(oldDataQ);
+    oldDataQ.splice(0, oldDataQ.length);
+    //
+    store.dispatch(pushItemToOpQueue(`update-block-tree#${contextData.trid}`, {
+        doHandle: contextData.trid !== 'main' || !currentInstance.currentPageIsPlaceholder
+            ? () => {
+                const {trid} = contextData;
+                const {tree} = createSelectBlockTree(trid)(store.getState());
+                return BlockTrees.saveExistingBlocksToBackend(tree, trid);
+            }
+            : null,
+        doUndo: () => {
+            store.dispatch(createUpdateBlockTreeItemData(contextData.trid)(
+                oldData,
+                contextData.blockId,
+                ['undo-update-single-value', contextData]
+            ));
+        },
+        args: [],
+    }));
+}
+
+/**
+ * In: [{text: 'Fo'}, {text: 'Foo'}, {level: 2}]
+ * Out: {text: 'Fo', level: 2}
+ *
+ * @param {Array<{[key]: any;}>} oldDataQ
+ * @returns {{[key]: any;}}
+ */
+function takeOldestValues(oldDataQ) {
+    const out = {};
+    for (const obj of oldDataQ) {
+        for (const key in obj) {
+            if (!Object.prototype.hasOwnProperty.call(out, key))
+                out[key] = obj[key];
+            // else ignore newer value obj[key]
+        }
+    }
+    return out;
+}
+
+/**
+ * @param {RawBlock} block
+ * @returns {BlockBlueprint}
+ */
+function blockToBlueprint(block, depth = 0) {
+    return {
+        blockType: block.type,
+        initialOwnData: propsToObj(block.propsData),
+        initialDefaultsData: {
+            title: block.title || null,
+            renderer: block.renderer,
+            styleClasses: block.styleClasses || '',
+        },
+        initialChildren: depth === 0
+            ? block.children.map(w => blockToBlueprint(w, depth + 1))
+            : [],
+    };
+}
+function propsToObj(propsData) {
+    const out = {};
+    for (const field of propsData) {
+        out[field.key] = field.value;
+    }
+    return out;
+}
+
 export default BlockTree;
+export {emitMutateBlockProp, emitPushStickyOp};

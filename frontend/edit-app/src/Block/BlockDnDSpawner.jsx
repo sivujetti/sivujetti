@@ -2,6 +2,7 @@ import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app
 import {renderBlockAndThen} from '../../../webpage/src/EditAppAwareWebPage.js';
 import {getIcon} from '../block-types/block-types.js';
 import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} from '../store.js';
+import store2, {observeStore as observeStore2} from '../store2.js';
 import {createBlockFromBlueprint, createBlockFromType, setTrids, toTransferable} from './utils.js';
 import blockTreeUtils from '../blockTreeUtils.js';
 
@@ -14,6 +15,7 @@ const BlockAddPhase = Object.freeze({
 
 /** @type {() => void} */
 let unregScrollListener;
+let reusablesFetched = false;
 
 class BlockDnDSpawner extends preact.Component {
     // selectableBlockTypes;
@@ -27,12 +29,13 @@ class BlockDnDSpawner extends preact.Component {
     // onDragStart;
     // onDragEnd;
     // onMouseMove;
+    // unregisterables;
     /**
-     * @param {{mainTreeDnd: BlockTreeDragDrop; mainTree: BlockTree; saveExistingBlocksToBackend: (blocks: Array<RawBlock>, trid: 'String') => Promise<Boolean>; currentPageIsPlaceholder: Boolean; initiallyIsOpen?: Boolean;}} props
+     * @param {{mainTreeDnd: BlockTreeDragDrop; mainTree: BlockTree; saveExistingBlocksToBackend: (blocks: Array<RawBlock>, trid: 'String') => Promise<Boolean>; currentPageIsPlaceholder: Boolean; initiallyIsOpen?: Boolean; useNoUlBlockTree: Boolean;}} props
      */
     constructor(props) {
         super(props);
-        this.state = {isOpen: false, dragExitedRight: false, globalBlockTrees: [], isMounted: false};
+        this.state = {isOpen: false, dragExitedRight: false, reusables: [], globalBlockTrees: [], isMounted: false};
         this.selectableBlockTypes = sort(Array.from(api.blockTypes.entries()).filter(([name, _]) =>
             name !== 'PageInfo' && name !== 'GlobalBlockReference'
         ));
@@ -48,13 +51,23 @@ class BlockDnDSpawner extends preact.Component {
             if (!this.dragData) return;
             if (!this.state.dragExitedRight && e.clientX > this.rootElRight) {
                 this.setState({dragExitedRight: true});
-                this.props.mainTreeDnd.setDragEventReceiver(this.mainDndEventReceiver);
+                if (!this.props.useNoUlBlockTree)
+                    this.props.mainTreeDnd.setDragEventReceiver(this.mainDndEventReceiver);
+                else
+                    this.props.mainTreeDnd.setOrClearExternalDragStart(this.mainDndEventReceiver);
             } else if (this.state.dragExitedRight && e.clientX < this.rootElRight) {
                 this.setState({dragExitedRight: false});
                 this.handleDragReturnedFromMainDndWithoutDrop();
-                this.props.mainTreeDnd.setDragEventReceiver(null);
+                if (!this.props.useNoUlBlockTree)
+                    this.props.mainTreeDnd.setDragEventReceiver(null);
+                else
+                    this.props.mainTreeDnd.setOrClearExternalDragStart(null);
             }
         };
+        this.unregisterables = [observeStore2('reusableBranches', ({reusableBranches}, [event]) => {
+            if (event === 'reusableBranches/addItem' || event === 'reusableBranches/removeItem')
+                this.setState({reusables: reusableBranches});
+        })];
     }
     /**
      * @access protected
@@ -99,11 +112,12 @@ class BlockDnDSpawner extends preact.Component {
     componentWillUnmount() {
         if (this.state.isOpen)
             this.toggleIsOpen();
+        this.unregisterables.forEach(unreg => unreg());
     }
     /**
      * @access protected
      */
-    render(_, {isMounted, isOpen, dragExitedRight, globalBlockTrees, reusables}) {
+    render(_, {isMounted, isOpen, dragExitedRight, reusables, globalBlockTrees}) {
         return <div
             class={ `new-block-spawner${!dragExitedRight ? '' : ' drag-exited-right'}` }
             ref={ this.rootEl }>
@@ -118,7 +132,7 @@ class BlockDnDSpawner extends preact.Component {
             { isOpen ? [
                 <input class="form-input mb-2" placeholder={ __('Filter') } style="width: calc(100% - .5rem)" disabled/>,
                 <div class="scroller"><ul class="block-tree">{
-                    (reusables || []).map((cb, i) => {
+                    reusables.map((cb, i) => {
                         const rootReusable = cb.blockBlueprints[0];
                         const blockType = api.blockTypes.get(rootReusable.blockType);
                         return [rootReusable.initialDefaultsData.title || __(blockType.friendlyName), 'reusableBranch', cb.blockBlueprints[0].blockType,
@@ -157,11 +171,10 @@ class BlockDnDSpawner extends preact.Component {
     toggleIsOpen() {
         const currentlyIsOpen = this.state.isOpen;
         if (!currentlyIsOpen) {
+            this.fetchOrGetReusableBranches()
+                .then((reusables) => { this.setState({reusables}); });
             http.get('/api/global-block-trees')
                 .then(this.receiveGlobalBlocks.bind(this))
-                .catch(env.window.console.error);
-            http.get('/api/reusable-branches')
-                .then((reusables) => { this.setState({reusables}); })
                 .catch(env.window.console.error);
             //
             const spawner = this;
@@ -336,6 +349,22 @@ class BlockDnDSpawner extends preact.Component {
             this.blockAddPhase = BlockAddPhase.RENDERING_FINISHED;
         }
         this.handleDragEnded();
+    }
+    /**
+     * @returns {Promise<ReusableBranch[]>}
+     * @access private
+     */
+    fetchOrGetReusableBranches() {
+        if (reusablesFetched)
+            return Promise.resolve(store2.get().reusableBranches);
+        return http.get('/api/reusable-branches')
+            .then((reusables) => {
+                const combined = [...store2.get().reusableBranches, ...reusables];
+                store2.dispatch('reusableBranches/setAll', [combined]);
+                reusablesFetched = true;
+                return combined;
+            })
+            .catch(env.window.console.error);
     }
     /**
      * @param {Array<RawGlobalBlockTree>} globalBlockTrees

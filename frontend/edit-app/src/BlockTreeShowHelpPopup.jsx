@@ -22,8 +22,8 @@ const BlockTreeShowHelpPopup = () =>
                 <span class="text-ellipsis">{ __('Orange') }</span></button>
             </div></li></ul></div>
             <div class="col-8 mt-1 pl-2 ml-2">
-                { __('Global content (e.g. Header) references to a ') }<b>{ __('separately stored data') }</b>
-                { __('. When you edit Header on one page, Headers on other pages changes.') }
+                { __('todo8') }<b>{ __('todo9') }</b>
+                { __('todo10') }
             </div>
         </div>
         <div class="d-flex mt-2 pt-2">

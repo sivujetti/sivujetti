@@ -2,14 +2,25 @@
 
 namespace Sivujetti\ReusableBranch;
 
-use Pike\{Response};
+use Pike\{Request, Response};
 use Pike\Db\FluentDb;
 use Pike\Interfaces\RowMapperInterface;
 use Sivujetti\JsonUtils;
 
 final class ReusableBranchesController {
     /**
-     * GET /api/reusable-branches: Returns a list of reusable content saved to db.
+     * POST /api/reusable-branches: Inserts reusable content to the db.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Pike\Db\FluentDb $db
+     */
+    public function create(Request $req, Response $res, FluentDb $db): void {
+        file_put_contents(__DIR__."/foo.json",json_encode($req->body));
+        $res->json(["ok" => "ok"]);
+    }
+    /**
+     * GET /api/reusable-branches: Returns a list of reusable content saved to the db.
      *
      * @param \Pike\Response $res
      * @param \Pike\Db\FluentDb $db

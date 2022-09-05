@@ -42,10 +42,12 @@ function overrideData(block, data) {
     for (const key in data) {
         // b.*
         block[key] = data[key];
-        // b.propsData[*]
-        const idx = block.propsData.findIndex(p => p.key === key);
-        if (idx > -1) block.propsData[idx].value = data[key];
-        else block.propsData.push({key, value: data[key]});
+        if (['type', 'title', 'renderer', 'id', 'styleClasses'].indexOf(key) < 0) {
+            // b.propsData[*]
+            const idx = block.propsData.findIndex(p => p.key === key);
+            if (idx > -1) block.propsData[idx].value = data[key];
+            else block.propsData.push({key, value: data[key]});
+        }
     }
 }
 

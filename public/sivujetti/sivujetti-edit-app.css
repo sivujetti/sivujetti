@@ -871,6 +871,107 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     margin-left: 0;
 }
 
+/* ==experimental== */
+/* block-tree base*/
+.block-tree2 li {
+    margin: 3px 0;
+    list-style: none;
+    position: relative;
+    padding: .2rem .2rem .2rem .45rem;
+}
+.block-tree2 li[data-has-children] {
+    padding: .2rem .2rem .2rem .3rem;
+}
+.block-tree2 li[data-depth="2"] {
+    margin-left: .45rem;
+}
+.block-tree2 li[data-depth="3"] {
+    margin-left: 1.15rem;
+}
+.block-tree2 li[data-depth="4"] {
+    margin-left: 1.9rem;
+}
+.block-tree2 li[data-depth="5"] {
+    margin-left: 2.65rem;
+}
+.block-tree2 li[data-depth="6"] {
+    margin-left: 3.4rem;
+}
+.block-tree2 button {
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+
+/* block-tree theming */
+.block-tree2 li {
+    border-left: 1px dotted #b4b4b4;
+}
+.block-tree2 li[data-first-child="1"][data-last-child="1"]:not([class^="maybe-"]) > div:before {
+    content: "";
+    position: absolute;
+    width: 1px;
+    height: 100%;
+    left: -1px;
+    background-color: #fff;
+    top: 50%;
+    margin-top: 2px;
+}
+.block-tree2 li[data-last-child="1"]:not([class^="maybe-"]):not([data-has-children="1"]) > div:after {
+    content: "";
+    position: absolute;
+    width: 1px;
+    height: 50%;
+    left: -1px;
+    background-color: #fff;
+    top: 50%;
+    margin-top: 1px;
+}
+.block-tree2 li[data-depth="1"] {
+    border-color: transparent;
+    padding-left: 0;
+}
+.block-tree2 li[data-block-type="PageInfo"] {
+    background-color: var(--color-bg-meta-block);
+}
+.block-tree2 .block-handle .icon-tabler {
+    color: var(--color-icon-normal-block);
+}
+.block-tree2 li[data-block-type="PageInfo"] .block-handle .icon-tabler {
+    color: var(--color-icon-meta-block);
+}
+.block-tree2 li > div > button span {
+    margin-left: 1.2rem;
+}
+
+/* block-tre li states */
+.block-tree2 li.maybe-drop-before:before,
+.block-tree2 li.maybe-drop-after:after,
+.block-tree2 li.maybe-drop-as-child:before {
+    content: "";
+    position: absolute;
+    left: -1px;
+    height: calc(100% + 4px);
+    width: calc(100% + 1px);
+    top: -2px;
+    border: 1px solid transparent;
+}
+.block-tree2 li.maybe-drop-before:before {
+    border-top-color: #aaa;
+}
+.block-tree2 li.maybe-drop-after:after {
+    border-bottom-color: #aaa;
+}
+.block-tree2 li.maybe-drop-as-child:before {
+    border-color: #aaa;
+}
+/* block-tre li states inner */
+.block-tree2 li[data-has-children="1"] > div {
+    margin-left: 1.0rem;
+}
+.block-tree2 li.collapsed > .toggle {
+    transform: rotate(180deg);
+}
 
 /* EditApp: Main panel > Block spawner */
 .new-block-spawner {

@@ -18,7 +18,7 @@ let BlockTrees;
 const unregistrables = [];
 let currentInstance;
 let loading = false;
-const useNoUlBlockTree = false;
+const useNoUlBlockTree = true;
 
 signals.on('on-web-page-loading-started', page => {
     loading = true;
@@ -51,7 +51,7 @@ signals.on('on-web-page-loaded', () => {
                 if (!currentInstance || loading) return;
                 currentInstance.setState(Object.assign(
                     trid === 'main' ? {blockTree: tree} : {},
-                    {treeState: createTreeState([], true)}
+                    {treeState: createTreeState([], true, currentInstance.state.treeState)}
                 ));
             } else if (context[0].endsWith('update-single-value')) {
                 if (!currentInstance || loading || !currentInstance.tempHack) return;
@@ -118,7 +118,7 @@ class BlockTree extends preact.Component {
         const info = {initial: null, latest: null};
         this.dragDrop = new TreeDragDrop({
             begin(inf) {
-                console.log('inf');
+                console.log('inf', inf);
                 info.initial = inf;
             },
             drop() {
@@ -728,7 +728,7 @@ class BlockTree extends preact.Component {
 function createTreeStateItem(overrides = {}) {
     return Object.assign({
         isSelected: false,
-        isCollapsed: false,
+        isCollapsed: true,
         isNew: false,
     }, overrides);
 }
@@ -775,9 +775,10 @@ function splitPath(path) {
 /**
  * @param {Array<RawBlock>} tree
  * @param {Boolean} full = false
+ * @param {{[key: String]: BlockTreeItemState;}} previous = {}
  * @returns {{[key: String]: BlockTreeItemState;}}
  */
-function createTreeState(tree, full = false) {
+function createTreeState(tree, full = false, previous = {}) {
     const out = {};
     if (!full) {
         blockTreeUtils.traverseRecursively(tree, block => {
@@ -786,11 +787,11 @@ function createTreeState(tree, full = false) {
     } else {
         blockTreeUtils.traverseRecursively(createSelectBlockTree('main')(store.getState()).tree, block => {
             if (block.type !== 'GlobalBlockReference')
-                out[block.id] = createTreeStateItem();
+                out[block.id] = createTreeStateItem(previous[block.id]);
             else {
                 const trid = block.globalBlockTreeId;
                 blockTreeUtils.traverseRecursively(createSelectBlockTree(trid)(store.getState()).tree, block2 => {
-                    out[block2.id] = createTreeStateItem();
+                    out[block2.id] = createTreeStateItem(previous[block2.id]);
                 });
             }
         });

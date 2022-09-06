@@ -44,7 +44,7 @@ signals.on('on-web-page-loaded', () => {
         'undo-convert-block-to-global',
     ];
     unregistrables.push(...currentPageTrids.map(trid =>
-         observeStore(createSelectBlockTree(trid), ({tree, context}) => {
+        observeStore(createSelectBlockTree(trid), ({tree, context}) => {
             if (!context || (context[0] === 'init' && loading))
                 return;
             if (refreshAllEvents.indexOf(context[0]) > -1 && context[2] !== 'dnd-spawner') {
@@ -53,6 +53,12 @@ signals.on('on-web-page-loaded', () => {
                     trid === 'main' ? {blockTree: tree} : {},
                     {treeState: createTreeState([], true)}
                 ));
+            } else if (context[0].endsWith('update-single-value')) {
+                if (!currentInstance || loading || !currentInstance.tempHack) return;
+                if (trid === 'main')
+                    currentInstance.setState({blockTree: tree});
+                // else ; ??
+                currentInstance.tempHack = null;
             }
         }, true)
     ));
@@ -356,7 +362,7 @@ class BlockTree extends preact.Component {
                          !block.children.length ? '' : ' with-children'].join('') }
                 data-block-id={ block.id }
                 data-trid={ block.isStoredToTreeId }
-                key={ block.id }
+                key={ `${block.id}${block.title}` }
                 title={ title }
                 draggable>
                 { !block.children.length
@@ -413,7 +419,7 @@ class BlockTree extends preact.Component {
                 currentPageIsPlaceholder={ this.currentPageIsPlaceholder }
                 initiallyIsOpen={ this.currentPageIsPlaceholder && this.props.containingView === 'CreatePage' }
                 useNoUlBlockTree={ false }/>
-            <ul class={ `block-tree${!loading ? '' : ' loading'}` } data-sort-group-id="r">{
+            <ul class={ `block-tree${!loading ? '' : ' loading'}` }>{
                 blockTree.length
                     ? renderBranch(blockTree).concat(<li
                         data-last="y"
@@ -621,25 +627,28 @@ class BlockTree extends preact.Component {
         // #1 Mutate title of the existing block
         const contextData = {blockId: block.id, blockType: block.type, trid: block.isStoredToTreeId};
         const eventData = {title: data.name};
-        emitMutateBlockProp(eventData, contextData);
+        const titleChanged = block.title !== eventData.title;
+        this.tempHack = titleChanged;
+        const undoThis = this;
+        emitMutateBlockProp(eventData, contextData); // Mutates {tree}
 
         // #2 Push item to reusableBranches
         const newReusableBranch = {id: generatePushID(), blockBlueprints: [blockToBlueprint(treeToTransferable([block])[0])]};
         store2.dispatch('reusableBranches/addItem', [newReusableBranch]);
+        const postData = Object.assign({}, newReusableBranch);
 
         // Push saveToBackend op
         store.dispatch(pushItemToOpQueue('create-reusable-branch', {
-            doHandle: () => {
-                const postData = Object.assign({}, newReusableBranch);
-                http.post('/api/reusable-branches', postData).then(resp => {
-                    if (resp.ok !== 'ok') throw new Error('-');
-                    return BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(contextData.trid)(store.getState()).tree,
-                        contextData.trid);
-                });
-            },
+            doHandle: () => http.post('/api/reusable-branches', postData).then(resp => {
+                if (resp.ok !== 'ok') throw new Error('-');
+                return BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(contextData.trid)(store.getState()).tree,
+                    contextData.trid);
+            }),
             doUndo: () => {
+                undoThis.tempHack = titleChanged;
                 // Revert #1
                 store.dispatch(createSetBlockTree(contextData.trid)(treeBefore, ['undo-update-single-value', contextData]));
+                // if (block.title !== tb) { block.title = tb; currentInstance.forceUpdate(); }
                 // Revert #2
                 store2.dispatch('reusableBranches/removeItem', [newReusableBranch.id]);
             },
@@ -860,18 +869,16 @@ function takeOldestValues(oldDataQ) {
  * @param {RawBlock} block
  * @returns {BlockBlueprint}
  */
-function blockToBlueprint(block, depth = 0) {
+function blockToBlueprint(block) {
     return {
         blockType: block.type,
         initialOwnData: propsToObj(block.propsData),
         initialDefaultsData: {
-            title: block.title || null,
+            title: block.title || '',
             renderer: block.renderer,
             styleClasses: block.styleClasses || '',
         },
-        initialChildren: depth === 0
-            ? block.children.map(w => blockToBlueprint(w, depth + 1))
-            : [],
+        initialChildren: block.children.map(w => blockToBlueprint(w)),
     };
 }
 function propsToObj(propsData) {

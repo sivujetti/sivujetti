@@ -4,7 +4,7 @@ namespace Sivujetti\Block;
 
 use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder};
 use Sivujetti\{SharedAPIContext, ValidationUtils};
-use Pike\{PikeException, Validation};
+use Pike\{ObjectValidator, PikeException, Validation};
 
 final class BlockValidator {
     /** @var string[] */
@@ -39,17 +39,13 @@ final class BlockValidator {
         } else {
             $blockTypeFinal = $blockType;
         }
-        return ValidationUtils::addRulesForProperties(
-            $blockTypeFinal->defineProperties(new PropertiesBuilder),
+        $v = $this->addRulesForDefaultProps(
             Validation::makeObjectValidator()
                 ->addRuleImpl(...ValidationUtils::createPushIdValidatorImpl())
-                ->addRuleImpl(...ValidationUtils::createUrlValidatorImpl())
-                ->rule("title", "type", "string")
-                ->rule("title", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
-                ->rule("renderer", "in", $this->validBlockRenderers)
-                ->rule("id", "pushId")
-                ->rule("styleClasses", "type", "string")
-                ->rule("styleClasses", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
+        );
+        return ValidationUtils::addRulesForProperties(
+            $blockTypeFinal->defineProperties(new PropertiesBuilder),
+            $v->addRuleImpl(...ValidationUtils::createUrlValidatorImpl())->rule("id", "pushId")
         )->validate($input);
     }
     /**
@@ -64,5 +60,30 @@ final class BlockValidator {
                 return $errors;
         }
         return [];
+    }
+    /**
+     * @param \Pike\ObjectValidator $validator
+     * @param string $pathPrefix = ""
+     * @return \Pike\ObjectValidator
+     */
+    public function addRulesForDefaultProps(ObjectValidator $validator, string $pathPrefix = ""): ObjectValidator {
+        return $validator
+            ->rule("{$pathPrefix}title", "type", "string")
+            ->rule("{$pathPrefix}title", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
+            ->rule("{$pathPrefix}renderer", "in", $this->validBlockRenderers)
+            ->rule("{$pathPrefix}styleClasses", "type", "string")
+            ->rule("{$pathPrefix}styleClasses", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN);
+    }
+    /**
+     * @return string[]
+     */
+    public function getValidBlockTypeNames(): array {
+        return array_keys(get_object_vars($this->blockTypes));
+    }
+    /**
+     * @return string[]
+     */
+    public function getValidBlockRenderers(): array {
+        return $this->validBlockRenderers;
     }
 }

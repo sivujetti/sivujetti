@@ -65,7 +65,7 @@ interface ReusableBranch {
 interface BlockBlueprint {
     blockType: String;
     initialOwnData: {[key: String]: any;};
-    initialDefaultsData: {title: String|null; renderer: String; styleClasses: String};
+    initialDefaultsData: {title: String; renderer: String; styleClasses: String};
     initialChildren: Array<BlockBlueprint>;
 }
 

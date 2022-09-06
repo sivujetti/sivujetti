@@ -8,7 +8,6 @@ use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\ValidationUtils;
 
 final class GlobalBlockTreesController {
-    private const MAX_NAME_LEN = 92;
     /**
      * POST /api/global-block-trees: inserts new global block tree to the database.
      *
@@ -110,7 +109,7 @@ final class GlobalBlockTreesController {
             ->addRuleImpl(...ValidationUtils::createPushIdValidatorImpl())
             ->rule("id", "pushId")
             ->rule("name", "type", "string")
-            ->rule("name", "maxLength", self::MAX_NAME_LEN)
+            ->rule("name", "maxLength", ValidationUtils::INDEX_STR_MAX_LENGTH)
             ->rule("blocks", "minLength", "1", "array")
             ->validate($input))) {
             return $errors;

@@ -1,5 +1,6 @@
 import {__, hookForm, unhookForm, handleSubmit, FormGroup, Input, InputErrors,
         floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
+import setFocusTo from './block-types/auto-focusers.js';
 
 class SaveBlockAsReusableDialog extends preact.Component {
     // boundDoHandleSubmit;
@@ -8,6 +9,7 @@ class SaveBlockAsReusableDialog extends preact.Component {
      */
     constructor(props) {
         super(props);
+        this.nameInput = preact.createRef();
         this.setState(hookForm(this, [
             {name: 'name', value: undefined, validations: [['minLength', 1],
                 ['maxLength', 92]], label: __('Name')},
@@ -15,6 +17,12 @@ class SaveBlockAsReusableDialog extends preact.Component {
             saveAsUnique: false,
         }));
         this.boundDoHandleSubmit = this.applyCreateGlobalBlockTree.bind(this);
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        setFocusTo(this.nameInput);
     }
     /**
      * @access protected
@@ -30,7 +38,7 @@ class SaveBlockAsReusableDialog extends preact.Component {
             <div class="mb-1">{ __('Store this content as reusable content so you can use it later in other pages?') }</div>
             <FormGroup>
                 <label htmlFor="name" class="form-label">{ __('Name') }</label>
-                <Input vm={ this } prop="name" placeholder={ __('e.g. FrontPageNewsSection, Footer') }/>
+                <Input vm={ this } prop="name" placeholder={ __('e.g. FrontPageNewsSection, Footer') } ref={ this.nameInput }/>
                 <InputErrors vm={ this } prop="name"/>
             </FormGroup>
             { userCanCreateGlobalBlockTrees ? <FormGroup>

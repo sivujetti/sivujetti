@@ -31,7 +31,7 @@ function createBlockFromBlueprint(blueprint, trid = 'main') {
  * @param {String} trid
  * @param {String} id
  * @param {{[key: String]: any;}} initialOwnData
- * @param {{title: String|null; renderer: String; styleClasses: String}|{[key: String]: any;}} initialDefaultsData
+ * @param {{title: String; renderer: String; styleClasses: String}|{[key: String]: any;}} initialDefaultsData
  * @param {Array<BlockBlueprint>|null} initialChildren
  * @returns {RawBlock}
  */

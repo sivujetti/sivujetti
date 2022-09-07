@@ -103,7 +103,8 @@ final class ThemesController {
                 endLine: "/* -- .j-{$req->params->blockTypeName} classes end -- */\n"
             );
             $db->update("\${p}themes")
-                ->values((object) ["generatedScopedStylesCss" => $updatedAll])
+                ->values((object) ["generatedScopedStylesCss" => $updatedAll,
+                                    "stylesLastUpdatedAt" => time()])
                 ->where("id=?", [$req->params->themeId])
                 ->execute();
 

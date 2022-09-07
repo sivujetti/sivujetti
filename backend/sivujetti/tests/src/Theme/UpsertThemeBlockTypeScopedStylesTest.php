@@ -61,6 +61,7 @@ final class UpsertThemeBlockTypeScopedStylesTest extends ThemesControllerTestCas
         $expected = $this->getUpdatedScopedStyles($state->testStyles, $state->testInput);
         $asString = CssGenTestUtils::generateScopedStyles($expected);
         $this->assertEquals($asString, $row["generatedScopedStylesCss"]);
+        $this->assertTrue($row["stylesLastUpdatedAt"] > (time() - 20));
     }
     private function verifyOverwroteGeneratedCssFile(\TestState $state): void {
         $expected = $this->getUpdatedScopedStyles($state->testStyles, $state->testInput);

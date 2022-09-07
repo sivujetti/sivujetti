@@ -16,6 +16,8 @@ final class Theme {
     public array $styles;
     /** @var string[] ["_body_", "j-Heading" ...] */
     public array $stylesOrder;
+    /** @var int Unix timestamp */
+    public int $stylesLastUpdatedAt;
     /** @var object[] */
     private array $__stash;
     /**
@@ -30,25 +32,30 @@ final class Theme {
         $out->globalStyles = [];
         $out->styles = [];
         $out->stylesOrder = [];
+        $out->stylesLastUpdatedAt = 0;
         $out->__stash = $rows;
         return $out;
     }
     /**
+     * @param bool $full
      */
-    public function loadStyles(): void {
+    public function loadStyles(bool $full): void {
         if (!$this->__stash) return;
         $row = $this->__stash[0];
-        $this->globalStyles = JsonUtils::parse($row->themeGlobalStylesJson);
-        $this->stylesOrder = JsonUtils::parse($row->themeStylesOrderJson);
-        //
-        $this->styles = NoDupeRowMapper::collectOnce($this->__stash, fn($row2) =>
-            $row2->themeId === $this->id ? Style::fromParentRs($row2) : null
-        , "themeStylesBlockTypeName", []);
-        $ordinals = array_flip($this->stylesOrder); // ["_body_","j-Heading"...] => ["_body_"=>0,"j-Heading"=>1...]
-        usort($this->styles, fn($a, $b) =>
-            ($ordinals[$a->blockTypeName] ?? PHP_INT_MAX) <=> ($ordinals[$b->blockTypeName] ?? PHP_INT_MAX)
-        );
-        //
+        $this->stylesLastUpdatedAt = (int) $row->themeStylesLastUpdatedAt;
+        if ($full) {
+            $this->globalStyles = JsonUtils::parse($row->themeGlobalStylesJson);
+            $this->stylesOrder = JsonUtils::parse($row->themeStylesOrderJson);
+            //
+            $this->styles = NoDupeRowMapper::collectOnce($this->__stash, fn($row2) =>
+                $row2->themeId === $this->id ? Style::fromParentRs($row2) : null
+            , "themeStylesBlockTypeName", []);
+            $ordinals = array_flip($this->stylesOrder); // ["_body_","j-Heading"...] => ["_body_"=>0,"j-Heading"=>1...]
+            usort($this->styles, fn($a, $b) =>
+                ($ordinals[$a->blockTypeName] ?? PHP_INT_MAX) <=> ($ordinals[$b->blockTypeName] ?? PHP_INT_MAX)
+            );
+            //
+        }
         unset($this->themeGlobalStylesJson);
         unset($this->themeStylesOrderJson);
         $this->__stash = [];

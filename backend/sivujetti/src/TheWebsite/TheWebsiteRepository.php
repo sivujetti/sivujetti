@@ -30,7 +30,7 @@ final class TheWebsiteRepository {
                 "pt.`isListable` AS `pageTypeIsListable`",
                 //
                 "t.`id` AS `themeId`", "t.`name` AS `themeName`", "t.`stylesOrder` AS `themeStylesOrderJson`",
-                "t.`globalStyles` AS `themeGlobalStylesJson`",
+                "t.`globalStyles` AS `themeGlobalStylesJson`", "t.`stylesLastUpdatedAt` AS `themeStylesLastUpdatedAt`",
                 //
                 "ts.`units` AS `themeStylesUnits`",
                 "ts.`blockTypeName` AS `themeStylesBlockTypeName`",

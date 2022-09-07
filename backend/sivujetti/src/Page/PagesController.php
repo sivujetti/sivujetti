@@ -296,7 +296,7 @@ final class PagesController {
         self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo);
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
         $editModeIsOn = $isPlaceholderPage || ($req->queryVar("in-edit") !== null);
-        if ($editModeIsOn) $theWebsite->activeTheme->loadStyles();
+        $theWebsite->activeTheme->loadStyles($editModeIsOn);
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
             ["serverHost" => self::getServerHost($req), "versionId" => $theWebsite->versionId],

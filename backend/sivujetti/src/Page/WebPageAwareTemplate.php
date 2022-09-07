@@ -218,7 +218,7 @@ final class WebPageAwareTemplate extends Template {
         "}</style>\n" : "";
         //
         if (!$this->__useInlineCssStyles) {
-            $generated = (object) ["url" => "{$this->__theme->name}-generated.css?t=" . time(),
+            $generated = (object) ["url" => "{$this->__theme->name}-generated.css?t={$this->__theme->stylesLastUpdatedAt}",
                                    "attrs" => []];
             $this->__cssAndJsFiles->css[] = $generated;
             return $out . implode("\n", array_map($rf,

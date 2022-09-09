@@ -644,6 +644,20 @@ function withTrid(html, trid, recursive = false) {
 }
 
 /**
+ * '<p ... data-block="before">...</p>' -> '<p ... data-block="after">...</p>'
+ *
+ * @param {String} html
+ * @param {String} blockId
+ * @returns {String}
+ */
+function withBlockId(html, blockId) {
+    const [a, b] = html.split('data-block="'); // Example ['<p class="j-Paragraph"... ', '-aaaaaaaaaaaaaaaaaaa">...</p>']
+    const lenghtOfPushId = 20;
+    const b2 = b.substring(lenghtOfPushId); // '-aaaaaaaaaaaaaaaaaaa">...</p>' -> '">...</p>''
+    return `${a}data-block="${blockId}${b2}`;
+}
+
+/**
  * @param {String|Promise<String>} result
  * @param {(result: BlockRendctor) => void} to
  */
@@ -699,4 +713,4 @@ function noop() {
 }
 
 export default EditAppAwareWebPage;
-export {createTrier, renderBlockAndThen, withTrid};
+export {createTrier, renderBlockAndThen, withTrid, withBlockId};

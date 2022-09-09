@@ -151,7 +151,7 @@ class BlockTreeDragDrop {
         this.clearDragEl();
     }
     /**
-     * @param {DragEventReceiver|null} receiver
+     * @param {{draggedOverFirstTime(block: RawBlock, position: 'before'|'after'|'as-child'): BlockDragDataInfo|null; swappedBlocks(mutationInfos: SwapChangeEventData, dragData: BlockDragDataInfo): void; dropped(dragData: BlockDragDataInfo): void;}|null} receiver
      * @access public
      */
     setDragEventReceiver(receiver) {

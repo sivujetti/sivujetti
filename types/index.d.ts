@@ -288,10 +288,13 @@ interface AddChangeEvent extends DefaultChangeEventData {
     cloneOf: String|null;
 }
 
-interface DragEventReceiver {
-    draggedOverFirstTime(block: RawBlock, position: 'before'|'after'|'as-child'): BlockDragDataInfo|null;
-    swappedBlocks(mutationInfos: SwapChangeEventData, dragData: BlockDragDataInfo): void;
-    dropped(dragData: BlockDragDataInfo): void;
+interface DragDropEventController {
+    begin(info: DragDropInfo, originIsExternal: Boolean): void;
+    fromExternalDragOverFirstTime(info: DragDropInfo): Boolean;
+    swap(from: DragDropInfo, to: DragDropInfo|null, originIsExternal: Boolean): void;
+    dragOut(info: DragDropInfo, originIsExternal: Boolean): void;
+    drop(originIsExternal: Boolean): void;
+    end(): void;
 }
 
 interface BlockDragDataInfo {
@@ -316,4 +319,9 @@ interface ThemeStyleUnit {
     id: String;
     scss: String;
     generatedCss: String;
+}
+
+interface DragDropInfo {
+    li: HTMLLIElement;
+    pos: 'initial'|'before'|'after'|'as-child';
 }

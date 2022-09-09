@@ -829,6 +829,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     top: 2px;
     position: relative;
     left: -.6rem;
+    cursor: pointer;
 }
 .block-tree .block-handle:hover + .more-toggle,
 .block-tree .block-handle:focus + .more-toggle,
@@ -880,27 +881,49 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     padding: .2rem .2rem .2rem .45rem;
 }
 .block-tree2 li[data-has-children] {
-    padding: .2rem .2rem .2rem .3rem;
+    padding: .2rem;
 }
 .block-tree2 li[data-depth="2"] {
-    margin-left: .45rem;
+    margin-left: .6rem;
 }
 .block-tree2 li[data-depth="3"] {
-    margin-left: 1.15rem;
+    margin-left: 1.2rem;
 }
 .block-tree2 li[data-depth="4"] {
-    margin-left: 1.9rem;
+    margin-left: 1.85rem;
 }
 .block-tree2 li[data-depth="5"] {
-    margin-left: 2.65rem;
+    margin-left: 2.45rem;
 }
 .block-tree2 li[data-depth="6"] {
-    margin-left: 3.4rem;
+    margin-left: 3.1rem;
 }
 .block-tree2 button {
     border: none;
     background: transparent;
     padding: 0;
+    font-weight: 300;
+}
+.block-tree2 .toggle {
+    padding: .1rem .2rem 0 .2rem;
+    cursor: pointer;
+    margin-left: -.2rem;
+    background: #fff;
+}
+.block-tree2 .toggle .icon-tabler {
+    transition: transform linear .1s;
+}
+.block-tree2 .more-toggle {
+    opacity: 0;
+    transition: opacity .125s ease-out;
+    margin-bottom: -2px;
+}
+.block-tree2 .block-handle:hover + .more-toggle,
+.block-tree2 .block-handle:focus + .more-toggle,
+.block-tree2 .more-toggle:hover,
+.block-tree2 .more-toggle:focus,
+.block-tree2 .more-toggle.opened {
+    opacity: 1;
 }
 
 /* block-tree theming */
@@ -917,7 +940,7 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     top: 50%;
     margin-top: 2px;
 }
-.block-tree2 li[data-last-child="1"]:not([class^="maybe-"]):not([data-has-children="1"]) > div:after {
+.block-tree2 li[data-last-child="1"]:not([class^="maybe-"]):not([data-has-children]) > div:after {
     content: "";
     position: absolute;
     width: 1px;
@@ -929,7 +952,7 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 }
 .block-tree2 li[data-depth="1"] {
     border-color: transparent;
-    padding-left: 0;
+    padding-left: .2rem; /*?*/
 }
 .block-tree2 li[data-block-type="PageInfo"] {
     background-color: var(--color-bg-meta-block);
@@ -945,6 +968,9 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 }
 
 /* block-tre li states */
+.block-tree2 li.dragging {
+    opacity: .4;
+}
 .block-tree2 li.maybe-drop-before:before,
 .block-tree2 li.maybe-drop-after:after,
 .block-tree2 li.maybe-drop-as-child:before {
@@ -966,11 +992,11 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     border-color: #aaa;
 }
 /* block-tre li states inner */
-.block-tree2 li[data-has-children="1"] > div {
+.block-tree2 li[data-has-children] > div {
     margin-left: 1.0rem;
 }
-.block-tree2 li.collapsed > .toggle {
-    transform: rotate(180deg);
+.block-tree2 li.collapsed > .toggle .icon-tabler {
+    transform: rotate(-90deg);
 }
 
 /* EditApp: Main panel > Block spawner */
@@ -1004,24 +1030,23 @@ input + .scroller {
 .new-block-spawner .block-tree li {
     padding: .1rem 0;
 }
-.new-block-spawner .block-tree li[data-block-type="Columns"]:after,
-.new-block-spawner .block-tree li[data-block-type="Image"]:after,
-.new-block-spawner .block-tree li[data-block-type="Code"]:not(:last-child):after {
+.new-block-spawner .block-tree li[data-flavor="reusableBranch"] + li[data-flavor="blockType"]:before,
+.new-block-spawner .block-tree li[data-block-type="Code"] + li:before {
     content: "";
     display: block;
     height: 1px;
     width: 100%;
     background: var(--color-section-separator);
-    margin: .4rem 0 .2rem;
+    margin: .2rem 0 .4rem;
 }
 .new-block-spawner .block-tree .block-handle {
     cursor: grab;
     filter: grayscale(.9);
 }
-.new-block-spawner .block-tree .block-handle[data-flavor="reusableBranch"] {
+.new-block-spawner .block-tree li[data-flavor="reusableBranch"] .block-handle {
     padding-right: .8rem;
 }
-.new-block-spawner .block-tree .block-handle[data-flavor="reusableBranch"]:after {
+.new-block-spawner .block-tree li[data-flavor="reusableBranch"] .block-handle:after {
     content: "☆";
     font-size: .5rem;
     opacity: .9;

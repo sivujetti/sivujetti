@@ -930,6 +930,14 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 .block-tree2 li {
     border-left: 1px dotted #b4b4b4;
 }
+.block-tree2 > li[data-last] {
+    position: absolute;
+    width: calc(100% - 1rem);
+    padding: 0;
+    margin: 0;
+    border-left-color: transparent;
+    height: 8px;
+}
 .block-tree2 li[data-first-child="1"][data-last-child="1"]:not([class^="maybe-"]) > div:before {
     content: "";
     position: absolute;
@@ -970,6 +978,9 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 /* block-tre li states */
 .block-tree2 li.dragging {
     opacity: .4;
+}
+.block-tree2 .dragging .toggle {
+    background: transparent;
 }
 .block-tree2 li.maybe-drop-before:before,
 .block-tree2 li.maybe-drop-after:after,

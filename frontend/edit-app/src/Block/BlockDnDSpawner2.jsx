@@ -53,19 +53,25 @@ class BlockDnDSpawner extends preact.Component {
      * @access public
      */
     handleMainDndDraggedOver(info, isTreesOutermostBlock, findRefBlockOf) {
-        const position = info.pos;
+        let position = info.pos;
         // Waiting for render to finish -> skip
         if (!this.preRender.isRenderReady) {
             return false;
         }
-        const blockId0 = info.li.getAttribute('data-block-id');
-        const trid0 = info.li.getAttribute('data-trid') || 'main';
-        const block = trid0 === 'main' || !isTreesOutermostBlock(blockId0, createSelectBlockTree(trid0)(store.getState()).tree)
-            ? blockTreeUtils.findBlock(blockId0, createSelectBlockTree(trid0)(store.getState()).tree)[0]
-            : findRefBlockOf(trid0, createSelectBlockTree('main')(store.getState()).tree);
-
+        let block, trid;
+        if (!info.li.getAttribute('data-last')) {
+            const blockId0 = info.li.getAttribute('data-block-id');
+            const trid0 = info.li.getAttribute('data-trid') || 'main';
+            block = trid0 === 'main' || !isTreesOutermostBlock(blockId0, createSelectBlockTree(trid0)(store.getState()).tree)
+                ? blockTreeUtils.findBlock(blockId0, createSelectBlockTree(trid0)(store.getState()).tree)[0]
+                : findRefBlockOf(trid0, createSelectBlockTree('main')(store.getState()).tree);
+            trid = !(position === 'as-child' && block.type === 'GlobalBlockReference') ? block.isStoredToTreeId : block.globalBlockTreeId;
+        } else {
+            block = null;
+            trid = 'main';
+            position = 'as-child';
+        }
         // Rendering finished -> emit block to the store and start waiting for onAfterInsertedToDom
-        const trid = !(position === 'as-child' && block.type === 'GlobalBlockReference') ? block.isStoredToTreeId : block.globalBlockTreeId;
         if (this.dragData.blockType === 'GlobalBlockReference' && trid !== 'main') return false;
         const {tree} = createSelectBlockTree(trid)(store.getState());
         if (this.newBlock.phase === BlockAddPhase.CREATED) {
@@ -73,7 +79,6 @@ class BlockDnDSpawner extends preact.Component {
             setTrids([this.newBlock.block], trid);
             this.newBlock.phase = BlockAddPhase.READY_TO_INSERT_TO_TREE_AND_DOM;
         }
-        const {blockId} = this.dragData;
         //
         if (position === 'before') {
             const before = block;
@@ -84,9 +89,10 @@ class BlockDnDSpawner extends preact.Component {
             const br = blockTreeUtils.findBlock(after.id, tree)[1];
             br.splice(br.indexOf(after) + 1, 0, this.newBlock.block);
         } else {
-            const asChildOf = trid === 'main' ? block : tree[0];
+            const asChildOf = trid === 'main' ? (block || {children: tree}) : tree[0];
             asChildOf.children.push(this.newBlock.block);
         }
+        const {blockId} = this.dragData;
         store.dispatch(createSetBlockTree(trid)(tree, ['add-single-block',
             {blockId: this.dragData.blockId, blockType: this.dragData.blockType, trid, cloneOf: null},
             'dnd-spawner',
@@ -122,9 +128,18 @@ class BlockDnDSpawner extends preact.Component {
 
         const dragTree = createSelectBlockTree(this.dragData.trid)(store.getState()).tree;
         const [dragBlock, dragBranch] = blockTreeUtils.findBlock(this.dragData.blockId, dragTree);
-        const dropTree = createSelectBlockTree(info.li.getAttribute('data-trid'))(store.getState()).tree;
-        const [dropBlock, dropBranch] = blockTreeUtils.findBlock(info.li.getAttribute('data-block-id'), dropTree);
-        const muts = applySwap(info, dragBlock, dragBranch, dragTree, dropBlock, dropBranch, dropTree);
+
+        let muts;
+        if (!info.li.getAttribute('data-last')) {
+            const dropTree = createSelectBlockTree(info.li.getAttribute('data-trid'))(store.getState()).tree;
+            const [dropBlock, dropBranch] = blockTreeUtils.findBlock(info.li.getAttribute('data-block-id'), dropTree);
+            muts = applySwap(info, dragBlock, dragBranch, dragTree, dropBlock, dropBranch, dropTree);
+        } else {
+            const dropTree = createSelectBlockTree('main')(store.getState()).tree;
+            const dropBlock = null;
+            const dropBranch = dropTree;
+            muts = applySwap({pos: 'as-child', li: info.li}, dragBlock, dragBranch, dragTree, dropBlock, dropBranch, dropTree);
+        }
 
         if (muts) {
             const [mutation1, mutation2] = muts;

@@ -273,7 +273,12 @@ class BlockTree extends preact.Component {
                 this.dragDrop.attachOrUpdate(el);
             } }>{
                 blockTree.length
-                    ? this.boundDoRenderBranch(blockTree)
+                    ? this.boundDoRenderBranch(blockTree).concat(<li
+                        onDragOver={ this.onDragOver }
+                        onDrop={ this.onDrop }
+                        data-draggable={ true }
+                        data-last
+                        draggable><div class="d-flex">&nbsp;</div></li>)
                     : <li>-</li>
             }</ul>
             <ContextMenu
@@ -368,6 +373,7 @@ class BlockTree extends preact.Component {
                     ? renderBranch(blockTree).concat(<li
                         data-last="y"
                         onDragOver={ this.onDragOver }
+                        onDragLeave={ this.onDragLeave }
                         onDrop={ this.onDrop }
                         onDragEnd={ this.onDragEnd }
                         draggable><div class="d-flex">&nbsp;</div></li>)

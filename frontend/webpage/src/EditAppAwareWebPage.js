@@ -216,8 +216,9 @@ class EditAppAwareWebPage {
          * @param {HTMLElement} treeRootEl
          */
         const moveToChild = (parentBlock, moveBlock, treeRootEl) => {
-            const el = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(parentBlock)}"]`);
-            const endcom = getChildEndComment(getBlockContentRoot(el));
+            const endcom = getChildEndComment(parentBlock.root !== 1
+                ? getBlockContentRoot(treeRootEl.querySelector(`[data-block="${getVisibleBlockId(parentBlock)}"]`))
+                : document.body);
             const movables = getElsToMove(moveBlock, treeRootEl);
             movables.forEach(movable => endcom.parentElement.insertBefore(movable, endcom));
             return movables;

@@ -3,6 +3,7 @@ let inspectorPanelIsOpen = false;
 
 // see also frontend/edit-app/main.js
 const sectionRenderers = new Map;
+const useNoUlBlockTree = true;
 
 class MainPanel {
     /**
@@ -23,7 +24,8 @@ class MainPanel {
      */
     scrollTo(block, isNew = false, behavior = 'smooth') {
         const subSelector = `data-${!isNew ? '' : 'placeholder-'}block-id="${block.id}"`;
-        const target = env.document.querySelector(`.block-tree li[${subSelector}]`);
+        const apdx = !useNoUlBlockTree ? '' : '2';
+        const target = env.document.querySelector(`.block-tree${apdx} li[${subSelector}]`);
         const liHeight = 30;
         // Note: contains main.scrollTop
         const targetTop = (target.closest('.collapsed') || target).getBoundingClientRect().top - liHeight;

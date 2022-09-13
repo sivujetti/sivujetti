@@ -131,7 +131,7 @@ class TreeDragDrop {
 
         // 2. Do reject tests
         if (this.checkIfBeyondLastMarker(nextCand) ||
-            this.checkIfDraggingToOwnParent(nextCand, li) ||
+            this.checkIfDraggingToOwnParent(li, idx) ||
             this.checkIfDraggingInsideItself(ia, li, idx) ||
             this.checkIfTooClose(ib, nextCand, li, ia, idx)) {
             applyCls = false;
@@ -204,14 +204,24 @@ class TreeDragDrop {
         this.eventController.begin(Object.assign({}, this.curCand), this.dragOriginIsExternal);
     }
     /**
-     * @param {Object} nextCand
      * @param {HTMLLIElement} li
+     * @param {Number} idx Index of target li
      * @returns {Boolean}
      * @access private
      */
-    checkIfDraggingToOwnParent(nextCand, li) {
-        return nextCand.pos === 'as-child' && li.getAttribute('data-has-children') &&
-            this.start.getAttribute('data-is-children-of') === li.getAttribute('data-block-id');
+    checkIfDraggingToOwnParent(li, idx) {
+        if (!this.start.getAttribute('data-has-children') ||
+            idx <= this.startIdx ||
+            li.getAttribute('data-depth') <= this.start.getAttribute('data-depth')) {
+            return false;
+        }
+        let curLi = this.start.nextElementSibling;
+        while (curLi) {
+            if (curLi === li) return true;
+            if (curLi.getAttribute('data-depth') === this.startDepth) break;
+            curLi = curLi.nextElementSibling;
+        }
+        return false;
     }
     /**
      * @param {Number} ia Is target li after this.start
@@ -311,7 +321,7 @@ class TreeDragDrop {
      * @access private
      */
     clearCls() {
-        Array.from(this.ul.querySelectorAll('[class^="maybe-drop-"]')).forEach(li => {
+        Array.from(this.ul.querySelectorAll('[class*="maybe-drop-"]')).forEach(li => {
             const cls = li ? Array.from(li.classList).find(c => c.startsWith('maybe-drop-')) : null;
             if (cls) li.classList.remove(cls);
         });

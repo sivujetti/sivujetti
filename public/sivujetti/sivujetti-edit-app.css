@@ -930,6 +930,12 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 .block-tree2 li {
     border-left: 1px dotted #b4b4b4;
 }
+.block-tree2 li.selected {
+    background: var(--color-bg-selected-normal-block);
+}
+.block-tree2 li.globalBlockTree-block.selected {
+    background: var(--color-bg-selected-global-block);
+}
 .block-tree2 > li[data-last] {
     position: absolute;
     width: calc(100% - 1rem);
@@ -938,7 +944,7 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     border-left-color: transparent;
     height: 8px;
 }
-.block-tree2 li[data-first-child="1"][data-last-child="1"]:not([class^="maybe-"]) > div:before {
+.block-tree2 li[data-first-child][data-last-child]:not([class^="maybe-"]) > div:before {
     content: "";
     position: absolute;
     width: 1px;
@@ -948,7 +954,7 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     top: 50%;
     margin-top: 2px;
 }
-.block-tree2 li[data-last-child="1"]:not([class^="maybe-"]):not([data-has-children]) > div:after {
+.block-tree2 li[data-last-child]:not([class^="maybe-"]):not([data-has-children]) > div:after {
     content: "";
     position: absolute;
     width: 1px;
@@ -965,11 +971,24 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 .block-tree2 li[data-block-type="PageInfo"] {
     background-color: var(--color-bg-meta-block);
 }
+.block-tree2 li.globalBlockTree-block {
+    background-color: var(--color-bg-global-block);
+}
 .block-tree2 .block-handle .icon-tabler {
     color: var(--color-icon-normal-block);
 }
 .block-tree2 li[data-block-type="PageInfo"] .block-handle .icon-tabler {
     color: var(--color-icon-meta-block);
+}
+.block-tree2 li.globalBlockTree-block .block-handle .icon-tabler {
+    color: var(--color-icon-global-block);
+    border-radius: 3px;
+}
+.block-tree2 li.globalBlockTree-block .toggle {
+    background-color: var(--color-bg-global-block);
+}
+.block-tree2 li.globalBlockTree-block.selected .toggle {
+    background: var(--color-bg-selected-global-block);
 }
 .block-tree2 li > div > button span {
     margin-left: 1.2rem;
@@ -980,7 +999,7 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     opacity: .4;
 }
 .block-tree2 .dragging .toggle {
-    background: transparent;
+    background: transparent !important;
 }
 .block-tree2 li.maybe-drop-before:before,
 .block-tree2 li.maybe-drop-after:after,

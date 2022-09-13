@@ -199,7 +199,8 @@ class BlockTree extends preact.Component {
             onDragLeave={ this.onDragLeave }
             onDrop={ this.onDrop }
             onDragEnd={ this.onDragEnd }
-            class={ [!treeState[block.id].isSelected ? '' : ' selected',
+            class={ [`${block.isStoredTo}-block`,
+                    !treeState[block.id].isSelected ? '' : ' selected',
                     !treeState[block.id].isHidden ? '' : ' d-none',
                     !treeState[block.id].isCollapsed ? '' : ' collapsed'].join('') }
             data-block-id={ block.id }
@@ -258,7 +259,7 @@ class BlockTree extends preact.Component {
                 onClick={ this.showBlockTreeHelpPopup.bind(this) }
                 class="btn btn-link p-absolute btn-sm pt-1"
                 type="button"
-                style="right: 0;top: 0;">
+                style="right: .75rem;top: 0;">
                 <Icon iconId="info-circle" className="size-xs"/>
             </button></div>
             <BlockDnDSpawner2

@@ -1,6 +1,5 @@
-import {__, api, env, http, signals, Icon, LoadingSpinner, hookForm, unhookForm, Input,
-    FormGroup, InputErrors, InputError, hasErrors} from '@sivujetti-commons-for-edit-app';
-import {timingUtils} from '../commons/utils.js';
+import {__, api, env, http, signals, timingUtils, Icon, LoadingSpinner, hookForm,
+    unhookForm, Input, FormGroup, InputErrors, InputError, hasErrors} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from '../commons/ContextMenu.jsx';
 import CssStylesValidatorHelper from '../commons/CssStylesValidatorHelper.js';
 import store2, {observeStore as observeStore2} from '../store2.js';
@@ -97,7 +96,7 @@ class BlockStylesTab extends preact.Component {
                 const [cssVars, ast] = !this.useVisualStyles ? [[], []] : VisualStyles.extractVars(unit.scss, cls);
                 const doShowChevron = userCanEditCss || (this.useVisualStyles && cssVars.length);
                 return <li class={ liCls } data-cls={ cls } key={ unit.id }>
-                    <header class="flex-centered init-relative">
+                    <header class="flex-centered p-relative">
                         <button
                             onClick={ e => this.handleLiClick(e, i) }
                             class="col-12 btn btn-link text-ellipsis with-icon pl-2 mr-1 no-color"
@@ -113,7 +112,7 @@ class BlockStylesTab extends preact.Component {
                                     ref={ this.editableTitleInstances[i] }/>
                                 : <span class="text-ellipsis">{ unit.title }</span> }
                         </button>
-                        <label class="form-checkbox init-absolute" title={ __('Use style') } style="right:-.28rem">
+                        <label class="form-checkbox p-absolute" title={ __('Use style') } style="right:-.28rem">
                             <input
                                 onClick={ e => this.toggleStyleIsActivated(cls, e.target.checked) }
                                 checked={ isActivated }

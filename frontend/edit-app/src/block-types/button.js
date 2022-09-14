@@ -1,5 +1,5 @@
 import {__, api, env, urlUtils, hookForm, unhookForm, reHookValues, Input,
-        InputErrors, FormGroup, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+        InputErrors, FormGroup, FormGroupInline, floatingDialog} from '@sivujetti-commons-for-edit-app';
 import QuillEditor from '../Quill/QuillEditor.jsx';
 import {validationConstraints} from '../constants.js';
 import {unParagraphify} from './paragraph.js';

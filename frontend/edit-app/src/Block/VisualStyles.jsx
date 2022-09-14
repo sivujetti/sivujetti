@@ -1,6 +1,5 @@
-import {__, env, signals, hookForm, FormGroupInline, Input, InputErrors,
-        reHookValues} from '@sivujetti-commons-for-edit-app';
-import {stringUtils, timingUtils} from '../commons/utils';
+import {__, env, signals, stringUtils, timingUtils, hookForm, FormGroupInline, Input,
+    InputErrors, reHookValues} from '@sivujetti-commons-for-edit-app';
 
 let compile, serialize, stringify;
 

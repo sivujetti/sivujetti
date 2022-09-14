@@ -1,7 +1,6 @@
-import {__, api, http, hookForm, unhookForm, reHookValues, Input, InputErrors,
-    FormGroupInline, FormGroup, Textarea} from '@sivujetti-commons-for-edit-app';
+import {__, api, http, stringUtils, hookForm, unhookForm, reHookValues, Input,
+    InputErrors, FormGroupInline, FormGroup, Textarea} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
-import {stringUtils} from '../commons/utils.js';
 import ManyToManyField from '../Page/ManyToManyField.jsx';
 import store, {observeStore, pushItemToOpQueue, selectCurrentPageDataBundle, setCurrentPageDataBundle} from '../store.js';
 import setFocusTo from './auto-focusers.js';

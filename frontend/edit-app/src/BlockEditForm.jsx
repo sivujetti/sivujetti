@@ -1,6 +1,6 @@
-import {__, api, signals, env, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, api, signals, env, timingUtils, Icon} from '@sivujetti-commons-for-edit-app';
 import Tabs from './commons/Tabs.jsx';
-import {timingUtils, objectUtils} from './commons/utils.js';
+import {objectUtils} from './commons/utils.js';
 import BlockStylesTab from './Block/BlockStylesTab.jsx';
 import {getIcon} from './block-types/block-types.js';
 import {emitMutateBlockProp, emitPushStickyOp} from './BlockTree.jsx';

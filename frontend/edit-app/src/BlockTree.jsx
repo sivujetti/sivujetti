@@ -54,11 +54,11 @@ signals.on('on-web-page-loaded', () => {
                 //
                 let treeStateOverride2 = undefined;
                 if (context[0] === 'swap-blocks' && context[1][0].position === 'as-child') {
-                    treeStateOverride2 = {[context[1][0].blockToMoveTo.id]: {isCollapsed: false}};
+                    treeStateOverride2 = {[context[1][0].blockToMoveTo.id]: {isCollapsed: false}}; // todo childrens' isHidden?
                 } else if (context[0] === 'commit-add-single-block') {
                     const parent = blockTreeUtils.findBlock(context[1].blockId, tree)[2];
                     if (parent)
-                        treeStateOverride2 = {[parent.id]: {isCollapsed: false}};
+                        treeStateOverride2 = {[parent.id]: {isCollapsed: false}}; // todo childrens' isHidden?
                 }
                 //
                 currentInstance.setState(Object.assign(
@@ -180,7 +180,10 @@ class BlockTree extends preact.Component {
             // Found block, has children
             return splitPath(path);
         });
-        ids.concat(block.id).forEach(id => { mutRef[id].isCollapsed = false; });
+        ids.concat(block.id).forEach(id => {
+            mutRef[id].isCollapsed = false;
+            hideOrShowChildren(false, blockTreeUtils.findBlock(id, tree)[0], mutRef);
+        });
         this.setState({treeState: this.setBlockAsSelected(block, mutRef)});
     }
     doRenderBranch(branch, depth = 1, parent = null, root = null) { return branch.map((block, i) => {
@@ -633,7 +636,11 @@ class BlockTree extends preact.Component {
         mutRef[block.id].isCollapsed = !mutRef[block.id].isCollapsed;
         this.setState({treeState: mutRef});
         } else {
-        // todo
+        const mutRef = this.state.treeState;
+        const to = !mutRef[block.id].isCollapsed;
+        mutRef[block.id].isCollapsed = to;
+        hideOrShowChildren(to, block, mutRef);
+        this.setState({treeState: mutRef});
         }
     }
     /**
@@ -680,11 +687,11 @@ class BlockTree extends preact.Component {
  * @param {Object} overrides = {}
  * @returns {BlockTreeItemState}
  */
-function createTreeStateItem(overrides = {}) {
+function createTreeStateItem(parent, overrides = {}) {
     return Object.assign({
         isSelected: false,
         isCollapsed: false,
-        isHidden: false,
+        isHidden: parent ? parent.isCollapsed : false,
         isNew: false,
     }, overrides);
 }
@@ -698,7 +705,8 @@ function getShortFriendlyName(block, type) {
     if (block.title)
         return block.title;
     const translated = __(type.friendlyName);
-    return translated.split(': ')[1] || translated; // 'Plugin: Foo' -> 'Foo'
+    const pcs = translated.split(' ('); // ['Name', 'PluginName)'] or ['Name']
+    return pcs.length < 2 ? translated : pcs[0];
 }
 
 /**
@@ -737,17 +745,17 @@ function splitPath(path) {
 function createTreeState(tree, full = false, previous = {}, p2 = {}) {
     const out = {};
     if (!full) {
-        blockTreeUtils.traverseRecursively(tree, block => {
-            out[block.id] = createTreeStateItem();
+        blockTreeUtils.traverseRecursively(tree, (block, _i, parent) => {
+            out[block.id] = createTreeStateItem(parent ? out[parent.id] : null);
         });
     } else {
-        blockTreeUtils.traverseRecursively(createSelectBlockTree('main')(store.getState()).tree, block => {
-            if (block.type !== 'GlobalBlockReference')
-                out[block.id] = createTreeStateItem(p2[block.id] || previous[block.id]);
-            else {
+        blockTreeUtils.traverseRecursively(createSelectBlockTree('main')(store.getState()).tree, (block, _i, parent) => {
+            if (block.type !== 'GlobalBlockReference') {
+                out[block.id] = createTreeStateItem(parent ? out[parent.id] : null, p2[block.id] || previous[block.id]);
+            } else {
                 const trid = block.globalBlockTreeId;
-                blockTreeUtils.traverseRecursively(createSelectBlockTree(trid)(store.getState()).tree, block2 => {
-                    out[block2.id] = createTreeStateItem(p2[block.id] || previous[block2.id]);
+                blockTreeUtils.traverseRecursively(createSelectBlockTree(trid)(store.getState()).tree, (block2, _i2, parent2) => {
+                    out[block2.id] = createTreeStateItem(parent2 ? out[parent2.id] : null, p2[block.id] || previous[block2.id]);
                 });
             }
         });
@@ -844,6 +852,27 @@ function propsToObj(propsData) {
         out[field.key] = field.value;
     }
     return out;
+}
+
+/**
+ * @param {Boolean} setAsHidden
+ * @param {RawBlock} block
+ * @param {Object} mutRef
+ */
+function hideOrShowChildren(setAsHidden, block, mutRef) {
+    if (!block.children.length) return;
+    if (setAsHidden)
+        block.children.forEach(b2 => {
+            mutRef[b2.id].isHidden = true;
+            // Always hide all children
+            hideOrShowChildren(true, b2, mutRef);
+        });
+    else
+        block.children.forEach(b2 => {
+            mutRef[b2.id].isHidden = false;
+            // Show children only if it's not collapsed
+            if (!mutRef[b2.id].isCollapsed) hideOrShowChildren(false, b2, mutRef);
+        });
 }
 
 export default BlockTree;

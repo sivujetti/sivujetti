@@ -9,6 +9,13 @@ interface SivujettiFrontendApi {
     user: {
         can(doWhat: 'doAnything'|'editThemeColours'|'editThemeCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'): Boolean;
         getRole(): Number;
+        ROLE_SUPER_ADMIN: Number;
+        ROLE_ADMIN: Number;
+        ROLE_ADMIN_EDITOR: Number;
+        ROLE_EDITOR: Number;
+        ROLE_AUTHOR: Number;
+        ROLE_CONTRIBUTOR: Number;
+        ROLE_FOLLOWER: Number;
     }
     editApp: {
         addBlockTree(trid: String, blocks: Array<RawBlock>): void;
@@ -16,6 +23,7 @@ interface SivujettiFrontendApi {
         unRegisterWebPageDomUpdaterForBlockTree(trid: String): void;
         removeBlockTree(trid: String): void;
     };
+    events: todo;
 }
 
 interface WebPageIframe {
@@ -47,8 +55,8 @@ interface RawBlockData {
 interface BlockType {
     name: String;
     friendlyName: String;
-    ownPropNames: Array<String>;
-    initialData: {[key: String]: any};
+    ownPropNames?: Array<String>;
+    initialData: {[key: String]: any}|(() => {[key: String]: any});
     initialChildren?: Array<BlockBlueprint>;
     defaultRenderer: String,
     reRender(props: {[key: String]: any}, renderChildren: () => String): String;
@@ -255,6 +263,7 @@ interface FloatingDialogSettingsInput {
 interface BlockTreeItemState {
     isSelected: Boolean;
     isCollapsed: Boolean;
+    isHidden: Boolean;
     isNew: Boolean;
 }
 

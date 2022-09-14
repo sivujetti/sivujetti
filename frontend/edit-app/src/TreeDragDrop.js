@@ -71,6 +71,7 @@ class TreeDragDrop {
                 } else {
                     if (target === li) p = {pos: 'after', li: target};
                     else p = {pos: 'before', li};
+                    this.curCandIsLastItem = true;
                 }
                 const doAccept = this.eventController.fromExternalDragOverFirstTime(p);
                 if (!doAccept) return;
@@ -79,7 +80,6 @@ class TreeDragDrop {
                 // Do 4. manually here
                 e.preventDefault();
                 p.li.classList.add(`maybe-drop-${p.pos}`);
-                this.curCandIsLastItem = true;
                 this.curCand = nextCand;
                 return;
             } else if (this.curCandIsLastItem) {

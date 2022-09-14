@@ -42,7 +42,14 @@ function populateFrontendApi() {
     api.webPageIframe = new WebPageIframe(document.getElementById('site-preview-iframe'), env, urlUtils);
     api.user = {
         can(doWhat) { return d.userPermissions[`can${stringUtils.capitalize(doWhat)}`] === true; },
-        getRole() { return d.userRole; }
+        getRole() { return d.userRole; },
+        ROLE_SUPER_ADMIN:  1 << 0, // 1
+        ROLE_ADMIN:        1 << 1, // 2
+        ROLE_ADMIN_EDITOR: 1 << 2, // 4
+        ROLE_EDITOR:       1 << 3, // 8
+        ROLE_AUTHOR:       1 << 4, // 16
+        ROLE_CONTRIBUTOR:  1 << 5, // 32
+        ROLE_FOLLOWER:     1 << 6, // 64
     };
     api.editApp = {
         addBlockTree(trid, blocks) { editAppReactRef.current.addBlockTree(trid, blocks); },

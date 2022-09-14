@@ -31,7 +31,8 @@ class BlockTypes {
      */
     register(name, blockTypeFactory) {
         const baked = blockTypeFactory();
-        baked.ownPropNames = baked.ownPropNames.filter(key => key !== 'children');
+        if (baked.ownPropNames)
+            baked.ownPropNames = baked.ownPropNames.filter(key => key !== 'children');
         storage.set(name, baked);
     }
     /**

@@ -62,17 +62,17 @@ export default {
     },
     /**
      * @param {Array<Object>} branch
-     * @param {(item: Object, i: Number, parent: Object|null) => any} fn
+     * @param {(item: Object, i: Number, parent: Object|null, parentIdPath: String) => any} fn
      * @param {Number} parentI = 0
      * @param {String} parentIdPath = ''
      * @returns {Array<Object>}
      * @access public
      */
-    traverseRecursively(branch, fn, parentI = 0, parentIdPath = '') {
+    traverseRecursively(branch, fn, parent = null, parentIdPath = '') {
         branch.forEach((b, i) => {
-            fn(b, i, parentI, parentIdPath);
+            fn(b, i, parent, parentIdPath);
             if (b.children.length) {
-                this.traverseRecursively(b.children, fn, parentI+1, `${parentIdPath}/${b.id}`);
+                this.traverseRecursively(b.children, fn, b, `${parentIdPath}/${b.id}`);
             }
         });
     },

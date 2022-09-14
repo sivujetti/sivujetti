@@ -23,7 +23,7 @@ function createBlockFromType(blockType, trid = 'main', id = generatePushID(), in
 function createBlockFromBlueprint(blueprint, trid = 'main') {
     const {initialOwnData, initialDefaultsData, initialChildren} = blueprint;
     return createBlock(api.blockTypes.get(blueprint.blockType), trid, generatePushID(),
-        initialOwnData, initialDefaultsData, initialChildren);
+        initialOwnData, initialDefaultsData || {}, initialChildren || []);
 }
 
 /**
@@ -74,8 +74,16 @@ function createOwnData(blockType, props = null) {
         flat[key] = value;
         asMetaArr.push({key, value: flat[key]});
     };
-    for (const key of blockType.ownPropNames) {
-        setProp(key, blockType.initialData[key]);
+    if (typeof blockType.initialData !== 'function') {
+        for (const key of blockType.ownPropNames) {
+            setProp(key, blockType.initialData[key]);
+        }
+    } else {
+        const data = blockType.initialData();
+        for (const key in data) {
+            if (!Object.prototype.hasOwnProperty.call(data, key)) continue;
+            setProp(key, data[key]);
+        }
     }
     if (props) for (const key in props) {
         if (!Object.prototype.hasOwnProperty.call(props, key)) continue;

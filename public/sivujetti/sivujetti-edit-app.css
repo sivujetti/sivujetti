@@ -890,13 +890,19 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     margin-left: 1.2rem;
 }
 .block-tree2 li[data-depth="4"] {
-    margin-left: 1.85rem;
+    margin-left: 1.8rem;
 }
 .block-tree2 li[data-depth="5"] {
-    margin-left: 2.45rem;
+    margin-left: 2.4rem;
 }
 .block-tree2 li[data-depth="6"] {
-    margin-left: 3.1rem;
+    margin-left: 3rem;
+}
+.block-tree2 li[data-depth="7"] {
+    margin-left: 3.6rem;
+}
+.block-tree2 li[data-depth="8"] {
+    margin-left: 4.2rem;
 }
 .block-tree2 button {
     border: none;
@@ -908,7 +914,7 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     padding: .1rem .2rem 0 .2rem;
     cursor: pointer;
     margin-left: -.2rem;
-    background: #fff;
+    background: transparent;
 }
 .block-tree2 .toggle .icon-tabler {
     transition: transform linear .1s;
@@ -944,7 +950,7 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     border-left-color: transparent;
     height: 8px;
 }
-.block-tree2 li[data-first-child][data-last-child]:not([class^="maybe-"]) > div:before {
+.block-tree2 li[data-first-child][data-last-child]:not([class*="maybe-"]) > div:before {
     content: "";
     position: absolute;
     width: 1px;
@@ -954,7 +960,7 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     top: 50%;
     margin-top: 2px;
 }
-.block-tree2 li[data-last-child]:not([class^="maybe-"]):not([data-has-children]) > div:after {
+.block-tree2 li[data-last-child]:not([class*="maybe-"]):not([data-has-children]) > div:after {
     content: "";
     position: absolute;
     width: 1px;
@@ -984,12 +990,6 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     color: var(--color-icon-global-block);
     border-radius: 3px;
 }
-.block-tree2 li.globalBlockTree-block .toggle {
-    background-color: var(--color-bg-global-block);
-}
-.block-tree2 li.globalBlockTree-block.selected .toggle {
-    background: var(--color-bg-selected-global-block);
-}
 .block-tree2 li > div > button span {
     margin-left: 1.2rem;
 }
@@ -997,9 +997,6 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 /* block-tre li states */
 .block-tree2 li.dragging {
     opacity: .4;
-}
-.block-tree2 .dragging .toggle {
-    background: transparent !important;
 }
 .block-tree2 li.maybe-drop-before:before,
 .block-tree2 li.maybe-drop-after:after,
@@ -1341,6 +1338,7 @@ ul.list {
 }
 .img-ratio img {
     position: absolute;
+    max-width: 100%;
 }
 .mini-toggle {
     margin: -.1rem 0 0 -.4rem;

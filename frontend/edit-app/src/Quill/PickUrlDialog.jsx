@@ -7,7 +7,7 @@ import {determineModeFrom, getLabel} from './common.js';
 class PickUrlDialog extends preact.Component {
     // currentExternalUrl;
     /**
-     * @param {{mode: UrlMode; url: String|null; dialog: FloatingDialog; quill: Object;}} props
+     * @param {{mode: UrlMode; url: String|null; dialog: FloatingDialog; onConfirm: (url: String) => void;}} props
      */
     constructor(props) {
         super(props);
@@ -78,18 +78,8 @@ class PickUrlDialog extends preact.Component {
      * @access private
      */
     save(url, close = true) {
-        const {quill} = this.props;
-        var scrollTop = quill.root.scrollTop;
-        if (quill.theme.tooltip.linkRange) {
-            quill.formatText(quill.theme.tooltip.linkRange, 'link', url, window.Quill.sources.USER);
-            delete quill.theme.tooltip.linkRange;
-        } else {
-            quill.theme.tooltip.restoreFocus();
-            quill.format('link', url, window.Quill.sources.USER);
-        }
-        quill.root.scrollTop = scrollTop;
-        if (close)
-            this.props.dialog.close();
+        this.props.onConfirm(`${this.state.mode === 'pick-image' ? '/uploads' : ''}${url}`);
+        if (close) this.props.dialog.close();
     }
 }
 
@@ -120,7 +110,7 @@ class PickPageTab extends preact.Component {
         return [
             <div><button onClick={ goBack } class="btn btn-sm mb-2" type="button">&lt;</button></div>,
             <input
-                class="form-input"
+                class="form-input mb-2"
                 placeholder={ __('Filter') }
                 disabled/>,
             Array.isArray(pages) ? <ul class={ `list table-list selectable-items${selectedIdx !== null ? ' has-first-item-selected' : '' }` }>{ pages.map(({title, slug}, i) =>

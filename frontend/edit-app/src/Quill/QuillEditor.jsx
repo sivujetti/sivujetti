@@ -69,7 +69,18 @@ class QuillEditor extends preact.Component {
                     mode,
                     url,
                     dialog: floatingDialog,
-                    quill: dhis.quill,
+                    onConfirm: url => {
+                        const {quill} = dhis;
+                        var scrollTop = quill.root.scrollTop;
+                        if (quill.theme.tooltip.linkRange) {
+                            quill.formatText(quill.theme.tooltip.linkRange, 'link', url, window.Quill.sources.USER);
+                            delete quill.theme.tooltip.linkRange;
+                        } else {
+                            quill.theme.tooltip.restoreFocus();
+                            quill.format('link', url, window.Quill.sources.USER);
+                        }
+                        quill.root.scrollTop = scrollTop;
+                    },
                 });
             }},
         });

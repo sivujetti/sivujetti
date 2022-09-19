@@ -1,5 +1,5 @@
 import {__, env, urlUtils, iconAsString} from '@sivujetti-commons-for-edit-app';
-import {determineModeFromPreview} from './common.js';
+import {determineModeFromPreview, getCompletedUrl} from './common.js';
 
 const Quill = window.Quill;
 
@@ -156,18 +156,6 @@ class MyLink extends Quill.import('formats/link') {
     static sanitize(url) {
         return super.sanitize(getCompletedUrl(url));
     }
-}
-function getCompletedUrl(url) {
-    const isAlreadyCompleted = url.startsWith(urlUtils.baseUrl);
-    if (isAlreadyCompleted) return url;
-    //
-    const isLocal = url.startsWith('/') && !url.startsWith('//');
-    if (isLocal) {
-        const isImage = url.indexOf('.') > 0;
-        return !isImage ? urlUtils.makeUrl(url) : urlUtils.makeAssetUrl(`/public/uploads${url}`);
-    }
-    //
-    return `${url.startsWith('//') || url.startsWith('http') ? '' : '//'}${url}`;
 }
 
 export {MySnowTheme, MyClipboard, MyKeyboard, MyLink};

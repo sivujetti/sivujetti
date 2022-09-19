@@ -1,4 +1,4 @@
-import {__} from '@sivujetti-commons-for-edit-app';
+import {__, urlUtils} from '@sivujetti-commons-for-edit-app';
 
 let dialogTitleTranslations;
 let previewTitleTranslations;
@@ -12,7 +12,7 @@ function determineModeFromPreview(url) {
 }
 
 /**
- * @param {String} url
+ * @param {String} url '/base/page' or '/base/public/uploads/image.png' or <external>
  * @param {'dialogTitles'|'previewTooltipTitles'} translationsPool = 'dialogTitles'
  * @returns {[String, String]} [mode, label]
  */
@@ -22,14 +22,31 @@ function determineModeFrom(url, translationsPool = 'dialogTitles') {
         //
         const isLocal = url.startsWith('/') && !url.startsWith('//');
         if (isLocal) {
-            const pcs = url.split('.');
-            const isImage = pcs.length === 1 || !pcs[pcs.length - 1].startsWith('php');
+            const pcs = url.split('/'); // ['base', 'pagename'] or ['base', 'public', 'uploads', 'filename.png']
+            const isImage = pcs.length > 2 && pcs[pcs.length - 3] === 'public' && pcs[pcs.length - 2] === 'uploads';
             return !isImage ? 'pick-url' : 'pick-image';
         }
         //
         return 'type-external-url';
     })();
     return [mode, getLabel(mode, translationsPool)];
+}
+
+/**
+ * @param {String} url '/pagename' or '/uploads/filename.png' or <external>
+ * @returns {String} '/base/pagename' or '/base/public/uploads/filename.png' or <external>
+ */
+function getCompletedUrl(url) {
+    const isAlreadyCompleted = url.startsWith(urlUtils.baseUrl);
+    if (isAlreadyCompleted) return url;
+    //
+    const isLocal = url.startsWith('/') && !url.startsWith('//');
+    if (isLocal) {
+        const isImage = url.startsWith('/uploads/');
+        return !isImage ? urlUtils.makeUrl(url) : urlUtils.makeAssetUrl(`/public${url}`);
+    }
+    //
+    return `${url.startsWith('//') || url.startsWith('http') ? '' : '//'}${url}`;
 }
 
 /**
@@ -61,4 +78,4 @@ function getLabel(mode, translationsPool = 'dialogTitles') {
     return titles[mode];
 }
 
-export {determineModeFromPreview, determineModeFrom, getLabel};
+export {determineModeFromPreview, determineModeFrom, getCompletedUrl, getLabel};

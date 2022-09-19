@@ -1,10 +1,11 @@
-import {__, api, env, urlUtils, hookForm, unhookForm, reHookValues, Input,
-        InputErrors, FormGroup, FormGroupInline, floatingDialog} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, hookForm, unhookForm, InputErrors, FormGroup,
+        FormGroupInline, floatingDialog} from '@sivujetti-commons-for-edit-app';
 import QuillEditor from '../Quill/QuillEditor.jsx';
 import {validationConstraints} from '../constants.js';
 import {unParagraphify} from './paragraph.js';
 import setFocusTo from './auto-focusers.js';
-import {urlValidatorImpl} from '../validation.js';
+import PickUrlDialog, {getHeight} from '../Quill/PickUrlDialog.jsx';
+import {determineModeFrom, getCompletedUrl} from '../Quill/common.js';
 
 const tagTypes = Object.freeze({
     LINK: 'link',
@@ -40,19 +41,17 @@ class ButtonBlockEditForm extends preact.Component {
         this.setState(hookForm(this, [
             {name: 'html', value: html, validations: [['required'], ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
              label: __('Content'), onAfterValueChanged: (value, hasErrors, source) => { if (source !== 'undo') emitValueChanged(value, 'html', hasErrors, env.normalTypingDebounceMillis); }},
-            {name: 'linkTo', value: linkTo, validations: [[urlValidatorImpl, {allowExternal: true, allowEmpty: true}],
-                ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link'),
-             onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'linkTo', hasErrors, env.normalTypingDebounceMillis); }},
         ], {
             tagType,
+            linkTo,
         }));
         grabChanges((block, _origin, isUndo) => {
             if (isUndo && this.state.values.html !== block.html)
                 this.editor.current.replaceContents(block.html, 'undo');
-            if (isUndo && this.state.values.linkTo !== block.linkTo)
-                reHookValues(this, [{name: 'linkTo', value: block.linkTo}]);
             if (this.state.tagType !== block.tagType)
                 this.setState({tagType: block.tagType});
+            if (this.state.linkTo !== block.linkTo)
+                this.setState({linkTo: block.linkTo});
         });
     }
     /**
@@ -70,7 +69,7 @@ class ButtonBlockEditForm extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {tagType}) {
+    render(_, {tagType, linkTo}) {
         return [
             <FormGroup>
                 <QuillEditor
@@ -99,8 +98,23 @@ class ButtonBlockEditForm extends preact.Component {
                 { tagType === tagTypes.LINK
                     ? <FormGroupInline>
                         <label htmlFor="linkTo" class="form-label">{ __('Link') }</label>
-                        <Input vm={ this } prop="linkTo"/>
-                        <InputErrors vm={ this } prop="linkTo"/>
+                        <input value={ linkTo } name="linkTo" type="text" class="form-input" onClick={ e => {
+                            e.preventDefault();
+                            const normalized = getCompletedUrl(linkTo);
+                            const [mode, title] = determineModeFrom(normalized);
+                            floatingDialog.open(PickUrlDialog, {
+                                title,
+                                width: 514,
+                                height: getHeight('default')[0],
+                            }, {
+                                mode,
+                                url: normalized,
+                                dialog: floatingDialog,
+                                onConfirm: url => {
+                                    this.props.emitValueChanged(url, 'linkTo', false, env.normalTypingDebounceMillis);
+                                }
+                            });
+                        } }/>
                     </FormGroupInline>
                     : null
                 }
@@ -128,13 +142,10 @@ export default () => {
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'hand-finger',
         reRender({html, linkTo, tagType, styleClasses, id}, renderChildren) {
-            const maybeExternalUrl = url => url.indexOf('.') < 0
-                ? urlUtils.makeUrl(url)
-                : `${url.startsWith('//') || url.startsWith('http') ? '' : '//'}${url}`;
             const [start, close] = {
                 [tagTypes.NORMAL_BUTTON]: ['<button type="button"', '</button>'],
                 [tagTypes.SUBMIT_BUTTON]: ['<button type="submit"', '</button>'],
-            }[tagType] || [`<a href="${maybeExternalUrl(linkTo)}"`, "</a>"];
+            }[tagType] || [`<a href="${getCompletedUrl(linkTo)}"`, "</a>"];
             return [start, ' class="j-', name, ' btn', (styleClasses ? ` ${styleClasses}` : ''),
                 '" data-block-type="', name,
                 '" data-block="', id, '">',

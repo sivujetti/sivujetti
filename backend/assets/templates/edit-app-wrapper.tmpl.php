@@ -70,8 +70,10 @@
         <div id="root" class="one-column-layout">
             <div id="main-panel"></div>
             <div id="inspector-panel"></div>
+            <div id="view"></div>
             <iframe src="<?= $this->url("{$url}?in-edit") ?>" id="site-preview-iframe"></iframe>
         </div>
+
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/jspanel.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/pickr.min.js") ?>"></script>

@@ -163,9 +163,16 @@ interface BlockRenderer {
     associatedWith: String|null;
 }
 
-interface TheWebsite {
+interface TheWebsiteBasicInfo {
+    name: String;
+    langTag: String; // en_US
+    description: String;
+}
+
+interface TheWebsiteBundle {
     baseUrl: String;
     assetBaseUrl: String;
+    website: TheWebsiteBasicInfo;
     pageTypes: Array<PageType>;
     activeTheme: {id: String;};
     blockRenderers: Array<BlockRenderer>;

@@ -12,7 +12,7 @@ final class TheWebsite {
     /** @var ?string e.g. "FI", "US" */
     public ?string $country;
     /** @var string e.g. "My website" */
-    public string $decription;
+    public string $description;
     /** @var string */
     public string $aclRulesJson;
     /** @var string */

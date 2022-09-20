@@ -12,6 +12,7 @@ use Sivujetti\Page\PagesModule;
 use Sivujetti\PageType\PageTypesModule;
 use Sivujetti\ReusableBranch\ReusableBranchesModule;
 use Sivujetti\Theme\ThemesModule;
+use Sivujetti\TheWebsite\TheWebsiteModule;
 use Sivujetti\Update\UpdatesModule;
 use Sivujetti\Upload\UploadsModule;
 
@@ -33,6 +34,7 @@ final class App extends PikeApp {
             new PageTypesModule,
             new ReusableBranchesModule,
             new ThemesModule,
+            new TheWebsiteModule,
             new UpdatesModule,
             new UploadsModule,
             new PagesModule,

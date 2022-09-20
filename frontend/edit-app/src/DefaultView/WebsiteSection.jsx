@@ -35,6 +35,10 @@ class WebsiteSection extends MenuSection {
                     <Icon iconId="circle-plus" className="size-sm color-dimmed"/>
                     <span class="color-dimmed">{ __('Create %s', __('page type')) }</span>
                 </a> : null }
+                <a href="#/website/edit-basic-info" class="with-icon">
+                    <Icon iconId="box" className="size-sm color-dimmed"/>
+                    <span class="color-dimmed">{ __('Edit info') }</span>
+                </a>
             </nav>
         </section>;
     }

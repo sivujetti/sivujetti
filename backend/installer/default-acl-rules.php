@@ -46,6 +46,9 @@ $out->resources = (object) [
         "upsertBlockTypeScopedVars" => 0b00001000,
         "upsertBlockTypeScopedCss"  => 0b00010000,
     ],
+    "theWebsite" => (object) [
+        "updateBasicInfoOf"         => 0b00000010,
+    ],
     "uploads" => (object) [
         "view"              => 0b00000010,
         "upload"            => 0b00000100,
@@ -62,6 +65,7 @@ $out->userPermissions = (object) [
         "pageTypes"         => ACL::makePermissions("*", $out->resources->pageTypes),
         "reusableBranches"  => ACL::makePermissions("*", $out->resources->reusableBranches),
         "themes"            => ACL::makePermissions("*", $out->resources->themes),
+        "theWebsite"        => ACL::makePermissions("*", $out->resources->theWebsite),
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],
     ACL::ROLE_ADMIN_EDITOR => (object) [
@@ -74,6 +78,7 @@ $out->userPermissions = (object) [
         // pageTypes        -> none
         "reusableBranches"  => ACL::makePermissions("*", $out->resources->reusableBranches),
         "themes"            => ACL::makePermissions("*", $out->resources->themes),
+        "theWebsite"        => ACL::makePermissions("*", $out->resources->theWebsite),
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],
     ACL::ROLE_EDITOR => (object) [
@@ -86,6 +91,7 @@ $out->userPermissions = (object) [
         // pageTypes        -> none
         "reusableBranches"  => ACL::makePermissions(["list"], $out->resources->reusableBranches),
         "themes"            => ACL::makePermissions(["view","updateGlobalStylesOf","upsertBlockTypeScopedVars"], $out->resources->themes),
+        "theWebsite"        => ACL::makePermissions(["updateBasicInfoOf"], $out->resources->theWebsite),
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],
     ACL::ROLE_AUTHOR => (object) [
@@ -98,6 +104,7 @@ $out->userPermissions = (object) [
         // pageTypes        -> none
         // reusableBranches -> none
         // themes           -> none
+        // theWebsite       -> none
         // uploads          -> none
     ]
 ];

@@ -24,6 +24,7 @@ import OnThisPageSection from './src/DefaultView/OnThisPageSection.jsx';
 import BaseStylesSection from './src/DefaultView/BaseStylesSection.jsx';
 import WebsiteSection from './src/DefaultView/WebsiteSection.jsx';
 import {MyClipboard, MyKeyboard, MyLink, MySnowTheme} from './src/Quill/quill-customizations.js';
+import EditAppViews from './src/EditAppViews.jsx';
 
 const editAppReactRef = preact.createRef();
 
@@ -127,6 +128,10 @@ function renderReactEditApp() {
         rootEl,
         ref: inspectorPanelReactRef,
     }), inspectorPanelOuterEl);
+
+    preact.render(preact.createElement(EditAppViews, {
+        rootEl,
+    }), document.getElementById('view'));
 
     /**
      * @param {EditAppAwareWebPage} webPage

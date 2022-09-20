@@ -4,6 +4,7 @@ Structure:
 - EditApp: Defaults
 - EditApp: Components
 - EditApp: *
+- EditAppViews: *
 - Global: Utilies
 */
 :root {
@@ -1228,6 +1229,40 @@ span.highlight-rect[data-position="bottom-inside"]:before {
 .listing-instructions .no-round-left {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
+}
+
+
+
+/* == EditAppViews ========================================================== */
+#view {
+    display: none;
+    position: fixed;
+    left: 318px;
+    top: 0;
+    width: calc(100% - 318px);
+    background-color: #f9fafb;
+    height: 100%;
+    z-index: 1;
+}
+#view > .scroller {
+    overflow-x: hidden;
+    padding: 1.4rem;
+}
+#root:has(#view:not(:empty)) #view {
+    display: block;
+}
+#root:has(#view:not(:empty)) #site-preview-iframe {
+    visibility: hidden;
+}
+
+#view h2 {
+    margin: 0 0 2rem 0;
+    font-size: 1.6rem;
+    color: #0c1550;
+}
+#view > .scroller > .btn:first-child {
+    right: 1.4rem;
+    top: 1.4rem;
 }
 
 

@@ -91,6 +91,7 @@ stringBundles.push({
     // edit-app/src/DefaultView/WebsiteSection.jsx
     'Website': 'Website',
     'Content management': 'Content management',
+    'Edit info': 'Edit info',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'page type',
     'Default content': 'Default content',
@@ -216,4 +217,9 @@ stringBundles.push({
     'Search': 'Search',
     'No results for "%s"': 'No results for "%s"',
     'No uploads yet': 'No uploads yet',
+    // edit-app/src/Website/WebsiteEditBasicInfoView.jsx
+    'Edit website info': 'Edit website info',
+    'todo11': 'todo11',
+    'Language': 'Language',
+    'Saved website\'s basic info.': 'Saved website\'s basic info.',
 }, validationStrings);

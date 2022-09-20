@@ -91,6 +91,7 @@ stringBundles.push({
     // edit-app/src/DefaultView/WebsiteSection.jsx
     'Website': 'Sivusto',
     'Content management': 'Sisällönhallinta',
+    'Edit info': 'Muokkaa tietoja',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'sivutyyppi',
     'Default content': 'Oletussisältö',
@@ -216,4 +217,9 @@ stringBundles.push({
     'Search': 'Hae',
     'No results for "%s"': 'Ei tuloksia hakusanalla "%s"',
     'No uploads yet': 'Ei vielä latauksia',
+    // edit-app/src/Website/WebsiteEditBasicInfoView.jsx
+    'Edit website info': 'Muokkaa sivuston tietoja',
+    'todo11': 'Nämä tiedot näkyvät hakukoneissa, ja esim. jaettaessa sivuja some-kanaviin.',
+    'Language': 'Kieli',
+    'Saved website\'s basic info.': 'Sivuston tiedot tallennettin.',
 }, validationStrings);

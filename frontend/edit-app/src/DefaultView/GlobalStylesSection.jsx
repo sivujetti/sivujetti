@@ -1,4 +1,4 @@
-import {api, signals, http, __, env, Icon, MenuSection, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
+import {api, signals, http, __, env, Icon, LoadingSpinner, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
 import Tabs from '../commons/Tabs.jsx';
 import store, {pushItemToOpQueue} from '../store.js';
@@ -6,7 +6,7 @@ import {observeStore as observeStore2} from '../store2.js';
 import {StyleTextarea, tempHack} from '../Block/BlockStylesTab.jsx';
 import {wc_hex_is_light} from '../Block/VisualStyles.jsx';
 
-class GlobalStylesSection extends MenuSection {
+class GlobalStylesSection extends MenuSectionAbstract {
     // activeThemeId;
     // userCanEditCss;
     // unregistrables;

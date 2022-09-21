@@ -109,21 +109,27 @@ Structure:
     font-size: .6rem !important;
 }
 .form-horizontal .form-group {
-    margin: .6rem 0;
+    margin-top: .8rem;
 }
 .form-horizontal .form-label {
+    padding-top: 0;
+}
+.form-horizontal:not(#view .form-horizontal) .form-group {
+    margin: .6rem 0;
+}
+.form-horizontal:not(#view .form-horizontal) .form-label {
     padding: .2rem 0;
     color: var(--color-fg-dimmed2);
 }
-.form-horizontal .form-input:not(textarea),
-.form-horizontal .input-group .input-group-addon {
+.form-horizontal:not(#view .form-horizontal) .form-input:not(textarea),
+.form-horizontal:not(#view .form-horizontal) .input-group .input-group-addon {
     padding: .1rem .35rem;
     height: 1.6rem;
 }
-.form-horizontal .input-group .input-group-addon {
+.form-horizontal:not(#view .form-horizontal) .input-group .input-group-addon {
     padding: .1rem .2rem;
 }
-.form-horizontal .form-group > .col-9 {
+.form-horizontal:not(#view .form-horizontal) .form-group > .col-9 {
     width: calc(75% - .2rem);
     margin-left: auto;
 }

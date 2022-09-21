@@ -124,7 +124,27 @@ function reusableBranchesStore(store) {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-const mainStore = createStoreon([themeStylesStore, reusableBranchesStore]);
+function theWebsiteBasicInfoStore(store) {
+    store.on('theWebsiteBasicInfo/set',
+    /**
+     * @param {Object} state
+     * @param {[TheWebsiteBasicInfo]} args
+     * @returns {Object}
+     */
+    (_state, [theWebsiteBasicInfo]) =>
+        ({theWebsiteBasicInfo})
+    );
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+const mainStore = createStoreon([
+    themeStylesStore,
+    reusableBranchesStore,
+    theWebsiteBasicInfoStore
+]);
 
 /**
  * @param {String} namespace

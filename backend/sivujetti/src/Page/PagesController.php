@@ -116,6 +116,7 @@ final class PagesController {
             "dataToFrontend" => WebPageAwareTemplate::escInlineJs(json_encode((object) [
                 "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
                 "assetBaseUrl" => WebPageAwareTemplate::makeUrl("/", false),
+                "website" => self::theWebsiteToRaw($theWebsite),
                 "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
                 "activeTheme" => (object) ["id" => $theWebsite->activeTheme->id],
                 "blockRenderers" => $apiCtx->blockRenderers,
@@ -131,6 +132,7 @@ final class PagesController {
                     "canCreateReusableBranches" => $acl->can($userRole, "create", "reusableBranches"),
                     "canCreateGlobalBlockTrees" => $acl->can($userRole, "create", "globalBlockTrees"),
                     "canSpecializeGlobalBlocks" => $userRole <= ACL::ROLE_ADMIN,
+                    "canEditTheWebsitesBasicInfo" => $acl->can($userRole, "updateBasicInfoOf", "theWebsite"),
                 ],
                 "userRole" => $userRole,
             ], JSON_UNESCAPED_UNICODE)),
@@ -428,6 +430,17 @@ final class PagesController {
         return (object) [
             "friendlyName" => $layout->friendlyName,
             "structure" => $layout->structure,
+        ];
+    }
+    /**
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
+     * @return object
+     */
+    private static function theWebsiteToRaw(TheWebsite $theWebsite): object {
+        return (object) [
+            "name" => $theWebsite->name,
+            "langTag" => "{$theWebsite->lang}_{$theWebsite->country}",
+            "description" => $theWebsite->description,
         ];
     }
     /**

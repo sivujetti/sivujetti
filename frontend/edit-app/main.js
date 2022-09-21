@@ -22,6 +22,7 @@ import WebPageIframe from './src/WebPageIframe.js';
 import MainPanel from './src/MainPanel.js';
 import OnThisPageSection from './src/DefaultView/OnThisPageSection.jsx';
 import BaseStylesSection from './src/DefaultView/BaseStylesSection.jsx';
+import SettingsSection from './src/DefaultView/SettingsSection.jsx';
 import WebsiteSection from './src/DefaultView/WebsiteSection.jsx';
 import {MyClipboard, MyKeyboard, MyLink, MySnowTheme} from './src/Quill/quill-customizations.js';
 import EditAppViews from './src/EditAppViews.jsx';
@@ -85,14 +86,16 @@ function configureServices() {
     blockTypes.register('Section', createSectionBlockType);
     api.blockTypes = blockTypes;
     //
-    const mainPanel = new MainPanel(document.getElementById('main-panel'),
-        signals, env);
+    const mainPanel = new MainPanel(document.getElementById('main-panel'), signals, env);
     mainPanel.registerSection('onThisPage', OnThisPageSection);
     if (api.user.can('editThemeColours')) {
         mainPanel.registerSection('baseStyles', BaseStylesSection);
     }
     if (api.user.can('createPages')) {
         mainPanel.registerSection('website', WebsiteSection);
+    }
+    if (api.user.can('editTheWebsitesBasicInfo')) {
+        mainPanel.registerSection('settings', SettingsSection);
     }
     api.mainPanel = mainPanel;
     //

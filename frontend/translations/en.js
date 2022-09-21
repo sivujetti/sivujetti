@@ -88,14 +88,17 @@ stringBundles.push({
     'On this page': 'On this page',
     'Content of page %s': 'Content of %s-page',
     'New page content': 'New page content',
+    // edit-app/src/DefaultView/SettingsSection.jsx
+    'Settings': 'Settings',
+    'Website\'s settings': 'Website\'s settings',
+    'Edit info': 'Edit info',
     // edit-app/src/DefaultView/WebsiteSection.jsx
     'Website': 'Website',
     'Content management': 'Content management',
-    'Edit info': 'Edit info',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'page type',
     'Default content': 'Default content',
-    'Settings': 'Settings',
+    'Basic settings': 'Basic settings',
     'Fields': 'Fields',
     // edit-app/src/DefaultMainPanelView.jsx
     'My website': 'My website',

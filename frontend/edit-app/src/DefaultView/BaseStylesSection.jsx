@@ -6,9 +6,10 @@ import {observeStore as observeStore2} from '../store2.js';
 
 const unitCls = `j-${SPECIAL_BASE_UNIT_NAME}`;
 
-class BaseStylesSection extends MenuSection {
+class BaseStylesSection extends preact.Component {
     // userCanEditVars;
     // userCanEditCss;
+    // section;
     // unregistrables;
     // cssVars;
     // ast;
@@ -18,6 +19,7 @@ class BaseStylesSection extends MenuSection {
     componentWillMount() {
         this.userCanEditVars = api.user.can('editThemeVars');
         this.userCanEditCss = api.user.can('editThemeCss');
+        this.section = preact.createRef();
         this.setState({currentTabIdx: 0, bodyStyleMainUnit: null});
     }
     /**
@@ -30,7 +32,8 @@ class BaseStylesSection extends MenuSection {
             if (this.state.bodyStyleMainUnit.scss !== latest.scss)
                 this.updateBaseStylesState(latest);
         }), signals.on('on-block-styles-go-to-base-styles-button-clicked', () => {
-            if (this.state.isCollapsed) this.toggleIsCollapsed();
+            const cmp = this.section.current;
+            if (cmp.state.isCollapsed) cmp.collapseOrUncollapse();
             setTimeout(() => { api.mainPanel.scrollToSection('baseStyles'); }, 80);
         })];
     }
@@ -51,16 +54,15 @@ class BaseStylesSection extends MenuSection {
     /**
      * @access protected
      */
-    render(_, {bodyStyleMainUnit, currentTabIdx, isCollapsed}) {
-        return <section class={ `base-styles panel-section${isCollapsed ? '' : ' open'}` }>
-            <button class="flex-centered pr-2 section-title col-12" onClick={ this.toggleIsCollapsed.bind(this) }>
-                <Icon iconId="palette" className="p-absolute size-sm mr-2 color-pink"/>
-                <span class="pl-1 d-block col-12 color-default">
-                    { __('Styles') }
-                    <span class="text-ellipsis text-tiny col-12">{ __('Colours and fonts') }</span>
-                </span>
-                <Icon iconId="chevron-right" className="p-absolute size-xs"/>
-            </button>
+    render(_, {bodyStyleMainUnit, currentTabIdx}) {
+        return <MenuSection
+            title={ __('Styles') }
+            subtitle={ __('Colours and fonts') }
+            iconId="palette"
+            colorClass="color-pink"
+            onIsCollapsedChanged={ this.onIsCollapsedChanged.bind(this) }
+            outerClass="base-styles"
+            ref={ this.section }>
             <div>
                 { this.userCanEditCss ? <Tabs
                     links={ [__('Visual'), __('Code')] }
@@ -90,18 +92,17 @@ class BaseStylesSection extends MenuSection {
                     }
                 </div>
             </div>
-        </section>;
+        </MenuSection>;
     }
     /**
+     * @param {Boolean} to
      * @access private
      */
-    toggleIsCollapsed() {
-        const newState = {isCollapsed: !this.state.isCollapsed};
-        if (newState.isCollapsed === false && !this.state.bodyStyleMainUnit)
+    onIsCollapsedChanged(to) {
+        if (!to && !this.state.bodyStyleMainUnit)
             tempHack(({styles}) => {
                 this.updateBaseStylesState(findBodyMainUnit(styles));
             });
-        this.setState(newState);
     }
 }
 

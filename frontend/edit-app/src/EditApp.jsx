@@ -5,7 +5,7 @@ import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
 import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType/PageTypeCreateMainPanelView.jsx';
 import store, {observeStore, setCurrentPageDataBundle, setOpQueue, createSetBlockTree,
                createBlockTreeReducerPair, createSelectBlockTree} from './store.js';
-import {observeStore as observeStore2} from './store2.js';
+import store2, {observeStore as observeStore2} from './store2.js';
 import SaveButton from './SaveButton.jsx';
 import {makePath, makeSlug} from './block-types/pageInfo.js';
 import blockTreeUtils from './blockTreeUtils.js';
@@ -25,7 +25,7 @@ class EditApp extends preact.Component {
     // websiteEventHandlers;
     // receivingData;
     /**
-     * @param {{dataFromAdminBackend: TheWebsite; outerEl: HTMLElement; inspectorPanelRef: preact.Ref; rootEl: HTMLElement;}} props
+     * @param {{dataFromAdminBackend: TheWebsiteBundle; outerEl: HTMLElement; inspectorPanelRef: preact.Ref; rootEl: HTMLElement;}} props
      */
     constructor(props) {
         super(props);
@@ -46,6 +46,9 @@ class EditApp extends preact.Component {
         this.highlightRectEl = preact.createRef();
         this.websiteEventHandlers = createWebsiteEventHandlers2(this.highlightRectEl,
                                                                 this.blockTrees);
+        store2.dispatch('theWebsiteBasicInfo/set', [props.dataFromAdminBackend.website]);
+        props.dataFromAdminBackend.__websiteDebugOnly = props.dataFromAdminBackend.website;
+        delete props.dataFromAdminBackend.website;
         this.receivingData = true;
     }
     /**

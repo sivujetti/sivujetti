@@ -88,14 +88,17 @@ stringBundles.push({
     'On this page': 'Tämä sivu',
     'Content of page %s': '%s -sivun sisältö',
     'New page content': 'Uuden sivun sisältö',
+    // edit-app/src/DefaultView/SettingsSection.jsx
+    'Settings': 'Asetukset',
+    'Website\'s settings': 'Sivuston asetukset',
+    'Edit info': 'Muokkaa perustietoja',
     // edit-app/src/DefaultView/WebsiteSection.jsx
     'Website': 'Sivusto',
     'Content management': 'Sisällönhallinta',
-    'Edit info': 'Muokkaa tietoja',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'sivutyyppi',
     'Default content': 'Oletussisältö',
-    'Settings': 'Tiedot',
+    'Basic settings': 'Perustiedot',
     'Fields': 'Kentät',
     // edit-app/src/DefaultMainPanelView.jsx
     'My website': 'Sivustoni',

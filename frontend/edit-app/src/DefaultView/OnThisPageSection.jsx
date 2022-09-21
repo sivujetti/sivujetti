@@ -1,4 +1,4 @@
-import {__, Icon, MenuSection} from '@sivujetti-commons-for-edit-app';
+import {__, Icon, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
 import BlockTrees from '../BlockTrees.jsx';
 import store, {observeStore, selectCurrentPageDataBundle} from '../store.js';
 
@@ -7,7 +7,7 @@ observeStore(selectCurrentPageDataBundle, ({page}) => {
     if (currentInstance) currentInstance.setState({subtitle: currentInstance.getSubtitle(page)});
 });
 
-class OnThisPageSection extends MenuSection {
+class OnThisPageSection extends MenuSectionAbstract {
     /**
      * @inheritdoc
      */

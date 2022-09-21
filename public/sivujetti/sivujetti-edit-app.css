@@ -949,6 +949,9 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 .block-tree2 li.globalBlockTree-block.selected {
     background: var(--color-bg-selected-global-block);
 }
+.block-tree2 li[data-block-type="PageInfo"].selected {
+    background: var(--color-bg-selected-meta-block);
+}
 .block-tree2 > li[data-last] {
     position: absolute;
     width: calc(100% - 1rem);
@@ -981,11 +984,11 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     border-color: transparent;
     padding-left: .2rem; /*?*/
 }
-.block-tree2 li[data-block-type="PageInfo"] {
-    background-color: var(--color-bg-meta-block);
+.block-tree2 li[data-block-type="PageInfo"] button {
+    color: var(--color-purple);
 }
-.block-tree2 li.globalBlockTree-block {
-    background-color: var(--color-bg-global-block);
+.block-tree2 li.globalBlockTree-block button {
+    color: #bc5e25;
 }
 .block-tree2 .block-handle .icon-tabler {
     color: var(--color-icon-normal-block);
@@ -994,8 +997,7 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     color: var(--color-icon-meta-block);
 }
 .block-tree2 li.globalBlockTree-block .block-handle .icon-tabler {
-    color: var(--color-icon-global-block);
-    border-radius: 3px;
+    color: #eb732a;
 }
 .block-tree2 li > div > button span {
     margin-left: 1.2rem;

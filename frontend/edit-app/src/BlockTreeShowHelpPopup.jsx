@@ -7,7 +7,7 @@ const BlockTreeShowHelpPopup = () =>
     <div>
         <blockquote class="pl-10" style="line-height: 1.1rem;margin-top: 0px;">{ __('todo1') }<b>{ __('todo2') }</b>{ __('todo3') }<b>{ __('todo4') }</b> <span style="transform: scale(.8) translate(0px,-3px);" class="p-absolute"><button class="btn btn-primary btn-sm p-0 with-icon" type="button" style="border-top-left-radius: 0; border-bottom-left-radius: 0; cursor: default;"><Icon className="mr-0 size-xs" iconId="chevron-right"/></button></span><span style="margin-left: 1rem">{ __('todo5') }</span>{ __('todo6') }</blockquote>
         <div class="d-flex">
-            <div class="col-4"><ul class="block-tree"><li class="page-block ml-0 pl-0"><div class="d-flex">
+            <div class="col-4"><ul class="block-tree2 ml-0 mt-0"><li style="border-color:transparent" class="page-block ml-0 pl-0"><div class="d-flex">
                 <button class="block-handle" type="button"><Icon className="size-xs p-absolute" iconId="layout-rows"/>
                 <span class="text-ellipsis">{ __('Colorless') }</span></button>
                 <button class="more-toggle ml-2" type="button" style="opacity: 1;"><Icon iconId="dots" className="size-xs"/></button>
@@ -17,7 +17,7 @@ const BlockTreeShowHelpPopup = () =>
             </div>
         </div>
         <div class="d-flex mt-2 pt-2">
-            <div class="col-4"><ul class="block-tree"><li class="globalBlockTree-block ml-0 pl-0"><div class="d-flex">
+            <div class="col-4"><ul class="block-tree2 ml-0 mt-0"><li style="border-color:transparent" class="globalBlockTree-block ml-0 pl-0"><div class="d-flex">
                 <button class="block-handle" type="button"><Icon className="size-xs p-absolute" iconId="layout-rows"/>
                 <span class="text-ellipsis">{ __('Orange') }</span></button>
             </div></li></ul></div>
@@ -27,7 +27,7 @@ const BlockTreeShowHelpPopup = () =>
             </div>
         </div>
         <div class="d-flex mt-2 pt-2">
-            <div class="col-4"><ul class="block-tree"><li class="ml-0 pl-0" data-block-type="PageInfo"><div class="d-flex">
+            <div class="col-4"><ul class="block-tree2 ml-0 mt-0"><li style="border-color:transparent" class="ml-0 pl-0" data-block-type="PageInfo"><div class="d-flex">
                 <button class="block-handle" type="button"><Icon className="size-xs p-absolute" iconId="file-info"/>
                 <span class="text-ellipsis">{ __('Violet') }</span></button>
             </div></li></ul></div>

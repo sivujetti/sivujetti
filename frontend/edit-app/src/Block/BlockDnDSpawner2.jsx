@@ -47,7 +47,7 @@ class BlockDnDSpawner extends preact.Component {
     }
     /**
      * @param {DragDropInfo} info
-     * @param {Boolean} isTreesOutermostBlock
+     * @param {(blockOrBlockId: RawBlock|String, tree: Array<RawBlock>) => Boolean} isTreesOutermostBlock
      * @param {(innerTreeBlockOrTrid: RawBlock|String, tree: Array<RawBlock>) => RawBlock} findRefBlockOf
      * @returns {Boolean} Should accept
      * @access public

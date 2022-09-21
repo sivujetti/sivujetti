@@ -3,7 +3,7 @@ let inspectorPanelIsOpen = false;
 
 // see also frontend/edit-app/main.js
 const sectionRenderers = new Map;
-const useNoUlBlockTree = true;
+const useNoUlBlockTree = false;
 
 class MainPanel {
     /**

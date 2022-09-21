@@ -20,7 +20,7 @@ let BlockTrees;
 const unregistrables = [];
 let currentInstance;
 let loading = false;
-const useNoUlBlockTree = true;
+const useNoUlBlockTree = false;
 
 signals.on('on-web-page-loading-started', page => {
     loading = true;
@@ -191,11 +191,11 @@ class BlockTree extends preact.Component {
             return this.boundDoRenderBranch(createSelectBlockTree(block.globalBlockTreeId)(store.getState()).tree, depth, block, block);
         const lastIxd = branch.length - 1;
         //
+        const {treeState} = this.state;
         if (block.type !== 'PageInfo') {
         const type = api.blockTypes.get(block.type);
         const title = getShortFriendlyName(block, type);
         const c = !block.children.length ? [] : this.boundDoRenderBranch(block.children, depth + 1, block);
-        const {treeState} = this.state;
         return [<li
             onDragStart={ this.onDragStart }
             onDragOver={ this.onDragOver }
@@ -234,6 +234,7 @@ class BlockTree extends preact.Component {
         //
         const title = block.title || __('PageInfo');
         return <li
+            class={ !treeState[block.id].isSelected ? '' : 'selected' }
             data-block-id={ block.id }
             data-block-type="PageInfo"
             data-depth={ depth }

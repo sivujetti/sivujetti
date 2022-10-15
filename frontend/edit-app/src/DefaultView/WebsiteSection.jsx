@@ -19,7 +19,7 @@ class WebsiteSection extends preact.Component {
             iconId="database"
             colorClass="color-orange">
             <nav>
-                <a onClick={ e => (e.preventDefault(), alert('This feature is currently disabled.')) } class="with-icon">
+                <a href="#/pages" class="with-icon">
                     <Icon iconId="file-info" className="size-sm color-dimmed"/>
                     <span class="color-dimmed">{ __('Pages') }</span>
                 </a>

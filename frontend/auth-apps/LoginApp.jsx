@@ -70,7 +70,7 @@ class LoginApp extends preact.Component {
             if (errorMessage)
                 this.setState({message: {level: 'error', text: __(errorMessage)}});
             else
-                throw new Error('Something unexpected happened');
+                throw new Error('Something unexpected happened.');
         })
         .catch(err => {
             this.setState({message: {level: 'error', text: __('Something went wrong.')}});

@@ -2,8 +2,8 @@ import {__, api, signals, env, timingUtils, Icon} from '@sivujetti-commons-for-e
 import Tabs from './commons/Tabs.jsx';
 import {objectUtils} from './commons/utils.js';
 import BlockStylesTab from './Block/BlockStylesTab.jsx';
+import {emitMutateBlockProp, emitPushStickyOp} from './Block/BlockTree.jsx';
 import {getIcon} from './block-types/block-types.js';
-import {emitMutateBlockProp, emitPushStickyOp} from './BlockTree.jsx';
 import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
 import store, {selectCurrentPageDataBundle, createSelectBlockTree, observeStore} from './store.js';
 

@@ -1,15 +1,15 @@
+import {__, http} from '@sivujetti-commons-for-edit-app';
 import blockTreeUtils from '../blockTreeUtils.js';
-import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} from '../store.js';
-import {findRefBlockOf, isTreesOutermostBlock} from './utils.js';
-
-let BlockTrees;
+import toasters from '../commons/Toaster.jsx';
+import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue,
+                selectCurrentPageDataBundle} from '../store.js';
+import {findRefBlockOf, isTreesOutermostBlock, treeToTransferable} from './utils.js';
 
 /**
  * @param {BlockTree} blockTree
  * @returns {DragDropEventController}
  */
 function createDndController(blockTree) {
-    ({BlockTrees} = blockTree.props);
     let initial;
     let latest;
     let extDragAccepted;
@@ -60,7 +60,7 @@ function createDndController(blockTree) {
             store.dispatch(createSetBlockTree(trid)(tree, ['swap-blocks', [mutation1]]));
             store.dispatch(pushItemToOpQueue(`swap-blocks-of-tree##${trid}`, {
                 doHandle: trid !== 'main' || !blockTree.currentPageIsPlaceholder
-                    ? () => BlockTrees.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
+                    ? () => saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
                     : null
                 ,
                 doUndo: () => {
@@ -217,4 +217,30 @@ function createMutationInfo(dragBlock, dropBlock, {pos}, doRevert) {
     };
 }
 
+/**
+ * @param {Array<RawBlock>} newBlockTree
+ * @param {String} trid
+ * @returns {Promise<Boolean>}
+ * @access public
+ */
+function saveExistingBlocksToBackend(newBlockTree, trid) {
+    let url = '';
+    if (trid === 'main') {
+        const {page} = selectCurrentPageDataBundle(store.getState());
+        url = `/api/pages/${page.type}/${page.id}/blocks`;
+    } else
+        url = `/api/global-block-trees/${trid}/blocks`;
+    return http.put(url, {blocks: treeToTransferable(newBlockTree)})
+        .then(resp => {
+            if (resp.ok !== 'ok') throw new Error('-');
+            return true;
+        })
+        .catch(err => {
+            window.console.error(err);
+            toasters.editAppMain(__('Something unexpected happened.'), 'error');
+            return false;
+        });
+}
+
 export default createDndController;
+export {saveExistingBlocksToBackend};

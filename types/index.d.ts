@@ -19,8 +19,6 @@ interface SivujettiFrontendApi {
     }
     editApp: {
         addBlockTree(trid: String, blocks: Array<RawBlock>): void;
-        registerWebPageDomUpdaterForBlockTree(trid: String): void;
-        unRegisterWebPageDomUpdaterForBlockTree(trid: String): void;
         removeBlockTree(trid: String): void;
     };
     events: todo;

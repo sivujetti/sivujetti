@@ -17,13 +17,12 @@ import createParagraphBlockType from './src/block-types/paragraph.js';
 import createRichTextBlockType from './src/block-types/richText.js';
 import createSectionBlockType from './src/block-types/section.js';
 import InspectorPanel from './src/InspectorPanel.jsx';
-import blockTreeUtils from './src/blockTreeUtils.js';
 import WebPageIframe from './src/WebPageIframe.js';
 import MainPanel from './src/MainPanel.js';
-import OnThisPageSection from './src/DefaultView/OnThisPageSection.jsx';
-import BaseStylesSection from './src/DefaultView/BaseStylesSection.jsx';
-import SettingsSection from './src/DefaultView/SettingsSection.jsx';
-import WebsiteSection from './src/DefaultView/WebsiteSection.jsx';
+import OnThisPageSection from './src/left-panel/default-panel-sections/OnThisPageSection.jsx';
+import BaseStylesSection from './src/left-panel/default-panel-sections/BaseStylesSection.jsx';
+import SettingsSection from './src/left-panel/default-panel-sections/SettingsSection.jsx';
+import WebsiteSection from './src/left-panel/default-panel-sections/WebsiteSection.jsx';
 import {MyClipboard, MyKeyboard, MyLink, MySnowTheme} from './src/Quill/quill-customizations.js';
 import EditAppViews from './src/EditAppViews.jsx';
 
@@ -32,7 +31,6 @@ const editAppReactRef = preact.createRef();
 populateFrontendApi();
 configureServices();
 renderReactEditApp();
-hookUpSiteIframeUrlMirrorer();
 
 function populateFrontendApi() {
     const d = window.dataFromAdminBackend;
@@ -40,7 +38,8 @@ function populateFrontendApi() {
     api.getBlockRenderers = () => d.blockRenderers;
     api.getActiveTheme = () => d.activeTheme;
     api.registerTranslationStrings = translator.addStrings.bind(translator);
-    api.webPageIframe = new WebPageIframe(document.getElementById('site-preview-iframe'), env, urlUtils);
+    api.webPageIframe = new WebPageIframe(document.getElementById('site-preview-iframe'),
+        document.querySelector('.highlight-rect'), env, urlUtils);
     api.user = {
         can(doWhat) { return d.userPermissions[`can${stringUtils.capitalize(doWhat)}`] === true; },
         getRole() { return d.userRole; },
@@ -54,8 +53,6 @@ function populateFrontendApi() {
     };
     api.editApp = {
         addBlockTree(trid, blocks) { editAppReactRef.current.addBlockTree(trid, blocks); },
-        registerWebPageDomUpdaterForBlockTree(trid) { editAppReactRef.current.registerWebPageDomUpdaterForBlockTree(trid); },
-        unRegisterWebPageDomUpdaterForBlockTree(trid) { editAppReactRef.current.unRegisterWebPageDomUpdaterForBlockTree(trid); },
         removeBlockTree(trid) { editAppReactRef.current.removeBlockTree(trid); },
     };
     // blockTypes, see configureServices
@@ -136,80 +133,7 @@ function renderReactEditApp() {
         rootEl,
     }), document.getElementById('view'));
 
-    /**
-     * @param {EditAppAwareWebPage} webPage
-     * @access public
-     */
-    window.passWebPageToEditApp = (webPage) => {
-        const editApp = editAppReactRef.current;
-        const els = webPage.scanBlockElements();
-        const {blocks} = webPage.data.page;
-        const ordered = [blocks.find(({type}) => type === 'PageInfo')];
-        for (const el of els) {
-            const [isPartOfGlobalBlockTree, globalBlockRefBlockId] = t(el);
-            const blockId = !isPartOfGlobalBlockTree ? el.getAttribute('data-block') : globalBlockRefBlockId;
-            const block = blocks.find(({id}) => id === blockId);
-            if (block) ordered.push(block);
-        }
-        //
-        const [mutatedOrdered, separatedTrees] = separate(ordered);
-        blockTreeUtils.traverseRecursively(mutatedOrdered, b => {
-            b.isStoredTo = 'page';
-            b.isStoredToTreeId = 'main';
-            if (b.type !== 'GlobalBlockReference' && b.type !== 'PageInfo') webPage.setTridAttr(b.id, 'main');
-        });
-        for (const [trid, tree] of separatedTrees) {
-            blockTreeUtils.traverseRecursively(tree, b => {
-                b.isStoredTo = 'globalBlockTree';
-                b.isStoredToTreeId = trid;
-                webPage.setTridAttr(b.id, trid);
-            });
-        }
-        webPage.addRootBoundingEls(ordered[ordered.length - 1]);
-        //
-        const trees = new Map;
-        trees.set('main', mutatedOrdered);
-        for (const [trid, tree] of separatedTrees)
-            trees.set(trid, tree);
-        //
-        editApp.handleWebPageLoaded(webPage, trees);
+    window.route = url => {
+        preactRouter.route(url);
     };
-}
-
-/**
- * @param {HTMLElement} el
- * @returns {[Boolean, String|null]}
- */
-function t(el) {
-    const p = el.previousSibling;
-    return !p || p.nodeType !== Node.COMMENT_NODE || !p.nodeValue.endsWith(':GlobalBlockReference ')
-        ? [false, null]
-        : [true, p.nodeValue.split(' block-start ')[1].split(':')[0]];
-}
-
-/**
- * @param {Array<RawBlock>} mainTreeBlocks
- * @returns {[Array<RawBlock>, Map<String, Array<RawBlock>>]}
- */
-function separate(mainTreeBlocks) {
-    const separatedGlobalTreesBlocks = new Map;
-    blockTreeUtils.traverseRecursively(mainTreeBlocks, b => {
-        if (b.type !== 'GlobalBlockReference') return;
-        separatedGlobalTreesBlocks.set(b.globalBlockTreeId, b.__globalBlockTree.blocks);
-        delete b.__globalBlockTree;
-    });
-    return [mainTreeBlocks, separatedGlobalTreesBlocks];
-}
-
-function hookUpSiteIframeUrlMirrorer() {
-    api.webPageIframe.getEl().addEventListener('load', e => {
-        let p = e.target.contentWindow.location.href.split('#')[0]
-            .replace('&in-edit', '')
-            .replace('?in-edit', '')
-            .replace(e.target.contentWindow.origin, '')
-            .replace(urlUtils.baseUrl, `${urlUtils.baseUrl}_edit/`);
-        p = (!p.endsWith('/') ? p : p.substr(0, p.length - 1)) + window.location.hash;
-        if (window.location.href !== `${window.location.origin}${p}`)
-            history.replaceState(null, null, p);
-    });
 }

@@ -1,27 +1,62 @@
 import {createTrier} from '../../../frontend/webpage/src/EditAppAwareWebPage.js';
+import createInit from './Test.js'; // ??
 
 let env;
 let urlUtils;
 
 class WebPageIframe {
     // el;
+    // blockHighlightEl;
     /**
      * @param {HTMLIFrameElement} el
+     * @param {HTMLElement} blockHighlightEl
      * @param {any} _env
      * @param {any} _urlUtils
      */
-    constructor(el, _env, _urlUtils) {
+    constructor(el, blockHighlightEl, _env, _urlUtils) {
         this.el = el;
+        this.blockHighlightEl = blockHighlightEl;
         env = _env;
         urlUtils = _urlUtils;
+    }
+    foo(pageTypeName, layoutId, ia, then) {
+        this._foo(() => {
+            this.renderPlaceholderPage(pageTypeName, layoutId||'1', ia||'');
+        }, then);
+    }
+    foo2(slug, then) {
+        this._foo(() => {
+            this.renderInEditPage(slug);
+        }, then);
+    }
+    _foo(fn ,then) {
+        if (env.window.receiveNewPreviewIframePage)
+            throw new Error('race condition');
+        // 2.
+        env.window.receiveNewPreviewIframePage = webPage => {
+            createInit(this.getBlockHighlightEl())(webPage);
+            then(webPage);
+            env.window.receiveNewPreviewIframePage = null;
+        };
+        // 1.
+        fn();
     }
     /**
      * @param {String} pageTypeName
      * @param {String} layoutId = '1'
+     * @param {String} is = '' 
      */
-    openPlaceholderPage(pageTypeName, layoutId = '1') {
+    openPlaceholderPage(pageTypeName, layoutId = '1', ia = '') { 
         const u = urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`);
-        this.getEl().contentWindow.location.href = u;
+        this.getEl().contentWindow.location.href = u + (!ia ? '' : `/${encodeURIComponent(ia)}`);
+    }
+    renderInEditPage(slug) {
+        const u = urlUtils.makeUrl(slug) + `${urlUtils.baseUrl.indexOf('?') < 0 ? '?' : '&'}in-edit=1`;
+        this.getEl().contentWindow.location.replace(u);
+    }
+    renderPlaceholderPage(pageTypeName, layoutId = '1', ia = '') {
+        const u = urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`) + (!ia ? '' : `/${encodeURIComponent(ia)}`);
+        this.getEl().contentWindow.location.replace(u);
     }
     /**
      */
@@ -68,10 +103,16 @@ class WebPageIframe {
         }
     }
     /**
-     * @returns {HTMLElement}
+     * @returns {HTMLIFrameElement}
      */
     getEl() {
         return this.el;
+    }
+    /**
+     * @returns {HTMLElement}
+     */
+    getBlockHighlightEl() {
+        return this.blockHighlightEl;
     }
 }
 

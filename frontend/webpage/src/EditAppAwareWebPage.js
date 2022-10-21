@@ -245,7 +245,10 @@ class EditAppAwareWebPage {
             throw new Error();
         };
         return ({tree, context}) => {
-            if (!context || (context[0] !== 'init' && t.receivingData)) return;
+            console.log('(webpage)', tree, context);
+            if (!context || context[0] === 'init' /*(context[0] !== 'init' &&
+            t.receivingData // ??)*/ 
+            ) return;
             const event = context[0];
             const treeRootEl = document.body;
             if (event === 'swap-blocks') {
@@ -488,9 +491,10 @@ class EditAppAwareWebPage {
      * @access private
      */
     doFollowLink(el) {
-        window.location.href = this.isLocalLink(el)
-            ? `${el.href}${el.search[0] !== '?' ? '?' : '&'}in-edit`
-            : el.href;
+        if (this.isLocalLink(el)) {
+            const s = el.search; // todo what if non ?q ?
+            window.parent.myRoute(!s ? el.pathname : s.split('=')[1]);
+        }
     }
 }
 

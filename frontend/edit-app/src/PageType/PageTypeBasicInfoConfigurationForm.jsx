@@ -19,7 +19,7 @@ class PageTypeBasicInfoConfigurationForm extends preact.Component {
              onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) this.emitPropChanged('description', value); }},
             {name: 'slug', value: props.data.slug, validations: [['required'], ['maxLength', 92],
                 [urlValidatorImpl, {allowExternal: false, allowEmpty: false}]], label: __('Slug'),
-             onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) this.emitPropChanged('slug', value); }},
+             onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) this.emitPropChanged('slug', value.startsWith('/') ? value : `/${value}`); }},
         ], {
             isListable: props.data.isListable,
             defaultLayoutId: props.data.defaultLayoutId,

@@ -37,7 +37,7 @@ class MenuSection extends preact.Component {
 
 class MenuSectionAbstract extends preact.Component {
     /**
-     * @param {{initiallyIsCollapsed?: Boolean; sections: Array<String>; startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;}} props
+     * @param {{initiallyIsCollapsed?: Boolean; sections: Array<String>; startAddPageMode: () => void; startAddPageTypeMode: () => void; blockTreesRef: preact.Ref; currentWebPage: EditAppAwareWebPage;} && {loadedPageSlug?: String;}} props
      */
     constructor(props) {
         super(props);

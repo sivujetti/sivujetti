@@ -1,29 +1,28 @@
-import {__, api, signals, http, env, urlUtils, FloatingDialog, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, api, signals, http, env, urlUtils, FloatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import toasters, {Toaster} from './commons/Toaster.jsx';
-import DefaultMainPanelView from './DefaultView/DefaultMainPanelView.jsx';
-import PageCreateMainPanelView from './Page/PageCreateMainPanelView.jsx';
-import PageTypeCreateMainPanelView, {createPlaceholderPageType} from './PageType/PageTypeCreateMainPanelView.jsx';
-import store, {observeStore, setCurrentPageDataBundle, setOpQueue, createSetBlockTree,
-               createBlockTreeReducerPair, createSelectBlockTree} from './store.js';
-import store2, {observeStore as observeStore2} from './store2.js';
+import store, {createBlockTreeReducerPair} from './store.js';
+import store2 from './store2.js';
 import SaveButton from './SaveButton.jsx';
-import {makePath, makeSlug} from './block-types/pageInfo.js';
-import blockTreeUtils from './blockTreeUtils.js';
-import {toTransferable} from './Block/utils.js';
+import DefaultPanel from './left-panel/DefaultPanel.jsx';
+import CreatePagePanel from './left-panel/CreatePagePanel.jsx';
+import CreatePageTypePanel from './left-panel/CreatePageTypePanel.jsx';
+import PageDuplicatePanel from './left-panel/PageDuplicatePanel.jsx';
+import {getArePanelsHidden} from './Test.js';
+
+/*
+todo
+createStoreAndDispatchInnerTree
+
+*/
+
+const PreactRouter = preactRouter;
 
 let LEFT_PANEL_WIDTH = 318;
 const PANELS_HIDDEN_CLS = 'panels-hidden';
-const webPageUnregistrables = new Map;
 let showFirstTimeDragInstructions = !(!env.window.isFirstRun || localStorage.sivujettiDragInstructionsShown === 'yes');
 
 class EditApp extends preact.Component {
-    // changeViewOptions;
-    // blockTrees;
-    // currentWebPage;
-    // resizeHandleEl;
-    // highlightRectEl;
-    // websiteEventHandlers;
-    // receivingData;
+    // ?;
     /**
      * @param {{dataFromAdminBackend: TheWebsiteBundle; outerEl: HTMLElement; inspectorPanelRef: preact.Ref; rootEl: HTMLElement;}} props
      */
@@ -36,71 +35,16 @@ class EditApp extends preact.Component {
             ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
             : []
         ).concat({name: 'log-out', label: __('Log out')});
-        this.state = {currentMainPanel: determineViewNameFrom(env.window.location.href),
-                      hidePanels: getArePanelsHidden(),
+        this.state = {hidePanels: getArePanelsHidden(),
                       currentPage: null};
         if (this.state.hidePanels) props.rootEl.classList.add(PANELS_HIDDEN_CLS);
         this.blockTrees = preact.createRef();
         this.currentWebPage = null;
         this.resizeHandleEl = preact.createRef();
-        this.highlightRectEl = preact.createRef();
-        this.websiteEventHandlers = createWebsiteEventHandlers2(this.highlightRectEl,
-                                                                this.blockTrees);
         store2.dispatch('theWebsiteBasicInfo/set', [props.dataFromAdminBackend.website]);
         props.dataFromAdminBackend.__websiteDebugOnly = props.dataFromAdminBackend.website;
         delete props.dataFromAdminBackend.website;
         this.receivingData = true;
-    }
-    /**
-     * @param {EditAppAwareWebPage} webPage
-     * @param {Map<String, Array<RawBlock>>|null} trees
-     * @access public
-     */
-    handleWebPageLoaded(webPage, trees) {
-        this.receivingData = true;
-        const isFirstLoad = !this.currentWebPage;
-        const {data} = webPage;
-        delete webPage.data;
-        //
-        if (webPageUnregistrables.size) {
-            for (const fn of webPageUnregistrables.values()) fn();
-            webPageUnregistrables.clear();
-        }
-        this.currentWebPage = webPage;
-        webPage.registerEventHandlers(this.websiteEventHandlers);
-        data.page = maybePatchTitleAndSlug(data.page);
-        const {page} = data;
-        signals.emit('on-web-page-loading-started', page, this.state.currentPage);
-        webPage.setIsMouseListenersDisabled(getArePanelsHidden());
-        const newState = {currentPage: page, currentMainPanel: determineViewNameFrom(page)};
-        this.setState(newState);
-        const dispatchData = () => {
-            //
-            if (trees.keys().next().value !== 'main') throw new Error('Sanity');
-            for (const [trid, _] of trees)
-                this.registerWebPageDomUpdater(trid);
-            //
-            store.dispatch(setCurrentPageDataBundle(data));
-            store.dispatch(setOpQueue([]));
-            //
-            for (const [trid, tree] of trees) {
-                if (trid === 'main') continue;
-                this.createStoreAndDispatchInnerTree(trid, tree);
-            }
-            store.dispatch(createSetBlockTree('main')(trees.get('main'), ['init', {}]));
-            signals.emit('on-web-page-loaded');
-            const fn = this.currentWebPage.createThemeStylesChangeListener();
-            webPageUnregistrables.set('themeStyles', observeStore2('themeStyles', fn));
-            this.receivingData = false;
-            if (isFirstLoad) signals.on('visual-styles-var-value-changed-fast', (unitCls, varName, varValue, valueType) => {
-                this.currentWebPage.fastOverrideStyleUnitVar(unitCls, varName, varValue, valueType);
-            });
-        };
-        const fromDefaultToCreateOrViceVersa = newState.currentMainPanel.charAt(0) !== this.state.currentMainPanel.charAt(0);
-        if (fromDefaultToCreateOrViceVersa)
-            setTimeout(() => dispatchData(), 1);
-        else
-            dispatchData();
     }
     /**
      * @param {String} trid
@@ -116,23 +60,6 @@ class EditApp extends preact.Component {
      * @param {String} trid
      * @access public
      */
-    registerWebPageDomUpdaterForBlockTree(trid) {
-        this.registerWebPageDomUpdater(trid);
-    }
-    /**
-     * @param {String} trid
-     * @access public
-     */
-    unRegisterWebPageDomUpdaterForBlockTree(trid) {
-        const unreg = webPageUnregistrables.get(trid);
-        if (!unreg) return;
-        unreg();
-        webPageUnregistrables.delete(trid);
-    }
-    /**
-     * @param {String} trid
-     * @access public
-     */
     removeBlockTree(trid) {
         const [storeStateKey, _] = createBlockTreeReducerPair(trid);
         store.reducerManager.remove(storeStateKey);
@@ -140,8 +67,7 @@ class EditApp extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {currentPage, currentMainPanel, hidePanels}) {
-        const pageType = currentPage ? this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === currentPage.type) : null;
+    render(_, {hidePanels}) {
         const logoUrl = urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo.png');
         return <div>
             { !hidePanels ? null : <a onClick={ e => (e.preventDefault(), this.handlePanelsAreHiddenChanged(false)) } id="back-to-edit-corner" href="">
@@ -187,68 +113,16 @@ class EditApp extends preact.Component {
                 } } class="btn btn-primary btn-sm p-absolute" type="button">{ __('Selvä!') }</button>
             </div></div>
             }
-            { currentMainPanel === 'default'
-                ? <DefaultMainPanelView
-                    sections={ Array.from(api.mainPanel.getSections().keys()) }
-                    blockTreesRef={ this.blockTrees }
-                    startAddPageMode={ () => {
-                        // Open to iframe to '/_edit/api/_placeholder-page...',
-                        // which then triggers this.handleWebPageLoaded()
-                        api.webPageIframe.openPlaceholderPage('Pages', pageType.defaultLayoutId);
-                        this.setState({currentMainPanel: 'create-page'});
-                        floatingDialog.close();
-                    } }
-                    startAddPageTypeMode={ () => {
-                        // todo prevent double
-                        createPlaceholderPageType()
-                        .then(pageType => {
-                            if (!pageType) { toasters.editAppMain(__('Something unexpected happened.'), 'error'); return; }
-                            this.props.dataFromAdminBackend.pageTypes.push(pageType);
-                            // Does same as startAddPageMode above
-                            api.webPageIframe.openPlaceholderPage('Draft');
-                            this.setState({currentMainPanel: 'create-page-type'});
-                            floatingDialog.close();
-                        });
-                    } }
-                    currentWebPage={ this.currentWebPage }/>
-                : this.state.currentMainPanel !== 'create-page-type'
-                    ? <PageCreateMainPanelView
-                        blockTreesRef={ this.blockTrees }
-                        cancelAddPage={ () => api.webPageIframe.goBack() }
-                        pageType={ pageType }/>
-                    : <PageTypeCreateMainPanelView
-                        blockTreesRef={ this.blockTrees }
-                        cancelAddPageType={ () => {
-                            api.webPageIframe.goBack(); // This will trigger PageTypeCreateMainPanelView's componentWillUnmount
-                        } }
-                        onPageTypeCreated={ this.handlePageTypeCreated.bind(this) }
-                        pageType={ pageType }/>
-            }
+            <PreactRouter history={ History.createHashHistory() }>
+                <DefaultPanel path="/:slug?" sections={ Array.from(api.mainPanel.getSections().keys()) } default/>
+                <CreatePagePanel path="/pages/create"/>
+                <PageDuplicatePanel path="/pages/:pageSlug/duplicate"/>
+                <CreatePageTypePanel path="/page-types/create"/>
+            </PreactRouter>
             <Toaster id="editAppMain"/>
             <FloatingDialog/>
-            <span class="highlight-rect" data-position="top-outside" ref={ this.highlightRectEl }></span>
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         </div>;
-    }
-    /**
-     * @param {String} trid
-     * @access private
-     */
-    registerWebPageDomUpdater(trid) {
-        if (webPageUnregistrables.has(trid)) return;
-        const fn = this.currentWebPage.createBlockTreeChangeListener(trid, blockTreeUtils, toTransferable, api.blockTypes, getTree, this);
-        webPageUnregistrables.set(trid, observeStore(createSelectBlockTree(trid), fn));
-    }
-    /**
-     * @param {String} trid
-     * @param {Array<RawBlock>} tree
-     * @access private
-     */
-    createStoreAndDispatchInnerTree(trid, tree) {
-        const [storeStateKey, reducer] = createBlockTreeReducerPair(trid);
-        if (store.reducerManager.has(storeStateKey)) return;
-        store.reducerManager.add(storeStateKey, reducer);
-        store.dispatch(createSetBlockTree(trid)(tree, ['init', {}]));
     }
     /**
      * @param {PageType} submittedData
@@ -351,114 +225,6 @@ class EditApp extends preact.Component {
                 toasters.editAppMain(__('Something unexpected happened.'), 'error');
             });
     }
-}
-
-/**
- * @param {preact.Ref} highlightRectEl
- * @returns {EditAwareWebPageEventHandlers}
- */
-function createWebsiteEventHandlers2(highlightRectEl) {
-    let prevHoverStartBlockEl = null;
-    const TITLE_LABEL_HEIGHT = 18; // at least
-    const hideRect = () => {
-        highlightRectEl.current.setAttribute('data-title', '');
-        highlightRectEl.current.style.cssText = '';
-        prevHoverStartBlockEl = null;
-    };
-    const findBlock = blockEl => {
-        const {tree} = createSelectBlockTree(blockEl.getAttribute('data-trid'))(store.getState());
-        return blockTreeUtils.findBlock(blockEl.getAttribute('data-block'), tree)[0];
-    };
-    return {
-        /**
-         * @param {HTMLElement} blockEl
-         * @param {ClientRect} r
-         */
-        onHoverStarted(blockEl, r) {
-            if (prevHoverStartBlockEl === blockEl)
-                return;
-            highlightRectEl.current.style.cssText = [
-                'width:', r.width, 'px;',
-                'height:', r.height, 'px;',
-                'top:', r.top, 'px;',
-                'left:', r.left + LEFT_PANEL_WIDTH, 'px'
-            ].join('');
-            const block = findBlock(blockEl);
-            if (r.top < -TITLE_LABEL_HEIGHT)
-                highlightRectEl.current.setAttribute('data-position', 'bottom-inside');
-            else if (r.top > TITLE_LABEL_HEIGHT)
-                highlightRectEl.current.setAttribute('data-position', 'top-outside');
-            else
-                highlightRectEl.current.setAttribute('data-position', 'top-inside');
-            highlightRectEl.current.setAttribute('data-title',
-                (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type)
-            );
-            prevHoverStartBlockEl = blockEl;
-        },
-        /**
-         * @param {HTMLElement|null} blockEl
-         * @param {HTMLAnchorElement|null} link
-         */
-        onClicked(blockEl, link) {
-            signals.emit('on-web-page-click-received', blockEl, link);
-            if (!blockEl) return;
-            signals.emit('on-web-page-block-clicked', findBlock(blockEl));
-        },
-        /**
-         * @param {HTMLElement} blockEl
-         */
-        onHoverEnded(blockEl, _r) {
-            setTimeout(() => {
-                if (blockEl === prevHoverStartBlockEl)
-                    hideRect();
-            }, 80);
-        },
-    };
-}
-
-/**
- * @returns {Boolean}
- */
-function getArePanelsHidden() {
-    return env.window.localStorage.sivujettiDoHidePanels === 'yes';
-}
-
-/**
- * @param {String|Page} currentUrlOrPage
- * @returns {'default'|'create-page'|'create-page-type'}
- */
-function determineViewNameFrom(currentUrlOrPage) {
-    let url;
-    if (typeof currentUrlOrPage === 'string') {
-        url = currentUrlOrPage;
-    } else{
-        url = !currentUrlOrPage.isPlaceholderPage ? '' : `_placeholder-page/${currentUrlOrPage.type}`;
-    }
-    const i = url.indexOf('_placeholder-page/');
-    if (i < 0) return 'default';
-    return url.substring(i).indexOf('_placeholder-page/Draft') < 0 ? 'create-page' : 'create-page-type';
-}
-
-/**
- * @param {Page} page
- * @returns {Page}
- */
-function maybePatchTitleAndSlug(page) {
-    if (page.isPlaceholderPage) {
-        page.title = __(page.title);
-        page.slug = makeSlug(page.title);
-        const pageType = api.getPageTypes().find(({name}) => name === page.type);
-        page.path = makePath(page.slug, pageType);
-    }
-    return page;
-}
-
-/**
- * @param {String} trid
- * @returns {Array<RawBlock>}
- */
-function getTree(trid) {
-    return createSelectBlockTree(trid)(store.getState()).tree;
 }
 
 export default EditApp;

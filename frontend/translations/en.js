@@ -25,7 +25,7 @@ stringBundles.push({
     'Style name': 'Style name',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Create %s',
-    'Cancel add %s': 'Cancel add %s',
+    'Cancel create %s': 'Cancel create %s',
     'Back': 'Back',
     'Layout': 'Layout',
     'Add to menu': 'Add to menu',
@@ -47,8 +47,6 @@ stringBundles.push({
     'Link to an address: ': 'Link to an address: ',
     // edit-app/src/BlockEditForm.jsx
     'Styles': 'Styles',
-    'Use specializations': 'Use specializations',
-    'If on, any changes made to this\nglobal content tree won\'t affect\nthe original': 'If on, any changes made to this\nglobal content tree won\'t affect\nthe original',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
     // edit-app/src/BlockTree.jsx
     'Add child content': 'Add child content',
@@ -77,35 +75,30 @@ stringBundles.push({
     'Meta content contains ': 'Meta content contains ',
     'additional data / metadata': 'additional data / metadata',
     ', and otherwise act like ordinary content.': ', and otherwise act like ordinary content.',
-    // edit-app/src/DefaultView/BaseStylesSection.jsx
+    // edit-app/src/left-panel/default-panel-sections/BaseStylesSection.jsx
     'Colours and fonts': 'Colours and fonts',
     'Visual': 'Visual',
     'Code': 'Code',
-    // edit-app/src/DefaultView/GlobalStylesSection.jsx
-    'Colours': 'Colours',
-    'Root styles': 'Root styles',
-    // edit-app/src/DefaultView/OnThisPageSection.jsx
+    // edit-app/src/left-panel/default-panel-sections/OnThisPageSection.jsx
     'On this page': 'On this page',
     'Content of page %s': 'Content of %s-page',
     'New page content': 'New page content',
-    // edit-app/src/DefaultView/SettingsSection.jsx
+    // edit-app/src/left-panel/default-panel-sections/SettingsSection.jsx
     'Settings': 'Settings',
     'Website\'s settings': 'Website\'s settings',
     'Edit info': 'Edit info',
-    // edit-app/src/DefaultView/WebsiteSection.jsx
+    // edit-app/src/left-panel/default-panel-sections/WebsiteSection.jsx
     'Website': 'Website',
     'Content management': 'Content management',
+    'page': 'page',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'page type',
     'Default content': 'Default content',
     'Basic settings': 'Basic settings',
     'Fields': 'Fields',
-    // edit-app/src/DefaultMainPanelView.jsx
-    'My website': 'My website',
+    // _
     'Pages': 'Pages',
     'Pages#partitive': 'Pages',
-    'page': 'page',
-    'Global styles': 'Global styles',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Edit mode',
     'Exit edit mode': 'Exit edit mode',
@@ -113,9 +106,8 @@ stringBundles.push({
     'Log out': 'Log out',
     'Created new %s': 'Created new %s',
     'Page title': 'Page title',
-    // edit-app/src/GlobalBlockTreeSelector.jsx
+    // edit-app/src/.jsx
     'No %s found': 'No %s found',
-    'global content': 'global content',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Close',
     // edit-app/src/PageType/PageTypeBasicInfoConfigurationForm.jsx

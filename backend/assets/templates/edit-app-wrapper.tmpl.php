@@ -71,7 +71,8 @@
             <div id="main-panel"></div>
             <div id="inspector-panel"></div>
             <div id="view"></div>
-            <iframe src="<?= $this->url("{$url}?in-edit") ?>" id="site-preview-iframe"></iframe>
+            <iframe src="" id="site-preview-iframe"></iframe>
+            <span class="highlight-rect" data-position="top-outside"></span>
         </div>
 
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.js") ?>"></script>

@@ -236,9 +236,7 @@ function createWebsiteEventHandlers2(highlightRectEl) { // todo siirrä loaderii
          * @param {HTMLAnchorElement|null} link
          */
         onClicked(blockEl, link) {
-            signals.emit('on-web-page-click-received', blockEl, link);
-            if (!blockEl) return;
-            signals.emit('on-web-page-block-clicked', findBlock(blockEl));
+            signals.emit('on-web-page-click-received', blockEl, link, findBlock);
         },
         /**
          * @param {HTMLElement} blockEl

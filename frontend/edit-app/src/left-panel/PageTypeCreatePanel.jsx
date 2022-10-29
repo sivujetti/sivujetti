@@ -3,7 +3,7 @@ import toasters from '../commons/Toaster.jsx';
 import store, {deleteItemsFromOpQueueAfter} from '../store.js';
 import OnThisPageSection from './default-panel-sections/OnThisPageSection.jsx';
 
-class CreatePageTypePanel extends preact.Component {
+class PageTypeCreatePanel extends preact.Component {
     constructor(props) {
         super(props);
         
@@ -15,6 +15,7 @@ class CreatePageTypePanel extends preact.Component {
     componentWillMount() {
 
 // tood
+console.log(floatingDialog);
         floatingDialog.close();
         // todo prevent double
         createPlaceholderPageType()
@@ -48,10 +49,16 @@ class CreatePageTypePanel extends preact.Component {
     }
     render(_, {temp}) {
         if (!temp) return;
-        //console.log('ren',loadedPageSlug);
         return <div>
-        <p>Sivuyn luonti</p>
-        <OnThisPageSection loadedPageSlug={ temp }/>
+            <header class="panel-section pb-0">
+                <h1 class="mb-2">{ __('Create %s', __('page type')) }</h1>
+                <button
+                    onClick={ () => preactRouter.route('/') }
+                    class="btn btn-link btn-sm"
+                    title={ __('Cancel create %s', __('page type')) }
+                    type="button">&lt; { __('Back') }</button>
+            </header>
+            <OnThisPageSection loadedPageSlug={ temp }/>
         </div>;
     }
 }
@@ -72,4 +79,4 @@ function createPlaceholderPageType() {
         });
 }
 
-export default CreatePageTypePanel;
+export default PageTypeCreatePanel;

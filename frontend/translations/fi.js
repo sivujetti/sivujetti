@@ -25,7 +25,7 @@ stringBundles.push({
     'Style name': 'Tyylin nimi',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Luo %s',
-    'Cancel add %s': 'Peruuta %s luonti',
+    'Cancel create %s': 'Peruuta %s luonti',
     'Back': 'Takaisin',
     'Layout': 'Sivupohja',
     'Add to menu': 'Lisää valikkoon',
@@ -47,8 +47,6 @@ stringBundles.push({
     'Link to an address: ': 'Linkki osoitteeseen: ',
     // edit-app/src/BlockEditForm.jsx
     'Styles': 'Tyylit',
-    'Use specializations': 'Käytä spesialisointeja',
-    'If on, any changes made to this\nglobal content tree won\'t affect\nthe original': 'Jos päällä, tähän globaaaliin sisältö-\npuuhun tehdyt muutokset ei\nvaikuta alkuperäiseen',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
     // edit-app/src/BlockTree.jsx
     'Add child content': 'Lisää lapsisisältöä',
@@ -77,35 +75,30 @@ stringBundles.push({
     'Meta content contains ': 'Metasisältöön on tallennettu ',
     'additional data / metadata': 'lisä-, tai metatietoja',
     ', and otherwise act like ordinary content.': ', ja käyttäytyvät muilta osin kuten tavallinen sisältö.',
-    // edit-app/src/DefaultView/BaseStylesSection.jsx
+    // edit-app/src/left-panel/default-panel-sections/BaseStylesSection.jsx
     'Colours and fonts': 'Sivuston värit ja fontit',
     'Visual': 'Visuaalinen',
     'Code': 'Koodi',
-    // edit-app/src/DefaultView/GlobalStylesSection.jsx
-    'Colours': 'Värit',
-    'Root styles': 'Juurityylit',
-    // edit-app/src/DefaultView/OnThisPageSection.jsx
+    // edit-app/src/left-panel/default-panel-sections/OnThisPageSection.jsx
     'On this page': 'Tämä sivu',
     'Content of page %s': '%s -sivun sisältö',
     'New page content': 'Uuden sivun sisältö',
-    // edit-app/src/DefaultView/SettingsSection.jsx
+    // edit-app/src/left-panel/default-panel-sections/SettingsSection.jsx
     'Settings': 'Asetukset',
     'Website\'s settings': 'Sivuston asetukset',
     'Edit info': 'Muokkaa perustietoja',
-    // edit-app/src/DefaultView/WebsiteSection.jsx
+    // edit-app/src/left-panel/default-panel-sections/WebsiteSection.jsx
     'Website': 'Sivusto',
     'Content management': 'Sisällönhallinta',
+    'page': 'sivu',
     // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
     'page type': 'sivutyyppi',
     'Default content': 'Oletussisältö',
     'Basic settings': 'Perustiedot',
     'Fields': 'Kentät',
-    // edit-app/src/DefaultMainPanelView.jsx
-    'My website': 'Sivustoni',
+    // _
     'Pages': 'Sivut',
     'Pages#partitive': 'Sivua',
-    'page': 'sivu',
-    'Global styles': 'Globaalit tyylit',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Muokkaustila',
     'Exit edit mode': 'Poistu muokkaustilasta',
@@ -113,9 +106,8 @@ stringBundles.push({
     'Log out': 'Kirjaudu ulos',
     'Created new %s': 'Luotiin uusi %s',
     'Page title': 'Sivuotsikko',
-    // edit-app/src/GlobalBlockTreeSelector.jsx
+    // edit-app/src/.jsx
     'No %s found': '%s ei löytynyt',
-    'global content': 'globaalia sisältöä',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Sulje',
     // edit-app/src/PageType/PageTypeBasicInfoConfigurationForm.jsx

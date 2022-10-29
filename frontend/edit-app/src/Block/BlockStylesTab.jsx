@@ -256,19 +256,10 @@ class BlockStylesTab extends preact.Component {
      * @access private
      */
     goToStyle([block, unitCls, kind]) {
-        if (kind === 'parent') {
-            signals.emit('on-web-page-block-clicked', block);
-            // Open styles tab
-            setTimeout(() => {
-                env.document.querySelector('#inspector-panel .tab .tab-item:nth-of-type(2) a').click();
-                // Open first unit accordion
-                setTimeout(() => {
-                    document.querySelector(`#inspector-panel .styles-list > li[data-cls="${unitCls}"] button`).click();
-                }, 80);
-            }, 200);
-        } else {
+        if (kind === 'parent')
+            signals.emit('on-block-styles-show-parent-styles-button-clicked', block, unitCls);
+        else
             signals.emit('on-block-styles-go-to-base-styles-button-clicked');
-        }
     }
     /**
      * @access private

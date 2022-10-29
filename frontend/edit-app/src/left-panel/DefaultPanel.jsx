@@ -1,63 +1,61 @@
-import {api, signals, env} from '@sivujetti-commons-for-edit-app';
+import {api, env} from '@sivujetti-commons-for-edit-app';
 
-/*
-DefaultPanel
-1. DefaultPanel lataa iframen
-2. iframe kutsuu parentWindow.oneway(webPage)
-
-Bb?
-*/
+/**
+ * The default left-panel ("#/", "#/some-page").
+ */
 class DefaultPanel extends preact.Component {
-    /*constructor(props) {
-        super(props);
-        console.log('con a');
-    }*/
+    /**
+     * @access protected
+     */
     componentWillMount() {
-        console.log('wm',this.props, env.window.location.hash);
-        this.setState(createState(this.props.sections));
-        this.unregisterSignalListener = signals.on('on-web-page-block-clicked', _visibleBlock => {
-            if (this.state.sectionAIsCollapsed) this.setState({sectionAIsCollapsed: false});
-        });
+        this.setState(createState(this.state));
         this.sdsjdjn(!isAnotherAppView(env.window.location.hash.substring(1)) ? this.props.url : '/');
     }
+    /**
+     * @param {{loadedPageSlug: String}} props
+     * @access protected
+     */
     componentWillReceiveProps(props) {
-        console.log('wmrp',this.props, env.window.location.hash);
         if (isAnotherAppView(env.window.location.hash.substring(1)) || isAnotherAppView(this.props.url))
             return;
         if (props.url !== this.props.url)
             this.sdsjdjn(props.url);
-        /*? 
-        if (props.sections.join(',') !== this.props.sections.join(','))
-            this.setState(createState(props.sections));
-        */
     }
-    componentWillUnmount() {
-        this.unregisterSignalListener();
-    }
-    sdsjdjn(slug) {
-        api.webPageIframe.foo2(slug, _webPage => {
-            this.setState({loadedPageSlug: slug});
-        });
-    }
+    /**
+     * @access protected
+     */
     render(_, {sections, loadedPageSlug}) {
         return sections.map(sectionName => {
             const Renderer = api.mainPanel.getSection(sectionName);
-            const t = Object.assign({loadedPageSlug}, this.props);
+            const t = {...{loadedPageSlug}, ...this.props};
             return <Renderer {...t}/>;
+        });
+    }
+    /**
+     * @param {String} slug
+     * @access private
+     */
+    sdsjdjn(slug) {
+        api.webPageIframe.foo2(slug, _webPage => {
+            this.setState(createState({loadedPageSlug: slug}));
         });
     }
 }
 
+/**
+ * @param {String} slug
+ * @returns {Boolean}
+ */
 function isAnotherAppView(slug) {
     return ['/website/edit-basic-info', '/pages'].indexOf(slug) > -1;
 }
 
 /**
- * @param {Array<String>} sectionsInput
- * @returns {{sections: Array<String>;}}
+ * @param {{loadedPageSlug?: String;}} initial
+ * @returns {{loadedPageSlug?: String; sections: Array<String>;}}
  */
-function createState(sectionsInput) {
-    return {sections: sectionsInput.slice(0)};
+function createState(initial) {
+    return {...initial, ...{sections: Array.from(api.mainPanel.getSections().keys()).slice(0)}};
 }
 
 export default DefaultPanel;

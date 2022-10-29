@@ -1,4 +1,4 @@
-import {__, env, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, Icon} from '@sivujetti-commons-for-edit-app';
 
 class OverlayView extends preact.Component {
     /**
@@ -6,7 +6,7 @@ class OverlayView extends preact.Component {
      */
     render({children}) {
         return <div class="scroller">
-            <button onClick={ () => env.window.history.back() } class="btn btn-link form-icon p-absolute" title={ __('Close') } type="button">
+            <button onClick={ () => preactRouter.route('/') } class="btn btn-link form-icon p-absolute" title={ __('Close') } type="button">
                 <Icon iconId="x" className="size-sm"/>
             </button>
             { children }

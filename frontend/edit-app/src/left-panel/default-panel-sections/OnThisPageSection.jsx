@@ -1,30 +1,71 @@
-import {__, Icon, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, signals, Icon, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
 import BlockTree from '../../Block/BlockTree.jsx';
 
 class OnThisPageSection extends MenuSectionAbstract {
+    // blockTreeRef;
+    // unregistrables;
     /**
      * @inheritdoc
      */
     constructor(props) {
         super(Object.assign(props, {initiallyIsCollapsed: props.initiallyIsCollapsed === true}));
-        console.log('consrtr (onthis)', props.loadedPageSlug);
+        this.blockTreeRef = preact.createRef();
     }
+    /**
+     * @access protected
+     */
     componentWillMount() {
-        console.log('cdm (onthis)', this.props.loadedPageSlug);
+        const focusToBlockAndEmitBlockTreeClick = (visibleBlock, clickOrigin, then) => {
+            if (this.state.isCollapsed) this.setState({isCollapsed: false});
+            this.blockTreeRef.current.handleItemClickedOrFocused(visibleBlock, clickOrigin);
+            setTimeout(() => {
+                api.mainPanel.scrollTo(visibleBlock, false);
+                then();
+            }, 100);
+        };
+        this.unregistrables = [signals.on('on-web-page-click-received',
+        /**
+         * @param {HTMLElement?} blockEl
+         * @param {_} _
+         * @param {(blockEl: HTMLElement) => RawBlock|null} findBlock
+         */
+        (blockEl, _, findBlock) => {
+            if (!blockEl) return;
+            focusToBlockAndEmitBlockTreeClick(findBlock(blockEl), 'web-page', () => { });
+        }),
+        signals.on('on-block-styles-show-parent-styles-button-clicked',
+        /**
+         * @param {RawBlock} visibleBlock
+         * @param {String} unitCls
+         */
+        (visibleBlock, unitCls) => {
+            focusToBlockAndEmitBlockTreeClick(visibleBlock, 'styles-tab', () => {
+                // Open styles tab
+                env.document.querySelector('#inspector-panel .tab .tab-item:nth-of-type(2) a').click();
+                // Open first unit accordion
+                setTimeout(() => {
+                    document.querySelector(`#inspector-panel .styles-list > li[data-cls="${unitCls}"] button`).click();
+                }, 80);
+            });
+        })];
         this.t(this.props.loadedPageSlug);
     }
+    /**
+     * @access protected
+     */
     componentWillReceiveProps(props) {
-        console.log('wrp (onthis)', props.loadedPageSlug);
+        // console.log('wrp (onthis)', props.loadedPageSlug);
         if (props.loadedPageSlug !== this.props.loadedPageSlug)
             this.t(props.loadedPageSlug);
     }
-    t(s) {
-        const containingView = determineViewNameFrom(s);
-        this.setState({title: __(!containingView || containingView === 'CreatePage' ? 'On this page' : 'Default content'),
-            subtitle: this.getSubtitle(s, containingView)});
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {{blockTreesRef: preact.Ref;} && {[key: String]: any;}} props
+     * @param {{loadedPageSlug?: String;} && {[key: String]: any;}} props
      */
     render({loadedPageSlug}, {isCollapsed, containingView, title, subtitle}) {
         return <section class={ `on-this-page panel-section pl-0${isCollapsed ? '' : ' open'}` }>
@@ -40,14 +81,23 @@ class OnThisPageSection extends MenuSectionAbstract {
                 </span>
                 <Icon iconId="chevron-right" className="p-absolute size-xs"/>
             </button>
-            <BlockTree curps={ loadedPageSlug } containingView={ containingView }/>
+            <BlockTree curps={ loadedPageSlug } containingView={ containingView } ref={ this.blockTreeRef }/>
         </section>;
+    }
+    /**
+     * @param {String} s
+     * @access private
+     */
+    t(s) {
+        const containingView = determineViewNameFrom(s);
+        this.setState({title: __(!containingView || containingView === 'CreatePage' ? 'On this page' : 'Default content'),
+            subtitle: this.getSubtitle(s, containingView)});
     }
     /**
      * @param {Page?} page
      * @returns {String}
      */
-    getSubtitle(slug, containingView) {
+    getSubtitle(slug, containingView) { // strl + f
         if (!slug) return __('Content of page %s', '/');
         if (containingView === 'Default') return __('Content of page %s', slug);
         return __(containingView === 'CreatePage' ? 'New page content' : 'Uuden sivutyypin oletussisältö');

@@ -133,7 +133,7 @@ function renderReactEditApp() {
         rootEl,
     }), document.getElementById('view'));
 
-    window.route = url => {
+    window.myRoute = url => {
         preactRouter.route(url);
     };
 }

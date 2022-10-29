@@ -4,9 +4,9 @@ import store, {createBlockTreeReducerPair} from './store.js';
 import store2 from './store2.js';
 import SaveButton from './SaveButton.jsx';
 import DefaultPanel from './left-panel/DefaultPanel.jsx';
-import CreatePagePanel from './left-panel/CreatePagePanel.jsx';
-import CreatePageTypePanel from './left-panel/CreatePageTypePanel.jsx';
+import PageCreatePanel from './left-panel/PageCreatePanel.jsx';
 import PageDuplicatePanel from './left-panel/PageDuplicatePanel.jsx';
+import PageTypeCreatePanel from './left-panel/PageTypeCreatePanel.jsx';
 import {getArePanelsHidden} from './Test.js';
 
 /*
@@ -114,10 +114,10 @@ class EditApp extends preact.Component {
             </div></div>
             }
             <PreactRouter history={ History.createHashHistory() }>
-                <DefaultPanel path="/:slug?" sections={ Array.from(api.mainPanel.getSections().keys()) } default/>
-                <CreatePagePanel path="/pages/create"/>
+                <DefaultPanel path="/:slug?" default/>
+                <PageCreatePanel path="/pages/create"/>
                 <PageDuplicatePanel path="/pages/:pageSlug/duplicate"/>
-                <CreatePageTypePanel path="/page-types/create"/>
+                <PageTypeCreatePanel path="/page-types/create"/>
             </PreactRouter>
             <Toaster id="editAppMain"/>
             <FloatingDialog/>

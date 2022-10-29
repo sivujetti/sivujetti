@@ -28,7 +28,7 @@ class BlockTree extends preact.Component {
         this.moreMenu = preact.createRef();
         this.currentPageIsPlaceholder = this.props.containingView !== 'DefaultView';
         this.unregistrables = [];
-        this.unregistrables2 = [signals.on('on-inspector-panel-closed', () => { // toimiiko? 
+        this.unregistrables2 = [signals.on('on-inspector-panel-closed', () => {
             this.deSelectAllBlocks();
         })];
         if (!useNoUlBlockTree) {
@@ -61,7 +61,8 @@ class BlockTree extends preact.Component {
         const maybe = createSelectBlockTree('main')(store.getState());
         if (maybe.tree) this.dskodiej(maybe.tree);
     }
-    componentWillReceiveProps() {
+    componentWillReceiveProps(props) {
+        if (props.curps === this.props.curps) return; // ??
         this.dskodiej(createSelectBlockTree('main')(store.getState()).tree);
     }
     componentWillUnmount() {
@@ -184,7 +185,7 @@ class BlockTree extends preact.Component {
                     : <button onClick={ () => this.toggleBranchIsCollapsed(block) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="size-xs"/></button>
                 }
                 <div class="d-flex">
-                    <button onClick={ () => this.handleItemClicked(block) } class="block-handle text-ellipsis" type="button">
+                    <button onClick={ () => this.handleItemClickedOrFocused(block) } class="block-handle text-ellipsis" type="button">
                         <Icon iconId={ getIcon(type) } className="size-xs p-absolute"/>
                         <span class="text-ellipsis">{ title }</span>
                     </button>
@@ -208,7 +209,7 @@ class BlockTree extends preact.Component {
                 key={ block.id }>
                 <div class="d-flex">
                     <button
-                        onClick={ () => !this.props.disablePageInfo ? this.handleItemClicked(block) : function(){} }
+                        onClick={ () => !this.props.disablePageInfo ? this.handleItemClickedOrFocused(block) : function(){} }
                         class="block-handle text-ellipsis"
                         type="button"
                         disabled={ this.props.disablePageInfo }>
@@ -292,7 +293,7 @@ class BlockTree extends preact.Component {
                 <Icon iconId="chevron-down" className="size-xs"/>
             </button> }
             <div class="d-flex">
-                <button onClick={ () => this.handleItemClicked(block) } class="block-handle text-ellipsis" type="button">
+                <button onClick={ () => this.handleItemClickedOrFocused(block) } class="block-handle text-ellipsis" type="button">
                     <Icon iconId={ getIcon(type) } className="size-xs p-absolute"/>
                     <span class="text-ellipsis">{ title }</span>
                 </button>
@@ -313,7 +314,7 @@ class BlockTree extends preact.Component {
             key={ block.id }>
             <div class="d-flex">
                 <button
-                    onClick={ () => !this.props.disablePageInfo ? this.handleItemClicked(block) : function(){} }
+                    onClick={ () => !this.props.disablePageInfo ? this.handleItemClickedOrFocused(block) : function(){} }
                     class="block-handle text-ellipsis"
                     type="button"
                     disabled={ this.props.disablePageInfo }>
@@ -403,7 +404,7 @@ class BlockTree extends preact.Component {
         const cloned = cloneDeep(toClone);
         branch.splice(branch.indexOf(toClone) + 1, 0, cloned);
         this.emitAddBlock(trid, tree, cloned, treeBefore, toClone.id);
-        signals.emit('on-block-tree-block-cloned', cloned);
+        api.webPageIframe.scrollTo(cloned, true);
     }
     emitAddBlock(trid, tree, newBlock, treeBefore, cloneOf = null) {
         store.dispatch(createSetBlockTree(trid)(tree, ['add-single-block',
@@ -580,13 +581,14 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {RawBlock} block
-     * @param {Boolean} isDirectClick = true
+     * @param {'direct'|'web-page'|'styles-tab'} origin = 'direct'
      * @access public
      */
-    handleItemClicked(block, isDirectClick = true) {
+    handleItemClickedOrFocused(block, origin = 'direct') {
         this.selectedRoot = block;
-        this.emitItemClickedOrAppendedSignal('focus-requested', block);
-        if (isDirectClick) this.emitItemClickedOrAppendedSignal('clicked', block);
+        signals.emit('on-block-tree-item-clicked-or-focused', block, origin);
+        if (origin !== 'direct') api.webPageIframe.scrollTo(block);
+        //
         const mutRef = this.state.treeState;
         const {tree} = createSelectBlockTree(block.isStoredToTreeId)(store.getState());
         const ids = findBlockWithParentIdPath(tree, ({id}, path) => {
@@ -601,14 +603,6 @@ class BlockTree extends preact.Component {
             hideOrShowChildren(false, blockTreeUtils.findBlock(id, tree)[0], mutRef);
         });
         this.setState({treeState: this.setBlockAsSelected(block, mutRef)});
-    }
-    /**
-     * @param {'clicked'|'focus-requested'} name
-     * @param {RawBlock} block
-     * @access private
-     */
-    emitItemClickedOrAppendedSignal(name, block) {
-        signals.emit(`on-block-tree-item-${name}`, block);
     }
     /**
      * @param {RawBlock} block After

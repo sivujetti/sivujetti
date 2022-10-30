@@ -256,7 +256,7 @@ class ListingBlockEditForm extends preact.Component {
         <div class="pt-1">
             <hr/>
             <a
-                onClick={ this.openAddPageView.bind(this) }
+                href={ `#/pages/create/${this.state.filterPageType}/${this.selectedPageTypeBundle.pageType.defaultLayoutId}` }
                 class="d-inline-block mt-2">
                 { __('Add new %s', ' ') }
                 <span class="group-1">{ this.selectedPageTypeFriendlyName }</span>
@@ -341,15 +341,6 @@ class ListingBlockEditForm extends preact.Component {
      */
     openPartPopup(popupName) {
         this[`${popupName}Popup`].current.open();
-    }
-    /**
-     * @param {Event} e
-     * @access private
-     */
-    openAddPageView(e) {
-        e.preventDefault();
-        const typeName = this.state.filterPageType;
-        api.webPageIframe.openPlaceholderPage(typeName, this.selectedPageTypeBundle.pageType.defaultLayoutId);
     }
     /**
      * @param {String} selectedPageTypeName

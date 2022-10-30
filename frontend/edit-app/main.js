@@ -83,7 +83,7 @@ function configureServices() {
     blockTypes.register('Section', createSectionBlockType);
     api.blockTypes = blockTypes;
     //
-    const mainPanel = new MainPanel(document.getElementById('main-panel'), signals, env);
+    const mainPanel = new MainPanel(document.getElementById('main-panel'), env);
     mainPanel.registerSection('onThisPage', OnThisPageSection);
     if (api.user.can('editThemeColours')) {
         mainPanel.registerSection('baseStyles', BaseStylesSection);

@@ -5,7 +5,6 @@ import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} fro
 import store2, {observeStore as observeStore2} from '../store2.js';
 import {createBlockFromBlueprint, createBlockFromType, setTrids, toTransferable} from './utils.js';
 import blockTreeUtils from '../blockTreeUtils.js';
-import {registerWebPageDomUpdater} from '../Test.js';
 
 const BlockAddPhase = Object.freeze({
     RENDERING_STARTED: 'rendering-started',
@@ -326,7 +325,7 @@ class BlockDnDSpawnerOld extends preact.Component {
             args: [],
         }));
         if (this.dragData.blockType === 'GlobalBlockReference')
-            registerWebPageDomUpdater(this.dragData.globalBlockTreeId, '?');
+            api.webPageIframe.registerWebPageDomUpdater(this.dragData.globalBlockTreeId);
         }
         this.handleDragEnded(null, acceptDrop);
     }

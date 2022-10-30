@@ -7,18 +7,17 @@ import store, {createSelectBlockTree, deleteItemsFromOpQueueAfter, observeStore,
 import OnThisPageSection from './default-panel-sections/OnThisPageSection.jsx';
 
 /**
- * Left-panel for #/pages/create.
+ * Left-panel for #/pages/create/:pageTypeName?/:layoutId?.
  */
 class PageCreatePanel extends preact.Component {
     /**
      * @access protected
      */
     componentWillMount() {
-        const todo = 'Pages';
-        const layoutId = '1';
-        const ia = '';
-        this.pageType = api.getPageTypes().find(({name}) => name === todo);
-        api.webPageIframe.foo(todo, layoutId, ia, _webPage => {
+        const pageTypeName = this.props.pageTypeName || 'Pages';
+        const layoutId = this.props.layoutId || '1';
+        this.pageType = api.getPageTypes().find(({name}) => name === pageTypeName);
+        api.webPageIframe.renderPlaceholderPage(pageTypeName, layoutId).then(_webPage => {
             this.setState({temp: ':pseudo/new-page'});
             this.overwriteOpQueue();
         });

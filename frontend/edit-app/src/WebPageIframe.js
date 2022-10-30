@@ -1,12 +1,12 @@
 import {createTrier} from '../../../frontend/webpage/src/EditAppAwareWebPage.js';
-import createInit from './Test.js'; // ??
+import IframePageManager from './IframePageManager.js';
 
 let env;
 let urlUtils;
 
 class WebPageIframe {
     // el;
-    // blockHighlightEl;
+    // pageManager;
     /**
      * @param {HTMLIFrameElement} el
      * @param {HTMLElement} blockHighlightEl
@@ -15,50 +15,34 @@ class WebPageIframe {
      */
     constructor(el, blockHighlightEl, _env, _urlUtils) {
         this.el = el;
-        this.blockHighlightEl = blockHighlightEl;
+        this.pageManager = new IframePageManager(blockHighlightEl);
         env = _env;
         urlUtils = _urlUtils;
-    }
-    foo(pageTypeName, layoutId, ia, then) {
-        this._foo(() => {
-            this.renderPlaceholderPage(pageTypeName, layoutId||'1', ia||'');
-        }, then);
-    }
-    foo2(slug, then) {
-        this._foo(() => {
-            this.renderInEditPage(slug);
-        }, then);
-    }
-    _foo(fn ,then) {
-        if (env.window.receiveNewPreviewIframePage)
-            throw new Error('race condition');
-        // 2.
-        env.window.receiveNewPreviewIframePage = webPage => {
-            createInit(this.getBlockHighlightEl())(webPage);
-            then(webPage);
-            env.window.receiveNewPreviewIframePage = null;
-        };
-        // 1.
-        fn();
     }
     /**
      * @param {String} pageTypeName
      * @param {String} layoutId = '1'
-     * @param {String} is = '' 
+     * @param {String} slug = ''
+     * @returns {Promise<EditAppAwareWebPage>}
+     * @access public
      */
-    openPlaceholderPage(pageTypeName, layoutId = '1', ia = '') { 
-        const u = urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`);
-        this.getEl().contentWindow.location.href = u + (!ia ? '' : `/${encodeURIComponent(ia)}`);
-    }
-    renderInEditPage(slug) {
-        const u = urlUtils.makeUrl(slug) + `${urlUtils.baseUrl.indexOf('?') < 0 ? '?' : '&'}in-edit=1`;
-        this.getEl().contentWindow.location.replace(u);
-    }
-    renderPlaceholderPage(pageTypeName, layoutId = '1', ia = '') {
-        const u = urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`) + (!ia ? '' : `/${encodeURIComponent(ia)}`);
-        this.getEl().contentWindow.location.replace(u);
+    renderPlaceholderPage(pageTypeName, layoutId = '1', slug = '') {
+        return this.loadPage(
+            urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`) + (!slug ? '' : `/${encodeURIComponent(slug)}`)
+        );
     }
     /**
+     * @param {String} slug
+     * @returns {Promise<EditAppAwareWebPage>}
+     * @access public
+     */
+    renderNormalPage(slug) {
+        return this.loadPage(
+            urlUtils.makeUrl(slug) + `${urlUtils.baseUrl.indexOf('?') < 0 ? '?' : '&'}in-edit=1`,
+        );
+    }
+    /**
+     * @access public
      */
     goBack() {
         env.window.history.back();
@@ -66,6 +50,7 @@ class WebPageIframe {
     /**
      * @param {RawBlock} block
      * @param {Boolean} isStillMaybeInsertingToDom = false
+     * @access public
      */
     scrollTo(block, isStillMaybeInsertingToDom = false) {
         const win = this.getEl().contentWindow;
@@ -104,15 +89,44 @@ class WebPageIframe {
     }
     /**
      * @returns {HTMLIFrameElement}
+     * @access public
      */
     getEl() {
         return this.el;
     }
     /**
-     * @returns {HTMLElement}
+     * @param {String} trid
+     * @access public
      */
-    getBlockHighlightEl() {
-        return this.blockHighlightEl;
+    registerWebPageDomUpdater(trid) {
+        this.pageManager.registerWebPageDomUpdater(trid);
+    }
+    /**
+     * @param {String} trid
+     * @access public
+     */
+    unregisterWebPageDomUpdaterForBlockTree(trid) {
+        this.pageManager.unregisterWebPageDomUpdaterForBlockTree(trid);
+    }
+    /**
+     * @param {String} iframeUrl
+     * @returns {Promise<EditAppAwareWebPage>}
+     * @access private
+     */
+    loadPage(iframeUrl) {
+        if (env.window.receiveNewPreviewIframePage)
+            throw new Error('race condition');
+        return new Promise(resolve => {
+            // 1.
+            env.window.receiveNewPreviewIframePage = webPage => {
+                // 3.
+                this.pageManager.loadPage(webPage);
+                resolve(webPage);
+                env.window.receiveNewPreviewIframePage = null;
+            };
+            // 2.
+            this.getEl().contentWindow.location.replace(iframeUrl);
+        });
     }
 }
 

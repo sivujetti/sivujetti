@@ -7,13 +7,7 @@ import DefaultPanel from './left-panel/DefaultPanel.jsx';
 import PageCreatePanel from './left-panel/PageCreatePanel.jsx';
 import PageDuplicatePanel from './left-panel/PageDuplicatePanel.jsx';
 import PageTypeCreatePanel from './left-panel/PageTypeCreatePanel.jsx';
-import {getArePanelsHidden} from './Test.js';
-
-/*
-todo
-createStoreAndDispatchInnerTree
-
-*/
+import {getArePanelsHidden} from './IframePageManager.js';
 
 const PreactRouter = preactRouter;
 
@@ -22,7 +16,8 @@ const PANELS_HIDDEN_CLS = 'panels-hidden';
 let showFirstTimeDragInstructions = !(!env.window.isFirstRun || localStorage.sivujettiDragInstructionsShown === 'yes');
 
 class EditApp extends preact.Component {
-    // ?;
+    // changeViewOptions;
+    // currentWebPage;
     /**
      * @param {{dataFromAdminBackend: TheWebsiteBundle; outerEl: HTMLElement; inspectorPanelRef: preact.Ref; rootEl: HTMLElement;}} props
      */
@@ -35,16 +30,13 @@ class EditApp extends preact.Component {
             ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
             : []
         ).concat({name: 'log-out', label: __('Log out')});
-        this.state = {hidePanels: getArePanelsHidden(),
-                      currentPage: null};
+        this.state = {hidePanels: getArePanelsHidden()};
         if (this.state.hidePanels) props.rootEl.classList.add(PANELS_HIDDEN_CLS);
-        this.blockTrees = preact.createRef();
         this.currentWebPage = null;
         this.resizeHandleEl = preact.createRef();
         store2.dispatch('theWebsiteBasicInfo/set', [props.dataFromAdminBackend.website]);
         props.dataFromAdminBackend.__websiteDebugOnly = props.dataFromAdminBackend.website;
         delete props.dataFromAdminBackend.website;
-        this.receivingData = true;
     }
     /**
      * @param {String} trid
@@ -115,7 +107,7 @@ class EditApp extends preact.Component {
             }
             <PreactRouter history={ History.createHashHistory() }>
                 <DefaultPanel path="/:slug?" default/>
-                <PageCreatePanel path="/pages/create"/>
+                <PageCreatePanel path="/pages/create/:pageTypeName?/:layoutId?"/>
                 <PageDuplicatePanel path="/pages/:pageSlug/duplicate"/>
                 <PageTypeCreatePanel path="/page-types/create"/>
             </PreactRouter>
@@ -123,18 +115,6 @@ class EditApp extends preact.Component {
             <FloatingDialog/>
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         </div>;
-    }
-    /**
-     * @param {PageType} submittedData
-     * @access private
-     */
-    handlePageTypeCreated(submittedData) {
-        const mutRef = this.props.dataFromAdminBackend.pageTypes.find(({name}) => name === 'Draft');
-        Object.assign(mutRef, submittedData);
-        //
-        toasters.editAppMain(`${__('Created new %s', __('page type'))}.`, 'success');
-        //
-        urlUtils.redirect('/_edit');
     }
     /**
      * @access protected
@@ -207,7 +187,7 @@ class EditApp extends preact.Component {
      * @access private
      */
     handlePanelsAreHiddenChanged(to) {
-        this.currentWebPage.setIsMouseListenersDisabled(to);
+        api.webPageIframe.pageManager.currentWebPage.setIsMouseListenersDisabled(to);
         this.props.rootEl.classList.toggle(PANELS_HIDDEN_CLS);
         env.window.localStorage.sivujettiDoHidePanels = to ? 'yes' : 'no';
         this.setState({hidePanels: to});

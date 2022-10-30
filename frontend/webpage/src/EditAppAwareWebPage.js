@@ -140,7 +140,7 @@ class EditAppAwareWebPage {
      * @param {hack} t
      * @returns {(blockTreeState: BlockTreeReduxState) => void}
      */
-    createBlockTreeChangeListener(trid, blockTreeUtils, blockToTransferable, blockTypes, getTree, t) {
+    createBlockTreeChangeListener(trid, blockTreeUtils, blockToTransferable, blockTypes, getTree) {
         /**
          * @param {RawBlock} b
          * @returns {String}
@@ -245,10 +245,7 @@ class EditAppAwareWebPage {
             throw new Error();
         };
         return ({tree, context}) => {
-            console.log('(webpage)', tree, context);
-            if (!context || context[0] === 'init' /*(context[0] !== 'init' &&
-            t.receivingData // ??)*/ 
-            ) return;
+            if (!context || context[0] === 'init' || (context[0] !== 'init' && window.parent.templock === 1)) return;
             const event = context[0];
             const treeRootEl = document.body;
             if (event === 'swap-blocks') {

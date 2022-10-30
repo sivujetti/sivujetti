@@ -91,7 +91,7 @@ stringBundles.push({
     'Website': 'Website',
     'Content management': 'Content management',
     'page': 'page',
-    // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
+    // edit-app/src/left-panel/PageTypeCreatePanel.jsx
     'page type': 'page type',
     'Default content': 'Default content',
     'Basic settings': 'Basic settings',
@@ -110,7 +110,7 @@ stringBundles.push({
     'No %s found': 'No %s found',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Close',
-    // edit-app/src/PageType/PageTypeBasicInfoConfigurationForm.jsx
+    // edit-app/src/left-panel/PageType/PageTypeBasicInfoConfigurationForm.jsx
     'Name (for computers)': 'Name (for computers)',
     'Name (plural)': 'Name (plural)',
     'Description': 'Description',

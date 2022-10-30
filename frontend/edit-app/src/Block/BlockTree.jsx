@@ -12,7 +12,6 @@ import BlockTreeDragDrop from '../BlockTreeDragDrop.js';
 import blockTreeUtils from '../blockTreeUtils.js';
 import SaveBlockAsReusableDialog from '../SaveBlockAsReusableDialog.jsx';
 import store2 from '../store2.js';
-import {registerWebPageDomUpdater, unregisterWebPageDomUpdaterForBlockTree} from '../Test.js';
 import TreeDragDrop from '../TreeDragDrop.js';
 import {cloneDeep, createBlockFromType, findRefBlockOf, isTreesOutermostBlock, setTrids, treeToTransferable} from './utils.js';
 
@@ -84,7 +83,6 @@ class BlockTree extends preact.Component {
         ];
         this.unregistrables.push(...currentPageTrids.map(trid =>
             observeStore(createSelectBlockTree(trid), ({tree, context}) => {
-                console.log(tree, context);
                 if (!context || (context[0] === 'init'))// && loading)) ? 
                     return;
                 if (refreshAllEvents.indexOf(context[0]) > -1 && context[2] !== 'dnd-spawner') {
@@ -441,7 +439,7 @@ class BlockTree extends preact.Component {
         // #2
         api.editApp.addBlockTree(newGbt.id, newGbt.blocks);
         // #3
-        registerWebPageDomUpdater(newGbt.id, '?');
+        api.webPageIframe.registerWebPageDomUpdater(newGbt.id);
 
         // #4
         let [b, br] = blockTreeUtils.findBlock(originalBlock.id, tree);
@@ -465,7 +463,7 @@ class BlockTree extends preact.Component {
                 // No need to revert #1
 
                 // Revert #3
-                unregisterWebPageDomUpdaterForBlockTree(newGbt.id);
+                api.webPageIframe.unregisterWebPageDomUpdaterForBlockTree(newGbt.id);
 
                 // Revert #4
                 store.dispatch(createSetBlockTree('main')(treeBefore, ['undo-convert-block-to-global', eventData]));

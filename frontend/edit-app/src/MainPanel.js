@@ -1,21 +1,18 @@
 let env;
-let inspectorPanelIsOpen = false;
 
 // see also frontend/edit-app/main.js
 const sectionRenderers = new Map;
 const useNoUlBlockTree = false;
 
 class MainPanel {
+    // el;
     /**
      * @param {HTMLElement} el
-     * @param {any} signals
      * @param {any} _env
      */
-    constructor(el, signals, _env) {
+    constructor(el, _env) {
         this.el = el;
         env = _env;
-        signals.on('on-inspector-panel-revealed', () => { inspectorPanelIsOpen = true; });
-        signals.on('on-inspector-panel-closed', () => { inspectorPanelIsOpen = false; });
     }
     /**
      * @param {RawBlock} block
@@ -31,17 +28,11 @@ class MainPanel {
         const targetTop = (target.closest('.collapsed') || target).getBoundingClientRect().top - liHeight;
         const main = this.getEl();
         //
-        const runAfterInspectorPanelHasOpened = fn => {
-            if (inspectorPanelIsOpen) fn();
-            else setTimeout(fn, 20);
-        };
-        runAfterInspectorPanelHasOpened(() => {
-            const halfVisible = main.clientHeight / 2;
-            const center = targetTop + main.scrollTop - halfVisible;
-            main.scrollTo({
-                top: center,
-                behavior,
-            });
+        const halfVisible = main.clientHeight / 2;
+        const center = targetTop + main.scrollTop - halfVisible;
+        main.scrollTo({
+            top: center,
+            behavior,
         });
     }
     /**

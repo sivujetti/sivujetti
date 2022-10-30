@@ -25,10 +25,13 @@ interface SivujettiFrontendApi {
 }
 
 interface WebPageIframe {
-    openPlaceholderPage(pageTypeName: String, layoutId: String = '1'): void;
+    renderNormalPage(slug: String): Promise<EditAppAwareWebPage>;
+    renderPlaceholderPage(pageTypeName: String, layoutId: String = '1', slug: String = ''): Promise<EditAppAwareWebPage>;
     goBack(): void;
     scrollTo(block: Block);
     getEl(): HTMLIFrameElement;
+    registerWebPageDomUpdaterForBlockTree(trid: String): void;
+    unRegisterWebPageDomUpdaterForBlockTree(trid: String): void;
 }
 
 interface MainPanel {

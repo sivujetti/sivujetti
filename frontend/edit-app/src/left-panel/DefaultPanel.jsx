@@ -36,7 +36,7 @@ class DefaultPanel extends preact.Component {
      * @access private
      */
     sdsjdjn(slug) {
-        api.webPageIframe.foo2(slug, _webPage => {
+        api.webPageIframe.renderNormalPage(slug).then(_webPage => {
             this.setState(createState({loadedPageSlug: slug}));
         });
     }

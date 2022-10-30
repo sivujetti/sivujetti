@@ -91,7 +91,7 @@ stringBundles.push({
     'Website': 'Sivusto',
     'Content management': 'Sisällönhallinta',
     'page': 'sivu',
-    // edit-app/src/PageType/PageTypeCreateMainPanelView.jsx
+    //edit-app/src/left-panel/PageTypeCreatePanel.jsx
     'page type': 'sivutyyppi',
     'Default content': 'Oletussisältö',
     'Basic settings': 'Perustiedot',
@@ -110,7 +110,7 @@ stringBundles.push({
     'No %s found': '%s ei löytynyt',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Sulje',
-    // edit-app/src/PageType/PageTypeBasicInfoConfigurationForm.jsx
+    // edit-app/src/left-panel/PageType/PageTypeBasicInfoConfigurationForm.jsx
     'Name (for computers)': 'Nimi (konekielinen)',
     'Name (plural)': 'Nimi (monikossa)',
     'Description': 'Kuvaus',

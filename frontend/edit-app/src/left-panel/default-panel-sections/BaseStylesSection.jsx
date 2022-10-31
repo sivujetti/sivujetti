@@ -1,8 +1,8 @@
 import {__, api, signals, MenuSection} from '@sivujetti-commons-for-edit-app';
 import Tabs from '../../commons/Tabs.jsx';
-import {StyleTextarea, tempHack, updateAndEmitUnitScss, SPECIAL_BASE_UNIT_NAME} from '../../Block/BlockStylesTab.jsx';
-import VisualStyles from '../../Block/VisualStyles.jsx';
 import {observeStore as observeStore2} from '../../store2.js';
+import {StyleTextarea, tempHack, updateAndEmitUnitScss, SPECIAL_BASE_UNIT_NAME} from '../Block/BlockStylesTab.jsx';
+import VisualStyles from '../Block/VisualStyles.jsx';
 
 const unitCls = `j-${SPECIAL_BASE_UNIT_NAME}`;
 

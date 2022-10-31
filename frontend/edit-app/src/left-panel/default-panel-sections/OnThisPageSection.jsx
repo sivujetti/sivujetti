@@ -1,5 +1,5 @@
 import {__, api, env, signals, Icon, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
-import BlockTree from '../../Block/BlockTree.jsx';
+import BlockTree from '../Block/BlockTree.jsx';
 
 class OnThisPageSection extends MenuSectionAbstract {
     // blockTreeRef;
@@ -47,14 +47,16 @@ class OnThisPageSection extends MenuSectionAbstract {
                     document.querySelector(`#inspector-panel .styles-list > li[data-cls="${unitCls}"] button`).click();
                 }, 80);
             });
+        }), signals.on('on-inspector-panel-closed', () => {
+            this.blockTreeRef.current.deSelectAllBlocks();
         })];
+        //
         this.t(this.props.loadedPageSlug);
     }
     /**
      * @access protected
      */
     componentWillReceiveProps(props) {
-        // console.log('wrp (onthis)', props.loadedPageSlug);
         if (props.loadedPageSlug !== this.props.loadedPageSlug)
             this.t(props.loadedPageSlug);
     }
@@ -81,7 +83,10 @@ class OnThisPageSection extends MenuSectionAbstract {
                 </span>
                 <Icon iconId="chevron-right" className="p-absolute size-xs"/>
             </button>
-            <BlockTree curps={ loadedPageSlug } containingView={ containingView } ref={ this.blockTreeRef }/>
+            <BlockTree
+                loadedPageSlug={ loadedPageSlug }
+                containingView={ containingView }
+                ref={ this.blockTreeRef }/>
         </section>;
     }
     /**
@@ -91,27 +96,28 @@ class OnThisPageSection extends MenuSectionAbstract {
     t(s) {
         const containingView = determineViewNameFrom(s);
         this.setState({title: __(!containingView || containingView === 'CreatePage' ? 'On this page' : 'Default content'),
-            subtitle: this.getSubtitle(s, containingView)});
-    }
-    /**
-     * @param {Page?} page
-     * @returns {String}
-     */
-    getSubtitle(slug, containingView) { // strl + f
-        if (!slug) return __('Content of page %s', '/');
-        if (containingView === 'Default') return __('Content of page %s', slug);
-        return __(containingView === 'CreatePage' ? 'New page content' : 'Uuden sivutyypin oletussisältö');
+            subtitle: getSubtitle(s, containingView), containingView});
     }
 }
 
 /**
  * @param {String} slug
- * @returns {'Default'|'CreatePage'|'CreatePageType'}
+ * @returns {leftPanelName}
  */
 function determineViewNameFrom(slug) {
     if ((slug || '').startsWith(':pseudo/'))
         return !slug.endsWith('/new-page-type') ? 'CreatePage' : 'CreatePageType';
     return 'Default';
+}
+
+/**
+ * @param {Page?} page
+ * @returns {String}
+ */
+function getSubtitle(slug, containingView) {
+    if (!slug) return __('Content of page %s', '/');
+    if (containingView === 'Default') return __('Content of page %s', slug);
+    return __(containingView === 'CreatePage' ? 'New page content' : 'Uuden sivutyypin oletussisältö');
 }
 
 export default OnThisPageSection;

@@ -1,4 +1,4 @@
-import blockTreeUtils from './blockTreeUtils.js';
+import blockTreeUtils from './left-panel/Block/blockTreeUtils.js';
 import store, {createSelectBlockTree} from './store.js';
 import {findRefBlockOf, isTreesOutermostBlock, setTrids} from './Block/utils.js';
 

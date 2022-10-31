@@ -343,3 +343,5 @@ interface DragDropInfo {
     li: HTMLLIElement;
     pos: 'initial'|'before'|'after'|'as-child';
 }
+
+type leftPanelName = 'Default'|'CreatePage'|'CreatePageType';

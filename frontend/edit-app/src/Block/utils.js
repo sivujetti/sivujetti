@@ -1,6 +1,6 @@
 import {api} from '@sivujetti-commons-for-edit-app';
 import {generatePushID, objectUtils} from '../commons/utils.js';
-import blockTreeUtils from '../blockTreeUtils.js';
+import blockTreeUtils from '../left-panel/Block/blockTreeUtils.js';
 
 /**
  * @param {BlockType|String} blockType

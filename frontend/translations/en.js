@@ -7,10 +7,10 @@ stringBundles.push({
     'Services': 'Services',
     'Services#partitive': 'Services',
     'Service': 'Service',
-    // edit-app/src/Block/BlockDnDSpawner.jsx
+    // edit-app/src/left-panel/Block/BlockDnDSpawner.jsx
     'Start adding content': 'Start adding content',
     'Filter': 'Filter',
-    // edit-app/src/Block/BlockStylesTab.jsx
+    // edit-app/src/left-panel/Block/BlockStylesTab.jsx
     'Use style': 'Use style',
     'No own styles': 'No own styles',
     'Show parent styles': 'Show parent styles',
@@ -45,10 +45,10 @@ stringBundles.push({
     'Link to a page: ': 'Link to a page: ',
     'Link to an image: ': 'Link to an image: ',
     'Link to an address: ': 'Link to an address: ',
-    // edit-app/src/BlockEditForm.jsx
+    // edit-app/src/left-panel/Block/BlockEditForm.jsx
     'Styles': 'Styles',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
-    // edit-app/src/BlockTree.jsx
+    // edit-app/src/left-panel/Block/BlockTree.jsx
     'Add child content': 'Add child content',
     'Duplicate': 'Duplicate',
     'Duplicate content': 'Duplicate content',

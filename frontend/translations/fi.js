@@ -7,10 +7,10 @@ stringBundles.push({
     'Services': 'Palvelut',
     'Services#partitive': 'Palvelua',
     'Service': 'Palvelu',
-    // edit-app/src/Block/BlockDnDSpawner.jsx
+    // edit-app/src/left-panel/Block/BlockDnDSpawner.jsx
     'Start adding content': 'Aloita lisäämään sisältöä',
     'Filter': 'Suodata',
-    // edit-app/src/Block/BlockStylesTab.jsx
+    // edit-app/src/left-panel/Block/BlockStylesTab.jsx
     'Use style': 'Käytä tyyliä',
     'No own styles': 'Ei omia tyylejä',
     'Show parent styles': 'Näytä ulommat tyylit',
@@ -45,10 +45,10 @@ stringBundles.push({
     'Link to a page: ': 'Linkki sivuun: ',
     'Link to an image: ': 'Linkki kuvaan: ',
     'Link to an address: ': 'Linkki osoitteeseen: ',
-    // edit-app/src/BlockEditForm.jsx
+    // edit-app/src/left-panel/Block/BlockEditForm.jsx
     'Styles': 'Tyylit',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
-    // edit-app/src/BlockTree.jsx
+    // edit-app/src/left-panel/Block/BlockTree.jsx
     'Add child content': 'Lisää lapsisisältöä',
     'Duplicate': 'Monista',
     'Duplicate content': 'Monista sisältö',

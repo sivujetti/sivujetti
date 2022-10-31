@@ -1,16 +1,16 @@
 import {__, api, env, http, signals, timingUtils, Icon, LoadingSpinner, hookForm,
     unhookForm, Input, FormGroup, InputErrors, InputError, hasErrors} from '@sivujetti-commons-for-edit-app';
-import ContextMenu from '../commons/ContextMenu.jsx';
-import CssStylesValidatorHelper from '../commons/CssStylesValidatorHelper.js';
-import store2, {observeStore as observeStore2} from '../store2.js';
-import store, {createSelectBlockTree, pushItemToOpQueue} from '../store.js';
-import {validationConstraints} from '../constants.js';
-import {triggerUndo} from '../SaveButton.jsx';
-import {Popup} from '../block-types/Listing/EditForm.jsx';
-import {createTrier} from '../../../webpage/src/EditAppAwareWebPage.js';
-import exampleScss from '../example-scss.js';
+import {createTrier} from '../../../../webpage/src/EditAppAwareWebPage.js';
+import {Popup} from '../../block-types/Listing/EditForm.jsx';
+import ContextMenu from '../../commons/ContextMenu.jsx';
+import CssStylesValidatorHelper from '../../commons/CssStylesValidatorHelper.js';
+import store2, {observeStore as observeStore2} from '../../store2.js';
+import store, {createSelectBlockTree, pushItemToOpQueue} from '../../store.js';
+import {validationConstraints} from '../../constants.js';
+import {triggerUndo} from '../../SaveButton.jsx';
+import exampleScss from '../../example-scss.js';
 import VisualStyles from './VisualStyles.jsx';
-import blockTreeUtils from '../blockTreeUtils.js';
+import blockTreeUtils from './blockTreeUtils.js';
 
 let compile, serialize, stringify;
 let emitSaveStylesToBackendOp;
@@ -50,12 +50,8 @@ class BlockStylesTab extends preact.Component {
         this.state = Object.assign({units: [], liClasses: [], blockCopy}, this.createBlockClassesState(blockCopy));
         this.unregistrables = [observeStore2('themeStyles', ({themeStyles}, [event]) => {
             const {units} = (findBlockTypeStyles(themeStyles, this.state.blockCopy.type) || {});
-            if (this.state.units !== units) {
-                const openLiIdx = event === 'themeStyles/addUnitTo' || event === 'themeStyles/addStyle'
-                    ? units.length - 1
-                    : this.state.liClasses.findIndex(s => s !== '');
-                this.updateUnitsState(units, themeStyles, openLiIdx);
-            }
+            if (this.state.units !== units)
+                this.updateUnitsState(units, themeStyles, this.getOpenLiIdx(event, units));
         }),
         ];
         props.grabBlockChanges((block, _origin, _isUndo) => {
@@ -71,7 +67,7 @@ class BlockStylesTab extends preact.Component {
             this.setState({themeStyles: null});
             const themeStyles = tempHack();
             if (themeStyles)
-                this.updateUnitsState((findBlockTypeStyles(themeStyles, this.state.blockCopy.type) || {}).units, themeStyles);
+                this.updateUnitsState((findBlockTypeStyles(themeStyles, this.state.blockCopy.type) || {}).units, themeStyles, 0);
             // else Wait for store2.dispatch('themeStyles/setAll')
         }
     }
@@ -362,6 +358,16 @@ class BlockStylesTab extends preact.Component {
             this.setState({liClasses: createLiClasses(this.state.units, liIdx)});
         else // Hide all
             this.setState({liClasses: createLiClasses(this.state.units, -1)});
+    }
+    getOpenLiIdx(event, units) {
+        if (event === 'themeStyles/setAll') {
+            const fe = null; // todo
+            console.log('first enabled', fe);
+            return fe ? units.indexOf(fe) : -1;
+        }
+        return event === 'themeStyles/addUnitTo' || event === 'themeStyles/addStyle'
+            ? units.length - 1
+            : this.state.liClasses.findIndex(s => s !== '');
     }
 }
 

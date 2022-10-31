@@ -1,9 +1,9 @@
 import {__, http} from '@sivujetti-commons-for-edit-app';
-import blockTreeUtils from '../blockTreeUtils.js';
-import toasters from '../commons/Toaster.jsx';
+import {findRefBlockOf, isTreesOutermostBlock, treeToTransferable} from '../../Block/utils.js';
+import toasters from '../../commons/Toaster.jsx';
 import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue,
-                selectCurrentPageDataBundle} from '../store.js';
-import {findRefBlockOf, isTreesOutermostBlock, treeToTransferable} from './utils.js';
+                selectCurrentPageDataBundle} from '../../store.js';
+import blockTreeUtils from './blockTreeUtils.js';
 
 /**
  * @param {BlockTree} blockTree

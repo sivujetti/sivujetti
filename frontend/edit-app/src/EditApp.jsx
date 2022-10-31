@@ -7,7 +7,7 @@ import DefaultPanel from './left-panel/DefaultPanel.jsx';
 import PageCreatePanel from './left-panel/PageCreatePanel.jsx';
 import PageDuplicatePanel from './left-panel/PageDuplicatePanel.jsx';
 import PageTypeCreatePanel from './left-panel/PageTypeCreatePanel.jsx';
-import {getArePanelsHidden} from './IframePageManager.js';
+import {createStoreAndDispatchInnerTree, getArePanelsHidden} from './IframePageManager.js';
 
 const PreactRouter = preactRouter;
 
@@ -46,7 +46,7 @@ class EditApp extends preact.Component {
     addBlockTree(trid, blocks) {
         if (blocks[0].isStoredTo !== 'globalBlockTree' || blocks[0].isStoredToTreeId !== trid)
             throw new Error('blocks not initialized');
-        this.createStoreAndDispatchInnerTree(trid, blocks);
+        createStoreAndDispatchInnerTree(trid, blocks);
     }
     /**
      * @param {String} trid

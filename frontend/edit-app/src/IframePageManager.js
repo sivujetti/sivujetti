@@ -3,7 +3,7 @@ import store, {observeStore, setCurrentPageDataBundle, setOpQueue, createSetBloc
                createBlockTreeReducerPair, createSelectBlockTree} from './store.js';
 import {observeStore as observeStore2} from './store2.js';
 import {makePath, makeSlug} from './block-types/pageInfo.js';
-import blockTreeUtils from './blockTreeUtils.js';
+import blockTreeUtils from './left-panel/Block/blockTreeUtils.js';
 import {toTransferable} from './Block/utils.js';
 
 const webPageUnregistrables = new Map;
@@ -242,4 +242,4 @@ function createWebsiteEventHandlers2(highlightRectEl) {
 }
 
 export default IframePageManager;
-export {getArePanelsHidden, createWebsiteEventHandlers2};
+export {getArePanelsHidden, createWebsiteEventHandlers2, createStoreAndDispatchInnerTree};

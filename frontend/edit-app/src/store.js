@@ -1,5 +1,5 @@
 import {createManageableStore, observeStore} from './redux-utils.js';
-import blockTreeUtils from './blockTreeUtils.js';
+import blockTreeUtils from './left-panel/Block/blockTreeUtils.js';
 
 /**
  * @param {CurrentPageData} state

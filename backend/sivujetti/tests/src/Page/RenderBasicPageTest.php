@@ -179,7 +179,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertEquals(
             "document.head.appendChild({$expectedStyles}.reduce((out, {css, blockTypeName}) => {\n" .
             "  const bundle = document.createElement('style');\n" .
-            "  bundle.innerHTML = css;\n" .
+            "  bundle.innerHTML = `@layer \${blockTypeName !== '_body_' ? 'units' : 'body-unit'} { \${css} }`;\n" .
             "  bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
             "  out.appendChild(bundle);\n" .
             "  return out;\n" .

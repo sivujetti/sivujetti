@@ -96,9 +96,11 @@ final class ThemesController {
 
             // 3. Replace or add the updated portion from/to theme.generatedScopedStylesCss
             $generatedCssAll = $current->generatedScopedStylesCss;
+            $layerName = $req->params->blockTypeName !== "_body_" ? "units" : "body-unit";
+            $joined = $req->body->units ? implode("\n", array_map(fn($b) => $b->generatedCss, $req->body->units)) : "";
             $updatedAll = self::addOrReplaceLines(
                 from: $generatedCssAll,
-                withLines: ($req->body->units ? implode("\n", array_map(fn($b) => $b->generatedCss, $req->body->units)) : "/* - */") . "\n",
+                withLines: ($joined ? "@layer {$layerName} { {$joined} }" : "/* - */") . "\n",
                 startLine: "/* -- .j-{$req->params->blockTypeName} classes start -- */\n",
                 endLine: "/* -- .j-{$req->params->blockTypeName} classes end -- */\n"
             );

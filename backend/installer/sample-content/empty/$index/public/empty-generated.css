@@ -2,7 +2,7 @@
 
 /* ==== Scoped styles start ==== */
 /* -- .j-_body_ classes start -- */
-.j-_body_{--defaultBgColor:#ffffff;--defaultTextColor:#444;margin:0;background-color:var(--defaultBgColor);color:var(--defaultTextColor);}.j-_body_ >.j-Section>div{max-width:1100px;margin:0 auto;padding:1rem 2rem;}
+@layer body-unit { .j-_body_{--defaultBgColor:#ffffff;--defaultTextColor:#444;margin:0;background-color:var(--defaultBgColor);color:var(--defaultTextColor);}.j-_body_ >.j-Section>div{max-width:1100px;margin:0 auto;padding:1rem 2rem;} }
 /* -- .j-_body_ classes end -- */
 /* -- .j-Paragraph classes start -- */
 /* nothing */

@@ -24,13 +24,13 @@ final class CssGenTestUtils {
         $lines = explode("\n", $full); // [<header>, <emptyLine>, <scopedStylesStartMarker>, <scopedStyle>*, <scopedStylesEndMarker>]
         return implode("\n", array_slice($lines, 3, count($lines) - 4 - 1)) . "\n";
     }
-    public static function generateScopedStyles(array $styles): string {
-        return implode("", array_map(function ($style) {
+    public static function generateScopedStyles(array $styles, bool $isBodyStyles = false): string {
+        $layerName = !$isBodyStyles ? "units" : "body-unit";
+        return implode("", array_map(function ($style) use ($layerName) {
             $units = is_array($style->units) ? $style->units : json_decode($style->units);
+            $joined = count($units) > 0 ? implode("\n", array_map(fn($b) => $b->generatedCss, $units)) : "";
             return "/* -- .j-{$style->blockTypeName} classes start -- */\n" .
-                (count($units) > 0 ? implode("\n", array_map(fn($b) =>
-                    $b->generatedCss,
-                $units)) : "/* - */") . "\n" .
+                ($joined ? "@layer {$layerName} { {$joined} }" : "/* - */") . "\n" .
             "/* -- .j-{$style->blockTypeName} classes end -- */\n";
         }, $styles));
     }

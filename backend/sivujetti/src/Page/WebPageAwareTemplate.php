@@ -201,16 +201,19 @@ final class WebPageAwareTemplate extends Template {
      * @return string
      */
     public function cssFiles(): string {
+        $def = "<style>@layer theme, body-unit, units</style>\n";
         if (!$this->__cssAndJsFiles)
-            return "";
+            return $def;
         $rf = function ($f) {
             $attrsMap = $f->attrs;
             if (!array_key_exists("rel", $attrsMap)) $attrsMap["rel"] = "stylesheet";
             return "<link href=\"{$this->assetUrl("public/{$this->e($f->url)}")}\"" .
                 $this->attrMapToStr($attrsMap) . ">";
         };
+        //
+        $out = $def;
         // Global variables
-        $out = $this->__theme->globalStyles ? "<style>:root {" .
+        $out .= $this->__theme->globalStyles ? "<style>:root {" .
             implode("\n", array_map(fn($style) =>
                 // Note: these are pre-validated
                 "    --{$style->name}: {$this->cssValueToString($style->value)};"
@@ -240,7 +243,7 @@ final class WebPageAwareTemplate extends Template {
                 ], $this->__theme->styles), $this->__applyFilters->__invoke("sivujetti:editAppAdditionalStyleUnits", []))
             )) . ".reduce((out, {css, blockTypeName}) => {\n" .
             "  const bundle = document.createElement('style');\n" .
-            "  bundle.innerHTML = css;\n" .
+            "  bundle.innerHTML = `@layer \${blockTypeName !== '_body_' ? 'units' : 'body-unit'} { \${css} }`;\n" .
             "  bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
             "  out.appendChild(bundle);\n" .
             "  return out;\n" .

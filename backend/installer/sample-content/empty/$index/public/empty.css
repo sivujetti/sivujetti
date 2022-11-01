@@ -1,3 +1,4 @@
+@layer theme {
 figure {
     margin: 0;
 }
@@ -35,4 +36,5 @@ img {
 }
 .j-Menu li {
     margin: 0;
+}
 }

@@ -400,13 +400,14 @@ class EditAppAwareWebPage {
     createThemeStylesChangeListener() {
         const upsertInlineStyle = (blockTypeName, style) => {
             const css = style.units.map(({generatedCss}) => generatedCss).join('\n');
+            const wrapped = `@layer ${blockTypeName !== '_body_' ? 'units' : 'body-unit'} { ${css} }`;
             const node = document.head.querySelector(`style[data-style-units-for="${blockTypeName}"]`);
             if (node) {
-                node.innerHTML = css;
+                node.innerHTML = wrapped;
             } else {
                 const node = document.createElement('style');
                 node.setAttribute('data-style-units-for', blockTypeName);
-                node.innerHTML = css;
+                node.innerHTML = wrapped;
                 document.head.appendChild(node);
             }
         };

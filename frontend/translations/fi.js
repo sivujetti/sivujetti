@@ -34,6 +34,8 @@ stringBundles.push({
     'Content': 'Sisältö',
     'Page "%s" already exist.': 'Sivu "%s" on jo olemassa.',
     'Something unexpected happened.': 'Jokin meni pieleen.',
+    // edit-app/src/Page/PagesListView.jsx
+    'Duplicate page': 'Monista sivu',
     // edit-app/src/Quill/*
     'Image': 'Kuva',
     'External': 'Ulkoinen',
@@ -126,6 +128,8 @@ stringBundles.push({
     // edit-app/src/SaveButton.jsx
     'Undo latest change': 'Peruuta viimeisin muutos',
     'Save changes': 'Tallenna muutokset',
+    // edit-app/src/WebPageIframe.js
+    'Copy': 'Kopio',
     // edit-app/src/block-types/Menu/EditForm.jsx
     'Add link': 'Lisää linkki',
     'Edit': 'Muokkaa',

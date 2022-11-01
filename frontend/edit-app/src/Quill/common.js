@@ -22,7 +22,7 @@ function determineModeFrom(url, translationsPool = 'dialogTitles') {
         //
         const isLocal = url.startsWith('/') && !url.startsWith('//');
         if (isLocal) {
-            const pcs = url.split('/'); // ['base', 'pagename'] or ['base', 'public', 'uploads', 'filename.png']
+            const pcs = url.split('/'); // ['', 'base', 'pagename'] or ['', 'base', 'public', 'uploads', 'filename.png']
             const isImage = pcs.length > 2 && pcs[pcs.length - 3] === 'public' && pcs[pcs.length - 2] === 'uploads';
             return !isImage ? 'pick-url' : 'pick-image';
         }
@@ -33,7 +33,7 @@ function determineModeFrom(url, translationsPool = 'dialogTitles') {
 }
 
 /**
- * @param {String} url '/pagename' or '/uploads/filename.png' or <external>
+ * @param {String} url '/pagename' or '/public/uploads/filename.png' or <external>
  * @returns {String} '/base/pagename' or '/base/public/uploads/filename.png' or <external>
  */
 function getCompletedUrl(url) {
@@ -42,10 +42,18 @@ function getCompletedUrl(url) {
     //
     const isLocal = url.startsWith('/') && !url.startsWith('//');
     if (isLocal) {
-        const isImage = url.startsWith('/uploads/');
-        return !isImage ? urlUtils.makeUrl(url) : urlUtils.makeAssetUrl(`/public${url}`);
+        const isImage = url.startsWith('/public/uploads/');
+        return !isImage ? urlUtils.makeUrl(url) : urlUtils.makeAssetUrl(url);
     }
     //
+    return normalizeExternalUrl(url);
+}
+
+/**
+ * @param {String} url
+ * @returns {String}
+ */
+function normalizeExternalUrl(url) {
     return `${url.startsWith('//') || url.startsWith('http') ? '' : '//'}${url}`;
 }
 
@@ -78,4 +86,5 @@ function getLabel(mode, translationsPool = 'dialogTitles') {
     return titles[mode];
 }
 
-export {determineModeFromPreview, determineModeFrom, getCompletedUrl, getLabel};
+export {determineModeFromPreview, determineModeFrom, getCompletedUrl, getLabel,
+        normalizeExternalUrl};

@@ -48,11 +48,11 @@ final class PagesController {
             return;
         }
         self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
-            $page, $pageType);
+            $page, $pageType, false);
     }
     /**
-     * GET /api/_placeholder-page/[w:pageType]/[i:layoutId]: renders a placeholder
-     * page for "Create page" functionality.
+     * GET /api/_placeholder-page/[w:pageType]/[i:layoutId]?duplicate=[*:slug]: renders
+     * a placeholder page for "Create|Duplicate page" functionality.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
@@ -69,20 +69,28 @@ final class PagesController {
                                           SharedAPIContext $apiCtx,
                                           TheWebsite $theWebsite): void {
         $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
-        $page = self::createEmptyPage($pageType);
-        foreach ($pageType->ownFields as $field) {
-            $page->{$field->name} = $field->defaultValue;
+        $slugOfPageToDuplicate = $req->queryVar("duplicate");
+        $page = null;
+        //
+        if ($slugOfPageToDuplicate === null) {
+            $page = self::createEmptyPage($pageType);
+            foreach ($pageType->ownFields as $field) {
+                $page->{$field->name} = $field->defaultValue;
+            }
+            $layout = $layoutsRepo->findById($req->params->layoutId);
+            if (!$layout)
+                throw new PikeException("Layout `{$req->params->layoutId}` doesn't exist",
+                                        PikeException::BAD_INPUT);
+            $page->layoutId = $layout->id;
+            $page->layout = $layout;
+            self::mergeLayoutBlocksTo($page, $page->layout, $pageType);
+        } else {
+            $page = $pagesRepo->getSingle($pageType, ["filters" => [["slug", urldecode($slugOfPageToDuplicate)]]]);
+            if (!$page) throw new \RuntimeException("No such page exist", PikeException::BAD_INPUT);
         }
-        $layout = $layoutsRepo->findById($req->params->layoutId);
-        if (!$layout)
-            throw new PikeException("Layout `{$req->params->layoutId}` doesn't exist",
-                                    PikeException::BAD_INPUT);
-        $page->layoutId = $layout->id;
-        $page->layout = $layout;
-        self::mergeLayoutBlocksTo($page, $page->layout, $pageType);
         //
         self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
-            $page, $pageType);
+            $page, $pageType, true);
     }
     /**
      * GET /_edit/[**:url]?: Renders the edit app.
@@ -283,6 +291,7 @@ final class PagesController {
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\Page\Entities\Page $page
      * @param \Sivujetti\PageType\Entities\PageType $pageType
+     * @param bool $isPlaceholderPage
      */
     private static function sendPageResponse(Request $req,
                                              Response $res,
@@ -290,10 +299,10 @@ final class PagesController {
                                              SharedAPIContext $apiCtx,
                                              TheWebsite $theWebsite,
                                              Page $page,
-                                             PageType $pageType) {
+                                             PageType $pageType,
+                                             bool $isPlaceholderPage) {
         $themeAPI = new UserThemeAPI("theme", $apiCtx, new Translator);
         $_ = new Theme($themeAPI); // Note: mutates $apiCtx->userDefinesAssets|etc
-        $isPlaceholderPage = $page->id === "-";
         //
         self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo);
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);

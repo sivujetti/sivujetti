@@ -1,4 +1,4 @@
-import {translator, api, env, urlUtils, stringUtils, signals} from '@sivujetti-commons-for-edit-app';
+import {translator, api, env, stringUtils} from '@sivujetti-commons-for-edit-app';
 import {Validator} from './src/commons/Form.jsx';
 import {sensibleDefaults} from './src/constants.js';
 import {FormStateStoreWrapper} from './src/store.js';
@@ -39,7 +39,7 @@ function populateFrontendApi() {
     api.getActiveTheme = () => d.activeTheme;
     api.registerTranslationStrings = translator.addStrings.bind(translator);
     api.webPageIframe = new WebPageIframe(document.getElementById('site-preview-iframe'),
-        document.querySelector('.highlight-rect'), env, urlUtils);
+        document.querySelector('.highlight-rect'));
     api.user = {
         can(doWhat) { return d.userPermissions[`can${stringUtils.capitalize(doWhat)}`] === true; },
         getRole() { return d.userRole; },

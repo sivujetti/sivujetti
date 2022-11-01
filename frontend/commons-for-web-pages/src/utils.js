@@ -7,17 +7,21 @@ const urlUtils = {
     env: null,
     /**
      * @param {String} url
+     * @param {Boolean} includeDomain = false
      * @returns {String}
      */
-    makeUrl(url) {
-        return this.baseUrl + this.normalizeUrl(url);
+    makeUrl(url, includeDomain = false) {
+        const pref = !includeDomain ? '' : this.env.window.location.origin;
+        return pref + this.baseUrl + this.normalizeUrl(url);
     },
     /**
      * @param {String} url
+     * @param {Boolean} includeDomain = false
      * @returns {String}
      */
-    makeAssetUrl(url) {
-        return this.assetBaseUrl + this.normalizeUrl(url);
+    makeAssetUrl(url, includeDomain = false) {
+        const pref = !includeDomain ? '' : this.env.window.location.origin;
+        return pref + this.assetBaseUrl + this.normalizeUrl(url);
     },
     /**
      * @param {String} url

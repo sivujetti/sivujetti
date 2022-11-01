@@ -17,7 +17,12 @@ class PageCreatePanel extends preact.Component {
         const pageTypeName = this.props.pageTypeName || 'Pages';
         const layoutId = this.props.layoutId || '1';
         this.pageType = api.getPageTypes().find(({name}) => name === pageTypeName);
-        api.webPageIframe.renderPlaceholderPage(pageTypeName, layoutId).then(_webPage => {
+        const slug = this.props.path.startsWith('/pages/create')
+            // this.props.path = '/pages/create/:pageTypeName?/:layoutId?'
+            ? ''
+            // this.props.path = '/pages/:pageSlug/duplicate'
+            : this.props.pageSlug;
+        api.webPageIframe.renderPlaceholderPage(pageTypeName, layoutId, slug).then(_webPage => {
             this.setState({temp: ':pseudo/new-page'});
             this.overwriteOpQueue();
         });

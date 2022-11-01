@@ -1,8 +1,6 @@
+import {__, env, urlUtils} from '@sivujetti-commons-for-edit-app';
 import {createTrier} from '../../../frontend/webpage/src/EditAppAwareWebPage.js';
 import IframePageManager from './IframePageManager.js';
-
-let env;
-let urlUtils;
 
 class WebPageIframe {
     // el;
@@ -10,14 +8,10 @@ class WebPageIframe {
     /**
      * @param {HTMLIFrameElement} el
      * @param {HTMLElement} blockHighlightEl
-     * @param {any} _env
-     * @param {any} _urlUtils
      */
-    constructor(el, blockHighlightEl, _env, _urlUtils) {
+    constructor(el, blockHighlightEl) {
         this.el = el;
         this.pageManager = new IframePageManager(blockHighlightEl);
-        env = _env;
-        urlUtils = _urlUtils;
     }
     /**
      * @param {String} pageTypeName
@@ -28,7 +22,8 @@ class WebPageIframe {
      */
     renderPlaceholderPage(pageTypeName, layoutId = '1', slug = '') {
         return this.loadPage(
-            urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`) + (!slug ? '' : `/${encodeURIComponent(slug)}`)
+            urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`)
+                + (!slug ? '' : t(`duplicate=${encodeURIComponent(slug)}`))
         );
     }
     /**
@@ -38,7 +33,7 @@ class WebPageIframe {
      */
     renderNormalPage(slug) {
         return this.loadPage(
-            urlUtils.makeUrl(slug) + `${urlUtils.baseUrl.indexOf('?') < 0 ? '?' : '&'}in-edit=1`,
+            `${urlUtils.makeUrl(slug)}${t('in-edit=1')}`,
         );
     }
     /**
@@ -120,7 +115,7 @@ class WebPageIframe {
             // 1.
             env.window.receiveNewPreviewIframePage = webPage => {
                 // 3.
-                this.pageManager.loadPage(webPage);
+                this.pageManager.loadPage(iframeUrl.indexOf('duplicate=') < 0 ? webPage : withPatchedTitle(webPage));
                 resolve(webPage);
                 env.window.receiveNewPreviewIframePage = null;
             };
@@ -128,6 +123,22 @@ class WebPageIframe {
             this.getEl().contentWindow.location.replace(iframeUrl);
         });
     }
+}
+
+/**
+ * @param {EditAppAwareWebPage} webPage
+ * @returns {EditAppAwareWebPage}
+ */
+function withPatchedTitle(webPage) {
+    const mutRef = webPage.data.page;
+    mutRef.title = `${mutRef.title} (${__('Copy')})`;
+    mutRef.slug = `${mutRef.slug}-${__('Copy').toLowerCase()}`;
+    mutRef.path = `${mutRef.slug.substring(1)}/`;
+    return webPage;
+}
+
+function t(url) {
+    return `${urlUtils.baseUrl.indexOf('?') < 0 ? '?' : '&'}${url}`;
 }
 
 export default WebPageIframe;

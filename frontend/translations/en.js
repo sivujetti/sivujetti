@@ -34,6 +34,8 @@ stringBundles.push({
     'Content': 'Content',
     'Page "%s" already exist.': 'Page "%s" already exist.',
     'Something unexpected happened.': 'Something unexpected happened.',
+    // edit-app/src/Page/PagesListView.jsx
+    'Duplicate page': 'Duplicate page',
     // edit-app/src/Quill/*,
     'Image': 'Image',
     'External': 'External',
@@ -126,6 +128,8 @@ stringBundles.push({
     // edit-app/src/SaveButton.jsx
     'Undo latest change': 'Undo latest change',
     'Save changes': 'Save changes',
+    // edit-app/src/WebPageIframe.js
+    'Copy': 'Copy',
     // edit-app/src/block-types/Menu/EditForm.jsx
     'Add link': 'Add link',
     'Edit': 'Edit',

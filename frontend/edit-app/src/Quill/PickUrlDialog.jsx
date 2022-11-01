@@ -2,7 +2,7 @@ import {__, env, http, Icon, LoadingSpinner, hookForm, Input, InputErrors, hasEr
 import UploadsManager from '../Upload/UploadsManager.jsx';
 import {urlValidatorImpl} from '../validation.js';
 import {validationConstraints} from '../constants.js';
-import {determineModeFrom, getLabel} from './common.js';
+import {determineModeFrom, getLabel, normalizeExternalUrl} from './common.js';
 
 class PickUrlDialog extends preact.Component {
     // currentExternalUrl;
@@ -29,13 +29,13 @@ class PickUrlDialog extends preact.Component {
     render({url}, {mode}) {
         if (mode === 'pick-url') return <PickPageTab
             url={ url }
-            onPickurl={ this.save.bind(this) }
+            onPickurl={ slug => this.save(urlUtils.makeUrl(slug)) }
             goBack={ () => this.setMode('choose-link-type') }/>;
         //
         if (mode === 'pick-image') return [
             <div><button onClick={ () => this.setMode('choose-link-type') } class="btn btn-sm mb-2" type="button">&lt;</button></div>,
             <UploadsManager
-                onEntryClicked={ entry => { this.save(`${entry.baseDir}/${entry.fileName}`); } }
+                onEntryClicked={ entry => { this.save(urlUtils.makeAssetUrl(`/public/uploads${entry.baseDir}/${entry.fileName}`)); } }
                 numColumns="3"
                 onlyImages
                 hideTabs/>
@@ -48,7 +48,7 @@ class PickUrlDialog extends preact.Component {
                 this.setMode('choose-link-type');
             } }
             onUrlChanged={ validUrl => {
-                this.currentExternalUrl = validUrl;
+                this.currentExternalUrl = normalizeExternalUrl(validUrl);
             } }
             done={ () => this.save(this.currentExternalUrl, true) }/>;
         //
@@ -78,7 +78,7 @@ class PickUrlDialog extends preact.Component {
      * @access private
      */
     save(url, close = true) {
-        this.props.onConfirm(`${this.state.mode === 'pick-image' ? '/uploads' : ''}${url}`);
+        this.props.onConfirm(url, this.state.mode);
         if (close) this.props.dialog.close();
     }
 }
@@ -136,7 +136,7 @@ class DefineExternalUrlTab extends preact.Component {
      */
     constructor(props) {
         super(props);
-        const url = props.url && determineModeFrom(props.url)[0] === 'type-external-url' ? unnormalize(props.url) : '';
+        const url = props.url && determineModeFrom(props.url)[0] === 'type-external-url' ? unnormalizeExternalUrl(props.url) : '';
         this.componentWillMount();
         this.state = hookForm(this, [
             {name: 'url', value: url, validations: [
@@ -185,7 +185,7 @@ function getHeight(mode) {
  * @param {String} url
  * @returns {String|null}
  */
-function unnormalize(url) {
+function unnormalizeExternalUrl(url) {
     if (url.startsWith('//')) return url.substring(2);
     return url.startsWith('/') ? null : url;
 }

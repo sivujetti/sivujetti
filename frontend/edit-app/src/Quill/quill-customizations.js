@@ -1,5 +1,5 @@
 import {__, env, urlUtils, iconAsString} from '@sivujetti-commons-for-edit-app';
-import {determineModeFromPreview, getCompletedUrl} from './common.js';
+import {determineModeFromPreview} from './common.js';
 
 const Quill = window.Quill;
 
@@ -41,10 +41,10 @@ class MySnowTheme extends Quill.import('themes/snow') {
             const linkEl = this.tooltip.preview;
             let noOrigin, urlPreview;
             if (linkEl.host === window.location.host) {
-                noOrigin = linkEl.href.substring(location.origin.length);
+                noOrigin = linkEl.href.substring(linkEl.origin.length);
                 urlPreview = determineModeFromPreview(noOrigin)[0] === 'pick-url'
                     ? noOrigin.substring(urlUtils.baseUrl.length - 1)
-                    : `uploads/${noOrigin.split('/uploads/')[1]}`;
+                    : `public/uploads/${noOrigin.split('/public/uploads/')[1]}`;
             } else {
                 noOrigin = !linkEl.href.startsWith('//') ? linkEl.href : linkEl.href.substring('//'.length);
                 urlPreview = noOrigin;
@@ -59,6 +59,7 @@ class MySnowTheme extends Quill.import('themes/snow') {
                 `<span class="col-mr-auto">${title}</span>`;
             myPreviewLink.href = linkEl.href;
             myPreviewLink.title = linkEl.href;
+            myPreviewLink.target = '_blank';
             myPreviewLink.textContent = urlPreview;
             return origShow.call(this.tooltip, ...args);
         };
@@ -67,9 +68,12 @@ class MySnowTheme extends Quill.import('themes/snow') {
         const origEdit = this.tooltip.edit;
         this.tooltip.edit = (p1 = undefined, p2 = undefined, p3 = undefined) => {
             const mode = p1 || 'link';
-            const url = p2 || null;
-            const preview = p3 || null;
             if (mode === 'link') {
+                const linkEl = this.tooltip.preview;
+                const url = p2 ? linkEl.host !== window.location.host
+                    ? linkEl.href
+                    : linkEl.href.substring(linkEl.origin.length) : '';
+                const preview = p3 || null;
                 this.tooltip.hide();
                 this.sivujettiApi.openUrlPicker(preview, url);
                 return;
@@ -144,18 +148,32 @@ class MyLink extends Quill.import('formats/link') {
      */
     static create(value) {
         const node = super.create(value);
-        if (node.host === env.window.location.host) {
+        const isLocal = value.startsWith('/') && !value.startsWith('//');
+        if (isLocal && node.host === env.window.location.host) {
             node.removeAttribute('rel');
             node.removeAttribute('target');
+            addOriginToHrefOf(node);
         }
         return node;
     }
     /**
      * @inheritdoc
      */
-    static sanitize(url) {
-        return super.sanitize(getCompletedUrl(url));
+    format(name, value) {
+        super.format(name, value);
+        if (value && value.startsWith('/') && !value.startsWith('//') && this.domNode.host === env.window.location.host) {
+            addOriginToHrefOf(this.domNode);
+        }
     }
+}
+
+/**
+ * @param {HTMLAnchorElement} linkEl
+ */
+function addOriginToHrefOf(linkEl) {
+    const urlNoOrigin = linkEl.getAttribute('href');
+    linkEl.setAttribute('data-href-original', urlNoOrigin);
+    linkEl.setAttribute('href', linkEl.origin + urlNoOrigin);
 }
 
 export {MySnowTheme, MyClipboard, MyKeyboard, MyLink};

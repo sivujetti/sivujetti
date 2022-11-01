@@ -68,7 +68,7 @@ class EditApp extends preact.Component {
             </a> }
             <header class={ !hidePanels ? 'd-flex' : 'd-none' }>
                 <div class="mode-chooser ml-2 d-flex p-1" style="margin-bottom: -.2rem; margin-top: .1rem;">
-                    <a href={ urlUtils.makeUrl('_edit') } class="d-inline-block mr-1">
+                    <a href={ urlUtils.makeUrl('_edit', true) } class="d-inline-block mr-1">
                         <img src={ logoUrl }/>
                     </a>
                     <span class="d-inline-block ml-1">
@@ -106,7 +106,7 @@ class EditApp extends preact.Component {
             </div></div>
             }
             <PreactRouter history={ History.createHashHistory() }>
-                <DefaultPanel path="/:slug?" default/>
+                <DefaultPanel path="/:slug?"/>
                 <PageCreatePanel path="/pages/create/:pageTypeName?/:layoutId?"/>
                 <PageDuplicatePanel path="/pages/:pageSlug/duplicate"/>
                 <PageTypeCreatePanel path="/page-types/create"/>

@@ -52,6 +52,7 @@ class QuillEditor extends preact.Component {
     componentDidMount() {
         let toolbar = toolbarBundles[this.props.toolbarBundle || 'simplest'];
         if (!toolbar) toolbar = toolbarBundles['simplest'];
+        this.contentMaybeHasLinks = toolbar.flat().indexOf('link') > -1;
         //
         const dhis = this;
         this.quill = new window.Quill(`#editor-${this.props.name}`, {
@@ -69,15 +70,15 @@ class QuillEditor extends preact.Component {
                     mode,
                     url,
                     dialog: floatingDialog,
-                    onConfirm: url => {
+                    onConfirm: url2  => {
                         const {quill} = dhis;
                         var scrollTop = quill.root.scrollTop;
                         if (quill.theme.tooltip.linkRange) {
-                            quill.formatText(quill.theme.tooltip.linkRange, 'link', url, window.Quill.sources.USER);
+                            quill.formatText(quill.theme.tooltip.linkRange, 'link', url2, window.Quill.sources.USER);
                             delete quill.theme.tooltip.linkRange;
                         } else {
                             quill.theme.tooltip.restoreFocus();
-                            quill.format('link', url, window.Quill.sources.USER);
+                            quill.format('link', url2, window.Quill.sources.USER);
                         }
                         quill.root.scrollTop = scrollTop;
                     },
@@ -86,9 +87,9 @@ class QuillEditor extends preact.Component {
         });
         if (this.props.onInit) this.props.onInit(this);
         this.quill.on('text-change', (_delta, _oldDelta, _source) => {
+            const normalized = this.getEditorHtml();
             if (this.quill.container.firstChild)
-                this.props.onChange(this.quill.container.firstChild.innerHTML,
-                                    this.myChangeSource);
+                this.props.onChange(normalized, this.myChangeSource);
         });
         if (this.props.onBlur)
             this.quill.on('selection-change', range => {
@@ -108,6 +109,22 @@ class QuillEditor extends preact.Component {
         return <div>
             <div id={ `editor-${this.props.name}` } dangerouslySetInnerHTML={ {__html: this.props.value} }></div>
         </div>;
+    }
+    /**
+     * @returns {String}
+     * @access private
+     */
+    getEditorHtml() {
+        if (!this.contentMaybeHasLinks || !this.quill.container.firstChild.querySelectorAll('a[data-href-original]').length)
+            return this.quill.container.firstChild.innerHTML;
+        //
+        const copy = this.quill.container.firstChild.cloneNode(true);
+        Array.from(copy.querySelectorAll('a[data-href-original]')).forEach(el => {
+            const urlWithoutOrigin = el.getAttribute('data-href-original');
+            el.removeAttribute('data-href-original');
+            el.setAttribute('href', urlWithoutOrigin);
+        });
+        return copy.innerHTML;
     }
 }
 

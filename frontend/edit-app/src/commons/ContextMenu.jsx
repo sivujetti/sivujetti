@@ -44,10 +44,15 @@ class ContextMenu extends preact.Component {
             <a href="#close" class="popup-close-area" onClick={ this.close.bind(this) }></a>,
             <ul class="popup-menu menu" style={ `left:${this.pos.left+10}px;top:${this.pos.top+10}px` } ref={ el => {
                 if (!el) return;
-                const hiddenPortion = el.getBoundingClientRect().bottom - env.window.innerHeight;
-                if (hiddenPortion > 0) {
-                    this.pos.top -= hiddenPortion;
+                const hiddenPortionBottom = el.getBoundingClientRect().bottom - env.window.innerHeight;
+                if (hiddenPortionBottom > 0) {
+                    this.pos.top -= hiddenPortionBottom;
                     el.style.top = `${this.pos.top}px`;
+                }
+                const hiddenPortionRight = el.getBoundingClientRect().right - env.window.innerWidth;
+                if (hiddenPortionRight > 0) {
+                    this.pos.left -= (hiddenPortionRight + 12);
+                    el.style.left = `${this.pos.left}px`;
                 }
             } }>{ this.doFilterLinks(links).map(link =>
                 <li class="menu-item"><a onClick={ e => this.emitItemClick(link, e) } href={ `#${link.id}` } title={ link.title }>{ link.text }</a></li>

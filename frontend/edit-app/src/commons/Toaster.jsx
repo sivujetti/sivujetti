@@ -51,7 +51,7 @@ class Toaster extends preact.Component {
             this.state.messages.map(message => {
                 let iconId = 'check';
                 if (message.level === 'error') iconId = 'alert-triangle';
-                else if (message.level === 'info') iconId = 'info';
+                else if (message.level === 'info') iconId = 'info-circle';
                 return <div class="box p-0 mb-10">
                     <div class={ `toaster-message ${message.level}` }
                          onClick={ () => this.removeMessage(message) }>

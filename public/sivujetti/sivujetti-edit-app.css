@@ -327,9 +327,49 @@ h2 {
     padding: .2rem .4rem;
 }
 
+#toaster-editAppMain {
+    position: fixed;
+    left: 1rem;
+    bottom: 1rem;
+    z-index: 101;
+    cursor: pointer;
+    line-height: 1rem;
+    background: transparent;
+    max-width: 400px;
+}
+#toaster-editAppMain > div {
+    margin-bottom: .6rem;
+    display: inline-block;
+}
+#toaster-editAppMain > div:last-child {
+    margin-bottom: 0;
+}
 
 
 /* == EditApp: Components ============================================== */
+/* EditApp: Components: Info boxes & toaster messages */
+p.info-box, .toaster-message {
+    padding: 1.2rem;
+    border-left: 2px solid rgb(177,177,179);
+    background-color: rgba(177,177,177,0.078);
+}
+p.info-box.error, .toaster-message.error {
+    border-color: rgb(254,90,120);
+    background-color: rgba(254,90,120,0.031);
+}
+p.info-box.success, .toaster-message.success {
+    border-color: rgb(47,200,139);
+    background-color: rgba(47,200,139,0.06);
+}
+p.info-box, .toaster-message {
+    border-left: 2px solid rgb(147, 188, 243);
+    background-color: rgba(147, 188, 243, 0.07);
+}
+.toaster-message {
+    display: grid;
+    grid-template-columns: 2.2rem auto;
+    align-items: center;
+}
 /* EditApp: Components: popup-menu */
 ul.popup-menu.menu {
     position: fixed;

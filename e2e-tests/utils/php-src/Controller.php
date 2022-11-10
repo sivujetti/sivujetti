@@ -105,7 +105,7 @@ final class Controller {
             $dataTypeForTimestamps = "INTEGER NOT NULL DEFAULT 0";
             return [
                 "CREATE TABLE `Articles` (
-                    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                    `id` TEXT PRIMARY KEY,
                     `slug` TEXT NOT NULL,
                     `path` TEXT,
                     `level` INTEGER NOT NULL DEFAULT 1,

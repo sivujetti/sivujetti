@@ -23,6 +23,10 @@ stringBundles.push({
     'Css for the inner elements': 'Css for the inner elements',
     'Other classes': 'Other classes',
     'Style name': 'Style name',
+    // edit-app/src/left-panel/Page/AddCategoryPanel.jsx
+    'Category': 'Category',
+    'New category name': 'New category name',
+    'Create category': 'Create category',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Create %s',
     'Cancel create %s': 'Cancel create %s',

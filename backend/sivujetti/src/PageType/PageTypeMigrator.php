@@ -127,7 +127,7 @@ final class PageTypeMigrator {
      */
     private function createDataStore(string $name, FieldCollection $fields): void {
         $dt = $this->db->attr(\PDO::ATTR_DRIVER_NAME) === "sqlite" ? [
-            "id" => "INTEGER PRIMARY KEY AUTOINCREMENT",
+            "id" => "TEXT PRIMARY KEY",
             "slug" => "TEXT",
             "path" => "TEXT",
             "level" => "INTEGER",
@@ -137,7 +137,7 @@ final class PageTypeMigrator {
             "unixTime" => "INTEGER NOT NULL DEFAULT 0",
             "tail" => ")",
         ] : [
-            "id" => "MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT",
+            "id" => "CHAR(20) NOT NULL",
             "slug" => "VARCHAR(92)",
             "path" => "VARCHAR(191)",
             "level" => "TINYINT(1) UNSIGNED",

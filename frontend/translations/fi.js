@@ -23,6 +23,10 @@ stringBundles.push({
     'Css for the inner elements': 'Sisempien elementtien css',
     'Other classes': 'Muut luokat',
     'Style name': 'Tyylin nimi',
+    // edit-app/src/left-panel/Page/AddCategoryPanel.jsx
+    'Category': 'Kategoria',
+    'New category name': 'Kategorian nimi',
+    'Create category': 'Luo kategoria',
     // edit-app/src/Page/PageCreateMainPanelView.jsx
     'Create %s': 'Luo %s',
     'Cancel create %s': 'Peruuta %s luonti',

@@ -67,10 +67,8 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
     private function insertTestPages(\TestState $state): void {
         foreach (!is_array($state->testPageData) ? [$state->testPageData] : $state->testPageData as $pageData)
             $this->pageTestUtils->insertPage($pageData, $state->customPageType ?? null);
-        if (isset($state->testCatData)) {
-            $insertId = $this->pageTestUtils->insertPage($state->testCatData, "PagesCategories");
-            $state->testCatData->id = $insertId;
-        }
+        if (isset($state->testCatData))
+            $this->pageTestUtils->insertPage($state->testCatData, "PagesCategories");
     }
 
 
@@ -135,12 +133,12 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
     private function setupRenderListingBlockHavingManyListItemsTest(): \TestState {
         $state = $this->setupRenderListingBlocksTest();
         $page2 = clone $state->testPageData;
+        $page2->id = str_replace("pp1", "pp2", $page2->id);
         $page2->slug = "/something-else";
         $page2->path = "something-else/";
         $state->testPageData = [$state->testPageData, $page2];
         //
-        $state->testCatData = $this->pageTestUtils->makeTestPageData(null, "PagesCategories");
-        $state->testCatData->id = "1";
+        $state->testCatData = $this->pageTestUtils->makeTestPageData(null, "PagesCategories", str_replace("pp2", "pp3", $page2->id));
         //
         return  $state;
     }

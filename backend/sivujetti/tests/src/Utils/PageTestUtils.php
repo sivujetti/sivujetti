@@ -51,9 +51,8 @@ final class PageTestUtils {
     /**
      * @param object $data \Sivujetti\Page\Entities\Page|object
      * @param \Sivujetti\PageType\Entities\PageType|string|null $pageType = null
-     * @return ?string $lastInsertId or null
      */
-    public function insertPage(object $data, PageType|string|null $pageType = null): ?string {
+    public function insertPage(object $data, PageType|string|null $pageType = null): void {
         if (!($pageType instanceof PageType))
             $pageType = $this->makeDefaultPageType($pageType);
         if ($data->layoutId)
@@ -63,7 +62,6 @@ final class PageTestUtils {
                 $data->blocks, $this->blockTypes)));
         if ($errors)
             throw new PikeException(implode("\n", $errors));
-        return $this->pagesRepo->lastInsertId;
     }
     /**
      * @param string $slug
@@ -116,9 +114,10 @@ final class PageTestUtils {
     /**
      * @param ?array<int, \Sivujetti\Block\Entities\Block> $blocks = null
      * @param ?string $pageTypeName = null
+     * @param ?string $id = null
      * @return object
      */
-    public function makeTestPageData(?array $blocks = null, ?string $pageTypeName = null): object {
+    public function makeTestPageData(?array $blocks = null, ?string $pageTypeName = null, ?string $id = null): object {
         if ($pageTypeName === "PagesCategories") {
             $out = $this->makeTestPageData($blocks, null);
             $out->slug = "/uncategorized";
@@ -129,6 +128,7 @@ final class PageTestUtils {
         }
         $now = time();
         return (object) [
+            "id" => $id ?? "-pppppppppppppppppp1",
             "slug" => "/hello",
             "path" => "hello/",
             "level" => 1,

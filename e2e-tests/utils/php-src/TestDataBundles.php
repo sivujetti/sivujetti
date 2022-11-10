@@ -61,7 +61,7 @@ final class TestDataBundles {
                 "structure" => [(object) ["type" => "pageContents"]],
             ]],
             ["table" => "Pages", "data" => [
-                "id" => "1",
+                "id" => "-pppppppppppppppppp1",
                 "slug" => "/",
                 "path" => "/",
                 "categories" => "[]",
@@ -73,7 +73,7 @@ final class TestDataBundles {
                 "status" => Page::STATUS_PUBLISHED,
             ]],
             ["table" => "Pages", "data" => [
-                "id" => "2",
+                "id" => "-pppppppppppppppppp2",
                 "slug" => "/page2",
                 "path" => "page2/",
                 "categories" => "[]",
@@ -101,7 +101,7 @@ final class TestDataBundles {
         //
         return array_merge($previous, [
             ["table" => "PagesCategories", "data" => [
-                "id" => "1",
+                "id" => "-pppppppppppppppppp3",
                 "slug" => "/uncategorized",
                 "path" => "uncategorized/",
                 "level" => 1,
@@ -151,7 +151,7 @@ final class TestDataBundles {
                 "isListable" => 1,
             ]],
             ["table" => "Articles", "data" => [
-                "id" => "1",
+                "id" => "-aaaaaaaaaaaaaaaaaa1",
                 "slug" => "/art1",
                 "path" => "art1/",
                 "level" => 1,
@@ -162,7 +162,7 @@ final class TestDataBundles {
                 "status" => Page::STATUS_PUBLISHED,
             ]],
             ["table" => "Articles", "data" => [
-                "id" => "2",
+                "id" => "-aaaaaaaaaaaaaaaaaa2",
                 "slug" => "/art2",
                 "path" => "art2/",
                 "level" => 1,

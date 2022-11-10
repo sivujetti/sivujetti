@@ -19,7 +19,7 @@ final class Page {
     public ?object $meta;
     /** @var string */
     public string $layoutId;
-    /** @var string */
+    /** @var string Push id, e.g. "-NGLshqi40f1ZK1ua74k" */
     public string $id;
     /** @var string */
     public string $type;

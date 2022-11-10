@@ -97,7 +97,7 @@ abstract class ValidationUtils {
             $rules = [
                 "text"         => [["", "type", "string"], ["", "maxLength", self::HARD_SHORT_TEXT_MAX_LEN]],
                 "json"         => [["", "type", "string"], ["", "maxLength", self::HARD_JSON_TEXT_MAX_LEN]],
-                "many-to-many" => [["", "type", "array"],  ["%s.*", "type", "number"]],
+                "many-to-many" => [["", "type", "array"],  ["%s.*", "type", "string"]],
                 "int"          => [["", "type", "number"]],
                 "uint"         => [["", "type", "number"], ["", "min", 0]],
             ][$dt->type] ?? null;

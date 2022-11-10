@@ -88,7 +88,7 @@ final class PageTypeValidator {
                                        object $input,
                                        bool $doValidateBlocks = false): array {
         $v = ValidationUtils::addRulesForProperties($pageType->ownFields,
-            self::withCommonRules(Validation::makeObjectValidator())
+            self::withCommonRules(self::withBaseRules(Validation::makeObjectValidator()))
                 ->rule("blocks", "type", "array")
         );
         if (!($errors = $v->validate($input)) && $doValidateBlocks)
@@ -105,7 +105,7 @@ final class PageTypeValidator {
                                        object $input,
                                        bool $doValidateBlockTypes = false): array {
         $v = ValidationUtils::addRulesForProperties($pageType->ownFields,
-            self::withCommonRules(Validation::makeObjectValidator())
+            self::withCommonRules(self::withBaseRules(Validation::makeObjectValidator(), requireId: false))
         );
         if (!($errors = $v->validate($input)) && $doValidateBlockTypes)
             $errors = $this->blockValidator->validateMany($input->blocks);
@@ -113,15 +113,26 @@ final class PageTypeValidator {
     }
     /**
      * @param \Pike\ObjectValidator $v
+     * @param bool $requireId = true
+     * @return \Pike\ObjectValidator
+     */
+    public static function withBaseRules(ObjectValidator $v, bool $requireId = true): ObjectValidator {
+        $v->addRuleImpl(...ValidationUtils::createUrlValidatorImpl())
+            ->rule("slug", "pageUrl", ["allowExternal" => false])
+            ->rule("path", "type", "string")
+            ->rule("title", "type", "string");
+        if ($requireId)
+            $v->addRuleImpl(...ValidationUtils::createPushIdValidatorImpl())
+                ->rule("id", "pushId");
+        return $v;
+    }
+    /**
+     * @param \Pike\ObjectValidator $v
      * @return \Pike\ObjectValidator
      */
     private static function withCommonRules(ObjectValidator $v): ObjectValidator {
-        return $v->addRuleImpl(...ValidationUtils::createUrlValidatorImpl())
-            ->rule("id?", "type", "number")
-            ->rule("slug", "pageUrl", ["allowExternal" => false])
-            ->rule("path", "type", "string")
+        return $v
             ->rule("level", "type", "number")
-            ->rule("title", "type", "string")
             ->rule("meta.description?", "type", "string")
             ->rule("meta.description?", "maxLength", 206) // Preferably 150 - 160
             ->rule("layoutId", "type", "number")

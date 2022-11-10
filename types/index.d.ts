@@ -137,13 +137,16 @@ interface PageType {
     isListable: Boolean;
 }
 
-interface Page {
+interface RelPage {
     id: String;
+    title: String;
     slug: String;
     path: String;
+}
+
+interface Page extends RelPage {
     level: Number;
     type: String;
-    title: String;
     layoutId: String;
     status: Number;
     isPlaceholderPage: Boolean;
@@ -225,9 +228,11 @@ interface ContextMenuLink {
 
 type blockChangeEvent = 'init'|'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block'|'swap-blocks'|'undo-swap-blocks'|'commit-add-single-block'|'convert-block-to-global'|'undo-convert-block-to-global';
 
+type blockChangeEvent2 = 'blockTrees/updatePropsOf'|'todo?';
+
 interface BlockEditFormProps {
     getBlockCopy(): RawBlock;
-    grabChanges(withFn: (block: RawBlock, origin: blockChangeEvent, isUndo: Boolean) => void): void;
+    grabChanges(withFn: (block: RawBlock, origin: blockChangeEvent2, isUndo: Boolean) => void): void;
     emitValueChanged(val: any, key: String, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;
     emitManyValuesChanged(partialData: {[key: String]: any;}, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;
 }
@@ -345,3 +350,8 @@ interface DragDropInfo {
 }
 
 type leftPanelName = 'Default'|'CreatePage'|'CreatePageType';
+
+interface TempTodo {
+    blockId: String;
+    trid: String;
+}

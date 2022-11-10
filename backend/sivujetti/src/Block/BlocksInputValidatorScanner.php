@@ -10,6 +10,7 @@ use Sivujetti\BlockType\{PropertiesBuilder, SaveAwareBlockTypeInterface};
 
 /**
  * @psalm-type PropModification = array{propName: string}
+ * @psalm-import-type RawStorableBlock from \Sivujetti\BlockType\SaveAwareBlockTypeInterface
  */
 final class BlocksInputValidatorScanner {
     /** @var \Sivujetti\BlockType\Entities\BlockTypes */
@@ -58,13 +59,29 @@ final class BlocksInputValidatorScanner {
             }
         }
         //
+        $this->runOnBeforeSaveForEach($storable, $isInsert);
+        //
+        return [BlockTree::toJson($storable), null, 0];
+    }
+    /**
+     * @param array<int, object> $blocks
+     * @return string
+     */
+    public function createStorableBlocksWithoutValidating(array $blocks): string {
+        $validStorableBlocks = BlocksController::makeStorableBlocksDataFromValidInput($blocks, $this->blockTypes);
+        $this->runOnBeforeSaveForEach($validStorableBlocks);
+        return BlockTree::toJson($validStorableBlocks);
+    }
+    /**
+     * @psalm-param RawStorableBlock[] $blocks
+     * @param bool $isInsert = true
+     */
+    private function runOnBeforeSaveForEach(array $storable, bool $isInsert = true): void {
         BlockTree::traverse($storable, function ($b) use ($isInsert) {
             $blockType = $this->blockTypes->{$b->type};
             if (array_key_exists(SaveAwareBlockTypeInterface::class, class_implements($blockType)))
                 $blockType->onBeforeSave($isInsert, $b, $blockType, App::$adi);
         });
-        //
-        return [BlockTree::toJson($storable), null, 0];
     }
     /**
      * @param array $current

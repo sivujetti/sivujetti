@@ -1,10 +1,11 @@
-import {__, api, http, stringUtils, hookForm, unhookForm, reHookValues, Input,
-    InputErrors, FormGroupInline, FormGroup, Textarea} from '@sivujetti-commons-for-edit-app';
+import {__, api, http, hookForm, unhookForm, reHookValues, Input, InputErrors,
+        FormGroupInline, FormGroup, Textarea} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
-import ManyToManyField from '../Page/ManyToManyField.jsx';
+import {makeSlug, makePath} from '../left-panel/Page/AddCategoryPanel.jsx';
+import ManyToManyField from '../left-panel/Page/ManyToManyField.jsx';
 import store, {observeStore, pushItemToOpQueue, selectCurrentPageDataBundle, setCurrentPageDataBundle} from '../store.js';
-import setFocusTo from './auto-focusers.js';
 import {urlValidatorImpl} from '../validation.js';
+import setFocusTo from './auto-focusers.js';
 
 class PageInfoBlockEditForm extends preact.Component {
     // currentPageIsPlaceholder;
@@ -146,23 +147,6 @@ function savePageToBackend() {
             toasters.editAppMain(__('Something unexpected happened.'), 'error');
             return false;
         });
-}
-
-/**
- * @param {String} title
- * @returns {String}
- */
-function makeSlug(title) {
-    return `/${stringUtils.slugify(title) || '-'}`;
-}
-
-/**
- * @param {String} slug e.g. "/my-page"
- * @param {PageType} pageType
- * @returns {String} e.g. "my-page/", "articles/my-article/"
- */
-function makePath(slug, pageType) {
-    return `${((pageType.name === 'Pages' ? '' : pageType.slug) + slug).substring(1)}/`;
 }
 
 export default () => {

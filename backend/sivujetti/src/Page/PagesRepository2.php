@@ -4,7 +4,7 @@ namespace Sivujetti\Page;
 
 use Envms\FluentPDO\Queries\Select;
 use Pike\{ArrayUtils, PikeException};
-use Pike\Db\{FluentDb, MyUpdate};
+use Pike\Db\{FluentDb, MyInsert, MyUpdate};
 use Pike\Interfaces\RowMapperInterface;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\Db\TempJsonCompatSelect;
@@ -47,6 +47,13 @@ final class PagesRepository2 {
                     return $page;
                 }
             });
+    }
+    /**
+     * @param string $pageTypeName = "Pages"
+     * @return \Pike\Db\MyInsert
+     */
+    public function insert(PageType $pageType): MyInsert {
+        return $this->fluentDb->insert("\${p}{$pageType->name}");
     }
     /**
      * @param string $pageTypeName = "Pages"

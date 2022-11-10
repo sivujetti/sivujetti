@@ -90,7 +90,7 @@ return [
 )",
 
 "CREATE TABLE `\${p}PagesCategories` (
-    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `id` TEXT PRIMARY KEY,
     `slug` TEXT NOT NULL,
     `path` TEXT,
     `level` INTEGER NOT NULL DEFAULT 1,
@@ -104,7 +104,7 @@ return [
 )",
 
 "CREATE TABLE `\${p}Pages` (
-    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `id` TEXT PRIMARY KEY,
     `slug` TEXT NOT NULL,
     `path` TEXT,
     `categories` JSON,

@@ -3,10 +3,11 @@
 namespace Sivujetti\Page;
 
 use MySite\Theme;
-use Pike\{AppConfig, ArrayUtils, Db, PikeException, Request, Response};
+use Pike\{AppConfig, ArrayUtils, Db, PikeException, Request, Response, Validation};
 use Sivujetti\Page\Entities\Page;
+use Sivujetti\PageType\PageTypeValidator;
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\{App, SharedAPIContext, Template, Translator};
+use Sivujetti\{App, JsonUtils, PushIdGenerator, SharedAPIContext, Template, Translator};
 use Sivujetti\Auth\ACL;
 use Sivujetti\Block\{BlocksInputValidatorScanner};
 use Sivujetti\Block\Entities\Block;
@@ -72,22 +73,10 @@ final class PagesController {
         $slugOfPageToDuplicate = $req->queryVar("duplicate");
         $page = null;
         //
-        if ($slugOfPageToDuplicate === null) {
-            $page = self::createEmptyPage($pageType);
-            foreach ($pageType->ownFields as $field) {
-                $page->{$field->name} = $field->defaultValue;
-            }
-            $layout = $layoutsRepo->findById($req->params->layoutId);
-            if (!$layout)
-                throw new PikeException("Layout `{$req->params->layoutId}` doesn't exist",
-                                        PikeException::BAD_INPUT);
-            $page->layoutId = $layout->id;
-            $page->layout = $layout;
-            self::mergeLayoutBlocksTo($page, $page->layout, $pageType);
-        } else {
-            $page = $pagesRepo->getSingle($pageType, ["filters" => [["slug", urldecode($slugOfPageToDuplicate)]]]);
-            if (!$page) throw new \RuntimeException("No such page exist", PikeException::BAD_INPUT);
-        }
+        $page = $slugOfPageToDuplicate === null
+            ? self::createEmptyPageWithBlocks($pageType, $layoutsRepo, $req->params->layoutId)
+            : $pagesRepo->getSingle($pageType, ["filters" => [["slug", urldecode($slugOfPageToDuplicate)]]]);
+        if (!$page) throw new \RuntimeException("No such page exist", PikeException::BAD_INPUT);
         //
         self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
             $page, $pageType, true);
@@ -195,6 +184,7 @@ final class PagesController {
             $res->status($errCode)->json($errors);
             return;
         }
+        if (!isset($req->body->id)) $req->body->id = PushIdGenerator::generatePushId();
         [$numAffectedRows, $errors] = $pagesRepo->insert($pageType, $req->body,
             $validStorableBlocksJson);
         //
@@ -207,6 +197,51 @@ final class PagesController {
             PikeException::INEFFECTUAL_DB_OP);
         //
         $res->status(201)->json(["ok" => "ok", "insertId" => $pagesRepo->getLastInsertId()]);
+    }
+    /**
+     * POST /api/pages/[w:pageType]/quick: Inserts a new page with defaults to
+     * the database.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Sivujetti\Page\PagesRepository2 $pagesRepo
+     * @param \Sivujetti\Page\PagesRepository $pagesRepoOld
+     * @param \Sivujetti\Block\BlocksInputValidatorScanner $scanner
+     * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
+     */
+    public function createPageQuick(Request $req,
+                                    Response $res,
+                                    PagesRepository2 $pagesRepo,
+                                    PagesRepository $pagesRepoOld,
+                                    BlocksInputValidatorScanner $scanner,
+                                    LayoutsRepository $layoutsRepo): void {
+        if (($errors = PageTypeValidator::withBaseRules(Validation::makeObjectValidator())->validate($req->body))) {
+            $res->status(400)->json($errors);
+            return;
+        }
+        //
+        $pageType = $pagesRepoOld->getPageTypeOrThrow($req->params->pageType);
+        $page = self::createEmptyPageWithBlocks($pageType, $layoutsRepo);
+        if ($errors) throw new \RuntimeException("Shouldn't never happen.");
+        $data = (object) [
+            "id" => $req->body->id,
+            "slug" => $req->body->slug,
+            "path" => $req->body->path,
+            "level" => substr_count($req->body->path, "/") - ($pageType->name === PageType::PAGE ? 0 : 1),
+            "title" => $req->body->title,
+            "meta" => JsonUtils::stringify($page->meta),
+            "layoutId" => $page->layoutId,
+            "blocks" => $scanner->createStorableBlocksWithoutValidating($page->blocks),
+            "status" => Page::STATUS_PUBLISHED,
+            "createdAt" => $page->createdAt,
+            "lastUpdatedAt" => $page->lastUpdatedAt,
+        ];
+        foreach ($pageType->ownFields as $field) {
+            $data->{$field->name} = $page->{$field->name};
+        }
+        //
+        $ok = $pagesRepo->insert($pageType)->values($data)->execute(return: "numRows") === 1;
+        $res->status($ok ? 201 : 200)->json(["ok" => $ok ? "ok" : "err"]);
     }
     /**
      * GET /api/pages/[w:pageType]: Lists all $req->params->pageType's pages ordered
@@ -227,7 +262,7 @@ final class PagesController {
         $res->json($pages);
     }
     /**
-     * PUT /api/pages/[w:pageType]/[i:pageId]/blocks: Overwrites the block tree
+     * PUT /api/pages/[w:pageType]/[w:pageId]/blocks: Overwrites the block tree
      * of $req->params->pageId to the database.
      *
      * @param \Pike\Request $req
@@ -262,7 +297,7 @@ final class PagesController {
         $res->status(200)->json(["ok" => "ok"]);
     }
     /**
-     * PUT /api/pages/[w:pageType]/[i:pageId]: updates basic info of $req->params
+     * PUT /api/pages/[w:pageType]/[w:pageId]: updates basic info of $req->params
      * ->pageId to the database.
      *
      * @param \Pike\Request $req
@@ -367,6 +402,29 @@ final class PagesController {
         $page->status = Page::STATUS_DRAFT;
         $page->createdAt = time();
         $page->lastUpdatedAt = $page->createdAt;
+        return $page;
+    }
+    /**
+     * @param \Sivujetti\PageType\Entities\PageType $pageType
+     * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
+     * @param ?string $layoutId = null
+     * @return \Sivujetti\Page\Entities\Page
+     */
+    private static function createEmptyPageWithBlocks(PageType $pageType,
+                                                      LayoutsRepository $layoutsRepo,
+                                                      ?string $layoutId = null): Page {
+        $page = self::createEmptyPage($pageType);
+        foreach ($pageType->ownFields as $field) {
+            $page->{$field->name} = $field->defaultValue;
+        }
+        if (!$layoutId)
+            $layoutId = $pageType->defaultLayoutId;
+        $layout = $layoutsRepo->findById($layoutId);
+        if (!$layout) throw new PikeException("Layout `{$layoutId}` doesn't exist",
+                                              PikeException::BAD_INPUT);
+        $page->layoutId = $layout->id;
+        $page->layout = $layout;
+        self::mergeLayoutBlocksTo($page, $page->layout, $pageType);
         return $page;
     }
     /**

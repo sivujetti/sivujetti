@@ -39,11 +39,10 @@ abstract class PagesControllerTestCase extends DbTestCase {
     }
     protected function insertTestPageDataToDb(object $stateOrPageData,
                                               PageType|string|null $pageType = null): void {
-        $mutRef = $stateOrPageData instanceof \TestState
+        $data = $stateOrPageData instanceof \TestState
             ? $stateOrPageData->testPageData
             : $stateOrPageData;
-        $insertId = $this->pageTestUtils->insertPage($mutRef, $pageType);
-        $mutRef->id = $insertId;
+        $this->pageTestUtils->insertPage($data, $pageType);
     }
     protected function registerTestCustomBlockType(): string {
         $mutRef = $this->testApiCtx;

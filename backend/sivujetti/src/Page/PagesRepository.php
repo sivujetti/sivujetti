@@ -82,8 +82,9 @@ final class PagesRepository {
         if ($this->getSingle($pageType, ["filters" => [ ["slug", $inputData->slug] ]]))
             return [0, ["Page with identical slug already exists"]];
         $data = self::makeStorablePageDataFromValidInput($inputData, $pageType);
+        $data->id = $inputData->id;
         $data->blocks = $validBlocksJson;
-        foreach (["id", "status","createdAt","lastUpdatedAt"] as $optional) {
+        foreach (["status","createdAt","lastUpdatedAt"] as $optional) {
             if (($inputData->{$optional} ?? null) !== null)
                 $data->{$optional} = (int) $inputData->{$optional};
         }

@@ -17,6 +17,7 @@ final class ListPagesTest extends PagesControllerTestCase {
         $state = new \TestState;
         $state->testPageData1 = $this->pageTestUtils->makeTestPageData();
         $state->testPageData2 = $this->pageTestUtils->makeTestPageData();
+        $state->testPageData2->id = str_replace("pp1", "pp2", $state->testPageData1->id);
         $state->testPageData2->slug .= str_replace("ello", "ello2", $state->testPageData2->slug);
         $state->testPageData2->path .= str_replace("ello", "ello2", $state->testPageData2->path);
         $state->testPageData2->title .= str_replace("ello", "ello2", $state->testPageData2->title);

@@ -96,7 +96,7 @@ return [
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}PagesCategories` (
-    `id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `id` CHAR(20) NOT NULL,
     `slug` VARCHAR(92) NOT NULL,
     `path` {$dataTypeForMaxIndexableText},
     `level` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1,
@@ -111,7 +111,7 @@ return [
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}Pages` (
-    `id` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `id` CHAR(20) NOT NULL,
     `slug` VARCHAR(92) NOT NULL,
     `path` {$dataTypeForMaxIndexableText},
     `categories` JSON,

@@ -1,3 +1,5 @@
+import blockTreesStore from './Block/blockTreesStore.js';
+
 const {createStoreon} = window.storeon;
 
 function themeStylesStore(store) {
@@ -124,6 +126,32 @@ function reusableBranchesStore(store) {
 ////////////////////////////////////////////////////////////////////////////////
 
 
+function relPages(store) {
+    store.on('relPages/setAll',
+    /**
+     * @param {Object} state
+     * @param {[Array<todo>]} args
+     * @returns {Object}
+     */
+    (_state, [relPages]) =>
+        ({relPages})
+    );
+
+    store.on('relPages/addItem',
+    /**
+     * @param {Object} state
+     * @param {[todo, String]} args
+     * @returns {Object}
+     */
+    ({relPages}, [aaa]) =>
+        ({relPages: [...relPages, aaa]})
+    );
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
 function theWebsiteBasicInfoStore(store) {
     store.on('theWebsiteBasicInfo/set',
     /**
@@ -143,7 +171,9 @@ function theWebsiteBasicInfoStore(store) {
 const mainStore = createStoreon([
     themeStylesStore,
     reusableBranchesStore,
-    theWebsiteBasicInfoStore
+    theWebsiteBasicInfoStore,
+    blockTreesStore,
+    relPages,
 ]);
 
 /**

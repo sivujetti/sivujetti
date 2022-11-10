@@ -13,6 +13,10 @@ final class PagesModule {
             [PagesController::class, "renderPlaceholderPage", ["identifiedBy" => ["create", "pages"],
                                                                "allowMissingRequestedWithHeader" => true]]
         );
+        $router->map("POST", "/api/pages/[w:pageType]/quick",
+            [PagesController::class, "createPageQuick", ["consumes" => "application/json",
+                                                         "identifiedBy" => ["create", "pages"]]]
+        );
         $router->map("POST", "/api/pages/[w:pageType]",
             [PagesController::class, "createPage", ["consumes" => "application/json",
                                                     "identifiedBy" => ["create", "pages"]]]
@@ -20,11 +24,11 @@ final class PagesModule {
         $router->map("GET", "/api/pages/[w:pageType]",
             [PagesController::class, "listPages", ["identifiedBy" => ["list", "pages"]]]
         );
-        $router->map("PUT", "/api/pages/[w:pageType]/[i:pageId]/blocks",
+        $router->map("PUT", "/api/pages/[w:pageType]/[w:pageId]/blocks",
             [PagesController::class, "updatePageBlocks", ["consumes" => "application/json",
                                                           "identifiedBy" => ["updateBlocksOf", "pages"]]]
         );
-        $router->map("PUT", "/api/pages/[w:pageType]/[i:pageId]",
+        $router->map("PUT", "/api/pages/[w:pageType]/[w:pageId]",
             [PagesController::class, "updatePage", ["consumes" => "application/json",
                                                     "identifiedBy" => ["update", "pages"]]]
         );

@@ -74,8 +74,8 @@ final class CreatePageTest extends PagesControllerTestCase {
         $this->verifyResponseBodyEquals([
             "slug is not valid",
             "path must be string",
-            "level must be number",
             "title must be string",
+            "level must be number",
             "Expected `meta` to be an object",
             "Expected `meta` to be an object",
             "layoutId must be number",

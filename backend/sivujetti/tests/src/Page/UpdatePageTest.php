@@ -26,7 +26,8 @@ final class UpdatePageTest extends PagesControllerTestCase {
         $state->testPageData->path = "/update-page-test-page/";
         $state->testPageData->layoutId .= "2";
         //
-        $state->testCatData = $this->pageTestUtils->makeTestPageData(null, "PagesCategories");
+        $state->testCatData = $this->pageTestUtils->makeTestPageData(null, "PagesCategories",
+            str_replace("pp1", "pp2", $state->testPageData->id));
         //
         $state->inputData = (object) [
             "slug" => "/updated-update-page-test-page-slug",
@@ -83,8 +84,8 @@ final class UpdatePageTest extends PagesControllerTestCase {
         $this->expectExceptionMessage(implode("\n", [
             "slug is not valid",
             "path must be string",
-            "level must be number",
             "title must be string",
+            "level must be number",
             "meta.description must be string",
             "The length of meta.description must be 206 or less",
             "layoutId must be number",
@@ -116,7 +117,7 @@ final class UpdatePageTest extends PagesControllerTestCase {
 
     public function testUpdatePageDoesNotUpdateIdOrBlocks(): void {
         $state = $this->setupTest();
-        $state->inputData->id = 91;
+        $state->inputData->id = "-ppppppppppppppppppp";
         $state->inputData->blocks = BlockTree::toJson([$state->testPageData->blocks[0]->children[0]]);
         $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);

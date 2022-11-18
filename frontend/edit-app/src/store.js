@@ -196,3 +196,4 @@ export {setCurrentPageDataBundle, selectCurrentPageDataBundle,
         //
         observeMainStore as observeStore};
 export default mainStore;
+export {overrideData};

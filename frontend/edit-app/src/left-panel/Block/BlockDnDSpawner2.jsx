@@ -1,7 +1,8 @@
 import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app';
-import {renderBlockAndThen, withBlockId} from '../../../../webpage/src/EditAppAwareWebPage.js';
+import {renderBlockAndThen} from '../../shar.js';
+import {withBlockId} from '../../../../webpage/src/EditAppAwareWebPage.js';
 import {getIcon} from '../../block-types/block-types.js';
-import {createBlockFromBlueprint, createBlockFromType, setTrids, toTransferable} from '../../Block/utils.js';
+import {createBlockFromBlueprint, createBlockFromType, findRefBlockOf, isTreesOutermostBlock, setTrids, toTransferable} from '../../Block/utils.js';
 import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import blockTreeUtils from './blockTreeUtils.js';
@@ -38,21 +39,29 @@ class BlockDnDSpawner extends preact.Component {
         this.preRender = {phase: null, blockType: null, html: null};
         this.newBlock = {phase: null, block: null};
         this.rootEl = preact.createRef();
-        this.onDragStart = this.handleDragStarted.bind(this);
-        this.onDragEnd = this.handleDragEnded.bind(this);
+        this.overwriteDragListenerFuncs();
         this.unregisterables = [observeStore2('reusableBranches', ({reusableBranches}, [event]) => {
             if (event === 'reusableBranches/addItem' || event === 'reusableBranches/removeItem')
                 this.setState({reusables: reusableBranches});
         })];
     }
     /**
+     * @access protected
+     */
+    componentWillReceiveProps(props) {
+        if (props.mainTreeDnd !== this.props.mainTreeDnd) {
+            this.overwriteDragListenerFuncs();
+            throw new Error('??');
+        }
+    }
+    /**
      * @param {DragDropInfo} info
-     * @param {(blockOrBlockId: RawBlock|String, tree: Array<RawBlock>) => Boolean} isTreesOutermostBlock
-     * @param {(innerTreeBlockOrTrid: RawBlock|String, tree: Array<RawBlock>) => RawBlock} findRefBlockOf
      * @returns {Boolean} Should accept
      * @access public
      */
-    handleMainDndDraggedOver(info, isTreesOutermostBlock, findRefBlockOf) {
+    handleMainDndDraggedOver(info) {
+        if (window.useStoreonBlockTree !== false)
+            throw new Error();
         let position = info.pos;
         // Waiting for render to finish -> skip
         if (!this.preRender.isRenderReady) {
@@ -111,6 +120,9 @@ class BlockDnDSpawner extends preact.Component {
      * @access public
      */
     handleMainDndDraggedOut() {
+        if (window.useStoreonBlockTree !== false) {
+            throw new Error();
+        } else {
         if (this.newBlock.phase === BlockAddPhase.INSERTED_TO_TREE_AND_DOM) {
             const {trid} = this.dragData;
             const {tree} = createSelectBlockTree(trid)(store.getState());
@@ -119,11 +131,15 @@ class BlockDnDSpawner extends preact.Component {
             store.dispatch(createSetBlockTree(trid)(tree, ['delete-single-block', data, 'dnd-spawner']));
             this.newBlock.phase = BlockAddPhase.READY_TO_INSERT_TO_TREE_AND_DOM;
         }
+        }
     }
     /**
      * @access public
      */
     handleMainDndSwappedBlocks(info, _prevInfo, applySwap) {
+        if (window.useStoreonBlockTree !== false) {
+        throw new Error();
+        } else {
         if (!this.dragData) return; // ??
 
         const dragTree = createSelectBlockTree(this.dragData.trid)(store.getState()).tree;
@@ -149,11 +165,15 @@ class BlockDnDSpawner extends preact.Component {
             // if (this.dragData.trid !== updatedDragData.trid) todo 
             //     this.dragData.trid = updatedDragData.trid;
         }
+        }
     }
     /**
      * @access public
      */
     handleMainDndGotDrop() {
+        if (window.useStoreonBlockTree !== false) {
+        throw new Error();
+        } else {
         const acceptDrop = this.newBlock.phase === BlockAddPhase.INSERTED_TO_TREE_AND_DOM;
         if (acceptDrop) {
             const {trid} = this.dragData;
@@ -178,6 +198,7 @@ class BlockDnDSpawner extends preact.Component {
         this.newBlock.phase = BlockAddPhase.READY_TO_INSERT_TO_TREE_AND_DOM;
         // keep this.preRender and this.newBlock.block in case the next draggable has the same type
         this.hideLoadingIndicatorIfVisible();
+        }
     }
     /**
      * @access protected
@@ -236,7 +257,7 @@ class BlockDnDSpawner extends preact.Component {
                 class={ `p-0 btn btn-sm d-flex with-icon btn-primary${isMounted ? '' : ' d-none'}` }
                 title={ __('Start adding content') }
                 type="button"
-                style="margin-top: -1px">
+                style="margin: 2px 0px 0px -2px">
                 <Icon iconId="chevron-right" className="mr-0 size-xs"/>
             </button>
             { isOpen ? [
@@ -301,13 +322,16 @@ class BlockDnDSpawner extends preact.Component {
         const reusableBranchIdx = dragEl.getAttribute('data-reusable-branch-idx');
         const isReusable = reusableBranchIdx !== '';
         const [newBlock, dragData, gbt, preRenderWithNewBlockId] = this.createBlock(typeStr, reusableBranchIdx, dragEl);
+        if (window.useStoreonBlockTree !== false) {
+        this.props.mainTreeDnd.handleDragStartedFromOutside({block: newBlock, isReusable});
+        } else {
         this.newBlock.phase = BlockAddPhase.CREATED;
         this.newBlock.block = newBlock;
         this.dragData = dragData;
 
         if (preRenderWithNewBlockId) {
             this.preRender.html = preRenderWithNewBlockId;
-            this.props.mainTreeDnd.setDragStartedFromOutside();
+            this.props.mainTreeDnd.setDragStartedFromOutside(this);
             return;
         }
 
@@ -323,12 +347,13 @@ class BlockDnDSpawner extends preact.Component {
             this.hideLoadingIndicatorIfVisible();
             this.preRender.isRenderReady = true;
         }, api.blockTypes, isReusable);
-        this.props.mainTreeDnd.setDragStartedFromOutside();
+        this.props.mainTreeDnd.setDragStartedFromOutside(this);
         //
         setTimeout(() => {
             if (!this.preRender.isRenderReady)
                 this.showLoadingIndicator();
         }, 200);
+        }
     }
     /**
      * @param {String} typeStr
@@ -366,6 +391,7 @@ class BlockDnDSpawner extends preact.Component {
      */
     handleDragEnded(_e) {
         this.hideLoadingIndicatorIfVisible();
+        this.props.mainTreeDnd.eventController.end(this.props.mainTreeDnd.lastAcceptedIdx);
     }
     /**
      * @returns {Promise<ReusableBranch[]>}
@@ -417,6 +443,13 @@ class BlockDnDSpawner extends preact.Component {
     hideLoadingIndicatorIfVisible() {
         if (this.props.mainTree.state.loading)
             this.props.mainTree.setState({loading: false});
+    }
+    /**
+     * @access private
+     */
+    overwriteDragListenerFuncs() {
+        this.onDragStart = this.handleDragStarted.bind(this);
+        this.onDragEnd = this.handleDragEnded.bind(this);
     }
 }
 

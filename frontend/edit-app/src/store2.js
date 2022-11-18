@@ -1,4 +1,4 @@
-import blockTreesStore from './Block/blockTreesStore.js';
+import theBlockTreeStore from './Block/theBlockTreeStore.js';
 
 const {createStoreon} = window.storeon;
 
@@ -126,25 +126,25 @@ function reusableBranchesStore(store) {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-function relPages(store) {
-    store.on('relPages/setAll',
+function pagesListings(store) {
+    store.on('pagesListings/setAll',
     /**
      * @param {Object} state
      * @param {[Array<todo>]} args
      * @returns {Object}
      */
-    (_state, [relPages]) =>
-        ({relPages})
+    (_state, [pagesListings]) =>
+        ({pagesListings})
     );
 
-    store.on('relPages/addItem',
+    store.on('pagesListings/addItem',
     /**
      * @param {Object} state
      * @param {[todo, String]} args
      * @returns {Object}
      */
-    ({relPages}, [aaa]) =>
-        ({relPages: [...relPages, aaa]})
+    ({pagesListings}, [aaa]) =>
+        ({pagesListings: [...pagesListings, aaa]})
     );
 }
 
@@ -172,8 +172,8 @@ const mainStore = createStoreon([
     themeStylesStore,
     reusableBranchesStore,
     theWebsiteBasicInfoStore,
-    blockTreesStore,
-    relPages,
+    theBlockTreeStore,
+    pagesListings,
 ]);
 
 /**

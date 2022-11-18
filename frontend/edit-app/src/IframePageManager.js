@@ -1,10 +1,11 @@
 import {__, api, signals, env} from '@sivujetti-commons-for-edit-app';
 import store, {observeStore, setCurrentPageDataBundle, setOpQueue, createSetBlockTree,
                createBlockTreeReducerPair, createSelectBlockTree} from './store.js';
-import {observeStore as observeStore2} from './store2.js';
+import store2, {observeStore as observeStore2} from './store2.js';
 import {makePath, makeSlug} from './block-types/pageInfo.js';
 import blockTreeUtils from './left-panel/Block/blockTreeUtils.js';
 import {toTransferable} from './Block/utils.js';
+import opQueueItemEmitter from './OpQueueItemEmitter.js';
 
 const webPageUnregistrables = new Map;
 let LEFT_PANEL_WIDTH = 318;
@@ -14,8 +15,8 @@ let LEFT_PANEL_WIDTH = 318;
  * EditAppAwareWebPage's data and dispatches them to various stores.
  */
 class IframePageManager {
+    // currentWebPage; // public
     // highlightRectEl;
-    // currentWebPage;
     /**
      * @param {HTMLElement} highlightRectEl
      */
@@ -28,6 +29,52 @@ class IframePageManager {
      */
     loadPage(webPage) {
         window.templock = 1;
+        if (window.useStoreonBlockTree !== false) {
+        const isFirstLoad = !this.currentWebPage;
+        this.currentWebPage = null;
+        if (webPageUnregistrables.size) {
+            for (const fn of webPageUnregistrables.values()) fn();
+            webPageUnregistrables.clear();
+        }
+        this.currentWebPage = webPage;
+        //
+        const els = webPage.scanBlockElements();
+        const {blocks} = webPage.data.page;
+        const ordered = getOrdededBlocks(blocks, els);
+        blockTreeUtils.traverseRecursively(ordered, b => {
+            b.isStoredTo = 'page';
+            b.isStoredToTreeId = 'main';
+            if (b.type !== 'GlobalBlockReference' && b.type !== 'PageInfo') webPage.setTridAttr(b.id, 'main');
+            if (b.type === 'GlobalBlockReference') {
+                blockTreeUtils.traverseRecursively(b.__globalBlockTree.blocks, b2 => {
+                    b2.isStoredTo = 'globalBlockTree';
+                    b2.isStoredToTreeId = b.globalBlockTreeId;
+                    webPage.setTridAttr(b2.id, b.globalBlockTreeId);
+                });
+            }
+        });
+        //
+        const {data} = webPage;
+        delete webPage.data;
+        data.page = maybePatchTitleAndSlug(data.page);
+        //
+        webPage.addRootBoundingEls(ordered[ordered.length - 1]);
+        webPage.registerEventHandlers(createWebsiteEventHandlers2(this.highlightRectEl));
+        webPage.setIsMouseListenersDisabled(getArePanelsHidden());
+        this.registerWebPageDomUpdater('main');
+        //
+        data.page.__blocksDebug = data.page.blocks;
+        delete data.page.blocks;
+        opQueueItemEmitter.resetAndBegin();
+        store2.dispatch('theBlockTree/init', [ordered]);
+        store.dispatch(setCurrentPageDataBundle(data));
+        store.dispatch(setOpQueue([]));
+        const fn = webPage.createThemeStylesChangeListener();
+        webPageUnregistrables.set('themeStyles', observeStore2('themeStyles', fn));
+        if (isFirstLoad) signals.on('visual-styles-var-value-changed-fast', (unitCls, varName, varValue, valueType) => {
+            webPage.fastOverrideStyleUnitVar(unitCls, varName, varValue, valueType);
+        });
+        } else {
         const isFirstLoad = !this.currentWebPage;
         this.currentWebPage = null;
         if (webPageUnregistrables.size) {
@@ -46,7 +93,7 @@ class IframePageManager {
             if (block) ordered.push(block);
         }
         //
-        const [mutatedOrdered, separatedTrees] = separate(ordered);
+        const [mutatedOrdered, separatedTrees] = _separate(ordered);
         blockTreeUtils.traverseRecursively(mutatedOrdered, b => {
             b.isStoredTo = 'page';
             b.isStoredToTreeId = 'main';
@@ -91,6 +138,7 @@ class IframePageManager {
         if (isFirstLoad) signals.on('visual-styles-var-value-changed-fast', (unitCls, varName, varValue, valueType) => {
             webPage.fastOverrideStyleUnitVar(unitCls, varName, varValue, valueType);
         });
+        }
         window.templock = null;
     }
     /**
@@ -99,8 +147,14 @@ class IframePageManager {
      */
     registerWebPageDomUpdater(trid) {
         if (webPageUnregistrables.has(trid)) return;
+        if (window.useStoreonBlockTree !== false) {
+        const {fast, slow} = this.currentWebPage.reRenderer.createBlockTreeChangeListeners();
+        webPageUnregistrables.set('blockTreeFastChangeListener', observeStore2('theBlockTree', fast));
+        webPageUnregistrables.set('blockTreeSlowChangeListener', signals.on('onOpQueueBeforePushItem', slow));
+        } else {
         const fn = this.currentWebPage.createBlockTreeChangeListener(trid, blockTreeUtils, toTransferable, api.blockTypes, getTree);
         webPageUnregistrables.set(trid, observeStore(createSelectBlockTree(trid), fn));
+        }
     }
     /**
      * @param {String} trid
@@ -112,6 +166,22 @@ class IframePageManager {
         unreg();
         webPageUnregistrables.delete(trid);
     }
+}
+
+/**
+ * @param {Array<RawBlock>} unordered
+ * @param {Array<HTMLElement>} orderedEls
+ * @returns {Array<RawBlock>}
+ */
+function getOrdededBlocks(unordered, orderedEls) {
+    const ordered = [unordered.find(({type}) => type === 'PageInfo')];
+    for (const el of orderedEls) {
+        const [isPartOfGlobalBlockTree, globalBlockRefBlockId] = t(el);
+        const blockId = !isPartOfGlobalBlockTree ? el.getAttribute('data-block') : globalBlockRefBlockId;
+        const block = unordered.find(({id}) => id === blockId);
+        if (block) ordered.push(block);
+    }
+    return ordered;
 }
 
 /**
@@ -137,7 +207,7 @@ function getArePanelsHidden() {
  * @param {Array<RawBlock>} mainTreeBlocks
  * @returns {[Array<RawBlock>, Map<String, Array<RawBlock>>]}
  */
-function separate(mainTreeBlocks) {
+function _separate(mainTreeBlocks) {
     const separatedGlobalTreesBlocks = new Map;
     blockTreeUtils.traverseRecursively(mainTreeBlocks, b => {
         if (b.type !== 'GlobalBlockReference') return;
@@ -193,8 +263,14 @@ function createWebsiteEventHandlers2(highlightRectEl) {
         prevHoverStartBlockEl = null;
     };
     const findBlock = blockEl => {
+        if (window.useStoreonBlockTree !== false) {
+        const trid = blockEl.getAttribute('data-trid');
+        const rootOrInnerTree = blockTreeUtils.getRootFor(trid, store2.get().theBlockTree);
+        return blockTreeUtils.findBlock(blockEl.getAttribute('data-block'), rootOrInnerTree)[0];
+        } else {
         const {tree} = createSelectBlockTree(blockEl.getAttribute('data-trid'))(store.getState());
         return blockTreeUtils.findBlock(blockEl.getAttribute('data-block'), tree)[0];
+        }
     };
     return {
         /**

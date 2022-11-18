@@ -6,8 +6,10 @@ class TreeDragDrop {
     // eventController;
     // start;
     // startIdx;
+    // lastAcceptedIdx;
     // startDepth;
     // curCand;
+    // curAccept;
     // dragOriginIsExternal;
     // firstLiBounds;
     /**
@@ -37,13 +39,15 @@ class TreeDragDrop {
         this.start.classList.add('dragging');
     }
     /**
+     * @param {any} ctx
      * @access public
      */
-    setDragStartedFromOutside() {
+    handleDragStartedFromOutside(ctx) {
         if (!this.ul) throw new Error('!this.ul');
         this.setBounds();
         this.start = 'setting-it';
         this.dragOriginIsExternal = true;
+        this.eventController.setExternalOriginData(ctx);
     }
     /**
      * @param {DragEvent} e
@@ -73,14 +77,14 @@ class TreeDragDrop {
                     else p = {pos: 'before', li};
                     this.curCandIsLastItem = true;
                 }
+                if (!(window.useStoreonBlockTree !== false)) {
                 const doAccept = this.eventController.fromExternalDragOverFirstTime(p);
                 if (!doAccept) return;
-                //
-                this.setStart(nextCand.li, nextCand.pos);
-                // Do 4. manually here
+                }
+                // Do 4. and 5. manually here
                 e.preventDefault();
+                this.setStart(nextCand.li, nextCand.pos);
                 p.li.classList.add(`maybe-drop-${p.pos}`);
-                this.curCand = nextCand;
                 return;
             } else if (this.curCandIsLastItem) {
                 if (this.curCand.li === li) {
@@ -93,14 +97,14 @@ class TreeDragDrop {
 
         // 1. Create initial nextCand
         const nextCand = {li, pos: null};
-        let applyCls = true;
-        let triggerEvent = true;
         let ib = false;
         let ia = false;
         let idx = 0;
+        let accept = true;
+
         if (li !== this.start || this.dragOriginIsExternal) {
             const rect = li.getBoundingClientRect();
-            idx = !this.dragOriginIsExternal ? this.getIdx(li) : li === this.start ? 0 : this.getIdx(li);
+            idx = this.getIdx(li);
             ib = idx < this.startIdx;
             ia = idx > this.startIdx;
             if (ib) {
@@ -126,36 +130,47 @@ class TreeDragDrop {
             } else nextCand.pos = 'as-child';
         } else {
             nextCand.pos = 'initial';
-            applyCls = this.curCand.pos !== 'initial';
+            accept = this.curCand.pos !== 'initial';
         }
 
         // 2. Do reject tests
         if (this.checkIfBeyondLastMarker(nextCand) ||
-            this.checkIfDraggingToOwnParent(li, idx) ||
+            (nextCand.pos !== 'before' && this.checkIfDraggingToOwnParent(li, idx)) ||
             this.checkIfDraggingInsideItself(ia, li, idx) ||
-            this.checkIfTooClose(ib, nextCand, li, ia, idx)) {
-            applyCls = false;
-            triggerEvent = false;
+            (!this.dragOriginIsExternal && this.checkIfTooClose(ib, nextCand, li, ia, idx))) {
+            accept = false;
         }
 
         // 3. Do replacements
-        // -- Replace "after of .has-children" with "before of .has-children:first-child" ---
-        if (nextCand.pos === 'after' && li.getAttribute('data-has-children') && !li.classList.contains('collapsed')) {
-            nextCand.pos = 'before';
-            nextCand.li = li.nextElementSibling;
+        if (accept) {
+            // -- Replace "after of .has-children" with "before of .has-children:first-child" ---
+            if (nextCand.pos === 'after' && li.getAttribute('data-has-children') && !li.classList.contains('collapsed')) {
+                nextCand.pos = 'before';
+                nextCand.li = li.nextElementSibling;
+            }
         }
 
-        // 4. Apply
-        if (applyCls) {
+        // 3.1 Try to swap
+        if (accept)
+            accept = nextCand.pos !== this.curCand.pos || this.curAccept;
+        if (accept && (nextCand.pos !== this.curCand.pos && nextCand.pos !== 'initial'))
+            accept = this.eventController.swap(nextCand, this.curCand, this.getStartLi()) !== false;
+
+        // 4. All checks passsed, accept
+        if (accept) {
             e.preventDefault();
-            nextCand.li.classList.add(`maybe-drop-${nextCand.pos}`);
+            this.lastAcceptedIdx = idx;
         }
-        if (this.curCand && this.curCand.pos !== nextCand.pos)
-            this.clearCls();
-        if (triggerEvent && this.curCand && this.curCand.pos !== nextCand.pos)
-            this.eventController.swap(nextCand, this.curCand, this.dragOriginIsExternal);
 
-        this.curCand = nextCand; // May or may not change curCand.pos|li
+        // 5. Handle visuals
+        if (!accept || nextCand.pos !== this.curCand.pos)
+            this.clearCls();
+        if (accept && nextCand.pos !== this.curCand.pos)
+            nextCand.li.classList.add(`maybe-drop-${nextCand.pos}`);
+
+        // Update
+        this.curCand = nextCand;
+        this.curAccept = accept;
     }
     /**
      * @access public
@@ -164,10 +179,14 @@ class TreeDragDrop {
         if (e.target !== (this.curCand || {}).li) return;
         const {clientX, clientY} = e;
         const curLiLeft = this.curCand.li.getBoundingClientRect().left;
-        if (!(clientX > curLiLeft && clientX < this.firstLiBounds.right &&
+        const isInsideXCoord = clientX > curLiLeft && clientX < this.firstLiBounds.right;
+        if (!(isInsideXCoord &&
               clientY > this.firstLiBounds.top && clientY < this.lastLiBounds.bottom)) {
             this.clearCls();
-            this.eventController.dragOut(this.curCand, this.dragOriginIsExternal);
+            this.curAccept = false;
+            if (isInsideXCoord && clientY < this.firstLiBounds.top)
+                return;
+            this.eventController.dragOut(this.curCand);
             if (this.dragOriginIsExternal) this.start = 'setting-it';
         }
     }
@@ -176,8 +195,8 @@ class TreeDragDrop {
      */
     handleDraggableDropped() {
         if (!this.start) return;
+        this.eventController.drop(this.curCand, this.getStartLi());
         this.clearS();
-        this.eventController.drop(this.dragOriginIsExternal);
         if (this.dragOriginIsExternal) this.start = 'setting-it';
         this.curCandIsLastItem = false;
     }
@@ -186,8 +205,9 @@ class TreeDragDrop {
      */
     handleDragEnded() {
         if (!this.start) return;
+        const {lastAcceptedIdx} = this;
         this.clearS();
-        this.eventController.end();
+        this.eventController.end(lastAcceptedIdx);
         this.curCandIsLastItem = false;
     }
     /**
@@ -197,19 +217,23 @@ class TreeDragDrop {
      */
     setStart(li, pos = 'initial') {
         this.start = li;
-        this.startIdx = this.getIdx(this.start);
+        this.startIdx = this.getIdx(this.start) + (pos === 'before' ? -1 : pos === 'after' ? 1 : 0);
+        this.lastAcceptedIdx = null;
         this.startDepth = this.start.getAttribute('data-depth');
         this.curCand = {pos, li: this.start};
-        if (pos === 'initial') this.dragOriginIsExternal = false;
-        this.eventController.begin(Object.assign({}, this.curCand), this.dragOriginIsExternal);
+        this.curAccept = pos !== 'initial';
+        if (pos === 'initial') this.resetEventController();
+        this.eventController.begin(Object.assign({}, this.curCand));
     }
     /**
      * @param {HTMLLIElement} li
-     * @param {Number} idx Index of target li
+     * @param {Number} _idx Index of target li
      * @returns {Boolean}
      * @access private
      */
-    checkIfDraggingToOwnParent(li, idx) {
+    checkIfDraggingToOwnParent(li, _idx) {
+        return li.getAttribute('data-has-children') && this.start.getAttribute('data-is-children-of') ===  li.getAttribute('data-block-id');
+        /* ??
         if (!this.start.getAttribute('data-has-children') ||
             idx <= this.startIdx ||
             li.getAttribute('data-depth') <= this.start.getAttribute('data-depth')) {
@@ -222,6 +246,7 @@ class TreeDragDrop {
             curLi = curLi.nextElementSibling;
         }
         return false;
+        ?? */
     }
     /**
      * @param {Number} ia Is target li after this.start
@@ -256,6 +281,8 @@ class TreeDragDrop {
      * @access private
      */
     checkIfTooClose(ib, nextCand, li, ia, idx) {
+        if (this.dragOriginIsExternal)
+            return false;
         if (ib && nextCand.pos === 'after') {
             if (li.getAttribute('data-depth') === this.startDepth) { // same level
                 let t = false;
@@ -316,6 +343,7 @@ class TreeDragDrop {
         this.lastLiBounds = null;
         if (this.curCand) this.clearCls();
         this.curCand = null;
+        this.curAccept = false;
     }
     /**
      * @access private
@@ -325,6 +353,20 @@ class TreeDragDrop {
             const cls = li ? Array.from(li.classList).find(c => c.startsWith('maybe-drop-')) : null;
             if (cls) li.classList.remove(cls);
         });
+    }
+    /**
+     * @access private
+     */
+    resetEventController() {
+        this.dragOriginIsExternal = false;
+        this.eventController.setExternalOriginData(null);
+    }
+    /**
+     * @returns {HTMLLIElement|null}
+     * @access private
+     */
+    getStartLi() {
+        return !this.dragOriginIsExternal ? this.start : null;
     }
 }
 

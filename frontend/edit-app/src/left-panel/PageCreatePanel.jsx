@@ -4,6 +4,7 @@ import toasters from '../commons/Toaster.jsx';
 import store, {createSelectBlockTree, deleteItemsFromOpQueueAfter, observeStore,
                 selectCurrentPageDataBundle, selectOpQueue, setCurrentPageDataBundle,
                 setOpQueue} from '../store.js';
+import store2 from '../store2.js';
 import OnThisPageSection from './default-panel-sections/OnThisPageSection.jsx';
 
 /**
@@ -80,7 +81,7 @@ class PageCreatePanel extends preact.Component {
         const pageDataBundle = selectCurrentPageDataBundle(store.getState());
         const data = JSON.parse(JSON.stringify(pageDataBundle.page));
         delete data.id;
-        data.blocks = treeToTransferable(createSelectBlockTree('main')(store.getState()).tree);
+        data.blocks = window.useStoreonBlockTree !== false ? treeToTransferable(store2.get().theBlockTree, false) : treeToTransferable(createSelectBlockTree('main')(store.getState()).tree);
         this.submitOpResult = null;
         data.status = 0;
         //

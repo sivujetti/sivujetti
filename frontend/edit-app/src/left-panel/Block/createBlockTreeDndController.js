@@ -1,102 +1,143 @@
 import {__, http} from '@sivujetti-commons-for-edit-app';
-import {findRefBlockOf, isTreesOutermostBlock, treeToTransferable} from '../../Block/utils.js';
+import {findRefBlockOf, isTreesOutermostBlock, setTrids, treeToTransferable} from '../../Block/utils.js';
 import toasters from '../../commons/Toaster.jsx';
-import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue,
-                selectCurrentPageDataBundle} from '../../store.js';
+import store, {selectCurrentPageDataBundle} from '../../store.js';
+import store2 from '../../store2.js';
 import blockTreeUtils from './blockTreeUtils.js';
 
 /**
- * @param {BlockTree} blockTree
+ * @param {BlockTree} _blockTree
  * @returns {DragDropEventController}
  */
-function createDndController(blockTree) {
-    let initial;
-    let latest;
-    let extDragAccepted;
-    const {blockSpawner} = blockTree;
+function createDndController(_blockTree) {
+    let initialTree;
+    let extDragData;
+    let dropped;
     return {
         /**
          * @param {DragDropInfo} info
-         * @param {Boolean} _isExternal
-         */
-        begin(info, _isExternal) {
-            initial = info;
-            latest = initial;
-        },
-        /**
-         * @param {DragDropInfo} info
-         * @returns {Boolean}
-         */
-        fromExternalDragOverFirstTime(info) {
-            extDragAccepted = blockSpawner.current.handleMainDndDraggedOver(info,
-                isTreesOutermostBlock, findRefBlockOf);
-            return extDragAccepted;
-        },
-        /**
          * @param {Boolean} isExternal
          */
-        drop(isExternal) {
-            if (isExternal) {
-                blockSpawner.current.handleMainDndGotDrop();
-                return;
+        begin(info) {
+            initialTree = JSON.parse(JSON.stringify(store2.get().theBlockTree)); // getKeys, restoreFromKeys?
+            dropped = false;
+            if (extDragData) {
+                if (!info.li.getAttribute('data-last')) {
+                const targetIsStoredToTreeId = info.li.getAttribute('data-trid');
+                setTrids([extDragData.block], targetIsStoredToTreeId);
+                store2.dispatch('theBlockTree/addBlockOrBranch', [extDragData, createBlockDescriptorFromLi(info.li), info.pos]);
+                } else {
+                throw new Error('NOt impl');
+                }
             }
-            //
-            const dragTree = createSelectBlockTree(initial.li.getAttribute('data-trid'))(store.getState()).tree;
-            const [dragBlock, dragBranch] = blockTreeUtils.findBlock(initial.li.getAttribute('data-block-id'), dragTree);
-            let dropTree, dropBlock, dropBranch;
-            if (!latest.li.getAttribute('data-last')) {
-                (dropTree = createSelectBlockTree(latest.li.getAttribute('data-trid'))(store.getState()).tree);
-                ([dropBlock, dropBranch] = blockTreeUtils.findBlock(latest.li.getAttribute('data-block-id'), dropTree));
+        },
+        /**
+         * @param {DragDropInfo} cand
+         * @param {DragDropInfo|null} startLi
+         */
+        drop(cand, startLi) {
+            if (!extDragData) {
+                const source = startLi.getAttribute('data-trid');
+                const target = cand.li.getAttribute('data-trid');
+                store2.dispatch('theBlockTree/applySwap', [{isStoredToTreeId: source}, {isStoredToTreeId: target}]);
             } else {
-                (dropTree = createSelectBlockTree('main')(store.getState()).tree);
-                if (!dropTree.length) { window.console.error('Shouldn\'t happen.'); return; }
-                latest.pos = 'after';
-                ([dropBlock, dropBranch] = [dropTree[dropTree.length - 1], dropTree]);
+                const source = 'main'; // todo
+                const target = cand.li.getAttribute('data-trid');
+                store2.dispatch('theBlockTree/applyAdd(Drop)Block', [{isStoredToTreeId: source}, {isStoredToTreeId: target}]);
             }
-            const [mutation1] = applySwap(latest, dragBlock, dragBranch, dragTree, dropBlock, dropBranch, dropTree);
-            //
-            const trid = mutation1.blockToMove.isStoredToTreeId;
-            const {tree} = createSelectBlockTree(trid)(store.getState());
-            store.dispatch(createSetBlockTree(trid)(tree, ['swap-blocks', [mutation1]]));
-            store.dispatch(pushItemToOpQueue(`swap-blocks-of-tree##${trid}`, {
-                doHandle: trid !== 'main' || !blockTree.currentPageIsPlaceholder
-                    ? () => saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
-                    : null
-                ,
-                doUndo: () => {
-                    const treeBefore = mutation1.doRevert();
-                    store.dispatch(createSetBlockTree(trid)(treeBefore, ['undo-swap-blocks', mutation1]));
-                },
-                args: [],
-            }));
+            dropped = true;
         },
         /**
-         * @param {DragDropInfo} _info
-         * @param {Boolean} isExternal
+         * @param {DragDropInfo|null} info
          * @returns {Boolean}
          */
-        dragOut(_info, isExternal) {
-            if (isExternal)
-                blockSpawner.current.handleMainDndDraggedOut();
+        dragOut(_info) {
+            if (!extDragData) return;
+            const {id, isStoredToTreeId} = extDragData.block;
+            store2.dispatch('theBlockTree/undoAdd(Drop)Block', [id, isStoredToTreeId]);
         },
         /**
          * @param {DragDropInfo} to
-         * @param {DragDropInfo} from
-         * @param {Boolean} isExternal
+         * @param {DragDropInfo} _prevCand
+         * @param {DragDropInfo|null} startLi
+         * @returns {Boolean|undefined}
          */
-        swap(to, from, isExternal) {
-            latest = to;
-            if (isExternal) {
-                if (!extDragAccepted) return;
-                blockSpawner.current.handleMainDndSwappedBlocks(to, from, applySwap);
+        swap(cand, _prevCand, startLi) {
+            const extBlock = !extDragData ? null : extDragData.block;
+
+            if (!cand.li.getAttribute('data-last')) {
+                const drag = !extBlock ? foo(startLi) : createBlockDescriptor(extBlock, extBlock.isStoredToTreeId);
+                const targ = foo(cand.li);
+
+                //  Reject swaps between normal and global blocks
+                if (drag.trid === 'main' && (targ.trid !== 'main' || targ.isGbtRef))
+                    return false;
+                else if (drag.trid !== 'main' && !drag.isGbtRef && targ.trid === 'main') // gbt's inner outside its root
+                    return false;
+
+                store2.dispatch('theBlockTree/swap', [drag, targ, cand.pos]);
+            } else {
+                if (!extBlock) {
+                    //
+                } else {
+                    if (extBlock.isStoredToTreeId !== 'main') return false;
+                }
             }
         },
         /**
+         * @param {Number|null} lastAcceptedSwapIdx
          */
-        end() {
-            //
-        }
+        end(lastAcceptedSwapIdx) {
+            if (dropped)
+                return;
+            //if (dragOriginIsExternal) ??
+            //    return;
+            if (lastAcceptedSwapIdx === null) // No moves, todo jos 0? 
+                return;
+            store2.dispatch('theBlockTree/undo', [initialTree, null]);
+        },
+        /**
+         * @param {SpawnDescriptor|null}
+         */
+        setExternalOriginData(data) {
+            extDragData = data;
+        },
     };
+}
+
+/**
+ * @param {HTMLLIElement} li
+ * @returns {BlockDescriptor}
+ */
+function foo(li) {
+    if (li.getAttribute('data-trid') === 'main') // move to this.begin()?
+        return createBlockDescriptorFromLi(li);
+    if (!isTreesOutermostBlock(li.getAttribute('data-block-id'),
+                blockTreeUtils.getRootFor(li.getAttribute('data-trid'), store2.get().theBlockTree)))
+        return createBlockDescriptorFromLi(li);
+    return createBlockDescriptor(findRefBlockOf(li.getAttribute('data-trid'), store2.get().theBlockTree), 'main', true);
+}
+
+/**
+ * @param {HTMLLIElement} li
+ * @returns {BlockDescriptor}
+ */
+function createBlockDescriptorFromLi(li) {
+    const blockId = li.getAttribute('data-block-id');
+    const trid = li.getAttribute('data-trid');
+    const rootOrInnerTree = blockTreeUtils.getRootFor(trid, store2.get().theBlockTree);
+    const block = blockTreeUtils.findBlock(blockId, rootOrInnerTree)[0];
+    return createBlockDescriptor(block, trid);
+}
+
+/**
+ * @param {RawBlock} block
+ * @param {String} trid
+ * @param {Boolean} isGbtRef = false
+ * @returns {BlockDescriptor}
+ */
+function createBlockDescriptor(block, trid, isGbtRef = false) {
+    return {blockId: block.id, trid, isGbtRef};
 }
 
 /**
@@ -243,4 +284,4 @@ function saveExistingBlocksToBackend(newBlockTree, trid) {
 }
 
 export default createDndController;
-export {saveExistingBlocksToBackend};
+export {saveExistingBlocksToBackend, createBlockDescriptor};

@@ -115,21 +115,28 @@ function findRefBlockOf(innerTreeBlockOrTrid, tree) {
 
 /**
  * @param {RawBlock} block
+ * @param {Boolean} includePrivates = false
  * @returns {{[key: String]: any;}}
  */
-function toTransferable(block) {
-    return treeToTransferable([block])[0];
+function toTransferable(block, includePrivates = false) {
+    return treeToTransferable([block], includePrivates)[0];
 }
 
 /**
  * @param {Array<RawBlock>} tree
+ * @param {Boolean} includePrivates = false
  * @returns {Array<{[key: String]: any;}>}
  */
-function treeToTransferable(tree) {
+function treeToTransferable(tree, includePrivates = false) {
     return blockTreeUtils.mapRecursively(tree, block => {
-        const onlyTheseKeys = Object.keys(block).filter(key =>
-            ['children', 'isStoredTo', 'isStoredToTreeId'].indexOf(key) < 0
-        );
+        const allKeys = Object.keys(block);
+        const onlyTheseKeys = allKeys.filter(key => {
+            if (key === 'children' || key === 'isStoredTo' || key === 'isStoredToTreeId')
+                return false;
+            if (includePrivates === false && key.startsWith('__'))
+                return false;
+            return true;
+        });
         return objectUtils.clonePartially(onlyTheseKeys, block);
     });
 }

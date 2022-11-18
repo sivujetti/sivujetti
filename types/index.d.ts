@@ -205,6 +205,8 @@ interface EditAwareWebPageEventHandlers {
 
 interface EditAppAwareWebPage {
     data: CurrentPageData;
+    reRenderer: ReRenderer;
+    init(renderBlockAndThen: (block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void, toTransferable: (block: RawBlock, includePrivates: Boolean = false) => {[key: String]: any;}, blockTreeUtils: blockTreeUtils): void;
     scanBlockElements(): Array<HTMLElement>;
     addRootBoundingEls(lastBlock: RawBlock): void;
     setTridAttr(blockId: String, trid: String): void;
@@ -228,7 +230,7 @@ interface ContextMenuLink {
 
 type blockChangeEvent = 'init'|'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block'|'swap-blocks'|'undo-swap-blocks'|'commit-add-single-block'|'convert-block-to-global'|'undo-convert-block-to-global';
 
-type blockChangeEvent2 = 'blockTrees/updatePropsOf'|'todo?';
+type blockChangeEvent2 = 'theBlockTree/init'|'theBlockTree/swap'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undo'|'theBlockTree/deleteBlock'|'theBlockTree/addBlockOrBranch'|'theBlockTree/undoAdd(Drop)Block'|'theBlockTree/updatePropsOf'|'theBlockTree/cloneItem';
 
 interface BlockEditFormProps {
     getBlockCopy(): RawBlock;
@@ -351,7 +353,13 @@ interface DragDropInfo {
 
 type leftPanelName = 'Default'|'CreatePage'|'CreatePageType';
 
-interface TempTodo {
+interface BlockDescriptor {
     blockId: String;
     trid: String;
+    isGbtRef: Boolean;
+}
+
+interface SpawnDescriptor {
+    block: RawBlock;
+    isReusable: Boolean|null;
 }

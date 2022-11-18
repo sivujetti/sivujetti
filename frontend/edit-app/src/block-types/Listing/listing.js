@@ -1,6 +1,5 @@
 import {__, http} from '@sivujetti-commons-for-edit-app';
 import ListingBlockEditForm from './EditForm.jsx';
-import {toTransferable} from '../../Block/utils.js';
 
 export default () => {
     const initialData = {
@@ -19,7 +18,7 @@ export default () => {
         defaultRenderer: initialData.renderWith,
         icon: 'layout-list',
         reRender(block, _) {
-            return http.post('/api/blocks/render', {block: toTransferable(block)}).then(resp => resp.result);
+            return http.post('/api/blocks/render', {block}).then(resp => resp.result);
         },
         createSnapshot: from => ({
             filterPageType: from.filterPageType,

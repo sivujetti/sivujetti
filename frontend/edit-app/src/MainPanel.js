@@ -2,7 +2,7 @@ let env;
 
 // see also frontend/edit-app/main.js
 const sectionRenderers = new Map;
-const useNoUlBlockTree = false;
+const useNoUlBlockTree = true;
 
 class MainPanel {
     // el;

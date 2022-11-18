@@ -1,5 +1,5 @@
 import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app';
-import {renderBlockAndThen} from '../../../../webpage/src/EditAppAwareWebPage.js';
+import {renderBlockAndThen} from '../../shar.js';
 import {getIcon} from '../../block-types/block-types.js';
 import {createBlockFromBlueprint, createBlockFromType, setTrids, toTransferable} from '../../Block/utils.js';
 import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} from '../../store.js';

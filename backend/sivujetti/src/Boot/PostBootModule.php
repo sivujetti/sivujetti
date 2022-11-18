@@ -22,4 +22,3 @@ final class PostBootModule {
         $apiCtx->triggerEvent(UserSiteAPI::ON_ROUTE_CONTROLLER_BEFORE_EXEC);
     }
 }
-

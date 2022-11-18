@@ -76,6 +76,29 @@ export default {
             }
         });
     },
+    /**
+     * Returns $from itself, if $trid === 'main', otherwise this.findRefBlockFor(trid, from).__globalBlockTree.blocks.
+     *
+     * @param {String} trid
+     * @param {Array<RawBlock>} from
+     * @returns {Array<RawBlock>}
+     */
+    getRootFor(trid, from) {
+        return trid === 'main' ? from : this.findFirstRefBlockFor(trid, from).__globalBlockTree.blocks;
+    },
+    /**
+     * Returns first block from $from, which type === 'GlobalBlockReference' and
+     * globalBlockTreeId === $trid.
+     *
+     * @param {String} trid
+     * @param {Array<RawBlock>} from
+     * @returns {RawBlock}
+     */
+    findFirstRefBlockFor(trid, from) {
+        return this.findRecursively(from, block =>
+            block.type === 'GlobalBlockReference' && block.globalBlockTreeId === trid
+        );
+    },
 };
 
 /**

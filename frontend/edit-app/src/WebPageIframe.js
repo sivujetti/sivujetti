@@ -1,6 +1,9 @@
 import {__, env, urlUtils} from '@sivujetti-commons-for-edit-app';
 import {createTrier} from '../../../frontend/webpage/src/EditAppAwareWebPage.js';
+import {toTransferable} from './Block/utils.js';
 import IframePageManager from './IframePageManager.js';
+import blockTreeUtils from './left-panel/Block/blockTreeUtils.js';
+import {renderBlockAndThen} from './shar.js';
 
 class WebPageIframe {
     // el;
@@ -115,6 +118,7 @@ class WebPageIframe {
             // 1.
             env.window.receiveNewPreviewIframePage = webPage => {
                 // 3.
+                webPage.init(renderBlockAndThen, toTransferable, blockTreeUtils);
                 this.pageManager.loadPage(iframeUrl.indexOf('duplicate=') < 0 ? webPage : withPatchedTitle(webPage));
                 resolve(webPage);
                 env.window.receiveNewPreviewIframePage = null;

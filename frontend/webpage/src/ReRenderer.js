@@ -9,6 +9,8 @@ let blockTreeUtils;
  * WebPageIframe based on those events.
  */
 class ReRenderer {
+    // elCache;
+    // lastFastUpdate;
     /**
      * @param {(block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void} renderBlockAndThen_
      * @param {(block: RawBlock, includePrivates: Boolean = false) => {[key: String]: any;}} _toTransferable
@@ -20,95 +22,54 @@ class ReRenderer {
         blockTreeUtils = _blockTreeUtils;
     }
     /**
-     * @returns {{fast: (event: String, data: Array<any>) => void; slow: (blockId: String) => void;}}
+     * @returns {{fast: (event: blockChangeEvent2, data: Array<any>) => void; slow: (blockId: String) => void;}}
      * @access public
      */
     createBlockTreeChangeListeners() {
-        const state = {cac: null, fast: null};
-        const doReRender = (tree, uni=null, over=null) => {
-            document.body.innerHTML = '';
-            const onlyOwnNodes = (endcomOf, selfWithoutChilren) => {
-                endcomOf.parentElement.insertBefore(selfWithoutChilren, endcomOf);
-            };
-            const eer = (bid, diff) => {
-                const pool = state.cac.get(bid);
-                const keys = Object.keys(pool);
-                const itm = pool[keys[keys.length - diff]];
-                return itm !== '(deleted)' ? itm.cloneNode(true) : itm;
-            };
-            const tate = (branch, f, endcom=null) => {
-                for (const b of branch) {
-                    if (b.type === 'PageInfo') continue;
-                        let diff;
-                        if (uni && uni.bid === 'all') diff = 1; // todo !uni else
-                        else if (uni && uni.bid === b.id) diff = 2;
-                        else diff = 1;
-                    if (b.type !== 'GlobalBlockReference') {
-                        if (!endcom) endcom = getChildEndComment(getBlockContentRoot(f));
-                        const node = !(over && over.bid === b.id) ? eer(b.id, diff) : over.nod;
-                        if (node !== '(deleted)') {
-                        onlyOwnNodes(endcom, node);
-                        if (b.children.length) tate(b.children, node);
-                        } else {
-                            //?
-                        }
-                    } else { // ?? 
-                        const e = document.createComment(` block-end ${b.id} `);
-                        f.insertBefore(e, f.lastChild);
-                        f.insertBefore(document.createComment(` block-start ${b.id}:GlobalBlockReference `), e);
-                        const node = eer(b.__globalBlockTree.blocks[0].id, diff);
-                        if (node !== '(deleted)')
-                        tate(b.__globalBlockTree.blocks,
-                            node,
-                            //state.cac.get(b.__globalBlockTree.blocks[0].id).cloneNode(true), // ??
-                            e);
-                    }
-                }
-            };
-            const frag = document.createElement('div');
-            frag.innerHTML = '<!-- children-start --><!-- children-end -->';
-            tate(tree, frag);
-            Array.from(frag.childNodes).forEach(movable => document.body.appendChild(movable));
+        return {
+            fast: this.handleFastChangeEvent.bind(this),
+            slow: this.handleSlowChangeEvent.bind(this)
         };
-        return {fast: ({theBlockTree}, [event, data]) => {
-            ////////////////////////////////////////////////////////////////////////
-            if (event === 'theBlockTree/init') {
-                state.cac = createCac(theBlockTree);
-            } else if (event === 'theBlockTree/swap') {
-                if (data[0].trid === 'main' && data[1].isGbtRef)
-                    ;
-                else
-                    doReRender(theBlockTree);
-            } else if (event === 'theBlockTree/undo') {
-                if (!data[1]) { // undo of non singel update
-                    doReRender(theBlockTree, {bid: 'all'});
-                } else { // undo of single update
-                    doReRender(theBlockTree, {bid: data[1]}, undefined, true);
-                    const pool = state.cac.get(data[1]);
-                    const takeNewest = () => {
-                        const ks = Object.keys(pool);
-                        return ks[ks.length - 1];
-                    };
-                    const newes = takeNewest();
-                    state.cac.set(data[1], Object.keys(pool).reduce((out, hash) => {
-                        if (hash !== newes) out[hash] = pool[hash];
-                        return out;
-                    }, {}));
-                }
-            } else if (event === 'theBlockTree/deleteBlock') {
-                doReRender(theBlockTree);
-            ////////////////////////////////////////////////////////////////////////
-            } else if (event === 'theBlockTree/addBlockOrBranch') { // added to tree while dragging, not dropped yet
-                const [newBlockInf] = data;
-                const newBlock = newBlockInf.block;
-                const {isReusable} = newBlockInf;
+    }
+    /**
+     * @param {{theBlockTree: Array<RawBlock>;} && {[key: String]: any;}} state
+     * @param {[blockChangeEvent2, Array<any>]} context
+     */
+    handleFastChangeEvent({theBlockTree}, [event, data]) {
+        ////////////////////////////////////////////////////////////////////////
+        if (event === 'theBlockTree/init') {
+            this.elCache = createElCache(theBlockTree);
+        } else if (event === 'theBlockTree/swap') {
+            if (data[0].trid === 'main' && data[1].isGbtRef)
+                ;
+            else
+                this.doReRender(theBlockTree);
+        } else if (event === 'theBlockTree/undo') {
+            const maybeBlockId = data[1];
+            if (!maybeBlockId) { // undo of non-single update
+                this.doReRender(theBlockTree);
+            } else { // undo of single update
+                const pool = this.elCache.get(maybeBlockId);
+                pool.pop();
+                this.elCache.set(maybeBlockId, pool);
+                this.doReRender(theBlockTree);
+            }
+        } else if (event === 'theBlockTree/deleteBlock') {
+            this.doReRender(theBlockTree);
+        ////////////////////////////////////////////////////////////////////////
+        } else if (event === 'theBlockTree/addBlockOrBranch') { // added to tree while dragging, not dropped yet
+            const [newBlockInf] = data;
+            const newBlock = newBlockInf.block;
+            const {isReusable} = newBlockInf;
 
-                let renderType = 'none';
-                renderBlockAndThen(toTransferable(newBlock),
-                // # race-1
-                ({html}) => {
-                    if (renderType === 'none') renderType = 'sync';
+            let renderType = 'none';
+            const isGbtRef = newBlock.type === 'GlobalBlockReference';
+            renderBlockAndThen(toTransferable(newBlock),
+            // # race-1
+            ({html}) => {
+                if (renderType === 'none') renderType = 'sync';
 
+                if (!isGbtRef) {
                     const hasPlace = html.indexOf(CHILD_CONTENT_PLACEHOLDER) > -1;
                     const rendered = withTrid(html, newBlock.isStoredToTreeId, !hasPlace);
                     const completed = hasPlace ? rendered.replace(CHILD_CONTENT_PLACEHOLDER, '') : rendered;
@@ -116,87 +77,137 @@ class ReRenderer {
                     temp.innerHTML = completed;
 
                     blockTreeUtils.traverseRecursively([newBlock], (b, _i, parent, _parentIdPath) => {
-                        const erer = !parent ? temp.firstElementChild : gb(b.id, temp.firstElementChild);
-                        if (!erer) throw new Error('');
-                        const exi = extr(erer);
-                        state.cac.set(b.id, {[hash(b)]: exi});
+                        const el = !parent ? temp.firstElementChild : getBlockEl(b.id, temp.firstElementChild);
+                        if (!el) throw new Error('');
+                        this.elCache.set(b.id, [extractRendered(el)]);
                     });
-                    doReRender(theBlockTree);
-
-                }, isReusable);
-
-                // #race-2
-                if (renderType === 'none') {
-                    renderType = 'async';
-                    blockTreeUtils.traverseRecursively([newBlock], (b, _i, parent, _parentIdPath) => {
-                        const place = document.createElement('div');
-                        const ssss = parent ? '' : ' sjet-dots-animation';
-                        place.innerHTML = `<div class="j-Placeholder${ssss}" data-block-type="Placeholder" data-block="${b.id}" data-trid="${newBlock.isStoredToTreeId}"><!--${CHILDREN_START}--><!--${CHILDREN_END}--></p>`;
-                        const exi = extr(place.firstElementChild);
-                        state.cac.set(b.id, {[hash(b)]: exi});
+                } else {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = withTrid(html, newBlock.globalBlockTreeId, true);
+                    blockTreeUtils.traverseRecursively(newBlock.__globalBlockTree.blocks, (b, _i, _parent, _parentIdPath) => {
+                        const fromTemp = getBlockEl(b.id, temp);
+                        this.elCache.set(b.id, [extractRendered(fromTemp)]);
                     });
-                    doReRender(theBlockTree);
                 }
-            ////////////////////////////////////////////////////////////////////////
-            } else if (event === 'theBlockTree/applyAdd(Drop)Block') { // dropped
-                // ?
-            ////////////////////////////////////////////////////////////////////////
-            } else if (event === 'theBlockTree/undoAdd(Drop)Block') {
-                doReRender(theBlockTree);
-            ////////////////////////////////////////////////////////////////////////
-            } else if (event === 'theBlockTree/updatePropsOf') {
-                const [blockId, blockIsStoredToTreeId, _changes, hasErrors, debounceMillis] = data;
-                if (hasErrors) { window.console.log('not impl'); return; }
 
-                const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, theBlockTree);
-                const block = blockTreeUtils.findBlock(blockId, rootOrInnerTree)[0];
-                const el = gb(block.id);
+                this.doReRender(theBlockTree);
 
-                renderBlockAndThen((function (out) { out.children = []; return out; })(toTransferable(block)), ({html, onAfterInsertedToDom}) => {
-                    const temp = document.createElement('template');
-                    const completed = withTrid(html, blockIsStoredToTreeId).replace(CHILD_CONTENT_PLACEHOLDER, getChildContent(el));
-                    temp.innerHTML = completed;
-                    el.replaceWith(temp.content);
-                    onAfterInsertedToDom(completed); // ??
+            }, isReusable);
 
-                    if (debounceMillis > 0) {
-                    const ela = gb(block.id);
-                    const exi = extr(ela);
-                    state.fast = {block};
-                    // ## todo luo optimoitu asd3, joka päivittää vain muokatun lohkon
-                    doReRender(theBlockTree, undefined, {bid: block.id, nod: exi}); // ### tässä temp-elementtiä
-                    } else { // ????
-                    state.cac.get(block.id)[hash(block)] = extr(gb(block.id));
+            // #race-2
+            if (renderType === 'none') {
+                renderType = 'async';
+                const insertPlaceholdersFor = !isGbtRef ? [newBlock] : newBlock.__globalBlockTree.blocks;
+                blockTreeUtils.traverseRecursively(insertPlaceholdersFor, (b, _i, parent, _parentIdPath) => {
+                    const place = document.createElement('div');
+                    const ssss = parent ? '' : ' sjet-dots-animation';
+                    place.innerHTML = `<div class="j-Placeholder${ssss}" data-block-type="Placeholder" data-block="${b.id}" data-trid="${b.isStoredToTreeId}"><!--${CHILDREN_START}--><!--${CHILDREN_END}--></p>`;
+                    this.elCache.set(b.id, [extractRendered(place.firstElementChild)]);
+                });
+                this.doReRender(theBlockTree);
+            }
+        ////////////////////////////////////////////////////////////////////////
+        } else if (event === 'theBlockTree/applyAdd(Drop)Block') { // dropped
+            // ?
+        ////////////////////////////////////////////////////////////////////////
+        } else if (event === 'theBlockTree/undoAdd(Drop)Block') {
+            this.doReRender(theBlockTree);
+        ////////////////////////////////////////////////////////////////////////
+        } else if (event === 'theBlockTree/updatePropsOf') {
+            const [blockId, blockIsStoredToTreeId, _changes, hasErrors, debounceMillis] = data;
+            if (hasErrors) { window.console.log('not impl'); return; }
+
+            const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, theBlockTree);
+            const block = blockTreeUtils.findBlock(blockId, rootOrInnerTree)[0];
+            const el = getBlockEl(block.id);
+
+            renderBlockAndThen((function (out) { out.children = []; return out; })(toTransferable(block)), ({html, onAfterInsertedToDom}) => {
+                const temp = document.createElement('template');
+                const completed = withTrid(html, blockIsStoredToTreeId).replace(CHILD_CONTENT_PLACEHOLDER, getChildContent(el));
+                temp.innerHTML = completed;
+                el.replaceWith(temp.content);
+                onAfterInsertedToDom(completed);
+
+                if (debounceMillis > 0) {
+                const el = getBlockEl(block.id);
+                const onlySelf = extractRendered(el);
+                this.lastFastUpdate = {block};
+                // ## todo luo optimoitu asd3, joka päivittää vain muokatun lohkon
+                this.doReRender(theBlockTree, {blockId: block.id, el: onlySelf}); // ### tässä temp-elementtiä
+                } else { // ?? 
+                this.elCache.get(block.id).push(extractRendered(getBlockEl(block.id)));
+                }
+            }, false);
+
+        ////////////////////////////////////////////////////////////////////////
+        } else if (event === 'theBlockTree/cloneItem') {
+            const [info, clonedFromInf] = data; // [SpawnDescriptor, BlockDescriptor]
+            const mainOrInnerTree = blockTreeUtils.getRootFor(clonedFromInf.trid, theBlockTree);
+            const clonedFrom = blockTreeUtils.findBlock(clonedFromInf.blockId, mainOrInnerTree)[0];
+            const cloned = info.block;
+            const [flatOriginal, flatCloned] = flattenBlocksRecursive(clonedFrom, cloned);
+            for (let i = 0; i < flatOriginal.length; ++i) {
+                const clonedFromNode = getBlockEl(flatOriginal[i].id);
+                const cloned = extractRendered(clonedFromNode);
+                cloned.setAttribute('data-block', flatCloned[i].id);
+                this.elCache.set(flatCloned[i].id, [cloned]);
+            }
+            this.doReRender(theBlockTree);
+        }
+    }
+    /**
+     * @param {String} blockId
+     */
+    handleSlowChangeEvent(blockId) {
+        // 1. lastFastUpdate what? was first, this (slow what?) came after that
+        if (this.lastFastUpdate) {
+            const {block} = this.lastFastUpdate;
+            if (block.id !== blockId) throw new Error();
+            this.elCache.get(block.id).push(extractRendered(getBlockEl(block.id)));
+            this.lastFastUpdate = null;
+        // 2. lastFastUpdate what? this (slow what?) happened simuiltaneousldlskdslkm
+        } else {
+            // ?
+        }
+    }
+    /**
+     * @param {Array<RawBlock>} tree
+     * @param {{blockId: String; el: HTMLElement;}} singleOverride = null
+     * @access private
+     */
+    doReRender(tree, singleOverride = null) {
+        document.body.innerHTML = '';
+        const appendCachedEls = (branch, toEl, endcom = null) => {
+            if (!endcom) endcom = getChildEndComment(getBlockContentRoot(toEl));
+            for (const b of branch) {
+                if (b.type === 'PageInfo') continue;
+                if (b.type !== 'GlobalBlockReference') {
+                    const selfWithoutChildren = !(singleOverride && singleOverride.blockId === b.id) ? this.getLatestCachedElClone(b.id) : singleOverride.el;
+                    endcom.parentElement.insertBefore(selfWithoutChildren, endcom);
+                    if (b.children.length) {
+                        appendCachedEls(b.children, selfWithoutChildren);
                     }
-                }, false);
-
-            ////////////////////////////////////////////////////////////////////////
-            } else if (event === 'theBlockTree/cloneItem') {
-                const [info, clonedFromInf] = data; // [SpawnDescriptor, BlockDescriptor]
-                const mainOrInnerTree = blockTreeUtils.getRootFor(clonedFromInf.trid, theBlockTree);
-                const clonedFrom = blockTreeUtils.findBlock(clonedFromInf.blockId, mainOrInnerTree)[0];
-                const cloned = info.block;
-                const [flatOriginal, flatCloned] = flattenBlocksRecursive(clonedFrom, cloned);
-                for (let i = 0; i < flatOriginal.length; ++i) {
-                    const clonedFromNode = gb(flatOriginal[i].id);
-                    const ast = extr(clonedFromNode);
-                    ast.setAttribute('data-block', flatCloned[i].id);
-                    state.cac.set(flatCloned[i].id, {[hash(flatCloned[i])]: ast});
+                } else {
+                    const endcom2 = document.createComment(` block-end ${b.id} `);
+                    toEl.insertBefore(endcom2, toEl.lastChild);
+                    toEl.insertBefore(document.createComment(` block-start ${b.id}:GlobalBlockReference `), endcom2);
+                    const node = this.getLatestCachedElClone(b.__globalBlockTree.blocks[0].id);
+                    appendCachedEls(b.__globalBlockTree.blocks, node, endcom2);
                 }
-                doReRender(theBlockTree);
             }
-        }, slow: blockId => {
-            // 1. fast what? was first, this (slow what?) came after that
-            if (state.fast) {
-                const {block} = state.fast;
-                if (block.id !== blockId) throw new Error();
-                state.cac.get(block.id)[hash(block)] = extr(gb(block.id));
-                state.fast = null;
-            // 2. fast what? this (slow what?) happened simuiltaneousldlskdslkm
-            } else {
-                // ?
-            }
-        }};
+        };
+        const frag = document.createElement('div');
+        frag.innerHTML = '<!-- children-start --><!-- children-end -->';
+        appendCachedEls(tree, frag);
+        Array.from(frag.childNodes).forEach(movable => document.body.appendChild(movable));
+    }
+    /**
+     * @param {String} blockId
+     * @returns {HTMLElement}
+     */
+    getLatestCachedElClone(blockId) {
+        const pool = this.elCache.get(blockId);
+        return pool[pool.length - 1].cloneNode(true);
     }
 }
 
@@ -217,14 +228,18 @@ function flattenBlocksRecursive(original, cloned) {
     return [flatOriginal, flatCloned];
 }
 
-function createCac(tree) {
+/**
+ * @param {Array<RawBlock>} tree
+ * @returns {Map<String, HTMLElement[]>}
+ */
+function createElCache(tree) {
     const t = (branch, out) => {
         for (const b of branch) {
             if (b.type === 'PageInfo') continue;
             if (b.type !== 'GlobalBlockReference') {
-                const ela = gb(b.id);
-                const exi = extr(ela);
-                out.set(b.id, {[hash(b)]: exi});
+                const elFromBody = getBlockEl(b.id);
+                const withoutChildren = extractRendered(elFromBody);
+                out.set(b.id, [withoutChildren]);
                 if (b.children.length) t(b.children, out);
             } else {
                 t(b.__globalBlockTree.blocks, out);
@@ -236,32 +251,37 @@ function createCac(tree) {
     return out;
 }
 
-function gb(blockId, from = document.body) {
+/**
+ * @param {String} blockId
+ * @param {HTMLElement} from = document.body
+ * @returns {HTMLElement|null}
+ */
+function getBlockEl(blockId, from = document.body) {
     return from.querySelector(`[data-block="${blockId}"]`);
 }
 
 /**
- * Returns cloned $ela, without its children (els between <!-- children-start --><!-- children-end -->)
+ * Returns cloned $el, without its children (els between <!-- children-start --><!-- children-end -->)
  *
- * @param {HTMLElement|null} ela
+ * @param {HTMLElement|null} el
  * @returns {HTMLElement|null}
  */
-function extr(ela) {
-    if (!ela) return null;
-    const copy = ela.cloneNode(true);
+function extractRendered(el) {
+    if (!el) return null;
+    const copy = el.cloneNode(true);
     const start = getChildStartComment(getBlockContentRoot(copy));
     if (!start) throw new Error();
     //
     const childNodes = [];
-    let el = start.nextSibling;
-    while (el) {
-        if (el.nodeType === Node.COMMENT_NODE && el.nodeValue === CHILDREN_END) {
+    let cur = start.nextSibling;
+    while (cur) {
+        if (cur.nodeType === Node.COMMENT_NODE && cur.nodeValue === CHILDREN_END) {
             break;
         }
-        childNodes.push(el);
-        el = el.nextSibling;
+        childNodes.push(cur);
+        cur = cur.nextSibling;
     }
-    childNodes.forEach(nod => nod.parentElement.removeChild(nod));
+    childNodes.forEach(el2 => el2.parentElement.removeChild(el2));
     return copy;
 }
 
@@ -527,11 +547,6 @@ function createBlockTreeChangeListener(trid, blockTreeUtils, blockToTransferable
             return;
         }
     };
-}
-
-function hash(block) {
-    const out = JSON.stringify(block.propsData);
-    return out;
 }
 
 /**

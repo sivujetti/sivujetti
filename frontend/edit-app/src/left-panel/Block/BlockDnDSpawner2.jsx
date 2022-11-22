@@ -369,9 +369,13 @@ class BlockDnDSpawner extends preact.Component {
                 : createBlockFromBlueprint(this.state.reusables[parseInt(reusableBranchIdx, 10)].blockBlueprints[0], 'don\'t-know-yet');
         } else {
             gbt = this.state.globalBlockTrees.find(({id}) => id === dragEl.getAttribute('data-trid'));
-            // todo if this.preRender same (was: `if (this.newBlock && this.newBlock.globalBlockTreeId === gbt.id) return;`)
             newBlock = createBlockFromType(typeStr, 'don\'t-know-yet', undefined, {
                 globalBlockTreeId: gbt.id,
+                __globalBlockTree: {
+                    id: gbt.id,
+                    name: gbt.name,
+                    blocks: JSON.parse(JSON.stringify(gbt.blocks)),
+                }
             });
         }
         //

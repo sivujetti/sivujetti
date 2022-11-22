@@ -135,7 +135,7 @@ class TreeDragDrop {
 
         // 2. Do reject tests
         if (this.checkIfBeyondLastMarker(nextCand) ||
-            (nextCand.pos !== 'before' && this.checkIfDraggingToOwnParent(li, idx)) ||
+            (nextCand.pos !== 'before' && !this.dragOriginIsExternal && this.checkIfDraggingToOwnParent(li, idx)) ||
             this.checkIfDraggingInsideItself(ia, li, idx) ||
             (!this.dragOriginIsExternal && this.checkIfTooClose(ib, nextCand, li, ia, idx))) {
             accept = false;
@@ -217,7 +217,7 @@ class TreeDragDrop {
      */
     setStart(li, pos = 'initial') {
         this.start = li;
-        this.startIdx = this.getIdx(this.start) + (pos === 'before' ? -1 : pos === 'after' ? 1 : 0);
+        this.startIdx = this.getIdx(this.start) + (pos === 'before' ? -1 : pos === 'after' ? 1 : Infinity);
         this.lastAcceptedIdx = null;
         this.startDepth = this.start.getAttribute('data-depth');
         this.curCand = {pos, li: this.start};

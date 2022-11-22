@@ -7,7 +7,6 @@ import store2, {observeStore as observeStore2} from '../../store2.js';
 import BlockStylesTab from './BlockStylesTab.jsx';
 import {emitMutateBlockProp, emitPushStickyOp} from './BlockTree.jsx';
 import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
-import {findRefBlockOf} from '../../Block/utils.js';
 
 /** @type {BlockTypes} */
 let blockTypes;
@@ -22,7 +21,7 @@ class BlockEditForm extends preact.Component {
     // editFormImpl;
     // allowStylesEditing;
     // unregistrables;
-    // static undoingLockIsOn;
+    // dispatchFastChangeTimeout;
     /**
      * @param {{block: Block; inspectorPanel: preact.Component;}} props
      */
@@ -37,7 +36,6 @@ class BlockEditForm extends preact.Component {
      */
     componentWillMount() {
         const {block} = this.props;
-        BlockEditForm.undoingLockIsOn = false;
         this.isOutermostBlockOfGlobalBlockTree = false;
         this.userCanSpecializeGlobalBlocks = api.user.can('specializeGlobalBlocks');
         this.blockType = blockTypes.get(block.type);
@@ -50,21 +48,22 @@ class BlockEditForm extends preact.Component {
         this.boundEmitFastChange = null;
         const trid = this.props.block.isStoredToTreeId;
         this.unregistrables = [observeStore2('theBlockTree', (_, [event, data]) => {
-            if (event === 'theBlockTree/deleteBlock') {
+            const isUndo = event === 'theBlockTree/undo';
+            if (event === 'theBlockTree/updatePropsOf' || isUndo) {
+                if (!this.editFormImplsChangeGrabber && !this.stylesFormChangeGrabber)
+                    return;
+                const blockId = !isUndo
+                    ? data[0]  // updatePropsOf: [<blockId>, <blockIsStoredToTreeId>, <changes>, <hasErrors>, <debounceMillis>]
+                    : data[1]; // undo:          [<oldTree>, <blockId>, <blockIsStoredToTreeId>]
+                if (blockId !== this.props.block.id || (isUndo && blockId === null))
+                    return;
+                if (this.editFormImplsChangeGrabber)
+                    this.editFormImplsChangeGrabber(this.getCurrentBlockCopy(), event, isUndo);
+                if (this.stylesFormChangeGrabber)
+                    this.stylesFormChangeGrabber(this.getCurrentBlockCopy(), event, isUndo);
+            } else if (event === 'theBlockTree/deleteBlock') {
                 const [id, _isStoredToTreeId, _what, isChildOfOrCurrentlyOpenBlock] = data;
                 if (isChildOfOrCurrentlyOpenBlock || id === block.id) this.props.inspectorPanel.close();
-            } else if (event === 'theBlockTree/updatePropsOf' || event === 'theBlockTree/undo') {
-            if (!this.editFormImplsChangeGrabber && !this.stylesFormChangeGrabber)
-                return;
-            const blockId = data[event === 'theBlockTree/updatePropsOf' ? 0 : 1];
-            if (blockId !== this.props.block.id || event === 'theBlockTree/undo' && blockId === null)
-                return;
-            const {id, isStoredToTreeId} = this.props.block;
-            const block = blockTreeUtils.findBlock(id, temp(isStoredToTreeId))[0];
-            if (this.editFormImplsChangeGrabber)
-                this.editFormImplsChangeGrabber(JSON.parse(JSON.stringify(block)), event, event === 'theBlockTree/undo');
-            if (this.stylesFormChangeGrabber)
-                this.stylesFormChangeGrabber(JSON.parse(JSON.stringify(block)), event, event === 'theBlockTree/undo');
             }
         })].concat(!(window.useStoreonBlockTree !== false) ? observeStore(createSelectBlockTree(trid), ({tree, context}) => {
             if (!this.editFormImplsChangeGrabber && !this.stylesFormChangeGrabber)
@@ -91,6 +90,7 @@ class BlockEditForm extends preact.Component {
      */
     render({block}, {currentTabIdx}) {
         const EditFormImpl = this.editFormImpl;
+        const getCopy = (window.useStoreonBlockTree !== false ? this.getCurrentBlockCopy : getBlockCopyOld).bind(this);
         return <div data-main>
         <div class={ `with-icon pb-1${preactHooks.useMemo(() => {
                 if (isGlobalBlockTreeRefOrPartOfOne(block)) return ' global-block-tree-block';
@@ -111,7 +111,7 @@ class BlockEditForm extends preact.Component {
                     : null
                 }
                 <EditFormImpl
-                    getBlockCopy={ getBlockCopy.bind(this) }
+                    getBlockCopy={ getCopy }
                     grabChanges={ withFn => { this.editFormImplsChangeGrabber = withFn; } }
                     emitValueChanged={ (val, key, ...vargs) => { window.useStoreonBlockTree !== false ? this.handleValueValuesChanged2({[key]: val}, ...vargs) : this.handleValueValuesChanged({[key]: val}, ...vargs); } }
                     emitManyValuesChanged={ window.useStoreonBlockTree !== false ? this.handleValueValuesChanged2.bind(this) : this.handleValueValuesChanged.bind(this) }
@@ -120,7 +120,7 @@ class BlockEditForm extends preact.Component {
         </div>
         <div class={ currentTabIdx === 1 ? '' : 'd-none' }>
             <BlockStylesTab
-                getBlockCopy={ getBlockCopy.bind(this) }
+                getBlockCopy={ getCopy }
                 grabBlockChanges={ withFn => { this.stylesFormChangeGrabber = withFn; } }
                 emitAddStyleToBlock={ (styleClassToAdd, b) => {
                     const currentClasses = b.styleClasses;
@@ -141,7 +141,7 @@ class BlockEditForm extends preact.Component {
     }
     /**
      * @param {Object} changes
-     * @param {Boolean} hasErrors
+     * @param {Boolean} hasErrors = false
      * @param {Number} debounceMillis = 0
      * @param {'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none'} debounceType = 'debounce-commit-to-queue'
      * @access public
@@ -154,13 +154,13 @@ class BlockEditForm extends preact.Component {
                 hasErrors, debounceMillis]);
         // Throttle fast dispatch, which throttles commitChangeOpToQueue as well
         } else if (debounceType === 'debounce-re-render-and-commit-to-queue') {
-            if (this.qwewe) clearTimeout(this.qwewe);
-            if (hasErrors) { console.log('has errors, skipping emit op (an)'); return; }
+            if (hasErrors) return;
+            if (this.dispatchFastChangeTimeout) clearTimeout(this.dispatchFastChangeTimeout);
             const fn = () => {
                 store2.dispatch('theBlockTree/updatePropsOf', [this.props.block.id, this.props.block.isStoredToTreeId, changes,
-                    hasErrors, 0]);
+                    false, 0]);
             };
-            this.qwewe = setTimeout(fn, debounceMillis);
+            this.dispatchFastChangeTimeout = setTimeout(fn, debounceMillis);
         }
     }
     /**
@@ -216,23 +216,24 @@ class BlockEditForm extends preact.Component {
         emitMutateBlockProp({styleClasses: newStyleClasses}, contextData);
         emitPushStickyOp([dataBefore], contextData);
     }
+    /**
+     * @returns {RawBlock}
+     * @access private
+     */
+    getCurrentBlockCopy() {
+        const {id, isStoredToTreeId} = this.props.block;
+        const rootOrInnerTree = blockTreeUtils.getRootFor(isStoredToTreeId, store2.get().theBlockTree);
+        return JSON.parse(JSON.stringify(blockTreeUtils.findBlock(id, rootOrInnerTree)[0]));
+    }
 }
 
 /**
  * @returns {RawBlock}
  */
-function getBlockCopy() {
-    if (window.useStoreonBlockTree !== false) {
-    const tree = temp(this.props.block.isStoredToTreeId);
-    return JSON.parse(JSON.stringify(blockTreeUtils.findBlock(this.props.block.id, tree)[0]));
-    } else {
+function getBlockCopyOld() {
     const {tree} = createSelectBlockTree(this.props.block.isStoredToTreeId)(store.getState());
     return JSON.parse(JSON.stringify(blockTreeUtils.findBlock(this.props.block.id, tree)[0]));
-    }
 }
 
-function temp(trid) {
-    return trid === 'main' ? store2.get().theBlockTree : findRefBlockOf(trid, store2.get().theBlockTree).__globalBlockTree.blocks;
-}
 
 export default BlockEditForm;

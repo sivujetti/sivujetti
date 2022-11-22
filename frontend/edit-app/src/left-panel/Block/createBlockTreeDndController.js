@@ -69,7 +69,7 @@ function createDndController(_blockTree) {
                 const drag = !extBlock ? foo(startLi) : createBlockDescriptor(extBlock, extBlock.isStoredToTreeId);
                 const targ = foo(cand.li);
 
-                //  Reject swaps between normal and global blocks
+                // Reject swaps between normal and global blocks
                 if (drag.trid === 'main' && (targ.trid !== 'main' || targ.isGbtRef))
                     return false;
                 else if (drag.trid !== 'main' && !drag.isGbtRef && targ.trid === 'main') // gbt's inner outside its root
@@ -94,7 +94,7 @@ function createDndController(_blockTree) {
             //    return;
             if (lastAcceptedSwapIdx === null) // No moves, todo jos 0? 
                 return;
-            store2.dispatch('theBlockTree/undo', [initialTree, null]);
+            store2.dispatch('theBlockTree/undo', [initialTree, null, null]);
         },
         /**
          * @param {SpawnDescriptor|null}

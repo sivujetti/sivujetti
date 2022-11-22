@@ -77,7 +77,7 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/undo',
     /**
      * @param {Object} state
-     * @param {[todo, bid]} args
+     * @param {[Array<RawBlock>, String, String]} args
      * @returns {Object}
      */
     (_state, [theBlockTree]) =>
@@ -130,7 +130,7 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/updatePropsOf',
     /**
      * @param {Object} state
-     * @param {[RawBlock]} args
+     * @param {[String, String, {[key: String]: any;}, Boolean, Number]} args
      * @returns {Object}
      */
     ({theBlockTree}, [blockId, blockIsStoredToTreeId, changes, _hasErrors, _debounceMillis]) => {

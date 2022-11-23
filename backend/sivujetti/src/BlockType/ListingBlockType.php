@@ -4,9 +4,13 @@ namespace Sivujetti\BlockType;
 
 use Pike\{ArrayUtils, Injector, PikeException};
 use Sivujetti\Block\Entities\Block;
+use Sivujetti\JsonUtils;
 use Sivujetti\Page\PagesRepository2;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
+/**
+ * @psalm-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
+ */
 class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterface {
     /**
      * @inheritdoc
@@ -44,9 +48,12 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
     public function doPerformBeforeRender(Block $block,
                                           PagesRepository2 $pagesRepo,
                                           TheWebsite $theWebsite): void {
-        $q = $pagesRepo->select($block->filterPageType, ["@own"]);
-        if ($block->filterAdditional !== "{}")
-            $q = $q->mongoWhere($block->filterAdditional);
+        $pageType = ArrayUtils::findByKey($theWebsite->pageTypes, $block->filterPageType, "name");
+        $q = $pagesRepo->select($block->filterPageType, ["@own", "@blocks"]); // <- note @blocks
+        if ($block->filterAdditional !== "{}") {
+            $validFilters = self::getValidFilters(JsonUtils::parse($block->filterAdditional), $pageType->ownFields);
+            $q = $q->mongoWhere(JsonUtils::stringify($validFilters));
+        }
         if ($block->filterLimit)
             $q = $q->limit($block->filterLimit);
         if ($block->filterOrder)
@@ -57,6 +64,29 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
                 default => throw new PikeException("Sanity", PikeException::BAD_INPUT),
             });
         $block->__pages = $q->fetchAll();
-        $block->__pageType = ArrayUtils::findByKey($theWebsite->pageTypes, $block->filterPageType, "name");
+        $block->__pageType = $pageType;
+    }
+    /**
+     * @param object $filtersIn Example: {"p.categories": {$contains: "\"catid\""}, "p.slug": {$startsWith: "/slug"}}
+     * @param array<int, RawPageTypeField> $pageTypesFields
+     * @return object Copy of $filterIn if all valid
+     */
+    private static function getValidFilters(object $filtersIn, array $pageTypesFields): object {
+        $out = new \stdClass;
+        $builtinCols = ["slug"];
+        foreach ($filtersIn as $colPath => $obj) {
+            $col = explode(".", $colPath)[1]; // "p.categories" -> "categories"
+
+            if (!in_array($col, $builtinCols, true) &&                  // not builtin ...
+                !ArrayUtils::findByKey($pageTypesFields, $col, "name")) // nor this page type's field
+                continue;
+
+            foreach ($obj as $_operator => $val) // $_operator = "$contains", $val = "foo" ...
+                if (!strlen($val))
+                    continue;
+
+            $out->{$colPath} = $obj;
+        }
+        return $out;
     }
 }

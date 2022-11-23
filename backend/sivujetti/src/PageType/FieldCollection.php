@@ -6,6 +6,8 @@ use Sivujetti\PageType\Entities\Field;
 
 /**
  * PageType->fields, ArrayObject<\Sivujetti\PageType\Entities\Field>.
+ *
+ * @psalm-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
  */
 class FieldCollection extends \ArrayObject implements \JsonSerializable {
     /**
@@ -38,7 +40,7 @@ class FieldCollection extends \ArrayObject implements \JsonSerializable {
         return $this->getArrayCopy();
     }
     /**
-     * @param object[] $input
+     * @psalm-param array<int, RawPageTypeField> $input
      * @return \Sivujetti\PageType\FieldCollection
      */
     public static function fromValidatedInput(array $input): FieldCollection {

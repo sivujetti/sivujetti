@@ -2,6 +2,9 @@
 
 namespace Sivujetti\PageType\Entities;
 
+/**
+ * @psalm-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
+ */
 final class PageType {
     public const PAGE = "Pages";
     public const SLUG_PAGE = "pages";
@@ -19,7 +22,7 @@ final class PageType {
     public string $slug;
     /** @var array */
     public array $blockFields;
-    /** @var array e.g. [{name: "price", "friendlyName": "Price", dataType: {"type": "text"}, "defaultValue": "1999"...}...] */
+    /** @psalm-var array<int, RawPageTypeField> Example [{name: "price", "friendlyName": "Price", dataType: {"type": "text"}, "defaultValue": "1999"...}...] */
     public array $ownFields;
     /** @var object e.g. {title: {defaultValue: "My page"}...} */
     public object $defaultFields;

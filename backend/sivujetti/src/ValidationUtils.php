@@ -4,6 +4,9 @@ namespace Sivujetti;
 
 use Pike\{ObjectValidator, PikeException, Validation};
 
+/**
+ * @psalm-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
+ */
 abstract class ValidationUtils {
     public const HARD_SHORT_TEXT_MAX_LEN = 1024;
     public const HARD_LONG_TEXT_MAX_LEN = 128000;
@@ -86,7 +89,7 @@ abstract class ValidationUtils {
         , "%s is not valid push id"];
     }
     /**
-     * @param array<int, object>|\ArrayObject $properties pageType->ownFields or $blockType->defineProperties()
+     * @psalm-param array<int, RawPageTypeField>|\ArrayObject $properties pageType->ownFields or $blockType->defineProperties()
      * @param \Pike\ObjectValidator $to
      * @return \Pike\ObjectValidator
      */

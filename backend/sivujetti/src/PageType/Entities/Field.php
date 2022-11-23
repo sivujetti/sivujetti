@@ -2,6 +2,9 @@
 
 namespace Sivujetti\PageType\Entities;
 
+/**
+ * @psalm-type RawPageTypeField = object{name: string, friendlyName: string, dataType: {type: string, isNullable?: bool, length?: int, validationRules?: array[], canBeEditedBy?: int}, defaultValue: string|int|mixed[]}
+ */
 final class Field {
     /** @var string */
     public string $name;
@@ -27,7 +30,7 @@ final class Field {
         return "`{$this->name}` {$this->dataType->toSql()}";
     }
     /**
-     * @param object $input {name: string, friendlyName: string, dataType: {type: string, isNullable?: bool, length?: int, validationRules?: array[], canBeEditedBy?: int}, defaultValue: string|int|mixed[]}
+     * @psalm-param RawPageTypeField $input
      * @return \Sivujetti\PageType\Entities\Field
      */
     public static function fromValidatedObject(object $input): Field {

@@ -177,14 +177,14 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $this->insertTestPages($state);
         $fn = $state->makeExpectedHtml;
         //
-        $expectedListItemsWithoutLimit = [$state->testPageData[1], $state->testPageData[0]];
-        $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithoutLimit);
+        $expectedListItemsWithoutFilter = [$state->testPageData[1], $state->testPageData[0]];
+        $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithoutFilter);
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
         $f = json_encode(["p.slug" => ["\$startsWith" => "/hello"]]);
         $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f);
-        $expectedListItemsWithLimit = [$state->testPageData[0]];
-        $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithLimit);
+        $expectedListItemsWithFilter = [$state->testPageData[0]];
+        $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithFilter);
         $this->renderAndVerify($state, 0, $expectedHtml);
     }
 
@@ -199,14 +199,47 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $this->insertTestPages($state);
         $fn = $state->makeExpectedHtml;
         //
-        $expectedListItemsWithoutLimit = [$state->testPageData[1], $state->testPageData[0]];
-        $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithoutLimit);
+        $expectedListItemsWithoutFilter = [$state->testPageData[1], $state->testPageData[0]];
+        $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithoutFilter);
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
-        $f = json_encode(["p.categories[0]" => ["\$eq" => $state->testCatData->id]]);
+        $f = json_encode(["p.categories" => ["\$contains" => "\"{$state->testCatData->id}\""]]);
         $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f);
         $expectedListItemsWithLimit = [$state->testPageData[0]];
         $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithLimit);
+        $this->renderAndVerify($state, 0, $expectedHtml);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testListingBlockUsesMultipleFilters(): void {
+        $state = $this->setupRenderListingBlockHavingManyListItemsTest();
+        $page3 = clone $state->testPageData[0];
+        $page3->id = str_replace("pp1", "pp3", $page3->id);
+        $page3->slug = "/yet-another-page";
+        $page3->path = "yet-another-page/";
+        $state->testPageData[] = $page3;
+        //
+        $state->testPageData[0]->categories = [$state->testCatData->id];
+        $state->testPageData[1]->categories = [$state->testCatData->id];
+        $this->makeTestSivujettiApp($state);
+        $this->insertTestPages($state);
+        $fn = $state->makeExpectedHtml;
+        //
+        $f1v = ["\$contains" => "\"{$state->testCatData->id}\""];
+        $f1 = json_encode(["p.categories" => $f1v]);
+        $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f1);
+        $expectedListItemsWithSingleFilter = [$state->testPageData[1], $state->testPageData[0]];
+        $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithSingleFilter);
+        $this->renderAndVerify($state, 0, $expectedHtml);
+        //
+        $f2 = json_encode(["p.categories" => $f1v,
+                           "p.slug" => ["\$startsWith" => "/hello"]]);
+        $this->blockTestUtils->setBlockProp($state->testBlocks[0], "filterAdditional", $f2);
+        $expectedListItemsWithBothFilters = [$state->testPageData[0]];
+        $expectedHtml = $fn($state->testBlocks[0], ...$expectedListItemsWithBothFilters);
         $this->renderAndVerify($state, 0, $expectedHtml);
     }
 }

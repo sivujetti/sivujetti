@@ -14,6 +14,7 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
 /**
  * @psalm-type SelectFilter = array{0: string, 1: string}
  * @psalm-type SelectFilters = array{filters: array<int, SelectFilter>, order?: string, limit?: string}
+ * @psalm-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
  */
 final class PagesRepository {
     /** @var string[] Fields that all page types share */
@@ -276,7 +277,7 @@ final class PagesRepository {
     }
     /**
      * @param \stdClass $data
-     * @param array $fields
+     * @psalm-param array<int, RawPageTypeField> $fields
      * @return string
      */
     private static function makeSnapshot(\stdClass $data, array $fields): string {

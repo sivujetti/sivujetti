@@ -2,8 +2,8 @@ import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app
 import {renderBlockAndThen} from '../../shar.js';
 import {withBlockId} from '../../../../webpage/src/EditAppAwareWebPage.js';
 import {getIcon} from '../../block-types/block-types.js';
-import {createBlockFromBlueprint, createBlockFromType, findRefBlockOf, isTreesOutermostBlock, setTrids, toTransferable} from '../../Block/utils.js';
-import store, {createSelectBlockTree, createSetBlockTree, pushItemToOpQueue} from '../../store.js';
+import {createBlockFromBlueprint, createBlockFromType, toTransferable} from '../../Block/utils.js';
+import store, {createSelectBlockTree, createSetBlockTree} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import blockTreeUtils from './blockTreeUtils.js';
 
@@ -28,7 +28,7 @@ class BlockDnDSpawner extends preact.Component {
     // unregisterables;
     // cachedGlobalBlockTreesAll;
     /**
-     * @param {{mainTreeDnd: BlockTreeDragDrop; mainTree: BlockTree; saveExistingBlocksToBackend: (blocks: Array<RawBlock>, trid: 'String') => Promise<Boolean>; currentPageIsPlaceholder: Boolean; initiallyIsOpen?: Boolean;}} props
+     * @param {{mainTreeDnd: TreeDragDrop; initiallyIsOpen?: Boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -36,7 +36,7 @@ class BlockDnDSpawner extends preact.Component {
         this.selectableBlockTypes = sort(Array.from(api.blockTypes.entries()).filter(([name, _]) =>
             name !== 'PageInfo' && name !== 'GlobalBlockReference'
         ));
-        this.dragData = null; // ditch ?
+        this.dragData = null;
         this.preRender = {phase: null, blockType: null, html: null};
         this.newBlock = {phase: null, block: null};
         this.rootEl = preact.createRef();
@@ -60,68 +60,6 @@ class BlockDnDSpawner extends preact.Component {
             this.setSelectableGbtsToState(maybeChanged);
     }
     /**
-     * @param {DragDropInfo} info
-     * @returns {Boolean} Should accept
-     * @access public
-     */
-    handleMainDndDraggedOver(info) {
-        if (window.useStoreonBlockTree !== false)
-            throw new Error();
-        let position = info.pos;
-        // Waiting for render to finish -> skip
-        if (!this.preRender.isRenderReady) {
-            return false;
-        }
-        let block, trid;
-        if (!info.li.getAttribute('data-last')) {
-            const blockId0 = info.li.getAttribute('data-block-id');
-            const trid0 = info.li.getAttribute('data-trid') || 'main';
-            block = trid0 === 'main' || !isTreesOutermostBlock(blockId0, createSelectBlockTree(trid0)(store.getState()).tree)
-                ? blockTreeUtils.findBlock(blockId0, createSelectBlockTree(trid0)(store.getState()).tree)[0]
-                : findRefBlockOf(trid0, createSelectBlockTree('main')(store.getState()).tree);
-            trid = !(position === 'as-child' && block.type === 'GlobalBlockReference') ? block.isStoredToTreeId : block.globalBlockTreeId;
-        } else {
-            block = null;
-            trid = 'main';
-            position = 'as-child';
-        }
-        // Rendering finished -> emit block to the store and start waiting for onAfterInsertedToDom
-        if (this.dragData.blockType === 'GlobalBlockReference' && trid !== 'main') return false;
-        const {tree} = createSelectBlockTree(trid)(store.getState());
-        if (this.newBlock.phase === BlockAddPhase.CREATED) {
-            this.dragData.trid = trid;
-            setTrids([this.newBlock.block], trid);
-            this.newBlock.phase = BlockAddPhase.READY_TO_INSERT_TO_TREE_AND_DOM;
-        }
-        //
-        if (position === 'before') {
-            const before = block;
-            const br = blockTreeUtils.findBlock(before.id, tree)[1];
-            br.splice(br.indexOf(before), 0, this.newBlock.block);
-        } else if (position === 'after') {
-            const after = block;
-            const br = blockTreeUtils.findBlock(after.id, tree)[1];
-            br.splice(br.indexOf(after) + 1, 0, this.newBlock.block);
-        } else {
-            const asChildOf = trid === 'main' ? (block || {children: tree}) : tree[0];
-            asChildOf.children.push(this.newBlock.block);
-        }
-        const {blockId} = this.dragData;
-        store.dispatch(createSetBlockTree(trid)(tree, ['add-single-block',
-            {blockId: this.dragData.blockId, blockType: this.dragData.blockType, trid, cloneOf: null},
-            'dnd-spawner',
-            {html: this.preRender.html, onAfterInsertedToDom: () => {
-                if (this.newBlock.phase !== BlockAddPhase.READY_TO_INSERT_TO_TREE_AND_DOM || this.dragData.blockId !== blockId) return;
-                this.newBlock.phase = BlockAddPhase.INSERTED_TO_TREE_AND_DOM;
-            }}
-        ]));
-        if (this.newBlock.phase === BlockAddPhase.READY_TO_INSERT_TO_TREE_AND_DOM) // onAfterInsertedToDom not triggered yet
-            return false;
-        // else fall through
-
-        return this.newBlock.phase === BlockAddPhase.INSERTED_TO_TREE_AND_DOM;
-    }
-    /**
      * @access public
      */
     handleMainDndDraggedOut() {
@@ -136,73 +74,6 @@ class BlockDnDSpawner extends preact.Component {
             store.dispatch(createSetBlockTree(trid)(tree, ['delete-single-block', data, 'dnd-spawner']));
             this.newBlock.phase = BlockAddPhase.READY_TO_INSERT_TO_TREE_AND_DOM;
         }
-        }
-    }
-    /**
-     * @access public
-     */
-    handleMainDndSwappedBlocks(info, _prevInfo, applySwap) {
-        if (window.useStoreonBlockTree !== false) {
-        throw new Error();
-        } else {
-        if (!this.dragData) return; // ??
-
-        const dragTree = createSelectBlockTree(this.dragData.trid)(store.getState()).tree;
-        const [dragBlock, dragBranch] = blockTreeUtils.findBlock(this.dragData.blockId, dragTree);
-
-        let muts;
-        if (!info.li.getAttribute('data-last')) {
-            const dropTree = createSelectBlockTree(info.li.getAttribute('data-trid'))(store.getState()).tree;
-            const [dropBlock, dropBranch] = blockTreeUtils.findBlock(info.li.getAttribute('data-block-id'), dropTree);
-            muts = applySwap(info, dragBlock, dragBranch, dragTree, dropBlock, dropBranch, dropTree);
-        } else {
-            const dropTree = createSelectBlockTree('main')(store.getState()).tree;
-            const dropBlock = null;
-            const dropBranch = dropTree;
-            muts = applySwap({pos: 'as-child', li: info.li}, dragBlock, dragBranch, dragTree, dropBlock, dropBranch, dropTree);
-        }
-
-        if (muts) {
-            const [mutation1, mutation2] = muts;
-            const trid = mutation1.blockToMove.isStoredToTreeId;
-            const {tree} = createSelectBlockTree(trid)(store.getState());
-            store.dispatch(createSetBlockTree(trid)(tree, ['swap-blocks', [mutation1, mutation2], 'dnd-spawner']));
-            // if (this.dragData.trid !== updatedDragData.trid) todo 
-            //     this.dragData.trid = updatedDragData.trid;
-        }
-        }
-    }
-    /**
-     * @access public
-     */
-    handleMainDndGotDrop() {
-        if (window.useStoreonBlockTree !== false) {
-        throw new Error();
-        } else {
-        const acceptDrop = this.newBlock.phase === BlockAddPhase.INSERTED_TO_TREE_AND_DOM;
-        if (acceptDrop) {
-            const {trid} = this.dragData;
-            store.dispatch(createSetBlockTree(trid)(createSelectBlockTree(trid)(store.getState()).tree, ['commit-add-single-block',
-                {blockId: this.dragData.blockId, blockType: this.dragData.blockType, trid}]));
-            const data = this.createDeleteEventData(trid);
-            store.dispatch(pushItemToOpQueue(`update-block-tree#${trid}`, {
-                doHandle: trid !== 'main' || !this.props.currentPageIsPlaceholder
-                    ? () => this.props.saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
-                    : null
-                ,
-                doUndo: () => {
-                    const {tree} = createSelectBlockTree(trid)(store.getState());
-                    deleteBlockFromTree(data.blockId, tree);
-                    store.dispatch(createSetBlockTree(trid)(tree, ['undo-add-single-block', data]));
-                },
-                args: [],
-            }));
-            if (this.dragData.blockType === 'GlobalBlockReference')
-                api.webPageIframe.registerWebPageDomUpdater(this.dragData.globalBlockTreeId);
-        }
-        this.newBlock.phase = BlockAddPhase.READY_TO_INSERT_TO_TREE_AND_DOM;
-        // keep this.preRender and this.newBlock.block in case the next draggable has the same type
-        this.hideLoadingIndicatorIfVisible();
         }
     }
     /**
@@ -349,15 +220,9 @@ class BlockDnDSpawner extends preact.Component {
             if (this.dragData.blockType === 'GlobalBlockReference')
                 api.editApp.addBlockTree(gbt.id, gbt.blocks);
             this.preRender.html = html;
-            this.hideLoadingIndicatorIfVisible();
             this.preRender.isRenderReady = true;
         }, api.blockTypes, isReusable);
         this.props.mainTreeDnd.setDragStartedFromOutside(this);
-        //
-        setTimeout(() => {
-            if (!this.preRender.isRenderReady)
-                this.showLoadingIndicator();
-        }, 200);
         }
     }
     /**
@@ -399,7 +264,6 @@ class BlockDnDSpawner extends preact.Component {
      * @access private
      */
     handleDragEnded(_e) {
-        this.hideLoadingIndicatorIfVisible();
         this.props.mainTreeDnd.eventController.end(this.props.mainTreeDnd.lastAcceptedIdx);
     }
     /**
@@ -451,19 +315,6 @@ class BlockDnDSpawner extends preact.Component {
     createDeleteEventData(trid) {
         return {blockId: this.dragData.blockId, blockType: this.dragData.blockType, trid,
             isRootOfOfTrid: this.dragData.blockType !== 'GlobalBlockReference' ? null : this.dragData.globalBlockTreeId};
-    }
-    /**
-     * @access private
-     */
-    showLoadingIndicator() {
-        this.props.mainTree.setState({loading: true});
-    }
-    /**
-     * @access private
-     */
-    hideLoadingIndicatorIfVisible() {
-        if (this.props.mainTree.state.loading)
-            this.props.mainTree.setState({loading: false});
     }
     /**
      * @access private

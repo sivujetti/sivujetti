@@ -10,7 +10,7 @@ let blockTreeUtils;
  */
 class ReRenderer {
     // elCache;
-    // lastFastUpdate;
+    // throttledUpdates;
     /**
      * @param {(block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void} renderBlockAndThen_
      * @param {(block: RawBlock, includePrivates: Boolean = false) => {[key: String]: any;}} _toTransferable
@@ -36,11 +36,13 @@ class ReRenderer {
      * @param {[blockChangeEvent2, Array<any>]} context
      */
     handleFastChangeEvent({theBlockTree}, [event, data]) {
-        ////////////////////////////////////////////////////////////////////////
+        // ====================================================================
         if (event === 'theBlockTree/init') {
             this.elCache = createElCache(theBlockTree);
+        // ====================================================================
         } else if (event === 'theBlockTree/swap') {
             this.doReRender(theBlockTree);
+        // ====================================================================
         } else if (event === 'theBlockTree/undo') {
             const maybeBlockId = data[1];
             if (!maybeBlockId) { // undo of non-single update
@@ -51,9 +53,10 @@ class ReRenderer {
                 this.elCache.set(maybeBlockId, pool);
                 this.doReRender(theBlockTree);
             }
+        // ====================================================================
         } else if (event === 'theBlockTree/deleteBlock') {
             this.doReRender(theBlockTree);
-        ////////////////////////////////////////////////////////////////////////
+        // ====================================================================
         } else if (event === 'theBlockTree/addBlockOrBranch') { // added to tree while dragging, not dropped yet
             const [newBlockInf] = data; // [SpawnDescriptor, BlockDescriptor, 'before'|'after'|'as-child']
             const newBlock = newBlockInf.block;
@@ -103,13 +106,13 @@ class ReRenderer {
                 });
                 this.doReRender(theBlockTree);
             }
-        ////////////////////////////////////////////////////////////////////////
+        // ====================================================================
         } else if (event === 'theBlockTree/applyAdd(Drop)Block') { // dropped
             // ?
-        ////////////////////////////////////////////////////////////////////////
+        // ====================================================================
         } else if (event === 'theBlockTree/undoAdd(Drop)Block') {
             this.doReRender(theBlockTree);
-        ////////////////////////////////////////////////////////////////////////
+        // ====================================================================
         } else if (event === 'theBlockTree/updatePropsOf') {
             const [blockId, blockIsStoredToTreeId, _changes, hasErrors, debounceMillis] = data;
             if (hasErrors) { window.console.log('not impl'); return; }
@@ -125,18 +128,13 @@ class ReRenderer {
                 el.replaceWith(temp.content);
                 onAfterInsertedToDom(completed);
 
-                if (debounceMillis > 0) {
-                const el = getBlockEl(block.id);
-                const onlySelf = extractRendered(el);
-                this.lastFastUpdate = {block};
-                // ## todo luo optimoitu asd3, joka päivittää vain muokatun lohkon
-                this.doReRender(theBlockTree, {blockId: block.id, el: onlySelf}); // ### tässä temp-elementtiä
-                } else { // ?? 
-                this.elCache.get(block.id).push(extractRendered(getBlockEl(block.id)));
-                }
+                const el2 = getBlockEl(block.id);
+                const onlySelf = extractRendered(el2);
+                if (debounceMillis > 0) this.throttledUpdates[block.id] = 1;
+                else this.elCache.get(block.id).push(onlySelf);
+                this.doReRender(theBlockTree, {blockId: block.id, el: onlySelf});
             }, false);
-
-        ////////////////////////////////////////////////////////////////////////
+        // ====================================================================
         } else if (event === 'theBlockTree/cloneItem') {
             const [clonedInf, clonedFromInf] = data; // [SpawnDescriptor, BlockDescriptor]
             const mainOrInnerTree = blockTreeUtils.getRootFor(clonedFromInf.isStoredToTreeId, theBlockTree);
@@ -156,15 +154,9 @@ class ReRenderer {
      * @param {String} blockId
      */
     handleSlowChangeEvent(blockId) {
-        // 1. lastFastUpdate what? was first, this (slow what?) came after that
-        if (this.lastFastUpdate) {
-            const {block} = this.lastFastUpdate;
-            if (block.id !== blockId) throw new Error();
-            this.elCache.get(block.id).push(extractRendered(getBlockEl(block.id)));
-            this.lastFastUpdate = null;
-        // 2. lastFastUpdate what? this (slow what?) happened simuiltaneousldlskdslkm
-        } else {
-            // ?
+        if (this.throttledUpdates[blockId]) {
+            this.elCache.get(blockId).push(extractRendered(getBlockEl(blockId)));
+            this.throttledUpdates[blockId] = null;
         }
     }
     /**

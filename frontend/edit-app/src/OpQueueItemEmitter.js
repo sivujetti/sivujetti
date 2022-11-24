@@ -11,11 +11,12 @@ import store2, {observeStore as observeStore2} from './store2';
 class OpQueueItemEmitter {
     // unregistrables;
     // prevTree;
-    // pushSaveOpTimeout;
+    // pushSaveOpTimeouts;
     /**
      */
     constructor() {
         this.unregistrables = [];
+        this.pushSaveOpTimeouts = {};
     }
     /**
      * @access public
@@ -28,7 +29,7 @@ class OpQueueItemEmitter {
                 this.setPrevBlockTreeTree(theBlockTree);
             } else if (event === 'theBlockTree/applySwap' || event === 'theBlockTree/applyAdd(Drop)Block') {
                 const oldTree = this.prevTree;
-                const [_drag, target] = data;
+                const [_drag, target] = data; // [BlockDescriptorStub, BlockDescriptorStub]
                 this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, target.isStoredToTreeId, null);
             } else if (event === 'theBlockTree/deleteBlock') {
                 const oldTree = this.prevTree;
@@ -38,22 +39,16 @@ class OpQueueItemEmitter {
                 // do nothing
             } else if (event === 'theBlockTree/updatePropsOf') {
                 const [blockId, blockIsStoredToTreeId, _changes, hasErrors, debounceMillis] = data;
-                if (debounceMillis > 0) { // mitä jos edellinen vielä 
-                    if (this.pushSaveOpTimeout) clearTimeout(this.pushSaveOpTimeout);
-                    if (hasErrors) { console.log('has errors, skipping emit op'); return; }
-                    const oldTree = this.prevTree;
-                    //console.log('start time', JSON.parse(JSON.stringify(l)));
-                    const fn = () => { /*console.log('run time', JSON.parse(JSON.stringify(l)));*/ this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId, blockId); };
-                    this.pushSaveOpTimeout = setTimeout(fn, debounceMillis);
-                } else {
-                    // todo mitä jos this.pushSaveOpTimeout ?
-                    const oldTree = this.prevTree;
-                    this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId, blockId);
-                }
+                if (hasErrors) return;
+                if (this.pushSaveOpTimeouts[blockId]) clearTimeout(this.pushSaveOpTimeouts[blockId]);
+                const oldTree = this.prevTree;
+                const fn = () => { this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId, blockId); };
+                if (debounceMillis > 0) this.pushSaveOpTimeouts[blockId] = setTimeout(fn, debounceMillis);
+                else fn();
             } else if (event === 'theBlockTree/cloneItem') {
                 const oldTree = this.prevTree;
-                const [eee] = data;
-                const cloned = eee.block;
+                const [clonedInf, _clonedFromInf] = data; // [SpawnDescriptor, BlockDescriptor]
+                const cloned = clonedInf.block;
                 this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, cloned.isStoredToTreeId, null);
             }
         }),
@@ -88,14 +83,12 @@ class OpQueueItemEmitter {
         store.dispatch(pushItemToOpQueue('update-block-tree##main', {
             doHandle: () => saveExistingBlocksToBackend(rootOrInnerTree, blockIsStoredToTreeId),
             doUndo: () => {
-                //console.log('revert to', JSON.parse(JSON.stringify(oldTree)), this.prevTree === oldTree);
                 store2.dispatch('theBlockTree/undo', [oldTree, updateOfBlockId, blockIsStoredToTreeId]);
                 this.setPrevBlockTreeTree(oldTree);
-                //console.log('set bef', JSON.parse(JSON.stringify(this.prevTree)));
             },
             args: [],
         }));
-        this.setPrevBlockTreeTree(blockTrees); // ? 
+        this.setPrevBlockTreeTree(blockTrees);
     }
     /**
      * @param {Array<RawBlock>} blockTrees

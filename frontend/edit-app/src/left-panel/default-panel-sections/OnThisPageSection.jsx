@@ -19,7 +19,7 @@ class OnThisPageSection extends MenuSectionAbstract {
             if (this.state.isCollapsed) this.setState({isCollapsed: false});
             this.blockTreeRef.current.handleItemClickedOrFocused(visibleBlock, clickOrigin);
             setTimeout(() => {
-                api.mainPanel.scrollTo(visibleBlock, false);
+                api.mainPanel.scrollTo(visibleBlock);
                 then();
             }, 100);
         };

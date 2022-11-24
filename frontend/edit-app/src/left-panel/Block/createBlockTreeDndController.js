@@ -78,9 +78,9 @@ function createDndController(_blockTree) {
         end(lastAcceptedSwapIdx) {
             if (dropped)
                 return;
-            //if (dragOriginIsExternal) ??
-            //    return;
-            if (lastAcceptedSwapIdx === null) // No moves, todo jos 0? 
+            if (lastAcceptedSwapIdx === null) // No moves at all
+                return;
+            if (lastAcceptedSwapIdx === 0 && !extDragData) // Had moves, but returned to initial
                 return;
             store2.dispatch('theBlockTree/undo', [initialTree, null, null]);
         },

@@ -6,16 +6,13 @@ import {generatePushID} from '../../commons/utils.js';
 import BlockTreeShowHelpPopup from '../../BlockTreeShowHelpPopup.jsx';
 import store, {observeStore, createSelectBlockTree, createSetBlockTree,
                 pushItemToOpQueue, createUpdateBlockTreeItemData} from '../../store.js';
-import BlockTreeDragDrop from '../../BlockTreeDragDrop.js';
 import SaveBlockAsReusableDialog from '../../SaveBlockAsReusableDialog.jsx';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import TreeDragDrop from '../../TreeDragDrop.js';
-import BlockDnDSpawner from './BlockDnDSpawner.jsx';
 import BlockDnDSpawner2 from './BlockDnDSpawner2.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import createDndController, {createBlockDescriptor, saveExistingBlocksToBackend} from './createBlockTreeDndController.js';
 
-const useNoUlBlockTree = true;
 const useStoreonBlockTree = window.useStoreonBlockTree !== false;
 
 class BlockTree extends preact.Component {
@@ -30,31 +27,12 @@ class BlockTree extends preact.Component {
         this.moreMenu = preact.createRef();
         this.currentPageIsPlaceholder = this.props.containingView !== 'Default';
         this.unregistrables = [];
-        if (!useNoUlBlockTree) {
-        this.dragDrop = new BlockTreeDragDrop(this, (mutation1, _mutation2 = null) => {
-        const trid = mutation1.blockToMove.isStoredToTreeId;
-        const {tree} = createSelectBlockTree(trid)(store.getState());
-        store.dispatch(createSetBlockTree(trid)(tree, ['swap-blocks', [mutation1]]));
-        store.dispatch(pushItemToOpQueue(`swap-blocks-of-tree##${trid}`, {
-            doHandle: trid !== 'main' || !this.currentPageIsPlaceholder
-                ? () => saveExistingBlocksToBackend(createSelectBlockTree(trid)(store.getState()).tree, trid)
-                : null
-            ,
-            doUndo: () => {
-                const treeBefore = mutation1.doRevert();
-                store.dispatch(createSetBlockTree(trid)(treeBefore, ['undo-swap-blocks', mutation1]));
-            },
-            args: [],
-        }));
-        });
-        } else this.dragDrop = new TreeDragDrop(createDndController(this));
-        //
+        this.dragDrop = new TreeDragDrop(createDndController(this));
         this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
         this.onDragOver = this.dragDrop.handleDraggedOver.bind(this.dragDrop);
-        if (useNoUlBlockTree) this.onDragLeave = this.dragDrop.handleDraggedOut.bind(this.dragDrop);
+        this.onDragLeave = this.dragDrop.handleDraggedOut.bind(this.dragDrop);
         this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
         this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
-
         if (useStoreonBlockTree) { const maybe = store2.get().theBlockTree; if (maybe) this.receiveNewBlocks2(maybe); }
         else this.receiveNewBlocks(createSelectBlockTree('main')(store.getState()));
     }
@@ -154,8 +132,7 @@ class BlockTree extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {blockTree, treeState, loading}) {
-        if (useNoUlBlockTree) {
+    render(_, {blockTree}) {
         return <div class="pt-2">
             <div class="p-relative" style="z-index: 1"><button
                 onClick={ this.showBlockTreeHelpPopup.bind(this) }
@@ -166,12 +143,9 @@ class BlockTree extends preact.Component {
             </button></div>
             <BlockDnDSpawner2
                 mainTreeDnd={ this.dragDrop }
-                mainTree={ this }
-                saveExistingBlocksToBackend={ saveExistingBlocksToBackend }
-                currentPageIsPlaceholder={ this.currentPageIsPlaceholder }
                 initiallyIsOpen={ this.currentPageIsPlaceholder && this.props.containingView === 'CreatePage' }
                 ref={ this.blockSpawner }/>
-            <ul class={ `block-tree2 ml-1${!loading ? '' : ' loading'}` } ref={ el => {
+            <ul class="block-tree ml-1" ref={ el => {
                 if (!el) return;
                 this.dragDrop.attachOrUpdate(el);
             } }>{
@@ -197,108 +171,13 @@ class BlockTree extends preact.Component {
                 onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
                 ref={ this.moreMenu }/>
         </div>;
-        } else {
-        const renderBranch = (branch, root = null) => branch.map((block, i) => {
-            if (block.type === 'GlobalBlockReference' && useStoreonBlockTree)
-                return renderBranch(block.__globalBlockTree.blocks, block);
-            if (block.type === 'GlobalBlockReference' && !useStoreonBlockTree)
-                return renderBranch(createSelectBlockTree(block.globalBlockTreeId)(store.getState()).tree, block);
-            //
-            if (block.type !== 'PageInfo') {
-            const type = api.blockTypes.get(block.type);
-            const title = getShortFriendlyName(block, type);
-            return <li
-                onDragStart={ this.onDragStart }
-                onDragOver={ this.onDragOver }
-                onDrop={ this.onDrop }
-                onDragEnd={ this.onDragEnd }
-                class={ [`${block.isStoredTo}-block`,
-                         !treeState[block.id].isSelected ? '' : ' selected',
-                         !treeState[block.id].isCollapsed ? '' : ' collapsed',
-                         !block.children.length ? '' : ' with-children'].join('') }
-                data-block-id={ block.id }
-                data-trid={ block.isStoredToTreeId }
-                key={ `${block.id}${block.title}` }
-                title={ title }
-                draggable>
-                { !block.children.length
-                    ? null
-                    : <button onClick={ () => this.toggleBranchIsCollapsed(block) } class="toggle p-absolute" type="button"><Icon iconId="chevron-down" className="size-xs"/></button>
-                }
-                <div class="d-flex">
-                    <button onClick={ () => this.handleItemClickedOrFocused(block) } class="block-handle text-ellipsis" type="button">
-                        <Icon iconId={ getIcon(type) } className="size-xs p-absolute"/>
-                        <span class="text-ellipsis">{ title }</span>
-                    </button>
-                    <button onClick={ e => this.openMoreMenu(block, root && i === 0, e) } class="more-toggle ml-2" type="button">
-                        <Icon iconId="dots" className="size-xs"/>
-                    </button>
-                </div>
-                { block.children.length
-                    ? <ul>{ renderBranch(block.children) }</ul>
-                    : null
-                }
-            </li>;
-            }
-            //
-            const title = block.title || __('PageInfo');
-            return <li
-                class={ [!treeState[block.id].isSelected ? '' : 'selected'].join(' ') }
-                data-block-type="PageInfo"
-                data-block-id={ block.id }
-                title={ title }
-                key={ block.id }>
-                <div class="d-flex">
-                    <button
-                        onClick={ () => !this.disablePageInfo ? this.handleItemClickedOrFocused(block) : function(){} }
-                        class="block-handle text-ellipsis"
-                        type="button"
-                        disabled={ this.disablePageInfo }>
-                        <Icon iconId={ getIcon('PageInfo') } className="size-xs p-absolute"/>
-                        <span class="text-ellipsis">{ title }</span>
-                    </button>
-                </div>
-            </li>;
-        });
-        return <div class="py-2">
-            <div class="p-relative" style="z-index: 1"><button
-                onClick={ this.showBlockTreeHelpPopup.bind(this) }
-                class="btn btn-link p-absolute btn-sm pt-1"
-                type="button"
-                style="right: 0;top: 0;">
-                <Icon iconId="info-circle" className="size-xs"/>
-            </button></div>
-            <BlockDnDSpawner
-                mainTreeDnd={ this.dragDrop }
-                mainTree={ this }
-                saveExistingBlocksToBackend={ saveExistingBlocksToBackend }
-                currentPageIsPlaceholder={ this.currentPageIsPlaceholder }
-                initiallyIsOpen={ this.currentPageIsPlaceholder && this.props.containingView === 'CreatePage' }/>
-            <ul class={ `block-tree${!loading ? '' : ' loading'}` }>{
-                blockTree ? blockTree.length
-                    ? renderBranch(blockTree).concat(<li
-                        data-last="y"
-                        onDragOver={ this.onDragOver }
-                        onDragLeave={ this.onDragLeave }
-                        onDrop={ this.onDrop }
-                        onDragEnd={ this.onDragEnd }
-                        draggable><div class="d-flex">&nbsp;</div></li>)
-                    : <li>-</li> : null
-            }</ul>
-            <ContextMenu
-                links={ [
-                    {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
-                    {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
-                ].concat(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees')
-                    ? [{text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}]
-                    : []
-                ) }
-                onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
-                onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
-                ref={ this.moreMenu }/>
-        </div>;
-        }
     }
+    /**
+     * @param {Array<RawBlock>} branch
+     * @param {Number} depth = 1
+     * @param {RawBlock} paren = null
+     * @param {RawBlock} root = null
+     */
     doRenderBranch(branch, depth = 1, paren = null, root  = null) { return branch.map((block, i) => {
         if (block.type === 'GlobalBlockReference' && useStoreonBlockTree)
             return this.doRenderBranch(block.__globalBlockTree.blocks, depth, paren, block);
@@ -468,7 +347,7 @@ class BlockTree extends preact.Component {
         const cloned = cloneDeep(toClone);
         branch.splice(branch.indexOf(toClone) + 1, 0, cloned);
         this.emitAddBlock(trid, tree, cloned, treeBefore, toClone.id);
-        api.webPageIframe.scrollTo(cloned, true);
+        api.webPageIframe.scrollTo(cloned);
         }
     }
     addParagraph(openBlock, where) {
@@ -642,17 +521,11 @@ class BlockTree extends preact.Component {
      * @access private
      */
     toggleBranchIsCollapsed(block) {
-        if (!useNoUlBlockTree) {
-        const mutRef = this.state.treeState;
-        mutRef[block.id].isCollapsed = !mutRef[block.id].isCollapsed;
-        this.setState({treeState: mutRef});
-        } else {
         const mutRef = this.state.treeState;
         const to = !mutRef[block.id].isCollapsed;
         mutRef[block.id].isCollapsed = to;
         hideOrShowChildren(to, block, mutRef);
         this.setState({treeState: mutRef});
-        }
     }
     /**
      * @access private

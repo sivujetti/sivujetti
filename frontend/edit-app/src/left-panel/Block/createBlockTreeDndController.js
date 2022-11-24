@@ -1,5 +1,5 @@
 import {__, http} from '@sivujetti-commons-for-edit-app';
-import {findRefBlockOf, isTreesOutermostBlock, setTrids, treeToTransferable} from '../../Block/utils.js';
+import {setTrids, treeToTransferable} from '../../Block/utils.js';
 import toasters from '../../commons/Toaster.jsx';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import store2 from '../../store2.js';
@@ -19,16 +19,12 @@ function createDndController(_blockTree) {
          * @param {Boolean} isExternal
          */
         begin(info) {
-            initialTree = JSON.parse(JSON.stringify(store2.get().theBlockTree)); // getKeys, restoreFromKeys?
+            initialTree = JSON.parse(JSON.stringify(store2.get().theBlockTree));
             dropped = false;
             if (extDragData) {
-                if (!info.li.getAttribute('data-last')) {
-                const targetIsStoredToTreeId = info.li.getAttribute('data-trid');
-                setTrids([extDragData.block], targetIsStoredToTreeId);
-                store2.dispatch('theBlockTree/addBlockOrBranch', [extDragData, createBlockDescriptorFromLi(info.li), info.pos]);
-                } else {
-                throw new Error('NOt impl');
-                }
+                const targetInf = createBlockDescriptorFromLi(info.li);
+                setTrids([extDragData.block], targetInf.isStoredToTreeId);
+                store2.dispatch('theBlockTree/addBlockOrBranch', [extDragData, targetInf, info.pos]);
             }
         },
         /**
@@ -37,12 +33,12 @@ function createDndController(_blockTree) {
          */
         drop(cand, startLi) {
             if (!extDragData) {
-                const source = startLi.getAttribute('data-trid');
-                const target = cand.li.getAttribute('data-trid');
+                const source = startLi.getAttribute('data-is-stored-to-trid');
+                const target = getIsStoredToTridForTarget(cand.li);
                 store2.dispatch('theBlockTree/applySwap', [{isStoredToTreeId: source}, {isStoredToTreeId: target}]);
             } else {
                 const source = 'main'; // todo
-                const target = cand.li.getAttribute('data-trid');
+                const target = getIsStoredToTridForTarget(cand.li);
                 store2.dispatch('theBlockTree/applyAdd(Drop)Block', [{isStoredToTreeId: source}, {isStoredToTreeId: target}]);
             }
             dropped = true;
@@ -65,24 +61,16 @@ function createDndController(_blockTree) {
         swap(cand, _prevCand, startLi) {
             const extBlock = !extDragData ? null : extDragData.block;
 
-            if (!cand.li.getAttribute('data-last')) {
-                const drag = !extBlock ? foo(startLi) : createBlockDescriptor(extBlock, extBlock.isStoredToTreeId);
-                const targ = foo(cand.li);
+            const drag = !extBlock ? createBlockDescriptorFromLi(startLi) : createBlockDescriptor(extBlock, extBlock.isStoredToTreeId);
+            const targ = createBlockDescriptorFromLi(cand.li);
 
-                // Reject swaps between normal and global blocks
-                if (drag.trid === 'main' && (targ.trid !== 'main' || targ.isGbtRef))
-                    return false;
-                else if (drag.trid !== 'main' && !drag.isGbtRef && targ.trid === 'main') // gbt's inner outside its root
-                    return false;
+            // Reject swaps between normal, and global blocks tree's inner blocks
+            if (drag.isStoredToTreeId === 'main' && (targ.isStoredToTreeId !== 'main' || (targ.isGbtRef && cand.pos === 'as-child')))
+                return false;
+            else if (drag.isStoredToTreeId !== 'main' && !drag.isGbtRef && targ.isStoredToTreeId === 'main') // gbt's inner outside its root
+                return false;
 
-                store2.dispatch('theBlockTree/swap', [drag, targ, cand.pos]);
-            } else {
-                if (!extBlock) {
-                    //
-                } else {
-                    if (extBlock.isStoredToTreeId !== 'main') return false;
-                }
-            }
+            store2.dispatch('theBlockTree/swap', [drag, targ, cand.pos]);
         },
         /**
          * @param {Number|null} lastAcceptedSwapIdx
@@ -107,15 +95,14 @@ function createDndController(_blockTree) {
 
 /**
  * @param {HTMLLIElement} li
- * @returns {BlockDescriptor}
+ * @returns {String}
  */
-function foo(li) {
-    if (li.getAttribute('data-trid') === 'main') // move to this.begin()?
-        return createBlockDescriptorFromLi(li);
-    if (!isTreesOutermostBlock(li.getAttribute('data-block-id'),
-                blockTreeUtils.getRootFor(li.getAttribute('data-trid'), store2.get().theBlockTree)))
-        return createBlockDescriptorFromLi(li);
-    return createBlockDescriptor(findRefBlockOf(li.getAttribute('data-trid'), store2.get().theBlockTree), 'main', true);
+function getIsStoredToTridForTarget(li) {
+    const maybeRefBlockId = li.getAttribute('data-is-root-block-of');
+    if (!maybeRefBlockId) return li.getAttribute('data-is-stored-to-trid');
+
+    const refBlock = blockTreeUtils.findBlock(maybeRefBlockId, store2.get().theBlockTree)[0];
+    return refBlock.isStoredToTreeId;
 }
 
 /**
@@ -123,139 +110,31 @@ function foo(li) {
  * @returns {BlockDescriptor}
  */
 function createBlockDescriptorFromLi(li) {
-    const blockId = li.getAttribute('data-block-id');
-    const trid = li.getAttribute('data-trid');
-    const rootOrInnerTree = blockTreeUtils.getRootFor(trid, store2.get().theBlockTree);
-    const block = blockTreeUtils.findBlock(blockId, rootOrInnerTree)[0];
-    return createBlockDescriptor(block, trid);
+    const isStoredToTreeId = li.getAttribute('data-is-stored-to-trid');
+    const maybeRefBlockId = li.getAttribute('data-is-root-block-of');
+    // root tree's block, or global block tree's inner block
+    if (!maybeRefBlockId) {
+        const blockId = li.getAttribute('data-block-id');
+        const rootOrInnerTree = blockTreeUtils.getRootFor(isStoredToTreeId, store2.get().theBlockTree);
+        const block = blockTreeUtils.findBlock(blockId, rootOrInnerTree)[0];
+        return createBlockDescriptor(block, isStoredToTreeId);
+    // Global block tree's root block
+    } else {
+        const gbtRef = blockTreeUtils.findBlock(maybeRefBlockId, store2.get().theBlockTree)[0];
+        return createBlockDescriptor(gbtRef, 'main');
+    }
 }
 
 /**
  * @param {RawBlock} block
- * @param {String} trid
- * @param {Boolean} isGbtRef = false
+ * @param {String} isStoredToTreeId
  * @returns {BlockDescriptor}
  */
-function createBlockDescriptor(block, trid, isGbtRef = false) {
-    return {blockId: block.id, trid, isGbtRef};
-}
-
-/**
- * @param {DragDropInfo} latest
- * @param {RawBlock} dragBlock
- * @param {Array<RawBlock>} dragBranch
- * @param {Array<RaƒwBlock>} dragTree
- * @param {RawBlock} dropBlock
- * @param {Array<RawBlock>} dropBranch
- * @param {Array<RawBlock>} dropTree
- * @returns {SwapChangeEventData}
- */
-function applySwap(latest, dragBlock, dragBranch, dragTree, dropBlock, dropBranch, dropTree) {
-    let mutation1 = null;
-    let mutation2 = null;
-    //
-    const isBefore = latest.pos === 'before';
-    if (isBefore || latest.pos === 'after') {
-        if (dragBranch === dropBranch) {
-            const toIdx = dragBranch.indexOf(dropBlock);
-            const fromIndex = dragBranch.indexOf(dragBlock);
-            const realTo = isBefore ? toIdx : toIdx + 1;
-            dragBranch.splice(realTo, 0, dragBlock);
-            dragBranch.splice(fromIndex + (fromIndex > realTo ? 1 : 0), 1);
-            //
-            mutation1 = createMutationInfo(dragBlock, dropBlock, latest, () => {
-                dragBranch.splice(fromIndex + (fromIndex > realTo ? 1 : 0), 0, dragBlock);
-                dragBranch.splice(realTo, 1);
-                return dragTree;
-            });
-        } else {
-            mutation1 = moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore, latest, dragTree);
-        }
-    } else if (latest.pos === 'as-child') {
-        mutation1 = moveToChild(dropBlock, dropBlock, dragBlock, dragBranch, dragTree, latest);
-    }
-    return [mutation1, mutation2];
-}
-
-/**
- * @param {RawBlock} dragBlock
- * @param {Array<RawBlock>} dragBranch
- * @param {RawBlock} dropBlock
- * @param {Array<RawBlock>} dropBranch
- * @param {Boolean} isBefore
- * @param {DragDropInfo} dropInfo
- * @param {Array<RawBlock>} dragBlockTree
- * @returns {SwapChangeEventData}
- */
-function moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore, dropInfo, dragBlockTree) {
-    const dragBranchIdx = dragBranch.indexOf(dragBlock);
-    const dropBranchIdx = dropBranch.indexOf(dropBlock);
-    const pos = dropBranchIdx + (isBefore ? 0 : 1);
-    dropBranch.splice(pos, 0, dragBlock);
-    dragBranch.splice(dragBranchIdx, 1);
-    //
-    return createMutationInfo(dragBlock, dropBlock, dropInfo, () => {
-        dragBranch.splice(dragBranchIdx, 0, dragBlock);
-        dropBranch.splice(pos, 1);
-        return dragBlockTree;
-    });
-}
-
-/**
- * @param {RawBlock|null} to
- * @param {RawBlock} dropBlock
- * @param {RawBlock} dragBlock
- * @param {Array<RawBlock>} dragBranch
- * @param {Array<RawBlock>} dragBlockTree
- * @param {DragDropInfo} dropInfo
- * @returns {SwapChangeEventData}
- */
-function moveToChild(to, dropBlock, dragBlock, dragBranch, dragBlockTree, dropInfo) {
-    if (!dropBlock) return moveToRoot(dragBlock, dragBranch, dragBlockTree, dropInfo);
-    to.children.push(dragBlock);
-    const pos = dragBranch.indexOf(dragBlock);
-    dragBranch.splice(pos, 1);
-    //
-    return createMutationInfo(dragBlock, dropBlock, dropInfo, () => {
-        to.children.pop();
-        dragBranch.splice(pos, 0, dragBlock);
-        return dragBlockTree;
-    });
-}
-
-/**
- * @param {RawBlock} dragBlock
- * @param {Array<RawBlock>} dragBranch
- * @param {Array<RawBlock>} rootTree
- * @param {DragDropInfo} dropInfo
- * @returns {SwapChangeEventData}
- */
-function moveToRoot(dragBlock, dragBranch, rootTree, dropInfo) {
-    rootTree.push(dragBlock);
-    const pos = dragBranch.indexOf(dragBlock);
-    dragBranch.splice(pos, 1);
-    //
-    return createMutationInfo(dragBlock, {root: 1}, dropInfo, () => {
-        rootTree.pop();
-        dragBranch.splice(pos, 0, dragBlock);
-        return {root: 1};
-    });
-}
-
-/**
- * @param {RawBlock} dragBlock
- * @param {RawBlock} dropBlock
- * @param {DragDropInfo} dropInfo
- * @param {() => Array<RawBlock>} doRevert
- * @returns {SwapChangeEventData}
- */
-function createMutationInfo(dragBlock, dropBlock, {pos}, doRevert) {
-    return {
-        blockToMove: dragBlock,
-        blockToMoveTo: dropBlock,
-        position: pos,
-        doRevert,
-    };
+function createBlockDescriptor(block, isStoredToTreeId) {
+    const [isGbtRef, data] = block.type !== 'GlobalBlockReference'
+        ? [false, null]
+        : [true, block.globalBlockTreeId];
+    return {blockId: block.id, isStoredToTreeId, isGbtRef, data};
 }
 
 /**

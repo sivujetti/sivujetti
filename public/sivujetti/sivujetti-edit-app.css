@@ -52,6 +52,10 @@ Structure:
     --color-border-popup: rgba(var(--components-color-fb-default),.5);
 
     --small-rect-radius: 4px;
+
+    --color-icon-normal-block2: var(--color-accent2);
+    --color-icon-meta-block2: var(--color-purple);
+    --color-icon-global-block2: #eb732a;
 }
 /* Spectre-overrides */
 .btn {
@@ -997,11 +1001,15 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
 }
 .block-tree2 > li[data-last] {
     position: absolute;
-    width: calc(100% - 1rem);
+    width: calc(100% - .2rem);
     padding: 0;
-    margin: 0;
+    margin: -2px 0 0 0;
     border-left-color: transparent;
     height: 8px;
+    overflow: hidden;
+}
+.block-tree2 li[data-last].maybe-drop-before:before {
+    top: 0;
 }
 .block-tree2 li[data-first-child][data-last-child]:not([class*="maybe-"]) > div:before {
     content: "";
@@ -1034,13 +1042,13 @@ li.with-children > ul > li:last-of-type > .d-flex:before {
     color: #bc5e25;
 }
 .block-tree2 .block-handle .icon-tabler {
-    color: var(--color-icon-normal-block);
+    color: var(--color-icon-normal-block2);
 }
 .block-tree2 li[data-block-type="PageInfo"] .block-handle .icon-tabler {
-    color: var(--color-icon-meta-block);
+    color: var(--color-icon-meta-block2);
 }
 .block-tree2 li.globalBlockTree-block .block-handle .icon-tabler {
-    color: #eb732a;
+    color: var(--color-icon-global-block2);
 }
 .block-tree2 li > div > button span {
     margin-left: 1.2rem;
@@ -1132,6 +1140,36 @@ input + .scroller {
     position: absolute;
     right: .1rem;
 }
+.new-block-spawner .block-tree2 {
+    opacity: .9;
+}
+.new-block-spawner .block-tree2 li {
+    padding: .24rem .2rem;
+    border-left: none;
+}
+.new-block-spawner .block-tree2 li[data-flavor="reusableBranch"] + li[data-flavor="blockType"]:before,
+.new-block-spawner .block-tree2 li[data-block-type="Code"] + li:before {
+    content: "";
+    display: block;
+    height: 1px;
+    width: 100%;
+    background: var(--color-section-separator);
+    margin: .2rem 0 .4rem;
+}
+.new-block-spawner .block-tree2 .block-handle {
+    cursor: grab;
+    filter: grayscale(.9);
+}
+.new-block-spawner .block-tree2 li[data-flavor="reusableBranch"] .block-handle {
+    padding-right: .8rem;
+}
+.new-block-spawner .block-tree2 li[data-flavor="reusableBranch"] .block-handle:after {
+    content: "☆";
+    font-size: .5rem;
+    opacity: .9;
+    position: absolute;
+    right: .1rem;
+}
 
 .new-block-spawner-opened .new-block-spawner > .btn {
     position: absolute;
@@ -1173,13 +1211,13 @@ input + .scroller {
 
 /* EditApp: Inspector panel */
 #inspector-panel [data-main] > .with-icon .icon-tabler {
-    color: var(--color-icon-normal-block);
+    color: var(--color-icon-normal-block2);
 }
 #inspector-panel [data-main] > .with-icon.page-info-block .icon-tabler {
-    color: var(--color-icon-meta-block);
+    color: var(--color-icon-meta-block2);
 }
 #inspector-panel [data-main] > .with-icon.global-block-tree-block .icon-tabler {
-    color: var(--color-icon-global-block);
+    color: var(--color-icon-global-block2);
 }
 
 

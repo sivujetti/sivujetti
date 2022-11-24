@@ -5,7 +5,7 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/init',
     /**
      * @param {Object} state
-     * @param {[todo]} args
+     * @param {[Array<RawBlock>]} args
      * @returns {Object}
      */
     (_state, [theBlockTree]) =>
@@ -15,25 +15,15 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/swap',
     /**
      * @param {Object} state
-     * @param {todo} args
+     * @param {[BlockDescriptor, BlockDescriptor, 'before'|'after'|'as-child']} args
      * @returns {Object}
      */
-    ({theBlockTree}, [dragi, dropi, dropPos]) => {
+    ({theBlockTree}, [dragInf, dropInf, dropPos]) => {
         const clone = JSON.parse(JSON.stringify(theBlockTree));
-        let dragBlock, dragBranch;
-        if (dragi.trid === 'main') { // todo func
-            [dragBlock, dragBranch] = blockTreeUtils.findBlock(dragi.blockId, clone);
-        } else {
-            const innerTree = blockTreeUtils.getRootFor(dragi.trid, clone);
-            [dragBlock, dragBranch] = blockTreeUtils.findBlock(dragi.blockId, innerTree);
-        }
-        let dropBlock, dropBranch;
-        if (dropi.trid === 'main') {
-            [dropBlock, dropBranch] = blockTreeUtils.findBlock(dropi.blockId, clone);
-        } else {
-            const innerTree = blockTreeUtils.getRootFor(dropi.trid, clone);
-            [dropBlock, dropBranch] = blockTreeUtils.findBlock(dropi.blockId, innerTree);
-        }
+        const dragBlocksTree = blockTreeUtils.getRootFor(dragInf.isStoredToTreeId, clone);
+        const [dragBlock, dragBranch] = blockTreeUtils.findBlock(dragInf.blockId, dragBlocksTree);
+        const dropBlocksTree = blockTreeUtils.getRootFor(dropInf.isStoredToTreeId, clone);
+        const [dropBlock, dropBranch] = blockTreeUtils.findBlock(dropInf.blockId, dropBlocksTree);
         //
         const isBefore = dropPos === 'before';
         if (isBefore || dropPos === 'after') {
@@ -57,7 +47,7 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/applySwap',
     /**
      * @param {Object} state
-     * @param {[Temo, Temo]} args
+     * @param {[BlockDescriptorStub, BlockDescriptorStub]} args
      * @returns {Object}
      */
     ({theBlockTree}, _) =>
@@ -67,7 +57,7 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/applyAdd(Drop)Block',
     /**
      * @param {Object} state
-     * @param {[Temo, Temo]} args
+     * @param {[BlockDescriptorStub, BlockDescriptorStub]} args
      * @returns {Object}
      */
     ({theBlockTree}, _) =>
@@ -101,14 +91,13 @@ function theBlockTreeStore(store) {
 
     /**
      * @param {Object} state
-     * @param {[SpawnDescriptor, BlockDescriptor, ...todo]} args
+     * @param {[SpawnDescriptor, BlockDescriptor, 'before'|'after'|'as-child']} args
      * @returns {Object}
      */
     const yer = ({theBlockTree}, [spawn, target, insertPos]) => {
         const blockOrBranch = spawn.block;
         const clone = JSON.parse(JSON.stringify(theBlockTree));
-        // blockOrBranch.isStoredToTreeId ?? 
-        const rootOrInnerTree = blockTreeUtils.getRootFor(target.trid, clone);
+        const rootOrInnerTree = blockTreeUtils.getRootFor(target.isStoredToTreeId, clone);
         if (insertPos === 'before') {
             const [before, branch] = blockTreeUtils.findBlock(target.blockId, rootOrInnerTree);
             branch.splice(branch.indexOf(before), 0, blockOrBranch);
@@ -134,15 +123,12 @@ function theBlockTreeStore(store) {
      * @returns {Object}
      */
     ({theBlockTree}, [blockId, blockIsStoredToTreeId, changes, _hasErrors, _debounceMillis]) => {
-
         const clone = JSON.parse(JSON.stringify(theBlockTree));
         const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, clone);
         const [block] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
         overrideData(block, changes);
         return {theBlockTree: clone};
-
     });
-
 
     store.on('theBlockTree/cloneItem',
     yer);
@@ -154,7 +140,6 @@ function theBlockTreeStore(store) {
  * @param {RawBlock} dropBlock
  * @param {Array<RawBlock>} dropBranch
  * @param {Boolean} isBefore
- * @returns {SwapChangeEventData}
  */
 function moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore) {
     const dragBranchIdx = dragBranch.indexOf(dragBlock);
@@ -162,18 +147,6 @@ function moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBef
     const pos = dropBranchIdx + (isBefore ? 0 : 1);
     dropBranch.splice(pos, 0, dragBlock);
     dragBranch.splice(dragBranchIdx, 1);
-    // //
-    // return createMutationInfo(dragBlock, dropBlock, dropInfo, () => {
-    //     dragBranch.splice(dragBranchIdx, 0, dragBlock);
-    //     dropBranch.splice(pos, 1);
-    //     return dragBlockTree;
-    // });
 }
-
-/**
- * @typedef Temo
- *
- * @prop {String} isStoredToTreeId
- */
 
 export default theBlockTreeStore;

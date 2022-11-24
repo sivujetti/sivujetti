@@ -26,12 +26,13 @@ class BlockDnDSpawner extends preact.Component {
     // onDragStart;
     // onDragEnd;
     // unregisterables;
+    // cachedGlobalBlockTreesAll;
     /**
      * @param {{mainTreeDnd: BlockTreeDragDrop; mainTree: BlockTree; saveExistingBlocksToBackend: (blocks: Array<RawBlock>, trid: 'String') => Promise<Boolean>; currentPageIsPlaceholder: Boolean; initiallyIsOpen?: Boolean;}} props
      */
     constructor(props) {
         super(props);
-        this.state = {isOpen: false, reusables: [], globalBlockTrees: [], isMounted: false};
+        this.state = {isOpen: false, reusables: [], selectableGlobalBlockTrees: [], isMounted: false, gbtIdsCurrentlyInPage: null};
         this.selectableBlockTypes = sort(Array.from(api.blockTypes.entries()).filter(([name, _]) =>
             name !== 'PageInfo' && name !== 'GlobalBlockReference'
         ));
@@ -53,6 +54,10 @@ class BlockDnDSpawner extends preact.Component {
             this.overwriteDragListenerFuncs();
             throw new Error('??');
         }
+        if (this.state.gbtIdsCurrentlyInPage === null) return;
+        const maybeChanged = getGbtIdsFrom(store2.get().theBlockTree);
+        if (this.state.gbtIdsCurrentlyInPage.toString() !== maybeChanged.toString())
+            this.setSelectableGbtsToState(maybeChanged);
     }
     /**
      * @param {DragDropInfo} info
@@ -248,7 +253,7 @@ class BlockDnDSpawner extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {isMounted, isOpen, reusables, globalBlockTrees}) {
+    render(_, {isMounted, isOpen, reusables, selectableGlobalBlockTrees}) {
         return <div
             class="new-block-spawner"
             ref={ this.rootEl }>
@@ -272,7 +277,7 @@ class BlockDnDSpawner extends preact.Component {
                     .concat(this.selectableBlockTypes.map(([name, blockType]) =>
                         [__(blockType.friendlyName), 'blockType', name, []])
                     )
-                    .concat(globalBlockTrees.map(({id, blocks, name}) =>
+                    .concat(selectableGlobalBlockTrees.map(({id, blocks, name}) =>
                         [name, 'globalBlockTree', blocks[0].type, [id]]
                     )).map(([label, flavor, rootBlockTypeName, vargs]) => {
                         const isNotGbt = flavor !== 'globalBlockTree';
@@ -282,7 +287,7 @@ class BlockDnDSpawner extends preact.Component {
                                 onDragEnd={ this.onDragEnd }
                                 class="block-handle text-ellipsis"
                                 data-block-type={ isNotGbt ? rootBlockTypeName : 'GlobalBlockReference' }
-                                data-trid={ isNotGbt ? 'main' : vargs[0] }
+                                data-is-stored-to-trid={ isNotGbt ? 'main' : vargs[0] }
                                 data-reusable-branch-idx={ flavor !== 'reusableBranch' ? '' : vargs[0] }
                                 title={ label }
                                 type="button"
@@ -368,7 +373,7 @@ class BlockDnDSpawner extends preact.Component {
             newBlock = reusableBranchIdx === '' ? createBlockFromType(typeStr, 'don\'t-know-yet')
                 : createBlockFromBlueprint(this.state.reusables[parseInt(reusableBranchIdx, 10)].blockBlueprints[0], 'don\'t-know-yet');
         } else {
-            gbt = this.state.globalBlockTrees.find(({id}) => id === dragEl.getAttribute('data-trid'));
+            gbt = this.state.selectableGlobalBlockTrees.find(({id}) => id === dragEl.getAttribute('data-is-stored-to-trid'));
             newBlock = createBlockFromType(typeStr, 'don\'t-know-yet', undefined, {
                 globalBlockTreeId: gbt.id,
                 __globalBlockTree: {
@@ -424,7 +429,19 @@ class BlockDnDSpawner extends preact.Component {
                 b.isStoredToTreeId = gbt.id;
             });
         });
-        this.setState({globalBlockTrees});
+        this.cachedGlobalBlockTreesAll = globalBlockTrees;
+        const alreadyInCurrentPage = getGbtIdsFrom(store2.get().theBlockTree);
+        this.setSelectableGbtsToState(alreadyInCurrentPage);
+    }
+    /**
+     * @param {Array<String>} alreadyInCurrentPage
+     * @access private
+     */
+    setSelectableGbtsToState(alreadyInCurrentPage) {
+        const filtered = this.cachedGlobalBlockTreesAll.filter(gbt =>
+            alreadyInCurrentPage.indexOf(gbt.id) < 0
+        );
+        this.setState({selectableGlobalBlockTrees: filtered, gbtIdsCurrentlyInPage: alreadyInCurrentPage});
     }
     /**
      * @param {String} trid
@@ -498,6 +515,19 @@ function sort(selectableBlockTypes) {
         return oA === oB ? 0 : oA < oB ? -1 : 1;
     });
     return selectableBlockTypes;
+}
+
+/**
+ * @param {Array<RawBlock>} currentBlockTree
+ * @returns {Array<String>}
+ */
+function getGbtIdsFrom(currentBlockTree) {
+    const ids = [];
+    blockTreeUtils.traverseRecursively(currentBlockTree, b => {
+        if (b.type === 'GlobalBlockReference') ids.push(b.globalBlockTreeId);
+    });
+    ids.sort();
+    return ids;
 }
 
 export default BlockDnDSpawner;

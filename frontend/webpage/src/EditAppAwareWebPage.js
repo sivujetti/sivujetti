@@ -59,7 +59,7 @@ class EditAppAwareWebPage {
      */
     setTridAttr(blockId, trid) {
         const el = document.body.querySelector(`[data-block="${blockId}"]`);
-        el.setAttribute('data-trid', trid);
+        el.setAttribute('data-is-stored-to-trid', trid);
     }
     /**
      * @param {EditAwareWebPageEventHandlers} handlers

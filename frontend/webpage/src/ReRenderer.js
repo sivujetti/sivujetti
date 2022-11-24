@@ -40,10 +40,7 @@ class ReRenderer {
         if (event === 'theBlockTree/init') {
             this.elCache = createElCache(theBlockTree);
         } else if (event === 'theBlockTree/swap') {
-            if (data[0].trid === 'main' && data[1].isGbtRef)
-                ;
-            else
-                this.doReRender(theBlockTree);
+            this.doReRender(theBlockTree);
         } else if (event === 'theBlockTree/undo') {
             const maybeBlockId = data[1];
             if (!maybeBlockId) { // undo of non-single update
@@ -58,7 +55,7 @@ class ReRenderer {
             this.doReRender(theBlockTree);
         ////////////////////////////////////////////////////////////////////////
         } else if (event === 'theBlockTree/addBlockOrBranch') { // added to tree while dragging, not dropped yet
-            const [newBlockInf] = data;
+            const [newBlockInf] = data; // [SpawnDescriptor, BlockDescriptor, 'before'|'after'|'as-child']
             const newBlock = newBlockInf.block;
             const {isReusable} = newBlockInf;
 
@@ -101,7 +98,7 @@ class ReRenderer {
                 blockTreeUtils.traverseRecursively(insertPlaceholdersFor, (b, _i, parent, _parentIdPath) => {
                     const place = document.createElement('div');
                     const ssss = parent ? '' : ' sjet-dots-animation';
-                    place.innerHTML = `<div class="j-Placeholder${ssss}" data-block-type="Placeholder" data-block="${b.id}" data-trid="${b.isStoredToTreeId}"><!--${CHILDREN_START}--><!--${CHILDREN_END}--></p>`;
+                    place.innerHTML = `<div class="j-Placeholder${ssss}" data-block-type="Placeholder" data-block="${b.id}" data-is-stored-to-trid="${b.isStoredToTreeId}"><!--${CHILDREN_START}--><!--${CHILDREN_END}--></p>`;
                     this.elCache.set(b.id, [extractRendered(place.firstElementChild)]);
                 });
                 this.doReRender(theBlockTree);
@@ -141,10 +138,10 @@ class ReRenderer {
 
         ////////////////////////////////////////////////////////////////////////
         } else if (event === 'theBlockTree/cloneItem') {
-            const [info, clonedFromInf] = data; // [SpawnDescriptor, BlockDescriptor]
-            const mainOrInnerTree = blockTreeUtils.getRootFor(clonedFromInf.trid, theBlockTree);
+            const [clonedInf, clonedFromInf] = data; // [SpawnDescriptor, BlockDescriptor]
+            const mainOrInnerTree = blockTreeUtils.getRootFor(clonedFromInf.isStoredToTreeId, theBlockTree);
             const clonedFrom = blockTreeUtils.findBlock(clonedFromInf.blockId, mainOrInnerTree)[0];
-            const cloned = info.block;
+            const cloned = clonedInf.block;
             const [flatOriginal, flatCloned] = flattenBlocksRecursive(clonedFrom, cloned);
             for (let i = 0; i < flatOriginal.length; ++i) {
                 const clonedFromNode = getBlockEl(flatOriginal[i].id);
@@ -427,7 +424,7 @@ function createBlockTreeChangeListener(trid, blockTreeUtils, blockToTransferable
                     movables = moveToChild(dropBlock, dragBlock, treeRootEl);
                     if (dropBlock.type === 'GlobalBlockReference') newTrid = dropBlock.globalBlockTreeId;
                 }
-                movables.forEach(el => el.setAttribute('data-trid', newTrid));
+                movables.forEach(el => el.setAttribute('data-is-stored-to-trid', newTrid));
             }
             return;
         }
@@ -661,7 +658,7 @@ function isGlobalBlockTreeRefsEndMarker(node) {
  * @returns {String}
  */
 function withTrid(html, trid, recursive = false) {
-    return html.replace(!recursive ? ' data-block=' : / data-block=/g, ` data-trid="${trid}" data-block=`);
+    return html.replace(!recursive ? ' data-block=' : / data-block=/g, ` data-is-stored-to-trid="${trid}" data-block=`);
 }
 
 export default ReRenderer;

@@ -353,10 +353,14 @@ interface DragDropInfo {
 
 type leftPanelName = 'Default'|'CreatePage'|'CreatePageType';
 
-interface BlockDescriptor {
+interface BlockDescriptorStub {
+    isStoredToTreeId: String;
+}
+
+interface BlockDescriptor extends BlockDescriptorStub {
     blockId: String;
-    trid: String;
     isGbtRef: Boolean;
+    data: any;
 }
 
 interface SpawnDescriptor {

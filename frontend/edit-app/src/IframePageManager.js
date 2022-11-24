@@ -264,7 +264,7 @@ function createWebsiteEventHandlers2(highlightRectEl) {
     };
     const findBlock = blockEl => {
         if (window.useStoreonBlockTree !== false) {
-        const trid = blockEl.getAttribute('data-trid');
+        const trid = blockEl.getAttribute('data-is-stored-to-trid');
         const rootOrInnerTree = blockTreeUtils.getRootFor(trid, store2.get().theBlockTree);
         return blockTreeUtils.findBlock(blockEl.getAttribute('data-block'), rootOrInnerTree)[0];
         } else {

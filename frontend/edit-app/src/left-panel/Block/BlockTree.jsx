@@ -156,7 +156,7 @@ class BlockTree extends preact.Component {
      */
     render(_, {blockTree, treeState, loading}) {
         if (useNoUlBlockTree) {
-        return <div class="py-2">
+        return <div class="pt-2">
             <div class="p-relative" style="z-index: 1"><button
                 onClick={ this.showBlockTreeHelpPopup.bind(this) }
                 class="btn btn-link p-absolute btn-sm pt-1"
@@ -179,6 +179,7 @@ class BlockTree extends preact.Component {
                     ? this.doRenderBranch(blockTree).concat(<li
                         onDragOver={ this.onDragOver }
                         onDrop={ this.onDrop }
+                        onDragLeave={ this.onDragLeave }
                         data-draggable={ true }
                         data-last
                         draggable><div class="d-flex">&nbsp;</div></li>)
@@ -298,7 +299,7 @@ class BlockTree extends preact.Component {
         </div>;
         }
     }
-    doRenderBranch(branch, depth = 1, paren = null, root = null) { return branch.map((block, i) => {
+    doRenderBranch(branch, depth = 1, paren = null, root  = null) { return branch.map((block, i) => {
         if (block.type === 'GlobalBlockReference' && useStoreonBlockTree)
             return this.doRenderBranch(block.__globalBlockTree.blocks, depth, paren, block);
         if (block.type === 'GlobalBlockReference' && !useStoreonBlockTree)
@@ -310,6 +311,7 @@ class BlockTree extends preact.Component {
         const type = api.blockTypes.get(block.type);
         const title = getShortFriendlyName(block, type);
         const c = !block.children.length ? [] : this.doRenderBranch(block.children, depth + 1, block);
+        const isRootBlockOf = !(root && i === 0) ? null : root.id;
         return [<li
             onDragStart={ this.onDragStart }
             onDragOver={ this.onDragOver }
@@ -321,10 +323,11 @@ class BlockTree extends preact.Component {
                     !treeState[block.id].isHidden ? '' : ' d-none',
                     !treeState[block.id].isCollapsed ? '' : ' collapsed'].join('') }
             data-block-id={ block.id }
-            data-trid={ block.isStoredToTreeId }
+            data-is-stored-to-trid={ block.isStoredToTreeId }
+            data-is-root-block-of={ isRootBlockOf }
             data-depth={ depth }
             data-has-children={ c.length > 0 }
-            data-is-children-of={ paren ? paren.id : '-' }
+            data-is-children-of={ paren ? paren.id : null }
             data-first-child={ i === 0 }
             data-last-child={ i === lastIxd }
             data-draggable={ true }
@@ -339,7 +342,7 @@ class BlockTree extends preact.Component {
                     <Icon iconId={ getIcon(type) } className="size-xs p-absolute"/>
                     <span class="text-ellipsis">{ title }</span>
                 </button>
-                <button onClick={ e => this.openMoreMenu(block, root && i === 0, e) } class="more-toggle ml-2" type="button">
+                <button onClick={ e => this.openMoreMenu(block, isRootBlockOf !== null, e) } class="more-toggle ml-2" type="button">
                     <Icon iconId="dots" className="size-xs"/>
                 </button>
             </div>

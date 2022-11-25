@@ -33,7 +33,7 @@ class OpQueueItemEmitter {
                 this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, target.isStoredToTreeId, null);
             } else if (event === 'theBlockTree/deleteBlock') {
                 const oldTree = this.prevTree;
-                const [_id, blockIsStoredToTreeId, _what, _wasCurrentlySelectedBlock] = data;
+                const [_id, blockIsStoredToTreeId, _wasCurrentlySelectedBlock] = data;
                 this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId, null);
             } else if (event === 'theBlockTree/undoAdd(Drop)Block') {
                 // do nothing

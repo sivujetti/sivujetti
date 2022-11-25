@@ -1,9 +1,9 @@
-import {__, env, urlUtils} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, urlUtils} from '@sivujetti-commons-for-edit-app';
 import {createTrier} from '../../../frontend/webpage/src/EditAppAwareWebPage.js';
 import {toTransferable} from './Block/utils.js';
 import IframePageManager from './IframePageManager.js';
 import blockTreeUtils from './left-panel/Block/blockTreeUtils.js';
-import {renderBlockAndThen} from './shar.js';
+import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END, noop} from './Block/dom-commons.js';
 
 class WebPageIframe {
     // el;
@@ -145,4 +145,38 @@ function t(url) {
     return `${urlUtils.baseUrl.indexOf('?') < 0 ? '?' : '&'}${url}`;
 }
 
+/**
+ * @param {String|Promise<String>} result
+ * @param {(result: BlockRendctor) => void} to
+ */
+function getBlockReRenderResult(result, to) {
+    if (typeof result === 'string') {
+        to({html: result, onAfterInsertedToDom: noop});
+        return;
+    }
+    if (typeof result !== 'object') {
+        throw new TypeError('Invalid argumnt');
+    }
+    if (typeof result.then === 'function') {
+        result.then(html => { to({html, onAfterInsertedToDom: noop}); });
+        return;
+    }
+    to(result);
+}
+
+/**
+ * @param {RawBlock} block
+ * @param {(result: BlockRendctor) => void} then
+ * @param {Boolean} shouldBackendRender = false
+ */
+function renderBlockAndThen(block, then, shouldBackendRender = false) {
+    const stringOrPromiseOrObj = api.blockTypes.get(block.type).reRender(
+        block,
+        () => `<!--${CHILDREN_START}-->${CHILD_CONTENT_PLACEHOLDER}<!--${CHILDREN_END}-->`,
+        shouldBackendRender
+    );
+    getBlockReRenderResult(stringOrPromiseOrObj, then);
+}
+
 export default WebPageIframe;
+export {renderBlockAndThen};

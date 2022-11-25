@@ -1,13 +1,12 @@
 import {__, api, signals, http, env, urlUtils, FloatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import toasters, {Toaster} from './commons/Toaster.jsx';
-import store, {createBlockTreeReducerPair} from './store.js';
 import store2 from './store2.js';
 import SaveButton from './SaveButton.jsx';
 import DefaultPanel from './left-panel/DefaultPanel.jsx';
 import PageCreatePanel from './left-panel/PageCreatePanel.jsx';
 import PageDuplicatePanel from './left-panel/PageDuplicatePanel.jsx';
 import PageTypeCreatePanel from './left-panel/PageTypeCreatePanel.jsx';
-import {createStoreAndDispatchInnerTree, getArePanelsHidden} from './IframePageManager.js';
+import {getArePanelsHidden} from './IframePageManager.js';
 
 const PreactRouter = preactRouter;
 
@@ -37,24 +36,6 @@ class EditApp extends preact.Component {
         store2.dispatch('theWebsiteBasicInfo/set', [props.dataFromAdminBackend.website]);
         props.dataFromAdminBackend.__websiteDebugOnly = props.dataFromAdminBackend.website;
         delete props.dataFromAdminBackend.website;
-    }
-    /**
-     * @param {String} trid
-     * @param {Array<RawBlock>} blocks
-     * @access public
-     */
-    addBlockTree(trid, blocks) {
-        if (blocks[0].isStoredTo !== 'globalBlockTree' || blocks[0].isStoredToTreeId !== trid)
-            throw new Error('blocks not initialized');
-        createStoreAndDispatchInnerTree(trid, blocks);
-    }
-    /**
-     * @param {String} trid
-     * @access public
-     */
-    removeBlockTree(trid) {
-        const [storeStateKey, _] = createBlockTreeReducerPair(trid);
-        store.reducerManager.remove(storeStateKey);
     }
     /**
      * @access protected

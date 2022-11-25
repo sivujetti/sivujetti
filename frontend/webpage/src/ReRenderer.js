@@ -1,4 +1,4 @@
-import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END, noop} from '../../edit-app/src/shar2.js';
+import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END} from '../../edit-app/src/Block/dom-commons.js';
 
 let renderBlockAndThen;
 let toTransferable;
@@ -20,9 +20,10 @@ class ReRenderer {
         renderBlockAndThen = _renderBlockAndThen;
         toTransferable = _toTransferable;
         blockTreeUtils = _blockTreeUtils;
+        this.throttledUpdates = {};
     }
     /**
-     * @returns {{fast: (event: blockChangeEvent2, data: Array<any>) => void; slow: (blockId: String) => void;}}
+     * @returns {{fast: (event: blockChangeEvent, data: Array<any>) => void; slow: (blockId: String) => void;}}
      * @access public
      */
     createBlockTreeChangeListeners() {
@@ -33,7 +34,8 @@ class ReRenderer {
     }
     /**
      * @param {{theBlockTree: Array<RawBlock>;} && {[key: String]: any;}} state
-     * @param {[blockChangeEvent2, Array<any>]} context
+     * @param {[blockChangeEvent, Array<any>]} context
+     * @access private
      */
     handleFastChangeEvent({theBlockTree}, [event, data]) {
         // ====================================================================
@@ -152,6 +154,7 @@ class ReRenderer {
     }
     /**
      * @param {String} blockId
+     * @access private
      */
     handleSlowChangeEvent(blockId) {
         if (this.throttledUpdates[blockId]) {
@@ -186,13 +189,14 @@ class ReRenderer {
             }
         };
         const frag = document.createElement('div');
-        frag.innerHTML = '<!-- children-start --><!-- children-end -->';
+        frag.innerHTML = `<!--${CHILDREN_START}--><!--${CHILDREN_END}-->`;
         appendCachedEls(tree, frag);
         Array.from(frag.childNodes).forEach(movable => document.body.appendChild(movable));
     }
     /**
      * @param {String} blockId
      * @returns {HTMLElement}
+     * @access private
      */
     getLatestCachedElClone(blockId) {
         const pool = this.elCache.get(blockId);
@@ -275,270 +279,6 @@ function extractRendered(el) {
 }
 
 /**
- * @param {String} trid
- * @param {blockTreeUtils} blockTreeUtils
- * @param {(block: RawBlock) => {[key: String]: any;}} blockToTransferable
- * @param {BlockTypes} blockTypes
- * @param {(trid: String) => Array<RawBlock>} getTree
- * @param {hack} t
- * @returns {(blockTreeState: BlockTreeReduxState) => void}
- */
-function createBlockTreeChangeListener(trid, blockTreeUtils, blockToTransferable, blockTypes, getTree) {
-    /**
-     * @param {RawBlock} b
-     * @returns {String}
-     */
-    const getVisibleBlockId = b =>
-        b.type !== 'GlobalBlockReference' ? b.id : getTree(b.globalBlockTreeId)[0].id
-    ;
-    /**
-     * @param {RawBlock|null} of
-     * @param {HTMLElement} treeRootEl
-     */
-    const getInsertRefEl = (of, treeRootEl) => {
-        const el = of ? treeRootEl.querySelector(`[data-block="${getVisibleBlockId(of)}"]`) : null;
-        if (!el) return null;
-        //
-        return of.type !== 'GlobalBlockReference'
-            // <some-el> <- this
-            //   ...
-            ? el
-            // <!-- block-start...:GlobalBlockReference...--> <- this
-            // <some-el>
-            //   ...
-            : el.previousSibling;
-    };
-    /**
-     * @param {HTMLElement} el
-     * @returns {[HTMLElement|Comment, () => void]}
-     */
-    const createNextRef = el => {
-        const next = el.nextSibling;
-        if (next) return [!isGlobalBlockTreeRefsEndMarker(next) ? next : next.nextSibling, noop];
-        const marker = document.createComment(' temp ');
-        el.parentElement.appendChild(marker);
-        return [marker, () => { marker.parentElement.removeChild(marker); }];
-    };
-    /**
-     * @param {RawBlock} moveBlock
-     * @param {HTMLElement} treeRootEl
-     * @returns {Array<HTMLElement|Comment>}
-     */
-    const getElsToMove = (moveBlock, treeRootEl) => {
-        const el = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(moveBlock)}"]`);
-        return moveBlock.type !== 'GlobalBlockReference' ? [el] : [el.previousSibling, el, el.nextSibling];
-    };
-    /**
-     * @param {RawBlock} beforeBlock
-     * @param {RawBlock} moveBlock
-     * @param {HTMLElement} treeRootEl
-     */
-    const moveBefore = (beforeBlock, moveBlock, treeRootEl) => {
-        const movables = getElsToMove(moveBlock, treeRootEl);
-        const moveToEl = beforeBlock.type !== 'GlobalBlockReference'
-            ? treeRootEl.querySelector(`[data-block="${beforeBlock.id}"]`)
-            : getInsertRefEl(beforeBlock, treeRootEl);
-        movables.forEach(movable => moveToEl.parentElement.insertBefore(movable, moveToEl));
-        return movables;
-    };
-    /**
-     * @param {RawBlock} afterBlock
-     * @param {RawBlock} moveBlock
-     * @param {HTMLElement} treeRootEl
-     */
-    const moveAfter = (afterBlock, moveBlock, treeRootEl) => {
-        const movables = getElsToMove(moveBlock, treeRootEl);
-        const [ref, cleanUp] = createNextRef(treeRootEl.querySelector(`[data-block="${getVisibleBlockId(afterBlock)}"]`));
-        movables.forEach(movable => ref.parentElement.insertBefore(movable, ref));
-        cleanUp();
-        return movables;
-    };
-    /**
-     * @param {RawBlock} parentBlock
-     * @param {RawBlock} moveBlock
-     * @param {HTMLElement} treeRootEl
-     */
-    const moveToChild = (parentBlock, moveBlock, treeRootEl) => {
-        const endcom = getChildEndComment(parentBlock.root !== 1
-            ? getBlockContentRoot(treeRootEl.querySelector(`[data-block="${getVisibleBlockId(parentBlock)}"]`))
-            : document.body);
-        const movables = getElsToMove(moveBlock, treeRootEl);
-        movables.forEach(movable => endcom.parentElement.insertBefore(movable, endcom));
-        return movables;
-    };
-    /**
-     * @param {RawBlock} dragBlock
-     * @param {HTMLElement} treeRootEl
-     * @returns {() => void}
-     */
-    const createGetRevertRef = (dragBlock, treeRootEl) => {
-        let next = treeRootEl.querySelector(`[data-block="${getVisibleBlockId(dragBlock)}"]`).nextSibling;
-        if (dragBlock.type === 'GlobalBlockReference') next = next.nextSibling;
-        if (next.nodeType === Node.COMMENT_NODE && next.nodeValue === CHILDREN_END) {
-            const p = next.parentElement;
-            const blockId = p !== treeRootEl ? p.getAttribute('data-block') || p.closest('[data-block]').getAttribute('data-block') : '';
-            return () => getChildEndComment(getBlockContentRoot(blockId ? treeRootEl.querySelector(`[data-block="${blockId}"]`) : treeRootEl));
-        }
-        if (isGlobalBlockTreeRefsStartMarker(next)) {
-            const blockId = next.nextSibling.getAttribute('data-block');
-            return () => treeRootEl.querySelector(`[data-block="${blockId}"]`).previousSibling;
-        }
-        const blockId = next.getAttribute('data-block');
-        if (blockId) return () => treeRootEl.querySelector(`[data-block="${blockId}"]`);
-        throw new Error();
-    };
-    return ({tree, context}) => {
-        if (!context || context[0] === 'init' || (context[0] !== 'init' && window.parent.templock === 1)) return;
-        const event = context[0];
-        const treeRootEl = document.body;
-        if (event === 'swap-blocks') {
-            const [mut1, mut2] = context[1];
-            const {dropPos, dragBlock, dropBlock} = mut1;
-            if (context[2] !== 'dnd-spawner') {
-                if (!this.revertSwapStacks.has(dragBlock.id)) this.revertSwapStacks.set(dragBlock.id, []);
-                this.revertSwapStacks.get(dragBlock.id).push(createGetRevertRef(dragBlock, treeRootEl));
-            }
-            if (!mut2) {
-                if (dropPos === 'before')
-                    moveBefore(dropBlock, dragBlock, treeRootEl);
-                else if (dropPos === 'after')
-                    moveAfter(dropBlock, dragBlock, treeRootEl);
-                else if (dropPos === 'as-child')
-                    moveToChild(dropBlock, dragBlock, treeRootEl);
-            } else {
-                let newTrid = dropBlock.isStoredToTreeId;
-                let movables;
-                if (dropPos === 'before') {
-                    movables = moveBefore(dropBlock, dragBlock, treeRootEl);
-                } else if (dropPos === 'after') {
-                    movables = moveAfter(dropBlock, dragBlock, treeRootEl);
-                } else if (dropPos === 'as-child') {
-                    movables = moveToChild(dropBlock, dragBlock, treeRootEl);
-                    if (dropBlock.type === 'GlobalBlockReference') newTrid = dropBlock.globalBlockTreeId;
-                }
-                movables.forEach(el => el.setAttribute('data-is-stored-to-trid', newTrid));
-            }
-            return;
-        }
-        if (event === 'undo-swap-blocks') {
-            const {dragBlock} = context[1];
-            const getNext = this.revertSwapStacks.get(dragBlock.id).pop();
-            const next = getNext();
-            const movables = getElsToMove(dragBlock, treeRootEl);
-            movables.forEach(movable => next.parentElement.insertBefore(movable, next));
-            return;
-        }
-        //
-        const isAdd = event === 'add-single-block';
-        if (isAdd || event === 'undo-delete-single-block') {
-            const [block, containingBranch, parent] = blockTreeUtils.findBlock(context[1].blockId, tree);
-            const addHtmlToDom = ({html, onAfterInsertedToDom}, isPreRender) => {
-                const temp = document.createElement('template');
-                const hasPlace = html.indexOf(CHILD_CONTENT_PLACEHOLDER) > -1;
-                const rendered = withTrid(html, trid, !hasPlace);
-                let childRep;
-                if (!isPreRender) {
-                    // Normal 'add-single-block' -> remove child placeholder
-                    childRep = '';
-                    // 'add-single-block' but cloneOf is provided -> replace child placeholder with its child content
-                    if (isAdd && context[1].cloneOf) childRep = cloneChildContent(blockTreeUtils.findBlock(context[1].cloneOf, tree)[0],
-                        blockTreeUtils.findBlock(context[1].blockId, tree)[0],
-                        blockTreeUtils,
-                        treeRootEl);
-                    // 'undo-delete-single-block' -> replace child placeholder with an entry from deleteCache
-                    else if (!isAdd)
-                        childRep = this.getAndWipeStoredInnerContent(block) || '';
-                } else {
-                    // Pre-render, always remove child placeholder
-                    childRep = '';
-                }
-                const completed = hasPlace ? rendered.replace(CHILD_CONTENT_PLACEHOLDER, childRep) : rendered;
-                temp.innerHTML = completed;
-                const nextBlock = containingBranch[containingBranch.indexOf(block) + 1] || null;
-                const nextEl = getInsertRefEl(nextBlock, treeRootEl);
-                if (nextEl)
-                    nextEl.parentElement.insertBefore(temp.content, nextEl);
-                else {
-                    const el = parent ? treeRootEl.querySelector(`[data-block="${getVisibleBlockId(parent)}"]`)
-                        : trid === 'main' ? treeRootEl : treeRootEl.querySelector(`[data-block="${tree[0].id}"]`);
-                    const endcom = getChildEndComment(getBlockContentRoot(el));
-                    endcom.parentElement.insertBefore(temp.content, endcom);
-                }
-                onAfterInsertedToDom(completed);
-            };
-            const possiblePreRender = context[3];
-            if (!possiblePreRender)
-                renderBlockAndThen(block, addHtmlToDom, blockTypes);
-            else
-                addHtmlToDom(possiblePreRender, true);
-            return;
-        }
-        //
-        if (event === 'delete-single-block' || event === 'undo-add-single-block') {
-            const data = context[1];
-            if (data.blockType !== 'GlobalBlockReference') {
-                const {blockId} = data;
-                const el = treeRootEl.querySelector(`[data-block="${blockId}"]`);
-                const html = getChildContent(el);
-                if (html) this.deletedInnerContentStorage.set(blockId, html);
-                el.parentElement.removeChild(el);
-            } else {
-                const blockId = getTree(data.isRootOfOfTrid)[0].id;
-                const el = treeRootEl.querySelector(`[data-block="${blockId}"]`);
-                const deletables = [el.previousSibling, el, el.nextSibling];
-                deletables.forEach(el => el.parentElement.removeChild(el));
-            }
-            return;
-        }
-        //
-        const isNormalUpdate = event === 'update-single-value';
-        if (isNormalUpdate || event === 'undo-update-single-value') {
-            const {blockId} = context[1];
-            const block = blockTreeUtils.findBlock(blockId, tree)[0];
-            const el = treeRootEl.querySelector(`[data-block="${block.id}"]`);
-            const trans = (function (out) { out.children = []; return out; })(blockToTransferable(block));
-            renderBlockAndThen(trans, ({html, onAfterInsertedToDom}) => {
-                let childContent = null;
-                if (isNormalUpdate) { // Not undo -> cache current child content
-                    childContent = getChildContent(el);
-                    this.deletedInnerContentStorage.set(blockId, childContent);
-                } else {
-                    // Undo -> use previously cached child content
-                    childContent = this.getAndWipeStoredInnerContent(block) || getChildContent(el);
-                }
-                const temp = document.createElement('template');
-                const completed = withTrid(html, trid).replace(CHILD_CONTENT_PLACEHOLDER, childContent);
-                temp.innerHTML = completed;
-                el.replaceWith(temp.content);
-                onAfterInsertedToDom(completed);
-            }, blockTypes);
-            return;
-        }
-        //
-        if (event === 'convert-block-to-global') {
-            const newGbtBlocks = getTree(context[1].isRootOfOfTrid);
-            const originalBlockId = newGbtBlocks[0];
-            const el = treeRootEl.querySelector(`[data-block="${originalBlockId.id}"]`);
-            el.parentElement.insertBefore(document.createComment(` block-start ${context[1].blockId}:GlobalBlockReference `), el);
-            (function (endcom, nextEl) {
-                if (nextEl) nextEl.parentElement.insertBefore(endcom, nextEl);
-                else el.parentElement.appendChild(endcom);
-            })(document.createComment(` block-end ${context[1].blockId} `), el.nextSibling);
-            blockTreeUtils.traverseRecursively(newGbtBlocks, b => this.setTridAttr(b.id, context[1].isRootOfOfTrid));
-            return;
-        }
-        //
-        if (event === 'undo-convert-block-to-global') {
-            const gbtBlocks = getTree(context[1].isRootOfOfTrid);
-            const outermost = treeRootEl.querySelector(`[data-block="${gbtBlocks[0].id}"]`);
-            [outermost.previousSibling, outermost.nextSibling].forEach(com => outermost.parentElement.removeChild(com));
-            blockTreeUtils.traverseRecursively(gbtBlocks, b => this.setTridAttr(b.id, 'main'));
-            return;
-        }
-    };
-}
-
-/**
  * @param {HTMLElement} el
  * @returns {HTMLElement}
  */
@@ -566,28 +306,6 @@ function getChildContent(of, doIncludeBoundaryComments = false) {
         el = el.nextSibling;
     }
     return htmls.join('');
-}
-
-/**
- * @param {RawBlock} original
- * @param {RawBlock} cloned
- * @param {blockTreeUtils} blockTreeUtils
- * @param {HTMLElement} treeRootEl
- * @returns {String}
- */
-function cloneChildContent(original, cloned, blockTreeUtils, treeRootEl) {
-    const flatOriginal = [];
-    blockTreeUtils.traverseRecursively(original.children, b2 => {
-        flatOriginal.push(b2);
-    });
-    const flatCloned = [];
-    blockTreeUtils.traverseRecursively(cloned.children, b1 => {
-        flatCloned.push(b1);
-    });
-    const clonedEl = treeRootEl.querySelector(`[data-block="${original.id}"]`).cloneNode(true);
-    for (let i = 0; i < flatOriginal.length; ++i)
-        clonedEl.querySelector(`[data-block="${flatOriginal[i].id}"]`).setAttribute('data-block', flatCloned[i].id);
-    return getChildContent(clonedEl);
 }
 
 /**
@@ -628,22 +346,6 @@ function findCommentR(of, find) {
 }
 
 /**
- * @param {Node} node
- * @returns {Boolean}
- */
-function isGlobalBlockTreeRefsStartMarker(node) {
-    return node.nodeType === Node.COMMENT_NODE && node.nodeValue.endsWith(':GlobalBlockReference ');
-}
-
-/**
- * @param {Node} node
- * @returns {Boolean}
- */
-function isGlobalBlockTreeRefsEndMarker(node) {
-    return node.nodeType === Node.COMMENT_NODE && node.nodeValue.indexOf(' block-end ') > -1;
-}
-
-/**
  * @param {String} html
  * @param {String} trid
  * @param {Boolean} recursive = false
@@ -654,4 +356,4 @@ function withTrid(html, trid, recursive = false) {
 }
 
 export default ReRenderer;
-export {createBlockTreeChangeListener as fooOld, findCommentR, withTrid};
+export {findCommentR, withTrid};

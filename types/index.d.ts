@@ -17,10 +17,6 @@ interface SivujettiFrontendApi {
         ROLE_CONTRIBUTOR: Number;
         ROLE_FOLLOWER: Number;
     }
-    editApp: {
-        addBlockTree(trid: String, blocks: Array<RawBlock>): void;
-        removeBlockTree(trid: String): void;
-    };
     events: todo;
 }
 
@@ -205,16 +201,20 @@ interface EditAwareWebPageEventHandlers {
 
 interface EditAppAwareWebPage {
     data: CurrentPageData;
-    reRenderer: ReRenderer;
+    reRenderer: WebPageReRenderer;
     init(renderBlockAndThen: (block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void, toTransferable: (block: RawBlock, includePrivates: Boolean = false) => {[key: String]: any;}, blockTreeUtils: blockTreeUtils): void;
     scanBlockElements(): Array<HTMLElement>;
     addRootBoundingEls(lastBlock: RawBlock): void;
     setTridAttr(blockId: String, trid: String): void;
-    createBlockTreeChangeListener(trid: String, blockTreeUtils: blockTreeUtils, blockToTransferable: (block: RawBlock) => {[key: String]: any;}, blockTypes: BlockTypes, getTree: (trid: String) => Array<RawBlock>, t: Object): (blockTreeState: BlockTreeReduxState) => void;
     createThemeStylesChangeListener(): (state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void;
     setIsMouseListenersDisabled(isDisabled: Boolean): void;
     fastOverrideStyleUnitVar(unitCls: String, varNam: String, varValue: String, valueType: 'color'): void;
     setCssVarValue(varName: String, to: RawCssValue): void;
+}
+
+interface WebPageReRenderer {
+    new(_renderBlockAndThen: (block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void, _toTransferable: (block: RawBlock, includePrivates: Boolean = false) => {[key: String]: any;}, _blockTreeUtils: blockTreeUtils): WebPageReRenderer;
+    createBlockTreeChangeListeners(): {ast: (event: blockChangeEvent, data: Array<any>) => void; slow: (blockId: String) => void;}
 }
 
 interface Env {
@@ -228,13 +228,11 @@ interface ContextMenuLink {
     id: String;
 }
 
-type blockChangeEvent = 'init'|'update-single-value'|'undo-update-single-value'|'add-single-block'|'undo-add-single-block'|'delete-single-block'|'undo-delete-single-block'|'swap-blocks'|'undo-swap-blocks'|'commit-add-single-block'|'convert-block-to-global'|'undo-convert-block-to-global';
-
-type blockChangeEvent2 = 'theBlockTree/init'|'theBlockTree/swap'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undo'|'theBlockTree/deleteBlock'|'theBlockTree/addBlockOrBranch'|'theBlockTree/undoAdd(Drop)Block'|'theBlockTree/updatePropsOf'|'theBlockTree/cloneItem';
+type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/swap'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undo'|'theBlockTree/deleteBlock'|'theBlockTree/addBlockOrBranch'|'theBlockTree/undoAdd(Drop)Block'|'theBlockTree/updatePropsOf'|'theBlockTree/cloneItem';
 
 interface BlockEditFormProps {
     getBlockCopy(): RawBlock;
-    grabChanges(withFn: (block: RawBlock, origin: blockChangeEvent2, isUndo: Boolean) => void): void;
+    grabChanges(withFn: (block: RawBlock, origin: blockChangeEvent, isUndo: Boolean) => void): void;
     emitValueChanged(val: any, key: String, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;
     emitManyValuesChanged(partialData: {[key: String]: any;}, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;
 }
@@ -283,43 +281,13 @@ interface BlockTreeItemState {
     isNew: Boolean;
 }
 
-interface BlockTreeReduxState {
-    tree: Array<RawBlock>;
-    // [eventName, eventData, eventOrigin, preRender]
-    context: [blockChangeEvent, DefaultChangeEventData|SwapChangeEventData|DeleteOrConvertChangeEventData|AddChangeEvent|{}, 'dnd-spawner'?, String?];
-}
-
-interface DefaultChangeEventData {
-    blockId: String;
-    blockType: String;
-    trid: String;
-    cloneOf?: String;
-}
-
-type SwapChangeEventData = [SwapChangeEventEntry, SwapChangeEventEntry|null];
-
-interface SwapChangeEventEntry {
-    blockToMove: RawBlock;
-    blockToMoveTo: RawBlock;
-    position: 'before'|'after'|'as-child';
-    doRevert(): void;
-}
-
-interface DeleteOrConvertChangeEventData extends DefaultChangeEventData {
-    isRootOfOfTrid: String|null;
-}
-
-interface AddChangeEvent extends DefaultChangeEventData {
-    cloneOf: String|null;
-}
-
 interface DragDropEventController {
-    begin(info: DragDropInfo, originIsExternal: Boolean): void;
-    fromExternalDragOverFirstTime(info: DragDropInfo): Boolean;
-    swap(from: DragDropInfo, to: DragDropInfo|null, originIsExternal: Boolean): void;
-    dragOut(info: DragDropInfo, originIsExternal: Boolean): void;
-    drop(originIsExternal: Boolean): void;
-    end(): void;
+    begin(info: DragDropInfo): void;
+    swap(info: DragDropInfo, infoPrev: DragDropInfo, startLi: HTMLLIElement|null): Boolean|undefined;
+    dragOut(info: DragDropInfo): void;
+    drop(info: DragDropInfo, startLi: HTMLLIElement|null): void;
+    end(lastAcceptedSwapIdx: Number|null): void;
+    setExternalOriginData(data: Object|null): void;
 }
 
 interface BlockDragDataInfo {

@@ -50,12 +50,12 @@ function createDndController(_blockTree) {
         dragOut(_info) {
             if (!extDragData) return;
             const {id, isStoredToTreeId} = extDragData.block;
-            store2.dispatch('theBlockTree/undoAdd(Drop)Block', [id, isStoredToTreeId]);
+            store2.dispatch('theBlockTree/undoAdd(Drop)Block', [id, isStoredToTreeId, null]);
         },
         /**
          * @param {DragDropInfo} to
          * @param {DragDropInfo} _prevCand
-         * @param {DragDropInfo|null} startLi
+         * @param {HTMLLIElement|null} startLi
          * @returns {Boolean|undefined}
          */
         swap(cand, _prevCand, startLi) {

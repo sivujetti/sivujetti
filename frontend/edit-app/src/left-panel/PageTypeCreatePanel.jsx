@@ -1,6 +1,7 @@
 import {__, api, http, env, floatingDialog, urlUtils, Icon} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
-import store, {createSelectBlockTree, deleteItemsFromOpQueueAfter, observeStore, selectOpQueue, setOpQueue} from '../store.js';
+import store, {deleteItemsFromOpQueueAfter, observeStore, selectOpQueue, setOpQueue} from '../store.js';
+import store2 from '../store2.js';
 import OnThisPageSection from './default-panel-sections/OnThisPageSection.jsx';
 import BasicInfoConfigurationForm from './PageType/PageTypeBasicInfoConfigurationForm.jsx';
 import OwnFieldsConfigurationForm from './PageType/PageTypeOwnFieldsConfigurationForm.jsx';
@@ -153,7 +154,7 @@ class PageTypeCreatePanel extends preact.Component {
                 p.type === 'globalBlockTree' &&
                 p.globalBlockTreeId === b.globalBlockTreeId
             ));
-        data.blockFields = createSelectBlockTree('main')(store.getState()).tree.filter(b => !belongsToLayout(b));
+        data.blockFields = store2.get().theBlockTree.filter(b => !belongsToLayout(b));
         data.defaultFields = this.pageType.defaultFields;
         data.ownFields = this.fieldsWorkingCopy;
         //

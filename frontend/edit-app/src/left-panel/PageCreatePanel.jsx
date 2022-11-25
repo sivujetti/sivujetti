@@ -1,9 +1,8 @@
 import {__, api, http, urlUtils} from '@sivujetti-commons-for-edit-app';
 import {treeToTransferable} from '../Block/utils.js';
 import toasters from '../commons/Toaster.jsx';
-import store, {createSelectBlockTree, deleteItemsFromOpQueueAfter, observeStore,
-                selectCurrentPageDataBundle, selectOpQueue, setCurrentPageDataBundle,
-                setOpQueue} from '../store.js';
+import store, {deleteItemsFromOpQueueAfter, observeStore, selectCurrentPageDataBundle,
+                selectOpQueue, setCurrentPageDataBundle, setOpQueue} from '../store.js';
 import store2 from '../store2.js';
 import OnThisPageSection from './default-panel-sections/OnThisPageSection.jsx';
 
@@ -38,14 +37,14 @@ class PageCreatePanel extends preact.Component {
      * @access protected
      */
     render(_, {temp}) {
-        const name = this.pageType.friendlyName.toLowerCase();
+        const nameTrans = __(this.pageType.friendlyName).toLowerCase();
         return <div>
             <header class="panel-section pb-0">
-                <h1 class="mb-2">{ __('Create %s', name) }</h1>
+                <h1 class="mb-2">{ __('Create %s', nameTrans) }</h1>
                 <button
                     onClick={ () => preactRouter.route('/') }
                     class="btn btn-link btn-sm"
-                    title={ __('Cancel create %s', name) }
+                    title={ __('Cancel create %s', nameTrans) }
                     type="button">&lt; { __('Back') }</button>
             </header>
             { temp ? <OnThisPageSection loadedPageSlug={ temp }/> : null }
@@ -81,7 +80,7 @@ class PageCreatePanel extends preact.Component {
         const pageDataBundle = selectCurrentPageDataBundle(store.getState());
         const data = JSON.parse(JSON.stringify(pageDataBundle.page));
         delete data.id;
-        data.blocks = window.useStoreonBlockTree !== false ? treeToTransferable(store2.get().theBlockTree, false) : treeToTransferable(createSelectBlockTree('main')(store.getState()).tree);
+        data.blocks = treeToTransferable(store2.get().theBlockTree, false);
         this.submitOpResult = null;
         data.status = 0;
         //

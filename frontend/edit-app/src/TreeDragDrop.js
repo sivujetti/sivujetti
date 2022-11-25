@@ -78,10 +78,6 @@ class TreeDragDrop {
                     nextVisual = {pos: 'before', li};
                     this.curCandIsLastItem = true;
                 }
-                if (!(window.useStoreonBlockTree !== false)) {
-                const doAccept = this.eventController.fromExternalDragOverFirstTime(nextVisual);
-                if (!doAccept) return;
-                }
                 // Do 2., 4., 5. and 6. manually here
                 e.preventDefault();
                 this.setStartExternalOrigin(nextVisual, nextReal);

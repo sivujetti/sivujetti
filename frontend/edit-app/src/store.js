@@ -1,5 +1,4 @@
 import {createManageableStore, observeStore} from './redux-utils.js';
-import blockTreeUtils from './left-panel/Block/blockTreeUtils.js';
 
 /**
  * @param {CurrentPageData} state
@@ -16,41 +15,6 @@ const currentPageDataBundleReducer = (state = {}, action) => {
 
 const setCurrentPageDataBundle = value => ({type: 'currentPageDataBundle/set', value});
 const selectCurrentPageDataBundle = state => state.currentPageDataBundle;
-
-/**
- * @param {String} trid
- * @returns {(state: BlockTreeReduxState, action: Object) => Object}
- */
-const createBlockTreeReducer = trid => (state = {}, action) => {
-    switch (action.type) {
-    case `blockTree_${trid}/set`:
-        return {tree: action.tree, context: action.context};
-    case `blockTree_${trid}/updateDataOf`:
-        return {tree: blockTreeUtils.mapRecursively(state.tree, b => {
-            if (b.id === action.blockId) overrideData(b, action.data);
-            return b;
-        }), context: action.context};
-    default:
-        return state;
-    }
-};
-const createSetBlockTree = trid => (tree, context) => ({type: `blockTree_${trid}/set`, tree, context});
-const createUpdateBlockTreeItemData = trid => (data, blockId, context) => ({type: `blockTree_${trid}/updateDataOf`, data, blockId, context});
-const createSelectBlockTree = trid => state => state[`blockTree_${trid}`];
-const createBlockTreeReducerPair = trid => [`blockTree_${trid}`, createBlockTreeReducer(trid)];
-function overrideData(block, data) {
-    for (const key in data) {
-        // b.*
-        block[key] = data[key];
-        if (['type', 'title', 'renderer', 'id', 'styleClasses'].indexOf(key) < 0) {
-            // b.propsData[*]
-            const idx = block.propsData.findIndex(p => p.key === key);
-            if (idx > -1) block.propsData[idx].value = data[key];
-            else block.propsData.push({key, value: data[key]});
-        }
-    }
-}
-
 
 /**
  * @param {Array<{opName: String; command: OpQueueCommand;}>} state
@@ -125,10 +89,8 @@ const selectFormState = (state, id) => state.formStates[id];
 ////////////////////////////////////////////////////////////////////////////////
 
 
-const [mainTreeStateKey, mainTreeReducer] = createBlockTreeReducerPair('main');
 const mainStore = createManageableStore(undefined, {
     currentPageDataBundle: currentPageDataBundleReducer,
-    [mainTreeStateKey]: mainTreeReducer,
     opQueue: opQueueReducer,
     formStates: formStatesReducer,
 });
@@ -186,9 +148,6 @@ class FormStateStoreWrapper {
 
 export {setCurrentPageDataBundle, selectCurrentPageDataBundle,
         //
-        createSetBlockTree, createUpdateBlockTreeItemData, createSelectBlockTree,
-        createBlockTreeReducerPair,
-        //
         setOpQueue, pushItemToOpQueue, deleteItemFromOpQueue, deleteItemsFromOpQueueAfter,
         selectOpQueue,
         //
@@ -196,4 +155,3 @@ export {setCurrentPageDataBundle, selectCurrentPageDataBundle,
         //
         observeMainStore as observeStore};
 export default mainStore;
-export {overrideData};

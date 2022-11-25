@@ -147,7 +147,7 @@ class CountingLinkItemFactory {
  * @param {MenuLink|null} link = null
  * @param {String} leftClass = ''
  * @param {String} rightClass = ''
- * @returns {{link: MenuLink|null; leftClass: String; leftClass: String;}}
+ * @returns {{link: MenuLink|null; leftClass: String; rightClass: String;}}
  */
 function createEditPanelState(link = null, leftClass = '', rightClass = '') {
     return {link, leftClass, rightClass};

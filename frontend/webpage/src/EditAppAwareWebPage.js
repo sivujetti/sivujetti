@@ -1,4 +1,5 @@
-import ReRenderer, {fooOld, findCommentR, withTrid} from './ReRenderer.js';
+import {CHILDREN_START, CHILDREN_END} from '../../edit-app/src/Block/dom-commons.js';
+import ReRenderer, {findCommentR, withTrid} from './ReRenderer.js';
 
 class EditAppAwareWebPage {
     // data; // public
@@ -16,7 +17,6 @@ class EditAppAwareWebPage {
         this.isLocalLink = createIsLocalLinkCheckFn();
         this.tempStyleOverrideNames = new Map;
         this.tempStyleOverrideElsRemoveTimeouts = new Map;
-        this.createBlockTreeChangeListener = fooOld;
         this.reRenderer = null;
     }
     /**
@@ -45,12 +45,12 @@ class EditAppAwareWebPage {
      */
     addRootBoundingEls(lastBlock) {
         const rootEl = document.body;
-        rootEl.insertBefore(document.createComment(' children-start '), rootEl.firstChild);
+        rootEl.insertBefore(document.createComment(CHILDREN_START), rootEl.firstChild);
         const lastEl = lastBlock.type !== 'GlobalBlockReference' ? rootEl.querySelector(`[data-block="${lastBlock.id}"]`)
             : findCommentR(rootEl, ` block-end ${lastBlock.id} `);
         const nextOfLast = lastEl.nextSibling;
-        if (nextOfLast) nextOfLast.parentElement.insertBefore(document.createComment(' children-end '), nextOfLast);
-        else lastEl.parentElement.appendChild(document.createComment(' children-end '));
+        if (nextOfLast) nextOfLast.parentElement.insertBefore(document.createComment(CHILDREN_END), nextOfLast);
+        else lastEl.parentElement.appendChild(document.createComment(CHILDREN_END));
     }
     /**
      * @param {String} blockId
@@ -293,19 +293,5 @@ function createTrier(fn,
     return callTryFn;
 }
 
-/**
- * '<p ... data-block="before">...</p>' -> '<p ... data-block="after">...</p>'
- *
- * @param {String} html
- * @param {String} blockId
- * @returns {String}
- */
-function withBlockId(html, blockId) {
-    const [a, b] = html.split('data-block="'); // Example ['<p class="j-Paragraph"... ', '-aaaaaaaaaaaaaaaaaaa">...</p>']
-    const lenghtOfPushId = 20;
-    const b2 = b.substring(lenghtOfPushId); // '-aaaaaaaaaaaaaaaaaaa">...</p>' -> '">...</p>''
-    return `${a}data-block="${blockId}${b2}`;
-}
-
 export default EditAppAwareWebPage;
-export {createTrier, withTrid, withBlockId};
+export {createTrier, withTrid};

@@ -1,5 +1,4 @@
 import blockTreeUtils from '../left-panel/Block/blockTreeUtils.js';
-import {overrideData} from '../store.js';
 
 function theBlockTreeStore(store) {
     store.on('theBlockTree/init',
@@ -76,25 +75,24 @@ function theBlockTreeStore(store) {
 
     /**
      * @param {Object} state
-     * @param {[todo]} args
+     * @param {[String, String, Boolean|null]} args
      * @returns {Object}
      */
-    const r = ({theBlockTree}, [id, isStoredToTreeId, _what, _wasCurrentlySelectedBlock]) => {
+    const deleteBlock = ({theBlockTree}, [id, isStoredToTreeId, _wasCurrentlySelectedBlock]) => {
         const clone = JSON.parse(JSON.stringify(theBlockTree));
         const rootOrInnerTree = blockTreeUtils.getRootFor(isStoredToTreeId, clone);
         const [ref, refBranch] = blockTreeUtils.findBlock(id, rootOrInnerTree);
         refBranch.splice(refBranch.indexOf(ref), 1); // mutates clone
         return {theBlockTree: clone};
     };
-    store.on('theBlockTree/deleteBlock',
-    r);
+    store.on('theBlockTree/deleteBlock', deleteBlock);
 
     /**
      * @param {Object} state
      * @param {[SpawnDescriptor, BlockDescriptor, 'before'|'after'|'as-child']} args
      * @returns {Object}
      */
-    const yer = ({theBlockTree}, [spawn, target, insertPos]) => {
+    const addBlock = ({theBlockTree}, [spawn, target, insertPos]) => {
         const blockOrBranch = spawn.block;
         const clone = JSON.parse(JSON.stringify(theBlockTree));
         const rootOrInnerTree = blockTreeUtils.getRootFor(target.isStoredToTreeId, clone);
@@ -110,11 +108,9 @@ function theBlockTreeStore(store) {
         }
         return {theBlockTree: clone};
     };
-    store.on('theBlockTree/addBlockOrBranch',
-    yer);
+    store.on('theBlockTree/addBlockOrBranch', addBlock);
 
-    store.on('theBlockTree/undoAdd(Drop)Block',
-    r);
+    store.on('theBlockTree/undoAdd(Drop)Block', deleteBlock);
 
     store.on('theBlockTree/updatePropsOf',
     /**
@@ -130,8 +126,7 @@ function theBlockTreeStore(store) {
         return {theBlockTree: clone};
     });
 
-    store.on('theBlockTree/cloneItem',
-    yer);
+    store.on('theBlockTree/cloneItem', addBlock);
 }
 
 /**
@@ -147,6 +142,23 @@ function moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBef
     const pos = dropBranchIdx + (isBefore ? 0 : 1);
     dropBranch.splice(pos, 0, dragBlock);
     dragBranch.splice(dragBranchIdx, 1);
+}
+
+/**
+ * @param {RawBlock} block
+ * @param {{[key: String]: any;}} data
+ */
+function overrideData(block, data) {
+    for (const key in data) {
+        // b.*
+        block[key] = data[key];
+        if (['type', 'title', 'renderer', 'id', 'styleClasses'].indexOf(key) < 0) {
+            // b.propsData[*]
+            const idx = block.propsData.findIndex(p => p.key === key);
+            if (idx > -1) block.propsData[idx].value = data[key];
+            else block.propsData.push({key, value: data[key]});
+        }
+    }
 }
 
 export default theBlockTreeStore;

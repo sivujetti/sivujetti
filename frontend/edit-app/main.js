@@ -51,10 +51,6 @@ function populateFrontendApi() {
         ROLE_CONTRIBUTOR:  1 << 5, // 32
         ROLE_FOLLOWER:     1 << 6, // 64
     };
-    api.editApp = {
-        addBlockTree(trid, blocks) { editAppReactRef.current.addBlockTree(trid, blocks); },
-        removeBlockTree(trid) { editAppReactRef.current.removeBlockTree(trid); },
-    };
     // blockTypes, see configureServices
     // mainPanel see configureServices
 }

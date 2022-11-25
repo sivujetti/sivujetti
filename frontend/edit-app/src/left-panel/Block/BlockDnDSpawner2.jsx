@@ -1,17 +1,8 @@
 import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app';
-import {renderBlockAndThen} from '../../shar.js';
-import {withBlockId} from '../../../../webpage/src/EditAppAwareWebPage.js';
 import {getIcon} from '../../block-types/block-types.js';
-import {createBlockFromBlueprint, createBlockFromType, toTransferable} from '../../Block/utils.js';
-import store, {createSelectBlockTree, createSetBlockTree} from '../../store.js';
+import {createBlockFromBlueprint, createBlockFromType} from '../../Block/utils.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import blockTreeUtils from './blockTreeUtils.js';
-
-const BlockAddPhase = Object.freeze({
-    CREATED: 'created',
-    READY_TO_INSERT_TO_TREE_AND_DOM: 'inPositionForTreeInsertion',
-    INSERTED_TO_TREE_AND_DOM: 'fullyInsertedToTreeAndDom',
-});
 
 /** @type {() => void} */
 let unregScrollListener;
@@ -19,9 +10,7 @@ let reusablesFetched = false;
 
 class BlockDnDSpawner extends preact.Component {
     // selectableBlockTypes;
-    // dragData;
     // newBlock;
-    // preRender;
     // rootEl;
     // onDragStart;
     // onDragEnd;
@@ -36,9 +25,6 @@ class BlockDnDSpawner extends preact.Component {
         this.selectableBlockTypes = sort(Array.from(api.blockTypes.entries()).filter(([name, _]) =>
             name !== 'PageInfo' && name !== 'GlobalBlockReference'
         ));
-        this.dragData = null;
-        this.preRender = {phase: null, blockType: null, html: null};
-        this.newBlock = {phase: null, block: null};
         this.rootEl = preact.createRef();
         this.overwriteDragListenerFuncs();
         this.unregisterables = [observeStore2('reusableBranches', ({reusableBranches}, [event]) => {
@@ -58,23 +44,6 @@ class BlockDnDSpawner extends preact.Component {
         const maybeChanged = getGbtIdsFrom(store2.get().theBlockTree);
         if (this.state.gbtIdsCurrentlyInPage.toString() !== maybeChanged.toString())
             this.setSelectableGbtsToState(maybeChanged);
-    }
-    /**
-     * @access public
-     */
-    handleMainDndDraggedOut() {
-        if (window.useStoreonBlockTree !== false) {
-            throw new Error();
-        } else {
-        if (this.newBlock.phase === BlockAddPhase.INSERTED_TO_TREE_AND_DOM) {
-            const {trid} = this.dragData;
-            const {tree} = createSelectBlockTree(trid)(store.getState());
-            deleteBlockFromTree(this.dragData.blockId, tree);
-            const data = this.createDeleteEventData(trid);
-            store.dispatch(createSetBlockTree(trid)(tree, ['delete-single-block', data, 'dnd-spawner']));
-            this.newBlock.phase = BlockAddPhase.READY_TO_INSERT_TO_TREE_AND_DOM;
-        }
-        }
     }
     /**
      * @access protected
@@ -197,74 +166,39 @@ class BlockDnDSpawner extends preact.Component {
         const typeStr = dragEl.getAttribute('data-block-type');
         const reusableBranchIdx = dragEl.getAttribute('data-reusable-branch-idx');
         const isReusable = reusableBranchIdx !== '';
-        const [newBlock, dragData, gbt, preRenderWithNewBlockId] = this.createBlock(typeStr, reusableBranchIdx, dragEl);
-        if (window.useStoreonBlockTree !== false) {
+        const newBlock = this.createBlock(typeStr, reusableBranchIdx, dragEl);
         this.props.mainTreeDnd.handleDragStartedFromOutside({block: newBlock, isReusable});
-        } else {
-        this.newBlock.phase = BlockAddPhase.CREATED;
-        this.newBlock.block = newBlock;
-        this.dragData = dragData;
-
-        if (preRenderWithNewBlockId) {
-            this.preRender.html = preRenderWithNewBlockId;
-            this.props.mainTreeDnd.setDragStartedFromOutside(this);
-            return;
-        }
-
-        this.preRender.isRenderReady = false;
-        this.preRender.blockType = typeStr;
-        this.preRender.html = null;
-        renderBlockAndThen(toTransferable(this.newBlock.block), ({html}) => {
-            if (this.preRender.isRenderReady ||
-                (this.dragData || {}).blockType !== typeStr) return;
-            if (this.dragData.blockType === 'GlobalBlockReference')
-                api.editApp.addBlockTree(gbt.id, gbt.blocks);
-            this.preRender.html = html;
-            this.preRender.isRenderReady = true;
-        }, api.blockTypes, isReusable);
-        this.props.mainTreeDnd.setDragStartedFromOutside(this);
-        }
     }
     /**
      * @param {String} typeStr
      * @param {String} reusableBranchIdx
      * @param {HTMLButtonElement} dragEl
-     * @returns {[RawBlock, BlockDragDataInfo, RawGlobalBlockTree, String|undefined]}
+     * @returns {[RawBlock, RawGlobalBlockTree]}
      * @access private
      */
     createBlock(typeStr, reusableBranchIdx, dragEl) {
-        let newBlock, dragData, gbt, patchedPreRender;
         if (typeStr !== 'GlobalBlockReference') {
-            newBlock = reusableBranchIdx === '' ? createBlockFromType(typeStr, 'don\'t-know-yet')
+            return reusableBranchIdx === '' ? createBlockFromType(typeStr, 'don\'t-know-yet')
                 : createBlockFromBlueprint(this.state.reusables[parseInt(reusableBranchIdx, 10)].blockBlueprints[0], 'don\'t-know-yet');
-        } else {
-            gbt = this.state.selectableGlobalBlockTrees.find(({id}) => id === dragEl.getAttribute('data-is-stored-to-trid'));
-            newBlock = createBlockFromType(typeStr, 'don\'t-know-yet', undefined, {
-                globalBlockTreeId: gbt.id,
-                __globalBlockTree: {
-                    id: gbt.id,
-                    name: gbt.name,
-                    blocks: JSON.parse(JSON.stringify(gbt.blocks)),
-                }
-            });
         }
-        //
-        dragData = {blockId: newBlock.id, blockType: newBlock.type,
-            trid: newBlock.isStoredToTreeId, globalBlockTreeId: !gbt ? null : gbt.id};
-        //
-        if (this.preRender.blockType === typeStr) {
-            if (!gbt)
-                patchedPreRender = withBlockId(this.preRender.html, newBlock.id);
-            // else todo
-        }
-        return [newBlock, dragData, gbt, patchedPreRender];
+        const gbt = this.state.selectableGlobalBlockTrees.find(({id}) =>
+            id === dragEl.getAttribute('data-is-stored-to-trid')
+        );
+        return createBlockFromType(typeStr, 'don\'t-know-yet', undefined, {
+            globalBlockTreeId: gbt.id,
+            __globalBlockTree: {
+                id: gbt.id,
+                name: gbt.name,
+                blocks: JSON.parse(JSON.stringify(gbt.blocks)),
+            }
+        });
     }
     /**
      * @param {DragEvent} _e
      * @access private
      */
     handleDragEnded(_e) {
-        this.props.mainTreeDnd.eventController.end(this.props.mainTreeDnd.lastAcceptedIdx);
+        this.props.mainTreeDnd.eventController.end(this.props.mainTreeDnd.lastAcceptedIdx || null);
     }
     /**
      * @returns {Promise<ReusableBranch[]>}
@@ -308,32 +242,12 @@ class BlockDnDSpawner extends preact.Component {
         this.setState({selectableGlobalBlockTrees: filtered, gbtIdsCurrentlyInPage: alreadyInCurrentPage});
     }
     /**
-     * @param {String} trid
-     * @returns {DeleteChangeEventData}
-     * @access private
-     */
-    createDeleteEventData(trid) {
-        return {blockId: this.dragData.blockId, blockType: this.dragData.blockType, trid,
-            isRootOfOfTrid: this.dragData.blockType !== 'GlobalBlockReference' ? null : this.dragData.globalBlockTreeId};
-    }
-    /**
      * @access private
      */
     overwriteDragListenerFuncs() {
         this.onDragStart = this.handleDragStarted.bind(this);
         this.onDragEnd = this.handleDragEnded.bind(this);
     }
-}
-
-/**
- * Note: mutates $tree
- *
- * @param {String} blockId
- * @param {Array<RawBlock>} tree
- */
-function deleteBlockFromTree(blockId, tree) {
-    const [b, br] = blockTreeUtils.findBlock(blockId, tree);
-    br.splice(br.indexOf(b), 1); // Mutate tree temporarily
 }
 
 const ordinals = [

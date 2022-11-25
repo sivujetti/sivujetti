@@ -130,7 +130,7 @@ function pagesListings(store) {
     store.on('pagesListings/setAll',
     /**
      * @param {Object} state
-     * @param {[Array<todo>]} args
+     * @param {[Array<RelPage>]} args
      * @returns {Object}
      */
     (_state, [pagesListings]) =>
@@ -140,11 +140,11 @@ function pagesListings(store) {
     store.on('pagesListings/addItem',
     /**
      * @param {Object} state
-     * @param {[todo, String]} args
+     * @param {[RelPage]} args
      * @returns {Object}
      */
-    ({pagesListings}, [aaa]) =>
-        ({pagesListings: [...pagesListings, aaa]})
+    ({pagesListings}, [newItem]) =>
+        ({pagesListings: [...pagesListings, newItem]})
     );
 }
 

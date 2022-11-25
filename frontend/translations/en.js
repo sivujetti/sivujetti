@@ -3,11 +3,12 @@ import validationStrings from './include-internal/validation.en.js';
 
 stringBundles.push({
     'Page': 'Page',
+    'New page': 'New page',
     'Categories': 'Categories',
     'Services': 'Services',
     'Services#partitive': 'Services',
     'Service': 'Service',
-    // edit-app/src/left-panel/Block/BlockDnDSpawner.jsx
+    // edit-app/src/left-panel/Block/BlockDnDSpawner2.jsx
     'Start adding content': 'Start adding content',
     'Filter': 'Filter',
     // edit-app/src/left-panel/Block/BlockStylesTab.jsx
@@ -168,18 +169,26 @@ stringBundles.push({
     'Level': 'Level',
     'Add content after': 'Add content after',
     'Heading text': 'Heading text',
-    // edit-app/src/block-types/listing.js
-    'Listing': 'Listing',
+    // edit-app/src/block-types/Listing/AdditionalFiltersBuilder.jsx
+    'which are': 'which are',
+    'which is': 'which is',
+    'added to category': 'added to category',
+    '%s %s starts with': '%s %s starts with',
+    'which#nominative': 'which',
+    'which': 'which',
+    'whose': 'whose',
+    'which#genitive': 'which',
+    'blog': 'blog',
+    'This value': 'This value',
+    'and': 'and',
+    'Delete filter': 'Delete filter',
+    'Add filter': 'Add filter',
+    // edit-app/src/block-types/Listing/EditForm.jsx
     'List': 'List',
-    'at most': 'at most',
     'all': 'all',
     'single': 'single',
+    'at most': 'at most',
     'Type amount': 'Type amount',
-    '%s %s starts with': '%s %s starts with',
-    'whose': 'whose',
-    'which': 'which',
-    'blog': 'blog',
-    'and': 'and',
     'ordered by': 'ordered by',
     'newest to oldest': 'newest to oldest',
     'oldest to newest': 'oldest to newest',
@@ -189,7 +198,8 @@ stringBundles.push({
     'them': 'them',
     'Add new %s': 'Add new %s',
     '%s must be a number': '%s must be a number',
-    'This value': 'This value',
+    // edit-app/src/block-types/Listing/listing.js
+    'Listing': 'Listing',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metadata',
     'Url (slug)': 'Url (slug)',

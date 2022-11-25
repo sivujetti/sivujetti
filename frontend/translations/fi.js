@@ -3,11 +3,12 @@ import validationStrings from './include-internal/validation.fi.js';
 
 stringBundles.push({
     'Page': 'Sivu',
+    'New page': 'Uusi sivu',
     'Categories': 'Kategoriat',
     'Services': 'Palvelut',
     'Services#partitive': 'Palvelua',
     'Service': 'Palvelu',
-    // edit-app/src/left-panel/Block/BlockDnDSpawner.jsx
+    // edit-app/src/left-panel/Block/BlockDnDSpawner2.jsx
     'Start adding content': 'Aloita lisäämään sisältöä',
     'Filter': 'Suodata',
     // edit-app/src/left-panel/Block/BlockStylesTab.jsx
@@ -168,18 +169,26 @@ stringBundles.push({
     'Level': 'Taso',
     'Add content after': 'Lisää sisältöä jälkeen',
     'Heading text': 'Otsikon teksti',
-    // edit-app/src/block-types/listing.js
-    'Listing': 'Listaus',
+    // edit-app/src/block-types/Listing/AdditionalFiltersBuilder.jsx
+    'which are': 'jotka on',
+    'which is': 'joka on',
+    'added to category': 'merkitty kategoriaan',
+    '%s %s starts with': '%s %s alkaa kirjaimilla',
+    'which#nominative': 'jotka',
+    'which': 'joka',
+    'whose': 'joiden',
+    'which#genitive': 'jonka',
+    'blog': 'blogi',
+    'This value': 'Tämä arvo',
+    'and': 'ja',
+    'Delete filter': 'Poista filtteri',
+    'Add filter': 'Lisää filtteri',
+    // edit-app/src/block-types/Listing/EditForm.jsx
     'List': 'Listaa',
-    'at most': 'enintään',
     'all': 'kaikki',
     'single': 'yksi',
+    'at most': 'enintään',
     'Type amount': 'Syötä lukumääärä',
-    '%s %s starts with': '%s %s alkaa kirjaimilla',
-    'whose': 'joiden',
-    'which': 'jonka',
-    'blog': 'blogi',
-    'and': 'ja',
     'ordered by': 'järjestäen ne',
     'newest to oldest': 'uusimmasta vanhimpaan',
     'oldest to newest': 'vanhimmasta uusimpaan',
@@ -189,7 +198,8 @@ stringBundles.push({
     'them': 'ne',
     'Add new %s': 'Lisää uusi %s',
     '%s must be a number': '%s tulisi olla numero',
-    'This value': 'Tämä arvo',
+    // edit-app/src/block-types/Listing/listing.js
+    'Listing': 'Listaus',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metatiedot',
     'Url (slug)': 'Urli (slug)',

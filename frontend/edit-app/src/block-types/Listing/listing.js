@@ -31,13 +31,3 @@ export default () => {
         editForm: ListingBlockEditForm,
     };
 };
-
-/**
- * @typedef Snapshot
- * @prop {String} filterPageType e.g. "Services"
- * @prop {Number} filterLimit e.g. 0, 20
- * @prop {'all'|'single'|'atMost'} filterLimitType
- * @prop {'desc'|'asc'|'rand'} filterOrder
- * @prop {String} filterAdditional e.g. "{"p.slug":{"$startsWith":"/blog/"}}"
- * @prop {String} renderWith e.g. "site:block-services-listing"
- */

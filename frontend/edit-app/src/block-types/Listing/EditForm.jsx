@@ -1,5 +1,5 @@
-import {__, env, api, Icon, InputError} from '@sivujetti-commons-for-edit-app';
-import {validationConstraints} from '../../constants.js';
+import {__, env, api, InputError} from '@sivujetti-commons-for-edit-app';
+import AdditionalFiltersBuilder, {Popup, removeIsInCatFilter} from './AdditionalFiltersBuilder.jsx';
 
 const orderToText = {
     desc: 'newest to oldest',
@@ -10,9 +10,9 @@ const orderToText = {
 class ListingBlockEditForm extends preact.Component {
     // defineLimitPopup;
     // definePageTypePopup;
-    // defineUrlStartsWithPopup;
     // defineOrderPopup;
     // chooseRendererPopup;
+    // showTechnicalHints;
     // pageTypeBundles;
     // selectedPageTypeBundle;
     // selectedPageTypeFriendlyName;
@@ -25,10 +25,10 @@ class ListingBlockEditForm extends preact.Component {
         super(props);
         this.defineLimitPopup = preact.createRef();
         this.definePageTypePopup = preact.createRef();
-        this.defineUrlStartsWithPopup = preact.createRef();
         this.addAdditionalFilterPopup = preact.createRef();
         this.defineOrderPopup = preact.createRef();
         this.chooseRendererPopup = preact.createRef();
+        this.showTechnicalHints = api.user.getRole() <= api.user.ROLE_ADMIN_EDITOR;
     }
     /**
      * @access protected
@@ -42,7 +42,16 @@ class ListingBlockEditForm extends preact.Component {
         const block = this.props.getBlockCopy();
         this.setSelectedPageTypeBundle(block.filterPageType);
         //
-        this.setState(createState(block));
+        this.setState({
+            filterPageType: block.filterPageType,
+            howManyAmount: block.filterLimit,
+            howManyType: block.filterLimitType,
+            howManyAmountNotCommitted: block.filterLimit > 1 ? block.filterLimit : null,
+            howManyAmountError: '',
+            additionalFiltersJson: block.filterAdditional,
+            renderWith: block.renderer || block.renderWith,
+            order: block.filterOrder,
+        });
         this.props.grabChanges((block, _origin, _isUndo) => {
             //
             if (this.state.filterPageType !== block.filterPageType) {
@@ -61,13 +70,10 @@ class ListingBlockEditForm extends preact.Component {
             //
             } else if (this.state.renderWith !== block.renderer) {
                 this.setState({renderWith: block.renderer});
+            }
             //
-            } else {
-                const [urlStartsWith] = getFilterParts(block.filterAdditional);
-                if (this.state.urlStartsWith !== urlStartsWith)
-                    this.setState({urlStartsWith,
-                                   urlStartsWithNotCommitted: urlStartsWith,
-                                   urlStartsWithError: ''});
+            if (this.state.additionalFiltersJson !== block.filterAdditional) {
+                this.setState({additionalFiltersJson: block.filterAdditional});
             }
         });
     }
@@ -75,8 +81,7 @@ class ListingBlockEditForm extends preact.Component {
      * @access protected
      */
     render(_, {filterPageType, howManyType, howManyAmount, howManyAmountNotCommitted,
-               howManyAmountError, urlStartsWith, urlStartsWithNotCommitted, urlStartsWithError,
-               order, renderWith}) {
+               howManyAmountError, additionalFiltersJson, order, renderWith}) {
         if (!filterPageType) return;
         /*
                1       2          3*                              4                             5
@@ -159,54 +164,13 @@ class ListingBlockEditForm extends preact.Component {
                 }</Popup>
             </div>
 
-            { urlStartsWith !== null ? [
-            <span class="group-2 ml-1 pl-2 pr-1 no-round-right"> { __('%s %s starts with', __(howManyType !== 'single' ? 'whose' : 'which'), __('Url (slug)').toLowerCase()) } </span>,
-            <div class="group-2 no-round-left pl-0" data-filter-part-kind="urlStartsWith">
-                <div>
-                <button
-                    onClick={ () => this.openPartPopup('defineUrlStartsWith') }
-                    class="form-select poppable pl-1"
-                    type="button">&quot;{ urlStartsWith }&quot;
-                </button>
-                <Popup ref={ this.defineUrlStartsWithPopup }>
-                    <input
-                        onInput={ this.handleStartsWithFilterValueChanged.bind(this) }
-                        value={ urlStartsWithNotCommitted }
-                        placeholder={ `/${__('blog')}/` }
-                        class={ `form-input tight mt-1${!urlStartsWithError ? '' : ' is-error'}` }
-                        type="text"
-                        style="width: auto;"/>
-                    <InputError errorMessage={ urlStartsWithError }/>
-                </Popup>
-                </div>
-                <button
-                    onClick={ () => this.handleStartsWithFilterAddedOrRemoved(null) }
-                    class="btn btn-sm btn-link btn-icon flex-centered pl-0"
-                    type="button"
-                    style="background: 0 0;"><Icon iconId="x" className="size-xs color-dimmed"/></button>
-            </div>
-            ] : null }
-
-            { urlStartsWith === null ? [
-            <div class="group-2 perhaps ml-1">
-                <button
-                    onClick={ () => this.openPartPopup('addAdditionalFilter') }
-                    class="poppable"
-                    type="button">{ urlStartsWith === null ? '' : `${__('and')} ` }{ __(howManyType !== 'single' ? 'whose' : 'which') } ... <Icon iconId="plus" className="size-xs float-right ml-1"/>
-                </button>
-                <Popup ref={ this.addAdditionalFilterPopup }>
-                    <div>Lisää suodatin:</div>
-                    <div class="py-1">
-                    <button
-                        onClick={ () => { this.handleStartsWithFilterAddedOrRemoved(); this.addAdditionalFilterPopup.current.close(); } }
-                        class="group-2 poppable mb-1"
-                        type="button">
-                            { __('%s %s starts with', __('which'), __('Url (slug)').toLowerCase()) }
-                        </button>
-                    </div>
-                </Popup>
-            </div>
-            ] : null }
+            <AdditionalFiltersBuilder
+                currentFiltersJson={ additionalFiltersJson }
+                onFiltersChanged={ (updatedFiltersJson, _event) => {
+                    this.props.emitValueChanged(updatedFiltersJson, 'filterAdditional', false, 0);
+                } }
+                getListPageTypeOwnProps={ () => this.selectedPageTypeBundle.pageType.ownFields }
+                howManyType={ howManyType }/>
 
             { howManyType !== 'single' && (howManyAmount === 0 || howManyAmount > 1) ? [
             <span class="group-3 ml-1 px-2 no-round-right"> { __('ordered by') } </span>,
@@ -216,16 +180,21 @@ class ListingBlockEditForm extends preact.Component {
                     class="form-select poppable"
                     type="button">{ __(orderToText[order]) }
                 </button>
-                <Popup ref={ this.defineOrderPopup }>{ Object.keys(orderToText).map(key =>
-                    <label class="form-radio" key={ key }>
-                        <input
-                            onClick={ e => this.handleFilterPropMaybeChanged('filterOrder', 'order', e) }
-                            type="radio"
-                            name="order"
-                            value={ key }
-                            checked={ order === key }/><i class="form-icon"></i> { __(orderToText[key]) }
-                    </label>
-                ) }</Popup>
+                <Popup ref={ this.defineOrderPopup }>
+                    { Object.keys(orderToText).map(key =>
+                        <label class="form-radio" key={ key }>
+                            <input
+                                onClick={ e => this.handleFilterPropMaybeChanged('filterOrder', 'order', e) }
+                                type="radio"
+                                name="order"
+                                value={ key }
+                                checked={ order === key }/><i class="form-icon"></i> { __(orderToText[key]) }
+                        </label>
+                    ) }
+                    { this.showTechnicalHints ? <div class="my-2 text-small">
+                        <a href="https://sivujetti.github.io/dev-docs/fi/misc/misc.html#miten-mutatoin-sivua-renderöidessä" rel="noopener noreferrer" target="_blank">Custom?</a>
+                    </div> : null }
+                </Popup>
             </div>
             ] : null
             }
@@ -306,37 +275,12 @@ class ListingBlockEditForm extends preact.Component {
         const newSelectedPageTypeName = e.target.value;
         this.setSelectedPageTypeBundle(newSelectedPageTypeName);
         const newData = {filterPageType: newSelectedPageTypeName,
+            filterAdditional: removeIsInCatFilter(this.state.additionalFiltersJson), // clear in case the seleted page type does not have applied property
             renderer: this.pageTypeBundles.find(({pageType}) => pageType.name === newSelectedPageTypeName).renderers[0].fileId};
         this.props.emitManyValuesChanged(newData, false, env.normalTypingDebounceMillis);
     }
     /**
-     * @param {String} v = ''
-     * @access private
-     */
-    handleStartsWithFilterAddedOrRemoved(v = '') {
-        const updated = mergeToFilterAdditional('urlStartsWith', v, this.props.getBlockCopy().filterAdditional);
-        this.props.emitValueChanged(updated, 'filterAdditional', false, 0);
-    }
-    /**
-     * @param {Event} e
-     * @access private
-     */
-    handleStartsWithFilterValueChanged(e) {
-        const val = e.target.value.trim();
-        const isValid = str => str.length <= 92;
-        let err = isValid(val) ? '' : __('maxLength').replace('{field}', __('This value')).replace('{arg0}', '92');
-        if (!err && !(new RegExp(validationConstraints.SLUG_REGEXP)).test(val)) {
-            err = __('regexp').replace('{field}', __('This value'));
-        }
-        if (!err) {
-            const updated = mergeToFilterAdditional('urlStartsWith', val, this.props.getBlockCopy().filterAdditional);
-            this.props.emitValueChanged(updated, 'filterAdditional', false, env.normalTypingDebounceMillis, 'debounce-re-render-and-commit-to-queue');
-        } else {
-            this.setState({urlStartsWithNotCommitted: e.target.value, urlStartsWithError: err});
-        }
-    }
-    /**
-     * @param {'defineLimit'|'definePageType'|'defineUrlStartsWith'|'addAdditionalFilter'|'defineOrder'|'chooseRenderer'} popupName
+     * @param {'defineLimit'|'definePageType'|'addAdditionalFilter'|'defineOrder'|'chooseRenderer'} popupName
      * @access private
      */
     openPartPopup(popupName) {
@@ -354,140 +298,4 @@ class ListingBlockEditForm extends preact.Component {
     }
 }
 
-/**
- * @param {RawBlock} from
- * @returns {Object}
- */
-function createState(from) {
-    //
-    const out = {
-        filterPageType: from.filterPageType,
-        howManyAmount: from.filterLimit,
-        howManyType: from.filterLimitType,
-        howManyAmountNotCommitted: from.filterLimit > 1 ? from.filterLimit : null,
-        howManyAmountError: '',
-        urlStartsWith: null,
-        urlStartsWithNotCommitted: null,
-        urlStartsWithError: '',
-        renderWith: from.renderer || from.renderWith,
-        order: from.filterOrder,
-    };
-    //
-    const [urlStartsWith] = getFilterParts(from.filterAdditional);
-    if (urlStartsWith) {
-        out.urlStartsWith = urlStartsWith;
-        out.urlStartsWithNotCommitted = urlStartsWith;
-    }
-    //
-    return out;
-}
-
-/**
- * @param {String} filterAdditional
- * @returns {[String|null]} [urlStartsWith or null]
- */
-function getFilterParts(filterAdditional) {
-    const parsed = JSON.parse(filterAdditional);
-    return [(parsed['p.slug'] || {$startsWith: null}).$startsWith];
-}
-
-class Popup extends preact.Component {
-    // popperInstance;
-    /**
-     * @param {{children: () => preact.ComponentChild; marginLeft?: String;}} props
-     */
-    constructor(props) {
-        super(props);
-        this.state = {isOpen: false};
-    }
-    /**
-     * @access public
-     */
-    open() {
-        if (this.state.isOpen) return;
-        // Make the tooltip visible
-        this.setState({isOpen: true});
-        // Enable the event listeners
-        this.popperInstance.setOptions((options) => Object.assign({},
-            options,
-            {modifiers: [
-                ...options.modifiers,
-                { name: 'eventListeners', enabled: true },
-            ]},
-        ));
-        // Update its position
-       this.popperInstance.update();
-    }
-    /**
-     * @access public
-     */
-    close() {
-        // Hide the tooltip
-        this.setState({isOpen: false});
-        // Disable the event listeners
-        this.popperInstance.setOptions((options) => Object.assign({},
-            options,
-            {modifiers: [
-                ...options.modifiers,
-                { name: 'eventListeners', enabled: false },
-            ]}
-        ));
-    }
-    /**
-     * @access protected
-     */
-    render({children}, {isOpen}) {
-        return <div ref={ this.createPopper.bind(this) } class={ `my-tooltip${!isOpen ? '' : ' visible'}` }>
-            { children }
-            <div class="popper-arrow" data-popper-arrow></div>
-            <button
-                onClick={ this.close.bind(this) }
-                class="btn btn-link btn-sm p-1 p-absolute"
-                title={ __('Close') }
-                style="right:0;top:0;background:0 0"
-                type="button">
-                <Icon iconId="x" className="size-xs"/>
-            </button>
-        </div>;
-    }
-    /**
-     * @param {HTMLDivElement} el
-     * @access private
-     */
-    createPopper(el) {
-        if (!el || this.popperInstance) return;
-        //
-        const button = el.previousElementSibling;
-        const content = el;
-        this.popperInstance = window.Popper.createPopper(button, content, {
-            modifiers: [{
-                name: 'offset',
-                options: {offset: [0, 8]},
-            }, {
-                name: 'preventOverflow',
-                options: {altAxis: true, padding: 20},
-            }],
-        });
-    }
-}
-
-/**
- * @param {'urlStartsWith'} kind
- * @param {String|null} val
- * @param {String} current
- * @returns {String} Updated $current
- */
-function mergeToFilterAdditional(kind, val, current) {
-    const parsed = JSON.parse(current);
-    if (kind === 'urlStartsWith') {
-        if (val !== null)
-            parsed['p.slug'] = {$startsWith: val.charAt(0) === '/' ? val : `/${val}`};
-        else
-            delete parsed['p.slug'];
-    } else
-        throw new Error(`Unkown additional filter \`${kind}\``);
-    return JSON.stringify(parsed);
-}
-
 export default ListingBlockEditForm;
-export {Popup};

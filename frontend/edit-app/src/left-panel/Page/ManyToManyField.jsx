@@ -3,6 +3,107 @@ import store, {observeStore, selectCurrentPageDataBundle} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import AddCategoryPanel from './AddCategoryPanel.jsx';
 
+class ManyToManyItemSelector extends preact.Component {
+    // unregistrables;
+    // selectionType;
+    /**
+     * @param {{curSelections: Array<String>; onSelectionsChanged: (newList: Array<String>) => void; relPageType: PageType; onItemsFetched?: (manyToManyPages: Array<RelPage>) => void; useRadios?: Boolean;}} props
+     */
+    constructor(props) {
+        super(props);
+        this.unregistrables = [];
+        this.selectionType = !props.useRadios ? 'checkbox' : 'radio';
+        this.state = {
+            currentManyToManyIdList: props.curSelections.slice(0),
+            manyToManyPages: undefined,
+        };
+        this.fetchManyToManyPagesToState(props.relPageType.name);
+        //
+        this.unregistrables.push(observeStore2('pagesListings', ({pagesListings}, [event]) => {
+            if (event === 'pagesListings/addItem')
+                this.setState({manyToManyPages: pagesListings});
+            else if (event === 'pagesListings/setAll' && this.state.manyToManyPages) // undo
+                this.setState({manyToManyPages: pagesListings});
+        }));
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        this.unregistrables.forEach(unreg => unreg());
+    }
+    /**
+     * @access protected
+     */
+    componentWillReceiveProps(props) {
+        if (props.curSelections.toString() !== this.props.curSelections.toString())
+            this.setState({currentManyToManyIdList: props.curSelections.slice(0)});
+    }
+    /**
+     * @access protected
+     */
+    render({relPageType, useRadios}, {currentManyToManyIdList, manyToManyPages}) {
+        return Array.isArray(manyToManyPages) ? manyToManyPages.length
+            ? manyToManyPages.map(({id, title}) => <label class={ `form-${this.selectionType} mt-0 text-ellipsis` } key={ id }>
+                <input
+                    value={ id }
+                    onClick={ this.handleCheckboxOrRadioClicked.bind(this) }
+                    checked={ currentManyToManyIdList.indexOf(id) > -1 }
+                    type={ this.selectionType }
+                    name={ 'todo' }
+                    class={ !useRadios ? 'form-input' : '' }/><i class="form-icon"></i> <span>{ title }</span>
+                </label>)
+            : <p>{ __('No %s found', __(relPageType.friendlyNamePlural)) }</p>
+        : <LoadingSpinner/>;
+    }
+    /**
+     * @param {String} pageTypeName
+     * @access private
+     */
+    fetchManyToManyPagesToState(pageTypeName) {
+        const {pagesListings} = store2.get();
+        if (pagesListings) {
+            if (this.props.onItemsFetched) this.props.onItemsFetched(pagesListings);
+            this.setState({manyToManyPages: pagesListings});
+            return;
+        }
+        http.get(`/api/pages/${pageTypeName}`)
+            .then(pages => {
+                const baked = pages.reverse().map(createCompactPageFrom);
+                store2.dispatch('pagesListings/setAll', [baked]);
+                if (this.props.onItemsFetched) this.props.onItemsFetched(baked);
+                this.setState({manyToManyPages: baked});
+            })
+            .catch(env.window.console.error);
+    }
+    /**
+     * @param {Event} e
+     * @access private
+     */
+    handleCheckboxOrRadioClicked(e) {
+        const manyToManyPageId = e.target.value;
+        const {currentManyToManyIdList} = this.state;
+        //
+        let newList;
+        if (!this.props.useRadios) {
+            const cur = currentManyToManyIdList.indexOf(manyToManyPageId) > -1 ? 1 : 0;
+            const val = e.target.checked ? 1 : 0;
+            if (cur === 0 && val === 1) {
+                newList = [...this.state.currentManyToManyIdList, manyToManyPageId];
+            } else if (cur === 1 && val === 0) {
+                newList = currentManyToManyIdList.filter(manyToManyPageId2 => manyToManyPageId2 !== manyToManyPageId);
+            }
+        } else if ((currentManyToManyIdList[0] || '') !== manyToManyPageId) {
+            newList = [manyToManyPageId];
+        }
+        //
+        if (newList) {
+            this.props.onSelectionsChanged(newList);
+            this.setState({currentManyToManyIdList: newList});
+        }
+    }
+}
+
 class ManyToManyField extends preact.Component {
     // unregistrables;
     // k;
@@ -20,7 +121,6 @@ class ManyToManyField extends preact.Component {
         this.firstPanelEl = preact.createRef();
         this.state = {
             currentManyToManyIdList: getManyToManyValue(selectCurrentPageDataBundle(store.getState()).page, this.k),
-            manyToManyPages: undefined,
             createCatPanelState: createCreateCatPanelStateState(),
         };
         this.unregistrables.push(observeStore(selectCurrentPageDataBundle, ({page}) => {
@@ -28,14 +128,6 @@ class ManyToManyField extends preact.Component {
                this.setState({currentManyToManyIdList: getManyToManyValue(page, this.k)});
         }));
         this.relPageType = api.getPageTypes().find(({name}) => name === props.field.dataType.rel);
-        this.fetchManyToManyPagesToState(this.relPageType.name);
-        //
-        this.unregistrables.push(observeStore2('relPages', ({relPages}, [event]) => {
-            if (event === 'relPages/addItem')
-                this.setState({manyToManyPages: relPages});
-            else if (event === 'relPages/setAll' && this.state.manyToManyPages) // undo
-                this.setState({manyToManyPages: relPages});
-        }));
     }
     /**
      * @access protected
@@ -46,21 +138,16 @@ class ManyToManyField extends preact.Component {
     /**
      * @access protected
      */
-    render({field}, {currentManyToManyIdList, manyToManyPages, createCatPanelState}) {
+    render({field}, {currentManyToManyIdList, createCatPanelState}) {
         return <div class="anim-outer pt-1">
             <div class="form-label mb-1">{ __(field.friendlyName) }</div>
             <div class={ createCatPanelState.leftClass } ref={ this.firstPanelEl }>
-                <div class="prop-widget-many-to-man">{ Array.isArray(manyToManyPages) ? manyToManyPages.length
-                    ? manyToManyPages.map(({id, title}) => <label class="form-checkbox mt-0 text-ellipsis" key={ id }>
-                        <input
-                            value={ id }
-                            onClick={ this.emitManyToManyIdSelectedOrUnselected.bind(this) }
-                            checked={ currentManyToManyIdList.indexOf(id) > -1 }
-                            type="checkbox"
-                            class="form-input"/><i class="form-icon"></i> <span>{ title }</span>
-                        </label>)
-                    : <p>{ __('No %s found', __(field.friendlyNamePlural)) }</p>
-                : <LoadingSpinner/> }</div>
+                <div class="prop-widget-many-to-many">
+                    <ManyToManyItemSelector
+                        curSelections={ currentManyToManyIdList }
+                        onSelectionsChanged={ this.emitManyToManyIdSelectedOrUnselected.bind(this) }
+                        relPageType={ this.relPageType }/>
+                </div>
                 <button onClick={ this.openCreateCategoryPanel.bind(this) }
                     class="btn btn-sm text-tiny with-icon-inline mt-2" type="button">
                     <Icon iconId="plus" className="size-xs mr-1"/> { __('Add new category') }
@@ -73,7 +160,7 @@ class ManyToManyField extends preact.Component {
                     this.setState({createCatPanelState: createCreateCatPanelStateState('reveal-from-left', 'fade-to-right', false)});
                     if (newCategoryPostData)
                         // todo check if page with identical slug already exist
-                        store2.dispatch('relPages/addItem', [createCompactPageFrom(newCategoryPostData), this.relPageType.name]);
+                        store2.dispatch('pagesListings/addItem', [createCompactPageFrom(newCategoryPostData), this.relPageType.name]);
                 } }
                 panelHeight={ createCatPanelState.leftClass === ''
                     ? 0
@@ -82,38 +169,10 @@ class ManyToManyField extends preact.Component {
         </div>;
     }
     /**
-     * @param {String} pageTypeName
+     * @param {Array<String>} newManyToManyIdList
      * @access private
      */
-    fetchManyToManyPagesToState(pageTypeName) {
-        const {relPages} = store2.get();
-        if (relPages) {
-            this.setState({manyToManyPages: relPages});
-            return;
-        }
-        http.get(`/api/pages/${pageTypeName}`)
-            .then(pages => {
-                const baked = pages.reverse().map(createCompactPageFrom);
-                store2.dispatch('relPages/setAll', [baked]);
-                this.setState({manyToManyPages: baked});
-            })
-            .catch(env.window.console.error);
-    }
-    /**
-     * @param {Event} e
-     * @access private
-     */
-    emitManyToManyIdSelectedOrUnselected(e) {
-        const val = e.target.checked ? 1 : 0;
-        const manyToManyPageId = e.target.value;
-        const bundle = selectCurrentPageDataBundle(store.getState());
-        const cur = bundle.page[this.k].indexOf(manyToManyPageId) > -1 ? 1 : 0;
-        let newManyToManyIdList; // e.g. categories
-        if (cur === 0 && val === 1) {
-            newManyToManyIdList = bundle.page[this.k].concat([manyToManyPageId]);
-        } else if (cur === 1 && val === 0) {
-            newManyToManyIdList = bundle.page[this.k].filter(manyToManyPageId2 => manyToManyPageId2 !== manyToManyPageId);
-        } else return;
+    emitManyToManyIdSelectedOrUnselected(newManyToManyIdList) {
         this.props.emitChanges(mut => {
             mut[this.k] = newManyToManyIdList;
         });
@@ -157,3 +216,4 @@ function createCreateCatPanelStateState(leftClass = '', rightClass = '') {
 }
 
 export default ManyToManyField;
+export {ManyToManyItemSelector};

@@ -349,7 +349,7 @@ final class PagesController {
             apiCtx: $apiCtx,
             theme: $theWebsite->activeTheme,
             pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy()),
-            useInlineCssStyles: $editModeIsOn
+            useEditModeCss: $editModeIsOn
         );
         $html = $tmpl->render([
             "currentPage" => $page,

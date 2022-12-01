@@ -21,8 +21,11 @@ final class CssGenTestUtils {
     }
     public function getActualGeneratedCss(): string {
         $full = file_get_contents($this->TEST_THEME_GENERATED_FILE_PATH);
-        $lines = explode("\n", $full); // [<header>, <emptyLine>, <scopedStylesStartMarker>, <scopedStyle>*, <scopedStylesEndMarker>]
-        return implode("\n", array_slice($lines, 3, count($lines) - 4 - 1)) . "\n";
+        // [<charset>, <emptyLine>, <generatedBy>, <emptyLine>, <scopedStylesStartMarker>, <scopedStyle>*, <scopedStylesEndMarker>, <emptyLine>]
+        $lines = explode("\n", $full);
+        $startAt = count(["<charset>", "<emptyLine>", "<generatedBy>", "<emptyLine>", "<scopedStylesStartMarker>"]);
+        $notTheseTEnd = count(["<scopedStylesEndMarker>", "<emptyLine>"]);
+        return implode("\n", array_slice($lines, $startAt, count($lines) - $startAt - $notTheseTEnd)) . "\n";
     }
     public static function generateScopedStyles(array $styles, bool $isBodyStyles = false): string {
         $layerName = !$isBodyStyles ? "units" : "body-unit";

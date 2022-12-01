@@ -19,7 +19,7 @@ final class WebPageAwareTemplate extends Template {
     /** @var string[] */
     private array $__pluginNames;
     /** @var bool */
-    private bool $__useInlineCssStyles;
+    private bool $__useEditModeCss;
     /** @var string */
     private string $__assetUrlAppendix;
     /** @var \Closure */
@@ -31,7 +31,7 @@ final class WebPageAwareTemplate extends Template {
      * @param ?\Sivujetti\SharedAPIContext $apiCtx = null
      * @param ?\Sivujetti\Theme\Entities\Theme $theme = null
      * @param ?array<string> $pluginNames = null
-     * @param ?bool $useInlineCssStyles = null
+     * @param ?bool $useEditModeCss = null
      */
     public function __construct(string $file,
                                 ?array $vars = null,
@@ -39,13 +39,13 @@ final class WebPageAwareTemplate extends Template {
                                 ?SharedAPIContext $apiCtx = null,
                                 ?Theme $theme = null,
                                 ?array $pluginNames = null,
-                                ?bool $useInlineCssStyles = null,
+                                ?bool $useEditModeCss = null,
                                 ?string $assetUrlCacheBustStr = "") {
         parent::__construct($file, $vars, $initialLocals);
         $this->__cssAndJsFiles = $apiCtx?->userDefinedAssets;
         $this->__theme = $theme;
         $this->__dynamicGlobalBlockTreeBlocksStyles = [];
-        $this->__useInlineCssStyles = $useInlineCssStyles ?? true;
+        $this->__useEditModeCss = $useEditModeCss ?? true;
         $this->__pluginNames = $pluginNames ?? [];
         if ($this->__file === "") $this->__file = $this->completePath($file);
         $this->__assetUrlAppendix = $this->escAttr($assetUrlCacheBustStr ?? "");
@@ -201,38 +201,34 @@ final class WebPageAwareTemplate extends Template {
      * @return string
      */
     public function cssFiles(): string {
-        $def = "<style>@layer theme, body-unit, units</style>\n";
-        if (!$this->__cssAndJsFiles)
-            return $def;
-        $rf = function ($f) {
+        $fileDefToTag = function ($f) {
             $attrsMap = $f->attrs;
             if (!array_key_exists("rel", $attrsMap)) $attrsMap["rel"] = "stylesheet";
             return "<link href=\"{$this->assetUrl("public/{$this->e($f->url)}")}\"" .
                 $this->attrMapToStr($attrsMap) . ">";
         };
-        //
-        $out = $def;
-        // Global variables
-        $out .= $this->__theme->globalStyles ? "<style>:root {" .
-            implode("\n", array_map(fn($style) =>
-                // Note: these are pre-validated
-                "    --{$style->name}: {$this->cssValueToString($style->value)};"
-            , $this->__theme->globalStyles)) .
-        "}</style>\n" : "";
-        //
-        if (!$this->__useInlineCssStyles) {
-            $generated = (object) ["url" => "{$this->__theme->name}-generated.css?t={$this->__theme->stylesLastUpdatedAt}",
-                                   "attrs" => []];
-            $this->__cssAndJsFiles->css[] = $generated;
-            return $out . implode("\n", array_map($rf,
-                $this->__cssAndJsFiles->css
-            ));
-        }
-        //
-        return $out . (
-            // External files
-            implode("\n", array_map($rf, $this->__cssAndJsFiles->css)) .
-            //
+
+        $common = "<style>@layer theme, body-unit, units" . ($this->__theme->globalStyles
+            ? "; :root {" .
+                implode("\n", array_map(fn($style) =>
+                    // Note: these are pre-validated
+                    "  --{$style->name}: {$this->cssValueToString($style->value)};"
+                , $this->__theme->globalStyles)) .
+            "}"
+            : ""
+        ) . "</style>\n";
+        $externals = array_map($fileDefToTag, $this->__cssAndJsFiles->css);
+
+        return $common . (!$this->__useEditModeCss ? (
+            // Externals including theme-generated.css
+            implode("\n", [...$externals, $fileDefToTag(
+                (object) ["url" => "{$this->__theme->name}-generated.css?t={$this->__theme->stylesLastUpdatedAt}",
+                          "attrs" => []]
+            )])
+        ) : (
+            // Externals without theme-generated.css
+            implode("\n", $externals) .
+            // Injectables
             "\n<!-- Note to devs: these inline styles appear here only when you're logged in -->\n" .
             // Scoped styles: Inject each style bundle via javascript instead of echoing them directly
             // (to allow things such as `content: "</style>"` or `/* </style> */`)
@@ -247,8 +243,10 @@ final class WebPageAwareTemplate extends Template {
             "  bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
             "  out.appendChild(bundle);\n" .
             "  return out;\n" .
-            "}, document.createDocumentFragment()))</script>"
-        );
+            "}, document.createDocumentFragment()))</script>\n" .
+            //
+            "<style>" . self::getDefaultEditModeInlineCss() . "</style>\n"
+        ));
     }
     /**
      * @return string
@@ -364,5 +362,26 @@ final class WebPageAwareTemplate extends Template {
             "\n    " .
             implode("\n    ", $metasOgOut)
         ];
+    }
+    private static function getDefaultEditModeInlineCss(): string {
+        return implode("\n", [
+            "@keyframes sjet-dotty {",
+            "  0%   { content: ''; }",
+            "  25%  { content: '.'; }",
+            "  50%  { content: '..'; }",
+            "  75%  { content: '...'; }",
+            "  100% { content: ''; }",
+            "}",
+            ".sjet-dots-animation {",
+            "  font-size: 1.2rem;",
+            "  line-height: 1.2rem;",
+            "}",
+            ".sjet-dots-animation:after {",
+            "  display: inline-block;",
+            "  animation: sjet-dotty steps(1, end) 1s infinite;",
+            "  content: '';",
+            "  letter-spacing: 2px;",
+            "}",
+        ]);
     }
 }

@@ -55,12 +55,10 @@ class BlockEditForm extends preact.Component {
             if (event === 'theBlockTree/updateDefPropsOf' || isUndo2) {
                 if (!this.stylesFormChangeGrabber)
                     return;
-                const [blockId, isOnlyStyleClassesChange] = event === 'theBlockTree/updateDefPropsOf'
+                const [blockId, isOnlyStyleClassesChange] = !isUndo2
                     ? [data[0], data[3]]  // [<blockId>, <blockIsStoredToTreeId>, <changes>, <isOnlyStyleClassesChange>]
                     : [data[1], data[3]]; // [<oldTree>, <blockId>, <blockIsStoredToTreeId>, <isOnlyStyleClassesChange>]
-                if (!isOnlyStyleClassesChange)
-                    return;
-                if (isSomeOtherBlock(blockId))
+                if (!isOnlyStyleClassesChange || isSomeOtherBlock(blockId))
                     return;
                 this.stylesFormChangeGrabber(this.getCurrentBlockCopy(), event, isUndo2);
             } else if (event === 'theBlockTree/deleteBlock') {
@@ -112,18 +110,18 @@ class BlockEditForm extends preact.Component {
             <BlockStylesTab
                 getBlockCopy={ getCopy }
                 grabBlockChanges={ withFn => { this.stylesFormChangeGrabber = withFn; } }
-                emitAddStyleToBlock={ (styleClassToAdd, b) => {
+                emitAddStyleClassToBlock={ (styleClassToAdd, b) => {
                     const currentClasses = b.styleClasses;
                     const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
-                    this.updateBlockStyleClasses(newClasses, b);
+                    this.dispatchNewBlockStyleClasses(newClasses, b);
                 } }
-                emitRemoveStyleFromBlock={ (styleClassToRemove, b) => {
+                emitRemoveStyleClassFromBlock={ (styleClassToRemove, b) => {
                     const currentClasses = b.styleClasses;
                     const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ');
-                    this.updateBlockStyleClasses(newClasses, b);
+                    this.dispatchNewBlockStyleClasses(newClasses, b);
                 } }
-                emitSetBlockStyles={ (newStyleClasses, b) => {
-                    this.updateBlockStyleClasses(newStyleClasses, b);
+                emitSetBlockStylesClasses={ (newStyleClasses, b) => {
+                    this.dispatchNewBlockStyleClasses(newStyleClasses, b);
                 } }
                 isVisible={ currentTabIdx === 1 }/>
         </div>
@@ -158,11 +156,10 @@ class BlockEditForm extends preact.Component {
      * @param {RawBlock} blockCopy
      * @access private
      */
-    updateBlockStyleClasses(newStyleClasses, {id, type, isStoredToTreeId, styleClasses}) {
-        const contextData = {blockId: id, blockType: type, trid: isStoredToTreeId};
-        const dataBefore = {styleClasses};
-        'todoemitMutateBlockProp'({styleClasses: newStyleClasses}, contextData);
-        'todoemitPushStickyOp'([dataBefore], contextData);
+    dispatchNewBlockStyleClasses(newStyleClasses, {id, isStoredToTreeId}) {
+        const changes = {styleClasses: newStyleClasses};
+        const isOnlyStyleClassesChange = true;
+        store2.dispatch('theBlockTree/updateDefPropsOf', [id, isStoredToTreeId, changes, isOnlyStyleClassesChange]);
     }
     /**
      * @returns {RawBlock}

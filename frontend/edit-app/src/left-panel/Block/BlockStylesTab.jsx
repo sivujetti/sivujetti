@@ -1,11 +1,11 @@
 import {__, api, env, http, signals, timingUtils, Icon, LoadingSpinner, hookForm,
     unhookForm, Input, FormGroup, InputErrors, InputError, hasErrors} from '@sivujetti-commons-for-edit-app';
 import {createTrier} from '../../../../webpage/src/EditAppAwareWebPage.js';
-import {Popup} from '../../block-types/Listing/EditForm.jsx';
+import {Popup} from '../../block-types/Listing/AdditionalFiltersBuilder.jsx';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import CssStylesValidatorHelper from '../../commons/CssStylesValidatorHelper.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
-import store, {createSelectBlockTree, pushItemToOpQueue} from '../../store.js';
+import store, {pushItemToOpQueue} from '../../store.js';
 import {validationConstraints} from '../../constants.js';
 import {triggerUndo} from '../../SaveButton.jsx';
 import exampleScss from '../../example-scss.js';
@@ -30,7 +30,7 @@ class BlockStylesTab extends preact.Component {
     // liIdxOfOpenMoreMenu;
     // refElOfOpenMoreMenu;
     /**
-     * @param {{emitAddStyleToBlock: (styleClassToAdd: String, block: RawBlock) => void; emitRemoveStyleFromBlock: (styleClassToRemove: String, block: RawBlock) => void; emitSetBlockStyles: (newStyleClasses: String, block: RawBlock) => void; getBlockCopy: () => RawBlock; grabBlockChanges: (withFn: (block: RawBlock, origin: blockChangeEvent, isUndo: Boolean) => void) => void; isVisible: Boolean;}} props
+     * @param {{emitAddStyleClassToBlock: (styleClassToAdd: String, block: RawBlock) => void; emitRemoveStyleClassFromBlock: (styleClassToRemove: String, block: RawBlock) => void; emitSetBlockStylesClasses: (newStyleClasses: String, block: RawBlock) => void; getBlockCopy: () => RawBlock; grabBlockChanges: (withFn: (block: RawBlock, origin: blockChangeEvent, isUndo: Boolean) => void) => void; isVisible: Boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -243,9 +243,9 @@ class BlockStylesTab extends preact.Component {
     toggleStyleIsActivated(cls, newIsActivated) {
         const currentIsActivated = this.currentBlockHasStyle(cls);
         if (newIsActivated && !currentIsActivated)
-            this.props.emitAddStyleToBlock(cls, this.state.blockCopy);
+            this.props.emitAddStyleClassToBlock(cls, this.state.blockCopy);
         else if (!newIsActivated && currentIsActivated)
-            this.props.emitRemoveStyleFromBlock(cls, this.state.blockCopy);
+            this.props.emitRemoveStyleClassFromBlock(cls, this.state.blockCopy);
     }
     /**
      * @param {[RawBlock|null, String|null, 'parent'|'base']} parentStyleInfo
@@ -283,7 +283,7 @@ class BlockStylesTab extends preact.Component {
         // #2
         const addedStyleToBlock = !this.currentBlockHasStyle(cls);
         if (addedStyleToBlock)
-            this.props.emitAddStyleToBlock(cls, this.state.blockCopy);
+            this.props.emitAddStyleClassToBlock(cls, this.state.blockCopy);
 
         // #1
         const newUnit = {title, id, scss, generatedCss: serialize(compile(`.${cls}{${scss}}`), stringify)};
@@ -331,7 +331,7 @@ class BlockStylesTab extends preact.Component {
         const unitClses = this.currentBlockUnitStyleClasses;
         const combAsString = unitClses + (unitClses ? ` ${v}` : v);
         // emit > props.grabBlockChanges() @constructor -> setState()
-        this.props.emitSetBlockStyles(combAsString, this.state.blockCopy);
+        this.props.emitSetBlockStylesClasses(combAsString, this.state.blockCopy);
     }
     /**
      * @param {String} cls
@@ -691,7 +691,7 @@ function findParentStyleInfo(themeStyles, block) {
  */
 function findScopedParentStyle(themeStyles, block, tree = null) {
     const {id, isStoredToTreeId} = block;
-    if (!tree) ({tree} = createSelectBlockTree(isStoredToTreeId)(store.getState()));
+    if (!tree) tree = blockTreeUtils.getRootFor(isStoredToTreeId, store2.get().theBlockTree);
     const parent = blockTreeUtils.findBlock(id, tree)[2];
     if (!parent) return [null, null, null];
     //

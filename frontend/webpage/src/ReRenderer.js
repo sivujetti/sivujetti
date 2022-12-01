@@ -164,12 +164,17 @@ class ReRenderer {
             this.doReRender(theBlockTree);
         } else if (event === 'theBlockTree/updateDefPropsOf') {
             const [blockId, _blockIsStoredToTreeId, changes, isOnlyStyleClassesChange] = data;
-            if (!isOnlyStyleClassesChange) return;
-            // todo
+            if (isOnlyStyleClassesChange) {
+                this.updateBlocksStyleClasses(blockId, changes.styleClasses);
+                this.doReRender(theBlockTree);
+            } // else nothing to render, i.e. only block.title changed)
         } else if (event === 'theBlockTree/undoUpdateDefPropsOf') {
-            const [_oldTree, blockId, blockIsStoredToTreeId, isOnlyStyleClassesChange] = data;
-            if (!isOnlyStyleClassesChange) return;
-            // todo
+            const [_oldTree, blockId, _blockIsStoredToTreeId, isOnlyStyleClassesChange] = data;
+            if (isOnlyStyleClassesChange) {
+                const pool = this.elCache.get(blockId);
+                pool.pop();
+                this.doReRender(theBlockTree);
+            } // same as above
         }
     }
     /**
@@ -247,6 +252,17 @@ class ReRenderer {
             const pool = this.elCache.get(innerBlockId);
             pool.pop();
         });
+    }
+    /**
+     * @param {String} blockId
+     * @param {String} newStyleClasses
+     * @access private
+     */
+    updateBlocksStyleClasses(blockId, newStyleClasses) {
+        const withNewClsClone = extractRendered(getBlockEl(blockId));
+        const blockTypeName = withNewClsClone.className.split(' ')[0]; // 'j-Something custom1' -> 'j-Something'
+        withNewClsClone.className = blockTypeName + (newStyleClasses ? ` ${newStyleClasses}` : '');
+        this.elCache.get(blockId).push(withNewClsClone);
     }
 }
 

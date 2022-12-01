@@ -26,8 +26,6 @@ class IframePageManager {
      * @access public
      */
     loadPage(webPage) {
-        window.templock = 1;
-        const isFirstLoad = !this.currentWebPage;
         this.currentWebPage = null;
         if (webPageUnregistrables.size) {
             for (const fn of webPageUnregistrables.values()) fn();
@@ -68,11 +66,11 @@ class IframePageManager {
         store.dispatch(setOpQueue([]));
         const fn = webPage.createThemeStylesChangeListener();
         webPageUnregistrables.set('themeStyles', observeStore2('themeStyles', fn));
-        if (isFirstLoad) signals.on('visual-styles-var-value-changed-fast', (unitCls, varName, varValue, valueType) => {
-            webPage.fastOverrideStyleUnitVar(unitCls, varName, varValue, valueType);
-        });
-        window.templock = null;
-    }
+        webPageUnregistrables.set('fastStyleChanges', signals.on('visual-styles-var-value-changed-fast',
+            (unitCls, varName, varValue, valueType) => {
+                webPage.fastOverrideStyleUnitVar(unitCls, varName, varValue, valueType);
+            }));
+        }
     /**
      * @param {String} trid
      * @access public

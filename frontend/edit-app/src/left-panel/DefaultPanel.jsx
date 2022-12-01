@@ -16,7 +16,7 @@ class DefaultPanel extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (isAnotherAppView(env.window.location.hash.substring(1)) || isAnotherAppView(this.props.url))
+        if (isAnotherAppView(env.window.location.hash.substring(1)) || isAnotherAppView(props.url))
             return;
         if (props.url !== this.props.url)
             this.sdsjdjn(props.url);
@@ -59,3 +59,4 @@ function createState(initial) {
 }
 
 export default DefaultPanel;
+export {isAnotherAppView as isEditAppViewUrl};

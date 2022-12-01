@@ -1148,10 +1148,10 @@ span.highlight-rect[data-position="bottom-inside"]:before {
     overflow-x: hidden;
     padding: 1.4rem;
 }
-#root:has(#view:not(:empty)) #view {
+#root.view-opened #view {
     display: block;
 }
-#root:has(#view:not(:empty)) #site-preview-iframe {
+#root.view-opened #site-preview-iframe {
     visibility: hidden;
 }
 

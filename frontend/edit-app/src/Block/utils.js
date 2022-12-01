@@ -153,5 +153,22 @@ function setTrids(branch, trid) {
     });
 }
 
+/**
+ * @param {RawGlobalBlockTree} gbt
+ * @param {Array<RawBlock>} blocks = null
+ * @returns {{globalBlockTreeId: String; __globalBlockTree: {id: String; name: String; blocks: Array<RawBlock>;};}}
+ */
+function createGbtRefBlockProps(gbt, blocks = null) {
+    return {
+        globalBlockTreeId: gbt.id,
+        __globalBlockTree: {
+            id: gbt.id,
+            name: gbt.name,
+            blocks: blocks || JSON.parse(JSON.stringify(gbt.blocks)),
+        }
+    };
+}
+
 export {createBlockFromType, createBlockFromBlueprint, isTreesOutermostBlock,
-        findRefBlockOf, toTransferable, treeToTransferable, cloneDeep, setTrids};
+        findRefBlockOf, toTransferable, treeToTransferable, cloneDeep, setTrids,
+        createGbtRefBlockProps};

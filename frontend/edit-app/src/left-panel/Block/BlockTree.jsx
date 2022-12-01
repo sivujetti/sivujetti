@@ -1,7 +1,8 @@
-import {__, api, http, signals, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, api, signals, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import {getIcon} from '../../block-types/block-types.js';
-import {cloneDeep} from '../../Block/utils.js';
+import {cloneDeep, treeToTransferable} from '../../Block/utils.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
+import {generatePushID} from '../../commons/utils.js';
 import BlockTreeShowHelpPopup from '../../BlockTreeShowHelpPopup.jsx';
 import SaveBlockAsReusableDialog from '../../SaveBlockAsReusableDialog.jsx';
 import store2, {observeStore as observeStore2} from '../../store2.js';
@@ -47,7 +48,7 @@ class BlockTree extends preact.Component {
      */
     receiveNewBlocks2(theBlockTree) {
         // 2. Later changes
-        this.unregistrables.push(observeStore2('theBlockTree', ({theBlockTree}, [event]) => {
+        this.unregistrables.push(observeStore2('theBlockTree', ({theBlockTree}, [event, data]) => {
             if (event === 'theBlockTree/init') {
                 // skip
             } else if (event === 'theBlockTree/swap') {
@@ -57,9 +58,16 @@ class BlockTree extends preact.Component {
                 event === 'theBlockTree/deleteBlock' ||
                 event === 'theBlockTree/undo' ||
                 event === 'theBlockTree/undoAdd(Drop)Block' ||
-                event === 'theBlockTree/cloneItem') {
+                event === 'theBlockTree/cloneItem' ||
+                event === 'theBlockTree/convertToGbt') {
                 this.setBlocksToState(theBlockTree);
-            } // else if updateSingle => this.tempHack = null ? 
+            } else if (event === 'theBlockTree/updateDefPropsOf' || event === 'theBlockTree/undoUpdateDefPropsOf') {
+                const isOnlyStyleClassesChange = event === 'theBlockTree/updateDefPropsOf'
+                    ? data[3]  // [<blockId>, <blockIsStoredToTreeId>, <changes>, <isOnlyStyleClassesChange>]
+                    : data[3]; // [<oldTree>, <blockId>, <blockIsStoredToTreeId>, <isOnlyStyleClassesChange>]
+                if (isOnlyStyleClassesChange) return;
+                this.setBlocksToState(theBlockTree);
+            }
         }));
         // 1. Initial
         this.setBlocksToState(theBlockTree);
@@ -80,7 +88,7 @@ class BlockTree extends preact.Component {
                 onClick={ this.showBlockTreeHelpPopup.bind(this) }
                 class="btn btn-link p-absolute btn-sm pt-1"
                 type="button"
-                style="right: 0;top: 0;">
+                style="right: -.1rem; top: .1rem;">
                 <Icon iconId="info-circle" className="size-xs"/>
             </button></div>
             <BlockDnDSpawner2
@@ -228,7 +236,7 @@ class BlockTree extends preact.Component {
             const userCanCreateGlobalBlockTrees = api.user.can('createGlobalBlockTrees');
             floatingDialog.open(SaveBlockAsReusableDialog, {
                 title: __('Save as reusable'),
-                height: userCanCreateGlobalBlockTrees ? 360 : 254,
+                height: userCanCreateGlobalBlockTrees ? 426 : 254,
             }, {
                 blockToConvertAndStore: blockToStore,
                 onConfirmed: data => data.saveAsUnique ? this.doConvertBlockToGlobal(data, blockToStore) :
@@ -245,6 +253,10 @@ class BlockTree extends preact.Component {
         this.blockWithMoreMenuOpenedIsGbtsOutermostBlock = null;
         this.refElOfOpenMoreMenu.style.opacity = '';
     }
+    /**
+     * @param {RawBlock} openBlock
+     * @access private
+     */
     cloneBlock(openBlock) {
         const latestTree = blockTreeUtils.getRootFor(openBlock.isStoredToTreeId, store2.get().theBlockTree);
         const cloned = cloneDeep(blockTreeUtils.findBlock(openBlock.id, latestTree)[0]);
@@ -257,95 +269,32 @@ class BlockTree extends preact.Component {
      * @access private
      */
     doConvertBlockToGlobal(data, originalBlock) {
-        'todo';
-        /*if (originalBlock.isStoredToTreeId !== 'main') throw new Error('Sanity');
-
-        // #1
-        const newGbt = {
-            id: generatePushID(),
-            name: data.name,
-            blocks: [originalBlock],
-        };
-        const {tree} = createSelectBlockTree('main')(store.getState());
-        const treeBefore = JSON.parse(JSON.stringify(tree));
-        setTrids(newGbt.blocks, newGbt.id); // Note: mutates original block
-        // #2
-        api.editApp.paddBlockTree(newGbt.id, newGbt.blocks);
-        // #3
-        api.webPageIframe.registerWebPageDomUpdater(newGbt.id);
-
-        // #4
-        let [b, br] = blockTreeUtils.findBlock(originalBlock.id, tree);
-        const turned = createBlockFromType('GlobalBlockReference', 'main', undefined,
-            {globalBlockTreeId: newGbt.id},
-        );
-        br[br.indexOf(b)] = turned;
-        const eventData = {blockId: turned.id, blockType: turned.blockType, trid: 'main', isRootOfOfTrid: newGbt.id};
-        store.dispatch(createSetBlockTree('main')(tree, ['convert-block-to-global', eventData]));
-
-        store.dispatch(pushItemToOpQueue('convert-block-to-global', {
-            doHandle: () => {
-                const {tree} = createSelectBlockTree(newGbt.id)(store.getState());
-                const gbt = {id: newGbt.id, name: newGbt.name, blocks: treeToTransferable(tree)};
-                return http.post('/api/global-block-trees', gbt).then(resp => {
-                    if (resp.ok !== 'ok') throw new Error('-');
-                    return saveExistingBlocksToBackend(createSelectBlockTree('main')(store.getState()).tree, 'main');
-                });
-            },
-            doUndo: () => {
-                // No need to revert #1
-
-                // Revert #3
-                api.webPageIframe.unregisterWebPageDomUpdaterForBlockTree(newGbt.id);
-
-                // Revert #4
-                store.dispatch(createSetBlockTree('main')(treeBefore, ['undo-convert-block-to-global', eventData]));
-                setTimeout(() => {
-                // No need to revert #2
-                    api.editApp.premoveBlockTree(newGbt.id);
-                }, 4000);
-            },
-            args: [],
-        }));*/
-    }/**
-     * @param {{name: String;}} data
+        if (originalBlock.isStoredToTreeId !== 'main') throw new Error('Sanity');
+        const newGbtWithoutBlocks = {id: generatePushID(), name: data.name, blocks: []};
+        const newBlockId = generatePushID();
+        store2.dispatch('theBlockTree/convertToGbt', [originalBlock.id, newBlockId, newGbtWithoutBlocks]);
+    }
+    /**
+     * @param {{name: String;}} data From SaveBlockAsReusableDialog
      * @param {RawBlock} block
      * @access private
      */
     doSaveBlockAsReusable(data, block) {
-        'todo';
-        /*const {tree} = createSelectBlockTree(block.isStoredToTreeId)(store.getState());
-        const treeBefore = JSON.parse(JSON.stringify(tree));
+        const {id, isStoredToTreeId} = block;
 
-        // #1 Mutate title of the existing block
-        const contextData = {blockId: block.id, blockType: block.type, trid: block.isStoredToTreeId};
-        const eventData = {title: data.name};
-        const titleChanged = block.title !== eventData.title;
-        this.tempHack = titleChanged;
-        const undoThis = this;
-        'pemitMutateBlockProp'(eventData, contextData); // Mutates {tree}
+        // Update the title of the existing block
+        const changes = {title: data.name};
+        const isOnlyStyleClassesChange = false;
+        store2.dispatch('theBlockTree/updateDefPropsOf',
+            [id, isStoredToTreeId, changes, isOnlyStyleClassesChange]);
 
-        // #2 Push item to reusableBranches
-        const newReusableBranch = {id: generatePushID(), blockBlueprints: [blockToBlueprint(treeToTransferable([block])[0])]};
-        store2.dispatch('reusableBranches/addItem', [newReusableBranch]);
-        const postData = Object.assign({}, newReusableBranch);
-
-        // Push saveToBackend op
-        store.dispatch(pushItemToOpQueue('create-reusable-branch', {
-            doHandle: () => http.post('/api/reusable-branches', postData).then(resp => {
-                if (resp.ok !== 'ok') throw new Error('-');
-                return saveExistingBlocksToBackend(createSelectBlockTree(contextData.trid)(store.getState()).tree,
-                    contextData.trid);
-            }),
-            doUndo: () => {
-                undoThis.tempHack = titleChanged;
-                // Revert #1
-                store.dispatch(createSetBlockTree(contextData.trid)(treeBefore, ['undo-update-single-value', contextData]));
-                // Revert #2
-                store2.dispatch('reusableBranches/removeItem', [newReusableBranch.id]);
-            },
-            args: [],
-        }));*/
+        // Push item to reusableBranches
+        setTimeout(() => {
+            const latestTree = blockTreeUtils.getRootFor(isStoredToTreeId, store2.get().theBlockTree);
+            const latest = blockTreeUtils.findBlock(id, latestTree)[0];
+            const newReusableBranch = {id: generatePushID(), blockBlueprints: [blockToBlueprint(treeToTransferable([latest])[0])]};
+            store2.dispatch('reusableBranches/addItem', [newReusableBranch, id]);
+        }, 100);
     }
     /**
      * @param {RawBlock} block
@@ -547,6 +496,30 @@ function getShortFriendlyName(block, type) {
     const translated = __(type.friendlyName);
     const pcs = translated.split(' ('); // ['Name', 'PluginName)'] or ['Name']
     return pcs.length < 2 ? translated : pcs[0];
+}
+
+/**
+ * @param {RawBlock} block
+ * @returns {BlockBlueprint}
+ */
+function blockToBlueprint(block) {
+    return {
+        blockType: block.type,
+        initialOwnData: propsToObj(block.propsData),
+        initialDefaultsData: {
+            title: block.title || '',
+            renderer: block.renderer,
+            styleClasses: block.styleClasses || '',
+        },
+        initialChildren: block.children.map(w => blockToBlueprint(w)),
+    };
+}
+function propsToObj(propsData) {
+    const out = {};
+    for (const field of propsData) {
+        out[field.key] = field.value;
+    }
+    return out;
 }
 
 export default BlockTree;

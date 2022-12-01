@@ -1,5 +1,7 @@
 import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END} from '../../edit-app/src/Block/dom-commons.js';
 
+const IS_STORED_TO_ATTR = 'data-is-stored-to-trid';
+
 let renderBlockAndThen;
 let toTransferable;
 let blockTreeUtils;
@@ -46,13 +48,18 @@ class ReRenderer {
             this.doReRender(theBlockTree);
         // ====================================================================
         } else if (event === 'theBlockTree/undo') {
-            const maybeBlockId = data[1];
-            if (!maybeBlockId) { // undo of non-single update
-                this.doReRender(theBlockTree);
-            } else { // undo of single update
-                const pool = this.elCache.get(maybeBlockId);
-                pool.pop();
-                this.elCache.set(maybeBlockId, pool);
+            const [_oldTree, maybeBlockId, _blockIsStoredToTreeId, isUndoOfConvertToGlobal] = data;
+            if (!isUndoOfConvertToGlobal) {
+                if (!maybeBlockId) { // undo of non-single update
+                    this.doReRender(theBlockTree);
+                } else { // undo of single update
+                    const pool = this.elCache.get(maybeBlockId);
+                    pool.pop();
+                    this.elCache.set(maybeBlockId, pool);
+                    this.doReRender(theBlockTree);
+                }
+            } else {
+                this.unturnBlockElToGlobalRecursively(maybeBlockId);
                 this.doReRender(theBlockTree);
             }
         // ====================================================================
@@ -103,7 +110,7 @@ class ReRenderer {
                 blockTreeUtils.traverseRecursively(insertPlaceholdersFor, (b, _i, parent, _parentIdPath) => {
                     const place = document.createElement('div');
                     const ssss = parent ? '' : ' sjet-dots-animation';
-                    place.innerHTML = `<div class="j-Placeholder${ssss}" data-block-type="Placeholder" data-block="${b.id}" data-is-stored-to-trid="${b.isStoredToTreeId}"><!--${CHILDREN_START}--><!--${CHILDREN_END}--></p>`;
+                    place.innerHTML = `<div class="j-Placeholder${ssss}" data-block-type="Placeholder" data-block="${b.id}" ${IS_STORED_TO_ATTR}="${b.isStoredToTreeId}"><!--${CHILDREN_START}--><!--${CHILDREN_END}--></p>`;
                     this.elCache.set(b.id, [extractRendered(place.firstElementChild)]);
                 });
                 this.doReRender(theBlockTree);
@@ -150,6 +157,19 @@ class ReRenderer {
                 this.elCache.set(flatCloned[i].id, [cloned]);
             }
             this.doReRender(theBlockTree);
+        } else if (event === 'theBlockTree/convertToGbt') {
+            const [_originalBlockId, idForTheNewBlock, _newGbtWithoutBlocks] = data;
+            const newGbtRef = blockTreeUtils.findBlock(idForTheNewBlock, theBlockTree)[0];
+            this.turnBlockElToGlobalRecursively(newGbtRef);
+            this.doReRender(theBlockTree);
+        } else if (event === 'theBlockTree/updateDefPropsOf') {
+            const [blockId, _blockIsStoredToTreeId, changes, isOnlyStyleClassesChange] = data;
+            if (!isOnlyStyleClassesChange) return;
+            // todo
+        } else if (event === 'theBlockTree/undoUpdateDefPropsOf') {
+            const [_oldTree, blockId, blockIsStoredToTreeId, isOnlyStyleClassesChange] = data;
+            if (!isOnlyStyleClassesChange) return;
+            // todo
         }
     }
     /**
@@ -202,6 +222,32 @@ class ReRenderer {
         const pool = this.elCache.get(blockId);
         return pool[pool.length - 1].cloneNode(true);
     }
+    /**
+     * @param {RawBlock} newGbtRefBlock
+     * @access private
+     */
+    turnBlockElToGlobalRecursively(newGbtRefBlock) {
+        const newGbtId = newGbtRefBlock.__globalBlockTree.id;
+        blockTreeUtils.traverseRecursively(newGbtRefBlock.__globalBlockTree.blocks, (b, _i, _parent, _parentIdPath) => {
+            const current = getBlockEl(b.id);
+            const extractedCopy = extractRendered(current);
+            extractedCopy.setAttribute(IS_STORED_TO_ATTR, newGbtId);
+            this.elCache.get(b.id).push(extractedCopy);
+        });
+    }
+    /**
+     * @param {String} gbtsRootBlockId
+     * @access private
+     */
+    unturnBlockElToGlobalRecursively(gbtsRootBlockId) {
+        const gbtsRootBlockEl = getBlockEl(gbtsRootBlockId);
+        const gbtId = gbtsRootBlockEl.getAttribute(IS_STORED_TO_ATTR);
+        [gbtsRootBlockEl, ...Array.from(gbtsRootBlockEl.querySelectorAll(`[${IS_STORED_TO_ATTR}=${gbtId}]`))].forEach(el => {
+            const innerBlockId = el.getAttribute('data-block');
+            const pool = this.elCache.get(innerBlockId);
+            pool.pop();
+        });
+    }
 }
 
 /**
@@ -226,21 +272,21 @@ function flattenBlocksRecursive(original, cloned) {
  * @returns {Map<String, HTMLElement[]>}
  */
 function createElCache(tree) {
-    const t = (branch, out) => {
+    const traverse = (branch, out) => {
         for (const b of branch) {
             if (b.type === 'PageInfo') continue;
             if (b.type !== 'GlobalBlockReference') {
                 const elFromBody = getBlockEl(b.id);
                 const withoutChildren = extractRendered(elFromBody);
                 out.set(b.id, [withoutChildren]);
-                if (b.children.length) t(b.children, out);
+                if (b.children.length) traverse(b.children, out);
             } else {
-                t(b.__globalBlockTree.blocks, out);
+                traverse(b.__globalBlockTree.blocks, out);
             }
         }
     };
     const out = new Map;
-    t(tree, out);
+    traverse(tree, out);
     return out;
 }
 
@@ -352,7 +398,7 @@ function findCommentR(of, find) {
  * @returns {String}
  */
 function withTrid(html, trid, recursive = false) {
-    return html.replace(!recursive ? ' data-block=' : / data-block=/g, ` data-is-stored-to-trid="${trid}" data-block=`);
+    return html.replace(!recursive ? ' data-block=' : / data-block=/g, ` ${IS_STORED_TO_ATTR}="${trid}" data-block=`);
 }
 
 export default ReRenderer;

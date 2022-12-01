@@ -38,18 +38,31 @@ class BlockEditForm extends preact.Component {
         this.setState({currentTabIdx: 0});
         this.unregistrables = [observeStore2('theBlockTree', (_, [event, data]) => {
             const isUndo = event === 'theBlockTree/undo';
+            const isSomeOtherBlock = eventBlockId => eventBlockId !== this.props.block.id || (isUndo && eventBlockId === null);
             if (event === 'theBlockTree/updatePropsOf' || isUndo) {
-                if (!this.editFormImplsChangeGrabber && !this.stylesFormChangeGrabber)
+                if (!this.editFormImplsChangeGrabber)
                     return;
                 const blockId = !isUndo
                     ? data[0]  // updatePropsOf: [<blockId>, <blockIsStoredToTreeId>, <changes>, <hasErrors>, <debounceMillis>]
-                    : data[1]; // undo:          [<oldTree>, <blockId>, <blockIsStoredToTreeId>]
-                if (blockId !== this.props.block.id || (isUndo && blockId === null))
+                    : data[1]; // undo:          [<oldTree>, <blockId>, <blockIsStoredToTreeId>, <isUndoOfConvertToGlobal>]
+                if (isSomeOtherBlock(blockId))
                     return;
-                if (this.editFormImplsChangeGrabber)
-                    this.editFormImplsChangeGrabber(this.getCurrentBlockCopy(), event, isUndo);
-                if (this.stylesFormChangeGrabber)
-                    this.stylesFormChangeGrabber(this.getCurrentBlockCopy(), event, isUndo);
+                this.editFormImplsChangeGrabber(this.getCurrentBlockCopy(), event, isUndo);
+                return;
+            }
+
+            const isUndo2 = event === 'theBlockTree/undoUpdateDefPropsOf';
+            if (event === 'theBlockTree/updateDefPropsOf' || isUndo2) {
+                if (!this.stylesFormChangeGrabber)
+                    return;
+                const [blockId, isOnlyStyleClassesChange] = event === 'theBlockTree/updateDefPropsOf'
+                    ? [data[0], data[3]]  // [<blockId>, <blockIsStoredToTreeId>, <changes>, <isOnlyStyleClassesChange>]
+                    : [data[1], data[3]]; // [<oldTree>, <blockId>, <blockIsStoredToTreeId>, <isOnlyStyleClassesChange>]
+                if (!isOnlyStyleClassesChange)
+                    return;
+                if (isSomeOtherBlock(blockId))
+                    return;
+                this.stylesFormChangeGrabber(this.getCurrentBlockCopy(), event, isUndo2);
             } else if (event === 'theBlockTree/deleteBlock') {
                 const [id, _isStoredToTreeId, isChildOfOrCurrentlyOpenBlock] = data;
                 if (isChildOfOrCurrentlyOpenBlock || id === block.id) this.props.inspectorPanel.close();

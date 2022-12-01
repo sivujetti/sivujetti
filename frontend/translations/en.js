@@ -124,11 +124,14 @@ stringBundles.push({
     'Listable': 'Listable',
     'Default layout': 'Default layout',
     // edit-app/src/SaveBlockAsReusableDialog.jsx
-    'Store this content as reusable content so you can use it later in other pages?': 'Store this content globally so you can use it later in other pages?',
-    'Name': 'Name',
-    'e.g. FrontPageNewsSection, Footer': 'e.g. FrontPageNewsSection, Footer',
-    'Make unique': 'Make unique',
     'todo7': 'todo7',
+    'Name': 'Name',
+    'e.g. Text and image, Footer': 'e.g. Text and image, Footer',
+    'Type': 'Tyyppi',
+    'Duplicating': 'Duplicating',
+    'todo12': 'todo12',
+    'Unique': 'Unique',
+    'todo13': 'todo13',
     'Cancel': 'Cancel',
     // edit-app/src/SaveButton.jsx
     'Undo latest change': 'Undo latest change',

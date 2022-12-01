@@ -1,4 +1,5 @@
 import blockTreeUtils from '../left-panel/Block/blockTreeUtils.js';
+import {createBlockFromType, createGbtRefBlockProps, setTrids} from './utils.js';
 
 function theBlockTreeStore(store) {
     store.on('theBlockTree/init',
@@ -18,7 +19,7 @@ function theBlockTreeStore(store) {
      * @returns {Object}
      */
     ({theBlockTree}, [dragInf, dropInf, dropPos]) => {
-        const clone = JSON.parse(JSON.stringify(theBlockTree));
+        const clone = cloneObjectDeep(theBlockTree);
         const dragBlocksTree = blockTreeUtils.getRootFor(dragInf.isStoredToTreeId, clone);
         const [dragBlock, dragBranch] = blockTreeUtils.findBlock(dragInf.blockId, dragBlocksTree);
         const dropBlocksTree = blockTreeUtils.getRootFor(dropInf.isStoredToTreeId, clone);
@@ -66,7 +67,17 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/undo',
     /**
      * @param {Object} state
-     * @param {[Array<RawBlock>, String, String]} args
+     * @param {[Array<RawBlock>, String, String, Boolean]} args
+     * @returns {Object}
+     */
+    (_state, [theBlockTree]) =>
+        ({theBlockTree})
+    );
+
+    store.on('theBlockTree/undoUpdateDefPropsOf',
+    /**
+     * @param {Object} state
+     * @param {[Array<RawBlock>, String, String, Boolean]} args
      * @returns {Object}
      */
     (_state, [theBlockTree]) =>
@@ -79,7 +90,7 @@ function theBlockTreeStore(store) {
      * @returns {Object}
      */
     const deleteBlock = ({theBlockTree}, [id, isStoredToTreeId, _wasCurrentlySelectedBlock]) => {
-        const clone = JSON.parse(JSON.stringify(theBlockTree));
+        const clone = cloneObjectDeep(theBlockTree);
         const rootOrInnerTree = blockTreeUtils.getRootFor(isStoredToTreeId, clone);
         const [ref, refBranch] = blockTreeUtils.findBlock(id, rootOrInnerTree);
         refBranch.splice(refBranch.indexOf(ref), 1); // mutates clone
@@ -94,7 +105,7 @@ function theBlockTreeStore(store) {
      */
     const addBlock = ({theBlockTree}, [spawn, target, insertPos]) => {
         const blockOrBranch = spawn.block;
-        const clone = JSON.parse(JSON.stringify(theBlockTree));
+        const clone = cloneObjectDeep(theBlockTree);
         const rootOrInnerTree = blockTreeUtils.getRootFor(target.isStoredToTreeId, clone);
         if (insertPos === 'before') {
             const [before, branch] = blockTreeUtils.findBlock(target.blockId, rootOrInnerTree);
@@ -119,14 +130,56 @@ function theBlockTreeStore(store) {
      * @returns {Object}
      */
     ({theBlockTree}, [blockId, blockIsStoredToTreeId, changes, _hasErrors, _debounceMillis]) => {
-        const clone = JSON.parse(JSON.stringify(theBlockTree));
+        const clone = cloneObjectDeep(theBlockTree);
         const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, clone);
         const [block] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
         overrideData(block, changes);
         return {theBlockTree: clone};
     });
 
+    store.on('theBlockTree/updateDefPropsOf',
+    /**
+     * @param {Object} state
+     * @param {[String, String, {[key: String]: any;}, Boolean]} args
+     * @returns {Object}
+     */
+    ({theBlockTree}, [blockId, blockIsStoredToTreeId, changes]) => {
+        const asString = Object.keys(changes).toString();
+        if (asString !== 'title' && asString !== 'styleClasses') throw new Error('Not supported yet');
+        const clone = cloneObjectDeep(theBlockTree);
+        const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, clone);
+        const [block] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
+        Object.assign(block, changes);
+        return {theBlockTree: clone};
+    });
+
     store.on('theBlockTree/cloneItem', addBlock);
+
+    store.on('theBlockTree/convertToGbt',
+    /**
+     * @param {Object} state
+     * @param {[String, String, RawGlobalBlockTree]} args args[2].blocks will always be empty at this point
+     * @returns {Object}
+     */
+    ({theBlockTree}, [originalBlockId, idForTheNewBlock, newGbt]) => {
+        const clone = cloneObjectDeep(theBlockTree);
+
+        // Convert original to array, change isStoredToTreeIds recursively
+        const original = blockTreeUtils.findBlock(originalBlockId, clone)[0];
+        original.title = newGbt.name;
+        const newTree = [original];
+        setTrids(newTree, newGbt.id);
+
+        // Create new block, set $newTree as its .__globalBlockTree.blocks
+        const converted = createBlockFromType('GlobalBlockReference', 'main',
+            idForTheNewBlock, createGbtRefBlockProps(newGbt, newTree));
+
+        // Replace the block
+        const [ref, refBranch] = blockTreeUtils.findBlock(original.id, clone);
+        refBranch[refBranch.indexOf(ref)] = converted; // mutates clone
+
+        return {theBlockTree: clone};
+    });
 }
 
 /**
@@ -159,6 +212,14 @@ function overrideData(block, data) {
             else block.propsData.push({key, value: data[key]});
         }
     }
+}
+
+/**
+ * @param {any} obj
+ * @returns {any}
+ */
+function cloneObjectDeep(obj) {
+    return JSON.parse(JSON.stringify(obj));
 }
 
 export default theBlockTreeStore;

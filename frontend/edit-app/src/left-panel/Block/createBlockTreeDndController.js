@@ -82,7 +82,7 @@ function createDndController(_blockTree) {
                 return;
             if (lastAcceptedSwapIdx === 0 && !extDragData) // Had moves, but returned to initial
                 return;
-            store2.dispatch('theBlockTree/undo', [initialTree, null, null]);
+            store2.dispatch('theBlockTree/undo', [initialTree, null, null, false]);
         },
         /**
          * @param {SpawnDescriptor|null}

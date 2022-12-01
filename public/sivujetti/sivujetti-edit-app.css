@@ -593,6 +593,25 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .has-color-pickers > .form-group:first-child {
     margin-top: .2rem;
 }
+/* EditApp: Components: Big radios */
+.button-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 1.4rem;
+}
+.button-options label {
+    border-radius: 9px;
+    border: 2px solid transparent;
+    padding-top: .8rem;
+}
+.button-options label.selected {
+    border: 2px solid var(--color-accent);
+}
+.button-options .form-icon {
+    left: initial;
+    right: 1rem;
+    top: .8rem;
+}
 
 
 /* == EditApp: * ============================================================ */
@@ -821,7 +840,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 }
 .block-tree > li[data-last] {
     position: absolute;
-    width: calc(100% - .2rem);
+    width: calc(100% - 1rem);
     padding: 0;
     margin: -2px 0 0 0;
     border-left-color: transparent;

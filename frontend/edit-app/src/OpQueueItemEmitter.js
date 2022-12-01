@@ -1,6 +1,8 @@
 import {http, signals} from '@sivujetti-commons-for-edit-app';
+import {treeToTransferable} from './Block/utils.js';
 import blockTreeUtils from './left-panel/Block/blockTreeUtils.js';
 import {saveExistingBlocksToBackend} from './left-panel/Block/createBlockTreeDndController.js';
+import {triggerUndo} from './SaveButton.jsx';
 import store, {pushItemToOpQueue} from './store.js';
 import store2, {observeStore as observeStore2} from './store2';
 
@@ -26,7 +28,7 @@ class OpQueueItemEmitter {
         //
         this.unregistrables = [observeStore2('theBlockTree', ({theBlockTree}, [event, data]) => {
             if (event === 'theBlockTree/init') {
-                this.setPrevBlockTreeTree(theBlockTree);
+                this.setPrevBlockTree(theBlockTree);
             } else if (event === 'theBlockTree/applySwap' || event === 'theBlockTree/applyAdd(Drop)Block') {
                 const oldTree = this.prevTree;
                 const [_drag, target] = data; // [BlockDescriptorStub, BlockDescriptorStub]
@@ -45,11 +47,57 @@ class OpQueueItemEmitter {
                 const fn = () => { this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId, blockId); };
                 if (debounceMillis > 0) this.pushSaveOpTimeouts[blockId] = setTimeout(fn, debounceMillis);
                 else fn();
+            } else if (event === 'theBlockTree/updateDefPropsOf') {
+                const [blockId, blockIsStoredToTreeId, _changes, isOnlyStyleClassesChange] = data;
+                const oldTree = this.prevTree;
+                this.pushSaveBlockTreeToBackendOpDefProps(theBlockTree, oldTree, blockIsStoredToTreeId, blockId, isOnlyStyleClassesChange);
             } else if (event === 'theBlockTree/cloneItem') {
                 const oldTree = this.prevTree;
                 const [clonedInf, _clonedFromInf] = data; // [SpawnDescriptor, BlockDescriptor]
                 const cloned = clonedInf.block;
                 this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, cloned.isStoredToTreeId, null);
+            } else if (event === 'theBlockTree/convertToGbt') {
+                // Push 1.
+                const [originalBlockId, idForTheNewBlock, newGbtWithoutBlocks] = data;
+                const newGbtRef = blockTreeUtils.findBlock(idForTheNewBlock, theBlockTree)[0];
+                const dt = {id: newGbtWithoutBlocks.id, name: newGbtWithoutBlocks.name,
+                                blocks: treeToTransferable(newGbtRef.__globalBlockTree.blocks)};
+                store.dispatch(pushItemToOpQueue('convert-block-to-global', {
+                    doHandle: () => http.post('/api/global-block-trees', dt).then(resp => {
+                        if (resp.ok !== 'ok') throw new Error('-');
+                    }),
+                    doUndo: () => {
+                        // do nothing
+                    },
+                    args: [],
+                }));
+
+                // Push 2.
+                const oldTree = this.prevTree;
+                this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, 'main', originalBlockId, true, () => {
+                    setTimeout(() => {
+                        // Remove 1. op from the queue
+                        triggerUndo();
+                    }, 100);
+                });
+            }
+        }),
+        observeStore2('reusableBranches', (_state, [event, data]) => {
+            if (event === 'reusableBranches/addItem') {
+                const [newReusableBranch, associatedBlockId] = data;
+                const postData = {...newReusableBranch};
+                const {id} = newReusableBranch;
+                store.dispatch(pushItemToOpQueue('create-reusable-branch', {
+                    doHandle: () => http.post('/api/reusable-branches', postData).then(resp => {
+                        if (resp.ok !== 'ok') throw new Error('-');
+                    }),
+                    doUndo: () => {
+                        store2.dispatch('reusableBranches/removeItem', [id]);
+                        // the title of this block was changed just before emitting reusableBranches/addItem, undo it also
+                        if (associatedBlockId) setTimeout(() => { triggerUndo(); }, 100);
+                    },
+                    args: [],
+                }));
             }
         }),
         observeStore2('pagesListings', ({pagesListings}, [event, data]) => {
@@ -71,31 +119,55 @@ class OpQueueItemEmitter {
         })];
     }
     /**
-     * @param {Array<RawBlock>} blockTrees
+     * @param {Array<RawBlock>} theBlockTree
      * @param {Array<RawBlock>} oldTree
      * @param {String} blockIsStoredToTreeId
      * @param {String|null} updateOfBlockId
+     * @param {Boolean} isUndoOfConvertToGlobal = false
+     * @param {() => any} onUndo = null
      * @access private
      */
-    pushSaveBlockTreeToBackendOp(blockTrees, oldTree, blockIsStoredToTreeId, updateOfBlockId) {
-        const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, blockTrees);
+    pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId, updateOfBlockId, isUndoOfConvertToGlobal = false, onUndo = null) {
+        const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, theBlockTree);
         if (updateOfBlockId) signals.emit('onOpQueueBeforePushItem', updateOfBlockId);
-        store.dispatch(pushItemToOpQueue('update-block-tree##main', {
+        store.dispatch(pushItemToOpQueue(`update-block-tree##${blockIsStoredToTreeId}`, {
             doHandle: () => saveExistingBlocksToBackend(rootOrInnerTree, blockIsStoredToTreeId),
             doUndo: () => {
-                store2.dispatch('theBlockTree/undo', [oldTree, updateOfBlockId, blockIsStoredToTreeId]);
-                this.setPrevBlockTreeTree(oldTree);
+                store2.dispatch('theBlockTree/undo', [oldTree, updateOfBlockId, blockIsStoredToTreeId,
+                                                        isUndoOfConvertToGlobal]);
+                this.setPrevBlockTree(oldTree);
+                if (onUndo) onUndo();
             },
             args: [],
         }));
-        this.setPrevBlockTreeTree(blockTrees);
+        this.setPrevBlockTree(theBlockTree);
     }
     /**
-     * @param {Array<RawBlock>} blockTrees
+     * @param {Array<RawBlock>} theBlockTree
+     * @param {Array<RawBlock>} oldTree
+     * @param {String} blockIsStoredToTreeId
+     * @param {String|null} updateOfBlockId
+     * @param {Boolean} isOnlyStyleClassesChange
      * @access private
      */
-    setPrevBlockTreeTree(blockTrees) {
-        this.prevTree = blockTrees;
+    pushSaveBlockTreeToBackendOpDefProps(theBlockTree, oldTree, blockIsStoredToTreeId, updateOfBlockId, isOnlyStyleClassesChange) {
+        const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, theBlockTree);
+        store.dispatch(pushItemToOpQueue(`update-block-tree##${blockIsStoredToTreeId}`, {
+            doHandle: () => saveExistingBlocksToBackend(rootOrInnerTree, blockIsStoredToTreeId),
+            doUndo: () => {
+                store2.dispatch('theBlockTree/undoUpdateDefPropsOf', [oldTree, updateOfBlockId, blockIsStoredToTreeId, isOnlyStyleClassesChange]);
+                this.setPrevBlockTree(oldTree);
+            },
+            args: [],
+        }));
+        this.setPrevBlockTree(theBlockTree);
+    }
+    /**
+     * @param {Array<RawBlock>} theBlockTree
+     * @access private
+     */
+    setPrevBlockTree(theBlockTree) {
+        this.prevTree = theBlockTree;
     }
 }
 

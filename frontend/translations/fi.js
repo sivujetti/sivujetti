@@ -124,11 +124,14 @@ stringBundles.push({
     'Listable': 'Listattava',
     'Default layout': 'Oletusivupohja',
     // edit-app/src/SaveBlockAsReusableDialog.jsx
-    'Store this content as reusable content so you can use it later in other pages?': 'Tallenna tämä sisältö uudelleenkäytettäväksi sisällöksi, että voit käyttää sitä myöhemmin myös muilla sivuilla?',
+    'todo7': 'Tämä toiminto tallentaa sisällön uudelleenkäytettäväksi sisällöksi, jota voidaan myöhemmin helposti lisätä myös muihin sivuihin.',
     'Name': 'Nimi',
-    'e.g. FrontPageNewsSection, Footer': 'esim. EtusivuUutisetOsio, Footer',
-    'Make unique': 'Tee uniikki',
-    'todo7': 'Uniikin sisällön muokkaus heijastuu koko sivustolle, mutta ei-uniikin kohdalla pelkästään siihen sisältöön, jota muokataan.',
+    'e.g. Text and image, Footer': 'esim. Teksti ja kuva, Footer',
+    'Type': 'Tyyppi',
+    'Duplicating': 'Monistuva',
+    'todo12': 'Sisällöstä luodaan aina uusi kopio, kun se lisätään sivuun.',
+    'Unique': 'Uniikki',
+    'todo13': 'Sisältö viittaa samaan tietoon, vaikka se olisi usealla eri sivulla (esim. "Footer").',
     'Cancel': 'Peruuta',
     // edit-app/src/SaveButton.jsx
     'Undo latest change': 'Peruuta viimeisin muutos',

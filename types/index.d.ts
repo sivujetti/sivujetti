@@ -228,7 +228,7 @@ interface ContextMenuLink {
     id: String;
 }
 
-type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/swap'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undo'|'theBlockTree/deleteBlock'|'theBlockTree/addBlockOrBranch'|'theBlockTree/undoAdd(Drop)Block'|'theBlockTree/updatePropsOf'|'theBlockTree/cloneItem';
+type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/swap'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undo'|'theBlockTree/undoUpdateDefPropsOf'|'theBlockTree/deleteBlock'|'theBlockTree/addBlockOrBranch'|'theBlockTree/undoAdd(Drop)Block'|'theBlockTree/updatePropsOf'|'theBlockTree/updateDefPropsOf'|'theBlockTree/cloneItem'|'theBlockTree/convertToGbt';
 
 interface BlockEditFormProps {
     getBlockCopy(): RawBlock;
@@ -290,11 +290,9 @@ interface DragDropEventController {
     setExternalOriginData(data: Object|null): void;
 }
 
-interface BlockDragDataInfo {
-    blockId: String;
-    blockType: String;
-    trid: String;
-    globalBlockTreeId?: String;
+interface DragDropInfo {
+    li: HTMLLIElement;
+    pos: 'initial'|'before'|'after'|'as-child';
 }
 
 interface BlockRendctor {
@@ -312,11 +310,6 @@ interface ThemeStyleUnit {
     id: String;
     scss: String;
     generatedCss: String;
-}
-
-interface DragDropInfo {
-    li: HTMLLIElement;
-    pos: 'initial'|'before'|'after'|'as-child';
 }
 
 type leftPanelName = 'Default'|'CreatePage'|'CreatePageType';

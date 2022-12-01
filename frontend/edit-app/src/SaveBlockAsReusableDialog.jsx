@@ -1,5 +1,5 @@
 import {__, hookForm, unhookForm, handleSubmit, FormGroup, Input, InputErrors,
-        floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
+        floatingDialog} from '@sivujetti-commons-for-edit-app';
 import setFocusTo from './block-types/auto-focusers.js';
 
 class SaveBlockAsReusableDialog extends preact.Component {
@@ -35,25 +35,24 @@ class SaveBlockAsReusableDialog extends preact.Component {
      */
     render({userCanCreateGlobalBlockTrees}, {saveAsUnique}) {
         return <form onSubmit={ e => handleSubmit(this, this.boundDoHandleSubmit, e) }>
-            <div class="mb-1">{ __('Store this content as reusable content so you can use it later in other pages?') }</div>
+            <div class="mb-1">{ __('todo7') }</div>
             <FormGroup>
                 <label htmlFor="name" class="form-label">{ __('Name') }</label>
-                <Input vm={ this } prop="name" placeholder={ __('e.g. FrontPageNewsSection, Footer') } ref={ this.nameInput }/>
+                <Input vm={ this } prop="name" placeholder={ __('e.g. Text and image, Footer') } ref={ this.nameInput }/>
                 <InputErrors vm={ this } prop="name"/>
             </FormGroup>
             { userCanCreateGlobalBlockTrees ? <FormGroup>
-                <span class="form-label">{ __('Make unique') }?</span>
-                <div><p class="flex-centered m-0 text-tiny color-dimmed">
-                    <Icon iconId="info-circle" className="size-sm mr-2"/>
-                    { __('todo7') }
-                </p></div>
-                <label class="form-checkbox mt-0">
-                    <input
-                        onClick={ e => this.setState({saveAsUnique: e.target.checked}) }
-                        checked={ saveAsUnique }
-                        type="checkbox"
-                        class="form-input"/><i class="form-icon"></i>
-                </label>
+                <span class="form-label">{ __('Type') }</span>
+                <div class="button-options">
+                    <label class={ `form-radio box${!saveAsUnique ? ' selected' : ''}` }>
+                        <span class="d-block mb-2"><input type="radio" name="saveAsUnique" value="yes" onClick={ () => this.setState({saveAsUnique: false}) } checked={ !saveAsUnique }/><i class="form-icon"></i><b class="h4">{ __('Duplicating') }</b></span>
+                        <span>{ __('todo12') }</span>
+                    </label>
+                    <label class={ `form-radio box${saveAsUnique ? ' selected' : ''}` }><span class="d-block mb-2">
+                        <input type="radio" name="saveAsUnique" value="no" onClick={ () => this.setState({saveAsUnique: true}) } checked={ saveAsUnique }/><i class="form-icon"></i><b class="h4">{ __('Unique') }</b></span>
+                        <span>{ __('todo13') }</span>
+                    </label>
+                </div>
             </FormGroup> : null }
             <div class="mt-8">
                 <button

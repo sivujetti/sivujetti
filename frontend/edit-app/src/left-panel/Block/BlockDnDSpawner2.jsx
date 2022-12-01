@@ -1,6 +1,6 @@
 import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app';
 import {getIcon} from '../../block-types/block-types.js';
-import {createBlockFromBlueprint, createBlockFromType} from '../../Block/utils.js';
+import {createBlockFromBlueprint, createBlockFromType, createGbtRefBlockProps} from '../../Block/utils.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import blockTreeUtils from './blockTreeUtils.js';
 
@@ -22,9 +22,7 @@ class BlockDnDSpawner extends preact.Component {
     constructor(props) {
         super(props);
         this.state = {isOpen: false, reusables: [], selectableGlobalBlockTrees: [], isMounted: false, gbtIdsCurrentlyInPage: null};
-        this.selectableBlockTypes = sort(Array.from(api.blockTypes.entries()).filter(([name, _]) =>
-            name !== 'PageInfo' && name !== 'GlobalBlockReference'
-        ));
+
         this.rootEl = preact.createRef();
         this.overwriteDragListenerFuncs();
         this.unregisterables = [observeStore2('reusableBranches', ({reusableBranches}, [event]) => {
@@ -146,6 +144,10 @@ class BlockDnDSpawner extends preact.Component {
     toggleIsOpen() {
         const currentlyIsOpen = this.state.isOpen;
         if (!currentlyIsOpen) {
+            if (!this.selectableBlockTypes)
+                this.selectableBlockTypes = sort(Array.from(api.blockTypes.entries()).filter(([name, _]) =>
+                    name !== 'PageInfo' && name !== 'GlobalBlockReference'
+                ));
             this.fetchOrGetReusableBranches()
                 .then((reusables) => { this.setState({reusables}); });
             http.get('/api/global-block-trees')
@@ -184,14 +186,7 @@ class BlockDnDSpawner extends preact.Component {
         const gbt = this.state.selectableGlobalBlockTrees.find(({id}) =>
             id === dragEl.getAttribute('data-is-stored-to-trid')
         );
-        return createBlockFromType(typeStr, 'don\'t-know-yet', undefined, {
-            globalBlockTreeId: gbt.id,
-            __globalBlockTree: {
-                id: gbt.id,
-                name: gbt.name,
-                blocks: JSON.parse(JSON.stringify(gbt.blocks)),
-            }
-        });
+        return createBlockFromType(typeStr, 'don\'t-know-yet', undefined, createGbtRefBlockProps(gbt));
     }
     /**
      * @param {DragEvent} _e
@@ -209,6 +204,7 @@ class BlockDnDSpawner extends preact.Component {
             return Promise.resolve(store2.get().reusableBranches);
         return http.get('/api/reusable-branches')
             .then((reusables) => {
+                reusables.reverse();
                 const combined = [...store2.get().reusableBranches, ...reusables];
                 store2.dispatch('reusableBranches/setAll', [combined]);
                 reusablesFetched = true;

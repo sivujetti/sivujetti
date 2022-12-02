@@ -159,14 +159,6 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $this->renderAndVerify($state, 0,
             $this->blockTestUtils->decorateWithRef($expectedInnerBlock, $exp)
         );
-        //
-        $allOverrides = json_decode($state->testBlocks[1]->overrides);
-        $paragraphOverrides = $allOverrides->{$expectedInnerBlock->id};
-        $paragraphOverrides->id = $expectedInnerBlock->id;
-        $exp = $this->blockTestUtils->getExpectedParagraphBlockOutput($paragraphOverrides);
-        $this->renderAndVerify($state, 1,
-            $this->blockTestUtils->decorateWithRef($expectedInnerBlock, $exp)
-        );
     }
     private function setupRenderGlobalBlockRefBlocksTest(): \TestState {
         $state = parent::setupTest();
@@ -188,13 +180,6 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
             $this->blockTestUtils->makeBlockData(Block::TYPE_GLOBAL_BLOCK_REF,
                 propsData: ["globalBlockTreeId" => $gbt->id, "overrides" =>
                     GlobalBlockReferenceBlockType::EMPTY_OVERRIDES, "useOverrides" => 0],
-                id: "@auto"),
-            $this->blockTestUtils->makeBlockData(Block::TYPE_GLOBAL_BLOCK_REF,
-                propsData: ["globalBlockTreeId" => $gbt->id, "overrides" => json_encode((object) [
-                    $state->testGlobalBlockTreeBlocks[0]->id => (object) [
-                        "text" => "Overriden",
-                    ]
-                ]), "useOverrides" => 1],
                 id: "@auto"),
         ];
         return $state;

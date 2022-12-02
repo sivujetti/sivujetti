@@ -1,7 +1,5 @@
 import {http, __} from '@sivujetti-commons-for-edit-app';
 
-const EMPTY_OVERRIDES = '{}';
-
 class GlobalBlockReferenceBlockEditForm extends preact.Component {
     render() {
         return <p>dummy</p>;
@@ -11,7 +9,7 @@ class GlobalBlockReferenceBlockEditForm extends preact.Component {
 export default () => {
     const initialData = {
         globalBlockTreeId: '1',
-        overrides: EMPTY_OVERRIDES,
+        overrides: '{}',
         useOverrides: 0,
     };
     return {
@@ -31,4 +29,3 @@ export default () => {
         editForm: GlobalBlockReferenceBlockEditForm,
     };
 };
-export {EMPTY_OVERRIDES};

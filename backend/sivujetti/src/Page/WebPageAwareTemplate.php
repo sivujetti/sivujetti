@@ -143,13 +143,14 @@ final class WebPageAwareTemplate extends Template {
             $out .= $block->type !== Block::TYPE_GLOBAL_BLOCK_REF
                 ? $this->partial($block->renderer, $block)
                 : ("<!-- block-start {$block->id}:{$block->type} -->" .
-                    $this->renderBlocks($this->getMutatedGlobalTreeBlocks($block)) .
+                    $this->renderBlocks($block->__globalBlockTree->blocks) .
                 "<!-- block-end {$block->id} -->");
         return $out;
     }
     /**
      * Note: mutates $block->__blobalBlockTree->blocks*->* and $this->__dynamicGlobalBlockTreeBlocksStyles
      *
+     * @deprecated
      * @param \Sivujetti\Block\Entities\Block $globalBlockRef
      * @return \Sivujetti\Block\Entities\Block[]
      */

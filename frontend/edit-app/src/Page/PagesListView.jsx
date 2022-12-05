@@ -1,4 +1,4 @@
-import {__, env, http, urlUtils, Icon, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
+import {__, env, http, Icon, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from '../commons/ContextMenu.jsx';
 import OverlayView from '../commons/OverlayView.jsx';
 
@@ -42,7 +42,7 @@ class PagesListView extends preact.Component {
                     </button>
                     <a
                         class="btn btn-link my-0 col-12 text-left text-ellipsis"
-                        href={ urlUtils.makeUrl(`_edit${slug !== '/' ? slug : ''}`) }
+                        href={ `#${slug !== '/' ? slug : ''}` }
                         style="padding: .4rem 2.2rem .4rem .4rem; height: initial;">
                         <span class="h6 my-0 mr-1">{ title }</span>
                         <i class="color-dimmed">{ slug }</i>

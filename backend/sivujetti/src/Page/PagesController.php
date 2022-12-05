@@ -82,7 +82,7 @@ final class PagesController {
             $page, $pageType, true);
     }
     /**
-     * GET /_edit/[**:url]?: Renders the edit app.
+     * GET /_edit: Renders the edit app.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
@@ -108,7 +108,6 @@ final class PagesController {
         $userRole = $req->myData->user->role;
         $res->html((new WebPageAwareTemplate("sivujetti:edit-app-wrapper.tmpl.php",
                                              assetUrlCacheBustStr: "?v={$theWebsite->versionId}"))->render([
-            "url" => $req->params->url ?? "",
             "userDefinedJsFiles" => $apiCtx->adminJsFiles,
             "dataToFrontend" => WebPageAwareTemplate::escInlineJs(json_encode((object) [
                 "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),

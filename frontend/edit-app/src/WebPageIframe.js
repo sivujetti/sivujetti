@@ -5,6 +5,8 @@ import IframePageManager from './IframePageManager.js';
 import blockTreeUtils from './left-panel/Block/blockTreeUtils.js';
 import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END, noop} from './Block/dom-commons.js';
 
+const useShareNothing = true;
+
 class WebPageIframe {
     // el;
     // pageManager;
@@ -113,7 +115,7 @@ class WebPageIframe {
      */
     loadPage(iframeUrl) {
         if (env.window.receiveNewPreviewIframePage)
-            throw new Error('race condition');
+            env.window.console.log('Previous page didn\'t load properly, ignoring.');
         return new Promise(resolve => {
             // 1.
             env.window.receiveNewPreviewIframePage = webPage => {
@@ -124,7 +126,15 @@ class WebPageIframe {
                 env.window.receiveNewPreviewIframePage = null;
             };
             // 2.
-            this.getEl().contentWindow.location.replace(iframeUrl);
+            if (!useShareNothing) {
+                this.getEl().contentWindow.location.replace(iframeUrl);
+            } else  {
+                const newEl = document.createElement('iframe');
+                newEl.src = iframeUrl;
+                newEl.id = this.getEl().id;
+                this.getEl().replaceWith(newEl);
+                this.el = newEl;
+            }
         });
     }
 }

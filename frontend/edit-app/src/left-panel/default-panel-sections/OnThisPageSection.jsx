@@ -51,14 +51,14 @@ class OnThisPageSection extends MenuSectionAbstract {
             this.blockTreeRef.current.deSelectAllBlocks();
         })];
         //
-        this.t(this.props.loadedPageSlug);
+        this.updateTitlesToState(this.props.loadedPageSlug);
     }
     /**
      * @access protected
      */
     componentWillReceiveProps(props) {
         if (props.loadedPageSlug !== this.props.loadedPageSlug)
-            this.t(props.loadedPageSlug);
+            this.updateTitlesToState(props.loadedPageSlug);
     }
     /**
      * @access protected
@@ -67,7 +67,7 @@ class OnThisPageSection extends MenuSectionAbstract {
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {{loadedPageSlug?: String;} && {[key: String]: any;}} props
+     * @param {{loadedPageSlug?: String; loadingPageSlug?: String;} && {[key: String]: any;}} props
      */
     render({loadedPageSlug}, {isCollapsed, containingView, title, subtitle}) {
         return <section class={ `on-this-page panel-section pl-0${isCollapsed ? '' : ' open'}` }>
@@ -83,20 +83,21 @@ class OnThisPageSection extends MenuSectionAbstract {
                 </span>
                 <Icon iconId="chevron-right" className="p-absolute size-xs"/>
             </button>
-            <BlockTree
+            { loadedPageSlug ? <BlockTree
                 loadedPageSlug={ loadedPageSlug }
                 containingView={ containingView }
-                ref={ this.blockTreeRef }/>
+                ref={ this.blockTreeRef }/> : null }
         </section>;
     }
     /**
-     * @param {String} s
+     * @param {String|null} loadedSlug
      * @access private
      */
-    t(s) {
-        const containingView = determineViewNameFrom(s);
-        this.setState({title: __(!containingView || containingView === 'CreatePage' ? 'On this page' : 'Default content'),
-            subtitle: getSubtitle(s, containingView), containingView});
+    updateTitlesToState(loadedSlug) {
+        const slug = loadedSlug || '/';
+        const containingView = determineViewNameFrom(slug);
+        this.setState({title: __(containingView !== 'CreatePageType' ? 'On this page' : 'Default content'),
+            subtitle: getSubtitle(slug, containingView), containingView});
     }
 }
 
@@ -105,7 +106,7 @@ class OnThisPageSection extends MenuSectionAbstract {
  * @returns {leftPanelName}
  */
 function determineViewNameFrom(slug) {
-    if ((slug || '').startsWith(':pseudo/'))
+    if (slug.startsWith(':pseudo/'))
         return !slug.endsWith('/new-page-type') ? 'CreatePage' : 'CreatePageType';
     return 'Default';
 }

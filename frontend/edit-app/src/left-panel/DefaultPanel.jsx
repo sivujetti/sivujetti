@@ -1,4 +1,4 @@
-import {api, env} from '@sivujetti-commons-for-edit-app';
+import {api} from '@sivujetti-commons-for-edit-app';
 
 /**
  * The default left-panel ("#/", "#/some-page").
@@ -8,26 +8,38 @@ class DefaultPanel extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        this.setState(createState(this.state));
-        this.sdsjdjn(!isAnotherAppView(env.window.location.hash.substring(1)) ? this.props.url : '/');
+        const toLoadInitial = this.props.url || '/';
+        this.setState(createState({...this.state, ...{
+            loadingPageSlug: toLoadInitial,
+            loadedPageSlug: null
+        }}));
+        this.loadPageToPreviewIframe(toLoadInitial);
     }
     /**
-     * @param {{loadedPageSlug: String}} props
+     * @param {{url: String} & {[key: String}: any;} props
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (isAnotherAppView(env.window.location.hash.substring(1)) || isAnotherAppView(props.url))
+        if (isAnotherAppView(props.url))
             return;
         if (props.url !== this.props.url)
-            this.sdsjdjn(props.url);
+            this.loadPageToPreviewIframe(props.url);
     }
     /**
      * @access protected
      */
-    render(_, {sections, loadedPageSlug}) {
+    shouldComponentUpdate(_nextProps, _nextState) {
+        if (this.state.loadedPageSlug && // Previous page is already loaded to iframe and ..
+            this.state.loadingPageSlug === null) // .. new page has started loading
+            return false;
+    }
+    /**
+     * @access protected
+     */
+    render(_, {loadingPageSlug, loadedPageSlug, sections}) {
         return sections.map(sectionName => {
             const Renderer = api.mainPanel.getSection(sectionName);
-            const t = {...{loadedPageSlug}, ...this.props};
+            const t = {...{loadingPageSlug, loadedPageSlug}, ...this.props};
             return <Renderer {...t}/>;
         });
     }
@@ -35,9 +47,12 @@ class DefaultPanel extends preact.Component {
      * @param {String} slug
      * @access private
      */
-    sdsjdjn(slug) {
+    loadPageToPreviewIframe(slug) {
+        //
+        this.setState({loadingPageSlug: slug});
+        //
         api.webPageIframe.renderNormalPage(slug).then(_webPage => {
-            this.setState(createState({loadedPageSlug: slug}));
+            this.setState({loadedPageSlug: slug, loadingPageSlug: null});
         });
     }
 }
@@ -52,7 +67,7 @@ function isAnotherAppView(slug) {
 
 /**
  * @param {{loadedPageSlug?: String;}} initial
- * @returns {{loadedPageSlug?: String; sections: Array<String>;}}
+ * @returns {{loadingPageSlug?: String; loadedPageSlug?: String; sections: Array<String>;}}
  */
 function createState(initial) {
     return {...initial, ...{sections: Array.from(api.mainPanel.getSections().keys()).slice(0)}};

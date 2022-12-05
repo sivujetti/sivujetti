@@ -32,7 +32,7 @@ final class PagesModule {
             [PagesController::class, "updatePage", ["consumes" => "application/json",
                                                     "identifiedBy" => ["update", "pages"]]]
         );
-        $router->map("GET", "/_edit/[**:url]?",
+        $router->map("GET", "/_edit",
             [PagesController::class, "renderEditAppWrapper", ["identifiedBy" => ["access", "editMode"],
                                                               "allowMissingRequestedWithHeader" => true]]
         );

@@ -159,7 +159,7 @@ class BlockTree extends preact.Component {
             data-last-child={ i === lastIxd }
             data-draggable={ true }
             title={ title }
-            key={ block.id }
+            key={ `${this.props.loadedPageSlug}-${block.id}` }
             draggable>
             { !c.length ? null : <button onClick={ () => this.toggleBranchIsCollapsed(block) } class="toggle p-absolute" type="button">
                 <Icon iconId="chevron-down" className="size-xs"/>

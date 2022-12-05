@@ -87,7 +87,7 @@ class EditApp extends preact.Component {
             </div></div>
             }
             <PreactRouter history={ History.createHashHistory() }>
-                <DefaultPanel path="/:slug?"/>
+                <DefaultPanel path="/:slug*"/>
                 <PageCreatePanel path="/pages/create/:pageTypeName?/:layoutId?"/>
                 <PageDuplicatePanel path="/pages/:pageSlug/duplicate"/>
                 <PageTypeCreatePanel path="/page-types/create"/>

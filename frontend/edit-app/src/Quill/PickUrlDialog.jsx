@@ -1,8 +1,10 @@
-import {__, env, http, Icon, LoadingSpinner, hookForm, Input, InputErrors, hasErrors, urlUtils} from '@sivujetti-commons-for-edit-app';
+import {__, env, http, urlUtils, Icon, LoadingSpinner, hookForm, Input, InputErrors,
+        hasErrors, unhookForm} from '@sivujetti-commons-for-edit-app';
 import UploadsManager from '../Upload/UploadsManager.jsx';
 import {urlValidatorImpl} from '../validation.js';
 import {validationConstraints} from '../constants.js';
 import {determineModeFrom, getLabel, normalizeExternalUrl} from './common.js';
+import setFocusTo from '../block-types/auto-focusers.js';
 
 class PickUrlDialog extends preact.Component {
     // currentExternalUrl;
@@ -130,6 +132,7 @@ class PickPageTab extends preact.Component {
 // ----
 
 class DefineExternalUrlTab extends preact.Component {
+    // nameInput;
     // enterPressedAt;
     /**
      * @param {{url: String; goBack: () => void; onUrlChanged: (validUrl: String) => void; done: () => void; }} props
@@ -137,6 +140,7 @@ class DefineExternalUrlTab extends preact.Component {
     constructor(props) {
         super(props);
         const url = props.url && determineModeFrom(props.url)[0] === 'type-external-url' ? unnormalizeExternalUrl(props.url) : '';
+        this.nameInput = preact.createRef();
         this.componentWillMount();
         this.state = hookForm(this, [
             {name: 'url', value: url, validations: [
@@ -154,6 +158,18 @@ class DefineExternalUrlTab extends preact.Component {
     /**
      * @access protected
      */
+    componentDidMount() {
+        setFocusTo(this.nameInput);
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        unhookForm(this);
+    }
+    /**
+     * @access protected
+     */
     render({goBack}) {
         return [
             <div><button onClick={ goBack } class="btn btn-sm mb-2" type="button" disabled={ hasErrors(this) }>&lt;</button></div>,
@@ -163,7 +179,7 @@ class DefineExternalUrlTab extends preact.Component {
                 if (!this.enterPressedAt || e.key !== 'Enter') return;
                 if ((Date.now() - this.enterPressedAt) < 100) this.props.done();
                 else this.enterPressedAt = null;
-            } }/>,
+            } } ref={ this.nameInput }/>,
             <InputErrors vm={ this } prop="url"/>
         ];
     }

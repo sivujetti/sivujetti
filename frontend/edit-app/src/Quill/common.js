@@ -54,7 +54,10 @@ function getCompletedUrl(url) {
  * @returns {String}
  */
 function normalizeExternalUrl(url) {
-    return `${url.startsWith('//') || url.startsWith('http') ? '' : '//'}${url}`;
+    if (/^[a-zA-Z]+:.+$/.test(url)) // http://foo.com, mailto:foo, steam://store/1151640, not foo.com/path:1
+        return url;
+    // No protocol ('foo.com', '//foo.com', foo.com/path:1)
+    return `http://${url}`;
 }
 
 /**

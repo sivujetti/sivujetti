@@ -1,6 +1,4 @@
-import {env, Input} from '@sivujetti-commons-for-edit-app';
-import QuillEditor from '../Quill/QuillEditor.jsx';
-import ImagePicker from '../BlockWidget/ImagePicker.jsx';
+import {env} from '@sivujetti-commons-for-edit-app';
 
 /**
  * @param {preact.Ref} elementRef
@@ -8,14 +6,16 @@ import ImagePicker from '../BlockWidget/ImagePicker.jsx';
 function setFocusTo(elementRef) {
     if (!elementRef.current)
         return;
-    if (elementRef.current instanceof QuillEditor) {
+    const isObject = typeof elementRef.current === 'object';
+    // QuillEditor
+    if (isObject && elementRef.current.quill) {
         const quill = elementRef.current.quill;
         quill.setSelection(quill.getLength(), 0);
     } else if (elementRef.current instanceof HTMLElement) {
         const inputEl = elementRef.current;
         inputEl.focus();
-    } else if (elementRef.current instanceof Input ||
-               elementRef.current instanceof ImagePicker) {
+    // Input, ImagePicker
+    } else if (isObject && elementRef.current.inputEl && elementRef.current.inputEl.current) {
         const inputEl = elementRef.current.inputEl.current;
         inputEl.focus();
     } else {

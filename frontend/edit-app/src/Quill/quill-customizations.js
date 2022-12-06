@@ -93,10 +93,7 @@ MySnowTheme.DEFAULTS.modules.toolbar.handlers.link = function (value) {
         const range = quill.getSelection();
         if (range == null || range.length == 0) return;
         const preview = quill.getText(range);
-        const url = /^\S+@\S+\.\S+$/.test(preview) && preview.indexOf('mailto:') !== 0
-            ? 'mailto:' + preview
-            : '';
-        quill.theme.tooltip.edit('link', url, preview);
+        quill.theme.tooltip.edit('link', '', preview);
     } else {
         quill.format('link', false);
     }
@@ -155,6 +152,15 @@ class MyLink extends Quill.import('formats/link') {
             addOriginToHrefOf(node);
         }
         return node;
+    }
+    /**
+     * @inheritdoc
+     */
+    static sanitize(url) {
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        const protocol = anchor.href.slice(0, anchor.href.indexOf(':'));
+        return protocol ? url : this.SANITIZED_URL;
     }
     /**
      * @inheritdoc

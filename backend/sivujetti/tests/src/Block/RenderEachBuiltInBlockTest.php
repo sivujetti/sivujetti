@@ -25,11 +25,8 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $expectedHtml2 = $makeExpectedHtml($b[2], $b[2]->linkTo, " {$b[2]->styleClasses}");
         $this->renderAndVerify($state, 2, $expectedHtml2);
         //
-        $expectedHtml3 = $makeExpectedHtml($b[3], "//{$b[3]->linkTo}", null);
-        $this->renderAndVerify($state, 3, $expectedHtml3);
-        //
-        $expectedHtml4 = $makeExpectedHtml($b[4], null, " {$b[4]->styleClasses}");
-        $this->renderAndVerify($state, 4, $expectedHtml4, 1);
+        $expectedHtml4 = $makeExpectedHtml($b[3], null, " {$b[3]->styleClasses}");
+        $this->renderAndVerify($state, 3, $expectedHtml4);
     }
     private function setupRenderButtonBlocksTest(): \TestState {
         $state = parent::setupTest();
@@ -47,10 +44,6 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
                 propsData: ["html" => "Pre <validated>", "linkTo" => "http://external2.com",
                             "tagType" => ButtonBlockType::TAG_TYPE_LINK,],
                 styleClasses: "some classes",
-                id: "@auto"),
-            $this->blockTestUtils->makeBlockData(Block::TYPE_BUTTON,
-                propsData: ["html" => "Button text", "linkTo" => "external3.com",
-                            "tagType" => ButtonBlockType::TAG_TYPE_NORMAL_BUTTON,],
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_BUTTON,
                 propsData: ["html" => "Submit button text", "linkTo" => null,

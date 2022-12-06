@@ -18,8 +18,8 @@ const urlValidatorImpl = {doValidate: (val, hints = {}) => {
         return false;
     try {
         const u = new URL(comp);
-        if (!u.protocol || ['https:', 'http:'].indexOf(u.protocol) < 0) return false;
-        if (!u.host || u.host === env.window.location.host) return false;
+        if (!u.protocol) return false;
+        if (u.host === env.window.location.host) return false;
         return true;
     } catch (e) {
         return false;
@@ -33,10 +33,12 @@ const urlValidatorImpl = {doValidate: (val, hints = {}) => {
 function createCanonicalUrl(input) {
     if (!input.length)
         return '';
-    if (input.indexOf('.') < 0) { // treat as local
+    const noDot = input.indexOf('.') < 0;
+    const noColon = input.indexOf(':') < 0;
+    if (noDot && noColon) { // treat as local
         return [input.startsWith('/') ? input : `/${input}`, true];
     } else { // treat as external
-        return [input.startsWith('http://') || input.startsWith('https://') ? input : `https://${input}`, false];
+        return [noColon ? `https://${input}` : input, false];
     }
 }
 

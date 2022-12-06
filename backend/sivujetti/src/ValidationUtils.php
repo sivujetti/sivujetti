@@ -62,10 +62,11 @@ abstract class ValidationUtils {
                 if (!$allowExternal)
                     return false;
 
-                $completed = str_starts_with($noWhitespace, "http://") ||
-                    str_starts_with($noWhitespace, "https://") ? $noWhitespace : "https://{$noWhitespace}";
+                if (($parts = parse_url($noWhitespace)) === false)
+                    return false;
 
-                if (($parts = parse_url($completed)) === false)
+                // Always require protocol
+                if (!strlen($parts["scheme"] ?? ""))
                     return false;
 
                 // If present, can contain anything except `//` and `./`

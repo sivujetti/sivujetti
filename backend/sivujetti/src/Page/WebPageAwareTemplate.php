@@ -103,8 +103,12 @@ final class WebPageAwareTemplate extends Template {
         $first = $url[0] ?? "";
         $isLocal = $first === "/";
         if ($isLocal)
-            return !str_starts_with($url, "/uploads") ? $this->makeUrl($url) : $this->assetUrl("public{$url}");
-        return self::escAttr(str_starts_with($url, "http://") || str_starts_with($url, "https://") ? $url : "//{$url}");
+            return !str_starts_with($url, "/public/uploads") ? $this->makeUrl($url) : $this->assetUrl($url);
+        //
+        $pcs = explode(":", $url);
+        return count($pcs) > 1 // http://foo.com, mailto:foo, steam://bar
+            ? self::escAttr($url)
+            : self::escAttr("//{$url}");
     }
     /**
      * @param string $url

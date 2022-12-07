@@ -18,7 +18,7 @@ class BlockEditForm extends preact.Component {
     // unregistrables;
     // dispatchFastChangeTimeout;
     /**
-     * @param {{block: Block; inspectorPanel: preact.Component;}} props
+     * @param {{block: RawBlock; inspectorPanel: preact.Component;}} props
      */
     constructor(props) {
         super(props);

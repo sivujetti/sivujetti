@@ -24,14 +24,14 @@ interface WebPageIframe {
     renderNormalPage(slug: String): Promise<EditAppAwareWebPage>;
     renderPlaceholderPage(pageTypeName: String, layoutId: String = '1', slug: String = ''): Promise<EditAppAwareWebPage>;
     goBack(): void;
-    scrollTo(block: Block);
+    scrollTo(block: RawBlock);
     getEl(): HTMLIFrameElement;
     registerWebPageDomUpdaterForBlockTree(trid: String): void;
     unRegisterWebPageDomUpdaterForBlockTree(trid: String): void;
 }
 
 interface MainPanel {
-    scrollTo(block: Block, behavior: 'smooth'|'auto' = 'smooth');
+    scrollTo(blockId: String, behavior: 'smooth'|'auto' = 'smooth');
     scrollToSection(section: 'onThisPage'|'baseStyles', behavior: 'smooth'|'auto' = 'smooth');
     getEl(): HTMLElement;
     registerSection(name: String, Cls: preact.AnyComponent): void;

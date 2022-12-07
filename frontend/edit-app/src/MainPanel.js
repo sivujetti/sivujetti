@@ -14,11 +14,11 @@ class MainPanel {
         env = _env;
     }
     /**
-     * @param {RawBlock} block
+     * @param {String} blockId
      * @param {'smooth'|'auto'} behavior = 'smooth'
      */
-    scrollTo(block, behavior = 'smooth') {
-        const subSelector = `data-block-id="${block.id}"`;
+    scrollTo(blockId, behavior = 'smooth') {
+        const subSelector = `data-block-id="${blockId}"`;
         const target = env.document.querySelector(`.block-tree li[${subSelector}]`);
         const liHeight = 30;
         // Note: contains main.scrollTop

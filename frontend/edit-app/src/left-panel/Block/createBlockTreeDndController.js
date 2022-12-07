@@ -1,4 +1,4 @@
-import {__, http} from '@sivujetti-commons-for-edit-app';
+import {__, api, http} from '@sivujetti-commons-for-edit-app';
 import {setTrids, treeToTransferable} from '../../Block/utils.js';
 import toasters from '../../commons/Toaster.jsx';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
@@ -19,6 +19,7 @@ function createDndController(_blockTree) {
          * @param {Boolean} isExternal
          */
         begin(info) {
+            api.webPageIframe.getEl().style.pointerEvents = 'none';
             initialTree = JSON.parse(JSON.stringify(store2.get().theBlockTree));
             dropped = false;
             if (extDragData) {
@@ -41,6 +42,7 @@ function createDndController(_blockTree) {
                 const target = getIsStoredToTridForTarget(cand.li);
                 store2.dispatch('theBlockTree/applyAdd(Drop)Block', [{isStoredToTreeId: source}, {isStoredToTreeId: target}]);
             }
+            api.webPageIframe.getEl().style.pointerEvents = '';
             dropped = true;
         },
         /**
@@ -78,6 +80,7 @@ function createDndController(_blockTree) {
         end(lastAcceptedSwapIdx) {
             if (dropped)
                 return;
+            api.webPageIframe.getEl().style.pointerEvents = '';
             if (lastAcceptedSwapIdx === null) // No moves at all
                 return;
             if (lastAcceptedSwapIdx === 0 && !extDragData) // Had moves, but returned to initial

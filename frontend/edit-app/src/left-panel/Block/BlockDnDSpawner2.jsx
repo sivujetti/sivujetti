@@ -13,6 +13,7 @@ class BlockDnDSpawner extends preact.Component {
     // newBlock;
     // rootEl;
     // onDragStart;
+    // onDrag;
     // onDragEnd;
     // unregisterables;
     // cachedGlobalBlockTreesAll;
@@ -122,6 +123,7 @@ class BlockDnDSpawner extends preact.Component {
                         return <li class={ `${isNotGbt ? 'page' : 'globalBlockTree'}-block ml-0` } data-block-type={ rootBlockTypeName } data-flavor={ flavor }><div class="d-flex">
                             <button
                                 onDragStart={ this.onDragStart }
+                                onDrag={ this.onDrag }
                                 onDragEnd={ this.onDragEnd }
                                 class="block-handle text-ellipsis"
                                 data-block-type={ isNotGbt ? rootBlockTypeName : 'GlobalBlockReference' }
@@ -170,6 +172,13 @@ class BlockDnDSpawner extends preact.Component {
         const isReusable = reusableBranchIdx !== '';
         const newBlock = this.createBlock(typeStr, reusableBranchIdx, dragEl);
         this.props.mainTreeDnd.handleDragStartedFromOutside({block: newBlock, isReusable});
+    }
+    /**
+     * @param {DragEvent} e
+     * @access private
+     */
+    handleDrag(e) {
+        this.props.mainTreeDnd.handleDrag(e, true); // forward
     }
     /**
      * @param {String} typeStr
@@ -242,6 +251,7 @@ class BlockDnDSpawner extends preact.Component {
      */
     overwriteDragListenerFuncs() {
         this.onDragStart = this.handleDragStarted.bind(this);
+        this.onDrag = this.handleDrag.bind(this);
         this.onDragEnd = this.handleDragEnded.bind(this);
     }
 }

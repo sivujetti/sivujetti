@@ -11,8 +11,10 @@ class TreeDragDrop {
     // curCandVisual;
     // curCandReal;
     // curAccept;
+    // mouseIsCurrentlyInside;
     // dragOriginIsExternal;
     // firstLiBounds;
+    // ulBounds;
     /**
      * @param {DragDropEventController} eventController
      */
@@ -38,6 +40,34 @@ class TreeDragDrop {
         this.setBounds();
         this.setStartSelfOrigin(norm(e));
         this.start.classList.add('dragging');
+    }
+    /**
+     * @param {DragEvent} e
+     * @param {Boolean} isExt = false
+     * @access public
+     */
+    handleDrag(e, isExt = false) {
+        if (isExt && this.start === 'setting-it')
+            return;
+        //
+        const {clientX, clientY} = e;
+        const newIsInside = (clientX > this.ulBounds.left && clientX < this.ulBounds.right) &&
+                             (clientY > this.firstLiBounds.top && clientY < this.ulBounds.bottom);
+        if (!newIsInside && this.mouseIsCurrentlyInside) {
+            this.mouseIsCurrentlyInside = false;
+            this.curAccept = false;
+            this.fromright = clientX >= this.ulBounds.right;
+            if (isExt) {
+                this.clearCls();
+                if (clientX > this.ulBounds.left) // Not exited from left
+                    return;
+                this.eventController.dragOut(this.curCandReal);
+                this.start = 'setting-it';
+            }
+        } else if (newIsInside && !this.mouseIsCurrentlyInside) {
+            this.mouseIsCurrentlyInside = true;
+            this.curAccept = true;
+        }
     }
     /**
      * @param {any} ctx
@@ -139,7 +169,7 @@ class TreeDragDrop {
         // 3. Do reject tests
         if (this.checkIfBeyondLastMarker(nextCandVisual) ||
             (nextCandVisual.pos !== 'before' && !this.dragOriginIsExternal && this.checkIfDraggingToOwnParent(li, idx)) ||
-            this.checkIfDraggingInsideItself(isAfter, li, idx) ||
+            (!this.dragOriginIsExternal && this.checkIfDraggingInsideItself(isAfter, li, idx)) ||
             (!this.dragOriginIsExternal && this.checkIfTooClose(isBefore, nextCandVisual, li, isAfter, idx))) {
             accept = false;
         }
@@ -181,20 +211,8 @@ class TreeDragDrop {
     /**
      * @access public
      */
-    handleDraggedOut(e) {
-        if (e.target !== (this.curCandVisual || {}).li) return;
-        const {clientX, clientY} = e;
-        const curLiLeft = this.curCandVisual.li.getBoundingClientRect().left;
-        const isInsideXCoord = clientX > curLiLeft && clientX < this.firstLiBounds.right;
-        if (!(isInsideXCoord &&
-              clientY > this.firstLiBounds.top && clientY < this.lastLiBounds.bottom)) {
-            this.clearCls();
-            this.curAccept = false;
-            if (isInsideXCoord && clientY < this.firstLiBounds.top)
-                return;
-            this.eventController.dragOut(this.curCandReal);
-            if (this.dragOriginIsExternal) this.start = 'setting-it';
-        }
+    handleDragLeave(_e) {
+        //
     }
     /**
      * @access public
@@ -228,6 +246,7 @@ class TreeDragDrop {
         this.curAccept = false;
         this.resetEventController();
         this.eventController.begin(Object.assign({}, this.curCandReal));
+        this.mouseIsCurrentlyInside = true;
     }
     /**
      * @param {DragDropInfo} nextCandVisual
@@ -236,11 +255,12 @@ class TreeDragDrop {
      */
     setStartExternalOrigin(nextCandVisual, nextCandReal) {
         this.setStartLi(nextCandVisual.li);
-        this.startIdx = this.getIdx(this.start) + (nextCandVisual.pos === 'before' ? -1 : nextCandVisual.pos === 'after' ? 1 : Infinity);
+        this.startIdx = nextCandVisual.pos !== 'before' ? Infinity : -Infinity;
         this.curCandVisual = nextCandVisual;
         this.curCandReal = nextCandReal;
         this.curAccept = true;
         this.eventController.begin(Object.assign({}, this.curCandReal));
+        this.mouseIsCurrentlyInside = false;
     }
     /**
      * @param {HTMLLIElement} li
@@ -351,7 +371,7 @@ class TreeDragDrop {
     setBounds() {
         const lis = this.ul.querySelectorAll('[data-draggable]');
         this.firstLiBounds = lis[0].getBoundingClientRect();
-        this.lastLiBounds = lis[lis.length - 1].getBoundingClientRect();
+        this.ulBounds = this.ul.getBoundingClientRect();
     }
     /**
      * @param {HTMLLIElement} li
@@ -368,7 +388,6 @@ class TreeDragDrop {
         this.start.classList.remove('dragging');
         this.start = null;
         this.firstLiBounds = null;
-        this.lastLiBounds = null;
         if (this.curCandVisual) this.clearCls();
         this.curCandVisual = null;
         this.curCandReal = null;

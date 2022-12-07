@@ -25,8 +25,9 @@ class BlockTree extends preact.Component {
         this.unregistrables = [];
         this.dragDrop = new TreeDragDrop(createDndController(this));
         this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
+        this.onDrag = this.dragDrop.handleDrag.bind(this.dragDrop);
         this.onDragOver = this.dragDrop.handleDraggedOver.bind(this.dragDrop);
-        this.onDragLeave = this.dragDrop.handleDraggedOut.bind(this.dragDrop);
+        this.onDragLeave = this.dragDrop.handleDragLeave.bind(this.dragDrop);
         this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
         this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
         const maybe = store2.get().theBlockTree;
@@ -141,6 +142,7 @@ class BlockTree extends preact.Component {
         const isRootBlockOf = !(root && i === 0) ? null : root.id;
         return [<li
             onDragStart={ this.onDragStart }
+            onDrag={ this.onDrag }
             onDragOver={ this.onDragOver }
             onDragLeave={ this.onDragLeave }
             onDrop={ this.onDrop }

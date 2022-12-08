@@ -67,7 +67,7 @@ class BlockStylesTab extends preact.Component {
             this.setState({themeStyles: null});
             const themeStyles = tempHack();
             if (themeStyles)
-                this.updateUnitsState((findBlockTypeStyles(themeStyles, this.state.blockCopy.type) || {}).units, themeStyles, 0);
+                this.updateUnitsState((findBlockTypeStyles(themeStyles, this.state.blockCopy.type) || {}).units, themeStyles);
             // else Wait for store2.dispatch('themeStyles/setAll')
         }
     }
@@ -135,20 +135,21 @@ class BlockStylesTab extends preact.Component {
                             : null
                     }
                 </li>;
-            }) }</ul> : (userCanEditCss
-                ? null
-                : <p class="pt-1 mb-2 color-dimmed">{ __('No own styles') }.</p>
-            ) : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
-        ].concat(userCanEditVars && parentStyleInfo && parentStyleInfo[2] ? [
+            }) }</ul> : <p class="pt-1 mb-2 color-dimmed">{ __('No own styles') }.</p>
+            : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
+        ].concat(userCanEditCss ? [
+            <button
+                onClick={ this.addStyleUnit.bind(this) }
+                class="btn btn-primary btn-sm mr-1"
+                type="button">{ __('Add styles') }</button>
+        ] : [])
+        .concat(userCanEditVars && parentStyleInfo && parentStyleInfo[2] ? [
             <button
                 onClick={ () => this.goToStyle(parentStyleInfo) }
                 class="btn btn-sm"
                 type="button">{ __('Show parent styles') }</button>
-        ] : []).concat(userCanEditCss ? [
-            <button
-                onClick={ this.addStyleUnit.bind(this) }
-                class="btn btn-sm"
-                type="button">{ __('Add styles') }</button>,
+        ] : [])
+        .concat(userCanEditCss ? [
             <hr style="opacity: .14;margin: .8rem .1rem;"/>,
             <textarea
                 value={ extraBlockStyleClassesNotCommitted }
@@ -185,7 +186,11 @@ class BlockStylesTab extends preact.Component {
         if (this.userCanEditCss && this.editableTitleInstances[i].current.isOpen()) return;
         //
         const moreMenuIconEl = e.target.classList.contains('edit-icon-outer') ? e.target : e.target.closest('.edit-icon-outer');
-        if (!moreMenuIconEl) this.toggleIsCollapsed(i);
+        if (!moreMenuIconEl) {
+            const accordBtn = e.target.classList.contains('no-color') ? e.target : e.target.closest('.no-color');
+            const hasDecls = accordBtn.querySelector(':scope > .icon-tabler.d-none') === null;
+            if (this.userCanEditCss || hasDecls) this.toggleIsCollapsed(i);
+        }
         else this.openMoreMenu(moreMenuIconEl, i);
     }
     /**
@@ -359,15 +364,16 @@ class BlockStylesTab extends preact.Component {
         else // Hide all
             this.setState({liClasses: createLiClasses(this.state.units, -1)});
     }
+    /**
+     * @param {String} event 'themeStyles/*'
+     * @param {Array<ThemeStyleUnit>} units
+     * @returns {Number}
+     * @access private
+     */
     getOpenLiIdx(event, units) {
-        if (event === 'themeStyles/setAll') {
-            const fe = null; // todo
-            console.log('first enabled', fe);
-            return fe ? units.indexOf(fe) : -1;
-        }
         return event === 'themeStyles/addUnitTo' || event === 'themeStyles/addStyle'
             ? units.length - 1
-            : this.state.liClasses.findIndex(s => s !== '');
+            : this.state.liClasses.findIndex(cls => cls !== '');
     }
 }
 

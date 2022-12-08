@@ -1,4 +1,5 @@
 import {__, api, env, signals, Icon, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
+import {createTrier} from '../../../../webpage/src/EditAppAwareWebPage.js';
 import BlockTree from '../Block/BlockTree.jsx';
 
 class OnThisPageSection extends MenuSectionAbstract {
@@ -43,9 +44,12 @@ class OnThisPageSection extends MenuSectionAbstract {
                 // Open styles tab
                 env.document.querySelector('#inspector-panel .tab .tab-item:nth-of-type(2) a').click();
                 // Open first unit accordion
-                setTimeout(() => {
-                    document.querySelector(`#inspector-panel .styles-list > li[data-cls="${unitCls}"] button`).click();
-                }, 80);
+                createTrier(() => {
+                    const accordBtn = document.querySelector(`#inspector-panel .styles-list > li[data-cls="${unitCls}"] button`);
+                    if (!accordBtn) return false;
+                    accordBtn.click();
+                    return true;
+                }, 50, 10)();
             });
         }), signals.on('on-inspector-panel-closed', () => {
             this.blockTreeRef.current.deSelectAllBlocks();

@@ -129,7 +129,7 @@ class OpQueueItemEmitter {
      */
     pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId, updateOfBlockId, isUndoOfConvertToGlobal = false, onUndo = null) {
         const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, theBlockTree);
-        if (updateOfBlockId) signals.emit('onOpQueueBeforePushItem', updateOfBlockId);
+        if (updateOfBlockId) signals.emit('op-queue-before-push-item', updateOfBlockId);
         store.dispatch(pushItemToOpQueue(`update-block-tree##${blockIsStoredToTreeId}`, {
             doHandle: () => saveExistingBlocksToBackend(rootOrInnerTree, blockIsStoredToTreeId),
             doUndo: () => {

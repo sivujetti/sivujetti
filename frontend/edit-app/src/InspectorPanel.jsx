@@ -16,8 +16,8 @@ class InspectorPanel extends preact.Component {
         this.rendererKey = null;
         this.resizeHandleEl = preact.createRef();
         this.lastHeight = null;
-        signals.on('on-block-tree-item-clicked-or-focused', this.open.bind(this));
-        signals.on('on-web-page-click-received', (blockEl, linkEl) => { if (linkEl && !blockEl) this.close(); });
+        signals.on('block-tree-item-clicked-or-focused', this.open.bind(this));
+        signals.on('web-page-click-received', (blockEl, linkEl) => { if (linkEl && !blockEl) this.close(); });
     }
     /**
      * @param {Number} width
@@ -105,7 +105,7 @@ class InspectorPanel extends preact.Component {
             this.props.mainPanelOuterEl.style.height = `calc(100% - ${height}px)`;
             this.resizeHandleEl.current.style.transform = `translateY(-${height}px)`;
         }
-        signals.emit('on-inspector-panel-revealed', this);
+        signals.emit('inspector-panel-revealed', this);
     }
     /**
      * @access private
@@ -117,7 +117,7 @@ class InspectorPanel extends preact.Component {
         this.props.mainPanelOuterEl.style.height = '';
         this.rendererKey = null;
         this.lastHeight = null;
-        signals.emit('on-inspector-panel-closed', this);
+        signals.emit('inspector-panel-closed', this);
     }
 }
 

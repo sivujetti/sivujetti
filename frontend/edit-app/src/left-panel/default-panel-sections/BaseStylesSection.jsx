@@ -31,7 +31,7 @@ class BaseStylesSection extends preact.Component {
             const latest = findBodyMainUnit(themeStyles);
             if (this.state.bodyStyleMainUnit.scss !== latest.scss)
                 this.updateBaseStylesState(latest);
-        }), signals.on('on-block-styles-go-to-base-styles-button-clicked', () => {
+        }), signals.on('block-styles-go-to-base-styles-button-clicked', () => {
             const cmp = this.section.current;
             if (cmp.state.isCollapsed) cmp.collapseOrUncollapse();
             setTimeout(() => { api.mainPanel.scrollToSection('baseStyles'); }, 80);

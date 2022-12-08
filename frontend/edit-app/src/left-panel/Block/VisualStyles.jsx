@@ -190,7 +190,7 @@ class ColorValueInput extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        this.unregisterSignalListener = signals.on('on-web-page-click-received', () => {
+        this.unregisterSignalListener = signals.on('web-page-click-received', () => {
             if (this.pickr && this.pickr.isOpen()) this.pickr.hide();
         });
     }

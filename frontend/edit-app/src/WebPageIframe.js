@@ -13,10 +13,11 @@ class WebPageIframe {
     /**
      * @param {HTMLIFrameElement} el
      * @param {HTMLElement} blockHighlightEl
+     * @param {(width: Number) => void} getCurrentLeftPanelWidth
      */
-    constructor(el, blockHighlightEl) {
+    constructor(el, blockHighlightEl, getCurrentLeftPanelWidth) {
         this.el = el;
-        this.pageManager = new IframePageManager(blockHighlightEl);
+        this.pageManager = new IframePageManager(blockHighlightEl, getCurrentLeftPanelWidth);
     }
     /**
      * @param {String} pageTypeName
@@ -129,14 +130,26 @@ class WebPageIframe {
             if (!useShareNothing) {
                 this.getEl().contentWindow.location.replace(iframeUrl);
             } else  {
-                const newEl = document.createElement('iframe');
-                newEl.src = iframeUrl;
-                newEl.id = this.getEl().id;
+                const newEl = createNewIframeEl(iframeUrl, this.getEl());
                 this.getEl().replaceWith(newEl);
                 this.el = newEl;
             }
         });
     }
+}
+
+/**
+ * @param {String} url
+ * @param {HTMLIFrameElement} current
+ * @returns {HTMLIFrameElement}
+ */
+function createNewIframeEl(url, current) {
+    const newEl = document.createElement('iframe');
+    newEl.src = url;
+    newEl.id = current.id;
+    const css = current.getAttribute('style');
+    if (css) newEl.setAttribute('style', current.getAttribute('style'));
+    return newEl;
 }
 
 /**

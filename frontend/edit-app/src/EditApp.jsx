@@ -10,13 +10,13 @@ import {getArePanelsHidden} from './IframePageManager.js';
 
 const PreactRouter = preactRouter;
 
-let LEFT_PANEL_WIDTH = 318;
 const PANELS_HIDDEN_CLS = 'panels-hidden';
 let showFirstTimeDragInstructions = !(!env.window.isFirstRun || localStorage.sivujettiDragInstructionsShown === 'yes');
 
 class EditApp extends preact.Component {
     // changeViewOptions;
-    // currentWebPage;
+    // resizeHandleEl;
+    // leftPanelWidth;
     /**
      * @param {{dataFromAdminBackend: TheWebsiteBundle; outerEl: HTMLElement; inspectorPanelRef: preact.Ref; rootEl: HTMLElement;}} props
      */
@@ -31,11 +31,17 @@ class EditApp extends preact.Component {
         ).concat({name: 'log-out', label: __('Log out')});
         this.state = {hidePanels: getArePanelsHidden()};
         if (this.state.hidePanels) props.rootEl.classList.add(PANELS_HIDDEN_CLS);
-        this.currentWebPage = null;
         this.resizeHandleEl = preact.createRef();
         store2.dispatch('theWebsiteBasicInfo/set', [props.dataFromAdminBackend.website]);
         props.dataFromAdminBackend.__websiteDebugOnly = props.dataFromAdminBackend.website;
         delete props.dataFromAdminBackend.website;
+    }
+    /**
+     * @returns {Number}
+     * @access public
+     */
+    getCurrentLeftPanelWidth() {
+        return this.leftPanelWidth;
     }
     /**
      * @access protected
@@ -103,7 +109,6 @@ class EditApp extends preact.Component {
     componentDidMount() {
         const el = this.resizeHandleEl.current;
         const mainPanelEl = this.props.outerEl;
-        const iframeEl = api.webPageIframe.getEl();
         el.style.transform = `translateX(${mainPanelEl.getBoundingClientRect().width}px`;
         //
         const startTreshold = 2;
@@ -122,16 +127,20 @@ class EditApp extends preact.Component {
             el.classList.add('dragging');
             inspectorPanel = this.props.inspectorPanelRef.current;
         });
-        const setPanelWidths = (w) => {
+        const setAndEmitPanelWidths = (w) => {
             mainPanelEl.style.width = `${w}px`;
             inspectorPanel.resizeX(w);
+            const iframeEl = api.webPageIframe.getEl();
             iframeEl.style.width = `calc(100% - ${w}px)`;
             iframeEl.style.transform = `translateX(${w}px)`;
             //
             el.style.transform = `translateX(${w}px)`;
+            //
+            signals.emit('left-panel-width-changed', w);
         };
+        this.leftPanelWidth = this.props.LEFT_PANEL_WIDTH;
         const commitPanelWidths = () => {
-            LEFT_PANEL_WIDTH = parseFloat(mainPanelEl.style.width);
+            this.leftPanelWidth = parseFloat(mainPanelEl.style.width);
         };
         document.addEventListener('mousemove', e => {
             if (!currentHandle) return;
@@ -142,23 +151,25 @@ class EditApp extends preact.Component {
             let w = startWidth + delta;
             if (w < minWidth) w = minWidth;
             //
-            setPanelWidths(w);
+            setAndEmitPanelWidths(w);
         });
         document.addEventListener('mouseup', () => {
             if (currentHandle) commitPanelWidths();
             currentHandle = null;
             el.classList.remove('dragging');
         });
-        signals.on('on-block-dnd-opened', () => {
+        signals.on('block-dnd-opened', () => {
             inspectorPanel = this.props.inspectorPanelRef.current;
-            setPanelWidths(LEFT_PANEL_WIDTH + 124);
+            this.leftPanelWidth += 124;
+            setAndEmitPanelWidths(this.leftPanelWidth);
             commitPanelWidths();
             this.props.rootEl.classList.add('new-block-spawner-opened');
             if (showFirstTimeDragInstructions) env.document.querySelector('.drag-instructions-overlay').style.width =
-                `${LEFT_PANEL_WIDTH}px`;
+                `${this.leftPanelWidth}px`;
         });
-        signals.on('on-block-dnd-closed', () => {
-            setPanelWidths(LEFT_PANEL_WIDTH - 124);
+        signals.on('block-dnd-closed', () => {
+            this.leftPanelWidth -= 124;
+            setAndEmitPanelWidths(this.leftPanelWidth);
             commitPanelWidths();
             this.props.rootEl.classList.remove('new-block-spawner-opened');
         });

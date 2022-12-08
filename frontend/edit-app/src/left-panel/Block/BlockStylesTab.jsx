@@ -258,9 +258,9 @@ class BlockStylesTab extends preact.Component {
      */
     goToStyle([block, unitCls, kind]) {
         if (kind === 'parent')
-            signals.emit('on-block-styles-show-parent-styles-button-clicked', block, unitCls);
+            signals.emit('block-styles-show-parent-styles-button-clicked', block, unitCls);
         else
-            signals.emit('on-block-styles-go-to-base-styles-button-clicked');
+            signals.emit('block-styles-go-to-base-styles-button-clicked');
     }
     /**
      * @access private

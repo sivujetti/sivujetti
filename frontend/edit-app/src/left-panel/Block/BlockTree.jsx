@@ -369,7 +369,7 @@ class BlockTree extends preact.Component {
      */
     handleItemClickedOrFocused(block, origin = 'direct') {
         this.selectedRoot = block;
-        signals.emit('on-block-tree-item-clicked-or-focused', block, origin);
+        signals.emit('block-tree-item-clicked-or-focused', block, origin);
         if (origin !== 'web-page') api.webPageIframe.scrollTo(block);
         //
         const mutRef = this.state.treeState;

@@ -1,4 +1,4 @@
-import {__, env, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, env, signals, Icon} from '@sivujetti-commons-for-edit-app';
 import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from './store.js';
 
 let isUndoKeyListenersAdded = false;
@@ -11,7 +11,8 @@ class SaveButton extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {isVisible: false, hasUndoableOps: false, formState: {}, isStickied: false};
+        this.state = {isVisible: false, hasUndoableOps: false, formState: {},
+                        isStickied: false, leftPanelWidth: null};
         this.queuedOps = [];
         triggerUndo = this.doUndo.bind(this);
         if (!isUndoKeyListenersAdded) {
@@ -39,6 +40,10 @@ class SaveButton extends preact.Component {
      * @access protected
      */
     componentDidMount() {
+        signals.on('left-panel-width-changed', w => {
+            if (this.state.leftPanelWidth !== w)
+                this.setState({leftPanelWidth: w});
+        });
         this.props.mainPanelOuterEl.addEventListener('scroll', e => {
             if (e.target.scrollTop > 27 && !this.state.isStickied)
                 this.setState({isStickied: true});
@@ -49,11 +54,12 @@ class SaveButton extends preact.Component {
     /**
      * @access protected
      */
-    render (_, {isVisible, hasUndoableOps, formState, isStickied}) {
+    render (_, {isVisible, hasUndoableOps, formState, isStickied, leftPanelWidth}) {
         if (!isVisible) return;
         const saveBtnIsDisabled = formState.isValidating || formState.isSubmitting || !formState.isValid;
         const undoButtonIsHidden = saveBtnIsDisabled ? true : hasUndoableOps === false;
-        return <div class={ `d-flex col-ml-auto flex-centered${!isStickied ? '' : ' stickied'}` }>
+        const [cls, css] = !isStickied ? ['', ''] : [' stickied', `left: ${leftPanelWidth - 95}px`];
+        return <div class={ `d-flex col-ml-auto flex-centered${cls}` } style={ css }>
             <button
                 onClick={ this.doUndo.bind(this) }
                 class={ `btn btn-link px-1 pt-2${!undoButtonIsHidden ? '' : ' d-none'}` }

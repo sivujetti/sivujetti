@@ -24,7 +24,7 @@ class OnThisPageSection extends MenuSectionAbstract {
                 then();
             }, 100);
         };
-        this.unregistrables = [signals.on('on-web-page-click-received',
+        this.unregistrables = [signals.on('web-page-click-received',
         /**
          * @param {HTMLElement?} blockEl
          * @param {_} _
@@ -34,7 +34,7 @@ class OnThisPageSection extends MenuSectionAbstract {
             if (!blockEl) return;
             focusToBlockAndEmitBlockTreeClick(findBlock(blockEl), 'web-page', () => { });
         }),
-        signals.on('on-block-styles-show-parent-styles-button-clicked',
+        signals.on('block-styles-show-parent-styles-button-clicked',
         /**
          * @param {RawBlock} visibleBlock
          * @param {String} unitCls
@@ -51,7 +51,7 @@ class OnThisPageSection extends MenuSectionAbstract {
                     return true;
                 }, 50, 10)();
             });
-        }), signals.on('on-inspector-panel-closed', () => {
+        }), signals.on('inspector-panel-closed', () => {
             this.blockTreeRef.current.deSelectAllBlocks();
         })];
         //

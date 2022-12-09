@@ -76,7 +76,10 @@ class EditApp extends preact.Component {
                         ) }</select>
                     </span>
                 </div>
-                <SaveButton mainPanelOuterEl={ this.props.outerEl } ref={ this.saveButtonRef }/>
+                <SaveButton
+                    mainPanelOuterEl={ this.props.outerEl }
+                    initialLeftPanelWidth={ this.props.leftPanelWidth }
+                    ref={ this.saveButtonRef }/>
             </header>
             { !showFirstTimeDragInstructions ? null : <div class="drag-instructions-overlay"><div>
                 <p class="flex-centered">
@@ -100,7 +103,7 @@ class EditApp extends preact.Component {
                 <PageTypeCreatePanel path="/page-types/create"/>
             </PreactRouter>
             <Toaster id="editAppMain"/>
-            <FloatingDialog/>
+            <FloatingDialog signals={ signals }/>
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         </div>;
     }

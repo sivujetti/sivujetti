@@ -803,6 +803,10 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     padding: 0;
     font-weight: 300;
 }
+.block-tree .block-handle[disabled] {
+    opacity: .5;
+    cursor: not-allowed;
+}
 .block-tree .toggle {
     padding: .1rem .2rem 0 .2rem;
     cursor: pointer;

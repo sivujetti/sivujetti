@@ -7,12 +7,12 @@ class SaveButton extends preact.Component {
     // queuedOps;
     // opQueueMutator;
     /**
-     * @param {{mainPanelOuterEl: HTMLElement;}} props
+     * @param {{mainPanelOuterEl: HTMLElement; initialLeftPanelWidth: Number;}} props
      */
     constructor(props) {
         super(props);
         this.state = {isVisible: false, hasUndoableOps: false, formState: {},
-                        isStickied: false, leftPanelWidth: null, isSubmitting: false};
+                        isStickied: false, leftPanelWidth: props.initialLeftPanelWidth, isSubmitting: false};
         this.queuedOps = [];
         if (!isUndoKeyListenersAdded) {
             this.addUndoKeyListener();

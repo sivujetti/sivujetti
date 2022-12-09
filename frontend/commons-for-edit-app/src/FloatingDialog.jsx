@@ -16,7 +16,7 @@ class FloatingDialog extends preact.Component {
     // timeout;
     // closing;
     /**
-     * @param {any} props
+     * @param {{signals: Signals;}} props
      */
     constructor(props) {
         super(props);
@@ -39,6 +39,9 @@ class FloatingDialog extends preact.Component {
                 this.timeout = setTimeout(() => { this.currentJsPanel.classList.remove('animating'); }, 400);
             }
         };
+        props.signals.on('route-changed', () => {
+            this.close();
+        });
     }
     /**
      * @param {preact.ComponentType|string} Renderer

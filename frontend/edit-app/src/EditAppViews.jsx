@@ -1,3 +1,4 @@
+import {signals} from '@sivujetti-commons-for-edit-app';
 import WebsiteEditBasicInfoView from './Website/WebsiteEditBasicInfoView.jsx';
 import PagesListView from './Page/PagesListView.jsx';
 import {isEditAppViewUrl} from './left-panel/DefaultPanel.jsx';
@@ -19,6 +20,7 @@ class EditAppViews extends preact.Component {
      * @access private
      */
     onRouteChanged(e) {
+        signals.emit('route-changed', e);
         const {rootEl} = this.props;
         const a = isEditAppViewUrl(e.url);
         const b = rootEl.classList.contains('view-opened');

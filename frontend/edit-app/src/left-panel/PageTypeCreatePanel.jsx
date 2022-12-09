@@ -1,6 +1,6 @@
-import {__, api, http, env, floatingDialog, urlUtils, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, api, http, env, urlUtils, Icon} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
-import store, {deleteItemsFromOpQueueAfter, observeStore, selectOpQueue, setOpQueue} from '../store.js';
+import store, {deleteItemsFromOpQueueAfter, setOpQueue} from '../store.js';
 import store2 from '../store2.js';
 import OnThisPageSection from './default-panel-sections/OnThisPageSection.jsx';
 import BasicInfoConfigurationForm from './PageType/PageTypeBasicInfoConfigurationForm.jsx';
@@ -14,7 +14,7 @@ class PageTypeCreatePanel extends preact.Component {
     // basicInfoWorkingCopy;
     // lastCommittedName;
     // fieldsWorkingCopy;
-    // formWasSubmitted;
+    // savePageTypeToBackendResult;
     constructor(props) {
         super(props);
         this.state = {layouts: [], sectionBIsCollapsed: false, sectionCIsCollapsed: false};
@@ -26,8 +26,6 @@ class PageTypeCreatePanel extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        if (floatingDialog.close)
-            floatingDialog.close();
         // todo prevent double
         createPlaceholderPageType()
             .then(pageType => {
@@ -45,17 +43,31 @@ class PageTypeCreatePanel extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        this.formWasSubmitted = false;
+        api.saveButton.setOnBeforeProcessQueueFn(queue => {
+            // Remove all 'update-block-tree##main''s, since they're included in 'create-new-page-type'
+            const out = queue.filter(({opName}) => opName !== 'update-block-tree##main');
+
+            // Add this op, which will always run last
+            if (out[out.length - 1].opName !== 'finish-page-type-create')
+                out.push({opName: 'finish-page-type-create', command: {
+                    doHandle: this.onOpQueueTasksFinished.bind(this),
+                    args: [],
+                }});
+
+            return out;
+        });
     }
     /**
      * @access protected
      */
     componentWillUnmount() {
-        if (this.formWasSubmitted) return;
-        store.dispatch(deleteItemsFromOpQueueAfter('create-new-page-type'));
-        http.delete(`/api/page-types/${this.lastCommittedName}/as-placeholder`)
-            .then(resp => { if (resp.ok !== 'ok') throw new Error('-'); })
-            .catch(env.window.console.error);
+        api.saveButton.setOnBeforeProcessQueueFn(null);
+        if (!this.savePageTypeToBackendResult) {
+            store.dispatch(deleteItemsFromOpQueueAfter('create-new-page-type'));
+            http.delete(`/api/page-types/${this.lastCommittedName}/as-placeholder`)
+                .then(resp => { if (resp.ok !== 'ok') throw new Error('-'); })
+                .catch(env.window.console.error);
+        }
     }
     /**
      * @access protected
@@ -129,14 +141,7 @@ class PageTypeCreatePanel extends preact.Component {
         this.lastCommittedName = this.pageType.name;
         this.fieldsWorkingCopy = this.pageType.ownFields.map(f => Object.assign({}, f));
         store.dispatch(setOpQueue([{opName: 'create-new-page-type', command: {
-            doHandle: () => {
-                const unreg = observeStore(selectOpQueue, queue => {
-                    if (queue.length !== 0) return;
-                    this.onOpQueueTasksFinished(this.submitData);
-                    unreg();
-                });
-                return this.postNewPageTypeToBackend();
-            },
+            doHandle: this.postNewPageTypeToBackend.bind(this),
             args: []
         }}]));
     }
@@ -158,11 +163,11 @@ class PageTypeCreatePanel extends preact.Component {
         data.defaultFields = this.pageType.defaultFields;
         data.ownFields = this.fieldsWorkingCopy;
         //
-        this.formWasSubmitted = true;
+        this.savePageTypeToBackendResult = null;
         return http.put(`/api/page-types/${this.lastCommittedName}`, data)
             .then(resp => {
                 if (resp.ok !== 'ok') throw new Error('-');
-                this.submitData = data;
+                this.savePageTypeToBackendResult = data;
                 return true;
             })
             .catch(err => {
@@ -172,14 +177,15 @@ class PageTypeCreatePanel extends preact.Component {
             });
     }
     /**
-     * @param {PageType} submittedData
      * @access private
      */
-    onOpQueueTasksFinished(submittedData) {
+    onOpQueueTasksFinished() {
         const mutRef = this.pageType;
+        const submittedData = this.savePageTypeToBackendResult;
         Object.assign(mutRef, submittedData);
         toasters.editAppMain(`${__('Created new %s', __('page type'))}.`, 'success');
-        urlUtils.redirect('/_edit');
+        urlUtils.redirect('_edit', true);
+        return Promise.resolve(true);
     }
     /**
      * @param {'sectionCIsCollapsed'|'sectionBIsCollapsed'} e

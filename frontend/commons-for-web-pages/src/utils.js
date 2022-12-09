@@ -25,9 +25,10 @@ const urlUtils = {
     },
     /**
      * @param {String} url
+     * @param {Boolean} includeDomain = false
      */
-    redirect(url) {
-        this.env.window.location.href = this.makeUrl(url);
+    redirect(url, includeDomain = false) {
+        this.env.window.location.href = this.makeUrl(url, includeDomain);
     },
     /**
      * @param {String} url '/foo' -> 'foo', 'bar' -> 'bar'

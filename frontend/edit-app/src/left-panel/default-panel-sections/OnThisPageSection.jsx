@@ -52,7 +52,8 @@ class OnThisPageSection extends MenuSectionAbstract {
                 }, 50, 10)();
             });
         }), signals.on('inspector-panel-closed', () => {
-            this.blockTreeRef.current.deSelectAllBlocks();
+            if (this.blockTreeRef.current)
+                this.blockTreeRef.current.deSelectAllBlocks();
         })];
         //
         this.updateTitlesToState(this.props.loadedPageSlug);

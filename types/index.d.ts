@@ -17,7 +17,21 @@ interface SivujettiFrontendApi {
         ROLE_CONTRIBUTOR: Number;
         ROLE_FOLLOWER: Number;
     }
+    saveButton: {
+        triggerUndo() : void;
+        setOnBeforeProcessQueueFn(fn: (queue: Array<OpQueueOp>) => Array<OpQueueOp>): void;
+        setOnBeforeProcessQueueFn(fn: null): void;
+    };
     events: todo;
+}
+
+interface OpQueueOp {
+    opName: String;
+    command: {
+        doHandle(): Promise<false|any>;
+        doUndo?: () => void;
+        args: Array<any>;
+    };
 }
 
 interface WebPageIframe {

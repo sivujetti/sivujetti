@@ -2,19 +2,18 @@ import {__, env, signals, Icon} from '@sivujetti-commons-for-edit-app';
 import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from './store.js';
 
 let isUndoKeyListenersAdded = false;
-let triggerUndo;
 
 class SaveButton extends preact.Component {
     // queuedOps;
+    // opQueueMutator;
     /**
      * @param {{mainPanelOuterEl: HTMLElement;}} props
      */
     constructor(props) {
         super(props);
         this.state = {isVisible: false, hasUndoableOps: false, formState: {},
-                        isStickied: false, leftPanelWidth: null};
+                        isStickied: false, leftPanelWidth: null, isSubmitting: false};
         this.queuedOps = [];
-        triggerUndo = this.doUndo.bind(this);
         if (!isUndoKeyListenersAdded) {
             this.addUndoKeyListener();
             isUndoKeyListenersAdded = true;
@@ -24,7 +23,7 @@ class SaveButton extends preact.Component {
             if (ops.length && !this.state.isVisible)
                 this.setState({isVisible: true});
             else if (!ops.length && this.state.isVisible)
-                this.setState({isVisible: false});
+                this.setState({isVisible: false, isSubmitting: false});
             this.setState({hasUndoableOps: ops.length ? ops.some(({command}) => !!command.doUndo) : false});
         });
         observeStore(selectFormStates, formStates => {
@@ -52,11 +51,27 @@ class SaveButton extends preact.Component {
         });
     }
     /**
+     * @access public
+     */
+    doUndo() {
+        const head = this.queuedOps[this.queuedOps.length - 1].command;
+        if (!head.doUndo) return;
+        head.doUndo(...head.args);
+        store.dispatch(setOpQueue(this.queuedOps.slice(0, this.queuedOps.length - 1)));
+    }
+    /**
+     * @param {((queue: Array<OpQueueOp>) => Array<OpQueueOp>)|null} fn
+     * @access public
+     */
+    setOnBeforeProcessQueueFn(fn) {
+        this.opQueueMutator = fn;
+    }
+    /**
      * @access protected
      */
-    render (_, {isVisible, hasUndoableOps, formState, isStickied, leftPanelWidth}) {
+    render (_, {isVisible, hasUndoableOps, formState, isStickied, leftPanelWidth, isSubmitting}) {
         if (!isVisible) return;
-        const saveBtnIsDisabled = formState.isValidating || formState.isSubmitting || !formState.isValid;
+        const saveBtnIsDisabled = formState.isValidating || formState.isSubmitting || !formState.isValid || isSubmitting;
         const undoButtonIsHidden = saveBtnIsDisabled ? true : hasUndoableOps === false;
         const [cls, css] = !isStickied ? ['', ''] : [' stickied', `left: ${leftPanelWidth - 95}px`];
         return <div class={ `d-flex col-ml-auto flex-centered${cls}` } style={ css }>
@@ -93,10 +108,12 @@ class SaveButton extends preact.Component {
                     // Truthy value -> clear item from the queue and proceed
                     if (doProceed !== false) { queue.shift(); next(queue); }
                     // false -> do not clear the item and stop
-                    else store.dispatch(setOpQueue(queue));
+                    else { this.setState({isSubmitting: false}); store.dispatch(setOpQueue(queue)); }
                 });
         };
-        next(optimizeQueue(this.queuedOps.slice(0)));
+        this.setState({isSubmitting: true});
+        const q = optimizeQueue(this.queuedOps.slice(0));
+        next(!this.opQueueMutator ? q : this.opQueueMutator(q));
     }
     /**
      * @access private
@@ -121,15 +138,6 @@ class SaveButton extends preact.Component {
             }
         });
     }
-    /**
-     * @access private
-     */
-    doUndo() {
-        const head = this.queuedOps[this.queuedOps.length - 1].command;
-        if (!head.doUndo) return;
-        head.doUndo(...head.args);
-        store.dispatch(setOpQueue(this.queuedOps.slice(0, this.queuedOps.length - 1)));
-    }
 }
 
 /**
@@ -142,6 +150,9 @@ function getMetaKey() {
 
 /**
  * Note: may mutate queue.*.opName
+ *
+ * @param {Array<OpQueueOp>} queue
+ * @returns {Array<OpQueueOp>}
  */
 function optimizeQueue(queue) {
     const unifyBlockOpNames = queue => {
@@ -179,4 +190,4 @@ function optimizeQueue(queue) {
 }
 
 export default SaveButton;
-export {optimizeQueue, triggerUndo};
+export {optimizeQueue};

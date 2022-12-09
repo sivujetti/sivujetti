@@ -51,6 +51,10 @@ function populateFrontendApi() {
         ROLE_CONTRIBUTOR:  1 << 5, // 32
         ROLE_FOLLOWER:     1 << 6, // 64
     };
+    api.saveButton = {
+        triggerUndo() { editAppReactRef.current.saveButtonRef.current.doUndo(); },
+        setOnBeforeProcessQueueFn(fn) { return editAppReactRef.current.saveButtonRef.current.setOnBeforeProcessQueueFn(fn); },
+    };
     // blockTypes, see configureServices
     // mainPanel see configureServices
 }

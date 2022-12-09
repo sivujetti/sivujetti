@@ -1,8 +1,8 @@
-import {__, api, http, urlUtils} from '@sivujetti-commons-for-edit-app';
+import {__, api, http, env} from '@sivujetti-commons-for-edit-app';
 import {treeToTransferable} from '../Block/utils.js';
 import toasters from '../commons/Toaster.jsx';
-import store, {deleteItemsFromOpQueueAfter, observeStore, selectCurrentPageDataBundle,
-                selectOpQueue, setCurrentPageDataBundle, setOpQueue} from '../store.js';
+import store, {deleteItemsFromOpQueueAfter, selectCurrentPageDataBundle,
+                setCurrentPageDataBundle, setOpQueue} from '../store.js';
 import store2 from '../store2.js';
 import OnThisPageSection from './default-panel-sections/OnThisPageSection.jsx';
 
@@ -10,6 +10,8 @@ import OnThisPageSection from './default-panel-sections/OnThisPageSection.jsx';
  * Left-panel for #/pages/create/:pageTypeName?/:layoutId?.
  */
 class PageCreatePanel extends preact.Component {
+    // pageType;
+    // savePageToBackendResult;
     /**
      * @access protected
      */
@@ -24,13 +26,39 @@ class PageCreatePanel extends preact.Component {
             : this.props.pageSlug;
         api.webPageIframe.renderPlaceholderPage(pageTypeName, layoutId, slug).then(_webPage => {
             this.setState({temp: ':pseudo/new-page'});
-            this.overwriteOpQueue();
+            store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
+                doHandle: this.saveNewPageToBackend.bind(this),
+                args: []
+            }}]));
+        });
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        api.saveButton.setOnBeforeProcessQueueFn(queue => {
+            // Remove all 'update-block-tree##main''s, since they're included in 'create-new-page'
+            const out = queue.filter(({opName}) => opName !== 'update-block-tree##main');
+
+            // Add this op, which will always run last
+            if (out[out.length - 1].opName !== 'finish-page-create')
+                out.push({opName: 'finish-page-create', command: {
+                    doHandle: () => {
+                        const pagePath = this.savePageToBackendResult;
+                        env.window.myRoute(pagePath);
+                        return Promise.resolve(true);
+                    },
+                    args: [],
+                }});
+
+            return out;
         });
     }
     /**
      * @access protected
      */
     componentWillUnmount() {
+        api.saveButton.setOnBeforeProcessQueueFn(null);
         store.dispatch(deleteItemsFromOpQueueAfter('create-new-page'));
     }
     /**
@@ -51,28 +79,6 @@ class PageCreatePanel extends preact.Component {
         </div>;
     }
     /**
-     * @access private
-     */
-    overwriteOpQueue() {
-        store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
-            doHandle: () => {
-                const unreg = observeStore(selectOpQueue, queue => {
-                    if (queue.length !== 0) return;
-                    unreg();
-                    // this.saveNewPageToBackend was succesful, proceed normally
-                    if (this.submitOpResult)
-                        urlUtils.redirect(this.submitOpResult.redirectTo);
-                    // Something happened during this.saveNewPageToBackend, ovewrite the opQueue to [<createNewPageCms>] again
-                    else
-                        this.overwriteOpQueue();
-                });
-                //
-                return this.saveNewPageToBackend();
-            },
-            args: []
-        }}]));
-    }
-    /**
      * @returns {Promise<Boolean>}
      * @access private
      */
@@ -81,16 +87,16 @@ class PageCreatePanel extends preact.Component {
         const data = JSON.parse(JSON.stringify(pageDataBundle.page));
         delete data.id;
         data.blocks = treeToTransferable(store2.get().theBlockTree, false);
-        this.submitOpResult = null;
+        this.savePageToBackendResult = null;
         data.status = 0;
         //
         return http.post(`/api/pages/${this.pageType.name}`, data).then(resp => {
                 if (Array.isArray(resp) && resp[0] === 'Page with identical slug already exists') {
                     toasters.editAppMain(__('Page "%s" already exist.', data.slug), 'error');
-                    return true;
+                    return false;
                 }
                 if (resp.ok !== 'ok') throw new Error('-');
-                this.submitOpResult = {ok: 'ok', redirectTo: `/_edit#${pathToFullSlug(data.path, '')}`};
+                this.savePageToBackendResult = pathToFullSlug(data.path, '');
                 pageDataBundle.page.id = resp.insertId;
                 setCurrentPageDataBundle(pageDataBundle);
                 return true;

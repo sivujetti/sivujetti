@@ -1,8 +1,7 @@
-import {http, signals} from '@sivujetti-commons-for-edit-app';
+import {api, http, signals} from '@sivujetti-commons-for-edit-app';
 import {treeToTransferable} from './Block/utils.js';
 import blockTreeUtils from './left-panel/Block/blockTreeUtils.js';
 import {saveExistingBlocksToBackend} from './left-panel/Block/createBlockTreeDndController.js';
-import {triggerUndo} from './SaveButton.jsx';
 import store, {pushItemToOpQueue} from './store.js';
 import store2, {observeStore as observeStore2} from './store2';
 
@@ -77,7 +76,7 @@ class OpQueueItemEmitter {
                 this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, 'main', originalBlockId, true, () => {
                     setTimeout(() => {
                         // Remove 1. op from the queue
-                        triggerUndo();
+                        api.saveButton.triggerUndo();
                     }, 100);
                 });
             }

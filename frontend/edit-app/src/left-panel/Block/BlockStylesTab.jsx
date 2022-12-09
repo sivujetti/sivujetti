@@ -7,7 +7,6 @@ import CssStylesValidatorHelper from '../../commons/CssStylesValidatorHelper.js'
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import store, {pushItemToOpQueue} from '../../store.js';
 import {validationConstraints} from '../../constants.js';
-import {triggerUndo} from '../../SaveButton.jsx';
 import exampleScss from '../../example-scss.js';
 import VisualStyles from './VisualStyles.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
@@ -302,7 +301,7 @@ class BlockStylesTab extends preact.Component {
             else store2.dispatch('themeStyles/removeStyle', [type]);
 
             // Revert # 2
-            if (addedStyleToBlock) setTimeout(() => { triggerUndo(); }, 100);
+            if (addedStyleToBlock) setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
         });
     }
     /**

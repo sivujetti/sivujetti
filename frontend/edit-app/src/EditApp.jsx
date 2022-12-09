@@ -29,6 +29,7 @@ class EditApp extends preact.Component {
             ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
             : []
         ).concat({name: 'log-out', label: __('Log out')});
+        this.saveButtonRef = preact.createRef();
         this.state = {hidePanels: getArePanelsHidden()};
         if (this.state.hidePanels) props.rootEl.classList.add(PANELS_HIDDEN_CLS);
         this.resizeHandleEl = preact.createRef();
@@ -75,7 +76,7 @@ class EditApp extends preact.Component {
                         ) }</select>
                     </span>
                 </div>
-                <SaveButton mainPanelOuterEl={ this.props.outerEl }/>
+                <SaveButton mainPanelOuterEl={ this.props.outerEl } ref={ this.saveButtonRef }/>
             </header>
             { !showFirstTimeDragInstructions ? null : <div class="drag-instructions-overlay"><div>
                 <p class="flex-centered">

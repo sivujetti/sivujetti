@@ -87,6 +87,7 @@ stringBundles.push({
     'Visual': 'Visual',
     'Code': 'Code',
     // edit-app/src/left-panel/default-panel-sections/OnThisPageSection.jsx
+    'Duplicate this page': 'Duplicate this page',
     'On this page': 'On this page',
     'Content of page %s': 'Content of %s-page',
     'New page content': 'New page content',
@@ -108,7 +109,7 @@ stringBundles.push({
     'Pages#partitive': 'Pages',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Edit mode',
-    'Exit edit mode': 'Exit edit mode',
+    'Hide edit menu': 'Hide edit menu',
     'Go to dashboard': 'Go to dashboard',
     'Log out': 'Log out',
     'Created new %s': 'Created new %s',

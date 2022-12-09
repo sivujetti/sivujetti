@@ -27,7 +27,7 @@ class WebPageIframe {
      * @access public
      */
     renderPlaceholderPage(pageTypeName, layoutId = '1', slug = '') {
-        return this.loadPage(
+        return this.loadPageToIframe(
             urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`)
                 + (!slug ? '' : t(`duplicate=${encodeURIComponent(slug)}`))
         );
@@ -38,7 +38,7 @@ class WebPageIframe {
      * @access public
      */
     renderNormalPage(slug) {
-        return this.loadPage(
+        return this.loadPageToIframe(
             `${urlUtils.makeUrl(slug)}${t('in-edit=1')}`,
         );
     }
@@ -110,11 +110,11 @@ class WebPageIframe {
         this.pageManager.unregisterWebPageDomUpdaterForBlockTree(trid);
     }
     /**
-     * @param {String} iframeUrl
+     * @param {String} url
      * @returns {Promise<EditAppAwareWebPage>}
      * @access private
      */
-    loadPage(iframeUrl) {
+    loadPageToIframe(url) {
         if (env.window.receiveNewPreviewIframePage)
             env.window.console.log('Previous page didn\'t load properly, ignoring.');
         return new Promise(resolve => {
@@ -122,15 +122,15 @@ class WebPageIframe {
             env.window.receiveNewPreviewIframePage = webPage => {
                 // 3.
                 webPage.init(renderBlockAndThen, toTransferable, blockTreeUtils);
-                this.pageManager.loadPage(iframeUrl.indexOf('duplicate=') < 0 ? webPage : withPatchedTitle(webPage));
+                this.pageManager.loadPage(webPage, url.indexOf('duplicate=') > -1);
                 resolve(webPage);
                 env.window.receiveNewPreviewIframePage = null;
             };
             // 2.
             if (!useShareNothing) {
-                this.getEl().contentWindow.location.replace(iframeUrl);
+                this.getEl().contentWindow.location.replace(url);
             } else  {
-                const newEl = createNewIframeEl(iframeUrl, this.getEl());
+                const newEl = createNewIframeEl(url, this.getEl());
                 this.getEl().replaceWith(newEl);
                 this.el = newEl;
             }
@@ -150,18 +150,6 @@ function createNewIframeEl(url, current) {
     const css = current.getAttribute('style');
     if (css) newEl.setAttribute('style', current.getAttribute('style'));
     return newEl;
-}
-
-/**
- * @param {EditAppAwareWebPage} webPage
- * @returns {EditAppAwareWebPage}
- */
-function withPatchedTitle(webPage) {
-    const mutRef = webPage.data.page;
-    mutRef.title = `${mutRef.title} (${__('Copy')})`;
-    mutRef.slug = `${mutRef.slug}-${__('Copy').toLowerCase()}`;
-    mutRef.path = `${mutRef.slug.substring(1)}/`;
-    return webPage;
 }
 
 function t(url) {

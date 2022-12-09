@@ -1,5 +1,8 @@
 import {__, env} from '@sivujetti-commons-for-edit-app';
 
+let isGlobalEscKeyPressListenerHookedUp = false;
+let openInstance = null;
+
 class ContextMenu extends preact.Component {
     // pos;
     // doFilterLinks;
@@ -11,6 +14,13 @@ class ContextMenu extends preact.Component {
         this.state = {isOpen: false};
         this.pos = {left: 0, top: 0};
         this.doFilterLinks = null;
+        if (!isGlobalEscKeyPressListenerHookedUp) {
+            env.window.addEventListener('keydown', e => {
+                if (openInstance && e.key === 'Escape')
+                    openInstance.close();
+            });
+            isGlobalEscKeyPressListenerHookedUp = true;
+        }
     }
     /**
      * Opens a context menu next to the top left corner of e.target.
@@ -25,12 +35,14 @@ class ContextMenu extends preact.Component {
         this.pos = {top: r.top, left: r.left};
         this.doFilterLinks = getShowableLinks || function(links) { return links; };
         this.setState({isOpen: true});
+        openInstance = this;
     }
     /**
      * @param {Event|null} e
      * @access public
      */
     close(e) {
+        openInstance = null;
         if (e) e.preventDefault();
         this.setState({isOpen: false});
         this.props.onMenuClosed();

@@ -24,7 +24,7 @@ class EditApp extends preact.Component {
         super(props);
         this.changeViewOptions = [
             {name: 'edit-mode', label: __('Edit mode')},
-            {name: 'go-to-web-page', label: __('Exit edit mode')},
+            {name: 'hide-edit-menu', label: __('Hide edit menu')},
         ].concat(props.dataFromAdminBackend.showGoToDashboardMode
             ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
             : []

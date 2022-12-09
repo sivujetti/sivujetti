@@ -1,16 +1,22 @@
 import {__, api, env, signals, Icon, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
 import {createTrier} from '../../../../webpage/src/EditAppAwareWebPage.js';
+import ContextMenu from '../../commons/ContextMenu.jsx';
 import BlockTree from '../Block/BlockTree.jsx';
 
 class OnThisPageSection extends MenuSectionAbstract {
     // blockTreeRef;
     // unregistrables;
+    // moreMenuIcon;
+    // moreMenu;
+    // mouseFocusIsAt;
     /**
      * @inheritdoc
      */
     constructor(props) {
         super(Object.assign(props, {initiallyIsCollapsed: props.initiallyIsCollapsed === true}));
         this.blockTreeRef = preact.createRef();
+        this.moreMenuIcon = preact.createRef();
+        this.moreMenu = preact.createRef();
     }
     /**
      * @access protected
@@ -78,12 +84,25 @@ class OnThisPageSection extends MenuSectionAbstract {
         return <section class={ `on-this-page panel-section pl-0${isCollapsed ? '' : ' open'}` }>
             <button
                 class="flex-centered pr-2 pl-1 section-title col-12"
-                onClick={ () => { this.setState({isCollapsed: !isCollapsed}); } }
+                onClick={ this.handleMainButtonClicked.bind(this) }
+                onFocusCapture={ () => { this.mouseFocusIsAt = 'outerButton'; } }
                 title={ subtitle }
                 type="button">
                 <Icon iconId="map-pin" className="p-absolute size-sm mr-2 color-purple"/>
                 <span class="pl-1 d-block col-12 color-default">
-                    { title }
+                    <span>
+                        { title }
+                        { containingView === 'Default'
+                            ? <i
+                                tabIndex="0"
+                                onFocusCapture={ () => { this.mouseFocusIsAt = 'moreMenuIcon'; } }
+                                class="btn btn-link btn-sm p-absolute"
+                                style="height: 1.12rem; margin-top: -.1rem;"
+                                ref={ this.moreMenuIcon }>
+                                    <Icon iconId="dots" className="size-xs"/>
+                            </i>
+                            : null }
+                    </span>
                     <span class="text-ellipsis text-tiny col-12">{ subtitle }</span>
                 </span>
                 <Icon iconId="chevron-right" className="p-absolute size-xs"/>
@@ -92,7 +111,24 @@ class OnThisPageSection extends MenuSectionAbstract {
                 loadedPageSlug={ loadedPageSlug }
                 containingView={ containingView }
                 ref={ this.blockTreeRef }/> : null }
+            { containingView === 'Default' ? <ContextMenu
+                links={ [
+                    {text: __('Duplicate this page'), title: __('Duplicate page'), id: 'duplicate'},
+                ] }
+                onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
+                onMenuClosed={ () => { this.slugOfPageWithNavOpened = null; } }
+                ref={ this.moreMenu }/> : null }
         </section>;
+    }
+    /**
+     * @param {Event} e
+     * @access private
+     */
+    handleMainButtonClicked(e)  {
+        if (!(this.mouseFocusIsAt === 'moreMenuIcon' || e.target.tagName === 'I' || this.moreMenuIcon.current.contains(e.target)))
+            this.setState({isCollapsed: !this.state.isCollapsed});
+        else
+            this.openMoreMenu(this.props.loadedPageSlug, e);
     }
     /**
      * @param {String|null} loadedSlug
@@ -101,8 +137,28 @@ class OnThisPageSection extends MenuSectionAbstract {
     updateTitlesToState(loadedSlug) {
         const slug = loadedSlug || '/';
         const containingView = determineViewNameFrom(slug);
-        this.setState({title: __(containingView !== 'CreatePageType' ? 'On this page' : 'Default content'),
-            subtitle: getSubtitle(slug, containingView), containingView});
+        this.setState({
+            title: __(containingView !== 'CreatePageType' ? 'On this page' : 'Default content'),
+            subtitle: getSubtitle(slug, containingView),
+            containingView
+        });
+    }
+    /**
+     * @param {String} pageSlug
+     * @param {Event} e
+     * @access private
+     */
+    openMoreMenu(pageSlug, e) {
+        this.slugOfPageWithNavOpened = pageSlug;
+        this.moreMenu.current.open(e);
+    }
+    /**
+     * @param {ContextMenuLink} link
+     * @access private
+     */
+    handleContextMenuLinkClicked(link) {
+        if (link.id === 'duplicate')
+            env.window.myRoute(`/pages/${encodeURIComponent(this.slugOfPageWithNavOpened)}/duplicate`);
     }
 }
 

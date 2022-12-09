@@ -25,9 +25,10 @@ class IframePageManager {
     }
     /**
      * @param {EditAppAwareWebPage} webPage
+     * @param {Boolean} isDuplicate = false
      * @access public
      */
-    loadPage(webPage) {
+    loadPage(webPage, isDuplicate = false) {
         this.currentWebPage = null;
         if (webPageUnregistrables.size) {
             for (const fn of webPageUnregistrables.values()) fn();
@@ -53,7 +54,7 @@ class IframePageManager {
         //
         const {data} = webPage;
         delete webPage.data;
-        data.page = maybePatchTitleAndSlug(data.page);
+        data.page = maybePatchTitleAndSlug(data.page, isDuplicate);
         //
         webPage.addRootBoundingEls(ordered[ordered.length - 1]);
         webPage.registerEventHandlers(this.createWebsiteEventHandlers(this, webPageUnregistrables));
@@ -197,11 +198,12 @@ function t(el) {
 
 /**
  * @param {Page} page
+ * @param {Boolean} isDuplicate = false
  * @returns {Page}
  */
-function maybePatchTitleAndSlug(page) {
+function maybePatchTitleAndSlug(page, isDuplicate = false) {
     if (page.isPlaceholderPage) {
-        page.title = __(page.title);
+        page.title = __(page.title) + (!isDuplicate ? '' : ` (${__('Copy')})`);
         page.slug = makeSlug(page.title);
         const pageType = api.getPageTypes().find(({name}) => name === page.type);
         page.path = makePath(page.slug, pageType);

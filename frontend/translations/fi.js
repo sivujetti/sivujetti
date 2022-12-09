@@ -87,6 +87,7 @@ stringBundles.push({
     'Visual': 'Visuaalinen',
     'Code': 'Koodi',
     // edit-app/src/left-panel/default-panel-sections/OnThisPageSection.jsx
+    'Duplicate this page': 'Monista tämä sivu',
     'On this page': 'Tämä sivu',
     'Content of page %s': '%s -sivun sisältö',
     'New page content': 'Uuden sivun sisältö',
@@ -108,7 +109,7 @@ stringBundles.push({
     'Pages#partitive': 'Sivua',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Muokkaustila',
-    'Exit edit mode': 'Poistu muokkaustilasta',
+    'Hide edit menu': 'Piilota muokkausvalikko',
     'Go to dashboard': 'Siirry dashboardiin',
     'Log out': 'Kirjaudu ulos',
     'Created new %s': 'Luotiin uusi %s',

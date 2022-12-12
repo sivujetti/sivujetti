@@ -10,6 +10,8 @@ stringBundles.push({
     'Service': 'Palvelu',
     // edit-app/src/left-column/block/BlockDnDSpawner.jsx
     'Start adding content': 'Aloita lisäämään sisältöä',
+    'reusable content': 'uudelleenkäytettävä sisältö',
+    'unique content': 'uniikki sisältö',
     'Filter': 'Suodata',
     // edit-app/src/left-column/block/BlockStylesTab.jsx
     'Use style': 'Käytä tyyliä',

@@ -10,6 +10,8 @@ stringBundles.push({
     'Service': 'Service',
     // edit-app/src/left-column/block/BlockDnDSpawner.jsx
     'Start adding content': 'Start adding content',
+    'reusable content': 'reusable content',
+    'unique content': 'unique content',
     'Filter': 'Filter',
     // edit-app/src/left-column/block/BlockStylesTab.jsx
     'Use style': 'Use style',

@@ -166,6 +166,20 @@ h2 {
 
 
 /* == EditApp: Defaults ===================================================== */
+.ql-editor ol,
+.ql-editor ul {
+    padding-left: 0;
+}
+.ql-editor p,
+.ql-editor ol,
+.ql-editor ul {
+    margin-bottom: .8rem;
+}
+.ql-editor p:last-child,
+.ql-editor ol:last-child,
+.ql-editor ul:last-child {
+    margin-bottom: 0;
+}
 .ql-toolbar.ql-snow {
     border: none;
     padding: .1rem;
@@ -963,7 +977,8 @@ input + .scroller {
     border-left: none;
 }
 .new-block-spawner .block-tree li[data-flavor="reusableBranch"] + li[data-flavor="blockType"]:before,
-.new-block-spawner .block-tree li[data-block-type="Code"] + li:before {
+.new-block-spawner .block-tree li[data-block-type="Code"] + li:before,
+.new-block-spawner .block-tree li:not(.globalBlockTree-block) + li.globalBlockTree-block:before {
     content: "";
     display: block;
     height: 1px;
@@ -990,7 +1005,7 @@ input + .scroller {
     position: absolute;
     z-index: 1;
     left: -15px;
-    top: 45px;
+    top: 48px;
 }
 .new-block-spawner-opened .new-block-spawner > .btn > .icon-tabler {
     transform: rotate(180deg);

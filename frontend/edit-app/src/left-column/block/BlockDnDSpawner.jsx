@@ -101,7 +101,7 @@ class BlockDnDSpawner extends preact.Component {
                 class={ `p-0 btn btn-sm d-flex with-icon btn-primary${isMounted ? '' : ' d-none'}` }
                 title={ __('Start adding content') }
                 type="button"
-                style="margin: 2px 0px 0px -2px">
+                style="margin: -1px 0 0 -2px">
                 <Icon iconId="chevron-right" className="mr-0 size-xs"/>
             </button>
             { isOpen ? [
@@ -110,8 +110,8 @@ class BlockDnDSpawner extends preact.Component {
                     reusables.map((cb, i) => {
                         const rootReusable = cb.blockBlueprints[0];
                         const blockType = api.blockTypes.get(rootReusable.blockType);
-                        return [rootReusable.initialDefaultsData.title || __(blockType.friendlyName), 'reusableBranch', cb.blockBlueprints[0].blockType,
-                            [i.toString()]];
+                        const label = rootReusable.initialDefaultsData.title || __(blockType.friendlyName);
+                        return [label, 'reusableBranch', cb.blockBlueprints[0].blockType, [i.toString()]];
                     })
                     .concat(this.selectableBlockTypes.map(([name, blockType]) =>
                         [__(blockType.friendlyName), 'blockType', name, []])
@@ -120,6 +120,7 @@ class BlockDnDSpawner extends preact.Component {
                         [name, 'globalBlockTree', blocks[0].type, [id]]
                     )).map(([label, flavor, rootBlockTypeName, vargs]) => {
                         const isNotGbt = flavor !== 'globalBlockTree';
+                        const labelApdx = isNotGbt ? flavor !== 'reusableBranch' ? '' : ` (${__('reusable content')})` : ` (${'unique content'})`;
                         return <li class={ `${isNotGbt ? 'page' : 'globalBlockTree'}-block ml-0` } data-block-type={ rootBlockTypeName } data-flavor={ flavor }><div class="d-flex">
                             <button
                                 onDragStart={ this.onDragStart }
@@ -129,7 +130,7 @@ class BlockDnDSpawner extends preact.Component {
                                 data-block-type={ isNotGbt ? rootBlockTypeName : 'GlobalBlockReference' }
                                 data-is-stored-to-trid={ isNotGbt ? 'main' : vargs[0] }
                                 data-reusable-branch-idx={ flavor !== 'reusableBranch' ? '' : vargs[0] }
-                                title={ label }
+                                title={ `${label}${labelApdx}` }
                                 type="button"
                                 draggable>
                                 <Icon iconId={ getIcon(rootBlockTypeName) } className="size-xs p-absolute"/>

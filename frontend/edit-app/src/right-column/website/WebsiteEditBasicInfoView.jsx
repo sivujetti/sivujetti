@@ -1,10 +1,10 @@
 import {__, http, hookForm, unhookForm, handleSubmit, FormGroupInline, Input,
         Textarea, InputErrors, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
-import {validationConstraints} from '../constants.js';
-import OverlayView from '../commons/OverlayView.jsx';
-import toasters from '../commons/Toaster.jsx';
-import store2 from '../store2.js';
-import setFocusTo from '../block-types/auto-focusers.js';
+import {validationConstraints} from '../../constants.js';
+import OverlayView from '../../commons/OverlayView.jsx';
+import toasters from '../../commons/Toaster.jsx';
+import store2 from '../../store2.js';
+import setFocusTo from '../../block-types/auto-focusers.js';
 
 class WebsiteEditBasicInfoView extends preact.Component {
     // selectableLangs;

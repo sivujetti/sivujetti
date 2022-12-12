@@ -1,5 +1,5 @@
 import {__, api, http} from '@sivujetti-commons-for-edit-app';
-import {setTrids, treeToTransferable} from '../../Block/utils.js';
+import {setTrids, treeToTransferable} from '../../block/utils.js';
 import toasters from '../../commons/Toaster.jsx';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import store2 from '../../store2.js';

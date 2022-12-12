@@ -1,4 +1,4 @@
-import VisualStyles, {ColorValueInput, LengthValueInput} from '../edit-app/src/left-panel/Block/VisualStyles.jsx';
+import VisualStyles, {ColorValueInput, LengthValueInput} from '../edit-app/src/left-column/block/VisualStyles.jsx';
 const {compile} = window.stylis;
 
 QUnit.module('VisualStyles.jsx', () => {

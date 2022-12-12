@@ -1,11 +1,11 @@
 import {signals} from '@sivujetti-commons-for-edit-app';
-import WebsiteEditBasicInfoView from './Website/WebsiteEditBasicInfoView.jsx';
-import PagesListView from './Page/PagesListView.jsx';
-import {isEditAppViewUrl} from './left-panel/DefaultPanel.jsx';
+import WebsiteEditBasicInfoView from './right-column/website/WebsiteEditBasicInfoView.jsx';
+import PagesListView from './right-column/page/PagesListView.jsx';
+import {isEditAppViewUrl} from './left-column/DefaultPanel.jsx';
 
 const PreactRouter = preactRouter;
 
-class EditAppViews extends preact.Component {
+class RightColumnViews extends preact.Component {
     /**
      * @access protected
      */
@@ -31,4 +31,4 @@ class EditAppViews extends preact.Component {
     }
 }
 
-export default EditAppViews;
+export default RightColumnViews;

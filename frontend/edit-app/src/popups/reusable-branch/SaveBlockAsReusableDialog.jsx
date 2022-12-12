@@ -1,6 +1,6 @@
 import {__, hookForm, unhookForm, handleSubmit, FormGroup, Input, InputErrors,
         floatingDialog} from '@sivujetti-commons-for-edit-app';
-import setFocusTo from './block-types/auto-focusers.js';
+import setFocusTo from '../../block-types/auto-focusers.js';
 
 class SaveBlockAsReusableDialog extends preact.Component {
     // boundDoHandleSubmit;

@@ -1,13 +1,13 @@
 import {__, api, signals, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import {getIcon} from '../../block-types/block-types.js';
-import {cloneDeep, treeToTransferable} from '../../Block/utils.js';
+import {cloneDeep, treeToTransferable} from '../../block/utils.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import {generatePushID} from '../../commons/utils.js';
-import BlockTreeShowHelpPopup from '../../BlockTreeShowHelpPopup.jsx';
-import SaveBlockAsReusableDialog from '../../SaveBlockAsReusableDialog.jsx';
+import BlockTreeShowHelpPopup from '../../popups/BlockTreeShowHelpPopup.jsx';
+import SaveBlockAsReusableDialog from '../../popups/reusable-branch/SaveBlockAsReusableDialog.jsx';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import TreeDragDrop from '../../TreeDragDrop.js';
-import BlockDnDSpawner2 from './BlockDnDSpawner2.jsx';
+import BlockDnDSpawner from './BlockDnDSpawner.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import createDndController, {createBlockDescriptor} from './createBlockTreeDndController.js';
 
@@ -97,7 +97,7 @@ class BlockTree extends preact.Component {
                 style="right: -.1rem; top: .1rem;">
                 <Icon iconId="info-circle" className="size-xs"/>
             </button></div>
-            <BlockDnDSpawner2
+            <BlockDnDSpawner
                 mainTreeDnd={ this.dragDrop }
                 initiallyIsOpen={ this.currentPageIsPlaceholder && this.props.containingView === 'CreatePage' }
                 ref={ this.blockSpawner }/>

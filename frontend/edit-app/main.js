@@ -4,27 +4,27 @@ import {sensibleDefaults} from './src/constants.js';
 import {FormStateStoreWrapper} from './src/store.js';
 import EditApp from './src/EditApp.jsx';
 import BlockTypes from './src/block-types/block-types.js';
-import createMenuBlockType from './src/block-types/Menu/menu.js';
+import createMenuBlockType from './src/block-types/menu/menu.js';
 import createButtonBlockType from './src/block-types/button.js';
 import createColumnsBlockType from './src/block-types/columns.js';
 import createCodeBlockType from './src/block-types/code.js';
 import createGlobalBlockReferenceBlockType from './src/block-types/globalBlockReference.js';
 import createHeadingBlockType from './src/block-types/heading.js';
 import createImageBlockType from './src/block-types/image.js';
-import createListingBlockType from './src/block-types/Listing/listing.js';
+import createListingBlockType from './src/block-types/listing/listing.js';
 import createPageInfoBlockType from './src/block-types/pageInfo.js';
 import createParagraphBlockType from './src/block-types/paragraph.js';
 import createRichTextBlockType from './src/block-types/richText.js';
 import createSectionBlockType from './src/block-types/section.js';
 import InspectorPanel from './src/InspectorPanel.jsx';
-import WebPageIframe from './src/WebPageIframe.js';
-import MainPanel from './src/MainPanel.js';
-import OnThisPageSection from './src/left-panel/default-panel-sections/OnThisPageSection.jsx';
-import BaseStylesSection from './src/left-panel/default-panel-sections/BaseStylesSection.jsx';
-import SettingsSection from './src/left-panel/default-panel-sections/SettingsSection.jsx';
-import WebsiteSection from './src/left-panel/default-panel-sections/WebsiteSection.jsx';
-import {MyClipboard, MyKeyboard, MyLink, MySnowTheme} from './src/Quill/quill-customizations.js';
-import EditAppViews from './src/EditAppViews.jsx';
+import WebPageIframe from './src/right-column/WebPageIframe.js';
+import MainPanel from './src/left-column/MainPanel.js';
+import OnThisPageSection from './src/left-column/default-panel-sections/OnThisPageSection.jsx';
+import BaseStylesSection from './src/left-column/default-panel-sections/BaseStylesSection.jsx';
+import SettingsSection from './src/left-column/default-panel-sections/SettingsSection.jsx';
+import WebsiteSection from './src/left-column/default-panel-sections/WebsiteSection.jsx';
+import {MyClipboard, MyKeyboard, MyLink, MySnowTheme} from './src/quill/quill-customizations.js';
+import RightColumnViews from './src/RightColumnViews.jsx';
 
 const editAppReactRef = preact.createRef();
 
@@ -130,7 +130,7 @@ function renderReactEditApp() {
         ref: inspectorPanelReactRef,
     }), inspectorPanelOuterEl);
 
-    preact.render(preact.createElement(EditAppViews, {
+    preact.render(preact.createElement(RightColumnViews, {
         rootEl,
     }), document.getElementById('view'));
 

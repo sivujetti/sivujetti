@@ -1,6 +1,6 @@
 import EditAppAwareWebPage from './src/EditAppAwareWebPage.js';
 
-// see renderPlaceholderPage|renderNormalPage @edit-app/src/WebPageIframe.js
+// see renderPlaceholderPage|renderNormalPage @edit-app/src/right-column/WebPageIframe.js
 const {receiveNewPreviewIframePage} = (window.parent || {});
 
 if (receiveNewPreviewIframePage) {

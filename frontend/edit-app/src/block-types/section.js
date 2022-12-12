@@ -1,6 +1,6 @@
 import {__, http, urlUtils, FormGroupInline} from '@sivujetti-commons-for-edit-app';
-import ImagePicker from '../BlockWidget/ImagePicker.jsx';
-import {UPLOADS_DIR_PATH} from '../Upload/UploadsManager.jsx';
+import ImagePicker from '../block-widget/ImagePicker.jsx';
+import {UPLOADS_DIR_PATH} from '../popups/upload/UploadsManager.jsx';
 import setFocusTo from './auto-focusers.js';
 
 class SectionBlockEditForm extends preact.Component {

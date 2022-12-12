@@ -1,4 +1,4 @@
-import theBlockTreeStore from './Block/theBlockTreeStore.js';
+import theBlockTreeStore from './block/theBlockTreeStore.js';
 
 const {createStoreon} = window.storeon;
 

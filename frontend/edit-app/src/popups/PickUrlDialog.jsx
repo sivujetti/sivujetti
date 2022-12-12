@@ -1,10 +1,10 @@
 import {__, env, http, urlUtils, Icon, LoadingSpinner, hookForm, Input, InputErrors,
         hasErrors, unhookForm} from '@sivujetti-commons-for-edit-app';
-import UploadsManager from '../Upload/UploadsManager.jsx';
 import {urlValidatorImpl} from '../validation.js';
 import {validationConstraints} from '../constants.js';
-import {determineModeFrom, getLabel, normalizeExternalUrl} from './common.js';
 import setFocusTo from '../block-types/auto-focusers.js';
+import UploadsManager from './upload/UploadsManager.jsx';
+import {determineModeFrom, getLabel, normalizeExternalUrl} from '../quill/common.js';
 
 class PickUrlDialog extends preact.Component {
     // currentExternalUrl;

@@ -1,7 +1,7 @@
 import {api} from '@sivujetti-commons-for-edit-app';
 
 /**
- * The default left-panel ("#/", "#/some-page").
+ * The default left-column ("#/", "#/some-page").
  */
 class DefaultPanel extends preact.Component {
     /**

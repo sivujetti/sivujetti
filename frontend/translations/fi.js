@@ -8,10 +8,10 @@ stringBundles.push({
     'Services': 'Palvelut',
     'Services#partitive': 'Palvelua',
     'Service': 'Palvelu',
-    // edit-app/src/left-panel/Block/BlockDnDSpawner2.jsx
+    // edit-app/src/left-column/block/BlockDnDSpawner.jsx
     'Start adding content': 'Aloita lisäämään sisältöä',
     'Filter': 'Suodata',
-    // edit-app/src/left-panel/Block/BlockStylesTab.jsx
+    // edit-app/src/left-column/block/BlockStylesTab.jsx
     'Use style': 'Käytä tyyliä',
     'No own styles': 'Ei omia tyylejä',
     'Show parent styles': 'Näytä ulommat tyylit',
@@ -24,7 +24,7 @@ stringBundles.push({
     'Css for the inner elements': 'Sisempien elementtien css',
     'Other classes': 'Muut luokat',
     'Style name': 'Tyylin nimi',
-    // edit-app/src/left-panel/Page/AddCategoryPanel.jsx
+    // edit-app/src/left-column/page/AddCategoryPanel.jsx
     'Category': 'Kategoria',
     'New category name': 'Kategorian nimi',
     'Create category': 'Luo kategoria',
@@ -39,9 +39,9 @@ stringBundles.push({
     'Content': 'Sisältö',
     'Page "%s" already exist.': 'Sivu "%s" on jo olemassa.',
     'Something unexpected happened.': 'Jokin meni pieleen.',
-    // edit-app/src/Page/PagesListView.jsx
+    // edit-app/src/right-column/page/PagesListView.jsx
     'Duplicate page': 'Monista sivu',
-    // edit-app/src/Quill/*
+    // edit-app/src/quill/*
     'Image': 'Kuva',
     'External': 'Ulkoinen',
     'website.com': 'sivusto.com',
@@ -52,10 +52,10 @@ stringBundles.push({
     'Link to a page: ': 'Linkki sivuun: ',
     'Link to an image: ': 'Linkki kuvaan: ',
     'Link to an address: ': 'Linkki osoitteeseen: ',
-    // edit-app/src/left-panel/Block/BlockEditForm.jsx
+    // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Tyylit',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
-    // edit-app/src/left-panel/Block/BlockTree.jsx
+    // edit-app/src/left-column/block/BlockTree.jsx
     'Add child content': 'Lisää lapsisisältöä',
     'Duplicate': 'Monista',
     'Duplicate content': 'Monista sisältö',
@@ -64,7 +64,7 @@ stringBundles.push({
     'Save as reusable': 'Tallenna uudelleenkäytettäväksi',
     'Save as reusable content': 'Tallenna uudelleenkäytettäväksi sisällöksi',
     'Content tree': 'Sisältöpuu',
-    // edit-app/src/BlockTreeShowHelpPopup.jsx
+    // edit-app/src/popups/BlockTreeShowHelpPopup.jsx
     'todo1': 'Sivujetissä sivujen sisältö esitetään tällaisena puurakenteena: yksi puun rivi tai haara vastaa yhtä sivun osiota tai sisältöä. Voit ',
     'todo2': 'järjestellä',
     'todo3': ' sivun eri osioita sisältöpuun rivejä raahaamalla. Voit aloittaa ',
@@ -82,24 +82,24 @@ stringBundles.push({
     'Meta content contains ': 'Metasisältöön on tallennettu ',
     'additional data / metadata': 'lisä-, tai metatietoja',
     ', and otherwise act like ordinary content.': ', ja käyttäytyvät muilta osin kuten tavallinen sisältö.',
-    // edit-app/src/left-panel/default-panel-sections/BaseStylesSection.jsx
+    // edit-app/src/left-column/default-panel-sections/BaseStylesSection.jsx
     'Colours and fonts': 'Sivuston värit ja fontit',
     'Visual': 'Visuaalinen',
     'Code': 'Koodi',
-    // edit-app/src/left-panel/default-panel-sections/OnThisPageSection.jsx
+    // edit-app/src/left-column/default-panel-sections/OnThisPageSection.jsx
     'Duplicate this page': 'Monista tämä sivu',
     'On this page': 'Tämä sivu',
     'Content of page %s': '%s -sivun sisältö',
     'New page content': 'Uuden sivun sisältö',
-    // edit-app/src/left-panel/default-panel-sections/SettingsSection.jsx
+    // edit-app/src/left-column/default-panel-sections/SettingsSection.jsx
     'Settings': 'Asetukset',
     'Website\'s settings': 'Sivuston asetukset',
     'Edit info': 'Muokkaa perustietoja',
-    // edit-app/src/left-panel/default-panel-sections/WebsiteSection.jsx
+    // edit-app/src/left-column/default-panel-sections/WebsiteSection.jsx
     'Website': 'Sivusto',
     'Content management': 'Sisällönhallinta',
     'page': 'sivu',
-    //edit-app/src/left-panel/PageTypeCreatePanel.jsx
+    //edit-app/src/left-column/page-type/PageTypeCreatePanel.jsx
     'page type': 'sivutyyppi',
     'Default content': 'Oletussisältö',
     'Basic settings': 'Perustiedot',
@@ -118,13 +118,13 @@ stringBundles.push({
     'No %s found': '%s ei löytynyt',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Sulje',
-    // edit-app/src/left-panel/PageType/PageTypeBasicInfoConfigurationForm.jsx
+    // edit-app/src/left-column/page-type/PageTypeBasicInfoConfigurationForm.jsx
     'Name (for computers)': 'Nimi (konekielinen)',
     'Name (plural)': 'Nimi (monikossa)',
     'Description': 'Kuvaus',
     'Listable': 'Listattava',
     'Default layout': 'Oletusivupohja',
-    // edit-app/src/SaveBlockAsReusableDialog.jsx
+    // edit-app/src/popups/reusable-branch/SaveBlockAsReusableDialog.jsx
     'todo7': 'Tämä toiminto tallentaa sisällön uudelleenkäytettäväksi sisällöksi, jota voidaan myöhemmin helposti lisätä myös muihin sivuihin.',
     'Name': 'Nimi',
     'e.g. Text and image, Footer': 'esim. Teksti ja kuva, Footer',
@@ -134,21 +134,21 @@ stringBundles.push({
     'Unique': 'Uniikki',
     'todo13': 'Sisältö viittaa samaan tietoon, vaikka se olisi usealla eri sivulla (esim. "Footer").',
     'Cancel': 'Peruuta',
-    // edit-app/src/SaveButton.jsx
+    // edit-app/src/left-column/SaveButton.jsx
     'Undo latest change': 'Peruuta viimeisin muutos',
     'Save changes': 'Tallenna muutokset',
-    // edit-app/src/WebPageIframe.js
+    // edit-app/src/right-column/WebPageIframe.js
     'Copy': 'Kopio',
-    // edit-app/src/block-types/Menu/EditForm.jsx
+    // edit-app/src/block-types/menu/EditForm.jsx
     'Add link': 'Lisää linkki',
     'Edit': 'Muokkaa',
     'Edit link': 'Muokkaa linkkiä',
     'Delete link': 'Poista linkki',
-    // edit-app/src/block-types/Menu/EditItemPanel.jsx
+    // edit-app/src/block-types/menu/EditItemPanel.jsx
     'Link text': 'Linkin teksti',
     'Url': 'Urli',
     'e.g. %s or %s': 'esim. %s tai %s',
-    // edit-app/src/block-types/Menu/menu.js
+    // edit-app/src/block-types/menu/menu.js
     'Menu': 'Valikko',
     'Home': 'Etusivu',
     'About': 'Meistä',
@@ -173,7 +173,7 @@ stringBundles.push({
     'Level': 'Taso',
     'Add content after': 'Lisää sisältöä jälkeen',
     'Heading text': 'Otsikon teksti',
-    // edit-app/src/block-types/Listing/AdditionalFiltersBuilder.jsx
+    // edit-app/src/block-types/listing/AdditionalFiltersBuilder.jsx
     'which are': 'jotka on',
     'which is': 'joka on',
     'added to category': 'merkitty kategoriaan',
@@ -187,7 +187,7 @@ stringBundles.push({
     'and': 'ja',
     'Delete filter': 'Poista filtteri',
     'Add filter': 'Lisää filtteri',
-    // edit-app/src/block-types/Listing/EditForm.jsx
+    // edit-app/src/block-types/listing/EditForm.jsx
     'List': 'Listaa',
     'all': 'kaikki',
     'single': 'yksi',
@@ -202,7 +202,7 @@ stringBundles.push({
     'them': 'ne',
     'Add new %s': 'Lisää uusi %s',
     '%s must be a number': '%s tulisi olla numero',
-    // edit-app/src/block-types/Listing/listing.js
+    // edit-app/src/block-types/listing/listing.js
     'Listing': 'Listaus',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metatiedot',
@@ -219,22 +219,22 @@ stringBundles.push({
     // edit-app/src/block-types/section.js
     'Section': 'Osio',
     'Background': 'Taustakuva',
-    // edit-app/src/BlockWidget/ImagePicker.jsx
+    // edit-app/src/block-widget/ImagePicker.jsx
     'Choose a picture': 'Valitse kuva',
-    //edit-app/src/Upload/UploadButton.jsx
+    //edit-app/src/popups/upload/UploadButton.jsx
     'File name': 'Tiedostonimi',
     'Upload picture': 'Lataa kuva',
     'File extension not supported': 'Tiedostopääte ei kelpaa',
     'File size must not exceed %dMB': 'Tiedosto saa olla enintään %dMB',
     'Failed to upload image': 'Kuvan lataus epäonnistui',
-    //edit-app/src/Upload/UploadsManager.jsx
+    //edit-app/src/popups/upload/UploadsManager.jsx
     'Documents': 'Tiedostot',
     'Images': 'Kuvat',
     'Upload': 'Lataa',
     'Search': 'Hae',
     'No results for "%s"': 'Ei tuloksia hakusanalla "%s"',
     'No uploads yet': 'Ei vielä latauksia',
-    // edit-app/src/Website/WebsiteEditBasicInfoView.jsx
+    // edit-app/src/right-column/website/WebsiteEditBasicInfoView.jsx
     'Edit website info': 'Muokkaa sivuston tietoja',
     'todo11': 'Nämä tiedot näkyvät hakukoneissa, ja esim. jaettaessa sivuja some-kanaviin.',
     'Language': 'Kieli',

@@ -1,10 +1,10 @@
 import {__, api, http, env} from '@sivujetti-commons-for-edit-app';
-import {treeToTransferable} from '../Block/utils.js';
-import toasters from '../commons/Toaster.jsx';
+import {treeToTransferable} from '../../block/utils.js';
+import toasters from '../../commons/Toaster.jsx';
 import store, {deleteItemsFromOpQueueAfter, selectCurrentPageDataBundle,
-                setCurrentPageDataBundle, setOpQueue} from '../store.js';
-import store2 from '../store2.js';
-import OnThisPageSection from './default-panel-sections/OnThisPageSection.jsx';
+                setCurrentPageDataBundle, setOpQueue} from '../../store.js';
+import store2 from '../../store2.js';
+import OnThisPageSection from '../default-panel-sections/OnThisPageSection.jsx';
 
 /**
  * Left-panel for #/pages/create/:pageTypeName?/:layoutId?.

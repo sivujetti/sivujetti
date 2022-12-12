@@ -1,12 +1,12 @@
 import {__, api, signals, http, env, urlUtils, FloatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import toasters, {Toaster} from './commons/Toaster.jsx';
 import store2 from './store2.js';
-import SaveButton from './SaveButton.jsx';
-import DefaultPanel from './left-panel/DefaultPanel.jsx';
-import PageCreatePanel from './left-panel/PageCreatePanel.jsx';
-import PageDuplicatePanel from './left-panel/PageDuplicatePanel.jsx';
-import PageTypeCreatePanel from './left-panel/PageTypeCreatePanel.jsx';
-import {getArePanelsHidden} from './IframePageManager.js';
+import SaveButton from './left-column/SaveButton.jsx';
+import DefaultPanel from './left-column/DefaultPanel.jsx';
+import PageCreatePanel from './left-column/page/PageCreatePanel.jsx';
+import PageDuplicatePanel from './left-column/page/PageDuplicatePanel.jsx';
+import PageTypeCreatePanel from './left-column/page-type/PageTypeCreatePanel.jsx';
+import {getArePanelsHidden} from './right-column/IframePageManager.js';
 
 const PreactRouter = preactRouter;
 
@@ -140,7 +140,7 @@ class EditApp extends preact.Component {
             //
             el.style.transform = `translateX(${w}px)`;
             //
-            signals.emit('left-panel-width-changed', w);
+            signals.emit('left-column-width-changed', w);
         };
         this.leftPanelWidth = this.props.LEFT_PANEL_WIDTH;
         const commitPanelWidths = () => {

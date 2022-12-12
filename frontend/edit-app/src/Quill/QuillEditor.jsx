@@ -1,5 +1,5 @@
 import {__, floatingDialog} from '@sivujetti-commons-for-edit-app';
-import PickUrlDialog, {getHeight} from './PickUrlDialog.jsx';
+import PickUrlDialog, {getHeight} from '../popups/PickUrlDialog.jsx';
 import {determineModeFrom} from './common.js';
 
 const common = ['bold', 'italic', 'underline', 'strike'];

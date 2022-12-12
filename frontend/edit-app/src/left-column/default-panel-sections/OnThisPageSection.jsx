@@ -1,7 +1,7 @@
 import {__, api, env, signals, Icon, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
 import {createTrier} from '../../../../webpage/src/EditAppAwareWebPage.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
-import BlockTree from '../Block/BlockTree.jsx';
+import BlockTree from '../block/BlockTree.jsx';
 
 class OnThisPageSection extends MenuSectionAbstract {
     // blockTreeRef;

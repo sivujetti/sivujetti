@@ -1,5 +1,5 @@
 import {__, env, hookForm, unhookForm, InputErrors, FormGroup} from '@sivujetti-commons-for-edit-app';
-import QuillEditor from '../Quill/QuillEditor.jsx';
+import QuillEditor from '../quill/QuillEditor.jsx';
 import {validationConstraints} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
 

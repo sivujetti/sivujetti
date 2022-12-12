@@ -1,5 +1,5 @@
 import {__, env, signals, Icon} from '@sivujetti-commons-for-edit-app';
-import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from './store.js';
+import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from '../store.js';
 
 let isUndoKeyListenersAdded = false;
 const useFormStatesState = false;
@@ -40,7 +40,7 @@ class SaveButton extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        signals.on('left-panel-width-changed', w => {
+        signals.on('left-column-width-changed', w => {
             if (this.state.leftPanelWidth !== w)
                 this.setState({leftPanelWidth: w});
         });

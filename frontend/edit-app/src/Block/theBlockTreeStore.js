@@ -1,4 +1,4 @@
-import blockTreeUtils from '../left-panel/Block/blockTreeUtils.js';
+import blockTreeUtils from '../left-column/block/blockTreeUtils.js';
 import {createBlockFromType, createGbtRefBlockProps, setTrids} from './utils.js';
 
 function theBlockTreeStore(store) {

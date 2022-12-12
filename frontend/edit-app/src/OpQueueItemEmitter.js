@@ -1,7 +1,7 @@
 import {api, http, signals} from '@sivujetti-commons-for-edit-app';
-import {treeToTransferable} from './Block/utils.js';
-import blockTreeUtils from './left-panel/Block/blockTreeUtils.js';
-import {saveExistingBlocksToBackend} from './left-panel/Block/createBlockTreeDndController.js';
+import {treeToTransferable} from './block/utils.js';
+import blockTreeUtils from './left-column/block/blockTreeUtils.js';
+import {saveExistingBlocksToBackend} from './left-column/block/createBlockTreeDndController.js';
 import store, {pushItemToOpQueue} from './store.js';
 import store2, {observeStore as observeStore2} from './store2';
 

@@ -1,4 +1,4 @@
-import {optimizeQueue} from '../edit-app/src/SaveButton.jsx';
+import {optimizeQueue} from '../edit-app/src/left-column/SaveButton.jsx';
 
 const testOps = [
     {opName: 'update-block-tree#2',          command: {args: [], doHandle: function a() {}}},

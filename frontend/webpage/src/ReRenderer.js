@@ -1,4 +1,4 @@
-import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END} from '../../edit-app/src/Block/dom-commons.js';
+import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END} from '../../edit-app/src/block/dom-commons.js';
 
 const IS_STORED_TO_ATTR = 'data-is-stored-to-trid';
 

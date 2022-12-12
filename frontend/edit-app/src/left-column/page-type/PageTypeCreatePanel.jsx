@@ -1,10 +1,10 @@
 import {__, api, http, env, urlUtils, Icon} from '@sivujetti-commons-for-edit-app';
-import toasters from '../commons/Toaster.jsx';
-import store, {deleteItemsFromOpQueueAfter, setOpQueue} from '../store.js';
-import store2 from '../store2.js';
-import OnThisPageSection from './default-panel-sections/OnThisPageSection.jsx';
-import BasicInfoConfigurationForm from './PageType/PageTypeBasicInfoConfigurationForm.jsx';
-import OwnFieldsConfigurationForm from './PageType/PageTypeOwnFieldsConfigurationForm.jsx';
+import toasters from '../../commons/Toaster.jsx';
+import store, {deleteItemsFromOpQueueAfter, setOpQueue} from '../../store.js';
+import store2 from '../../store2.js';
+import OnThisPageSection from '../default-panel-sections/OnThisPageSection.jsx';
+import BasicInfoConfigurationForm from './PageTypeBasicInfoConfigurationForm.jsx';
+import OwnFieldsConfigurationForm from './PageTypeOwnFieldsConfigurationForm.jsx';
 
 /**
  * Left-panel for #/page-types/create.

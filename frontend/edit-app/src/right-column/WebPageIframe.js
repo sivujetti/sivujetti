@@ -1,9 +1,9 @@
 import {__, api, env, urlUtils} from '@sivujetti-commons-for-edit-app';
-import {createTrier} from '../../../frontend/webpage/src/EditAppAwareWebPage.js';
-import {toTransferable} from './Block/utils.js';
+import {createTrier} from '../../../../frontend/webpage/src/EditAppAwareWebPage.js';
+import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END, noop} from '../block/dom-commons.js';
+import {toTransferable} from '../block/utils.js';
+import blockTreeUtils from '../left-column/block/blockTreeUtils.js';
 import IframePageManager from './IframePageManager.js';
-import blockTreeUtils from './left-panel/Block/blockTreeUtils.js';
-import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END, noop} from './Block/dom-commons.js';
 
 const useShareNothing = true;
 

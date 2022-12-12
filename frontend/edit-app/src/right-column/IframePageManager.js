@@ -1,9 +1,9 @@
 import {__, api, signals, env} from '@sivujetti-commons-for-edit-app';
-import store, {setCurrentPageDataBundle, setOpQueue} from './store.js';
-import store2, {observeStore as observeStore2} from './store2.js';
-import {makePath, makeSlug} from './block-types/pageInfo.js';
-import blockTreeUtils from './left-panel/Block/blockTreeUtils.js';
-import opQueueItemEmitter from './OpQueueItemEmitter.js';
+import store, {setCurrentPageDataBundle, setOpQueue} from '../store.js';
+import store2, {observeStore as observeStore2} from '../store2.js';
+import {makePath, makeSlug} from '../block-types/pageInfo.js';
+import blockTreeUtils from '../left-column/block/blockTreeUtils.js';
+import opQueueItemEmitter from '../OpQueueItemEmitter.js';
 
 const webPageUnregistrables = new Map;
 
@@ -113,7 +113,7 @@ class IframePageManager {
             return blockTreeUtils.findBlock(blockEl.getAttribute('data-block'), rootOrInnerTree)[0];
         };
         let leftPanelWidth = getCurrentLeftPanelWidth();
-        webPageUnregistrables.set('highlightRectLeftPosUpdater', signals.on('left-panel-width-changed', w => {
+        webPageUnregistrables.set('highlightRectLeftPosUpdater', signals.on('left-column-width-changed', w => {
             leftPanelWidth = w;
         }));
         return {

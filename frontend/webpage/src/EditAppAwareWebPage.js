@@ -1,4 +1,4 @@
-import {CHILDREN_START, CHILDREN_END} from '../../edit-app/src/Block/dom-commons.js';
+import {CHILDREN_START, CHILDREN_END} from '../../edit-app/src/block/dom-commons.js';
 import ReRenderer, {findCommentR, withTrid} from './ReRenderer.js';
 
 class EditAppAwareWebPage {

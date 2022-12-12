@@ -1,5 +1,5 @@
 import {__, signals, env, Icon} from '@sivujetti-commons-for-edit-app';
-import BlockEditForm from './left-panel/Block/BlockEditForm.jsx';
+import BlockEditForm from './left-column/block/BlockEditForm.jsx';
 
 class InspectorPanel extends preact.Component {
     // rendererProps;

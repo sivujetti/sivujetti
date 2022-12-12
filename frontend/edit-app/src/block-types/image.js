@@ -1,5 +1,5 @@
 import {__, urlUtils, FormGroupInline} from '@sivujetti-commons-for-edit-app';
-import ImagePicker from '../BlockWidget/ImagePicker.jsx';
+import ImagePicker from '../block-widget/ImagePicker.jsx';
 import setFocusTo from './auto-focusers.js';
 
 const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=';

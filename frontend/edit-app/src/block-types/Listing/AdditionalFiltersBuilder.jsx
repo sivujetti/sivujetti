@@ -1,5 +1,5 @@
 import {__, api, env, Icon, InputError, timingUtils} from '@sivujetti-commons-for-edit-app';
-import {ManyToManyItemSelector} from '../../left-panel/Page/ManyToManyField.jsx';
+import {ManyToManyItemSelector} from '../../left-column/page/ManyToManyField.jsx';
 import {validationConstraints} from '../../constants.js';
 
 const FilterKind = {

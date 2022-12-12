@@ -8,10 +8,10 @@ stringBundles.push({
     'Services': 'Services',
     'Services#partitive': 'Services',
     'Service': 'Service',
-    // edit-app/src/left-panel/Block/BlockDnDSpawner2.jsx
+    // edit-app/src/left-column/block/BlockDnDSpawner.jsx
     'Start adding content': 'Start adding content',
     'Filter': 'Filter',
-    // edit-app/src/left-panel/Block/BlockStylesTab.jsx
+    // edit-app/src/left-column/block/BlockStylesTab.jsx
     'Use style': 'Use style',
     'No own styles': 'No own styles',
     'Show parent styles': 'Show parent styles',
@@ -24,7 +24,7 @@ stringBundles.push({
     'Css for the inner elements': 'Css for the inner elements',
     'Other classes': 'Other classes',
     'Style name': 'Style name',
-    // edit-app/src/left-panel/Page/AddCategoryPanel.jsx
+    // edit-app/src/left-column/page/AddCategoryPanel.jsx
     'Category': 'Category',
     'New category name': 'New category name',
     'Create category': 'Create category',
@@ -39,9 +39,9 @@ stringBundles.push({
     'Content': 'Content',
     'Page "%s" already exist.': 'Page "%s" already exist.',
     'Something unexpected happened.': 'Something unexpected happened.',
-    // edit-app/src/Page/PagesListView.jsx
+    // edit-app/src/right-column/page/PagesListView.jsx
     'Duplicate page': 'Duplicate page',
-    // edit-app/src/Quill/*,
+    // edit-app/src/quill/*,
     'Image': 'Image',
     'External': 'External',
     'website.com': 'website.com',
@@ -52,10 +52,10 @@ stringBundles.push({
     'Link to a page: ': 'Link to a page: ',
     'Link to an image: ': 'Link to an image: ',
     'Link to an address: ': 'Link to an address: ',
-    // edit-app/src/left-panel/Block/BlockEditForm.jsx
+    // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Styles',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
-    // edit-app/src/left-panel/Block/BlockTree.jsx
+    // edit-app/src/left-column/block/BlockTree.jsx
     'Add child content': 'Add child content',
     'Duplicate': 'Duplicate',
     'Duplicate content': 'Duplicate content',
@@ -82,24 +82,24 @@ stringBundles.push({
     'Meta content contains ': 'Meta content contains ',
     'additional data / metadata': 'additional data / metadata',
     ', and otherwise act like ordinary content.': ', and otherwise act like ordinary content.',
-    // edit-app/src/left-panel/default-panel-sections/BaseStylesSection.jsx
+    // edit-app/src/left-column/default-panel-sections/BaseStylesSection.jsx
     'Colours and fonts': 'Colours and fonts',
     'Visual': 'Visual',
     'Code': 'Code',
-    // edit-app/src/left-panel/default-panel-sections/OnThisPageSection.jsx
+    // edit-app/src/left-column/default-panel-sections/OnThisPageSection.jsx
     'Duplicate this page': 'Duplicate this page',
     'On this page': 'On this page',
     'Content of page %s': 'Content of %s-page',
     'New page content': 'New page content',
-    // edit-app/src/left-panel/default-panel-sections/SettingsSection.jsx
+    // edit-app/src/left-column/default-panel-sections/SettingsSection.jsx
     'Settings': 'Settings',
     'Website\'s settings': 'Website\'s settings',
     'Edit info': 'Edit info',
-    // edit-app/src/left-panel/default-panel-sections/WebsiteSection.jsx
+    // edit-app/src/left-column/default-panel-sections/WebsiteSection.jsx
     'Website': 'Website',
     'Content management': 'Content management',
     'page': 'page',
-    // edit-app/src/left-panel/PageTypeCreatePanel.jsx
+    // edit-app/src/left-column/page-type/PageTypeCreatePanel.jsx
     'page type': 'page type',
     'Default content': 'Default content',
     'Basic settings': 'Basic settings',
@@ -118,13 +118,13 @@ stringBundles.push({
     'No %s found': 'No %s found',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Close',
-    // edit-app/src/left-panel/PageType/PageTypeBasicInfoConfigurationForm.jsx
+    // edit-app/src/left-column/page-type/PageTypeBasicInfoConfigurationForm.jsx
     'Name (for computers)': 'Name (for computers)',
     'Name (plural)': 'Name (plural)',
     'Description': 'Description',
     'Listable': 'Listable',
     'Default layout': 'Default layout',
-    // edit-app/src/SaveBlockAsReusableDialog.jsx
+    // edit-app/src/popups/reusable-branch/SaveBlockAsReusableDialog.jsx
     'todo7': 'todo7',
     'Name': 'Name',
     'e.g. Text and image, Footer': 'e.g. Text and image, Footer',
@@ -134,21 +134,21 @@ stringBundles.push({
     'Unique': 'Unique',
     'todo13': 'todo13',
     'Cancel': 'Cancel',
-    // edit-app/src/SaveButton.jsx
+    // edit-app/src/left-column/SaveButton.jsx
     'Undo latest change': 'Undo latest change',
     'Save changes': 'Save changes',
-    // edit-app/src/WebPageIframe.js
+    // edit-app/src/right-column/WebPageIframe.js
     'Copy': 'Copy',
-    // edit-app/src/block-types/Menu/EditForm.jsx
+    // edit-app/src/block-types/menu/EditForm.jsx
     'Add link': 'Add link',
     'Edit': 'Edit',
     'Edit link': 'Edit link',
     'Delete link': 'Delete link',
-    // edit-app/src/block-types/Menu/EditItemPanel.jsx
+    // edit-app/src/block-types/menu/EditItemPanel.jsx
     'Link text': 'Link text',
     'Url': 'Url',
     'e.g. %s or %s': 'e.g. %s or %s',
-    // edit-app/src/block-types/Menu/menu.js
+    // edit-app/src/block-types/menu/menu.js
     'Menu': 'Menu',
     'Home': 'Home',
     'About': 'About',
@@ -173,7 +173,7 @@ stringBundles.push({
     'Level': 'Level',
     'Add content after': 'Add content after',
     'Heading text': 'Heading text',
-    // edit-app/src/block-types/Listing/AdditionalFiltersBuilder.jsx
+    // edit-app/src/block-types/listing/AdditionalFiltersBuilder.jsx
     'which are': 'which are',
     'which is': 'which is',
     'added to category': 'added to category',
@@ -187,7 +187,7 @@ stringBundles.push({
     'and': 'and',
     'Delete filter': 'Delete filter',
     'Add filter': 'Add filter',
-    // edit-app/src/block-types/Listing/EditForm.jsx
+    // edit-app/src/block-types/listing/EditForm.jsx
     'List': 'List',
     'all': 'all',
     'single': 'single',
@@ -202,7 +202,7 @@ stringBundles.push({
     'them': 'them',
     'Add new %s': 'Add new %s',
     '%s must be a number': '%s must be a number',
-    // edit-app/src/block-types/Listing/listing.js
+    // edit-app/src/block-types/listing/listing.js
     'Listing': 'Listing',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metadata',
@@ -219,22 +219,22 @@ stringBundles.push({
     // edit-app/src/block-types/section.js
     'Section': 'Section',
     'Background': 'Background',
-    // edit-app/src/BlockWidget/ImagePicker.jsx
+    // edit-app/src/block-widget/ImagePicker.jsx
     'Choose a picture': 'Choose a picture',
-    //edit-app/src/Upload/UploadButton.jsx
+    // edit-app/src/popups/upload/UploadButton.jsx
     'File name': 'File name',
     'Upload picture': 'Upload picture',
     'File extension not supported': 'File extension not supported',
     'File size must not exceed %dMB': 'File size must not exceed %dMB',
     'Failed to upload image': 'Failed to upload image',
-    //edit-app/src/Upload/UploadsManager.jsx
+    // edit-app/src/popups/upload/UploadsManager.jsx
     'Documents': 'Documents',
     'Images': 'Images',
     'Upload': 'Upload',
     'Search': 'Search',
     'No results for "%s"': 'No results for "%s"',
     'No uploads yet': 'No uploads yet',
-    // edit-app/src/Website/WebsiteEditBasicInfoView.jsx
+    // edit-app/src/right-column/website/WebsiteEditBasicInfoView.jsx
     'Edit website info': 'Edit website info',
     'todo11': 'todo11',
     'Language': 'Language',

@@ -1,8 +1,8 @@
 import {__, api, http, hookForm, unhookForm, reHookValues, Input, InputErrors,
         FormGroupInline, FormGroup, Textarea} from '@sivujetti-commons-for-edit-app';
 import toasters from '../commons/Toaster.jsx';
-import {makeSlug, makePath} from '../left-panel/Page/AddCategoryPanel.jsx';
-import ManyToManyField from '../left-panel/Page/ManyToManyField.jsx';
+import {makeSlug, makePath} from '../left-column/page/AddCategoryPanel.jsx';
+import ManyToManyField from '../left-column/page/ManyToManyField.jsx';
 import store, {observeStore, pushItemToOpQueue, selectCurrentPageDataBundle, setCurrentPageDataBundle} from '../store.js';
 import {urlValidatorImpl} from '../validation.js';
 import setFocusTo from './auto-focusers.js';

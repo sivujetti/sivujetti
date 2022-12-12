@@ -1,11 +1,11 @@
 import {__, api, env, hookForm, unhookForm, InputErrors, FormGroup,
         FormGroupInline, floatingDialog} from '@sivujetti-commons-for-edit-app';
-import QuillEditor from '../Quill/QuillEditor.jsx';
+import {determineModeFrom, getCompletedUrl} from '../quill/common.js';
+import QuillEditor from '../quill/QuillEditor.jsx';
 import {validationConstraints} from '../constants.js';
 import {unParagraphify} from './paragraph.js';
 import setFocusTo from './auto-focusers.js';
-import PickUrlDialog, {getHeight} from '../Quill/PickUrlDialog.jsx';
-import {determineModeFrom, getCompletedUrl} from '../Quill/common.js';
+import PickUrlDialog, {getHeight} from '../popups/PickUrlDialog.jsx';
 
 const tagTypes = Object.freeze({
     LINK: 'link',

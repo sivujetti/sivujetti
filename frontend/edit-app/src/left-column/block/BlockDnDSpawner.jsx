@@ -1,6 +1,6 @@
 import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app';
 import {getIcon} from '../../block-types/block-types.js';
-import {createBlockFromBlueprint, createBlockFromType, createGbtRefBlockProps} from '../../Block/utils.js';
+import {createBlockFromBlueprint, createBlockFromType, createGbtRefBlockProps} from '../../block/utils.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import blockTreeUtils from './blockTreeUtils.js';
 

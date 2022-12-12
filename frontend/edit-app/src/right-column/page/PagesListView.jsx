@@ -1,6 +1,6 @@
 import {__, env, http, Icon, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
-import ContextMenu from '../commons/ContextMenu.jsx';
-import OverlayView from '../commons/OverlayView.jsx';
+import ContextMenu from '../../commons/ContextMenu.jsx';
+import OverlayView from '../../commons/OverlayView.jsx';
 
 /**
  * #/pages.

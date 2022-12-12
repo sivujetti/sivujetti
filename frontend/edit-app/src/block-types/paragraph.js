@@ -17,7 +17,7 @@ class ParagraphBlockEditForm extends preact.Component {
         const {text} = getBlockCopy();
         this.initialText = text;
         this.setState(hookForm(this, [
-            {name: 'text', value: text, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]],
+            {name: 'text', value: text, validations: [['required'], ['maxLength', validationConstraints.MAX_PROSE_HTML_LENGTH]],
              label: __('Text'), onAfterValueChanged: (value, hasErrors, source) => { if (source !== 'undo') emitValueChanged(value, 'text', hasErrors, env.normalTypingDebounceMillis); }},
         ]));
         grabChanges((block, _origin, isUndo) => {

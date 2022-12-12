@@ -8,7 +8,9 @@ final class ParagraphBlockType implements BlockTypeInterface {
      */
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
         return $builder
-            ->newProperty("text", $builder::DATA_TYPE_TEXT)
+            ->newProperty("text")->dataType($builder::DATA_TYPE_TEXT, validationRules: [
+                ["maxLength", 128000]
+            ])
             ->getResult();
     }
 }

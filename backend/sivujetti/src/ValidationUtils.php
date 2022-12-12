@@ -2,7 +2,7 @@
 
 namespace Sivujetti;
 
-use Pike\{ObjectValidator, PikeException, Validation};
+use Pike\{ArrayUtils, ObjectValidator, PikeException, Validation};
 
 /**
  * @psalm-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
@@ -98,27 +98,17 @@ abstract class ValidationUtils {
                                                  ObjectValidator $to): ObjectValidator {
         foreach ($properties as $prop) {
             $dt = $prop->dataType;
-            $rules = [
+            $defaultRules = [
                 "text"         => [["", "type", "string"], ["", "maxLength", self::HARD_SHORT_TEXT_MAX_LEN]],
                 "json"         => [["", "type", "string"], ["", "maxLength", self::HARD_JSON_TEXT_MAX_LEN]],
                 "many-to-many" => [["", "type", "array"],  ["%s.*", "type", "string"]],
                 "int"          => [["", "type", "number"]],
                 "uint"         => [["", "type", "number"], ["", "min", 0]],
             ][$dt->type] ?? null;
-            if (!$rules)
+            if (!$defaultRules)
                 throw new \RuntimeException("Shouldn't happen");
             $userRules = $dt->validationRules ?? [];
-            if ($userRules) { // e.g. [ ["", "required"], ["%s.foo", "min", 4] ]
-                foreach ($userRules as $ruleParts) {
-                    if (!is_array($ruleParts) ||
-                        !is_string($ruleParts[0]) ||
-                        !in_array($ruleParts[1], self::VALID_RULES, true))
-                        throw new PikeException("Invalid validation rule",
-                                                PikeException::BAD_INPUT);
-                }
-                $rules = array_merge($rules, $userRules);
-            }
-            foreach ($rules as $parts) {
+            foreach (self::createMergedRules($userRules, $defaultRules) as $parts) {
                 $pathTmpl = array_shift($parts);
                 $propPath = (!$pathTmpl ? $prop->name : sprintf($pathTmpl, $prop->name)) .
                             (!$dt->isNullable ? "" : "?");
@@ -126,5 +116,30 @@ abstract class ValidationUtils {
             }
         }
         return $to;
+    }
+    /**
+     * @param array<int, array<int, mixed> $userRules e.g. [ ["", "required"], ["%s.foo", "min", 4] ]
+     * @param array<int, array<int, mixed> $defaultRules
+     * @return array<int, array<int, mixed>
+     */
+    private static function createMergedRules(array $userRules, array $defaultRules): array {
+        if (!$userRules) return $defaultRules;
+        //
+        $combined = $defaultRules;
+        foreach ($userRules as $ruleParts) {
+            if (!is_array($ruleParts) ||
+                !is_string($ruleParts[0]) ||
+                !in_array($ruleParts[1], self::VALID_RULES, true))
+                throw new PikeException("Invalid validation rule",
+                                        PikeException::BAD_INPUT);
+            $idx = ArrayUtils::findIndexByKey($defaultRules, $ruleParts[1], "1");
+            $fromDefault = $idx > -1 ? $defaultRules[$idx] : null;
+            $existInDefault = $fromDefault && $fromDefault[0] === $ruleParts[0];
+            if (!$existInDefault) // Not found in default, add
+                $combined[] = $ruleParts;
+            else // Found in default, override
+                $combined[$idx] = $ruleParts;
+        }
+        return $combined;
     }
 }

@@ -2,6 +2,7 @@ import {__, env, signals, Icon} from '@sivujetti-commons-for-edit-app';
 import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from './store.js';
 
 let isUndoKeyListenersAdded = false;
+const useFormStatesState = false;
 
 class SaveButton extends preact.Component {
     // queuedOps;
@@ -11,7 +12,7 @@ class SaveButton extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {isVisible: false, hasUndoableOps: false, formState: {},
+        this.state = {isVisible: false, hasUndoableOps: false, formState: {isValid: true},
                         isStickied: false, leftPanelWidth: props.initialLeftPanelWidth, isSubmitting: false};
         this.queuedOps = [];
         if (!isUndoKeyListenersAdded) {
@@ -26,7 +27,7 @@ class SaveButton extends preact.Component {
                 this.setState({isVisible: false, isSubmitting: false});
             this.setState({hasUndoableOps: ops.length ? ops.some(({command}) => !!command.doUndo) : false});
         });
-        observeStore(selectFormStates, formStates => {
+        if (useFormStatesState) observeStore(selectFormStates, formStates => {
             let aggregated = {isValid: true};
             for (const key in formStates) {
                 aggregated = formStates[key];

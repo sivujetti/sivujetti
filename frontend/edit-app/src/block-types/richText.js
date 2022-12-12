@@ -17,7 +17,7 @@ class RichTextBlockEditForm extends preact.Component {
         this.editorId = `rich-text-${id}`;
         this.initialHtml = html;
         this.setState(hookForm(this, [
-            {name: 'html', value: html, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]],
+            {name: 'html', value: html, validations: [['required'], ['maxLength', validationConstraints.MAX_PROSE_HTML_LENGTH]],
              label: __('Content'), onAfterValueChanged: (value, hasErrors, source) => { if (source !== 'undo') emitValueChanged(value, 'html', hasErrors, env.normalTypingDebounceMillis); }},
         ]));
         grabChanges((block, _origin, isUndo) => {

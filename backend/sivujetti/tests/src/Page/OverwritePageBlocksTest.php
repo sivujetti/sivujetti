@@ -108,7 +108,7 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
             "The length of styleClasses must be 1024 or less",
             "id is not valid push id",
             "text must be string",
-            "The length of text must be 1024 or less",
+            "The length of text must be 128000 or less",
         ], $state->spyingResponse);
     }
 

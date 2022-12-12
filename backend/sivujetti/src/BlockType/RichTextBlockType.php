@@ -8,7 +8,9 @@ final class RichTextBlockType implements BlockTypeInterface {
      */
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
         return $builder
-            ->newProperty("html", $builder::DATA_TYPE_TEXT)
+            ->newProperty("html")->dataType($builder::DATA_TYPE_TEXT, validationRules: [
+                ["maxLength", 128000]
+            ])
             ->getResult();
     }
 }

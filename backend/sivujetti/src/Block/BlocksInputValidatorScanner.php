@@ -30,7 +30,7 @@ final class BlocksInputValidatorScanner {
      * @param \Closure $getCurrentBlocks fn(): array<int, object>
      * @param \Pike\Request $req
      * @param bool $isInsert = false
-     * @return array{0: string, 1: array<int, string>|array<string, string>, 2: int}
+     * @return array{0: string|null, 1: array<int, string>|array<string, string>, 2: int}
      * @throws \Pike\PikeException
      */
     public function createStorableBlocks(\Closure $getCurrentBlocks,

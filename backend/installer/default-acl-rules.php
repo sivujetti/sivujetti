@@ -89,7 +89,7 @@ $out->userPermissions = (object) [
         "layouts"           => ACL::makePermissions(["list"], $out->resources->layouts),
         "pages"             => ACL::makePermissions(["create","list","updateBlocksOf","update"], $out->resources->pages),
         // pageTypes        -> none
-        "reusableBranches"  => ACL::makePermissions(["list"], $out->resources->reusableBranches),
+        "reusableBranches"  => ACL::makePermissions("*", $out->resources->reusableBranches),
         "themes"            => ACL::makePermissions(["view","updateGlobalStylesOf","upsertBlockTypeScopedVars"], $out->resources->themes),
         "theWebsite"        => ACL::makePermissions(["updateBasicInfoOf"], $out->resources->theWebsite),
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),

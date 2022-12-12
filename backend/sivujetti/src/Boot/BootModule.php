@@ -156,10 +156,10 @@ class BootModule {
 
         //
         $fluentDb = $di->make(FluentDb::class);
-        $fluentDb->getDb()->open(array_merge([\PDO::ATTR_EMULATE_PREPARES => 0], $this->config["db.driver"] === "sqlite"
-            ? []
-            : [\PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE"]
-        ));
+        $fluentDb->getDb()->open($this->config["db.driver"] === "sqlite"
+            ? [\PDO::ATTR_EMULATE_PREPARES => 0]
+            : [\PDO::ATTR_EMULATE_PREPARES => 0, \PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE"]
+        );
         $apiCtx = $di->make(SharedAPIContext::class);
         if (!($theWebsite = TheWebsiteRepository::fetchActive($fluentDb)))
             throw new PikeException("Site not installed", 301010);

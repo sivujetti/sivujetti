@@ -423,7 +423,9 @@ class TreeDragDrop {
  * @returns {HTMLLIElement|null}
  */
 function norm(e) {
-    return e.target.nodeName === 'LI' ? e.target : e.target.closest('li');
+    return e.target.nodeName === 'LI'
+        ? e.target
+        : (e.target.nodeName !== '#text' ? e.target : e.target.parentElement).closest('li');
 }
 
 /**

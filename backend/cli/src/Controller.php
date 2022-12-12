@@ -19,6 +19,8 @@ final class Controller {
                                       Response $res,
                                       Crypto $crypto,
                                       LocalDirInstaller $installer): void {
+        if ($req->params->relDirPath === "basic-site" && !defined("TEST_CONFIG_DIR_PATH"))
+            die("`install-from-dir basic-site` is currently disabled. Use `install-from-dir empty` instead.");
         $config = self::createConfigOrThrow(array_map("urldecode", explode("/", $req->params->settings)), $crypto);
         $installer->doInstall(urldecode($req->params->relDirPath), $config);
         $res->json(["ok" => "ok"]);

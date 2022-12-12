@@ -1,5 +1,7 @@
 <?php declare(strict_types=1);
 
+die("install.php is currently disabled. You can use `cli.php install-from-dir` instead.");
+
 define("SIVUJETTI_INDEX_PATH", str_replace("\\", "/", __DIR__) . "/");
 define("SIVUJETTI_BACKEND_PATH", SIVUJETTI_INDEX_PATH . "backend/");
 

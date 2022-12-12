@@ -3,8 +3,7 @@
 namespace Sivujetti\GlobalBlockTree;
 
 use Pike\{PikeException, Request, Response, Validation};
-use Sivujetti\Block\{BlocksController, BlocksInputValidatorScanner, BlockTree, BlockValidator};
-use Sivujetti\BlockType\Entities\BlockTypes;
+use Sivujetti\Block\{BlocksInputValidatorScanner, BlockValidator};
 use Sivujetti\ValidationUtils;
 
 final class GlobalBlockTreesController {
@@ -14,16 +13,20 @@ final class GlobalBlockTreesController {
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository2 $gbtRepo
-     * @param \Sivujetti\Block\BlockValidator $blockValidator
-     * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
+     * @param \Sivujetti\Block\BlocksInputValidatorScanner $scanner
      */
     public function create(Request $req,
                            Response $res,
                            GlobalBlockTreesRepository2 $gbtRepo,
-                           BlockValidator $blockValidator,
-                           BlockTypes $blockTypes): void {
-        if (($errors = $this->validateInput($req->body, $blockValidator))) {
+                           BlocksInputValidatorScanner $scanner): void {
+        if (($errors = $this->validateCreateInput($req->body))) {
             $res->status(400)->json($errors);
+            return;
+        }
+        [$validStorableBlocksJson, $errors, $errCode] = $scanner->createStorableBlocks(fn() => [], $req,
+            isInsert: true);
+        if ($errCode) {
+            $res->status($errCode)->json($errors);
             return;
         }
         //
@@ -31,10 +34,7 @@ final class GlobalBlockTreesController {
             ->values((object) [
                 "id" => $req->body->id,
                 "name" => $req->body->name,
-                "blocks" => BlockTree::toJson(
-                    BlocksController::makeStorableBlocksDataFromValidInput($req->body->blocks,
-                        $blockTypes)
-                )
+                "blocks" => $validStorableBlocksJson,
             ])
             ->execute(return: "numRows") === 1;
         //
@@ -100,20 +100,14 @@ final class GlobalBlockTreesController {
     }
     /**
      * @param object $input
-     * @param \Sivujetti\Block\BlockValidator $blockValidator
      * @return string[] Error messages or []
      */
-    private function validateInput(object $input,
-                                   BlockValidator $blockValidator): array {
-        if (($errors = Validation::makeObjectValidator()
+    private function validateCreateInput(object $input): array {
+        return Validation::makeObjectValidator()
             ->addRuleImpl(...ValidationUtils::createPushIdValidatorImpl())
             ->rule("id", "pushId")
             ->rule("name", "type", "string")
             ->rule("name", "maxLength", ValidationUtils::INDEX_STR_MAX_LENGTH)
-            ->rule("blocks", "minLength", "1", "array")
-            ->validate($input))) {
-            return $errors;
-        }
-        return $blockValidator->validateMany($input->blocks);
+            ->validate($input);
     }
 }

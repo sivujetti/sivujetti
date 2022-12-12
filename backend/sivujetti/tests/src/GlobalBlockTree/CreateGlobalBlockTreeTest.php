@@ -44,7 +44,6 @@ final class CreateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
             "id is not valid push id",
             "name must be string",
             "The length of name must be 92 or less",
-            "The length of blocks must be at least 1",
         ], $state->spyingResponse);
     }
 

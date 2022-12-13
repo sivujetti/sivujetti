@@ -328,14 +328,19 @@ interface ThemeStyleUnit {
 
 type leftPanelName = 'Default'|'CreatePage'|'CreatePageType';
 
-interface BlockDescriptorStub {
+interface BlockDescriptor {
+    blockId: String;
     isStoredToTreeId: String;
+    isRootOfGbtRef: Boolean;
+    ownerGbtRefBlockId: String|null; // If isRootOfGbtRef === true
 }
 
-interface BlockDescriptor extends BlockDescriptorStub {
+interface BlockSwapDescriptor {
     blockId: String;
-    isGbtRef: Boolean;
-    data: any;
+    blockIsStoredToTreeId: String;
+    blockIsRootOfGbtRef: Boolean;
+    blocksOwnerGbtRefBlockId: String|null; // If blockIsRootOfGbtRef === true
+    dropPos: 'before'|'after'|'as-child';
 }
 
 interface SpawnDescriptor {

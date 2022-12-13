@@ -30,8 +30,13 @@ class OpQueueItemEmitter {
                 this.setPrevBlockTree(theBlockTree);
             } else if (event === 'theBlockTree/applySwap' || event === 'theBlockTree/applyAdd(Drop)Block') {
                 const oldTree = this.prevTree;
-                const [_drag, target] = data; // [BlockDescriptorStub, BlockDescriptorStub]
-                this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, target.isStoredToTreeId, null);
+                const [_drag, target] = data; // [BlockSwapDescriptor, BlockSwapDescriptor]
+                // Normal swap/drop, use blockIsStoredToTreeId as usual
+                if (!(target.blockIsRootOfGbtRef && (target.dropPos === 'before' || target.dropPos === 'after')))
+                    this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, target.blockIsStoredToTreeId, null);
+                // Item was dropped _before_ or _after_ gbtRef, which are always stored to 'main'
+                else
+                    this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, 'main', null);
             } else if (event === 'theBlockTree/deleteBlock') {
                 const oldTree = this.prevTree;
                 const [_id, blockIsStoredToTreeId, _wasCurrentlySelectedBlock] = data;

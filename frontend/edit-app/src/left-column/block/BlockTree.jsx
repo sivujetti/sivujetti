@@ -61,29 +61,25 @@ class BlockTree extends preact.Component {
                 event === 'theBlockTree/undoAdd(Drop)Block' ||
                 event === 'theBlockTree/cloneItem' ||
                 event === 'theBlockTree/convertToGbt') {
-                this.setBlocksToState(theBlockTree, false);
+                const newState = {blockTree: theBlockTree, treeState: createTreeState(theBlockTree, this.state.treeState)};
+                if ((event === 'theBlockTree/applyAdd(Drop)Block' || event === 'theBlockTree/applySwap') && data[1].dropPos === 'as-child') {
+                    const swapTargetInfo = data[1];
+                    const branch = blockTreeUtils.getRootFor(swapTargetInfo.blockIsStoredToTreeId, theBlockTree);
+                    const paren = blockTreeUtils.findBlock(swapTargetInfo.blockId, branch)[0];
+                    newState.treeState[paren.id].isCollapsed = false;
+                    hideOrShowChildren(false, paren, newState.treeState);
+                }
+                this.setState(newState);
             } else if (event === 'theBlockTree/updateDefPropsOf' || event === 'theBlockTree/undoUpdateDefPropsOf') {
                 const isOnlyStyleClassesChange = event === 'theBlockTree/updateDefPropsOf'
                     ? data[3]  // [<blockId>, <blockIsStoredToTreeId>, <changes>, <isOnlyStyleClassesChange>]
                     : data[3]; // [<oldTree>, <blockId>, <blockIsStoredToTreeId>, <isOnlyStyleClassesChange>]
                 if (isOnlyStyleClassesChange) return;
-                this.setBlocksToState(theBlockTree, false, true);
+                this.setState({blockTree: theBlockTree});
             }
         }));
         // 1. Initial
-        this.setBlocksToState(theBlockTree, true);
-    }
-    /**
-     * @param {Array<RawBlock>} tree
-     * @param {Boolean} isInit
-     * @param {Boolean} keepCurrentTreeState = false
-     * @access private
-     */
-    setBlocksToState(tree, isInit, keepCurrentTreeState = false) {
-        if (!keepCurrentTreeState)
-            this.setState({blockTree: tree, treeState: createTreeState(tree, !isInit ? this.state.treeState : null)});
-        else // updateDefPropsOf|undoUpdateDefPropsOf
-            this.setState({blockTree: tree});
+        this.setState({blockTree: theBlockTree, treeState: createTreeState(theBlockTree, null)});
     }
     /**
      * @access protected
@@ -267,7 +263,7 @@ class BlockTree extends preact.Component {
     cloneBlock(openBlock) {
         const latestTree = blockTreeUtils.getRootFor(openBlock.isStoredToTreeId, store2.get().theBlockTree);
         const cloned = cloneDeep(blockTreeUtils.findBlock(openBlock.id, latestTree)[0]);
-        store2.dispatch('theBlockTree/cloneItem', [{block: cloned, isReusable: null}, createBlockDescriptor(openBlock, cloned.isStoredToTreeId), 'after']);
+        store2.dispatch('theBlockTree/cloneItem', [{block: cloned, isReusable: null}, createBlockDescriptor(openBlock), 'after']);
         api.webPageIframe.scrollTo(cloned);
     }
     /**

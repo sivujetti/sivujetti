@@ -47,7 +47,7 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/applySwap',
     /**
      * @param {Object} state
-     * @param {[BlockDescriptorStub, BlockDescriptorStub]} args
+     * @param {[BlockSwapDescriptor, BlockSwapDescriptor]} args
      * @returns {Object}
      */
     ({theBlockTree}, _) =>
@@ -57,7 +57,7 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/applyAdd(Drop)Block',
     /**
      * @param {Object} state
-     * @param {[BlockDescriptorStub, BlockDescriptorStub]} args
+     * @param {[BlockSwapDescriptor, BlockSwapDescriptor]} args
      * @returns {Object}
      */
     ({theBlockTree}, _) =>
@@ -106,7 +106,10 @@ function theBlockTreeStore(store) {
     const addBlock = ({theBlockTree}, [spawn, target, insertPos]) => {
         const blockOrBranch = spawn.block;
         const clone = cloneObjectDeep(theBlockTree);
-        const rootOrInnerTree = blockTreeUtils.getRootFor(target.isStoredToTreeId, clone);
+        const isStoredToTreeId = !(target.isRootOfGbtRef && (insertPos === 'before' || insertPos === 'after'))
+            ? target.isStoredToTreeId // Normal spawn -> use isStoredToTreeId as usual
+            : 'main'; // New item was dropped _before_ or _after_ gbtRef, which are always stored to 'main'
+        const rootOrInnerTree = blockTreeUtils.getRootFor(isStoredToTreeId, clone);
         if (insertPos === 'before') {
             const [before, branch] = blockTreeUtils.findBlock(target.blockId, rootOrInnerTree);
             branch.splice(branch.indexOf(before), 0, blockOrBranch);

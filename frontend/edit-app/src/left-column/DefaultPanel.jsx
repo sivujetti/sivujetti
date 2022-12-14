@@ -1,19 +1,26 @@
-import {api} from '@sivujetti-commons-for-edit-app';
+import {api, signals} from '@sivujetti-commons-for-edit-app';
 
 /**
  * The default left-column ("#/", "#/some-page").
  */
 class DefaultPanel extends preact.Component {
+    // unregisterSignalListener;
     /**
      * @access protected
      */
     componentWillMount() {
         const toLoadInitial = this.props.url || '/';
-        this.setState(createState({...this.state, ...{
+        this.setState({
             loadingPageSlug: toLoadInitial,
-            loadedPageSlug: null
-        }}));
+            loadedPageSlug: null,
+            sections: getRegisteredMainPanelSectionNames(),
+        });
         this.loadPageToPreviewIframe(toLoadInitial);
+        this.unregisterSignalListener = signals.on('edit-app-plugins-loaded', () => {
+            const maybeUpdated = getRegisteredMainPanelSectionNames();
+            if (maybeUpdated.length > this.state.sections.length)
+                this.setState({sections: maybeUpdated});
+        });
     }
     /**
      * @param {{url: String} & {[key: String}: any;} props
@@ -32,6 +39,12 @@ class DefaultPanel extends preact.Component {
         if (this.state.loadedPageSlug && // Previous page is already loaded to iframe and ..
             this.state.loadingPageSlug === null) // .. new page has started loading
             return false;
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        this.unregisterSignalListener();
     }
     /**
      * @access protected
@@ -66,11 +79,10 @@ function isAnotherAppView(slug) {
 }
 
 /**
- * @param {{loadedPageSlug?: String;}} initial
- * @returns {{loadingPageSlug?: String; loadedPageSlug?: String; sections: Array<String>;}}
+ * @returns {Array<String>}
  */
-function createState(initial) {
-    return {...initial, ...{sections: Array.from(api.mainPanel.getSections().keys()).slice(0)}};
+function getRegisteredMainPanelSectionNames() {
+    return Array.from(api.mainPanel.getSections().keys());
 }
 
 export default DefaultPanel;

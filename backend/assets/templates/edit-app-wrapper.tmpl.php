@@ -7,21 +7,7 @@
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/pickr-theme-nano.min.css") ?>">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.css") ?>">
         <?php if ($isFirstRun): ?>
-        <?php if (defined("showIntroJsIntro")): ?>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/4.3.0/introjs.min.css" integrity="sha512-YZO1kAqr8VPYJMaOgT4ZAIP4OeCuAWoZqgdvVYjeqyfieNWrUTzZrrxpgAdDrS7nV3sAVTKdP6MSKhqaMU5Q4g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-        <?php endif; ?>
         <style>
-        <?php if (defined("showIntroJsIntro")): ?>
-        div:not(.introjsFloatingElement.introjs-showElement) + .introjs-overlay + .introjs-helperLayer {
-            box-shadow: none !important;
-            border: 4px solid var(--color-accent);
-            transform: scale(.98) translate(-6px, -1px);
-            z-index: 99999999;
-        }
-        .introjs-tooltip {
-            margin-top: .6rem;
-        }
-        <?php endif; ?>
         .drag-instructions-overlay {
             position: fixed;
             top: 0;
@@ -73,13 +59,42 @@
             <div id="view"></div>
             <iframe src="" id="site-preview-iframe"></iframe>
             <span class="highlight-rect" data-position="top-outside"></span>
+            <?php if ($isFirstRun && defined("showQuickIntro")): ?>
+            <div style="opacity:0" id="quick-intro-outer">
+            <div class="layer layer-0"></div>
+            <h2 class="layer-4 quick-intro-head">Muokkaustila, pikaohje<button type="button" class="btn btn-link no-color"><svg class="icon-tabler size-xl" width="24" height="24" style="width: 28px;height: 28px;margin-top: -3px;"><use xlink:href="/sivujetti/public/sivujetti/assets/tabler-sprite-custom.svg#tabler-x"></use></svg></button></h2>
+            <div class="layer layer-1">
+                <div id="target-end-edit-mode" class="third-end"></div>
+                <div class="third-start">
+                    <h2 id="connect-end-edit-mode"><span>3. Lopetus</span></h2>
+                    <div>Valitse alasvetovalikosta "Kirjaudu ulos"</div>
+                </div>
+            </div>
+            <div class="layer layer-2">
+                <div class="second-end-outer">
+                    <div id="target-preview" style="position: absolute; left: 50%"></div>
+                </div>
+                <div class="second-start">
+                    <h2 id="connect-preview"><span>2. Esikatselu, navigointi</span></h2>
+                    <div>Avaa muokkausvalikkoon klikkaamalla vihreää laatikkoa. <span style="font-size: .85em;">(Linkkien osalta: nopea klikkaus navigoi, pidempi painallus avaa muokkausvalikkoon.)</span></div>
+                </div>
+            </div>
+            <div class="layer layer-3">
+                <div id="target-edit-content" class="first-end"></div>
+                <div class="first-start">
+                    <h2 id="connect-edit-content"><span>1. Sisällön muokkaus</span></h2>
+                    <div>Klikkaa, raahaa, kokeile</div>
+                </div>
+            </div>
+            </div>
+            <?php endif; ?>
         </div>
 
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/jspanel.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/pickr.min.js") ?>"></script>
-        <script src="<?= $this->assetUrl("public/sivujetti/vendor/stylis.min.js") ?>" async></script>
-        <script src="<?= $this->assetUrl("public/sivujetti/vendor/popper.min.js") ?>" async></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/vendor/stylis.min.js") ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/vendor/popper.min.js") ?>"></script>
         <script>window.isFirstRun = <?= $isFirstRun ? "true" : "false" ?></script>
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
         <script>window.translationStringBundles = []</script>
@@ -89,57 +104,6 @@
         <?php foreach ($userDefinedJsFiles as $relUrl): ?>
             <script src="<?= $this->assetUrl("public/{$relUrl}") ?>"></script>
         <?php endforeach; ?>
-        <?php if ($isFirstRun && defined("showIntroJsIntro")): ?>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/4.3.0/intro.min.js" integrity="sha512-WYNEDpX7FCz0ejmdUFl444n+v7gDgDFYmxy2YBx99v15UUk3zU5ZWYFBXFCvWYvd+nv/guwUnXmrecK7Ee0Wtg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        <script>(function () {
-            const startIntro = () => {
-                const instance = introJs();
-                instance.setOptions({
-                    showProgress: true,
-                    prevLabel: '<?= 'Edellinen' /*$this->__('Prev')*/ ?>',
-                    nextLabel: '<?= 'Seuraava' /*$this->__('Next')*/ ?>',
-                    doneLabel: '<?= 'Selvä!' /*$this->__('Done')*/ ?>',
-                    showBullets: false,
-                    scrollPadding: 100,
-                    tooltipClass: 'customTooltip',
-                    steps: [{
-                        title: 'Moi! 👋',
-                        intro: 'Tervetuloa sivustosi <b>muokkaustilaan</b>. Jos haluat lyhyen esittelyn muokkaustilan ominaisuuksista, klikkaa "Seuraava"!',
-                    }, {
-                        title: 'Päävalikko-paneeli',
-                        element: document.querySelectorAll('#main-panel')[0],
-                        intro: 'Tämän osion kautta <b>muokkaat sivustoasi</b>. Se päivittyy dynaamisesti kun navigoit sivustolla, ja se on aina näkyvillä.'
-                    }, {
-                        title: 'Lisätiedot-paneeli',
-                        element: document.querySelector('#inspector-panel'),
-                        intro: 'Tämä suljettava osio <b>näyttää sen sisällön tiedot</b>, jota olet juuri muokkaamassa.'
-                    }, {
-                        title: 'Sivusto',
-                        element: document.getElementById('site-preview-iframe'),
-                        intro: 'Sivuston sisältö päivittyy reaaliajassa, kun muokkaat sitä. <b>Kun klikkaat</b> sivun eri osioita, ne avautuu lisätiedot-paneeliin muokattavaksi.'
-                    }, {
-                        title: 'Lopettaminen',
-                        element: document.querySelector('.mode-chooser .form-select'),
-                        intro: 'Kun haluat poistua muokkaustilasta, voit tehdä sen tästä alasvetovalikosta.'
-                    }]
-                })
-                instance.start();
-            };
-            let triedMs = 0;
-            const waitMs = 100;
-            const showIntroIfPageHasLoaded = () => {
-                const firstBlock = document.querySelector('.block-tree .page-block .block-handle');
-                if (firstBlock) {
-                    firstBlock.click();
-                    setTimeout(() => { startIntro(); }, 400);
-                } else {
-                    triedMs += waitMs;
-                    if (triedMs <= 4000)
-                        setTimeout(showIntroIfPageHasLoaded, waitMs);
-                }
-            };
-            setTimeout(showIntroIfPageHasLoaded, waitMs);
-        })()</script>
-        <?php endif; ?>
+        <script>(function ({signals}) { signals.emit('edit-app-plugins-loaded'); })(sivujettiCommonsEditApp)</script>
     </body>
 </html>

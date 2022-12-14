@@ -1,5 +1,5 @@
 import {__, api, env, hookForm, unhookForm, InputErrors, FormGroup,
-        FormGroupInline, floatingDialog} from '@sivujetti-commons-for-edit-app';
+        FormGroupInline, floatingDialog, urlUtils} from '@sivujetti-commons-for-edit-app';
 import {determineModeFrom, getCompletedUrl} from '../quill/common.js';
 import QuillEditor from '../quill/QuillEditor.jsx';
 import {validationConstraints} from '../constants.js';
@@ -110,8 +110,15 @@ class ButtonBlockEditForm extends preact.Component {
                                 mode,
                                 url: normalized,
                                 dialog: floatingDialog,
-                                onConfirm: url => {
-                                    this.props.emitValueChanged(url, 'linkTo', false, env.normalTypingDebounceMillis);
+                                onConfirm: (url, mode) => {
+                                    let normalized;
+                                    if (mode === 'pick-url') // '/sivujetti/index.php?q=/contact', '/contact'
+                                        normalized = url.substring(urlUtils.baseUrl.length - 1);
+                                    else if (mode === 'pick-image') // '/sivujetti/public/uploads/header1.jpg'
+                                        normalized = url.substring(urlUtils.assetBaseUrl.length - 1);
+                                    else // 'http://test.com'
+                                        normalized = url;
+                                    this.props.emitValueChanged(normalized, 'linkTo', false, env.normalTypingDebounceMillis);
                                 }
                             });
                         } }/>

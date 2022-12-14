@@ -150,7 +150,7 @@ class ManyToManyField extends preact.Component {
                 </div>
                 <button onClick={ this.openCreateCategoryPanel.bind(this) }
                     class="btn btn-sm text-tiny with-icon-inline mt-2" type="button">
-                    <Icon iconId="plus" className="size-xs mr-1"/> { __('Add new category') }
+                    <Icon iconId="plus" className="size-xs mr-1"/> { __('Add new %s', __('category')) }
                 </button>
             </div>
             <AddCategoryPanel

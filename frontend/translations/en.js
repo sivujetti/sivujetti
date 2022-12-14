@@ -30,7 +30,10 @@ stringBundles.push({
     'Category': 'Category',
     'New category name': 'New category name',
     'Create category': 'Create category',
-    // edit-app/src/Page/PageCreateMainPanelView.jsx
+    // edit-app/src/left-column/page/ManyToManyField.jsx
+    'No %s found': 'No %s found',
+    'category': 'category',
+    // edit-app/src/left-column/page/PageCreatePanel.jsx
     'Create %s': 'Create %s',
     'Cancel create %s': 'Cancel create %s',
     'Back': 'Back',
@@ -116,8 +119,6 @@ stringBundles.push({
     'Log out': 'Log out',
     'Created new %s': 'Created new %s',
     'Page title': 'Page title',
-    // edit-app/src/.jsx
-    'No %s found': 'No %s found',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Close',
     // edit-app/src/left-column/page-type/PageTypeBasicInfoConfigurationForm.jsx

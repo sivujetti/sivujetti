@@ -30,7 +30,10 @@ stringBundles.push({
     'Category': 'Kategoria',
     'New category name': 'Kategorian nimi',
     'Create category': 'Luo kategoria',
-    // edit-app/src/Page/PageCreateMainPanelView.jsx
+    // edit-app/src/left-column/page/ManyToManyField.jsx
+    'No %s found': '%s ei löytynyt',
+    'category': 'kategoria',
+    // edit-app/src/left-column/page/PageCreatePanel.jsx
     'Create %s': 'Luo %s',
     'Cancel create %s': 'Peruuta %s luonti',
     'Back': 'Takaisin',
@@ -116,8 +119,6 @@ stringBundles.push({
     'Log out': 'Kirjaudu ulos',
     'Created new %s': 'Luotiin uusi %s',
     'Page title': 'Sivuotsikko',
-    // edit-app/src/.jsx
-    'No %s found': '%s ei löytynyt',
     // edit-app/src/InspectorPanel.jsx
     'Close': 'Sulje',
     // edit-app/src/left-column/page-type/PageTypeBasicInfoConfigurationForm.jsx

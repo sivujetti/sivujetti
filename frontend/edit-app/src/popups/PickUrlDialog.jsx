@@ -9,7 +9,7 @@ import {determineModeFrom, getLabel, normalizeExternalUrl} from '../quill/common
 class PickUrlDialog extends preact.Component {
     // currentExternalUrl;
     /**
-     * @param {{mode: UrlMode; url: String|null; dialog: FloatingDialog; onConfirm: (url: String) => void;}} props
+     * @param {{mode: UrlMode; url: String|null; dialog: FloatingDialog; onConfirm: (url: String, mode: UrlMode) => void;}} props
      */
     constructor(props) {
         super(props);

@@ -5,7 +5,7 @@ import Http from './src/Http.js';
 import {urlUtils} from './src/utils.js';
 
 const env = {};
-const http = new Http(undefined, urlUtils.makeUrl.bind(urlUtils));
+const http = new Http(undefined, url => url.startsWith('/') && !url.startsWith('//') ? urlUtils.makeUrl(url) : url);
 
 env.window = window;
 env.document = document;

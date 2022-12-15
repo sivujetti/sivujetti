@@ -108,7 +108,7 @@ class FloatingDialog extends preact.Component {
                 smallify: 'remove',
             },
             callback: panel => {
-                panel.querySelector('.jsPanel-btn-close').innerHTML = iconAsString('circle-x');
+                panel.querySelector('.jsPanel-btn-close').innerHTML = iconAsString('x');
             },
             onbeforeclose: () => {
                 this.closing = true;

@@ -3,7 +3,6 @@ import {setTrids, treeToTransferable} from '../../block/utils.js';
 import toasters from '../../commons/Toaster.jsx';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import store2 from '../../store2.js';
-import blockTreeUtils from './blockTreeUtils.js';
 
 /**
  * @param {BlockTree} _blockTree
@@ -16,9 +15,13 @@ function createDndController(_blockTree) {
     return {
         /**
          * @param {DragDropInfo} info
-         * @param {Boolean} isExternal
+         * @returns {Boolean}
          */
         begin(info) {
+            if (extDragData && extDragData.block.type === 'GlobalBlockReference' && info.li.getAttribute('data-is-stored-to-trid') !== 'main') {
+                const isBeforeOrAfterGbtRef = (info.pos === 'before' || info.pos === 'after') && info.li.getAttribute('data-is-root-block-of');
+                if (!isBeforeOrAfterGbtRef) return false;
+            }
             api.webPageIframe.getEl().style.pointerEvents = 'none';
             initialTree = JSON.parse(JSON.stringify(store2.get().theBlockTree));
             dropped = false;
@@ -29,6 +32,7 @@ function createDndController(_blockTree) {
                 setTrids([extDragData.block], isStoredToTreeId);
                 store2.dispatch('theBlockTree/addBlockOrBranch', [extDragData, targetInf, info.pos]);
             }
+            return true;
         },
         /**
          * @param {DragDropInfo} cand

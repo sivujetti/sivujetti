@@ -29,7 +29,7 @@ class ImagePickerFieldWidget extends preact.Component {
                 onClick={ () => onImageSelected(null) }
                 class="sivujetti-form-icon btn no-color"
                 type="button">
-                <Icon iconId="x" className="size-xs"/>
+                <Icon iconId="x" className="size-xs color-dimmed"/>
             </button>
         </div> : input;
     }

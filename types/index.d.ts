@@ -296,7 +296,7 @@ interface BlockTreeItemState {
 }
 
 interface DragDropEventController {
-    begin(info: DragDropInfo): void;
+    begin(info: DragDropInfo): Boolean;
     swap(info: DragDropInfo, infoPrev: DragDropInfo, startLi: HTMLLIElement|null): Boolean|undefined;
     dragOut(info: DragDropInfo): void;
     drop(info: DragDropInfo, startLi: HTMLLIElement|null): void;

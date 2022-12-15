@@ -109,10 +109,12 @@ class TreeDragDrop {
                     nextVisual = {pos: 'before', li};
                     this.curCandIsLastItem = true;
                 }
-                // Do 2., 4., 5. and 6. manually here
-                e.preventDefault();
-                this.setStartExternalOrigin(nextVisual, nextReal);
-                nextVisual.li.classList.add(`maybe-drop-${nextVisual.pos}`);
+                const doAcceptBegin = this.eventController.begin(Object.assign({}, nextReal));
+                if (doAcceptBegin) { // Do 2., 4., 5. and 6. manually here
+                    e.preventDefault();
+                    this.setStartExternalOrigin(nextVisual, nextReal);
+                    nextVisual.li.classList.add(`maybe-drop-${nextVisual.pos}`);
+                }
                 return;
             } else if (this.curCandIsLastItem) {
                 const mouseIsStillUnderLast = this.curCandVisual.li === li;
@@ -260,7 +262,6 @@ class TreeDragDrop {
         this.curCandVisual = nextCandVisual;
         this.curCandReal = nextCandReal;
         this.curAccept = true;
-        this.eventController.begin(Object.assign({}, this.curCandReal));
         this.mouseIsCurrentlyInside = false;
     }
     /**

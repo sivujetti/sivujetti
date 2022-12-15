@@ -22,8 +22,10 @@ function theBlockTreeStore(store) {
         const clone = cloneObjectDeep(theBlockTree);
         const dragBlocksTree = blockTreeUtils.getRootFor(dragInf.isStoredToTreeId, clone);
         const [dragBlock, dragBranch] = blockTreeUtils.findBlock(dragInf.blockId, dragBlocksTree);
-        const dropBlocksTree = blockTreeUtils.getRootFor(dropInf.isStoredToTreeId, clone);
-        const [dropBlock, dropBranch] = blockTreeUtils.findBlock(dropInf.blockId, dropBlocksTree);
+        const {isStoredToTreeId, blockId} = !(dropInf.isGbtRef && dropPos === 'as-child') ? dropInf
+            : {isStoredToTreeId: dropInf.data.refTreeId, blockId: dropInf.data.refTreesRootBlockId};
+        const dropBlocksTree = blockTreeUtils.getRootFor(isStoredToTreeId, clone);
+        const [dropBlock, dropBranch] = blockTreeUtils.findBlock(blockId, dropBlocksTree);
         //
         const isBefore = dropPos === 'before';
         if (isBefore || dropPos === 'after') {
@@ -106,18 +108,17 @@ function theBlockTreeStore(store) {
     const addBlock = ({theBlockTree}, [spawn, target, insertPos]) => {
         const blockOrBranch = spawn.block;
         const clone = cloneObjectDeep(theBlockTree);
-        const isStoredToTreeId = !(target.isRootOfGbtRef && (insertPos === 'before' || insertPos === 'after'))
-            ? target.isStoredToTreeId // Normal spawn -> use isStoredToTreeId as usual
-            : 'main'; // New item was dropped _before_ or _after_ gbtRef, which are always stored to 'main'
+        const {isStoredToTreeId, blockId} = !(target.isGbtRef && insertPos === 'as-child') ? target
+            : {isStoredToTreeId: target.data.refTreeId, blockId: target.data.refTreesRootBlockId};
         const rootOrInnerTree = blockTreeUtils.getRootFor(isStoredToTreeId, clone);
         if (insertPos === 'before') {
-            const [before, branch] = blockTreeUtils.findBlock(target.blockId, rootOrInnerTree);
+            const [before, branch] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
             branch.splice(branch.indexOf(before), 0, blockOrBranch);
         } else if (insertPos === 'after') {
-            const [after, branch] = blockTreeUtils.findBlock(target.blockId, rootOrInnerTree);
+            const [after, branch] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
             branch.splice(branch.indexOf(after) + 1, 0, blockOrBranch);
         } else {
-            const [asChildOf] = blockTreeUtils.findBlock(target.blockId, rootOrInnerTree);
+            const [asChildOf] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
             asChildOf.children.push(blockOrBranch);
         }
         return {theBlockTree: clone};

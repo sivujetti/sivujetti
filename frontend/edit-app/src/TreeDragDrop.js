@@ -62,11 +62,12 @@ class TreeDragDrop {
                 if (clientX > this.ulBounds.left) // Not exited from left
                     return;
                 this.eventController.dragOut(this.curCandReal);
-                this.start = 'setting-it';
+                this.start = null;
             }
         } else if (newIsInside && !this.mouseIsCurrentlyInside) {
             this.mouseIsCurrentlyInside = true;
             this.curAccept = true;
+            if (this.start === null) this.start = 'setting-it';
         }
     }
     /**

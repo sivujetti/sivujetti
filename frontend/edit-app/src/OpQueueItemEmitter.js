@@ -31,12 +31,8 @@ class OpQueueItemEmitter {
             } else if (event === 'theBlockTree/applySwap' || event === 'theBlockTree/applyAdd(Drop)Block') {
                 const oldTree = this.prevTree;
                 const [_drag, target] = data; // [BlockSwapDescriptor, BlockSwapDescriptor]
-                // Normal swap/drop, use blockIsStoredToTreeId as usual
-                if (!(target.blockIsRootOfGbtRef && (target.dropPos === 'before' || target.dropPos === 'after')))
-                    this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, target.blockIsStoredToTreeId, null);
-                // Item was dropped _before_ or _after_ gbtRef, which are always stored to 'main'
-                else
-                    this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, 'main', null);
+                const {isStoredToTreeId} = !(target.isGbtRef && target.dropPos === 'as-child') ? target : {isStoredToTreeId: target.data.refTreeId};
+                this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, isStoredToTreeId, null);
             } else if (event === 'theBlockTree/deleteBlock') {
                 const oldTree = this.prevTree;
                 const [_id, blockIsStoredToTreeId, _wasCurrentlySelectedBlock] = data;
@@ -98,7 +94,7 @@ class OpQueueItemEmitter {
                     doUndo: () => {
                         store2.dispatch('reusableBranches/removeItem', [id]);
                         // the title of this block was changed just before emitting reusableBranches/addItem, undo it also
-                        if (associatedBlockId) setTimeout(() => { triggerUndo(); }, 100);
+                        if (associatedBlockId) setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
                     },
                     args: [],
                 }));

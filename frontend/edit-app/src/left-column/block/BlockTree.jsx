@@ -64,8 +64,10 @@ class BlockTree extends preact.Component {
                 const newState = {blockTree: theBlockTree, treeState: createTreeState(theBlockTree, this.state.treeState)};
                 if ((event === 'theBlockTree/applyAdd(Drop)Block' || event === 'theBlockTree/applySwap') && data[1].dropPos === 'as-child') {
                     const swapTargetInfo = data[1];
-                    const branch = blockTreeUtils.getRootFor(swapTargetInfo.blockIsStoredToTreeId, theBlockTree);
-                    const paren = blockTreeUtils.findBlock(swapTargetInfo.blockId, branch)[0];
+                    const {isStoredToTreeId, blockId} = !swapTargetInfo.isGbtRef ? swapTargetInfo
+                        : {isStoredToTreeId: swapTargetInfo.data.refTreeId, blockId: swapTargetInfo.data.refTreesRootBlockId};
+                    const branch = blockTreeUtils.getRootFor(isStoredToTreeId, theBlockTree);
+                    const paren = blockTreeUtils.findBlock(blockId, branch)[0];
                     newState.treeState[paren.id].isCollapsed = false;
                     hideOrShowChildren(false, paren, newState.treeState);
                 }
@@ -438,12 +440,14 @@ function hideOrShowChildren(setAsHidden, block, mutRef) {
     if (!block.children.length) return;
     if (setAsHidden)
         block.children.forEach(b2 => {
+            if (b2.type === 'GlobalBlockReference') return; // Ignore
             mutRef[b2.id].isHidden = true;
             // Always hide all children
             hideOrShowChildren(true, b2, mutRef);
         });
     else
         block.children.forEach(b2 => {
+            if (b2.type === 'GlobalBlockReference') return; // Ignore
             mutRef[b2.id].isHidden = false;
             // Show children only if it's not collapsed
             if (!mutRef[b2.id].isCollapsed) hideOrShowChildren(false, b2, mutRef);

@@ -331,15 +331,11 @@ type leftPanelName = 'Default'|'CreatePage'|'CreatePageType';
 interface BlockDescriptor {
     blockId: String;
     isStoredToTreeId: String;
-    isRootOfGbtRef: Boolean;
-    ownerGbtRefBlockId: String|null; // If isRootOfGbtRef === true
+    isGbtRef: Boolean;
+    data: {refTreesRootBlockId: String; refTreeId: String;}|null; // If isGbtRef === true
 }
 
-interface BlockSwapDescriptor {
-    blockId: String;
-    blockIsStoredToTreeId: String;
-    blockIsRootOfGbtRef: Boolean;
-    blocksOwnerGbtRefBlockId: String|null; // If blockIsRootOfGbtRef === true
+interface BlockSwapDescriptor extends BlockDescriptor {
     dropPos: 'before'|'after'|'as-child';
 }
 

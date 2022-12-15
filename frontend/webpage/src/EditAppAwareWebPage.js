@@ -1,5 +1,5 @@
-import {CHILDREN_START, CHILDREN_END} from '../../edit-app/src/block/dom-commons.js';
-import ReRenderer, {findCommentR, withTrid} from './ReRenderer.js';
+import {CHILDREN_START, CHILDREN_END, noop} from '../../edit-app/src/block/dom-commons.js';
+import ReRenderer, {findCommentR, getBlockEl, withTrid} from './ReRenderer.js';
 
 class EditAppAwareWebPage {
     // data; // public
@@ -46,7 +46,7 @@ class EditAppAwareWebPage {
     addRootBoundingEls(lastBlock) {
         const rootEl = document.body;
         rootEl.insertBefore(document.createComment(CHILDREN_START), rootEl.firstChild);
-        const lastEl = lastBlock.type !== 'GlobalBlockReference' ? rootEl.querySelector(`[data-block="${lastBlock.id}"]`)
+        const lastEl = lastBlock.type !== 'GlobalBlockReference' ? getBlockEl(lastBlock.id, rootEl)
             : findCommentR(rootEl, ` block-end ${lastBlock.id} `);
         const nextOfLast = lastEl.nextSibling;
         if (nextOfLast) nextOfLast.parentElement.insertBefore(document.createComment(CHILDREN_END), nextOfLast);
@@ -58,7 +58,7 @@ class EditAppAwareWebPage {
      * @access public
      */
     setTridAttr(blockId, trid) {
-        const el = document.body.querySelector(`[data-block="${blockId}"]`);
+        const el = getBlockEl(blockId);
         el.setAttribute('data-is-stored-to-trid', trid);
     }
     /**
@@ -116,6 +116,10 @@ class EditAppAwareWebPage {
             }
             //
             if (this.currentlyHoveredBlockEl) {
+                const hasBeenReplacedByPropUpdate = this.currentlyHoveredBlockEl.parentElement === null;
+                if (hasBeenReplacedByPropUpdate) // @see ReRenderer.handleFastChangeEvent() ('theBlockTree/updatePropsOf')
+                    this.currentlyHoveredBlockEl = getBlockEl(this.currentlyHoveredBlockEl.getAttribute('data-block'));
+                //
                 const b = e.target.getAttribute('data-block-type') ? e.target : e.target.closest('[data-block-type]');
                 if (this.currentlyHoveredBlockEl.contains(b) && this.currentlyHoveredBlockEl !== b) {
                     this.handlers.onHoverEnded(this.currentlyHoveredBlockEl);

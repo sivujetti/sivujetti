@@ -16,7 +16,6 @@ $out->resources = (object) [
         "create"            => 0b00000010,
         "read"              => 0b00000100,
         "updateBlocksOf"    => 0b00001000,
-        "update"            => 0b00010000,
     ],
     "editMode" => (object) [
         "access"            => 0b00000010,
@@ -84,7 +83,7 @@ $out->userPermissions = (object) [
     ACL::ROLE_EDITOR => (object) [
         "blocks"            => ACL::makePermissions("*", $out->resources->blocks),
         "coreUpdates"       => ACL::makePermissions("*", $out->resources->coreUpdates),
-        "globalBlockTrees"  => ACL::makePermissions(["read","update"], $out->resources->globalBlockTrees),
+        "globalBlockTrees"  => ACL::makePermissions(["read","updateBlocksOf"], $out->resources->globalBlockTrees),
         "editMode"          => ACL::makePermissions(["access"], $out->resources->editMode),
         "layouts"           => ACL::makePermissions(["list"], $out->resources->layouts),
         "pages"             => ACL::makePermissions(["create","list","updateBlocksOf","update"], $out->resources->pages),

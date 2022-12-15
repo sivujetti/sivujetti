@@ -141,7 +141,7 @@ class ReRenderer {
                 const onlySelf = extractRendered(el2);
                 if (debounceMillis > 0) this.throttledUpdates[block.id] = 1;
                 else this.elCache.get(block.id).push(onlySelf);
-                this.doReRender(theBlockTree, {blockId: block.id, el: onlySelf});
+                this.doReRender(theBlockTree, {blockId: block.id, el: onlySelf.cloneNode(true)});
             }, false);
         // ====================================================================
         } else if (event === 'theBlockTree/cloneItem') {
@@ -418,4 +418,4 @@ function withTrid(html, trid, recursive = false) {
 }
 
 export default ReRenderer;
-export {findCommentR, withTrid};
+export {findCommentR, withTrid, getBlockEl};

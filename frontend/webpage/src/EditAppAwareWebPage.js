@@ -4,20 +4,23 @@ import ReRenderer, {findCommentR, getBlockEl, withTrid} from './ReRenderer.js';
 class EditAppAwareWebPage {
     // data; // public
     // reRenderer; // public
+    // baseUrl;
     // currentlyHoveredRootEl;
     // isLocalLink;
     // tempStyleOverrideNames;
     // tempStyleOverrideElsRemoveTimeouts;
     /**
-     * @param {CurrentPageData} dataFromAdminBackend
+     * @param {CurrentPageData} dataFromBackend
+     * @param {String} baseUrl e.g. '/sub-dir/' or '/' or '/sub-dir/index.php?q=/'
      */
-    constructor(dataFromAdminBackend) {
-        this.data = dataFromAdminBackend;
+    constructor(dataFromBackend, baseUrl) {
+        this.data = dataFromBackend;
+        this.reRenderer = null;
+        this.baseUrl = baseUrl;
         this.currentlyHoveredRootEl = null;
         this.isLocalLink = createIsLocalLinkCheckFn();
         this.tempStyleOverrideNames = new Map;
         this.tempStyleOverrideElsRemoveTimeouts = new Map;
-        this.reRenderer = null;
     }
     /**
      * @param {(block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void} renderBlockAndThen
@@ -240,8 +243,13 @@ class EditAppAwareWebPage {
      */
     doFollowLink(el) {
         if (this.isLocalLink(el)) {
-            const s = el.search; // todo what if non ?q ?
-            window.parent.myRoute(!s ? el.pathname : s.split('=')[1]);
+            const noOrigin = el.href.substring(el.origin.length); // http://domain.com/foo -> /foo
+                                                                  // http://domain.com/foo/index.php?q=/foo -> /foo/index.php?q=/foo
+            const noBase = `/${noOrigin.substring(this.baseUrl.length)}`; // /foo -> /foo
+                                                                          // /sub-dir/foo -> /foo
+                                                                          // /index.php?q=/foo -> /foo
+                                                                          // /sub-dir/index.php?q=/foo -> /foo
+            window.parent.myRoute(noBase.split('#')[0]);
         }
     }
 }

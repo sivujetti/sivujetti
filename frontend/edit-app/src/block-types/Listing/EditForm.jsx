@@ -91,8 +91,8 @@ class ListingBlockEditForm extends preact.Component {
         List   all     pages      with category bar               -                             rendering them using foo
         List   50      pages                                      ordered by oldest to newest   rendering them using foo
         */
-        return <div><div class="mb-2">Ohjeet:</div>
-        <div class="listing-instructions d-flex">
+        return <div>
+        <div class="listing-instructions d-flex pt-1">
             <span>{ __('List') }</span>
 
             <div class="group-2 ml-1">

@@ -1,6 +1,6 @@
 # Sivujetti
 
-Sivujetti is a website builder and CMS that aims to streamline feedback loops and remove the distinction between "What You See" and "What You Get" (WYSIWYG).
+Sivujetti is a website builder and CMS.
 
 ## Requirements
 

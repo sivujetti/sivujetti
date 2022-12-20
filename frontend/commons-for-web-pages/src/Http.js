@@ -10,11 +10,12 @@ class Http {
     }
     /**
      * @param {string} url esim. '/api/foo'
+     * @param {RequestInit} settings = {}
      * @returns {Promise<Object>}
      * @access public
      */
-    get(url) {
-        return this.fetchFn(this.makeUrl(url), completeSettings({method: 'GET'}, null))
+    get(url, settings = {}) {
+        return this.fetchFn(this.makeUrl(url), completeSettings(Object.assign({method: 'GET'}, settings), null))
             .then(resp => {
                 if (resp.status === 401)
                     window.console.error('todo');
@@ -24,8 +25,8 @@ class Http {
     /**
      * @param {string} url
      * @param {Object} data
-     * @param {Object} settings = {}
-     * @param {Object} defaults = {method: 'POST'}
+     * @param {RequestInit} settings = {}
+     * @param {RequestInit} defaults = {method: 'POST'}
      * @returns {Promise<Object>}
      * @access public
      */
@@ -40,7 +41,7 @@ class Http {
     /**
      * @param {string} url
      * @param {Object} data
-     * @param {Object} settings = {}
+     * @param {RequestInit} settings = {}
      * @returns {Promise<Object>}
      * @access public
      */
@@ -57,6 +58,10 @@ class Http {
     }
 }
 
+/**
+ * @param {RequestInit} settings
+ * @returns {RequestInit}
+ */
 function completeSettings(settings, data) {
     if (!settings.headers)
         settings.headers = {'Content-Type': 'application/json',

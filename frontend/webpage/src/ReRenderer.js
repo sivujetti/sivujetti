@@ -193,7 +193,6 @@ class ReRenderer {
      * @access private
      */
     doReRender(tree, singleOverride = null) {
-        document.body.innerHTML = '';
         const appendCachedEls = (branch, toEl, endcom = null) => {
             if (!endcom) endcom = getChildEndComment(getBlockContentRoot(toEl));
             for (const b of branch) {
@@ -213,10 +212,20 @@ class ReRenderer {
                 }
             }
         };
+        //
+        let el = document.body.firstChild;
+        while (el) {
+            const cur = el;
+            el = el.nextSibling;
+            cur.parentElement.removeChild(cur);
+            if ((cur.nodeType === Node.COMMENT_NODE && cur.textContent === CHILDREN_END) || !el) break;
+        }
+        //
         const frag = document.createElement('div');
         frag.innerHTML = `<!--${CHILDREN_START}--><!--${CHILDREN_END}-->`;
         appendCachedEls(tree, frag);
-        Array.from(frag.childNodes).forEach(movable => document.body.appendChild(movable));
+        const firstScriptEl = el;
+        Array.from(frag.childNodes).forEach(insert => document.body.insertBefore(insert, firstScriptEl));
     }
     /**
      * @param {String} blockId

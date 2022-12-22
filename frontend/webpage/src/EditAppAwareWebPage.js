@@ -119,7 +119,7 @@ class EditAppAwareWebPage {
             }
             //
             if (this.currentlyHoveredBlockEl) {
-                const hasBeenReplacedByPropUpdate = this.currentlyHoveredBlockEl.parentElement === null;
+                const hasBeenReplacedByPropUpdate = !document.body.contains(this.currentlyHoveredBlockEl);
                 if (hasBeenReplacedByPropUpdate) // @see ReRenderer.handleFastChangeEvent() ('theBlockTree/updatePropsOf')
                     this.currentlyHoveredBlockEl = getBlockEl(this.currentlyHoveredBlockEl.getAttribute('data-block'));
                 //

@@ -46,6 +46,7 @@ stringBundles.push({
     'Something unexpected happened.': 'Jokin meni pieleen.',
     // edit-app/src/right-column/page/PagesListView.jsx
     'Duplicate page': 'Monista sivu',
+    'Show without edit menu': 'Näytä ilman muokkaustilaa',
     // edit-app/src/quill/*
     'Image': 'Kuva',
     'External': 'Ulkoinen',

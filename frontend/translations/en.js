@@ -46,6 +46,7 @@ stringBundles.push({
     'Something unexpected happened.': 'Something unexpected happened.',
     // edit-app/src/right-column/page/PagesListView.jsx
     'Duplicate page': 'Duplicate page',
+    'Show without edit menu': 'Show without edit menu',
     // edit-app/src/quill/*,
     'Image': 'Image',
     'External': 'External',

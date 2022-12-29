@@ -1,4 +1,4 @@
-import {__, api, env, signals, Icon, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, signals, urlUtils, Icon, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
 import {createTrier} from '../../../../webpage/src/EditAppAwareWebPage.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import BlockTree from '../block/BlockTree.jsx';
@@ -114,6 +114,7 @@ class OnThisPageSection extends MenuSectionAbstract {
             { containingView === 'Default' ? <ContextMenu
                 links={ [
                     {text: __('Duplicate this page'), title: __('Duplicate page'), id: 'duplicate'},
+                    {text: __('Show without edit menu'), title: __('Show without edit menu'), id: 'show-without-edit-mode'},
                 ] }
                 onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
                 onMenuClosed={ () => { this.slugOfPageWithNavOpened = null; } }
@@ -159,6 +160,8 @@ class OnThisPageSection extends MenuSectionAbstract {
     handleContextMenuLinkClicked(link) {
         if (link.id === 'duplicate')
             env.window.myRoute(`/pages/${encodeURIComponent(this.slugOfPageWithNavOpened)}/duplicate`);
+        else if (link.id === 'show-without-edit-mode')
+            env.window.open(urlUtils.makeUrl(this.slugOfPageWithNavOpened, true), '_blank');
     }
 }
 

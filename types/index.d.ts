@@ -2,6 +2,7 @@ interface SivujettiFrontendApi {
     blockTypes: BlockTypes;
     webPageIframe: WebPageIframe;
     mainPanel: MainPanel;
+    inspectorPanel: {getEl(): HTMLElement;};
     registerTranslationStrings(strings: {[key: String]: String}): void;
     getPageTypes(): Array<PageType>;
     getBlockRenderers(): Array<BlockRenderer>;

@@ -1,4 +1,4 @@
-import {__, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+import {__, api, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import {validationConstraints} from '../../constants.js';
 
 class EditItemPanel extends preact.Component {
@@ -12,10 +12,11 @@ class EditItemPanel extends preact.Component {
             this.link = Object.assign({}, props.link);
             this.setState(hookForm(this, [
                 {name: 'linkText', value: this.link.text, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link text'),
-                onAfterValueChanged: (value, hasErrors) => { this.emiChange(value, 'text', hasErrors); }},
+                onAfterValueChanged: (value, hasErrors) => { this.emitChange(value, 'text', hasErrors); }},
                 {name: 'linkSlug', value: this.link.slug, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Url'),
-                onAfterValueChanged: (value, hasErrors) => { this.emiChange(value, 'slug', hasErrors); }},
+                onAfterValueChanged: (value, hasErrors) => { this.emitChange(value, 'slug', hasErrors); }},
             ]));
+            api.inspectorPanel.getEl().scrollTo({top: 0});
         } else if (!props.link && this.link) {
             this.link = null;
         } else if (props.link && this.link && props.link !== this.props.link) { // undo
@@ -56,7 +57,7 @@ class EditItemPanel extends preact.Component {
      * @param {Boolean} hasErrors
      * @access private
      */
-    emiChange(value, prop, hasErrors) {
+    emitChange(value, prop, hasErrors) {
         if (hasErrors) return;
         this.link[prop] = value;
         this.props.onLinkUpdated(this.link);

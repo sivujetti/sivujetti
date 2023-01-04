@@ -57,6 +57,7 @@ function populateFrontendApi() {
     };
     // blockTypes, see configureServices
     // mainPanel see configureServices
+    // inspectorPanel see configureServices
 }
 
 function configureServices() {
@@ -96,6 +97,10 @@ function configureServices() {
     }
     api.mainPanel = mainPanel;
     //
+    api.inspectorPanel = {
+        getEl() { return document.getElementById('inspector-panel'); },
+    };
+    //
     patchQuillEditor();
 }
 
@@ -111,7 +116,7 @@ function patchQuillEditor() {
 
 function renderReactEditApp() {
     const mainPanelOuterEl = api.mainPanel.getEl();
-    const inspectorPanelOuterEl = document.getElementById('inspector-panel');
+    const inspectorPanelOuterEl = api.inspectorPanel.getEl();
     const inspectorPanelReactRef = preact.createRef();
     const rootEl = document.getElementById('root');
     preact.render(preact.createElement(EditApp, {

@@ -47,13 +47,19 @@ class OnThisPageSection extends MenuSectionAbstract {
          */
         (visibleBlock, unitCls) => {
             focusToBlockAndEmitBlockTreeClick(visibleBlock, 'styles-tab', () => {
+                const inspectorPanelOuter = api.inspectorPanel.getEl();
                 // Open styles tab
-                env.document.querySelector('#inspector-panel .tab .tab-item:nth-of-type(2) a').click();
+                inspectorPanelOuter.querySelector('.tab .tab-item:nth-of-type(2) a').click();
                 // Open first unit accordion
                 createTrier(() => {
-                    const accordBtn = document.querySelector(`#inspector-panel .styles-list > li[data-cls="${unitCls}"] button`);
-                    if (!accordBtn) return false;
+                    const row = inspectorPanelOuter.querySelector(`.styles-list > li[data-cls="${unitCls}"] > header`);
+                    if (!row) return false;
+                    const accordBtn = row.querySelector(`:scope > button`);
                     accordBtn.click();
+                    setTimeout(() => {
+                        inspectorPanelOuter.scrollTo({top: row.getBoundingClientRect().top - inspectorPanelOuter.getBoundingClientRect().top,
+                            behavior: 'smooth'});
+                    }, 100);
                     return true;
                 }, 50, 10)();
             });

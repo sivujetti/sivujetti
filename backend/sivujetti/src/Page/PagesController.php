@@ -367,6 +367,17 @@ final class PagesController {
         $res->html($html);
     }
     /**
+     * @param \Pike\Request $req
+     * @return string "http://localhost", "https://server.com"
+     */
+    public static function getServerHost(Request $req): string {
+        // https://stackoverflow.com/a/16076965
+        $s = ($req->attr("HTTPS") === "on" ||
+            $req->attr("HTTP_X_FORWARDED_PROTO") === "https" ||
+            $req->attr("HTTP_X_FORWARDED_SSL") === "on") ? "s" : "";
+        return "http{$s}://{$req->attr("HTTP_HOST")}";
+    }
+    /**
      * @param \Sivujetti\Block\Entities\Block[] $branch
      * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
@@ -508,16 +519,5 @@ final class PagesController {
             "langTag" => "{$theWebsite->lang}_{$theWebsite->country}",
             "description" => $theWebsite->description,
         ];
-    }
-    /**
-     * @param \Pike\Request $req
-     * @return string "http://localhost", "https://server.com"
-     */
-    private static function getServerHost(Request $req): string {
-        // https://stackoverflow.com/a/16076965
-        $s = ($req->attr("HTTPS") === "on" ||
-            $req->attr("HTTP_X_FORWARDED_PROTO") === "https" ||
-            $req->attr("HTTP_X_FORWARDED_SSL") === "on") ? "s" : "";
-        return "http{$s}://{$req->attr("HTTP_HOST")}";
     }
 }

@@ -4,6 +4,7 @@ namespace Sivujetti\Page;
 
 use Pike\{ArrayUtils, Db, PikeException};
 use Sivujetti\Block\Entities\Block;
+use Sivujetti\JsonUtils;
 use Sivujetti\Layout\Entities\Layout;
 use Sivujetti\Layout\LayoutsRepository;
 use Sivujetti\Page\Entities\Page;
@@ -118,8 +119,7 @@ final class PagesRepository {
                                object $input,
                                bool $doInsertRevision = false): int {
         if (($errors = $this->pageTypeValidator->validateUpdateData($pageType, $input)))
-            throw new PikeException(implode(PHP_EOL, $errors),
-                                    PikeException::BAD_INPUT);
+            throw new PikeException(implode(PHP_EOL, $errors), PikeException::BAD_INPUT);
         $updateData = self::makeStorablePageDataFromValidInput($input, $pageType);
         $theseColumnsOnly = self::DEFAULT_FIELDS;
         foreach ($pageType->ownFields as $field)
@@ -197,7 +197,7 @@ final class PagesRepository {
         $doIncludeLayouts = ($rows[0]?->layoutId ?? null) !== null;
         foreach ($rows as $row) {
             $row->meta = $row->metaJson
-                ? json_decode($row->metaJson, flags: JSON_THROW_ON_ERROR)
+                ? JsonUtils::parse($row->metaJson)
                 : null;
             $row->blocks = self::blocksFromRs("pageBlocksJson", $row);
             $row->layout = $doIncludeLayouts
@@ -207,7 +207,7 @@ final class PagesRepository {
             foreach ($this->pageType->ownFields as $field)
                 $row->{$field->name} = $field->dataType->type !== "many-to-many"
                     ? strval($row->{$field->name})
-                    : json_decode($row->{$field->name}, flags: JSON_THROW_ON_ERROR);
+                    : JsonUtils::parse($row->{$field->name});
         }
         return $rows;
     }
@@ -218,7 +218,7 @@ final class PagesRepository {
      */
     public static function blocksFromRs(string $key, object $row): array {
         $arr = [];
-        foreach (json_decode($row->{$key}, flags: JSON_THROW_ON_ERROR) as $data)
+        foreach (JsonUtils::parse($row->{$key}) as $data)
             $arr[] = Block::fromObject($data);
         unset($row->{$key});
         return $arr;
@@ -259,20 +259,25 @@ final class PagesRepository {
         $meta = (object) [];
         if (($descr = $input->meta->description ?? null))
             $meta->description = $descr;
+        $img = $input->meta->socialImage ?? null;
+        $meta->socialImage = gettype($img) === "object"
+            ? (object) ["src" => $img->src, "mime" => $img->mime,
+                        "height" => $img->height, "width" => $img->width]
+            : null;
         //
         $out = (object) [
             "slug" => $input->slug,
             "path" => $input->path,
             "level" => (int) $input->level,
             "title" => $input->title,
-            "meta" => json_encode($meta, JSON_UNESCAPED_UNICODE),
+            "meta" => JsonUtils::stringify($meta),
             "layoutId" => $input->layoutId,
             "status" => (int) $input->status,
         ];
         foreach ($pageType->ownFields as $field)
             $out->{$field->name} = $field->dataType->type !== "many-to-many"
                 ? $input->{$field->name} ?? null
-                : json_encode($input->{$field->name}, JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+                : JsonUtils::stringify($input->{$field->name});
         return $out;
     }
     /**
@@ -284,7 +289,7 @@ final class PagesRepository {
         $out = new \stdClass;
         foreach ($fields as $f)
             $out->{$f->name} = $data->{$f->name};
-        return json_encode($out, JSON_UNESCAPED_UNICODE);
+        return JsonUtils::stringify($out);
     }
     /**
      * todo

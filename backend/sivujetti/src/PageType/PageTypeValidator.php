@@ -135,6 +135,11 @@ final class PageTypeValidator {
             ->rule("level", "type", "number")
             ->rule("meta.description?", "type", "string")
             ->rule("meta.description?", "maxLength", 206) // Preferably 150 - 160
+            ->rule("meta.socialImage?.src", "type", "string")
+            ->rule("meta.socialImage?.src", "notContains", "./", "string")
+            ->rule("meta.socialImage?.mime", "maxLength", 128)
+            ->rule("meta.socialImage?.width", "type", "int")
+            ->rule("meta.socialImage?.height", "type", "int")
             ->rule("layoutId", "type", "number")
             ->rule("layoutId", "min", 1)
             ->rule("status", "type", "number")

@@ -78,6 +78,11 @@ final class CreatePageTest extends PagesControllerTestCase {
             "level must be number",
             "Expected `meta` to be an object",
             "Expected `meta` to be an object",
+            "Expected `meta` to be an object",
+            "Expected `meta` to be an object",
+            "Expected `meta` to be an object",
+            "Expected `meta` to be an object",
+            "Expected `meta` to be an object",
             "layoutId must be number",
             "The value of layoutId must be 1 or greater",
             "status must be number",
@@ -186,7 +191,7 @@ final class CreatePageTest extends PagesControllerTestCase {
             "type" => $state->customPageType->name,
             "status" => $state->inputData->status,
             "ownField1" => $state->inputData->ownField1,
-            "ownField2" => $state->inputData->ownField2,
+            "ownField2" => strval($state->inputData->ownField2),
         ], (array) $actual);
         $this->assertGreaterThan(time() - 3, $createdAt);
         $this->assertEquals($createdAt, $lastUpdatedAt);

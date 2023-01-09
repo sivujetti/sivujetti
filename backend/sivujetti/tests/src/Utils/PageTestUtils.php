@@ -133,7 +133,11 @@ final class PageTestUtils {
             "path" => "hello/",
             "level" => 1,
             "title" => "<Hellö>",
-            "meta" => (object) ["description" => "Greetings >"],
+            "meta" => (object) [
+                "description" => "Greetings >",
+                "socialImage" => (object) ["src" => "sample.jpg", "mime" => "image/jpeg",
+                    "height" => 400, "width" => 380]
+            ],
             "layoutId" => "1",
             "blocks" => $blocks ?? self::makeDefaultBlockTree(),
             "categories" => [],
@@ -234,7 +238,10 @@ final class PageTestUtils {
      * @return object {description: string}
      */
     public static function createCleanMetaFromInput(object $input): object {
-        return (object) ["description" => $input->description];
+        return (object) [
+            "description" => $input->description,
+            "socialImage" => $input->socialImage ?? null
+        ];
     }
     /**
      * @return \Sivujetti\Block\Entities\Block[]

@@ -338,7 +338,7 @@ final class WebPageAwareTemplate extends Template {
         $countryCode = strtoupper($site->country ?? $site->lang);
         $metasOgOut[] = "<meta property=\"og:locale\" content=\"{$site->lang}_{$countryCode}\">";
         $ldWebSite["inLanguage"] = $site->lang;
-        $ldWebPage["inLanguage"] = $site->lang;
+        $ldWebPage["inLanguage"] = $ldWebSite["inLanguage"];
         // Permalink
         $permaFull = "{$this->__vars["serverHost"]}{$this->makeUrl($currentPage->slug)}";
         $metasNativeOut[] = "<link rel=\"canonical\" href=\"{$permaFull}\">";
@@ -355,10 +355,29 @@ final class WebPageAwareTemplate extends Template {
         $metasOgOut[] = "<meta property=\"og:site_name\" content=\"{$siteNameEscaped}\">";
         $ldWebSite["name"] = $siteNameEscaped;
         $ldWebSite["description"] = $this->e($site->description);
+        // Social image
+        $ldImage = null;
+        if (($img = $metasIn->socialImage ?? null)) {
+            $host = $this->__vars["serverHost"];
+            $full = "{$host}{$this->assetUrl("/public/uploads/{$img->src}")}";
+            $metasOgOut[] = "<meta property=\"og:image\" content=\"{$full}\">";
+            $metasOgOut[] = "<meta property=\"og:image:width\" content=\"{$img->width}\">";
+            $metasOgOut[] = "<meta property=\"og:image:height\" content=\"{$img->height}\">";
+            $metasOgOut[] = "<meta property=\"og:image:type\" content=\"{$img->mime}\">";
+            $metasOgOut[] = "<meta name=\"twitter:card\" content=\"summary_large_image\">";
+            $ldImage = ["@type" => "ImageObject"];
+            $ldImage["@id"] = "{$webSiteUrl}#primaryimage";
+            $ldImage["inLanguage"] = $ldWebSite["inLanguage"];
+            $ldImage["url"] = $full;
+            $ldImage["contentUrl"] = $full;
+            $ldImage["width"] = $img->width;
+            $ldImage["height"] = $img->height;
+            $ldWebPage["primaryImageOfPage"] = ["@id" => $ldImage["@id"]];
+        }
         //
         $metasOgOut[] = "<script type=\"application/ld+json\">" . JsonUtils::stringify([
             "@context" => "https://schema.org",
-            "@graph" => [$ldWebSite, $ldWebPage]
+            "@graph" => [...[$ldWebSite, $ldWebPage], ...($ldImage ? [$ldImage] : [])]
         ], JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) . "</script>\n";
         //
         return [

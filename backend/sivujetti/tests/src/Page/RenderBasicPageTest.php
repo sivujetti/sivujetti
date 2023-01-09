@@ -140,6 +140,27 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertEquals($expectedSiteName, $siteNameEl->getAttribute("content"));
         $this->assertEquals($expectedSiteName, $ldWebSite->name);
         $this->assertEquals("xss %gt;", $ldWebSite->description);
+        // Social image
+        $input = $state->testPageData->meta->socialImage;
+        $imgUrlEl = $dom->execute("head meta[property=\"og:image\"]")[0] ?? null;
+        $expectedImgUrl = "http://localhost" . WebPageAwareTemplate::makeUrl("/public/uploads/{$input->src}", false);
+        $this->assertEquals($expectedImgUrl, $imgUrlEl->getAttribute("content"));
+        $imgWidthEl = $dom->execute("head meta[property=\"og:image:width\"]")[0] ?? null;
+        $this->assertEquals($input->width, $imgWidthEl->getAttribute("content"));
+        $imgHeightEl = $dom->execute("head meta[property=\"og:image:height\"]")[0] ?? null;
+        $this->assertEquals($input->height, $imgHeightEl->getAttribute("content"));
+        $imgTypeEl = $dom->execute("head meta[property=\"og:image:type\"]")[0] ?? null;
+        $this->assertEquals($input->mime, $imgTypeEl->getAttribute("content"));
+        $twtCardTypeEl = $dom->execute("head meta[name=\"twitter:card\"]")[0] ?? null;
+        $this->assertEquals("summary_large_image", $twtCardTypeEl->getAttribute("content"));
+        $ldImage = ArrayUtils::findByKey($actualJdJson->{"@graph"}, "ImageObject", "@type");
+        $this->assertEquals("{$expectedSiteUrlFull}#primaryimage", $ldImage->{"@id"});
+        $this->assertEquals("fi", $ldImage->inLanguage);
+        $this->assertEquals($expectedImgUrl, $ldImage->url);
+        $this->assertEquals($expectedImgUrl, $ldImage->contentUrl);
+        $this->assertEquals($input->width, $ldImage->width);
+        $this->assertEquals($input->height, $ldImage->height);
+        $this->assertEquals((object) ["@id" => $ldImage->{"@id"}], $ldWebPage->primaryImageOfPage);
     }
     public static function escapeEntities(string $html): string {
         // \DomDocument likes to decode all html entities ("&gt;" -> ">") from the markup it parses.

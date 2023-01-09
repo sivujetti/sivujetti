@@ -103,11 +103,18 @@ final class UpdatePageTest extends PagesControllerTestCase {
 
     public function testUpdatePageRejectsInvalidInputs2(): void {
         $state = $this->setupTest();
-        $state->inputData = (object) ["slug" => "foo.com"];
+        $state->inputData = (object) [
+            "slug" => "foo.com",
+            "meta" => (object) ["socialImage" => (object) [ ]]
+        ];
         $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
         $this->expectException(PikeException::class);
         $this->expectExceptionMessageMatches("/slug is not valid/");
+        $this->expectExceptionMessageMatches("/meta.socialImage.src must be string/");
+        $this->expectExceptionMessageMatches("/The length of meta.socialImage.mime must be 206 or less/");
+        $this->expectExceptionMessageMatches("/meta.socialImage.width must be int/");
+        $this->expectExceptionMessageMatches("/meta.socialImage.height must be int/");
         $this->sendUpdatePageRequest($state);
     }
 

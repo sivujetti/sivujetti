@@ -4,7 +4,7 @@ namespace Sivujetti\BlockType;
 
 use Pike\{ArrayUtils, Injector, PikeException};
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\JsonUtils;
+use Sivujetti\{JsonUtils, ValidationUtils};
 use Sivujetti\Page\PagesRepository2;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
@@ -27,7 +27,9 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
             ->newProperty("filterOrder")->dataType($builder::DATA_TYPE_TEXT, validationRules: [
                 ["in", ["desc", "asc", "rand"]]
             ])
-            ->newProperty("filterAdditional", $builder::DATA_TYPE_TEXT)
+            ->newProperty("filterAdditional")->dataType($builder::DATA_TYPE_TEXT, validationRules: [
+                ["maxLength", ValidationUtils::HARD_LONG_TEXT_MAX_LEN]
+            ])
             ->getResult();
     }
     /**

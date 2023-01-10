@@ -120,7 +120,7 @@ stringBundles.push({
     'Log out': 'Kirjaudu ulos',
     'Created new %s': 'Luotiin uusi %s',
     'Page title': 'Sivuotsikko',
-    // edit-app/src/InspectorPanel.jsx
+    // edit-app/src/left-column/InspectorPanel.jsx
     'Close': 'Sulje',
     // edit-app/src/left-column/page-type/PageTypeBasicInfoConfigurationForm.jsx
     'Name (for computers)': 'Nimi (konekielinen)',

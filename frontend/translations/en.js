@@ -120,7 +120,7 @@ stringBundles.push({
     'Log out': 'Log out',
     'Created new %s': 'Created new %s',
     'Page title': 'Page title',
-    // edit-app/src/InspectorPanel.jsx
+    // edit-app/src/left-column/InspectorPanel.jsx
     'Close': 'Close',
     // edit-app/src/left-column/page-type/PageTypeBasicInfoConfigurationForm.jsx
     'Name (for computers)': 'Name (for computers)',

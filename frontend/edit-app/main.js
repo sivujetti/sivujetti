@@ -16,7 +16,7 @@ import createPageInfoBlockType from './src/block-types/pageInfo.js';
 import createParagraphBlockType from './src/block-types/paragraph.js';
 import createRichTextBlockType from './src/block-types/richText.js';
 import createSectionBlockType from './src/block-types/section.js';
-import InspectorPanel from './src/InspectorPanel.jsx';
+import InspectorPanel from './src/left-column/InspectorPanel.jsx';
 import WebPageIframe from './src/right-column/WebPageIframe.js';
 import MainPanel from './src/left-column/MainPanel.js';
 import OnThisPageSection from './src/left-column/default-panel-sections/OnThisPageSection.jsx';

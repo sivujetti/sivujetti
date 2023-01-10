@@ -211,6 +211,7 @@ stringBundles.push({
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metatiedot',
     'Url (slug)': 'Urli (slug)',
+    'Social image': 'Some-kuva',
     'Meta description': 'Meta-selostus',
     // edit-app/src/block-types/paragraph.js
     'Paragraph': 'Tekstikappale',

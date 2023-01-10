@@ -1,5 +1,6 @@
-import {__, api, http, hookForm, unhookForm, reHookValues, Input, InputErrors,
-        FormGroupInline, FormGroup, Textarea} from '@sivujetti-commons-for-edit-app';
+import {__, api, http, urlUtils, hookForm, unhookForm, reHookValues, Input,
+    InputErrors, FormGroupInline, FormGroup, Textarea} from '@sivujetti-commons-for-edit-app';
+import ImagePicker from '../block-widget/ImagePicker.jsx';
 import toasters from '../commons/Toaster.jsx';
 import {makeSlug, makePath} from '../left-column/page/AddCategoryPanel.jsx';
 import ManyToManyField from '../left-column/page/ManyToManyField.jsx';
@@ -13,6 +14,7 @@ class PageInfoBlockEditForm extends preact.Component {
     // ownFields;
     // titleEl;
     // descriptionEl;
+    // imagePicker;
     /**
      * @access protected
      */
@@ -23,6 +25,7 @@ class PageInfoBlockEditForm extends preact.Component {
         this.ownFields = this.pageType.ownFields.filter(({dataType}) => dataType.type === 'many-to-many');
         this.titleEl = preact.createRef();
         this.descriptionEl = preact.createRef();
+        this.imagePicker = preact.createRef();
         const createSlugAndPath = slug => ({slug, path: makePath(slug, this.pageType)});
         const createSlugAndPathFromTitle = !this.currentPageIsPlaceholder
             ? (_ => ({}))
@@ -50,7 +53,9 @@ class PageInfoBlockEditForm extends preact.Component {
              label: __('Meta description'), onAfterValueChanged: (value, hasErrors) => {
                 if (!hasErrors) this.emitChanges(mut => { mut.meta.description = value; });
              }},
-        ]));
+        ], {
+            socialImageSrc: (curPage.meta.socialImage || {src: null}).src
+        }));
         observeStore(selectCurrentPageDataBundle, ({page}) => {
             if (this.state.values.title !== page.title ||
                 this.state.values.slug !== page.slug ||
@@ -58,6 +63,10 @@ class PageInfoBlockEditForm extends preact.Component {
                 reHookValues(this, [{name: 'title', value: page.title},
                                     {name: 'slug', value: page.slug},
                                     {name: 'description', value: page.meta.description || ''}]);
+            } else {
+                const {src} = (page.meta.socialImage || {src: null});
+                if (this.state.socialImageSrc !== src)
+                    this.setState({socialImageSrc: src});
             }
         });
     }
@@ -77,7 +86,7 @@ class PageInfoBlockEditForm extends preact.Component {
     /**
      * @access protected
      */
-    render() {
+    render(_, {socialImageSrc}) {
         const wrap = input => !this.pageType || this.pageType.name === 'Pages'
             ? input
             : <div class="input-group">
@@ -94,6 +103,14 @@ class PageInfoBlockEditForm extends preact.Component {
                 <label htmlFor="slug" class="form-label">{ __('Url (slug)') }</label>
                 { wrap(<Input vm={ this } prop="slug"/>) }
                 <InputErrors vm={ this } prop="slug"/>
+            </FormGroupInline>
+            <FormGroupInline>
+                <label htmlFor="src" class="form-label">{ __('Social image') }</label>
+                <ImagePicker
+                    onImageSelected={ this.handleSocialImageChanged.bind(this) }
+                    initialImageFileName={ socialImageSrc }
+                    inputId="socialImageSrc"
+                    ref={ this.imagePicker }/>
             </FormGroupInline>
             <FormGroup>
                 <label htmlFor="description" class="form-label">{ __('Meta description') }</label>
@@ -126,6 +143,25 @@ class PageInfoBlockEditForm extends preact.Component {
             args: [],
         }));
     }
+    /**
+     * @param {UploadsEntry|null} img
+     */
+    handleSocialImageChanged(img) {
+        if (img) {
+            const tmp = new Image();
+            tmp.onload = () => {
+                this.emitChanges(mut => {
+                    mut.meta.socialImage = {src: img.fileName, mime: img.mime,
+                        width: tmp.naturalWidth, height: tmp.naturalHeight};
+                });
+            };
+            tmp.src = urlUtils.makeAssetUrl(`/public/uploads/${img.fileName}`);
+        } else {
+            this.emitChanges(mut => {
+                mut.meta.socialImage = null;
+            });
+        }
+    }
 }
 
 /**
@@ -136,6 +172,7 @@ function savePageToBackend() {
     data = Object.assign({}, selectCurrentPageDataBundle(store.getState()).page);
     delete data.blocks;
     delete data.isPlaceholderPage;
+    delete data.__blocksDebug;
     //
     return http.put(`/api/pages/${data.type}/${data.id}`, data)
         .then(resp => {

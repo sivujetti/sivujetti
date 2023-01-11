@@ -11,4 +11,7 @@ final class SomethingController {
     public function updateSomething(Response $res): void {
         $res->json(["ok" => "ok"]);
     }
+    public function getSomething2(Response $res): void {
+        $res->json([]);
+    }
 }

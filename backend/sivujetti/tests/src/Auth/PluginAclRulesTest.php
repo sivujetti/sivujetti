@@ -33,6 +33,10 @@ final class PluginAclRulesTest extends DbTestCase {
         $this->assertEquals(200, $state->spyingResponse->getActualStatusCode());
         $this->sendSomethingRequest($state, ACL::ROLE_ADMIN_EDITOR, "updateSomething");
         $this->assertEquals(403, $state->spyingResponse->getActualStatusCode());
+
+        // ACL::ROLE_ADMIN_EDITOR
+        $this->sendSomethingRequest($state, ACL::ROLE_ADMIN_EDITOR, "getSomething2");
+        $this->assertEquals(200, $state->spyingResponse->getActualStatusCode());
         //
         $this->resetTestPluginInstructions();
     }
@@ -52,10 +56,11 @@ final class PluginAclRulesTest extends DbTestCase {
             $bootModule->useMock("auth", [":session" => $this->createMock(SessionInterface::class),
                                           ":userRole" => $userRole]);
         });
-        $state->spyingResponse = $state->app->sendRequest($route === "getSomething"
-            ? $this->createApiRequest(MyPrefixPluginName::$testRoute1Url, method: "GET")
-            : $this->createApiRequest(MyPrefixPluginName::$testRoute2Url, method: "PUT", body: (object)["dym" => "my"])
-        );
+        $state->spyingResponse = $state->app->sendRequest(match ($route) {
+            "getSomething" => $this->createApiRequest(MyPrefixPluginName::$testRoute1Url, method: "GET"),
+            "getSomething2" => $this->createApiRequest(MyPrefixPluginName::$testRoute3Url, method: "GET"),
+            default => $this->createApiRequest(MyPrefixPluginName::$testRoute2Url, method: "PUT", body: (object)["dym" => "my"])
+        });
     }
     private function resetTestPluginInstructions(): void {
         MyPrefixPluginName::$testInstructions = "";

@@ -75,8 +75,10 @@ final class ACLRulesBuilder {
             $masks = self::actionsToActionsMasks($itm->actions);
             $resources->{$itm->resourceName} = $masks;
             //
-            foreach ($itm->rolePerms as [$role, $allowedActions])
-                $userPerms->{$role} = (object) [$itm->resourceName => ACL::makePermissions($allowedActions, $masks)];
+            foreach ($itm->rolePerms as [$role, $allowedActions]) {
+                if (!is_object($userPerms->{$role} ?? null)) $userPerms->{$role} = new \stdClass;
+                $userPerms->{$role}->{$itm->resourceName} = ACL::makePermissions($allowedActions, $masks);
+            }
         }
         return (object) ["resources" => $resources, "userPermissions" => $userPerms];
     }

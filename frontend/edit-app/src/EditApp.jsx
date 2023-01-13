@@ -7,6 +7,7 @@ import PageCreatePanel from './left-column/page/PageCreatePanel.jsx';
 import PageDuplicatePanel from './left-column/page/PageDuplicatePanel.jsx';
 import PageTypeCreatePanel from './left-column/page-type/PageTypeCreatePanel.jsx';
 import {getArePanelsHidden} from './right-column/IframePageManager.js';
+import {historyInstance} from './right-column/RightColumnViews.jsx';
 
 const PreactRouter = preactRouter;
 
@@ -49,7 +50,7 @@ class EditApp extends preact.Component {
      */
     render(_, {hidePanels}) {
         const logoUrl = urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo.png');
-        return <div>
+        return <div id={ window.useNewRouter ? 'use-new-router' : 'dont-use-new-router' }>
             { !hidePanels ? null : <a onClick={ e => (e.preventDefault(), this.handlePanelsAreHiddenChanged(false)) } id="back-to-edit-corner" href="">
                 <img src={ logoUrl }/>
                 <Icon iconId="arrow-back-up"/>
@@ -96,7 +97,7 @@ class EditApp extends preact.Component {
                 } } class="btn btn-primary btn-sm p-absolute" type="button">{ __('Selvä!') }</button>
             </div></div>
             }
-            <PreactRouter history={ History.createHashHistory() }>
+            <PreactRouter history={ historyInstance }>
                 <DefaultPanel path="/:slug*"/>
                 <PageCreatePanel path="/pages/create/:pageTypeName?/:layoutId?"/>
                 <PageDuplicatePanel path="/pages/:pageSlug/duplicate"/>

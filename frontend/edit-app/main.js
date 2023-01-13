@@ -17,6 +17,7 @@ import createParagraphBlockType from './src/block-types/paragraph.js';
 import createRichTextBlockType from './src/block-types/richText.js';
 import createSectionBlockType from './src/block-types/section.js';
 import InspectorPanel from './src/left-column/InspectorPanel.jsx';
+import RightColumnViews from './src/right-column/RightColumnViews.jsx';
 import WebPageIframe from './src/right-column/WebPageIframe.js';
 import MainPanel from './src/left-column/MainPanel.js';
 import OnThisPageSection from './src/left-column/default-panel-sections/OnThisPageSection.jsx';
@@ -24,7 +25,6 @@ import BaseStylesSection from './src/left-column/default-panel-sections/BaseStyl
 import SettingsSection from './src/left-column/default-panel-sections/SettingsSection.jsx';
 import WebsiteSection from './src/left-column/default-panel-sections/WebsiteSection.jsx';
 import {MyClipboard, MyKeyboard, MyLink, MySnowTheme} from './src/quill/quill-customizations.js';
-import RightColumnViews from './src/RightColumnViews.jsx';
 
 const editAppReactRef = preact.createRef();
 
@@ -139,7 +139,11 @@ function renderReactEditApp() {
         rootEl,
     }), document.getElementById('view'));
 
-    window.myRoute = url => {
+    window.myRoute = (url, checkIfkUnsavedChanges = false) => {
+        if (window.useNewRouter && checkIfkUnsavedChanges &&
+            !editAppReactRef.current.saveButtonRef.current.confirmDiscardUnsavedChangesIfAny()) {
+            return;
+        }
         preactRouter.route(url);
     };
 }

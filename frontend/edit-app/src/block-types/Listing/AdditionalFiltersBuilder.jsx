@@ -7,6 +7,8 @@ const FilterKind = {
     URL_STARTS_WITH: 'urlStartsWith',
 };
 
+const {useNewRouter} = window;
+
 class IsInCategoryPart extends preact.Component {
     // popup;
     // relPageType;
@@ -94,7 +96,7 @@ class UrlStartsWithPart extends preact.Component {
      * @access public
      */
     static getLabel(howManyType) {
-        return __('%s %s starts with', __(howManyType !== 'single' ? 'whose' : 'which'), __('Url (slug)').toLowerCase());
+        return __('%s %s starts with', __(howManyType !== 'single' ? 'whose' : 'which#genitive'), __('Url (slug)').toLowerCase());
     }
     /**
      * @access protected
@@ -219,7 +221,7 @@ class AdditionalFiltersBuilder extends preact.Component {
                             onClick={ () => { onFiltersChanged(mergeToFilterAdditional(FilterKind.URL_STARTS_WITH, '', this.props.currentFiltersJson), 'added'); this.addFilterPopup.current.close(); } }
                             class="group-2 poppable perhaps mb-1"
                             type="button">
-                                { __('%s %s starts with', __('which'), __('Url (slug)').toLowerCase()) }
+                                { UrlStartsWithPart.getLabel(howManyType) }
                         </button>
                     </div>
                 </Popup>
@@ -308,7 +310,12 @@ class Popup extends preact.Component {
             ]},
         ));
         // Update its position
-       this.popperInstance.update();
+        if (useNewRouter)
+            setTimeout(() => {
+                this.popperInstance.update();
+            }, 1);
+        else
+            this.popperInstance.update();
     }
     /**
      * @access public
@@ -349,17 +356,25 @@ class Popup extends preact.Component {
     createPopper(el) {
         if (!el || this.popperInstance) return;
         //
-        const button = el.previousElementSibling;
-        const content = el;
-        this.popperInstance = window.Popper.createPopper(button, content, {
-            modifiers: [{
-                name: 'offset',
-                options: {offset: [0, 8]},
-            }, {
-                name: 'preventOverflow',
-                options: {altAxis: true, padding: 20},
-            }],
-        });
+        const fn = () => {
+            const button = el.previousElementSibling;
+            const content = el;
+            this.popperInstance = window.Popper.createPopper(button, content, {
+                modifiers: [{
+                    name: 'offset',
+                    options: {offset: [0, 8]},
+                }, {
+                    name: 'preventOverflow',
+                    options: {altAxis: true, padding: 20},
+                }],
+            });
+        };
+        if (useNewRouter) {
+            this.popperInstance = 'loading';
+            setTimeout(fn, 200);
+        } else {
+            fn();
+        }
     }
 }
 

@@ -40,6 +40,7 @@
         "mocha": true
     },
     "globals": {
+        "HistoryLibrary": true,
         "preact": true,
         "preactRouter": true,
         "preactHooks": true,

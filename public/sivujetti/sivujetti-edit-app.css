@@ -1,3 +1,5 @@
+@charset "utf-8";
+
 /*
 Structure:
 - Global: Defaults
@@ -621,10 +623,13 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .button-options label.selected {
     border: 2px solid var(--color-accent);
 }
-.button-options .form-icon {
+.button-options label .form-icon {
     left: initial;
     right: 1rem;
     top: .8rem;
+}
+.button-options label .h4 {
+    font: 800 1rem/1rem "Fira Sans";
 }
 
 
@@ -787,7 +792,8 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     position: relative;
     padding: .2rem .2rem .2rem .45rem;
 }
-.block-tree li[data-has-children] {
+#use-new-router .block-tree li[data-has-children="true"],
+#dont-use-new-router .block-tree li[data-has-children] {
     padding: .2rem;
 }
 .block-tree li[data-depth="2"] {
@@ -868,7 +874,8 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .block-tree li[data-last].maybe-drop-before:before {
     top: 0;
 }
-.block-tree li[data-first-child][data-last-child]:not([class*="maybe-"]) > div:before {
+#use-new-router .block-tree li[data-first-child="true"][data-last-child="true"]:not([class*="maybe-"]) > div:before,
+#dont-use-new-router .block-tree li[data-first-child][data-last-child]:not([class*="maybe-"]) > div:before {
     content: "";
     position: absolute;
     width: 1px;
@@ -878,7 +885,8 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     top: 50%;
     margin-top: 2px;
 }
-.block-tree li[data-last-child]:not([class*="maybe-"]):not([data-has-children]) > div:after {
+#use-new-router .block-tree li[data-last-child="true"]:not([class*="maybe-"]):not([data-has-children="true"]) > div:after,
+#dont-use-new-router .block-tree li[data-last-child]:not([class*="maybe-"]):not([data-has-children]) > div:after {
     content: "";
     position: absolute;
     width: 1px;
@@ -936,7 +944,8 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     border-color: #aaa;
 }
 /* block-tre li states inner */
-.block-tree li[data-has-children] > div {
+#use-new-router .block-tree li[data-has-children="true"] > div,
+#dont-use-new-router .block-tree li[data-has-children] > div {
     margin-left: 1.0rem;
 }
 .block-tree li.collapsed > .toggle .icon-tabler {

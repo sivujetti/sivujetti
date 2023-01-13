@@ -1,19 +1,34 @@
 import {signals} from '@sivujetti-commons-for-edit-app';
-import WebsiteEditBasicInfoView from './right-column/website/WebsiteEditBasicInfoView.jsx';
-import PagesListView from './right-column/page/PagesListView.jsx';
-import {isEditAppViewUrl} from './left-column/DefaultPanel.jsx';
+import WebsiteEditBasicInfoView from './website/WebsiteEditBasicInfoView.jsx';
+import PagesListView from './page/PagesListView.jsx';
+import {isEditAppViewUrl} from '../left-column/DefaultPanel.jsx';
 
-const PreactRouter = preactRouter;
+let historyInstance;
+
+if (window.useNewRouter) {
+    historyInstance = HistoryLibrary.createHashHistory();
+} else {
+    historyInstance = History.createHashHistory();
+}
+
+class MyRouter extends preactRouter {
+}
 
 class RightColumnViews extends preact.Component {
+    /**
+     */
+    constructor(props) {
+        super(props);
+        this.boundOnChange = this.onRouteChanged.bind(this);
+    }
     /**
      * @access protected
      */
     render() {
-        return <PreactRouter history={ History.createHashHistory() } onChange={ this.onRouteChanged.bind(this) }>
+        return <MyRouter history={ historyInstance } onChange={ this.boundOnChange }>
             <WebsiteEditBasicInfoView path="/website/edit-basic-info"/>
             <PagesListView path="/pages"/>
-        </PreactRouter>;
+        </MyRouter>;
     }
     /**
      * @param {{url: String} & {[key: String]: any;}} e
@@ -32,3 +47,4 @@ class RightColumnViews extends preact.Component {
 }
 
 export default RightColumnViews;
+export {historyInstance, MyRouter};

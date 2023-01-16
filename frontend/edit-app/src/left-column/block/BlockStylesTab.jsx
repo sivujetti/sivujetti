@@ -628,7 +628,7 @@ function createUnitClass(id, blockTypeName) {
  * @returns {Boolean}
  */
 function blockHasStyle(cls, {styleClasses}) {
-    return styleClasses.indexOf(cls) > -1;
+    return styleClasses.split(' ').indexOf(cls) > -1;
 }
 
 let stylesCached = null;

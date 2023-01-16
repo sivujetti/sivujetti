@@ -26,6 +26,8 @@ stringBundles.push({
     'Css for the inner elements': 'Css for the inner elements',
     'Other classes': 'Other classes',
     'Style name': 'Style name',
+    // edit-app/src/left-column/block/createBlockTreeDndController.js
+    'todo14': 'todo14', // Käyttöoikeutesi ei riitä muokkaamaan tätä sisältöä.
     // edit-app/src/left-column/page/AddCategoryPanel.jsx
     'Category': 'Category',
     'New category name': 'New category name',

@@ -173,12 +173,16 @@ function saveExistingBlocksToBackend(newBlockTree, trid) {
         url = `/api/global-block-trees/${trid}/blocks`;
     return http.put(url, {blocks: treeToTransferable(newBlockTree)})
         .then(resp => {
-            if (resp.ok !== 'ok') throw new Error('-');
+            if (resp.ok !== 'ok') throw new Error(typeof resp.err !== 'string' ? '-' : resp.err);
             return true;
         })
         .catch(err => {
-            window.console.error(err);
-            toasters.editAppMain(__('Something unexpected happened.'), 'error');
+            if (err.message !== 'Not permitted.') {
+                window.console.error(err);
+                toasters.editAppMain(__('Something unexpected happened.'), 'error');
+            } else {
+                toasters.editAppMain(__('todo14'), 'error');
+            }
             return false;
         });
 }

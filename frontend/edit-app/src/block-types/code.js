@@ -3,14 +3,16 @@ import {__, api, env, hookForm, unhookForm, reHookValues, Textarea,
 import {validationConstraints} from '../constants.js';
 
 class CodeBlockEditForm extends preact.Component {
+    // userCanEditCode;
     // codeInputEl;
     /**
      * @access protected
      */
     componentWillMount() {
+        this.userCanEditCode = api.user.getRole() < api.user.ROLE_EDITOR;
+        this.codeInputEl = preact.createRef();
         const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
         const {code} = getBlockCopy();
-        this.codeInputEl = preact.createRef();
         this.setState(hookForm(this, [
             {name: 'code', value: code, validations: [['required'], ['maxLength', validationConstraints.HARD_LONG_TEXT_MAX_LEN]], label: __('Code'),
              onAfterValueChanged: (value, hasErrors) => { emitValueChanged(value, 'code', hasErrors, env.normalTypingDebounceMillis, 'debounce-re-render-and-commit-to-queue'); }},
@@ -24,6 +26,7 @@ class CodeBlockEditForm extends preact.Component {
      * @access protected
      */
     componentDidMount() {
+        if (!this.userCanEditCode) return;
         const textareaEl = this.codeInputEl.current.inputEl.current;
         window.autosize(textareaEl);
     }
@@ -39,9 +42,11 @@ class CodeBlockEditForm extends preact.Component {
     render() {
         return <div class="form-horizontal pt-0">
             <FormGroup>
-                <label htmlFor="code" class="form-label">{ __('Code') }</label>
-                <Textarea vm={ this } prop="code" class="form-input code" placeholder={ `<div>${__('My code ...')}</div>` } ref={ this.codeInputEl }/>
-                <InputErrors vm={ this } prop="code"/>
+                { this.userCanEditCode ? [
+                    <label htmlFor="code" class="form-label">{ __('Code') }</label>,
+                    <Textarea vm={ this } prop="code" class="form-input code" placeholder={ `<div>${__('My code ...')}</div>` } ref={ this.codeInputEl }/>,
+                    <InputErrors vm={ this } prop="code"/>
+                ] : <div class="color-dimmed">{ __('todo14') }</div> }
             </FormGroup>
         </div>;
     }

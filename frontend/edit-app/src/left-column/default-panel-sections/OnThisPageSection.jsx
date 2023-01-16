@@ -1,6 +1,7 @@
 import {__, api, env, signals, urlUtils, Icon, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
 import {createTrier} from '../../../../webpage/src/EditAppAwareWebPage.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
+import store, {selectCurrentPageDataBundle} from '../../store.js';
 import BlockTree from '../block/BlockTree.jsx';
 
 class OnThisPageSection extends MenuSectionAbstract {
@@ -66,6 +67,10 @@ class OnThisPageSection extends MenuSectionAbstract {
         }), signals.on('inspector-panel-closed', () => {
             if (this.blockTreeRef.current)
                 this.blockTreeRef.current.deSelectAllBlocks();
+        }), signals.on('page-saved-to-backend', () => {
+            const {page} = selectCurrentPageDataBundle(store.getState());
+            if (this.state.loadedSlug !== page.slug)
+                this.updateTitlesToState(page.slug);
         })];
         //
         this.updateTitlesToState(this.props.loadedPageSlug);
@@ -135,7 +140,7 @@ class OnThisPageSection extends MenuSectionAbstract {
         if (!(this.mouseFocusIsAt === 'moreMenuIcon' || e.target.tagName === 'I' || this.moreMenuIcon.current.contains(e.target)))
             this.setState({isCollapsed: !this.state.isCollapsed});
         else
-            this.openMoreMenu(this.props.loadedPageSlug, e);
+            this.openMoreMenu(this.state.loadedSlug, e);
     }
     /**
      * @param {String|null} loadedSlug
@@ -146,6 +151,7 @@ class OnThisPageSection extends MenuSectionAbstract {
         const containingView = determineViewNameFrom(slug);
         this.setState({
             title: __(containingView !== 'CreatePageType' ? 'On this page' : 'Default content'),
+            loadedSlug,
             subtitle: getSubtitle(slug, containingView),
             containingView
         });

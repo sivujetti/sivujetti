@@ -1,5 +1,5 @@
 import {__, api, http, urlUtils, hookForm, unhookForm, reHookValues, Input,
-    InputErrors, FormGroupInline, FormGroup, Textarea} from '@sivujetti-commons-for-edit-app';
+    InputErrors, FormGroupInline, FormGroup, Textarea, signals} from '@sivujetti-commons-for-edit-app';
 import ImagePicker from '../block-widget/ImagePicker.jsx';
 import toasters from '../commons/Toaster.jsx';
 import {makeSlug, makePath} from '../left-column/page/AddCategoryPanel.jsx';
@@ -177,6 +177,7 @@ function savePageToBackend() {
     return http.put(`/api/pages/${data.type}/${data.id}`, data)
         .then(resp => {
             if (resp.ok !== 'ok') throw new Error('-');
+            signals.emit('page-saved-to-backend');
             return true;
         })
         .catch(err => {
@@ -211,4 +212,4 @@ export default () => {
  * ... possibly more props (Own fields)
  */
 
-export {savePageToBackend, makeSlug, makePath};
+export {makeSlug, makePath};

@@ -79,7 +79,7 @@ class EditAppAwareWebPage {
             if (!(this.currentlyHoveredBlockEl || this.isMouseListenersDisabled)) return;
             isDown = true;
             const a = e.button !== 0 ? null : e.target.nodeName === 'A' ? e.target : e.target.closest('a');
-            if (!a || a.classList.contains('j-Button')) return;
+            if (!a) return;
             lastDownLink = a;
             lastDownLinkAlreadyHandled = false;
             setTimeout(() => {

@@ -606,8 +606,22 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .has-color-pickers .is-very-light-color .pcr-button {
     border-color: rgba(var(--components-color-fb-default),.12);
 }
+.has-color-pickers > .form-group {
+    display: grid;
+    grid-template-columns: 92px auto;
+    flex-wrap: unset;
+    align-items: center;
+    justify-content: flex-start;
+    grid-gap: .4rem;
+}
 .has-color-pickers > .form-group:first-child {
     margin-top: .2rem;
+}
+.has-color-pickers > .form-group > * {
+    width: unset !important;
+}
+.has-color-pickers > .form-group > :last-child {
+    max-width: 80px;
 }
 /* EditApp: Components: Big radios */
 .button-options {

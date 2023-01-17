@@ -17,6 +17,7 @@ class WebsiteSection extends preact.Component {
             title={ __('Website') }
             subtitle={ __('Content management') }
             iconId="database"
+            outerClass="website"
             colorClass="color-orange">
             <nav>
                 <a href="#/pages" class="with-icon">

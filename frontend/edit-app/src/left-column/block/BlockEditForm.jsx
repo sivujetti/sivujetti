@@ -1,5 +1,6 @@
 import {__, api, Icon} from '@sivujetti-commons-for-edit-app';
 import Tabs from '../../commons/Tabs.jsx';
+import {HAS_ERRORS, NO_OP_QUEUE_EMIT} from '../../block/dom-commons.js';
 import {getIcon} from '../../block-types/block-types.js';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
@@ -43,7 +44,7 @@ class BlockEditForm extends preact.Component {
                 if (!this.editFormImplsChangeGrabber)
                     return;
                 const blockId = !isUndo
-                    ? data[0]  // updatePropsOf: [<blockId>, <blockIsStoredToTreeId>, <changes>, <hasErrors>, <debounceMillis>]
+                    ? data[0]  // updatePropsOf: [<blockId>, <blockIsStoredToTreeId>, <changes>, <flags>, <debounceMillis>]
                     : data[1]; // undo:          [<oldTree>, <blockId>, <blockIsStoredToTreeId>, <isUndoOfConvertToGlobal>]
                 if (isSomeOtherBlock(blockId))
                     return;
@@ -139,14 +140,14 @@ class BlockEditForm extends preact.Component {
         // Run fast dispatch (reRender) immediately, which throttles commitChangeOpToQueue if debounceMillis > 0 (see OpQueueItemEmitter.js)
         if (debounceType === 'debounce-commit-to-queue' || debounceType === 'debounce-none') {
             store2.dispatch('theBlockTree/updatePropsOf', [this.props.block.id, this.props.block.isStoredToTreeId, changes,
-                hasErrors, debounceMillis]);
+                !hasErrors ? 0 : HAS_ERRORS, debounceMillis]);
         // Throttle fast dispatch, which throttles commitChangeOpToQueue as well
         } else if (debounceType === 'debounce-re-render-and-commit-to-queue') {
             if (hasErrors) return;
             if (this.dispatchFastChangeTimeout) clearTimeout(this.dispatchFastChangeTimeout);
             const fn = () => {
                 store2.dispatch('theBlockTree/updatePropsOf', [this.props.block.id, this.props.block.isStoredToTreeId, changes,
-                    false, 0]);
+                    0, 0]);
             };
             this.dispatchFastChangeTimeout = setTimeout(fn, debounceMillis);
         }
@@ -172,4 +173,23 @@ class BlockEditForm extends preact.Component {
     }
 }
 
+/**
+ * @param {String} blockId
+ * @param {String} blockIsStoredToTreeId
+ * @param {(block: RawBlock) => {changes: {[key: String]: any;}; flags?: Number;}} getUpdateSettings
+ */
+function updateBlockProps(blockId, isStoredToTreeId, getUpdateSettings) {
+    const rootOrInnerTree = blockTreeUtils.getRootFor(isStoredToTreeId, store2.get().theBlockTree);
+    const block = blockTreeUtils.findBlock(blockId, rootOrInnerTree)[0];
+    const {changes, flags} = getUpdateSettings(block);
+    store2.dispatch('theBlockTree/updatePropsOf', [
+        block.id,
+        block.isStoredToTreeId,
+        changes,
+        typeof flags === 'number' ? flags : NO_OP_QUEUE_EMIT,
+        0 // debounceMillis
+    ]);
+}
+
 export default BlockEditForm;
+export {updateBlockProps};

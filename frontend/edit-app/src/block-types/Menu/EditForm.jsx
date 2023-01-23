@@ -1,4 +1,4 @@
-import {__, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, env, Icon} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import EditItemPanel from './EditItemPanel.jsx';
 
@@ -6,6 +6,7 @@ class MenuBlockEditForm extends preact.Component {
     // linkCreator;
     // outerEl;
     // contextMenu;
+    // currentBlockIdPair;
     /**
      * @access protected
      */
@@ -14,7 +15,9 @@ class MenuBlockEditForm extends preact.Component {
         this.outerEl = preact.createRef();
         this.contextMenu = preact.createRef();
         const {getBlockCopy, grabChanges} = this.props;
-        this.setState({parsedTree: this.linkCreator.setGetCounterUsingTreeOf(getBlockCopy()),
+        const block = getBlockCopy();
+        this.currentBlockIdPair = `${block.id}:${block.isStoredToTreeId}`;
+        this.setState({parsedTree: this.linkCreator.setGetCounterUsingTreeOf(block),
                        editPanelState: createEditPanelState(),
                        linkWithNavOpened: null});
         grabChanges((block, origin, isUndo) => {
@@ -45,6 +48,10 @@ class MenuBlockEditForm extends preact.Component {
                         </button>
                     </div></li>
                 ) }</ul>
+                <button onClick={ this.navigateToPageCreate.bind(this) }
+                    class="btn btn-sm text-tiny with-icon-inline color-dimmed mt-2 mr-1" type="button">
+                    <Icon iconId="plus" className="size-xs mr-1"/> { __('Create and add page') }
+                </button>
                 <button onClick={ this.appendItemToMenu.bind(this) }
                     class="btn btn-sm text-tiny with-icon-inline color-dimmed mt-2" type="button">
                     <Icon iconId="plus" className="size-xs mr-1"/> { __('Add link') }
@@ -95,6 +102,12 @@ class MenuBlockEditForm extends preact.Component {
                                             rightClass: 'reveal-from-right'}});
         else if (link.id === 'delete')
         this.applyAndEmit(this.state.parsedTree.filter(link => link !== this.state.linkWithNavOpened));
+    }
+    /**
+     * @access private
+     */
+    navigateToPageCreate() {
+        env.window.myRoute(`/pages/create?addToMenu=${this.currentBlockIdPair}`);
     }
     /**
      * @access private

@@ -1,4 +1,5 @@
-import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END} from '../../edit-app/src/block/dom-commons.js';
+import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END,
+        HAS_ERRORS} from '../../edit-app/src/block/dom-commons.js';
 
 const IS_STORED_TO_ATTR = 'data-is-stored-to-trid';
 
@@ -123,8 +124,8 @@ class ReRenderer {
             this.doReRender(theBlockTree);
         // ====================================================================
         } else if (event === 'theBlockTree/updatePropsOf') {
-            const [blockId, blockIsStoredToTreeId, _changes, hasErrors, debounceMillis] = data;
-            if (hasErrors) { window.console.log('not impl'); return; }
+            const [blockId, blockIsStoredToTreeId, _changes, flags, debounceMillis] = data;
+            if (flags & HAS_ERRORS) { window.console.log('not impl'); return; }
 
             const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, theBlockTree);
             const block = blockTreeUtils.findBlock(blockId, rootOrInnerTree)[0];

@@ -146,6 +146,7 @@ stringBundles.push({
     // edit-app/src/right-column/WebPageIframe.js
     'Copy': 'Kopio',
     // edit-app/src/block-types/menu/EditForm.jsx
+    'Create and add page': 'Luo ja lisää sivu',
     'Add link': 'Lisää linkki',
     'Edit': 'Muokkaa',
     'Edit link': 'Muokkaa linkkiä',

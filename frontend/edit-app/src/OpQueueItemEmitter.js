@@ -1,4 +1,5 @@
 import {api, http, signals} from '@sivujetti-commons-for-edit-app';
+import {HAS_ERRORS, NO_OP_QUEUE_EMIT} from './block/dom-commons.js';
 import {treeToTransferable} from './block/utils.js';
 import blockTreeUtils from './left-column/block/blockTreeUtils.js';
 import {saveExistingBlocksToBackend} from './left-column/block/createBlockTreeDndController.js';
@@ -40,8 +41,8 @@ class OpQueueItemEmitter {
             } else if (event === 'theBlockTree/undoAdd(Drop)Block') {
                 // do nothing
             } else if (event === 'theBlockTree/updatePropsOf') {
-                const [blockId, blockIsStoredToTreeId, _changes, hasErrors, debounceMillis] = data;
-                if (hasErrors) return;
+                const [blockId, blockIsStoredToTreeId, _changes, flags, debounceMillis] = data;
+                if ((flags & HAS_ERRORS) || (flags && NO_OP_QUEUE_EMIT)) return;
                 if (this.pushSaveOpTimeouts[blockId]) clearTimeout(this.pushSaveOpTimeouts[blockId]);
                 const oldTree = this.prevTree;
                 const fn = () => { this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId, blockId); };

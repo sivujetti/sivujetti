@@ -130,10 +130,10 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/updatePropsOf',
     /**
      * @param {Object} state
-     * @param {[String, String, {[key: String]: any;}, Boolean, Number]} args
+     * @param {[String, String, {[key: String]: any;}, Number, Number]} args
      * @returns {Object}
      */
-    ({theBlockTree}, [blockId, blockIsStoredToTreeId, changes, _hasErrors, _debounceMillis]) => {
+    ({theBlockTree}, [blockId, blockIsStoredToTreeId, changes, _flags, _debounceMillis]) => {
         const clone = cloneObjectDeep(theBlockTree);
         const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, clone);
         const [block] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);

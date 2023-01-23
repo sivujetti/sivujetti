@@ -1,12 +1,17 @@
-import {__, api, http, urlUtils, hookForm, unhookForm, reHookValues, Input,
-    InputErrors, FormGroupInline, FormGroup, Textarea, signals} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, http, urlUtils, hookForm, unhookForm, reHookValues, Input,
+        InputErrors, FormGroupInline, FormGroup, Textarea, signals} from '@sivujetti-commons-for-edit-app';
 import ImagePicker from '../block-widget/ImagePicker.jsx';
 import toasters from '../commons/Toaster.jsx';
+import {updateBlockProps} from '../left-column/block/BlockEditForm.jsx';
 import {makeSlug, makePath} from '../left-column/page/AddCategoryPanel.jsx';
 import ManyToManyField from '../left-column/page/ManyToManyField.jsx';
 import store, {observeStore, pushItemToOpQueue, selectCurrentPageDataBundle, setCurrentPageDataBundle} from '../store.js';
 import {urlValidatorImpl} from '../validation.js';
 import setFocusTo from './auto-focusers.js';
+import {CountingLinkItemFactory} from './menu/EditForm.jsx';
+
+/** @type {[String, String]} [blockId, isStoredToTreeId] */
+let linkedMenuBlockInfo;
 
 class PageInfoBlockEditForm extends preact.Component {
     // currentPageIsPlaceholder;
@@ -15,6 +20,8 @@ class PageInfoBlockEditForm extends preact.Component {
     // titleEl;
     // descriptionEl;
     // imagePicker;
+    // boundPushOpQueueOp;
+    // pushOpQueueOpTimeout;
     /**
      * @access protected
      */
@@ -63,6 +70,7 @@ class PageInfoBlockEditForm extends preact.Component {
                 reHookValues(this, [{name: 'title', value: page.title},
                                     {name: 'slug', value: page.slug},
                                     {name: 'description', value: page.meta.description || ''}]);
+                if (linkedMenuBlockInfo) reRenderLinkedMenu(page);
             } else {
                 const {src} = (page.meta.socialImage || {src: null});
                 if (this.state.socialImageSrc !== src)
@@ -82,6 +90,7 @@ class PageInfoBlockEditForm extends preact.Component {
      */
     componentWillUnmount() {
         unhookForm(this);
+        linkedMenuBlockInfo = null;
     }
     /**
      * @access protected
@@ -129,19 +138,27 @@ class PageInfoBlockEditForm extends preact.Component {
      * @param {(pageToMutate: Page) => void} mutateProps
      */
     emitChanges(mutateProps) {
+
+        // emit fast
         const mut = selectCurrentPageDataBundle(store.getState());
         const orig = JSON.parse(JSON.stringify(mut));
-        //
         mutateProps(mut.page);
         store.dispatch(setCurrentPageDataBundle(mut));
-        //
-        store.dispatch(pushItemToOpQueue('update-page-basic-info', {
-            doHandle: !this.currentPageIsPlaceholder ? savePageToBackend : null,
-            doUndo: () => {
-                store.dispatch(setCurrentPageDataBundle(orig));
-            },
-            args: [],
-        }));
+
+        // emit slow
+        if (!this.boundPushOpQueueOp)
+            this.boundPushOpQueueOp = () => {
+                store.dispatch(pushItemToOpQueue('update-page-basic-info', {
+                    doHandle: !this.currentPageIsPlaceholder ? savePageToBackend : null,
+                    doUndo: () => { store.dispatch(setCurrentPageDataBundle(orig)); },
+                    args: [],
+                }));
+                this.boundPushOpQueueOp = null;
+            };
+        else // clear throttled and reuse the first boundPushOpQueueOp (so the undo has correct $orig)
+            env.window.clearTimeout(this.pushOpQueueOpTimeout);
+
+        this.pushOpQueueOpTimeout = env.window.setTimeout(this.boundPushOpQueueOp, env.normalTypingDebounceMillis);
     }
     /**
      * @param {UploadsEntry|null} img
@@ -187,6 +204,41 @@ function savePageToBackend() {
         });
 }
 
+/**
+ * @param {[String, String]} pair [blockId, isStoredToTreeId]
+ * @param {Boolean} doAddCurrentPage = true
+ * @param {(path: String, fallback: String = '/') => String} pathToFullSlug = null
+ */
+function setUpdatableMenuBlockInfo(pair, doAddCurrentPage = true, pathToFullSlug = null) {
+    linkedMenuBlockInfo = pair;
+    if (!doAddCurrentPage) return;
+    const [menuBlockId, menuBlockIsStoredToTreeId] = pair;
+    updateBlockProps(menuBlockId, menuBlockIsStoredToTreeId, block => {
+        const {page} = selectCurrentPageDataBundle(store.getState());
+        const linkCreator = new CountingLinkItemFactory();
+        const parsed = linkCreator.setGetCounterUsingTreeOf(block);
+        return {changes: {
+            tree: JSON.stringify([...parsed, linkCreator.makeLinkItem({slug: pathToFullSlug(page.path), text: page.title})])
+        }};
+    });
+}
+
+/**
+ * @param {PageMetaRaw} page
+ */
+function reRenderLinkedMenu(page) {
+    const [menuBlockId, menuBlockIsStoredToTreeId] = linkedMenuBlockInfo;
+    updateBlockProps(menuBlockId, menuBlockIsStoredToTreeId, block => {
+        const tree = JSON.parse(block.tree);
+        const allButLast = tree.slice(0, tree.length - 1);
+        const last = tree[tree.length - 1];
+        return {changes: {tree: JSON.stringify([...allButLast, {...last, ...{
+            text: page.title,
+            slug: page.slug,
+        }}])}};
+    });
+}
+
 export default () => {
     const initialData = {overrides: '[]'};
     return {
@@ -212,4 +264,4 @@ export default () => {
  * ... possibly more props (Own fields)
  */
 
-export {makeSlug, makePath};
+export {makeSlug, makePath, setUpdatableMenuBlockInfo};

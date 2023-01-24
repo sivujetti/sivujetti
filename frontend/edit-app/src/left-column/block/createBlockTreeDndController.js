@@ -161,13 +161,14 @@ function createBlockDescriptor(block) {
 /**
  * @param {Array<RawBlock>} newBlockTree
  * @param {String} trid
+ * @param {Page} page = null
  * @returns {Promise<Boolean>}
  * @access public
  */
-function saveExistingBlocksToBackend(newBlockTree, trid) {
+function saveExistingBlocksToBackend(newBlockTree, trid, page = null) {
     let url = '';
     if (trid === 'main') {
-        const {page} = selectCurrentPageDataBundle(store.getState());
+        if (!page) page = selectCurrentPageDataBundle(store.getState()).page;
         url = `/api/pages/${page.type}/${page.id}/blocks`;
     } else
         url = `/api/global-block-trees/${trid}/blocks`;

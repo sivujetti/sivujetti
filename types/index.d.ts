@@ -344,3 +344,9 @@ interface SpawnDescriptor {
     block: RawBlock;
     isReusable: Boolean|null;
 }
+
+interface PartialMenuLink {
+    text: String;
+    slug: String;
+    [key: String]: any;
+}

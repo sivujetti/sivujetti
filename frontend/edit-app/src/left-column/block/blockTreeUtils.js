@@ -81,10 +81,12 @@ export default {
      *
      * @param {String} trid
      * @param {Array<RawBlock>} from
-     * @returns {Array<RawBlock>}
+     * @returns {Array<RawBlock>|null}
      */
     getRootFor(trid, from) {
-        return trid === 'main' ? from : this.findFirstRefBlockFor(trid, from).__globalBlockTree.blocks;
+        if (trid === 'main') return from;
+        const refBlock = this.findFirstRefBlockFor(trid, from);
+        return refBlock ? refBlock.__globalBlockTree.blocks : null;
     },
     /**
      * Returns first block from $from, which type === 'GlobalBlockReference' and

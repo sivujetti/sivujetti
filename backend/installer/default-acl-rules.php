@@ -6,7 +6,7 @@ $out = new \stdClass;
 $out->resources = (object) [
     "blocks" => (object) [
         "create"            => 0b00000010,
-        "renderOrView"      => 0b00000100,
+        "renderOrList"      => 0b00000100,
     ],
     "coreUpdates" => (object) [
         "checkAvailable"    => 0b00000010,
@@ -27,8 +27,9 @@ $out->resources = (object) [
     "pages" => (object) [
         "create"            => 0b00000010,
         "list"              => 0b00000100,
-        "updateBlocksOf"    => 0b00001000,
-        "update"            => 0b00010000,
+        "read"              => 0b00001000,
+        "updateBlocksOf"    => 0b00010000,
+        "update"            => 0b00100000,
     ],
     "pageTypes" => (object) [
         "create"            => 0b00000010,
@@ -86,7 +87,7 @@ $out->userPermissions = (object) [
         "globalBlockTrees"  => ACL::makePermissions(["read","updateBlocksOf"], $out->resources->globalBlockTrees),
         "editMode"          => ACL::makePermissions(["access"], $out->resources->editMode),
         "layouts"           => ACL::makePermissions(["list"], $out->resources->layouts),
-        "pages"             => ACL::makePermissions(["create","list","updateBlocksOf","update"], $out->resources->pages),
+        "pages"             => ACL::makePermissions("*", $out->resources->pages),
         // pageTypes        -> none
         "reusableBranches"  => ACL::makePermissions("*", $out->resources->reusableBranches),
         "themes"            => ACL::makePermissions(["view","updateGlobalStylesOf","upsertBlockTypeScopedVars"], $out->resources->themes),

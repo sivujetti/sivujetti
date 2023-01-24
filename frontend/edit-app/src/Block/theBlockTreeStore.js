@@ -227,3 +227,4 @@ function cloneObjectDeep(obj) {
 }
 
 export default theBlockTreeStore;
+export {overrideData, cloneObjectDeep};

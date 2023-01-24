@@ -51,8 +51,8 @@ final class GlobalBlockTreesController {
     public function getById(Request $req,
                             Response $res,
                             GlobalBlockTreesRepository $globalBlocksRepo): void {
-        $blocks = $globalBlocksRepo->getSingle($req->params->globalBlockTreeId);
-        $res->json($blocks);
+        $gbt = $globalBlocksRepo->getSingle($req->params->globalBlockTreeId);
+        $res->json($gbt);
     }
     /**
      * GET /api/global-block-trees: Lists all global block trees.
@@ -62,8 +62,8 @@ final class GlobalBlockTreesController {
      */
     public function list(Response $res,
                          GlobalBlockTreesRepository2 $gbtRepo): void {
-        $blocks = $gbtRepo->select()->fetchAll();
-        $res->json($blocks);
+        $gbts = $gbtRepo->select()->fetchAll();
+        $res->json($gbts);
     }
     /**
      * PUT /api/global-block-trees/:globalBlockTreeId/blocks: Overwrites the

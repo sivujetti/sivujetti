@@ -1,12 +1,13 @@
 import {__, env, Icon} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from '../../commons/ContextMenu.jsx';
+import store, {selectCurrentPageDataBundle} from '../../store.js';
 import EditItemPanel from './EditItemPanel.jsx';
 
 class MenuBlockEditForm extends preact.Component {
     // linkCreator;
     // outerEl;
     // contextMenu;
-    // currentBlockIdPair;
+    // currentBlockIdInfo;
     /**
      * @access protected
      */
@@ -16,7 +17,8 @@ class MenuBlockEditForm extends preact.Component {
         this.contextMenu = preact.createRef();
         const {getBlockCopy, grabChanges} = this.props;
         const block = getBlockCopy();
-        this.currentBlockIdPair = `${block.id}:${block.isStoredToTreeId}`;
+        const pageSlugNoLeadingSlash = selectCurrentPageDataBundle(store.getState()).page.slug.substring(1);
+        this.currentBlockIdInfo = `${block.id}:${block.isStoredToTreeId}:${pageSlugNoLeadingSlash}`;
         this.setState({parsedTree: this.linkCreator.setGetCounterUsingTreeOf(block),
                        editPanelState: createEditPanelState(),
                        linkWithNavOpened: null});
@@ -107,7 +109,7 @@ class MenuBlockEditForm extends preact.Component {
      * @access private
      */
     navigateToPageCreate() {
-        env.window.myRoute(`/pages/create?addToMenu=${this.currentBlockIdPair}`);
+        env.window.myRoute(`/pages/create?addToMenu=${this.currentBlockIdInfo}`);
     }
     /**
      * @access private
@@ -142,7 +144,7 @@ class CountingLinkItemFactory {
         return parsedTree;
     }
     /**
-     * @param {{text: String; slug: String; [key: String]: any;}} vals
+     * @param {PartialMenuLink} vals
      * @returns {MenuLink}
      * @access public
      */

@@ -5,17 +5,18 @@ import store, {deleteItemsFromOpQueueAfter, selectCurrentPageDataBundle,
                 setCurrentPageDataBundle, setOpQueue} from '../../store.js';
 import store2 from '../../store2.js';
 import OnThisPageSection from '../default-panel-sections/OnThisPageSection.jsx';
-import {setUpdatableMenuBlockInfo} from '../../block-types/pageInfo.js';
+import {setUpdatableMenuBlockInfo, addLinkToMenu} from '../../block-types/pageInfo.js';
 import {saveExistingBlocksToBackend} from '../block/createBlockTreeDndController.js';
 import blockTreeUtils from '../block/blockTreeUtils.js';
 
 /**
- * Left-panel for #/pages/create/:pageTypeName?/:layoutId?[?addToMenu='menuBlockId:menuBlockIsStoredToTreeId'].
+ * Left-panel for #/pages/create/:pageTypeName?/:layoutId?[?addToMenu='menuBlockId:menuBlockIsStoredToTreeId:pageSlugNoLeadingSlash'].
  */
 class PageCreatePanel extends preact.Component {
     // pageType;
-    // addToMenuIdPair;
+    // addToMenuIdInfo;
     // savePageToBackendResult;
+    // addToMenuIsInCurrentPage;
     /**
      * @access protected
      */
@@ -23,8 +24,8 @@ class PageCreatePanel extends preact.Component {
         const pageTypeName = this.props.pageTypeName || 'Pages';
         const layoutId = this.props.layoutId || '1';
         this.pageType = api.getPageTypes().find(({name}) => name === pageTypeName);
-        const pair = this.props.matches.addToMenu;
-        this.addToMenuIdPair = !pair ? null: pair.split(':');
+        const triplet = this.props.matches.addToMenu;
+        this.addToMenuIdInfo = !triplet ? null: triplet.split(':').map(input => input.replace(/[^a-zA-Z0-9_-]/g, ''));
         const slug = this.props.path.startsWith('/pages/create')
             // this.props.path = '/pages/create/:pageTypeName?/:layoutId?'
             ? ''
@@ -32,8 +33,8 @@ class PageCreatePanel extends preact.Component {
             : this.props.pageSlug;
         api.webPageIframe.renderPlaceholderPage(pageTypeName, layoutId, slug).then(_webPage => {
             this.setState({temp: ':pseudo/new-page'});
-            if (this.addToMenuIdPair) { setTimeout(() => {
-                setUpdatableMenuBlockInfo(this.addToMenuIdPair, true, pathToFullSlug);
+            if (this.addToMenuIdInfo) { setTimeout(() => {
+                this.addToMenuIsInCurrentPage = setUpdatableMenuBlockInfo(this.addToMenuIdInfo, createMenuLinkFromNewestData());
             }, 200); }
             store.dispatch(setOpQueue([{opName: 'create-new-page', command: {
                 doHandle: this.saveNewPageToBackend.bind(this),
@@ -49,12 +50,27 @@ class PageCreatePanel extends preact.Component {
             // Remove all 'update-block-tree##main''s, since they're included in 'create-new-page'
             const out = queue.filter(({opName}) => opName !== 'update-block-tree##main');
 
-            // Add save mutate menu (if there's one)
-            if (this.addToMenuIdPair) {
-                const [_, menuBlockIsStoredToTreeId] = this.addToMenuIdPair;
-                const rootOrInnerTree = blockTreeUtils.getRootFor(menuBlockIsStoredToTreeId, store2.get().theBlockTree);
+            // Add update-block-tree op for `addToMenu` menu (if it was defined)
+            if (this.addToMenuIdInfo) {
+                const [menuBlockId, menuBlockIsStoredToTreeId, pageSlugNoLeadingSlash] = this.addToMenuIdInfo;
+                const innerTree = !this.addToMenuIsInCurrentPage ? null : blockTreeUtils.getRootFor(menuBlockIsStoredToTreeId, store2.get().theBlockTree);
                 out.push({opName: `update-block-tree##${menuBlockIsStoredToTreeId}`, command: {
-                    doHandle: () => saveExistingBlocksToBackend(rootOrInnerTree, menuBlockIsStoredToTreeId),
+                    doHandle: () => (innerTree
+                        // menu was present in current page
+                        ? Promise.resolve([innerTree, null])
+                        // menu belongs to another page, fetch it, and merge new nav data into it
+                        : http.get(menuBlockIsStoredToTreeId === 'main'
+                                ? `/api/pages/Pages/${pageSlugNoLeadingSlash}`
+                                : `/api/global-block-trees/${menuBlockIsStoredToTreeId}`
+                            ).then(pageOrGbt => {
+                                const withNewMenu = addLinkToMenu(createMenuLinkFromNewestData(),
+                                    menuBlockId, menuBlockIsStoredToTreeId, pageOrGbt.blocks);
+                                return [withNewMenu, isPage(pageOrGbt) ? pageOrGbt : null];
+                            })
+                    )
+                    .then(([tree, page]) =>
+                        saveExistingBlocksToBackend(tree, menuBlockIsStoredToTreeId, page)
+                    ),
                     doUndo: () => {
                         // Can't undo
                     },
@@ -140,6 +156,22 @@ function pathToFullSlug(path, fallback = '/') {
     return path !== '/'
         ? `/${path.substring(0, path.length - 1)}` // 'foo/' -> '/foo'
         : fallback;
+}
+
+/**
+ * @returns {PartialMenuLink}
+ */
+function createMenuLinkFromNewestData() {
+    const {page} = selectCurrentPageDataBundle(store.getState());
+    return {slug: pathToFullSlug(page.path), text: page.title};
+}
+
+/**
+ * @param {{[key: String]: any;}} obj
+ * @returns {Boolean}
+ */
+function isPage(obj) {
+    return typeof obj.slug === 'string' && typeof obj.path === 'string';
 }
 
 export default PageCreatePanel;

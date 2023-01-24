@@ -1,8 +1,10 @@
 import {__, api, env, http, urlUtils, hookForm, unhookForm, reHookValues, Input,
         InputErrors, FormGroupInline, FormGroup, Textarea, signals} from '@sivujetti-commons-for-edit-app';
 import ImagePicker from '../block-widget/ImagePicker.jsx';
+import {cloneObjectDeep, overrideData} from '../block/theBlockTreeStore.js';
 import toasters from '../commons/Toaster.jsx';
 import {updateBlockProps} from '../left-column/block/BlockEditForm.jsx';
+import blockTreeUtils from '../left-column/block/blockTreeUtils.js';
 import {makeSlug, makePath} from '../left-column/page/AddCategoryPanel.jsx';
 import ManyToManyField from '../left-column/page/ManyToManyField.jsx';
 import store, {observeStore, pushItemToOpQueue, selectCurrentPageDataBundle, setCurrentPageDataBundle} from '../store.js';
@@ -10,8 +12,9 @@ import {urlValidatorImpl} from '../validation.js';
 import setFocusTo from './auto-focusers.js';
 import {CountingLinkItemFactory} from './menu/EditForm.jsx';
 
-/** @type {[String, String]} [blockId, isStoredToTreeId] */
+/** @type {[String, String, String]} [blockId, isStoredToTreeId, pageId] */
 let linkedMenuBlockInfo;
+let doReRenderLinkedMenu;
 
 class PageInfoBlockEditForm extends preact.Component {
     // currentPageIsPlaceholder;
@@ -70,7 +73,7 @@ class PageInfoBlockEditForm extends preact.Component {
                 reHookValues(this, [{name: 'title', value: page.title},
                                     {name: 'slug', value: page.slug},
                                     {name: 'description', value: page.meta.description || ''}]);
-                if (linkedMenuBlockInfo) reRenderLinkedMenu(page);
+                if (doReRenderLinkedMenu) reRenderLinkedMenu(page);
             } else {
                 const {src} = (page.meta.socialImage || {src: null});
                 if (this.state.socialImageSrc !== src)
@@ -91,6 +94,7 @@ class PageInfoBlockEditForm extends preact.Component {
     componentWillUnmount() {
         unhookForm(this);
         linkedMenuBlockInfo = null;
+        doReRenderLinkedMenu = false;
     }
     /**
      * @access protected
@@ -205,30 +209,54 @@ function savePageToBackend() {
 }
 
 /**
- * @param {[String, String]} pair [blockId, isStoredToTreeId]
- * @param {Boolean} doAddCurrentPage = true
- * @param {(path: String, fallback: String = '/') => String} pathToFullSlug = null
+ * @param {[String, String, String]} triplet [blockId, isStoredToTreeId, pageId]
+ * @param {PartialMenuLink} linkToAdd = null
+ * @returns {Boolean|void} wasLinkToAddPresentInCurrentPage
  */
-function setUpdatableMenuBlockInfo(pair, doAddCurrentPage = true, pathToFullSlug = null) {
-    linkedMenuBlockInfo = pair;
-    if (!doAddCurrentPage) return;
-    const [menuBlockId, menuBlockIsStoredToTreeId] = pair;
+function setUpdatableMenuBlockInfo(triplet, linkToAdd = null) {
+    linkedMenuBlockInfo = triplet;
+    doReRenderLinkedMenu = false;
+    if (!linkToAdd) return;
+    const [menuBlockId, menuBlockIsStoredToTreeId, _pageSlug] = triplet;
     updateBlockProps(menuBlockId, menuBlockIsStoredToTreeId, block => {
-        const {page} = selectCurrentPageDataBundle(store.getState());
+        if (!block) return; // $menuBlockId not present in current page block tree
+        doReRenderLinkedMenu = true;
         const linkCreator = new CountingLinkItemFactory();
         const parsed = linkCreator.setGetCounterUsingTreeOf(block);
         return {changes: {
-            tree: JSON.stringify([...parsed, linkCreator.makeLinkItem({slug: pathToFullSlug(page.path), text: page.title})])
+            tree: JSON.stringify([...parsed, linkCreator.makeLinkItem(linkToAdd)])
         }};
     });
+    return doReRenderLinkedMenu;
 }
 
 /**
- * @param {PageMetaRaw} page
+ * @param {PartialMenuLink} link
+ * @param {String} menuBlockId
+ * @param {String} menuBlockIsStoredToTreeId
+ * @param {Array<RawBlock} blocks
+ * @returns {Array<RawBlock}
+ */
+function addLinkToMenu(link, menuBlockId, menuBlockIsStoredToTreeId, blocks) {
+    const out = cloneObjectDeep(blocks);
+    const linkCreator = new CountingLinkItemFactory();
+    const rootOrInnerTree = menuBlockIsStoredToTreeId === 'main' ? blockTreeUtils.getRootFor(menuBlockIsStoredToTreeId, out) : out;
+    const [menuBlock] = blockTreeUtils.findBlock(menuBlockId, rootOrInnerTree);
+    const parsed = linkCreator.setGetCounterUsingTreeOf(menuBlock);
+    // Mutates $out
+    overrideData(menuBlock, {
+        tree: JSON.stringify([...parsed, linkCreator.makeLinkItem(link)])
+    });
+    return out;
+}
+
+/**
+ * @param {Page} page
  */
 function reRenderLinkedMenu(page) {
-    const [menuBlockId, menuBlockIsStoredToTreeId] = linkedMenuBlockInfo;
+    const [menuBlockId, menuBlockIsStoredToTreeId, _pageId] = linkedMenuBlockInfo;
     updateBlockProps(menuBlockId, menuBlockIsStoredToTreeId, block => {
+        if (!block) return; // $menuBlockId not present in current page block tree
         const tree = JSON.parse(block.tree);
         const allButLast = tree.slice(0, tree.length - 1);
         const last = tree[tree.length - 1];
@@ -264,4 +292,4 @@ export default () => {
  * ... possibly more props (Own fields)
  */
 
-export {makeSlug, makePath, setUpdatableMenuBlockInfo};
+export {makeSlug, makePath, setUpdatableMenuBlockInfo, addLinkToMenu};

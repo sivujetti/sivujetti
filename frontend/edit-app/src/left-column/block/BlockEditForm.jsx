@@ -176,11 +176,12 @@ class BlockEditForm extends preact.Component {
 /**
  * @param {String} blockId
  * @param {String} blockIsStoredToTreeId
- * @param {(block: RawBlock) => {changes: {[key: String]: any;}; flags?: Number;}} getUpdateSettings
+ * @param {(block: RawBlock|null) => {changes: {[key: String]: any;}; flags?: Number;}|void} getUpdateSettings
  */
 function updateBlockProps(blockId, isStoredToTreeId, getUpdateSettings) {
     const rootOrInnerTree = blockTreeUtils.getRootFor(isStoredToTreeId, store2.get().theBlockTree);
-    const block = blockTreeUtils.findBlock(blockId, rootOrInnerTree)[0];
+    const block = rootOrInnerTree ? blockTreeUtils.findBlock(blockId, rootOrInnerTree)[0] : null;
+    if (!block) { getUpdateSettings(null); return; }
     const {changes, flags} = getUpdateSettings(block);
     store2.dispatch('theBlockTree/updatePropsOf', [
         block.id,

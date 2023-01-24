@@ -42,6 +42,7 @@ final class ListPagesTest extends PagesControllerTestCase {
             "layoutId" => $p->layoutId,
             "blocks" => [],
             "status" => $p->status,
+            "type" => "Pages",
         ];
         $this->assertEquals($makeExpected($state->testPageData2), $actualPages[0]);
         $this->assertEquals($makeExpected($state->testPageData1), $actualPages[1]);

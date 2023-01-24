@@ -21,6 +21,9 @@ final class PagesModule {
             [PagesController::class, "createPage", ["consumes" => "application/json",
                                                     "identifiedBy" => ["create", "pages"]]]
         );
+        $router->map("GET", "/api/pages/[w:pageType]/[w:pageSlug]",
+            [PagesController::class, "getPage", ["identifiedBy" => ["read", "pages"]]]
+        );
         $router->map("GET", "/api/pages/[w:pageType]",
             [PagesController::class, "listPages", ["identifiedBy" => ["list", "pages"]]]
         );

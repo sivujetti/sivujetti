@@ -243,6 +243,22 @@ final class PagesController {
         $res->status($ok ? 201 : 200)->json(["ok" => $ok ? "ok" : "err"]);
     }
     /**
+     * GET /api/pages/[w:pageType]/[w:pageId]: Returns 200 & page with slug "/$req->params->pageSlug",
+     * or 404 & null.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Sivujetti\Page\PagesRepository2 $pagesRepo
+     */
+    public function getPage(Request $req,
+                            Response $res,
+                            PagesRepository2 $pagesRepo): void {
+        $page = $pagesRepo->select($req->params->pageType, fields: ["@blocks"])
+            ->where("slug = ?", "/{$req->params->pageSlug}")
+            ->fetch();
+        $res->status($page ? 200 : 404)->json($page);
+    }
+    /**
      * GET /api/pages/[w:pageType]: Lists all $req->params->pageType's pages ordered
      * by newest to oldest.
      *

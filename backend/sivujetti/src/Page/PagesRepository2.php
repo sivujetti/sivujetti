@@ -79,7 +79,16 @@ final class PagesRepository2 {
      * @return string[]
      */
     private static function createSelectFields(array $fields, PageType $pageType): array {
-        $out = ["id", "slug", "path", "level", "title", "layoutId", "status", (in_array("@blocks", $fields, true) ? "blocks" : "NULL") . " AS blocksJson"];
+        $out = [
+            "id",
+            "slug",
+            "path",
+            "level",
+            "title",
+            "layoutId",
+            "'{$pageType->name}' AS `type`", "status",
+            (in_array("@blocks", $fields, true) ? "blocks" : "NULL") . " AS blocksJson",
+        ];
         if (in_array("@own", $fields, true))
             foreach ($pageType->ownFields as $f) $out[] = "`$f->name`";
         return $out;

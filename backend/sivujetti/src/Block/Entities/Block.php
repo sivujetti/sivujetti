@@ -4,7 +4,7 @@ namespace Sivujetti\Block\Entities;
 
 use Sivujetti\PushIdGenerator;
 
-final class Block {
+final class Block extends \stdClass {
     public const TYPE_BUTTON           = "Button";
     public const TYPE_CODE             = "Code";
     public const TYPE_COLUMNS          = "Columns";

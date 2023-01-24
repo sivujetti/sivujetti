@@ -12,6 +12,8 @@ use Sivujetti\SharedAPIContext;
 use Sivujetti\Boot\BootModule;
 
 class TestEnvBootstrapper extends BootModule {
+    /** @var ?\Pike\Db */
+    protected ?Db $db;
     /** @var ?array */
     protected ?array $authTemp;
     /** @var ?\Sivujetti\SharedAPIContext */

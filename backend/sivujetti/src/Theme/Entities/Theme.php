@@ -5,7 +5,7 @@ namespace Sivujetti\Theme\Entities;
 use Pike\Db\NoDupeRowMapper;
 use Sivujetti\JsonUtils;
 
-final class Theme {
+final class Theme extends \stdClass {
     /** @var string */
     public string $id;
     /** @var string */

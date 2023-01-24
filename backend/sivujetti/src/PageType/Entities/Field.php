@@ -5,7 +5,7 @@ namespace Sivujetti\PageType\Entities;
 /**
  * @psalm-type RawPageTypeField = object{name: string, friendlyName: string, dataType: {type: string, isNullable?: bool, length?: int, validationRules?: array[], canBeEditedBy?: int}, defaultValue: string|int|mixed[]}
  */
-final class Field {
+final class Field extends \stdClass {
     /** @var string */
     public string $name;
     /** @var string */

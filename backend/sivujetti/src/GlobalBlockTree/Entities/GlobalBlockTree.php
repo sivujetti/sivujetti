@@ -2,7 +2,7 @@
 
 namespace Sivujetti\GlobalBlockTree\Entities;
 
-final class GlobalBlockTree {
+final class GlobalBlockTree extends \stdClass {
     /** @var string e.g. "1" */
     public string $id;
     /** @var string e.g. "Header", "Default footer" */

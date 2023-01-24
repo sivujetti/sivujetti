@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Plugin\Entities;
 
-final class Plugin {
+final class Plugin extends \stdClass {
     /** @var string e.g. "TomsCoolPlugin", has passed \Pike\Validation::isIdentifier() */
     public string $name;
     /** @var bool When false, this plugin will be ignored on page load */

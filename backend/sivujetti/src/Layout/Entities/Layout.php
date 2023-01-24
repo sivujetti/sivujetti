@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Layout\Entities;
 
-final class Layout {
+final class Layout extends \stdClass {
     public const PART_TYPE_GLOBAL_BLOCK_TREE = "globalBlockTree";
     public const PART_TYPE_PAGE_CONTENTS = "pageContents";
     /** @var string e.g. "1" */

@@ -5,7 +5,7 @@ namespace Sivujetti\StoredObjects\Entities;
 /**
  * @psalm-template DataShape
  */
-final class Entry {
+final class Entry extends \stdClass {
     /** @var string e.g. "JetForms:mailSendSettings" */
     public string $objectName;
     /** @psalm-var DataShape */

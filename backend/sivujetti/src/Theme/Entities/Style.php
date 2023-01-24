@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Theme\Entities;
 
-final class Style {
+final class Style extends \stdClass {
     /** @var object[] array<int, {title: string, id: string, scss: string, generatedCss: string}> */
     public array $units;
     /** @var string e.g. "Heading" */ 

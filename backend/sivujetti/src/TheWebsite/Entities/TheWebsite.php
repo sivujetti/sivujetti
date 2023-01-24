@@ -4,7 +4,7 @@ namespace Sivujetti\TheWebsite\Entities;
 
 use Sivujetti\Theme\Entities\Theme;
 
-final class TheWebsite {
+final class TheWebsite extends \stdClass {
     /** @var string e.g. "My site" */
     public string $name;
     /** @var string e.g. "fi", "en" */

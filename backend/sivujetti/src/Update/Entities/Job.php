@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Update\Entities;
 
-final class Job {
+final class Job extends \stdClass {
     /** @var string */
     public string $id;
     /** @var string e.g. "update-core" */

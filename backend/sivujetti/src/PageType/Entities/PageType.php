@@ -5,7 +5,7 @@ namespace Sivujetti\PageType\Entities;
 /**
  * @psalm-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
  */
-final class PageType {
+final class PageType extends \stdClass {
     public const PAGE = "Pages";
     public const SLUG_PAGE = "pages";
     public const STATUS_COMPLETE = 0;

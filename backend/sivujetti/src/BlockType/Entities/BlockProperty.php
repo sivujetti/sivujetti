@@ -2,7 +2,7 @@
 
 namespace Sivujetti\BlockType\Entities;
 
-final class BlockProperty {
+final class BlockProperty extends \stdClass {
     public const DATA_TYPE_TEXT = "text";
     public const DATA_TYPE_UINT = "uint";
     /** @var string */

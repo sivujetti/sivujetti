@@ -24,6 +24,8 @@ final class WebPageAwareTemplate extends Template {
     private string $__assetUrlAppendix;
     /** @var \Closure */
     private \Closure $__applyFilters;
+    /** @var array */
+    private array $__dynamicGlobalBlockTreeBlocksStyles;
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null

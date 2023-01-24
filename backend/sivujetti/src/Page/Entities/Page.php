@@ -4,7 +4,7 @@ namespace Sivujetti\Page\Entities;
 
 use Sivujetti\Layout\Entities\Layout;
 
-final class Page {
+final class Page extends \stdClass {
     public const STATUS_PUBLISHED = 0;
     public const STATUS_DRAFT = 1;
     /** @var string */

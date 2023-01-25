@@ -7,9 +7,7 @@ import PageCreatePanel from './left-column/page/PageCreatePanel.jsx';
 import PageDuplicatePanel from './left-column/page/PageDuplicatePanel.jsx';
 import PageTypeCreatePanel from './left-column/page-type/PageTypeCreatePanel.jsx';
 import {getArePanelsHidden} from './right-column/IframePageManager.js';
-import {historyInstance} from './right-column/RightColumnViews.jsx';
-
-const PreactRouter = preactRouter;
+import {MyRouter, historyInstance} from './right-column/RightColumnViews.jsx';
 
 const PANELS_HIDDEN_CLS = 'panels-hidden';
 let showFirstTimeDragInstructions = !(!env.window.isFirstRun || localStorage.sivujettiDragInstructionsShown === 'yes');
@@ -50,7 +48,7 @@ class EditApp extends preact.Component {
      */
     render(_, {hidePanels}) {
         const logoUrl = urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo.png');
-        return <div id={ window.useNewRouter ? 'use-new-router' : 'dont-use-new-router' }>
+        return <div>
             { !hidePanels ? null : <a onClick={ e => (e.preventDefault(), this.handlePanelsAreHiddenChanged(false)) } id="back-to-edit-corner" href="">
                 <img src={ logoUrl }/>
                 <Icon iconId="arrow-back-up"/>
@@ -97,12 +95,12 @@ class EditApp extends preact.Component {
                 } } class="btn btn-primary btn-sm p-absolute" type="button">{ __('Selvä!') }</button>
             </div></div>
             }
-            <PreactRouter history={ historyInstance }>
+            <MyRouter history={ historyInstance }>
                 <DefaultPanel path="/:slug*"/>
                 <PageCreatePanel path="/pages/create/:pageTypeName?/:layoutId?"/>
                 <PageDuplicatePanel path="/pages/:pageSlug/duplicate"/>
                 <PageTypeCreatePanel path="/page-types/create"/>
-            </PreactRouter>
+            </MyRouter>
             <Toaster id="editAppMain"/>
             <FloatingDialog signals={ signals }/>
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>

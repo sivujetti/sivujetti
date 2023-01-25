@@ -139,11 +139,7 @@ function renderReactEditApp() {
         rootEl,
     }), document.getElementById('view'));
 
-    window.myRoute = (url, checkIfkUnsavedChanges = false) => {
-        if (window.useNewRouter && checkIfkUnsavedChanges &&
-            !editAppReactRef.current.saveButtonRef.current.confirmDiscardUnsavedChangesIfAny()) {
-            return;
-        }
+    window.myRoute = url => {
         preactRouter.route(url);
     };
 }

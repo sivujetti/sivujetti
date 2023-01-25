@@ -1,4 +1,5 @@
 import {__, env, signals, Icon} from '@sivujetti-commons-for-edit-app';
+import {historyInstance} from '../right-column/RightColumnViews.jsx';
 import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from '../store.js';
 
 let isUndoKeyListenersAdded = false;
@@ -7,6 +8,7 @@ const useFormStatesState = false;
 class SaveButton extends preact.Component {
     // queuedOps;
     // opQueueMutator;
+    // unregisterUnsavedChangesAlert;
     /**
      * @param {{mainPanelOuterEl: HTMLElement; initialLeftPanelWidth: Number;}} props
      */
@@ -25,7 +27,14 @@ class SaveButton extends preact.Component {
                 this.setState({isVisible: true});
             else if (!ops.length && this.state.isVisible)
                 this.setState({isVisible: false, isSubmitting: false});
-            this.setState({hasUndoableOps: ops.length ? ops.some(({command}) => !!command.doUndo) : false});
+            //
+            const hasUndoableOps = ops.length ? ops.some(({command}) => !!command.doUndo) : false;
+            if (hasUndoableOps && !this.unregisterUnsavedChangesAlert)
+                this.unregisterUnsavedChangesAlert = historyInstance.block(__('You have unsaved changes, do you want to navigate away?'));
+            else if (!hasUndoableOps && this.unregisterUnsavedChangesAlert)
+                this.unregisterAndClearUnsavedChagesAlert();
+            //
+            this.setState({hasUndoableOps});
         });
         if (useFormStatesState) observeStore(selectFormStates, formStates => {
             let aggregated = {isValid: true};
@@ -98,6 +107,8 @@ class SaveButton extends preact.Component {
      * @access private
      */
     execQueuedOps() {
+        if (this.unregisterUnsavedChangesAlert)
+            this.unregisterAndClearUnsavedChagesAlert();
         const next = queue => {
             const top = queue[0];
             if (!top) {
@@ -138,6 +149,13 @@ class SaveButton extends preact.Component {
                 metaKeyIsPressed = false;
             }
         });
+    }
+    /**
+     * @access private
+     */
+    unregisterAndClearUnsavedChagesAlert() {
+        this.unregisterUnsavedChangesAlert();
+        this.unregisterUnsavedChangesAlert = null;
     }
 }
 

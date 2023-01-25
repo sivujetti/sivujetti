@@ -7,8 +7,6 @@ const FilterKind = {
     URL_STARTS_WITH: 'urlStartsWith',
 };
 
-const {useNewRouter} = window;
-
 class IsInCategoryPart extends preact.Component {
     // popup;
     // relPageType;
@@ -310,12 +308,9 @@ class Popup extends preact.Component {
             ]},
         ));
         // Update its position
-        if (useNewRouter)
-            setTimeout(() => {
-                this.popperInstance.update();
-            }, 1);
-        else
+        setTimeout(() => {
             this.popperInstance.update();
+        }, 1);
     }
     /**
      * @access public
@@ -356,7 +351,8 @@ class Popup extends preact.Component {
     createPopper(el) {
         if (!el || this.popperInstance) return;
         //
-        const fn = () => {
+        this.popperInstance = 'loading';
+        setTimeout(() => {
             const button = el.previousElementSibling;
             const content = el;
             this.popperInstance = window.Popper.createPopper(button, content, {
@@ -368,13 +364,7 @@ class Popup extends preact.Component {
                     options: {altAxis: true, padding: 20},
                 }],
             });
-        };
-        if (useNewRouter) {
-            this.popperInstance = 'loading';
-            setTimeout(fn, 200);
-        } else {
-            fn();
-        }
+        }, 200);
     }
 }
 

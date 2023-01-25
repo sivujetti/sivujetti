@@ -141,6 +141,7 @@ stringBundles.push({
     'todo13': 'Sisältö viittaa samaan tietoon, vaikka se olisi usealla eri sivulla (esim. "Footer").',
     'Cancel': 'Peruuta',
     // edit-app/src/left-column/SaveButton.jsx
+    'You have unsaved changes, do you want to navigate away?': 'Sinulla on tallentamattomia muutoksia, haluatko poistua sivulta?',
     'Undo latest change': 'Peruuta viimeisin muutos',
     'Save changes': 'Tallenna muutokset',
     // edit-app/src/right-column/WebPageIframe.js

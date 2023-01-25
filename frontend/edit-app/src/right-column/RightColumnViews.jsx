@@ -2,16 +2,20 @@ import {signals} from '@sivujetti-commons-for-edit-app';
 import WebsiteEditBasicInfoView from './website/WebsiteEditBasicInfoView.jsx';
 import PagesListView from './page/PagesListView.jsx';
 import {isEditAppViewUrl} from '../left-column/DefaultPanel.jsx';
+import createHashHistory from '../../custom-history.js';
 
-let historyInstance;
-
-if (window.useNewRouter) {
-    historyInstance = HistoryLibrary.createHashHistory();
-} else {
-    historyInstance = History.createHashHistory();
-}
+const historyInstance = createHashHistory();
 
 class MyRouter extends preactRouter {
+    /**
+     * @param {String} url
+     * @access public
+     */
+    routeTo(url) {
+        if (historyInstance.doRevertNextHashChange)
+            return;
+        return super.routeTo(url);
+    }
 }
 
 class RightColumnViews extends preact.Component {

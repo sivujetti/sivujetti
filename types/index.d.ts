@@ -350,3 +350,9 @@ interface PartialMenuLink {
     slug: String;
     [key: String]: any;
 }
+
+interface Path {
+    pathname: String;
+    search: String;
+    hash: String;
+}

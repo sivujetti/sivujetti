@@ -90,12 +90,7 @@
             <?php endif; ?>
         </div>
 
-        <?php if ((defined("useNewRouter") ? useNewRouter : null) === true): ?>
-        <script>window.useNewRouter = true</script>
-        <script src="<?= $this->assetUrl("public/sivujetti/vendor/vendortemp.bundle.min.js") ?>"></script>
-        <?php else: ?>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.js") ?>"></script>
-        <?php endif; ?>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/jspanel.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/pickr.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/stylis.min.js") ?>"></script>

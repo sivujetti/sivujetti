@@ -9,7 +9,8 @@ class DefaultPanel extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        const toLoadInitial = this.props.url || '/';
+        const url = this.props.url || '/';
+        const toLoadInitial = !isAnotherAppView(url) ? url : '/';
         this.setState({
             loadingPageSlug: toLoadInitial,
             loadedPageSlug: null,
@@ -23,7 +24,7 @@ class DefaultPanel extends preact.Component {
         });
     }
     /**
-     * @param {{url: String} & {[key: String}: any;} props
+     * @param {{url: String} & {[key]: String}: any;} props
      * @access protected
      */
     componentWillReceiveProps(props) {

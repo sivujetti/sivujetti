@@ -89,7 +89,7 @@ class TreeDragDrop {
         if (!this.start || e.target.nodeName === 'UL')
             return;
         const li = norm(e);
-        if (!li || getBoolAttrVal(li, 'data-draggable') !== 'true')
+        if (!li || li.getAttribute('data-draggable') !== 'true')
             return;
 
         // 0. Handle setStart if external el
@@ -180,7 +180,7 @@ class TreeDragDrop {
         // 4. Do replacements
         if (accept) {
             // -- Replace "after of .has-children" with "before of .has-children:first-child" ---
-            if (nextCandVisual.pos === 'after' && getBoolAttrVal(li, 'data-has-children') === 'true' && !li.classList.contains('collapsed')) {
+            if (nextCandVisual.pos === 'after' && li.getAttribute('data-has-children') === 'true' && !li.classList.contains('collapsed')) {
                 nextCandVisual.pos = 'before';
                 nextCandVisual.li = li.nextElementSibling;
                 nextCandReal.pos = nextCandVisual.pos;
@@ -280,7 +280,7 @@ class TreeDragDrop {
      * @access private
      */
     checkIfDraggingToOwnParent(li, _idx) {
-        return getBoolAttrVal(li, 'data-has-children') === 'true' && this.start.getAttribute('data-is-children-of') === li.getAttribute('data-block-id');
+        return li.getAttribute('data-has-children') === 'true' && this.start.getAttribute('data-is-children-of') === li.getAttribute('data-block-id');
         /* ??
         if (!this.start.getAttribute('data-has-children') ||
             idx <= this.startIdx ||
@@ -304,7 +304,7 @@ class TreeDragDrop {
      * @access private
      */
     checkIfDraggingInsideItself(isAfter, li, idx) {
-        if (!isAfter || getBoolAttrVal(this.start, 'data-has-children') === 'false' || this.start.classList.contains('collapsed'))
+        if (!isAfter || this.start.getAttribute('data-has-children') === 'false' || this.start.classList.contains('collapsed'))
             return false;
 
         if (li.getAttribute('data-is-children-of') === this.start.getAttribute('data-block-id'))
@@ -334,7 +334,7 @@ class TreeDragDrop {
         if (isBefore && nextCandVisual.pos === 'after') {
             if (li.getAttribute('data-depth') === this.startDepth) { // same level
                 let t = false;
-                if (getBoolAttrVal(li, 'data-has-children') === 'false' && idx - this.startIdx === -1) { // no children in between
+                if (li.getAttribute('data-has-children') === 'false' && idx - this.startIdx === -1) { // no children in between
                     t = true;
                 } else if (this.ulAsArr[this.startIdx - 1]) { // children in between
                     const sameLevel = Array.from(this.ul.querySelectorAll(`li[data-depth="${this.startDepth}"]`));
@@ -440,19 +440,6 @@ function getOutermostParent(li, i = 0) {
         return null;
     const parentBlockId = li.getAttribute('data-is-children-of');
     return !parentBlockId ? li : getOutermostParent(li.closest('ul').querySelector(`li[data-block-id="${parentBlockId}"]`), i + 1);
-}
-
-/**
- * @param {HTMLElement} el
- * @param {String} boolAttrName
- * @returns {'true'|'false'}
- */
-function getBoolAttrVal(el, boolAttrName) {
-    // >= preact-router@10 -> bool attributes are always present with value "true" or "false"
-    if (window.useNewRouter)
-        return el.getAttribute(boolAttrName);
-    // < preact-router@10 -> bool attributes are present only if their value is true
-    return el.getAttribute(boolAttrName) ? 'true' : 'false';
 }
 
 export default TreeDragDrop;

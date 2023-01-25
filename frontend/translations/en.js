@@ -141,6 +141,7 @@ stringBundles.push({
     'todo13': 'todo13',
     'Cancel': 'Cancel',
     // edit-app/src/left-column/SaveButton.jsx
+    'You have unsaved changes, do you want to navigate away?': 'You have unsaved changes, do you want to navigate away?',
     'Undo latest change': 'Undo latest change',
     'Save changes': 'Save changes',
     // edit-app/src/right-column/WebPageIframe.js

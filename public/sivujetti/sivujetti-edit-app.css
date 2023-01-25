@@ -806,8 +806,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     position: relative;
     padding: .2rem .2rem .2rem .45rem;
 }
-#use-new-router .block-tree li[data-has-children="true"],
-#dont-use-new-router .block-tree li[data-has-children] {
+.block-tree li[data-has-children="true"] {
     padding: .2rem;
 }
 .block-tree li[data-depth="2"] {
@@ -888,8 +887,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .block-tree li[data-last].maybe-drop-before:before {
     top: 0;
 }
-#use-new-router .block-tree li[data-first-child="true"][data-last-child="true"]:not([class*="maybe-"]) > div:before,
-#dont-use-new-router .block-tree li[data-first-child][data-last-child]:not([class*="maybe-"]) > div:before {
+.block-tree li[data-first-child="true"][data-last-child="true"]:not([class*="maybe-"]) > div:before {
     content: "";
     position: absolute;
     width: 1px;
@@ -899,8 +897,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     top: 50%;
     margin-top: 2px;
 }
-#use-new-router .block-tree li[data-last-child="true"]:not([class*="maybe-"]):not([data-has-children="true"]) > div:after,
-#dont-use-new-router .block-tree li[data-last-child]:not([class*="maybe-"]):not([data-has-children]) > div:after {
+.block-tree li[data-last-child="true"]:not([class*="maybe-"]):not([data-has-children="true"]) > div:after {
     content: "";
     position: absolute;
     width: 1px;
@@ -958,8 +955,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     border-color: #aaa;
 }
 /* block-tre li states inner */
-#use-new-router .block-tree li[data-has-children="true"] > div,
-#dont-use-new-router .block-tree li[data-has-children] > div {
+.block-tree li[data-has-children="true"] > div {
     margin-left: 1.0rem;
 }
 .block-tree li.collapsed > .toggle .icon-tabler {

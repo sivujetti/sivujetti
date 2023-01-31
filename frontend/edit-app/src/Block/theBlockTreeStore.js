@@ -15,10 +15,10 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/swap',
     /**
      * @param {Object} state
-     * @param {[BlockDescriptor, BlockDescriptor, 'before'|'after'|'as-child']} args
+     * @param {[BlockDescriptor, BlockDescriptor, 'before'|'after'|'as-child', treeTransferType]} args
      * @returns {Object}
      */
-    ({theBlockTree}, [dragInf, dropInf, dropPos]) => {
+    ({theBlockTree}, [dragInf, dropInf, dropPos, treeTransfer]) => {
         const clone = cloneObjectDeep(theBlockTree);
         const dragBlocksTree = blockTreeUtils.getRootFor(dragInf.isStoredToTreeId, clone);
         const [dragBlock, dragBranch] = blockTreeUtils.findBlock(dragInf.blockId, dragBlocksTree);
@@ -43,28 +43,31 @@ function theBlockTreeStore(store) {
             const pos = dragBranch.indexOf(dragBlock);
             dragBranch.splice(pos, 1);
         }
+        //
+        if (treeTransfer === 'out-of-gbt') {
+            //
+        } else if (treeTransfer === 'into-gbt') {
+            //
+        }
         return {theBlockTree: clone};
     });
 
-    store.on('theBlockTree/applySwap',
     /**
      * @param {Object} state
-     * @param {[BlockSwapDescriptor, BlockSwapDescriptor]} args
+     * @param {[BlockSwapDescriptor, BlockSwapDescriptor, treeTransferType]} args
      * @returns {Object}
      */
-    ({theBlockTree}, _) =>
-        ({theBlockTree})
-    );
+    const applySwapOrDrop = ({theBlockTree}, [source, target, treeTransfer]) => {
+        const clone = cloneObjectDeep(theBlockTree);
+        if (treeTransfer === 'into-gbt') {
+            const [block] = blockTreeUtils.findBlock2(source.blockId, clone);
+            setTrids([block], target.data.refTreeId);
+        }
+        return {theBlockTree: clone};
+    };
+    store.on('theBlockTree/applySwap', applySwapOrDrop);
 
-    store.on('theBlockTree/applyAdd(Drop)Block',
-    /**
-     * @param {Object} state
-     * @param {[BlockSwapDescriptor, BlockSwapDescriptor]} args
-     * @returns {Object}
-     */
-    ({theBlockTree}, _) =>
-        ({theBlockTree})
-    );
+    store.on('theBlockTree/applyAdd(Drop)Block', applySwapOrDrop);
 
     store.on('theBlockTree/undo',
     /**

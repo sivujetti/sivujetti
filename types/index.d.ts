@@ -356,3 +356,5 @@ interface Path {
     search: String;
     hash: String;
 }
+
+type treeTransferType = 'none'|'out-of-gbt'|'into-gbt';

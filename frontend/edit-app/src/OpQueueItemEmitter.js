@@ -31,9 +31,31 @@ class OpQueueItemEmitter {
                 this.setPrevBlockTree(theBlockTree);
             } else if (event === 'theBlockTree/applySwap' || event === 'theBlockTree/applyAdd(Drop)Block') {
                 const oldTree = this.prevTree;
-                const [_drag, target] = data; // [BlockSwapDescriptor, BlockSwapDescriptor]
+                const [_drag, target, treeTransfer] = data; // [BlockSwapDescriptor, BlockSwapDescriptor, treeTransferType]
                 const {isStoredToTreeId} = !(target.isGbtRef && target.dropPos === 'as-child') ? target : {isStoredToTreeId: target.data.refTreeId};
-                this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, isStoredToTreeId, null);
+                if (treeTransfer === 'none') {
+                    this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, isStoredToTreeId, null);
+                } else if (treeTransfer === 'out-of-gbt') {
+                    // todo
+                } else if (treeTransfer === 'into-gbt') {
+                    // Push 1.
+                    store.dispatch(pushItemToOpQueue(`update-block-tree##main`, {
+                        doHandle: () => saveExistingBlocksToBackend(theBlockTree, 'main'),
+                        doUndo: () => {
+                            // do nothing
+                        },
+                        args: [],
+                    }));
+
+                    // Push 2.
+                    const oldTree = this.prevTree;
+                    this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, isStoredToTreeId, null, undefined, () => {
+                        setTimeout(() => {
+                            // Remove 1. op from the queue
+                            api.saveButton.triggerUndo();
+                        }, 100);
+                    });
+                }
             } else if (event === 'theBlockTree/deleteBlock') {
                 const oldTree = this.prevTree;
                 const [_id, blockIsStoredToTreeId, _wasCurrentlySelectedBlock] = data;

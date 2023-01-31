@@ -48,9 +48,20 @@ class ReRenderer {
         } else if (event === 'theBlockTree/swap') {
             this.doReRender(theBlockTree);
         // ====================================================================
+        } else if (event === 'theBlockTree/applyAdd(Drop)Block' || event === 'theBlockTree/applySwap') {
+            const [source, _target, treeTransfer] = data;
+            if (treeTransfer === 'into-gbt') { // normal > inside gbt
+                const [block] = blockTreeUtils.findBlock2(source.blockId, theBlockTree);
+                this.updateIsStoredToIdsToDom(block.isStoredToTreeId, [block]);
+            }
+            this.doReRender(theBlockTree);
+        // ====================================================================
         } else if (event === 'theBlockTree/undo') {
             const [_oldTree, maybeBlockId, _blockIsStoredToTreeId, isUndoOfConvertToGlobal] = data;
-            if (!isUndoOfConvertToGlobal) {
+            let restoreTridsOf = !isUndoOfConvertToGlobal
+                ? containsTridTransfers(this.elCache)[1]
+                : maybeBlockId;
+            if (!restoreTridsOf) {
                 if (!maybeBlockId) { // undo of non-single update
                     this.doReRender(theBlockTree);
                 } else { // undo of single update
@@ -60,7 +71,7 @@ class ReRenderer {
                     this.doReRender(theBlockTree);
                 }
             } else {
-                this.unturnBlockElToGlobalRecursively(maybeBlockId);
+                this.unturnBlockElToGlobalRecursively(restoreTridsOf);
                 this.doReRender(theBlockTree);
             }
         // ====================================================================
@@ -117,9 +128,6 @@ class ReRenderer {
                 this.doReRender(theBlockTree);
             }
         // ====================================================================
-        } else if (event === 'theBlockTree/applyAdd(Drop)Block') { // dropped
-            // ?
-        // ====================================================================
         } else if (event === 'theBlockTree/undoAdd(Drop)Block') {
             this.doReRender(theBlockTree);
         // ====================================================================
@@ -161,7 +169,10 @@ class ReRenderer {
         } else if (event === 'theBlockTree/convertToGbt') {
             const [_originalBlockId, idForTheNewBlock, _newGbtWithoutBlocks] = data;
             const newGbtRef = blockTreeUtils.findBlock(idForTheNewBlock, theBlockTree)[0];
-            this.turnBlockElToGlobalRecursively(newGbtRef);
+            this.updateIsStoredToIdsToDom(
+                newGbtRef.__globalBlockTree.id,
+                newGbtRef.__globalBlockTree.blocks
+            );
             this.doReRender(theBlockTree);
         } else if (event === 'theBlockTree/updateDefPropsOf') {
             const [blockId, _blockIsStoredToTreeId, changes, isOnlyStyleClassesChange] = data;
@@ -238,15 +249,15 @@ class ReRenderer {
         return pool[pool.length - 1].cloneNode(true);
     }
     /**
-     * @param {RawBlock} newGbtRefBlock
+     * @param {String} isStoredToTreeId
+     * @param {Array<RawBlock>} branch
      * @access private
      */
-    turnBlockElToGlobalRecursively(newGbtRefBlock) {
-        const newGbtId = newGbtRefBlock.__globalBlockTree.id;
-        blockTreeUtils.traverseRecursively(newGbtRefBlock.__globalBlockTree.blocks, (b, _i, _parent, _parentIdPath) => {
+    updateIsStoredToIdsToDom(isStoredToTreeId, branch) {
+        blockTreeUtils.traverseRecursively(branch, (b, _i, _parent, _parentIdPath) => {
             const current = getBlockEl(b.id);
             const extractedCopy = extractRendered(current);
-            extractedCopy.setAttribute(IS_STORED_TO_ATTR, newGbtId);
+            extractedCopy.setAttribute(IS_STORED_TO_ATTR, isStoredToTreeId);
             this.elCache.get(b.id).push(extractedCopy);
         });
     }
@@ -400,6 +411,21 @@ function getChildStartComment(of) {
  */
 function getChildEndComment(of) {
     return findCommentR(of, CHILDREN_END);
+}
+
+/**
+ * @param {Map<String, HTMLElement[]>} elCache
+ * @returns {[Boolean, String|null]}
+ */
+function containsTridTransfers(elCache) {
+    for (const [blockId, pool] of elCache) {
+        if (pool.length < 2) continue;
+        if (pool[pool.length - 1].getAttribute(IS_STORED_TO_ATTR) !== 'main' &&
+            pool[pool.length - 2].getAttribute(IS_STORED_TO_ATTR) === 'main') {
+            return [true, blockId];
+        }
+    }
+    return [false, null];
 }
 
 /**

@@ -17,6 +17,24 @@ export default {
         return [null, null, null];
     },
     /**
+     * @param {String} id
+     * @param {Array<Block>} tree
+     * @param {RawBlock=} parentBlock = null
+     * @returns {[Block|null, Array<Block>|null, Block|null]} [block, containingBranch, parentBlock]
+     * @access public
+     */
+    findBlock2(id, tree, parentBlock = null) {
+        for (const b of tree) {
+            if (b.id === id) return [b, tree, parentBlock];
+            const c = b.type === 'GlobalBlockReference' ? b.__globalBlockTree.blocks : b.children;
+            if (c.length) {
+                const sub = this.findBlock2(id, c, b);
+                if (sub[0]) return sub;
+            }
+        }
+        return [null, null, null];
+    },
+    /**
      * @param {Array<Object>} branch
      * @param {(item: Object, i: Number) => any} fn
      * @returns {Array<Object>}

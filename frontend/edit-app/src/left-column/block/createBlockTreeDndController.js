@@ -12,6 +12,7 @@ function createDndController(_blockTree) {
     let initialTree;
     let extDragData;
     let dropped;
+    let curTreeTransfer;
     return {
         /**
          * @param {DragDropInfo} info
@@ -48,7 +49,7 @@ function createDndController(_blockTree) {
                     data: null,
                     dropPos: cand.pos
                 };
-                store2.dispatch('theBlockTree/applySwap', [swapSourceInfo, swapTargetInfo]);
+                store2.dispatch('theBlockTree/applySwap', [swapSourceInfo, swapTargetInfo, curTreeTransfer]);
             } else {
                 const swapSourceInfo = {
                     blockId: extDragData.block.id,
@@ -57,7 +58,7 @@ function createDndController(_blockTree) {
                     data: null,
                     dropPos: cand.pos
                 };
-                store2.dispatch('theBlockTree/applyAdd(Drop)Block', [swapSourceInfo, swapTargetInfo]);
+                store2.dispatch('theBlockTree/applyAdd(Drop)Block', [swapSourceInfo, swapTargetInfo, curTreeTransfer]);
             }
             api.webPageIframe.getEl().style.pointerEvents = '';
             dropped = true;
@@ -81,12 +82,14 @@ function createDndController(_blockTree) {
             const extBlock = !extDragData ? null : extDragData.block;
             const drag = !extBlock ? createBlockDescriptorFromLi(startLi) : createBlockDescriptor(extBlock);
             const targ = createBlockDescriptorFromLi(cand.li);
+            let treeTransfer = 'none';
             const {isStoredToTreeId} = !(targ.isGbtRef && cand.pos === 'as-child') ? targ : {isStoredToTreeId: targ.data.refTreeId};
             if (targ.isStoredToTreeId === 'main' && isStoredToTreeId !== drag.isStoredToTreeId) // normal > inside gbt
-                return false;
-            if (drag.isStoredToTreeId !== isStoredToTreeId) // gbt's inner > outside its tree
-                return false;
-            store2.dispatch('theBlockTree/swap', [drag, targ, cand.pos]);
+                treeTransfer = 'into-gbt';
+            else if (drag.isStoredToTreeId !== isStoredToTreeId) // gbt's inner > outside its tree
+                treeTransfer = 'out-of-gbt';
+            curTreeTransfer = treeTransfer;
+            store2.dispatch('theBlockTree/swap', [drag, targ, cand.pos, treeTransfer]);
         },
         /**
          * @param {Number|null} lastAcceptedSwapIdx

@@ -18,14 +18,10 @@ function theBlockTreeStore(store) {
      * @param {[BlockDescriptor, BlockDescriptor, 'before'|'after'|'as-child', treeTransferType]} args
      * @returns {Object}
      */
-    ({theBlockTree}, [dragInf, dropInf, dropPos, treeTransfer]) => {
+    ({theBlockTree}, [dragInf, dropInf, dropPos, _treeTransfer]) => {
         const clone = cloneObjectDeep(theBlockTree);
-        const dragBlocksTree = blockTreeUtils.getRootFor(dragInf.isStoredToTreeId, clone);
-        const [dragBlock, dragBranch] = blockTreeUtils.findBlock(dragInf.blockId, dragBlocksTree);
-        const {isStoredToTreeId, blockId} = !(dropInf.isGbtRef && dropPos === 'as-child') ? dropInf
-            : {isStoredToTreeId: dropInf.data.refTreeId, blockId: dropInf.data.refTreesRootBlockId};
-        const dropBlocksTree = blockTreeUtils.getRootFor(isStoredToTreeId, clone);
-        const [dropBlock, dropBranch] = blockTreeUtils.findBlock(blockId, dropBlocksTree);
+        const [dragBlock, dragBranch] = blockTreeUtils.findBlock2(dragInf.blockId, clone);
+        const [dropBlock, dropBranch] = blockTreeUtils.findBlock2(!(dropInf.isGbtRef && dropPos === 'as-child') ? dropInf.blockId : dropInf.data.refTreesRootBlockId, clone);
         //
         const isBefore = dropPos === 'before';
         if (isBefore || dropPos === 'after') {
@@ -43,12 +39,6 @@ function theBlockTreeStore(store) {
             const pos = dragBranch.indexOf(dragBlock);
             dragBranch.splice(pos, 1);
         }
-        //
-        if (treeTransfer === 'out-of-gbt') {
-            //
-        } else if (treeTransfer === 'into-gbt') {
-            //
-        }
         return {theBlockTree: clone};
     });
 
@@ -61,7 +51,10 @@ function theBlockTreeStore(store) {
         const clone = cloneObjectDeep(theBlockTree);
         if (treeTransfer === 'into-gbt') {
             const [block] = blockTreeUtils.findBlock2(source.blockId, clone);
-            setTrids([block], target.data.refTreeId);
+            setTrids([block], !target.data ? target.isStoredToTreeId : target.data.refTreeId);
+        } else if (treeTransfer === 'out-of-gbt') {
+            const [block] = blockTreeUtils.findBlock2(source.blockId, clone);
+            setTrids([block], target.isStoredToTreeId);
         }
         return {theBlockTree: clone};
     };

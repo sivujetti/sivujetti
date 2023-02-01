@@ -31,30 +31,20 @@ class OpQueueItemEmitter {
                 this.setPrevBlockTree(theBlockTree);
             } else if (event === 'theBlockTree/applySwap' || event === 'theBlockTree/applyAdd(Drop)Block') {
                 const oldTree = this.prevTree;
-                const [_drag, target, treeTransfer] = data; // [BlockSwapDescriptor, BlockSwapDescriptor, treeTransferType]
+                const [drag, target, treeTransfer] = data; // [BlockSwapDescriptor, BlockSwapDescriptor, treeTransferType]
                 const {isStoredToTreeId} = !(target.isGbtRef && target.dropPos === 'as-child') ? target : {isStoredToTreeId: target.data.refTreeId};
                 if (treeTransfer === 'none') {
                     this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, isStoredToTreeId, null);
                 } else if (treeTransfer === 'out-of-gbt') {
-                    // todo
+                    this.pushDoubleSaveOps(
+                        blockTreeUtils.getRootFor(drag.isStoredToTreeId, theBlockTree), drag.isStoredToTreeId, // 1.
+                        theBlockTree, isStoredToTreeId                                                         // 2.
+                    );
                 } else if (treeTransfer === 'into-gbt') {
-                    // Push 1.
-                    store.dispatch(pushItemToOpQueue(`update-block-tree##main`, {
-                        doHandle: () => saveExistingBlocksToBackend(theBlockTree, 'main'),
-                        doUndo: () => {
-                            // do nothing
-                        },
-                        args: [],
-                    }));
-
-                    // Push 2.
-                    const oldTree = this.prevTree;
-                    this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, isStoredToTreeId, null, undefined, () => {
-                        setTimeout(() => {
-                            // Remove 1. op from the queue
-                            api.saveButton.triggerUndo();
-                        }, 100);
-                    });
+                    this.pushDoubleSaveOps(
+                        theBlockTree, 'main',           // 1.
+                        theBlockTree, isStoredToTreeId  // 2.
+                    );
                 }
             } else if (event === 'theBlockTree/deleteBlock') {
                 const oldTree = this.prevTree;
@@ -184,6 +174,32 @@ class OpQueueItemEmitter {
             args: [],
         }));
         this.setPrevBlockTree(theBlockTree);
+    }
+    /**
+     * @param {Array<RawBlock>} tree1
+     * @param {String} tree1Id
+     * @param {Array<RawBlock>} tree2
+     * @param {String} tree2Id
+     * @access private
+     */
+    pushDoubleSaveOps(tree1, tree1Id, tree2, tree2Id) {
+        // Push 1.
+        store.dispatch(pushItemToOpQueue(`update-block-tree##${tree1Id}`, {
+            doHandle: () => saveExistingBlocksToBackend(tree1, tree1Id),
+            doUndo: () => {
+                // do nothing
+            },
+            args: [],
+        }));
+
+        // Push 2.
+        const oldTree = this.prevTree;
+        this.pushSaveBlockTreeToBackendOp(tree2, oldTree, tree2Id, null, undefined, () => {
+            setTimeout(() => {
+                // Remove 1. op from the queue
+                api.saveButton.triggerUndo();
+            }, 100);
+        });
     }
     /**
      * @param {Array<RawBlock>} theBlockTree

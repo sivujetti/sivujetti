@@ -50,7 +50,8 @@ class ReRenderer {
         // ====================================================================
         } else if (event === 'theBlockTree/applyAdd(Drop)Block' || event === 'theBlockTree/applySwap') {
             const [source, _target, treeTransfer] = data;
-            if (treeTransfer === 'into-gbt') { // normal > inside gbt
+            if (treeTransfer === 'into-gbt' || // normal > inside gbt
+                treeTransfer === 'out-of-gbt') { // gbt's inner > outside its tree
                 const [block] = blockTreeUtils.findBlock2(source.blockId, theBlockTree);
                 this.updateIsStoredToIdsToDom(block.isStoredToTreeId, [block]);
             }

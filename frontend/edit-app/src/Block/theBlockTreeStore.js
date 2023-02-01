@@ -15,10 +15,10 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/swap',
     /**
      * @param {Object} state
-     * @param {[BlockDescriptor, BlockDescriptor, 'before'|'after'|'as-child', treeTransferType]} args
+     * @param {[BlockDescriptor, BlockDescriptor, dropPosition]} args
      * @returns {Object}
      */
-    ({theBlockTree}, [dragInf, dropInf, dropPos, _treeTransfer]) => {
+    ({theBlockTree}, [dragInf, dropInf, dropPos]) => {
         const clone = cloneObjectDeep(theBlockTree);
         const [dragBlock, dragBranch] = blockTreeUtils.findBlock2(dragInf.blockId, clone);
         const [dropBlock, dropBranch] = blockTreeUtils.findBlock2(!(dropInf.isGbtRef && dropPos === 'as-child') ? dropInf.blockId : dropInf.data.refTreesRootBlockId, clone);
@@ -44,10 +44,10 @@ function theBlockTreeStore(store) {
 
     /**
      * @param {Object} state
-     * @param {[BlockSwapDescriptor, BlockSwapDescriptor, treeTransferType]} args
+     * @param {[BlockDescriptor, BlockDescriptor, dropPosition, treeTransferType]} args
      * @returns {Object}
      */
-    const applySwapOrDrop = ({theBlockTree}, [source, target, treeTransfer]) => {
+    const applySwapOrDrop = ({theBlockTree}, [source, target, _dropPos, treeTransfer]) => {
         const clone = cloneObjectDeep(theBlockTree);
         if (treeTransfer === 'into-gbt') {
             const [block] = blockTreeUtils.findBlock2(source.blockId, clone);
@@ -98,7 +98,7 @@ function theBlockTreeStore(store) {
 
     /**
      * @param {Object} state
-     * @param {[SpawnDescriptor, BlockDescriptor, 'before'|'after'|'as-child']} args
+     * @param {[SpawnDescriptor, BlockDescriptor, dropPosition]} args
      * @returns {Object}
      */
     const addBlock = ({theBlockTree}, [spawn, target, insertPos]) => {

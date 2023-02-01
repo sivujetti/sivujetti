@@ -307,7 +307,7 @@ interface DragDropEventController {
 
 interface DragDropInfo {
     li: HTMLLIElement;
-    pos: 'initial'|'before'|'after'|'as-child';
+    pos: 'initial'|dropPosition;
 }
 
 interface BlockRendctor {
@@ -336,10 +336,6 @@ interface BlockDescriptor {
     data: {refTreesRootBlockId: String; refTreeId: String;}|null; // If isGbtRef === true
 }
 
-interface BlockSwapDescriptor extends BlockDescriptor {
-    dropPos: 'before'|'after'|'as-child';
-}
-
 interface SpawnDescriptor {
     block: RawBlock;
     isReusable: Boolean|null;
@@ -356,5 +352,7 @@ interface Path {
     search: String;
     hash: String;
 }
+
+type dropPosition = 'before'|'after'|'as-child';
 
 type treeTransferType = 'none'|'out-of-gbt'|'into-gbt';

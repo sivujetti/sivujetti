@@ -62,8 +62,8 @@ class BlockTree extends preact.Component {
                 event === 'theBlockTree/cloneItem' ||
                 event === 'theBlockTree/convertToGbt') {
                 const newState = {blockTree: theBlockTree, treeState: createTreeState(theBlockTree, this.state.treeState)};
-                if ((event === 'theBlockTree/applyAdd(Drop)Block' || event === 'theBlockTree/applySwap') && data[1].dropPos === 'as-child') {
-                    const swapTargetInfo = data[1];
+                if ((event === 'theBlockTree/applyAdd(Drop)Block' || event === 'theBlockTree/applySwap') && data[2] === 'as-child') {
+                    const swapTargetInfo = data[1]; // [BlockDescriptor, BlockDescriptor, dropPosition, treeTransferType]
                     const {isStoredToTreeId, blockId} = !swapTargetInfo.isGbtRef ? swapTargetInfo
                         : {isStoredToTreeId: swapTargetInfo.data.refTreeId, blockId: swapTargetInfo.data.refTreesRootBlockId};
                     const branch = blockTreeUtils.getRootFor(isStoredToTreeId, theBlockTree);

@@ -31,8 +31,8 @@ class OpQueueItemEmitter {
                 this.setPrevBlockTree(theBlockTree);
             } else if (event === 'theBlockTree/applySwap' || event === 'theBlockTree/applyAdd(Drop)Block') {
                 const oldTree = this.prevTree;
-                const [drag, target, treeTransfer] = data; // [BlockSwapDescriptor, BlockSwapDescriptor, treeTransferType]
-                const {isStoredToTreeId} = !(target.isGbtRef && target.dropPos === 'as-child') ? target : {isStoredToTreeId: target.data.refTreeId};
+                const [drag, target, dropPos, treeTransfer] = data; // [BlockDescriptor, BlockDescriptor, dropPosition, treeTransferType]
+                const {isStoredToTreeId} = !(target.isGbtRef && dropPos === 'as-child') ? target : {isStoredToTreeId: target.data.refTreeId};
                 if (treeTransfer === 'none') {
                     this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, isStoredToTreeId, null);
                 } else if (treeTransfer === 'out-of-gbt') {

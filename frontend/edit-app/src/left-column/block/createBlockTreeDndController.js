@@ -12,7 +12,6 @@ function createDndController(_blockTree) {
     let initialTree;
     let extDragData;
     let dropped;
-    let curTreeTransfer;
     return {
         /**
          * @param {DragDropInfo} info
@@ -46,25 +45,20 @@ function createDndController(_blockTree) {
                     blockId: startLi.getAttribute('data-block-id'),
                     isStoredToTreeId: startLi.getAttribute('data-is-stored-to-trid'),
                     isGbtRef: false,
-                    data: null,
-                    dropPos: cand.pos
+                    data: null
                 };
-                let treeTransfer = 'none';
-                if (swapSourceInfo.isStoredToTreeId === 'main' && (swapTargetInfo.isStoredToTreeId !== 'main' || (swapTargetInfo.isGbtRef && cand.pos === 'as-child')))
-                    treeTransfer = 'into-gbt';
-                else if (swapSourceInfo.isStoredToTreeId !== 'main' && swapTargetInfo.isStoredToTreeId === 'main')
-                    treeTransfer = 'out-of-gbt';
-                store2.dispatch('theBlockTree/applySwap', [swapSourceInfo, swapTargetInfo, treeTransfer]);
+                const treeTransfer = determineTransferType(swapSourceInfo, swapTargetInfo, cand);
+                store2.dispatch('theBlockTree/applySwap', [swapSourceInfo, swapTargetInfo, cand.pos, treeTransfer]);
             } else {
-                const treeTransfer = 'todo';
                 const swapSourceInfo = {
                     blockId: extDragData.block.id,
                     isStoredToTreeId: extDragData.block.isStoredToTreeId,
                     isGbtRef: false,
-                    data: null,
-                    dropPos: cand.pos
+                    data: null
                 };
-                store2.dispatch('theBlockTree/applyAdd(Drop)Block', [swapSourceInfo, swapTargetInfo, treeTransfer]);
+                const t1 = determineTransferType(swapSourceInfo, swapTargetInfo, cand);
+                const treeTransfer = t1 === 'out-of-gbt' ? 'none' : t1;
+                store2.dispatch('theBlockTree/applyAdd(Drop)Block', [swapSourceInfo, swapTargetInfo, cand.pos, treeTransfer]);
             }
             api.webPageIframe.getEl().style.pointerEvents = '';
             dropped = true;
@@ -92,8 +86,7 @@ function createDndController(_blockTree) {
                 drag.isStoredToTreeId !== targ.isStoredToTreeId) {
                 return false;
             }
-            const treeTransfer = 'none';
-            store2.dispatch('theBlockTree/swap', [drag, targ, cand.pos, treeTransfer]);
+            store2.dispatch('theBlockTree/swap', [drag, targ, cand.pos]);
         },
         /**
          * @param {Number|null} lastAcceptedSwapIdx
@@ -119,7 +112,7 @@ function createDndController(_blockTree) {
 
 /**
  * @param {DragDropInfo} cand
- * @returns {BlockSwapDescriptor}
+ * @returns {BlockDescriptor}
  */
 function createDropTargetInfo(cand) {
     const blockId = cand.li.getAttribute('data-block-id');
@@ -130,13 +123,11 @@ function createDropTargetInfo(cand) {
         isStoredToTreeId,
         isGbtRef: false,
         data: null,
-        dropPos: cand.pos
     } : {
         blockId: maybeRefBlockId,
         isStoredToTreeId: 'main',
         isGbtRef: true,
         data: {refTreesRootBlockId: blockId, refTreeId: isStoredToTreeId},
-        dropPos: cand.pos
     };
 }
 
@@ -202,6 +193,20 @@ function saveExistingBlocksToBackend(newBlockTree, trid, page = null) {
  */
 function areKeysEqual(clonedTree, theBlockTree) {
     return clonedTree === JSON.parse(JSON.stringify(theBlockTree));
+}
+
+/**
+ * @param {BlockDescriptor} swapSourceInfo
+ * @param {BlockDescriptor} swapTargetInfo
+ * @param {DragDropInfo} dropInfo
+ * @returns {treeTransferType}
+ */
+function determineTransferType(swapSourceInfo, swapTargetInfo, {pos}) {
+    if (swapSourceInfo.isStoredToTreeId === 'main' && (swapTargetInfo.isStoredToTreeId !== 'main' || (swapTargetInfo.isGbtRef && pos === 'as-child')))
+        return 'into-gbt';
+    else if (swapSourceInfo.isStoredToTreeId !== 'main' && swapTargetInfo.isStoredToTreeId === 'main')
+        return 'out-of-gbt';
+    return 'none';
 }
 
 export default createDndController;

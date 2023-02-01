@@ -49,7 +49,7 @@ class ReRenderer {
             this.doReRender(theBlockTree);
         // ====================================================================
         } else if (event === 'theBlockTree/applyAdd(Drop)Block' || event === 'theBlockTree/applySwap') {
-            const [source, _target, treeTransfer] = data;
+            const [source, _target, _dropPos, treeTransfer] = data;
             if (treeTransfer === 'into-gbt' || // normal > inside gbt
                 treeTransfer === 'out-of-gbt') { // gbt's inner > outside its tree
                 const [block] = blockTreeUtils.findBlock2(source.blockId, theBlockTree);
@@ -80,7 +80,7 @@ class ReRenderer {
             this.doReRender(theBlockTree);
         // ====================================================================
         } else if (event === 'theBlockTree/addBlockOrBranch') { // added to tree while dragging, not dropped yet
-            const [newBlockInf] = data; // [SpawnDescriptor, BlockDescriptor, 'before'|'after'|'as-child']
+            const [newBlockInf] = data; // [SpawnDescriptor, BlockDescriptor, dropPosition]
             const newBlock = newBlockInf.block;
             const {isReusable} = newBlockInf;
 

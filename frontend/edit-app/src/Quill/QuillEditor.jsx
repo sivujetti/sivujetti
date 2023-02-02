@@ -5,6 +5,7 @@ import {determineModeFrom} from './common.js';
 const common = ['bold', 'italic', 'underline', 'strike'];
 const simplest = common.concat('clean');
 const simplestWithLink = common.concat('link', 'clean');
+const headingToobarItem = {'header': [1, 2, 3, 4, 5, 6, false]};
 
 const toolbarBundles = {
     simplest: [simplest],
@@ -15,11 +16,16 @@ const toolbarBundles = {
         [{'size': ['small', false, 'large', 'huge'] }],
         ['clean'],
     ],
+    longText: [
+        [headingToobarItem, ...common, ...['link']],
+        ['blockquote', {'list': 'ordered'}, {'list': 'bullet'}],
+        ['clean'],
+    ],
     full: [
         common.concat('blockquote'),
         [{'list': 'ordered'}, {'list': 'bullet'}],
         [{'indent': '-1'}, {'indent': '+1'}, {'align': [] }],
-        [{'header': [1, 2, 3, 4, 5, 6, false]}],
+        [headingToobarItem],
         [{'size': ['small', false, 'large', 'huge'] }],
         ['link', 'image', 'video', 'code-block'],
         ['clean'],

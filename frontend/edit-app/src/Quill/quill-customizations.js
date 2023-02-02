@@ -86,6 +86,26 @@ class MySnowTheme extends Quill.import('themes/snow') {
             origPosition.call(this.tooltip, Object.assign({}, reference, {left: 0}))
         ;
     }
+    /**
+     * @inheritdoc
+     */
+    buildPickers(selects, icons) {
+        super.buildPickers(selects, icons);
+        const headingPicker = this.pickers.find(({select}) => select.classList.contains('ql-header'));
+        if (!headingPicker) return;
+        const {label, options} = headingPicker;
+        label.setAttribute('data-h1-translated', `${__('Heading')} 1`);
+        label.setAttribute('data-h2-translated', `${__('Heading')} 2`);
+        label.setAttribute('data-h3-translated', `${__('Heading')} 3`);
+        label.setAttribute('data-h4-translated', `${__('Heading')} 4`);
+        label.setAttribute('data-h5-translated', `${__('Heading')} 5`);
+        label.setAttribute('data-h6-translated', `${__('Heading')} 6`);
+        label.setAttribute('data-p-translated', __('Paragraph'));
+        Array.from(options.children).forEach(el => {
+            const level = el.getAttribute('data-value');
+            el.setAttribute('data-label-translated', level ? `${__('Heading')} ${level}` : __('Paragraph'));
+        });
+    }
 }
 MySnowTheme.DEFAULTS.modules.toolbar.handlers.link = function (value) {
     const {quill} = this;

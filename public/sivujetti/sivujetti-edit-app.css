@@ -168,6 +168,22 @@ h2 {
 
 
 /* == EditApp: Defaults ===================================================== */
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3,
+.ql-editor h4,
+.ql-editor h5,
+.ql-editor h6 {
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    margin-bottom: .4rem;
+}
+.ql-editor h1 { font-size: 1.3rem; }
+.ql-editor h2 { font-size: 1.2rem; }
+.ql-editor h3 { font-size: 1.1rem; }
+.ql-editor h4 { font-size: 1rem; }
+.ql-editor h5 { font-size: .9rem; }
+.ql-editor h6 { font-size: .8rem; }
 .ql-editor ol,
 .ql-editor ul {
     padding-left: 0;
@@ -210,10 +226,30 @@ h2 {
 .ql-snow .ql-tooltip a.btn {
     color: var(--color-fg-default);
 }
-.ql-snow .ql-tooltip::before,
-.ql-snow .ql-tooltip a.ql-remove::before,
-.ql-snow .ql-tooltip a.ql-action::after {
+.ql-snow .ql-tooltip:before,
+.ql-snow .ql-tooltip a.ql-remove:before,
+.ql-snow .ql-tooltip a.ql-action:after {
     content: initial;
+}
+.ql-snow.ql-toolbar .ql-picker.ql-header {
+    width: 92px;
+}
+.ql-snow .ql-picker.ql-header .ql-picker-item:before,
+.ql-snow .ql-picker.ql-header .ql-picker-label:before {
+    content: attr(data-p-translated);
+    overflow: hidden;
+    max-width: 66px;
+    text-overflow: ellipsis;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]:before { content: attr(data-h1-translated); }
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]:before { content: attr(data-h2-translated); }
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]:before { content: attr(data-h3-translated); }
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="4"]:before { content: attr(data-h4-translated); }
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="5"]:before { content: attr(data-h5-translated); }
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="6"]:before { content: attr(data-h6-translated); }
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-label-translated]:before {
+    content: attr(data-label-translated);
 }
 .jsPanel.animating {
     transition: height cubic-bezier(0.73, -0.32, 0.58, 1) .325s;

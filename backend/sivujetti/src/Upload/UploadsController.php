@@ -3,6 +3,7 @@
 namespace Sivujetti\Upload;
 
 use Pike\{PikeException, Request, Response, Validation};
+use Sivujetti\Auth\ACL;
 
 final class UploadsController {
     /**
@@ -36,21 +37,26 @@ final class UploadsController {
         if (!isset($req->files->localFile["error"]) ||
             $req->files->localFile["error"] !== UPLOAD_ERR_OK) {
             throw new PikeException("Expected UPLOAD_ERR_OK (0), but got " .
-                                    isset($req->files->localFile["error"])
-                                        ? $req->files->localFile["error"]
-                                        : "<nothing>",
-                                    PikeException::FAILED_FS_OP);
+                isset($req->files->localFile["error"])
+                    ? $req->files->localFile["error"]
+                    : "<unknown-error>",
+                PikeException::FAILED_FS_OP
+            );
         } elseif (($errors = self::validateUploadInput($req->body))) {
             $res->status(400)->json($errors);
             return;
         }
         // @allow \Pike\PikeException
-        $file = $uploader->upload($req->files->localFile,
-                                  SIVUJETTI_INDEX_PATH . "public/uploads",
-                                  $req->body->fileName);
-        $file->friendlyName = "";
-        $file->createdAt = time();
-        // $file->updatedAt Use database default
+        if (($file = $uploader->upload(
+            file: $req->files->localFile,
+            toDir: SIVUJETTI_INDEX_PATH . "public/uploads",
+            targetFileName: $req->body->targetFileName,
+            allowedMimes: self::getAllowedMimesFor($req->myData->user->role)
+        ))) {
+            $file->friendlyName = $req->body->friendlyName;
+            $file->createdAt = time();
+            $file->updatedAt = $file->createdAt;
+        }
         // @allow \Pike\PikeException
         $insertId = $uploadsRepo->insert($file);
         //
@@ -62,9 +68,21 @@ final class UploadsController {
      */
     private static function validateUploadInput(object $input): array {
         return Validation::makeObjectValidator()
-            ->rule("fileName", "type", "string")
-            ->rule("fileName", "maxLength", 255)
-            ->rule("fileName", "regexp", "/^[^\/]*$/") // sub-directories not supported yet
+            ->rule("targetFileName", "type", "string")
+            ->rule("targetFileName", "maxLength", 255)
+            ->rule("targetFileName", "regexp", "/^[a-z0-9_-]+\.[a-z0-9_.-]+$/")
+            ->rule("friendlyName", "type", "string")
+            ->rule("friendlyName", "maxLength", 255)
             ->validate($input);
+    }
+    /**
+     * @param int $userRole
+     * @return string[]
+     */
+    private static function getAllowedMimesFor(int $userRole): array {
+        $exts = ["jpg","jpeg","png","gif","pdf","doc","ppt","odt","pptx","docx","pps","ppsx","xls","xlsx","key","webp","asc","ogv","mp4","m4v","mov","wmv","avi","mpg","3gp","3g2"];
+        if ($userRole < ACL::ROLE_EDITOR)
+            $exts = [...$exts, "ttf","eot","otf","woff","woff2"];
+        return MimeValidator::extsToMimes($exts);
     }
 }

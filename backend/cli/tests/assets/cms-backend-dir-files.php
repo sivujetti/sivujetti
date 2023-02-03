@@ -127,6 +127,7 @@ return [
     "\$backend/sivujetti/src/UserTheme/UserThemeInterface.php",
     "\$backend/sivujetti/src/UserTheme/UserThemeAPI.php",
     "\$backend/sivujetti/src/Upload/UploadsQFilters.php",
+    "\$backend/sivujetti/src/Upload/MimeValidator.php",
     "\$backend/sivujetti/src/Upload/Uploader.php",
     "\$backend/sivujetti/src/Upload/UploadsController.php",
     "\$backend/sivujetti/src/Upload/UploadsRepository.php",

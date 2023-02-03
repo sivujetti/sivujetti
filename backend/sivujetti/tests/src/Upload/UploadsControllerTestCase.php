@@ -3,6 +3,7 @@
 namespace Sivujetti\Tests\Upload;
 
 use Pike\Injector;
+use Pike\Interfaces\SessionInterface;
 use Sivujetti\Tests\Utils\{DbDataHelper, HttpApiTestTrait, TestEnvBootstrapper};
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 use Sivujetti\Upload\Uploader;
@@ -26,10 +27,15 @@ abstract class UploadsControllerTestCase extends DbTestCase {
     }
     /**
      * @param \TestState $state
+     * @param ?int $userRole = null
      */
-    protected function makeSivujettiAppForUploadsTest(\TestState $state): void {
-        $this->makeTestSivujettiApp($state, function (TestEnvBootstrapper $bootModule) use($state) {
-            $bootModule->useMockAlterer(function (Injector $di) use($state) {
+    protected function makeSivujettiAppForUploadsTest(\TestState $state, ?int $userRole = null): void {
+        $this->makeTestSivujettiApp($state, function (TestEnvBootstrapper $bootModule) use ($state, $userRole) {
+            if ($userRole !== null) {
+                $bootModule->useMock("auth", [":session" => $this->createMock(SessionInterface::class),
+                                              ":userRole" => $userRole]);
+            }
+            $bootModule->useMockAlterer(function (Injector $di) use ($state) {
                 $di->define(Uploader::class, [
                     ":moveUploadedFileFn" => $this->createMockMoveUploadedFileFn($state),
                 ]);

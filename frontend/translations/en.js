@@ -107,6 +107,7 @@ stringBundles.push({
     'Website': 'Website',
     'Content management': 'Content management',
     'page': 'page',
+    'Uploads': 'Uploads',
     // edit-app/src/left-column/page-type/PageTypeCreatePanel.jsx
     'page type': 'page type',
     'Default content': 'Default content',

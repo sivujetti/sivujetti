@@ -253,11 +253,13 @@ interface BlockEditFormProps {
 }
 
 interface UploadsEntry {
-    baseDir: String;
-    createdAt: Number;
     fileName: String;
-    friendlyName: String;
+    baseDir: String;
     mime: String;
+    friendlyName: String;
+    createdAt: Number;
+    updatedAt: Number;
+    ext?: String;
 }
 
 interface TranspileArgs {

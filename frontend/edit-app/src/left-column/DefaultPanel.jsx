@@ -76,7 +76,7 @@ class DefaultPanel extends preact.Component {
  * @returns {Boolean}
  */
 function isAnotherAppView(slug) {
-    return ['/website/edit-basic-info', '/pages'].indexOf(slug) > -1;
+    return ['/uploads', '/website/edit-basic-info', '/pages'].indexOf(slug) > -1;
 }
 
 /**

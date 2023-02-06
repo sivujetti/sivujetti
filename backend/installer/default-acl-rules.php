@@ -50,8 +50,9 @@ $out->resources = (object) [
         "updateBasicInfoOf"         => 0b00000010,
     ],
     "uploads" => (object) [
-        "view"              => 0b00000010,
-        "upload"            => 0b00000100,
+        "list"              => 0b00000010,
+        "view"              => 0b00000100,
+        "upload"            => 0b00001000,
     ],
 ];
 $out->userPermissions = (object) [

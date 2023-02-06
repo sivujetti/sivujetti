@@ -129,6 +129,7 @@ final class PagesController {
                     "canCreateGlobalBlockTrees" => $acl->can($userRole, "create", "globalBlockTrees"),
                     "canSpecializeGlobalBlocks" => $userRole <= ACL::ROLE_ADMIN,
                     "canEditTheWebsitesBasicInfo" => $acl->can($userRole, "updateBasicInfoOf", "theWebsite"),
+                    "canListUploads" => $acl->can($userRole, "list", "uploads"),
                 ],
                 "userRole" => $userRole,
             ], JSON_UNESCAPED_UNICODE)),

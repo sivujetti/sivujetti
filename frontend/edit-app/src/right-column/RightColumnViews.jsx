@@ -1,6 +1,7 @@
 import {signals} from '@sivujetti-commons-for-edit-app';
 import WebsiteEditBasicInfoView from './website/WebsiteEditBasicInfoView.jsx';
 import PagesListView from './page/PagesListView.jsx';
+import UploadsListView from './upload/UploadsListView.jsx';
 import {isEditAppViewUrl} from '../left-column/DefaultPanel.jsx';
 import createHashHistory from '../../custom-history.js';
 
@@ -32,6 +33,7 @@ class RightColumnViews extends preact.Component {
         return <MyRouter history={ historyInstance } onChange={ this.boundOnChange }>
             <WebsiteEditBasicInfoView path="/website/edit-basic-info"/>
             <PagesListView path="/pages"/>
+            <UploadsListView path="/uploads"/>
         </MyRouter>;
     }
     /**

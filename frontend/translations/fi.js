@@ -107,6 +107,7 @@ stringBundles.push({
     'Website': 'Sivusto',
     'Content management': 'Sisällönhallinta',
     'page': 'sivu',
+    'Uploads': 'Lataukset',
     //edit-app/src/left-column/page-type/PageTypeCreatePanel.jsx
     'page type': 'sivutyyppi',
     'Default content': 'Oletussisältö',

@@ -96,14 +96,13 @@ final class ThemesController {
 
             // 3. Replace or add the updated portion from/to theme.generatedScopedStylesCss
             $generatedCssAll = $current->generatedScopedStylesCss;
-            $layerName = $req->params->blockTypeName !== "_body_" ? "units" : "body-unit";
-            $joined = $req->body->units ? implode("\n", array_map(fn($b) => $b->generatedCss, $req->body->units)) : "";
             $updatedAll = self::addOrReplaceLines(
                 from: $generatedCssAll,
-                withLines: ($joined ? "@layer {$layerName} { {$joined} }" : "/* - */") . "\n",
+                withLines: self::combineAndWrapCss($req->body->units, $req->params->blockTypeName) . "\n",
                 startLine: "/* -- .j-{$req->params->blockTypeName} classes start -- */\n",
                 endLine: "/* -- .j-{$req->params->blockTypeName} classes end -- */\n"
             );
+
             $db->update("\${p}themes")
                 ->values((object) ["generatedScopedStylesCss" => $updatedAll,
                                     "stylesLastUpdatedAt" => time()])
@@ -159,6 +158,18 @@ final class ThemesController {
             ->rule("units.*.scss", "type", "string")
             ->rule("units.*.generatedCss", "type", "string")
             ->validate($input);
+    }
+    /**
+     * @param array<int, {title: string, id: string, scss: string, generatedCss: string}> $units
+     * @param string $blockTypeName
+     * @return string `@import "foo";<separator>@layer body-units { .j-_body {color:red;} }`
+     */
+    public static function combineAndWrapCss(array $units, string $blockTypeName): string {
+        $css = implode("\n", array_map(fn($u) => $u->generatedCss, $units));
+        $pcs = $blockTypeName !== "_body_" ? [] : explode("/* hoisted decls ends */", $css);
+        [$hoisted, $css2] = count($pcs) < 2 ? ["", $css] : ["{$pcs[0]}/* hoisted decls ends */", $pcs[1]];
+        $layerName = $blockTypeName !== "_body_" ? "units" : "body-unit";
+        return $hoisted . ($css2 ? "@layer {$layerName} { {$css2} }" : "/* - */");
     }
     /**
      * @param object $input

@@ -3,6 +3,7 @@ import {api, env, urlUtils} from '@sivujetti-commons-for-edit-app';
 import {Validator} from '../edit-app/src/commons/Form.jsx';
 import store, {FormStateStoreWrapper, setOpQueue} from '../edit-app/src/store.js';
 import BlockTypes from '../edit-app/src/block-types/block-types.js';
+import './compile-scss-test.js';
 import './optimize-op-queue-test.js';
 import './visual-styles-test.js';
 

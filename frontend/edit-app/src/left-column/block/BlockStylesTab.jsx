@@ -523,8 +523,10 @@ class StyleTextarea extends preact.Component {
             this.handleCssInputChangedThrottled = timingUtils.debounce(e => {
                 updateAndEmitUnitScss(this.props.unitCopy, unitCopy => {
                     const currentlyCommitted = unitCopy.scss;
-                    const [shouldCommit, result] = this.cssValidator.validateAndCompileScss(e,
-                        input => `.${this.props.unitCls}{${input}}`, currentlyCommitted);
+                    const {unitCls} = this.props;
+                    const allowImports = unitCls === 'j-_body_';
+                    const [shouldCommit, result] = this.cssValidator.validateAndCompileScss(e.target.value,
+                        input => `.${unitCls}{${input}}`, currentlyCommitted, allowImports);
                     // Wasn't valid -> commit to local state only
                     if (!shouldCommit) {
                         this.setState({scssNotCommitted: e.target.value, error: result.error});
@@ -548,7 +550,9 @@ function updateAndEmitUnitScss(unitCopy, getUpdates, blockTypeName) {
     const {id, generatedCss, scss} = unitCopy;
     const dataBefore = {scss, generatedCss};
     //
-    const {newScss, newGenerated} = getUpdates(unitCopy);
+    const updates = getUpdates(unitCopy);
+    if (!updates) return;
+    const {newScss, newGenerated} = updates;
     if (!newScss) return;
     //
     store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, id,

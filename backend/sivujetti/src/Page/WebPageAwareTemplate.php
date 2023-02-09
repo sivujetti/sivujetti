@@ -9,6 +9,7 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\Theme\Entities\Theme;
+use Sivujetti\Theme\ThemesController;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class WebPageAwareTemplate extends Template {
@@ -241,12 +242,12 @@ final class WebPageAwareTemplate extends Template {
             // (to allow things such as `content: "</style>"` or `/* </style> */`)
             "<script>document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
                 array_merge(array_map(fn($itm) => (object) [
-                    "css" => implode("\n", array_map(fn($u) => $u->generatedCss, $itm->units)),
+                    "css" => ThemesController::combineAndWrapCss($itm->units, $itm->blockTypeName),
                     "blockTypeName" => $itm->blockTypeName,
                 ], $this->__theme->styles), $this->__applyFilters->__invoke("sivujetti:editAppAdditionalStyleUnits", []))
             )) . ".reduce((out, {css, blockTypeName}) => {\n" .
             "  const bundle = document.createElement('style');\n" .
-            "  bundle.innerHTML = `@layer \${blockTypeName !== '_body_' ? 'units' : 'body-unit'} { \${css} }`;\n" .
+            "  bundle.innerHTML = css;\n" .
             "  bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
             "  out.appendChild(bundle);\n" .
             "  return out;\n" .

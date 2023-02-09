@@ -63,6 +63,7 @@ stringBundles.push({
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Styles',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
+    'Only root styles may contain @imports': 'Only root styles may contain @imports',
     // edit-app/src/left-column/block/BlockTree.jsx
     'Add child content': 'Add child content',
     'Duplicate': 'Duplicate',

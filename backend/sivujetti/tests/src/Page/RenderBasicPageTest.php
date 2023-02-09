@@ -11,6 +11,7 @@ use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\Page\WebPageAwareTemplate;
 use Sivujetti\Template;
 use Sivujetti\Tests\Utils\{BlockTestUtils, TestData};
+use Sivujetti\Theme\ThemesController;
 
 final class RenderBasicPageTest extends RenderPageTestCase {
     public function testRenderPageRendersPage(): void {
@@ -194,13 +195,13 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $injectJs = $scriptEls[count($scriptEls) - 1]->nodeValue;
         $orderStyles = fn($styles) => [$styles[1], $styles[0]];
         $expectedStyles = json_encode(array_map(fn($itm) => (object) [
-            "css" => implode("\n", array_map(fn($u) => $u->generatedCss, json_decode($itm->units))),
+            "css" => ThemesController::combineAndWrapCss(json_decode($itm->units), $itm->blockTypeName),
             "blockTypeName" => $itm->blockTypeName,
         ], $orderStyles($ts)), JSON_UNESCAPED_UNICODE);
         $this->assertEquals(
             "document.head.appendChild({$expectedStyles}.reduce((out, {css, blockTypeName}) => {\n" .
             "  const bundle = document.createElement('style');\n" .
-            "  bundle.innerHTML = `@layer \${blockTypeName !== '_body_' ? 'units' : 'body-unit'} { \${css} }`;\n" .
+            "  bundle.innerHTML = css;\n" .
             "  bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
             "  out.appendChild(bundle);\n" .
             "  return out;\n" .

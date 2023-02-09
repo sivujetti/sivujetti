@@ -153,7 +153,10 @@ class EditAppAwareWebPage {
     createThemeStylesChangeListener() {
         const upsertInlineStyle = (blockTypeName, style) => {
             const css = style.units.map(({generatedCss}) => generatedCss).join('\n');
-            const wrapped = `@layer ${blockTypeName !== '_body_' ? 'units' : 'body-unit'} { ${css} }`;
+            const pcs = blockTypeName !== '_body_' ? [] : css.split('/* hoisted decls ends */');
+            const [hoisted, css2] = pcs.length < 2 ? ['', css] : [`${pcs[0]}/* hoisted decls ends */`, pcs[1]];
+            const layerName = blockTypeName !== '_body_' ? 'units' : 'body-unit';
+            const wrapped = hoisted + (css2 ? `@layer ${layerName} { ${css2} }` : '/* - */');
             const node = document.head.querySelector(`style[data-style-units-for="${blockTypeName}"]`);
             if (node) {
                 node.innerHTML = wrapped;

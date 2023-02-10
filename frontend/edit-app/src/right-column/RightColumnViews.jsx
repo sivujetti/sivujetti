@@ -41,7 +41,6 @@ class RightColumnViews extends preact.Component {
      * @access private
      */
     onRouteChanged(e) {
-        signals.emit('route-changed', e);
         const {rootEl} = this.props;
         const a = isEditAppViewUrl(e.url);
         const b = rootEl.classList.contains('view-opened');
@@ -49,6 +48,7 @@ class RightColumnViews extends preact.Component {
             rootEl.classList.add('view-opened');
         else if (!a && b)
             rootEl.classList.remove('view-opened');
+        signals.emit('route-changed', e, a);
     }
 }
 

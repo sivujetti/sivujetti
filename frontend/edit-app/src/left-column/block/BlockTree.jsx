@@ -11,6 +11,8 @@ import BlockDnDSpawner from './BlockDnDSpawner.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import createDndController, {createBlockDescriptor} from './createBlockTreeDndController.js';
 
+const autoCollapse = 'nonUniqueRootLevelItems'; // 'mainContentItem'|'nonUniqueRootLevelItems';
+
 class BlockTree extends preact.Component {
     // ?;
     /**
@@ -503,15 +505,24 @@ function createTreeState(tree, previousTreeState) {
                 addItem(block2, paren2);
             });
     });
-    markMainContent(out, tree);
+    if (autoCollapse === 'nonUniqueRootLevelItems')
+        tree.forEach(block => {
+            if (block.type === 'GlobalBlockReference') return;
+            if (block.children.length)
+                setAsHidden(false, block, out, false);
+        });
+    else if (autoCollapse === 'mainContentItem') {
+        const main = getMainContent(tree);
+        if (main) setAsHidden(false, main, out, false);
+    }
     return out;
 }
 
 /**
- * @param {{[key: String]: BlockTreeItemState;}} treeState
  * @param {Array<RawBlock>} tree
+ * @returns {RawBlock|null}
  */
-function markMainContent(treeState, tree) {
+function getMainContent(tree) {
     let headerIndex = null;
     tree.forEach((block, i) => {
         if (block.type === 'GlobalBlockReference') return;
@@ -521,7 +532,7 @@ function markMainContent(treeState, tree) {
     if (headerIndex !== null) {
         const next = tree[headerIndex + 1];
         if (next && next.children.length) // next + next + ... ?
-            setAsHidden(false, next, treeState, false);
+            return next;
     }
     if (tree.length === 4) {
         const [maybPageInfo, maybeMainMenu, maybeMainContent, maybeFooter] = tree;
@@ -530,10 +541,11 @@ function markMainContent(treeState, tree) {
             (maybeMainMenu.type === 'GlobalBlockReference' && blockTreeUtils.findRecursively(maybeMainMenu.__globalBlockTree.blocks, b=>b.type==='Menu')) &&
             maybeMainContent.children.length &&
             (maybeFooter.type === 'GlobalBlockReference' && (maybeFooter.__globalBlockTree.blocks[0] || {}).title.toLowerCase().indexOf('footer') > -1)
-        ) setAsHidden(false, maybeMainContent, treeState, false);
+        ) return maybeMainContent;
     }
     if (tree.length === 2 && tree[0].type === 'PageInfo' && tree[1].children.length)
-        setAsHidden(false, tree[1], treeState, false);
+        return tree[1];
+    return null;
 }
 
 /**

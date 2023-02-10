@@ -23,12 +23,13 @@ class BlockDnDSpawner extends preact.Component {
     constructor(props) {
         super(props);
         this.state = {isOpen: false, reusables: [], selectableGlobalBlockTrees: [], isMounted: false, gbtIdsCurrentlyInPage: null};
-
         this.rootEl = preact.createRef();
         this.overwriteDragListenerFuncs();
         this.unregisterables = [observeStore2('reusableBranches', ({reusableBranches}, [event]) => {
             if (event === 'reusableBranches/addItem' || event === 'reusableBranches/removeItem')
                 this.setState({reusables: reusableBranches});
+        }), signals.on('route-changed', (_, isRightColumView) => {
+            if (isRightColumView) this.closeIfOpen();
         })];
     }
     /**
@@ -85,8 +86,7 @@ class BlockDnDSpawner extends preact.Component {
      * @access protected
      */
     componentWillUnmount() {
-        if (this.state.isOpen)
-            this.toggleIsOpen();
+        this.closeIfOpen();
         this.unregisterables.forEach(unreg => unreg());
     }
     /**
@@ -254,6 +254,12 @@ class BlockDnDSpawner extends preact.Component {
         this.onDragStart = this.handleDragStarted.bind(this);
         this.onDrag = this.handleDrag.bind(this);
         this.onDragEnd = this.handleDragEnded.bind(this);
+    }
+    /**
+     * @access private
+     */
+    closeIfOpen() {
+        if (this.state.isOpen) this.toggleIsOpen();
     }
 }
 

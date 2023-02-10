@@ -60,6 +60,7 @@ stringBundles.push({
     'Link to a page: ': 'Link to a page: ',
     'Link to an image: ': 'Link to an image: ',
     'Link to an address: ': 'Link to an address: ',
+    'Anchor': 'Anchor',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Styles',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',

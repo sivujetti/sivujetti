@@ -241,7 +241,6 @@ h2 {
     max-width: 66px;
     text-overflow: ellipsis;
 }
-
 .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]:before { content: attr(data-h1-translated); }
 .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]:before { content: attr(data-h2-translated); }
 .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]:before { content: attr(data-h3-translated); }
@@ -250,6 +249,16 @@ h2 {
 .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="6"]:before { content: attr(data-h6-translated); }
 .ql-snow .ql-picker.ql-header .ql-picker-item[data-label-translated]:before {
     content: attr(data-label-translated);
+}
+.ql-snow.ql-toolbar .ql-id-anchor-picker {
+    font-size: 13px;
+}
+.ql-snow.ql-toolbar button.ql-id-anchor:after {
+    color: currentColor;
+    content: "#";
+    font-size: 16px;
+    position: relative;
+    top: -2px;
 }
 .jsPanel.animating {
     transition: height cubic-bezier(0.73, -0.32, 0.58, 1) .325s;

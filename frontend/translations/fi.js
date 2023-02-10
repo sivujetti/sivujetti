@@ -60,6 +60,7 @@ stringBundles.push({
     'Link to a page: ': 'Linkki sivuun: ',
     'Link to an image: ': 'Linkki kuvaan: ',
     'Link to an address: ': 'Linkki osoitteeseen: ',
+    'Anchor': 'Ankkuri',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Tyylit',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',

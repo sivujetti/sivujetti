@@ -17,7 +17,7 @@ const toolbarBundles = {
         ['clean'],
     ],
     longText: [
-        [headingToobarItem, ...common, ...['link']],
+        [headingToobarItem, ...common, ...['link', 'id-anchor']],
         ['blockquote', {'list': 'ordered'}, {'list': 'bullet'}],
         ['clean'],
     ],
@@ -27,7 +27,7 @@ const toolbarBundles = {
         [{'indent': '-1'}, {'indent': '+1'}, {'align': [] }],
         [headingToobarItem],
         [{'size': ['small', false, 'large', 'huge'] }],
-        ['link', 'image', 'video', 'code-block'],
+        ['link', 'id-anchor', 'image', 'video', 'code-block'],
         ['clean'],
     ]
 };

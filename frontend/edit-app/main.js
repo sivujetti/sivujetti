@@ -24,7 +24,7 @@ import OnThisPageSection from './src/left-column/default-panel-sections/OnThisPa
 import BaseStylesSection from './src/left-column/default-panel-sections/BaseStylesSection.jsx';
 import SettingsSection from './src/left-column/default-panel-sections/SettingsSection.jsx';
 import WebsiteSection from './src/left-column/default-panel-sections/WebsiteSection.jsx';
-import {MyClipboard, MyKeyboard, MyLink, MySnowTheme} from './src/quill/quill-customizations.js';
+import {MyClipboard, MyKeyboard, MyLink, IdAttributor, MySnowTheme} from './src/quill/quill-customizations.js';
 
 const editAppReactRef = preact.createRef();
 
@@ -111,6 +111,7 @@ function patchQuillEditor() {
     Quill.register('themes/snow', MySnowTheme);
     Quill.register('modules/clipboard', MyClipboard);
     Quill.register('modules/keyboard', MyKeyboard);
+    Quill.register('formats/id-anchor', IdAttributor);
     Quill.register(MyLink);
 }
 

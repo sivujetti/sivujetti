@@ -1,4 +1,4 @@
-import {__, env, urlUtils, iconAsString} from '@sivujetti-commons-for-edit-app';
+import {__, env, urlUtils, iconAsString, stringUtils} from '@sivujetti-commons-for-edit-app';
 import {determineModeFromPreview} from './common.js';
 
 const Quill = window.Quill;
@@ -17,6 +17,7 @@ class MySnowTheme extends Quill.import('themes/snow') {
      */
     extendToolbar(toolbar) {
         super.extendToolbar(toolbar);
+        this.buildIdPicker(toolbar.container);
         //
         const el = this.tooltip.root;
         const [editLink, deleteLink] = [el.lastChild.previousSibling, el.lastChild];
@@ -104,6 +105,90 @@ class MySnowTheme extends Quill.import('themes/snow') {
         Array.from(options.children).forEach(el => {
             const level = el.getAttribute('data-value');
             el.setAttribute('data-label-translated', level ? `${__('Heading')} ${level}` : __('Paragraph'));
+        });
+    }
+    /**
+     * @access private
+     */
+    buildIdPicker(cont) {
+        const mainToolbarButton = cont.querySelector('.ql-id-anchor');
+        if (!mainToolbarButton) return; // not defined in toolbar config
+
+        let appliedVal;
+        const wrapperSpan = document.createElement('span');
+        wrapperSpan.className = 'ql-picker ql-id-anchor-picker';
+        const createElementUsing = html => {
+            const tmp = document.createElement('div'); tmp.innerHTML = html; return tmp.firstElementChild;
+        };
+        const doClose = () => {
+            if (wrapperSpan.classList.contains('ql-expanded')) wrapperSpan.classList.remove('ql-expanded');
+        };
+
+        // {
+            const innerSpan = document.createElement('span');
+            innerSpan.className = 'ql-picker-options';
+
+            // {
+                innerSpan.appendChild(createElementUsing(`<label class="d-block color-dimmed">${__('Anchor')}:</label>`));
+
+                //
+                const inputWrap = document.createElement('span');
+                inputWrap.className = 'has-icon-right d-flex flex-centered my-1';
+
+                inputWrap.appendChild(document.createTextNode('#'));
+
+                const input = document.createElement('input');
+                input.className = 'form-input tight ml-1';
+                input.style.minWidth = '7rem';
+                inputWrap.appendChild(input);
+
+                const clearIdBtn = createElementUsing('<button class="sivujetti-form-icon btn no-color mr-1" type="button" style="display: none;"><svg class="icon-tabler size-xs color-dimmed" width="24" height="24"><use href="/sivujetti/public/sivujetti/assets/tabler-sprite-custom.svg#tabler-x"></use></svg></button>');
+                clearIdBtn.addEventListener('click', () => {
+                    input.value = '';
+                    clearIdBtn.style.display = 'none';
+                });
+                inputWrap.appendChild(clearIdBtn);
+
+                innerSpan.appendChild(inputWrap);
+            // }
+
+            const applyIdSpanBtn = createElementUsing('<span role="button" tabindex="0" class="btn btn-sm">Ok</span>');
+            applyIdSpanBtn.addEventListener('click', () => {
+                const val = input.value ? stringUtils.slugify(input.value) : '';
+                if (val === appliedVal) { doClose(); return; }
+                this.quill.format('id-anchor', val || null);
+                if (val) clearIdBtn.style.display = 'block';
+                doClose();
+            });
+            innerSpan.appendChild(applyIdSpanBtn);
+
+            const cancelChangesSpanBtn = createElementUsing(`<span role="button" tabindex="0" class="btn btn-sm btn-link">${__('Peruuta')}</span>`);
+            cancelChangesSpanBtn.addEventListener('click', doClose);
+            innerSpan.appendChild(cancelChangesSpanBtn);
+
+            wrapperSpan.appendChild(innerSpan);
+        // }
+
+        mainToolbarButton.parentNode.insertBefore(wrapperSpan, mainToolbarButton);
+
+        mainToolbarButton.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            const curval = this.quill.getFormat()['id-anchor'];
+            input.value = curval || '';
+            if (curval) clearIdBtn.style.display = 'block';
+            appliedVal = curval;
+            wrapperSpan.classList.add('ql-expanded');
+            return false;
+        }, true);
+
+        // Add fake picker so quill can close it
+        this.pickers.push({
+            container: wrapperSpan,
+            close: doClose,
+            update() {
+                // Do nothing
+            }
         });
     }
 }
@@ -202,4 +287,11 @@ function addOriginToHrefOf(linkEl) {
     linkEl.setAttribute('href', linkEl.origin + urlNoOrigin);
 }
 
-export {MySnowTheme, MyClipboard, MyKeyboard, MyLink};
+////////////////////////////////////////////////////////////////////////////////
+
+const Parchment = Quill.import('parchment');
+const IdAttributor = new Parchment.Attributor.Attribute('id-anchor', 'id', {
+    scope: Parchment.Scope.BLOCK
+});
+
+export {MySnowTheme, MyClipboard, MyKeyboard, MyLink, IdAttributor};

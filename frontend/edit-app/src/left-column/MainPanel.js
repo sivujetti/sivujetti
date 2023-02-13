@@ -66,13 +66,14 @@ class MainPanel {
     }
     /**
      * @param {String} name
+     * @param {Boolean} doThrowIfNotFound = false
      * @returns {preact.AnyComponent}
      * @throws {Error}
      * @access public
      */
-    getSection(name) {
+    getSection(name, doThrowIfNotFound = false) {
         const out = sectionRenderers.get(name);
-        if (!out) throw new Error(`Renderer "${name}" not found.`);
+        if (!out && doThrowIfNotFound) throw new Error(`Renderer "${name}" not found.`);
         return out;
     }
     /**

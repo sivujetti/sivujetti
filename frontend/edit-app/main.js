@@ -20,10 +20,10 @@ import InspectorPanel from './src/left-column/InspectorPanel.jsx';
 import RightColumnViews from './src/right-column/RightColumnViews.jsx';
 import WebPageIframe from './src/right-column/WebPageIframe.js';
 import MainPanel from './src/left-column/MainPanel.js';
-import OnThisPageSection from './src/left-column/default-panel-sections/OnThisPageSection.jsx';
-import BaseStylesSection from './src/left-column/default-panel-sections/BaseStylesSection.jsx';
-import SettingsSection from './src/left-column/default-panel-sections/SettingsSection.jsx';
-import WebsiteSection from './src/left-column/default-panel-sections/WebsiteSection.jsx';
+import OnThisPageSection from './src/left-column/panel-sections/OnThisPageSection.jsx';
+import BaseStylesSection from './src/left-column/panel-sections/BaseStylesSection.jsx';
+import SettingsSection from './src/left-column/panel-sections/SettingsSection.jsx';
+import WebsiteSection from './src/left-column/panel-sections/WebsiteSection.jsx';
 import {MyClipboard, MyKeyboard, MyLink, IdAttributor, MySnowTheme} from './src/quill/quill-customizations.js';
 
 const editAppReactRef = preact.createRef();

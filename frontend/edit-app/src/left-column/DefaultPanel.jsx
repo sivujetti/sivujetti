@@ -52,7 +52,7 @@ class DefaultPanel extends preact.Component {
      */
     render(_, {loadingPageSlug, loadedPageSlug, sections}) {
         return sections.map(sectionName => {
-            const Renderer = api.mainPanel.getSection(sectionName);
+            const Renderer = api.mainPanel.getSection(sectionName, true);
             const t = {...{loadingPageSlug, loadedPageSlug}, ...this.props};
             return <Renderer {...t}/>;
         });

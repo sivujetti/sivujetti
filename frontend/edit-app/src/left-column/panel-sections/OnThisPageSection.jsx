@@ -137,10 +137,12 @@ class OnThisPageSection extends MenuSectionAbstract {
      * @access private
      */
     handleMainButtonClicked(e)  {
-        if (!(this.mouseFocusIsAt === 'moreMenuIcon' || e.target.tagName === 'I' || this.moreMenuIcon.current.contains(e.target)))
-            this.setState({isCollapsed: !this.state.isCollapsed});
-        else
+        if (this.mouseFocusIsAt === 'moreMenuIcon' ||
+            e.target.tagName === 'I' ||
+            (this.moreMenu.current && this.moreMenuIcon.current.contains(e.target)))
             this.openMoreMenu(this.state.loadedSlug, e);
+        else
+            this.setState({isCollapsed: !this.state.isCollapsed});
     }
     /**
      * @param {String|null} loadedSlug

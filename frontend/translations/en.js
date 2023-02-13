@@ -92,20 +92,20 @@ stringBundles.push({
     'Meta content contains ': 'Meta content contains ',
     'additional data / metadata': 'additional data / metadata',
     ', and otherwise act like ordinary content.': ', and otherwise act like ordinary content.',
-    // edit-app/src/left-column/default-panel-sections/BaseStylesSection.jsx
+    // edit-app/src/left-column/panel-sections/BaseStylesSection.jsx
     'Colours and fonts': 'Colours and fonts',
     'Visual': 'Visual',
     'Code': 'Code',
-    // edit-app/src/left-column/default-panel-sections/OnThisPageSection.jsx
+    // edit-app/src/left-column/panel-sections/OnThisPageSection.jsx
     'Duplicate this page': 'Duplicate this page',
     'On this page': 'On this page',
     'Content of page %s': 'Content of %s-page',
     'New page content': 'New page content',
-    // edit-app/src/left-column/default-panel-sections/SettingsSection.jsx
+    // edit-app/src/left-column/panel-sections/SettingsSection.jsx
     'Settings': 'Settings',
     'Website\'s settings': 'Website\'s settings',
     'Edit info': 'Edit info',
-    // edit-app/src/left-column/default-panel-sections/WebsiteSection.jsx
+    // edit-app/src/left-column/panel-sections/WebsiteSection.jsx
     'Website': 'Website',
     'Content management': 'Content management',
     'page': 'page',
@@ -118,6 +118,8 @@ stringBundles.push({
     // _
     'Pages': 'Pages',
     'Pages#partitive': 'Pages',
+    'Page categories': 'Page categories',
+    'Page categories#partitive': 'Page categories',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Edit mode',
     'Hide edit menu': 'Hide edit menu',

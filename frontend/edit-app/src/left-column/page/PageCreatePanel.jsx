@@ -4,7 +4,7 @@ import toasters from '../../commons/Toaster.jsx';
 import store, {deleteItemsFromOpQueueAfter, selectCurrentPageDataBundle,
                 setCurrentPageDataBundle, setOpQueue} from '../../store.js';
 import store2 from '../../store2.js';
-import OnThisPageSection from '../default-panel-sections/OnThisPageSection.jsx';
+import OnThisPageSection from '../panel-sections/OnThisPageSection.jsx';
 import {setUpdatableMenuBlockInfo, addLinkToMenu} from '../../block-types/pageInfo.js';
 import {saveExistingBlocksToBackend} from '../block/createBlockTreeDndController.js';
 import blockTreeUtils from '../block/blockTreeUtils.js';
@@ -104,17 +104,27 @@ class PageCreatePanel extends preact.Component {
      */
     render(_, {temp}) {
         const nameTrans = __(this.pageType.friendlyName).toLowerCase();
-        return <div>
-            <header class="panel-section pb-0">
-                <h1 class="mb-2">{ __('Create %s', nameTrans) }</h1>
-                <button
-                    onClick={ () => preactRouter.route('/') }
-                    class="btn btn-link btn-sm"
-                    title={ __('Cancel create %s', nameTrans) }
-                    type="button">&lt; { __('Back') }</button>
-            </header>
-            { temp ? <OnThisPageSection loadedPageSlug={ temp }/> : null }
-        </div>;
+        const BaseStylesSection = api.mainPanel.getSection('baseStyles', true);
+        const SupportSection = temp ? api.mainPanel.getSection('plugin:sjorgSupportClient', false) : null;
+        return [
+            <div>
+                <header class="panel-section pb-0">
+                    <h1 class="mb-2">{ __('Create %s', nameTrans) }</h1>
+                    <button
+                        onClick={ () => preactRouter.route('/') }
+                        class="btn btn-link btn-sm"
+                        title={ __('Cancel create %s', nameTrans) }
+                        type="button">&lt; { __('Back') }</button>
+                </header>
+                { temp ? <OnThisPageSection loadedPageSlug={ temp }/> : null }
+            </div>,
+            BaseStylesSection
+                ? <BaseStylesSection loadingPageSlug={ null} loadedPageSlug={ temp }/>
+                : null, // User has no permission to edit styles
+            SupportSection
+                ? <SupportSection loadingPageSlug={ null} loadedPageSlug={ temp }/>
+                : null
+        ];
     }
     /**
      * @returns {Promise<Boolean>}

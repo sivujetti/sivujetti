@@ -50,7 +50,7 @@ interface MainPanel {
     scrollToSection(section: 'onThisPage'|'baseStyles', behavior: 'smooth'|'auto' = 'smooth');
     getEl(): HTMLElement;
     registerSection(name: String, Cls: preact.AnyComponent): void;
-    getSection(name: String): preact.AnyComponent;
+    getSection(name: String, doThrowIfNotFound: Boolean = false): preact.AnyComponent;
     getSections(): Map<preact.AnyComponent>;
 }
 

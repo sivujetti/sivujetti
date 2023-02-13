@@ -92,20 +92,20 @@ stringBundles.push({
     'Meta content contains ': 'Metasisältöön on tallennettu ',
     'additional data / metadata': 'lisä-, tai metatietoja',
     ', and otherwise act like ordinary content.': ', ja käyttäytyvät muilta osin kuten tavallinen sisältö.',
-    // edit-app/src/left-column/default-panel-sections/BaseStylesSection.jsx
+    // edit-app/src/left-column/panel-sections/BaseStylesSection.jsx
     'Colours and fonts': 'Sivuston värit ja fontit',
     'Visual': 'Visuaalinen',
     'Code': 'Koodi',
-    // edit-app/src/left-column/default-panel-sections/OnThisPageSection.jsx
+    // edit-app/src/left-column/panel-sections/OnThisPageSection.jsx
     'Duplicate this page': 'Monista tämä sivu',
     'On this page': 'Tämä sivu',
     'Content of page %s': '%s -sivun sisältö',
     'New page content': 'Uuden sivun sisältö',
-    // edit-app/src/left-column/default-panel-sections/SettingsSection.jsx
+    // edit-app/src/left-column/panel-sections/SettingsSection.jsx
     'Settings': 'Asetukset',
     'Website\'s settings': 'Sivuston asetukset',
     'Edit info': 'Muokkaa perustietoja',
-    // edit-app/src/left-column/default-panel-sections/WebsiteSection.jsx
+    // edit-app/src/left-column/panel-sections/WebsiteSection.jsx
     'Website': 'Sivusto',
     'Content management': 'Sisällönhallinta',
     'page': 'sivu',
@@ -118,6 +118,8 @@ stringBundles.push({
     // _
     'Pages': 'Sivut',
     'Pages#partitive': 'Sivua',
+    'Page categories': 'Sivukategoriat',
+    'Page categories#partitive': 'Sivukategoriaa',
     // edit-app/src/EditApp.jsx
     'Edit mode': 'Muokkaustila',
     'Hide edit menu': 'Piilota muokkausvalikko',

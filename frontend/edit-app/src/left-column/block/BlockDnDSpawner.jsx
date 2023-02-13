@@ -1,5 +1,6 @@
 import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app';
 import {getIcon} from '../../block-types/block-types.js';
+import {DONT_KNOW_YET} from '../../block/dom-commons.js';
 import {createBlockFromBlueprint, createBlockFromType, createGbtRefBlockProps} from '../../block/utils.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import blockTreeUtils from './blockTreeUtils.js';
@@ -190,13 +191,13 @@ class BlockDnDSpawner extends preact.Component {
      */
     createBlock(typeStr, reusableBranchIdx, dragEl) {
         if (typeStr !== 'GlobalBlockReference') {
-            return reusableBranchIdx === '' ? createBlockFromType(typeStr, 'don\'t-know-yet')
-                : createBlockFromBlueprint(this.state.reusables[parseInt(reusableBranchIdx, 10)].blockBlueprints[0], 'don\'t-know-yet');
+            return reusableBranchIdx === '' ? createBlockFromType(typeStr, DONT_KNOW_YET)
+                : createBlockFromBlueprint(this.state.reusables[parseInt(reusableBranchIdx, 10)].blockBlueprints[0], DONT_KNOW_YET);
         }
         const gbt = this.state.selectableGlobalBlockTrees.find(({id}) =>
             id === dragEl.getAttribute('data-is-stored-to-trid')
         );
-        return createBlockFromType(typeStr, 'don\'t-know-yet', undefined, createGbtRefBlockProps(gbt));
+        return createBlockFromType(typeStr, DONT_KNOW_YET, undefined, createGbtRefBlockProps(gbt));
     }
     /**
      * @param {DragEvent} _e

@@ -33,19 +33,18 @@ class OpQueueItemEmitter {
                 const oldTree = this.prevTree;
                 const [drag, target, dropPos, treeTransfer] = data; // [BlockDescriptor, BlockDescriptor, dropPosition, treeTransferType]
                 const {isStoredToTreeId} = !(target.isGbtRef && dropPos === 'as-child') ? target : {isStoredToTreeId: target.data.refTreeId};
-                if (treeTransfer === 'none') {
+                if (treeTransfer === 'none' || event === 'theBlockTree/applyAdd(Drop)Block')
                     this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, isStoredToTreeId, null);
-                } else if (treeTransfer === 'out-of-gbt') {
+                else if (treeTransfer === 'out-of-gbt')
                     this.pushDoubleSaveOps(
                         blockTreeUtils.getRootFor(drag.isStoredToTreeId, theBlockTree), drag.isStoredToTreeId, // 1.
                         theBlockTree, isStoredToTreeId                                                         // 2.
                     );
-                } else if (treeTransfer === 'into-gbt') {
+                else if (treeTransfer === 'into-gbt')
                     this.pushDoubleSaveOps(
                         theBlockTree, 'main',           // 1.
                         theBlockTree, isStoredToTreeId  // 2.
                     );
-                }
             } else if (event === 'theBlockTree/deleteBlock') {
                 const oldTree = this.prevTree;
                 const [_id, blockIsStoredToTreeId, _wasCurrentlySelectedBlock] = data;

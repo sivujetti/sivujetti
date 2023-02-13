@@ -1,5 +1,5 @@
 import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END,
-        HAS_ERRORS} from '../../edit-app/src/block/dom-commons.js';
+        HAS_ERRORS, DONT_KNOW_YET} from '../../edit-app/src/block/dom-commons.js';
 
 const IS_STORED_TO_ATTR = 'data-is-stored-to-trid';
 
@@ -50,8 +50,9 @@ class ReRenderer {
         // ====================================================================
         } else if (event === 'theBlockTree/applyAdd(Drop)Block' || event === 'theBlockTree/applySwap') {
             const [source, _target, _dropPos, treeTransfer] = data;
-            if (treeTransfer === 'into-gbt' || // normal > inside gbt
-                treeTransfer === 'out-of-gbt') { // gbt's inner > outside its tree
+            if (!source.isGbtRef &&
+                (treeTransfer === 'into-gbt' || // normal > inside gbt
+                treeTransfer === 'out-of-gbt')) { // gbt's inner > outside its tree
                 const [block] = blockTreeUtils.findBlock2(source.blockId, theBlockTree);
                 this.updateIsStoredToIdsToDom(block.isStoredToTreeId, [block]);
             }
@@ -421,10 +422,10 @@ function getChildEndComment(of) {
 function containsTridTransfers(elCache) {
     for (const [blockId, pool] of elCache) {
         if (pool.length < 2) continue;
-        if (pool[pool.length - 1].getAttribute(IS_STORED_TO_ATTR) !== 'main' &&
-            pool[pool.length - 2].getAttribute(IS_STORED_TO_ATTR) === 'main') {
+        const a = pool[pool.length - 1].getAttribute(IS_STORED_TO_ATTR);
+        const b = pool[pool.length - 2].getAttribute(IS_STORED_TO_ATTR);
+        if (b !== DONT_KNOW_YET && a !== b)
             return [true, blockId];
-        }
     }
     return [false, null];
 }

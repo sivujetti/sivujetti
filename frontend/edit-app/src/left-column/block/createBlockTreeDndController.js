@@ -1,5 +1,5 @@
 import {__, api, http} from '@sivujetti-commons-for-edit-app';
-import {setTrids, treeToTransferable} from '../../block/utils.js';
+import {treeToTransferable} from '../../block/utils.js';
 import toasters from '../../commons/Toaster.jsx';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import store2 from '../../store2.js';
@@ -27,9 +27,6 @@ function createDndController(_blockTree) {
             dropped = false;
             if (extDragData) {
                 const targetInf = createBlockDescriptorFromLi(info.li);
-                const {isStoredToTreeId} = !(targetInf.isGbtRef && info.pos === 'as-child') ? targetInf
-                    : {isStoredToTreeId: targetInf.data.refTreeId};
-                setTrids([extDragData.block], isStoredToTreeId);
                 store2.dispatch('theBlockTree/addBlockOrBranch', [extDragData, targetInf, info.pos]);
             }
             return true;
@@ -39,25 +36,22 @@ function createDndController(_blockTree) {
          * @param {DragDropInfo|null} startLi
          */
         drop(cand, startLi) {
-            const swapTargetInfo = createDropTargetInfo(cand);
+            const swapTargetInfo = createDragItemInfo(cand.li);
             if (!extDragData) {
-                const swapSourceInfo = {
-                    blockId: startLi.getAttribute('data-block-id'),
-                    isStoredToTreeId: startLi.getAttribute('data-is-stored-to-trid'),
-                    isGbtRef: false,
-                    data: null
-                };
+                const swapSourceInfo = createDragItemInfo(startLi);
                 const treeTransfer = determineTransferType(swapSourceInfo, swapTargetInfo, cand);
                 store2.dispatch('theBlockTree/applySwap', [swapSourceInfo, swapTargetInfo, cand.pos, treeTransfer]);
             } else {
+                const [isStoredToTreeId, wasSpeci] = getRealTarget(swapTargetInfo, cand.pos);
+                const treeTransfer = !wasSpeci
+                    ? swapTargetInfo.isStoredToTreeId === 'main' ? 'out-of-gbt' : 'into-gbt'
+                    : 'into-gbt';
                 const swapSourceInfo = {
                     blockId: extDragData.block.id,
-                    isStoredToTreeId: extDragData.block.isStoredToTreeId,
-                    isGbtRef: false,
+                    isStoredToTreeId,
+                    isGbtRef: extDragData.block.type === 'GlobalBlockReference',
                     data: null
                 };
-                const t1 = determineTransferType(swapSourceInfo, swapTargetInfo, cand);
-                const treeTransfer = t1 === 'out-of-gbt' ? 'none' : t1;
                 store2.dispatch('theBlockTree/applyAdd(Drop)Block', [swapSourceInfo, swapTargetInfo, cand.pos, treeTransfer]);
             }
             api.webPageIframe.getEl().style.pointerEvents = '';
@@ -82,8 +76,16 @@ function createDndController(_blockTree) {
             const extBlock = !extDragData ? null : extDragData.block;
             const drag = !extBlock ? createBlockDescriptorFromLi(startLi) : createBlockDescriptor(extBlock);
             const targ = createBlockDescriptorFromLi(cand.li);
-            if (drag.isStoredToTreeId !== 'main' && targ.isStoredToTreeId !== 'main' &&
-                drag.isStoredToTreeId !== targ.isStoredToTreeId) {
+            const [targIsStoredTo, targetIsSpeci] = getRealTarget(targ, cand.pos);
+            // drag is external gbtref and target is inner block of gbtref
+            if (extBlock && extBlock.type === 'GlobalBlockReference' && (targ.isStoredToTreeId !== 'main' || targetIsSpeci)) {
+                return false;
+            }
+            // drag is not external gbtref and target is inner block of _some other_ gbtref
+            if (!extBlock &&
+                (drag.isGbtRef || drag.isStoredToTreeId !== 'main') &&
+                ((targ.isStoredToTreeId !== 'main' || targetIsSpeci) &&
+                targIsStoredTo !== drag.isStoredToTreeId)) {
                 return false;
             }
             store2.dispatch('theBlockTree/swap', [drag, targ, cand.pos]);
@@ -111,13 +113,13 @@ function createDndController(_blockTree) {
 }
 
 /**
- * @param {DragDropInfo} cand
+ * @param {HTMLLIElement} li
  * @returns {BlockDescriptor}
  */
-function createDropTargetInfo(cand) {
-    const blockId = cand.li.getAttribute('data-block-id');
-    const isStoredToTreeId = cand.li.getAttribute('data-is-stored-to-trid');
-    const maybeRefBlockId = cand.li.getAttribute('data-is-root-block-of');
+function createDragItemInfo(li) {
+    const blockId = li.getAttribute('data-block-id');
+    const isStoredToTreeId = li.getAttribute('data-is-stored-to-trid');
+    const maybeRefBlockId = li.getAttribute('data-is-root-block-of');
     return !maybeRefBlockId ? {
         blockId,
         isStoredToTreeId,
@@ -202,11 +204,23 @@ function areKeysEqual(clonedTree, theBlockTree) {
  * @returns {treeTransferType}
  */
 function determineTransferType(swapSourceInfo, swapTargetInfo, {pos}) {
-    if (swapSourceInfo.isStoredToTreeId === 'main' && (swapTargetInfo.isStoredToTreeId !== 'main' || (swapTargetInfo.isGbtRef && pos === 'as-child')))
+    if (swapSourceInfo.isStoredToTreeId === 'main' &&
+        (swapTargetInfo.isStoredToTreeId !== 'main' || getRealTarget(swapTargetInfo, pos)[1]))
         return 'into-gbt';
     else if (swapSourceInfo.isStoredToTreeId !== 'main' && swapTargetInfo.isStoredToTreeId === 'main')
         return 'out-of-gbt';
     return 'none';
+}
+
+/**
+ * @param {BlockDescriptor} target Drop or swap target
+ * @param {dropPosition} pos Drop or swap position
+ * @returns {[String, Boolean]} [targetIsStoredToTreeId, isTargetAsChildOfGbtRef]
+ */
+function getRealTarget(target, pos) {
+    return !(target.isGbtRef && pos === 'as-child')
+        ? [target.isStoredToTreeId, false]
+        : [target.data.refTreeId, true];
 }
 
 export default createDndController;

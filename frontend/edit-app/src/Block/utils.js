@@ -1,6 +1,7 @@
 import {api} from '@sivujetti-commons-for-edit-app';
 import {generatePushID, objectUtils} from '../commons/utils.js';
 import blockTreeUtils from '../left-column/block/blockTreeUtils.js';
+import {DONT_KNOW_YET} from './dom-commons.js';
 
 /**
  * @param {BlockType|String} blockType
@@ -43,7 +44,7 @@ function createBlock(blockType, trid, id, initialOwnData, initialDefaultsData, i
         title: initialDefaultsData.title || '',
         renderer: initialDefaultsData.renderer || blockType.defaultRenderer,
         styleClasses: initialDefaultsData.styleClasses || '',
-        isStoredTo: trid !== 'don\'t-know-yet' ? trid === 'main' ? 'page' : 'globalBlockTree' : trid,
+        isStoredTo: trid !== DONT_KNOW_YET ? trid === 'main' ? 'page' : 'globalBlockTree' : trid,
         isStoredToTreeId: trid,
         children: !Array.isArray(initialChildren) ? [] : initialChildren.map(blueprint =>
             createBlockFromBlueprint(blueprint, trid))

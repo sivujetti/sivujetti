@@ -5,7 +5,7 @@ const MAX_FILE_SIZE_MB = 8;
 let validExtsStr = '';
 let validExts = [];
 
-class UploadButton2 extends preact.Component {
+class UploadButton extends preact.Component {
     /**
      * @access protected
      */
@@ -29,8 +29,8 @@ class UploadButton2 extends preact.Component {
                     type="file"
                     accept={ validExtsStr }
                     multiple/>
-                <label class="d-flex" htmlFor="file-input">
-                    <Icon iconId="file"/>
+                <label class="d-inline-flex" htmlFor="file-input">
+                    <Icon iconId="file-plus"/>
                     <span class="ml-2 flex-centered">{ __('Add new') }</span>
                 </label>
             </div>,
@@ -68,7 +68,7 @@ class UploadButton2 extends preact.Component {
                 ext,
                 friendlyName,
                 createdAt: 0, // will change after upoad
-                updateAt: 0, // will change after upoad
+                updatedAt: 0, // will change after upoad
             };
             this.props.onUploadStarted(entry);
             this.uploadFile(files[i], entry).then(res => {
@@ -109,4 +109,4 @@ class UploadButton2 extends preact.Component {
     }
 }
 
-export default UploadButton2;
+export default UploadButton;

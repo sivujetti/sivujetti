@@ -10,6 +10,18 @@ final class GetUploadsTest extends UploadsControllerTestCase {
         $this->sendGetUploadsRequest($state, '{"mime":{"$eq":"image/*"}}');
         $this->verifyListedTheseFiles(array_slice($state->testFiles, 0, 2), $state);
     }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testGetUploadsReturnsOnlyFiles(): void {
+        $state = $this->setupListUploadsTest();
+        $this->dbDataHelper->insertData($state->testFiles, "files");
+        $this->makeSivujettiAppForUploadsTest($state);
+        $this->sendGetUploadsRequest($state, '{"mime":{"$neq":"image/*"}}');
+        $this->verifyListedTheseFiles(array_slice($state->testFiles, 2), $state);
+    }
     private function setupListUploadsTest(): \TestState {
         $state = new \TestState;
         $state->testFiles = [

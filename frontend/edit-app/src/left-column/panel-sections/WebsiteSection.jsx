@@ -23,7 +23,7 @@ class WebsiteSection extends preact.Component {
             colorClass="color-orange">
             <nav>
                 <a href="#/pages" class="with-icon">
-                    <Icon iconId="file-info" className="size-sm color-dimmed"/>
+                    <Icon iconId="file-text" className="size-sm color-dimmed"/>
                     <span class="color-dimmed">{ __('Pages') }</span>
                 </a>
                 <a href="#/pages/create" class="with-icon">
@@ -31,8 +31,8 @@ class WebsiteSection extends preact.Component {
                     <span class="color-dimmed">{ __('Create %s', __('page')) }</span>
                 </a>
                 { this.userCanListUploads ? <a href="#/uploads" class="with-icon">
-                    <Icon iconId="file" className="size-sm color-dimmed"/>
-                    <span class="color-dimmed">{ __('Uploads') }</span>
+                    <Icon iconId="files" className="size-sm color-dimmed"/>
+                    <span class="color-dimmed">{ __('Files') }</span>
                 </a> : null }
                 { this.userCanCreatePageTypes ? <a href="#/page-types/create" class="with-icon">
                     <Icon iconId="circle-plus" className="size-sm color-dimmed"/>

@@ -8,6 +8,10 @@ stringBundles.push({
     'Services': 'Services',
     'Services#partitive': 'Services',
     'Service': 'Service',
+    // edit-app/src/commons/FileUploader.jsx
+    'You don\'t have any documents.': 'You don\'t have any documents.',
+    // edit-app/src/commons/UploadButton.jsx
+    'Add new': 'Add new',
     // edit-app/src/left-column/block/BlockDnDSpawner.jsx
     'Start adding content': 'Start adding content',
     'reusable content': 'reusable content',
@@ -109,7 +113,7 @@ stringBundles.push({
     'Website': 'Website',
     'Content management': 'Content management',
     'page': 'page',
-    'Uploads': 'Uploads',
+    'Files': 'Files',
     // edit-app/src/left-column/page-type/PageTypeCreatePanel.jsx
     'page type': 'page type',
     'Default content': 'Default content',

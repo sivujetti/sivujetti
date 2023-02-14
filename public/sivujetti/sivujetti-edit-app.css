@@ -566,6 +566,22 @@ a.popup-close-area {
 .file-input-outer > label {
     cursor: pointer;
 }
+.live-files-list.item-grid article > div {
+    margin: 1rem;
+}
+.live-files-list.item-grid article {
+    box-shadow: none;
+    padding: 0;
+}
+.live-files-list.item-grid article > .btn {
+    width: 100%;
+    border-radius: 0;
+}
+.live-files-list.item-grid article .icon-tabler {
+    width: 1.8rem;
+    height: 1.8rem;
+    opacity: .6;
+}
 /* EditApp: Components: tooltips */
 .my-tooltip  {
     display: none;
@@ -1230,6 +1246,7 @@ span.highlight-rect[data-position="bottom-inside"]:before {
 #view > .scroller {
     overflow-x: hidden;
     padding: 1.4rem;
+    max-width: 760px;
 }
 #root.view-opened #view {
     display: block;

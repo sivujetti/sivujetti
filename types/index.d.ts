@@ -8,7 +8,7 @@ interface SivujettiFrontendApi {
     getBlockRenderers(): Array<BlockRenderer>;
     getActiveTheme(): {id: String;};
     user: {
-        can(doWhat: 'doAnything'|'editThemeColours'|'editThemeCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'|'editTheWebsitesBasicInfo'): Boolean;
+        can(doWhat: 'doAnything'|'editThemeColours'|'editThemeCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'|'editTheWebsitesBasicInfo'|'listUploads'): Boolean;
         getRole(): Number;
         ROLE_SUPER_ADMIN: Number;
         ROLE_ADMIN: Number;
@@ -202,6 +202,7 @@ interface TheWebsiteBundle {
         canCreateGlobalBlockTrees: Boolean;
         canSpecializeGlobalBlocks: Boolean;
         canEditTheWebsitesBasicInfo: Boolean;
+        canListUploads: Boolean;
     };
     userRole: Number;
     showGoToDashboardMode?: Boolean;

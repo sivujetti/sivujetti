@@ -16,9 +16,11 @@ final class UploadsController {
     public function getUploads(Request $req,
                                Response $res,
                                UploadsRepository $uploadsRepo): void {
-        if (urldecode($req->params->filters) !== '{"mime":{"$eq":"image/*"}}')
-            throw new \RuntimeException("Not implemented");
-        $files = $uploadsRepo->getMany((new UploadsQFilters)->byMime("image/*"));
+        $files = match (urldecode($req->params->filters)) {
+            '{"mime":{"$eq":"image/*"}}' => $uploadsRepo->getMany((new UploadsQFilters)->byMime("image/*")),
+            '{"mime":{"$neq":"image/*"}}' => $uploadsRepo->getMany((new UploadsQFilters)->byMime("image/*", negate: true)),
+            default => throw new \RuntimeException("Not implemented"),
+        };
         $res->json($files);
     }
     /**

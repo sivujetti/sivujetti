@@ -8,6 +8,10 @@ stringBundles.push({
     'Services': 'Palvelut',
     'Services#partitive': 'Palvelua',
     'Service': 'Palvelu',
+    // edit-app/src/commons/FileUploader.jsx
+    'You don\'t have any documents.': 'Sinulla ei ole dokumentteja.',
+    // edit-app/src/commons/UploadButton.jsx
+    'Add new': 'Lisää uusi',
     // edit-app/src/left-column/block/BlockDnDSpawner.jsx
     'Start adding content': 'Aloita lisäämään sisältöä',
     'reusable content': 'uudelleenkäytettävä sisältö',
@@ -109,7 +113,7 @@ stringBundles.push({
     'Website': 'Sivusto',
     'Content management': 'Sisällönhallinta',
     'page': 'sivu',
-    'Uploads': 'Lataukset',
+    'Files': 'Tiedostot',
     //edit-app/src/left-column/page-type/PageTypeCreatePanel.jsx
     'page type': 'sivutyyppi',
     'Default content': 'Oletussisältö',

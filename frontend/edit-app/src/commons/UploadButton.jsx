@@ -75,7 +75,7 @@ class UploadButton extends preact.Component {
                 const ok = typeof res !== 'string';
                 if (!ok)
                     this.setState({validationErrors: [...this.state.validationErrors, `Failed to upload file #${i}`]});
-                this.props.onUploadEnded(entry, ok ? {...entry, ...{
+                this.props.onUploadEnded(ok ? {...entry, ...{
                     fileName: res.fileName,
                     baseDir: res.baseDir,
                     mime: res.mime,

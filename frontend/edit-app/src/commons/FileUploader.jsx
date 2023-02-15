@@ -1,6 +1,8 @@
 import {__, http, env, Icon, LoadingSpinner, urlUtils} from '@sivujetti-commons-for-edit-app';
 import UploadButton from './UploadButton.jsx';
 
+const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=';
+
 const UPLOADS_DIR_PATH = 'public/uploads/';
 
 const fetchedFiles = {
@@ -33,8 +35,10 @@ class FileUploader extends preact.Component {
                 : null
             }
             <div>{ files ? files.length
-                ? <div class={ `live-files-list item-grid mt-2 pt-2${!numColumns ? '' : ({'3': ' three'}[numColumns] || '')}` }>{ files.map(({friendlyName, fileName, baseDir, ext, mime, uploading}, i) =>
-                    <article class={ `box text-center${uploading !== 'yes' ? '' : ' loading'}` } title={ fileName } key={ friendlyName }>
+                ? <div class={ `live-files-list item-grid mt-2 pt-2${!numColumns ? '' : ({'3': ' three'}[numColumns] || '')}` }>{ files.map(f => {
+                    const {friendlyName, fileName, baseDir, ext, mime, createdAt} = f;
+                    const isUploaded = createdAt > 0;
+                    return <article class={ `box text-center${isUploaded ? '' : ' loading'}` } title={ fileName } key={ friendlyName }>
                         { !mime.startsWith('image/')
                             ? <div>
                                 <Icon iconId="file" className="mb-2"/>
@@ -44,14 +48,14 @@ class FileUploader extends preact.Component {
                             : [
                                 <ItemEl
                                     class={ `img-ratio ${mode === 'pick' ? ' btn btn-link pt-0 pl-0' : ''}` }
-                                    onClick={ () => this.handleEntryClicked(i) }>
-                                    <img src={ `${urlUtils.assetBaseUrl}${UPLOADS_DIR_PATH}${baseDir}${fileName}` }/>
+                                    onClick={ () => this.handleEntryClicked(f) }>
+                                    <img src={ isUploaded ? `${urlUtils.assetBaseUrl}${UPLOADS_DIR_PATH}${baseDir}${fileName}` : placeholderImageSrc }/>
                                 </ItemEl>,
                                 <div class="text-ellipsis my-2 px-2"><b>{ friendlyName || fileName }</b></div>,
                             ]
                         }
-                    </article>
-                ) }</div>
+                    </article>;
+                }) }</div>
                 : <div>
                     <p style="margin-top: 1rem">{ __('You don\'t have any documents.') }</p>
                 </div>
@@ -63,11 +67,11 @@ class FileUploader extends preact.Component {
      * @access private
      */
     addNewFile(file) {
-        const k = file.mime.startsWith('image/*') ? 'onlyImages' : 'nonImages';
+        const k = file.mime.startsWith('image/') ? 'onlyImages' : 'nonImages';
         if (fetchedFiles[k] === null) fetchedFiles[k] = [];
         fetchedFiles[k].push(file);
         //
-        this.setState({files: [...this.state.files, {...file, ...{uploading: 'yes'}}]});
+        this.setState({files: cloneArrShallow(fetchedFiles[k])});
     }
     /**
      * @param {UploadsEntry|null} file
@@ -75,15 +79,12 @@ class FileUploader extends preact.Component {
      * @access private
      */
     markFileAsUploaded(file, ok) {
-        const k = file.mime.startsWith('image/*') ? 'onlyImages' : 'nonImages';
+        const k = file.mime.startsWith('image/') ? 'onlyImages' : 'nonImages';
         fetchedFiles[k] = ok
             ? fetchedFiles[k].map(f => f.friendlyName !== file.friendlyName ? f : {...file})
             : fetchedFiles[k].filter(({friendlyName}) => friendlyName !== file.friendlyName);
         //
-        this.setState({files: ok
-            ? this.state.files.map(f => f.friendlyName !== file.friendlyName ? f : {...file, ...{uploading: 'no'}})
-            : this.state.files.filter(({friendlyName}) => friendlyName !== file.friendlyName)
-        });
+        this.setState({files: cloneArrShallow(fetchedFiles[k])});
     }
     /**
      * @param {Boolean} onlyImages
@@ -93,8 +94,8 @@ class FileUploader extends preact.Component {
     fetchOrGetUploads(onlyImages) {
         const [k, q] = onlyImages ? ['onlyImages', '$eq'] : ['nonImages', '$neq'];
         //
-        const cac = fetchedFiles[k];
-        if (cac) return Promise.resolve(cac);
+        const cached = fetchedFiles[k];
+        if (cached) return Promise.resolve(cached);
         //
         return http.get(`/api/uploads/${JSON.stringify({mime: {[q]: 'image/*'}})}`)
             .then(files => {
@@ -104,12 +105,12 @@ class FileUploader extends preact.Component {
             .catch(env.window.console.error);
     }
     /**
-     * @param {Number} i
+     * @param {UploadsEntry} i
      * @access private
      */
-    handleEntryClicked(i) {
+    handleEntryClicked(f) {
         if (this.props.mode !== 'pick') return;
-        this.props.onEntryClicked(this.state.files[i]);
+        this.props.onEntryClicked(f);
     }
 }
 
@@ -120,8 +121,19 @@ class FileUploader extends preact.Component {
  * @returns {UploadsEntry}
  */
 function completeBackendUploadsEntry(entry) {
-    return Object.assign(entry, {ext: entry.fileName.split('.').pop()});
+    Object.assign(entry, {ext: entry.fileName.split('.').pop()});
+    if (entry.createdAt === 0) entry.createdAt = Math.floor(Date.now() / 1000);
+    if (entry.updatedAt === 0) entry.updatedAt = entry.createdAt;
+    return entry;
+}
+
+/**
+ * @param {Array<{[key: String]: any;}>} arr
+ * @returns {Array<{[key: String]: any;}>}
+ */
+function cloneArrShallow(arr) {
+    return arr.map(itm => ({...itm}));
 }
 
 export default FileUploader;
-export {UPLOADS_DIR_PATH};
+export {UPLOADS_DIR_PATH, placeholderImageSrc};

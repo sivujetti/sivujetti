@@ -1,9 +1,9 @@
 import {__, urlUtils, http, env, timingUtils, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
+import {UPLOADS_DIR_PATH} from '../../commons/FileUploader.jsx';
 import Tabs from '../../commons/Tabs.jsx';
 import UploadButton from './UploadButton.jsx';
 
 const INITIAL_CACHE_KEY = '';
-const UPLOADS_DIR_PATH = 'public/uploads/';
 
 class UploadsManager extends preact.Component {
     // title;
@@ -122,4 +122,3 @@ class UploadsManager extends preact.Component {
 }
 
 export default UploadsManager;
-export {UPLOADS_DIR_PATH};

@@ -7,7 +7,7 @@ use Sivujetti\Layout\Entities\Layout;
 final class Page extends \stdClass {
     public const STATUS_PUBLISHED = 0;
     public const STATUS_DRAFT = 1;
-    /** @var string */
+    /** @var string Example: "/" or "/some-page" */
     public string $slug;
     /** @var string */
     public string $path;

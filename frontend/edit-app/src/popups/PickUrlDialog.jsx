@@ -3,8 +3,11 @@ import {__, env, http, urlUtils, Icon, LoadingSpinner, hookForm, Input, InputErr
 import {urlValidatorImpl} from '../validation.js';
 import {validationConstraints} from '../constants.js';
 import setFocusTo from '../block-types/auto-focusers.js';
-import UploadsManager from './upload/UploadsManager.jsx';
 import {determineModeFrom, getLabel, normalizeExternalUrl} from '../quill/common.js';
+import FileUploader from '../commons/FileUploader.jsx';
+import UploadsManager from './upload/UploadsManager.jsx';
+
+const useNewUploader = true;
 
 class PickUrlDialog extends preact.Component {
     // currentExternalUrl;
@@ -36,11 +39,18 @@ class PickUrlDialog extends preact.Component {
         //
         if (mode === 'pick-image') return [
             <div><button onClick={ () => this.setMode('choose-link-type') } class="btn btn-sm mb-2" type="button">&lt;</button></div>,
-            <UploadsManager
-                onEntryClicked={ entry => { this.save(urlUtils.makeAssetUrl(`/public/uploads${entry.baseDir}/${entry.fileName}`)); } }
-                numColumns="3"
-                onlyImages
-                hideTabs/>
+            useNewUploader
+                ? <FileUploader
+                    mode="pick"
+                    onEntryClicked={ entry => { this.save(urlUtils.makeAssetUrl(`/public/uploads${entry.baseDir}/${entry.fileName}`)); } }
+                    numColumns="3"
+                    onlyImages
+                    hideUploadButton/>
+                : <UploadsManager
+                    onEntryClicked={ entry => { this.save(urlUtils.makeAssetUrl(`/public/uploads${entry.baseDir}/${entry.fileName}`)); } }
+                    numColumns="3"
+                    onlyImages
+                    hideTabs/>
         ];
         //
         if (mode === 'type-external-url') return <DefineExternalUrlTab

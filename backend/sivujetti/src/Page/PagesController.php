@@ -244,8 +244,8 @@ final class PagesController {
         $res->status($ok ? 201 : 200)->json(["ok" => $ok ? "ok" : "err"]);
     }
     /**
-     * GET /api/pages/[w:pageType]/[w:pageId]: Returns 200 & page with slug "/$req->params->pageSlug",
-     * or 404 & null.
+     * GET /api/pages/[w:pageType]/[w:pageSlug]: Returns 200 & page with slug
+     * $req->params->pageSlug !== "-" ? "/{$req->params->pageSlug}" : "/", or 404 & null.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
@@ -255,7 +255,7 @@ final class PagesController {
                             Response $res,
                             PagesRepository2 $pagesRepo): void {
         $page = $pagesRepo->select($req->params->pageType, fields: ["@blocks"])
-            ->where("slug = ?", "/{$req->params->pageSlug}")
+            ->where("slug = ?", $req->params->pageSlug !== "-" ? "/{$req->params->pageSlug}" : "/")
             ->fetch();
         $res->status($page ? 200 : 404)->json($page);
     }
@@ -365,7 +365,7 @@ final class PagesController {
             apiCtx: $apiCtx,
             theme: $theWebsite->activeTheme,
             pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy()),
-            useEditModeCss: $editModeIsOn
+            useEditModeMarkup: $editModeIsOn
         );
         $html = $tmpl->render([
             "currentPage" => $page,

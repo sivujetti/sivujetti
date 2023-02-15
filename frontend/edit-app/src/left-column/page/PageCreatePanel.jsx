@@ -10,7 +10,7 @@ import {saveExistingBlocksToBackend} from '../block/createBlockTreeDndController
 import blockTreeUtils from '../block/blockTreeUtils.js';
 
 /**
- * Left-panel for #/pages/create/:pageTypeName?/:layoutId?[?addToMenu='menuBlockId:menuBlockIsStoredToTreeId:pageSlugNoLeadingSlash'].
+ * Left-panel for #/pages/create/:pageTypeName?/:layoutId?[?addToMenu='menuBlockId:menuBlockIsStoredToTreeId:pageSlug'].
  */
 class PageCreatePanel extends preact.Component {
     // pageType;
@@ -25,7 +25,7 @@ class PageCreatePanel extends preact.Component {
         const layoutId = this.props.layoutId || '1';
         this.pageType = api.getPageTypes().find(({name}) => name === pageTypeName);
         const triplet = this.props.matches.addToMenu;
-        this.addToMenuIdInfo = !triplet ? null: triplet.split(':').map(input => input.replace(/[^a-zA-Z0-9_-]/g, ''));
+        this.addToMenuIdInfo = !triplet ? null: triplet.split(':').map(input => input.replace(/[^a-zA-Z0-9_/-]/g, ''));
         const slug = this.props.path.startsWith('/pages/create')
             // this.props.path = '/pages/create/:pageTypeName?/:layoutId?'
             ? ''
@@ -52,7 +52,7 @@ class PageCreatePanel extends preact.Component {
 
             // Add update-block-tree op for `addToMenu` menu (if it was defined)
             if (this.addToMenuIdInfo) {
-                const [menuBlockId, menuBlockIsStoredToTreeId, pageSlugNoLeadingSlash] = this.addToMenuIdInfo;
+                const [menuBlockId, menuBlockIsStoredToTreeId, pageSlug] = this.addToMenuIdInfo;
                 const innerTree = !this.addToMenuIsInCurrentPage ? null : blockTreeUtils.getRootFor(menuBlockIsStoredToTreeId, store2.get().theBlockTree);
                 out.push({opName: `update-block-tree##${menuBlockIsStoredToTreeId}`, command: {
                     doHandle: () => (innerTree
@@ -60,7 +60,7 @@ class PageCreatePanel extends preact.Component {
                         ? Promise.resolve([innerTree, null])
                         // menu belongs to another page, fetch it, and merge new nav data into it
                         : http.get(menuBlockIsStoredToTreeId === 'main'
-                                ? `/api/pages/Pages/${pageSlugNoLeadingSlash}`
+                                ? `/api/pages/Pages${pageSlug !== '/' ? pageSlug : '/-'}`
                                 : `/api/global-block-trees/${menuBlockIsStoredToTreeId}`
                             ).then(pageOrGbt => {
                                 const withNewMenu = addLinkToMenu(createMenuLinkFromNewestData(),

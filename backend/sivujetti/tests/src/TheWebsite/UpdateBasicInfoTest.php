@@ -52,10 +52,10 @@ final class UpdateBasicInfoTest extends TheWebsiteControllerTestCase {
         $this->verifyResponseBodyEquals([
             "The length of name must be at least 1",
             "The length of name must be 92 or less",
-            "The length of lang must be at least 1",
-            "The length of lang must be 6 or less",
-            "The length of country must be at least 1",
-            "The length of country must be 12 or less",
+            "lang must be string",
+            "The value of lang did not pass the regexp",
+            "country must be string",
+            "The value of country did not pass the regexp",
             "The length of description must be 1024 or less",
         ], $state->spyingResponse);
     }

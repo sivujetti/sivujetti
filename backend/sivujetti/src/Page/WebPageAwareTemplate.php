@@ -20,7 +20,7 @@ final class WebPageAwareTemplate extends Template {
     /** @var string[] */
     private array $__pluginNames;
     /** @var bool */
-    private bool $__useEditModeCss;
+    private bool $__useEditModeMarkup;
     /** @var string */
     private string $__assetUrlAppendix;
     /** @var \Closure */
@@ -34,7 +34,8 @@ final class WebPageAwareTemplate extends Template {
      * @param ?\Sivujetti\SharedAPIContext $apiCtx = null
      * @param ?\Sivujetti\Theme\Entities\Theme $theme = null
      * @param ?array<string> $pluginNames = null
-     * @param ?bool $useEditModeCss = null
+     * @param ?bool $useEditModeMarkup = null
+     * @param ?string $assetUrlCacheBustStr = ""
      */
     public function __construct(string $file,
                                 ?array $vars = null,
@@ -42,13 +43,13 @@ final class WebPageAwareTemplate extends Template {
                                 ?SharedAPIContext $apiCtx = null,
                                 ?Theme $theme = null,
                                 ?array $pluginNames = null,
-                                ?bool $useEditModeCss = null,
-                                ?string $assetUrlCacheBustStr = "") {
+                                ?bool $useEditModeMarkup = null,
+                                ?string $assetUrlCacheBustStr = null) {
         parent::__construct($file, $vars, $initialLocals);
         $this->__cssAndJsFiles = $apiCtx?->userDefinedAssets;
         $this->__theme = $theme;
         $this->__dynamicGlobalBlockTreeBlocksStyles = [];
-        $this->__useEditModeCss = $useEditModeCss ?? true;
+        $this->__useEditModeMarkup = $useEditModeMarkup ?? true;
         $this->__pluginNames = $pluginNames ?? [];
         if ($this->__file === "") $this->__file = $this->completePath($file);
         $this->__assetUrlAppendix = $this->escAttr($assetUrlCacheBustStr ?? "");
@@ -133,12 +134,15 @@ final class WebPageAwareTemplate extends Template {
      * @return string
      */
     public function renderChildren(Block $block): string {
-        return "<!-- children-start -->" . ($block->children ? (
+        [$wrapStart, $childPlaceholder, $wrapEnd] = !$this->__useEditModeMarkup
+            ? ["",                        "",                              ""]
+            : ["<!-- children-start -->", "<!-- children-placeholder -->", "<!-- children-end -->"];
+        return $wrapStart . ($block->children ? (
             $block->children[0]->type !== "__marker"
                 ? $this->renderBlocks($block->children)
-                : "<!-- children-placeholder -->"
+                : $childPlaceholder
             ) : ""
-        ) . "<!-- children-end -->";
+        ) . $wrapEnd;
     }
     /**
      * @param \Sivujetti\Block\Entities\Block[] $blocks
@@ -146,12 +150,15 @@ final class WebPageAwareTemplate extends Template {
      */
     public function renderBlocks(array $blocks): string {
         $out = "";
+        $emptyString = !$this->__useEditModeMarkup ? "" : null;
         foreach ($blocks as $block)
             $out .= $block->type !== Block::TYPE_GLOBAL_BLOCK_REF
                 ? $this->partial($block->renderer, $block)
-                : ("<!-- block-start {$block->id}:{$block->type} -->" .
-                    $this->renderBlocks($block->__globalBlockTree->blocks) .
-                "<!-- block-end {$block->id} -->");
+                : (
+                    ($emptyString ?? "<!-- block-start {$block->id}:{$block->type} -->") .
+                        $this->renderBlocks($block->__globalBlockTree->blocks) .
+                    ($emptyString ?? "<!-- block-end {$block->id} -->")
+                );
         return $out;
     }
     /**
@@ -227,7 +234,7 @@ final class WebPageAwareTemplate extends Template {
         ) . "</style>\n";
         $externals = array_map($fileDefToTag, $this->__cssAndJsFiles->css);
 
-        return $common . (!$this->__useEditModeCss ? (
+        return $common . (!$this->__useEditModeMarkup ? (
             // Externals including theme-generated.css
             implode("\n", [...$externals, $fileDefToTag(
                 (object) ["url" => "{$this->__theme->name}-generated.css?t={$this->__theme->stylesLastUpdatedAt}",
@@ -338,9 +345,9 @@ final class WebPageAwareTemplate extends Template {
             $ldWebPage["description"] = $escapedDescr;
         }
         // Locale & lang
-        $countryCode = strtoupper($site->country ?? $site->lang);
+        $countryCode = $site->country; // guaranteed to contain only A-Z{2}
         $metasOgOut[] = "<meta property=\"og:locale\" content=\"{$site->lang}_{$countryCode}\">";
-        $ldWebSite["inLanguage"] = $site->lang;
+        $ldWebSite["inLanguage"] = $site->lang; // guaranteed to contain only a-z{2}
         $ldWebPage["inLanguage"] = $ldWebSite["inLanguage"];
         // Permalink
         $permaFull = "{$this->__vars["serverHost"]}{$this->makeUrl($currentPage->slug)}";
@@ -364,9 +371,9 @@ final class WebPageAwareTemplate extends Template {
             $host = $this->__vars["serverHost"];
             $full = "{$host}{$this->assetUrl("/public/uploads/{$img->src}")}";
             $metasOgOut[] = "<meta property=\"og:image\" content=\"{$full}\">";
-            $metasOgOut[] = "<meta property=\"og:image:width\" content=\"{$img->width}\">";
+            $metasOgOut[] = "<meta property=\"og:image:width\" content=\"{$img->width}\">"; // always integer
             $metasOgOut[] = "<meta property=\"og:image:height\" content=\"{$img->height}\">";
-            $metasOgOut[] = "<meta property=\"og:image:type\" content=\"{$img->mime}\">";
+            $metasOgOut[] = "<meta property=\"og:image:type\" content=\"{$this->escAttr($img->mime)}\">";
             $metasOgOut[] = "<meta name=\"twitter:card\" content=\"summary_large_image\">";
             $ldImage = ["@type" => "ImageObject"];
             $ldImage["@id"] = "{$webSiteUrl}#primaryimage";

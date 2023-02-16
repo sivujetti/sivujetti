@@ -44,10 +44,10 @@ final class TheWebsiteController {
         return Validation::makeObjectValidator()
             ->rule("name", "minLength", 1)
             ->rule("name", "maxLength", ValidationUtils::INDEX_STR_MAX_LENGTH)
-            ->rule("lang", "minLength", 1)
-            ->rule("lang", "maxLength", 6) // see backend/installer/schema.mysql.php
-            ->rule("country", "minLength", 1)
-            ->rule("country", "maxLength", 12)
+            ->rule("lang", "type", "string")
+            ->rule("lang", "regexp", "/^[a-z]{2}$/") // see backend/installer/schema.mysql.php
+            ->rule("country", "type", "string")
+            ->rule("country", "regexp", "/^[A-Z]{2}$/")
             ->rule("description", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
             ->validate($input);
     }

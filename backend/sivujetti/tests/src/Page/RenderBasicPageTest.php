@@ -57,12 +57,12 @@ final class RenderBasicPageTest extends RenderPageTestCase {
     private function verifyRenderedCorrectPageAndLayout(\TestState $state): void {
         $headingBlock = $state->testPageData->blocks[0]->children[0];
         $expectedPageBlockHeading = $headingBlock->propsData[0]->value;
-        $this->assertStringContainsString("<h2 class=\"j-Heading\" data-block-type=\"Heading\" data-block=\"{$headingBlock->id}\">{$expectedPageBlockHeading}<!-- children-start --><!-- children-end --></h2>",
-                                          $state->spyingResponse->getActualBody());
+        $expected1 = "<h2 class=\"j-Heading\" data-block-type=\"Heading\" data-block=\"{$headingBlock->id}\">{$expectedPageBlockHeading}</h2>";
+        $this->assertStringContainsString($expected1, $state->spyingResponse->getActualBody());
         $paragraphBlock = $state->testGlobalBlockTree[0];
         $expectedPageBlockHeading = $paragraphBlock->propsData[0]->value;
-        $this->assertStringContainsString((new BlockTestUtils($this->pageTestUtils))->getExpectedParagraphBlockOutput($paragraphBlock),
-                                          $state->spyingResponse->getActualBody());
+        $expected2 = (new BlockTestUtils($this->pageTestUtils))->getExpectedParagraphBlockOutput($paragraphBlock, childHtml: "");
+        $this->assertStringContainsString($expected2, $state->spyingResponse->getActualBody());
     }
     private function verifyThemeCanRegisterCssFiles(\TestState $state): void {
         $expectedUrl = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME, false);

@@ -33,23 +33,32 @@ class MainPanel {
         });
     }
     /**
-     * @param {'onThisPage'|'baseStyles'} section
-     * @param {'smooth'|'auto'} behavior = 'smooth'
+     * @param {mainPanelSectionElName} name
+     * @returns {HTMLElement}
+     * @access public
      */
-    scrollToSection(section, behavior = 'smooth') {
+    getSectionEl(name) {
         const nameToSelector = {
             onThisPage: '.panel-section.on-this-page',
             baseStyles: '.panel-section.base-styles',
         };
-        const selector = nameToSelector[section];
-        if (selector) {
-            const main = this.getEl();
-            const sectionTop = main.querySelector(selector).getBoundingClientRect().top;
-            main.scrollTo({top: sectionTop + main.scrollTop, behavior});
-        } else throw new Error(`Section name (${section}) must be ${Object.keys(nameToSelector).join(', ')}`);
+        const selector = nameToSelector[name];
+        if (selector) return this.getEl().querySelector(selector);
+        throw new Error(`Section name (${name}) must be ${Object.keys(nameToSelector).join(', ')}`);
+    }
+    /**
+     * @param {mainPanelSectionElName} name
+     * @param {'smooth'|'auto'} behavior = 'smooth'
+     * @access public
+     */
+    scrollToSection(name, behavior = 'smooth') {
+        const sectionTop = this.getSectionEl(name).getBoundingClientRect().top;
+        const main = this.getEl();
+        main.scrollTo({top: sectionTop + main.scrollTop, behavior});
     }
     /**
      * @returns {HTMLElement}
+     * @access public
      */
     getEl() {
         return this.el;

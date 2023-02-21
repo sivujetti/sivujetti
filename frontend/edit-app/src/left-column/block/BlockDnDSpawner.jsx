@@ -11,6 +11,7 @@ let reusablesFetched = false;
 
 class BlockDnDSpawner extends preact.Component {
     // selectableBlockTypes;
+    // firstPluginRegisteredBlockTypeIdx;
     // newBlock;
     // rootEl;
     // onDragStart;
@@ -18,6 +19,7 @@ class BlockDnDSpawner extends preact.Component {
     // onDragEnd;
     // unregisterables;
     // cachedGlobalBlockTreesAll;
+    // styleTop;
     /**
      * @param {{mainTreeDnd: TreeDragDrop; initiallyIsOpen?: Boolean;}} props
      */
@@ -53,34 +55,33 @@ class BlockDnDSpawner extends preact.Component {
         if (unregScrollListener) unregScrollListener();
         const blockTreeEl = this.rootEl.current.nextElementSibling;
         const blockTreeOuterEl = blockTreeEl.parentElement;
-        let blockTreeBottom;
+        let blockTreeBottom = null;
         let invalidateBlockTreeBottom = null;
-        const blockTreeTop = blockTreeEl.getBoundingClientRect().top;
-        this.rootEl.current.style.top = `${blockTreeTop}px`;
-        this.rootEl.current.style.height = `calc(100% - ${blockTreeTop}px)`;
+        const {initiallyIsOpen} = this.props;
+        this.updateStyleTopAndAdjustRootEl(initiallyIsOpen);
         this.setState({isMounted: true});
         const handleScroll = e => {
             const rootEl = this.rootEl.current;
             if (!rootEl) return;
             //
-            if (blockTreeBottom === null)
-                blockTreeBottom = blockTreeOuterEl.offsetTop + blockTreeOuterEl.getBoundingClientRect().height - 40;
-            else {
+            if (blockTreeBottom === null) {
+                const delta = this.state.isOpen ? 20 : -30;
+                blockTreeBottom = blockTreeOuterEl.offsetTop + blockTreeOuterEl.getBoundingClientRect().height + (delta);
+            } else {
                 clearTimeout(invalidateBlockTreeBottom);
                 invalidateBlockTreeBottom = setTimeout(() => { blockTreeBottom = null; }, 2000);
             }
             //
-            let a = blockTreeTop - e.target.scrollTop;
-            if (e.target.scrollTop > blockTreeBottom) a = a; else if (a < 4) a = 4;
-            rootEl.style.top = `${a}px`;
-            rootEl.style.height = `calc(100% - ${a}px)`;
+            let adjustedTop = this.styleTop - e.target.scrollTop;
+            if (e.target.scrollTop <= blockTreeBottom && adjustedTop < 7) adjustedTop = 6;
+            this.adjustRootElPos(adjustedTop);
         };
         const mainPanelEl = this.rootEl.current.closest('#main-panel');
         mainPanelEl.addEventListener('scroll', handleScroll);
         unregScrollListener = () => {
             mainPanelEl.removeEventListener('scroll', handleScroll);
         };
-        if (this.props.initiallyIsOpen)
+        if (initiallyIsOpen)
             this.toggleIsOpen();
     }
     /**
@@ -94,9 +95,7 @@ class BlockDnDSpawner extends preact.Component {
      * @access protected
      */
     render(_, {isMounted, isOpen, reusables, selectableGlobalBlockTrees}) {
-        return <div
-            class="new-block-spawner"
-            ref={ this.rootEl }>
+        return <div class="new-block-spawner" ref={ this.rootEl }>
             <button
                 onClick={ this.toggleIsOpen.bind(this) }
                 class={ `p-0 btn btn-sm d-flex with-icon btn-primary${isMounted ? '' : ' d-none'}` }
@@ -106,23 +105,34 @@ class BlockDnDSpawner extends preact.Component {
                 <Icon iconId="chevron-right" className="mr-0 size-xs"/>
             </button>
             { isOpen ? [
-                <input class="form-input mb-2" placeholder={ __('Filter') } style="width: calc(100% - .5rem)" disabled/>,
+                <input class="form-input tight" placeholder={ __('Filter') } disabled/>,
                 <div class="scroller"><ul class="block-tree">{
                     reusables.map((cb, i) => {
                         const rootReusable = cb.blockBlueprints[0];
                         const blockType = api.blockTypes.get(rootReusable.blockType);
                         const label = rootReusable.initialDefaultsData.title || __(blockType.friendlyName);
-                        return [label, 'reusableBranch', cb.blockBlueprints[0].blockType, [i.toString()]];
+                        return [i, label, 'reusableBranch', cb.blockBlueprints[0].blockType, [i.toString()]];
                     })
-                    .concat(this.selectableBlockTypes.map(([name, blockType]) =>
-                        [__(blockType.friendlyName), 'blockType', name, []])
-                    )
-                    .concat(selectableGlobalBlockTrees.map(({id, blocks, name}) =>
-                        [name, 'globalBlockTree', blocks[0].type, [id]]
-                    )).map(([label, flavor, rootBlockTypeName, vargs]) => {
-                        const isNotGbt = flavor !== 'globalBlockTree';
-                        const labelApdx = isNotGbt ? flavor !== 'reusableBranch' ? '' : ` (${__('reusable content')})` : ` (${'unique content'})`;
-                        return <li class={ `${isNotGbt ? 'page' : 'globalBlockTree'}-block ml-0` } data-block-type={ rootBlockTypeName } data-flavor={ flavor }><div class="d-flex">
+                    .concat(this.selectableBlockTypes.map(([name, blockType], i) =>
+                        [
+                            i !== this.firstPluginRegisteredBlockTypeIdx ? i : 0,
+                            __(blockType.friendlyName),
+                            i < this.firstPluginRegisteredBlockTypeIdx ? 'common' : 'regByPlugin',
+                            name,
+                            []
+                        ]
+                    ))
+                    .concat(selectableGlobalBlockTrees.map(({id, blocks, name}, i) =>
+                        [i, name, 'globalBlockTree', blocks[0].type, [id]]
+                    )).map(([nthInGroup, label, group, rootBlockTypeName, vargs]) => {
+                        const isNotGbt = group !== 'globalBlockTree';
+                        const labelApdx = isNotGbt ? group !== 'reusableBranch' ? '' : ` (${__('reusable content')})` : ` (${__('Unique reusables').toLowerCase()})`;
+                        const groupLabel = nthInGroup > 0 ? null : translateGroup(group);
+                        return <li
+                            class={ `${isNotGbt ? 'page' : 'globalBlockTree'}-block ml-0` }
+                            data-block-type={ rootBlockTypeName }
+                            data-group={ group }
+                            data-first-in-group-title={ groupLabel }><div class="d-flex">
                             <button
                                 onDragStart={ this.onDragStart }
                                 onDrag={ this.onDrag }
@@ -130,7 +140,7 @@ class BlockDnDSpawner extends preact.Component {
                                 class="block-handle text-ellipsis"
                                 data-block-type={ isNotGbt ? rootBlockTypeName : 'GlobalBlockReference' }
                                 data-is-stored-to-trid={ isNotGbt ? 'main' : vargs[0] }
-                                data-reusable-branch-idx={ flavor !== 'reusableBranch' ? '' : vargs[0] }
+                                data-reusable-branch-idx={ group !== 'reusableBranch' ? '' : vargs[0] }
                                 title={ `${label}${labelApdx}` }
                                 type="button"
                                 draggable>
@@ -147,11 +157,16 @@ class BlockDnDSpawner extends preact.Component {
      */
     toggleIsOpen() {
         const currentlyIsOpen = this.state.isOpen;
-        if (!currentlyIsOpen) {
-            if (!this.selectableBlockTypes)
+        const newIsOpen = !currentlyIsOpen;
+        if (newIsOpen) {
+            if (!this.selectableBlockTypes) {
                 this.selectableBlockTypes = sort(Array.from(api.blockTypes.entries()).filter(([name, _]) =>
                     name !== 'PageInfo' && name !== 'GlobalBlockReference'
                 ));
+                this.firstPluginRegisteredBlockTypeIdx = this.selectableBlockTypes.findIndex(([name, _]) =>
+                    name === 'Code'
+                ) + 1;
+            }
             this.fetchOrGetReusableBranches()
                 .then((reusables) => { this.setState({reusables}); });
             http.get('/api/global-block-trees')
@@ -161,7 +176,27 @@ class BlockDnDSpawner extends preact.Component {
         } else {
             signals.emit('block-dnd-closed');
         }
-        this.setState({isOpen: !currentlyIsOpen});
+        this.updateStyleTopAndAdjustRootEl(newIsOpen);
+        this.setState({isOpen: newIsOpen});
+    }
+    /**
+     * @param {Boolean} isOpen
+     * @access private
+     */
+    updateStyleTopAndAdjustRootEl(isOpen) {
+        const topEl = isOpen
+            ? api.mainPanel.getSectionEl('onThisPage').querySelector('.section-title > span')
+            : this.rootEl.current.nextElementSibling;
+        this.styleTop = topEl.getBoundingClientRect().styleTop;
+        this.adjustRootElPos();
+    }
+    /**
+     * @param {Number} topVal = this.styleTop
+     * @access private
+     */
+    adjustRootElPos(styleTop = this.styleTop) {
+        this.rootEl.current.style.top = `${styleTop}px`;
+        this.rootEl.current.style.height = `calc(100% - ${styleTop}px - 0.6rem)`;
     }
     /**
      * @param {DragEvent} e
@@ -307,6 +342,19 @@ function getGbtIdsFrom(currentBlockTree) {
     });
     ids.sort();
     return ids;
+}
+
+/**
+ * @param {'reusableBranch'|'common'|'regByPlugin'|'globalBlockTree'} group
+ * @returns {String}
+ */
+function translateGroup(group) {
+    return {
+        reusableBranch: __('Reusables'),
+        common: __('Common'),
+        regByPlugin: __('Specialized'),
+        globalBlockTree: __('Unique reusables')
+    }[group];
 }
 
 export default BlockDnDSpawner;

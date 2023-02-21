@@ -15,8 +15,11 @@ stringBundles.push({
     // edit-app/src/left-column/block/BlockDnDSpawner.jsx
     'Start adding content': 'Aloita lisäämään sisältöä',
     'reusable content': 'uudelleenkäytettävä sisältö',
-    'unique content': 'uniikki sisältö',
     'Filter': 'Suodata',
+    'Reusables': 'Uudelleenkäytettävät',
+    'Common': 'Yleiset',
+    'Specialized': 'Erikoistuneet',
+    'Unique reusables': 'Uniikit uudelleenkäytettävät',
     // edit-app/src/left-column/block/BlockStylesTab.jsx
     'Use style': 'Käytä tyyliä',
     'No own styles': 'Ei omia tyylejä',

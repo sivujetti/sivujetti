@@ -163,7 +163,7 @@ class EditApp extends preact.Component {
         });
         signals.on('block-dnd-opened', () => {
             inspectorPanel = this.props.inspectorPanelRef.current;
-            this.leftPanelWidth += 124;
+            this.leftPanelWidth += 148;
             setAndEmitPanelWidths(this.leftPanelWidth);
             commitPanelWidths();
             this.props.rootEl.classList.add('new-block-spawner-opened');
@@ -171,7 +171,7 @@ class EditApp extends preact.Component {
                 `${this.leftPanelWidth}px`;
         });
         signals.on('block-dnd-closed', () => {
-            this.leftPanelWidth -= 124;
+            this.leftPanelWidth -= 148;
             setAndEmitPanelWidths(this.leftPanelWidth);
             commitPanelWidths();
             this.props.rootEl.classList.remove('new-block-spawner-opened');

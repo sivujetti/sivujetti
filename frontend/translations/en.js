@@ -15,8 +15,11 @@ stringBundles.push({
     // edit-app/src/left-column/block/BlockDnDSpawner.jsx
     'Start adding content': 'Start adding content',
     'reusable content': 'reusable content',
-    'unique content': 'unique content',
     'Filter': 'Filter',
+    'Reusables': 'Reusables',
+    'Common': 'Common',
+    'Specialized': 'Specialized',
+    'Unique reusables': 'Uniques reusables',
     // edit-app/src/left-column/block/BlockStylesTab.jsx
     'Use style': 'Use style',
     'No own styles': 'No own styles',

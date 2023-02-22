@@ -505,9 +505,6 @@ a.popup-close-area {
 .item-grid.three {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.image-grid button, .image-grid img {
-    border-radius: 2px;
-}
 .selectable-items.has-first-item-selected > li:first-of-type .btn,
 .selectable-items.has-first-item-selected > .btn:first-of-type {
     background-color: var(--color-bg-dimmed2) !important;
@@ -537,19 +534,6 @@ a.popup-close-area {
 }
 .item-grid.medium-buttons > button .icon-tabler {
     margin: 0;
-}
-.image-grid .caption {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    bottom: 0;
-    padding: .34rem;
-}
-.image-grid > button {
-    background-color: var(--color-bg-default);
-    padding: 0 0 2rem;
-    height: initial;
-    position: relative;
 }
 .live-files-list.item-grid article > div {
     margin: 1rem;
@@ -583,16 +567,7 @@ a.popup-close-area {
 .live-files-list.item-grid article.loading:after {
     margin-top: -1.2rem;
 }
-.image-selected img {
-    min-width: 160px;
-    min-height: 160px;
-    max-width: 320px;
-    max-height: 320px;
-}
-.image-picker-dialog .image-selected .form-buttons {
-    border-bottom: 1px solid #d5dbe0;
-    padding-bottom: 1rem;
-}
+/* EditApp: Components: upload button & file dnd */
 .file-input-outer > input {
     position: absolute;
     opacity: 0;
@@ -602,6 +577,27 @@ a.popup-close-area {
     cursor: pointer;
     padding: .2rem;
     margin-top: 2px;
+}
+.file-input-outer > input:focus + label {
+    box-shadow: 0 0 0 .1rem rgba(24,34,93,.2);
+}
+.file-drop-area {
+    position: relative;
+}
+.file-drop-area.hovering:before {
+    content: attr(data-drop-files-here-text);
+    background: rgba(var(--components-color-bg-default),.7);
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    border-radius: var(--small-rect-radius);
+    border: 2px dashed var(--color-border-popup);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+    z-index: 1;
 }
 /* EditApp: Components: tooltips */
 .my-tooltip  {

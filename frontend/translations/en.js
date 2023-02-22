@@ -8,10 +8,18 @@ stringBundles.push({
     'Services': 'Services',
     'Services#partitive': 'Services',
     'Service': 'Service',
+    'No results for "%s"': 'No results for "%s"',
     // edit-app/src/commons/FileUploader.jsx
-    'You don\'t have any documents.': 'You don\'t have any documents.',
+    'Images': 'Images',
+    'Files': 'Files',
+    'Drop files here': 'Drop files here',
+    'No uploads yet.': 'No uploads yet.',
     // edit-app/src/commons/UploadButton.jsx
-    'Add new': 'Add new',
+    'File #%s could not be uploaded because the file type is not supported.': 'File #%s could not be uploaded because the file type is not supported.',
+    'File #%s could not be uploaded because its size exceeded the maximum %sMB': 'File #%s could not be uploaded because its size exceeded the maximum %sMB',
+    'Failed to upload file #%s': 'Failed to upload file #%s',
+    'Upload files': 'Upload files',
+    'You can also drag files here\n from your computer.': 'You can also drag files here\n from your computer.',
     // edit-app/src/left-column/block/BlockDnDSpawner.jsx
     'Start adding content': 'Start adding content',
     'reusable content': 'reusable content',
@@ -116,7 +124,6 @@ stringBundles.push({
     'Website': 'Website',
     'Content management': 'Content management',
     'page': 'page',
-    'Files': 'Files',
     // edit-app/src/left-column/page-type/PageTypeCreatePanel.jsx
     'page type': 'page type',
     'Default content': 'Default content',
@@ -242,19 +249,6 @@ stringBundles.push({
     'Background': 'Background',
     // edit-app/src/block-widget/ImagePicker.jsx
     'Choose a picture': 'Choose a picture',
-    // edit-app/src/popups/upload/UploadButton.jsx
-    'File name': 'File name',
-    'Upload picture': 'Upload picture',
-    'File extension not supported': 'File extension not supported',
-    'File size must not exceed %dMB': 'File size must not exceed %dMB',
-    'Failed to upload image': 'Failed to upload image',
-    // edit-app/src/popups/upload/UploadsManager.jsx
-    'Documents': 'Documents',
-    'Images': 'Images',
-    'Upload': 'Upload',
-    'Search': 'Search',
-    'No results for "%s"': 'No results for "%s"',
-    'No uploads yet': 'No uploads yet',
     // edit-app/src/right-column/website/WebsiteEditBasicInfoView.jsx
     'Edit website info': 'Edit website info',
     'todo11': 'todo11',

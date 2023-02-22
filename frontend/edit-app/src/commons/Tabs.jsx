@@ -1,10 +1,10 @@
 class Tabs extends preact.Component {
     /**
-     * @param {{links: Array<string>; onTabChanged: (idx: number) => any; className?: string;}} props
+     * @param {{links: Array<string>; onTabChanged: (idx: number) => any; initialIndex?: Number; className?: string;}} props
      */
     constructor(props) {
         super(props);
-        this.state = {currentIdx: 0};
+        this.state = {currentIdx: typeof props.initialIndex !== 'number' ? 0 : props.initialIndex};
     }
     /**
      * @access protected

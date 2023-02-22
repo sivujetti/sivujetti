@@ -1,8 +1,5 @@
 import {__, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import FileUploader from '../commons/FileUploader.jsx';
-import UploadsManager from '../popups/upload/UploadsManager.jsx';
-
-const useNewUploader = true;
 
 class ImagePickerFieldWidget extends preact.Component {
     // inputEl;
@@ -66,7 +63,7 @@ class PickImageDialog extends preact.Component {
      * @access protected
      */
     render({onSelected}) {
-        return useNewUploader ? [
+        return [
             <FileUploader
                 mode="pick"
                 onEntryClicked={ imageEntry => {
@@ -78,19 +75,7 @@ class PickImageDialog extends preact.Component {
                 onClick={ () => floatingDialog.close() }
                 class="btn mt-8"
                 type="button">{ __('Close') }</button>
-        ] : <>
-            <UploadsManager
-                onEntryClicked={ imageEntry => {
-                    onSelected(imageEntry);
-                    floatingDialog.close();
-                }}
-                onlyImages
-                autoFocus/>
-             <button
-                 onClick={ () => floatingDialog.close() }
-                 class="btn mt-8"
-                 type="button">{ __('Close') }</button>
-        </>;
+        ];
     }
 }
 

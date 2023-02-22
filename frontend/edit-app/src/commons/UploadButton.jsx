@@ -18,38 +18,16 @@ class UploadButton extends preact.Component {
         this.setState({validationErrors: []});
     }
     /**
-     * @access protected
+     * @param {Array<File>} files
+     * @access public
      */
-    render(_, {validationErrors}) {
-        return [
-            <div class="file-input-outer">
-                <input onChange={ this.handleFileInputChanged.bind(this) }
-                    id="file-input"
-                    name="localFile"
-                    type="file"
-                    accept={ validExtsStr }
-                    multiple/>
-                <label class="d-inline-flex" htmlFor="file-input">
-                    <Icon iconId="file-plus"/>
-                    <span class="ml-2 flex-centered">{ __('Add new') }</span>
-                </label>
-            </div>,
-            !validationErrors.length ? null : <div class="pt-2"><p class="info-box error mt-2">{ validationErrors.join(', ') }</p></div>
-        ];
-    }
-    /**
-     * @param {Event} e
-     * @access private
-     */
-    handleFileInputChanged(e) {
-        if (!e.target.value) return;
-        const files = Array.from(e.target.files); // [{lastModified: 1647780754120, lastModifiedDate: Date, name: "cat.jpg", size: 90707, ype: "image/jpeg"}]
+    handleFilesSelected(files) {
         const mapped = files.map((file, i) => {
             const pcs = file.name.split('.');
             if (validExts.indexOf(`.${pcs[pcs.length - 1]}`) < 0)
-                return {pcs, status: `File #${i + 1} could not be uploaded because the file type is not supported.`};
+                return {pcs, status: __('File #%s could not be uploaded because the file type is not supported.', i + 1)};
             if (file.size >= MAX_FILE_SIZE_MB * 1024 * 1024)
-                return {pcs, status: `File #${i + 1} could not be uploaded because its size exceeded the maximum ${MAX_FILE_SIZE_MB}MB`};
+                return {pcs, status: __('File #%s could not be uploaded because its size exceeded the maximum %sMB', i + 1, MAX_FILE_SIZE_MB)};
             return {pcs, status: 'ok'};
         });
 
@@ -74,7 +52,7 @@ class UploadButton extends preact.Component {
             this.uploadFile(files[i], entry).then(res => {
                 const ok = typeof res !== 'string';
                 if (!ok)
-                    this.setState({validationErrors: [...this.state.validationErrors, `Failed to upload file #${i}`]});
+                    this.setState({validationErrors: [...this.state.validationErrors, __('Failed to upload file #%s', i + 1)]});
                 this.props.onUploadEnded(ok ? {...entry, ...{
                     fileName: res.fileName,
                     baseDir: res.baseDir,
@@ -84,6 +62,41 @@ class UploadButton extends preact.Component {
                 }} : null, ok);
             });
         });
+    }
+    /**
+     * @access protected
+     */
+    render(_, {validationErrors}) {
+        return [
+            <div class="file-input-outer">
+                <input onChange={ this.handleFileInputChanged.bind(this) }
+                    id="file-input"
+                    name="localFile"
+                    type="file"
+                    accept={ validExtsStr }
+                    multiple/>
+                <label class="d-inline-flex p-relative" htmlFor="file-input">
+                    <Icon iconId="file-plus"/>
+                    <span class="ml-2 flex-centered">{ __('Upload files') }</span>
+                </label>
+                <span
+                    class="tooltip p-absolute mt-2 ml-2"
+                    data-tooltip={ __('You can also drag files here\n from your computer.') }
+                    style="opacity: .6">
+                    <Icon iconId="info-circle" className="color-dimmed3 size-xs"/>
+                </span>
+            </div>,
+            !validationErrors.length ? null : <div class="pt-2"><p class="info-box error mt-2">{ validationErrors.join(', ') }</p></div>
+        ];
+    }
+    /**
+     * @param {Event} e
+     * @access private
+     */
+    handleFileInputChanged(e) {
+        if (!e.target.value) return;
+        const files = Array.from(e.target.files); // [{lastModified: 1647780754120, lastModifiedDate: Date, name: "cat.jpg", size: 90707, ype: "image/jpeg"}]
+        this.handleFilesSelected(files);
     }
     /**
      * @param {File} file

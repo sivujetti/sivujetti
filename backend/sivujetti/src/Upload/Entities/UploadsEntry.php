@@ -3,6 +3,8 @@
 namespace Sivujetti\Upload\Entities;
 
 final class UploadsEntry {
+    /** @var string */
+    public string $id;
     /** @var string e.g. "a-cat.png" */
     public string $fileName;
     /** @var string e.g. "2021/", "2021/09/" or "" */

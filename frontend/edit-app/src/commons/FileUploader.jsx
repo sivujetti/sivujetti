@@ -1,4 +1,5 @@
-import {__, http, env, Icon, LoadingSpinner, urlUtils} from '@sivujetti-commons-for-edit-app';
+import {__, http, env, urlUtils, Icon, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
+import Tabs from './Tabs.jsx';
 import UploadButton from './UploadButton.jsx';
 
 const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=';
@@ -11,27 +12,59 @@ const fetchedFiles = {
 };
 
 class FileUploader extends preact.Component {
+    // dropAreaEl;
+    // uploadButton;
+    /**
+     * @param {{onEntryClicked?: (entry: UploadsEntry) => void; mode?: 'pick'; onlyImages?: Boolean; numColumns?: Number; hideUploadButton?: Boolean;}} props
+     */
+    constructor(props) {
+        super(props);
+        this.dropAreaEl = preact.createRef();
+        this.uploadButton = preact.createRef();
+    }
     /**
      * @access protected
      */
     componentWillMount() {
-        this.setState({files: null});
-        const {onlyImages} = this.props;
-        this.fetchOrGetUploads(onlyImages)
+        const tabName = this.props.onlyImages ? 'onlyImages' : 'nonImages';
+        this.setState({files: null, currentTab: tabName});
+        this.fetchOrGetUploads(tabName)
             .then((fileGroup) => { this.setState({files: fileGroup}); });
     }
     /**
-     * @param {{onEntryClicked?: (entry: UploadsEntry) => void; mode?: 'pick', numColumns?: Number, hideUploadButton?: Boolean;}} props
-     * @param {Object} state
      * @access protected
      */
-    render({mode, numColumns, hideUploadButton}, {files}) {
+    render({mode, numColumns, hideUploadButton, onlyImages}, {files}) {
         const ItemEl = mode !== 'pick' ? 'span' : 'button';
-        return <div>
+        return [
+        <div class="mb-2 pb-2">
+        <Tabs
+            links={ [__('Images'), __('Files')] }
+            onTabChanged={ this.handleTabChanged.bind(this) }
+            initialIndex={ onlyImages ? 0 : 1 }
+            className="text-tinyish mt-0"/>
+        </div>,
+        <div
+            class="file-drop-area"
+            { ...(hideUploadButton !== true
+                ? {
+                    'onDragOver': this.handleDragEnter.bind(this),
+                    'onDragEnter': this.handleDragEnter.bind(this),
+                    'onDragLeave': this.handleDragLeave.bind(this),
+                    'onDrop': e => {
+                        this.handleDragLeave(e);
+                        this.uploadButton.current.handleFilesSelected(Array.from(e.dataTransfer.files));
+                    },
+                    'data-drop-files-here-text': __('Drop files here'),
+                }
+                : {}
+            ) }
+            ref={ this.dropAreaEl }>
             { hideUploadButton !== true
                 ? <UploadButton
                     onUploadStarted={ this.addNewFile.bind(this) }
-                    onUploadEnded={ this.markFileAsUploaded.bind(this) }/>
+                    onUploadEnded={ this.markFileAsUploaded.bind(this) }
+                    ref={ this.uploadButton }/>
                 : null
             }
             <div>{ files ? files.length
@@ -57,10 +90,11 @@ class FileUploader extends preact.Component {
                     </article>;
                 }) }</div>
                 : <div>
-                    <p style="margin-top: 1rem">{ __('You don\'t have any documents.') }</p>
+                    <p style="margin-top: 1rem">{ __('No uploads yet.') }</p>
                 </div>
             : <LoadingSpinner className="mt-2"/> }</div>
-        </div>;
+        </div>
+        ];
     }
     /**
      * @param {UploadsEntry} file
@@ -69,7 +103,7 @@ class FileUploader extends preact.Component {
     addNewFile(file) {
         const k = file.mime.startsWith('image/') ? 'onlyImages' : 'nonImages';
         if (fetchedFiles[k] === null) fetchedFiles[k] = [];
-        fetchedFiles[k].push(file);
+        fetchedFiles[k].unshift(file);
         //
         this.setState({files: cloneArrShallow(fetchedFiles[k])});
     }
@@ -87,25 +121,64 @@ class FileUploader extends preact.Component {
         this.setState({files: cloneArrShallow(fetchedFiles[k])});
     }
     /**
-     * @param {Boolean} onlyImages
+     * @param {'onlyImages'|'nonImages'} tabName
      * @returns {Promise<UploadsEntry[]>}
      * @access private
      */
-    fetchOrGetUploads(onlyImages) {
-        const [k, q] = onlyImages ? ['onlyImages', '$eq'] : ['nonImages', '$neq'];
-        //
-        const cached = fetchedFiles[k];
+    fetchOrGetUploads(tabName) {
+        const cached = fetchedFiles[tabName];
         if (cached) return Promise.resolve(cached);
         //
+        const q = tabName === 'onlyImages' ? '$eq' : '$neq';
         return http.get(`/api/uploads/${JSON.stringify({mime: {[q]: 'image/*'}})}`)
             .then(files => {
-                fetchedFiles[k] = files.map(completeBackendUploadsEntry);
-                return fetchedFiles[k];
+                fetchedFiles[tabName] = files.map(completeBackendUploadsEntry);
+                return fetchedFiles[tabName];
             })
             .catch(env.window.console.error);
     }
     /**
-     * @param {UploadsEntry} i
+     * @param {Event} e
+     * @access private
+     */
+    handleDragEnter(e) {
+        const target = e.target === this.dropAreaEl.current ? e.target : e.target.closest('.file-drop-area');
+        if (this.handleDragEvent(e, target)) this.dropAreaEl.current.classList.add('hovering');
+    }
+    /**
+     * @param {Event} e
+     * @access private
+     */
+    handleDragLeave(e) {
+        // todo if this.escPressed return
+        if (this.handleDragEvent(e)) this.dropAreaEl.current.classList.remove('hovering');
+    }
+    /**
+     * @param {Event} e
+     * @param {HTMLElement} target = e.target
+     * @returns {Boolean}
+     * @access private
+     */
+    handleDragEvent(e, target = e.target) {
+        if (target !== this.dropAreaEl.current) return false;
+        e.preventDefault();
+        e.stopPropagation();
+        return true;
+    }
+    /**
+     * @param {Number} toIdx
+     * @access private
+     */
+    handleTabChanged(toIdx) {
+        const next = ['onlyImages', 'nonImages'][toIdx];
+        if (this.state.currentTab !== next) {
+            this.setState({currentTab: next});
+            this.fetchOrGetUploads(next)
+                .then((fileGroup) => { this.setState({files: fileGroup}); });
+        }
+    }
+    /**
+     * @param {UploadsEntry} f
      * @access private
      */
     handleEntryClicked(f) {

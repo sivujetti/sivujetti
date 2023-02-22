@@ -148,13 +148,14 @@ return [
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}files` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `fileName` VARCHAR(255) NOT NULL, -- e.g. 'a-cat.png'
     `baseDir` VARCHAR(260) NOT NULL, -- e.g. '' or 'sub-dir/' or 'sub-dir/another-dir/'
     `mime` VARCHAR(255) NOT NULL,
     `friendlyName` VARCHAR(255) NOT NULL,
     `createdAt` {$dataTypeForTimestamps},
     `updatedAt` {$dataTypeForTimestamps},
-    PRIMARY KEY (`fileName`, `baseDir`)
+    PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 
 "CREATE TABLE `\${p}jobs` (

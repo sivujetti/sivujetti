@@ -3,12 +3,13 @@
 namespace Sivujetti\Tests\Upload;
 
 final class GetUploadsTest extends UploadsControllerTestCase {
-    public function testGetUploadsReturnsOnlyImages(): void {
+    public function testGetUploadsReturnsOnlyImagesSortedByNewestToOldest(): void {
         $state = $this->setupListUploadsTest();
         $this->dbDataHelper->insertData($state->testFiles, "files");
         $this->makeSivujettiAppForUploadsTest($state);
         $this->sendGetUploadsRequest($state, '{"mime":{"$eq":"image/*"}}');
-        $this->verifyListedTheseFiles(array_slice($state->testFiles, 0, 2), $state);
+        $onlyImagesOldestToNewest = array_slice($state->testFiles, 0, 2);
+        $this->verifyListedTheseFiles(array_reverse($onlyImagesOldestToNewest), $state);
     }
 
 
@@ -25,19 +26,22 @@ final class GetUploadsTest extends UploadsControllerTestCase {
     private function setupListUploadsTest(): \TestState {
         $state = new \TestState;
         $state->testFiles = [
-            (object) ["fileName" => "a-cat.png",
+            (object) ["id" => "1",
+                      "fileName" => "a-cat.png",
                       "baseDir" => "sub-dir/",
                       "mime" => "image/png",
                       "friendlyName" => "",
                       "createdAt" => "1320969601",
                       "updatedAt" => "0"],
-            (object) ["fileName" => "niss.jpg",
+            (object) ["id" => "2",
+                      "fileName" => "niss.jpg",
                       "baseDir" => "sub-dir/",
                       "mime" => "image/jpeg",
                       "friendlyName" => "Everdeen",
                       "createdAt" => "1320969601",
                       "updatedAt" => "0"],
-            (object) ["fileName" => "readme.txt",
+            (object) ["id" => "3",
+                      "fileName" => "readme.txt",
                       "baseDir" => "",
                       "mime" => "text/plain",
                       "friendlyName" => "",
@@ -53,6 +57,7 @@ final class GetUploadsTest extends UploadsControllerTestCase {
     }
     private function verifyListedTheseFiles(array $expected, \TestState $state): void {
         $makeExpectedResponseItem = fn($testItem) => (object) [
+            "id" => $testItem->id,
             "fileName" => $testItem->fileName,
             "baseDir" => $testItem->baseDir,
             "mime" => $testItem->mime,

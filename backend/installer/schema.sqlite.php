@@ -137,13 +137,13 @@ return [
 )",
 
 "CREATE TABLE `\${p}files` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `fileName` TEXT NOT NULL, -- e.g. 'a-cat.png'
     `baseDir` TEXT NOT NULL, -- e.g. '' or 'sub-dir/' or 'sub-dir/another-dir/'
     `mime` TEXT NOT NULL,
     `friendlyName` TEXT NOT NULL,
     `createdAt` {$dataTypeForTimestamps},
-    `updatedAt` {$dataTypeForTimestamps},
-    PRIMARY KEY (`fileName`, `baseDir`)
+    `updatedAt` {$dataTypeForTimestamps}
 )",
 
 "CREATE TABLE `\${p}jobs` (

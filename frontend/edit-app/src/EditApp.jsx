@@ -83,7 +83,7 @@ class EditApp extends preact.Component {
             { !showFirstTimeDragInstructions ? null : <div class="drag-instructions-overlay"><div>
                 <p class="flex-centered">
                     <Icon iconId="info-circle" className="size-lg mr-2"/>
-                    { __('Aloita lisäämään sisältöä raahaamalla') }
+                    { __('Voit lisätä sisältöä raahaamalla') }
                 </p>
                 <img src={ urlUtils.makeAssetUrl('/public/sivujetti/assets/drag-right-illustration.png') } alt=""/>
                 <button onClick={ e => {

@@ -8,10 +8,18 @@ stringBundles.push({
     'Services': 'Palvelut',
     'Services#partitive': 'Palvelua',
     'Service': 'Palvelu',
+    'No results for "%s"': 'Ei tuloksia hakusanalla "%s"',
     // edit-app/src/commons/FileUploader.jsx
-    'You don\'t have any documents.': 'Sinulla ei ole dokumentteja.',
+    'Images': 'Kuvat',
+    'Files': 'Tiedostot',
+    'Drop files here': 'Pudota tiedostot tähän',
+    'No uploads yet.': 'Ei vielä latauksia.',
     // edit-app/src/commons/UploadButton.jsx
-    'Add new': 'Lisää uusi',
+    'File #%s could not be uploaded because the file type is not supported.': 'Tiedostoa #%s ei voitu ladata koska tiedostotyyppiä ei tuettu.',
+    'File #%s could not be uploaded because its size exceeded the maximum %sMB': 'Tiedostoa #%s ei voitu ladata koska sen koko ylitti enimmäiskoon %sMB',
+    'Failed to upload file #%s': 'Tiedoston #%s lataus epäonnistui',
+    'Upload files': 'Lataa tiedostoja',
+    'You can also drag files here\n from your computer.': 'Voit myös raahata tähän tie-\ndostoja tietokoneeltasi.',
     // edit-app/src/left-column/block/BlockDnDSpawner.jsx
     'Start adding content': 'Aloita lisäämään sisältöä',
     'reusable content': 'uudelleenkäytettävä sisältö',
@@ -116,7 +124,6 @@ stringBundles.push({
     'Website': 'Sivusto',
     'Content management': 'Sisällönhallinta',
     'page': 'sivu',
-    'Files': 'Tiedostot',
     //edit-app/src/left-column/page-type/PageTypeCreatePanel.jsx
     'page type': 'sivutyyppi',
     'Default content': 'Oletussisältö',
@@ -242,19 +249,6 @@ stringBundles.push({
     'Background': 'Taustakuva',
     // edit-app/src/block-widget/ImagePicker.jsx
     'Choose a picture': 'Valitse kuva',
-    //edit-app/src/popups/upload/UploadButton.jsx
-    'File name': 'Tiedostonimi',
-    'Upload picture': 'Lataa kuva',
-    'File extension not supported': 'Tiedostopääte ei kelpaa',
-    'File size must not exceed %dMB': 'Tiedosto saa olla enintään %dMB',
-    'Failed to upload image': 'Kuvan lataus epäonnistui',
-    //edit-app/src/popups/upload/UploadsManager.jsx
-    'Documents': 'Tiedostot',
-    'Images': 'Kuvat',
-    'Upload': 'Lataa',
-    'Search': 'Hae',
-    'No results for "%s"': 'Ei tuloksia hakusanalla "%s"',
-    'No uploads yet': 'Ei vielä latauksia',
     // edit-app/src/right-column/website/WebsiteEditBasicInfoView.jsx
     'Edit website info': 'Muokkaa sivuston tietoja',
     'todo11': 'Nämä tiedot näkyvät hakukoneissa, ja esim. jaettaessa sivuja some-kanaviin.',

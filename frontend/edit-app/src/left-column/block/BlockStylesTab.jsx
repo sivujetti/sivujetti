@@ -699,20 +699,22 @@ function findParentStyleInfo(themeStyles, block) {
  * @returns {[RawBlock|null, String|null, 'parent'|null]} [parentBlock, styleUnitClass, type]
  */
 function findScopedParentStyle(themeStyles, block, tree = null) {
-    const {id, isStoredToTreeId} = block;
-    if (!tree) tree = blockTreeUtils.getRootFor(isStoredToTreeId, store2.get().theBlockTree);
-    const parent = blockTreeUtils.findBlock(id, tree)[2];
-    if (!parent) return [null, null, null];
+    if (!tree) {
+        const root = blockTreeUtils.findBlockSmart(block.id, store2.get().theBlockTree)[3];
+        tree = Array.isArray(root) ? root : root.blocks;
+    }
+    const paren = blockTreeUtils.findBlock(block.id, tree)[2];
+    if (!paren) return [null, null, null];
     //
-    const {units} = (findBlockTypeStyles(themeStyles, parent.type) || {units: []});
+    const {units} = (findBlockTypeStyles(themeStyles, paren.type) || {units: []});
     if (units.length) {
-        const unitClses = units.map(({id}) => createUnitClass(id, parent.type));
-        const firstEnabledUnit = unitClses.find(cls => blockHasStyle(cls, parent));
-        if (firstEnabledUnit) return [parent, firstEnabledUnit, 'parent'];
+        const unitClses = units.map(({id}) => createUnitClass(id, paren.type));
+        const firstEnabledUnit = unitClses.find(cls => blockHasStyle(cls, paren));
+        if (firstEnabledUnit) return [paren, firstEnabledUnit, 'parent'];
         // else keep looking
     }
     // keep looking
-    return findScopedParentStyle(themeStyles, parent, tree);
+    return findScopedParentStyle(themeStyles, paren, tree);
 }
 
 function tempHack2(el, popperId, cmp) {

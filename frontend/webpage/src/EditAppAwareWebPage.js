@@ -1,5 +1,5 @@
-import {CHILDREN_START, CHILDREN_END, noop} from '../../edit-app/src/block/dom-commons.js';
-import ReRenderer, {findCommentR, getBlockEl, withTrid} from './ReRenderer.js';
+import {CHILDREN_START, CHILDREN_END} from '../../edit-app/src/block/dom-commons.js';
+import ReRenderer, {findCommentR, getBlockEl} from './ReRenderer.js';
 
 class EditAppAwareWebPage {
     // data; // public
@@ -54,15 +54,6 @@ class EditAppAwareWebPage {
         const nextOfLast = lastEl.nextSibling;
         if (nextOfLast) nextOfLast.parentElement.insertBefore(document.createComment(CHILDREN_END), nextOfLast);
         else lastEl.parentElement.appendChild(document.createComment(CHILDREN_END));
-    }
-    /**
-     * @param {String} blockId
-     * @param {String} trid
-     * @access public
-     */
-    setTridAttr(blockId, trid) {
-        const el = getBlockEl(blockId);
-        el.setAttribute('data-is-stored-to-trid', trid);
     }
     /**
      * @param {EditAwareWebPageEventHandlers} handlers
@@ -309,4 +300,4 @@ function createTrier(fn,
 }
 
 export default EditAppAwareWebPage;
-export {createTrier, withTrid};
+export {createTrier};

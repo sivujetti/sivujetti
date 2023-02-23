@@ -1,42 +1,38 @@
 import {api} from '@sivujetti-commons-for-edit-app';
 import {generatePushID, objectUtils} from '../commons/utils.js';
 import blockTreeUtils from '../left-column/block/blockTreeUtils.js';
-import {DONT_KNOW_YET} from './dom-commons.js';
 
 /**
  * @param {BlockType|String} blockType
- * @param {String} trid = 'main'
  * @param {String} id = generatePushID()
  * @param {{[key: String]: any;}} initialOwnData = null
  * @returns {RawBlock}
  */
-function createBlockFromType(blockType, trid = 'main', id = generatePushID(), initialOwnData = null) {
+function createBlockFromType(blockType, id = generatePushID(), initialOwnData = null) {
     if (typeof blockType === 'string') blockType = api.blockTypes.get(blockType);
-    return createBlock(blockType, trid, id, initialOwnData || {}, {},
+    return createBlock(blockType, id, initialOwnData || {}, {},
         blockType.initialChildren || null);
 }
 
 /**
  * @param {BlockBlueprint} blueprint
- * @param {String} trid = 'main'
  * @returns {RawBlock}
  */
-function createBlockFromBlueprint(blueprint, trid = 'main') {
+function createBlockFromBlueprint(blueprint) {
     const {initialOwnData, initialDefaultsData, initialChildren} = blueprint;
-    return createBlock(api.blockTypes.get(blueprint.blockType), trid, generatePushID(),
+    return createBlock(api.blockTypes.get(blueprint.blockType), generatePushID(),
         initialOwnData, initialDefaultsData || {}, initialChildren || []);
 }
 
 /**
  * @param {BlockType} blockType
- * @param {String} trid
  * @param {String} id
  * @param {{[key: String]: any;}} initialOwnData
  * @param {{title: String; renderer: String; styleClasses: String}|{[key: String]: any;}} initialDefaultsData
  * @param {Array<BlockBlueprint>|null} initialChildren
  * @returns {RawBlock}
  */
-function createBlock(blockType, trid, id, initialOwnData, initialDefaultsData, initialChildren) {
+function createBlock(blockType, id, initialOwnData, initialDefaultsData, initialChildren) {
     const typeSpecific = createOwnData(blockType, initialOwnData);
     return Object.assign({
         id,
@@ -44,10 +40,8 @@ function createBlock(blockType, trid, id, initialOwnData, initialDefaultsData, i
         title: initialDefaultsData.title || '',
         renderer: initialDefaultsData.renderer || blockType.defaultRenderer,
         styleClasses: initialDefaultsData.styleClasses || '',
-        isStoredTo: trid !== DONT_KNOW_YET ? trid === 'main' ? 'page' : 'globalBlockTree' : trid,
-        isStoredToTreeId: trid,
         children: !Array.isArray(initialChildren) ? [] : initialChildren.map(blueprint =>
-            createBlockFromBlueprint(blueprint, trid))
+            createBlockFromBlueprint(blueprint))
     }, typeSpecific);
 }
 
@@ -103,18 +97,6 @@ function isTreesOutermostBlock(blockOrBlockId, tree) {
 }
 
 /**
- * @param {RawBlock|String} innerTreeBlockOrTrid
- * @param {Array<RawBlock>} tree
- * @returns {RawBlock} {type: 'GlobalBlockReference'}
- */
-function findRefBlockOf(innerTreeBlockOrTrid, tree) {
-    const trid = typeof innerTreeBlockOrTrid !== 'string' ? innerTreeBlockOrTrid.isStoredToTreeId : innerTreeBlockOrTrid;
-    return blockTreeUtils.findRecursively(tree, block =>
-        block.type === 'GlobalBlockReference' && block.globalBlockTreeId === trid
-    );
-}
-
-/**
  * @param {RawBlock} block
  * @param {Boolean} includePrivates = false
  * @returns {{[key: String]: any;}}
@@ -132,25 +114,13 @@ function treeToTransferable(tree, includePrivates = false) {
     return blockTreeUtils.mapRecursively(tree, block => {
         const allKeys = Object.keys(block);
         const onlyTheseKeys = allKeys.filter(key => {
-            if (key === 'children' || key === 'isStoredTo' || key === 'isStoredToTreeId')
+            if (key === 'children')
                 return false;
             if (includePrivates === false && key.startsWith('__'))
                 return false;
             return true;
         });
         return objectUtils.clonePartially(onlyTheseKeys, block);
-    });
-}
-
-/**
- * @param {Array<RawBlock>} branch
- * @param {String} trid
- */
-function setTrids(branch, trid) {
-    const isStoredTo = trid === 'main' ? 'page' : 'globalBlockTree';
-    blockTreeUtils.traverseRecursively(branch, b => {
-        b.isStoredToTreeId = trid;
-        b.isStoredTo = isStoredTo;
     });
 }
 
@@ -171,5 +141,4 @@ function createGbtRefBlockProps(gbt, blocks = null) {
 }
 
 export {createBlockFromType, createBlockFromBlueprint, isTreesOutermostBlock,
-        findRefBlockOf, toTransferable, treeToTransferable, cloneDeep, setTrids,
-        createGbtRefBlockProps};
+        toTransferable, treeToTransferable, cloneDeep, createGbtRefBlockProps};

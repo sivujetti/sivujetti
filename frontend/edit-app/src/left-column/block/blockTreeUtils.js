@@ -1,9 +1,9 @@
 export default {
     /**
      * @param {String} id
-     * @param {Array<Block>} branch
+     * @param {Array<RawBlock>} branch
      * @param {RawBlock=} parentBlock = null
-     * @returns {[Block|null, Array<Block>|null, Block|null]} [block, containingBranch, parentBlock]
+     * @returns {[Block|null, Array<RawBlock>|null, Block|null]} [block, containingBranch, parentBlock]
      * @access public
      */
     findBlock(id, branch, parentBlock = null) {
@@ -17,22 +17,42 @@ export default {
         return [null, null, null];
     },
     /**
-     * @param {String} id
-     * @param {Array<Block>} tree
-     * @param {RawBlock=} parentBlock = null
-     * @returns {[Block|null, Array<Block>|null, Block|null]} [block, containingBranch, parentBlock]
+     * @param {String} blockId
+     * @param {Array<RawBlock>} theBlockTree
+     * @returns {String|null}
      * @access public
      */
-    findBlock2(id, tree, parentBlock = null) {
+    getIsStoredToTreeId(blockId, theBlockTree) {
+        const [b, _, __, root] = this.findBlockSmart(blockId, theBlockTree);
+        if (!b) return null;
+        return root === theBlockTree ? 'main' : root.id;
+    },
+    /**
+     * @param {String} id
+     * @param {Array<RawBlock>} tree
+     * @param {RawBlock=} _parentBlock = null
+     * @param {RawGlobalBlockTree|Array<RawBlock>} _root = null
+     * @returns {[Block|null, Array<RawBlock>|null, Block|null, RawGlobalBlockTree|Array<RawBlock>|null]} [block, containingBranch, parentBlock, root]
+     * @access public
+     */
+    findBlockSmart(id, tree, _parentBlock = null, _root = null) { // todo return {block, containingBranch, paren, root} ?
         for (const b of tree) {
-            if (b.id === id) return [b, tree, parentBlock];
-            const c = b.type === 'GlobalBlockReference' ? b.__globalBlockTree.blocks : b.children;
-            if (c.length) {
-                const sub = this.findBlock2(id, c, b);
-                if (sub[0]) return sub;
+            if (b.id === id) return [b, tree, _parentBlock, _root || tree];
+            if (b.type !== 'GlobalBlockReference') {
+                const c = b.children;
+                if (c.length) {
+                    const sub = this.findBlockSmart(id, c, b, _root || tree);
+                    if (sub[0]) return sub;
+                }
+            } else {
+                const c = b.__globalBlockTree.blocks;
+                if (c.length) {
+                    const sub = this.findBlockSmart(id, c, b, b.__globalBlockTree);
+                    if (sub[0]) return sub;
+                }
             }
         }
-        return [null, null, null];
+        return [null, null, null, null];
     },
     /**
      * @param {Array<Object>} branch
@@ -95,38 +115,16 @@ export default {
         });
     },
     /**
-     * Returns $from itself, if $trid === 'main', otherwise this.findRefBlockFor(trid, from).__globalBlockTree.blocks.
-     *
-     * @param {String} trid
+     * @param {String} trid 'main' or 'id-of-some-global-block-tree'
      * @param {Array<RawBlock>} from
      * @returns {Array<RawBlock>|null}
      */
-    getRootFor(trid, from) {
-        if (trid === 'main') return from;
-        const refBlock = this.findFirstRefBlockFor(trid, from);
+    findTree(trid, from) {
+        if (trid === 'main')
+            return from;
+        const refBlock = this.findRecursively(from, block =>
+            block.type === 'GlobalBlockReference' && block.__globalBlockTree.id === trid
+        );
         return refBlock ? refBlock.__globalBlockTree.blocks : null;
     },
-    /**
-     * Returns first block from $from, which type === 'GlobalBlockReference' and
-     * globalBlockTreeId === $trid.
-     *
-     * @param {String} trid
-     * @param {Array<RawBlock>} from
-     * @returns {RawBlock}
-     */
-    findFirstRefBlockFor(trid, from) {
-        return this.findRecursively(from, block =>
-            block.type === 'GlobalBlockReference' && block.globalBlockTreeId === trid
-        );
-    },
 };
-
-/**
- * @param {RawBlock} block
- * @returns {Boolean}
- */
-function isGlobalBlockTreeRefOrPartOfOne(block) {
-    return block.type === 'GlobalBlockReference' || block.isStoredTo === 'globalBlockTree';
-}
-
-export {isGlobalBlockTreeRefOrPartOfOne};

@@ -1,4 +1,5 @@
 import {__, env, Icon} from '@sivujetti-commons-for-edit-app';
+import {getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import EditItemPanel from './EditItemPanel.jsx';
@@ -18,7 +19,8 @@ class MenuBlockEditForm extends preact.Component {
         const {getBlockCopy, grabChanges} = this.props;
         const block = getBlockCopy();
         const pageSlug = selectCurrentPageDataBundle(store.getState()).page.slug;
-        this.currentBlockIdInfo = `${block.id}:${block.isStoredToTreeId}:${pageSlug}`;
+        const trid = getIsStoredToTreeIdFrom(block.id, 'mainTree');
+        this.currentBlockIdInfo = `${block.id}:${trid}:${pageSlug}`;
         this.setState({parsedTree: this.linkCreator.setGetCounterUsingTreeOf(block),
                        editPanelState: createEditPanelState(),
                        linkWithNavOpened: null});

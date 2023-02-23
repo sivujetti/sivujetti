@@ -1,5 +1,6 @@
 import {__, api, env, signals, urlUtils, Icon, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
 import {createTrier} from '../../../../webpage/src/EditAppAwareWebPage.js';
+import {findBlockFrom} from '../../block/utils-utils.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import BlockTree from '../block/BlockTree.jsx';
@@ -37,9 +38,9 @@ class OnThisPageSection extends MenuSectionAbstract {
          * @param {_} _
          * @param {(blockEl: HTMLElement) => RawBlock|null} findBlock
          */
-        (blockEl, _, findBlock) => {
+        (blockEl, _) => {
             if (!blockEl) return;
-            focusToBlockAndEmitBlockTreeClick(findBlock(blockEl), 'web-page', () => { });
+            focusToBlockAndEmitBlockTreeClick(findBlockFrom(blockEl.getAttribute('data-block'), 'mainTree')[0], 'web-page', () => { });
         }),
         signals.on('block-styles-show-parent-styles-button-clicked',
         /**

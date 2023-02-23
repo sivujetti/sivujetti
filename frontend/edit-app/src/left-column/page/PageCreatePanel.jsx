@@ -53,7 +53,7 @@ class PageCreatePanel extends preact.Component {
             // Add update-block-tree op for `addToMenu` menu (if it was defined)
             if (this.addToMenuIdInfo) {
                 const [menuBlockId, menuBlockIsStoredToTreeId, pageSlug] = this.addToMenuIdInfo;
-                const innerTree = !this.addToMenuIsInCurrentPage ? null : blockTreeUtils.getRootFor(menuBlockIsStoredToTreeId, store2.get().theBlockTree);
+                const innerTree = !this.addToMenuIsInCurrentPage ? null : blockTreeUtils.findTree(menuBlockIsStoredToTreeId, store2.get().theBlockTree);
                 out.push({opName: `update-block-tree##${menuBlockIsStoredToTreeId}`, command: {
                     doHandle: () => (innerTree
                         // menu was present in current page

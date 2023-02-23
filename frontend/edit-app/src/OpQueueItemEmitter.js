@@ -34,11 +34,11 @@ class OpQueueItemEmitter {
                 const [drag, target, dropPos, treeTransfer] = data; // [BlockDescriptor, BlockDescriptor, dropPosition, treeTransferType]
                 const {isStoredToTreeId} = !(target.isGbtRef && dropPos === 'as-child') ? target : {isStoredToTreeId: target.data.refTreeId};
                 if (treeTransfer === 'none' || event === 'theBlockTree/applyAdd(Drop)Block')
-                    this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, isStoredToTreeId, null);
+                    this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, isStoredToTreeId);
                 else if (treeTransfer === 'out-of-gbt')
                     this.pushDoubleSaveOps(
-                        blockTreeUtils.getRootFor(drag.isStoredToTreeId, theBlockTree), drag.isStoredToTreeId, // 1.
-                        theBlockTree, isStoredToTreeId                                                         // 2.
+                        blockTreeUtils.findTree(drag.isStoredToTreeId, theBlockTree), drag.isStoredToTreeId, // 1.
+                        theBlockTree, isStoredToTreeId                                                       // 2.
                     );
                 else if (treeTransfer === 'into-gbt')
                     this.pushDoubleSaveOps(
@@ -48,7 +48,7 @@ class OpQueueItemEmitter {
             } else if (event === 'theBlockTree/deleteBlock') {
                 const oldTree = this.prevTree;
                 const [_id, blockIsStoredToTreeId, _wasCurrentlySelectedBlock] = data;
-                this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId, null);
+                this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId);
             } else if (event === 'theBlockTree/undoAdd(Drop)Block') {
                 // do nothing
             } else if (event === 'theBlockTree/updatePropsOf') {
@@ -65,13 +65,12 @@ class OpQueueItemEmitter {
                 this.pushSaveBlockTreeToBackendOpDefProps(theBlockTree, oldTree, blockIsStoredToTreeId, blockId, isOnlyStyleClassesChange);
             } else if (event === 'theBlockTree/cloneItem') {
                 const oldTree = this.prevTree;
-                const [clonedInf, _clonedFromInf] = data; // [SpawnDescriptor, BlockDescriptor]
-                const cloned = clonedInf.block;
-                this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, cloned.isStoredToTreeId, null);
+                const [_clonedInf, clonedFromInf] = data; // [SpawnDescriptor, BlockDescriptor]
+                this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, clonedFromInf.isStoredToTreeId);
             } else if (event === 'theBlockTree/convertToGbt') {
                 // Push 1.
                 const [originalBlockId, idForTheNewBlock, newGbtWithoutBlocks] = data;
-                const newGbtRef = blockTreeUtils.findBlock(idForTheNewBlock, theBlockTree)[0];
+                const [newGbtRef] = blockTreeUtils.findBlock(idForTheNewBlock, theBlockTree);
                 const dt = {id: newGbtWithoutBlocks.id, name: newGbtWithoutBlocks.name,
                                 blocks: treeToTransferable(newGbtRef.__globalBlockTree.blocks)};
                 store.dispatch(pushItemToOpQueue('convert-block-to-global', {
@@ -86,12 +85,12 @@ class OpQueueItemEmitter {
 
                 // Push 2.
                 const oldTree = this.prevTree;
-                this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, 'main', originalBlockId, true, () => {
+                this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, 'main', originalBlockId, () => {
                     setTimeout(() => {
                         // Remove 1. op from the queue
                         api.saveButton.triggerUndo();
                     }, 100);
-                });
+                }, true);
             }
         }),
         observeStore2('reusableBranches', (_state, [event, data]) => {
@@ -134,18 +133,19 @@ class OpQueueItemEmitter {
      * @param {Array<RawBlock>} theBlockTree
      * @param {Array<RawBlock>} oldTree
      * @param {String} blockIsStoredToTreeId
-     * @param {String|null} updateOfBlockId
-     * @param {Boolean} isUndoOfConvertToGlobal = false
+     * @param {String} updateOfBlockId = null
      * @param {() => any} onUndo = null
+     * @param {Boolean} isUndoOfConvertToGlobal = false
      * @access private
      */
-    pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId, updateOfBlockId, isUndoOfConvertToGlobal = false, onUndo = null) {
-        const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, theBlockTree);
+    pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId,
+                                updateOfBlockId = null, onUndo = null, isUndoOfConvertToGlobal = false) {
+        const rootOrInnerTree = blockTreeUtils.findTree(blockIsStoredToTreeId, theBlockTree);
         if (updateOfBlockId) signals.emit('op-queue-before-push-item', updateOfBlockId);
         store.dispatch(pushItemToOpQueue(`update-block-tree##${blockIsStoredToTreeId}`, {
             doHandle: () => saveExistingBlocksToBackend(rootOrInnerTree, blockIsStoredToTreeId),
             doUndo: () => {
-                store2.dispatch('theBlockTree/undo', [oldTree, updateOfBlockId, blockIsStoredToTreeId,
+                store2.dispatch('theBlockTree/undo', [oldTree, updateOfBlockId,
                                                         isUndoOfConvertToGlobal]);
                 this.setPrevBlockTree(oldTree);
                 if (onUndo) onUndo();
@@ -158,12 +158,12 @@ class OpQueueItemEmitter {
      * @param {Array<RawBlock>} theBlockTree
      * @param {Array<RawBlock>} oldTree
      * @param {String} blockIsStoredToTreeId
-     * @param {String|null} updateOfBlockId
+     * @param {String} updateOfBlockId
      * @param {Boolean} isOnlyStyleClassesChange
      * @access private
      */
     pushSaveBlockTreeToBackendOpDefProps(theBlockTree, oldTree, blockIsStoredToTreeId, updateOfBlockId, isOnlyStyleClassesChange) {
-        const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, theBlockTree);
+        const rootOrInnerTree = blockTreeUtils.findTree(blockIsStoredToTreeId, theBlockTree);
         store.dispatch(pushItemToOpQueue(`update-block-tree##${blockIsStoredToTreeId}`, {
             doHandle: () => saveExistingBlocksToBackend(rootOrInnerTree, blockIsStoredToTreeId),
             doUndo: () => {
@@ -193,7 +193,7 @@ class OpQueueItemEmitter {
 
         // Push 2.
         const oldTree = this.prevTree;
-        this.pushSaveBlockTreeToBackendOp(tree2, oldTree, tree2Id, null, undefined, () => {
+        this.pushSaveBlockTreeToBackendOp(tree2, oldTree, tree2Id, null, () => {
             setTimeout(() => {
                 // Remove 1. op from the queue
                 api.saveButton.triggerUndo();

@@ -2,8 +2,8 @@ import {__, api, signals, env} from '@sivujetti-commons-for-edit-app';
 import store, {setCurrentPageDataBundle, setOpQueue} from '../store.js';
 import store2, {observeStore as observeStore2} from '../store2.js';
 import {makePath, makeSlug} from '../block-types/pageInfo.js';
-import blockTreeUtils from '../left-column/block/blockTreeUtils.js';
 import opQueueItemEmitter from '../OpQueueItemEmitter.js';
+import {findBlockFrom} from '../block/utils-utils.js';
 
 const webPageUnregistrables = new Map;
 
@@ -39,18 +39,6 @@ class IframePageManager {
         const els = webPage.scanBlockElements();
         const {blocks} = webPage.data.page;
         const ordered = getOrdededBlocks(blocks, els);
-        blockTreeUtils.traverseRecursively(ordered, b => {
-            b.isStoredTo = 'page';
-            b.isStoredToTreeId = 'main';
-            if (b.type !== 'GlobalBlockReference' && b.type !== 'PageInfo') webPage.setTridAttr(b.id, 'main');
-            if (b.type === 'GlobalBlockReference') {
-                blockTreeUtils.traverseRecursively(b.__globalBlockTree.blocks, b2 => {
-                    b2.isStoredTo = 'globalBlockTree';
-                    b2.isStoredToTreeId = b.globalBlockTreeId;
-                    webPage.setTridAttr(b2.id, b.globalBlockTreeId);
-                });
-            }
-        });
         //
         const {data} = webPage;
         delete webPage.data;
@@ -61,7 +49,7 @@ class IframePageManager {
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         this.registerWebPageDomUpdater('main');
         //
-        data.page.__blocksDebug = data.page.blocks;
+        data.page.__blocksDebugOnly = data.page.blocks;
         delete data.page.blocks;
         opQueueItemEmitter.resetAndBegin();
         store2.dispatch('theBlockTree/init', [ordered]);
@@ -107,11 +95,6 @@ class IframePageManager {
             highlightRectEl.style.cssText = '';
             prevHoverStartBlockEl = null;
         };
-        const findBlock = blockEl => {
-            const trid = blockEl.getAttribute('data-is-stored-to-trid');
-            const rootOrInnerTree = blockTreeUtils.getRootFor(trid, store2.get().theBlockTree);
-            return blockTreeUtils.findBlock(blockEl.getAttribute('data-block'), rootOrInnerTree)[0];
-        };
         let leftPanelWidth = getCurrentLeftPanelWidth();
         webPageUnregistrables.set('highlightRectLeftPosUpdater', signals.on('left-column-width-changed', w => {
             leftPanelWidth = w;
@@ -130,7 +113,7 @@ class IframePageManager {
                     'top:', r.top, 'px;',
                     'left:', r.left + leftPanelWidth, 'px'
                 ].join('');
-                const block = findBlock(blockEl);
+                const [block] = findBlockFrom(blockEl.getAttribute('data-block'), 'mainTree');
                 if (r.top < -TITLE_LABEL_HEIGHT)
                     highlightRectEl.setAttribute('data-position', 'bottom-inside');
                 else if (r.top > TITLE_LABEL_HEIGHT)
@@ -147,7 +130,7 @@ class IframePageManager {
              * @param {HTMLAnchorElement|null} link
              */
             onClicked(blockEl, link) {
-                signals.emit('web-page-click-received', blockEl, link, findBlock);
+                signals.emit('web-page-click-received', blockEl, link);
             },
             /**
              * @param {HTMLElement} blockEl

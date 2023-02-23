@@ -193,7 +193,7 @@ function savePageToBackend() {
     data = Object.assign({}, selectCurrentPageDataBundle(store.getState()).page);
     delete data.blocks;
     delete data.isPlaceholderPage;
-    delete data.__blocksDebug;
+    delete data.__blocksDebugOnly;
     //
     return http.put(`/api/pages/${data.type}/${data.id}`, data)
         .then(resp => {
@@ -217,8 +217,8 @@ function setUpdatableMenuBlockInfo(triplet, linkToAdd = null) {
     linkedMenuBlockInfo = triplet;
     doReRenderLinkedMenu = false;
     if (!linkToAdd) return;
-    const [menuBlockId, menuBlockIsStoredToTreeId, _pageSlug] = triplet;
-    updateBlockProps(menuBlockId, menuBlockIsStoredToTreeId, block => {
+    const [menuBlockId, _menuBlockIsStoredToTreeId, _pageSlug] = triplet;
+    updateBlockProps(menuBlockId, block => {
         if (!block) return; // $menuBlockId not present in current page block tree
         doReRenderLinkedMenu = true;
         const linkCreator = new CountingLinkItemFactory();
@@ -240,7 +240,7 @@ function setUpdatableMenuBlockInfo(triplet, linkToAdd = null) {
 function addLinkToMenu(link, menuBlockId, menuBlockIsStoredToTreeId, blocks) {
     const out = cloneObjectDeep(blocks);
     const linkCreator = new CountingLinkItemFactory();
-    const rootOrInnerTree = menuBlockIsStoredToTreeId === 'main' ? blockTreeUtils.getRootFor(menuBlockIsStoredToTreeId, out) : out;
+    const rootOrInnerTree = blockTreeUtils.findTree(menuBlockIsStoredToTreeId, out);
     const [menuBlock] = blockTreeUtils.findBlock(menuBlockId, rootOrInnerTree);
     const parsed = linkCreator.setGetCounterUsingTreeOf(menuBlock);
     // Mutates $out
@@ -254,8 +254,8 @@ function addLinkToMenu(link, menuBlockId, menuBlockIsStoredToTreeId, blocks) {
  * @param {Page} page
  */
 function reRenderLinkedMenu(page) {
-    const [menuBlockId, menuBlockIsStoredToTreeId, _pageId] = linkedMenuBlockInfo;
-    updateBlockProps(menuBlockId, menuBlockIsStoredToTreeId, block => {
+    const [menuBlockId, _menuBlockIsStoredToTreeId, _pageId] = linkedMenuBlockInfo;
+    updateBlockProps(menuBlockId, block => {
         if (!block) return; // $menuBlockId not present in current page block tree
         const tree = JSON.parse(block.tree);
         const allButLast = tree.slice(0, tree.length - 1);

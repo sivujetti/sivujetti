@@ -95,8 +95,6 @@ interface BlockBlueprint {
 interface RawBlock {
     id: String;
     type: String;
-    isStoredTo?: 'page'|'globalBlockTree';
-    isStoredToTreeId: String;
     children: Array<RawBlock>;
     // todo
     [key: String]: mixed;
@@ -224,7 +222,6 @@ interface EditAppAwareWebPage {
     init(renderBlockAndThen: (block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void, toTransferable: (block: RawBlock, includePrivates: Boolean = false) => {[key: String]: any;}, blockTreeUtils: blockTreeUtils): void;
     scanBlockElements(): Array<HTMLElement>;
     addRootBoundingEls(lastBlock: RawBlock): void;
-    setTridAttr(blockId: String, trid: String): void;
     createThemeStylesChangeListener(): (state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void;
     setIsMouseListenersDisabled(isDisabled: Boolean): void;
     fastOverrideStyleUnitVar(unitCls: String, varNam: String, varValue: String, valueType: 'color'): void;

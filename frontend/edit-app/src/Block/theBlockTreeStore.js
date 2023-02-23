@@ -1,5 +1,5 @@
 import blockTreeUtils from '../left-column/block/blockTreeUtils.js';
-import {createBlockFromType, createGbtRefBlockProps, setTrids} from './utils.js';
+import {createBlockFromType, createGbtRefBlockProps} from './utils.js';
 
 function theBlockTreeStore(store) {
     store.on('theBlockTree/init',
@@ -20,8 +20,8 @@ function theBlockTreeStore(store) {
      */
     ({theBlockTree}, [dragInf, dropInf, dropPos]) => {
         const clone = cloneObjectDeep(theBlockTree);
-        const [dragBlock, dragBranch] = blockTreeUtils.findBlock2(dragInf.blockId, clone);
-        const [dropBlock, dropBranch] = blockTreeUtils.findBlock2(!(dropInf.isGbtRef && dropPos === 'as-child') ? dropInf.blockId : dropInf.data.refTreesRootBlockId, clone);
+        const [dragBlock, dragBranch] = blockTreeUtils.findBlockSmart(dragInf.blockId, clone);
+        const [dropBlock, dropBranch] = blockTreeUtils.findBlockSmart(!(dropInf.isGbtRef && dropPos === 'as-child') ? dropInf.blockId : dropInf.data.refTreesRootBlockId, clone);
         //
         const isBefore = dropPos === 'before';
         if (isBefore || dropPos === 'after') {
@@ -47,15 +47,8 @@ function theBlockTreeStore(store) {
      * @param {[BlockDescriptor, BlockDescriptor, dropPosition, treeTransferType]} args
      * @returns {Object}
      */
-    const applySwapOrDrop = ({theBlockTree}, [source, target, _dropPos, treeTransfer]) => {
+    const applySwapOrDrop = ({theBlockTree}, [_source, _target, _dropPos, _treeTransfer]) => {
         const clone = cloneObjectDeep(theBlockTree);
-        if (treeTransfer === 'into-gbt') {
-            const [block] = blockTreeUtils.findBlock2(source.blockId, clone);
-            setTrids([block], !target.data ? target.isStoredToTreeId : target.data.refTreeId);
-        } else if (treeTransfer === 'out-of-gbt') {
-            const [block] = blockTreeUtils.findBlock2(source.blockId, clone);
-            setTrids([block], target.isStoredToTreeId);
-        }
         return {theBlockTree: clone};
     };
     store.on('theBlockTree/applySwap', applySwapOrDrop);
@@ -65,7 +58,7 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/undo',
     /**
      * @param {Object} state
-     * @param {[Array<RawBlock>, String, String, Boolean]} args
+     * @param {[Array<RawBlock>, String, Boolean]} args
      * @returns {Object}
      */
     (_state, [theBlockTree]) =>
@@ -87,10 +80,9 @@ function theBlockTreeStore(store) {
      * @param {[String, String, Boolean|null]} args
      * @returns {Object}
      */
-    const deleteBlock = ({theBlockTree}, [id, isStoredToTreeId, _wasCurrentlySelectedBlock]) => {
+    const deleteBlock = ({theBlockTree}, [id, _blockIsStoredToTreeId, _wasCurrentlySelectedBlock]) => {
         const clone = cloneObjectDeep(theBlockTree);
-        const rootOrInnerTree = blockTreeUtils.getRootFor(isStoredToTreeId, clone);
-        const [ref, refBranch] = blockTreeUtils.findBlock(id, rootOrInnerTree);
+        const [ref, refBranch] = blockTreeUtils.findBlockSmart(id, clone);
         refBranch.splice(refBranch.indexOf(ref), 1); // mutates clone
         return {theBlockTree: clone};
     };
@@ -106,7 +98,7 @@ function theBlockTreeStore(store) {
         const clone = cloneObjectDeep(theBlockTree);
         const {isStoredToTreeId, blockId} = !(target.isGbtRef && insertPos === 'as-child') ? target
             : {isStoredToTreeId: target.data.refTreeId, blockId: target.data.refTreesRootBlockId};
-        const rootOrInnerTree = blockTreeUtils.getRootFor(isStoredToTreeId, clone);
+        const rootOrInnerTree = blockTreeUtils.findTree(isStoredToTreeId, clone);
         if (insertPos === 'before') {
             const [before, branch] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
             branch.splice(branch.indexOf(before), 0, blockOrBranch);
@@ -129,10 +121,9 @@ function theBlockTreeStore(store) {
      * @param {[String, String, {[key: String]: any;}, Number, Number]} args
      * @returns {Object}
      */
-    ({theBlockTree}, [blockId, blockIsStoredToTreeId, changes, _flags, _debounceMillis]) => {
+    ({theBlockTree}, [blockId, _blockIsPartOfInnerTree, changes, _flags, _debounceMillis]) => {
         const clone = cloneObjectDeep(theBlockTree);
-        const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, clone);
-        const [block] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
+        const [block] = blockTreeUtils.findBlockSmart(blockId, clone);
         overrideData(block, changes);
         return {theBlockTree: clone};
     });
@@ -147,7 +138,7 @@ function theBlockTreeStore(store) {
         const asString = Object.keys(changes).toString();
         if (asString !== 'title' && asString !== 'styleClasses') throw new Error('Not supported yet');
         const clone = cloneObjectDeep(theBlockTree);
-        const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, clone);
+        const rootOrInnerTree = blockTreeUtils.findTree(blockIsStoredToTreeId, clone);
         const [block] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
         Object.assign(block, changes);
         return {theBlockTree: clone};
@@ -165,13 +156,12 @@ function theBlockTreeStore(store) {
         const clone = cloneObjectDeep(theBlockTree);
 
         // Convert original to array, change isStoredToTreeIds recursively
-        const original = blockTreeUtils.findBlock(originalBlockId, clone)[0];
+        const [original] = blockTreeUtils.findBlock(originalBlockId, clone);
         original.title = newGbt.name;
         const newTree = [original];
-        setTrids(newTree, newGbt.id);
 
         // Create new block, set $newTree as its .__globalBlockTree.blocks
-        const converted = createBlockFromType('GlobalBlockReference', 'main',
+        const converted = createBlockFromType('GlobalBlockReference',
             idForTheNewBlock, createGbtRefBlockProps(newGbt, newTree));
 
         // Replace the block

@@ -3,6 +3,7 @@ import {treeToTransferable} from '../../block/utils.js';
 import toasters from '../../commons/Toaster.jsx';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import store2 from '../../store2.js';
+import blockTreeUtils from './blockTreeUtils.js';
 
 /**
  * @param {BlockTree} _blockTree
@@ -18,7 +19,7 @@ function createDndController(_blockTree) {
          * @returns {Boolean}
          */
         begin(info) {
-            if (extDragData && extDragData.block.type === 'GlobalBlockReference' && info.li.getAttribute('data-is-stored-to-trid') !== 'main') {
+            if (extDragData && extDragData.block.type === 'GlobalBlockReference' && info.li.getAttribute('data-is-stored-to-tree-id') !== 'main') {
                 const isBeforeOrAfterGbtRef = (info.pos === 'before' || info.pos === 'after') && info.li.getAttribute('data-is-root-block-of');
                 if (!isBeforeOrAfterGbtRef) return false;
             }
@@ -101,7 +102,7 @@ function createDndController(_blockTree) {
                 return;
             if (lastAcceptedSwapIdx === 0 && !extDragData && areKeysEqual(initialTree, store2.get().theBlockTree)) // Had moves, but returned to initial
                 return;
-            store2.dispatch('theBlockTree/undo', [initialTree, null, null, false]);
+            store2.dispatch('theBlockTree/undo', [initialTree, null, false]);
         },
         /**
          * @param {SpawnDescriptor|null}
@@ -118,7 +119,7 @@ function createDndController(_blockTree) {
  */
 function createDragItemInfo(li) {
     const blockId = li.getAttribute('data-block-id');
-    const isStoredToTreeId = li.getAttribute('data-is-stored-to-trid');
+    const isStoredToTreeId = li.getAttribute('data-is-stored-to-tree-id');
     const maybeRefBlockId = li.getAttribute('data-is-root-block-of');
     return !maybeRefBlockId ? {
         blockId,
@@ -138,7 +139,7 @@ function createDragItemInfo(li) {
  * @returns {BlockDescriptor}
  */
 function createBlockDescriptorFromLi(li) {
-    const isStoredToTreeId = li.getAttribute('data-is-stored-to-trid');
+    const isStoredToTreeId = li.getAttribute('data-is-stored-to-tree-id');
     const maybeRefBlockId = li.getAttribute('data-is-root-block-of');
     const blockId = li.getAttribute('data-block-id');
     // root tree's block, or global block tree's inner block
@@ -155,7 +156,8 @@ function createBlockDescriptorFromLi(li) {
  * @returns {BlockDescriptor}
  */
 function createBlockDescriptor(block) {
-    return {blockId: block.id, isStoredToTreeId: block.isStoredToTreeId, isGbtRef: false, data: null};
+    const isStoredToTreeId = blockTreeUtils.getIsStoredToTreeId(block.id, store2.get().theBlockTree);
+    return {blockId: block.id, isStoredToTreeId, isGbtRef: false, data: null};
 }
 
 /**

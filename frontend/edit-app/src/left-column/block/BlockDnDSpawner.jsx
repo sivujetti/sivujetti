@@ -1,6 +1,5 @@
 import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app';
 import {getIcon} from '../../block-types/block-types.js';
-import {DONT_KNOW_YET} from '../../block/dom-commons.js';
 import {createBlockFromBlueprint, createBlockFromType, createGbtRefBlockProps} from '../../block/utils.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import blockTreeUtils from './blockTreeUtils.js';
@@ -66,7 +65,7 @@ class BlockDnDSpawner extends preact.Component {
             //
             if (blockTreeBottom === null) {
                 const delta = this.state.isOpen ? 20 : -30;
-                blockTreeBottom = blockTreeOuterEl.offsetTop + blockTreeOuterEl.getBoundingClientRect().height + (delta);
+                blockTreeBottom = blockTreeOuterEl.offsetTop + blockTreeOuterEl.getBoundingClientRect().height + delta;
             } else {
                 clearTimeout(invalidateBlockTreeBottom);
                 invalidateBlockTreeBottom = setTimeout(() => { blockTreeBottom = null; }, 2000);
@@ -139,7 +138,7 @@ class BlockDnDSpawner extends preact.Component {
                                 onDragEnd={ this.onDragEnd }
                                 class="block-handle text-ellipsis"
                                 data-block-type={ isNotGbt ? rootBlockTypeName : 'GlobalBlockReference' }
-                                data-is-stored-to-trid={ isNotGbt ? 'main' : vargs[0] }
+                                data-is-stored-to-tree-id={ isNotGbt ? 'main' : vargs[0] }
                                 data-reusable-branch-idx={ group !== 'reusableBranch' ? '' : vargs[0] }
                                 title={ `${label}${labelApdx}` }
                                 type="button"
@@ -187,7 +186,7 @@ class BlockDnDSpawner extends preact.Component {
         const topEl = isOpen
             ? api.mainPanel.getSectionEl('onThisPage').querySelector('.section-title > span')
             : this.rootEl.current.nextElementSibling;
-        this.styleTop = topEl.getBoundingClientRect().styleTop;
+        this.styleTop = topEl.getBoundingClientRect().top;
         this.adjustRootElPos();
     }
     /**
@@ -226,13 +225,13 @@ class BlockDnDSpawner extends preact.Component {
      */
     createBlock(typeStr, reusableBranchIdx, dragEl) {
         if (typeStr !== 'GlobalBlockReference') {
-            return reusableBranchIdx === '' ? createBlockFromType(typeStr, DONT_KNOW_YET)
-                : createBlockFromBlueprint(this.state.reusables[parseInt(reusableBranchIdx, 10)].blockBlueprints[0], DONT_KNOW_YET);
+            return reusableBranchIdx === '' ? createBlockFromType(typeStr)
+                : createBlockFromBlueprint(this.state.reusables[parseInt(reusableBranchIdx, 10)].blockBlueprints[0]);
         }
         const gbt = this.state.selectableGlobalBlockTrees.find(({id}) =>
-            id === dragEl.getAttribute('data-is-stored-to-trid')
+            id === dragEl.getAttribute('data-is-stored-to-tree-id')
         );
-        return createBlockFromType(typeStr, DONT_KNOW_YET, undefined, createGbtRefBlockProps(gbt));
+        return createBlockFromType(typeStr, undefined, createGbtRefBlockProps(gbt));
     }
     /**
      * @param {DragEvent} _e
@@ -263,12 +262,6 @@ class BlockDnDSpawner extends preact.Component {
      * @access private
      */
     receiveGlobalBlocks(globalBlockTrees) {
-        globalBlockTrees.forEach(gbt => {
-            blockTreeUtils.traverseRecursively(gbt.blocks, b => {
-                b.isStoredTo = 'globalBlockTree';
-                b.isStoredToTreeId = gbt.id;
-            });
-        });
         this.cachedGlobalBlockTreesAll = globalBlockTrees;
         const alreadyInCurrentPage = getGbtIdsFrom(store2.get().theBlockTree);
         this.setSelectableGbtsToState(alreadyInCurrentPage);

@@ -1,6 +1,7 @@
 import {__, api, signals, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import {getIcon} from '../../block-types/block-types.js';
 import {cloneDeep, treeToTransferable} from '../../block/utils.js';
+import {findBlockFrom} from '../../block/utils-utils.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import {generatePushID} from '../../commons/utils.js';
 import BlockTreeShowHelpPopup from '../../popups/BlockTreeShowHelpPopup.jsx';
@@ -68,8 +69,8 @@ class BlockTree extends preact.Component {
                     const swapTargetInfo = data[1]; // [BlockDescriptor, BlockDescriptor, dropPosition, treeTransferType]
                     const {isStoredToTreeId, blockId} = !swapTargetInfo.isGbtRef ? swapTargetInfo
                         : {isStoredToTreeId: swapTargetInfo.data.refTreeId, blockId: swapTargetInfo.data.refTreesRootBlockId};
-                    const branch = blockTreeUtils.getRootFor(isStoredToTreeId, theBlockTree);
-                    const paren = blockTreeUtils.findBlock(blockId, branch)[0];
+                    const branch = blockTreeUtils.findTree(isStoredToTreeId, theBlockTree);
+                    const [paren] = blockTreeUtils.findBlock(blockId, branch);
                     setAsHidden(false, paren, newState.treeState);
                 }
                 this.setState(newState);
@@ -131,9 +132,9 @@ class BlockTree extends preact.Component {
      * @param {Array<RawBlock>} branch
      * @param {Number} depth = 1
      * @param {RawBlock} paren = null
-     * @param {RawBlock} root = null
+     * @param {RawBlock} ref = null {type:'GlobalBlockReference'...}
      */
-    doRenderBranch(branch, depth = 1, paren = null, root  = null) { return branch.map((block, i) => {
+    doRenderBranch(branch, depth = 1, paren = null, ref = null) { return branch.map((block, i) => {
         if (block.type === 'GlobalBlockReference')
             return this.doRenderBranch(block.__globalBlockTree.blocks, depth, paren, block);
         //
@@ -142,8 +143,9 @@ class BlockTree extends preact.Component {
         if (block.type !== 'PageInfo') {
         const type = api.blockTypes.get(block.type);
         const title = getShortFriendlyName(block, type);
-        const c = !block.children.length ? [] : this.doRenderBranch(block.children, depth + 1, block);
-        const isRootBlockOf = !(root && i === 0) ? null : root.id;
+        const c = !block.children.length ? [] : this.doRenderBranch(block.children, depth + 1, block, ref);
+        const rootRefBlockId = !(ref && i + depth === 1) ? null : ref.id;
+        const isStoredTo = !ref ? 'main' : 'globalBlockTree';
         return [<li
             onDragStart={ this.onDragStart }
             onDrag={ this.onDrag }
@@ -151,13 +153,13 @@ class BlockTree extends preact.Component {
             onDragLeave={ this.onDragLeave }
             onDrop={ this.onDrop }
             onDragEnd={ this.onDragEnd }
-            class={ [`${block.isStoredTo}-block`,
+            class={ [`${isStoredTo}-block`,
                     !treeState[block.id].isSelected ? '' : ' selected',
                     !treeState[block.id].isHidden ? '' : ' d-none',
                     !treeState[block.id].isCollapsed ? '' : ' collapsed'].join('') }
             data-block-id={ block.id }
-            data-is-stored-to-trid={ block.isStoredToTreeId }
-            data-is-root-block-of={ isRootBlockOf }
+            data-is-stored-to-tree-id={ isStoredTo === 'main' ? 'main' : ref.__globalBlockTree.id }
+            data-is-root-block-of={ rootRefBlockId }
             data-depth={ depth }
             data-has-children={ c.length > 0 }
             data-is-children-of={ paren ? paren.id : null }
@@ -175,7 +177,7 @@ class BlockTree extends preact.Component {
                     <Icon iconId={ getIcon(type) } className="size-xs p-absolute"/>
                     <span class="text-ellipsis">{ title }</span>
                 </button>
-                <button onClick={ e => this.openMoreMenu(block, isRootBlockOf !== null, e) } class="more-toggle ml-2" type="button">
+                <button onClick={ e => this.openMoreMenu(block, rootRefBlockId !== null, e) } class="more-toggle ml-2" type="button">
                     <Icon iconId="dots" className="size-xs"/>
                 </button>
             </div>
@@ -230,12 +232,11 @@ class BlockTree extends preact.Component {
             if (wasCurrentlySelectedBlock) this.selectedRoot = null;
             //
             if (!this.blockWithMoreMenuOpenedIsGbtsOutermostBlock) {
-                const {id, isStoredToTreeId} = blockVisible;
-                store2.dispatch('theBlockTree/deleteBlock', [id, isStoredToTreeId, wasCurrentlySelectedBlock]);
+                const {id} = blockVisible;
+                store2.dispatch('theBlockTree/deleteBlock', [id, this.openedBlockDetails.getAttribute('data-is-stored-to-tree-id'), wasCurrentlySelectedBlock]);
             } else {
-                const gbtRefBlock = blockTreeUtils.findFirstRefBlockFor(blockVisible.isStoredToTreeId, store2.get().theBlockTree);
-                const {id, isStoredToTreeId} = gbtRefBlock;
-                store2.dispatch('theBlockTree/deleteBlock', [id, isStoredToTreeId, wasCurrentlySelectedBlock]);
+                const refBlockId = this.openedBlockDetails.getAttribute('data-is-root-block-of');
+                store2.dispatch('theBlockTree/deleteBlock', [refBlockId, 'main', wasCurrentlySelectedBlock]);
             }
         } else if (link.id === 'save-block-as-reusable') {
             const blockToStore = this.blockWithMoreMenuOpened;
@@ -264,8 +265,7 @@ class BlockTree extends preact.Component {
      * @access private
      */
     cloneBlock(openBlock) {
-        const latestTree = blockTreeUtils.getRootFor(openBlock.isStoredToTreeId, store2.get().theBlockTree);
-        const cloned = cloneDeep(blockTreeUtils.findBlock(openBlock.id, latestTree)[0]);
+        const cloned = cloneDeep(findBlockFrom(openBlock.id, 'mainTree')[0]);
         store2.dispatch('theBlockTree/cloneItem', [{block: cloned, isReusable: null}, createBlockDescriptor(openBlock), 'after']);
         api.webPageIframe.scrollTo(cloned);
     }
@@ -275,7 +275,6 @@ class BlockTree extends preact.Component {
      * @access private
      */
     doConvertBlockToGlobal(data, originalBlock) {
-        if (originalBlock.isStoredToTreeId !== 'main') throw new Error('Sanity');
         const newGbtWithoutBlocks = {id: generatePushID(), name: data.name, blocks: []};
         const newBlockId = generatePushID();
         store2.dispatch('theBlockTree/convertToGbt', [originalBlock.id, newBlockId, newGbtWithoutBlocks]);
@@ -286,7 +285,8 @@ class BlockTree extends preact.Component {
      * @access private
      */
     doSaveBlockAsReusable(data, block) {
-        const {id, isStoredToTreeId} = block;
+        const {id} = block;
+        const isStoredToTreeId = blockTreeUtils.getIsStoredToTreeId(block.id, store2.get().theBlockTree);
 
         // Update the title of the existing block
         const changes = {title: data.name};
@@ -296,8 +296,7 @@ class BlockTree extends preact.Component {
 
         // Push item to reusableBranches
         setTimeout(() => {
-            const latestTree = blockTreeUtils.getRootFor(isStoredToTreeId, store2.get().theBlockTree);
-            const latest = blockTreeUtils.findBlock(id, latestTree)[0];
+            const [latest] = blockTreeUtils.findBlockSmart(id, store2.get().theBlockTree);
             const newReusableBranch = {id: generatePushID(), blockBlueprints: [blockToBlueprint(treeToTransferable([latest])[0])]};
             store2.dispatch('reusableBranches/addItem', [newReusableBranch, id]);
         }, 100);
@@ -311,6 +310,7 @@ class BlockTree extends preact.Component {
     openMoreMenu(block, blockIsGbtsOutermostBlock, e) {
         this.blockWithMoreMenuOpened = block;
         this.blockWithMoreMenuOpenedIsGbtsOutermostBlock = blockIsGbtsOutermostBlock;
+        this.openedBlockDetails = e.target.closest('li');
         this.refElOfOpenMoreMenu = e.target;
         this.refElOfOpenMoreMenu.style.opacity = '1';
         this.moreMenu.current.open(e, links => {
@@ -372,7 +372,8 @@ class BlockTree extends preact.Component {
         if (origin !== 'web-page') api.webPageIframe.scrollTo(block);
         //
         const mutRef = this.state.treeState;
-        const tree = blockTreeUtils.getRootFor(block.isStoredToTreeId, store2.get().theBlockTree);
+        const root = blockTreeUtils.findBlockSmart(block.id, store2.get().theBlockTree)[3];
+        const tree = !Array.isArray(root) ? root.blocks : root;
         const parentBlockIds = withParentIdPathDo(tree, (parentPath, {id}) => {
             if (id !== block.id) return null;
             // Found block, has depth 1
@@ -405,7 +406,7 @@ class BlockTree extends preact.Component {
 }
 
 /**
- * @param {Array<Block>} blocks
+ * @param {Array<RawBlock>} blocks
  * @param {(parentIdPath: String, block: RawBlock) => any} fn
  * @param {String} parentIdPath
  * @returns {any}

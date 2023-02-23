@@ -5,17 +5,20 @@ import {getIcon} from '../../block-types/block-types.js';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import BlockStylesTab from './BlockStylesTab.jsx';
-import blockTreeUtils, {isGlobalBlockTreeRefOrPartOfOne} from './blockTreeUtils.js';
+import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
+import blockTreeUtils from './blockTreeUtils.js';
+import {findBlockFrom, getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
 
 /** @type {BlockTypes} */
 let blockTypes;
 
 class BlockEditForm extends preact.Component {
-    // isOutermostBlockOfGlobalBlockTree;
     // userCanSpecializeGlobalBlocks;
     // blockType;
+    // blockIsStoredToTreeId;
     // editFormImpl;
     // allowStylesEditing;
+    // isOutermostBlockOfGlobalBlockTree;
     // unregistrables;
     // dispatchFastChangeTimeout;
     /**
@@ -31,11 +34,12 @@ class BlockEditForm extends preact.Component {
      */
     componentWillMount() {
         const {block} = this.props;
-        this.isOutermostBlockOfGlobalBlockTree = false;
         this.userCanSpecializeGlobalBlocks = api.user.can('specializeGlobalBlocks');
         this.blockType = blockTypes.get(block.type);
+        this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, 'mainTree');
         this.editFormImpl = this.blockType.editForm;
         this.allowStylesEditing = !selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
+        this.isOutermostBlockOfGlobalBlockTree = false;
         this.setState({currentTabIdx: 0});
         this.unregistrables = [observeStore2('theBlockTree', (_, [event, data]) => {
             const isUndo = event === 'theBlockTree/undo';
@@ -45,7 +49,7 @@ class BlockEditForm extends preact.Component {
                     return;
                 const blockId = !isUndo
                     ? data[0]  // updatePropsOf: [<blockId>, <blockIsStoredToTreeId>, <changes>, <flags>, <debounceMillis>]
-                    : data[1]; // undo:          [<oldTree>, <blockId>, <blockIsStoredToTreeId>, <isUndoOfConvertToGlobal>]
+                    : data[1]; // undo:          [<oldTree>, <blockId>, <isUndoOfConvertToGlobal>]
                 if (isSomeOtherBlock(blockId))
                     return;
                 this.editFormImplsChangeGrabber(this.getCurrentBlockCopy(), event, isUndo);
@@ -63,7 +67,7 @@ class BlockEditForm extends preact.Component {
                     return;
                 this.stylesFormChangeGrabber(this.getCurrentBlockCopy(), event, isUndo2);
             } else if (event === 'theBlockTree/deleteBlock') {
-                const [id, _isStoredToTreeId, isChildOfOrCurrentlyOpenBlock] = data;
+                const [id, _blockIsStoredToTreeId, isChildOfOrCurrentlyOpenBlock] = data;
                 if (isChildOfOrCurrentlyOpenBlock || id === block.id) this.props.inspectorPanel.close();
             }
         })];
@@ -80,12 +84,9 @@ class BlockEditForm extends preact.Component {
     render({block}, {currentTabIdx}) {
         const EditFormImpl = this.editFormImpl;
         const getCopy = this.getCurrentBlockCopy.bind(this);
+        const t = block.type === 'PageInfo' ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
         return <div data-main>
-        <div class={ `with-icon pb-1${preactHooks.useMemo(() => {
-                if (isGlobalBlockTreeRefOrPartOfOne(block)) return ' global-block-tree-block';
-                if (block.type === 'PageInfo') return ' page-info-block';
-                return '';
-            }, [])}` }>
+        <div class={ `with-icon pb-1${t}` }>
             <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
             { __(block.title || this.blockType.friendlyName) }
         </div>
@@ -139,14 +140,14 @@ class BlockEditForm extends preact.Component {
         if (this.state.currentTabIdx === 1) return;
         // Run fast dispatch (reRender) immediately, which throttles commitChangeOpToQueue if debounceMillis > 0 (see OpQueueItemEmitter.js)
         if (debounceType === 'debounce-commit-to-queue' || debounceType === 'debounce-none') {
-            store2.dispatch('theBlockTree/updatePropsOf', [this.props.block.id, this.props.block.isStoredToTreeId, changes,
+            store2.dispatch('theBlockTree/updatePropsOf', [this.props.block.id, this.blockIsStoredToTreeId, changes,
                 !hasErrors ? 0 : HAS_ERRORS, debounceMillis]);
         // Throttle fast dispatch, which throttles commitChangeOpToQueue as well
         } else if (debounceType === 'debounce-re-render-and-commit-to-queue') {
             if (hasErrors) return;
             if (this.dispatchFastChangeTimeout) clearTimeout(this.dispatchFastChangeTimeout);
             const fn = () => {
-                store2.dispatch('theBlockTree/updatePropsOf', [this.props.block.id, this.props.block.isStoredToTreeId, changes,
+                store2.dispatch('theBlockTree/updatePropsOf', [this.props.block.id, this.blockIsStoredToTreeId, changes,
                     0, 0]);
             };
             this.dispatchFastChangeTimeout = setTimeout(fn, debounceMillis);
@@ -157,9 +158,10 @@ class BlockEditForm extends preact.Component {
      * @param {RawBlock} blockCopy
      * @access private
      */
-    dispatchNewBlockStyleClasses(newStyleClasses, {id, isStoredToTreeId}) {
+    dispatchNewBlockStyleClasses(newStyleClasses, {id}) {
         const changes = {styleClasses: newStyleClasses};
         const isOnlyStyleClassesChange = true;
+        const isStoredToTreeId = getIsStoredToTreeIdFrom(id, 'mainTree');
         store2.dispatch('theBlockTree/updateDefPropsOf', [id, isStoredToTreeId, changes, isOnlyStyleClassesChange]);
     }
     /**
@@ -167,25 +169,22 @@ class BlockEditForm extends preact.Component {
      * @access private
      */
     getCurrentBlockCopy() {
-        const {id, isStoredToTreeId} = this.props.block;
-        const rootOrInnerTree = blockTreeUtils.getRootFor(isStoredToTreeId, store2.get().theBlockTree);
-        return JSON.parse(JSON.stringify(blockTreeUtils.findBlock(id, rootOrInnerTree)[0]));
+        return cloneObjectDeep(findBlockFrom(this.props.block.id, 'mainTree')[0]);
     }
 }
 
 /**
  * @param {String} blockId
- * @param {String} blockIsStoredToTreeId
  * @param {(block: RawBlock|null) => {changes: {[key: String]: any;}; flags?: Number;}|void} getUpdateSettings
  */
-function updateBlockProps(blockId, isStoredToTreeId, getUpdateSettings) {
-    const rootOrInnerTree = blockTreeUtils.getRootFor(isStoredToTreeId, store2.get().theBlockTree);
-    const block = rootOrInnerTree ? blockTreeUtils.findBlock(blockId, rootOrInnerTree)[0] : null;
+function updateBlockProps(blockId, getUpdateSettings) {
+    const {theBlockTree} = store2.get();
+    const [block, _, __, root] = blockTreeUtils.findBlockSmart(blockId, theBlockTree);
     if (!block) { getUpdateSettings(null); return; }
     const {changes, flags} = getUpdateSettings(block);
     store2.dispatch('theBlockTree/updatePropsOf', [
         block.id,
-        block.isStoredToTreeId,
+        root === theBlockTree ? 'main' : root.id,
         changes,
         typeof flags === 'number' ? flags : NO_OP_QUEUE_EMIT,
         0 // debounceMillis

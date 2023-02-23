@@ -1,7 +1,5 @@
 import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END,
-        HAS_ERRORS, DONT_KNOW_YET} from '../../edit-app/src/block/dom-commons.js';
-
-const IS_STORED_TO_ATTR = 'data-is-stored-to-trid';
+        HAS_ERRORS} from '../../edit-app/src/block/dom-commons.js';
 
 let renderBlockAndThen;
 let toTransferable;
@@ -49,33 +47,18 @@ class ReRenderer {
             this.doReRender(theBlockTree);
         // ====================================================================
         } else if (event === 'theBlockTree/applyAdd(Drop)Block' || event === 'theBlockTree/applySwap') {
-            const [source, _target, _dropPos, treeTransfer] = data;
-            if (!source.isGbtRef &&
-                (treeTransfer === 'into-gbt' || // normal > inside gbt
-                treeTransfer === 'out-of-gbt')) { // gbt's inner > outside its tree
-                const [block] = blockTreeUtils.findBlock2(source.blockId, theBlockTree);
-                this.updateIsStoredToIdsToDom(block.isStoredToTreeId, [block]);
-            }
             this.doReRender(theBlockTree);
         // ====================================================================
         } else if (event === 'theBlockTree/undo') {
-            const [_oldTree, maybeBlockId, _blockIsStoredToTreeId, isUndoOfConvertToGlobal] = data;
-            let restoreTridsOf = !isUndoOfConvertToGlobal
-                ? containsTridTransfers(this.elCache)[1]
-                : maybeBlockId;
-            if (!restoreTridsOf) {
-                if (!maybeBlockId) { // undo of non-single update
-                    this.doReRender(theBlockTree);
-                } else { // undo of single update
-                    const pool = this.elCache.get(maybeBlockId);
-                    pool.pop();
-                    this.elCache.set(maybeBlockId, pool);
-                    this.doReRender(theBlockTree);
-                }
-            } else {
-                this.unturnBlockElToGlobalRecursively(restoreTridsOf);
-                this.doReRender(theBlockTree);
+            const [_oldTree, maybeBlockId, isUndoOfConvertToGlobal] = data;
+            //
+            if (maybeBlockId && !isUndoOfConvertToGlobal) {
+                const pool = this.elCache.get(maybeBlockId);
+                pool.pop();
+                this.elCache.set(maybeBlockId, pool);
             }
+            //
+            this.doReRender(theBlockTree);
         // ====================================================================
         } else if (event === 'theBlockTree/deleteBlock') {
             this.doReRender(theBlockTree);
@@ -94,8 +77,7 @@ class ReRenderer {
 
                 if (!isGbtRef) {
                     const hasPlace = html.indexOf(CHILD_CONTENT_PLACEHOLDER) > -1;
-                    const rendered = withTrid(html, newBlock.isStoredToTreeId, !hasPlace);
-                    const completed = hasPlace ? rendered.replace(CHILD_CONTENT_PLACEHOLDER, '') : rendered;
+                    const completed = hasPlace ? html.replace(CHILD_CONTENT_PLACEHOLDER, '') : html;
                     const temp = document.createElement('div');
                     temp.innerHTML = completed;
 
@@ -106,7 +88,7 @@ class ReRenderer {
                     });
                 } else {
                     const temp = document.createElement('div');
-                    temp.innerHTML = withTrid(html, newBlock.globalBlockTreeId, true);
+                    temp.innerHTML = html;
                     blockTreeUtils.traverseRecursively(newBlock.__globalBlockTree.blocks, (b, _i, _parent, _parentIdPath) => {
                         const fromTemp = getBlockEl(b.id, temp);
                         this.elCache.set(b.id, [extractRendered(fromTemp)]);
@@ -123,8 +105,8 @@ class ReRenderer {
                 const insertPlaceholdersFor = !isGbtRef ? [newBlock] : newBlock.__globalBlockTree.blocks;
                 blockTreeUtils.traverseRecursively(insertPlaceholdersFor, (b, _i, parent, _parentIdPath) => {
                     const place = document.createElement('div');
-                    const ssss = parent ? '' : ' sjet-dots-animation';
-                    place.innerHTML = `<div class="j-Placeholder${ssss}" data-block-type="Placeholder" data-block="${b.id}" ${IS_STORED_TO_ATTR}="${b.isStoredToTreeId}"><!--${CHILDREN_START}--><!--${CHILDREN_END}--></p>`;
+                    const cls = parent ? '' : ' sjet-dots-animation';
+                    place.innerHTML = `<div class="j-Placeholder${cls}" data-block-type="Placeholder" data-block="${b.id}"><!--${CHILDREN_START}--><!--${CHILDREN_END}--></p>`;
                     this.elCache.set(b.id, [extractRendered(place.firstElementChild)]);
                 });
                 this.doReRender(theBlockTree);
@@ -137,13 +119,13 @@ class ReRenderer {
             const [blockId, blockIsStoredToTreeId, _changes, flags, debounceMillis] = data;
             if (flags & HAS_ERRORS) { window.console.log('not impl'); return; }
 
-            const rootOrInnerTree = blockTreeUtils.getRootFor(blockIsStoredToTreeId, theBlockTree);
-            const block = blockTreeUtils.findBlock(blockId, rootOrInnerTree)[0];
+            const tree = blockTreeUtils.findTree(blockIsStoredToTreeId, theBlockTree);
+            const [block] = blockTreeUtils.findBlock(blockId, tree);
             const el = getBlockEl(block.id);
 
             renderBlockAndThen((function (out) { out.children = []; return out; })(toTransferable(block)), ({html, onAfterInsertedToDom}) => {
                 const temp = document.createElement('template');
-                const completed = withTrid(html, blockIsStoredToTreeId).replace(CHILD_CONTENT_PLACEHOLDER, getChildContent(el));
+                const completed = html.replace(CHILD_CONTENT_PLACEHOLDER, getChildContent(el));
                 temp.innerHTML = completed;
                 el.replaceWith(temp.content);
                 onAfterInsertedToDom(completed);
@@ -157,8 +139,7 @@ class ReRenderer {
         // ====================================================================
         } else if (event === 'theBlockTree/cloneItem') {
             const [clonedInf, clonedFromInf] = data; // [SpawnDescriptor, BlockDescriptor]
-            const mainOrInnerTree = blockTreeUtils.getRootFor(clonedFromInf.isStoredToTreeId, theBlockTree);
-            const clonedFrom = blockTreeUtils.findBlock(clonedFromInf.blockId, mainOrInnerTree)[0];
+            const [clonedFrom] = blockTreeUtils.findBlockSmart(clonedFromInf.blockId, theBlockTree);
             const cloned = clonedInf.block;
             const [flatOriginal, flatCloned] = flattenBlocksRecursive(clonedFrom, cloned);
             for (let i = 0; i < flatOriginal.length; ++i) {
@@ -169,12 +150,6 @@ class ReRenderer {
             }
             this.doReRender(theBlockTree);
         } else if (event === 'theBlockTree/convertToGbt') {
-            const [_originalBlockId, idForTheNewBlock, _newGbtWithoutBlocks] = data;
-            const newGbtRef = blockTreeUtils.findBlock(idForTheNewBlock, theBlockTree)[0];
-            this.updateIsStoredToIdsToDom(
-                newGbtRef.__globalBlockTree.id,
-                newGbtRef.__globalBlockTree.blocks
-            );
             this.doReRender(theBlockTree);
         } else if (event === 'theBlockTree/updateDefPropsOf') {
             const [blockId, _blockIsStoredToTreeId, changes, isOnlyStyleClassesChange] = data;
@@ -249,32 +224,6 @@ class ReRenderer {
     getLatestCachedElClone(blockId) {
         const pool = this.elCache.get(blockId);
         return pool[pool.length - 1].cloneNode(true);
-    }
-    /**
-     * @param {String} isStoredToTreeId
-     * @param {Array<RawBlock>} branch
-     * @access private
-     */
-    updateIsStoredToIdsToDom(isStoredToTreeId, branch) {
-        blockTreeUtils.traverseRecursively(branch, (b, _i, _parent, _parentIdPath) => {
-            const current = getBlockEl(b.id);
-            const extractedCopy = extractRendered(current);
-            extractedCopy.setAttribute(IS_STORED_TO_ATTR, isStoredToTreeId);
-            this.elCache.get(b.id).push(extractedCopy);
-        });
-    }
-    /**
-     * @param {String} gbtsRootBlockId
-     * @access private
-     */
-    unturnBlockElToGlobalRecursively(gbtsRootBlockId) {
-        const gbtsRootBlockEl = getBlockEl(gbtsRootBlockId);
-        const gbtId = gbtsRootBlockEl.getAttribute(IS_STORED_TO_ATTR);
-        [gbtsRootBlockEl, ...Array.from(gbtsRootBlockEl.querySelectorAll(`[${IS_STORED_TO_ATTR}=${gbtId}]`))].forEach(el => {
-            const innerBlockId = el.getAttribute('data-block');
-            const pool = this.elCache.get(innerBlockId);
-            pool.pop();
-        });
     }
     /**
      * @param {String} blockId
@@ -416,21 +365,6 @@ function getChildEndComment(of) {
 }
 
 /**
- * @param {Map<String, HTMLElement[]>} elCache
- * @returns {[Boolean, String|null]}
- */
-function containsTridTransfers(elCache) {
-    for (const [blockId, pool] of elCache) {
-        if (pool.length < 2) continue;
-        const a = pool[pool.length - 1].getAttribute(IS_STORED_TO_ATTR);
-        const b = pool[pool.length - 2].getAttribute(IS_STORED_TO_ATTR);
-        if (b !== DONT_KNOW_YET && a !== b)
-            return [true, blockId];
-    }
-    return [false, null];
-}
-
-/**
  * @param {HTMLElement} of
  * @param {String} find
  * @returns {Comment|null}
@@ -445,15 +379,5 @@ function findCommentR(of, find) {
     return null;
 }
 
-/**
- * @param {String} html
- * @param {String} trid
- * @param {Boolean} recursive = false
- * @returns {String}
- */
-function withTrid(html, trid, recursive = false) {
-    return html.replace(!recursive ? ' data-block=' : / data-block=/g, ` ${IS_STORED_TO_ATTR}="${trid}" data-block=`);
-}
-
 export default ReRenderer;
-export {findCommentR, withTrid, getBlockEl};
+export {findCommentR, getBlockEl};

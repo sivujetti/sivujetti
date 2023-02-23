@@ -66,14 +66,15 @@ stringBundles.push({
     'Show without edit menu': 'Näytä ilman muokkaustilaa',
     // edit-app/src/quill/*
     'Image': 'Kuva',
+    'File': 'Tiedosto',
     'External': 'Ulkoinen',
     'website.com': 'sivusto.com',
     'Choose link type': 'Valitse linkin tyyppi',
-    'Pick a page': 'Valitse sivu',
-    'Pick an image': 'Valitse kuva',
+    'Pick %s': 'Valitse %s',
+    'a page': 'sivu',
     'Type an address': 'Kirjoita osoite',
     'Link to a page: ': 'Linkki sivuun: ',
-    'Link to an image: ': 'Linkki kuvaan: ',
+    'Link to image/file: ': 'Linkki kuvaan/tiedostoon: ',
     'Link to an address: ': 'Linkki osoitteeseen: ',
     'Anchor': 'Ankkuri',
     // edit-app/src/left-column/block/BlockEditForm.jsx

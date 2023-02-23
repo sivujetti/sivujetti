@@ -7,15 +7,16 @@ const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAA
 const UPLOADS_DIR_PATH = 'public/uploads/';
 
 const fetchedFiles = {
-    nonImages: null,
     onlyImages: null,
+    nonImages: null,
 };
 
 class FileUploader extends preact.Component {
+    // initialTabIdx;
     // dropAreaEl;
     // uploadButton;
     /**
-     * @param {{onEntryClicked?: (entry: UploadsEntry) => void; mode?: 'pick'; onlyImages?: Boolean; numColumns?: Number; hideUploadButton?: Boolean;}} props
+     * @param {{onEntryClicked?: (entry: UploadsEntry) => void; mode?: 'pick'; showInitially?: 'images'|'files'; onlyImages?: Boolean; numColumns?: Number; hideUploadButton?: Boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -26,7 +27,8 @@ class FileUploader extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        const tabName = this.props.onlyImages ? 'onlyImages' : 'nonImages';
+        this.initialTabIdx = (this.props.showInitially || 'images') === 'images' ? 0 : 1;
+        const tabName = tabIdxToName(this.initialTabIdx);
         this.setState({files: null, currentTab: tabName});
         this.fetchOrGetUploads(tabName)
             .then((fileGroup) => { this.setState({files: fileGroup}); });
@@ -35,15 +37,19 @@ class FileUploader extends preact.Component {
      * @access protected
      */
     render({mode, numColumns, hideUploadButton, onlyImages}, {files}) {
-        const ItemEl = mode !== 'pick' ? 'span' : 'button';
+        const [ImgItemCfg, FileItemCfg] = mode !== 'pick'
+            ? [{el: 'span', classes: ''}, {el: 'div', props: {}}]
+            : [{el: 'button', classes: ' btn btn-link pt-0 pl-0'}, {el: 'button', props: {class: 'btn btn-link pt-2', style: 'height: 100%;'}}];
         return [
-        <div class="mb-2 pb-2">
-        <Tabs
-            links={ [__('Images'), __('Files')] }
-            onTabChanged={ this.handleTabChanged.bind(this) }
-            initialIndex={ onlyImages ? 0 : 1 }
-            className="text-tinyish mt-0"/>
-        </div>,
+        !onlyImages
+            ? <div class="mb-2 pb-2">
+                <Tabs
+                    links={ [__('Images'), __('Files')] }
+                    onTabChanged={ this.handleTabChanged.bind(this) }
+                    initialTabIdx={ this.initialTabIdx }
+                    className="text-tinyish mt-0"/>
+            </div>
+            : null,
         <div
             class="file-drop-area"
             { ...(hideUploadButton !== true
@@ -73,17 +79,17 @@ class FileUploader extends preact.Component {
                     const isUploaded = createdAt > 0;
                     return <article class={ `box text-center${isUploaded ? '' : ' loading'}` } title={ fileName } key={ friendlyName }>
                         { !mime.startsWith('image/')
-                            ? <div>
+                            ? <FileItemCfg.el { ...FileItemCfg.props } onClick={ () => this.handleEntryClicked(f)}>
                                 <Icon iconId="file" className="mb-2"/>
-                                <div class="mb-2 text-ellipsis"><b>{ friendlyName }</b></div>
-                                <div class="text-small text-uppercase text-dimmed">{ ext }</div>
-                            </div>
+                                <b class="d-block my-1 text-ellipsis" style="font-weight: 400;">{ friendlyName }</b>
+                                <span class="d-block color-dimmed text-small text-uppercase" style="font-weight: 300;">{ ext }</span>
+                            </FileItemCfg.el>
                             : [
-                                <ItemEl
-                                    class={ `img-ratio ${mode === 'pick' ? ' btn btn-link pt-0 pl-0' : ''}` }
+                                <ImgItemCfg.el
+                                    class={ `img-ratio${ImgItemCfg.classes}` }
                                     onClick={ () => this.handleEntryClicked(f) }>
                                     <img src={ isUploaded ? `${urlUtils.assetBaseUrl}${UPLOADS_DIR_PATH}${baseDir}${fileName}` : placeholderImageSrc }/>
-                                </ItemEl>,
+                                </ImgItemCfg.el>,
                                 <div class="text-ellipsis my-2 px-2"><b>{ friendlyName || fileName }</b></div>,
                             ]
                         }
@@ -101,11 +107,11 @@ class FileUploader extends preact.Component {
      * @access private
      */
     addNewFile(file) {
-        const k = file.mime.startsWith('image/') ? 'onlyImages' : 'nonImages';
-        if (fetchedFiles[k] === null) fetchedFiles[k] = [];
-        fetchedFiles[k].unshift(file);
-        //
-        this.setState({files: cloneArrShallow(fetchedFiles[k])});
+        const k = this.props.onlyImages || file.mime.startsWith('image/') ? 'onlyImages' : 'nonImages';
+        if (fetchedFiles[k]) fetchedFiles[k].unshift(file);
+
+        if (this.state.currentTab === k)
+            this.setState({files: cloneArrShallow(fetchedFiles[k])});
     }
     /**
      * @param {UploadsEntry|null} file
@@ -113,12 +119,14 @@ class FileUploader extends preact.Component {
      * @access private
      */
     markFileAsUploaded(file, ok) {
-        const k = file.mime.startsWith('image/') ? 'onlyImages' : 'nonImages';
-        fetchedFiles[k] = ok
-            ? fetchedFiles[k].map(f => f.friendlyName !== file.friendlyName ? f : {...file})
-            : fetchedFiles[k].filter(({friendlyName}) => friendlyName !== file.friendlyName);
-        //
-        this.setState({files: cloneArrShallow(fetchedFiles[k])});
+        const k = this.props.onlyImages || file.mime.startsWith('image/') ? 'onlyImages' : 'nonImages';
+        if (fetchedFiles[k])
+            fetchedFiles[k] = ok
+                ? fetchedFiles[k].map(f => f.friendlyName !== file.friendlyName ? f : {...file})
+                : fetchedFiles[k].filter(({friendlyName}) => friendlyName !== file.friendlyName);
+
+        if (this.state.currentTab === k)
+            this.setState({files: cloneArrShallow(fetchedFiles[k])});
     }
     /**
      * @param {'onlyImages'|'nonImages'} tabName
@@ -126,8 +134,8 @@ class FileUploader extends preact.Component {
      * @access private
      */
     fetchOrGetUploads(tabName) {
-        const cached = fetchedFiles[tabName];
-        if (cached) return Promise.resolve(cached);
+        const fetched = fetchedFiles[tabName];
+        if (fetched) return Promise.resolve(fetched);
         //
         const q = tabName === 'onlyImages' ? '$eq' : '$neq';
         return http.get(`/api/uploads/${JSON.stringify({mime: {[q]: 'image/*'}})}`)
@@ -170,7 +178,7 @@ class FileUploader extends preact.Component {
      * @access private
      */
     handleTabChanged(toIdx) {
-        const next = ['onlyImages', 'nonImages'][toIdx];
+        const next = tabIdxToName(toIdx);
         if (this.state.currentTab !== next) {
             this.setState({currentTab: next});
             this.fetchOrGetUploads(next)
@@ -206,6 +214,14 @@ function completeBackendUploadsEntry(entry) {
  */
 function cloneArrShallow(arr) {
     return arr.map(itm => ({...itm}));
+}
+
+/**
+ * @param {Number} idx
+ * @returns {'onlyImages'|'nonImages'}
+ */
+function tabIdxToName(idx) {
+    return idx === 0 ? 'onlyImages' : 'nonImages';
 }
 
 export default FileUploader;

@@ -114,7 +114,7 @@ class ButtonBlockEditForm extends preact.Component {
                                     let normalized;
                                     if (mode === 'pick-url') // '/sivujetti/index.php?q=/contact', '/contact'
                                         normalized = url.substring(urlUtils.baseUrl.length - 1);
-                                    else if (mode === 'pick-image') // '/sivujetti/public/uploads/header1.jpg'
+                                    else if (mode === 'pick-file') // '/sivujetti/public/uploads/header1.jpg'
                                         normalized = url.substring(urlUtils.assetBaseUrl.length - 1);
                                     else // 'http://test.com'
                                         normalized = url;

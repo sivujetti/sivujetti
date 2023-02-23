@@ -536,7 +536,7 @@ a.popup-close-area {
     margin: 0;
 }
 .live-files-list.item-grid article > div {
-    margin: 1rem;
+    margin: .8rem;
 }
 .live-files-list.item-grid article {
     box-shadow: none;

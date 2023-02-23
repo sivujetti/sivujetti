@@ -80,7 +80,7 @@ class UploadButton extends preact.Component {
                     <span class="ml-2 flex-centered">{ __('Upload files') }</span>
                 </label>
                 <span
-                    class="tooltip p-absolute mt-2 ml-2"
+                    class="tooltip tooltip-right p-absolute mt-2 ml-2"
                     data-tooltip={ __('You can also drag files here\n from your computer.') }
                     style="opacity: .6">
                     <Icon iconId="info-circle" className="color-dimmed3 size-xs"/>

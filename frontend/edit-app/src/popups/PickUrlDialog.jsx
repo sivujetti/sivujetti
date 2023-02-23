@@ -34,13 +34,12 @@ class PickUrlDialog extends preact.Component {
             onPickurl={ slug => this.save(urlUtils.makeUrl(slug)) }
             goBack={ () => this.setMode('choose-link-type') }/>;
         //
-        if (mode === 'pick-image') return [
+        if (mode === 'pick-file') return [
             <div><button onClick={ () => this.setMode('choose-link-type') } class="btn btn-sm mb-2" type="button">&lt;</button></div>,
             <FileUploader
                 mode="pick"
                 onEntryClicked={ entry => { this.save(urlUtils.makeAssetUrl(`/public/uploads${entry.baseDir}/${entry.fileName}`)); } }
                 numColumns="3"
-                onlyImages
                 hideUploadButton/>
         ];
         //
@@ -56,13 +55,13 @@ class PickUrlDialog extends preact.Component {
             done={ () => this.save(this.currentExternalUrl, true) }/>;
         //
         return <div class="item-grid three large-buttons">{ [
-            ['pick-url', 'file', 'Page'],
-            ['pick-image', 'photo', 'Image'],
-            ['type-external-url', 'external-link', 'External'],
+            ['pick-url', 'file', __('Page')],
+            ['pick-file', 'photo', `${__('Image')} / ${__('File')}`],
+            ['type-external-url', 'external-link', __('External')],
         ].map(([mode, iconId, text]) =>
             <button onClick={ () => this.setMode(mode) } class="btn with-icon text-tiny" type="button" key={ mode }>
                 <Icon iconId={ iconId }/>
-                { __(text) }
+                { text }
             </button>
         ) }</div>;
     }
@@ -193,7 +192,7 @@ class DefineExternalUrlTab extends preact.Component {
 function getHeight(mode) {
     if (mode === 'pick-url')
         return [375, 'animate'];
-    if (mode === 'pick-image')
+    if (mode === 'pick-file')
         return [404, 'animate'];
     return [180, null];
 }
@@ -208,7 +207,7 @@ function unnormalizeExternalUrl(url) {
 }
 
 /**
- * @typedef {'pick-url'|'pick-image'|'type-external-url'} UrlMode
+ * @typedef {'pick-url'|'pick-file'|'type-external-url'} UrlMode
  */
 
 export default PickUrlDialog;

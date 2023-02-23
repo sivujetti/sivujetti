@@ -23,8 +23,8 @@ function determineModeFrom(url, translationsPool = 'dialogTitles') {
         const isLocal = url.startsWith('/') && !url.startsWith('//');
         if (isLocal) {
             const pcs = url.split('/'); // ['', 'base', 'pagename'] or ['', 'base', 'public', 'uploads', 'filename.png']
-            const isImage = pcs.length > 2 && pcs[pcs.length - 3] === 'public' && pcs[pcs.length - 2] === 'uploads';
-            return !isImage ? 'pick-url' : 'pick-image';
+            const isLocalFile = pcs.length > 2 && pcs[pcs.length - 3] === 'public' && pcs[pcs.length - 2] === 'uploads';
+            return !isLocalFile ? 'pick-url' : 'pick-file';
         }
         //
         return 'type-external-url';
@@ -71,8 +71,8 @@ function getLabel(mode, translationsPool = 'dialogTitles') {
         if (!dialogTitleTranslations)
             dialogTitleTranslations = {
                 'choose-link-type': __('Choose link type'),
-                'pick-url': __('Pick a page'),
-                'pick-image': __('Pick an image'),
+                'pick-url': __('Pick %s', __('a page')),
+                'pick-file': __('Pick %s', `${__('Image')} / ${__('File')}`.toLowerCase()),
                 'type-external-url': __('Type an address'),
             };
         titles = dialogTitleTranslations;
@@ -80,9 +80,9 @@ function getLabel(mode, translationsPool = 'dialogTitles') {
         if (!previewTitleTranslations)
             previewTitleTranslations = {
                 'choose-link-type': '-',
-                'pick-url': __('Link to a page: '),
-                'pick-image': __('Link to an image: '),
-                'type-external-url': __('Link to an address: '),
+                'pick-url': __('Link to %s: ', __('a file')),
+                'pick-file': __('Link to %s: ', `${__('Image')} / ${__('File')}`.toLowerCase()),
+                'type-external-url': __('Link to %s: ', __('an address')),
             };
         titles = previewTitleTranslations;
     }

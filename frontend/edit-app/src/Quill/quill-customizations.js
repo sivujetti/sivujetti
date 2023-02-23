@@ -53,7 +53,7 @@ class MySnowTheme extends Quill.import('themes/snow') {
             const [mode, title] = determineModeFromPreview(noOrigin);
             const icon = {
                 'pick-url': 'file',
-                'pick-image': 'photo',
+                'pick-file': 'photo',
                 'type-external-url': 'external-link',
             }[mode];
             myPreviewTitle.innerHTML = iconAsString(icon, 'size-xs color-dimmed3 mr-1') +

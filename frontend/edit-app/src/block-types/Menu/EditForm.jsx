@@ -24,15 +24,14 @@ class MenuBlockEditForm extends preact.Component {
         this.setState({parsedTree: this.linkCreator.setGetCounterUsingTreeOf(block),
                        editPanelState: createEditPanelState(),
                        linkWithNavOpened: null});
-        grabChanges((block, origin, isUndo) => {
+        grabChanges((block, _origin, _isUndo) => {
             const newState = {parsedTree: this.linkCreator.setGetCounterUsingTreeOf(block)};
-            if (isUndo && this.state.editPanelState.link) {
-                newState.editPanelState = createEditPanelState(
-                    findLinkItem(newState.parsedTree, this.state.editPanelState.link.id),
-                    this.state.editPanelState.leftClass,
-                    this.state.editPanelState.rightClass
-                );
-            }
+            const {link, leftClass, rightClass} = this.state.editPanelState;
+            if (link) newState.editPanelState = createEditPanelState(
+                findLinkItem(newState.parsedTree, link.id),
+                leftClass,
+                rightClass
+            );
             this.setState(newState);
         });
     }
@@ -72,10 +71,10 @@ class MenuBlockEditForm extends preact.Component {
             <EditItemPanel
                 link={ editPanelState.link }
                 cssClass={ editPanelState.rightClass }
-                onLinkUpdated={ mutatedLink => {
-                    const ref = findLinkItem(this.state.parsedTree, mutatedLink.id);
-                    Object.assign(ref, mutatedLink); // Mutates this.state.parsedTree
-                    this.applyAndEmit(this.state.parsedTree);
+                onLinkPropUpdated={ (value, prop) => {
+                    const ref = findLinkItem(this.state.parsedTree, editPanelState.link.id);
+                    ref[prop] = value; // Mutates this.state.parsedTree
+                    this.applyAndEmit(this.state.parsedTree, prop === 'text');
                 } }
                 endEditMode={ () => {
                     this.setState({editPanelState: createEditPanelState(null, 'reveal-from-left', 'fade-to-right')});
@@ -105,7 +104,7 @@ class MenuBlockEditForm extends preact.Component {
                                             leftClass: 'fade-to-left',
                                             rightClass: 'reveal-from-right'}});
         else if (link.id === 'delete')
-        this.applyAndEmit(this.state.parsedTree.filter(link => link !== this.state.linkWithNavOpened));
+            this.applyAndEmit(this.state.parsedTree.filter(link => link !== this.state.linkWithNavOpened));
     }
     /**
      * @access private
@@ -121,10 +120,12 @@ class MenuBlockEditForm extends preact.Component {
     }
     /**
      * @param {Array<MenuLink>} newParsedTree
+     * @param {Boolean} doThrottle = false
      * @access private
      */
-    applyAndEmit(newParsedTree) {
-        this.props.emitValueChanged(JSON.stringify(newParsedTree), 'tree', false);
+    applyAndEmit(newParsedTree, doThrottle = false) {
+        const a = !doThrottle ? [undefined, undefined] : [env.normalTypingDebounceMillis, 'debounce-re-render-and-commit-to-queue'];
+        this.props.emitValueChanged(JSON.stringify(newParsedTree), 'tree', false, ...a);
     }
 }
 

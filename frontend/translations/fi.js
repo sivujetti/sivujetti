@@ -174,8 +174,7 @@ stringBundles.push({
     'Delete link': 'Poista linkki',
     // edit-app/src/block-types/menu/EditItemPanel.jsx
     'Link text': 'Linkin teksti',
-    'Url': 'Urli',
-    'e.g. %s or %s': 'esim. %s tai %s',
+    'Url address': 'Url-osoite',
     // edit-app/src/block-types/menu/menu.js
     'Menu': 'Valikko',
     'Home': 'Etusivu',

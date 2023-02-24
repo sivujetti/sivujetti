@@ -174,8 +174,7 @@ stringBundles.push({
     'Delete link': 'Delete link',
     // edit-app/src/block-types/menu/EditItemPanel.jsx
     'Link text': 'Link text',
-    'Url': 'Url',
-    'e.g. %s or %s': 'e.g. %s or %s',
+    'Url address': 'Url address',
     // edit-app/src/block-types/menu/menu.js
     'Menu': 'Menu',
     'Home': 'Home',

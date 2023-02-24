@@ -96,33 +96,9 @@ class ButtonBlockEditForm extends preact.Component {
                     : null
                 }
                 { tagType === tagTypes.LINK
-                    ? <FormGroupInline>
-                        <label htmlFor="linkTo" class="form-label">{ __('Link') }</label>
-                        <input value={ linkTo } name="linkTo" type="text" class="form-input" onClick={ e => {
-                            e.preventDefault();
-                            const normalized = getCompletedUrl(linkTo);
-                            const [mode, title] = determineModeFrom(normalized);
-                            floatingDialog.open(PickUrlDialog, {
-                                title,
-                                width: 514,
-                                height: getHeight('default')[0],
-                            }, {
-                                mode,
-                                url: normalized,
-                                dialog: floatingDialog,
-                                onConfirm: (url, mode) => {
-                                    let normalized;
-                                    if (mode === 'pick-url') // '/sivujetti/index.php?q=/contact', '/contact'
-                                        normalized = url.substring(urlUtils.baseUrl.length - 1);
-                                    else if (mode === 'pick-file') // '/sivujetti/public/uploads/header1.jpg'
-                                        normalized = url.substring(urlUtils.assetBaseUrl.length - 1);
-                                    else // 'http://test.com'
-                                        normalized = url;
-                                    this.props.emitValueChanged(normalized, 'linkTo', false, env.normalTypingDebounceMillis);
-                                }
-                            });
-                        } }/>
-                    </FormGroupInline>
+                    ? <PickUrlInputGroup
+                        linkTo={ linkTo }
+                        onUrlPicked={ normalized => this.props.emitValueChanged(normalized, 'linkTo', false, env.normalTypingDebounceMillis) }/>
                     : null
                 }
             </div>
@@ -135,6 +111,48 @@ class ButtonBlockEditForm extends preact.Component {
     handleTagTypeChanged(e) {
         const newVal = e.target.value;
         this.props.emitValueChanged(newVal, 'tagType', false, env.normalTypingDebounceMillis);
+    }
+}
+
+class PickUrlInputGroup extends preact.Component {
+    /**
+     * @param {{linkTo: String; onUrlPicked: (newNormalizedUrl: String) => void;}} props
+     * @access protected
+     */
+    render({linkTo, onUrlPicked}) {
+        return <FormGroupInline>
+            <label htmlFor="linkTo" class="form-label">{ __('Link') }</label>
+            <input value={ linkTo } name="linkTo" type="text" class="form-input"
+                onClick={ e => this.openPickUrlDialog(e, linkTo, onUrlPicked) }/>
+        </FormGroupInline>;
+    }
+    /**
+     * @param {Event} e
+     * @param {String} linkTo
+     * @param {(newNormalizedUrl: String) => void} onPicked
+     * @access private
+     */
+    openPickUrlDialog(e, linkTo, onPicked) {
+        e.preventDefault();
+        const normalized = getCompletedUrl(linkTo);
+        const [mode, title] = determineModeFrom(normalized);
+        floatingDialog.open(PickUrlDialog, {
+            title,
+            width: 514,
+            height: getHeight('default')[0],
+        }, {
+            mode,
+            url: normalized,
+            dialog: floatingDialog,
+            onConfirm: (url, mode) => {
+                if (mode === 'pick-url') // '/sivujetti/index.php?q=/contact', '/contact'
+                    onPicked(url.substring(urlUtils.baseUrl.length - 1));
+                else if (mode === 'pick-file') // '/sivujetti/public/uploads/header1.jpg'
+                    onPicked(url.substring(urlUtils.assetBaseUrl.length - 1));
+                else // 'http://test.com'
+                    onPicked(url);
+            }
+        });
     }
 }
 
@@ -168,3 +186,5 @@ export default () => {
         editForm: ButtonBlockEditForm,
     };
 };
+
+export {PickUrlInputGroup};

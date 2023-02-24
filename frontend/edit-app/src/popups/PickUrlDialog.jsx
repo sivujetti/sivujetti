@@ -14,9 +14,6 @@ class PickUrlDialog extends preact.Component {
     constructor(props) {
         super(props);
         this.state = {mode: props.mode};
-        props.dialog.setOnBeforeClose(() => {
-            if (this.state.mode === 'type-external-url' && this.currentExternalUrl) this.save(this.currentExternalUrl, false);
-        });
         this.currentExternalUrl = null;
     }
     /**
@@ -31,28 +28,25 @@ class PickUrlDialog extends preact.Component {
     render({url}, {mode}) {
         if (mode === 'pick-url') return <PickPageTab
             url={ url }
-            onPickurl={ slug => this.save(urlUtils.makeUrl(slug)) }
-            goBack={ () => this.setMode('choose-link-type') }/>;
+            onPickurl={ slug => this.commitAndClose(urlUtils.makeUrl(slug)) }
+            goBack={ this.goBack.bind(this) }/>;
         //
         if (mode === 'pick-file') return [
-            <div><button onClick={ () => this.setMode('choose-link-type') } class="btn btn-sm mb-2" type="button">&lt;</button></div>,
+            <div><button onClick={ this.goBack.bind(this) } class="btn btn-sm mb-2" type="button">&lt;</button></div>,
             <FileUploader
                 mode="pick"
-                onEntryClicked={ entry => { this.save(urlUtils.makeAssetUrl(`/public/uploads${entry.baseDir}/${entry.fileName}`)); } }
+                onEntryClicked={ entry => { this.commitAndClose(urlUtils.makeAssetUrl(`/public/uploads${entry.baseDir}/${entry.fileName}`)); } }
                 numColumns="3"
                 hideUploadButton/>
         ];
         //
         if (mode === 'type-external-url') return <DefineExternalUrlTab
             url={ url }
-            goBack={ () => {
-                if (this.currentExternalUrl) this.save(this.currentExternalUrl, false);
-                this.setMode('choose-link-type');
-            } }
+            goBack={ this.goBack.bind(this) }
             onUrlChanged={ validUrl => {
                 this.currentExternalUrl = normalizeExternalUrl(validUrl);
             } }
-            done={ () => this.save(this.currentExternalUrl, true) }/>;
+            done={ doCommit => doCommit ? this.commitAndClose(this.currentExternalUrl) : this.close() }/>;
         //
         return <div class="item-grid three large-buttons">{ [
             ['pick-url', 'file', __('Page')],
@@ -76,12 +70,23 @@ class PickUrlDialog extends preact.Component {
     }
     /**
      * @param {String} url
-     * @param {Boolean} close = true
      * @access private
      */
-    save(url, close = true) {
-        this.props.onConfirm(url, this.state.mode);
-        if (close) this.props.dialog.close();
+    commitAndClose(url) {
+        this.props.onConfirm(url.slice(0, validationConstraints.HARD_SHORT_TEXT_MAX_LEN), this.state.mode);
+        this.close();
+    }
+    /**
+     * @access private
+     */
+    close() {
+        this.props.dialog.close();
+    }
+    /**
+     * @access private
+     */
+    goBack() {
+        this.setMode('choose-link-type');
     }
 }
 
@@ -135,7 +140,7 @@ class DefineExternalUrlTab extends preact.Component {
     // nameInput;
     // enterPressedAt;
     /**
-     * @param {{url: String; goBack: () => void; onUrlChanged: (validUrl: String) => void; done: () => void; }} props
+     * @param {{url: String; goBack: () => void; onUrlChanged: (validUrl: String) => void; done: (doCommit: Boolean) => void; }} props
      */
     constructor(props) {
         super(props);
@@ -146,7 +151,7 @@ class DefineExternalUrlTab extends preact.Component {
             {name: 'url', value: url, validations: [
                 [urlValidatorImpl, {allowEmpty: true, allowLocal: false}],
                 ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]
-            ], label: __('Url'), onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) props.onUrlChanged(value); }},
+            ], label: __('Url address'), onAfterValueChanged: (value, hasErrors) => { if (!hasErrors) props.onUrlChanged(value); }},
         ]);
     }
     /**
@@ -170,17 +175,20 @@ class DefineExternalUrlTab extends preact.Component {
     /**
      * @access protected
      */
-    render({goBack}) {
+    render({goBack, done}) {
+        const e = hasErrors(this);
         return [
-            <div><button onClick={ goBack } class="btn btn-sm mb-2" type="button" disabled={ hasErrors(this) }>&lt;</button></div>,
+            <div><button onClick={ goBack } class="btn btn-sm mb-2" type="button" disabled={ e }>&lt;</button></div>,
             <Input vm={ this } prop="url" placeholder={ __('website.com') } onKeyDown={ e => {
                 if (e.key === 'Enter' && !this.enterPressedAt) this.enterPressedAt = Date.now();
             } } onKeyUp={ e => {
                 if (!this.enterPressedAt || e.key !== 'Enter') return;
-                if ((Date.now() - this.enterPressedAt) < 100) this.props.done();
+                if ((Date.now() - this.enterPressedAt) < 100) this.props.done(e !== true);
                 else this.enterPressedAt = null;
             } } ref={ this.nameInput }/>,
-            <InputErrors vm={ this } prop="url"/>
+            <InputErrors vm={ this } prop="url"/>,
+            <button class="btn btn-primary btn-sm mt-2 px-2" disabled={ e } onClick={ () => done(e !== true) }>Ok</button>,
+            <button class="btn btn-sm btn-link mt-2 ml-1" onClick={ () => done(false) }>{ __('Cancel') }</button>
         ];
     }
 }
@@ -194,7 +202,7 @@ function getHeight(mode) {
         return [375, 'animate'];
     if (mode === 'pick-file')
         return [404, 'animate'];
-    return [180, null];
+    return [196, null];
 }
 
 /**

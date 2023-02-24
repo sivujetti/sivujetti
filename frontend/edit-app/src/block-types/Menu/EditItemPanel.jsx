@@ -1,28 +1,30 @@
 import {__, api, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
 import {validationConstraints} from '../../constants.js';
+import {PickUrlInputGroup} from '../button.js';
 
 class EditItemPanel extends preact.Component {
-    // link;
+    // isOpen;
     /**
      * @param {{link: MenuLink; cssClass: String; onLinkUpdated: (mutatedLink: MenuLink) => void; endEditMode: () => void; panelHeight: Number;}} props
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.link && !this.link) {
-            this.link = Object.assign({}, props.link);
+        if (props.link && !this.isOpen) {
+            this.isOpen = true;
             this.setState(hookForm(this, [
-                {name: 'linkText', value: this.link.text, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link text'),
-                onAfterValueChanged: (value, hasErrors) => { this.emitChange(value, 'text', hasErrors); }},
-                {name: 'linkSlug', value: this.link.slug, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Url'),
-                onAfterValueChanged: (value, hasErrors) => { this.emitChange(value, 'slug', hasErrors); }},
-            ]));
+                {name: 'linkText', value: props.link.text, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link text'),
+                onAfterValueChanged: (value, hasErrors, source) => { if (!hasErrors && source !== 'undo') this.props.onLinkPropUpdated(value, 'text'); }},
+            ], {
+                linkTo: props.link.slug,
+            }));
             api.inspectorPanel.getEl().scrollTo({top: 0});
-        } else if (!props.link && this.link) {
-            this.link = null;
-        } else if (props.link && this.link && props.link !== this.props.link) { // undo
-            this.link = Object.assign({}, props.link);
-            reHookValues(this, [{name: 'linkText', value: this.link.text},
-                                {name: 'linkSlug', value: this.link.slug}]);
+        } else if (this.isOpen && !props.link) {
+            this.isOpen = false;
+        } else if (this.isOpen && props.link) {
+            if (this.state.values.linkText !== props.link.text)
+                reHookValues(this, [{name: 'linkText', value: props.link.text}]);
+            if (this.state.linkTo !== props.link.slug)
+                this.setState({linkTo: props.link.slug});
         }
     }
     /**
@@ -34,7 +36,7 @@ class EditItemPanel extends preact.Component {
     /**
      * @access protected
      */
-    render({panelHeight, cssClass, endEditMode}) {
+    render({panelHeight, cssClass, endEditMode}, {linkTo}) {
         return <div class={ cssClass } style={ `top: -${panelHeight + 8}px` }>{ this.state.values ? [
             <button onClick={ endEditMode } class="btn btn-sm" type="button"> &lt; </button>,
             <div class="form-horizontal pt-0">
@@ -43,24 +45,11 @@ class EditItemPanel extends preact.Component {
                     <Input vm={ this } prop="linkText"/>
                     <InputErrors vm={ this } prop="linkText"/>
                 </FormGroupInline>
-                <FormGroupInline>
-                    <label htmlFor="linkSlug" class="form-label">{ __('Url') }</label>
-                    <Input vm={ this } prop="linkSlug" placeholder={ __('e.g. %s or %s', '/my-page', 'https://page.com') }/>
-                    <InputErrors vm={ this } prop="linkSlug"/>
-                </FormGroupInline>
+                <PickUrlInputGroup linkTo={ linkTo } onUrlPicked={ normalized => {
+                    this.props.onLinkPropUpdated(normalized, 'slug');
+                } }/>
             </div>
         ] : null }</div>;
-    }
-    /**
-     * @param {String} value
-     * @param {String} prop 'text'|'slug'
-     * @param {Boolean} hasErrors
-     * @access private
-     */
-    emitChange(value, prop, hasErrors) {
-        if (hasErrors) return;
-        this.link[prop] = value;
-        this.props.onLinkUpdated(this.link);
     }
 }
 

@@ -80,9 +80,9 @@ function getLabel(mode, translationsPool = 'dialogTitles') {
         if (!previewTitleTranslations)
             previewTitleTranslations = {
                 'choose-link-type': '-',
-                'pick-url': __('Link to %s: ', __('a file')),
-                'pick-file': __('Link to %s: ', `${__('Image')} / ${__('File')}`.toLowerCase()),
-                'type-external-url': __('Link to %s: ', __('an address')),
+                'pick-url': __('Link to a page: '),
+                'pick-file': __('Link to image/file: '),
+                'type-external-url': __('Link to an address: '),
             };
         titles = previewTitleTranslations;
     }

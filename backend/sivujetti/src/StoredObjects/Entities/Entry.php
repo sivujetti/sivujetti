@@ -10,4 +10,6 @@ final class Entry extends \stdClass {
     public string $objectName;
     /** @psalm-var DataShape */
     public array $data;
+    /** @var string */
+    public string $dataJson;
 }

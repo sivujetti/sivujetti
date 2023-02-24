@@ -2,11 +2,11 @@
 
 namespace Sivujetti\StoredObjects;
 
-use Pike\Db\FluentDb;
+use Pike\Db\{FluentDb, MySelect, MyUpdate};
 use Pike\Interfaces\RowMapperInterface;
 use Pike\PikeException;
+use Sivujetti\{JsonUtils, ValidationUtils};
 use Sivujetti\StoredObjects\Entities\Entry;
-use Sivujetti\ValidationUtils;
 
 class StoredObjectsRepository {
     private const T = "\${p}storedObjects";
@@ -20,9 +20,21 @@ class StoredObjectsRepository {
     }
     /**
      * @param string $objectName e.g. "JetForms:mailSendSettings"
-     * @return ?\SitePlugins\JetForms\Entities\Entry
+     * @param array<string, mixed> $data
+     * @return string|false $lastInsertId
+     * @throws \Pike\PikeException|\JsonException If $data is not valid or too large, or database op fails
      */
-    public function getEntry(string $objectName): ?Entry {
+    public function putEntry(string $objectName, array $data): string {
+        $asJson = self::stringifyDataOrThrow($data);
+        return $this->db->insert(self::T)
+            ->values([(object) ["objectName" => $objectName, "data" => $asJson]])
+            ->execute();
+    }
+    /**
+     * @param string $objectName e.g. "JetForms:mailSendSettings" or "JetForms:submissions"
+     * @return \Pike\Db\MySelect
+     */
+    public function find(string $objectName): MySelect {
         return $this->db->select(self::T, Entry::class)
             ->fields(["objectName", "data AS dataJson"])
             ->where("objectName = ?", [$objectName])
@@ -31,25 +43,31 @@ class StoredObjectsRepository {
                     $row->data = json_decode($row->dataJson, associative: true, flags: JSON_THROW_ON_ERROR);
                     return $row;
                 }
-            })
-            ->fetch() ?? null;
+            });
     }
     /**
-     * Important: $validateData must be validated before calling this method!
-     *
      * @param string $objectName e.g. "JetForms:mailSendSettings"
-     * @param object $validatedData e.g. {sendingMethod: "mail", ...}
-     * @return int $numAffectedRows
-     * @throws \Pike\PikeException If length of $validatedData->* too big
+     * @param array<string, mixed> $data e.g. {sendingMethod: "mail", ...}
+     * @return \Pike\Db\MyUpdate
+     * @throws \Pike\PikeException|\JsonException If $data is not valid or too large
      */
-    public function updateEntryData(string $objectName, object $validatedData): int {
-        $asJson = json_encode($validatedData, flags: JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
-        if (strlen($asJson) > (ValidationUtils::HARD_JSON_TEXT_MAX_LEN * 16)) // ~4MB
-            throw new PikeException("Json too large", PikeException::BAD_INPUT);
+    public function updateEntry(string $objectName, array $data): MyUpdate {
+        $asJson = self::stringifyDataOrThrow($data);
         return $this->db
             ->update(self::T)
             ->values((object) ["data" => $asJson])
-            ->where("objectName = ?", [$objectName])
-            ->execute();
+            ->where("objectName = ?", [$objectName]);
+    }
+    /**
+     * @param array $data e.g. {sendingMethod: "mail", ...}
+     * @return string $json
+     * @throws \Pike\PikeException|\JsonException If $data is not valid or too large
+     */
+    private static function stringifyDataOrThrow(array $data): string {
+        // @allow \JsonException
+        $asJson = JsonUtils::stringify($data);
+        if (strlen($asJson) > (ValidationUtils::HARD_JSON_TEXT_MAX_LEN * 8)) // ~4MB
+            throw new PikeException("Json too large", PikeException::BAD_INPUT);
+        return $asJson;
     }
 }

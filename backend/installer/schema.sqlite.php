@@ -36,7 +36,7 @@ return [
 
 "CREATE TABLE `\${p}storedObjects` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-    `objectName` TEXT NOT NULL UNIQUE,
+    `objectName` TEXT NOT NULL,
     `data` JSON
 )",
 

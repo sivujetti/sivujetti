@@ -38,7 +38,7 @@ return [
 
 "CREATE TABLE `\${p}storedObjects` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `objectName` VARCHAR(92) NOT NULL UNIQUE,
+    `objectName` VARCHAR(255) NOT NULL,
     `data` JSON,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",

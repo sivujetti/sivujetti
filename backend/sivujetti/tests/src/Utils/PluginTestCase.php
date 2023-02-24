@@ -50,7 +50,7 @@ abstract class PluginTestCase extends RenderPageTestCase {
     }
     /**
      * @param \Closure $useRequest = null \Closure(): \Pike\Request
-     * @return $this
+     * @return \Pike\TestUtils\MutedSpyingResponse
      */
     protected function execute(\Closure $useRequest = null): MutedSpyingResponse {
         if (!$this->state->app)

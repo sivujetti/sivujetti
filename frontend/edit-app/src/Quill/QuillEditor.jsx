@@ -105,6 +105,12 @@ class QuillEditor extends preact.Component {
     /**
      * @access protected
      */
+    componentWillUnmount() {
+        if (this.quill.theme.sivujettiApi) this.quill.theme.destroy();
+    }
+    /**
+     * @access protected
+     */
     shouldComponentUpdate() {
         return false;
     }

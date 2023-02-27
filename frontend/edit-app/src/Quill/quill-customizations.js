@@ -5,12 +5,24 @@ const Quill = window.Quill;
 
 class MySnowTheme extends Quill.import('themes/snow') {
     // sivujettiApi;
+    // handleMouseUpOutsideWindow;
     /**
      * @inheritdoc
      */
     constructor(quill, options) {
         super(quill, options);
         this.sivujettiApi = options.sivujettiApi;
+        this.handleMouseUpOutsideWindow = () => {
+            if (this.quill.selection.mouseDown)
+                this.quill.selection.update(Quill.sources.USER);
+        };
+        window.addEventListener('mouseup', this.handleMouseUpOutsideWindow);
+    }
+    /**
+     * @access public
+     */
+    destroy() {
+        window.removeEventListener('mouseup', this.handleMouseUpOutsideWindow);
     }
     /**
      * @inheritdoc

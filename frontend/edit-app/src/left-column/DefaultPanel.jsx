@@ -28,7 +28,7 @@ class DefaultPanel extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (isAnotherAppView(props.url))
+        if (isAnotherAppView(props.url) || this.state.loadedPageSlug === props.url)
             return;
         if (props.url !== this.props.url)
             this.loadPageToPreviewIframe(props.url);

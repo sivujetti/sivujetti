@@ -98,7 +98,7 @@ stringBundles.push({
     'todo5': 'todo5',
     'todo6': 'todo6',
     'Colorless': 'Colorless',
-    'Ordinary content, which don\'t have a background color, are ': 'Ordinary content, which don\'t have a background color, are ',
+    'todo15': 'todo15',
     'stored to this page only': 'stored to this page only',
     'Orange': 'Orange',
     'todo8': 'todo8',

@@ -13,7 +13,7 @@ const BlockTreeShowHelpPopup = () =>
                 <button class="more-toggle ml-2" type="button" style="opacity: 1;"><Icon iconId="dots" className="size-xs"/></button>
             </div></li></ul></div>
             <div class="col-8 mt-1 pl-2 ml-2">
-                { __('Ordinary content, which don\'t have a background color, are ') }<b>{ __('stored to this page only') }</b>.
+                { __('todo15') }<b>{ __('stored to this page only') }</b>.
             </div>
         </div>
         <div class="d-flex mt-2 pt-2">

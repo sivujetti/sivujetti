@@ -68,6 +68,7 @@ class TreeDragDrop {
             this.mouseIsCurrentlyInside = true;
             this.curAccept = true;
             if (this.start === null) this.start = 'setting-it';
+            if (this.curCandVisual) this.curCandVisual.pos = 'initial';
         }
     }
     /**

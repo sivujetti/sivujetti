@@ -1,5 +1,5 @@
 import {__, api, env, signals, urlUtils, Icon, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
-import {createTrier} from '../../../../webpage/src/EditAppAwareWebPage.js';
+import {createTrier} from '../../block/dom-commons.js';
 import {findBlockFrom} from '../../block/utils-utils.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import store, {selectCurrentPageDataBundle} from '../../store.js';

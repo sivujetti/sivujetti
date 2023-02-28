@@ -25,7 +25,7 @@
         }
         .new-block-spawner-opened .drag-instructions-overlay {
             overflow: visible;
-            padding-left: 2rem;
+            padding-left: 4rem;
             z-index: 4;
         }
         .new-block-spawner-opened .drag-instructions-overlay:not(.fade-away) {
@@ -33,7 +33,7 @@
         }
         .drag-instructions-overlay > div {
             position: relative;
-            margin-top: 12rem;
+            margin-top: 9rem;
         }
         .drag-instructions-overlay > div p {
             text-shadow: 0px 0px 4px #fff;

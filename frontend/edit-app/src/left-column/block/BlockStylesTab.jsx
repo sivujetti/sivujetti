@@ -1,7 +1,7 @@
 import {__, api, env, http, signals, timingUtils, Icon, LoadingSpinner, hookForm,
     unhookForm, Input, FormGroup, InputErrors, InputError, hasErrors} from '@sivujetti-commons-for-edit-app';
-import {createTrier} from '../../../../webpage/src/EditAppAwareWebPage.js';
 import {Popup} from '../../block-types/listing/AdditionalFiltersBuilder.jsx';
+import {createTrier} from '../../block/dom-commons.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import CssStylesValidatorHelper from '../../commons/CssStylesValidatorHelper.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';

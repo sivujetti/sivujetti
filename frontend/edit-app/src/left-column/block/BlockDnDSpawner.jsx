@@ -1,5 +1,6 @@
 import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app';
 import {getIcon} from '../../block-types/block-types.js';
+import {createTrier} from '../../block/dom-commons.js';
 import {createBlockFromBlueprint, createBlockFromType, createGbtRefBlockProps} from '../../block/utils.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import blockTreeUtils from './blockTreeUtils.js';
@@ -52,19 +53,24 @@ class BlockDnDSpawner extends preact.Component {
      */
     componentDidMount() {
         if (unregScrollListener) unregScrollListener();
-        const blockTreeEl = this.rootEl.current.nextElementSibling;
-        const blockTreeOuterEl = blockTreeEl.parentElement;
         let blockTreeBottom = null;
         let invalidateBlockTreeBottom = null;
         const {initiallyIsOpen} = this.props;
-        this.updateStyleTopAndAdjustRootEl(initiallyIsOpen);
+        this.styleTop = 0;
+        createTrier(() => {
+            const blockTreeEl = this.rootEl.current.nextElementSibling;
+            if (blockTreeEl) this.updateStyleTopAndAdjustRootEl(initiallyIsOpen);
+            return blockTreeEl !== null;
+        }, 50, 10)();
         this.setState({isMounted: true});
         const handleScroll = e => {
             const rootEl = this.rootEl.current;
-            if (!rootEl) return;
+            if (!rootEl || this.styleTop === 0) return;
             //
             if (blockTreeBottom === null) {
-                const delta = this.state.isOpen ? 20 : -30;
+                const delta = this.state.isOpen ? 40 : -10;
+                const blockTreeEl = this.rootEl.current.nextElementSibling;
+                const blockTreeOuterEl = blockTreeEl.parentElement;
                 blockTreeBottom = blockTreeOuterEl.offsetTop + blockTreeOuterEl.getBoundingClientRect().height + delta;
             } else {
                 clearTimeout(invalidateBlockTreeBottom);
@@ -72,8 +78,12 @@ class BlockDnDSpawner extends preact.Component {
             }
             //
             let adjustedTop = this.styleTop - e.target.scrollTop;
-            if (e.target.scrollTop <= blockTreeBottom && adjustedTop < 7) adjustedTop = 6;
-            this.adjustRootElPos(adjustedTop);
+            if (e.target.scrollTop > blockTreeBottom) {
+                this.rootEl.current.style.display = 'none';
+            } else {
+                this.rootEl.current.style.display = '';
+                this.adjustRootElPos(e.target.scrollTop, adjustedTop);
+            }
         };
         const mainPanelEl = this.rootEl.current.closest('#main-panel');
         mainPanelEl.addEventListener('scroll', handleScroll);
@@ -186,14 +196,18 @@ class BlockDnDSpawner extends preact.Component {
         const topEl = isOpen
             ? api.mainPanel.getSectionEl('onThisPage').querySelector('.section-title > span')
             : this.rootEl.current.nextElementSibling;
-        this.styleTop = topEl.getBoundingClientRect().top;
-        this.adjustRootElPos();
+        const mainScrollTop = this.rootEl.current.closest('#main-panel').scrollTop;
+        //
+        this.styleTop = topEl.getBoundingClientRect().top + mainScrollTop;
+        this.adjustRootElPos(mainScrollTop, this.styleTop - mainScrollTop);
     }
     /**
+     * @param {Number} mainScrollTop
      * @param {Number} topVal = this.styleTop
      * @access private
      */
-    adjustRootElPos(styleTop = this.styleTop) {
+    adjustRootElPos(mainScrollTop, styleTop = this.styleTop) {
+        if (mainScrollTop > this.styleTop) styleTop = 6;
         this.rootEl.current.style.top = `${styleTop}px`;
         this.rootEl.current.style.height = `calc(100% - ${styleTop}px - 0.6rem)`;
     }

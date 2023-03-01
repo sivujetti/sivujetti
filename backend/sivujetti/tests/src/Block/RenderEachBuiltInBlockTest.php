@@ -148,7 +148,7 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $this->makeTestSivujettiApp($state);
         //
         $expectedInnerBlock = $state->testGlobalBlockTreeBlocks[0];
-        $exp = $this->blockTestUtils->getExpectedParagraphBlockOutput($expectedInnerBlock);
+        $exp = $this->blockTestUtils->getExpectedTextBlockOutput($expectedInnerBlock);
         $this->renderAndVerify($state, 0,
             $this->blockTestUtils->decorateWithRef($expectedInnerBlock, $exp)
         );
@@ -156,8 +156,8 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
     private function setupRenderGlobalBlockRefBlocksTest(): \TestState {
         $state = parent::setupTest();
         $state->testGlobalBlockTreeBlocks = [
-            $this->blockTestUtils->makeBlockData(Block::TYPE_PARAGRAPH,
-                propsData: ["text" => "© Year My Site"],
+            $this->blockTestUtils->makeBlockData(Block::TYPE_TEXT,
+                propsData: ["html" => "<p>© Year My Site</p>"],
                 id: "@auto"),
         ];
         //
@@ -354,6 +354,28 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $expectedHtml = $makeExpectedHtml($b[2], " some classes",
             " style=\"background-image:url('".Template::makeUrl($b[2]->bgImage, false)."')\"");
         $this->renderAndVerify($state, 2, $expectedHtml);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testRenderBlockRendersTexts(): void {
+        $state = $this->setupRenderTextBlocksTest();
+        $this->makeTestSivujettiApp($state);
+        $b = $state->testBlocks[0];
+        $this->renderAndVerify($state, 0, "<div class=\"j-Text\" data-block-type=\"Text\" data-block=\"{$b->id}\">" .
+            "{$b->html}[childMarker]" .
+        "</div>");
+    }
+    private function setupRenderTextBlocksTest(): \TestState {
+        $state = parent::setupTest();
+        $state->testBlocks = [
+            $this->blockTestUtils->makeBlockData(Block::TYPE_TEXT,
+                propsData: ["html" => "<p>Pre-validated <em>html</em></p>"],
+                id: "@auto"),
+        ];
+        return $state;
     }
     private function setupRenderSectionBlocksTest(): \TestState {
         $state = parent::setupTest();

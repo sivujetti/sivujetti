@@ -35,7 +35,7 @@ final class BlockValidatorTest extends TestCase {
             "renderer" => "sivujetti:block-auto",
             "id" => "aaaaaaaaaaaaaaaaaaaa",
             "styleClasses" => "foo",
-            "text" => "Some text",
+            "html" => "<p>Some text</p>",
         ];
         $state->validationErrors = null;
         $state->apiCtx = PageTestUtils::createTestApiCtx();
@@ -46,7 +46,7 @@ final class BlockValidatorTest extends TestCase {
     }
     private function invokeValidation(\TestState $state): void {
         $v = new BlockValidator($state->apiCtx);
-        $state->validationErrors = $v->validateInsertOrUpdateData(Block::TYPE_PARAGRAPH, $state->inputData);
+        $state->validationErrors = $v->validateInsertOrUpdateData(Block::TYPE_TEXT, $state->inputData);
     }
     private function registerAdditionalRenderer(string $fileId, \TestState $state): void {
         $userSiteApi = new UserSiteAPI("site", $state->apiCtx);

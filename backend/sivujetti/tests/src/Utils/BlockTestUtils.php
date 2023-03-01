@@ -127,6 +127,18 @@ final class BlockTestUtils {
      * @param ?string $cls = null
      * @param string $childHtml = "<!-- children-start --><!-- children-end -->"
      */
+    public function getExpectedTextBlockOutput(object $rawBlock,
+                                               ?string $cls = null,
+                                               string $childHtml = "<!-- children-start --><!-- children-end -->"): string {
+        return "<div class=\"j-Text{$cls}\" data-block-type=\"Text\" data-block=\"{$rawBlock->id}\">" .
+            "{$rawBlock->html}{$childHtml}" .
+        "</div>";
+    }
+    /**
+     * @param object $rawBlock
+     * @param ?string $cls = null
+     * @param string $childHtml = "<!-- children-start --><!-- children-end -->"
+     */
     public function getExpectedParagraphBlockOutput(object $rawBlock,
                                                     ?string $cls = null,
                                                     string $childHtml = "<!-- children-start --><!-- children-end -->"): string {

@@ -1,4 +1,11 @@
-<?php if ($props->type === \Sivujetti\Block\Entities\Block::TYPE_PARAGRAPH):
+<?php if ($props->type === "Text"):
+    echo "<div class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
+        "\" data-block-type=\"", $props->type,
+        "\" data-block=\"", $props->id, "\">",
+        $props->html, // @allow pre-validated html
+        $this->renderChildren($props),
+    "</div>";
+elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_PARAGRAPH):
     echo "<p class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
         "\" data-block-type=\"", $props->type,
         "\" data-block=\"", $props->id, "\">",

@@ -16,7 +16,7 @@ $statements = array_merge($statements, [
 
 "INSERT INTO `themes` (`id`,`name`,`stylesOrder`,`globalStyles`,`isActive`,`generatedScopedStylesCss`) VALUES
 ('1','test-suite-theme','" .
-    json_encode(["Paragraph", "Section"])
+    json_encode(["Text", "Section"])
 . "','[]',1,'" .
     \Sivujetti\Tests\Utils\CssGenTestUtils::generateScopedStyles($styles) .
 "')",
@@ -29,8 +29,8 @@ $statements = array_merge($statements, [
                           ",`fields`,`defaultLayoutId`,`status`,`isListable`) VALUES
 (2,'PagesCategories','/pages-categories','Page category','Page categories','','" . json_encode([
     "ownFields" => [],
-    "blockFields" => [(object) ["type" => "Paragraph", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
-                                "initialData" => (object) ["text" => "Category"],
+    "blockFields" => [(object) ["type" => "Text", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
+                                "initialData" => (object) ["html" => "<p>Category</p>"],
                                 "children" => []]],
     "defaultFields" => (object) ["title" => (object) ["defaultValue" => "New category"]],
 ]) . "','1',0,1),
@@ -41,8 +41,8 @@ $statements = array_merge($statements, [
         "dataType" => (object) ["type" => "many-to-many", "isNullable" => false, "rel" => "PagesCategories"],
         "defaultValue" => [],
     ]],
-    "blockFields" => [(object) ["type" => "Paragraph", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
-                                "initialData" => (object) ["text" => "Paragraph text"],
+    "blockFields" => [(object) ["type" => "Text", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
+                                "initialData" => (object) ["text" => "<p>Paragraph text</p>"],
                                 "children" => []]],
     "defaultFields" => (object) ["title" => (object) ["defaultValue" => "New page"]],
 ]) . "','1',0,1)",

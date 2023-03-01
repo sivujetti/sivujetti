@@ -63,7 +63,7 @@ final class CreateReusableBranchTest extends ReusableBranchesControllerTestCase 
         $state->inputData = (object) [
             "id" => $state->testReusableBranch->id,
             "blockBlueprints" => [(object) [
-                "blockType" => "Heading",
+                "blockType" => "Text",
                 "initialOwnData" => (object) [],
                 "initialDefaultsData" => (object) ["not" => "valid"],
                 "initialChildren" => [(object) ["not" => "valid"]]

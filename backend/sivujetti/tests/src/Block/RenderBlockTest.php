@@ -22,8 +22,8 @@ final class RenderBlockTest extends RenderBlocksTestCase {
         [$heading, $paragraph] = $section->children;
         $expected = "<section class=\"j-Section\" data-block-type=\"Section\" data-block=\"{$state->testBlock->id}\">" .
             "<div data-block-root><!-- children-start -->" .
-                $this->blockTestUtils->getExpectedHeadingBlockOutput($heading) .
-                $this->blockTestUtils->getExpectedParagraphBlockOutput($paragraph) .
+                $this->blockTestUtils->getExpectedTextBlockOutput($heading) .
+                $this->blockTestUtils->getExpectedTextBlockOutput($paragraph) .
             "<!-- children-end --></div>" .
         "</section>";
         $this->verifyResponseBodyEquals((object) ["result" => $expected],

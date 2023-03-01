@@ -16,9 +16,9 @@ class TestData {
         ], (object) [
             "units" => json_encode([["title" => "Default", "id" => "Default",
                 "scss" => "font-size: 1rem",
-                "generatedCss" => ".j-Paragraph-default{font-size:1rem;}"]]),
+                "generatedCss" => ".j-Text-default{font-size:1rem;}"]]),
             "themeId" => "1",
-            "blockTypeName" => "Paragraph",
+            "blockTypeName" => "Text",
         ]];
     }
 }

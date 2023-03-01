@@ -2,8 +2,7 @@
 
 namespace Sivujetti\BlockType;
 
-/** @deprecated */
-final class RichTextBlockType implements BlockTypeInterface {
+final class TextBlockType implements BlockTypeInterface {
     /**
      * @inheritdoc
      */

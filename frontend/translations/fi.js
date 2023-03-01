@@ -238,7 +238,6 @@ stringBundles.push({
     'Meta description': 'Meta-selostus',
     // edit-app/src/block-types/paragraph.js
     'Paragraph': 'Tekstikappale',
-    'Text': 'Teksti',
     'Paragraph text': 'Tekstikappaleen teksti',
     // edit-app/src/block-types/richText.js
     'RichText': 'Rikasteteksti',
@@ -247,6 +246,9 @@ stringBundles.push({
     // edit-app/src/block-types/section.js
     'Section': 'Osio',
     'Background': 'Taustakuva',
+    // edit-app/src/block-types/text.js
+    'Text': 'Teksti',
+    'Text content': 'Tekstisisältöä',
     // edit-app/src/block-widget/ImagePicker.jsx
     'Choose a picture': 'Valitse kuva',
     // edit-app/src/right-column/website/WebsiteEditBasicInfoView.jsx

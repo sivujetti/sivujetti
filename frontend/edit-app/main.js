@@ -16,6 +16,7 @@ import createPageInfoBlockType from './src/block-types/pageInfo.js';
 import createParagraphBlockType from './src/block-types/paragraph.js';
 import createRichTextBlockType from './src/block-types/richText.js';
 import createSectionBlockType from './src/block-types/section.js';
+import createTextBlockType from './src/block-types/text.js';
 import InspectorPanel from './src/left-column/InspectorPanel.jsx';
 import RightColumnViews from './src/right-column/RightColumnViews.jsx';
 import WebPageIframe from './src/right-column/WebPageIframe.js';
@@ -82,6 +83,7 @@ function configureServices() {
     blockTypes.register('Paragraph', createParagraphBlockType);
     blockTypes.register('RichText', createRichTextBlockType);
     blockTypes.register('Section', createSectionBlockType);
+    blockTypes.register('Text', createTextBlockType);
     api.blockTypes = blockTypes;
     //
     const mainPanel = new MainPanel(document.getElementById('main-panel'), env);

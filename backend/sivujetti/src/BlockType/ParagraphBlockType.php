@@ -2,6 +2,7 @@
 
 namespace Sivujetti\BlockType;
 
+/** @deprecated */
 final class ParagraphBlockType implements BlockTypeInterface {
     /**
      * @inheritdoc

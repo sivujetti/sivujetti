@@ -238,7 +238,6 @@ stringBundles.push({
     'Meta description': 'Meta description',
     // edit-app/src/block-types/paragraph.js
     'Paragraph': 'Paragraph',
-    'Text': 'Text',
     'Paragraph text': 'Paragraph text',
     // edit-app/src/block-types/richText.js
     'RichText': 'Rich text',
@@ -247,6 +246,9 @@ stringBundles.push({
     // edit-app/src/block-types/section.js
     'Section': 'Section',
     'Background': 'Background',
+    // edit-app/src/block-types/text.js
+    'Text': 'Text',
+    'Text content': 'Text content',
     // edit-app/src/block-widget/ImagePicker.jsx
     'Choose a picture': 'Choose a picture',
     // edit-app/src/right-column/website/WebsiteEditBasicInfoView.jsx

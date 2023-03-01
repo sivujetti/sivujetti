@@ -31,9 +31,9 @@ abstract class ThemesControllerTestCase extends DbTestCase {
                      "themeId"=>"@filledAfter",
                      "blockTypeName"=>"Section"],
             (object)["units" => json_encode([["title"=>"Default","id"=>"default","scss"=>"color: #444",
-                                  "generatedCss"=>".j-Paragraph-default{color:#444;}"]]),
+                                  "generatedCss"=>".j-Text-default{color:#444;}"]]),
                      "themeId"=>"@filledAfter",
-                     "blockTypeName"=>"Paragraph"],
+                     "blockTypeName"=>"Text"],
         ];
         $state->testTheme = null;
         $state->spyingResponse = null;

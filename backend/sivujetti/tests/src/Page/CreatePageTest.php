@@ -99,7 +99,7 @@ final class CreatePageTest extends PagesControllerTestCase {
     public function testCreateNormalPageValidatesBlocksRecursively(): void {
         $state = $this->setupCreateNormalPageTest(addDefaultBlocks: false);
         $btu = new BlockTestUtils();
-        $notValidBlock = (object) ["type" => Block::TYPE_PARAGRAPH];
+        $notValidBlock = (object) ["type" => Block::TYPE_TEXT];
         $validBlock = $btu->makeBlockData(Block::TYPE_SECTION, "Main", "sivujetti:block-generic-wrapper", children: [
             $notValidBlock,
         ], propsData: ["bgImage" => ""]);

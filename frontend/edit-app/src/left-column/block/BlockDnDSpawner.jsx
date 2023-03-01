@@ -170,7 +170,7 @@ class BlockDnDSpawner extends preact.Component {
         if (newIsOpen) {
             if (!this.selectableBlockTypes) {
                 this.selectableBlockTypes = sort(Array.from(api.blockTypes.entries()).filter(([name, _]) =>
-                    name !== 'PageInfo' && name !== 'GlobalBlockReference'
+                    ['Heading', 'PageInfo', 'Paragraph', 'RichText'].indexOf(name) < 0 && name !== 'GlobalBlockReference'
                 ));
                 this.firstPluginRegisteredBlockTypeIdx = this.selectableBlockTypes.findIndex(([name, _]) =>
                     name === 'Code'
@@ -307,9 +307,7 @@ class BlockDnDSpawner extends preact.Component {
 }
 
 const ordinals = [
-    'Heading',
-    'RichText',
-    'Paragraph',
+    'Text',
     'Image',
     'Button',
 

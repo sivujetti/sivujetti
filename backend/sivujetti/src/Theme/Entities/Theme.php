@@ -14,7 +14,7 @@ final class Theme extends \stdClass {
     public array $globalStyles;
     /** @var \Sivujetti\Theme\Entities\Style[] */
     public array $styles;
-    /** @var string[] ["_body_", "j-Heading" ...] */
+    /** @var string[] ["_body_", "j-Text" ...] */
     public array $stylesOrder;
     /** @var int Unix timestamp */
     public int $stylesLastUpdatedAt;
@@ -50,7 +50,7 @@ final class Theme extends \stdClass {
             $this->styles = NoDupeRowMapper::collectOnce($this->__stash, fn($row2) =>
                 strval($row2->themeId) === $this->id ? Style::fromParentRs($row2) : null
             , "themeStylesBlockTypeName", []);
-            $ordinals = array_flip($this->stylesOrder); // ["_body_","j-Heading"...] => ["_body_"=>0,"j-Heading"=>1...]
+            $ordinals = array_flip($this->stylesOrder); // ["_body_","j-Text"...] => ["_body_"=>0,"j-Text"=>1...]
             usort($this->styles, fn($a, $b) =>
                 ($ordinals[$a->blockTypeName] ?? PHP_INT_MAX) <=> ($ordinals[$b->blockTypeName] ?? PHP_INT_MAX)
             );

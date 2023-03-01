@@ -81,6 +81,7 @@ return [
     "\$backend/sivujetti/src/BlockType/ParagraphBlockType.php",
     "\$backend/sivujetti/src/BlockType/ButtonBlockType.php",
     "\$backend/sivujetti/src/BlockType/BlockTypeInterface.php",
+    "\$backend/sivujetti/src/BlockType/TextBlockType.php",
     "\$backend/sivujetti/src/BlockType/ListingBlockType.php",
     "\$backend/sivujetti/src/BlockType/HeadingBlockType.php",
     "\$backend/sivujetti/src/BlockType/SaveAwareBlockTypeInterface.php",

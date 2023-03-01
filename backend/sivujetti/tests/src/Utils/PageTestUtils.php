@@ -6,7 +6,7 @@ use Pike\{Db, PikeException};
 use Sivujetti\Block\{BlocksController, BlockValidator};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, GlobalBlockReferenceBlockType, HeadingBlockType,
-                         MenuBlockType, ParagraphBlockType, SectionBlockType};
+                         MenuBlockType, ParagraphBlockType, SectionBlockType, TextBlockType};
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\Page\{PagesRepository};
 use Sivujetti\PageType\Entities\PageType;
@@ -224,11 +224,12 @@ final class PageTestUtils {
             $blockTypes->{Block::TYPE_MENU} = new MenuBlockType;
             $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
             $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
+            $blockTypes->{Block::TYPE_TEXT} = new TextBlockType;
             $out->blockTypes = $blockTypes;
         }
         if (!$out->blockRenderers)
             $out->blockRenderers = array_merge($out->blockRenderers, [
-                ["fileId" => "sivujetti:block-auto", "friendlyName" => null, "associatedWith" => null], // Heading, Paragraph etc.
+                ["fileId" => "sivujetti:block-auto", "friendlyName" => null, "associatedWith" => null], // Text, Button etc.
                 ["fileId" => "sivujetti:block-generic-wrapper", "friendlyName" => null, "associatedWith" => null], // Columns, Section
             ]);
         return $out;
@@ -249,8 +250,8 @@ final class PageTestUtils {
     private static function makeDefaultBlockTree(): array {
         $btu = new BlockTestUtils();
         return [$btu->makeBlockData(Block::TYPE_SECTION, "Main", "sivujetti:block-generic-wrapper", children: [
-            $btu->makeBlockData(Block::TYPE_HEADING, propsData: ["text" => "Hello", "level" => 2]),
-            $btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Text"]),
+            $btu->makeBlockData(Block::TYPE_TEXT, propsData: ["html" => "<h2>Hello</h2>"]),
+            $btu->makeBlockData(Block::TYPE_TEXT, propsData: ["html" => "<p>Text</p>"]),
         ], propsData: ["bgImage" => ""])];
     }
     /**

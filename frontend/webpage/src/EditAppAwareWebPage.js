@@ -181,7 +181,7 @@ class EditAppAwareWebPage {
         this.isMouseListenersDisabled = isDisabled;
     }
     /**
-     * @param {String} unitCls Example 'j-Heading-unit-6'
+     * @param {String} unitCls Example 'j-Text-unit-6'
      * @param {String} varName Example 'textColor'
      * @param {String} varValue Example '#f5f5f5'
      * @param {'color'} valueType

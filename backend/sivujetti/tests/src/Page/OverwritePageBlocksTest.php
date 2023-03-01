@@ -25,7 +25,7 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
         $state->testPageData->slug = "/overwrite-blocks-test-page";
         $state->testPageData->path = "/overwrite-blocks-test-page/";
         $state->inputData = (object) ["blocks" =>
-            [$btu->makeBlockData(Block::TYPE_PARAGRAPH, propsData: ["text" => "Hello"])]
+            [$btu->makeBlockData(Block::TYPE_TEXT, propsData: ["html" => "<p>Hello</p>"])]
         ];
         $state->spyingResponse = null;
         $state->app = null;
@@ -94,7 +94,7 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
 
     public function testOverwritePageBlocksCatchesInvalidBasicProps(): void {
         $state = $this->setupTest();
-        $state->inputData = (object) ["blocks" => [(object) ["type" => "Paragraph", "id" => "not-valid",
+        $state->inputData = (object) ["blocks" => [(object) ["type" => "Text", "id" => "not-valid",
             "styleClasses" => ["not-a-string"]]]];
         $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
@@ -107,8 +107,8 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
             "styleClasses must be string",
             "The length of styleClasses must be 1024 or less",
             "id is not valid push id",
-            "text must be string",
-            "The length of text must be 128000 or less",
+            "html must be string",
+            "The length of html must be 128000 or less",
         ], $state->spyingResponse);
     }
 

@@ -17,6 +17,7 @@ final class Block extends \stdClass {
     public const TYPE_PARAGRAPH        = "Paragraph";
     public const TYPE_RICH_TEXT        = "RichText";
     public const TYPE_SECTION          = "Section";
+    public const TYPE_TEXT             = "Text";
     /** @var string self::TYPE_* */
     public string $type;
     /** @var ?string */
@@ -84,6 +85,9 @@ final class Block extends \stdClass {
 
     /* If self::TYPE_SECTION
     public string $bgImage; */
+
+    /* If self::TYPE_TEXT
+    public string $html; */
 
     /**
      * @param object $data

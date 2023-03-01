@@ -30,7 +30,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $state = new \TestState;
         $btu = new BlockTestUtils();
         $state->testGlobalBlockTree = [
-            $btu->makeBlockData(Block::TYPE_PARAGRAPH, id: "@auto", propsData: ["text" => "Footer text"])
+            $btu->makeBlockData(Block::TYPE_TEXT, id: "@auto", propsData: ["html" => "<p>Footer text</p>"])
         ];
         $state->testGlobalBlockData = (object) [
             "id" => "1",
@@ -55,13 +55,12 @@ final class RenderBasicPageTest extends RenderPageTestCase {
                                         "globalBlockTrees");
     }
     private function verifyRenderedCorrectPageAndLayout(\TestState $state): void {
-        $headingBlock = $state->testPageData->blocks[0]->children[0];
-        $expectedPageBlockHeading = $headingBlock->propsData[0]->value;
-        $expected1 = "<h2 class=\"j-Heading\" data-block-type=\"Heading\" data-block=\"{$headingBlock->id}\">{$expectedPageBlockHeading}</h2>";
+        $actualHeadingTextBlockHtml = $state->testPageData->blocks[0]->children[0];
+        $expected1 = (new BlockTestUtils($this->pageTestUtils))->getExpectedTextBlockOutput($actualHeadingTextBlockHtml, childHtml: "");
         $this->assertStringContainsString($expected1, $state->spyingResponse->getActualBody());
-        $paragraphBlock = $state->testGlobalBlockTree[0];
-        $expectedPageBlockHeading = $paragraphBlock->propsData[0]->value;
-        $expected2 = (new BlockTestUtils($this->pageTestUtils))->getExpectedParagraphBlockOutput($paragraphBlock, childHtml: "");
+
+        $actualParagrapTextBlockHtml = $state->testGlobalBlockTree[0];
+        $expected2 = (new BlockTestUtils($this->pageTestUtils))->getExpectedTextBlockOutput($actualParagrapTextBlockHtml, childHtml: "");
         $this->assertStringContainsString($expected2, $state->spyingResponse->getActualBody());
     }
     private function verifyThemeCanRegisterCssFiles(\TestState $state): void {

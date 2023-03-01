@@ -13,7 +13,8 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, CodeBlockType, ColumnsBlockType,
                          GlobalBlockReferenceBlockType, HeadingBlockType, ImageBlockType,
                          ListingBlockType, MenuBlockType, PageInfoBlockType,
-                         ParagraphBlockType, RichTextBlockType, SectionBlockType};
+                         ParagraphBlockType, RichTextBlockType, SectionBlockType,
+                         TextBlockType};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Plugin\Entities\Plugin;
@@ -144,11 +145,12 @@ class BootModule {
         $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
         $blockTypes->{Block::TYPE_RICH_TEXT} = new RichTextBlockType;
         $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
+        $blockTypes->{Block::TYPE_TEXT} = new TextBlockType;
         if ($doCreateBlockTypes) $apiCtx->blockTypes = $blockTypes;
         $di->share($blockTypes);
         //
         $apiCtx->blockRenderers = array_merge($apiCtx->blockRenderers, [
-            ["fileId" => "sivujetti:block-auto", "friendlyName" => null, "associatedWith" => null], // Heading, Paragraph etc.
+            ["fileId" => "sivujetti:block-auto", "friendlyName" => null, "associatedWith" => null], // Text, Button etc.
             ["fileId" => "sivujetti:block-generic-wrapper", "friendlyName" => null, "associatedWith" => null], // Columns, Section
             ["fileId" => "sivujetti:block-listing-pages-default", "friendlyName" => "Pages listing", "associatedWith" => "*"],
             ["fileId" => "sivujetti:block-menu", "friendlyName" => null, "associatedWith" => null],

@@ -67,7 +67,7 @@ final class UpdateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
 
     public function testUpdateGlobalBlockTreeBlocksCatchesInvalidBasicProps(): void {
         $state = $this->setupTest();
-        $state->inputData = (object) ["blocks" => [(object) ["type" => "Paragraph", "id" => "not-valid",
+        $state->inputData = (object) ["blocks" => [(object) ["type" => "Text", "id" => "not-valid",
             "styleClasses" => ["not-a-string"]]]];
         $this->insertTestGlobalBlockTreeToDb($state);
         $this->makeTestSivujettiApp($state);
@@ -80,8 +80,8 @@ final class UpdateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
             "styleClasses must be string",
             "The length of styleClasses must be 1024 or less",
             "id is not valid push id",
-            "text must be string",
-            "The length of text must be 128000 or less",
+            "html must be string",
+            "The length of html must be 128000 or less",
         ], $state->spyingResponse);
     }
 

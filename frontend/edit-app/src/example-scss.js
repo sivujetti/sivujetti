@@ -129,4 +129,19 @@ margin: 0;`,
 }`,
     outermostElIsWrapper: true,
 },
+
+'Text': {
+    outermostEl: 'div',
+    first:
+`display: inherit;`,
+    second:
+`> p {
+  line-height: 0
+}
+.ql-indent-1 {
+  margin: .8rem 0 .8rem .8rem;
+  list-style-type: circle;
+}`,
+    outermostElIsWrapper: true,
+},
 };

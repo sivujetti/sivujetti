@@ -24,7 +24,7 @@ abstract class ReusableBranchesControllerTestCase extends DbTestCase {
         $state->testReusableBranch = (object) [
             "id" => "-cccccccccccccccccc1",
             "blockBlueprints" => JsonUtils::stringify([self::blockToBlueprint($btu->makeBlockData("Section", "Header",
-            children: [$btu->makeBlockData("Heading", propsData: (object) ["level" => 1, "text" => "Hello"])]))])
+            children: [$btu->makeBlockData("Text", propsData: (object) ["html" => "<h1>Hello</h1>"])]))])
         ];
         $state->app = null;
         return $state;

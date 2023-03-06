@@ -14,9 +14,10 @@ abstract class JsonUtils {
     /**
      * @param string $json
      * @param int $flags = JSON_THROW_ON_ERROR
+     * @param bool $asObject = true
      * @return mixed
      */
-    public static function parse(string $json, int $flags = JSON_THROW_ON_ERROR): mixed {
-        return json_decode($json, flags: $flags);
+    public static function parse(string $json, int $flags = JSON_THROW_ON_ERROR, bool $asObject = true): mixed {
+        return json_decode($json, associative: !$asObject, flags: $flags);
     }
 }

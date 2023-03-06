@@ -29,6 +29,7 @@ return [
     "\$backend/installer/sample-content/basic-site/\$backend/site/Site.php",
     "\$backend/installer/sample-content/basic-site/\$index-files-list.php",
     "\$backend/installer/sample-content/basic-site/db-data-mysql.php",
+    "\$backend/installer/sample-content/basic-site/\$index/public/uploads/SourceSansPro-Semibold-lettersOnly.ttf",
     "\$backend/installer/sample-content/basic-site/\$index/public/uploads/sample.jpg",
     "\$backend/installer/sample-content/basic-site/\$index/public/basic-site.css",
     "\$backend/installer/sample-content/basic-site/\$index/public/basic-site-generated.css",

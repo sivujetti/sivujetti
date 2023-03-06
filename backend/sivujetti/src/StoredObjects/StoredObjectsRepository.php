@@ -8,7 +8,7 @@ use Pike\PikeException;
 use Sivujetti\{JsonUtils, ValidationUtils};
 use Sivujetti\StoredObjects\Entities\Entry;
 
-class StoredObjectsRepository {
+final class StoredObjectsRepository {
     private const T = "\${p}storedObjects";
     /** @var \Pike\Db\FluentDb */
     private FluentDb $db;
@@ -24,7 +24,7 @@ class StoredObjectsRepository {
      * @return string|false $lastInsertId
      * @throws \Pike\PikeException|\JsonException If $data is not valid or too large, or database op fails
      */
-    public function putEntry(string $objectName, array $data): string {
+    public function putEntry(string $objectName, array $data): string|false {
         $asJson = self::stringifyDataOrThrow($data);
         return $this->db->insert(self::T)
             ->values([(object) ["objectName" => $objectName, "data" => $asJson]])

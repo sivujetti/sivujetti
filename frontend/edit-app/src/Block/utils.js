@@ -99,10 +99,13 @@ function isTreesOutermostBlock(blockOrBlockId, tree) {
 /**
  * @param {RawBlock} block
  * @param {Boolean} includePrivates = false
+ * @param {Boolean} recursive = true
  * @returns {{[key: String]: any;}}
  */
-function toTransferable(block, includePrivates = false) {
-    return treeToTransferable([block], includePrivates)[0];
+function toTransferable(block, includePrivates = false, recursive = true) {
+    return recursive
+        ? treeToTransferable([block], includePrivates)[0]
+        : toTransferableSingle(block, includePrivates);
 }
 
 /**
@@ -111,17 +114,24 @@ function toTransferable(block, includePrivates = false) {
  * @returns {Array<{[key: String]: any;}>}
  */
 function treeToTransferable(tree, includePrivates = false) {
-    return blockTreeUtils.mapRecursively(tree, block => {
-        const allKeys = Object.keys(block);
-        const onlyTheseKeys = allKeys.filter(key => {
-            if (key === 'children')
-                return false;
-            if (includePrivates === false && key.startsWith('__'))
-                return false;
-            return true;
-        });
-        return objectUtils.clonePartially(onlyTheseKeys, block);
+    return blockTreeUtils.mapRecursively(tree, block => toTransferableSingle(block, includePrivates));
+}
+
+/**
+ * @param {RawBlock} block
+ * @param {Boolean} includePrivates = false
+ * @returns {{[key: String]: any;}}
+ */
+function toTransferableSingle(block, includePrivates = false) {
+    const allKeys = Object.keys(block);
+    const onlyTheseKeys = allKeys.filter(key => {
+        if (key === 'children')
+            return false;
+        if (includePrivates === false && key.startsWith('__'))
+            return false;
+        return true;
     });
+    return objectUtils.clonePartially(onlyTheseKeys, block);
 }
 
 /**

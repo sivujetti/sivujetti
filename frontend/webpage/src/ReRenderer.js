@@ -34,19 +34,24 @@ class ReRenderer {
         };
     }
     /**
-     * @param {{theBlockTree: Array<RawBlock>;} && {[key: String]: any;}} state
+     * @param {{theBlockTree: Array<RawBlock>;} && {[key: String]: any;}} storeState
      * @param {[blockChangeEvent, Array<any>]} context
      * @access private
      */
-    handleFastChangeEvent({theBlockTree}, [event, data]) {
+    handleFastChangeEvent(storeState, [event, data]) {
+        const {theBlockTree} = storeState;
         // ====================================================================
         if (event === 'theBlockTree/init') {
             this.elCache = createElCache(theBlockTree);
         // ====================================================================
-        } else if (event === 'theBlockTree/swap') {
-            this.doReRender(theBlockTree);
-        // ====================================================================
-        } else if (event === 'theBlockTree/applyAdd(Drop)Block' || event === 'theBlockTree/applySwap') {
+        } else if ([
+            'theBlockTree/swap',
+            'theBlockTree/applyAdd(Drop)Block',
+            'theBlockTree/applySwap',
+            'theBlockTree/deleteBlock',
+            'theBlockTree/undoAdd(Drop)Block',
+            'theBlockTree/convertToGbt'
+        ].indexOf(event) > -1) {
             this.doReRender(theBlockTree);
         // ====================================================================
         } else if (event === 'theBlockTree/undo') {
@@ -58,9 +63,6 @@ class ReRenderer {
                 this.elCache.set(maybeBlockId, pool);
             }
             //
-            this.doReRender(theBlockTree);
-        // ====================================================================
-        } else if (event === 'theBlockTree/deleteBlock') {
             this.doReRender(theBlockTree);
         // ====================================================================
         } else if (event === 'theBlockTree/addBlockOrBranch') { // added to tree while dragging, not dropped yet
@@ -112,9 +114,6 @@ class ReRenderer {
                 this.doReRender(theBlockTree);
             }
         // ====================================================================
-        } else if (event === 'theBlockTree/undoAdd(Drop)Block') {
-            this.doReRender(theBlockTree);
-        // ====================================================================
         } else if (event === 'theBlockTree/updatePropsOf') {
             const [blockId, blockIsStoredToTreeId, _changes, flags, debounceMillis] = data;
             if (flags & HAS_ERRORS) { window.console.log('not impl'); return; }
@@ -141,22 +140,27 @@ class ReRenderer {
             const [clonedInf, clonedFromInf] = data; // [SpawnDescriptor, BlockDescriptor]
             const [clonedFrom] = blockTreeUtils.findBlockSmart(clonedFromInf.blockId, theBlockTree);
             const cloned = clonedInf.block;
-            const [flatOriginal, flatCloned] = flattenBlocksRecursive(clonedFrom, cloned);
-            for (let i = 0; i < flatOriginal.length; ++i) {
-                const clonedFromNode = getBlockEl(flatOriginal[i].id);
-                const cloned = extractRendered(clonedFromNode);
-                cloned.setAttribute('data-block', flatCloned[i].id);
-                this.elCache.set(flatCloned[i].id, [cloned]);
+            const hasUserMutations = getBlockPropsAsString(clonedFrom) !== getBlockPropsAsString(cloned);
+            if (!hasUserMutations) {
+                const [flatOriginal, flatCloned] = flattenBlocksRecursive(clonedFrom, cloned);
+                for (let i = 0; i < flatOriginal.length; ++i) {
+                    const clonedFromNode = getBlockEl(flatOriginal[i].id);
+                    const cloned = extractRendered(clonedFromNode);
+                    cloned.setAttribute('data-block', flatCloned[i].id);
+                    this.elCache.set(flatCloned[i].id, [cloned]);
+                }
+                this.doReRender(theBlockTree);
+            } else {
+                this.handleFastChangeEvent(storeState, ['theBlockTree/addBlockOrBranch', data]);
             }
-            this.doReRender(theBlockTree);
-        } else if (event === 'theBlockTree/convertToGbt') {
-            this.doReRender(theBlockTree);
+        // ====================================================================
         } else if (event === 'theBlockTree/updateDefPropsOf') {
             const [blockId, _blockIsStoredToTreeId, changes, isOnlyStyleClassesChange] = data;
             if (isOnlyStyleClassesChange) {
                 this.updateBlocksStyleClasses(blockId, changes.styleClasses);
                 this.doReRender(theBlockTree);
             } // else nothing to render, i.e. only block.title changed)
+        // ====================================================================
         } else if (event === 'theBlockTree/undoUpdateDefPropsOf') {
             const [_oldTree, blockId, _blockIsStoredToTreeId, isOnlyStyleClassesChange] = data;
             if (isOnlyStyleClassesChange) {
@@ -377,6 +381,18 @@ function findCommentR(of, find) {
         el = el.previousSibling;
     }
     return null;
+}
+
+/**
+ * @param {RawBlock} block
+ * @returns {String}
+ */
+function getBlockPropsAsString(block) {
+    const includePrivates = false;
+    const recursive = false;
+    const stripped = toTransferable(block, includePrivates, recursive);
+    stripped.id = '-';
+    return JSON.stringify(stripped);
 }
 
 export default ReRenderer;

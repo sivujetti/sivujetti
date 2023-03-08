@@ -1,4 +1,5 @@
 import {__, api, http} from '@sivujetti-commons-for-edit-app';
+import {NO_OP_QUEUE_EMIT} from '../../block/dom-commons.js';
 import {treeToTransferable} from '../../block/utils.js';
 import toasters from '../../commons/Toaster.jsx';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
@@ -41,6 +42,7 @@ function createDndController(_blockTree) {
             if (!extDragData) {
                 const swapSourceInfo = createDragItemInfo(startLi);
                 const treeTransfer = determineTransferType(swapSourceInfo, swapTargetInfo, cand);
+                callAddOrMoveBlockGetBlockPropChangesEventAndEmitResults('moveBlock', swapSourceInfo);
                 store2.dispatch('theBlockTree/applySwap', [swapSourceInfo, swapTargetInfo, cand.pos, treeTransfer]);
             } else {
                 const [isStoredToTreeId, wasSpeci] = getRealTarget(swapTargetInfo, cand.pos);
@@ -53,6 +55,7 @@ function createDndController(_blockTree) {
                     isGbtRef: extDragData.block.type === 'GlobalBlockReference',
                     data: null
                 };
+                callAddOrMoveBlockGetBlockPropChangesEventAndEmitResults('addBlock', swapSourceInfo);
                 store2.dispatch('theBlockTree/applyAdd(Drop)Block', [swapSourceInfo, swapTargetInfo, cand.pos, treeTransfer]);
             }
             api.webPageIframe.getEl().style.pointerEvents = '';
@@ -225,5 +228,37 @@ function getRealTarget(target, pos) {
         : [target.data.refTreeId, true];
 }
 
+/**
+ * Calls $blockTypeName's on() method (if it had one), and returns its return value
+ * (if it wasn't empty). Otherwise return null.
+ *
+ * @param {String} blockTypeName
+ * @param {'addBlock'|'cloneBlock'|'moveBlock'} event
+ * @param {Array<any>} args
+ * @returns {{[key: String]: any;}|null}
+ */
+function callGetBlockPropChangesEvent(blockTypeName, event, args) {
+    const blockType = api.blockTypes.get(blockTypeName);
+    if (!blockType.on) return null;
+    const changes = blockType.on(event, args);
+    return Object.keys(changes).length ? changes : null;
+}
+
+/**
+ * @param {'moveBlock'|'addBlock'} getChangesEventName
+ * @param {BlockDescriptor} swapSourceInfo
+ */
+function callAddOrMoveBlockGetBlockPropChangesEventAndEmitResults(getChangesEventName, swapSourceInfo) {
+    const [block, branch, _, root] = blockTreeUtils.findBlockSmart(swapSourceInfo.blockId, store2.get().theBlockTree);
+    const changes = callGetBlockPropChangesEvent(block.type, getChangesEventName, [block, branch, store2.get().theBlockTree]);
+    if (changes) store2.dispatch('theBlockTree/updatePropsOf', [
+        block.id,
+        Array.isArray(root) ? 'main' : root.id,
+        changes,
+        NO_OP_QUEUE_EMIT,
+        0 // debounceMillis
+    ]);
+}
+
 export default createDndController;
-export {saveExistingBlocksToBackend, createBlockDescriptor};
+export {saveExistingBlocksToBackend, createBlockDescriptor, callGetBlockPropChangesEvent};

@@ -10,7 +10,8 @@ import store2, {observeStore as observeStore2} from '../../store2.js';
 import TreeDragDrop from '../../TreeDragDrop.js';
 import BlockDnDSpawner from './BlockDnDSpawner.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
-import createDndController, {createBlockDescriptor} from './createBlockTreeDndController.js';
+import createDndController, {createBlockDescriptor, callGetBlockPropChangesEvent} from './createBlockTreeDndController.js';
+import {overrideData} from '../../block/theBlockTreeStore.js';
 
 const autoCollapse = 'nonUniqueRootLevelItems'; // 'mainContentItem'|'nonUniqueRootLevelItems';
 
@@ -266,6 +267,8 @@ class BlockTree extends preact.Component {
      */
     cloneBlock(openBlock) {
         const cloned = cloneDeep(findBlockFrom(openBlock.id, 'mainTree')[0]);
+        const changes = callGetBlockPropChangesEvent(cloned.type, 'cloneBlock', [cloned]);
+        if (changes) overrideData(cloned, changes);
         store2.dispatch('theBlockTree/cloneItem', [{block: cloned, isReusable: null}, createBlockDescriptor(openBlock), 'after']);
         api.webPageIframe.scrollTo(cloned);
     }

@@ -13,6 +13,7 @@ env.csrfToken = '<token>';
 //
 urlUtils.baseUrl = window.sivujettiBaseUrl || window.dataFromAdminBackend.baseUrl;
 urlUtils.assetBaseUrl = window.sivujettiAssetBaseUrl || window.dataFromAdminBackend.assetBaseUrl;
+urlUtils.cacheBustStr = window.sivujettiCacheBustStr || (window.dataFromAdminBackend ? window.dataFromAdminBackend.website.versionId : '');
 urlUtils.env = env;
 
 export {http, env, urlUtils};

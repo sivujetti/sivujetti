@@ -62,6 +62,8 @@ stringBundles.push({
     'Page "%s" already exist.': 'Page "%s" already exist.',
     'Something unexpected happened.': 'Something unexpected happened.',
     // edit-app/src/right-column/page/PagesListView.jsx
+    'Create new %s': 'Create new %s',
+    'Edit page': 'Edit page',
     'Duplicate page': 'Duplicate page',
     'Show without edit menu': 'Show without edit menu',
     // edit-app/src/quill/*,

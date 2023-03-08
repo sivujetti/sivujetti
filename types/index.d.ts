@@ -183,6 +183,7 @@ interface TheWebsiteBasicInfo {
     name: String;
     langTag: String; // en_US
     description: String;
+    versionId: String;
 }
 
 interface TheWebsiteBundle {

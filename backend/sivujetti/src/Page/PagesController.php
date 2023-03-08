@@ -535,6 +535,7 @@ final class PagesController {
             "name" => $theWebsite->name,
             "langTag" => "{$theWebsite->lang}_{$theWebsite->country}",
             "description" => $theWebsite->description,
+            "versionId" => $theWebsite->versionId,
         ];
     }
 }

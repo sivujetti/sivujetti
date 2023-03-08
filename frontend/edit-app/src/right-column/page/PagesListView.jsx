@@ -31,6 +31,10 @@ class PagesListView extends preact.Component {
     render(_, {pages}) {
         return <OverlayView>
             <h2>{ __('Pages') }</h2>
+            <a href="#/pages/create" class="with-icon-inline" style="margin: -.2rem 0 1.2rem;">
+                <Icon iconId="circle-plus" className="color-dimmed3 size-sm mr-2"/>
+                <span>{ __('Create new %s', __('page')) }</span>
+            </a>
             { pages ? <ul class="list table-list">{ pages.length ? pages.map(({title, slug}) =>
                 <li class="p-0 p-relative">
                     <button
@@ -51,6 +55,7 @@ class PagesListView extends preact.Component {
             ) : <li>{ __('No pages') }</li> }</ul> : <LoadingSpinner/> }
             <ContextMenu
                 links={ [
+                    {text: __('Edit'), title: __('Edit page'), id: 'edit'},
                     {text: __('Duplicate'), title: __('Duplicate page'), id: 'duplicate'},
                     {text: __('Delete'), title: __('Delete page'), id: 'delete'},
                 ] }
@@ -74,8 +79,11 @@ class PagesListView extends preact.Component {
      * @access private
      */
     handleContextMenuLinkClicked(link) {
+        const slug = this.slugOfPageWithNavOpened;
+        if (link.id === 'edit')
+            env.window.myRoute(slug !== '/' ? slug : '');
         if (link.id === 'duplicate')
-            env.window.myRoute(`/pages/${encodeURIComponent(this.slugOfPageWithNavOpened)}/duplicate`);
+            env.window.myRoute(`/pages/${encodeURIComponent(slug)}/duplicate`);
         else if (link.id === 'delete')
             alert('Not implemented yet');
     }

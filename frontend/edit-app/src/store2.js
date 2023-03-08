@@ -126,7 +126,7 @@ function reusableBranchesStore(store) {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-function pagesListings(store) {
+function pagesListingsStore(store) {
     store.on('pagesListings/setAll',
     /**
      * @param {Object} state
@@ -173,7 +173,7 @@ const mainStore = createStoreon([
     reusableBranchesStore,
     theWebsiteBasicInfoStore,
     theBlockTreeStore,
-    pagesListings,
+    pagesListingsStore,
 ]);
 
 /**

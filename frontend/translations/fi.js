@@ -62,6 +62,8 @@ stringBundles.push({
     'Page "%s" already exist.': 'Sivu "%s" on jo olemassa.',
     'Something unexpected happened.': 'Jokin meni pieleen.',
     // edit-app/src/right-column/page/PagesListView.jsx
+    'Create new %s': 'Luo uusi %s',
+    'Edit page': 'Muokkaa sivua',
     'Duplicate page': 'Monista sivu',
     'Show without edit menu': 'Näytä ilman muokkaustilaa',
     // edit-app/src/quill/*

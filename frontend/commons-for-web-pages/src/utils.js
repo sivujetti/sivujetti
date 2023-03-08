@@ -3,6 +3,8 @@ const urlUtils = {
     baseUrl: '',
     /** @var {String} For assets */
     assetBaseUrl: '',
+    /** @var {String} website.versionId by default */
+    cacheBustStr: '',
     /** @var {Env?} */
     env: null,
     /**

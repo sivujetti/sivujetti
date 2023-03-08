@@ -13,6 +13,7 @@ env.normalTypingDebounceMillis = 0;
 //
 urlUtils.assetBaseUrl = window.location.pathname.split('public/tests')[0];
 urlUtils.baseUrl = `${urlUtils.assetBaseUrl}index.php?q=/`;
+urlUtils.cacheBustStr = '-';
 urlUtils.env = env;
 //
 api.getBlockRenderers = () => [];

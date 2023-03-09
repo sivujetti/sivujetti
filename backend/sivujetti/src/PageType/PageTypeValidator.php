@@ -6,7 +6,8 @@ use Sivujetti\Block\BlockValidator;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\ValidationUtils;
-use Pike\{ObjectValidator, Validation};
+use Pike\Validation;
+use Pike\Validation\ObjectValidator;
 
 final class PageTypeValidator {
     public const FIELD_DATA_TYPES = ["text", "json", "int", "uint", "many-to-many"];
@@ -112,9 +113,9 @@ final class PageTypeValidator {
         return $errors;
     }
     /**
-     * @param \Pike\ObjectValidator $v
+     * @param \Pike\Validation\ObjectValidator $v
      * @param bool $requireId = true
-     * @return \Pike\ObjectValidator
+     * @return \Pike\Validation\ObjectValidator
      */
     public static function withBaseRules(ObjectValidator $v, bool $requireId = true): ObjectValidator {
         $v->addRuleImpl(...ValidationUtils::createUrlValidatorImpl())
@@ -127,8 +128,8 @@ final class PageTypeValidator {
         return $v;
     }
     /**
-     * @param \Pike\ObjectValidator $v
-     * @return \Pike\ObjectValidator
+     * @param \Pike\Validation\ObjectValidator $v
+     * @return \Pike\Validation\ObjectValidator
      */
     private static function withCommonRules(ObjectValidator $v): ObjectValidator {
         return $v

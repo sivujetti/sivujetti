@@ -4,7 +4,8 @@ namespace Sivujetti\Block;
 
 use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder};
 use Sivujetti\{SharedAPIContext, ValidationUtils};
-use Pike\{ObjectValidator, PikeException, Validation};
+use Pike\{PikeException, Validation};
+use Pike\Validation\ObjectValidator;
 
 final class BlockValidator {
     /** @var string[] */
@@ -62,9 +63,9 @@ final class BlockValidator {
         return [];
     }
     /**
-     * @param \Pike\ObjectValidator $validator
+     * @param \Pike\Validation\ObjectValidator $validator
      * @param string $pathPrefix = ""
-     * @return \Pike\ObjectValidator
+     * @return \Pike\Validation\ObjectValidator
      */
     public function addRulesForDefaultProps(ObjectValidator $validator, string $pathPrefix = ""): ObjectValidator {
         return $validator

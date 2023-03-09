@@ -3,7 +3,7 @@
 namespace Sivujetti\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Pike\{ObjectValidator, Validation};
+use Pike\Validation\ObjectValidator;
 use Sivujetti\BlockType\PropertiesBuilder;
 use Sivujetti\ValidationUtils;
 
@@ -14,7 +14,6 @@ final class ValidationUtilsTest extends TestCase {
             ->newProperty("shorterText")->dataType("text", validationRules: [["maxLength", 256]])
             ->getResult();
         //
-        $_ = Validation::makeObjectValidator(); // A hack to trigger autoload of ObjectValidator
         $spying = ValidationUtils::addRulesForProperties($testProps, self::createSpyingObjectValidator());
         //
         $actuallyAddedRules = $spying->calls;

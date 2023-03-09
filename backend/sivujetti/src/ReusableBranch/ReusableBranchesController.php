@@ -2,9 +2,10 @@
 
 namespace Sivujetti\ReusableBranch;
 
-use Pike\{ObjectValidator, Request, Response, Validation};
+use Pike\{Request, Response, Validation};
 use Pike\Db\FluentDb;
 use Pike\Interfaces\RowMapperInterface;
+use Pike\Validation\ObjectValidator;
 use Sivujetti\{JsonUtils, ValidationUtils};
 use Sivujetti\Block\BlockValidator;
 
@@ -80,7 +81,7 @@ final class ReusableBranchesController {
     }
     /**
      * @param object[] $input
-     * @param \Pike\ObjectValidator $v
+     * @param \Pike\Validation\ObjectValidator $v
      * @return string[] Error messages or []
      */
     private function validateBlockBlueprints(array $input, ObjectValidator $v): array {

@@ -2,7 +2,8 @@
 
 namespace Sivujetti;
 
-use Pike\{ArrayUtils, ObjectValidator, PikeException, Validation};
+use Pike\{ArrayUtils, PikeException, Validation};
+use Pike\Validation\ObjectValidator;
 
 /**
  * @psalm-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
@@ -91,8 +92,8 @@ abstract class ValidationUtils {
     }
     /**
      * @psalm-param array<int, RawPageTypeField>|\ArrayObject $properties pageType->ownFields or $blockType->defineProperties()
-     * @param \Pike\ObjectValidator $to
-     * @return \Pike\ObjectValidator
+     * @param \Pike\Validation\ObjectValidator $to
+     * @return \Pike\Validation\ObjectValidator
      */
     public static function addRulesForProperties(array|\ArrayObject $properties,
                                                  ObjectValidator $to): ObjectValidator {

@@ -15,6 +15,7 @@ import {CountingLinkItemFactory} from './menu/EditForm.jsx';
 /** @type {[String, String, String]} [blockId, isStoredToTreeId, pageId] */
 let linkedMenuBlockInfo;
 let doReRenderLinkedMenu;
+const undoStack = [];
 
 class PageInfoBlockEditForm extends preact.Component {
     // currentPageIsPlaceholder;
@@ -142,27 +143,27 @@ class PageInfoBlockEditForm extends preact.Component {
      * @param {(pageToMutate: Page) => void} mutateProps
      */
     emitChanges(mutateProps) {
-
-        // emit fast
         const mut = selectCurrentPageDataBundle(store.getState());
-        const orig = JSON.parse(JSON.stringify(mut));
+        const orig = !this.emitChangesTimeout ? JSON.parse(JSON.stringify(mut)) : null;
         mutateProps(mut.page);
-        store.dispatch(setCurrentPageDataBundle(mut));
 
-        // emit slow
-        if (!this.boundPushOpQueueOp)
-            this.boundPushOpQueueOp = () => {
-                store.dispatch(pushItemToOpQueue('update-page-basic-info', {
-                    doHandle: !this.currentPageIsPlaceholder ? savePageToBackend : null,
-                    doUndo: () => { store.dispatch(setCurrentPageDataBundle(orig)); },
-                    args: [],
-                }));
-                this.boundPushOpQueueOp = null;
-            };
-        else // clear throttled and reuse the first boundPushOpQueueOp (so the undo has correct $orig)
-            env.window.clearTimeout(this.pushOpQueueOpTimeout);
+        if (orig)
+            undoStack.push(orig);
+        else // keep undoStack[undoStack.length - 1]
+            clearTimeout(this.emitChangesTimeout);
 
-        this.pushOpQueueOpTimeout = env.window.setTimeout(this.boundPushOpQueueOp, env.normalTypingDebounceMillis);
+        this.emitChangesTimeout = setTimeout(() => {
+            store.dispatch(setCurrentPageDataBundle(mut));
+            store.dispatch(pushItemToOpQueue('update-page-basic-info', {
+                doHandle: !this.currentPageIsPlaceholder ? savePageToBackend : null,
+                doUndo: () => {
+                    const last = undoStack.pop(); // Note: mutates undoStack
+                    store.dispatch(setCurrentPageDataBundle(last));
+                },
+                args: [],
+            }));
+            this.emitChangesTimeout = null;
+        }, env.normalTypingDebounceMillis);
     }
     /**
      * @param {UploadsEntry|null} img

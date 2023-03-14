@@ -8,6 +8,148 @@
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.css") ?>">
         <?php if ($isFirstRun): ?>
         <style>
+        <?php if (defined("showQuickIntro")): ?>
+        #quick-intro-outer {
+            --bg: #fff;
+            color:var(--color-fg-default);
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-color: rgb(255 255 255 / 48%);
+            backdrop-filter: blur(4px);
+            z-index: 2;
+            min-width: 885px;
+        }
+        .quick-intro-head {
+            position: absolute;
+            right: 2rem;
+            font-size: 2rem;
+            top: 2rem;
+            color: #00093e;
+            z-index: 1;
+        }
+        #quick-intro-outer .box {
+            position: absolute;
+            position: absolute;
+            background: var(--bg);
+            border: 2px solid var(--color-fg-default);
+            font-size: .75rem;
+            padding: .4rem .4rem .3rem;
+            font-size: .8rem;
+        }
+        #quick-intro-outer .box > div {
+            max-width: 400px;
+        }
+        #quick-intro-outer .box.third > div {
+            max-width: 200px;
+        }
+        #quick-intro-outer .box h2 {
+            display: inline-block;
+            margin: -.5rem 0 .7rem 0;
+        }
+        #quick-intro-outer .box h2 span {
+            background-color: #ffff7b;
+            padding: 0 .6rem;
+        }
+
+        .box.first {
+            left: 80px;
+            top: 32%;
+        }
+
+        .second-outer {
+            position: absolute;
+            left: 318px;
+            width: calc(100% - 318px);
+            height: 100%;
+        }
+        .box.second {
+            left: 50%;
+            top: 58%;
+            margin-left: -210px;
+        }
+
+        .box.third {
+            top: 28px;
+            left: 126px;
+        }
+
+        .first:before,
+        .first:after,
+        .second:before,
+        .second:after,
+        .third:before,
+        .third:after {
+            content: "";
+            position: absolute;
+            height: 0;
+            width: 0;
+        }
+        .first:before {
+            --w: 13px;
+            border-left: var(--w) solid var(--color-fg-default);
+            border-bottom: var(--w) solid transparent;
+            border-right: var(--w) solid transparent;
+            border-top: var(--w) solid var(--color-fg-default);
+            bottom: -26px;
+            left: -2px;
+        }
+        .first:after {
+            --w: 11px;
+            border-left: var(--w) solid var(--bg);
+            border-bottom: var(--w) solid transparent;
+            border-right: var(--w) solid transparent;
+            border-top: var(--w) solid var(--bg);
+            bottom: -21px;
+            left: 0px;
+        }
+        .second:before {
+            --h: 22px;
+            --w: 17px;
+            border-left: var(--w) solid transparent;
+            border-bottom: var(--h) solid transparent;
+            border-right: var(--w) solid transparent;
+            border-top: var(--h) solid var(--color-fg-default);
+            bottom: calc(var(--h) * 2 * -1);
+            left: 50%;
+            margin-left: -20px;
+        }
+        .second:after {
+            --h: 19px;
+            --w: 15px;
+            border-left: var(--w) solid transparent;
+            border-bottom: var(--h) solid transparent;
+            border-right: var(--w) solid transparent;
+            border-top: var(--h) solid var(--bg);
+            bottom: calc(var(--h) * 2 * -1);
+            left: 50%;
+            margin-left: -18px;
+        }
+        .third:before {
+            --w: 13px;
+            border-left: var(--w) solid transparent;
+            border-bottom: var(--w) solid transparent;
+            border-right: var(--w) solid var(--color-fg-default);
+            border-top: var(--w) solid var(--color-fg-default);
+            top: -2px;
+            left: -26px;
+        }
+        .third:after {
+            --w: 11px;
+            border-left: var(--w) solid transparent;
+            border-bottom: var(--w) solid transparent;
+            border-right: var(--w) solid var(--bg);
+            border-top: var(--w) solid var(--bg);
+            top: 0;
+            left: -22px;
+        }
+        .close-additional {
+            position: fixed;
+            bottom: .6rem;
+            left: .4rem;
+            opacity: .7;
+        }
+        <?php endif; ?>
         .drag-instructions-overlay {
             position: fixed;
             top: 0;
@@ -60,33 +202,22 @@
             <iframe src="" id="site-preview-iframe"></iframe>
             <span class="highlight-rect" data-position="top-outside"></span>
             <?php if ($isFirstRun && defined("showQuickIntro")): ?>
-            <div style="opacity:0" id="quick-intro-outer">
-            <div class="layer layer-0"></div>
-            <h2 class="layer-4 quick-intro-head">Muokkaustila, pikaohje<button type="button" class="btn btn-link no-color"><svg class="icon-tabler size-xl" width="24" height="24" style="width: 28px;height: 28px;margin-top: -3px;"><use xlink:href="<?= $this->assetUrl("public/sivujetti/assets/tabler-sprite-custom.svg") ?>#tabler-x"></use></svg></button></h2>
-            <div class="layer layer-1">
-                <div id="target-end-edit-mode" class="third-end"></div>
-                <div class="third-start">
-                    <h2 id="connect-end-edit-mode"><span>3. Lopetus</span></h2>
-                    <div>Valitse alasvetovalikosta "Kirjaudu ulos"</div>
-                </div>
-            </div>
-            <div class="layer layer-2">
-                <div class="second-end-outer">
-                    <div id="target-preview" style="position: absolute; left: 50%"></div>
-                </div>
-                <div class="second-start">
-                    <h2 id="connect-preview"><span>2. Esikatselu, navigointi</span></h2>
-                    <div>Avaa muokkausvalikkoon klikkaamalla vihreää laatikkoa. <span style="font-size: .85em;">(Linkkien osalta: nopea klikkaus navigoi, pidempi painallus avaa muokkausvalikkoon.)</span></div>
-                </div>
-            </div>
-            <div class="layer layer-3">
-                <div id="target-edit-content" class="first-end"></div>
-                <div class="first-start">
+            <div style="opacity:0" id="quick-intro-outer"><div>
+                <h2 class="quick-intro-head">Muokkaustila, pikaohje<button type="button" class="btn btn-link no-color"><svg class="icon-tabler size-xl" width="24" height="24" style="width: 28px;height: 28px;margin-top: -3px;"><use xlink:href="<?= $this->assetUrl("public/sivujetti/assets/tabler-sprite-custom.svg") ?>#tabler-x"></use></svg></button></h2>
+                <div class="box first">
                     <h2 id="connect-edit-content"><span>1. Sisällön muokkaus</span></h2>
                     <div>Klikkaa, raahaa, kokeile</div>
                 </div>
-            </div>
-            </div>
+                <div class="second-outer"><div class="box second">
+                    <h2 id="connect-preview"><span>2. Esikatselu, navigointi</span></h2>
+                    <div>Avaa sisältö muokattavaksi klikkaamalla tekstiä, kuvaa jne. <span style="font-size: .85em;">(Linkkien osalta: klikkaa hieman pidempään, nopea klikkaus navigoi.)</span></div>
+                </div></div>
+                <div class="box third">
+                    <h2 id="connect-end-edit-mode"><span>3. Lopetus</span></h2>
+                    <div>Valitse alasvetovalikosta "Kirjaudu ulos"</div>
+                </div>
+                <button type="button" class="close-additional btn btn-link no-color flex-centered"><svg width="24" height="24" style="width: 20px;height: 20px;" class="icon-tabler mr-2"><use xlink:href="<?= $this->assetUrl("public/sivujetti/assets/tabler-sprite-custom.svg") ?>#tabler-x"></use></svg>Sulje</button>
+            </div></div>
             <?php endif; ?>
         </div>
 
@@ -105,5 +236,18 @@
             <script src="<?= $this->assetUrl("public/{$relUrl}") ?>"></script>
         <?php endforeach; ?>
         <script>(function ({signals}) { signals.emit('edit-app-plugins-loaded'); })(sivujettiCommonsEditApp)</script>
+        <?php if ($isFirstRun && defined("showQuickIntro")): ?>
+        <script>(function () {
+        const onPreviewIframeLoad = () => {
+            document.getElementById('quick-intro-outer').style.opacity = 1;
+            document.getElementById('site-preview-iframe').removeEventListener('load', onPreviewIframeLoad);
+            Array.from(document.querySelectorAll('#quick-intro-outer .btn')).forEach(el => el.addEventListener('click', () => {
+                const el = document.getElementById('quick-intro-outer');
+                el.parentElement.removeChild(el);
+            }));
+        };
+        document.getElementById('site-preview-iframe').addEventListener('load', onPreviewIframeLoad);
+        })()</script>
+        <?php endif; ?>
     </body>
 </html>

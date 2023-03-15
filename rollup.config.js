@@ -10,7 +10,7 @@ const makeOutputCfg = (...myCfg) => {
     const out = Object.assign({format: 'iife'}, ...myCfg);
     if (!out.banner) out.banner =
 `/*!
- * ${out.file.split('/').pop().split('.')[0]} 0.13.0-dev
+ * ${out.file.split('/').pop().split('.')[0]} 0.13.0
  * https://github.com/sivujetti/sivujetti
  * @license GPLv3
  */`;

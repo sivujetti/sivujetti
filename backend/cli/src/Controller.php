@@ -106,7 +106,7 @@ final class Controller {
         if (count($vals) < 3)
             throw new PikeException("Expected at least 3 arguments (<username> <email> <password>)",
                                     PikeException::BAD_INPUT);
-        $dbDriver = $vals[3] ?? "-";
+        $dbDetails = explode(":", $vals[3] ?? "-", 2);
         $dbDataBase = $vals[4] ?? "-";
         $dbUser = $vals[5] ?? "-";
         $dbPass = $vals[6] ?? "-";
@@ -115,7 +115,8 @@ final class Controller {
             "username"   => $vals[0],
             "email"      => $vals[1],
             "password"   => $vals[2],
-            "dbDriver"   => $dbDriver !== "-" ? $dbDriver : "sqlite",
+            "dbDriver"   => $dbDetails[0] !== "-" ? $dbDetails[0] : "sqlite",
+            "dbHost"     => $dbDetails[1] ?? "127.0.0.1",
             "dbDatabase" => $dbDataBase !== "-" ? $dbDataBase : "",
             "dbUser"     => $dbUser !== "-" ? $dbUser : "",
             "dbPass"     => $dbPass !== "-" ? $dbPass : "",
@@ -129,6 +130,7 @@ final class Controller {
         $useSqlite = $input->dbDriver === "sqlite";
         if (!$useSqlite) {
             $v->rule("dbDriver", "in", ["sqlite", "mysql"])
+            ->rule("dbHost", "type", "string")
             ->rule("dbDatabase", "identifier")
             ->rule("dbDatabase", "minLength", 1)
             ->rule("dbUser", "minLength", 1)
@@ -143,7 +145,7 @@ final class Controller {
         ], $useSqlite ? [
             "db.database" => "\${SIVUJETTI_BACKEND_PATH}site/my-site.db"
         ] : [
-            "db.host"        => "127.0.0.1",
+            "db.host"        => $input->dbHost,
             "db.database"    => $input->dbDatabase,
             "db.user"        => $input->dbUser,
             "db.pass"        => $input->dbPass,

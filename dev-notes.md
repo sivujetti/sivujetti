@@ -15,7 +15,7 @@ Tests | `npm start -- --configBundle tests` | frontend/tests/main.js
 ## Running frontend tests
 
 1. Bundle tests `npm start -- --configBundle test`
-1. Open browser [localhost:8080/sivujetti/public/tests/index.html](http://localhost:8080/sivujetti/public/tests/index.html)
+1. Open browser [localhost:8888/sivujetti/public/tests/index.html](http://localhost:8888/sivujetti/public/tests/index.html)
 
 ## Running backend tests
 

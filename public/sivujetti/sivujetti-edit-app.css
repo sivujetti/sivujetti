@@ -179,7 +179,6 @@ h2 {
 .ql-editor h6 {
     font-family: Helvetica, Arial, sans-serif;
     font-weight: bold;
-    margin-bottom: .4rem;
 }
 .ql-editor h1 { font-size: 1.3rem; }
 .ql-editor h2 { font-size: 1.2rem; }
@@ -191,15 +190,8 @@ h2 {
 .ql-editor ul {
     padding-left: 0;
 }
-.ql-editor p,
-.ql-editor ol,
-.ql-editor ul {
-    margin-bottom: .8rem;
-}
-.ql-editor p:last-child,
-.ql-editor ol:last-child,
-.ql-editor ul:last-child {
-    margin-bottom: 0;
+.ql-editor > :not(:first-child) {
+    margin-top: 0.4rem;
 }
 .ql-toolbar.ql-snow {
     border: none;

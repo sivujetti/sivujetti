@@ -80,6 +80,7 @@ class TreeDragDrop {
         this.setBounds();
         this.start = 'setting-it';
         this.dragOriginIsExternal = true;
+        this.lastAcceptedIdx = null;
         this.eventController.setExternalOriginData(ctx);
     }
     /**
@@ -225,7 +226,10 @@ class TreeDragDrop {
         if (!this.start) return;
         this.eventController.drop(this.curCandReal, this.getStartLi());
         this.clearS();
-        if (this.dragOriginIsExternal) this.start = 'setting-it';
+        if (this.dragOriginIsExternal) {
+            this.start = null;
+            this.dragOriginIsExternal = false;
+        }
         this.curCandIsLastItem = false;
     }
     /**
@@ -388,6 +392,7 @@ class TreeDragDrop {
      * @access private
      */
     clearS() {
+        if (this.start === 'setting-it') return;
         this.start.classList.remove('dragging');
         this.start = null;
         this.firstLiBounds = null;

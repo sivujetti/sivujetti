@@ -252,7 +252,7 @@ class BlockDnDSpawner extends preact.Component {
      * @access private
      */
     handleDragEnded(_e) {
-        this.props.mainTreeDnd.eventController.end(this.props.mainTreeDnd.lastAcceptedIdx || null);
+        this.props.mainTreeDnd.handleDragEnded(); // forward
     }
     /**
      * @returns {Promise<ReusableBranch[]>}

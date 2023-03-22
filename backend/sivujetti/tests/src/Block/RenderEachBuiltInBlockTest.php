@@ -229,9 +229,9 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
 
 
     public function testRenderBlockRendersImages(): void {
-        $makeExpectedHtml = fn($b, $url, $cls = "") =>
+        $makeExpectedHtml = fn($b, $url, $cls = "", $altText = "") =>
             "<figure class=\"j-Image{$cls}\" data-block-type=\"Image\" data-block=\"{$b->id}\">" .
-                "<img src=\"{$url}\" alt=\"\">[childMarker]" .
+                "<img src=\"{$url}\" alt=\"{$altText}\">[childMarker]" .
             "</figure>";
         $state = $this->setupRenderImageBlocksTest();
         $this->makeTestSivujettiApp($state);
@@ -239,17 +239,17 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $expectedHtml = $makeExpectedHtml($b[0], Template::makeUrl("public/uploads/{$b[0]->src}", false));
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
-        $expectedHtml = $makeExpectedHtml($b[1], ImageBlockType::PLACEHOLDER_SRC, " escape&quot;");
+        $expectedHtml = $makeExpectedHtml($b[1], ImageBlockType::PLACEHOLDER_SRC, " escape&quot;", "escape&quot;");
         $this->renderAndVerify($state, 1, $expectedHtml);
     }
     private function setupRenderImageBlocksTest(): \TestState {
         $state = parent::setupTest();
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_IMAGE,
-                propsData: ["src" => "local-pic.png"],
+                propsData: ["src" => "local-pic.png", "altText" => ""],
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_IMAGE,
-                propsData: ["src" => null],
+                propsData: ["src" => null, "altText" => "escape\""],
                 styleClasses: "escape\"",
                 id: "@auto"),
         ];

@@ -11,6 +11,7 @@ class ImageBlockType implements BlockTypeInterface {
         return $builder
             ->newProperty("src")
                 ->dataType($builder::DATA_TYPE_TEXT, isNullable: true, validationRules: [["notContains", "/", "string"]])
+            ->newProperty("altText", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }
 }

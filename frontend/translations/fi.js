@@ -233,6 +233,9 @@ stringBundles.push({
     '%s must be a number': '%s tulisi olla numero',
     // edit-app/src/block-types/listing/listing.js
     'Listing': 'Listaus',
+    // edit-app/src/block-types/image.js
+    'Alt text': 'Vaihtoehtoinen teksti',
+    'The text that a browser displays\nif the image cannot be loaded': 'Teksti, jonka selain näyttää\njos kuvaa ei voida ladata',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metatiedot',
     'Url (slug)': 'Urli (slug)',

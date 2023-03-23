@@ -1,6 +1,8 @@
-import {__, urlUtils, FormGroupInline} from '@sivujetti-commons-for-edit-app';
+import {__, env, urlUtils, hookForm, unhookForm, reHookValues, FormGroupInline,
+        Textarea, InputErrors, Icon} from '@sivujetti-commons-for-edit-app';
 import ImagePicker from '../block-widget/ImagePicker.jsx';
 import {placeholderImageSrc} from '../commons/FileUploader.jsx';
+import {validationConstraints} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
 
 class ImageBlockEditForm extends preact.Component {
@@ -10,11 +12,21 @@ class ImageBlockEditForm extends preact.Component {
      */
     componentWillMount() {
         this.imagePicker = preact.createRef();
-        const {getBlockCopy, grabChanges} = this.props;
-        this.setState({src: getBlockCopy().src});
-        grabChanges((block, _origin, _isUndo) => {
+        const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
+        const {src, altText} = getBlockCopy();
+        this.setState(hookForm(this, [
+            {name: 'altText', value: altText, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
+             label: __('Alt text'), onAfterValueChanged: (value, hasErrors, source) => {
+                if (source !== 'undo') emitValueChanged(value, 'altText', hasErrors, env.normalTypingDebounceMillis);
+            }},
+        ], {
+            src,
+        }));
+        grabChanges((block, _origin, isUndo) => {
             if (this.state.src !== block.src)
                 this.setState({src: block.src});
+            if (isUndo && this.state.values.altText !== block.altText)
+                reHookValues(this, [{name: 'altText', value: block.altText}]);
         });
     }
     /**
@@ -22,6 +34,12 @@ class ImageBlockEditForm extends preact.Component {
      */
     componentDidMount() {
         setFocusTo(this.imagePicker);
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        unhookForm(this);
     }
     /**
      * @param {BlockEditFormProps} props
@@ -37,6 +55,19 @@ class ImageBlockEditForm extends preact.Component {
                     inputId="src"
                     ref={ this.imagePicker }/>
             </FormGroupInline>
+            <FormGroupInline labelFlow="break">
+                <label htmlFor="altText" class="form-label with-icon" title={ __('Alt text') }>
+                    { __('Alt text') }
+                    <span
+                        class="tooltip tooltip-left p-absolute"
+                        data-tooltip={ __('The text that a browser displays\nif the image cannot be loaded') }
+                        style="right: .8rem; margin: -.8rem -.4rem 0 0; z-index: 1;">
+                        <Icon iconId="info-circle" className="color-dimmed3 size-xs"/>
+                    </span>
+                </label>
+                <Textarea vm={ this } prop="altText" rows="1" style="min-height:unset"/>
+                <InputErrors vm={ this } prop="altText"/>
+            </FormGroupInline>
         </div>;
     }
     /**
@@ -49,7 +80,10 @@ class ImageBlockEditForm extends preact.Component {
 }
 
 export default () => {
-    const initialData = {src: null};
+    const initialData = {
+        src: null,
+        altText: ''
+    };
     const name = 'Image';
     return {
         name,
@@ -58,17 +92,20 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'photo',
-        reRender({src, styleClasses, id}, renderChildren) {
+        reRender({src, altText, styleClasses, id}, renderChildren) {
             return ['<figure class="j-', name, styleClasses ? ` ${styleClasses}` : '',
                 '" data-block-type="', name,
                 '" data-block="', id,
-                '"><img src="', src ? urlUtils.makeAssetUrl(`public/uploads/${src}`) : placeholderImageSrc, '" alt="">',
+                '">',
+                    '<img src="', src ? urlUtils.makeAssetUrl(`public/uploads/${src}`) : placeholderImageSrc, '"',
+                    ' alt="', altText ,'">',
                 renderChildren(),
             '</figure>'
             ].join('');
         },
         createSnapshot: from => ({
             src: from.src,
+            altText: from.altText,
         }),
         editForm: ImageBlockEditForm,
     };

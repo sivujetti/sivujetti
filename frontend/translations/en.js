@@ -233,6 +233,9 @@ stringBundles.push({
     '%s must be a number': '%s must be a number',
     // edit-app/src/block-types/listing/listing.js
     'Listing': 'Listing',
+    // edit-app/src/block-types/image.js
+    'Alt text': 'Alt text',
+    'The text that a browser displays\nif the image cannot be loaded': 'The text that a browser displays\nif the image cannot be loaded',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metadata',
     'Url (slug)': 'Url (slug)',

@@ -268,11 +268,11 @@ class FormGroup extends preact.Component {
 
 class FormGroupInline extends preact.Component {
     /**
-     * @param {{className?: String;}} props
+     * @param {{className?: String; labelFlow?: 'ellipsis'|'break';}} props
      */
-    render({children, className}) {
+    render({children, className, labelFlow}) {
         return <div className={ 'form-group' + (!className ? '' : ` ${className}`) }>
-            <div class="col-3 text-ellipsis">
+            <div class={ `col-3 ${(labelFlow || 'ellipsis') === 'ellipsis' ? 'text-ellipsis' : 'text-break'}` }>
                 { children[0] }
             </div>
             <div class="col-9">

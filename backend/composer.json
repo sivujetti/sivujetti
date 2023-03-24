@@ -7,13 +7,13 @@
         "ext-mbstring": "*",
         "ext-ctype": "*",
         "ext-fileinfo": "*",
-        "phpmailer/phpmailer": "^6.7",
+        "phpmailer/phpmailer": "^6.8",
         "envms/fluentpdo": "^2.2",
         "ut4/pike": "dev-1.0.0-alpha4"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^5.4",
+        "phpunit/phpunit": "^10.0",
+        "vimeo/psalm": "^5.8",
         "laminas/laminas-dom": "^2.13"
     },
     "suggest": {

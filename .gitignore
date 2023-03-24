@@ -1,4 +1,5 @@
 *.lock
+!composer.lock
 .DS_Store
 .idea
 .vscode

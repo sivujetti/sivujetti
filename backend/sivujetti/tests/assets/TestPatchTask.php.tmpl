@@ -1,0 +1,40 @@
+<?php declare(strict_types=1);
+
+namespace Sivujetti\Update\Patch;
+
+use Pike\Db\FluentDb;
+use Sivujetti\Block\BlockTree;
+use Sivujetti\JsonUtils;
+use Sivujetti\Update\UpdateProcessTaskInterface;
+
+final class TestPatchTask implements UpdateProcessTaskInterface {
+    private bool $doSkip;
+    private FluentDb $db;
+    /**
+     * @param string $toVersion
+     * @param string $currentVersion
+     * @param \Pike\Db\FluentDb $db
+     */
+    function __construct(string $toVersion, string $currentVersion, FluentDb $db) {
+        $this->doSkip = $toVersion !== "99.99.99-test";
+        $this->db = $db;
+    }
+    /**
+     * 
+     */
+    public function exec(): void {
+        if ($this->doSkip) return;
+        $this->db->insert("${p}storedObjects")
+            ->values((object) [
+                "objectName" => "Sivujetti:test",
+                "data" => json_encode(["foo" => "bar"]),
+            ])
+            ->execute();
+    }
+    /**
+     * 
+     */
+    public function rollBack(): void {
+        // Do nothing, since Update\Updater will call $db->rollBack();
+    }
+}

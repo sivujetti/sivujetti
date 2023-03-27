@@ -48,15 +48,11 @@ final class Controller {
                                      ZipPackageStream $toPackage,
                                      FileSystem $fs,
                                      Signer $signer): void {
-        $SIGNING_KEY_LEN = SODIUM_CRYPTO_SIGN_SECRETKEYBYTES;
-        $req->params->signingKey = $signer->hex2bin($req->params->signingKey);
-        if (strlen($req->params->signingKey ?? "") !== $SIGNING_KEY_LEN)
-            throw new PikeException("\$params->signingKey must be SODIUM_CRYPTO_SIGN_SECRETKEYBYTES bytes long",
-                                    PikeException::BAD_INPUT);
+        $key = self::getSigningKeyAsBin($req->params->signingKey, $signer);
         $outFilePath = SIVUJETTI_BACKEND_PATH . "sivujetti-" . App::VERSION . ".zip";
         $zipContents = $bundler->makeRelease($toPackage, $outFilePath, true);
         $sigFilePath = "{$outFilePath}.sig.txt";
-        $this->writeSignatureFile($sigFilePath, $zipContents, $req->params->signingKey, $signer, $fs);
+        $this->writeSignatureFile($sigFilePath, $zipContents, $key, $signer, $fs);
         $res->plain("Ok, created release to `{$outFilePath}`, and signature to `{$sigFilePath}`");
     }
     /**
@@ -85,6 +81,25 @@ final class Controller {
         $fs->copy(SIVUJETTI_BACKEND_PATH . "cli.php", "{$outDirPath}/backend/cli.php");
         //
         echo "Ok, created release to `{$outDirPath}`";
+    }
+    /**
+     * `php cli.php create-patch to-zip <relPatchContentsMapFile> <secretKey>`: Creates
+     * a patch zip file (that can be used by the updater), writes it to SIVUJETTI_BACKEND_PATH .
+     * "<currentVersion>-patch.zip", and its signature to SIVUJETTI_BACKEND_PATH .
+     * "<currentVersion>-patch.sig.txt".
+     */
+    public function createZipPatch(Request $req,
+                                    Response $res,
+                                    Bundler $bundler,
+                                    ZipPackageStream $toPackage,
+                                    FileSystem $fs,
+                                    Signer $signer): void {
+        $key = self::getSigningKeyAsBin($req->params->signingKey, $signer);
+        $outFilePath = SIVUJETTI_BACKEND_PATH . "sivujetti-" . App::VERSION . "-patch.zip";
+        $zipContents = $bundler->makePatch($toPackage, $outFilePath, $req->params->relPatchContentsMapFile, true);
+        $sigFilePath = "{$outFilePath}.sig.txt";
+        $this->writeSignatureFile($sigFilePath, $zipContents, $key, $signer, $fs);
+        $res->plain("Ok, created release to `{$outFilePath}`, and signature to `{$sigFilePath}`");
     }
     /**
      * `php cli.php print-acl-rules`.
@@ -175,5 +190,18 @@ final class Controller {
         if (!$fs->write($filePath, $signer->bin2hex($signature)))
             throw new PikeException("Failed to write signature to `{$filePath}`",
                                     PikeException::FAILED_FS_OP);
+    }
+    /**
+     * @param string $key $req->params->signingKey
+     * @param \Sivujetti\Update\Signer $signer
+     * @return string hex2bin($key)
+     */
+    private static function getSigningKeyAsBin(string $key, Signer $signer): string {
+        $SIGNING_KEY_LEN = SODIUM_CRYPTO_SIGN_SECRETKEYBYTES;
+        $asBin = $signer->hex2bin($key);
+        if (strlen($asBin ?? "") !== $SIGNING_KEY_LEN)
+            throw new PikeException("\$params->signingKey must be SODIUM_CRYPTO_SIGN_SECRETKEYBYTES bytes long",
+                                    PikeException::BAD_INPUT);
+        return $asBin;
     }
 }

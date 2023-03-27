@@ -3,6 +3,7 @@
 namespace Sivujetti\Update;
 
 use Pike\{Db, FileSystem, PikeException};
+use Pike\Db\FluentDb;
 use Sivujetti\App;
 use Sivujetti\Update\Entities\Job;
 
@@ -12,8 +13,8 @@ final class Updater {
     public const RESULT_FAILED              = 111012;
     public const RESULT_OK                  = 0;
     private const UPDATE_CORE_TASK = "update-core";
-    /** @var \Pike\Db */
-    private Db $db;
+    /** @var \Pike\Db\FluentDb */
+    private FluentDb $db;
     /** @var \Pike\FileSystem */
     private FileSystem $fs;
     /** @var string "Some error" or "" */
@@ -23,12 +24,12 @@ final class Updater {
     /** @var string */
     private string $targetIndexDirPath;
     /**
-     * @param \Pike\Db $db
+     * @param \Pike\Db\FluentDb $db
      * @param \Pike\FileSystem $fs
      * @param string $targetBackendDirPath = SIVUJETTI_BACKEND_PATH Must end with "/", mainly used by tests
      * @param string $targetIndexDirPath = SIVUJETTI_INDEX_PATH
      */
-    public function __construct(Db $db,
+    public function __construct(FluentDb $db,
                                 FileSystem $fs,
                                 string $targetBackendDirPath = SIVUJETTI_BACKEND_PATH,
                                 string $targetIndexDirPath = SIVUJETTI_INDEX_PATH) {
@@ -61,15 +62,37 @@ final class Updater {
             $zip = new ZipPackageStream($this->fs);
             $filePath = "{$this->targetBackendDirPath}sivujetti-{$validToVersion}.zip";
             $zip->open($filePath);
-            //
+
+            $phase1Tasks = [];
+            $phase2Tasks = [];
+
+            // == Phase 1 ====
             $localState = "creating-tasks";
-            $tasks = $this->createUpdateTasks($zip);
+            $phase1Tasks = $this->createFileUpdateTasks($zip, $toVersion, $currentVersion);
+            $tasks = $phase1Tasks;
             //
             $localState = "running-tasks";
             $currentTaskIdx = 0;
             for (; $currentTaskIdx < count($tasks); ++$currentTaskIdx) {
-                $tasks[$currentTaskIdx]->exec(); // Copy files, migrate db etc..
+                $tasks[$currentTaskIdx]->exec(); // Copy files
             }
+
+            // == Phase 2 ====
+            $localState = "creating-tasks";
+            $phase2Tasks = $this->createDbPatchTasks($zip, $toVersion, $currentVersion);
+            if ($phase2Tasks) {
+                $tasks = array_merge($tasks, $phase2Tasks);
+                $this->db->getDb()->beginTransaction();
+                //
+                $localState = "running-tasks";
+                // Note $currentTaskIdx === count($phase1Tasks) at this point
+                for (; $currentTaskIdx < count($tasks); ++$currentTaskIdx) {
+                    $tasks[$currentTaskIdx]->exec(); // migrate db
+                }
+                $this->db->getDb()->commit();
+            }
+
+            //
             $localState = "finalizing";
             $this->updateUpdateStateAsEnded();
             return self::RESULT_OK;
@@ -86,6 +109,7 @@ final class Updater {
                     } catch (\Exception $e) {
                         // ??
                     }
+                    if ($phase2Tasks) $this->db->getDb()->rollBack();
                 }
                 $this->updateUpdateStateAsEnded($localState, $e);
             } elseif ($localState === "finalizing") {
@@ -161,26 +185,29 @@ final class Updater {
      * @return \Sivujetti\Update\Entities\Job
      */
     private function getUpdateState(): Job {
-        $job = $this->db->fetchOne("SELECT `startedAt` FROM `\${p}jobs` WHERE `jobName` = ?",
-                                   [self::UPDATE_CORE_TASK],
-                                   \PDO::FETCH_CLASS,
-                                   Job::class); // #ref-1
+        $job = $this->db->select("\${p}jobs", Job::class)
+            ->fields(["startedAt"])
+            ->where("`jobName` = ?", [self::UPDATE_CORE_TASK])
+            ->fetch(); // #ref-1
         if (!($job instanceof Job)) throw new PikeException("Invalid database state", 301010);
         return $job;
     }
     /**
      */
     private function updateUpdateStateAsStarted(): void {
-        $this->db->beginTransaction(); // Force other requests/processes to wait at #ref-1
-        $this->db->exec("UPDATE `\${p}jobs` SET `startedAt` = ? WHERE `jobName` = ?",
-                        [time(), self::UPDATE_CORE_TASK]);
-        $this->db->commit();
+        $db = $this->db->getDb();
+        $db->beginTransaction(); // Force other requests/processes to wait at #ref-1
+        $db->exec("UPDATE `\${p}jobs` SET `startedAt` = ? WHERE `jobName` = ?",
+                  [time(), self::UPDATE_CORE_TASK]);
+        $db->commit();
     }
     /**
      * @param \Sivujetti\Update\ZipPackageStream $zip
+     * @param string $toVersion
+     * @param string $currentVersion
      * @return \Sivujetti\Update\UpdateProcessTaskInterface[]
      */
-    private function createUpdateTasks(ZipPackageStream $zip): array {
+    private function createFileUpdateTasks(ZipPackageStream $zip, string $toVersion, string $currentVersion): array {
         return [
             new UpdateBackendSourceFilesTask($zip, $this->fs,
                 self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_BACKEND_FILES_LIST, $zip),
@@ -191,12 +218,32 @@ final class Updater {
         ];
     }
     /**
+     * @param \Sivujetti\Update\ZipPackageStream $zip
+     * @param string $toVersion
+     * @param string $currentVersion
+     * @return \Sivujetti\Update\UpdateProcessTaskInterface[]
+     */
+    private function createDbPatchTasks(ZipPackageStream $zip, string $toVersion, string $currentVersion): array {
+        $backendFilesList = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_BACKEND_FILES_LIST, $zip);
+        $backend = SIVUJETTI_BACKEND_PATH;
+        $nsdRelFilePaths = array_filter($backendFilesList, fn(string $nsdRelFilePath) =>
+            str_starts_with($nsdRelFilePath, "\$backend/sivujetti/src/Update/Patch/")
+        );
+        return array_map(function (string $nsdRelFilePath) use ($toVersion, $currentVersion) {
+            $fileName = explode("/src/Update/Patch/", $nsdRelFilePath, 2)[1]; // `\$backend/sivujetti/src/Update/Patch/PatchDbTask1.php` -> `PatchDbTask1.php`
+            $Cls = "\\Sivujetti\\Update\\Patch\\" . explode(".", $fileName)[0];
+            return new $Cls($toVersion, $currentVersion, $this->db);
+        }, $nsdRelFilePaths);
+    }
+    /**
      * @param ?string $failedWhile = null
      * @param ?\Exception $_failDetails = null
      */
     private function updateUpdateStateAsEnded(?string $failedWhile = null,
                                               ?\Exception $_failDetails = null): void {
-        $this->db->exec("UPDATE `\${p}jobs` SET `startedAt` = 0 WHERE `jobName` = ?",
-                        [self::UPDATE_CORE_TASK]);
+        $this->db->update("\${p}jobs")
+            ->values((object) ["startedAt" => 0])
+            ->where("`jobName` = ?", [self::UPDATE_CORE_TASK])
+            ->execute();
     }
 }

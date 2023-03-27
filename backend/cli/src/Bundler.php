@@ -3,7 +3,7 @@
 namespace Sivujetti\Cli;
 
 use Pike\PikeException;
-use Sivujetti\FileSystem;
+use Sivujetti\{FileSystem, JsonUtils, ValidationUtils};
 use Sivujetti\Update\{PackageStreamInterface, Updater, ZipPackageStream};
 
 /**
@@ -74,6 +74,34 @@ final class Bundler {
         //
         $contents = $to->getResult($resultFlags);
         $this->deleteTmpDirs();
+        return $contents;
+    }
+    /**
+     * @param \Sivujetti\Update\PackageStreamInterface $to Zip or local directory
+     * @param string $fileOrDirPath Target path
+     * @param string $relPatchContentsMapFile Path to a json file that lists what to include to $to
+     * @param bool $allowOverWrite = false
+     * @param int $resultFlags = 0 see PackageStreamInterface->getResult()
+     */
+    public function makePatch(PackageStreamInterface $to,
+                                string $fileOrDirPath,
+                                string $relPatchContentsMapFile,
+                                bool $allowOverWrite = false,
+                                int $resultFlags = 0): string {
+        ValidationUtils::checkIfValidaPathOrThrow($relPatchContentsMapFile);
+        $json = $this->fs->read("{$this->backendDirPath}{$relPatchContentsMapFile}");
+        $map = JsonUtils::parse($json);
+        self::validatePatchFileLists($map);
+        $this->destryPreviousTargetOrThrow($to, $fileOrDirPath, $allowOverWrite);
+        $to->open($fileOrDirPath, true);
+        //
+        $backendRelatedFileGroups = [new FileGroup($this->backendDirPath, $map->backendFiles ?? [], PackageStreamInterface::FILE_NS_BACKEND)];
+        $publicRelatedFileGroups = [new FileGroup($this->indexDirPath, $map->indexFiles ?? [], PackageStreamInterface::FILE_NS_INDEX)];
+        //
+        $this->writeFiles($backendRelatedFileGroups, "backend", $to);
+        $this->writeFiles($publicRelatedFileGroups, "index", $to);
+        //
+        $contents = $to->getResult($resultFlags);
         return $contents;
     }
     /**
@@ -283,6 +311,25 @@ final class Bundler {
                                                      $eachEntryMustStartWith2)))
             throw new PikeException("Failed to delete temp directory: {$err2}",
                                     PikeException::FAILED_FS_OP);
+    }
+    /**
+     * @param object{backendFiles: string[], indexFiles: string[]} $map
+     * @throws \Pike\PikeException
+     */
+    private static function validatePatchFileLists(object $map): void {
+        foreach ([
+            ["backendFiles", "\$backend/"],
+            ["indexFiles", "\$index/"]
+        ] as [$key, $mustStartWith]) {
+            $candidate = $map->{$key} ?? null;
+            if (!is_array($candidate))
+                throw new PikeException("{$key} must be an array");
+            foreach ($candidate as $nsdRelFilePath) {
+                ValidationUtils::checkIfValidaPathOrThrow($nsdRelFilePath);
+                if (!str_starts_with($nsdRelFilePath, $mustStartWith))
+                    throw new PikeException("Each entry in \$map->{$key} must start with `{$mustStartWith}`");
+            }
+        }
     }
 }
 

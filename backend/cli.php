@@ -8,6 +8,7 @@ if (($argc ?? 0) < 2) die(
     "       cli.php generate-signing-keypair\n" .
     "       cli.php create-release to-zip[ <signingKey>]\n" .
     "       cli.php create-release to-local-dir\n" .
+    "       cli.php create-patch to-zip rel-file-map-file-path[ <signingKey>]\n" .
     "       cli.php print-acl-rules"
 );
 

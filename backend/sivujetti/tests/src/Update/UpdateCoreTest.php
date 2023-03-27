@@ -14,6 +14,8 @@ final class UpdateCoreTest extends DbTestCase {
     use HttpApiTestTrait;
     private const CMS_CLONE_BACKEND_PATH = SIVUJETTI_INDEX_PATH . "cms-clone-tmp/backend";
     private const CMS_CLONE_INDEX_PATH = SIVUJETTI_INDEX_PATH . "cms-clone-tmp";
+    private const TEST_PATCH_CLS_FILE_PATH = SIVUJETTI_BACKEND_PATH . "sivujetti/src/Update/Patch/TestPatchTask.php";
+    private const TEST_PATCH_MAP_FILE_PATH = SIVUJETTI_BACKEND_PATH . "test-patch.json";
     private FileSystem $fs;
     protected function setUp(): void {
         parent::setUp();
@@ -24,6 +26,10 @@ final class UpdateCoreTest extends DbTestCase {
         parent::tearDown();
         $this->fs->deleteFilesRecursive(self::CMS_CLONE_INDEX_PATH,
                                         SIVUJETTI_INDEX_PATH);
+        if ($this->fs->isFile(self::TEST_PATCH_CLS_FILE_PATH))
+            $this->fs->unlink(self::TEST_PATCH_CLS_FILE_PATH);
+        if ($this->fs->isFile(self::TEST_PATCH_MAP_FILE_PATH))
+            $this->fs->unlink(self::TEST_PATCH_MAP_FILE_PATH);
     }
     public static function getDbConfig(): array {
         return require TEST_CONFIG_FILE_PATH;
@@ -93,6 +99,51 @@ final class UpdateCoreTest extends DbTestCase {
                                           $pkg->read($nsdRelFilePath),
                                           "Should overwrite local file with update package zip's file");
         }
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////
+
+
+    public function tesUpdateCoreRunsPatchFiles(): void {
+        $state = $this->setupRunPatchClassesTest();
+        $this->writeTestPatchZip($state);
+        $this->makeUpdateTestApp($state);
+        $this->sendUpdateCoreRequest($state);
+        $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
+        $this->verifyWrotePatchFiles($state);
+        $this->verifyExecutedPatchFiles($state);
+    }
+    private function setupRunPatchClassesTest(): \TestState {
+        $state = new \TestState;
+        $state->inputData = (object) ["toVersion" => "99.99.99-test"];
+        $state->app = null;
+        $state->spyingResponse = null;
+        return $state;
+    }
+    private function writeTestPatchZip(\TestState $state): void {
+        $outFilePath = self::CMS_CLONE_BACKEND_PATH . "/sivujetti-{$state->inputData->toVersion}.zip";
+        $fs = new FileSystem;
+        $pkg = new ZipPackageStream($fs);
+        $testPatchClsPath = SIVUJETTI_BACKEND_PATH . "sivujetti/tests/assets/TestPatchTask.php.tmpl";
+        $this->fs->copy($testPatchClsPath, self::TEST_PATCH_CLS_FILE_PATH);
+        $nsdFilePath = str_replace(SIVUJETTI_BACKEND_PATH, "\$backend/", self::TEST_PATCH_CLS_FILE_PATH);
+        $this->fs->write(self::TEST_PATCH_MAP_FILE_PATH, json_encode([
+            "backendFiles" => [$nsdFilePath],
+            "indexFiles" => []
+        ]));
+        $patchMapFileName = substr(self::TEST_PATCH_MAP_FILE_PATH, strrpos(self::TEST_PATCH_MAP_FILE_PATH, "/") + 1);
+        (new Bundler($fs, function () { }))->makePatch($pkg, $outFilePath, $patchMapFileName);
+    }
+    private function verifyWrotePatchFiles(\TestState $state): void {
+        $this->assertStringEqualsFile(self::TEST_PATCH_CLS_FILE_PATH,
+            $this->fs->read(SIVUJETTI_BACKEND_PATH . "sivujetti/tests/assets/TestPatchTask.php.tmpl"),
+            "Should overwrite local file with update package zip's file");
+    }
+    private function verifyExecutedPatchFiles(\TestState $state): void {
+        $testMutation = self::$db->fetchOne("SELECT `data` FROM \${p}storedObjects WHERE objectName = ?", ["Sivujetti:test"]);
+        $this->assertNotNull($testMutation);
+        $this->assertEquals(json_encode(["foo" => "bar"]), $testMutation["data"]);
     }
 
 

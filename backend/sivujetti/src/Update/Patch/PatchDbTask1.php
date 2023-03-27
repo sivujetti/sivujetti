@@ -1,36 +1,46 @@
 <?php declare(strict_types=1);
 
-namespace Sivujetti\Update;
+namespace Sivujetti\Update\Patch;
 
 use Pike\Db\FluentDb;
 use Sivujetti\Block\BlockTree;
 use Sivujetti\JsonUtils;
-use Sivujetti\Page\PagesRepository2;
+use Sivujetti\Update\UpdateProcessTaskInterface;
 
-final class UpdateDbTask1 implements UpdateProcessTaskInterface {
+final class PatchDbTask1 implements UpdateProcessTaskInterface {
+    /** @var bool */
+    private bool $doSkip;
+    /** @var \Pike\Db\FluentDb */
+    private FluentDb $db;
+    /** @var \Closure */
+    private \Closure $logFn;
     /**
+     * @param string $toVersion
+     * @param string $currentVersion
+     * @param \Pike\Db\FluentDb $db
      */
-    function __construct(private PagesRepository2 $pagesRepo, private FluentDb $db) {
-
+    function __construct(string $toVersion, string $currentVersion, FluentDb $db) {
+        $this->doSkip = !($toVersion === "0.14.0" && $currentVersion === "0.13.0");
+        $this->db = $db;
+        $this->logFn = function ($str) { /**/ };
     }
     /**
      * 
      */
     public function exec(): void {
+        if ($this->doSkip) return;
         $pages = $this->db->select("Pages", "stdClass")->fields(["blocks as blocksJson", "id"])->fetchAll();
         $gbts = $this->db->select("globalBlockTrees", "stdClass")->fields(["blocks as blocksJson", "id"])->fetchAll();
         $reusables = $this->db->select("reusableBranches", "stdClass")->fields(["blockBlueprints as blockBlueprintsJson", "id"])->fetchAll();
-        $this->db->getDb()->runInTransaction(function () use ($pages, $gbts, $reusables) {
-            $this->patchPagesOrGbts($gbts, "globalBlockTrees");
-            $this->patchPagesOrGbts($pages, "Pages");
-            $this->patchReusables($reusables);
-        });
+        $this->patchPagesOrGbts($gbts, "globalBlockTrees");
+        $this->patchPagesOrGbts($pages, "Pages");
+        $this->patchReusables($reusables);
     }
     /**
      * 
      */
     public function rollBack(): void {
-
+        // Do nothing, since Update\Updater will call $db->rollBack();
     }
     /**
      * 
@@ -47,9 +57,9 @@ final class UpdateDbTask1 implements UpdateProcessTaskInterface {
             if ($entitity->blocksJson !== $bef) {
                 $numRows = $this->db->update($tableName)
                     ->values((object)["blocks" => $entitity->blocksJson])
-                    ->where("id=?",[$entitity->id])
+                    ->where("id=?", [$entitity->id])
                     ->execute();
-                var_dump("updated {$tableName} `{$entitity->id}`: {$numRows} rows changed");
+                $this->logFn->__invoke("updated {$tableName} `{$entitity->id}`: {$numRows} rows changed");
             }
         }
     }
@@ -68,9 +78,9 @@ final class UpdateDbTask1 implements UpdateProcessTaskInterface {
             if ($reusable->blockBlueprintsJson !== $bef) {
                 $numRows = $this->db->update("reusableBranches")
                     ->values((object)["blockBlueprints" => $reusable->blockBlueprintsJson])
-                    ->where("id=?",[$reusable->id])
+                    ->where("id=?", [$reusable->id])
                     ->execute();
-                var_dump("updated reusable `{$reusable->id}`: {$numRows} rows changed");
+                $this->logFn->__invoke("updated reusable `{$reusable->id}`: {$numRows} rows changed");
             }
         }
     }

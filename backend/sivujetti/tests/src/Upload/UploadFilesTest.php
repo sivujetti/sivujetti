@@ -52,6 +52,48 @@ final class UploadFilesTest extends UploadsControllerTestCase {
     ////////////////////////////////////////////////////////////////////////////
 
 
+    public function testUploadFileEnumeratesDuplicateFilePath(): void {
+        $state = $this->setupUploadFileTest();
+        $state->inputData->targetFileName = "file.jpg";
+        $this->makeSivujettiAppForUploadsTest($state, reportFileNameAsDuplicate: true);
+        $this->sendUploadImageRequest($state);
+        $base = SIVUJETTI_INDEX_PATH . "public/uploads/";
+        $this->verifyMovedUploadedFileTo("{$base}file-1.jpg", $state);
+        $this->verifyInsertedFileToDb($state->inputData, "file-1.jpg");
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testUploadFileEnumeratesDuplicateFilePath2(): void {
+        $state = $this->setupUploadFileTest();
+        $state->inputData->targetFileName = "my-file.jpg";
+        $this->makeSivujettiAppForUploadsTest($state, reportFileNameAsDuplicate: true);
+        $this->sendUploadImageRequest($state);
+        $base = SIVUJETTI_INDEX_PATH . "public/uploads/";
+        $this->verifyMovedUploadedFileTo("{$base}my-file-1.jpg", $state);
+        $this->verifyInsertedFileToDb($state->inputData, "my-file-1.jpg");
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testUploadFileEnumeratesDuplicateFilePath3(): void {
+        $state = $this->setupUploadFileTest();
+        $state->inputData->targetFileName = "my-file-1.jpg";
+        $this->makeSivujettiAppForUploadsTest($state, reportFileNameAsDuplicate: true);
+        $this->sendUploadImageRequest($state);
+        $base = SIVUJETTI_INDEX_PATH . "public/uploads/";
+        $this->verifyMovedUploadedFileTo("{$base}my-file-2.jpg", $state);
+        $this->verifyInsertedFileToDb($state->inputData, "my-file-2.jpg");
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
     public function testUploadFileFailsIsInputFileTypeIsNotInUsersAllowedMimeList(): void {
         $state = $this->setupUploadFileTest();
         $this->makeSivujettiAppForUploadsTest($state, ACL::ROLE_EDITOR);
@@ -83,10 +125,10 @@ final class UploadFilesTest extends UploadsControllerTestCase {
     private function verifyMovedUploadedFileTo(string $expectedFilePath, \TestState $state): void {
         $this->assertEquals($expectedFilePath, $state->actuallyMovedFileTo);
     }
-    private function verifyInsertedFileToDb(object $input): void {
+    private function verifyInsertedFileToDb(object $input, string $expectedFinalFileName = null): void {
         $actual = self::$db->fetchOne("SELECT * FROM `\${p}files`", [], \PDO::FETCH_CLASS, UploadsEntry::class);
         $this->assertTrue($actual instanceof UploadsEntry);
-        $this->assertEquals($input->targetFileName, $actual->fileName);
+        $this->assertEquals($expectedFinalFileName ?? $input->targetFileName, $actual->fileName);
         $this->assertEquals("", $actual->baseDir);
         $this->assertEquals("image/jpeg", $actual->mime);
         $this->assertEquals($input->friendlyName, $actual->friendlyName);

@@ -72,6 +72,8 @@ stringBundles.push({
     'External': 'Ulkoinen',
     'website.com': 'sivusto.com',
     'Choose link type': 'Valitse linkin tyyppi',
+    'Choose a link': 'Valitse linkki',
+    'No link selected': 'Ei linkkiä valittuna',
     'Pick %s': 'Valitse %s',
     'a page': 'sivu',
     'Type an address': 'Kirjoita osoite',

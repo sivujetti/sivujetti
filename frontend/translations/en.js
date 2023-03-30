@@ -72,6 +72,8 @@ stringBundles.push({
     'External': 'External',
     'website.com': 'website.com',
     'Choose link type': 'Choose link type',
+    'Choose a link': 'Choose a link',
+    'No link selected': 'No link selected',
     'Pick %s': 'Pick %s',
     'a page': 'a page',
     'Type an address': 'Type an address',

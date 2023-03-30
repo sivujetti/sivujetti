@@ -644,6 +644,17 @@ a.popup-close-area {
 .my-tooltip[data-popper-placement^='right'] > .popper-arrow {
     left: -4px;
 }
+.static-tooltip {
+    position: absolute;
+    width: calc(100% - 2rem + .3rem);
+    margin: 4px 0 0 0;
+    padding: 0.4rem;
+    z-index: 1;
+    margin-left: -.2rem;
+}
+.static-tooltip .popper-arrow {
+    top: -6px;
+}
 /* EditApp: Components: styles-list */
 ul.styles-list > li {
     background: rgba(var(--components-color-fb-default),.022);
@@ -696,24 +707,45 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 /* EditApp: Components: Big radios */
 .button-options {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
     grid-gap: 1.4rem;
 }
-.button-options label {
+.button-options.four {
+    display: flex;
+    gap: .3rem;
+}
+.button-options .btn {
     border-radius: 9px;
     border: 2px solid transparent;
-    padding-top: .8rem;
+    height: unset;
+    text-align: unset;
+    padding: 1.4rem 1.4rem .6rem 1.4rem;
+    white-space: unset;
+    display: grid;
+    grid-template-rows: 2rem minmax(4rem, 1fr);
 }
-.button-options label.selected {
-    border: 2px solid var(--color-accent);
+.button-options .btn:focus {
+    border-color: rgba(var(--components-color-fb-default),.25);
 }
-.button-options label .form-icon {
+.button-options .btn.selected {
+    border-bottom-color: var(--color-fg-dimmed) !important;
+}
+.button-options .btn .form-icon {
     left: initial;
-    right: 1rem;
-    top: .8rem;
+    right: 1.4rem;
+    top: 1.4rem;
 }
-.button-options label .h4 {
+.button-options .btn .h4 {
     font: 800 1rem/1rem "Fira Sans";
+}
+.small-buttons .btn {
+    padding: .3rem 1.6rem .3rem .2rem;
+    grid-template-rows: 1.3rem;
+}
+.small-buttons .btn .form-icon {
+    transform: scale(.8);
+    top: .5rem;
+    right: .4rem;
 }
 
 

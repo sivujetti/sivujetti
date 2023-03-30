@@ -10,20 +10,15 @@ final class Uploader {
     public const DEFAULT_MAX_SIZE_B = 1024 * 1024 * 8;
     /** @var \Sivujetti\Upload\MimeValidator */
     private MimeValidator $mimeValidator;
-    /** @var \Pike\FileSystem */
-    private FileSystem $fs;
     /** @var \Closure */
     private \Closure $moveUploadedFileFn;
     /**
      * @param \Sivujetti\Upload\MimeValidator $mimeValidator
-     * @param \Pike\FileSystem $fs
      * @param ?callable $moveUploadedFileFn = "move_uploaded_file"
      */
     public function __construct(MimeValidator $mimeValidator,
-                                FileSystem $fs,
                                 ?callable $moveUploadedFileFn = null) {
         $this->mimeValidator = $mimeValidator;
-        $this->fs = $fs;
         $this->moveUploadedFileFn = $moveUploadedFileFn instanceof \Closure
             ? $moveUploadedFileFn
             : \Closure::fromCallable("move_uploaded_file");
@@ -60,16 +55,14 @@ final class Uploader {
             throw new \RuntimeException("Sanity check");
         //
         $out = new UploadsEntry;
-        $out->fileName = !$this->fs->isFile($targetFileName)
-            ? $targetFileName
-            : (self::qq($targetFileName) . ".{$ext}");
+        $out->fileName = $targetFileName;
         $out->baseDir = "";
         $out->mime = $mime;
         // friendlyName leave unset
         // createdAt leave unset
         // updatedAt leave unset
         //
-        $basePath = "{$this->fs->normalizePath($toDir)}/";
+        $basePath = FileSystem::normalizePath($toDir) . "/";
         if ($this->moveUploadedFileFn->__invoke(
             $file["tmp_name"],
             "{$basePath}{$out->baseDir}{$out->fileName}"
@@ -78,36 +71,5 @@ final class Uploader {
         }
         throw new PikeException("Failed to move_uploaded_file()",
                                 PikeException::FAILED_FS_OP);
-    }
-    /**
-     * - In: "foo.png", Out "foo-1"
-     * - In: "foo-bar.png", Out "foo-bar-1"
-     * - In: "foo-1.png", Out "foo-2"
-     *
-     * @param string $candidate
-     * @return string
-     */
-    private static function qq(string $candidate): string {
-        /*
-        1: "foo.png" -> "foo"
-        2: "foo-bar.png" -> "foo-bar"
-        3: "foo-1.png" -> "foo-1"
-        */
-        $noExt = substr($candidate, 0, strrpos($candidate, "."));
-        /*
-        1: "foo" -> ["foo"]
-        2: "foo-bar" -> ["foo", "bar"]
-        3: "foo-1" -> ["foo", "1"]
-        */
-        $pcs = explode("-", $noExt);
-        $last = $pcs[count($pcs) - 1];
-
-        if (strval((int)$last) === $last) {
-            $pcs[count($pcs) - 1] = strval($last + 1); // ["foo", "1"] -> ["foo", "2"]
-        } else { // [..., "bar"] -> [..., "bar", "1"]
-            $pcs[] = "1";
-        }
-
-        return implode("-", $pcs);
     }
 }

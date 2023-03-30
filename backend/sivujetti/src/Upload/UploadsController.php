@@ -3,6 +3,7 @@
 namespace Sivujetti\Upload;
 
 use Pike\{PikeException, Request, Response, Validation};
+use Pike\Db\FluentDb;
 use Sivujetti\Auth\ACL;
 
 final class UploadsController {
@@ -31,11 +32,13 @@ final class UploadsController {
      * @param \Pike\Response $res
      * @param \Sivujetti\Upload\Uploader $uploader
      * @param \Sivujetti\Upload\UploadsRepository $uploadsRepo
+     * @param \Pike\Db\FluentDb $db
      */
     public function uploadFile(Request $req,
                                Response $res,
                                Uploader $uploader,
-                               UploadsRepository $uploadsRepo): void {
+                               UploadsRepository $uploadsRepo,
+                               FluentDb $db): void {
         if (!isset($req->files->localFile["error"]) ||
             $req->files->localFile["error"] !== UPLOAD_ERR_OK) {
             throw new PikeException("Expected UPLOAD_ERR_OK (0), but got " .
@@ -48,11 +51,13 @@ final class UploadsController {
             $res->status(400)->json($errors);
             return;
         }
+        $patched = self::enumerateFileNameIdDuplicate($req->body->targetFileName, $db);
+        $fileNameFinal = $patched ?? $req->body->targetFileName;
         // @allow \Pike\PikeException
         if (($file = $uploader->upload(
             file: $req->files->localFile,
             toDir: SIVUJETTI_INDEX_PATH . "public/uploads",
-            targetFileName: $req->body->targetFileName,
+            targetFileName: $fileNameFinal,
             allowedMimes: self::getAllowedMimesFor($req->myData->user->role)
         ))) {
             $file->friendlyName = $req->body->friendlyName;
@@ -63,6 +68,36 @@ final class UploadsController {
         $insertId = $uploadsRepo->insert($file);
         //
         $res->json(["file" => $insertId !== "" ? $file : null]);
+    }
+    /**
+     * Returns "$input-1" or "$input-($max+1)" if there was already a file named
+     * $input in the database. Otherwise returns null.
+     *
+     * @param string $input
+     * @param \Pike\Db\FluentDb $db
+     * @return string|null
+     */
+    private static function enumerateFileNameIdDuplicate(string $input, FluentDb $db): ?string {
+        $pcs = explode(".", $input);
+        $ext = array_pop($pcs);
+        $noExt = implode(".", $pcs);
+
+        $names = array_column($db->select("\${p}files")
+            ->fields(["fileName"])
+            ->where("fileName = ? OR fileName like ?", [$input, "{$noExt}%.{$ext}"])
+            ->fetchAll(), "fileName");
+
+        $hadExact = in_array($input, $names, true);
+        // Case 1: had no duplicate, no need to patch
+        if (!$hadExact) return null;
+
+        // Had duplicate, add "-1" or "-{inc + 1}"
+        $max = 1;
+        $enumerated = "{$noExt}-{$max}.{$ext}";
+        while (in_array($enumerated, $names, true)) {
+            $enumerated = "{$noExt}-" . (++$max) . ".{$ext}";
+        }
+        return $enumerated;
     }
     /**
      * @param object $input

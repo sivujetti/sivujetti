@@ -360,3 +360,5 @@ interface Path {
 type dropPosition = 'before'|'after'|'as-child';
 
 type treeTransferType = 'none'|'out-of-gbt'|'into-gbt';
+
+type urlMode = 'pick-url'|'pick-file'|'type-external-url';

@@ -1,5 +1,5 @@
-import {__, env, urlUtils, iconAsString, stringUtils} from '@sivujetti-commons-for-edit-app';
-import {determineModeFromPreview} from './common.js';
+import {__, env, iconAsString, stringUtils} from '@sivujetti-commons-for-edit-app';
+import {determineModeFromPreview, normalizeUrl} from './common.js';
 
 const Quill = window.Quill;
 
@@ -55,11 +55,9 @@ class MySnowTheme extends Quill.import('themes/snow') {
             let noOrigin, urlPreview;
             if (linkEl.host === window.location.host) {
                 noOrigin = linkEl.href.substring(linkEl.origin.length);
-                urlPreview = determineModeFromPreview(noOrigin)[0] === 'pick-url'
-                    ? noOrigin.substring(urlUtils.baseUrl.length - 1)
-                    : `public/uploads/${noOrigin.split('/public/uploads/')[1]}`;
+                urlPreview = normalizeUrl(noOrigin, determineModeFromPreview(noOrigin)[0]);
             } else {
-                noOrigin = !linkEl.href.startsWith('//') ? linkEl.href : linkEl.href.substring('//'.length);
+                noOrigin = normalizeUrl(linkEl.href, 'type-external-url');
                 urlPreview = noOrigin;
             }
             const [mode, title] = determineModeFromPreview(noOrigin);
@@ -266,7 +264,7 @@ class MyLink extends Quill.import('formats/link') {
         if (isLocal && node.host === env.window.location.host) {
             node.removeAttribute('rel');
             node.removeAttribute('target');
-            addOriginToHrefOf(node);
+            addOrReplaceHrefAttrsPatch(node);
         }
         return node;
     }
@@ -284,8 +282,12 @@ class MyLink extends Quill.import('formats/link') {
      */
     format(name, value) {
         super.format(name, value);
-        if (value && value.startsWith('/') && !value.startsWith('//') && this.domNode.host === env.window.location.host) {
-            addOriginToHrefOf(this.domNode);
+        const isLocal = this.domNode.host === env.window.location.host;
+        // Local link turned to external -> clear 'data-href-original'
+        if (this.domNode.getAttribute('data-href-original') && !isLocal) {
+            this.domNode.removeAttribute('data-href-original');
+        } else if (value && value.startsWith('/') && !value.startsWith('//') && isLocal) {
+            addOrReplaceHrefAttrsPatch(this.domNode);
         }
     }
 }
@@ -293,7 +295,7 @@ class MyLink extends Quill.import('formats/link') {
 /**
  * @param {HTMLAnchorElement} linkEl
  */
-function addOriginToHrefOf(linkEl) {
+function addOrReplaceHrefAttrsPatch(linkEl) {
     const urlNoOrigin = linkEl.getAttribute('href');
     linkEl.setAttribute('data-href-original', urlNoOrigin);
     linkEl.setAttribute('href', linkEl.origin + urlNoOrigin);

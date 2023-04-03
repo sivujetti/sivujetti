@@ -74,6 +74,8 @@ stringBundles.push({
     'Choose link type': 'Valitse linkin tyyppi',
     'Choose a link': 'Valitse linkki',
     'No link selected': 'Ei linkkiä valittuna',
+    'Change': 'Vaihda',
+    'Jump in page': 'Hyppää sivulla kohtaan',
     'Pick %s': 'Valitse %s',
     'a page': 'sivu',
     'Type an address': 'Kirjoita osoite',
@@ -236,6 +238,7 @@ stringBundles.push({
     // edit-app/src/block-types/listing/listing.js
     'Listing': 'Listaus',
     // edit-app/src/block-types/image.js
+    'Image file': 'Kuvatiedosto',
     'Alt text': 'Vaihtoehtoinen teksti',
     'The text that a browser displays\nif the image cannot be loaded': 'Teksti, jonka selain näyttää\njos kuvaa ei voida ladata',
     // edit-app/src/block-types/pageInfo.js

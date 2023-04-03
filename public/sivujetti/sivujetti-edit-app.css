@@ -708,7 +708,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .button-options {
     display: grid;
     grid-template-columns: minmax(0,1fr) minmax(0,1fr);
-    grid-gap: 1.4rem;
+    grid-gap: 1rem;
 }
 .button-options.four {
     display: flex;

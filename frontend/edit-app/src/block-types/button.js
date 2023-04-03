@@ -135,11 +135,11 @@ class PickUrlInputGroup extends preact.Component {
     openPickUrlDialog(e, linkTo, onPicked) {
         e.preventDefault();
         const normalized = getCompletedUrl(linkTo);
-        const [mode, title] = determineModeFrom(normalized);
+        const mode = determineModeFrom(normalized)[0];
         floatingDialog.open(PickUrlDialog, {
-            title,
-            width: 514,
-            height: getHeight('default')[0],
+            width: 480,
+            height: getHeight(mode, true)[0],
+            title: __('Choose a link')
         }, {
             mode,
             url: normalized,

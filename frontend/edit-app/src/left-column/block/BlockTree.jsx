@@ -244,7 +244,7 @@ class BlockTree extends preact.Component {
             const userCanCreateGlobalBlockTrees = api.user.can('createGlobalBlockTrees');
             floatingDialog.open(SaveBlockAsReusableDialog, {
                 title: __('Save as reusable'),
-                height: userCanCreateGlobalBlockTrees ? 426 : 254,
+                height: userCanCreateGlobalBlockTrees ? 468 : 254,
             }, {
                 blockToConvertAndStore: blockToStore,
                 onConfirmed: data => data.saveAsUnique ? this.doConvertBlockToGlobal(data, blockToStore) :

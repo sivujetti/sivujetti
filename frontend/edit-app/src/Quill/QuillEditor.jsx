@@ -1,5 +1,5 @@
 import {__, floatingDialog} from '@sivujetti-commons-for-edit-app';
-import PickUrlDialog, {getHeight, PickUrlDialogO} from '../popups/PickUrlDialog.jsx';
+import PickUrlDialog, {getHeight} from '../popups/PickUrlDialog.jsx';
 import {determineModeFrom} from './common.js';
 
 const common = ['bold', 'italic', 'underline', 'strike'];
@@ -67,11 +67,12 @@ class QuillEditor extends preact.Component {
                 : {history: {maxStack: 0, userOnly: true,},}),
             theme: 'snow',
             sivujettiApi: {openUrlPicker(_linkText, url) {
-                const [mode, title] = determineModeFrom(url);
-                const [a, b] = window.useNewPickUrl !== false
-                    ? [PickUrlDialog, {width: 480, height: getHeight('default', true)[0], title: __('Choose a link')}]
-                    : [PickUrlDialogO, {width: 514, height: getHeight('default', false)[0], title}];
-                floatingDialog.open(a, b, {
+                const mode = determineModeFrom(url)[0];
+                floatingDialog.open(PickUrlDialog, {
+                    width: 480,
+                    height: getHeight('default', true)[0],
+                    title: __('Choose a link')
+                }, {
                     mode,
                     url,
                     dialog: floatingDialog,

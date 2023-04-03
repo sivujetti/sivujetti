@@ -5,7 +5,7 @@ let previewTitleTranslations;
 
 /**
  * @param {String} url
- * @returns {[String, String]} [mode, title]
+ * @returns {[urlMode, String]} [mode, title]
  */
 function determineModeFromPreview(url) {
     return determineModeFrom(url, 'previewTooltipTitles');
@@ -14,7 +14,7 @@ function determineModeFromPreview(url) {
 /**
  * @param {String} url '/base/page' or '/base/public/uploads/image.png' or <external>
  * @param {'dialogTitles'|'previewTooltipTitles'} translationsPool = 'dialogTitles'
- * @returns {[String, String]} [mode, label]
+ * @returns {[urlMode, String]} [mode, label]
  */
 function determineModeFrom(url, translationsPool = 'dialogTitles') {
     const mode = (function () {
@@ -61,7 +61,7 @@ function normalizeExternalUrl(url) {
 }
 
 /**
- * @param {String} mode
+ * @param {urlMode} mode
  * @param {'dialogTitles'|'previewTooltipTitles'} translationsPool = 'dialogTitles'
  * @returns {String}
  */
@@ -89,5 +89,20 @@ function getLabel(mode, translationsPool = 'dialogTitles') {
     return titles[mode];
 }
 
+/**
+ * @param {String} url
+ * @param {urlMode} mode
+ * @returns {String}
+ */
+function normalizeUrl(url, mode) {
+    if (mode !== 'type-external-url') {
+        return mode === 'pick-url'
+            ? url.substring(urlUtils.baseUrl.length - 1)
+            : `public/uploads/${url.split('/public/uploads/')[1]}`;
+    } else {
+        return !url.startsWith('//') ? url : url.substring('//'.length);
+    }
+}
+
 export {determineModeFromPreview, determineModeFrom, getCompletedUrl, getLabel,
-        normalizeExternalUrl};
+        normalizeExternalUrl, normalizeUrl};

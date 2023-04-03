@@ -74,6 +74,8 @@ stringBundles.push({
     'Choose link type': 'Choose link type',
     'Choose a link': 'Choose a link',
     'No link selected': 'No link selected',
+    'Change': 'Change',
+    'Jump in page': 'Jump in page',
     'Pick %s': 'Pick %s',
     'a page': 'a page',
     'Type an address': 'Type an address',
@@ -236,6 +238,7 @@ stringBundles.push({
     // edit-app/src/block-types/listing/listing.js
     'Listing': 'Listing',
     // edit-app/src/block-types/image.js
+    'Image file': 'Image file',
     'Alt text': 'Alt text',
     'The text that a browser displays\nif the image cannot be loaded': 'The text that a browser displays\nif the image cannot be loaded',
     // edit-app/src/block-types/pageInfo.js

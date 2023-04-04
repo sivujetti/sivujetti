@@ -693,7 +693,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     flex-wrap: unset;
     align-items: center;
     justify-content: flex-start;
-    grid-gap: .4rem;
+    gap: .4rem;
 }
 .has-color-pickers > .form-group:first-child {
     margin-top: .2rem;
@@ -708,7 +708,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .button-options {
     display: grid;
     grid-template-columns: minmax(0,1fr) minmax(0,1fr);
-    grid-gap: 1rem;
+    gap: 1rem;
 }
 .button-options.four {
     display: flex;

@@ -61,8 +61,9 @@ class QuillEditor extends preact.Component {
         this.contentMaybeHasLinks = toolbar.flat().indexOf('link') > -1;
         //
         const dhis = this;
+        const modulesBase = {toolbar, clipboard: {matchVisual: false}};
         this.quill = new window.Quill(`#editor-${this.props.name}`, {
-            modules: Object.assign({toolbar}, this.props.enableHistory === true
+            modules: Object.assign(modulesBase, this.props.enableHistory === true
                 ? null
                 : {history: {maxStack: 0, userOnly: true,},}),
             theme: 'snow',

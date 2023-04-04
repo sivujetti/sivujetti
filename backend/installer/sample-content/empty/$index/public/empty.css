@@ -14,7 +14,7 @@ img {
 .j-Columns {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-gap: .4rem;
+    gap: .4rem;
 }
 .j-Columns.inline { display: inline-grid; }
 .j-Columns.inline > * { display: inherit; }

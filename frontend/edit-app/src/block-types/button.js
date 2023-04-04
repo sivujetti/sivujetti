@@ -39,7 +39,7 @@ class ButtonBlockEditForm extends preact.Component {
         const {html, linkTo, tagType} = getBlockCopy();
         this.initialHtml = html;
         this.setState(hookForm(this, [
-            {name: 'html', value: html, validations: [['required'], ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
+            {name: 'html', value: html, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
              label: __('Content'), onAfterValueChanged: (value, hasErrors, source) => { if (source !== 'undo') emitValueChanged(value, 'html', hasErrors, env.normalTypingDebounceMillis); }},
         ], {
             tagType,
@@ -76,7 +76,7 @@ class ButtonBlockEditForm extends preact.Component {
                     name="html"
                     value={ this.initialHtml }
                     onChange={ (markup, source) => {
-                        this.inputApis.html.triggerInput(unParagraphify(markup), source);
+                        this.inputApis.html.triggerInput(noEmptyBr(unParagraphify(markup)), source);
                     } }
                     onBlur={ e => this.inputApis.html.onBlur(e) }
                     toolbarBundle="simplest"
@@ -154,6 +154,14 @@ class PickUrlInputGroup extends preact.Component {
             }
         });
     }
+}
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+function noEmptyBr(str) {
+    return str !== '<br>' ? str : '';
 }
 
 export default () => {

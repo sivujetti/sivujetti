@@ -39,7 +39,9 @@ interface WebPageIframe {
     renderNormalPage(slug: String): Promise<EditAppAwareWebPage>;
     renderPlaceholderPage(pageTypeName: String, layoutId: String = '1', slug: String = ''): Promise<EditAppAwareWebPage>;
     goBack(): void;
-    scrollTo(block: RawBlock);
+    scrollTo(block: RawBlock): Boolean;
+    highlight(block: RawBlock, isSticky: Boolean, scrollTo: Boolean = false): void;
+    unHighlight(clearSticky: Boolean = false): void;
     getEl(): HTMLIFrameElement;
     registerWebPageDomUpdaterForBlockTree(trid: String): void;
     unRegisterWebPageDomUpdaterForBlockTree(trid: String): void;
@@ -212,7 +214,7 @@ interface TheWebsiteBundle {
 }
 
 interface EditAwareWebPageEventHandlers {
-    onHoverStarted(blockEl: HTMLElement, rect: ClientRect): void;
+    onHoverStarted(blockEl: HTMLElement, rect: DOMRect): void;
     onClicked(blockEl: HTMLElement|null): void;
     onHoverEnded(blockEl: HTMLElement): void;
 }
@@ -227,11 +229,13 @@ interface EditAppAwareWebPage {
     setIsMouseListenersDisabled(isDisabled: Boolean): void;
     fastOverrideStyleUnitVar(unitCls: String, varNam: String, varValue: String, valueType: 'color'): void;
     setCssVarValue(varName: String, to: RawCssValue): void;
+    getBlockEl(blockId: String): HTMLElement|null;
 }
 
 interface WebPageReRenderer {
     new(_renderBlockAndThen: (block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void, _toTransferable: (block: RawBlock, includePrivates: Boolean = false) => {[key: String]: any;}, _blockTreeUtils: blockTreeUtils): WebPageReRenderer;
-    createBlockTreeChangeListeners(): {ast: (event: blockChangeEvent, data: Array<any>) => void; slow: (blockId: String) => void;}
+    createBlockTreeChangeListeners(): {ast: (event: blockChangeEvent, data: Array<any>) => void; slow: (blockId: String) => void;};
+    setOnReRender(fn: () => void): void;
 }
 
 interface Env {

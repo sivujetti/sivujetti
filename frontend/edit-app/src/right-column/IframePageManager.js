@@ -6,6 +6,7 @@ import opQueueItemEmitter from '../OpQueueItemEmitter.js';
 import {findBlockFrom} from '../block/utils-utils.js';
 
 const webPageUnregistrables = new Map;
+const TITLE_LABEL_HEIGHT = 18; // at least
 
 /**
  * Receives EditAppAwareWebPage instance and cleans up the previous one. Prepares
@@ -15,6 +16,8 @@ class IframePageManager {
     // currentWebPage; // public
     // highlightRectEl;
     // getCurrentLeftPanelWidth;
+    // cachedLeftPanelWidth;
+    // stickyHighlightRect;
     /**
      * @param {HTMLElement} highlightRectEl
      * @param {(width: Number) => void} getCurrentLeftPanelWidth
@@ -48,6 +51,7 @@ class IframePageManager {
         webPage.registerEventHandlers(this.createWebsiteEventHandlers(this, webPageUnregistrables));
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         this.registerWebPageDomUpdater('main');
+        this.currentWebPage.reRenderer.setOnReRender(this.onWebPageReRender.bind(this));
         //
         data.page.__blocksDebugOnly = data.page.blocks;
         delete data.page.blocks;
@@ -88,41 +92,26 @@ class IframePageManager {
      */
     createWebsiteEventHandlers() {
         let prevHoverStartBlockEl = null;
-        const TITLE_LABEL_HEIGHT = 18; // at least
-        const {highlightRectEl, getCurrentLeftPanelWidth} = this;
+        const {getCurrentLeftPanelWidth} = this;
         const hideRect = () => {
-            highlightRectEl.setAttribute('data-title', '');
-            highlightRectEl.style.cssText = '';
+            this.hideHighlightRect(false);
             prevHoverStartBlockEl = null;
         };
-        let leftPanelWidth = getCurrentLeftPanelWidth();
+        this.cachedLeftPanelWidth = getCurrentLeftPanelWidth();
         webPageUnregistrables.set('highlightRectLeftPosUpdater', signals.on('left-column-width-changed', w => {
-            leftPanelWidth = w;
+            this.cachedLeftPanelWidth = w;
         }));
+        const pageManager = this;
         return {
             /**
              * @param {HTMLElement} blockEl
-             * @param {ClientRect} r
+             * @param {DOMRect} rect
              */
-            onHoverStarted(blockEl, r) {
+            onHoverStarted(blockEl, rect) {
                 if (prevHoverStartBlockEl === blockEl)
                     return;
-                highlightRectEl.style.cssText = [
-                    'width:', r.width, 'px;',
-                    'height:', r.height, 'px;',
-                    'top:', r.top, 'px;',
-                    'left:', r.left + leftPanelWidth, 'px'
-                ].join('');
                 const [block] = findBlockFrom(blockEl.getAttribute('data-block'), 'mainTree');
-                if (r.top < -TITLE_LABEL_HEIGHT)
-                    highlightRectEl.setAttribute('data-position', 'bottom-inside');
-                else if (r.top > TITLE_LABEL_HEIGHT)
-                    highlightRectEl.setAttribute('data-position', 'top-outside');
-                else
-                    highlightRectEl.setAttribute('data-position', 'top-inside');
-                highlightRectEl.setAttribute('data-title',
-                    (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type)
-                );
+                pageManager.showHighlightRect(block, false, rect);
                 prevHoverStartBlockEl = blockEl;
             },
             /**
@@ -142,6 +131,67 @@ class IframePageManager {
                 }, 80);
             },
         };
+    }
+    /**
+     * @param {RawBlock} block
+     * @param {Boolean} isSticky
+     * @param {DOMRect} rect = null
+     * @access private
+     */
+    showHighlightRect(block, isSticky, rect = null) {
+        const {highlightRectEl} = this;
+        if (!rect) rect = this.currentWebPage.getBlockEl(block.id).getBoundingClientRect();
+
+        if (isSticky) this.stickyHighlightRect = {block, rect};
+        highlightRectEl.style.cssText = [
+            'width:', rect.width, 'px;',
+            'height:', rect.height, 'px;',
+            'top:', rect.top, 'px;',
+            'left:', rect.left + this.cachedLeftPanelWidth, 'px'
+        ].join('');
+
+        if (rect.top < -TITLE_LABEL_HEIGHT)
+            highlightRectEl.setAttribute('data-position', 'bottom-inside');
+        else if (rect.top > TITLE_LABEL_HEIGHT)
+            highlightRectEl.setAttribute('data-position', 'top-outside');
+        else
+            highlightRectEl.setAttribute('data-position', 'top-inside');
+        highlightRectEl.setAttribute('data-title',
+            (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type)
+        );
+    }
+    /**
+     * @param {Boolean} clearSticky
+     * @access private
+     */
+    hideHighlightRect(clearSticky) {
+        const {highlightRectEl} = this;
+        highlightRectEl.setAttribute('data-title', '');
+        highlightRectEl.style.cssText = '';
+
+        if (clearSticky)
+            this.stickyHighlightRect = null;
+        else if (this.stickyHighlightRect) {
+            setTimeout(() => {
+                this.showHighlightRect(this.stickyHighlightRect.block, true);
+            }, 40);
+        }
+    }
+    /**
+     * @access private
+     */
+    onWebPageReRender() {
+        if (!this.stickyHighlightRect) return;
+        const {block, rect} = this.stickyHighlightRect;
+        const el = this.currentWebPage.getBlockEl(block.id);
+        if (!el) { // removed from dom
+            this.hideHighlightRect(true);
+            return;
+        }
+        const rectNow = el.getBoundingClientRect();
+        if (rectNow.width !== rect.width || rectNow.height !== rect.height ||
+            rectNow.top !== rect.top || rectNow.left !== rect.left)
+            this.showHighlightRect(block, true);
     }
 }
 

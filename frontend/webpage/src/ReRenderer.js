@@ -12,6 +12,7 @@ let blockTreeUtils;
 class ReRenderer {
     // elCache;
     // throttledUpdates;
+    // onReRenderFn;
     /**
      * @param {(block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void} renderBlockAndThen_
      * @param {(block: RawBlock, includePrivates: Boolean = false) => {[key: String]: any;}} _toTransferable
@@ -22,6 +23,7 @@ class ReRenderer {
         toTransferable = _toTransferable;
         blockTreeUtils = _blockTreeUtils;
         this.throttledUpdates = {};
+        this.onReRenderFn = () => {};
     }
     /**
      * @returns {{fast: (event: blockChangeEvent, data: Array<any>) => void; slow: (blockId: String) => void;}}
@@ -32,6 +34,13 @@ class ReRenderer {
             fast: this.handleFastChangeEvent.bind(this),
             slow: this.handleSlowChangeEvent.bind(this)
         };
+    }
+    /**
+     * @param {() => void} fn
+     * @access public
+     */
+    setOnReRender(fn) {
+        this.onReRenderFn = fn;
     }
     /**
      * @param {{theBlockTree: Array<RawBlock>;} && {[key: String]: any;}} storeState
@@ -219,6 +228,7 @@ class ReRenderer {
         appendCachedEls(tree, frag);
         const firstScriptEl = el;
         Array.from(frag.childNodes).forEach(insert => document.body.insertBefore(insert, firstScriptEl));
+        this.onReRenderFn();
     }
     /**
      * @param {String} blockId

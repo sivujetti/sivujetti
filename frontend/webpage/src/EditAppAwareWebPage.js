@@ -140,6 +140,7 @@ class EditAppAwareWebPage {
     }
     /**
      * @returns {(state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void}
+     * @access public
      */
     createThemeStylesChangeListener() {
         const upsertInlineStyle = (blockTypeName, style) => {
@@ -219,6 +220,14 @@ class EditAppAwareWebPage {
         if (type !== 'color')
             throw new Error('Not implemented yet');
         document.documentElement.style.setProperty(`--${varName}`, `#${value.join('')}`);
+    }
+    /**
+     * @param {String} blockId
+     * @returns {HTMLElement|null}
+     * @access public
+     */
+    getBlockEl(blockId) {
+        return getBlockEl(blockId);
     }
     /**
      * @param {RawBlock} block

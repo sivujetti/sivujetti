@@ -1,4 +1,4 @@
-import {__, signals, env, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, api, signals, env, Icon} from '@sivujetti-commons-for-edit-app';
 import BlockEditForm from './block/BlockEditForm.jsx';
 
 class InspectorPanel extends preact.Component {
@@ -91,9 +91,10 @@ class InspectorPanel extends preact.Component {
      * Note to self: this currently supports BlockEditForm only.
      *
      * @param {RawBlock} block
+     * @param {'direct'|'web-page'|'styles-tab'} origin = null
      * @access private
      */
-    open(block) {
+    open(block, origin = null) {
         const newRendererKey = `edit-block-tree-${block.id}`;
         if (this.rendererKey === newRendererKey) return;
         //
@@ -109,6 +110,7 @@ class InspectorPanel extends preact.Component {
             this.resizeHandleEl.current.style.transform = `translateY(-${height}px)`;
         }
         signals.emit('inspector-panel-revealed', this);
+        api.webPageIframe.highlight(block, true, origin !== null && origin !== 'web-page');
     }
     /**
      * @access private
@@ -121,6 +123,7 @@ class InspectorPanel extends preact.Component {
         this.rendererKey = null;
         this.lastHeight = null;
         signals.emit('inspector-panel-closed', this);
+        api.webPageIframe.unHighlight(true);
     }
 }
 

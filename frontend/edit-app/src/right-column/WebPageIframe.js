@@ -49,43 +49,57 @@ class WebPageIframe {
     }
     /**
      * @param {RawBlock} block
-     * @param {Boolean} isStillMaybeInsertingToDom = false
+     * @returns {Boolean} didScroll
      * @access public
      */
-    scrollTo(block, isStillMaybeInsertingToDom = false) {
-        const win = this.getEl().contentWindow;
-        const doScroll = inPageElRect => {
-            const inPageElTop = inPageElRect.top;
-            const elBottom = inPageElRect.bottom;
-            const quarterVisible = win.innerHeight / 4;
-            const scrollToInPageEl = () => {
-                win.scrollTo({
-                    top: inPageElTop + win.scrollY - 40,
-                    behavior: 'smooth'
-                });
-            };
-            //
-            if (inPageElTop <= 0 && elBottom <= (quarterVisible * 3)) {
-                scrollToInPageEl();
-            } else if (elBottom < 0) {
-                scrollToInPageEl();
-            } else if (inPageElTop > quarterVisible) {
-                scrollToInPageEl();
-            }
-        };
-        //
+    scrollTo(block, win = this.getEl().contentWindow) {
         if (block.type === 'PageInfo') return;
         const body = this.getEl().contentDocument.body;
         const getRect = firstEl => firstEl.getBoundingClientRect();
-        if (!isStillMaybeInsertingToDom) {
-            doScroll(getRect(body.querySelector(`[data-block="${block.id}"]`)));
-        } else {
-            createTrier(() => {
-                const el = body.querySelector(`[data-block="${block.id}"]`);
-                if (el) { doScroll(getRect(el)); return true; }
-                else return false;
-            }, 80, 800)();
+        const inPageElRect = getRect(body.querySelector(`[data-block="${block.id}"]`));
+        const inPageElTop = inPageElRect.top;
+        const elBottom = inPageElRect.bottom;
+        const quarterVisible = win.innerHeight / 4;
+        if (inPageElTop <= 0 && elBottom <= (quarterVisible * 3) ||
+            elBottom < 0 ||
+            inPageElTop > quarterVisible) {
+            win.scrollTo({
+                top: inPageElTop + win.scrollY - 40,
+                behavior: 'smooth'
+            });
+            return true;
         }
+        return false;
+    }
+    /**
+     * @param {RawBlock} block
+     * @param {Boolean} isSticky
+     * @param {Boolean} scrollTo = false
+     * @access public
+     */
+    highlight(block, isSticky, scrollTo = false) {
+        if (block.type === 'PageInfo') return;
+        const showOrAdjustRect = () => {
+            this.pageManager.showHighlightRect(block, isSticky);
+        };
+        if (!scrollTo) showOrAdjustRect(); else {
+            const win = this.getEl().contentWindow;
+            if (this.scrollTo(block, win)) {
+                let last = -Infinity;
+                createTrier(() => {
+                    showOrAdjustRect();
+                    if (last === win.scrollY) { return true; }
+                    else { last = win.scrollY; return false; }
+                }, 100, 6)();
+            } else showOrAdjustRect();
+        }
+    }
+    /**
+     * @param {Boolean} clearSticky = false
+     * @access public
+     */
+    unHighlight(clearSticky = false) {
+        this.pageManager.hideHighlightRect(clearSticky);
     }
     /**
      * @returns {HTMLIFrameElement}

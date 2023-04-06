@@ -230,6 +230,7 @@ interface EditAppAwareWebPage {
     fastOverrideStyleUnitVar(unitCls: String, varNam: String, varValue: String, valueType: 'color'): void;
     setCssVarValue(varName: String, to: RawCssValue): void;
     getBlockEl(blockId: String): HTMLElement|null;
+    setOnReRenderOrUpdateStyles(fn: () => void): void;
 }
 
 interface WebPageReRenderer {

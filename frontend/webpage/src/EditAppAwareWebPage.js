@@ -9,6 +9,7 @@ class EditAppAwareWebPage {
     // isLocalLink;
     // tempStyleOverrideNames;
     // tempStyleOverrideElsRemoveTimeouts;
+    // onStylesUpdateFn;
     /**
      * @param {CurrentPageData} dataFromBackend
      * @param {String} baseUrl e.g. '/sub-dir/' or '/' or '/sub-dir/index.php?q=/'
@@ -21,6 +22,7 @@ class EditAppAwareWebPage {
         this.isLocalLink = createIsLocalLinkCheckFn();
         this.tempStyleOverrideNames = new Map;
         this.tempStyleOverrideElsRemoveTimeouts = new Map;
+        this.onStylesUpdateFn = () => {};
     }
     /**
      * @param {(block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void} renderBlockAndThen
@@ -137,6 +139,10 @@ class EditAppAwareWebPage {
                 }
             }
         }, true);
+        //
+        window.addEventListener('resize', () => {
+            this.onStylesUpdateFn();
+        });
     }
     /**
      * @returns {(state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void}
@@ -171,7 +177,8 @@ class EditAppAwareWebPage {
                 const blockTypeName = data[0]; // data: [String]
                 const node = document.head.querySelector(`style[data-style-units-for="${blockTypeName}"]`);
                 node.parentElement.removeChild(node);
-            }
+            } else return;
+            this.onStylesUpdateFn();
         };
     }
     /**
@@ -228,6 +235,14 @@ class EditAppAwareWebPage {
      */
     getBlockEl(blockId) {
         return getBlockEl(blockId);
+    }
+    /**
+     * @param {fn: () => void} fn
+     * @access public
+     */
+    setOnReRenderOrUpdateStyles(fn) {
+        this.onStylesUpdateFn = fn;
+        this.reRenderer.setOnReRender(fn);
     }
     /**
      * @param {RawBlock} block

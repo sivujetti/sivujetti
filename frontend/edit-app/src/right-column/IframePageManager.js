@@ -51,7 +51,7 @@ class IframePageManager {
         webPage.registerEventHandlers(this.createWebsiteEventHandlers(this, webPageUnregistrables));
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         this.registerWebPageDomUpdater('main');
-        this.currentWebPage.reRenderer.setOnReRender(this.onWebPageReRender.bind(this));
+        this.currentWebPage.setOnReRenderOrUpdateStyles(this.onWebPageReRenderOrStylesUpdated.bind(this));
         //
         data.page.__blocksDebugOnly = data.page.blocks;
         delete data.page.blocks;
@@ -180,7 +180,7 @@ class IframePageManager {
     /**
      * @access private
      */
-    onWebPageReRender() {
+    onWebPageReRenderOrStylesUpdated() {
         if (!this.stickyHighlightRect) return;
         const {block, rect} = this.stickyHighlightRect;
         const el = this.currentWebPage.getBlockEl(block.id);

@@ -1,8 +1,7 @@
 import {__, env, urlUtils, hookForm, unhookForm, reHookValues, FormGroupInline,
-        Textarea, InputErrors, Icon} from '@sivujetti-commons-for-edit-app';
+        Textarea, InputErrors, Icon, validationConstraints} from '@sivujetti-commons-for-edit-app';
 import ImagePicker from '../block-widget/ImagePicker.jsx';
 import {placeholderImageSrc} from '../commons/FileUploader.jsx';
-import {validationConstraints} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
 
 class ImageBlockEditForm extends preact.Component {

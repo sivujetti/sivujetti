@@ -1,12 +1,12 @@
 import {__, api, env, http, signals, timingUtils, Icon, LoadingSpinner, hookForm,
-    unhookForm, Input, FormGroup, InputErrors, InputError, hasErrors} from '@sivujetti-commons-for-edit-app';
+    unhookForm, Input, FormGroup, InputErrors, InputError, hasErrors,
+    validationConstraints} from '@sivujetti-commons-for-edit-app';
 import {Popup} from '../../block-types/listing/AdditionalFiltersBuilder.jsx';
 import {createTrier} from '../../block/dom-commons.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import CssStylesValidatorHelper from '../../commons/CssStylesValidatorHelper.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import store, {pushItemToOpQueue} from '../../store.js';
-import {validationConstraints} from '../../constants.js';
 import exampleScss from '../../example-scss.js';
 import VisualStyles from './VisualStyles.jsx';
 import blockTreeUtils from './blockTreeUtils.js';

@@ -1,6 +1,5 @@
 import {__, api, env, hookForm, unhookForm, reHookValues, Textarea,
-        InputErrors, FormGroup} from '@sivujetti-commons-for-edit-app';
-import {validationConstraints} from '../constants.js';
+        InputErrors, FormGroup, validationConstraints} from '@sivujetti-commons-for-edit-app';
 
 class CodeBlockEditForm extends preact.Component {
     // userCanEditCode;

@@ -1,8 +1,8 @@
 import {__, api, env, hookForm, unhookForm, InputErrors, FormGroup,
-        FormGroupInline, floatingDialog, urlUtils} from '@sivujetti-commons-for-edit-app';
+        FormGroupInline, floatingDialog, urlUtils,
+        validationConstraints} from '@sivujetti-commons-for-edit-app';
 import {determineModeFrom, getCompletedUrl} from '../quill/common.js';
 import QuillEditor from '../quill/QuillEditor.jsx';
-import {validationConstraints} from '../constants.js';
 import {unParagraphify} from './paragraph.js';
 import setFocusTo from './auto-focusers.js';
 import PickUrlDialog, {getHeight} from '../popups/PickUrlDialog.jsx';

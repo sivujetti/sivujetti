@@ -1,5 +1,5 @@
-import {__, hookForm, unhookForm, Input, Textarea, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
-import {validationConstraints} from '../../constants.js';
+import {__, hookForm, unhookForm, Input, Textarea, InputErrors, FormGroupInline,
+        validationConstraints} from '@sivujetti-commons-for-edit-app';
 import {urlValidatorImpl} from '../../validation.js';
 
 class PageTypeBasicInfoConfigurationForm extends preact.Component {

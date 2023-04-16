@@ -1,6 +1,6 @@
-import {__, env, hookForm, unhookForm, InputErrors, FormGroup} from '@sivujetti-commons-for-edit-app';
+import {__, env, hookForm, unhookForm, InputErrors, FormGroup,
+        validationConstraints} from '@sivujetti-commons-for-edit-app';
 import QuillEditor from '../quill/QuillEditor.jsx';
-import {validationConstraints} from '../constants.js';
 import setFocusTo from './auto-focusers.js';
 
 const minPossibleLen = '<p></p>'.length;

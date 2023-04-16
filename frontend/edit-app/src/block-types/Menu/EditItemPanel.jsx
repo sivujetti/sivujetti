@@ -1,5 +1,5 @@
-import {__, api, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline} from '@sivujetti-commons-for-edit-app';
-import {validationConstraints} from '../../constants.js';
+import {__, api, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline,
+        validationConstraints} from '@sivujetti-commons-for-edit-app';
 import {PickUrlInputGroup} from '../button.js';
 
 class EditItemPanel extends preact.Component {

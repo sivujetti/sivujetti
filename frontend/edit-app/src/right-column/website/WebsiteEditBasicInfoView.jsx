@@ -1,6 +1,6 @@
 import {__, http, hookForm, unhookForm, handleSubmit, FormGroupInline, Input,
-        Textarea, InputErrors, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
-import {validationConstraints} from '../../constants.js';
+        Textarea, InputErrors, LoadingSpinner,
+        validationConstraints} from '@sivujetti-commons-for-edit-app';
 import OverlayView from '../../commons/OverlayView.jsx';
 import toasters from '../../commons/Toaster.jsx';
 import store2 from '../../store2.js';

@@ -1,6 +1,5 @@
-import {__, api, env, Icon, InputError, timingUtils} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, Icon, InputError, timingUtils, validationConstraints} from '@sivujetti-commons-for-edit-app';
 import {ManyToManyItemSelector} from '../../left-column/page/ManyToManyField.jsx';
-import {validationConstraints} from '../../constants.js';
 
 const FilterKind = {
     IS_IN_CAT: 'isInCategory',

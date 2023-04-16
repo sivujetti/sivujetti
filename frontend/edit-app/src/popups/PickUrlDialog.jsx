@@ -1,7 +1,6 @@
 import {__, env, http, urlUtils, Icon, LoadingSpinner, hookForm, Input, InputErrors,
-        hasErrors, unhookForm, FormGroup} from '@sivujetti-commons-for-edit-app';
+        hasErrors, unhookForm, FormGroup, validationConstraints} from '@sivujetti-commons-for-edit-app';
 import {urlValidatorImpl} from '../validation.js';
-import {validationConstraints} from '../constants.js';
 import setFocusTo from '../block-types/auto-focusers.js';
 import {determineModeFrom, getLabel, normalizeExternalUrl, normalizeUrl} from '../quill/common.js';
 import FileUploader from '../commons/FileUploader.jsx';

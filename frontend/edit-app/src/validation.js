@@ -1,5 +1,4 @@
-import {env} from '@sivujetti-commons-for-edit-app';
-import {validationConstraints} from './constants.js';
+import {env, validationConstraints} from '@sivujetti-commons-for-edit-app';
 
 const urlValidatorImpl = {doValidate: (val, hints = {}) => {
     const [allowExternal, allowLocal, allowEmpty] = [

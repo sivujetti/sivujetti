@@ -13,6 +13,7 @@ const signals = new Signals;
 /** @type {SivujettiFrontendApi} */
 const api = {}; // see frontend/edit-app/main.js
 
+export * from './src/constants.js';
 export * from './src/Form3.jsx';
 export * from './src/FloatingDialog.jsx';
 export * from './src/Icon.jsx';

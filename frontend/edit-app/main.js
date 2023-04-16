@@ -1,6 +1,5 @@
-import {translator, api, env, stringUtils} from '@sivujetti-commons-for-edit-app';
+import {translator, api, env, stringUtils, sensibleDefaults} from '@sivujetti-commons-for-edit-app';
 import {Validator} from './src/commons/Form.jsx';
-import {sensibleDefaults} from './src/constants.js';
 import {FormStateStoreWrapper} from './src/store.js';
 import EditApp from './src/EditApp.jsx';
 import BlockTypes from './src/block-types/block-types.js';

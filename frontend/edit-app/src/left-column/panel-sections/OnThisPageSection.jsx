@@ -98,7 +98,7 @@ class OnThisPageSection extends MenuSectionAbstract {
                 class="flex-centered pr-2 pl-1 section-title col-12"
                 onClick={ this.handleMainButtonClicked.bind(this) }
                 onFocusCapture={ () => { this.mouseFocusIsAt = 'outerButton'; } }
-                title={ subtitle }
+                title={ subtitle.map(p => p !== null ? typeof p === 'string' ? p : p.props.children : '').join('') }
                 type="button">
                 <Icon iconId="map-pin" className="p-absolute size-sm mr-2 color-purple"/>
                 <span class="pl-1 d-block col-12 color-default">
@@ -191,13 +191,16 @@ function determineViewNameFrom(slug) {
 }
 
 /**
- * @param {Page?} page
- * @returns {String}
+ * @param {String} slug
+ * @returns {[String, preact.VNode|null]}
  */
 function getSubtitle(slug, containingView) {
-    if (!slug) return __('Content of page %s', '/');
-    if (containingView === 'Default') return __('Content of page %s', slug);
-    return __(containingView === 'CreatePage' ? 'New page content' : 'Uuden sivutyypin oletussisältö');
+    if (containingView === 'Default') {
+        const [a, b] = __('Content of page %s', '|').split('|'); // ['Content of page ', ''] or ['', ' -sivun sisältö']
+        return a === '' ? [<b>{ slug }</b>, b] : [a, <b>{ slug }</b>];
+    }
+    //
+    return [__(containingView === 'CreatePage' ? 'New page content' : 'Uuden sivutyypin oletussisältö'), null];
 }
 
 export default OnThisPageSection;

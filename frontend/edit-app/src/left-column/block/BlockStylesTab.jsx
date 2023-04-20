@@ -8,18 +8,15 @@ import CssStylesValidatorHelper from '../../commons/CssStylesValidatorHelper.js'
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import store, {pushItemToOpQueue} from '../../store.js';
 import exampleScss from '../../example-scss.js';
-import VisualStyles from './VisualStyles.jsx';
+import VisualStyles, {createScss} from './VisualStyles.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 
-let compile, serialize, stringify;
+const {compile, serialize, stringify} = window.stylis;
 let emitSaveStylesToBackendOp;
 
 const SPECIAL_BASE_UNIT_NAME = '_body_';
 
 class BlockStylesTab extends preact.Component {
-    // userCanEditVars;
-    // userCanEditCss;
-    // useVisualStyles;
     // editableTitleInstances;
     // moreMenu;
     // extraBlockStyleClassesTextareaEl;
@@ -29,15 +26,12 @@ class BlockStylesTab extends preact.Component {
     // liIdxOfOpenMoreMenu;
     // refElOfOpenMoreMenu;
     /**
-     * @param {{emitAddStyleClassToBlock: (styleClassToAdd: String, block: RawBlock) => void; emitRemoveStyleClassFromBlock: (styleClassToRemove: String, block: RawBlock) => void; emitSetBlockStylesClasses: (newStyleClasses: String, block: RawBlock) => void; getBlockCopy: () => RawBlock; grabBlockChanges: (withFn: (block: RawBlock, origin: blockChangeEvent, isUndo: Boolean) => void) => void; isVisible: Boolean;}} props
+     * @param {{emitAddStyleClassToBlock: (styleClassToAdd: String, block: RawBlock) => void; emitRemoveStyleClassFromBlock: (styleClassToRemove: String, block: RawBlock) => void; emitSetBlockStylesClasses: (newStyleClasses: String, block: RawBlock) => void; getBlockCopy: () => RawBlock; grabBlockChanges: (withFn: (block: RawBlock, origin: blockChangeEvent, isUndo: Boolean) => void) => void; isVisible: Boolean; userCanEditVars: Boolean; userCanEditCss: Boolean; useVisualStyles: Boolean;}} props
      */
     constructor(props) {
         super(props);
-        ({compile, serialize, stringify} = window.stylis);
-        this.userCanEditVars = api.user.can('editThemeVars');
-        this.userCanEditCss = api.user.can('editThemeCss');
-        this.useVisualStyles = !this.userCanEditCss && this.userCanEditVars;
-        emitSaveStylesToBackendOp = this.userCanEditCss ? emitCommitStylesOp : null;
+        emitSaveStylesToBackendOp = this.props.userCanEditCss ? emitCommitStylesOp : null;
+
         this.editableTitleInstances = [];
         this.moreMenu = preact.createRef();
         this.extraBlockStyleClassesTextareaEl = preact.createRef();
@@ -82,14 +76,14 @@ class BlockStylesTab extends preact.Component {
     render({isVisible}, {units, blockCopy, liClasses, extraBlockStyleClassesNotCommitted, extraBlockStyleClassesError,
                         parentStyleInfo}) {
         if (!isVisible) return null;
-        const {userCanEditVars, userCanEditCss} = this;
+        const {userCanEditVars, userCanEditCss} = this.props;
         return [
             units !== null ? units.length ? <ul class="list styles-list mb-2">{ units.map((unit, i) => {
                 const liCls = liClasses[i];
                 const cls = this.createClass(unit.id);
                 const isActivated = this.currentBlockHasStyle(cls);
-                const [cssVars, ast] = !this.useVisualStyles ? [[], []] : VisualStyles.extractVars(unit.scss, cls);
-                const doShowChevron = userCanEditCss || (this.useVisualStyles && cssVars.length);
+                const [cssVars, ast] = !this.props.useVisualStyles ? [[], []] : VisualStyles.extractVars(unit.scss, cls);
+                const doShowChevron = userCanEditCss || (this.props.useVisualStyles && cssVars.length);
                 return <li class={ liCls } data-cls={ cls } key={ unit.id }>
                     <header class="flex-centered p-relative">
                         <button
@@ -182,13 +176,13 @@ class BlockStylesTab extends preact.Component {
      * @access private
      */
     handleLiClick(e, i) {
-        if (this.userCanEditCss && this.editableTitleInstances[i].current.isOpen()) return;
+        if (this.props.userCanEditCss && this.editableTitleInstances[i].current.isOpen()) return;
         //
         const moreMenuIconEl = e.target.classList.contains('edit-icon-outer') ? e.target : e.target.closest('.edit-icon-outer');
         if (!moreMenuIconEl) {
             const accordBtn = e.target.classList.contains('no-color') ? e.target : e.target.closest('.no-color');
             const hasDecls = accordBtn.querySelector(':scope > .icon-tabler.d-none') === null;
-            if (this.userCanEditCss || hasDecls) this.toggleIsCollapsed(i);
+            if (this.props.userCanEditCss || hasDecls) this.toggleIsCollapsed(i);
         }
         else this.openMoreMenu(moreMenuIconEl, i);
     }
@@ -199,9 +193,9 @@ class BlockStylesTab extends preact.Component {
      * @access private
      */
     updateUnitsState(candidate, themeStyles, currentOpenIdx = -1) {
-        const units = candidate || [];
+        const units = candidate ? candidate.filter(unit => !isSpecialUnit(unit)): [];
         const isUnitStyleOn = ({id}) => this.currentBlockHasStyle(this.createClass(id));
-        if (this.useVisualStyles) units.sort((a, b) => isUnitStyleOn(b) - isUnitStyleOn(a));
+        if (this.props.useVisualStyles) units.sort((a, b) => isUnitStyleOn(b) - isUnitStyleOn(a));
         this.editableTitleInstances = units.map(_ => preact.createRef());
         this.setState({units, liClasses: createLiClasses(units, currentOpenIdx),
             parentStyleInfo: findParentStyleInfo(themeStyles, this.state.blockCopy)});
@@ -212,8 +206,8 @@ class BlockStylesTab extends preact.Component {
      * @access private
      */
     createBlockClassesState(block) {
-        const [unitClases, nonUnitClses] = splitUnitAndNonUnitClasses(block.styleClasses);
-        this.currentBlockUnitStyleClasses = unitClases;
+        const [unitClses, nonUnitClses] = splitUnitAndNonUnitClasses(block.styleClasses);
+        this.currentBlockUnitStyleClasses = unitClses;
         return {blockCopy: block, extraBlockStyleClassesNotCommitted: nonUnitClses,
             extraBlockStyleClassesError: ''};
     }
@@ -309,13 +303,7 @@ class BlockStylesTab extends preact.Component {
      * @access private
      */
     removeStyleUnit(unit) {
-        const {type} = this.state.blockCopy;
-        store2.dispatch('themeStyles/removeUnitFrom', [type, unit]);
-        //
-        const clone = Object.assign({}, unit);
-        emitCommitStylesOp(type, () => {
-            store2.dispatch('themeStyles/addUnitTo', [type, clone]);
-        });
+        removeStyleUnit(this.state.blockCopy, unit);
     }
     /**
      * @param {Event} e
@@ -374,6 +362,82 @@ class BlockStylesTab extends preact.Component {
             ? units.length - 1
             : this.state.liClasses.findIndex(cls => cls !== '');
     }
+}
+
+function _addStyleUnit(blockCopy, whatsi, id = null) {
+    const {type} = blockCopy;
+    let title;
+    const current = findBlockTypeStyles(store2.get().themeStyles, type);
+    if (!id) {
+    const rolling = current ? getLargestPostfixNum(current.units) + 1 : 1;
+    title = rolling > 1 ? `Unit ${rolling}` : 'Default';
+    id = `unit-${rolling}`;
+    } else {
+    title = '?';
+    }
+    const createInitialScss = blockTypeName => {
+        const e = exampleScss[blockTypeName];
+        if (!e) return 'color: blueviolet';
+        return [
+            `// ${__('Css for the outermost %s (%s)', __(!e.outermostElIsWrapper ? 'element': 'wrapper-element'), e.outermostEl)}`,
+            e.first,
+            '',
+            `// ${__('Css for the inner elements')}`,
+            e.second,
+        ].join('\n');
+    };
+    const scss = createInitialScss(type);
+    const cls = whatsi.createClass(id);
+
+    // #2
+    const addedStyleToBlock = !whatsi.currentBlockHasStyle(cls);
+    if (addedStyleToBlock)
+        whatsi.props.emitAddStyleClassToBlock(cls, blockCopy);
+
+    // #1
+    const newUnit = {title, id, scss, generatedCss: serialize(compile(`.${cls}{${scss}}`), stringify)};
+    if (current) store2.dispatch('themeStyles/addUnitTo', [type, newUnit]);
+    else store2.dispatch('themeStyles/addStyle', [{units: [newUnit], blockTypeName: type}]);
+
+    //
+    emitCommitStylesOp(type, () => {
+        // Revert # 1
+        if (current) store2.dispatch('themeStyles/removeUnitFrom', [type, newUnit]);
+        else store2.dispatch('themeStyles/removeStyle', [type]);
+
+        // Revert # 2
+        if (addedStyleToBlock) setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
+    });
+}
+
+/**
+ * @param {String} scss
+ * @param {String} blockType
+ * @param {String} blockId
+ */
+function addDefaultStyleUnit(scss, blockType, blockId) {
+    let title = '?'; // todo
+
+    const newUnit = {title, id: blockId, scss, generatedCss: serialize(compile(createScss(scss, blockId, 'attr')), stringify)};
+    store2.dispatch('themeStyles/addUnitTo', [blockType, newUnit]);
+
+    //
+    emitCommitStylesOp(blockType, () => {
+        store2.dispatch('themeStyles/removeUnitFrom', [blockType, newUnit]);
+    });
+}
+
+/**
+ * @param {String} blockType
+ * @param {ThemeStyleUnit} unit
+ */
+function removeStyleUnit(blockType, unit) {
+    store2.dispatch('themeStyles/removeUnitFrom', [blockType, unit]);
+    //
+    const clone = Object.assign({}, unit);
+    emitCommitStylesOp(blockType, () => {
+        store2.dispatch('themeStyles/addUnitTo', [blockType, clone]);
+    });
 }
 
 class EditableTitle extends preact.Component {
@@ -635,6 +699,15 @@ function blockHasStyle(cls, {styleClasses}) {
     return styleClasses.split(' ').indexOf(cls) > -1;
 }
 
+/**
+ * @param {ThemeStyleUnit} unit
+ * @returns {Boolean}
+ */
+function isSpecialUnit({id}) {
+    const pushIdLength = 20;
+    return !id.startsWith('unit-') && id.length === pushIdLength;
+}
+
 let stylesCached = null;
 
 /**
@@ -771,4 +844,5 @@ function hidePopper(content) {
  */
 
 export default BlockStylesTab;
-export {StyleTextarea, tempHack, updateAndEmitUnitScss, SPECIAL_BASE_UNIT_NAME};
+export {StyleTextarea, tempHack, updateAndEmitUnitScss, SPECIAL_BASE_UNIT_NAME, findBlockTypeStyles,
+    createUnitClass, isSpecialUnit, addDefaultStyleUnit, blockHasStyle, removeStyleUnit};

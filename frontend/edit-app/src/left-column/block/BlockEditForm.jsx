@@ -5,6 +5,7 @@ import {getIcon} from '../../block-types/block-types.js';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import BlockStylesTab from './BlockStylesTab.jsx';
+import BlockStylesTab2 from './BlockStylesTab2.jsx';
 import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import {findBlockFrom, getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
@@ -12,8 +13,13 @@ import {findBlockFrom, getIsStoredToTreeIdFrom} from '../../block/utils-utils.js
 /** @type {BlockTypes} */
 let blockTypes;
 
+const useNewStylesFeat = window.useNewStylesFeat !== false;
+
 class BlockEditForm extends preact.Component {
     // userCanSpecializeGlobalBlocks;
+    // userCanEditVars;
+    // userCanEditCss;
+    // useVisualStyles;
     // blockType;
     // blockIsStoredToTreeId;
     // editFormImpl;
@@ -35,6 +41,9 @@ class BlockEditForm extends preact.Component {
     componentWillMount() {
         const {block} = this.props;
         this.userCanSpecializeGlobalBlocks = api.user.can('specializeGlobalBlocks');
+        this.userCanEditVars = api.user.can('editThemeVars');
+        this.userCanEditCss = api.user.can('editThemeCss');
+        this.useVisualStyles = !this.userCanEditCss && this.userCanEditVars;
         this.blockType = blockTypes.get(block.type);
         this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, 'mainTree');
         this.editFormImpl = this.blockType.editForm;
@@ -85,13 +94,55 @@ class BlockEditForm extends preact.Component {
         const EditFormImpl = this.editFormImpl;
         const getCopy = this.getCurrentBlockCopy.bind(this);
         const t = block.type === 'PageInfo' ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
+        const stylesTab1 = <BlockStylesTab
+            getBlockCopy={ getCopy }
+            userCanEditVars={ this.userCanEditVars }
+            userCanEditCss={ this.userCanEditCss }
+            useVisualStyles={ this.useVisualStyles }
+            grabBlockChanges={ withFn => { this.stylesFormChangeGrabber = withFn; } }
+            emitAddStyleClassToBlock={ (styleClassToAdd, b) => {
+                const currentClasses = b.styleClasses;
+                const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
+                this.dispatchNewBlockStyleClasses(newClasses, b);
+            } }
+            emitRemoveStyleClassFromBlock={ (styleClassToRemove, b) => {
+                const currentClasses = b.styleClasses;
+                const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ');
+                this.dispatchNewBlockStyleClasses(newClasses, b);
+            } }
+            emitSetBlockStylesClasses={ (newStyleClasses, b) => {
+                this.dispatchNewBlockStyleClasses(newStyleClasses, b);
+            } }
+            isVisible={ currentTabIdx === 1 }/>;
+        let a, b;
+        if (!useNewStylesFeat) {
+            a = stylesTab1;
+            b = null;
+        } else {
+            const idx = this.useVisualStyles ? 1 : 2;
+            const stylesTab2 = <BlockStylesTab2
+                getBlockCopy={ getCopy }
+                blockType={ this.blockType.name }
+                blockId={ block.id }
+                emitAddStyleClassToBlock={ (styleClassToAdd, b) => {
+                    const currentClasses = b.styleClasses;
+                    const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
+                    this.dispatchNewBlockStyleClasses(newClasses, b);
+                } }
+                isVisible={ currentTabIdx === idx }/>;
+            [a, b] = this.useVisualStyles
+                ? [stylesTab2, null]
+                : [stylesTab1, stylesTab2];
+        }
         return <div data-main>
         <div class={ `with-icon pb-1${t}` }>
             <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
             { __(block.title || this.blockType.friendlyName) }
         </div>
         <Tabs
-            links={ [__('Content'), __('Styles')] }
+            links={ !useNewStylesFeat
+                ? [__('Content'), __('Styles')]
+                : [...[__('Content')], ...(this.useVisualStyles ? [__('Styles')] : [__('Styles (bundles)'), __('Styles (combined)')])] }
             onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
             className="text-tinyish mt-0 mb-2"/>
         <div class={ currentTabIdx === 0 ? '' : 'd-none' }>
@@ -109,24 +160,11 @@ class BlockEditForm extends preact.Component {
             </div>
         </div>
         <div class={ currentTabIdx === 1 ? '' : 'd-none' }>
-            <BlockStylesTab
-                getBlockCopy={ getCopy }
-                grabBlockChanges={ withFn => { this.stylesFormChangeGrabber = withFn; } }
-                emitAddStyleClassToBlock={ (styleClassToAdd, b) => {
-                    const currentClasses = b.styleClasses;
-                    const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
-                    this.dispatchNewBlockStyleClasses(newClasses, b);
-                } }
-                emitRemoveStyleClassFromBlock={ (styleClassToRemove, b) => {
-                    const currentClasses = b.styleClasses;
-                    const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ');
-                    this.dispatchNewBlockStyleClasses(newClasses, b);
-                } }
-                emitSetBlockStylesClasses={ (newStyleClasses, b) => {
-                    this.dispatchNewBlockStyleClasses(newStyleClasses, b);
-                } }
-                isVisible={ currentTabIdx === 1 }/>
+            { a }
         </div>
+        { b ? <div class={ currentTabIdx === 2 ? '' : 'd-none' }>
+            { b }
+        </div> : null }
         </div>;
     }
     /**

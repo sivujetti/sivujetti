@@ -367,3 +367,22 @@ type dropPosition = 'before'|'after'|'as-child';
 type treeTransferType = 'none'|'out-of-gbt'|'into-gbt';
 
 type urlMode = 'pick-url'|'pick-file'|'type-external-url';
+
+interface CssVar {
+    type: 'length'|'color';
+    value: LengthValue|ColorValue|null;
+    varName: String;
+    label: String;
+    args: String[];
+    __idx: Number;
+}
+
+interface LengthValue {
+    num: String;
+    unit: 'rem'|'px';
+}
+
+interface ColorValue {
+    data: String;
+    type: 'hexa';
+}

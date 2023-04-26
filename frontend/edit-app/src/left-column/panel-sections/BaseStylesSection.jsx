@@ -1,10 +1,10 @@
 import {__, api, signals, MenuSection} from '@sivujetti-commons-for-edit-app';
 import Tabs from '../../commons/Tabs.jsx';
 import {observeStore as observeStore2} from '../../store2.js';
-import {StyleTextarea, tempHack, updateAndEmitUnitScss, SPECIAL_BASE_UNIT_NAME} from '../block/BlockStylesTab.jsx';
+import {StyleTextarea, tempHack, updateAndEmitUnitScss, SPECIAL_BASE_UNIT_NAME, createUnitClass} from '../block/BlockStylesTab.jsx';
 import VisualStyles from '../block/VisualStyles.jsx';
 
-const unitCls = `j-${SPECIAL_BASE_UNIT_NAME}`;
+const unitCls = createUnitClass('', SPECIAL_BASE_UNIT_NAME);
 
 class BaseStylesSection extends preact.Component {
     // userCanEditVars;

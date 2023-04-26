@@ -3,6 +3,7 @@
 namespace Sivujetti\Tests\Theme;
 
 use Sivujetti\Tests\Utils\CssGenTestUtils;
+use Sivujetti\ValidationUtils;
 
 final class UpsertThemeBlockTypeScopedStylesTest extends ThemesControllerTestCase {
     private CssGenTestUtils $cssGenTestUtils;
@@ -27,7 +28,8 @@ final class UpsertThemeBlockTypeScopedStylesTest extends ThemesControllerTestCas
     private function setupTest(): \TestState {
         $state = parent::createDefaultTestState();
         $origSectionUnits = json_decode($state->testStyles[0]->units, associative: true);
-        $updatedSectionUnit = ["scss" => "color: red", "generatedCss" => ".j-Section-default{color:red;}", "junk" => "foo"];
+        $updatedSectionUnit = ["scss" => "color: red", "generatedCss" => ".j-Section-default{color:red;}",
+            "origin" => "", "specifier" => "", "junk" => "foo"];
         $state->testInput = (object) ["units" => [(object) array_merge($origSectionUnits[0], $updatedSectionUnit)]];
         return $state;
     }
@@ -50,6 +52,8 @@ final class UpsertThemeBlockTypeScopedStylesTest extends ThemesControllerTestCas
             "id" => $input->id,
             "scss" => $input->scss,
             "generatedCss" => $input->generatedCss,
+            "origin" => $input->origin,
+            "specifier" => $input->specifier,
         ];
         $expected = array_map($removeJunk, $state->testInput->units);
         $this->assertEquals($expected, $actualUnits);
@@ -76,6 +80,8 @@ final class UpsertThemeBlockTypeScopedStylesTest extends ThemesControllerTestCas
         $sectionStylesUnits = json_decode($all[0]->units);
         $sectionStylesUnits[0]->scss = $testInput->units[0]->scss;
         $sectionStylesUnits[0]->generatedCss = $testInput->units[0]->generatedCss;
+        $sectionStylesUnits[0]->origin = $testInput->units[0]->origin;
+        $sectionStylesUnits[0]->specifier = $testInput->units[0]->specifier;
         $all[0]->units = json_encode($sectionStylesUnits);
         } else  {
         $all[0]->units = "[]";
@@ -99,6 +105,37 @@ final class UpsertThemeBlockTypeScopedStylesTest extends ThemesControllerTestCas
     private function setupEmptyUnitsTest(): \TestState {
         $state = $this->setupTest();
         $state->testInput = (object) ["units" => []];
+        return $state;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testUpsertBlockTypeScopedStylesValidatesInput(): void {
+        $state = $this->setupValidateUnitsTest();
+        $this->insertTestTheme($state, "overwrite-theme-styles-test-theme2");
+        $this->insertTestStylesForTestTheme($state);
+        $this->sendUpsertBlockTypeScopedStylesRequest($state);
+        $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
+        $this->verifyResponseBodyEquals([
+            "The length of units.0.id must be 1024 or less",
+            "The length of units.0.title must be 1024 or less",
+            "units.0.scss must be string",
+            "units.0.generatedCss must be string",
+            "units.0.origin must be string",
+            "units.0.specifier must be string",
+        ], $state->spyingResponse);
+    }
+    private function setupValidateUnitsTest(): \TestState {
+        $state = $this->setupTest();
+        $mutRef = $state->testInput->units[count($state->testInput->units) - 1];
+        $mutRef->id = str_repeat("a", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN + 1);
+        $mutRef->title = str_repeat("a", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN + 1);
+        $mutRef->scss = ["not-a-string"];
+        $mutRef->generatedCss = ["not-a-string"];
+        $mutRef->origin = ["not-a-string"];
+        $mutRef->specifier = ["not-a-string"];
         return $state;
     }
 

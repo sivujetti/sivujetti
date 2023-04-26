@@ -90,6 +90,8 @@ final class ThemesController {
                     "id" => $b->id,
                     "scss" => $b->scss,
                     "generatedCss" => $b->generatedCss,
+                    "origin" => $b->origin ?? "",
+                    "specifier" => $b->specifier ?? "",
                 ], $req->body->units))])
                 ->where(...$w)
                 ->execute();
@@ -157,15 +159,18 @@ final class ThemesController {
             ->rule("units.*.title", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
             ->rule("units.*.scss", "type", "string")
             ->rule("units.*.generatedCss", "type", "string")
+            ->rule("units.*.origin?", "type", "string")
+            ->rule("units.*.specifier?", "type", "string")
             ->validate($input);
     }
     /**
-     * @param array<int, {title: string, id: string, scss: string, generatedCss: string}> $units
+     * @param array<int, {title: string, id: string, scss: string, generatedCss: string, origin?: string, specifier?: string}> $units
      * @param string $blockTypeName
      * @return string `@import "foo";<separator>@layer body-units { .j-_body {color:red;} }`
      */
     public static function combineAndWrapCss(array $units, string $blockTypeName): string {
-        $css = implode("\n", array_map(fn($u) => $u->generatedCss, $units));
+        $noRemote = $blockTypeName !== "_body_" ? array_filter($units, fn($u) => ($u->origin ?? "") !== "_body_") : $units;
+        $css = implode("\n", array_map(fn($u) => $u->generatedCss, $noRemote));
         $pcs = $blockTypeName !== "_body_" ? [] : explode("/* hoisted decls ends */", $css);
         [$hoisted, $css2] = count($pcs) < 2 ? ["", $css] : ["{$pcs[0]}/* hoisted decls ends */", $pcs[1]];
         $layerName = $blockTypeName !== "_body_" ? "units" : "body-unit";

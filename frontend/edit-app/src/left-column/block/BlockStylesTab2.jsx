@@ -1,7 +1,7 @@
 import {env, timingUtils} from '@sivujetti-commons-for-edit-app';
 import {observeStore as observeStore2} from '../../store2.js';
-import {addDefaultStyleUnit, blockHasStyle, createUnitClass, findBlockTypeStyles, isSpecialUnit,
-        removeStyleUnit, tempHack, updateAndEmitUnitScss} from './BlockStylesTab.jsx';
+import {addSpecializedStyleUnit, blockHasStyle, createUnitClass, findBlockTypeStyles, isSpecialUnit,
+        removeStyleUnit, tempHack, updateAndEmitUnitScss, normalizeScss} from './BlockStylesTab.jsx';
 import getDefaultVars from './defaultStyleVars.js';
 import VisualStyles, {replaceVarValue, valueEditors} from './VisualStyles.jsx';
 
@@ -104,7 +104,7 @@ class BlockStylesTab2 extends preact.Component {
                         `${vn}: ${newValAsString};`
                     ], ...(
                         !v.comp ? [] : [
-                            le, normComp(v.comp.replace(/%s/g, vn))
+                            le, normalizeScss(v.comp.replace(/%s/g, vn))
                         ]
                     )];
                 };
@@ -120,7 +120,7 @@ class BlockStylesTab2 extends preact.Component {
                 }, this.state.currentBlockType);
                 } else {
                     const scss = createSpecialScss(vb.v).join('');
-                    addDefaultStyleUnit(scss, this.props.blockType, this.props.blockId);
+                    addSpecializedStyleUnit(scss, this.props.blockType, this.props.blockId);
                 }
             }
         }, env.normalTypingDebounceMillis);
@@ -218,14 +218,6 @@ function findFrom(items, varName) {
  */
 function getUnits(style) {
     return style ? style.units : [];
-}
-
-/**
- * @param {String} scss
- * @returns {String}
- */
-function normComp(scss) {
-    return scss.endsWith(';') || scss.endsWith('}') ? scss : `${scss};`;
 }
 
 /**

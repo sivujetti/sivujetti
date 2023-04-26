@@ -334,6 +334,8 @@ interface ThemeStyleUnit {
     id: String;
     scss: String;
     generatedCss: String;
+    origin?: String;
+    specifier?: String;
 }
 
 type leftPanelName = 'Default'|'CreatePage'|'CreatePageType';

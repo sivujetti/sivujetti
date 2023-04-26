@@ -31,7 +31,8 @@ final class CssGenTestUtils {
         $layerName = !$isBodyStyles ? "units" : "body-unit";
         return implode("", array_map(function ($style) use ($layerName) {
             $units = is_array($style->units) ? $style->units : json_decode($style->units);
-            $joined = count($units) > 0 ? implode("\n", array_map(fn($b) => $b->generatedCss, $units)) : "";
+            $noRemote = $layerName === "units" ? array_filter($units, fn($u) => ($u->origin ?? "") !== "_body_") : $units;
+            $joined = count($noRemote) > 0 ? implode("\n", array_map(fn($b) => $b->generatedCss, $noRemote)) : "";
             return "/* -- .j-{$style->blockTypeName} classes start -- */\n" .
                 ($joined ? "@layer {$layerName} { {$joined} }" : "/* - */") . "\n" .
             "/* -- .j-{$style->blockTypeName} classes end -- */\n";

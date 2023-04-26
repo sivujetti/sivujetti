@@ -3,7 +3,7 @@
 namespace Sivujetti\Theme\Entities;
 
 final class Style extends \stdClass {
-    /** @var object[] array<int, {title: string, id: string, scss: string, generatedCss: string}> */
+    /** @var object[] array<int, {title: string, id: string, scss: string, generatedCss: string, origin: string, specifier: string}> */
     public array $units;
     /** @var string e.g. "Text" */
     public string $blockTypeName;

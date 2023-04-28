@@ -4,7 +4,7 @@ import store2 from '../store2.js';
 /**
  * @param {String} blockId
  * @param {'mainTree'|Array<RawBlock>} from
- * @returns {[Block|null, Array<RawBlock>|null, Block|null, RawGlobalBlockTree|Array<RawBlock>|null]}
+ * @returns {[RawBlock|null, Array<RawBlock>|null, RawBlock|null, RawGlobalBlockTree|Array<RawBlock>|null]}
  */
 function findBlockFrom(blockId, from) {
     return blockTreeUtils.findBlockSmart(blockId, from === 'mainTree' ? store2.get().theBlockTree : from);

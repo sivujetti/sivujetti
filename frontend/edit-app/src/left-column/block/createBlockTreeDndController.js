@@ -1,5 +1,6 @@
 import {__, api, http} from '@sivujetti-commons-for-edit-app';
 import {NO_OP_QUEUE_EMIT} from '../../block/dom-commons.js';
+import {createBlockTreeMutateEventContext} from '../../block/theBlockTreeStore.js';
 import {treeToTransferable} from '../../block/utils.js';
 import toasters from '../../commons/Toaster.jsx';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
@@ -43,7 +44,7 @@ function createDndController(_blockTree) {
                 const swapSourceInfo = createDragItemInfo(startLi);
                 const treeTransfer = determineTransferType(swapSourceInfo, swapTargetInfo, cand);
                 callAddOrMoveBlockGetBlockPropChangesEventAndEmitResults('moveBlock', swapSourceInfo);
-                store2.dispatch('theBlockTree/applySwap', [swapSourceInfo, swapTargetInfo, cand.pos, treeTransfer]);
+                store2.dispatch('theBlockTree/applySwap', [swapSourceInfo, swapTargetInfo, cand.pos, treeTransfer, createBlockTreeMutateEventContext(store2.get().theBlockTree)]);
             } else {
                 const [isStoredToTreeId, wasSpeci] = getRealTarget(swapTargetInfo, cand.pos);
                 const treeTransfer = !wasSpeci
@@ -56,7 +57,7 @@ function createDndController(_blockTree) {
                     data: null
                 };
                 callAddOrMoveBlockGetBlockPropChangesEventAndEmitResults('addBlock', swapSourceInfo);
-                store2.dispatch('theBlockTree/applyAdd(Drop)Block', [swapSourceInfo, swapTargetInfo, cand.pos, treeTransfer]);
+                store2.dispatch('theBlockTree/applyAdd(Drop)Block', [swapSourceInfo, swapTargetInfo, cand.pos, treeTransfer, createBlockTreeMutateEventContext(store2.get().theBlockTree)]);
             }
             api.webPageIframe.getEl().style.pointerEvents = '';
             dropped = true;
@@ -241,6 +242,8 @@ function callGetBlockPropChangesEvent(blockTypeName, event, args) {
     const blockType = api.blockTypes.get(blockTypeName);
     if (!blockType.on) return null;
     const changes = blockType.on(event, args);
+    if (!changes) return null;
+    if (typeof changes !== 'object') throw new Error('blockType.on() must return an object');
     return Object.keys(changes).length ? changes : null;
 }
 

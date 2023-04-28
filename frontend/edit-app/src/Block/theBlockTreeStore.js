@@ -1,6 +1,8 @@
 import blockTreeUtils from '../left-column/block/blockTreeUtils.js';
 import {createBlockFromType, createGbtRefBlockProps} from './utils.js';
 
+const muts = new Map;
+
 function theBlockTreeStore(store) {
     store.on('theBlockTree/init',
     /**
@@ -44,11 +46,10 @@ function theBlockTreeStore(store) {
 
     /**
      * @param {Object} state
-     * @param {[BlockDescriptor, BlockDescriptor, dropPosition, treeTransferType]} args
+     * @param {[BlockDescriptor, BlockDescriptor, dropPosition, treeTransferType, TheBlockTreeReducerContext]} args
      * @returns {Object}
      */
-    const applySwapOrDrop = ({theBlockTree}, [_source, _target, _dropPos, _treeTransfer]) => {
-        const clone = cloneObjectDeep(theBlockTree);
+    const applySwapOrDrop = (_, [_source, _target, _dropPos, _treeTransfer, {clone}]) => {
         return {theBlockTree: clone};
     };
     store.on('theBlockTree/applySwap', applySwapOrDrop);
@@ -212,5 +213,39 @@ function cloneObjectDeep(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
 
+/**
+ * @param {String} event
+ * @param {(event: String, theBlockTree: Array<RawBlock>, blockTreeUtils: blockTreeUtils) => Array<{blockId: String; changes: {[key: String]: any;};}>} getMutationsFn
+ */
+function registerMutator(event, getMutationsFn) {
+    muts.set(event, getMutationsFn);
+}
+
+/**
+ * @param {String} event
+ * @returns {(event: String, theBlockTree: Array<RawBlock>, blockTreeUtils: blockTreeUtils) => Array<{blockId: String; changes: {[key: String]: any;};}>}
+ */
+function getMutator(event) {
+    return muts.get(event) || null;
+}
+
+/**
+ * @param {Array<RawBlock>} theBlockTree
+ * @returns {TheBlockTreeReducerContext}
+ */
+function createBlockTreeMutateEventContext(theBlockTree) {
+    const clone = cloneObjectDeep(theBlockTree);
+    const getMutsFn = getMutator('onTheBlockTreeMut');
+    const mutations = !getMutsFn ? null : getMutsFn('onTheBlockTreeMut', cloneObjectDeep(theBlockTree), blockTreeUtils);
+    if (!mutations || !mutations.length)
+        return {clone, reRenderThese: []};
+    //
+    for (const itm of mutations) {
+        const [b] = blockTreeUtils.findBlock(itm.blockId, clone);
+        overrideData(b, itm.changes);
+    }
+    return {clone, reRenderThese: mutations.map(({blockId}) => blockId)};
+}
+
 export default theBlockTreeStore;
-export {overrideData, cloneObjectDeep};
+export {overrideData, cloneObjectDeep, registerMutator, createBlockTreeMutateEventContext};

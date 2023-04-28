@@ -24,6 +24,7 @@ interface SivujettiFrontendApi {
         setOnBeforeProcessQueueFn(fn: null): void;
     };
     events: todo;
+    registerBlockTreeMutator(event: String, getMutationsFn: (event: String, theBlockTree: Array<RawBlock>, blockTreeUtils: blockTreeUtils) => Array<{blockId: String; changes: {[key: String]: any;};}>): a;
 }
 
 interface OpQueueOp {
@@ -387,4 +388,9 @@ interface LengthValue {
 interface ColorValue {
     data: String;
     type: 'hexa';
+}
+
+interface TheBlockTreeReducerContext {
+    clone: Array<RawBlock>;
+    reRenderThese: Array<String>;
 }

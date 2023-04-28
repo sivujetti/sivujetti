@@ -3,7 +3,7 @@ export default {
      * @param {String} id
      * @param {Array<RawBlock>} branch
      * @param {RawBlock=} parentBlock = null
-     * @returns {[Block|null, Array<RawBlock>|null, Block|null]} [block, containingBranch, parentBlock]
+     * @returns {[RawBlock|null, Array<RawBlock>|null, RawBlock|null]} [block, containingBranch, parentBlock]
      * @access public
      */
     findBlock(id, branch, parentBlock = null) {
@@ -32,7 +32,7 @@ export default {
      * @param {Array<RawBlock>} tree
      * @param {RawBlock=} _parentBlock = null
      * @param {RawGlobalBlockTree|Array<RawBlock>} _root = null
-     * @returns {[Block|null, Array<RawBlock>|null, Block|null, RawGlobalBlockTree|Array<RawBlock>|null]} [block, containingBranch, parentBlock, root]
+     * @returns {[RawBlock|null, Array<RawBlock>|null, RawBlock|null, RawGlobalBlockTree|Array<RawBlock>|null]} [block, containingBranch, parentBlock, root]
      * @access public
      */
     findBlockSmart(id, tree, _parentBlock = null, _root = null) { // todo return {block, containingBranch, paren, root} ?

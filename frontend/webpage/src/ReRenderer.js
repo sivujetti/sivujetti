@@ -62,6 +62,14 @@ class ReRenderer {
             'theBlockTree/convertToGbt'
         ].indexOf(event) > -1) {
             this.doReRender(theBlockTree);
+
+            const context = data[data.length - 1]; // [..., {clone, reRenderThese}]
+            if (typeof context === 'object' && Array.isArray(context.reRenderThese || null)) {
+                for (const blockId of context.reRenderThese) {
+                    const [block] = blockTreeUtils.findBlockSmart(blockId, theBlockTree);
+                    this.reRenderBlock(block, theBlockTree);
+                }
+            }
         // ====================================================================
         } else if (event === 'theBlockTree/undo') {
             const [_oldTree, maybeBlockId, isUndoOfConvertToGlobal] = data;
@@ -129,21 +137,7 @@ class ReRenderer {
 
             const tree = blockTreeUtils.findTree(blockIsStoredToTreeId, theBlockTree);
             const [block] = blockTreeUtils.findBlock(blockId, tree);
-            const el = getBlockEl(block.id);
-
-            renderBlockAndThen((function (out) { out.children = []; return out; })(toTransferable(block)), ({html, onAfterInsertedToDom}) => {
-                const temp = document.createElement('template');
-                const completed = html.replace(CHILD_CONTENT_PLACEHOLDER, getChildContent(el));
-                temp.innerHTML = completed;
-                el.replaceWith(temp.content);
-                onAfterInsertedToDom(completed);
-
-                const el2 = getBlockEl(block.id);
-                const onlySelf = extractRendered(el2);
-                if (debounceMillis > 0) this.throttledUpdates[block.id] = 1;
-                else this.elCache.get(block.id).push(onlySelf);
-                this.doReRender(theBlockTree, {blockId: block.id, el: onlySelf.cloneNode(true)});
-            }, false);
+            this.reRenderBlock(block, theBlockTree, debounceMillis);
         // ====================================================================
         } else if (event === 'theBlockTree/cloneItem') {
             const [clonedInf, clonedFromInf] = data; // [SpawnDescriptor, BlockDescriptor]
@@ -188,6 +182,29 @@ class ReRenderer {
             this.elCache.get(blockId).push(extractRendered(getBlockEl(blockId)));
             this.throttledUpdates[blockId] = null;
         }
+    }
+    /**
+     * @param {RawBlock} block
+     * @param {Array<RawBlock>} theBlockTree
+     * @param {Number} debounceMillis = 0
+     * @access private
+     */
+    reRenderBlock(block, theBlockTree, debounceMillis = 0) {
+        const el = getBlockEl(block.id);
+
+        renderBlockAndThen((function (out) { out.children = []; return out; })(toTransferable(block)), ({html, onAfterInsertedToDom}) => {
+            const temp = document.createElement('template');
+            const completed = html.replace(CHILD_CONTENT_PLACEHOLDER, getChildContent(el));
+            temp.innerHTML = completed;
+            el.replaceWith(temp.content);
+            onAfterInsertedToDom(completed);
+
+            const el2 = getBlockEl(block.id);
+            const onlySelf = extractRendered(el2);
+            if (debounceMillis > 0) this.throttledUpdates[block.id] = 1;
+            else this.elCache.get(block.id).push(onlySelf);
+            this.doReRender(theBlockTree, {blockId: block.id, el: onlySelf.cloneNode(true)});
+        }, false);
     }
     /**
      * @param {Array<RawBlock>} tree

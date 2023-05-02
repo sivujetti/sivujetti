@@ -8,6 +8,7 @@ use Pike\Db\{FluentDb, MyInsert, MyUpdate};
 use Pike\Interfaces\RowMapperInterface;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\Db\TempJsonCompatSelect;
+use Sivujetti\JsonUtils;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
@@ -39,6 +40,8 @@ final class PagesRepository2 {
             ->fields(self::createSelectFields($fields, $pageType))
             ->mapWith(new class implements RowMapperInterface {
                 public function mapRow(object $page, int $_numRow, array $_rows): object {
+                    $page->meta = $page->metaJson ? JsonUtils::parse($page->metaJson) : null;
+                    unset($page->metaJson);
                     $blocksJson = $page->blocksJson ?? null;
                     $page->blocks = $blocksJson ? array_map(fn($blockRaw) =>
                         Block::fromObject($blockRaw)
@@ -85,6 +88,7 @@ final class PagesRepository2 {
             "path",
             "level",
             "title",
+            "meta as metaJson",
             "layoutId",
             "'{$pageType->name}' AS `type`", "status",
             (in_array("@blocks", $fields, true) ? "blocks" : "NULL") . " AS blocksJson",

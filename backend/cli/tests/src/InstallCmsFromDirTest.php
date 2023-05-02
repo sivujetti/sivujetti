@@ -139,7 +139,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->assertEquals($expectedPasswordHash, $actual["passwordHash"]);
         $this->assertEquals(ACL::ROLE_SUPER_ADMIN, $actual["role"]);
         $this->assertEquals(Authenticator::ACCOUNT_STATUS_ACTIVATED, $actual["accountStatus"]);
-        $this->assertGreaterThan(time() - 20, $actual["accountCreatedAt"]);
+        $this->assertTrue($actual["accountCreatedAt"] > time() - 20);
     }
     private function verifyCopiedDefaultSiteFiles(\TestState $state): void {
         $a = fn($str) => SIVUJETTI_BACKEND_PATH . "installer/sample-content/basic-site/\$backend/site/{$str}";

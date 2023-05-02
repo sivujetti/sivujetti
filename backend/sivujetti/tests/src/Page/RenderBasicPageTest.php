@@ -74,8 +74,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertStringContainsString("<link href=\"{$expectedUrl}", $html);
         $registeredByTheme = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME, false);
         $automaticallyGenerated = "<link href=\"{$expectedUrl}";
-        $this->assertGreaterThan(strpos($html, $registeredByTheme),
-                                 strpos($html, $automaticallyGenerated));
+        $this->assertTrue(strpos($html, $automaticallyGenerated) > strpos($html, $registeredByTheme));
     }
     private function verifyRenderedHead(\TestState $state): void {
         $retainEntities = \Closure::fromCallable([self::class, "escapeEntities"]);

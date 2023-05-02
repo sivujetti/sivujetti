@@ -57,7 +57,7 @@ final class CreatePageTest extends PagesControllerTestCase {
             "status" => $state->inputData->status,
             "categories" => [],
         ], (array) $actual);
-        $this->assertGreaterThan(time() - 3, $createdAt);
+        $this->assertTrue($createdAt > time() - 3);
         $this->assertEquals($createdAt, $lastUpdatedAt);
     }
 
@@ -193,7 +193,7 @@ final class CreatePageTest extends PagesControllerTestCase {
             "ownField1" => $state->inputData->ownField1,
             "ownField2" => strval($state->inputData->ownField2),
         ], (array) $actual);
-        $this->assertGreaterThan(time() - 3, $createdAt);
+        $this->assertTrue($createdAt > time() - 3);
         $this->assertEquals($createdAt, $lastUpdatedAt);
     }
     private function dropCustomPageType(\TestState $state): void {

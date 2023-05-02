@@ -302,7 +302,7 @@ final class PagesController {
         }
         //
         $numAffectedRows = $pagesRepo->update($pageType->name)
-            ->values((object) ["blocks" => $validStorableBlocksJson])
+            ->values((object) ["blocks" => $validStorableBlocksJson, "lastUpdatedAt" => time()])
             ->where("id = ?", $req->params->pageId)
             ->execute();
         //

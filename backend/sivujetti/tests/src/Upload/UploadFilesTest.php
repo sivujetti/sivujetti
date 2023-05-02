@@ -146,7 +146,7 @@ final class UploadFilesTest extends UploadsControllerTestCase {
         $this->assertEquals("", $actual->baseDir);
         $this->assertEquals("image/jpeg", $actual->mime);
         $this->assertEquals($input->friendlyName, $actual->friendlyName);
-        $this->assertGreaterThan(time() - 10, $actual->updatedAt);
+        $this->assertTrue($actual->updatedAt > time() - 10);
         $this->assertEquals($actual->createdAt, $actual->updatedAt);
     }
 }

@@ -21,6 +21,7 @@ final class ListPagesTest extends PagesControllerTestCase {
         $state->testPageData2->slug .= str_replace("ello", "ello2", $state->testPageData2->slug);
         $state->testPageData2->path .= str_replace("ello", "ello2", $state->testPageData2->path);
         $state->testPageData2->title .= str_replace("ello", "ello2", $state->testPageData2->title);
+        $state->testPageData2->meta = new \stdClass;
         $state->spyingResponse = null;
         $state->app = null;
         return $state;
@@ -43,6 +44,10 @@ final class ListPagesTest extends PagesControllerTestCase {
             "blocks" => [],
             "status" => $p->status,
             "type" => "Pages",
+            "meta" => (object) array_merge(
+                (array) $p->meta,
+                ["socialImage" => $p->meta->socialImage ?? null]
+            )
         ];
         $this->assertEquals($makeExpected($state->testPageData2), $actualPages[0]);
         $this->assertEquals($makeExpected($state->testPageData1), $actualPages[1]);

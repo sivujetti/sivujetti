@@ -68,7 +68,7 @@ final class UpdatePageTest extends PagesControllerTestCase {
         $this->assertEquals($state->inputData->layoutId, $actual->layoutId);
         $this->assertEquals((int) $state->inputData->status, $actual->status);
         $this->assertEquals($state->testPageData->createdAt, $actual->createdAt);
-        $this->assertGreaterThanOrEqual($state->testPageData->lastUpdatedAt, $actual->lastUpdatedAt);
+        $this->assertTrue($actual->lastUpdatedAt >= $state->testPageData->lastUpdatedAt);
     }
 
 

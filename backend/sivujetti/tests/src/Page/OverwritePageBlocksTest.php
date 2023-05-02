@@ -10,13 +10,14 @@ use Pike\Interfaces\SessionInterface;
 use Sivujetti\Auth\ACL;
 
 final class OverwritePageBlocksTest extends PagesControllerTestCase {
-    public function testOverwritePageBlocksSavesNewBlocksToDb(): void {
+    public function testOverwritePageBlocksSavesNewBlocksAndLastUpdatedAtToDb(): void {
         $state = $this->setupTest();
         $this->makeTestSivujettiApp($state);
         $this->insertTestPageDataToDb($state);
         $this->sendOverwritePageBlocksRequest($state);
         $this->verifyRequestFinishedSuccesfully($state);
         $this->verifyOverwrotePageBlocksToDb($state);
+        $this->verifyOverwroteLastUpdatedAtToDb($state);
     }
     private function setupTest(): \TestState {
         $state = new \TestState;
@@ -24,6 +25,7 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
         $state->testPageData = $this->pageTestUtils->makeTestPageData();
         $state->testPageData->slug = "/overwrite-blocks-test-page";
         $state->testPageData->path = "/overwrite-blocks-test-page/";
+        $state->testPageData->lastUpdatedAt -= 42;
         $state->inputData = (object) ["blocks" =>
             [$btu->makeBlockData(Block::TYPE_TEXT, propsData: ["html" => "<p>Hello</p>"])]
         ];
@@ -43,6 +45,10 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
         $this->assertEmpty($actual->blocks[0]->children);
         $this->assertEquals($state->inputData->blocks[0]->type, $actual->blocks[0]->type);
         $this->assertEquals($state->inputData->blocks[0]->id, $actual->blocks[0]->id);
+    }
+    private function verifyOverwroteLastUpdatedAtToDb(\TestState $state): void {
+        $actual = $this->pageTestUtils->getPageById($state->testPageData->id);
+        $this->assertTrue($actual->lastUpdatedAt > $state->testPageData->lastUpdatedAt);
     }
 
 

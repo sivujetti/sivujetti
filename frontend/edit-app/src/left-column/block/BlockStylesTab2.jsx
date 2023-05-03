@@ -1,9 +1,9 @@
 import {env, timingUtils} from '@sivujetti-commons-for-edit-app';
 import {observeStore as observeStore2} from '../../store2.js';
-import {addSpecializedStyleUnit, blockHasStyle, createUnitClass, findBlockTypeStyles, isSpecialUnit,
+import {addSpecializedStyleUnit, blockHasStyle, findBlockTypeStyles, isSpecialUnit,
         removeStyleUnit, tempHack, updateAndEmitUnitScss, normalizeScss} from './BlockStylesTab.jsx';
 import getDefaultVars from './defaultStyleVars.js';
-import VisualStyles, {replaceVarValue, valueEditors} from './VisualStyles.jsx';
+import VisualStyles, {createUnitClass, replaceVarValue, valueEditors} from './VisualStyles.jsx';
 
 const {serialize, stringify} = window.stylis;
 

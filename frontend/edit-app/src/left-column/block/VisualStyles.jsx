@@ -381,6 +381,15 @@ function varNameToLabel(varName) {
 }
 
 /**
+ * @param {String} id
+ * @param {String} blockTypeName
+ * @returns {String}
+ */
+function createUnitClass(id, blockTypeName) {
+    return `j-${blockTypeName}` + (id ? `-${id}` : '');
+}
+
+/**
  * @param {String} scss
  * @param {String} sel
  * @param {'cls'|'attr'} selType
@@ -411,4 +420,4 @@ function createScss(scss, sel, selType) {
 
 export default VisualStyles;
 export {wc_hex_is_light, ColorValueInput, LengthValueInput, varNameToLabel,
-    replaceVarValue, valueEditors, createScss};
+    replaceVarValue, valueEditors, createUnitClass, createScss};

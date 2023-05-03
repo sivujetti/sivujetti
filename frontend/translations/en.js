@@ -34,6 +34,7 @@ stringBundles.push({
     'Show parent styles': 'Show parent styles',
     'Add styles': 'Add styles',
     'Edit name': 'Edit name',
+    'Set as default': 'Set as default',
     'Delete style': 'Delete style',
     'Css for the outermost %s (%s)': 'Css for the outermost %s (%s)',
     'element': 'element',
@@ -156,6 +157,12 @@ stringBundles.push({
     'Description': 'Description',
     'Listable': 'Listable',
     'Default layout': 'Default layout',
+    // edit-app/src/popups/styles/SetUnitAsDefaultDialog.jsx
+    'Specifier': 'Specifier',
+    'todo16 %s': 'todo16 %s', // Tämä toiminto merkitsee nämä tyylit tyyleihin, jota käytetään automaattisesti uusissa, sivuun lisätyissä  %s -sisällöissä.'
+    'optional': 'optional',
+    'Evaluates to\n`body [specifierHere] .%s`': 'Evaluates to\n`body [specifierHere] .%s`',
+    'e.g. `>`, `div`, `.j-Button >`': 'e.g. `>`, `div`, `.j-Button >`',
     // edit-app/src/popups/reusable-branch/SaveBlockAsReusableDialog.jsx
     'todo7': 'todo7',
     'Name': 'Name',

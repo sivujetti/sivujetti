@@ -34,6 +34,7 @@ stringBundles.push({
     'Show parent styles': 'Näytä ulommat tyylit',
     'Add styles': 'Lisää tyyli',
     'Edit name': 'Muokkaa nimeä',
+    'Set as default': 'Aseta oletukseksi',
     'Delete style': 'Poista tyyli',
     'Css for the outermost %s (%s)': 'Uloimman %s (%s) css',
     'element': 'elementin',
@@ -156,6 +157,12 @@ stringBundles.push({
     'Description': 'Kuvaus',
     'Listable': 'Listattava',
     'Default layout': 'Oletusivupohja',
+    // edit-app/src/popups/styles/SetUnitAsDefaultDialog.jsx
+    'Specifier': 'Tarkenne',
+    'todo16 %s': 'Tämä toiminto merkitsee nämä tyylit tyyleihin, jota käytetään automaattisesti uusissa, sivuun lisätyissä  %s -sisällöissä.',
+    'optional': 'vapaaehtoinen',
+    'Evaluates to\n`body [specifierHere] .%s`': 'Evaluoituu muotoon\n`body [tarkenneTähän] .%s`',
+    'e.g. `>`, `div`, `.j-Button >`': 'esim. `>`, `div`, `.j-Button >`',
     // edit-app/src/popups/reusable-branch/SaveBlockAsReusableDialog.jsx
     'todo7': 'Tämä toiminto tallentaa sisällön uudelleenkäytettäväksi sisällöksi, jota voidaan myöhemmin helposti lisätä myös muihin sivuihin.',
     'Name': 'Nimi',

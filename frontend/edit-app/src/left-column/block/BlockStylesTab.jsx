@@ -1,6 +1,6 @@
 import {__, api, env, http, signals, timingUtils, Icon, LoadingSpinner, hookForm,
     unhookForm, Input, FormGroup, InputErrors, InputError, hasErrors,
-    validationConstraints} from '@sivujetti-commons-for-edit-app';
+    validationConstraints, floatingDialog} from '@sivujetti-commons-for-edit-app';
 import {Popup} from '../../block-types/listing/AdditionalFiltersBuilder.jsx';
 import {createTrier} from '../../block/dom-commons.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
@@ -8,8 +8,9 @@ import CssStylesValidatorHelper from '../../commons/CssStylesValidatorHelper.js'
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import store, {pushItemToOpQueue} from '../../store.js';
 import exampleScss from '../../example-scss.js';
-import VisualStyles, {createScss} from './VisualStyles.jsx';
+import VisualStyles, {createUnitClass, createScss} from './VisualStyles.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
+import SetUnitAsDefaultDialog from '../../popups/styles/SetUnitAsDefaultDialog.jsx';
 
 const {compile, serialize, stringify} = window.stylis;
 let emitSaveStylesToBackendOp;
@@ -104,10 +105,11 @@ class BlockStylesTab extends preact.Component {
                             { userCanEditCss
                                 ? <EditableTitle
                                     unitId={ unit.id }
+                                    unitIdReal={ !isDefault ? null : bodyUnitCopy.id }
                                     currentTitle={ title }
                                     blockCopy={ this.state.blockCopy }
                                     userCanEditCss={ userCanEditCss }
-                                    isDefault={ unit.origin === '_body_' }
+                                    isDefault={ isDefault }
                                     ref={ this.editableTitleInstances[i] }/>
                                 : <span class="text-ellipsis">{ title }</span> }
                         </button>
@@ -246,13 +248,20 @@ class BlockStylesTab extends preact.Component {
     handleMoreMenuLinkClicked({id}) {
         if (id === 'edit-style-title')
             this.editableTitleInstances[this.liIdxOfOpenMoreMenu].current.open();
-        else if (id === SET_AS_DEFAULT)
-            this.setUnitAsDefault(prompt('Specifier?'), this.state.units[this.liIdxOfOpenMoreMenu]);
-        else if (id === 'delete-style')
+        else if (id === SET_AS_DEFAULT) {
+            const unit = this.state.units[this.liIdxOfOpenMoreMenu];
+            floatingDialog.open(SetUnitAsDefaultDialog, {
+                title: __('Set as default'),
+                height: 257,
+            }, {
+                blockTypeName: this.state.blockCopy.type,
+                onConfirmed: specifier => this.setUnitAsDefault(specifier, unit),
+            });
+        } else if (id === 'delete-style')
             this.removeStyleUnit(this.state.units[this.liIdxOfOpenMoreMenu]);
     }
     /**
-     * @param {String} specifier
+     * @param {String} specifier 'something' or ''
      * @param {ThemeStyleUnit} unit
      * @access private
      */
@@ -496,7 +505,7 @@ function removeStyleUnit(blockType, unit) {
 class EditableTitle extends preact.Component {
     // popup;
     /**
-     * @param {{unitId: String; currentTitle: String; blockCopy: RawBlock; userCanEditCss: Boolean; isDefault: Boolean;}} props
+     * @param {{unitId: String; unitIdReal: String|null; currentTitle: String; blockCopy: RawBlock; userCanEditCss: Boolean; isDefault: Boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -557,9 +566,11 @@ class EditableTitle extends preact.Component {
         e.preventDefault();
         if (hasErrors(this)) return;
         const newTitle = this.state.values.title;
-        const {unitId, currentTitle} = this.props;
+        const {currentTitle, isDefault, blockCopy} = this.props;
         const dataBefore = {title: currentTitle};
-        const blockTypeName = this.props.blockCopy.type;
+        const [blockTypeName, unitId] = !isDefault
+            ? [blockCopy.type, this.props.unitId]
+            : [SPECIAL_BASE_UNIT_NAME, this.props.unitIdReal];
         store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, unitId, {title: newTitle}]);
         emitSaveStylesToBackendOp(blockTypeName, () => {
             store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, unitId, dataBefore]);
@@ -779,15 +790,6 @@ function emitCommitStylesOp(blockTypeName, doUndo) {
         doUndo,
         args: [],
     }));
-}
-
-/**
- * @param {String} id
- * @param {String} blockTypeName
- * @returns {String}
- */
-function createUnitClass(id, blockTypeName) {
-    return `j-${blockTypeName}` + (id ? `-${id}` : '');
 }
 
 /**

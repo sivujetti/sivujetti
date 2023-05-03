@@ -186,6 +186,7 @@ interface TheWebsiteBasicInfo {
     name: String;
     langTag: String; // en_US
     description: String;
+    hideFromSearchEngines: Boolean;
     versionId: String;
 }
 

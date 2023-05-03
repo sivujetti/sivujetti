@@ -20,6 +20,7 @@ final class UpdateBasicInfoTest extends TheWebsiteControllerTestCase {
             "lang" => "en",
             "country" => "US",
             "description" => "Updated description.",
+            "hideFromSearchEngines" => false,
         ];
         //
         return $state;
@@ -35,6 +36,7 @@ final class UpdateBasicInfoTest extends TheWebsiteControllerTestCase {
         $this->assertEquals($state->inputData->lang, $actual["lang"]);
         $this->assertEquals($state->inputData->country, $actual["country"]);
         $this->assertEquals($state->inputData->description, $actual["description"]);
+        $this->assertEquals($state->inputData->hideFromSearchEngines, (bool) $actual["hideFromSearchEngines"]);
         foreach (["aclRules", "firstRuns", "versionId", "lastUpdatedAt", "newestCoreVersionLastChecked"] as $col)
             $this->assertEquals($state->originalData[$col], $actual[$col], "Shouldn't update {$col}");
         $this->assertEquals("","");
@@ -57,6 +59,7 @@ final class UpdateBasicInfoTest extends TheWebsiteControllerTestCase {
             "country must be string",
             "The value of country did not pass the regexp",
             "The length of description must be 1024 or less",
+            "hideFromSearchEngines must be bool",
         ], $state->spyingResponse);
     }
     protected function setupValidationTest(): \TestState {

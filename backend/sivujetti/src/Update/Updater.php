@@ -2,9 +2,9 @@
 
 namespace Sivujetti\Update;
 
-use Pike\{Db, FileSystem, PikeException};
+use Pike\{FileSystem, PikeException};
 use Pike\Db\FluentDb;
-use Sivujetti\App;
+use Sivujetti\{App, LogUtils};
 use Sivujetti\Update\Entities\Job;
 
 final class Updater {
@@ -23,21 +23,26 @@ final class Updater {
     private string $targetBackendDirPath;
     /** @var string */
     private string $targetIndexDirPath;
+    /** @var callable */
+    private string $errorLogFn;
     /**
      * @param \Pike\Db\FluentDb $db
      * @param \Pike\FileSystem $fs
      * @param string $targetBackendDirPath = SIVUJETTI_BACKEND_PATH Must end with "/", mainly used by tests
      * @param string $targetIndexDirPath = SIVUJETTI_INDEX_PATH
+     * @param string $errorLogFn = "error_log" Mainly for tests
      */
     public function __construct(FluentDb $db,
                                 FileSystem $fs,
                                 string $targetBackendDirPath = SIVUJETTI_BACKEND_PATH,
-                                string $targetIndexDirPath = SIVUJETTI_INDEX_PATH) {
+                                string $targetIndexDirPath = SIVUJETTI_INDEX_PATH,
+                                string $errorLogFn = "error_log") {
         $this->db = $db;
         $this->fs = $fs;
         $this->lastErrorDetails = "";
         $this->targetBackendDirPath = $targetBackendDirPath;
         $this->targetIndexDirPath = $targetIndexDirPath;
+        $this->errorLogFn = $errorLogFn;
     }
     /**
      * @param string $toVersion e.g. "0.5.0"
@@ -82,14 +87,12 @@ final class Updater {
             $phase2Tasks = $this->createDbPatchTasks($zip, $toVersion, $currentVersion);
             if ($phase2Tasks) {
                 $tasks = array_merge($tasks, $phase2Tasks);
-                $this->db->getDb()->beginTransaction();
                 //
                 $localState = "running-tasks";
                 // Note $currentTaskIdx === count($phase1Tasks) at this point
                 for (; $currentTaskIdx < count($tasks); ++$currentTaskIdx) {
                     $tasks[$currentTaskIdx]->exec(); // migrate db
                 }
-                $this->db->getDb()->commit();
             }
 
             //
@@ -109,12 +112,12 @@ final class Updater {
                     } catch (\Exception $e) {
                         // ??
                     }
-                    if ($phase2Tasks) $this->db->getDb()->rollBack();
                 }
                 $this->updateUpdateStateAsEnded($localState, $e);
             } elseif ($localState === "finalizing") {
                 // Do nothing
             }
+            call_user_func($this->errorLogFn, LogUtils::formatError($e));
             return self::RESULT_FAILED;
         }
     }
@@ -223,15 +226,17 @@ final class Updater {
      * @param string $currentVersion
      * @return \Sivujetti\Update\UpdateProcessTaskInterface[]
      */
-    private function createDbPatchTasks(ZipPackageStream $zip, string $toVersion, string $currentVersion): array {
+    private function createDbPatchTasks(ZipPackageStream $zip,
+                                        string $toVersion,
+                                        string $currentVersion): array {
         $backendFilesList = self::readSneakyJsonData(PackageStreamInterface::LOCAL_NAME_BACKEND_FILES_LIST, $zip);
-        $backend = SIVUJETTI_BACKEND_PATH;
+        [$mustStartWith, $splitWith, $ns] = ["\$backend/sivujetti/src/Update/Patch/", "/src/Update/Patch/", "\\Sivujetti\\Update\\Patch\\"];
         $nsdRelFilePaths = array_filter($backendFilesList, fn(string $nsdRelFilePath) =>
-            str_starts_with($nsdRelFilePath, "\$backend/sivujetti/src/Update/Patch/")
+            str_starts_with($nsdRelFilePath, $mustStartWith)
         );
-        return array_map(function (string $nsdRelFilePath) use ($toVersion, $currentVersion) {
-            $fileName = explode("/src/Update/Patch/", $nsdRelFilePath, 2)[1]; // `\$backend/sivujetti/src/Update/Patch/PatchDbTask1.php` -> `PatchDbTask1.php`
-            $Cls = "\\Sivujetti\\Update\\Patch\\" . explode(".", $fileName)[0];
+        return array_map(function (string $nsdRelFilePath) use ($toVersion, $currentVersion, $splitWith, $ns) {
+            $fileName = explode($splitWith, $nsdRelFilePath, 2)[1]; // `\$backend/sivujetti/src/Update/Patch/PatchDbTask1.php` -> `PatchDbTask1.php`
+            $Cls = $ns . explode(".", $fileName)[0];
             return new $Cls($toVersion, $currentVersion, $this->db);
         }, $nsdRelFilePaths);
     }

@@ -30,12 +30,16 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
      */
     public function exec(): void {
         if ($this->doSkip) return;
+
+        $this->migrateTheWebsiteTable();
+
         $pages = $this->db->select("\${p}Pages", "stdClass")->fields(["blocks as blocksJson", "id"])->fetchAll();
         $gbts = $this->db->select("\${p}globalBlockTrees", "stdClass")->fields(["blocks as blocksJson", "id"])->fetchAll();
         $reusables = $this->db->select("\${p}reusableBranches", "stdClass")->fields(["blockBlueprints as blockBlueprintsJson", "id"])->fetchAll();
         $this->patchPagesOrGbts($gbts, "globalBlockTrees");
         $this->patchPagesOrGbts($pages, "Pages");
         $this->patchReusables($reusables);
+
         $this->db->insert("\${p}jobs")->values((object) [
             "id" => 2,
             "jobName" => "update-plugin",
@@ -46,10 +50,31 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
      * 
      */
     public function rollBack(): void {
-        // Do nothing, since Update\Updater will call $db->rollBack();
+        // Can't rollBack
     }
     /**
      * 
+     */
+    private function migrateTheWebsiteTable(): void {
+        $db = $this->db->getDb();
+        $driver = $db->attr(\PDO::ATTR_DRIVER_NAME);
+        $statements = require SIVUJETTI_BACKEND_PATH . "installer/schema.{$driver}.php";
+        //
+        foreach ([
+            "CREATE TABLE \${p}tempTheWebsite AS SELECT * FROM \${p}theWebsite",
+            "DROP TABLE \${p}theWebsite",
+            ArrayUtils::find($statements, fn($stmt) => str_starts_with($stmt, "CREATE TABLE `\${p}theWebsite`")),
+            "INSERT INTO \${p}theWebsite (`name`,`lang`,`country`,`description`," . // hideFromSearchEngines = use default
+                " `aclRules`,`firstRuns`,`versionId`,`lastUpdatedAt`,`newestCoreVersionLastChecked`)" .
+                " SELECT `name`,`lang`,`country`,`description`,`aclRules`,`firstRuns`,`versionId`,`lastUpdatedAt`,`newestCoreVersionLastChecked`" .
+                " FROM \${p}tempTheWebsite",
+            "DROP table \${p}tempTheWebsite",
+        ] as $stmt) {
+            $db->exec($stmt);
+        }
+    }
+    /**
+     *
      */
     private function patchPagesOrGbts(array $entities, string $tableName): void {
         foreach ($entities as $entitity) {

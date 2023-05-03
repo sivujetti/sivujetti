@@ -363,7 +363,7 @@ final class PagesController {
             $page->layout->relFilePath,
             ["serverHost" => self::getServerHost($req), "versionId" => $theWebsite->versionId],
             apiCtx: $apiCtx,
-            theme: $theWebsite->activeTheme,
+            theWebsite: $theWebsite,
             pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy()),
             useEditModeMarkup: $editModeIsOn
         );
@@ -535,6 +535,7 @@ final class PagesController {
             "name" => $theWebsite->name,
             "langTag" => "{$theWebsite->lang}_{$theWebsite->country}",
             "description" => $theWebsite->description,
+            "hideFromSearchEngines" => $theWebsite->hideFromSearchEngines,
             "versionId" => $theWebsite->versionId,
         ];
     }

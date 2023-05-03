@@ -265,5 +265,6 @@ stringBundles.push({
     'Edit website info': 'Muokkaa sivuston tietoja',
     'todo11': 'Nämä tiedot näkyvät hakukoneissa, ja esim. jaettaessa sivuja some-kanaviin.',
     'Language': 'Kieli',
+    'Discourage search engines from indexing this site': 'Kiellä sivuston näkyminen hakukoneissa',
     'Saved website\'s basic info.': 'Sivuston tiedot tallennettin.',
 }, validationStrings);

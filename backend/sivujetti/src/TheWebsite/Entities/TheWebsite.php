@@ -13,6 +13,8 @@ final class TheWebsite extends \stdClass {
     public ?string $country;
     /** @var string e.g. "My website" */
     public string $description;
+    /** @var bool */
+    public bool $hideFromSearchEngines;
     /** @var string */
     public string $aclRulesJson;
     /** @var string */

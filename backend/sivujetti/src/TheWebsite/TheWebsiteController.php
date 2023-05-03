@@ -30,6 +30,7 @@ final class TheWebsiteController {
                 "lang" => $req->body->lang,
                 "country" => $req->body->country,
                 "description" => $req->body->description,
+                "hideFromSearchEngines" => $req->body->hideFromSearchEngines,
             ])
             ->where("1=1")
             ->execute();
@@ -49,6 +50,7 @@ final class TheWebsiteController {
             ->rule("country", "type", "string")
             ->rule("country", "regexp", "/^[A-Z]{2}$/")
             ->rule("description", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
+            ->rule("hideFromSearchEngines", "type", "bool")
             ->validate($input);
     }
 }

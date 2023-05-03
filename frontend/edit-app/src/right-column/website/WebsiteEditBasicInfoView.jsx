@@ -39,7 +39,7 @@ class WebsiteEditBasicInfoView extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {langTag, formIsSubmittingClass}) {
+    render(_, {langTag, formIsSubmittingClass, hideFromSearchEngines}) {
         return <OverlayView>
             <h2>{ __('Edit website info') }</h2>
             <p style="font-size:.8rem">{ __('todo11') }</p>
@@ -63,6 +63,16 @@ class WebsiteEditBasicInfoView extends preact.Component {
                         <option value={ code }>{ code }</option>
                     ) }</select>
                 </FormGroupInline>,
+                <FormGroupInline labelFlow="break">
+                    <span class="form-label">{ __('Discourage search engines from indexing this site') }?</span>
+                    <label class="form-checkbox mt-0">
+                        <input
+                            onClick={ e => this.setState({hideFromSearchEngines: e.target.checked}) }
+                            checked={ hideFromSearchEngines }
+                            type="checkbox"
+                            class="form-input"/><i class="form-icon"></i>
+                    </label>
+                </FormGroupInline>,
                 <button class={ `btn btn-primary mt-8${formIsSubmittingClass}` } type="submit">{ __('Save changes') }</button>
             ] : <LoadingSpinner/> }
             </form>
@@ -80,6 +90,7 @@ class WebsiteEditBasicInfoView extends preact.Component {
                 ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Description')},
         ], {
             langTag: websiteBasicInfo.langTag,
+            hideFromSearchEngines: websiteBasicInfo.hideFromSearchEngines,
         }));
     }
     /**
@@ -99,6 +110,7 @@ class WebsiteEditBasicInfoView extends preact.Component {
             lang,
             country,
             description: this.state.values.description,
+            hideFromSearchEngines: this.state.hideFromSearchEngines,
         };
         return http.put('/api/the-website/basic-info', data)
             .then(resp => {
@@ -107,6 +119,7 @@ class WebsiteEditBasicInfoView extends preact.Component {
                     name: data.name,
                     langTag: `${data.lang}_${data.country}`,
                     description: data.description,
+                    hideFromSearchEngines: data.hideFromSearchEngines,
                 }]);
                 toasters.editAppMain(__('Saved website\'s basic info.'), 'success');
             });

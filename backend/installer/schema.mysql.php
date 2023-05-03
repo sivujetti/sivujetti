@@ -48,6 +48,7 @@ return [
     `lang` VARCHAR(6) NOT NULL, -- two letter language code (bcp47)
     `country` VARCHAR(12) DEFAULT NULL, -- two letter country code (ISO3166 alpha 2)
     `description` TEXT,
+    `hideFromSearchEngines` TINYINT(1) UNSIGNED DEFAULT 1,
     `aclRules` JSON,
     `firstRuns` JSON, -- {'userId': 'y', 'another': 'y'}
     `versionId` CHAR(8) NOT NULL,

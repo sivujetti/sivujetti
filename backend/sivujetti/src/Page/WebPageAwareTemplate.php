@@ -8,15 +8,12 @@ use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\Page\Entities\Page;
-use Sivujetti\Theme\Entities\Theme;
 use Sivujetti\Theme\ThemesController;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class WebPageAwareTemplate extends Template {
     /** @var ?object */
     private ?object $__cssAndJsFiles;
-    /** @var \Sivujetti\Theme\Entities\Theme */ 
-    private ?Theme $__theme;
     /** @var string[] */
     private array $__pluginNames;
     /** @var bool */
@@ -25,14 +22,14 @@ final class WebPageAwareTemplate extends Template {
     private string $__assetUrlAppendix;
     /** @var \Closure */
     private \Closure $__applyFilters;
-    /** @var array */
-    private array $__dynamicGlobalBlockTreeBlocksStyles;
+    /** @var array{theme: \Sivujetti\Theme\Entities\Theme, hideFromSearchEngines: bool}|null */
+    private ?array $__internal;
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
      * @param ?array<string, mixed> $initialLocals = null
      * @param ?\Sivujetti\SharedAPIContext $apiCtx = null
-     * @param ?\Sivujetti\Theme\Entities\Theme $theme = null
+     * @param ?Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite = null
      * @param ?array<string> $pluginNames = null
      * @param ?bool $useEditModeMarkup = null
      * @param ?string $assetUrlCacheBustStr = ""
@@ -41,14 +38,15 @@ final class WebPageAwareTemplate extends Template {
                                 ?array $vars = null,
                                 ?array $initialLocals = null,
                                 ?SharedAPIContext $apiCtx = null,
-                                ?Theme $theme = null,
+                                ?TheWebsite $theWebsite = null,
                                 ?array $pluginNames = null,
                                 ?bool $useEditModeMarkup = null,
                                 ?string $assetUrlCacheBustStr = null) {
         parent::__construct($file, $vars, $initialLocals);
         $this->__cssAndJsFiles = $apiCtx?->userDefinedAssets;
-        $this->__theme = $theme;
-        $this->__dynamicGlobalBlockTreeBlocksStyles = [];
+        $this->__internal = $theWebsite
+            ? ["theme" => $theWebsite->activeTheme, "hideFromSearchEngines" => $theWebsite->hideFromSearchEngines,]
+            : null;
         $this->__useEditModeMarkup = $useEditModeMarkup ?? true;
         $this->__pluginNames = $pluginNames ?? [];
         if ($this->__file === "") $this->__file = $this->completePath($file);
@@ -162,7 +160,7 @@ final class WebPageAwareTemplate extends Template {
         return $out;
     }
     /**
-     * Note: mutates $block->__blobalBlockTree->blocks*->* and $this->__dynamicGlobalBlockTreeBlocksStyles
+     * Note: mutates $block->__blobalBlockTree->blocks*->*
      *
      * @deprecated
      * @param \Sivujetti\Block\Entities\Block $globalBlockRef
@@ -208,6 +206,9 @@ final class WebPageAwareTemplate extends Template {
             "    <title>{$title}</title>\n" .
             "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n" .
             "    <meta name=\"generator\" content=\"Sivujetti\">\n" .
+            ($this->__internal["hideFromSearchEngines"]
+                ? "    <meta name=\"robots\" content=\"noindex, nofollow, nosnippet, noarchive\">\n"
+                : "") .
             "    {$metaMarkup}" .
             "    {$this->cssFiles()}\n" .
             "</head>\n");
@@ -223,12 +224,13 @@ final class WebPageAwareTemplate extends Template {
                 $this->attrMapToStr($attrsMap) . ">";
         };
 
-        $common = "<style>@layer theme, body-unit, units" . ($this->__theme->globalStyles
+        $theme = $this->__internal["theme"];
+        $common = "<style>@layer theme, body-unit, units" . ($theme->globalStyles
             ? "; :root {" .
                 implode("\n", array_map(fn($style) =>
                     // Note: these are pre-validated
                     "  --{$style->name}: {$this->cssValueToString($style->value)};"
-                , $this->__theme->globalStyles)) .
+                , $theme->globalStyles)) .
             "}"
             : ""
         ) . "</style>\n";
@@ -237,7 +239,7 @@ final class WebPageAwareTemplate extends Template {
         return $common . (!$this->__useEditModeMarkup ? (
             // Externals including theme-generated.css
             implode("\n", [...$externals, $fileDefToTag(
-                (object) ["url" => "{$this->__theme->name}-generated.css?t={$this->__theme->stylesLastUpdatedAt}",
+                (object) ["url" => "{$theme->name}-generated.css?t={$theme->stylesLastUpdatedAt}",
                           "attrs" => []]
             )])
         ) : (
@@ -251,7 +253,7 @@ final class WebPageAwareTemplate extends Template {
                 array_merge(array_map(fn($itm) => (object) [
                     "css" => ThemesController::combineAndWrapCss($itm->units, $itm->blockTypeName),
                     "blockTypeName" => $itm->blockTypeName,
-                ], $this->__theme->styles), $this->__applyFilters->__invoke("sivujetti:editAppAdditionalStyleUnits", []))
+                ], $theme->styles), $this->__applyFilters->__invoke("sivujetti:editAppAdditionalStyleUnits", []))
             )) . ".reduce((out, {css, blockTypeName}) => {\n" .
             "  const bundle = document.createElement('style');\n" .
             "  bundle.innerHTML = css;\n" .

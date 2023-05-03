@@ -45,6 +45,7 @@ return [
     `lang` TEXT NOT NULL, -- two letter language code (bcp47)
     `country` TEXT DEFAULT NULL, -- two letter country code (ISO3166 alpha 2)
     `description` TEXT,
+    `hideFromSearchEngines` INTEGER NOT NULL DEFAULT 1,
     `aclRules` JSON,
     `firstRuns` JSON, -- {'userId': 'y', 'another': 'y'}
     `versionId` TEXT NOT NULL,

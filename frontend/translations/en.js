@@ -265,5 +265,6 @@ stringBundles.push({
     'Edit website info': 'Edit website info',
     'todo11': 'todo11',
     'Language': 'Language',
+    'Discourage search engines from indexing this site': 'Discourage search engines from indexing this site',
     'Saved website\'s basic info.': 'Saved website\'s basic info.',
 }, validationStrings);

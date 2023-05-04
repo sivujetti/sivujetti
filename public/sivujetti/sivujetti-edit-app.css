@@ -85,6 +85,11 @@ Structure:
 .btn.btn-primary:focus {
     box-shadow: 0 0 0 0.1rem rgb(112, 218, 189);
 }
+/* https://stackoverflow.com/a/38498539 */
+.btn.focus-default:focus,
+.btn.no-color:focus {
+    outline: 5px auto rgba(var(--components-color-fb-default),.25);
+}
 .btn.btn-sm {
     font-size: .65rem;
 }
@@ -247,6 +252,9 @@ h2 {
 }
 .ql-snow.ql-toolbar .ql-id-anchor-picker {
     font-size: 13px;
+}
+.ql-snow.ql-toolbar .ql-id-anchor-picker .ql-picker-options {
+    transform: translateX(-7rem);
 }
 .ql-snow.ql-toolbar button.ql-id-anchor:after {
     color: currentColor;
@@ -723,9 +731,6 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     white-space: unset;
     display: grid;
     grid-template-rows: 2rem minmax(4rem, 1fr);
-}
-.button-options .btn:focus {
-    border-color: rgba(var(--components-color-fb-default),.25);
 }
 .button-options .btn.selected {
     border-bottom-color: var(--color-fg-dimmed) !important;

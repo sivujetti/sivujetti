@@ -125,6 +125,8 @@ class MySnowTheme extends Quill.import('themes/snow') {
         if (!mainToolbarButton) return; // not defined in toolbar config
 
         let appliedVal;
+        let clearIdBtn;
+        let input;
         const wrapperSpan = document.createElement('span');
         wrapperSpan.className = 'ql-picker ql-id-anchor-picker';
         const createElementUsing = html => {
@@ -132,6 +134,16 @@ class MySnowTheme extends Quill.import('themes/snow') {
         };
         const doClose = () => {
             if (wrapperSpan.classList.contains('ql-expanded')) wrapperSpan.classList.remove('ql-expanded');
+        };
+        const doApplyId = (wait = false) => {
+            const val = input.value ? stringUtils.slugify(input.value) : '';
+            if (val === appliedVal) { doClose(); return; }
+            const applyNewVal = () => {
+                this.quill.format('id-anchor', val || null);
+                if (val) clearIdBtn.style.display = 'block';
+                doClose();
+            };
+            if (!wait) applyNewVal(); else setTimeout(applyNewVal, 10);
         };
 
         // {
@@ -147,12 +159,13 @@ class MySnowTheme extends Quill.import('themes/snow') {
 
                 inputWrap.appendChild(document.createTextNode('#'));
 
-                const input = document.createElement('input');
+                input = document.createElement('input');
                 input.className = 'form-input tight ml-1';
                 input.style.minWidth = '7rem';
                 inputWrap.appendChild(input);
+                input.addEventListener('keydown', ({key}) => { if (key === 'Enter') doApplyId(true); });
 
-                const clearIdBtn = createElementUsing('<button class="sivujetti-form-icon btn no-color mr-1" type="button" style="display: none;"><svg class="icon-tabler size-xs color-dimmed" width="24" height="24"><use href="/sivujetti/public/sivujetti/assets/tabler-sprite-custom.svg#tabler-x"></use></svg></button>');
+                clearIdBtn = createElementUsing('<button class="sivujetti-form-icon btn no-color mr-1" type="button" style="display: none;top: 2px;"><svg class="icon-tabler color-dimmed" width="24" height="24" style="margin: 0; position: static;"><use href="/sivujetti/public/sivujetti/assets/tabler-sprite-custom.svg#tabler-x"></use></svg></button>');
                 clearIdBtn.addEventListener('click', () => {
                     input.value = '';
                     clearIdBtn.style.display = 'none';
@@ -162,15 +175,9 @@ class MySnowTheme extends Quill.import('themes/snow') {
                 innerSpan.appendChild(inputWrap);
             // }
 
-            const applyIdSpanBtn = createElementUsing('<span role="button" tabindex="0" class="btn btn-sm">Ok</span>');
-            applyIdSpanBtn.addEventListener('click', () => {
-                const val = input.value ? stringUtils.slugify(input.value) : '';
-                if (val === appliedVal) { doClose(); return; }
-                this.quill.format('id-anchor', val || null);
-                if (val) clearIdBtn.style.display = 'block';
-                doClose();
-            });
-            innerSpan.appendChild(applyIdSpanBtn);
+            const doApplyIdSpanBtn = createElementUsing('<span role="button" tabindex="0" class="btn btn-sm">Ok</span>');
+            doApplyIdSpanBtn.addEventListener('click', doApplyId);
+            innerSpan.appendChild(doApplyIdSpanBtn);
 
             const cancelChangesSpanBtn = createElementUsing(`<span role="button" tabindex="0" class="btn btn-sm btn-link">${__('Peruuta')}</span>`);
             cancelChangesSpanBtn.addEventListener('click', doClose);
@@ -181,6 +188,7 @@ class MySnowTheme extends Quill.import('themes/snow') {
 
         mainToolbarButton.parentNode.insertBefore(wrapperSpan, mainToolbarButton);
 
+        if (navigator.userAgent.indexOf('Chrome') > -1) {
         mainToolbarButton.addEventListener('click', e => {
             e.preventDefault();
             e.stopPropagation();
@@ -189,8 +197,40 @@ class MySnowTheme extends Quill.import('themes/snow') {
             if (curval) clearIdBtn.style.display = 'block';
             appliedVal = curval;
             wrapperSpan.classList.add('ql-expanded');
+            input.focus();
             return false;
         }, true);
+        } else {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = mainToolbarButton.outerHTML;
+        const mainBtnClone = tmp.firstElementChild;
+        mainToolbarButton.parentNode.insertBefore(mainBtnClone, mainToolbarButton);
+
+        mainToolbarButton.style.position = 'fixed';
+        mainToolbarButton.style.left = '-200000px';
+        document.body.insertBefore(mainToolbarButton, document.body.children[0]);
+
+        const observer = new MutationObserver((mutationList, _observer) => {
+            for (const mutation of mutationList) {
+                if (mutation.type === 'attributes' &&
+                    mutation.attributeName === 'class' &&
+                    mutation.target.className !== mainBtnClone.className)
+                    mainBtnClone.className = mutation.target.className;
+            }
+        });
+        observer.observe(mainToolbarButton, {attributes: true, childList: false, subtree: false});
+
+        mainBtnClone.addEventListener('click', () => {
+            setTimeout(() => {
+            const curval = this.quill.getFormat()['id-anchor'];
+            input.value = curval || '';
+            if (curval) clearIdBtn.style.display = 'block';
+            appliedVal = curval;
+            wrapperSpan.classList.add('ql-expanded');
+            input.focus();
+            }, 10);
+        });
+        }
 
         // Add fake picker so quill can close it
         this.pickers.push({

@@ -196,12 +196,18 @@ h2 {
     padding-left: 0;
 }
 .ql-editor > :not(:first-child) {
-    margin-top: 0.4rem;
+    margin-top: .4rem;
 }
 .ql-toolbar.ql-snow {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+
     border: none;
     padding: .1rem;
     background-color: var(--color-bg-button);
+    border-top: .4rem solid var(--color-bg-default);
+    margin-top: -.4rem;
 }
 .ql-container.ql-snow {
     border: 1px solid var(--color-input-border);
@@ -256,6 +262,7 @@ h2 {
 .ql-snow.ql-toolbar .ql-id-anchor-picker .ql-picker-options {
     transform: translateX(-7rem);
 }
+
 .ql-snow.ql-toolbar button.ql-id-anchor:after {
     color: currentColor;
     content: "#";
@@ -1076,6 +1083,10 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     width: var(--contentSpawnerWidth);
     max-width: 4px;
     z-index: 2;
+}
+.new-block-spawner.scrolled-past-main-block-tree > input,
+.new-block-spawner.scrolled-past-main-block-tree > div {
+    opacity: .5;
 }
 .new-block-spawner-opened .new-block-spawner {
     border-right: 1px solid rgba(var(--components-color-fb-default),.06);

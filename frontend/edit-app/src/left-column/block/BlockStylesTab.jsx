@@ -876,7 +876,7 @@ function findParentStyleInfo(themeStyles, block) {
 function findScopedParentStyle(themeStyles, block, tree = null) {
     if (!tree) {
         const root = blockTreeUtils.findBlockSmart(block.id, store2.get().theBlockTree)[3];
-        tree = Array.isArray(root) ? root : root.blocks;
+        tree = blockTreeUtils.isMainTree(root) ? root : root.blocks;
     }
     const paren = blockTreeUtils.findBlock(block.id, tree)[2];
     if (!paren) return [null, null, null];

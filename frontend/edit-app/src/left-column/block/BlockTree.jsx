@@ -375,7 +375,7 @@ class BlockTree extends preact.Component {
         //
         const mutRef = this.state.treeState;
         const root = blockTreeUtils.findBlockSmart(block.id, store2.get().theBlockTree)[3];
-        const tree = !Array.isArray(root) ? root.blocks : root;
+        const tree = blockTreeUtils.isMainTree(root) ? root : root.blocks;
         const parentBlockIds = withParentIdPathDo(tree, (parentPath, {id}) => {
             if (id !== block.id) return null;
             // Found block, has depth 1

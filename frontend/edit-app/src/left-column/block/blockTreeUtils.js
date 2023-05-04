@@ -25,7 +25,7 @@ export default {
     getIsStoredToTreeId(blockId, theBlockTree) {
         const [b, _, __, root] = this.findBlockSmart(blockId, theBlockTree);
         if (!b) return null;
-        return root === theBlockTree ? 'main' : root.id;
+        return this.getIdFor(root);
     },
     /**
      * @param {String} id
@@ -53,6 +53,20 @@ export default {
             }
         }
         return [null, null, null, null];
+    },
+    /**
+     * @param {RawGlobalBlockTree|Array<RawBlock>} input
+     * @returns {String} 'main' or <pushId>
+     */
+    getIdFor(root) {
+        return this.isMainTree(root) ? 'main' : root.id;
+    },
+    /**
+     * @param {RawGlobalBlockTree|Array<RawBlock>} input
+     * @returns {Boolean}
+     */
+    isMainTree(root) {
+        return Array.isArray(root);
     },
     /**
      * @param {Array<Object>} branch

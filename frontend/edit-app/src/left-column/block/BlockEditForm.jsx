@@ -216,13 +216,12 @@ class BlockEditForm extends preact.Component {
  * @param {(block: RawBlock|null) => {changes: {[key: String]: any;}; flags?: Number;}|void} getUpdateSettings
  */
 function updateBlockProps(blockId, getUpdateSettings) {
-    const {theBlockTree} = store2.get();
-    const [block, _, __, root] = blockTreeUtils.findBlockSmart(blockId, theBlockTree);
+    const [block, _, __, root] = blockTreeUtils.findBlockSmart(blockId, store2.get().theBlockTree);
     if (!block) { getUpdateSettings(null); return; }
     const {changes, flags} = getUpdateSettings(block);
     store2.dispatch('theBlockTree/updatePropsOf', [
         block.id,
-        root === theBlockTree ? 'main' : root.id,
+        blockTreeUtils.getIdFor(root),
         changes,
         typeof flags === 'number' ? flags : NO_OP_QUEUE_EMIT,
         0 // debounceMillis

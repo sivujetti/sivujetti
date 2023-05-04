@@ -79,9 +79,9 @@ class BlockDnDSpawner extends preact.Component {
             //
             let adjustedTop = this.styleTop - e.target.scrollTop;
             if (e.target.scrollTop > blockTreeBottom) {
-                this.rootEl.current.style.display = 'none';
+                this.rootEl.current.classList.add('scrolled-past-main-block-tree');
             } else {
-                this.rootEl.current.style.display = '';
+                this.rootEl.current.classList.remove('scrolled-past-main-block-tree');
                 this.adjustRootElPos(e.target.scrollTop, adjustedTop);
             }
         };

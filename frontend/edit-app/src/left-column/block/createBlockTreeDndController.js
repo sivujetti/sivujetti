@@ -256,7 +256,7 @@ function callAddOrMoveBlockGetBlockPropChangesEventAndEmitResults(getChangesEven
     const changes = callGetBlockPropChangesEvent(block.type, getChangesEventName, [block, branch, store2.get().theBlockTree]);
     if (changes) store2.dispatch('theBlockTree/updatePropsOf', [
         block.id,
-        Array.isArray(root) ? 'main' : root.id,
+        blockTreeUtils.getIdFor(root),
         changes,
         NO_OP_QUEUE_EMIT,
         0 // debounceMillis

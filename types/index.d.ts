@@ -237,7 +237,7 @@ interface EditAppAwareWebPage {
 
 interface WebPageReRenderer {
     new(_renderBlockAndThen: (block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void, _toTransferable: (block: RawBlock, includePrivates: Boolean = false) => {[key: String]: any;}, _blockTreeUtils: blockTreeUtils): WebPageReRenderer;
-    createBlockTreeChangeListeners(): {ast: (event: blockChangeEvent, data: Array<any>) => void; slow: (blockId: String) => void;};
+    createBlockTreeChangeListeners(): {fast: (event: blockChangeEvent, data: Array<any>) => void; slow: (blockId: String) => void;};
     setOnReRender(fn: () => void): void;
 }
 
@@ -394,4 +394,12 @@ interface ColorValue {
 interface TheBlockTreeReducerContext {
     clone: Array<RawBlock>;
     reRenderThese: Array<String>;
+}
+
+interface StylisAstNode {
+    children: String|Array<StylisAstNode>;
+    value: String;
+    line: Number;
+    column: Number;
+    [more: String]: any;
 }

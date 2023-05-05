@@ -42,6 +42,8 @@ stringBundles.push({
     'Css for the inner elements': 'Sisempien elementtien css',
     'Other classes': 'Muut luokat',
     'Style name': 'Tyylin nimi',
+    // edit-app/src/left-column/block/VisualStyles.jsx
+    'Restore default': 'Palauta oletus', // 'Restore default',
     // edit-app/src/left-column/block/createBlockTreeDndController.js
     'todo14': 'Käyttöoikeutesi ei riitä muokkaamaan tätä sisältöä.',
     // edit-app/src/left-column/page/AddCategoryPanel.jsx
@@ -86,6 +88,8 @@ stringBundles.push({
     'Anchor': 'Ankkuri',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Tyylit',
+    'Styles (bundles)': 'Tyylit (bundlet)', // 'Styles (bundles)',
+    'Styles (combined)': 'Tyylit (yhdistetty)', // 'Styles (combined)',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
     'Only root styles may contain @imports': 'Vain juurityylit voi sisältää @importeja',
     // edit-app/src/left-column/block/BlockTree.jsx

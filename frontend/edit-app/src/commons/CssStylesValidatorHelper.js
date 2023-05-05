@@ -45,7 +45,7 @@ class CssStylesValidatorHelper {
 }
 
 /**
- * @param {Array<Object>} ast
+ * @param {Array<StylisAstNode>} ast
  * @returns {[String, Array<Object>]}
  */
 function hoistImports(ast) {
@@ -97,7 +97,7 @@ function hoistImports(ast) {
 /**
  * Mutates {value} of every local 'background|background-image: url()' item in $mutAst.
  *
- * @param {Array<Object>} mutAst
+ * @param {Array<StylisAstNode>} mutAst
  */
 function completeBgUrls(mutAst) {
     traverse(mutAst, node => {

@@ -89,7 +89,7 @@ class SaveButton extends preact.Component {
                 onClick={ this.doUndo.bind(this) }
                 class={ `btn btn-link px-1 pt-2${!undoButtonIsHidden ? '' : ' d-none'}` }
                 title={ __('Undo latest change') }>
-				<span class="d-flex" style="transform: rotate(181deg)">
+				<span class="d-flex rotated-undo-icon">
                     <Icon iconId="rotate" className={ `${!isStickied ? 'size-sm' : 'size-xs'} color-dimmed3` }/>
                 </span>
 			</button>

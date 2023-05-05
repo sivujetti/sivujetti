@@ -141,6 +141,9 @@ Structure:
     width: calc(75% - .2rem);
     margin-left: auto;
 }
+.rotated-undo-icon {
+    transform: rotate(181deg);
+}
 
 
 

@@ -1,5 +1,5 @@
 import {__, env, signals, stringUtils, timingUtils, hookForm, FormGroupInline, Input,
-    InputErrors, reHookValues} from '@sivujetti-commons-for-edit-app';
+    InputErrors, reHookValues, Icon} from '@sivujetti-commons-for-edit-app';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -54,7 +54,7 @@ class VisualStyles extends preact.Component {
      * @param {String} scss
      * @param {String} sel 'j-BlockType-something' or 'push-id'
      * @param {'cls'|'attr'} selType = 'cls'
-     * @returns {[Array<CssVar>, Array<Object>]} [vars, stylisAst]
+     * @returns {[Array<CssVar>, Array<StylisAstNode>]} [vars, stylisAst]
      * @access public
      */
     static extractVars(scss, sel, selType = 'cls') {
@@ -71,7 +71,7 @@ class VisualStyles extends preact.Component {
             const ir = comm.children.trim().split('(')[1]; // '@exportAs(type)' -> 'type:maybe|args)'
             const varTypeAndMaybeArgs = ir.split(')')[0].trim(); // 'type:maybe|args)' -> 'type:maybe|args'
             const [varType, argsStr] = varTypeAndMaybeArgs.split(':').map(s => s.trim()); // 'type:maybe|args' -> ['type', 'maybe|args']
-            const args = argsStr ? argsStr.replace(/\\\|/,'\\€').split(/\|/).map(s => s.replace('\\€', '\\|')) : [];
+            const args = argsStr ? argsStr.replace(/\\\|/,'\\€').split('|').map(s => s.replace('\\€', '\\|')) : [];
             const Cls = valueEditors.get(varType);
             if (Cls) {
                 const varName = decl.props.substring(2);
@@ -117,7 +117,7 @@ class VisualStyles extends preact.Component {
 
 /**
  * @param {String} scss
- * @param {Object} astNode
+ * @param {StylisAstNode} astNode
  * @param {String} replaceWith
  * @returns {String}
  * @access private
@@ -160,12 +160,20 @@ class LengthValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({label, valueCopy}) {
+    render({label, valueCopy, isClearable}) {
         return <FormGroupInline>
             <label htmlFor="num" class="form-label pt-1" title={ label }>{ label }</label>
-            <div class="input-group">
-                <Input vm={ this } prop="num" placeholder="1.4"/>
-                <span class="input-group-addon addon-sm">{ valueCopy ? valueCopy.unit : 'rem' }</span>
+            <div class="p-relative">
+                <div class="input-group">
+                    <Input vm={ this } prop="num" placeholder="1.4"/>
+                    <span class="input-group-addon addon-sm">{ valueCopy ? valueCopy.unit : 'rem' }</span>
+                </div>
+                { isClearable
+                    ? <button onClick={ () => { this.props.onVarValueChanged(null); } } class="btn btn-link btn-sm" title={ __('Restore default') } style="position: absolute;right: -1.8rem;top: .1rem;">
+                        <span class="d-flex rotated-undo-icon"><Icon iconId="rotate" className="size-xs color-dimmed3"/></span>
+                    </button>
+                    : null
+                }
             </div>
             <InputErrors vm={ this } prop="num"/>
         </FormGroupInline>;
@@ -227,12 +235,13 @@ class ColorValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({valueCopy, label}) {
+    render({valueCopy, label, isClearable}) {
         const val = ColorValueInput.normalize(valueCopy);
         return <FormGroupInline className={ `flex-centered${wc_hex_is_light(val.data) ? ' is-very-light-color' : ''}` }>
             <label class="form-label pt-1" title={ label }>{ label }</label>
             {/* the real div.pickr (this.movingPickContainer) will appear here */}
             {/* this element will disappear after clicking */}
+            <div class="d-inline-flex p-relative">
             <div class="pickr disappearing-pickr">
                 <button
                     onClick={ e => this.replaceDisappearingBox(e, this.props) }
@@ -241,6 +250,13 @@ class ColorValueInput extends preact.Component {
                     type="button"
                     aria-label="toggle color picker dialog"
                     role="button"></button>
+            </div>
+            { isClearable
+                ? <button onClick={ () => { this.props.onVarValueChanged(null); } } class="btn btn-link btn-sm" title={ __('Restore default') } style="position: absolute;right: -1.8rem;top: .1rem;">
+                    <span class="d-flex rotated-undo-icon"><Icon iconId="rotate" className="size-xs color-dimmed3"/></span>
+                </button>
+                : null
+            }
             </div>
         </FormGroupInline>;
     }
@@ -395,7 +411,7 @@ function createUnitClass(id, blockTypeName) {
  * @param {'cls'|'attr'} selType
  * @returns {String}
  */
-function createScss(scss, sel, selType) {
+function createScss(scss, sel, selType = 'cls') {
     return (selType === sel ? `.${sel}` : `[data-block="${sel}"]`) + `{${scss}}`;
 }
 
@@ -407,12 +423,13 @@ function createScss(scss, sel, selType) {
  * @prop {String} label
  * @prop {String} varName
  * @prop {(newVal: String) => any} onVarValueChanged
+ * @prop {Boolean} isClearable
  */
 
 /**
  * @typedef VisualStylesProps
  * @prop {Array<CssVar>} vars
- * @prop {Array<Object>} ast
+ * @prop {Array<StylisAstNode>} ast
  * @prop {(getStyleUpdates: (unitCopy: ThemeStyleUnit) => {newScss: String; newGenerated: String;}) => void} emitVarValueChange
  * @prop {String} scss
  * @prop {String} unitCls

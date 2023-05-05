@@ -42,6 +42,8 @@ stringBundles.push({
     'Css for the inner elements': 'Css for the inner elements',
     'Other classes': 'Other classes',
     'Style name': 'Style name',
+    // edit-app/src/left-column/block/VisualStyles.jsx
+    'Restore default': 'Restore default',
     // edit-app/src/left-column/block/createBlockTreeDndController.js
     'todo14': 'todo14', // Käyttöoikeutesi ei riitä muokkaamaan tätä sisältöä.
     // edit-app/src/left-column/page/AddCategoryPanel.jsx
@@ -86,6 +88,8 @@ stringBundles.push({
     'Anchor': 'Anchor',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Styles',
+    'Styles (bundles)': 'Styles (bundles)',
+    'Styles (combined)': 'Styles (combined)',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
     'Only root styles may contain @imports': 'Only root styles may contain @imports',
     // edit-app/src/left-column/block/BlockTree.jsx

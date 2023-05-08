@@ -134,6 +134,8 @@ class BlockEditForm extends preact.Component {
                 ? [stylesTab2, null]
                 : [stylesTab1, stylesTab2];
         }
+        const tr1 = __('Styles (bundles)');
+        const tr2 = __('Styles (combined)');
         return <div data-main>
         <div class={ `with-icon pb-1${t}` }>
             <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
@@ -142,7 +144,8 @@ class BlockEditForm extends preact.Component {
         <Tabs
             links={ !useNewStylesFeat
                 ? [__('Content'), __('Styles')]
-                : [...[__('Content')], ...(this.useVisualStyles ? [__('Styles')] : [__('Styles (bundles)'), __('Styles (combined)')])] }
+                : [...[__('Content')], ...(this.useVisualStyles ? [__('Styles')] : [tr1, tr2])] }
+            getTabName={ linkText => ({[tr1]: 'style-units', [tr2]: 'combined-styles'}[linkText] || null) }
             onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
             className="text-tinyish mt-0 mb-2"/>
         <div class={ currentTabIdx === 0 ? '' : 'd-none' }>

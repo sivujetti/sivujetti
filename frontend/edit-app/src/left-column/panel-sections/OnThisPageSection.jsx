@@ -46,12 +46,16 @@ class OnThisPageSection extends MenuSectionAbstract {
         /**
          * @param {RawBlock} visibleBlock
          * @param {String} unitCls
+         * @param {'combined-styles-tab'} origin = null
          */
-        (visibleBlock, unitCls) => {
+        (visibleBlock, unitCls, origin = null) => {
             focusToBlockAndEmitBlockTreeClick(visibleBlock, 'styles-tab', () => {
                 const inspectorPanelOuter = api.inspectorPanel.getEl();
+                const fromStyleUnits = origin !== 'combined-styles-tab';
+                const tabLinkSelector = fromStyleUnits ? '.tab-item:nth-of-type(2)' : '.tab-item-combined-styles' ;
                 // Open styles tab
-                inspectorPanelOuter.querySelector('.tab .tab-item:nth-of-type(2) a').click();
+                inspectorPanelOuter.querySelector(`.tab ${tabLinkSelector} a`).click();
+                if (!fromStyleUnits) return;
                 // Open first unit accordion
                 createTrier(() => {
                     const row = inspectorPanelOuter.querySelector(`.styles-list > li[data-cls="${unitCls}"] > header`);

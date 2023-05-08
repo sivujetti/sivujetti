@@ -1,21 +1,24 @@
 class Tabs extends preact.Component {
+    // getTabName;
     /**
-     * @param {{links: Array<string>; onTabChanged: (idx: number) => any; initialIndex?: Number; className?: string;}} props
+     * @param {{links: Array<string>; onTabChanged: (idx: number) => any; initialIndex?: Number; className?: string;, getTabName?: (linkText: String, tabIdx: Number) => String|null;}} props
      */
     constructor(props) {
         super(props);
         this.state = {currentIdx: typeof props.initialIndex !== 'number' ? 0 : props.initialIndex};
+        this.getTabName = props.getTabName || (() => null);
     }
     /**
      * @access protected
      */
     render({links, className}, {currentIdx}) {
-        return <ul class={ `tab${!className ? '' : ` ${className}`}` }>{ links.map((text, i) =>
-            <li class={ `tab-item${i !== currentIdx ? '' : ' active'}` }>
+        return <ul class={ `tab${!className ? '' : ` ${className}`}` }>{ links.map((text, i) => {
+            const tabName = this.getTabName(text, i);
+            return <li class={ `tab-item${i !== currentIdx ? '' : ' active'}${!tabName ? '' : ` tab-item-${tabName}`}` }>
                 <a onClick={ e => { e.preventDefault(); this.changeTab(i); } }
                     href="#" class="px-2">{ text }</a>
-            </li>
-        ) }</ul>;
+            </li>;
+        }) }</ul>;
     }
     /**
      * @param {number} toIdx

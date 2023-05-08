@@ -151,7 +151,7 @@ class BlockStylesTab extends preact.Component {
         ] : [])
         .concat(userCanEditVars && parentStyleInfo && parentStyleInfo[2] ? [
             <button
-                onClick={ () => this.goToStyle(parentStyleInfo) }
+                onClick={ () => goToStyle(parentStyleInfo) }
                 class="btn btn-sm"
                 type="button">{ __('Show parent styles') }</button>
         ] : [])
@@ -349,16 +349,6 @@ class BlockStylesTab extends preact.Component {
             else if (newIsActivated && hasNo)
                 this.props.emitRemoveStyleClassFromBlock(no, this.state.blockCopy);
         }
-    }
-    /**
-     * @param {[RawBlock|null, String|null, 'parent'|'base']} parentStyleInfo
-     * @access private
-     */
-    goToStyle([block, unitCls, kind]) {
-        if (kind === 'parent')
-            signals.emit('block-styles-show-parent-styles-button-clicked', block, unitCls);
-        else
-            signals.emit('block-styles-go-to-base-styles-button-clicked');
     }
     /**
      * @access private
@@ -893,6 +883,18 @@ function findScopedParentStyle(themeStyles, block, tree = null) {
 }
 
 /**
+ * @param {[RawBlock|null, String|null, 'parent'|'base']} parentStyleInfo
+ * @param {'combined-styles-tab'} origin = null
+ * @access private
+ */
+function goToStyle([block, unitCls, kind], origin = null) {
+    if (kind === 'parent')
+        signals.emit('block-styles-show-parent-styles-button-clicked', block, unitCls, origin);
+    else
+        signals.emit('block-styles-go-to-base-styles-button-clicked');
+}
+
+/**
  * @param {String} scss
  * @returns {String}
  */
@@ -967,4 +969,5 @@ function hidePopper(content) {
 export default BlockStylesTab;
 export {StyleTextarea, tempHack, updateAndEmitUnitScss, SPECIAL_BASE_UNIT_NAME,
     findBlockTypeStyles, createUnitClass, isSpecialUnit, addSpecializedStyleUnit,
-    blockHasStyle, removeStyleUnit, normalizeScss};
+    blockHasStyle, removeStyleUnit, normalizeScss, findParentStyleInfo,
+    goToStyle};

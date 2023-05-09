@@ -62,8 +62,8 @@ class IframePageManager {
         const fn = webPage.createThemeStylesChangeListener();
         webPageUnregistrables.set('themeStyles', observeStore2('themeStyles', fn));
         webPageUnregistrables.set('fastStyleChanges', signals.on('visual-styles-var-value-changed-fast',
-            (unitCls, varName, varValue, valueType) => {
-                webPage.fastOverrideStyleUnitVar(unitCls, varName, varValue, valueType);
+            (selector, varName, varValue, valueType) => {
+                webPage.fastOverrideStyleUnitVar(selector, varName, varValue, valueType);
             }));
         }
     /**

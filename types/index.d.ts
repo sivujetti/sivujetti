@@ -229,7 +229,7 @@ interface EditAppAwareWebPage {
     addRootBoundingEls(lastBlock: RawBlock): void;
     createThemeStylesChangeListener(): (state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void;
     setIsMouseListenersDisabled(isDisabled: Boolean): void;
-    fastOverrideStyleUnitVar(unitCls: String, varNam: String, varValue: String, valueType: 'color'): void;
+    fastOverrideStyleUnitVar(selector: String, varName: String, varValue: String|(() => String), valueType: 'color'): void;
     setCssVarValue(varName: String, to: RawCssValue): void;
     getBlockEl(blockId: String): HTMLElement|null;
     setOnReRenderOrUpdateStyles(fn: () => void): void;

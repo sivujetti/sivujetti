@@ -122,13 +122,8 @@ class BlockEditForm extends preact.Component {
             const idx = this.useVisualStyles ? 1 : 2;
             const stylesTab2 = <BlockStylesTab2
                 getBlockCopy={ getCopy }
-                blockType={ this.blockType.name }
+                blockTypeName={ this.blockType.name }
                 blockId={ block.id }
-                emitAddStyleClassToBlock={ (styleClassToAdd, b) => {
-                    const currentClasses = b.styleClasses;
-                    const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
-                    this.dispatchNewBlockStyleClasses(newClasses, b);
-                } }
                 isVisible={ currentTabIdx === idx }/>;
             [a, b] = this.useVisualStyles
                 ? [stylesTab2, null]

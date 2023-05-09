@@ -189,31 +189,32 @@ class EditAppAwareWebPage {
         this.isMouseListenersDisabled = isDisabled;
     }
     /**
-     * @param {String} unitCls Example 'j-Text-unit-6'
+     * @param {String} selector Example '.j-Text-unit-6' or '[data-block="-NGLsOGlKc3qw7kCRSOu"]'
      * @param {String} varName Example 'textColor'
-     * @param {String} varValue Example '#f5f5f5'
+     * @param {String|() => String} varValue Example '#f5f5f5' or () => 'text-align: right;'
      * @param {'color'} valueType
      * @access public
      */
-    fastOverrideStyleUnitVar(unitCls, varName, varValue, valueType) {
+    fastOverrideStyleUnitVar(selector, varName, varValue, valueType) {
         if (valueType !== 'color') throw new Error();
+        //
         let el;
-        if (!this.tempStyleOverrideNames.has(unitCls)) {
+        if (!this.tempStyleOverrideNames.has(selector)) {
             el = document.createElement('style');
-            el.setAttribute('data-temp-overrides-for', unitCls);
+            el.setAttribute('data-temp-overrides-for', selector);
             document.head.appendChild(el);
-            this.tempStyleOverrideNames.set(unitCls, 1);
+            this.tempStyleOverrideNames.set(selector, 1);
         } else {
-            el = document.head.querySelector(`[data-temp-overrides-for="${unitCls}"]`);
+            el = document.head.querySelector(`[data-temp-overrides-for='${selector}']`);
         }
         //
-        el.innerHTML = `.${unitCls} { --${varName}: ${varValue}; }`;
+        el.innerHTML = `${selector} { ${typeof varValue === 'string' ? `--${varName}: ${varValue};` : varValue()} }`;
         //
-        const timeoutId = this.tempStyleOverrideElsRemoveTimeouts.get(unitCls);
+        const timeoutId = this.tempStyleOverrideElsRemoveTimeouts.get(selector);
         if (timeoutId) clearTimeout(timeoutId);
-        this.tempStyleOverrideElsRemoveTimeouts.set(unitCls, setTimeout(() => {
-            document.head.removeChild(document.head.querySelector(`[data-temp-overrides-for="${unitCls}"]`));
-            this.tempStyleOverrideNames.delete(unitCls);
+        this.tempStyleOverrideElsRemoveTimeouts.set(selector, setTimeout(() => {
+            document.head.removeChild(document.head.querySelector(`[data-temp-overrides-for='${selector}']`));
+            this.tempStyleOverrideNames.delete(selector);
         }, 2000));
     }
     /**

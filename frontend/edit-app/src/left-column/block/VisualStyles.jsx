@@ -52,14 +52,14 @@ class VisualStyles extends preact.Component {
      * ```
      *
      * @param {String} scss
-     * @param {String} sel 'j-BlockType-something' or 'push-id'
+     * @param {String} selector 'j-BlockType-something' or 'push-id'
      * @param {'cls'|'attr'} selType = 'cls'
      * @returns {[Array<CssVar>, Array<StylisAstNode>]} [vars, stylisAst]
      * @access public
      */
-    static extractVars(scss, sel, selType = 'cls') {
+    static extractVars(scss, selector, selType = 'cls') {
         VisualStyles.init();
-        const ast = compile(createScss(scss, sel, selType));
+        const ast = compile(createScss(scss, selector, selType));
         const nodes = ast[0].children;
         const out = [];
         for (let i = 0; i < nodes.length; ++i) {
@@ -108,9 +108,9 @@ class VisualStyles extends preact.Component {
                 valueCopy={ Object.assign({}, v.value) }
                 argsCopy={ [...v.args] }
                 varName={ v.varName }
-                label={ v.label }
+                labelTranslated={ __(v.label) }
                 onVarValueChanged={ newValAsString => this.debouncedEmitVarValueChange(newValAsString, v.__idx) }
-                unitCls={ unitCls }/>;
+                selector={ `.${unitCls}` }/>;
         }) }</div>;
     }
 }
@@ -143,7 +143,7 @@ class LengthValueInput extends preact.Component {
             {name: 'num', value: num, validations: [['maxLength', 32], [{doValidate: val =>
                 !val.length || !isNaN(parseFloat(val))
             , errorMessageTmpl: __('%s must be a number').replace('%', '{field}')}, null]],
-                label: this.props.label, onAfterValueChanged: (value, hasErrors) => {
+                label: this.props.labelTranslated, onAfterValueChanged: (value, hasErrors) => {
                     if (!hasErrors) this.props.onVarValueChanged(value ? `${value}${unit}` : null);
                 }},
         ]));
@@ -160,9 +160,9 @@ class LengthValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({label, valueCopy, isClearable}) {
+    render({labelTranslated, valueCopy, isClearable}) {
         return <FormGroupInline>
-            <label htmlFor="num" class="form-label pt-1" title={ label }>{ label }</label>
+            <label htmlFor="num" class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
             <div class="p-relative">
                 <div class="input-group">
                     <Input vm={ this } prop="num" placeholder="1.4"/>
@@ -207,6 +207,7 @@ let helperCanvasCtx;
 
 class ColorValueInput extends preact.Component {
     // unregisterSignalListener;
+    // resetValueIsPending;
     /**
      * @param {ValueInputProps<LengthValue>} props
      * @access protected
@@ -225,6 +226,7 @@ class ColorValueInput extends preact.Component {
         this.unregisterSignalListener = signals.on('web-page-click-received', () => {
             if (this.pickr && this.pickr.isOpen()) this.pickr.hide();
         });
+        this.resetValueIsPending = false;
     }
     /**
      * @access protected
@@ -235,10 +237,10 @@ class ColorValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({valueCopy, label, isClearable}) {
+    render({valueCopy, labelTranslated, isClearable}) {
         const val = ColorValueInput.normalize(valueCopy);
         return <FormGroupInline className={ `flex-centered${wc_hex_is_light(val.data) ? ' is-very-light-color' : ''}` }>
-            <label class="form-label pt-1" title={ label }>{ label }</label>
+            <label class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
             {/* the real div.pickr (this.movingPickContainer) will appear here */}
             {/* this element will disappear after clicking */}
             <div class="d-inline-flex p-relative">
@@ -252,7 +254,11 @@ class ColorValueInput extends preact.Component {
                     role="button"></button>
             </div>
             { isClearable
-                ? <button onClick={ () => { this.props.onVarValueChanged(null); } } class="btn btn-link btn-sm" title={ __('Restore default') } style="position: absolute;right: -1.8rem;top: .1rem;">
+                ? <button onClick={ () => {
+                    this.resetValueIsPending = true;
+                    this.props.onVarValueChanged(null);
+                    setTimeout(() => { this.resetValueIsPending = false; }, 200);
+                } } class="btn btn-link btn-sm" title={ __('Restore default') } style="position: absolute;right: -1.8rem;top: .1rem;">
                     <span class="d-flex rotated-undo-icon"><Icon iconId="rotate" className="size-xs color-dimmed3"/></span>
                 </button>
                 : null
@@ -280,8 +286,15 @@ class ColorValueInput extends preact.Component {
         //
         let nonCommittedHex;
         this.pickr.on('change', (color, _source, _instance) => {
-            nonCommittedHex = `#${color.toHEXA().slice(0, 4).join('')}`;
-            signals.emit('visual-styles-var-value-changed-fast', this.props.unitCls, this.props.varName, nonCommittedHex, 'color');
+            let value;
+            if (!this.resetValueIsPending) {
+                nonCommittedHex = `#${color.toHEXA().slice(0, 4).join('')}`;
+                value = !this.props.valueWrapStr ? nonCommittedHex : () => this.props.valueWrapStr.replace(/var\(%s\)/g, nonCommittedHex);
+            } else {
+                value = !this.props.valueWrapStr ? 'initial' : (() => '');
+                this.resetValueIsPending = false;
+            }
+            signals.emit('visual-styles-var-value-changed-fast', this.props.selector, this.props.varName, value, 'color');
         }).on('changestop', (_source, instance) => {
             if (ColorValueInput.normalize(this.props.valueCopy).data === nonCommittedHex) return;
             // Update realColorBox's color
@@ -345,9 +358,9 @@ class OptionValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({label}, {selected, options}) {
+    render({labelTranslated}, {selected, options}) {
         return <FormGroupInline>
-            <label htmlFor="num" class="form-label pt-1" title={ label }>{ label }</label>
+            <label htmlFor="num" class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
             <select class="form-select" value={ selected } onChange={ e => this.props.onVarValueChanged(e.target.value) }>
             { options.map(text =>
                 <option value={ text }>{ text }</option>
@@ -407,12 +420,21 @@ function createUnitClass(id, blockTypeName) {
 
 /**
  * @param {String} scss
- * @param {String} sel
+ * @param {String} selector
  * @param {'cls'|'attr'} selType
  * @returns {String}
  */
-function createScss(scss, sel, selType = 'cls') {
-    return (selType === sel ? `.${sel}` : `[data-block="${sel}"]`) + `{${scss}}`;
+function createScss(scss, selector, selType = 'cls') {
+    return createSelector(selector, selType) + `{${scss}}`;
+}
+
+/**
+ * @param {String} selector
+ * @param {'cls'|'attr'} selType
+ * @returns {String}
+ */
+function createSelector(selector, selType = 'cls') {
+    return selType === 'cls' ? `.${selector}` : `[data-block="${selector}"]`;
 }
 
 /**
@@ -420,10 +442,12 @@ function createScss(scss, sel, selType = 'cls') {
  * @typedef ValueInputProps
  * @prop {T} valueCopy
  * @prop {String[]} argsCopy
- * @prop {String} label
  * @prop {String} varName
- * @prop {(newVal: String) => any} onVarValueChanged
+ * @prop {String|null} valueWrapStr
  * @prop {Boolean} isClearable
+ * @prop {String} labelTranslated
+ * @prop {(newVal: String) => any} onVarValueChanged
+ * @prop {String} selector
  */
 
 /**
@@ -432,9 +456,9 @@ function createScss(scss, sel, selType = 'cls') {
  * @prop {Array<StylisAstNode>} ast
  * @prop {(getStyleUpdates: (unitCopy: ThemeStyleUnit) => {newScss: String; newGenerated: String;}) => void} emitVarValueChange
  * @prop {String} scss
- * @prop {String} unitCls
+ * @prop {String} selector
  */
 
 export default VisualStyles;
 export {wc_hex_is_light, ColorValueInput, LengthValueInput, varNameToLabel,
-    replaceVarValue, valueEditors, createUnitClass, createScss};
+    replaceVarValue, valueEditors, createUnitClass, createScss, createSelector};

@@ -19,12 +19,16 @@ interface SivujettiFrontendApi {
         ROLE_FOLLOWER: Number;
     }
     saveButton: {
-        triggerUndo() : void;
+        triggerUndo(): void;
         setOnBeforeProcessQueueFn(fn: (queue: Array<OpQueueOp>) => Array<OpQueueOp>): void;
         setOnBeforeProcessQueueFn(fn: null): void;
     };
     events: todo;
-    registerBlockTreeMutator(event: String, getMutationsFn: (event: String, theBlockTree: Array<RawBlock>, blockTreeUtils: blockTreeUtils) => Array<{blockId: String; changes: {[key: String]: any;};}>): a;
+    registerBlockTreeMutator(event: String, getMutationsFn: (event: String, theBlockTree: Array<RawBlock>, blockTreeUtils: blockTreeUtils) => Array<{blockId: String; changes: {[key: String]: any;};}>): a; 
+    blockStyles: {
+        registerDefaultVars(blockTypeName: String, getVars: (varNameToLabel: (varName: String) => String) => Array<CssVar & {wrap: String;}>): void;
+        getDefaultVars(blockTypeName: String): Array<CssVar & {wrap: String;}>;
+    };
 }
 
 interface OpQueueOp {

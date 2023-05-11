@@ -1,15 +1,15 @@
-import {__, env, timingUtils} from '@sivujetti-commons-for-edit-app';
-import {observeStore as observeStore2} from '../../store2.js';
+import {__, env, timingUtils, api} from '@sivujetti-commons-for-edit-app';
+import store2, {observeStore as observeStore2} from '../../store2.js';
 import {addSpecializedStyleUnit, blockHasStyle, findBlockTypeStyles, isSpecialUnit,
         removeStyleUnit, tempHack, updateAndEmitUnitScss, normalizeScss,
-        findParentStyleInfo, goToStyle} from './BlockStylesTab.jsx';
-import getDefaultVars from './defaultStyleVars.js';
+        findParentStyleInfo, goToStyle, findRealUnit} from './BlockStylesTab.jsx';
 import VisualStyles, {createSelector, createUnitClass, replaceVarValue, valueEditors} from './VisualStyles.jsx';
 
 const {serialize, stringify} = window.stylis;
 
 class BlockStylesTab2 extends preact.Component {
     // unregistrables;
+    // blockCopy;
     // parentStyleInfo;
     // debouncedEmitVarValueChange;
     /**
@@ -19,12 +19,16 @@ class BlockStylesTab2 extends preact.Component {
         this.setState({varBundles: null});
         this.unregistrables = [observeStore2('themeStyles', ({themeStyles}, [_event]) => {
             const units = getUnits(findBlockTypeStyles(themeStyles, this.props.blockTypeName));
-            if (!this.state.units || this.state.units !== units) {
-                this.parentStyleInfo = findParentStyleInfo(themeStyles, this.props.getBlockCopy());
-                this.receiveVars(this.props, units);
+            if (!this.state.units || this.state.units !== units)
+                this.receiveVars(this.props, units, themeStyles);
+        })];
+        this.props.grabBlockChanges((block, _origin, _isClsChangeOnly, _isUndo) => {
+            if (this.blockCopy.styleClasses !== block.styleClasses) {
+                const {themeStyles} = store2.get();
+                const units = getUnits(findBlockTypeStyles(themeStyles, this.props.blockTypeName));
+                this.receiveVars(this.props, units, themeStyles, false);
             }
-        }),
-        ];
+        });
     }
     /**
      * @param {StylesTab2Props} props
@@ -37,10 +41,8 @@ class BlockStylesTab2 extends preact.Component {
             (blockTypeName !== this.props.blockTypeName || blockId !== this.props.blockId)
         )) {
             const themeStyles = tempHack();
-            if (themeStyles) {
-                this.parentStyleInfo = findParentStyleInfo(themeStyles, this.props.getBlockCopy());
-                this.receiveVars(props, getUnits(findBlockTypeStyles(themeStyles, blockTypeName)));
-            }
+            if (themeStyles)
+                this.receiveVars(props, getUnits(findBlockTypeStyles(themeStyles, blockTypeName)), themeStyles);
         } else if (this.state.currentBlockType && !isVisible) {
             this.setState({currentBlockType: null});
         }
@@ -48,10 +50,15 @@ class BlockStylesTab2 extends preact.Component {
     /**
      * @param {StylesTab2Props} props
      * @param {Array<ThemeStyleUnit>} units
+     * @param {Array<ThemeStyle>} themeStyles
+     * @param {Boolean} updateParentStyleInfo = true
      * @access private
      */
-    receiveVars(props, units) {
-        const varBundles = createCompositeVars(units, props);
+    receiveVars(props, units, themeStyles, updateParentStyleInfo = true) {
+        this.blockCopy = props.getBlockCopy();
+        if (updateParentStyleInfo) this.parentStyleInfo = findParentStyleInfo(themeStyles, this.blockCopy);
+        //
+        const varBundles = this.createCompositeVars(units, props, themeStyles);
         this.debouncedEmitVarValueChange = timingUtils.debounce(
             this.emitVarValueChange.bind(this),
             env.normalTypingDebounceMillis
@@ -182,80 +189,85 @@ class BlockStylesTab2 extends preact.Component {
     render({userCanEditVars}, {currentBlockType, varBundles}) {
         if (!currentBlockType) return null;
         const emitChange = (v, i) => this[v !== null ? 'debouncedEmitVarValueChange' : 'emitVarValueChange'](v, this.state.varBundles[i]);
-        return <div class="has-color-pickers form-horizontal px-2 pt-0">{ varBundles.map((vb, i) => {
-            const {v} = vb;
-            const Renderer = valueEditors.get(v.type);
-            return <Renderer
-                valueCopy={ v.value ? {...v.value} : null }
-                argsCopy={ [...v.args] }
-                varName={ v.varName }
-                valueWrapStr={ v.wrap }
-                isClearable={ vb.existsInSpecial && vb.v.value !== null }
-                labelTranslated={ __(v.label) }
-                onVarValueChanged={ newValAsString => emitChange(newValAsString, i) }
-                selector={ createSelector(this.props.blockId, 'attr') }/>;
-        }) }{ userCanEditVars && this.parentStyleInfo && this.parentStyleInfo[2] ? [
-            <button
-                onClick={ () => goToStyle(this.parentStyleInfo, 'combined-styles-tab') }
-                class="btn btn-sm"
-                type="button">{ __('Show parent styles') }</button>
-        ] : [] }</div>;
+        return varBundles.length
+            ? <div class="has-color-pickers form-horizontal tight px-2 pt-0">{ varBundles.map((vb, i) => {
+                const {v} = vb;
+                const Renderer = valueEditors.get(v.type);
+                return <Renderer
+                    valueCopy={ v.value ? {...v.value} : null }
+                    argsCopy={ [...v.args] }
+                    varName={ v.varName }
+                    valueWrapStr={ v.wrap }
+                    isClearable={ vb.existsInSpecial && vb.v.value !== null }
+                    labelTranslated={ __(v.label) }
+                    onVarValueChanged={ newValAsString => emitChange(newValAsString, i) }
+                    selector={ createSelector(this.props.blockId, 'attr') }/>;
+            }) }{ userCanEditVars && this.parentStyleInfo && this.parentStyleInfo[2] ? [
+                <button
+                    onClick={ () => goToStyle(this.parentStyleInfo, 'combined-styles-tab') }
+                    class="btn btn-sm"
+                    type="button">{ __('Show parent styles') }</button>
+            ] : [] }</div>
+            : <div class="color-dimmed px-2 pt-1">{ __('No editable styles.') }</div>;
     }
-}
+    /**
+     * @param {Array<ThemeStyleUnit>} units
+     * @param {StylesTab2Props} props
+     * @returns {Array<VarBundle>}
+     */
+    createCompositeVars(units, {blockTypeName, blockId}, themeStyles) {
 
-/**
- * @param {Array<ThemeStyleUnit>} units
- * @param {StylesTab2Props} props
- * @returns {Array<VarBundle>}
- */
-function createCompositeVars(units, {blockTypeName, blockId, getBlockCopy}) {
+        VisualStyles.init();
 
-    VisualStyles.init();
+        const [notSpecial, activeSpecial] = units.reduce((out, itm) =>
+            !isSpecialUnit(itm) || itm.id !== blockId
+                ? [out[0].concat(findRealUnit(itm, blockTypeName, themeStyles)), out[1]]
+                : [out[0], itm]
+        , [[], null]);
+        const partialBlock = {styleClasses: this.blockCopy.styleClasses};
+        const activeNotSpecials = notSpecial.filter(unit => (!isRemote(unit, blockTypeName)
+            ? blockHasStyle(createUnitClass(unit.id, blockTypeName), partialBlock, false)
+            : blockHasStyle(unit.id, partialBlock, true)));
+        const defaults = api.blockStyles.getDefaultVars(blockTypeName);
+        const adms = activeNotSpecials.map(unit => VisualStyles.extractVars(unit.scss, createUnitClass(unit.id, blockTypeName)));
+        const speci = activeSpecial ? VisualStyles.extractVars(activeSpecial.scss, activeSpecial.id, 'attr') : null; // [[v1, v2], ast]
 
-    const [notSpecial, activeSpecial] = units.reduce((out, itm) =>
-        !isSpecialUnit(itm) || itm.id !== blockId ? [out[0].concat(itm), out[1]] : [out[0], itm]
-    , [[], null]);
-
-    const partialBlock = {styleClasses: getBlockCopy().styleClasses};
-    const activeNotSpecials = notSpecial.filter(({id}) => blockHasStyle(createUnitClass(id, blockTypeName), partialBlock));
-    const defaults = getDefaultVars(blockTypeName);
-    const adms = activeNotSpecials.map(unit => VisualStyles.extractVars(unit.scss, createUnitClass(unit.id, blockTypeName)));
-    const speci = activeSpecial ? VisualStyles.extractVars(activeSpecial.scss, activeSpecial.id, 'attr') : null; // [[v1, v2], ast]
-
-    const out = [];
-    for (const def of defaults) {
-        const fromSpeci = speci ? speci[0].find(v => v.varName === def.varName) : null;
-        if (fromSpeci) {
-            out.push({from: 'defaults', existsInSpecial: true, v: createDetailedVar(fromSpeci, def),
-                compileInfo: speci, unitIdx: units.indexOf(activeSpecial)});
-            continue;
-        }
-        const [fromAdmin, idx] = findFrom(adms, def.varName);
-        if (fromAdmin) {
-            out.push({from: 'defaults', existsInSpecial: false, v: createDetailedVar(fromAdmin, def),
-                compileInfo: adms[idx], unitIdx: units.indexOf(activeNotSpecials[idx])});
-            continue;
-        }
-        out.push({from: 'defaults', existsInSpecial: false, v: def, compileInfo: [null, []], unitIdx: defaults.indexOf(def)});
-    }
-
-    for (const admin of adms) {
-        for (const v of admin[0]) {
-            if (out.some(b => b.v.varName === v.varName)) continue;
-            const fromSpeci = speci ? speci[0].find(v2 => v2.varName === v.varName) : null;
+        const out = [];
+        for (const def of defaults) {
+            const fromSpeci = speci ? speci[0].find(v => v.varName === def.varName) : null;
             if (fromSpeci) {
-                out.push({from: 'admin', existsInSpecial: true, v: createDetailedVar(fromSpeci, {wrap: ''/*, no args*/}),
+                out.push({from: 'defaults', existsInSpecial: true, v: createDetailedVar(fromSpeci, def),
                     compileInfo: speci, unitIdx: units.indexOf(activeSpecial)});
                 continue;
             }
-            const i = adms.indexOf(admin);
-            out.push({from: 'admin', existsInSpecial: false, v: createDetailedVar(v, {/*no wrap, no args*/}),
-                compileInfo: admin, unitIdx: units.indexOf(activeNotSpecials[i])});
+            const [fromAdmin, idx] = findFrom(adms, def.varName);
+            if (fromAdmin) {
+                out.push({from: 'defaults', existsInSpecial: false, v: createDetailedVar(fromAdmin, def),
+                    compileInfo: adms[idx], unitIdx: units.indexOf(activeNotSpecials[idx])});
+                continue;
+            }
+            out.push({from: 'defaults', existsInSpecial: false, v: def, compileInfo: [null, []], unitIdx: defaults.indexOf(def)});
         }
-    }
 
-    return out;
+        for (const admin of adms) {
+            for (const v of admin[0]) {
+                if (out.some(b => b.v.varName === v.varName)) continue;
+                const fromSpeci = speci ? speci[0].find(v2 => v2.varName === v.varName) : null;
+                if (fromSpeci) {
+                    out.push({from: 'admin', existsInSpecial: true, v: createDetailedVar(fromSpeci, {wrap: ''/*, no args*/}),
+                        compileInfo: speci, unitIdx: units.indexOf(activeSpecial)});
+                    continue;
+                }
+                const i = adms.indexOf(admin);
+                out.push({from: 'admin', existsInSpecial: false, v: createDetailedVar(v, {/*no wrap, no args*/}),
+                    compileInfo: admin, unitIdx: units.indexOf(activeNotSpecials[i])});
+            }
+        }
+
+        return out;
+    }
 }
+
 
 /**
  * @returns {[CssVar|null, Number]}
@@ -287,6 +299,20 @@ function createDetailedVar(a, b) {
 }
 
 /**
+ * {id: 'unit-1'} -> not remote
+ * {id: '<pushId>'} -> not remote
+ * {id: 'j-Section-unit-1'} -> is remote
+ *
+ * @param {ThemeStyleUnit} unit
+ * @param {String} blockTypeName
+ * @returns {Boolean}
+ */
+function isRemote(unit, blockTypeName) {
+    const cls = `${createUnitClass('', blockTypeName)}-`; // 'j-Section-'
+    return unit.id.startsWith(cls);
+}
+
+/**
  * @typedef VarBundle
  * @prop {'admin'|'defaults'} from
  * @prop {Boolean} existsInSpecial
@@ -298,7 +324,9 @@ function createDetailedVar(a, b) {
  * @prop {() => RawBlock} getBlockCopy
  * @prop {String} blockTypeName
  * @prop {String} blockId
+ * @prop {Boolean} userCanEditVars
  * @prop {Boolean} isVisible
+ * @prop {(withFn: (block: RawBlock, origin: blockChangeEvent, isClsChangeOnly: Boolean, isUndo: Boolean) => void) => void} grabBlockChanges
  */
 
 export default BlockStylesTab2;

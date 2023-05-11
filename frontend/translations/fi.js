@@ -35,13 +35,17 @@ stringBundles.push({
     'Add styles': 'Lisää tyyli',
     'Edit name': 'Muokkaa nimeä',
     'Set as default': 'Aseta oletukseksi',
+    'Edit specifier': 'Muokkaa tarkennetta',
     'Delete style': 'Poista tyyli',
     'Css for the outermost %s (%s)': 'Uloimman %s (%s) css',
     'element': 'elementin',
     'wrapper-element': 'wräpperielementin',
     'Css for the inner elements': 'Sisempien elementtien css',
     'Other classes': 'Muut luokat',
+    'Default': 'Oletus',
     'Style name': 'Tyylin nimi',
+    // edit-app/src/left-column/block/BlockStylesTab2.jsx
+    'No editable styles.': 'Ei muokattavia tyylejä.',
     // edit-app/src/left-column/block/VisualStyles.jsx
     'Restore default': 'Palauta oletus', // 'Restore default',
     // edit-app/src/left-column/block/createBlockTreeDndController.js
@@ -179,7 +183,7 @@ stringBundles.push({
     'Cancel': 'Peruuta',
     // edit-app/src/left-column/SaveButton.jsx
     'You have unsaved changes, do you want to navigate away?': 'Sinulla on tallentamattomia muutoksia, haluatko poistua sivulta?',
-    'Undo latest change': 'Peruuta viimeisin muutos',
+    'Undo latest change': 'Kumoa viimeisin muutos',
     'Save changes': 'Tallenna muutokset',
     // edit-app/src/right-column/WebPageIframe.js
     'Copy': 'Kopio',

@@ -3,6 +3,7 @@ import {Validator} from './src/commons/Form.jsx';
 import {FormStateStoreWrapper} from './src/store.js';
 import EditApp from './src/EditApp.jsx';
 import {registerMutator} from './src/block/theBlockTreeStore.js';
+import blockStyles from './src/block-styles/defaultStyleVars.js';
 import BlockTypes from './src/block-types/block-types.js';
 import createMenuBlockType from './src/block-types/menu/menu.js';
 import createButtonBlockType from './src/block-types/button.js';
@@ -60,6 +61,7 @@ function populateFrontendApi() {
     // mainPanel see configureServices
     // inspectorPanel see configureServices
     api.registerBlockTreeMutator = (...args) => registerMutator(...args);
+    api.blockStyles = blockStyles;
 }
 
 function configureServices() {

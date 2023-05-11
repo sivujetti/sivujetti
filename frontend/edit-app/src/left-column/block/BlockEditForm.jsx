@@ -24,6 +24,7 @@ class BlockEditForm extends preact.Component {
     // blockIsStoredToTreeId;
     // editFormImpl;
     // allowStylesEditing;
+    // stylesTabStyleChangesGrabbers;
     // isOutermostBlockOfGlobalBlockTree;
     // unregistrables;
     // dispatchFastChangeTimeout;
@@ -48,6 +49,7 @@ class BlockEditForm extends preact.Component {
         this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, 'mainTree');
         this.editFormImpl = this.blockType.editForm;
         this.allowStylesEditing = !selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
+        this.stylesTabStyleChangesGrabbers = [];
         this.isOutermostBlockOfGlobalBlockTree = false;
         this.setState({currentTabIdx: 0});
         this.unregistrables = [observeStore2('theBlockTree', (_, [event, data]) => {
@@ -67,14 +69,14 @@ class BlockEditForm extends preact.Component {
 
             const isUndo2 = event === 'theBlockTree/undoUpdateDefPropsOf';
             if (event === 'theBlockTree/updateDefPropsOf' || isUndo2) {
-                if (!this.stylesFormChangeGrabber)
+                if (!this.stylesTabStyleChangesGrabbers.length)
                     return;
                 const [blockId, isOnlyStyleClassesChange] = !isUndo2
                     ? [data[0], data[3]]  // [<blockId>, <blockIsStoredToTreeId>, <changes>, <isOnlyStyleClassesChange>]
                     : [data[1], data[3]]; // [<oldTree>, <blockId>, <blockIsStoredToTreeId>, <isOnlyStyleClassesChange>]
-                if (!isOnlyStyleClassesChange || isSomeOtherBlock(blockId))
+                if (isSomeOtherBlock(blockId))
                     return;
-                this.stylesFormChangeGrabber(this.getCurrentBlockCopy(), event, isUndo2);
+                this.stylesTabStyleChangesGrabbers.forEach(fn => { fn(this.getCurrentBlockCopy(), event, isOnlyStyleClassesChange, isUndo2); });
             } else if (event === 'theBlockTree/deleteBlock') {
                 const [id, _blockIsStoredToTreeId, isChildOfOrCurrentlyOpenBlock] = data;
                 if (isChildOfOrCurrentlyOpenBlock || id === block.id) this.props.inspectorPanel.close();
@@ -94,12 +96,13 @@ class BlockEditForm extends preact.Component {
         const EditFormImpl = this.editFormImpl;
         const getCopy = this.getCurrentBlockCopy.bind(this);
         const t = block.type === 'PageInfo' ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
+        const addStyleChangesGrabber = withFn => { this.stylesTabStyleChangesGrabbers.push(withFn); };
         const stylesTab1 = <BlockStylesTab
             getBlockCopy={ getCopy }
             userCanEditVars={ this.userCanEditVars }
             userCanEditCss={ this.userCanEditCss }
             useVisualStyles={ this.useVisualStyles }
-            grabBlockChanges={ withFn => { this.stylesFormChangeGrabber = withFn; } }
+            grabBlockChanges={ addStyleChangesGrabber }
             emitAddStyleClassToBlock={ (styleClassToAdd, b) => {
                 const currentClasses = b.styleClasses;
                 const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
@@ -124,6 +127,8 @@ class BlockEditForm extends preact.Component {
                 getBlockCopy={ getCopy }
                 blockTypeName={ this.blockType.name }
                 blockId={ block.id }
+                userCanEditVars={ this.userCanEditVars }
+                grabBlockChanges={ addStyleChangesGrabber }
                 isVisible={ currentTabIdx === idx }/>;
             [a, b] = this.useVisualStyles
                 ? [stylesTab2, null]
@@ -131,6 +136,7 @@ class BlockEditForm extends preact.Component {
         }
         const tr1 = __('Styles (bundles)');
         const tr2 = __('Styles (combined)');
+        const tr3 = __('Styles');
         return <div data-main>
         <div class={ `with-icon pb-1${t}` }>
             <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
@@ -138,9 +144,12 @@ class BlockEditForm extends preact.Component {
         </div>
         <Tabs
             links={ !useNewStylesFeat
-                ? [__('Content'), __('Styles')]
-                : [...[__('Content')], ...(this.useVisualStyles ? [__('Styles')] : [tr1, tr2])] }
-            getTabName={ linkText => ({[tr1]: 'style-units', [tr2]: 'combined-styles'}[linkText] || null) }
+                ? [__('Content'), tr3]
+                : [...[__('Content')], ...(this.useVisualStyles ? [tr3] : [tr1, tr2])] }
+            getTabName={ linkText => this.useVisualStyles
+                ? (linkText === tr3 ? 'combined-styles' : null)
+                : ({[tr1]: 'style-units', [tr2]: 'combined-styles'}[linkText] || null)
+            }
             onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
             className="text-tinyish mt-0 mb-2"/>
         <div class={ currentTabIdx === 0 ? '' : 'd-none' }>

@@ -5,17 +5,17 @@ import {createUnitClass} from '../../left-column/block/VisualStyles.jsx';
 class SetUnitAsDefaultDialog extends preact.Component {
     // boundDoHandleSubmit;
     /**
-     * @param {{onConfirmed: (specifier: String) => any; blockTypeName: String;}} props
+     * @param {{onConfirmed: (specifier: String) => any; blockTypeName: String; isEdit: Boolean; specifier?: String;}} props
      */
     constructor(props) {
         super(props);
         this.setState(hookForm(this, [
-            {name: 'specifier', value: undefined, validations: [['minLength', 1],
-                ['maxLength', 120]], label: __('Specifier')},
+            {name: 'specifier', value: props.specifier || '', validations: [['maxLength', 120]],
+                label: __('Specifier')},
         ], {
             saveAsUnique: false,
         }));
-        this.boundDoHandleSubmit = this.applySetUnitAsDefault.bind(this);
+        this.boundDoHandleSubmit = this.handleSubmit.bind(this);
     }
     /**
      * @access protected
@@ -26,9 +26,9 @@ class SetUnitAsDefaultDialog extends preact.Component {
     /**
      * @access protected
      */
-    render({blockTypeName}) {
+    render({blockTypeName, isEdit}) {
         return <form onSubmit={ e => handleSubmit(this, this.boundDoHandleSubmit, e) }>
-            <div class="mb-1">{ __('todo16 %s', __(blockTypeName)) }</div>
+            { !isEdit ? <div class="mb-1">{ __('todo16 %s', __(blockTypeName)) }</div> : null }
             <FormGroup>
                 <label htmlFor="specifier" class="form-label with-icon-inline">
                     { __('Specifier') } ({ __('optional') })
@@ -45,7 +45,7 @@ class SetUnitAsDefaultDialog extends preact.Component {
             <div class="mt-8">
                 <button
                     class="btn btn-primary mr-2"
-                    type="submit">{ __('Set as default') }</button>
+                    type="submit">{ !isEdit ? __('Set as default') : __('Save changes') }</button>
                 <button
                     onClick={ () => floatingDialog.close() }
                     class="btn btn-link"
@@ -57,7 +57,7 @@ class SetUnitAsDefaultDialog extends preact.Component {
      * @returns {Promise<void>}
      * @access private
      */
-    applySetUnitAsDefault() {
+    handleSubmit() {
         this.props.onConfirmed(this.state.values.specifier || '');
         floatingDialog.close();
         return Promise.resolve();

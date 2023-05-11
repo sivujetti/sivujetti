@@ -35,13 +35,17 @@ stringBundles.push({
     'Add styles': 'Add styles',
     'Edit name': 'Edit name',
     'Set as default': 'Set as default',
+    'Edit specifier': 'Edit specifier',
     'Delete style': 'Delete style',
     'Css for the outermost %s (%s)': 'Css for the outermost %s (%s)',
     'element': 'element',
     'wrapper-element': 'wrapper-element',
     'Css for the inner elements': 'Css for the inner elements',
     'Other classes': 'Other classes',
+    'Default': 'Default',
     'Style name': 'Style name',
+    // edit-app/src/left-column/block/BlockStylesTab2.jsx
+    'No editable styles.': 'No editable styles.',
     // edit-app/src/left-column/block/VisualStyles.jsx
     'Restore default': 'Restore default',
     // edit-app/src/left-column/block/createBlockTreeDndController.js

@@ -1,5 +1,5 @@
-import {normalizeScss} from './BlockStylesTab.jsx';
-import {varNameToLabel} from './VisualStyles.jsx';
+import {normalizeScss} from '../left-column/block/BlockStylesTab.jsx';
+import {varNameToLabel} from '../left-column/block/VisualStyles.jsx';
 
 const vars = new Map;
 
@@ -54,21 +54,21 @@ vars.set('Text', [
         args: ['none', 'uppercase', 'capitalize', 'lowercase'], __idx: -1},
 ]);
 
-/**
- * @param {String} blockTypeName
- * @param {Array<CssVar & {wrap: String;}>} vars
- */
-function registerDefaultVars(blockTypeName, vars) {
-    return vars.set(blockTypeName, vars.map(v => ({...v, ...{wrap: v.wrap ? normalizeScss(v.wrap) : ''}})));
-}
+const blockStyles = {
+    /**
+     * @param {String} blockTypeName
+     * @param {(varNameToLabel: (varName: String) => String) => Array<CssVar & {wrap: String;}>} getVars
+     */
+    registerDefaultVars(blockTypeName, getVars) {
+        vars.set(blockTypeName, getVars(varNameToLabel).map(v => ({...v, ...{wrap: v.wrap ? normalizeScss(v.wrap) : null}})));
+    },
+    /**
+     * @param {String} blockTypeName
+     * @returns {Array<CssVar & {wrap: String;}>}
+     */
+    getDefaultVars(blockTypeName) {
+        return vars.get(blockTypeName) || [];
+    }
+};
 
-/**
- * @param {String} blockTypeName
- * @returns {Array<CssVar & {wrap: String;}>}
- */
-function getDefaultVars(blockTypeName) {
-    return vars.get(blockTypeName) || [];
-}
-
-export default getDefaultVars;
-export {registerDefaultVars};
+export default blockStyles;

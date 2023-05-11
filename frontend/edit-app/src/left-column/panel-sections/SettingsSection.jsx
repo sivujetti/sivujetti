@@ -6,7 +6,7 @@ class SettingsSection extends preact.Component {
      */
     render() {
         return <MenuSection
-            title={ __('Settings') }
+            title={ __('Website') }
             subtitle={ __('Website\'s settings') }
             iconId="settings"
             colorClass="color-blue">

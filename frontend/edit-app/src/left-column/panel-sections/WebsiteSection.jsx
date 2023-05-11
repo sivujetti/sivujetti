@@ -16,8 +16,8 @@ class WebsiteSection extends preact.Component {
      */
     render() {
         return <MenuSection
-            title={ __('Website') }
-            subtitle={ __('Content management') }
+            title={ __('Content management') }
+            subtitle={ `${__('Pages')}, ${__('Files').toLowerCase()}` }
             iconId="database"
             outerClass="website"
             colorClass="color-orange">

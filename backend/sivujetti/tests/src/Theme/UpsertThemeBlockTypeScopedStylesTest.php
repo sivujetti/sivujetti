@@ -41,11 +41,12 @@ final class UpsertThemeBlockTypeScopedStylesTest extends ThemesControllerTestCas
                                     "PUT",
                                     $state->testInput));
     }
-    private function verifyUpdatedThemeBlockTypeScopedStylesToDb(\TestState $state): void {
+    private function verifyUpdatedThemeBlockTypeScopedStylesToDb(\TestState $state,
+                                                                string $blockTypeName = "Section"): void {
         $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
         $row = $this->dbDataHelper->getRow("themeStyles",
                                            "themeId=? AND blockTypeName=?",
-                                           [$state->testTheme->id, "Section"]);
+                                           [$state->testTheme->id, $blockTypeName]);
         $actualUnits = json_decode($row["units"]);
         $removeJunk = fn(object $input) => (object) [
             "title" => $input->title,
@@ -55,7 +56,8 @@ final class UpsertThemeBlockTypeScopedStylesTest extends ThemesControllerTestCas
             "origin" => $input->origin,
             "specifier" => $input->specifier,
         ];
-        $expected = array_map($removeJunk, $state->testInput->units);
+        $key = $blockTypeName === "Section" ? "units" : "connectedUnits";
+        $expected = array_map($removeJunk, $state->testInput->{$key});
         $this->assertEquals($expected, $actualUnits);
     }
     private function verifyUpdatedCachedGeneratedScopedCssToDb(\TestState $state): void {
@@ -105,6 +107,42 @@ final class UpsertThemeBlockTypeScopedStylesTest extends ThemesControllerTestCas
     private function setupEmptyUnitsTest(): \TestState {
         $state = $this->setupTest();
         $state->testInput = (object) ["units" => []];
+        return $state;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testUpsertBlockTypeScopedStylesUpdatesConnectedUnits(): void {
+        $state = $this->setupConnectedUnitsUpdateTest();
+        $this->insertTestTheme($state, "overwrite-theme-styles-test-theme1");
+        $this->insertTestStylesForTestTheme($state);
+        $this->sendUpsertBlockTypeScopedStylesRequest($state, "_body_");
+        $this->verifyUpdatedThemeBlockTypeScopedStylesToDb($state, "_body_");
+        $this->verifyUpdatedThemeBlockTypeScopedStylesToDb($state);
+        $this->verifyUpdatedCachedGeneratedScopedCssToDb($state);
+        $this->verifyOverwroteGeneratedCssFile($state);
+    }
+    private function setupConnectedUnitsUpdateTest(): \TestState {
+        $state = parent::createDefaultTestState();
+        $state->testStyles = [
+            (object)["units" => json_encode([["title"=>"Default sec",
+                                    "id"=>"j-Section-unit-48",
+                                    "scss"=>"padding: 2rem",
+                                    "generatedCss"=>".j-_body_ .j-Section:not(.no-j-Section-unit-48) >div{padding:2rem;}",
+                                    "origin"=>"Section",
+                                    "specifier"=>""]]),
+                    "themeId"=>"@filledAfter",
+                    "blockTypeName"=>"_body_"],
+            (object)["units"=>json_encode([["title"=>"","id"=>"unit-48","scss"=>"",
+                                    "generatedCss"=>"",
+                                    "origin"=>"_body_",
+                                    "specifier"=>""]]),
+                    "themeId"=>"@filledAfter",
+                    "blockTypeName"=>"Section",],
+        ];
+        $state->testInput = (object) ["units" => [], "connectedUnits" => [], "connectedUnitsBlockTypeName" => "Section"];
         return $state;
     }
 

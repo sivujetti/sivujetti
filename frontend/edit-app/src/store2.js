@@ -1,3 +1,4 @@
+import {isRemote} from './block-styles/commons.js';
 import theBlockTreeStore from './block/theBlockTreeStore.js';
 
 const {createStoreon} = window.storeon;
@@ -54,10 +55,26 @@ function themeStylesStore(store) {
      */
     ({themeStyles}, [blockTypeName, unit]) => {
         const toRemIdx = findStyleIndex(themeStyles, blockTypeName);
-        return {themeStyles: themeStyles.map((s, i) =>
-            i !== toRemIdx ? s : Object.assign({}, s, {units: s.units.filter(({id}) => id !== unit.id)})
-        )};
+        const out = {themeStyles: withUnitRemoved(themeStyles, toRemIdx, unit.id)};
+        if (isRemote(unit)) {
+            const toRemIdx2 = findStyleIndex(themeStyles, unit.origin); // 'Button', 'Section' etc.
+            const pcs = unit.id.split('-'); // ['j', 'Section', 'unit', '1']
+            const unitId2 = pcs.slice(2).join('-'); // 'unit-1'
+            out.themeStyles = withUnitRemoved(out.themeStyles, toRemIdx2, unitId2);
+        }
+        return out;
     });
+    /**
+     * @param {Array<ThemeStyle>} from
+     * @param {Number} styleIdx
+     * @param {String} unitId
+     * @returns {Array<ThemeStyle>}
+     */
+    function withUnitRemoved(from, styleIdx, unitId) {
+        return from.map((s, i) =>
+            i !== styleIdx ? s : Object.assign({}, s, {units: s.units.filter(({id}) => id !== unitId)})
+        );
+    }
 
     store.on('themeStyles/updateUnitOf',
     /**

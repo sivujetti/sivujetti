@@ -136,11 +136,10 @@ margin: 0;`,
 `display: inherit;`,
     second:
 `> p {
-  line-height: 0
+  color: rgba(0, 0, 0, 0.5);
 }
-.ql-indent-1 {
-  margin: .8rem 0 .8rem .8rem;
-  list-style-type: circle;
+h1, h2 {
+  max-width: 20rem;
 }`,
     outermostElIsWrapper: true,
 },

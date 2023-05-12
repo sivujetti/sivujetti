@@ -1,4 +1,5 @@
 import {__, env, timingUtils, api} from '@sivujetti-commons-for-edit-app';
+import {isRemote} from '../../block-styles/commons.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import {addSpecializedStyleUnit, blockHasStyle, findBlockTypeStyles, isSpecialUnit,
         removeStyleUnit, tempHack, updateAndEmitUnitScss, normalizeScss,
@@ -23,7 +24,7 @@ class BlockStylesTab2 extends preact.Component {
                 this.receiveVars(this.props, units, themeStyles);
         })];
         this.props.grabBlockChanges((block, _origin, _isClsChangeOnly, _isUndo) => {
-            if (this.blockCopy.styleClasses !== block.styleClasses) {
+            if (this.blockCopy && this.blockCopy.styleClasses !== block.styleClasses) {
                 const {themeStyles} = store2.get();
                 const units = getUnits(findBlockTypeStyles(themeStyles, this.props.blockTypeName));
                 this.receiveVars(this.props, units, themeStyles, false);
@@ -36,6 +37,8 @@ class BlockStylesTab2 extends preact.Component {
      */
     componentWillReceiveProps(props) {
         const {isVisible, blockTypeName, blockId} = props;
+        if (!this.blockCopy || this.blockCopy.type !== props.blockTypeName)
+            this.blockCopy = props.getBlockCopy();
         if (isVisible && (
             !this.state.currentBlockType ||
             (blockTypeName !== this.props.blockTypeName || blockId !== this.props.blockId)
@@ -45,6 +48,7 @@ class BlockStylesTab2 extends preact.Component {
                 this.receiveVars(props, getUnits(findBlockTypeStyles(themeStyles, blockTypeName)), themeStyles);
         } else if (this.state.currentBlockType && !isVisible) {
             this.setState({currentBlockType: null});
+            this.blockCopy = null;
         }
     }
     /**
@@ -221,11 +225,11 @@ class BlockStylesTab2 extends preact.Component {
 
         const [notSpecial, activeSpecial] = units.reduce((out, itm) =>
             !isSpecialUnit(itm) || itm.id !== blockId
-                ? [out[0].concat(findRealUnit(itm, blockTypeName, themeStyles)), out[1]]
+                ? [[findRealUnit(itm, blockTypeName, themeStyles), ...out[0]], out[1]]
                 : [out[0], itm]
         , [[], null]);
         const partialBlock = {styleClasses: this.blockCopy.styleClasses};
-        const activeNotSpecials = notSpecial.filter(unit => (!isRemote(unit, blockTypeName)
+        const activeNotSpecials = notSpecial.filter(unit => (!isRemote(unit)
             ? blockHasStyle(createUnitClass(unit.id, blockTypeName), partialBlock, false)
             : blockHasStyle(unit.id, partialBlock, true)));
         const defaults = api.blockStyles.getDefaultVars(blockTypeName);
@@ -268,7 +272,6 @@ class BlockStylesTab2 extends preact.Component {
     }
 }
 
-
 /**
  * @returns {[CssVar|null, Number]}
  */
@@ -296,20 +299,6 @@ function getUnits(style) {
  */
 function createDetailedVar(a, b) {
     return {...a, ...(b.wrap ? {wrap: b.wrap} : {}), ...(b.args ? {args: b.args} : {})};
-}
-
-/**
- * {id: 'unit-1'} -> not remote
- * {id: '<pushId>'} -> not remote
- * {id: 'j-Section-unit-1'} -> is remote
- *
- * @param {ThemeStyleUnit} unit
- * @param {String} blockTypeName
- * @returns {Boolean}
- */
-function isRemote(unit, blockTypeName) {
-    const cls = `${createUnitClass('', blockTypeName)}-`; // 'j-Section-'
-    return unit.id.startsWith(cls);
 }
 
 /**

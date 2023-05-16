@@ -3,6 +3,7 @@
 namespace Sivujetti\Update\Patch;
 
 use Pike\ArrayUtils;
+use Pike\Auth\Crypto;
 use Pike\Db\FluentDb;
 use Sivujetti\Block\BlockTree;
 use Sivujetti\JsonUtils;
@@ -13,16 +14,20 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
     private bool $doSkip;
     /** @var \Pike\Db\FluentDb */
     private FluentDb $db;
+    /** @var \Pike\Auth\Crypto */
+    private Crypto $crypto;
     /** @var \Closure */
     private \Closure $logFn;
     /**
      * @param string $toVersion
      * @param string $currentVersion
      * @param \Pike\Db\FluentDb $db
+     * @param \Pike\Auth\Crypto $crypto
      */
-    function __construct(string $toVersion, string $currentVersion, FluentDb $db) {
+    function __construct(string $toVersion, string $currentVersion, FluentDb $db, Crypto $crypto) {
         $this->doSkip = !($toVersion === "0.14.0" && $currentVersion === "0.13.0");
         $this->db = $db;
+        $this->crypto = $crypto;
         $this->logFn = function ($str) { /**/ };
     }
     /**
@@ -45,6 +50,10 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
             "jobName" => "update-plugin",
             "startedAt" => 0,
         ])->execute();
+
+        $this->patchThemeStyles();
+
+        $this->updateVersionId();
     }
     /**
      * 
@@ -60,15 +69,22 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
         $driver = $db->attr(\PDO::ATTR_DRIVER_NAME);
         $statements = require SIVUJETTI_BACKEND_PATH . "installer/schema.{$driver}.php";
         //
+        $newt = "\${p}theWebsite_new";
+        $orig = "\${p}theWebsite";
         foreach ([
-            "CREATE TABLE \${p}tempTheWebsite AS SELECT * FROM \${p}theWebsite",
-            "DROP TABLE \${p}theWebsite",
-            ArrayUtils::find($statements, fn($stmt) => str_starts_with($stmt, "CREATE TABLE `\${p}theWebsite`")),
-            "INSERT INTO \${p}theWebsite (`name`,`lang`,`country`,`description`," . // hideFromSearchEngines = use default
+            // 1. create table $new
+            str_replace($orig, $newt,
+                ArrayUtils::find($statements, fn($stmt) => str_starts_with($stmt, "CREATE TABLE `{$orig}`"))
+            ),
+            // 2. insert into $new from $orig
+            "INSERT INTO {$newt} (`name`,`lang`,`country`,`description`," . // hideFromSearchEngines = use default
                 " `aclRules`,`firstRuns`,`versionId`,`lastUpdatedAt`,`newestCoreVersionLastChecked`)" .
                 " SELECT `name`,`lang`,`country`,`description`,`aclRules`,`firstRuns`,`versionId`,`lastUpdatedAt`,`newestCoreVersionLastChecked`" .
-                " FROM \${p}tempTheWebsite",
-            "DROP table \${p}tempTheWebsite",
+                " FROM {$orig}",
+            // 3. drop $orig
+            "DROP TABLE {$orig}",
+            // 4. rename $new -> $orig
+            "ALTER TABLE {$newt} RENAME TO {$orig}",
         ] as $stmt) {
             $db->exec($stmt);
         }
@@ -77,20 +93,20 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
      *
      */
     private function patchPagesOrGbts(array $entities, string $tableName): void {
-        foreach ($entities as $entitity) {
-            $bef = $entitity->blocksJson;
+        foreach ($entities as $entity) {
+            $bef = $entity->blocksJson;
             $tree = JsonUtils::parse($bef);
             BlockTree::traverse($tree, function ($itm) {
                 if ($itm->type === "Image" && ArrayUtils::findIndexByKey($itm->propsData, "altText", "key") < 0)
                     $itm->propsData[] = (object) ["key" => "altText", "value" => ""];
             });
-            $entitity->blocksJson = JsonUtils::stringify($tree);
-            if ($entitity->blocksJson !== $bef) {
+            $entity->blocksJson = JsonUtils::stringify($tree);
+            if ($entity->blocksJson !== $bef) {
                 $numRows = $this->db->update("\${p}{$tableName}")
-                    ->values((object)["blocks" => $entitity->blocksJson])
-                    ->where("id=?", [$entitity->id])
+                    ->values((object)["blocks" => $entity->blocksJson])
+                    ->where("id=?", [$entity->id])
                     ->execute();
-                $this->logFn->__invoke("updated {$tableName} `{$entitity->id}`: {$numRows} rows changed");
+                $this->logFn->__invoke("updated {$tableName} `{$entity->id}`: {$numRows} rows changed");
             }
         }
     }
@@ -114,6 +130,41 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
                 $this->logFn->__invoke("updated reusable `{$reusable->id}`: {$numRows} rows changed");
             }
         }
+    }
+    /**
+     *
+     */
+    private function patchThemeStyles(): void {
+        $styles = $this->db->select("\${p}themeStyles", "stdClass")
+            ->fields(["units as unitsJson", "themeId", "blockTypeName"])->fetchAll();
+        //
+        foreach ($styles as $style) {
+            $bef = $style->unitsJson;
+            $patched = JsonUtils::parse($bef);
+            foreach ($patched as $style2) {
+                if (!is_string($style2->origin ?? null))
+                    $style2->origin = ""; // Note: mutates $patched
+                if (!is_string($style2->specifier ?? null))
+                    $style2->specifier = ""; // Note: mutates $patched
+            }
+            $style->unitsJson = JsonUtils::stringify($patched);
+            if ($style->unitsJson !== $bef) {
+                $numRows = $this->db->update("\${p}themeStyles")
+                    ->values((object)["units" => $style->unitsJson])
+                    ->where("themeId=? AND blockTypeName=?", [$style->themeId, $style->blockTypeName])
+                    ->execute();
+                $this->logFn->__invoke("updated themeStyles `{$style->themeId}:{$style->blockTypeName}`: {$numRows} rows changed");
+            }
+        }
+    }
+    /**
+     *
+     */
+    private function updateVersionId(): void {
+        $this->db->update("\${p}theWebsite")
+            ->values((object)["versionId" => $this->crypto->genRandomToken(4)])
+            ->where("1=1")
+            ->execute();
     }
     /**
      * 

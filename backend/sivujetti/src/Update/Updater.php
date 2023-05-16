@@ -191,7 +191,7 @@ final class Updater {
         $job = $this->db->select("\${p}jobs", Job::class)
             ->fields(["startedAt"])
             ->where("`jobName` = ?", [self::UPDATE_CORE_TASK])
-            ->fetch(); // #ref-1
+            ->fetchAll()[0] ?? null; // #ref-1
         if (!($job instanceof Job)) throw new PikeException("Invalid database state", 301010);
         return $job;
     }
@@ -237,7 +237,7 @@ final class Updater {
         return array_map(function (string $nsdRelFilePath) use ($toVersion, $currentVersion, $splitWith, $ns) {
             $fileName = explode($splitWith, $nsdRelFilePath, 2)[1]; // `\$backend/sivujetti/src/Update/Patch/PatchDbTask1.php` -> `PatchDbTask1.php`
             $Cls = $ns . explode(".", $fileName)[0];
-            return new $Cls($toVersion, $currentVersion, $this->db);
+            return App::$adi->make($Cls, [":toVersion" => $toVersion, ":currentVersion" => $currentVersion]);
         }, $nsdRelFilePaths);
     }
     /**

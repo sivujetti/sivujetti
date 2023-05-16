@@ -125,6 +125,9 @@ Structure:
 .form-horizontal:not(#view .form-horizontal) .form-group {
     margin: .6rem 0;
 }
+.form-horizontal.tight:not(#view .form-horizontal) .form-group {
+    margin: .2rem 0;
+}
 .form-horizontal:not(#view .form-horizontal) .form-label {
     padding: .2rem 0;
     color: var(--color-fg-dimmed2);
@@ -265,8 +268,7 @@ h2 {
 .ql-snow.ql-toolbar .ql-id-anchor-picker .ql-picker-options {
     transform: translateX(-7rem);
 }
-
-.ql-snow.ql-toolbar button.ql-id-anchor:after {
+.ql-snow.ql-toolbar .ql-id-anchor:after {
     color: currentColor;
     content: "#";
     font-size: 16px;

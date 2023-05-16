@@ -28,6 +28,34 @@ stringBundles.push({
     'Common': 'Common',
     'Specialized': 'Specialized',
     'Unique reusables': 'Uniques reusables',
+    // edit-app/src/left-column/block/defaultStyleVars.js
+    // Common
+    'Padding top': 'Padding top',
+    'Padding right': 'Padding right',
+    'Padding bottom': 'Padding bottom',
+    'Padding left': 'Padding left',
+    // Menu
+    'List style type': 'List style type',
+    'Items width': 'Items width',
+    // Button
+    'Background normal': 'Background normal',
+    'Background hover': 'Background hover',
+    'Text': 'Text',
+    'Text hover': 'Text hover',
+    'Border': 'Border',
+    'Border hover': 'Border hover',
+    'Text transform': 'Text transform',
+    // Columns
+    'Gap': 'Gap',
+    'Align items': 'Align items',
+    // Image
+    'Align': 'Align',
+    'Min height': 'Min height',
+    'Max height': 'Max height',
+    'Display': 'Display',
+    // Section
+    'Max width': 'Max width',
+    'Cover': 'Cover',
     // edit-app/src/left-column/block/BlockStylesTab.jsx
     'Use style': 'Use style',
     'No own styles': 'No own styles',

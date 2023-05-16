@@ -3,54 +3,86 @@ import {varNameToLabel} from '../left-column/block/VisualStyles.jsx';
 
 const vars = new Map;
 
+const createCommonVars = (getDefault = _varName => '0.0') => {
+    return [
+        {varName: 'paddingTop', type: 'length', wrap: '', value: {num: getDefault('paddingTop'), unit: 'rem'},
+            label: varNameToLabel('paddingTop'), args: [], __idx: -1},
+        {varName: 'paddingRight', type: 'length', wrap: '', value: {num: getDefault('paddingRight'), unit: 'rem'},
+            label: varNameToLabel('paddingRight'), args: [], __idx: -1},
+        {varName: 'paddingBottom', type: 'length', wrap: '', value: {num: getDefault('paddingBottom'), unit: 'rem'},
+            label: varNameToLabel('paddingBottom'), args: [], __idx: -1},
+        {varName: 'paddingLeft', type: 'length', wrap: '', value: {num: getDefault('paddingLeft'), unit: 'rem'},
+            label: varNameToLabel('paddingLeft'), args: [], __idx: -1},
+    ];
+};
+
+vars.set('Listing', [
+    ...createCommonVars(),
+    {varName: 'columns', type: 'option', wrap: '', value: {selected: 1},
+        label: varNameToLabel('columns'), args: [1, 2, 3, 4, 5, 6], __idx: -1},
+    {varName: 'gap', type: 'length', wrap: '', value: {num: '1.4', unit: 'rem'},
+        label: varNameToLabel('gap'), args: [], __idx: -1},
+]);
+
+vars.set('Menu', [
+    ...createCommonVars(),
+    {varName: 'listStyleType', type: 'option', wrap: '', value: {selected: 'circle'},
+        label: varNameToLabel('listStyleType'), args: ['none', 'circle', 'decimal', 'disc', 'disclosure-closed', 'disclosure-open', 'square'], __idx: -1},
+    {varName: 'gap', type: 'length', wrap: '', value: {num: '0.2', unit: 'rem'},
+        label: varNameToLabel('gap'), args: [], __idx: -1},
+    {varName: 'itemsWidth', type: 'option', wrap: '', value: {selected: '100%'},
+        label: varNameToLabel('itemsWidth'), args: ['100%', '0%', 1], __idx: -1},
+]);
+
 vars.set('Button', [
-    {type: 'color', wrap: 'background: var(%s);', value: null, varName: 'background', label: varNameToLabel('background'), args: [], __idx: -1},
-    {type: 'color', wrap: '&:hover {\n  background: var(%s);\n}', value: null, varName: 'backgroundHover', label: varNameToLabel('backgroundHover'), args: [], __idx: -1},
-    {type: 'color', wrap: 'color: var(%s);', value: null, varName: 'text', label: varNameToLabel('text'), args: [], __idx: -1},
-    {type: 'color', wrap: '&:hover {\n  color: var(%s);\n}', value: null, varName: 'textHover', label: varNameToLabel('textHover'), args: [], __idx: -1},
-    {type: 'color', wrap: 'border-color: var(%s);', value: null, varName: 'border', label: varNameToLabel('border'), args: [], __idx: -1},
-    {type: 'color', wrap: '&:hover {\n  border-color: var(%s);\n}', value: null, varName: 'borderHover', label: varNameToLabel('borderHover'), args: [], __idx: -1},
-    {type: 'option', wrap: 'text-transform: var(%s);', value: {selected: 'none'}, varName: 'textTransform', label: varNameToLabel('textTransform'), args: ['none', 'uppercase', 'capitalize', 'lowercase'], __idx: -1},
+    ...createCommonVars(varName => varName === 'paddingTop' || varName == 'paddingBottom' ? '0.25' : '0.4'),
+    {varName: 'backgroundNormal', type: 'color', wrap: '', value: null, label: varNameToLabel('backgroundNormal'), args: [], __idx: -1},
+    {varName: 'backgroundHover', type: 'color', wrap: '', value: null, label: varNameToLabel('backgroundHover'), args: [], __idx: -1},
+    {varName: 'text', type: 'color', wrap: '', value: null, label: varNameToLabel('text'), args: [], __idx: -1},
+    {varName: 'textHover', type: 'color', wrap: '', value: null, label: varNameToLabel('textHover'), args: [], __idx: -1},
+    {varName: 'border', type: 'color', wrap: '', value: null, label: varNameToLabel('border'), args: [], __idx: -1},
+    {varName: 'borderHover', type: 'color', wrap: '', value: null, label: varNameToLabel('borderHover'), args: [], __idx: -1},
+    {varName: 'textTransform', type: 'option', wrap: '', value: {selected: 'none'}, label: varNameToLabel('textTransform'), args: ['none', 'uppercase', 'capitalize', 'lowercase'], __idx: -1},
+    {varName: 'radius', type: 'length', wrap: '', value: {num: '2', unit: 'px'}, label: varNameToLabel('radius'), args: [], __idx: -1}
+]);
+
+
+vars.set('Code', [
+    ...createCommonVars(),
 ]);
 
 vars.set('Columns', [
-    {type: 'length', wrap: 'gap: var(%s);', value: {num: '0.4', unit: 'rem'}, varName: 'gap', label: varNameToLabel('gap'),
+    ...createCommonVars(),
+    {varName: 'gap', type: 'length', wrap: '', value: {num: '0.4', unit: 'rem'}, label: varNameToLabel('gap'),
         args: [], __idx: -1},
-    {type: 'option', wrap: 'align-items: var(%s);', value: {selected: 'normal'}, varName: 'alignItems', label: varNameToLabel('alignItems'),
+    {varName: 'alignItems', type: 'option', wrap: '', value: {selected: 'normal'}, label: varNameToLabel('alignItems'),
         args: ['normal', 'start', 'center', 'end', 'stretch', 'baseline', 'first baseline', 'last baseline', ], __idx: -1},
 ]);
 
 vars.set('Image', [
-    {type: 'option', wrap: 'float: var(%s);', value: {selected: 'none'}, varName: 'align', label: varNameToLabel('align'), args: ['left', 'none', 'right'], __idx: -1},
-    {type: 'length', wrap: 'min-height: var(%s);', value: null, varName: 'minHeight', label: varNameToLabel('minHeight'), args: [], __idx: -1},
-    {type: 'length', wrap: 'max-height: var(%s);', value: null, varName: 'maxHeight', label: varNameToLabel('maxHeight'), args: [], __idx: -1},
+    ...createCommonVars(),
+    {varName: 'align', type: 'option', wrap: '', value: {selected: 'none'}, label: varNameToLabel('align'),
+        args: ['left', 'none', 'right'], __idx: -1},
+    {varName: 'minHeight', type: 'length', wrap: '', value: null, label: varNameToLabel('minHeight'),
+        args: [], __idx: -1},
+    {varName: 'maxHeight', type: 'length', wrap: '', value: null, label: varNameToLabel('maxHeight'),
+        args: [], __idx: -1},
+    {varName: 'display', type: 'option', wrap: '', value: {selected: 'block'}, label: varNameToLabel('display'),
+        args: ['block', 'inline', 'flex', 'inline-flex', 'inline-block'], __idx: -1},
 ]);
 
 vars.set('Section', [
-    {type: 'length', wrap: '', value: null, varName: 'paddingTop', label: varNameToLabel('paddingTop'), args: [], __idx: -1},
-    {type: 'length', wrap: '', value: null, varName: 'paddingBottom', label: varNameToLabel('paddingBottom'), args: [], __idx: -1},
-    {type: 'length', wrap: 'min-height: var(%s);', value: null, varName: 'minHeight', label: varNameToLabel('minHeight'), args: [], __idx: -1},
-    {type: 'length', wrap: '> div {\n  max-width: var(%s);\n}', value: null, varName: 'maxWidth', label: varNameToLabel('maxWidth'), args: [], __idx: -1},
-    {type: 'color', wrap: [
-        'position: relative;',
-        '&:before {',
-        '  content: "";',
-        '  background-color: var(%s);',
-        '  height: 100%;',
-        '  width: 100%;',
-        '  position: absolute;',
-        '  left: 0;',
-        '}',
-        '> * {',
-        '  position: relative;',
-        '}',
-    ].join('\n'), value: null, varName: 'backgroundCover', label: varNameToLabel('backgroundCover'), args: [], __idx: -1},
+    ...createCommonVars(_varName => '2.0'),
+    {varName: 'minHeight', type: 'length', wrap: '', value: null, label: varNameToLabel('minHeight'), args: [], __idx: -1},
+    {varName: 'maxWidth', type: 'length', wrap: '', value: null, label: varNameToLabel('maxWidth'), args: [], __idx: -1},
+    {varName: 'cover', type: 'color', wrap: '', value: null, label: varNameToLabel('cover'), args: [], __idx: -1},
 ]);
 
 vars.set('Text', [
-    {type: 'option', wrap: 'text-align: var(%s);', value: {selected: 'left'}, varName: 'align', label: varNameToLabel('align'),
-        args: ['start', 'end', 'left', 'right', 'center', 'justify', 'justify', 'justify-all', 'match-parent'], __idx: -1},
-    {type: 'option', wrap: 'text-transform: var(%s);', value: {selected: 'none'}, varName: 'textTransform', label: varNameToLabel('textTransform'),
+    ...createCommonVars(),
+    {varName: 'align', type: 'option', wrap: '', value: {selected: 'left'}, label: varNameToLabel('align'),
+        args: ['left', 'center', 'right', 'justify', 'justify-all', 'match-parent'], __idx: -1},
+    {varName: 'textTransform', type: 'option', wrap: '', value: {selected: 'none'}, label: varNameToLabel('textTransform'),
         args: ['none', 'uppercase', 'capitalize', 'lowercase'], __idx: -1},
 ]);
 

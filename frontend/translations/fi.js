@@ -28,6 +28,34 @@ stringBundles.push({
     'Common': 'Yleiset',
     'Specialized': 'Erikoistuneet',
     'Unique reusables': 'Uniikit uudelleenkäytettävät',
+    // edit-app/src/left-column/block/defaultStyleVars.js
+    // Common
+    'Padding top': 'Täyte ylä',
+    'Padding right': 'Täyte oikea',
+    'Padding bottom': 'Täyte ala',
+    'Padding left': 'Täyte vasen',
+    // Menu
+    'List style type': 'Listaustyyppi',
+    'Items width': 'Leveys linkit',
+    // Button
+    'Background normal': 'Tausta normaali',
+    'Background hover': 'Tausta hover',
+    'Text': 'Teksti',
+    'Text hover': 'Teksti hover',
+    'Border': 'Reunus',
+    'Border hover': 'Reunus hover',
+    'Text transform': 'Teksti muunnos',
+    // Columns
+    'Gap': 'Gäppi',
+    'Align items': 'Tasaus pystysuunta',
+    // Image
+    'Align': 'Tasaus',
+    'Min height': 'Minimikorkeus',
+    'Max height': 'Maksimikorkeus',
+    'Display': 'Näytä',
+    // Section
+    'Max width': 'Maksimileveys', // 'Max width',
+    'Cover': 'Taustapeitto', // 'Cover',
     // edit-app/src/left-column/block/BlockStylesTab.jsx
     'Use style': 'Käytä tyyliä',
     'No own styles': 'Ei omia tyylejä',

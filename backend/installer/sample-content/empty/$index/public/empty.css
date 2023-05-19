@@ -1,6 +1,10 @@
 @charset "utf-8";
 
 @layer theme {
+
+html {
+    text-rendering: optimizeLegibility;
+}
 figure {
     margin: 0;
 }
@@ -9,7 +13,31 @@ img {
     object-fit: cover;
 }
 
+/**/
 
+.ql-size-small {
+    font-size: .8em;
+}
+.ql-size-large {
+    font-size: 1.4em;
+}
+.ql-size-huge {
+    font-size: 2em;
+}
+li.ql-indent-1 {
+    margin-left: 1.8rem;
+    list-style-type: circle;
+}
+li.ql-indent-2 {
+    margin-left: 3.2rem;
+    list-style-type: square;
+}
+li.ql-indent-3 {
+    margin-left: 4.4rem;
+    list-style-type: square;
+}
+
+/**/
 
 .j-Columns {
     display: grid;
@@ -31,12 +59,144 @@ img {
 .num-cols-11 { grid-template-columns: repeat(11, minmax(0, 1fr)); }
 .num-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
 
-
 .j-Menu ul {
     list-style: none;
     margin: 0;
 }
 .j-Menu li {
     margin: 0;
+}
+
+/**/
+
+[class^="j-"] {
+    --paddingTop: initial;
+    --paddingRight: initial;
+    --paddingBottom: initial;
+    --paddingLeft: initial;
+}
+.j-Listing {
+    --gap: 1.4rem;
+    --columns: 1;
+    padding-top: var(--paddingTop);
+    padding-right: var(--paddingRight);
+    padding-bottom: var(--paddingBottom);
+    padding-left: var(--paddingLeft);
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: repeat(var(--columns), minmax(0, 100%));
+}
+.j-Menu {
+    --listStyleType: none;
+    --gap: 0.2rem;
+    --itemsWidth: 100%;
+    padding-top: var(--paddingTop);
+    padding-right: var(--paddingRight);
+    padding-bottom: var(--paddingBottom);
+    padding-left: var(--paddingLeft);
+}
+.j-Menu ul {
+    list-style-type: var(--listStyleType);
+    display: flex;
+    gap: var(--gap);
+    flex-wrap: wrap;
+}
+.j-Menu ul li {
+    flex: 0 0 var(--itemsWidth);
+}
+.j-Button {
+    --paddingTop: 0.25rem;
+    --paddingRight: 0.4rem;
+    --paddingBottom: 0.25rem;
+    --paddingLeft: 0.4rem;
+    --backgroundNormal: initial;
+    --backgroundHover: initial;
+    --text: initial;
+    --textHover: initial;
+    --border: initial;
+    --borderHover: initial;
+    --textTransform: initial;
+    --radius: initial;
+    height: initial;
+    padding-top: var(--paddingTop);
+    padding-right: var(--paddingRight);
+    padding-bottom: var(--paddingBottom);
+    padding-left: var(--paddingLeft);
+    background: var(--backgroundNormal);
+    color: var(--text);
+    border-color: var(--border);
+    text-transform: var(--textTransform);
+    border-radius: var(--radius);
+}
+.j-Button:hover {
+    background: var(--backgroundHover);
+    color: var(--textHover);
+    border-color: var(--borderHover);
+}
+.j-Code {
+    padding-top: var(--paddingTop);
+    padding-right: var(--paddingRight);
+    padding-bottom: var(--paddingBottom);
+    padding-left: var(--paddingLeft);
+}
+.j-Columns {
+    --gap: 0.4rem;
+    --alignItems: 'normal';
+    padding-top: var(--paddingTop);
+    padding-right: var(--paddingRight);
+    padding-bottom: var(--paddingBottom);
+    padding-left: var(--paddingLeft);
+    gap: var(--gap);
+    align-items: var(--alignItems);
+}
+.j-Image {
+    --align: initial;
+    --minHeight: initial;
+    --maxHeight: initial;
+    --display: initial;
+    padding-top: var(--paddingTop);
+    padding-right: var(--paddingRight);
+    padding-bottom: var(--paddingBottom);
+    padding-left: var(--paddingLeft);
+    float: var(--align);
+    min-height: var(--minHeight);
+    max-height: var(--maxHeight);
+    display: var(--display);
+}
+.j-Section {
+    --minHeight: initial;
+    --maxWidth: initial;
+    --cover: initial;
+    min-height: var(--minHeight);
+    position: relative;
+}
+.j-Section > div {
+    padding-top: var(--paddingTop);
+    padding-right: var(--paddingRight);
+    padding-bottom: var(--paddingBottom);
+    padding-left: var(--paddingLeft);
+    max-width: var(--maxWidth);
+}
+.j-Section:before {
+    content: "";
+    background-color: var(--cover);
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+.j-Section > * {
+    position: relative;
+}
+.j-Text {
+    --align: unset;
+    --textTransform: unset;
+    padding-top: var(--paddingTop);
+    padding-right: var(--paddingRight);
+    padding-bottom: var(--paddingBottom);
+    padding-left: var(--paddingLeft);
+    text-align: var(--align);
+    text-transform: var(--textTransform);
 }
 }

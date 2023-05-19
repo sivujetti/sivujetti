@@ -153,5 +153,5 @@ return [
     `startedAt` {$dataTypeForTimestamps}
 )",
 
-"INSERT INTO `\${p}jobs` VALUES (1,'update-core',0)",
+"INSERT INTO `\${p}jobs` VALUES (1,'update-core',0),(2,'update-plugin',0)",
 ];

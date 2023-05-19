@@ -6,17 +6,20 @@ use Pike\{Request, Response};
 
 final class UpdatesController {
     /**
-     * PUT /api/update/core: tries to update Sivujetti from App::VERSION to
-     * $req->body->toVersion.
+     * PUT /api/update/core|some-plugin: tries to update Sivujetti or plugin from
+     * App::VERSION to $req->body->toVersion.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\Update\Updater $updater
      */
-    public function tryToUpdateCore(Request $req,
-                                    Response $res,
-                                    Updater $updater): void {
-        $code = $updater->updateCore($req->body->toVersion ?? "<none-provided>");
+    public function tryToUpdate(Request $req,
+                                Response $res,
+                                Updater $updater): void {
+        $toVersion = $req->body->toVersion ?? "<none-provided>";
+        $code = $req->params->what === "core"
+            ? $updater->updateCore($toVersion)
+            : $updater->updatePlugin($req->params->what, $toVersion);
         if ($code === Updater::RESULT_BAD_INPUT) {
             $res->status(400)->json([$updater->getLastError()]);
         } elseif ($code === Updater::RESULT_ALREADY_IN_PROGRESS ||

@@ -83,7 +83,7 @@ final class Controller {
         echo "Ok, created release to `{$outDirPath}`";
     }
     /**
-     * `php cli.php create-patch to-zip <relPatchContentsMapFile> <secretKey>`: Creates
+     * `php cli.php create-patch to-zip <relPatchContentsMapFile> <secretKey> <sourcePath>`: Creates
      * a patch zip file (that can be used by the updater), writes it to SIVUJETTI_BACKEND_PATH .
      * "<currentVersion>-patch.zip", and its signature to SIVUJETTI_BACKEND_PATH .
      * "<currentVersion>-patch.sig.txt".
@@ -95,7 +95,12 @@ final class Controller {
                                     FileSystem $fs,
                                     Signer $signer): void {
         $key = self::getSigningKeyAsBin($req->params->signingKey, $signer);
-        $outFilePath = SIVUJETTI_BACKEND_PATH . "sivujetti-" . App::VERSION . "-patch.zip";
+        $pcs = explode("_", $req->params->relPatchContentsMapFile);
+        if (count($pcs) !== 2) throw new PikeException("relPatchContentsMapFile must be formatted as patch-target-patchname.json");
+        ValidationUtils::checkIfValidaPathOrThrow($pcs[0], true);
+        $outFilePath = SIVUJETTI_BACKEND_PATH . "{$pcs[0]}-" . App::VERSION . ".zip";
+        if ($req->params->sourcePath !== "-")
+            $bundler->setSourceDir(urldecode($req->params->sourcePath));
         $zipContents = $bundler->makePatch($toPackage, $outFilePath, $req->params->relPatchContentsMapFile, true);
         $sigFilePath = "{$outFilePath}.sig.txt";
         $this->writeSignatureFile($sigFilePath, $zipContents, $key, $signer, $fs);

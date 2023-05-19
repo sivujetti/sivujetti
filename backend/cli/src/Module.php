@@ -23,7 +23,7 @@ final class Module {
         $router->map("PSEUDO:CLI", "/create-release/to-local-dir",
             [Controller::class, "createGithubRelease"]
         );
-        $router->map("PSEUDO:CLI", "/create-patch/to-zip/[*:relPatchContentsMapFile]/[*:signingKey]",
+        $router->map("PSEUDO:CLI", "/create-patch/to-zip/[*:relPatchContentsMapFile]/[*:signingKey]/[*:sourcePath]",
             [Controller::class, "createZipPatch"]
         );
         $router->map("PSEUDO:CLI", "/print-acl-rules",

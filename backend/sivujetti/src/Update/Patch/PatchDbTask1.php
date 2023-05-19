@@ -31,7 +31,6 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
         $this->logFn = function ($str) { /**/ };
     }
     /**
-     * 
      */
     public function exec(): void {
         if ($this->doSkip) return;
@@ -41,9 +40,11 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
         $pages = $this->db->select("\${p}Pages", "stdClass")->fields(["blocks as blocksJson", "id"])->fetchAll();
         $gbts = $this->db->select("\${p}globalBlockTrees", "stdClass")->fields(["blocks as blocksJson", "id"])->fetchAll();
         $reusables = $this->db->select("\${p}reusableBranches", "stdClass")->fields(["blockBlueprints as blockBlueprintsJson", "id"])->fetchAll();
+        $pageTypes = $this->db->select("\${p}pageTypes", "stdClass")->fields(["fields as fieldsJson", "id"])->fetchAll();
         $this->patchPagesOrGbts($gbts, "globalBlockTrees");
         $this->patchPagesOrGbts($pages, "Pages");
         $this->patchReusables($reusables);
+        $this->patchPageTypes($pageTypes);
 
         $this->db->insert("\${p}jobs")->values((object) [
             "id" => 2,
@@ -56,13 +57,11 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
         $this->updateVersionId();
     }
     /**
-     * 
      */
     public function rollBack(): void {
         // Can't rollBack
     }
     /**
-     * 
      */
     private function migrateTheWebsiteTable(): void {
         $db = $this->db->getDb();
@@ -90,7 +89,6 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
         }
     }
     /**
-     *
      */
     private function patchPagesOrGbts(array $entities, string $tableName): void {
         foreach ($entities as $entity) {
@@ -104,14 +102,13 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
             if ($entity->blocksJson !== $bef) {
                 $numRows = $this->db->update("\${p}{$tableName}")
                     ->values((object)["blocks" => $entity->blocksJson])
-                    ->where("id=?", [$entity->id])
+                    ->where("id = ?", [$entity->id])
                     ->execute();
                 $this->logFn->__invoke("updated {$tableName} `{$entity->id}`: {$numRows} rows changed");
             }
         }
     }
     /**
-     * 
      */
     private function patchReusables(array $reusables): void {
         foreach ($reusables as $reusable) {
@@ -125,14 +122,33 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
             if ($reusable->blockBlueprintsJson !== $bef) {
                 $numRows = $this->db->update("\${p}reusableBranches")
                     ->values((object)["blockBlueprints" => $reusable->blockBlueprintsJson])
-                    ->where("id=?", [$reusable->id])
+                    ->where("id = ?", [$reusable->id])
                     ->execute();
                 $this->logFn->__invoke("updated reusable `{$reusable->id}`: {$numRows} rows changed");
             }
         }
     }
     /**
-     *
+     */
+    private function patchPageTypes(array $pageTypes): void {
+        foreach ($pageTypes as $pageType) {
+            $bef = $pageType->fieldsJson;
+            $obj = JsonUtils::parse($bef);
+            BlockTree::traverse($obj->blockFields, function ($itm) {
+                if ($itm->type === "Image" && !is_string($itm->initialData->altText ?? null))
+                    $itm->initialData->altText = ""; // Mutates $obj->blockFields[*]
+            });
+            $pageType->fieldsJson = JsonUtils::stringify($obj);
+            if ($pageType->fieldsJson !== $bef) {
+                $numRows = $this->db->update("\${p}pageTypes")
+                    ->values((object)["fields" => $pageType->fieldsJson])
+                    ->where("id = ?", [$pageType->id])
+                    ->execute();
+                $this->logFn->__invoke("updated pageTypes `{$pageType->id}`: {$numRows} rows changed");
+            }
+        }
+    }
+    /**
      */
     private function patchThemeStyles(): void {
         $styles = $this->db->select("\${p}themeStyles", "stdClass")
@@ -151,14 +167,13 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
             if ($style->unitsJson !== $bef) {
                 $numRows = $this->db->update("\${p}themeStyles")
                     ->values((object)["units" => $style->unitsJson])
-                    ->where("themeId=? AND blockTypeName=?", [$style->themeId, $style->blockTypeName])
+                    ->where("themeid = ? AND blockTypeName=?", [$style->themeId, $style->blockTypeName])
                     ->execute();
                 $this->logFn->__invoke("updated themeStyles `{$style->themeId}:{$style->blockTypeName}`: {$numRows} rows changed");
             }
         }
     }
     /**
-     *
      */
     private function updateVersionId(): void {
         $this->db->update("\${p}theWebsite")
@@ -167,7 +182,6 @@ final class PatchDbTask1 implements UpdateProcessTaskInterface {
             ->execute();
     }
     /**
-     * 
      */
     private static function traverseReusables(array $reusables, \Closure $fn): void {
         foreach ($reusables as $reusable) {

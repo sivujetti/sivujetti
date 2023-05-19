@@ -30,16 +30,22 @@ final class Bundler {
     private string $backendDirPath;
     /** @var string SIVUJETTI_INDEX_PATH */
     private string $indexDirPath;
+    /** @var ?string Example "/Applications/MAMP/htdocs/sivujetti/backend/sivujetti-0.14.0-dev-tmp/final/backend/" */
+    private ?string $sourceBackendDirPath;
+    /** @var ?string Example "/Applications/MAMP/htdocs/sivujetti/backend/sivujetti-0.14.0-dev-tmp/final/ */
+    private ?string $sourceIndexDirPath;
     /** @var string SIVUJETTI_BACKEND_PATH . "bundler-temp" */
     private string $tempDirForComposerInstall;
     /** @var string SIVUJETTI_INDEX_PATH . "public/bundler-temp/public/sivujetti" */
     private string $tempDirForNpmBuild;
     /**
      * @param \Sivujetti\FileSystem $fs
+     * @param ?string $sourcePath = null Example: "/Applications/MAMP/htdocs/sivujetti/backend/sivujetti-0.14.0-dev-tmp/final/"
      * @param ?callable $printFn = function ($msg) { echo $msg . PHP_EOL; }
      * @param ?callable $shellExecFn = function ($cmd) { return shell_exec($cmd); }
      */
     public function __construct(FileSystem $fs,
+                                ?string $sourcePath = null,
                                 ?callable $printFn = null,
                                 ?callable $shellExecFn = null) {
         $this->fs = $fs;
@@ -47,6 +53,12 @@ final class Bundler {
         $this->shellExecFn = $shellExecFn instanceof \Closure ? $shellExecFn : \Closure::fromCallable("shell_exec");
         $this->backendDirPath = SIVUJETTI_BACKEND_PATH;
         $this->indexDirPath = SIVUJETTI_INDEX_PATH;
+        if (!$sourcePath) {
+            $this->sourceBackendDirPath = null;
+            $this->sourceIndexDirPath = null;
+        } else {
+            $this->setSourceDir($sourcePath);
+        }
         $this->tempDirForComposerInstall = "{$this->backendDirPath}bundler-temp";
         $this->tempDirForNpmBuild = "{$this->indexDirPath}public/bundler-temp/public/sivujetti";
     }
@@ -60,6 +72,8 @@ final class Bundler {
                                 string $fileOrDirPath,
                                 bool $allowOverWrite = false,
                                 int $resultFlags = 0): string {
+        if ($this->sourceBackendDirPath || $this->sourceIndexDirPath)
+            throw new \RuntimeException("Not supported yet.");
         $this->destryPreviousTargetOrThrow($to, $fileOrDirPath, $allowOverWrite);
         $to->open($fileOrDirPath, true);
         //
@@ -95,14 +109,29 @@ final class Bundler {
         $this->destryPreviousTargetOrThrow($to, $fileOrDirPath, $allowOverWrite);
         $to->open($fileOrDirPath, true);
         //
-        $backendRelatedFileGroups = [new FileGroup($this->backendDirPath, $map->backendFiles ?? [], PackageStreamInterface::FILE_NS_BACKEND)];
-        $publicRelatedFileGroups = [new FileGroup($this->indexDirPath, $map->indexFiles ?? [], PackageStreamInterface::FILE_NS_INDEX)];
+        $backendRelatedFileGroups = [new FileGroup(
+            $this->sourceBackendDirPath ?? $this->backendDirPath,
+            $map->backendFiles ?? [],
+            PackageStreamInterface::FILE_NS_BACKEND)
+        ];
+        $publicRelatedFileGroups = [new FileGroup(
+            $this->sourceIndexDirPath ?? $this->indexDirPath,
+            $map->indexFiles ?? [],
+            PackageStreamInterface::FILE_NS_INDEX)
+        ];
         //
         $this->writeFiles($backendRelatedFileGroups, "backend", $to);
         $this->writeFiles($publicRelatedFileGroups, "index", $to);
         //
         $contents = $to->getResult($resultFlags);
         return $contents;
+    }
+    /**
+     * @param ?string $sourcePath = null
+     */
+    public function setSourceDir(string $relDirPath): void {
+        $this->sourceBackendDirPath = "{$relDirPath}backend/";// "{$this->backendDirPath}{$relDirPath}backend/";
+        $this->sourceIndexDirPath = "{$relDirPath}";// "{$this->backendDirPath}{$relDirPath}";
     }
     /**
      * @see $this->makeRelease()

@@ -24,7 +24,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         parent::setUp();
         $this->fs = new FileSystem;
         $this->sitePackage = new LocalDirPackage($this->fs);
-        $this->sitePackage->open(SIVUJETTI_BACKEND_PATH . "installer/sample-content/basic-site");
+        $this->sitePackage->open(SIVUJETTI_BACKEND_PATH . "installer/sample-content/empty");
     }
     protected function tearDown(): void {
         parent::tearDown();
@@ -100,7 +100,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
     private function invokeInstallFromDirFeature(\TestState $state): void {
         $tail = implode("/", array_map("urlencode", $state->inputArgs));
         $state->spyingResponse = $state->installerApp->sendRequest(
-            new Request("/install-from-dir/basic-site/{$tail}", "PSEUDO:CLI"));
+            new Request("/install-from-dir/empty/{$tail}", "PSEUDO:CLI"));
     }
     private function verifyFeatureFinishedSuccesfully(\TestState $state): void {
         $this->verifyResponseMetaEquals(200, "application/json", $state->spyingResponse);
@@ -142,7 +142,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->assertTrue($actual["accountCreatedAt"] > time() - 20);
     }
     private function verifyCopiedDefaultSiteFiles(\TestState $state): void {
-        $a = fn($str) => SIVUJETTI_BACKEND_PATH . "installer/sample-content/basic-site/\$backend/site/{$str}";
+        $a = fn($str) => SIVUJETTI_BACKEND_PATH . "installer/sample-content/empty/\$backend/site/{$str}";
         $b = fn($str) => "{$state->getTargetSitePath->__invoke()}{$str}";
         $this->assertFileEquals($a("Site.php"), $b("Site.php"));
         $this->assertFileEquals($a("Theme.php"), $b("Theme.php"));
@@ -177,7 +177,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         );
     }
     private function assertCopiedTheseFiles(\TestState $state, array $filesList, string $into = "site"): void {
-        $a = fn($str) => SIVUJETTI_BACKEND_PATH . "installer/sample-content/basic-site/{$str}";
+        $a = fn($str) => SIVUJETTI_BACKEND_PATH . "installer/sample-content/empty/{$str}";
         $where = $state->getTargetSitePath->__invoke($into);
         $where = $into !== "index" ? (dirname($where) . "/") : $where;
         $b = fn($str) => "{$where}{$str}";

@@ -104,6 +104,7 @@ return [
     "\$backend/sivujetti/src/UserPlugin/UserPluginInterface.php",
     "\$backend/sivujetti/src/UserPlugin/UserPluginAPI.php",
     "\$backend/sivujetti/src/Plugin/Entities/Plugin.php",
+    "\$backend/sivujetti/src/LogUtils.php",
     "\$backend/sivujetti/src/UserSite/UserSiteInterface.php",
     "\$backend/sivujetti/src/UserSite/UserSiteAPI.php",
     "\$backend/sivujetti/src/Theme/ThemesModule.php",

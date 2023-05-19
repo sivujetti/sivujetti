@@ -57,7 +57,7 @@ final class UpdateCoreTest extends DbTestCase {
         $outFilePath = self::CMS_CLONE_BACKEND_PATH . "/sivujetti-{$state->inputData->toVersion}.zip";
         $fs = new FileSystem;
         $pkg = new ZipPackageStream($fs);
-        (new Bundler($fs, function () { }))->makeRelease($pkg, $outFilePath, true);
+        (new Bundler($fs, printFn: function () { }))->makeRelease($pkg, $outFilePath, true);
     }
     private function makeUpdateTestApp(\TestState $state): void {
         $this->makeTestSivujettiApp($state, function (TestEnvBootstrapper $bootModule) {
@@ -133,7 +133,7 @@ final class UpdateCoreTest extends DbTestCase {
             "indexFiles" => []
         ]));
         $patchMapFileName = substr(self::TEST_PATCH_MAP_FILE_PATH, strrpos(self::TEST_PATCH_MAP_FILE_PATH, "/") + 1);
-        (new Bundler($fs, function () { }))->makePatch($pkg, $outFilePath, $patchMapFileName);
+        (new Bundler($fs, printFn: function () { }))->makePatch($pkg, $outFilePath, $patchMapFileName);
     }
     private function verifyWrotePatchFiles(\TestState $state): void {
         $this->assertStringEqualsFile(self::TEST_PATCH_CLS_FILE_PATH,

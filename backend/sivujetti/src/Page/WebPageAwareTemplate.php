@@ -191,6 +191,12 @@ final class WebPageAwareTemplate extends Template {
         return BlockTree::findBlock($branch, $predicate);
     }
     /**
+     * @see \Sivujetti\Block\BlockTree::findBlockAndTree()
+     */
+    public function findBlockAndTree(array $branch, callable $predicate): array {
+        return BlockTree::findBlockAndTree($branch, $predicate);
+    }
+    /**
      * @param ?\Sivujetti\Page\Entities\Page $page = null
      * @param ?\Sivujetti\TheWebsite\Entities\TheWebsite $site = null
      * @return string

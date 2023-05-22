@@ -27,14 +27,26 @@ final class BlockTree {
      * @return ?BlockCls
      */
     public static function findBlock(array $branch, callable $predicate): ?object {
+        return self::findBlockAndTree($branch, $predicate)[0];
+    }
+    /**
+     * @param BlockCls[] $blocks
+     * @param callable $predicate callable(BlockCls $block): bool
+     * @param ?object{id: string, blocks: BlockCls[]} $tree = null
+     * @return array{0: BlockCls|null, 1: object{id: string, blocks: BlockCls[]}}
+     */
+    public static function findBlockAndTree(array $branch, callable $predicate, ?object $tree = null): array {
         foreach ($branch as $block) {
-            if (call_user_func($predicate, $block)) return $block;
-            if ($block->children) {
-                $c = self::findBlock($block->children, $predicate);
-                if ($c) return $c;
+            if (call_user_func($predicate, $block))
+                return [$block, $tree ?? (object) ["id" => "main", "blocks" => $branch]];
+            $sub = $block->type !== "GlobalBlockReference" ? $block->children : $block->__globalBlockTree?->blocks ?? [];
+            if ($sub) {
+                $tree2 = $block->type !== "GlobalBlockReference" ? $tree ?? (object) ["id" => "main", "blocks" => $branch] : $block->__globalBlockTree;
+                $pair = self::findBlockAndTree($sub, $predicate, $tree2);
+                if ($pair[0]) return $pair;
             }
         }
-        return null;
+        return [null, $tree ?? (object) ["id" => "main", "blocks" => $branch]];
     }
     /**
      * @param BlockCls[] $blocks

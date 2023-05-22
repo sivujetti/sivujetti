@@ -189,7 +189,7 @@ class CurrentUrlDisplay extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        if (this.doShowJumpTo(this.props.mode))
+        if (this.doShowJumpTo(this.props.mode, this.props.url))
             this.hookFormState();
     }
     /**
@@ -198,7 +198,7 @@ class CurrentUrlDisplay extends preact.Component {
      */
     componentWillReceiveProps(props) {
         const a = this.state.values;
-        const b = this.doShowJumpTo(props.mode);
+        const b = this.doShowJumpTo(props.mode, props.url);
         if (a && !b) {
             unhookForm(this);
             this.setState({values: null});
@@ -267,11 +267,13 @@ class CurrentUrlDisplay extends preact.Component {
         ]));
     }
     /**
+     * @param {urlMode} mode
+     * @param {String} url
      * @returns {Boolean}
      * @access private
      */
-    doShowJumpTo(mode) {
-        return ['pick-url', 'type-external-url'].indexOf(mode) > -1;
+    doShowJumpTo(mode, url) {
+        return mode === 'pick-url' || (mode === 'type-external-url' && url.startsWith('http'));
     }
 }
 
@@ -362,14 +364,16 @@ class DefineExternalUrlTab extends preact.Component {
     render({done}) {
         const e = hasErrors(this);
         return [
-            <Input vm={ this } prop="url" placeholder={ __('website.com') } onKeyDown={ e => {
-                if (e.key === 'Enter' && !this.enterPressedAt) this.enterPressedAt = Date.now();
-            } } onKeyUp={ e => {
-                if (!this.enterPressedAt || e.key !== 'Enter') return;
-                if ((Date.now() - this.enterPressedAt) < 100) this.props.done(e !== true);
-                else this.enterPressedAt = null;
-            } } style="width: calc(100% - 1rem);" ref={ this.nameInput }/>,
-            <InputErrors vm={ this } prop="url"/>,
+            <div>
+                <Input vm={ this } prop="url" placeholder={ __('website.com') } onKeyDown={ e => {
+                    if (e.key === 'Enter' && !this.enterPressedAt) this.enterPressedAt = Date.now();
+                } } onKeyUp={ e => {
+                    if (!this.enterPressedAt || e.key !== 'Enter') return;
+                    if ((Date.now() - this.enterPressedAt) < 100) this.props.done(e !== true);
+                    else this.enterPressedAt = null;
+                } } style="width: calc(100% - 1rem);" ref={ this.nameInput }/>
+                <InputErrors vm={ this } prop="url"/>
+            </div>,
             <button class="btn btn-primary btn-sm mt-2 px-2" disabled={ e } onClick={ () => done(e !== true) }>Ok</button>,
             <button class="btn btn-sm btn-link mt-2 ml-1" onClick={ () => done(false) }>{ __('Cancel') }</button>
         ];

@@ -102,12 +102,14 @@ function hoistImports(ast) {
 function completeBgUrls(mutAst) {
     traverse(mutAst, node => {
         if (!(node.type === 'decl' &&
-            (node.props === 'background' || node.props === 'background-image') &&
-            node.value.indexOf('url(') > -1))
+            (node.props === 'background' || node.props === 'background-image')))
+            return;
+        const at = node.value.indexOf('url(');
+        if (at < 0)
             return;
 
-        const noFn = node.value.substring(`${node.props}:url(`.length); // ` "/foo");`
-        const noWhite = noFn.trimLeft(); // ` "/foo");` -> `"/foo");`
+        const noFn = node.value.slice(at + 'url('.length); // ` "/foo") maybe something;`
+        const noWhite = noFn.trimLeft(); // ` "/foo") maybe something;` -> `"/foo") maybe something;`
         const wsLen = noFn.length - noWhite.length;
         const s1 = noFn[wsLen];
         const s = s1 === '"' || s1 === '\'' ? s1 : '';
@@ -120,7 +122,7 @@ function completeBgUrls(mutAst) {
 /**
  * Example: `public/uploads/foo.png` -> `/my-dir/public/uploads/foo.png`
  *
- * @param {String} urlNormalized `"/foo`, `'/foo` or `/foo`
+ * @param {String} urlNormalized `"/foo maybe something`, `'/foo maybe something` or `/foo maybe something`
  * @param {String} s `"`, `'` or ``
  * @returns {String|null} String = completed url, null = wasn't local url
  */

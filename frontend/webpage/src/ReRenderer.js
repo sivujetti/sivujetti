@@ -263,8 +263,15 @@ class ReRenderer {
      */
     updateBlocksStyleClasses(blockId, newStyleClasses) {
         const withNewClsClone = extractRendered(getBlockEl(blockId));
-        const blockTypeName = withNewClsClone.className.split(' ')[0]; // 'j-Something custom1' -> 'j-Something'
-        withNewClsClone.className = blockTypeName + (newStyleClasses ? ` ${newStyleClasses}` : '');
+        const current = withNewClsClone.className.split(' ');
+        const unitStart = `${current[0]}-unit-`; // 'j-Something-unit-'
+        const defaultUnitStart = `no-${unitStart}`;
+        const nonUnit = current.filter(cls => !cls.startsWith(unitStart) && !cls.startsWith(defaultUnitStart));
+        withNewClsClone.className = [
+            ...nonUnit.slice(0, 1), // j-Something
+            ...(newStyleClasses ? newStyleClasses.split(' ') : []),
+            ...nonUnit.slice(1)     // all except j-Something
+        ].join(' ');
         this.elCache.get(blockId).push(withNewClsClone);
     }
 }

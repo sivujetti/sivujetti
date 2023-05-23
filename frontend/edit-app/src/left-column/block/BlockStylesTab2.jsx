@@ -2,8 +2,8 @@ import {__, env, timingUtils, api} from '@sivujetti-commons-for-edit-app';
 import {isRemote} from '../../block-styles/commons.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import {addSpecializedStyleUnit, blockHasStyle, findBlockTypeStyles, isSpecialUnit,
-        removeStyleUnit, tempHack, updateAndEmitUnitScss, normalizeScss,
-        findParentStyleInfo, goToStyle, findRealUnit} from './BlockStylesTab.jsx';
+        removeStyleUnit, tempHack, updateAndEmitUnitScss, findParentStyleInfo,
+        goToStyle, findRealUnit} from './BlockStylesTab.jsx';
 import VisualStyles, {createSelector, createUnitClass, replaceVarValue, valueEditors} from './VisualStyles.jsx';
 
 const {serialize, stringify} = window.stylis;
@@ -11,6 +11,7 @@ const {serialize, stringify} = window.stylis;
 class BlockStylesTab2 extends preact.Component {
     // unregistrables;
     // blockCopy;
+    // currentVars;
     // parentStyleInfo;
     // debouncedEmitVarValueChange;
     /**
@@ -62,7 +63,8 @@ class BlockStylesTab2 extends preact.Component {
         this.blockCopy = props.getBlockCopy();
         if (updateParentStyleInfo) this.parentStyleInfo = findParentStyleInfo(themeStyles, this.blockCopy);
         //
-        const varBundles = this.createCompositeVars(units, props, themeStyles);
+        const [varBundles, extractedVarGroups] = this.createCompositeVars(units, props, themeStyles);
+        this.currentVars = extractedVarGroups;
         this.debouncedEmitVarValueChange = timingUtils.debounce(
             this.emitVarValueChange.bind(this),
             env.normalTypingDebounceMillis
@@ -89,17 +91,14 @@ class BlockStylesTab2 extends preact.Component {
      */
     addScss(newValAsString, vb) {
         const le = '\n'; // ??
-        const unit = this.state.units.find(({id}) => id === this.props.blockId); // ??
+        const unit = this.state.units.find(({id}) => id === this.props.blockId);
         const createSpecialScss = v => {
+            if (v.wrap) throw new Error('Deprecated');
             const vn = `--${v.varName}`;
-            return [...[
-                '// @exportAs(', v.type, ')', le,
+            return [
+                '// @placeholder()', le,
                 `${vn}: ${newValAsString};`
-            ], ...(
-                !v.wrap ? [] : [
-                    le, normalizeScss(v.wrap.replace(/%s/g, vn))
-                ]
-            )];
+            ];
         };
         if (unit) {
             const unitCopy = Object.assign({}, unit);
@@ -108,7 +107,9 @@ class BlockStylesTab2 extends preact.Component {
                     ...[unitCopy.scss, le],
                     ...createSpecialScss(vb.v)
                 ].join('');
-                const newAst = VisualStyles.extractVars(newScss, unit.id, 'attr')[1];
+                const newAst = VisualStyles.extractVars(newScss, unit.id, 'attr', vname =>
+                    this.findVar(vname, this.currentVars)
+                )[1];
                 return {newScss, newGenerated: serialize(newAst, stringify)};
             }, this.state.currentBlockType);
         } else {
@@ -137,7 +138,9 @@ class BlockStylesTab2 extends preact.Component {
         if (lines.length)
             updateAndEmitUnitScss(unitCopy, unitCopy => {
                 const n = lines.join('\n');
-                const newAst = VisualStyles.extractVars(n, unitCopy.id, 'attr')[1];
+                const newAst = VisualStyles.extractVars(n, unitCopy.id, 'attr', vname =>
+                    this.findVar(vname, this.currentVars)
+                )[1];
                 return {newScss: n,
                         newGenerated: serialize(newAst, stringify)};
             }, this.state.currentBlockType);
@@ -217,7 +220,8 @@ class BlockStylesTab2 extends preact.Component {
     /**
      * @param {Array<ThemeStyleUnit>} units
      * @param {StylesTab2Props} props
-     * @returns {Array<VarBundle>}
+     * @param {Array<ThemeStyle>} themeStyles
+     * @returns {[Array<VarBundle>, ExtractedVarGroups]}
      */
     createCompositeVars(units, {blockTypeName, blockId}, themeStyles) {
 
@@ -233,42 +237,59 @@ class BlockStylesTab2 extends preact.Component {
             ? blockHasStyle(createUnitClass(unit.id, blockTypeName), partialBlock, false)
             : blockHasStyle(unit.id, partialBlock, true)));
         const defaults = api.blockStyles.getDefaultVars(blockTypeName);
-        const adms = activeNotSpecials.map(unit => VisualStyles.extractVars(unit.scss, createUnitClass(unit.id, blockTypeName)));
-        const speci = activeSpecial ? VisualStyles.extractVars(activeSpecial.scss, activeSpecial.id, 'attr') : null; // [[v1, v2], ast]
+        const admins = activeNotSpecials.map(unit => VisualStyles.extractVars(unit.scss, createUnitClass(unit.id, blockTypeName)));
+        const special = activeSpecial
+            ? VisualStyles.extractVars(activeSpecial.scss, activeSpecial.id, 'attr',
+                vname => this.findVar(vname, {special: null, admins, defaults})
+            )
+            : null;
 
         const out = [];
         for (const def of defaults) {
-            const fromSpeci = speci ? speci[0].find(v => v.varName === def.varName) : null;
+            const fromSpeci = special ? special[0].find(v => v.varName === def.varName) : null;
             if (fromSpeci) {
                 out.push({from: 'defaults', existsInSpecial: true, v: createDetailedVar(fromSpeci, def),
-                    compileInfo: speci, unitIdx: units.indexOf(activeSpecial)});
+                    compileInfo: special, unitIdx: units.indexOf(activeSpecial)});
                 continue;
             }
-            const [fromAdmin, idx] = findFrom(adms, def.varName);
+            const [fromAdmin, idx] = findFrom(admins, def.varName);
             if (fromAdmin) {
                 out.push({from: 'defaults', existsInSpecial: false, v: createDetailedVar(fromAdmin, def),
-                    compileInfo: adms[idx], unitIdx: units.indexOf(activeNotSpecials[idx])});
+                    compileInfo: admins[idx], unitIdx: units.indexOf(activeNotSpecials[idx])});
                 continue;
             }
             out.push({from: 'defaults', existsInSpecial: false, v: def, compileInfo: [null, []], unitIdx: defaults.indexOf(def)});
         }
 
-        for (const admin of adms) {
+        for (const admin of admins) {
             for (const v of admin[0]) {
                 if (out.some(b => b.v.varName === v.varName)) continue;
-                const fromSpeci = speci ? speci[0].find(v2 => v2.varName === v.varName) : null;
+                const fromSpeci = special ? special[0].find(v2 => v2.varName === v.varName) : null;
                 if (fromSpeci) {
                     out.push({from: 'admin', existsInSpecial: true, v: createDetailedVar(fromSpeci, {wrap: ''/*, no args*/}),
-                        compileInfo: speci, unitIdx: units.indexOf(activeSpecial)});
+                        compileInfo: special, unitIdx: units.indexOf(activeSpecial)});
                     continue;
                 }
-                const i = adms.indexOf(admin);
+                const i = admins.indexOf(admin);
                 out.push({from: 'admin', existsInSpecial: false, v: createDetailedVar(v, {/*no wrap, no args*/}),
                     compileInfo: admin, unitIdx: units.indexOf(activeNotSpecials[i])});
             }
         }
 
-        return out;
+        return [out, {special, admins, defaults}];
+    }
+    /**
+     * @param {String} varName
+     * @param {ExtractedVarGroups} currentVars
+     * @returns {CssVar}
+     * @access private
+     */
+    findVar(varName, {special, admins, defaults}) {
+        return (
+            (special ? special[0].find(v => v.varName === varName) : null) ||
+            findFrom(admins, varName)[0] ||
+            defaults.find(v => v.varName === varName)
+        );
     }
 }
 
@@ -306,7 +327,7 @@ function createDetailedVar(a, b) {
  * @prop {'admin'|'defaults'} from
  * @prop {Boolean} existsInSpecial
  * @prop {CssVar} v
- * @prop {[Array<CssVar>, Array<Object>]} compileInfo
+ * @prop {extractedVars} compileInfo
  * @prop {Number} unitIdx
  *
  * @typedef StylesTab2Props
@@ -316,6 +337,11 @@ function createDetailedVar(a, b) {
  * @prop {Boolean} userCanEditVars
  * @prop {Boolean} isVisible
  * @prop {(withFn: (block: RawBlock, origin: blockChangeEvent, isClsChangeOnly: Boolean, isUndo: Boolean) => void) => void} grabBlockChanges
+ *
+ * @typedef ExtractedVarGroups
+ * @prop {extractedVars|null} special
+ * @prop {Array<extractedVars>} admins
+ * @prop {Array<CssVar>} defaults
  */
 
 export default BlockStylesTab2;

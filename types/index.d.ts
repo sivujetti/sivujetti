@@ -377,8 +377,8 @@ type treeTransferType = 'none'|'out-of-gbt'|'into-gbt';
 type urlMode = 'pick-url'|'pick-file'|'type-external-url';
 
 interface CssVar {
-    type: 'length'|'color';
-    value: LengthValue|ColorValue|null;
+    type: 'length'|'color'|'option';
+    value: LengthValue|ColorValue|OptionValue|null;
     varName: String;
     label: String;
     args: String[];
@@ -395,6 +395,10 @@ interface ColorValue {
     type: 'hexa';
 }
 
+interface OptionValue {
+    selected: any;
+}
+
 interface TheBlockTreeReducerContext {
     clone: Array<RawBlock>;
     reRenderThese: Array<String>;
@@ -407,3 +411,5 @@ interface StylisAstNode {
     column: Number;
     [more: String]: any;
 }
+
+type extractedVars = [Array<CssVar>, Array<StylisAstNode>];

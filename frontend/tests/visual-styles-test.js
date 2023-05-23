@@ -1,4 +1,5 @@
-import {replaceVarValue, ColorValueInput, LengthValueInput} from '../edit-app/src/left-column/block/VisualStyles.jsx';
+import {replaceVarValue, ColorValueInput, LengthValueInput,
+    OptionValueInput} from '../edit-app/src/left-column/block/VisualStyles.jsx';
 const {compile} = window.stylis;
 
 QUnit.module('VisualStyles.jsx', () => {
@@ -67,5 +68,10 @@ QUnit.module('VisualStyles.jsx', () => {
             const actual = LengthValueInput.valueFromInput(input);
             assert.deepEqual(actual, expected);
         });
+    });
+    QUnit.test('OptionValueInput.valueFromInput returns values', assert => {
+        const [input, expected] = ['sans-serif', {selected: 'sans-serif'}];
+        const actual = OptionValueInput.valueFromInput(input);
+        assert.deepEqual(actual, expected);
     });
 });

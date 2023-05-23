@@ -54,27 +54,40 @@ class VisualStyles extends preact.Component {
      * @param {String} scss
      * @param {String} selector 'j-BlockType-something' or 'push-id'
      * @param {'cls'|'attr'} selType = 'cls'
-     * @returns {[Array<CssVar>, Array<StylisAstNode>]} [vars, stylisAst]
+     * @param {(varName: String) => CssVar} findVarForPlaceholder = null
+     * @returns {extractedVars} [vars, stylisAst]
      * @access public
      */
-    static extractVars(scss, selector, selType = 'cls') {
+    static extractVars(scss, selector, selType = 'cls', findVarForPlaceholder = null) {
         VisualStyles.init();
         const ast = compile(createScss(scss, selector, selType));
         const nodes = ast[0].children;
         const out = [];
         for (let i = 0; i < nodes.length; ++i) {
             const comm = nodes[i];
-            if (comm.type !== 'comm' || comm.children.indexOf('@exportAs') < 0) continue;
+            if (comm.type !== 'comm') continue;
+            const at1 = comm.children.indexOf('@exportAs(');
+            if (at1 < 0 && comm.children.indexOf('@placeholder(') < 0) continue;
             const decl = nodes[++i];
             if (!decl || decl.type !== 'decl' || !decl.props.startsWith('--')) continue;
             //
-            const ir = comm.children.trim().split('(')[1]; // '@exportAs(type)' -> 'type:maybe|args)'
-            const varTypeAndMaybeArgs = ir.split(')')[0].trim(); // 'type:maybe|args)' -> 'type:maybe|args'
-            const [varType, argsStr] = varTypeAndMaybeArgs.split(':').map(s => s.trim()); // 'type:maybe|args' -> ['type', 'maybe|args']
-            const args = argsStr ? argsStr.replace(/\\\|/,'\\€').split('|').map(s => s.replace('\\€', '\\|')) : [];
+            const ir = comm.children.trim().split('(')[1]; // '@exportAs( type: maybe|args) ' -> ' type: maybe|args)'
+            if (ir.at(-1) !== ')') continue;
+            //
+            const varName = decl.props.substring(2);
+            let varType, args;
+            if (at1 > -1) {
+                const varTypeAndMaybeArgs = ir.trimLeft().slice(0, -1); // ' type: maybe|args)' -> 'type: maybe|args'
+                const [varType1, argsStr] = varTypeAndMaybeArgs.split(':').map(s => s.trim()); // 'type: maybe|args' -> ['type', 'maybe|args']
+                varType = varType1;
+                args = argsStr ? argsStr.replace(/\\\|/,'\\€').split('|').map(s => s.replace('\\€', '\\|')) : [];
+            } else {
+                const v = findVarForPlaceholder(varName);
+                varType = v.type;
+                args = v.args;
+            }
             const Cls = valueEditors.get(varType);
             if (Cls) {
-                const varName = decl.props.substring(2);
                 const value = Cls.valueFromInput(decl.children);
                 if (value) out.push({type: varType, value, varName, label: varNameToLabel(varName), args, __idx: i});
                 else env.window.console.log(`Don't know how to parse ${varType} variable value "${decl.children}" yet.`);
@@ -209,7 +222,7 @@ class ColorValueInput extends preact.Component {
     // unregisterSignalListener;
     // resetValueIsPending;
     /**
-     * @param {ValueInputProps<LengthValue>} props
+     * @param {ValueInputProps<ColorValue>} props
      * @access protected
      */
     componentWillReceiveProps(props) {
@@ -358,29 +371,37 @@ class OptionValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({labelTranslated}, {selected, options}) {
+    render({labelTranslated, isClearable}, {selected, options}) {
         return <FormGroupInline>
-            <label htmlFor="num" class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
-            <select class="form-select" value={ selected } onChange={ e => this.props.onVarValueChanged(e.target.value) }>
-            { options.map(text =>
-                <option value={ text }>{ text }</option>
-            ) }
-            </select>
+            <label class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
+            <div class="p-relative">
+                <select class="form-select" value={ selected } onChange={ e => this.props.onVarValueChanged(e.target.value) }>
+                { options.map(text =>
+                    <option value={ text }>{ text }</option>
+                ) }
+                </select>
+                { isClearable
+                    ? <button onClick={ () => { this.props.onVarValueChanged(null); } } class="btn btn-link btn-sm" title={ __('Restore default') } style="position: absolute;right: -1.8rem;top: .1rem;">
+                        <span class="d-flex rotated-undo-icon"><Icon iconId="rotate" className="size-xs color-dimmed3"/></span>
+                    </button>
+                    : null
+                }
+            </div>
         </FormGroupInline>;
     }
     /**
-     * @param {String} input examples:
+     * @param {String} input examples: 'inline-block', 'Fira Sans'
      * @returns {OptionValue|null}
      */
     static valueFromInput(input) {
-        return input;
+        return {selected: input};
     }
     /**
      * @param {OptionValue|null} input
      * @returns {OptionValue}
      */
     static normalize(input) {
-        return input || {};
+        return input || {selected: null};
     }
 }
 
@@ -460,5 +481,6 @@ function createSelector(selector, selType = 'cls') {
  */
 
 export default VisualStyles;
-export {wc_hex_is_light, ColorValueInput, LengthValueInput, varNameToLabel,
-    replaceVarValue, valueEditors, createUnitClass, createScss, createSelector};
+export {wc_hex_is_light, ColorValueInput, LengthValueInput, OptionValueInput,
+    varNameToLabel, replaceVarValue, valueEditors, createUnitClass, createScss,
+    createSelector};

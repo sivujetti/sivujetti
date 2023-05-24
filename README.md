@@ -12,6 +12,10 @@ Sivujetti is a website builder and CMS.
     - fileinfo
     - xdebug (not required but recommended if you develop locally)
 
+## Security
+
+If you discover any security related issues, please email security@sivujetti.org instead of using the issue tracker. Voit kirjoittaa viestisi myös suomeksi.
+
 # License
 
 GPLv3

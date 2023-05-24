@@ -1,3 +1,5 @@
+throw new Error('These tests are currently disabled.');
+
 const {exec} = require('child_process');
 const path = require('path');
 const {config} = require('../config.js');

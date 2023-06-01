@@ -279,13 +279,15 @@ final class WebPageAwareTemplate extends Template {
             return "";
         return implode("\n", array_map(function ($f) {
             $attrsMap = $f->attrs;
-            $pre = "";
-            $url = $this->assetUrl("public/{$this->e($f->url)}");
-            if (str_starts_with($f->url, "sivujetti/sivujetti-commons-for-web-pages.js")) {
-                $pre = "<script>window.sivujettiBaseUrl='{$this->makeUrl("/", true)}';\n" .
-                    "        window.sivujettiAssetBaseUrl='{$this->makeUrl("/", false)}';</script>";
-                $url .= (!str_contains($f->url, "?") ? "?" : "&") . "v={$this->__vars["versionId"]}";
-            }
+            //
+            $pre = !str_starts_with($f->url, "sivujetti/sivujetti-commons-for-web-pages.js")
+                ? ""
+                : "<script>window.sivujettiBaseUrl='{$this->makeUrl("/", true)}';\n" .
+                  "        window.sivujettiAssetBaseUrl='{$this->makeUrl("/", false)}';</script>";
+            //
+            $url = $this->assetUrl("public/{$this->e($f->url)}") .
+                (!str_contains($f->url, "?") ? "?" : "&") . "v={$this->__vars["versionId"]}";
+            //
             return "{$pre}<script src=\"{$url}\"{$this->attrMapToStr($attrsMap)}></script>";
         }, $this->__cssAndJsFiles->js));
     }

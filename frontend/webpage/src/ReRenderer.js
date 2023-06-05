@@ -63,8 +63,8 @@ class ReRenderer {
         ].indexOf(event) > -1) {
             this.doReRender(theBlockTree);
 
-            const context = data[data.length - 1]; // [..., {clone, reRenderThese}]
-            if (typeof context === 'object' && Array.isArray(context.reRenderThese || null)) {
+            const context = data.at(-1); // [..., {clone, reRenderThese}]
+            if (context && typeof context === 'object' && Array.isArray(context.reRenderThese || null)) {
                 for (const blockId of context.reRenderThese) {
                     const [block] = blockTreeUtils.findBlockSmart(blockId, theBlockTree);
                     this.reRenderBlock(block, theBlockTree);

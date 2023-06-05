@@ -136,6 +136,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $page2->id = str_replace("pp1", "pp2", $page2->id);
         $page2->slug = "/something-else";
         $page2->path = "something-else/";
+        $page2->createdAt = $state->testPageData->createdAt + 10;
         $state->testPageData = [$state->testPageData, $page2];
         //
         $state->testCatData = $this->pageTestUtils->makeTestPageData(null, "PagesCategories", str_replace("pp2", "pp3", $page2->id));

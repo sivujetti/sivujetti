@@ -60,8 +60,8 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
             $q = $q->limit($block->filterLimit);
         if ($block->filterOrder)
             $q = $q->orderBy(match($block->filterOrder) {
-                "desc" => "p.`id` DESC",
-                "asc" => "p.`id` ASC",
+                "desc" => "p.`createdAt` DESC",
+                "asc" => "p.`createdAt` ASC",
                 "rand" => "RANDOM()",
                 default => throw new PikeException("Sanity", PikeException::BAD_INPUT),
             });

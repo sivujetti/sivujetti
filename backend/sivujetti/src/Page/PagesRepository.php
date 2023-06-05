@@ -86,12 +86,12 @@ final class PagesRepository {
         $data = self::makeStorablePageDataFromValidInput($inputData, $pageType);
         $data->id = $inputData->id;
         $data->blocks = $validBlocksJson;
-        foreach (["status","createdAt","lastUpdatedAt"] as $optional) {
+        foreach (["status", "createdAt", "lastUpdatedAt"] as $optional) {
             if (($inputData->{$optional} ?? null) !== null)
                 $data->{$optional} = (int) $inputData->{$optional};
         }
         //
-        $data->createdAt = time();
+        if (!is_int($data->createdAt ?? null)) $data->createdAt = time();
         $data->lastUpdatedAt = $data->createdAt;
         [$qList, $values, $columns] = $this->db->makeInsertQParts($data);
         // @allow \Pike\PikeException

@@ -37,7 +37,7 @@ class UserSiteAPI extends BaseAPI {
      * Adds $fileId to a list of names that can be used as $block->renderer.
      *
      * @param string $fileId "my-file", "site:my-file", "sivujetti:block-auto"
-     * @param ?string $friendlyName = null "Pages listing"
+     * @param ?string $friendlyName = null "Default"
      * @param ?string $for = null "Pages", "Articles", "*"
      */
     public function registerBlockRenderer(string $fileId,

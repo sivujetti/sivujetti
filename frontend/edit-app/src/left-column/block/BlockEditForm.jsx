@@ -4,16 +4,13 @@ import {HAS_ERRORS, NO_OP_QUEUE_EMIT} from '../../block/dom-commons.js';
 import {getIcon} from '../../block-types/block-types.js';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
-import BlockStylesTab from './BlockStylesTab.jsx';
-import BlockStylesTab2 from './BlockStylesTab2.jsx';
+import BlockStylesTab3 from './BlockStylesTab3.jsx';
 import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import {findBlockFrom, getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
 
 /** @type {BlockTypes} */
 let blockTypes;
-
-const useNewStylesFeat = window.useNewStylesFeat !== false;
 
 class BlockEditForm extends preact.Component {
     // userCanSpecializeGlobalBlocks;
@@ -96,60 +93,16 @@ class BlockEditForm extends preact.Component {
         const EditFormImpl = this.editFormImpl;
         const getCopy = this.getCurrentBlockCopy.bind(this);
         const t = block.type === 'PageInfo' ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
-        const addStyleChangesGrabber = withFn => { this.stylesTabStyleChangesGrabbers.push(withFn); };
-        const stylesTab1 = <BlockStylesTab
-            getBlockCopy={ getCopy }
-            userCanEditVars={ this.userCanEditVars }
-            userCanEditCss={ this.userCanEditCss }
-            useVisualStyles={ this.useVisualStyles }
-            grabBlockChanges={ addStyleChangesGrabber }
-            emitAddStyleClassToBlock={ (styleClassToAdd, b) => {
-                const currentClasses = b.styleClasses;
-                const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
-                this.dispatchNewBlockStyleClasses(newClasses, b);
-            } }
-            emitRemoveStyleClassFromBlock={ (styleClassToRemove, b) => {
-                const currentClasses = b.styleClasses;
-                const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ');
-                this.dispatchNewBlockStyleClasses(newClasses, b);
-            } }
-            emitSetBlockStylesClasses={ (newStyleClasses, b) => {
-                this.dispatchNewBlockStyleClasses(newStyleClasses, b);
-            } }
-            isVisible={ currentTabIdx === 1 }/>;
-        let a, b;
-        if (!useNewStylesFeat) {
-            a = stylesTab1;
-            b = null;
-        } else {
-            const idx = this.useVisualStyles ? 1 : 2;
-            const stylesTab2 = <BlockStylesTab2
-                getBlockCopy={ getCopy }
-                blockTypeName={ this.blockType.name }
-                blockId={ block.id }
-                userCanEditVars={ this.userCanEditVars }
-                grabBlockChanges={ addStyleChangesGrabber }
-                isVisible={ currentTabIdx === idx }/>;
-            [a, b] = this.useVisualStyles
-                ? [stylesTab2, null]
-                : [stylesTab1, stylesTab2];
-        }
         const tr1 = __('Styles (bundles)');
-        const tr2 = __('Styles (combined)');
-        const tr3 = __('Styles');
+        const tr2 = <span>{ __('Styles') } <Icon iconId="dots" className="p-absolute size-xs"/></span>;
         return <div data-main>
         <div class={ `with-icon pb-1${t}` }>
             <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
             { __(block.title || this.blockType.friendlyName) }
         </div>
         <Tabs
-            links={ !useNewStylesFeat
-                ? [__('Content'), tr3]
-                : [...[__('Content')], ...(this.useVisualStyles ? [tr3] : [tr1, tr2])] }
-            getTabName={ linkText => this.useVisualStyles
-                ? (linkText === tr3 ? 'combined-styles' : null)
-                : ({[tr1]: 'style-units', [tr2]: 'combined-styles'}[linkText] || null)
-            }
+            links={ [__('Content'), tr2] }
+            getTabName={ link => link === tr1 ? 'style-units' : 'combined-styles' }
             onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
             className="text-tinyish mt-0 mb-2"/>
         <div class={ currentTabIdx === 0 ? '' : 'd-none' }>
@@ -166,12 +119,13 @@ class BlockEditForm extends preact.Component {
                     key={ block.id }/>
             </div>
         </div>
-        <div class={ currentTabIdx === 1 ? '' : 'd-none' }>
-            { a }
+        <div class={ `block-styles-tab-content${currentTabIdx === 1 ? '' : ' d-none'}` }>
+            <BlockStylesTab3
+                blockId={ block.id }
+                blockTypeName={ block.type }
+                getBlockCopy={ getCopy }
+                isVisible={ currentTabIdx === 1 }/>
         </div>
-        { b ? <div class={ currentTabIdx === 2 ? '' : 'd-none' }>
-            { b }
-        </div> : null }
         </div>;
     }
     /**

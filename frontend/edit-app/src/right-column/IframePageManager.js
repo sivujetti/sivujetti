@@ -40,7 +40,7 @@ class IframePageManager {
         this.currentWebPage = webPage;
         //
         const els = webPage.scanBlockElements();
-        const {blocks} = webPage.data.page;
+        const blocks = getAndInvalidate(webPage.data.page, 'blocks');
         const ordered = getOrdededBlocks(blocks, els);
         //
         const {data} = webPage;
@@ -53,10 +53,9 @@ class IframePageManager {
         this.registerWebPageDomUpdater('main');
         this.currentWebPage.setOnReRenderOrUpdateStyles(this.onWebPageReRenderOrStylesUpdated.bind(this));
         //
-        data.page.__blocksDebugOnly = data.page.blocks;
-        delete data.page.blocks;
         opQueueItemEmitter.resetAndBegin();
         store2.dispatch('theBlockTree/init', [ordered]);
+        store2.dispatch('styleUnitMetas/init', [getAndInvalidate(data.theme, 'styleUnitMetas')]);
         store.dispatch(setCurrentPageDataBundle(data));
         store.dispatch(setOpQueue([]));
         const fn = webPage.createThemeStylesChangeListener();
@@ -242,6 +241,18 @@ function maybePatchTitleAndSlug(page, isDuplicate = false) {
         page.path = makePath(page.slug, pageType);
     }
     return page;
+}
+
+/**
+ * @param {Object} entity
+ * @param {String} prop
+ * @returns {any}
+ */
+function getAndInvalidate(entity, prop) {
+    const out = entity[prop];
+    entity[`__${prop}DebugOnly`] = entity[prop];
+    delete entity[prop];
+    return out;
 }
 
 export default IframePageManager;

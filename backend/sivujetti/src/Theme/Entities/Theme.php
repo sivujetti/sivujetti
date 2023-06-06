@@ -14,6 +14,8 @@ final class Theme extends \stdClass {
     public array $globalStyles;
     /** @var \Sivujetti\Theme\Entities\Style[] */
     public array $styles;
+    /** @var array<object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: string, vars: array}> todo */
+    public array $styleUnitMetas;
     /** @var string[] ["_body_", "j-Text" ...] */
     public array $stylesOrder;
     /** @var int Unix timestamp */
@@ -31,6 +33,7 @@ final class Theme extends \stdClass {
         $out->name = $row->themeName;
         $out->globalStyles = [];
         $out->styles = [];
+        $out->styleUnitMetas = [];
         $out->stylesOrder = [];
         $out->stylesLastUpdatedAt = 0;
         $out->__stash = $rows;
@@ -55,6 +58,17 @@ final class Theme extends \stdClass {
                 ($ordinals[$a->blockTypeName] ?? PHP_INT_MAX) <=> ($ordinals[$b->blockTypeName] ?? PHP_INT_MAX)
             );
             //
+            $this->styleUnitMetas = [
+                (object) [
+                    "id" => "j-s-1",
+                    "scssTmpl" => "padding: var(--padding) var(--padding) var(--padding) var(--padding);",
+                    "generatedCss" => ".j-s-1 { padding: var(--padding) var(--padding) var(--padding) var(--padding); }",
+                    "suggestedFor" => "all",
+                    "vars" => [
+                        (object) ["varName" => "padding", "type" => "length", "label" => "Padding", "defaultValue" => null]
+                    ]
+                ]
+            ];
         }
         unset($this->themeGlobalStylesJson);
         unset($this->themeStylesOrderJson);

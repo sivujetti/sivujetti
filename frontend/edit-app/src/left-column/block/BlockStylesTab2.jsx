@@ -224,9 +224,6 @@ class BlockStylesTab2 extends preact.Component {
      * @returns {[Array<VarBundle>, ExtractedVarGroups]}
      */
     createCompositeVars(units, {blockTypeName, blockId}, themeStyles) {
-
-        VisualStyles.init();
-
         const [notSpecial, activeSpecial] = units.reduce((out, itm) =>
             !isSpecialUnit(itm) || itm.id !== blockId
                 ? [[findRealUnit(itm, blockTypeName, themeStyles), ...out[0]], out[1]]

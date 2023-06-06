@@ -26,16 +26,6 @@ class VisualStyles extends preact.Component {
         this.setState({vars: props.vars}); // Note: reference / no copying
     }
     /**
-     * @access public
-     */
-    static init() {
-        if (!valueEditors.length) {
-            valueEditors.set('length', LengthValueInput);
-            valueEditors.set('color', ColorValueInput);
-            valueEditors.set('option', OptionValueInput);
-        }
-    }
-    /**
      * In: ```
      * // @exportAs(length)
      * --fontSize: 2.4rem;
@@ -59,7 +49,6 @@ class VisualStyles extends preact.Component {
      * @access public
      */
     static extractVars(scss, selector, selType = 'cls', findVarForPlaceholder = null) {
-        VisualStyles.init();
         const ast = compile(createScss(scss, selector, selType));
         const nodes = ast[0].children;
         const out = [];
@@ -457,6 +446,10 @@ function createScss(scss, selector, selType = 'cls') {
 function createSelector(selector, selType = 'cls') {
     return selType === 'cls' ? `.${selector}` : `[data-block="${selector}"]`;
 }
+
+valueEditors.set('length', LengthValueInput);
+valueEditors.set('color', ColorValueInput);
+valueEditors.set('option', OptionValueInput);
 
 /**
  * @template T

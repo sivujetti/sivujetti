@@ -185,11 +185,28 @@ function theWebsiteBasicInfoStore(store) {
 ////////////////////////////////////////////////////////////////////////////////
 
 
+function styleUnitMetasStore(store) {
+    store.on('styleUnitMetas/init',
+    /**
+     * @param {Object} state
+     * @param {[Array<StyleUnitMeta>]} args
+     * @returns {Object}
+     */
+    (_state, [styleUnitMetas]) =>
+        ({styleUnitMetas})
+    );
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
 const mainStore = createStoreon([
     themeStylesStore,
     reusableBranchesStore,
     theWebsiteBasicInfoStore,
     theBlockTreeStore,
+    styleUnitMetasStore,
     pagesListingsStore,
 ]);
 

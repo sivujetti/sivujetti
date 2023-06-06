@@ -256,17 +256,15 @@ final class WebPageAwareTemplate extends Template {
             // Scoped styles: Inject each style bundle via javascript instead of echoing them directly
             // (to allow things such as `content: "</style>"` or `/* </style> */`)
             "<script>document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
-                array_merge(array_map(fn($itm) => (object) [
-                    "css" => ThemesController::combineAndWrapCss($itm->units, $itm->blockTypeName),
-                    "blockTypeName" => $itm->blockTypeName,
-                ], $theme->styles), $this->__applyFilters->__invoke("sivujetti:editAppAdditionalStyleUnits", []))
-            )) . ".reduce((out, {css, blockTypeName}) => {\n" .
-            "  const bundle = document.createElement('style');\n" .
-            "  bundle.innerHTML = css;\n" .
-            "  bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
-            "  out.appendChild(bundle);\n" .
-            "  return out;\n" .
-            "}, document.createDocumentFragment()))</script>\n" .
+                array_map(fn ($meta) => [$meta->generatedCss, $meta->suggestedFor], $theme->styleUnitMetas)
+            ) . ".reduce((out, [generatedCss, suggestedFor]) => {\n" .
+                "  const bundle = document.createElement('style');\n" .
+                "  bundle.innerHTML = `@layer units-meta { \${generatedCss} }`;\n" .
+                "  bundle.setAttribute('data-style-meta-for', suggestedFor.split(' ').join('|'));\n" .
+                "  out.appendChild(bundle);\n" .
+                "  return out;\n" .
+            "}, document.createDocumentFragment())") . ")</script>" .
+            // todo StyleUnitVarValues
             //
             "<style>" . self::getDefaultEditModeInlineCss() . "</style>\n"
         ));

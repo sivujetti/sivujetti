@@ -124,6 +124,9 @@ interface CurrentPageData {
         friendlyName: String;
         structure: Array<LayoutPart>;
     };
+    theme: {
+        styleUnitMetas: Array<StyleUnitMeta>;
+    };
 }
 
 interface LayoutPart {
@@ -333,6 +336,22 @@ interface BlockRendctor {
 interface ThemeStyle {
     units: Array<ThemeStyleUnit>;
     blockTypeName: String;
+}
+
+interface StyleUnitMeta {
+    vars: Array<CssVarMeta>;
+    // todo id, suggestedFor etc
+}
+
+interface StyleUnitVarValues {
+    id: String;
+    styleUnitMetaId: String;
+    values: Array<UnitVarValue>;
+    // todo
+}
+
+interface UnitVarValue {
+    // todo
 }
 
 interface ThemeStyleUnit {

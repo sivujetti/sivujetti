@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Page;
 
-use MySite\Theme;
+use MySite\Theme as UserTheme;
 use Pike\{AppConfig, ArrayUtils, Db, PikeException, Request, Response, Validation};
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\PageTypeValidator;
@@ -17,6 +17,7 @@ use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\BlockType\{GlobalBlockReferenceBlockType, RenderAwareBlockTypeInterface};
 use Sivujetti\Layout\Entities\Layout;
 use Sivujetti\Layout\LayoutsRepository;
+use Sivujetti\Theme\Entities\Theme;
 
 final class PagesController {
     /**
@@ -353,7 +354,7 @@ final class PagesController {
                                              PageType $pageType,
                                              bool $isPlaceholderPage) {
         $themeAPI = new UserThemeAPI("theme", $apiCtx, new Translator);
-        $_ = new Theme($themeAPI); // Note: mutates $apiCtx->userDefinesAssets|etc
+        $_ = new UserTheme($themeAPI); // Note: mutates $apiCtx->userDefinesAssets|etc
         //
         self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo);
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
@@ -377,6 +378,7 @@ final class PagesController {
                 "<script>window.sivujettiCurrentPageData = " . $tmpl->escInlineJs(json_encode([
                     "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
                     "layout" => self::layoutToRaw($page->layout),
+                    "theme" => self::themeToRaw($theWebsite->activeTheme),
                 ], JSON_UNESCAPED_UNICODE)) . "</script>" .
                 "<script src=\"{$tmpl->assetUrl("public/sivujetti/sivujetti-webpage.js?v={$theWebsite->versionId}")}\"></script>" .
             substr($html, $bodyEnd);
@@ -524,6 +526,15 @@ final class PagesController {
         return (object) [
             "friendlyName" => $layout->friendlyName,
             "structure" => $layout->structure,
+        ];
+    }
+    /**
+     * @param \Sivujetti\Theme\Entities\Theme $theme
+     * @return object{styleUnitMetas: array<object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: string, vars: array}>}
+     */
+    private static function themeToRaw(Theme $theme): object {
+        return (object) [
+            "styleUnitMetas" => $theme->styleUnitMetas,
         ];
     }
     /**

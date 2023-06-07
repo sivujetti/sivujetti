@@ -14,8 +14,10 @@ final class Theme extends \stdClass {
     public array $globalStyles;
     /** @var \Sivujetti\Theme\Entities\Style[] */
     public array $styles;
-    /** @var array<object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: string, vars: array}> todo */
+    /** @var array<object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: string, vars: array}> */
     public array $styleUnitMetas;
+    /** @var array<object{id: string, styleUnitMetaId: string, values: array<object{varName: string, value: string}>, generatedCss: string}> */
+    public array $styleUnitVarValues;
     /** @var string[] ["_body_", "j-Text" ...] */
     public array $stylesOrder;
     /** @var int Unix timestamp */
@@ -34,6 +36,7 @@ final class Theme extends \stdClass {
         $out->globalStyles = [];
         $out->styles = [];
         $out->styleUnitMetas = [];
+        $out->styleUnitVarValues = [];
         $out->stylesOrder = [];
         $out->stylesLastUpdatedAt = 0;
         $out->__stash = $rows;
@@ -60,13 +63,23 @@ final class Theme extends \stdClass {
             //
             $this->styleUnitMetas = [
                 (object) [
-                    "id" => "j-s-1",
+                    "id" => "j-sm-1",
                     "scssTmpl" => "padding: var(--padding) var(--padding) var(--padding) var(--padding);",
-                    "generatedCss" => ".j-s-1 { padding: var(--padding) var(--padding) var(--padding) var(--padding); }",
+                    "generatedCss" => ".j-sm-1 { padding: var(--padding) var(--padding) var(--padding) var(--padding); }",
                     "suggestedFor" => "all",
                     "vars" => [
                         (object) ["varName" => "padding", "type" => "length", "label" => "Padding", "defaultValue" => null]
                     ]
+                ]
+            ];
+            $this->styleUnitVarValues = [
+                (object) [
+                    "id" => "j-svv-1",
+                    "styleUnitMetaId" => $this->styleUnitMetas[0]->id,
+                    "values" => [
+                        (object) ["varName" => "padding", "value" => "1rem"]
+                    ],
+                    "generatedCss" => ".j-svv-1 { --padding: 1rem; }",
                 ]
             ];
         }

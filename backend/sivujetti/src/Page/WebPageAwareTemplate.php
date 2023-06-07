@@ -231,7 +231,7 @@ final class WebPageAwareTemplate extends Template {
         };
 
         $theme = $this->__internal["theme"];
-        $common = "<style>@layer theme, unit-metas, body-unit, unit-var-vals" . ($theme->globalStyles
+        $common = "<style>@layer theme, units-meta, body-unit, units-var-values" . ($theme->globalStyles
             ? "; :root {" .
                 implode("\n", array_map(fn($style) =>
                     // Note: these are pre-validated
@@ -255,16 +255,35 @@ final class WebPageAwareTemplate extends Template {
             "\n<!-- Note to devs: these inline styles appear here only when you're logged in -->\n" .
             // Scoped styles: Inject each style bundle via javascript instead of echoing them directly
             // (to allow things such as `content: "</style>"` or `/* </style> */`)
-            "<script>document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
-                array_map(fn ($meta) => [$meta->generatedCss, $meta->suggestedFor], $theme->styleUnitMetas)
-            ) . ".reduce((out, [generatedCss, suggestedFor]) => {\n" .
-                "  const bundle = document.createElement('style');\n" .
-                "  bundle.innerHTML = `@layer unit-metas { \${generatedCss} }`;\n" .
-                "  bundle.setAttribute('data-style-meta-for', suggestedFor.split(' ').join('|'));\n" .
-                "  out.appendChild(bundle);\n" .
-                "  return out;\n" .
-            "}, document.createDocumentFragment())") . ")</script>" .
-            // todo StyleUnitVarValues
+            "<script>\n" .
+                "// StyleUnitMetas\n" .
+                "document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
+                    array_map(
+                        fn ($meta) => [$meta->generatedCss, $meta->suggestedFor],
+                        $theme->styleUnitMetas
+                    )
+                ) . ".reduce((out, [generatedCss, suggestedFor]) => {\n" .
+                    "  const bundle = document.createElement('style');\n" .
+                    "  bundle.innerHTML = `@layer units-meta { \${generatedCss} }`;\n" .
+                    "  bundle.setAttribute('data-units-meta-for', suggestedFor.split(' ').join('|'));\n" .
+                    "  out.appendChild(bundle);\n" .
+                    "  return out;\n" .
+                "}, document.createDocumentFragment())") . ");\n" .
+                "\n" .
+                "// StyleUnitVarValues\n" .
+                "document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
+                    array_map(
+                        fn ($varValues) => [$varValues->generatedCss, $varValues->id],
+                        $theme->styleUnitVarValues
+                    )
+                ) . ".reduce((out, [generatedCss, id]) => {\n" .
+                    "  const bundle = document.createElement('style');\n" .
+                    "  bundle.innerHTML = `@layer units-var-values { \${generatedCss} }`;\n" .
+                    "  bundle.setAttribute('data-unit-var-values-for', id);\n" .
+                    "  out.appendChild(bundle);\n" .
+                    "  return out;\n" .
+                "}, document.createDocumentFragment())") . ")\n" .
+            "</script>" .
             //
             "<style>" . self::getDefaultEditModeInlineCss() . "</style>\n"
         ));

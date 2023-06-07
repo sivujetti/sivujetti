@@ -530,11 +530,12 @@ final class PagesController {
     }
     /**
      * @param \Sivujetti\Theme\Entities\Theme $theme
-     * @return object{styleUnitMetas: array<object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: string, vars: array}>}
+     * @return object{styleUnitMetas: array<object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: string, vars: array}>, styleUnitVarValues: array<object{id: string, styleUnitMetaId: string, values: array<object{varName: string, value: string}>, generatedCss: string}>}
      */
     private static function themeToRaw(Theme $theme): object {
         return (object) [
             "styleUnitMetas" => $theme->styleUnitMetas,
+            "styleUnitVarValues" => $theme->styleUnitVarValues,
         ];
     }
     /**

@@ -197,6 +197,10 @@ class EditAppAwareWebPage {
                 const unitVarValsId = data[0]; // data: [String]
                 const node = document.head.querySelector(`style[data-unit-var-values-for="${unitVarValsId}"]`);
                 node.parentElement.removeChild(node);
+            } else if (event === 'styleUnitVarVals/updateValueIn') {
+                const unitVarValsId = data[0]; // data: [String, ?]
+                const node = document.head.querySelector(`style[data-unit-var-values-for="${unitVarValsId}"]`);
+                node.innerHTML = styleUnitVarVals.find(vv => vv.id === unitVarValsId).generatedCss;
             } else return;
             this.onStylesUpdateFn();
         };

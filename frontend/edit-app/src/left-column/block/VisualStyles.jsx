@@ -140,7 +140,7 @@ class LengthValueInput extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        const {num, unit} = LengthValueInput.normalize(this.props.valueCopy);
+        const {num, unit} = abNorm(this.props, LengthValueInput);
         this.setState(hookForm(this, [
             {name: 'num', value: num, validations: [['maxLength', 32], [{doValidate: val =>
                 !val.length || !isNaN(parseFloat(val))
@@ -155,20 +155,22 @@ class LengthValueInput extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        const incoming = LengthValueInput.normalize(props.valueCopy);
+        const incoming = abNorm(props, LengthValueInput);
         if (this.state.values.num !== incoming.num)
             reHookValues(this, [{name: 'num', value: incoming.num}]);
     }
     /**
      * @access protected
      */
-    render({labelTranslated, valueCopy, isClearable}) {
+    render(props) {
+        const norm = abNorm(props, OptionValueInput);
+        const {labelTranslated, isClearable} = props;
         return <FormGroupInline>
             <label htmlFor="num" class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
             <div class="p-relative">
                 <div class="input-group">
                     <Input vm={ this } prop="num" placeholder="1.4"/>
-                    <span class="input-group-addon addon-sm">{ valueCopy ? valueCopy.unit : 'rem' }</span>
+                    <span class="input-group-addon addon-sm">{ norm.num ? norm.unit : 'rem' }</span>
                 </div>
                 { isClearable
                     ? <button onClick={ () => { this.props.onVarValueChanged(null); } } class="btn btn-link btn-sm" title={ __('Restore default') } style="position: absolute;right: -1.8rem;top: .1rem;">
@@ -210,6 +212,12 @@ class LengthValueInput extends preact.Component {
 /** @type {CanvasRenderingContext2D} */
 let helperCanvasCtx;
 
+function abNorm(props, Cls) {
+    if (Object.prototype.hasOwnProperty.call(props, 'valueAsString'))
+        return Cls.normalize(props.valueAsString ? Cls.valueFromInput(props.valueAsString) : null);
+    return Cls.normalize(props.valueCopy);
+}
+
 class ColorValueInput extends preact.Component {
     // unregisterSignalListener;
     // resetValueIsPending;
@@ -218,8 +226,8 @@ class ColorValueInput extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        const cur = ColorValueInput.normalize(this.props.valueCopy);
-        const incoming = ColorValueInput.normalize(props.valueCopy);
+        const cur = abNorm(this.props, ColorValueInput);
+        const incoming = abNorm(props, ColorValueInput);
         if ((cur.data !== incoming.data || cur.type !== incoming.type) && this.pickr) {
             this.pickr.setColor(incoming.data);
         }
@@ -242,8 +250,9 @@ class ColorValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({valueCopy, labelTranslated, isClearable}) {
-        const val = ColorValueInput.normalize(valueCopy);
+    render(props) {
+        const val = abNorm(props, ColorValueInput);
+        const {labelTranslated, isClearable} = props;
         return <FormGroupInline className={ `flex-centered${wc_hex_is_light(val.data) ? ' is-very-light-color' : ''}` }>
             <label class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
             {/* the real div.pickr (this.movingPickContainer) will appear here */}
@@ -276,16 +285,17 @@ class ColorValueInput extends preact.Component {
      * @param {ValueInputProps<ColorValue>} props
      * @access private
      */
-    replaceDisappearingBox(e, {valueCopy, onVarValueChanged}) {
+    replaceDisappearingBox(e, props) {
         const disappearingColorBox = e.target.parentElement; // div.disappearing-pickr
         disappearingColorBox.classList.add('d-none');
         //
         const realColorBox = document.createElement('div');
         disappearingColorBox.parentElement.insertBefore(realColorBox, disappearingColorBox);
+        const norm = abNorm(props, ColorValueInput);
         this.pickr = window.Pickr.create({
             el: realColorBox,
             theme: 'nano',
-            default: ColorValueInput.normalize(valueCopy).data,
+            default: norm.data,
             components: {preview: true, opacity: true, hue: true, interaction: {}}
         });
         //
@@ -301,11 +311,11 @@ class ColorValueInput extends preact.Component {
             }
             signals.emit('visual-styles-var-value-changed-fast', this.props.selector, this.props.varName, value, 'color');
         }).on('changestop', (_source, instance) => {
-            if (ColorValueInput.normalize(this.props.valueCopy).data === nonCommittedHex) return;
+            if (abNorm(this.props, ColorValueInput).data === nonCommittedHex) return;
             // Update realColorBox's color
             instance.setColor(nonCommittedHex);
             // Commit
-            onVarValueChanged(nonCommittedHex);
+            props.onVarValueChanged(nonCommittedHex);
         });
         setTimeout(() => {
             this.pickr.show();
@@ -352,7 +362,7 @@ class OptionValueInput extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        const {selected} = this.props.valueCopy;
+        const {selected} = abNorm(this.props, OptionValueInput);
         this.setState({selected, options: this.props.argsCopy});
     }
     /**
@@ -360,8 +370,9 @@ class OptionValueInput extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (this.state.selected !== props.valueCopy.selected)
-            this.setState({selected: props.valueCopy.selected});
+        const norm = abNorm(props, OptionValueInput);
+        if (this.state.selected !== norm.selected)
+            this.setState({selected: norm.selected});
     }
     /**
      * @access protected

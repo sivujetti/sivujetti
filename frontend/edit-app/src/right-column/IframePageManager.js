@@ -56,7 +56,7 @@ class IframePageManager {
         opQueueItemEmitter.resetAndBegin();
         store2.dispatch('theBlockTree/init', [ordered]);
         store2.dispatch('styleUnitMetas/init', [getAndInvalidate(data.theme, 'styleUnitMetas')]);
-        store2.dispatch('styleUnitVarVals/init', [[]]);
+        store2.dispatch('styleUnitVarVals/init', [getAndInvalidate(data.theme, 'styleUnitVarValues')]);
         store.dispatch(setCurrentPageDataBundle(data));
         store.dispatch(setOpQueue([]));
         const handleStyleChange = webPage.createThemeStylesChangeListener();

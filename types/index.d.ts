@@ -126,6 +126,7 @@ interface CurrentPageData {
     };
     theme: {
         styleUnitMetas: Array<StyleUnitMeta>;
+        styleUnitVarValues: Array<StyleUnitVarValues>;
     };
 }
 
@@ -339,19 +340,28 @@ interface ThemeStyle {
 }
 
 interface StyleUnitMeta {
-    vars: Array<CssVarMeta>;
-    // todo id, suggestedFor etc
+    id: String;
+    vars: Array<UnitVarMeta>;
+    // todo suggestedFor etc
+}
+
+interface UnitVarMeta {
+    varName: String;
+    type: 'length'|'color'|'option';
+    defaultValue: ColorValue|LengthValue|OptionValue|null;
+    // todo
 }
 
 interface StyleUnitVarValues {
     id: String;
     styleUnitMetaId: String;
     values: Array<UnitVarValue>;
-    // todo
+    generatedCss: String;
 }
 
 interface UnitVarValue {
-    // todo
+    varName: String;
+    value: String;// ColorValue|LengthValue|OptionValue;
 }
 
 interface ThemeStyleUnit {

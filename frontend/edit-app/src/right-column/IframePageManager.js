@@ -56,10 +56,13 @@ class IframePageManager {
         opQueueItemEmitter.resetAndBegin();
         store2.dispatch('theBlockTree/init', [ordered]);
         store2.dispatch('styleUnitMetas/init', [getAndInvalidate(data.theme, 'styleUnitMetas')]);
+        store2.dispatch('styleUnitVarVals/init', [[]]);
         store.dispatch(setCurrentPageDataBundle(data));
         store.dispatch(setOpQueue([]));
-        const fn = webPage.createThemeStylesChangeListener();
-        webPageUnregistrables.set('themeStyles', observeStore2('themeStyles', fn));
+        const handleStyleChange = webPage.createThemeStylesChangeListener();
+        webPageUnregistrables.set('themeStyles', observeStore2('themeStyles', handleStyleChange));
+        const handleVarsChange = webPage.createUnitVarsChangeListener();
+        webPageUnregistrables.set('themeVarVals', observeStore2('styleUnitVarVals', handleVarsChange));
         webPageUnregistrables.set('fastStyleChanges', signals.on('visual-styles-var-value-changed-fast',
             (selector, varName, varValue, valueType) => {
                 webPage.fastOverrideStyleUnitVar(selector, varName, varValue, valueType);

@@ -202,6 +202,9 @@ class LengthValueInput extends preact.Component {
     static normalize(input) {
         return input || {num: '', unit: 'rem'};
     }
+    static valueToString(value) {
+        return `${value.num}${value.unit}`;
+    }
 }
 
 /** @type {CanvasRenderingContext2D} */
@@ -339,6 +342,9 @@ class ColorValueInput extends preact.Component {
     static normalize(input) {
         return input || {data: '#000000ff', type: 'hexa'};
     }
+    static valueToString(value) {
+        return `${value.data}`;
+    }
 }
 
 class OptionValueInput extends preact.Component {
@@ -391,6 +397,9 @@ class OptionValueInput extends preact.Component {
      */
     static normalize(input) {
         return input || {selected: null};
+    }
+    static valueToString(value) {
+        return `${value.selected}`;
     }
 }
 

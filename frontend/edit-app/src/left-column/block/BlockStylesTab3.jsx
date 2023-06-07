@@ -1,4 +1,5 @@
-import {__} from '@sivujetti-commons-for-edit-app';
+import {__, api} from '@sivujetti-commons-for-edit-app';
+import store, { pushItemToOpQueue } from '../../store.js';
 import store2 from '../../store2.js';
 import {valueEditors} from './VisualStyles.jsx';
 
@@ -54,7 +55,7 @@ class BlockStylesTab3 extends preact.Component {
                     onVarValueChanged={ newValAsString => {
                         if (newValAsString !== null) {
                             if (!valIsSet)
-                                addValueAndEmit(newValAsString, valHasUnit);
+                                addValueAndEmit(Renderer.valueFromInput(newValAsString), mv.varName, valHasUnit, sm, this.props);
                             else
                                 updateValueAndEmit(newValAsString);
                         } else {
@@ -73,14 +74,41 @@ class BlockStylesTab3 extends preact.Component {
 }
 
 /**
- * @param {String} newValAsString
+ * @param {ColorValue|LengthValue|OptionValue} newVal
+ * @param {String} varName
  * @param {Boolean} alreadyHasUnit
+ * @param {StyleUnitMeta} meta
+ * @param {StylesTab3Props} props
  */
-function addValueAndEmit(newValAsString, alreadyHasUnit) {
+function addValueAndEmit(newVal, varName, alreadyHasUnit, meta, props) {
     if (alreadyHasUnit) {
         throw new Error('todo');
     } else {
-        throw new Error('todo');
+        // #1 add related StyleUnitMeta's css to the page if not present?
+        // store2.dispatch('styleUnitMetas/addItem', [{}]);
+
+        // #2 Add class to the block
+        props.emitAddStyleClassToBlock(meta.id, props.getBlockCopy());
+
+        // #3 Add new styleUnitVarVals with one variable value in it
+        const values = [{varName, value: {...newVal}}];
+        const id = '??';
+        store2.dispatch('styleUnitVarVals/addItem', [{
+            id,
+            styleUnitMetaId: meta.id,
+            values,
+            generatedCss: `.${meta.id} { ${varValsToString(values, meta)} }`
+        }]);
+        store.dispatch(pushItemToOpQueue('update-style-unit-var-vals', {
+            doHandle: () => { return 'http.put(todo /api/style-unit-var-vals)'; },
+            doUndo: () => {
+                // Undo this (#3)
+                store2.dispatch('styleUnitVarVals/removeItem', [id]);
+                // Undo #2
+                setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
+            },
+            args: [],
+        }));
     }
 }
 
@@ -127,6 +155,19 @@ function getVarValueFor(v, unitsVarVals, sm) {
     //
     const val = varVals.values.find(v2 => v2.varName === v.varName);
     return [val, varVals];
+}
+
+/**
+ * @param {Array<UnitVarValue>} varValues
+ * @param {StyleUnitMeta} meta
+ * @returns {String}
+*/
+function varValsToString(varValues, meta) {
+    return varValues.map(v => {
+        const valMeta = meta.vars.find(vm => vm.varName === v.varName);
+        const Cls = valueEditors.get(valMeta.type);
+        return `--${v.varName}: ${Cls.valueToString(v.value)}`;
+    }).join('; ');
 }
 
 /**

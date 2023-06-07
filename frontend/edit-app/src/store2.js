@@ -190,10 +190,36 @@ function styleUnitMetasStore(store) {
     /**
      * @param {Object} state
      * @param {[Array<StyleUnitMeta>]} args
-     * @returns {Object}
+     * @returns {{styleUnitMetas: Array<StyleUnitMeta>; [otherStateBuckets: String]: any;}}
      */
     (_state, [styleUnitMetas]) =>
         ({styleUnitMetas})
+    );
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+function styleUnitVarValsStore(store) {
+    store.on('styleUnitVarVals/init',
+    /**
+     * @param {Object} state
+     * @param {[Array<StyleUnitVarValues>]} args
+     * @returns {{styleUnitVarVals: Array<StyleUnitVarValues>; [otherStateBuckets: String]: any;}}
+     */
+    (_state, [styleUnitVarVals]) =>
+        ({styleUnitVarVals})
+    );
+
+    store.on('styleUnitVarVals/addItem',
+    /**
+     * @param {Object} state
+     * @param {[StyleUnitVarValues]} args
+     * @returns {{styleUnitVarVals: Array<StyleUnitVarValues>; [otherStateBuckets: String]: any;}}
+     */
+    ({styleUnitVarVals}, [newItem]) =>
+        ({styleUnitVarVals: [...styleUnitVarVals, newItem]})
     );
 }
 
@@ -207,6 +233,7 @@ const mainStore = createStoreon([
     theWebsiteBasicInfoStore,
     theBlockTreeStore,
     styleUnitMetasStore,
+    styleUnitVarValsStore,
     pagesListingsStore,
 ]);
 

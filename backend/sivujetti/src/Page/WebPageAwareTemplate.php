@@ -231,7 +231,7 @@ final class WebPageAwareTemplate extends Template {
         };
 
         $theme = $this->__internal["theme"];
-        $common = "<style>@layer theme, body-unit, units" . ($theme->globalStyles
+        $common = "<style>@layer theme, unit-metas, body-unit, unit-var-vals" . ($theme->globalStyles
             ? "; :root {" .
                 implode("\n", array_map(fn($style) =>
                     // Note: these are pre-validated
@@ -259,7 +259,7 @@ final class WebPageAwareTemplate extends Template {
                 array_map(fn ($meta) => [$meta->generatedCss, $meta->suggestedFor], $theme->styleUnitMetas)
             ) . ".reduce((out, [generatedCss, suggestedFor]) => {\n" .
                 "  const bundle = document.createElement('style');\n" .
-                "  bundle.innerHTML = `@layer units-meta { \${generatedCss} }`;\n" .
+                "  bundle.innerHTML = `@layer unit-metas { \${generatedCss} }`;\n" .
                 "  bundle.setAttribute('data-style-meta-for', suggestedFor.split(' ').join('|'));\n" .
                 "  out.appendChild(bundle);\n" .
                 "  return out;\n" .

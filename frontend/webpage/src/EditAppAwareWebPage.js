@@ -182,6 +182,26 @@ class EditAppAwareWebPage {
         };
     }
     /**
+     * @returns {(state: {styleUnitVarVals: Array<StyleUnitVarValues>; [otherStateBuckets: String]: any;}, ['styleUnitVarVals/init'|'styleUnitVarVals/addItem', [Array<StyleUnitVarValues>]|[StyleUnitVarValues]]) => void}
+     * @access public
+     */
+    createUnitVarsChangeListener() {
+        return ({styleUnitVarVals}, [event, data]) => {
+            if (event === 'styleUnitVarVals/addItem') {
+                const node = document.createElement('style');
+                const [newVarVals] = data;
+                node.setAttribute('data-unit-var-values-for', newVarVals.id);
+                node.innerHTML = newVarVals.generatedCss; // `.j-s-<n> { --var1: val ... }`
+                document.head.appendChild(node);
+            } else if (event === 'styleUnitVarVals/removeItem') {
+                const unitVarValsId = data[0]; // data: [String]
+                const node = document.head.querySelector(`style[data-unit-var-values-for="${unitVarValsId}"]`);
+                node.parentElement.removeChild(node);
+            } else return;
+            this.onStylesUpdateFn();
+        };
+    }
+    /**
      * @param {Boolean} isDisabled
      * @access public
      */

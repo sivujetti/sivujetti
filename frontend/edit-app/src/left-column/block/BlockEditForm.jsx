@@ -124,6 +124,11 @@ class BlockEditForm extends preact.Component {
                 blockId={ block.id }
                 blockTypeName={ block.type }
                 getBlockCopy={ getCopy }
+                emitAddStyleClassToBlock={ (styleClassToAdd, b) => {
+                    const currentClasses = b.styleClasses;
+                    const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
+                    this.dispatchNewBlockStyleClasses(newClasses, b);
+                } }
                 isVisible={ currentTabIdx === 1 }/>
         </div>
         </div>;

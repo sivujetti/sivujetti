@@ -11,13 +11,13 @@ use Sivujetti\{App, JsonUtils, PushIdGenerator, SharedAPIContext, Template, Tran
 use Sivujetti\Auth\ACL;
 use Sivujetti\Block\{BlocksInputValidatorScanner};
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\TheWebsite\Entities\TheWebsite;
-use Sivujetti\UserTheme\UserThemeAPI;
-use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\BlockType\{GlobalBlockReferenceBlockType, RenderAwareBlockTypeInterface};
+use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\Layout\Entities\Layout;
 use Sivujetti\Layout\LayoutsRepository;
 use Sivujetti\Theme\Entities\Theme;
+use Sivujetti\TheWebsite\Entities\TheWebsite;
+use Sivujetti\UserTheme\UserThemeAPI;
 
 final class PagesController {
     /**
@@ -52,6 +52,36 @@ final class PagesController {
         self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
             $page, $pageType, false);
     }
+    /**
+     * GET /jet-login: Renders the login page.
+     *
+     * @param \Pike\Response $res
+     * @param \Pike\AppConfig $config
+     */
+    public function renderLoginPage(Response $res, AppConfig $config): void {
+        $res
+            ->header("Cache-Control", "no-store, must-revalidate")
+            ->html((new WebPageAwareTemplate("sivujetti:page-auth-view.tmpl.php"))->render([
+                "title" => "Login",
+                "appName" => "login",
+                "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
+                "uiLang" => "fi",
+                "dashboardUrl" => $config->get("app.dashboardUrl", ""),
+            ]));
+    }
+    /**
+     * GET /jet-reset-pass: Renders a password reset request page.
+     *
+     * @param \Pike\Response $res
+     */
+    public function renderRequestPassResetPage(Response $res): void {
+        $res->html("This feature is currently disabled.");
+    }
+
+
+    //// public routes before, protected routes after this line ////////////////
+
+
     /**
      * GET /api/_placeholder-page/[w:pageType]/[i:layoutId]?duplicate=[*:slug]: renders
      * a placeholder page for "Create|Duplicate page" functionality.
@@ -137,31 +167,6 @@ final class PagesController {
             "uiLang" => "fi",
             "isFirstRun" => $isFirstRun || $req->queryVar("first-run") !== null,
         ]));
-    }
-    /**
-     * GET /jet-login: Renders the login page.
-     *
-     * @param \Pike\Response $res
-     * @param \Pike\AppConfig $config
-     */
-    public function renderLoginPage(Response $res, AppConfig $config): void {
-        $res
-            ->header("Cache-Control", "no-store, must-revalidate")
-            ->html((new WebPageAwareTemplate("sivujetti:page-auth-view.tmpl.php"))->render([
-                "title" => "Login",
-                "appName" => "login",
-                "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
-                "uiLang" => "fi",
-                "dashboardUrl" => $config->get("app.dashboardUrl", ""),
-            ]));
-    }
-    /**
-     * GET /jet-reset-pass: Renders a password reset request page.
-     *
-     * @param \Pike\Response $res
-     */
-    public function renderRequestPassResetPage(Response $res): void {
-        $res->html("This feature is currently disabled.");
     }
     /**
      * POST /api/pages/[w:pageType]: Inserts a new page to the database.
@@ -336,6 +341,47 @@ final class PagesController {
         $res->status(200)->json(["ok" => "ok"]);
     }
     /**
+     * DELETE /api/pages/[w:pageType]/[w:pageSlug]: deletes page that has slug
+     * "/{$req->params->pageSlug}" and type $req->params->pageType from the database.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Sivujetti\Page\PagesRepository2 $pagesRepo
+     * @param \Sivujetti\Page\PagesRepository $pagesRepoOld
+     */
+    public function deletePage(Request $req,
+                               Response $res,
+                               PagesRepository2 $pagesRepo,
+                               PagesRepository $pagesRepoOld): void {
+        if ($req->params->pageSlug === "/")
+            throw new PikeException("Refusing to delete home page", PikeException::BAD_INPUT);
+        $pageType = $pagesRepoOld->getPageTypeOrThrow($req->params->pageType);
+        $numAffectedRows = $pagesRepo
+            ->delete($pageType->name)
+            ->where("slug = ?", ["/{$req->params->pageSlug}"])
+            ->execute();
+        $res->status(200)->json(["ok" => "ok", "numAffectedRows" => $numAffectedRows]);
+    }
+    /**
+     * @param \Sivujetti\PageType\Entities\PageType $pageType
+     * @return \Sivujetti\Page\Entities\Page
+     */
+    public static function createEmptyPage(PageType $pageType): Page {
+        $page = new Page;
+        $page->slug = "-";
+        $page->path = "-";
+        $page->level = 1;
+        $page->title = $pageType->defaultFields->title->defaultValue;
+        $page->meta = new \stdClass;
+        $page->id = "-";
+        $page->type = $pageType->name;
+        $page->blocks = [];
+        $page->status = Page::STATUS_DRAFT;
+        $page->createdAt = time();
+        $page->lastUpdatedAt = $page->createdAt;
+        return $page;
+    }
+    /**
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
@@ -413,25 +459,6 @@ final class PagesController {
             if ($block->children)
                 self::runBlockBeforeRenderEvent($block->children, $blockTypes, $pagesRepo);
         }
-    }
-    /**
-     * @param \Sivujetti\PageType\Entities\PageType $pageType
-     * @return \Sivujetti\Page\Entities\Page
-     */
-    public static function createEmptyPage(PageType $pageType): Page {
-        $page = new Page;
-        $page->slug = "-";
-        $page->path = "-";
-        $page->level = 1;
-        $page->title = $pageType->defaultFields->title->defaultValue;
-        $page->meta = new \stdClass;
-        $page->id = "-";
-        $page->type = $pageType->name;
-        $page->blocks = [];
-        $page->status = Page::STATUS_DRAFT;
-        $page->createdAt = time();
-        $page->lastUpdatedAt = $page->createdAt;
-        return $page;
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType $pageType
@@ -530,7 +557,7 @@ final class PagesController {
     }
     /**
      * @param \Sivujetti\Theme\Entities\Theme $theme
-     * @return object{styleUnitMetas: array<object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: string, vars: array}>, styleUnitVarValues: array<object{id: string, styleUnitMetaId: string, values: array<object{varName: string, value: string}>, generatedCss: string}>}
+     * @return object{styleUnitMetas: array<object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: array<string>, vars: array}>, styleUnitVarValues: array<object{id: string, styleUnitMetaId: string, values: array<object{varName: string, value: string}>, generatedCss: string}>}
      */
     private static function themeToRaw(Theme $theme): object {
         return (object) [

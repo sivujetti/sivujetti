@@ -30,6 +30,7 @@ $out->resources = (object) [
         "read"              => 0b00001000,
         "updateBlocksOf"    => 0b00010000,
         "update"            => 0b00100000,
+        "delete"            => 0b01000000,
     ],
     "pageTypes" => (object) [
         "create"            => 0b00000010,

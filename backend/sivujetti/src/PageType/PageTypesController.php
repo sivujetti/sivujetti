@@ -42,8 +42,8 @@ final class PageTypesController {
         $res->status(200)->json(["ok" => "ok"]);
     }
     /**
-     * PUT /api/page-types/:name/:asPlaceholder?: Updates page type $req->params->name
-     * to the database.
+     * DELETE /api/page-types/:name/:asPlaceholder?: Deletes page type $req->params->name
+     * from the database.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res

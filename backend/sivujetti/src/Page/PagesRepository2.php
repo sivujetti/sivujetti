@@ -4,7 +4,7 @@ namespace Sivujetti\Page;
 
 use Envms\FluentPDO\Queries\Select;
 use Pike\{ArrayUtils, PikeException};
-use Pike\Db\{FluentDb, MyInsert, MyUpdate};
+use Pike\Db\{FluentDb, MyDelete, MyInsert, MyUpdate};
 use Pike\Interfaces\RowMapperInterface;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\Db\TempJsonCompatSelect;
@@ -65,6 +65,14 @@ final class PagesRepository2 {
     public function update(string $pageTypeName = "Pages"): MyUpdate {
         $pageType = $this->getPageTypeOrThrow($pageTypeName);
         return $this->fluentDb->update("\${p}{$pageType->name}");
+    }
+    /**
+     * @param string $pageTypeName = "Pages"
+     * @return \Pike\Db\MyDelete
+     */
+    public function delete(string $pageTypeName = "Pages"): MyDelete {
+        $pageType = $this->getPageTypeOrThrow($pageTypeName);
+        return $this->fluentDb->delete("\${p}{$pageType->name}");
     }
     /**
      * @param string $candidate

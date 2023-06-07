@@ -67,6 +67,7 @@ return [
     "\$backend/sivujetti/src/Update/ZipPackageStream.php",
     "\$backend/sivujetti/src/Update/CurlHttpClient.php",
     "\$backend/sivujetti/src/Update/Patch/PatchDbTask1.php",
+    "\$backend/sivujetti/src/Update/Patch/PatchDbTask2.php",
     "\$backend/sivujetti/src/Update/PackageStreamInterface.php",
     "\$backend/sivujetti/src/Update/Updater.php",
     "\$backend/sivujetti/src/Update/UpdateProcessTaskInterface.php",

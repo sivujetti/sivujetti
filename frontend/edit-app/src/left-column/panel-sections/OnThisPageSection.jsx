@@ -2,6 +2,7 @@ import {__, api, env, signals, urlUtils, Icon, MenuSectionAbstract} from '@sivuj
 import {createTrier} from '../../block/dom-commons.js';
 import {findBlockFrom} from '../../block/utils-utils.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
+import {openPageDeleteDialog} from '../../right-column/page/PagesListView.jsx';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import BlockTree from '../block/BlockTree.jsx';
 
@@ -130,6 +131,7 @@ class OnThisPageSection extends MenuSectionAbstract {
             { containingView === 'Default' ? <ContextMenu
                 links={ [
                     {text: __('Duplicate this page'), title: __('Duplicate page'), id: 'duplicate'},
+                    {text: __('Delete this page'), title: __('Delete page'), id: 'delete'},
                     {text: __('Show without edit menu'), title: __('Show without edit menu'), id: 'show-without-edit-mode'},
                 ] }
                 onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
@@ -170,7 +172,9 @@ class OnThisPageSection extends MenuSectionAbstract {
      */
     openMoreMenu(pageSlug, e) {
         this.slugOfPageWithNavOpened = pageSlug;
-        this.moreMenu.current.open(e);
+        this.moreMenu.current.open(e, links =>
+            pageSlug !== '/' ? links : links.filter(({id}) => id !== 'delete')
+        );
     }
     /**
      * @param {ContextMenuLink} link
@@ -179,7 +183,12 @@ class OnThisPageSection extends MenuSectionAbstract {
     handleContextMenuLinkClicked(link) {
         if (link.id === 'duplicate')
             env.window.myRoute(`/pages/${encodeURIComponent(this.slugOfPageWithNavOpened)}/duplicate`);
-        else if (link.id === 'show-without-edit-mode')
+        else if (link.id === 'delete') {
+            const {page} = selectCurrentPageDataBundle(store.getState());
+            openPageDeleteDialog(page.slug, page.title, () => {
+                urlUtils.redirect('/_edit');
+            });
+        } else if (link.id === 'show-without-edit-mode')
             env.window.open(urlUtils.makeUrl(this.slugOfPageWithNavOpened, true), '_blank');
     }
 }

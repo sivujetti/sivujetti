@@ -100,7 +100,9 @@ stringBundles.push({
     'Create new %s': 'Create new %s',
     'Edit page': 'Edit page',
     'Duplicate page': 'Duplicate page',
-    'Show without edit menu': 'Show without edit menu',
+    'Delete page': 'Delete page',
+    'Deleted page "%s".': 'Deleted page "%s".',
+    'Failed to delete page.': 'Failed to delete page.',
     // edit-app/src/quill/*,
     'Image': 'Image',
     'File': 'File',
@@ -133,31 +135,16 @@ stringBundles.push({
     'Save as reusable': 'Save as reusable',
     'Save as reusable content': 'Save as reusable content',
     'Content tree': 'Content tree',
-    // edit-app/src/BlockTreeShowHelopPopup.jsx
-    'todo1': 'todo1',
-    'todo2': 'todo2',
-    'todo3': 'todo3',
-    'todo4': 'todo4',
-    'todo5': 'todo5',
-    'todo6': 'todo6',
-    'Colorless': 'Colorless',
-    'todo15': 'todo15',
-    'stored to this page only': 'stored to this page only',
-    'Orange': 'Orange',
-    'todo8': 'todo8',
-    'todo9': 'todo9',
-    'todo10': 'todo10',
-    'Violet': 'Violet',
-    'Meta content contains ': 'Meta content contains ',
-    'additional data / metadata': 'additional data / metadata',
-    ', and otherwise act like ordinary content.': ', and otherwise act like ordinary content.',
     // edit-app/src/left-column/panel-sections/BaseStylesSection.jsx
     'Colours and fonts': 'Colours and fonts',
     'Visual': 'Visual',
     'Code': 'Code',
     // edit-app/src/left-column/panel-sections/OnThisPageSection.jsx
     'Duplicate this page': 'Duplicate this page',
+    'Delete this page': 'Delete this page',
+    'Show without edit menu': 'Show without edit menu',
     'On this page': 'On this page',
+    'Default content': 'Default content',
     'Content of page %s': 'Content of %s-page',
     'New page content': 'New page content',
     // edit-app/src/left-column/panel-sections/SettingsSection.jsx
@@ -170,7 +157,6 @@ stringBundles.push({
     'page': 'page',
     // edit-app/src/left-column/page-type/PageTypeCreatePanel.jsx
     'page type': 'page type',
-    'Default content': 'Default content',
     'Basic settings': 'Basic settings',
     'Fields': 'Fields',
     // _
@@ -193,12 +179,6 @@ stringBundles.push({
     'Description': 'Description',
     'Listable': 'Listable',
     'Default layout': 'Default layout',
-    // edit-app/src/popups/styles/SetUnitAsDefaultDialog.jsx
-    'Specifier': 'Specifier',
-    'todo16 %s': 'todo16 %s', // Tämä toiminto merkitsee nämä tyylit tyyleihin, jota käytetään automaattisesti uusissa, sivuun lisätyissä  %s -sisällöissä.'
-    'optional': 'optional',
-    'Evaluates to\n`body [specifierHere] .%s`': 'Evaluates to\n`body [specifierHere] .%s`',
-    'e.g. `>`, `div`, `.j-Button >`': 'e.g. `>`, `div`, `.j-Button >`',
     // edit-app/src/popups/reusable-branch/SaveBlockAsReusableDialog.jsx
     'todo7': 'todo7',
     'Name': 'Name',
@@ -209,6 +189,30 @@ stringBundles.push({
     'Unique': 'Unique',
     'todo13': 'todo13',
     'Cancel': 'Cancel',
+    // edit-app/src/popups/styles/SetUnitAsDefaultDialog.jsx
+    'Specifier': 'Specifier',
+    'todo16 %s': 'todo16 %s', // Tämä toiminto merkitsee nämä tyylit tyyleihin, jota käytetään automaattisesti uusissa, sivuun lisätyissä  %s -sisällöissä.'
+    'optional': 'optional',
+    'Evaluates to\n`body [specifierHere] .%s`': 'Evaluates to\n`body [specifierHere] .%s`',
+    'e.g. `>`, `div`, `.j-Button >`': 'e.g. `>`, `div`, `.j-Button >`',
+    // edit-app/src/popups/BlockTreeShowHelpPopup.jsx
+    'todo1': 'todo1',
+    'todo2': 'todo2',
+    'todo3': 'todo3',
+    'todo4': 'todo4',
+    'todo5': 'todo5',
+    'todo6': 'todo6',
+    'Colorless': 'Colorless',
+    'todo15': 'todo15',
+    'stored to this page only': 'stored to this page only',
+    'Orange': 'Orange',
+    'todo8': 'todo8',
+    'todo9': 'todo9',
+    'todo10': 'todo10',
+    'Violet': 'Violet',
+    'Meta content contains ': 'Meta content contains ',
+    'additional data / metadata': 'additional data / metadata',
+    ', and otherwise act like ordinary content.': ', and otherwise act like ordinary content.',
     // edit-app/src/left-column/SaveButton.jsx
     'You have unsaved changes, do you want to navigate away?': 'You have unsaved changes, do you want to navigate away?',
     'Undo latest change': 'Undo latest change',
@@ -300,7 +304,6 @@ stringBundles.push({
     'Section': 'Section',
     'Background': 'Background',
     // edit-app/src/block-types/text.js
-    'Text': 'Text',
     'Text content': 'Text content',
     // edit-app/src/block-widget/ImagePicker.jsx
     'Choose a picture': 'Choose a picture',

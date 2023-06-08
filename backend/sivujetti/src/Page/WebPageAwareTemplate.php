@@ -265,7 +265,7 @@ final class WebPageAwareTemplate extends Template {
                 ) . ".reduce((out, [generatedCss, suggestedFor]) => {\n" .
                     "  const bundle = document.createElement('style');\n" .
                     "  bundle.innerHTML = `@layer units-meta { \${generatedCss} }`;\n" .
-                    "  bundle.setAttribute('data-units-meta-for', suggestedFor.split(' ').join('|'));\n" .
+                    "  bundle.setAttribute('data-units-meta-for', suggestedFor.join('|'));\n" .
                     "  out.appendChild(bundle);\n" .
                     "  return out;\n" .
                 "}, document.createDocumentFragment())") . ");\n" .

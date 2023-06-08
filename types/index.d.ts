@@ -341,15 +341,18 @@ interface ThemeStyle {
 
 interface StyleUnitMeta {
     id: String;
+    title: String;
+    scssTmpl: String;
+    generatedCss: String;
     vars: Array<UnitVarMeta>;
-    // todo suggestedFor etc
+    suggestedFor: Array<String>;
 }
 
 interface UnitVarMeta {
     varName: String;
     type: 'length'|'color'|'option';
+    label: String;
     defaultValue: ColorValue|LengthValue|OptionValue|null;
-    // todo
 }
 
 interface StyleUnitVarValues {
@@ -361,7 +364,7 @@ interface StyleUnitVarValues {
 
 interface UnitVarValue {
     varName: String;
-    value: String;// ColorValue|LengthValue|OptionValue;
+    value: String;
 }
 
 interface ThemeStyleUnit {

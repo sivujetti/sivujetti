@@ -1,4 +1,4 @@
-import {__, api} from '@sivujetti-commons-for-edit-app';
+import {__, api, timingUtils, env} from '@sivujetti-commons-for-edit-app';
 import {varValsToString} from '../../block-styles/styleUnitVarValsStore.js';
 import store, {pushItemToOpQueue} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
@@ -43,6 +43,18 @@ class BlockStylesTab3 extends preact.Component {
      */
     render(_, {currentBlockStylesMeta, currentBlockVarValUnits, initd}) {
         if (!initd) return;
+        //
+        const throttledHandleValueChanged = timingUtils.debounce((newValAsString, valIsSet, mv, valHasUnit, sm, unitVarVals, v) => {
+            if (newValAsString !== null) {
+                if (!valIsSet)
+                    addValueAndEmit({varName: mv.varName, value: newValAsString}, valHasUnit ? unitVarVals.id : null, sm, this.props);
+                else
+                    updateValueAndEmit(newValAsString, mv.varName, unitVarVals.id, v);
+            } else {
+                removeValueAndEmit();
+            }
+        }, env.normalTypingDebounceMillis);
+        //
         return currentBlockStylesMeta.length ? currentBlockStylesMeta.map(sm =>
             <div class="group" key={ sm.id }>{ sm.vars.map(mv => {
                 const Renderer = valueEditors.get(mv.type);
@@ -61,14 +73,7 @@ class BlockStylesTab3 extends preact.Component {
                     isClearable={ valIsSet }
                     labelTranslated={ __(mv.label) }
                     onVarValueChanged={ newValAsString => {
-                        if (newValAsString !== null) {
-                            if (!valIsSet)
-                                addValueAndEmit(newValAsString, mv.varName, valHasUnit, sm, this.props);
-                            else
-                                updateValueAndEmit(newValAsString, mv.varName, unitVarVals.id, v);
-                        } else {
-                            removeValueAndEmit();
-                        }
+                        throttledHandleValueChanged(newValAsString, valIsSet, mv, valHasUnit, sm, unitVarVals, v);
                     } }
                     key={ mv.id }/>;
             }) }</div>
@@ -91,15 +96,28 @@ class BlockStylesTab3 extends preact.Component {
 }
 
 /**
- * @param {String} newVal
- * @param {String} varName
- * @param {Boolean} alreadyHasUnit
+ * @param {UnitVarValue} newVal
+ * @param {String|null} unitVarValsId
  * @param {StyleUnitMeta} meta
  * @param {StylesTab3Props} props
  */
-function addValueAndEmit(newVal, varName, alreadyHasUnit, meta, props) {
+function addValueAndEmit(newVal, unitVarValsId, meta, props) {
+    const alreadyHasUnit = unitVarValsId !== null;
+
+    // The block, which newVal is being added to, already has unitVarVals, but this value is not its .values array -> add it
     if (alreadyHasUnit) {
-        throw new Error('todo');
+        store2.dispatch('styleUnitVarVals/addValueTo', [unitVarValsId, newVal]);
+
+        const toRemoveOnUndoContext = [unitVarValsId, newVal];
+        store.dispatch(pushItemToOpQueue('update-style-unit-var-vals', {
+            doHandle: () => { return 'http.put(todo /api/style-unit-var-vals)'; },
+            doUndo: () => {
+                store2.dispatch('styleUnitVarVals/removeValueFrom', toRemoveOnUndoContext);
+            },
+            args: [],
+        }));
+
+    // The block, which newVal is being added to, has no unitVarVals yet -> add it using .values array [thisValue]
     } else {
         const id = 'j-svv-1'; // todo
         // #1 add related StyleUnitMeta's css to the page if not present?
@@ -109,7 +127,7 @@ function addValueAndEmit(newVal, varName, alreadyHasUnit, meta, props) {
         props.emitAppendStrToBlockStyleClasses(`${meta.id} ${id}`, props.getBlockCopy());
 
         // #3 Add new styleUnitVarVals with one variable value in it
-        const values = [{varName, value: newVal}];
+        const values = [newVal];
         store2.dispatch('styleUnitVarVals/addItem', [{
             id,
             styleUnitMetaId: meta.id,
@@ -166,8 +184,8 @@ function removeValueAndEmit(styleUnitMetaId, varName) {
  */
 function getStylesMetaFor(blockTypeName, allStylesMeta) {
     const styleUnitMetasForThisBlock = allStylesMeta.filter(sm => {
-        const asArr = sm.suggestedFor.split(' ');
-        return asArr.indexOf('all') > -1 || asArr.indexOf(blockTypeName) > -1;
+        const {suggestedFor} = sm;
+        return suggestedFor.indexOf('all') > -1 || suggestedFor.indexOf(blockTypeName) > -1;
     });
     return styleUnitMetasForThisBlock;
 }
@@ -194,7 +212,7 @@ function getVarValueFor(vm, unitsVarVals, sm) {
         return [null, null];
     //
     const val = varVals.values.find(v2 => v2.varName === vm.varName);
-    return [val, varVals];
+    return [val || null, varVals];
 }
 
 /**

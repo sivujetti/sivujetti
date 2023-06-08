@@ -189,7 +189,7 @@ class EditAppAwareWebPage {
         return ({styleUnitVarVals}, [event, data]) => {
             if (event === 'styleUnitVarVals/addItem') {
                 const node = document.createElement('style');
-                const [newVarVals] = data;
+                const [newVarVals] = data; // data: [StyleUnitVarValues]
                 node.setAttribute('data-unit-var-values-for', newVarVals.id);
                 node.innerHTML = newVarVals.generatedCss; // `.j-s-<n> { --var1: val ... }`
                 document.head.appendChild(node);
@@ -197,8 +197,8 @@ class EditAppAwareWebPage {
                 const unitVarValsId = data[0]; // data: [String]
                 const node = document.head.querySelector(`style[data-unit-var-values-for="${unitVarValsId}"]`);
                 node.parentElement.removeChild(node);
-            } else if (event === 'styleUnitVarVals/updateValueIn') {
-                const unitVarValsId = data[0]; // data: [String, ?]
+            } else if (event === 'styleUnitVarVals/updateValueIn' || event === 'styleUnitVarVals/addValueTo' || event === 'styleUnitVarVals/removeValueFrom') {
+                const unitVarValsId = data[0]; // data: [String, UnitVarValue]
                 const node = document.head.querySelector(`style[data-unit-var-values-for="${unitVarValsId}"]`);
                 node.innerHTML = styleUnitVarVals.find(vv => vv.id === unitVarValsId).generatedCss;
             } else return;

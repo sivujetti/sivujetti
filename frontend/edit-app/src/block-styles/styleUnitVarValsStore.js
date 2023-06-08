@@ -29,6 +29,18 @@ function styleUnitVarValsStore(store) {
         ({styleUnitVarVals: styleUnitVarVals.filter(vv => vv.id !== id)})
     );
 
+    store.on('styleUnitVarVals/addValueTo',
+    /**
+     * @param {Object} state
+     * @param {[String, UnitVarValue]} args
+     * @returns {{styleUnitVarVals: Array<StyleUnitVarValues>; [otherStateBucketKey: String]: any;}}
+     */
+    ({styleUnitVarVals}, [varValsId, valToAdd]) => ({styleUnitVarVals: styleUnitVarVals.map(vv => {
+        if (vv.id !== varValsId) return vv;
+        const newVals = [...vv.values, valToAdd];
+        return {...vv, ...{values: newVals}, generatedCss: varValsToString(newVals, varValsId)};
+    })}));
+
     store.on('styleUnitVarVals/updateValueIn',
     /**
      * @param {Object} state
@@ -38,6 +50,19 @@ function styleUnitVarValsStore(store) {
     ({styleUnitVarVals}, [varValsId, valToUpdate]) => ({styleUnitVarVals: styleUnitVarVals.map(vv => {
         if (vv.id !== varValsId) return vv;
         const newVals = vv.values.map(v => v.varName !== valToUpdate.varName ? v : {...valToUpdate});
+        return {...vv, ...{values: newVals}, generatedCss: varValsToString(newVals, varValsId)};
+    })}));
+
+
+    store.on('styleUnitVarVals/removeValueFrom',
+    /**
+     * @param {Object} state
+     * @param {[String, UnitVarValue]} args
+     * @returns {{styleUnitVarVals: Array<StyleUnitVarValues>; [otherStateBucketKey: String]: any;}}
+     */
+    ({styleUnitVarVals}, [varValsId, {varName}]) => ({styleUnitVarVals: styleUnitVarVals.map(vv => {
+        if (vv.id !== varValsId) return vv;
+        const newVals = vv.values.filter(v => v.varName !== varName);
         return {...vv, ...{values: newVals}, generatedCss: varValsToString(newVals, varValsId)};
     })}));
 }

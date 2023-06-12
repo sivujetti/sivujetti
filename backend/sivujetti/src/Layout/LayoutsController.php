@@ -39,13 +39,9 @@ final class LayoutsController {
             $res->status(400)->json($errors);
             return;
         }
-        $num = $layoutsRepo->updateById($req->params->layoutId, $req->body);
+        $numRows = $layoutsRepo->updateById($req->params->layoutId, $req->body);
         //
-        if ($num !== 1)
-            throw new PikeException("Expected \$numAffectedRows to equal 1 but got $num",
-                PikeException::INEFFECTUAL_DB_OP);
-        //
-        $res->status(200)->json(["ok" => "ok"]);
+        $res->status(200)->json(["ok" => "ok", "numAffectedRows" => $numRows]);
     }
     /**
      * @param object $input

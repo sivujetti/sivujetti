@@ -87,16 +87,12 @@ final class GlobalBlockTreesController {
             return;
         }
         //
-        $numAffectedRows = $gbtRepo->update()
+        $numRows = $gbtRepo->update()
             ->values((object) ["blocks" => $validStorableBlocksJson])
             ->where("id = ?", $req->params->globalBlockTreeId)
             ->execute();
         //
-        if ($numAffectedRows !== 1) throw new PikeException(
-            "Expected \$numAffectedRows to equal 1 but got {$numAffectedRows}",
-            PikeException::INEFFECTUAL_DB_OP);
-        //
-        $res->status(200)->json(["ok" => "ok"]);
+        $res->status(200)->json(["ok" => "ok", "numAffectedRows" => $numRows]);
     }
     /**
      * @param object $input

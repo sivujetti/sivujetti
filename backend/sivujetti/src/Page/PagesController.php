@@ -198,11 +198,9 @@ final class PagesController {
             $res->status(400)->json($errors);
             return;
         }
-        if ($numAffectedRows !== 1) throw new PikeException(
-            "Expected \$numAffectedRows to equal 1 but got {$numAffectedRows}",
-            PikeException::INEFFECTUAL_DB_OP);
         //
-        $res->status(201)->json(["ok" => "ok", "insertId" => $pagesRepo->getLastInsertId()]);
+        $res->status(201)->json(["ok" => "ok", "numAffectedRows" => $numAffectedRows,
+                                "insertId" => $pagesRepo->getLastInsertId()]);
     }
     /**
      * POST /api/pages/[w:pageType]/quick: Inserts a new page with defaults to
@@ -246,8 +244,10 @@ final class PagesController {
             $data->{$field->name} = $page->{$field->name};
         }
         //
-        $ok = $pagesRepo->insert($pageType)->values($data)->execute(return: "numRows") === 1;
-        $res->status($ok ? 201 : 200)->json(["ok" => $ok ? "ok" : "err"]);
+        $numRows = $pagesRepo->insert($pageType)->values($data)->execute(return: "numRows");
+        $ok = $numRows === 1;
+        $res->status($ok ? 201 : 200)->json(["ok" => $ok ? "ok" : "err",
+                                                "numAffectedRows" => $numRows]);
     }
     /**
      * GET /api/pages/[w:pageType]/[w:pageSlug]: Returns 200 & page with slug
@@ -307,16 +307,12 @@ final class PagesController {
             return;
         }
         //
-        $numAffectedRows = $pagesRepo->update($pageType->name)
+        $numRows = $pagesRepo->update($pageType->name)
             ->values((object) ["blocks" => $validStorableBlocksJson, "lastUpdatedAt" => time()])
             ->where("id = ?", $req->params->pageId)
             ->execute();
         //
-        if ($numAffectedRows !== 1) throw new PikeException(
-            "Expected \$numAffectedRows to equal 1 but got {$numAffectedRows}",
-            PikeException::INEFFECTUAL_DB_OP);
-        //
-        $res->status(200)->json(["ok" => "ok"]);
+        $res->status(200)->json(["ok" => "ok", "numAffectedRows" => $numRows]);
     }
     /**
      * PUT /api/pages/[w:pageType]/[w:pageId]: updates basic info of $req->params
@@ -331,14 +327,9 @@ final class PagesController {
                                PagesRepository $pagesRepo): void {
         $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
         //
-        $numAffectedRows = $pagesRepo->updateById($pageType, $req->params->pageId,
-                                                  $req->body);
+        $numRows = $pagesRepo->updateById($pageType, $req->params->pageId, $req->body);
         //
-        if ($numAffectedRows !== 1) throw new PikeException(
-            "Expected \$numAffectedRows to equal 1 but got {$numAffectedRows}",
-            PikeException::INEFFECTUAL_DB_OP);
-        //
-        $res->status(200)->json(["ok" => "ok"]);
+        $res->status(200)->json(["ok" => "ok", "numAffectedRows" => $numRows]);
     }
     /**
      * DELETE /api/pages/[w:pageType]/[w:pageSlug]: deletes page that has slug
@@ -356,11 +347,11 @@ final class PagesController {
         if ($req->params->pageSlug === "/")
             throw new PikeException("Refusing to delete home page", PikeException::BAD_INPUT);
         $pageType = $pagesRepoOld->getPageTypeOrThrow($req->params->pageType);
-        $numAffectedRows = $pagesRepo
+        $numRows = $pagesRepo
             ->delete($pageType->name)
             ->where("slug = ?", ["/{$req->params->pageSlug}"])
             ->execute();
-        $res->status(200)->json(["ok" => "ok", "numAffectedRows" => $numAffectedRows]);
+        $res->status(200)->json(["ok" => "ok", "numAffectedRows" => $numRows]);
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType $pageType

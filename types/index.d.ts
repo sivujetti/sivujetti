@@ -125,8 +125,10 @@ interface CurrentPageData {
         structure: Array<LayoutPart>;
     };
     theme: {
+        id: String; // Example '1'
         styleUnitMetas: Array<StyleUnitMeta>;
         styleUnitVarValues: Array<StyleUnitVarValues>;
+        styleUnitVarValuesIdMax: Number;
     };
 }
 

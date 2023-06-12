@@ -46,6 +46,10 @@ class IframePageManager {
         const {data} = webPage;
         delete webPage.data;
         data.page = maybePatchTitleAndSlug(data.page, isDuplicate);
+        data.theme.styleUnitVarValuesIdMax = data.theme.styleUnitVarValues.reduce((max, vv) => {
+            const cur = parseInt(vv.id.substring(vv.id.lastIndexOf('-') + 1));
+            return cur > max ? cur : max;
+        }, 0);
         //
         webPage.addRootBoundingEls(ordered[ordered.length - 1]);
         webPage.registerEventHandlers(this.createWebsiteEventHandlers(this, webPageUnregistrables));

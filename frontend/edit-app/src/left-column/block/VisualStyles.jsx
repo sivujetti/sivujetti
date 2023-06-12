@@ -260,7 +260,7 @@ class ColorValueInput extends preact.Component {
             <div class="d-inline-flex p-relative">
             <div class="pickr disappearing-pickr">
                 <button
-                    onClick={ e => this.replaceDisappearingBox(e, this.props) }
+                    onClick={ this.replaceDisappearingBox.bind(this) }
                     style={ `--pcr-color:${val.data};` }
                     class="pcr-button"
                     type="button"
@@ -282,16 +282,15 @@ class ColorValueInput extends preact.Component {
     }
     /**
      * @param {Event} e
-     * @param {ValueInputProps<ColorValue>} props
      * @access private
      */
-    replaceDisappearingBox(e, props) {
+    replaceDisappearingBox(e) {
         const disappearingColorBox = e.target.parentElement; // div.disappearing-pickr
         disappearingColorBox.classList.add('d-none');
         //
         const realColorBox = document.createElement('div');
         disappearingColorBox.parentElement.insertBefore(realColorBox, disappearingColorBox);
-        const norm = abNorm(props, ColorValueInput);
+        const norm = abNorm(this.props, ColorValueInput);
         this.pickr = window.Pickr.create({
             el: realColorBox,
             theme: 'nano',
@@ -315,7 +314,7 @@ class ColorValueInput extends preact.Component {
             // Update realColorBox's color
             instance.setColor(nonCommittedHex);
             // Commit
-            props.onVarValueChanged(nonCommittedHex);
+            this.props.onVarValueChanged(nonCommittedHex);
         });
         setTimeout(() => {
             this.pickr.show();

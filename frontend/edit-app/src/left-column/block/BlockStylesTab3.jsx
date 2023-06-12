@@ -1,18 +1,29 @@
-import {__, api, timingUtils, env} from '@sivujetti-commons-for-edit-app';
+import {__, api, http, timingUtils, env} from '@sivujetti-commons-for-edit-app';
 import {varValsToString} from '../../block-styles/styleUnitVarValsStore.js';
-import store, {pushItemToOpQueue} from '../../store.js';
+import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
+import store, {observeStore, pushItemToOpQueue, selectCurrentPageDataBundle, setCurrentPageDataBundle} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import {valueEditors} from './VisualStyles.jsx';
 
+const unitVarValClsPrefix = 'j-svv-';
+
 class BlockStylesTab3 extends preact.Component {
+    // unitVarValsIdMax;
+    // saveVarVarStylesUrl;
     // unregistrables;
     /**
      * @access protected
      */
     componentWillMount() {
+        const {theme} = selectCurrentPageDataBundle(store.getState());
+        this.unitVarValsIdMax = theme.styleUnitVarValuesIdMax;
+        this.saveVarVarStylesUrl = `/api/themes/${theme.id}/style-units-var-vals`;
         this.unregistrables = [observeStore2('styleUnitVarVals', ({styleUnitVarVals}, [event]) => {
             if (event === 'styleUnitVarVals/init') return;
             this.updateUnitVarValues(styleUnitVarVals);
+        }), observeStore(selectCurrentPageDataBundle, ({theme}) => {
+            if (theme.styleUnitVarValuesIdMax !== this.unitVarValsIdMax)
+                this.unitVarValsIdMax = theme.styleUnitVarValuesIdMax;
         })];
     }
     /**
@@ -46,12 +57,13 @@ class BlockStylesTab3 extends preact.Component {
         //
         const throttledHandleValueChanged = timingUtils.debounce((newValAsString, valIsSet, mv, valHasUnit, sm, unitVarVals, v) => {
             if (newValAsString !== null) {
+                const newVal = {varName: mv.varName, value: newValAsString};
                 if (!valIsSet)
-                    addValueAndEmit({varName: mv.varName, value: newValAsString}, valHasUnit ? unitVarVals.id : null, sm, this.props);
+                    this.addValueAndEmit(newVal, valHasUnit ? unitVarVals.id : this.incrementAndGetNextId(), valHasUnit, sm);
                 else
-                    updateValueAndEmit(newValAsString, mv.varName, unitVarVals.id, v);
+                    this.updateValueAndEmit(newVal, unitVarVals.id, v);
             } else {
-                removeValueAndEmit();
+                this.removeValueAndEmit();
             }
         }, env.normalTypingDebounceMillis);
         //
@@ -69,13 +81,12 @@ class BlockStylesTab3 extends preact.Component {
                     varName={ mv.varName }
                     valueWrapStr={ '' }
                     valHasUnit={ valHasUnit }
-                    valIsSet={ valIsSet }
                     isClearable={ valIsSet }
                     labelTranslated={ __(mv.label) }
                     onVarValueChanged={ newValAsString => {
                         throttledHandleValueChanged(newValAsString, valIsSet, mv, valHasUnit, sm, unitVarVals, v);
                     } }
-                    key={ mv.id }/>;
+                    key={ `${sm.id}-${mv.id}-${mv.varName}` }/>;
             }) }</div>
         ) : <div class="color-dimmed px-2 pt-1">{ __('No editable styles.') }</div>;
     }
@@ -86,6 +97,72 @@ class BlockStylesTab3 extends preact.Component {
         this.setState({currentBlockStylesMeta: null, currentBlockVarValUnits: null, initd: false});
     }
     /**
+     * @param {UnitVarValue} newVal
+     * @param {String} unitVarValsId
+     * @param {Boolean} alreadyHasUnit
+     * @param {StyleUnitMeta} meta
+     * @access private
+     */
+    addValueAndEmit(newVal, unitVarValsId, alreadyHasUnit, meta) {
+        // The block, which newVal is being added to, already has unitVarVals, but this value is not its .values array -> add it
+        if (alreadyHasUnit) {
+            store2.dispatch('styleUnitVarVals/addValueTo', [unitVarValsId, newVal]);
+
+            const toRemoveOnUndoContext = [unitVarValsId, newVal];
+            this.dispatchNewUnitVarVals(() => {
+                store2.dispatch('styleUnitVarVals/removeValueFrom', toRemoveOnUndoContext);
+            });
+
+        // The block, which newVal is being added to, has no unitVarVals yet -> add it using .values array [thisValue]
+        } else {
+            // #1 add related StyleUnitMeta's css to the page if not present?
+            // store2.dispatch('styleUnitMetas/addItem', [{}]);
+
+            // #2 Add class to the block
+            this.props.emitAppendStrToBlockStyleClasses(`${meta.id} ${unitVarValsId}`, this.props.getBlockCopy());
+
+            // #3 Add new styleUnitVarVals with one variable value in it
+            const values = [newVal];
+            const newVarVals = {
+                id: unitVarValsId,
+                styleUnitMetaId: meta.id,
+                values,
+                generatedCss: varValsToString(values, unitVarValsId),
+            };
+            store2.dispatch('styleUnitVarVals/addItem', [newVarVals]);
+
+            this.dispatchNewUnitVarVals(() => {
+                // Undo this (#3)
+                store2.dispatch('styleUnitVarVals/removeItem', [unitVarValsId]);
+                // Undo #2
+                setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
+            });
+        }
+    }
+    /**
+     * @param {UnitVarValue} updatedValue
+     * @param {String} unitVarValsId
+     * @param {UnitVarValue} curVal
+     * @access private
+     */
+    updateValueAndEmit(updatedValue, unitVarValsId, curVal) {
+        const prevValue = {...curVal};
+
+        store2.dispatch('styleUnitVarVals/updateValueIn', [unitVarValsId, updatedValue]);
+
+        this.dispatchNewUnitVarVals(() => {
+            store2.dispatch('styleUnitVarVals/updateValueIn', [unitVarValsId, prevValue]);
+        });
+    }
+    /**
+     * @param { } ? 
+     * @param { } ? 
+     * @access private
+     */
+    removeValueAndEmit(styleUnitMetaId, varName) {
+        throw new Error('todo');
+    }
+    /**
      * @access private
      */
     updateUnitVarValues(styleUnitVarVals) {
@@ -93,88 +170,30 @@ class BlockStylesTab3 extends preact.Component {
         const currentBlockVarValUnits = block ? getUnitsVarValsFor(onlyVarValUnitClasses(block.styleClasses.split(' ')), styleUnitVarVals) : null;
         this.setState({currentBlockVarValUnits});
     }
-}
+    /**
+     * @param {() => void} doUndo
+     * @access private
+     */
+    dispatchNewUnitVarVals(doUndo) {
+        const updatedAll = store2.get().styleUnitVarVals;
 
-/**
- * @param {UnitVarValue} newVal
- * @param {String|null} unitVarValsId
- * @param {StyleUnitMeta} meta
- * @param {StylesTab3Props} props
- */
-function addValueAndEmit(newVal, unitVarValsId, meta, props) {
-    const alreadyHasUnit = unitVarValsId !== null;
-
-    // The block, which newVal is being added to, already has unitVarVals, but this value is not its .values array -> add it
-    if (alreadyHasUnit) {
-        store2.dispatch('styleUnitVarVals/addValueTo', [unitVarValsId, newVal]);
-
-        const toRemoveOnUndoContext = [unitVarValsId, newVal];
-        store.dispatch(pushItemToOpQueue('update-style-unit-var-vals', {
-            doHandle: () => { return 'http.put(todo /api/style-unit-var-vals)'; },
-            doUndo: () => {
-                store2.dispatch('styleUnitVarVals/removeValueFrom', toRemoveOnUndoContext);
-            },
-            args: [],
-        }));
-
-    // The block, which newVal is being added to, has no unitVarVals yet -> add it using .values array [thisValue]
-    } else {
-        const id = 'j-svv-1'; // todo
-        // #1 add related StyleUnitMeta's css to the page if not present?
-        // store2.dispatch('styleUnitMetas/addItem', [{}]);
-
-        // #2 Add class to the block
-        props.emitAppendStrToBlockStyleClasses(`${meta.id} ${id}`, props.getBlockCopy());
-
-        // #3 Add new styleUnitVarVals with one variable value in it
-        const values = [newVal];
-        store2.dispatch('styleUnitVarVals/addItem', [{
-            id,
-            styleUnitMetaId: meta.id,
-            values,
-            generatedCss: varValsToString(values, id),
-        }]);
-        store.dispatch(pushItemToOpQueue('update-style-unit-var-vals', {
-            doHandle: () => { return 'http.put(todo /api/style-unit-var-vals)'; },
-            doUndo: () => {
-                // Undo this (#3)
-                store2.dispatch('styleUnitVarVals/removeItem', [id]);
-                // Undo #2
-                setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
-            },
+        store.dispatch(pushItemToOpQueue('save-theme-style-units-var-vals', {
+            doHandle: () => http.put(this.saveVarVarStylesUrl, {varValsItems: [...updatedAll]}),
+            doUndo,
             args: [],
         }));
     }
-}
-
-/**
- * @param {String} newVal
- * @param {String} varName
- * @param {String} unitVarValsId
- * @param {UnitVarValue} curVarVals
- */
-function updateValueAndEmit(newVal, varName, unitVarValsId, curV) {
-    const updatedValue = {varName, value: newVal};
-    const prevValue = {...curV};
-
-    // Update value in styleUnitVarVals
-    store2.dispatch('styleUnitVarVals/updateValueIn', [unitVarValsId, updatedValue]);
-
-    store.dispatch(pushItemToOpQueue('update-style-unit-var-vals', {
-        doHandle: () => { return 'http.put(todo /api/style-unit-var-vals)'; },
-        doUndo: () => {
-            store2.dispatch('styleUnitVarVals/updateValueIn', [unitVarValsId, prevValue]);
-        },
-        args: [],
-    }));
-}
-
-/**
- * @param { } ? 
- * @param { } ? 
- */
-function removeValueAndEmit(styleUnitMetaId, varName) {
-    throw new Error('todo');
+    /**
+     * @returns {String} Example 'j-svv-24'
+     * @access private
+     */
+    incrementAndGetNextId() {
+        const next = this.unitVarValsIdMax + 1;
+        const bundle = cloneObjectDeep(selectCurrentPageDataBundle(store.getState()));
+        bundle.theme.styleUnitVarValuesIdMax = next;
+        store.dispatch(setCurrentPageDataBundle(bundle));
+        return `${unitVarValClsPrefix}${next}`;
+    }
 }
 
 /**
@@ -204,7 +223,7 @@ function getUnitsVarValsFor(unitClses, allUnitVarVals) {
  * @param {UnitVarMeta} vm
  * @param {Array<StyleUnitVarValues>} unitsVarVals
  * @param {StyleUnitMeta} sm
- * @returns {Array<UnitVarValue|null, StyleUnitVarValues|null>}
+ * @returns {[UnitVarValue|null, StyleUnitVarValues|null]}
  */
 function getVarValueFor(vm, unitsVarVals, sm) {
     const varVals = unitsVarVals.find(uv => uv.styleUnitMetaId === sm.id);
@@ -220,7 +239,7 @@ function getVarValueFor(vm, unitsVarVals, sm) {
  * @returns {Array<String>}
  */
 function onlyVarValUnitClasses(clses) {
-    return clses.filter(cls => cls.startsWith('j-svv-'));
+    return clses.filter(cls => cls.startsWith(unitVarValClsPrefix));
 }
 
 /**

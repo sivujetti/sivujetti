@@ -60,8 +60,10 @@ return [
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92) NOT NULL,
     `stylesOrder` JSON,
+    `styleUnitVarVals` JSON,
     `globalStyles` JSON,
     `isActive` TINYINT(1) NOT NULL,
+    `generatedStylesCss` TEXT,
     `generatedScopedStylesCss` TEXT,
     `stylesLastUpdatedAt` {$dataTypeForTimestamps},
     PRIMARY KEY (`id`)

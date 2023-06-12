@@ -4,9 +4,9 @@
     "type": "project",
     "require": {
         "php": "^8.0.0",
-        "ext-mbstring": "*",
         "ext-ctype": "*",
         "ext-fileinfo": "*",
+        "ext-mbstring": "*",
         "phpmailer/phpmailer": "^6.8",
         "envms/fluentpdo": "^2.2",
         "ut4/pike": "dev-1.0.0-alpha4"
@@ -18,13 +18,15 @@
     },
     "suggest": {
         "ext-pdo_sqlite": "To use sqlite",
-        "ext-pdo_mysql": "To use mysql"
+        "ext-pdo_mysql": "To use mysql",
+        "ext-curl": "To use updater",
+        "ext-zip": "To use updater"
     },
     "autoload": {
         "psr-4": {"Sivujetti\\": "sivujetti/src/"}
     },
     "scripts": {
-        "test": "\"vendor/bin/phpunit\" --bootstrap ./sivujetti/tests/bootstrap.php",
+        "test": "\"vendor/bin/phpunit\" --bootstrap ./sivujetti/tests/bootstrap.php --display-warnings",
         "lint": "\"./vendor/bin/psalm\""
     }
 }

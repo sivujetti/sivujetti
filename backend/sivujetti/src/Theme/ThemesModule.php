@@ -17,9 +17,13 @@ final class ThemesModule {
             [ThemesController::class, "upsertBlockTypeScopedStyles", ["consumes" => "application/json",
                                                                       "identifiedBy" => ["upsertBlockTypeScopedVars", "themes"]]],
         );
+        $router->map("PUT", "/api/themes/[i:themeId]/style-units-var-vals",
+            [ThemesController::class, "updateStyleVarValStyless", ["consumes" => "application/json",
+                                                                    "identifiedBy" => ["updateVarValStylesOf", "themes"]]],
+        );
         $router->map("PUT", "/api/themes/[i:themeId]/styles/global",
             [ThemesController::class, "updateGlobalStyles", ["consumes" => "application/json",
-                                                             "identifiedBy" => ["updateGlobalStylesOf", "themes"]]],
+                                                             "identifiedBy" => ["updateVarValStylesOf", "themes"]]],
         );
     }
 }

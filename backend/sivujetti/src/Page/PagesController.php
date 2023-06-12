@@ -151,7 +151,7 @@ final class PagesController {
                 "dashboardUrl" => $config->get("app.dashboardUrl", ""),
                 "userPermissions" => [
                     "canDoAnything" => $userRole === ACL::ROLE_SUPER_ADMIN,
-                    "canEditThemeColours" => $acl->can($userRole, "updateGlobalStylesOf", "themes"),
+                    "canEditThemeColours" => $acl->can($userRole, "updateVarValStylesOf", "themes"),
                     "canEditThemeVars" => $acl->can($userRole, "upsertBlockTypeScopedVars", "themes"),
                     "canEditThemeCss" => $acl->can($userRole, "upsertBlockTypeScopedCss", "themes"),
                     "canCreatePageTypes" => $acl->can($userRole, "create", "pageTypes"),
@@ -561,8 +561,10 @@ final class PagesController {
      */
     private static function themeToRaw(Theme $theme): object {
         return (object) [
+            "id" => $theme->id,
             "styleUnitMetas" => $theme->styleUnitMetas,
             "styleUnitVarValues" => $theme->styleUnitVarValues,
+            "styleUnitVarValuesIdMax" => -1, // @see loadPage() @frontend/edit-app/src/right-column/IframePageManager.js
         ];
     }
     /**

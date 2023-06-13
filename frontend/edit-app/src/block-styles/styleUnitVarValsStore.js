@@ -60,11 +60,20 @@ function styleUnitVarValsStore(store) {
      * @param {[String, UnitVarValue]} args
      * @returns {{styleUnitVarVals: Array<StyleUnitVarValues>; [otherStateBucketKey: String]: any;}}
      */
-    ({styleUnitVarVals}, [varValsId, {varName}]) => ({styleUnitVarVals: styleUnitVarVals.map(vv => {
-        if (vv.id !== varValsId) return vv;
-        const newVals = vv.values.filter(v => v.varName !== varName);
-        return {...vv, ...{values: newVals}, generatedCss: varValsToString(newVals, varValsId)};
-    })}));
+    ({styleUnitVarVals}, [varValsId, {varName}]) => {
+        const out = [];
+        for (const vv of styleUnitVarVals) {
+            if (vv.id !== varValsId)
+                out.push(vv);
+            else {
+                const newVals = vv.values.filter(v => v.varName !== varName);
+                if (newVals.length) {
+                    out.push({...vv, ...{values: newVals}, generatedCss: varValsToString(newVals, varValsId)});
+                } // else do not push to out
+            }
+        }
+        return {styleUnitVarVals: out};
+    });
 }
 
 /**

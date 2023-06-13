@@ -266,7 +266,12 @@ class ReRenderer {
         const current = withNewClsClone.className.split(' ');
         const unitStart = `${current[0]}-unit-`; // 'j-Something-unit-'
         const defaultUnitStart = `no-${unitStart}`;
-        const nonUnit = current.filter(cls => !cls.startsWith(unitStart) && !cls.startsWith(defaultUnitStart));
+        const unitMetaStart = 'j-sm-';
+        const varValUnitStart = 'j-svv-';
+        const nonUnit = current.filter(cls => !cls.startsWith(unitStart) &&
+                                            !cls.startsWith(defaultUnitStart) &&
+                                            !cls.startsWith(varValUnitStart) &&
+                                            !cls.startsWith(unitMetaStart));
         withNewClsClone.className = [
             ...nonUnit.slice(0, 1), // j-Something
             ...(newStyleClasses ? newStyleClasses.split(' ') : []),

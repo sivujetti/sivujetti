@@ -353,6 +353,7 @@ interface StyleUnitMeta {
 interface UnitVarMeta {
     varName: String;
     type: 'length'|'color'|'option';
+    args: Array<String|Number>;
     label: String;
     defaultValue: ColorValue|LengthValue|OptionValue|null;
 }

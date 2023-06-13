@@ -200,7 +200,11 @@ class EditAppAwareWebPage {
             } else if (event === 'styleUnitVarVals/updateValueIn' || event === 'styleUnitVarVals/addValueTo' || event === 'styleUnitVarVals/removeValueFrom') {
                 const unitVarValsId = data[0]; // data: [String, UnitVarValue]
                 const node = document.head.querySelector(`style[data-unit-var-values-for="${unitVarValsId}"]`);
-                node.innerHTML = styleUnitVarVals.find(vv => vv.id === unitVarValsId).generatedCss;
+                const vv = styleUnitVarVals.find(vv => vv.id === unitVarValsId);
+                if (event === 'styleUnitVarVals/removeValueFrom' && !vv) // last var was cleared
+                    node.parentElement.removeChild(node);
+                else
+                    node.innerHTML = vv.generatedCss;
             } else return;
             this.onStylesUpdateFn();
         };

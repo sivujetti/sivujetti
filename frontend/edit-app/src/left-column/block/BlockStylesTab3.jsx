@@ -56,15 +56,11 @@ class BlockStylesTab3 extends preact.Component {
         if (!initd) return;
         //
         const throttledHandleValueChanged = timingUtils.debounce((newValAsString, valIsSet, mv, valHasUnit, sm, unitVarVals, v) => {
-            if (newValAsString !== null) {
-                const newVal = {varName: mv.varName, value: newValAsString};
-                if (!valIsSet)
-                    this.addValueAndEmit(newVal, valHasUnit ? unitVarVals.id : this.incrementAndGetNextId(), valHasUnit, sm);
-                else
-                    this.updateValueAndEmit(newVal, unitVarVals.id, v);
-            } else {
-                this.removeValueAndEmit();
-            }
+            const newVal = {varName: mv.varName, value: newValAsString};
+            if (!valIsSet)
+                this.addValueAndEmit(newVal, valHasUnit ? unitVarVals.id : this.incrementAndGetNextId(), valHasUnit, sm);
+            else
+                this.updateValueAndEmit(newVal, unitVarVals.id, v);
         }, env.normalTypingDebounceMillis);
         //
         return currentBlockStylesMeta.length ? currentBlockStylesMeta.map(sm =>
@@ -72,7 +68,7 @@ class BlockStylesTab3 extends preact.Component {
                 const Renderer = valueEditors.get(mv.type);
                 const [v, unitVarVals] = getVarValueFor(mv, currentBlockVarValUnits, sm);
                 const valHasUnit = unitVarVals !== null; // var is described in StyleUnitMeta, but has no StyleUnitVarVals yet
-                const args = []; // ??
+                const args = [...mv.args];
                 const valIsSet = v !== null;
                 return <Renderer
                     metaCopy={ {...mv} }
@@ -84,7 +80,10 @@ class BlockStylesTab3 extends preact.Component {
                     isClearable={ valIsSet }
                     labelTranslated={ __(mv.label) }
                     onVarValueChanged={ newValAsString => {
-                        throttledHandleValueChanged(newValAsString, valIsSet, mv, valHasUnit, sm, unitVarVals, v);
+                        if (newValAsString !== null)
+                            throttledHandleValueChanged(newValAsString, valIsSet, mv, valHasUnit, sm, unitVarVals, v);
+                        else
+                            this.removeValueAndEmit({varName: mv.varName, value: v ? v.value : mv.defaultValue}, unitVarVals);
                     } }
                     key={ `${sm.id}-${mv.id}-${mv.varName}` }/>;
             }) }</div>
@@ -155,14 +154,41 @@ class BlockStylesTab3 extends preact.Component {
         });
     }
     /**
-     * @param { } ? 
-     * @param { } ? 
+     * @param {UnitVarValue} curVal
+     * @param {StyleUnitVarValues} curUnit
      * @access private
      */
-    removeValueAndEmit(styleUnitMetaId, varName) {
-        throw new Error('todo');
+    removeValueAndEmit(curVal, curUnit) {
+        const valueToRestoreOnUndo = {...curVal};
+        const unitVarValsId = curUnit.id;
+        const wasLastVar = store2.get().styleUnitVarVals.find(uv => uv.id === unitVarValsId).values.length === 1;
+        let prevUnit = null;
+
+        // #1
+        store2.dispatch('styleUnitVarVals/removeValueFrom', [unitVarValsId, {varName: curVal.varName, value: null}]);
+
+        // #2
+        if (wasLastVar) {
+            this.props.emitRemoveClassFromBlockStyleClasses(`${unitVarValsId}`, this.props.getBlockCopy());
+            prevUnit = {...curUnit};
+        }
+
+        // #3 todo remove meta class if <what>?
+
+        this.dispatchNewUnitVarVals(() => {
+            if (!wasLastVar) {
+                // #1
+                store2.dispatch('styleUnitVarVals/addValueTo', [unitVarValsId, valueToRestoreOnUndo]);
+            } else {
+                // #2
+                setTimeout(() => { api.saveButton.triggerUndo(); }, 1);
+                // #1
+                setTimeout(() => { store2.dispatch('styleUnitVarVals/addItem', [prevUnit]); }, 2);
+            }
+        });
     }
     /**
+     * @param {StyleUnitVarValues} styleUnitVarVals
      * @access private
      */
     updateUnitVarValues(styleUnitVarVals) {

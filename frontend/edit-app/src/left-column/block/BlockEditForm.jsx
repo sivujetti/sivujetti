@@ -129,6 +129,11 @@ class BlockEditForm extends preact.Component {
                     const newClasses = currentClasses ? `${currentClasses} ${strToAppend}` : strToAppend;
                     this.dispatchNewBlockStyleClasses(newClasses, b);
                 } }
+                emitRemoveClassFromBlockStyleClasses={ (classToRemove, b) => {
+                    const currentClasses = b.styleClasses;
+                    const newClasses = currentClasses.split(' ').filter(cls => cls !== classToRemove).join(' ');
+                    this.dispatchNewBlockStyleClasses(newClasses, b);
+                } }
                 isVisible={ currentTabIdx === 1 }/>
         </div>
         </div>;

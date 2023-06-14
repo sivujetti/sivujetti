@@ -95,14 +95,17 @@ final class ThemesController {
             if (!$current)
                 throw new PikeException("Theme `{$req->params->themeId}` doesn't exist", PikeException::BAD_INPUT);
 
-            $cleaned = array_map(fn($itm) => (object) [
+            $cleaned = array_map(fn($itm) => (object) array_merge([
                 "id" => $itm->id,
                 "styleUnitMetaId" => $itm->styleUnitMetaId,
-                "values" => array_map(fn($v) =>
-                    $v // todo
-                , $itm->values),
+                "values" => array_map(fn($v) => (object) [
+                    "varName" => $v->varName,
+                    "value" => $v->value
+                ], $itm->values),
                 "generatedCss" => $itm->generatedCss,
-            ], $req->body->varValsItems);
+            ], ($itm->defaultFor ?? null) ? [
+                "defaultFor" => $itm->defaultFor,
+            ] : []), $req->body->varValsItems);
 
             // 3. Replace all unit-val-vals in theme.generatedStylesCss
             $updatedAll = self::replaceLinesBetween(
@@ -286,6 +289,8 @@ final class ThemesController {
             ->rule("varValsItems.*.values.*.varName", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
             ->rule("varValsItems.*.values.*.value", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
             ->rule("varValsItems.*.generatedCss", "maxLength", ValidationUtils::HARD_LONG_TEXT_MAX_LEN)
+            ->rule("varValsItems.*.defaultFor?", "identifier")
+            ->rule("varValsItems.*.defaultFor?", "maxLength", ValidationUtils::INDEX_STR_MAX_LENGTH)
             ->validate($input);
     }
     /**

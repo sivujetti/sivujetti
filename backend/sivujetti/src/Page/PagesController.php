@@ -19,6 +19,10 @@ use Sivujetti\Theme\Entities\Theme;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
 
+/**
+ * @psalm-import-type StyleUnitMeta from \Sivujetti\Theme\Entities\Theme
+ * @psalm-import-type StyleUnitVarValues from \Sivujetti\Theme\Entities\Theme
+ */
 final class PagesController {
     /**
      * GET /[anything]: Renders a page.
@@ -548,7 +552,7 @@ final class PagesController {
     }
     /**
      * @param \Sivujetti\Theme\Entities\Theme $theme
-     * @return object{styleUnitMetas: array<object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: array<string>, vars: array}>, styleUnitVarValues: array<object{id: string, styleUnitMetaId: string, values: array<object{varName: string, value: string}>, generatedCss: string}>}
+     * @psalm-return object{styleUnitMetas: array<StyleUnitMeta>, styleUnitVarValues: array<StyleUnitVarValues>}
      */
     private static function themeToRaw(Theme $theme): object {
         return (object) [

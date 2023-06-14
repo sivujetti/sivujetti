@@ -5,6 +5,10 @@ namespace Sivujetti\Theme\Entities;
 use Pike\Db\NoDupeRowMapper;
 use Sivujetti\JsonUtils;
 
+/**
+ * @psalm-type StyleUnitMeta = object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: array<string>, vars: array}
+ * @psalm-type StyleUnitVarValues = object{id: string, styleUnitMetaId: string, values: array<object{varName: string, value: string}>, generatedCss: string, defaultFor?: string}
+*/
 final class Theme extends \stdClass {
     /** @var string */
     public string $id;
@@ -20,9 +24,9 @@ final class Theme extends \stdClass {
      * @var \Sivujetti\Theme\Entities\Style[]
      */
     public array $styles;
-    /** @var array<object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: array<string>, vars: array}> */
+    /** @psalm-var array<StyleUnitMeta> */
     public array $styleUnitMetas;
-    /** @var array<object{id: string, styleUnitMetaId: string, values: array<object{varName: string, value: string}>, generatedCss: string}> */
+    /** @psalm-var array<StyleUnitVarValues> */
     public array $styleUnitVarValues;
     /** @var string[] ["_body_", "j-Text" ...] */
     public array $stylesOrder;
@@ -66,7 +70,8 @@ final class Theme extends \stdClass {
                     "generatedCss" => ".j-sm-1 { padding: var(--padding) var(--padding) var(--padding) var(--padding); }",
                     "suggestedFor" => ["all"],
                     "vars" => [
-                        (object) ["varName" => "padding", "type" => "length", "label" => "Padding", "defaultValue" => null]
+                        (object) ["varName" => "padding", "type" => "length", "args" => [],
+                                    "label" => "Padding", "defaultValue" => null]
                     ]
                 ],
                 (object) [
@@ -76,16 +81,75 @@ final class Theme extends \stdClass {
                     "generatedCss" => ".j-sm-2 { background: var(--backgroundNormal); color: var(--text); border-radius: var(--radius); } .j-sm-2:hover { background: var(--backgroundHover); }",
                     "suggestedFor" => ["Button"],
                     "vars" => [
-                        (object) ["varName" => "backgroundNormal", "type" => "color", "label" => "Background normal",
+                        (object) ["varName" => "backgroundNormal", "type" => "color", "args" => [], "label" => "Background normal",
                                     "defaultValue" => (object) ["data" => "#01e717eff", "type" => "hexa"]],
-                        (object) ["varName" => "backgroundHover", "type" => "color", "label" => "Background hover",
+                        (object) ["varName" => "backgroundHover", "type" => "color", "args" => [], "label" => "Background hover",
                                     "defaultValue" => (object) ["data" => "#22808eff", "type" => "hexa"]],
-                        (object) ["varName" => "text", "type" => "color", "label" => "Text",
+                        (object) ["varName" => "text", "type" => "color", "args" => [], "label" => "Text",
                                     "defaultValue" => (object) ["data" => "#ffffffff", "type" => "hexa"]],
-                        (object) ["varName" => "radius", "type" => "length", "label" => "Radius",
+                        (object) ["varName" => "radius", "type" => "length", "args" => [], "label" => "Radius",
                                     "defaultValue" => (object) ["num" => 20, "unit" => "px"]],
                     ]
-                ]
+                ],
+                (object) [
+                    "id" => "j-sm-5",
+                    "title" => "Menus",
+                    "scssTmpl" => implode("\n", [
+                        "ul { list-style-type: var(--listStyleType); display: flex; gap: var(--gap); flex-wrap: wrap; li { flex: 0 0 var(--itemsWidth); } }",
+                    ]),
+                    "generatedCss" => implode(" ", [
+                        ".j-sm-5 ul { list-style-type: var(--listStyleType); display: flex; gap: var(--gap); flex-wrap: wrap; }",
+                        ".j-sm-5 ul li { flex: 0 0 var(--itemsWidth); }",
+                    ]),
+                    "suggestedFor" => ["Menu"],
+                    "vars" => [
+                        (object) ["varName" => "listStyleType", "type" => "option", "args" => ["none", "initial", "circle", "decimal", "disc", "disclosure-closed",
+                                    "disclosure-open", "square"], "label" => "List style type",
+                                    "defaultValue" => "initial"],
+                        (object) ["varName" => "gap", "type" => "length", "args" => [], "label" => "Gap",
+                                    "defaultValue" => "0.2rem"],
+                        (object) ["varName" => "itemsWidth", "type" => "option", "args" => ["100%", "0%", 1], "label" => "Items width",
+                                    "defaultValue" => "100%"],
+                    ]
+                ],
+                (object) [
+                    "id" => "j-sm-4",
+                    "title" => "Columns",
+                    "scssTmpl" => implode("\n", [
+                    ]),
+                    "generatedCss" => implode(" ", [
+                    ]),
+                    "suggestedFor" => ["Columns"],
+                    "vars" => [
+                        (object) ["varName" => "gap", "type" => "length", "args" => [], "label" => "Gap",
+                                    "defaultValue" => null],
+                    ]
+                ],
+                (object) [
+                    "id" => "j-sm-3",
+                    "title" => "Sections",
+                    "scssTmpl" => implode("\n", [
+                        "position: relative;",
+                        "&:before { content: \"\"; background-color: var(--cover); height: 100%; width: 100%; position: absolute; left: 0; top: 0; }",
+                        "> div { margin: var(--margin); max-width: var(--maxWidth); }",
+                        "> * { position: relative; }",
+                    ]),
+                    "generatedCss" => implode(" ", [
+                        ".j-sm-3 { position: relative; }",
+                        ".j-sm-3:before { content: \"\"; background-color: var(--cover); height: 100%; width: 100%; position: absolute; left: 0; top: 0; }",
+                        ".j-sm-3 > div { margin: var(--margin); max-width: var(--maxWidth); }",
+                        ".j-sm-3 > * { position: relative; }"
+                    ]),
+                    "suggestedFor" => ["Section"],
+                    "vars" => [
+                        (object) ["varName" => "margin", "type" => "option", "args" => ["0 auto", "initial"], "label" => "Margin",
+                                    "defaultValue" => "initial"],
+                        (object) ["varName" => "maxWidth", "type" => "length", "args" => [], "label" => "Max width",
+                                    "defaultValue" => null],
+                        (object) ["varName" => "cover", "type" => "color", "args" => [], "label" => "Cover",
+                                    "defaultValue" => null],
+                    ]
+                ],
             ];
             $this->styleUnitVarValues = JsonUtils::parse($row->styleUnitVarValsJson);
         }

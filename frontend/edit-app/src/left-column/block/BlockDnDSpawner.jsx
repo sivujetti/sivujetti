@@ -1,8 +1,9 @@
 import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app';
 import {getIcon} from '../../block-types/block-types.js';
-import {createTrier} from '../../block/dom-commons.js';
+import {BASE_UNIT_CLS_PREFIX, createTrier} from '../../block/dom-commons.js';
 import {createBlockFromBlueprint, createBlockFromType, createGbtRefBlockProps} from '../../block/utils.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
+import {getStylesInfo} from './BlockStylesTab3.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 
 /** @type {() => void} */
@@ -221,6 +222,7 @@ class BlockDnDSpawner extends preact.Component {
         const reusableBranchIdx = dragEl.getAttribute('data-reusable-branch-idx');
         const isReusable = reusableBranchIdx !== '';
         const newBlock = this.createBlock(typeStr, reusableBranchIdx, dragEl);
+        newBlock.styleClasses = getDefaultVarUnitClsesFor(newBlock);
         this.props.mainTreeDnd.handleDragStartedFromOutside({block: newBlock, isReusable});
     }
     /**
@@ -304,6 +306,32 @@ class BlockDnDSpawner extends preact.Component {
     closeIfOpen() {
         if (this.state.isOpen) this.toggleIsOpen();
     }
+}
+
+/**
+ * @param {RawBlock} block
+ * @returns {String} Example: 'j-sm-1 j-svv-1'
+ */
+function getDefaultVarUnitClsesFor(block) {
+    const [stylesMetaTargetedToThisBlockType, varValUnits] = getStylesInfo(block);
+    const defaultUnits = varValUnits.filter(vv => {
+        const meta = stylesMetaTargetedToThisBlockType.find(sm => sm.id === vv.styleUnitMetaId);
+        return meta && (vv.defaultFor === 'auto' ||
+                        vv.defaultFor === block.type);
+    });
+    if (defaultUnits.length) {
+        // ['j-sm-1', 'j-svv-1', 'j-sm-2', 'j-svv-2', 'j-sm-1', 'j-svv-3']
+        const paired = defaultUnits.reduce((o, vv) => [...o, vv.styleUnitMetaId, vv.id], []);
+        // ['j-sm-1', 'j-svv-1', 'j-sm-2', 'j-svv-2', 'j-sm-1', 'j-svv-3']
+        const noDupeMetaClses = paired.reduce((o, cls) =>
+            !cls.startsWith(BASE_UNIT_CLS_PREFIX) || // var unit -> always add
+            o.indexOf(cls) < 0                       // base unit -> add only if not already added
+                ? [...o, cls]
+                : o,
+        []);
+        return noDupeMetaClses.join(' ');
+    }
+    return '';
 }
 
 const ordinals = [

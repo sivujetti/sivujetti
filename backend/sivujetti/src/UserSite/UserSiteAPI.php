@@ -2,7 +2,7 @@
 
 namespace Sivujetti\UserSite;
 
-use Sivujetti\{BaseAPI};
+use Sivujetti\{BaseAPI, ValidationUtils};
 use Sivujetti\BlockType\BlockTypeInterface;
 use Pike\{PikeException, Validation};
 use Sivujetti\UserPlugin\UserPluginInterface;
@@ -18,7 +18,10 @@ class UserSiteAPI extends BaseAPI {
      */
     public function registerBlockType(string $name,
                                       BlockTypeInterface $instance): void {
-        if (($errors = Validation::makeValueValidator()->rule("identifier")->validate($name)))
+        if (($errors = Validation::makeValueValidator()
+            ->rule("identifier")
+            ->rule("maxLength", ValidationUtils::INDEX_STR_MAX_LENGTH)
+            ->validate($name)))
             throw new PikeException(implode("\n", $errors),
                                     PikeException::BAD_INPUT);
         $this->apiCtx->blockTypes->{$name} = $instance;

@@ -363,6 +363,7 @@ interface StyleUnitVarValues {
     styleUnitMetaId: String;
     values: Array<UnitVarValue>;
     generatedCss: String;
+    defaultFor?: String; // Example: 'Section' or 'Button'
 }
 
 interface UnitVarValue {

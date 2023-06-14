@@ -1,6 +1,8 @@
 const CHILDREN_START = ' children-start ';
 const CHILDREN_END = ' children-end ';
 const CHILD_CONTENT_PLACEHOLDER = '<!-- children-placeholder -->';
+const BASE_UNIT_CLS_PREFIX = 'j-sm-';
+const VAR_UNIT_CLS_PREFIX = 'j-svv-';
 
 const HAS_ERRORS = 1 << 1;
 const NO_OP_QUEUE_EMIT = 1 << 2;
@@ -41,5 +43,6 @@ function createTrier(fn,
     return callTryFn;
 }
 
-export {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END, noop,
-        HAS_ERRORS, NO_OP_QUEUE_EMIT, createTrier};
+export {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END,
+        BASE_UNIT_CLS_PREFIX, VAR_UNIT_CLS_PREFIX, noop, HAS_ERRORS,
+        NO_OP_QUEUE_EMIT, createTrier};

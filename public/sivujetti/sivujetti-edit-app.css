@@ -672,6 +672,12 @@ a.popup-close-area {
     z-index: 1;
     margin-left: -.2rem;
 }
+.static-tooltip.visible:after {
+    content: "";
+    display: block;
+    height: 1rem;
+    margin-bottom: -1rem;
+}
 .static-tooltip .popper-arrow {
     top: -6px;
 }
@@ -707,6 +713,11 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .has-color-pickers .is-very-light-color .pcr-button {
     border-color: rgba(var(--components-color-fb-default),.12);
 }
+.style-vars-group {
+    background: #070b470a;
+    border-radius: var(--small-rect-radius);
+}
+.style-vars-group > .form-group,
 .has-color-pickers > .form-group {
     display: grid;
     grid-template-columns: 92px auto;
@@ -715,12 +726,15 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     justify-content: flex-start;
     gap: .4rem;
 }
+.style-vars-group > .form-group:first-child,
 .has-color-pickers > .form-group:first-child {
     margin-top: .2rem;
 }
+.style-vars-group > .form-group > *,
 .has-color-pickers > .form-group > * {
     width: unset !important;
 }
+.style-vars-group > .form-group > :last-child,
 .has-color-pickers > .form-group > :last-child {
     max-width: 80px;
 }

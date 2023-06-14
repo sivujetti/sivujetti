@@ -19,6 +19,16 @@ function styleUnitVarValsStore(store) {
         ({styleUnitVarVals: [...styleUnitVarVals, newItem]})
     );
 
+    store.on('styleUnitVarVals/updateItem',
+    /**
+     * @param {Object} state
+     * @param {[StyleUnitVarValues]} args
+     * @returns {{styleUnitVarVals: Array<StyleUnitVarValues>; [otherStateBucketKey: String]: any;}}
+     */
+    ({styleUnitVarVals}, [updated]) =>
+        ({styleUnitVarVals: styleUnitVarVals.map(vv => vv.id !== updated.id ? vv : updated)})
+    );
+
     store.on('styleUnitVarVals/removeItem',
     /**
      * @param {Object} state

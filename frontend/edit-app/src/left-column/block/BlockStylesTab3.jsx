@@ -1,15 +1,14 @@
-import {__, api, http, timingUtils, env} from '@sivujetti-commons-for-edit-app';
+import {__, api, http, timingUtils, env, Icon} from '@sivujetti-commons-for-edit-app';
 import {varValsToString} from '../../block-styles/styleUnitVarValsStore.js';
+import {VAR_UNIT_CLS_PREFIX} from '../../block/dom-commons.js';
 import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
 import store, {observeStore, pushItemToOpQueue, selectCurrentPageDataBundle, setCurrentPageDataBundle} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import {valueEditors} from './VisualStyles.jsx';
 
-const unitVarValClsPrefix = 'j-svv-';
-
 class BlockStylesTab3 extends preact.Component {
     // unitVarValsIdMax;
-    // saveVarVarStylesUrl;
+    // saveVarValStylesUrl;
     // unregistrables;
     /**
      * @access protected
@@ -17,7 +16,7 @@ class BlockStylesTab3 extends preact.Component {
     componentWillMount() {
         const {theme} = selectCurrentPageDataBundle(store.getState());
         this.unitVarValsIdMax = theme.styleUnitVarValuesIdMax;
-        this.saveVarVarStylesUrl = `/api/themes/${theme.id}/style-units-var-vals`;
+        this.saveVarValStylesUrl = `/api/themes/${theme.id}/style-units-var-vals`;
         this.unregistrables = [observeStore2('styleUnitVarVals', ({styleUnitVarVals}, [event]) => {
             if (event === 'styleUnitVarVals/init') return;
             this.updateUnitVarValues(styleUnitVarVals);
@@ -32,11 +31,14 @@ class BlockStylesTab3 extends preact.Component {
      */
     componentWillReceiveProps(props) {
         if (props.isVisible && !this.state.initd) {
-            const {styleUnitMetas, styleUnitVarVals} = store2.get();
             const {blockTypeName} = this.props;
             const block = blockTypeName ? props.getBlockCopy() : null;
-            const currentBlockStylesMeta = block ? getStylesMetaFor(blockTypeName, styleUnitMetas) : null;
-            const currentBlockVarValUnits = block ? getUnitsVarValsFor(onlyVarValUnitClasses(block.styleClasses.split(' ')), styleUnitVarVals) : null;
+            const [currentBlockStylesMetaIr, allBlockVarValUnits] = block
+                ? getStylesInfo(block)
+                : [null, null];
+            const [currentBlockStylesMeta, currentBlockVarValUnits] = currentBlockStylesMetaIr
+                ? [currentBlockStylesMetaIr, getUnitsVarValsFor(onlyVarValUnitClasses(block.styleClasses.split(' ')), allBlockVarValUnits)]
+                : [null, null];
             this.setState({currentBlockStylesMeta, currentBlockVarValUnits, initd: true});
         } else if (!props.isVisible && this.state.initd) {
             this.unload();
@@ -63,10 +65,21 @@ class BlockStylesTab3 extends preact.Component {
                 this.updateValueAndEmit(newVal, unitVarVals.id, v);
         }, env.normalTypingDebounceMillis);
         //
-        return currentBlockStylesMeta.length ? currentBlockStylesMeta.map(sm =>
-            <div class="group" key={ sm.id }>{ sm.vars.map(mv => {
+        return currentBlockStylesMeta.length ? currentBlockStylesMeta.map(sm => {
+            const vars = sm.vars.map(mv => getVarValueFor(mv, currentBlockVarValUnits, sm));
+            const firstVarUnit = vars[0] ? vars[0][1] : null;
+            return <div data-tag="details" class="style-vars-group p-1 mb-2" key={ sm.id } open>
+            <div data-tag="summary">
+                { sm.title }{ firstVarUnit && firstVarUnit.defaultFor ? <span> (default)</span> : null }
+                <button onClick={ () => { // todo context menu
+                    this.setVarUnitAsDefault(vars[0][1], sm);
+                } } class={ `btn btn-sm no-color p-absolute${firstVarUnit && !firstVarUnit.defaultFor ? '' : ' d-none'}` }>
+                    <Icon iconId="dots" className="size-xs"/>
+                </button>
+            </div>
+            { vars.map(([v, unitVarVals], i) => {
+                const mv = sm.vars[i];
                 const Renderer = valueEditors.get(mv.type);
-                const [v, unitVarVals] = getVarValueFor(mv, currentBlockVarValUnits, sm);
                 const valHasUnit = unitVarVals !== null; // var is described in StyleUnitMeta, but has no StyleUnitVarVals yet
                 const args = [...mv.args];
                 const valIsSet = v !== null;
@@ -86,8 +99,9 @@ class BlockStylesTab3 extends preact.Component {
                             this.removeValueAndEmit({varName: mv.varName, value: v ? v.value : mv.defaultValue}, unitVarVals);
                     } }
                     key={ `${sm.id}-${mv.id}-${mv.varName}` }/>;
-            }) }</div>
-        ) : <div class="color-dimmed px-2 pt-1">{ __('No editable styles.') }</div>;
+            }) }
+            </div>;
+        }) : <div class="color-dimmed px-2 pt-1">{ __('No editable styles.') }</div>;
     }
     /**
      * @access private
@@ -127,6 +141,7 @@ class BlockStylesTab3 extends preact.Component {
                 styleUnitMetaId: meta.id,
                 values,
                 generatedCss: varValsToString(values, unitVarValsId),
+                // omit defaultFor
             };
             store2.dispatch('styleUnitVarVals/addItem', [newVarVals]);
 
@@ -189,6 +204,25 @@ class BlockStylesTab3 extends preact.Component {
     }
     /**
      * @param {StyleUnitVarValues} styleUnitVarVals
+     * @param {StyleUnitMeta} meta
+     * @access private
+     */
+    setVarUnitAsDefault(styleUnitVarVals, meta) {
+        let isDefaultFor = 'auto';
+        if (meta.suggestedFor.toString() === 'all')
+            isDefaultFor = prompt('This unit is taregted for all block types. Set this default only for?');
+
+        const previous = {...styleUnitVarVals};
+        const updated = {...styleUnitVarVals};
+        updated.defaultFor = isDefaultFor;
+        store2.dispatch('styleUnitVarVals/updateItem', [updated]);
+
+        this.dispatchNewUnitVarVals(() => {
+            store2.dispatch('styleUnitVarVals/updateItem', [previous]);
+        });
+    }
+    /**
+     * @param {StyleUnitVarValues} styleUnitVarVals
      * @access private
      */
     updateUnitVarValues(styleUnitVarVals) {
@@ -204,7 +238,7 @@ class BlockStylesTab3 extends preact.Component {
         const updatedAll = store2.get().styleUnitVarVals;
 
         store.dispatch(pushItemToOpQueue('save-theme-style-units-var-vals', {
-            doHandle: () => http.put(this.saveVarVarStylesUrl, {varValsItems: [...updatedAll]}),
+            doHandle: () => http.put(this.saveVarValStylesUrl, {varValsItems: [...updatedAll]}),
             doUndo,
             args: [],
         }));
@@ -218,7 +252,7 @@ class BlockStylesTab3 extends preact.Component {
         const bundle = cloneObjectDeep(selectCurrentPageDataBundle(store.getState()));
         bundle.theme.styleUnitVarValuesIdMax = next;
         store.dispatch(setCurrentPageDataBundle(bundle));
-        return `${unitVarValClsPrefix}${next}`;
+        return `${VAR_UNIT_CLS_PREFIX}${next}`;
     }
 }
 
@@ -265,7 +299,17 @@ function getVarValueFor(vm, unitsVarVals, sm) {
  * @returns {Array<String>}
  */
 function onlyVarValUnitClasses(clses) {
-    return clses.filter(cls => cls.startsWith(unitVarValClsPrefix));
+    return clses.filter(cls => cls.startsWith(VAR_UNIT_CLS_PREFIX));
+}
+
+/**
+ * @param {RawBlock} block
+ * @returns {[Array<StyleUnitMeta>, Array<StyleUnitVarValues>]}
+ */
+function getStylesInfo(block) {
+    const {styleUnitMetas, styleUnitVarVals} = store2.get();
+    const stylesMeta = getStylesMetaFor(block.type, styleUnitMetas);
+    return [stylesMeta, styleUnitVarVals];
 }
 
 /**
@@ -275,3 +319,4 @@ function onlyVarValUnitClasses(clses) {
  */
 
 export default BlockStylesTab3;
+export {getStylesInfo};

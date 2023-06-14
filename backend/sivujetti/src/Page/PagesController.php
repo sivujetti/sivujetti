@@ -20,8 +20,8 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
 
 /**
- * @psalm-import-type StyleUnitMeta from \Sivujetti\Theme\Entities\Theme
- * @psalm-import-type StyleUnitVarValues from \Sivujetti\Theme\Entities\Theme
+ * @psalm-import-type BaseStyleUnit from \Sivujetti\Theme\Entities\Theme
+ * @psalm-import-type VarStyleUnit from \Sivujetti\Theme\Entities\Theme
  */
 final class PagesController {
     /**
@@ -552,14 +552,14 @@ final class PagesController {
     }
     /**
      * @param \Sivujetti\Theme\Entities\Theme $theme
-     * @psalm-return object{styleUnitMetas: array<StyleUnitMeta>, styleUnitVarValues: array<StyleUnitVarValues>}
+     * @psalm-return object{baseStyleUnits: array<BaseStyleUnit>, varStyleUnits: array<VarStyleUnit>}
      */
     private static function themeToRaw(Theme $theme): object {
         return (object) [
             "id" => $theme->id,
-            "styleUnitMetas" => $theme->styleUnitMetas,
-            "styleUnitVarValues" => $theme->styleUnitVarValues,
-            "styleUnitVarValuesIdMax" => -1, // @see loadPage() @frontend/edit-app/src/right-column/IframePageManager.js
+            "baseStyleUnits" => $theme->baseStyleUnits,
+            "varStyleUnits" => $theme->varStyleUnits,
+            "varStyleUnitIdMax" => -1, // @see loadPage() @frontend/edit-app/src/right-column/IframePageManager.js
         ];
     }
     /**

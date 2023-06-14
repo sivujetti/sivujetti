@@ -57,7 +57,7 @@ return [
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
     `stylesOrder` JSON,
-    `styleUnitVarVals` JSON,
+    `varStyleUnits` JSON,
     `globalStyles` JSON,
     `isActive` INTEGER NOT NULL DEFAULT 0,
     `generatedStylesCss` TEXT,

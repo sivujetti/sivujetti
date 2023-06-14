@@ -1,8 +1,8 @@
 const CHILDREN_START = ' children-start ';
 const CHILDREN_END = ' children-end ';
 const CHILD_CONTENT_PLACEHOLDER = '<!-- children-placeholder -->';
-const BASE_UNIT_CLS_PREFIX = 'j-sm-';
-const VAR_UNIT_CLS_PREFIX = 'j-svv-';
+const BASE_UNIT_CLS_PREFIX = 'j-bu-';
+const VAR_UNIT_CLS_PREFIX = 'j-vu-';
 
 const HAS_ERRORS = 1 << 1;
 const NO_OP_QUEUE_EMIT = 1 << 2;

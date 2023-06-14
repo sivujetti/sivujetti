@@ -231,7 +231,7 @@ final class WebPageAwareTemplate extends Template {
         };
 
         $theme = $this->__internal["theme"];
-        $common = "<style>@layer theme, units-meta, body-unit, units-var-values" . ($theme->globalStyles
+        $common = "<style>@layer theme, base-units, body-unit, var-units" . ($theme->globalStyles
             ? "; :root {" .
                 implode("\n", array_map(fn($style) =>
                     // Note: these are pre-validated
@@ -256,30 +256,30 @@ final class WebPageAwareTemplate extends Template {
             // Scoped styles: Inject each style bundle via javascript instead of echoing them directly
             // (to allow things such as `content: "</style>"` or `/* </style> */`)
             "<script>\n" .
-                "// StyleUnitMetas\n" .
+                "// BaseStyleUnits\n" .
                 "document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
                     array_map(
                         fn ($meta) => [$meta->generatedCss, $meta->suggestedFor],
-                        $theme->styleUnitMetas
+                        $theme->baseStyleUnits
                     )
                 ) . ".reduce((out, [generatedCss, suggestedFor]) => {\n" .
                     "  const bundle = document.createElement('style');\n" .
-                    "  bundle.innerHTML = `@layer units-meta { \${generatedCss} }`;\n" .
-                    "  bundle.setAttribute('data-units-meta-for', suggestedFor.join('|'));\n" .
+                    "  bundle.innerHTML = `@layer base-units { \${generatedCss} }`;\n" .
+                    "  bundle.setAttribute('data-base-units-for', suggestedFor.join('|'));\n" .
                     "  out.appendChild(bundle);\n" .
                     "  return out;\n" .
                 "}, document.createDocumentFragment())") . ");\n" .
                 "\n" .
-                "// StyleUnitVarValues\n" .
+                "// VarStyleUnit\n" .
                 "document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
                     array_map(
                         fn ($varValues) => [$varValues->generatedCss, $varValues->id],
-                        $theme->styleUnitVarValues
+                        $theme->varStyleUnits
                     )
                 ) . ".reduce((out, [generatedCss, id]) => {\n" .
                     "  const bundle = document.createElement('style');\n" .
-                    "  bundle.innerHTML = `@layer units-var-values { \${generatedCss} }`;\n" .
-                    "  bundle.setAttribute('data-unit-var-values-for', id);\n" .
+                    "  bundle.innerHTML = `@layer var-units { \${generatedCss} }`;\n" .
+                    "  bundle.setAttribute('data-var-units-for', id);\n" .
                     "  out.appendChild(bundle);\n" .
                     "  return out;\n" .
                 "}, document.createDocumentFragment())") . ")\n" .

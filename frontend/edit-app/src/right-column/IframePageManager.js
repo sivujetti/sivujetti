@@ -46,8 +46,8 @@ class IframePageManager {
         const {data} = webPage;
         delete webPage.data;
         data.page = maybePatchTitleAndSlug(data.page, isDuplicate);
-        data.theme.styleUnitVarValuesIdMax = data.theme.styleUnitVarValues.reduce((max, vv) => {
-            const cur = parseInt(vv.id.substring(vv.id.lastIndexOf('-') + 1));
+        data.theme.varStyleUnitIdMax = data.theme.varStyleUnits.reduce((max, {id}) => {
+            const cur = parseInt(id.substring(id.lastIndexOf('-') + 1));
             return cur > max ? cur : max;
         }, 0);
         //
@@ -59,14 +59,14 @@ class IframePageManager {
         //
         opQueueItemEmitter.resetAndBegin();
         store2.dispatch('theBlockTree/init', [ordered]);
-        store2.dispatch('styleUnitMetas/init', [getAndInvalidate(data.theme, 'styleUnitMetas')]);
-        store2.dispatch('styleUnitVarVals/init', [getAndInvalidate(data.theme, 'styleUnitVarValues')]);
+        store2.dispatch('baseStyleUnits/init', [getAndInvalidate(data.theme, 'baseStyleUnits')]);
+        store2.dispatch('varStyleUnits/init', [getAndInvalidate(data.theme, 'varStyleUnits')]);
         store.dispatch(setCurrentPageDataBundle(data));
         store.dispatch(setOpQueue([]));
         const handleStyleChange = webPage.createThemeStylesChangeListener();
         webPageUnregistrables.set('themeStyles', observeStore2('themeStyles', handleStyleChange));
         const handleVarsChange = webPage.createUnitVarsChangeListener();
-        webPageUnregistrables.set('themeVarVals', observeStore2('styleUnitVarVals', handleVarsChange));
+        webPageUnregistrables.set('themeVarStyleUnits', observeStore2('varStyleUnits', handleVarsChange));
         webPageUnregistrables.set('fastStyleChanges', signals.on('visual-styles-var-value-changed-fast',
             (selector, varName, varValue, valueType) => {
                 webPage.fastOverrideStyleUnitVar(selector, varName, varValue, valueType);

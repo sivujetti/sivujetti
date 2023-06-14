@@ -17,7 +17,7 @@ final class ThemesModule {
             [ThemesController::class, "upsertBlockTypeScopedStyles", ["consumes" => "application/json",
                                                                       "identifiedBy" => ["upsertBlockTypeScopedVars", "themes"]]],
         );
-        $router->map("PUT", "/api/themes/[i:themeId]/style-units-var-vals",
+        $router->map("PUT", "/api/themes/[i:themeId]/var-style-units",
             [ThemesController::class, "updateStyleVarValStyless", ["consumes" => "application/json",
                                                                     "identifiedBy" => ["updateVarValStylesOf", "themes"]]],
         );

@@ -310,19 +310,19 @@ class BlockDnDSpawner extends preact.Component {
 
 /**
  * @param {RawBlock} block
- * @returns {String} Example: 'j-sm-1 j-svv-1'
+ * @returns {String} Example: 'j-bu-1 j-vu-1'
  */
 function getDefaultVarUnitClsesFor(block) {
-    const [stylesMetaTargetedToThisBlockType, varValUnits] = getStylesInfo(block);
-    const defaultUnits = varValUnits.filter(vv => {
-        const meta = stylesMetaTargetedToThisBlockType.find(sm => sm.id === vv.styleUnitMetaId);
-        return meta && (vv.defaultFor === 'auto' ||
-                        vv.defaultFor === block.type);
+    const [baseUnitsTargetedToThisBlockType, varValUnits] = getStylesInfo(block);
+    const defaultUnits = varValUnits.filter(unit => {
+        const base = baseUnitsTargetedToThisBlockType.find(sm => sm.id === unit.baseStyleUnitId);
+        return base && (unit.defaultFor === 'auto' ||
+                        unit.defaultFor === block.type);
     });
     if (defaultUnits.length) {
-        // ['j-sm-1', 'j-svv-1', 'j-sm-2', 'j-svv-2', 'j-sm-1', 'j-svv-3']
-        const paired = defaultUnits.reduce((o, vv) => [...o, vv.styleUnitMetaId, vv.id], []);
-        // ['j-sm-1', 'j-svv-1', 'j-sm-2', 'j-svv-2', 'j-sm-1', 'j-svv-3']
+        // ['j-bu-1', 'j-vu-1', 'j-bu-2', 'j-vu-2', 'j-bu-1', 'j-vu-3']
+        const paired = defaultUnits.reduce((o, unit) => [...o, unit.baseStyleUnitId, unit.id], []);
+        // ['j-bu-1', 'j-vu-1', 'j-bu-2', 'j-vu-2', 'j-bu-1', 'j-vu-3']
         const noDupeMetaClses = paired.reduce((o, cls) =>
             !cls.startsWith(BASE_UNIT_CLS_PREFIX) || // var unit -> always add
             o.indexOf(cls) < 0                       // base unit -> add only if not already added

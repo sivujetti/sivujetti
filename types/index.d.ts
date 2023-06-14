@@ -126,9 +126,9 @@ interface CurrentPageData {
     };
     theme: {
         id: String; // Example '1'
-        styleUnitMetas: Array<StyleUnitMeta>;
-        styleUnitVarValues: Array<StyleUnitVarValues>;
-        styleUnitVarValuesIdMax: Number;
+        baseStyleUnits: Array<BaseStyleUnit>;
+        varStyleUnits: Array<VarStyleUnit>;
+        varStyleUnitIdMax: Number;
     };
 }
 
@@ -341,7 +341,7 @@ interface ThemeStyle {
     blockTypeName: String;
 }
 
-interface StyleUnitMeta {
+interface BaseStyleUnit {
     id: String;
     title: String;
     scssTmpl: String;
@@ -358,9 +358,9 @@ interface UnitVarMeta {
     defaultValue: ColorValue|LengthValue|OptionValue|null;
 }
 
-interface StyleUnitVarValues {
+interface VarStyleUnit {
     id: String;
-    styleUnitMetaId: String;
+    baseStyleUnitId: String;
     values: Array<UnitVarValue>;
     generatedCss: String;
     defaultFor?: String; // Example: 'Section' or 'Button'

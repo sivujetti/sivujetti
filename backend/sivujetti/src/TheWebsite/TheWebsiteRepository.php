@@ -30,7 +30,7 @@ final class TheWebsiteRepository {
                 "pt.`isListable` AS `pageTypeIsListable`",
                 //
                 "t.`id` AS `themeId`", "t.`name` AS `themeName`", "t.`stylesOrder` AS `themeStylesOrderJson`",
-                "t.`styleUnitVarVals` AS `styleUnitVarValsJson`",
+                "t.`varStyleUnits` AS `varStyleUnitsJson`",
                 "t.`stylesLastUpdatedAt` AS `themeStylesLastUpdatedAt`",
             ])
             ->leftJoin("\${p}plugins p ON (1)")

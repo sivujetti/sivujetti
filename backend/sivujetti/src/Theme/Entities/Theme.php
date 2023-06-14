@@ -2,12 +2,11 @@
 
 namespace Sivujetti\Theme\Entities;
 
-use Pike\Db\NoDupeRowMapper;
 use Sivujetti\JsonUtils;
 
 /**
- * @psalm-type StyleUnitMeta = object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: array<string>, vars: array}
- * @psalm-type StyleUnitVarValues = object{id: string, styleUnitMetaId: string, values: array<object{varName: string, value: string}>, generatedCss: string, defaultFor?: string}
+ * @psalm-type BaseStyleUnit = object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: array<string>, vars: array}
+ * @psalm-type VarStyleUnit = object{id: string, baseStyleUnitId: string, values: array<object{varName: string, value: string}>, generatedCss: string, defaultFor?: string}
 */
 final class Theme extends \stdClass {
     /** @var string */
@@ -24,10 +23,10 @@ final class Theme extends \stdClass {
      * @var \Sivujetti\Theme\Entities\Style[]
      */
     public array $styles;
-    /** @psalm-var array<StyleUnitMeta> */
-    public array $styleUnitMetas;
-    /** @psalm-var array<StyleUnitVarValues> */
-    public array $styleUnitVarValues;
+    /** @psalm-var array<BaseStyleUnit> */
+    public array $baseStyleUnits;
+    /** @psalm-var array<VarStyleUnit> */
+    public array $varStyleUnits;
     /** @var string[] ["_body_", "j-Text" ...] */
     public array $stylesOrder;
     /** @var int Unix timestamp */
@@ -45,8 +44,8 @@ final class Theme extends \stdClass {
         $out->name = $row->themeName;
         $out->globalStyles = [];
         $out->styles = [];
-        $out->styleUnitMetas = [];
-        $out->styleUnitVarValues = [];
+        $out->baseStyleUnits = [];
+        $out->varStyleUnits = [];
         $out->stylesOrder = [];
         $out->stylesLastUpdatedAt = 0;
         $out->__stash = $rows;
@@ -62,12 +61,12 @@ final class Theme extends \stdClass {
         if ($full) {
             $this->stylesOrder = JsonUtils::parse($row->themeStylesOrderJson);
             //
-            $this->styleUnitMetas = [
+            $this->baseStyleUnits = [
                 (object) [
-                    "id" => "j-sm-1",
+                    "id" => "j-bu-1",
                     "title" => "Common",
                     "scssTmpl" => "padding: var(--padding) var(--padding) var(--padding) var(--padding);",
-                    "generatedCss" => ".j-sm-1 { padding: var(--padding) var(--padding) var(--padding) var(--padding); }",
+                    "generatedCss" => ".j-bu-1 { padding: var(--padding) var(--padding) var(--padding) var(--padding); }",
                     "suggestedFor" => ["all"],
                     "vars" => [
                         (object) ["varName" => "padding", "type" => "length", "args" => [],
@@ -75,10 +74,10 @@ final class Theme extends \stdClass {
                     ]
                 ],
                 (object) [
-                    "id" => "j-sm-2",
+                    "id" => "j-bu-2",
                     "title" => "Buttons",
                     "scssTmpl" => "background: var(--backgroundNormal); color: var(--text); border-radius: var(--radius); &:hover { background: var(--backgroundHover); }",
-                    "generatedCss" => ".j-sm-2 { background: var(--backgroundNormal); color: var(--text); border-radius: var(--radius); } .j-sm-2:hover { background: var(--backgroundHover); }",
+                    "generatedCss" => ".j-bu-2 { background: var(--backgroundNormal); color: var(--text); border-radius: var(--radius); } .j-bu-2:hover { background: var(--backgroundHover); }",
                     "suggestedFor" => ["Button"],
                     "vars" => [
                         (object) ["varName" => "backgroundNormal", "type" => "color", "args" => [], "label" => "Background normal",
@@ -92,14 +91,14 @@ final class Theme extends \stdClass {
                     ]
                 ],
                 (object) [
-                    "id" => "j-sm-5",
+                    "id" => "j-bu-5",
                     "title" => "Menus",
                     "scssTmpl" => implode("\n", [
                         "ul { list-style-type: var(--listStyleType); display: flex; gap: var(--gap); flex-wrap: wrap; li { flex: 0 0 var(--itemsWidth); } }",
                     ]),
                     "generatedCss" => implode(" ", [
-                        ".j-sm-5 ul { list-style-type: var(--listStyleType); display: flex; gap: var(--gap); flex-wrap: wrap; }",
-                        ".j-sm-5 ul li { flex: 0 0 var(--itemsWidth); }",
+                        ".j-bu-5 ul { list-style-type: var(--listStyleType); display: flex; gap: var(--gap); flex-wrap: wrap; }",
+                        ".j-bu-5 ul li { flex: 0 0 var(--itemsWidth); }",
                     ]),
                     "suggestedFor" => ["Menu"],
                     "vars" => [
@@ -113,7 +112,7 @@ final class Theme extends \stdClass {
                     ]
                 ],
                 (object) [
-                    "id" => "j-sm-4",
+                    "id" => "j-bu-4",
                     "title" => "Columns",
                     "scssTmpl" => implode("\n", [
                     ]),
@@ -126,7 +125,7 @@ final class Theme extends \stdClass {
                     ]
                 ],
                 (object) [
-                    "id" => "j-sm-3",
+                    "id" => "j-bu-3",
                     "title" => "Sections",
                     "scssTmpl" => implode("\n", [
                         "position: relative;",
@@ -135,10 +134,10 @@ final class Theme extends \stdClass {
                         "> * { position: relative; }",
                     ]),
                     "generatedCss" => implode(" ", [
-                        ".j-sm-3 { position: relative; }",
-                        ".j-sm-3:before { content: \"\"; background-color: var(--cover); height: 100%; width: 100%; position: absolute; left: 0; top: 0; }",
-                        ".j-sm-3 > div { margin: var(--margin); max-width: var(--maxWidth); }",
-                        ".j-sm-3 > * { position: relative; }"
+                        ".j-bu-3 { position: relative; }",
+                        ".j-bu-3:before { content: \"\"; background-color: var(--cover); height: 100%; width: 100%; position: absolute; left: 0; top: 0; }",
+                        ".j-bu-3 > div { margin: var(--margin); max-width: var(--maxWidth); }",
+                        ".j-bu-3 > * { position: relative; }"
                     ]),
                     "suggestedFor" => ["Section"],
                     "vars" => [
@@ -151,10 +150,10 @@ final class Theme extends \stdClass {
                     ]
                 ],
             ];
-            $this->styleUnitVarValues = JsonUtils::parse($row->styleUnitVarValsJson);
+            $this->varStyleUnits = JsonUtils::parse($row->varStyleUnitsJson);
         }
         unset($this->themeStylesOrderJson);
-        unset($this->styleUnitVarValsJson);
+        unset($this->varStyleUnitsJson);
         $this->__stash = [];
     }
 }

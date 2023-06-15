@@ -63,6 +63,8 @@ stringBundles.push({
     'Add styles': 'Add styles',
     'Edit name': 'Edit name',
     'Set as default': 'Set as default',
+    'Copy styles': 'Copy styles',
+    'Paste styles': 'Paste styles',
     'Edit specifier': 'Edit specifier',
     'Delete style': 'Delete style',
     'Css for the outermost %s (%s)': 'Css for the outermost %s (%s)',

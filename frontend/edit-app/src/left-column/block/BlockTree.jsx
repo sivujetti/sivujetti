@@ -317,9 +317,10 @@ class BlockTree extends preact.Component {
         this.refElOfOpenMoreMenu = e.target;
         this.refElOfOpenMoreMenu.style.opacity = '1';
         this.moreMenu.current.open(e, links => {
-            const notThese = []
-                .concat(blockIsGbtsOutermostBlock ? ['duplicate-block'] : [])
-                .concat(['Columns', 'Section'].indexOf(block.type) < 0 ? ['save-block-as-reusable'] : []);
+            const notThese = [
+                ...(blockIsGbtsOutermostBlock ? ['duplicate-block'] : []),
+                ...(['Columns', 'Section'].indexOf(block.type) < 0 ? ['save-block-as-reusable'] : [])
+            ];
             return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
         });
     }

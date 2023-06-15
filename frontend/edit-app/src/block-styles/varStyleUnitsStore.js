@@ -39,15 +39,15 @@ function varStyleUnitsStore(store) {
         ({varStyleUnits: varStyleUnits.filter(unit => unit.id !== id)})
     );
 
-    store.on('varStyleUnits/addValueTo',
+    store.on('varStyleUnits/addValuesTo',
     /**
      * @param {Object} state
-     * @param {[String, UnitVarValue]} args
+     * @param {[String, Array<UnitVarValue>]} args
      * @returns {{varStyleUnits: Array<VarStyleUnit>; [otherStateBucketKey: String]: any;}}
      */
-    ({varStyleUnits}, [varUnitId, valToAdd]) => ({varStyleUnits: varStyleUnits.map(unit => {
+    ({varStyleUnits}, [varUnitId, valsToAdd]) => ({varStyleUnits: varStyleUnits.map(unit => {
         if (unit.id !== varUnitId) return unit;
-        const newVals = [...unit.values, valToAdd];
+        const newVals = [...unit.values, ...valsToAdd];
         return {...unit, ...{values: newVals}, generatedCss: varStyleUnitToString(newVals, varUnitId)};
     })}));
 
@@ -63,20 +63,20 @@ function varStyleUnitsStore(store) {
         return {...unit, ...{values: newVals}, generatedCss: varStyleUnitToString(newVals, varUnitId)};
     })}));
 
-
-    store.on('varStyleUnits/removeValueFrom',
+    store.on('varStyleUnits/removeValuesFrom',
     /**
      * @param {Object} state
-     * @param {[String, UnitVarValue]} args
+     * @param {[String, Array<UnitVarValue>]} args
      * @returns {{varStyleUnits: Array<VarStyleUnit>; [otherStateBucketKey: String]: any;}}
      */
-    ({varStyleUnits}, [varUnitId, {varName}]) => {
+    ({varStyleUnits}, [varUnitId, vars]) => {
         const out = [];
         for (const vu of varStyleUnits) {
             if (vu.id !== varUnitId)
                 out.push(vu);
             else {
-                const newVals = vu.values.filter(v => v.varName !== varName);
+                const notTheseVarNames = vars.map(({varName}) => varName);
+                const newVals = vu.values.filter(({varName}) => notTheseVarNames.indexOf(varName) < 0);
                 if (newVals.length) {
                     out.push({...vu, ...{values: newVals}, generatedCss: varStyleUnitToString(newVals, varUnitId)});
                 } // else do not push to out

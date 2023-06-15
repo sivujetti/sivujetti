@@ -63,6 +63,8 @@ stringBundles.push({
     'Add styles': 'Lisää tyyli',
     'Edit name': 'Muokkaa nimeä',
     'Set as default': 'Aseta oletukseksi',
+    'Copy styles': 'Kopioi tyylit',
+    'Paste styles': 'Liitä tyylit',
     'Edit specifier': 'Muokkaa tarkennetta',
     'Delete style': 'Poista tyyli',
     'Css for the outermost %s (%s)': 'Uloimman %s (%s) css',
@@ -75,7 +77,7 @@ stringBundles.push({
     // edit-app/src/left-column/block/BlockStylesTab2.jsx
     'No editable styles.': 'Ei muokattavia tyylejä.',
     // edit-app/src/left-column/block/VisualStyles.jsx
-    'Restore default': 'Palauta oletus', // 'Restore default',
+    'Restore default': 'Palauta oletus',
     // edit-app/src/left-column/block/createBlockTreeDndController.js
     'todo14': 'Käyttöoikeutesi ei riitä muokkaamaan tätä sisältöä.',
     // edit-app/src/left-column/page/AddCategoryPanel.jsx
@@ -122,8 +124,8 @@ stringBundles.push({
     'Anchor': 'Ankkuri',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Tyylit',
-    'Styles (bundles)': 'Tyylit (bundlet)', // 'Styles (bundles)',
-    'Styles (combined)': 'Tyylit (yhdistetty)', // 'Styles (combined)',
+    'Styles (bundles)': 'Tyylit (bundlet)',
+    'Styles (combined)': 'Tyylit (yhdistetty)',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
     'Only root styles may contain @imports': 'Vain juurityylit voi sisältää @importeja',
     // edit-app/src/left-column/block/BlockTree.jsx

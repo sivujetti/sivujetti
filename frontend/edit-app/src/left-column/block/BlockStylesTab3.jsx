@@ -1,14 +1,22 @@
 import {__, api, http, timingUtils, env, Icon} from '@sivujetti-commons-for-edit-app';
 import {varStyleUnitToString} from '../../block-styles/varStyleUnitsStore.js';
-import {BASE_UNIT_CLS_PREFIX, VAR_UNIT_CLS_PREFIX} from '../../block/dom-commons.js';
+import {VAR_UNIT_CLS_PREFIX} from '../../block/dom-commons.js';
 import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
+import ContextMenu from '../../commons/ContextMenu.jsx';
 import store, {observeStore, pushItemToOpQueue, selectCurrentPageDataBundle, setCurrentPageDataBundle} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
-import {valueEditors, comp} from './VisualStyles.jsx';
+import {valueEditors} from './VisualStyles.jsx';
+
+const SET_AS_DEFAULT = 'set-as-default';
+
+/** @var {{varInfos: Array<[UnitVarValue|null, VarStyleUnit|null]>; baseUnit: BaseStyleUnit;}|null} */
+let clipboardData = null;
 
 class BlockStylesTab3 extends preact.Component {
     // varStyleUnitIdMax;
     // saveVarValStylesUrl;
+    // moreMenu;
+    // infoOfClickedMoreNavItem;
     // unregistrables;
     /**
      * @access protected
@@ -17,6 +25,8 @@ class BlockStylesTab3 extends preact.Component {
         const {theme} = selectCurrentPageDataBundle(store.getState());
         this.varStyleUnitIdMax = theme.varStyleUnitIdMax;
         this.saveVarValStylesUrl = `/api/themes/${theme.id}/var-style-units`;
+        this.moreMenu = preact.createRef();
+        this.infoOfClickedMoreNavItem = null;
         this.unregistrables = [observeStore2('varStyleUnits', ({varStyleUnits}, [event]) => {
             if (event === 'varStyleUnits/init') return;
             this.updateUnitVarValues(varStyleUnits);
@@ -65,54 +75,62 @@ class BlockStylesTab3 extends preact.Component {
          * @param {String} newValAsString
          * @param {Boolean} valHasUnit
          * @param {BaseStyleUnit} bu
-         * @param {VarStyleUnit} varStyleUnit
+         * @param {VarStyleUnit|null} varStyleUnit
          * @param {UnitVarValue} v
          */
         (newValAsString, valIsSet, {varName}, valHasUnit, bu, varStyleUnit, v) => {
             const newVal = {varName, value: newValAsString};
             if (!valIsSet)
-                this.addValueAndEmit(newVal, valHasUnit ? varStyleUnit.id : this.incrementAndGetNextId(), valHasUnit, bu);
+                this.addValuesAndEmit([newVal], valHasUnit, varStyleUnit, bu);
             else
                 this.updateValueAndEmit(newVal, varStyleUnit.id, v);
         }, env.normalTypingDebounceMillis);
         //
-        return currentBlockBaseUnits.length ? currentBlockBaseUnits.map(bu => {
-            const vars = bu.vars.map(varMeta => getVarValueFor(varMeta, currentBlockVarValUnits, bu));
-            const firstVarUnit = vars[0] ? vars[0][1] : null;
-            return <div data-tag="details" class="style-vars-group p-1 mb-2" key={ bu.id } open>
-            <div data-tag="summary">
-                { bu.title }{ firstVarUnit && firstVarUnit.defaultFor ? <span> (default)</span> : null }
-                <button onClick={ () => { // todo context menu
-                    this.setVarUnitAsDefault(vars[0][1], bu);
-                } } class={ `btn btn-sm no-color p-absolute${firstVarUnit && !firstVarUnit.defaultFor ? '' : ' d-none'}` }>
-                    <Icon iconId="dots" className="size-xs"/>
-                </button>
-            </div>
-            { vars.map(([v, varStyleUnit], i) => {
-                const varMeta = bu.vars[i];
-                const Renderer = valueEditors.get(varMeta.type);
-                const valHasUnit = varStyleUnit !== null; // var is described in BaseStyleUnit, but has no VarStyleUnit yet
-                const args = [...varMeta.args];
-                const valIsSet = v !== null;
-                return <Renderer
-                    metaCopy={ {...varMeta} }
-                    valueAsString={ v ? v.value : null }
-                    argsCopy={ [...args] }
-                    varName={ varMeta.varName }
-                    valueWrapStr={ '' }
-                    valHasUnit={ valHasUnit }
-                    isClearable={ valIsSet }
-                    labelTranslated={ __(varMeta.label) }
-                    onVarValueChanged={ newValAsString => {
-                        if (newValAsString !== null)
-                            throttledHandleValueChanged(newValAsString, valIsSet, varMeta, valHasUnit, bu, varStyleUnit, v);
-                        else
-                            this.removeValueAndEmit({varName: varMeta.varName, value: v ? v.value : varMeta.defaultValue}, varStyleUnit);
-                    } }
-                    key={ `${bu.id}-${varMeta.id}-${varMeta.varName}` }/>;
-            }) }
-            </div>;
-        }) : <div class="color-dimmed px-2 pt-1">{ __('No editable styles.') }</div>;
+        return currentBlockBaseUnits.length ? [
+            ...currentBlockBaseUnits.map(bu => {
+                const vars = bu.vars.map(varMeta => getVarValueFor(varMeta, currentBlockVarValUnits, bu));
+                const firstVarUnit = vars[0] ? vars[0][1] : null;
+                return <div data-tag="details" class="style-vars-group p-1 mb-2" key={ bu.id } open>
+                <div data-tag="summary">
+                    { bu.title }{ firstVarUnit && firstVarUnit.defaultFor ? <span> (default)</span> : null }
+                    <button onClick={ e => this.openMoreMenu(vars, bu, e) } class="btn btn-sm no-color p-absolute">
+                        <Icon iconId="dots" className="size-xs"/>
+                    </button>
+                </div>
+                { vars.map(([v, varStyleUnit], i) => {
+                    const varMeta = bu.vars[i];
+                    const Renderer = valueEditors.get(varMeta.type);
+                    const valHasUnit = varStyleUnit !== null; // var is described in BaseStyleUnit, but has no VarStyleUnit yet
+                    const args = [...varMeta.args];
+                    const valIsSet = v !== null;
+                    return <Renderer
+                        varMetaCopy={ {...varMeta} }
+                        valueAsString={ valIsSet ? v.value : null }
+                        argsCopy={ [...args] }
+                        varName={ varMeta.varName }
+                        valueWrapStr={ '' }
+                        isClearable={ valIsSet }
+                        labelTranslated={ __(varMeta.label) }
+                        onVarValueChanged={ newValAsString => {
+                            if (newValAsString !== null)
+                                throttledHandleValueChanged(newValAsString, valIsSet, varMeta, valHasUnit, bu, varStyleUnit, v);
+                            else
+                                this.removeValueAndEmit({varName: varMeta.varName, value: v ? v.value : varMeta.defaultValue}, varStyleUnit);
+                        } }
+                        key={ `${bu.id}-${varMeta.id}-${varMeta.varName}` }/>;
+                }) }
+                </div>;
+            }),
+            <ContextMenu
+                links={ [
+                    {text: __('Set as default'), title: __('Set as default'), id: SET_AS_DEFAULT},
+                    {text: __('Copy styles'), title: __('Copy styles'), id: 'copy-to-clipboard'},
+                    {text: __('Paste styles'), title: __('Paste styles'), id: 'paste-from-clipboard'},
+                ] }
+                onItemClicked={ this.handleMoreMenuLinkClicked.bind(this) }
+                onMenuClosed={ () => { } }
+                ref={ this.moreMenu }/>
+        ] : <div class="color-dimmed px-2 pt-1">{ __('No editable styles.') }</div>;
     }
     /**
      * @access private
@@ -121,24 +139,27 @@ class BlockStylesTab3 extends preact.Component {
         this.setState({currentBlockBaseUnits: null, currentBlockVarValUnits: null, initd: false});
     }
     /**
-     * @param {UnitVarValue} newVal
-     * @param {String} varStyleUnitId
-     * @param {Boolean} alreadyHasUnit
+     * @param {Array<UnitVarValue>} newVals
+     * @param {Boolean} varUnitExists
+     * @param {VarStyleUnit|null} varUnit
      * @param {BaseStyleUnit} baseUnit
      * @access private
      */
-    addValueAndEmit(newVal, varStyleUnitId, alreadyHasUnit, baseUnit) {
+    addValuesAndEmit(newVals, varUnitExists, varUnit, baseUnit) {
         // The block, which newVal is being added to, already has VarStyleUnit, but this value is not its .values array -> add it
-        if (alreadyHasUnit) {
-            store2.dispatch('varStyleUnits/addValueTo', [varStyleUnitId, newVal]);
+        if (varUnitExists) {
+            const varStyleUnitId = varUnit.id;
+            store2.dispatch('varStyleUnits/addValuesTo', [varStyleUnitId, newVals]);
 
-            const toRemoveOnUndoContext = [varStyleUnitId, newVal];
+            const toRemoveOnUndoContext = [varStyleUnitId, newVals];
             this.dispatchNewVarStyles(() => {
-                store2.dispatch('varStyleUnits/removeValueFrom', toRemoveOnUndoContext);
+                store2.dispatch('varStyleUnits/removeValuesFrom', toRemoveOnUndoContext);
             });
 
         // The block, which newVal is being added to, has no VarStyleUnit yet -> add it using .values array [thisValue]
         } else {
+            const varStyleUnitId = this.incrementAndGetNextId();
+
             // #1 add related BaseStyleUnit's css to the page if not present?
             // store2.dispatch('baseStyleUnits/addItem', [{}]);
 
@@ -146,7 +167,7 @@ class BlockStylesTab3 extends preact.Component {
             this.props.emitAppendStrToBlockStyleClasses(`${baseUnit.id} ${varStyleUnitId}`, this.props.getBlockCopy());
 
             // #3 Add new VarStyleUnit with one variable value in it
-            const values = [newVal];
+            const values = [...newVals];
             const newVarStyleUnit = {
                 id: varStyleUnitId,
                 baseStyleUnitId: baseUnit.id,
@@ -191,7 +212,7 @@ class BlockStylesTab3 extends preact.Component {
         let prevUnit = null;
 
         // #1
-        store2.dispatch('varStyleUnits/removeValueFrom', [varStyleUnitId, {varName: curVal.varName, value: null}]);
+        store2.dispatch('varStyleUnits/removeValuesFrom', [varStyleUnitId, [{varName: curVal.varName, value: null}]]);
 
         // #2
         if (wasLastVar) {
@@ -204,7 +225,7 @@ class BlockStylesTab3 extends preact.Component {
         this.dispatchNewVarStyles(() => {
             if (!wasLastVar) {
                 // #1
-                store2.dispatch('varStyleUnits/addValueTo', [varStyleUnitId, valueToRestoreOnUndo]);
+                store2.dispatch('varStyleUnits/addValuesTo', [varStyleUnitId, [valueToRestoreOnUndo]]);
             } else {
                 // #2
                 setTimeout(() => { api.saveButton.triggerUndo(); }, 1);
@@ -259,11 +280,55 @@ class BlockStylesTab3 extends preact.Component {
      * @access private
      */
     incrementAndGetNextId() {
-        const next = this.unitStyleUnitIdMax + 1;
+        const next = this.varStyleUnitIdMax + 1;
         const bundle = cloneObjectDeep(selectCurrentPageDataBundle(store.getState()));
         bundle.theme.varStyleUnitIdMax = next;
         store.dispatch(setCurrentPageDataBundle(bundle));
         return `${VAR_UNIT_CLS_PREFIX}${next}`;
+    }
+    /**
+     * @param {Array<[UnitVarValue|null, VarStyleUnit|null]>} varInfos
+     * @param {BaseStyleUnit} baseStyle
+     * @param {Event} e
+     * @access private
+     */
+    openMoreMenu(varInfos, baseStyle, e) {
+        this.infoOfClickedMoreNavItem = {varInfos, baseUnit: baseStyle};
+        this.moreMenu.current.open(e, links =>
+            !clipboardData ? links.filter(({id}) => id !== 'paste-from-clipboard') : links
+        );
+    }
+    /**
+     * @param {ContextMenuLink} link
+     * @access private
+     */
+    handleMoreMenuLinkClicked({id}) {
+        if (id === SET_AS_DEFAULT)
+            this.setVarUnitAsDefault(this.infoOfClickedMoreNavItem.varInfos[0][1],
+                                        this.infoOfClickedMoreNavItem.baseUnit);
+        else if (id === 'copy-to-clipboard') {
+            clipboardData = cloneObjectDeep(this.infoOfClickedMoreNavItem);
+        } else if (id === 'paste-from-clipboard') {
+            this.pasteStylesFromClipboard();
+        }
+    }
+    /**
+     * @param {Boolean} createCopy = true
+     * @access private
+     */
+    pasteStylesFromClipboard(createCopy = true) {
+        if (createCopy) {
+            const varInfosFrom = clipboardData.varInfos;
+            const vars = varInfosFrom.map(([v, _varUnit]) => v).filter(v => !!v);
+
+            const varInfosThis = this.infoOfClickedMoreNavItem.varInfos;
+            const baseUnitThis = this.infoOfClickedMoreNavItem.baseUnit;
+            const varUnitThis = varInfosThis[0][1];
+            const alreadyHasUnit = varUnitThis !== null;
+            this.addValuesAndEmit(vars, alreadyHasUnit, varUnitThis, baseUnitThis);
+        } else {
+            // todo updateValuesOf and then emitAppendStrToBlockStyleClasses
+        }
     }
 }
 

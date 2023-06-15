@@ -182,7 +182,7 @@ class EditAppAwareWebPage {
         };
     }
     /**
-     * @returns {(state: {varStyleUnits: Array<VarStyleUnit>; [otherStateBuckets: String]: any;}, ['varStyleUnits/init'|'varStyleUnits/addItem'|'varStyleUnits/updateItem'|'varStyleUnits/removeItem'|'varStyleUnits/addValueTo'|'varStyleUnits/updateValueIn'|'varStyleUnits/removeValueFrom', [Array<VarStyleUnit>]|[VarStyleUnit]]) => void}
+     * @returns {(state: {varStyleUnits: Array<VarStyleUnit>; [otherStateBuckets: String]: any;}, ['varStyleUnits/init'|'varStyleUnits/addItem'|'varStyleUnits/updateItem'|'varStyleUnits/removeItem'|'varStyleUnits/addValuesTo'|'varStyleUnits/updateValueIn'|'varStyleUnits/removeValuesFrom', [Array<VarStyleUnit>]|[VarStyleUnit]]) => void}
      * @access public
      */
     createUnitVarsChangeListener() {
@@ -197,11 +197,11 @@ class EditAppAwareWebPage {
                 const varStyleUnitId = data[0]; // data: [String]
                 const node = document.head.querySelector(`style[data-var-units-for="${varStyleUnitId}"]`);
                 node.parentElement.removeChild(node);
-            } else if (event === 'varStyleUnits/updateValueIn' || event === 'varStyleUnits/addValueTo' || event === 'varStyleUnits/removeValueFrom') {
-                const varStyleUnitId = data[0]; // data: [String, UnitVarValue]
+            } else if (event === 'varStyleUnits/updateValueIn' || event === 'varStyleUnits/addValuesTo' || event === 'varStyleUnits/removeValuesFrom') {
+                const varStyleUnitId = data[0]; // data: [String, UnitVarValue]|[String, Array<UnitVarValue>]
                 const node = document.head.querySelector(`style[data-var-units-for="${varStyleUnitId}"]`);
                 const unit = varStyleUnits.find(({id}) => id === varStyleUnitId);
-                if (event === 'varStyleUnits/removeValueFrom' && !unit) // last var was cleared
+                if (event === 'varStyleUnits/removeValuesFrom' && !unit) // last var was cleared
                     node.parentElement.removeChild(node);
                 else
                     node.innerHTML = unit.generatedCss;

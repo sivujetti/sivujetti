@@ -7,7 +7,7 @@ class ContextMenu extends preact.Component {
     // pos;
     // doFilterLinks;
     /**
-     * @param {{links: Array<ContextMenuLink>; onItemClicked: (link: ContextMenuLink) => void; onMenuClosed: () => void;)}} props
+     * @param {{links: Array<ContextMenuLink>; onItemClicked: (link: ContextMenuLink) => void; onMenuClosed: () => void;}} props
      */
     constructor(props) {
         super(props);

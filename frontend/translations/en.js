@@ -141,6 +141,9 @@ stringBundles.push({
     'Colours and fonts': 'Colours and fonts',
     'Visual': 'Visual',
     'Code': 'Code',
+    // edit-app/src/left-column/panel-sections/ContentManagementSection.jsx
+    'Content management': 'Content management',
+    'page': 'page',
     // edit-app/src/left-column/panel-sections/OnThisPageSection.jsx
     'Duplicate this page': 'Duplicate this page',
     'Delete this page': 'Delete this page',
@@ -149,14 +152,12 @@ stringBundles.push({
     'Default content': 'Default content',
     'Content of page %s': 'Content of %s-page',
     'New page content': 'New page content',
-    // edit-app/src/left-column/panel-sections/SettingsSection.jsx
-    'Settings': 'Settings',
-    'Website\'s settings': 'Website\'s settings',
-    'Edit info': 'Edit info',
     // edit-app/src/left-column/panel-sections/WebsiteSection.jsx
     'Website': 'Website',
-    'Content management': 'Content management',
-    'page': 'page',
+    'Website\'s settings': 'Website\'s settings',
+    'Settings': 'Settings',
+    'Edit info': 'Edit info',
+    'Updates': 'Updates',
     // edit-app/src/left-column/page-type/PageTypeCreatePanel.jsx
     'page type': 'page type',
     'Basic settings': 'Basic settings',
@@ -309,6 +310,8 @@ stringBundles.push({
     'Text content': 'Text content',
     // edit-app/src/block-widget/ImagePicker.jsx
     'Choose a picture': 'Choose a picture',
+    // edit-app/src/right-column/website/WebsiteApplyUpdatesView.jsx
+    'No updates available.': 'No updates available.',
     // edit-app/src/right-column/website/WebsiteEditBasicInfoView.jsx
     'Edit website info': 'Edit website info',
     'todo11': 'todo11',

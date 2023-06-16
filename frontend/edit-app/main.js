@@ -22,9 +22,9 @@ import InspectorPanel from './src/left-column/InspectorPanel.jsx';
 import RightColumnViews from './src/right-column/RightColumnViews.jsx';
 import WebPageIframe from './src/right-column/WebPageIframe.js';
 import MainPanel from './src/left-column/MainPanel.js';
-import OnThisPageSection from './src/left-column/panel-sections/OnThisPageSection.jsx';
 import BaseStylesSection from './src/left-column/panel-sections/BaseStylesSection.jsx';
-import SettingsSection from './src/left-column/panel-sections/SettingsSection.jsx';
+import ContentManagementSection from './src/left-column/panel-sections/ContentManagementSection.jsx';
+import OnThisPageSection from './src/left-column/panel-sections/OnThisPageSection.jsx';
 import WebsiteSection from './src/left-column/panel-sections/WebsiteSection.jsx';
 import {MyClipboard, MyKeyboard, MyLink, IdAttributor, MySnowTheme} from './src/quill/quill-customizations.js';
 
@@ -95,10 +95,10 @@ function configureServices() {
         mainPanel.registerSection('baseStyles', BaseStylesSection);
     }
     if (api.user.can('createPages')) {
-        mainPanel.registerSection('website', WebsiteSection);
+        mainPanel.registerSection('contentManagement', ContentManagementSection);
     }
     if (api.user.can('editTheWebsitesBasicInfo')) {
-        mainPanel.registerSection('settings', SettingsSection);
+        mainPanel.registerSection('website', WebsiteSection);
     }
     api.mainPanel = mainPanel;
     //

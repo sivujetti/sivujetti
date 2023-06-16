@@ -6,7 +6,19 @@ use Pike\{Request, Response};
 
 final class UpdatesController {
     /**
-     * PUT /api/update/core|some-plugin: tries to update Sivujetti or plugin from
+     * GET /api/updates/core|some-plugin: ??.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Sivujetti\Update\Updater $updater
+     */
+    public function getAvailableUpdates(Request $req,
+                                        Response $res,
+                                        Updater $updater): void {
+        $res->json([]);
+    }
+    /**
+     * PUT /api/updates/core|some-plugin: tries to update Sivujetti or plugin from
      * App::VERSION to $req->body->toVersion.
      *
      * @param \Pike\Request $req

@@ -141,6 +141,9 @@ stringBundles.push({
     'Colours and fonts': 'Sivuston värit ja fontit',
     'Visual': 'Visuaalinen',
     'Code': 'Koodi',
+    // edit-app/src/left-column/panel-sections/ContentManagementSection.jsx
+    'Content management': 'Sisällönhallinta',
+    'page': 'sivu',
     // edit-app/src/left-column/panel-sections/OnThisPageSection.jsx
     'Duplicate this page': 'Monista tämä sivu',
     'Delete this page': 'Poista tämä sivu',
@@ -149,14 +152,12 @@ stringBundles.push({
     'Default content': 'Oletussisältö',
     'Content of page %s': '%s -sivun sisältö',
     'New page content': 'Uuden sivun sisältö',
-    // edit-app/src/left-column/panel-sections/SettingsSection.jsx
-    'Settings': 'Asetukset',
-    'Website\'s settings': 'Sivuston asetukset',
-    'Edit info': 'Muokkaa perustietoja',
     // edit-app/src/left-column/panel-sections/WebsiteSection.jsx
     'Website': 'Sivusto',
-    'Content management': 'Sisällönhallinta',
-    'page': 'sivu',
+    'Website\'s settings': 'Sivuston asetukset',
+    'Settings': 'Asetukset',
+    'Edit info': 'Muokkaa perustietoja',
+    'Updates': 'Päivitykset',
     //edit-app/src/left-column/page-type/PageTypeCreatePanel.jsx
     'page type': 'sivutyyppi',
     'Basic settings': 'Perustiedot',
@@ -309,6 +310,8 @@ stringBundles.push({
     'Text content': 'Tekstisisältöä',
     // edit-app/src/block-widget/ImagePicker.jsx
     'Choose a picture': 'Valitse kuva',
+    // edit-app/src/right-column/website/WebsiteApplyUpdatesView.jsx
+    'No updates available.': 'Ei päivityksia saatavilla.',
     // edit-app/src/right-column/website/WebsiteEditBasicInfoView.jsx
     'Edit website info': 'Muokkaa sivuston tietoja',
     'todo11': 'Nämä tiedot näkyvät hakukoneissa, ja esim. jaettaessa sivuja some-kanaviin.',

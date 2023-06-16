@@ -13,8 +13,7 @@ const SET_AS_DEFAULT = 'set-as-default';
 let clipboardData = null;
 
 class BlockStylesTab3 extends preact.Component {
-    // varStyleUnitIdMax;
-    // saveVarValStylesUrl;
+    // incrUtils;
     // moreMenu;
     // infoOfClickedMoreNavItem;
     // unregistrables;
@@ -22,18 +21,15 @@ class BlockStylesTab3 extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        const {theme} = selectCurrentPageDataBundle(store.getState());
-        this.varStyleUnitIdMax = theme.varStyleUnitIdMax;
-        this.saveVarValStylesUrl = `/api/themes/${theme.id}/var-style-units`;
+        this.incrUtils = createIDontKnowWhatToCallThisUtils();
         this.moreMenu = preact.createRef();
         this.infoOfClickedMoreNavItem = null;
         this.unregistrables = [observeStore2('varStyleUnits', ({varStyleUnits}, [event]) => {
             if (event === 'varStyleUnits/init') return;
-            this.updateUnitVarValues(varStyleUnits);
-        }), observeStore(selectCurrentPageDataBundle, ({theme}) => {
-            if (theme.varStyleUnitIdMax !== this.varStyleUnitIdMax)
-                this.varStyleUnitIdMax = theme.varStyleUnitIdMax;
-        })];
+                this.updateUnitVarValues(varStyleUnits);
+        }), () => {
+            this.incrUtils.destroy();
+        }];
     }
     /**
      * @param {StylesTab3Props} props
@@ -148,6 +144,21 @@ class BlockStylesTab3 extends preact.Component {
     addValuesAndEmit(newVals, varUnitExists, varUnit, baseUnit) {
         // The block, which newVal is being added to, already has VarStyleUnit, but this value is not its .values array -> add it
         if (varUnitExists) {
+            this.addValuesToVarUnitAndEmit(newVals, varUnit, baseUnit);
+        // The block, which newVal is being added to, has no VarStyleUnit yet -> add it using .values array [thisValue]
+        } else {
+            this.addVarUnitWithTheseValuesAndEmit(newVals, baseUnit);
+        }
+    }
+    /**
+     * @param {Array<UnitVarValue>} newVals
+     * @param {VarStyleUnit} varUnit
+     * @param {BaseStyleUnit} baseUnit
+     * @access private
+     */
+    addValuesToVarUnitAndEmit(newVals, varUnit, baseUnit) {
+        // Var is being added to VarUnit which is not unique -> add var normally
+        if (!isUniqueDefaults(varUnit)) {
             const varStyleUnitId = varUnit.id;
             store2.dispatch('varStyleUnits/addValuesTo', [varStyleUnitId, newVals]);
 
@@ -155,35 +166,36 @@ class BlockStylesTab3 extends preact.Component {
             this.dispatchNewVarStyles(() => {
                 store2.dispatch('varStyleUnits/removeValuesFrom', toRemoveOnUndoContext);
             });
-
-        // The block, which newVal is being added to, has no VarStyleUnit yet -> add it using .values array [thisValue]
+        // Var is being added to unique VarUnit -> create new specialized unit using .values array [...newVals]
         } else {
-            const varStyleUnitId = this.incrementAndGetNextId();
-
-            // #1 add related BaseStyleUnit's css to the page if not present?
-            // store2.dispatch('baseStyleUnits/addItem', [{}]);
-
-            // #2 Add class to the block
-            this.props.emitAppendStrToBlockStyleClasses(`${baseUnit.id} ${varStyleUnitId}`, this.props.getBlockCopy());
-
-            // #3 Add new VarStyleUnit with one variable value in it
-            const values = [...newVals];
-            const newVarStyleUnit = {
-                id: varStyleUnitId,
-                baseStyleUnitId: baseUnit.id,
-                values,
-                generatedCss: varStyleUnitToString(values, varStyleUnitId),
-                // omit defaultFor
-            };
-            store2.dispatch('varStyleUnits/addItem', [newVarStyleUnit]);
-
-            this.dispatchNewVarStyles(() => {
-                // Undo this (#3)
-                store2.dispatch('varStyleUnits/removeItem', [varStyleUnitId]);
-                // Undo #2
-                setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
-            });
+            this.addVarUnitWithTheseValuesAndEmit(newVals, baseUnit);
         }
+    }
+    /**
+     * @param {Array<UnitVarValue>} newVals
+     * @param {BaseStyleUnit} baseUnit
+     * @access private
+     */
+    addVarUnitWithTheseValuesAndEmit(newVals, baseUnit) {
+        // Create new VarStyleUnit with one variable value in it
+        const newVarStyleUnit = createVarStyleUnit([...newVals], baseUnit.id, this.incrUtils);
+        const varStyleUnitId = newVarStyleUnit.id;
+
+        // #1 add related BaseStyleUnit's css to the page if not present?
+        // store2.dispatch('baseStyleUnits/addItem', [{}]);
+
+        // #2 Add class to the block
+        this.props.emitAppendStrToBlockStyleClasses(`${baseUnit.id} ${varStyleUnitId}`, this.props.getBlockCopy());
+
+        // #3 Add the new VarStyleUnit
+        store2.dispatch('varStyleUnits/addItem', [newVarStyleUnit]);
+
+        this.dispatchNewVarStyles(() => {
+            // Undo this (#3)
+            store2.dispatch('varStyleUnits/removeItem', [varStyleUnitId]);
+            // Undo #2
+            setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
+        });
     }
     /**
      * @param {UnitVarValue} updatedValue
@@ -267,24 +279,7 @@ class BlockStylesTab3 extends preact.Component {
      * @access private
      */
     dispatchNewVarStyles(doUndo) {
-        const updatedAll = store2.get().varStyleUnits;
-
-        store.dispatch(pushItemToOpQueue('save-theme-var-style-units', {
-            doHandle: () => http.put(this.saveVarValStylesUrl, {varStyleUnits: [...updatedAll]}),
-            doUndo,
-            args: [],
-        }));
-    }
-    /**
-     * @returns {String} Example 'j-vu-24'
-     * @access private
-     */
-    incrementAndGetNextId() {
-        const next = this.varStyleUnitIdMax + 1;
-        const bundle = cloneObjectDeep(selectCurrentPageDataBundle(store.getState()));
-        bundle.theme.varStyleUnitIdMax = next;
-        store.dispatch(setCurrentPageDataBundle(bundle));
-        return `${VAR_UNIT_CLS_PREFIX}${next}`;
+        dispatchNewVarStyles(doUndo, this.incrUtils);
     }
     /**
      * @param {Array<[UnitVarValue|null, VarStyleUnit|null]>} varInfos
@@ -389,10 +384,126 @@ function getStylesInfo(block) {
 }
 
 /**
+ * @param {Array<UnitVarValue>} values
+ * @param {String} baseStyleUnitId
+ * @param {IDontKnowWhatToCallThisUtils} incrUtils
+ * @returns {VarStyleUnit}
+ */
+function createVarStyleUnit(values, baseStyleUnitId, incrUtils) {
+    const varStyleUnitId = incrUtils.incrementAndGetNextId();
+    return {
+        id: varStyleUnitId,
+        baseStyleUnitId,
+        values,
+        generatedCss: varStyleUnitToString(values, varStyleUnitId),
+        // omit defaultFor
+    };
+}
+
+/**
+ * @param {VarStyleUnit} varUnit
+ * @returns {Boolean}
+ */
+function isUniqueDefaults(varUnit) {
+    return !!varUnit.defaultFor; // todo
+}
+
+/**
+ * @param {Array<VarStyleUnit>} defaultVarUnits
+ * @returns {[Array<VarStyleUnit>, () => void]} [duplicatedUnits, commitSaveUnitsToBackend]
+ */
+function addDuplicateVarUnits(defaultVarUnits) {
+    const incrUtils = createIDontKnowWhatToCallThisUtils();
+    const duplicatedUnits = defaultVarUnits.map(unit => {
+        // Create duplicate VarStyleUnit
+        const newVarStyleUnit = createVarStyleUnit([...unit.values], unit.baseStyleUnitId, incrUtils);
+        const duplicated = {...newVarStyleUnit};
+
+        // #1 add related BaseStyleUnit's css to the page if not present?
+        // store2.dispatch('baseStyleUnits/addItem', [{}]);
+
+        // #2 Add new VarStyleUnit
+        store2.dispatch('varStyleUnits/addItem', [newVarStyleUnit]);
+
+        return duplicated;
+    });
+
+    const ids = duplicatedUnits.map(({id}) => id);
+    const commitUnits = () => {
+        dispatchNewVarStyles(() => {
+            // Undo this (#2's)
+            for (const varStyleUnitId of ids)
+                store2.dispatch('varStyleUnits/removeItem', [varStyleUnitId]);
+            // Undo caller's op
+            setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
+        }, incrUtils);
+        incrUtils.destroy();
+    };
+
+    return [duplicatedUnits, commitUnits];
+}
+
+/**
+ * @param {() => void} doUndo
+ * @param {IDontKnowWhatToCallThisUtils} incrUtils
+ */
+function dispatchNewVarStyles(doUndo, incrUtils) {
+    const updatedAll = store2.get().varStyleUnits;
+
+    store.dispatch(pushItemToOpQueue('save-theme-var-style-units', {
+        doHandle: () => http.put(incrUtils.getSaveVarValStylesUrl(), {varStyleUnits: [...updatedAll]}),
+        doUndo,
+        args: [],
+    }));
+}
+
+/**
+ * @returns {IDontKnowWhatToCallThisUtils}
+ */
+function createIDontKnowWhatToCallThisUtils() {
+
+    const {theme} = selectCurrentPageDataBundle(store.getState());
+    let varStyleUnitIdMax = theme.varStyleUnitIdMax;
+    const saveVarValStylesUrl = `/api/themes/${theme.id}/var-style-units`;
+
+    const unregistrables = [observeStore(selectCurrentPageDataBundle, ({theme}) => {
+        if (theme.varStyleUnitIdMax !== varStyleUnitIdMax)
+            varStyleUnitIdMax = theme.varStyleUnitIdMax;
+    })];
+
+    return {
+        /**
+         * @returns {String}
+         * @access public
+         */
+        incrementAndGetNextId() {
+            const next = varStyleUnitIdMax + 1;
+            const bundle = cloneObjectDeep(selectCurrentPageDataBundle(store.getState()));
+            bundle.theme.varStyleUnitIdMax = next;
+            store.dispatch(setCurrentPageDataBundle(bundle));
+            return `${VAR_UNIT_CLS_PREFIX}${next}`;
+        },
+        /**
+         * @returns {String}
+         * @access public
+         */
+        getSaveVarValStylesUrl() {
+            return saveVarValStylesUrl;
+        },
+        /**
+         * @access public
+         */
+        destroy() {
+            unregistrables.forEach(unreg => unreg());
+        }
+    };
+}
+
+/**
  * @typedef StylesTab3Props
  * @prop {Boolean} isVisible
  * @prop todo todo
  */
 
 export default BlockStylesTab3;
-export {getStylesInfo};
+export {getStylesInfo, addDuplicateVarUnits};

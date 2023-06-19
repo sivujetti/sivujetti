@@ -6,7 +6,7 @@ const toasters = {
 
 class Toaster extends preact.Component {
     /**
-     * @param {{id?: string; autoCloseTimeoutMillis?: number; className?: string;}} props
+     * @param {{id?: String; autoCloseTimeoutMillis?: Number; className?: String;}} props
      */
     constructor(props) {
         super(props);
@@ -18,24 +18,28 @@ class Toaster extends preact.Component {
         this.state = {messages: []};
     }
     /**
-     * @param {string|function} message
-     * @param {string} level
+     * @param {preact.ComponentChild} message
+     * @param {String} level
+     * @param {Number} timeout = this.autoCloseTimeoutMillis
+     * @param {() => void} onDismissed = null
      */
-    addMessage(message, level) {
+    addMessage(message, level, timeout = this.autoCloseTimeoutMillis, onDismissed = null) {
         this.state.messages.unshift({message, level,
-            timeoutId: setTimeout(this.removeMessage.bind(this),
-                                  this.autoCloseTimeoutMillis)});
+            timeoutId: timeout > 0 ? setTimeout(this.removeMessage.bind(this), this.autoCloseTimeoutMillis) : null,
+            onDismissed});
         this.setState({messages: this.state.messages});
     }
     /**
-     * @param {{message: string|function; level: string; timeoutId: number;}?} message
+     * @param {{message: preact.ComponentChild; level: String; timeoutId: Number;}?} message
      */
     removeMessage(message) {
         const messages = this.state.messages;
         if (!message) { // from timeout
-            messages.pop();
+            const message = messages.pop();
+            if (message.onDismissed) message.onDismissed();
         } else { // from onClick
-            clearTimeout(message.timeoutId);
+            if (message.timeoutId) clearTimeout(message.timeoutId);
+            if (message.onDismissed) message.onDismissed();
             messages.splice(messages.indexOf(message), 1);
         }
         this.setState({messages});
@@ -53,12 +57,9 @@ class Toaster extends preact.Component {
                 if (message.level === 'error') iconId = 'alert-triangle';
                 else if (message.level === 'info') iconId = 'info-circle';
                 return <div class="box p-0 mb-10">
-                    <div class={ `toaster-message ${message.level}` }
-                         onClick={ () => this.removeMessage(message) }>
+                    <div class={ `toaster-message ${message.level}` } onClick={ () => this.removeMessage(message) }>
                         <Icon iconId={ iconId } className="mr-10"/>
-                        { typeof message.message !== 'function'
-                            ? preact.createElement('span', null, message.message)
-                            : preact.createElement(message.message) }
+                        { typeof message.message === 'string' ? <span>{ message.message }</span> : message.message }
                     </div>
                 </div>;
             })

@@ -10,6 +10,7 @@ import {getArePanelsHidden} from './right-column/IframePageManager.js';
 import {MyRouter, historyInstance} from './right-column/RightColumnViews.jsx';
 
 const PANELS_HIDDEN_CLS = 'panels-hidden';
+const {localStorage} = env.window;
 let showFirstTimeDragInstructions = !(!env.window.isFirstRun || localStorage.sivujettiDragInstructionsShown === 'yes');
 
 class EditApp extends preact.Component {
@@ -83,16 +84,16 @@ class EditApp extends preact.Component {
             { !showFirstTimeDragInstructions ? null : <div class="drag-instructions-overlay"><div>
                 <p class="flex-centered">
                     <Icon iconId="info-circle" className="size-lg mr-2"/>
-                    { __('Voit lisätä sisältöä raahaamalla') }
+                    { __('You can add content by dragging') }
                 </p>
                 <img src={ urlUtils.makeAssetUrl('/public/sivujetti/assets/drag-right-illustration.png') } alt=""/>
                 <button onClick={ e => {
-                    env.window.localStorage.sivujettiDragInstructionsShown = 'yes';
+                    localStorage.sivujettiDragInstructionsShown = 'yes';
                     showFirstTimeDragInstructions = false;
                     const el = e.target.closest('.drag-instructions-overlay');
                     el.classList.add('fade-away');
                     setTimeout(() => { el.parentElement.removeChild(el); }, 650);
-                } } class="btn btn-primary btn-sm p-absolute" type="button">{ __('Selvä!') }</button>
+                } } class="btn btn-primary btn-sm p-absolute" type="button">{ __('Cool!') }</button>
             </div></div>
             }
             <MyRouter history={ historyInstance }>
@@ -176,6 +177,15 @@ class EditApp extends preact.Component {
             commitPanelWidths();
             this.props.rootEl.classList.remove('new-block-spawner-opened');
         });
+        if (localStorage.sivujettiFollowLinksInstructionDismissed !== 'yes')
+            setTimeout(() => {
+                toasters.editAppMain(<div>
+                    <h4>{ __('Did you know?') }</h4>
+                    <span>{ __('When you\'re in the edit mode, you still can navigate any website hyperlink by clicking on it holding Ctrl (Windows) or ⌘ (Mac) key.') }</span>
+                </div>, 'info', 0, () => {
+                    localStorage.sivujettiFollowLinksInstructionDismissed = 'yes';
+                });
+            }, 2000);
     }
     /**
      * @param {Boolean} to
@@ -184,7 +194,7 @@ class EditApp extends preact.Component {
     handlePanelsAreHiddenChanged(to) {
         api.webPageIframe.pageManager.currentWebPage.setIsMouseListenersDisabled(to);
         this.props.rootEl.classList.toggle(PANELS_HIDDEN_CLS);
-        env.window.localStorage.sivujettiDoHidePanels = to ? 'yes' : 'no';
+        localStorage.sivujettiDoHidePanels = to ? 'yes' : 'no';
         this.setState({hidePanels: to});
     }
     /**

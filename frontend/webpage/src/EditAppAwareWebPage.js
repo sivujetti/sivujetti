@@ -1,5 +1,8 @@
-import {CHILDREN_START, CHILDREN_END} from '../../edit-app/src/block/dom-commons.js';
+import {CHILDREN_START, CHILDREN_END, getMetaKey} from '../../edit-app/src/block/dom-commons.js';
 import ReRenderer, {findCommentR, getBlockEl} from './ReRenderer.js';
+
+const useCtrlClickBasedFollowLinkLogic = true;
+let metaKeyIsPressed = false;
 
 class EditAppAwareWebPage {
     // data; // public
@@ -59,46 +62,12 @@ class EditAppAwareWebPage {
     }
     /**
      * @param {EditAwareWebPageEventHandlers} handlers
+     * @param {Signals} globalSignals
      * @access public
      */
     registerEventHandlers(handlers) {
         if (this.handlers) return;
         this.handlers = handlers;
-        //
-        let isDown = false;
-        let lastDownLink = null;
-        let lastDownLinkAlreadyHandled = false;
-        document.body.addEventListener('mousedown', e => {
-            if (!(this.currentlyHoveredBlockEl || this.isMouseListenersDisabled)) return;
-            isDown = true;
-            const a = e.button !== 0 ? null : e.target.nodeName === 'A' ? e.target : e.target.closest('a');
-            if (!a) return;
-            lastDownLink = a;
-            lastDownLinkAlreadyHandled = false;
-            setTimeout(() => {
-                if (isDown && e.button === 0) {
-                    lastDownLinkAlreadyHandled = true;
-                    this.handlers.onClicked(this.currentlyHoveredBlockEl);
-                }
-            }, 80);
-        });
-        document.body.addEventListener('click', e => {
-            const currentBlock = this.currentlyHoveredBlockEl;
-            isDown = false;
-            if (!lastDownLink) {
-                if (this.isMouseListenersDisabled) { this.handlers.onClicked(currentBlock); return; }
-                const b = e.button !== 0 ? null : e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button');
-                if (b) e.preventDefault();
-                this.handlers.onClicked(currentBlock);
-            } else {
-                e.preventDefault();
-                if (!lastDownLinkAlreadyHandled) {
-                    this.handlers.onClicked(null, lastDownLink);
-                    this.doFollowLink(lastDownLink);
-                }
-                lastDownLink = null;
-            }
-        });
         //
         document.body.addEventListener('mouseover', e => {
             if (this.isMouseListenersDisabled) return;
@@ -143,6 +112,11 @@ class EditAppAwareWebPage {
         window.addEventListener('resize', () => {
             this.onStylesUpdateFn();
         });
+        //
+        if (useCtrlClickBasedFollowLinkLogic)
+            this.addClickHandlersCtrlClickVersion();
+        else
+            this.addClickHandlersLongClickVersion();
     }
     /**
      * @returns {(state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void}
@@ -182,7 +156,7 @@ class EditAppAwareWebPage {
         };
     }
     /**
-     * @returns {(state: {varStyleUnits: Array<VarStyleUnit>; [otherStateBuckets: String]: any;}, ['varStyleUnits/init'|'varStyleUnits/addItem'|'varStyleUnits/updateItem'|'varStyleUnits/removeItem'|'varStyleUnits/addValuesTo'|'varStyleUnits/updateValueIn'|'varStyleUnits/removeValuesFrom', [Array<VarStyleUnit>]|[VarStyleUnit]]) => void}
+     * @returns {(state: {varStyleUnits: Array<VarStyleUnit>; [otherStateBuckets: String]: any;}, event: ['varStyleUnits/init'|'varStyleUnits/addItem'|'varStyleUnits/updateItem'|'varStyleUnits/removeItem'|'varStyleUnits/addValuesTo'|'varStyleUnits/updateValueIn'|'varStyleUnits/removeValuesFrom', [Array<VarStyleUnit>]|[VarStyleUnit]]) => void}
      * @access public
      */
     createUnitVarsChangeListener() {
@@ -208,6 +182,15 @@ class EditAppAwareWebPage {
             } else return;
             this.onStylesUpdateFn();
         };
+    }
+    /**
+     * @returns {Array<[String, (...args: any) => void]>}
+     * @access public
+     */
+    getGlobalListenerCreateCallables() {
+        return [['meta-key-pressed-or-released', isDown => {
+            metaKeyIsPressed = isDown;
+        }]];
     }
     /**
      * @param {Boolean} isDisabled
@@ -298,6 +281,76 @@ class EditAppAwareWebPage {
                                                                           // /sub-dir/index.php?q=/foo -> /foo
             window.parent.myRoute(noBase.split('#')[0]);
         }
+    }
+    /**
+     * @access private
+     */
+    addClickHandlersCtrlClickVersion() {
+        const metaKey = getMetaKey();
+        window.addEventListener('keydown', e => {
+            if (e.key === metaKey) metaKeyIsPressed = true;
+        });
+        window.addEventListener('keyup', e => {
+            if (e.key === metaKey) metaKeyIsPressed = false;
+        });
+        document.body.addEventListener('click', e => {
+            const currentBlock = this.currentlyHoveredBlockEl;
+            if (this.isMouseListenersDisabled) { this.handlers.onClicked(currentBlock); return; }
+
+            const isLeftClick = e.button === 0;
+            const a = !isLeftClick ? null : e.target.nodeName === 'A' ? e.target : e.target.closest('a');
+
+            const b = a || (e.button !== 0 ? null : e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button'));
+
+            if (!metaKeyIsPressed)
+                e.preventDefault();
+            else if (a || b) {
+                if (a) { e.preventDefault(); this.doFollowLink(a); }
+                // else omit preventDefault
+                return;
+            }
+
+            this.handlers.onClicked(currentBlock);
+        });
+    }
+    /**
+     * @access private
+     */
+    addClickHandlersLongClickVersion() {
+        let isDown = false;
+        let lastDownLink = null;
+        let lastDownLinkAlreadyHandled = false;
+        document.body.addEventListener('mousedown', e => {
+            if (!(this.currentlyHoveredBlockEl || this.isMouseListenersDisabled)) return;
+            isDown = true;
+            const a = e.button !== 0 ? null : e.target.nodeName === 'A' ? e.target : e.target.closest('a');
+            if (!a) return;
+            lastDownLink = a;
+            lastDownLinkAlreadyHandled = false;
+            setTimeout(() => {
+                if (isDown && e.button === 0) {
+                    lastDownLinkAlreadyHandled = true;
+                    this.handlers.onClicked(this.currentlyHoveredBlockEl);
+                }
+            }, 80);
+        });
+        document.body.addEventListener('click', e => {
+            const currentBlock = this.currentlyHoveredBlockEl;
+            isDown = false;
+            if (!lastDownLink) {
+                if (this.isMouseListenersDisabled) { this.handlers.onClicked(currentBlock); return; }
+                const b = e.button !== 0 ? null : e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button');
+                if (b) e.preventDefault();
+                this.handlers.onClicked(currentBlock);
+            } else {
+                e.preventDefault();
+                if (!lastDownLinkAlreadyHandled) {
+                    this.handlers.onClicked(null, lastDownLink);
+                    this.doFollowLink(lastDownLink);
+                }
+                lastDownLink = null;
+            }
+        });
     }
 }
 

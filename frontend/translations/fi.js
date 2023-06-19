@@ -172,6 +172,10 @@ stringBundles.push({
     'Hide edit menu': 'Piilota muokkausvalikko',
     'Go to dashboard': 'Siirry dashboardiin',
     'Log out': 'Kirjaudu ulos',
+    'You can add content by dragging': 'Voit lisätä sisältöä raahaamalla',
+    'Cool!': 'Selvä!',
+    'Did you know?': 'Tiesitkö?',
+    'When you\'re in the edit mode, you still can navigate any website hyperlink by clicking on it holding Ctrl (Windows) or ⌘ (Mac) key.': 'Voit navigoida myös muokkaustilassa klikkaamalla hyperlinkkiä pitämällä Ctrl- (Windows) tai ⌘ (Mac) -nappia samalla pohjassa.',
     'Created new %s': 'Luotiin uusi %s',
     'Page title': 'Sivuotsikko',
     // edit-app/src/left-column/InspectorPanel.jsx

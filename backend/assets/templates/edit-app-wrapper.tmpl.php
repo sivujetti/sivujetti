@@ -11,14 +11,21 @@
         <?php if (defined("showQuickIntro")): ?>
         #quick-intro-outer {
             --bg: #fff;
-            color:var(--color-fg-default);
+            color: var(--color-fg-default);
             position: fixed;
             width: 100%;
             height: 100%;
             background-color: rgb(255 255 255 / 48%);
             backdrop-filter: blur(4px);
             z-index: 2;
-            min-width: 885px;
+            overflow-x: auto;
+        }
+        #quick-intro-outer > div {
+            min-width: 829px;
+            width: 100%;
+            overflow: hidden;
+            position: absolute;
+            height: 100%;
         }
         .quick-intro-head {
             position: absolute;
@@ -54,7 +61,7 @@
 
         .box.first {
             left: 80px;
-            top: 32%;
+            top: 34%;
         }
 
         .second-outer {
@@ -70,8 +77,8 @@
         }
 
         .box.third {
-            top: 28px;
-            left: 126px;
+            top: 50px;
+            left: 64px;
         }
 
         .first:before,
@@ -126,22 +133,22 @@
             margin-left: -18px;
         }
         .third:before {
-            --w: 13px;
+            --w: 12px;
             border-left: var(--w) solid transparent;
-            border-bottom: var(--w) solid transparent;
+            border-bottom: var(--w) solid var(--color-fg-default);
             border-right: var(--w) solid var(--color-fg-default);
-            border-top: var(--w) solid var(--color-fg-default);
-            top: -2px;
-            left: -26px;
+            border-top: var(--w) solid transparent;
+            right: -2px;
+            top: -25px;
         }
         .third:after {
-            --w: 11px;
+            --w: 12px;
             border-left: var(--w) solid transparent;
-            border-bottom: var(--w) solid transparent;
+            border-bottom: var(--w) solid var(--bg);
             border-right: var(--w) solid var(--bg);
-            border-top: var(--w) solid var(--bg);
-            top: 0;
-            left: -22px;
+            border-top: var(--w) solid transparent;
+            right: 0px;
+            top: -21px;
         }
         .close-additional {
             position: fixed;
@@ -209,12 +216,12 @@
                     <div>Klikkaa, raahaa, kokeile</div>
                 </div>
                 <div class="second-outer"><div class="box second">
-                    <h2 id="connect-preview"><span>2. Esikatselu, navigointi</span></h2>
-                    <div>Avaa sisältö muokattavaksi klikkaamalla tekstiä, kuvaa jne. <span style="font-size: .85em;">(Linkkien osalta: klikkaa hieman pidempään, nopea klikkaus navigoi.)</span></div>
+                    <h2 id="connect-preview"><span>2. Esikatselu</span></h2>
+                    <div>Avaa sisältö muokattavaksi klikkaamalla tekstiä, kuvaa jne.</div>
                 </div></div>
                 <div class="box third">
-                    <h2 id="connect-end-edit-mode"><span>3. Lopetus</span></h2>
-                    <div>Valitse alasvetovalikosta "Kirjaudu ulos"</div>
+                    <h2 id="connect-end-edit-mode"><span>3. Tallennus</span></h2>
+                    <div>Tallenna muutokset klikkaamalla tähän ilmestyvää levykkeen kuvaa</div>
                 </div>
                 <button type="button" class="close-additional btn btn-link no-color flex-centered"><svg width="24" height="24" style="width: 20px;height: 20px;" class="icon-tabler mr-2"><use xlink:href="<?= $this->assetUrl("public/sivujetti/assets/tabler-sprite-custom.svg") ?>#tabler-x"></use></svg>Sulje</button>
             </div></div>

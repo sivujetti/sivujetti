@@ -36,10 +36,9 @@ class OnThisPageSection extends MenuSectionAbstract {
         this.unregistrables = [signals.on('web-page-click-received',
         /**
          * @param {HTMLElement?} blockEl
-         * @param {_} _
          * @param {(blockEl: HTMLElement) => RawBlock|null} findBlock
          */
-        (blockEl, _) => {
+        blockEl => {
             if (!blockEl) return;
             focusToBlockAndEmitBlockTreeClick(findBlockFrom(blockEl.getAttribute('data-block'), 'mainTree')[0], 'web-page', () => { });
         }),

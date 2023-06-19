@@ -1,4 +1,5 @@
 import {__, env, signals, Icon} from '@sivujetti-commons-for-edit-app';
+import {getMetaKey} from '../block/dom-commons.js';
 import {historyInstance} from '../right-column/RightColumnViews.jsx';
 import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from '../store.js';
 
@@ -157,14 +158,6 @@ class SaveButton extends preact.Component {
         this.unregisterUnsavedChangesAlert();
         this.unregisterUnsavedChangesAlert = null;
     }
-}
-
-/**
- * @returns {String} 'Meta' if macOS, 'Control' if Windows or anything else
- */
-function getMetaKey() {
-    return ((navigator.userAgentData && navigator.userAgentData.platform === 'macOS') ||
-            (navigator.platform === 'MacIntel')) ? 'Meta' : 'Control';
 }
 
 /**

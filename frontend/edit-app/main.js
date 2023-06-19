@@ -27,6 +27,8 @@ import ContentManagementSection from './src/left-column/panel-sections/ContentMa
 import OnThisPageSection from './src/left-column/panel-sections/OnThisPageSection.jsx';
 import WebsiteSection from './src/left-column/panel-sections/WebsiteSection.jsx';
 import {MyClipboard, MyKeyboard, MyLink, IdAttributor, MySnowTheme} from './src/quill/quill-customizations.js';
+import {sharedSignals} from './src/shared.js';
+import {getMetaKey} from './src/block/dom-commons.js';
 
 const editAppReactRef = preact.createRef();
 
@@ -65,6 +67,8 @@ function populateFrontendApi() {
 }
 
 function configureServices() {
+    addGlobalKeyPressEventEmitters();
+    //
     env.normalTypingDebounceMillis = sensibleDefaults.normalTypingDebounceMillis;
     //
     Validator.registerStateWrapperImpl('default', FormStateStoreWrapper);
@@ -148,4 +152,18 @@ function renderReactEditApp() {
     window.myRoute = url => {
         preactRouter.route(url);
     };
+}
+
+/**
+ */
+function addGlobalKeyPressEventEmitters() {
+    const metaKey = getMetaKey();
+    env.window.addEventListener('keydown', e => {
+        if (e.key === metaKey)
+            sharedSignals.emit('meta-key-pressed-or-released', true);
+    });
+    env.window.addEventListener('keyup', e => {
+        if (e.key === metaKey)
+            sharedSignals.emit('meta-key-pressed-or-released', false);
+    });
 }

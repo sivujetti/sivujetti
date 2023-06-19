@@ -43,6 +43,14 @@ function createTrier(fn,
     return callTryFn;
 }
 
+/**
+ * @returns {String} 'Meta' if macOS, 'Control' if Windows or anything else
+ */
+function getMetaKey() {
+    return ((navigator.userAgentData && navigator.userAgentData.platform === 'macOS') ||
+            (navigator.platform === 'MacIntel')) ? 'Meta' : 'Control';
+}
+
 export {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END,
         BASE_UNIT_CLS_PREFIX, VAR_UNIT_CLS_PREFIX, noop, HAS_ERRORS,
-        NO_OP_QUEUE_EMIT, createTrier};
+        NO_OP_QUEUE_EMIT, createTrier, getMetaKey};

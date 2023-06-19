@@ -4,6 +4,7 @@ import store2, {observeStore as observeStore2} from '../store2.js';
 import {makePath, makeSlug} from '../block-types/pageInfo.js';
 import opQueueItemEmitter from '../OpQueueItemEmitter.js';
 import {findBlockFrom} from '../block/utils-utils.js';
+import {sharedSignals} from '../shared.js';
 
 const webPageUnregistrables = new Map;
 const TITLE_LABEL_HEIGHT = 18; // at least
@@ -63,6 +64,8 @@ class IframePageManager {
         store2.dispatch('varStyleUnits/init', [getAndInvalidate(data.theme, 'varStyleUnits')]);
         store.dispatch(setCurrentPageDataBundle(data));
         store.dispatch(setOpQueue([]));
+        const unregistrables = webPage.getGlobalListenerCreateCallables().map(([when, fn]) => sharedSignals.on(when, fn));
+        webPageUnregistrables.set('globalEvents', () => unregistrables.map(unreg => unreg()));
         const handleStyleChange = webPage.createThemeStylesChangeListener();
         webPageUnregistrables.set('themeStyles', observeStore2('themeStyles', handleStyleChange));
         const handleVarsChange = webPage.createUnitVarsChangeListener();
@@ -122,10 +125,9 @@ class IframePageManager {
             },
             /**
              * @param {HTMLElement|null} blockEl
-             * @param {HTMLAnchorElement|null} link
              */
-            onClicked(blockEl, link) {
-                signals.emit('web-page-click-received', blockEl, link);
+            onClicked(blockEl) {
+                signals.emit('web-page-click-received', blockEl);
             },
             /**
              * @param {HTMLElement} blockEl

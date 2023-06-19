@@ -238,6 +238,8 @@ interface EditAppAwareWebPage {
     scanBlockElements(): Array<HTMLElement>;
     addRootBoundingEls(lastBlock: RawBlock): void;
     createThemeStylesChangeListener(): (state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void;
+    createUnitVarsChangeListener(): (state: {varStyleUnits: Array<VarStyleUnit>; [otherStateBuckets: String]: any;}, event: ['varStyleUnits/init'|'varStyleUnits/addItem'|'varStyleUnits/updateItem'|'varStyleUnits/removeItem'|'varStyleUnits/addValuesTo'|'varStyleUnits/updateValueIn'|'varStyleUnits/removeValuesFrom', [Array<VarStyleUnit>]|[VarStyleUnit]]) => void;
+    getGlobalListenerCreateCallables(): Array<[String, (...args: any) => void]>;
     setIsMouseListenersDisabled(isDisabled: Boolean): void;
     fastOverrideStyleUnitVar(selector: String, varName: String, varValue: String|(() => String), valueType: 'color'): void;
     setCssVarValue(varName: String, to: RawCssValue): void;

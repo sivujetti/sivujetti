@@ -83,7 +83,7 @@ class SaveButton extends preact.Component {
         if (!isVisible) return;
         const saveBtnIsDisabled = formState.isValidating || formState.isSubmitting || !formState.isValid || isSubmitting;
         const undoButtonIsHidden = saveBtnIsDisabled ? true : hasUndoableOps === false;
-        const [cls, css] = !isStickied ? ['', ''] : [' stickied', `left: ${leftPanelWidth - 95}px`];
+        const [cls, css] = !isStickied ? ['', ''] : [' stickied', `left: ${leftPanelWidth - (!undoButtonIsHidden ? 96 : 69)}px`];
         return <div class={ `d-flex col-ml-auto flex-centered${cls}` } style={ css }>
             <button
                 onClick={ this.doUndo.bind(this) }

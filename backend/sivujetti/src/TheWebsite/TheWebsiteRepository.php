@@ -32,10 +32,14 @@ final class TheWebsiteRepository {
                 "t.`id` AS `themeId`", "t.`name` AS `themeName`", "t.`stylesOrder` AS `themeStylesOrderJson`",
                 "t.`varStyleUnits` AS `varStyleUnitsJson`",
                 "t.`stylesLastUpdatedAt` AS `themeStylesLastUpdatedAt`",
+                //
+                "ts.`units` AS `themeStylesUnits`",
+                "ts.`blockTypeName` AS `themeStylesBlockTypeName`",
             ])
             ->leftJoin("\${p}plugins p ON (1)")
             ->leftJoin("\${p}pageTypes pt ON (1)")
             ->leftJoin("\${p}themes t ON (t.`isActive` = 1)")
+            ->leftJoin("\${p}themeStyles ts ON (ts.`themeId` = t.`id` AND ts.`blockTypeName` = '_body_')")
             ->orderBy("p.id ASC")
             ->mapWith(new class("name") extends NoDupeRowMapper {
                 public function doMapRow(object $row, int $i, array $allRows): object {

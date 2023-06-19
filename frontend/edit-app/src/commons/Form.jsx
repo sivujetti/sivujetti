@@ -494,7 +494,7 @@ class InputError extends preact.Component {
 
 class FormButtons extends preact.Component {
     /**
-     * @param {{buttons?: Array<'submit'|'submitWithAlt'|'cancel'|preact.AnyComponent>; submitButtonText?: String; altSubmitButtonText?: String; cancelButtonText?: String; returnTo?: String; className?: String;}} props
+     * @param {{buttons?: Array<'submit'|'submitWithAlt'|'cancel'|preact.ComponentChild>; submitButtonText?: String; altSubmitButtonText?: String; cancelButtonText?: String; returnTo?: String; className?: String;}} props
      */
     constructor(props) {
         super(props);

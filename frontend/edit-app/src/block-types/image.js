@@ -57,14 +57,16 @@ class ImageBlockEditForm extends preact.Component {
             <FormGroupInline labelFlow="break">
                 <label htmlFor="altText" class="form-label with-icon" title={ __('Alt text') }>
                     { __('Alt text') }
+                </label>
+                <div class="p-relative">
+                    <Textarea vm={ this } prop="altText" rows="1" style="min-height:unset"/>
                     <span
                         class="tooltip tooltip-left p-absolute"
                         data-tooltip={ __('The text that a browser displays\nif the image cannot be loaded') }
-                        style="right: .8rem; margin: -.8rem -.4rem 0 0; z-index: 1;">
+                        style="right: .3rem; top: .3rem; z-index: 1">
                         <Icon iconId="info-circle" className="color-dimmed3 size-xs"/>
                     </span>
-                </label>
-                <Textarea vm={ this } prop="altText" rows="1" style="min-height:unset"/>
+                </div>
                 <InputErrors vm={ this } prop="altText"/>
             </FormGroupInline>
         </div>;

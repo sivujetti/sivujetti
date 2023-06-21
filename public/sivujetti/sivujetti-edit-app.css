@@ -45,7 +45,8 @@ Structure:
     --color-bg-selected-meta-block: hsla(var(--components-color-purple), .1);
 
     --color-icon-global-block: #eb732a;
-    --color-bg-selected-global-block: #efe5e1; /* rgba(--color-orange, ~.06) */
+    --color-global-block-text: #bc5e25;
+    --color-bg-selected-global-block: #f7ece8; /* rgba(--color-global-block-text, 0.12) */
     --color-drop-indicator: rgba(var(--components-color-fb-default), .32);
 
     --color-bg-default: #fff;
@@ -1008,6 +1009,12 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .block-tree li[data-block-type="PageInfo"].selected {
     background: var(--color-bg-selected-meta-block);
 }
+.block-tree li.highlighted {
+    background: hsla(var(--components-color-accent2), .07);
+}
+.block-tree li.globalBlockTree-block.highlighted {
+    background: #faf4f2; /* rgba(--color-global-block-text, 0.12) */
+}
 .block-tree > li[data-last] {
     position: absolute;
     width: calc(100% - 1rem);
@@ -1048,7 +1055,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     color: var(--color-purple);
 }
 .block-tree li.globalBlockTree-block button {
-    color: #bc5e25;
+    color: var(--color-global-block-text);
 }
 .block-tree .block-handle .icon-tabler {
     color: var(--color-icon-normal-block);

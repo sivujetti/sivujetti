@@ -18,7 +18,6 @@ class IframePageManager {
     // highlightRectEl;
     // getCurrentLeftPanelWidth;
     // cachedLeftPanelWidth;
-    // stickyHighlightRect;
     /**
      * @param {HTMLElement} highlightRectEl
      * @param {(width: Number) => void} getCurrentLeftPanelWidth
@@ -56,7 +55,6 @@ class IframePageManager {
         webPage.registerEventHandlers(this.createWebsiteEventHandlers(this, webPageUnregistrables));
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         this.registerWebPageDomUpdater('main');
-        this.currentWebPage.setOnReRenderOrUpdateStyles(this.onWebPageReRenderOrStylesUpdated.bind(this));
         //
         opQueueItemEmitter.resetAndBegin();
         store2.dispatch('theBlockTree/init', [ordered]);
@@ -102,8 +100,8 @@ class IframePageManager {
     createWebsiteEventHandlers() {
         let prevHoverStartBlockEl = null;
         const {getCurrentLeftPanelWidth} = this;
-        const hideRect = () => {
-            this.hideHighlightRect(false);
+        const hideRect = (blockId = null) => {
+            this.hideHighlightRect(blockId);
             prevHoverStartBlockEl = null;
         };
         this.cachedLeftPanelWidth = getCurrentLeftPanelWidth();
@@ -120,7 +118,7 @@ class IframePageManager {
                 if (prevHoverStartBlockEl === blockEl)
                     return;
                 const [block] = findBlockFrom(blockEl.getAttribute('data-block'), 'mainTree');
-                pageManager.showHighlightRect(block, false, rect);
+                pageManager.showHighlightRect(block, 'web-page', rect);
                 prevHoverStartBlockEl = blockEl;
             },
             /**
@@ -135,22 +133,21 @@ class IframePageManager {
             onHoverEnded(blockEl, _r) {
                 setTimeout(() => {
                     if (blockEl === prevHoverStartBlockEl)
-                        hideRect();
+                        hideRect(blockEl.getAttribute('data-block'));
                 }, 80);
             },
         };
     }
     /**
      * @param {RawBlock} block
-     * @param {Boolean} isSticky
+     * @param {'web-page'|'block-tree'} origin
      * @param {DOMRect} rect = null
      * @access private
      */
-    showHighlightRect(block, isSticky, rect = null) {
+    showHighlightRect(block, origin, rect = null) {
         const {highlightRectEl} = this;
         if (!rect) rect = this.currentWebPage.getBlockEl(block.id).getBoundingClientRect();
 
-        if (isSticky) this.stickyHighlightRect = {block, rect};
         highlightRectEl.style.cssText = [
             'width:', rect.width, 'px;',
             'height:', rect.height, 'px;',
@@ -167,39 +164,18 @@ class IframePageManager {
         highlightRectEl.setAttribute('data-title',
             (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type)
         );
+
+        signals.emit('highlight-rect-revealed', block.id, origin);
     }
     /**
-     * @param {Boolean} clearSticky
+     * @param {String|null} blockId
      * @access private
      */
-    hideHighlightRect(clearSticky) {
+    hideHighlightRect(blockId) {
         const {highlightRectEl} = this;
         highlightRectEl.setAttribute('data-title', '');
         highlightRectEl.style.cssText = '';
-
-        if (clearSticky)
-            this.stickyHighlightRect = null;
-        else if (this.stickyHighlightRect) {
-            setTimeout(() => {
-                this.showHighlightRect(this.stickyHighlightRect.block, true);
-            }, 40);
-        }
-    }
-    /**
-     * @access private
-     */
-    onWebPageReRenderOrStylesUpdated() {
-        if (!this.stickyHighlightRect) return;
-        const {block, rect} = this.stickyHighlightRect;
-        const el = this.currentWebPage.getBlockEl(block.id);
-        if (!el) { // removed from dom
-            this.hideHighlightRect(true);
-            return;
-        }
-        const rectNow = el.getBoundingClientRect();
-        if (rectNow.width !== rect.width || rectNow.height !== rect.height ||
-            rectNow.top !== rect.top || rectNow.left !== rect.left)
-            this.showHighlightRect(block, true);
+        signals.emit('highlight-rect-removed', blockId);
     }
 }
 

@@ -110,7 +110,7 @@ class InspectorPanel extends preact.Component {
             this.resizeHandleEl.current.style.transform = `translateY(-${height}px)`;
         }
         signals.emit('inspector-panel-revealed', this);
-        api.webPageIframe.highlight(block, true, origin !== null && origin !== 'web-page');
+        if (origin !== null && origin !== 'web-page') api.webPageIframe.scrollTo(block);
     }
     /**
      * @access private
@@ -123,7 +123,6 @@ class InspectorPanel extends preact.Component {
         this.rendererKey = null;
         this.lastHeight = null;
         signals.emit('inspector-panel-closed', this);
-        api.webPageIframe.unHighlight(true);
     }
 }
 

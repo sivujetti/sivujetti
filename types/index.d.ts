@@ -45,8 +45,8 @@ interface WebPageIframe {
     renderPlaceholderPage(pageTypeName: String, layoutId: String = '1', slug: String = ''): Promise<EditAppAwareWebPage>;
     goBack(): void;
     scrollTo(block: RawBlock): Boolean;
-    highlight(block: RawBlock, isSticky: Boolean, scrollTo: Boolean = false): void;
-    unHighlight(clearSticky: Boolean = false): void;
+    highlight(block: RawBlock): void;
+    unHighlight(blockId: String): void;
     getEl(): HTMLIFrameElement;
     registerWebPageDomUpdaterForBlockTree(trid: String): void;
     unRegisterWebPageDomUpdaterForBlockTree(trid: String): void;

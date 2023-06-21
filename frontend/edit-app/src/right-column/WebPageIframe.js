@@ -52,7 +52,7 @@ class WebPageIframe {
      * @returns {Boolean} didScroll
      * @access public
      */
-    scrollTo(block, win = this.getEl().contentWindow) {
+    scrollTo(block, win = this.getEl().contentWindow, behavior = 'smooth') {
         if (block.type === 'PageInfo') return;
         const body = this.getEl().contentDocument.body;
         const getRect = firstEl => firstEl.getBoundingClientRect();
@@ -65,7 +65,7 @@ class WebPageIframe {
             inPageElTop > quarterVisible) {
             win.scrollTo({
                 top: inPageElTop + win.scrollY - 40,
-                behavior: 'smooth'
+                behavior,
             });
             return true;
         }
@@ -73,33 +73,18 @@ class WebPageIframe {
     }
     /**
      * @param {RawBlock} block
-     * @param {Boolean} isSticky
-     * @param {Boolean} scrollTo = false
      * @access public
      */
-    highlight(block, isSticky, scrollTo = false) {
+    highlight(block) {
         if (block.type === 'PageInfo') return;
-        const showOrAdjustRect = () => {
-            this.pageManager.showHighlightRect(block, isSticky);
-        };
-        if (!scrollTo) showOrAdjustRect(); else {
-            const win = this.getEl().contentWindow;
-            if (this.scrollTo(block, win)) {
-                let last = -Infinity;
-                createTrier(() => {
-                    showOrAdjustRect();
-                    if (last === win.scrollY) { return true; }
-                    else { last = win.scrollY; return false; }
-                }, 100, 6)();
-            } else showOrAdjustRect();
-        }
+        this.pageManager.showHighlightRect(block, 'block-tree');
     }
     /**
-     * @param {Boolean} clearSticky = false
+     * @param {String} blockId
      * @access public
      */
-    unHighlight(clearSticky = false) {
-        this.pageManager.hideHighlightRect(clearSticky);
+    unHighlight(blockId) {
+        this.pageManager.hideHighlightRect(blockId);
     }
     /**
      * @returns {HTMLIFrameElement}

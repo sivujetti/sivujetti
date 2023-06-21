@@ -34,6 +34,7 @@ class BlockTree extends preact.Component {
         this.onDragLeave = this.dragDrop.handleDragLeave.bind(this.dragDrop);
         this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
         this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
+        this.currentlyHoveredLi = null;
         const maybe = store2.get().theBlockTree;
         if (maybe) this.receiveNewBlocks(maybe);
     }
@@ -83,6 +84,8 @@ class BlockTree extends preact.Component {
                 this.setState({blockTree: theBlockTree});
             }
         }));
+        //
+        this.addBlockHoverHighlightListeners();
         // 1. Initial
         this.setState({blockTree: theBlockTree, treeState: createTreeState(theBlockTree, null)});
     }
@@ -154,6 +157,18 @@ class BlockTree extends preact.Component {
             onDragLeave={ this.onDragLeave }
             onDrop={ this.onDrop }
             onDragEnd={ this.onDragEnd }
+            onMouseOver={ e => {
+                if (!this.currentlyHoveredLi && e.target.getAttribute('data-block-id') === block.id) {
+                    this.currentlyHoveredLi = e.target;
+                    api.webPageIframe.highlight(block);
+                }
+            } }
+            onMouseLeave={ e => {
+                if (this.currentlyHoveredLi === e.target) {
+                    api.webPageIframe.unHighlight(this.currentlyHoveredLi.getAttribute('data-block-id'));
+                    this.currentlyHoveredLi = null;
+                }
+            } }
             class={ [`${isStoredTo}-block`,
                     !treeState[block.id].isSelected ? '' : ' selected',
                     !treeState[block.id].isHidden ? '' : ' d-none',
@@ -406,6 +421,52 @@ class BlockTree extends preact.Component {
     appendBlockToTreeAsChildOf(block, _autoFocus = true) {
         //
     }
+    /**
+     * @access private
+     */
+    addBlockHoverHighlightListeners() {
+        const curHigh = {hovered: null, visible: null};
+        this.unregistrables.push(signals.on('highlight-rect-revealed', (blockId, origin) => {
+            if (origin !== 'web-page') return;
+            if (curHigh.hovered) clearHighlight(curHigh);
+            const {ul} = this.dragDrop;
+            const li = ul.querySelector(`li[data-block-id="${blockId}"]`);
+            if (li && !li.classList.contains('selected')) {
+                curHigh.hovered = li;
+                curHigh.visible = !li.classList.contains('d-none') ? li : findVisibleLi(li, ul, li);
+                curHigh.visible.classList.add('highlighted');
+            }
+        }));
+        this.unregistrables.push(signals.on('highlight-rect-removed', blockId => {
+            if (curHigh.hovered && curHigh.hovered.getAttribute('data-block-id') === blockId) { clearHighlight(curHigh); }
+        }));
+    }
+}
+
+/**
+ * @param {{hovered: HTMLLIElement; visible: HTMLLIElement;}} curHigh
+ */
+function clearHighlight(curHigh) {
+    curHigh.visible.classList.remove('highlighted');
+    curHigh.hovered = null;
+    curHigh.visible = null;
+}
+
+/**
+ * @param {HTMLLIElement} li
+ * @param {HTMLUListElement} ul
+ * @param {HTMLLIElement} def
+ * @returns {HTMLLIElement}
+ */
+function findVisibleLi(li, ul, def) {
+    if (kill++ > 20) throw new Error('infi');
+    const parentBlockId = li.getAttribute('data-is-children-of');
+    if (!parentBlockId) return def;
+    const parentBlockLi = ul.querySelector(`li[data-block-id="${parentBlockId}"]`);
+    if (!parentBlockLi.classList.contains('d-none')) // found it
+        return parentBlockLi;
+    // keep looking
+    return findVisibleLi(parentBlockLi, ul, def);
 }
 
 /**

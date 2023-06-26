@@ -49,16 +49,6 @@ class ParagraphBlockEditForm extends preact.Component {
                     this.inputApis.text.triggerInput(unParagraphify(markup), source);
                 } }
                 onBlur={ e => this.inputApis.text.onBlur(e) }
-                onInit={ _editor => {
-                    // https://stackoverflow.com/a/63803445
-                    // editor.quill.keyboard.bindings[13].unshift({
-                    //     key: 13,
-                    //     handler: (_range, _context) => {
-                    //         // this.props.blockTree.appendBlockToTreeAfter(block, '');
-                    //         return false;
-                    //     }
-                    // });
-                } }
                 toolbarBundle="simplestWithLink"
                 ref={ this.editor }/>
             <InputErrors vm={ this } prop="text"/>

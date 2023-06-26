@@ -405,23 +405,6 @@ class BlockTree extends preact.Component {
         this.setState({treeState: this.setBlockAsSelected(block, mutRef)});
     }
     /**
-     * @param {RawBlock} block After
-     * @param {String|null} initialText = null
-     * @param {Boolean} autoFocus = true
-     * @access public
-     */
-    appendBlockToTreeAfter(block, _initialText = null, _autoFocus = true) {
-        //
-    }
-    /**
-     * @param {RawBlock} block The parent block
-     * @param {Boolean} autoFocus = true
-     * @access public
-     */
-    appendBlockToTreeAsChildOf(block, _autoFocus = true) {
-        //
-    }
-    /**
      * @access private
      */
     addBlockHoverHighlightListeners() {
@@ -459,7 +442,6 @@ function clearHighlight(curHigh) {
  * @returns {HTMLLIElement}
  */
 function findVisibleLi(li, ul, def) {
-    if (kill++ > 20) throw new Error('infi');
     const parentBlockId = li.getAttribute('data-is-children-of');
     if (!parentBlockId) return def;
     const parentBlockLi = ul.querySelector(`li[data-block-id="${parentBlockId}"]`);

@@ -78,7 +78,7 @@
 
         .box.third {
             top: 50px;
-            left: 64px;
+            left: 59px;
         }
 
         .first:before,
@@ -251,6 +251,7 @@
             Array.from(document.querySelectorAll('#quick-intro-outer .btn')).forEach(el => el.addEventListener('click', () => {
                 const el = document.getElementById('quick-intro-outer');
                 el.parentElement.removeChild(el);
+                sivujettiCommonsEditApp.signals.emit('quick-intro-dismissed');
             }));
         };
         document.getElementById('site-preview-iframe').addEventListener('load', onPreviewIframeLoad);

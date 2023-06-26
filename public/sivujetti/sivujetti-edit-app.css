@@ -364,8 +364,8 @@ h2 {
 }
 /* Increase width to prevent #site-preview-iframe from disrupting the mouse drag events */
 #main-panel .resize-panel-handle.dragging {
-    width: 120px;
-    margin-left: -60px;
+    width: 320px;
+    margin-left: -120px;
 }
 #inspector-panel .resize-panel-handle {
     width: var(--leftPanelWidth);
@@ -794,8 +794,9 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     text-decoration: none;
 }
 #main-panel .mode-chooser a img {
-    width: 24px;
-    filter: contrast(0.8);
+    width: 41px;
+    margin: -6px -5px -6px -13px;
+    opacity: .9;
 }
 #main-panel .mode-chooser span {
     font-size: .65rem;
@@ -900,7 +901,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     transform: rotate(45deg);
     width: 140px;
     box-shadow: rgba(50,50,93,.25) 0 13px 27px -5px, rgba(0,0,0,.3) 0 8px 16px -8px, rgba(0,0,0,.2) 0 -6px 16px -6px;
-    background-color: var(--color-accent);
+    background-color: var(--color-fg-default);
     height: 140px;
 }
 #back-to-edit-corner:hover {
@@ -912,8 +913,9 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     width: 26px;
     transform: rotate(-45deg);
     position: absolute;
-    right: 15px;
-    bottom: 55px;
+    right: 20px;
+    bottom: 46px;
+    filter: invert(1) grayscale(1);
 }
 #back-to-edit-corner svg {
     display: none;

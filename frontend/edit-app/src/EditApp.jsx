@@ -48,7 +48,7 @@ class EditApp extends preact.Component {
      * @access protected
      */
     render(_, {hidePanels}) {
-        const logoUrl = urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo.png');
+        const logoUrl = urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo-shape-only.png');
         return <div>
             { !hidePanels ? null : <a onClick={ e => (e.preventDefault(), this.handlePanelsAreHiddenChanged(false)) } id="back-to-edit-corner" href="">
                 <img src={ logoUrl }/>
@@ -177,15 +177,20 @@ class EditApp extends preact.Component {
             commitPanelWidths();
             this.props.rootEl.classList.remove('new-block-spawner-opened');
         });
-        if (localStorage.sivujettiFollowLinksInstructionDismissed !== 'yes')
-            setTimeout(() => {
+        if (localStorage.sivujettiFollowLinksInstructionDismissed !== 'yes') {
+            const startShowInstructionTimeout = () => setTimeout(() => {
                 toasters.editAppMain(<div>
                     <h4>{ __('Did you know?') }</h4>
                     <span>{ __('When you\'re in the edit mode, you still can navigate any website hyperlink by clicking on it holding Ctrl (Windows) or ⌘ (Mac) key.') }</span>
                 </div>, 'info', 0, () => {
                     localStorage.sivujettiFollowLinksInstructionDismissed = 'yes';
                 });
-            }, 2000);
+            }, 8000);
+            if (!env.window.isFirstRun)
+                startShowInstructionTimeout();
+            else
+                signals.on('quick-intro-dismissed', startShowInstructionTimeout);
+        }
     }
     /**
      * @param {Boolean} to

@@ -20,6 +20,8 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
 
 /**
+ * @psalm-import-type StyleUnitTemplate from \Sivujetti\Theme\Entities\Theme
+ * @psalm-import-type StyleUnitInstance from \Sivujetti\Theme\Entities\Theme
  * @psalm-import-type BaseStyleUnit from \Sivujetti\Theme\Entities\Theme
  * @psalm-import-type VarStyleUnit from \Sivujetti\Theme\Entities\Theme
  */
@@ -87,36 +89,6 @@ final class PagesController {
 
 
     /**
-     * GET /api/_placeholder-page/[w:pageType]/[i:layoutId]?duplicate=[*:slug]: renders
-     * a placeholder page for "Create|Duplicate page" functionality.
-     *
-     * @param \Pike\Request $req
-     * @param \Pike\Response $res
-     * @param \Sivujetti\Page\PagesRepository $pagesRepo
-     * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
-     * @param \Sivujetti\SharedAPIContext $apiCtx
-     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
-     * @throws \Pike\PikeException
-     */
-    public function renderPlaceholderPage(Request $req,
-                                          Response $res,
-                                          PagesRepository $pagesRepo,
-                                          LayoutsRepository $layoutsRepo,
-                                          SharedAPIContext $apiCtx,
-                                          TheWebsite $theWebsite): void {
-        $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
-        $slugOfPageToDuplicate = $req->queryVar("duplicate");
-        $page = null;
-        //
-        $page = $slugOfPageToDuplicate === null
-            ? self::createEmptyPageWithBlocks($pageType, $layoutsRepo, $req->params->layoutId)
-            : $pagesRepo->getSingle($pageType, ["filters" => [["slug", urldecode($slugOfPageToDuplicate)]]]);
-        if (!$page) throw new \RuntimeException("No such page exist", PikeException::BAD_INPUT);
-        //
-        self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
-            $page, $pageType, true);
-    }
-    /**
      * GET /_edit: Renders the edit app.
      *
      * @param \Pike\Request $req
@@ -171,6 +143,36 @@ final class PagesController {
             "uiLang" => "fi",
             "isFirstRun" => $isFirstRun || $req->queryVar("first-run") !== null,
         ]));
+    }
+    /**
+     * GET /api/_placeholder-page/[w:pageType]/[i:layoutId]?duplicate=[*:slug]: renders
+     * a placeholder page for "Create|Duplicate page" functionality.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Sivujetti\Page\PagesRepository $pagesRepo
+     * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
+     * @param \Sivujetti\SharedAPIContext $apiCtx
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
+     * @throws \Pike\PikeException
+     */
+    public function renderPlaceholderPage(Request $req,
+                                          Response $res,
+                                          PagesRepository $pagesRepo,
+                                          LayoutsRepository $layoutsRepo,
+                                          SharedAPIContext $apiCtx,
+                                          TheWebsite $theWebsite): void {
+        $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
+        $slugOfPageToDuplicate = $req->queryVar("duplicate");
+        $page = null;
+        //
+        $page = $slugOfPageToDuplicate === null
+            ? self::createEmptyPageWithBlocks($pageType, $layoutsRepo, $req->params->layoutId)
+            : $pagesRepo->getSingle($pageType, ["filters" => [["slug", urldecode($slugOfPageToDuplicate)]]]);
+        if (!$page) throw new \RuntimeException("No such page exist", PikeException::BAD_INPUT);
+        //
+        self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
+            $page, $pageType, true);
     }
     /**
      * POST /api/pages/[w:pageType]: Inserts a new page to the database.
@@ -552,14 +554,18 @@ final class PagesController {
     }
     /**
      * @param \Sivujetti\Theme\Entities\Theme $theme
-     * @psalm-return object{baseStyleUnits: array<BaseStyleUnit>, varStyleUnits: array<VarStyleUnit>}
+     * @psalm-return object{styleTemplates: array<StyleTemplate>, styleInstances: array<StyleInstance>, baseStyleUnits: array<BaseStyleUnit>, varStyleUnits: array<VarStyleUnit>}
      */
     private static function themeToRaw(Theme $theme): object {
         return (object) [
             "id" => $theme->id,
+            "styleUnitTemplates" => $theme->styleUnitTemplates,
+            "styleUnitInstances" => $theme->styleUnitInstances,
             "baseStyleUnits" => $theme->baseStyleUnits,
             "varStyleUnits" => $theme->varStyleUnits,
-            "varStyleUnitIdMax" => -1, // @see loadPage() @frontend/edit-app/src/right-column/IframePageManager.js
+            "styleUnitTemplateIdMax" => -1, // @see loadPage() @frontend/edit-app/src/right-column/IframePageManager.js
+            "styleUnitInstanceIdMax" => -1,
+            "varStyleUnitIdMax" => -1,
         ];
     }
     /**

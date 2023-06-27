@@ -156,7 +156,14 @@ class EditAppAwareWebPage {
         };
     }
     /**
-     * @returns {(state: {varStyleUnits: Array<VarStyleUnit>; [otherStateBuckets: String]: any;}, event: ['varStyleUnits/init'|'varStyleUnits/addItem'|'varStyleUnits/updateItem'|'varStyleUnits/removeItem'|'varStyleUnits/addValuesTo'|'varStyleUnits/updateValueIn'|'varStyleUnits/removeValuesFrom', [Array<VarStyleUnit>]|[VarStyleUnit]]) => void}
+     * @returns {(state: {styleUnitInstances: Array<StyleUnitInstance>; [otherStateBuckets: String]: any;}, eventInfo: [todo, todo]) => void}
+     * @access public
+     */
+    createInstanceVarsChangeListener() {
+        return ({styleUnitInstances}, [event, data]) => {};
+    }
+    /**
+     * @returns {(state: {varStyleUnits: Array<VarStyleUnit>; [otherStateBuckets: String]: any;}, eventInfo: ['varStyleUnits/init'|'varStyleUnits/addItem'|'varStyleUnits/updateItem'|'varStyleUnits/removeItem'|'varStyleUnits/addValuesTo'|'varStyleUnits/updateValueIn'|'varStyleUnits/removeValuesFrom', [Array<VarStyleUnit>]|[VarStyleUnit]]) => void}
      * @access public
      */
     createUnitVarsChangeListener() {

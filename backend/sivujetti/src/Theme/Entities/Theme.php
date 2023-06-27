@@ -6,6 +6,8 @@ use Pike\Db\NoDupeRowMapper;
 use Sivujetti\JsonUtils;
 
 /**
+ * @psalm-type StyleUnitTemplate = object{id: string, todo}
+ * @psalm-type StyleUnitInstance = object{id: string, todo}
  * @psalm-type BaseStyleUnit = object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: array<string>, vars: array}
  * @psalm-type VarStyleUnit = object{id: string, baseStyleUnitId: string, values: array<object{varName: string, value: string}>, generatedCss: string, defaultFor?: string}
 */
@@ -14,6 +16,10 @@ final class Theme extends \stdClass {
     public string $id;
     /** @var string */
     public string $name;
+     /** @psalm-var array<StyleUnitTemplate> */
+    public array $styleUnitTemplates;
+    /** @psalm-var array<StyleUnitInstance> */
+    public array $styleUnitInstances;
     /**
      * @deprecated
      * @var object[] [{name: string, friendlyName: string, value: {type: "color", value: string[]}}]
@@ -24,9 +30,15 @@ final class Theme extends \stdClass {
      * @var \Sivujetti\Theme\Entities\Style[]
      */
     public array $styles;
-    /** @psalm-var array<BaseStyleUnit> */
+    /**
+     * @deprecated
+     * @psalm-var array<BaseStyleUnit>
+     */
     public array $baseStyleUnits;
-    /** @psalm-var array<VarStyleUnit> */
+    /**
+     * @deprecated
+     * @psalm-var array<VarStyleUnit>
+     */
     public array $varStyleUnits;
     /** @var string[] ["_body_", "j-Text" ...] */
     public array $stylesOrder;
@@ -43,6 +55,8 @@ final class Theme extends \stdClass {
         $out = new self;
         $out->id = strval($row->themeId);
         $out->name = $row->themeName;
+        $out->styleUnitTemplates = [];
+        $out->styleUnitInstances = [];
         $out->globalStyles = [];
         $out->styles = [];
         $out->baseStyleUnits = [];
@@ -61,6 +75,75 @@ final class Theme extends \stdClass {
         $this->stylesLastUpdatedAt = (int) $row->themeStylesLastUpdatedAt;
         if ($full) {
             $this->stylesOrder = JsonUtils::parse($row->themeStylesOrderJson);
+            //
+            $this->styleUnitTemplates = [
+                (object) [
+                    "id" => "j-Button-base-3",
+                    "isFor" => "Button",
+                    "title" => "Buttons common",
+                    "isCommon" => true,
+                    "varMetas" => [
+                        (object) ["varName" => "padding", "varType" => "length", "args" => [],
+                                    "wrap" => "padding: %s;"],
+                        (object) ["varName" => "minWidth", "varType" => "length", "args" => [],
+                                    "wrap" => "min-width: %s;"],
+                        (object) ["varName" => "minHeight", "varType" => "length", "args" => [],
+                                    "wrap" => "min-height: %s;"],
+                    ]
+                ],
+                (object) [
+                    "id" => "j-Section-base-1",
+                    "isFor" => "Section",
+                    "title" => "Sections common",
+                    "isCommon" => true,
+                    "varMetas" => [
+                        (object) ["varName" => "padding", "varType" => "length", "args" => [],
+                                    "wrap" => "padding: %s;"],
+                        (object) ["varName" => "minWidth", "varType" => "length", "args" => [],
+                                    "wrap" => "min-width: %s;"],
+                        (object) ["varName" => "minHeight", "varType" => "length", "args" => [],
+                                    "wrap" => "min-height: %s;"],
+                    ]
+                ],
+                (object) [
+                    "id" => "j-Button-base-2",
+                    "isFor" => "Button",
+                    "title" => "Buttons common",
+                    "isCommon" => true,
+                    "varMetas" => [
+                        (object) ["varName" => "backgroundNormal", "varType" => "color", "args" => [],
+                                    "wrap" => "background: %s;"],
+                        (object) ["varName" => "backgroundHover", "varType" => "color", "args" => [],
+                                    "wrap" => "&:hover { background: %s; }"],
+                        (object) ["varName" => "text", "varType" => "color", "args" => [],
+                                    "wrap" => "color: %s;"],
+                        (object) ["varName" => "border", "varType" => "color", "args" => [],
+                                    "wrap" => "border-color: %s;"],
+                        (object) ["varName" => "borderHover", "varType" => "color", "args" => [],
+                                    "wrap" => "&:hover { border-color: %s; }"],
+                        (object) ["varName" => "radius", "varType" => "length", "args" => [],
+                                    "wrap" => "border-radius: %s;"],
+                    ],
+                ],
+            ];
+            //
+            $this->styleUnitInstances = [
+                (object) ["id" => "j-i-Section-1", "describedBy" => "j-Section-base-1",
+                            "values" => [(object) ["varName" => "minHeight", "value" => "200px"], (object) ["varName" => "alignItems", "value" => "flex-end"]],
+                            "generatedCss" => (
+                                ".j-i-Section-1 { min-height: 200px; }" . // Section-base-1
+                                ".j-i-Section-1 { position: relative; display: flex; align-items: flex-end; }" . // Section-base-2
+                                ".j-i-Section-1 > div { flex: 1 0 0; }"
+                            )],
+                (object) ["id" => "j-i-Section-2", "describedBy" => "j-Section-base-2", "values" => [(object) ["varName" => "cover", "value" => "salmon"]],
+                    "generatedCss" => (
+                        ".j-i-Section-2 { position: relative; }" . // Section-base-2
+                        ".j-i-Section-2:before { content: \"\"; background-color: salmon; height: 100%; width: 100%; position: absolute; left: 0; top: 0; }" .
+                        ".j-i-Section-2 > * { position: relative; }"
+                    )],
+                (object) ["id" => "j-i-Button-3", "describedBy" => "j-Button-base-3", "values" => [(object) ["varName" => "minWidth", "value" => "100%"]],
+                    "generatedCss" => ".j-i-Button-3 { min-width: 100%; }"],
+            ];
             //
             $this->baseStyleUnits = [
                 (object) [

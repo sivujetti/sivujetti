@@ -4,10 +4,10 @@ import {HAS_ERRORS, NO_OP_QUEUE_EMIT} from '../../block/dom-commons.js';
 import {getIcon} from '../../block-types/block-types.js';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
-import BlockStylesTab3 from './BlockStylesTab3.jsx';
 import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import {findBlockFrom, getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
+import BlockStylesTab from '../block-styles/BlockStylesTab.jsx';
 
 /** @type {BlockTypes} */
 let blockTypes;
@@ -94,7 +94,7 @@ class BlockEditForm extends preact.Component {
         const getCopy = this.getCurrentBlockCopy.bind(this);
         const t = block.type === 'PageInfo' ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
         const tr1 = __('Styles (bundles)');
-        const tr2 = <span>{ __('Styles') } <Icon iconId="dots" className="p-absolute size-xs"/></span>;
+        const tr2 = __('Styles');
         return <div data-main>
         <div class={ `with-icon pb-1${t}` }>
             <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
@@ -120,7 +120,7 @@ class BlockEditForm extends preact.Component {
             </div>
         </div>
         <div class={ `block-styles-tab-content${currentTabIdx === 1 ? '' : ' d-none'}` }>
-            <BlockStylesTab3
+            <BlockStylesTab
                 blockId={ block.id }
                 blockTypeName={ block.type }
                 getBlockCopy={ getCopy }
@@ -134,7 +134,10 @@ class BlockEditForm extends preact.Component {
                     const newClasses = currentClasses.split(' ').filter(cls => cls !== classToRemove).join(' ');
                     this.dispatchNewBlockStyleClasses(newClasses, b);
                 } }
-                isVisible={ currentTabIdx === 1 }/>
+                isVisible={ currentTabIdx === 1 }
+                userCanEditVars={ this.userCanEditVars }
+                userCanEditCss={ this.userCanEditCss }
+                useVisualStyles={ this.useVisualStyles }/>
         </div>
         </div>;
     }

@@ -231,7 +231,7 @@ final class WebPageAwareTemplate extends Template {
         };
 
         $theme = $this->__internal["theme"];
-        $common = "<style>@layer theme, base-units, body-unit, var-units" . ($theme->globalStyles
+        $common = "<style>@layer theme, body-unit, base-units, var-units, units" . ($theme->globalStyles
             ? "; :root {" .
                 implode("\n", array_map(fn($style) =>
                     // Note: these are pre-validated
@@ -270,30 +270,16 @@ final class WebPageAwareTemplate extends Template {
                 "  return out;\n" .
                 "}, document.createDocumentFragment())") . ");\n" .
                 "\n" .
-                "// BaseStyleUnits\n" .
-                "document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
-                    array_map(
-                        fn ($meta) => [$meta->generatedCss, $meta->suggestedFor],
-                        $theme->baseStyleUnits
-                    )
-                ) . ".reduce((out, [generatedCss, suggestedFor]) => {\n" .
-                    "  const bundle = document.createElement('style');\n" .
-                    "  bundle.innerHTML = `@layer base-units { \${generatedCss} }`;\n" .
-                    "  bundle.setAttribute('data-base-units-for', suggestedFor.join('|'));\n" .
-                    "  out.appendChild(bundle);\n" .
-                    "  return out;\n" .
-                "}, document.createDocumentFragment())") . ");\n" .
-                "\n" .
-                "// VarStyleUnit\n" .
+                "// Style unit instances\n" .
                 "document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
                     array_map(
                         fn ($varValues) => [$varValues->generatedCss, $varValues->id],
-                        $theme->varStyleUnits
+                        $theme->styleUnitInstances
                     )
                 ) . ".reduce((out, [generatedCss, id]) => {\n" .
                     "  const bundle = document.createElement('style');\n" .
-                    "  bundle.innerHTML = `@layer var-units { \${generatedCss} }`;\n" .
-                    "  bundle.setAttribute('data-var-units-for', id);\n" .
+                    "  bundle.innerHTML = `@layer units { \${generatedCss} }`;\n" .
+                    "  bundle.setAttribute('data-style-unit-instance', id);\n" .
                     "  out.appendChild(bundle);\n" .
                     "  return out;\n" .
                 "}, document.createDocumentFragment())") . ")\n" .

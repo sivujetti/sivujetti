@@ -1,5 +1,6 @@
 import {isRemote} from './block-styles/commons.js';
 import varStyleUnitsStore from './block-styles/varStyleUnitsStore.js';
+import styleUnitInstancesStore from './block-styles/styleUnitInstancesStore.js';
 import theBlockTreeStore from './block/theBlockTreeStore.js';
 
 const {createStoreon} = window.storeon;
@@ -186,6 +187,32 @@ function theWebsiteBasicInfoStore(store) {
 ////////////////////////////////////////////////////////////////////////////////
 
 
+function styleUnitTemplatesStore(store) {
+    store.on('styleUnitTemplates/init',
+    /**
+     * @param {Object} state
+     * @param {[Array<StyleUnitTemplate>]} args
+     * @returns {{styleUnitTemplates: Array<StyleUnitTemplate>; [otherStateBucketKey: String]: any;}}
+     */
+    (_state, [styleUnitTemplates]) =>
+        ({styleUnitTemplates})
+    );
+
+    store.on('styleUnitTemplates/addItem',
+    /**
+     * @param {Object} state
+     * @param {[StyleUnitTemplate]} args
+     * @returns {{styleUnitTemplates: Array<StyleUnitTemplate>; [otherStateBucketKey: String]: any;}}
+     */
+    ({styleUnitTemplates}, [newItem]) =>
+        ({styleUnitTemplates: [...styleUnitTemplates, newItem]})
+    );
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
 function baseStyleUnitsStore(store) {
     store.on('baseStyleUnits/init',
     /**
@@ -207,6 +234,8 @@ const mainStore = createStoreon([
     reusableBranchesStore,
     theWebsiteBasicInfoStore,
     theBlockTreeStore,
+    styleUnitTemplatesStore,
+    styleUnitInstancesStore,
     baseStyleUnitsStore,
     varStyleUnitsStore,
     pagesListingsStore,

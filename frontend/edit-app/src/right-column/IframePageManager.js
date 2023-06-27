@@ -46,10 +46,8 @@ class IframePageManager {
         const {data} = webPage;
         delete webPage.data;
         data.page = maybePatchTitleAndSlug(data.page, isDuplicate);
-        data.theme.varStyleUnitIdMax = data.theme.varStyleUnits.reduce((max, {id}) => {
-            const cur = parseInt(id.substring(id.lastIndexOf('-') + 1));
-            return cur > max ? cur : max;
-        }, 0);
+        data.theme.styleUnitTemplateIdMax = data.theme.styleUnitTemplates.reduce(getMaxId, 0);
+        data.theme.styleUnitInstanceIdMax = data.theme.styleUnitInstances.reduce(getMaxId, 0);
         //
         webPage.addRootBoundingEls(ordered[ordered.length - 1]);
         webPage.registerEventHandlers(this.createWebsiteEventHandlers(this, webPageUnregistrables));
@@ -58,16 +56,16 @@ class IframePageManager {
         //
         opQueueItemEmitter.resetAndBegin();
         store2.dispatch('theBlockTree/init', [ordered]);
-        store2.dispatch('baseStyleUnits/init', [getAndInvalidate(data.theme, 'baseStyleUnits')]);
-        store2.dispatch('varStyleUnits/init', [getAndInvalidate(data.theme, 'varStyleUnits')]);
+        store2.dispatch('styleUnitTemplates/init', [getAndInvalidate(data.theme, 'styleUnitTemplates')]);
+        store2.dispatch('styleUnitInstances/init', [getAndInvalidate(data.theme, 'styleUnitInstances')]);
         store.dispatch(setCurrentPageDataBundle(data));
         store.dispatch(setOpQueue([]));
         const unregistrables = webPage.getGlobalListenerCreateCallables().map(([when, fn]) => sharedSignals.on(when, fn));
         webPageUnregistrables.set('globalEvents', () => unregistrables.map(unreg => unreg()));
         const handleStyleChange = webPage.createThemeStylesChangeListener();
-        webPageUnregistrables.set('themeStyles', observeStore2('themeStyles', handleStyleChange));
-        const handleVarsChange = webPage.createUnitVarsChangeListener();
-        webPageUnregistrables.set('themeVarStyleUnits', observeStore2('varStyleUnits', handleVarsChange));
+        webPageUnregistrables.set('themeStyleChanges', observeStore2('themeStyles', handleStyleChange));
+        const handleVarsChange = webPage.createInstanceVarsChangeListener();
+        webPageUnregistrables.set('themeStyleUnitInstanceChanges', observeStore2('styleUnitInstances', handleVarsChange));
         webPageUnregistrables.set('fastStyleChanges', signals.on('visual-styles-var-value-changed-fast',
             (selector, varName, varValue, valueType) => {
                 webPage.fastOverrideStyleUnitVar(selector, varName, varValue, valueType);
@@ -238,6 +236,16 @@ function getAndInvalidate(entity, prop) {
     entity[`__${prop}DebugOnly`] = entity[prop];
     delete entity[prop];
     return out;
+}
+
+/**
+ * @param {Number} max
+ * @param {StyleUnitTemplate|StyleUnitInstance} entity
+ * @returns {any}
+ */
+function getMaxId(max, {id}) {
+    const cur = parseInt(id.substring(id.lastIndexOf('-') + 1));
+    return cur > max ? cur : max;
 }
 
 export default IframePageManager;

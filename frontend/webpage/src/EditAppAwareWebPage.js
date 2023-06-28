@@ -156,11 +156,17 @@ class EditAppAwareWebPage {
         };
     }
     /**
-     * @returns {(state: {styleUnitInstances: Array<StyleUnitInstance>; [otherStateBuckets: String]: any;}, eventInfo: [todo, todo]) => void}
+     * @returns {(state: {styleUnitInstances: Array<StyleUnitInstance>; [otherStateBuckets: String]: any;}, eventInfo: ['styleUnitInstances/init'|'styleUnitInstances/updateValuesOf', [String, Array<UnitVarValue>, String]]) => void}
      * @access public
      */
     createInstanceVarsChangeListener() {
-        return ({styleUnitInstances}, [event, data]) => {};
+        return ({styleUnitInstances}, [event, data]) => {
+            if (event === 'styleUnitInstances/updateValuesOf') {
+                const [instanceId, _, newGenerated] = data; // data: [String, Array<UnitVarValue>, String]
+                const node = document.head.querySelector(`style[data-style-unit-instance="${instanceId}"]`);
+                node.innerHTML = `@layer units { ${newGenerated} }`;
+            }
+        };
     }
     /**
      * @returns {(state: {varStyleUnits: Array<VarStyleUnit>; [otherStateBuckets: String]: any;}, eventInfo: ['varStyleUnits/init'|'varStyleUnits/addItem'|'varStyleUnits/updateItem'|'varStyleUnits/removeItem'|'varStyleUnits/addValuesTo'|'varStyleUnits/updateValueIn'|'varStyleUnits/removeValuesFrom', [Array<VarStyleUnit>]|[VarStyleUnit]]) => void}

@@ -6,8 +6,8 @@ use Pike\Db\NoDupeRowMapper;
 use Sivujetti\JsonUtils;
 
 /**
- * @psalm-type StyleUnitTemplate = object{id: string, todo}
- * @psalm-type StyleUnitInstance = object{id: string, todo}
+ * @psalm-type StyleUnitTemplate = object{id: string, todo(styleReimpl)}
+ * @psalm-type StyleUnitInstance = object{id: string, todo(styleReimpl)}
  * @psalm-type BaseStyleUnit = object{id: string, scssTmpl: string, generatedCss: string, suggestedFor: array<string>, vars: array}
  * @psalm-type VarStyleUnit = object{id: string, baseStyleUnitId: string, values: array<object{varName: string, value: string}>, generatedCss: string, defaultFor?: string}
 */
@@ -92,6 +92,55 @@ final class Theme extends \stdClass {
                     ]
                 ],
                 (object) [
+                    "id" => "j-Button-base-2",
+                    "isFor" => "Button",
+                    "title" => "Buttons",
+                    "isCommon" => true,
+                    "varMetas" => [
+                        (object) ["varName" => "backgroundNormal", "varType" => "color", "args" => [],
+                                    "wrap" => "background: \$backgroundNormal;"],
+                        (object) ["varName" => "backgroundHover", "varType" => "color", "args" => [],
+                                    "wrap" => "&:hover { background: \$backgroundHover; }"],
+                        (object) ["varName" => "textNormal", "varType" => "color", "args" => [],
+                                    "wrap" => "color: \$textNormal;"],
+                        (object) ["varName" => "textHover", "varType" => "color", "args" => [],
+                                    "wrap" => "&:hover { color: \$textHover; }"],
+                        (object) ["varName" => "borderNormal", "varType" => "color", "args" => [],
+                                    "wrap" => "border-color: \$borderNormal;"],
+                        (object) ["varName" => "borderHover", "varType" => "color", "args" => [],
+                                    "wrap" => "&:hover { border-color: \$borderHover; }"],
+                        (object) ["varName" => "radius", "varType" => "length", "args" => [],
+                                    "wrap" => "border-radius: \$radius;"],
+                    ],
+                ],
+                (object) [
+                    "id" => "j-Columns-base-4",
+                    "isFor" => "Columns",
+                    "title" => "Columns common",
+                    "isCommon" => true,
+                    "varMetas" => [
+                        (object) ["varName" => "padding", "varType" => "length", "args" => [],
+                                    "wrap" => "padding: %s;"],
+                        (object) ["varName" => "minWidth", "varType" => "length", "args" => [],
+                                    "wrap" => "min-width: %s;"],
+                        (object) ["varName" => "minHeight", "varType" => "length", "args" => [],
+                                    "wrap" => "min-height: %s;"],
+                    ]
+                ],
+                (object) [
+                    "id" => "j-Columns-base-5",
+                    "isFor" => "Columns",
+                    "title" => "Columns",
+                    "isCommon" => true,
+                    "varMetas" => [
+                        (object) ["varName" => "gap", "varType" => "length", "args" => [],
+                                    "wrap" => "gap: %s;"],
+                        (object) ["varName" => "alignItems", "varType" => "option",
+                                    "args" => ["normal", "start", "center", "end", "stretch", "baseline", "first baseline", "last baseline",],
+                                    "wrap" => "align-items: %s;"],
+                    ]
+                ],
+                (object) [
                     "id" => "j-Section-base-1",
                     "isFor" => "Section",
                     "title" => "Sections common",
@@ -106,24 +155,14 @@ final class Theme extends \stdClass {
                     ]
                 ],
                 (object) [
-                    "id" => "j-Button-base-2",
-                    "isFor" => "Button",
-                    "title" => "Buttons common",
+                    "id" => "j-Section-base-6",
+                    "isFor" => "Section",
+                    "title" => "Sections",
                     "isCommon" => true,
                     "varMetas" => [
-                        (object) ["varName" => "backgroundNormal", "varType" => "color", "args" => [],
-                                    "wrap" => "background: %s;"],
-                        (object) ["varName" => "backgroundHover", "varType" => "color", "args" => [],
-                                    "wrap" => "&:hover { background: %s; }"],
-                        (object) ["varName" => "text", "varType" => "color", "args" => [],
-                                    "wrap" => "color: %s;"],
-                        (object) ["varName" => "border", "varType" => "color", "args" => [],
-                                    "wrap" => "border-color: %s;"],
-                        (object) ["varName" => "borderHover", "varType" => "color", "args" => [],
-                                    "wrap" => "&:hover { border-color: %s; }"],
-                        (object) ["varName" => "radius", "varType" => "length", "args" => [],
-                                    "wrap" => "border-radius: %s;"],
-                    ],
+                        (object) ["varName" => "cover", "varType" => "color", "args" => [],
+                                    "wrap" => "position: relative;\n&:before { content: \"\"; background-color: %s; height: 100%; width: 100%; position: absolute; left: 0; top: 0; }\n> * { position: relative; }"],
+                    ]
                 ],
             ];
             //

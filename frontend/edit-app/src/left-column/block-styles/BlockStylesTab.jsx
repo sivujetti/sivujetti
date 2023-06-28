@@ -1,8 +1,10 @@
 import {__, env, timingUtils, Icon} from '@sivujetti-commons-for-edit-app';
-import {VAR_UNIT_CLS_PREFIX} from '../../block/dom-commons.js';
+import {STYLE_INSTANCE_UNIT_CLS_PREFIX} from '../../block/dom-commons.js';
+import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
+import store, {selectCurrentPageDataBundle, setCurrentPageDataBundle} from '../../store.js';
 import store2 from '../../store2.js';
-import {EditableTitle} from '../block/BlockStylesTab.jsx';
-import {valueEditors} from '../block/VisualStyles.jsx';
+import {valueEditors, compileScss} from '../block/VisualStyles.jsx';
+import StyleTemplatesManager from './StyleUnitTemplateManager.jsx';
 
 class BlockStylesTab extends preact.Component {
     /**
@@ -31,64 +33,6 @@ class BlockStylesTab extends preact.Component {
     }
 }
 
-class StyleTemplatesManager extends preact.Component {
-    /**
-     * @param {BlockStylesTabProps} props
-     * @access protected
-     */
-    componentWillReceiveProps(props) {
-        if (props.isVisible && !this.state.inited) {
-            this.setState({styleUnitTemplates: store2.get().styleUnitTemplates, inited: true});
-        } else if (!props.isVisible && this.state.inited) {
-            this.unload();
-        }
-    }
-    /**
-     * @access protected
-     */
-    render(_, {styleUnitTemplates, inited}) {
-        if (!inited) return null;
-        return [<ul class="list styles-list mb-2">{ styleUnitTemplates.map((unit, i) => {
-            const liCls = '';
-            const isDefault = false;
-            const title = unit.title;
-            return <li class={ liCls } key={ unit.id }>
-                <header class="flex-centered p-relative">
-                    <button
-                        onClick={ e => this.handleLiClick(e, i, isDefault) }
-                        class="col-12 btn btn-link text-ellipsis with-icon pl-2 mr-1 no-color"
-                        type="button">
-                        <Icon iconId="chevron-down" className="size-xs"/>
-                        <EditableTitle
-                            unitId={ unit.id }
-                            unitIdReal={ null }
-                            currentTitle={ title }
-                            blockCopy={ this.blockCopy }
-                            userCanEditCss={ true }
-                            subtitle={ null }/>
-                    </button>
-                </header>
-            </li>;
-        }) }</ul>, <button
-            onClick={ () => this.addStyleTemplate.bind(this) }
-            class="btn btn-primary btn-sm mr-1"
-            type="button">{ __('Add style template') }</button>
-        ];
-    }
-    /**
-     * @access private
-     */
-    addStyleTemplate() {
-        // todo
-    }
-    /**
-     * @access private
-     */
-    unload() {
-        this.setState({styleUnitTemplates: null, inited: false});
-    }
-}
-
 class StyleUnitInstances extends preact.Component {
     // unregistrables;
     // instantiateTemplateDropdown;
@@ -106,10 +50,8 @@ class StyleUnitInstances extends preact.Component {
      */
     componentWillReceiveProps(props) {
         if (props.isVisible && !this.state.inited) {
-            const block = props.getBlockCopy();
-            const [currentBlockStyleTemplates, currentBlockInstanceUnits] = getStylesFor(block.type);
-            const styleUnitBundles = createStyleUnitBundles(currentBlockInstanceUnits, currentBlockStyleTemplates);
-            this.setState({currentBlockStyleTemplates, styleUnitBundles, inited: true});
+            const currentBlockTypeName = props.getBlockCopy().type;
+            this.updateNewestStoreStateToState(currentBlockTypeName);
         } else if (!props.isVisible && this.state.inited) {
             this.unload();
         }
@@ -132,25 +74,24 @@ class StyleUnitInstances extends preact.Component {
          * @param {String} newValAsString
          * @param {Boolean} valIsSet
          * @param {UnitVarMeta} varMeta
-         * @param {String} newValAsString
-         * @param {Boolean} valHasUnit
+         * @param {Boolean} valHasInstanceUnit
          * @param {StyleUnitTemplate} bu
          * @param {StyleUnitInstance|null} styleUnitInstance
          * @param {UnitVarValue} v
          */
-        (newValAsString, valIsSet, {varName}, valHasUnit, bu, styleUnitInstance, v) => {
+        (newValAsString, valIsSet, {varName}, valHasInstanceUnit, bu, styleUnitInstance, v) => {
             const newVal = {varName, value: newValAsString};
             if (!valIsSet)
-                this.addValuesAndEmit([newVal], valHasUnit, styleUnitInstance, bu);
+                this.addValuesAndEmit([newVal], valHasInstanceUnit, styleUnitInstance, bu);
             else
-                this.updateValueAndEmit(newVal, styleUnitInstance.id, v);
+                this.updateValueAndEmit(newVal, styleUnitInstance.id, v, bu);
         }, env.normalTypingDebounceMillis);
         //
         return [this.props.useVisualStyles
             ? null
-            : <div>
-                <select class="form-input form-select" defaultValue={ currentBlockStyleTemplates[0].id } ref={ this.instantiateTemplateDropdown }>{ currentBlockStyleTemplates.map(({id, title}) => <option value={ id }>{ __(title) }</option>) }</select>
-                <button onClick={ () => this.addStyleInstanceUnit(currentBlockStyleTemplates.find(({id}) => id === this.instantiateTemplateDropdown.current.value)) } title={ __('Add style instance') }></button>
+            : <div class="columns mx-0 mb-2">
+                <select class="form-input form-select col-10" defaultValue={ currentBlockStyleTemplates[0].id } ref={ this.instantiateTemplateDropdown }>{ currentBlockStyleTemplates.map(({id, title}) => <option value={ id }>{ __(title) }</option>) }</select>
+                <button class="col-ml-auto col-2" onClick={ () => this.addStyleInstanceUnit(currentBlockStyleTemplates.find(({id}) => id === this.instantiateTemplateDropdown.current.value)) } title={ __('Add style instance') }></button>
             </div>,
         ...(styleUnitBundles.length ? styleUnitBundles.map(({insOrTmpl, from, values}) => {
             const bu = from === 'instance' ? findTemplateFor(insOrTmpl, currentBlockStyleTemplates) : insOrTmpl;
@@ -174,6 +115,10 @@ class StyleUnitInstances extends preact.Component {
                     const Renderer = valueEditors.get(varMeta.varType);
                     const valIsSet = val.value !== null;
                     const args = [...varMeta.args];
+                    const valHasInstanceUnit = from === 'instance';
+                    const selector = varMeta.varType !== 'color'
+                        ? null
+                        : from === 'instance' ? getSelectorFor(varMeta, insOrTmpl) : '';
                     return <Renderer
                         varMetaCopy={ {...varMeta} }
                         valueAsString={ valIsSet ? val.value : null }
@@ -184,10 +129,11 @@ class StyleUnitInstances extends preact.Component {
                         labelTranslated={ __(varMeta.varName) }
                         onVarValueChanged={ newValAsString => {
                             if (newValAsString !== null)
-                                'throttledHandleValueChanged(newValAsString, valIsSet, varMeta, valHasUnit, bu, styleUnitInstance, v)';
+                                throttledHandleValueChanged(newValAsString, valIsSet, varMeta, valHasInstanceUnit, bu, insOrTmpl, val);
                             else
                                 'this.removeValueAndEmit({varName: varMeta.varName, value: v ? v.value : varMeta.defaultValue}, styleUnitInstance)';
                         } }
+                        selector={ selector }
                         key={ `${bu.id}-${varMeta.varName}` }/>;
                 }) }
                 </div>
@@ -195,30 +141,101 @@ class StyleUnitInstances extends preact.Component {
         }) : [<div class="color-dimmed px-2 pt-1">{ __('No editable styles.') }</div>])];
     }
     /**
+     * @param {String} currentBlockTypeName = this.state.currentBlockTypeName
      * @access private
      */
-    unload() {
-        this.setState({currentBlockStyleTemplates: null, styleUnitBundles: null, inited: false});
+    updateNewestStoreStateToState(currentBlockTypeName = this.state.currentBlockTypeName) {
+        const [currentBlockStyleTemplates, currentBlockInstanceUnits] = getStylesFor(currentBlockTypeName);
+        const styleUnitBundles = createStyleUnitBundles(currentBlockInstanceUnits, currentBlockStyleTemplates);
+        this.setState({currentBlockStyleTemplates, styleUnitBundles, inited: true, currentBlockTypeName});
+    }
+    /**
+     * @param {Array<UnitVarValue>} newVals
+     * @param {Boolean} instanceExists
+     * @param {StyleUnitInstance|null} instance
+     * @param {StyleUnitTemplate} template
+     * @access private
+     */
+    addValuesAndEmit(newVals, instanceExists, instance, template) {
+        //
+        if (instanceExists)
+            this.addValuesToInstanceUnitAndEmit(newVals, instance, template);
+        //
+        else
+            this.addStyleInstanceUnit(template, vals => vals.map(v1 =>
+                newVals.find(v => v.varName === v1.varName) || v1
+            ));
+    }
+    /**
+     * @param {Array<UnitVarValue>} newVals
+     * @param {StyleUnitInstance|null} instance
+     * @param {StyleUnitTemplate} template
+     * @access private
+     */
+    addValuesToInstanceUnitAndEmit(newVals, instance, template) {
+        const unitId = instance.id;
+        const current = store2.get().styleUnitInstances.find(({id}) => id === unitId);
+        const merged = [...current.values, ...newVals]; // ?? 
+        const newGenerated = generateCssFromVals(merged, unitId, template);
+        store2.dispatch('styleUnitInstances/updateValuesOf', [unitId, merged, newGenerated]);
+    }
+    /**
+     * @param {UnitVarValue} newVal
+     * @param {String|} instanceId
+     * @param {UnitVarValue} curVal
+     * @param {StyleUnitTemplate} template
+     * @access private
+     */
+    updateValueAndEmit(newVal, instanceId, curVal, template) {
+        const current = store2.get().styleUnitInstances.find(({id}) => id === instanceId);
+        const updated = current.values.map(v => v.varName !== newVal.varName ? v : newVal); // ?? 
+        const newGenerated = generateCssFromVals(updated, instanceId, template);
+        store2.dispatch('styleUnitInstances/updateValuesOf', [instanceId, updated, newGenerated]);
     }
     /**
      * @access private
      */
-    addStyleInstanceUnit(styleTemplate) {
-        // todo
+    unload() {
+        this.setState({currentBlockStyleTemplates: null, styleUnitBundles: null, inited: false, currentBlockTypeName: null});
+    }
+    /**
+     * @access private
+     */
+    addStyleInstanceUnit(styleTemplate, t = null) {
+        const values1 = styleTemplate.varMetas.map(varMetaToValue);
+        const values = !t ? values1 : t(values1);
+
+        const {theme} = selectCurrentPageDataBundle(store.getState());
+        const next = theme.styleUnitInstanceIdMax + 1;
+        const bundle = cloneObjectDeep(selectCurrentPageDataBundle(store.getState()));
+        bundle.theme.styleUnitInstanceIdMax = next;
+        store.dispatch(setCurrentPageDataBundle(bundle));
+        const id = `${STYLE_INSTANCE_UNIT_CLS_PREFIX}${styleTemplate.isFor}-${next}`;
+
+        store2.dispatch('styleUnitInstances/addItem', [{
+            id,
+            describedBy: styleTemplate.id,
+            values,
+            generatedCss: generateCssFromVals(values, id, styleTemplate),
+        }]);
+        this.updateNewestStoreStateToState();
     }
 }
 
 /**
  * @param {Array<UnitVarValue>} values
- * @param {Array<StyleUnitTemplate>} styleTmpl
+ * @param {String} instanceId
+ * @param {StyleUnitTemplate} styleTmpl
  * @returns {String}
 */
-function generateCssFromVals(values, styleTmpl) {
+function generateCssFromVals(values, instanceId, styleTmpl) {
     const getVarMetaFor = (v, frm) => frm.find(vm => vm.varName === v.varName);
-    return values.map(v => {
+    return values.filter(v => !!v.value).map(v => {
         const varMeta = getVarMetaFor(v, styleTmpl.varMetas);
-        const css = varMeta.wrap; // todo compile to css
-        return css.replace(/%s/g, v.value); // todo compile to css
+        const scss = varMeta.wrap.indexOf('%s') > -1 // todo(styleReimpl) deprecate
+            ? varMeta.wrap.replace(/%s/g, v.value)
+            : varMeta.wrap.replace(new RegExp(`\\$${v.varName}`, 'g'), v.value);
+        return compileScss(scss, instanceId);
     }).join('\n');
 }
 
@@ -239,7 +256,7 @@ function getStylesFor(blockTypeName, {styleUnitTemplates, styleUnitInstances} = 
 }
 
 /**
- * todo
+ * todo(styleReimpl)
  */
 function createStyleUnitBundles(currentBlockInstanceUnits, currentBlockStyleTemplates) {
     return [
@@ -253,7 +270,7 @@ function createStyleUnitBundles(currentBlockInstanceUnits, currentBlockStyleTemp
 }
 
 /**
- * todo
+ * todo(styleReimpl)
  */
 function varMetaToValue(varMeta) {
     return {varName: varMeta.varName, value: null};
@@ -264,7 +281,7 @@ function varMetaToValue(varMeta) {
  * @returns {Array<String>}
  */
 function onlyVarValUnitClasses(clses) {
-    return clses.filter(cls => cls.startsWith(VAR_UNIT_CLS_PREFIX));
+    return clses.filter(cls => cls.startsWith(STYLE_INSTANCE_UNIT_CLS_PREFIX));
 }
 
 /**
@@ -297,9 +314,25 @@ function findTemplateFor(styleUnitInstance, templates) {
 }
 
 /**
+ * todo(styleReimpl)
+ */
+function getSelectorFor(varMeta, instance) {
+    // todo(styleReimpl) implement properly
+
+    // 'position: relative;\n&:before { content: \"\"; background-color: %s; ... }\n> * { position: relative; }'
+    if (instance.describedBy.startsWith('j-Section-'))
+        return `.${instance.id}:before`;
+    // '&:hover { background: \$backgroundHover; }'
+    else if (instance.describedBy.startsWith('j-Button-'))
+        return !varMeta.wrap.startsWith('&:') ? `.${instance.id}` : varMeta.wrap.replace('&', instance.id);
+    // 'background: \$backgroundNormal;'
+    return `.${instance.id}`;
+}
+
+/**
  * @typedef BlockStylesTabProps
  * @prop {Boolean} isVisible
- * @prop todo todo
+ * @prop todo(styleReimpl) todo(styleReimpl)
  */
 
 export default BlockStylesTab;

@@ -466,6 +466,15 @@ function createSelector(selector, selType = 'cls') {
     return selType === 'cls' ? `.${selector}` : `[data-block="${selector}"]`;
 }
 
+/**
+ * @param {String} scss
+ * @param {String} cls
+ * @returns {String}
+ */
+function compileScss(scss, cls) {
+    return serialize(compile(`.${cls} {${scss}}`), stringify);
+}
+
 valueEditors.set('length', LengthValueInput);
 valueEditors.set('color', ColorValueInput);
 valueEditors.set('option', OptionValueInput);
@@ -495,4 +504,4 @@ valueEditors.set('option', OptionValueInput);
 export default VisualStyles;
 export {wc_hex_is_light, ColorValueInput, LengthValueInput, OptionValueInput,
     varNameToLabel, replaceVarValue, valueEditors, createUnitClass, createScss,
-    createSelector};
+    createSelector, compileScss};

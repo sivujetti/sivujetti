@@ -43,6 +43,7 @@ abstract class ThemesControllerTestCase extends DbTestCase {
         $state->testTheme = (object) [
             "id" => $this->dbDataHelper->insertData((object) [
                 "name" => $themeName,
+                "styleUnitInstances" => json_encode([]),
                 "stylesOrder" => json_encode([]),
                 "globalStyles" => json_encode($state->testGlobalStyles),
             ], "themes"),

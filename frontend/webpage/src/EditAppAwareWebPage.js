@@ -165,6 +165,12 @@ class EditAppAwareWebPage {
                 const [instanceId, _, newGenerated] = data; // data: [String, Array<UnitVarValue>, String]
                 const node = document.head.querySelector(`style[data-style-unit-instance="${instanceId}"]`);
                 node.innerHTML = `@layer units { ${newGenerated} }`;
+            } else if (event === 'styleUnitInstances/addItem') {
+                const node = document.createElement('style');
+                const [newUnit] = data; // data: [StyleUnitInstance]
+                node.setAttribute('data-style-unit-instance', newUnit.id);
+                node.innerHTML = `@layer units { ${newUnit.generatedCss} }`;
+                document.head.appendChild(node);
             }
         };
     }

@@ -73,6 +73,18 @@ final class ThemesController {
         $res->json(["ok" => "ok"]);
     }
     /**
+     * PUT /api/themes/[i:themeId]/style-unit-instances: Overwrites style instances
+     * of theme $req->params->themeId with $req->body->styleUnitInstances.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Pike\Db\FluentDb $db
+     * @param \Pike\FileSystem $fs
+     */
+    public function updateStyleUnitInstances(Request $req, Response $res, FluentDb $db, FileSystem $fs): void {
+        // todo
+    }
+    /**
      * PUT /api/themes/[i:themeId]/var-style-units: Overwrites varStyleUnits
      * of theme $req->params->themeId with $req->body->varStyleUnits.
      *

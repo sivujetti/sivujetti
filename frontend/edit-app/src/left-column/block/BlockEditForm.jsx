@@ -21,7 +21,6 @@ class BlockEditForm extends preact.Component {
     // blockIsStoredToTreeId;
     // editFormImpl;
     // allowStylesEditing;
-    // stylesTabStyleChangesGrabbers;
     // isOutermostBlockOfGlobalBlockTree;
     // unregistrables;
     // dispatchFastChangeTimeout;
@@ -46,7 +45,6 @@ class BlockEditForm extends preact.Component {
         this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, 'mainTree');
         this.editFormImpl = this.blockType.editForm;
         this.allowStylesEditing = !selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
-        this.stylesTabStyleChangesGrabbers = [];
         this.isOutermostBlockOfGlobalBlockTree = false;
         this.setState({currentTabIdx: 0});
         this.unregistrables = [observeStore2('theBlockTree', (_, [event, data]) => {
@@ -64,16 +62,8 @@ class BlockEditForm extends preact.Component {
                 return;
             }
 
-            const isUndo2 = event === 'theBlockTree/undoUpdateDefPropsOf';
-            if (event === 'theBlockTree/updateDefPropsOf' || isUndo2) {
-                if (!this.stylesTabStyleChangesGrabbers.length)
-                    return;
-                const [blockId, isOnlyStyleClassesChange] = !isUndo2
-                    ? [data[0], data[3]]  // [<blockId>, <blockIsStoredToTreeId>, <changes>, <isOnlyStyleClassesChange>]
-                    : [data[1], data[3]]; // [<oldTree>, <blockId>, <blockIsStoredToTreeId>, <isOnlyStyleClassesChange>]
-                if (isSomeOtherBlock(blockId))
-                    return;
-                this.stylesTabStyleChangesGrabbers.forEach(fn => { fn(this.getCurrentBlockCopy(), event, isOnlyStyleClassesChange, isUndo2); });
+            if (event === 'theBlockTree/updateDefPropsOf' && this.state.currentBlockCopy) {
+                this.setState({currentBlockCopy: this.getCurrentBlockCopy()});
             } else if (event === 'theBlockTree/deleteBlock') {
                 const [id, _blockIsStoredToTreeId, isChildOfOrCurrentlyOpenBlock] = data;
                 if (isChildOfOrCurrentlyOpenBlock || id === block.id) this.props.inspectorPanel.close();
@@ -89,7 +79,7 @@ class BlockEditForm extends preact.Component {
     /**
      * @access protected
      */
-    render({block}, {currentTabIdx}) {
+    render({block}, {currentTabIdx, currentBlockCopy}) {
         const EditFormImpl = this.editFormImpl;
         const getCopy = this.getCurrentBlockCopy.bind(this);
         const t = block.type === 'PageInfo' ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
@@ -103,7 +93,10 @@ class BlockEditForm extends preact.Component {
         <Tabs
             links={ [__('Content'), tr2] }
             getTabName={ link => link === tr1 ? 'style-units' : 'combined-styles' }
-            onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
+            onTabChanged={ toIdx => this.setState({
+                ...{currentTabIdx: toIdx},
+                ...(toIdx === 1 ? {currentBlockCopy: this.getCurrentBlockCopy()} : {})
+            }) }
             className="text-tinyish mt-0 mb-2"/>
         <div class={ currentTabIdx === 0 ? '' : 'd-none' }>
             <div class="mt-2">
@@ -121,18 +114,19 @@ class BlockEditForm extends preact.Component {
         </div>
         <div class={ `block-styles-tab-content${currentTabIdx === 1 ? '' : ' d-none'}` }>
             <BlockStylesTab
-                blockId={ block.id }
-                blockTypeName={ block.type }
-                getBlockCopy={ getCopy }
-                emitAppendStrToBlockStyleClasses={ (strToAppend, b) => {
+                currentBlockInfo={ currentBlockCopy ? {id: currentBlockCopy.blockId, type: currentBlockCopy.type,
+                                                        styleClasses: currentBlockCopy.styleClasses} : null }
+                emitAppendStrToBlockStyleClasses={ (strToAppend, b = this.state.currentBlockCopy) => {
                     const currentClasses = b.styleClasses;
                     const newClasses = currentClasses ? `${currentClasses} ${strToAppend}` : strToAppend;
                     this.dispatchNewBlockStyleClasses(newClasses, b);
+                    return newClasses;
                 } }
-                emitRemoveClassFromBlockStyleClasses={ (classToRemove, b) => {
+                emitRemoveClassFromBlockStyleClasses={ (classToRemove, b = this.state.currentBlockCopy) => {
                     const currentClasses = b.styleClasses;
                     const newClasses = currentClasses.split(' ').filter(cls => cls !== classToRemove).join(' ');
                     this.dispatchNewBlockStyleClasses(newClasses, b);
+                    return newClasses;
                 } }
                 isVisible={ currentTabIdx === 1 }
                 userCanEditVars={ this.userCanEditVars }

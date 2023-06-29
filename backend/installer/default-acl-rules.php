@@ -43,7 +43,7 @@ $out->resources = (object) [
     ],
     "themes" => (object) [
         "view"                      => 0b00000010,
-        "updateVarValStylesOf"      => 0b00000100,
+        "updateStyleInstancesOf"    => 0b00000100,
         "upsertBlockTypeScopedVars" => 0b00001000,
         "upsertBlockTypeScopedCss"  => 0b00010000,
     ],
@@ -92,7 +92,7 @@ $out->userPermissions = (object) [
         "pages"             => ACL::makePermissions("*", $out->resources->pages),
         // pageTypes        -> none
         "reusableBranches"  => ACL::makePermissions("*", $out->resources->reusableBranches),
-        "themes"            => ACL::makePermissions(["view","updateVarValStylesOf","upsertBlockTypeScopedVars"], $out->resources->themes),
+        "themes"            => ACL::makePermissions(["view","updateStyleInstancesOf","upsertBlockTypeScopedVars"], $out->resources->themes),
         "theWebsite"        => ACL::makePermissions(["updateBasicInfoOf"], $out->resources->theWebsite),
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],

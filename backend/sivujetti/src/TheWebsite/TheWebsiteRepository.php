@@ -29,7 +29,9 @@ final class TheWebsiteRepository {
                 "pt.`status` AS `pageTypeStatus`",
                 "pt.`isListable` AS `pageTypeIsListable`",
                 //
-                "t.`id` AS `themeId`", "t.`name` AS `themeName`", "t.`stylesOrder` AS `themeStylesOrderJson`",
+                "t.`id` AS `themeId`", "t.`name` AS `themeName`",
+                "t.`styleUnitInstances` AS `themeStyleUnitInstancesJson`",
+                "t.`stylesOrder` AS `themeStylesOrderJson`",
                 "t.`varStyleUnits` AS `varStyleUnitsJson`",
                 "t.`stylesLastUpdatedAt` AS `themeStylesLastUpdatedAt`",
                 //

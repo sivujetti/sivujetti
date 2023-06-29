@@ -84,11 +84,11 @@ final class Theme extends \stdClass {
                     "isCommon" => true,
                     "varMetas" => [
                         (object) ["varName" => "padding", "varType" => "length", "args" => [],
-                                    "wrap" => "padding: %s;"],
+                                    "wrap" => "padding: \$padding;"],
                         (object) ["varName" => "minWidth", "varType" => "length", "args" => [],
-                                    "wrap" => "min-width: %s;"],
+                                    "wrap" => "min-width: \$minWidth;"],
                         (object) ["varName" => "minHeight", "varType" => "length", "args" => [],
-                                    "wrap" => "min-height: %s;"],
+                                    "wrap" => "min-height: \$minHeight;"],
                     ]
                 ],
                 (object) [
@@ -120,11 +120,11 @@ final class Theme extends \stdClass {
                     "isCommon" => true,
                     "varMetas" => [
                         (object) ["varName" => "padding", "varType" => "length", "args" => [],
-                                    "wrap" => "padding: %s;"],
+                                    "wrap" => "padding: \$padding;"],
                         (object) ["varName" => "minWidth", "varType" => "length", "args" => [],
-                                    "wrap" => "min-width: %s;"],
+                                    "wrap" => "min-width: \$minWidth;"],
                         (object) ["varName" => "minHeight", "varType" => "length", "args" => [],
-                                    "wrap" => "min-height: %s;"],
+                                    "wrap" => "min-height: \$minHeight;"],
                     ]
                 ],
                 (object) [
@@ -134,10 +134,10 @@ final class Theme extends \stdClass {
                     "isCommon" => true,
                     "varMetas" => [
                         (object) ["varName" => "gap", "varType" => "length", "args" => [],
-                                    "wrap" => "gap: %s;"],
+                                    "wrap" => "gap: \$gap;"],
                         (object) ["varName" => "alignItems", "varType" => "option",
                                     "args" => ["normal", "start", "center", "end", "stretch", "baseline", "first baseline", "last baseline",],
-                                    "wrap" => "align-items: %s;"],
+                                    "wrap" => "align-items: \$alignItems;"],
                     ]
                 ],
                 (object) [
@@ -147,11 +147,11 @@ final class Theme extends \stdClass {
                     "isCommon" => true,
                     "varMetas" => [
                         (object) ["varName" => "padding", "varType" => "length", "args" => [],
-                                    "wrap" => "padding: %s;"],
+                                    "wrap" => "padding: \$padding;"],
                         (object) ["varName" => "minWidth", "varType" => "length", "args" => [],
-                                    "wrap" => "min-width: %s;"],
+                                    "wrap" => "min-width: \$minWidth;"],
                         (object) ["varName" => "minHeight", "varType" => "length", "args" => [],
-                                    "wrap" => "min-height: %s;"],
+                                    "wrap" => "min-height: \$minHeight;"],
                     ]
                 ],
                 (object) [
@@ -161,28 +161,14 @@ final class Theme extends \stdClass {
                     "isCommon" => true,
                     "varMetas" => [
                         (object) ["varName" => "cover", "varType" => "color", "args" => [],
-                                    "wrap" => "position: relative;\n&:before { content: \"\"; background-color: %s; height: 100%; width: 100%; position: absolute; left: 0; top: 0; }\n> * { position: relative; }"],
+                                    "wrap" => "position: relative;\n&:before { content: \"\"; background-color:\$cover; height: 100%; width: 100%; position: absolute; left: 0; top: 0; }\n> * { position: relative; }"],
+                        (object) ["varName" => "alignItems", "varType" => "option", "args" => ["flex-start", "center", "flex-end"],
+                                    "wrap" => "display: flex; align-items: \$alignItems;\n> div { flex: 1 0 0; }"],
                     ]
                 ],
             ];
             //
-            $this->styleUnitInstances = [
-                (object) ["id" => "j-i-Section-1", "describedBy" => "j-Section-base-1",
-                            "values" => [(object) ["varName" => "minHeight", "value" => "200px"], (object) ["varName" => "alignItems", "value" => "flex-end"]],
-                            "generatedCss" => (
-                                ".j-i-Section-1 { min-height: 200px; }" . // Section-base-1
-                                ".j-i-Section-1 { position: relative; display: flex; align-items: flex-end; }" . // Section-base-2
-                                ".j-i-Section-1 > div { flex: 1 0 0; }"
-                            )],
-                (object) ["id" => "j-i-Section-2", "describedBy" => "j-Section-base-2", "values" => [(object) ["varName" => "cover", "value" => "salmon"]],
-                    "generatedCss" => (
-                        ".j-i-Section-2 { position: relative; }" . // Section-base-2
-                        ".j-i-Section-2:before { content: \"\"; background-color: salmon; height: 100%; width: 100%; position: absolute; left: 0; top: 0; }" .
-                        ".j-i-Section-2 > * { position: relative; }"
-                    )],
-                (object) ["id" => "j-i-Button-3", "describedBy" => "j-Button-base-3", "values" => [(object) ["varName" => "minWidth", "value" => "100%"]],
-                    "generatedCss" => ".j-i-Button-3 { min-width: 100%; }"],
-            ];
+            $this->styleUnitInstances = JsonUtils::parse($row->themeStyleUnitInstancesJson);
             //
             $this->baseStyleUnits = [
                 (object) [
@@ -293,6 +279,7 @@ final class Theme extends \stdClass {
             );
             unset($this->themeStylesUnits);
         }
+        unset($this->themeStyleUnitInstancesJson);
         unset($this->themeStylesOrderJson);
         unset($this->varStyleUnitsJson);
         $this->__stash = [];

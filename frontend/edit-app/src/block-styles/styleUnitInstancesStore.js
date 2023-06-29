@@ -29,6 +29,16 @@ function styleUnitInstancesStore(store) {
         if (unit.id !== id) return unit;
         return {...unit, ...{values: newValues}, generatedCss: newGeneratedCss};
     })}));
+
+    store.on('styleUnitInstances/removeItem',
+    /**
+     * @param {Object} state
+     * @param {[String]} args
+     * @returns {{styleUnitInstances: Array<StyleUnitInstance>; [otherStateBucketKey: String]: any;}}
+     */
+    ({styleUnitInstances}, [id]) =>
+        ({styleUnitInstances: styleUnitInstances.filter(unit => unit.id !== id)})
+    );
 }
 
 export default styleUnitInstancesStore;

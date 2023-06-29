@@ -15,9 +15,9 @@ $statements = array_merge($statements, [
     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" => "y"
 ])."','abcdefg1')",
 
-"INSERT INTO `themes` (`id`,`name`,`stylesOrder`,`varStyleUnits`,`globalStyles`,`isActive`," .
+"INSERT INTO `themes` (`id`,`name`,`styleUnitInstances`,`stylesOrder`,`varStyleUnits`,`globalStyles`,`isActive`," .
     "`generatedStylesCss`,`generatedScopedStylesCss`) VALUES
-('1','test-suite-theme','" .
+('1','test-suite-theme','[]','" .
     json_encode(["Text", "Section"])
 . "','[]','[]',1,'','" .
     \Sivujetti\Tests\Utils\CssGenTestUtils::generateScopedStyles($styles) .

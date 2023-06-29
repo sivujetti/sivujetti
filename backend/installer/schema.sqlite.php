@@ -56,6 +56,7 @@ return [
 "CREATE TABLE `\${p}themes` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
+    `styleUnitInstances` JSON,
     `stylesOrder` JSON,
     `varStyleUnits` JSON,
     `globalStyles` JSON,

@@ -19,12 +19,6 @@ use Sivujetti\Theme\Entities\Theme;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\UserTheme\UserThemeAPI;
 
-/**
- * @psalm-import-type StyleUnitTemplate from \Sivujetti\Theme\Entities\Theme
- * @psalm-import-type StyleUnitInstance from \Sivujetti\Theme\Entities\Theme
- * @psalm-import-type BaseStyleUnit from \Sivujetti\Theme\Entities\Theme
- * @psalm-import-type VarStyleUnit from \Sivujetti\Theme\Entities\Theme
- */
 final class PagesController {
     /**
      * GET /[anything]: Renders a page.
@@ -127,7 +121,7 @@ final class PagesController {
                 "dashboardUrl" => $config->get("app.dashboardUrl", ""),
                 "userPermissions" => [
                     "canDoAnything" => $userRole === ACL::ROLE_SUPER_ADMIN,
-                    "canEditThemeColours" => $acl->can($userRole, "updateStyleInstancesOf", "themes"),
+                    "canEditThemeColours" => $acl->can($userRole, "updateGlobalStylesOf", "themes"),
                     "canEditThemeVars" => $acl->can($userRole, "upsertBlockTypeScopedVars", "themes"),
                     "canEditThemeCss" => $acl->can($userRole, "upsertBlockTypeScopedCss", "themes"),
                     "canCreatePageTypes" => $acl->can($userRole, "create", "pageTypes"),
@@ -272,7 +266,7 @@ final class PagesController {
         $res->status($page ? 200 : 404)->json($page);
     }
     /**
-     * GET /api/pages/w:pageType[?newestFirst]: Lists all $req->params->pageType's
+     * GET /api/pages/w:pageType[?order-default]: Lists all $req->params->pageType's
      * pages.
      *
      * @param \Pike\Request $req
@@ -284,7 +278,7 @@ final class PagesController {
                               PagesRepository2 $pagesRepo): void {
         $pages = $pagesRepo
             ->select($req->params->pageType)
-            ->orderBy(($req->queryVar("newestFirst") !== null ? "`createdAt`" : "`id`") . " DESC")
+            ->orderBy(($req->queryVar("order-default") === null ? "`createdAt`" : "`id`") . " DESC")
             ->limit($pagesRepo::HARD_LIMIT)
             ->fetchAll();
         $res->json($pages);
@@ -554,18 +548,11 @@ final class PagesController {
     }
     /**
      * @param \Sivujetti\Theme\Entities\Theme $theme
-     * @psalm-return object{styleTemplates: array<StyleTemplate>, styleInstances: array<StyleInstance>, baseStyleUnits: array<BaseStyleUnit>, varStyleUnits: array<VarStyleUnit>}
+     * @psalm-return object{id: string}
      */
     private static function themeToRaw(Theme $theme): object {
         return (object) [
             "id" => $theme->id,
-            "styleUnitTemplates" => $theme->styleUnitTemplates,
-            "styleUnitInstances" => $theme->styleUnitInstances,
-            "baseStyleUnits" => $theme->baseStyleUnits,
-            "varStyleUnits" => $theme->varStyleUnits,
-            "styleUnitTemplateIdMax" => -1, // @see loadPage() @frontend/edit-app/src/right-column/IframePageManager.js
-            "styleUnitInstanceIdMax" => -1,
-            "varStyleUnitIdMax" => -1,
         ];
     }
     /**

@@ -1050,4 +1050,4 @@ export default BlockStylesTab;
 export {StyleTextarea, tempHack, updateAndEmitUnitScss, SPECIAL_BASE_UNIT_NAME,
     findBlockTypeStyles, createUnitClass, isSpecialUnit, addSpecializedStyleUnit,
     blockHasStyle, removeStyleUnit, normalizeScss, findParentStyleInfo,
-    goToStyle, findRealUnit, EditableTitle};
+    goToStyle, findRealUnit};

@@ -156,53 +156,6 @@ class EditAppAwareWebPage {
         };
     }
     /**
-     * @returns {(state: {styleUnitInstances: Array<StyleUnitInstance>; [otherStateBuckets: String]: any;}, eventInfo: ['styleUnitInstances/init'|'styleUnitInstances/updateValuesOf', [String, Array<UnitVarValue>, String]]) => void}
-     * @access public
-     */
-    createInstanceVarsChangeListener() {
-        return ({styleUnitInstances}, [event, data]) => {
-            if (event === 'styleUnitInstances/updateValuesOf') {
-                const [instanceId, _, newGenerated] = data; // data: [String, Array<UnitVarValue>, String]
-                const node = document.head.querySelector(`style[data-style-unit-instance="${instanceId}"]`);
-                node.innerHTML = `@layer units { ${newGenerated} }`;
-            } else if (event === 'styleUnitInstances/addItem') {
-                const node = document.createElement('style');
-                const [newUnit] = data; // data: [StyleUnitInstance]
-                node.setAttribute('data-style-unit-instance', newUnit.id);
-                node.innerHTML = `@layer units { ${newUnit.generatedCss} }`;
-                document.head.appendChild(node);
-            }
-        };
-    }
-    /**
-     * @returns {(state: {varStyleUnits: Array<VarStyleUnit>; [otherStateBuckets: String]: any;}, eventInfo: ['varStyleUnits/init'|'varStyleUnits/addItem'|'varStyleUnits/updateItem'|'varStyleUnits/removeItem'|'varStyleUnits/addValuesTo'|'varStyleUnits/updateValueIn'|'varStyleUnits/removeValuesFrom', [Array<VarStyleUnit>]|[VarStyleUnit]]) => void}
-     * @access public
-     */
-    createUnitVarsChangeListener() {
-        return ({varStyleUnits}, [event, data]) => {
-            if (event === 'varStyleUnits/addItem') {
-                const node = document.createElement('style');
-                const [newUnit] = data; // data: [VarStyleUnit]
-                node.setAttribute('data-var-units-for', newUnit.id);
-                node.innerHTML = newUnit.generatedCss; // `.j-s-<n> { --var1: val ... }`
-                document.head.appendChild(node);
-            } else if (event === 'varStyleUnits/removeItem') {
-                const varStyleUnitId = data[0]; // data: [String]
-                const node = document.head.querySelector(`style[data-var-units-for="${varStyleUnitId}"]`);
-                node.parentElement.removeChild(node);
-            } else if (event === 'varStyleUnits/updateValueIn' || event === 'varStyleUnits/addValuesTo' || event === 'varStyleUnits/removeValuesFrom') {
-                const varStyleUnitId = data[0]; // data: [String, UnitVarValue]|[String, Array<UnitVarValue>]
-                const node = document.head.querySelector(`style[data-var-units-for="${varStyleUnitId}"]`);
-                const unit = varStyleUnits.find(({id}) => id === varStyleUnitId);
-                if (event === 'varStyleUnits/removeValuesFrom' && !unit) // last var was cleared
-                    node.parentElement.removeChild(node);
-                else
-                    node.innerHTML = unit.generatedCss;
-            } else return;
-            this.onStylesUpdateFn();
-        };
-    }
-    /**
      * @returns {Array<[String, (...args: any) => void]>}
      * @access public
      */

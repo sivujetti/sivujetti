@@ -59,12 +59,9 @@ return [
 "CREATE TABLE `\${p}themes` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92) NOT NULL,
-    `styleUnitInstances` JSON,
     `stylesOrder` JSON,
-    `varStyleUnits` JSON,
     `globalStyles` JSON,
     `isActive` TINYINT(1) NOT NULL,
-    `generatedStylesCss` TEXT,
     `generatedScopedStylesCss` TEXT,
     `stylesLastUpdatedAt` {$dataTypeForTimestamps},
     PRIMARY KEY (`id`)

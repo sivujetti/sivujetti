@@ -2,6 +2,8 @@
 
 namespace Sivujetti\Theme\Entities;
 
+use Sivujetti\JsonUtils;
+
 final class Style extends \stdClass {
     /** @var object[] array<int, {title: string, id: string, scss: string, generatedCss: string, origin: string, specifier: string}> */
     public array $units;
@@ -13,7 +15,7 @@ final class Style extends \stdClass {
      */
     public static function fromParentRs(object $row): Style {
         $out = new self;
-        $out->units = json_decode($row->themeStylesUnits, flags: JSON_THROW_ON_ERROR);
+        $out->units = JsonUtils::parse($row->themeStylesUnitsJson);
         $out->blockTypeName = $row->themeStylesBlockTypeName;
         return $out;
     }

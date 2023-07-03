@@ -1,9 +1,8 @@
 import {__, api, env, http, signals, Icon} from '@sivujetti-commons-for-edit-app';
 import {getIcon} from '../../block-types/block-types.js';
-import {BASE_UNIT_CLS_PREFIX, createTrier} from '../../block/dom-commons.js';
+import {createTrier} from '../../block/dom-commons.js';
 import {createBlockFromBlueprint, createBlockFromType, createGbtRefBlockProps} from '../../block/utils.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
-import {addDuplicateVarUnits, getStylesInfo} from './BlockStylesTab3.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 
 /** @type {() => void} */
@@ -222,17 +221,6 @@ class BlockDnDSpawner extends preact.Component {
         const reusableBranchIdx = dragEl.getAttribute('data-reusable-branch-idx');
         const isReusable = reusableBranchIdx !== '';
         const newBlock = this.createBlock(typeStr, reusableBranchIdx, dragEl);
-        const [clses, commitNewDuplicatedVarUnits] = createDefaultStylesAndGetClsesFor(newBlock);
-        newBlock.styleClasses = clses;
-        if (commitNewDuplicatedVarUnits) {
-            // Wait until the block is droppped, then add the saveToBackendOfCreatedVarStyleUnits to the op queue
-            const unreg = observeStore2('theBlockTree', (_, [event, _data]) => {
-                if (event === 'theBlockTree/applyAdd(Drop)Block') {
-                    commitNewDuplicatedVarUnits();
-                    unreg();
-                }
-            });
-        }
         this.props.mainTreeDnd.handleDragStartedFromOutside({block: newBlock, isReusable});
     }
     /**
@@ -316,41 +304,6 @@ class BlockDnDSpawner extends preact.Component {
     closeIfOpen() {
         if (this.state.isOpen) this.toggleIsOpen();
     }
-}
-
-/**
- * @param {RawBlock} block
- * @param {Boolean} createCopy = true
- * @returns {[{String}, (() => void)|null]} Example: 'j-bu-1 j-vu-1'
- */
-function createDefaultStylesAndGetClsesFor(block, createCopy = true) {
-    const [baseUnitsTargetedToThisBlockType, varValUnits] = getStylesInfo(block);
-    const defaultUnits = varValUnits.filter(unit => {
-        const base = baseUnitsTargetedToThisBlockType.find(sm => sm.id === unit.baseStyleUnitId);
-        return base && (unit.defaultFor === 'auto' ||
-                        unit.defaultFor === block.type);
-    });
-    if (defaultUnits.length) {
-        let units, commitUnits;
-        if (createCopy) {
-            const [duplicatedDefaultUnits, commitUnitsFn] = addDuplicateVarUnits(defaultUnits);
-            units = duplicatedDefaultUnits;
-            commitUnits = commitUnitsFn;
-        } else {
-            units = defaultUnits;
-        }
-        // ['j-bu-1', 'j-vu-1', 'j-bu-2', 'j-vu-2', 'j-bu-1', 'j-vu-3']
-        const paired = units.reduce((o, unit) => [...o, unit.baseStyleUnitId, unit.id], []);
-        // ['j-bu-1', 'j-vu-1', 'j-bu-2', 'j-vu-2', 'j-bu-1', 'j-vu-3']
-        const noDupeMetaClses = paired.reduce((o, cls) =>
-            !cls.startsWith(BASE_UNIT_CLS_PREFIX) || // var unit -> always add
-            o.indexOf(cls) < 0                       // base unit -> add only if not already added
-                ? [...o, cls]
-                : o,
-        []);
-        return [noDupeMetaClses.join(' '), createCopy ? commitUnits : null];
-    }
-    return ['', null];
 }
 
 const ordinals = [

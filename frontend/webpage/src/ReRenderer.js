@@ -1,6 +1,5 @@
 import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END,
-        HAS_ERRORS, STYLE_INSTANCE_UNIT_CLS_PREFIX, VAR_UNIT_CLS_PREFIX,
-        BASE_UNIT_CLS_PREFIX} from '../../edit-app/src/block/dom-commons.js';
+        HAS_ERRORS} from '../../edit-app/src/block/dom-commons.js';
 
 let renderBlockAndThen;
 let toTransferable;
@@ -268,10 +267,7 @@ class ReRenderer {
         const unitStart = `${current[0]}-unit-`; // 'j-Something-unit-'
         const defaultUnitStart = `no-${unitStart}`;
         const nonUnit = current.filter(cls => !cls.startsWith(unitStart) &&
-                                            !cls.startsWith(defaultUnitStart) &&
-                                            !cls.startsWith(STYLE_INSTANCE_UNIT_CLS_PREFIX) &&
-                                            !cls.startsWith(VAR_UNIT_CLS_PREFIX) &&
-                                            !cls.startsWith(BASE_UNIT_CLS_PREFIX));
+                                            !cls.startsWith(defaultUnitStart));
         withNewClsClone.className = [
             ...nonUnit.slice(0, 1), // j-Something
             ...(newStyleClasses ? newStyleClasses.split(' ') : []),

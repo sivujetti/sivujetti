@@ -43,7 +43,6 @@ abstract class ThemesControllerTestCase extends DbTestCase {
         $state->testTheme = (object) [
             "id" => $this->dbDataHelper->insertData((object) [
                 "name" => $themeName,
-                "styleUnitInstances" => json_encode([]),
                 "stylesOrder" => json_encode([]),
                 "globalStyles" => json_encode($state->testGlobalStyles),
             ], "themes"),
@@ -55,8 +54,7 @@ abstract class ThemesControllerTestCase extends DbTestCase {
     protected function insertTestStylesForTestTheme(\TestState $state): void {
         $this->dbDataHelper->insertData($state->testStyles, "themeStyles");
         (new FluentDb(self::$db))->update("\${p}themes")
-            ->values((object) ["generatedStylesCss" => "",
-                                "generatedScopedStylesCss" => CssGenTestUtils::generateScopedStyles($state->testStyles)])
+            ->values((object) ["generatedScopedStylesCss" => CssGenTestUtils::generateScopedStyles($state->testStyles)])
             ->where("id=?", [$state->testTheme->id])
             ->execute();
     }

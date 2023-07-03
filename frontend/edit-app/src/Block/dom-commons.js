@@ -1,9 +1,6 @@
 const CHILDREN_START = ' children-start ';
 const CHILDREN_END = ' children-end ';
 const CHILD_CONTENT_PLACEHOLDER = '<!-- children-placeholder -->';
-const BASE_UNIT_CLS_PREFIX = 'j-bu-';
-const VAR_UNIT_CLS_PREFIX = 'j-vu-';
-const STYLE_INSTANCE_UNIT_CLS_PREFIX = 'j-i-';
 
 const HAS_ERRORS = 1 << 1;
 const NO_OP_QUEUE_EMIT = 1 << 2;
@@ -53,5 +50,4 @@ function getMetaKey() {
 }
 
 export {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END,
-        STYLE_INSTANCE_UNIT_CLS_PREFIX, BASE_UNIT_CLS_PREFIX, VAR_UNIT_CLS_PREFIX,
         noop, HAS_ERRORS, NO_OP_QUEUE_EMIT, createTrier, getMetaKey};

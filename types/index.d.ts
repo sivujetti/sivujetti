@@ -126,11 +126,6 @@ interface CurrentPageData {
     };
     theme: {
         id: String; // Example '1'
-        styleUnitTemplates: Array<StyleUnitTemplate>;
-        styleUnitInstances: Array<StyleUnitInstance>;
-        baseStyleUnits: Array<BaseStyleUnit>;
-        varStyleUnits: Array<VarStyleUnit>;
-        varStyleUnitIdMax: Number;
     };
 }
 
@@ -240,8 +235,6 @@ interface EditAppAwareWebPage {
     scanBlockElements(): Array<HTMLElement>;
     addRootBoundingEls(lastBlock: RawBlock): void;
     createThemeStylesChangeListener(): (state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void;
-    createInstanceVarsChangeListener(): (state: {styleUnitInstances: Array<StyleUnitInstance>; [otherStateBuckets: String]: any;}, eventInfo: [todo, todo]) => void;
-    createUnitVarsChangeListener(): (state: {varStyleUnits: Array<VarStyleUnit>; [otherStateBuckets: String]: any;}, eventInfo: ['varStyleUnits/init'|'varStyleUnits/addItem'|'varStyleUnits/updateItem'|'varStyleUnits/removeItem'|'varStyleUnits/addValuesTo'|'varStyleUnits/updateValueIn'|'varStyleUnits/removeValuesFrom', [Array<VarStyleUnit>]|[VarStyleUnit]]) => void;
     getGlobalListenerCreateCallables(): Array<[String, (...args: any) => void]>;
     setIsMouseListenersDisabled(isDisabled: Boolean): void;
     fastOverrideStyleUnitVar(selector: String, varName: String, varValue: String|(() => String), valueType: 'color'): void;
@@ -344,46 +337,6 @@ interface BlockRendctor {
 interface ThemeStyle {
     units: Array<ThemeStyleUnit>;
     blockTypeName: String;
-}
-
-interface StyleUnitTemplate {
-    id: String;
-    // todo
-}
-
-interface StyleUnitInstance {
-    id: String;
-    // todo
-}
-
-interface BaseStyleUnit {
-    id: String;
-    title: String;
-    scssTmpl: String;
-    generatedCss: String;
-    vars: Array<UnitVarMeta>;
-    suggestedFor: Array<String>;
-}
-
-interface UnitVarMeta {
-    varName: String;
-    type: 'length'|'color'|'option';
-    args: Array<String|Number>;
-    label: String;
-    defaultValue: ColorValue|LengthValue|OptionValue|null;
-}
-
-interface VarStyleUnit {
-    id: String;
-    baseStyleUnitId: String;
-    values: Array<UnitVarValue>;
-    generatedCss: String;
-    defaultFor?: String; // Example: 'Section' or 'Button'
-}
-
-interface UnitVarValue {
-    varName: String;
-    value: String;
 }
 
 interface ThemeStyleUnit {

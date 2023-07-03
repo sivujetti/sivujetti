@@ -7,7 +7,7 @@ import store2, {observeStore as observeStore2} from '../../store2.js';
 import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import {findBlockFrom, getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
-import BlockStylesTab from '../block-styles/BlockStylesTab.jsx';
+import BlockStylesTab from './BlockStylesTab.jsx';
 
 /** @type {BlockTypes} */
 let blockTypes;
@@ -114,24 +114,25 @@ class BlockEditForm extends preact.Component {
         </div>
         <div class={ `block-styles-tab-content${currentTabIdx === 1 ? '' : ' d-none'}` }>
             <BlockStylesTab
-                currentBlockInfo={ currentBlockCopy ? {id: currentBlockCopy.blockId, type: currentBlockCopy.type,
-                                                        styleClasses: currentBlockCopy.styleClasses} : null }
-                emitAppendStrToBlockStyleClasses={ (strToAppend, b = this.state.currentBlockCopy) => {
-                    const currentClasses = b.styleClasses;
-                    const newClasses = currentClasses ? `${currentClasses} ${strToAppend}` : strToAppend;
-                    this.dispatchNewBlockStyleClasses(newClasses, b);
-                    return newClasses;
-                } }
-                emitRemoveClassFromBlockStyleClasses={ (classToRemove, b = this.state.currentBlockCopy) => {
-                    const currentClasses = b.styleClasses;
-                    const newClasses = currentClasses.split(' ').filter(cls => cls !== classToRemove).join(' ');
-                    this.dispatchNewBlockStyleClasses(newClasses, b);
-                    return newClasses;
-                } }
-                isVisible={ currentTabIdx === 1 }
+                getBlockCopy={ getCopy }
                 userCanEditVars={ this.userCanEditVars }
                 userCanEditCss={ this.userCanEditCss }
-                useVisualStyles={ this.useVisualStyles }/>
+                useVisualStyles={ this.useVisualStyles }
+                emitAddStyleClassToBlock={ (styleClassToAdd, b) => {
+                    const currentClasses = b.styleClasses;
+                    const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
+                    this.dispatchNewBlockStyleClasses(newClasses, b);
+                } }
+                emitRemoveStyleClassFromBlock={ (styleClassToRemove, b) => {
+                    const currentClasses = b.styleClasses;
+                    const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ');
+                    this.dispatchNewBlockStyleClasses(newClasses, b);
+                } }
+                emitSetBlockStylesClasses={ (newStyleClasses, b) => {
+                    this.dispatchNewBlockStyleClasses(newStyleClasses, b);
+                } }
+                grabBlockChanges={ () => {} }
+                isVisible={ currentTabIdx === 1 }/>
         </div>
         </div>;
     }

@@ -255,35 +255,18 @@ final class WebPageAwareTemplate extends Template {
             "\n<!-- Note to devs: these inline styles appear here only when you're logged in -->\n" .
             // Scoped styles: Inject each style bundle via javascript instead of echoing them directly
             // (to allow things such as `content: "</style>"` or `/* </style> */`)
-            "<script>\n" .
-                "// Body styles\n" .
-                "document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
-                    array_merge(array_map(fn($itm) => (object) [
-                        "css" => ThemesController::combineAndWrapCss($itm->units, $itm->blockTypeName),
-                        "blockTypeName" => $itm->blockTypeName,
-                    ], $theme->styles), $this->__applyFilters->__invoke("sivujetti:editAppAdditionalStyleUnits", []))
-                ) . ".reduce((out, {css, blockTypeName}) => {\n" .
-                "  const bundle = document.createElement('style');\n" .
-                "  bundle.innerHTML = css;\n" .
-                "  bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
-                "  out.appendChild(bundle);\n" .
-                "  return out;\n" .
-                "}, document.createDocumentFragment())") . ");\n" .
-                "\n" .
-                "// Style unit instances\n" .
-                "document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
-                    array_map(
-                        fn ($varValues) => [$varValues->generatedCss, $varValues->id],
-                        $theme->styleUnitInstances
-                    )
-                ) . ".reduce((out, [generatedCss, id]) => {\n" .
-                    "  const bundle = document.createElement('style');\n" .
-                    "  bundle.innerHTML = `@layer units { \${generatedCss} }`;\n" .
-                    "  bundle.setAttribute('data-style-unit-instance', id);\n" .
-                    "  out.appendChild(bundle);\n" .
-                    "  return out;\n" .
-                "}, document.createDocumentFragment())") . ")\n" .
-            "</script>" .
+            "<script>document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
+                array_merge(array_map(fn($itm) => (object) [
+                    "css" => ThemesController::combineAndWrapCss($itm->units, $itm->blockTypeName),
+                    "blockTypeName" => $itm->blockTypeName,
+                ], $theme->styles), $this->__applyFilters->__invoke("sivujetti:editAppAdditionalStyleUnits", []))
+            ) . ".reduce((out, {css, blockTypeName}) => {\n" .
+            "  const bundle = document.createElement('style');\n" .
+            "  bundle.innerHTML = css;\n" .
+            "  bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
+            "  out.appendChild(bundle);\n" .
+            "  return out;\n") .
+            "}, document.createDocumentFragment()))</script>\n" .
             //
             "<style>" . self::getDefaultEditModeInlineCss() . "</style>\n"
         ));

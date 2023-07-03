@@ -272,8 +272,8 @@ final class PagesController {
         $res->status($page ? 200 : 404)->json($page);
     }
     /**
-     * GET /api/pages/[w:pageType]: Lists all $req->params->pageType's pages ordered
-     * by newest to oldest.
+     * GET /api/pages/w:pageType[?newestFirst]: Lists all $req->params->pageType's
+     * pages.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
@@ -284,7 +284,7 @@ final class PagesController {
                               PagesRepository2 $pagesRepo): void {
         $pages = $pagesRepo
             ->select($req->params->pageType)
-            ->orderBy("`id` DESC")
+            ->orderBy(($req->queryVar("newestFirst") !== null ? "`createdAt`" : "`id`") . " DESC")
             ->limit($pagesRepo::HARD_LIMIT)
             ->fetchAll();
         $res->json($pages);

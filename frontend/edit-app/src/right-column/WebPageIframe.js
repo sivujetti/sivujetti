@@ -1,5 +1,5 @@
 import {__, api, env, urlUtils} from '@sivujetti-commons-for-edit-app';
-import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END, createTrier, noop} from '../block/dom-commons.js';
+import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END, noop} from '../block/dom-commons.js';
 import {toTransferable} from '../block/utils.js';
 import blockTreeUtils from '../left-column/block/blockTreeUtils.js';
 import IframePageManager from './IframePageManager.js';
@@ -27,8 +27,8 @@ class WebPageIframe {
      */
     renderPlaceholderPage(pageTypeName, layoutId = '1', slug = '') {
         return this.loadPageToIframe(
-            urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`)
-                + (!slug ? '' : t(`duplicate=${encodeURIComponent(slug)}`))
+            urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`
+                + (!slug ? '' : `?duplicate=${encodeURIComponent(slug)}`))
         );
     }
     /**
@@ -38,7 +38,7 @@ class WebPageIframe {
      */
     renderNormalPage(slug) {
         return this.loadPageToIframe(
-            `${urlUtils.makeUrl(slug)}${t('in-edit=1')}`,
+            urlUtils.makeUrl(`${slug}?in-edit=1`)
         );
     }
     /**
@@ -148,10 +148,6 @@ function createNewIframeEl(url, current) {
     const css = current.getAttribute('style');
     if (css) newEl.setAttribute('style', current.getAttribute('style'));
     return newEl;
-}
-
-function t(url) {
-    return `${urlUtils.baseUrl.indexOf('?') < 0 ? '?' : '&'}${url}`;
 }
 
 /**

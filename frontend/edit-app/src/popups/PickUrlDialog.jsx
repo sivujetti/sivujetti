@@ -34,30 +34,30 @@ class PickUrlDialog extends preact.Component {
     render(_, {mode, openPopup, jumpToIsValid}) {
         return <div>
             <div class="button-options small-buttons four">
-                <button class={ `form-radio btn${mode === 'choose-link-type' ? ' selected' : ''}` } onClick={ this.clearLink.bind(this) }>
+                <button class={ `form-radio btn focus-default${mode === 'choose-link-type' ? ' selected' : ''}` } onClick={ this.clearLink.bind(this) }>
                     <span>
-                        <input type="radio" name="sendingMethod" checked={ mode === 'choose-link-type' } tabIndex="-1"/>
+                        <input type="radio" name="linkType" checked={ mode === 'choose-link-type' } tabIndex="-1"/>
                         <i class="form-icon"></i>
                         <span class="with-icon ml-2"><Icon iconId="ban" className="size-sm color-dimmed"/>-</span>
                     </span>
                 </button>
-                <button class={ `form-radio btn${mode === 'pick-url' ? ' selected' : ''}` } onClick={ () => this.openPopup('pick-url') }>
+                <button class={ `form-radio btn focus-default${mode === 'pick-url' ? ' selected' : ''}` } onClick={ () => this.openPopup('pick-url') }>
                     <span>
-                        <input type="radio" name="sendingMethod" checked={ mode === 'pick-url' } tabIndex="-1"/>
+                        <input type="radio" name="linkType" checked={ mode === 'pick-url' } tabIndex="-1"/>
                         <i class="form-icon"></i>
                         <span class="with-icon ml-2"><Icon iconId="file-text" className="size-sm color-dimmed"/>{ __('Page') }</span>
                     </span>
                 </button>
-                <button class={ `form-radio btn${mode === 'pick-file' ? ' selected' : ''}` } onClick={ () => this.openPopup('pick-file') }>
+                <button class={ `form-radio btn focus-default${mode === 'pick-file' ? ' selected' : ''}` } onClick={ () => this.openPopup('pick-file') }>
                     <span>
-                        <input type="radio" name="sendingMethod" checked={ mode === 'pick-file' } tabIndex="-1"/>
+                        <input type="radio" name="linkType" checked={ mode === 'pick-file' } tabIndex="-1"/>
                         <i class="form-icon"></i>
                         <span class="with-icon ml-2"><Icon iconId="photo" className="size-sm color-dimmed"/>{ __('Image') }</span>
                     </span>
                 </button>
-                <button class={ `form-radio btn${mode === 'type-external-url' ? ' selected' : ''}` } onClick={ () => this.openPopup('type-external-url') }>
+                <button class={ `form-radio btn focus-default${mode === 'type-external-url' ? ' selected' : ''}` } onClick={ () => this.openPopup('type-external-url') }>
                     <span>
-                        <input type="radio" name="sendingMethod" checked={ mode === 'type-external-url' } tabIndex="-1"/>
+                        <input type="radio" name="linkType" checked={ mode === 'type-external-url' } tabIndex="-1"/>
                         <i class="form-icon"></i>
                         <span class="with-icon ml-2"><Icon iconId="external-link" className="size-sm color-dimmed"/>{ __('External') }</span>
                     </span>
@@ -241,7 +241,7 @@ class CurrentUrlDisplay extends preact.Component {
                 <button
                     style="transform: scale(.9);margin-left: -.1rem;"
                     onClick={ () => this.props.parent.openPopup(mode) }
-                    class="btn btn-sm mt-1"
+                    class="btn btn-sm focus-default mt-1"
                     type="button">{ __('Change') }</button>
                 { this.state.values ? <FormGroup className="mt-2">
                     <label class="form-label pb-0 color-dimmed" htmlFor="jumpTo">{ __('Jump in page') }</label>

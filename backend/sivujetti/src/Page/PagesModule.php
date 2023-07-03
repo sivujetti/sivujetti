@@ -24,7 +24,7 @@ final class PagesModule {
         $router->map("GET", "/api/pages/[w:pageType]/[w:pageSlug]",
             [PagesController::class, "getPage", ["identifiedBy" => ["read", "pages"]]]
         );
-        $router->map("GET", "/api/pages/[w:pageType]",
+        $router->map("GET", "/api/pages/[w:pageType]", // [?order-default]
             [PagesController::class, "listPages", ["identifiedBy" => ["list", "pages"]]]
         );
         $router->map("PUT", "/api/pages/[w:pageType]/[w:pageId]/blocks",

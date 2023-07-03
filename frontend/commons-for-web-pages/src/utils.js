@@ -14,7 +14,7 @@ const urlUtils = {
      */
     makeUrl(url, includeDomain = false) {
         const pref = !includeDomain ? '' : this.env.window.location.origin;
-        return pref + this.baseUrl + this.normalizeUrl(url);
+        return pref + this.baseUrl + this.normalizeUrl(url, true);
     },
     /**
      * @param {String} url
@@ -34,11 +34,13 @@ const urlUtils = {
     },
     /**
      * @param {String} url '/foo' -> 'foo', 'bar' -> 'bar'
+     * @param {Boolean} normalizeQ = false
      * @returns {String}
      * @access private
      */
-    normalizeUrl(url) {
-        return url[0] !== '/' ? url : url.substr(1);
+    normalizeUrl(url, normalizeQ = false) {
+        const url2 = !normalizeQ || this.baseUrl.indexOf('?') < 0 ? url : url.replace('?', '&');
+        return url2[0] !== '/' ? url2 : url2.substring(1);
     }
 };
 

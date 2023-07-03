@@ -44,7 +44,10 @@ class SaveBlockAsReusableDialog extends preact.Component {
             { userCanCreateGlobalBlockTrees ? <FormGroup>
                 <span class="form-label">{ __('Type') }</span>
                 <div class="button-options">
-                    <button class={ `form-radio btn${!saveAsUnique ? ' selected' : ''}` } onClick={ () => this.setState({saveAsUnique: false}) } type="button">
+                    <button
+                        onClick={ () => this.setState({saveAsUnique: false}) }
+                        class={ `form-radio btn focus-default${!saveAsUnique ? ' selected' : ''}` }
+                        type="button">
                         <span>
                             <input type="radio" name="saveAsUnique" checked={ !saveAsUnique } tabIndex="-1"/>
                             <i class="form-icon"></i>
@@ -52,7 +55,10 @@ class SaveBlockAsReusableDialog extends preact.Component {
                         </span>
                         <span class="color-dimmed">{ __('todo12') }</span>
                     </button>
-                    <button class={ `form-radio btn${saveAsUnique ? ' selected' : ''}` } onClick={ () => this.setState({saveAsUnique: true}) } type="button">
+                    <button
+                        onClick={ () => this.setState({saveAsUnique: true}) }
+                        class={ `form-radio btn focus-default${saveAsUnique ? ' selected' : ''}` }
+                        type="button">
                         <span>
                             <input type="radio" name="saveAsUnique" checked={ saveAsUnique } tabIndex="-1"/>
                             <i class="form-icon"></i>

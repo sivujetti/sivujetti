@@ -95,8 +95,7 @@ class QuillEditor extends preact.Component {
         if (this.props.onInit) this.props.onInit(this);
         this.quill.on('text-change', (_delta, _oldDelta, _source) => {
             const normalized = this.getEditorHtml();
-            if (this.quill.container.firstChild)
-                this.props.onChange(normalized, this.myChangeSource);
+            this.props.onChange(normalized, this.myChangeSource);
         });
         if (this.props.onBlur)
             this.quill.on('selection-change', range => {

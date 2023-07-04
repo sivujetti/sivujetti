@@ -73,8 +73,11 @@ class BootModule {
         $routeInfo = $req->routeInfo->myCtx ?? null;
         if (!is_array($routeInfo))
             return "All routes must define a context (router->map('A', 'B', <context>))";
-        if ($devModeIsOn && !($routeInfo["skipAuth"] ?? false) && !is_array($routeInfo["identifiedBy"] ?? null))
-            return "A route context must contain `identifiedBy` or `skipAuth`";
+        if ($devModeIsOn &&
+            !is_array($routeInfo["identifiedBy"] ?? null) &&
+            ($routeInfo["skipAuth"] ?? null) !== true &&
+            ($routeInfo["skipAuthButLoadRequestUser"] ?? null) !== true)
+            return "A route context must contain `identifiedBy` or `skipAuth` or `skipAuthButLoadRequestUser`";
         return "";
     }
     /**

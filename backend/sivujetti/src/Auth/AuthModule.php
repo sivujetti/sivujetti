@@ -42,19 +42,35 @@ final class AuthModule {
      */
     private function checkIfUserIsPermittedToAccessThisRoute(Request $req,
                                                              Response $res): bool {
-
+        $ctx = $req->routeInfo->myCtx;
         // Route explicitly marked as public / not protected -> do nothing
-        if (($req->routeInfo->myCtx["skipAuth"] ?? null) === true) {
+        if (($ctx["skipAuth"] ?? null) === true) {
             return true;
         }
+
+        $loadLazilyAndReturnEarly = ($ctx["skipAuthButLoadRequestUser"] ?? null) === true;
+        // Load the user normally
+        if (!$loadLazilyAndReturnEarly)
+            $req->myData->user = $this->di->make(Authenticator::class)->getIdentity();
+        // Load the user only if session has been started already
+        else {
+            $sessionExists = strlen($req->cookie("PHPSESSID", "")) > 16;
+            $req->myData->user = !$sessionExists
+                ? null
+                : $this->di->make(Authenticator::class)->getIdentity();
+        }
+
+        if ($loadLazilyAndReturnEarly) {
+            return true;
+        }
+
         // User not found from the session nor the rememberMe data
-        $req->myData->user = $this->di->make(Authenticator::class)->getIdentity();
         if (!($userRole = $req->myData->user?->role)) {
             $res->status(401)->plain("Login required");
             return false;
         }
         //
-        $aclInfo = $req->routeInfo->myCtx["identifiedBy"];
+        $aclInfo = $ctx["identifiedBy"];
         [$rules, $isPlugin] = $this->getAclRulesFor($aclInfo);
         $acl = !$isPlugin ? $this->di->make(ACL::class) : self::createEmptyAcl();
         $acl->setRules($rules);

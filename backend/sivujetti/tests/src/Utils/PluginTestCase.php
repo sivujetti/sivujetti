@@ -10,10 +10,14 @@ use TestState;
 abstract class PluginTestCase extends RenderPageTestCase {
     protected BlockTestUtils $blockTestUtils;
     protected \TestState $state;
+    protected array $useTheseMocks;
+    protected ?\Closure $finalMocksAlterer;
     protected function setUp(): void {
         parent::setUp();
         $this->blockTestUtils = new BlockTestUtils;
         $this->state = new TestState;
+        $this->useTheseMocks = [];
+        $this->finalMocksAlterer = null;
     }
     protected function setupPageTest(): PluginTestCase {
         $this->state->testPageData = $this->pageTestUtils->makeTestPageData();
@@ -41,11 +45,20 @@ abstract class PluginTestCase extends RenderPageTestCase {
         return $this;
     }
     /**
+     * @param string $name "auth"|"apiCtx"
+     * @param array{":useAnonUser"?: boolean, ":userRole"?: int}|array{0: \Sivujetti\SharedAPIContext, ":session": \PHPUnit\Framework\MockObject\MockObject} $args
+     * @return $this
+     */
+    protected function withMock(string $name, array $args): PluginTestCase {
+        $this->useTheseMocks[] = [$name, $args];
+        return $this;
+    }
+    /**
      * @param \Closure $alterer \Closure(\Sivujetti\Tests\Utils\TestEnvBootstrapper $bootModule): void
      * @return $this
      */
     protected function withBootModuleAlterer(\Closure $alterer): PluginTestCase {
-        $this->makeTestSivujettiApp($this->state, $alterer);
+        $this->finalMocksAlterer = $alterer;
         return $this;
     }
     /**
@@ -54,7 +67,12 @@ abstract class PluginTestCase extends RenderPageTestCase {
      */
     protected function execute(\Closure $useRequest = null): MutedSpyingResponse {
         if (!$this->state->app)
-            $this->makeTestSivujettiApp($this->state);
+            $this->makeTestSivujettiApp($this->state, function ($bootModule) {
+                //
+                foreach ($this->useTheseMocks as [$name, $args]) $bootModule->useMock($name, $args);
+                //
+                if ($this->finalMocksAlterer) $bootModule->useMockAlterer($this->finalMocksAlterer);
+            });
         $this->insertTestPageToDb($this->state);
         if (!$useRequest) {
             $this->sendRenderPageRequest($this->state);

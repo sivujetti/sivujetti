@@ -45,14 +45,14 @@ class IsInCategoryPart extends preact.Component {
                 class="form-select poppable pl-1"
                 type="button">{ theCat.length ? this.getSelectedCatTitle(theCat) : '-' }
             </button>
-            <Popup ref={ this.popup }>
+            <PopupPrerendered ref={ this.popup }>
                 <ManyToManyItemSelector
                     curSelections={ [theCat] }
                     onSelectionsChanged={ newList => this.props.parentProps.onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, newList[0], this.props.parentProps.currentFiltersJson), 'updated') }
                     relPageType={ this.relPageType }
                     onItemsFetched={ manyToManyPages => { this.setState({curAllList: manyToManyPages}); } }
                     useRadios/>
-            </Popup>
+            </PopupPrerendered>
         </div>;
     }
     /**
@@ -120,7 +120,7 @@ class UrlStartsWithPart extends preact.Component {
                 class="form-select poppable pl-1"
                 type="button">&quot;{ theVal }&quot;
             </button>
-            <Popup ref={ this.popup }>
+            <PopupPrerendered ref={ this.popup }>
                 <input
                     onInput={ this.throttledHandleValueChanged }
                     value={ theValNotCommitted }
@@ -129,7 +129,7 @@ class UrlStartsWithPart extends preact.Component {
                     type="text"
                     style="width: auto;"/>
                 <InputError errorMessage={ validationError }/>
-            </Popup>
+            </PopupPrerendered>
         </div>;
     }
     /**
@@ -202,26 +202,26 @@ class AdditionalFiltersBuilder extends preact.Component {
                 ];
             }),
             <div class="group-2 perhaps ml-1">
-                <button class="poppable" onClick={ () => this.addFilterPopup.current.open() } type="button" title={ __('Add filter') }>
-                    { (filtersParsed.length ? `${a1} ` : '') + a2 } ... <Icon iconId="plus" className="size-xs float-right ml-1"/>
+                <button class="poppable d-flex px-1" onClick={ () => this.addFilterPopup.current.open() } type="button" title={ __('Add filter') }>
+                    { (filtersParsed.length ? `${a1} ` : '') + a2 } ... <Icon iconId="plus" className="size-xs ml-1"/>
                 </button>
-                <Popup ref={ this.addFilterPopup }>
+                <PopupPrerendered ref={ this.addFilterPopup }>
                     <div class="py-1">{ filtersParsed.length ? a1 : '' }</div>
-                    <button
-                        onClick={ () => { onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, '', this.props.currentFiltersJson), 'added'); this.addFilterPopup.current.close(); } }
-                        class="group-2 poppable perhaps mb-1"
-                        type="button">
+                    <div class="instructions-list d-flex">
+                        <button
+                            onClick={ () => { onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, '', this.props.currentFiltersJson), 'added'); this.addFilterPopup.current.close(); } }
+                            class="group-2 poppable perhaps"
+                            type="button">
                             { IsInCategoryPart.getLabel(howManyType) }
-                    </button>
-                    <div class="py-1">
+                        </button>
                         <button
                             onClick={ () => { onFiltersChanged(mergeToFilterAdditional(FilterKind.URL_STARTS_WITH, '', this.props.currentFiltersJson), 'added'); this.addFilterPopup.current.close(); } }
-                            class="group-2 poppable perhaps mb-1"
+                            class="group-2 poppable perhaps"
                             type="button">
-                                { UrlStartsWithPart.getLabel(howManyType) }
+                            { UrlStartsWithPart.getLabel(howManyType) }
                         </button>
                     </div>
-                </Popup>
+                </PopupPrerendered>
             </div>
         ];
     }
@@ -282,7 +282,7 @@ function removeIsInCatFilter(from) {
     return mergeToFilterAdditional(FilterKind.IS_IN_CAT, null, from);
 }
 
-class Popup extends preact.Component {
+class PopupPrerendered extends preact.Component {
     // popperInstance;
     /**
      * @param {{children: () => preact.ComponentChild; marginLeft?: String;}} props
@@ -385,4 +385,4 @@ class Popup extends preact.Component {
  */
 
 export default AdditionalFiltersBuilder;
-export {Popup, removeIsInCatFilter};
+export {PopupPrerendered, removeIsInCatFilter};

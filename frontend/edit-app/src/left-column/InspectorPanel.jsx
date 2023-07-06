@@ -63,6 +63,7 @@ class InspectorPanel extends preact.Component {
             //
             inspectorPanelEl.style.height = `${h}px`;
             dragEl.style.transform = `translateY(-${h}px)`;
+            signals.emit('inspector-panel-height-changed', h);
         });
         document.addEventListener('mouseup', () => {
             if (currentHandle) {

@@ -1,7 +1,7 @@
 import {__, api, env, http, signals, timingUtils, Icon, LoadingSpinner, hookForm,
     unhookForm, Input, FormGroup, InputErrors, InputError, hasErrors,
     validationConstraints, floatingDialog} from '@sivujetti-commons-for-edit-app';
-import {Popup} from '../../block-types/listing/AdditionalFiltersBuilder.jsx';
+import {PopupPrerendered} from '../../block-types/listing/AdditionalFiltersBuilder.jsx';
 import {createTrier} from '../../block/dom-commons.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import CssStylesValidatorHelper from '../../commons/CssStylesValidatorHelper.js';
@@ -564,7 +564,7 @@ class EditableTitle extends preact.Component {
                     : null
                 }
             </span>,
-            userCanEditCss ? <Popup ref={ this.popup }>{ popupIsOpen
+            userCanEditCss ? <PopupPrerendered ref={ this.popup }>{ popupIsOpen
                 ? <form onSubmit={ this.applyNewTitleAndClose.bind(this) } class="text-left pb-1">
                     <FormGroup>
                         <label htmlFor="title" class="form-label pt-1">{ __('Style name') }</label>
@@ -576,7 +576,7 @@ class EditableTitle extends preact.Component {
                 </form>
                 : null
             }
-            </Popup> : null,
+            </PopupPrerendered> : null,
             <span class="pl-2 pt-1 edit-icon-outer">
             <Icon iconId="dots" className={ `size-xs color-dimmed${userCanEditCss ? '' : ' d-none'}` }/>
             </span>

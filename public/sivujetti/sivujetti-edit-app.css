@@ -367,6 +367,10 @@ h2 {
     width: 320px;
     margin-left: -120px;
 }
+#root.adjusting-panel-widths #main-panel > div > section,
+#root.adjusting-panel-widths #inspector-panel {
+    pointer-events: none;
+}
 #inspector-panel .resize-panel-handle {
     width: var(--leftPanelWidth);
     height: 8px;
@@ -682,6 +686,58 @@ a.popup-close-area {
 .static-tooltip .popper-arrow {
     top: -6px;
 }
+#tooltip {
+    background: #333;
+    padding: .4rem;
+    border-radius: var(--small-rect-radius);
+}
+#tooltip:not(.tooltip-light) {
+    color: var(--color-bg-default);
+}
+#tooltip.tooltip-light {
+    background: var(--color-bg-default);
+    border: 1px solid var(--color-border-popup);
+}
+#arrow,
+#arrow::before {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: inherit;
+    border-top: 1px solid var(--color-border-popup);
+    border-left: 1px solid var(--color-border-popup);
+}
+#arrow {
+    visibility: hidden;
+}
+#arrow::before {
+    visibility: visible;
+    content: '';
+    transform: rotate(45deg);
+}
+#tooltip[data-popper-placement^='top'] > #arrow {
+    bottom: -4px;
+}
+#tooltip[data-popper-placement^='top'] > #arrow:before {
+    transform: rotate(225deg);
+}
+#tooltip[data-popper-placement^='bottom'] > #arrow {
+    top: -5px;
+}
+#tooltip[data-popper-placement^='left'] > #arrow {
+    right: -4px;
+}
+#tooltip[data-popper-placement^='right'] > #arrow {
+    left: -4px;
+}
+#tooltip .form-radio .form-input {
+    clip: initial;
+    height: initial;
+    margin: initial;
+    overflow: initial;
+    position: static;
+    width: initial;
+}
 /* EditApp: Components: styles-list */
 ul.styles-list > li {
     background: rgba(var(--components-color-fb-default),.022);
@@ -778,6 +834,77 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     transform: scale(.8);
     top: .5rem;
     right: .4rem;
+}
+/* EditApp: Components: natural language instruction builders */
+.instructions-list {
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: .2rem;
+}
+.instructions-list > * {
+    padding: .3rem .2rem;
+    border-radius: var(--small-rect-radius);
+    white-space: nowrap;
+    max-width: 100%;
+    max-height: 1.5rem;
+}
+
+.instructions-list > *.no-round-right {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.instructions-list > *.no-round-left {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.instructions-list .poppable {
+    border: none;
+    font-size: inherit;
+    padding: 0 .4rem;
+    white-space: nowrap;
+    color: inherit;
+    font-weight: 300;
+    cursor: pointer;
+}
+.instructions-list .poppable,
+.instructions-list .form-select.poppable {
+    background-color: transparent;
+}
+.instructions-list .form-select.poppable {
+    height: 1rem;
+    line-height: initial;
+    padding-right: 1.1rem;
+}
+.instructions-list .perhaps {
+    border: 2px dashed rgba(0,0,0,0.2);
+}
+
+.instructions-list .group-1 {
+    background-color: #d8fa696b;
+}
+.instructions-list .group-2 {
+    background-color: #00a1ff38;
+}
+.instructions-list .group-2.perhaps {
+    background-color: #00a1ff12;
+}
+.instructions-list .group-3 {
+    background-color: #c752e124;
+}
+.instructions-list .group-4 {
+    background-color: #dcbda44a;
+}
+
+.instructions-list .group-p {
+    background-color: hsla(var(--components-color-purple), .14);
+}
+.instructions-list .group-p.group-p-odd {
+    filter: hue-rotate(32deg);
+}
+.instructions-list .perhaps {
+    background-color: hsla(var(--components-color-purple), .1);
+    padding-top: calc(.3rem - 2px);
+    padding-bottom: calc(.3rem - 2px);
 }
 
 
@@ -1267,78 +1394,6 @@ span.highlight-rect[data-position="bottom-inside"]:before {
     top: 100%;
     margin-top: -18px;
 }
-
-
-/* EditApp: Inspector panel > Listing block filters builder */
-.listing-instructions {
-    flex-wrap: wrap;
-    align-items: center;
-}
-.listing-instructions > * {
-    margin-bottom: .2rem;
-    border-radius: var(--small-rect-radius);
-    display: flex;
-    border: 2px solid transparent;
-    min-height: 1.6rem;
-    align-items: center;
-}
-.listing-instructions .poppable {
-    border: none;
-    width: initial;
-    font-size: inherit;
-    padding: .1rem .4rem;
-    white-space: nowrap;
-    color: inherit;
-    height: 1.4rem;
-    font-weight: 300;
-    cursor: pointer;
-}
-.listing-instructions .poppable,
-.listing-instructions .form-select.poppable {
-    background-color: transparent;
-}
-.listing-instructions .popup {
-    position: absolute;
-    display: inline;
-    font-size: .7rem;
-    padding: .2rem .6rem;
-    margin: 6.7rem 0 0 -1.4rem;
-}
-.listing-instructions .group-1 {
-    background-color: #d8fa696b;
-}
-.listing-instructions .group-2 {
-    background-color: #00a1ff38;
-}
-.listing-instructions .group-2.perhaps {
-    background-color: #00a1ff12;
-}
-.listing-instructions .group-3 {
-    background-color: #c752e124;
-}
-.listing-instructions .group-4 {
-    background-color: #dcbda44a;
-}
-.listing-instructions .perhaps {
-    border: 2px dashed rgba(0,0,0,0.2);
-}
-.listing-instructions .form-radio .form-input {
-    clip: initial;
-    height: initial;
-    margin: initial;
-    overflow: initial;
-    position: static;
-    width: initial;
-}
-.listing-instructions .no-round-right {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-.listing-instructions .no-round-left {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-}
-
 
 
 /* == EditAppViews ========================================================== */

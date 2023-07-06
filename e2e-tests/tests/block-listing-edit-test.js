@@ -21,7 +21,7 @@ describe('Listing block', () => {
     const secondListingPageHeadingLocator = '.listing > .list-item:nth-of-type(2) h2';
 
     it('User can change page type', browser => {
-        const pageTypeFilterPartGroupLocator = '#inspector-panel .listing-instructions > .group-1';
+        const pageTypeFilterPartGroupLocator = '#inspector-panel .instructions-list > .group-1';
         const testBlock = getListingBlock();
 
         //
@@ -63,7 +63,7 @@ describe('Listing block', () => {
     });
 
     it('User can change limit', browser => {
-        const limitFilterPartGroupLocator = '#inspector-panel .listing-instructions > .group-2';
+        const limitFilterPartGroupLocator = '#inspector-panel .instructions-list > .group-2';
         const secondListingPageElLocator = '.listing > .list-item:nth-of-type(2)';
         const testBlock = getListingBlock();
 
@@ -104,7 +104,7 @@ describe('Listing block', () => {
     });
 
     it('User can change listing order', browser => {
-        const orderFilterPartGroupLocator = '#inspector-panel .listing-instructions > .group-3';
+        const orderFilterPartGroupLocator = '#inspector-panel .instructions-list > .group-3';
         const testBlock = getListingBlock();
 
         //
@@ -146,8 +146,8 @@ describe('Listing block', () => {
     });
 
     it('User can add urlStartsWith filter', browser => {
-        const addAdditionalFilterBtnLocator = '#inspector-panel .listing-instructions > .perhaps';
-        const urlStartsWithFilterPartLocator = '#inspector-panel .listing-instructions > [data-filter-part-kind="urlStartsWith"].group-2';
+        const addAdditionalFilterBtnLocator = '#inspector-panel .instructions-list > .perhaps';
+        const urlStartsWithFilterPartLocator = '#inspector-panel .instructions-list > [data-filter-part-kind="urlStartsWith"].group-2';
         const testBlock = getListingBlock();
 
         //

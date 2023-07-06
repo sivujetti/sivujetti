@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "moduleResolution": "node",
-        "target": "es2017",
+        "target": "es2020",
         "baseUrl": "./",
         "paths": {
             "@sivujetti-commons-for-web-pages": ["frontend/commons-for-web-pages/main.js"],

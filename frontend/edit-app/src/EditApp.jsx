@@ -130,6 +130,7 @@ class EditApp extends preact.Component {
             startScreenX = e.screenX;
             el.classList.add('dragging');
             inspectorPanel = this.props.inspectorPanelRef.current;
+            inspectorPanel.props.rootEl.classList.add('adjusting-panel-widths');
         });
         const setAndEmitPanelWidths = (w) => {
             mainPanelEl.style.width = `${w}px`;
@@ -161,6 +162,8 @@ class EditApp extends preact.Component {
             if (currentHandle) commitPanelWidths();
             currentHandle = null;
             el.classList.remove('dragging');
+            if (!inspectorPanel) return;
+            inspectorPanel.props.rootEl.classList.remove('adjusting-panel-widths');
         });
         signals.on('block-dnd-opened', () => {
             inspectorPanel = this.props.inspectorPanelRef.current;

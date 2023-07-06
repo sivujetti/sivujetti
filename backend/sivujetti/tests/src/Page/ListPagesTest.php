@@ -16,6 +16,7 @@ final class ListPagesTest extends PagesControllerTestCase {
     private function setupTest(): \TestState {
         $state = new \TestState;
         $state->testPageData1 = $this->pageTestUtils->makeTestPageData();
+        $state->testPageData1->createdAt -= 10;
         $state->testPageData2 = $this->pageTestUtils->makeTestPageData();
         $state->testPageData2->id = str_replace("pp1", "pp2", $state->testPageData1->id);
         $state->testPageData2->slug .= str_replace("ello", "ello2", $state->testPageData2->slug);

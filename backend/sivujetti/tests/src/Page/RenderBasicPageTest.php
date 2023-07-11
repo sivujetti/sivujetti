@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Tests\Page;
 
-use Laminas\Dom\Query;
+use DiDom\Document;
 use MySite\Theme;
 use Pike\ArrayUtils;
 use Sivujetti\Block\BlockTree;
@@ -78,12 +78,14 @@ final class RenderBasicPageTest extends RenderPageTestCase {
     }
     private function verifyRenderedHead(\TestState $state): void {
         $retainEntities = \Closure::fromCallable([self::class, "escapeEntities"]);
-        $dom = new Query($retainEntities($state->spyingResponse->getActualBody()));
-        $ldJsonScriptEl = $dom->execute("head script[type=\"application/ld+json\"]")[0] ?? null;
+        $retainUmlauts = fn($str) => str_replace("ö", "%ou", str_replace("ä", "%au", $str));
+        $retained1 = $retainEntities($state->spyingResponse->getActualBody());
+        $dom = new Document($retainUmlauts($retained1));
+        $ldJsonScriptEl = $dom->first("head script[type=\"application/ld+json\"]");
         $this->assertNotNull($ldJsonScriptEl);
-        $this->assertStringNotContainsString("\\/", $ldJsonScriptEl->nodeValue, "ld+json should not contain escaped backslashes");
-        $this->assertStringNotContainsString("\\u0", $ldJsonScriptEl->nodeValue, "ld+json should not contain escaped unicode points");
-        $actualJdJson = json_decode(self::withEscapedBackslashes($ldJsonScriptEl->nodeValue), flags: JSON_THROW_ON_ERROR);
+        $this->assertStringNotContainsString("\\/", $ldJsonScriptEl->text(), "ld+json should not contain escaped backslashes");
+        $this->assertStringNotContainsString("\\u0", $ldJsonScriptEl->text(), "ld+json should not contain escaped unicode points");
+        $actualJdJson = json_decode(self::withEscapedBackslashes($ldJsonScriptEl->text()), flags: JSON_THROW_ON_ERROR);
         $ldWebPage = ArrayUtils::findByKey($actualJdJson->{"@graph"}, "WebPage", "@type");
         $ldWebSite = ArrayUtils::findByKey($actualJdJson->{"@graph"}, "WebSite", "@type");
         // ld+json general
@@ -92,33 +94,34 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertEquals("{$expectedSiteUrlFull}#website", $ldWebSite->{"@id"});
         $this->assertEquals((object) ["@id" => $ldWebSite->{"@id"}], $ldWebPage->isPartOf);
         // Title
-        $expectedTitle = $retainEntities(Template::e($state->testPageData->title)) . " - Test suitö website xss %gt;";
-        $titleEl1 = $dom->execute("head title")[0] ?? null;
-        $titleEl2 = $dom->execute("head meta[property=\"og:title\"]")[0] ?? null;
+        $expectedTitle = $retainUmlauts($retainEntities(Template::e($state->testPageData->title)) .
+                                                        " - Test suitö website xss %gt;");
+        $titleEl1 = $dom->first("head title");
+        $titleEl2 = $dom->first("head meta[property=\"og:title\"]");
         $this->assertNotNull($titleEl1);
         $this->assertNotNull($titleEl2);
-        $this->assertEquals($expectedTitle, $titleEl1->nodeValue);
+        $this->assertEquals($expectedTitle, $titleEl1->getNode()->nodeValue);
         $this->assertEquals($expectedTitle, $titleEl2->getAttribute("content"));
         $this->assertEquals($expectedTitle, $ldWebPage->name);
         // Description
         $expectedDescr = $retainEntities(Template::e($state->testPageData->meta->description));
-        $descrEl1 = $dom->execute("head meta[name=\"description\"]")[0] ?? null;
-        $descrEl2 = $dom->execute("head meta[property=\"og:description\"]")[0] ?? null;
+        $descrEl1 = $dom->first("head meta[name=\"description\"]");
+        $descrEl2 = $dom->first("head meta[property=\"og:description\"]");
         $this->assertNotNull($descrEl1);
         $this->assertNotNull($descrEl2);
         $this->assertEquals($expectedDescr, $descrEl1->getAttribute("content"));
         $this->assertEquals($expectedDescr, $descrEl2->getAttribute("content"));
         $this->assertEquals($expectedDescr, $ldWebPage->description);
         // Locale
-        $localeEl = $dom->execute("head meta[property=\"og:locale\"]")[0] ?? null;
+        $localeEl = $dom->first("head meta[property=\"og:locale\"]");
         $this->assertNotNull($localeEl);
         $this->assertEquals("fi_FI", $localeEl->getAttribute("content"));
         $this->assertEquals("fi", $ldWebSite->inLanguage);
         $this->assertEquals("fi", $ldWebPage->inLanguage);
         // Permalink
         $expectedPageUrlFull = "http://localhost" . rtrim(Template::makeUrl($state->testPageData->path), "/");
-        $permaEl1 = $dom->execute("head link[rel=\"canonical\"]")[0] ?? null;
-        $permaEl2 = $dom->execute("head meta[property=\"og:url\"]")[0] ?? null;
+        $permaEl1 = $dom->first("head link[rel=\"canonical\"]");
+        $permaEl2 = $dom->first("head meta[property=\"og:url\"]");
         $this->assertNotNull($permaEl1);
         $this->assertNotNull($permaEl2);
         $this->assertEquals($expectedPageUrlFull, $permaEl1->getAttribute("href"));
@@ -128,29 +131,29 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertEquals((object) ["@type" => "ReadAction", "target" => [$expectedPageUrlFull]],
                             $ldWebPage->potentialAction[0]);
         // Published at + Last modified at
-        $lastModEl = $dom->execute("head meta[property=\"article:modified_time\"]")[0] ?? null;
+        $lastModEl = $dom->first("head meta[property=\"article:modified_time\"]");
         $this->assertNotNull($lastModEl);
         $this->assertEquals(date("Y-m-d\TH:i:sP", $state->testPageData->lastUpdatedAt), $lastModEl->getAttribute("content"));
         $this->assertEquals(date("Y-m-d\TH:i:sP", $state->testPageData->createdAt), $ldWebPage->datePublished);
         $this->assertEquals(date("Y-m-d\TH:i:sP", $state->testPageData->lastUpdatedAt), $ldWebPage->dateModified);
         // Site name + description
-        $siteNameEl = $dom->execute("head meta[property=\"og:site_name\"]")[0] ?? null;
-        $expectedSiteName = "Test suitö website xss %gt;";
+        $siteNameEl = $dom->first("head meta[property=\"og:site_name\"]");
+        $expectedSiteName = $retainUmlauts("Test suitö website xss %gt;");
         $this->assertEquals($expectedSiteName, $siteNameEl->getAttribute("content"));
         $this->assertEquals($expectedSiteName, $ldWebSite->name);
         $this->assertEquals("xss %gt;", $ldWebSite->description);
         // Social image
         $input = $state->testPageData->meta->socialImage;
-        $imgUrlEl = $dom->execute("head meta[property=\"og:image\"]")[0] ?? null;
+        $imgUrlEl = $dom->first("head meta[property=\"og:image\"]");
         $expectedImgUrl = "http://localhost" . WebPageAwareTemplate::makeUrl("/public/uploads/{$input->src}", false);
         $this->assertEquals($expectedImgUrl, $imgUrlEl->getAttribute("content"));
-        $imgWidthEl = $dom->execute("head meta[property=\"og:image:width\"]")[0] ?? null;
+        $imgWidthEl = $dom->first("head meta[property=\"og:image:width\"]");
         $this->assertEquals($input->width, $imgWidthEl->getAttribute("content"));
-        $imgHeightEl = $dom->execute("head meta[property=\"og:image:height\"]")[0] ?? null;
+        $imgHeightEl = $dom->first("head meta[property=\"og:image:height\"]");
         $this->assertEquals($input->height, $imgHeightEl->getAttribute("content"));
-        $imgTypeEl = $dom->execute("head meta[property=\"og:image:type\"]")[0] ?? null;
+        $imgTypeEl = $dom->first("head meta[property=\"og:image:type\"]");
         $this->assertEquals($input->mime, $imgTypeEl->getAttribute("content"));
-        $twtCardTypeEl = $dom->execute("head meta[name=\"twitter:card\"]")[0] ?? null;
+        $twtCardTypeEl = $dom->first("head meta[name=\"twitter:card\"]");
         $this->assertEquals("summary_large_image", $twtCardTypeEl->getAttribute("content"));
         $ldImage = ArrayUtils::findByKey($actualJdJson->{"@graph"}, "ImageObject", "@type");
         $this->assertEquals("{$expectedSiteUrlFull}#primaryimage", $ldImage->{"@id"});
@@ -186,11 +189,10 @@ final class RenderBasicPageTest extends RenderPageTestCase {
     }
     private function verifyInjectedThemeStylesViaJavascript(\TestState $state): void {
         $ts = TestData::getThemeStyles();
-        $dom = new Query($state->spyingResponse->getActualBody());
-        /** @var \DOMElement[] */
-        $scriptEls = $dom->execute("head script") ?? [];
+        $dom = new Document($state->spyingResponse->getActualBody());
+        $scriptEls = $dom->find("head script");
         $this->assertNotEmpty($scriptEls);
-        $injectJs = $scriptEls[count($scriptEls) - 1]->nodeValue;
+        $injectJs = $scriptEls[count($scriptEls) - 1]->text();
         $orderStyles = fn($styles) => [$styles[1], $styles[0]];
         $expectedStyles = json_encode(array_map(fn($itm) => (object) [
             "css" => ThemesController::combineAndWrapCss(json_decode($itm->units), $itm->blockTypeName),

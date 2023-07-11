@@ -1,0 +1,77 @@
+Library: FluentPDO
+License: Apache-2.0 / GPLv2
+Link: https://github.com/envms/fluentpdo#license
+
+Library: PHPMailer
+License: LGPL-2.1
+Link: https://github.com/PHPMailer/PHPMailer/blob/master/LICENSE
+
+Library: PHPUnit
+License: MIT
+Link: https://github.com/sebastianbergmann/phpunit/blob/main/LICENSE
+
+Library: Pike
+License: Apache-2.0
+Link: https://github.com/ut4/pike/blob/master/LICENSE
+
+Library: Psalm
+License: MIT
+Link: https://github.com/vimeo/psalm/blob/master/LICENSE
+
+Library: DiDOM
+License: MIT
+Link: https://github.com/Imangazaliev/DiDOM/blob/master/LICENSE
+
+----
+
+Library: Autosize
+License: MIT
+Link: https://github.com/jackmoore/autosize/blob/master/LICENSE.md
+
+Library: FileSaver.js
+License: MIT
+Link: https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md
+
+Library: Floating UI (Popper.js)
+License: MIT
+Link: https://github.com/floating-ui/floating-ui/blob/master/LICENSE
+
+Library: jsPanel
+License: MIT
+Link: https://raw.githubusercontent.com/Flyer53/jsPanel4/master/LICENSE
+
+Library: Pickr
+License: MIT
+Link: https://github.com/Simonwep/pickr/blob/master/LICENSE
+
+Library: preact
+License: MIT
+Link: https://github.com/preactjs/preact/blob/master/LICENSE
+
+Library: preact-router
+License: MIT
+Link: https://github.com/preactjs/preact-router/blob/main/LICENSE
+
+Library: Quill
+License: BSD-3-Clause License
+Link: https://github.com/quilljs/quill/blob/develop/LICENSE
+
+Library: Redux
+License: MIT
+Link: https://github.com/reduxjs/redux/blob/master/LICENSE.md
+
+Library: Sortable
+License: MIT
+Link: https://github.com/SortableJS/Sortable/blob/master/LICENSE
+
+Library: Spectre.css
+License: MIT
+Link: https://github.com/picturepan2/spectre/blob/master/LICENSE
+
+Library: Storeon
+License: MIT
+Link: https://github.com/storeon/storeon/blob/main/LICENSE
+
+Library: stylis.js
+License: MIT
+Link: https://github.com/thysultan/stylis/blob/master/LICENSE

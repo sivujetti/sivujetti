@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4dc723456e9f909b42a542b826d6582c",
+    "content-hash": "5764b4961526a74b3a5b8b2291f71d43",
     "packages": [
         {
             "name": "altorouter/altorouter",
@@ -947,68 +947,56 @@
             "time": "2022-12-24T12:35:10+00:00"
         },
         {
-            "name": "laminas/laminas-dom",
-            "version": "2.13.0",
+            "name": "imangazaliev/didom",
+            "version": "2.0.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/laminas/laminas-dom.git",
-                "reference": "d30cbc41b970363afb66391ade3dab911487e3c0"
+                "url": "https://github.com/Imangazaliev/DiDOM.git",
+                "reference": "50fa6595d14f22c0c984efed5c818485cf548136"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laminas/laminas-dom/zipball/d30cbc41b970363afb66391ade3dab911487e3c0",
-                "reference": "d30cbc41b970363afb66391ade3dab911487e3c0",
+                "url": "https://api.github.com/repos/Imangazaliev/DiDOM/zipball/50fa6595d14f22c0c984efed5c818485cf548136",
+                "reference": "50fa6595d14f22c0c984efed5c818485cf548136",
                 "shasum": ""
             },
             "require": {
                 "ext-dom": "*",
-                "ext-libxml": "*",
-                "php": "~8.0.0 || ~8.1.0 || ~8.2.0"
-            },
-            "conflict": {
-                "zendframework/zend-dom": "*"
+                "ext-iconv": "*",
+                "php": ">=7.2"
             },
             "require-dev": {
-                "laminas/laminas-coding-standard": "^2.4.0",
-                "phpunit/phpunit": "^9.5.25"
+                "phpunit/phpunit": "^8.5"
             },
             "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.7.x-dev",
-                    "dev-develop": "2.8.x-dev"
-                }
-            },
             "autoload": {
                 "psr-4": {
-                    "Laminas\\Dom\\": "src/"
+                    "DiDom\\": "src/DiDom/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "BSD-3-Clause"
+                "MIT"
             ],
-            "description": "provides tools for working with DOM documents and structures",
-            "homepage": "https://laminas.dev",
-            "keywords": [
-                "dom",
-                "laminas"
-            ],
-            "support": {
-                "chat": "https://laminas.dev/chat",
-                "docs": "https://docs.laminas.dev/laminas-dom/",
-                "forum": "https://discourse.laminas.dev",
-                "issues": "https://github.com/laminas/laminas-dom/issues",
-                "rss": "https://github.com/laminas/laminas-dom/releases.atom",
-                "source": "https://github.com/laminas/laminas-dom"
-            },
-            "funding": [
+            "authors": [
                 {
-                    "url": "https://funding.communitybridge.org/projects/laminas-project",
-                    "type": "community_bridge"
+                    "name": "Imangazaliev Muhammad",
+                    "email": "imangazalievm@gmail.com"
                 }
             ],
-            "time": "2022-10-16T14:25:01+00:00"
+            "description": "Simple and fast HTML parser",
+            "homepage": "https://github.com/Imangazaliev/DiDOM",
+            "keywords": [
+                "didom",
+                "html",
+                "parser",
+                "xml"
+            ],
+            "support": {
+                "issues": "https://github.com/Imangazaliev/DiDOM/issues",
+                "source": "https://github.com/Imangazaliev/DiDOM/tree/2.0.1"
+            },
+            "time": "2023-03-05T03:23:48+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -3940,9 +3928,9 @@
     "prefer-lowest": false,
     "platform": {
         "php": "^8.0.0",
-        "ext-mbstring": "*",
         "ext-ctype": "*",
-        "ext-fileinfo": "*"
+        "ext-fileinfo": "*",
+        "ext-mbstring": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.3.0"

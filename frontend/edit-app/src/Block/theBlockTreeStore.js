@@ -59,7 +59,7 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/undo',
     /**
      * @param {Object} state
-     * @param {[Array<RawBlock>, String, Boolean]} args
+     * @param {[Array<RawBlock>, String, 'default'|'delete'|'convertToGlobal']} args
      * @returns {Object}
      */
     (_state, [theBlockTree]) =>
@@ -81,9 +81,9 @@ function theBlockTreeStore(store) {
      * @param {[String, String, Boolean|null]} args
      * @returns {Object}
      */
-    const deleteBlock = ({theBlockTree}, [id, _blockIsStoredToTreeId, _wasCurrentlySelectedBlock]) => {
+    const deleteBlock = ({theBlockTree}, [blockId, _blockIsStoredToTreeId, _wasCurrentlySelectedBlock]) => {
         const clone = cloneObjectDeep(theBlockTree);
-        const [ref, refBranch] = blockTreeUtils.findBlockSmart(id, clone);
+        const [ref, refBranch] = blockTreeUtils.findBlockSmart(blockId, clone);
         refBranch.splice(refBranch.indexOf(ref), 1); // mutates clone
         return {theBlockTree: clone};
     };

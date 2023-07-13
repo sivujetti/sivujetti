@@ -72,9 +72,9 @@ class ReRenderer {
             }
         // ====================================================================
         } else if (event === 'theBlockTree/undo') {
-            const [_oldTree, maybeBlockId, isUndoOfConvertToGlobal] = data;
+            const [_oldTree, maybeBlockId, isUndoOf] = data;
             //
-            if (maybeBlockId && !isUndoOfConvertToGlobal) {
+            if (maybeBlockId && isUndoOf === 'default') {
                 const pool = this.elCache.get(maybeBlockId);
                 pool.pop();
                 this.elCache.set(maybeBlockId, pool);

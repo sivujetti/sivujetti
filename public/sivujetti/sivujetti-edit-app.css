@@ -51,6 +51,7 @@ Structure:
 
     --color-bg-default: #fff;
     --color-border-popup: rgba(var(--components-color-fb-default),.5);
+    --color-table-row-odd: #f7f8f9;
 
     --small-rect-radius: 4px;
 
@@ -288,6 +289,18 @@ h2 {
 .jsPanel-titlebar .jsPanel-title {
     font: 800 1.4rem/1.4rem "Fira Sans"
 }
+.table.table-striped .tr:nth-of-type(odd) {
+    background: var(--color-table-row-odd);
+}
+.table .td, .table .th {
+    border-bottom: 0.05rem solid #dadee4;
+    padding: 0.6rem 0.4rem;
+    align-items: center;
+    display: flex;
+}
+.table .th {
+    border-bottom-width: 0.1rem;
+}
 @keyframes adjust-main-panel {
     to {
         height: 70%;
@@ -486,10 +499,13 @@ a.popup-close-area {
 .anim-outer {
     overflow: hidden;
 }
-.reveal-from-right,
+.reveal-from-right {
+    animation: .125s reveal-anim forwards;
+    opacity: 0;
+    position: relative;
+}
 .reveal-from-left {
-    animation: .125s reveal-anim;
-    animation-fill-mode: forwards;
+    animation: .125s reveal-anim forwards;
     opacity: 0;
     position: relative;
 }
@@ -502,15 +518,13 @@ a.popup-close-area {
     transform: translateX(100%);
 }
 .fade-to-left {
-    animation: .125s fade-to-left-anim;
-    animation-fill-mode: forwards;
+    animation: .125s fade-to-left-anim forwards;
 }
 .reveal-from-left {
     transform: translateX(-100%);
 }
 .fade-to-right {
-    animation: .125s fade-to-right-anim;
-    animation-fill-mode: forwards;
+    animation: .125s fade-to-right-anim forwards;
     position: relative;
 }
 /* EditApp: Components: grids */
@@ -617,37 +631,32 @@ a.popup-close-area {
     z-index: 1;
 }
 /* EditApp: Components: tooltips */
-.my-tooltip  {
-    display: none;
-    font-size: .7rem;
-    padding: .2rem .6rem;
-    background-color: var(--color-bg-default);
+.my-tooltip {
+    background: var(--color-bg-default);
+    padding: .4rem;
     border-radius: var(--small-rect-radius);
     border: 1px solid var(--color-border-popup);
     z-index: 1;
 }
-.my-tooltip.dark  {
-    background-color: #333;
-    color: #fff;
-    border-color: transparent;
+.my-tooltip.tooltip-prerendered {
+    display: none;
 }
-.my-tooltip.visible {
+.my-tooltip.tooltip-prerendered.visible {
     display: block;
+}
+.my-tooltip.tooltip-dark {
+    background: #333;
+    color: var(--color-bg-default);
+    border-color: transparent;
 }
 .popper-arrow,
 .popper-arrow::before {
     position: absolute;
     width: 8px;
     height: 8px;
-    background: var(--color-bg-default);
+    background: inherit;
     border-top: 1px solid var(--color-border-popup);
     border-left: 1px solid var(--color-border-popup);
-}
-.dark .popper-arrow,
-.dark .popper-arrow::before {
-    background: #333;
-    border-top-color: transparent;
-    border-left: transparent;
 }
 .popper-arrow {
     visibility: hidden;
@@ -658,7 +667,10 @@ a.popup-close-area {
     transform: rotate(45deg);
 }
 .my-tooltip[data-popper-placement^='top'] > .popper-arrow {
-    bottom: -3px;
+    bottom: -4px;
+}
+.my-tooltip[data-popper-placement^='top'] > .popper-arrow:before {
+    transform: rotate(225deg);
 }
 .my-tooltip[data-popper-placement^='bottom'] > .popper-arrow {
     top: -5px;
@@ -668,6 +680,14 @@ a.popup-close-area {
 }
 .my-tooltip[data-popper-placement^='right'] > .popper-arrow {
     left: -4px;
+}
+.my-tooltip .form-radio .form-input {
+    clip: initial;
+    height: initial;
+    margin: initial;
+    overflow: initial;
+    position: static;
+    width: initial;
 }
 .static-tooltip {
     position: absolute;
@@ -685,58 +705,6 @@ a.popup-close-area {
 }
 .static-tooltip .popper-arrow {
     top: -6px;
-}
-#tooltip {
-    background: #333;
-    padding: .4rem;
-    border-radius: var(--small-rect-radius);
-}
-#tooltip:not(.tooltip-light) {
-    color: var(--color-bg-default);
-}
-#tooltip.tooltip-light {
-    background: var(--color-bg-default);
-    border: 1px solid var(--color-border-popup);
-}
-#arrow,
-#arrow::before {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background: inherit;
-    border-top: 1px solid var(--color-border-popup);
-    border-left: 1px solid var(--color-border-popup);
-}
-#arrow {
-    visibility: hidden;
-}
-#arrow::before {
-    visibility: visible;
-    content: '';
-    transform: rotate(45deg);
-}
-#tooltip[data-popper-placement^='top'] > #arrow {
-    bottom: -4px;
-}
-#tooltip[data-popper-placement^='top'] > #arrow:before {
-    transform: rotate(225deg);
-}
-#tooltip[data-popper-placement^='bottom'] > #arrow {
-    top: -5px;
-}
-#tooltip[data-popper-placement^='left'] > #arrow {
-    right: -4px;
-}
-#tooltip[data-popper-placement^='right'] > #arrow {
-    left: -4px;
-}
-#tooltip .form-radio .form-input {
-    clip: initial;
-    height: initial;
-    margin: initial;
-    overflow: initial;
-    position: static;
-    width: initial;
 }
 /* EditApp: Components: styles-list */
 ul.styles-list > li {
@@ -865,6 +833,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     color: inherit;
     font-weight: 300;
     cursor: pointer;
+    max-width: 100%;
 }
 .instructions-list .poppable,
 .instructions-list .form-select.poppable {

@@ -106,7 +106,7 @@ function createDndController(_blockTree) {
                 return;
             if (lastAcceptedSwapIdx === 0 && !extDragData && areKeysEqual(initialTree, store2.get().theBlockTree)) // Had moves, but returned to initial
                 return;
-            store2.dispatch('theBlockTree/undo', [initialTree, null, false]);
+            store2.dispatch('theBlockTree/undo', [initialTree, null, 'default']);
         },
         /**
          * @param {SpawnDescriptor|null}

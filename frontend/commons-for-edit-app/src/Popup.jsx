@@ -5,7 +5,7 @@ let signals;
 
 class Popup extends preact.Component {
     // rendererCmp;
-    // popper;
+    // popperInstance; // public
     // isUnmounted;
     // unregistrables;
     /**
@@ -34,9 +34,9 @@ class Popup extends preact.Component {
      * @access protected
      */
     render({Renderer, rendererProps, close}) {
-        return <div id="tooltip" class="tooltip-light" role="tooltip" ref={ this.handleOuterElRefd.bind(this) }>
+        return <div class="my-tooltip" role="tooltip" ref={ this.handleOuterElRefd.bind(this) }>
             <Renderer { ...rendererProps } ref={ this.rendererCmp }/>
-            <div id="arrow" data-popper-arrow></div>
+            <div class="popper-arrow" data-popper-arrow></div>
             <button
                 onClick={ close }
                 class="btn btn-link btn-sm p-1 p-absolute"
@@ -52,17 +52,17 @@ class Popup extends preact.Component {
      * @access private
      */
     handleOuterElRefd(el) {
-        if (el && this.rendererCmp.current && !this.popper) {
+        if (el && this.rendererCmp.current && !this.popperInstance) {
             this.isUnmounted = false;
-            this.popper = window.Popper.createPopper(this.props.btn, el, {
+            this.popperInstance = window.Popper.createPopper(this.props.btn, el, {
                 modifiers: [{
                     name: 'offset',
                     options: {offset: [0, 16]},
                 }, {name: 'eventListeners', enabled: true}],
             });
             const updatePopper = () => {
-                if (!this.isUnmounted && this.popper)
-                    this.popper.update();
+                if (!this.isUnmounted && this.popperInstance)
+                    this.popperInstance.update();
             };
             this.unregistrables = [
                 signals.on('left-column-width-changed', updatePopper),

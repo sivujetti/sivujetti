@@ -47,8 +47,11 @@ class OpQueueItemEmitter {
                     );
             } else if (event === 'theBlockTree/deleteBlock') {
                 const oldTree = this.prevTree;
-                const [_id, blockIsStoredToTreeId, _wasCurrentlySelectedBlock] = data;
-                this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId);
+                const [blockId, blockIsStoredToTreeId, _wasCurrentlySelectedBlock] = data;
+                const onUndo = undefined;
+                const originalEvent = 'delete';
+                this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId,
+                                                    blockId, onUndo, originalEvent);
             } else if (event === 'theBlockTree/undoAdd(Drop)Block') {
                 // do nothing
             } else if (event === 'theBlockTree/updatePropsOf') {
@@ -90,7 +93,7 @@ class OpQueueItemEmitter {
                         // Remove 1. op from the queue
                         api.saveButton.triggerUndo();
                     }, 100);
-                }, true);
+                }, 'convertToGlobal');
             }
         }),
         observeStore2('reusableBranches', (_state, [event, data]) => {
@@ -133,20 +136,24 @@ class OpQueueItemEmitter {
      * @param {Array<RawBlock>} theBlockTree
      * @param {Array<RawBlock>} oldTree
      * @param {String} blockIsStoredToTreeId
-     * @param {String} updateOfBlockId = null
+     * @param {String} updateOrDeleteOfBlockId = null
      * @param {() => any} onUndo = null
-     * @param {Boolean} isUndoOfConvertToGlobal = false
+     * @param {'default'|'deleteBlock'|'convertToGlobal'} originalEvent = 'default'
      * @access private
      */
-    pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId,
-                                updateOfBlockId = null, onUndo = null, isUndoOfConvertToGlobal = false) {
+    pushSaveBlockTreeToBackendOp(theBlockTree,
+                                oldTree,
+                                blockIsStoredToTreeId,
+                                updateOrDeleteOfBlockId = null,
+                                onUndo = null,
+                                originalEvent = 'default') {
         const rootOrInnerTree = blockTreeUtils.findTree(blockIsStoredToTreeId, theBlockTree);
-        if (updateOfBlockId) signals.emit('op-queue-before-push-item', updateOfBlockId);
+        if (updateOrDeleteOfBlockId && originalEvent === 'default')
+            signals.emit('op-queue-before-push-item', updateOrDeleteOfBlockId);
         store.dispatch(pushItemToOpQueue(`update-block-tree##${blockIsStoredToTreeId}`, {
             doHandle: () => saveExistingBlocksToBackend(rootOrInnerTree, blockIsStoredToTreeId),
             doUndo: () => {
-                store2.dispatch('theBlockTree/undo', [oldTree, updateOfBlockId,
-                                                        isUndoOfConvertToGlobal]);
+                store2.dispatch('theBlockTree/undo', [oldTree, updateOrDeleteOfBlockId, originalEvent]);
                 this.setPrevBlockTree(oldTree);
                 if (onUndo) onUndo();
             },

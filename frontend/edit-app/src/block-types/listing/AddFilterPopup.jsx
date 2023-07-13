@@ -1,4 +1,5 @@
-import {__, api, env, Icon, InputError, timingUtils, validationConstraints} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, Icon, InputError, timingUtils, validationConstraints,
+        signals} from '@sivujetti-commons-for-edit-app';
 import {ManyToManyItemSelector} from '../../left-column/page/ManyToManyField.jsx';
 
 const FilterKind = {
@@ -23,7 +24,7 @@ class IsInCategoryPart extends preact.Component {
     componentWillMount() {
         this.popup = preact.createRef();
         const {workableFilter} = this.props;
-        const relPageTypeName = findFieldInfo(workableFilter.propPath, this.props.parentProps.getListPageTypeOwnProps()).dataType.rel;
+        const relPageTypeName = findFieldInfo(workableFilter.propPath, this.props.getListPageTypeOwnProps()).dataType.rel;
         this.relPageType = api.getPageTypes().find(({name}) => name === relPageTypeName);
         this.updateState(workableFilter);
     }
@@ -41,14 +42,14 @@ class IsInCategoryPart extends preact.Component {
     render(_, {theCat}) {
         return <div>
             <button
-                onClick={ () => this.popup.current.open() }
+                onClick={ () => (setTimeout(() => this.popup.current.popperInstance.update(), 20), this.popup.current.open()) }
                 class="form-select poppable pl-1"
                 type="button">{ theCat.length ? this.getSelectedCatTitle(theCat) : '-' }
             </button>
             <PopupPrerendered ref={ this.popup }>
                 <ManyToManyItemSelector
                     curSelections={ [theCat] }
-                    onSelectionsChanged={ newList => this.props.parentProps.onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, newList[0], this.props.parentProps.currentFiltersJson), 'updated') }
+                    onSelectionsChanged={ newList => this.props.parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, newList[0], this.props.currentFiltersJson), 'updated', this.popup.current) }
                     relPageType={ this.relPageType }
                     onItemsFetched={ manyToManyPages => { this.setState({curAllList: manyToManyPages}); } }
                     useRadios/>
@@ -116,7 +117,7 @@ class UrlStartsWithPart extends preact.Component {
     render(_, {theVal, theValNotCommitted, validationError}) {
         return <div>
             <button
-                onClick={ () => this.popup.current.open() }
+                onClick={ () => (setTimeout(() => this.popup.current.popperInstance.update(), 20), this.popup.current.open()) }
                 class="form-select poppable pl-1"
                 type="button">&quot;{ theVal }&quot;
             </button>
@@ -154,83 +155,36 @@ class UrlStartsWithPart extends preact.Component {
             err = __('regexp').replace('{field}', __('This value'));
         }
         if (!err)
-            this.props.parentProps.onFiltersChanged(mergeToFilterAdditional(FilterKind.URL_STARTS_WITH, val, this.props.parentProps.currentFiltersJson), 'updated');
+            this.props.parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.URL_STARTS_WITH, val, this.props.currentFiltersJson), 'updated', this.popup.current);
         else
             this.setState({theValNotCommitted: e.target.value, validationError: err});
     }
 }
 
-class AdditionalFiltersBuilder extends preact.Component {
-    // addFilterPopup;
+class AddFilterPopup extends preact.Component {
     /**
+     * @param {{filtersParsed: Array<Object>; howManyType: 'all'|'single'|'atMost'; currentFiltersJson: String; parent: ListingBlockEditForm;}} props
      * @access protected
      */
-    componentWillMount() {
-        this.addFilterPopup = preact.createRef();
-        this.updateFiltersParsedState(this.props.currentFiltersJson);
-    }
-    /**
-     * @param {AdditionalFilterBuilderProps} props
-     * @access protected
-     */
-    componentWillReceiveProps(props) {
-        if (props.currentFiltersJson !== this.props.currentFiltersJson)
-            this.updateFiltersParsedState(props.currentFiltersJson);
-    }
-    /**
-     * @access protected
-     */
-    render({onFiltersChanged, howManyType}, {filtersParsed}) {
+    render({filtersParsed, howManyType, currentFiltersJson, parent}) {
         const a1 = __('and');
-        const a2 = `${__(howManyType !== 'single' ? 'which#nominative' : 'which') }/${ __(howManyType !== 'single' ? 'whose' : 'which#genitive')}`;
         return [
-            ...filtersParsed.map((filter, i) => {
-                const Cls = filter.kind === FilterKind.URL_STARTS_WITH ? UrlStartsWithPart : IsInCategoryPart;
-                return [
-                    <span class="group-2 ml-1 pl-2 pr-1 no-round-right">{ // todo trigger next element when clicked
-                        (i ? `${__('and')} ` : '') + Cls.getLabel(howManyType)
-                    }</span>,
-                    <div class="group-2 no-round-left pl-0" data-filter-part-kind={ filter.kind }>
-                        <Cls workableFilter={ filter } parentProps={ this.props }/>
-                        <button
-                            onClick={ () => onFiltersChanged(mergeToFilterAdditional(filter.kind, null, this.props.currentFiltersJson), 'removed') }
-                            class="btn btn-sm btn-link btn-icon flex-centered pl-0"
-                            type="button"
-                            title={ __('Delete filter') }
-                            style="background: 0 0;"><Icon iconId="x" className="size-xs color-dimmed"/></button>
-                    </div>
-                ];
-            }),
-            <div class="group-2 perhaps ml-1">
-                <button class="poppable d-flex px-1" onClick={ () => this.addFilterPopup.current.open() } type="button" title={ __('Add filter') }>
-                    { (filtersParsed.length ? `${a1} ` : '') + a2 } ... <Icon iconId="plus" className="size-xs ml-1"/>
+            <div class="py-1">{ filtersParsed.length ? a1 : '' }</div>,
+            <div class="instructions-list d-flex">
+                <button
+                    onClick={ () => { parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, '', currentFiltersJson), 'added'); parent.closeCurrentPopup(); } }
+                    class="group-2 poppable perhaps"
+                    type="button">
+                    { IsInCategoryPart.getLabel(howManyType) }
                 </button>
-                <PopupPrerendered ref={ this.addFilterPopup }>
-                    <div class="py-1">{ filtersParsed.length ? a1 : '' }</div>
-                    <div class="instructions-list d-flex">
-                        <button
-                            onClick={ () => { onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, '', this.props.currentFiltersJson), 'added'); this.addFilterPopup.current.close(); } }
-                            class="group-2 poppable perhaps"
-                            type="button">
-                            { IsInCategoryPart.getLabel(howManyType) }
-                        </button>
-                        <button
-                            onClick={ () => { onFiltersChanged(mergeToFilterAdditional(FilterKind.URL_STARTS_WITH, '', this.props.currentFiltersJson), 'added'); this.addFilterPopup.current.close(); } }
-                            class="group-2 poppable perhaps"
-                            type="button">
-                            { UrlStartsWithPart.getLabel(howManyType) }
-                        </button>
-                    </div>
-                </PopupPrerendered>
+                <button
+                    onClick={ () => { parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.URL_STARTS_WITH, '', currentFiltersJson), 'added'); parent.closeCurrentPopup(); } }
+                    class="group-2 poppable perhaps"
+                    type="button">
+                    { UrlStartsWithPart.getLabel(howManyType) }
+                </button>
             </div>
         ];
-    }
-    /**
-     * @param {String} currentFiltersJson
-     * @access private
-     */
-    updateFiltersParsedState(currentFiltersJson) {
-        this.setState({filtersParsed: buildWorkableFilters(currentFiltersJson)});
     }
 }
 
@@ -310,6 +264,14 @@ class PopupPrerendered extends preact.Component {
         setTimeout(() => {
             this.popperInstance.update();
         }, 1);
+        const updatePopper = () => {
+            if (this.state.isOpen && this.popperInstance)
+                this.popperInstance.update();
+        };
+        this.unregistrables = [
+            signals.on('left-column-width-changed', updatePopper),
+            signals.on('inspector-panel-height-changed', updatePopper)
+        ];
     }
     /**
      * @access public
@@ -330,7 +292,7 @@ class PopupPrerendered extends preact.Component {
      * @access protected
      */
     render({children}, {isOpen}) {
-        return <div ref={ this.createPopper.bind(this) } class={ `my-tooltip${!isOpen ? '' : ' visible'}` }>
+        return <div ref={ this.createPopper.bind(this) } class={ `my-tooltip tooltip-prerendered${!isOpen ? '' : ' visible'}` }>
             { children }
             <div class="popper-arrow" data-popper-arrow></div>
             <button
@@ -373,16 +335,12 @@ class PopupPrerendered extends preact.Component {
  * @prop {String|Array<String>} value
  * @prop {String} propPath
  *
- * @typedef AdditionalFilterBuilderProps
- * @prop {String} currentFiltersJson
- * @prop {(updatedFiltersJson: String, event: 'added'|'updated'|'removed') => void} onFiltersChanged
- * @prop {() => Array<PageTypeField>} getListPageTypeOwnProps
- * @prop {'all'|'single'|'atMost'} howManyType
- *
  * @typedef FilterPartProps
  * @prop {ParsedFilter} workableFilter
- * @prop {AdditionalFilterBuilderProps} parentProps
+ * @prop {() => Array<PageTypeField>} getListPageTypeOwnProps
+ * @prop {String} currentFiltersJson
  */
 
-export default AdditionalFiltersBuilder;
-export {PopupPrerendered, removeIsInCatFilter};
+export default AddFilterPopup;
+export {removeIsInCatFilter, PopupPrerendered, buildWorkableFilters, FilterKind,
+        mergeToFilterAdditional, UrlStartsWithPart, IsInCategoryPart};

@@ -1,7 +1,7 @@
 import {__, env, timingUtils, api} from '@sivujetti-commons-for-edit-app';
 import {isRemote} from '../../block-styles/commons.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
-import {addSpecializedStyleUnit, blockHasStyle, findBlockTypeStyles, isSpecialUnit,
+import {addSpecializedStyleUnit, blockHasStyleClass, findBlockTypeStyles, isSpecialUnit,
         removeStyleUnit, tempHack, updateAndEmitUnitScss, findParentStyleInfo,
         goToStyle, findRealUnit} from './BlockStylesTab.jsx';
 import VisualStyles, {createSelector, createUnitClass, replaceVarValue, valueEditors} from './VisualStyles.jsx';
@@ -231,8 +231,8 @@ class BlockStylesTab2 extends preact.Component {
         , [[], null]);
         const partialBlock = {styleClasses: this.blockCopy.styleClasses};
         const activeNotSpecials = notSpecial.filter(unit => (!isRemote(unit)
-            ? blockHasStyle(createUnitClass(unit.id, blockTypeName), partialBlock, false)
-            : blockHasStyle(unit.id, partialBlock, true)));
+            ? blockHasStyleClass(createUnitClass(unit.id, blockTypeName), partialBlock, false)
+            : blockHasStyleClass(unit.id, partialBlock, true)));
         const defaults = api.blockStyles.getDefaultVars(blockTypeName);
         const admins = activeNotSpecials.map(unit => VisualStyles.extractVars(unit.scss, createUnitClass(unit.id, blockTypeName)));
         const special = activeSpecial

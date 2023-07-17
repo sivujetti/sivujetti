@@ -77,7 +77,8 @@ class BlockEditForm extends preact.Component {
                 return;
             }
 
-            if (event === 'theBlockTree/updateDefPropsOf' && this.state.currentBlockCopy) {
+            if ((event === 'theBlockTree/updateDefPropsOf' || event === 'theBlockTree/undoUpdateDefPropsOf') &&
+                this.state.currentBlockCopy) {
                 this.setState({currentBlockCopy: this.getCurrentBlockCopy()});
             } else if (event === 'theBlockTree/deleteBlock') {
                 const [id, _blockIsStoredToTreeId, isChildOfOrCurrentlyOpenBlock] = data;
@@ -132,7 +133,7 @@ class BlockEditForm extends preact.Component {
         </div>
         <div class={ `block-styles-tab-content${currentTabIdx === 1 ? '' : ' d-none'}` }>
             <BlockStylesTab
-                getBlockCopy={ getCopy }
+                blockCopy={ currentBlockCopy }
                 userCanEditVars={ this.userCanEditVars }
                 userCanEditCss={ this.userCanEditCss }
                 useVisualStyles={ this.useVisualStyles }
@@ -149,7 +150,6 @@ class BlockEditForm extends preact.Component {
                 emitSetBlockStylesClasses={ (newStyleClasses, b) => {
                     this.dispatchNewBlockStyleClasses(newStyleClasses, b);
                 } }
-                grabBlockChanges={ () => {} }
                 isVisible={ currentTabIdx === 1 }/>
         </div>
         </div>;

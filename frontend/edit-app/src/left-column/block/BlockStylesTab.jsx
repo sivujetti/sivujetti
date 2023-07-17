@@ -1,7 +1,7 @@
 import {__, api, env, http, signals, timingUtils, Icon, LoadingSpinner, hookForm,
     unhookForm, Input, FormGroup, InputErrors, InputError, hasErrors,
     validationConstraints, floatingDialog} from '@sivujetti-commons-for-edit-app';
-import {PopupPrerendered} from '../../block-types/listing/AdditionalFiltersBuilder.jsx';
+import {PopupPrerendered} from '../../block-types/listing/AddFilterPopup.jsx';
 import {createTrier} from '../../block/dom-commons.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import CssStylesValidatorHelper from '../../commons/CssStylesValidatorHelper.js';
@@ -26,16 +26,14 @@ class BlockStylesTab extends preact.Component {
     // extraBlockStyleClassesTextareaEl;
     // currentBlockUnitStyleClasses;
     // throttledDoHandleUtilsClassesInput;
-    // blockCopy;
     // unregistrables;
     // liIdxOfOpenMoreMenu;
     // refElOfOpenMoreMenu;
     // bodyStyle;
     /**
-     * @param {{emitAddStyleClassToBlock: (styleClassToAdd: String, block: RawBlock) => void; emitRemoveStyleClassFromBlock: (styleClassToRemove: String, block: RawBlock) => void; emitSetBlockStylesClasses: (newStyleClasses: String, block: RawBlock) => void; getBlockCopy: () => RawBlock; grabBlockChanges: (withFn: (block: RawBlock, origin: blockChangeEvent, isClsChangeOnly: Boolean, isUndo: Boolean) => void) => void; isVisible: Boolean; userCanEditVars: Boolean; userCanEditCss: Boolean; useVisualStyles: Boolean;}} props
+     * @access protected
      */
-    constructor(props) {
-        super(props);
+    componentWillMount() {
         emitSaveStylesToBackendOp = this.props.userCanEditCss ? emitCommitStylesOp : null;
         this.editableTitleInstances = [];
         this.moreMenu = preact.createRef();
@@ -44,35 +42,34 @@ class BlockStylesTab extends preact.Component {
         this.throttledDoHandleUtilsClassesInput = timingUtils.debounce(
             this.handleUtilClassesInputChanged.bind(this),
             env.normalTypingDebounceMillis);
-        this.blockCopy = props.getBlockCopy();
-        this.state = Object.assign({units: [], liClasses: []}, this.createBlockClassesState(this.blockCopy));
+        this.setState({
+            ...{units: [], liClasses: []},
+            ...this.createBlockClassesState(this.props.blockCopy)
+        });
         this.unregistrables = [observeStore2('themeStyles', ({themeStyles}, [event]) => {
             this.bodyStyle = themeStyles.find(({blockTypeName}) => blockTypeName === '_body_');
-            const {units} = (findBlockTypeStyles(themeStyles, this.blockCopy.type) || {});
+            const {units} = (findBlockTypeStyles(themeStyles, this.props.blockCopy.type) || {});
             if (this.state.units !== units)
                 this.updateUnitsState(units, themeStyles, this.getOpenLiIdx(event, units));
         })];
-        props.grabBlockChanges((block, _origin, isClsChangeOnly, _isUndo) => {
-            if (!isClsChangeOnly)
-                return;
-            const prevClasses = (this.blockCopy || {}).styleClasses;
-            this.blockCopy = this.props.getBlockCopy();
-            if (prevClasses !== block.styleClasses)
-                this.setState(this.createBlockClassesState(this.blockCopy));
-        });
     }
     /**
+     * @param {{emitAddStyleClassToBlock: (styleClassToAdd: String, block: RawBlock) => void; emitRemoveStyleClassFromBlock: (styleClassToRemove: String, block: RawBlock) => void; emitSetBlockStylesClasses: (newStyleClasses: String, block: RawBlock) => void; blockCopy: RawBlock; isVisible: Boolean; userCanEditVars: Boolean; userCanEditCss: Boolean; useVisualStyles: Boolean;}} props
      * @access protected
      */
-    componentWillReceiveProps({isVisible}) {
-        if (isVisible && !this.props.isVisible) {
-            this.setState({themeStyles: null});
+    componentWillReceiveProps({isVisible, blockCopy}) {
+        if (!isVisible)
+            return;
+        if (!this.props.isVisible) {
+            this.setState({...{themeStyles: null}, ...this.createBlockClassesState(blockCopy)});
             const themeStyles = tempHack();
             if (themeStyles) {
                 this.bodyStyle = themeStyles.find(({blockTypeName}) => blockTypeName === '_body_');
-                this.updateUnitsState((findBlockTypeStyles(themeStyles, this.blockCopy.type) || {}).units, themeStyles);
+                this.updateUnitsState((findBlockTypeStyles(themeStyles, blockCopy.type) || {}).units, themeStyles, undefined, blockCopy);
             }
             // else Wait for store2.dispatch('themeStyles/setAll')
+        } else if (blockCopy.styleClasses !== this.props.blockCopy.styleClasses) {
+            this.setState(this.createBlockClassesState(blockCopy));
         }
     }
     /**
@@ -84,18 +81,18 @@ class BlockStylesTab extends preact.Component {
     /**
      * @access protected
      */
-    render({isVisible}, {units, liClasses, extraBlockStyleClassesNotCommitted, extraBlockStyleClassesError,
-                        parentStyleInfo}) {
+    render({isVisible, blockCopy}, {units, liClasses, extraBlockStyleClassesNotCommitted,
+                                    extraBlockStyleClassesError, parentStyleInfo}) {
         if (!isVisible) return null;
         const {userCanEditVars, userCanEditCss, useVisualStyles} = this.props;
         return [
             units !== null ? units.length ? <ul class="list styles-list mb-2">{ units.map((unit, i) => {
                 const liCls = liClasses[i];
-                const cls = this.createClass(unit.id);
-                const isActivated = this.currentBlockHasStyle(cls, unit);
+                const cls = createUnitClass(unit.id, blockCopy.type);
+                const isActivated = blockHasStyle(blockCopy, cls, unit);
                 const [cssVars, ast] = !useVisualStyles ? [[], []] : VisualStyles.extractVars(unit.scss, cls);
                 const doShowChevron = userCanEditCss || (useVisualStyles && cssVars.length);
-                const bodyUnitCopy = unit.origin !== '_body_' ? null : this.getRemoteBodyUnitCopy(unit, this.blockCopy);
+                const bodyUnitCopy = unit.origin !== '_body_' ? null : this.getRemoteBodyUnitCopy(unit, blockCopy);
                 const isDefault = bodyUnitCopy !== null;
                 const title = (bodyUnitCopy || unit).title;
                 return <li class={ liCls } data-cls={ cls } key={ unit.id }>
@@ -111,7 +108,7 @@ class BlockStylesTab extends preact.Component {
                                     unitId={ unit.id }
                                     unitIdReal={ !isDefault ? null : bodyUnitCopy.id }
                                     currentTitle={ title }
-                                    blockCopy={ this.blockCopy }
+                                    blockTypeName={ blockCopy.type }
                                     userCanEditCss={ userCanEditCss }
                                     subtitle={ isDefault ? [__('Default'), bodyUnitCopy.specifier ? ` (${bodyUnitCopy.specifier})` : ''].join('') : null }
                                     ref={ this.editableTitleInstances[i] }/>
@@ -131,7 +128,7 @@ class BlockStylesTab extends preact.Component {
                             unitCopy={ {...unit} }
                             unitCopyReal={ bodyUnitCopy }
                             unitCls={ cls }
-                            blockTypeName={ this.blockCopy.type }
+                            blockTypeName={ blockCopy.type }
                             isVisible={ liCls !== '' }/>
                         : userCanEditVars
                             ? <VisualStyles
@@ -140,7 +137,7 @@ class BlockStylesTab extends preact.Component {
                                 scss={ unit.scss }
                                 unitCls={ cls }
                                 emitVarValueChange={ getStyleUpdates => {
-                                    updateAndEmitUnitScss(Object.assign({}, unit), getStyleUpdates, this.blockCopy.type);
+                                    updateAndEmitUnitScss(Object.assign({}, unit), getStyleUpdates, blockCopy.type);
                                 } }/>
                             : null
                     }
@@ -171,7 +168,7 @@ class BlockStylesTab extends preact.Component {
                 ref={ this.extraBlockStyleClassesTextareaEl }></textarea>,
             <div class="p-absolute" style="right: .8rem;z-index: 1;margin: -1.14rem 0 0;">
                 <Icon iconId="info-circle" className="size-xs color-dimmed3"/>
-                <span ref={ el => tempHack2(el, 'utilClasses', this) } class="my-tooltip dark">
+                <span ref={ el => tempHack2(el, 'utilClasses', this) } class="my-tooltip tooltip-prerendered tooltip-dark">
                     <span>Voit määritellä sekalaiset utility-luokat tähän.</span>
                     <span class="popper-arrow" data-popper-arrow></span>
                 </span>
@@ -227,23 +224,26 @@ class BlockStylesTab extends preact.Component {
      * @param {Array<ThemeStyleUnit>|undefined} candidate
      * @param {Array<ThemeStyle>} themeStyles
      * @param {Number} currentOpenIdx = -1
+     * @param {RawBlock} blockCopy = this.props.blockCopy
      * @access private
      */
-    updateUnitsState(candidate, themeStyles, currentOpenIdx = -1) {
+    updateUnitsState(candidate, themeStyles, currentOpenIdx = -1, blockCopy = this.props.blockCopy) {
         const units = candidate ? candidate.filter(unit => !isSpecialUnit(unit)): [];
-        const isUnitStyleOn = ({id}) => this.currentBlockHasStyle(this.createClass(id));
+        const isUnitStyleOn = ({id}) => blockHasStyle(blockCopy, createUnitClass(id, blockCopy.type));
         if (this.props.useVisualStyles) units.sort((a, b) => isUnitStyleOn(b) - isUnitStyleOn(a));
         this.editableTitleInstances = units.map(_ => preact.createRef());
         this.setState({units, liClasses: createLiClasses(units, currentOpenIdx),
-            parentStyleInfo: findParentStyleInfo(themeStyles, this.blockCopy)});
+            parentStyleInfo: findParentStyleInfo(themeStyles, blockCopy)});
     }
     /**
      * @param {RawBlock} block
-     * @returns {{blockCopy: RawBlock; extraBlockStyleClassesNotCommitted: String; extraBlockStyleClassesError: String;}}
+     * @returns {{extraBlockStyleClassesNotCommitted: String; extraBlockStyleClassesError: String;}}
      * @access private
      */
     createBlockClassesState(block) {
-        const [unitClses, nonUnitClses] = splitUnitAndNonUnitClasses(block.styleClasses);
+        const [unitClses, nonUnitClses] = block
+            ? splitUnitAndNonUnitClasses(block.styleClasses)
+            : ['', ''];
         this.currentBlockUnitStyleClasses = unitClses;
         return {extraBlockStyleClassesNotCommitted: nonUnitClses,
                 extraBlockStyleClassesError: ''};
@@ -257,7 +257,7 @@ class BlockStylesTab extends preact.Component {
             this.editableTitleInstances[this.liIdxOfOpenMoreMenu].current.open();
         else if (id === SET_AS_DEFAULT || id === EDIT_SPECIFIER) {
             const unit = this.state.units[this.liIdxOfOpenMoreMenu];
-            const blockTypeName = this.blockCopy.type;
+            const blockTypeName = this.props.blockCopy.type;
             const remote = id === SET_AS_DEFAULT ? null : findRealUnit(unit, blockTypeName);
             const [isEdit, title, specifier, onConfirmed] = id === SET_AS_DEFAULT
                 ? [false, 'Set as default', undefined, specifier => this.setUnitAsDefault(specifier, unit)]
@@ -273,9 +273,9 @@ class BlockStylesTab extends preact.Component {
             });
         } else if (id === 'delete-style') {
             const unit = this.state.units[this.liIdxOfOpenMoreMenu];
-            const maybeRemote = findRealUnit(unit, this.blockCopy.type);
+            const maybeRemote = findRealUnit(unit, this.props.blockCopy.type);
             if (maybeRemote === unit)
-                removeStyleUnit(this.blockCopy.type, unit);
+                removeStyleUnit(this.props.blockCopy.type, unit);
             else
                 removeStyleUnit('_body_', maybeRemote, unit);
         }
@@ -287,7 +287,7 @@ class BlockStylesTab extends preact.Component {
      */
     setUnitAsDefault(specifier, unit) {
         const dataBefore = {...unit, ...{origin: null, specifier: null}};
-        const blockTypeName = this.blockCopy.type;
+        const blockTypeName = this.props.blockCopy.type;
         const [emptied, toBody] = this.createDefaultUnit(unit, blockTypeName, specifier);
 
         // 1. Add new unit to body
@@ -371,24 +371,24 @@ class BlockStylesTab extends preact.Component {
     toggleStyleIsActivated(cls, newIsActivated, currentIsActivated, isRemote) {
         if (!isRemote) {
             if (newIsActivated && !currentIsActivated)
-                this.props.emitAddStyleClassToBlock(cls, this.blockCopy);
+                this.props.emitAddStyleClassToBlock(cls, this.props.blockCopy);
             else if (!newIsActivated && currentIsActivated)
-                this.props.emitRemoveStyleClassFromBlock(cls, this.blockCopy);
+                this.props.emitRemoveStyleClassFromBlock(cls, this.props.blockCopy);
         } else { // invert
             // Example: 'no-j-Section-unit-1'
             const no = `no-${cls}`;
-            const hasNo = this.currentBlockHasStyle(no);
+            const hasNo = blockHasStyle(this.props.blockCopy, no);
             if (!newIsActivated && !hasNo)
-                this.props.emitAddStyleClassToBlock(no, this.blockCopy);
+                this.props.emitAddStyleClassToBlock(no, this.props.blockCopy);
             else if (newIsActivated && hasNo)
-                this.props.emitRemoveStyleClassFromBlock(no, this.blockCopy);
+                this.props.emitRemoveStyleClassFromBlock(no, this.props.blockCopy);
         }
     }
     /**
      * @access private
      */
     addStyleUnit() {
-        const {type} = this.blockCopy;
+        const {type} = this.props.blockCopy;
         const current = findBlockTypeStyles(store2.get().themeStyles, type);
         const rolling = current ? getLargestPostfixNum(current.units) + 1 : 1;
         const title = rolling > 1 ? `Unit ${rolling}` : __('Default');
@@ -405,12 +405,12 @@ class BlockStylesTab extends preact.Component {
             ].join('\n');
         };
         const scss = createInitialScss(type);
-        const cls = this.createClass(id);
+        const cls = createUnitClass(id, this.props.blockCopy.type);
 
         // #2
-        const addedStyleToBlock = !this.currentBlockHasStyle(cls);
+        const addedStyleToBlock = !blockHasStyle(this.props.blockCopy, cls);
         if (addedStyleToBlock)
-            this.props.emitAddStyleClassToBlock(cls, this.blockCopy);
+            this.props.emitAddStyleClassToBlock(cls, this.props.blockCopy);
 
         // #1
         const newUnit = {title, id, scss, generatedCss: serialize(compile(`.${cls}{${scss}}`), stringify),
@@ -446,24 +446,7 @@ class BlockStylesTab extends preact.Component {
         const unitClses = this.currentBlockUnitStyleClasses;
         const combAsString = unitClses + (unitClses ? ` ${v}` : v);
         // emit > props.grabBlockChanges() @constructor -> setState()
-        this.props.emitSetBlockStylesClasses(combAsString, this.blockCopy);
-    }
-    /**
-     * @param {String} cls
-     * @param {ThemeStyleUnit|null} unit = null
-     * @returns {Boolean}
-     * @access private
-     */
-    currentBlockHasStyle(cls, unit = null) {
-        return !(unit && unit.origin === '_body_') ? blockHasStyle(cls, this.blockCopy) : !blockHasStyle(`no-${cls}`, this.blockCopy);
-    }
-    /**
-     * @param {String} id
-     * @returns {String}
-     * @access private
-     */
-    createClass(id) {
-        return createUnitClass(id, this.blockCopy.type);
+        this.props.emitSetBlockStylesClasses(combAsString, this.props.blockCopy);
     }
     /**
      * @param {Number} liIdx
@@ -524,7 +507,7 @@ function removeStyleUnit(blockTypeName, unit, real) {
 class EditableTitle extends preact.Component {
     // popup;
     /**
-     * @param {{unitId: String; unitIdReal: String|null; currentTitle: String; blockCopy: RawBlock; userCanEditCss: Boolean; subtitle: String|null;}} props
+     * @param {{unitId: String; unitIdReal: String|null; currentTitle: String; blockTypeName: String; userCanEditCss: Boolean; subtitle: String|null;}} props
      */
     constructor(props) {
         super(props);
@@ -590,10 +573,10 @@ class EditableTitle extends preact.Component {
         e.preventDefault();
         if (hasErrors(this)) return;
         const newTitle = this.state.values.title;
-        const {currentTitle, blockCopy, subtitle} = this.props;
+        const {currentTitle, subtitle} = this.props;
         const dataBefore = {title: currentTitle};
         const [blockTypeName, unitId] = !subtitle
-            ? [blockCopy.type, this.props.unitId]
+            ? [this.props.blockTypeName, this.props.unitId]
             : [SPECIAL_BASE_UNIT_NAME, this.props.unitIdReal];
         store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, unitId, {title: newTitle}]);
         emitSaveStylesToBackendOp(blockTypeName, () => {
@@ -655,7 +638,7 @@ class StyleTextarea extends preact.Component {
         return <div class="pb-2 pr-2">
             { blockTypeName !== SPECIAL_BASE_UNIT_NAME ? null : <div class="p-absolute" style="right: 1.1rem;z-index: 1;margin: 0.3rem 0 0 0;">
                 <Icon iconId="info-circle" className="size-xs color-dimmed3"/>
-                <span ref={ el => tempHack2(el, 'bodyStyles', this) } class="my-tooltip dark">
+                <span ref={ el => tempHack2(el, 'bodyStyles', this) } class="my-tooltip tooltip-prerendered tooltip-dark">
                     <span>&lt;body&gt; -elementin tyylit. Voit esim. määritellä tänne muuttujia ja käyttää niitä sisältölohkojen tyyleissä.</span>
                     <span class="popper-arrow" data-popper-arrow></span>
                 </span>
@@ -844,12 +827,22 @@ function getRemoteStyleIfRemoved(bodyUnits, removedUnitId, removedUnitBlockTypeN
 }
 
 /**
+ * @param {RawBlock} blockCopy
+ * @param {String} cls
+ * @param {ThemeStyleUnit|null} unit = null
+ * @returns {Boolean}
+ */
+function blockHasStyle(blockCopy, cls, unit = null) {
+    return !(unit && unit.origin === '_body_') ? blockHasStyleClass(cls, blockCopy) : !blockHasStyleClass(`no-${cls}`, blockCopy);
+}
+
+/**
  * @param {String} cls
  * @param {RawBlock} block
  * @param {Boolean} isRemote = false
  * @returns {Boolean}
  */
-function blockHasStyle(cls, {styleClasses}, isRemote = false) {
+function blockHasStyleClass(cls, {styleClasses}, isRemote = false) {
     return !isRemote
         ? styleClasses.split(' ').indexOf(cls) > -1
         : styleClasses.split(' ').indexOf(`no-${cls}`) < 0;
@@ -938,7 +931,7 @@ function findScopedParentStyle(themeStyles, block, tree = null) {
     const {units} = (findBlockTypeStyles(themeStyles, paren.type) || {units: []});
     if (units.length) {
         const unitClses = units.map(({id}) => createUnitClass(id, paren.type));
-        const firstEnabledUnit = unitClses.find(cls => blockHasStyle(cls, paren));
+        const firstEnabledUnit = unitClses.find(cls => blockHasStyleClass(cls, paren));
         if (firstEnabledUnit) return [paren, firstEnabledUnit, 'parent'];
         // else keep looking
     }
@@ -1049,5 +1042,5 @@ function hidePopper(content) {
 export default BlockStylesTab;
 export {StyleTextarea, tempHack, updateAndEmitUnitScss, SPECIAL_BASE_UNIT_NAME,
     findBlockTypeStyles, createUnitClass, isSpecialUnit, addSpecializedStyleUnit,
-    blockHasStyle, removeStyleUnit, normalizeScss, findParentStyleInfo,
+    blockHasStyleClass, removeStyleUnit, normalizeScss, findParentStyleInfo,
     goToStyle, findRealUnit};

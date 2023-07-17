@@ -24,7 +24,7 @@ class UploadButton extends preact.Component {
     handleFilesSelected(files) {
         const mapped = files.map((file, i) => {
             const pcs = file.name.split('.');
-            if (validExts.indexOf(`.${pcs[pcs.length - 1]}`) < 0)
+            if (validExts.indexOf(`.${pcs.at(-1)}`) < 0)
                 return {pcs, status: __('File #%s could not be uploaded because the file type is not supported.', i + 1)};
             if (file.size >= MAX_FILE_SIZE_MB * 1024 * 1024)
                 return {pcs, status: __('File #%s could not be uploaded because its size exceeded the maximum %sMB', i + 1, MAX_FILE_SIZE_MB)};

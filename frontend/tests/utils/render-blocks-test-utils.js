@@ -155,7 +155,7 @@ function verifySectionChildTagsEqualInDom(_s, assert, expectedTagNames) {
  */
 function simulateChangeParagraphTextInput(_s) {
     const els = document.querySelectorAll('.block-tree li .block-handle');
-    const paragraphBlockHandle = els[els.length - 2];
+    const paragraphBlockHandle = els.at(-2);
     paragraphBlockHandle.click();
     //
     return new Promise((resolve) => {

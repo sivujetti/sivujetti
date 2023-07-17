@@ -3,6 +3,7 @@ import {__, api, env, http, urlUtils, hookForm, unhookForm, reHookValues, Input,
 import ImagePicker from '../block-widget/ImagePicker.jsx';
 import {cloneObjectDeep, overrideData} from '../block/theBlockTreeStore.js';
 import toasters from '../commons/Toaster.jsx';
+import {objectUtils} from '../commons/utils.js';
 import {updateBlockProps} from '../left-column/block/BlockEditForm.jsx';
 import blockTreeUtils from '../left-column/block/blockTreeUtils.js';
 import {makeSlug, makePath} from '../left-column/page/AddCategoryPanel.jsx';
@@ -190,11 +191,7 @@ class PageInfoBlockEditForm extends preact.Component {
  * @returns {Promise<Boolean>}
  */
 function savePageToBackend() {
-    let data;
-    data = Object.assign({}, selectCurrentPageDataBundle(store.getState()).page);
-    delete data.blocks;
-    delete data.isPlaceholderPage;
-    delete data.__blocksDebugOnly;
+    const data = toTransferable(selectCurrentPageDataBundle(store.getState()).page, ['blocks', 'isPlaceholderPage']);
     //
     return http.put(`/api/pages/${data.type}/${data.id}`, data)
         .then(resp => {
@@ -260,12 +257,25 @@ function reRenderLinkedMenu(page) {
         if (!block) return; // $menuBlockId not present in current page block tree
         const tree = JSON.parse(block.tree);
         const allButLast = tree.slice(0, tree.length - 1);
-        const last = tree[tree.length - 1];
+        const last = tree.at(-1);
         return {changes: {tree: JSON.stringify([...allButLast, {...last, ...{
             text: page.title,
             slug: page.slug,
         }}])}};
     });
+}
+
+/**
+ * @param {Page & {[additionalProps: String]: any;}} page
+ * @param {Array<keyof Page|String>} notTheseKeys = [] Example: ['id', 'blocks' ...]
+ * @return {{[key: String]: any;}} Clean object
+ */
+function toTransferable(page, notTheseKeys = []) {
+    const allKeys = Object.keys(page);
+    const onlyTheseKeys = allKeys.filter(key =>
+        !key.startsWith('__') && notTheseKeys.indexOf(key) < 0
+    );
+    return objectUtils.clonePartially(onlyTheseKeys, page);
 }
 
 export default () => {
@@ -293,4 +303,4 @@ export default () => {
  * ... possibly more props (Own fields)
  */
 
-export {makeSlug, makePath, setUpdatableMenuBlockInfo, addLinkToMenu};
+export {makeSlug, makePath, setUpdatableMenuBlockInfo, addLinkToMenu, toTransferable};

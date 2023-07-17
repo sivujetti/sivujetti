@@ -48,7 +48,7 @@ class PageTypeCreatePanel extends preact.Component {
             const out = queue.filter(({opName}) => opName !== 'update-block-tree##main');
 
             // Add this op, which will always run last
-            if (out[out.length - 1].opName !== 'finish-page-type-create')
+            if (out.at(-1).opName !== 'finish-page-type-create')
                 out.push({opName: 'finish-page-type-create', command: {
                     doHandle: this.onOpQueueTasksFinished.bind(this),
                     args: [],

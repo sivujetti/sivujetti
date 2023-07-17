@@ -254,7 +254,7 @@ class ReRenderer {
      */
     getLatestCachedElClone(blockId) {
         const pool = this.elCache.get(blockId);
-        return pool[pool.length - 1].cloneNode(true);
+        return pool.at(-1).cloneNode(true);
     }
     /**
      * @param {String} blockId

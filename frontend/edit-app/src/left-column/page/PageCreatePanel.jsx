@@ -5,9 +5,11 @@ import store, {deleteItemsFromOpQueueAfter, selectCurrentPageDataBundle,
                 setCurrentPageDataBundle, setOpQueue} from '../../store.js';
 import store2 from '../../store2.js';
 import OnThisPageSection from '../panel-sections/OnThisPageSection.jsx';
-import {setUpdatableMenuBlockInfo, addLinkToMenu} from '../../block-types/pageInfo.js';
+import {setUpdatableMenuBlockInfo, addLinkToMenu, toTransferable} from '../../block-types/pageInfo.js';
 import {saveExistingBlocksToBackend} from '../block/createBlockTreeDndController.js';
 import blockTreeUtils from '../block/blockTreeUtils.js';
+
+const STATUS_PUBLISHED = 0;
 
 /**
  * Left-panel for #/pages/create/:pageTypeName?/:layoutId?[?addToMenu='menuBlockId:menuBlockIsStoredToTreeId:pageSlug'].
@@ -79,7 +81,7 @@ class PageCreatePanel extends preact.Component {
             }
 
             // Add this op, which will always run last
-            if (out[out.length - 1].opName !== 'finish-page-create')
+            if (out.at(-1).opName !== 'finish-page-create')
                 out.push({opName: 'finish-page-create', command: {
                     doHandle: () => {
                         const pagePath = this.savePageToBackendResult;
@@ -132,11 +134,15 @@ class PageCreatePanel extends preact.Component {
      */
     saveNewPageToBackend() {
         const pageDataBundle = selectCurrentPageDataBundle(store.getState());
-        const data = JSON.parse(JSON.stringify(pageDataBundle.page));
-        delete data.id;
-        data.blocks = treeToTransferable(store2.get().theBlockTree, false);
+        const data = {
+            ...toTransferable(pageDataBundle.page, ['id']),
+            ...{
+                blocks: treeToTransferable(store2.get().theBlockTree, false),
+                status: STATUS_PUBLISHED,
+                savePageToBackendResult: null,
+            }
+        };
         this.savePageToBackendResult = null;
-        data.status = 0;
         //
         return http.post(`/api/pages/${this.pageType.name}`, data).then(resp => {
                 if (Array.isArray(resp) && resp[0] === 'Page with identical slug already exists') {

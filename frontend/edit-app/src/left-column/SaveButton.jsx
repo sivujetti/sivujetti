@@ -65,7 +65,7 @@ class SaveButton extends preact.Component {
      * @access public
      */
     doUndo() {
-        const head = this.queuedOps[this.queuedOps.length - 1].command;
+        const head = this.queuedOps.at(-1).command;
         if (!head.doUndo) return;
         head.doUndo(...head.args);
         store.dispatch(setOpQueue(this.queuedOps.slice(0, this.queuedOps.length - 1)));

@@ -23,7 +23,7 @@ function determineModeFrom(url, translationsPool = 'dialogTitles') {
         const isLocal = url.startsWith('/') && !url.startsWith('//');
         if (isLocal) {
             const pcs = url.split('/'); // ['', 'base', 'pagename'] or ['', 'base', 'public', 'uploads', 'filename.png']
-            const isLocalFile = pcs.length > 2 && pcs[pcs.length - 3] === 'public' && pcs[pcs.length - 2] === 'uploads';
+            const isLocalFile = pcs.length > 2 && pcs.at(-3) === 'public' && pcs.at(-2) === 'uploads';
             return !isLocalFile ? 'pick-url' : 'pick-file';
         }
         //

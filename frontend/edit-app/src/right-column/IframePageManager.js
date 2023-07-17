@@ -47,7 +47,7 @@ class IframePageManager {
         delete webPage.data;
         data.page = maybePatchTitleAndSlug(data.page, isDuplicate);
         //
-        webPage.addRootBoundingEls(ordered[ordered.length - 1]);
+        webPage.addRootBoundingEls(ordered.at(-1));
         webPage.registerEventHandlers(this.createWebsiteEventHandlers(this, webPageUnregistrables));
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         this.registerWebPageDomUpdater('main');

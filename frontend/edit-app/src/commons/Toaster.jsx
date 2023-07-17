@@ -25,6 +25,7 @@ class Toaster extends preact.Component {
      */
     addMessage(message, level, timeout = this.autoCloseTimeoutMillis, onDismissed = null) {
         this.state.messages.unshift({message, level,
+            addedAt: Date.now(),
             timeoutId: timeout > 0 ? setTimeout(this.removeMessage.bind(this), this.autoCloseTimeoutMillis) : null,
             onDismissed});
         this.setState({messages: this.state.messages});
@@ -38,6 +39,8 @@ class Toaster extends preact.Component {
             const message = messages.pop();
             if (message.onDismissed) message.onDismissed();
         } else { // from onClick
+            const hasBeenVisibleMillis = Date.now() - message.addedAt;
+            if (hasBeenVisibleMillis < 2000) return;
             if (message.timeoutId) clearTimeout(message.timeoutId);
             if (message.onDismissed) message.onDismissed();
             messages.splice(messages.indexOf(message), 1);

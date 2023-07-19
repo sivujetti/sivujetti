@@ -7,44 +7,97 @@
 ## Added
 - .
 
-## Fixed
+## Changed
 - .
 
-## Changed
+## Fixed
 - .
 
 # 0.14.0 (2023-05-26)
 
+_Translated by ChatGPT._
+
 ## Added
-- .
+- Added the ability to define default styles for each content type.
+    - These styles automatically apply when adding content of those types to a page, without the need to enable them separately.
+- Added the ability to define headings, paragraphs, etc. in text contents as anchors (<p id="anchor">) in the WYSIWYG editor.
+- Added the ability to define links to "Jump to section" (anchor) in the page selection widget (text contents, menus, and button links).
+    - Supports external links (https://www.example.com#anchor) or internal links (/page#anchor).
+- Added the ability to define "selection" type widgets in CSS code (e.g., text alignment -> left justify right).
+- Added the option to "Disallow site indexing by search engines" in the editable site basic information.
 
-## Fixed
-- .
+# Changed
+- Alt text can now be defined for images in the edit mode.
+- Large radio buttons now visually match regular buttons.
+- The WYSIWYG editor's toolbar is now always visible (position: static -> sticky).
+- [JetForms plugin] Radio fields can now be added to pages.
+- [JetForms plugin] Changed the "SMTP > Password" field to a password type.
+    - The password can be revealed if desired by clicking on the eye icon.
+- [JetForms plugin] Fixed an issue where form submission didn't work if the form was within unique reusable content.
+- [JetForms plugin] Fixed an issue where number-type contents were not processed during form submission.
+- [JetForms plugin] Moved the "Thank you for your message" element's position (from above the &lt;form&gt; element to inside the &lt;form&gt; element).
+- [JetForms plugin] Added the ability to define default height for text fields (rows attribute).
 
-## Changed
-- .
+# Fixed
+- Fixed an issue with file uploads where confusion arose when two files with the same name were uploaded.
+    - The uploaded file's name is automatically changed to file-1.jpg, etc., if file.jpg already exists.
+- Fixed an issue where the WYSIWYG editor added empty paragraphs after certain elements (e.g., h5, h6).
+- Several other 🐛s
 
 # 0.13.0 (2023-03-15)
 
-## Added
-- .
+_Translated by ChatGPT._
 
-## Fixed
-- .
+## Added
+- Edit mode now displays a confirmation dialog when navigating away from a page with unsaved changes.
+- Added a separate "Files" view to the edit mode (Site > Files).
+- Added the ability to upload file types other than images.
+    - The functionality uses the same "algorithm" as WordPress, so all the same file types are supported (plus some common font file types: woff, ttf, otf).
+- Added the ability to upload multiple files at once.
+- Added the ability to upload files by dragging and dropping.
+- New pages can now be automatically added to menus, in addition to the "Add Link" button, using the "Create and Add Page" button.
 
 ## Changed
-- .
+- Header, Paragraph, and Rich Text contents are now consolidated as Text contents.
+- Page selector widget is now used for menu content links, similar to text content links (manual typing of addresses is no longer required).
+- Global styles of the site can now be edited while creating a page.
+- Outermost regular contents of the content tree are now displayed as not collapsed by default (collapsed = false).
+- Backend no longer renders unnecessary HTML comments for non-logged-in users.
+
+## Fixed
+- Contents can now be dragged between unique and non-unique contents.
+- Eliminated notices related to PHP 8.2.
+- Several other 🐛s
 
 # 0.12.0 (2022-12-21)
 
-## Added
-- .
+_Translated by ChatGPT._
 
-## Fixed
-- .
+## Added
+- Added visual, widget-based style editing, which allows changing styles without coding.
+    - Currently, the feature supports colors and numbers (e.g., font sizes).
+- Content can now be saved for reuse.
+    - Saved content can be marked as unique (e.g., Footer) or duplicable (so that a new copy is created every time it's added to pages).
+- Basic site information can now be edited from the edit mode menu (Settings > Edit Basic Info).
+- Site pages can now be browsed from the edit mode menu (Site > Pages).
+- Existing pages can now be duplicated (Site > Pages > ... menu > Duplicate or "This Page" > ... menu > Duplicate This Page).
+- A page can now be tagged with a category when creating or editing the page (Content Tree > Metadata > Category > Create Category).
+- List content can now be set to list only pages from a specific category.
+- [JetIcons plugin] Initial version added, allowing the addition of icons from a library of around 3000 icons to pages.
 
 ## Changed
-- .
+- When editing site colors, the page preview now updates while dragging the mouse, not only after the dragging ends.
+- Button links no longer need to be manually typed; editing happens in a separate popup (similar to text content links).
+- External links in text content can now include non-http/https links (e.g., tel:123, mailto:address, steam://game).
+- The !important declaration is no longer required as frequently in CSS code for content styles, thanks to CSS layers.
+- The save button now stays in the correct position.
+- [JetForms plugin] Simplified editing view for contact form content.
+- [JetForms plugin] Simplified message templates for contact forms.
+
+## Fixed
+- Content tree dragging functions now work more reliably.
+- Content can now be duplicated within unique reusable content trees.
+- The context menu no longer extends beyond the browser window.
 
 # 0.11.0 (2022-08-15)
 
@@ -55,15 +108,15 @@
 - `$annotations` parameter to `PluginAPI->registerHttpRoute()` (Plugin developer can define ACL-rules for routes)
 - Support for many-to-many properties
 
-## Fixed
-- .
-
 ## Changed
 - Replaced "Own Styles" and "Base styles" with "Styles"
 - Image block type's default output (`<span><img>` -> `<figure><img>`)
 - Button block type's default output (`<p><button|a>` -> `<button|a>`)
 - Started a noStateManager -> redux -> storeon -transition
 - Disabled `cli.php install-from-dir` temporarily
+
+## Fixed
+- 🐛s
 
 # 0.10.0 (2022-05-12)
 
@@ -72,12 +125,12 @@
 - `filterLimit`, and `filterAdditional.'p.url'.$startsWith` to listing blocks
 - `WebPageAwareTemplate->head()`, which renders most common SEO-tags by default
 
-## Fixed
-- An issue, where the page blew up in edit mode, if some of the blocks contained specific type of css
-
 ## Changed
 - The event type (onChange -> onInput) that refreshes styles preview in edit mode
 - The UI of listing blocks
+
+## Fixed
+- An issue, where the page blew up in edit mode, if some of the blocks contained specific type of css
 
 # 0.9.0 (2022-04-08)
 
@@ -88,11 +141,11 @@
 - &lt;selectPageType&gt; -dropdown to Listing blocks
 - Resizable floating dialogs (Draggabilly -> jsPanel)
 
-## Fixed
-- Bugs
-
 ## Changed
 - .
+
+## Fixed
+- 🐛s
 
 # 0.8.0 (2022-02-22)
 
@@ -105,12 +158,12 @@
 - An ability to automatically add pages to a menu (when creating them)
 - An ability to choose sqlite or mysql when installing
 
-## Fixed
-- Bugs
-
 ## Changed
 - Menu blocks' links can be deleted
 - The save button's position from static to sticky
+
+## Fixed
+- 🐛s
 
 # 0.7.0 (2021-01-14)
 
@@ -119,12 +172,12 @@
 - Columns block type
 - Authentication
 
-## Fixed
-- Bugs
-
 ## Changed
 - The icon library ([Feather](https://feathericons.com/) > [Tabler](https://tablericons.com/))
 - Blocks now have a color that indicates where their data is stored
+
+## Fixed
+- 🐛s
 
 # 0.6.0 (2021-12-01)
 
@@ -133,11 +186,11 @@
 - Image block type
 - Initial support for plugins
 
-## Fixed
-- Bugs
-
 ## Changed
 - The image picker can now be used to upload images
+
+## Fixed
+- 🐛s
 
 # 0.5.0 (2021-10-01)
 

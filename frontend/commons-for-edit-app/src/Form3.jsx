@@ -240,7 +240,7 @@ class InputErrors extends preact.Component {
     render({vm, prop, errors}) {
         let doShowError = true;
         if (!Array.isArray(errors)) {
-            if (!vm || !prop) throw new Error('Usage: <InputErrora vm={ this } prop="inputName"/> or <InputErrora errors={ [{message: "Some error"}] }/>');
+            if (!vm || !prop) throw new Error('Usage: <InputErrors vm={ this } prop="inputName"/> or <InputErrors errors={ [{message: "Some error"}] }/>');
             errors = vm.state.errors[prop];
             doShowError = vm.state.blurStates[prop] === true;
         }

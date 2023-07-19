@@ -41,6 +41,7 @@ final class StoredObjectsRepository {
             ->mapWith(new class implements RowMapperInterface {
                 public function mapRow(object $row, int $rowNum, array $rows): ?object {
                     $row->data = json_decode($row->dataJson, associative: true, flags: JSON_THROW_ON_ERROR);
+                    unset($row->dataJson);
                     return $row;
                 }
             });

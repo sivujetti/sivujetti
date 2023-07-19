@@ -42,7 +42,7 @@ class WebsiteEditBasicInfoView extends preact.Component {
     render(_, {langTag, formIsSubmittingClass, hideFromSearchEngines}) {
         return <OverlayView>
             <h2>{ __('Edit website info') }</h2>
-            <p style="font-size:.8rem">{ __('todo11') }</p>
+            <p style="font-size:.8rem">{ __('These details are visible to search engines and when sharing pages on social media channels.') }</p>
             <form onSubmit={ e => handleSubmit(this, this.boundHandleSubmit, e) } class="form-horizontal pt-1">{ langTag ? [
                 <FormGroupInline>
                     <label htmlFor="name" class="form-label">{ __('Name') }</label>

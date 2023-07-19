@@ -79,7 +79,7 @@ stringBundles.push({
     // edit-app/src/left-column/block/VisualStyles.jsx
     'Restore default': 'Restore default',
     // edit-app/src/left-column/block/createBlockTreeDndController.js
-    'todo14': 'todo14', // Käyttöoikeutesi ei riitä muokkaamaan tätä sisältöä.
+    'You lack permissions to edit this content.': 'You lack permissions to edit this content.',
     // edit-app/src/left-column/page/AddCategoryPanel.jsx
     'Category': 'Category',
     'New category name': 'New category name',
@@ -147,7 +147,7 @@ stringBundles.push({
     // edit-app/src/left-column/panel-sections/OnThisPageSection.jsx
     'Duplicate this page': 'Duplicate this page',
     'Delete this page': 'Delete this page',
-    'Show without edit menu': 'Show without edit menu',
+    'Show without edit mode': 'Show without edit mode',
     'On this page': 'On this page',
     'Default content': 'Default content',
     'Content of page %s': 'Content of %s-page',
@@ -187,7 +187,7 @@ stringBundles.push({
     'Listable': 'Listable',
     'Default layout': 'Default layout',
     // edit-app/src/popups/reusable-branch/SaveBlockAsReusableDialog.jsx
-    'todo7': 'todo7',
+    'This function saves this content as reusable content, which can be easily added to other pages later on.': 'This function saves this content as reusable content, which can be easily added to other pages later on.',
     'Name': 'Name',
     'e.g. Text and image, Footer': 'e.g. Text and image, Footer',
     'Type': 'Tyyppi',
@@ -203,19 +203,20 @@ stringBundles.push({
     'Evaluates to\n`body [specifierHere] .%s`': 'Evaluates to\n`body [specifierHere] .%s`',
     'e.g. `>`, `div`, `.j-Button >`': 'e.g. `>`, `div`, `.j-Button >`',
     // edit-app/src/popups/BlockTreeShowHelpPopup.jsx
-    'todo1': 'todo1',
-    'todo2': 'todo2',
-    'todo3': 'todo3',
-    'todo4': 'todo4',
-    'todo5': 'todo5',
-    'todo6': 'todo6',
+    'In Sivujetti, the content of pages is presented as a tree structure: each row or branch in the tree corresponds to a section or content of the page. You can ': 'In Sivujetti, the content of pages is presented as a tree structure: each row or branch in the tree corresponds to a section or content of the page. You can ',
+    'arrange': 'arrange',
+    ' the different sections of the page by dragging the rows in the content tree. You can start ': ' the different sections of the page by dragging the rows in the content tree. You can start ',
+    'adding content': 'adding content',
+    ' using the': ' using the',
+    'button': 'button',
+    ' on the left side of the page.': ' on the left side of the page.',
     'Colorless': 'Colorless',
-    'todo15': 'todo15',
-    'stored to this page only': 'stored to this page only',
+    'Regular content, with no colored text, is ': 'Regular content, with no colored text, is ',
+    'stored only to this page': 'stored only to this page',
     'Orange': 'Orange',
-    'todo8': 'todo8',
-    'todo9': 'todo9',
-    'todo10': 'todo10',
+    'Unique content refers to ': 'Unique content refers to ',
+    'separately stored data': 'separately stored data',
+    '. When you edit unique content on one page, the information changes in all corresponding content across pages.': '. When you edit unique content on one page, the information changes in all corresponding content across pages.',
     'Violet': 'Violet',
     'Meta content contains ': 'Meta content contains ',
     'additional data / metadata': 'additional data / metadata',
@@ -318,7 +319,7 @@ stringBundles.push({
     'No updates available.': 'No updates available.',
     // edit-app/src/right-column/website/WebsiteEditBasicInfoView.jsx
     'Edit website info': 'Edit website info',
-    'todo11': 'todo11',
+    'These details are visible to search engines and when sharing pages on social media channels.': 'These details are visible to search engines and when sharing pages on social media channels.',
     'Language': 'Language',
     'Discourage search engines from indexing this site': 'Discourage search engines from indexing this site',
     'Saved website\'s basic info.': 'Saved website\'s basic info.',

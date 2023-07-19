@@ -45,7 +45,7 @@ class CodeBlockEditForm extends preact.Component {
                     <label htmlFor="code" class="form-label">{ __('Code') }</label>,
                     <Textarea vm={ this } prop="code" class="form-input code" placeholder={ `<div>${__('My code ...')}</div>` } ref={ this.codeInputEl }/>,
                     <InputErrors vm={ this } prop="code"/>
-                ] : <div class="color-dimmed">{ __('todo14') }</div> }
+                ] : <div class="color-dimmed">{ __('You lack permissions to edit this content.') }</div> }
             </FormGroup>
         </div>;
     }

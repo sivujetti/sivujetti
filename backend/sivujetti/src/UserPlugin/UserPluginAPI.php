@@ -128,7 +128,7 @@ final class UserPluginAPI extends UserSiteAPI {
      * @return string
      */
     public function getCurrentLang(): string {
-        return "fi";
+        return SIVUJETTI_UI_LANG;
     }
     /**
      * @return string

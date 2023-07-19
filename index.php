@@ -4,6 +4,7 @@ define("SIVUJETTI_INDEX_PATH", str_replace("\\", "/", __DIR__) . "/");
 define("SIVUJETTI_BACKEND_PATH", SIVUJETTI_INDEX_PATH . "backend/");
 define("SIVUJETTI_SITE_PATH", SIVUJETTI_BACKEND_PATH . "site/");
 define("SIVUJETTI_PLUGINS_PATH", SIVUJETTI_BACKEND_PATH . "plugins/");
+define("SIVUJETTI_UI_LANG", "en");
 
 // Do not edit below this line -------------------------------------------------
 

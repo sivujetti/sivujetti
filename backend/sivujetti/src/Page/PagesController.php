@@ -65,7 +65,7 @@ final class PagesController {
                 "title" => "Login",
                 "appName" => "login",
                 "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
-                "uiLang" => "fi",
+                "uiLang" => SIVUJETTI_UI_LANG,
                 "dashboardUrl" => $config->get("app.dashboardUrl", ""),
             ]));
     }
@@ -134,7 +134,7 @@ final class PagesController {
                 ],
                 "userRole" => $userRole,
             ], JSON_UNESCAPED_UNICODE)),
-            "uiLang" => "fi",
+            "uiLang" => SIVUJETTI_UI_LANG,
             "isFirstRun" => $isFirstRun || $req->queryVar("first-run") !== null,
         ]));
     }

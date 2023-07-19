@@ -188,7 +188,7 @@ function saveExistingBlocksToBackend(newBlockTree, trid, page = null) {
                 window.console.error(err);
                 toasters.editAppMain(__('Something unexpected happened.'), 'error');
             } else {
-                toasters.editAppMain(__('todo14'), 'error');
+                toasters.editAppMain(__('You lack permissions to edit this content.'), 'error');
             }
             return false;
         });

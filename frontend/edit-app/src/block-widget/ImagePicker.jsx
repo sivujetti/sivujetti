@@ -22,6 +22,7 @@ class ImagePickerFieldWidget extends preact.Component {
             class="form-input"
             name={ inputId }
             id={ inputId }
+            autoComplete="off"
             ref={ this.inputEl }/>;
         return initialImageFileName ? <div class="has-icon-right">
             { input }

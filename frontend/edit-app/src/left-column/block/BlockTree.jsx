@@ -108,6 +108,13 @@ class BlockTree extends preact.Component {
             <ul class="block-tree ml-1" ref={ el => {
                 if (!el) return;
                 this.dragDrop.attachOrUpdate(el);
+                if (!this.mouseDownHoverClearerHookedUp) {
+                    el.addEventListener('mousedown', e => {
+                        if (e.button === 0 && this.currentlyHoveredLi)
+                            this.unHighlighCurrentlyHoveredLi();
+                    });
+                    this.mouseDownHoverClearerHookedUp = true;
+                }
             } }>{
                 blockTree ? blockTree.length
                     ? this.doRenderBranch(blockTree).concat(<li
@@ -164,10 +171,8 @@ class BlockTree extends preact.Component {
                 }
             } }
             onMouseLeave={ e => {
-                if (this.currentlyHoveredLi === e.target) {
-                    api.webPageIframe.unHighlight(this.currentlyHoveredLi.getAttribute('data-block-id'));
-                    this.currentlyHoveredLi = null;
-                }
+                if (this.currentlyHoveredLi === e.target)
+                    this.unHighlighCurrentlyHoveredLi();
             } }
             class={ [`${isStoredTo}-block`,
                     !treeState[block.id].isSelected ? '' : ' selected',
@@ -414,7 +419,7 @@ class BlockTree extends preact.Component {
             if (curHigh.hovered) clearHighlight(curHigh);
             const {ul} = this.dragDrop;
             const li = ul.querySelector(`li[data-block-id="${blockId}"]`);
-            if (li && !li.classList.contains('selected')) {
+            if (li) {
                 curHigh.hovered = li;
                 curHigh.visible = !li.classList.contains('d-none') ? li : findVisibleLi(li, ul, li);
                 curHigh.visible.classList.add('highlighted');
@@ -423,6 +428,13 @@ class BlockTree extends preact.Component {
         this.unregistrables.push(signals.on('highlight-rect-removed', blockId => {
             if (curHigh.hovered && curHigh.hovered.getAttribute('data-block-id') === blockId) { clearHighlight(curHigh); }
         }));
+    }
+    /**
+     * @access private
+     */
+    unHighlighCurrentlyHoveredLi() {
+        api.webPageIframe.unHighlight(this.currentlyHoveredLi.getAttribute('data-block-id'));
+        this.currentlyHoveredLi = null;
     }
 }
 

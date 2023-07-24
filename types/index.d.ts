@@ -231,6 +231,7 @@ interface EditAwareWebPageEventHandlers {
 interface EditAppAwareWebPage {
     data: CurrentPageData;
     reRenderer: WebPageReRenderer;
+    metaKeyIsPressed: Boolean;
     init(renderBlockAndThen: (block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void, toTransferable: (block: RawBlock, includePrivates: Boolean = false) => {[key: String]: any;}, blockTreeUtils: blockTreeUtils): void;
     scanBlockElements(): Array<HTMLElement>;
     addRootBoundingEls(lastBlock: RawBlock): void;

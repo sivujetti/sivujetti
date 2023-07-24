@@ -2,11 +2,11 @@ import {CHILDREN_START, CHILDREN_END, getMetaKey} from '../../edit-app/src/block
 import ReRenderer, {findCommentR, getBlockEl} from './ReRenderer.js';
 
 const useCtrlClickBasedFollowLinkLogic = true;
-let metaKeyIsPressed = false;
 
 class EditAppAwareWebPage {
     // data; // public
     // reRenderer; // public
+    // metaKeyIsPressed; // public
     // baseUrl;
     // currentlyHoveredRootEl;
     // isLocalLink;
@@ -20,6 +20,7 @@ class EditAppAwareWebPage {
     constructor(dataFromBackend, baseUrl) {
         this.data = dataFromBackend;
         this.reRenderer = null;
+        this.metaKeyIsPressed = false;
         this.baseUrl = baseUrl;
         this.currentlyHoveredRootEl = null;
         this.isLocalLink = createIsLocalLinkCheckFn();
@@ -31,8 +32,10 @@ class EditAppAwareWebPage {
      * @param {(block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void} renderBlockAndThen
      * @param {(block: RawBlock, includePrivates: Boolean = false) => {[key: String]: any;}} toTransferable
      * @param {blockTreeUtils} blockTreeUtils
+     * @param {Boolean} prevInstanceMetaKeyIsPressed
      */
-    init(renderBlockAndThen, toTransferable, blockTreeUtils) {
+    init(renderBlockAndThen, toTransferable, blockTreeUtils, prevInstanceMetaKeyIsPressed) {
+        this.metaKeyIsPressed = prevInstanceMetaKeyIsPressed;
         this.reRenderer = new ReRenderer(renderBlockAndThen, toTransferable, blockTreeUtils);
     }
     /**
@@ -161,7 +164,7 @@ class EditAppAwareWebPage {
      */
     getGlobalListenerCreateCallables() {
         return [['meta-key-pressed-or-released', isDown => {
-            metaKeyIsPressed = isDown;
+            this.metaKeyIsPressed = isDown;
         }]];
     }
     /**
@@ -260,10 +263,10 @@ class EditAppAwareWebPage {
     addClickHandlersCtrlClickVersion() {
         const metaKey = getMetaKey();
         window.addEventListener('keydown', e => {
-            if (e.key === metaKey) metaKeyIsPressed = true;
+            if (e.key === metaKey) this.metaKeyIsPressed = true;
         });
         window.addEventListener('keyup', e => {
-            if (e.key === metaKey) metaKeyIsPressed = false;
+            if (e.key === metaKey) this.metaKeyIsPressed = false;
         });
         document.body.addEventListener('click', e => {
             const currentBlock = this.currentlyHoveredBlockEl;
@@ -274,7 +277,7 @@ class EditAppAwareWebPage {
 
             const b = a || (e.button !== 0 ? null : e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button'));
 
-            if (!metaKeyIsPressed)
+            if (!this.metaKeyIsPressed)
                 e.preventDefault();
             else if (a || b) {
                 if (a) { e.preventDefault(); this.doFollowLink(a); }

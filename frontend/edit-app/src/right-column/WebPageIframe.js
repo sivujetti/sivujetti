@@ -119,7 +119,8 @@ class WebPageIframe {
             // 1.
             env.window.receiveNewPreviewIframePage = webPage => {
                 // 3.
-                webPage.init(renderBlockAndThen, toTransferable, blockTreeUtils);
+                webPage.init(renderBlockAndThen, toTransferable, blockTreeUtils,
+                    this.pageManager.currentWebPage?.metaKeyIsPressed || false);
                 this.pageManager.loadPage(webPage, url.indexOf('duplicate=') > -1);
                 resolve(webPage);
                 env.window.receiveNewPreviewIframePage = null;

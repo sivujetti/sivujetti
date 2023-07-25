@@ -165,7 +165,8 @@ class MySnowTheme extends Quill.import('themes/snow') {
                 inputWrap.appendChild(input);
                 input.addEventListener('keydown', ({key}) => { if (key === 'Enter') doApplyId(true); });
 
-                clearIdBtn = createElementUsing('<button class="sivujetti-form-icon btn no-color mr-1" type="button" style="display: none;top: 2px;"><svg class="icon-tabler color-dimmed" width="24" height="24" style="margin: 0; position: static;"><use href="/sivujetti/public/sivujetti/assets/tabler-sprite-custom.svg#tabler-x"></use></svg></button>');
+                const svg = iconAsString('x', 'color-dimmed').replace('color-dimmed"', 'color-dimmed" style="margin: 0; position: static;"');
+                clearIdBtn = createElementUsing(`<button class="sivujetti-form-icon btn no-color mr-1" type="button" style="display: none;top: 2px;">${svg}</button>`);
                 clearIdBtn.addEventListener('click', () => {
                     input.value = '';
                     clearIdBtn.style.display = 'none';

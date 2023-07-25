@@ -8,6 +8,15 @@ const urlUtils = {
     /** @var {Env?} */
     env: null,
     /**
+     * @param {String} url Example: `foo.png` or `/dir/bar?foo=1`
+     * @returns {String} Example: `foo.png?v=abcd` or `/dir/bar?foo=1&v=abcd`
+     */
+    withCacheBustStr(url) {
+        return url + (this.cacheBustStr
+            ? `${url.indexOf('?') < 0 ? '?' : '&'}v=${this.cacheBustStr}`
+            : '');
+    },
+    /**
      * @param {String} url
      * @param {Boolean} includeDomain = false
      * @returns {String}

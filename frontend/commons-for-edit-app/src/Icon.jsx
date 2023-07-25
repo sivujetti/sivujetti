@@ -7,7 +7,7 @@ class Icon extends preact.Component {
      */
     render({iconId, className}) {
         return <svg class={ 'icon-tabler' + (!className ? '' : ` ${className}`) } width="24" height="24">
-            <use xlinkHref={ `${urlUtils.assetBaseUrl}public/sivujetti/assets/tabler-sprite-custom.svg#tabler-${iconId}` }/>
+            <use xlinkHref={ hrefFull(iconId) }/>
         </svg>;
     }
 }
@@ -19,8 +19,16 @@ class Icon extends preact.Component {
  */
 function iconAsString(iconId, className) {
     return '<svg class="icon-tabler' + (!className ? '' : ` ${className}`) + '" width="24" height="24">' +
-        `<use xlink:href="${urlUtils.assetBaseUrl}public/sivujetti/assets/tabler-sprite-custom.svg#tabler-${iconId}"/>` +
+        `<use xlink:href="${hrefFull(iconId)}"/>` +
     '</svg>';
+}
+
+/**
+ * @param {String} iconId
+ * @returns {String} Example `/dir/public/sivujetti/assets/tabler-sprite-custom.svg?v=aaaaaaaa#tabler-hand-finger`
+ */
+function hrefFull(iconId) {
+    return `${urlUtils.assetBaseUrl}public/sivujetti/assets/${urlUtils.withCacheBustStr('tabler-sprite-custom.svg')}#tabler-${iconId}`;
 }
 
 export {Icon, iconAsString};

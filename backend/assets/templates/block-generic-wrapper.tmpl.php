@@ -8,7 +8,7 @@
     "</div>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_SECTION):
     echo "<section class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""), "\"",
-        ($props->bgImage ? " style=\"background-image:url('{$this->assetUrl($props->bgImage)}')\"" : ""),
+        ($props->bgImage ? " style=\"background-image:url('{$this->mediaUrl($props->bgImage)}')\"" : ""),
         " data-block-type=\"", \Sivujetti\Block\Entities\Block::TYPE_SECTION,
         "\" data-block=\"{$props->id}\"><div data-block-root>",
         $this->renderChildren($props),

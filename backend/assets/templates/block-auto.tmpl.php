@@ -25,7 +25,7 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_IMAGE):
         "\" data-block-type=\"", $props->type,
         "\" data-block=\"", $props->id,
         "\"><img src=\"", $props->src
-            ? $this->assetUrl("public/uploads/" . str_replace("/", "", $props->src))
+            ? $this->mediaUrl("public/uploads/" . str_replace("/", "", $props->src))
             : \Sivujetti\BlockType\ImageBlockType::PLACEHOLDER_SRC,
         "\" alt=\"", $props->altText
             ? $this->escAttr($props->altText)

@@ -18,7 +18,7 @@ final class WebPageAwareTemplate extends Template {
     private array $__pluginNames;
     /** @var bool */
     private bool $__useEditModeMarkup;
-    /** @var string */
+    /** @var string Example "v=rand-str" */
     private string $__assetUrlAppendix;
     /** @var \Closure */
     private \Closure $__applyFilters;
@@ -105,7 +105,7 @@ final class WebPageAwareTemplate extends Template {
         $first = $url[0] ?? "";
         $isLocal = $first === "/";
         if ($isLocal)
-            return !str_starts_with($url, "/public/uploads") ? $this->makeUrl($url) : $this->assetUrl($url);
+            return !str_starts_with($url, "/public/uploads") ? $this->makeUrl($url) : $this->mediaUrl($url);
         //
         $pcs = explode(":", $url);
         return count($pcs) > 1 // http://foo.com, mailto:foo, steam://bar
@@ -114,10 +114,17 @@ final class WebPageAwareTemplate extends Template {
     }
     /**
      * @param string $url
-     * @return string
+     * @return string Completed url without "?v=cacheBustStr"
+     */
+    public function mediaUrl(string $url): string {
+        return self::makeUrl($url, false);
+    }
+    /**
+     * @param string $url
+     * @return string Completed url with "?v=cacheBustStr"
      */
     public function assetUrl(string $url): string {
-        return self::makeUrl($url, false) . $this->__assetUrlAppendix;
+        return self::makeUrl($url, false) . (!str_contains($url, "?") ? "?" : "&") . $this->__assetUrlAppendix;
     }
     /**
      * @param string $str
@@ -285,8 +292,7 @@ final class WebPageAwareTemplate extends Template {
                 : "<script>window.sivujettiBaseUrl='{$this->makeUrl("/", true)}';\n" .
                   "        window.sivujettiAssetBaseUrl='{$this->makeUrl("/", false)}';</script>";
             //
-            $url = $this->assetUrl("public/{$this->e($f->url)}") .
-                (!str_contains($f->url, "?") ? "?" : "&") . "v={$this->__vars["versionId"]}";
+            $url = $this->assetUrl("public/{$this->e($f->url)}");
             //
             return "{$pre}<script src=\"{$url}\"{$this->attrMapToStr($attrsMap)}></script>";
         }, $this->__cssAndJsFiles->js));
@@ -379,7 +385,7 @@ final class WebPageAwareTemplate extends Template {
         $ldImage = null;
         if (($img = $metasIn->socialImage ?? null)) {
             $host = $this->__vars["serverHost"];
-            $full = "{$host}{$this->assetUrl("/public/uploads/{$img->src}")}";
+            $full = "{$host}{$this->mediaUrl("/public/uploads/{$img->src}")}";
             $metasOgOut[] = "<meta property=\"og:image\" content=\"{$full}\">";
             $metasOgOut[] = "<meta property=\"og:image:width\" content=\"{$img->width}\">"; // always integer
             $metasOgOut[] = "<meta property=\"og:image:height\" content=\"{$img->height}\">";

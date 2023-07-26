@@ -57,11 +57,13 @@ final class PagesController {
      *
      * @param \Pike\Response $res
      * @param \Pike\AppConfig $config
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      */
-    public function renderLoginPage(Response $res, AppConfig $config): void {
+    public function renderLoginPage(Response $res, AppConfig $config, TheWebsite $theWebsite): void {
         $res
             ->header("Cache-Control", "no-store, must-revalidate")
-            ->html((new WebPageAwareTemplate("sivujetti:page-auth-view.tmpl.php"))->render([
+            ->html((new WebPageAwareTemplate("sivujetti:page-auth-view.tmpl.php",
+                                            assetUrlCacheBustStr: "v={$theWebsite->versionId}"))->render([
                 "title" => "Login",
                 "appName" => "login",
                 "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
@@ -108,7 +110,7 @@ final class PagesController {
         }
         $userRole = $req->myData->user->role;
         $res->html((new WebPageAwareTemplate("sivujetti:edit-app-wrapper.tmpl.php",
-                                             assetUrlCacheBustStr: "?v={$theWebsite->versionId}"))->render([
+                                             assetUrlCacheBustStr: "v={$theWebsite->versionId}"))->render([
             "userDefinedJsFiles" => $apiCtx->adminJsFiles,
             "dataToFrontend" => WebPageAwareTemplate::escInlineJs(json_encode((object) [
                 "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
@@ -399,11 +401,12 @@ final class PagesController {
         $theWebsite->activeTheme->loadStyles($editModeIsOn);
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
-            ["serverHost" => self::getServerHost($req), "versionId" => $theWebsite->versionId],
+            ["serverHost" => self::getServerHost($req)],
             apiCtx: $apiCtx,
             theWebsite: $theWebsite,
             pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy()),
-            useEditModeMarkup: $editModeIsOn
+            useEditModeMarkup: $editModeIsOn,
+            assetUrlCacheBustStr: "v={$theWebsite->versionId}"
         );
         $html = $tmpl->render([
             "currentPage" => $page,
@@ -417,7 +420,7 @@ final class PagesController {
                     "layout" => self::layoutToRaw($page->layout),
                     "theme" => self::themeToRaw($theWebsite->activeTheme),
                 ], JSON_UNESCAPED_UNICODE)) . "</script>" .
-                "<script src=\"{$tmpl->assetUrl("public/sivujetti/sivujetti-webpage.js?v={$theWebsite->versionId}")}\"></script>" .
+                "<script src=\"{$tmpl->assetUrl("public/sivujetti/sivujetti-webpage.js")}\"></script>" .
             substr($html, $bodyEnd);
         }
         $res->html($html);

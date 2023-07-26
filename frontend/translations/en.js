@@ -65,7 +65,7 @@ stringBundles.push({
     'Set as default': 'Set as default',
     'Copy styles': 'Copy styles',
     'Paste styles': 'Paste styles',
-    'Edit specifier': 'Edit specifier',
+    'Edit details': 'Edit details',
     'Delete style': 'Delete style',
     'Css for the outermost %s (%s)': 'Css for the outermost %s (%s)',
     'element': 'element',
@@ -196,9 +196,11 @@ stringBundles.push({
     'Unique': 'Unique',
     'todo13': 'todo13',
     'Cancel': 'Cancel',
-    // edit-app/src/popups/styles/SetUnitAsDefaultDialog.jsx
+    // edit-app/src/popups/styles/EditUnitOrSetAsDefaultDialog.jsx
     'Specifier': 'Specifier',
     'todo16 %s': 'todo16 %s', // Tämä toiminto merkitsee nämä tyylit tyyleihin, jota käytetään automaattisesti uusissa, sivuun lisätyissä  %s -sisällöissä.'
+    'Visible for non-admins': 'Visible for non-admins',
+    'Allow non-admin users to add these\nstyles to contents in visual styles': 'Allow non-admin users to add these\nstyles to contents in visual styles',
     'optional': 'optional',
     'Evaluates to\n`body [specifierHere] .%s`': 'Evaluates to\n`body [specifierHere] .%s`',
     'e.g. `>`, `div`, `.j-Button >`': 'e.g. `>`, `div`, `.j-Button >`',

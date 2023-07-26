@@ -9,6 +9,9 @@ use Sivujetti\{JsonUtils, ValidationUtils};
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Theme\Entities\Style;
 
+/**
+ * @psalm-import-type ThemeStyleUnit from \Sivujetti\Theme\Entities\Style
+ */
 final class ThemesController {
     /**
      * GET /api/themes/:themeId/styles: Lists $req->params->themeId theme's styles.
@@ -108,8 +111,10 @@ final class ThemesController {
             ->rule("{$key}.*.title", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
             ->rule("{$key}.*.scss", "type", "string")
             ->rule("{$key}.*.generatedCss", "type", "string")
-            ->rule("{$key}.*.origin?", "type", "string")
-            ->rule("{$key}.*.specifier?", "type", "string")
+            ->rule("{$key}.*.origin", "type", "string")
+            ->rule("{$key}.*.specifier", "type", "string")
+            ->rule("{$key}.*.isDerivable", "type", "bool")
+            ->rule("{$key}.*.derivedFrom?", "type", "string")
             ->validate($input);
     }
     /**
@@ -160,6 +165,8 @@ final class ThemesController {
                     "generatedCss" => $b->generatedCss,
                     "origin" => $b->origin ?? "",
                     "specifier" => $b->specifier ?? "",
+                    "isDerivable" => !($b->derivedFrom ?? null) && $b->isDerivable,
+                    "derivedFrom" => ($b->derivedFrom ?? null),
                 ], $req->body->{$bodyKey}))])
                 ->where(...$w)
                 ->execute();
@@ -196,12 +203,12 @@ final class ThemesController {
         return []; // No errors
     }
     /**
-     * @param array<int, {title: string, id: string, scss: string, generatedCss: string, origin?: string, specifier?: string}> $units
+     * @psalm-param array<int, ThemeStyleUnit> $units
      * @param string $blockTypeName
      * @return string `@import "foo";<separator>@layer body-units { .j-_body {color:red;} }`
      */
     public static function combineAndWrapCss(array $units, string $blockTypeName): string {
-        $noRemote = $blockTypeName !== "_body_" ? array_filter($units, fn($u) => ($u->origin ?? "") !== "_body_") : $units;
+        $noRemote = $blockTypeName !== "_body_" ? array_filter($units, fn($u) => $u->origin !== "_body_") : $units;
         $css = implode("\n", array_map(fn($u) => $u->generatedCss, $noRemote));
         $pcs = $blockTypeName !== "_body_" ? [] : explode("/* hoisted decls ends */", $css);
         [$hoisted, $css2] = count($pcs) < 2 ? ["", $css] : ["{$pcs[0]}/* hoisted decls ends */", $pcs[1]];

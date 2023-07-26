@@ -2,10 +2,10 @@ import {__, hookForm, unhookForm, handleSubmit, FormGroup, Input, InputErrors,
         floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import {createUnitClass} from '../../left-column/block/VisualStyles.jsx';
 
-class SetUnitAsDefaultDialog extends preact.Component {
+class EditUnitOrSetAsDefault extends preact.Component {
     // boundDoHandleSubmit;
     /**
-     * @param {{onConfirmed: (specifier: String) => any; blockTypeName: String; isEdit: Boolean; specifier?: String;}} props
+     * @param {{onConfirmed: (specifier: String, isDerivable: Boolean) => any; blockTypeName: String; isEdit: Boolean; showSpecifier: Boolean; isDerivable: Boolean; specifier?: String;}} props
      */
     constructor(props) {
         super(props);
@@ -13,7 +13,7 @@ class SetUnitAsDefaultDialog extends preact.Component {
             {name: 'specifier', value: props.specifier || '', validations: [['maxLength', 120]],
                 label: __('Specifier')},
         ], {
-            saveAsUnique: false,
+            isDerivable: props.isDerivable,
         }));
         this.boundDoHandleSubmit = this.handleSubmit.bind(this);
     }
@@ -26,10 +26,10 @@ class SetUnitAsDefaultDialog extends preact.Component {
     /**
      * @access protected
      */
-    render({blockTypeName, isEdit}) {
+    render({blockTypeName, isEdit, showSpecifier}, {isDerivable}) {
         return <form onSubmit={ e => handleSubmit(this, this.boundDoHandleSubmit, e) }>
             { !isEdit ? <div class="mb-1">{ __('todo16 %s', __(blockTypeName)) }</div> : null }
-            <FormGroup>
+            { showSpecifier ? <FormGroup>
                 <label htmlFor="specifier" class="form-label with-icon-inline">
                     { __('Specifier') } ({ __('optional') })
                     <span
@@ -41,6 +41,24 @@ class SetUnitAsDefaultDialog extends preact.Component {
                 </label>
                 <Input vm={ this } prop="specifier" placeholder={ __('e.g. `>`, `div`, `.j-Button >`') }/>
                 <InputErrors vm={ this } prop="specifier"/>
+            </FormGroup> : null }
+            <FormGroup>
+                <label class="form-label with-icon-inline">
+                    { __('Visible for non-admins') }?
+                    <span
+                        class="tooltip tooltip-right d-flex ml-1"
+                        data-tooltip={ __('Allow non-admin users to add these\nstyles to contents in visual styles') }
+                        style="margin-top: -.1rem;">
+                        <Icon iconId="info-circle" className="size-xs color-dimmed3"/>
+                    </span>
+                </label>
+                <label class="form-checkbox mt-0">
+                    <input
+                        onClick={ e => this.setState({isDerivable: e.target.checked}) }
+                        checked={ isDerivable }
+                        type="checkbox"
+                        class="form-input"/><i class="form-icon"></i>
+                </label>
             </FormGroup>
             <div class="mt-8">
                 <button
@@ -58,10 +76,10 @@ class SetUnitAsDefaultDialog extends preact.Component {
      * @access private
      */
     handleSubmit() {
-        this.props.onConfirmed(this.state.values.specifier || '');
+        this.props.onConfirmed(this.state.values.specifier || '', this.state.isDerivable);
         floatingDialog.close();
         return Promise.resolve();
     }
 }
 
-export default SetUnitAsDefaultDialog;
+export default EditUnitOrSetAsDefault;

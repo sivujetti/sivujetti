@@ -51,8 +51,8 @@ final class UploadsController {
             $res->status(400)->json($errors);
             return;
         }
-        $patched = self::enumerateFileNameIdDuplicate($req->body->targetFileName, $db);
-        $fileNameFinal = $patched ?? $req->body->targetFileName;
+        $maybePatched = self::enumerateFileNameIfDuplicate($req->body->targetFileName, $db);
+        $fileNameFinal = $maybePatched ?? $req->body->targetFileName;
         // @allow \Pike\PikeException
         if (($file = $uploader->upload(
             file: $req->files->localFile,
@@ -77,7 +77,7 @@ final class UploadsController {
      * @param \Pike\Db\FluentDb $db
      * @return string|null
      */
-    private static function enumerateFileNameIdDuplicate(string $input, FluentDb $db): ?string {
+    private static function enumerateFileNameIfDuplicate(string $input, FluentDb $db): ?string {
         $pcs = explode(".", $input);
         $ext = array_pop($pcs);
         $noExt = implode(".", $pcs);

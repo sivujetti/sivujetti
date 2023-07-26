@@ -4,8 +4,11 @@ namespace Sivujetti\Theme\Entities;
 
 use Sivujetti\JsonUtils;
 
+/**
+ * @psalm-type ThemeStyleUnit = object{title: string, id: string, scss: string, generatedCss: string, origin: string, specifier: string, isDerivable: bool, derivedFrom: string|null}
+ */
 final class Style extends \stdClass {
-    /** @var object[] array<int, {title: string, id: string, scss: string, generatedCss: string, origin: string, specifier: string}> */
+    /** @psalm-var object[] array<int, ThemeStyleUnit> */
     public array $units;
     /** @var string e.g. "Text" */
     public string $blockTypeName;

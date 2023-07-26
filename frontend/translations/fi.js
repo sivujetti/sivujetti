@@ -65,7 +65,7 @@ stringBundles.push({
     'Set as default': 'Aseta oletukseksi',
     'Copy styles': 'Kopioi tyylit',
     'Paste styles': 'Liitä tyylit',
-    'Edit specifier': 'Muokkaa tarkennetta',
+    'Edit details': 'Muokkaa tietoja',
     'Delete style': 'Poista tyyli',
     'Css for the outermost %s (%s)': 'Uloimman %s (%s) css',
     'element': 'elementin',
@@ -195,9 +195,11 @@ stringBundles.push({
     'todo12': 'Sisällöstä luodaan aina uusi kopio, kun se lisätään sivuun.',
     'Unique': 'Uniikki',
     'todo13': 'Sisältö viittaa samaan tietoon, vaikka se olisi usealla eri sivulla (esim. "Footer").',
-    // edit-app/src/popups/styles/SetUnitAsDefaultDialog.jsx
+    // edit-app/src/popups/styles/EditUnitOrSetAsDefaultDialog.jsx
     'Specifier': 'Tarkenne',
     'todo16 %s': 'Tämä toiminto merkitsee nämä tyylit tyyleihin, jota käytetään automaattisesti uusissa, sivuun lisätyissä  %s -sisällöissä.',
+    'Visible for non-admins': 'Näytä ei-admin -käyttäjille',
+    'Allow non-admin users to add these\nstyles to contents in visual styles': 'Salli ei-admin -käyttäjien lisätä nämä\ntyylit sisällöille visuaalisissa tyyleissä',
     'optional': 'vapaaehtoinen',
     'Evaluates to\n`body [specifierHere] .%s`': 'Evaluoituu muotoon\n`body [tarkenneTähän] .%s`',
     'e.g. `>`, `div`, `.j-Button >`': 'esim. `>`, `div`, `.j-Button >`',

@@ -419,4 +419,14 @@ interface StylisAstNode {
     [more: String]: any;
 }
 
+interface StylesListProps {
+    blockCopy: RawBlock;
+    userCanEditVars: Boolean;
+    userCanEditCss: Boolean;
+    useVisualStyles: Boolean;
+    emitAddStyleClassToBlock: (styleClassToAdd: String, block: RawBlock) => String;
+    emitRemoveStyleClassFromBlock: (styleClassToRemove: String, block: RawBlock) => String;
+    emitSetBlockStylesClasses: (newStyleClasses: String, block: RawBlock) => void;
+}
+
 type extractedVars = [Array<CssVar>, Array<StylisAstNode>];

@@ -56,11 +56,13 @@ stringBundles.push({
     // Section
     'Max width': 'Maksimileveys', // 'Max width',
     'Cover': 'Taustapeitto', // 'Cover',
-    // edit-app/src/left-column/block/BlockStylesTab.jsx
-    'Use style': 'Käytä tyyliä',
+    // edit-app/src/left-column/block/CodeBasedStylesList.jsx
     'No own styles': 'Ei omia tyylejä',
-    'Show parent styles': 'Näytä ulommat tyylit',
+    'No own templates': 'Ei omia templaatteja',
     'Add styles': 'Lisää tyyli',
+    'Add templates': 'Lisää templaatti',
+    'Show parent styles': 'Näytä ulommat tyylit',
+    'Show parent templates': 'Näytä ulommat templaatit',
     'Edit name': 'Muokkaa nimeä',
     'Set as default': 'Aseta oletukseksi',
     'Copy styles': 'Kopioi tyylit',

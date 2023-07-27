@@ -77,7 +77,8 @@ class VisualStyles extends preact.Component {
             }
             const Cls = valueEditors.get(varType);
             if (Cls) {
-                const value = Cls.valueFromInput(decl.children);
+                const value1 = decl.children;
+                const value = value1 !== 'initial' ? Cls.valueFromInput(decl.children) : 'initial';
                 if (value) out.push({type: varType, value, varName, label: varNameToLabel(varName), args, __idx: i});
                 else env.window.console.log(`Don't know how to parse ${varType} variable value "${decl.children}" yet.`);
             } else env.window.console.log(`Variable type "${varType}" not recognized`);
@@ -107,7 +108,7 @@ class VisualStyles extends preact.Component {
         return <div class="has-color-pickers form-horizontal px-2">{ vars.map(v => {
             const Renderer = valueEditors.get(v.type);
             return <Renderer
-                valueCopy={ Object.assign({}, v.value) }
+                valueReal={ Object.assign({}, v.value) }
                 argsCopy={ [...v.args] }
                 varName={ v.varName }
                 labelTranslated={ __(v.label) }
@@ -140,7 +141,7 @@ class LengthValueInput extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        const {num, unit} = abNorm(this.props, LengthValueInput);
+        const {num, unit} = LengthValueInput.normalize(this.props.valueReal);
         this.setState(hookForm(this, [
             {name: 'num', value: num, validations: [['maxLength', 32], [{doValidate: val =>
                 !val.length || !isNaN(parseFloat(val))
@@ -155,7 +156,7 @@ class LengthValueInput extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        const incoming = abNorm(props, LengthValueInput);
+        const incoming = LengthValueInput.normalize(props.valueReal);
         if (this.state.values.num !== incoming.num)
             reHookValues(this, [{name: 'num', value: incoming.num}]);
     }
@@ -163,7 +164,7 @@ class LengthValueInput extends preact.Component {
      * @access protected
      */
     render(props) {
-        const norm = abNorm(props, OptionValueInput);
+        const norm = LengthValueInput.normalize(props.valueReal);
         const {labelTranslated, isClearable} = props;
         return <FormGroupInline>
             <label htmlFor="num" class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
@@ -212,10 +213,12 @@ class LengthValueInput extends preact.Component {
 /** @type {CanvasRenderingContext2D} */
 let helperCanvasCtx;
 
-function abNorm(props, Cls) {
-    if (Object.prototype.hasOwnProperty.call(props, 'valueAsString'))
-        return Cls.normalize(props.valueAsString ? Cls.valueFromInput(props.valueAsString) : null);
-    return Cls.normalize(props.valueCopy);
+/**
+ * @param {ValueInputProps<ColorValue>} props
+ * @access protected
+ */
+function getVisibleColor({valueToDisplay, valueReal}) {
+    return ColorValueInput.normalize(valueToDisplay || valueReal);
 }
 
 class ColorValueInput extends preact.Component {
@@ -226,8 +229,8 @@ class ColorValueInput extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        const cur = abNorm(this.props, ColorValueInput);
-        const incoming = abNorm(props, ColorValueInput);
+        const cur = getVisibleColor(this.props);
+        const incoming = getVisibleColor(props);
         if ((cur.data !== incoming.data || cur.type !== incoming.type) && this.pickr) {
             this.pickr.setColor(incoming.data);
         }
@@ -251,9 +254,9 @@ class ColorValueInput extends preact.Component {
      * @access protected
      */
     render(props) {
-        const val = abNorm(props, ColorValueInput);
+        const visible = getVisibleColor(props);
         const {labelTranslated, isClearable} = props;
-        return <FormGroupInline className={ `flex-centered${wc_hex_is_light(val.data) ? ' is-very-light-color' : ''}` }>
+        return <FormGroupInline className={ `flex-centered${wc_hex_is_light(visible.data) ? ' is-very-light-color' : ''}` }>
             <label class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
             {/* the real div.pickr (this.movingPickContainer) will appear here */}
             {/* this element will disappear after clicking */}
@@ -261,7 +264,7 @@ class ColorValueInput extends preact.Component {
             <div class="pickr disappearing-pickr">
                 <button
                     onClick={ this.replaceDisappearingBox.bind(this) }
-                    style={ `--pcr-color:${val.data};` }
+                    style={ `--pcr-color:${visible.data};` }
                     class="pcr-button"
                     type="button"
                     aria-label="toggle color picker dialog"
@@ -290,7 +293,7 @@ class ColorValueInput extends preact.Component {
         //
         const realColorBox = document.createElement('div');
         disappearingColorBox.parentElement.insertBefore(realColorBox, disappearingColorBox);
-        const norm = abNorm(this.props, ColorValueInput);
+        const norm = getVisibleColor(this.props);
         this.pickr = window.Pickr.create({
             el: realColorBox,
             theme: 'nano',
@@ -310,7 +313,7 @@ class ColorValueInput extends preact.Component {
             }
             signals.emit('visual-styles-var-value-changed-fast', this.props.selector, this.props.varName, value, 'color');
         }).on('changestop', (_source, instance) => {
-            if (abNorm(this.props, ColorValueInput).data === nonCommittedHex) return;
+            if (getVisibleColor(this.props).data === nonCommittedHex) return;
             // Update realColorBox's color
             instance.setColor(nonCommittedHex);
             // Commit
@@ -361,7 +364,7 @@ class OptionValueInput extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        const {selected} = abNorm(this.props, OptionValueInput);
+        const {selected} = OptionValueInput.normalize(this.props.valueReal);
         this.setState({selected, options: this.props.argsCopy});
     }
     /**
@@ -369,7 +372,7 @@ class OptionValueInput extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        const norm = abNorm(props, OptionValueInput);
+        const norm = OptionValueInput.normalize(props.valueReal);
         if (this.state.selected !== norm.selected)
             this.setState({selected: norm.selected});
     }
@@ -466,26 +469,27 @@ function createSelector(selector, selType = 'cls') {
     return selType === 'cls' ? `.${selector}` : `[data-block="${selector}"]`;
 }
 
-/**
- * @param {String} scss
- * @param {String} cls
- * @returns {String}
- */
-function compileScss(scss, cls) {
-    return serialize(compile(`.${cls} {${scss}}`), stringify);
-}
-
 valueEditors.set('length', LengthValueInput);
 valueEditors.set('color', ColorValueInput);
 valueEditors.set('option', OptionValueInput);
 
 /**
+ * @param {String} scss
+ * @param {String} cls
+ * @returns {String} cls
+ */
+function compileScss(scss, cls) {
+    return serialize(compile(`.${cls} {${scss}}`), stringify);
+}
+
+/**
  * @template T
  * @typedef ValueInputProps
- * @prop {T} valueCopy
+ * @prop {T|null} valueReal
+ * @prop {T|null} valueToDisplay
  * @prop {String[]} argsCopy
  * @prop {String} varName
- * @prop {String|null} valueWrapStr
+ * @prop {String} valueWrapStr
  * @prop {Boolean} isClearable
  * @prop {String} labelTranslated
  * @prop {(newVal: String) => any} onVarValueChanged
@@ -503,5 +507,5 @@ valueEditors.set('option', OptionValueInput);
 
 export default VisualStyles;
 export {wc_hex_is_light, ColorValueInput, LengthValueInput, OptionValueInput,
-    varNameToLabel, replaceVarValue, valueEditors, createUnitClass, createScss,
+    varNameToLabel, replaceVarValue, valueEditors, createUnitClass,
     createSelector, compileScss};

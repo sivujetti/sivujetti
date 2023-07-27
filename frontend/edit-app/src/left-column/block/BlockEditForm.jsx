@@ -7,7 +7,8 @@ import store2, {observeStore as observeStore2} from '../../store2.js';
 import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import {findBlockFrom, getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
-import BlockStylesTab from './BlockStylesTab.jsx';
+import WidgetBasedStylesList from './WidgetBasedStylesList.jsx';
+import CodeBasedStylesList from './CodeBasedStylesList.jsx';
 
 /** @type {BlockTypes} */
 let blockTypes;
@@ -98,20 +99,26 @@ class BlockEditForm extends preact.Component {
     render({block}, {currentTabIdx, currentBlockCopy}) {
         const EditFormImpl = this.editFormImpl;
         const getCopy = this.getCurrentBlockCopy.bind(this);
-        const t = block.type === 'PageInfo' ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
-        const tr1 = __('Styles (bundles)');
+        const tr1 = __('Content');
         const tr2 = __('Styles');
+        const tr3 = __('Styles (code)');
+        const StyleListCls = [null, WidgetBasedStylesList, CodeBasedStylesList][currentTabIdx];
+        const t = block.type === 'PageInfo' ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
         return <div data-main>
         <div class={ `with-icon pb-1${t}` }>
             <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
             { __(block.title || this.blockType.friendlyName) }
         </div>
         <Tabs
-            links={ [__('Content'), tr2] }
-            getTabName={ link => link === tr1 ? 'style-units' : 'combined-styles' }
+            links={ [...[tr1, tr2], ...(this.userCanEditCss ? [tr3] : [])] }
+            getTabName={ link => ({
+                [tr1]: 'content',
+                [tr2]: 'style-units',
+                [tr3]: 'style-templates'
+            }[link]) }
             onTabChanged={ toIdx => this.setState({
                 ...{currentTabIdx: toIdx},
-                ...(toIdx === 1 ? {currentBlockCopy: this.getCurrentBlockCopy()} : {})
+                ...(toIdx > 0 ? {currentBlockCopy: this.getCurrentBlockCopy()} : {})
             }) }
             className="text-tinyish mt-0 mb-2"/>
         <div class={ currentTabIdx === 0 ? '' : 'd-none' }>
@@ -126,13 +133,13 @@ class BlockEditForm extends preact.Component {
                         this.editFormImplsChangeGrabber = withFn;
                         this.editFormImplsChangeGrabberIncludeChild = includeChildren;
                     } }
-                    emitValueChanged={ (val, key, ...vargs) => { this.handleValueValuesChanged2({[key]: val}, ...vargs); } }
-                    emitManyValuesChanged={ this.handleValueValuesChanged2.bind(this) }
+                    emitValueChanged={ (val, key, ...vargs) => { this.handleValueValuesChanged({[key]: val}, ...vargs); } }
+                    emitManyValuesChanged={ this.handleValueValuesChanged.bind(this) }
                     key={ block.id }/>
             </div>
         </div>
-        <div class={ `block-styles-tab-content${currentTabIdx === 1 ? '' : ' d-none'}` }>
-            <BlockStylesTab
+        <div class={ `block-styles-tab-content${currentTabIdx > 0 ? '' : ' d-none'}` }>
+            { currentTabIdx > 0 ? <StyleListCls
                 blockCopy={ currentBlockCopy }
                 userCanEditVars={ this.userCanEditVars }
                 userCanEditCss={ this.userCanEditCss }
@@ -141,16 +148,17 @@ class BlockEditForm extends preact.Component {
                     const currentClasses = b.styleClasses;
                     const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
                     this.dispatchNewBlockStyleClasses(newClasses, b);
+                    return newClasses;
                 } }
                 emitRemoveStyleClassFromBlock={ (styleClassToRemove, b) => {
                     const currentClasses = b.styleClasses;
                     const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ');
                     this.dispatchNewBlockStyleClasses(newClasses, b);
+                    return newClasses;
                 } }
                 emitSetBlockStylesClasses={ (newStyleClasses, b) => {
                     this.dispatchNewBlockStyleClasses(newStyleClasses, b);
-                } }
-                isVisible={ currentTabIdx === 1 }/>
+                } }/> : null }
         </div>
         </div>;
     }
@@ -161,7 +169,7 @@ class BlockEditForm extends preact.Component {
      * @param {'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none'} debounceType = 'debounce-commit-to-queue'
      * @access public
      */
-    handleValueValuesChanged2(changes, hasErrors = false, debounceMillis = 0, debounceType = 'debounce-commit-to-queue') {
+    handleValueValuesChanged(changes, hasErrors = false, debounceMillis = 0, debounceType = 'debounce-commit-to-queue') {
         if (this.state.currentTabIdx === 1) return;
         // Run fast dispatch (reRender) immediately, which throttles commitChangeOpToQueue if debounceMillis > 0 (see OpQueueItemEmitter.js)
         if (debounceType === 'debounce-commit-to-queue' || debounceType === 'debounce-none') {

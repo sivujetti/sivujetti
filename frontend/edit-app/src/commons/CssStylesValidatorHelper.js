@@ -100,7 +100,7 @@ function hoistImports(ast) {
  * @param {Array<StylisAstNode>} mutAst
  */
 function completeBgUrls(mutAst) {
-    traverse(mutAst, node => {
+    traverseAst(mutAst, node => {
         if (!(node.type === 'decl' &&
             (node.props === 'background' || node.props === 'background-image')))
             return;
@@ -140,14 +140,15 @@ function completeUrlIfLocal(urlNormalized, s) {
 
 /**
  * @param {Array<{children: String|Array<Object>} & {[key: String]: any;}>} arr
- * @param {(Object) => void} fn
+ * @param {(Object) => false|any} fn
  */
-function traverse(arr, fn) {
+function traverseAst(arr, fn) {
     for (const item of arr) {
-        fn(item);
+        if (fn(item) === false) break;
         if (typeof item.children !== 'string' && item.children.length)
-            traverse(item.children, fn);
+            traverseAst(item.children, fn);
     }
 }
 
 export default CssStylesValidatorHelper;
+export {traverseAst};

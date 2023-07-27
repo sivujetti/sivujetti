@@ -56,11 +56,13 @@ stringBundles.push({
     // Section
     'Max width': 'Max width',
     'Cover': 'Cover',
-    // edit-app/src/left-column/block/BlockStylesTab.jsx
-    'Use style': 'Use style',
+    // edit-app/src/left-column/block/CodeBasedStylesList.jsx
     'No own styles': 'No own styles',
-    'Show parent styles': 'Show parent styles',
+    'No own templates': 'No own templates',
     'Add styles': 'Add styles',
+    'Add template': 'Add template',
+    'Show parent styles': 'Show parent styles',
+    'Show parent templates': 'Show parent templates',
     'Edit name': 'Edit name',
     'Set as default': 'Set as default',
     'Copy styles': 'Copy styles',

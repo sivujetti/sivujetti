@@ -1,4 +1,4 @@
-import {normalizeScss} from '../left-column/block/BlockStylesTab.jsx';
+import {normalizeScss} from '../left-column/block/CodeBasedStylesList.jsx';
 import {varNameToLabel} from '../left-column/block/VisualStyles.jsx';
 
 const vars = new Map;

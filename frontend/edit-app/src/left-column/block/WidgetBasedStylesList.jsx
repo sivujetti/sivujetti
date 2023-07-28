@@ -2,17 +2,15 @@ import {__, api, env, timingUtils, Popup, LoadingSpinner} from '@sivujetti-commo
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import VisualStyles, {createUnitClass, valueEditors, replaceVarValue, varNameToLabel} from './VisualStyles.jsx';
-import {getLargestPostfixNum, findBlockTypeStyles, tempHack, blockHasStyle, findParentStyleInfo,
-        updateAndEmitUnitScss, emitCommitStylesOp, unitIsCloned, goToStyle, EditableTitle,
-        compileSpecial, SPECIAL_BASE_UNIT_NAME} from './CodeBasedStylesList.jsx';
+import {StylesList, getLargestPostfixNum, findBlockTypeStyles, tempHack, blockHasStyle, findParentStyleInfo,
+        updateAndEmitUnitScss, emitCommitStylesOp, goToStyle, EditableTitle,
+        compileSpecial, SPECIAL_BASE_UNIT_NAME, emitAddStyleClassToBlock} from './CodeBasedStylesList.jsx';
 import {traverseAst} from '../../commons/CssStylesValidatorHelper.js';
 
 const {compile, serialize, stringify} = window.stylis;
 
-class WidgetBasedStylesList extends preact.Component {
+class WidgetBasedStylesList extends StylesList {
     // addUserUnitDropdown;
-    // editableTitleInstances;
-    // moreMenu;
     // openAddStylePopupBtn;
     // curBlockStyleClasses;
     // unregistrables;
@@ -23,9 +21,8 @@ class WidgetBasedStylesList extends preact.Component {
      * @access protected
      */
     componentWillMount() {
+        super.componentWillMount();
         this.addUserUnitDropdown = preact.createRef();
-        this.editableTitleInstances = [];
-        this.moreMenu = preact.createRef();
         this.openAddStylePopupBtn = preact.createRef();
         this.setState({unitsEnabled: null, unitsOfThisBlockType: []});
         this.curBlockStyleClasses = this.props.blockCopy.styleClasses;
@@ -60,18 +57,15 @@ class WidgetBasedStylesList extends preact.Component {
      * @access protected
      */
     render({blockCopy}, {unitsEnabled, unitsOfThisBlockType, parentStyleInfo, addStylePopupRenderer}) {
-        const alreadyHasInstance = base => (unitsEnabled || []).some(unit => this.getMaybeRemote(unit, blockCopy).derivedFrom === base.id);
-        const derivables = unitsOfThisBlockType.filter(this.isDerivable.bind(this));
-        const addables = derivables.filter(base => !alreadyHasInstance(this.getMaybeRemote(base, blockCopy)));
-        const enabled = unitsEnabled ? unitsEnabled.filter(unit => !unit.origin ? true : alreadyHasInstance(unit)) : null;
+        const derivables = unitsOfThisBlockType.filter(unit => this.isDerivable(unit, blockCopy));
+        const addables = derivables.filter(base => !this.alreadyHasInstance(this.getMaybeRemote(base, blockCopy), blockCopy));
         const vm = this;
         return [...[
-            enabled !== null ? enabled.length ? <ul class="list styles-list mb-2">{ enabled.map((unit, i) => {
+            unitsEnabled !== null ? unitsEnabled.length ? <ul class="list styles-list mb-2">{ unitsEnabled.map((unit, i) => {
                 const either = this.getMaybeRemote(unit, blockCopy, true);
                 const isDefault = either !== unit;
                 const cls = createUnitClass(unit.id, blockCopy.type);
                 const [cssVars, ast] = VisualStyles.extractVars(either.scss, cls);
-                const unitIsClone = unitIsCloned(unit);
                 const key = unit.id;
                 return <li key={ key } class="open">
                     <header class="flex-centered p-relative">
@@ -94,10 +88,9 @@ class WidgetBasedStylesList extends preact.Component {
                         const valIsSet = cssVar.value !== null;
                         const valIsInitial = valIsSet && cssVar.value === 'initial';
                         const args =  cssVar.args ? [...cssVar.args] : [];
-                        const parentVal = unitIsClone ? getDefaultValueIfDefined(cssVar, ast, this.bodyStyle, blockCopy.type) : null;
+                        const parentVal = !unit.derivedFrom ? null : getDefaultValueIfDefined(cssVar, ast, this.bodyStyle, blockCopy.type);
                         const isClearable = valIsSet && !valIsInitial;
                         return <Renderer
-                            varMetaCopy={ {...cssVar} }
                             valueReal={ valIsSet && !valIsInitial ? {...cssVar.value} : null }
                             valueToDisplay={ valIsSet && cssVar.value !== 'initial' ? {...cssVar.value} : parentVal }
                             argsCopy={ [...args] }
@@ -131,9 +124,7 @@ class WidgetBasedStylesList extends preact.Component {
                 type="button">{ __('Show parent styles') }</button>
             : null,
         <ContextMenu
-                links={ [
-                    {text: __('Edit name'), title: __('Edit name'), id: 'edit-style-title'},
-                ] }
+                links={ this.createContextMenuLinks() }
                 onItemClicked={ this.handleMoreMenuLinkClicked.bind(this) }
                 onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
                 ref={ this.moreMenu }/>,
@@ -201,14 +192,14 @@ class WidgetBasedStylesList extends preact.Component {
      */
     updateTodoState(unitsOfThisBlockType, themeStyles, blockCopy = this.props.blockCopy) {
         const isUnitStyleOn = unit => blockHasStyle(blockCopy, createUnitClass(unit.id, blockCopy.type), unit);
-        const unitsEnabled = unitsOfThisBlockType.filter(unit => isUnitStyleOn(unit));
+        const unitsEnabled1 = unitsOfThisBlockType.filter(unit => isUnitStyleOn(unit));
+        const unitsEnabled = unitsEnabled1.filter((unit, _i, arr) => !unit.origin ? true : this.alreadyHasInstance(unit, blockCopy, arr));
         this.debouncedEmitVarValueChange = timingUtils.debounce(
             this.emitVarValueChange.bind(this),
             env.normalTypingDebounceMillis
         );
-
-        this.editableTitleInstances = unitsEnabled.map(_ => preact.createRef());
-        this.setState({unitsEnabled,// liClasses: createLiClasses(units, currentOpenIdx),
+        this.receiveUnits(unitsEnabled);
+        this.setState({unitsEnabled,
             unitsOfThisBlockType: unitsOfThisBlockType,
             parentStyleInfo: findParentStyleInfo(themeStyles, blockCopy)});
     }
@@ -289,7 +280,7 @@ class WidgetBasedStylesList extends preact.Component {
         // #2
         const addedStyleToBlock = true;// !blockHasStyle(this.props.blockCopy, cls);
         if (addedStyleToBlock)
-            this.curBlockStyleClasses = this.props.emitAddStyleClassToBlock(cls, this.props.blockCopy);
+            this.curBlockStyleClasses = emitAddStyleClassToBlock(cls, this.props.blockCopy);
 
         // #1
         const newUnit = {title, id, scss, generatedCss: serialize(compile(`.${cls}{${scss}}`), stringify),
@@ -313,7 +304,7 @@ class WidgetBasedStylesList extends preact.Component {
      */
     addCloneOfUnitClone(unit) {
         const cls = createUnitClass(unit.id, this.props.blockCopy.type);
-        this.curBlockStyleClasses = this.props.emitAddStyleClassToBlock(cls, this.props.blockCopy);
+        this.curBlockStyleClasses = emitAddStyleClassToBlock(cls, this.props.blockCopy);
         this.updateTodoState(this.state.unitsOfThisBlockType, store2.get().themeStyles, {...this.props.blockCopy, ...{styleClasses: this.curBlockStyleClasses}});
     }
     /**
@@ -334,12 +325,14 @@ class WidgetBasedStylesList extends preact.Component {
         }
     }
     /**
-     * @param {ContextMenuLink} link
+     * @param {ThemeStyleUnit} base
+     * @param {RawBlock} blockCopy
+     * @param {Array<ThemeStyleUnit>} unitsEnabled1
+     * @returns {Boolean}
      * @access private
      */
-    handleMoreMenuLinkClicked({id}) {
-        if (id === 'edit-style-title')
-            this.editableTitleInstances[this.liIdxOfOpenMoreMenu].current.open();
+    alreadyHasInstance(base, blockCopy, unitsEnabled1 = this.state.unitsEnabled) {
+        return unitsEnabled1.some(unit => this.getMaybeRemote(unit, blockCopy).derivedFrom === base.id);
     }
     /**
      * @param {ThemeStyleUnit} unit
@@ -366,8 +359,9 @@ class AddStyleFromPopupPopup extends preact.Component {
                     onClick={ e => {
                         onStyleSelected(availableStyleUnits.find(({id}) => id === e.target.value));
                     } }
-                    type="radio"
-                    name="selectedStyle"/><i class="form-icon"></i> { getTitle(unit) }
+                    value={ unit.id }
+                    name="selectedStyle"
+                    type="radio"/><i class="form-icon"></i> { getTitle(unit) }
             </label>
         );
     }

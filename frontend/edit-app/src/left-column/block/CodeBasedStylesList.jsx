@@ -11,6 +11,7 @@ import exampleScss from '../../example-scss.js';
 import VisualStyles, {createUnitClass} from './VisualStyles.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import EditUnitOrSetAsDefaultDialog from '../../popups/styles/EditUnitOrSetAsDefaultDialog.jsx';
+import {getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -19,9 +20,62 @@ const unitClsBody = createUnitClass('', SPECIAL_BASE_UNIT_NAME);
 const SET_AS_DEFAULT = 'set-as-default';
 const EDIT_DETAILS = 'edit-yyy';
 
-class CodeBasedStylesList extends preact.Component {
+class StylesList extends preact.Component {
     // editableTitleInstances;
     // moreMenu;
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        this.editableTitleInstances = [];
+        this.moreMenu = preact.createRef();
+    }
+    /**
+     * @access protected
+     */
+    receiveUnits(unitsEnabled) {
+        this.editableTitleInstances = unitsEnabled.map(_ => preact.createRef());
+    }
+    /**
+     * @param {Array<MenuLink>} moreLinks = []
+     * @returns {Array<MenuLink>}
+     * @access protected
+     */
+    createContextMenuLinks(moreLinks = []) {
+        return [
+            {text: __('Edit name'), title: __('Edit name'), id: 'edit-style-title'},
+            ...moreLinks,
+            {text: __('Delete'), title: __('Delete style'), id: 'delete-style'},
+        ];
+    }
+    /**
+     * @param {ContextMenuLink} link
+     * @returns {Boolean}
+     * @access protected
+     */
+    handleMoreMenuLinkClicked({id}) {
+        if (id === 'edit-style-title') {
+            this.editableTitleInstances[this.liIdxOfOpenMoreMenu].current.open();
+            return true;
+        }
+        if (id === 'delete-style') {
+            const arr = this.state.unitsEnabled || this.state.units;
+            const unit = arr[this.liIdxOfOpenMoreMenu];
+            removeStyleUnitMaybeRemote(unit, this.props.blockCopy);
+            return true;
+        }
+        return false;
+    }
+    /**
+     * @access protected
+     */
+    // eslint-disable-next-line react/require-render-return
+    render() {
+        throw new Error('Abstract method not implemented.');
+    }
+}
+
+class CodeBasedStylesList extends StylesList {
     // extraBlockStyleClassesTextareaEl;
     // currentBlockUnitStyleClasses;
     // throttledDoHandleUtilsClassesInput;
@@ -33,8 +87,7 @@ class CodeBasedStylesList extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        this.editableTitleInstances = [];
-        this.moreMenu = preact.createRef();
+        super.componentWillMount();
         this.extraBlockStyleClassesTextareaEl = preact.createRef();
         this.currentBlockUnitStyleClasses = '';
         this.throttledDoHandleUtilsClassesInput = timingUtils.debounce(
@@ -120,7 +173,7 @@ class CodeBasedStylesList extends preact.Component {
                             : null
                     }
                 </li>;
-            }) }</ul> : <p class="pt-1 mb-2 color-dimmed">{ __('No own styles') }.</p>
+            }) }</ul> : <p class="pt-1 mb-2 color-dimmed">{ __('No own templates') }.</p>
             : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
         ].concat(userCanEditCss ? [
             <button
@@ -153,12 +206,10 @@ class CodeBasedStylesList extends preact.Component {
             </div>,
             <InputError errorMessage={ extraBlockStyleClassesError }/>,
             <ContextMenu
-                links={ [
-                    {text: __('Edit name'), title: __('Edit name'), id: 'edit-style-title'},
+                links={ this.createContextMenuLinks([
                     {text: __('Set as default'), title: __('Set as default'), id: SET_AS_DEFAULT},
                     {text: __('Edit details'), title: __('Edit details'), id: EDIT_DETAILS},
-                    {text: __('Delete'), title: __('Delete style'), id: 'delete-style'},
-                ] }
+                ]) }
                 onItemClicked={ this.handleMoreMenuLinkClicked.bind(this) }
                 onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
                 ref={ this.moreMenu }/>
@@ -222,7 +273,7 @@ class CodeBasedStylesList extends preact.Component {
         const units = candidate ? candidate.filter(unit => !isSpecialUnit(unit)): [];
         const isUnitStyleOn = ({id}) => blockHasStyle(blockCopy, createUnitClass(id, blockCopy.type));
         if (this.props.useVisualStyles) units.sort((a, b) => isUnitStyleOn(b) - isUnitStyleOn(a));
-        this.editableTitleInstances = units.map(_ => preact.createRef());
+        this.receiveUnits(units);
         this.setState({units, liClasses: createLiClasses(units, currentOpenIdx),
             parentStyleInfo: findParentStyleInfo(themeStyles, blockCopy)});
     }
@@ -243,46 +294,50 @@ class CodeBasedStylesList extends preact.Component {
      * @param {ContextMenuLink} link
      * @access private
      */
-    handleMoreMenuLinkClicked({id}) {
-        if (id === 'edit-style-title')
-            this.editableTitleInstances[this.liIdxOfOpenMoreMenu].current.open();
-        else if (id === SET_AS_DEFAULT || id === EDIT_DETAILS) {
-            const unit = this.state.units[this.liIdxOfOpenMoreMenu];
-            const blockTypeName = this.props.blockCopy.type;
-            const remote = id === SET_AS_DEFAULT ? null : findRealUnit(unit, blockTypeName);
-            const [unitId, blockTypeNameAdjusted] = remote === unit ? [unit.id, blockTypeName] : [remote.id, SPECIAL_BASE_UNIT_NAME];
-            const [isEdit, title, specifier, isDerivable, onConfirmed] = id === SET_AS_DEFAULT
-                ? [false, 'Set as default', undefined, unit.isDerivable, (specifier, isDerivable) => {
-                    this.setUnitAsDefault(specifier, isDerivable, unit);
-                }]
-                : [true, 'Edit details', remote.specifier, remote.isDerivable, (specifierNew, isDerivableNew) => {
-                    if (specifierNew !== specifier)
-                        emitUpdatedRemoteCss(specifier, remote, blockTypeName);
-                    if (isDerivableNew !== isDerivable) {
-                        const dataBefore = {isDerivable};
-                        const changes = {isDerivable: isDerivableNew};
-                        emitUnitChanges(changes, dataBefore, blockTypeNameAdjusted, unitId);
-                    }
-                }];
-            floatingDialog.open(EditUnitOrSetAsDefaultDialog, {
-                title: __(title),
-                height: 286,
-            }, {
-                blockTypeName,
-                specifier,
-                showSpecifier: !isEdit || remote !== unit,
-                isDerivable,
-                isEdit,
-                onConfirmed,
-            });
-        } else if (id === 'delete-style') {
-            const unit = this.state.units[this.liIdxOfOpenMoreMenu];
-            const maybeRemote = findRealUnit(unit, this.props.blockCopy.type);
-            if (maybeRemote === unit)
-                removeStyleUnit(this.props.blockCopy.type, unit);
-            else
-                removeStyleUnit(SPECIAL_BASE_UNIT_NAME, maybeRemote, unit);
+    handleMoreMenuLinkClicked(link) {
+        if (super.handleMoreMenuLinkClicked(link))
+            return true;
+        const {id} = link;
+        if (id === SET_AS_DEFAULT || id === EDIT_DETAILS) {
+            this.handleEditOrSetAsDefaultMenuItemClicked(id !== SET_AS_DEFAULT);
+            return true;
         }
+        return false;
+    }
+    /**
+     * @param {Boolean} wasEditLink
+     * @access private
+     */
+    handleEditOrSetAsDefaultMenuItemClicked(wasEditLink) {
+        const unit = this.state.units[this.liIdxOfOpenMoreMenu];
+        const blockTypeName = this.props.blockCopy.type;
+        const remote = wasEditLink ? findRealUnit(unit, blockTypeName) : null;
+        const [unitId, blockTypeNameAdjusted] = remote === unit ? [unit.id, blockTypeName] : [remote.id, SPECIAL_BASE_UNIT_NAME];
+        const [title, specifier, isDerivable, onConfirmed] = wasEditLink
+            ? ['Edit details', remote.specifier, remote.isDerivable, (specifierNew, isDerivableNew) => {
+                if (specifierNew !== specifier)
+                    emitUpdatedRemoteCss(specifier, remote, blockTypeName);
+                if (isDerivableNew !== isDerivable) {
+                    const dataBefore = {isDerivable};
+                    const changes = {isDerivable: isDerivableNew};
+                    emitUnitChanges(changes, dataBefore, blockTypeNameAdjusted, unitId);
+                }
+            }]
+            : ['Set as default', undefined, unit.isDerivable, (specifier, isDerivable) => {
+                this.setUnitAsDefault(specifier, isDerivable, unit);
+            }];
+        const showSpecifier = !wasEditLink || remote !== unit;
+        floatingDialog.open(EditUnitOrSetAsDefaultDialog, {
+            title: __(title),
+            height: showSpecifier ? 286 : 206,
+        }, {
+            blockTypeName,
+            specifier,
+            showSpecifier,
+            isDerivable,
+            wasEditLink,
+            onConfirmed,
+        });
     }
     /**
      * @param {String} specifier 'something' or ''
@@ -342,7 +397,7 @@ class CodeBasedStylesList extends preact.Component {
         // #2
         const addedStyleToBlock = !blockHasStyle(this.props.blockCopy, cls);
         if (addedStyleToBlock)
-            this.props.emitAddStyleClassToBlock(cls, this.props.blockCopy);
+            emitAddStyleClassToBlock(cls, this.props.blockCopy);
 
         // #1
         const newUnit = {title, id, scss, generatedCss: serialize(compile(`.${cls}{${scss}}`), stringify),
@@ -378,7 +433,7 @@ class CodeBasedStylesList extends preact.Component {
         const unitClses = this.currentBlockUnitStyleClasses;
         const combAsString = unitClses + (unitClses ? ` ${v}` : v);
         // emit > props.grabBlockChanges() @constructor -> setState()
-        this.props.emitSetBlockStylesClasses(combAsString, this.props.blockCopy);
+        dispatchNewBlockStyleClasses(combAsString, this.props.blockCopy);
     }
     /**
      * @param {Number} liIdx
@@ -404,18 +459,50 @@ class CodeBasedStylesList extends preact.Component {
 }
 
 /**
- * @param {String} blockTypeName
  * @param {ThemeStyleUnit} unit
- * @param {ThemeStyleUnit|null} real
+ * @param {RawBlock} block
  */
-function removeStyleUnit(blockTypeName, unit, real) {
-    store2.dispatch('themeStyles/removeUnitFrom', [blockTypeName, unit]);
-    //
-    const clone = Object.assign({}, unit);
-    emitCommitStylesOp(blockTypeName, () => {
-        store2.dispatch('themeStyles/addUnitTo', [blockTypeName, clone]);
-        if (real) store2.dispatch('themeStyles/addUnitTo', [clone.origin, real]);
-    }, ...(!real ? [null, null] : [real, unit.origin]));
+function removeStyleUnitMaybeRemote(unit, block) {
+    const maybeRemote = findRealUnit(unit, block.type);
+    if (maybeRemote === unit)
+        removeStyleUnit(unit, null, block);
+    else
+        removeStyleUnit(unit, maybeRemote, null);
+}
+
+/**
+ * @param {ThemeStyleUnit} unit
+ * @param {ThemeStyleUnit|null} remote
+ * @param {RawBlock|null} block
+ */
+function removeStyleUnit(unit, remote, block) {
+    if (!remote) {
+        // #2
+        emitRemoveStyleClassFromBlock(createUnitClass(unit.id, block.type), block);
+
+        // #1
+        store2.dispatch('themeStyles/removeUnitFrom', [block.type, remote || unit]);
+
+        const clone = {...unit};
+        emitCommitStylesOp(block.type, () => {
+            // #1
+            store2.dispatch('themeStyles/addUnitTo', [block.type, clone]);
+            // #2
+            setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
+
+        }, null, null);
+    } else {
+        // #1 and #2 (both units (remote and its "shell") is removed from themeStyles store here)
+        store2.dispatch('themeStyles/removeUnitFrom', [SPECIAL_BASE_UNIT_NAME, remote]);
+
+        const clone = {...remote};
+        emitCommitStylesOp(SPECIAL_BASE_UNIT_NAME, () => {
+            // #1
+            store2.dispatch('themeStyles/addUnitTo', [SPECIAL_BASE_UNIT_NAME, clone]);
+            // #2
+            store2.dispatch('themeStyles/addUnitTo', [clone.origin, unit]);
+        }, unit, remote.origin);
+    }
 }
 
 class EditableTitle extends preact.Component {
@@ -736,7 +823,6 @@ function getRemoteStyleIfRemoved(bodyUnits, removedUnitId, removedUnitBlockTypeN
     // Normal case: $lookFor is _not_ found from $bodyUnits
     if (!bodyUnits.some(({id}) => id === lookFor))
         return findBlockTypeStyles(store2.get().themeStyles, removedUnitBlockTypeName);
-
     return null;
 }
 
@@ -952,6 +1038,43 @@ function emitUpdatedRemoteCss(specifier, remoteUnit, blockTypeName) {
     emitUnitChanges(updates, prev, SPECIAL_BASE_UNIT_NAME, remoteUnit.id);
 }
 
+/**
+ * @param {String} styleClassToAdd
+ * @param {RawBlock} b
+ * @returns {String}
+ */
+function emitAddStyleClassToBlock(styleClassToAdd, b) {
+    const currentClasses = b.styleClasses;
+    const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
+    dispatchNewBlockStyleClasses(newClasses, b);
+    return newClasses;
+}
+
+/**
+ * @param {String} styleClassToRemove
+ * @param {RawBlock} b
+ * @returns {String}
+ */
+function emitRemoveStyleClassFromBlock(styleClassToRemove, b) {
+    const currentClasses = b.styleClasses;
+    const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ');
+    dispatchNewBlockStyleClasses(newClasses, b);
+    return newClasses;
+}
+
+/**
+ * @param {String} newStyleClasses
+ * @param {RawBlock} blockCopy
+ * @access private
+ */
+function dispatchNewBlockStyleClasses(newStyleClasses, {id}) {
+    const changes = {styleClasses: newStyleClasses};
+    const isOnlyStyleClassesChange = true;
+    const isStoredToTreeId = getIsStoredToTreeIdFrom(id, 'mainTree');
+    store2.dispatch('theBlockTree/updateDefPropsOf', [id, isStoredToTreeId, changes, isOnlyStyleClassesChange]);
+}
+
+
 function tempHack2(el, popperId, cmp) {
     if (!el || cmp[`${popperId}-load`]) return;
     cmp[`${popperId}-load`] = true;
@@ -1007,6 +1130,7 @@ function hidePopper(content) {
  */
 
 export default CodeBasedStylesList;
-export {normalizeScss, getLargestPostfixNum, findBlockTypeStyles, tempHack, blockHasStyle,
-        findParentStyleInfo, updateAndEmitUnitScss, emitCommitStylesOp, goToStyle,
-        EditableTitle, compileSpecial, StyleTextarea, SPECIAL_BASE_UNIT_NAME};
+export {StylesList, normalizeScss, getLargestPostfixNum, findBlockTypeStyles, tempHack,
+        blockHasStyle, findParentStyleInfo, updateAndEmitUnitScss, emitCommitStylesOp,
+        goToStyle, EditableTitle, compileSpecial, StyleTextarea, SPECIAL_BASE_UNIT_NAME,
+        emitAddStyleClassToBlock};

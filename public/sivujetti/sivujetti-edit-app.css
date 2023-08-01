@@ -758,7 +758,15 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 }
 .style-vars-group > .form-group > :last-child,
 .has-color-pickers > .form-group > :last-child {
-    max-width: 80px;
+    max-width: 4rem;
+    width: initial;
+}
+.has-visual-length-input > :last-child > .p-relative {
+    min-width: 4.8rem;
+}
+.has-visual-length-input .form-select.input-group-addon {
+    width: 1%;
+    min-width: 2.6rem;
 }
 /* EditApp: Components: Big radios */
 .button-options {
@@ -1301,33 +1309,6 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 }
 .new-block-spawner-opened .new-block-spawner > .btn > .icon-tabler {
     transform: rotate(180deg);
-}
-
-
-/* EditApp: Main panel > Global Styles -section */
-.global-styles > div {
-    padding-bottom: .4rem;
-    flex-direction: row-reverse;
-}
-.global-styles > div > * {
-    flex: 1;
-    flex-direction: column-reverse;
-}
-.global-styles > div > .pickr + div {
-    display: none;
-}
-.global-styles .pickr {
-    align-self: end;
-    margin-left: .26rem;
-}
-.global-styles .pcr-button {
-    height: calc(1.4rem + 2px);
-    width: calc(1.4rem + 2px);
-    top: 1px;
-}
-.hidden-helper-picker + .pickr,
-.global-styles > .pickr {
-    display: none;
 }
 
 

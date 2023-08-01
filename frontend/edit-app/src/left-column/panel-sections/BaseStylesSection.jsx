@@ -1,9 +1,8 @@
 import {__, api, signals, MenuSection} from '@sivujetti-commons-for-edit-app';
 import Tabs from '../../commons/Tabs.jsx';
 import {observeStore as observeStore2} from '../../store2.js';
-import {StyleTextarea, tempHack, updateAndEmitUnitScss, findBodyStyle,
-        findBodyStyleMainUnit} from '../block/CodeBasedStylesList.jsx';
-import {SPECIAL_BASE_UNIT_NAME, specialBaseUnitCls} from '../block/styles-shared.js';
+import {SPECIAL_BASE_UNIT_NAME, StyleTextarea, specialBaseUnitCls, findBodyStyle,
+        findBodyStyleMainUnit, updateAndEmitUnitScss, tempHack} from '../block/styles-shared.jsx';
 import VisualStyles from '../block/VisualStyles.jsx';
 
 class BaseStylesSection extends preact.Component {
@@ -28,7 +27,7 @@ class BaseStylesSection extends preact.Component {
     componentDidMount() {
         this.unregistrables = [observeStore2('themeStyles', ({themeStyles}) => {
             if (!this.state.bodyStyleMainUnit) return;
-            const latest = findBodyStyle(themeStyles);
+            const latest = findBodyStyleMainUnit(findBodyStyle(themeStyles));
             if (this.state.bodyStyleMainUnit.scss !== latest.scss)
                 this.updateBaseStylesState(latest);
         }), signals.on('block-styles-go-to-base-styles-button-clicked', () => {
@@ -84,7 +83,7 @@ class BaseStylesSection extends preact.Component {
                 <div class={ currentTabIdx === 1 && this.userCanEditCss ? '' : 'd-none' }>
                     { this.userCanEditCss && bodyStyleMainUnit
                         ? <StyleTextarea
-                            unitCopy={ Object.assign({}, bodyStyleMainUnit) }
+                            unitCopy={ {...bodyStyleMainUnit} }
                             unitCls={ specialBaseUnitCls }
                             blockTypeName={ SPECIAL_BASE_UNIT_NAME }
                             isVisible={ true }/>

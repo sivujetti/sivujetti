@@ -2,11 +2,11 @@ import {__, api, env, timingUtils, Popup, LoadingSpinner} from '@sivujetti-commo
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import VisualStyles, {createUnitClass, valueEditors, replaceVarValue, varNameToLabel} from './VisualStyles.jsx';
-import {StylesList, tempHack, blockHasStyle, findParentStyleInfo,
-        updateAndEmitUnitScss, emitCommitStylesOp, goToStyle, EditableTitle,
-        compileSpecial, emitAddStyleClassToBlock, findBodyStyle} from './CodeBasedStylesList.jsx';
 import {traverseAst} from '../../commons/CssStylesValidatorHelper.js';
-import {SPECIAL_BASE_UNIT_NAME, getLargestPostfixNum, findBlockTypeStyles} from './styles-shared.js';
+import {SPECIAL_BASE_UNIT_NAME, getLargestPostfixNum, findBlockTypeStyles,
+        emitAddStyleClassToBlock, compileSpecial, updateAndEmitUnitScss,
+        emitCommitStylesOp, EditableTitle, goToStyle, blockHasStyle,
+        findParentStyleInfo, tempHack, StylesList, findBodyStyle} from './styles-shared.jsx';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -32,7 +32,7 @@ class WidgetBasedStylesList extends StylesList {
             this.bodyStyle = findBodyStyle(themeStyles);
             const {units} = findBlockTypeStyles(themeStyles, this.props.blockCopy.type) || {};
             if (this.state.unitsOfThisBlockType !== units)
-                this.updateTodoState(units, themeStyles, this.curBlockStyleClasses !== this.props.blockCopy.styleClasses ? {...this.props.blockCopy, ...{styleClasses: this.curBlockStyleClasses}} : this.props.blockCopy);
+                this.updateTodoState(units || [], themeStyles, this.curBlockStyleClasses !== this.props.blockCopy.styleClasses ? {...this.props.blockCopy, ...{styleClasses: this.curBlockStyleClasses}} : this.props.blockCopy);
         })];
         this.doLoad(this.props.blockCopy);
     }
@@ -84,7 +84,7 @@ class WidgetBasedStylesList extends StylesList {
                                 ref={ this.editableTitleInstances[i] }/>
                         </b>
                     </header>
-                    <div class="form-horizontal has-color-pickers pt-0 px-2 tight">{ cssVars.map(cssVar => {
+                    <div class="form-horizontal tight has-color-pickers pt-0 px-2">{ cssVars.map(cssVar => {
                         const Renderer = valueEditors.get(cssVar.type);
                         const valIsSet = cssVar.value !== null;
                         const args =  cssVar.args ? [...cssVar.args] : [];
@@ -368,7 +368,6 @@ class WidgetBasedStylesList extends StylesList {
             }
             return null;
         } else {
-            if (forVar.value !== 'initial') return null;
             const theVar = this.findParenVar(forVar, unit);
             if (theVar) return theVar.value !== 'initial' ? theVar.value : null;
         }

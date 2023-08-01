@@ -3,6 +3,7 @@ import {__, env, signals, stringUtils, timingUtils, hookForm, FormGroupInline, I
 
 const {compile, serialize, stringify} = window.stylis;
 
+const NO_VALUE = '?';
 const valueEditors = new Map;
 
 class VisualStyles extends preact.Component {
@@ -105,7 +106,7 @@ class VisualStyles extends preact.Component {
      */
     render({unitCls}, {vars}) {
         if (!vars) return;
-        return <div class="has-color-pickers form-horizontal px-2">{ vars.map(v => {
+        return <div class="form-horizontal tight has-color-pickers px-2">{ vars.map(v => {
             const Renderer = valueEditors.get(v.type);
             return <Renderer
                 valueReal={ Object.assign({}, v.value) }
@@ -137,19 +138,24 @@ function replaceVarValue(scss, {line, column}, replaceWith) {
 }
 
 class LengthValueInput extends preact.Component {
+    // numInternal;
     /**
      * @access protected
      */
     componentWillMount() {
         const {num, unit} = LengthValueInput.normalize(this.props.valueReal);
+        this.numInternal = num;
+        const numNorm = normValueNum(num);
         this.setState(hookForm(this, [
-            {name: 'num', value: num, validations: [['maxLength', 32], [{doValidate: val =>
+            {name: 'num', value: numNorm, validations: [['maxLength', 32], [{doValidate: val =>
                 !val.length || !isNaN(parseFloat(val))
             , errorMessageTmpl: __('%s must be a number').replace('%', '{field}')}, null]],
                 label: this.props.labelTranslated, onAfterValueChanged: (value, hasErrors) => {
                     if (!hasErrors) this.props.onVarValueChanged(value ? `${value}${unit}` : null);
                 }},
-        ]));
+        ], {
+            unit,
+        }));
     }
     /**
      * @param {ValueInputProps<LengthValue>} props
@@ -157,8 +163,13 @@ class LengthValueInput extends preact.Component {
      */
     componentWillReceiveProps(props) {
         const incoming = LengthValueInput.normalize(props.valueReal);
-        if (this.state.values.num !== incoming.num)
-            reHookValues(this, [{name: 'num', value: incoming.num}]);
+        const numNorm = normValueNum(incoming.num);
+        if (this.state.values.num !== numNorm) {
+            reHookValues(this, [{name: 'num', value: numNorm}]);
+            this.numInternal = incoming.num;
+        }
+        if (this.state.unit !== incoming.unit)
+            this.setState({unit: incoming.unit});
     }
     /**
      * @access protected
@@ -166,15 +177,26 @@ class LengthValueInput extends preact.Component {
     render(props) {
         const norm = LengthValueInput.normalize(props.valueReal);
         const {labelTranslated, isClearable} = props;
-        return <FormGroupInline>
+        const unit = norm.num || this.numInternal === NO_VALUE ? norm.unit : this.state.unit;
+        return <FormGroupInline className="has-visual-length-input">
             <label htmlFor="num" class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
             <div class="p-relative">
                 <div class="input-group">
                     <Input vm={ this } prop="num" placeholder="1.4"/>
-                    <span class="input-group-addon addon-sm">{ norm.num ? norm.unit : 'rem' }</span>
+                    <select
+                        onChange={ e => this.props.onVarValueChanged(`${norm.num}${e.target.value}`) }
+                        class="form-input input-group-addon addon-sm form-select"
+                        defaultvalue={ unit }>{
+                        ['rem', 'px', '%', 'em', 'vh', 'vw', 'vb', 'vmin', 'vmax'].map(ltype =>
+                            <option value={ ltype }>{ ltype }</option>
+                        )
+                    }</select>
                 </div>
                 { isClearable
-                    ? <button onClick={ () => { this.props.onVarValueChanged(null); } } class="btn btn-link btn-sm" title={ __('Restore default') } style="position: absolute;right: -1.8rem;top: .1rem;">
+                    ? <button onClick={ () => { this.props.onVarValueChanged(null); } }
+                        class="btn btn-link btn-sm"
+                        title={ __('Restore default') }
+                        style="position: absolute;right: -1.8rem;top: .1rem;">
                         <span class="d-flex rotated-undo-icon"><Icon iconId="rotate" className="size-xs color-dimmed3"/></span>
                     </button>
                     : null
@@ -203,23 +225,27 @@ class LengthValueInput extends preact.Component {
      * @returns {LengthValue}
      */
     static normalize(input) {
-        return input || {num: '', unit: 'rem'};
+        return input || {num: NO_VALUE, unit: 'rem'};
     }
+    /**
+     * @param {LengthValue} value
+     * @returns {String}
+     */
     static valueToString(value) {
-        return `${value.num}${value.unit}`;
+        return `${value.num || NO_VALUE}${value.unit}`;
     }
+}
+
+/**
+ * @param {String} num
+ * @returns {String}
+ */
+function normValueNum(num) {
+    return num !== NO_VALUE ? num : '';
 }
 
 /** @type {CanvasRenderingContext2D} */
 let helperCanvasCtx;
-
-/**
- * @param {ValueInputProps<ColorValue>} props
- * @access protected
- */
-function getVisibleColor({valueToDisplay, valueReal}) {
-    return ColorValueInput.normalize(valueToDisplay || valueReal);
-}
 
 class ColorValueInput extends preact.Component {
     // unregisterSignalListener;
@@ -354,9 +380,21 @@ class ColorValueInput extends preact.Component {
     static normalize(input) {
         return input || {data: '#000000ff', type: 'hexa'};
     }
+    /**
+     * @param {ColorValue} value
+     * @returns {String}
+     */
     static valueToString(value) {
         return `${value.data}`;
     }
+}
+
+/**
+ * @param {ValueInputProps<ColorValue>} props
+ * @access protected
+ */
+function getVisibleColor({valueToDisplay, valueReal}) {
+    return ColorValueInput.normalize(valueToDisplay || valueReal);
 }
 
 class OptionValueInput extends preact.Component {
@@ -411,6 +449,10 @@ class OptionValueInput extends preact.Component {
     static normalize(input) {
         return input || {selected: null};
     }
+    /**
+     * @param {OptionValue} value
+     * @returns {String}
+     */
     static valueToString(value) {
         return `${value.selected}`;
     }

@@ -383,9 +383,11 @@ type treeTransferType = 'none'|'out-of-gbt'|'into-gbt';
 
 type urlMode = 'pick-url'|'pick-file'|'type-external-url';
 
+type cssValType = LengthValue|ColorValue|OptionValue;
+
 interface CssVar {
     type: 'length'|'color'|'option';
-    value: LengthValue|ColorValue|OptionValue|null;
+    value: cssValType|null;
     varName: String;
     label: String;
     args: String[];

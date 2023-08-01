@@ -8,15 +8,14 @@ import CssStylesValidatorHelper from '../../commons/CssStylesValidatorHelper.js'
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import store, {pushItemToOpQueue} from '../../store.js';
 import exampleScss from '../../example-scss.js';
-import VisualStyles, {createUnitClass} from './VisualStyles.jsx';
+import VisualStyles, {createUnitClass, valueEditors} from './VisualStyles.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import EditUnitOrSetAsDefaultDialog from '../../popups/styles/EditUnitOrSetAsDefaultDialog.jsx';
 import {getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
+import {getLargestPostfixNum, findBlockTypeStyles, SPECIAL_BASE_UNIT_NAME, specialBaseUnitCls} from './styles-shared.js';
 
 const {compile, serialize, stringify} = window.stylis;
 
-const SPECIAL_BASE_UNIT_NAME = '_body_';
-const unitClsBody = createUnitClass('', SPECIAL_BASE_UNIT_NAME);
 const SET_AS_DEFAULT = 'set-as-default';
 const EDIT_DETAILS = 'edit-yyy';
 
@@ -59,8 +58,16 @@ class StylesList extends preact.Component {
             return true;
         }
         if (id === 'delete-style') {
-            const arr = this.state.unitsEnabled || this.state.units;
+            const isCodeBased = this.state.units && !this.state.unitsEnabled;
+            const arr = isCodeBased ? this.state.units : this.state.unitsEnabled;
             const unit = arr[this.liIdxOfOpenMoreMenu];
+            if (isCodeBased) {
+                const maybeRemote = findRealUnit(unit, this.props.blockCopy.type);
+                if (maybeRemote.isDerivable && arr.some(unit => unit.derivedFrom === maybeRemote.id)) {
+                    alert(__('This template has derivates and cannot be deleted.'));
+                    return true;
+                }
+            }
             removeStyleUnitMaybeRemote(unit, this.props.blockCopy);
             return true;
         }
@@ -98,7 +105,7 @@ class CodeBasedStylesList extends StylesList {
             ...this.createBlockClassesState(this.props.blockCopy)
         });
         this.unregistrables = [observeStore2('themeStyles', ({themeStyles}, [event]) => {
-            this.bodyStyle = themeStyles.find(({blockTypeName}) => blockTypeName === SPECIAL_BASE_UNIT_NAME);
+            this.bodyStyle = findBodyStyle(themeStyles);
             const {units} = (findBlockTypeStyles(themeStyles, this.props.blockCopy.type) || {});
             if (this.state.units !== units)
                 this.updateUnitsState(units, themeStyles, this.getOpenLiIdx(event, units));
@@ -132,12 +139,12 @@ class CodeBasedStylesList extends StylesList {
                 const [cssVars, ast] = !useVisualStyles ? [[], []] : VisualStyles.extractVars(unit.scss, cls);
                 const doShowChevron = userCanEditCss || (useVisualStyles && cssVars.length);
                 const bodyUnitCopy = unit.origin !== SPECIAL_BASE_UNIT_NAME ? null : this.getRemoteBodyUnitCopy(unit, blockCopy);
-                const isDefault = bodyUnitCopy !== null;
-                const title = (bodyUnitCopy || unit).title;
+                const [isDefault, real] = bodyUnitCopy === null ? [false, unit] : [true, bodyUnitCopy];
+                const title = real.title;
                 return <li class={ liCls } data-cls={ cls } key={ unit.id }>
                     <header class="flex-centered p-relative">
                         <button
-                            onClick={ e => this.handleLiClick(e, i, isDefault) }
+                            onClick={ e => this.handleLiClick(e, i, isDefault ? false : !unit.derivedFrom) }
                             class="col-12 btn btn-link text-ellipsis with-icon pl-2 mr-1 no-color"
                             title={ userCanEditCss ? `.${cls}` : '' }
                             type="button">
@@ -223,7 +230,7 @@ class CodeBasedStylesList extends StylesList {
         this.setState({...{themeStyles: null}, ...this.createBlockClassesState(blockCopy)});
         const themeStyles = tempHack();
         if (themeStyles) {
-            this.bodyStyle = themeStyles.find(({blockTypeName}) => blockTypeName === SPECIAL_BASE_UNIT_NAME);
+            this.bodyStyle = findBodyStyle(themeStyles);
             this.updateUnitsState((findBlockTypeStyles(themeStyles, blockCopy.type) || {}).units, themeStyles, undefined, blockCopy);
         }
         // else Wait for store2.dispatch('themeStyles/setAll')
@@ -242,10 +249,10 @@ class CodeBasedStylesList extends StylesList {
     /**
      * @param {Event} e
      * @param {Number} i
-     * @param {Boolean} isDefaultUnit
+     * @param {Boolean} canBeSetAsDefault
      * @access private
      */
-    handleLiClick(e, i, isDefaultUnit) {
+    handleLiClick(e, i, canBeSetAsDefault) {
         if (this.props.userCanEditCss && this.editableTitleInstances[i].current.isOpen()) return;
         //
         const moreMenuIconEl = e.target.classList.contains('edit-icon-outer') ? e.target : e.target.closest('.edit-icon-outer');
@@ -257,7 +264,7 @@ class CodeBasedStylesList extends StylesList {
             this.liIdxOfOpenMoreMenu = i;
             this.refElOfOpenMoreMenu = moreMenuIconEl;
             this.refElOfOpenMoreMenu.style.opacity = '1';
-            this.moreMenu.current.open({target: moreMenuIconEl}, !isDefaultUnit
+            this.moreMenu.current.open({target: moreMenuIconEl}, canBeSetAsDefault
                 ? links => links
                 : links => links.filter(({id}) => id !== SET_AS_DEFAULT));
         }
@@ -312,7 +319,7 @@ class CodeBasedStylesList extends StylesList {
         const unit = this.state.units[this.liIdxOfOpenMoreMenu];
         const blockTypeName = this.props.blockCopy.type;
         const remote = wasEditLink ? findRealUnit(unit, blockTypeName) : null;
-        const [unitId, blockTypeNameAdjusted] = remote === unit ? [unit.id, blockTypeName] : [remote.id, SPECIAL_BASE_UNIT_NAME];
+        const [unitId, blockTypeNameAdjusted] = !wasEditLink || remote === unit ? [unit.id, blockTypeName] : [remote.id, SPECIAL_BASE_UNIT_NAME];
         const [title, specifier, isDerivable, onConfirmed] = wasEditLink
             ? ['Edit details', remote.specifier, remote.isDerivable, (specifierNew, isDerivableNew) => {
                 if (specifierNew !== specifier)
@@ -346,9 +353,9 @@ class CodeBasedStylesList extends StylesList {
      * @access private
      */
     setUnitAsDefault(specifier, isDerivable, unit) {
-        const dataBefore = {...unit, ...{origin: '', specifier: '', isDerivable}};
+        const dataBefore = {...unit, ...{origin: '', specifier: '', isDerivable: false}};
         const blockTypeName = this.props.blockCopy.type;
-        const [emptied, toBody] = createDefaultUnit(unit, blockTypeName, specifier);
+        const [emptied, toBody] = createDefaultUnit(unit, blockTypeName, specifier, isDerivable);
 
         // 1. Add new unit to body
         store2.dispatch('themeStyles/addUnitTo', [emptied.origin, toBody]);
@@ -395,7 +402,7 @@ class CodeBasedStylesList extends StylesList {
         const cls = createUnitClass(id, this.props.blockCopy.type);
 
         // #2
-        const addedStyleToBlock = !blockHasStyle(this.props.blockCopy, cls);
+        const addedStyleToBlock = false;
         if (addedStyleToBlock)
             emitAddStyleClassToBlock(cls, this.props.blockCopy);
 
@@ -432,7 +439,6 @@ class CodeBasedStylesList extends StylesList {
         }
         const unitClses = this.currentBlockUnitStyleClasses;
         const combAsString = unitClses + (unitClses ? ` ${v}` : v);
-        // emit > props.grabBlockChanges() @constructor -> setState()
         dispatchNewBlockStyleClasses(combAsString, this.props.blockCopy);
     }
     /**
@@ -747,21 +753,10 @@ function compileSpecial(newScss, curScss, specifier, unitCls, blockTypeName, css
     const selBtype = createUnitClass('', blockTypeName);
     // '.j-_body_ .j-Section:not(.no-j-Section-unit-1) {' or '.j-_body_ > .j-Section:not(.no-j-Section-unit-1) {' or
     // '.j-_body_ > .j-Section:not(...'
-    const wrap1 = `.${unitClsBody}${validateAndGetSpecifier(specifier)} .${selBtype}:not(.no-${unitCls}) {`;
+    const wrap1 = `.${specialBaseUnitCls}${validateAndGetSpecifier(specifier)} .${selBtype}:not(.no-${unitCls}) {`;
     const wrap2 =  '}';
     return cssValidator.validateAndCompileScss(newScss,
         input => `${wrap1}${input}${wrap2}`, currentlyCommitted, allowImports);
-}
-
-/**
- * @param {Array<{title: String; [key: String]: any;}} currentUnits
- * @returns {Number}
- */
-function getLargestPostfixNum(currentUnits) {
-    return currentUnits.reduce((out, {id}) => {
-        const maybe = parseInt(id.split('-').pop());
-        return !isNaN(maybe) ? maybe > out ? maybe : out : out;
-    }, 0);
 }
 
 /**
@@ -771,15 +766,6 @@ function getLargestPostfixNum(currentUnits) {
  */
 function createLiClasses(units, openIdx) {
     return units.map((_, i) => i !== openIdx ? '' : ' open');
-}
-
-/**
- * @param {Array<ThemeStyle>} from
- * @param {String} blockTypeName
- * @returns {ThemeStyle|undefined}
- */
-function findBlockTypeStyles(from, blockTypeName) {
-    return from.find(s => s.blockTypeName === blockTypeName);
 }
 
 /**
@@ -969,7 +955,7 @@ function findRealUnit(unit1, blockTypeName, themeStyles = null) {
     if (unit1.origin !== SPECIAL_BASE_UNIT_NAME) throw new Error('Not implemented.');
     //
     if (!themeStyles) ({themeStyles} = store2.get());
-    const bodyStyle = themeStyles.find(({blockTypeName}) => blockTypeName === SPECIAL_BASE_UNIT_NAME);
+    const bodyStyle = findBodyStyle(themeStyles);
     const lookFor = createUnitClass(unit1.id, blockTypeName);
     return bodyStyle.units.find(({id}) => id === lookFor) || unit1;
 }
@@ -988,8 +974,9 @@ function validateAndGetSpecifier(candidate) {
  * @param {ThemeStyleUnit} from
  * @param {String} blockTypeName
  * @param {String} specifier
+ * @param {Boolean} isDerivable = false
  */
-function createDefaultUnit(from, blockTypeName, specifier) {
+function createDefaultUnit(from, blockTypeName, specifier, isDerivable = false) {
     // Example: {"title":"","id":"unit-13","scss":"","generatedCss":"","origin":"_body_","specifier":"","isDerivable":false,"derivedFrom":"unit-2"}
     const emptied = {
         title: '',
@@ -1009,7 +996,7 @@ function createDefaultUnit(from, blockTypeName, specifier) {
         generatedCss: 'filled-below',
         origin: blockTypeName,
         specifier: specifier || '',
-        isDerivable: from.isDerivable,
+        isDerivable,
         derivedFrom: from.derivedFrom,
     };
 
@@ -1074,6 +1061,21 @@ function dispatchNewBlockStyleClasses(newStyleClasses, {id}) {
     store2.dispatch('theBlockTree/updateDefPropsOf', [id, isStoredToTreeId, changes, isOnlyStyleClassesChange]);
 }
 
+/**
+ * @param {Array<ThemeStyle>} styles
+ * @returns {ThemeStyleUnit}
+*/
+function findBodyStyle(styles) {
+    return styles.find(s => s.blockTypeName === SPECIAL_BASE_UNIT_NAME);
+}
+
+/**
+ * @param {ThemeStyle} bodyStyle
+ * @returns {ThemeStyleUnit}
+*/
+function findBodyStyleMainUnit(bodyStyle) {
+    return bodyStyle.units[0];
+}
 
 function tempHack2(el, popperId, cmp) {
     if (!el || cmp[`${popperId}-load`]) return;
@@ -1130,7 +1132,7 @@ function hidePopper(content) {
  */
 
 export default CodeBasedStylesList;
-export {StylesList, normalizeScss, getLargestPostfixNum, findBlockTypeStyles, tempHack,
-        blockHasStyle, findParentStyleInfo, updateAndEmitUnitScss, emitCommitStylesOp,
-        goToStyle, EditableTitle, compileSpecial, StyleTextarea, SPECIAL_BASE_UNIT_NAME,
-        emitAddStyleClassToBlock};
+export {StylesList, normalizeScss, tempHack, blockHasStyle, findParentStyleInfo,
+        updateAndEmitUnitScss, emitCommitStylesOp, goToStyle, EditableTitle,
+        compileSpecial, StyleTextarea, emitAddStyleClassToBlock, findBodyStyle,
+        findBodyStyleMainUnit};

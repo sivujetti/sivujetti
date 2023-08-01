@@ -143,22 +143,7 @@ class BlockEditForm extends preact.Component {
                 blockCopy={ currentBlockCopy }
                 userCanEditVars={ this.userCanEditVars }
                 userCanEditCss={ this.userCanEditCss }
-                useVisualStyles={ this.useVisualStyles }
-                emitAddStyleClassToBlock={ (styleClassToAdd, b) => {
-                    const currentClasses = b.styleClasses;
-                    const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
-                    this.dispatchNewBlockStyleClasses(newClasses, b);
-                    return newClasses;
-                } }
-                emitRemoveStyleClassFromBlock={ (styleClassToRemove, b) => {
-                    const currentClasses = b.styleClasses;
-                    const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ');
-                    this.dispatchNewBlockStyleClasses(newClasses, b);
-                    return newClasses;
-                } }
-                emitSetBlockStylesClasses={ (newStyleClasses, b) => {
-                    this.dispatchNewBlockStyleClasses(newStyleClasses, b);
-                } }/> : null }
+                useVisualStyles={ this.useVisualStyles }/> : null }
         </div>
         </div>;
     }
@@ -185,17 +170,6 @@ class BlockEditForm extends preact.Component {
             };
             this.dispatchFastChangeTimeout = setTimeout(fn, debounceMillis);
         }
-    }
-    /**
-     * @param {String} newStyleClasses
-     * @param {RawBlock} blockCopy
-     * @access private
-     */
-    dispatchNewBlockStyleClasses(newStyleClasses, {id}) {
-        const changes = {styleClasses: newStyleClasses};
-        const isOnlyStyleClassesChange = true;
-        const isStoredToTreeId = getIsStoredToTreeIdFrom(id, 'mainTree');
-        store2.dispatch('theBlockTree/updateDefPropsOf', [id, isStoredToTreeId, changes, isOnlyStyleClassesChange]);
     }
     /**
      * @returns {RawBlock}

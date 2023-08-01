@@ -1,10 +1,10 @@
 import {__, api, signals, MenuSection} from '@sivujetti-commons-for-edit-app';
 import Tabs from '../../commons/Tabs.jsx';
 import {observeStore as observeStore2} from '../../store2.js';
-import {StyleTextarea, tempHack, updateAndEmitUnitScss, SPECIAL_BASE_UNIT_NAME} from '../block/CodeBasedStylesList.jsx';
-import VisualStyles, {createUnitClass} from '../block/VisualStyles.jsx';
-
-const unitCls = createUnitClass('', SPECIAL_BASE_UNIT_NAME);
+import {StyleTextarea, tempHack, updateAndEmitUnitScss, findBodyStyle,
+        findBodyStyleMainUnit} from '../block/CodeBasedStylesList.jsx';
+import {SPECIAL_BASE_UNIT_NAME, specialBaseUnitCls} from '../block/styles-shared.js';
+import VisualStyles from '../block/VisualStyles.jsx';
 
 class BaseStylesSection extends preact.Component {
     // userCanEditVars;
@@ -28,7 +28,7 @@ class BaseStylesSection extends preact.Component {
     componentDidMount() {
         this.unregistrables = [observeStore2('themeStyles', ({themeStyles}) => {
             if (!this.state.bodyStyleMainUnit) return;
-            const latest = findBodyMainUnit(themeStyles);
+            const latest = findBodyStyle(themeStyles);
             if (this.state.bodyStyleMainUnit.scss !== latest.scss)
                 this.updateBaseStylesState(latest);
         }), signals.on('block-styles-go-to-base-styles-button-clicked', () => {
@@ -42,7 +42,7 @@ class BaseStylesSection extends preact.Component {
      * @access private
      */
     updateBaseStylesState(bodyStyleMainUnit) {
-        [this.cssVars, this.ast] = VisualStyles.extractVars(bodyStyleMainUnit.scss, unitCls);
+        [this.cssVars, this.ast] = VisualStyles.extractVars(bodyStyleMainUnit.scss, specialBaseUnitCls);
         this.setState({bodyStyleMainUnit});
     }
     /**
@@ -77,7 +77,7 @@ class BaseStylesSection extends preact.Component {
                             emitVarValueChange={ getStyleUpdates => {
                                 updateAndEmitUnitScss(Object.assign({}, bodyStyleMainUnit), getStyleUpdates, SPECIAL_BASE_UNIT_NAME);
                             } }
-                            unitCls={ unitCls }/>
+                            unitCls={ specialBaseUnitCls }/>
                         : null
                     }
                 </div>
@@ -85,7 +85,7 @@ class BaseStylesSection extends preact.Component {
                     { this.userCanEditCss && bodyStyleMainUnit
                         ? <StyleTextarea
                             unitCopy={ Object.assign({}, bodyStyleMainUnit) }
-                            unitCls={ unitCls }
+                            unitCls={ specialBaseUnitCls }
                             blockTypeName={ SPECIAL_BASE_UNIT_NAME }
                             isVisible={ true }/>
                         : null
@@ -101,17 +101,9 @@ class BaseStylesSection extends preact.Component {
     onIsCollapsedChanged(to) {
         if (!to && !this.state.bodyStyleMainUnit)
             tempHack(({styles}) => {
-                this.updateBaseStylesState(findBodyMainUnit(styles));
+                this.updateBaseStylesState(findBodyStyleMainUnit(findBodyStyle(styles)));
             });
     }
-}
-
-/**
- * @param {Array<ThemeStyle>} styles
- * @returns {ThemeStyleUnit}
-*/
-function findBodyMainUnit(styles) {
-    return styles.find(s => s.blockTypeName === SPECIAL_BASE_UNIT_NAME).units[0];
 }
 
 export default BaseStylesSection;

@@ -5,7 +5,7 @@ import {createUnitClass} from '../../left-column/block/VisualStyles.jsx';
 class EditUnitOrSetAsDefault extends preact.Component {
     // boundDoHandleSubmit;
     /**
-     * @param {{onConfirmed: (specifier: String, isDerivable: Boolean) => any; blockTypeName: String; isEdit: Boolean; showSpecifier: Boolean; isDerivable: Boolean; specifier?: String;}} props
+     * @param {{onConfirmed: (specifier: String, isDerivable: Boolean) => any; blockTypeName: String; wasEditLink: Boolean; showSpecifier: Boolean; isDerivable: Boolean; specifier?: String;}} props
      */
     constructor(props) {
         super(props);
@@ -26,9 +26,9 @@ class EditUnitOrSetAsDefault extends preact.Component {
     /**
      * @access protected
      */
-    render({blockTypeName, isEdit, showSpecifier}, {isDerivable}) {
+    render({blockTypeName, wasEditLink, showSpecifier}, {isDerivable}) {
         return <form onSubmit={ e => handleSubmit(this, this.boundDoHandleSubmit, e) }>
-            { !isEdit ? <div class="mb-1">{ __('todo16 %s', __(blockTypeName)) }</div> : null }
+            { !wasEditLink ? <div class="mb-1">{ __('todo16 %s', __(blockTypeName)) }</div> : null }
             { showSpecifier ? <FormGroup>
                 <label htmlFor="specifier" class="form-label with-icon-inline">
                     { __('Specifier') } ({ __('optional') })
@@ -63,7 +63,7 @@ class EditUnitOrSetAsDefault extends preact.Component {
             <div class="mt-8">
                 <button
                     class="btn btn-primary mr-2"
-                    type="submit">{ !isEdit ? __('Set as default') : __('Save changes') }</button>
+                    type="submit">{ !wasEditLink ? __('Set as default') : __('Save changes') }</button>
                 <button
                     onClick={ () => floatingDialog.close() }
                     class="btn btn-link"

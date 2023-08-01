@@ -2,10 +2,11 @@ import {__, api, env, timingUtils, Popup, LoadingSpinner} from '@sivujetti-commo
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import VisualStyles, {createUnitClass, valueEditors, replaceVarValue, varNameToLabel} from './VisualStyles.jsx';
-import {StylesList, getLargestPostfixNum, findBlockTypeStyles, tempHack, blockHasStyle, findParentStyleInfo,
+import {StylesList, tempHack, blockHasStyle, findParentStyleInfo,
         updateAndEmitUnitScss, emitCommitStylesOp, goToStyle, EditableTitle,
-        compileSpecial, SPECIAL_BASE_UNIT_NAME, emitAddStyleClassToBlock} from './CodeBasedStylesList.jsx';
+        compileSpecial, emitAddStyleClassToBlock, findBodyStyle} from './CodeBasedStylesList.jsx';
 import {traverseAst} from '../../commons/CssStylesValidatorHelper.js';
+import {SPECIAL_BASE_UNIT_NAME, getLargestPostfixNum, findBlockTypeStyles} from './styles-shared.js';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -28,7 +29,7 @@ class WidgetBasedStylesList extends StylesList {
         this.curBlockStyleClasses = this.props.blockCopy.styleClasses;
         this.unregistrables = [observeStore2('themeStyles', ({themeStyles}, [_event]) => {
             if (this.group === true) return;
-            this.bodyStyle = themeStyles.find(({blockTypeName}) => blockTypeName === SPECIAL_BASE_UNIT_NAME);
+            this.bodyStyle = findBodyStyle(themeStyles);
             const {units} = findBlockTypeStyles(themeStyles, this.props.blockCopy.type) || {};
             if (this.state.unitsOfThisBlockType !== units)
                 this.updateTodoState(units, themeStyles, this.curBlockStyleClasses !== this.props.blockCopy.styleClasses ? {...this.props.blockCopy, ...{styleClasses: this.curBlockStyleClasses}} : this.props.blockCopy);
@@ -86,23 +87,26 @@ class WidgetBasedStylesList extends StylesList {
                     <div class="form-horizontal has-color-pickers pt-0 px-2 tight">{ cssVars.map(cssVar => {
                         const Renderer = valueEditors.get(cssVar.type);
                         const valIsSet = cssVar.value !== null;
-                        const valIsInitial = valIsSet && cssVar.value === 'initial';
                         const args =  cssVar.args ? [...cssVar.args] : [];
-                        const parentVal = !unit.derivedFrom ? null : getDefaultValueIfDefined(cssVar, ast, this.bodyStyle, blockCopy.type);
+                        const parenVal = !unit.derivedFrom ? null : this.getParentsValueIfNeeded(cssVar, ast, unit);
+                        const valIsInitial = valIsSet && (
+                            cssVar.value === 'initial' ||
+                            (parenVal && unit.derivedFrom && valueToString(cssVar.value, Renderer) === valueToString(parenVal, Renderer))
+                        );
                         const isClearable = valIsSet && !valIsInitial;
                         return <Renderer
                             valueReal={ valIsSet && !valIsInitial ? {...cssVar.value} : null }
-                            valueToDisplay={ valIsSet && cssVar.value !== 'initial' ? {...cssVar.value} : parentVal }
+                            valueToDisplay={ valIsSet && cssVar.value !== 'initial' ? {...cssVar.value} : parenVal }
                             argsCopy={ [...args] }
                             varName={ cssVar.varName }
                             valueWrapStr={ '' }
                             isClearable={ isClearable }
                             labelTranslated={ __(varNameToLabel(withoutAppendix(cssVar.varName))) }
                             onVarValueChanged={ newValAsString => {
-                                if (newValAsString !== null)
-                                    this.emitChange(newValAsString, cssVar, either, ast);
-                                else
-                                    ; // todo
+                                const val = newValAsString !== null
+                                    ? newValAsString
+                                    : valueToString(this.getParentsValueOf(cssVar, ast, either) || 'initial', Renderer);
+                                this.emitChange(val, cssVar, either, ast);
                             } }
                             selector={ `.${cls}` }
                             key={ `${key}-${cssVar.varName}` }/>;
@@ -156,7 +160,7 @@ class WidgetBasedStylesList extends StylesList {
         this.setState({themeStyles: null});
         const themeStyles = tempHack();
         if (themeStyles) {
-            this.bodyStyle = themeStyles.find(({blockTypeName}) => blockTypeName === SPECIAL_BASE_UNIT_NAME);
+            this.bodyStyle = findBodyStyle(themeStyles);
             this.updateTodoState((findBlockTypeStyles(themeStyles, blockCopy.type) || {}).units, themeStyles, blockCopy);
         }
         // else Wait for store2.dispatch('themeStyles/setAll')
@@ -266,8 +270,7 @@ class WidgetBasedStylesList extends StylesList {
         const {type} = this.props.blockCopy;
         const current = findBlockTypeStyles(store2.get().themeStyles, type);
         const rolling = current ? getLargestPostfixNum(current.units) + 1 : 1;
-        /*const title = rolling > 1 ? `Unit ${rolling}` : __('Default');*/
-        const title = `${__(block.title || block.type)} ${rolling}`;// `${unit.title} (${__('Copy').toLowerCase()})`;
+        const title = `${__(block.title || block.type)} ${rolling}`;
         const id = `unit-${rolling}`;
         const scss = unit.scss.replace(
             // textNormal_TextCommon_base
@@ -278,7 +281,7 @@ class WidgetBasedStylesList extends StylesList {
         const cls = createUnitClass(id, type);
 
         // #2
-        const addedStyleToBlock = true;// !blockHasStyle(this.props.blockCopy, cls);
+        const addedStyleToBlock = true;
         if (addedStyleToBlock)
             this.curBlockStyleClasses = emitAddStyleClassToBlock(cls, this.props.blockCopy);
 
@@ -345,6 +348,74 @@ class WidgetBasedStylesList extends StylesList {
             ? unit.isDerivable || !!unit.derivedFrom
             : this.getRemoteBodyUnit(unit, blockCopy, false).isDerivable;
     }
+    /**
+     * @param {CssVar} forVar Derived unit's var
+     * @param {Array<StylisAstNode>} ast
+     * @param {ThemeStyleUnit} unit
+     * @returns {CssVar|null}
+     * @access private
+     */
+    getParentsValueIfNeeded(forVar, ast, unit) {
+        const fallbackVarName = getFallbackUsage(forVar, ast);
+        if (fallbackVarName) {
+            const bodyUnitsSorted = this.bodyStyle.units;//.filter(({id}) => id.startsWith(createUnitClass('', blockTypeName)))
+            // todo sort id:'default'  first
+            // todo sort blockTypeName' after that
+            for (const bodyUnit of bodyUnitsSorted) {
+                const [cssVars, _ast2] = VisualStyles.extractVars(bodyUnit.scss, 'dummy');
+                const theVar = cssVars.find(({varName}) => varName === fallbackVarName);
+                if (theVar) return theVar.value;
+            }
+            return null;
+        } else {
+            if (forVar.value !== 'initial') return null;
+            const theVar = this.findParenVar(forVar, unit);
+            if (theVar) return theVar.value !== 'initial' ? theVar.value : null;
+        }
+
+        return null;
+    }
+    /**
+     * @param {CssVar} forVar Derived unit's var
+     * @param {Array<StylisAstNode>} ast
+     * @param {ThemeStyleUnit} unit
+     * @returns {CssVar|null}
+     * @access private
+     */
+    getParentsValueOf(cssVar, ast, unit) {
+        const fallbackVarName = getFallbackUsage(cssVar, ast);
+        if (fallbackVarName) {
+            return null;
+        } else {
+            const theVar = this.findParenVar(cssVar, unit);
+            if (theVar) return theVar.value;
+        }
+        return null;
+    }
+    /**
+     * @param {CssVar} cssVar
+     * @param {ThemeStyleUnit} unit
+     * @access private
+     */
+    findParenVar(cssVar, unit) {
+        const pcs = unit.derivedFrom.split('-'); // normal -> 'unit-<n>', body -> 'j-Type-unit-<n>'
+        const isDerivedFromBodyUnit = pcs.length > 2;
+        const paren = (!isDerivedFromBodyUnit ? this.state.unitsOfThisBlockType : this.bodyStyle.units).find(({id}) => id === unit.derivedFrom);
+        const [parenVars, _ast2] = VisualStyles.extractVars(paren.scss, 'dummy');
+        const parenVarName = swapAppendix(cssVar.varName, parenVars[0].varName);
+        return parenVars.find(({varName}) => varName === parenVarName);
+    }
+}
+
+/**
+ * @param {String} target Example 'background_Button_u3'
+ * @param {String} source Example 'varName_Button_base1'
+ * @returns {String} Example 'background_Button_base1'
+ */
+function swapAppendix(target, source) {
+    const apdx = source.split('_').at(-1); // 'background_Button_base1' -> 'base1'
+    const origPcs = target.split('_'); // 'background_Button_u3' -> ['background', 'Button', 'u3']
+    return [...origPcs.slice(0, -1), apdx].join('_'); // [..., 'u3'] -> [..., 'base1']
 }
 
 class AddStyleFromPopupPopup extends preact.Component {
@@ -382,6 +453,15 @@ function getCurrentInfo({varName}, ast) {
 }
 
 /**
+ * @param {'initial'|cssValType} val
+ * @returns {String}
+ */
+function valueToString(val, Cls) {
+    if (val === 'initial') return val;
+    return Cls.valueToString(val);
+}
+
+/**
  * @param {String} varName Example: 'textNormal_TextCommon_u1'
  * @returns {String} Example: 'textNormal'
  */
@@ -390,36 +470,22 @@ function withoutAppendix(varName) {
 }
 
 /**
- * @param {ThemeStyleUnit} Derived unit's var
+ * @param {CssVar} cssVar
  * @param {Array<StylisAstNode>} ast
- * @param {ThemeStyleUnit} bodyStyle Parent unit
- * @param {String} _blockTypeName
- * @returns {CssVar|null}
+ * @returns {String|null}
  */
-function getDefaultValueIfDefined(forVar, ast, bodyStyle, _blockTypeName) {
-    // Value not 'initial' -> no need to find the default value
-    if (forVar.value !== 'initial') return null;
-
-    let fallbackVarName;
+function getFallbackUsage(cssVar, ast) {
+    let fallbackVarName = null;
     traverseAst(ast, node => {
         if (node.type !== 'decl') return;
 
         const line = node.children; // "var(--textNormal_Text_u3, var(--textDefault))"
-        if (line.indexOf(`var(--${forVar.varName}`) < 0) return;
+        if (line.indexOf(`var(--${cssVar.varName}`) < 0) return;
 
         fallbackVarName = getFallback(line);
         return false; // break
     });
-
-    if (fallbackVarName) {
-        const bodyUnitsSorted = bodyStyle.units;
-        for (const bodyUnit of bodyUnitsSorted) {
-            const [cssVars, _ast2] = VisualStyles.extractVars(bodyUnit.scss, 'dummy');
-            const theVar = cssVars.find(({varName}) => varName === fallbackVarName);
-            if (theVar) return theVar.value;
-        }
-    }
-    return null;
+    return fallbackVarName;
 }
 
 /**

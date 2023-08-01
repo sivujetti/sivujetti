@@ -1,6 +1,6 @@
 import {__, api, Icon} from '@sivujetti-commons-for-edit-app';
 import Tabs from '../../commons/Tabs.jsx';
-import {HAS_ERRORS, NO_OP_QUEUE_EMIT} from '../../block/dom-commons.js';
+import {HAS_ERRORS, isMetaBlock, NO_OP_QUEUE_EMIT} from '../../block/dom-commons.js';
 import {getIcon} from '../../block-types/block-types.js';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
@@ -103,14 +103,15 @@ class BlockEditForm extends preact.Component {
         const tr2 = __('Styles');
         const tr3 = __('Styles (code)');
         const StyleListCls = [null, WidgetBasedStylesList, CodeBasedStylesList][currentTabIdx];
-        const t = block.type === 'PageInfo' ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
+        const isMeta = isMetaBlock(block);
+        const t = isMeta ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
         return <div data-main>
         <div class={ `with-icon pb-1${t}` }>
             <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
             { __(block.title || this.blockType.friendlyName) }
         </div>
         <Tabs
-            links={ [...[tr1, tr2], ...(this.userCanEditCss ? [tr3] : [])] }
+            links={ [...[tr1, tr2], ...(this.userCanEditCss && !isMeta ? [tr3] : [])] }
             getTabName={ link => ({
                 [tr1]: 'content',
                 [tr2]: 'style-units',

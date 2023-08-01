@@ -1,5 +1,5 @@
 import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END,
-        HAS_ERRORS} from '../../edit-app/src/block/dom-commons.js';
+        HAS_ERRORS, isMetaBlock} from '../../edit-app/src/block/dom-commons.js';
 
 let renderBlockAndThen;
 let toTransferable;
@@ -215,7 +215,7 @@ class ReRenderer {
         const appendCachedEls = (branch, toEl, endcom = null) => {
             if (!endcom) endcom = getChildEndComment(getBlockContentRoot(toEl));
             for (const b of branch) {
-                if (b.type === 'PageInfo') continue;
+                if (isMetaBlock(b)) continue;
                 if (b.type !== 'GlobalBlockReference') {
                     const selfWithoutChildren = !(singleOverride && singleOverride.blockId === b.id) ? this.getLatestCachedElClone(b.id) : singleOverride.el;
                     endcom.parentElement.insertBefore(selfWithoutChildren, endcom);
@@ -301,7 +301,7 @@ function flattenBlocksRecursive(original, cloned) {
 function createElCache(tree) {
     const traverse = (branch, out) => {
         for (const b of branch) {
-            if (b.type === 'PageInfo') continue;
+            if (isMetaBlock(b)) continue;
             if (b.type !== 'GlobalBlockReference') {
                 const elFromBody = getBlockEl(b.id);
                 const withoutChildren = extractRendered(elFromBody);

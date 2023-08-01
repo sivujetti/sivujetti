@@ -49,5 +49,13 @@ function getMetaKey() {
             (navigator.platform === 'MacIntel')) ? 'Meta' : 'Control';
 }
 
+/**
+ * @param {RawBlock} block
+ * @returns {Boolean}
+ */
+function isMetaBlock({type}) {
+    return type === 'PageInfo';
+}
+
 export {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END,
-        noop, HAS_ERRORS, NO_OP_QUEUE_EMIT, createTrier, getMetaKey};
+        noop, HAS_ERRORS, NO_OP_QUEUE_EMIT, createTrier, getMetaKey, isMetaBlock};

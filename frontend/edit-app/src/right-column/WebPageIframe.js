@@ -1,5 +1,5 @@
 import {__, api, env, urlUtils} from '@sivujetti-commons-for-edit-app';
-import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END, noop} from '../block/dom-commons.js';
+import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END, noop, isMetaBlock} from '../block/dom-commons.js';
 import {toTransferable} from '../block/utils.js';
 import blockTreeUtils from '../left-column/block/blockTreeUtils.js';
 import IframePageManager from './IframePageManager.js';
@@ -53,7 +53,7 @@ class WebPageIframe {
      * @access public
      */
     scrollTo(block, win = this.getEl().contentWindow, behavior = 'smooth') {
-        if (block.type === 'PageInfo') return;
+        if (isMetaBlock(block)) return;
         const body = this.getEl().contentDocument.body;
         const getRect = firstEl => firstEl.getBoundingClientRect();
         const inPageElRect = getRect(body.querySelector(`[data-block="${block.id}"]`));
@@ -76,7 +76,7 @@ class WebPageIframe {
      * @access public
      */
     highlight(block) {
-        if (block.type === 'PageInfo') return;
+        if (isMetaBlock(block)) return;
         this.pageManager.showHighlightRect(block, 'block-tree');
     }
     /**

@@ -450,8 +450,9 @@ final class PagesController {
             $blockType = $blockTypes->{$block->type};
             if (array_key_exists(RenderAwareBlockTypeInterface::class, class_implements($blockType)))
                 $blockType->onBeforeRender($block, $blockType, App::$adi);
-            if ($block->children)
-                self::runBlockBeforeRenderEvent($block->children, $blockTypes, $pagesRepo);
+            $children = $block->type !== "GlobalBlockReference" ? $block->children : $block->__globalBlockTree?->blocks ?? [];
+            if ($children)
+                self::runBlockBeforeRenderEvent($children, $blockTypes, $pagesRepo);
         }
     }
     /**

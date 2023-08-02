@@ -126,8 +126,7 @@ stringBundles.push({
     'Anchor': 'Anchor',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Styles',
-    'Styles (bundles)': 'Styles (bundles)',
-    'Styles (combined)': 'Styles (combined)',
+    'Styles (code)': 'Styles (code)',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
     'Only root styles may contain @imports': 'Only root styles may contain @imports',
     // edit-app/src/left-column/block/BlockTree.jsx

@@ -742,11 +742,14 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .style-vars-group > .form-group,
 .has-color-pickers > .form-group {
     display: grid;
-    grid-template-columns: 92px auto;
+    grid-template-columns: 4.6rem auto;
     flex-wrap: unset;
     align-items: center;
     justify-content: flex-start;
     gap: .4rem;
+}
+.form-group.has-visual-color-input {
+    grid-template-columns: 8.05rem auto;
 }
 .style-vars-group > .form-group:first-child,
 .has-color-pickers > .form-group:first-child {

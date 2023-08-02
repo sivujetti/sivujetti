@@ -126,8 +126,7 @@ stringBundles.push({
     'Anchor': 'Ankkuri',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Tyylit',
-    'Styles (bundles)': 'Tyylit (bundlet)',
-    'Styles (combined)': 'Tyylit (yhdistetty)',
+    'Styles (code)': 'Tyylit (koodi)',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
     'Only root styles may contain @imports': 'Vain juurityylit voi sisältää @importeja',
     // edit-app/src/left-column/block/BlockTree.jsx

@@ -151,7 +151,7 @@ class LengthValueInput extends preact.Component {
                 !val.length || !isNaN(parseFloat(val))
             , errorMessageTmpl: __('%s must be a number').replace('%', '{field}')}, null]],
                 label: this.props.labelTranslated, onAfterValueChanged: (value, hasErrors) => {
-                    if (!hasErrors) this.props.onVarValueChanged(value ? `${value}${unit}` : null);
+                    if (!hasErrors) this.props.onVarValueChanged(value ? `${value}${this.state.unit}` : null);
                 }},
         ], {
             unit,
@@ -174,10 +174,9 @@ class LengthValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render(props) {
+    render(props, {unit}) {
         const norm = LengthValueInput.normalize(props.valueReal);
         const {labelTranslated, isClearable} = props;
-        const unit = norm.num || this.numInternal === NO_VALUE ? norm.unit : this.state.unit;
         return <FormGroupInline className="has-visual-length-input">
             <label htmlFor="num" class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
             <div class="p-relative">
@@ -186,7 +185,7 @@ class LengthValueInput extends preact.Component {
                     <select
                         onChange={ e => this.props.onVarValueChanged(`${norm.num}${e.target.value}`) }
                         class="form-input input-group-addon addon-sm form-select"
-                        defaultvalue={ unit }>{
+                        value={ unit }>{
                         ['rem', 'px', '%', 'em', 'vh', 'vw', 'vb', 'vmin', 'vmax'].map(ltype =>
                             <option value={ ltype }>{ ltype }</option>
                         )
@@ -282,7 +281,7 @@ class ColorValueInput extends preact.Component {
     render(props) {
         const visible = getVisibleColor(props);
         const {labelTranslated, isClearable} = props;
-        return <FormGroupInline className={ `flex-centered${wc_hex_is_light(visible.data) ? ' is-very-light-color' : ''}` }>
+        return <FormGroupInline className={ `has-visual-color-input flex-centered${wc_hex_is_light(visible.data) ? ' is-very-light-color' : ''}` }>
             <label class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
             {/* the real div.pickr (this.movingPickContainer) will appear here */}
             {/* this element will disappear after clicking */}

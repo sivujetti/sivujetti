@@ -69,6 +69,7 @@ class CodeBasedStylesList extends StylesList {
             units !== null ? units.length ? <ul class="list styles-list mb-2">{ units.map((unit, i) => {
                 const liCls = liClasses[i];
                 const cls = createUnitClass(unit.id, blockCopy.type);
+                const isActivated = blockHasStyle(blockCopy, cls, unit);
                 const [cssVars, ast] = !useVisualStyles ? [[], []] : VisualStyles.extractVars(unit.scss, cls);
                 const doShowChevron = userCanEditCss || (useVisualStyles && cssVars.length);
                 const bodyUnitCopy = unit.origin !== SPECIAL_BASE_UNIT_NAME ? null : this.getRemoteBodyUnitCopy(unit, blockCopy);
@@ -93,6 +94,11 @@ class CodeBasedStylesList extends StylesList {
                                     ref={ this.editableTitleInstances[i] }/>
                                 : <span class="text-ellipsis">{ title }</span> }
                         </button>
+                        { isActivated ? <span
+                            onClick={ () => alert(__('Voit poistaa ja lisätä tämän sisällön tyylejä "Tyylit"-tabissa')) }
+                            class="p-absolute flex-centered icon-tabler color-dimmed3"
+                            style="right: .4rem;font-size: 1.6rem;"
+                            title={ __('Currently active') }>•</span> : null }
                     </header>
                     { userCanEditCss
                         ? <StyleTextarea
@@ -123,7 +129,7 @@ class CodeBasedStylesList extends StylesList {
         ] : [])
         .concat(userCanEditVars && parentStyleInfo && parentStyleInfo[2] ? [
             <button
-                onClick={ () => goToStyle(parentStyleInfo) }
+                onClick={ () => goToStyle(parentStyleInfo, 'style-templates-tab') }
                 class="btn btn-sm"
                 type="button">{ __('Show parent templates') }</button>
         ] : [])

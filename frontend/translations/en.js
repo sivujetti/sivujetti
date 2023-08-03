@@ -28,34 +28,6 @@ stringBundles.push({
     'Common': 'Common',
     'Specialized': 'Specialized',
     'Unique reusables': 'Uniques reusables',
-    // edit-app/src/left-column/block/defaultStyleVars.js
-    // Common
-    'Padding top': 'Padding top',
-    'Padding right': 'Padding right',
-    'Padding bottom': 'Padding bottom',
-    'Padding left': 'Padding left',
-    // Menu
-    'List style type': 'List style type',
-    'Items width': 'Items width',
-    // Button
-    'Background normal': 'Background normal',
-    'Background hover': 'Background hover',
-    'Text': 'Text',
-    'Text hover': 'Text hover',
-    'Border': 'Border',
-    'Border hover': 'Border hover',
-    'Text transform': 'Text transform',
-    // Columns
-    'Gap': 'Gap',
-    'Align items': 'Align items',
-    // Image
-    'Align': 'Align',
-    'Min height': 'Min height',
-    'Max height': 'Max height',
-    'Display': 'Display',
-    // Section
-    'Max width': 'Max width',
-    'Cover': 'Cover',
     // edit-app/src/left-column/block/CodeBasedStylesList.jsx
     'No own styles': 'No own styles',
     'No own templates': 'No own templates',
@@ -313,7 +285,7 @@ stringBundles.push({
     'Rich text content': 'Rich text content',
     // edit-app/src/block-types/section.js
     'Section': 'Section',
-    'Background': 'Background',
+    'Background#image': 'Background',
     // edit-app/src/block-types/text.js
     'Text content': 'Text content',
     // edit-app/src/block-widget/ImagePicker.jsx
@@ -326,4 +298,50 @@ stringBundles.push({
     'Language': 'Language',
     'Discourage search engines from indexing this site': 'Discourage search engines from indexing this site',
     'Saved website\'s basic info.': 'Saved website\'s basic info.',
+    // ../std-styles.md
+    'Text default': 'Text default',
+    'Headings default': 'Headings default',
+    'Background default': 'Background default',
+    'Links default': 'Links default',
+    'Links hover': 'Links hover',
+    'Max width default': 'Max width default',
+    // Listing
+    'Gap': 'Gap',
+    // Menu
+    'List style type': 'List style type',
+    'Items width': 'Items width',
+    'Links normal': 'Links normal',
+    'Links transform': 'Links transform',
+    'Padding top': 'Padding top',
+    'Padding right': 'Padding right',
+    'Padding bottom': 'Padding bottom',
+    'Padding left': 'Padding left',
+    // Button
+    'Background normal': 'Background normal',
+    'Background hover': 'Background hover',
+    'Text': 'Text',
+    'Text hover': 'Text hover',
+    'Border': 'Border',
+    'Border hover': 'Border hover',
+    'Align horizontal': 'Align horizontal',
+    'Min width': 'Min width',
+    'Radius': 'Radius',
+    // Code
+    'Display': 'Display',
+    // Columns
+    'Align items': 'Align items',
+    // Image
+    'Float': 'Float',
+    'Min height': 'Min height',
+    'Max height': 'Max height',
+    'Max width': 'Max width',
+    // Section
+    'Background': 'Background',
+    'Cover': 'Cover',
+    'Text align': 'Text align',
+    // Text
+    'Text normal': 'Text normal',
+    'Text headings': 'Text headings',
+    'Links': 'Links',
+    'Paragraphs margin': 'Paragraphs margin',
 }, validationStrings);

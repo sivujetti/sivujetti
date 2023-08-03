@@ -28,34 +28,6 @@ stringBundles.push({
     'Common': 'Yleiset',
     'Specialized': 'Erikoistuneet',
     'Unique reusables': 'Uniikit uudelleenkäytettävät',
-    // edit-app/src/left-column/block/defaultStyleVars.js
-    // Common
-    'Padding top': 'Täyte ylä',
-    'Padding right': 'Täyte oikea',
-    'Padding bottom': 'Täyte ala',
-    'Padding left': 'Täyte vasen',
-    // Menu
-    'List style type': 'Listaustyyppi',
-    'Items width': 'Leveys linkit',
-    // Button
-    'Background normal': 'Tausta normaali',
-    'Background hover': 'Tausta hover',
-    'Text': 'Teksti',
-    'Text hover': 'Teksti hover',
-    'Border': 'Reunus',
-    'Border hover': 'Reunus hover',
-    'Text transform': 'Teksti muunnos',
-    // Columns
-    'Gap': 'Gäppi',
-    'Align items': 'Tasaus pystysuunta',
-    // Image
-    'Align': 'Tasaus',
-    'Min height': 'Minimikorkeus',
-    'Max height': 'Maksimikorkeus',
-    'Display': 'Näytä',
-    // Section
-    'Max width': 'Maksimileveys', // 'Max width',
-    'Cover': 'Taustapeitto', // 'Cover',
     // edit-app/src/left-column/block/CodeBasedStylesList.jsx
     'No own styles': 'Ei omia tyylejä',
     'No own templates': 'Ei omia templaatteja',
@@ -313,7 +285,7 @@ stringBundles.push({
     'Rich text content': 'Rikastettua tekstiä',
     // edit-app/src/block-types/section.js
     'Section': 'Osio',
-    'Background': 'Taustakuva',
+    'Background#image': 'Taustakuva',
     // edit-app/src/block-types/text.js
     'Text content': 'Tekstisisältöä',
     // edit-app/src/block-widget/ImagePicker.jsx
@@ -326,4 +298,50 @@ stringBundles.push({
     'Language': 'Kieli',
     'Discourage search engines from indexing this site': 'Kiellä sivuston näkyminen hakukoneissa',
     'Saved website\'s basic info.': 'Sivuston tiedot tallennettin.',
+    // ../std-styles.md
+    'Text default': 'Teksti oletus',
+    'Headings default': 'Otsikot oletus',
+    'Background default': 'Tausta oletus',
+    'Links default': 'Linkit oletus',
+    'Links hover': 'Linkit hover',
+    'Max width default': 'Max.leveys oletus',
+    // Listing
+    'Gap': 'Gäppi',
+    // Menu
+    'List style type': 'Listaustyyppi',
+    'Items width': 'Leveys linkit',
+    'Links normal': 'Linkit normaali',
+    'Links transform': 'Linkit transform.',
+    'Padding top': 'Täyte ylä',
+    'Padding right': 'Täyte oikea',
+    'Padding bottom': 'Täyte ala',
+    'Padding left': 'Täyte vasen',
+    // Button
+    'Background normal': 'Tausta normaali',
+    'Background hover': 'Tausta hover',
+    'Text': 'Teksti',
+    'Text hover': 'Teksti hover',
+    'Border': 'Reunus',
+    'Border hover': 'Reunus hover',
+    'Align horizontal': 'Tasaa vaaka',
+    'Min width': 'Min.leveys',
+    'Radius': 'Pyöristys',
+    // Code
+    'Display': 'Näytä',
+    // Columns
+    'Align items': 'Tasaus pysty',
+    // Image
+    'Float': 'Tasaus',
+    'Min height': 'Minimikorkeus',
+    'Max height': 'Maksimikorkeus',
+    'Max width': 'Maksimileveys',
+    // Section
+    'Background': 'Tausta',
+    'Cover': 'Taustapeitto',
+    'Text align': 'Teksti tasaus',
+    // Text
+    'Text normal': 'Teksti normaali',
+    'Text headings': 'Teksti otsikot',
+    'Links': 'Linkit',
+    'Paragraphs margin': 'Tekstikappale väli',
 }, validationStrings);

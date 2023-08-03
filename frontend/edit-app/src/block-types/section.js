@@ -30,7 +30,7 @@ class SectionBlockEditForm extends preact.Component {
     render(_, {bgImage}) {
         return <div class="form-horizontal pt-0">
             <FormGroupInline>
-                <label htmlFor="bgImage" class="form-label">{ __('Background') }</label>
+                <label htmlFor="bgImage" class="form-label">{ __('Background#image') }</label>
                 <ImagePicker
                     onImageSelected={ this.handleBgImageChanged.bind(this) }
                     initialImageFileName={ bgImage }

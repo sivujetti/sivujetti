@@ -57,9 +57,18 @@ class WidgetBasedStylesList extends StylesList {
     /**
      * @access protected
      */
-    render({blockCopy}, {unitsEnabled, unitsOfThisBlockType, parentStyleInfo, addStylePopupRenderer}) {
-        const derivables = unitsOfThisBlockType.filter(unit => this.isDerivable(unit, blockCopy));
-        const addables = derivables.filter(base => !this.alreadyHasInstance(this.getMaybeRemote(base, blockCopy), blockCopy));
+    render({blockCopy, userCanEditCss}, {unitsEnabled, unitsOfThisBlockType, parentStyleInfo, addStylePopupRenderer}) {
+        const addables = !userCanEditCss
+            ? unitsOfThisBlockType.filter(unit => {
+                const real = this.getMaybeRemote(unit, blockCopy);
+                return real.isDerivable && !this.alreadyHasInstance(real);
+            })
+            : unitsOfThisBlockType.filter(unit => {
+                const real = this.getMaybeRemote(unit, blockCopy);
+                const {isDerivable} = real;
+                return (isDerivable && !this.alreadyHasInstance(real)) ||
+                        (!isDerivable && !blockHasStyle(blockCopy, unit));
+            });
         const vm = this;
         return [...[
             unitsEnabled !== null ? unitsEnabled.length ? <ul class="list styles-list mb-2">{ unitsEnabled.map((unit, i) => {
@@ -79,7 +88,7 @@ class WidgetBasedStylesList extends StylesList {
                                 unitIdReal={ !isDefault ? null : either.id }
                                 currentTitle={ either.title }
                                 blockTypeName={ blockCopy.type }
-                                userCanEditCss={ true }
+                                userCanEditCss={ userCanEditCss }
                                 subtitle={ null }
                                 ref={ this.editableTitleInstances[i] }/>
                         </b>
@@ -135,6 +144,7 @@ class WidgetBasedStylesList extends StylesList {
         addStylePopupRenderer
             ? <Popup
                 Renderer={ addStylePopupRenderer }
+                placement="top"
                 rendererProps={ {
                     availableStyleUnits: addables,
                     /** @param {ThemeStyleUnit} unit */
@@ -195,9 +205,8 @@ class WidgetBasedStylesList extends StylesList {
      * @access private
      */
     updateTodoState(unitsOfThisBlockType, themeStyles, blockCopy = this.props.blockCopy) {
-        const isUnitStyleOn = unit => blockHasStyle(blockCopy, createUnitClass(unit.id, blockCopy.type), unit);
-        const unitsEnabled1 = unitsOfThisBlockType.filter(unit => isUnitStyleOn(unit));
-        const unitsEnabled = unitsEnabled1.filter((unit, _i, arr) => !unit.origin ? true : this.alreadyHasInstance(unit, blockCopy, arr));
+        const unitsEnabled1 = unitsOfThisBlockType.filter(unit => blockHasStyle(blockCopy, unit));
+        const unitsEnabled = unitsEnabled1.filter((unit, _i, arr) => !unit.origin ? true : this.alreadyHasInstanceMaybeRemote(unit, blockCopy, arr));
         this.debouncedEmitVarValueChange = timingUtils.debounce(
             this.emitVarValueChange.bind(this),
             env.normalTypingDebounceMillis
@@ -328,25 +337,23 @@ class WidgetBasedStylesList extends StylesList {
         }
     }
     /**
-     * @param {ThemeStyleUnit} base
-     * @param {RawBlock} blockCopy
-     * @param {Array<ThemeStyleUnit>} unitsEnabled1
+     * @param {ThemeStyleUnit} unit
+     * @param {Array<ThemeStyleUnit>} unitsEnabled1 = this.state.unitsEnabled
      * @returns {Boolean}
      * @access private
      */
-    alreadyHasInstance(base, blockCopy, unitsEnabled1 = this.state.unitsEnabled) {
-        return unitsEnabled1.some(unit => this.getMaybeRemote(unit, blockCopy).derivedFrom === base.id);
+    alreadyHasInstance(unit, unitsEnabled1 = this.state.unitsEnabled) {
+        return unitsEnabled1.some(unit2 => unit2.derivedFrom === unit.id);
     }
     /**
-     * @param {ThemeStyleUnit} unit
+     * @param {ThemeStyleUnit} base
      * @param {RawBlock} blockCopy
+     * @param {Array<ThemeStyleUnit>} unitsEnabled1 = this.state.unitsEnabled
      * @returns {Boolean}
      * @access private
      */
-    isDerivable(unit, blockCopy) {
-        return unit.origin !== '_body_'
-            ? unit.isDerivable || !!unit.derivedFrom
-            : this.getRemoteBodyUnit(unit, blockCopy, false).isDerivable;
+    alreadyHasInstanceMaybeRemote(base, blockCopy, unitsEnabled1 = this.state.unitsEnabled) {
+        return this.alreadyHasInstance(this.getMaybeRemote(base, blockCopy), unitsEnabled1);
     }
     /**
      * @param {CssVar} forVar Derived unit's var
@@ -358,9 +365,7 @@ class WidgetBasedStylesList extends StylesList {
     getParentsValueIfNeeded(forVar, ast, unit) {
         const fallbackVarName = getFallbackUsage(forVar, ast);
         if (fallbackVarName) {
-            const bodyUnitsSorted = this.bodyStyle.units;//.filter(({id}) => id.startsWith(createUnitClass('', blockTypeName)))
-            // todo sort id:'default'  first
-            // todo sort blockTypeName' after that
+            const bodyUnitsSorted = this.bodyStyle.units;
             for (const bodyUnit of bodyUnitsSorted) {
                 const [cssVars, _ast2] = VisualStyles.extractVars(bodyUnit.scss, 'dummy');
                 const theVar = cssVars.find(({varName}) => varName === fallbackVarName);
@@ -371,7 +376,6 @@ class WidgetBasedStylesList extends StylesList {
             const theVar = this.findParenVar(forVar, unit);
             if (theVar) return theVar.value !== 'initial' ? theVar.value : null;
         }
-
         return null;
     }
     /**
@@ -407,13 +411,13 @@ class WidgetBasedStylesList extends StylesList {
 }
 
 /**
- * @param {String} target Example 'background_Button_u3'
+ * @param {String} target Example 'text_Button_u3'
  * @param {String} source Example 'varName_Button_base1'
- * @returns {String} Example 'background_Button_base1'
+ * @returns {String} Example 'text_Button_base1'
  */
 function swapAppendix(target, source) {
-    const apdx = source.split('_').at(-1); // 'background_Button_base1' -> 'base1'
-    const origPcs = target.split('_'); // 'background_Button_u3' -> ['background', 'Button', 'u3']
+    const apdx = source.split('_').at(-1); // 'varName_Button_base1' -> 'base1'
+    const origPcs = target.split('_'); // 'text_Button_u3' -> ['text', 'Button', 'u3']
     return [...origPcs.slice(0, -1), apdx].join('_'); // [..., 'u3'] -> [..., 'base1']
 }
 

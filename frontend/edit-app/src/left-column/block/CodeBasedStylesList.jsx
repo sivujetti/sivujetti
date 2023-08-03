@@ -69,7 +69,7 @@ class CodeBasedStylesList extends StylesList {
             units !== null ? units.length ? <ul class="list styles-list mb-2">{ units.map((unit, i) => {
                 const liCls = liClasses[i];
                 const cls = createUnitClass(unit.id, blockCopy.type);
-                const isActivated = blockHasStyle(blockCopy, cls, unit);
+                const isActivated = blockHasStyle(blockCopy, unit, cls);
                 const [cssVars, ast] = !useVisualStyles ? [[], []] : VisualStyles.extractVars(unit.scss, cls);
                 const doShowChevron = userCanEditCss || (useVisualStyles && cssVars.length);
                 const bodyUnitCopy = unit.origin !== SPECIAL_BASE_UNIT_NAME ? null : this.getRemoteBodyUnitCopy(unit, blockCopy);
@@ -217,7 +217,7 @@ class CodeBasedStylesList extends StylesList {
      */
     updateUnitsState(candidate, themeStyles, currentOpenIdx = -1, blockCopy = this.props.blockCopy) {
         const units = candidate ? candidate.filter(unit => !isSpecialUnit(unit)): [];
-        const isUnitStyleOn = ({id}) => blockHasStyle(blockCopy, createUnitClass(id, blockCopy.type));
+        const isUnitStyleOn = unit => blockHasStyle(blockCopy, unit);
         if (this.props.useVisualStyles) units.sort((a, b) => isUnitStyleOn(b) - isUnitStyleOn(a));
         this.receiveUnits(units);
         this.setState({units, liClasses: createLiClasses(units, currentOpenIdx),
@@ -262,7 +262,7 @@ class CodeBasedStylesList extends StylesList {
         const [title, specifier, isDerivable, onConfirmed] = wasEditLink
             ? ['Edit details', remote.specifier, remote.isDerivable, (specifierNew, isDerivableNew) => {
                 if (specifierNew !== specifier)
-                    emitUpdatedRemoteCss(specifier, remote, blockTypeName);
+                    emitUpdatedRemoteCss(specifierNew, remote, blockTypeName);
                 if (isDerivableNew !== isDerivable) {
                     const dataBefore = {isDerivable};
                     const changes = {isDerivable: isDerivableNew};

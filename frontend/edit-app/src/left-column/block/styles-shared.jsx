@@ -433,12 +433,18 @@ function goToStyle([block, unitCls, kind], origin = null) {
 
 /**
  * @param {RawBlock} blockCopy
- * @param {String} cls
- * @param {ThemeStyleUnit|null} unit = null
+ * @param {ThemeStyleUnit|null} unit
+ * @param {String} cls = null
  * @returns {Boolean}
  */
-function blockHasStyle(blockCopy, cls, unit = null) {
-    return !(unit && unit.origin === SPECIAL_BASE_UNIT_NAME) ? blockHasStyleClass(cls, blockCopy) : !blockHasStyleClass(`no-${cls}`, blockCopy);
+function blockHasStyle(blockCopy, unit, cls = null) {
+    if (!cls && unit) cls = createUnitClass(unit.id, blockCopy.type);
+    if (!unit.origin) {
+        return blockHasStyleClass(cls, blockCopy, false);
+    } else {
+        if (unit.origin !== SPECIAL_BASE_UNIT_NAME) throw new Error('Not supported.');
+        return blockHasStyleClass(cls, blockCopy, true);
+    }
 }
 
 /**

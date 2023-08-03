@@ -30,7 +30,7 @@ class Popup extends preact.Component {
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {{Renderer: preact.Component; btn: HTMLElement; close: () => void; rendererProps?: {[key: String]: any;};}} props
+     * @param {{Renderer: preact.Component; btn: HTMLElement; close: () => void; rendererProps?: {[key: String]: any;}; placement?: 'top-start';}} props
      * @access protected
      */
     render({Renderer, rendererProps, close}) {
@@ -54,12 +54,13 @@ class Popup extends preact.Component {
     handleOuterElRefd(el) {
         if (el && this.rendererCmp.current && !this.popperInstance) {
             this.isUnmounted = false;
-            this.popperInstance = window.Popper.createPopper(this.props.btn, el, {
+            const {placement} = this.props;
+            this.popperInstance = window.Popper.createPopper(this.props.btn, el, {...{
                 modifiers: [{
                     name: 'offset',
                     options: {offset: [0, 16]},
                 }, {name: 'eventListeners', enabled: true}],
-            });
+            }, ...(placement ? {placement} : {})});
             const updatePopper = () => {
                 if (!this.isUnmounted && this.popperInstance)
                     this.popperInstance.update();

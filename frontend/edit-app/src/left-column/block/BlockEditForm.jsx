@@ -5,6 +5,7 @@ import {getIcon} from '../../block-types/block-types.js';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
+import {treeToTransferable} from '../../block/utils.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import {findBlockFrom, getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
 import WidgetBasedStylesList from './WidgetBasedStylesList.jsx';
@@ -15,7 +16,6 @@ let blockTypes;
 
 class BlockEditForm extends preact.Component {
     // editFormImplsChangeGrabber;
-    // editFormImplsChangeGrabberIncludeChild;
     // userCanSpecializeGlobalBlocks;
     // userCanEditVars;
     // userCanEditCss;
@@ -50,11 +50,6 @@ class BlockEditForm extends preact.Component {
         this.allowStylesEditing = !selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
         this.isOutermostBlockOfGlobalBlockTree = false;
         this.setState({currentTabIdx: 0});
-        const isChildOf = (blockId, ofBlockId) => {
-            const [ofBlock, containingBranch] = blockTreeUtils.findBlockSmart(ofBlockId, store2.get().theBlockTree);
-            if (!ofBlock) return;
-            return blockTreeUtils.findBlock(blockId, containingBranch)[0] !== null;
-        };
         this.unregistrables = [observeStore2('theBlockTree', (_, [event, data]) => {
             const isUndo = event === 'theBlockTree/undo';
             if (event === 'theBlockTree/updatePropsOf' || isUndo) {
@@ -69,11 +64,7 @@ class BlockEditForm extends preact.Component {
                         data[1], // undo:          [<oldTree>, <blockId>, <isUndoOf>]
                         data[2]
                     ];
-                const inc = this.editFormImplsChangeGrabberIncludeChild;
-                if (
-                    (!inc && ((!isUndo || isUndoOf === 'default' ? blockId : null) === this.props.block.id)) ||
-                    (inc && isChildOf(blockId, this.props.block.id))
-                )
+                if ((!isUndo || isUndoOf === 'default' ? blockId : null) === this.props.block.id)
                     this.editFormImplsChangeGrabber(this.getCurrentBlockCopy(), event, isUndo);
                 return;
             }
@@ -130,12 +121,12 @@ class BlockEditForm extends preact.Component {
                 }
                 <EditFormImpl
                     getBlockCopy={ getCopy }
-                    grabChanges={ (withFn, includeChildren = false) => {
-                        this.editFormImplsChangeGrabber = withFn;
-                        this.editFormImplsChangeGrabberIncludeChild = includeChildren;
-                    } }
+                    blockId={ block.id }
+                    grabChanges={ withFn => { this.editFormImplsChangeGrabber = withFn; } }
                     emitValueChanged={ (val, key, ...vargs) => { this.handleValueValuesChanged({[key]: val}, ...vargs); } }
                     emitManyValuesChanged={ this.handleValueValuesChanged.bind(this) }
+                    observeStore={ observeStore2 }
+                    serializeTree={ tree => JSON.stringify(treeToTransferable(tree)) }
                     key={ block.id }/>
             </div>
         </div>

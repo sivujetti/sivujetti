@@ -261,9 +261,12 @@ type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/swap'|'theBlockTree/ap
 
 interface BlockEditFormProps {
     getBlockCopy(): RawBlock;
+    blockId: String;
     grabChanges(withFn: (block: RawBlock, origin: blockChangeEvent, isUndo: Boolean) => void): void;
     emitValueChanged(val: any, key: String, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;
     emitManyValuesChanged(partialData: {[key: String]: any;}, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;
+    observeStore(namespace: String, fn: (state: Object, eventInfo: [String, Array<any>, Object]) => void): void;
+    serializeTree(tree: Array<RawBlock>): String;
 }
 
 interface UploadsEntry {

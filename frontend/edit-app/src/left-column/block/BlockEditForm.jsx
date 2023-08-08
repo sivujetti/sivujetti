@@ -17,7 +17,7 @@ let blockTypes;
 class BlockEditForm extends preact.Component {
     // editFormImplsChangeGrabber;
     // userCanSpecializeGlobalBlocks;
-    // userCanEditVars;
+    // userCanEditVisualStyles;
     // userCanEditCss;
     // useVisualStyles;
     // blockType;
@@ -41,9 +41,9 @@ class BlockEditForm extends preact.Component {
     componentWillMount() {
         const {block} = this.props;
         this.userCanSpecializeGlobalBlocks = api.user.can('specializeGlobalBlocks');
-        this.userCanEditVars = api.user.can('editThemeVars');
-        this.userCanEditCss = api.user.can('editThemeCss');
-        this.useVisualStyles = !this.userCanEditCss && this.userCanEditVars;
+        this.userCanEditVisualStyles = api.user.can('editBlockStylesVisually');
+        this.userCanEditCss = api.user.can('editBlockCss');
+        this.useVisualStyles = !this.userCanEditCss && this.userCanEditVisualStyles;
         this.blockType = blockTypes.get(block.type);
         this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, 'mainTree');
         this.editFormImpl = this.blockType.editForm;
@@ -133,7 +133,7 @@ class BlockEditForm extends preact.Component {
         <div class={ `block-styles-tab-content${currentTabIdx > 0 ? '' : ' d-none'}` }>
             { currentTabIdx > 0 ? <StyleListCls
                 blockCopy={ currentBlockCopy }
-                userCanEditVars={ this.userCanEditVars }
+                userCanEditVisualStyles={ this.userCanEditVisualStyles }
                 userCanEditCss={ this.userCanEditCss }
                 useVisualStyles={ this.useVisualStyles }/> : null }
         </div>

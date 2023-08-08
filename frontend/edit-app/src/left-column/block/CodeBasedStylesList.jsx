@@ -7,8 +7,8 @@ import VisualStyles, {createUnitClass} from './VisualStyles.jsx';
 import EditUnitOrSetAsDefaultDialog from '../../popups/styles/EditUnitOrSetAsDefaultDialog.jsx';
 import {getLargestPostfixNum, findBlockTypeStyles, SPECIAL_BASE_UNIT_NAME, findBodyStyle,
         emitAddStyleClassToBlock, dispatchNewBlockStyleClasses, compileSpecial, StyleTextarea,
-        updateAndEmitUnitScss, emitUnitChanges, emitCommitStylesOp, EditableTitle, tempHack2,
-        goToStyle, blockHasStyle, findParentStyleInfo, tempHack, StylesList, findRealUnit} from './styles-shared.jsx';
+        emitUnitChanges, emitCommitStylesOp, EditableTitle, tempHack2, goToStyle, blockHasStyle,
+        findParentStyleInfo, tempHack, StylesList, findRealUnit} from './styles-shared.jsx';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -64,13 +64,13 @@ class CodeBasedStylesList extends StylesList {
      */
     render({blockCopy}, {units, liClasses, extraBlockStyleClassesNotCommitted,
                             extraBlockStyleClassesError, parentStyleInfo}) {
-        const {userCanEditVars, userCanEditCss, useVisualStyles} = this.props;
+        const {userCanEditCss, useVisualStyles} = this.props;
         return [
             units !== null ? units.length ? <ul class="list styles-list mb-2">{ units.map((unit, i) => {
                 const liCls = liClasses[i];
                 const cls = createUnitClass(unit.id, blockCopy.type);
                 const isActivated = blockHasStyle(blockCopy, unit, cls);
-                const [cssVars, ast] = !useVisualStyles ? [[], []] : VisualStyles.extractVars(unit.scss, cls);
+                const [cssVars] = !useVisualStyles ? [[], []] : VisualStyles.extractVars(unit.scss, cls);
                 const doShowChevron = userCanEditCss || (useVisualStyles && cssVars.length);
                 const bodyUnitCopy = unit.origin !== SPECIAL_BASE_UNIT_NAME ? null : this.getRemoteBodyUnitCopy(unit, blockCopy);
                 const [isDefault, real] = bodyUnitCopy === null ? [false, unit] : [true, bodyUnitCopy];
@@ -89,35 +89,24 @@ class CodeBasedStylesList extends StylesList {
                                     unitIdReal={ !isDefault ? null : bodyUnitCopy.id }
                                     currentTitle={ title }
                                     blockTypeName={ blockCopy.type }
-                                    userCanEditCss={ userCanEditCss }
+                                    allowEditing={ userCanEditCss }
                                     subtitle={ isDefault ? [__('Default'), bodyUnitCopy.specifier ? ` (${bodyUnitCopy.specifier})` : ''].join('') : null }
                                     ref={ this.editableTitleInstances[i] }/>
                                 : <span class="text-ellipsis">{ title }</span> }
                         </button>
                         { isActivated ? <span
-                            onClick={ () => alert(__('Voit poistaa ja lisätä tämän sisällön tyylejä "Tyylit"-tabissa')) }
+                            onClick={ () => alert(__('You can add and remove this content\'s styles in "Styles" tab')) }
                             class="p-absolute flex-centered icon-tabler color-dimmed3"
                             style="right: .4rem;font-size: 1.6rem;"
                             title={ __('Currently active') }>•</span> : null }
                     </header>
-                    { userCanEditCss
-                        ? <StyleTextarea
-                            unitCopy={ {...unit} }
-                            unitCopyReal={ bodyUnitCopy }
-                            unitCls={ cls }
-                            blockTypeName={ blockCopy.type }
-                            isVisible={ liCls !== '' }/>
-                        : userCanEditVars
-                            ? <VisualStyles
-                                vars={ cssVars }
-                                ast={ ast }
-                                scss={ unit.scss }
-                                unitCls={ cls }
-                                emitVarValueChange={ getStyleUpdates => {
-                                    updateAndEmitUnitScss(Object.assign({}, unit), getStyleUpdates, blockCopy.type);
-                                } }/>
-                            : null
-                    }
+                    { userCanEditCss ? <StyleTextarea
+                        unitCopy={ {...unit} }
+                        unitCopyReal={ bodyUnitCopy }
+                        unitCls={ cls }
+                        blockTypeName={ blockCopy.type }
+                        isVisible={ liCls !== '' }/>
+                    : null }
                 </li>;
             }) }</ul> : <p class="pt-1 mb-2 color-dimmed">{ __('No own templates') }.</p>
             : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
@@ -125,9 +114,9 @@ class CodeBasedStylesList extends StylesList {
             <button
                 onClick={ this.addStyleUnit.bind(this) }
                 class="btn btn-primary btn-sm mr-1"
-                type="button">{ __('Add template') }</button>
+                type="button">{ __('Create template') }</button>
         ] : [])
-        .concat(userCanEditVars && parentStyleInfo && parentStyleInfo[2] ? [
+        .concat(parentStyleInfo && parentStyleInfo[2] ? [
             <button
                 onClick={ () => goToStyle(parentStyleInfo, 'style-templates-tab') }
                 class="btn btn-sm"

@@ -6,7 +6,7 @@ import {SPECIAL_BASE_UNIT_NAME, StyleTextarea, specialBaseUnitCls, findBodyStyle
 import VisualStyles from '../block/VisualStyles.jsx';
 
 class BaseStylesSection extends preact.Component {
-    // userCanEditVars;
+    // userCanEditVisualStyles;
     // userCanEditCss;
     // section;
     // unregistrables;
@@ -16,8 +16,8 @@ class BaseStylesSection extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        this.userCanEditVars = api.user.can('editThemeVars');
-        this.userCanEditCss = api.user.can('editThemeCss');
+        this.userCanEditVisualStyles = api.user.can('editBlockStylesVisually');
+        this.userCanEditCss = api.user.can('editBlockCss');
         this.section = preact.createRef();
         this.setState({currentTabIdx: 0, bodyStyleMainUnit: null});
     }
@@ -67,7 +67,7 @@ class BaseStylesSection extends preact.Component {
                     links={ [__('Visual'), __('Code')] }
                     onTabChanged={ toIdx => this.setState({currentTabIdx: toIdx}) }
                     className="text-tinyish mt-0 mb-2"/> : null }
-                <div class={ currentTabIdx === 0 && this.userCanEditVars ? '' : 'd-none' }>
+                <div class={ currentTabIdx === 0 && this.userCanEditVisualStyles ? '' : 'd-none' }>
                     { bodyStyleMainUnit
                         ? <VisualStyles
                             vars={ this.cssVars }

@@ -8,7 +8,7 @@ interface SivujettiFrontendApi {
     getBlockRenderers(): Array<BlockRenderer>;
     getActiveTheme(): {id: String;};
     user: {
-        can(doWhat: 'doAnything'|'editThemeColours'|'editThemeCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'|'editTheWebsitesBasicInfo'|'listUploads'): Boolean;
+        can(doWhat: 'doAnything'|'editGlobalStylesVisually'|'editBlockCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'|'editTheWebsitesBasicInfo'|'listUploads'): Boolean;
         getRole(): Number;
         ROLE_SUPER_ADMIN: Number;
         ROLE_ADMIN: Number;
@@ -202,9 +202,9 @@ interface TheWebsiteBundle {
     blockRenderers: Array<BlockRenderer>;
     userPermissions: {
         canDoAnything: Boolean;
-        canEditThemeColours: Boolean;
-        canEditThemeVars: Boolean;
-        canEditThemeCss: Boolean;
+        canEditGlobalStylesVisually: Boolean;
+        canEditBlockStylesVisually: Boolean;
+        canEditBlockCss: Boolean;
         canCreatePageTypes: Boolean;
         canCreatePages: Boolean;
         canCreateReusableBranches: Boolean;
@@ -422,7 +422,7 @@ interface StylisAstNode {
 
 interface StylesListProps {
     blockCopy: RawBlock;
-    userCanEditVars: Boolean;
+    userCanEditVisualStyles: Boolean;
     userCanEditCss: Boolean;
     useVisualStyles: Boolean;
 }

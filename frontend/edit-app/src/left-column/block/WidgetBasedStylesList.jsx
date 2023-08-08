@@ -43,7 +43,7 @@ class WidgetBasedStylesList extends StylesList {
     componentWillReceiveProps(props) {
         const {blockCopy} = props;
         if (blockCopy.styleClasses !== this.curBlockStyleClasses) {
-            if (blockCopy.styleClasses.length < this.curBlockStyleClasses.length && (this.state.unitsOfThisBlockType || []).length)
+            if (blockCopy.styleClasses.length !== this.curBlockStyleClasses.length && (this.state.unitsOfThisBlockType || []).length)
                 this.updateTodoState(this.state.unitsOfThisBlockType, store2.get().themeStyles, blockCopy);
             this.curBlockStyleClasses = blockCopy.styleClasses;
         }
@@ -57,8 +57,8 @@ class WidgetBasedStylesList extends StylesList {
     /**
      * @access protected
      */
-    render({blockCopy, userCanEditCss}, {unitsEnabled, unitsOfThisBlockType, parentStyleInfo, addStylePopupRenderer}) {
-        const addables = !userCanEditCss
+    render({blockCopy, userCanEditVisualStyles}, {unitsEnabled, unitsOfThisBlockType, parentStyleInfo, addStylePopupRenderer}) {
+        const addables = !userCanEditVisualStyles
             ? unitsOfThisBlockType.filter(unit => {
                 const real = this.getMaybeRemote(unit, blockCopy);
                 return real.isDerivable && !this.alreadyHasInstance(real);
@@ -88,7 +88,10 @@ class WidgetBasedStylesList extends StylesList {
                                 unitIdReal={ !isDefault ? null : either.id }
                                 currentTitle={ either.title }
                                 blockTypeName={ blockCopy.type }
-                                userCanEditCss={ userCanEditCss }
+                                allowEditing={ userCanEditVisualStyles
+                                    ? true                 // admin user -> always
+                                    : !!either.derivedFrom // non-admin -> onyl if this unit is derived
+                                }
                                 subtitle={ null }
                                 ref={ this.editableTitleInstances[i] }/>
                         </b>
@@ -137,10 +140,10 @@ class WidgetBasedStylesList extends StylesList {
                 type="button">{ __('Show parent styles') }</button>
             : null,
         <ContextMenu
-                links={ this.createContextMenuLinks() }
-                onItemClicked={ this.handleMoreMenuLinkClicked.bind(this) }
-                onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
-                ref={ this.moreMenu }/>,
+            links={ this.createContextMenuLinks() }
+            onItemClicked={ this.handleMoreMenuLinkClicked.bind(this) }
+            onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
+            ref={ this.moreMenu }/>,
         addStylePopupRenderer
             ? <Popup
                 Renderer={ addStylePopupRenderer }
@@ -207,6 +210,7 @@ class WidgetBasedStylesList extends StylesList {
     updateTodoState(unitsOfThisBlockType, themeStyles, blockCopy = this.props.blockCopy) {
         const unitsEnabled1 = unitsOfThisBlockType.filter(unit => blockHasStyle(blockCopy, unit));
         const unitsEnabled = unitsEnabled1.filter((unit, _i, arr) => !unit.origin ? true : this.alreadyHasInstanceMaybeRemote(unit, blockCopy, arr));
+        unitsEnabled.reverse();
         this.debouncedEmitVarValueChange = timingUtils.debounce(
             this.emitVarValueChange.bind(this),
             env.normalTypingDebounceMillis

@@ -29,6 +29,7 @@ stringBundles.push({
     'Specialized': 'Specialized',
     'Unique reusables': 'Uniques reusables',
     // edit-app/src/left-column/block/CodeBasedStylesList.jsx
+    'You can add and remove this content\'s styles in "Styles" tab': 'You can add and remove this content\'s styles in "Styles" tab',
     'No own styles': 'No own styles',
     'No own templates': 'No own templates',
     'Add styles': 'Add styles',
@@ -40,6 +41,8 @@ stringBundles.push({
     'Copy styles': 'Copy styles',
     'Paste styles': 'Paste styles',
     'Edit details': 'Edit details',
+    'Deactivate style': 'Deactivate style',
+    'Deactivate': 'Deactivate',
     'Delete style': 'Delete style',
     'Css for the outermost %s (%s)': 'Css for the outermost %s (%s)',
     'element': 'element',

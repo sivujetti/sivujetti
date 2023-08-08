@@ -157,7 +157,7 @@ function hidePopper(content) {
 class EditableTitle extends preact.Component {
     // popup;
     /**
-     * @param {{unitId: String; unitIdReal: String|null; currentTitle: String; blockTypeName: String; userCanEditCss: Boolean; subtitle: String|null;}} props
+     * @param {{unitId: String; unitIdReal: String|null; currentTitle: String; blockTypeName: String; allowEditing: Boolean; subtitle: String|null;}} props
      */
     constructor(props) {
         super(props);
@@ -186,7 +186,7 @@ class EditableTitle extends preact.Component {
     /**
      * @access protected
      */
-    render({currentTitle, userCanEditCss, subtitle}, {popupIsOpen, values}) {
+    render({currentTitle, allowEditing, subtitle}, {popupIsOpen, values}) {
         return [
             <span class="text-ellipsis">
                 { values ? values.title : currentTitle }
@@ -197,7 +197,7 @@ class EditableTitle extends preact.Component {
                     : null
                 }
             </span>,
-            userCanEditCss ? <PopupPrerendered ref={ this.popup }>{ popupIsOpen
+            allowEditing ? <PopupPrerendered ref={ this.popup }>{ popupIsOpen
                 ? <form onSubmit={ this.applyNewTitleAndClose.bind(this) } class="text-left pb-1">
                     <FormGroup>
                         <label htmlFor="title" class="form-label pt-1">{ __('Style name') }</label>
@@ -211,7 +211,7 @@ class EditableTitle extends preact.Component {
             }
             </PopupPrerendered> : null,
             <span class="pl-2 pt-1 edit-icon-outer">
-            <Icon iconId="dots" className={ `size-xs color-dimmed${userCanEditCss ? '' : ' d-none'}` }/>
+            <Icon iconId="dots" className={ `size-xs color-dimmed${allowEditing ? '' : ' d-none'}` }/>
             </span>
         ];
     }
@@ -299,6 +299,18 @@ function findBodyStyleMainUnit(bodyStyle) {
 function emitAddStyleClassToBlock(styleClassToAdd, b) {
     const currentClasses = b.styleClasses;
     const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
+    dispatchNewBlockStyleClasses(newClasses, b);
+    return newClasses;
+}
+
+/**
+ * @param {String} styleClassToRemove
+ * @param {RawBlock} b
+ * @returns {String}
+ */
+function emitRemoveStyleClassFromBlock(styleClassToRemove, b) {
+    const currentClasses = b.styleClasses;
+    const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ');
     dispatchNewBlockStyleClasses(newClasses, b);
     return newClasses;
 }
@@ -559,6 +571,7 @@ class StylesList extends preact.Component {
         return [
             {text: __('Edit name'), title: __('Edit name'), id: 'edit-style-title'},
             ...moreLinks,
+            {text: __('Deactivate'), title: __('Deactivate style'), id: 'deactivate-style'},
             {text: __('Delete'), title: __('Delete style'), id: 'delete-style'},
         ];
     }
@@ -572,10 +585,13 @@ class StylesList extends preact.Component {
             this.editableTitleInstances[this.liIdxOfOpenMoreMenu].current.open();
             return true;
         }
+        if (id === 'deactivate-style') {
+            const [unit] = this.getOpenUnit();
+            removeStyleClassMaybeRemote(unit, this.props.blockCopy);
+            return true;
+        }
         if (id === 'delete-style') {
-            const isCodeBased = this.state.units && !this.state.unitsEnabled;
-            const arr = isCodeBased ? this.state.units : this.state.unitsEnabled;
-            const unit = arr[this.liIdxOfOpenMoreMenu];
+            const [unit, arr, isCodeBased] = this.getOpenUnit();
             if (isCodeBased) {
                 const maybeRemote = findRealUnit(unit, this.props.blockCopy.type);
                 if (maybeRemote.isDerivable && arr.some(unit => unit.derivedFrom === maybeRemote.id)) {
@@ -594,6 +610,15 @@ class StylesList extends preact.Component {
     // eslint-disable-next-line react/require-render-return
     render() {
         throw new Error('Abstract method not implemented.');
+    }
+    /**
+     * @returns {[ThemeStyleUnit, Array<ThemeStyleUnit>, Boolean]}
+     * @access private
+     */
+    getOpenUnit() {
+        const isCodeBased = this.state.units && !this.state.unitsEnabled;
+        const arr = isCodeBased ? this.state.units : this.state.unitsEnabled;
+        return [arr[this.liIdxOfOpenMoreMenu], arr, isCodeBased];
     }
 }
 
@@ -623,6 +648,43 @@ function removeStyleUnitMaybeRemote(unit, block) {
         removeStyleUnit(unit, null, block);
     else
         removeStyleUnit(unit, maybeRemote, null);
+}
+
+/**
+ * @param {ThemeStyleUnit} unit
+ * @param {RawBlock} block
+ */
+function removeStyleClassMaybeRemote(unit, block) {
+    const maybeRemote = findRealUnit(unit, block.type);
+    const to = false;
+    const from = true;
+    return toggleStyleIsActivated(createUnitClass(unit.id, block.type),
+                                    to, from, maybeRemote !== unit, block);
+}
+
+/**
+ * @param {String} cls
+ * @param {Boolean} newIsActivated
+ * @param {Boolean} currentIsActivated
+ * @param {Boolean} isRemote
+ * @param {RawBlock} blockCopy
+ * @returns {String}
+ */
+function toggleStyleIsActivated(cls, newIsActivated, currentIsActivated, isRemote, blockCopy) {
+    if (!isRemote) {
+        if (newIsActivated && !currentIsActivated)
+            return emitAddStyleClassToBlock(cls, blockCopy);
+        if (!newIsActivated && currentIsActivated)
+            return emitRemoveStyleClassFromBlock(cls, blockCopy);
+    } else { // invert
+        // Example: 'no-j-Section-unit-1'
+        const no = `no-${cls}`;
+        const hasNo = blockHasStyle(blockCopy, null, no);
+        if (!newIsActivated && !hasNo)
+            return emitAddStyleClassToBlock(no, blockCopy);
+        if (newIsActivated && hasNo)
+            return emitRemoveStyleClassFromBlock(no, blockCopy);
+    }
 }
 
 /**
@@ -684,22 +746,11 @@ function removeStyleUnit(unit, remote, block) {
 //-                removeStyleUnit(SPECIAL_BASE_UNIT_NAME, maybeRemote, unit);
 // ...(!real ? [null, null] : [real, unit.origin])
 
-
-/**
- * @param {String} styleClassToRemove
- * @param {RawBlock} b
- * @returns {String}
- */
-function emitRemoveStyleClassFromBlock(styleClassToRemove, b) {
-    const currentClasses = b.styleClasses;
-    const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ');
-    dispatchNewBlockStyleClasses(newClasses, b);
-    return newClasses;
-}
-
 export {SPECIAL_BASE_UNIT_NAME, StyleTextarea, EditableTitle, specialBaseUnitCls,
-        getLargestPostfixNum, findBlockTypeStyles, findBodyStyle,
-        findBodyStyleMainUnit, emitAddStyleClassToBlock, dispatchNewBlockStyleClasses,
+        getLargestPostfixNum, findBlockTypeStyles, findBodyStyle, findBodyStyleMainUnit,
+        //
+        emitAddStyleClassToBlock, dispatchNewBlockStyleClasses,
+        //
         compileSpecial, updateAndEmitUnitScss, emitUnitChanges, emitCommitStylesOp,
         tempHack2, goToStyle, blockHasStyle, findParentStyleInfo, normalizeScss,
         tempHack, StylesList, findRealUnit};

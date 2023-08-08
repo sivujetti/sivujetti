@@ -29,6 +29,7 @@ stringBundles.push({
     'Specialized': 'Erikoistuneet',
     'Unique reusables': 'Uniikit uudelleenkäytettävät',
     // edit-app/src/left-column/block/CodeBasedStylesList.jsx
+    'You can add and remove this content\'s styles in "Styles" tab': 'Voit poistaa ja lisätä tämän sisällön tyylejä "Tyylit"-tabissa',
     'No own styles': 'Ei omia tyylejä',
     'No own templates': 'Ei omia templaatteja',
     'Add styles': 'Lisää tyyli',
@@ -40,6 +41,8 @@ stringBundles.push({
     'Copy styles': 'Kopioi tyylit',
     'Paste styles': 'Liitä tyylit',
     'Edit details': 'Muokkaa tietoja',
+    'Deactivate style': 'Deaktivoi tyyli',
+    'Deactivate': 'Deaktivoi',
     'Delete style': 'Poista tyyli',
     'Css for the outermost %s (%s)': 'Uloimman %s (%s) css',
     'element': 'elementin',

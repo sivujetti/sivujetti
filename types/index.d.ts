@@ -96,11 +96,14 @@ interface BlockBlueprint {
 }
 
 interface RawBlock {
-    id: String;
-    type: String;
+    id: String; // Example 'unit-12' or 'j-Type-unit-12'
+    type: String; // 'Section', 'Button' etc.
+    title: String;
+    renderer: String; // Example 'sivujetti:block-auto'
+    styleClasses: String; // Example 'j-Type-unit-3 j-Type-unit-12'
+    duplicatedFrom?: String; // Example 'unit-3'
     children: Array<RawBlock>;
-    // todo
-    [key: String]: mixed;
+    [typeSpecificProps: String]: any;
 }
 
 interface RawGlobalBlockTree {

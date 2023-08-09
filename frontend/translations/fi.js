@@ -28,12 +28,13 @@ stringBundles.push({
     'Common': 'Yleiset',
     'Specialized': 'Erikoistuneet',
     'Unique reusables': 'Uniikit uudelleenkäytettävät',
+    'duplicated': 'monistettu',
     // edit-app/src/left-column/block/CodeBasedStylesList.jsx
     'You can add and remove this content\'s styles in "Styles" tab': 'Voit poistaa ja lisätä tämän sisällön tyylejä "Tyylit"-tabissa',
     'No own styles': 'Ei omia tyylejä',
     'No own templates': 'Ei omia templaatteja',
-    'Add styles': 'Lisää tyyli',
-    'Add templates': 'Lisää templaatti',
+    'Add style': 'Lisää tyyli',
+    'Create template': 'Luo templaatti',
     'Show parent styles': 'Näytä ulommat tyylit',
     'Show parent templates': 'Näytä ulommat templaatit',
     'Edit name': 'Muokkaa nimeä',
@@ -339,6 +340,7 @@ stringBundles.push({
     'Max height': 'Maksimikorkeus',
     'Max width': 'Maksimileveys',
     // Section
+    'Align vertical': 'Tasaa pysty',
     'Background': 'Tausta',
     'Cover': 'Taustapeitto',
     'Text align': 'Teksti tasaus',

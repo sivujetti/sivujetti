@@ -378,7 +378,7 @@ function updateAndEmitUnitScss(unitCopy, getUpdates, blockTypeName) {
  * @param {{scss?: String; generatedCss?: String; specifier?: String; isDerivable?: String;}} updates
  * @param {ThemeStyleUnit} before
  * @param {String} blockTypeName
- * @param {String} unitId
+ * @param {String} unitId Example 'unit-12' (if origin = '' | '_body_'), 'j-Something-uniot-12' (if origin = 'Something')
  * @param {() => void} doUndo = null
  */
 function emitUnitChanges(updates, before, blockTypeName, unitId, doUndoFn = null) {

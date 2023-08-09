@@ -28,12 +28,13 @@ stringBundles.push({
     'Common': 'Common',
     'Specialized': 'Specialized',
     'Unique reusables': 'Uniques reusables',
+    'duplicated': 'duplicated',
     // edit-app/src/left-column/block/CodeBasedStylesList.jsx
     'You can add and remove this content\'s styles in "Styles" tab': 'You can add and remove this content\'s styles in "Styles" tab',
     'No own styles': 'No own styles',
     'No own templates': 'No own templates',
-    'Add styles': 'Add styles',
-    'Add template': 'Add template',
+    'Add style': 'Add style',
+    'Create template': 'Create template',
     'Show parent styles': 'Show parent styles',
     'Show parent templates': 'Show parent templates',
     'Edit name': 'Edit name',
@@ -339,6 +340,7 @@ stringBundles.push({
     'Max height': 'Max height',
     'Max width': 'Max width',
     // Section
+    'Align vertical': 'Align vertical',
     'Background': 'Background',
     'Cover': 'Cover',
     'Text align': 'Text align',

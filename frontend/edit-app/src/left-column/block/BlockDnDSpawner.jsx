@@ -223,7 +223,9 @@ class BlockDnDSpawner extends preact.Component {
         const newBlock = this.createBlock(typeStr, reusableBranchIdx, dragEl);
         if (isReusable) {
             newBlock.title += ` ${__('duplicated')}`;
-            newBlock.duplicatedFrom = this.state.reusables[reusableBranchIdx].id;
+            blockTreeUtils.traverseRecursively([newBlock, ...newBlock.children], b => {
+                b.__duplicatedFrom = this.state.reusables[reusableBranchIdx].id;
+            });
         }
         this.props.mainTreeDnd.handleDragStartedFromOutside({block: newBlock, isReusable});
     }

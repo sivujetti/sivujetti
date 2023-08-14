@@ -304,6 +304,21 @@ function emitAddStyleClassToBlock(styleClassToAdd, b) {
 }
 
 /**
+ * @param {String} styleClasses
+ * @returns {[String, String]} [unitClasses, nonUnitClasses]
+ */
+function splitUnitAndNonUnitClasses(styleClasses) {
+    const all = styleClasses.split(' ');
+    return all
+        .map(cls => cls.startsWith('j-'))
+        .reduce((arrs, isUnitCls, i) => {
+            arrs[isUnitCls ? 0 : 1].push(all[i]);
+            return arrs;
+        }, [[], []])
+        .map(clsList => clsList.join(' '));
+}
+
+/**
  * @param {String} styleClassToRemove
  * @param {RawBlock} b
  * @returns {String}
@@ -720,36 +735,12 @@ function removeStyleUnit(unit, remote, block) {
             store2.dispatch('themeStyles/addUnitTo', [clone.origin, unit]);
         }, unit, remote.origin);
     }
-    /*const blockTypeName = !remote ? block.type : unit.origin;
-    console.log('blockTypenm',blockTypeName);
-
-    // #2
-    const removedClasses = !remote;
-    if (removedClasses)
-        emitRemoveStyleClassFromBlock(createUnitClass(unit.id, block.type), block);
-
-    store2.dispatch('themeStyles/removeUnitFrom', [blockTypeName, remote || unit]);
-
-    const clone = {...(remote || unit)};
-    emitCommitStylesOp(blockTypeName, () => {
-        store2.dispatch('themeStyles/addUnitTo', [blockTypeName, clone]);
-
-        if (remote) store2.dispatch('themeStyles/addUnitTo', [clone.origin, unit]);
-        else setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
-
-    }, ...(!remote ? [null, null] : [remote, remote.origin])); // removedRemote = null, removedRemoteBlockTypeName
-    */
 }
-//-            if (maybeRemote === unit)
-//-                removeStyleUnit(this.props.blockCopy.type, unit);
-//-            else
-//-                removeStyleUnit(SPECIAL_BASE_UNIT_NAME, maybeRemote, unit);
-// ...(!real ? [null, null] : [real, unit.origin])
 
 export {SPECIAL_BASE_UNIT_NAME, StyleTextarea, EditableTitle, specialBaseUnitCls,
         getLargestPostfixNum, findBlockTypeStyles, findBodyStyle, findBodyStyleMainUnit,
         //
-        emitAddStyleClassToBlock, dispatchNewBlockStyleClasses,
+        emitAddStyleClassToBlock, splitUnitAndNonUnitClasses, dispatchNewBlockStyleClasses,
         //
         compileSpecial, updateAndEmitUnitScss, emitUnitChanges, emitCommitStylesOp,
         tempHack2, goToStyle, blockHasStyle, findParentStyleInfo, normalizeScss,

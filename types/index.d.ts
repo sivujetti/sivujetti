@@ -101,7 +101,7 @@ interface RawBlock {
     title: String;
     renderer: String; // Example 'sivujetti:block-auto'
     styleClasses: String; // Example 'j-Type-unit-3 j-Type-unit-12'
-    duplicatedFrom?: String; // Example 'unit-3'
+    __duplicatedFrom?: String; // Example 'unit-3'
     children: Array<RawBlock>;
     [typeSpecificProps: String]: any;
 }

@@ -1,5 +1,5 @@
 import {__, env, signals, stringUtils, timingUtils, hookForm, FormGroupInline, Input,
-    InputErrors, reHookValues, Icon} from '@sivujetti-commons-for-edit-app';
+        InputErrors, reHookValues, Icon} from '@sivujetti-commons-for-edit-app';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -46,11 +46,12 @@ class VisualStyles extends preact.Component {
      * @param {String} selector 'j-BlockType-something' or 'push-id'
      * @param {'cls'|'attr'} selType = 'cls'
      * @param {(varName: String) => CssVar} findVarForPlaceholder = null
+     * @param {Boolean} sampleOnly = false
      * @returns {extractedVars} [vars, stylisAst]
      * @access public
      */
-    static extractVars(scss, selector, selType = 'cls', findVarForPlaceholder = null) {
-        const ast = compile(createScss(scss, selector, selType));
+    static extractVars(scss, selector, selType = 'cls', findVarForPlaceholder = null, sampleOnly = false) {
+        const ast = compile(createScss(!sampleOnly ? scss : extractFirstParsOf(scss), selector, selType));
         const nodes = ast[0].children;
         const out = [];
         for (let i = 0; i < nodes.length; ++i) {
@@ -121,13 +122,33 @@ class VisualStyles extends preact.Component {
 
 /**
  * @param {String} scss
+ * @returns {String}
+ */
+function extractFirstParsOf(scss) {
+    const sep = '@exportAs(';
+    const pcs = scss.split(sep); // -> ['// ',
+                                 //     'color)\n--foo: red;\n// ',
+                                 //     'length)\n--bar: 2px;\n// '
+                                 //     'color)\n--baz: blue;',
+                                 //      maybeManyMorePieces...]
+    const sample = pcs.slice(0, 4);
+    return sample.join(sep); // -> '// @exportAs(color)
+                             //     --foo: red;
+                             //     @exportAs(length)
+                             //     --bar: 2px;
+                             //     // @exportAs(color)
+                             //     --baz: blue;'
+}
+
+/**
+ * @param {String} scss
  * @param {StylisAstNode} astNode
  * @param {String} replaceWith
  * @returns {String}
  * @access private
  */
 function replaceVarValue(scss, {line, column}, replaceWith) {
-    const lines = scss.split(/\n/g);
+    const lines = scss.split('\n');
     const linestr = lines[line - 1]; // '--varA: 1.4rem; --varB: 1;'
     const before = linestr.substring(0, column + 1); // '--varA: 1.4rem; '
     const after = linestr.substring(column - 1); // ' --varB: 1;'
@@ -178,10 +199,23 @@ class LengthValueInput extends preact.Component {
         const norm = LengthValueInput.normalize(props.valueReal);
         const {labelTranslated, isClearable} = props;
         return <FormGroupInline className="has-visual-length-input">
-            <label htmlFor="num" class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
+            <label htmlFor="num" class="form-label p-relative pt-1" title={ labelTranslated }>
+                { labelTranslated }
+                { !props.showNotice ? null : <button
+                    onClick={ () => {
+                        const doCreateCopy = confirm(__('todo2323'));
+                        props.noticeDismissedWith(doCreateCopy);
+                    } }
+                    class="btn btn-link btn-sm p-absolute"
+                    title={ __('Notice') }
+                    style="left: 72%"
+                    type="button">
+                    <span class="d-flex"><Icon iconId="alert-triangle" className="size-sm color-orange color-saturated"/></span>
+                </button> }
+            </label>
             <div class="p-relative">
                 <div class="input-group">
-                    <Input vm={ this } prop="num" placeholder="1.4"/>
+                    <Input vm={ this } prop="num" placeholder="1.4" autoComplete="off"/>
                     <select
                         onChange={ e => this.props.onVarValueChanged(`${norm.num}${e.target.value}`) }
                         class="form-input input-group-addon addon-sm form-select"
@@ -196,7 +230,7 @@ class LengthValueInput extends preact.Component {
                         class="btn btn-link btn-sm"
                         title={ __('Restore default') }
                         style="position: absolute;right: -1.8rem;top: .1rem;">
-                        <span class="d-flex rotated-undo-icon"><Icon iconId="rotate" className="size-xs color-dimmed3"/></span>
+                        <span class="d-flex"><Icon iconId="circle-x" className="size-xs color-dimmed3"/></span>
                     </button>
                     : null
                 }
@@ -282,7 +316,20 @@ class ColorValueInput extends preact.Component {
         const visible = getVisibleColor(props);
         const {labelTranslated, isClearable} = props;
         return <FormGroupInline className={ `has-visual-color-input flex-centered${wc_hex_is_light(visible.data) ? ' is-very-light-color' : ''}` }>
-            <label class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
+            <label class="form-label p-relative pt-1" title={ labelTranslated }>
+                { labelTranslated }
+                { !props.showNotice ? null : <button
+                    onClick={ () => {
+                        const doCreateCopy = confirm(__('todo2323'));
+                        props.noticeDismissedWith(doCreateCopy);
+                    } }
+                    class="btn btn-link btn-sm p-absolute"
+                    title={ __('Notice') }
+                    style="left: 82%"
+                    type="button">
+                    <span class="d-flex"><Icon iconId="alert-triangle" className="size-sm color-orange color-saturated"/></span>
+                </button> }
+            </label>
             {/* the real div.pickr (this.movingPickContainer) will appear here */}
             {/* this element will disappear after clicking */}
             <div class="d-inline-flex p-relative">
@@ -301,7 +348,7 @@ class ColorValueInput extends preact.Component {
                     this.props.onVarValueChanged(null);
                     setTimeout(() => { this.resetValueIsPending = false; }, 200);
                 } } class="btn btn-link btn-sm" title={ __('Restore default') } style="position: absolute;right: -1.8rem;top: .1rem;">
-                    <span class="d-flex rotated-undo-icon"><Icon iconId="rotate" className="size-xs color-dimmed3"/></span>
+                    <span class="d-flex"><Icon iconId="circle-x" className="size-xs color-dimmed3"/></span>
                 </button>
                 : null
             }
@@ -416,9 +463,22 @@ class OptionValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({labelTranslated, isClearable}, {selected, options}) {
+    render({labelTranslated, isClearable, showNotice, noticeDismissedWith}, {selected, options}) {
         return <FormGroupInline>
-            <label class="form-label pt-1" title={ labelTranslated }>{ labelTranslated }</label>
+            <label class="form-label p-relative pt-1" title={ labelTranslated }>
+                { labelTranslated }
+                { !showNotice ? null : <button
+                    onClick={ () => {
+                        const doCreateCopy = confirm(__('todo2323'));
+                        noticeDismissedWith(doCreateCopy);
+                    } }
+                    class="btn btn-link btn-sm p-absolute"
+                    title={ __('Notice') }
+                    style="left: 72%"
+                    type="button">
+                    <span class="d-flex"><Icon iconId="alert-triangle" className="size-sm color-orange color-saturated"/></span>
+                </button> }
+            </label>
             <div class="p-relative">
                 <select class="form-select" value={ selected } onChange={ e => this.props.onVarValueChanged(e.target.value) }>
                 { options.map(text =>
@@ -427,7 +487,7 @@ class OptionValueInput extends preact.Component {
                 </select>
                 { isClearable
                     ? <button onClick={ () => { this.props.onVarValueChanged(null); } } class="btn btn-link btn-sm" title={ __('Restore default') } style="position: absolute;right: -1.8rem;top: .1rem;">
-                        <span class="d-flex rotated-undo-icon"><Icon iconId="rotate" className="size-xs color-dimmed3"/></span>
+                        <span class="d-flex"><Icon iconId="circle-x" className="size-xs color-dimmed3"/></span>
                     </button>
                     : null
                 }
@@ -535,6 +595,8 @@ function compileScss(scss, cls) {
  * @prop {String} labelTranslated
  * @prop {(newVal: String) => any} onVarValueChanged
  * @prop {String} selector
+ * @prop {Boolean} showNotice
+ * @prop {(accepted: Boolean) => void} noticeDismissedWith
  */
 
 /**

@@ -8,7 +8,8 @@ import EditUnitOrSetAsDefaultDialog from '../../popups/styles/EditUnitOrSetAsDef
 import {getLargestPostfixNum, findBlockTypeStyles, SPECIAL_BASE_UNIT_NAME, findBodyStyle,
         emitAddStyleClassToBlock, dispatchNewBlockStyleClasses, compileSpecial, StyleTextarea,
         emitUnitChanges, emitCommitStylesOp, EditableTitle, tempHack2, goToStyle, blockHasStyle,
-        findParentStyleInfo, tempHack, StylesList, findRealUnit} from './styles-shared.jsx';
+        findParentStyleInfo, tempHack, StylesList, findRealUnit,
+        splitUnitAndNonUnitClasses} from './styles-shared.jsx';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -264,7 +265,7 @@ class CodeBasedStylesList extends StylesList {
         const showSpecifier = !wasEditLink || remote !== unit;
         floatingDialog.open(EditUnitOrSetAsDefaultDialog, {
             title: __(title),
-            height: showSpecifier ? 286 : 206,
+            height: wasEditLink ? showSpecifier ? 286 : 206 : 322,
         }, {
             blockTypeName,
             specifier,
@@ -408,21 +409,6 @@ function createLiClasses(units, openIdx) {
 function isSpecialUnit({id}) {
     const pushIdLength = 20;
     return !id.startsWith('unit-') && id.length === pushIdLength;
-}
-
-/**
- * @param {String} styleClasses
- * @returns {[String, String]} [unitClasses, nonUnitClasses]
- */
-function splitUnitAndNonUnitClasses(styleClasses) {
-    const all = styleClasses.split(' ');
-    return all
-        .map(cls => cls.startsWith('j-'))
-        .reduce((arrs, isUnitCls, i) => {
-            arrs[isUnitCls ? 0 : 1].push(all[i]);
-            return arrs;
-        }, [[], []])
-        .map(clsList => clsList.join(' '));
 }
 
 /**

@@ -165,7 +165,7 @@ class CodeBasedStylesList extends StylesList {
         // else Wait for store2.dispatch('themeStyles/setAll')
     }
     /**
-     * @param {ThemeStyleUnit} unit Example: {"title":"Oletus","id":"unit-1","scss":<scss>,"generatedCss":"","origin":"_body_","specifier":"","isDerivable":false,"derivedFrom":"unit-2"}
+     * @param {ThemeStyleUnit} unit
      * @param {RawBlock} blockCopy
      * @returns {ThemeStyleUnit|null}
      * @access private
@@ -418,27 +418,25 @@ function isSpecialUnit({id}) {
  * @param {Boolean} isDerivable = false
  */
 function createDefaultUnit(from, blockTypeName, specifier, isDerivable = false) {
-    // Example: {"title":"","id":"unit-13","scss":"","generatedCss":"","origin":"_body_","specifier":"","isDerivable":false,"derivedFrom":"unit-2"}
     const emptied = {
         title: '',
-        id: from.id,
+        id: from.id, // 'unit-13'
         scss: '',
         generatedCss: '',
-        origin: SPECIAL_BASE_UNIT_NAME,
+        origin: SPECIAL_BASE_UNIT_NAME, // '_body_'
         specifier: '',
         isDerivable: false,
         derivedFrom: null,
     };
-    // Example: {"title":"Default","id":"j-Section-unit-13","scss":<scss>,"generatedCss":".j-_body_ .j-Section:not(.no-j-Section-unit-13) {<compiled>}}","origin":null,"specifier":"","isDerivable":false,"derivedFrom":"unit-2"}
     const moveToBody = {
         title: from.title,
-        id: createUnitClass(emptied.id, blockTypeName),
+        id: createUnitClass(emptied.id, blockTypeName), // 'j-Section-unit-13'
         scss: from.scss,
-        generatedCss: 'filled-below',
+        generatedCss: 'filled-below', // '.j-_body_ .j-Section:not(.no-j-Section-unit-13) {<compiled>}}'
         origin: blockTypeName,
         specifier: specifier || '',
         isDerivable,
-        derivedFrom: from.derivedFrom,
+        derivedFrom: from.derivedFrom, // 'unit-2'
     };
 
     //
@@ -465,14 +463,5 @@ function emitUpdatedRemoteCss(specifier, remoteUnit, blockTypeName) {
     const updates = {specifier, generatedCss: result.generatedCss};
     emitUnitChanges(updates, prev, SPECIAL_BASE_UNIT_NAME, remoteUnit.id);
 }
-
-/**
- * @typedef StyleTextareaProps
- * @prop {ThemeStyleUnit} unitCopy
- * @prop {ThemeStyleUnit|null} unitCopyReal
- * @prop {String} unitCls
- * @prop {String} blockTypeName
- * @prop {Boolean} isVisible
- */
 
 export default CodeBasedStylesList;

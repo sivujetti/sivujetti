@@ -111,6 +111,8 @@ final class ThemesController {
             ->rule("{$key}.*.title", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
             ->rule("{$key}.*.scss", "type", "string")
             ->rule("{$key}.*.generatedCss", "type", "string")
+            ->rule("{$key}.*.optimizedScss?", "type", "string")
+            ->rule("{$key}.*.optimizedGeneratedCss?", "type", "string")
             ->rule("{$key}.*.origin", "type", "string")
             ->rule("{$key}.*.specifier", "type", "string")
             ->rule("{$key}.*.isDerivable", "type", "bool")
@@ -163,6 +165,8 @@ final class ThemesController {
                     "id" => $b->id,
                     "scss" => $b->scss,
                     "generatedCss" => $b->generatedCss,
+                    "optimizedScss" => $b->optimizedScss ?? null,
+                    "optimizedGeneratedCss" => $b->optimizedGeneratedCss ?? null,
                     "origin" => $b->origin ?? "",
                     "specifier" => $b->specifier ?? "",
                     "isDerivable" => !($b->derivedFrom ?? null) && $b->isDerivable,
@@ -209,7 +213,7 @@ final class ThemesController {
      */
     public static function combineAndWrapCss(array $units, string $blockTypeName): string {
         $noRemote = $blockTypeName !== "_body_" ? array_filter($units, fn($u) => $u->origin !== "_body_") : $units;
-        $css = implode("\n", array_map(fn($u) => $u->generatedCss, $noRemote));
+        $css = implode("\n", array_map(fn($u) => $u->optimizedGeneratedCss ?? $u->generatedCss, $noRemote));
         $pcs = $blockTypeName !== "_body_" ? [] : explode("/* hoisted decls ends */", $css);
         [$hoisted, $css2] = count($pcs) < 2 ? ["", $css] : ["{$pcs[0]}/* hoisted decls ends */", $pcs[1]];
         $layerName = $blockTypeName !== "_body_" ? "units" : "body-unit";

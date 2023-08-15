@@ -347,6 +347,8 @@ interface ThemeStyleUnit {
     id: String;
     scss: String;
     generatedCss: String;
+    optimizedScss?: String|null;
+    optimizedGeneratedCss?: String|null;
     origin: String;
     specifier: String;
     isDerivable: Boolean;

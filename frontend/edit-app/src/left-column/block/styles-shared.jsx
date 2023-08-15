@@ -10,6 +10,8 @@ import {createUnitClass} from './VisualStyles.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import {getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
 
+const {compile, serialize, stringify} = window.stylis;
+
 const SPECIAL_BASE_UNIT_NAME = '_body_';
 const specialBaseUnitCls = createUnitClass('', SPECIAL_BASE_UNIT_NAME);
 
@@ -72,16 +74,25 @@ class StyleTextarea extends preact.Component {
                         const currentlyCommitted = copy.scss;
                         const {unitCls} = this.props;
                         const allowImports = unitCls === 'j-_body_';
-                        const [shouldCommit, result] = this.cssValidator.validateAndCompileScss(e.target.value,
+                        const scss = e.target.value;
+                        const [shouldCommit, result] = this.cssValidator.validateAndCompileScss(scss,
                             input => `.${unitCls}{${input}}`, currentlyCommitted, allowImports);
                         // Wasn't valid -> commit to local state only
                         if (!shouldCommit) {
-                            this.setState({scssNotCommitted: e.target.value, error: result.error});
+                            this.setState({scssNotCommitted: scss, error: result.error});
                             return null;
                         }
-                        // Was valid, dispatch to the store (which is grabbed by BlockStylesTab.contructor and then this.componentWillReceiveProps())
-                        return {newScss: e.target.value,
-                                newGenerated: result.generatedCss || ''};
+                        // Was valid, dispatch to the store
+                        const newOptimizedScss = !copy.derivedFrom ? null : optimizeScss(scss, [], findBaseUnitOf(copy, findBlockTypeStyles(store2.get().themeStyles, this.props.blockTypeName).units).scss);
+                        return {
+                            ...{newScss: scss, newGenerated: result.generatedCss || ''},
+                            ...(!newOptimizedScss ? {} : {
+                                newOptimizedScss,
+                                newOptimizedGenerated: newOptimizedScss
+                                    ? serialize(compile(`.${unitCls}{${newOptimizedScss}}`), stringify)
+                                    : null
+                            })
+                        };
                     }, this.props.blockTypeName);
                 else
                     updateAndEmitUnitScss(this.props.unitCopyReal, copy => {
@@ -375,18 +386,23 @@ function validateAndGetSpecifier(candidate) {
 
 /**
  * @param {ThemeStyleUnit} unitCopy
- * @param {(unitCopy: ThemeStyleUnit) => ({scss?: String; generatedCss?: String; specifier?: String;}|null)} getUpdates
+ * @param {(unitCopy: ThemeStyleUnit) => ({scss?: String; generatedCss?: String; newOptimizedScss?: String|null; newOptimizedGenerated?: String|null; specifier?: String;}|null)} getUpdates
  * @param {String} blockTypeName
  */
 function updateAndEmitUnitScss(unitCopy, getUpdates, blockTypeName) {
-    const {id, generatedCss, scss} = unitCopy;
-    const dataBefore = {scss, generatedCss};
+    const {id, scss, generatedCss, optimizedScss, optimizedGeneratedCss} = unitCopy;
+    const dataBefore = {...{scss, generatedCss}, ...(!optimizedScss ? {} : {optimizedScss, optimizedGeneratedCss})};
     //
     const updates = getUpdates(unitCopy);
     if (!updates) return;
     //
-    emitUnitChanges({scss: updates.newScss, generatedCss: updates.newGenerated},
-        dataBefore, blockTypeName, id);
+    emitUnitChanges({...{
+        scss: updates.newScss,
+        generatedCss: updates.newGenerated,
+    }, ...(!updates.newOptimizedScss ? {} : {
+        optimizedScss: updates.newOptimizedScss,
+        optimizedGeneratedCss: updates.newOptimizedGenerated,
+    })}, dataBefore, blockTypeName, id);
 }
 
 /**
@@ -737,6 +753,92 @@ function removeStyleUnit(unit, remote, block) {
     }
 }
 
+/**
+ * @param {String} derivedScss
+ * @param {Array<StylisAstNode>} derivedScssAst
+ * @param {String} baseScss
+ * @returns {String}
+ */
+function optimizeScss(derivedScss, derivedScssAst, baseScss) {
+    const linesA = derivedScss.split('\n');
+    const linesB = baseScss.split('\n');
+    const numBaseLines = linesB.length;
+    const EMPTY_LINE = '^::empty::^';
+
+    const varDecls = [];
+    let lastVarDeclIdx = 0;
+    for (let i = 0; i < linesA.length; ++i) {
+        const trimmed = linesA[i].trimStart();
+        if (trimmed.startsWith('--')) {
+            const pcs = trimmed.split(':');
+            if (pcs[1]?.trim().length > 0) {
+                varDecls.push(pcs[0].trimEnd());
+                lastVarDeclIdx = i + 1;
+                continue;
+            } // else fall through
+        }
+        varDecls.push(null);
+    }
+
+    const emptied = [];
+    for (let i = 0; i < linesA.length; ++i) {
+        const fromDerivate = linesA[i];
+        if (i < numBaseLines) { // derived, add only if the line contains var(--someChangedVar)
+            const lineATrimmed = fromDerivate.trim();
+            if (i < lastVarDeclIdx) {
+                emptied.push(!varDecls[i] || lineATrimmed === withReplacedApdx(linesB[i].trim(), ...varDecls[i].split('_').slice(1)) ? EMPTY_LINE : fromDerivate);
+            } else {
+                let hasUsageWithChagedVal = false;
+                const pcs1 = lineATrimmed.split('var(');
+                if (pcs1.length > 1) {
+                    const start = pcs1[1].trimStart(); // 'align-items: var( --alignItems_Type_d1 )' -> '--alignItems_Type_d1 )'
+                    const pcs3 = start.split('_').slice(0, 3); // ['--alignItems', 'Type', 'd1 )']
+                    if (pcs3.length === 3) {
+                    pcs3[2] = pcs3[2].split(',')[0].trimEnd().split(')')[0].trimEnd(); // 'd1 )' -> 'd1' or 'd1, var(--another))' -> 'd1'
+                    const [_, blockTypeName, apdx] = pcs3;
+                    const usageVarName = pcs3.join('_');
+                    const varDeclLineN = varDecls.indexOf(usageVarName);
+                    hasUsageWithChagedVal = varDeclLineN > -1 && linesA[varDeclLineN].trim() !== withReplacedApdx(linesB[varDeclLineN].trim(), blockTypeName, apdx);
+                    }
+                }
+                emptied.push(!hasUsageWithChagedVal ? EMPTY_LINE : fromDerivate);
+            }
+        } else { // additions, always add
+            emptied.push( fromDerivate);
+        }
+    }
+    return emptied.filter(line => line !== EMPTY_LINE).join('\n');
+}
+
+/**
+ * @param {String} lineB Example '--background_Section_base1: initial;'
+ * @param {String} blockTypeName Example 'Section'
+ * @param {String} apdx Example 'u4'
+ * @return {String} Example '--background_Section_u4: initial;'
+ */
+function withReplacedApdx(lineB, blockTypeName, apdx) {
+    return lineB.replace(new RegExp(`${blockTypeName}_(base|default)\\d+`), `${blockTypeName}_${apdx}`);
+}
+
+/**
+ * @param {ThemeStyleUnit} unit
+ * @param {Array<ThemeStyleUnit>} from
+ * @returns {ThemeStyleUnit|null}
+ */
+function findBaseUnitOf(unit, from) {
+    const lookFor = unit.derivedFrom;
+    return from.find(u => u.id === lookFor) || null;
+}
+
+/**
+ * @typedef StyleTextareaProps
+ * @prop {ThemeStyleUnit} unitCopy
+ * @prop {ThemeStyleUnit|null} unitCopyReal
+ * @prop {String} unitCls
+ * @prop {String} blockTypeName
+ * @prop {Boolean} isVisible
+ */
+
 export {SPECIAL_BASE_UNIT_NAME, StyleTextarea, EditableTitle, specialBaseUnitCls,
         getLargestPostfixNum, findBlockTypeStyles, findBodyStyle, findBodyStyleMainUnit,
         //
@@ -744,4 +846,4 @@ export {SPECIAL_BASE_UNIT_NAME, StyleTextarea, EditableTitle, specialBaseUnitCls
         //
         compileSpecial, updateAndEmitUnitScss, emitUnitChanges, emitCommitStylesOp,
         tempHack2, goToStyle, blockHasStyle, findParentStyleInfo, normalizeScss,
-        tempHack, StylesList, findRealUnit};
+        tempHack, StylesList, findRealUnit, optimizeScss, findBaseUnitOf};

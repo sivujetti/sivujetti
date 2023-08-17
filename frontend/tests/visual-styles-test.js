@@ -1,5 +1,7 @@
-import {replaceVarValue, ColorValueInput, LengthValueInput,
-    OptionValueInput} from '../edit-app/src/left-column/block/VisualStyles.jsx';
+import {replaceVarValue} from '../edit-app/src/left-column/block/VisualStyles.jsx';
+import ColorValueInput from '../edit-app/src/left-column/block/ColorValueInput.jsx';
+import LengthValueInput from '../edit-app/src/left-column/block/LengthValueInput.jsx';
+import OptionValueInput from '../edit-app/src/left-column/block/OptionValueInput.jsx';
 const {compile} = window.stylis;
 
 QUnit.module('VisualStyles.jsx', () => {
@@ -62,10 +64,25 @@ QUnit.module('VisualStyles.jsx', () => {
             ['1px',       {num: '1',   unit: 'px'}],
             ['1em',       {num: '1',   unit: 'em'}],
             ['1%',        {num: '1',   unit: '%'}],
+            ['0rem',      {num: '0',   unit: 'rem'}],
             ['foo',       null],
             ['1',         null],
         ].forEach(([input, expected]) => {
             const actual = LengthValueInput.valueFromInput(input);
+            assert.deepEqual(actual, expected);
+        });
+    });
+    QUnit.test('LengthValueInput.valueToString stringifies values', assert => {
+        [
+            [{num: '1',   unit: 'rem'},  '1rem'],
+            [{num: '1.2', unit: 'rem'},  '1.2rem'],
+            [{num: '.2',  unit: 'rem'},  '.2rem'],
+            [{num: '1',   unit: 'px'},   '1px'],
+            [{num: '1',   unit: 'em'},   '1em'],
+            [{num: '1',   unit: '%'},    '1%'],
+            [{num: '0',   unit: 'rem'},  '0rem'],
+        ].forEach(([input, expected]) => {
+            const actual = LengthValueInput.valueToString(input);
             assert.deepEqual(actual, expected);
         });
     });

@@ -132,10 +132,10 @@ function theBlockTreeStore(store) {
     store.on('theBlockTree/updateDefPropsOf',
     /**
      * @param {Object} state
-     * @param {[String, String, {[key: String]: any;}, Boolean]} args
+     * @param {[String, String, {[key: String]: any;}, Boolean, String|null]} args
      * @returns {Object}
      */
-    ({theBlockTree}, [blockId, blockIsStoredToTreeId, changes]) => {
+    ({theBlockTree}, [blockId, blockIsStoredToTreeId, changes, _isOnlyStyleClassesChange, _prevData]) => {
         const asString = Object.keys(changes).toString();
         if (asString !== 'title' && asString !== 'styleClasses') throw new Error('Not supported yet');
         const clone = cloneObjectDeep(theBlockTree);

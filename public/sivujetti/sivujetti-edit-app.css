@@ -146,7 +146,9 @@ Structure:
 .rotated-undo-icon {
     transform: rotate(181deg);
 }
-
+.d-grid {
+   display: grid;
+}
 
 
 /* == Global: Defaults ====================================================== */
@@ -243,7 +245,10 @@ h2 {
     content: initial;
 }
 .ql-snow.ql-toolbar .ql-picker.ql-header {
-    width: 92px;
+    width: 86px;
+}
+.ql-snow .ql-picker.ql-header .ql-picker-label {
+    padding-left: 4px;
 }
 .ql-snow .ql-picker.ql-header .ql-picker-item:before,
 .ql-snow .ql-picker.ql-header .ql-picker-label:before {
@@ -1115,7 +1120,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .block-tree li[data-block-type="PageInfo"].selected {
     background: hsla(var(--components-color-purple), .1);
 }
-.block-tree li:hover,
+.block-tree li:not(li[data-first-in-group-title]):hover,
 .block-tree li.highlighted {
     background: rgba(var(--components-color-fb-default), 0.03);
 }
@@ -1461,7 +1466,7 @@ span.highlight-rect[data-position="bottom-inside"]:before {
     color: var(--color-fg-code);
 }
 ul.list {
-    list-style: none;
+    list-style: initial;
     margin: 0;
 }
 @keyframes show {

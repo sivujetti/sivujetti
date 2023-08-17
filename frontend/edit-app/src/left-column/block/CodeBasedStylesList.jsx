@@ -337,7 +337,7 @@ class CodeBasedStylesList extends StylesList {
 
         // #1
         const newUnit = {title, id, scss, generatedCss: serialize(compile(`.${cls}{${scss}}`), stringify),
-            origin: '', specifier: '', isDerivable: /yleinen|yleiset|common/.test(title.toLowerCase()), derivedFrom: null};
+            origin: '', specifier: '', isDerivable: false, derivedFrom: null};
         if (current) store2.dispatch('themeStyles/addUnitTo', [type, newUnit]);
         else store2.dispatch('themeStyles/addStyle', [{units: [newUnit], blockTypeName: type}]);
 
@@ -367,8 +367,8 @@ class CodeBasedStylesList extends StylesList {
             return;
         }
         const unitClses = this.currentBlockUnitStyleClasses;
-        const combAsString = unitClses + (unitClses ? ` ${v}` : v);
-        dispatchNewBlockStyleClasses(combAsString, this.props.blockCopy);
+        const both = unitClses + (unitClses && v.length ? ` ${v}` : v);
+        dispatchNewBlockStyleClasses(both, this.props.blockCopy);
     }
     /**
      * @param {Number} liIdx

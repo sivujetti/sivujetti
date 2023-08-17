@@ -63,7 +63,7 @@ class OpQueueItemEmitter {
                 if (debounceMillis > 0) this.pushSaveOpTimeouts[blockId] = setTimeout(fn, debounceMillis);
                 else fn();
             } else if (event === 'theBlockTree/updateDefPropsOf') {
-                const [blockId, blockIsStoredToTreeId, _changes, isOnlyStyleClassesChange] = data;
+                const [blockId, blockIsStoredToTreeId, _changes, isOnlyStyleClassesChange, _prevData] = data;
                 const oldTree = this.prevTree;
                 this.pushSaveBlockTreeToBackendOpDefProps(theBlockTree, oldTree, blockIsStoredToTreeId, blockId, isOnlyStyleClassesChange);
             } else if (event === 'theBlockTree/cloneItem') {

@@ -304,13 +304,15 @@ function findBodyStyleMainUnit(bodyStyle) {
 
 /**
  * @param {String} styleClassToAdd
- * @param {RawBlock} b
+ * @param {RawBlock} block
  * @returns {String}
  */
-function emitAddStyleClassToBlock(styleClassToAdd, b) {
-    const currentClasses = b.styleClasses;
-    const newClasses = currentClasses ? `${currentClasses} ${styleClassToAdd}` : styleClassToAdd;
-    dispatchNewBlockStyleClasses(newClasses, b);
+function emitAddStyleClassToBlock(styleClassToAdd, block) {
+    const currentClasses = block.styleClasses;
+    const [ir, nonUnit] = splitUnitAndNonUnitClasses(currentClasses);
+    const unit = ir? `${ir} ${styleClassToAdd}` : styleClassToAdd;
+    const newClasses = `${unit}${unit && nonUnit ? ' ' : ''}${nonUnit}`;
+    dispatchNewBlockStyleClasses(newClasses, block);
     return newClasses;
 }
 
@@ -331,13 +333,13 @@ function splitUnitAndNonUnitClasses(styleClasses) {
 
 /**
  * @param {String} styleClassToRemove
- * @param {RawBlock} b
+ * @param {RawBlock} block
  * @returns {String}
  */
-function emitRemoveStyleClassFromBlock(styleClassToRemove, b) {
-    const currentClasses = b.styleClasses;
+function emitRemoveStyleClassFromBlock(styleClassToRemove, block) {
+    const currentClasses = block.styleClasses;
     const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ');
-    dispatchNewBlockStyleClasses(newClasses, b);
+    dispatchNewBlockStyleClasses(newClasses, block);
     return newClasses;
 }
 
@@ -346,11 +348,13 @@ function emitRemoveStyleClassFromBlock(styleClassToRemove, b) {
  * @param {RawBlock} blockCopy
  * @access private
  */
-function dispatchNewBlockStyleClasses(newStyleClasses, {id}) {
+function dispatchNewBlockStyleClasses(newStyleClasses, blockCopy) {
     const changes = {styleClasses: newStyleClasses};
     const isOnlyStyleClassesChange = true;
+    const {id, styleClasses} = blockCopy;
+    const prevData = styleClasses;
     const isStoredToTreeId = getIsStoredToTreeIdFrom(id, 'mainTree');
-    store2.dispatch('theBlockTree/updateDefPropsOf', [id, isStoredToTreeId, changes, isOnlyStyleClassesChange]);
+    store2.dispatch('theBlockTree/updateDefPropsOf', [id, isStoredToTreeId, changes, isOnlyStyleClassesChange, prevData]);
 }
 
 /**

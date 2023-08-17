@@ -170,16 +170,16 @@ class AddFilterPopup extends preact.Component {
         const a1 = __('and');
         return [
             <div class="py-1">{ filtersParsed.length ? a1 : '' }</div>,
-            <div class="instructions-list d-flex">
+            <div class="instructions-list d-grid">
                 <button
                     onClick={ () => { parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, '', currentFiltersJson), 'added'); parent.closeCurrentPopup(); } }
-                    class="group-2 poppable perhaps"
+                    class="group-2 poppable perhaps text-left"
                     type="button">
                     { IsInCategoryPart.getLabel(howManyType) }
                 </button>
                 <button
                     onClick={ () => { parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.URL_STARTS_WITH, '', currentFiltersJson), 'added'); parent.closeCurrentPopup(); } }
-                    class="group-2 poppable perhaps"
+                    class="group-2 poppable perhaps text-left"
                     type="button">
                     { UrlStartsWithPart.getLabel(howManyType) }
                 </button>

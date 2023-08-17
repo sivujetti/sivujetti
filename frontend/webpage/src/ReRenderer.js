@@ -158,9 +158,9 @@ class ReRenderer {
             }
         // ====================================================================
         } else if (event === 'theBlockTree/updateDefPropsOf') {
-            const [blockId, _blockIsStoredToTreeId, changes, isOnlyStyleClassesChange] = data;
+            const [blockId, _blockIsStoredToTreeId, changes, isOnlyStyleClassesChange, prevData] = data;
             if (isOnlyStyleClassesChange) {
-                this.updateBlocksStyleClasses(blockId, changes.styleClasses);
+                this.updateBlocksStyleClasses(blockId, changes.styleClasses, prevData);
                 this.doReRender(theBlockTree);
             } // else nothing to render, i.e. only block.title changed)
         // ====================================================================
@@ -259,22 +259,32 @@ class ReRenderer {
     /**
      * @param {String} blockId
      * @param {String} newStyleClasses
+     * @param {String} prevStyleClasses
      * @access private
      */
-    updateBlocksStyleClasses(blockId, newStyleClasses) {
+    updateBlocksStyleClasses(blockId, newStyleClasses, prevStyleClasses) {
         const withNewClsClone = extractRendered(getBlockEl(blockId));
-        const current = withNewClsClone.className.split(' ');
-        const unitStart = `${current[0]}-unit-`; // 'j-Something-unit-'
-        const defaultUnitStart = `no-${unitStart}`;
-        const nonUnit = current.filter(cls => !cls.startsWith(unitStart) &&
-                                            !cls.startsWith(defaultUnitStart));
-        withNewClsClone.className = [
-            ...nonUnit.slice(0, 1), // j-Something
-            ...(newStyleClasses ? newStyleClasses.split(' ') : []),
-            ...nonUnit.slice(1)     // all except j-Something
-        ].join(' ');
+        withNewClsClone.className = prevStyleClasses.length
+            ? replaceLastIndexOf(withNewClsClone.className, prevStyleClasses)
+            : `${withNewClsClone.className} ${newStyleClasses}`;
+        if (!newStyleClasses.length)
+            withNewClsClone.className = withNewClsClone.className.trimEnd();
         this.elCache.get(blockId).push(withNewClsClone);
     }
+}
+
+/**
+ * https://stackoverflow.com/a/2729686
+ *
+ * @param {String} str
+ * @param {String} replacement
+ * @returns {String}
+ */
+function replaceLastIndexOf(str, replacement) {
+    const n = str.lastIndexOf(replacement);
+    return n >= 0 && n + replacement.length >= str.length
+        ? str.substring(0, n) + replacement
+        : str;
 }
 
 /**

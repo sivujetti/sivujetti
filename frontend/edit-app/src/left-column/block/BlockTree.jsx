@@ -314,8 +314,9 @@ class BlockTree extends preact.Component {
         // Update the title of the existing block
         const changes = {title: data.name};
         const isOnlyStyleClassesChange = false;
+        const prevData = null;
         store2.dispatch('theBlockTree/updateDefPropsOf',
-            [id, isStoredToTreeId, changes, isOnlyStyleClassesChange]);
+            [id, isStoredToTreeId, changes, isOnlyStyleClassesChange, prevData]);
 
         // Push item to reusableBranches
         setTimeout(() => {

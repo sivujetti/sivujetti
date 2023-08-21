@@ -12,6 +12,7 @@ import {SPECIAL_BASE_UNIT_NAME, getLargestPostfixNum, findBlockTypeStyles,
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from '../../store.js';
 import {saveExistingBlocksToBackend} from './createBlockTreeDndController.js';
+import {isBodyRemote} from './style-utils.js';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -32,7 +33,7 @@ class WidgetBasedStylesList extends StylesList {
         super.componentWillMount();
         this.addUserUnitDropdown = preact.createRef();
         this.openAddStylePopupBtn = preact.createRef();
-        this.setState({unitsEnabled: null, unitsOfThisBlockType: [], dupedStylesInfo: null});
+        this.setState({unitsEnabled: null, unitsOfThisBlockType: [], mutatedStyleInfo: null});
         this.curBlockStyleClasses = this.props.blockCopy.styleClasses;
         this.unregistrables = [observeStore2('themeStyles', ({themeStyles}, [_event]) => {
             if (this.group === true) return;
@@ -65,7 +66,7 @@ class WidgetBasedStylesList extends StylesList {
      * @access protected
      */
     render({blockCopy, userCanEditVisualStyles}, {unitsEnabled, unitsOfThisBlockType, parentStyleInfo,
-                                                    addStylePopupRenderer, dupedStylesInfo}) {
+                                                    addStylePopupRenderer, mutatedStyleInfo}) {
         const addables = !userCanEditVisualStyles
             ? unitsOfThisBlockType.filter(unit => {
                 const real = this.getMaybeRemote(unit, blockCopy);
@@ -126,15 +127,15 @@ class WidgetBasedStylesList extends StylesList {
                                 const val = newValAsString !== null
                                     ? newValAsString
                                     : valueToString(this.getParentsValueOf(cssVar, ast, either) || 'initial', Renderer);
-                                this.emitChange(val, cssVar, either, ast, cls);
+                                this.emitChange(val, cssVar, either, unit, ast, cls);
                             } }
                             selector={ `.${cls}` }
-                            showNotice={ dupedStylesInfo !== null && cssVar.varName === dupedStylesInfo.firstMutatedVarName }
+                            showNotice={ mutatedStyleInfo !== null && cssVar.varName === mutatedStyleInfo.firstMutatedVarName }
                             noticeDismissedWith={ accepted => {
                                 if (accepted) // Do create copy, replace block's cssClass '-unit-<old>' -> '-unit-<newCopy>'
-                                    this.addUnitManyUnitClones(dupedStylesInfo);
+                                    this.addUnitManyUnitClones(mutatedStyleInfo);
                                 dismissedCopyStyleNotices[this.props.blockCopy.__duplicatedFrom] = 'dismissed';
-                                this.setState({dupedStylesInfo: null});
+                                this.setState({mutatedStyleInfo: null});
                             } }
                             key={ `${key}-${cssVar.varName}` }/>;
                     }) }</div>
@@ -155,7 +156,9 @@ class WidgetBasedStylesList extends StylesList {
                 type="button">{ __('Show parent styles') }</button>
             : null,
         <ContextMenu
-            links={ this.createContextMenuLinks() }
+            links={ this.createContextMenuLinks([
+                {text: __('Deactivate'), title: __('Deactivate style'), id: 'deactivate-style'}
+            ]) }
             onItemClicked={ this.handleMoreMenuLinkClicked.bind(this) }
             onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
             ref={ this.moreMenu }/>,
@@ -239,40 +242,43 @@ class WidgetBasedStylesList extends StylesList {
      * @see this.emitVarValueChange
      * @access private
      */
-    emitChange(str, cssVar, unit, ast, cls) {
-        this[str !== null ? 'debouncedEmitVarValueChange' : 'emitVarValueChange'](str, cssVar, unit, ast, cls);
+    emitChange(str, cssVar, either, unit, ast, cls) {
+        this[str !== null ? 'debouncedEmitVarValueChange' : 'emitVarValueChange'](str, cssVar, either, unit, ast, cls);
     }
     /**
      * @param {String} newValAsString
      * @param {CssVar} cssVar
+     * @param {ThemeStyleUnit} eitherCopy
      * @param {ThemeStyleUnit} unitCopy
      * @param {Array<StylisAstNode>} ast
      * @param {String} cls
      * @access private
      */
-    emitVarValueChange(newValAsString, cssVar, unitCopy, ast, cls) {
+    emitVarValueChange(newValAsString, cssVar, eitherCopy, unitCopy, ast, cls) {
         const [_, varDeclAstNode] = getCurrentInfo(cssVar, ast);
         const varDecl = varDeclAstNode.props; // '--foo'
-        const blockTypeName = !unitCopy.origin ? this.props.blockCopy.type : SPECIAL_BASE_UNIT_NAME;
-        updateAndEmitUnitScss(unitCopy, copy => {
-            const {scss, generatedCss} = unitCopy;
+        const blockTypeName = !eitherCopy.origin ? this.props.blockCopy.type : SPECIAL_BASE_UNIT_NAME;
+        updateAndEmitUnitScss(eitherCopy, copy => {
+            const {scss, generatedCss} = copy;
             const reusableId = this.props.blockCopy.__duplicatedFrom;
             if (reusableId &&
                 blockTypeName !== SPECIAL_BASE_UNIT_NAME &&
                 !dismissedCopyStyleNotices[reusableId]) {
-                const gatherDuplicatedBlockIdsOf = reusableId => {
+                const gatherDuplicatedBlockInfos = reusableId => {
                     const out = [];
                     blockTreeUtils.traverseRecursively(store2.get().theBlockTree, b => {
-                        if (b.__duplicatedFrom === reusableId) out.push(b.id);
+                        if (b.__duplicatedFrom === reusableId) out.push({id: b.id, styleClasses: b.styleClasses, type: b.type});
                     });
                     return out;
                 };
-                this.setState({dupedStylesInfo: {
-                    firstMutatedVarName: cssVar.varName,
+                this.setState({mutatedStyleInfo: {
+                    firstMutatedVarName: copy.varName,
                     firstMutatedBlockId: this.props.blockCopy.id,
                     originalScss: scss,
                     originalGeneratedCss: generatedCss,
-                    affectedBlockIds: gatherDuplicatedBlockIdsOf(reusableId),
+                    originalOptimizedScss: copy.optimizedScss,
+                    originalOptimizedGeneratedCss: copy.optimizedGeneratedCss,
+                    affectedBlocks: gatherDuplicatedBlockInfos(reusableId),
                 }});
                 dismissedCopyStyleNotices[this.props.blockCopy.__duplicatedFrom] = 'pending';
             }
@@ -281,7 +287,8 @@ class WidgetBasedStylesList extends StylesList {
             varDeclAstNode.value = `${varDecl}:${newValAsString};`;
             const newScss = replaceVarValue(copy.scss, varDeclAstNode, newValAsString);
             if (!copy.origin) {
-                const newOptimizedScss = !copy.derivedFrom ? null : optimizeScss(newScss, [], findBaseUnitOf(copy, this.state.unitsOfThisBlockType).scss);
+                const isDerivedFromBodyUnit = isBodyRemote(copy.derivedFrom);
+                const newOptimizedScss = !copy.derivedFrom ? null : optimizeScss(newScss, findBaseUnitOf(copy, (!isDerivedFromBodyUnit ? this.state.unitsOfThisBlockType : this.bodyStyle.units)).scss);
                 return {
                     newScss,
                     newGenerated: serialize(ast, stringify),
@@ -330,8 +337,8 @@ class WidgetBasedStylesList extends StylesList {
             `_u${rolling}`,
         );
         const cls = createUnitClass(id, type);
-        const baseCls = createUnitClass(base.id, type);
-        this.curBlockStyleClasses = emitAddStyleClassToBlock(`${baseCls} ${cls}`, this.props.blockCopy);
+        const baseClsStr = varApdx !== '_default' ? `${createUnitClass(base.id, type)} ` : '';
+        this.curBlockStyleClasses = emitAddStyleClassToBlock(`${baseClsStr}${cls}`, this.props.blockCopy);
 
         // #1 Style
         const newUnit = {title, id, scss, generatedCss: serialize(compile(`.${cls}{${scss}}`), stringify),
@@ -352,84 +359,44 @@ class WidgetBasedStylesList extends StylesList {
         });
     }
     /**
-     * @param {{originalScss: String; originalGeneratedCss: String; firstMutatedVarName: String; firstMutatedBlockId: String; affectedBlockIds: Array<String>;}} dupedStylesInfo
+     * @param {MutatedStyleInfo} mutatedStyleInfo
      * @access private
      */
-    addUnitManyUnitClones(dupedStylesInfo) {
-        const {theBlockTree, themeStyles} = store2.get();
-        const alreadyCloned = {};
-        const replaceAndDispatchClasses = (block, clsFrom, clsTo) => {
-            const currentClasses = block.styleClasses;
-            const newClasses = currentClasses.replace(clsFrom, clsTo);
-            dispatchNewBlockStyleClasses(newClasses, block);
-            this.curBlockStyleClasses = newClasses;
-        };
-        const fns = dupedStylesInfo.affectedBlockIds.map(blockId => {
-            const [block] = blockTreeUtils.findBlock(blockId, theBlockTree);
-            const [unitClsesStr, _nonUnitClsesStr] = splitUnitAndNonUnitClasses(block.styleClasses);
-            const unitClses = unitClsesStr.split(' ');
-            if (unitClses[0] === '') return null;
-            //
-            return () => {
-                const clsFrom = unitClses[0];
-                const fromPrev = alreadyCloned[clsFrom] || null;
-                if (!fromPrev) {
-                    const {units} = findBlockTypeStyles(themeStyles, block.type);
-                    const lookFor = asst(unitClses[0]); // 'j-T-unit-2' -> 'unit-2'
-                    const unitThis = units.find(({id}) => id === lookFor);
-
-                    const {type} = block;
-                    const current = findBlockTypeStyles(store2.get().themeStyles, type);
-                    const rolling = getLargestPostfixNum(current.units) + 1;
-                    const title = `${__(block.title || block.type)} ${rolling}`;
-                    const id = `unit-${rolling}`;
-                    const firstVarName = getFirstVarName(unitThis);
-                    const varApdx = `_${getAppendix(firstVarName)}`;
-                    const scss = unitThis.scss.replace(
-                        // textNormal_TextCommon_base1
-                        new RegExp(`${varApdx}`, 'g'),
-                        // textNormal_TextCommon_u<n>
-                        `_u${rolling}`,
-                    );
-                    const cls = createUnitClass(id, type);
-
-                    // #2
-                    replaceAndDispatchClasses(block, clsFrom, cls);
-
-                    // #1
-                    const newUnit = {title, id, scss, generatedCss: serialize(compile(`.${cls}{${scss}}`), stringify),
-                                    origin: '', specifier: '', isDerivable: false, derivedFrom: unitThis.id};
-                    store2.dispatch('themeStyles/addUnitTo', [type, newUnit]);
-                    alreadyCloned[clsFrom] = id;
-
-                    // #3
-                    const restoreOriginal = block.id === dupedStylesInfo.firstMutatedBlockId;
-                    if (restoreOriginal) {
-                        if (!isBodyRemote(unitThis.id)) {
-                            const dataBefore = {scss: unitThis.scss, generatedCss: unitThis.generatedCss};
-                            emitUnitChanges({scss: dupedStylesInfo.originalScss, generatedCss: dupedStylesInfo.originalGeneratedCss},
-                                            dataBefore, block.type, unitThis.id);
-                        } else throw new Error('todo');
-                    }
-
-                    emitCommitStylesOp(type, () => {
-                        // Revert #1
-                        store2.dispatch('themeStyles/removeUnitFrom', [type, newUnit]);
-                        setTimeout(() => {
-                            // #2
-                            api.saveButton.triggerUndo();
-                            if (restoreOriginal)
-                                // #3
-                                setTimeout(() => { api.saveButton.triggerUndo(); }, 2);
-                        }, 2);
-                    });
+    addUnitManyUnitClones(mutatedStyleInfo) {
+        const createdClses = {};
+        const fns = createCloneInstructions(mutatedStyleInfo.affectedBlocks).map(task => {
+            const {block, action} = task;
+            if (action.name === 'createUnitFrom') {
+                // 'j-Section-unit-<n>'
+                if (action.fromIsCreatedFrom === 'customUnit') {
+                    return () => {
+                        const isDerived = false;
+                        const isDerivedFromBodyUnit = false;
+                        this.doClone(block, task, mutatedStyleInfo, isDerived, isDerivedFromBodyUnit, createdClses);
+                    };
+                // 'j-Section-d-<n>'
+                } else if (action.fromIsCreatedFrom === 'bodyUnit') {
+                    return () => {
+                        const isDerived = true;
+                        const isDerivedFromBodyUnit = false;
+                        this.doClone(block, task, mutatedStyleInfo, isDerived, isDerivedFromBodyUnit, createdClses);
+                    };
+                // 'j-Section-unit-<n> j-Section-d-<n>'
                 } else {
-                    const cls = createUnitClass(fromPrev, block.type);
-                    // #2
-                    replaceAndDispatchClasses(block, clsFrom, cls, 2);
+                    return () => {
+                        const isDerived = true;
+                        const isDerivedFromBodyUnit = true;
+                        this.doClone(block, task, mutatedStyleInfo, isDerived, isDerivedFromBodyUnit, createdClses);
+                    };
                 }
-            };
-        }).filter(maybeFn => maybeFn !== null);
+            } else if (action.name === 'swapClass') {
+                return () => {
+                    const fromPrev = createdClses[action.replace];
+                    const cls = createUnitClass(fromPrev, block.type);
+                    replaceAndDispatchClasses(block, action.replace, cls);
+                };
+            } else throw new Error('Shouldn\'t happen');
+        });
 
         const next = (queue, i) => {
             const top = queue[i];
@@ -454,6 +421,88 @@ class WidgetBasedStylesList extends StylesList {
             }));
         }], 0);
 
+    }
+    /**
+     * @param {BlockStub} block
+     * @param {CloneInstruction} task
+     * @param {MutatedStyleInfo} mutatedStyleInfo
+     * @param {Boolean} isDerived
+     * @param {Boolean} isDerivedFromBodyUnit
+     * @param {{[cls: String]: String;}} createdClses
+     */
+    doClone(block, {action}, mutatedStyleInfo, isDerived, isDerivedFromBodyUnit, createdClses) {
+        //
+        const {themeStyles} = store2.get();
+        const {type} = block;
+        const current = findBlockTypeStyles(themeStyles, type);
+        const {units} = current;
+        const lookFor = asst(action.from); // 'j-T-unit-2' -> 'unit-2'
+        const unitThis = units.find(({id}) => id === lookFor);
+        const unitThis2 = !isDerivedFromBodyUnit ? null : findBaseUnitOf(unitThis, this.bodyStyle.units);
+
+        const rolling = getLargestPostfixNum(current.units) + 1;
+        const title = `${__(block.title || type)} ${rolling}`;
+        const id = `${!isDerived ? 'unit' : 'd'}-${rolling}`;
+        const firstVarName = getFirstVarName(unitThis2 || unitThis);
+        const varApdx = `_${getAppendix(firstVarName)}`;
+        const rep = str => str.replace(
+            // textNormal_TextCommon_base1
+            new RegExp(`${varApdx}`, 'g'),
+            // textNormal_TextCommon_u<n>
+            `_u${rolling}`,
+        );
+        const cls = createUnitClass(id, type);
+        const scss = rep((unitThis2 || unitThis).scss);
+        const optimizedScss = !isDerived ? null : !isDerivedFromBodyUnit ? serialize(compile(`.${cls}{${rep(unitThis.optimizedScss)}}`), stringify) : '?';
+
+        // #2
+        const newClasses = replaceAndDispatchClasses(block, action.from, cls);
+        block.styleClasses = newClasses;
+
+        // #1
+        const newUnit = {
+            ...{title, id, scss, generatedCss: serialize(compile(`.${cls}{${scss}}`), stringify),
+                origin: '', specifier: '', isDerivable: false,
+                derivedFrom: (unitThis2 || unitThis).id},
+            ...(!optimizedScss
+                ? {}
+                : optimizedScss !== '?'
+                    ? {optimizedScss, optimizedGeneratedCss: serialize(compile(`.${cls}{${optimizeScss}}`), stringify)}
+                    : {optimizedScss: '', optimizedGeneratedCss: `.${cls}{}`}
+            )
+        };
+        store2.dispatch('themeStyles/addUnitTo', [type, newUnit]);
+        createdClses[action.from] = (createdClses[action.from] || 0) + 1;
+
+        // #3
+        const restoreOriginal = block.id === mutatedStyleInfo.firstMutatedBlockId;
+        if (restoreOriginal) {
+            this.curBlockStyleClasses = newClasses;
+            if (typeof mutatedStyleInfo.originalOptimizedScss !== 'string') {
+                const dataBefore = {scss: unitThis.scss, generatedCss: unitThis.generatedCss};
+                emitUnitChanges({scss: mutatedStyleInfo.originalScss, generatedCss: mutatedStyleInfo.originalGeneratedCss},
+                                dataBefore, type, unitThis.id);
+            } else {
+                const dataBefore = {scss: unitThis.scss, generatedCss: unitThis.generatedCss,
+                                    optimizeScss: unitThis.optimizedScss, optimizedGeneratedCss: unitThis.optimizedGeneratedCss};
+                emitUnitChanges({scss: mutatedStyleInfo.originalScss, generatedCss: mutatedStyleInfo.originalGeneratedCss,
+                                optimizeScss: mutatedStyleInfo.originalOptimizedScss,
+                                optimizedGeneratedCss: mutatedStyleInfo.originalOptimizedGeneratedCss},
+                                dataBefore, type, unitThis.id);
+            }
+        }
+
+        emitCommitStylesOp(type, () => {
+            // Revert #1
+            store2.dispatch('themeStyles/removeUnitFrom', [type, newUnit]);
+            setTimeout(() => {
+                // #2
+                api.saveButton.triggerUndo();
+                if (restoreOriginal)
+                    // #3
+                    setTimeout(() => { api.saveButton.triggerUndo(); }, 2);
+            }, 2);
+        });
     }
     /**
      * @param {ThemeStyleUnit} unit
@@ -547,7 +596,8 @@ class WidgetBasedStylesList extends StylesList {
      */
     findParenVar(cssVar, unit) {
         const isDerivedFromBodyUnit = isBodyRemote(unit.derivedFrom);
-        const paren = (!isDerivedFromBodyUnit ? this.state.unitsOfThisBlockType : this.bodyStyle.units).find(({id}) => id === unit.derivedFrom);
+        //const paren = (!isDerivedFromBodyUnit ? this.state.unitsOfThisBlockType : this.bodyStyle.units).find(({id}) => id === unit.derivedFrom);
+        const paren = findBaseUnitOf(unit, (!isDerivedFromBodyUnit ? this.state.unitsOfThisBlockType : this.bodyStyle.units));
         const [parenVars, _ast2] = VisualStyles.extractVars(paren.scss, 'dummy');
         const parenVarName = swapAppendix(cssVar.varName, parenVars[0].varName);
         return parenVars.find(({varName}) => varName === parenVarName);
@@ -555,11 +605,76 @@ class WidgetBasedStylesList extends StylesList {
 }
 
 /**
- * @param {String} id Example 'j-Section-unit-4' or 'unit-2'
- * @returns {Boolean}
+ * Creates instructions how to clone the styeles of $affectedBlocks.
+ *
+ * @param {Array<BlockStub>} affectedBlocks
+ * @returns {Array<CloneInstruction>}
  */
-function isBodyRemote(id) {
-    return id.split('-').length > 2; // normal = 'unit-<n>', body = 'j-Type-unit-<n>'
+function createCloneInstructions(affectedBlocks) {
+    const alreadyCloned = {};
+    const out = [];
+    affectedBlocks.forEach(block => {
+        // const [block] = blockTreeUtils.findBlock(blockId, theBlockTree);
+        const [unitClsesStr, _nonUnitClsesStr] = splitUnitAndNonUnitClasses(block.styleClasses);
+        if (unitClsesStr === '') return;
+        //
+        const unitClses = unitClsesStr.split(' ');
+        out.push(...createTasks(unitClses, block, alreadyCloned));
+    });
+    return out;
+}
+
+/**
+ * @param {Array<String>} clses
+ * @param {BlockStub} block
+ * @param {{[cls: String]: String;}} alreadyCloned
+ * @returns {Array<CloneInstruction>}
+ */
+function createTasks(clses, block, alreadyCloned) {
+    const out = [];
+    for (let i = 0; i < clses.length; ++i) {
+        const cls = clses[i];
+        const todoCreateCls = `j-${block.type}-unit-`;
+        const derivedCls = todoCreateCls.replace('-unit-', '-d-');
+        const append = (fromCls, fromIsCreatedFrom) => {
+            if (!alreadyCloned[fromCls]) {
+                out.push({
+                    block,
+                    action: {name: 'createUnitFrom', from: fromCls, fromIsCreatedFrom},
+                });
+                alreadyCloned[fromCls] = 1;
+            } else {
+                out.push({block, action: {name: 'swapClass', replace: fromCls, with: 'prev'}});
+            }
+        };
+        // Option 1: '...j-Section-unit-<n> j-Section-d-<n>...'
+        if (cls.indexOf(todoCreateCls) > -1 && (clses[i + 1] || '').indexOf(derivedCls) > -1) {
+            i += 1;
+            append(clses[i], clses[i - 1]);
+        } else {
+            const isDerived = cls.indexOf(derivedCls) > -1;
+        // Option 2: '...j-Section-unit-<n>...'
+            if (!isDerived)
+                append(clses[i],  'customUnit');
+        // Option 3: '...j-Section-d-<n>...'
+            else
+                append(clses[i], 'bodyUnit');
+        }
+    }
+    return out;
+}
+
+/**
+ * @param {RawBlock|BlockStub} block Example 'j-Button-d-7 foo'
+ * @param {String} clsFrom Example 'j-Button-d-7'
+ * @param {String} clsTo Example 'j-Button-d-23'
+ * @returns {String} Example 'j-Button-d-23 foo'
+ */
+function replaceAndDispatchClasses(block, clsFrom, clsTo) {
+    const currentClasses = block.styleClasses;
+    const newClasses = currentClasses.replace(clsFrom, clsTo);
+    dispatchNewBlockStyleClasses(newClasses, block);
+    return newClasses;
 }
 
 /**
@@ -672,4 +787,30 @@ function getFallback(str) {
     return pcs.at(-1).split(')')[0].trim().slice(2);
 }
 
+/**
+ * @typedef MutatedStyleInfo
+ * @prop {String} originalScss
+ * @prop {String} originalGeneratedCss
+ * @prop {String?} originalOptimizedScss
+ * @prop {String?} originalOptimizedGeneratedCss
+ * @prop {String} firstMutatedVarName
+ * @prop {String} firstMutatedBlockId
+ * @prop {Array<BlockStub>} affectedBlocks
+ *
+ * @typedef CloneInstruction
+ * @prop {BlockStub} block
+ * @prop {AddUnitAndReplaceClassCloneAction|ReplaceClassCloneAction} action
+ *
+ * @typedef AddUnitAndReplaceClassCloneAction
+ * @prop {'createUnitFrom'} name
+ * @prop {String} from Example 'j-Section-unit-2'
+ * @prop {String} fromIsCreatedFrom Example 'customUnit', 'bodyUnit', 'j-Section-unit-2'
+ *
+ * @typedef ReplaceClassCloneAction
+ * @prop {'swapClass'} name
+ * @prop {String} replace Example 'j-Button-d-4'
+ * @prop {'prev'} with
+ */
+
 export default WidgetBasedStylesList;
+export {createCloneInstructions};

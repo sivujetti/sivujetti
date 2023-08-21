@@ -265,7 +265,7 @@ class ReRenderer {
     updateBlocksStyleClasses(blockId, newStyleClasses, prevStyleClasses) {
         const withNewClsClone = extractRendered(getBlockEl(blockId));
         withNewClsClone.className = prevStyleClasses.length
-            ? replaceLastIndexOf(withNewClsClone.className, prevStyleClasses)
+            ? replaceLastIndexOf(withNewClsClone.className, prevStyleClasses, newStyleClasses)
             : `${withNewClsClone.className} ${newStyleClasses}`;
         if (!newStyleClasses.length)
             withNewClsClone.className = withNewClsClone.className.trimEnd();
@@ -277,13 +277,14 @@ class ReRenderer {
  * https://stackoverflow.com/a/2729686
  *
  * @param {String} str
- * @param {String} replacement
+ * @param {String} replace
+ * @param {String} replaceWith
  * @returns {String}
  */
-function replaceLastIndexOf(str, replacement) {
-    const n = str.lastIndexOf(replacement);
-    return n >= 0 && n + replacement.length >= str.length
-        ? str.substring(0, n) + replacement
+function replaceLastIndexOf(str, replace, replaceWith) {
+    const n = str.lastIndexOf(replace);
+    return n >= 0 && n + replace.length >= str.length
+        ? str.substring(0, n) + replaceWith
         : str;
 }
 

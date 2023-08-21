@@ -95,12 +95,15 @@ interface BlockBlueprint {
     initialChildren: Array<BlockBlueprint>;
 }
 
-interface RawBlock {
+interface BlockStub {
     id: String; // Example 'unit-12' or 'j-Type-unit-12'
     type: String; // 'Section', 'Button' etc.
+    styleClasses: String; // Example 'j-Type-unit-3 j-Type-unit-12'
+}
+
+interface RawBlock extends BlockStub {
     title: String;
     renderer: String; // Example 'sivujetti:block-auto'
-    styleClasses: String; // Example 'j-Type-unit-3 j-Type-unit-12'
     __duplicatedFrom?: String; // Example 'unit-3'
     children: Array<RawBlock>;
     [typeSpecificProps: String]: any;

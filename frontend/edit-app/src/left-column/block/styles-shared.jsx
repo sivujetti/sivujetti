@@ -156,9 +156,9 @@ function findBodyStyleMainUnit(bodyStyle) {
  */
 function emitAddStyleClassToBlock(styleClassToAdd, block) {
     const currentClasses = block.styleClasses;
-    const [ir, nonUnit] = splitUnitAndNonUnitClasses(currentClasses);
-    const unit = ir? `${ir} ${styleClassToAdd}` : styleClassToAdd;
-    const newClasses = `${unit}${unit && nonUnit ? ' ' : ''}${nonUnit}`;
+    const [a1, b] = splitUnitAndNonUnitClasses(currentClasses);
+    const a = a1 ? `${a1} ${styleClassToAdd}` : styleClassToAdd;
+    const newClasses = `${a}${a && b ? ' ' : ''}${b}`;
     dispatchNewBlockStyleClasses(newClasses, block);
     return newClasses;
 }
@@ -192,7 +192,7 @@ function emitRemoveStyleClassFromBlock(styleClassToRemove, block) {
 
 /**
  * @param {String} newStyleClasses
- * @param {RawBlock} blockCopy
+ * @param {RawBlock|BlockStub} blockCopy
  * @access private
  */
 function dispatchNewBlockStyleClasses(newStyleClasses, blockCopy) {
@@ -343,7 +343,6 @@ class StylesList extends preact.Component {
         return [
             {text: __('Edit name'), title: __('Edit name'), id: 'edit-style-title'},
             ...moreLinks,
-            {text: __('Deactivate'), title: __('Deactivate style'), id: 'deactivate-style'},
             {text: __('Delete'), title: __('Delete style'), id: 'delete-style'},
         ];
     }

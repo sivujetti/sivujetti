@@ -1,14 +1,14 @@
-import {__, api, env, timingUtils, Popup, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, timingUtils, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import store2, {asst, observeStore as observeStore2} from '../../store2.js';
 import VisualStyles, {createUnitClass, valueEditors, replaceVarValue, varNameToLabel} from './VisualStyles.jsx';
 import {traverseAst} from '../../commons/CssStylesValidatorHelper.js';
 import {SPECIAL_BASE_UNIT_NAME, getLargestPostfixNum, findBlockTypeStyles,
         emitAddStyleClassToBlock, compileSpecial, updateAndEmitUnitScss,
-        emitCommitStylesOp, EditableTitle, goToStyle, blockHasStyle,
-        findParentStyleInfo, tempHack, StylesList, findBodyStyle,
-        splitUnitAndNonUnitClasses, dispatchNewBlockStyleClasses,
-        emitUnitChanges, optimizeScss, findBaseUnitOf} from './styles-shared.jsx';
+        emitCommitStylesOp, EditableTitle, goToStyle, findParentStyleInfo,
+        tempHack, StylesList, findBodyStyle, splitUnitAndNonUnitClasses,
+        dispatchNewBlockStyleClasses, emitUnitChanges, optimizeScss, findBaseUnitOf,
+        getEnabledUnits, getRemoteBodyUnit} from './styles-shared.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from '../../store.js';
 import {saveExistingBlocksToBackend} from './createBlockTreeDndController.js';
@@ -20,7 +20,6 @@ const dismissedCopyStyleNotices = {};
 
 class WidgetBasedStylesList extends StylesList {
     // addUserUnitDropdown;
-    // openAddStylePopupBtn;
     // curBlockStyleClasses;
     // unregistrables;
     // bodyStyle;
@@ -32,7 +31,6 @@ class WidgetBasedStylesList extends StylesList {
     componentWillMount() {
         super.componentWillMount();
         this.addUserUnitDropdown = preact.createRef();
-        this.openAddStylePopupBtn = preact.createRef();
         this.setState({unitsEnabled: null, unitsOfThisBlockType: [], mutatedStyleInfo: null});
         this.curBlockStyleClasses = this.props.blockCopy.styleClasses;
         this.unregistrables = [observeStore2('themeStyles', ({themeStyles}, [_event]) => {
@@ -66,21 +64,18 @@ class WidgetBasedStylesList extends StylesList {
      * @access protected
      */
     render({blockCopy, userCanEditVisualStyles}, {unitsEnabled, unitsOfThisBlockType, parentStyleInfo,
-                                                    addStylePopupRenderer, mutatedStyleInfo}) {
-        const addables = !userCanEditVisualStyles
-            ? unitsOfThisBlockType.filter(unit => {
-                const real = this.getMaybeRemote(unit, blockCopy);
-                return real.isDerivable && !this.alreadyHasInstance(real);
-            })
-            : unitsOfThisBlockType.filter(unit => {
-                const real = this.getMaybeRemote(unit, blockCopy);
-                const {isDerivable} = real;
-                return (isDerivable && !this.alreadyHasInstance(real)) ||
-                        (!isDerivable && !blockHasStyle(blockCopy, unit));
-            });
-        const vm = this;
+                                                    mutatedStyleInfo}) {
+        const [unitsToShow, addable] = unitsEnabled !== null
+            ? [
+                getEditableUnits(unitsEnabled),
+                createAddableUnits(unitsOfThisBlockType, unitsEnabled, blockCopy.type, !this.props.useVisualStyles)
+            ] : [
+                null,
+                null
+            ];
+        const selectOptions = addable ? createAddUnitsDropdownList(addable) : [];
         return [...[
-            unitsEnabled !== null ? unitsEnabled.length ? <ul class="list styles-list mb-2">{ unitsEnabled.map((unit, i) => {
+            unitsToShow !== null ? unitsToShow.length ? <ul class="list styles-list mb-2">{ unitsToShow.map((unit, i) => {
                 const either = this.getMaybeRemote(unit, blockCopy, true);
                 const isDefault = either !== unit;
                 const cls = createUnitClass(unit.id, blockCopy.type);
@@ -142,12 +137,16 @@ class WidgetBasedStylesList extends StylesList {
                 </li>;
             }) }</ul> : <p class="pt-1 mb-2 color-dimmed">{ __('No own styles') }.</p>
             : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
-        ], addables.length
-            ? <button
-                onClick={ () => this.setState({addStylePopupRenderer: AddStyleFromPopupPopup}) }
-                class="btn btn-primary btn-sm mr-1"
-                type="button"
-                ref={ this.openAddStylePopupBtn }>{ __('Add style') }</button>
+        ], selectOptions.length
+            ? <span class="btn btn-dropdown p-relative d-inline-flex btn-primary btn-sm mr-1">
+                <label htmlFor="addStyleDropdown">{ __('Add style') }</label>
+                <select onChange={ e => this.handleConfirmAddStyle(e, addable, blockCopy) } id="addStyleDropdown">
+                    <option disabled selected value>{ __('Select style') }</option>
+                    { selectOptions.map(({value, label}) =>
+                        <option value={ value } disabled={ value === '-' }>{ label }</option>
+                    ) }
+                </select>
+            </span>
             : null,
         parentStyleInfo && parentStyleInfo[2]
             ? <button
@@ -162,25 +161,6 @@ class WidgetBasedStylesList extends StylesList {
             onItemClicked={ this.handleMoreMenuLinkClicked.bind(this) }
             onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
             ref={ this.moreMenu }/>,
-        addStylePopupRenderer
-            ? <Popup
-                Renderer={ addStylePopupRenderer }
-                placement="top"
-                rendererProps={ {
-                    availableStyleUnits: addables,
-                    /** @param {ThemeStyleUnit} unit */
-                    getTitle(unit) {
-                        return __(vm.getMaybeRemote(unit, blockCopy).title);
-                    },
-                    /** @param {ThemeStyleUnit} unit */
-                    onStyleSelected(unit) {
-                        vm.addUnitFrom(unit, blockCopy);
-                        vm.setState({addStylePopupRenderer: null});
-                    },
-                } }
-                btn={ this.openAddStylePopupBtn.current }
-                close={ () => this.setState({addStylePopupRenderer: null}) }/>
-            : null
         ];
     }
     /**
@@ -215,9 +195,7 @@ class WidgetBasedStylesList extends StylesList {
      * @access private
      */
     getRemoteBodyUnit(unit, block, copy = true) {
-        const lookFor = createUnitClass(unit.id, block.type);
-        const out = this.bodyStyle.units.find(u => u.id === lookFor);
-        return out ? copy ? {...out} : out : null;
+        return getRemoteBodyUnit(unit, block.type, this.bodyStyle.units, copy);
     }
     /**
      * @param {Array<ThemeStyleUnit>|undefined} candidate
@@ -226,13 +204,11 @@ class WidgetBasedStylesList extends StylesList {
      * @access private
      */
     updateTodoState(unitsOfThisBlockType, themeStyles, blockCopy = this.props.blockCopy) {
-        const unitsEnabled1 = unitsOfThisBlockType.filter(unit => blockHasStyle(blockCopy, unit));
-        const unitsEnabled = unitsEnabled1.filter((unit, _i, arr) => !unit.origin ? true : this.alreadyHasInstanceMaybeRemote(unit, blockCopy, arr));
-        unitsEnabled.reverse();
         this.debouncedEmitVarValueChange = timingUtils.debounce(
             this.emitVarValueChange.bind(this),
             env.normalTypingDebounceMillis
         );
+        const unitsEnabled = getEnabledUnits(unitsOfThisBlockType, this.bodyStyle.units, blockCopy);
         this.receiveUnits(unitsEnabled);
         this.setState({unitsEnabled,
             unitsOfThisBlockType: unitsOfThisBlockType,
@@ -303,6 +279,17 @@ class WidgetBasedStylesList extends StylesList {
                 return shouldCommit ? {newScss, newGenerated: result.generatedCss || ''} : null;
             }
         }, blockTypeName);
+    }
+    /**
+     * @param {EventTarget} e
+     * @param {[Array<ThemeStyleUnit>, Array<ThemeStyleUnit>]} addable
+     * @param {RawBlock} block
+     * @access private
+     */
+    handleConfirmAddStyle(e, [instantiable, reference], block) {
+        const tmp = instantiable.find(({id}) => id === e.target.value);
+        const unit = tmp || reference.find(({id}) => id === e.target.value);
+        this.addUnitFrom(unit, block, !tmp && unit.derivedFrom);
     }
     /**
      * @param {ThemeStyleUnit} unit
@@ -531,25 +518,6 @@ class WidgetBasedStylesList extends StylesList {
         }
     }
     /**
-     * @param {ThemeStyleUnit} unit
-     * @param {Array<ThemeStyleUnit>} unitsEnabled1 = this.state.unitsEnabled
-     * @returns {Boolean}
-     * @access private
-     */
-    alreadyHasInstance(unit, unitsEnabled1 = this.state.unitsEnabled) {
-        return unitsEnabled1.some(unit2 => unit2.derivedFrom === unit.id);
-    }
-    /**
-     * @param {ThemeStyleUnit} base
-     * @param {RawBlock} blockCopy
-     * @param {Array<ThemeStyleUnit>} unitsEnabled1 = this.state.unitsEnabled
-     * @returns {Boolean}
-     * @access private
-     */
-    alreadyHasInstanceMaybeRemote(base, blockCopy, unitsEnabled1 = this.state.unitsEnabled) {
-        return this.alreadyHasInstance(this.getMaybeRemote(base, blockCopy), unitsEnabled1);
-    }
-    /**
      * @param {CssVar} forVar Derived unit's var
      * @param {Array<StylisAstNode>} ast
      * @param {ThemeStyleUnit} unit
@@ -592,11 +560,11 @@ class WidgetBasedStylesList extends StylesList {
     /**
      * @param {CssVar} cssVar
      * @param {ThemeStyleUnit} unit
+     * @returns {CssVar}
      * @access private
      */
     findParenVar(cssVar, unit) {
         const isDerivedFromBodyUnit = isBodyRemote(unit.derivedFrom);
-        //const paren = (!isDerivedFromBodyUnit ? this.state.unitsOfThisBlockType : this.bodyStyle.units).find(({id}) => id === unit.derivedFrom);
         const paren = findBaseUnitOf(unit, (!isDerivedFromBodyUnit ? this.state.unitsOfThisBlockType : this.bodyStyle.units));
         const [parenVars, _ast2] = VisualStyles.extractVars(paren.scss, 'dummy');
         const parenVarName = swapAppendix(cssVar.varName, parenVars[0].varName);
@@ -688,26 +656,6 @@ function swapAppendix(target, source) {
     return [...origPcs.slice(0, -1), apdx].join('_'); // [..., 'u3'] -> [..., 'base1']
 }
 
-class AddStyleFromPopupPopup extends preact.Component {
-    /**
-     * @param {{availableStyleUnits: Array<ThemeStyleUnit>; onStyleSelected: (unit: ThemeStyleUnit) => void; getTitle: (unit: ThemeStyleUnit) => String;}}
-     * @access protected
-     */
-    render({availableStyleUnits, onStyleSelected, getTitle}) {
-        return availableStyleUnits.map(unit =>
-            <label class="form-radio py-0 my-0" key={ unit.id }>
-                <input
-                    onClick={ e => {
-                        onStyleSelected(availableStyleUnits.find(({id}) => id === e.target.value));
-                    } }
-                    value={ unit.id }
-                    name="selectedStyle"
-                    type="radio"/><i class="form-icon"></i> { getTitle(unit) }
-            </label>
-        );
-    }
-}
-
 /**
  * @param {CssVar} forVar
  * @param {Array<StylisAstNode>} ast
@@ -788,6 +736,59 @@ function getFallback(str) {
 }
 
 /**
+ * @param {Array<ThemeStyleUnit>} enabledUnits May contain remotes and units with no vars
+ * @param {Boolean} userIsTechnical
+ * @returns {Array<ThemeStyleUnit>}
+ */
+function getEditableUnits(enabledUnits, userIsTechnical) {
+    return userIsTechnical ? enabledUnits : enabledUnits.filter(unit => !isBodyRemote(unit.id));
+}
+
+/**
+ * @param {Array<ThemeStyleUnit>} unitsOfThisBlockType
+ * @param {Array<ThemeStyleUnit>} enabledUnits
+ * @param {String} blockTypeName
+ * @param {Boolean} userIsTechnical
+ * @returns {[Array<ThemeStyleUnit>, Array<ThemeStyleUnit>]} [instantiables, normalsOrReferences]
+ */
+function createAddableUnits(unitsOfThisBlockType, enabledUnits, blockTypeName, userIsTechnical) {
+    const reference = [];
+    const instantiable = [];
+    if (!userIsTechnical) {
+        for (const unit of unitsOfThisBlockType) {
+            if (unit.origin !== SPECIAL_BASE_UNIT_NAME) {
+                if (!unit.isDerivable) {
+                    if (!enabledUnits.find(unit2 => unit2.id === unit.id)) reference.push(unit);
+                } else {
+                    if (!enabledUnits.find(unit2 => unit2.id === unit.id)) instantiable.push(unit);
+                }
+            } else {
+                const remote = getRemoteBodyUnit(unit, blockTypeName, enabledUnits, false);
+                if (remote) {
+                    if (remote.isDerivable) instantiable.push(remote);
+                }
+            }
+        }
+    }
+    return [instantiable, reference];
+}
+
+/**
+ * @param {[Array<ThemeStyleUnit>, Array<ThemeStyleUnit>]} addableUnits [instantiable, reference]
+ * @returns {Array<{value: String; label: String;}>}
+ */
+function createAddUnitsDropdownList([instantiable, reference]) {
+    return [
+        ...instantiable.reduce((out, unit) => {
+            return [...out, {value: unit.id, label: `${__(unit.title)} (${__('create clone')})`}];
+        }, []),
+        ...(reference.length ? reference.reduce((out, unit) => {
+            return [...out, {value: unit.id, label: `${__(unit.title)} (${__('reference')})`}];
+        }, [{value: '-', label: '---'}]) : [])
+    ];
+}
+
+/**
  * @typedef MutatedStyleInfo
  * @prop {String} originalScss
  * @prop {String} originalGeneratedCss
@@ -813,4 +814,4 @@ function getFallback(str) {
  */
 
 export default WidgetBasedStylesList;
-export {createCloneInstructions};
+export {createCloneInstructions, getEditableUnits, createAddableUnits, createAddUnitsDropdownList};

@@ -1,6 +1,6 @@
 import {createCloneInstructions} from '../edit-app/src/left-column/block/WidgetBasedStylesList.jsx';
 
-QUnit.module('Styles 2', () => {
+QUnit.module('WidgetBasedStylesList.jsx', () => {
     QUnit.test('createCloneInstructions creates instructions how to clone styles', assert => {
         const {affectedBlocks} = getTestDupeInfo();
         const tasks = createCloneInstructions(affectedBlocks);

@@ -34,6 +34,8 @@ stringBundles.push({
     'No own styles': 'Ei omia tyylejä',
     'No own templates': 'Ei omia templaatteja',
     'Add style': 'Lisää tyyli',
+    'Select style': 'Valitse tyyli',
+    'create clone': 'luo uusi',
     'Create template': 'Luo templaatti',
     'Show parent styles': 'Näytä ulommat tyylit',
     'Show parent templates': 'Näytä ulommat templaatit',

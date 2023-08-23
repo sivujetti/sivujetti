@@ -34,6 +34,8 @@ stringBundles.push({
     'No own styles': 'No own styles',
     'No own templates': 'No own templates',
     'Add style': 'Add style',
+    'Select style': 'Select style',
+    'create clone': 'create clone',
     'Create template': 'Create template',
     'Show parent styles': 'Show parent styles',
     'Show parent templates': 'Show parent templates',

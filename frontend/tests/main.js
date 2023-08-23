@@ -8,6 +8,7 @@ import './compile-scss-test.js';
 import './optimize-scss-test.js';
 import './optimize-op-queue-test.js';
 import './visual-styles-test.js';
+import './filter-styles-test.js';
 
 env.window = {location: {}, console: window.console, addEventListener: () => {}};
 env.document = {createElement: (e, o=undefined) => document.createElement(e, o), head: document.head};

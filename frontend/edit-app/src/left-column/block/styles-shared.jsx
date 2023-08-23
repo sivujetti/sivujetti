@@ -216,7 +216,20 @@ function goToStyle([block, unitCls, kind], origin = null) {
 }
 
 /**
- * @param {RawBlock} blockCopy
+ * @param {RawBlock|BlockStub} block
+ * @param {ThemeStyleUnit} unit
+ * @returns {Boolean}
+ */
+function ir1(block, unit) {
+    if (!unit.isDerivable) {
+        return blockHasStyle(block, unit);
+    } else {
+        return false;
+    }
+}
+
+/**
+ * @param {RawBlock|BlockStub} blockCopy
  * @param {ThemeStyleUnit|null} unit
  * @param {String} cls = null
  * @returns {Boolean}
@@ -233,14 +246,14 @@ function blockHasStyle(blockCopy, unit, cls = null) {
 
 /**
  * @param {String} cls
- * @param {RawBlock} block
+ * @param {RawBlock|BlockStub} block
  * @param {Boolean} isRemote = false
  * @returns {Boolean}
  */
 function blockHasStyleClass(cls, {styleClasses}, isRemote = false) {
     return !isRemote
         ? styleClasses.split(' ').indexOf(cls) > -1
-        : styleClasses.split(' ').indexOf(`no-${cls}`) < 0;
+        : styleClasses.split(' ').indexOf(`no-${cls}`) > -1;
 }
 
 /**
@@ -493,6 +506,39 @@ function removeStyleUnit(unit, remote, block) {
     }
 }
 
+/**
+ * @param {Array<ThemeStyleUnit>} unitsOfThisBlockType
+ * @param {Array<ThemeStyleUnit>} bodyStyleUnits
+ * @param {BlockStub|RawBlock} block
+ * @returns {Array<ThemeStyleUnit>}
+ */
+function getEnabledUnits(unitsOfThisBlockType, bodyStyleUnits, block) {
+    const out = [];
+    for (const unit of unitsOfThisBlockType) {
+        if (unit.origin !== SPECIAL_BASE_UNIT_NAME) {
+            if (ir1(block, unit))
+                out.push(unit);
+        } else {
+            const remote = getRemoteBodyUnit(unit, block.type, bodyStyleUnits, false);
+            if (remote && !blockHasStyleClass(`no-${createUnitClass(unit.id, block.type)}`, block, true)) out.push(remote);
+        }
+    }
+    return out;
+}
+
+/**
+ * @param {ThemeStyleUnit} unit
+ * @param {String} blockTypeName
+ * @param {Array<ThemeStyleUnit>} bodyStyleUnits
+ * @param {Boolean} copy = false
+ * @returns {ThemeStyleUnit|null}
+ */
+function getRemoteBodyUnit(unit, blockTypeName, bodyStyleUnits, copy = true) {
+    const lookFor = createUnitClass(unit.id, blockTypeName);
+    const out = bodyStyleUnits.find(u => u.id === lookFor);
+    return out ? copy ? {...out} : out : null;
+}
+
 export {StyleTextarea, SPECIAL_BASE_UNIT_NAME, EditableTitle, specialBaseUnitCls,
         getLargestPostfixNum, findBlockTypeStyles, findBodyStyle, findBodyStyleMainUnit,
         //
@@ -500,4 +546,5 @@ export {StyleTextarea, SPECIAL_BASE_UNIT_NAME, EditableTitle, specialBaseUnitCls
         //
         compileSpecial, updateAndEmitUnitScss, emitUnitChanges, emitCommitStylesOp,
         tempHack2, goToStyle, blockHasStyle, findParentStyleInfo, normalizeScss,
-        tempHack, StylesList, findRealUnit, optimizeScss, findBaseUnitOf};
+        tempHack, StylesList, findRealUnit, optimizeScss, findBaseUnitOf,
+        getEnabledUnits, getRemoteBodyUnit};

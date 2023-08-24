@@ -123,9 +123,9 @@ final class PagesController {
                 "dashboardUrl" => $config->get("app.dashboardUrl", ""),
                 "userPermissions" => [
                     "canDoAnything" => $userRole === ACL::ROLE_SUPER_ADMIN,
-                    "canEditThemeColours" => $acl->can($userRole, "updateGlobalStylesOf", "themes"),
-                    "canEditThemeVars" => $acl->can($userRole, "upsertBlockTypeScopedVars", "themes"),
-                    "canEditThemeCss" => $acl->can($userRole, "upsertBlockTypeScopedCss", "themes"),
+                    "canEditGlobalStylesVisually" => $acl->can($userRole, "updateGlobalStylesOf", "themes"),
+                    "canEditBlockStylesVisually" => $acl->can($userRole, "upsertBlockTypeScopedVars", "themes"),
+                    "canEditBlockCss" => $acl->can($userRole, "upsertBlockTypeScopedCss", "themes"),
                     "canCreatePageTypes" => $acl->can($userRole, "create", "pageTypes"),
                     "canCreatePages" => $acl->can($userRole, "create", "pages"),
                     "canCreateReusableBranches" => $acl->can($userRole, "create", "reusableBranches"),

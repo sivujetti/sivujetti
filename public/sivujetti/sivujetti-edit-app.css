@@ -747,14 +747,14 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .style-vars-group > .form-group,
 .has-color-pickers > .form-group {
     display: grid;
-    grid-template-columns: 4.6rem auto;
+    grid-template-columns: 7rem auto;
     flex-wrap: unset;
     align-items: center;
     justify-content: flex-start;
     gap: .4rem;
 }
 .form-group.has-visual-color-input {
-    grid-template-columns: 8.05rem auto;
+    grid-template-columns: 7rem auto;
 }
 .style-vars-group > .form-group:first-child,
 .has-color-pickers > .form-group:first-child {
@@ -887,6 +887,21 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     background-color: hsla(var(--components-color-purple), .1);
     padding-top: calc(.3rem - 2px);
     padding-bottom: calc(.3rem - 2px);
+}
+/* EditApp: Components: button dropdowns */
+.btn.btn-dropdown {
+    cursor: pointer;
+}
+.btn.btn-dropdown > select {
+    appearance: none;
+    background: transparent;
+    z-index: 1;
+    position: absolute;
+    color: transparent;
+    border: none;
+    width: 100%;
+    left: 0;
+    cursor: inherit;
 }
 
 
@@ -1120,7 +1135,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .block-tree li[data-block-type="PageInfo"].selected {
     background: hsla(var(--components-color-purple), .1);
 }
-.block-tree li:not(li[data-first-in-group-title]):hover,
+.block-tree li:not(li[data-first-in-group-title]):not(li[data-last]):hover,
 .block-tree li.highlighted {
     background: rgba(var(--components-color-fb-default), 0.03);
 }

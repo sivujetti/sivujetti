@@ -15,6 +15,12 @@ import {overrideData} from '../../block/theBlockTreeStore.js';
 
 const autoCollapse = 'nonUniqueRootLevelItems'; // 'mainContentItem'|'nonUniqueRootLevelItems';
 
+let pluginsLoaded = false;
+let timesReRendered = 0;
+signals.on('edit-app-plugins-loaded', () => {
+    pluginsLoaded = true;
+});
+
 class BlockTree extends preact.Component {
     // ?;
     /**
@@ -93,6 +99,11 @@ class BlockTree extends preact.Component {
      * @access protected
      */
     render(_, {blockTree}) {
+        const tree = pluginsLoaded ? blockTree : (function (vm) {
+            window.console.debug('pluginsLoaded = false during BlockTree.render(), trying again.');
+            if (timesReRendered < 3) setTimeout(() => { timesReRendered += 1; vm.forceUpdate(); }, 60);
+            return null;
+        })(this);
         return <div class="pt-2">
             <div class="p-relative" style="z-index: 1"><button
                 onClick={ this.showBlockTreeHelpPopup.bind(this) }
@@ -116,7 +127,7 @@ class BlockTree extends preact.Component {
                     this.mouseDownHoverClearerHookedUp = true;
                 }
             } }>{
-                blockTree ? blockTree.length
+                tree ? tree.length
                     ? this.doRenderBranch(blockTree).concat(<li
                         onDragOver={ this.onDragOver }
                         onDrop={ this.onDrop }

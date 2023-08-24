@@ -1,25 +1,10 @@
-<?php if ($props->type === "Text"):
+<?php if ($props->type === \Sivujetti\Block\Entities\Block::TYPE_TEXT):
     echo "<div class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
         "\" data-block-type=\"", $props->type,
         "\" data-block=\"", $props->id, "\">",
         $props->html, // @allow pre-validated html
         $this->renderChildren($props),
     "</div>";
-elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_PARAGRAPH):
-    echo "<p class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
-        "\" data-block-type=\"", $props->type,
-        "\" data-block=\"", $props->id, "\">",
-        $props->text, // @allow pre-validated html
-        $this->renderChildren($props),
-    "</p>";
-elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_HEADING):
-    $whiteListed = [0, 1, 2, 3, 4, 5, 6][$props->level] ?? 6;
-    echo "<h", $whiteListed, " class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
-        "\" data-block-type=\"", $props->type,
-        "\" data-block=\"", $props->id, "\">",
-        $props->text, // @allow pre-validated html
-        $this->renderChildren($props),
-    "</h", $whiteListed, ">";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_IMAGE):
     echo "<figure class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
         "\" data-block-type=\"", $props->type,
@@ -45,13 +30,6 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):
         $props->html, // @allow pre-validated html
         $this->renderChildren($props),
     $close;
-elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_RICH_TEXT):
-    echo "<div class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
-            "\" data-block-type=\"", $props->type,
-            "\" data-block=\"", $props->id, "\">",
-        $props->html, // @allow pre-validated html
-        $this->renderChildren($props),
-    "</div>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_CODE):
     echo "<div class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
             "\" data-block-type=\"", $props->type,
@@ -63,6 +41,28 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_CODE):
     "</div>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_PAGE_INFO):
     echo "";
+elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_PARAGRAPH):
+    echo "<p class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
+        "\" data-block-type=\"", $props->type,
+        "\" data-block=\"", $props->id, "\">",
+        $props->text, // @allow pre-validated html
+        $this->renderChildren($props),
+    "</p>";
+elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_HEADING):
+    $whiteListed = [0, 1, 2, 3, 4, 5, 6][$props->level] ?? 6;
+    echo "<h", $whiteListed, " class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
+        "\" data-block-type=\"", $props->type,
+        "\" data-block=\"", $props->id, "\">",
+        $props->text, // @allow pre-validated html
+        $this->renderChildren($props),
+    "</h", $whiteListed, ">";
+elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_RICH_TEXT):
+    echo "<div class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
+            "\" data-block-type=\"", $props->type,
+            "\" data-block=\"", $props->id, "\">",
+        $props->html, // @allow pre-validated html
+        $this->renderChildren($props),
+    "</div>";
 else:
     [$startTag, $endTag] = !(SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE) ? ["<!--", "-->"] : ["<div>", "</div>"];
     echo $startTag, " block-auto.tmpl.php: Don't know how to render custom block type `", $this->e($props->type), "` ", $endTag;

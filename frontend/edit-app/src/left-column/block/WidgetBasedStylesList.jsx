@@ -8,7 +8,7 @@ import {SPECIAL_BASE_UNIT_NAME, getLargestPostfixNum, findBlockTypeStyles,
         emitCommitStylesOp, EditableTitle, goToStyle, findParentStyleInfo,
         tempHack, StylesList, findBodyStyle, splitUnitAndNonUnitClasses,
         dispatchNewBlockStyleClasses, emitUnitChanges, optimizeScss, findBaseUnitOf,
-        getEnabledUnits, getRemoteBodyUnit} from './styles-shared.jsx';
+        getEnabledUnits, getRemoteBodyUnit, emitReplaceClassesFromBlock} from './styles-shared.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from '../../store.js';
 import {saveExistingBlocksToBackend} from './createBlockTreeDndController.js';
@@ -31,14 +31,14 @@ class WidgetBasedStylesList extends StylesList {
     componentWillMount() {
         super.componentWillMount();
         this.addUserUnitDropdown = preact.createRef();
-        this.setState({unitsEnabled: null, unitsOfThisBlockType: [], mutatedStyleInfo: null});
+        this.setState({unitsToShow: null, addable: null, unitsOfThisBlockType: [], mutatedStyleInfo: null});
         this.curBlockStyleClasses = this.props.blockCopy.styleClasses;
         this.unregistrables = [observeStore2('themeStyles', ({themeStyles}, [_event]) => {
             if (this.group === true) return;
             this.bodyStyle = findBodyStyle(themeStyles);
             const {units} = findBlockTypeStyles(themeStyles, this.props.blockCopy.type) || {};
             if (this.state.unitsOfThisBlockType !== units)
-                this.updateTodoState(units || [], themeStyles, this.curBlockStyleClasses !== this.props.blockCopy.styleClasses ? {...this.props.blockCopy, ...{styleClasses: this.curBlockStyleClasses}} : this.props.blockCopy);
+                this.updateState(units || [], themeStyles, this.curBlockStyleClasses !== this.props.blockCopy.styleClasses ? {...this.props.blockCopy, ...{styleClasses: this.curBlockStyleClasses}} : this.props.blockCopy);
         })];
         this.doLoad(this.props.blockCopy);
     }
@@ -50,7 +50,7 @@ class WidgetBasedStylesList extends StylesList {
         const {blockCopy} = props;
         if (blockCopy.styleClasses !== this.curBlockStyleClasses) {
             if (blockCopy.styleClasses.length !== this.curBlockStyleClasses.length && (this.state.unitsOfThisBlockType || []).length)
-                this.updateTodoState(this.state.unitsOfThisBlockType, store2.get().themeStyles, blockCopy);
+                this.updateState(this.state.unitsOfThisBlockType, store2.get().themeStyles, blockCopy);
             this.curBlockStyleClasses = blockCopy.styleClasses;
         }
     }
@@ -63,16 +63,8 @@ class WidgetBasedStylesList extends StylesList {
     /**
      * @access protected
      */
-    render({blockCopy, userCanEditVisualStyles}, {unitsEnabled, unitsOfThisBlockType, parentStyleInfo,
+    render({blockCopy, userCanEditVisualStyles}, {unitsToShow, addable, parentStyleInfo,
                                                     mutatedStyleInfo}) {
-        const [unitsToShow, addable] = unitsEnabled !== null
-            ? [
-                getEditableUnits(unitsEnabled),
-                createAddableUnits(unitsOfThisBlockType, unitsEnabled, blockCopy.type, !this.props.useVisualStyles)
-            ] : [
-                null,
-                null
-            ];
         const selectOptions = addable ? createAddUnitsDropdownList(addable) : [];
         return [...[
             unitsToShow !== null ? unitsToShow.length ? <ul class="list styles-list mb-2">{ unitsToShow.map((unit, i) => {
@@ -84,7 +76,7 @@ class WidgetBasedStylesList extends StylesList {
                 return <li key={ key } class="open">
                     <header class="flex-centered p-relative">
                         <b
-                            onClick={ e => this.handleLiClick(e, i, false) }
+                            onClick={ e => this.handleLiClick(e, i, isBodyRemote(unit.id)) }
                             class="col-12 btn btn-link text-ellipsis with-icon pl-2 mr-1 no-color"
                             type="button">
                             <EditableTitle
@@ -140,7 +132,7 @@ class WidgetBasedStylesList extends StylesList {
         ], selectOptions.length
             ? <span class="btn btn-dropdown p-relative d-inline-flex btn-primary btn-sm mr-1">
                 <label htmlFor="addStyleDropdown">{ __('Add style') }</label>
-                <select onChange={ e => this.handleConfirmAddStyle(e, addable, blockCopy) } id="addStyleDropdown">
+                <select onChange={ e => this.handleConfirmAddStyle(e, addable, blockCopy) } value="" id="addStyleDropdown">
                     <option disabled selected value>{ __('Select style') }</option>
                     { selectOptions.map(({value, label}) =>
                         <option value={ value } disabled={ value === '-' }>{ label }</option>
@@ -172,7 +164,7 @@ class WidgetBasedStylesList extends StylesList {
         const themeStyles = tempHack();
         if (themeStyles) {
             this.bodyStyle = findBodyStyle(themeStyles);
-            this.updateTodoState((findBlockTypeStyles(themeStyles, blockCopy.type) || {}).units, themeStyles, blockCopy);
+            this.updateState((findBlockTypeStyles(themeStyles, blockCopy.type) || {}).units, themeStyles, blockCopy);
         }
         // else Wait for store2.dispatch('themeStyles/setAll')
     }
@@ -203,14 +195,22 @@ class WidgetBasedStylesList extends StylesList {
      * @param {RawBlock} blockCopy = this.props.blockCopy
      * @access private
      */
-    updateTodoState(unitsOfThisBlockType, themeStyles, blockCopy = this.props.blockCopy) {
+    updateState(unitsOfThisBlockType, themeStyles, blockCopy = this.props.blockCopy) {
         this.debouncedEmitVarValueChange = timingUtils.debounce(
             this.emitVarValueChange.bind(this),
             env.normalTypingDebounceMillis
         );
         const unitsEnabled = getEnabledUnits(unitsOfThisBlockType, this.bodyStyle.units, blockCopy);
-        this.receiveUnits(unitsEnabled);
-        this.setState({unitsEnabled,
+        const [unitsToShow, addable] = unitsEnabled !== null
+            ? [
+                getEditableUnits(unitsEnabled),
+                createAddableUnits(unitsOfThisBlockType, unitsEnabled, blockCopy.type, !this.props.useVisualStyles)
+            ] : [
+                null,
+                null
+            ];
+        this.receiveUnits(unitsToShow);
+        this.setState({unitsToShow, addable,
             unitsOfThisBlockType: unitsOfThisBlockType,
             parentStyleInfo: findParentStyleInfo(themeStyles, blockCopy)});
     }
@@ -380,7 +380,7 @@ class WidgetBasedStylesList extends StylesList {
                 return () => {
                     const fromPrev = createdClses[action.replace];
                     const cls = createUnitClass(fromPrev, block.type);
-                    replaceAndDispatchClasses(block, action.replace, cls);
+                    emitReplaceClassesFromBlock(block, action.replace, cls);
                 };
             } else throw new Error('Shouldn\'t happen');
         });
@@ -443,7 +443,7 @@ class WidgetBasedStylesList extends StylesList {
         const optimizedScss = !isDerived ? null : !isDerivedFromBodyUnit ? serialize(compile(`.${cls}{${rep(unitThis.optimizedScss)}}`), stringify) : '?';
 
         // #2
-        const newClasses = replaceAndDispatchClasses(block, action.from, cls);
+        const newClasses = emitReplaceClassesFromBlock(block, action.from, cls);
         block.styleClasses = newClasses;
 
         // #1
@@ -498,15 +498,15 @@ class WidgetBasedStylesList extends StylesList {
     addCloneOfUnitClone(unit) {
         const cls = createUnitClass(unit.id, this.props.blockCopy.type);
         this.curBlockStyleClasses = emitAddStyleClassToBlock(cls, this.props.blockCopy);
-        this.updateTodoState(this.state.unitsOfThisBlockType, store2.get().themeStyles, {...this.props.blockCopy, ...{styleClasses: this.curBlockStyleClasses}});
+        this.updateState(this.state.unitsOfThisBlockType, store2.get().themeStyles, {...this.props.blockCopy, ...{styleClasses: this.curBlockStyleClasses}});
     }
     /**
      * @param {Event} e
      * @param {Number} i
-     * @param {Boolean} _isDefaultUnit
+     * @param {Boolean} isBodyRemote
      * @access private
      */
-    handleLiClick(e, i, _isDefaultUnit) {
+    handleLiClick(e, i, isBodyRemote) {
         if (this.props.userCanEditCss && this.editableTitleInstances[i].current.isOpen()) return;
         //
         const moreMenuIconEl = e.target.classList.contains('edit-icon-outer') ? e.target : e.target.closest('.edit-icon-outer');
@@ -514,7 +514,9 @@ class WidgetBasedStylesList extends StylesList {
             this.liIdxOfOpenMoreMenu = i;
             this.refElOfOpenMoreMenu = moreMenuIconEl;
             this.refElOfOpenMoreMenu.style.opacity = '1';
-            this.moreMenu.current.open({target: moreMenuIconEl});
+            this.moreMenu.current.open({target: moreMenuIconEl}, !isBodyRemote
+                ? links => links
+                : links => links.filter(({id}) => id !== 'deactivate-style' && id !== 'delete-style'));
         }
     }
     /**
@@ -630,19 +632,6 @@ function createTasks(clses, block, alreadyCloned) {
         }
     }
     return out;
-}
-
-/**
- * @param {RawBlock|BlockStub} block Example 'j-Button-d-7 foo'
- * @param {String} clsFrom Example 'j-Button-d-7'
- * @param {String} clsTo Example 'j-Button-d-23'
- * @returns {String} Example 'j-Button-d-23 foo'
- */
-function replaceAndDispatchClasses(block, clsFrom, clsTo) {
-    const currentClasses = block.styleClasses;
-    const newClasses = currentClasses.replace(clsFrom, clsTo);
-    dispatchNewBlockStyleClasses(newClasses, block);
-    return newClasses;
 }
 
 /**

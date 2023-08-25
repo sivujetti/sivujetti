@@ -8,6 +8,7 @@ import {createUnitClass} from './VisualStyles.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import StyleTextarea, {findBaseUnitOf, optimizeScss, emitUnitChanges, emitCommitStylesOp,
         updateAndEmitUnitScss, compileSpecial, tempHack2} from './StylesTextarea.jsx';
+import {isBodyRemote} from './style-utils.js';
 
 const SPECIAL_BASE_UNIT_NAME = '_body_';
 const specialBaseUnitCls = createUnitClass('', SPECIAL_BASE_UNIT_NAME);
@@ -159,6 +160,19 @@ function emitAddStyleClassToBlock(styleClassToAdd, block) {
     const [a1, b] = splitUnitAndNonUnitClasses(currentClasses);
     const a = a1 ? `${a1} ${styleClassToAdd}` : styleClassToAdd;
     const newClasses = `${a}${a && b ? ' ' : ''}${b}`;
+    dispatchNewBlockStyleClasses(newClasses, block);
+    return newClasses;
+}
+
+/**
+ * @param {RawBlock|BlockStub} block Example 'j-Button-d-7 foo'
+ * @param {String} clsFrom Example 'j-Button-d-7'
+ * @param {String} clsTo Example 'j-Button-d-23'
+ * @returns {String} Example 'j-Button-d-23 foo'
+ */
+function emitReplaceClassesFromBlock(block, clsFrom, clsTo) {
+    const currentClasses = block.styleClasses;
+    const newClasses = currentClasses.replace(clsFrom, clsTo);
     dispatchNewBlockStyleClasses(newClasses, block);
     return newClasses;
 }
@@ -344,8 +358,8 @@ class StylesList extends preact.Component {
     /**
      * @access protected
      */
-    receiveUnits(unitsEnabled) {
-        this.editableTitleInstances = unitsEnabled.map(_ => preact.createRef());
+    receiveUnits(units) {
+        this.editableTitleInstances = units.map(_ => preact.createRef());
     }
     /**
      * @param {Array<MenuLink>} moreLinks = []
@@ -400,8 +414,8 @@ class StylesList extends preact.Component {
      * @access private
      */
     getOpenUnit() {
-        const isCodeBased = this.state.units && !this.state.unitsEnabled;
-        const arr = isCodeBased ? this.state.units : this.state.unitsEnabled;
+        const isCodeBased = this.state.units && !this.state.unitsToShow;
+        const arr = isCodeBased ? this.state.units : this.state.unitsToShow;
         return [arr[this.liIdxOfOpenMoreMenu], arr, isCodeBased];
     }
 }
@@ -439,6 +453,11 @@ function removeStyleUnitMaybeRemote(unit, block) {
  * @param {RawBlock} block
  */
 function removeStyleClassMaybeRemote(unit, block) {
+    if (unit.derivedFrom && !isBodyRemote(unit.derivedFrom)) {
+        const a = createUnitClass(unit.derivedFrom, block.type); // Example 'j-Section-unit-3'
+        const b = createUnitClass(unit.id, block.type);          // Example 'j-Section-d-4'
+        return emitReplaceClassesFromBlock(block, `${a} ${b}`, '');
+    }
     const maybeRemote = findRealUnit(unit, block.type);
     const to = false;
     const from = true;
@@ -542,7 +561,7 @@ function getRemoteBodyUnit(unit, blockTypeName, bodyStyleUnits, copy = true) {
 export {StyleTextarea, SPECIAL_BASE_UNIT_NAME, EditableTitle, specialBaseUnitCls,
         getLargestPostfixNum, findBlockTypeStyles, findBodyStyle, findBodyStyleMainUnit,
         //
-        emitAddStyleClassToBlock, splitUnitAndNonUnitClasses, dispatchNewBlockStyleClasses,
+        emitAddStyleClassToBlock, emitReplaceClassesFromBlock, splitUnitAndNonUnitClasses, dispatchNewBlockStyleClasses,
         //
         compileSpecial, updateAndEmitUnitScss, emitUnitChanges, emitCommitStylesOp,
         tempHack2, goToStyle, blockHasStyle, findParentStyleInfo, normalizeScss,

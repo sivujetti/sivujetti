@@ -6,8 +6,8 @@ import exampleScss from '../../example-scss.js';
 import VisualStyles, {createUnitClass} from './VisualStyles.jsx';
 import EditUnitOrSetAsDefaultDialog from '../../popups/styles/EditUnitOrSetAsDefaultDialog.jsx';
 import {getLargestPostfixNum, findBlockTypeStyles, SPECIAL_BASE_UNIT_NAME, findBodyStyle,
-        emitAddStyleClassToBlock, dispatchNewBlockStyleClasses, compileSpecial, StyleTextarea,
-        emitUnitChanges, emitCommitStylesOp, EditableTitle, tempHack2, goToStyle, blockHasStyle,
+        dispatchNewBlockStyleClasses, compileSpecial, StyleTextarea, emitUnitChanges,
+        emitCommitStylesOp, EditableTitle, tempHack2, goToStyle, blockHasStyle,
         findParentStyleInfo, tempHack, StylesList, findRealUnit,
         splitUnitAndNonUnitClasses} from './styles-shared.jsx';
 
@@ -330,12 +330,6 @@ class CodeBasedStylesList extends StylesList {
         const scss = createInitialScss(type);
         const cls = createUnitClass(id, this.props.blockCopy.type);
 
-        // #2
-        const addedStyleToBlock = false;
-        if (addedStyleToBlock)
-            emitAddStyleClassToBlock(cls, this.props.blockCopy);
-
-        // #1
         const newUnit = {title, id, scss, generatedCss: serialize(compile(`.${cls}{${scss}}`), stringify),
             origin: '', specifier: '', isDerivable: false, derivedFrom: null};
         if (current) store2.dispatch('themeStyles/addUnitTo', [type, newUnit]);
@@ -343,12 +337,8 @@ class CodeBasedStylesList extends StylesList {
 
         //
         emitCommitStylesOp(type, () => {
-            // Revert # 1
             if (current) store2.dispatch('themeStyles/removeUnitFrom', [type, newUnit]);
             else store2.dispatch('themeStyles/removeStyle', [type]);
-
-            // Revert # 2
-            if (addedStyleToBlock) setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
         });
     }
     /**

@@ -740,6 +740,10 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .has-color-pickers .is-very-light-color .pcr-button {
     border-color: rgba(var(--components-color-fb-default),.12);
 }
+.pcr-app[data-theme="nano"] .pcr-swatches {
+    margin: 0.6rem 0.4rem 0 0.4rem;
+    border-top: 1px solid #dadee4;
+}
 .style-vars-group {
     background: #070b470a;
     border-radius: var(--small-rect-radius);

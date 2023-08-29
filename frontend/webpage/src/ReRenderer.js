@@ -1,5 +1,5 @@
 import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END,
-        HAS_ERRORS, isMetaBlock} from '../../edit-app/src/block/dom-commons.js';
+        HAS_ERRORS, isMetaBlock, getBlockEl} from '../../edit-app/src/block/dom-commons.js';
 
 let renderBlockAndThen;
 let toTransferable;
@@ -329,15 +329,6 @@ function createElCache(tree) {
 }
 
 /**
- * @param {String} blockId
- * @param {HTMLElement} from = document.body
- * @returns {HTMLElement|null}
- */
-function getBlockEl(blockId, from = document.body) {
-    return from.querySelector(`[data-block="${blockId}"]`);
-}
-
-/**
  * Returns cloned $el, without its children (els between <!-- children-start --><!-- children-end -->)
  *
  * @param {HTMLElement|null} el
@@ -442,4 +433,4 @@ function getBlockPropsAsString(block) {
 }
 
 export default ReRenderer;
-export {findCommentR, getBlockEl};
+export {findCommentR};

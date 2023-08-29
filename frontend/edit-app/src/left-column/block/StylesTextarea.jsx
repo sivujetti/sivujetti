@@ -209,7 +209,7 @@ function validateAndGetSpecifier(candidate) {
  */
 function updateAndEmitUnitScss(unitCopy, getUpdates, blockTypeName) {
     const {id, scss, generatedCss, optimizedScss, optimizedGeneratedCss} = unitCopy;
-    const dataBefore = {...{scss, generatedCss}, ...(!optimizedScss ? {} : {optimizedScss, optimizedGeneratedCss})};
+    const dataBefore = {...{scss, generatedCss}, ...(!optimizedGeneratedCss ? {} : {optimizedScss, optimizedGeneratedCss})};
     //
     const updates = getUpdates(unitCopy);
     if (!updates) return;
@@ -217,7 +217,7 @@ function updateAndEmitUnitScss(unitCopy, getUpdates, blockTypeName) {
     emitUnitChanges({...{
         scss: updates.newScss,
         generatedCss: updates.newGenerated,
-    }, ...(!updates.newOptimizedScss ? {} : {
+    }, ...(!updates.newOptimizedGenerated ? {} : {
         optimizedScss: updates.newOptimizedScss,
         optimizedGeneratedCss: updates.newOptimizedGenerated,
     })}, dataBefore, blockTypeName, id);
@@ -402,10 +402,17 @@ function optimizeScssT(derivedScss, derivedScssAst, baseScss) {
                 if (end !== '{' && end !== '}') {
                     const pcs1 = lineATrimmed.split('var(');
                     if (pcs1.length > 1) {
-                        const start = pcs1[1].trimStart(); // 'align-items: var( --alignItems_Type_d1 )' -> '--alignItems_Type_d1 )'
-                        const pcs3 = start.split('_').slice(0, 3); // ['--alignItems', 'Type', 'd1 )']
+                        // 'align-items: var(  --varName...)' -> '--varName...'
+                        const start = pcs1[1].trimStart();
+                        // ['--alignItems', 'Type', 'd1 )'] or
+                        // ['--alignItems', 'Type', 'd1, var(--another) )'] or
+                        // ['--columns', 'Listing', 'd1 ), minmax(0, 1fr) );']
+                        const pcs3 = start.split('_').slice(0, 3);
                         if (pcs3.length === 3) {
-                            pcs3[2] = pcs3[2].split(',')[0].trimEnd().split(')')[0].trimEnd(); // 'd1 )' -> 'd1' or 'd1, var(--another))' -> 'd1'
+                            // 'd1 )'                   -> 'd1' or
+                            // 'd1, var(--another))'    -> 'd1' or
+                            // 'd1 ), minmax(0, 1fr));' -> 'd1'
+                            pcs3[2] = pcs3[2].split(',')[0].trimEnd().split(')')[0].trimEnd();
                             const [_, blockTypeName, apdx] = pcs3;
                             const usageVarName = pcs3.join('_');
                             const varDeclLineN = varDecls.indexOf(usageVarName);

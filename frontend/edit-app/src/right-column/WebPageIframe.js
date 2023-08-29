@@ -1,5 +1,6 @@
 import {__, api, env, urlUtils} from '@sivujetti-commons-for-edit-app';
-import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END, noop, isMetaBlock} from '../block/dom-commons.js';
+import {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END, noop,
+        isMetaBlock, getBlockEl} from '../block/dom-commons.js';
 import {toTransferable} from '../block/utils.js';
 import blockTreeUtils from '../left-column/block/blockTreeUtils.js';
 import IframePageManager from './IframePageManager.js';
@@ -56,7 +57,7 @@ class WebPageIframe {
         if (isMetaBlock(block)) return;
         const body = this.getEl().contentDocument.body;
         const getRect = firstEl => firstEl.getBoundingClientRect();
-        const inPageElRect = getRect(body.querySelector(`[data-block="${block.id}"]`));
+        const inPageElRect = getRect(getBlockEl(block.id, body));
         const inPageElTop = inPageElRect.top;
         const elBottom = inPageElRect.bottom;
         const quarterVisible = win.innerHeight / 4;

@@ -89,7 +89,7 @@ class ColorValueInput extends preact.Component {
             el: realColorBox,
             theme: 'nano',
             default: this.props.valueReal.data,
-            components: {preview: true, opacity: true, hue: true, interaction: {}}
+            components: {preview: true, opacity: true, hue: true, interaction: {input: true}}
         });
         //
         let nonCommittedHex;

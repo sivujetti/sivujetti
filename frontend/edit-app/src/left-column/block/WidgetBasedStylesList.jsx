@@ -14,6 +14,7 @@ import store, {pushItemToOpQueue} from '../../store.js';
 import {saveExistingBlocksToBackend} from './createBlockTreeDndController.js';
 import {isBodyRemote} from './style-utils.js';
 import {extractVal, getInsights} from './StylesTextarea.jsx';
+import {getBlockEl} from '../../block/dom-commons.js';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -123,7 +124,6 @@ class WidgetBasedStylesList extends StylesList {
                                 this.setState({mutatedStyleInfo: null});
                             } }
                             key={ `${key}-${cssVar.varName}` }/>;
-                            key={ `${key}-${cssVar.varName}` }/> : <div>todo</div>;
                     }) : <div>{ __('Tässä tyylissä ei ole muokattavia arvoja.') }</div> }</div>
                 </li>;
             }) }</ul> : <p class="pt-1 mb-2 color-dimmed">{ __('No own styles') }.</p>
@@ -320,17 +320,18 @@ class WidgetBasedStylesList extends StylesList {
         const rolling = getLargestPostfixNum(current.units) + 1;
         const title = `${__(block.title || block.type)} ${rolling}`;
         const id = `d-${rolling}`;
-        const u = `_u${rolling}`;
+        const apdx = `_u${rolling}`;
         const cls = createUnitClass(id, type);
         const baseClsStr = varApdx !== '_default' ? `${createUnitClass(base.id, type)} ` : '';
-        // 'textNormal_TextCommon_base<n>' -> 'textNormal_TextCommon_u<n>'
-        const scss = base.scss.replace(new RegExp(`${varApdx}\\d+`, 'g'), u);
+        // 'textAlign_Section_base<n>' -> 'textAlign_Section_u<n>'
+        const scss1 = base.scss.replace(new RegExp(`${varApdx}\\d+`, 'g'), apdx);
+        const scss = block.type !== 'Section' ? scss1 : getInitialScssWithMaybeInheritedValues(block, scss1, apdx);
 
         // #2 Classes
         this.curBlockStyleClasses = emitAddStyleClassToBlock(`${baseClsStr}${cls}`, this.props.blockCopy);
 
         // #1 Style
-        const optimizedScss = '';
+        const optimizedScss = scss === scss1 ? '' : optimizeScss(scss, base.scss);
         const newUnit = {title, id, scss, generatedCss: serialize(compile(`.${cls}{${scss}}`), stringify),
             optimizedScss, optimizedGeneratedCss: !optimizedScss
                 ? `.${cls}{}`
@@ -585,8 +586,8 @@ class WidgetBasedStylesList extends StylesList {
 
         const isDerivedFromBodyUnit = isBodyRemote(unit.derivedFrom);
         const base = findBaseUnitOf(unit, (!isDerivedFromBodyUnit ? this.state.unitsOfThisBlockType : this.bodyStyle.units));
-        const bodyUnit = null;
-        return optimizeScss(newScss, base.scss, bodyUnit);
+        const bodyUnit = '';
+        return optimizeScss(newScss, base.scss);
     }
 }
 
@@ -791,6 +792,35 @@ function createAddUnitsDropdownList([instantiable, reference]) {
             return [...out, {value: unit.id, label: `${__(unit.title)} (${__('reuse')})`}];
         }, [{value: '-', label: '---'}]) : [])
     ];
+}
+
+/**
+ * @param {RawBlock} block
+ * @param {String} scss
+ * @param {String} apdx Example '_u4'
+ * @return {String}
+ */
+function getInitialScssWithMaybeInheritedValues({id}, scss, apdx) {
+    const {contentDocument, contentWindow} = api.webPageIframe.getEl();
+    const sectionEl = getBlockEl(id, contentDocument);
+    if (sectionEl.parentElement === contentDocument.body) {
+        /**
+         * @param {String} name Example 'paddingTop'
+         * @param {String} value Example '4.0rem'
+         * @param {String} origValue $scss's original value
+         */
+        const setVarValue = (name, value, origValue) => {
+            const varStr = `--${name}_Section${apdx}`;
+            scss = scss.replace(`${varStr}: ${origValue}`, `${varStr}: ${value}`);
+        };
+        const styles = contentWindow.getComputedStyle(sectionEl);
+        setVarValue('paddingTop', styles.getPropertyValue('--paddingTop_Section_si1'), 'initial');
+        setVarValue('paddingRight', styles.getPropertyValue('--paddingRight_Section_si1'), 'initial');
+        setVarValue('paddingBottom', styles.getPropertyValue('--paddingBottom_Section_si1'), 'initial');
+        setVarValue('paddingLeft', styles.getPropertyValue('--paddingLeft_Section_si1'), 'initial');
+        setVarValue('alignHorizontal', styles.getPropertyValue('--alignHorizontal_Section_si1'), 'start');
+    }
+    return scss;
 }
 
 /**

@@ -16,9 +16,21 @@
 // @exportAs(color)
 --linksHover: #82d6e4;
 // @exportAs(length)
+--fontSizeDefault: 0.8rem;
+// @exportAs(length)
+--lineHeightDefault: 1.2rem;
+// @exportAs(length)
 --maxWidthDefault: 1100px;
+// @exportAs(length)
+--paddingXDefault: 2.0rem;
+// @exportAs(length)
+--paddingYDefault: 4.0rem;
+// @exportAs(length)
+--paddingXNil: 0rem;
+// @exportAs(length)
+--paddingYNil: 0rem;
 
-font: 400 .8rem/1.2rem -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",sans-serif;
+font: 400 var(--fontSizeDefault)/var(--lineHeightDefault) -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",sans-serif;
 background-color: var(--backgroundDefault);
 color: var(--textDefault);
 
@@ -45,20 +57,24 @@ Order | Name | Derivable | Default
 // @exportAs(option:1|2|3|4)
 --columns_Listing_default1: 1;
 // @exportAs(length)
---gap_Listing_default1: 6rem;
+--gapY_Listing_default1: 6rem;
+// @exportAs(length)
+--gapX_Listing_default1: initial;
 
 display: grid;
 grid-template-columns: repeat(var(--columns_Listing_default1), minmax(0, 1fr));
-gap: var(--gap_Listing_default1);
+row-gap: var(--gapY_Listing_default1);
+column-gap: var(--gapX_Listing_default1);
 ```
 
 ## Menu
 
 Order | Name | Derivable | Default
 --- | --- | --- | ---
-1 | Default | yes | yes
+1 | Master template | yes | yes
 
-### Default
+### Master template
+
 
 ```scss
 // @exportAs(option:none|circle|decimal|disc|disclosure-closed|disclosure-open|square)
@@ -67,6 +83,10 @@ Order | Name | Derivable | Default
 --gap_Menu_default1: 0.2rem;
 // @exportAs(option:100%|0%|1)
 --itemsWidth_Menu_default1: 100%;
+// @exportAs(length)
+--itemsPaddingX_Menu_default1: 0.0rem;
+// @exportAs(length)
+--itemsPaddingY_Menu_default1: 0.0rem;
 // @exportAs(color)
 --linksNormal_Menu_default1: #222;
 // @exportAs(color)
@@ -74,13 +94,13 @@ Order | Name | Derivable | Default
 // @exportAs(option:none|uppercase|capitalize|lowercase)
 --linksTransform_Menu_default1: none;
 // @exportAs(length)
---paddingTop_Menu_default1: initial;
+--paddingTop_Menu_default1: 0.0rem;
 // @exportAs(length)
---paddingRight_Menu_default1: initial;
+--paddingRight_Menu_default1: 0.0rem;
 // @exportAs(length)
---paddingBottom_Menu_default1: initial;
+--paddingBottom_Menu_default1: 0.0rem;
 // @exportAs(length)
---paddingLeft_Menu_default1: initial;
+--paddingLeft_Menu_default1: 0.0rem;
 
 padding: var(--paddingTop_Menu_default1) var(--paddingRight_Menu_default1) var(--paddingBottom_Menu_default1) var(--paddingLeft_Menu_default1);
 
@@ -94,6 +114,7 @@ ul {
     flex: 0 0 var(--itemsWidth_Menu_default1);
     margin: 0;
     a {
+      padding: var(--itemsPaddingY_Menu_default1) var(--itemsPaddingX_Menu_default1) var(--itemsPaddingY_Menu_default1) var(--itemsPaddingX_Menu_default1);
       color: var(--linksNormal_Menu_default1, var(--linksDefault));
       text-transform: var(--linksTransform_Menu_default1);
       &:hover {
@@ -108,14 +129,14 @@ ul {
 
 Order | Name | Derivable | Default
 --- | --- | --- | ---
-1 | Default | yes | yes
+1 | Master template | yes | yes
 2 | Primary | yes | no
 
-### Default
+### Master template
 
 ```scss
 // @exportAs(color)
---backgroundNormal_Button_default1: #f2f2f2;
+--backgroundNormal_Button_default1: #f8f8f8;
 // @exportAs(color)
 --backgroundHover_Button_default1: #f0f0f0;
 // @exportAs(color)
@@ -123,13 +144,15 @@ Order | Name | Derivable | Default
 // @exportAs(color)
 --textHover_Button_default1: #555;
 // @exportAs(color)
---border_Button_default1: #f2f2f2;
+--border_Button_default1: #f8f8f8;
 // @exportAs(color)
 --borderHover_Button_default1: #f0f0f0;
-// @exportAs(option:center|flex-end|flex-start|space-around|space-between|space-evenly|initial)
---alignHorizontal_Button_default1: initial;
+// @exportAs(option:center|end|start|space-around|space-between|space-evenly|initial)
+--alignHorizontal_Button_default1: center;
 // @exportAs(length)
 --minWidth_Button_default1: initial;
+// @exportAs(length)
+--radius_Button_default1: 0px;
 // @exportAs(length)
 --paddingTop_Button_default1: 0.25rem;
 // @exportAs(length)
@@ -138,8 +161,6 @@ Order | Name | Derivable | Default
 --paddingBottom_Button_default1: 0.25rem;
 // @exportAs(length)
 --paddingLeft_Button_default1: 0.4rem;
-// @exportAs(length)
---radius_Button_default1: 0px;
 
 font: 400 .75rem/1.2rem -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",sans-serif;
 justify-content: var(--alignHorizontal_Button_default1);
@@ -148,7 +169,10 @@ border: 1px solid var(--border_Button_default1);
 border-radius: var(--radius_Button_default1);
 color: var(--text_Button_default1);
 min-width: var(--minWidth_Button_default1);
-padding: var(--paddingTop_Button_default1) var(--paddingRight_Button_default1) var(--paddingBottom_Button_default1) var(--paddingLeft_Button_default1);
+padding-top: var(--paddingTop_Button_default1);
+padding-right: var(--paddingRight_Button_default1);
+padding-bottom: var(--paddingBottom_Button_default1);
+padding-left: var(--paddingLeft_Button_default1);
 
 &:hover {
   background: var(--backgroundHover_Button_default1);
@@ -162,45 +186,48 @@ padding: var(--paddingTop_Button_default1) var(--paddingRight_Button_default1) v
 
 ```scss
 // @exportAs(color)
---backgroundNormal_Button_default1: #1e717e;
+--backgroundNormal_Button_u2: #1e717e;
 // @exportAs(color)
---backgroundHover_Button_default1: #22808e;
+--backgroundHover_Button_u2: #22808e;
 // @exportAs(color)
---text_Button_default1: #fff;
+--text_Button_u2: #fff;
 // @exportAs(color)
---textHover_Button_default1: #fff;
+--textHover_Button_u2: #fff;
 // @exportAs(color)
---border_Button_default1: #1e717e;
+--border_Button_u2: #1e717e;
 // @exportAs(color)
---borderHover_Button_default1: #22808e;
-// @exportAs(option:center|flex-end|flex-start|space-around|space-between|space-evenly|initial)
---alignHorizontal_Button_default1: initial;
+--borderHover_Button_u2: #22808e;
+// @exportAs(option:center|end|start|space-around|space-between|space-evenly|initial)
+--alignHorizontal_Button_u2: initial;
 // @exportAs(length)
---minWidth_Button_default1: 0%;
+--minWidth_Button_u2: 0%;
 // @exportAs(length)
---paddingTop_Button_default1: 0.25rem;
+--paddingTop_Button_u2: 0.25rem;
 // @exportAs(length)
---paddingRight_Button_default1: 0.4rem;
+--paddingRight_Button_u2: 0.4rem;
 // @exportAs(length)
---paddingBottom_Button_default1: 0.25rem;
+--paddingBottom_Button_u2: 0.25rem;
 // @exportAs(length)
---paddingLeft_Button_default1: 0.4rem;
+--paddingLeft_Button_u2: 0.4rem;
 // @exportAs(length)
---radius_Button_default1: 0px;
+--radius_Button_u2: 0px;
 
 font: 400 0.8rem/1.2rem "Domine";
-justify-content: var(--alignHorizontal_Button_default1);
-background: var(--backgroundNormal_Button_default1);
-border: 1px solid var(--border_Button_default1);
-border-radius: var(--radius_Button_default1);
-color: var(--text_Button_default1);
-min-width: var(--minWidth_Button_default1);
-padding: var(--paddingTop_Button_default1) var(--paddingRight_Button_default1) var(--paddingBottom_Button_default1) var(--paddingLeft_Button_default1);
+justify-content: var(--alignHorizontal_Button_u2);
+background: var(--backgroundNormal_Button_u2);
+border: 1px solid var(--border_Button_u2);
+border-radius: var(--radius_Button_u2);
+color: var(--text_Button_u2);
+min-width: var(--minWidth_Button_u2);
+padding-top: var(--paddingTop_Button_u2, var(--paddingTop_Button_default1));
+padding-right: var(--paddingRight_Button_u2, var(--paddingRight_Button_default1));
+padding-bottom: var(--paddingBottom_Button_u2, var(--paddingBottom_Button_default1));
+padding-left: var(--paddingLeft_Button_u2, var(--paddingLeft_Button_default1));
 
 &:hover {
-  background: var(--backgroundHover_Button_default1);
-  border: 1px solid var(--borderHover_Button_default1);
-  color: var(--textHover_Button_default1);
+  background: var(--backgroundHover_Button_u2);
+  border: 1px solid var(--borderHover_Button_u2);
+  color: var(--textHover_Button_u2);
 }
 ```
 
@@ -216,13 +243,13 @@ Order | Name | Derivable | Default
 // @exportAs(option:initial|none)
 --display_Code_base1: initial;
 // @exportAs(length)
---paddingTop_Code_base1: initial;
+--paddingTop_Code_base1: 0.0rem;
 // @exportAs(length)
---paddingRight_Code_base1: initial;
+--paddingRight_Code_base1: 0.0rem;
 // @exportAs(length)
---paddingBottom_Code_base1: initial;
+--paddingBottom_Code_base1: 0.0rem;
 // @exportAs(length)
---paddingLeft_Code_base1: initial;
+--paddingLeft_Code_base1: 0.0rem;
 
 display: var(--display_Code_base1);
 padding: var(--paddingTop_Code_base1) var(--paddingRight_Code_base1) var(--paddingBottom_Code_base1) var(--paddingLeft_Code_base1);
@@ -242,13 +269,13 @@ Order | Name | Derivable | Default
 // @exportAs(option:normal|start|center|end|stretch|baseline|first baseline|last baseline|initial)
 --alignItems_Columns_base1: initial;
 // @exportAs(length)
---paddingTop_Columns_base1: initial;
+--paddingTop_Columns_base1: 0.0rem;
 // @exportAs(length)
---paddingRight_Columns_base1: initial;
+--paddingRight_Columns_base1: 0.0rem;
 // @exportAs(length)
---paddingBottom_Columns_base1: initial;
+--paddingBottom_Columns_base1: 0.0rem;
 // @exportAs(length)
---paddingLeft_Columns_base1: initial;
+--paddingLeft_Columns_base1: 0.0rem;
 
 gap: var(--gap_Columns_base1);
 align-items: var(--alignItems_Columns_base1);
@@ -264,24 +291,24 @@ Order | Name | Derivable | Default
 ### Commons
 
 ```scss
-// @exportAs(option:left|right|none)
---float_Image_base1: none;
+// @exportAs(option:left|right|none|initial)
+--float_Image_base1: initial;
 // @exportAs(length)
 --minHeight_Image_base1: initial;
 // @exportAs(length)
 --maxHeight_Image_base1: initial;
 // @exportAs(length)
 --maxWidth_Image_base1: initial;
-// @exportAs(option:block|inline|flex|inline-flex|inline-block)
+// @exportAs(option:block|inline|flex|inline-flex|inline-block|initial)
 --display_Image_base1: initial;
 // @exportAs(length)
---paddingTop_Image_base1: initial;
+--paddingTop_Image_base1: 0.0rem;
 // @exportAs(length)
---paddingRight_Image_base1: initial;
+--paddingRight_Image_base1: 0.0rem;
 // @exportAs(length)
---paddingBottom_Image_base1: initial;
+--paddingBottom_Image_base1: 0.0rem;
 // @exportAs(length)
---paddingLeft_Image_base1: initial;
+--paddingLeft_Image_base1: 0.0rem;
 
 float: var(--float_Image_base1);
 min-height: var(--minHeight_Image_base1);
@@ -297,7 +324,7 @@ Order | Name | Derivable | Default
 --- | --- | --- | ---
 1 | Stack | no | yes
 2 | Body | no | yes
-3 | Commons | yes | no
+3 | Master template | yes | no
 
 ### Stack
 
@@ -307,21 +334,34 @@ Order | Name | Derivable | Default
 }
 ```
 
-### Body
+### Body (specifier '>')
 
 ```
+--paddingTop_Section_si1: var(--paddingYDefault, 4.0rem);
+--paddingRight_Section_si1: var(--paddingXDefault, 2.0rem);
+--paddingBottom_Section_si1: var(--paddingYDefault, 4.0rem);
+--paddingLeft_Section_si1: var(--paddingXDefault, 2.0rem);
+--alignHorizontal_Section_si1: center;
+display: flex;
+justify-content: var(--alignHorizontal_Section_si1);
+
 > div {
-  padding: 4rem 2rem;
-  max-width: var(--maxWidthDefault);
-  margin: 0 auto;
+  padding-top: var(--paddingTop_Section_si1);
+  padding-right: var(--paddingRight_Section_si1);
+  padding-bottom: var(--paddingBottom_Section_si1);
+  padding-left: var(--paddingLeft_Section_si1);
+  max-width: var(--maxWidthDefault, 1100px);
+  width: 100%;
 }
 ```
 
-### Commons
+### Master template
 
 ```scss
-// @exportAs(option:flex-start|center|flex-end|unset)
---alignItems_Section_base1: initial;
+// @exportAs(option:start|center|end|unset)
+--alignVertical_Section_base1: unset;
+// @exportAs(option:start|center|end|normal|unset)
+--alignHorizontal_Section_base1: start;
 // @exportAs(option:right|center|justify|default)
 --textAlign_Section_base1: default;
 // @exportAs(length)
@@ -345,9 +385,11 @@ Order | Name | Derivable | Default
 
 position: relative;
 display: flex;
-align-items: var(--alignItems_Section_base1);
+align-items: var(--alignVertical_Section_base1);
+justify-content: var(--alignHorizontal_Section_base1);
 min-height: var(--minHeight_Section_base1);
 background-color: var(--background_Section_base1, var(--backgroundDefault));
+border-radius: var(--radius_Section_base1);
 text-align: var(--textAlign_Section_base1);
 
 &:before {
@@ -359,7 +401,10 @@ text-align: var(--textAlign_Section_base1);
 > * { position: relative; }
 
 > div {
-  padding: var(--paddingTop_Section_base1) var(--paddingRight_Section_base1) var(--paddingBottom_Section_base1) var(--paddingLeft_Section_base1);
+  padding-top: var(--paddingTop_Section_base1);
+  padding-right: var(--paddingRight_Section_base1);
+  padding-bottom: var(--paddingBottom_Section_base1);
+  padding-left:  var(--paddingLeft_Section_base1);
   flex: 1 0 0;
   max-width: var(--maxWidth_Section_base1, var(--maxWidthDefault));
 }
@@ -380,8 +425,12 @@ Order | Name | Derivable | Default
 --textHeadings_Text_default1: initial;
 // @exportAs(color)
 --links_Text_default1: initial;
-// @exportAs(option:right|center|justify|default)
---textAlign_Text_default1: default;
+// @exportAs(option:right|center|justify|default|initial)
+--textAlign_Text_default1: initial;
+// @exportAs(length)
+--fontSize_Text_default1: initial;
+// @exportAs(length)
+--lineHeight_Text_default1: initial;
 // @exportAs(length)
 --maxWidth_Text_default1: initial;
 // @exportAs(length)
@@ -396,9 +445,14 @@ Order | Name | Derivable | Default
 --paddingLeft_Text_default1: initial;
 
 color: var(--textNormal_Text_default1, var(--textDefault));
+font-size: var(--fontSize_Text_default1, var(--fontSizeDefault));
+line-height: var(--lineHeight_Text_default1, var(--lineHeightDefault));
 text-align: var(--textAlign_Text_default1);
 max-width: var(--maxWidth_Text_default1);
-padding: var(--paddingTop_Text_default1) var(--paddingRight_Text_default1) var(--paddingBottom_Text_default1) var(--paddingLeft_Text_default1);
+padding-top: var(--paddingTop_Text_default1);
+padding-right: var(--paddingRight_Text_default1);
+padding-bottom: var(--paddingBottom_Text_default1);
+padding-left: var(--paddingLeft_Text_default1);
 
 a {
   color: var(--links_Text_default1, var(--linksDefault));

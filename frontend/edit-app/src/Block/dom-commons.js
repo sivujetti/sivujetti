@@ -57,5 +57,15 @@ function isMetaBlock({type}) {
     return type === 'PageInfo';
 }
 
+/**
+ * @param {String} blockId
+ * @param {HTMLElement} from = document.body
+ * @returns {HTMLElement|null}
+ */
+function getBlockEl(blockId, from = document.body) {
+    return from.querySelector(`[data-block="${blockId}"]`);
+}
+
 export {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END,
-        noop, HAS_ERRORS, NO_OP_QUEUE_EMIT, createTrier, getMetaKey, isMetaBlock};
+        noop, HAS_ERRORS, NO_OP_QUEUE_EMIT, createTrier, getMetaKey, isMetaBlock,
+        getBlockEl};

@@ -362,15 +362,14 @@ class StylesList extends preact.Component {
         this.editableTitleInstances = units.map(_ => preact.createRef());
     }
     /**
-     * @param {Array<MenuLink>} moreLinks = []
+     * @param {Array<MenuLink>} moreLinks
      * @returns {Array<MenuLink>}
      * @access protected
      */
-    createContextMenuLinks(moreLinks = []) {
+    createContextMenuLinks(moreLinks) {
         return [
             {text: __('Edit name'), title: __('Edit name'), id: 'edit-style-title'},
             ...moreLinks,
-            {text: __('Delete'), title: __('Delete style'), id: 'delete-style'},
         ];
     }
     /**

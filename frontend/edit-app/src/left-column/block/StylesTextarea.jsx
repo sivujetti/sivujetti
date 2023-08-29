@@ -4,6 +4,7 @@ import CssStylesValidatorHelper from '../../commons/CssStylesValidatorHelper.js'
 import store2 from '../../store2.js';
 import store, {pushItemToOpQueue} from '../../store.js';
 import {createUnitClass} from './VisualStyles.jsx';
+import {isBodyRemote} from './style-utils.js';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -78,7 +79,8 @@ class StylesTextarea extends preact.Component {
                             return null;
                         }
                         // Was valid, dispatch to the store
-                        const newOptimizedScss = !copy.derivedFrom ? null : optimizeScss(scss, [], findBaseUnitOf(copy, findBlockTypeStyles(store2.get().themeStyles, this.props.blockTypeName).units).scss);
+                        const isDerivedFromBodyUnit = isBodyRemote(copy.derivedFrom);
+                        const newOptimizedScss = !copy.derivedFrom ? null : optimizeScss(scss, findBaseUnitOf(copy, findBlockTypeStyles(store2.get().themeStyles, !isDerivedFromBodyUnit ? this.props.blockTypeName : SPECIAL_BASE_UNIT_NAME).units).scss);
                         return {
                             ...{newScss: scss, newGenerated: result.generatedCss || ''},
                             ...(!newOptimizedScss ? {} : {
@@ -281,11 +283,92 @@ function getRemoteStyleIfRemoved(bodyUnits, removedUnitId, removedUnitBlockTypeN
 
 /**
  * @param {String} derivedScss
- * @param {Array<StylisAstNode>} derivedScssAst
+ * @param {String} baseScss
+ * @param {(todo) => void} on
+ */
+function runLinesAb(derivedScss, baseScss, on) {
+    const linesA = derivedScss.split('\n');
+    const linesB = baseScss.split('\n');
+    const numBaseLines = linesB.length;
+
+    const varDecls = [];
+    let lastVarDeclIdx = 0;
+    for (let i = 0; i < linesA.length; ++i) {
+        const trimmed = linesA[i].trimStart();
+        if (trimmed.startsWith('--')) {
+            const pcs = trimmed.split(':');
+            if (pcs[1]?.trim().length > 0) {
+                varDecls.push(pcs[0].trimEnd());
+                lastVarDeclIdx = i + 1;
+                continue;
+            } // else fall through
+        }
+        varDecls.push(null);
+    }
+
+    for (let i = 0; i < linesA.length; ++i) {
+        const fromDerivate = linesA[i];
+        if (i < numBaseLines) { // derived
+            const lineATrimmed = fromDerivate.trim();
+            if (i < lastVarDeclIdx) {
+                if (varDecls[i]) {
+                    const lineB = withReplacedApdx(linesB[i].trim(), ...varDecls[i].split('_').slice(1));
+                    const isSame = lineATrimmed === lineB;
+                    on('checkIsSame', isSame, lineATrimmed, lineB);
+                } else {
+                    on('todo');
+                }
+            } else {
+                on('checkHasUsage');
+            }
+        } else { // addition
+            on('appendLine');
+        }
+    }
+}
+
+/**
+ * @param {String} line Example '--backgroundNormal_Button_u4: #f8f8f800;'
+ * @returns {String} Example '#f8f8f800'
+ */
+function extractVal(line) {
+    return line.split(':')[1].trimStart().split(';')[0].trimEnd();
+}
+
+/**
+ * @param {Array<CssVar>} vars
+ * @param {String} derivedScss
+ * @param {String} baseScss
+ * @returns {Array<{hasChanged: Boolean; lineA: String; lineB: String;}>}
+ */
+function getInsights(vars, derivedScss, baseScss) {
+    const map = new Map;
+    runLinesAb(derivedScss, baseScss, (event, arg1, arg2, arg3) => {
+        if (event !== 'checkIsSame') return;
+        const isSame = arg1;
+        const lineA = arg2; // Example '--borderHover_Button_u4:'
+        const justVarName = lineA.split(':')[0].trim().slice(2); // '--borderHover_Button_u4: somethgins' -> 'borderHover_Button_u4'
+        const lineB = arg3;
+        map.set(justVarName, {hasChanged: !isSame, lineA, lineB});
+    });
+    return vars.map(({varName}) => map.get(varName));
+}
+
+/**
+ * @param {String} derivedScss
  * @param {String} baseScss
  * @returns {String}
  */
-function optimizeScss(derivedScss, derivedScssAst, baseScss) {
+function optimizeScss(derivedScss, baseScss, bodyUnit) {
+    return optimizeScssT(derivedScss, baseScss, bodyUnit);
+}
+
+/**
+ * @param {String} derivedScss
+ * @param {String} baseScss
+ * @returns {String}
+ */
+function optimizeScssT(derivedScss, derivedScssAst, baseScss) {
     const linesA = derivedScss.split('\n');
     const linesB = baseScss.split('\n');
     const numBaseLines = linesB.length;
@@ -306,34 +389,63 @@ function optimizeScss(derivedScss, derivedScssAst, baseScss) {
         varDecls.push(null);
     }
 
-    const emptied = [];
+    const ir = [];
     for (let i = 0; i < linesA.length; ++i) {
         const fromDerivate = linesA[i];
-        if (i < numBaseLines) { // derived, add only if the line contains var(--someChangedVar)
+        if (i < numBaseLines) { // derived, add only if the line contains var(--someChangedVar), or ensWith '{' or '}'
             const lineATrimmed = fromDerivate.trim();
             if (i < lastVarDeclIdx) {
-                emptied.push(!varDecls[i] || lineATrimmed === withReplacedApdx(linesB[i].trim(), ...varDecls[i].split('_').slice(1)) ? EMPTY_LINE : fromDerivate);
+                ir.push(!varDecls[i] || lineATrimmed === withReplacedApdx(linesB[i].trim(), ...varDecls[i].split('_').slice(1)) ? EMPTY_LINE : fromDerivate);
             } else {
                 let hasUsageWithChagedVal = false;
-                const pcs1 = lineATrimmed.split('var(');
-                if (pcs1.length > 1) {
-                    const start = pcs1[1].trimStart(); // 'align-items: var( --alignItems_Type_d1 )' -> '--alignItems_Type_d1 )'
-                    const pcs3 = start.split('_').slice(0, 3); // ['--alignItems', 'Type', 'd1 )']
-                    if (pcs3.length === 3) {
-                    pcs3[2] = pcs3[2].split(',')[0].trimEnd().split(')')[0].trimEnd(); // 'd1 )' -> 'd1' or 'd1, var(--another))' -> 'd1'
-                    const [_, blockTypeName, apdx] = pcs3;
-                    const usageVarName = pcs3.join('_');
-                    const varDeclLineN = varDecls.indexOf(usageVarName);
-                    hasUsageWithChagedVal = varDeclLineN > -1 && linesA[varDeclLineN].trim() !== withReplacedApdx(linesB[varDeclLineN].trim(), blockTypeName, apdx);
+                const end = lineATrimmed.at(-1);
+                if (end !== '{' && end !== '}') {
+                    const pcs1 = lineATrimmed.split('var(');
+                    if (pcs1.length > 1) {
+                        const start = pcs1[1].trimStart(); // 'align-items: var( --alignItems_Type_d1 )' -> '--alignItems_Type_d1 )'
+                        const pcs3 = start.split('_').slice(0, 3); // ['--alignItems', 'Type', 'd1 )']
+                        if (pcs3.length === 3) {
+                            pcs3[2] = pcs3[2].split(',')[0].trimEnd().split(')')[0].trimEnd(); // 'd1 )' -> 'd1' or 'd1, var(--another))' -> 'd1'
+                            const [_, blockTypeName, apdx] = pcs3;
+                            const usageVarName = pcs3.join('_');
+                            const varDeclLineN = varDecls.indexOf(usageVarName);
+                            hasUsageWithChagedVal = varDeclLineN > -1 && linesA[varDeclLineN].trim() !== withReplacedApdx(linesB[varDeclLineN].trim(), blockTypeName, apdx);
+                        }
                     }
-                }
-                emptied.push(!hasUsageWithChagedVal ? EMPTY_LINE : fromDerivate);
+                } else hasUsageWithChagedVal = true;
+                ir.push(!hasUsageWithChagedVal ? EMPTY_LINE : fromDerivate);
             }
         } else { // additions, always add
-            emptied.push( fromDerivate);
+            ir.push( fromDerivate);
         }
     }
-    return emptied.filter(line => line !== EMPTY_LINE).join('\n');
+
+    const withoutEmptyLines = arr => arr.filter(line => line !== EMPTY_LINE);
+    const ir2 = withoutEmptyLines(ir);
+    let emptied = ir2.slice(0);
+    let emptyBlockCloseTagIdx = findEmptyBlockClosingTagIndex(emptied);
+    while (emptyBlockCloseTagIdx > 0 && emptied.length) {
+        emptied[emptyBlockCloseTagIdx] = EMPTY_LINE;
+        emptied[emptyBlockCloseTagIdx - 1] = EMPTY_LINE;
+        emptied = withoutEmptyLines(emptied);
+        emptyBlockCloseTagIdx = findEmptyBlockClosingTagIndex(emptied);
+    }
+    return emptied.join('\n');
+}
+
+/**
+ * @param {Array<String>} lines
+ * @returns {Number}
+ */
+function findEmptyBlockClosingTagIndex(lines) {
+    for (let l = lines.length; --l > -1; ) {
+        const line = lines[l];
+        if (line.trim() === '}') {
+            const prev = lines[l - 1];
+            if (prev.trimEnd().at(-1) === '{') return l;
+        }
+    }
+    return -1;
 }
 
 /**
@@ -367,4 +479,4 @@ function findBaseUnitOf(unit, from) {
 
 export default StylesTextarea;
 export {findBaseUnitOf, optimizeScss, emitUnitChanges, emitCommitStylesOp,
-        updateAndEmitUnitScss, compileSpecial, tempHack2};
+        updateAndEmitUnitScss, compileSpecial, tempHack2, getInsights, extractVal};

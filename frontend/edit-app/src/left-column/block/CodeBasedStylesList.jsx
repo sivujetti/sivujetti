@@ -24,11 +24,13 @@ class CodeBasedStylesList extends StylesList {
     // liIdxOfOpenMoreMenu;
     // refElOfOpenMoreMenu;
     // bodyStyle;
+    // userIsSuperAdmin;
     /**
      * @access protected
      */
     componentWillMount() {
         super.componentWillMount();
+        this.userIsSuperAdmin = api.user.getRole() === api.user.ROLE_SUPER_ADMIN;
         this.extraBlockStyleClassesTextareaEl = preact.createRef();
         this.currentBlockUnitStyleClasses = '';
         this.throttledDoHandleUtilsClassesInput = timingUtils.debounce(
@@ -76,6 +78,9 @@ class CodeBasedStylesList extends StylesList {
                 const bodyUnitCopy = unit.origin !== SPECIAL_BASE_UNIT_NAME ? null : this.getRemoteBodyUnitCopy(unit, blockCopy);
                 const [isDefault, real] = bodyUnitCopy === null ? [false, unit] : [true, bodyUnitCopy];
                 const title = real.title;
+                const textarea = (real.isDerivable || real.derivedFrom) && liCls !== ''
+                    ? this.userIsSuperAdmin ? 'show' : 'showAsDisabled'
+                    : userCanEditCss ? 'show' : 'omit';
                 return <li class={ liCls } data-cls={ cls } key={ unit.id }>
                     <header class="flex-centered p-relative">
                         <button
@@ -101,13 +106,21 @@ class CodeBasedStylesList extends StylesList {
                             style="right: .4rem;font-size: 1.6rem;"
                             title={ __('Currently active') }>•</span> : null }
                     </header>
-                    { userCanEditCss ? <StyleTextarea
-                        unitCopy={ {...unit} }
-                        unitCopyReal={ bodyUnitCopy }
-                        unitCls={ cls }
-                        blockTypeName={ blockCopy.type }
-                        isVisible={ liCls !== '' }/>
-                    : null }
+                    { textarea === 'show'
+                        ? <StyleTextarea
+                            unitCopy={ {...unit} }
+                            unitCopyReal={ bodyUnitCopy }
+                            unitCls={ cls }
+                            blockTypeName={ blockCopy.type }
+                            isVisible={ liCls !== '' }/>
+                        : textarea !== 'showAsDisabled'
+                            ? null
+                            : <textarea
+                                value={ (bodyUnitCopy || unit).scss }
+                                class="form-input code"
+                                rows="12"
+                                disabled></textarea>
+                    }
                 </li>;
             }) }</ul> : <p class="pt-1 mb-2 color-dimmed">{ __('No own templates') }.</p>
             : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
@@ -142,10 +155,11 @@ class CodeBasedStylesList extends StylesList {
             </div>,
             <InputError errorMessage={ extraBlockStyleClassesError }/>,
             <ContextMenu
-                links={ this.createContextMenuLinks([
+                links={ this.createContextMenuLinks(this.userIsSuperAdmin ? [
                     {text: __('Set as default'), title: __('Set as default'), id: SET_AS_DEFAULT},
                     {text: __('Edit details'), title: __('Edit details'), id: EDIT_DETAILS},
-                ]) }
+                    {text: __('Delete'), title: __('Delete style'), id: 'delete-style'},
+                ] : []) }
                 onItemClicked={ this.handleMoreMenuLinkClicked.bind(this) }
                 onMenuClosed={ () => { this.refElOfOpenMoreMenu.style.opacity = ''; } }
                 ref={ this.moreMenu }/>

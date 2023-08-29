@@ -36,7 +36,10 @@ stringBundles.push({
     'Add style': 'Add style',
     'Select style': 'Select style',
     'create clone': 'create clone',
+    'create new': 'create new',
+    'reuse': 'reuse',
     'Create template': 'Create template',
+    'Master template': 'Master template',
     'Show parent styles': 'Show parent styles',
     'Show parent templates': 'Show parent templates',
     'Edit name': 'Edit name',
@@ -350,5 +353,6 @@ stringBundles.push({
     'Text normal': 'Text normal',
     'Text headings': 'Text headings',
     'Links': 'Links',
+    'Line height': 'Line height',
     'Paragraphs margin': 'Paragraphs margin',
 }, validationStrings);

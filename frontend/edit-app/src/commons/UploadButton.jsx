@@ -11,7 +11,7 @@ class UploadButton extends preact.Component {
      */
     componentWillMount() {
         validExtsStr = '.jpg,.jpeg,.png,.gif,.pdf,.doc,.ppt,.odt,.pptx,.docx,.pps,.ppsx,.xls,.xlsx,.key,.webp,.asc,.ogv,.mp4,.m4v,.mov,.wmv,.avi,.mpg,.3gp,.3g2';
-        if (api.user.getRole() < api.user.ROLE_ADMIN)
+        if (api.user.getRole() < api.user.ROLE_EDITOR)
             validExtsStr += ',.ttf,.eot,.otf,.woff,.woff2';
         validExts = validExtsStr.split(',');
         //

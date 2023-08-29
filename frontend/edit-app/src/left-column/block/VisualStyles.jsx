@@ -80,8 +80,7 @@ class VisualStyles extends preact.Component {
             }
             const Cls = valueEditors.get(varType);
             if (Cls) {
-                const value1 = decl.children;
-                const value = value1 !== 'initial' ? Cls.valueFromInput(decl.children) : 'initial';
+                const value = Cls.valueFromInput(decl.children);
                 if (value) out.push({type: varType, value, varName, label: varNameToLabel(varName), args, __idx: i});
                 else env.window.console.log(`Don't know how to parse ${varType} variable value "${decl.children}" yet.`);
             } else env.window.console.log(`Variable type "${varType}" not recognized`);
@@ -207,22 +206,6 @@ valueEditors.set('option', OptionValueInput);
 function compileScss(scss, cls) {
     return serialize(compile(`.${cls} {${scss}}`), stringify);
 }
-
-/**
- * @template T
- * @typedef ValueInputProps
- * @prop {T|null} valueReal
- * @prop {T|null} valueToDisplay
- * @prop {String[]} argsCopy
- * @prop {String} varName
- * @prop {String} valueWrapStr
- * @prop {Boolean} isClearable
- * @prop {String} labelTranslated
- * @prop {(newVal: String) => any} onVarValueChanged
- * @prop {String} selector
- * @prop {Boolean} showNotice
- * @prop {(accepted: Boolean) => void} noticeDismissedWith
- */
 
 /**
  * @typedef VisualStylesProps

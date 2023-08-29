@@ -13,10 +13,13 @@ import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from '../../store.js';
 import {saveExistingBlocksToBackend} from './createBlockTreeDndController.js';
 import {isBodyRemote} from './style-utils.js';
+import {extractVal, getInsights} from './StylesTextarea.jsx';
 
 const {compile, serialize, stringify} = window.stylis;
 
 const dismissedCopyStyleNotices = {};
+
+const useDismissFeature = false;
 
 class WidgetBasedStylesList extends StylesList {
     // addUserUnitDropdown;
@@ -63,8 +66,7 @@ class WidgetBasedStylesList extends StylesList {
     /**
      * @access protected
      */
-    render({blockCopy, userCanEditVisualStyles}, {unitsToShow, addable, parentStyleInfo,
-                                                    mutatedStyleInfo}) {
+    render({blockCopy, userCanEditVisualStyles}, {unitsToShow, addable, parentStyleInfo, mutatedStyleInfo}) {
         const selectOptions = addable ? createAddUnitsDropdownList(addable) : [];
         return [...[
             unitsToShow !== null ? unitsToShow.length ? <ul class="list styles-list mb-2">{ unitsToShow.map((unit, i) => {
@@ -72,6 +74,11 @@ class WidgetBasedStylesList extends StylesList {
                 const isDefault = either !== unit;
                 const cls = createUnitClass(unit.id, blockCopy.type);
                 const [cssVars, ast] = VisualStyles.extractVars(either.scss, cls);
+                let varsInsights = [];
+                if (unit.optimizedScss && cssVars.length) {
+                    const isDerivedFromBodyUnit = isBodyRemote(unit.derivedFrom);
+                    varsInsights = getInsights(cssVars, unit.scss, findBaseUnitOf(unit, findBlockTypeStyles(store2.get().themeStyles, !isDerivedFromBodyUnit ? blockCopy.type : SPECIAL_BASE_UNIT_NAME).units).scss);
+                }
                 const key = unit.id;
                 return <li key={ key } class="open">
                     <header class="flex-centered p-relative">
@@ -92,28 +99,19 @@ class WidgetBasedStylesList extends StylesList {
                                 ref={ this.editableTitleInstances[i] }/>
                         </b>
                     </header>
-                    <div class="form-horizontal tight has-color-pickers pt-0 px-2">{ cssVars.map(cssVar => {
+                    <div class="form-horizontal tight has-color-pickers pt-0 px-2">{ cssVars.length ? cssVars.map((cssVar, i2) => {
                         const Renderer = valueEditors.get(cssVar.type);
-                        const valIsSet = cssVar.value !== null;
-                        const args =  cssVar.args ? [...cssVar.args] : [];
-                        const parenVal = !unit.derivedFrom ? null : this.getParentsValueIfNeeded(cssVar, ast, unit);
-                        const valIsInitial = valIsSet && (
-                            cssVar.value === 'initial' ||
-                            (parenVal && unit.derivedFrom && valueToString(cssVar.value, Renderer) === valueToString(parenVal, Renderer))
-                        );
-                        const isClearable = valIsSet && !valIsInitial;
+                        const ins = varsInsights[i2];
+                        const valueIsClearable = ins && ins.hasChanged;
                         return <Renderer
-                            valueReal={ valIsSet && !valIsInitial ? {...cssVar.value} : null }
-                            valueToDisplay={ valIsSet && cssVar.value !== 'initial' ? {...cssVar.value} : parenVal }
-                            argsCopy={ [...args] }
-                            varName={ cssVar.varName }
-                            valueWrapStr={ '' }
-                            isClearable={ isClearable }
+                            valueReal={ {...cssVar.value} }
+                            argsCopy={ cssVar.args ? [...cssVar.args] : [] }
+                            isClearable={ valueIsClearable }
                             labelTranslated={ __(varNameToLabel(withoutAppendix(cssVar.varName))) }
                             onVarValueChanged={ newValAsString => {
                                 const val = newValAsString !== null
                                     ? newValAsString
-                                    : valueToString(this.getParentsValueOf(cssVar, ast, either) || 'initial', Renderer);
+                                    : extractVal(varsInsights[i2].lineB);
                                 this.emitChange(val, cssVar, either, unit, ast, cls);
                             } }
                             selector={ `.${cls}` }
@@ -125,7 +123,8 @@ class WidgetBasedStylesList extends StylesList {
                                 this.setState({mutatedStyleInfo: null});
                             } }
                             key={ `${key}-${cssVar.varName}` }/>;
-                    }) }</div>
+                            key={ `${key}-${cssVar.varName}` }/> : <div>todo</div>;
+                    }) : <div>{ __('Tässä tyylissä ei ole muokattavia arvoja.') }</div> }</div>
                 </li>;
             }) }</ul> : <p class="pt-1 mb-2 color-dimmed">{ __('No own styles') }.</p>
             : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
@@ -237,6 +236,7 @@ class WidgetBasedStylesList extends StylesList {
         updateAndEmitUnitScss(eitherCopy, copy => {
             const {scss, generatedCss} = copy;
             const reusableId = this.props.blockCopy.__duplicatedFrom;
+            if (useDismissFeature) {
             if (reusableId &&
                 blockTypeName !== SPECIAL_BASE_UNIT_NAME &&
                 !dismissedCopyStyleNotices[reusableId]) {
@@ -258,19 +258,19 @@ class WidgetBasedStylesList extends StylesList {
                 }});
                 dismissedCopyStyleNotices[this.props.blockCopy.__duplicatedFrom] = 'pending';
             }
+            }
             //
             varDeclAstNode.children = newValAsString;
             varDeclAstNode.value = `${varDecl}:${newValAsString};`;
             const newScss = replaceVarValue(copy.scss, varDeclAstNode, newValAsString);
             if (!copy.origin) {
-                const isDerivedFromBodyUnit = isBodyRemote(copy.derivedFrom);
-                const newOptimizedScss = !copy.derivedFrom ? null : optimizeScss(newScss, findBaseUnitOf(copy, (!isDerivedFromBodyUnit ? this.state.unitsOfThisBlockType : this.bodyStyle.units)).scss);
+                const newOptimizedScss = this.createOptimizedScssIfPossible(copy, newScss);
                 return {
                     newScss,
                     newGenerated: serialize(ast, stringify),
                     newOptimizedScss,
-                    newOptimizedGenerated: newOptimizedScss
-                        ? serialize(compile(`.${cls}{${newOptimizedScss}}`), stringify)
+                    newOptimizedGenerated: newOptimizedScss !== null
+                        ? newOptimizedScss ? serialize(compile(`.${cls}{${newOptimizedScss}}`), stringify) : `.${cls}{}`
                         : null
                 };
             } else {
@@ -289,20 +289,24 @@ class WidgetBasedStylesList extends StylesList {
     handleConfirmAddStyle(e, [instantiable, reference], block) {
         const tmp = instantiable.find(({id}) => id === e.target.value);
         const unit = tmp || reference.find(({id}) => id === e.target.value);
-        this.addUnitFrom(unit, block, !tmp && unit.derivedFrom);
+        this.addUnitFrom(unit, block, !tmp && !!unit.derivedFrom);
     }
     /**
      * @param {ThemeStyleUnit} unit
      * @param {RawBlock} block
      * @access private
      */
-    addUnitFrom(unit, block) {
-        if (unit.isDerivable && !unit.derivedFrom)
-            this.addUnitClone(unit, block);
-        else if (unit.origin === SPECIAL_BASE_UNIT_NAME)
-            this.addUnitClone(this.getRemoteBodyUnit(unit, block, false), block, '_default');
+    addUnitFrom(unit, block, doRef) {
+        // if (unit.isDerivable && !unit.derivedFrom)
+            this.addUnitClone(unit, block, !isBodyRemote(unit.id) ? '_base' : '_default');
+        // else if (unit.origin === SPECIAL_BASE_UNIT_NAME)
+        //     this.addUnitClone(this.getRemoteBodyUnit(unit, block, false), block, '_default');
+        // else
+        //     this.addRef(unit);
+        if (doRef)
+            this.addRef(unit);
         else
-            this.addCloneOfUnitClone(unit);
+            this.addUnitClone(unit, block, !isBodyRemote(unit.id) ? '_base' : '_default'); // ??
     }
     /**
      * @param {ThemeStyleUnit} base
@@ -311,28 +315,27 @@ class WidgetBasedStylesList extends StylesList {
      * @access private
      */
     addUnitClone(base, block, varApdx = '_base') {
-        // #2 Classes
         const {type} = this.props.blockCopy;
         const current = findBlockTypeStyles(store2.get().themeStyles, type);
         const rolling = getLargestPostfixNum(current.units) + 1;
         const title = `${__(block.title || block.type)} ${rolling}`;
         const id = `d-${rolling}`;
-        const scss = base.scss.replace(
-            // textNormal_TextCommon_base<n>
-            new RegExp(`${varApdx}\\d+`, 'g'),
-            // textNormal_TextCommon_u<n>
-            `_u${rolling}`,
-        );
+        const u = `_u${rolling}`;
         const cls = createUnitClass(id, type);
         const baseClsStr = varApdx !== '_default' ? `${createUnitClass(base.id, type)} ` : '';
+        // 'textNormal_TextCommon_base<n>' -> 'textNormal_TextCommon_u<n>'
+        const scss = base.scss.replace(new RegExp(`${varApdx}\\d+`, 'g'), u);
+
+        // #2 Classes
         this.curBlockStyleClasses = emitAddStyleClassToBlock(`${baseClsStr}${cls}`, this.props.blockCopy);
 
         // #1 Style
+        const optimizedScss = '';
         const newUnit = {title, id, scss, generatedCss: serialize(compile(`.${cls}{${scss}}`), stringify),
-            optimizedScss: '', optimizedGeneratedCss: `.${cls}{}`,
-            origin: '', specifier: '', isDerivable: false,
-            derivedFrom: base.id};
-
+            optimizedScss, optimizedGeneratedCss: !optimizedScss
+                ? `.${cls}{}`
+                : serialize(compile(`.${cls}{${optimizedScss}}`), stringify),
+            origin: '', specifier: '', isDerivable: false, derivedFrom: base.id};
         store2.dispatch('themeStyles/addUnitTo', [type, newUnit]);
 
         emitCommitStylesOp(type, () => {
@@ -516,7 +519,7 @@ class WidgetBasedStylesList extends StylesList {
             this.refElOfOpenMoreMenu.style.opacity = '1';
             this.moreMenu.current.open({target: moreMenuIconEl}, !isBodyRemote
                 ? links => links
-                : links => links.filter(({id}) => id !== 'deactivate-style' && id !== 'delete-style'));
+                : links => links.filter(({id}) => id !== 'deactivate-style'));
         }
     }
     /**
@@ -571,6 +574,19 @@ class WidgetBasedStylesList extends StylesList {
         const [parenVars, _ast2] = VisualStyles.extractVars(paren.scss, 'dummy');
         const parenVarName = swapAppendix(cssVar.varName, parenVars[0].varName);
         return parenVars.find(({varName}) => varName === parenVarName);
+    }
+    /**
+     * @param {ThemeStyleUnit} unit
+     * @param {String} newScss
+     * @returns {String|null}
+     */
+    createOptimizedScssIfPossible(unit, newScss) {
+        if (!unit.derivedFrom) return null;
+
+        const isDerivedFromBodyUnit = isBodyRemote(unit.derivedFrom);
+        const base = findBaseUnitOf(unit, (!isDerivedFromBodyUnit ? this.state.unitsOfThisBlockType : this.bodyStyle.units));
+        const bodyUnit = null;
+        return optimizeScss(newScss, base.scss, bodyUnit);
     }
 }
 
@@ -772,7 +788,7 @@ function createAddUnitsDropdownList([instantiable, reference]) {
             return [...out, {value: unit.id, label: `${__(unit.title)} (${__('create clone')})`}];
         }, []),
         ...(reference.length ? reference.reduce((out, unit) => {
-            return [...out, {value: unit.id, label: `${__(unit.title)} (${__('reference')})`}];
+            return [...out, {value: unit.id, label: `${__(unit.title)} (${__('reuse')})`}];
         }, [{value: '-', label: '---'}]) : [])
     ];
 }

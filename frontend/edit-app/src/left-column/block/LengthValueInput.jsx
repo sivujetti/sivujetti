@@ -1,26 +1,14 @@
 import {__, hookForm, FormGroupInline, Input,
         InputErrors, reHookValues, Icon} from '@sivujetti-commons-for-edit-app';
 
-const NO_VALUE = '?';
-
 class LengthValueInput extends preact.Component {
-    // numInternal;
     /**
      * @access protected
      */
     componentWillMount() {
-        const {num, unit} = LengthValueInput.normalize(this.props.valueReal);
-        this.numInternal = num;
-        const numNorm = normValueNum(num);
-        if (this.props.varName === 'paddingTop_Section_u19') {
-            console.log('inp',this.props.valueReal);
-            const a = this.props.valueReal || {num: NO_VALUE, unit: 'rem'}
-            console.log('a',a);
-console.log('intern',this.numInternal);
-console.log('nortm',numNorm);
-        }
+        const {num, unit} = this.props.valueReal;
         this.setState(hookForm(this, [
-            {name: 'num', value: numNorm, validations: [['maxLength', 32], [{doValidate: val =>
+            {name: 'num', value: num, validations: [['maxLength', 32], [{doValidate: val =>
                 !val.length || !isNaN(parseFloat(val))
             , errorMessageTmpl: __('%s must be a number').replace('%', '{field}')}, null]],
                 label: this.props.labelTranslated, onAfterValueChanged: (value, hasErrors) => {
@@ -35,28 +23,24 @@ console.log('nortm',numNorm);
      * @access protected
      */
     componentWillReceiveProps(props) {
-        const incoming = LengthValueInput.normalize(props.valueReal);
-        const numNorm = normValueNum(incoming.num);
-        if (this.state.values.num !== numNorm) {
-            reHookValues(this, [{name: 'num', value: numNorm}]);
-            this.numInternal = incoming.num;
-        }
+        const incoming = props.valueReal;
+        if (this.state.values.num !== incoming.num)
+            reHookValues(this, [{name: 'num', value: incoming.num}]);
         if (this.state.unit !== incoming.unit)
             this.setState({unit: incoming.unit});
     }
     /**
      * @access protected
      */
-    render(props, {unit}) {
-        const norm = LengthValueInput.normalize(props.valueReal);
-        const {labelTranslated, isClearable} = props;
+    render({valueReal, isClearable, labelTranslated, showNotice, noticeDismissedWith}, {unit}) {
+        const {num} = valueReal;
         return <FormGroupInline className="has-visual-length-input">
             <label htmlFor="num" class="form-label p-relative pt-1" title={ labelTranslated }>
                 { labelTranslated }
-                { !props.showNotice ? null : <button
+                { !showNotice ? null : <button
                     onClick={ () => {
                         const doCreateCopy = confirm(__('todo2323'));
-                        props.noticeDismissedWith(doCreateCopy);
+                        noticeDismissedWith(doCreateCopy);
                     } }
                     class="btn btn-link btn-sm p-absolute"
                     title={ __('Notice') }
@@ -69,10 +53,14 @@ console.log('nortm',numNorm);
                 <div class="input-group">
                     <Input vm={ this } prop="num" placeholder="1.4" autoComplete="off"/>
                     <select
-                        onChange={ e => this.props.onVarValueChanged(`${norm.num}${e.target.value}`) }
+                        onChange={ e => {
+                            if (num)
+                                this.props.onVarValueChanged(`${num}${e.target.value}`);
+                            else
+                                this.setState({unit: e.target.value});
+                        } }
                         class="form-input input-group-addon addon-sm form-select"
-                        value={ unit }>{
-                        ['rem', 'px', '%', 'em', 'vh', 'vw', 'vb', 'vmin', 'vmax'].map(ltype =>
+                        value={ unit }>{ ['rem', 'px', '%', 'em', 'vh', 'vw', 'vb', 'vmin', 'vmax'].map(ltype =>
                             <option value={ ltype }>{ ltype }</option>
                         )
                     }</select>
@@ -91,10 +79,12 @@ console.log('nortm',numNorm);
         </FormGroupInline>;
     }
     /**
-     * @param {String} input examples: '1.4rem', '1.4 rem ', '12px'
+     * @param {String} input examples: '1.4rem', '1.4 rem ', '12px', 'initial'
      * @returns {LengthValue|null}
      */
     static valueFromInput(input) {
+        if (input === 'initial')
+            return {num: '', unit: 'rem'};
         const chars = input.split('').filter(ch => ch !== ' ');
         const firstAlpha = chars.findIndex(ch => {
             const cc = ch.charCodeAt(0);
@@ -102,31 +92,16 @@ console.log('nortm',numNorm);
         });
         if (firstAlpha > 0)
             return {num: chars.slice(0, firstAlpha).join(''),
-                     unit: chars.slice(firstAlpha).join('')};
+                    unit: chars.slice(firstAlpha).join('')};
         return null; // not supported
-    }
-    /**
-     * @param {LengthValue|null} input
-     * @returns {LengthValue}
-     */
-    static normalize(input) {
-        return input || {num: NO_VALUE, unit: 'rem'};
     }
     /**
      * @param {LengthValue} value
      * @returns {String}
      */
     static valueToString(value) {
-        return `${typeof value.num === 'string' && value.num.length ? value.num : NO_VALUE}${value.unit}`;
+        return typeof value.num === 'string' && value.num.length ? `${value.num}${value.unit}` : 'initial';
     }
-}
-
-/**
- * @param {String} num
- * @returns {String}
- */
-function normValueNum(num) {
-    return num !== NO_VALUE ? num : '';
 }
 
 export default LengthValueInput;

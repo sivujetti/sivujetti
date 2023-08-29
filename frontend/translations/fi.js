@@ -36,7 +36,10 @@ stringBundles.push({
     'Add style': 'Lisää tyyli',
     'Select style': 'Valitse tyyli',
     'create clone': 'luo uusi',
+    'create new': 'luo uusi',
+    'reuse': 'uudelleenkäytä',
     'Create template': 'Luo templaatti',
+    'Master template': 'Pohjatemplaatti',
     'Show parent styles': 'Näytä ulommat tyylit',
     'Show parent templates': 'Näytä ulommat templaatit',
     'Edit name': 'Muokkaa nimeä',
@@ -350,5 +353,6 @@ stringBundles.push({
     'Text normal': 'Teksti normaali',
     'Text headings': 'Teksti otsikot',
     'Links': 'Linkit',
+    'Line height': 'Riviväli',
     'Paragraphs margin': 'Tekstikappale väli',
 }, validationStrings);

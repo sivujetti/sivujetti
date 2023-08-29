@@ -11,9 +11,8 @@ class ColorValueInput extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        const cur = getVisibleColor(this.props);
-        const incoming = getVisibleColor(props);
-        if ((cur.data !== incoming.data || cur.type !== incoming.type) && this.pickr) {
+        const incoming = props.valueReal;
+        if ((this.props.valueReal.data !== incoming.data || this.props.valueReal.type !== incoming.type) && this.pickr) {
             this.pickr.setColor(incoming.data);
         }
     }
@@ -35,16 +34,14 @@ class ColorValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render(props) {
-        const visible = getVisibleColor(props);
-        const {labelTranslated, isClearable} = props;
-        return <FormGroupInline className={ `has-visual-color-input flex-centered${wc_hex_is_light(visible.data) ? ' is-very-light-color' : ''}` }>
+    render({valueReal, isClearable, labelTranslated, showNotice, noticeDismissedWith}) {
+        return <FormGroupInline className={ `has-visual-color-input flex-centered${wc_hex_is_light(valueReal.data) ? ' is-very-light-color' : ''}` }>
             <label class="form-label p-relative pt-1" title={ labelTranslated }>
                 { labelTranslated }
-                { !props.showNotice ? null : <button
+                { !showNotice ? null : <button
                     onClick={ () => {
                         const doCreateCopy = confirm(__('todo2323'));
-                        props.noticeDismissedWith(doCreateCopy);
+                        noticeDismissedWith(doCreateCopy);
                     } }
                     class="btn btn-link btn-sm p-absolute"
                     title={ __('Notice') }
@@ -59,7 +56,7 @@ class ColorValueInput extends preact.Component {
             <div class="pickr disappearing-pickr">
                 <button
                     onClick={ this.replaceDisappearingBox.bind(this) }
-                    style={ `--pcr-color:${visible.data};` }
+                    style={ `--pcr-color:${valueReal.data};` }
                     class="pcr-button"
                     type="button"
                     aria-label="toggle color picker dialog"
@@ -88,11 +85,10 @@ class ColorValueInput extends preact.Component {
         //
         const realColorBox = document.createElement('div');
         disappearingColorBox.parentElement.insertBefore(realColorBox, disappearingColorBox);
-        const norm = getVisibleColor(this.props);
         this.pickr = window.Pickr.create({
             el: realColorBox,
             theme: 'nano',
-            default: norm.data,
+            default: this.props.valueReal.data,
             components: {preview: true, opacity: true, hue: true, interaction: {}}
         });
         //
@@ -108,7 +104,7 @@ class ColorValueInput extends preact.Component {
             }
             signals.emit('visual-styles-var-value-changed-fast', this.props.selector, this.props.varName, value, 'color');
         }).on('changestop', (_source, instance) => {
-            if (getVisibleColor(this.props).data === nonCommittedHex) return;
+            if (this.props.valueReal.data === nonCommittedHex) return;
             // Update realColorBox's color
             instance.setColor(nonCommittedHex);
             // Commit
@@ -123,6 +119,8 @@ class ColorValueInput extends preact.Component {
      * @returns {ColorValue|null}
      */
     static valueFromInput(input) {
+        if (input === 'initial')
+            return {data: '#000000ff', type: 'hexa'};
         // https://stackoverflow.com/a/47355187
         if (!helperCanvasCtx) helperCanvasCtx = document.createElement('canvas').getContext('2d');
         else helperCanvasCtx.fillStyle = '#000'; // clear previous
@@ -143,27 +141,12 @@ class ColorValueInput extends preact.Component {
         };
     }
     /**
-     * @param {ColorValue|null} input
-     * @returns {Coloralue}
-     */
-    static normalize(input) {
-        return input || {data: '#000000ff', type: 'hexa'};
-    }
-    /**
      * @param {ColorValue} value
      * @returns {String}
      */
     static valueToString(value) {
         return `${value.data}`;
     }
-}
-
-/**
- * @param {ValueInputProps<ColorValue>} props
- * @access protected
- */
-function getVisibleColor({valueToDisplay, valueReal}) {
-    return ColorValueInput.normalize(valueToDisplay || valueReal);
 }
 
 /**
@@ -174,7 +157,7 @@ function getVisibleColor({valueToDisplay, valueReal}) {
  * @param {Boolean} multiplyByAlpha = false
  * @param {Boolean}
  */
-function wc_hex_is_light(hexa, howLight = 220, multiplyByAlpha = false) { // ctrl+f 
+function wc_hex_is_light(hexa, howLight = 220, multiplyByAlpha = false) {
     const c_r = parseInt(hexa.substring(1, 3), 16);
     const c_g = parseInt(hexa.substring(3, 5), 16);
     const c_b = parseInt(hexa.substring(5, 7), 16);

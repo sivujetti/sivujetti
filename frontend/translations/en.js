@@ -29,9 +29,9 @@ stringBundles.push({
     'Specialized': 'Specialized',
     'Unique reusables': 'Uniques reusables',
     'duplicated': 'duplicated',
-    // edit-app/src/left-column/block/CodeBasedStylesList.jsx
+    // edit-app/src/left-column/block/CodeBasedStylesList|WidgetBasedStylesList.jsx.jsx
     'You can add and remove this content\'s styles in "Styles" tab': 'You can add and remove this content\'s styles in "Styles" tab',
-    'No own styles': 'No own styles',
+    'This style does not have editable values.': 'This style does not have editable values.',
     'No own templates': 'No own templates',
     'Add style': 'Add style',
     'Select style': 'Select style',

@@ -7,8 +7,8 @@ import {SPECIAL_BASE_UNIT_NAME, getLargestPostfixNum, findBlockTypeStyles,
         emitAddStyleClassToBlock, compileSpecial, updateAndEmitUnitScss,
         emitCommitStylesOp, EditableTitle, goToStyle, findParentStyleInfo,
         tempHack, StylesList, findBodyStyle, splitUnitAndNonUnitClasses,
-        dispatchNewBlockStyleClasses, emitUnitChanges, optimizeScss, findBaseUnitOf,
-        getEnabledUnits, getRemoteBodyUnit, emitReplaceClassesFromBlock} from './styles-shared.jsx';
+        emitUnitChanges, optimizeScss, findBaseUnitOf, getEnabledUnits,
+        getRemoteBodyUnit, emitReplaceClassesFromBlock} from './styles-shared.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from '../../store.js';
 import {saveExistingBlocksToBackend} from './createBlockTreeDndController.js';
@@ -124,7 +124,7 @@ class WidgetBasedStylesList extends StylesList {
                                 this.setState({mutatedStyleInfo: null});
                             } }
                             key={ `${key}-${cssVar.varName}` }/>;
-                    }) : <div>{ __('Tässä tyylissä ei ole muokattavia arvoja.') }</div> }</div>
+                    }) : <div style="color-dimmed">{ __('This style does not have editable values.') }</div> }</div>
                 </li>;
             }) }</ul> : <p class="pt-1 mb-2 color-dimmed">{ __('No own styles') }.</p>
             : <LoadingSpinner className="ml-1 mb-2 pb-2"/>
@@ -200,10 +200,11 @@ class WidgetBasedStylesList extends StylesList {
             env.normalTypingDebounceMillis
         );
         const unitsEnabled = getEnabledUnits(unitsOfThisBlockType, this.bodyStyle.units, blockCopy);
+        const userIsTechnical = !this.props.useVisualStyles;
         const [unitsToShow, addable] = unitsEnabled !== null
             ? [
-                getEditableUnits(unitsEnabled),
-                createAddableUnits(unitsOfThisBlockType, unitsEnabled, blockCopy.type, !this.props.useVisualStyles)
+                getEditableUnits(unitsEnabled, userIsTechnical)
+                createAddableUnits(unitsOfThisBlockType, unitsEnabled, blockCopy.type, userIsTechnical)
             ] : [
                 null,
                 null
@@ -289,24 +290,19 @@ class WidgetBasedStylesList extends StylesList {
     handleConfirmAddStyle(e, [instantiable, reference], block) {
         const tmp = instantiable.find(({id}) => id === e.target.value);
         const unit = tmp || reference.find(({id}) => id === e.target.value);
-        this.addUnitFrom(unit, block, !tmp && !!unit.derivedFrom);
+        this.addUnitFrom(unit, block, !!tmp && !unit.derivedFrom);
     }
     /**
      * @param {ThemeStyleUnit} unit
      * @param {RawBlock} block
+     * @param {Boolean} isInstantiable
      * @access private
      */
-    addUnitFrom(unit, block, doRef) {
-        // if (unit.isDerivable && !unit.derivedFrom)
+    addUnitFrom(unit, block, isInstantiable) {
+        if (!isInstantiable) {
+            this.addStyleClassOnly(unit);
+        } else
             this.addUnitClone(unit, block, !isBodyRemote(unit.id) ? '_base' : '_default');
-        // else if (unit.origin === SPECIAL_BASE_UNIT_NAME)
-        //     this.addUnitClone(this.getRemoteBodyUnit(unit, block, false), block, '_default');
-        // else
-        //     this.addRef(unit);
-        if (doRef)
-            this.addRef(unit);
-        else
-            this.addUnitClone(unit, block, !isBodyRemote(unit.id) ? '_base' : '_default'); // ??
     }
     /**
      * @param {ThemeStyleUnit} base
@@ -499,8 +495,10 @@ class WidgetBasedStylesList extends StylesList {
      * @param {ThemeStyleUnit} unit
      * @access private
      */
-    addCloneOfUnitClone(unit) {
-        const cls = createUnitClass(unit.id, this.props.blockCopy.type);
+    addStyleClassOnly(unit) {
+        const blockTypeName = this.props.blockCopy.type;
+        const tmp = createUnitClass(unit.id, blockTypeName);
+        const cls = unit.derivedFrom && !isBodyRemote(unit.derivedFrom) ? `${createUnitClass(unit.derivedFrom, blockTypeName)} ${tmp}` : tmp;
         this.curBlockStyleClasses = emitAddStyleClassToBlock(cls, this.props.blockCopy);
         this.updateState(this.state.unitsOfThisBlockType, store2.get().themeStyles, {...this.props.blockCopy, ...{styleClasses: this.curBlockStyleClasses}});
     }
@@ -747,7 +745,12 @@ function getFallback(str) {
  * @returns {Array<ThemeStyleUnit>}
  */
 function getEditableUnits(enabledUnits, userIsTechnical) {
-    return userIsTechnical ? enabledUnits : enabledUnits.filter(unit => !isBodyRemote(unit.id));
+    if (userIsTechnical) {
+        // Return remote units only if there's no inherited ones
+        return enabledUnits.length === 1 ? enabledUnits : enabledUnits.filter(unit => !isBodyRemote(unit.id));
+    } else {
+        return enabledUnits.filter(unit => !isBodyRemote(unit.id));
+    }
 }
 
 /**
@@ -758,6 +761,7 @@ function getEditableUnits(enabledUnits, userIsTechnical) {
  * @returns {[Array<ThemeStyleUnit>, Array<ThemeStyleUnit>]} [instantiables, normalsOrReferences]
  */
 function createAddableUnits(unitsOfThisBlockType, enabledUnits, blockTypeName, userIsTechnical) {
+    userIsTechnical = false;
     const reference = [];
     const instantiable = [];
     if (!userIsTechnical) {

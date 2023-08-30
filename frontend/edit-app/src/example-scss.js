@@ -14,7 +14,7 @@ export default {
 'Button': {
     outermostEl: 'button|a',
     first:
-`border: transparent;`,
+`border-color: transparent;`,
     second:
 `> .j-Image {
   display: inline;

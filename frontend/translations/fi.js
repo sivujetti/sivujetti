@@ -29,8 +29,9 @@ stringBundles.push({
     'Specialized': 'Erikoistuneet',
     'Unique reusables': 'Uniikit uudelleenkäytettävät',
     'duplicated': 'monistettu',
-    // edit-app/src/left-column/block/CodeBasedStylesList.jsx
+    // edit-app/src/left-column/block/CodeBasedStylesList|WidgetBasedStylesList.jsx.jsx
     'You can add and remove this content\'s styles in "Styles" tab': 'Voit poistaa ja lisätä tämän sisällön tyylejä "Tyylit"-tabissa',
+    'This style does not have editable values.': 'Tässä tyylissä ei ole muokattavia arvoja.',
     'No own styles': 'Ei omia tyylejä',
     'No own templates': 'Ei omia templaatteja',
     'Add style': 'Lisää tyyli',

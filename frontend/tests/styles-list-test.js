@@ -81,6 +81,13 @@ QUnit.module('WidgetBasedStylesList.jsx, styles-shared.jsx', () => {
         const result3 = getEditableUnits(unitsEnabled3, userCanEditCss);
         assert.deepEqual(result3, [derived1, derived2], '3');
     });
+    QUnit.test('createEditableUnits(userCanEditCss=true) for "Button" also includes default units', assert => {
+        const {testUnits, testBlock, masterUnit} = createButtonTestData();
+        const unitsEnabled = getEnabledUnits(testUnits.ofThisBlockType, testUnits.ofBody, testBlock);
+        const userCanEditCss = true;
+        const result = getEditableUnits(unitsEnabled, userCanEditCss);
+        assert.deepEqual(result, [masterUnit], '1');
+    });
 
     QUnit.test('createAddableUnits(userCanEditCss=false) for "Section" includes units that can be added and aren\'t already enabled', assert => {
         const {testUnits, testBlock, derived1, derived2, masterUnit} = createSectionTestData();

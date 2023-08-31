@@ -1,14 +1,15 @@
 import {__, api, env, timingUtils, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import store2, {asst, observeStore as observeStore2} from '../../store2.js';
-import VisualStyles, {createUnitClass, valueEditors, replaceVarValue, varNameToLabel} from './VisualStyles.jsx';
+import VisualStyles, {valueEditors, replaceVarValue, varNameToLabel} from './VisualStyles.jsx';
 import {traverseAst} from '../../commons/CssStylesValidatorHelper.js';
 import {SPECIAL_BASE_UNIT_NAME, getLargestPostfixNum, findBlockTypeStyles,
         emitAddStyleClassToBlock, compileSpecial, updateAndEmitUnitScss,
         emitCommitStylesOp, EditableTitle, goToStyle, findParentStyleInfo,
         tempHack, StylesList, findBodyStyle, splitUnitAndNonUnitClasses,
         emitUnitChanges, optimizeScss, findBaseUnitOf, getEnabledUnits,
-        getRemoteBodyUnit, emitReplaceClassesFromBlock} from './styles-shared.jsx';
+        getRemoteBodyUnit, emitReplaceClassesFromBlock, createUnitClass,
+        createUnitClassSpecial} from './styles-shared.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from '../../store.js';
 import {saveExistingBlocksToBackend} from './createBlockTreeDndController.js';
@@ -71,10 +72,11 @@ class WidgetBasedStylesList extends StylesList {
         const selectOptions = addable ? createAddUnitsDropdownList(addable) : [];
         return [...[
             unitsToShow !== null ? unitsToShow.length ? <ul class="list styles-list mb-2">{ unitsToShow.map((unit, i) => {
-                const either = this.getMaybeRemote(unit, blockCopy, true);
-                const isDefault = either !== unit;
-                const cls = createUnitClass(unit.id, blockCopy.type);
-                const [cssVars, ast] = VisualStyles.extractVars(either.scss, cls);
+                const isDefault = isBodyRemote(unit.id);
+                const cls = !isDefault
+                    ? createUnitClass(unit.id, blockCopy.type)
+                    : createUnitClassSpecial(unit.id, blockCopy.type);
+                const [cssVars, ast] = VisualStyles.extractVars(unit.scss, 'dummy');
                 let varsInsights = [];
                 if (unit.optimizedScss && cssVars.length) {
                     const isDerivedFromBodyUnit = isBodyRemote(unit.derivedFrom);
@@ -89,14 +91,15 @@ class WidgetBasedStylesList extends StylesList {
                             type="button">
                             <EditableTitle
                                 unitId={ unit.id }
-                                unitIdReal={ !isDefault ? null : either.id }
-                                currentTitle={ either.title }
+                                unitIdReal={ unit.id }
+                                currentTitle={ unit.title }
                                 blockTypeName={ blockCopy.type }
                                 allowEditing={ userCanEditVisualStyles
-                                    ? true                 // admin user -> always
-                                    : !!either.derivedFrom // non-admin -> onyl if this unit is derived
+                                    ? true               // admin user -> always
+                                    : !!unit.derivedFrom // non-admin -> onyl if this unit is derived
                                 }
-                                subtitle={ null }
+                                subtitle={ isDefault ? [__('Default'), unit.specifier ? ` (${unit.specifier})` : ''].join('') : null }
+                                subtitleMarginLeft={ 0.5 }
                                 ref={ this.editableTitleInstances[i] }/>
                         </b>
                     </header>
@@ -105,17 +108,18 @@ class WidgetBasedStylesList extends StylesList {
                         const ins = varsInsights[i2];
                         const valueIsClearable = ins && ins.hasChanged;
                         return <Renderer
+                            varName={ cssVar.varName }
                             valueReal={ {...cssVar.value} }
                             argsCopy={ cssVar.args ? [...cssVar.args] : [] }
+                            data={ createDataPropForValueInputRenderer(cssVar, unit, cls) }
                             isClearable={ valueIsClearable }
                             labelTranslated={ __(varNameToLabel(withoutAppendix(cssVar.varName))) }
                             onVarValueChanged={ newValAsString => {
                                 const val = newValAsString !== null
                                     ? newValAsString
                                     : extractVal(varsInsights[i2].lineB);
-                                this.emitChange(val, cssVar, either, unit, ast, cls);
+                                this.emitChange(val, cssVar, unit, ast, cls);
                             } }
-                            selector={ `.${cls}` }
                             showNotice={ mutatedStyleInfo !== null && cssVar.varName === mutatedStyleInfo.firstMutatedVarName }
                             noticeDismissedWith={ accepted => {
                                 if (accepted) // Do create copy, replace block's cssClass '-unit-<old>' -> '-unit-<newCopy>'
@@ -203,7 +207,7 @@ class WidgetBasedStylesList extends StylesList {
         const userIsTechnical = !this.props.useVisualStyles;
         const [unitsToShow, addable] = unitsEnabled !== null
             ? [
-                getEditableUnits(unitsEnabled, userIsTechnical)
+                getEditableUnits(unitsEnabled, userIsTechnical),
                 createAddableUnits(unitsOfThisBlockType, unitsEnabled, blockCopy.type, userIsTechnical)
             ] : [
                 null,
@@ -218,23 +222,22 @@ class WidgetBasedStylesList extends StylesList {
      * @see this.emitVarValueChange
      * @access private
      */
-    emitChange(str, cssVar, either, unit, ast, cls) {
-        this[str !== null ? 'debouncedEmitVarValueChange' : 'emitVarValueChange'](str, cssVar, either, unit, ast, cls);
+    emitChange(str, cssVar, unit, ast, cls) {
+        this[str !== null ? 'debouncedEmitVarValueChange' : 'emitVarValueChange'](str, cssVar, unit, ast, cls);
     }
     /**
      * @param {String} newValAsString
      * @param {CssVar} cssVar
-     * @param {ThemeStyleUnit} eitherCopy
      * @param {ThemeStyleUnit} unitCopy
      * @param {Array<StylisAstNode>} ast
      * @param {String} cls
      * @access private
      */
-    emitVarValueChange(newValAsString, cssVar, eitherCopy, unitCopy, ast, cls) {
+    emitVarValueChange(newValAsString, cssVar, unitCopy, ast, cls) {
         const [_, varDeclAstNode] = getCurrentInfo(cssVar, ast);
         const varDecl = varDeclAstNode.props; // '--foo'
-        const blockTypeName = !eitherCopy.origin ? this.props.blockCopy.type : SPECIAL_BASE_UNIT_NAME;
-        updateAndEmitUnitScss(eitherCopy, copy => {
+        const blockTypeName = !unitCopy.origin ? this.props.blockCopy.type : SPECIAL_BASE_UNIT_NAME;
+        updateAndEmitUnitScss(unitCopy, copy => {
             const {scss, generatedCss} = copy;
             const reusableId = this.props.blockCopy.__duplicatedFrom;
             if (useDismissFeature) {
@@ -454,7 +457,7 @@ class WidgetBasedStylesList extends StylesList {
             ...(!optimizedScss
                 ? {}
                 : optimizedScss !== '?'
-                    ? {optimizedScss, optimizedGeneratedCss: serialize(compile(`.${cls}{${optimizeScss}}`), stringify)}
+                    ? {optimizedScss, optimizedGeneratedCss: serialize(compile(`.${cls}{${optimizedScss}}`), stringify)}
                     : {optimizedScss: '', optimizedGeneratedCss: `.${cls}{}`}
             )
         };
@@ -471,9 +474,9 @@ class WidgetBasedStylesList extends StylesList {
                                 dataBefore, type, unitThis.id);
             } else {
                 const dataBefore = {scss: unitThis.scss, generatedCss: unitThis.generatedCss,
-                                    optimizeScss: unitThis.optimizedScss, optimizedGeneratedCss: unitThis.optimizedGeneratedCss};
+                                    optimizedScss: unitThis.optimizedScss, optimizedGeneratedCss: unitThis.optimizedGeneratedCss};
                 emitUnitChanges({scss: mutatedStyleInfo.originalScss, generatedCss: mutatedStyleInfo.originalGeneratedCss,
-                                optimizeScss: mutatedStyleInfo.originalOptimizedScss,
+                                optimizedScss: mutatedStyleInfo.originalOptimizedScss,
                                 optimizedGeneratedCss: mutatedStyleInfo.originalOptimizedGeneratedCss},
                                 dataBefore, type, unitThis.id);
             }
@@ -584,7 +587,6 @@ class WidgetBasedStylesList extends StylesList {
 
         const isDerivedFromBodyUnit = isBodyRemote(unit.derivedFrom);
         const base = findBaseUnitOf(unit, (!isDerivedFromBodyUnit ? this.state.unitsOfThisBlockType : this.bodyStyle.units));
-        const bodyUnit = '';
         return optimizeScss(newScss, base.scss);
     }
 }
@@ -672,15 +674,6 @@ function getCurrentInfo({varName}, ast) {
         if (!node2) node2 = children.find(node => node.props === `--${varName}`); // '--varName:3rem;'
     }
     return [node1, node2];
-}
-
-/**
- * @param {'initial'|cssValType} val
- * @returns {String}
- */
-function valueToString(val, Cls) {
-    if (val === 'initial') return val;
-    return Cls.valueToString(val);
 }
 
 /**
@@ -828,6 +821,23 @@ function getInitialScssWithMaybeInheritedValues({id}, scss, apdx) {
 }
 
 /**
+ * @param {CssVar} cssVar
+ * @param {ThemeStyleUnit} unit
+ * @param {String} cls
+ * @returns {{selector: String; wrapCss?: String;}|null}
+ */
+function createDataPropForValueInputRenderer(cssVar, unit, cls) {
+    if (cssVar.type !== 'color') return null;
+
+    return {
+        ...{selector: `.${cls}`},
+        ...(unit.optimizedGeneratedCss && unit.optimizedScss.indexOf(`var(--${cssVar.varName}`) < 0
+            ? {wrapCss: unit.generatedCss}
+            : {})
+    };
+}
+
+/**
  * @typedef MutatedStyleInfo
  * @prop {String} originalScss
  * @prop {String} originalGeneratedCss
@@ -853,4 +863,5 @@ function getInitialScssWithMaybeInheritedValues({id}, scss, apdx) {
  */
 
 export default WidgetBasedStylesList;
-export {createCloneInstructions, getEditableUnits, createAddableUnits, createAddUnitsDropdownList};
+export {createCloneInstructions, getEditableUnits, createAddableUnits,
+        createAddUnitsDropdownList};

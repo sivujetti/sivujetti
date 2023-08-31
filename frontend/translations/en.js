@@ -39,7 +39,7 @@ stringBundles.push({
     'create new': 'create new',
     'reuse': 'reuse',
     'Create template': 'Create template',
-    'Master template': 'Master template',
+    'Base template': 'Base template',
     'Show parent styles': 'Show parent styles',
     'Show parent templates': 'Show parent templates',
     'Edit name': 'Edit name',

@@ -4,19 +4,16 @@ import {__, api, env, http, signals, Icon, hookForm,
 import {PopupPrerendered} from '../../block-types/listing/AddFilterPopup.jsx';
 import store2 from '../../store2.js';
 import {getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
-import {createUnitClass} from './VisualStyles.jsx';
 import blockTreeUtils from './blockTreeUtils.js';
 import StyleTextarea, {findBaseUnitOf, optimizeScss, emitUnitChanges, emitCommitStylesOp,
-        updateAndEmitUnitScss, compileSpecial, tempHack2} from './StylesTextarea.jsx';
+        updateAndEmitUnitScss, compileSpecial, tempHack2, createUnitClass,
+        createUnitClassSpecial, SPECIAL_BASE_UNIT_NAME, specialBaseUnitCls} from './StylesTextarea.jsx';
 import {isBodyRemote} from './style-utils.js';
-
-const SPECIAL_BASE_UNIT_NAME = '_body_';
-const specialBaseUnitCls = createUnitClass('', SPECIAL_BASE_UNIT_NAME);
 
 class EditableTitle extends preact.Component {
     // popup;
     /**
-     * @param {{unitId: String; unitIdReal: String|null; currentTitle: String; blockTypeName: String; allowEditing: Boolean; subtitle: String|null;}} props
+     * @param {{unitId: String; unitIdReal: String|null; currentTitle: String; blockTypeName: String; allowEditing: Boolean; subtitle: String|null; subtitleMarginLeft?: Number;}} props
      */
     constructor(props) {
         super(props);
@@ -50,7 +47,7 @@ class EditableTitle extends preact.Component {
             <span class="text-ellipsis">
                 { values ? values.title : currentTitle }
                 { subtitle
-                    ? <i style="font-size: .5rem; left: 1.7rem; bottom: -6px;" class="p-absolute color-dimmed3">
+                    ? <i style={ `font-size: .5rem; left: ${parseFloat(this.props.subtitleMarginLeft || 1.7)}rem; bottom: -6px;` } class="p-absolute color-dimmed3">
                         { subtitle }
                     </i>
                     : null
@@ -560,6 +557,7 @@ function getRemoteBodyUnit(unit, blockTypeName, bodyStyleUnits, copy = true) {
 export {StyleTextarea, SPECIAL_BASE_UNIT_NAME, EditableTitle, specialBaseUnitCls,
         getLargestPostfixNum, findBlockTypeStyles, findBodyStyle, findBodyStyleMainUnit,
         //
+        createUnitClass, createUnitClassSpecial,
         emitAddStyleClassToBlock, emitReplaceClassesFromBlock, splitUnitAndNonUnitClasses, dispatchNewBlockStyleClasses,
         //
         compileSpecial, updateAndEmitUnitScss, emitUnitChanges, emitCommitStylesOp,

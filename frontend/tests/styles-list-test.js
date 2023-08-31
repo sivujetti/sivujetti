@@ -1,6 +1,5 @@
 import {__} from '@sivujetti-commons-for-edit-app';
-import {getEnabledUnits, SPECIAL_BASE_UNIT_NAME} from '../edit-app/src/left-column/block/styles-shared.jsx';
-import {createUnitClass} from '../edit-app/src/left-column/block/VisualStyles.jsx';
+import {getEnabledUnits, SPECIAL_BASE_UNIT_NAME, createUnitClass} from '../edit-app/src/left-column/block/styles-shared.jsx';
 import {createAddUnitsDropdownList, createAddableUnits, getEditableUnits} from '../edit-app/src/left-column/block/WidgetBasedStylesList.jsx';
 
 QUnit.module('WidgetBasedStylesList.jsx, styles-shared.jsx', () => {
@@ -169,7 +168,7 @@ function getTestStyles(blockTypeName) {
         ? {ofThisBlockType: [
             createUnit({title: '', isDerivable: false, id: 'unit-101', derivedFrom: null, origin: SPECIAL_BASE_UNIT_NAME}),
             createUnit({title: '', isDerivable: false, id: 'unit-102', derivedFrom: null, origin: SPECIAL_BASE_UNIT_NAME}),
-            createUnit({title: 'Master template', isDerivable: true, id: 'unit-103', derivedFrom: null}),
+            createUnit({title: 'Base template', isDerivable: true, id: 'unit-103', derivedFrom: null}),
             createUnit({title: 'My derived', isDerivable: false, id: 'd-104', derivedFrom: 'unit-103'}),
             createUnit({title: 'My derived 2', isDerivable: false, id: 'd-105', derivedFrom: 'unit-103'}),
         ], ofBody: [
@@ -181,7 +180,7 @@ function getTestStyles(blockTypeName) {
             createUnit({title: 'Light', isDerivable: false, id: 'd-102', derivedFrom: 'unit-101'}),
             createUnit({title: 'Primary', isDerivable: false, id: 'd-103', derivedFrom: 'unit-101'}),
         ], ofBody: [
-            createUnit({title: 'Master template (default)', isDerivable: true, id: 'j-Button-unit-101', origin: 'Button'}),
+            createUnit({title: 'Base template (default)', isDerivable: true, id: 'j-Button-unit-101', origin: 'Button'}),
         ]};
 }
 

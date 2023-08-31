@@ -94,15 +94,16 @@ class ColorValueInput extends preact.Component {
         //
         let nonCommittedHex;
         this.pickr.on('change', (color, _source, _instance) => {
-            let value;
+            let valOrGetValBundle;
+            const {selector, wrapCss} = this.props.data;
             if (!this.resetValueIsPending) {
                 nonCommittedHex = `#${color.toHEXA().slice(0, 4).join('')}`;
-                value = !this.props.valueWrapStr ? nonCommittedHex : () => this.props.valueWrapStr.replace(/var\(%s\)/g, nonCommittedHex);
+                valOrGetValBundle = !wrapCss ? nonCommittedHex : () => ({supportingCss: wrapCss, varVal: nonCommittedHex});
             } else {
-                value = !this.props.valueWrapStr ? 'initial' : (() => '');
+                valOrGetValBundle = 'initial';
                 this.resetValueIsPending = false;
             }
-            signals.emit('visual-styles-var-value-changed-fast', this.props.selector, this.props.varName, value, 'color');
+            signals.emit('visual-styles-var-value-changed-fast', selector, this.props.varName, valOrGetValBundle, 'color');
         }).on('changestop', (_source, instance) => {
             if (this.props.valueReal.data === nonCommittedHex) return;
             // Update realColorBox's color

@@ -49,9 +49,9 @@ h1, h2, h3, h4, h5, h6 {
 
 Order | Name | Derivable | Default
 --- | --- | --- | ---
-1 | Default | yes | yes
+1 | Base template | yes | yes
 
-### Default
+### Base template
 
 ```scss
 // @exportAs(option:1|2|3|4)
@@ -71,10 +71,9 @@ column-gap: var(--gapX_Listing_default1);
 
 Order | Name | Derivable | Default
 --- | --- | --- | ---
-1 | Master template | yes | yes
+1 | Base template | yes | yes
 
-### Master template
-
+### Base template
 
 ```scss
 // @exportAs(option:none|circle|decimal|disc|disclosure-closed|disclosure-open|square)
@@ -102,7 +101,10 @@ Order | Name | Derivable | Default
 // @exportAs(length)
 --paddingLeft_Menu_default1: 0.0rem;
 
-padding: var(--paddingTop_Menu_default1) var(--paddingRight_Menu_default1) var(--paddingBottom_Menu_default1) var(--paddingLeft_Menu_default1);
+padding-top: var(--paddingTop_Menu_default1);
+padding-right: var(--paddingRight_Menu_default1);
+padding-bottom: var(--paddingBottom_Menu_default1);
+padding-left: var(--paddingLeft_Menu_default1);
 
 ul {
   list-style-type: var(--listStyleType_Menu_default1);
@@ -114,7 +116,10 @@ ul {
     flex: 0 0 var(--itemsWidth_Menu_default1);
     margin: 0;
     a {
-      padding: var(--itemsPaddingY_Menu_default1) var(--itemsPaddingX_Menu_default1) var(--itemsPaddingY_Menu_default1) var(--itemsPaddingX_Menu_default1);
+      padding-top: var(--itemsPaddingY_Menu_default1);
+      padding-right: var(--itemsPaddingX_Menu_default1);
+      padding-bottom: var(--itemsPaddingY_Menu_default1);
+      padding-left: var(--itemsPaddingX_Menu_default1);
       color: var(--linksNormal_Menu_default1, var(--linksDefault));
       text-transform: var(--linksTransform_Menu_default1);
       &:hover {
@@ -129,10 +134,10 @@ ul {
 
 Order | Name | Derivable | Default
 --- | --- | --- | ---
-1 | Master template | yes | yes
+1 | Base template | yes | yes
 2 | Primary | yes | no
 
-### Master template
+### Base template
 
 ```scss
 // @exportAs(color)
@@ -162,7 +167,7 @@ Order | Name | Derivable | Default
 // @exportAs(length)
 --paddingLeft_Button_default1: 0.4rem;
 
-font: 400 .75rem/1.2rem -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",sans-serif;
+font: 400 0.8rem/1.2rem "Domine";
 justify-content: var(--alignHorizontal_Button_default1);
 background: var(--backgroundNormal_Button_default1);
 border: 1px solid var(--border_Button_default1);
@@ -235,9 +240,9 @@ padding-left: var(--paddingLeft_Button_u2, var(--paddingLeft_Button_default1));
 
 Order | Name | Derivable | Default
 --- | --- | --- | ---
-1 | Commons | yes | no
+1 | Base template | yes | no
 
-### Commons
+### Base template
 
 ```scss
 // @exportAs(option:initial|none)
@@ -252,16 +257,19 @@ Order | Name | Derivable | Default
 --paddingLeft_Code_base1: 0.0rem;
 
 display: var(--display_Code_base1);
-padding: var(--paddingTop_Code_base1) var(--paddingRight_Code_base1) var(--paddingBottom_Code_base1) var(--paddingLeft_Code_base1);
+paddin-top: var(--paddingTop_Code_base1);
+padding-right: var(--paddingRight_Code_base1);
+padding-bottom: var(--paddingBottom_Code_base1);
+padding-left: var(--paddingLeft_Code_base1);
 ```
 
 ## Columns
 
 Order | Name | Derivable | Default
 --- | --- | --- | ---
-1 | Default | yes | no
+1 | Base template | yes | no
 
-### Commons
+### Base template
 
 ```scss
 // @exportAs(length)
@@ -279,16 +287,19 @@ Order | Name | Derivable | Default
 
 gap: var(--gap_Columns_base1);
 align-items: var(--alignItems_Columns_base1);
-padding: var(--paddingTop_Columns_base1) var(--paddingRight_Columns_base1) var(--paddingBottom_Columns_base1) var(--paddingLeft_Columns_base1);
+padding-top: var(--paddingTop_Columns_base1);
+padding-right: var(--paddingRight_Columns_base1);
+padding-bottom: var(--paddingBottom_Columns_base1);
+padding-left: var(--paddingLeft_Columns_base1);
 ```
 
 ## Image
 
 Order | Name | Derivable | Default
 --- | --- | --- | ---
-1 | Default | yes | no
+1 | Base template | yes | no
 
-### Commons
+### Base template
 
 ```scss
 // @exportAs(option:left|right|none|initial)
@@ -315,18 +326,21 @@ min-height: var(--minHeight_Image_base1);
 max-height: var(--maxHeight_Image_base1);
 max-width: var(--maxWidth_Image_base1);
 display: var(--display_Image_base1);
-padding: var(--paddingTop_Image_base1) var(--paddingRight_Image_base1) var(--paddingBottom_Image_base1) var(--paddingLeft_Image_base1);
+padding-top: var(--paddingTop_Image_base1);
+padding-right: var(--paddingRight_Image_base1);
+padding-bottom: var(--paddingBottom_Image_base1);
+padding-left: var(--paddingLeft_Image_base1);
 ```
 
 ## Section
 
 Order | Name | Derivable | Default
 --- | --- | --- | ---
-1 | Stack | no | yes
-2 | Body | no | yes
-3 | Master template | yes | no
+1 | Default | no | yes
+2 | Default (body) | no | yes
+3 | Base template | yes | no
 
-### Stack
+### Default
 
 ```
 > div > :not(:first-child) {
@@ -334,7 +348,7 @@ Order | Name | Derivable | Default
 }
 ```
 
-### Body (specifier '>')
+### Default (body) (specifier '>')
 
 ```
 --paddingTop_Section_si1: var(--paddingYDefault, 4.0rem);
@@ -355,7 +369,7 @@ justify-content: var(--alignHorizontal_Section_si1);
 }
 ```
 
-### Master template
+### Base template
 
 ```scss
 // @exportAs(option:start|center|end|unset)
@@ -414,9 +428,9 @@ text-align: var(--textAlign_Section_base1);
 
 Order | Name | Derivable | Default
 --- | --- | --- | ---
-1 | Default | yes | yes
+1 | Base template | yes | yes
 
-### Default
+### Base template
 
 ```scss
 // @exportAs(color)

@@ -438,12 +438,13 @@ interface StylesListProps {
 type extractedVars = [Array<CssVar>, Array<StylisAstNode>];
 
 interface ValueInputProps<T> {
+    varName: String;
     valueReal: T;
     argsCopy: Array<String>;
+    data: {selector: String; wrapCss?: String;}|null;
     isClearable: Boolean;
     labelTranslated: String;
     onVarValueChanged: (newValAsString: String|null) => void;
-    selector: String;
     showNotice: Boolean;
     noticeDismissedWith: (accepted: Boolean) => void;
 }

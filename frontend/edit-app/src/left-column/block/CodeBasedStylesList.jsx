@@ -3,13 +3,13 @@ import {__, api, env, timingUtils, Icon, LoadingSpinner, InputError,
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import exampleScss from '../../example-scss.js';
-import VisualStyles, {createUnitClass} from './VisualStyles.jsx';
+import VisualStyles, {valueEditors} from './VisualStyles.jsx';
 import EditUnitOrSetAsDefaultDialog from '../../popups/styles/EditUnitOrSetAsDefaultDialog.jsx';
 import {getLargestPostfixNum, findBlockTypeStyles, SPECIAL_BASE_UNIT_NAME, findBodyStyle,
         dispatchNewBlockStyleClasses, compileSpecial, StyleTextarea, emitUnitChanges,
         emitCommitStylesOp, EditableTitle, tempHack2, goToStyle, blockHasStyle,
-        findParentStyleInfo, tempHack, StylesList, findRealUnit,
-        splitUnitAndNonUnitClasses} from './styles-shared.jsx';
+        findParentStyleInfo, tempHack, StylesList, findRealUnit, findBodyStyleMainUnit,
+        specialBaseUnitCls, splitUnitAndNonUnitClasses, createUnitClass} from './styles-shared.jsx';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -219,10 +219,7 @@ class CodeBasedStylesList extends StylesList {
      * @param {RawBlock} blockCopy = this.props.blockCopy
      * @access private
      */
-    updateUnitsState(candidate, themeStyles, currentOpenIdx = -1, blockCopy = this.props.blockCopy) {
-        const units = candidate ? candidate.filter(unit => !isSpecialUnit(unit)): [];
-        const isUnitStyleOn = unit => blockHasStyle(blockCopy, unit);
-        if (this.props.useVisualStyles) units.sort((a, b) => isUnitStyleOn(b) - isUnitStyleOn(a));
+    updateUnitsState(units, themeStyles, currentOpenIdx = -1, blockCopy = this.props.blockCopy) {
         this.receiveUnits(units);
         this.setState({units, liClasses: createLiClasses(units, currentOpenIdx),
             parentStyleInfo: findParentStyleInfo(themeStyles, blockCopy)});
@@ -404,15 +401,6 @@ class CodeBasedStylesList extends StylesList {
  */
 function createLiClasses(units, openIdx) {
     return units.map((_, i) => i !== openIdx ? '' : ' open');
-}
-
-/**
- * @param {ThemeStyleUnit} unit
- * @returns {Boolean}
- */
-function isSpecialUnit({id}) {
-    const pushIdLength = 20;
-    return !id.startsWith('unit-') && id.length === pushIdLength;
 }
 
 /**

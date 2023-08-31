@@ -1,5 +1,6 @@
-import {CHILDREN_START, CHILDREN_END, getMetaKey} from '../../edit-app/src/block/dom-commons.js';
-import ReRenderer, {findCommentR, getBlockEl} from './ReRenderer.js';
+import {CHILDREN_START, CHILDREN_END, getMetaKey,
+        getBlockEl} from '../../edit-app/src/block/dom-commons.js';
+import ReRenderer, {findCommentR} from './ReRenderer.js';
 
 const useCtrlClickBasedFollowLinkLogic = true;
 
@@ -175,33 +176,33 @@ class EditAppAwareWebPage {
         this.isMouseListenersDisabled = isDisabled;
     }
     /**
-     * @param {String} selector Example '.j-Text-unit-6' or '[data-block="-NGLsOGlKc3qw7kCRSOu"]'
+     * @param {String} selector Example '.j-Text-unit-6'
      * @param {String} varName Example 'textColor'
-     * @param {String|() => String} varValue Example '#f5f5f5' or () => 'text-align: right;'
+     * @param {String|() => {supportingCss: String; varVal: String;}} varValue Example '#f5f5f5' or () => {supportingCss: '.j-Section-d-6:before{content:"";background-color:var(--cover_Section_u6);...}'; varVal: '#f5f5f5'}
      * @param {'color'} valueType
      * @access public
      */
     fastOverrideStyleUnitVar(selector, varName, varValue, valueType) {
         if (valueType !== 'color') throw new Error();
-        //
-        let el;
-        if (!this.tempStyleOverrideNames.has(selector)) {
-            el = document.createElement('style');
-            el.setAttribute('data-temp-overrides-for', selector);
-            document.head.appendChild(el);
-            this.tempStyleOverrideNames.set(selector, 1);
+
+        const [el, attrSelector] = this.createOrGetTempStyleTag(selector, 'var-override');
+
+        let varValueFinal;
+        if (typeof varValue === 'function') {
+            // #1: supporting css
+            const {supportingCss, varVal} = varValue();
+            const [el2, attrSelector2] = this.createOrGetTempStyleTag(`${selector}-wrap`, 'supporting-css');
+            el2.innerHTML = supportingCss;
+            this.addRemoveTempStyleTagTimeout(attrSelector2);
+            varValueFinal = varVal;
         } else {
-            el = document.head.querySelector(`[data-temp-overrides-for='${selector}']`);
+            varValueFinal = varValue;
         }
-        //
-        el.innerHTML = `${selector} { ${typeof varValue === 'string' ? `--${varName}: ${varValue};` : varValue()} }`;
-        //
-        const timeoutId = this.tempStyleOverrideElsRemoveTimeouts.get(selector);
-        if (timeoutId) clearTimeout(timeoutId);
-        this.tempStyleOverrideElsRemoveTimeouts.set(selector, setTimeout(() => {
-            document.head.removeChild(document.head.querySelector(`[data-temp-overrides-for='${selector}']`));
-            this.tempStyleOverrideNames.delete(selector);
-        }, 2000));
+
+        // #2: variable
+        el.innerHTML = `${selector} { ${`--${varName}: ${varValueFinal};`} }`;
+
+        this.addRemoveTempStyleTagTimeout(attrSelector);
     }
     /**
      * @param {String} varName
@@ -230,6 +231,40 @@ class EditAppAwareWebPage {
     setOnReRenderOrUpdateStyles(fn) {
         this.onStylesUpdateFn = fn;
         this.reRenderer.setOnReRender(fn);
+    }
+    /**
+     * @param {String} id Example '.j-Section-d-8'
+     * @param {'var-override'|'supporting-css'} scope = 'var-override'
+     * @returns {[HTMLStyleElement, String]} Example [el, '[data-temp-var-override-for=".j-Section-d-8"]']
+     * @access private
+     */
+    createOrGetTempStyleTag(id, scope = 'var-override') {
+        let el;
+        const attrStr = `data-temp-${scope}-for`;
+        const attrSelector = `[${attrStr}='${id}']`;
+        if (!this.tempStyleOverrideNames.has(attrSelector)) {
+            el = document.createElement('style');
+            el.setAttribute(attrStr, id);
+            const before = scope === 'supporting-css' ? document.head.querySelector('[data-temp-var-override-for]') : null;
+            if (before) document.head.insertBefore(el, before);
+            else document.head.appendChild(el);
+            this.tempStyleOverrideNames.set(attrSelector, 1);
+        } else {
+            el = document.head.querySelector(attrSelector);
+        }
+        return [el, attrSelector];
+    }
+    /**
+     * @param {String} attrSelector
+     * @access private
+     */
+    addRemoveTempStyleTagTimeout(attrSelector) {
+        const timeoutId = this.tempStyleOverrideElsRemoveTimeouts.get(attrSelector);
+        if (timeoutId) clearTimeout(timeoutId);
+        this.tempStyleOverrideElsRemoveTimeouts.set(attrSelector, setTimeout(() => {
+            document.head.removeChild(document.head.querySelector(attrSelector));
+            this.tempStyleOverrideNames.delete(attrSelector);
+        }, 2000));
     }
     /**
      * @param {RawBlock} block

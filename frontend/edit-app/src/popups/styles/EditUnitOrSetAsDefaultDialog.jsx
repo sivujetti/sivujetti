@@ -1,6 +1,6 @@
 import {__, hookForm, unhookForm, handleSubmit, FormGroup, Input, InputErrors,
         floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
-import {createUnitClass} from '../../left-column/block/VisualStyles.jsx';
+import {createUnitClass} from '../../left-column/block/styles-shared.jsx';
 
 class EditUnitOrSetAsDefault extends preact.Component {
     // boundDoHandleSubmit;

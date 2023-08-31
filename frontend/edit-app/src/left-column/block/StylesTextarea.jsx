@@ -3,7 +3,6 @@ import {createTrier} from '../../block/dom-commons.js';
 import CssStylesValidatorHelper from '../../commons/CssStylesValidatorHelper.js';
 import store2 from '../../store2.js';
 import store, {pushItemToOpQueue} from '../../store.js';
-import {createUnitClass} from './VisualStyles.jsx';
 import {isBodyRemote} from './style-utils.js';
 
 const {compile, serialize, stringify} = window.stylis;
@@ -183,23 +182,12 @@ function findBlockTypeStyles(from, blockTypeName) {
 function compileSpecial(newScss, curScss, specifier, unitCls, blockTypeName, cssValidator = new CssStylesValidatorHelper) {
     const currentlyCommitted = curScss;
     const allowImports = false;
-    const selBtype = createUnitClass('', blockTypeName);
     // '.j-_body_ .j-Section:not(.no-j-Section-unit-1) {' or '.j-_body_ > .j-Section:not(.no-j-Section-unit-1) {' or
     // '.j-_body_ > .j-Section:not(...'
-    const wrap1 = `.${specialBaseUnitCls}${validateAndGetSpecifier(specifier)} .${selBtype}:not(.no-${unitCls}) {`;
+    const wrap1 = `.${createUnitClassSpecial(unitCls, blockTypeName, specifier)} {`;
     const wrap2 =  '}';
     return cssValidator.validateAndCompileScss(newScss,
         input => `${wrap1}${input}${wrap2}`, currentlyCommitted, allowImports);
-}
-
-/**
- * @param {String} candidate
- * @returns {String} ` ${candidate}` or ''
- */
-function validateAndGetSpecifier(candidate) {
-    if (!candidate) return '';
-    // todo validate
-    return ` ${candidate}`;
 }
 
 /**
@@ -314,15 +302,15 @@ function runLinesAb(derivedScss, baseScss, on) {
                 if (varDecls[i]) {
                     const lineB = withReplacedApdx(linesB[i].trim(), ...varDecls[i].split('_').slice(1));
                     const isSame = lineATrimmed === lineB;
-                    on('checkIsSame', isSame, lineATrimmed, lineB);
-                } else {
-                    on('todo');
+                    on('varDeclLine', isSame, lineATrimmed, lineB, fromDerivate);
+                } else { // '@exportAs(...)'
+                    on('varDeclLine', true,   '',           '',    fromDerivate);
                 }
             } else {
-                on('checkHasUsage');
+                on('derivedUsageLine', lineATrimmed, varDecls, linesA, linesB, fromDerivate);
             }
         } else { // addition
-            on('appendLine');
+            on('appendedLine', fromDerivate);
         }
     }
 }
@@ -344,9 +332,10 @@ function extractVal(line) {
 function getInsights(vars, derivedScss, baseScss) {
     const map = new Map;
     runLinesAb(derivedScss, baseScss, (event, arg1, arg2, arg3) => {
-        if (event !== 'checkIsSame') return;
+        if (event !== 'varDeclLine') return;
         const isSame = arg1;
         const lineA = arg2; // Example '--borderHover_Button_u4:'
+        if (!lineA.length) return; // '@exportAs(...)'
         const justVarName = lineA.split(':')[0].trim().slice(2); // '--borderHover_Button_u4: somethgins' -> 'borderHover_Button_u4'
         const lineB = arg3;
         map.set(justVarName, {hasChanged: !isSame, lineA, lineB});
@@ -359,73 +348,51 @@ function getInsights(vars, derivedScss, baseScss) {
  * @param {String} baseScss
  * @returns {String}
  */
-function optimizeScss(derivedScss, baseScss, bodyUnit) {
-    return optimizeScssT(derivedScss, baseScss, bodyUnit);
-}
-
-/**
- * @param {String} derivedScss
- * @param {String} baseScss
- * @returns {String}
- */
-function optimizeScssT(derivedScss, derivedScssAst, baseScss) {
-    const linesA = derivedScss.split('\n');
-    const linesB = baseScss.split('\n');
-    const numBaseLines = linesB.length;
+function optimizeScss(derivedScss, baseScss) {
     const EMPTY_LINE = '^::empty::^';
 
-    const varDecls = [];
-    let lastVarDeclIdx = 0;
-    for (let i = 0; i < linesA.length; ++i) {
-        const trimmed = linesA[i].trimStart();
-        if (trimmed.startsWith('--')) {
-            const pcs = trimmed.split(':');
-            if (pcs[1]?.trim().length > 0) {
-                varDecls.push(pcs[0].trimEnd());
-                lastVarDeclIdx = i + 1;
-                continue;
-            } // else fall through
-        }
-        varDecls.push(null);
-    }
-
     const ir = [];
-    for (let i = 0; i < linesA.length; ++i) {
-        const fromDerivate = linesA[i];
-        if (i < numBaseLines) { // derived, add only if the line contains var(--someChangedVar), or ensWith '{' or '}'
-            const lineATrimmed = fromDerivate.trim();
-            if (i < lastVarDeclIdx) {
-                ir.push(!varDecls[i] || lineATrimmed === withReplacedApdx(linesB[i].trim(), ...varDecls[i].split('_').slice(1)) ? EMPTY_LINE : fromDerivate);
-            } else {
-                let hasUsageWithChagedVal = false;
-                const end = lineATrimmed.at(-1);
-                if (end !== '{' && end !== '}') {
-                    const pcs1 = lineATrimmed.split('var(');
-                    if (pcs1.length > 1) {
-                        // 'align-items: var(  --varName...)' -> '--varName...'
-                        const start = pcs1[1].trimStart();
-                        // ['--alignItems', 'Type', 'd1 )'] or
-                        // ['--alignItems', 'Type', 'd1, var(--another) )'] or
-                        // ['--columns', 'Listing', 'd1 ), minmax(0, 1fr) );']
-                        const pcs3 = start.split('_').slice(0, 3);
-                        if (pcs3.length === 3) {
-                            // 'd1 )'                   -> 'd1' or
-                            // 'd1, var(--another))'    -> 'd1' or
-                            // 'd1 ), minmax(0, 1fr));' -> 'd1'
-                            pcs3[2] = pcs3[2].split(',')[0].trimEnd().split(')')[0].trimEnd();
-                            const [_, blockTypeName, apdx] = pcs3;
-                            const usageVarName = pcs3.join('_');
-                            const varDeclLineN = varDecls.indexOf(usageVarName);
-                            hasUsageWithChagedVal = varDeclLineN > -1 && linesA[varDeclLineN].trim() !== withReplacedApdx(linesB[varDeclLineN].trim(), blockTypeName, apdx);
-                        }
+    runLinesAb(derivedScss, baseScss, (event, arg1, arg2, arg3, arg4, arg5) => {
+        if (event === 'varDeclLine') {
+            const isSame = arg1;
+            const lineANotTrimmed = arg4;
+            ir.push(isSame ? EMPTY_LINE : lineANotTrimmed);
+        // derived, add only if the line contains var(--someChangedVar), or ensWith '{' or '}'
+        } else if (event === 'derivedUsageLine') {
+            let hasUsageWithChagedVal = false;
+            const lineATrimmed = arg1;
+            const varDecls = arg2;
+            const linesA = arg3;
+            const linesB = arg4;
+            const lineANotTrimmed = arg5;
+            const end = lineATrimmed.at(-1);
+            if (end !== '{' && end !== '}') {
+                const pcs1 = lineATrimmed.split('var(');
+                if (pcs1.length > 1) {
+                    // 'align-items: var(  --varName...)' -> '--varName...'
+                    const start = pcs1[1].trimStart();
+                    // ['--alignItems', 'Type', 'd1 )'] or
+                    // ['--alignItems', 'Type', 'd1, var(--another) )'] or
+                    // ['--columns', 'Listing', 'd1 ), minmax(0, 1fr) );']
+                    const pcs3 = start.split('_').slice(0, 3);
+                    if (pcs3.length === 3) {
+                        // 'd1 )'                   -> 'd1' or
+                        // 'd1, var(--another))'    -> 'd1' or
+                        // 'd1 ), minmax(0, 1fr));' -> 'd1'
+                        pcs3[2] = pcs3[2].split(',')[0].trimEnd().split(')')[0].trimEnd();
+                        const [_, blockTypeName, apdx] = pcs3;
+                        const usageVarName = pcs3.join('_');
+                        const varDeclLineN = varDecls.indexOf(usageVarName);
+                        hasUsageWithChagedVal = varDeclLineN > -1 && linesA[varDeclLineN].trim() !== withReplacedApdx(linesB[varDeclLineN].trim(), blockTypeName, apdx);
                     }
-                } else hasUsageWithChagedVal = true;
-                ir.push(!hasUsageWithChagedVal ? EMPTY_LINE : fromDerivate);
-            }
-        } else { // additions, always add
-            ir.push( fromDerivate);
+                }
+            } else hasUsageWithChagedVal = true;
+            ir.push(!hasUsageWithChagedVal ? EMPTY_LINE : lineANotTrimmed);
+        } else if (event === 'appendedLine') {
+            const lineANotTrimmed = arg1;
+            ir.push(lineANotTrimmed);
         }
-    }
+    });
 
     const withoutEmptyLines = arr => arr.filter(line => line !== EMPTY_LINE);
     const ir2 = withoutEmptyLines(ir);
@@ -476,6 +443,36 @@ function findBaseUnitOf(unit, from) {
 }
 
 /**
+ * @param {String} id
+ * @param {String} blockTypeName
+ * @returns {String}
+ */
+function createUnitClass(id, blockTypeName) {
+    return `j-${blockTypeName}` + (id ? `-${id}` : '');
+}
+
+/**
+ * @param {String} unitCls Example 'j-Button-unit-1'
+ * @param {String} blockTypeName
+ * @param {String} specifier = ''
+ * @returns {String} Example '.j-_body_ .j-Button:not(.no-j-Button-unit-1)'
+ */
+function createUnitClassSpecial(unitCls, blockTypeName, specifier = '') {
+    const selBtype = createUnitClass('', blockTypeName); // Example 'j-Button'
+    return `${specialBaseUnitCls}${validateAndGetSpecifier(specifier)} .${selBtype}:not(.no-${unitCls})`;
+}
+
+/**
+ * @param {String} candidate
+ * @returns {String} ` ${candidate}` or ''
+ */
+function validateAndGetSpecifier(candidate) {
+    if (!candidate) return '';
+    // todo validate
+    return ` ${candidate}`;
+}
+
+/**
  * @typedef StyleTextareaProps
  * @prop {ThemeStyleUnit} unitCopy
  * @prop {ThemeStyleUnit|null} unitCopyReal
@@ -486,4 +483,5 @@ function findBaseUnitOf(unit, from) {
 
 export default StylesTextarea;
 export {findBaseUnitOf, optimizeScss, emitUnitChanges, emitCommitStylesOp,
-        updateAndEmitUnitScss, compileSpecial, tempHack2, getInsights, extractVal};
+        updateAndEmitUnitScss, compileSpecial, tempHack2, getInsights, extractVal,
+        createUnitClass, createUnitClassSpecial, SPECIAL_BASE_UNIT_NAME, specialBaseUnitCls};

@@ -2,6 +2,7 @@ import {__, env, stringUtils, timingUtils} from '@sivujetti-commons-for-edit-app
 import ColorValueInput from './ColorValueInput.jsx';
 import LengthValueInput from './LengthValueInput.jsx';
 import OptionValueInput from './OptionValueInput.jsx';
+import {createUnitClass} from './styles-shared.jsx';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -52,7 +53,7 @@ class VisualStyles extends preact.Component {
      * @access public
      */
     static extractVars(scss, selector, selType = 'cls', findVarForPlaceholder = null, sampleOnly = false) {
-        const ast = compile(createScss(!sampleOnly ? scss : extractFirstParsOf(scss), selector, selType));
+        const ast = compile(createScss(!sampleOnly ? scss : extractFirstPartOf(scss), selector, selType));
         const nodes = ast[0].children;
         const out = [];
         for (let i = 0; i < nodes.length; ++i) {
@@ -110,12 +111,13 @@ class VisualStyles extends preact.Component {
         return <div class="form-horizontal tight has-color-pickers px-2">{ vars.map(v => {
             const Renderer = valueEditors.get(v.type);
             return <Renderer
-                valueReal={ Object.assign({}, v.value) }
-                argsCopy={ [...v.args] }
                 varName={ v.varName }
+                valueReal={ {...v.value} }
+                argsCopy={ v.args ? [...v.args] : [] }
+                isClearable={ false }
                 labelTranslated={ __(v.label) }
                 onVarValueChanged={ newValAsString => this.debouncedEmitVarValueChange(newValAsString, v.__idx) }
-                selector={ `.${unitCls}` }/>;
+                data={ {selector: `.${unitCls}`} }/>;
         }) }</div>;
     }
 }
@@ -124,7 +126,7 @@ class VisualStyles extends preact.Component {
  * @param {String} scss
  * @returns {String}
  */
-function extractFirstParsOf(scss) {
+function extractFirstPartOf(scss) {
     const sep = '@exportAs(';
     const pcs = scss.split(sep); // -> ['// ',
                                  //     'color)\n--foo: red;\n// ',
@@ -164,15 +166,6 @@ function replaceVarValue(scss, {line, column}, replaceWith) {
  */
 function varNameToLabel(varName) {
     return stringUtils.capitalize(varName.replace(/[A-Z]/g, letter => ` ${letter.toLowerCase()}`));
-}
-
-/**
- * @param {String} id
- * @param {String} blockTypeName
- * @returns {String}
- */
-function createUnitClass(id, blockTypeName) {
-    return `j-${blockTypeName}` + (id ? `-${id}` : '');
 }
 
 /**

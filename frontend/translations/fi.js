@@ -40,7 +40,7 @@ stringBundles.push({
     'create new': 'luo uusi',
     'reuse': 'uudelleenkäytä',
     'Create template': 'Luo templaatti',
-    'Master template': 'Pohjatemplaatti',
+    'Base template': 'Pohjatemplaatti',
     'Show parent styles': 'Näytä ulommat tyylit',
     'Show parent templates': 'Näytä ulommat templaatit',
     'Edit name': 'Muokkaa nimeä',

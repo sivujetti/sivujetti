@@ -169,9 +169,18 @@ function emitAddStyleClassToBlock(styleClassToAdd, block) {
  */
 function emitReplaceClassesFromBlock(block, clsFrom, clsTo) {
     const currentClasses = block.styleClasses;
-    const newClasses = currentClasses.replace(clsFrom, clsTo);
+    const newClasses = withoutTrailingSpace(currentClasses.replace(clsFrom, clsTo));
     dispatchNewBlockStyleClasses(newClasses, block);
     return newClasses;
+}
+
+/**
+ * @param {String} cls Example 'j-Section j-Section-unit-15 j-Section-d-16 '
+ * @returns {String} Example 'j-Section j-Section-unit-15 j-Section-d-16'
+ */
+function withoutTrailingSpace(cls) {
+    const pcs = cls.split(' ');
+    return pcs.at(-1) === '' && isUnitClass(pcs.at(-2)) ? pcs.slice(0, -1).join(' ') : cls;
 }
 
 /**
@@ -181,12 +190,20 @@ function emitReplaceClassesFromBlock(block, clsFrom, clsTo) {
 function splitUnitAndNonUnitClasses(styleClasses) {
     const all = styleClasses.split(' ');
     return all
-        .map(cls => cls.startsWith('j-'))
-        .reduce((arrs, isUnitCls, i) => {
-            arrs[isUnitCls ? 0 : 1].push(all[i]);
+        .reduce((arrs, cls, i) => {
+            arrs[isUnitClass(cls) ? 0 : 1].push(all[i]);
             return arrs;
         }, [[], []])
         .map(clsList => clsList.join(' '));
+}
+
+/**
+ * @param {String} cls Example 'j-Section-unit-15' or 'j-Section-d-16'
+ * @returns {Boolean}
+ */
+function isUnitClass(cls) {
+    const pcs = cls.split('-');
+    return pcs.length === 4 && pcs[0] === 'j';
 }
 
 /**

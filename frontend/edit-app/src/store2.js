@@ -1,4 +1,4 @@
-import {isRemote} from './block-styles/commons.js';
+import {extractIdFrom, isBodyRemote} from './left-column/block/style-utils.js';
 import theBlockTreeStore from './block/theBlockTreeStore.js';
 
 const {createStoreon} = window.storeon;
@@ -56,9 +56,9 @@ function themeStylesStore(store) {
     ({themeStyles}, [blockTypeName, unit]) => {
         const toRemIdx = findStyleIndex(themeStyles, blockTypeName);
         const out = {themeStyles: withUnitRemoved(themeStyles, toRemIdx, unit.id)};
-        if (isRemote(unit)) {
+        if (isBodyRemote(unit.id)) {
             const toRemIdx2 = findStyleIndex(themeStyles, unit.origin); // 'Button', 'Section' etc.
-            const unitId2 = asst(unit.id);
+            const unitId2 = extractIdFrom(unit.id);
             out.themeStyles = withUnitRemoved(out.themeStyles, toRemIdx2, unitId2);
         }
         return out;
@@ -87,16 +87,6 @@ function themeStylesStore(store) {
             i !== toUpdIdx ? s : Object.assign({}, s, {units: s.units.map(u => u.id !== unitId ? u : Object.assign({}, u, newUnitData))})
         )};
     });
-}
-
-
-/**
- * @param {String} id Example 'j-Section-unit-1'
- * @returns {String} Example 'unit-1'
- */
-function asst(id) {
-    const pcs = id.split('-'); // ['j', 'Section', 'unit', '1']
-    return pcs.slice(2).join('-'); // 'unit-1'
 }
 
 /**
@@ -226,4 +216,4 @@ function observeStore(namespace, fn) {
 }
 
 export default mainStore;
-export {observeStore, asst};
+export {observeStore};

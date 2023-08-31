@@ -1,6 +1,6 @@
 import {__, api, env, timingUtils, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from '../../commons/ContextMenu.jsx';
-import store2, {asst, observeStore as observeStore2} from '../../store2.js';
+import store2, {observeStore as observeStore2} from '../../store2.js';
 import VisualStyles, {valueEditors, replaceVarValue, varNameToLabel} from './VisualStyles.jsx';
 import {traverseAst} from '../../commons/CssStylesValidatorHelper.js';
 import {SPECIAL_BASE_UNIT_NAME, getLargestPostfixNum, findBlockTypeStyles,
@@ -13,7 +13,7 @@ import {SPECIAL_BASE_UNIT_NAME, getLargestPostfixNum, findBlockTypeStyles,
 import blockTreeUtils from './blockTreeUtils.js';
 import store, {pushItemToOpQueue} from '../../store.js';
 import {saveExistingBlocksToBackend} from './createBlockTreeDndController.js';
-import {isBodyRemote} from './style-utils.js';
+import {isBodyRemote, extractIdFrom} from './style-utils.js';
 import {extractVal, getInsights} from './StylesTextarea.jsx';
 import {getBlockEl} from '../../block/dom-commons.js';
 
@@ -426,7 +426,7 @@ class WidgetBasedStylesList extends StylesList {
         const {type} = block;
         const current = findBlockTypeStyles(themeStyles, type);
         const {units} = current;
-        const lookFor = asst(action.from); // 'j-T-unit-2' -> 'unit-2'
+        const lookFor = extractIdFrom(action.from); // 'j-T-unit-2' -> 'unit-2'
         const unitThis = units.find(({id}) => id === lookFor);
         const unitThis2 = !isDerivedFromBodyUnit ? null : findBaseUnitOf(unitThis, this.bodyStyle.units);
 
@@ -832,7 +832,7 @@ function createDataPropForValueInputRenderer(cssVar, unit, cls) {
     return {
         ...{selector: `.${cls}`},
         ...(unit.optimizedGeneratedCss && unit.optimizedScss.indexOf(`var(--${cssVar.varName}`) < 0
-            ? {wrapCss: unit.generatedCss}
+            ? {wrapCss: `@layer units { ${unit.generatedCss} }`}
             : {})
     };
 }

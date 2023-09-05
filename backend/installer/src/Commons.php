@@ -5,6 +5,7 @@ namespace Sivujetti\Installer;
 use Pike\{Db, FileSystem, PikeException};
 use Pike\Auth\Authenticator;
 use Sivujetti\Auth\ACL;
+use Sivujetti\TheWebsite\Exporter;
 use Sivujetti\Update\{PackageStreamInterface, Updater};
 use Sivujetti\ValidationUtils;
 
@@ -56,9 +57,9 @@ final class Commons {
      * @param array $config
      */
     public function populateDb(PackageStreamInterface $package, array $config): void {
-        $localName = sprintf(PackageStreamInterface::LOCAL_NAME_DB_DATA, $config["db.driver"]);
-        $statements = Updater::readSneakyJsonData($localName, $package);
-        $this->runManyDbStatements($statements, $config["db.driver"] === "sqlite");
+        $localName = PackageStreamInterface::LOCAL_NAME_DB_DATA;
+        $bundles = Updater::readSneakyJsonData($localName, $package);
+        $this->insertManyTableBundles($bundles, $config);
     }
     /**
      * @param array $config
@@ -180,7 +181,7 @@ return [
         $package->extractMany($this->targetSiteIndexPath, $localFileNames, PackageStreamInterface::FILE_NS_INDEX);
     }
     /**
-     * @param array $statements
+     * @param string[] $statements
      * @param bool $isSqlite
      */
     private function runManyDbStatements(array $statements, bool $isSqlite): void {
@@ -188,6 +189,21 @@ return [
         $this->db->exec("BEGIN{$tail}");
         foreach ($statements as $stmt)
             $this->db->exec($stmt);
+        $this->db->exec("COMMIT{$tail}");
+    }
+    /**
+     * @psalm-param array<int, array{tableName: string, entities: array<int, object>}> $bundles
+     * @param bool $isSqlite
+     */
+    private function insertManyTableBundles(array $bundles, array $config): void {
+        $db = new \Pike\Db\FluentDb($this->db);
+        $tail = $config["db.driver"] === "sqlite" ? " TRANSACTION" : "";
+        $this->db->exec("BEGIN{$tail}");
+        foreach ($bundles as $bundle) { // Note: trust input / assumes that each bundle->tableName, and each field bundle->entities[*] are valid
+            $infos = Exporter::describeTableColums($bundle->tableName, $this->db, $config["db.driver"], $config["db.database"]);
+            $cols = \array_column($infos, "colName");
+            $db->insert($bundle->tableName)->fields($cols)->values($bundle->entities)->execute();
+        }
         $this->db->exec("COMMIT{$tail}");
     }
     /**

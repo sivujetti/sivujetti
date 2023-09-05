@@ -4,7 +4,8 @@ namespace Sivujetti\TheWebsite;
 
 use Pike\{Request, Response, Validation};
 use Pike\Db\FluentDb;
-use Sivujetti\ValidationUtils;
+use Pike\Interfaces\FileSystemInterface;
+use Sivujetti\{JsonUtils, ValidationUtils};
 
 final class TheWebsiteController {
     private const T = "\${p}theWebsite";
@@ -35,6 +36,19 @@ final class TheWebsiteController {
             ->where("1=1")
             ->execute();
         //
+        $res->json(["ok" => "ok"]);
+    }
+    /**
+     * POST /api/the-website/export: exports local database (excluding plugins)
+     * to a single json file SIVUJETTI_BACKEND_PATH . "exported.json".
+     *
+     * @param \Pike\Response $res
+     * @param \Sivujetti\TheWebsite\Exporter $exporter
+     * @param \Pike\Interfaces\FileSystemInterface $fs
+     */
+    public function export(Response $res, Exporter $exporter, FileSystemInterface $fs): void {
+        $rows = $exporter->export(); // @allow \Pike\PikeException
+        $fs->write(SIVUJETTI_BACKEND_PATH . "exported.json", JsonUtils::stringify($rows));
         $res->json(["ok" => "ok"]);
     }
     /**

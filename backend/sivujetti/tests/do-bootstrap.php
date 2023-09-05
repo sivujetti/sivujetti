@@ -2,6 +2,7 @@
 
 define("TEST_CONFIG_DIR_PATH", str_replace("\\", "/", __DIR__) . "/");
 define("TEST_CONFIG_FILE_PATH", TEST_CONFIG_DIR_PATH . "config.php");
+define("SIVUJETTI_UI_LANG", "en");
 
 class TestState extends \stdClass {
     //

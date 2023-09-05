@@ -135,8 +135,8 @@ final class PageTestUtils {
             "title" => "<Hellö>",
             "meta" => (object) [
                 "description" => "Greetings >",
-                "socialImage" => (object) ["src" => "sample.jpg", "mime" => "image/jpeg",
-                    "height" => 400, "width" => 380]
+                "socialImage" => (object) ["src" => "gradient-background.jpg", "mime" => "image/jpeg",
+                    "height" => 1600, "width" => 1068]
             ],
             "layoutId" => "1",
             "blocks" => $blocks ?? self::makeDefaultBlockTree(),

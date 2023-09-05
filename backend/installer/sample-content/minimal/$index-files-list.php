@@ -1,0 +1,1 @@
+<?php // ["$index/public/uploads/gradient-background.jpg", "$index/public/minimal-generated.css", "$index/public/minimal.css", "$index/public/vendor.min.css"]

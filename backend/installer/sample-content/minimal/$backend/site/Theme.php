@@ -9,6 +9,6 @@ class Theme implements UserThemeInterface {
      * @param \Sivujetti\UserTheme\UserThemeAPI $api
      */
     public function __construct(UserThemeAPI $api) {
-        $api->enqueueCssFile("basic-site.css");
+        $api->enqueueCssFile("minimal.css");
     }
 }

@@ -10,7 +10,7 @@ final class UploadFilesTest extends UploadsControllerTestCase {
         $state = $this->setupUploadFileTest();
         $this->makeSivujettiAppForUploadsTest($state);
         $this->sendUploadImageRequest($state);
-        $this->verifyMovedUploadedFileTo(SIVUJETTI_INDEX_PATH . "public/uploads/sample.jpg", $state);
+        $this->verifyMovedUploadedFileTo(SIVUJETTI_INDEX_PATH . "public/uploads/gradient-background.jpg", $state);
         $this->verifyInsertedFileToDb($state->inputData);
     }
 
@@ -116,18 +116,18 @@ final class UploadFilesTest extends UploadsControllerTestCase {
     }
     private function setupUploadFileTest(): \TestState {
         $state = new \TestState;
-        $state->inputData = (object) ["targetFileName" => "sample.jpg", "friendlyName" => "sample"];
+        $state->inputData = (object) ["targetFileName" => "gradient-background.jpg", "friendlyName" => "sample"];
         $state->spyingResponse = null;
         return $state;
     }
-    private function sendUploadImageRequest(\TestState $state, string $realInputFileName = "sample.jpg"): void {
+    private function sendUploadImageRequest(\TestState $state, string $realInputFileName = "gradient-background.jpg"): void {
         $state->spyingResponse = $state->app->sendRequest($this->createApiRequest(
             path: "/api/uploads",
             method: "POST",
             body: $state->inputData,
             files: (object) ["localFile" => [
                 "name" => $realInputFileName,
-                "tmp_name" => SIVUJETTI_BACKEND_PATH . "installer/sample-content/basic-site/\$index/public/uploads/{$realInputFileName}",
+                "tmp_name" => SIVUJETTI_BACKEND_PATH . "installer/sample-content/minimal/\$index/public/uploads/{$realInputFileName}",
                 "error" => UPLOAD_ERR_OK,
                 "size" => 1
             ]],

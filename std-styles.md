@@ -16,19 +16,15 @@
 // @exportAs(color)
 --linksHover: #82d6e4;
 // @exportAs(length)
---fontSizeDefault: 0.8rem;
+--fontSizeDefault: 0.9rem;
 // @exportAs(length)
---lineHeightDefault: 1.2rem;
+--lineHeightDefault: 1.6rem;
 // @exportAs(length)
 --maxWidthDefault: 1100px;
 // @exportAs(length)
 --paddingXDefault: 2.0rem;
 // @exportAs(length)
 --paddingYDefault: 4.0rem;
-// @exportAs(length)
---paddingXNil: 0rem;
-// @exportAs(length)
---paddingYNil: 0rem;
 
 font: 400 var(--fontSizeDefault)/var(--lineHeightDefault) -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",sans-serif;
 background-color: var(--backgroundDefault);
@@ -42,6 +38,16 @@ a {
 }
 h1, h2, h3, h4, h5, h6 {
   color: var(--headingsDefault);
+  font-family: -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",sans-serif;
+  font-weight: 500;
+}
+h1 {
+  font-size: 2.6rem;
+  line-height: 3rem;
+}
+h2 {
+  font-size: 2.2rem;
+  line-height: 2.6rem;
 }
 ```
 

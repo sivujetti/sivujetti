@@ -12,7 +12,9 @@ class TestData {
                 "scss" => "margin:0 auto;&> [data-block-root]{padding: 4rem 2rem}",
                 "generatedCss" => ".j-Section-default{margin:0 auto;}.j-Section-default>[data-block-root]{padding:4rem 2rem;}",
                 "origin" => "",
-                "specifier" => ""]]),
+                "specifier" => "",
+                "isDerivable" => false,
+                "derivedFrom" => null]]),
             "themeId" => "1",
             "blockTypeName" => "Section",
         ], (object) [
@@ -20,7 +22,9 @@ class TestData {
                 "scss" => "font-size: 1rem",
                 "generatedCss" => ".j-Text-default{font-size:1rem;}",
                 "origin" => "",
-                "specifier" => ""]]),
+                "specifier" => "",
+                "isDerivable" => false,
+                "derivedFrom" => null]]),
             "themeId" => "1",
             "blockTypeName" => "Text",
         ]];

@@ -64,7 +64,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertStringContainsString($expected2, $state->spyingResponse->getActualBody());
     }
     private function verifyThemeCanRegisterCssFiles(\TestState $state): void {
-        $expectedUrl = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME, false);
+        $expectedUrl = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME, false) . "?v=abcdefg1";
         $this->assertStringContainsString("<link href=\"{$expectedUrl}\" rel=\"stylesheet\">",
             $state->spyingResponse->getActualBody());
     }

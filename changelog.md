@@ -2,16 +2,41 @@
 
 ...
 
-# 0.15.0 (not yet released)
+# 0.15.0 (2023-09-13)
+
+_Translated by ChatGPT._
 
 ## Added
-- .
+- All content block types now have "standard styles" that every Sivujetti theme includes at a minimum.
+    - These include items such as button colors, image height and width, section background colors, etc.
+    - The complete list can be found at -> [std-styles.md (core)](https://github.com/sivujetti/sivujetti/blob/master/std-styles.md), [std-styles.md (JetForms)](https://github.com/sivujetti/plugins/blob/master/JetForms/std-styles.md) and [std-styles.md (JetIcons)](https://github.com/sivujetti/plugins/blob/master/JetIcons/std-styles.md)
+- Styles are now divided into two categories - "derivable" and "legacy" styles.
+    - Legacy styles are the same as regular styles from the previous version.
+    - Derivable styles are versatile styles from which copies are made, inheriting the original style's variables. This allows for creating multiple "derivatives" that inherit some aspects of the original style but add their own modifications. Most standard styles are of this type.
+- Styles now have two separate tabs in the additional details panel for technical users - code tab and visual tab.
+    - In the code tab, styles can be added to the "storage," edited, but not added to contents.
+    - In the visual tab, styles can be added and removed from contents but do not manage the "storage."
+    - Only the visual tab is shown to end-users.
+- Pages can now be deleted in edit mode (except for the homepage).
+- In color-type widgets, you can now change the color value using a hex string.
+- The type of value (px, %, rem) for length-type widgets can now be changed in visual styles.
+- [JetForms add-on] Added a natural language-based editing tool for contact form contents, allowing you to instruct it on what actions to take when a user submits the form, such as "send filled data by email," "save data to a database," or "display a message to the user on the page at a specific location."
+- [JetForms add-on] Added the ability to browse user-submitted form data in edit mode.
+- [JetForms add-on] Added captcha support and a (time-based) captcha implementation.
+- [JetForms add-on] The backend now displays form submission errors for logged-in admin users, making it easier to identify errors without searching through server logs.
+- [JetForms add-on] Admin users can now define the value for each option in dropdowns and radio fields separately. Values are still auto-generated for non-admin users as before.
+- [JetForms add-on] Contact form contents can now define a reply-to email address.
 
 ## Changed
-- .
+- Navigation in edit mode now occurs by clicking links with the Ctrl / ⌘ key held down.
+- The content highlighting box (highlight-rect) is now only displayed when hovering over content, whereas previously, it remained visible as long as the content was selected in the additional details panel.
 
 ## Fixed
-- .
+- An issue where the "newest first" / "oldest first" sorting order didn't work correctly for list contents and page listings.
+- [JetForms add-on] Fixed an issue where the email formatter for sent emails wrongly sanitized certain characters (ä, ö).
+- Various other 🐛s, including:
+    - Popup forms for editing list contents now stay in place more reliably.
+    - Updating util classes was broken in some cases (e.g., when clearing).
 
 # 0.14.0 (2023-05-26)
 
@@ -20,7 +45,7 @@ _Translated by ChatGPT._
 ## Added
 - Added the ability to define default styles for each content type.
     - These styles automatically apply when adding content of those types to a page, without the need to enable them separately.
-- Added the ability to define headings, paragraphs, etc. in text contents as anchors (<p id="anchor">) in the WYSIWYG editor.
+- Added the ability to define headings, paragraphs, etc. in text contents as anchors (`<p id="anchor">`) in the WYSIWYG editor.
 - Added the ability to define links to "Jump to section" (anchor) in the page selection widget (text contents, menus, and button links).
     - Supports external links (https://www.example.com#anchor) or internal links (/page#anchor).
 - Added the ability to define "selection" type widgets in CSS code (e.g., text alignment -> left justify right).

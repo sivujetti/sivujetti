@@ -1,7 +1,14 @@
 import {__, signals, FormGroupInline, Icon} from '@sivujetti-commons-for-edit-app';
+import {sharedSignals} from '../../shared.js';
 
 /** @type {CanvasRenderingContext2D} */
 let helperCanvasCtx;
+
+let metaKeyIsPressed = false;
+
+sharedSignals.on('meta-key-pressed-or-released', isDown => {
+    metaKeyIsPressed = isDown;
+});
 
 class ColorValueInput extends preact.Component {
     // unregisterSignalListener;
@@ -105,6 +112,9 @@ class ColorValueInput extends preact.Component {
             }
             signals.emit('visual-styles-var-value-changed-fast', selector, this.props.varName, valOrGetValBundle, 'color');
         }).on('changestop', (_source, instance) => {
+            if (metaKeyIsPressed) {
+                sharedSignals.emit('meta-key-pressed-or-released', false);
+            }
             if (this.props.valueReal.data === nonCommittedHex) return;
             // Update realColorBox's color
             instance.setColor(nonCommittedHex);

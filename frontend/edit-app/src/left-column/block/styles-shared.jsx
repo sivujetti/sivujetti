@@ -179,7 +179,7 @@ function emitReplaceClassesFromBlock(block, clsFrom, clsTo) {
  * @returns {String} Example 'j-Section j-Section-unit-15 j-Section-d-16'
  */
 function withoutTrailingSpace(cls) {
-    const pcs = cls.split(' ');
+    const pcs = cls ? cls.split(' ') : [];
     return pcs.at(-1) === '' && isUnitClass(pcs.at(-2)) ? pcs.slice(0, -1).join(' ') : cls;
 }
 

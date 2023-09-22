@@ -96,3 +96,15 @@ li.ql-indent-3 {
 .num-cols-11 { grid-template-columns: repeat(11, minmax(0, 1fr)); }
 .num-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
 }
+
+@layer units {
+  @media (max-width: 480px) {
+    .j-_body_ > .j-Section {
+      --paddingRight_Section_u7: 1.5rem;
+    }
+    .j-_body_ > .j-Section > div {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+}

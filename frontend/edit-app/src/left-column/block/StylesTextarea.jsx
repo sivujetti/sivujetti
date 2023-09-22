@@ -280,15 +280,17 @@ function runLinesAb(derivedScss, baseScss, on) {
     const numBaseLines = linesB.length;
 
     const varDecls = [];
-    let lastVarDeclIdx = 0;
     for (let i = 0; i < linesA.length; ++i) {
         const trimmed = linesA[i].trimStart();
         if (trimmed.startsWith('--')) {
             const pcs = trimmed.split(':');
             if (pcs[1]?.trim().length > 0) {
-                varDecls.push(pcs[0].trimEnd());
-                lastVarDeclIdx = i + 1;
-                continue;
+                const prev = linesA[i - 1] || '';
+                if (prev.indexOf('@exportAs(') > -1) {
+                    varDecls.push(pcs[0].trimEnd()); // '--foo'
+                    varDecls[i - 1] = prev; // '@exportAs'
+                    continue;
+                } // else fall through
             } // else fall through
         }
         varDecls.push(null);
@@ -296,21 +298,28 @@ function runLinesAb(derivedScss, baseScss, on) {
 
     for (let i = 0; i < linesA.length; ++i) {
         const fromDerivate = linesA[i];
-        if (i < numBaseLines) { // derived
-            const lineATrimmed = fromDerivate.trim();
-            if (i < lastVarDeclIdx) {
-                if (varDecls[i]) {
-                    const lineB = withReplacedApdx(linesB[i].trim(), ...varDecls[i].split('_').slice(1));
-                    const isSame = lineATrimmed === lineB;
-                    on('varDeclLine', isSame, lineATrimmed, lineB, fromDerivate);
-                } else { // '@exportAs(...)'
-                    on('varDeclLine', true,   '',           '',    fromDerivate);
-                }
-            } else {
-                on('derivedUsageLine', lineATrimmed, varDecls, linesA, linesB, fromDerivate);
+        const lineATrimmed = fromDerivate.trim();
+        const isDerivedLine = i < numBaseLines;
+
+        // '--myVar: foo;' or '// @exportAs(...)'
+        if (varDecls[i] !== null) {
+            if (!fromDerivate.startsWith('--')) { // '// @exportAs(...)'
+                on('varDeclLine', true, '', '', fromDerivate);
+                continue;
             }
-        } else { // addition
-            on('appendedLine', fromDerivate);
+            if (isDerivedLine) {
+                const lineB = withReplacedApdx(linesB[i].trim(), ...varDecls[i].split('_').slice(1));
+                const isSame = lineATrimmed === lineB;
+                on('varDeclLine', isSame, lineATrimmed, lineB, fromDerivate);
+            } else { // addition
+                on('varDeclLine', false, lineATrimmed, '', fromDerivate);
+            }
+        } else {
+            if (isDerivedLine) {
+                on('derivedUsageLine', lineATrimmed, varDecls, linesA, linesB, fromDerivate);
+            } else { // addition
+                on('appendedLine', fromDerivate);
+            }
         }
     }
 }
@@ -333,11 +342,11 @@ function getInsights(vars, derivedScss, baseScss) {
     const map = new Map;
     runLinesAb(derivedScss, baseScss, (event, arg1, arg2, arg3) => {
         if (event !== 'varDeclLine') return;
+        const lineB = arg3;
+        if (!lineB.length) return; // '@exportAs(...)'
         const isSame = arg1;
         const lineA = arg2; // Example '--borderHover_Button_u4:'
-        if (!lineA.length) return; // '@exportAs(...)'
         const justVarName = lineA.split(':')[0].trim().slice(2); // '--borderHover_Button_u4: somethgins' -> 'borderHover_Button_u4'
-        const lineB = arg3;
         map.set(justVarName, {hasChanged: !isSame, lineA, lineB});
     });
     return vars.map(({varName}) => map.get(varName));

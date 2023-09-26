@@ -2,6 +2,18 @@
 
 ...
 
+# 0.16.0 (not yet released)
+
+## Added
+- .
+
+## Fixed
+- .
+
+## Changed
+- .
+
+
 # 0.15.0 (2023-09-13)
 
 _Translated by ChatGPT._
@@ -20,12 +32,12 @@ _Translated by ChatGPT._
 - Pages can now be deleted in edit mode (except for the homepage).
 - In color-type widgets, you can now change the color value using a hex string.
 - The type of value (px, %, rem) for length-type widgets can now be changed in visual styles.
-- [JetForms add-on] Added a natural language-based editing tool for contact form contents, allowing you to instruct it on what actions to take when a user submits the form, such as "send filled data by email," "save data to a database," or "display a message to the user on the page at a specific location."
-- [JetForms add-on] Added the ability to browse user-submitted form data in edit mode.
-- [JetForms add-on] Added captcha support and a (time-based) captcha implementation.
-- [JetForms add-on] The backend now displays form submission errors for logged-in admin users, making it easier to identify errors without searching through server logs.
-- [JetForms add-on] Admin users can now define the value for each option in dropdowns and radio fields separately. Values are still auto-generated for non-admin users as before.
-- [JetForms add-on] Contact form contents can now define a reply-to email address.
+- [JetForms plugin] Added a natural language-based editing tool for contact form contents, allowing you to instruct it on what actions to take when a user submits the form, such as "send filled data by email," "save data to a database," or "display a message to the user on the page at a specific location."
+- [JetForms plugin] Added the ability to browse user-submitted form data in edit mode.
+- [JetForms plugin] Added captcha support and a (time-based) captcha implementation.
+- [JetForms plugin] The backend now displays form submission errors for logged-in admin users, making it easier to identify errors without searching through server logs.
+- [JetForms plugin] Admin users can now define the value for each option in dropdowns and radio fields separately. Values are still auto-generated for non-admin users as before.
+- [JetForms plugin] Contact form contents can now define a reply-to email address.
 
 ## Changed
 - Navigation in edit mode now occurs by clicking links with the Ctrl / ⌘ key held down.
@@ -33,7 +45,7 @@ _Translated by ChatGPT._
 
 ## Fixed
 - An issue where the "newest first" / "oldest first" sorting order didn't work correctly for list contents and page listings.
-- [JetForms add-on] Fixed an issue where the email formatter for sent emails wrongly sanitized certain characters (ä, ö).
+- [JetForms plugin] Fixed an issue where the email formatter for sent emails wrongly sanitized certain characters (ä, ö).
 - Various other 🐛s, including:
     - Popup forms for editing list contents now stay in place more reliably.
     - Updating util classes was broken in some cases (e.g., when clearing).

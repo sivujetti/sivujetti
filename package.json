@@ -1,6 +1,6 @@
 {
   "name": "sivujetti-devtools",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "scripts": {
     "start": "rollup -c -w",
@@ -10,14 +10,14 @@
   "author": "ut4",
   "license": "GPLv3",
   "devDependencies": {
-    "@rollup/plugin-sucrase": "^3.1.0",
-    "chromedriver": "^99.0.0",
-    "eslint": "^7.27.0",
-    "eslint-plugin-react": "^7.23.2",
-    "nightwatch": "^2.1.0",
-    "preact": "^10.5.13",
-    "rollup": "^2.50.2",
-    "rollup-plugin-terser": "^7.0.2"
+    "@rollup/plugin-sucrase": "^5.0.1",
+    "@rollup/plugin-terser": "^0.4.3",
+    "chromedriver": "^117.0.3",
+    "eslint": "^8.50.0",
+    "eslint-plugin-react": "^7.33.2",
+    "nightwatch": "^3.1.3",
+    "preact": "^10.17.1",
+    "rollup": "^3.29.3"
   },
   "typings": "lib.d.ts"
 }

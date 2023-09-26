@@ -1,12 +1,43 @@
-import {__, env, hookForm, unhookForm, InputErrors, FormGroup,
-        validationConstraints} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, hookForm, unhookForm, InputErrors, FormGroup,
+        validationConstraints, signals} from '@sivujetti-commons-for-edit-app';
 import QuillEditor from '../quill/QuillEditor.jsx';
 import setFocusTo from './auto-focusers.js';
+
+let currentInstance;
+let currentHoveredNodeInfo;
+
+signals.on('sub-highlight-rect-revealed', (childIdx, _rect, blockEl) => {
+    currentHoveredNodeInfo = {childIdx, blockEl};
+});
+
+signals.on('sub-highlight-rect-removed', (_subEl, _blockEl) => {
+    currentHoveredNodeInfo = null;
+});
+
+signals.on('web-page-click-received', _blockEl => {
+    if (currentInstance && currentHoveredNodeInfo)
+        currentInstance.maybeScrollToEditorNode(currentHoveredNodeInfo);
+});
 
 class TextBlockEditForm extends preact.Component {
     // editor;
     // editorId;
     // initialHtml;
+    /**
+     * @param {HoverNodeInfo} info
+     * @access public
+     */
+    maybeScrollToEditorNode(info) {
+        if (info.blockEl.getAttribute('data-block') !== this.props.blockId)
+            return;
+        const inspectorPanelEl = api.inspectorPanel.getEl();
+        const toolbarHeight = this.editor.current.quill.theme.modules.toolbar.container.getBoundingClientRect().height;
+        const subEl = this.getNthEditorNode(info.childIdx);
+        inspectorPanelEl.scrollTo({
+            top: subEl.getBoundingClientRect().top - toolbarHeight + inspectorPanelEl.scrollTop - inspectorPanelEl.getBoundingClientRect().top,
+            behavior: 'smooth',
+        });
+    }
     /**
      * @access protected
      */
@@ -30,11 +61,15 @@ class TextBlockEditForm extends preact.Component {
      */
     componentDidMount() {
         setFocusTo(this.editor);
+        if (currentHoveredNodeInfo)
+            this.maybeScrollToEditorNode(currentHoveredNodeInfo);
+        currentInstance = this;
     }
     /**
      * @access protected
      */
     componentWillUnmount() {
+        currentInstance = null;
         unhookForm(this);
     }
     /**
@@ -55,7 +90,20 @@ class TextBlockEditForm extends preact.Component {
             <InputErrors vm={ this } prop="html"/>
         </FormGroup>;
     }
+    /**
+     * @param {Number} idx
+     * @access private
+     */
+    getNthEditorNode(idx) {
+        return this.editor.current.quill.root.children[idx];
+    }
 }
+
+/**
+ * @typedef HoverNodeInfo
+ * @prop {Number} childIdx
+ * @prop {HTMLDivElement} blockEl
+ */
 
 export default () => {
     const initialData = {html: `<p>${__('Text content')}</p>`};

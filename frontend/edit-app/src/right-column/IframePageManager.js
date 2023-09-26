@@ -128,6 +128,21 @@ class IframePageManager {
                         hideRect(blockEl.getAttribute('data-block'));
                 }, 80);
             },
+            /**
+             * @param {Number} childIdx
+             * @param {DOMRect} rect
+             * @param {HTMLElement} blockEl
+             */
+            onSubElHoverStarted(childIdx, rect, blockEl) {
+                signals.emit('sub-highlight-rect-revealed', childIdx, rect, blockEl);
+            },
+            /**
+             * @param {HTMLElement} subEl
+             * @param {HTMLElement} blockEl
+             */
+            onSubElHoverEnded(subEl, blockEl) {
+                signals.emit('sub-highlight-rect-removed', subEl, blockEl);
+            }
         };
     }
     /**

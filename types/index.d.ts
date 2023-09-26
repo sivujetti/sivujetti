@@ -228,6 +228,8 @@ interface EditAwareWebPageEventHandlers {
     onHoverStarted(blockEl: HTMLElement, rect: DOMRect): void;
     onClicked(blockEl: HTMLElement|null): void;
     onHoverEnded(blockEl: HTMLElement): void;
+    onSubElHoverStarted(childIdx: Number, rect: DOMRect, blockEl:HTMLElement): void;
+    onSubElHoverEnded(subEl:HTMLElement, blockEl:HTMLElement): void;
 }
 
 interface EditAppAwareWebPage {

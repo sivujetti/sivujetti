@@ -83,7 +83,7 @@ class EditAppAwareWebPage {
                 targ = e.target.closest('[data-block-type]');
                 if (!targ) return;
             }
-            //
+            // Hover of block element
             if (this.currentlyHoveredBlockEl) {
                 const hasBeenReplacedByPropUpdate = !document.body.contains(this.currentlyHoveredBlockEl);
                 if (hasBeenReplacedByPropUpdate) // @see ReRenderer.handleFastChangeEvent() ('theBlockTree/updatePropsOf')
@@ -100,16 +100,48 @@ class EditAppAwareWebPage {
                 this.currentlyHoveredBlockEl = targ;
                 this.handlers.onHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
             }
+            // Hover of inner node of text block element
+            if (this.curHoveredSubEl) {
+                const b = e.target;
+                const hasChanged = (
+                    b !== this.curHoveredSubEl &&
+                    isSubHoverable(e.target, this.currentlyHoveredBlockEl)
+                );
+                if (hasChanged) {
+                    this.handlers.onSubElHoverEnded(this.curHoveredSubEl, this.currentlyHoveredBlockEl);
+                    this.curHoveredSubEl = b;
+                    this.handlers.onSubElHoverStarted(
+                        Array.from(this.currentlyHoveredBlockEl.children).indexOf(this.curHoveredSubEl),
+                        this.curHoveredSubEl.getBoundingClientRect(),
+                        this.currentlyHoveredBlockEl
+                    );
+                }
+            } else {
+                if (
+                    this.currentlyHoveredBlockEl?.children?.length &&
+                    isSubHoverable(e.target, this.currentlyHoveredBlockEl)
+                ) {
+                    this.curHoveredSubEl = e.target;
+                    this.handlers.onSubElHoverStarted(
+                        Array.from(this.currentlyHoveredBlockEl.children).indexOf(this.curHoveredSubEl),
+                        this.curHoveredSubEl.getBoundingClientRect(),
+                        this.currentlyHoveredBlockEl
+                    );
+                }
+            }
         }, true);
         //
         document.body.addEventListener('mouseleave', e => {
             if (this.isMouseListenersDisabled) return;
-            //
-            if (this.currentlyHoveredBlockEl) {
-                if (e.target === this.currentlyHoveredBlockEl) {
-                    this.handlers.onHoverEnded(this.currentlyHoveredBlockEl);
-                    this.currentlyHoveredBlockEl = null;
-                }
+            // Hover of inner node of text block element
+            if (this.curHoveredSubEl && e.target === this.curHoveredSubEl) {
+                this.handlers.onSubElHoverEnded(this.curHoveredSubEl, this.currentlyHoveredBlockEl);
+                this.curHoveredSubEl = null;
+            }
+            // Hover of block element
+            if (this.currentlyHoveredBlockEl && e.target === this.currentlyHoveredBlockEl) {
+                this.handlers.onHoverEnded(this.currentlyHoveredBlockEl);
+                this.currentlyHoveredBlockEl = null;
             }
         }, true);
         //
@@ -381,6 +413,22 @@ function createIsLocalLinkCheckFn(location = window.location) {
  */
 function isValidIdentifier(str) {
     return /^[a-zA-Z_]{1}\w*$/.test(str);
+}
+
+/**
+ * @param {HTMLElement} el Child node of $currentlyHoveredBlockEl
+ * @param {HTMLDivElement} currentlyHoveredBlockEl
+ * @returns {Boolean}
+ */
+function isSubHoverable(el, currentlyHoveredBlockEl) {
+    return (
+        // Is child of text block and ..
+        currentlyHoveredBlockEl.getAttribute('data-block-type') === 'Text' &&
+        // is first level child (h1, p, ul etc.) and ..
+        el.parentElement === currentlyHoveredBlockEl &&
+        // is not child _block_ (Button for example)
+        !(el.getAttribute('data-block') || '').length
+    );
 }
 
 export default EditAppAwareWebPage;

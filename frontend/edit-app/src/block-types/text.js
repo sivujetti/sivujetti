@@ -8,9 +8,11 @@ let currentHoveredNodeInfo;
 
 signals.on('sub-highlight-rect-revealed', (childIdx, _rect, blockEl) => {
     currentHoveredNodeInfo = {childIdx, blockEl};
+    if (currentInstance) currentInstance.maybeHighlightEditorNode(currentHoveredNodeInfo);
 });
 
 signals.on('sub-highlight-rect-removed', (_subEl, _blockEl) => {
+    if (currentInstance) currentInstance.maybeUnHighhlightEditorNode(currentHoveredNodeInfo);
     currentHoveredNodeInfo = null;
 });
 
@@ -37,6 +39,25 @@ class TextBlockEditForm extends preact.Component {
             top: subEl.getBoundingClientRect().top - toolbarHeight + inspectorPanelEl.scrollTop - inspectorPanelEl.getBoundingClientRect().top,
             behavior: 'smooth',
         });
+    }
+    /**
+     * @param {HoverNodeInfo} info
+     * @access public
+     */
+    maybeHighlightEditorNode(info) {
+        if (info.blockEl.getAttribute('data-block') !== this.props.blockId)
+            return;
+        this.getNthEditorNode(info.childIdx).setAttribute('data-hovered', 'y');
+    }
+    /**
+     * @param {HoverNodeInfo} info
+     * @access public
+     */
+    maybeUnHighhlightEditorNode(info) {
+        if (info.blockEl.getAttribute('data-block') !== this.props.blockId)
+            return;
+        const cur = this.editor.current.quill.root.querySelector(':scope > [data-hovered]');
+        if (cur) cur.removeAttribute('data-hovered');
     }
     /**
      * @access protected

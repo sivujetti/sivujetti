@@ -205,6 +205,9 @@ h2 {
 .ql-editor > :not(:first-child) {
     margin-top: .4rem;
 }
+.ql-editor > [data-hovered] {
+    background: rgba(var(--components-color-fb-default), 0.05);
+}
 .ql-toolbar.ql-snow {
     position: sticky;
     top: 0;

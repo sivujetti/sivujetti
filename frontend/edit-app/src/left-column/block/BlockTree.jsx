@@ -178,7 +178,7 @@ class BlockTree extends preact.Component {
             onMouseOver={ e => {
                 if (!this.currentlyHoveredLi && e.target.getAttribute('data-block-id') === block.id) {
                     this.currentlyHoveredLi = e.target;
-                    api.webPageIframe.highlight(block);
+                    api.webPageIframe.highlightBlock(block);
                 }
             } }
             onMouseLeave={ e => {
@@ -301,7 +301,7 @@ class BlockTree extends preact.Component {
         const changes = callGetBlockPropChangesEvent(cloned.type, 'cloneBlock', [cloned]);
         if (changes) overrideData(cloned, changes);
         store2.dispatch('theBlockTree/cloneItem', [{block: cloned, isReusable: null}, createBlockDescriptor(openBlock), 'after']);
-        api.webPageIframe.scrollTo(cloned);
+        api.webPageIframe.scrollToBlock(cloned);
     }
     /**
      * @param {{name: String;}} data
@@ -445,7 +445,7 @@ class BlockTree extends preact.Component {
      * @access private
      */
     unHighlighCurrentlyHoveredLi() {
-        api.webPageIframe.unHighlight(this.currentlyHoveredLi.getAttribute('data-block-id'));
+        api.webPageIframe.unHighlightBlock(this.currentlyHoveredLi.getAttribute('data-block-id'));
         this.currentlyHoveredLi = null;
     }
 }

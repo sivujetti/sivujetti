@@ -53,7 +53,7 @@ class WebPageIframe {
      * @returns {Boolean} didScroll
      * @access public
      */
-    scrollTo(block, win = this.getEl().contentWindow, behavior = 'smooth') {
+    scrollToBlock(block, win = this.getEl().contentWindow, behavior = 'smooth') {
         if (isMetaBlock(block)) return;
         const body = this.getEl().contentDocument.body;
         const getRect = firstEl => firstEl.getBoundingClientRect();
@@ -73,10 +73,26 @@ class WebPageIframe {
         return false;
     }
     /**
+     * @param {Number} childElemIdx
+     * @param {String} textBlockId
+     * @access public
+     */
+    scrollToTextBlockChildEl(childElemIdx, textBlockId, behavior = 'auto') {
+        const body = this.getEl().contentDocument.body;
+        const blockEl = getBlockEl(textBlockId, body);
+        const child = blockEl.children[childElemIdx];
+        const rect = child.getBoundingClientRect();
+        const win = this.getEl().contentWindow;
+        win.scrollTo({
+            top: rect.top + win.scrollY - 30,
+            behavior,
+        });
+    }
+    /**
      * @param {RawBlock} block
      * @access public
      */
-    highlight(block) {
+    highlightBlock(block) {
         if (isMetaBlock(block)) return;
         this.pageManager.showHighlightRect(block, 'block-tree');
     }
@@ -84,8 +100,24 @@ class WebPageIframe {
      * @param {String} blockId
      * @access public
      */
-    unHighlight(blockId) {
+    unHighlightBlock(blockId) {
         this.pageManager.hideHighlightRect(blockId);
+    }
+    /**
+     * @param {Number} elIdx
+     * @param {String} blockId
+     * @access public
+     */
+    highlightTextBlockChildEl(elIdx, block) {
+        elIdx, block;
+    }
+    /**
+     * @param {Number} elIdx
+     * @param {String} blockId
+     * @access public
+     */
+    unHighlightTextBlockChildEl(elIdx, blockId) {
+        elIdx, blockId;
     }
     /**
      * @returns {HTMLIFrameElement}

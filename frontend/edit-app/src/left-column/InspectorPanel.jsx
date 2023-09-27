@@ -111,7 +111,7 @@ class InspectorPanel extends preact.Component {
             this.resizeHandleEl.current.style.transform = `translateY(-${height}px)`;
         }
         signals.emit('inspector-panel-revealed', this);
-        if (origin !== null && origin !== 'web-page') api.webPageIframe.scrollTo(block);
+        if (origin !== null && origin !== 'web-page') api.webPageIframe.scrollToBlock(block);
     }
     /**
      * @access private

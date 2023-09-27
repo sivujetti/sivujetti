@@ -102,6 +102,7 @@ class TextBlockEditForm extends preact.Component {
             <QuillEditor
                 name={ this.editorId }
                 value={ this.initialHtml }
+                onInit={ this.addEditorNodeMouseListeners.bind(this) }
                 onChange={ (markup, source) => {
                     this.inputApis.html.triggerInput(markup, source);
                 } }
@@ -118,6 +119,48 @@ class TextBlockEditForm extends preact.Component {
     getNthEditorNode(idx) {
         return this.editor.current.quill.root.children[idx];
     }
+    /**
+     * @param {QuillEditor} instance
+     * @access private
+     */
+    addEditorNodeMouseListeners(instance) {
+        const {root} = instance.quill;
+        let hovered = null;
+        root.addEventListener('click', () => {
+            if (hovered)
+                api.webPageIframe.scrollToElement(getChildNodeIdx(hovered, root), this.props.blockId);
+        });
+        root.addEventListener('mouseover', e => {
+            if (hovered) {
+                const b = e.target;
+                const hasChanged = b !== hovered && b.parentElement === root;
+                if (hasChanged) {
+                    api.webPageIframe.unHighlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.blockId);
+                    hovered = e.target;
+                    api.webPageIframe.highlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.blockId);
+                }
+            } else {
+                hovered = e.target;
+                api.webPageIframe.highlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.blockId);
+            }
+        }, true);
+        //
+        root.addEventListener('mouseleave', () => {
+            if (hovered) {
+                api.webPageIframe.unHighlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.blockId);
+                hovered = null;
+            }
+        }, true);
+    }
+}
+
+/**
+ * @param {HTMLElement} node Child node of .ql-editor
+ * @param {HTMLDivElement} paren .ql-editor
+ * @returns {Number}
+ */
+function getChildNodeIdx(node, paren) {
+    return Array.from(paren.children).indexOf(node);
 }
 
 /**

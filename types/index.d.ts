@@ -40,9 +40,12 @@ interface WebPageIframe {
     renderNormalPage(slug: String): Promise<EditAppAwareWebPage>;
     renderPlaceholderPage(pageTypeName: String, layoutId: String = '1', slug: String = ''): Promise<EditAppAwareWebPage>;
     goBack(): void;
-    scrollTo(block: RawBlock): Boolean;
-    highlight(block: RawBlock): void;
-    unHighlight(blockId: String): void;
+    scrollToBlock(block: RawBlock): Boolean;
+    scrollToTextBlockChildEl(childElemIdx: Number, textBlockId: String): void;
+    highlightBlock(block: RawBlock): void;
+    unHighlightBlock(blockId: String): void;
+    highlightTextBlockChildEl(elIdx: Number, block: String);
+    unHighlightTextBlockChildEl(elIdx: Number, blockId: String);
     getEl(): HTMLIFrameElement;
     registerWebPageDomUpdaterForBlockTree(trid: String): void;
     unRegisterWebPageDomUpdaterForBlockTree(trid: String): void;

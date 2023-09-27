@@ -1374,10 +1374,10 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     font-size: .6rem;
     border-radius: 2px;
 }
-.highlight-rect[data-position="top-inside"]:before {
+.highlight-rect[data-label-position="top-inside"]:before {
     margin: initial;
 }
-span.highlight-rect[data-position="bottom-inside"]:before {
+span.highlight-rect[data-label-position="bottom-inside"]:before {
     top: 100%;
     margin-top: -18px;
 }

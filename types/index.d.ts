@@ -44,8 +44,8 @@ interface WebPageIframe {
     scrollToTextBlockChildEl(childElemIdx: Number, textBlockId: String): void;
     highlightBlock(block: RawBlock): void;
     unHighlightBlock(blockId: String): void;
-    highlightTextBlockChildEl(elIdx: Number, block: String);
-    unHighlightTextBlockChildEl(elIdx: Number, blockId: String);
+    highlightTextBlockChildEl(elIdx: Number, textBlockId: String);
+    unHighlightTextBlockChildEl();
     getEl(): HTMLIFrameElement;
     registerWebPageDomUpdaterForBlockTree(trid: String): void;
     unRegisterWebPageDomUpdaterForBlockTree(trid: String): void;
@@ -228,11 +228,11 @@ interface TheWebsiteBundle {
 }
 
 interface EditAwareWebPageEventHandlers {
-    onHoverStarted(blockEl: HTMLElement, rect: DOMRect): void;
+    onBlockHoverStarted(blockEl: HTMLElement, rect: DOMRect): void;
     onClicked(blockEl: HTMLElement|null): void;
-    onHoverEnded(blockEl: HTMLElement): void;
-    onSubElHoverStarted(childIdx: Number, rect: DOMRect, blockEl:HTMLElement): void;
-    onSubElHoverEnded(subEl:HTMLElement, blockEl:HTMLElement): void;
+    onBlockHoverEnded(blockEl: HTMLElement): void;
+    onTextBlockChildElHoverStarted(childIdx: Number, textBlockId: String): void;
+    onTextBlockChildElHoverEnded(): void;
 }
 
 interface EditAppAwareWebPage {

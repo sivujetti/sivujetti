@@ -12,12 +12,12 @@ class WebPageIframe {
     // pageManager;
     /**
      * @param {HTMLIFrameElement} el
-     * @param {HTMLElement} blockHighlightEl
+     * @param {HTMLSpanElement} highlightRectEl
      * @param {(width: Number) => void} getCurrentLeftPanelWidth
      */
-    constructor(el, blockHighlightEl, getCurrentLeftPanelWidth) {
+    constructor(el, highlightRectEl, getCurrentLeftPanelWidth) {
         this.el = el;
-        this.pageManager = new IframePageManager(blockHighlightEl, getCurrentLeftPanelWidth);
+        this.pageManager = new IframePageManager(highlightRectEl, getCurrentLeftPanelWidth);
     }
     /**
      * @param {String} pageTypeName
@@ -105,19 +105,17 @@ class WebPageIframe {
     }
     /**
      * @param {Number} elIdx
-     * @param {String} blockId
+     * @param {String} textBlockId
      * @access public
      */
-    highlightTextBlockChildEl(elIdx, block) {
-        elIdx, block;
+    highlightTextBlockChildEl(elIdx, textBlockId) {
+        this.pageManager.highlightTextBlockChildEl(elIdx, textBlockId);
     }
     /**
-     * @param {Number} elIdx
-     * @param {String} blockId
      * @access public
      */
-    unHighlightTextBlockChildEl(elIdx, blockId) {
-        elIdx, blockId;
+    unHighlightTextBlockChildEl() {
+        this.pageManager.unHighlightTextBlockChildEl();
     }
     /**
      * @returns {HTMLIFrameElement}

@@ -19,7 +19,7 @@ class IframePageManager {
     // getCurrentLeftPanelWidth;
     // cachedLeftPanelWidth;
     /**
-     * @param {HTMLElement} highlightRectEl
+     * @param {HTMLSpanElement} highlightRectEl
      * @param {(width: Number) => void} getCurrentLeftPanelWidth
      */
     constructor(highlightRectEl, getCurrentLeftPanelWidth) {
@@ -106,7 +106,7 @@ class IframePageManager {
              * @param {HTMLElement} blockEl
              * @param {DOMRect} rect
              */
-            onHoverStarted(blockEl, rect) {
+            onBlockHoverStarted(blockEl, rect) {
                 if (prevHoverStartBlockEl === blockEl)
                     return;
                 const [block] = findBlockFrom(blockEl.getAttribute('data-block'), 'mainTree');
@@ -122,7 +122,7 @@ class IframePageManager {
             /**
              * @param {HTMLElement} blockEl
              */
-            onHoverEnded(blockEl, _r) {
+            onBlockHoverEnded(blockEl) {
                 setTimeout(() => {
                     if (blockEl === prevHoverStartBlockEl)
                         hideRect(blockEl.getAttribute('data-block'));
@@ -130,18 +130,17 @@ class IframePageManager {
             },
             /**
              * @param {Number} childIdx
-             * @param {DOMRect} rect
-             * @param {HTMLElement} blockEl
+             * @param {String} textBlockId
              */
-            onSubElHoverStarted(childIdx, rect, blockEl) {
-                signals.emit('sub-highlight-rect-revealed', childIdx, rect, blockEl);
+            onTextBlockChildElHoverStarted(childIdx, textBlockId) {
+                pageManager.highlightTextBlockChildEl(childIdx, textBlockId);
+                signals.emit('web-page-text-block-child-el-hover-started', childIdx, textBlockId);
             },
             /**
-             * @param {HTMLElement} subEl
-             * @param {HTMLElement} blockEl
              */
-            onSubElHoverEnded(subEl, blockEl) {
-                signals.emit('sub-highlight-rect-removed', subEl, blockEl);
+            onTextBlockChildElHoverEnded() {
+                pageManager.unHighlightTextBlockChildEl();
+                signals.emit('web-page-text-block-child-el-hover-ended');
             }
         };
     }
@@ -149,41 +148,87 @@ class IframePageManager {
      * @param {RawBlock} block
      * @param {'web-page'|'block-tree'} origin
      * @param {DOMRect} rect = null
-     * @access private
+     * @access public
      */
     showHighlightRect(block, origin, rect = null) {
-        const {highlightRectEl} = this;
         if (!rect) rect = this.currentWebPage.getBlockEl(block.id).getBoundingClientRect();
-
+        const title = (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type);
+        this.doShowHighlightRect(rect, title);
+        signals.emit('highlight-rect-revealed', block.id, origin);
+    }
+    /**
+     * @param {String|null} blockId
+     * @access public
+     */
+    hideHighlightRect(blockId) {
+        this.doHideHighlightRect();
+        signals.emit('highlight-rect-removed', blockId);
+    }
+    /**
+     * @param {Number} elIdx
+     * @param {String} textBlockId
+     * @access public
+     */
+    highlightTextBlockChildEl(elIdx, textBlockId) {
+        const childEl = this.currentWebPage.getBlockEl(textBlockId).children[elIdx];
+        const rect = childEl.getBoundingClientRect();
+        this.doShowHighlightRect(rect, `${__('Text')} > ${nodeNameToFriendly(childEl.nodeName)}`);
+    }
+    /**
+     * @access public
+     */
+    unHighlightTextBlockChildEl() {
+        this.doHideHighlightRect();
+    }
+    /**
+     * @param {DOMRect} rect
+     * @param {String} title
+     * @access private
+     */
+    doShowHighlightRect(rect, title) {
+        const {highlightRectEl} = this;
         highlightRectEl.style.cssText = [
             'width:', rect.width, 'px;',
             'height:', rect.height, 'px;',
             'top:', rect.top, 'px;',
             'left:', rect.left + this.cachedLeftPanelWidth, 'px'
         ].join('');
-
         if (rect.top < -TITLE_LABEL_HEIGHT)
-            highlightRectEl.setAttribute('data-position', 'bottom-inside');
+            highlightRectEl.setAttribute('data-label-position', 'bottom-inside');
         else if (rect.top > TITLE_LABEL_HEIGHT)
-            highlightRectEl.setAttribute('data-position', 'top-outside');
+            highlightRectEl.setAttribute('data-label-position', 'top-outside');
         else
-            highlightRectEl.setAttribute('data-position', 'top-inside');
-        highlightRectEl.setAttribute('data-title',
-            (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type)
-        );
-
-        signals.emit('highlight-rect-revealed', block.id, origin);
+            highlightRectEl.setAttribute('data-label-position', 'top-inside');
+        highlightRectEl.setAttribute('data-title', title);
     }
     /**
-     * @param {String|null} blockId
      * @access private
      */
-    hideHighlightRect(blockId) {
+    doHideHighlightRect() {
         const {highlightRectEl} = this;
         highlightRectEl.setAttribute('data-title', '');
         highlightRectEl.style.cssText = '';
-        signals.emit('highlight-rect-removed', blockId);
     }
+}
+
+/**
+ * @param {String} nodeName Example 'P', 'UL', 'BLOCKQUOTE'
+ * @returns {String} Example 'Paragraph', 'Unordered list', 'Blockquote'
+ */
+function nodeNameToFriendly(nodeName) {
+    const pair = {
+        'P':          ['Paragraph',      ''],
+        'H1':         ['Heading',        ' 1'],
+        'H2':         ['Heading',        ' 2'],
+        'H3':         ['Heading',        ' 3'],
+        'H4':         ['Heading',        ' 4'],
+        'H5':         ['Heading',        ' 5'],
+        'H6':         ['Heading',        ' 6'],
+        'UL':         ['Unordered list', ''],
+        'OL':         ['Ordered list',   ''],
+        'BLOCKQUOTE': ['Blockquote',     ''],
+    }[nodeName];
+    return pair ? `${__(pair[0])}${pair[1]}` : `<${nodeName.toLowerCase()}>`;
 }
 
 /**

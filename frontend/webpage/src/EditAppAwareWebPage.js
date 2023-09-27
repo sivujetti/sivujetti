@@ -1,5 +1,5 @@
 import {CHILDREN_START, CHILDREN_END, getMetaKey,
-        getBlockEl} from '../../edit-app/src/block/dom-commons.js';
+        getBlockEl, getNormalizedInitialHoverCandidate} from '../../edit-app/src/block/dom-commons.js';
 import ReRenderer, {findCommentR} from './ReRenderer.js';
 
 const useCtrlClickBasedFollowLinkLogic = true;
@@ -76,71 +76,21 @@ class EditAppAwareWebPage {
         document.body.addEventListener('mouseover', e => {
             if (this.isMouseListenersDisabled) return;
             //
-            let targ;
-            if (this.currentlyHoveredBlockEl) {
-                targ = e.target;
-            } else {
-                targ = e.target.closest('[data-block-type]');
-                if (!targ) return;
-            }
-            // Hover of block element
-            if (this.currentlyHoveredBlockEl) {
-                const hasBeenReplacedByPropUpdate = !document.body.contains(this.currentlyHoveredBlockEl);
-                if (hasBeenReplacedByPropUpdate) // @see ReRenderer.handleFastChangeEvent() ('theBlockTree/updatePropsOf')
-                    this.currentlyHoveredBlockEl = getBlockEl(this.currentlyHoveredBlockEl.getAttribute('data-block'));
-                //
-                const b = e.target.getAttribute('data-block-type') ? e.target : e.target.closest('[data-block-type]');
-                if (this.currentlyHoveredBlockEl.contains(b) && this.currentlyHoveredBlockEl !== b) {
-                    this.handlers.onHoverEnded(this.currentlyHoveredBlockEl);
-                    this.currentlyHoveredBlockEl = b;
-                    this.handlers.onHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
-                }
-            } else {
-                if (!targ.getAttribute('data-block-type')) return;
-                this.currentlyHoveredBlockEl = targ;
-                this.handlers.onHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
-            }
-            // Hover of inner node of text block element
-            if (this.curHoveredSubEl) {
-                const b = e.target;
-                const hasChanged = (
-                    b !== this.curHoveredSubEl &&
-                    isSubHoverable(e.target, this.currentlyHoveredBlockEl)
-                );
-                if (hasChanged) {
-                    this.handlers.onSubElHoverEnded(this.curHoveredSubEl, this.currentlyHoveredBlockEl);
-                    this.curHoveredSubEl = b;
-                    this.handlers.onSubElHoverStarted(
-                        Array.from(this.currentlyHoveredBlockEl.children).indexOf(this.curHoveredSubEl),
-                        this.curHoveredSubEl.getBoundingClientRect(),
-                        this.currentlyHoveredBlockEl
-                    );
-                }
-            } else {
-                if (
-                    this.currentlyHoveredBlockEl?.children?.length &&
-                    isSubHoverable(e.target, this.currentlyHoveredBlockEl)
-                ) {
-                    this.curHoveredSubEl = e.target;
-                    this.handlers.onSubElHoverStarted(
-                        Array.from(this.currentlyHoveredBlockEl.children).indexOf(this.curHoveredSubEl),
-                        this.curHoveredSubEl.getBoundingClientRect(),
-                        this.currentlyHoveredBlockEl
-                    );
-                }
-            }
+            this.handleBlockMouseover(e);
+            //
+            this.handleTextBlockChildElMouseover(e);
         }, true);
         //
         document.body.addEventListener('mouseleave', e => {
             if (this.isMouseListenersDisabled) return;
             // Hover of inner node of text block element
             if (this.curHoveredSubEl && e.target === this.curHoveredSubEl) {
-                this.handlers.onSubElHoverEnded(this.curHoveredSubEl, this.currentlyHoveredBlockEl);
+                this.handlers.onTextBlockChildElHoverEnded();
                 this.curHoveredSubEl = null;
             }
             // Hover of block element
             if (this.currentlyHoveredBlockEl && e.target === this.currentlyHoveredBlockEl) {
-                this.handlers.onHoverEnded(this.currentlyHoveredBlockEl);
+                if (this.currentlyHoveredBlockEl.getAttribute('data-block-type') !== 'Text') this.handlers.onBlockHoverEnded(this.currentlyHoveredBlockEl);
                 this.currentlyHoveredBlockEl = null;
             }
         }, true);
@@ -153,6 +103,70 @@ class EditAppAwareWebPage {
             this.addClickHandlersCtrlClickVersion();
         else
             this.addClickHandlersLongClickVersion();
+    }
+    /**
+     * @param {MouseEvent} e
+     * @access private
+     */
+    handleBlockMouseover(e) {
+        let targ;
+        if (this.currentlyHoveredBlockEl) {
+            targ = e.target;
+        } else {
+            targ = e.target.closest('[data-block-type]');
+            if (!targ) return;
+        }
+        //
+        if (this.currentlyHoveredBlockEl) {
+            const doShow = this.currentlyHoveredBlockEl.getAttribute('data-block-type') !== 'Text';
+            const hasBeenReplacedByPropUpdate = !document.body.contains(this.currentlyHoveredBlockEl);
+            if (hasBeenReplacedByPropUpdate) // @see ReRenderer.handleFastChangeEvent() ('theBlockTree/updatePropsOf')
+                this.currentlyHoveredBlockEl = getBlockEl(this.currentlyHoveredBlockEl.getAttribute('data-block'));
+            //
+            const b = e.target.getAttribute('data-block-type') ? e.target : e.target.closest('[data-block-type]');
+            if (this.currentlyHoveredBlockEl.contains(b) && this.currentlyHoveredBlockEl !== b) {
+                if (doShow) this.handlers.onBlockHoverEnded(this.currentlyHoveredBlockEl);
+                this.currentlyHoveredBlockEl = b;
+                if (doShow) this.handlers.onBlockHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
+            }
+        } else {
+            if (!targ.getAttribute('data-block-type')) return;
+            const doShow = targ.getAttribute('data-block-type') !== 'Text';
+            this.currentlyHoveredBlockEl = targ;
+            if (doShow) this.handlers.onBlockHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
+        }
+    }
+    /**
+     * @param {MouseEvent} e
+     * @access private
+     */
+    handleTextBlockChildElMouseover(e) {
+        if (this.curHoveredSubEl) {
+            const b = e.target;
+            const hasChanged = (
+                b !== this.curHoveredSubEl &&
+                isSubHoverable(e.target, this.currentlyHoveredBlockEl)
+            );
+            if (hasChanged) {
+                this.handlers.onTextBlockChildElHoverEnded();
+                this.curHoveredSubEl = b;
+                this.handlers.onTextBlockChildElHoverStarted(
+                    Array.from(this.currentlyHoveredBlockEl.children).indexOf(this.curHoveredSubEl),
+                    this.currentlyHoveredBlockEl.getAttribute('data-block')
+                );
+            }
+        } else {
+            if (this.currentlyHoveredBlockEl?.children?.length > 1) {
+                const candidate = getNormalizedInitialHoverCandidate(e.target, this.currentlyHoveredBlockEl);
+                if (isSubHoverable(candidate, this.currentlyHoveredBlockEl)) {
+                    this.curHoveredSubEl = candidate;
+                    this.handlers.onTextBlockChildElHoverStarted(
+                        Array.from(this.currentlyHoveredBlockEl.children).indexOf(this.curHoveredSubEl),
+                        this.currentlyHoveredBlockEl.getAttribute('data-block')
+                    );
+                }
+            }
+        }
     }
     /**
      * @returns {(state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void}

@@ -207,7 +207,7 @@
             <div id="inspector-panel"></div>
             <div id="view"></div>
             <iframe src="" id="site-preview-iframe"></iframe>
-            <span class="highlight-rect" data-position="top-outside"></span>
+            <span class="highlight-rect" data-label-position="top-outside"></span>
             <?php if ($isFirstRun && defined("showQuickIntro")): ?>
             <div style="opacity:0" id="quick-intro-outer"><div>
                 <h2 class="quick-intro-head">Muokkaustila, pikaohje<button type="button" class="btn btn-link no-color"><svg class="icon-tabler size-xl" width="24" height="24" style="width: 28px;height: 28px;margin-top: -3px;"><use xlink:href="<?= $this->assetUrl("public/sivujetti/assets/tabler-sprite-custom.svg") ?>#tabler-x"></use></svg></button></h2>

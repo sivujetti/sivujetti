@@ -88,6 +88,12 @@ stringBundles.push({
     'Delete page': 'Delete page',
     'Deleted page "%s".': 'Deleted page "%s".',
     'Failed to delete page.': 'Failed to delete page.',
+    // edit-app/src/right-column/IframePageManager.js
+    'Paragraph': 'Paragraph',
+    'Heading': 'Heading',
+    'Unordered': 'Unordered list',
+    'Ordered': 'Ordered list',
+    'Blockquote': 'Blockquote',
     // edit-app/src/quill/*,
     'Image': 'Image',
     'File': 'File',
@@ -241,7 +247,6 @@ stringBundles.push({
     'Num columns': 'Num columns',
     'Full width': 'Full width',
     // edit-app/src/block-types/heading.js
-    'Heading': 'Heading',
     'Level': 'Level',
     'Add content after': 'Add content after',
     'Heading text': 'Heading text',
@@ -286,7 +291,6 @@ stringBundles.push({
     'Social image': 'Social image',
     'Meta description': 'Meta description',
     // edit-app/src/block-types/paragraph.js
-    'Paragraph': 'Paragraph',
     'Paragraph text': 'Paragraph text',
     // edit-app/src/block-types/richText.js
     'RichText': 'Rich text',

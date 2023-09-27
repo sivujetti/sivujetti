@@ -1,17 +1,18 @@
 import {__, api, env, hookForm, unhookForm, InputErrors, FormGroup,
         validationConstraints, signals} from '@sivujetti-commons-for-edit-app';
+import {getNormalizedInitialHoverCandidate} from '../block/dom-commons.js';
 import QuillEditor from '../quill/QuillEditor.jsx';
 import setFocusTo from './auto-focusers.js';
 
 let currentInstance;
 let currentHoveredNodeInfo;
 
-signals.on('sub-highlight-rect-revealed', (childIdx, _rect, blockEl) => {
-    currentHoveredNodeInfo = {childIdx, blockEl};
+signals.on('web-page-text-block-child-el-hover-started', (childIdx, blockId) => {
+    currentHoveredNodeInfo = {childIdx, blockId};
     if (currentInstance) currentInstance.maybeHighlightEditorNode(currentHoveredNodeInfo);
 });
 
-signals.on('sub-highlight-rect-removed', (_subEl, _blockEl) => {
+signals.on('web-page-text-block-child-el-hover-ended', () => {
     if (currentInstance) currentInstance.maybeUnHighhlightEditorNode(currentHoveredNodeInfo);
     currentHoveredNodeInfo = null;
 });
@@ -30,8 +31,7 @@ class TextBlockEditForm extends preact.Component {
      * @access public
      */
     maybeScrollToEditorNode(info) {
-        if (info.blockEl.getAttribute('data-block') !== this.props.blockId)
-            return;
+        if (info.blockId !== this.props.blockId) return;
         const inspectorPanelEl = api.inspectorPanel.getEl();
         const toolbarHeight = this.editor.current.quill.theme.modules.toolbar.container.getBoundingClientRect().height;
         const subEl = this.getNthEditorNode(info.childIdx);
@@ -45,8 +45,7 @@ class TextBlockEditForm extends preact.Component {
      * @access public
      */
     maybeHighlightEditorNode(info) {
-        if (info.blockEl.getAttribute('data-block') !== this.props.blockId)
-            return;
+        if (info.blockId !== this.props.blockId) return;
         this.getNthEditorNode(info.childIdx).setAttribute('data-hovered', 'y');
     }
     /**
@@ -54,8 +53,7 @@ class TextBlockEditForm extends preact.Component {
      * @access public
      */
     maybeUnHighhlightEditorNode(info) {
-        if (info.blockEl.getAttribute('data-block') !== this.props.blockId)
-            return;
+        if (info.blockId !== this.props.blockId) return;
         const cur = this.editor.current.quill.root.querySelector(':scope > [data-hovered]');
         if (cur) cur.removeAttribute('data-hovered');
     }
@@ -127,27 +125,35 @@ class TextBlockEditForm extends preact.Component {
         const {root} = instance.quill;
         let hovered = null;
         root.addEventListener('click', () => {
-            if (hovered)
-                api.webPageIframe.scrollToElement(getChildNodeIdx(hovered, root), this.props.blockId);
+            if (hovered) {
+                api.webPageIframe.scrollToTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.blockId);
+                setTimeout(() => {
+                    if (hovered)
+                        api.webPageIframe.highlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.blockId);
+                }, 100);
+            }
         });
         root.addEventListener('mouseover', e => {
             if (hovered) {
                 const b = e.target;
                 const hasChanged = b !== hovered && b.parentElement === root;
                 if (hasChanged) {
-                    api.webPageIframe.unHighlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.blockId);
+                    api.webPageIframe.unHighlightTextBlockChildEl();
                     hovered = e.target;
                     api.webPageIframe.highlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.blockId);
                 }
             } else {
-                hovered = e.target;
-                api.webPageIframe.highlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.blockId);
+                const candidate = getNormalizedInitialHoverCandidate(e.target, root);
+                if (candidate !== root) {
+                    hovered = candidate;
+                    api.webPageIframe.highlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.blockId);
+                }
             }
         }, true);
         //
         root.addEventListener('mouseleave', () => {
             if (hovered) {
-                api.webPageIframe.unHighlightTextBlockChildEl(getChildNodeIdx(hovered, root), this.props.blockId);
+                api.webPageIframe.unHighlightTextBlockChildEl();
                 hovered = null;
             }
         }, true);
@@ -166,7 +172,7 @@ function getChildNodeIdx(node, paren) {
 /**
  * @typedef HoverNodeInfo
  * @prop {Number} childIdx
- * @prop {HTMLDivElement} blockEl
+ * @prop {String} blockId
  */
 
 export default () => {

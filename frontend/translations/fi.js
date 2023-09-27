@@ -89,6 +89,12 @@ stringBundles.push({
     'Delete page': 'Poista sivu',
     'Deleted page "%s".': 'Sivu "%s" poistettu.',
     'Failed to delete page.': 'Sivun poistaminen epäonnistui.',
+    // edit-app/src/right-column/IframePageManager.js
+    'Paragraph': 'Tekstikappale',
+    'Heading': 'Otsikko',
+    'Unordered': 'UL -lista',
+    'Ordered': 'OL -lista',
+    'Blockquote': 'Sitaatti',
     // edit-app/src/quill/*
     'Image': 'Kuva',
     'File': 'Tiedosto',
@@ -242,7 +248,6 @@ stringBundles.push({
     'Num columns': 'Sarakkeita',
     'Full width': 'Täysileveä',
     // edit-app/src/block-types/heading.js
-    'Heading': 'Otsikko',
     'Level': 'Taso',
     'Add content after': 'Lisää sisältöä jälkeen',
     'Heading text': 'Otsikon teksti',
@@ -287,7 +292,6 @@ stringBundles.push({
     'Social image': 'Some-kuva',
     'Meta description': 'Meta-selostus',
     // edit-app/src/block-types/paragraph.js
-    'Paragraph': 'Tekstikappale',
     'Paragraph text': 'Tekstikappaleen teksti',
     // edit-app/src/block-types/richText.js
     'RichText': 'Rikasteteksti',

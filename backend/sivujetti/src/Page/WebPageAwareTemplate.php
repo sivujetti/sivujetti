@@ -353,6 +353,8 @@ final class WebPageAwareTemplate extends Template {
         $escapedTitle = "{$this->e($currentPage->title)} - {$siteNameEscaped}";
         $metasOgOut[] = "<meta property=\"og:title\" content=\"{$escapedTitle}\">";
         $ldWebPage["name"] = $escapedTitle;
+        // Type
+        $metasOgOut[] = "<meta property=\"og:type\" content=\"website\">";
         // Description
         if (($description = $metasIn->description ?? null)) {
             $escapedDescr = $this->e($description);

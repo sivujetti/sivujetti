@@ -50,7 +50,10 @@ return [
     `firstRuns` JSON, -- {'userId': 'y', 'another': 'y'}
     `versionId` TEXT NOT NULL,
     `lastUpdatedAt` {$dataTypeForTimestamps},
-    `newestCoreVersionLastChecked` {$dataTypeForTimestamps}
+    `newestCoreVersionLastChecked` {$dataTypeForTimestamps},
+    `pendingUpdates` JSON, -- [{name: 'sivujetti-0.16.0', sig: '<128-chars-long-string>'} ...]
+    `headHtml` TEXT,
+    `footHtml` TEXT
 )",
 
 "CREATE TABLE `\${p}themes` (
@@ -153,5 +156,5 @@ return [
     `startedAt` {$dataTypeForTimestamps}
 )",
 
-"INSERT INTO `\${p}jobs` VALUES (1,'update-core',0),(2,'update-plugin',0)",
+"INSERT INTO `\${p}jobs` VALUES (1,'updates:all',0)",
 ];

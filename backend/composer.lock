@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cbfa327843c6c5f54b2763c0eb346afe",
+    "content-hash": "cc4c6c1294d0f47dd0a02a06dfeb6b86",
     "packages": [
         {
             "name": "altorouter/altorouter",
@@ -65,6 +65,50 @@
                 "source": "https://github.com/dannyvankooten/AltoRouter/tree/2.0.2"
             },
             "time": "2020-03-09T08:34:59+00:00"
+        },
+        {
+            "name": "anlutro/curl",
+            "version": "1.5.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/anlutro/php-curl.git",
+                "reference": "1c569768a106dd40f5160ebebb703f09c6b58c8b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/anlutro/php-curl/zipball/1c569768a106dd40f5160ebebb703f09c6b58c8b",
+                "reference": "1c569768a106dd40f5160ebebb703f09c6b58c8b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "0.9.*",
+                "phpunit/phpunit": "4.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "anlutro\\cURL\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Andreas Lutro",
+                    "email": "anlutro@gmail.com"
+                }
+            ],
+            "description": "Simple OOP cURL wrapper.",
+            "support": {
+                "issues": "https://github.com/anlutro/php-curl/issues",
+                "source": "https://github.com/anlutro/php-curl/tree/1.5.2"
+            },
+            "time": "2023-06-27T07:39:41+00:00"
         },
         {
             "name": "envms/fluentpdo",

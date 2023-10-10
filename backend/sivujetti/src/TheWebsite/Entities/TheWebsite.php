@@ -19,6 +19,10 @@ final class TheWebsite extends \stdClass {
     public string $aclRulesJson;
     /** @var string */
     public string $versionId;
+    /** @var int Unix timestamp or 0 */
+    public int $newestCoreVersionLastChecked;
+    /** @var ?string */
+    public ?string $pendingUpdatesJson;
     /** @var string */
     public string $firstRunsJson;
     /** @var \ArrayObject<int, \Sivujetti\Plugin\Entities\Plugin> */

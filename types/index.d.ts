@@ -25,6 +25,7 @@ interface SivujettiFrontendApi {
     };
     events: todo;
     registerBlockTreeMutator(event: String, getMutationsFn: (event: String, theBlockTree: Array<RawBlock>, blockTreeUtils: blockTreeUtils) => Array<{blockId: String; changes: {[key: String]: any;};}>): void;
+    getAvailableUpdatePackages: () => Array<String>;
 }
 
 interface OpQueueOp {
@@ -225,6 +226,7 @@ interface TheWebsiteBundle {
     userRole: Number;
     showGoToDashboardMode?: Boolean;
     dashboardUrl?: String;
+    availableUpdatePackages: Array<String>;
 }
 
 interface EditAwareWebPageEventHandlers {

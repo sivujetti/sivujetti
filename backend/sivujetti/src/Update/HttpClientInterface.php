@@ -8,7 +8,10 @@ interface HttpClientInterface {
 }
 
 final class HttpClientResp {
+    /** @var int */
     public int $status;
+    /** @var string */
     public string $data;
-    public \ArrayObject $headers;
+    /** @var array<string, mixed> */
+    public array $headers;
 }

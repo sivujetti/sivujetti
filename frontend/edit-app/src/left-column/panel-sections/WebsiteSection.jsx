@@ -1,22 +1,24 @@
-import {__, MenuSection, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, api, MenuSection, Icon} from '@sivujetti-commons-for-edit-app';
 
 class WebsiteSection extends preact.Component {
     /**
      * @access protected
      */
     render() {
+        const updateAvailableIndicatorCls = !api.getAvailableUpdatePackages().length ? '' : ' with-notification-dot';
         return <MenuSection
             title={ __('Website') }
             subtitle={ __('Website\'s settings') }
             iconId="settings"
             outerClass="website"
+            buttonClass={ `${updateAvailableIndicatorCls} delta-2` }
             colorClass="color-blue">
             <nav>
                 <a href="#/website/edit-basic-info" class="with-icon">
                     <Icon iconId="info-circle" className="size-sm color-blue color-saturated"/>
                     <span class="color-dimmed">{ __('Edit info') }</span>
                 </a>
-                <a href="#/website/updates" class="with-icon">
+                <a href="#/website/updates" class={ `with-icon${updateAvailableIndicatorCls}` }>
                     <Icon iconId="refresh" className="size-sm color-blue color-saturated"/>
                     <span class="color-dimmed">{ __('Updates') }</span>
                 </a>

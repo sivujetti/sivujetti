@@ -1487,6 +1487,17 @@ span.highlight-rect[data-label-position="bottom-inside"]:before {
     border-color: var(--color-input-border);
     color: var(--color-fg-code);
 }
+.with-notification-dot:after {
+    content: "•";
+    color: #ee4d4d;
+    font-size: 38px;
+    position: absolute;
+    margin-top: -9px;
+    left: 24px;
+}
+.with-notification-dot.delta-2:after {
+    left: 30px;
+}
 ul.list {
     list-style: initial;
     margin: 0;

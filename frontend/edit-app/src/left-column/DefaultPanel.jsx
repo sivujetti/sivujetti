@@ -24,7 +24,7 @@ class DefaultPanel extends preact.Component {
         });
     }
     /**
-     * @param {{url: String} & {[key]: String}: any;} props
+     * @param {{url: String;} & {[key]: String}: any;} props
      * @access protected
      */
     componentWillReceiveProps(props) {

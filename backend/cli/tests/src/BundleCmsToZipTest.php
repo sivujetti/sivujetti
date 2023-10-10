@@ -45,7 +45,7 @@ final class BundleCmsToZipTest extends DbTestCase {
     private function setupTest(): \TestState {
         $state = new \TestState;
         $state->inputData = (object) [
-            // $signer->hex2bin($signer->generateSigningKeyPair()->secretKey)
+            // $signer->generateSigningKeyPair()->secretKey
             "secretKey" => "17c31ad9c358901e0c3364025ddae226dbd95fd130bf85eac802a29e9d363bdef636a6df9e68639e6594a1f3a412fb3479b1cebb62460d96464e5cbcc66d38d6"
         ];
         $state->cliApp = null;

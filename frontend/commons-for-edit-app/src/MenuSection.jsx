@@ -2,7 +2,7 @@ import {Icon} from './Icon.jsx';
 
 class MenuSection extends preact.Component {
     /**
-     * @param {{title: String; subtitle: String; iconId: String; colorClass: String; outerClass?: String; onIsCollapsedChanged?: (to: Boolean) => void; initiallyIsCollapsed?: Boolean;}} props
+     * @param {{title: String; subtitle: String; iconId: String; colorClass: String; outerClass?: String; buttonClass?: String; onIsCollapsedChanged?: (to: Boolean) => void; initiallyIsCollapsed?: Boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -20,9 +20,9 @@ class MenuSection extends preact.Component {
     /**
      * @access protected
      */
-    render({title, subtitle, iconId, colorClass, outerClass, children}, {isCollapsed}) {
+    render({title, subtitle, iconId, colorClass, outerClass, buttonClass, children}, {isCollapsed}) {
         return <section class={ ['panel-section', outerClass ? ` ${outerClass}` : '', isCollapsed ? '' : ' open'].join('') }>
-            <button class="flex-centered pr-2 section-title col-12" onClick={ this.collapseOrUncollapse.bind(this) }>
+            <button class={ `flex-centered pr-2 section-title col-12${buttonClass || ''}` } onClick={ this.collapseOrUncollapse.bind(this) }>
                 <Icon iconId={ iconId } className={ `p-absolute size-sm mr-2 ${colorClass}` }/>
                 <span class="pl-1 d-block col-12 color-default">
                     { title }

@@ -30,8 +30,8 @@ final class Controller {
     public function createSigningKeyPair(Response $res, Signer $signer): void {
         $keyPair = $signer->generateSigningKeyPair();
         $res->json([
-            "secretKey" => $signer->bin2hex($keyPair->secretKey),
-            "publicKey" => $signer->bin2hex($keyPair->publicKey),
+            "secretKey" => $keyPair->secretKey,
+            "publicKey" => $keyPair->publicKey,
         ]);
     }
     /**
@@ -46,10 +46,10 @@ final class Controller {
                                      ZipPackageStream $toPackage,
                                      FileSystem $fs,
                                      Signer $signer): void {
-        $key = self::getSigningKeyAsBin($req->params->signingKey, $signer);
         $outFilePath = SIVUJETTI_BACKEND_PATH . "sivujetti-" . App::VERSION . ".zip";
         $zipContents = $bundler->makeRelease($toPackage, $outFilePath, true);
         $sigFilePath = "{$outFilePath}.sig.txt";
+        $key = $req->params->signingKey;
         $this->writeSignatureFile($sigFilePath, $zipContents, $key, $signer, $fs);
         $res->plain("Ok, created release to `{$outFilePath}`, and signature to `{$sigFilePath}`");
     }
@@ -92,7 +92,6 @@ final class Controller {
                                     ZipPackageStream $toPackage,
                                     FileSystem $fs,
                                     Signer $signer): void {
-        $key = self::getSigningKeyAsBin($req->params->signingKey, $signer);
         $pcs = explode("_", $req->params->relPatchContentsMapFile);
         if (count($pcs) !== 2) throw new PikeException("relPatchContentsMapFile must be formatted as patch-target-patchname.json");
         ValidationUtils::checkIfValidaPathOrThrow($pcs[0], true);
@@ -101,6 +100,7 @@ final class Controller {
             $bundler->setSourceDir(urldecode($req->params->sourcePath));
         $zipContents = $bundler->makePatch($toPackage, $outFilePath, $req->params->relPatchContentsMapFile, true);
         $sigFilePath = "{$outFilePath}.sig.txt";
+        $key = $req->params->signingKey;
         $this->writeSignatureFile($sigFilePath, $zipContents, $key, $signer, $fs);
         $res->plain("Ok, created release to `{$outFilePath}`, and signature to `{$sigFilePath}`");
     }
@@ -189,22 +189,9 @@ final class Controller {
                                                string $secretKey,
                                                Signer $signer,
                                                FileSystem $fs): void {
-        $signature = $signer->sign($fileContents, $secretKey);
-        if (!$fs->write($filePath, $signer->bin2hex($signature)))
+        $signatureAsHex = $signer->sign($fileContents, $secretKey);
+        if (!$fs->write($filePath, $signatureAsHex))
             throw new PikeException("Failed to write signature to `{$filePath}`",
                                     PikeException::FAILED_FS_OP);
-    }
-    /**
-     * @param string $key $req->params->signingKey
-     * @param \Sivujetti\Update\Signer $signer
-     * @return string hex2bin($key)
-     */
-    private static function getSigningKeyAsBin(string $key, Signer $signer): string {
-        $SIGNING_KEY_LEN = SODIUM_CRYPTO_SIGN_SECRETKEYBYTES;
-        $asBin = $signer->hex2bin($key);
-        if (strlen($asBin ?? "") !== $SIGNING_KEY_LEN)
-            throw new PikeException("\$params->signingKey must be SODIUM_CRYPTO_SIGN_SECRETKEYBYTES bytes long",
-                                    PikeException::BAD_INPUT);
-        return $asBin;
     }
 }

@@ -17,6 +17,7 @@ use Sivujetti\Layout\Entities\Layout;
 use Sivujetti\Layout\LayoutsRepository;
 use Sivujetti\Theme\Entities\Theme;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
+use Sivujetti\Update\Updater;
 use Sivujetti\UserTheme\UserThemeAPI;
 
 final class PagesController {
@@ -28,12 +29,14 @@ final class PagesController {
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
+     * @param \Sivujetti\Update\Updater $updater
      */
     public function renderPage(Request $req,
                                Response $res,
                                PagesRepository $pagesRepo,
                                SharedAPIContext $apiCtx,
-                               TheWebsite $theWebsite): void {
+                               TheWebsite $theWebsite,
+                               Updater $updater): void {
         $pcs = explode("/", $req->params->url, 3);
         [$pageTypeSlug, $slug] = count($pcs) > 2
             ? ["/" . $pcs[1], "/{$pcs[2]}"]
@@ -47,6 +50,12 @@ final class PagesController {
         if (!($page = $pagesRepo->getSingle($pageType,
                                             ["filters" => [["slug", $slug]]]))) {
             $res->status(404)->html("404");
+            return;
+        }
+        if ($theWebsite->pendingUpdatesJson && $updater->hasUpdateJobBegun()) {
+            $res->plain($theWebsite->lang === "fi"
+                ? "Sivustoa huolletaan, palaamme hetken kuluttua."
+                : "We're down for maintenance. Be right back.");
             return;
         }
         self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
@@ -94,6 +103,7 @@ final class PagesController {
      * @param \Sivujetti\Auth\ACL $acl
      * @param \Pike\AppConfig $config
      * @param \Pike\Db $db
+     * @param \Sivujetti\Update\Updater $updater
      */
     public function renderEditAppWrapper(Request $req,
                                          Response $res,
@@ -101,13 +111,22 @@ final class PagesController {
                                          SharedAPIContext $apiCtx,
                                          ACL $acl,
                                          AppConfig $config,
-                                         Db $db): void {
-        $parsed = json_decode($theWebsite->firstRunsJson, flags: JSON_THROW_ON_ERROR);
-        $isFirstRun = ($parsed->{$req->myData->user->id} ?? null) !== "y";
+                                         Db $db,
+                                         Updater $updater): void {
+        //
+        $availableUpdatePackages = $updater->getAndSyncAvailablePackages(
+            $theWebsite->pendingUpdatesJson,
+            $theWebsite->newestCoreVersionLastChecked,
+            $theWebsite->plugins
+        );
+        //
+        $firstRunsParsed = json_decode($theWebsite->firstRunsJson, flags: JSON_THROW_ON_ERROR);
+        $isFirstRun = ($firstRunsParsed->{$req->myData->user->id} ?? null) !== "y";
         if ($isFirstRun) {
-            $parsed->{$req->myData->user->id} = "y";
-            $db->exec("UPDATE `\${p}theWebsite` SET `firstRuns`=?", [json_encode($parsed)]);
+            $firstRunsParsed->{$req->myData->user->id} = "y";
+            $db->exec("UPDATE `\${p}theWebsite` SET `firstRuns`=?", [json_encode($firstRunsParsed)]);
         }
+        //
         $userRole = $req->myData->user->role;
         $res->html((new WebPageAwareTemplate("sivujetti:edit-app-wrapper.tmpl.php",
                                              assetUrlCacheBustStr: "v={$theWebsite->versionId}"))->render([
@@ -135,6 +154,7 @@ final class PagesController {
                     "canListUploads" => $acl->can($userRole, "list", "uploads"),
                 ],
                 "userRole" => $userRole,
+                "availableUpdatePackages" => $availableUpdatePackages,
             ], JSON_UNESCAPED_UNICODE)),
             "uiLang" => SIVUJETTI_UI_LANG,
             "isFirstRun" => $isFirstRun || $req->queryVar("first-run") !== null,

@@ -305,6 +305,15 @@ stringBundles.push({
     'Choose a picture': 'Choose a picture',
     // edit-app/src/right-column/website/WebsiteApplyUpdatesView.jsx
     'No updates available.': 'No updates available.',
+    'New version %s of Sivujetti is available.': 'New version %s of Sivujetti is available.',
+    'Install update': 'Install update',
+    'Downloading update': 'Downloading update',
+    'Do not close the view': 'Do not close the view',
+    'Downloading': 'Downloading',
+    'Installing update': 'Installing update',
+    'Installing': 'Installing',
+    'Updates installed! Reloading page in %s': 'Updates installed! Reloading page in %s',
+    'Reload page': 'Reload page',
     // edit-app/src/right-column/website/WebsiteEditBasicInfoView.jsx
     'Edit website info': 'Edit website info',
     'These details are visible to search engines and when sharing pages on social media channels.': 'These details are visible to search engines and when sharing pages on social media channels.',

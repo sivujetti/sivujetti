@@ -3,13 +3,13 @@ import {__, api, env, timingUtils, Icon, LoadingSpinner, InputError,
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import exampleScss from '../../example-scss.js';
-import VisualStyles, {valueEditors} from './VisualStyles.jsx';
+import VisualStyles from './VisualStyles.jsx';
 import EditUnitOrSetAsDefaultDialog from '../../popups/styles/EditUnitOrSetAsDefaultDialog.jsx';
 import {getLargestPostfixNum, findBlockTypeStyles, SPECIAL_BASE_UNIT_NAME, findBodyStyle,
         dispatchNewBlockStyleClasses, compileSpecial, StyleTextarea, emitUnitChanges,
         emitCommitStylesOp, EditableTitle, tempHack2, goToStyle, blockHasStyle,
-        findParentStyleInfo, tempHack, StylesList, findRealUnit, findBodyStyleMainUnit,
-        specialBaseUnitCls, splitUnitAndNonUnitClasses, createUnitClass} from './styles-shared.jsx';
+        findParentStyleInfo, tempHack, StylesList, findRealUnit,
+        splitUnitAndNonUnitClasses, createUnitClass} from './styles-shared.jsx';
 
 const {compile, serialize, stringify} = window.stylis;
 

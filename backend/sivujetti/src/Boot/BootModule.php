@@ -21,6 +21,7 @@ use Sivujetti\Plugin\Entities\Plugin;
 use Sivujetti\{SharedAPIContext};
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\TheWebsite\TheWebsiteRepository;
+use Sivujetti\Update\{CurlHttpClient, HttpClientInterface};
 use Sivujetti\UserPlugin\{UserPluginAPI, UserPluginInterface};
 use Sivujetti\UserSite\{UserSiteAPI, UserSiteInterface};
 
@@ -126,6 +127,7 @@ class BootModule {
         //
         $di->alias(FileSystemInterface::class, FileSystem::class);
         $di->alias(SessionInterface::class, NativeSession::class);
+        $di->alias(HttpClientInterface::class, CurlHttpClient::class);
         //
         if (!$di->inspect(SharedAPIContext::class)[$di::I_SHARES]) {
             $apiCtx = new SharedAPIContext;

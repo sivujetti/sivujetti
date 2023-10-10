@@ -5,7 +5,7 @@ namespace Sivujetti\Update\Entities;
 final class Job extends \stdClass {
     /** @var string */
     public string $id;
-    /** @var string e.g. "update-core" */
+    /** @var string e.g. "updates:all" */
     public string $jobName;
     /** @var int Unix timestamp, or 0 */
     public int $startedAt;

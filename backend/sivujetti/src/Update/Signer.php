@@ -9,25 +9,32 @@ final class Signer {
     public function generateSigningKeyPair(): KeyPair {
         $signPair = sodium_crypto_sign_keypair();
         $out = new KeyPair;
-        $out->secretKey = sodium_crypto_sign_secretkey($signPair);
-        $out->publicKey = sodium_crypto_sign_publickey($signPair);
+        $out->secretKey = $this->bin2hex(sodium_crypto_sign_secretkey($signPair));
+        $out->publicKey = $this->bin2hex(sodium_crypto_sign_publickey($signPair));
         return $out;
     }
     /**
+     * @param string $message
+     * @param string $secretKey as hex
+     * @return string The signature as hex
      * @throws \SodiumException
      */
     public function sign(string $message, string $secretKey): string {
-        return sodium_crypto_sign_detached($message, $secretKey);
+        return $this->bin2hex(sodium_crypto_sign_detached($message, $this->hex2bin($secretKey)));
     }
     /**
+     * @param string $signature as hex
+     * @param string $message as bin
+     * @param string $publicKey as hex
+     * @return bool
      * @throws \SodiumException
      */
     public function verify(string $signature,
                            string $message,
                            string $publicKey): bool {
-        return sodium_crypto_sign_verify_detached($signature,
+        return sodium_crypto_sign_verify_detached($this->hex2bin($signature),
                                                   $message,
-                                                  $publicKey);
+                                                  $this->hex2bin($publicKey));
     }
     /**
      * @throws \SodiumException
@@ -44,8 +51,8 @@ final class Signer {
 }
 
 final class KeyPair {
-    /** @var string As binary */
+    /** @var string As hex */
     public string $secretKey;
-    /** @var string As binary */
+    /** @var string As hex */
     public string $publicKey;
 }

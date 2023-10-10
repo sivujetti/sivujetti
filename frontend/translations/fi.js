@@ -306,6 +306,15 @@ stringBundles.push({
     'Choose a picture': 'Valitse kuva',
     // edit-app/src/right-column/website/WebsiteApplyUpdatesView.jsx
     'No updates available.': 'Ei päivityksia saatavilla.',
+    'New version %s of Sivujetti is available.': 'Sivujetin uusi versio %s on saatavilla.',
+    'Install update': 'Install update',
+    'Downloading update': 'Ladataan päivitystä',
+    'Do not close the view': 'Älä sulje näkymää',
+    'Downloading': 'Ladataan',
+    'Installing update': 'Asennetaan päivitystä',
+    'Installing': 'Asennetaan',
+    'Updates installed! Reloading page in %s': 'Päivitykset asennettu! Ladataan sivu uudelleen %s',
+    'Reload page': 'Lataa sivu',
     // edit-app/src/right-column/website/WebsiteEditBasicInfoView.jsx
     'Edit website info': 'Muokkaa sivuston tietoja',
     'These details are visible to search engines and when sharing pages on social media channels.': 'Nämä tiedot näkyvät hakukoneissa, ja esim. jaettaessa sivuja some-kanaviin.',

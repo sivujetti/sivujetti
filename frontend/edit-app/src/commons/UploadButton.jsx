@@ -86,7 +86,7 @@ class UploadButton extends preact.Component {
                     <Icon iconId="info-circle" className="color-dimmed3 size-xs"/>
                 </span>
             </div>,
-            !validationErrors.length ? null : <div class="pt-2"><p class="info-box error mt-2">{ validationErrors.join(', ') }</p></div>
+            !validationErrors.length ? null : <div class="pt-2"><p class="info-box error mt-1 mb-2">{ validationErrors.join(', ') }</p></div>
         ];
     }
     /**

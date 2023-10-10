@@ -306,10 +306,11 @@ class PickPageTab extends preact.Component {
                 class="form-input mb-2"
                 placeholder={ __('Filter') }
                 disabled/>,
-            Array.isArray(p) ? <ul class={ `list table-list selectable-items${selectedIdx !== null ? ' has-first-item-selected' : '' }` }>{ p.map(({title, slug}, i) =>
+            Array.isArray(p) ? <ul class={ `list table-list selectable-items${selectedIdx !== null ? ' has-first-item-selected' : '' }` }>{ p.map(({title, slug}) =>
                 <li class="p-0"><button
                     class="btn btn-link my-0 col-12 text-left text-ellipsis"
                     onClick={ () => onPickurl(slug) }
+                    title={ title }
                     style="height: 2.2rem">
                         <span class="h6 my-0 mr-1">{ title }</span>
                         <i class="color-dimmed">{ slug }</i>

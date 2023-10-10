@@ -6,7 +6,7 @@ const toasters = {
 
 class Toaster extends preact.Component {
     /**
-     * @param {{id?: String; autoCloseTimeoutMillis?: Number; className?: String;}} props
+     * @param {{id?: String; autoCloseTimeoutMillis?: Number; className?: String; message?: {message: String; level: String; timeout?: Number;}}} props
      */
     constructor(props) {
         super(props);
@@ -18,34 +18,15 @@ class Toaster extends preact.Component {
         this.state = {messages: []};
     }
     /**
-     * @param {preact.ComponentChild} message
-     * @param {String} level
-     * @param {Number} timeout = this.autoCloseTimeoutMillis
-     * @param {() => void} onDismissed = null
+     * @access protected
      */
-    addMessage(message, level, timeout = this.autoCloseTimeoutMillis, onDismissed = null) {
-        this.state.messages.unshift({message, level,
-            addedAt: Date.now(),
-            timeoutId: timeout > 0 ? setTimeout(this.removeMessage.bind(this), this.autoCloseTimeoutMillis) : null,
-            onDismissed});
-        this.setState({messages: this.state.messages});
-    }
-    /**
-     * @param {{message: preact.ComponentChild; level: String; timeoutId: Number;}?} message
-     */
-    removeMessage(message) {
-        const messages = this.state.messages;
-        if (!message) { // from timeout
-            const message = messages.pop();
-            if (message.onDismissed) message.onDismissed();
-        } else { // from onClick
-            const hasBeenVisibleMillis = Date.now() - message.addedAt;
-            if (hasBeenVisibleMillis < 2000) return;
-            if (message.timeoutId) clearTimeout(message.timeoutId);
-            if (message.onDismissed) message.onDismissed();
-            messages.splice(messages.indexOf(message), 1);
+    componentWillMount() {
+        if (!this.props.message)
+            this.setState({messages: []});
+        else {
+            const {message, level, timeout} = this.props.message;
+            toasters[this.id](message, level, timeout);
         }
-        this.setState({messages});
     }
     /**
      * @access protected
@@ -67,6 +48,38 @@ class Toaster extends preact.Component {
                 </div>;
             })
         }</div>;
+    }
+    /**
+     * @param {preact.ComponentChild} message
+     * @param {String} level
+     * @param {Number} timeout = this.autoCloseTimeoutMillis
+     * @param {() => void} onDismissed = null
+     * @access private
+     */
+    addMessage(message, level, timeout = this.autoCloseTimeoutMillis, onDismissed = null) {
+        this.state.messages.unshift({message, level,
+            addedAt: Date.now(),
+            timeoutId: timeout > 0 ? setTimeout(this.removeMessage.bind(this), this.autoCloseTimeoutMillis) : null,
+            onDismissed});
+        this.setState({messages: this.state.messages});
+    }
+    /**
+     * @param {{message: preact.ComponentChild; level: String; timeoutId: Number;}?} message
+     * @access private
+     */
+    removeMessage(message) {
+        const messages = this.state.messages;
+        if (!message) { // from timeout
+            const message = messages.pop();
+            if (message.onDismissed) message.onDismissed();
+        } else { // from onClick
+            const hasBeenVisibleMillis = Date.now() - message.addedAt;
+            if (hasBeenVisibleMillis < 2000) return;
+            if (message.timeoutId) clearTimeout(message.timeoutId);
+            if (message.onDismissed) message.onDismissed();
+            messages.splice(messages.indexOf(message), 1);
+        }
+        this.setState({messages});
     }
 }
 

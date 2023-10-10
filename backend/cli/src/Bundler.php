@@ -66,12 +66,12 @@ final class Bundler {
      * @param \Sivujetti\Update\PackageStreamInterface $to Zip or local directory
      * @param string $fileOrDirPath Target path for PackageStreamInterface
      * @param bool $allowOverWrite = false
-     * @param int $resultFlags = 0 see PackageStreamInterface->getResult()
+     * @param int $resultFlags = ZipPackageStream::FLAG_AS_STRING
      */
     public function makeRelease(PackageStreamInterface $to,
                                 string $fileOrDirPath,
                                 bool $allowOverWrite = false,
-                                int $resultFlags = 0): string {
+                                int $resultFlags = ZipPackageStream::FLAG_AS_STRING): string {
         if ($this->sourceBackendDirPath || $this->sourceIndexDirPath)
             throw new \RuntimeException("Not supported yet.");
         $this->destryPreviousTargetOrThrow($to, $fileOrDirPath, $allowOverWrite);
@@ -95,13 +95,13 @@ final class Bundler {
      * @param string $fileOrDirPath Target path
      * @param string $relPatchContentsMapFile Path to a json file that lists what to include to $to
      * @param bool $allowOverWrite = false
-     * @param int $resultFlags = 0 see PackageStreamInterface->getResult()
+     * @param int $resultFlags = ZipPackageStream::FLAG_AS_STRING
      */
     public function makePatch(PackageStreamInterface $to,
                                 string $fileOrDirPath,
                                 string $relPatchContentsMapFile,
                                 bool $allowOverWrite = false,
-                                int $resultFlags = 0): string {
+                                int $resultFlags = ZipPackageStream::FLAG_AS_STRING): string {
         ValidationUtils::checkIfValidaPathOrThrow($relPatchContentsMapFile);
         $json = $this->fs->read("{$this->backendDirPath}{$relPatchContentsMapFile}");
         $map = JsonUtils::parse($json);

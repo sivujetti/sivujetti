@@ -29,17 +29,15 @@ class FileUploader extends preact.Component {
     componentWillMount() {
         this.initialTabIdx = (this.props.showInitially || 'images') === 'images' ? 0 : 1;
         const tabName = tabIdxToName(this.initialTabIdx);
-        this.setState({files: null, currentTab: tabName});
+        this.setState({files: null, currentTab: tabName, displayAsGrid: getAndSaveDisplayAsGridState(true)});
         this.fetchOrGetUploads(tabName)
             .then((fileGroup) => { this.setState({files: fileGroup}); });
     }
     /**
      * @access protected
      */
-    render({mode, numColumns, hideUploadButton, onlyImages}, {files}) {
-        const [ImgItemCfg, FileItemCfg] = mode !== 'pick'
-            ? [{el: 'span', classes: ''}, {el: 'div', props: {}}]
-            : [{el: 'button', classes: ' btn btn-link pt-0 pl-0'}, {el: 'button', props: {class: 'btn btn-link pt-2', style: 'height: 100%;'}}];
+    render({mode, numColumns, hideUploadButton, onlyImages}, {files, displayAsGrid}) {
+        const [imgItemCfg, fileItemCfg] = getListItemSettings(displayAsGrid, mode);
         return [
         !onlyImages
             ? <div class="mb-2 pb-2">
@@ -73,28 +71,71 @@ class FileUploader extends preact.Component {
                     ref={ this.uploadButton }/>
                 : null
             }
-            <div>{ files ? files.length
-                ? <div class={ `live-files-list item-grid mt-2 pt-2${!numColumns ? '' : ({'3': ' three'}[numColumns] || '')}` }>{ files.map(f => {
+            <div class="p-absolute" style={ `right: 0; top: ${hideUploadButton !== true ? '0' : '-1.36rem'}` }>
+                <button
+                    onClick={ () => this.setGetDisplayAsGrid(false) }
+                    class={ `btn btn-sm with-icon-inline${displayAsGrid ? '' : ' btn-selected'}` }><Icon iconId="list" className="size-sm"/></button>
+                <button
+                    onClick={ () => this.setGetDisplayAsGrid(true) }
+                    class={ `btn btn-sm with-icon-inline${displayAsGrid ? ' btn-selected' : ''} ml-1` }><Icon iconId="layout-grid" className="size-sm"/></button>
+            </div>
+            <div style={ hideUploadButton !== true ? '' : 'margin-top: 1rem;' }>{ files ? files.length
+                ? displayAsGrid ? <div class={ `live-files-list item-grid mt-2 pt-2${!numColumns ? '' : ({'3': ' three'}[numColumns] || '')}` }>{ files.map(f => {
                     const {friendlyName, fileName, baseDir, ext, mime, createdAt} = f;
                     const isUploaded = createdAt > 0;
+                    const isImage = mime.startsWith('image/');
+                    const Elem = isImage ? imgItemCfg.el : fileItemCfg.el;
                     return <article class={ `box text-center${isUploaded ? '' : ' loading'}` } title={ fileName } key={ friendlyName }>
-                        { !mime.startsWith('image/')
-                            ? <FileItemCfg.el { ...FileItemCfg.props } onClick={ () => this.handleEntryClicked(f)}>
+                        { !isImage
+                            ? <Elem { ...fileItemCfg.props } onClick={ () => this.handleEntryClicked(f) }>
                                 <Icon iconId="file" className="mb-2"/>
                                 <b class="d-block my-1 text-ellipsis" style="font-weight: 400;">{ friendlyName }</b>
                                 <span class="d-block color-dimmed text-small text-uppercase" style="font-weight: 300;">{ ext }</span>
-                            </FileItemCfg.el>
+                            </Elem>
                             : [
-                                <ImgItemCfg.el
-                                    class={ `img-ratio${ImgItemCfg.classes}` }
+                                <Elem
+                                    class={ `img-ratio${imgItemCfg.classes}` }
                                     onClick={ () => this.handleEntryClicked(f) }>
                                     <img src={ isUploaded ? `${urlUtils.assetBaseUrl}${UPLOADS_DIR_PATH}${baseDir}${fileName}` : placeholderImageSrc }/>
-                                </ImgItemCfg.el>,
+                                </Elem>,
                                 <div class="text-ellipsis my-2 px-2"><b>{ friendlyName || fileName }</b></div>,
                             ]
                         }
                     </article>;
-                }) }</div>
+                }) }</div> : <div><ul class="list table-list selectable-items live-files-list mt-2 pt-1">{ files.map(f => {
+                        const {friendlyName, fileName, baseDir, ext, mime, createdAt} = f;
+                        const isUploaded = createdAt > 0;
+                        const isImage = mime.startsWith('image/');
+                        const Elem = isImage ? imgItemCfg.el : fileItemCfg.el;
+                        return <li class={ `p-0${isUploaded ? '' : ' loading'}` }>
+                            <Elem
+                                class={ `text-ellipsis text-left with-icon ${imgItemCfg.classes}` }
+                                onClick={ () => this.handleEntryClicked(f) }
+                                style="height: 3.4rem"
+                                title={ fileName }
+                                key={ friendlyName }>
+                                { isImage
+                                    ? [
+                                        <span class="ml-1 mr-2">
+                                            <span class="img-ratio" style="min-width: 4.8rem;">
+                                                <img src={ isUploaded ? `${urlUtils.assetBaseUrl}${UPLOADS_DIR_PATH}${baseDir}${fileName}` : placeholderImageSrc }/>
+                                            </span>
+                                        </span>,
+                                        <span class="h6 text-ellipsis mx-1 my-0">{ friendlyName || fileName }</span>
+                                    ]
+                                    : [
+                                        <span class="mr-2">
+                                            <Icon iconId="file" className="mb-2 mr-1"/>
+                                        </span>,
+                                        <span class="text-ellipsis mr-1 my-0">
+                                            <b class="d-block">{ friendlyName }</b>
+                                            <span class="d-block color-dimmed text-small text-uppercase" style="font-weight: 300;">{ ext }</span>
+                                        </span>
+                                    ]
+                                }
+                            </Elem>
+                        </li>;
+                    }) }</ul></div>
                 : <div>
                     <p style="margin-top: 1rem">{ __('No uploads yet.') }</p>
                 </div>
@@ -193,6 +234,14 @@ class FileUploader extends preact.Component {
         if (this.props.mode !== 'pick') return;
         this.props.onEntryClicked(f);
     }
+    /**
+     * @param {Boolean} to
+     * @access private
+     */
+    setGetDisplayAsGrid(to) {
+        saveDisplayAsState(to);
+        this.setState({displayAsGrid: to});
+    }
 }
 
 /**
@@ -222,6 +271,41 @@ function cloneArrShallow(arr) {
  */
 function tabIdxToName(idx) {
     return idx === 0 ? 'onlyImages' : 'nonImages';
+}
+
+/**
+ * @param {Boolean} displayAsGrid
+ * @param {'pick'=} mode
+ * @returns {[{el: String; classes: String;}, {el: String; props?: Object; classes?: string;}]} [ImgListItemElSettings, FileListItemElSettings]
+ */
+function getListItemSettings(displayAsGrid, mode) {
+    if (displayAsGrid)
+        return mode !== 'pick'
+            ? [{el: 'span', classes: ''}, {el: 'div', props: {}}]
+            : [{el: 'button', classes: ' btn btn-link pt-0 pl-0'}, {el: 'button', props: {class: 'btn btn-link pt-2', style: 'height: 100%;'}}];
+    return mode !== 'pick'
+        ? [{el: 'span', classes: 'pl-1'}, {el: 'span', classes: 'pl-1 text-ellipsis text-left with-icon'}]
+        : [{el: 'button', classes: 'btn btn-link col-12 my-0 pl-2 '}, {el: 'button', props: {class: 'btn btn-link pt-2', style: 'height: 100%;'}}];
+}
+
+/**
+ * @param {Boolean} asGrid
+ * @returns {Boolean} asGrid
+ */
+function getAndSaveDisplayAsGridState(asGrid) {
+    const cur = env.window.localStorage.sivujettiDisplayImageListAs;
+    if (cur) return cur === 'grid';
+
+    saveDisplayAsState(asGrid);
+    return getAndSaveDisplayAsGridState();
+}
+
+/**
+ * @param {Boolean} asGrid
+ */
+function saveDisplayAsState(asGrid) {
+    const toNorm = asGrid ? 'grid' : 'list';
+    env.window.localStorage.sivujettiDisplayImageListAs = toNorm;
 }
 
 export default FileUploader;

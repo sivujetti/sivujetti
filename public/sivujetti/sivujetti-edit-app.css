@@ -37,6 +37,8 @@ Structure:
     --color-pink: #e91e63;
     --color-bg-button: rgb(244, 244, 247);
     --color-bg-button-hover: rgb(236, 236, 239);
+    --color-bg-button-selected: rgb(229, 229, 236);
+    --color-bg-button-selected-hover: rgb(223, 223, 232);
 
     --color-icon-normal-block: var(--color-accent2);
 
@@ -83,6 +85,14 @@ Structure:
 }
 .btn.btn-primary:focus {
     box-shadow: 0 0 0 0.1rem rgb(112, 218, 189);
+}
+.btn.btn-selected {
+    background: var(--color-bg-button-selected);
+    border-color: var(--color-bg-button-selected);
+}
+.btn.btn-selected:hover {
+    background: var(--color-bg-button-selected-hover);
+    border-color: var(--color-bg-button-selected-hover);
 }
 /* https://stackoverflow.com/a/38498539 */
 .btn.focus-default:focus,
@@ -587,10 +597,12 @@ a.popup-close-area {
     height: 1.8rem;
     opacity: .6;
 }
-.live-files-list.item-grid article.loading {
+.live-files-list.item-grid article.loading,
+.live-files-list li.loading {
     color: #3b4351 !important;
 }
-.live-files-list.item-grid article.loading:before {
+.live-files-list.item-grid article.loading:before,
+.live-files-list li.loading:before {
     content: "";
     position: absolute;
     background: rgba(var(--components-color-bg-default), .5);
@@ -1501,6 +1513,13 @@ span.highlight-rect[data-label-position="bottom-inside"]:before {
 ul.list {
     list-style: initial;
     margin: 0;
+}
+ul.table-list > li {
+    border-bottom: 1px solid rgba(var(--components-color-fb-default),.14);
+    margin: 0;
+    padding: .4rem 0;
+    display: flex;
+    align-items: center;
 }
 @keyframes show {
     0% { visibility: hidden; }

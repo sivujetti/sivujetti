@@ -130,10 +130,20 @@ final class Updater {
      * @return int self::RESULT_*
      */
     public function downloadUpdate(string $packageName): int {
-        return self::RESULT_OK;
         if (!$this->hasUpdateJobBegun()) { // Trying to download idx>0 item before item=0
             $this->lastErrorDetails = ["Expected update to be started"];
             return self::RESULT_BAD_INPUT;
+        }
+
+        \ignore_user_abort(true);
+        if (\function_exists("set_time_limit"))
+            \set_time_limit(300);
+
+        [$targetFilePath, $targetFileName] = $this->createTargetFilePath($packageName);
+        $resp = $this->http->downloadFileToDisk("https://u1.sivujetti.org/{$targetFileName}", $targetFilePath);
+        if ($resp->status !== 200) {
+            $this->lastErrorDetails = ["Failed to download `{$targetFileName}`"];
+            return self::RESULT_DOWNLOAD_FAILED;
         }
         return self::RESULT_OK;
     }
@@ -146,7 +156,70 @@ final class Updater {
             $this->lastErrorDetails = ["Update not started"];
             return self::RESULT_BAD_INPUT;
         }
-        return self::RESULT_OK;
+        [$filePath, $fileName, $dirId] = $this->createTargetFilePath($package->name);
+        $sigLenFail = strlen($package->sig) !== 128;
+        if ($sigLenFail ||
+            !$this->signer->verify($package->sig, $this->fs->read($filePath), SIVUJETTI_UPDATE_KEY)) {
+            $this->lastErrorDetails = ["Checksum verification failed"];
+            return $sigLenFail ? self::RESULT_BAD_INPUT : self::RESULT_VERIFICATION_FAILED;
+        }
+        //
+        $localState = "opening-zip";
+        try {
+            $zip = new ZipPackageStream($this->fs);
+            $toVersion = self::extractVersion($fileName);
+            $zip->open($filePath);
+
+            $phase1Tasks = [];
+            $phase2Tasks = [];
+
+            // == Phase 1 ====
+            $localState = "creating-tasks";
+            $phase1Tasks = $this->createFileUpdateTasks($zip);
+            $tasks = $phase1Tasks;
+            //
+            $localState = "running-tasks";
+            $currentTaskIdx = 0;
+            for (; $currentTaskIdx < count($tasks); ++$currentTaskIdx) {
+                $tasks[$currentTaskIdx]->exec(); // Copy files
+            }
+
+            // == Phase 2 ====
+            $localState = "creating-tasks";
+            $phase2Tasks = $this->createDbPatchTasks($zip, $toVersion, App::VERSION, $dirId);
+            if ($phase2Tasks) {
+                $tasks = array_merge($tasks, $phase2Tasks);
+                //
+                $localState = "running-tasks";
+                // Note $currentTaskIdx === count($phase1Tasks) at this point
+                for (; $currentTaskIdx < count($tasks); ++$currentTaskIdx) {
+                    $tasks[$currentTaskIdx]->exec(); // migrate db
+                }
+            }
+
+            //
+            $localState = "finalizing";
+            return self::RESULT_OK;
+        } catch (\Exception $e) {
+            if ($localState === "opening-zip" ||
+                $localState === "creating-tasks" ||
+                $localState === "running-tasks") {
+                if ($localState === "running-tasks") {
+                    $localState = "rolling-back";
+                    try {
+                        do {
+                            $tasks[$currentTaskIdx]->rollBack();
+                        } while ($currentTaskIdx--);
+                    } catch (\Exception $e) {
+                        // ??
+                    }
+                }
+            } elseif ($localState === "finalizing") {
+                // Do nothing
+            }
+            call_user_func($this->errorLogFn, LogUtils::formatError($e));
+            return self::RESULT_FAILED;
+        }
     }
     /**
      * @psalm-param Package[] $packages
@@ -348,7 +421,32 @@ final class Updater {
      */
     private function doGetAndSyncPackagesFromRemoteServer(int $now,
                                                           \ArrayObject $currentPlugins): array {
-        return [];
+        if ($this->getUpdateJob()->startedAt)
+            return [];
+
+        $packages = [];
+        $resp = $this->http->get("https://u1.sivujetti.org/latest-packages.html?no-cache=1");
+        if ($resp->status === 200) {
+            $packagesAll = self::extractPackages($resp->data);
+            $packages = array_values(array_filter($packagesAll, function ($pkg) use ($currentPlugins) {
+                if (\version_compare(self::extractVersion($pkg->name), App::VERSION, "<=")) return false;
+                $id = self::extractId($pkg->name);
+                return $id === "sivujetti" || ArrayUtils::findIndexByKey($currentPlugins, $id, "name") > -1;
+            }));
+        }
+
+        $data = array_merge(
+            ["latestPackagesLastCheckedAt" => $now],
+            $packages
+                ? ["pendingUpdates" => JsonUtils::stringify($packages)]
+                : []
+        );
+        $this->db->update("\${p}theWebsite")
+            ->values((object) $data)
+            ->where("pendingUpdates is null")
+            ->execute();
+
+        return $packages;
     }
     /**
      * @param string $body Example '<!-- [{"name": "sivujetti-0.16.0", "sig": "2d1be3d...<128-chars-total>"}, {"name": "JetForms-0.16.0", "sig": "0b367...<128-chars-total>"}] -->'
@@ -412,12 +510,10 @@ final class Updater {
      */
     private function getUpdateJob(): Job {
         $job = $this->db->select("\${p}jobs", Job::class)
-            ->fields(["state as stateJson, startedAt"])
+            ->fields(["startedAt"])
             ->where("`jobName` = ?", [self::UPDATE_JOB_NAME_DEFAULT])
             ->fetchAll()[0] ?? null; // #ref-1
         if (!($job instanceof Job)) throw new PikeException("Invalid database state", 301010);
-        $job->state = $job->stateJson ? JsonUtils::parse($job->stateJson) : null;
-        unset($job->stateJson);
         return $job;
     }
     /**
@@ -479,7 +575,7 @@ final class Updater {
             ->where("`jobName` = ?", [self::UPDATE_JOB_NAME_DEFAULT])
             ->execute();
         $this->db->update("\${p}theWebsite")
-            ->values((object) ["pendingUpdates" => null])
+            ->values((object) ["pendingUpdates" => null, "lastUpdatedAt" => time()])
             ->where("1=1")
             ->execute();
     }

@@ -33,8 +33,10 @@ final class CurlHttpClient implements HttpClientInterface {
 
         $ch = \curl_init();
         \curl_setopt($ch, CURLOPT_URL, $url);
+        //
         $fp = \fopen($targetLocalFilePath, "w");
         \curl_setopt($ch, CURLOPT_FILE, $fp);
+        //
         $response = \curl_exec($ch);
         \curl_close($ch);
         \fclose($fp);

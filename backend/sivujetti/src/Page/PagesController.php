@@ -116,7 +116,7 @@ final class PagesController {
         //
         $availableUpdatePackages = $updater->getAndSyncAvailablePackages(
             $theWebsite->pendingUpdatesJson,
-            $theWebsite->newestCoreVersionLastChecked,
+            $theWebsite->latestPackagesLastCheckedAt,
             $theWebsite->plugins
         );
         //

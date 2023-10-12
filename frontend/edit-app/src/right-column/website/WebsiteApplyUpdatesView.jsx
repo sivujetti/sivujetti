@@ -84,7 +84,7 @@ class InitialPhase extends preact.Component {
             <button
                 onClick={ beginUpdate }
                 class="btn btn-primary"
-                type="button">{ __('Begin') }</button>
+                type="button">{ __('Continue') }</button>
         </div>;
     }
 }
@@ -98,6 +98,23 @@ class BeginUpdatedPhase extends preact.Component {
         env.document.body.style.pointerEvents = 'none';
         //
         this.setState({message: null, messageType: null});
+        //
+        http.put(`/api/updates/begin`)
+            .then(resp => {
+                const code = getCode(resp);
+                if (code === UpdateTaskResult.RESULT_PRECONDITION_FAILED) {
+                    this.setState({message: <div>
+                        <span>{ __('Couldn\'t start the updates because') }:</span>
+                        <ul class="color-dimmed">{ resp.details.map(msg => <li>{ __(msg) }</li>) }</ul>
+                    </div>, messageType: 'error'});
+                    liftMouseLock();
+                } else if (code === UpdateTaskResult.RESULT_ALREADY_IN_PROGRESS) {
+                    this.setState({message: __('The installation had already begun.'), messageType: 'info'});
+                    liftMouseLock();
+                } else
+                    this.props.proceeedToDownloadUpdates();
+            })
+            .catch(onUnexpectedError);
     }
     /**
      * @access protected
@@ -136,11 +153,46 @@ class DownloadUpdatesPhase extends preact.Component {
     componentWillMount() {
         env.document.body.style.pointerEvents = 'none';
         //
+        const results = [];
+        const tasks = this.props.availablePackages.map(packageName =>
+            () => http.post(`/api/updates/${packageName}/download`)
+                .then(resp => {
+                    const code = getCode(resp);
+                    if (code === null) {
+                        results.push(UpdateTaskResult.RESULT_BAD_INPUT);
+                        return false;
+                    }
+                    results.push(code);
+                    if (code === UpdateTaskResult.RESULT_ALREADY_IN_PROGRESS ||
+                        code === UpdateTaskResult.RESULT_NO_PERMISSIONS ||
+                        code === UpdateTaskResult.RESULT_DOWNLOAD_FAILED)
+                        return false;
+                })
+        );
         this.setState({
             nthItemDownloading: 1,
             numItems: this.props.availablePackages.length,
             message: null,
             messageType: null,
+        });
+        runTasks(tasks, 0, (_idx, ret) => {
+            if (ret !== false)
+                this.setState({nthItemDownloading: this.state.nthItemDownloading + 1});
+        })
+        .then(result => {
+            if (result === 'ok')
+                this.props.proceeedToInstallUpdates();
+        })
+        .catch(err => {
+            if (typeof err === 'string') {
+                if (results.at(-1) === UpdateTaskResult.RESULT_ALREADY_IN_PROGRESS) {
+                    this.setState({message: __('The installation had already begun.'), messageType: 'info'});
+                    liftMouseLock();
+                } else if (results.at(-1) === UpdateTaskResult.RESULT_DOWNLOAD_FAILED) {
+                    this.setState({message: __('Update servers unavailable, please try again in a moment.'), messageType: 'error'});
+                    liftMouseLock();
+                }
+            } else onUnexpectedError(err);
         });
     }
     /**
@@ -179,11 +231,42 @@ class InstallUpdatesPhase extends preact.Component {
      * @access protected
      */
     componentWillMount() {
+        const results = [];
+        const tasks = this.props.availablePackages.map(packageName =>
+            () => http.put(`/api/updates/${packageName}/install`)
+                .then(resp => {
+                    const code = getCode(resp);
+                    if (code === null) {
+                        results.push(UpdateTaskResult.RESULT_BAD_INPUT);
+                        return false;
+                    }
+                    results.push(code);
+                    if (code === UpdateTaskResult.RESULT_FAILED ||
+                        code === UpdateTaskResult.RESULT_VERIFICATION_FAILED)
+                        return false;
+                })
+        );
         this.setState({
             nthItemInstalling: 1,
-            numItems: 1,
+            numItems: tasks.length,
             message: null,
             messageType: null,
+        });
+        runTasks(tasks, 0, (_idx, ret) => {
+            if (ret !== false)
+                this.setState({nthItemInstalling: this.state.nthItemInstalling + 1});
+        })
+        .then(result => {
+            if (result === 'ok')
+                this.props.proceeedToFinishUpUpdates();
+        })
+        .catch(err => {
+            if (typeof err === 'string') {
+                if (results.at(-1) === UpdateTaskResult.RESULT_VERIFICATION_FAILED)  {
+                    this.setState({message: __('File verification failed.'), messageType: 'error'});
+                    liftMouseLock();
+                }
+            } else onUnexpectedError(err);
         });
     }
     /**
@@ -222,7 +305,45 @@ class FinishUpPhase extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        this.setState({secs: 10});
+        this.setState({finishingUp: true});
+        //
+        http.put(`/api/updates/finish`)
+            .then(resp => {
+                liftMouseLock();
+                if (getCode(resp) === UpdateTaskResult.RESULT_OK)
+                    this.startPageReloadTimer();
+            })
+            .catch(onUnexpectedError);
+    }
+    /**
+     * @access protected
+     */
+    render(_, {finishingUp, secs}) {
+        return <div>{ finishingUp
+            ? [
+                <p>
+                    <span>{ __('Cleaning up') }. { __('Do not close the view') }.</span>
+                    <LoadingSpinner/>
+                </p>,
+                <button
+                    class="btn btn-primary loading"
+                    type="button"
+                    disabled>{ __('Cleaning up') }</button>
+            ]
+            : [
+                <p>{ __('Updates installed! Reloading page in %s', secs) }</p>,
+                <button
+                    onClick={ reloadPage }
+                    class="btn btn-primary"
+                    type="button">{ __('Reload page') }</button>
+            ]
+        }</div>;
+    }
+    /**
+     * @access private
+     */
+    startPageReloadTimer() {
+        this.setState({secs: 10, finishingUp: false});
         const tick = () => setTimeout(() => {
             const secs = this.state.secs - 1;
             if (secs > 0) { this.setState({secs: this.state.secs - 1}); tick(); }
@@ -230,24 +351,51 @@ class FinishUpPhase extends preact.Component {
         }, 1000);
         tick();
     }
-    /**
-     * @access protected
-     */
-    render(_, {secs}) {
-        return <div>
-            <p>{ __('Updates installed! Reloading page in %s', secs) }</p>
-            <button
-                onClick={ reloadPage }
-                class="btn btn-primary"
-                type="button"
-                style="pointer-events: all">{ __('Reload page') }</button>
-        </div>;
-    }
 }
 FinishUpPhase.NAME = 'finish-update';
 
 function reloadPage() {
     env.window.location.reload();
+}
+
+/**
+ * @param {Array<() => any>} tasks
+ * @param {Number} idx
+ * @param {(idx: Number, ret: any) => void} onAfterEach
+ * @returns {Promise<String>} 'ok'|'Failed at #2'
+ */
+function runTasks(tasks, idx, onAfterEach) {
+    const fn = tasks[idx];
+    if (!fn) return Promise.resolve('ok');
+    return fn()
+        .then(ret => {
+            if (ret === false) return Promise.reject('Failed at #' + idx);
+            onAfterEach(idx, ret);
+            return runTasks(tasks, idx + 1, onAfterEach);
+        });
+}
+
+/**
+ * @param {any} err
+ */
+function onUnexpectedError(err) {
+    env.window.console.error(err);
+    toasters.editAppMain(__('Something unexpected happened.'), 'error');
+    liftMouseLock();
+}
+
+/**
+ */
+function liftMouseLock() {
+    env.document.body.style.pointerEvents = '';
+}
+
+/**
+ * @param {{[key: String]: any;}} resp
+ * @returns {Number|null}
+ */
+function getCode(resp) {
+    return typeof resp.detailsCode === 'number' ? resp.detailsCode : null;
 }
 
 class ConfirmStartUpdateDialog extends preact.Component {

@@ -20,7 +20,7 @@ final class TheWebsite extends \stdClass {
     /** @var string */
     public string $versionId;
     /** @var int Unix timestamp or 0 */
-    public int $newestCoreVersionLastChecked;
+    public int $latestPackagesLastCheckedAt;
     /** @var ?string */
     public ?string $pendingUpdatesJson;
     /** @var string */

@@ -6,7 +6,7 @@ const toasters = {
 
 class Toaster extends preact.Component {
     /**
-     * @param {{id?: String; autoCloseTimeoutMillis?: Number; className?: String; message?: {message: String; level: String; timeout?: Number;}}} props
+     * @param {{id?: String; autoCloseTimeoutMillis?: Number; className?: String; message?: {message: preact.ComponentChild; level: String; timeout?: Number; noClickClose?: Boolean;}}} props
      */
     constructor(props) {
         super(props);
@@ -68,6 +68,8 @@ class Toaster extends preact.Component {
      * @access private
      */
     removeMessage(message) {
+        if (this.props.noClickClose)
+            return;
         const messages = this.state.messages;
         if (!message) { // from timeout
             const message = messages.pop();

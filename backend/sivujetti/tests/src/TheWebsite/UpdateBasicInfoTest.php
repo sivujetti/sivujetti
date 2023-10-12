@@ -37,7 +37,8 @@ final class UpdateBasicInfoTest extends TheWebsiteControllerTestCase {
         $this->assertEquals($state->inputData->country, $actual["country"]);
         $this->assertEquals($state->inputData->description, $actual["description"]);
         $this->assertEquals($state->inputData->hideFromSearchEngines, (bool) $actual["hideFromSearchEngines"]);
-        foreach (["aclRules", "firstRuns", "versionId", "lastUpdatedAt", "newestCoreVersionLastChecked"] as $col)
+        foreach (["aclRules", "firstRuns", "versionId", "lastUpdatedAt", "latestPackagesLastCheckedAt",
+                  "pendingUpdates", "headHtml", "footHtml"] as $col)
             $this->assertEquals($state->originalData[$col], $actual[$col], "Shouldn't update {$col}");
         $this->assertEquals("","");
     }

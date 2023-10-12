@@ -38,7 +38,16 @@ final class UpdatesController {
     public function downloadUpdate(Request $req, Response $res, Updater $updater, TheWebsite $theWebsite): void {
         [$arr, $idx] = self::findPackage($req->params->packageName, $theWebsite->pendingUpdatesJson);
         if ($idx < 0) throw new PikeException("No such package", PikeException::BAD_INPUT);
-        $res->json(["ok" => "ok", "detailsCode" => Updater::RESULT_OK]);
+
+        $code = $updater->downloadUpdate($arr[$idx]->name);
+
+        if ($code === Updater::RESULT_BAD_INPUT) {
+            $res->status(400)->json($updater->getLastErrors());
+        } elseif ($code === Updater::RESULT_OK) {
+            $res->json(["ok" => "ok", "detailsCode" => $code]);
+        } else {
+            $res->status(500)->json(["ok" => "err", "detailsCode" => $code]);
+        }
     }
     /**
      * PUT /api/updates/[w:packageName]/install: tries to install downloaded package
@@ -52,16 +61,28 @@ final class UpdatesController {
     public function installUpdate(Request $req, Response $res, Updater $updater, TheWebsite $theWebsite): void {
         [$arr, $idx] = self::findPackage($req->params->packageName, $theWebsite->pendingUpdatesJson);
         if ($idx < 0) throw new PikeException("No such package", PikeException::BAD_INPUT);
-        $res->json(["ok" => "ok", "detailsCode" => Updater::RESULT_OK]);
+
+        $code = $updater->installUpdate($arr[$idx]);
+
+        if ($code === Updater::RESULT_BAD_INPUT) {
+            $res->status(400)->json($updater->getLastErrors());
+        } elseif ($code === Updater::RESULT_OK) {
+            $res->json(["ok" => "ok", "detailsCode" => $code]);
+        } else {
+            $res->status(500)->json(["ok" => "err", "detailsCode" => $code]);
+        }
     }
     /**
      * PUT /api/updates/finish: tries to finish up the update process.
      *
      * @param \Pike\Response $res
      * @param \Sivujetti\Update\Updater $updater
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      */
-    public function finishUpdates(Response $res, Updater $updater): void {
-        $res->json(["ok" => "ok", "detailsCode" => $updater::RESULT_OK]);
+    public function finishUpdates(Response $res, Updater $updater, TheWebsite $theWebsite): void {
+        $arr = self::getPackages($theWebsite->pendingUpdatesJson);
+        $code = $updater->finishUpdates($arr);
+        $res->json(["ok" => "ok", "detailsCode" => $code]);
     }
     /**
      * PUT /api/updates/core|some-plugin: tries to update Sivujetti or plugin from
@@ -93,7 +114,14 @@ final class UpdatesController {
      * @psalm-return array{0: Package[], 1: int} [$packages, $packageIdx]
      */
     private static function findPackage(string $packageName, ?string $pendingUpdatesJson): array {
-        $arr = $pendingUpdatesJson ? JsonUtils::parse($pendingUpdatesJson) : [];
-        return [$arr, ArrayUtils::findIndexByKey($arr, $packageName, "name")];
+        $arr = self::getPackages($pendingUpdatesJson);
+        return [$arr, $arr ? ArrayUtils::findIndexByKey($arr, $packageName, "name") : -1];
+    }
+    /**
+     * @param ?string $pendingUpdatesJson
+     * @psalm-return Package[]
+     */
+    private static function getPackages(?string $pendingUpdatesJson): array {
+        return $pendingUpdatesJson ? JsonUtils::parse($pendingUpdatesJson) : [];
     }
 }

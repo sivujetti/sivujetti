@@ -83,26 +83,65 @@ final class Updater {
         return [];
     }
     /**
-     * @param string $packageName An entry from $theWebsite->pendingUpdatesJson array
-     * @param bool $performWriteTest = false
      * @return int self::RESULT_*
      */
-    public function downloadUpdate(string $packageName, bool $doBeginUpdate): int {
+    public function beginUpdates(): int {
         $hasStarted = $this->hasUpdateJobBegun();
-        if ($doBeginUpdate && $hasStarted) // Some other request has already started the update process
+        if ($hasStarted) // Some other request has already started the update process
             return self::RESULT_ALREADY_IN_PROGRESS;
-        if (!$doBeginUpdate && !$hasStarted) { // Trying to download idx>0 item before item=0
-            $this->lastErrorDetails = "Expected update to be started";
+
+        // 1. Check dependencies
+        $errs = [];
+        if (!class_exists("ZipArchive"))
+            $errs[] = "ZipArchive class / zip extension is missing";
+        if (!extension_loaded("curl"))
+            $errs[] = "curl is not available";
+        if ($errs) {
+            $this->lastErrorDetails = $errs;
+            return self::RESULT_PRECONDITION_FAILED;
+        }
+
+        // 2. Check file permissions
+        $fpath = SIVUJETTI_BACKEND_PATH . "write-test-" . time() . ".txt";
+        $writeTestFile = function () use ($fpath) {
+            $res = $this->fs->write($fpath, "...");
+            return $res && $res > 2;
+        };
+        if (!($ok = $writeTestFile())) {
+            $this->fs->chmod(SIVUJETTI_BACKEND_PATH, $this->fs->defaultDirPerms);
+            $ok = $writeTestFile();
+        }
+        if ($ok) $this->fs->unlink($fpath);
+        else {
+            $this->lastErrorDetails = ["file writing permission is missing"];
+            return self::RESULT_PRECONDITION_FAILED;
+        }
+
+        //
+        if ($this->hasUpdateJobBegun()) // Double-check
+            return self::RESULT_ALREADY_IN_PROGRESS;
+        $this->updateUpdateJob([
+            "startedAt" => time(),
+        ]);
+        return self::RESULT_OK;
+    }
+    /**
+     * @param string $packageName An entry from $theWebsite->pendingUpdatesJson array
+     * @return int self::RESULT_*
+     */
+    public function downloadUpdate(string $packageName): int {
+        return self::RESULT_OK;
+        if (!$this->hasUpdateJobBegun()) { // Trying to download idx>0 item before item=0
+            $this->lastErrorDetails = ["Expected update to be started"];
             return self::RESULT_BAD_INPUT;
         }
         return self::RESULT_OK;
     }
     /**
      * @psalm-param Package $package Single entry from $theWebsite->pendingUpdatesJson array
-     * @param bool $doEndUpdateAfter
      * @return int self::RESULT_*
      */
-    public function installUpdate(object $package, bool $doEndUpdateAfter): int {
+    public function installUpdate(object $package): int {
         if (!$this->hasUpdateJobBegun()) {
             $this->lastErrorDetails = ["Update not started"];
             return self::RESULT_BAD_INPUT;
@@ -118,7 +157,16 @@ final class Updater {
             if (!$this->fs->unlink($filePath))
                 call_user_func($this->errorLogFn, "Updater: Failed to delete {$fileName}.");
         }
+        //
+        $this->markUpdatesAsEnded();
+        //
         return self::RESULT_OK;
+    }
+    /**
+     * @return bool
+     */
+    public function hasUpdateJobBegun(): bool {
+        return $this->getUpdateJob()->startedAt > 0;
     }
     /**
      * @param string $name "JetForms"
@@ -424,11 +472,8 @@ final class Updater {
         }, $nsdRelFilePaths);
     }
     /**
-     * @param ?string $failedWhile = null
-     * @param ?\Exception $_failDetails = null
      */
-    private function markUpdatesAsEnded(?string $failedWhile = null,
-                                        ?\Exception $_failDetails = null): void {
+    private function markUpdatesAsEnded(): void {
         $this->db->update("\${p}jobs")
             ->values((object) ["startedAt" => 0])
             ->where("`jobName` = ?", [self::UPDATE_JOB_NAME_DEFAULT])

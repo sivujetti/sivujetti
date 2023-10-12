@@ -9,8 +9,7 @@ $out->resources = (object) [
         "renderOrList"      => 0b00000100,
     ],
     "coreUpdates" => (object) [
-        "checkAvailable"    => 0b00000010,
-        "install"           => 0b00000100,
+        "install"           => 0b00000010,
     ],
     "globalBlockTrees" => (object) [
         "create"            => 0b00000010,
@@ -73,7 +72,7 @@ $out->userPermissions = (object) [
     ],
     ACL::ROLE_ADMIN_EDITOR => (object) [
         "blocks"            => ACL::makePermissions("*", $out->resources->blocks),
-        "coreUpdates"       => ACL::makePermissions("*", $out->resources->coreUpdates),
+        "coreUpdates"       => ACL::makePermissions(["install"], $out->resources->coreUpdates),
         "globalBlockTrees"  => ACL::makePermissions("*", $out->resources->globalBlockTrees),
         "editMode"          => ACL::makePermissions("*", $out->resources->editMode),
         "layouts"           => ACL::makePermissions("*", $out->resources->layouts),
@@ -86,7 +85,7 @@ $out->userPermissions = (object) [
     ],
     ACL::ROLE_EDITOR => (object) [
         "blocks"            => ACL::makePermissions("*", $out->resources->blocks),
-        "coreUpdates"       => ACL::makePermissions("*", $out->resources->coreUpdates),
+        // coreUpdates      -> none
         "globalBlockTrees"  => ACL::makePermissions(["read","updateBlocksOf"], $out->resources->globalBlockTrees),
         "editMode"          => ACL::makePermissions(["access"], $out->resources->editMode),
         "layouts"           => ACL::makePermissions(["list"], $out->resources->layouts),

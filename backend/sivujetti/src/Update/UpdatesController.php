@@ -11,6 +11,22 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
  */
 final class UpdatesController {
     /**
+     * PUT /api/updates/begin: tries to start the update process.
+     *
+     * @param \Pike\Response $res
+     * @param \Sivujetti\Update\Updater $updater
+     */
+    public function beginUpdates(Response $res, Updater $updater): void {
+        $code = $updater->beginUpdates();
+        if ($code === Updater::RESULT_PRECONDITION_FAILED) {
+            $res->json(["ok" => "err", "detailsCode" => $code, "details" => $updater->getLastErrors()]);
+        } elseif ($code === Updater::RESULT_OK) {
+            $res->json(["ok" => "ok", "detailsCode" => $code]);
+        } else {
+            $res->status(500)->json(["ok" => "err", "detailsCode" => $code]);
+        }
+    }
+    /**
      * POST /api/updates/[w:packageName]/download: tries to download $req->params->packageName
      * from the remote update server (dl*.sivujetti.org).
      *
@@ -37,6 +53,15 @@ final class UpdatesController {
         [$arr, $idx] = self::findPackage($req->params->packageName, $theWebsite->pendingUpdatesJson);
         if ($idx < 0) throw new PikeException("No such package", PikeException::BAD_INPUT);
         $res->json(["ok" => "ok", "detailsCode" => Updater::RESULT_OK]);
+    }
+    /**
+     * PUT /api/updates/finish: tries to finish up the update process.
+     *
+     * @param \Pike\Response $res
+     * @param \Sivujetti\Update\Updater $updater
+     */
+    public function finishUpdates(Response $res, Updater $updater): void {
+        $res->json(["ok" => "ok", "detailsCode" => $updater::RESULT_OK]);
     }
     /**
      * PUT /api/updates/core|some-plugin: tries to update Sivujetti or plugin from

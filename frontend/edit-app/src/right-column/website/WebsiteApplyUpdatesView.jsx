@@ -1,4 +1,4 @@
-import {__, api, env, http, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, http, LoadingSpinner, floatingDialog, handleSubmit} from '@sivujetti-commons-for-edit-app';
 import OverlayView from '../../commons/OverlayView.jsx';
 import toasters, {Toaster} from '../../commons/Toaster.jsx';
 
@@ -7,9 +7,9 @@ const UpdateTaskResult = {
     RESULT_ALREADY_IN_PROGRESS:  111011,
     RESULT_FAILED:               111012,
     RESULT_DOWNLOAD_FAILED:      111013,
-    RESULT_NO_PERMISSIONS:       111014,
-    RESULT_UPDATE_NOT_STARTED:   111015,
-    RESULT_VERIFICATION_FAILED:  111016,
+    RESULT_UPDATE_NOT_STARTED:   111014,
+    RESULT_VERIFICATION_FAILED:  111015,
+    RESULT_PRECONDITION_FAILED:  111016,
     RESULT_OK:                   0,
 };
 
@@ -47,11 +47,29 @@ class WebsiteApplyUpdatesView extends preact.Component {
      */
     createRendererProps(name) {
         if (name === InitialPhase.NAME)
-            return {beginUpdate: () => this.setState({updatePhase: [DownloadUpdatesPhase.NAME, DownloadUpdatesPhase]})};
+            return {beginUpdate: () => {
+                floatingDialog.open(ConfirmStartUpdateDialog, {
+                    title: __('Begin update'),
+                    height: 178,
+                }, {
+                    onConfirmed: () => {
+                        this.setState({updatePhase: [BeginUpdatedPhase.NAME, BeginUpdatedPhase]});
+                        return Promise.resolve();
+                    }
+                });
+            }};
+        if (name === BeginUpdatedPhase.NAME)
+            return {proceeedToDownloadUpdates: () =>
+                this.setState({updatePhase: [DownloadUpdatesPhase.NAME, DownloadUpdatesPhase]})
+            };
         if (name === DownloadUpdatesPhase.NAME)
-            return {installUpdate: () => this.setState({updatePhase: [InstallUpdatesPhase.NAME, InstallUpdatesPhase]})};
+            return {proceeedToInstallUpdates: () =>
+                this.setState({updatePhase: [InstallUpdatesPhase.NAME, InstallUpdatesPhase]})
+            };
         if (name === InstallUpdatesPhase.NAME)
-            return {finishUpdates: () => this.setState({updatePhase: [FinishUpPhase.NAME, FinishUpPhase]})};
+            return {proceeedToFinishUpUpdates: () =>
+                this.setState({updatePhase: [FinishUpPhase.NAME, FinishUpPhase]})
+            };
         return {};
     }
 }
@@ -66,11 +84,50 @@ class InitialPhase extends preact.Component {
             <button
                 onClick={ beginUpdate }
                 class="btn btn-primary"
-                type="button">{ __('Install update') }</button>
+                type="button">{ __('Begin') }</button>
         </div>;
     }
 }
 InitialPhase.NAME = 'initial';
+
+class BeginUpdatedPhase extends preact.Component {
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        env.document.body.style.pointerEvents = 'none';
+        //
+        this.setState({message: null, messageType: null});
+    }
+    /**
+     * @access protected
+     */
+    render(_, {message, messageType}) {
+        return <div>{ !message
+            ? [
+                <p>
+                    <span>{ __('Running the checklist') }.</span>
+                    <LoadingSpinner/>
+                </p>,
+                <button
+                    class="btn btn-primary loading"
+                    type="button"
+                    disabled>{ __('Processing') }</button>
+            ] : [
+                <Toaster
+                    message={ {message, level: messageType, timeout: 0} }
+                    autoCloseTimeoutMillis={ 0 }
+                    id="beginUpdates"
+                    noClickClose/>,
+                <button
+                    onClick={ () => preactRouter.route('/') }
+                    class="btn btn-primary mt-2"
+                    type="button">Ok</button>
+            ]
+        }</div>;
+    }
+}
+BeginUpdatedPhase.NAME = 'begin-updates';
 
 class DownloadUpdatesPhase extends preact.Component {
     /**
@@ -101,10 +158,17 @@ class DownloadUpdatesPhase extends preact.Component {
                     type="button"
                     disabled>{ __('Downloading') }</button>
             ]
-            : <Toaster
-                message={ {message, level: messageType, timeout: 0} }
-                autoCloseTimeoutMillis={ 0 }
-                id="downloadUpdates"/>
+            : [
+                <Toaster
+                    message={ {message, level: messageType, timeout: 0} }
+                    autoCloseTimeoutMillis={ 0 }
+                    id="downloadUpdates"
+                    noClickClose/>,
+                <button
+                    onClick={ reloadPage }
+                    class="btn btn-primary mt-2"
+                    type="button">Ok</button>
+            ]
         }</div>;
     }
 }
@@ -115,22 +179,40 @@ class InstallUpdatesPhase extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        this.setState({nthItemInstalling: 1, numItems: 1});
+        this.setState({
+            nthItemInstalling: 1,
+            numItems: 1,
+            message: null,
+            messageType: null,
+        });
     }
     /**
      * @access protected
      */
-    render(_, {nthItemInstalling, numItems}) {
-        return <div>
-            <p>
-                <span>{ __('Installing update') } { nthItemInstalling } / { numItems }. { __('Do not close the view') }.</span>
-                <LoadingSpinner/>
-            </p>
-            <button
-                class="btn btn-primary loading"
-                type="button"
-                disabled>{ __('Installing') }</button>
-        </div>;
+    render(_, {nthItemInstalling, numItems, message, messageType}) {
+        return <div>{ !message
+            ? [
+                <p>
+                    <span>{ __('Installing update') } { nthItemInstalling } / { numItems }. { __('Do not close the view') }.</span>
+                    <LoadingSpinner/>
+                </p>,
+                <button
+                    class="btn btn-primary loading"
+                    type="button"
+                    disabled>{ __('Installing') }</button>
+            ]
+            : [
+                <Toaster
+                    message={ {message, level: messageType, timeout: 0} }
+                    autoCloseTimeoutMillis={ 0 }
+                    id="installUpdates"
+                    noClickClose/>,
+                <button
+                    onClick={ reloadPage }
+                    class="btn btn-primary mt-2"
+                    type="button">Ok</button>
+            ]
+        }</div>;
     }
 }
 InstallUpdatesPhase.NAME = 'install-updates';
@@ -166,6 +248,43 @@ FinishUpPhase.NAME = 'finish-update';
 
 function reloadPage() {
     env.window.location.reload();
+}
+
+class ConfirmStartUpdateDialog extends preact.Component {
+    // boundDoHandleSubmit;
+    /**
+     * @param {{onConfirmed: () => Promise<void>;}} props
+     */
+    constructor(props) {
+        super(props);
+        this.boundDoHandleSubmit = this.doHandleSubmit.bind(this);
+    }
+    /**
+     * @access protected
+     */
+    render() {
+        return <form onSubmit={ e => handleSubmit(this, this.boundDoHandleSubmit, e) }>
+            <div class="mb-1">{ __('Begin update process') }? { __('The process will run a checklist and starts the update only after that. The website will be automatically put to a temporary maintenance mode.') }</div>
+            <div class="mt-8">
+                <button
+                    class="btn btn-primary mr-2"
+                    type="submit">{ __('Begin checklist and update') }</button>
+                <button
+                    onClick={ () => floatingDialog.close() }
+                    class="btn btn-link"
+                    type="button">{ __('Cancel') }</button>
+            </div>
+        </form>;
+    }
+    /**
+     * @returns {Promise<void>}
+     * @access private
+     */
+    doHandleSubmit() {
+        const out = this.props.onConfirmed();
+        floatingDialog.close();
+        return out;
+    }
 }
 
 export default WebsiteApplyUpdatesView;

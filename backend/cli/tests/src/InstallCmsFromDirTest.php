@@ -163,11 +163,12 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->assertStringEqualsFile("{$state->getTargetSitePath->__invoke("index")}config.php",
             "<?php\r\n" .
             "if (!defined('SIVUJETTI_BASE_URL')) {\r\n" .
-            "    define('SIVUJETTI_BASE_URL',  '{$expectedBaseUrl}');\r\n" .
-            "    define('SIVUJETTI_QUERY_VAR', '{$actualConfig['mainQueryVar']}');\r\n" .
-            "    define('SIVUJETTI_SECRET',    '{$actualConfig['secret']}');\r\n" .
-            "    define('SIVUJETTI_DEVMODE',   1 << 1);\r\n" .
-            "    define('SIVUJETTI_FLAGS',     SIVUJETTI_DEVMODE);\r\n" .
+            "    define('SIVUJETTI_BASE_URL',   '{$expectedBaseUrl}');\r\n" .
+            "    define('SIVUJETTI_QUERY_VAR',  '{$actualConfig['mainQueryVar']}');\r\n" .
+            "    define('SIVUJETTI_SECRET',     '{$actualConfig['secret']}');\r\n" .
+            "    define('SIVUJETTI_UPDATE_KEY', '{$actualConfig['updateKey']}');\r\n" .
+            "    define('SIVUJETTI_DEVMODE',    1 << 1);\r\n" .
+            "    define('SIVUJETTI_FLAGS',      SIVUJETTI_DEVMODE);\r\n" .
             "}\r\n" .
             "return [\r\n" .
             "    'db.driver'      => '{$actualConfig["db.driver"]}',\r\n" .

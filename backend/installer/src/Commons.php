@@ -101,11 +101,12 @@ final class Commons {
             "{$this->targetSiteIndexPath}config.php",
 "<?php
 if (!defined('SIVUJETTI_BASE_URL')) {
-    define('SIVUJETTI_BASE_URL',  '{$config["baseUrl"]}');
-    define('SIVUJETTI_QUERY_VAR', '{$config["mainQueryVar"]}');
-    define('SIVUJETTI_SECRET',    '{$config["secret"]}');
-    define('SIVUJETTI_DEVMODE',   1 << 1);
-    define('SIVUJETTI_FLAGS',     {$config["flags"]});
+    define('SIVUJETTI_BASE_URL',   '{$config["baseUrl"]}');
+    define('SIVUJETTI_QUERY_VAR',  '{$config["mainQueryVar"]}');
+    define('SIVUJETTI_SECRET',     '{$config["secret"]}');
+    define('SIVUJETTI_UPDATE_KEY', '{$config["updateKey"]}');
+    define('SIVUJETTI_DEVMODE',    1 << 1);
+    define('SIVUJETTI_FLAGS',      {$config["flags"]});
 }
 return [
 " . ($config["db.driver"] === "sqlite" ?

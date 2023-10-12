@@ -23,7 +23,7 @@ final class LocalDirInstaller {
      * sample-content/{$relDirPath}/" to SIVUJETTI_BACKEND_PATH . "site".
      *
      * @param string $relDirPath e.g. "basic-site"
-     * @param array{db.driver: string, db.database: string, db.host?: string, db.user?: string, db.pass?: string, db.tablePrefix?: string, db.charset?: string, baseUrl: string, mainQueryVar: string, secret: string, initialUserId: string, initialUserUsername: string, initialUserEmail: string, initialUserPasswordHash: string, flags: string} $config
+     * @param array{db.driver: string, db.database: string, db.host?: string, db.user?: string, db.pass?: string, db.tablePrefix?: string, db.charset?: string, baseUrl: string, mainQueryVar: string, secret: string, updateKey: string, initialUserId: string, initialUserUsername: string, initialUserEmail: string, initialUserPasswordHash: string, flags: string} $config
      */
     public function doInstall(string $relDirPath, array $config): void {
         $package = new LocalDirPackage($this->fs);

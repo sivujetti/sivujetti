@@ -117,7 +117,7 @@ final class Controller {
      *
      * @param string[] $args
      * @param \Pike\Auth\Crypto $crypto
-     * @return array{db.driver: string, db.database: string, db.host?: string, db.user?: string, db.pass?: string, db.tablePrefix?: string, db.charset?: string, baseUrl: string, mainQueryVar: string, secret: string, initialUserId: string, initialUserUsername: string, initialUserEmail: string, initialUserPasswordHash: string, flags: string}
+     * @return array{db.driver: string, db.database: string, db.host?: string, db.user?: string, db.pass?: string, db.tablePrefix?: string, db.charset?: string, baseUrl: string, mainQueryVar: string, secret: string, updateKey: string, initialUserId: string, initialUserUsername: string, initialUserEmail: string, initialUserPasswordHash: string, flags: string}
      * @throws \Pike\PikeException
      */
     public static function createConfigOrThrow(array $vals, Crypto $crypto): array {
@@ -173,6 +173,7 @@ final class Controller {
             "baseUrl" => $input->baseUrl,
             "mainQueryVar" => "q",
             "secret" => $crypto->genRandomToken(),
+            "updateKey" => "386b8bfcaf29be2885ef2576877c02c8b68c3274295645a814ea31b75d5bc97c",
             "initialUserId" => $crypto->guidv4(),
             "initialUserUsername" => $input->username,
             "initialUserEmail" => $input->email,

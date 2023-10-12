@@ -6,6 +6,8 @@ use Sivujetti\Auth\ACL;
 use Sivujetti\Upload\Entities\UploadsEntry;
 
 final class UploadFilesTest extends UploadsControllerTestCase {
+    private const MOCK_UPLOADED_FILE_NAME = "SourceSansPro-Semibold-lettersOnly.ttf";
+    private const MOCK_UPLOADED_FILE_PATH = SIVUJETTI_BACKEND_PATH . "installer/sample-content/minimal/\$index/public/uploads/" . self::MOCK_UPLOADED_FILE_NAME;
     public function testUploadFileUploadsImage(): void {
         $state = $this->setupUploadFileTest();
         $this->makeSivujettiAppForUploadsTest($state);
@@ -112,7 +114,7 @@ final class UploadFilesTest extends UploadsControllerTestCase {
         $state = $this->setupUploadFileTest();
         $this->makeSivujettiAppForUploadsTest($state, ACL::ROLE_EDITOR);
         $this->expectExceptionMessage("You aren't permitted to upload this type of file");
-        $this->sendUploadImageRequest($state, "SourceSansPro-Semibold-lettersOnly.ttf");
+        $this->sendUploadImageRequest($state, self::MOCK_UPLOADED_FILE_NAME, self::MOCK_UPLOADED_FILE_PATH);
     }
     private function setupUploadFileTest(): \TestState {
         $state = new \TestState;
@@ -120,14 +122,16 @@ final class UploadFilesTest extends UploadsControllerTestCase {
         $state->spyingResponse = null;
         return $state;
     }
-    private function sendUploadImageRequest(\TestState $state, string $realInputFileName = "gradient-background.jpg"): void {
+    private function sendUploadImageRequest(\TestState $state,
+                                            string $realInputFileName = "gradient-background.jpg",
+                                            ?string $realInputFilePath = null): void {
         $state->spyingResponse = $state->app->sendRequest($this->createApiRequest(
             path: "/api/uploads",
             method: "POST",
             body: $state->inputData,
             files: (object) ["localFile" => [
                 "name" => $realInputFileName,
-                "tmp_name" => SIVUJETTI_BACKEND_PATH . "installer/sample-content/minimal/\$index/public/uploads/{$realInputFileName}",
+                "tmp_name" => $realInputFilePath ?? SIVUJETTI_BACKEND_PATH . "installer/sample-content/minimal/\$index/public/uploads/{$realInputFileName}",
                 "error" => UPLOAD_ERR_OK,
                 "size" => 1
             ]],

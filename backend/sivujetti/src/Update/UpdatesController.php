@@ -20,7 +20,7 @@ final class UpdatesController {
         $code = $updater->beginUpdates();
         if ($code === Updater::RESULT_PRECONDITION_FAILED) {
             $res->json(["ok" => "err", "detailsCode" => $code, "details" => $updater->getLastErrors()]);
-        } elseif ($code === Updater::RESULT_OK) {
+        } elseif ($code === Updater::RESULT_OK || $code === Updater::RESULT_ALREADY_IN_PROGRESS) {
             $res->json(["ok" => "ok", "detailsCode" => $code]);
         } else {
             $res->status(500)->json(["ok" => "err", "detailsCode" => $code]);

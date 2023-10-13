@@ -48,11 +48,11 @@ abstract class ValidationUtils {
             if (str_contains($value, "\\")) return false;
 
             $noWhitespace = trim($value);
-            // Had whitespace or was empty -> always reject
-            if ($noWhitespace !== $value || !$noWhitespace) return false;
+            // Had whitespace -> always reject
+            if ($noWhitespace !== $value) return false;
 
             // Local urls always start with `/`
-            $isLocal = $noWhitespace[0] === "/";
+            $isLocal = $noWhitespace === "" || $noWhitespace[0] === "/" || $noWhitespace[0] === "#";
             $allowExternal = $settings["allowExternal"] ?? true;
 
             if ($isLocal) {

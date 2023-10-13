@@ -103,6 +103,9 @@ final class WebPageAwareTemplate extends Template {
      */
     public function maybeExternalUrl(string $url): string {
         $first = $url[0] ?? "";
+        if ($url === "" || $first === "#")
+            return $url;
+        //
         $isLocal = $first === "/";
         if ($isLocal)
             return !str_starts_with($url, "/public/uploads") ? $this->makeUrl($url) : $this->mediaUrl($url);

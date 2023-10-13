@@ -73,6 +73,27 @@ class EditAppAwareWebPage {
         if (this.handlers) return;
         this.handlers = handlers;
         //
+        const links = document.body.querySelectorAll('a');
+        for (let i = 0; i < links.length; ++i) {
+            const a = links[i];
+            const hrefAsAuthored = a.getAttribute('href');
+            if (hrefAsAuthored.startsWith('#') || hrefAsAuthored === '') {
+                if (this.baseUrl.indexOf('.php?') < 0) {
+                    // 'https://domain.com/?in-edit=1#foo'     -> 'https://domain.com/#foo' or
+                    // 'https://domain.com/?in-edit=1'         -> 'https://domain.com/' or
+                    // 'https://domain.com/page?in-edit=1#foo' -> 'https://domain.com/page#foo' or
+                    // 'https://domain.com/page?in-edit=1'     -> 'https://domain.com/page'
+                    a.href = a.href.replace('?in-edit=1', '');
+                } else {
+                    // 'https://domain.com/index.php?q=/&in-edit=1#foo'     -> 'https://domain.com/index.php?q=/#foo'
+                    // 'https://domain.com/index.php?q=/&in-edit=1'         -> 'https://domain.com/index.php?q=/' or
+                    // 'https://domain.com/index.php?q=/page&in-edit=1#foo' -> 'https://domain.com/index.php?q=/page#foo'
+                    // 'https://domain.com/index.php?q=/page&in-edit=1'     -> 'https://domain.com/index.php?q=/page'
+                    a.href = a.href.replace('&in-edit=1', '');
+                }
+            }
+        }
+        //
         document.body.addEventListener('mouseover', e => {
             if (this.isMouseListenersDisabled) return;
             //
@@ -335,7 +356,11 @@ class EditAppAwareWebPage {
                                                                           // /sub-dir/foo -> /foo
                                                                           // /index.php?q=/foo -> /foo
                                                                           // /sub-dir/index.php?q=/foo -> /foo
-            window.parent.myRoute(noBase.split('#')[0]);
+            const pcs = noBase.split('#');
+            if (pcs.length < 2)
+                window.parent.myRoute(pcs[0]);
+            else
+                document.getElementById(pcs[1])?.scrollIntoView();
         }
     }
     /**

@@ -4,6 +4,9 @@ import {urlValidatorImpl} from '../validation.js';
 import setFocusTo from '../block-types/auto-focusers.js';
 import {determineModeFrom, getLabel, normalizeExternalUrl, normalizeUrl} from '../quill/common.js';
 import FileUploader from '../commons/FileUploader.jsx';
+import store, {selectCurrentPageDataBundle} from '../store.js';
+
+const EMPTY_SLUG = '';
 
 class PickUrlDialog extends preact.Component {
     /**
@@ -123,10 +126,15 @@ class PickUrlDialog extends preact.Component {
         if (pop === null) return null;
         let content;
         let arrowLeft;
-        if (pop === 'pick-url')
+        if (pop === 'pick-url') {
+            const currentPageSlug = selectCurrentPageDataBundle(store.getState()).page.slug;
             [content, arrowLeft] = [<PickPageTab
                 url={ this.state.url }
-                onPickurl={ slug => this.commitLocally(urlUtils.makeUrl(slug), 'pick-url') }/>, 138];
+                onPickurl={ slug => {
+                    this.commitLocally(slug !== EMPTY_SLUG ? urlUtils.makeUrl(slug) : EMPTY_SLUG, 'pick-url');
+                } }
+                currentPageSlug={ currentPageSlug }/>, 138];
+        }
         if (pop === 'pick-file')
             [content, arrowLeft] = [<FileUploader
                 mode="pick"
@@ -223,7 +231,11 @@ class CurrentUrlDisplay extends preact.Component {
             'pick-file': 'photo',
             'type-external-url': 'external-link',
         }[mode];
-        const urlPreview = normalizeUrl(url, mode);
+        const [urlPreview, Elem] = url.startsWith('#')
+            ? [url, 'span']
+            : url !== EMPTY_SLUG
+                ? [normalizeUrl(url, mode), 'a']
+                : [`(${__('This page').toLowerCase()})`, 'span'];
         const linkTitlePrefix = mode !== 'type-external-url' ? env.window.location.origin : '';
         return <div>
             <div class="with-icon color-dimmed">
@@ -231,12 +243,12 @@ class CurrentUrlDisplay extends preact.Component {
                 { title }
             </div>
             <div class="mt-2">
-                <a
+                <Elem
                     href={ url }
                     class="d-inline-block pr-1 text-ellipsis"
                     title={ linkTitlePrefix + url }
                     style="max-width: 100%"
-                    target="_blank"><b>{ urlPreview }</b></a>
+                    target="_blank"><b>{ urlPreview }</b></Elem>
                 <br/>
                 <button
                     style="transform: scale(.9);margin-left: -.1rem;"
@@ -299,8 +311,14 @@ class PickPageTab extends preact.Component {
     /**
      * @access protected
      */
-    render({onPickurl}, {pages, selectedIdx}) {
-        const p = pages === null ? null : pages || [];
+    render({onPickurl, currentPageSlug}, {pages, selectedIdx}) {
+        const p = pages === null
+            ? null
+            : currentPageSlug && pages ? [
+                ...pages.slice(0, 1),
+                ...[{slug: EMPTY_SLUG, title: __('This page')}],
+                ...pages.slice(1)
+            ] : pages;
         return [
             <input
                 class="form-input mb-2"
@@ -313,7 +331,7 @@ class PickPageTab extends preact.Component {
                     title={ title }
                     style="height: 2.2rem">
                         <span class="h6 my-0 mr-1">{ title }</span>
-                        <i class="color-dimmed">{ slug }</i>
+                        <i class="color-dimmed">{ slug || currentPageSlug }</i>
                     </button>
                 </li>
             ) }</ul> : <LoadingSpinner/>

@@ -1,5 +1,5 @@
 import {__, env, iconAsString, stringUtils} from '@sivujetti-commons-for-edit-app';
-import {determineModeFromPreview, normalizeUrl} from './common.js';
+import {determineModeFromPreview, normalizeUrl, getVisibleSlug} from './common.js';
 
 const Quill = window.Quill;
 
@@ -46,17 +46,37 @@ class MySnowTheme extends Quill.import('themes/snow') {
         myPreviewTitle.className = 'flex-centered';
         const myPreviewLink = document.createElement('a');
         myPreviewLink.className = 'd-block text-ellipsis my-1';
+        const altPreviewEl = document.createElement('span');
+        altPreviewEl.className = `${myPreviewLink.className} d-none`;
+        el.insertBefore(altPreviewEl, el.firstElementChild);
         el.insertBefore(myPreviewLink, el.firstElementChild);
         el.insertBefore(myPreviewTitle, el.firstElementChild);
 
         const origShow = this.tooltip.show;
         this.tooltip.show = (...args) => {
             const linkEl = this.tooltip.preview;
-            let noOrigin, urlPreview;
+            let previewEl, noOrigin, urlPreview;
+
             if (linkEl.host === window.location.host) {
-                noOrigin = linkEl.href.substring(linkEl.origin.length);
-                urlPreview = normalizeUrl(noOrigin, determineModeFromPreview(noOrigin)[0]);
+                const isHashOnly = linkEl.href.indexOf('/_edit#') > -1;
+                if (isHashOnly || linkEl.href.endsWith('/_edit')) {
+                    noOrigin = '/doesnt-matter';
+                    urlPreview = isHashOnly
+                        ? `#${linkEl.href.split('#')[1]}` // 'https://domain.com/index.php?q=/_edit#foo' -> '#foo'
+                        : getVisibleSlug('');
+                    //
+                    previewEl = altPreviewEl;
+                    showOrHideEls(previewEl, myPreviewLink);
+                } else {
+                    noOrigin = linkEl.href.substring(linkEl.origin.length);
+                    urlPreview = normalizeUrl(noOrigin, determineModeFromPreview(noOrigin)[0]);
+                    //
+                    previewEl = myPreviewLink;
+                    showOrHideEls(previewEl, altPreviewEl);
+                }
             } else {
+                previewEl = myPreviewLink;
+                showOrHideEls(previewEl, altPreviewEl);
                 noOrigin = normalizeUrl(linkEl.href, 'type-external-url');
                 urlPreview = noOrigin;
             }
@@ -68,10 +88,12 @@ class MySnowTheme extends Quill.import('themes/snow') {
             }[mode];
             myPreviewTitle.innerHTML = iconAsString(icon, 'size-xs color-dimmed3 mr-1') +
                 `<span class="col-mr-auto">${title}</span>`;
-            myPreviewLink.href = linkEl.href;
-            myPreviewLink.title = linkEl.href;
-            myPreviewLink.target = '_blank';
-            myPreviewLink.textContent = urlPreview;
+            if (previewEl.nodeName === 'A') {
+                previewEl.href = linkEl.href;
+                previewEl.title = linkEl.href;
+                previewEl.target = '_blank';
+            }
+            previewEl.textContent = urlPreview;
             return origShow.call(this.tooltip, ...args);
         };
 
@@ -255,6 +277,15 @@ MySnowTheme.DEFAULTS.modules.toolbar.handlers.link = function (value) {
     }
 };
 
+/**
+ * @param {HTMLElement} toShow
+ * @param {HTMLElement} toHide
+ */
+function showOrHideEls(toShow, toHide) {
+    toShow.classList.remove('d-none');
+    toHide.classList.add('d-none');
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 const Delta = Quill.import('delta');
@@ -301,11 +332,13 @@ class MyLink extends Quill.import('formats/link') {
      */
     static create(value) {
         const node = super.create(value);
-        const isLocal = value.startsWith('/') && !value.startsWith('//');
-        if (isLocal && node.host === env.window.location.host) {
+        const isEmpty = value === '-';
+        const isLocal = isEmpty || (value.startsWith('/') && !value.startsWith('//') && node.host === env.window.location.host);
+        if (isLocal) {
             node.removeAttribute('rel');
             node.removeAttribute('target');
-            addOrReplaceHrefAttrsPatch(node);
+            if (!isEmpty)
+                addOrReplaceHrefAttrsPatch(node);
         }
         return node;
     }
@@ -314,7 +347,9 @@ class MyLink extends Quill.import('formats/link') {
      */
     static sanitize(url) {
         const anchor = document.createElement('a');
+        const norm = url !== '-' ? url : '';
         anchor.href = url;
+        if (norm === '') return norm;
         const protocol = anchor.href.slice(0, anchor.href.indexOf(':'));
         return protocol ? url : this.SANITIZED_URL;
     }

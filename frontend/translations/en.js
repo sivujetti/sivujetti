@@ -211,6 +211,8 @@ stringBundles.push({
     'Meta content contains ': 'Meta content contains ',
     'additional data / metadata': 'additional data / metadata',
     ', and otherwise act like ordinary content.': ', and otherwise act like ordinary content.',
+    // edit-app/src/popups/PickUrlDialog.jsx
+    'This page': 'This page',
     // edit-app/src/left-column/SaveButton.jsx
     'You have unsaved changes, do you want to navigate away?': 'You have unsaved changes, do you want to navigate away?',
     'Undo latest change': 'Undo latest change',

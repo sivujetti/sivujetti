@@ -212,6 +212,8 @@ stringBundles.push({
     'Meta content contains ': 'Metasisältöön on tallennettu ',
     'additional data / metadata': 'lisä-, tai metatietoja',
     ', and otherwise act like ordinary content.': ', ja käyttäytyvät muilta osin kuten tavallinen sisältö.',
+    // edit-app/src/popups/PickUrlDialog.jsx
+    'This page': 'Tämä sivu',
     // edit-app/src/left-column/SaveButton.jsx
     'You have unsaved changes, do you want to navigate away?': 'Sinulla on tallentamattomia muutoksia, haluatko poistua sivulta?',
     'Undo latest change': 'Kumoa viimeisin muutos',

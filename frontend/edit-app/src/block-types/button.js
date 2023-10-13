@@ -1,7 +1,7 @@
 import {__, api, env, hookForm, unhookForm, InputErrors, FormGroup,
         FormGroupInline, floatingDialog, urlUtils,
         validationConstraints} from '@sivujetti-commons-for-edit-app';
-import {determineModeFrom, getCompletedUrl} from '../quill/common.js';
+import {determineModeFrom, getCompletedUrl, getVisibleSlug} from '../quill/common.js';
 import QuillEditor from '../quill/QuillEditor.jsx';
 import {unParagraphify} from './paragraph.js';
 import setFocusTo from './auto-focusers.js';
@@ -123,7 +123,7 @@ class PickUrlInputGroup extends preact.Component {
         return <FormGroupInline>
             <label htmlFor="linkTo" class="form-label">{ __('Link') }</label>
             <input
-                value={ linkTo }
+                value={ getVisibleSlug(linkTo) }
                 onClick={ e => this.openPickUrlDialog(e, linkTo, onUrlPicked) }
                 name="linkTo"
                 class="form-input"
@@ -151,7 +151,7 @@ class PickUrlInputGroup extends preact.Component {
             dialog: floatingDialog,
             onConfirm: (url, mode) => {
                 if (mode === 'pick-url') // '/sivujetti/index.php?q=/contact', '/contact'
-                    onPicked(url.substring(urlUtils.baseUrl.length - 1));
+                    onPicked(!url.startsWith('#') ? url.substring(urlUtils.baseUrl.length - 1) : url);
                 else if (mode === 'pick-file') // '/sivujetti/public/uploads/header1.jpg'
                     onPicked(url.substring(urlUtils.assetBaseUrl.length - 1));
                 else // 'http://test.com'

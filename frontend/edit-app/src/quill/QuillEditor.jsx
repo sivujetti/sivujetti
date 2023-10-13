@@ -69,23 +69,26 @@ class QuillEditor extends preact.Component {
             theme: 'snow',
             sivujettiApi: {openUrlPicker(_linkText, url) {
                 const mode = determineModeFrom(url)[0];
+                const norm = url.split('_edit')[1] || url; // '/sivujetti/index.php?q=/_edit#foo' -> '#foo'
+                                                           // '/sivujetti/index.php?q=/_edit' -> ''
                 floatingDialog.open(PickUrlDialog, {
                     width: 480,
                     height: getHeight('default', true)[0],
                     title: __('Choose a link')
                 }, {
                     mode,
-                    url,
+                    url: norm,
                     dialog: floatingDialog,
                     onConfirm: url2  => {
                         const {quill} = dhis;
-                        var scrollTop = quill.root.scrollTop;
+                        const {scrollTop} = quill.root;
+                        const url3 = url2 || '-';
                         if (quill.theme.tooltip.linkRange) {
-                            quill.formatText(quill.theme.tooltip.linkRange, 'link', url2, window.Quill.sources.USER);
+                            quill.formatText(quill.theme.tooltip.linkRange, 'link', url3, window.Quill.sources.USER);
                             delete quill.theme.tooltip.linkRange;
                         } else {
                             quill.theme.tooltip.restoreFocus();
-                            quill.format('link', url2, window.Quill.sources.USER);
+                            quill.format('link', url3, window.Quill.sources.USER);
                         }
                         quill.root.scrollTop = scrollTop;
                     },

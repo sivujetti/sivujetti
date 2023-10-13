@@ -18,7 +18,8 @@ function determineModeFromPreview(url) {
  */
 function determineModeFrom(url, translationsPool = 'dialogTitles') {
     const mode = (function () {
-        if (!url) return 'choose-link-type';
+        //
+        if (url === '' || url.startsWith('#')) return 'pick-url';
         //
         const isLocal = url.startsWith('/') && !url.startsWith('//');
         if (isLocal) {
@@ -26,6 +27,8 @@ function determineModeFrom(url, translationsPool = 'dialogTitles') {
             const isLocalFile = pcs.length > 2 && pcs.at(-3) === 'public' && pcs.at(-2) === 'uploads';
             return !isLocalFile ? 'pick-url' : 'pick-file';
         }
+        //
+        if (url === '-') return 'choose-link-type';
         //
         return 'type-external-url';
     })();
@@ -37,6 +40,8 @@ function determineModeFrom(url, translationsPool = 'dialogTitles') {
  * @returns {String} '/base/pagename' or '/base/public/uploads/filename.png' or <external>
  */
 function getCompletedUrl(url) {
+    if (!url.length || url.startsWith('#')) return url;
+    //
     const isAlreadyCompleted = url.startsWith(urlUtils.baseUrl);
     if (isAlreadyCompleted) return url;
     //
@@ -104,5 +109,17 @@ function normalizeUrl(url, mode) {
     }
 }
 
+/**
+ * @param {String} slug
+ * @returns {String}
+ */
+function getVisibleSlug(slug) {
+    if (slug === '')
+        return `(${__('This page').toLowerCase()})`;
+    if (slug.startsWith('#'))
+        return slug;
+    return slug;
+}
+
 export {determineModeFromPreview, determineModeFrom, getCompletedUrl, getLabel,
-        normalizeExternalUrl, normalizeUrl};
+        normalizeExternalUrl, normalizeUrl, getVisibleSlug};

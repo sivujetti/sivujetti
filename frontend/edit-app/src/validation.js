@@ -1,10 +1,11 @@
 import {env, validationConstraints} from '@sivujetti-commons-for-edit-app';
 
 const urlValidatorImpl = {doValidate: (val, hints = {}) => {
-    const [allowExternal, allowLocal, allowEmpty] = [
+    const [allowExternal, allowLocal, allowEmpty, allowLongLocal] = [
         Object.prototype.hasOwnProperty.call(hints, 'allowExternal') ? hints.allowExternal : true,
         Object.prototype.hasOwnProperty.call(hints, 'allowLocal') ? hints.allowLocal : true,
         Object.prototype.hasOwnProperty.call(hints, 'allowEmpty') ? hints.allowEmpty : false,
+        Object.prototype.hasOwnProperty.call(hints, 'allowLongLocal') ? hints.allowLongLocal : true,
     ];
     //
     const [comp, isLocal] = createCanonicalUrl(val);
@@ -18,7 +19,7 @@ const urlValidatorImpl = {doValidate: (val, hints = {}) => {
     try {
         const u = new URL(comp);
         if (!u.protocol) return false;
-        if (u.host === env.window.location.host) return false;
+        if (!allowLongLocal && u.host === env.window.location.host) return false;
         return true;
     } catch (e) {
         return false;

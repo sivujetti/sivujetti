@@ -19,6 +19,10 @@ final class TheWebsite extends \stdClass {
     public string $aclRulesJson;
     /** @var string */
     public string $versionId;
+    /** @var string */
+    public string $headHtml;
+    /** @var string */
+    public string $footHtml;
     /** @var int Unix timestamp or 0 */
     public int $latestPackagesLastCheckedAt;
     /** @var ?string */

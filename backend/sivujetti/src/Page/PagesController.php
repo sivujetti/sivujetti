@@ -151,6 +151,7 @@ final class PagesController {
                     "canCreateGlobalBlockTrees" => $acl->can($userRole, "create", "globalBlockTrees"),
                     "canSpecializeGlobalBlocks" => $userRole <= ACL::ROLE_ADMIN,
                     "canEditTheWebsitesBasicInfo" => $acl->can($userRole, "updateBasicInfoOf", "theWebsite"),
+                    "canEditTheWebsitesGlobalScripts" => $acl->can($userRole, "updateGlobalScriptsOf", "theWebsite"),
                     "canListUploads" => $acl->can($userRole, "list", "uploads"),
                 ],
                 "userRole" => $userRole,
@@ -590,6 +591,8 @@ final class PagesController {
             "description" => $theWebsite->description,
             "hideFromSearchEngines" => $theWebsite->hideFromSearchEngines,
             "versionId" => $theWebsite->versionId,
+            "headHtml" => $theWebsite->headHtml,
+            "footHtml" => $theWebsite->footHtml,
         ];
     }
 }

@@ -145,7 +145,8 @@ stringBundles.push({
     'Website': 'Sivusto',
     'Website\'s settings': 'Sivuston asetukset',
     'Settings': 'Asetukset',
-    'Edit info': 'Muokkaa perustietoja',
+    'Edit info': 'Muokkaa tietoja',
+    'Global scripts': 'Globaalit skriptit',
     'Updates': 'Päivitykset',
     //edit-app/src/left-column/page-type/PageTypeCreatePanel.jsx
     'page type': 'sivutyyppi',
@@ -336,6 +337,13 @@ stringBundles.push({
     'Language': 'Kieli',
     'Discourage search engines from indexing this site': 'Kiellä sivuston näkyminen hakukoneissa',
     'Saved website\'s basic info.': 'Sivuston tiedot tallennettin.',
+    // edit-app/src/right-column/website/WebsiteEditGlobalScriptsView.jsx
+    'Edit scripts': 'Muokkaa skriptejä',
+    'In these fields, you can define HTML code (e.g., various analytics scripts) that will be added to the final page\'s <head> tag or at the end of the <body> tag.': 'Näihin kenttiin voit määritellä HTML-koodin (esim. erilaiset analytiikka-skriptit), jotka lisätään lopullisen sivun <head>-tagiin tai <body>-tagin loppuun.',
+    'Head scripts': 'Head -skriptit',
+    'Append example': 'Lataa esimerkki',
+    'Body scripts': 'Body -skriptit',
+    'Saved global scripts.': 'Globaalit skriptit tallennettin.',
     // ../std-styles.md
     'Text default': 'Teksti oletus',
     'Headings default': 'Otsikot oletus',

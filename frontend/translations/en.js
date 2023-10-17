@@ -145,6 +145,7 @@ stringBundles.push({
     'Website\'s settings': 'Website\'s settings',
     'Settings': 'Settings',
     'Edit info': 'Edit info',
+    'Global scripts': 'Global scripts',
     'Updates': 'Updates',
     // edit-app/src/left-column/page-type/PageTypeCreatePanel.jsx
     'page type': 'page type',
@@ -335,6 +336,13 @@ stringBundles.push({
     'Language': 'Language',
     'Discourage search engines from indexing this site': 'Discourage search engines from indexing this site',
     'Saved website\'s basic info.': 'Saved website\'s basic info.',
+    // edit-app/src/right-column/website/WebsiteEditGlobalScriptsView.jsx
+    'Edit scripts': 'Edit scripts',
+    'In these fields, you can define HTML code (e.g., various analytics scripts) that will be added to the final page\'s <head> tag or at the end of the <body> tag.': 'In these fields, you can define HTML code (e.g., various analytics scripts) that will be added to the final page\'s <head> tag or at the end of the <body> tag.',
+    'Head scripts': 'Head scripts',
+    'Append example': 'Append example',
+    'Body scripts': 'Body scripts',
+    'Saved global scripts.': 'Saved global scripts.',
     // ../std-styles.md
     'Text default': 'Text default',
     'Headings default': 'Headings default',

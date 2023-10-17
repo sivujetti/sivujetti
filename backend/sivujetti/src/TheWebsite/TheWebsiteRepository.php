@@ -18,6 +18,7 @@ final class TheWebsiteRepository {
             ->fields([
                 "ws.`name`", "ws.`lang`", "ws.`country`", "ws.`description`", "ws.`hideFromSearchEngines`",
                 "ws.`aclRules` AS `aclRulesJson`", "ws.`firstRuns` as `firstRunsJson`", "ws.`versionId`",
+                "ws.`headHtml`", "ws.`footHtml`",
                 "ws.`latestPackagesLastCheckedAt`", "ws.`pendingUpdates` AS `pendingUpdatesJson`",
                 //
                 "p.`name` AS `pluginName`", "p.`isActive` AS `pluginIsActive`",

@@ -22,7 +22,7 @@ class WebsiteEditBasicInfoView extends preact.Component {
      */
     componentWillMount() {
         this.boundHandleSubmit = this.saveChangesToBackend.bind(this);
-        this.createState(store2.get().theWebsiteBasicInfo);
+        this.createState(store2.get().theWebsite);
     }
     /**
      * @access protected
@@ -46,20 +46,21 @@ class WebsiteEditBasicInfoView extends preact.Component {
             <form onSubmit={ e => handleSubmit(this, this.boundHandleSubmit, e) } class="form-horizontal pt-1">{ langTag ? [
                 <FormGroupInline>
                     <label htmlFor="name" class="form-label">{ __('Name') }</label>
-                    <Input vm={ this } prop="name" ref={ this.nameInput }/>
+                    <Input vm={ this } prop="name" id="name" ref={ this.nameInput }/>
                     <InputErrors vm={ this } prop="name"/>
                 </FormGroupInline>,
                 <FormGroupInline>
                     <label htmlFor="description" class="form-label">{ __('Description') }</label>
-                    <Textarea vm={ this } prop="description"/>
+                    <Textarea vm={ this } prop="description" id="description"/>
                     <InputErrors vm={ this } prop="description"/>
                 </FormGroupInline>,
                 <FormGroupInline>
-                    <label htmlFor="description" class="form-label">{ __('Language') }</label>
+                    <label htmlFor="language" class="form-label">{ __('Language') }</label>
                     <select
                         value={ langTag }
                         onChange={ this.handleLangChanged.bind(this) }
-                        class="form-input form-select">{ this.selectableLangs.map(code =>
+                        class="form-input form-select"
+                        id="language">{ this.selectableLangs.map(code =>
                         <option value={ code }>{ code }</option>
                     ) }</select>
                 </FormGroupInline>,
@@ -79,18 +80,18 @@ class WebsiteEditBasicInfoView extends preact.Component {
         </OverlayView>;
     }
     /**
-     * @param {TheWebsiteBasicInfo} websiteBasicInfo
+     * @param {TheWebsite} website
      * @access private
      */
-    createState(websiteBasicInfo) {
+    createState(website) {
         this.setState(hookForm(this, [
-            {name: 'name', value: websiteBasicInfo.name, validations: [['required'],
+            {name: 'name', value: website.name, validations: [['required'],
                 ['maxLength', validationConstraints.INDEX_STR_MAX_LENGTH]], label: __('Name')},
-            {name: 'description', value: websiteBasicInfo.description, validations: [
+            {name: 'description', value: website.description, validations: [
                 ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Description')},
         ], {
-            langTag: websiteBasicInfo.langTag,
-            hideFromSearchEngines: websiteBasicInfo.hideFromSearchEngines,
+            langTag: website.langTag,
+            hideFromSearchEngines: website.hideFromSearchEngines,
         }));
     }
     /**
@@ -115,7 +116,7 @@ class WebsiteEditBasicInfoView extends preact.Component {
         return http.put('/api/the-website/basic-info', data)
             .then(resp => {
                 if (resp.ok !== 'ok') throw new Error;
-                store2.dispatch('theWebsiteBasicInfo/set', [{
+                store2.dispatch('theWebsite/merge', [{
                     name: data.name,
                     langTag: `${data.lang}_${data.country}`,
                     description: data.description,

@@ -226,13 +226,14 @@ final class WebPageAwareTemplate extends Template {
                 ? "    <meta name=\"robots\" content=\"noindex, nofollow, nosnippet, noarchive\">\n"
                 : "") .
             "    {$metaMarkup}" .
-            "    {$this->cssFiles()}\n" .
+            "    {$this->cssFiles($site)}\n" .
             "</head>\n");
     }
     /**
+     * @param ?\Sivujetti\TheWebsite\Entities\TheWebsite $site = null
      * @return string
      */
-    public function cssFiles(): string {
+    public function cssFiles(?TheWebsite $site = null): string {
         $fileDefToTag = function ($f) {
             $attrsMap = $f->attrs;
             if (!array_key_exists("rel", $attrsMap)) $attrsMap["rel"] = "stylesheet";
@@ -251,13 +252,16 @@ final class WebPageAwareTemplate extends Template {
             : ""
         ) . "</style>\n";
         $externals = array_map($fileDefToTag, $this->__cssAndJsFiles->css);
+        $site = $site ?? $this->__locals["site"];
 
         return $common . (!$this->__useEditModeMarkup ? (
             // Externals including theme-generated.css
             implode("\n", [...$externals, $fileDefToTag(
                 (object) ["url" => "{$theme->name}-generated.css?t={$theme->stylesLastUpdatedAt}",
                           "attrs" => []]
-            )])
+            )]) .
+            // theWebsite->headHtml
+            ($site ? "\n{$site->headHtml}" : null)
         ) : (
             // Externals without theme-generated.css
             implode("\n", $externals) .
@@ -282,23 +286,30 @@ final class WebPageAwareTemplate extends Template {
         ));
     }
     /**
+     * @param ?\Sivujetti\TheWebsite\Entities\TheWebsite $site = null
      * @return string
      */
-    public function jsFiles(): string {
-        if (!$this->__cssAndJsFiles)
-            return "";
-        return implode("\n", array_map(function ($f) {
-            $attrsMap = $f->attrs;
-            //
-            $pre = !str_starts_with($f->url, "sivujetti/sivujetti-commons-for-web-pages.js")
+    public function jsFiles(?TheWebsite $site = null): string {
+        return (
+            // Scripts defined by the dev
+            ($this->__cssAndJsFiles ? implode("\n", array_map(function ($f) {
+                $attrsMap = $f->attrs;
+                //
+                $pre = !str_starts_with($f->url, "sivujetti/sivujetti-commons-for-web-pages.js")
+                    ? ""
+                    : "<script>window.sivujettiBaseUrl='{$this->makeUrl("/", true)}';\n" .
+                    "        window.sivujettiAssetBaseUrl='{$this->makeUrl("/", false)}';</script>";
+                //
+                $url = str_contains($f->url, "pristine") || str_starts_with($_SERVER["REQUEST_URI"] ?? "/sivujetti/", "/sivujetti/") ? $this->assetUrl("public/{$this->e($f->url)}") : ("/sivujetti/public/{$this->e($f->url)}?".$this->__assetUrlAppendix);
+                // $url = $this->assetUrl("public/{$this->e($f->url)}");
+                //
+                return "{$pre}<script src=\"{$url}\"{$this->attrMapToStr($attrsMap)}></script>";
+            }, $this->__cssAndJsFiles->js)) : "") .
+            // theWebsite->footHtml
+            (($this->__useEditModeMarkup || !($site = $site ?? $this->__locals["site"]))
                 ? ""
-                : "<script>window.sivujettiBaseUrl='{$this->makeUrl("/", true)}';\n" .
-                  "        window.sivujettiAssetBaseUrl='{$this->makeUrl("/", false)}';</script>";
-            //
-            $url = $this->assetUrl("public/{$this->e($f->url)}");
-            //
-            return "{$pre}<script src=\"{$url}\"{$this->attrMapToStr($attrsMap)}></script>";
-        }, $this->__cssAndJsFiles->js));
+                : "\n{$site->footHtml}\n")
+        );
     }
     /**
      * https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements

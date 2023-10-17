@@ -48,7 +48,8 @@ $out->resources = (object) [
     ],
     "theWebsite" => (object) [
         "updateBasicInfoOf"         => 0b00000010,
-        "export"                    => 0b00000100,
+        "updateGlobalScriptsOf"     => 0b00000100,
+        "export"                    => 0b00001000,
     ],
     "uploads" => (object) [
         "list"              => 0b00000010,
@@ -67,7 +68,7 @@ $out->userPermissions = (object) [
         "pageTypes"         => ACL::makePermissions("*", $out->resources->pageTypes),
         "reusableBranches"  => ACL::makePermissions("*", $out->resources->reusableBranches),
         "themes"            => ACL::makePermissions("*", $out->resources->themes),
-        "theWebsite"        => ACL::makePermissions(["updateBasicInfoOf"], $out->resources->theWebsite),
+        "theWebsite"        => ACL::makePermissions(["updateBasicInfoOf","updateGlobalScriptsOf"], $out->resources->theWebsite),
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],
     ACL::ROLE_ADMIN_EDITOR => (object) [
@@ -80,7 +81,7 @@ $out->userPermissions = (object) [
         // pageTypes        -> none
         "reusableBranches"  => ACL::makePermissions("*", $out->resources->reusableBranches),
         "themes"            => ACL::makePermissions("*", $out->resources->themes),
-        "theWebsite"        => ACL::makePermissions(["updateBasicInfoOf"], $out->resources->theWebsite),
+        "theWebsite"        => ACL::makePermissions(["updateBasicInfoOf","updateGlobalScriptsOf"], $out->resources->theWebsite),
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],
     ACL::ROLE_EDITOR => (object) [

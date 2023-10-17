@@ -10,10 +10,10 @@ $styles = \Sivujetti\Tests\Utils\TestData::getThemeStyles();
 $statements = array_merge($statements, [
 
 "INSERT INTO `theWebsite` (`name`,`lang`,`country`,`description`,`hideFromSearchEngines`," .
-    "`aclRules`,`firstRuns`,`versionId`) VALUES
+    "`aclRules`,`firstRuns`,`versionId`,`headHtml`,`footHtml`) VALUES
 ('Test suitö website xss >','fi','FI','xss >',1,'".json_encode($getRules())."','".json_encode([
     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" => "y"
-])."','abcdefg1')",
+])."','abcdefg1','','')",
 
 "INSERT INTO `themes` (`id`,`name`,`stylesOrder`,`globalStyles`,`isActive`," .
     "`generatedScopedStylesCss`) VALUES

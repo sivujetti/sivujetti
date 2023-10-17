@@ -8,7 +8,7 @@ interface SivujettiFrontendApi {
     getBlockRenderers(): Array<BlockRenderer>;
     getActiveTheme(): {id: String;};
     user: {
-        can(doWhat: 'doAnything'|'editGlobalStylesVisually'|'editBlockCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'|'editTheWebsitesBasicInfo'|'listUploads'): Boolean;
+        can(doWhat: 'doAnything'|'editGlobalStylesVisually'|'editBlockCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'|'editTheWebsitesBasicInfo'|'editTheWebsitesGlobalScripts'|'listUploads'): Boolean;
         getRole(): Number;
         ROLE_SUPER_ADMIN: Number;
         ROLE_ADMIN: Number;
@@ -195,18 +195,20 @@ interface BlockRenderer {
     associatedWith: String|null;
 }
 
-interface TheWebsiteBasicInfo {
+interface TheWebsite {
     name: String;
     langTag: String; // en_US
     description: String;
     hideFromSearchEngines: Boolean;
     versionId: String;
+    headHtml: String;
+    footHtml: String;
 }
 
 interface TheWebsiteBundle {
     baseUrl: String;
     assetBaseUrl: String;
-    website: TheWebsiteBasicInfo;
+    website: TheWebsite;
     pageTypes: Array<PageType>;
     activeTheme: {id: String;};
     blockRenderers: Array<BlockRenderer>;
@@ -221,6 +223,7 @@ interface TheWebsiteBundle {
         canCreateGlobalBlockTrees: Boolean;
         canSpecializeGlobalBlocks: Boolean;
         canEditTheWebsitesBasicInfo: Boolean;
+        canEditTheWebsitesGlobalScripts: Boolean;
         canListUploads: Boolean;
     };
     userRole: Number;

@@ -13,9 +13,13 @@ final class TheWebsiteModule {
             [TheWebsiteController::class, "saveBasicInfo", ["consumes" => "application/json",
                                                             "identifiedBy" => ["updateBasicInfoOf", "theWebsite"]]]
         );
+        $router->map("PUT", "/api/the-website/global-scripts",
+            [TheWebsiteController::class, "saveGlobalScripts", ["consumes" => "application/json",
+                                                                "identifiedBy" => ["updateBasicInfoOf", "theWebsite"]]]
+        );
         $router->map("POST", "/api/the-website/export",
             [TheWebsiteController::class, "export", ["consumes" => "application/json",
-                                                    "identifiedBy" => ["export", "theWebsite"]]]
+                                                     "identifiedBy" => ["export", "theWebsite"]]]
         );
     }
 }

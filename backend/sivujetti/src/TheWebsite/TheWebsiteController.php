@@ -25,16 +25,36 @@ final class TheWebsiteController {
             return;
         }
         //
-        $db->update(self::T)
-            ->values((object) [
-                "name" => $req->body->name,
-                "lang" => $req->body->lang,
-                "country" => $req->body->country,
-                "description" => $req->body->description,
-                "hideFromSearchEngines" => $req->body->hideFromSearchEngines,
-            ])
-            ->where("1=1")
-            ->execute();
+        self::updateTheWebsite((object) [
+            "name" => $req->body->name,
+            "lang" => $req->body->lang,
+            "country" => $req->body->country,
+            "description" => $req->body->description,
+            "hideFromSearchEngines" => $req->body->hideFromSearchEngines,
+        ], $db);
+        //
+        $res->json(["ok" => "ok"]);
+    }
+    /**
+     * PUT /api/the-website/global-scripts: Overwrites the html that goes to <head>
+     * or to the end of <body> to the database.
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Pike\Db\FluentDb $db
+     */
+    public function saveGlobalScripts(Request $req,
+                                      Response $res,
+                                      FluentDb $db): void {
+        if (($errors = $this->validateSaveGlobalScriptsInput($req->body))) {
+            $res->status(400)->json($errors);
+            return;
+        }
+        //
+        self::updateTheWebsite((object) [
+            "headHtml" => $req->body->headHtml,
+            "footHtml" => $req->body->footHtml,
+        ], $db);
         //
         $res->json(["ok" => "ok"]);
     }
@@ -52,6 +72,16 @@ final class TheWebsiteController {
         $res->json(["ok" => "ok"]);
     }
     /**
+     * @param object $data
+     * @param \Pike\Db\FluentDb $db
+     */
+    private static function updateTheWebsite(object $data, FluentDb $db): void {
+        $db->update(self::T)
+            ->values($data)
+            ->where("1=1")
+            ->execute();
+    }
+    /**
      * @param object $input
      * @return string[] Error messages or []
      */
@@ -65,6 +95,18 @@ final class TheWebsiteController {
             ->rule("country", "regexp", "/^[A-Z]{2}$/")
             ->rule("description", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
             ->rule("hideFromSearchEngines", "type", "bool")
+            ->validate($input);
+    }
+    /**
+     * @param object $input
+     * @return string[] Error messages or []
+     */
+    private function validateSaveGlobalScriptsInput(object $input): array {
+        return Validation::makeObjectValidator()
+            ->rule("headHtml", "type", "string")
+            ->rule("headHtml", "maxLength", ValidationUtils::HARD_LONG_TEXT_MAX_LEN)
+            ->rule("footHtml", "type", "string")
+            ->rule("footHtml", "maxLength", ValidationUtils::HARD_LONG_TEXT_MAX_LEN)
             ->validate($input);
     }
 }

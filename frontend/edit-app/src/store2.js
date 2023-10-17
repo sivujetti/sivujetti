@@ -168,15 +168,24 @@ function pagesListingsStore(store) {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-function theWebsiteBasicInfoStore(store) {
-    store.on('theWebsiteBasicInfo/set',
+function theWebsiteStore(store) {
+    store.on('theWebsite/set',
     /**
      * @param {Object} state
-     * @param {[TheWebsiteBasicInfo]} args
+     * @param {[TheWebsite]} args
      * @returns {Object}
      */
-    (_state, [theWebsiteBasicInfo]) =>
-        ({theWebsiteBasicInfo})
+    (_state, [theWebsite]) =>
+        ({theWebsite})
+    );
+    store.on('theWebsite/merge',
+    /**
+     * @param {Object} state
+     * @param {[{[prop: keyof TheWebsite]: any;}]} args
+     * @returns {Object}
+     */
+    ({theWebsite}, [data]) =>
+        ({theWebsite: {...theWebsite, ...data}})
     );
 }
 
@@ -187,7 +196,7 @@ function theWebsiteBasicInfoStore(store) {
 const mainStore = createStoreon([
     themeStylesStore,
     reusableBranchesStore,
-    theWebsiteBasicInfoStore,
+    theWebsiteStore,
     theBlockTreeStore,
     pagesListingsStore,
 ]);

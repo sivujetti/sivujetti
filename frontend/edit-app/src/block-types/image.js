@@ -59,7 +59,7 @@ class ImageBlockEditForm extends preact.Component {
                     { __('Alt text') }
                 </label>
                 <div class="p-relative">
-                    <Textarea vm={ this } prop="altText" rows="1" style="min-height:unset"/>
+                    <Textarea vm={ this } prop="altText" id="altText" rows="1" style="min-height:unset"/>
                     <span
                         class="tooltip tooltip-left p-absolute"
                         data-tooltip={ __('The text that a browser displays\nif the image cannot be loaded') }

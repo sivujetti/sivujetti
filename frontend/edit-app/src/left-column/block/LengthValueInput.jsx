@@ -1,7 +1,16 @@
 import {__, hookForm, FormGroupInline, Input,
         InputErrors, reHookValues, Icon} from '@sivujetti-commons-for-edit-app';
 
+let counter = 0;
+
 class LengthValueInput extends preact.Component {
+    // inputId;
+    /**
+     */
+    constructor(props) {
+        super(props);
+        this.inputId = `styleLength-${++counter}`;
+    }
     /**
      * @access protected
      */
@@ -35,7 +44,7 @@ class LengthValueInput extends preact.Component {
     render({valueReal, isClearable, labelTranslated, showNotice, noticeDismissedWith}, {unit}) {
         const {num} = valueReal;
         return <FormGroupInline className="has-visual-length-input">
-            <label htmlFor="num" class="form-label p-relative pt-1" title={ labelTranslated }>
+            <label htmlFor={ this.inputId } class="form-label p-relative pt-1" title={ labelTranslated }>
                 { labelTranslated }
                 { !showNotice ? null : <button
                     onClick={ () => {
@@ -51,7 +60,7 @@ class LengthValueInput extends preact.Component {
             </label>
             <div class="p-relative">
                 <div class="input-group">
-                    <Input vm={ this } prop="num" placeholder="1.4" autoComplete="off"/>
+                    <Input vm={ this } prop="num" id={ this.inputId } placeholder="1.4" autoComplete="off"/>
                     <select
                         onChange={ e => {
                             if (num)

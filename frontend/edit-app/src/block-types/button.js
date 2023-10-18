@@ -87,7 +87,7 @@ class ButtonBlockEditForm extends preact.Component {
                 { this.userCanChangeTagType
                     ? <FormGroupInline>
                         <label htmlFor="tagType" class="form-label">{ __('Tag type') }</label>
-                        <select value={ tagType } onChange={ this.handleTagTypeChanged.bind(this) } class="form-input form-select">{
+                        <select value={ tagType } onChange={ this.handleTagTypeChanged.bind(this) } class="form-input form-select" id="tagType">{
                             this.tagTypeOptions.map(({name, friendlyName}) =>
                                 <option value={ name }>{ friendlyName }</option>
                             )
@@ -126,6 +126,7 @@ class PickUrlInputGroup extends preact.Component {
                 value={ getVisibleSlug(linkTo) }
                 onClick={ e => this.openPickUrlDialog(e, linkTo, onUrlPicked) }
                 name="linkTo"
+                id="linkTo"
                 class="form-input"
                 type="text"
                 autoComplete="off"/>

@@ -37,8 +37,8 @@ class SaveBlockAsReusableDialog extends preact.Component {
         return <form onSubmit={ e => handleSubmit(this, this.boundDoHandleSubmit, e) }>
             <div class="mb-1">{ __('This function saves this content as reusable content, which can be easily added to other pages later on.') }</div>
             <FormGroup>
-                <label htmlFor="name" class="form-label">{ __('Name') }</label>
-                <Input vm={ this } prop="name" placeholder={ __('e.g. Text and image, Footer') } ref={ this.nameInput }/>
+                <label htmlFor="reusableBranchName" class="form-label">{ __('Name') }</label>
+                <Input vm={ this } prop="name" id="reusableBranchName" placeholder={ __('e.g. Text and image, Footer') } ref={ this.nameInput }/>
                 <InputErrors vm={ this } prop="name"/>
             </FormGroup>
             { userCanCreateGlobalBlockTrees ? <FormGroup>

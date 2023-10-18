@@ -44,7 +44,7 @@ class ColumnsBlockEditForm extends preact.Component {
         return <div class="form-horizontal pt-0">
             <FormGroupInline>
                 <label htmlFor="numColumns" class="form-label">{ __('Num columns') }</label>
-                <Input vm={ this } prop="numColumns" ref={ this.numColumnsEl }/>
+                <Input vm={ this } prop="numColumns" id="numColumns" ref={ this.numColumnsEl }/>
                 <InputErrors vm={ this } prop="numColumns"/>
             </FormGroupInline>
             <FormGroupInline>

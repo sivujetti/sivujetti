@@ -31,8 +31,8 @@ class AddCategoryPanel extends preact.Component {
             ? <form onSubmit={ e => handleSubmit(this, this.AAApostNewCategoryToBackend.bind(this), e) }>
                 <div class="form-horizontal pt-0">
                     <FormGroupInline>
-                        <label htmlFor="title" class="form-label">{ __('New category name') }</label>
-                        <Input vm={ this } prop="title"/>
+                        <label htmlFor="categoryTitle" class="form-label">{ __('New category name') }</label>
+                        <Input vm={ this } prop="title" id="categoryTitle"/>
                         <InputErrors vm={ this } prop="title"/>
                     </FormGroupInline>
                 </div>

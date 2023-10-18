@@ -28,12 +28,12 @@ class LoginApp extends preact.Component {
             }
             <FormGroup>
                 <label htmlFor="username" class="form-label">{ __('Username') }</label>
-                <Input vm={ this } prop="username"/>
+                <Input vm={ this } prop="username" id="username"/>
                 <InputErrors vm={ this } prop="username"/>
             </FormGroup>
             <FormGroup>
                 <label htmlFor="password" class="form-label">{ __('Password') }</label>
-                <Input vm={ this } prop="password" type="password"/>
+                <Input vm={ this } prop="password" id="password" type="password"/>
                 <InputErrors vm={ this } prop="password"/>
             </FormGroup>
             <div class="mt-2 pt-2">

@@ -1,6 +1,15 @@
 import {__, FormGroupInline, Icon} from '@sivujetti-commons-for-edit-app';
 
+let counter = 0;
+
 class OptionValueInput extends preact.Component {
+    // inputId;
+    /**
+     */
+    constructor(props) {
+        super(props);
+        this.inputId = `styleOption-${++counter}`;
+    }
     /**
      * @access protected
      */
@@ -8,7 +17,7 @@ class OptionValueInput extends preact.Component {
         const options = argsCopy;
         const selectedVisible = valueReal.selected;
         return <FormGroupInline>
-            <label class="form-label p-relative pt-1" title={ labelTranslated }>
+            <label class="form-label p-relative pt-1" htmlFor={ this.inputId } title={ labelTranslated }>
                 { labelTranslated }
                 { !showNotice ? null : <button
                     onClick={ () => {
@@ -26,7 +35,8 @@ class OptionValueInput extends preact.Component {
                 <select
                     class="form-select"
                     value={ selectedVisible }
-                    onChange={ e => this.props.onVarValueChanged(e.target.value) }>
+                    onChange={ e => this.props.onVarValueChanged(e.target.value) }
+                    id={ this.inputId }>
                 { options.map(text =>
                     <option value={ text }>{ text }</option>
                 ) }

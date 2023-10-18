@@ -259,7 +259,7 @@ class CurrentUrlDisplay extends preact.Component {
                     <label class="form-label pb-0 color-dimmed" htmlFor="jumpTo">{ __('Jump in page') }</label>
                     <span class="has-icon-right d-flex flex-centered my-1">
                         #
-                        <Input vm={ this } prop="jumpTo" placeholder={ `${__('Anchor').toLowerCase()}-1` } class="form-input tight ml-1"/>
+                        <Input vm={ this } prop="jumpTo" id="jumpTo" placeholder={ `${__('Anchor').toLowerCase()}-1` } class="form-input tight ml-1"/>
                     </span>
                     <InputErrors vm={ this } prop="jumpTo"/>
                 </FormGroup> : null }

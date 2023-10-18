@@ -110,17 +110,17 @@ class PageInfoBlockEditForm extends preact.Component {
             </div>;
         return <div class="form-horizontal pt-0">
             <FormGroupInline>
-                <label htmlFor="title" class="form-label">{ __('Page title') }</label>
-                <Input vm={ this } prop="title" ref={ this.titleEl }/>
+                <label htmlFor="pageTitle" class="form-label">{ __('Page title') }</label>
+                <Input vm={ this } prop="title" id="pageTitle" ref={ this.titleEl }/>
                 <InputErrors vm={ this } prop="title"/>
             </FormGroupInline>
             <FormGroupInline>
-                <label htmlFor="slug" class="form-label">{ __('Url (slug)') }</label>
-                { wrap(<Input vm={ this } prop="slug"/>) }
+                <label htmlFor="pageSlug" class="form-label">{ __('Url (slug)') }</label>
+                { wrap(<Input vm={ this } prop="slug" id="pageSlug"/>) }
                 <InputErrors vm={ this } prop="slug"/>
             </FormGroupInline>
             <FormGroupInline>
-                <label htmlFor="src" class="form-label">{ __('Social image') }</label>
+                <label htmlFor="socialImageSrc" class="form-label">{ __('Social image') }</label>
                 <ImagePicker
                     onImageSelected={ this.handleSocialImageChanged.bind(this) }
                     initialImageFileName={ socialImageSrc }
@@ -128,8 +128,8 @@ class PageInfoBlockEditForm extends preact.Component {
                     ref={ this.imagePicker }/>
             </FormGroupInline>
             <FormGroup>
-                <label htmlFor="description" class="form-label">{ __('Meta description') }</label>
-                <Textarea vm={ this } prop="description" ref={ this.descriptionEl }/>
+                <label htmlFor="pageDescription" class="form-label">{ __('Meta description') }</label>
+                <Textarea vm={ this } prop="description" id="pageDescription" ref={ this.descriptionEl }/>
                 <InputErrors vm={ this } prop="description"/>
             </FormGroup>
             { this.ownFields ? this.ownFields.map(field =>

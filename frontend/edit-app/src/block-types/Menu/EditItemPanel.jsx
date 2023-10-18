@@ -42,7 +42,7 @@ class EditItemPanel extends preact.Component {
             <div class="form-horizontal pt-0">
                 <FormGroupInline>
                     <label htmlFor="linkText" class="form-label">{ __('Link text') }</label>
-                    <Input vm={ this } prop="linkText"/>
+                    <Input vm={ this } prop="linkText" id="linkText"/>
                     <InputErrors vm={ this } prop="linkText"/>
                 </FormGroupInline>
                 <PickUrlInputGroup linkTo={ linkTo } onUrlPicked={ normalized => {

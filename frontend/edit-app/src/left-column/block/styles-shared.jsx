@@ -56,8 +56,8 @@ class EditableTitle extends preact.Component {
             allowEditing ? <PopupPrerendered ref={ this.popup }>{ popupIsOpen
                 ? <form onSubmit={ this.applyNewTitleAndClose.bind(this) } class="text-left pb-1">
                     <FormGroup>
-                        <label htmlFor="title" class="form-label pt-1">{ __('Style name') }</label>
-                        <Input vm={ this } prop="title"/>
+                        <label htmlFor="styleTitle" class="form-label pt-1">{ __('Style name') }</label>
+                        <Input vm={ this } prop="title" id="styleTitle"/>
                         <InputErrors vm={ this } prop="title"/>
                     </FormGroup>
                     <button class="btn btn-sm px-2" type="submit" disabled={ hasErrors(this) }>Ok</button>

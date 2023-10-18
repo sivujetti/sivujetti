@@ -39,7 +39,7 @@ class EditUnitOrSetAsDefault extends preact.Component {
                         <Icon iconId="info-circle" className="size-xs color-dimmed3"/>
                     </span>
                 </label>
-                <Input vm={ this } prop="specifier" placeholder={ __('e.g. `>`, `div`, `.j-Button >`') }/>
+                <Input vm={ this } prop="specifier" id="specifier" placeholder={ __('e.g. `>`, `div`, `.j-Button >`') }/>
                 <InputErrors vm={ this } prop="specifier"/>
             </FormGroup> : null }
             <FormGroup>

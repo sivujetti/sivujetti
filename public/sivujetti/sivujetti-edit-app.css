@@ -215,7 +215,7 @@ h2 {
     padding-left: 0;
 }
 .ql-editor > :not(:first-child) {
-    margin-top: .4rem;
+    margin-top: .6rem;
 }
 .ql-editor > [data-hovered] {
     outline: var(--color-highlight-outline) solid 2px;

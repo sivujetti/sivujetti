@@ -39,6 +39,8 @@ Structure:
     --color-bg-button-hover: rgb(236, 236, 239);
     --color-bg-button-selected: rgb(229, 229, 236);
     --color-bg-button-selected-hover: rgb(223, 223, 232);
+    --components-color-highlight-outline: 156, 234, 237;
+    --color-highlight-outline: rgb(var(--components-color-highlight-outline));
 
     --color-icon-normal-block: var(--color-accent2);
 
@@ -216,7 +218,7 @@ h2 {
     margin-top: .4rem;
 }
 .ql-editor > [data-hovered] {
-    background: rgba(var(--components-color-fb-default), 0.05);
+    outline: var(--color-highlight-outline) solid 2px;
 }
 .ql-toolbar.ql-snow {
     position: sticky;
@@ -973,13 +975,13 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     padding: .8rem 0 .4rem .4rem;
 }
 .new-block-spawner-opened .panel-section {
-    margin-left: calc(var(--contentSpawnerWidth) + .64rem);
+    margin-left: calc(var(--contentSpawnerWidth) - .2rem);
     position: relative;
 }
 .panel-section:not(:last-of-type) {
     border-bottom: 1px solid var(--color-section-separator);
 }
-.panel-section.open:not(:last-of-type) {
+.panel-section.open:not(:last-of-type):not(.on-this-page) {
     padding-bottom: 1rem;
 }
 .panel-section h1 {
@@ -1010,16 +1012,42 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     margin: .8rem 0;
     color: var(--color-fg-default);
 }
+.panel-section.on-this-page {
+    margin-top: .6rem;
+    padding-top: .4rem;
+    padding-bottom: .3rem;
+    border: 2px solid var(--color-highlight-outline);
+    border-radius: var(--small-rect-radius);
+    position: relative;
+}
+.panel-section.on-this-page.open:before,
+.panel-section.on-this-page.open:after {
+  content: "";
+  background: linear-gradient(var(--color-highlight-outline), var(--color-bg-default) 20%, var(--color-bg-default) 85%, var(--color-highlight-outline));
+  height: 100%;
+  width: 2px;
+  top: 0;
+  position: absolute;
+}
+.panel-section.on-this-page.open:before {
+  left: -2px;
+}
+.panel-section.on-this-page.open:after {
+  right: -2px;
+}
 
 .section-title > .icon-tabler {
-    left: .7rem;
+    left: 1rem;
+}
+.on-this-page .section-title > .icon-tabler {
+    left: .6rem;
 }
 .new-block-spawner-opened .panel-section .section-title > .icon-tabler:first-child {
     left: .5rem;
 }
 .section-title > span {
     position: relative;
-    margin: 0 .85rem 0 1.3rem;
+    margin: 0 .85rem 0 1.5rem;
     text-align: left;
 }
 .section-title > span > span.text-tiny.text-ellipsis {
@@ -1032,6 +1060,9 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .section-title > .icon-tabler:last-child {
     right: .8rem;
     left: initial;
+}
+.panel-section.on-this-page.open .section-title > .icon-tabler:last-child {
+    right: 1rem;
 }
 
 
@@ -1120,7 +1151,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     cursor: not-allowed;
 }
 .block-tree .toggle {
-    padding: .1rem .2rem 0 .2rem;
+    padding: 0 .2rem;
     cursor: pointer;
     margin-left: -.2rem;
     background: transparent;
@@ -1131,7 +1162,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .block-tree .more-toggle {
     opacity: 0;
     transition: opacity .125s ease-out;
-    margin-bottom: -2px;
+    margin-bottom: -3px;
 }
 .block-tree .block-handle:hover + .more-toggle,
 .block-tree .block-handle:focus + .more-toggle,
@@ -1154,9 +1185,11 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .block-tree li[data-block-type="PageInfo"].selected {
     background: hsla(var(--components-color-purple), .1);
 }
-.block-tree li:not(li[data-first-in-group-title]):not(li[data-last]):hover,
+.block-tree:not(.no-hover) li:not(li[data-first-in-group-title]):not(li[data-last]):hover,
 .block-tree li.highlighted {
-    background: rgba(var(--components-color-fb-default), 0.03);
+    border: 1px solid var(--color-highlight-outline);
+    padding-top: calc(0.2rem - 1px);
+    padding-bottom: calc(0.2rem - 1px);
 }
 .block-tree li.selected:hover,
 .block-tree li.highlighted.selected {
@@ -1201,6 +1234,12 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     background-color: #fff;
     top: 50%;
     margin-top: 1px;
+}
+.block-tree li:hover > div:before,
+.block-tree li:hover > div:after,
+.block-tree li.highlighted > div:before,
+.block-tree li.highlighted > div:after {
+    content: initial !important;
 }
 .block-tree li[data-depth="1"] {
     border-color: transparent;
@@ -1264,28 +1303,36 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     width: var(--contentSpawnerWidth);
     max-width: 4px;
     z-index: 2;
+    border-radius: var(--small-rect-radius);
 }
 .new-block-spawner.scrolled-past-main-block-tree > input,
 .new-block-spawner.scrolled-past-main-block-tree > div {
     opacity: .5;
 }
 .new-block-spawner-opened .new-block-spawner {
-    border-right: 1px solid rgba(var(--components-color-fb-default),.06);
     height: 100%;
-    left: .6rem;
+    left: .4rem;
     max-width: var(--contentSpawnerWidth);
-    border: 1px solid rgba(var(--components-color-fb-default),.16);
     z-index: 1;
     padding-right: .2rem;
-    box-shadow: 1px 1px 12px 0px rgba(var(--components-color-fb-default),.12);
-    border-radius: 15px;
     padding-top: 2rem;
+    border: 2px solid var(--color-highlight-outline);
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+.new-block-spawner-opened .new-block-spawner:after {
+    content: "";
+    background: var(--color-bg-default);
+    width: 4px;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: -2px;
 }
 .new-block-spawner > input {
     position: absolute;
     top: .4rem;
     left: .4rem;
-    border-radius: 7px; /* calc(15px - .4rem) */
     width: calc(100% - .8rem)
 }
 .scroller {
@@ -1346,7 +1393,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .new-block-spawner-opened .new-block-spawner > .btn {
     position: absolute;
     z-index: 1;
-    left: -15px;
+    left: -12px;
     top: 24px;
 }
 .new-block-spawner-opened .new-block-spawner > .btn > .icon-tabler {
@@ -1374,14 +1421,14 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     pointer-events: none;
 }
 .highlight-rect:not([data-title=""]) {
-    border: 1px solid hsla(var(--components-color-accent), .8);
-    box-shadow: 0 0 0px 2px hsla(var(--components-color-accent), .1);
+    border: 1px solid rgba(var(--components-color-highlight-outline), .8);
+    box-shadow: 0 0 0px 2px rgba(var(--components-color-highlight-outline), .4);
 }
 .highlight-rect:before {
     content: attr(data-title);
     position: absolute;
     margin: -20px 0 0 -1px;
-    background: hsla(var(--components-color-accent), .5);
+    background: rgba(var(--components-color-highlight-outline), .8);
     padding: 0 .2rem;
     font-size: .6rem;
     border-radius: 2px;

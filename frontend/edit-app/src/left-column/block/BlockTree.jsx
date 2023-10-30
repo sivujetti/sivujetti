@@ -109,14 +109,14 @@ class BlockTree extends preact.Component {
                 onClick={ this.showBlockTreeHelpPopup.bind(this) }
                 class="btn btn-link p-absolute btn-sm pt-1"
                 type="button"
-                style="right: -.1rem; top: .1rem;">
+                style="right: .1rem; top: .1rem;">
                 <Icon iconId="info-circle" className="size-xs"/>
             </button></div>
             <BlockDnDSpawner
                 mainTreeDnd={ this.dragDrop }
                 initiallyIsOpen={ this.currentPageIsPlaceholder && this.props.containingView === 'CreatePage' }
                 ref={ this.blockSpawner }/>
-            <ul class="block-tree ml-1" ref={ el => {
+            <ul class="block-tree mx-1" ref={ el => {
                 if (!el) return;
                 this.dragDrop.attachOrUpdate(el);
                 if (!this.mouseDownHoverClearerHookedUp) {

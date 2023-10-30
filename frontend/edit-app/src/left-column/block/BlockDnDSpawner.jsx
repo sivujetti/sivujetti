@@ -115,7 +115,7 @@ class BlockDnDSpawner extends preact.Component {
             </button>
             { isOpen ? [
                 <input class="form-input tight" placeholder={ __('Filter') } disabled/>,
-                <div class="scroller"><ul class="block-tree">{
+                <div class="scroller"><ul class="block-tree no-hover">{
                     reusables.map((cb, i) => {
                         const rootReusable = cb.blockBlueprints[0];
                         const blockType = api.blockTypes.get(rootReusable.blockType);

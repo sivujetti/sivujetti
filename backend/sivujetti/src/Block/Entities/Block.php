@@ -57,7 +57,8 @@ final class Block extends \stdClass {
 
     /* If self::TYPE_IMAGE
     public string $src;
-    public string $altText; */
+    public string $altText;
+    public string $caption; */
 
     /* If "MyListing"
     public string $filterPageType; e.g. "Pages"

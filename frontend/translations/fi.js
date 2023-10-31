@@ -289,6 +289,7 @@ stringBundles.push({
     'Image file': 'Kuvatiedosto',
     'Alt text': 'Vaihtoehtoinen teksti',
     'The text that a browser displays\nif the image cannot be loaded': 'Teksti, jonka selain näyttää\njos kuvaa ei voida ladata',
+    'Caption': 'Kuvateksti',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metatiedot',
     'Url (slug)': 'Urli (slug)',

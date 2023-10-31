@@ -288,6 +288,7 @@ stringBundles.push({
     'Image file': 'Image file',
     'Alt text': 'Alt text',
     'The text that a browser displays\nif the image cannot be loaded': 'The text that a browser displays\nif the image cannot be loaded',
+    'Caption': 'Caption',
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metadata',
     'Url (slug)': 'Url (slug)',

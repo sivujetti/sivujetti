@@ -12,11 +12,15 @@ class ImageBlockEditForm extends preact.Component {
     componentWillMount() {
         this.imagePicker = preact.createRef();
         const {getBlockCopy, emitValueChanged, grabChanges} = this.props;
-        const {src, altText} = getBlockCopy();
+        const {src, altText, caption} = getBlockCopy();
         this.setState(hookForm(this, [
             {name: 'altText', value: altText, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
              label: __('Alt text'), onAfterValueChanged: (value, hasErrors, source) => {
                 if (source !== 'undo') emitValueChanged(value, 'altText', hasErrors, env.normalTypingDebounceMillis);
+            }},
+            {name: 'caption', value: caption, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]],
+             label: __('Caption'), onAfterValueChanged: (value, hasErrors, source) => {
+                if (source !== 'undo') emitValueChanged(value, 'caption', hasErrors, env.normalTypingDebounceMillis);
             }},
         ], {
             src,
@@ -26,6 +30,8 @@ class ImageBlockEditForm extends preact.Component {
                 this.setState({src: block.src});
             if (isUndo && this.state.values.altText !== block.altText)
                 reHookValues(this, [{name: 'altText', value: block.altText}]);
+            if (isUndo && this.state.values.caption !== block.caption)
+                reHookValues(this, [{name: 'caption', value: block.caption}]);
         });
     }
     /**
@@ -69,6 +75,13 @@ class ImageBlockEditForm extends preact.Component {
                 </div>
                 <InputErrors vm={ this } prop="altText"/>
             </FormGroupInline>
+            <FormGroupInline>
+                <label htmlFor="caption" class="form-label with-icon" title={ __('Caption') }>
+                    { __('Caption') }
+                </label>
+                <Textarea vm={ this } prop="caption" id="caption" rows="1" style="min-height:unset"/>
+                <InputErrors vm={ this } prop="caption"/>
+            </FormGroupInline>
         </div>;
     }
     /**
@@ -83,7 +96,8 @@ class ImageBlockEditForm extends preact.Component {
 export default () => {
     const initialData = {
         src: null,
-        altText: ''
+        altText: '',
+        caption: '',
     };
     const name = 'Image';
     return {
@@ -93,13 +107,15 @@ export default () => {
         initialData,
         defaultRenderer: 'sivujetti:block-auto',
         icon: 'photo',
-        reRender({src, altText, styleClasses, id}, renderChildren) {
+        reRender({src, altText, caption, styleClasses, id}, renderChildren) {
             return ['<figure class="j-', name, styleClasses ? ` ${styleClasses}` : '',
                 '" data-block-type="', name,
                 '" data-block="', id,
                 '">',
-                    '<img src="', src ? urlUtils.makeAssetUrl(`public/uploads/${src}`) : placeholderImageSrc, '"',
-                    ' alt="', altText ,'">',
+                    '<img src="',
+                        src ? urlUtils.makeAssetUrl(`public/uploads/${src}`) : placeholderImageSrc,
+                        '"', ' alt="', altText , '">',
+                    caption ? `<figcaption>${caption}</figcaption>` : '',
                 renderChildren(),
             '</figure>'
             ].join('');
@@ -107,6 +123,7 @@ export default () => {
         createSnapshot: from => ({
             src: from.src,
             altText: from.altText,
+            caption: from.caption,
         }),
         editForm: ImageBlockEditForm,
     };

@@ -326,6 +326,14 @@ Order | Name | Derivable | Default
 --paddingBottom_Image_base1: 0.0rem;
 // @exportAs(length)
 --paddingLeft_Image_base1: 0.0rem;
+// @exportAs(length)
+--captionTextSize_Image_base1: initial;
+// @exportAs(length)
+--captionTextHeight_Image_base1: initial;
+// @exportAs(color)
+--captionColor_Image_base1: initial;
+// @exportAs(option:left|center|justify|initial)
+--captionTextAlign_Image_base1: initial;
 
 float: var(--float_Image_base1);
 min-height: var(--minHeight_Image_base1);
@@ -336,6 +344,13 @@ padding-top: var(--paddingTop_Image_base1);
 padding-right: var(--paddingRight_Image_base1);
 padding-bottom: var(--paddingBottom_Image_base1);
 padding-left: var(--paddingLeft_Image_base1);
+
+> figcaption {
+  font-size: var(--captionTextSize_Image_base1);
+  line-height: var(--captionTextHeight_Image_base1);
+  color: var(--captionColor_Image_base1);
+  text-align: var(--captionTextAlign_Image_base1);
+}
 ```
 
 ## Section

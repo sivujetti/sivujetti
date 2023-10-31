@@ -9,13 +9,17 @@ elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_IMAGE):
     echo "<figure class=\"j-", $props->type, ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
         "\" data-block-type=\"", $props->type,
         "\" data-block=\"", $props->id,
-        "\"><img src=\"", $props->src
+        "\">",
+        "<img src=\"", $props->src
             ? $this->mediaUrl("public/uploads/" . str_replace("/", "", $props->src))
             : \Sivujetti\BlockType\ImageBlockType::PLACEHOLDER_SRC,
         "\" alt=\"", $props->altText
             ? $this->escAttr($props->altText)
             : "",
         "\">",
+        $props->caption
+            ? "<figcaption>{$this->e($props->caption)}</figcaption>"
+            : "",
         $this->renderChildren($props),
     "</figure>";
 elseif ($props->type === \Sivujetti\Block\Entities\Block::TYPE_BUTTON):

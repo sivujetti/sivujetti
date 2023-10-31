@@ -6,6 +6,7 @@ use Pike\ArrayUtils;
 use Pike\Auth\Crypto;
 use Pike\Db\FluentDb;
 use Pike\Interfaces\FileSystemInterface;
+use Sivujetti\Block\BlockTree;
 use Sivujetti\JsonUtils;
 use Sivujetti\Update\UpdateProcessTaskInterface;
 
@@ -45,6 +46,16 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
 
         $this->patchConfigFile();
         $this->migrateTheWebsiteTable();
+
+        $pages = $this->db->select("\${p}Pages", "stdClass")->fields(["blocks as blocksJson", "id"])->fetchAll();
+        $gbts = $this->db->select("\${p}globalBlockTrees", "stdClass")->fields(["blocks as blocksJson", "id"])->fetchAll();
+        $reusables = $this->db->select("\${p}reusableBranches", "stdClass")->fields(["blockBlueprints as blockBlueprintsJson", "id"])->fetchAll();
+        $pageTypes = $this->db->select("\${p}pageTypes", "stdClass")->fields(["fields as fieldsJson", "id"])->fetchAll();
+        $this->patchPagesOrGbts($gbts, "globalBlockTrees");
+        $this->patchPagesOrGbts($pages, "Pages");
+        $this->patchReusables($reusables);
+        $this->patchPageTypes($pageTypes);
+
         $this->patchTheWebsite();
 
         $this->db->insert("\${p}jobs")->values((object) [
@@ -93,7 +104,7 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
             ),
             // 2. insert into $new from $orig
             "INSERT INTO {$newt} (`name`,`lang`,`country`,`description`,`hideFromSearchEngines`,`aclRules`,`firstRuns`,`versionId`,`lastUpdatedAt`,`latestPackagesLastCheckedAt`,`pendingUpdates`,`headHtml`,`footHtml`)" .
-                " SELECT `name`,`lang`,`country`,`description`,`aclRules`,`firstRuns`,`versionId`,`lastUpdatedAt`,`newestCoreVersionLastChecked`," .
+                " SELECT `name`,`lang`,`country`,`description`,`hideFromSearchEngines`,`aclRules`,`firstRuns`,`versionId`,`lastUpdatedAt`,`newestCoreVersionLastChecked`" .
                 ",null AS `pendingUpdates`,'' AS `headHtml`,'' AS `footHtml`" .
                 " FROM {$orig}",
             // 3. drop $orig
@@ -102,6 +113,66 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
             "ALTER TABLE {$newt} RENAME TO {$orig}",
         ] as $stmt) {
             $db->exec($stmt);
+        }
+    }
+    /**
+     */
+    private function patchPagesOrGbts(array $entities, string $tableName): void {
+        foreach ($entities as $entity) {
+            $bef = $entity->blocksJson;
+            $tree = JsonUtils::parse($bef);
+            BlockTree::traverse($tree, function ($itm) {
+                if ($itm->type === "Image" && ArrayUtils::findIndexByKey($itm->propsData, "caption", "key") < 0)
+                    $itm->propsData[] = (object) ["key" => "caption", "value" => ""];
+            });
+            $entity->blocksJson = JsonUtils::stringify($tree);
+            if ($entity->blocksJson !== $bef) {
+                $numRows = $this->db->update("\${p}{$tableName}")
+                    ->values((object)["blocks" => $entity->blocksJson])
+                    ->where("id = ?", [$entity->id])
+                    ->execute();
+                $this->logFn->__invoke("updated {$tableName} `{$entity->id}`: {$numRows} rows changed");
+            }
+        }
+    }
+    /**
+     */
+    private function patchReusables(array $reusables): void {
+        foreach ($reusables as $reusable) {
+            $bef = $reusable->blockBlueprintsJson;
+            $tree = JsonUtils::parse($bef);
+            self::traverseReusables($tree, function ($itm) {
+                if ($itm->blockType === "Image" && !property_exists($itm->initialOwnData, "caption"))
+                    $itm->initialOwnData->caption = "";
+            });
+            $reusable->blockBlueprintsJson = JsonUtils::stringify($tree);
+            if ($reusable->blockBlueprintsJson !== $bef) {
+                $numRows = $this->db->update("\${p}reusableBranches")
+                    ->values((object)["blockBlueprints" => $reusable->blockBlueprintsJson])
+                    ->where("id = ?", [$reusable->id])
+                    ->execute();
+                $this->logFn->__invoke("updated reusable `{$reusable->id}`: {$numRows} rows changed");
+            }
+        }
+    }
+    /**
+     */
+    private function patchPageTypes(array $pageTypes): void {
+        foreach ($pageTypes as $pageType) {
+            $bef = $pageType->fieldsJson;
+            $obj = JsonUtils::parse($bef);
+            BlockTree::traverse($obj->blockFields, function ($itm) {
+                if ($itm->type === "Image" && !is_string($itm->initialData->caption ?? null))
+                    $itm->initialData->caption = ""; // Mutates $obj->blockFields[*]
+            });
+            $pageType->fieldsJson = JsonUtils::stringify($obj);
+            if ($pageType->fieldsJson !== $bef) {
+                $numRows = $this->db->update("\${p}pageTypes")
+                    ->values((object)["fields" => $pageType->fieldsJson])
+                    ->where("id = ?", [$pageType->id])
+                    ->execute();
+                $this->logFn->__invoke("updated pageTypes `{$pageType->id}`: {$numRows} rows changed");
+            }
         }
     }
     /**
@@ -116,5 +187,13 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
             ])
             ->where("1=1")
             ->execute();
+    }
+    /**
+     */
+    private static function traverseReusables(array $reusables, \Closure $fn): void {
+        foreach ($reusables as $reusable) {
+            $fn($reusable);
+            if ($reusable->initialChildren) self::traverseReusables($reusable->initialChildren, $fn);
+        }
     }
 }

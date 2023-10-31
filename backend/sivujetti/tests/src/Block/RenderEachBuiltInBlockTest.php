@@ -229,9 +229,11 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
 
 
     public function testRenderBlockRendersImages(): void {
-        $makeExpectedHtml = fn($b, $url, $cls = "", $altText = "") =>
+        $makeExpectedHtml = fn($b, $url, $cls = "", $altText = "", $caption = "") =>
             "<figure class=\"j-Image{$cls}\" data-block-type=\"Image\" data-block=\"{$b->id}\">" .
-                "<img src=\"{$url}\" alt=\"{$altText}\">[childMarker]" .
+                "<img src=\"{$url}\" alt=\"{$altText}\">" .
+                ($caption ? "<figcaption>{$caption}</figcaption>" : "") .
+                "[childMarker]" .
             "</figure>";
         $state = $this->setupRenderImageBlocksTest();
         $this->makeTestSivujettiApp($state);
@@ -239,18 +241,25 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $expectedHtml = $makeExpectedHtml($b[0], Template::makeUrl("public/uploads/{$b[0]->src}", false));
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
-        $expectedHtml = $makeExpectedHtml($b[1], ImageBlockType::PLACEHOLDER_SRC, " escape&quot;", "escape&quot;");
+        $expectedHtml = $makeExpectedHtml($b[1], ImageBlockType::PLACEHOLDER_SRC, cls: " escape&quot;", altText: "&quot;escape");
         $this->renderAndVerify($state, 1, $expectedHtml);
+        //
+        $expectedHtml = $makeExpectedHtml($b[2], ImageBlockType::PLACEHOLDER_SRC, caption: "escape&quot;");
+        $this->renderAndVerify($state, 2, $expectedHtml);
     }
     private function setupRenderImageBlocksTest(): \TestState {
         $state = parent::setupTest();
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_IMAGE,
-                propsData: ["src" => "local-pic.png", "altText" => ""],
+                propsData: ["src" => "local-pic.png", "altText" => "", "caption" => ""],
                 id: "@auto"),
             $this->blockTestUtils->makeBlockData(Block::TYPE_IMAGE,
-                propsData: ["src" => null, "altText" => "escape\""],
+                propsData: ["src" => null, "altText" => "\"escape", "caption" => ""],
                 styleClasses: "escape\"",
+                id: "@auto"),
+            $this->blockTestUtils->makeBlockData(Block::TYPE_IMAGE,
+                propsData: ["src" => null, "altText" => "", "caption" => "escape\""],
+                styleClasses: "",
                 id: "@auto"),
         ];
         return $state;

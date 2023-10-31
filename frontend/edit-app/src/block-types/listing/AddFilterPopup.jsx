@@ -47,12 +47,14 @@ class IsInCategoryPart extends preact.Component {
                 type="button">{ theCat.length ? this.getSelectedCatTitle(theCat) : '-' }
             </button>
             <PopupPrerendered ref={ this.popup }>
-                <ManyToManyItemSelector
-                    curSelections={ [theCat] }
-                    onSelectionsChanged={ newList => this.props.parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, newList[0], this.props.currentFiltersJson), 'updated', this.popup.current) }
-                    relPageType={ this.relPageType }
-                    onItemsFetched={ manyToManyPages => { this.setState({curAllList: manyToManyPages}); } }
-                    useRadios/>
+                <div class="select-list-scroller">
+                    <ManyToManyItemSelector
+                        curSelections={ [theCat] }
+                        onSelectionsChanged={ newList => this.props.parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, newList[0], this.props.currentFiltersJson), 'updated', this.popup.current) }
+                        relPageType={ this.relPageType }
+                        onItemsFetched={ manyToManyPages => { this.setState({curAllList: manyToManyPages}); } }
+                        useRadios/>
+                </div>
             </PopupPrerendered>
         </div>;
     }

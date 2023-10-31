@@ -155,6 +155,28 @@ Structure:
     width: calc(75% - .2rem);
     margin-left: auto;
 }
+.fieldset {
+    border: 1px solid var(--color-input-border);
+    border-radius: var(--small-rect-radius);
+    padding: .2rem .4rem;
+    margin-top: .4rem;
+}
+.fieldset .legend {
+    background: var(--color-bg-default);
+    padding: 0 .2rem !important;
+    display: inline-block;
+    position: relative;
+    line-height: 1px;
+    bottom: .7rem;
+    right: 0.2rem;
+}
+.fieldset .legend + * {
+    margin-top: -.4rem;
+}
+.prop-widget-many-to-many, .select-list-scroller {
+    max-height: 7.76rem;
+    overflow-y: auto;
+}
 .rotated-undo-icon {
     transform: rotate(181deg);
 }

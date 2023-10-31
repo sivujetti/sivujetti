@@ -139,33 +139,37 @@ class ManyToManyField extends preact.Component {
      * @access protected
      */
     render({field}, {currentManyToManyIdList, createCatPanelState}) {
-        return <div class="anim-outer pt-1">
-            <div class="form-label mb-1">{ __(field.friendlyName) }</div>
-            <div class={ createCatPanelState.leftClass } ref={ this.firstPanelEl }>
-                <div class="prop-widget-many-to-many">
-                    <ManyToManyItemSelector
-                        curSelections={ currentManyToManyIdList }
-                        onSelectionsChanged={ this.emitManyToManyIdSelectedOrUnselected.bind(this) }
-                        relPageType={ this.relPageType }/>
+        return <div class="pt-1">
+            <div class="anim-outer">
+                <div class={ `fieldset${createCatPanelState.leftClass === '' ? ' pr-0' : ''}` }>
+                    <div class="form-label legend">{ __(field.friendlyName) }</div>
+                    <div class={ createCatPanelState.leftClass } ref={ this.firstPanelEl }>
+                        <div class="prop-widget-many-to-many">
+                            <ManyToManyItemSelector
+                                curSelections={ currentManyToManyIdList }
+                                onSelectionsChanged={ this.emitManyToManyIdSelectedOrUnselected.bind(this) }
+                                relPageType={ this.relPageType }/>
+                        </div>
+                        <button onClick={ this.openCreateCategoryPanel.bind(this) }
+                            class="btn btn-sm text-tiny with-icon-inline mt-2" type="button">
+                            <Icon iconId="plus" className="size-xs mr-1"/> { __('Add new %s', __('category')) }
+                        </button>
+                    </div>
+                    <AddCategoryPanel
+                        pageType={ this.relPageType }
+                        cssClass={ createCatPanelState.rightClass }
+                        onAddingFinished={ newCategoryPostData => {
+                            this.setState({createCatPanelState: createCreateCatPanelStateState('reveal-from-left', 'fade-to-right', false)});
+                            if (newCategoryPostData)
+                                // todo check if page with identical slug already exist
+                                store2.dispatch('pagesListings/addItem', [createCompactPageFrom(newCategoryPostData), this.relPageType.name]);
+                        } }
+                        panelHeight={ createCatPanelState.leftClass === ''
+                            ? 0
+                            : this.firstPanelEl.current.getBoundingClientRect().height
+                        }/>
                 </div>
-                <button onClick={ this.openCreateCategoryPanel.bind(this) }
-                    class="btn btn-sm text-tiny with-icon-inline mt-2" type="button">
-                    <Icon iconId="plus" className="size-xs mr-1"/> { __('Add new %s', __('category')) }
-                </button>
             </div>
-            <AddCategoryPanel
-                pageType={ this.relPageType }
-                cssClass={ createCatPanelState.rightClass }
-                onAddingFinished={ newCategoryPostData => {
-                    this.setState({createCatPanelState: createCreateCatPanelStateState('reveal-from-left', 'fade-to-right', false)});
-                    if (newCategoryPostData)
-                        // todo check if page with identical slug already exist
-                        store2.dispatch('pagesListings/addItem', [createCompactPageFrom(newCategoryPostData), this.relPageType.name]);
-                } }
-                panelHeight={ createCatPanelState.leftClass === ''
-                    ? 0
-                    : this.firstPanelEl.current.getBoundingClientRect().height
-                }/>
         </div>;
     }
     /**

@@ -34,6 +34,12 @@ class PickUrlDialog extends preact.Component {
     /**
      * @access protected
      */
+    componentWillUnmount() {
+        PickPageTab.clearCurrentFilterStr();
+    }
+    /**
+     * @access protected
+     */
     render(_, {mode, openPopup, jumpToIsValid}) {
         return <div>
             <div class="button-options small-buttons four">
@@ -292,38 +298,61 @@ class CurrentUrlDisplay extends preact.Component {
 // ----
 
 class PickPageTab extends preact.Component {
+    // static currentFilterStr;
+    // filterInput;
+    // allPages;
     /**
      * @access protected
      */
     componentWillMount() {
-        this.setState({pages: null});
+        this.filterInput = preact.createRef();
+        this.setState({pages: null, filteredPages: null, currentFilterStr: PickPageTab.currentFilterStr});
         http.get('/api/pages/Pages')
             .then(pages => {
                 if (this.props.url) {
                     const short = this.props.url.substring(urlUtils.baseUrl.length - 1);
-                    this.setState({pages: pages.sort(({slug}, _b) => slug === short ? -1 : 0),
+                    this.allPages = pages.sort(({slug}, _b) => slug === short ? -1 : 0);
+                    this.setState({filteredPages: getFilteredPages(pages, this.state.currentFilterStr),
                                    selectedIdx: 0});
-                } else
-                    this.setState({pages, selectedIdx: null});
+                } else {
+                    this.allPages = pages;
+                    this.setState({filteredPages: getFilteredPages(pages, this.state.currentFilterStr), selectedIdx: null});
+                }
             })
             .catch(env.window.console.error);
     }
     /**
      * @access protected
      */
-    render({onPickurl, currentPageSlug}, {pages, selectedIdx}) {
-        const p = pages === null
+    render({onPickurl, currentPageSlug}, {filteredPages, selectedIdx, currentFilterStr}) {
+        const p = filteredPages === null
             ? null
-            : currentPageSlug && pages ? [
-                ...pages.slice(0, 1),
+            : currentPageSlug && filteredPages ? [
+                ...filteredPages.slice(0, 1),
                 ...[{slug: EMPTY_SLUG, title: __('This page')}],
-                ...pages.slice(1)
-            ] : pages;
+                ...filteredPages.slice(1)
+            ] : filteredPages;
+        const filterInput = <input
+            onInput={ this.handleFilterTyped.bind(this) }
+            value={ currentFilterStr }
+            class="form-input mb-2"
+            placeholder={ __('Filter') }
+            ref={ this.filterInput }/>;
         return [
-            <input
-                class="form-input mb-2"
-                placeholder={ __('Filter') }
-                disabled/>,
+            <div class={ !currentFilterStr ? '' : 'has-icon-right' } style="margin-right: 1.1rem">
+                { !currentFilterStr
+                    ? filterInput
+                    : [
+                        filterInput,
+                        <button
+                            onClick={ () => this.handleFilterTyped(null) }
+                            class="sivujetti-form-icon btn no-color"
+                            type="button">
+                            <Icon iconId="x" className="size-xs color-dimmed"/>
+                        </button>
+                    ]
+                }
+            </div>,
             Array.isArray(p) ? <ul class={ `list table-list selectable-items${selectedIdx !== null ? ' has-first-item-selected' : '' }` }>{ p.map(({title, slug}) =>
                 <li class="p-0"><button
                     class="btn btn-link my-0 col-12 text-left text-ellipsis"
@@ -337,6 +366,41 @@ class PickPageTab extends preact.Component {
             ) }</ul> : <LoadingSpinner/>
         ];
     }
+    /**
+     * @param {Event?} e
+     * @access private
+     */
+    handleFilterTyped(e) {
+        const input = e ? e.target.value : '';
+        if (this.state.currentFilterStr !== input) {
+            PickPageTab.currentFilterStr = input;
+            this.setState({
+                filteredPages: getFilteredPages(this.allPages, PickPageTab.currentFilterStr),
+                currentFilterStr: PickPageTab.currentFilterStr,
+            });
+        }
+    }
+}
+
+PickPageTab.currentFilterStr = '';
+
+/**
+ * @access public
+ */
+PickPageTab.clearCurrentFilterStr = () => {
+    PickPageTab.currentFilterStr = '';
+};
+
+/**
+ * @param {Array<RelPage>} allPages
+ * @param {String} filterStr = ''
+ * @returns {Array<RelPage>}
+ */
+function getFilteredPages(allPages, filterStr = '') {
+    if (!filterStr) return allPages.slice(0, 20);
+    //
+    const lookFor = filterStr ? `/${filterStr}` : filterStr;
+    return allPages.filter(({slug}) => slug.startsWith(lookFor));
 }
 
 // ----

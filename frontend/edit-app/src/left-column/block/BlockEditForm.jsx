@@ -15,14 +15,14 @@ import CodeBasedStylesList from './CodeBasedStylesList.jsx';
 let blockTypes;
 
 class BlockEditForm extends preact.Component {
-    // editFormImplsChangeGrabber;
+    // editFormImplsChangeGrabbers;
     // userCanSpecializeGlobalBlocks;
     // userCanEditVisualStyles;
     // userCanEditCss;
     // useVisualStyles;
     // blockType;
     // blockIsStoredToTreeId;
-    // editFormImpl;
+    // editFormImpls;
     // allowStylesEditing;
     // isOutermostBlockOfGlobalBlockTree;
     // unregistrables;
@@ -40,20 +40,24 @@ class BlockEditForm extends preact.Component {
      */
     componentWillMount() {
         const {block} = this.props;
+        this.editFormImplsChangeGrabbers = [];
         this.userCanSpecializeGlobalBlocks = api.user.can('specializeGlobalBlocks');
         this.userCanEditVisualStyles = api.user.can('editBlockStylesVisually');
         this.userCanEditCss = api.user.can('editBlockCss');
         this.useVisualStyles = !this.userCanEditCss && this.userCanEditVisualStyles;
         this.blockType = blockTypes.get(block.type);
         this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, 'mainTree');
-        this.editFormImpl = this.blockType.editForm;
+        this.editFormImpls = [
+            this.blockType.editForm,
+            ...(!this.blockType.extends ? [] : [blockTypes.get(this.blockType.extends).editForm])
+        ];
         this.allowStylesEditing = !selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
         this.isOutermostBlockOfGlobalBlockTree = false;
         this.setState({currentTabIdx: 0});
         this.unregistrables = [observeStore2('theBlockTree', (_, [event, data]) => {
             const isUndo = event === 'theBlockTree/undo';
             if (event === 'theBlockTree/updatePropsOf' || isUndo) {
-                if (!this.editFormImplsChangeGrabber)
+                if (!this.editFormImplsChangeGrabbers.length)
                     return;
                 const [blockId, isUndoOf] = !isUndo
                     ? [
@@ -65,7 +69,7 @@ class BlockEditForm extends preact.Component {
                         data[2]
                     ];
                 if ((!isUndo || isUndoOf === 'default' ? blockId : null) === this.props.block.id)
-                    this.editFormImplsChangeGrabber(this.getCurrentBlockCopy(), event, isUndo);
+                    this.editFormImplsChangeGrabbers.map(fn => fn(this.getCurrentBlockCopy(), event, isUndo));
                 return;
             }
 
@@ -88,7 +92,6 @@ class BlockEditForm extends preact.Component {
      * @access protected
      */
     render({block}, {currentTabIdx, currentBlockCopy}) {
-        const EditFormImpl = this.editFormImpl;
         const getCopy = this.getCurrentBlockCopy.bind(this);
         const tr1 = __('Content');
         const tr2 = __('Styles');
@@ -119,15 +122,17 @@ class BlockEditForm extends preact.Component {
                     ? 'todo'
                     : null
                 }
-                <EditFormImpl
-                    getBlockCopy={ getCopy }
-                    blockId={ block.id }
-                    grabChanges={ withFn => { this.editFormImplsChangeGrabber = withFn; } }
-                    emitValueChanged={ (val, key, ...vargs) => { this.handleValueValuesChanged({[key]: val}, ...vargs); } }
-                    emitManyValuesChanged={ this.handleValueValuesChanged.bind(this) }
-                    observeStore={ observeStore2 }
-                    serializeTree={ tree => JSON.stringify(treeToTransferable(tree)) }
-                    key={ block.id }/>
+                { this.editFormImpls.map(EditFormImpl =>
+                    <EditFormImpl
+                        getBlockCopy={ getCopy }
+                        blockId={ block.id }
+                        grabChanges={ withFn => { this.editFormImplsChangeGrabbers.push(withFn); } }
+                        emitValueChanged={ (val, key, ...vargs) => { this.handleValueValuesChanged({[key]: val}, ...vargs); } }
+                        emitManyValuesChanged={ this.handleValueValuesChanged.bind(this) }
+                        observeStore={ observeStore2 }
+                        serializeTree={ tree => JSON.stringify(treeToTransferable(tree)) }
+                        key={ block.id }/>)
+                }
             </div>
         </div>
         <div class={ `block-styles-tab-content${currentTabIdx > 0 ? '' : ' d-none'}` }>

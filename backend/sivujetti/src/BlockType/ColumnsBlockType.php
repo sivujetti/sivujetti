@@ -2,14 +2,18 @@
 
 namespace Sivujetti\BlockType;
 
-final class ColumnsBlockType implements BlockTypeInterface {
+class ColumnsBlockType implements BlockTypeInterface {
     /**
      * @inheritdoc
      */
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
-        return $builder
-            ->newProperty("numColumns", $builder::DATA_TYPE_UINT)
-            ->newProperty("takeFullWidth", $builder::DATA_TYPE_UINT)
-            ->getResult();
+        return self::addProperties($builder)->getResult();
+    }
+    /**
+     */
+    public static function addProperties(PropertiesBuilder $to): PropertiesBuilder {
+        return $to
+            ->newProperty("numColumns", $to::DATA_TYPE_UINT)
+            ->newProperty("takeFullWidth", $to::DATA_TYPE_UINT);
     }
 }

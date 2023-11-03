@@ -84,7 +84,7 @@ export default () => {
         icon: 'layout-columns',
         reRender(block, renderChildren, shouldBackendRender) {
             if (shouldBackendRender)
-                return http.post(`/api/blocks/render`, {block}).then(resp => resp.result);
+                return http.post('/api/blocks/render', {block}).then(resp => resp.result);
             const {numColumns, takeFullWidth, styleClasses, id} = block;
             return ['<div class="j-', name, ' num-cols-', parseInt(numColumns),
                 takeFullWidth ? '' : ' inline',

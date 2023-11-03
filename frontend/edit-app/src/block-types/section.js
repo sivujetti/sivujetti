@@ -60,7 +60,7 @@ export default () => {
         icon: 'layout-rows',
         reRender(block, renderChildren, shouldBackendRender) {
             if (shouldBackendRender)
-                return http.post(`/api/blocks/render`, {block}).then(resp => resp.result);
+                return http.post('/api/blocks/render', {block}).then(resp => resp.result);
             const {bgImage, styleClasses, id} = block;
             return ['<section class="j-', name, styleClasses ? ` ${styleClasses}` : '', '"',
                 bgImage ? ` style="background-image:url('${urlUtils.makeAssetUrl(bgImage)}')"` : '',

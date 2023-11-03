@@ -34,10 +34,12 @@ final class UserPluginAPI extends UserSiteAPI {
      * @inheritdoc
      */
     public function enqueueCssFile(string $url, array $attrs = []): void {
-        $expected = "plugin-{$this->getDashifiedNs()}";
-        if (!str_starts_with($url, $expected))
-            throw new PikeException("Expected css file url (`{$url}`) to start with `{$expected}`",
-                                    PikeException::BAD_INPUT);
+        if (!str_starts_with($url, "sivujetti/")) {
+            $expected = "plugin-{$this->getDashifiedNs()}";
+            if (!str_starts_with($url, $expected))
+                throw new PikeException("Expected css file url (`{$url}`) to start with `{$expected}`",
+                                        PikeException::BAD_INPUT);
+        }
         parent::enqueueCssFile($url, $attrs);
     }
     /**

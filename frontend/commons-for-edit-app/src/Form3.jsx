@@ -26,7 +26,7 @@ const formatError = (errorTmpl, label, args) => {
 
 /**
  * @param {preact.Component} cmp
- * @param {Array<todo>} inps
+ * @param {Array<InputDef>} inps
  * @param {{[key: String]: any;}} initialState = {}
  * @returns {{[key: String]: any;}}
  */
@@ -37,6 +37,8 @@ function hookForm(cmp, inps, initialState = {}) {
     const inputApis = {};
     inps.forEach(inp => {
         const k = mkKey(inp);
+        if (!inp.valueType)
+            inp.valueType = typeof inp.value === 'number' ? 'int' : null;
         values[k] = inp.value;
         errors[k] = [];
         blurStates[k] = false;
@@ -83,7 +85,7 @@ function unhookForm(cmp) {
 /**
  * @param {preact.Component} cmp
  * @param {String} k
- * @param {todo} inp
+ * @param {InputDef} inp
  * @returns {todo2}
  */
 function createApi(cmp, k, inp) {
@@ -110,7 +112,7 @@ function createApi(cmp, k, inp) {
         if (inp.onAfterValueChanged) inp.onAfterValueChanged(value, errors.length, source);
     };
     out.onInput = e => {
-        out.triggerInput(e.target.value);
+        out.triggerInput(getFormattedValue(inp, e.target.value));
     };
     out.onBlur = e => {
         if (!e) return;
@@ -120,7 +122,7 @@ function createApi(cmp, k, inp) {
             const newState = {};
             if (!cmp.state.blurStates[k])
                 newState.blurStates = Object.assign({}, cmp.state.blurStates, {[k]: true});
-            const val = e.target.value;
+            const val = getFormattedValue(inp, e.target.value);
             if (val === cmp.state.values[k])
                 cmp.setState(newState);
             else out.triggerInput(val, undefined, newState);
@@ -162,7 +164,7 @@ function hasErrors(cmp) {
 
 /**
  * @param {preact.Component} cmp
- * @param {Array<todo>} inps
+ * @param {Array<InputDef>} inps
  */
 function reHookValues(cmp, inps) {
     const newState = {values: Object.assign({}, cmp.state.values),
@@ -179,11 +181,20 @@ function reHookValues(cmp, inps) {
 }
 
 /**
- * @param {todo} inp
+ * @param {InputDef} inp
  * @returns {String}
  */
 function mkKey(inp) {
     return inp.id || inp.name; // todo sanity check tai throw
+}
+
+/**
+ * @param {InputDef} inp
+ * @param {String|Number} value = inp.value
+ * @returns {String|Number}
+ */
+function getFormattedValue(inp, value = inp.value) {
+    return inp.valueType !== 'int' ? value : parseInt(value, 10);
 }
 
 class Input extends preact.Component {
@@ -289,6 +300,18 @@ class FormGroupInline extends preact.Component {
 export default services => {
     ({__, env} = services);
 };
+
+/**
+ * @typedef InputDef
+ * @prop {String} name e.g. 'numColumns'
+ * @prop {String|Number} value e.g. 1, 'foo'
+ * @prop {Array<[String, ...any]>} validations e.g. [['min', 0], ['max', 12]]
+ * @prop {String=} id e.g. 'numColumns'
+ * @prop {String=} label e.g. 'Num columns'
+ * @prop {String=} valueType e.g. 'int'
+ * @prop {String=} type e.g. 'number'
+ * other props
+ */
 
 export {hookForm, unhookForm, reHookValues, validateAll, handleSubmit, hasErrors,
         Input, Textarea, InputErrors, InputError, FormGroup, FormGroupInline};

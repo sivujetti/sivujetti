@@ -61,7 +61,7 @@ class PageInfoBlockEditForm extends preact.Component {
                     createSlugAndPath(value),
                 ); });
             }},
-            {name: 'description', value: curPage.meta.description, validations: [['maxLength', 206]],
+            {name: 'description', value: getNormalizedDescription(curPage.meta.description), validations: [['maxLength', 206]],
              label: __('Meta description'), onAfterValueChanged: (value, hasErrors) => {
                 if (!hasErrors) this.emitChanges(mut => { mut.meta.description = value; });
              }},
@@ -71,10 +71,10 @@ class PageInfoBlockEditForm extends preact.Component {
         observeStore(selectCurrentPageDataBundle, ({page}) => {
             if (this.state.values.title !== page.title ||
                 this.state.values.slug !== page.slug ||
-                this.state.values.description !== page.meta.description) {
+                this.state.values.description !== getNormalizedDescription(page.meta.description)) {
                 reHookValues(this, [{name: 'title', value: page.title},
                                     {name: 'slug', value: page.slug},
-                                    {name: 'description', value: page.meta.description || ''}]);
+                                    {name: 'description', value: getNormalizedDescription(page.meta.description)}]);
                 if (doReRenderLinkedMenu) reRenderLinkedMenu(page);
             } else {
                 const {src} = (page.meta.socialImage || {src: null});
@@ -276,6 +276,14 @@ function toTransferable(page, notTheseKeys = []) {
         !key.startsWith('__') && notTheseKeys.indexOf(key) < 0
     );
     return objectUtils.clonePartially(onlyTheseKeys, page);
+}
+
+/**
+ * @param {String|undefined} value
+ * @return {String}
+ */
+function getNormalizedDescription(value) {
+    return value || '';
 }
 
 export default () => {

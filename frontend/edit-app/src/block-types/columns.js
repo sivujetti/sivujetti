@@ -13,13 +13,13 @@ class ColumnsBlockEditForm extends preact.Component {
         this.setState(hookForm(this, [
             {name: 'numColumns', value: numColumns, validations: [['min', 0], ['max', 12]],
              label: __('Num columns'), type: 'number', step: '1', onAfterValueChanged: (value, hasErrors) => {
-                 emitValueChanged(parseInt(value, 10), 'numColumns', hasErrors, env.normalTypingDebounceMillis); }},
+                 emitValueChanged(value, 'numColumns', hasErrors, env.normalTypingDebounceMillis); }},
         ], {
             takeFullWidth: takeFullWidth,
         }));
         grabChanges((block, _origin, isUndo) => {
             if (isUndo && this.state.values.numColumns !== block.numColumns)
-                reHookValues(this, [{name: 'numColumns', value: block.numColumns.toString()}]);
+                reHookValues(this, [{name: 'numColumns', value: block.numColumns}]);
             if (this.state.takeFullWidth !== block.takeFullWidth)
                 this.setState({takeFullWidth: block.takeFullWidth});
         });

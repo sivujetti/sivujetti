@@ -40,6 +40,12 @@ class StylesTextarea extends preact.Component {
                     <span class="popper-arrow" data-popper-arrow></span>
                 </span>
             </div> }
+            { !props.unitDerivedFrom
+                ? null
+                : <code class="code-custom d-inline-block text-ellipsis" style="max-width: 100%;">
+                    @inherits(&quot;{props.unitDerivedFrom.title}&quot;)
+                </code>
+            }
             <textarea
                 value={ scssNotCommitted }
                 onInput={ this.handleCssInputChangedThrottled }
@@ -54,14 +60,18 @@ class StylesTextarea extends preact.Component {
      * @access private
      */
     updateState(props) {
-        this.setState({scssNotCommitted: getRealUnit(props).scss, scssCommitted: getRealUnit(props).scss, error: ''});
+        const scss = getRealUnit(props).scss;
+        const scssCommitted = !props.unitDerivedFrom
+            ? scss
+            : onlyAdditions(scss, props.unitDerivedFrom.scss);
+        this.setState({scssNotCommitted: scssCommitted, scssCommitted, error: ''});
     }
     /**
      * @param {StyleTextareaProps} props
      * @access private
      */
     init(props) {
-        if (props.isVisible && !this.handleCssInputChangedThrottled) {
+        if (!this.handleCssInputChangedThrottled) {
             this.cssValidator = new CssStylesValidatorHelper;
             this.handleCssInputChangedThrottled = timingUtils.debounce(e => {
                 if (!this.props.unitCopyReal)
@@ -69,7 +79,7 @@ class StylesTextarea extends preact.Component {
                         const currentlyCommitted = copy.scss;
                         const {unitCls} = this.props;
                         const allowImports = unitCls === 'j-_body_';
-                        const scss = e.target.value;
+                        const scss = !this.props.unitDerivedFrom ? e.target.value : createDerivatesScss(e.target.value, props);
                         const [shouldCommit, result] = this.cssValidator.validateAndCompileScss(scss,
                             input => `.${unitCls}{${input}}`, currentlyCommitted, allowImports);
                         // Wasn't valid -> commit to local state only
@@ -482,12 +492,43 @@ function validateAndGetSpecifier(candidate) {
 }
 
 /**
+ * @param {String} additionsScss Example '\ncolor: red;'
+ * @param {StyleTextareaProps} props
+ * @returns {String} Example: <baseScss> + '\ncolor: red;'
+ */
+function createDerivatesScss(additionsScss, props) {
+    const all = getRealUnit(props).scss;
+    const until = untilAdditions(all, props.unitDerivedFrom.scss);
+    return additionsScss.length ? until + `\n${additionsScss}` : until;
+}
+
+/**
+ * @param {String} derivateScss Example: <baseScss> + '\ncolor: red;'
+ * @param {String} baseScss Example: <baseScss>
+ * @returns {String} Example: <baseScss>
+ */
+function untilAdditions(derivateScss, baseScss) {
+    const numLinesInParent = baseScss.split('\n').length;
+    return derivateScss.split('\n').slice(0, numLinesInParent).join('\n');
+}
+
+/**
+ * @param {String} derivateScss Example: <baseScss> + '\ncolor: red;'
+ * @param {String} baseScss Example: <baseScss>
+ * @returns {String} Example: '\ncolor: red;'
+ */
+function onlyAdditions(derivateScss, baseScss) {
+    const numLinesInParent = baseScss.split('\n').length;
+    return derivateScss.split('\n').slice(numLinesInParent).join('\n');
+}
+
+/**
  * @typedef StyleTextareaProps
  * @prop {ThemeStyleUnit} unitCopy
  * @prop {ThemeStyleUnit|null} unitCopyReal
+ * @prop {ThemeStyleUnit|null} unitDerivedFrom
  * @prop {String} unitCls
  * @prop {String} blockTypeName
- * @prop {Boolean} isVisible
  */
 
 export default StylesTextarea;

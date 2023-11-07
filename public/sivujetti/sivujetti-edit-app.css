@@ -183,6 +183,10 @@ Structure:
 .d-grid {
    display: grid;
 }
+.code-custom {
+    background: transparent;
+    color: var(--color-fg-code);
+}
 
 
 /* == Global: Defaults ====================================================== */

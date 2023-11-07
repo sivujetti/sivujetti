@@ -85,8 +85,7 @@ class BaseStylesSection extends preact.Component {
                         ? <StyleTextarea
                             unitCopy={ {...bodyStyleMainUnit} }
                             unitCls={ specialBaseUnitCls }
-                            blockTypeName={ SPECIAL_BASE_UNIT_NAME }
-                            isVisible={ true }/>
+                            blockTypeName={ SPECIAL_BASE_UNIT_NAME }/>
                         : null
                     }
                 </div>

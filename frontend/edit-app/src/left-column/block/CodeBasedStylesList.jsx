@@ -9,7 +9,8 @@ import {getLargestPostfixNum, findBlockTypeStyles, SPECIAL_BASE_UNIT_NAME, findB
         dispatchNewBlockStyleClasses, compileSpecial, StyleTextarea, emitUnitChanges,
         emitCommitStylesOp, EditableTitle, tempHack2, goToStyle, blockHasStyle,
         findParentStyleInfo, tempHack, StylesList, findRealUnit,
-        splitUnitAndNonUnitClasses, createUnitClass} from './styles-shared.jsx';
+        splitUnitAndNonUnitClasses, createUnitClass, findBaseUnitOf} from './styles-shared.jsx';
+import {isBodyRemote} from './style-utils.js';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -78,9 +79,6 @@ class CodeBasedStylesList extends StylesList {
                 const bodyUnitCopy = unit.origin !== SPECIAL_BASE_UNIT_NAME ? null : this.getRemoteBodyUnitCopy(unit, blockCopy);
                 const [isDefault, real] = bodyUnitCopy === null ? [false, unit] : [true, bodyUnitCopy];
                 const title = real.title;
-                const textarea = (real.isDerivable || real.derivedFrom) && liCls !== ''
-                    ? this.userIsSuperAdmin ? 'show' : 'showAsDisabled'
-                    : userCanEditCss ? 'show' : 'omit';
                 return <li class={ liCls } data-cls={ cls } key={ unit.id }>
                     <header class="flex-centered p-relative">
                         <button
@@ -106,20 +104,28 @@ class CodeBasedStylesList extends StylesList {
                             style="right: .4rem;font-size: 1.6rem;"
                             title={ __('Currently active') }>•</span> : null }
                     </header>
-                    { textarea === 'show'
-                        ? <StyleTextarea
-                            unitCopy={ {...unit} }
-                            unitCopyReal={ bodyUnitCopy }
-                            unitCls={ cls }
-                            blockTypeName={ blockCopy.type }
-                            isVisible={ liCls !== '' }/>
-                        : textarea !== 'showAsDisabled'
-                            ? null
-                            : <textarea
+                    { !userCanEditCss || liCls === ''
+                        ? null
+                        : !this.userIsSuperAdmin && real.isDerivable
+                            ? <textarea
                                 value={ (bodyUnitCopy || unit).scss }
                                 class="form-input code"
                                 rows="12"
                                 disabled></textarea>
+                            : <StyleTextarea
+                                unitCopy={ {...unit} }
+                                unitCopyReal={ bodyUnitCopy }
+                                unitDerivedFrom={ bodyUnitCopy === null
+                                    ? findBaseUnitOf(
+                                        unit,
+                                        !isBodyRemote(unit.derivedFrom)
+                                            ? units
+                                            : this.bodyStyle.units
+                                    )
+                                    : null
+                                }
+                                unitCls={ cls }
+                                blockTypeName={ blockCopy.type }/>
                     }
                 </li>;
             }) }</ul> : <p class="pt-1 mb-2 color-dimmed">{ __('No own templates') }.</p>

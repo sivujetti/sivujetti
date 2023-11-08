@@ -119,11 +119,14 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
      */
     private function patchPagesOrGbts(array $entities, string $tableName): void {
         foreach ($entities as $entity) {
-            $bef = $entity->blocksJson;
-            $tree = JsonUtils::parse($bef);
+            $tree = JsonUtils::parse($entity->blocksJson);
+            $bef = JsonUtils::stringify($tree);
             BlockTree::traverse($tree, function ($itm) {
+                // #1
                 if ($itm->type === "Image" && ArrayUtils::findIndexByKey($itm->propsData, "caption", "key") < 0)
                     $itm->propsData[] = (object) ["key" => "caption", "value" => ""];
+                // #2
+                $itm->styleClasses = trim($itm->styleClasses);
             });
             $entity->blocksJson = JsonUtils::stringify($tree);
             if ($entity->blocksJson !== $bef) {
@@ -139,11 +142,14 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
      */
     private function patchReusables(array $reusables): void {
         foreach ($reusables as $reusable) {
-            $bef = $reusable->blockBlueprintsJson;
-            $tree = JsonUtils::parse($bef);
+            $tree = JsonUtils::parse($reusable->blockBlueprintsJson);
+            $bef = JsonUtils::stringify($tree);
             self::traverseReusables($tree, function ($itm) {
+                // #1
                 if ($itm->blockType === "Image" && !property_exists($itm->initialOwnData, "caption"))
                     $itm->initialOwnData->caption = "";
+                // #2
+                $itm->initialDefaultsData->styleClasses = trim($itm->initialDefaultsData->styleClasses);
             });
             $reusable->blockBlueprintsJson = JsonUtils::stringify($tree);
             if ($reusable->blockBlueprintsJson !== $bef) {
@@ -159,11 +165,15 @@ final class PatchDbTask3 implements UpdateProcessTaskInterface {
      */
     private function patchPageTypes(array $pageTypes): void {
         foreach ($pageTypes as $pageType) {
-            $bef = $pageType->fieldsJson;
-            $obj = JsonUtils::parse($bef);
+            $obj = JsonUtils::parse($pageType->fieldsJson);
+            $bef = JsonUtils::stringify($obj);
             BlockTree::traverse($obj->blockFields, function ($itm) {
+                // #1
                 if ($itm->type === "Image" && !is_string($itm->initialData->caption ?? null))
                     $itm->initialData->caption = ""; // Mutates $obj->blockFields[*]
+                // #2
+                if (is_string($itm->initialData->styleClasses ?? null))
+                    $itm->initialData->styleClasses = trim($itm->initialData->styleClasses);
             });
             $pageType->fieldsJson = JsonUtils::stringify($obj);
             if ($pageType->fieldsJson !== $bef) {

@@ -265,7 +265,7 @@ class ReRenderer {
     updateBlocksStyleClasses(blockId, newStyleClasses, prevStyleClasses) {
         const withNewClsClone = extractRendered(getBlockEl(blockId));
         withNewClsClone.className = prevStyleClasses.length
-            ? replaceLastIndexOf(withNewClsClone.className, prevStyleClasses, newStyleClasses)
+            ? replaceLastIndexOf(withNewClsClone.className, prevStyleClasses, newStyleClasses).replace('  ', ' ')
             : `${withNewClsClone.className} ${newStyleClasses}`;
         if (!newStyleClasses.length)
             withNewClsClone.className = withNewClsClone.className.trimEnd();
@@ -274,7 +274,7 @@ class ReRenderer {
 }
 
 /**
- * https://stackoverflow.com/a/2729686
+ * https://stackoverflow.com/a/23137090
  *
  * @param {String} str
  * @param {String} replace
@@ -283,9 +283,7 @@ class ReRenderer {
  */
 function replaceLastIndexOf(str, replace, replaceWith) {
     const n = str.lastIndexOf(replace);
-    return n >= 0 && n + replace.length >= str.length
-        ? str.substring(0, n) + replaceWith
-        : str;
+    return str.slice(0, n) + str.slice(n).replace(replace, replaceWith);
 }
 
 /**
@@ -433,4 +431,4 @@ function getBlockPropsAsString(block) {
 }
 
 export default ReRenderer;
-export {findCommentR};
+export {findCommentR, replaceLastIndexOf};

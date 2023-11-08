@@ -169,18 +169,9 @@ function emitAddStyleClassToBlock(styleClassToAdd, block) {
  */
 function emitReplaceClassesFromBlock(block, clsFrom, clsTo) {
     const currentClasses = block.styleClasses;
-    const newClasses = withoutTrailingSpace(currentClasses.replace(clsFrom, clsTo));
+    const newClasses = currentClasses.replace(clsFrom, clsTo).trim();
     dispatchNewBlockStyleClasses(newClasses, block);
     return newClasses;
-}
-
-/**
- * @param {String} cls Example 'j-Section j-Section-unit-15 j-Section-d-16 '
- * @returns {String} Example 'j-Section j-Section-unit-15 j-Section-d-16'
- */
-function withoutTrailingSpace(cls) {
-    const pcs = cls ? cls.split(' ') : [];
-    return pcs.at(-1) === '' && isUnitClass(pcs.at(-2)) ? pcs.slice(0, -1).join(' ') : cls;
 }
 
 /**
@@ -213,7 +204,7 @@ function isUnitClass(cls) {
  */
 function emitRemoveStyleClassFromBlock(styleClassToRemove, block) {
     const currentClasses = block.styleClasses;
-    const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ');
+    const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ').trim();
     dispatchNewBlockStyleClasses(newClasses, block);
     return newClasses;
 }
@@ -466,10 +457,12 @@ function removeStyleUnitMaybeRemote(unit, block) {
  * @param {RawBlock} block
  */
 function removeStyleClassMaybeRemote(unit, block) {
-    if (unit.derivedFrom && !isBodyRemote(unit.derivedFrom)) {
-        const a = createUnitClass(unit.derivedFrom, block.type); // Example 'j-Section-unit-3'
-        const b = createUnitClass(unit.id, block.type);          // Example 'j-Section-d-4'
-        return emitReplaceClassesFromBlock(block, `${a} ${b}`, '');
+    if (unit.derivedFrom) {
+        const a = !isBodyRemote(unit.derivedFrom)
+            ? `${createUnitClass(unit.derivedFrom, block.type)} ` // Example 'j-Section-unit-3 '
+            : '';
+        const b = createUnitClass(unit.id, block.type); // Example 'j-Section-d-4' or 'j-JetFormsTextInput-d-2'
+        return emitReplaceClassesFromBlock(block, `${a}${b}`, '');
     }
     const maybeRemote = findRealUnit(unit, block.type);
     const to = false;

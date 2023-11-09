@@ -54,9 +54,9 @@ stringBundles.push({
     'element': 'element',
     'wrapper-element': 'wrapper-element',
     'Css for the inner elements': 'Css for the inner elements',
-    'Other classes': 'Other classes',
     'Default': 'Default',
     'Style name': 'Style name',
+    '%s must not start with %s': '%s must not start with %s',
     // edit-app/src/left-column/block/BlockStylesTab2.jsx
     'No editable styles.': 'No editable styles.',
     // edit-app/src/left-column/block/VisualStyles.jsx

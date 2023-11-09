@@ -55,9 +55,9 @@ stringBundles.push({
     'element': 'elementin',
     'wrapper-element': 'wräpperielementin',
     'Css for the inner elements': 'Sisempien elementtien css',
-    'Other classes': 'Muut luokat',
     'Default': 'Oletus',
     'Style name': 'Tyylin nimi',
+    '%s must not start with %s': '%s ei tulisi alkaa %s',
     // edit-app/src/left-column/block/BlockStylesTab2.jsx
     'No editable styles.': 'Ei muokattavia tyylejä.',
     // edit-app/src/left-column/block/VisualStyles.jsx

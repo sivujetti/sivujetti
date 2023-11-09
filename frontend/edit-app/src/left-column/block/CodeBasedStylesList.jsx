@@ -363,11 +363,15 @@ class CodeBasedStylesList extends StylesList {
      * @access private
      */
     handleUtilClassesInputChanged(e) {
-        const v = e.target.value;
+        const vnoTrim = e.target.value;
+        const v = vnoTrim.trim();
+        const hasOnlyWhiteSpace = vnoTrim.length > 0 && v.length === 0;
+        if (hasOnlyWhiteSpace)
+            return;
         let error = v.length <= validationConstraints.HARD_SHORT_TEXT_MAX_LEN ? ''
-            : __('maxLength').replace('{field}', __('Other classes')).replace('{arg0}', validationConstraints.HARD_SHORT_TEXT_MAX_LEN);
+            : __('maxLength').replace('{field}', __('This value')).replace('{arg0}', validationConstraints.HARD_SHORT_TEXT_MAX_LEN);
         if (!error && v.split(' ').some(cls => cls.startsWith('j-')))
-            error = __('%s must not start with %s', __('Other classes'), '"j-"');
+            error = __('%s must not start with %s', __('This value'), '"j-"');
         if (error) {
             this.setState({extraBlockStyleClassesNotCommitted: v,
                 extraBlockStyleClassesError: error});

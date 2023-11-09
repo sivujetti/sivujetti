@@ -156,7 +156,7 @@ function emitAddStyleClassToBlock(styleClassToAdd, block) {
     const currentClasses = block.styleClasses;
     const [a1, b] = splitUnitAndNonUnitClasses(currentClasses);
     const a = a1 ? `${a1} ${styleClassToAdd}` : styleClassToAdd;
-    const newClasses = `${a}${a && b ? ' ' : ''}${b}`;
+    const newClasses = `${a}${a && b ? ' ' : ''}${b}`.trim();
     dispatchNewBlockStyleClasses(newClasses, block);
     return newClasses;
 }

@@ -45,21 +45,24 @@ class UploadButton extends preact.Component {
                 mime: files[i].type,
                 ext,
                 friendlyName,
-                createdAt: 0, // will change after upoad
-                updatedAt: 0, // will change after upoad
+                createdAt: 0, // will change after upload
+                updatedAt: 0, // will change after upload
             };
             this.props.onUploadStarted(entry);
             this.uploadFile(files[i], entry).then(res => {
                 const ok = typeof res !== 'string';
                 if (!ok)
                     this.setState({validationErrors: [...this.state.validationErrors, __('Failed to upload file #%s', i + 1)]});
-                this.props.onUploadEnded(ok ? {...entry, ...{
-                    fileName: res.fileName,
-                    baseDir: res.baseDir,
-                    mime: res.mime,
-                    createdAt: res.createdAt,
-                    updatedAt: res.updatedAt,
-                }} : null, ok);
+                this.props.onUploadEnded({
+                    ...entry,
+                    ...(ok ? {
+                        fileName: res.fileName,
+                        baseDir: res.baseDir,
+                        mime: res.mime,
+                        createdAt: res.createdAt,
+                        updatedAt: res.updatedAt,
+                    } : {})
+                }, ok);
             });
         });
     }

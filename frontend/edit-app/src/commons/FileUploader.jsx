@@ -155,7 +155,7 @@ class FileUploader extends preact.Component {
             this.setState({files: cloneArrShallow(fetchedFiles[k])});
     }
     /**
-     * @param {UploadsEntry|null} file
+     * @param {UploadsEntry} file
      * @param {Boolean} ok
      * @access private
      */

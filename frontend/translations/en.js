@@ -31,10 +31,10 @@ stringBundles.push({
     'duplicated': 'duplicated',
     // edit-app/src/left-column/block/BlockStylesTab2.jsx
     'No editable styles.': 'No editable styles.',
-    // edit-app/src/left-column/block/VisualStyles.jsx
-    'Restore default': 'Restore default',
     // edit-app/src/left-column/block/createBlockTreeDndController.js
     'You lack permissions to edit this content.': 'You lack permissions to edit this content.',
+    // edit-app/src/left-column/styles-tabs/LengthValueInput.jsx
+    'Restore default': 'Restore default',
     // edit-app/src/left-column/styles-tabs/WidgetBasedStylesList.jsx
     'You can add and remove this content\'s styles in "Styles" tab': 'You can add and remove this content\'s styles in "Styles" tab',
     'This style does not have editable values.': 'This style does not have editable values.',

@@ -31,10 +31,10 @@ stringBundles.push({
     'duplicated': 'monistettu',
     // edit-app/src/left-column/block/BlockStylesTab2.jsx
     'No editable styles.': 'Ei muokattavia tyylejä.',
-    // edit-app/src/left-column/block/VisualStyles.jsx
-    'Restore default': 'Palauta oletus',
     // edit-app/src/left-column/block/createBlockTreeDndController.js
     'You lack permissions to edit this content.': 'Käyttöoikeutesi ei riitä muokkaamaan tätä sisältöä.',
+    // edit-app/src/left-column/styles-tabs/LengthValueInput.jsx
+    'Restore default': 'Palauta oletus',
     // edit-app/src/left-column/styles-tabs/WidgetBasedStylesList.jsx
     'You can add and remove this content\'s styles in "Styles" tab': 'Voit poistaa ja lisätä tämän sisällön tyylejä "Tyylit"-tabissa',
     'This style does not have editable values.': 'Tässä tyylissä ei ole muokattavia arvoja.',

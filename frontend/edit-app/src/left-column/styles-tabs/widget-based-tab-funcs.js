@@ -1,5 +1,8 @@
+import {api} from '@sivujetti-commons-for-edit-app';
 import {SPECIAL_BASE_UNIT_NAME, ir1, getRemoteBodyUnit, blockHasStyleClass,
-        createUnitClass, isBodyRemote} from './styles-tabs-common.js';
+        createUnitClass, isBodyRemote, dispatchNewBlockStyleClasses, findRealUnit,
+        blockHasStyle, splitUnitAndNonUnitClasses, emitCommitStylesOp} from './styles-tabs-common.js';
+import store2 from '../../store2.js';
 
 /**
  * @param {Array<ThemeStyleUnit>} unitsOfThisBlockType
@@ -83,4 +86,143 @@ function createDataPropForValueInputRenderer(cssVar, unit, cls, sdu = null) {
     };
 }
 
-export {getEnabledUnits, getEditableUnits, createAddableUnits, createDataPropForValueInputRenderer};
+/**
+ * @param {ThemeStyleUnit} unit
+ * @param {RawBlock} block
+ */
+function removeStyleClassMaybeRemote(unit, block) {
+    if (unit.derivedFrom) {
+        const a = !isBodyRemote(unit.derivedFrom)
+            ? `${createUnitClass(unit.derivedFrom, block.type)} ` // Example 'j-Section-unit-3 '
+            : '';
+        const b = createUnitClass(unit.id, block.type); // Example 'j-Section-d-4' or 'j-JetFormsTextInput-d-2'
+        return emitReplaceClassesFromBlock(block, `${a}${b}`, '');
+    }
+    const maybeRemote = findRealUnit(unit, block.type);
+    const to = false;
+    const from = true;
+    return toggleStyleIsActivated(createUnitClass(unit.id, block.type),
+                                    to, from, maybeRemote !== unit, block);
+}
+
+/**
+ * @param {RawBlock|BlockStub} block Example 'j-Button-d-7 foo'
+ * @param {String} clsFrom Example 'j-Button-d-7'
+ * @param {String} clsTo Example 'j-Button-d-23'
+ * @returns {String} Example 'j-Button-d-23 foo'
+ */
+function emitReplaceClassesFromBlock(block, clsFrom, clsTo) {
+    const currentClasses = block.styleClasses;
+    const newClasses = currentClasses.replace(clsFrom, clsTo).trim();
+    dispatchNewBlockStyleClasses(newClasses, block);
+    return newClasses;
+}
+
+/**
+ * @param {String} cls
+ * @param {Boolean} newIsActivated
+ * @param {Boolean} currentIsActivated
+ * @param {Boolean} isRemote
+ * @param {RawBlock} blockCopy
+ * @returns {String}
+ */
+function toggleStyleIsActivated(cls, newIsActivated, currentIsActivated, isRemote, blockCopy) {
+    if (!isRemote) {
+        if (newIsActivated && !currentIsActivated)
+            return emitAddStyleClassToBlock(cls, blockCopy);
+        if (!newIsActivated && currentIsActivated)
+            return emitRemoveStyleClassFromBlock(cls, blockCopy);
+    } else { // invert
+        // Example: 'no-j-Section-unit-1'
+        const no = `no-${cls}`;
+        const hasNo = blockHasStyle(blockCopy, null, no);
+        if (!newIsActivated && !hasNo)
+            return emitAddStyleClassToBlock(no, blockCopy);
+        if (newIsActivated && hasNo)
+            return emitRemoveStyleClassFromBlock(no, blockCopy);
+    }
+}
+
+/**
+ * @param {String} styleClassToAdd
+ * @param {RawBlock} block
+ * @returns {String}
+ */
+function emitAddStyleClassToBlock(styleClassToAdd, block) {
+    const currentClasses = block.styleClasses;
+    const [a1, b] = splitUnitAndNonUnitClasses(currentClasses);
+    const a = a1 ? `${a1} ${styleClassToAdd}` : styleClassToAdd;
+    const newClasses = `${a}${a && b ? ' ' : ''}${b}`.trim();
+    dispatchNewBlockStyleClasses(newClasses, block);
+    return newClasses;
+}
+
+/**
+ * @param {String} styleClassToRemove
+ * @param {RawBlock} block
+ * @returns {String}
+ */
+function emitRemoveStyleClassFromBlock(styleClassToRemove, block) {
+    const currentClasses = block.styleClasses;
+    const newClasses = currentClasses.split(' ').filter(cls => cls !== styleClassToRemove).join(' ').trim();
+    dispatchNewBlockStyleClasses(newClasses, block);
+    return newClasses;
+}
+
+/**
+ * @param {ThemeStyleUnit} unit
+ * @param {RawBlock} block
+ */
+function removeStyleUnitMaybeRemote(unit, block) {
+    const maybeRemote = findRealUnit(unit, block.type);
+    if (maybeRemote === unit)
+        removeStyleUnit(unit, null, block);
+    else
+        removeStyleUnit(unit, maybeRemote, null);
+}
+
+/**
+ * @param {ThemeStyleUnit} unit
+ * @param {ThemeStyleUnit|null} remote
+ * @param {RawBlock|null} block
+ */
+function removeStyleUnit(unit, remote, block) {
+    if (!remote) {
+        // #2
+        emitRemoveStyleClassFromBlock(createUnitClass(unit.id, block.type), block);
+
+        // #1
+        store2.dispatch('themeStyles/removeUnitFrom', [block.type, remote || unit]);
+
+        const clone = {...unit};
+        emitCommitStylesOp(block.type, () => {
+            // #1
+            store2.dispatch('themeStyles/addUnitTo', [block.type, clone]);
+            // #2
+            setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
+
+        }, null, null);
+    } else {
+        // #1 and #2 (both units (remote and its "shell") is removed from themeStyles store here)
+        store2.dispatch('themeStyles/removeUnitFrom', [SPECIAL_BASE_UNIT_NAME, remote]);
+
+        const clone = {...remote};
+        emitCommitStylesOp(SPECIAL_BASE_UNIT_NAME, () => {
+            // #1
+            store2.dispatch('themeStyles/addUnitTo', [SPECIAL_BASE_UNIT_NAME, clone]);
+            // #2
+            store2.dispatch('themeStyles/addUnitTo', [clone.origin, unit]);
+        }, unit, remote.origin);
+    }
+}
+
+/**
+ * @param {String} varName Example: 'textNormal_TextCommon_u1'
+ * @returns {String} Example: 'textNormal'
+ */
+function withoutAppendix(varName) {
+    return varName.split('_')[0];
+}
+
+export {getEnabledUnits, getEditableUnits, createAddableUnits, createDataPropForValueInputRenderer,
+        removeStyleClassMaybeRemote, removeStyleUnitMaybeRemote, withoutAppendix};

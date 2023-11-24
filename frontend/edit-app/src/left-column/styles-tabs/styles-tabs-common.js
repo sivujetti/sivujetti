@@ -1,3 +1,8 @@
+import {api, env, http} from '@sivujetti-commons-for-edit-app';
+import {getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
+import store, {pushItemToOpQueue} from '../../store.js';
+import store2 from '../../store2.js';
+
 const SPECIAL_BASE_UNIT_NAME = '_body_';
 const specialBaseUnitCls = createUnitClass('', SPECIAL_BASE_UNIT_NAME);
 
@@ -113,6 +118,104 @@ function findBodyStyle(styles) {
     return styles.find(s => s.blockTypeName === SPECIAL_BASE_UNIT_NAME);
 }
 
+/**
+ * @param {String} newStyleClasses
+ * @param {RawBlock|BlockStub} blockCopy
+ * @access private
+ */
+function dispatchNewBlockStyleClasses(newStyleClasses, blockCopy) {
+    const changes = {styleClasses: newStyleClasses};
+    const isOnlyStyleClassesChange = true;
+    const {id, styleClasses} = blockCopy;
+    const prevData = styleClasses;
+    const isStoredToTreeId = getIsStoredToTreeIdFrom(id, 'mainTree');
+    store2.dispatch('theBlockTree/updateDefPropsOf', [id, isStoredToTreeId, changes, isOnlyStyleClassesChange, prevData]);
+}
+
+/**
+ * @param {ThemeStyleUnit} unit1
+ * @param {String} blockTypeName
+ * @param {Array<ThemeStyle>} themeStyles = null
+ * @returns {ThemeStyleUnit}
+ */
+function findRealUnit(unit1, blockTypeName, themeStyles = null) {
+    if (!unit1.origin) return unit1;
+    if (unit1.origin !== SPECIAL_BASE_UNIT_NAME) throw new Error('Not implemented.');
+    //
+    if (!themeStyles) ({themeStyles} = store2.get());
+    const bodyStyle = findBodyStyle(themeStyles);
+    const lookFor = createUnitClass(unit1.id, blockTypeName);
+    return bodyStyle.units.find(({id}) => id === lookFor) || unit1;
+}
+
+/**
+ * @param {String} styleClasses
+ * @returns {[String, String]} [unitClasses, nonUnitClasses]
+ */
+function splitUnitAndNonUnitClasses(styleClasses) {
+    const all = styleClasses.split(' ');
+    return all
+        .reduce((arrs, cls, i) => {
+            arrs[isUnitClass(cls) ? 0 : 1].push(all[i]);
+            return arrs;
+        }, [[], []])
+        .map(clsList => clsList.join(' '));
+}
+
+/**
+ * @param {String} cls Example 'j-Section-unit-15' or 'j-Section-d-16'
+ * @returns {Boolean}
+ */
+function isUnitClass(cls) {
+    const pcs = cls.split('-');
+    return pcs.length === 4 && pcs[0] === 'j';
+}
+
+/**
+ * @param {String} blockTypeName
+ * @param {() => void} doUndo
+ * @param {ThemeStyleUnit} removedRemote = null
+ * @param {String} removedRemoteBlockTypeName = null
+ */
+function emitCommitStylesOp(blockTypeName, doUndo, removedRemote = null, removedRemoteBlockTypeName = null) {
+    const url = `/api/themes/${api.getActiveTheme().id}/styles/scope-block-type/${blockTypeName}`;
+    store.dispatch(pushItemToOpQueue(`upsert-theme-style#${url}`, {
+        doHandle: () => {
+            const style = findBlockTypeStyles(store2.get().themeStyles, blockTypeName);
+            const remoteStyle = removedRemote ? getRemoteStyleIfRemoved(style.units, removedRemote.id, removedRemoteBlockTypeName) : null;
+            const data = {
+                ...{units: style.units},
+                ...(!remoteStyle ? {} : {connectedUnits: remoteStyle.units, connectedUnitsBlockTypeName: removedRemoteBlockTypeName})
+            };
+            return http.put(url, data)
+                .then(resp => {
+                    if (resp.ok !== 'ok') throw new Error('-');
+                    return true;
+                })
+                .catch(err => {
+                    env.window.console.error(err);
+                    return true;
+                });
+        },
+        doUndo,
+        args: [],
+    }));
+}
+
+/**
+ * @param {Array<ThemeStyleUnit>} bodyUnits
+ * @param {String} removedUnitId
+ * @param {String} removedUnitBlockTypeName
+ */
+function getRemoteStyleIfRemoved(bodyUnits, removedUnitId, removedUnitBlockTypeName) {
+    const lookFor = createUnitClass(removedUnitId, removedUnitBlockTypeName);
+    // Normal case: $lookFor is _not_ found from $bodyUnits
+    if (!bodyUnits.some(({id}) => id === lookFor))
+        return findBlockTypeStyles(store2.get().themeStyles, removedUnitBlockTypeName);
+    return null;
+}
+
 export {findBlockTypeStyles, ir1, SPECIAL_BASE_UNIT_NAME, getRemoteBodyUnit,
         blockHasStyleClass, createUnitClass, createUnitClassSpecial, isBodyRemote,
-        findBodyStyle};
+        findBodyStyle, dispatchNewBlockStyleClasses, findRealUnit, blockHasStyle,
+        splitUnitAndNonUnitClasses, emitCommitStylesOp, specialBaseUnitCls};

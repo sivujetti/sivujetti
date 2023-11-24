@@ -1,7 +1,7 @@
 import {__, env, stringUtils, timingUtils} from '@sivujetti-commons-for-edit-app';
-import ColorValueInput from './ColorValueInput.jsx';
-import LengthValueInput from './LengthValueInput.jsx';
-import OptionValueInput from './OptionValueInput.jsx';
+import ColorValueInput from '../styles-tabs/ColorValueInput.jsx';
+import LengthValueInput from '../styles-tabs/LengthValueInput.jsx';
+import OptionValueInput from '../styles-tabs/OptionValueInput.jsx';
 import {createUnitClass} from './styles-shared.jsx';
 
 const {compile, serialize, stringify} = window.stylis;
@@ -146,8 +146,7 @@ function extractFirstPartOf(scss) {
  * @param {String} scss
  * @param {StylisAstNode} astNode
  * @param {String} replaceWith
- * @returns {String}
- * @access private
+ * @returns {String} New scss
  */
 function replaceVarValue(scss, {line, column}, replaceWith) {
     const lines = scss.split('\n');

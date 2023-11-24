@@ -2,8 +2,7 @@ import {__, Icon, hookForm, unhookForm, Input, FormGroup, InputErrors, hasErrors
         validationConstraints} from '@sivujetti-commons-for-edit-app';
 import {PopupPrerendered} from '../../block-types/listing/AddFilterPopup.jsx';
 import store2 from '../../store2.js';
-import {SPECIAL_BASE_UNIT_NAME} from './styles-tabs-common.js';
-import {emitCommitStylesOp} from './code-based-tab-funcs.js';
+import {SPECIAL_BASE_UNIT_NAME, emitCommitStylesOp} from './styles-tabs-common.js';
 
 class EditableTitle extends preact.Component {
     // popup;

@@ -54,7 +54,7 @@ class IframePageManager {
         //
         opQueueItemEmitter.resetAndBegin();
         store2.dispatch('theBlockTree/init', [ordered]);
-        store2.dispatch('themeStyles/setAll', [{styles: getAndInvalidate(data.theme, 'styles')}]);
+        store2.dispatch('themeStyles/setAll', [getAndInvalidate(data.theme, 'styles')]);
         store.dispatch(setCurrentPageDataBundle(data));
         store.dispatch(setOpQueue([]));
         const unregistrables = webPage.getGlobalListenerCreateCallables().map(([when, fn]) => sharedSignals.on(when, fn));

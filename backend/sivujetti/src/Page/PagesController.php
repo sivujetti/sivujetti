@@ -573,11 +573,12 @@ final class PagesController {
     }
     /**
      * @param \Sivujetti\Theme\Entities\Theme $theme
-     * @psalm-return object{id: string}
+     * @psalm-return object{id: string, styles: \Sivujetti\Theme\Entities\Style[]}
      */
     private static function themeToRaw(Theme $theme): object {
         return (object) [
             "id" => $theme->id,
+            "styles" => $theme->styles,
         ];
     }
     /**

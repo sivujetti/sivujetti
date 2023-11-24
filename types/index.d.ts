@@ -124,15 +124,19 @@ interface Layout {
     friendlyName: String;
 }
 
+interface Theme {
+    id: String; // Example '1'
+}
+
 interface CurrentPageData {
     page: Page;
     layout: {
         friendlyName: String;
         structure: Array<LayoutPart>;
     };
-    theme: {
-        id: String; // Example '1'
-    };
+    theme: Theme | (Theme & {
+        styles: Array<ThemeStyle>;
+    });
 }
 
 interface LayoutPart {

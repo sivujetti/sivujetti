@@ -136,7 +136,7 @@ function renderReactEditApp() {
         inspectorPanelRef: inspectorPanelReactRef,
         dataFromAdminBackend: window.dataFromAdminBackend,
         rootEl,
-        LEFT_PANEL_WIDTH: 318,
+        LEFT_PANEL_WIDTH: 339,
         ref: editAppReactRef,
     }), mainPanelOuterEl);
 

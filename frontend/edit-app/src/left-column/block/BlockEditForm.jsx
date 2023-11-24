@@ -8,7 +8,7 @@ import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
 import {treeToTransferable} from '../../block/utils.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import {findBlockFrom, getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
-import WidgetBasedStylesList from './WidgetBasedStylesList.jsx';
+import WidgetBasedStylesList from '../styles-tabs/WidgetBasedStylesList.jsx';
 import CodeBasedStylesList from './CodeBasedStylesList.jsx';
 
 /** @type {BlockTypes} */

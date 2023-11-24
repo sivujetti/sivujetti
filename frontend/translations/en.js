@@ -29,7 +29,13 @@ stringBundles.push({
     'Specialized': 'Specialized',
     'Unique reusables': 'Uniques reusables',
     'duplicated': 'duplicated',
-    // edit-app/src/left-column/block/CodeBasedStylesList|WidgetBasedStylesList.jsx.jsx
+    // edit-app/src/left-column/block/BlockStylesTab2.jsx
+    'No editable styles.': 'No editable styles.',
+    // edit-app/src/left-column/block/VisualStyles.jsx
+    'Restore default': 'Restore default',
+    // edit-app/src/left-column/block/createBlockTreeDndController.js
+    'You lack permissions to edit this content.': 'You lack permissions to edit this content.',
+    // edit-app/src/left-column/styles-tabs/WidgetBasedStylesList.jsx
     'You can add and remove this content\'s styles in "Styles" tab': 'You can add and remove this content\'s styles in "Styles" tab',
     'This style does not have editable values.': 'This style does not have editable values.',
     'No own templates': 'No own templates',
@@ -57,12 +63,6 @@ stringBundles.push({
     'Default': 'Default',
     'Style name': 'Style name',
     '%s must not start with %s': '%s must not start with %s',
-    // edit-app/src/left-column/block/BlockStylesTab2.jsx
-    'No editable styles.': 'No editable styles.',
-    // edit-app/src/left-column/block/VisualStyles.jsx
-    'Restore default': 'Restore default',
-    // edit-app/src/left-column/block/createBlockTreeDndController.js
-    'You lack permissions to edit this content.': 'You lack permissions to edit this content.',
     // edit-app/src/left-column/page/AddCategoryPanel.jsx
     'Category': 'Category',
     'New category name': 'New category name',
@@ -369,6 +369,7 @@ stringBundles.push({
     'Text hover': 'Text hover',
     'Border': 'Border',
     'Border hover': 'Border hover',
+    'Border width': 'Border width',
     'Align horizontal': 'Align horizontal',
     'Min width': 'Min width',
     'Radius': 'Radius',

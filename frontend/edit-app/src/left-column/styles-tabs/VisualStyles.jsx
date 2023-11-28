@@ -1,5 +1,5 @@
 import {__, env, timingUtils} from '@sivujetti-commons-for-edit-app';
-import {valueEditors} from './scss-ast-funcs.js';
+import {valueEditors, replaceVarValue} from './scss-ast-funcs.js';
 
 const {serialize, stringify} = window.stylis;
 
@@ -55,23 +55,6 @@ class VisualStyles extends preact.Component {
         }, env.normalTypingDebounceMillis);
         this.setState({vars: props.vars}); // Note: reference / no copying
     }
-}
-
-/**
- * @param {String} scss
- * @param {StylisAstNode} astNode
- * @param {String} replaceWith
- * @returns {String} New scss
- */
-function replaceVarValue(scss, {line, column}, replaceWith) {
-    const lines = scss.split('\n');
-    const linestr = lines[line - 1]; // '--varA: 1.4rem; --varB: 1;'
-    const before = linestr.substring(0, column + 1); // '--varA: 1.4rem; '
-    const after = linestr.substring(column - 1); // ' --varB: 1;'
-    const pcs = before.split(':'); // [' --varB', ' 1;']
-    pcs[pcs.length - 1] = ` ${replaceWith};`;
-    lines[line - 1] = `${pcs.join(':')}${after}`;
-    return lines.join('\n');
 }
 
 /**

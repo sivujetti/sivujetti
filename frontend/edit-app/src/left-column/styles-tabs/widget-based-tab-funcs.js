@@ -1,8 +1,10 @@
 import {api} from '@sivujetti-commons-for-edit-app';
+import store2 from '../../store2.js';
 import {SPECIAL_BASE_UNIT_NAME, ir1, getRemoteBodyUnit, blockHasStyleClass,
         createUnitClass, isBodyRemote, dispatchNewBlockStyleClasses, findRealUnit,
-        blockHasStyle, splitUnitAndNonUnitClasses, emitCommitStylesOp} from './styles-tabs-common.js';
-import store2 from '../../store2.js';
+        blockHasStyle, splitUnitAndNonUnitClasses, emitCommitStylesOp, findBlockTypeStyles,
+        findBaseUnitOf} from './styles-tabs-common.js';
+import {optimizeFromInternalRepr} from './scss-manip-funcs.js';
 
 /**
  * @param {Array<ThemeStyleUnit>} unitsOfThisBlockType
@@ -224,5 +226,17 @@ function withoutAppendix(varName) {
     return varName.split('_')[0];
 }
 
+/**
+ * @param {ThemeStyleUnit} unit
+ * @param {Array<ThemeStyleUnit>} unitsOfThisBlockType
+ * @returns {ThemeStyleUnit|null}
+ */
+function getBaseUnit(unit, unitsOfThisBlockType) {
+    const isDerivedFromBodyUnit = isBodyRemote(unit.derivedFrom);
+    const baseStyleUnits = !isDerivedFromBodyUnit ? unitsOfThisBlockType : findBlockTypeStyles(store2.get().themeStyles, SPECIAL_BASE_UNIT_NAME).units;
+    return findBaseUnitOf(unit, baseStyleUnits);
+}
+
 export {getEnabledUnits, getEditableUnits, createAddableUnits, createDataPropForValueInputRenderer,
-        removeStyleClassMaybeRemote, removeStyleUnitMaybeRemote, withoutAppendix};
+        removeStyleClassMaybeRemote, removeStyleUnitMaybeRemote, withoutAppendix,
+        getBaseUnit};

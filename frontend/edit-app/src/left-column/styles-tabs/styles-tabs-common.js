@@ -215,7 +215,53 @@ function getRemoteStyleIfRemoved(bodyUnits, removedUnitId, removedUnitBlockTypeN
     return null;
 }
 
+/**
+ * @param {ThemeStyleUnit} unit
+ * @param {Array<ThemeStyleUnit>} from
+ * @returns {ThemeStyleUnit|null}
+ */
+function findBaseUnitOf(unit, from) {
+    const lookFor = unit.derivedFrom;
+    return from.find(u => u.id === lookFor) || null;
+}
+
+/**
+ * @param {ThemeStyleUnit} unitCopy
+ * @param {(unitCopy: ThemeStyleUnit) => ({newScss: String; newGenerated: String; newOptimizedScss?: String|null; newOptimizedGenerated?: String|null; specifier?: String;}|null)} getUpdates
+ * @param {String} blockTypeName
+ */
+function updateAndEmitUnitScss(unitCopy, getUpdates, blockTypeName) {
+    const {id, scss, generatedCss, optimizedScss, optimizedGeneratedCss} = unitCopy;
+    const dataBefore = {...{scss, generatedCss}, ...(!optimizedGeneratedCss ? {} : {optimizedScss, optimizedGeneratedCss})};
+    //
+    const updates = getUpdates(unitCopy);
+    if (!updates) return;
+    //
+    emitUnitChanges({...{
+        scss: updates.newScss,
+        generatedCss: updates.newGenerated,
+    }, ...(!updates.newOptimizedGenerated ? {} : {
+        optimizedScss: updates.newOptimizedScss,
+        optimizedGeneratedCss: updates.newOptimizedGenerated,
+    })}, dataBefore, blockTypeName, id);
+}
+
+/**
+ * @param {{scss?: String; generatedCss?: String; specifier?: String; isDerivable?: String;}} updates
+ * @param {ThemeStyleUnit} before
+ * @param {String} blockTypeName
+ * @param {String} unitId Example 'unit-12' (if origin = '' | '_body_'), 'j-Something-uniot-12' (if origin = 'Something')
+ * @param {() => void} doUndo = null
+ */
+function emitUnitChanges(updates, before, blockTypeName, unitId, doUndoFn = null) {
+    store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, unitId, updates]);
+    emitCommitStylesOp(blockTypeName, doUndoFn || (() => {
+        store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, unitId, before]);
+    }));
+}
+
 export {findBlockTypeStyles, ir1, SPECIAL_BASE_UNIT_NAME, getRemoteBodyUnit,
         blockHasStyleClass, createUnitClass, createUnitClassSpecial, isBodyRemote,
         findBodyStyle, dispatchNewBlockStyleClasses, findRealUnit, blockHasStyle,
-        splitUnitAndNonUnitClasses, emitCommitStylesOp, specialBaseUnitCls};
+        splitUnitAndNonUnitClasses, emitCommitStylesOp, specialBaseUnitCls,
+        findBaseUnitOf, updateAndEmitUnitScss};

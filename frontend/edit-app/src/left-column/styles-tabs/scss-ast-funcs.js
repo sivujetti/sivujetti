@@ -107,4 +107,21 @@ function extractFirstPartOf(scss) {
                              //     --baz: blue;'
 }
 
-export {extractVars, valueEditors, varNameToLabel};
+/**
+ * @param {String} scss
+ * @param {StylisAstNode} astNode
+ * @param {String} replaceWith
+ * @returns {String} New scss
+ */
+function replaceVarValue(scss, {line, column}, replaceWith) {
+    const lines = scss.split('\n');
+    const linestr = lines[line - 1]; // '--varA: 1.4rem; --varB: 1;'
+    const before = linestr.substring(0, column + 1); // '--varA: 1.4rem; '
+    const after = linestr.substring(column - 1); // ' --varB: 1;'
+    const pcs = before.split(':'); // [' --varB', ' 1;']
+    pcs[pcs.length - 1] = ` ${replaceWith};`;
+    lines[line - 1] = `${pcs.join(':')}${after}`;
+    return lines.join('\n');
+}
+
+export {extractVars, valueEditors, varNameToLabel, replaceVarValue};

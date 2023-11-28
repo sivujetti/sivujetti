@@ -2,7 +2,8 @@ import {__, api, signals, MenuSection} from '@sivujetti-commons-for-edit-app';
 import Tabs from '../../commons/Tabs.jsx';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import {extractVars} from '../styles-tabs/scss-ast-funcs.js';
-import {emitCommitStylesOp, findBodyStyle, specialBaseUnitCls, SPECIAL_BASE_UNIT_NAME} from '../styles-tabs/styles-tabs-common.js';
+import {findBodyStyle, specialBaseUnitCls, SPECIAL_BASE_UNIT_NAME,
+        updateAndEmitUnitScss} from '../styles-tabs/styles-tabs-common.js';
 import StyleTextarea from '../styles-tabs/StyleTextarea.jsx';
 import VisualStyles from '../styles-tabs/VisualStyles.jsx';
 
@@ -109,41 +110,6 @@ class BaseStylesSection extends preact.Component {
  */
 function findBodyStyleMainUnit(bodyStyle) {
     return bodyStyle.units[0];
-}
-
-/**
- * @param {ThemeStyleUnit} unitCopy
- * @param {(unitCopy: ThemeStyleUnit) => ({newScss: String; newGenerated: String; newOptimizedScss?: String|null; newOptimizedGenerated?: String|null; specifier?: String;}|null)} getUpdates
- * @param {String} blockTypeName
- */
-function updateAndEmitUnitScss(unitCopy, getUpdates, blockTypeName) {
-    const {id, scss, generatedCss, optimizedScss, optimizedGeneratedCss} = unitCopy;
-    const dataBefore = {...{scss, generatedCss}, ...(!optimizedGeneratedCss ? {} : {optimizedScss, optimizedGeneratedCss})};
-    //
-    const updates = getUpdates(unitCopy);
-    if (!updates) return;
-    //
-    emitUnitChanges({...{
-        scss: updates.newScss,
-        generatedCss: updates.newGenerated,
-    }, ...(!updates.newOptimizedGenerated ? {} : {
-        optimizedScss: updates.newOptimizedScss,
-        optimizedGeneratedCss: updates.newOptimizedGenerated,
-    })}, dataBefore, blockTypeName, id);
-}
-
-/**
- * @param {{scss?: String; generatedCss?: String; specifier?: String; isDerivable?: String;}} updates
- * @param {ThemeStyleUnit} before
- * @param {String} blockTypeName
- * @param {String} unitId Example 'unit-12' (if origin = '' | '_body_'), 'j-Something-uniot-12' (if origin = 'Something')
- * @param {() => void} doUndo = null
- */
-function emitUnitChanges(updates, before, blockTypeName, unitId, doUndoFn = null) {
-    store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, unitId, updates]);
-    emitCommitStylesOp(blockTypeName, doUndoFn || (() => {
-        store2.dispatch('themeStyles/updateUnitOf', [blockTypeName, unitId, before]);
-    }));
 }
 
 export default BaseStylesSection;

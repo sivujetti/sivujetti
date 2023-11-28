@@ -1,16 +1,20 @@
 import {__} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import store2 from '../../store2.js';
-import {createUnitClass, createUnitClassSpecial, findBaseUnitOf, findBlockTypeStyles,
-        findBodyStyle, findRealUnit, isBodyRemote, SPECIAL_BASE_UNIT_NAME} from './styles-tabs-common.js';
+import {createUnitClass, createUnitClassSpecial, findBlockTypeStyles,
+        findBodyStyle, findRealUnit, isBodyRemote, SPECIAL_BASE_UNIT_NAME,
+        updateAndEmitUnitScss} from './styles-tabs-common.js';
 import EditableTitle from './EditableTitle.jsx';
-import {createAddableUnits, createDataPropForValueInputRenderer, getEditableUnits,
-        getEnabledUnits, removeStyleClassMaybeRemote,
-        removeStyleUnitMaybeRemote, withoutAppendix} from './widget-based-tab-funcs.js';
+import {createAddableUnits, createDataPropForValueInputRenderer, getBaseUnit, getEditableUnits,
+        getEnabledUnits, removeStyleClassMaybeRemote, removeStyleUnitMaybeRemote,
+        withoutAppendix} from './widget-based-tab-funcs.js';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
-import {splitToScreenSizeParts} from './scss-manip-funcs.js';
-import {extractVars, valueEditors, varNameToLabel} from './scss-ast-funcs.js';
-import {optimizedToExpanded} from '../block/style-hoist-funcs.js';
+import {expandToInternalRepr, joinFromScreenSizeParts,
+        optimizeFromInternalRepr,
+        splitToScreenSizeParts} from './scss-manip-funcs.js';
+import {extractVars, replaceVarValue, valueEditors, varNameToLabel} from './scss-ast-funcs.js';
+
+const {compile, serialize, stringify} = window.stylis;
 
 class WidgetBasedStylesList extends preact.Component {
     // unregistrables;
@@ -57,17 +61,16 @@ class WidgetBasedStylesList extends preact.Component {
     render({blockCopy, userCanEditVisualStyles}, {itemsToShow}) {
         const [curTabIdx, setCurTabIdx] = preactHooks.useState(0);
         return [itemsToShow.length
-            ? <ul class="list styles-list mb-2">{ itemsToShow.map(({unit, screenSizesScss}, i) => {
-                const isDefault = isBodyRemote(unit.id);
-                const cls = !isDefault ? createUnitClass(unit.id, blockCopy.type) : createUnitClassSpecial(unit.id, blockCopy.type);
+            ? <ul class="list styles-list mb-2">{ itemsToShow.map((itm, i) => {
+                const {unit, screenSizesScss, isDefault, cls} = itm;
                 const key = unit.id;
                 const curScreenSizeTabScss = screenSizesScss[curTabIdx];
-                const [cssVars, _ast] = extractVars(curScreenSizeTabScss, 'dummy');
+                const [cssVars, ast] = extractVars(curScreenSizeTabScss, 'dummy');
                 const varsInsights = [];
                 return <li key={ key } class="open">
                     <header class="flex-centered p-relative">
                         <b
-                            onClick={ e => this.handleLiClick(e, i, isBodyRemote(unit.id)) }
+                            onClick={ e => this.handleLiClick(e, i, isDefault) }
                             class="col-12 btn btn-link text-ellipsis with-icon mt-0 mr-1 pt-0 pb-0 pl-1 no-color"
                             type="button">
                             <EditableTitle
@@ -102,10 +105,8 @@ class WidgetBasedStylesList extends preact.Component {
                                 isClearable={ valueIsClearable }
                                 labelTranslated={ __(varNameToLabel(withoutAppendix(cssVar.varName))) }
                                 onVarValueChanged={ newValAsString => {
-                                    `const val = newValAsString !== null
-                                        ? newValAsString
-                                        : extractVal(varsInsights[i2].lineB);
-                                    this.emitChange(val, cssVar, unit, ast, cls, parts, expanded, basePart)`;
+                                    const val = newValAsString !== null ? newValAsString : (function () { throw new Error('todo'); })();
+                                    this.emitVarValueChange(val, cssVar, ast, itm, curTabIdx);
                                 } }
                                 noticeDismissedWith={ accepted => {
                                     `if (accepted) // Do create copy, replace block's cssClass '-unit-<old>' -> '-unit-<newCopy>'
@@ -153,21 +154,57 @@ class WidgetBasedStylesList extends preact.Component {
                     screenSizesScss = splitToScreenSizeParts(unit.scss);
                 } else {
                     const screenSizesScss1 = splitToScreenSizeParts(unit.scss);
-                    const isDerivedFromBodyUnit = isBodyRemote(unit.derivedFrom);
-                    const baseStyleUnits = !isDerivedFromBodyUnit ? unitsOfThisBlockType : findBlockTypeStyles(store2.get().themeStyles, SPECIAL_BASE_UNIT_NAME).units;
-                    const baseUnitScss = findBaseUnitOf(unit, baseStyleUnits).scss;
+                    const baseUnitScss = getBaseUnit(unit, unitsOfThisBlockType).scss;
                     const basePart = splitToScreenSizeParts(baseUnitScss)[0];
-                    screenSizesScss = screenSizesScss1.map((p, i) => i > 0 ? optimizedToExpanded(p, basePart, 'u5') : p);
+                    screenSizesScss = screenSizesScss1.map(p => expandToInternalRepr(p, basePart, 'u5'));
                 }
+                const isDefault = isBodyRemote(unit.id);
                 return {
                     unit,
-                    screenSizesScss
+                    screenSizesScss,
+                    isDefault,
+                    cls: !isDefault ? createUnitClass(unit.id, blockCopy.type) : createUnitClassSpecial(unit.id, blockCopy.type),
                 };
             }),
             addable,
             unitsOfThisBlockType,
             unitsEnabled
         };
+    }
+    /**
+     * @param {String} newValAsString
+     * @param {CssVar} cssVar
+     * @param {Array<StylisAstNode>} ast
+     * @param {{unit: ThemeStyleUnit; screenSizesScss: Array<String>; isDefault: Boolean; cls: String;}} item
+     * @param {Number} partIdx
+     * @access private
+     */
+    emitVarValueChange(newValAsString, cssVar, ast, {unit, screenSizesScss, cls}, partIdx) {
+        if (!unit.derivedFrom) {
+            //
+        } else {
+            const isMain = partIdx === 0;
+            const hasDefaultVal = isMain ? '?' : (function () {
+                const fromThisPartCurrent = valueEditors.get(cssVar.type).valueToString(cssVar.value);
+                const bpv = extractVars(screenSizesScss[0], 'dummy')[0].find(({varName}) => varName === cssVar.varName);
+                const fromBasePart = valueEditors.get(bpv.type).valueToString(bpv.value);
+                return fromThisPartCurrent === fromBasePart;
+            })();
+            if (hasDefaultVal === false || // already had custom val (update var val)
+                hasDefaultVal === true) // has default val (add var)
+                updateAndEmitUnitScss(unit, _copy => {
+                    const node = ast[0].children[cssVar.__idx];
+                    const varDecl = node.props; // '--foo'
+                    node.children = newValAsString;
+                    node.value = `${varDecl}:${newValAsString};`;
+                    const partUpdated = replaceVarValue(screenSizesScss[partIdx], node, newValAsString);
+                    const updatedPartsIR = screenSizesScss.map((s, i) => i !== partIdx ? s : partUpdated);
+                    const updatedParts = this.optimizePartsFromInternalRepr(updatedPartsIR, unit);
+                    const asString = joinFromScreenSizeParts(updatedParts);
+                    return {newScss: asString,
+                            newGenerated: serialize(compile(`.${cls}{${asString}}`), stringify)};
+                }, !unit.origin ? this.props.blockCopy.type : SPECIAL_BASE_UNIT_NAME);
+        }
     }
     /**
      * @param {Event} e
@@ -227,6 +264,15 @@ class WidgetBasedStylesList extends preact.Component {
             {text: __('Edit name'), title: __('Edit name'), id: 'edit-style-title'},
             ...moreLinks,
         ];
+    }
+    /**
+     * @param {Array<String>} partsInternalRepr
+     * @param {ThemeStyleUnit} unit
+     * @returns {Array<String>}
+     */
+    optimizePartsFromInternalRepr(partsInternalRepr, unit) {
+        const baseUnitScss = getBaseUnit(unit, this.state.unitsOfThisBlockType).scss;
+        return partsInternalRepr.map(p => optimizeFromInternalRepr(p, baseUnitScss));
     }
 }
 

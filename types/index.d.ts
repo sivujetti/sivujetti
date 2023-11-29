@@ -372,6 +372,11 @@ interface ThemeStyleUnit {
     derivedFrom: String|null;
 }
 
+interface UnitVarInsights {
+    baseValueLiteral: String; // '#00ff00ff', '1px', 'initial'
+    hasBaseValue: Boolean;
+}
+
 type leftPanelName = 'Default'|'CreatePage'|'CreatePageType';
 
 interface BlockDescriptor {
@@ -409,6 +414,7 @@ type cssValType = LengthValue|ColorValue|OptionValue;
 interface CssVar {
     type: 'length'|'color'|'option';
     value: cssValType|null;
+    valueLiteral: String;
     varName: String;
     label: String;
     args: String[];

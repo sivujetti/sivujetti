@@ -1,6 +1,6 @@
-import {optimizeScss} from '../edit-app/src/left-column/block/styles-shared.jsx';
+import {optimizeScss} from '../edit-app/src/left-column/styles-tabs/scss-manip-funcs-legacy.js';
 
-QUnit.module('styles-shared.jsx', () => {
+QUnit.module('scss-manip-funcs-legacy.js', () => {
     QUnit.test('optimizeScss() removes unchanged lines', assert => {
         const baseScss = [
             '// @exportAs(option:start|center|end|unset)',

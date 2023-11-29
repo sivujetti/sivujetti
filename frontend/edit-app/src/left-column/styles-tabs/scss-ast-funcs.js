@@ -15,15 +15,15 @@ valueEditors.set('option', OptionValueInput);
  * // @exportAs(length)
  * --fontSize: 2.4rem;
  * // @exportAs(color)
- * --fontColor:#000000;
- * // @exportAs(option:first|sec\|esc|third)
- * --myOption:third;
+ * --fontColor: initial;
+ * // @exportAs(option:first|sec\|ond|third) <- ('... sec\\|ond ...' as evaluated)
+ * --myOption: third;
  * ```
  *
  * Out: ```
- * [[{type: 'length', value: {num: '2.4'; unit: 'rem'}, varName: 'fontSize', label: 'Font size', args: [], __idx: 1},
- *   {type: 'color', value: {data: '#333333ff', type: 'hexa'}, varName: 'fontColor', label: 'Font color', args: [], __idx: 2},
- *   {type: 'option', value: {selected: 'third'}, varName: 'myOption', label: 'My option', args: ['first', 'sec|ond', 'third'], __idx: 3}], [...]]
+ * [[{type: 'length', value: {num: '2.4'; unit: 'rem'}, valueLiteral: '2.4rem', varName: 'fontSize', label: 'Font size', args: [], __idx: 1},
+ *   {type: 'color', value: {data: '#000000ff', type: 'hexa'}, valueLiteral: 'initial', varName: 'fontColor', label: 'Font color', args: [], __idx: 3},
+ *   {type: 'option', value: {selected: 'third'}, valueLiteral: 'third', varName: 'myOption', label: 'My option', args: ['first', 'sec|ond', 'third'], __idx: 5}], [...]]
  * ```
  *
  * @param {String} scss
@@ -54,7 +54,7 @@ function extractVars(scss, selector, findVarForPlaceholder = null, sampleOnly = 
             const varTypeAndMaybeArgs = ir.trimLeft().slice(0, -1); // ' type: maybe|args)' -> 'type: maybe|args'
             const [varType1, argsStr] = varTypeAndMaybeArgs.split(':').map(s => s.trim()); // 'type: maybe|args' -> ['type', 'maybe|args']
             varType = varType1;
-            args = argsStr ? argsStr.replace(/\\\|/,'\\€').split('|').map(s => s.replace('\\€', '\\|')) : [];
+            args = argsStr ? argsStr.replace(/\\\|/,'\\€').split('|').map(s => s.replace('\\€', '|')) : [];
         } else {
             const v = findVarForPlaceholder(varName);
             varType = v.type;
@@ -62,8 +62,9 @@ function extractVars(scss, selector, findVarForPlaceholder = null, sampleOnly = 
         }
         const Cls = valueEditors.get(varType);
         if (Cls) {
-            const value = Cls.valueFromInput(decl.children);
-            if (value) out.push({type: varType, value, varName, label: varNameToLabel(varName), args, __idx: i});
+            const valueLiteral = decl.children;
+            const value = Cls.valueFromInput(valueLiteral);
+            if (value) out.push({type: varType, value, varName, valueLiteral, label: varNameToLabel(varName), args, __idx: i});
             else env.window.console.log(`Don't know how to parse ${varType} variable value "${decl.children}" yet.`);
         } else env.window.console.log(`Variable type "${varType}" not recognized`);
     }

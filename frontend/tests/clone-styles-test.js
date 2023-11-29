@@ -1,3 +1,5 @@
+// @unused file
+
 import {createCloneInstructions} from '../edit-app/src/left-column/block/WidgetBasedStylesList.jsx';
 
 QUnit.module('WidgetBasedStylesList.jsx', () => {

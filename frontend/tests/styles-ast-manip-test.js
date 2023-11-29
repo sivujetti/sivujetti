@@ -1,10 +1,10 @@
-import {replaceVarValue} from '../edit-app/src/left-column/block/VisualStyles.jsx';
-import ColorValueInput from '../edit-app/src/left-column/block/ColorValueInput.jsx';
-import LengthValueInput from '../edit-app/src/left-column/block/LengthValueInput.jsx';
-import OptionValueInput from '../edit-app/src/left-column/block/OptionValueInput.jsx';
+import {replaceVarValue} from '../edit-app/src/left-column/styles-tabs/scss-ast-funcs.js';
+import ColorValueInput from '../edit-app/src/left-column/styles-tabs/ColorValueInput.jsx';
+import LengthValueInput from '../edit-app/src/left-column/styles-tabs/LengthValueInput.jsx';
+import OptionValueInput from '../edit-app/src/left-column/styles-tabs/OptionValueInput.jsx';
 const {compile} = window.stylis;
 
-QUnit.module('VisualStyles.jsx', () => {
+QUnit.module('scss-ast-funcs.js', () => {
     QUnit.test('replaceVarValue replaces css variable value by column and line', assert => {
         const testScss = ['// line 1', '--fontSize: 1.4rem;'].join('\n');
         const testScss2 = ['// line 1', '--fontSize: 1.4rem; --another: .8;'].join('\n');

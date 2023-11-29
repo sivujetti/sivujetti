@@ -3,12 +3,12 @@ import {api, env, urlUtils} from '@sivujetti-commons-for-edit-app';
 import {Validator} from '../edit-app/src/commons/Form.jsx';
 import store, {FormStateStoreWrapper, setOpQueue} from '../edit-app/src/store.js';
 import BlockTypes from '../edit-app/src/block-types/block-types.js';
-import './clone-styles-test.js';
 import './compile-scss-test.js';
 import './optimize-scss-test.js';
 import './optimize-op-queue-test.js';
-import './visual-styles-test.js';
+import './styles-ast-manip-test.js';
 import './styles-list-test.js';
+import './styles-manip-test.js';
 import './test-mics-funcs-test.js';
 
 env.window = {location: {}, console: window.console, addEventListener: () => {}};

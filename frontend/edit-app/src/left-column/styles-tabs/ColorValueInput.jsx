@@ -102,10 +102,10 @@ class ColorValueInput extends preact.Component {
         let nonCommittedHex;
         this.pickr.on('change', (color, _source, _instance) => {
             let valOrGetValBundle;
-            const {selector, wrapCss} = this.props.data;
+            const {selector, supportingCss, mediaQueryWrap} = this.props.data;
             if (!this.resetValueIsPending) {
                 nonCommittedHex = `#${color.toHEXA().slice(0, 4).join('')}`;
-                valOrGetValBundle = !wrapCss ? nonCommittedHex : () => ({supportingCss: wrapCss, varVal: nonCommittedHex});
+                valOrGetValBundle = !supportingCss && !mediaQueryWrap ? nonCommittedHex : () => ({supportingCss, mediaQueryWrap, varVal: nonCommittedHex});
             } else {
                 valOrGetValBundle = 'initial';
                 this.resetValueIsPending = false;

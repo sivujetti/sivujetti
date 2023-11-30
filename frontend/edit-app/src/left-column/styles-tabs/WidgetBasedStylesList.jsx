@@ -10,7 +10,8 @@ import {createAddableUnits, createDataPropForValueInputRenderer, getBaseUnit, ge
         withoutAppendix, createVarInsights, compileScss} from './widget-based-tab-funcs.js';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
 import {splitToScreenSizeParts, joinFromScreenSizeParts,
-        expandToInternalRepr, optimizeFromInternalRepr} from './scss-manip-funcs.js';
+        expandToInternalRepr, optimizeFromInternalRepr, withApdxes,
+        OPT_SCSS_SPLIT_MARKER} from './scss-manip-funcs.js';
 import {extractVars, replaceVarValue, valueEditors, varNameToLabel} from './scss-ast-funcs.js';
 
 class WidgetBasedStylesList extends preact.Component {
@@ -79,8 +80,12 @@ class WidgetBasedStylesList extends preact.Component {
                 const key = unit.id;
                 const curScreenSizeTabScss = screenSizesScss[curTabIdx];
                 const [cssVars, ast] = extractVars(curScreenSizeTabScss, 'dummy');
-                const [baseVars, _baseAst] = unit.derivedFrom ? extractVars(screenSizesScss[0], 'dummy') : [[], null];
-                const varsInsights = unit.derivedFrom && curTabIdx > 0 ? createVarInsights(cssVars, baseVars) : [];
+                const varsInsights = (function () {
+                    if (!unit.derivedFrom) return []; // todo
+                    const baseScss = itm.parenPartScssApdxified;
+                    const [baseVars, _baseAst] = extractVars(baseScss, 'dummy');
+                    return createVarInsights(cssVars, baseVars);
+                })();
                 return <li key={ key } class="open">
                     <header class="flex-centered p-relative">
                         <b
@@ -164,17 +169,25 @@ class WidgetBasedStylesList extends preact.Component {
         return {
             itemsToShow: unitsToShow.map(unit => {
                 let screenSizesScss;
+                let parenPartScssApdxified;
                 if (!unit.derivedFrom) {
-                    screenSizesScss = splitToScreenSizeParts(unit.scss);
+                    const screenSizesScss1 = splitToScreenSizeParts(unit.scss);
+                    const basePart = screenSizesScss1[0];
+                    parenPartScssApdxified = null;
+                    screenSizesScss = screenSizesScss1.map((p, i) => i > 0
+                        ? expandToInternalRepr(`${p.indexOf(OPT_SCSS_SPLIT_MARKER) < 0 ? OPT_SCSS_SPLIT_MARKER : ''}${p}`, basePart)
+                        : p);
                 } else {
                     const screenSizesScss1 = splitToScreenSizeParts(unit.scss);
                     const parenUnit = getBaseUnit(unit, unitsOfThisBlockType);
                     const basePart = splitToScreenSizeParts(parenUnit.scss)[0];
-                    screenSizesScss = screenSizesScss1.map(p => expandToInternalRepr(p, basePart, 'u5'));
+                    parenPartScssApdxified = withApdxes(basePart, 'u5');
+                    screenSizesScss = screenSizesScss1.map(p => expandToInternalRepr(p, parenPartScssApdxified, null));
                 }
                 const isDefault = isBodyRemote(unit.id);
                 return {
                     unit,
+                    parenPartScssApdxified,
                     screenSizesScss,
                     isDefault,
                     cls: !isDefault ? createUnitClass(unit.id, blockCopy.type) : createUnitClassSpecial(unit.id, blockCopy.type),
@@ -189,33 +202,38 @@ class WidgetBasedStylesList extends preact.Component {
      * @param {String|null} newVal
      * @param {CssVar} cssVar
      * @param {Array<StylisAstNode>} ast
-     * @param {Todo} item
+     * @param {WidgetBasedStyleListItem} item
      * @param {UnitVarInsights} insights
      * @param {Number} partIdx
      * @access private
      */
     emitVarValueChange(newVal, cssVar, ast, {unit, screenSizesScss, cls}, {baseValueLiteral, hasBaseValue}, partIdx) {
+        let val, partToOptimized;
         if (!unit.derivedFrom) {
-            //
+            val = newVal;
+            const baseUnitScss = screenSizesScss[0];
+            partToOptimized = (p, i) => i > 0 ? optimizeFromInternalRepr(p, baseUnitScss) : p;
         } else {
             if ((newVal !== null && hasBaseValue === false) || // already had custom val (update var val)
                 (newVal !== null && hasBaseValue === true) || // has default val (add var)
                 (newVal === null && hasBaseValue === false)) { // already has custom, but new is null (clear var)
-                const val = newVal || baseValueLiteral;
-                updateAndEmitUnitScss(unit, _copy => {
-                    const node = ast[0].children[cssVar.__idx];
-                    const varDecl = node.props; // '--foo'
-                    node.children = val;
-                    node.value = `${varDecl}:${val};`;
-                    const partUpdated = replaceVarValue(screenSizesScss[partIdx], node, val);
-                    const updatedPartsIR = screenSizesScss.map((s, i) => i !== partIdx ? s : partUpdated);
-                    const updatedParts = this.optimizePartsFromInternalRepr(updatedPartsIR, unit);
-                    const asString = joinFromScreenSizeParts(updatedParts);
-                    return {newScss: asString,
-                            newGenerated: compileScss(asString, cls)};
-                }, !unit.origin ? this.props.blockCopy.type : SPECIAL_BASE_UNIT_NAME);
+                val = newVal || baseValueLiteral;
+                const baseUnitScss = getBaseUnit(unit, this.state.unitsOfThisBlockType).scss;
+                partToOptimized = p => optimizeFromInternalRepr(p, baseUnitScss);
             }
         }
+        if (partToOptimized) updateAndEmitUnitScss(unit, () => {
+            const node = ast[0].children[cssVar.__idx];
+            const varDecl = node.props; // '--foo'
+            node.children = val;
+            node.value = `${varDecl}:${val};`;
+            const partUpdated = replaceVarValue(screenSizesScss[partIdx], node, val);
+            const updatedPartsIR = screenSizesScss.map((s, i) => i !== partIdx ? s : partUpdated);
+            const updatedParts = updatedPartsIR.map(partToOptimized);
+            const asString = joinFromScreenSizeParts(updatedParts);
+            return {newScss: asString,
+                    newGenerated: compileScss(asString, cls)};
+        }, !unit.origin ? this.props.blockCopy.type : SPECIAL_BASE_UNIT_NAME);
     }
     /**
      * @param {Event} e
@@ -276,18 +294,15 @@ class WidgetBasedStylesList extends preact.Component {
             ...moreLinks,
         ];
     }
-    /**
-     * @param {Array<String>} partsInternalRepr
-     * @param {ThemeStyleUnit} unit
-     * @returns {Array<String>}
-     */
-    optimizePartsFromInternalRepr(partsInternalRepr, unit) {
-        const baseUnitScss = getBaseUnit(unit, this.state.unitsOfThisBlockType).scss;
-        return partsInternalRepr.map(p => optimizeFromInternalRepr(p, baseUnitScss));
-    }
 }
 
-// Todo
-// {unit: ThemeStyleUnit; screenSizesScss: Array<String>; isDefault: Boolean; cls: String;}
+/**
+ * @typedef WidgetBasedStyleListItem
+ * @prop {ThemeStyleUnit} unit
+ * @prop {String|null} parenPartScssApdxified
+ * @prop {Array<String>} screenSizesScss
+ * @prop {Boolean} isDefault
+ * @prop {String} cls
+ */
 
 export default WidgetBasedStylesList;

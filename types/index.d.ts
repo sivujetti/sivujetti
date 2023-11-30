@@ -254,7 +254,7 @@ interface EditAppAwareWebPage {
     createThemeStylesChangeListener(): (state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void;
     getGlobalListenerCreateCallables(): Array<[String, (...args: any) => void]>;
     setIsMouseListenersDisabled(isDisabled: Boolean): void;
-    fastOverrideStyleUnitVar(selector: String, varName: String, varValue: String|(() => String), valueType: 'color'): void;
+    fastOverrideStyleUnitVar(selector: String, varName: String, varValue: String|(() => {supportingCss: String; mediaQueryWrap: String|null; varVal: String;}), valueType: 'color'): void;
     setCssVarValue(varName: String, to: RawCssValue): void;
     getBlockEl(blockId: String): HTMLElement|null;
     setOnReRenderOrUpdateStyles(fn: () => void): void;
@@ -461,10 +461,16 @@ interface ValueInputProps<T> {
     varName: String;
     valueReal: T;
     argsCopy: Array<String>;
-    data: {selector: String; wrapCss?: String;}|null;
+    data: ColorValueInputPropsData|null;
     isClearable: Boolean;
     labelTranslated: String;
     onVarValueChanged: (newValAsString: String|null) => void;
     showNotice: Boolean;
     noticeDismissedWith: (accepted: Boolean) => void;
+}
+
+interface ColorValueInputPropsData {
+    selector: String;
+    mediaQueryWrap: String|null;
+    supportingCss?: String;
 }

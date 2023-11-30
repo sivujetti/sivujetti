@@ -76,14 +76,14 @@ function createAddableUnits(unitsOfThisBlockType, enabledUnits, blockTypeName, u
  * @param {CssVar} cssVar
  * @param {ThemeStyleUnit} unit
  * @param {String} cls
- * @param {[String, String]|null} sdu = null
- * @returns {{selector: String; mediaQueryWrap: String|null; supportingCss?: String;}|null}
+ * @param {String|null} mediaQueryWrap = null
+ * @returns {ColorValueInputPropsData|null}
  */
-function createDataPropForValueInputRenderer(cssVar, unit, cls, sdu = null) {
+function createDataPropForValueInputRenderer(cssVar, unit, cls, mediaQueryWrap = null) {
     if (cssVar.type !== 'color') return null;
 
     return {
-        ...{selector: `.${cls}`, mediaQueryWrap: sdu},
+        ...{selector: `.${cls}`, mediaQueryWrap},
         ...(unit.optimizedGeneratedCss && unit.optimizedScss.indexOf(`var(--${cssVar.varName}`) < 0
             ? {supportingCss: `@layer units { ${unit.generatedCss} }`}
             : {})

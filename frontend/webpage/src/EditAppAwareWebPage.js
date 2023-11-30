@@ -245,29 +245,34 @@ class EditAppAwareWebPage {
     /**
      * @param {String} selector Example '.j-Text-unit-6'
      * @param {String} varName Example 'textColor'
-     * @param {String|() => {supportingCss: String; varVal: String;}} varValue Example '#f5f5f5' or () => {supportingCss: '.j-Section-d-6:before{content:"";background-color:var(--cover_Section_u6);...}'; varVal: '#f5f5f5'}
+     * @param {String|() => {supportingCss: String; mediaQueryWrap: String|null; varVal: String;}} varValueOrVarCfg Example '#f5f5f5' or () => {supportingCss: '.j-Section-d-6:before{content:"";background-color:var(--cover_Section_u6);...}', mediaQueryWrap: '@media (max-width: 960px) { '; varVal: '#f5f5f5'}
      * @param {'color'} valueType
      * @access public
      */
-    fastOverrideStyleUnitVar(selector, varName, varValue, valueType) {
+    fastOverrideStyleUnitVar(selector, varName, varValueOrVarCfg, valueType) {
         if (valueType !== 'color') throw new Error();
 
         const [el, attrSelector] = this.createOrGetTempStyleTag(selector, 'var-override');
 
-        let varValueFinal;
-        if (typeof varValue === 'function') {
+        let varValue, outerBefore, outerAfter;
+        if (typeof varValueOrVarCfg === 'function') {
+            const {supportingCss, mediaQueryWrap, varVal} = varValueOrVarCfg();
+            ([outerBefore, outerAfter] = mediaQueryWrap ? [mediaQueryWrap, ' }'] : ['' ,'']);
             // #1: supporting css
-            const {supportingCss, varVal} = varValue();
-            const [el2, attrSelector2] = this.createOrGetTempStyleTag(`${selector}-wrap`, 'supporting-css');
-            el2.innerHTML = supportingCss;
-            this.addRemoveTempStyleTagTimeout(attrSelector2);
-            varValueFinal = varVal;
+            if (supportingCss) {
+                const [el2, attrSelector2] = this.createOrGetTempStyleTag(`${selector}-wrap`, 'supporting-css');
+                el2.innerHTML = supportingCss;
+                this.addRemoveTempStyleTagTimeout(attrSelector2);
+            }
+            varValue = varVal;
         } else {
-            varValueFinal = varValue;
+            varValue = varValueOrVarCfg;
+            outerBefore = '';
+            outerAfter = '';
         }
 
         // #2: variable
-        el.innerHTML = `${selector} { ${`--${varName}: ${varValueFinal};`} }`;
+        el.innerHTML = `${outerBefore}${selector} { ${`--${varName}: ${varValue};`} }${outerAfter}`;
 
         this.addRemoveTempStyleTagTimeout(attrSelector);
     }

@@ -4,7 +4,6 @@ import {SPECIAL_BASE_UNIT_NAME, ir1, getRemoteBodyUnit, blockHasStyleClass,
         createUnitClass, isBodyRemote, dispatchNewBlockStyleClasses, findRealUnit,
         blockHasStyle, splitUnitAndNonUnitClasses, emitCommitStylesOp, findBlockTypeStyles,
         findBaseUnitOf} from './styles-tabs-common.js';
-import {valueEditors} from './scss-ast-funcs.js';
 
 const {compile, serialize, stringify} = window.stylis;
 
@@ -244,7 +243,7 @@ function getBaseUnit(unit, unitsOfThisBlockType) {
  * @param {Array<CssVar>} baseVars
  * @returns {Array<UnitVarInsights>}
  */
-function createVarInsights(cssVars, baseVars) {
+function varsToInsights(cssVars, baseVars) {
     return cssVars.map(cssVar => {
         const bpv = baseVars.find(({varName}) => varName === cssVar.varName);
         return {
@@ -265,4 +264,4 @@ function compileScss(scss, cls) {
 
 export {getEnabledUnits, getEditableUnits, createAddableUnits, createDataPropForValueInputRenderer,
         removeStyleClassMaybeRemote, removeStyleUnitMaybeRemote, withoutAppendix,
-        getBaseUnit, createVarInsights, compileScss};
+        getBaseUnit, varsToInsights, compileScss};

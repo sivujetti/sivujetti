@@ -35,6 +35,17 @@ stringBundles.push({
     'You lack permissions to edit this content.': 'Käyttöoikeutesi ei riitä muokkaamaan tätä sisältöä.',
     // edit-app/src/left-column/styles-tabs/LengthValueInput.jsx
     'Restore default': 'Palauta oletus',
+    // edit-app/src/left-column/styles-tabs/ScreenSizesVerticalTabs.jsx
+    'All sizes': 'Kaikki leveydet',
+    'Desktops': 'Pöytäkoneet',
+    'laptops': 'läppärit',
+    '%s or smaller': '%s tai pienempi',
+    'Tablets': 'Tabletit',
+    'Small tablets': 'Pienet tabletit',
+    'Phones': 'Puhelimet',
+    'Small phones': 'Pienet puhelimet',
+    'Screen sizes': 'Tyylien näyttökoot',
+    'What\'re these?': 'Mitä nämä on?',
     // edit-app/src/left-column/styles-tabs/WidgetBasedStylesList.jsx
     'You can add and remove this content\'s styles in "Styles" tab': 'Voit poistaa ja lisätä tämän sisällön tyylejä "Tyylit"-tabissa',
     'This style does not have editable values.': 'Tässä tyylissä ei ole muokattavia arvoja.',
@@ -185,6 +196,7 @@ stringBundles.push({
     'todo12': 'Sisällöstä luodaan aina uusi kopio, kun se lisätään sivuun.',
     'Unique': 'Uniikki',
     'todo13': 'Sisältö viittaa samaan tietoon, vaikka se olisi usealla eri sivulla (esim. "Footer").',
+    'Cancel': 'Peruuta',
     // edit-app/src/popups/styles/EditUnitOrSetAsDefaultDialog.jsx
     'Specifier': 'Tarkenne',
     'todo16 %s': 'Tämä toiminto merkitsee nämä tyylit tyyleihin, jota käytetään automaattisesti uusissa, sivuun lisätyissä  %s -sisällöissä.',
@@ -193,7 +205,11 @@ stringBundles.push({
     'optional': 'vapaaehtoinen',
     'Evaluates to\n`body [specifierHere] .%s`': 'Evaluoituu muotoon\n`body [tarkenneTähän] .%s`',
     'e.g. `>`, `div`, `.j-Button >`': 'esim. `>`, `div`, `.j-Button >`',
-    'Cancel': 'Peruuta',
+    // edit-app/src/popups/styles/ScreenSizesTabShowHelpPopup.jsx
+    'You can define styles separately for different screen widths. The style for the smallest screen size "wins".': 'Voit määritellä tyylit erikseen eri levyisille näytöille. Pienimmän näyttökoon tyyli "voittaa".',
+    'Width': 'Leveys',
+    'Affects when screen is': 'Vaikuttaa leveydellä',
+    'Examples': 'Esimerkit',
     // edit-app/src/popups/BlockTreeShowHelpPopup.jsx
     'In Sivujetti, the content of pages is presented as a tree structure: each row or branch in the tree corresponds to a section or content of the page. You can ': 'Sivujetissä sivujen sisältö esitetään tällaisena puurakenteena: yksi puun rivi tai oksa vastaa yhtä sivun osiota tai sisältöä. Voit ',
     'arrange': 'järjestellä',

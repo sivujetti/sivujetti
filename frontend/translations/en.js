@@ -35,6 +35,17 @@ stringBundles.push({
     'You lack permissions to edit this content.': 'You lack permissions to edit this content.',
     // edit-app/src/left-column/styles-tabs/LengthValueInput.jsx
     'Restore default': 'Restore default',
+    // edit-app/src/left-column/styles-tabs/ScreenSizesVerticalTabs.jsx
+    'All sizes': 'All sizes',
+    'Desktops': 'Desktops',
+    'laptops': 'laptops',
+    '%s or smaller': '%s or smaller',
+    'Tablets': 'Tablets',
+    'Small tablets': 'Small tablets',
+    'Phones': 'Phones',
+    'Small phones': 'Small phones',
+    'Screen sizes': 'Screen sizes',
+    'What\'re these?': 'What\'re these?',
     // edit-app/src/left-column/styles-tabs/WidgetBasedStylesList.jsx
     'You can add and remove this content\'s styles in "Styles" tab': 'You can add and remove this content\'s styles in "Styles" tab',
     'This style does not have editable values.': 'This style does not have editable values.',
@@ -193,6 +204,11 @@ stringBundles.push({
     'optional': 'optional',
     'Evaluates to\n`body [specifierHere] .%s`': 'Evaluates to\n`body [specifierHere] .%s`',
     'e.g. `>`, `div`, `.j-Button >`': 'e.g. `>`, `div`, `.j-Button >`',
+    // edit-app/src/popups/styles/ScreenSizesTabShowHelpPopup.jsx
+    'You can define styles separately for different screen widths. The style for the smallest screen size "wins".': 'You can define styles separately for different screen widths. The style for the smallest screen size "wins".',
+    'Width': 'Width',
+    'Affects when screen is': 'Affects when screen is',
+    'Examples': 'Examples',
     // edit-app/src/popups/BlockTreeShowHelpPopup.jsx
     'In Sivujetti, the content of pages is presented as a tree structure: each row or branch in the tree corresponds to a section or content of the page. You can ': 'In Sivujetti, the content of pages is presented as a tree structure: each row or branch in the tree corresponds to a section or content of the page. You can ',
     'arrange': 'arrange',

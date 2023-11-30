@@ -1,4 +1,5 @@
-import {__, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
+import ScreenSizesTabShowHelpPopup from '../../popups/styles/ScreenSizesTabShowHelpPopup.jsx';
 
 class ScreenSizesVerticalTabs extends preact.Component {
     /**
@@ -10,34 +11,38 @@ class ScreenSizesVerticalTabs extends preact.Component {
                 <button
                     onClick={ () => setCurTabIdx(0) }
                     class={ `btn btn-link text-tiny${curTabIdx !== 0 ? '' : ' current'}` }
-                    title={ __('Larget screens (<= 960px)') }>
+                    title={ `${__('All sizes')} (${__('Desktops').toLowerCase()} / ${__('laptops')})` }>
                     <span class="color-dimmed3">*</span>
                 </button>
                 <button
                     onClick={ () => setCurTabIdx(1) }
                     class={ `btn btn-link text-tiny${curTabIdx !== 1 ? '' : ' current'}` }
-                    title={ __('Large screens (<= 960px)') }>
+                    title={ `${__('%s or smaller', '960px')} (${__('Tablets').toLowerCase()})` }>
                     <span class="color-dimmed3">L</span>
                 </button>
                 <button
                     onClick={ () => setCurTabIdx(2) }
                     class={ `btn btn-link text-tiny${curTabIdx !== 2 ? '' : ' current'}` }
-                    title={ __('Medium-sized screens (<= 840px)') }>
+                    title={ `${__('%s or smaller', '840px')} (${__('Small tablets').toLowerCase()})` }>
                     <span class="color-dimmed3">M</span>
                 </button>
                 <button
                     onClick={ () => setCurTabIdx(3) }
                     class={ `btn btn-link text-tiny${curTabIdx !== 3 ? '' : ' current'}` }
-                    title={ __('Small screens (<= 600px)') }>
+                    title={ `${__('%s or smaller', '600px')} (${__('Phones').toLowerCase()}})` }>
                     <span class="color-dimmed3">S</span>
                 </button>
                 <button
                     onClick={ () => setCurTabIdx(4) }
                     class={ `btn btn-link text-tiny${curTabIdx !== 4 ? '' : ' current'}` }
-                    title={ __('Extra small screens (<= 480px)') }>
+                    title={ `${__('%s or smaller', '480px')} (${__('Small phones').toLowerCase()})` }>
                     <span class="color-dimmed3">Xs</span>
                 </button>
-                <button onClick={ () => alert('Foo') } class="btn btn-link" title={ __('What\'re these?') }>
+                <button onClick={ () => floatingDialog.open(ScreenSizesTabShowHelpPopup, {
+                        title: __('Screen sizes'),
+                    }, {}) }
+                    class="btn btn-link"
+                    title={ __('What\'re these?') }>
                     <Icon iconId="info-circle" className="size-xxs"/>
                 </button>
             </div>

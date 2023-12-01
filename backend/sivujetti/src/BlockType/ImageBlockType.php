@@ -12,7 +12,10 @@ class ImageBlockType implements BlockTypeInterface {
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
         return $builder
             ->newProperty("src")
-                ->dataType($builder::DATA_TYPE_TEXT, isNullable: true, validationRules: [["notContains", "/", "string"]])
+                ->dataType($builder::DATA_TYPE_TEXT, isNullable: true, validationRules: [
+                    ["notContains", "./", "string"],
+                    ["notContains", ".%2F", "string"],
+                ])
             ->newProperty("altText", $builder::DATA_TYPE_TEXT)
             ->newProperty("caption", $builder::DATA_TYPE_TEXT)
             ->getResult();

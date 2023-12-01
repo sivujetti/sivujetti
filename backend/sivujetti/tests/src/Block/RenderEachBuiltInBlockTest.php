@@ -246,6 +246,15 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         //
         $expectedHtml = $makeExpectedHtml($b[2], ImageBlockType::PLACEHOLDER_SRC, caption: "escape&quot;");
         $this->renderAndVerify($state, 2, $expectedHtml);
+        //
+        $expectedHtml = $makeExpectedHtml($b[3], Template::escAttr($b[3]->src));
+        $this->renderAndVerify($state, 3, $expectedHtml);
+        //
+        $expectedHtml = $makeExpectedHtml($b[4], "//" . Template::escAttr($b[4]->src));
+        $this->renderAndVerify($state, 4, $expectedHtml);
+        //
+        $expectedHtml = $makeExpectedHtml($b[5], Template::escAttr($b[5]->src));
+        $this->renderAndVerify($state, 5, $expectedHtml);
     }
     private function setupRenderImageBlocksTest(): \TestState {
         $state = parent::setupTest();
@@ -260,6 +269,15 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
             $this->blockTestUtils->makeBlockData(Block::TYPE_IMAGE,
                 propsData: ["src" => null, "altText" => "", "caption" => "escape\""],
                 styleClasses: "",
+                id: "@auto"),
+            $this->blockTestUtils->makeBlockData(Block::TYPE_IMAGE,
+                propsData: ["src" => "https://ext.com/pic.png", "altText" => "", "caption" => ""],
+                id: "@auto"),
+            $this->blockTestUtils->makeBlockData(Block::TYPE_IMAGE,
+                propsData: ["src" => "ext.com/pi\"c.webp", "altText" => "", "caption" => ""],
+                id: "@auto"),
+            $this->blockTestUtils->makeBlockData(Block::TYPE_IMAGE,
+                propsData: ["src" => "/local-di\"r/pic.png", "altText" => "", "caption" => ""],
                 id: "@auto"),
         ];
         return $state;

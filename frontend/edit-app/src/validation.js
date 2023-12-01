@@ -26,6 +26,15 @@ const urlValidatorImpl = {doValidate: (val, hints = {}) => {
     }
 }, errorMessageTmpl: '{field} is not valid'};
 
+const mediaUrlValidatorImpl = {doValidate: (val, hints = {}) => {
+    if (!val) {
+        const allowEmpty = Object.prototype.hasOwnProperty.call(hints, 'allowEmpty') ? hints.allowEmpty : true;
+        return allowEmpty;
+    }
+    const containsDotSlash = val.indexOf('./') > -1;
+    return containsDotSlash === false;
+}, errorMessageTmpl: '{field} is not valid media url'};
+
 /**
  * @param {String} input
  * @returns {String}
@@ -42,4 +51,4 @@ function createCanonicalUrl(input) {
     }
 }
 
-export {urlValidatorImpl, createCanonicalUrl};
+export {urlValidatorImpl, mediaUrlValidatorImpl, createCanonicalUrl};

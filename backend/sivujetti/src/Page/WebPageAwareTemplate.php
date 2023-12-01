@@ -98,22 +98,41 @@ final class WebPageAwareTemplate extends Template {
         return self::makeUrl($url, $withIndexFile);
     }
     /**
-     * @param string $url
+     * @param string $url Example: "/local-page", "#local-hash", "", "https://external.com", "external.com", "mailto:foo", "steam://bar"
      * @return string
      */
     public function maybeExternalUrl(string $url): string {
         $first = $url[0] ?? "";
-        if ($url === "" || $first === "#")
+        if ($first === "" || $first === "#")
             return $url;
         //
         $isLocal = $first === "/";
         if ($isLocal)
             return !str_starts_with($url, "/public/uploads") ? $this->makeUrl($url) : $this->mediaUrl($url);
         //
-        $pcs = explode(":", $url);
-        return count($pcs) > 1 // http://foo.com, mailto:foo, steam://bar
-            ? self::escAttr($url)
-            : self::escAttr("//{$url}");
+        return self::escAttr(count(explode(":", $url, 2)) > 1 // "https://foo.com", "mailto:foo", "steam://bar"
+            ? $url
+            : "//{$url}");
+    }
+    /**
+     * @param string $src Example: "local-pic.jpg", "", "https://external.com/pic.jpg", "external.com/pic.jpg"
+     * @return string
+     */
+    public function maybeExternalMediaUrl(string $src): string {
+        if (!$src)
+            return $src;
+        $isLocal = !str_contains($src, "/");
+        if ($isLocal)
+            return $this->mediaUrl("public/uploads/{$src}");
+        //
+        return self::escAttr(
+            // "/local-dir/img.jpg"
+            $src[0] === "/" ||
+            // "https://foo.com/img.jpg"
+            count(explode(":", $src, 2)) > 1
+                ? $src
+                : "//{$src}"
+        );
     }
     /**
      * @param string $url

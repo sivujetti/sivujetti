@@ -1,6 +1,6 @@
-import {__, env, urlUtils, hookForm, unhookForm, reHookValues, FormGroupInline,
+import {__, env, urlUtils, hookForm, unhookForm, reHookValues, FormGroup,
         Textarea, InputErrors, Icon, validationConstraints} from '@sivujetti-commons-for-edit-app';
-import ImagePicker from '../block-widget/ImagePicker.jsx';
+import {ImagePicker2} from '../block-widget/ImagePicker.jsx';
 import {placeholderImageSrc} from '../commons/FileUploader.jsx';
 import setFocusTo from './auto-focusers.js';
 
@@ -28,17 +28,17 @@ class ImageBlockEditForm extends preact.Component {
         grabChanges((block, _origin, isUndo) => {
             if (this.state.src !== block.src)
                 this.setState({src: block.src});
-            if (isUndo && this.state.values.altText !== block.altText)
-                reHookValues(this, [{name: 'altText', value: block.altText}]);
-            if (isUndo && this.state.values.caption !== block.caption)
-                reHookValues(this, [{name: 'caption', value: block.caption}]);
+            if (isUndo && (this.state.values.altText !== block.altText ||
+                           this.state.values.caption !== block.caption))
+                reHookValues(this, [{name: 'altText', value: block.altText},
+                                    {name: 'caption', value: block.caption}]);
         });
     }
     /**
      * @access protected
      */
     componentDidMount() {
-        setFocusTo(this.imagePicker);
+        setFocusTo(this.imagePicker.current.inputEl);
     }
     /**
      * @access protected
@@ -51,21 +51,21 @@ class ImageBlockEditForm extends preact.Component {
      * @access protected
      */
     render(_, {src}) {
-        return <div class="form-horizontal pt-0">
-            <FormGroupInline>
+        return [
+            <FormGroup>
                 <label htmlFor="src" class="form-label">{ __('Image file') }</label>
-                <ImagePicker
-                    onImageSelected={ this.handleImageChanged.bind(this) }
-                    initialImageFileName={ src }
+                <ImagePicker2
+                    src={ src }
+                    onSrcCommitted={ this.emitNewSrc.bind(this) }
                     inputId="src"
                     ref={ this.imagePicker }/>
-            </FormGroupInline>
-            <FormGroupInline labelFlow="break">
+            </FormGroup>,
+            <FormGroup labelFlow="break">
                 <label htmlFor="altText" class="form-label with-icon" title={ __('Alt text') }>
                     { __('Alt text') }
                 </label>
                 <div class="p-relative">
-                    <Textarea vm={ this } prop="altText" id="altText" rows="1" style="min-height:unset"/>
+                    <Textarea vm={ this } prop="altText" id="altText" rows="2" style="min-height:unset"/>
                     <span
                         class="tooltip tooltip-left p-absolute"
                         data-tooltip={ __('The text that a browser displays\nif the image cannot be loaded') }
@@ -74,23 +74,43 @@ class ImageBlockEditForm extends preact.Component {
                     </span>
                 </div>
                 <InputErrors vm={ this } prop="altText"/>
-            </FormGroupInline>
-            <FormGroupInline>
+            </FormGroup>,
+            <FormGroup>
                 <label htmlFor="caption" class="form-label with-icon" title={ __('Caption') }>
                     { __('Caption') }
                 </label>
-                <Textarea vm={ this } prop="caption" id="caption" rows="1" style="min-height:unset"/>
+                <Textarea vm={ this } prop="caption" id="caption" rows="2" style="min-height:unset"/>
                 <InputErrors vm={ this } prop="caption"/>
-            </FormGroupInline>
-        </div>;
+            </FormGroup>
+        ];
     }
     /**
-     * @param {UploadsEntry|null} img
+     * @param {String|null} src
      */
-    handleImageChanged(img) {
-        const src = img ? img.fileName : null;
-        this.props.emitValueChanged(src, 'src', false, 0, 'debounce-none');
+    emitNewSrc(src) {
+        this.props.emitValueChanged(src, 'src', false, env.normalTypingDebounceMillis);
     }
+}
+
+/**
+ * @param {String|null} src
+ * @returns {String}
+ */
+function completeSrc(src) {
+    if (!src)
+        return placeholderImageSrc;
+    const isLocal = src.indexOf('/') < 0;
+    if (isLocal)
+        return urlUtils.makeAssetUrl(`public/uploads/${src}`);
+    //
+    return (
+        // "/local-dir/img.jpg"
+        src[0] === '/' ||
+        // "https://foo.com/img.jpg"
+        src.split(':') > 1
+            ? src
+            : `//${src}`
+    );
 }
 
 export default () => {
@@ -112,9 +132,7 @@ export default () => {
                 '" data-block-type="', name,
                 '" data-block="', id,
                 '">',
-                    '<img src="',
-                        src ? urlUtils.makeAssetUrl(`public/uploads/${src}`) : placeholderImageSrc,
-                        '"', ' alt="', altText , '">',
+                    '<img src="', completeSrc(src), '"', ' alt="', altText , '">',
                     caption ? `<figcaption>${caption}</figcaption>` : '',
                 renderChildren(),
             '</figure>'

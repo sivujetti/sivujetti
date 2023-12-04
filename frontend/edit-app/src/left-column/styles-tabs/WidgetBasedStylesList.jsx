@@ -1,47 +1,43 @@
 import {__, api} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import store2, {observeStore as observeStore2} from '../../store2.js';
-import {createUnitClass, createUnitClassSpecial, emitCommitStylesOp, findBlockTypeStyles,
-        findBodyStyle, findRealUnit, isBodyRemote, SPECIAL_BASE_UNIT_NAME,
-        updateAndEmitUnitScss} from './styles-tabs-common.js';
+import {createUnitClass, emitCommitStylesOp, findBodyStyle, isBodyRemote,
+        SPECIAL_BASE_UNIT_NAME, updateAndEmitUnitScss} from './styles-tabs-common.js';
 import EditableTitle from './EditableTitle.jsx';
 import {createAddableUnits, createDataPropForValueInputRenderer, getBaseUnit,
-        getEnabledUnits, removeStyleClassMaybeRemote, removeStyleUnitMaybeRemote,
-        withoutAppendix, compileScss, varsToInsights, createAddUnitsDropdownList,
-        emitAddStyleClassToBlock, getLargestPostfixNum, getEditableUnits,
-        getInitialScssWithMaybeInheritedValues} from './widget-based-tab-funcs.js';
+        getEnabledUnits, withoutAppendix, varsToInsights, createAddUnitsDropdownList,
+        emitAddStyleClassToBlock, getEditableUnits} from './widget-based-tab-funcs.js';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
 import {splitToScreenSizeParts, joinFromScreenSizeParts,
         expandToInternalRepr, optimizeFromInternalRepr, withApdxes,
         OPT_SCSS_SPLIT_MARKER} from './scss-manip-funcs.js';
 import {extractVars, replaceVarValue, valueEditors, varNameToLabel} from './scss-ast-funcs.js';
+import AbstractStylesList, {getUnitsOfBlockType, createListItem,
+                            getLargestPostfixNum, compileScss} from './AbstractStylesList.jsx';
 
-class WidgetBasedStylesList extends preact.Component {
+class WidgetBasedStylesList extends AbstractStylesList {
     // unregistrables;
-    // editableTitleInstances;
-    // moreMenu;
     // curBlockStyleClasses;
     // bodyStyle;
     /**
      * @access protected
      */
     componentWillMount() {
+        super.componentWillMount();
         this.unregistrables = [];
-        this.editableTitleInstances = [];
-        this.moreMenu = preact.createRef();
         this.curBlockStyleClasses = this.props.blockCopy.styleClasses;
         this.bodyStyle = findBodyStyle(store2.get().themeStyles);
         const createStateCandidate = themeStyles => {
             const blockCopy = this.curBlockStyleClasses !== this.props.blockCopy.styleClasses
                 ? {...this.props.blockCopy, ...{styleClasses: this.curBlockStyleClasses}}
                 : this.props.blockCopy;
-            const unitsOfThisBlockType = findBlockTypeStyles(themeStyles, blockCopy.type)?.units || [];
+            const unitsOfThisBlockType = getUnitsOfBlockType(themeStyles, blockCopy.type);
             const unitsEnabled = getEnabledUnits(unitsOfThisBlockType, this.bodyStyle.units, blockCopy);
             return {blockCopy, unitsOfThisBlockType, unitsEnabled};
         };
         const updateState = ({blockCopy, unitsOfThisBlockType, unitsEnabled}) => {
             const state = this.createNewState(unitsOfThisBlockType, blockCopy, unitsEnabled);
-            this.editableTitleInstances = state.itemsToShow.map(_ => preact.createRef());
+            this.receiveUnits(state.itemsToShow);
             this.setState(state);
         };
         updateState(createStateCandidate(store2.get().themeStyles));
@@ -105,7 +101,7 @@ class WidgetBasedStylesList extends preact.Component {
                     </header>
                     <ScreenSizesVerticalTabs
                         curTabIdx={ curTabIdx }
-                        setCurTabIdx={ to => this.setState({curTabIdxs: curTabIdxs.map((idx, i2) => i2 !== i ? idx : to)}) }>
+                        setCurTabIdx={ to => this.setState(ScreenSizesVerticalTabs.createTabIdxesWithNewCurrentIdx(curTabIdxs, i, to)) }>
                         <div class="form-horizontal tight has-color-pickers pt-0 px-2">{ cssVars.length ? cssVars.map((cssVar, i2) => {
                             const Renderer = valueEditors.get(cssVar.type);
                             const insights = varsInsights[i2] || {};
@@ -176,7 +172,6 @@ class WidgetBasedStylesList extends preact.Component {
                 null,
                 null
             ];
-        const curCurTabIdxes = this.state.curTabIdxs || [];
         return {
             itemsToShow: unitsToShow.map(unit => {
                 let screenSizesScss;
@@ -194,16 +189,14 @@ class WidgetBasedStylesList extends preact.Component {
                     baseScss = withApdxes(basePart, `u${unit.id.split('-').at(-1)}`);
                     screenSizesScss = screenSizesScss1.map(p => expandToInternalRepr(p, baseScss, null));
                 }
-                const isDefault = isBodyRemote(unit.id);
-                return {
+                const commons = createListItem(unit, blockCopy.type);
+                return {...{
                     unit,
                     baseScss,
                     screenSizesScss,
-                    isDefault,
-                    cls: !isDefault ? createUnitClass(unit.id, blockCopy.type) : createUnitClassSpecial(unit.id, blockCopy.type),
-                };
+                }, ...commons};
             }),
-            curTabIdxs: unitsToShow.map((_, i) => curCurTabIdxes[i] || 0),
+            curTabIdxs: ScreenSizesVerticalTabs.createTabIdxes(unitsToShow, this),
             addable,
             unitsOfThisBlockType,
             unitsEnabled,
@@ -340,46 +333,6 @@ class WidgetBasedStylesList extends preact.Component {
                 ? links => links
                 : links => links.filter(({id}) => id !== 'deactivate-style'));
         }
-    }
-    /**
-     * @param {ContextMenuLink} link
-     * @returns {Boolean}
-     * @access protected
-     */
-    handleMoreMenuLinkClicked({id}) {
-        if (id === 'edit-style-title') {
-            this.editableTitleInstances[this.liIdxOfOpenMoreMenu].current.open();
-            return true;
-        }
-        if (id === 'deactivate-style') {
-            const [unit] = this.getOpenUnit();
-            removeStyleClassMaybeRemote(unit, this.props.blockCopy);
-            return true;
-        }
-        if (id === 'delete-style') {
-            const [unit, arr, isCodeBased] = this.getOpenUnit();
-            if (isCodeBased) {
-                const maybeRemote = findRealUnit(unit, this.props.blockCopy.type);
-                if (maybeRemote.isDerivable && arr.some(unit => unit.derivedFrom === maybeRemote.id)) {
-                    alert(__('This template has derivates and cannot be deleted.'));
-                    return true;
-                }
-            }
-            removeStyleUnitMaybeRemote(unit, this.props.blockCopy);
-            return true;
-        }
-        return false;
-    }
-    /**
-     * @param {Array<MenuLink>} moreLinks
-     * @returns {Array<MenuLink>}
-     * @access protected
-     */
-    createContextMenuLinks(moreLinks) {
-        return [
-            {text: __('Edit name'), title: __('Edit name'), id: 'edit-style-title'},
-            ...moreLinks,
-        ];
     }
 }
 

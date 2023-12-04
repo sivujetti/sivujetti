@@ -5,8 +5,6 @@ import {SPECIAL_BASE_UNIT_NAME, ir1, getRemoteBodyUnit, blockHasStyleClass,
         blockHasStyle, splitUnitAndNonUnitClasses, emitCommitStylesOp, findBlockTypeStyles,
         findBaseUnitOf} from './styles-tabs-common.js';
 
-const {compile, serialize, stringify} = window.stylis;
-
 /**
  * @param {Array<ThemeStyleUnit>} unitsOfThisBlockType
  * @param {Array<ThemeStyleUnit>} bodyStyleUnits
@@ -268,27 +266,7 @@ function varsToInsights(cssVars, baseVars) {
     });
 }
 
-/**
- * @param {String} scss
- * @param {String} cls
- * @returns {String}
- */
-function compileScss(scss, cls) {
-    return serialize(compile(`.${cls} {${scss}}`), stringify);
-}
-
-/**
- * @param {Array<{id: String; [key: String]: any;}} currentUnits
- * @returns {Number}
- */
-function getLargestPostfixNum(currentUnits) {
-    return currentUnits.reduce((out, {id}) => {
-        const maybe = parseInt(id.split('-').pop());
-        return !isNaN(maybe) ? maybe > out ? maybe : out : out;
-    }, 0);
-}
-
 export {getEnabledUnits, getEditableUnits, createAddableUnits, createAddUnitsDropdownList,
         createDataPropForValueInputRenderer, removeStyleClassMaybeRemote,
         removeStyleUnitMaybeRemote, withoutAppendix, getBaseUnit, varsToInsights,
-        compileScss, emitAddStyleClassToBlock, getLargestPostfixNum};
+        emitAddStyleClassToBlock};

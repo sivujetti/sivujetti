@@ -9,7 +9,7 @@ import {treeToTransferable} from '../../block/utils.js';
 import blockTreeUtils from './blockTreeUtils.js';
 import {findBlockFrom, getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
 import WidgetBasedStylesList from '../styles-tabs/WidgetBasedStylesList.jsx';
-import CodeBasedStylesList from './CodeBasedStylesList.jsx';
+import CodeBasedStylesList from '../styles-tabs/CodeBasedStylesList.jsx';
 
 /** @type {BlockTypes} */
 let blockTypes;

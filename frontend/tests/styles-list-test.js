@@ -1,6 +1,7 @@
 import {__} from '@sivujetti-commons-for-edit-app';
 import {SPECIAL_BASE_UNIT_NAME, createUnitClass} from '../edit-app/src/left-column/styles-tabs/styles-tabs-common.js';
-import {createAddableUnits, getEnabledUnits, getEditableUnits} from '../edit-app/src/left-column/styles-tabs/widget-based-tab-funcs.js';
+import {createAddableUnits, getEnabledUnits, getEditableUnits,
+        createAddUnitsDropdownList} from '../edit-app/src/left-column/styles-tabs/widget-based-tab-funcs.js';
 
 QUnit.module('styles-tabs-common.js, widget-based-tab-funcs.js', () => {
     QUnit.test('getEnabledUnits("Section") only returns default units if block has no styles enabled', assert => {
@@ -116,30 +117,30 @@ QUnit.module('styles-tabs-common.js, widget-based-tab-funcs.js', () => {
         ]);
     });
 
-    // QUnit.test('createAddUnitsDropdownList(userCanEditCss=false) for "Section"', assert => {
-    //     const {testUnits, testBlock, derived1, derived2, masterUnit} = createSectionTestData();
-    //     const unitsEnabled = getEnabledUnits(testUnits.ofThisBlockType, testUnits.ofBody, testBlock);
-    //     const userCanEditCss = false;
-    //     const addable = createAddableUnits(testUnits.ofThisBlockType, unitsEnabled, 'Section', userCanEditCss);
-    //     const result = createAddUnitsDropdownList(addable);
-    //     assert.equal(result.length, 4);
-    //     assert.deepEqual(result[0], {value: masterUnit.id, label: createLabel(masterUnit, 'create clone')}, '[0]');
-    //     assert.deepEqual(result[1], {value: '-', label: '---'}, '[1]');
-    //     assert.deepEqual(result[2], {value: derived1.id, label: createLabel(derived1, 'reuse')}, '[2]');
-    //     assert.deepEqual(result[3], {value: derived2.id, label: createLabel(derived2, 'reuse')}, '[3]');
-    // });
-    // QUnit.test('createAddUnitsDropdownList(userCanEditCss=false) for "Button"', assert => {
-    //     const {testUnits, testBlock, derived1, derived2, masterUnit} = createButtonTestData();
-    //     const userCanEditCss = false;
-    //     const unitsEnabled = getEnabledUnits(testUnits.ofThisBlockType, testUnits.ofBody, testBlock);
-    //     const addable = createAddableUnits(testUnits.ofThisBlockType, unitsEnabled, 'Button', userCanEditCss);
-    //     const result = createAddUnitsDropdownList(addable);
-    //     assert.equal(result.length, 4);
-    //     assert.deepEqual(result[0], {value: masterUnit.id, label: createLabel(masterUnit, 'create clone')}, '[0]');
-    //     assert.deepEqual(result[1], {value: '-', label: '---'}, '[1]');
-    //     assert.deepEqual(result[2], {value: derived1.id, label: createLabel(derived1, 'reuse')}, '[2]');
-    //     assert.deepEqual(result[3], {value: derived2.id, label: createLabel(derived2, 'reuse')}, '[3]');
-    // });
+    QUnit.test('createAddUnitsDropdownList(userCanEditCss=false) for "Section"', assert => {
+        const {testUnits, testBlock, derived1, derived2, masterUnit} = createSectionTestData();
+        const unitsEnabled = getEnabledUnits(testUnits.ofThisBlockType, testUnits.ofBody, testBlock);
+        const userCanEditCss = false;
+        const addable = createAddableUnits(testUnits.ofThisBlockType, unitsEnabled, 'Section', userCanEditCss);
+        const result = createAddUnitsDropdownList(addable);
+        assert.equal(result.length, 4);
+        assert.deepEqual(result[0], {value: masterUnit.id, label: createLabel(masterUnit, 'create clone')}, '[0]');
+        assert.deepEqual(result[1], {value: '-', label: '---'}, '[1]');
+        assert.deepEqual(result[2], {value: derived1.id, label: createLabel(derived1, 'reuse')}, '[2]');
+        assert.deepEqual(result[3], {value: derived2.id, label: createLabel(derived2, 'reuse')}, '[3]');
+    });
+    QUnit.test('createAddUnitsDropdownList(userCanEditCss=false) for "Button"', assert => {
+        const {testUnits, testBlock, derived1, derived2, masterUnit} = createButtonTestData();
+        const userCanEditCss = false;
+        const unitsEnabled = getEnabledUnits(testUnits.ofThisBlockType, testUnits.ofBody, testBlock);
+        const addable = createAddableUnits(testUnits.ofThisBlockType, unitsEnabled, 'Button', userCanEditCss);
+        const result = createAddUnitsDropdownList(addable);
+        assert.equal(result.length, 4);
+        assert.deepEqual(result[0], {value: masterUnit.id, label: createLabel(masterUnit, 'create clone')}, '[0]');
+        assert.deepEqual(result[1], {value: '-', label: '---'}, '[1]');
+        assert.deepEqual(result[2], {value: derived1.id, label: createLabel(derived1, 'reuse')}, '[2]');
+        assert.deepEqual(result[3], {value: derived2.id, label: createLabel(derived2, 'reuse')}, '[3]');
+    });
 
     function createSectionTestData() {
         const testUnits = getTestStyles('Section');

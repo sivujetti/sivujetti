@@ -1,4 +1,4 @@
-import {api} from '@sivujetti-commons-for-edit-app';
+import {__, api} from '@sivujetti-commons-for-edit-app';
 import store2 from '../../store2.js';
 import {SPECIAL_BASE_UNIT_NAME, ir1, getRemoteBodyUnit, blockHasStyleClass,
         createUnitClass, isBodyRemote, dispatchNewBlockStyleClasses, findRealUnit,
@@ -69,6 +69,21 @@ function createAddableUnits(unitsOfThisBlockType, enabledUnits, blockTypeName, u
         }
     }
     return [instantiable, reference];
+}
+
+/**
+ * @param {[Array<ThemeStyleUnit>, Array<ThemeStyleUnit>]} addableUnits [instantiable, reference]
+ * @returns {Array<{value: String; label: String;}>}
+ */
+function createAddUnitsDropdownList([instantiable, reference]) {
+    return [
+        ...instantiable.reduce((out, unit) => {
+            return [...out, {value: unit.id, label: `${__(unit.title)} (${__('create clone')})`}];
+        }, []),
+        ...(reference.length ? reference.reduce((out, unit) => {
+            return [...out, {value: unit.id, label: `${__(unit.title)} (${__('reuse')})`}];
+        }, [{value: '-', label: '---'}]) : [])
+    ];
 }
 
 /**
@@ -262,6 +277,18 @@ function compileScss(scss, cls) {
     return serialize(compile(`.${cls} {${scss}}`), stringify);
 }
 
-export {getEnabledUnits, getEditableUnits, createAddableUnits, createDataPropForValueInputRenderer,
-        removeStyleClassMaybeRemote, removeStyleUnitMaybeRemote, withoutAppendix,
-        getBaseUnit, varsToInsights, compileScss};
+/**
+ * @param {Array<{id: String; [key: String]: any;}} currentUnits
+ * @returns {Number}
+ */
+function getLargestPostfixNum(currentUnits) {
+    return currentUnits.reduce((out, {id}) => {
+        const maybe = parseInt(id.split('-').pop());
+        return !isNaN(maybe) ? maybe > out ? maybe : out : out;
+    }, 0);
+}
+
+export {getEnabledUnits, getEditableUnits, createAddableUnits, createAddUnitsDropdownList,
+        createDataPropForValueInputRenderer, removeStyleClassMaybeRemote,
+        removeStyleUnitMaybeRemote, withoutAppendix, getBaseUnit, varsToInsights,
+        compileScss, emitAddStyleClassToBlock, getLargestPostfixNum};

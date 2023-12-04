@@ -1,13 +1,15 @@
-import {__} from '@sivujetti-commons-for-edit-app';
+import {__, api} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import store2, {observeStore as observeStore2} from '../../store2.js';
-import {createUnitClass, createUnitClassSpecial, findBlockTypeStyles,
+import {createUnitClass, createUnitClassSpecial, emitCommitStylesOp, findBlockTypeStyles,
         findBodyStyle, findRealUnit, isBodyRemote, SPECIAL_BASE_UNIT_NAME,
         updateAndEmitUnitScss} from './styles-tabs-common.js';
 import EditableTitle from './EditableTitle.jsx';
-import {createAddableUnits, createDataPropForValueInputRenderer, getBaseUnit, getEditableUnits,
+import {createAddableUnits, createDataPropForValueInputRenderer, getBaseUnit,
         getEnabledUnits, removeStyleClassMaybeRemote, removeStyleUnitMaybeRemote,
-        withoutAppendix, compileScss, varsToInsights} from './widget-based-tab-funcs.js';
+        withoutAppendix, compileScss, varsToInsights, createAddUnitsDropdownList,
+        emitAddStyleClassToBlock, getLargestPostfixNum, getEditableUnits,
+        getInitialScssWithMaybeInheritedValues} from './widget-based-tab-funcs.js';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
 import {splitToScreenSizeParts, joinFromScreenSizeParts,
         expandToInternalRepr, optimizeFromInternalRepr, withApdxes,
@@ -72,12 +74,12 @@ class WidgetBasedStylesList extends preact.Component {
     /**
      * @access protected
      */
-    render({blockCopy, userCanEditVisualStyles}, {itemsToShow}) {
-        const [curTabIdx, setCurTabIdx] = preactHooks.useState(0);
+    render({blockCopy, userCanEditVisualStyles}, {itemsToShow, curTabIdxs, addable, selectOptions}) {
         return [itemsToShow.length
             ? <ul class="list styles-list mb-2">{ itemsToShow.map((itm, i) => {
                 const {unit, screenSizesScss, isDefault, cls} = itm;
                 const key = unit.id;
+                const curTabIdx = curTabIdxs[i];
                 const curScreenSizeTabScss = screenSizesScss[curTabIdx];
                 const [cssVars, ast] = extractVars(curScreenSizeTabScss, 'dummy');
                 const varsInsights = !unit.derivedFrom && curTabIdx === 0 ? [] : varsToInsights(cssVars, extractVars(itm.baseScss, 'dummy')[0]);
@@ -101,7 +103,9 @@ class WidgetBasedStylesList extends preact.Component {
                                 ref={ this.editableTitleInstances[i] }/>
                         </b>
                     </header>
-                    <ScreenSizesVerticalTabs curTabIdx={ curTabIdx } setCurTabIdx={ setCurTabIdx }>
+                    <ScreenSizesVerticalTabs
+                        curTabIdx={ curTabIdx }
+                        setCurTabIdx={ to => this.setState({curTabIdxs: curTabIdxs.map((idx, i2) => i2 !== i ? idx : to)}) }>
                         <div class="form-horizontal tight has-color-pickers pt-0 px-2">{ cssVars.length ? cssVars.map((cssVar, i2) => {
                             const Renderer = valueEditors.get(cssVar.type);
                             const insights = varsInsights[i2] || {};
@@ -134,6 +138,17 @@ class WidgetBasedStylesList extends preact.Component {
                 </li>;
             }) }</ul>
             : <p class="pt-1 mb-2 color-dimmed">{ __('No own styles') }.</p>,
+            selectOptions.length
+                ? <span class="btn btn-dropdown p-relative d-inline-flex btn-primary btn-sm mr-1">
+                    <label htmlFor="addStyleDropdown">{ __('Add style') }</label>
+                    <select onChange={ e => this.handleConfirmAddStyle(e, addable, blockCopy) } value="" id="addStyleDropdown">
+                        <option disabled selected value>{ __('Select style') }</option>
+                        { selectOptions.map(({value, label}) =>
+                            <option value={ value } disabled={ value === '-' }>{ label }</option>
+                        ) }
+                    </select>
+                </span>
+                : null,
             <ContextMenu
                 links={ this.createContextMenuLinks([
                     {text: __('Deactivate'), title: __('Deactivate style'), id: 'deactivate-style'}
@@ -161,6 +176,7 @@ class WidgetBasedStylesList extends preact.Component {
                 null,
                 null
             ];
+        const curCurTabIdxes = this.state.curTabIdxs || [];
         return {
             itemsToShow: unitsToShow.map(unit => {
                 let screenSizesScss;
@@ -175,7 +191,7 @@ class WidgetBasedStylesList extends preact.Component {
                     const screenSizesScss1 = splitToScreenSizeParts(unit.scss);
                     const parenUnit = getBaseUnit(unit, unitsOfThisBlockType);
                     const basePart = splitToScreenSizeParts(parenUnit.scss)[0];
-                    baseScss = withApdxes(basePart, 'u5');
+                    baseScss = withApdxes(basePart, `u${unit.id.split('-').at(-1)}`);
                     screenSizesScss = screenSizesScss1.map(p => expandToInternalRepr(p, baseScss, null));
                 }
                 const isDefault = isBodyRemote(unit.id);
@@ -187,9 +203,11 @@ class WidgetBasedStylesList extends preact.Component {
                     cls: !isDefault ? createUnitClass(unit.id, blockCopy.type) : createUnitClassSpecial(unit.id, blockCopy.type),
                 };
             }),
+            curTabIdxs: unitsToShow.map((_, i) => curCurTabIdxes[i] || 0),
             addable,
             unitsOfThisBlockType,
-            unitsEnabled
+            unitsEnabled,
+            selectOptions: addable ? createAddUnitsDropdownList(addable) : [],
         };
     }
     /**
@@ -227,6 +245,82 @@ class WidgetBasedStylesList extends preact.Component {
             return {newScss: asString,
                     newGenerated: compileScss(asString, cls)};
         }, !unit.origin ? this.props.blockCopy.type : SPECIAL_BASE_UNIT_NAME);
+    }
+    /**
+     * @param {EventTarget} e
+     * @param {[Array<ThemeStyleUnit>, Array<ThemeStyleUnit>]} addable
+     * @param {RawBlock} block
+     * @access private
+     */
+    handleConfirmAddStyle(e, [instantiable, reference], block) {
+        const tmp = instantiable.find(({id}) => id === e.target.value);
+        const unit = tmp || reference.find(({id}) => id === e.target.value);
+        this.addUnitFrom(unit, block, !!tmp && !unit.derivedFrom);
+    }
+    /**
+     * @param {ThemeStyleUnit} unit
+     * @param {RawBlock} block
+     * @param {Boolean} isInstantiable
+     * @access private
+     */
+    addUnitFrom(unit, block, isInstantiable) {
+        if (!isInstantiable)
+            this.addStyleClassOnly(unit);
+        else
+            this.addUnitClone(unit, block, !isBodyRemote(unit.id) ? '_base' : '_default');
+    }
+    /**
+     * @param {ThemeStyleUnit} unit
+     * @access private
+     */
+    addStyleClassOnly(unit) {
+        const blockTypeName = this.props.blockCopy.type;
+        const tmp = createUnitClass(unit.id, blockTypeName);
+        const cls = unit.derivedFrom && !isBodyRemote(unit.derivedFrom) ? `${createUnitClass(unit.derivedFrom, blockTypeName)} ${tmp}` : tmp;
+        this.curBlockStyleClasses = emitAddStyleClassToBlock(cls, this.props.blockCopy);
+        this.updateState(this.state.unitsOfThisBlockType, store2.get().themeStyles, {...this.props.blockCopy, ...{styleClasses: this.curBlockStyleClasses}});
+    }
+    /**
+     * @param {ThemeStyleUnit} base
+     * @param {RawBlock} block
+     * @param {String} varApdx = '_base' Example '_base', '_default' or '_u23'
+     * @access private
+     */
+    addUnitClone(base, block, varApdx = '_base') {
+        const {type} = this.props.blockCopy;
+        const rolling = getLargestPostfixNum(this.state.unitsOfThisBlockType) + 1;
+        const title = `${__(block.title || block.type)} ${rolling}`;
+        const id = `d-${rolling}`;
+        const cls = createUnitClass(id, type);
+        const baseClsStr = varApdx !== '_default' ? `${createUnitClass(base.id, type)} ` : '';
+
+        // #2 Classes
+        this.curBlockStyleClasses = emitAddStyleClassToBlock(`${baseClsStr}${cls}`, this.props.blockCopy);
+        // if remote ?
+
+        // #1 Style
+        const scss = joinFromScreenSizeParts([
+            OPT_SCSS_SPLIT_MARKER,
+            OPT_SCSS_SPLIT_MARKER,
+            OPT_SCSS_SPLIT_MARKER,
+            OPT_SCSS_SPLIT_MARKER,
+            OPT_SCSS_SPLIT_MARKER
+        ]) + '\n';
+        const newUnit = {title, id, scss, generatedCss: compileScss(scss, cls),
+            optimizedScss: null, optimizedGeneratedCss: null,
+            origin: '', specifier: '', isDerivable: false, derivedFrom: base.id};
+
+        store2.dispatch('themeStyles/addUnitTo', [type, newUnit]);
+
+        emitCommitStylesOp(type, () => {
+            // Revert #1
+            store2.dispatch('themeStyles/removeUnitFrom', [type, newUnit]);
+
+            setTimeout(() => {
+                // #2
+                api.saveButton.triggerUndo();
+            }, 100);
+        });
     }
     /**
      * @param {Event} e

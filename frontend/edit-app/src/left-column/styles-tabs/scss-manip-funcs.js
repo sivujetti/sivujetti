@@ -78,6 +78,7 @@ function withSemicolon(scss) {
  */
 function expandToInternalRepr(optimizedScss, baseScss, varApdx) {
     const [own, additional] = splitOptimizedFromMarker(optimizedScss);
+    const optimizedLines = own.split('\n');
     const baseScssWithOptApdxes = varApdx !== null ? withApdxes(baseScss, varApdx) : baseScss;
     const parenLines = baseScssWithOptApdxes.split('\n');
     //
@@ -87,7 +88,12 @@ function expandToInternalRepr(optimizedScss, baseScss, varApdx) {
         // '// @exportAs(...'
         'varDeclLine1': def,
         // '--foo_Type_base1: ...'
-        'varDeclLine2': def,
+        'varDeclLine2': (parenLine) => {
+            const start = `${parenLine.split(':')[0]}: `;
+            const fromOptimized = optimizedLines.find(l => l.startsWith(start));
+            const hasVal = !!fromOptimized; // if line exist in optimized, it means the variable is set
+            ir1.push(!hasVal ? parenLine : fromOptimized);
+        },
         //
         'normalLine': def,
     });

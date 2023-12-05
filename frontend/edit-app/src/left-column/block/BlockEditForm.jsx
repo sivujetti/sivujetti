@@ -10,6 +10,7 @@ import blockTreeUtils from './blockTreeUtils.js';
 import {findBlockFrom, getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
 import WidgetBasedStylesList from '../styles-tabs/WidgetBasedStylesList.jsx';
 import CodeBasedStylesList from '../styles-tabs/CodeBasedStylesList.jsx';
+import {getAndPutAndGetToLocalStorage, putToLocalStorage} from '../../commons/local-storage-utils.js';
 
 /** @type {BlockTypes} */
 let blockTypes;
@@ -33,7 +34,7 @@ class BlockEditForm extends preact.Component {
     constructor(props) {
         super(props);
         blockTypes = api.blockTypes;
-        this.state = {currentTabIdx: 0};
+        this.state = {};
     }
     /**
      * @access protected
@@ -53,7 +54,7 @@ class BlockEditForm extends preact.Component {
         ];
         this.allowStylesEditing = !selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
         this.isOutermostBlockOfGlobalBlockTree = false;
-        this.setState({currentTabIdx: 0});
+        this.setState(this.createState(this.getLargestAllowedTabIdx(parseInt(getAndPutAndGetToLocalStorage('0', 'sivujettiLastBlockEditFormTabIdx'), 10))));
         this.unregistrables = [observeStore2('theBlockTree', (_, [event, data]) => {
             const isUndo = event === 'theBlockTree/undo';
             if (event === 'theBlockTree/updatePropsOf' || isUndo) {
@@ -111,11 +112,12 @@ class BlockEditForm extends preact.Component {
                 [tr2]: 'style-units',
                 [tr3]: 'style-templates'
             }[link]) }
-            onTabChanged={ toIdx => this.setState({
-                ...{currentTabIdx: toIdx},
-                ...(toIdx > 0 ? {currentBlockCopy: this.getCurrentBlockCopy()} : {})
-            }) }
-            className="text-tinyish mt-0 mb-2"/>
+            onTabChanged={ toIdx => {
+                putToLocalStorage(toIdx.toString(), 'sivujettiLastBlockEditFormTabIdx');
+                this.setState(this.createState(toIdx));
+            } }
+            className="text-tinyish mt-0 mb-2"
+            initialIndex={ currentTabIdx }/>
         <div class={ currentTabIdx === 0 ? '' : 'd-none' }>
             <div class="mt-2">
                 { this.userCanSpecializeGlobalBlocks && this.isOutermostBlockOfGlobalBlockTree
@@ -174,6 +176,27 @@ class BlockEditForm extends preact.Component {
      */
     getCurrentBlockCopy() {
         return cloneObjectDeep(findBlockFrom(this.props.block.id, 'mainTree')[0]);
+    }
+    /**
+     * @param {Number} currentTabIdx
+     * @returns {{currentTabIdx: Number; currentBlockCopy?: RawBlock;}}
+     * @access private
+     */
+    createState(currentTabIdx) {
+        return {
+            ...{currentTabIdx},
+            ...(currentTabIdx > 0 ? {currentBlockCopy: this.getCurrentBlockCopy()} : {})
+        };
+    }
+    /**
+     * @param {Number} savedIdx
+     * @returns {Number}
+     * @access private
+     */
+    getLargestAllowedTabIdx(savedIdx) {
+        if (savedIdx > 1 && !this.userCanEditCss)
+            return 1;
+        return savedIdx;
     }
 }
 

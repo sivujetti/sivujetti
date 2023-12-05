@@ -8,10 +8,10 @@ import PageDuplicatePanel from './left-column/page/PageDuplicatePanel.jsx';
 import PageTypeCreatePanel from './left-column/page-type/PageTypeCreatePanel.jsx';
 import {getArePanelsHidden} from './right-column/IframePageManager.js';
 import {MyRouter, historyInstance} from './right-column/RightColumnViews.jsx';
+import {getFromLocalStorage, putToLocalStorage} from './commons/local-storage-utils.js';
 
 const PANELS_HIDDEN_CLS = 'panels-hidden';
-const {localStorage} = env.window;
-let showFirstTimeDragInstructions = !(!env.window.isFirstRun || localStorage.sivujettiDragInstructionsShown === 'yes');
+let showFirstTimeDragInstructions = !(!env.window.isFirstRun || getFromLocalStorage('sivujettiDragInstructionsShown') === 'yes');
 
 class EditApp extends preact.Component {
     // changeViewOptions;
@@ -88,7 +88,7 @@ class EditApp extends preact.Component {
                 </p>
                 <img src={ urlUtils.makeAssetUrl('/public/sivujetti/assets/drag-right-illustration.png') } alt=""/>
                 <button onClick={ e => {
-                    localStorage.sivujettiDragInstructionsShown = 'yes';
+                    putToLocalStorage('yes', 'sivujettiDragInstructionsShown');
                     showFirstTimeDragInstructions = false;
                     const el = e.target.closest('.drag-instructions-overlay');
                     el.classList.add('fade-away');
@@ -180,13 +180,13 @@ class EditApp extends preact.Component {
             commitPanelWidths();
             this.props.rootEl.classList.remove('new-block-spawner-opened');
         });
-        if (localStorage.sivujettiFollowLinksInstructionDismissed !== 'yes') {
+        if (getFromLocalStorage('sivujettiFollowLinksInstructionDismissed') !== 'yes') {
             const startShowInstructionTimeout = () => setTimeout(() => {
                 toasters.editAppMain(<div>
                     <h4>{ __('Did you know?') }</h4>
                     <span>{ __('When you\'re in the edit mode, you still can navigate any website hyperlink by clicking on it holding Ctrl (Windows) or ⌘ (Mac) key.') }</span>
                 </div>, 'info', 0, () => {
-                    localStorage.sivujettiFollowLinksInstructionDismissed = 'yes';
+                    putToLocalStorage('ys', 'sivujettiFollowLinksInstructionDismissed');
                 });
             }, 8000);
             if (!env.window.isFirstRun)
@@ -202,7 +202,7 @@ class EditApp extends preact.Component {
     handlePanelsAreHiddenChanged(to) {
         api.webPageIframe.pageManager.currentWebPage.setIsMouseListenersDisabled(to);
         this.props.rootEl.classList.toggle(PANELS_HIDDEN_CLS);
-        localStorage.sivujettiDoHidePanels = to ? 'yes' : 'no';
+        putToLocalStorage(to ? 'yes' : 'no', 'sivujettiDoHidePanels');
         this.setState({hidePanels: to});
     }
     /**

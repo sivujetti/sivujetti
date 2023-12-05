@@ -1,7 +1,8 @@
-import {__, api, signals, env} from '@sivujetti-commons-for-edit-app';
+import {__, api, signals} from '@sivujetti-commons-for-edit-app';
 import store, {setCurrentPageDataBundle, setOpQueue} from '../store.js';
 import store2, {observeStore as observeStore2} from '../store2.js';
 import {makePath, makeSlug} from '../block-types/pageInfo.js';
+import {getFromLocalStorage} from '../commons/local-storage-utils.js';
 import opQueueItemEmitter from '../OpQueueItemEmitter.js';
 import {findBlockFrom} from '../block/utils-utils.js';
 import {sharedSignals} from '../shared.js';
@@ -252,7 +253,7 @@ function getOrdededBlocks(unordered, orderedEls) {
  * @returns {Boolean}
  */
 function getArePanelsHidden() {
-    return env.window.localStorage.sivujettiDoHidePanels === 'yes';
+    return getFromLocalStorage('sivujettiDoHidePanels') === 'yes';
 }
 
 /**

@@ -1,4 +1,5 @@
 import {__, http, env, urlUtils, Icon, LoadingSpinner} from '@sivujetti-commons-for-edit-app';
+import {getAndPutAndGetToLocalStorage, putToLocalStorage} from './local-storage-utils.js';
 import Tabs from './Tabs.jsx';
 import UploadButton from './UploadButton.jsx';
 
@@ -29,7 +30,8 @@ class FileUploader extends preact.Component {
     componentWillMount() {
         this.initialTabIdx = (this.props.showInitially || 'images') === 'images' ? 0 : 1;
         const tabName = tabIdxToName(this.initialTabIdx);
-        this.setState({files: null, currentTab: tabName, displayAsGrid: getAndSaveDisplayAsGridState(true)});
+        this.setState({files: null, currentTab: tabName,
+            displayAsGrid: getAndPutAndGetToLocalStorage('grid', 'sivujettiDisplayImageListAs') === 'grid'});
         this.fetchOrGetUploads(tabName)
             .then((fileGroup) => { this.setState({files: fileGroup}); });
     }
@@ -239,7 +241,7 @@ class FileUploader extends preact.Component {
      * @access private
      */
     setGetDisplayAsGrid(to) {
-        saveDisplayAsState(to);
+        putToLocalStorage(to ? 'grid' : 'list', 'sivujettiDisplayImageListAs');
         this.setState({displayAsGrid: to});
     }
 }
@@ -286,26 +288,6 @@ function getListItemSettings(displayAsGrid, mode) {
     return mode !== 'pick'
         ? [{el: 'span', classes: 'pl-1'}, {el: 'span', classes: 'pl-1 text-ellipsis text-left with-icon'}]
         : [{el: 'button', classes: 'btn btn-link col-12 my-0 pl-2 '}, {el: 'button', props: {class: 'btn btn-link pt-2', style: 'height: 100%;'}}];
-}
-
-/**
- * @param {Boolean} asGrid
- * @returns {Boolean} asGrid
- */
-function getAndSaveDisplayAsGridState(asGrid) {
-    const cur = env.window.localStorage.sivujettiDisplayImageListAs;
-    if (cur) return cur === 'grid';
-
-    saveDisplayAsState(asGrid);
-    return getAndSaveDisplayAsGridState();
-}
-
-/**
- * @param {Boolean} asGrid
- */
-function saveDisplayAsState(asGrid) {
-    const toNorm = asGrid ? 'grid' : 'list';
-    env.window.localStorage.sivujettiDisplayImageListAs = toNorm;
 }
 
 export default FileUploader;

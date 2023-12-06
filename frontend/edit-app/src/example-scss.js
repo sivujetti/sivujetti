@@ -120,11 +120,8 @@ margin: 0;`,
     second:
 `> div {
   padding: 1rem;
-  .j-Heading {
+  .j-Text {
     font-size: 2rem;
-  }
-  .j-Paragraph {
-    font-size: 1.6rem
   }
 }`,
     outermostElIsWrapper: true,

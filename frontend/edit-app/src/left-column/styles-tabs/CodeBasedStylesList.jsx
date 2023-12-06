@@ -1,14 +1,18 @@
-import {__, api, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, Icon} from '@sivujetti-commons-for-edit-app';
 import ContextMenu from '../../commons/ContextMenu.jsx';
+import exampleScss from '../../example-scss.js';
 import store2, {observeStore as observeStore2} from '../../store2.js';
-import {blockHasStyle, createUnitClass, findBodyStyle, SPECIAL_BASE_UNIT_NAME } from './styles-tabs-common.js';
+import {blockHasStyle, createUnitClass, emitCommitStylesOp,
+        findBlockTypeStyles, findBodyStyle, SPECIAL_BASE_UNIT_NAME,
+        updateAndEmitUnitScss} from './styles-tabs-common.js';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
 import {createLiClasses} from './code-based-tab-funcs.js';
 import {extractVars} from './scss-ast-funcs.js';
 import EditableTitle from './EditableTitle.jsx';
 import StyleTextarea from './StyleTextarea.jsx';
-import {splitToScreenSizeParts} from './scss-manip-funcs.js';
-import AbstractStylesList, {getUnitsOfBlockType, createListItem} from './AbstractStylesList.jsx';
+import {joinFromScreenSizeParts, OPT_SCSS_SPLIT_MARKER, splitOptimizedFromMarker} from './scss-manip-funcs.js';
+import AbstractStylesList, {getUnitsOfBlockType, createListItem, getLargestPostfixNum,
+                            compileScss, createUpdatesScss} from './AbstractStylesList.jsx';
 
 const SET_AS_DEFAULT = 'set-as-default';
 const EDIT_DETAILS = 'edit-details';
@@ -22,14 +26,26 @@ class CodeBasedStylesList extends AbstractStylesList {
     componentWillMount() {
         super.componentWillMount();
         this.unregistrables = [];
-        const {themeStyles} = store2.get();
-        this.bodyStyle = findBodyStyle(themeStyles);
-        const updateState = unitsOfThisBlockType => {
-            this.receiveUnits(unitsOfThisBlockType);
-            this.setState(this.createNewState(unitsOfThisBlockType));
+        const themeStylesInitial = store2.get().themeStyles;
+        this.bodyStyle = findBodyStyle(themeStylesInitial);
+        const createStateCandidate = themeStyles => {
+            const unitsOfThisBlockType = getUnitsOfBlockType(themeStyles, this.props.blockCopy.type);
+            return unitsOfThisBlockType;
         };
-        const unitsOfThisBlockType = getUnitsOfBlockType(themeStyles, this.props.blockCopy.type);
-        updateState(unitsOfThisBlockType);
+        const updateState = (unitsOfThisBlockType, openLiIdx) => {
+            this.receiveUnits(unitsOfThisBlockType);
+            this.setState(this.createNewState(unitsOfThisBlockType, openLiIdx));
+        };
+        updateState(createStateCandidate(themeStylesInitial), null);
+        //
+        this.unregistrables = [observeStore2('themeStyles', ({themeStyles}, [event]) => {
+            const unitsOfThisBlockType = createStateCandidate(themeStyles);
+            if (this.state.unitsOfThisBlockType !== unitsOfThisBlockType)
+                updateState(unitsOfThisBlockType,
+                            event === 'themeStyles/addUnitTo' || event === 'themeStyles/addStyle'
+                                ? unitsOfThisBlockType.length - 1
+                                : this.state.liClasses.findIndex(cls => cls !== ''));
+        })];
     }
     /**
      * @param {StylesListProps} props
@@ -47,7 +63,8 @@ class CodeBasedStylesList extends AbstractStylesList {
             const {unit, unit0, screenSizesScss, isDefault, cls} = itm;
             const curTabIdx = curTabIdxs[i];
             const curScreenSizeTabScss = screenSizesScss[curTabIdx];
-            const [cssVars, ast] = extractVars(curScreenSizeTabScss, cls);
+            const [a, _b] = curScreenSizeTabScss;
+            const [cssVars, _ast] = extractVars(a, cls);
             const isActivated = blockHasStyle(blockCopy, unit0, cls);
             const doShowChevron = userCanEditCss || cssVars.length;
             const title = unit.title;
@@ -89,27 +106,27 @@ class CodeBasedStylesList extends AbstractStylesList {
                             curTabIdx={ curTabIdx }
                             setCurTabIdx={ to => this.setState(ScreenSizesVerticalTabs.createTabIdxesWithNewCurrentIdx(curTabIdxs, i, to)) }>
                             <StyleTextarea
-                                scss={ curScreenSizeTabScss }
-                                what={ `
-                                unitCopy={ {...unit} }
-                                unitCopyReal={ bodyUnitCopy }
-                                unitDerivedFrom={ bodyUnitCopy === null
-                                    ? findBaseUnitOf(
-                                        unit,
-                                        !isBodyRemote(unit.derivedFrom)
-                                            ? unitsOfThisBlockType
-                                            : this.bodyStyle.unitsOfThisBlockType
-                                    )
-                                    : null
-                                }
+                                scss={ a }
                                 unitCls={ cls }
-                                blockTypeName={ blockCopy.type }
-                                `
-                                }/>
+                                onScssChanged={ newScss => {
+                                    updateAndEmitUnitScss(unit0, () => {
+                                        const partUpdated = newScss;
+                                        const baseScss = null;
+                                        const partToOptimized = (p, i) => screenSizesScss[i][1] !== null ? p + OPT_SCSS_SPLIT_MARKER : p;
+                                        return createUpdatesScss(screenSizesScss.map(([a, _b]) => a), curTabIdx, partUpdated, cls,
+                                                                    baseScss, partToOptimized);
+                                    }, blockCopy.type);
+                                } }/>
                         </ScreenSizesVerticalTabs>
                 }
             </li>;
         }) }</ul> : <p class="pt-1 mb-2 color-dimmed">{ __('No own templates') }.</p>,
+        userCanEditCss
+            ? <button
+                onClick={ this.addStyleTemplate.bind(this) }
+                class="btn btn-primary btn-sm mr-1"
+                type="button">{ __('Create template') }</button>
+            : null,
         <ContextMenu
             links={ this.createContextMenuLinks(this.userIsSuperAdmin ? [
                 {text: __('Set as default'), title: __('Set as default'), id: SET_AS_DEFAULT},
@@ -123,26 +140,69 @@ class CodeBasedStylesList extends AbstractStylesList {
     }
     /**
      * @param {Array<ThemeStyleUnit>} unitsOfThisBlockType
+     * @param {Number|null} openLiIdx
      * @returns {todo} 
      * @access private
      */
-    createNewState(unitsOfThisBlockType) {
+    createNewState(unitsOfThisBlockType, openLiIdx) {
         const {blockCopy} = this.props;
         return {
             itemsToShow: unitsOfThisBlockType.map(unit0 => {
                 const bodyUnitCopy = unit0.origin !== SPECIAL_BASE_UNIT_NAME ? null : this.getRemoteBodyUnitCopy(unit0, blockCopy);
                 const unit = bodyUnitCopy || unit0;
-                const screenSizesScss = splitToScreenSizeParts(unit.scss, 1);
+                const commons = createListItem(unit, blockCopy.type);
+                commons.screenSizesScss = commons.screenSizesScss.map(scss => scss.indexOf(OPT_SCSS_SPLIT_MARKER) > -1 ? splitOptimizedFromMarker(scss) : [scss, null]);
                 return {...{
                     unit,
                     unit0,
                     bodyUnitCopy,
-                    screenSizesScss,
-                }, ...createListItem(unit, blockCopy.type)};
+                }, ...commons};
             }),
-            liClasses: createLiClasses(unitsOfThisBlockType, 0),
+            liClasses: createLiClasses(unitsOfThisBlockType, openLiIdx || 0),
             curTabIdxs: ScreenSizesVerticalTabs.createTabIdxes(unitsOfThisBlockType, this),
+            unitsOfThisBlockType,
         };
+    }
+    /**
+     * @access private
+     */
+    addStyleTemplate() {
+        const {type} = this.props.blockCopy;
+        const rolling = getLargestPostfixNum(this.state.itemsToShow.map(({unit}) => unit)) + 1;
+        const title = rolling > 1 ? `Unit ${rolling}` : __('Default');
+        const id = `unit-${rolling}`;
+        const createInitialScss = blockTypeName => {
+            const e = exampleScss[blockTypeName];
+            if (!e) return 'color: blueviolet';
+            return [
+                `// ${__('Css for the outermost %s (%s)', __(!e.outermostElIsWrapper ? 'element': 'wrapper-element'), e.outermostEl)}`,
+                e.first,
+                '',
+                `// ${__('Css for the inner elements')}`,
+                e.second,
+            ].join('\n');
+        };
+        const basePart = createInitialScss(type);
+        const scss = joinFromScreenSizeParts([
+            basePart,
+            OPT_SCSS_SPLIT_MARKER,
+            OPT_SCSS_SPLIT_MARKER,
+            OPT_SCSS_SPLIT_MARKER,
+            OPT_SCSS_SPLIT_MARKER,
+        ]);
+        const cls = createUnitClass(id, this.props.blockCopy.type);
+
+        const newUnit = {title, id, scss, generatedCss: compileScss(scss, cls),
+            origin: '', specifier: '', isDerivable: false, derivedFrom: null};
+        const themeStyleExists = !!findBlockTypeStyles(store2.get().themeStyles, type);
+        if (themeStyleExists) store2.dispatch('themeStyles/addUnitTo', [type, newUnit]);
+        else throw new Error(`todo store2.dispatch('themeStyles/addStyle', [{units: [newUnit], blockTypeName: type}])`);
+
+        //
+        emitCommitStylesOp(type, () => {
+            if (themeStyleExists) store2.dispatch('themeStyles/removeUnitFrom', [type, newUnit]);
+            else  throw new Error(`store2.dispatch('themeStyles/removeStyle', [type])`);
+        });
     }
     /**
      * @param {Event} e

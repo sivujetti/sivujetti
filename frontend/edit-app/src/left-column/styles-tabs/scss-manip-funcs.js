@@ -212,4 +212,5 @@ function justApdx(varDeclPieces) {
 }
 
 export {splitToScreenSizeParts, joinFromScreenSizeParts, expandToInternalRepr,
-        optimizeFromInternalRepr, withApdxes, OPT_SCSS_SPLIT_MARKER};
+        optimizeFromInternalRepr, withApdxes, splitOptimizedFromMarker,
+        OPT_SCSS_SPLIT_MARKER};

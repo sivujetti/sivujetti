@@ -13,7 +13,8 @@ import {splitToScreenSizeParts, joinFromScreenSizeParts,
         OPT_SCSS_SPLIT_MARKER} from './scss-manip-funcs.js';
 import {extractVars, replaceVarValue, valueEditors, varNameToLabel} from './scss-ast-funcs.js';
 import AbstractStylesList, {getUnitsOfBlockType, createListItem,
-                            getLargestPostfixNum, compileScss} from './AbstractStylesList.jsx';
+                            getLargestPostfixNum, compileScss,
+                            createUpdatesScss} from './AbstractStylesList.jsx';
 
 class WidgetBasedStylesList extends AbstractStylesList {
     // unregistrables;
@@ -174,26 +175,23 @@ class WidgetBasedStylesList extends AbstractStylesList {
             ];
         return {
             itemsToShow: unitsToShow.map(unit => {
-                let screenSizesScss;
                 let baseScss;
+                const commons = createListItem(unit, blockCopy.type);
+                const screenSizesScss1 = commons.screenSizesScss;
                 if (!unit.derivedFrom) {
-                    const screenSizesScss1 = splitToScreenSizeParts(unit.scss);
                     baseScss = screenSizesScss1[0];
-                    screenSizesScss = screenSizesScss1.map((p, i) => i > 0
+                    commons.screenSizesScss = screenSizesScss1.map((p, i) => i > 0
                         ? expandToInternalRepr(`${p.indexOf(OPT_SCSS_SPLIT_MARKER) < 0 ? OPT_SCSS_SPLIT_MARKER : ''}${p}`, baseScss)
                         : p);
                 } else {
-                    const screenSizesScss1 = splitToScreenSizeParts(unit.scss);
                     const parenUnit = getBaseUnit(unit, unitsOfThisBlockType);
                     const basePart = splitToScreenSizeParts(parenUnit.scss)[0];
                     baseScss = withApdxes(basePart, `u${unit.id.split('-').at(-1)}`);
-                    screenSizesScss = screenSizesScss1.map(p => expandToInternalRepr(p, baseScss, null));
+                    commons.screenSizesScss = screenSizesScss1.map(p => expandToInternalRepr(p, baseScss, null));
                 }
-                const commons = createListItem(unit, blockCopy.type);
                 return {...{
                     unit,
                     baseScss,
-                    screenSizesScss,
                 }, ...commons};
             }),
             curTabIdxs: ScreenSizesVerticalTabs.createTabIdxes(unitsToShow, this),
@@ -232,11 +230,7 @@ class WidgetBasedStylesList extends AbstractStylesList {
             node.children = val;
             node.value = `${varDecl}:${val};`;
             const partUpdated = replaceVarValue(screenSizesScss[partIdx], node, val);
-            const updatedPartsIR = screenSizesScss.map((s, i) => i !== partIdx ? s : partUpdated);
-            const updatedParts = updatedPartsIR.map(partToOptimized);
-            const asString = joinFromScreenSizeParts(updatedParts);
-            return {newScss: asString,
-                    newGenerated: compileScss(asString, cls)};
+            return createUpdatesScss(screenSizesScss, partIdx, partUpdated, cls, null, partToOptimized);
         }, !unit.origin ? this.props.blockCopy.type : SPECIAL_BASE_UNIT_NAME);
     }
     /**

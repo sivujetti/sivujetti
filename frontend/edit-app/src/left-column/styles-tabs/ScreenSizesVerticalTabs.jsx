@@ -53,4 +53,24 @@ class ScreenSizesVerticalTabs extends preact.Component {
     }
 }
 
+/**
+ * @param {Array<any>} itemsToShow
+ * @param {AbstractStylesList} cmp
+ * @returns {Array<Number>}
+ */
+ScreenSizesVerticalTabs.createTabIdxes = (itemsToShow, cmp) => {
+    const curCurTabIdxes = cmp.state.curTabIdxs || [];
+    return itemsToShow.map((_, i) => curCurTabIdxes[i] || 0);
+};
+
+/**
+ * @param {Array<Number>} curTabIdxs
+ * @param {Number} nthItemToUpdate i.e. listItemIdx
+ * @param {Boolean} to
+ * @returns {{curTabIdxs: Array<Number>;}} New state portion
+ */
+ScreenSizesVerticalTabs.createTabIdxesWithNewCurrentIdx = (curTabIdxs, nthItemToUpdate, to) => {
+    return {curTabIdxs: curTabIdxs.map((idx, i2) => i2 !== nthItemToUpdate ? idx : to)};
+};
+
 export default ScreenSizesVerticalTabs;

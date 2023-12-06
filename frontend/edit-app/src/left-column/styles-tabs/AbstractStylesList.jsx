@@ -1,4 +1,5 @@
 import {__} from '@sivujetti-commons-for-edit-app';
+import {joinFromScreenSizeParts, optimizeFromInternalRepr, splitToScreenSizeParts} from './scss-manip-funcs.js';
 import {createUnitClass, createUnitClassSpecial, findBlockTypeStyles, findRealUnit,
         isBodyRemote} from './styles-tabs-common.js';
 import {removeStyleClassMaybeRemote, removeStyleUnitMaybeRemote} from './widget-based-tab-funcs.js';
@@ -82,12 +83,13 @@ class AbstractStylesList extends preact.Component {
 /**
  * @param {ThemeStyleUnit} unit
  * @param {String} blockTypeName
- * @returns {{isDefault: Boolean; cls: String;}}
+ * @returns {{isDefault: Boolean; screenSizesScss: Array<String>; cls: String;}}
  */
 function createListItem(unit, blockTypeName) {
     const isDefault = isBodyRemote(unit.id);
     return {
         isDefault,
+        screenSizesScss: splitToScreenSizeParts(unit.scss),
         cls: !isDefault ? createUnitClass(unit.id, blockTypeName) : createUnitClassSpecial(unit.id, blockTypeName)
     };
 }
@@ -121,5 +123,26 @@ function compileScss(scss, cls) {
     return serialize(compile(`.${cls} {${scss}}`), stringify);
 }
 
+/**
+ * @param {Array<String>} screenSizesScss
+ * @param {Number} partIdxToReplace
+ * @param {String} updatedPart
+ * @param {String} cls
+ * @param {(part: String, i: Number) => String} partToOptimized
+ */
+function createUpdatesScss(screenSizesScss,
+                           partIdxToReplace,
+                           updatedPart,
+                           cls,
+                           baseScss = null,
+                           partToOptimized = (p, i) => i > 0 ? optimizeFromInternalRepr(p, baseScss) : p) {
+    const updatedPartsIR = screenSizesScss.map((s, i) => i !== partIdxToReplace ? s : updatedPart);
+    const updatedParts = updatedPartsIR.map(partToOptimized);
+    const asString = joinFromScreenSizeParts(updatedParts);
+    return {newScss: asString,
+            newGenerated: compileScss(asString, cls)};
+}
+
 export default AbstractStylesList;
-export {createListItem, getUnitsOfBlockType, getLargestPostfixNum, compileScss};
+export {createListItem, getUnitsOfBlockType, getLargestPostfixNum, compileScss,
+        createUpdatesScss};

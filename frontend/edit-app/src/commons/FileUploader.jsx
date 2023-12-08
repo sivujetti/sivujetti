@@ -291,4 +291,4 @@ function getListItemSettings(displayAsGrid, mode) {
 }
 
 export default FileUploader;
-export {UPLOADS_DIR_PATH, placeholderImageSrc};
+export {placeholderImageSrc};

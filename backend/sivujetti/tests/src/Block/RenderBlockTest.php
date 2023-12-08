@@ -45,7 +45,8 @@ final class RenderBlockTest extends RenderBlocksTestCase {
             "The value of renderer was not in the list",
             "id is not valid push id",
             "bgImage must be string",
-            "The length of bgImage must be 1024 or less"
+            "The length of bgImage must be 1024 or less",
+            "Expected bgImage not to contain the value",
         ], $state->spyingResponse);
     }
     private function setInvalidRenderer(\TestState $state): void {

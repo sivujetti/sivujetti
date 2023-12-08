@@ -375,12 +375,50 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
         $expectedHtml = $makeExpectedHtml($b[1], " escape&quot;",
-            " style=\"background-image:url('".Template::makeUrl($b[1]->bgImage, false)."')\"");
+            " style=\"background-image:url('".Template::makeUrl("public/uploads/{$b[1]->bgImage}", false)."')\"");
         $this->renderAndVerify($state, 1, $expectedHtml);
         //
         $expectedHtml = $makeExpectedHtml($b[2], " some classes",
-            " style=\"background-image:url('".Template::makeUrl($b[2]->bgImage, false)."')\"");
+            " style=\"background-image:url('".Template::escAttr($b[2]->bgImage)."')\"");
         $this->renderAndVerify($state, 2, $expectedHtml);
+        //
+        $expectedHtml = $makeExpectedHtml($b[3], "",
+            " style=\"background-image:url('//".Template::escAttr($b[3]->bgImage)."')\"");
+        $this->renderAndVerify($state, 3, $expectedHtml);
+        //
+        $expectedHtml = $makeExpectedHtml($b[4], "",
+            " style=\"background-image:url('".Template::escAttr($b[4]->bgImage)."')\"");
+        $this->renderAndVerify($state, 4, $expectedHtml);
+    }
+    private function setupRenderSectionBlocksTest(): \TestState {
+        $state = parent::setupTest();
+        $state->testBlocks = [
+            $this->blockTestUtils->makeBlockData(Block::TYPE_SECTION,
+                renderer: "sivujetti:block-generic-wrapper",
+                propsData: ["bgImage" => ""],
+                id: "@auto"),
+            $this->blockTestUtils->makeBlockData(Block::TYPE_SECTION,
+                renderer: "sivujetti:block-generic-wrapper",
+                propsData: ["bgImage" => "local-pic.png"],
+                styleClasses: "escape\"",
+                id: "@auto"),
+            $this->blockTestUtils->makeBlockData(Block::TYPE_SECTION,
+                renderer: "sivujetti:block-generic-wrapper",
+                propsData: ["bgImage" => "https://ext.com/pic.png"],
+                styleClasses: "some classes",
+                id: "@auto"),
+            $this->blockTestUtils->makeBlockData(Block::TYPE_SECTION,
+                renderer: "sivujetti:block-generic-wrapper",
+                propsData: ["bgImage" => "ext.com/pi\"c.webp"],
+                styleClasses: "",
+                id: "@auto"),
+            $this->blockTestUtils->makeBlockData(Block::TYPE_SECTION,
+                renderer: "sivujetti:block-generic-wrapper",
+                propsData: ["bgImage" => "/local-di\"r/pic.png"],
+                styleClasses: "",
+                id: "@auto"),
+        ];
+        return $state;
     }
 
 
@@ -400,26 +438,6 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $state->testBlocks = [
             $this->blockTestUtils->makeBlockData(Block::TYPE_TEXT,
                 propsData: ["html" => "<p>Pre-validated <em>html</em></p>"],
-                id: "@auto"),
-        ];
-        return $state;
-    }
-    private function setupRenderSectionBlocksTest(): \TestState {
-        $state = parent::setupTest();
-        $state->testBlocks = [
-            $this->blockTestUtils->makeBlockData(Block::TYPE_SECTION,
-                renderer: "sivujetti:block-generic-wrapper",
-                propsData: ["bgImage" => ""],
-                id: "@auto"),
-            $this->blockTestUtils->makeBlockData(Block::TYPE_SECTION,
-                renderer: "sivujetti:block-generic-wrapper",
-                propsData: ["bgImage" => "local-pic.png"],
-                styleClasses: "escape\"",
-                id: "@auto"),
-            $this->blockTestUtils->makeBlockData(Block::TYPE_SECTION,
-                renderer: "sivujetti:block-generic-wrapper",
-                propsData: ["bgImage" => "local-dir/local-pic.webp"],
-                styleClasses: "some classes",
                 id: "@auto"),
         ];
         return $state;

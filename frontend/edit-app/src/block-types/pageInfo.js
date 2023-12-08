@@ -1,5 +1,5 @@
-import {__, api, env, http, urlUtils, hookForm, unhookForm, reHookValues, Input,
-        InputErrors, FormGroupInline, FormGroup, Textarea, signals} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, http, hookForm, unhookForm, reHookValues, Input, InputErrors,
+        InputError, FormGroupInline, FormGroup, Textarea, signals} from '@sivujetti-commons-for-edit-app';
 import ImagePicker from '../block-widget/ImagePicker.jsx';
 import {cloneObjectDeep, overrideData} from '../block/theBlockTreeStore.js';
 import toasters from '../commons/Toaster.jsx';
@@ -10,8 +10,9 @@ import {makeSlug, makePath} from '../left-column/page/AddCategoryPanel.jsx';
 import ManyToManyField from '../left-column/page/ManyToManyField.jsx';
 import store, {observeStore, pushItemToOpQueue, selectCurrentPageDataBundle, setCurrentPageDataBundle} from '../store.js';
 import {urlValidatorImpl} from '../validation.js';
-import setFocusTo from './auto-focusers.js';
 import {CountingLinkItemFactory} from './menu/EditForm.jsx';
+import setFocusTo from './auto-focusers.js';
+import {completeSrc} from './image.js';
 
 /** @type {[String, String, String]} [blockId, isStoredToTreeId, pageId] */
 let linkedMenuBlockInfo;
@@ -24,7 +25,6 @@ class PageInfoBlockEditForm extends preact.Component {
     // ownFields;
     // titleEl;
     // descriptionEl;
-    // imagePicker;
     // boundPushOpQueueOp;
     // pushOpQueueOpTimeout;
     /**
@@ -37,7 +37,6 @@ class PageInfoBlockEditForm extends preact.Component {
         this.ownFields = this.pageType.ownFields.filter(({dataType}) => dataType.type === 'many-to-many');
         this.titleEl = preact.createRef();
         this.descriptionEl = preact.createRef();
-        this.imagePicker = preact.createRef();
         const createSlugAndPath = slug => ({slug, path: makePath(slug, this.pageType)});
         const createSlugAndPathFromTitle = !this.currentPageIsPlaceholder
             ? (_ => ({}))
@@ -101,7 +100,7 @@ class PageInfoBlockEditForm extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {socialImageSrc}) {
+    render(_, {socialImageSrc, metaImgLoadError}) {
         const wrap = input => !this.pageType || this.pageType.name === 'Pages'
             ? input
             : <div class="input-group">
@@ -122,10 +121,10 @@ class PageInfoBlockEditForm extends preact.Component {
             <FormGroupInline>
                 <label htmlFor="socialImageSrc" class="form-label">{ __('Social image') }</label>
                 <ImagePicker
-                    onImageSelected={ this.handleSocialImageChanged.bind(this) }
-                    initialImageFileName={ socialImageSrc }
-                    inputId="socialImageSrc"
-                    ref={ this.imagePicker }/>
+                    src={ socialImageSrc }
+                    onSrcCommitted={ this.emitNewSocialImageSrc.bind(this) }
+                    inputId="socialImageSrc"/>
+                <InputError errorMessage={ metaImgLoadError }/>
             </FormGroupInline>
             <FormGroup>
                 <label htmlFor="pageDescription" class="form-label">{ __('Meta description') }</label>
@@ -142,8 +141,9 @@ class PageInfoBlockEditForm extends preact.Component {
     }
     /**
      * @param {(pageToMutate: Page) => void} mutateProps
+     * @param {Number} debounceMillis = env.normalTypingDebounceMillis
      */
-    emitChanges(mutateProps) {
+    emitChanges(mutateProps, debounceMillis = env.normalTypingDebounceMillis) {
         const mut = selectCurrentPageDataBundle(store.getState());
         const orig = !this.emitChangesTimeout ? JSON.parse(JSON.stringify(mut)) : null;
         mutateProps(mut.page);
@@ -164,25 +164,32 @@ class PageInfoBlockEditForm extends preact.Component {
                 args: [],
             }));
             this.emitChangesTimeout = null;
-        }, env.normalTypingDebounceMillis);
+        }, debounceMillis);
     }
     /**
-     * @param {UploadsEntry|null} img
+     * @param {String|null} newSrc
+     * @param {String|null} mime
      */
-    handleSocialImageChanged(img) {
-        if (img) {
+    emitNewSocialImageSrc(newSrc, mime) {
+        if (newSrc) {
             const tmp = new Image();
             tmp.onload = () => {
+                this.setState({metaImgLoadError: null, socialImageSrc: newSrc});
                 this.emitChanges(mut => {
-                    mut.meta.socialImage = {src: img.fileName, mime: img.mime,
+                    mut.meta.socialImage = {src: newSrc, mime,
                         width: tmp.naturalWidth, height: tmp.naturalHeight};
                 });
             };
-            tmp.src = urlUtils.makeAssetUrl(`/public/uploads/${img.fileName}`);
+            tmp.onerror = () => {
+                this.setState({metaImgLoadError: __('Failed to load image'),
+                    socialImageSrc: newSrc});
+            };
+            tmp.src = completeSrc(newSrc);
         } else {
+            const debounceMillis = 0;
             this.emitChanges(mut => {
                 mut.meta.socialImage = null;
-            });
+            }, debounceMillis);
         }
     }
 }

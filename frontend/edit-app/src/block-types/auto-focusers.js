@@ -14,10 +14,12 @@ function setFocusTo(elementRef) {
     } else if (elementRef.current instanceof HTMLElement) {
         const inputEl = elementRef.current;
         inputEl.focus();
-    // Input, ImagePicker
+    // ImagePicker
+    } else if (isObject && elementRef.current.srcInput && elementRef.current.srcInput.current) {
+        setFocusTo(elementRef.current.srcInput.current);
+    // Input
     } else if (isObject && elementRef.current.inputEl && elementRef.current.inputEl.current) {
-        const inputEl = elementRef.current.inputEl.current;
-        inputEl.focus();
+        setFocusTo(elementRef.current.inputEl.current);
     } else {
         env.window.console.error('Don\'t know how to focus to', elementRef.current);
     }

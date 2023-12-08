@@ -14,7 +14,6 @@ class ImageBlockType implements BlockTypeInterface {
             ->newProperty("src")
                 ->dataType($builder::DATA_TYPE_TEXT, isNullable: true, validationRules: [
                     ["notContains", "./", "string"],
-                    ["notContains", ".%2F", "string"],
                 ])
             ->newProperty("altText", $builder::DATA_TYPE_TEXT)
             ->newProperty("caption", $builder::DATA_TYPE_TEXT)
@@ -26,9 +25,11 @@ class ImageBlockType implements BlockTypeInterface {
      * @param string $default = self::PLACEHOLDER_SRC
      * @return string
      */
-    public static function createSrc(WebPageAwareTemplate $tmpl, ?string $src, string $default = self::PLACEHOLDER_SRC): string {
+    public static function createSrc(WebPageAwareTemplate $tmpl,
+                                     ?string $src,
+                                     string $default = self::PLACEHOLDER_SRC): string {
         return $src
-            ? $tmpl->mediaUrl("public/uploads/" . str_replace("/", "", $src))
+            ? $tmpl->maybeExternalMediaUrl($src)
             : $default;
     }
 }

@@ -1,6 +1,6 @@
 import {__, env, urlUtils, hookForm, unhookForm, reHookValues, FormGroup,
         Textarea, InputErrors, Icon, validationConstraints} from '@sivujetti-commons-for-edit-app';
-import {ImagePicker2} from '../block-widget/ImagePicker.jsx';
+import ImagePicker from '../block-widget/ImagePicker.jsx';
 import {placeholderImageSrc} from '../commons/FileUploader.jsx';
 import setFocusTo from './auto-focusers.js';
 
@@ -38,7 +38,7 @@ class ImageBlockEditForm extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        setFocusTo(this.imagePicker.current.inputEl);
+        setFocusTo(this.imagePicker);
     }
     /**
      * @access protected
@@ -54,7 +54,7 @@ class ImageBlockEditForm extends preact.Component {
         return [
             <FormGroup>
                 <label htmlFor="src" class="form-label">{ __('Image file') }</label>
-                <ImagePicker2
+                <ImagePicker
                     src={ src }
                     onSrcCommitted={ this.emitNewSrc.bind(this) }
                     inputId="src"
@@ -86,8 +86,9 @@ class ImageBlockEditForm extends preact.Component {
     }
     /**
      * @param {String|null} src
+     * @param {String|null} _mime
      */
-    emitNewSrc(src) {
+    emitNewSrc(src/*, _mime*/) {
         this.props.emitValueChanged(src, 'src', false, env.normalTypingDebounceMillis);
     }
 }
@@ -107,10 +108,8 @@ function completeSrc(src) {
         // "/local-dir/img.jpg"
         src[0] === '/' ||
         // "https://foo.com/img.jpg"
-        src.split(':') > 1
-            ? src
-            : `//${src}`
-    );
+        src.split(':').length > 1
+    ) ? src : `//${src}`;
 }
 
 export default () => {
@@ -146,3 +145,5 @@ export default () => {
         editForm: ImageBlockEditForm,
     };
 };
+
+export {completeSrc};

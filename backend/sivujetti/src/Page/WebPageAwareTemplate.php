@@ -419,12 +419,14 @@ final class WebPageAwareTemplate extends Template {
         // Social image
         $ldImage = null;
         if (($img = $metasIn->socialImage ?? null)) {
-            $host = $this->__vars["serverHost"];
-            $full = "{$host}{$this->mediaUrl("/public/uploads/{$img->src}")}";
+            $tmp = $this->maybeExternalMediaUrl($img->src);
+            $isLocal = !($tmp[1] ?? null) || ($tmp[0] === "/" && $tmp[1] !== "/");
+            $full = ($isLocal ? $this->__vars["serverHost"] : "") . $tmp;
             $metasOgOut[] = "<meta property=\"og:image\" content=\"{$full}\">";
             $metasOgOut[] = "<meta property=\"og:image:width\" content=\"{$img->width}\">"; // always integer
             $metasOgOut[] = "<meta property=\"og:image:height\" content=\"{$img->height}\">";
-            $metasOgOut[] = "<meta property=\"og:image:type\" content=\"{$this->escAttr($img->mime)}\">";
+            if ($img->mime)
+                $metasOgOut[] = "<meta property=\"og:image:type\" content=\"{$this->escAttr($img->mime)}\">";
             $metasOgOut[] = "<meta name=\"twitter:card\" content=\"summary_large_image\">";
             $ldImage = ["@type" => "ImageObject"];
             $ldImage["@id"] = "{$webSiteUrl}#primaryimage";

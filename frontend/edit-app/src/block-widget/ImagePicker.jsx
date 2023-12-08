@@ -2,80 +2,28 @@ import {__, floatingDialog, hookForm, reHookValues, Input, Icon, validationConst
 import FileUploader from '../commons/FileUploader.jsx';
 import {mediaUrlValidatorImpl} from '../validation.js';
 
-class ImagePickerFieldWidget extends preact.Component {
-    // inputEl;
+class ImagePicker extends preact.Component {
+    // srcInput;
     /**
-     * @param {{onImageSelected: (img: UploadsEntry) => void; initialImageFileName: String; inputId: String;}} props
+     * @param {{onSrcCommitted: (newSrc: String|null, mime: String|null) => void; src: String|null; inputId: String;}} props
      */
     constructor(props) {
         super(props);
-        this.inputEl = preact.createRef();
-    }
-    /**
-     * @access protected
-     */
-    render({onImageSelected, initialImageFileName, inputId}) {
-        const input = <input
-            value={ initialImageFileName }
-            onClick={ this.openPickerDialog.bind(this) }
-            onInput={ this.openPickerDialog.bind(this) }
-            onKeyUp={ e => { if (e.key === 'Enter' || e.key === 'ArrowDown') this.openPickerDialog(e); } }
-            class="form-input"
-            name={ inputId }
-            id={ inputId }
-            autoComplete="off"
-            ref={ this.inputEl }/>;
-        return initialImageFileName ? <div class="has-icon-right">
-            { input }
-            <button
-                onClick={ () => onImageSelected(null) }
-                class="sivujetti-form-icon btn no-color"
-                type="button">
-                <Icon iconId="x" className="size-xs color-dimmed"/>
-            </button>
-        </div> : input;
-    }
-    /**
-     * @param {Event} e
-     * @access private
-     */
-    openPickerDialog(e) {
-        e.preventDefault();
-        floatingDialog.open(PickImageDialog, {
-            title: __('Choose a picture'),
-            className: 'image-picker-dialog',
-        }, {
-            selectedImagePath: this.props.initialImageFileName,
-            onSelected: file => this.props.onImageSelected(file)
-        });
-        this.inputEl.current.blur();
-    }
-}
-
-class ImagePicker2 extends preact.Component {
-    // inputEl;
-    /**
-     * @param {{onSrcCommitted: (newSrc: String|null) => void; src: String|null; inputId: String;}} props
-     */
-    constructor(props) {
-        super(props);
-        this.inputEl = preact.createRef();
+        this.srcInput = preact.createRef();
     }
     /**
      * @access protected
      */
     componentWillMount() {
-        if (this.props.src)
-            this.setState(hookForm(this, [
-                {name: 'srcManual', value: this.props.src, validations: [
-                    [mediaUrlValidatorImpl],
-                    ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]
-                ],
-                label: __('Image file'), onAfterValueChanged: (value, hasErrors, source) => {
-                    if (source !== 'undo' && !hasErrors)
-                        this.props.onSrcCommitted(value);
-                }},
-            ]));
+        this.setState(hookForm(this, [
+            {name: 'srcManual', value: this.props.src || '', validations: [
+                [mediaUrlValidatorImpl],
+                ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]
+            ], label: __('Image file'), onAfterValueChanged: (value, hasErrors, source) => {
+                if (source !== 'undo' && !hasErrors)
+                    this.props.onSrcCommitted(value, null);
+            }},
+        ]));
     }
     /**
      * @access protected
@@ -94,9 +42,9 @@ class ImagePicker2 extends preact.Component {
                 : ['',               ' d-none'];
             return <div class="flex-centered">
                 <div class={ inputWrapCls } style="flex: 1 0">
-                    <Input vm={ this } prop="srcManual" id={ inputId } ref={ this.inputEl }/>
+                    <Input vm={ this } prop="srcManual" id={ inputId } ref={ this.srcInput }/>
                     <button
-                        onClick={ () => this.props.onSrcCommitted(null) }
+                        onClick={ () => this.props.onSrcCommitted(null, null) }
                         class={ `sivujetti-form-icon btn no-color${clearSrcBtnCls}` }
                         type="button">
                         <Icon iconId="x" className="size-xs color-dimmed"/>
@@ -119,9 +67,9 @@ class ImagePicker2 extends preact.Component {
             className: 'image-picker-dialog',
         }, {
             selectedImagePath: this.props.src,
-            onSelected: file => this.props.onSrcCommitted(file ? file.fileName : null)
+            onSelected: file => this.props.onSrcCommitted(...(file ? [file.fileName, file.mime] : [null, null]))
         });
-        this.inputEl.current.inputEl.current.blur();
+        this.srcInput.current.inputEl.current.blur();
     }
 }
 
@@ -147,5 +95,4 @@ class PickImageDialog extends preact.Component {
     }
 }
 
-export default ImagePickerFieldWidget;
-export {ImagePicker2};
+export default ImagePicker;

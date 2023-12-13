@@ -3,11 +3,11 @@
 namespace Sivujetti\Page;
 
 use MySite\Theme as UserTheme;
-use Pike\{AppConfig, ArrayUtils, Db, PikeException, Request, Response, Validation};
+use Pike\{AppConfig, ArrayUtils, Db, Injector, PikeException, Request, Response, Validation};
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\PageTypeValidator;
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\{App, JsonUtils, PushIdGenerator, SharedAPIContext, Template, Translator};
+use Sivujetti\{AppEnv, JsonUtils, PushIdGenerator, SharedAPIContext, Template, Translator};
 use Sivujetti\Auth\ACL;
 use Sivujetti\Block\{BlocksInputValidatorScanner};
 use Sivujetti\Block\Entities\Block;
@@ -30,13 +30,15 @@ final class PagesController {
      * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\Update\Updater $updater
+     * @param \Sivujetti\AppEnv $appEnv
      */
     public function renderPage(Request $req,
                                Response $res,
                                PagesRepository $pagesRepo,
                                SharedAPIContext $apiCtx,
                                TheWebsite $theWebsite,
-                               Updater $updater): void {
+                               Updater $updater,
+                               AppEnv $appEnv): void {
         $pcs = explode("/", $req->params->url, 3);
         [$pageTypeSlug, $slug] = count($pcs) > 2
             ? ["/" . $pcs[1], "/{$pcs[2]}"]
@@ -59,7 +61,7 @@ final class PagesController {
             return;
         }
         self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
-            $page, $pageType, false);
+            $page, $pageType, $appEnv, false);
     }
     /**
      * GET /jet-login: Renders the login page.
@@ -67,15 +69,16 @@ final class PagesController {
      * @param \Pike\Response $res
      * @param \Pike\AppConfig $config
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
+     * @param \Sivujetti\AppEnv $appEnv
      */
-    public function renderLoginPage(Response $res, AppConfig $config, TheWebsite $theWebsite): void {
+    public function renderLoginPage(Response $res, AppConfig $config, TheWebsite $theWebsite, AppEnv $appEnv): void {
+        $tmpl = self::createTemplate("page-auth-view", $appEnv, $theWebsite);
         $res
             ->header("Cache-Control", "no-store, must-revalidate")
-            ->html((new WebPageAwareTemplate("sivujetti:page-auth-view.tmpl.php",
-                                            assetUrlCacheBustStr: "v={$theWebsite->versionId}"))->render([
+            ->html($tmpl->render([
                 "title" => "Login",
                 "appName" => "login",
-                "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
+                "baseUrl" => $tmpl->makeUrl("/", true),
                 "uiLang" => SIVUJETTI_UI_LANG,
                 "dashboardUrl" => $config->get("app.dashboardUrl", ""),
             ]));
@@ -104,6 +107,7 @@ final class PagesController {
      * @param \Pike\AppConfig $config
      * @param \Pike\Db $db
      * @param \Sivujetti\Update\Updater $updater
+     * @param \Sivujetti\AppEnv $appEnv
      */
     public function renderEditAppWrapper(Request $req,
                                          Response $res,
@@ -112,7 +116,8 @@ final class PagesController {
                                          ACL $acl,
                                          AppConfig $config,
                                          Db $db,
-                                         Updater $updater): void {
+                                         Updater $updater,
+                                         AppEnv $appEnv): void {
         //
         $availableUpdatePackages = $updater->getAndSyncAvailablePackages(
             $theWebsite->pendingUpdatesJson,
@@ -128,12 +133,12 @@ final class PagesController {
         }
         //
         $userRole = $req->myData->user->role;
-        $res->html((new WebPageAwareTemplate("sivujetti:edit-app-wrapper.tmpl.php",
-                                             assetUrlCacheBustStr: "v={$theWebsite->versionId}"))->render([
+        $tmpl = self::createTemplate("edit-app-wrapper", $appEnv, $theWebsite);
+        $res->html($tmpl->render([
             "userDefinedJsFiles" => $apiCtx->adminJsFiles,
             "dataToFrontend" => WebPageAwareTemplate::escInlineJs(json_encode((object) [
-                "baseUrl" => WebPageAwareTemplate::makeUrl("/", true),
-                "assetBaseUrl" => WebPageAwareTemplate::makeUrl("/", false),
+                "baseUrl" => $tmpl->makeUrl("/", true),
+                "assetBaseUrl" => $tmpl->makeUrl("/", false),
                 "website" => self::theWebsiteToRaw($theWebsite),
                 "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
                 "activeTheme" => (object) ["id" => $theWebsite->activeTheme->id],
@@ -171,6 +176,7 @@ final class PagesController {
      * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
      * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
+     * @param \Sivujetti\AppEnv $appEnv
      * @throws \Pike\PikeException
      */
     public function renderPlaceholderPage(Request $req,
@@ -178,7 +184,8 @@ final class PagesController {
                                           PagesRepository $pagesRepo,
                                           LayoutsRepository $layoutsRepo,
                                           SharedAPIContext $apiCtx,
-                                          TheWebsite $theWebsite): void {
+                                          TheWebsite $theWebsite,
+                                          AppEnv $appEnv): void {
         $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
         $slugOfPageToDuplicate = $req->queryVar("duplicate");
         $page = null;
@@ -189,7 +196,7 @@ final class PagesController {
         if (!$page) throw new \RuntimeException("No such page exist", PikeException::BAD_INPUT);
         //
         self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
-            $page, $pageType, true);
+            $page, $pageType, $appEnv, true);
     }
     /**
      * POST /api/pages/[w:pageType]: Inserts a new page to the database.
@@ -403,6 +410,7 @@ final class PagesController {
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\Page\Entities\Page $page
      * @param \Sivujetti\PageType\Entities\PageType $pageType
+     * @param \Sivujetti\AppEnv $appEnv
      * @param bool $isPlaceholderPage
      */
     private static function sendPageResponse(Request $req,
@@ -412,17 +420,19 @@ final class PagesController {
                                              TheWebsite $theWebsite,
                                              Page $page,
                                              PageType $pageType,
+                                             AppEnv $appEnv,
                                              bool $isPlaceholderPage) {
         $themeAPI = new UserThemeAPI("theme", $apiCtx, new Translator);
         $_ = new UserTheme($themeAPI); // Note: mutates $apiCtx->userDefinesAssets|etc
         //
-        self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo);
+        self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo, $appEnv->di);
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
         $editModeIsOn = $isPlaceholderPage || ($req->queryVar("in-edit") !== null);
         $theWebsite->activeTheme->loadStyles($editModeIsOn);
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
             ["serverHost" => self::getServerHost($req)],
+            env: $appEnv->constants,
             apiCtx: $apiCtx,
             theWebsite: $theWebsite,
             pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy()),
@@ -461,19 +471,21 @@ final class PagesController {
      * @param \Sivujetti\Block\Entities\Block[] $branch
      * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
+     * @param \Pike\Injector $di
      */
     public static function runBlockBeforeRenderEvent(array $branch,
                                                      BlockTypes $blockTypes,
-                                                     PagesRepository $pagesRepo): void {
+                                                     PagesRepository $pagesRepo,
+                                                     Injector $di): void {
         foreach ($branch as $block) {
             if ($block->type === "__marker")
                 continue;
             $blockType = $blockTypes->{$block->type};
             if (array_key_exists(RenderAwareBlockTypeInterface::class, class_implements($blockType)))
-                $blockType->onBeforeRender($block, $blockType, App::$adi);
+                $blockType->onBeforeRender($block, $blockType, $di);
             $children = $block->type !== "GlobalBlockReference" ? $block->children : $block->__globalBlockTree?->blocks ?? [];
             if ($children)
-                self::runBlockBeforeRenderEvent($children, $blockTypes, $pagesRepo);
+                self::runBlockBeforeRenderEvent($children, $blockTypes, $pagesRepo, $di);
         }
     }
     /**
@@ -595,5 +607,18 @@ final class PagesController {
             "headHtml" => $theWebsite->headHtml,
             "footHtml" => $theWebsite->footHtml,
         ];
+    }
+    /**
+     * @param string $fileName
+     * @param \Sivujetti\AppEnv $appEnv
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
+     * @return \Sivujetti\Page\WebPageAwareTemplate
+     */
+    private static function createTemplate(string $fileName, AppEnv $appEnv, TheWebsite $theWebsite): WebPageAwareTemplate {
+        return new WebPageAwareTemplate(
+            "sivujetti:{$fileName}.tmpl.php",
+            env: $appEnv->constants,
+            assetUrlCacheBustStr: "v={$theWebsite->versionId}"
+        );
     }
 }

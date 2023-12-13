@@ -4,17 +4,24 @@ namespace Sivujetti;
 
 use Pike\{PikeException, Template as PikeTemplate};
 
+/**
+ * @psalm-import-type EnvConstants from \Sivujetti\App
+ */
 class Template extends PikeTemplate {
+    private array $__env;
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
+     * @psalm-param EnvConstants $env = null (include "config.php")["env"]
      * @param ?array<string, mixed> $initialLocals = null
      */
     public function __construct(string $file,
                                 ?array $vars = null,
+                                ?array $env = null,
                                 ?array $initialLocals = null) {
         parent::__construct(self::getValidPathOrThrow($file, allowSubFolders: true), $vars);
         $this->__locals = $initialLocals ?? [];
+        $this->__env = $env ?? [];
     }
     /**
      * @param string $str
@@ -40,12 +47,12 @@ class Template extends PikeTemplate {
      * @param bool $withIndexFile = true
      * @return string
      */
-    public static function makeUrl(string $url, bool $withIndexFile = true): string {
-        static $indexFile = !SIVUJETTI_QUERY_VAR ? "" : ("index.php?" . SIVUJETTI_QUERY_VAR . "=/");
-        if (!$withIndexFile || !$indexFile) return SIVUJETTI_BASE_URL . self::e(ltrim($url, "/"));
+    public function makeUrl(string $url, bool $withIndexFile = true): string {
+        $indexFile = !$this->__env["SIVUJETTI_QUERY_VAR"] ? "" : "index.php?{$this->__env["SIVUJETTI_QUERY_VAR"]}=/";
+        if (!$withIndexFile || !$indexFile) return $this->__env["SIVUJETTI_BASE_URL"] . self::e(ltrim($url, "/"));
         // "/path?myvar=val" -> "index.php?q=/path&myvar=val"
         $pcs = explode("?", ltrim($url, "/"), 2);
-        return SIVUJETTI_BASE_URL . $indexFile . self::escAttr($pcs[0]) .
+        return $this->__env["SIVUJETTI_BASE_URL"] . $indexFile . self::escAttr($pcs[0]) .
             (count($pcs) === 1 ? "" : ("&amp;" . self::escAttr($pcs[1])));
     }
     /**

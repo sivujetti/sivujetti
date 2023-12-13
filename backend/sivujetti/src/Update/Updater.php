@@ -2,9 +2,9 @@
 
 namespace Sivujetti\Update;
 
-use Pike\{ArrayUtils, FileSystem, PikeException};
+use Pike\{ArrayUtils, FileSystem, Injector, PikeException};
 use Pike\Db\FluentDb;
-use Sivujetti\{App, JsonUtils, LogUtils};
+use Sivujetti\{App, AppEnv, JsonUtils, LogUtils};
 use Sivujetti\Update\Entities\Job;
 
 /**
@@ -36,6 +36,8 @@ final class Updater {
     private string $targetIndexDirPath;
     /** @var callable */
     private string $errorLogFn;
+    /** @var \Pike\Injector */
+    private static Injector $di;
     /**
      * @param \Pike\Db\FluentDb $db
      * @param \Pike\FileSystem $fs
@@ -49,6 +51,7 @@ final class Updater {
                                 FileSystem $fs,
                                 HttpClientInterface $http,
                                 Signer $signer,
+                                AppEnv $appEnv,
                                 string $targetBackendDirPath = SIVUJETTI_BACKEND_PATH,
                                 string $targetIndexDirPath = SIVUJETTI_INDEX_PATH,
                                 string $errorLogFn = "error_log") {
@@ -60,6 +63,7 @@ final class Updater {
         $this->targetBackendDirPath = $targetBackendDirPath;
         $this->targetIndexDirPath = $targetIndexDirPath;
         $this->errorLogFn = $errorLogFn;
+        self::$di = $appEnv->di;
     }
     /**
      * @param ?string $currentPackagesJson
@@ -560,11 +564,11 @@ final class Updater {
         $nsdRelFilePaths = array_filter($backendFilesList, fn(string $nsdRelFilePath) =>
             str_starts_with($nsdRelFilePath, $mustStartWith)
         );
-        return array_map(function (string $nsdRelFilePath) use ($toVersion, $currentVersion, $splitWith, $ns) {
+        return array_map(static function (string $nsdRelFilePath) use ($toVersion, $currentVersion, $splitWith, $ns) {
             $fileName = explode($splitWith, $nsdRelFilePath, 2)[1]; // `\$backend/sivujetti/src/Update/Patch/PatchDbTask1.php` -> `PatchDbTask1.php` or
                                                                     // `\$backend/plugins/JetForms/Patch/PatchDbTask1.php` -> `PatchDbTask1.php`
             $Cls = $ns . explode(".", $fileName)[0];
-            return App::$adi->make($Cls, [":toVersion" => $toVersion, ":currentVersion" => $currentVersion]);
+            return self::$di->make($Cls, [":toVersion" => $toVersion, ":currentVersion" => $currentVersion]);
         }, $nsdRelFilePaths);
     }
     /**

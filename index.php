@@ -22,10 +22,12 @@ $myExceptionHandler = function ($e) {
                 Please try again later.";
 };
 
-if (!(SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE))
+$env = $config["env"];
+
+if (!($env["FLAGS"] & $env["DEVMODE"]))
     set_exception_handler($myExceptionHandler);
 // else let the errors to be thrown
 
 (new \Sivujetti\App($config))->handleRequest(
-    ...(!SIVUJETTI_QUERY_VAR ? ["", SIVUJETTI_BASE_URL] : [$_GET[SIVUJETTI_QUERY_VAR] ?? "", null])
+    ...(!$env["QUERY_VAR"] ? ["", $env["BASE_URL"]] : [$_GET[$env["QUERY_VAR"]] ?? "", null])
 );

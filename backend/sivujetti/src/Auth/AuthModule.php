@@ -4,7 +4,7 @@ namespace Sivujetti\Auth;
 
 use Pike\{Injector, PikeException, Request, Response, Router};
 use Pike\Auth\Authenticator;
-use Sivujetti\SharedAPIContext;
+use Sivujetti\{AppEnv, SharedAPIContext};
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class AuthModule {
@@ -31,7 +31,7 @@ final class AuthModule {
      * @param \Pike\Injector $di
      */
     public function beforeExecCtrl(Injector $di): void {
-        $di->share(self::createEmptyAcl());
+        $di->share($this->createEmptyAcl($di));
         $this->di = $di;
     }
     /**
@@ -72,7 +72,7 @@ final class AuthModule {
         //
         $aclInfo = $ctx["identifiedBy"];
         [$rules, $isPlugin] = $this->getAclRulesFor($aclInfo);
-        $acl = !$isPlugin ? $this->di->make(ACL::class) : self::createEmptyAcl();
+        $acl = !$isPlugin ? $this->di->make(ACL::class) : $this->createEmptyAcl();
         $acl->setRules($rules);
         // User not permitted to access this route
         if (!$acl->can($userRole, ...$aclInfo)) {
@@ -107,9 +107,11 @@ final class AuthModule {
         return [$rules, true];
     }
     /**
+     * @param \Pike\Injector $di = $this->di
      * @return \Sivujetti\Auth\ACL
      */
-    private static function createEmptyAcl(): ACL {
-        return new ACL(doThrowDevWarnings: (bool) (SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE));
+    private function createEmptyAcl(Injector $di = null): ACL {
+        $env = ($di ?? $this->di)->make(AppEnv::class)->constants;
+        return new ACL(doThrowDevWarnings: (bool) ($env["FLAGS"] & $env["DEVMODE"]));
     }
 }

@@ -2,8 +2,8 @@
 
 namespace Sivujetti\Block;
 
-use Pike\{ArrayUtils, PikeException, Request, Validation};
-use Sivujetti\App;
+use Pike\{ArrayUtils, Injector, PikeException, Request, Validation};
+use Sivujetti\AppEnv;
 use Sivujetti\Auth\ACL;
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\BlockType\{PropertiesBuilder, SaveAwareBlockTypeInterface};
@@ -17,14 +17,19 @@ final class BlocksInputValidatorScanner {
     private BlockTypes $blockTypes;
     /** @var \Sivujetti\Block\BlockValidator */
     private BlockValidator $blockValidator;
+    /** @var \Pike\Injector */
+    private Injector $appDi;
     /**
      * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
      * @param \Sivujetti\Block\BlockValidator $blockValidator
+     * @param \Sivujetti\AppEnv $appEnv
      */
     public function __construct(BlockTypes $blockTypes,
-                                BlockValidator $blockValidator) {
+                                BlockValidator $blockValidator,
+                                AppEnv $appEnv) {
         $this->blockTypes = $blockTypes;
         $this->blockValidator = $blockValidator;
+        $this->appDi = $appEnv->di;
     }
     /**
      * @param \Closure $getCurrentBlocks fn(): array<int, object>
@@ -80,7 +85,7 @@ final class BlocksInputValidatorScanner {
         BlockTree::traverse($storable, function ($b) use ($isInsert) {
             $blockType = $this->blockTypes->{$b->type};
             if (array_key_exists(SaveAwareBlockTypeInterface::class, class_implements($blockType)))
-                $blockType->onBeforeSave($isInsert, $b, $blockType, App::$adi);
+                $blockType->onBeforeSave($isInsert, $b, $blockType, $this->appDi);
         });
     }
     /**

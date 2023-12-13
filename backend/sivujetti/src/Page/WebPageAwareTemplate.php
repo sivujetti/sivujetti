@@ -37,12 +37,13 @@ final class WebPageAwareTemplate extends Template {
     public function __construct(string $file,
                                 ?array $vars = null,
                                 ?array $initialLocals = null,
+                                ?array $env = null,
                                 ?SharedAPIContext $apiCtx = null,
                                 ?TheWebsite $theWebsite = null,
                                 ?array $pluginNames = null,
                                 ?bool $useEditModeMarkup = null,
                                 ?string $assetUrlCacheBustStr = null) {
-        parent::__construct($file, $vars, $initialLocals);
+        parent::__construct($file, $vars, $env, $initialLocals);
         $this->__cssAndJsFiles = $apiCtx?->userDefinedAssets;
         $this->__internal = $theWebsite
             ? ["theme" => $theWebsite->activeTheme, "hideFromSearchEngines" => $theWebsite->hideFromSearchEngines,]
@@ -95,7 +96,7 @@ final class WebPageAwareTemplate extends Template {
      * @return string
      */
     public function url(string $url, bool $withIndexFile = true): string {
-        return self::makeUrl($url, $withIndexFile);
+        return $this->makeUrl($url, $withIndexFile);
     }
     /**
      * @param string $url Example: "/local-page", "#local-hash", "", "https://external.com", "external.com", "mailto:foo", "steam://bar"
@@ -139,14 +140,14 @@ final class WebPageAwareTemplate extends Template {
      * @return string Completed url without "?v=cacheBustStr"
      */
     public function mediaUrl(string $url): string {
-        return self::makeUrl($url, false);
+        return $this->makeUrl($url, false);
     }
     /**
      * @param string $url
      * @return string Completed url with "?v=cacheBustStr"
      */
     public function assetUrl(string $url): string {
-        return self::makeUrl($url, false) . (!str_contains($url, "?") ? "?" : "&") . $this->__assetUrlAppendix;
+        return $this->makeUrl($url, false) . (!str_contains($url, "?") ? "?" : "&") . $this->__assetUrlAppendix;
     }
     /**
      * @param string $str

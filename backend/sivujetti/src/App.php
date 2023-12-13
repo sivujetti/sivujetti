@@ -16,17 +16,22 @@ use Sivujetti\TheWebsite\TheWebsiteModule;
 use Sivujetti\Update\UpdatesModule;
 use Sivujetti\Upload\UploadsModule;
 
+/**
+ * @psalm-type EnvConstants = array{SIVUJETTI_BASE_URL: string, SIVUJETTI_QUERY_VAR: string, SIVUJETTI_SECRET: string, SIVUJETTI_UPDATE_KEY: string, SIVUJETTI_DEVMODE: int, SIVUJETTI_FLAGS: int} & array<string, mixed>
+ * @psalm-type ConfigBundle = array{app: array<string, mixed>, env: EnvConstants}
+ */
 final class App extends PikeApp {
     public const VERSION = "0.16.0-dev";
-    /** @var \Pike\Injector */
-    public static Injector $adi;
     /**
-     * @param array<string, mixed>|\Sivujetti\Boot\BootModule $config
+     * @psalm-param ConfigBundle|\Sivujetti\Boot\BootModule $config
      */
     public function __construct(array|BootModule $config) {
         parent::__construct();
+        [$module, $configBundle] = $config instanceof BootModule
+            ? [$config,                 $config->configBundle]
+            : [new BootModule($config), $config];
         $this->setModules([
-            $config instanceof BootModule ? $config : new BootModule($config),
+            $module,
             new AuthModule,
             new BlocksModule,
             new GlobalBlockTreesModule,
@@ -39,8 +44,18 @@ final class App extends PikeApp {
             new UploadsModule,
             new PagesModule,
             new PostBootModule,
-        ])->defineInjectables(function ($di) {
-            self::$adi = $di;
+        ])->defineInjectables(function (Injector $di) use ($configBundle) {
+            $appEnv = new AppEnv;
+            $appEnv->constants = $configBundle["env"];
+            $appEnv->di = $di;
+            $di->share($appEnv);
         });
     }
+}
+
+final class AppEnv {
+    /** @psalm-var EnvConstants */
+    public array $constants;
+    /** @var \Pike\Injector $di */
+    public Injector $di;
 }

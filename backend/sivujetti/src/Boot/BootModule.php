@@ -18,25 +18,28 @@ use Sivujetti\BlockType\{ButtonBlockType, CodeBlockType, ColumnsBlockType,
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Plugin\Entities\Plugin;
-use Sivujetti\{SharedAPIContext};
+use Sivujetti\{AppEnv, SharedAPIContext};
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\TheWebsite\TheWebsiteRepository;
 use Sivujetti\Update\{CurlHttpClient, HttpClientInterface};
 use Sivujetti\UserPlugin\{UserPluginAPI, UserPluginInterface};
 use Sivujetti\UserSite\{UserSiteAPI, UserSiteInterface};
 
+/**
+ * @psalm-import-type ConfigBundle from \Sivujetti\App
+ */
 class BootModule {
-    /** @var array<string, mixed> */
-    protected array $config;
+    /** @psalm-var ConfigBundle */
+    public array $configBundle;
     /** @var \Pike\Injector */
     protected Injector $di;
     /** @var bool */
     private bool $essentialsLoaded = false;
     /**
-     * @param array<string, mixed> $config
+     * @psalm-param ConfigBundle $configBundle
      */
-    public function __construct(array $config) {
-        $this->config = $config;
+    public function __construct(array $configBundle) {
+        $this->configBundle = $configBundle;
     }
     /**
      * @param \Pike\Router $router
@@ -47,9 +50,10 @@ class BootModule {
             $this->loadEssentialsIfNotLoaded($di);
             $di->make(SharedAPIContext::class)->setAppPhase(SharedAPIContext::PHASE_READY_FOR_ROUTING);
         }
-        $router->on("*", function ($req, $res, $next) {
+        $env = $di->make(AppEnv::class)->constants;
+        $devModeIsOn = (bool) ($env["FLAGS"] & $env["DEVMODE"]);
+        $router->on("*", function ($req, $res, $next) use ($devModeIsOn) {
             $req->myData = (object) ["user" => null];
-            $devModeIsOn = (bool) (SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE);
             if (($error = $this->validateRouteContext($req, $devModeIsOn))) {
                 if (!$devModeIsOn) { $res->plain("500")->status(500); return; }
                 throw new PikeException($error, PikeException::BAD_INPUT);
@@ -105,8 +109,8 @@ class BootModule {
      * @param \Pike\Injector $di
      */
     protected function doLoadEssentials(Injector $di): void {
-        $db = new Db($this->config);
-        $di->share(new AppConfig($this->config));
+        $db = new Db($this->configBundle["app"]);
+        $di->share(new AppConfig($this->configBundle["app"]));
         $di->share($db);
         $di->share(new FluentDb($db));
         $di->share(new Authenticator(
@@ -163,7 +167,7 @@ class BootModule {
 
         //
         $fluentDb = $di->make(FluentDb::class);
-        $fluentDb->getDb()->open($this->config["db.driver"] === "sqlite"
+        $fluentDb->getDb()->open($this->configBundle["app"]["db.driver"] === "sqlite"
             ? [\PDO::ATTR_EMULATE_PREPARES => 0]
             : [\PDO::ATTR_EMULATE_PREPARES => 0, \PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE"]
         );

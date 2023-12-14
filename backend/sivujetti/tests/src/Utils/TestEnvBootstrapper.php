@@ -11,6 +11,9 @@ use Pike\TestUtils\SingleConnectionDb;
 use Sivujetti\SharedAPIContext;
 use Sivujetti\Boot\BootModule;
 
+/**
+ * @psalm-import-type ConfigBundle from \Sivujetti\App
+ */
 class TestEnvBootstrapper extends BootModule {
     /** @var ?\Pike\Db */
     protected ?Db $db;
@@ -21,12 +24,12 @@ class TestEnvBootstrapper extends BootModule {
     /** @var array<int, \Closure> */
     protected array $customAlterers;
     /**
-     * @param array<string, mixed> $config
+     * @psalm-param ConfigBundle $configBundle
      * @param ?Db $db = null
      */
-    public function __construct(array $config, ?Db $db = null) {
+    public function __construct(array $configBundle, ?Db $db = null) {
         if ($db === null) throw new PikeException("Db is required");
-        parent::__construct($config);
+        parent::__construct($configBundle);
         $this->db = $db;
         $this->authTemp = null;
         $this->apiCtxTemp = null;
@@ -36,7 +39,7 @@ class TestEnvBootstrapper extends BootModule {
      * @inheritdoc
      */
     protected function doLoadEssentials(Injector $di): void {
-        $di->share(new AppConfig($this->config));
+        $di->share(new AppConfig($this->configBundle["app"]));
         $di->share($this->db);
         $di->alias(Db::class, SingleConnectionDb::class);
         $di->share(new FluentDb($this->db));

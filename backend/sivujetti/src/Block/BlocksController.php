@@ -3,13 +3,13 @@
 namespace Sivujetti\Block;
 
 use Pike\{ArrayUtils, Request, Response, Validation};
+use Sivujetti\{AppEnv, SharedAPIContext};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository2;
 use Sivujetti\Page\{PagesController, PagesRepository, WebPageAwareTemplate};
 use Sivujetti\PageType\Entities\PageType;
-use Sivujetti\SharedAPIContext;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class BlocksController {
@@ -24,13 +24,15 @@ final class BlocksController {
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\Page\PagesRepository $pagesRepo
      * @param \Sivujetti\SharedAPIContext $apiCtx
+     * @param \Sivujetti\AppEnv $appEnv
      */
     public function render(Request $req,
                            Response $res,
                            BlockValidator $blockValidator,
                            TheWebsite $theWebsite,
                            PagesRepository $pagesRepo,
-                           SharedAPIContext $apiCtx): void {
+                           SharedAPIContext $apiCtx,
+                           AppEnv $appEnv): void {
         if (($errors = self::validateRenderBlockInput($req->body)) ||
             ($errors = $blockValidator->validateInsertOrUpdateData($req->body->block->type,
                                                                    $req->body->block))) {
@@ -45,7 +47,8 @@ final class BlocksController {
             $block->children = [$marker];
         }
         //
-        PagesController::runBlockBeforeRenderEvent([$block], $apiCtx->blockTypes, $pagesRepo);
+        PagesController::runBlockBeforeRenderEvent([$block], $apiCtx->blockTypes, $pagesRepo,
+                                                    $appEnv->di);
         $pagePageType = ArrayUtils::findByKey($theWebsite->pageTypes, PageType::PAGE, "name");
         $html = (new WebPageAwareTemplate($block->renderer,
             initialLocals: [

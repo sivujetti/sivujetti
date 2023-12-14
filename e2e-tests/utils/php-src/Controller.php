@@ -21,10 +21,10 @@ final class Controller {
         // Create db
         $config = require SIVUJETTI_BACKEND_PATH . "sivujetti/tests/config.php";
         // Override ":memory:"
-        $config["db.database"] = E2E_TEST_DB_PATH;
-        $db = new Db($config);
+        $config["app"]["db.database"] = E2E_TEST_DB_PATH;
+        $db = new Db($config["app"]);
         // Populate it using $config["db.schemaInitFilePath"] and $statements
-        DbTestCase::openAndPopulateTestDb($config, $db, $statements);
+        DbTestCase::openAndPopulateTestDb($config["app"], $db, $statements);
 
         // Monkeypatch config.php for upcoming e2e test requests
         $fs = (new \Pike\FileSystem);

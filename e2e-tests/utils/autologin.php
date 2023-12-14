@@ -17,7 +17,7 @@ $config = require SIVUJETTI_BACKEND_PATH . "sivujetti/tests/config.php";
 $loader = require SIVUJETTI_BACKEND_PATH . "vendor/autoload.php";
 $loader->addPsr4("MySite\\", SIVUJETTI_SITE_PATH);
 $loader->addPsr4("SitePlugins\\", SIVUJETTI_PLUGINS_PATH);
-$config["db.database"] = dirname(__DIR__) . "/temp-e2e-tests-db.db";
+$config["app"]["db.database"] = dirname(__DIR__) . "/temp-e2e-tests-db.db";
 
 //-------------------------------------------------
 

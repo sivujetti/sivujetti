@@ -12,11 +12,12 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $makeExpectedHtml = fn($b, $lnk, $cls = "") =>
             $this->blockTestUtils->getExpectedButtonBlockOutput($b, $lnk, $cls, "[childMarker]")
         ;
+        $tmpl = new Template("dummy");
         //
         $state = $this->setupRenderButtonBlocksTest();
         $this->makeTestSivujettiApp($state);
         $b = $state->testBlocks;
-        $expectedHtml = $makeExpectedHtml($b[0], Template::makeUrl($b[0]->linkTo));
+        $expectedHtml = $makeExpectedHtml($b[0], $tmpl->makeUrl($b[0]->linkTo));
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
         $expectedHtml2 = $makeExpectedHtml($b[1], $b[1]->linkTo, " escape&quot;");
@@ -238,7 +239,8 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $state = $this->setupRenderImageBlocksTest();
         $this->makeTestSivujettiApp($state);
         $b = $state->testBlocks;
-        $expectedHtml = $makeExpectedHtml($b[0], Template::makeUrl("public/uploads/{$b[0]->src}", false));
+        $tmpl = new Template("dummy");
+        $expectedHtml = $makeExpectedHtml($b[0], $tmpl->makeUrl("public/uploads/{$b[0]->src}", false));
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
         $expectedHtml = $makeExpectedHtml($b[1], ImageBlockType::PLACEHOLDER_SRC, cls: " escape&quot;", altText: "&quot;escape");
@@ -294,8 +296,9 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
             str_replace("{defaultAttrs}", " class=\"j-Menu\" data-block-type=\"Menu\"" .
                 " data-block=\"{$state->testBlocks[0]->id}\"", $tmpl)
         ;
+        $tmpl = new Template("dummy");
         $this->renderAndVerify($state, 0, $replaceAttrs("<nav{defaultAttrs}><ul>") .
-            "<li><a href=\"" . Template::makeUrl("/") . "\" data-prop=\"val\"></a></li>" .
+            "<li><a href=\"{$tmpl->makeUrl("/")}\" data-prop=\"val\"></a></li>" .
         "</ul>[childMarker]</nav>");
     }
     private function setupRenderMenuBlocksTest(): \TestState {
@@ -368,6 +371,7 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
             "<section class=\"j-Section{$cls}\"{$style} data-block-type=\"Section\" data-block=\"{$b->id}\">" .
                 "<div data-block-root>[childMarker]</div>" .
             "</section>";
+        $tmpl = new Template("dummy");
         $state = $this->setupRenderSectionBlocksTest();
         $this->makeTestSivujettiApp($state);
         $b = $state->testBlocks;
@@ -375,7 +379,7 @@ final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
         $this->renderAndVerify($state, 0, $expectedHtml);
         //
         $expectedHtml = $makeExpectedHtml($b[1], " escape&quot;",
-            " style=\"background-image:url('".Template::makeUrl("public/uploads/{$b[1]->bgImage}", false)."')\"");
+            " style=\"background-image:url('{$tmpl->makeUrl("public/uploads/{$b[1]->bgImage}", false)}')\"");
         $this->renderAndVerify($state, 1, $expectedHtml);
         //
         $expectedHtml = $makeExpectedHtml($b[2], " some classes",

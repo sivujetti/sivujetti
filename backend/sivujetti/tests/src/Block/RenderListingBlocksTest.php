@@ -55,7 +55,7 @@ final class RenderListingBlocksTest extends RenderBuiltInBlocksTestCase {
         $makeExpectedListItem = fn(object $pageData) =>
             "        <article class=\"list-item list-item-{$pageData->slug}\">\r\n" .
             "        <h2>".Template::e($pageData->title)."</h2>\r\n" .
-            "        <div><a href=\"".Template::makeUrl($pageData->slug)."\">Read more</a></div>\r\n" .
+            "        <div><a href=\"".(new Template("dummy"))->makeUrl($pageData->slug)."\">Read more</a></div>\r\n" .
             "    </article>\r\n";
         $state->makeExpectedHtml = fn(object $b, object $page1Data, object $page2Data = null) =>
             "<div class=\"j-Listing page-type-pages\" data-block-type=\"Listing\" data-block=\"{$b->id}\">\r\n" .

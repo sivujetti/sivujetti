@@ -18,7 +18,7 @@ trait HttpApiTestTrait {
                                      ?array $queryVars = null,
                                      ?array $cookies = null): Request {
         return new Request($path, $method, $body, $files,
-            array_merge(['HTTP_X_REQUESTED_WITH' => 'js-fetch',
+            array_merge(['HTTP_X_REQUESTED_WITH' => 'Loving kindness',
                          'CONTENT_TYPE' => 'application/json'],
                         $serverVars ?? []), $queryVars, $cookies);
     }

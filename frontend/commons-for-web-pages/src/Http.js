@@ -65,9 +65,9 @@ class Http {
 function completeSettings(settings, data) {
     if (!settings.headers)
         settings.headers = {'Content-Type': 'application/json',
-                            'X-Requested-With': 'js-fetch'};
+                            'X-Requested-With': 'Loving kindness'};
     else if (settings.headers === '@auto')
-        settings.headers = {'X-Requested-With': 'js-fetch'};
+        settings.headers = {'X-Requested-With': 'Loving kindness'};
     if (!settings.body && data)
         settings.body = !(data instanceof FormData) ? JSON.stringify(data) : data;
     if (!settings.credentials)

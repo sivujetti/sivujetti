@@ -31,7 +31,7 @@ final class BundleCmsToZipTest extends DbTestCase {
         if ($this->actuallyWrittenSignatureFilePath) unlink($this->actuallyWrittenSignatureFilePath);
     }
     public static function getDbConfig(): array {
-        return require TEST_CONFIG_FILE_PATH;
+        return (require TEST_CONFIG_FILE_PATH)["app"];
     }
     public function testCreateZipReleaseBundlesEverythingToZipFile(): void {
         $state = $this->setupTest();

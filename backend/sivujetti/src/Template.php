@@ -21,7 +21,7 @@ class Template extends PikeTemplate {
                                 ?array $initialLocals = null) {
         parent::__construct(self::getValidPathOrThrow($file, allowSubFolders: true), $vars);
         $this->__locals = $initialLocals ?? [];
-        $this->__env = $env ?? [];
+        $this->__env = $env ?? ["BASE_URL" => "/", "QUERY_VAR" => ""];
     }
     /**
      * @param string $str
@@ -48,11 +48,11 @@ class Template extends PikeTemplate {
      * @return string
      */
     public function makeUrl(string $url, bool $withIndexFile = true): string {
-        $indexFile = !$this->__env["SIVUJETTI_QUERY_VAR"] ? "" : "index.php?{$this->__env["SIVUJETTI_QUERY_VAR"]}=/";
-        if (!$withIndexFile || !$indexFile) return $this->__env["SIVUJETTI_BASE_URL"] . self::e(ltrim($url, "/"));
+        $indexFile = !$this->__env["QUERY_VAR"] ? "" : "index.php?{$this->__env["QUERY_VAR"]}=/";
+        if (!$withIndexFile || !$indexFile) return $this->__env["BASE_URL"] . self::e(ltrim($url, "/"));
         // "/path?myvar=val" -> "index.php?q=/path&myvar=val"
         $pcs = explode("?", ltrim($url, "/"), 2);
-        return $this->__env["SIVUJETTI_BASE_URL"] . $indexFile . self::escAttr($pcs[0]) .
+        return $this->__env["BASE_URL"] . $indexFile . self::escAttr($pcs[0]) .
             (count($pcs) === 1 ? "" : ("&amp;" . self::escAttr($pcs[1])));
     }
     /**

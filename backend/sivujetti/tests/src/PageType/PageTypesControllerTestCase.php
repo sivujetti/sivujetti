@@ -22,7 +22,7 @@ abstract class PageTypesControllerTestCase extends DbTestCase {
         self::$db->exec("DROP TABLE IF EXISTS `" . PageTypeMigrator::MAGIC_PAGE_TYPE_NAME . "`");
     }
     public static function getDbConfig(): array {
-        return require TEST_CONFIG_FILE_PATH;
+        return (require TEST_CONFIG_FILE_PATH)["app"];
     }
     protected function insertPlaceholderPageTypeToDb(): void {
         $dataHelper = (new DbDataHelper(self::$db));

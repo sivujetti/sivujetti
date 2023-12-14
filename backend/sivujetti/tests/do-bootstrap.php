@@ -12,7 +12,7 @@ class TestState extends \stdClass {
  * @param ?string $testSitePath = null Default __DIR__ . "/test-site/"
  * @param ?string $testPluginsPath = null Default SIVUJETTI_BACKEND_PATH . "plugins/"
  * @param \Closure $alterPsr4Loader = null
- * @return array<string, mixed> Config
+ * @return array{env: array<string, mixed>, app: array<string, mixed>} Config bundle see ConfigBundle @App.php
  */
 return function (?string $testSitePath = null,
                  ?string $testPluginsPath = null,
@@ -22,8 +22,7 @@ return function (?string $testSitePath = null,
     define("SIVUJETTI_SITE_PATH", $testSitePath ?? (__DIR__ . "/test-site/"));
     define("SIVUJETTI_PLUGINS_PATH", $testPluginsPath ?? (SIVUJETTI_BACKEND_PATH . "plugins/"));
 
-    // Defines SIVUJETTI_BASE_URL etc.
-    $config = require __DIR__ . "/config.php";
+    $configBundle = require __DIR__ . "/config.php";
 
     $loader = require SIVUJETTI_BACKEND_PATH . "vendor/autoload.php";
     $loader->addPsr4("Sivujetti\\Tests\\", __DIR__ . "/src");
@@ -34,5 +33,5 @@ return function (?string $testSitePath = null,
     $loader->addPsr4("SitePlugins\\", SIVUJETTI_PLUGINS_PATH);
     if ($alterPsr4Loader)
         $alterPsr4Loader($loader);
-    return $config;
+    return $configBundle;
 };

@@ -30,7 +30,7 @@ abstract class PagesControllerTestCase extends DbTestCase {
             $this->onTearDown->__invoke();
     }
     public static function getDbConfig(): array {
-        return require TEST_CONFIG_FILE_PATH;
+        return (require TEST_CONFIG_FILE_PATH)["app"];
     }
     public function makePagesControllerTestApp(\TestState $state): void {
         $this->makeTestSivujettiApp($state, function (TestEnvBootstrapper $bootModule) {

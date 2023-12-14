@@ -31,7 +31,7 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $this->cleanUp($this->state);
     }
     public static function getDbConfig(): array {
-        return require TEST_CONFIG_FILE_PATH;
+        return (require TEST_CONFIG_FILE_PATH)["app"];
     }
     public function testInstallFromDirInstallsSiteFromLocalDirectory(): void {
         $state = $this->setupTest((object) [

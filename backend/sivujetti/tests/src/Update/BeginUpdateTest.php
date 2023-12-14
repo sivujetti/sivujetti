@@ -31,7 +31,7 @@ final class BeginUpdateTest extends DbTestCase {
             $this->fs->unlink(self::TEST_PATCH_MAP_FILE_PATH);
     }
     public static function getDbConfig(): array {
-        return require TEST_CONFIG_FILE_PATH;
+        return (require TEST_CONFIG_FILE_PATH)["app"];
     }
     public function testBeginUpdatesStartTheUpdateProcess(): void {
         $state = $this->setupTest();

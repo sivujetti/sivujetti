@@ -111,7 +111,7 @@ final class BlockTestUtils {
                                                  ?string $lnk = null,
                                                  ?string $cls = null,
                                                  string $childMarker = ""): string {
-        if ($lnk === null && $rawBlock->linkTo) $lnk = Template::makeUrl($rawBlock->linkTo);
+        if ($lnk === null && $rawBlock->linkTo) $lnk = (new Template("dummy"))->makeUrl($rawBlock->linkTo);
         if ($cls === null) $cls = !$rawBlock->styleClasses ? "" : (" " . Template::escAttr($rawBlock->styleClasses));
         [$start, $end] = match ($rawBlock->tagType) {
             ButtonBlockType::TAG_TYPE_NORMAL_BUTTON => ["<button type=\"button\"", "</button>"],

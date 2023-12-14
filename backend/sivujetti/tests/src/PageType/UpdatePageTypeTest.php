@@ -82,7 +82,7 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
     }
     private function verifyCreatedUnderlyingDataStore(\TestState $state): void {
         // Created the table?
-        $c = require TEST_CONFIG_DIR_PATH . "config.php";
+        $c = (require TEST_CONFIG_DIR_PATH . "config.php")["app"];
         $isSqlite = $c["db.driver"] === "sqlite";
         $row = $isSqlite
             ? self::$db->fetchOne("SELECT name, sql FROM sqlite_master" .

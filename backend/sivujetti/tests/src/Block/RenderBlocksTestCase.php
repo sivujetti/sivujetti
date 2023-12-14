@@ -22,7 +22,7 @@ abstract class RenderBlocksTestCase extends DbTestCase {
         return $state;
     }
     public static function getDbConfig(): array {
-        return require TEST_CONFIG_FILE_PATH;
+        return (require TEST_CONFIG_FILE_PATH)["app"];
     }
     protected function sendRenderBlockRequest(\TestState $state, ?object $block = null): void {
         $state->spyingResponse = $state->app->sendRequest(

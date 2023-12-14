@@ -64,15 +64,15 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertStringContainsString($expected2, $state->spyingResponse->getActualBody());
     }
     private function verifyThemeCanRegisterCssFiles(\TestState $state): void {
-        $expectedUrl = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME, false) . "?v=abcdefg1";
+        $expectedUrl = self::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME, false) . "?v=abcdefg1";
         $this->assertStringContainsString("<link href=\"{$expectedUrl}\" rel=\"stylesheet\">",
             $state->spyingResponse->getActualBody());
     }
     private function verifyRenderedBlockTypeBaseStyles(\TestState $state): void {
-        $expectedUrl = WebPageAwareTemplate::makeUrl("/public/test-suite-theme-generated.css", false);
+        $expectedUrl = self::makeUrl("/public/test-suite-theme-generated.css", false);
         $html = $state->spyingResponse->getActualBody();
         $this->assertStringContainsString("<link href=\"{$expectedUrl}", $html);
-        $registeredByTheme = WebPageAwareTemplate::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME, false);
+        $registeredByTheme = self::makeUrl("/public/" . Theme::TEST_CSS_FILE_NAME, false);
         $automaticallyGenerated = "<link href=\"{$expectedUrl}";
         $this->assertTrue(strpos($html, $automaticallyGenerated) > strpos($html, $registeredByTheme));
     }
@@ -123,7 +123,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->assertEquals("fi", $ldWebSite->inLanguage);
         $this->assertEquals("fi", $ldWebPage->inLanguage);
         // Permalink
-        $expectedPageUrlFull = "http://localhost" . rtrim(Template::makeUrl($state->testPageData->path), "/");
+        $expectedPageUrlFull = "http://localhost" . rtrim(self::makeUrl($state->testPageData->path), "/");
         $permaEl1 = $dom->first("head link[rel=\"canonical\"]");
         $permaEl2 = $dom->first("head meta[property=\"og:url\"]");
         $this->assertNotNull($permaEl1);
@@ -149,7 +149,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         // Social image
         $input = $state->testPageData->meta->socialImage;
         $imgUrlEl = $dom->first("head meta[property=\"og:image\"]");
-        $expectedImgUrl = "http://localhost" . WebPageAwareTemplate::makeUrl("/public/uploads/{$input->src}", false);
+        $expectedImgUrl = "http://localhost" . self::makeUrl("/public/uploads/{$input->src}", false);
         $this->assertEquals($expectedImgUrl, $imgUrlEl->getAttribute("content"));
         $imgWidthEl = $dom->first("head meta[property=\"og:image:width\"]");
         $this->assertEquals($input->width, $imgWidthEl->getAttribute("content"));
@@ -212,5 +212,8 @@ final class RenderBasicPageTest extends RenderPageTestCase {
             "}, document.createDocumentFragment()))",
             $injectJs
         );
+    }
+    private static function makeUrl(...$args): string {
+        return (new WebPageAwareTemplate("dummy"))->makeUrl(...$args);
     }
 }

@@ -72,6 +72,18 @@ final class TheWebsiteController {
         $res->json(["ok" => "ok"]);
     }
     /**
+     * GET /api/the-website/issues: returns security and other issues.
+     *
+     * @param \Pike\Response $res
+     */
+    public function getSecurityAndOtherIssues(Response $res): void {
+        $issues = [];
+        // todo only if not localhost
+        if (in_array(ini_get("display_errors"), ["1", "On"], false) && extension_loaded("xdebug"))
+            $issues[] = "Xdebug is enabled. This is a security risk.";
+        $res->json($issues);
+    }
+    /**
      * @param object $data
      * @param \Pike\Db\FluentDb $db
      */

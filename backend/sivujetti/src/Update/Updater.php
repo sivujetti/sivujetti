@@ -28,6 +28,8 @@ final class Updater {
     private HttpClientInterface $http;
     /** @var \Sivujetti\Update\Signer */
     private Signer $signer;
+    /** @var \Sivujetti\AppEnv */
+    private AppEnv $appEnv;
     /** @var string[] ["Some error"] or [] */
     private array $lastErrorDetails;
     /** @var string */
@@ -43,6 +45,7 @@ final class Updater {
      * @param \Pike\FileSystem $fs
      * @param \Sivujetti\Update\HttpClientInterface $http
      * @param \Sivujetti\Update\Signer $signer
+     * @param \Sivujetti\AppEnv $appEnv
      * @param string $targetBackendDirPath = SIVUJETTI_BACKEND_PATH Must end with "/", mainly used by tests
      * @param string $targetIndexDirPath = SIVUJETTI_INDEX_PATH
      * @param string $errorLogFn = "error_log" Mainly for tests
@@ -59,6 +62,7 @@ final class Updater {
         $this->fs = $fs;
         $this->http = $http;
         $this->signer = $signer;
+        $this->appEnv = $appEnv;
         $this->lastErrorDetails = [];
         $this->targetBackendDirPath = $targetBackendDirPath;
         $this->targetIndexDirPath = $targetIndexDirPath;
@@ -163,7 +167,7 @@ final class Updater {
         [$filePath, $fileName, $dirId] = $this->createTargetFilePath($package->name);
         $sigLenFail = strlen($package->sig) !== 128;
         if ($sigLenFail ||
-            !$this->signer->verify($package->sig, $this->fs->read($filePath), SIVUJETTI_UPDATE_KEY)) {
+            !$this->signer->verify($package->sig, $this->fs->read($filePath), $this->appEnv->constants["UPDATE_KEY"])) {
             $this->lastErrorDetails = ["Checksum verification failed"];
             return $sigLenFail ? self::RESULT_BAD_INPUT : self::RESULT_VERIFICATION_FAILED;
         }

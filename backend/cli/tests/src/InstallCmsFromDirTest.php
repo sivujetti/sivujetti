@@ -162,18 +162,19 @@ final class InstallCmsFromDirTest extends DbTestCase {
         $expectedBaseUrl = $state->inputArgs[7] ?? "/";
         $this->assertStringEqualsFile("{$state->getTargetSitePath->__invoke("index")}config.php",
             "<?php\r\n" .
-            "if (!defined('SIVUJETTI_BASE_URL')) {\r\n" .
-            "    define('SIVUJETTI_BASE_URL',   '{$expectedBaseUrl}');\r\n" .
-            "    define('SIVUJETTI_QUERY_VAR',  '{$actualConfig['mainQueryVar']}');\r\n" .
-            "    define('SIVUJETTI_SECRET',     '{$actualConfig['secret']}');\r\n" .
-            "    define('SIVUJETTI_UPDATE_KEY', '{$actualConfig['updateKey']}');\r\n" .
-            "    define('SIVUJETTI_DEVMODE',    1 << 1);\r\n" .
-            "    define('SIVUJETTI_FLAGS',      SIVUJETTI_DEVMODE);\r\n" .
-            "}\r\n" .
+            "\r\n" .
             "return [\r\n" .
-            "    'db.driver'      => '{$actualConfig["db.driver"]}',\r\n" .
-            "    'db.database'    => '".str_replace(SIVUJETTI_BACKEND_PATH, "'.SIVUJETTI_BACKEND_PATH.'",$actualConfig["db.database"])."',\r\n" .
-            "    'db.tablePrefix' => '',\r\n" .
+            "    'env' => [\r\n" .
+            "        'BASE_URL'    => '{$expectedBaseUrl}',\r\n" .
+            "        'QUERY_VAR'   => '{$actualConfig['mainQueryVar']}',\r\n" .
+            "        'SITE_SECRET' => '{$actualConfig['secret']}',\r\n" .
+            "        'UPDATE_KEY'  => '{$actualConfig['updateKey']}',\r\n" .
+            "    ],\r\n" .
+            "    'app' => [\r\n" .
+            "        'db.driver'      => '{$actualConfig["db.driver"]}',\r\n" .
+            "        'db.database'    => '".str_replace(SIVUJETTI_BACKEND_PATH, "'.SIVUJETTI_BACKEND_PATH.'",$actualConfig["db.database"])."',\r\n" .
+            "        'db.tablePrefix' => '',\r\n" .
+            "    ]\r\n" .
             "];\r\n"
         );
     }

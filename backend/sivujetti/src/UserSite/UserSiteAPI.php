@@ -28,7 +28,7 @@ class UserSiteAPI extends BaseAPI {
     }
     /**
      * Adds $url to a list of urls, that will be included at the end of
-     * "backend/assets/edit-app-wrapper.tmpl.php". $url is relative to SIVUJETTI_BASE_URL .
+     * "backend/assets/edit-app-wrapper.tmpl.php". $url is relative to $appEnv->constants["BASE_URL"] .
      * "public/" ("foo/file.js" will become "http://mysite.com/public/foo/file.js")
      *
      * @param string $url e.g. "my-site.bundle.js"

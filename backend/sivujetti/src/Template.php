@@ -5,7 +5,7 @@ namespace Sivujetti;
 use Pike\{PikeException, Template as PikeTemplate};
 
 /**
- * @psalm-import-type EnvConstants from \Sivujetti\App
+ * @psalm-import-type EnvConstants from \Sivujetti\AppEnv
  */
 class Template extends PikeTemplate {
     private array $__env;

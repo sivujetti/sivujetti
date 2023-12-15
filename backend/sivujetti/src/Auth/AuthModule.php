@@ -4,7 +4,7 @@ namespace Sivujetti\Auth;
 
 use Pike\{Injector, PikeException, Request, Response, Router};
 use Pike\Auth\Authenticator;
-use Sivujetti\{AppEnv, SharedAPIContext};
+use Sivujetti\{SharedAPIContext};
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class AuthModule {
@@ -31,7 +31,7 @@ final class AuthModule {
      * @param \Pike\Injector $di
      */
     public function beforeExecCtrl(Injector $di): void {
-        $di->share($this->createEmptyAcl($di));
+        $di->share($this->createEmptyAcl());
         $this->di = $di;
     }
     /**
@@ -107,11 +107,9 @@ final class AuthModule {
         return [$rules, true];
     }
     /**
-     * @param \Pike\Injector $di = $this->di
      * @return \Sivujetti\Auth\ACL
      */
-    private function createEmptyAcl(Injector $di = null): ACL {
-        $env = ($di ?? $this->di)->make(AppEnv::class)->constants;
-        return new ACL(doThrowDevWarnings: (bool) ($env["FLAGS"] & $env["DEVMODE"]));
+    private function createEmptyAcl(): ACL {
+        return new ACL(doThrowDevWarnings: (bool) (SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE));
     }
 }

@@ -18,7 +18,7 @@ use Sivujetti\BlockType\{ButtonBlockType, CodeBlockType, ColumnsBlockType,
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Plugin\Entities\Plugin;
-use Sivujetti\{AppEnv, SharedAPIContext};
+use Sivujetti\{SharedAPIContext};
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\TheWebsite\TheWebsiteRepository;
 use Sivujetti\Update\{CurlHttpClient, HttpClientInterface};
@@ -50,8 +50,7 @@ class BootModule {
             $this->loadEssentialsIfNotLoaded($di);
             $di->make(SharedAPIContext::class)->setAppPhase(SharedAPIContext::PHASE_READY_FOR_ROUTING);
         }
-        $env = $di->make(AppEnv::class)->constants;
-        $devModeIsOn = (bool) ($env["FLAGS"] & $env["DEVMODE"]);
+        $devModeIsOn = (bool) (SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE);
         $router->on("*", function ($req, $res, $next) use ($devModeIsOn) {
             $req->myData = (object) ["user" => null];
             if (($error = $this->validateRouteContext($req, $devModeIsOn))) {

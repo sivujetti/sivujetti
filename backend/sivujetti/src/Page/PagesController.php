@@ -71,7 +71,10 @@ final class PagesController {
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\AppEnv $appEnv
      */
-    public function renderLoginPage(Response $res, AppConfig $config, TheWebsite $theWebsite, AppEnv $appEnv): void {
+    public function renderLoginPage(Response $res,
+                                    AppConfig $config,
+                                    TheWebsite $theWebsite,
+                                    AppEnv $appEnv): void {
         $tmpl = self::createTemplate("page-auth-view", $appEnv, $theWebsite);
         $res
             ->header("Cache-Control", "no-store, must-revalidate")
@@ -614,7 +617,9 @@ final class PagesController {
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @return \Sivujetti\Page\WebPageAwareTemplate
      */
-    private static function createTemplate(string $fileName, AppEnv $appEnv, TheWebsite $theWebsite): WebPageAwareTemplate {
+    private static function createTemplate(string $fileName,
+                                           AppEnv $appEnv,
+                                           TheWebsite $theWebsite): WebPageAwareTemplate {
         return new WebPageAwareTemplate(
             "sivujetti:{$fileName}.tmpl.php",
             env: $appEnv->constants,

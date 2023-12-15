@@ -131,7 +131,7 @@ final class BlocksInputValidatorScanner {
      */
     public function validateBlocksUpdateData(object $input): array {
         if (($errors = Validation::makeObjectValidator()
-            ->rule("blocks", "minLength", "1", "array")
+            ->rule("blocks", "minLength", 1, "array")
             ->validate($input))) {
             return $errors;
         }

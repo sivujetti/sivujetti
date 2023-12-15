@@ -17,8 +17,7 @@ use Sivujetti\Update\UpdatesModule;
 use Sivujetti\Upload\UploadsModule;
 
 /**
- * @psalm-type EnvConstants = array{SIVUJETTI_BASE_URL: string, SIVUJETTI_QUERY_VAR: string, SIVUJETTI_SECRET: string, SIVUJETTI_UPDATE_KEY: string, SIVUJETTI_DEVMODE: int, SIVUJETTI_FLAGS: int} & array<string, mixed>
- * @psalm-type ConfigBundle = array{app: array<string, mixed>, env: EnvConstants}
+ * @psalm-type EnvConstants = array{BASE_URL: string, QUERY_VAR: string, SITE_SECRET: string, UPDATE_KEY: string} & array<string, mixed>
  */
 final class App extends PikeApp {
     public const VERSION = "0.16.0-dev";
@@ -51,11 +50,4 @@ final class App extends PikeApp {
             $di->share($appEnv);
         });
     }
-}
-
-final class AppEnv {
-    /** @psalm-var EnvConstants */
-    public array $constants;
-    /** @var \Pike\Injector $di */
-    public Injector $di;
 }

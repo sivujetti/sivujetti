@@ -67,7 +67,7 @@ final class ReusableBranchesController {
         if (($errors = (Validation::makeObjectValidator()
             ->addRuleImpl(...ValidationUtils::createPushIdValidatorImpl())
             ->rule("id", "pushId")
-            ->rule("blockBlueprints", "minLength", "1", "array"))
+            ->rule("blockBlueprints", "minLength", 1, "array"))
             ->validate($input))) {
             return $errors;
         }

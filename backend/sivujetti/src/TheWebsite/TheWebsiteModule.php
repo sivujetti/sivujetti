@@ -21,5 +21,9 @@ final class TheWebsiteModule {
             [TheWebsiteController::class, "export", ["consumes" => "application/json",
                                                      "identifiedBy" => ["export", "theWebsite"]]]
         );
+        $router->map("GET", "/api/the-website/issues",
+            [TheWebsiteController::class, "getSecurityAndOtherIssues", ["consumes" => "application/json",
+                                                                        "identifiedBy" => ["updateBasicInfoOf", "theWebsite"]]] // todo
+        );
     }
 }

@@ -19,7 +19,9 @@ final class Signer {
      * @return string The signature as hex
      * @throws \SodiumException
      */
-    public function sign(string $message, string $secretKey): string {
+    public function sign(string $message,
+                         #[\SensitiveParameter]
+                         string $secretKey): string {
         return $this->bin2hex(sodium_crypto_sign_detached($message, $this->hex2bin($secretKey)));
     }
     /**

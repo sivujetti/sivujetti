@@ -100,26 +100,27 @@ final class Commons {
         if (!$this->fs->write(
             "{$this->targetSiteIndexPath}config.php",
 "<?php
-if (!defined('SIVUJETTI_BASE_URL')) {
-    define('SIVUJETTI_BASE_URL',   '{$config["baseUrl"]}');
-    define('SIVUJETTI_QUERY_VAR',  '{$config["mainQueryVar"]}');
-    define('SIVUJETTI_SECRET',     '{$config["secret"]}');
-    define('SIVUJETTI_UPDATE_KEY', '{$config["updateKey"]}');
-    define('SIVUJETTI_DEVMODE',    1 << 1);
-    define('SIVUJETTI_FLAGS',      {$config["flags"]});
-}
+
 return [
+    'app' => [
+        'BASE_URL'    => '{$config["baseUrl"]}',
+        'QUERY_VAR'   => '{$config["mainQueryVar"]}',
+        'SITE_SECRET' => '{$config["secret"]}',
+        'UPDATE_KEY'  => '{$config["updateKey"]}',
+    ],
+    'app' => [
 " . ($config["db.driver"] === "sqlite" ?
-"    'db.driver'      => 'sqlite',
-    'db.database'    => '".str_replace(SIVUJETTI_BACKEND_PATH, "'.SIVUJETTI_BACKEND_PATH.'",$config["db.database"])."',
-    'db.tablePrefix' => ''," :
-"    'db.driver'      => 'mysql',
-    'db.host'        => '{$config["db.host"]}',
-    'db.database'    => '{$config["db.database"]}',
-    'db.user'        => '{$config["db.user"]}',
-    'db.pass'        => '{$config["db.pass"]}',
-    'db.tablePrefix' => '{$config["db.tablePrefix"]}',
-    'db.charset'     => '{$config["db.charset"]}',") . "
+"        'db.driver'      => 'sqlite',
+        'db.database'    => '".str_replace(SIVUJETTI_BACKEND_PATH, "'.SIVUJETTI_BACKEND_PATH.'",$config["db.database"])."',
+        'db.tablePrefix' => ''," :
+"        'db.driver'      => 'mysql',
+        'db.host'        => '{$config["db.host"]}',
+        'db.database'    => '{$config["db.database"]}',
+        'db.user'        => '{$config["db.user"]}',
+        'db.pass'        => '{$config["db.pass"]}',
+        'db.tablePrefix' => '{$config["db.tablePrefix"]}',
+        'db.charset'     => '{$config["db.charset"]}',") . "
+    ]
 ];
 "
         )) throw new PikeException("Failed to generate `{$this->targetSiteIndexPath}config.php`",

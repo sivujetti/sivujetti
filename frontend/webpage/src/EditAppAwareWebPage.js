@@ -39,6 +39,14 @@ class EditAppAwareWebPage {
         this.metaKeyIsPressed = prevInstanceMetaKeyIsPressed;
         this.reRenderer = new ReRenderer(renderBlockAndThen, toTransferable, blockTreeUtils);
     }
+    getCss(scope = 'all') {
+        const iframeDocument = document;
+        const el = iframeDocument.head.querySelector(scope === 'all'
+            ? 'style[data-todo]'
+            : 'style[data-todo]'
+    );
+    return el.innerHTML;
+    }
     /**
      * @returns {Array<HTMLElement}
      * @access public

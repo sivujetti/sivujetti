@@ -1,7 +1,7 @@
 import {__, api, signals, http, env, urlUtils, FloatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 import toasters, {Toaster} from './commons/Toaster.jsx';
 import store2 from './store2.js';
-import SaveButton from './left-column/SaveButton.jsx';
+import SaveButton, {SaveButton2} from './left-column/SaveButton.jsx';
 import DefaultPanel from './left-column/DefaultPanel.jsx';
 import PageCreatePanel from './left-column/page/PageCreatePanel.jsx';
 import PageDuplicatePanel from './left-column/page/PageDuplicatePanel.jsx';
@@ -30,6 +30,7 @@ class EditApp extends preact.Component {
             : []
         ).concat({name: 'log-out', label: __('Log out')});
         this.saveButtonRef = preact.createRef();
+        this.saveButtonRef2 = preact.createRef();
         this.state = {hidePanels: getArePanelsHidden()};
         if (this.state.hidePanels) props.rootEl.classList.add(PANELS_HIDDEN_CLS);
         this.resizeHandleEl = preact.createRef();
@@ -76,6 +77,8 @@ class EditApp extends preact.Component {
                         ) }</select>
                     </span>
                 </div>
+                <SaveButton2
+                    ref={ this.saveButtonRef2 }/>
                 <SaveButton
                     mainPanelOuterEl={ this.props.outerEl }
                     initialLeftPanelWidth={ this.props.leftPanelWidth }

@@ -4,7 +4,7 @@ import store2, {observeStore as observeStore2} from '../store2.js';
 import {makePath, makeSlug} from '../block-types/pageInfo.js';
 import {getFromLocalStorage} from '../commons/local-storage-utils.js';
 import opQueueItemEmitter from '../OpQueueItemEmitter.js';
-import {findBlockFrom} from '../block/utils-utils.js';
+import {cloneDeep, findBlockFrom} from '../block/utils-utils.js';
 import {sharedSignals} from '../shared.js';
 
 const webPageUnregistrables = new Map;
@@ -66,7 +66,12 @@ class IframePageManager {
             (selector, varName, varValue, valueType) => {
                 webPage.fastOverrideStyleUnitVar(selector, varName, varValue, valueType);
             }));
-        }
+        //
+        const saveButton = api.saveButton.getInstance();
+        saveButton.initChannel('css', webPage.getCss('all'));
+        const tmp= this.currentWebPage.reRenderer.createBlockTreeChangeListeners();
+        saveButton.initChannel('theBlockTree', cloneDeep(ordered), tmp);
+    }
     /**
      * @param {String} trid
      * @access public

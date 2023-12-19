@@ -19,4 +19,12 @@ function getIsStoredToTreeIdFrom(blockId, from) {
     return blockTreeUtils.getIsStoredToTreeId(blockId, from === 'mainTree' ? store2.get().theBlockTree : from);
 }
 
-export {findBlockFrom, getIsStoredToTreeIdFrom};
+/**
+ * @param {Object} obj
+ * @returns {Object}
+ */
+function cloneDeep(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
+
+export {findBlockFrom, getIsStoredToTreeIdFrom, cloneDeep};

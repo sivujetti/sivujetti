@@ -7,6 +7,7 @@ import BlockTypes from './src/block-types/block-types.js';
 import createMenuBlockType from './src/block-types/menu/menu.js';
 import createButtonBlockType from './src/block-types/button.js';
 import createColumnsBlockType from './src/block-types/columns.js';
+import createColumns2BlockType from './src/block-types/columns2.js';
 import createCodeBlockType from './src/block-types/code.js';
 import createGlobalBlockReferenceBlockType from './src/block-types/globalBlockReference.js';
 import createHeadingBlockType from './src/block-types/heading.js';
@@ -60,6 +61,7 @@ function populateFrontendApi() {
     api.saveButton = {
         triggerUndo() { editAppReactRef.current.saveButtonRef.current.doUndo(); },
         setOnBeforeProcessQueueFn(fn) { return editAppReactRef.current.saveButtonRef.current.setOnBeforeProcessQueueFn(fn); },
+        getInstance() { return editAppReactRef.current.saveButtonRef2.current; },
     };
     // blockTypes, see configureServices
     // mainPanel see configureServices
@@ -84,6 +86,7 @@ function configureServices() {
     blockTypes.register('Button', createButtonBlockType);
     blockTypes.register('Code', createCodeBlockType);
     blockTypes.register('Columns', createColumnsBlockType);
+    blockTypes.register('Columns2', createColumns2BlockType);
     blockTypes.register('GlobalBlockReference', createGlobalBlockReferenceBlockType);
     blockTypes.register('Heading', createHeadingBlockType);
     blockTypes.register('Image', createImageBlockType);

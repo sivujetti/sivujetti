@@ -9,17 +9,17 @@ import createHashHistory from '../../custom-history.js';
 
 const historyInstance = createHashHistory();
 
-class MyRouter extends preactRouter {
-    /**
-     * @param {String} url
-     * @access public
-     */
-    routeTo(url) {
-        if (historyInstance.doRevertNextHashChange)
-            return;
-        return super.routeTo(url);
-    }
-}
+// ## class MyRouter extends preactRouter {
+// ##     /**
+// ##      * @param {String} url
+// ##      * @access public
+// ##      */
+// ##     routeTo(url) {
+// ##         if (historyInstance.doRevertNextHashChange)
+// ##             return;
+// ##         return super.routeTo(url);
+// ##     }
+// ## }
 
 class RightColumnViews extends preact.Component {
     /**

@@ -8,5 +8,6 @@ return [
     "\$index/public/sivujetti/vendor/popper.min.js",
     "\$index/public/sivujetti/vendor/stylis.min.js",
     "\$index/public/sivujetti/vendor/vendor.bundle.min.css",
+    "\$index/public/sivujetti/vendor/preact.min.js",
     "\$index/public/sivujetti/vendor/vendor.bundle.min.js",
 ];

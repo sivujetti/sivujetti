@@ -474,3 +474,7 @@ interface ColorValueInputPropsData {
     mediaQueryWrap: String|null;
     supportingCss?: String;
 }
+
+interface SaveButton {
+    // todo
+}

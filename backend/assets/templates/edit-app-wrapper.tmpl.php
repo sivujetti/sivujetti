@@ -206,7 +206,7 @@
             <div id="main-panel"></div>
             <div id="inspector-panel"></div>
             <div id="view"></div>
-            <iframe src="" id="site-preview-iframe"></iframe>
+            <div id="webpage-preview-app"></div>
             <span class="highlight-rect" data-label-position="top-outside"></span>
             <?php if ($isFirstRun && defined("showQuickIntro")): ?>
             <div style="opacity:0" id="quick-intro-outer"><div>
@@ -228,17 +228,38 @@
             <?php endif; ?>
         </div>
 
+        <script src="<?= $this->assetUrl("public/sivujetti/vendor/preact.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/jspanel.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/pickr.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/stylis.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/popper.min.js") ?>"></script>
+    <?php $useBunFiles = true; ?>
+    <?php if ($useBunFiles): ?>
+        <script type="importmap">{"imports": {
+            "@sivujetti-commons-for-edit-app": "./public/v2/sivujetti-commons-for-edit-app.js"
+        }}</script>
+        <script>window.sivujettiEnvConfig = {
+            baseUrl: '<?= $this->makeUrl("/", true) ?>',
+            assetBaseUrl:'<?= $this->makeUrl("/", false) ?>',
+            cacheBustStr: ('<?= $this->assetUrl("/") ?>'.split('v=')[1] ?? ''),
+        }</script>
+        <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
+        <script src="<?= $this->assetUrl("public/v2/sivujetti-edit-app-main.js", /* @see frontend2/sivujetti-edit-app-main.jsx */)."&t=".time() ?>" type="module"></script>
+    <?php else: ?>
         <script>window.isFirstRun = <?= $isFirstRun ? "true" : "false" ?></script>
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
         <script>window.translationStringBundles = []</script>
         <script src="<?= $this->assetUrl("public/sivujetti/lang-{$uiLang}.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-edit-app.js", /* @see frontend/commons-for-edit-app/main.js */) ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.js", /* @see frontend/edit-app/main.js */) ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($useBunFiles): ?>
+        <?php // todo plugins ?>
+        <?php // todo showQuickIntro ?>
+    <?php else: ?>
+
         <?php foreach ($userDefinedJsFiles as $relUrl): ?>
             <script src="<?= $this->assetUrl("public/{$relUrl}") ?>"></script>
         <?php endforeach; ?>
@@ -257,5 +278,8 @@
         document.getElementById('site-preview-iframe').addEventListener('load', onPreviewIframeLoad);
         })()</script>
         <?php endif; ?>
+
+    <?php endif; ?>
+
     </body>
 </html>

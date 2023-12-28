@@ -2,19 +2,24 @@
 
 Some semi-internal notes.
 
-## Bundling frontend
+## Bundling frontend (new)
 
-Bundle | Command | Main file
+Bundle | Command | Out files
 --- | --- | ---
-All | `npm start -- --configBundle all` | -
-Edit app | `npm start -- --configBundle main` | frontend/edit-app/main.js
-Website | `npm start -- --configBundle webpage` | frontend/webpage/main.js
-Translations | `npm start -- --configBundle lang --configLang fi` | frontend/translations/${selectedLang}.js
-Tests | `npm start -- --configBundle tests` | frontend/tests/main.js
+All | `bun build --entrypoints ./frontend2/sivujetti-commons-for-edit-app.js ./frontend2/sivujetti-edit-app-main.jsx ./frontend2/sivujetti-webpage-iframe-app-main.js --outdir ./public/v2 --entry-naming '[name].[ext]' --external preact --external '@sivujetti-commons-for-edit-app' --external '@sivujetti-env-config' --watch` | -
+Edit app | `bun build --entrypoints ./frontend2/sivujetti-commons-for-edit-app.js ./frontend2/sivujetti-edit-app-main.jsx --outdir ./public/v2 --entry-naming '[name].[ext]' --external preact --external '@sivujetti-commons-for-edit-app' --external '@sivujetti-env-config' --watch` | public/v2/sivujetti-edit-app-main.js, public/v2/sivujetti-commons-for-edit-app.js
+Web page preview app | `bun build --entrypoints ./frontend2/sivujetti-webpage-iframe-app-main.js --outdir ./public/v2 --entry-naming '[name].[ext]' --external preact --external '@sivujetti-env-config' --watch` | public/v2/sivujetti-webpage-iframe-app-main.js
+Translations | `todo` | todo
+Custom | `cd backend/plugins/MyPlugin/frontend && bun build --entrypoints ./test1.js --outdir ../../../../public/v2 --external '@sivujetti-commons-for-edit-app' --watch` | todo
+Tests | `todo` | todo
+
+## Building frontent
+
+Same as above, but replace ` --watch` with `--minify`
 
 ## Running frontend tests
 
-1. Bundle tests `npm start -- --configBundle test`
+1. Bundle tests with `todo`
 1. Open browser [localhost:8888/sivujetti/public/tests/index.html](http://localhost:8888/sivujetti/public/tests/index.html)
 
 ## Running backend tests
@@ -31,3 +36,17 @@ Tests | `npm start -- --configBundle tests` | frontend/tests/main.js
 Note: These tests are temporarily out of date.
 
 npm test -- e2e-tests/tests/block-styles-edit-test.js
+
+## Installing required php extensions
+
+### Ubuntu + php-fpm
+
+- `sudo apt update`
+- `sudo apt install php8.2-fpm php8.2-curl php8.2-mbstring php8.2-sqlite3 php8.2-zip`
+- _There's no need to uncomment ;extension=curl etc. from /etc/php/8.2/fpm/php.ini_
+- `sudo systemctl restart php8.2-fpm.service`
+
+### Alpine + php-fpm
+
+- `apk add php82 php82-fpm php82-curl php82-mbstring php82-pdo_sqlite php82-zip php82-session php82-ctype php82-pdo php82-openssl php82-sodium php82-fileinfo
+`

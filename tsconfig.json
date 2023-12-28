@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "lib": ["ESNext"],
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleDetection": "force",
+        "allowJs": true,
+
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
+        "verbatimModuleSyntax": true,
+        "noEmit": true,
+
+        "skipLibCheck": true,
+        "esModuleInterop": false,
+
+        "jsx": "react",
+        "jsxFactory": "preact.createElement",
+        "jsxImportSource": "preact"
+    }
+}

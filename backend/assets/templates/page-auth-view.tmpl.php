@@ -19,6 +19,7 @@
     </head>
     <body>
         <section id="login-app"></section>
+        <script src="<?= $this->assetUrl("public/sivujetti/vendor/preact.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.js") ?>"></script>
         <script>window.sivujettiBaseUrl = '<?= $baseUrl ?>'; window.sivujettiAssetBaseUrl = ' ';</script>
         <script>window.translationStringBundles = []</script>

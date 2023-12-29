@@ -354,7 +354,7 @@ h2 {
         height: 30%;
     }
 }
-#main-panel,
+#edit-app,
 #inspector-panel {
     position: absolute;
     width: var(--leftPanelWidth);
@@ -363,7 +363,7 @@ h2 {
     transition: opacity .1s linear;
     overflow-y: auto;
 }
-#main-panel {
+#edit-app {
     height: 100%;
     background-color: var(--color-bg-default);
 }
@@ -389,11 +389,11 @@ h2 {
     padding: .4rem;
     position: relative;
 }
-.inspector-panel-open #main-panel,
+.inspector-panel-open #edit-app,
 .inspector-panel-open #inspector-panel {
     opacity: 1;
 }
-.inspector-panel-open #main-panel {
+.inspector-panel-open #edit-app {
     height: initial;
 }
 .inspector-panel-open #inspector-panel {
@@ -412,18 +412,18 @@ h2 {
     z-index: 1;
     left: 0;
 }
-#main-panel .resize-panel-handle {
+#edit-app .resize-panel-handle {
     height: 100%;
     width: 8px;
     top: 0;
     cursor: col-resize;
 }
 /* Increase width to prevent #site-preview-iframe from disrupting the mouse drag events */
-#main-panel .resize-panel-handle.dragging {
+#edit-app .resize-panel-handle.dragging {
     width: 320px;
     margin-left: -120px;
 }
-#root.adjusting-panel-widths #main-panel > div > section,
+#root.adjusting-panel-widths #edit-app > div > section,
 #root.adjusting-panel-widths #inspector-panel {
     pointer-events: none;
 }
@@ -433,10 +433,10 @@ h2 {
     bottom: 0;
     cursor: row-resize;
 }
-.panels-hidden #main-panel .resize-panel-handle {
+.panels-hidden #edit-app .resize-panel-handle {
     display: none;
 }
-.panels-hidden #main-panel {
+.panels-hidden #edit-app {
     width: 0 !important;
     z-index: 1;
 }
@@ -954,28 +954,28 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 
 /* == EditApp: * ============================================================ */
 /* EditApp: Main panel */
-#main-panel > div {
+#edit-app > div {
     display: block;
     padding: 0 .4rem .4rem;
 }
-#main-panel header {
+#edit-app header {
     margin: .4rem 0 0 0;
 }
-#main-panel .mode-chooser a {
+#edit-app .mode-chooser a {
     text-decoration: none;
 }
-#main-panel .mode-chooser a img {
+#edit-app .mode-chooser a img {
     width: 41px;
     margin: -6px -5px -6px -13px;
     opacity: .9;
 }
-#main-panel .mode-chooser span {
+#edit-app .mode-chooser span {
     font-size: .65rem;
 }
-#main-panel .mode-chooser > span {
+#edit-app .mode-chooser > span {
     line-height: .65rem;
 }
-#main-panel .mode-chooser span > select {
+#edit-app .mode-chooser span > select {
     opacity: 0.4;
     font-size: .6rem;
     width: auto;
@@ -985,11 +985,11 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     border: none;
     cursor: pointer;
 }
-#main-panel .mode-chooser + .btn {
+#edit-app .mode-chooser + .btn {
     margin-top: .1rem;
     margin-right: -.2rem;
 }
-#main-panel .mode-chooser + .stickied {
+#edit-app .mode-chooser + .stickied {
     position: fixed;
     left: calc(var(--leftPanelWidth) - 100px); /* --leftPanelWidth - 100 (stickied-with); */
     margin: initial;

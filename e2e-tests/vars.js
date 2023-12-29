@@ -1,5 +1,5 @@
 exports.vars = {
-    editAppElLocator: '#main-panel .block-tree',
+    editAppElLocator: '#edit-app .block-tree',
     inspectorPanelLocator: '#inspector-panel [data-main]',
-    saveButtonLocator: '#main-panel header > button',
+    saveButtonLocator: '#edit-app header > button',
 };

@@ -16,6 +16,10 @@
 
         "jsx": "react",
         "jsxFactory": "preact.createElement",
-        "jsxImportSource": "preact"
+        "jsxImportSource": "preact",
+
+        "paths": {
+            "@sivujetti-commons-for-edit-app": ["./frontend2/sivujetti-commons-for-edit-app.js"],
+        },
     }
 }

@@ -1,4 +1,4 @@
-export default {
+const blockTreeUtils = {
     /**
      * @param {String} id
      * @param {Array<RawBlock>} branch
@@ -142,3 +142,5 @@ export default {
         return refBlock ? refBlock.__globalBlockTree.blocks : null;
     },
 };
+
+export default blockTreeUtils;

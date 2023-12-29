@@ -2,10 +2,15 @@
 An entry point for a global file "public/v2/sivujetti-commons-for-edit-app.js.js" that
 can be imported by custom plugins (and the edit app).
 */
-import Http from './commons-for-edit-app/Http.js';
-import Signals from './commons-for-edit-app/Signals.js';
-import Translator from './commons-for-edit-app/Translator.js';
-import editAppUrlUtilsInstance from './commons-for-edit-app/url-utils-instance.js';
+import Signals from './what/Signals.js';
+import Tabs from './commons-for-edit-app/Tabs.jsx';
+import {
+    __,
+    editAppHttpInstance,
+    editAppSignalsInstance,
+    editAppTranslatorInstance,
+    editAppUrlUtilsInstance,
+} from './commons-for-edit-app/edit-app-singletons.js';
 import {Icon, iconAsString} from './commons-for-edit-app/Icon.jsx';
 import {MenuSection, MenuSectionAbstract} from './commons-for-edit-app/MenuSection.jsx';
 import blockTypes, {blockTypeGetIconId} from './commons-for-edit-app/block-types-map.js';
@@ -21,6 +26,29 @@ const api = {
         getInstance() {
             return this.saveButtonReactRef.current;
         }
+    },
+    inspectorPanel: {
+        getEl() { return document.getElementById('inspector-panel'); },
+    },
+    webPageIframe: { // todo
+        getEl() {
+            document.body.querySelector('#site-preview-iframe');
+        },
+        highlightBlock(block) {
+            //
+        },
+        unHighlightBlock(blockId) {
+            //
+        },
+        unHighlightTextBlockChildEl() {
+            //
+        },
+        highlightTextBlockChildEl(elIdx, textBlockId) {
+            //
+        },
+        scrollToBlock() {
+            //
+        }
     }
 };
 
@@ -30,25 +58,18 @@ const env = {
     csrfToken: '<token>'
 };
 
-// todo move to commons-for-web-pages
-const http = new Http(undefined, url => url.startsWith('/') && !url.startsWith('//') ? editAppUrlUtilsInstance.makeUrl(url) : url);
-
-const editAppSignalsInstance = new Signals;
-
-const translator = new Translator;
-const __ = translator.t.bind(translator);
-
 export {
     __,
     api,
     env,
-    http,
+    editAppHttpInstance as http,
     Icon,
     iconAsString,
     MenuSection,
     MenuSectionAbstract,
     editAppSignalsInstance as signals,
     Signals,
-    translator,
+    Tabs,
+    editAppTranslatorInstance as translator,
     editAppUrlUtilsInstance as urlUtils
 };

@@ -48,14 +48,14 @@ function getMetaKey() {
     return ((navigator.userAgentData && navigator.userAgentData.platform === 'macOS') ||
             (navigator.platform === 'MacIntel')) ? 'Meta' : 'Control';
 }
-
-/**
- * @param {RawBlock} block
- * @returns {Boolean}
- */
-function isMetaBlock({type}) {
-    return type === 'PageInfo';
-}
+// ## 
+// ## /**
+// ##  * @param {RawBlock} block
+// ##  * @returns {Boolean}
+// ##  */
+// ## function isMetaBlock({type}) {
+// ##     return type === 'PageInfo';
+// ## }
 
 /**
  * @param {String} blockId

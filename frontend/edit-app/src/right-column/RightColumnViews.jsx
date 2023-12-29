@@ -7,8 +7,8 @@ import UploadsListView from './upload/UploadsListView.jsx';
 import {isEditAppViewUrl} from '../left-column/DefaultPanel.jsx';
 import createHashHistory from '../../custom-history.js';
 
-const historyInstance = createHashHistory();
-
+// ## const historyInstance = createHashHistory();
+// ## 
 // ## class MyRouter extends preactRouter {
 // ##     /**
 // ##      * @param {String} url

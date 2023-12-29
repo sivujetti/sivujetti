@@ -1,3 +1,4 @@
+import {api} from '@sivujetti-commons-for-edit-app';
 import {objectUtils} from '../utils.js';
 import blockTreeUtils from './tree-utils.js';
 
@@ -27,4 +28,43 @@ function treeToTransferable(tree, includePrivates = false) {
     return blockTreeUtils.mapRecursively(tree, block => toTransferableSingle(block, includePrivates));
 }
 
-export {treeToTransferable};
+/**
+ * @param {RawBlock} block
+ * @returns {Boolean}
+ */
+function isMetaBlock({type}) {
+    return type === 'PageInfo';
+}
+
+// ??
+/**
+ * @param {String} blockId
+ * @param {'mainTree'|Array<RawBlock>} from
+ * @returns {[RawBlock|null, Array<RawBlock>|null, RawBlock|null, RawGlobalBlockTree|Array<RawBlock>|null]}
+ */
+function findBlockFrom(blockId, from) {
+    return blockTreeUtils.findBlockSmart(blockId, from === 'mainTree' ? getCurrentBlockTreeState() : from);
+}
+
+/**
+ * @param {String} blockId
+ * @param {'mainTree'|Array<RawBlock>} from
+ * @returns {String|null}
+ */
+function getIsStoredToTreeIdFrom(blockId, from) {
+    return blockTreeUtils.getIsStoredToTreeId(blockId, from === 'mainTree' ? getCurrentBlockTreeState() : from);
+}
+
+/**
+ * @returns {Array<RawBlock>}
+ */
+function getCurrentBlockTreeState() {
+    return api.saveButton.getInstance().getChannelState('theBlockTree');
+}
+// ??
+
+export {
+    findBlockFrom,
+    isMetaBlock,
+    treeToTransferable,
+};

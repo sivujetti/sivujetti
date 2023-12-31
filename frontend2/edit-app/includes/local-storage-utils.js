@@ -1,4 +1,4 @@
-import {env} from '@sivujetti-commons-for-edit-app';
+import {env} from '../../sivujetti-commons-unified.js';
 
 /**
  * @param {String} value

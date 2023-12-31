@@ -1,4 +1,4 @@
-import {Signals, env} from '@sivujetti-commons-for-edit-app';
+import {env, Signals} from '../../sivujetti-commons-unified.js';
 
 class HashHistory {
     // path;

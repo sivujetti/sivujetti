@@ -1,4 +1,4 @@
-import {api} from '@sivujetti-commons-for-edit-app';
+import {api} from '../../sivujetti-commons-unified.js';
 import blockTreeUtils from '../commons/block/tree-utils.js';
 import {cloneDeep} from '../commons/utils.js';
 

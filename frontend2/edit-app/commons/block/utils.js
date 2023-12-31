@@ -1,4 +1,4 @@
-import {api} from '@sivujetti-commons-for-edit-app';
+import {api} from '../../../sivujetti-commons-unified.js';
 import {objectUtils} from '../utils.js';
 import blockTreeUtils from './tree-utils.js';
 

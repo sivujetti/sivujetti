@@ -14,13 +14,13 @@ import {
 import {Icon, iconAsString} from './commons-for-edit-app/Icon.jsx';
 import {MenuSection, MenuSectionAbstract} from './commons-for-edit-app/MenuSection.jsx';
 import blockTypes, {blockTypeGetIconId} from './commons-for-edit-app/block-types-map.js';
+import {stringUtils, timingUtils} from './commons-for-edit-app/utils.js';
 
 const api = {
     blockTypes,
     blockTypeGetIconId,
     saveButton: {
         init(saveButtonReactRef) {
-            console.log('inited');
             this.saveButtonReactRef = saveButtonReactRef;
         },
         getInstance() {
@@ -69,7 +69,9 @@ export {
     MenuSectionAbstract,
     editAppSignalsInstance as signals,
     Signals,
+    stringUtils,
     Tabs,
+    timingUtils,
     editAppTranslatorInstance as translator,
     editAppUrlUtilsInstance as urlUtils
 };

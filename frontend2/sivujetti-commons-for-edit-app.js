@@ -2,14 +2,14 @@
 An entry point for a global file "public/v2/sivujetti-commons-for-edit-app.js.js" that
 can be imported by custom plugins (and the edit app).
 */
-import Signals from './what/Signals.js';
+import {env, http, urlUtils} from '@sivujetti-commons-for-web-pages';
+import Signals from './shared-includes/Signals.js';
 import Tabs from './commons-for-edit-app/Tabs.jsx';
 import {
     __,
-    editAppHttpInstance,
     editAppSignalsInstance,
     editAppTranslatorInstance,
-    editAppUrlUtilsInstance,
+    editAppUserApiInstance,
 } from './commons-for-edit-app/edit-app-singletons.js';
 import {Icon, iconAsString} from './commons-for-edit-app/Icon.jsx';
 import {MenuSection, MenuSectionAbstract} from './commons-for-edit-app/MenuSection.jsx';
@@ -19,6 +19,9 @@ import {stringUtils, timingUtils} from './commons-for-edit-app/utils.js';
 const api = {
     blockTypes,
     blockTypeGetIconId,
+    inspectorPanel: {
+        getEl() { return document.getElementById('inspector-panel'); },
+    },
     saveButton: {
         init(saveButtonReactRef) {
             this.saveButtonReactRef = saveButtonReactRef;
@@ -26,9 +29,6 @@ const api = {
         getInstance() {
             return this.saveButtonReactRef.current;
         }
-    },
-    inspectorPanel: {
-        getEl() { return document.getElementById('inspector-panel'); },
     },
     webPageIframe: { // todo
         getEl() {
@@ -52,17 +52,11 @@ const api = {
     }
 };
 
-const env = {
-    window,
-    document,
-    csrfToken: '<token>'
-};
-
 export {
     __,
     api,
     env,
-    editAppHttpInstance as http,
+    http,
     Icon,
     iconAsString,
     MenuSection,
@@ -73,5 +67,5 @@ export {
     Tabs,
     timingUtils,
     editAppTranslatorInstance as translator,
-    editAppUrlUtilsInstance as urlUtils
+    urlUtils,
 };

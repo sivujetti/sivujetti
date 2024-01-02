@@ -16,7 +16,7 @@ import {
     Tabs,
     timingUtils,
     translator,
-    urlUtils
+    urlUtils,
 } from '@sivujetti-commons-for-edit-app';
 
 export {
@@ -34,5 +34,5 @@ export {
     Tabs,
     timingUtils,
     translator,
-    urlUtils
+    urlUtils,
 };

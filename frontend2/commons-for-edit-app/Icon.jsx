@@ -1,4 +1,4 @@
-import {editAppUrlUtilsInstance} from '../commons-for-edit-app/edit-app-singletons.js';
+import {urlUtils} from '@sivujetti-commons-for-web-pages';
 
 class Icon extends preact.Component {
     /**
@@ -28,7 +28,7 @@ function iconAsString(iconId, className) {
  * @returns {String} Example `/dir/public/sivujetti/assets/tabler-sprite-custom.svg?v=aaaaaaaa#tabler-hand-finger`
  */
 function hrefFull(iconId) {
-    return `${editAppUrlUtilsInstance.assetBaseUrl}public/sivujetti/assets/${editAppUrlUtilsInstance.withCacheBustStr('tabler-sprite-custom.svg')}#tabler-${iconId}`;
+    return `${urlUtils.assetBaseUrl}public/sivujetti/assets/${urlUtils.withCacheBustStr('tabler-sprite-custom.svg')}#tabler-${iconId}`;
 }
 
 export {Icon, iconAsString};

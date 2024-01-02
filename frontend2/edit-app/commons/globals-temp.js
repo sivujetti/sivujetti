@@ -1,4 +1,5 @@
 const globalData = {
+    /** @type {CurrentPageData} */
     pageDataBundle: null,
 };
 

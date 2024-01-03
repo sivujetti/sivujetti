@@ -141,6 +141,21 @@ const blockTreeUtils = {
         );
         return refBlock ? refBlock.__globalBlockTree.blocks : null;
     },
+
+    createMutation(theTree, mutator) {
+        const newTree = cloneDeep(theTree);
+        mutator(newTree);
+        return newTree;
+    }
 };
 
+/**
+ * @param {Object} obj
+ * @returns {Object}
+ */
+function cloneDeep(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
+
 export default blockTreeUtils;
+export {cloneDeep};

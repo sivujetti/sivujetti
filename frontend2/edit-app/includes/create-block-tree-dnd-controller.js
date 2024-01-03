@@ -1,6 +1,4 @@
-import {api} from '../../sivujetti-commons-unified.js';
-import blockTreeUtils from '../commons/block/tree-utils.js';
-import {cloneDeep} from '../commons/utils.js';
+import {api, blockTreeUtils, cloneDeep} from '../../sivujetti-commons-unified.js';
 
 /**
  * @param {SaveButton} stateManager

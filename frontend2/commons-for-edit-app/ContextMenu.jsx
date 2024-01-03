@@ -1,4 +1,4 @@
-import {__, env} from '@sivujetti-commons-for-edit-app';
+import {__, env} from './interal-wrapper.js';
 
 let isGlobalEscKeyPressListenerHookedUp = false;
 let openInstance = null;

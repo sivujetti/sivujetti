@@ -1,11 +1,3 @@
-/**
- * @param {Object} obj
- * @returns {Object}
- */
-function cloneDeep(obj) {
-    return JSON.parse(JSON.stringify(obj));
-}
-
 const objectUtils = {
     /**
      * @param {Array<String>} keys
@@ -26,4 +18,4 @@ const objectUtils = {
     }
 };
 
-export {cloneDeep, objectUtils};
+export {objectUtils};

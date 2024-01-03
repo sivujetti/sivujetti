@@ -1,6 +1,5 @@
-import {api} from '../../../sivujetti-commons-unified.js';
+import {api, blockTreeUtils} from '../../../sivujetti-commons-unified.js';
 import {objectUtils} from '../utils.js';
-import blockTreeUtils from './tree-utils.js';
 
 /**
  * @param {RawBlock} block

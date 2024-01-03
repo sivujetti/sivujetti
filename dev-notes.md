@@ -6,15 +6,17 @@ Some semi-internal notes.
 
 Bundle | Command | Out files
 --- | --- | ---
-All | `bun build --entrypoints ./frontend2/sivujetti-commons-for-edit-app.js ./frontend2/sivujetti-edit-app-main.jsx ./frontend2/sivujetti-webpage-iframe-app-main.js --outdir ./public/v2 --entry-naming '[name].[ext]' --external preact --external '@sivujetti-commons-for-edit-app' --external '@sivujetti-env-config' --watch` | -
+All | `bun build --entrypoints ./frontend2/sivujetti-commons-for-web-pages.js ./frontend2/sivujetti-commons-for-edit-app.js ./frontend2/sivujetti-edit-app-main.jsx ./frontend2/sivujetti-webpage-iframe-app-main.js --outdir ./public/v2 --entry-naming '[name].[ext]' --external preact --external '@sivujetti-commons-for-web-pages' --external '@sivujetti-commons-for-edit-app' --external '@sivujetti-env-config' --watch` | -
 Edit app | `bun build --entrypoints ./frontend2/sivujetti-commons-for-edit-app.js ./frontend2/sivujetti-edit-app-main.jsx --outdir ./public/v2 --entry-naming '[name].[ext]' --external preact --external '@sivujetti-commons-for-edit-app' --external '@sivujetti-env-config' --watch` | public/v2/sivujetti-edit-app-main.js, public/v2/sivujetti-commons-for-edit-app.js
 Web page preview app | `bun build --entrypoints ./frontend2/sivujetti-webpage-iframe-app-main.js --outdir ./public/v2 --entry-naming '[name].[ext]' --external preact --external '@sivujetti-env-config' --watch` | public/v2/sivujetti-webpage-iframe-app-main.js
+Commons for web pages | `bun build --entrypoints ./frontend2/sivujetti-commons-for-web-pages.js --outdir ./public/v2 --entry-naming '[name].[ext]' --external '@sivujetti-env-config' --watch`
 Translations | `todo` | todo
-Custom | `cd backend/plugins/MyPlugin/frontend && bun build --entrypoints ./test1.js --outdir ../../../../public/v2 --external '@sivujetti-commons-for-edit-app' --watch` | todo
+Custom | `cd backend/plugins/MyPlugin && bun build --entrypoints ./plugin-sjorg-support-client-edit-app-bundle.js ./plugin-sjorg-support-client-edit-app-lang-fi.js --outdir ../../../../public/v2 --external preact --external '@sivujetti-commons-for-edit-app' --external '@sivujetti-env-config' --watch` | todo
 Tests | `todo` | todo
 
 ## Building frontent
 
+todo
 Same as above, but replace ` --watch` with `--minify`
 
 ## Running frontend tests

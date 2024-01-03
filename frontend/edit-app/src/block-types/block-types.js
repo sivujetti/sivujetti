@@ -44,13 +44,13 @@ class BlockTypes {
     }
 }
 
-/**
- * @param {BlockType|String} blockType
- * @returns {String} Icon for $blockTypeName or $fallBack
- */
-function getIcon(blockType, fallback = 'box') {
-    return (typeof blockType === 'string' ? storage.get(blockType) : blockType).icon || fallback;
-}
+// ## /**
+// ##  * @param {BlockType|String} blockType
+// ##  * @returns {String} Icon for $blockTypeName or $fallBack
+// ##  */
+// ## function getIcon(blockType, fallback = 'box') {
+// ##     return (typeof blockType === 'string' ? storage.get(blockType) : blockType).icon || fallback;
+// ## }
 
 export default BlockTypes;
-export {getIcon};
+// ## export {getIcon};

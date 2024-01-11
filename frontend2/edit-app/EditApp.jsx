@@ -1,4 +1,4 @@
-import {__, env, urlUtils} from '@sivujetti-commons-for-edit-app';
+import {__, env, urlUtils} from '../sivujetti-commons-unified.js';
 import {historyInstance, MyRouter} from './main-column/MainColumnViews.jsx';
 import DefaultState from './menu-column/DefaultState.jsx';
 import SaveButton from './menu-column/SaveButton.jsx';
@@ -6,20 +6,25 @@ import SaveButton from './menu-column/SaveButton.jsx';
 class EditApp extends preact.Component {
     // changeViewOptions;
     // saveButtonRef;
+    /**
+     * @access protected
+     */
     componentWillMount() {
         this.changeViewOptions = [
             {name: 'edit-mode', label: __('Edit mode')},
             {name: 'hide-edit-menu', label: __('Hide edit menu')},
-        ].concat(this.props.dataFromAdminBackend.showGoToDashboardMode
+        ].concat(this.props.showGoToDashboardMode
             ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
             : []
         ).concat({name: 'log-out', label: __('Log out')});
         this.saveButtonRef = preact.createRef();
-    // }
-    // componentDidMount() {
-        this.props.onMounted({saveButtonRef: this.saveButtonRef});
+        this.props.onWillMount(this);
     }
-    render() {
+    /**
+     * @param {{outerEl: HTMLElement; onWillMount: (cmp: EditApp) => void; showGoToDashboardMode?: Boolean; dashboardUrl?: String;}} props
+     * @access protected
+     */
+    render({outerEl}) {
         const hidePanels = false;
         const logoUrl = urlUtils.makeAssetUrl('/public/sivujetti/assets/sivujetti-logo-shape-only.png');
         return [
@@ -36,7 +41,7 @@ class EditApp extends preact.Component {
                             } else if (e.target.value === this.changeViewOptions.at(-1).name)
                                 this.logUserOut();
                             else if (e.target.value === (this.changeViewOptions[2] || {}).name)
-                                env.window.location.href = this.props.dataFromAdminBackend.dashboardUrl;
+                                env.window.location.href = this.props.dashboardUrl;
                             else
                                 throw new Error(`Unkown option ${e.target.value}`);
                         } } class="form-select">
@@ -45,8 +50,9 @@ class EditApp extends preact.Component {
                         ) }</select>
                     </span>
                 </div>
-                <SaveButton
-                    ref={ this.saveButtonRef }/>
+            <SaveButton
+                editAppOuterEl={ outerEl }
+                ref={ this.saveButtonRef }/>
             </header>,
             <MyRouter history={ historyInstance }>
                 <DefaultState path="/:slug*"/>

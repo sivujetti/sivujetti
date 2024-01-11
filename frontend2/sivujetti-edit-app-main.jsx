@@ -4,8 +4,9 @@ included in edit-app's template (edit-app-wrapper.tmpl.php).
 */
 import {api} from './sivujetti-commons-unified.js';
 import EditApp from './edit-app/EditApp.jsx';
-import WebPagePreviewIframe, {FooTemp} from './edit-app/main-column/Foo.jsx';
+import WebPagePreviewIframeApp from './edit-app/main-column/WebPagePreviewIframeApp.jsx';
 import InspectorPanel from './edit-app/menu-column/InspectorPanel.jsx';
+import editAppInternalApi from './edit-app/internal-api.js';
 
 window.myRoute = url => {
     preactRouter.route(url);
@@ -17,8 +18,7 @@ const editAppOuterEl = document.getElementById('edit-app');
 preact.render(
     <EditApp
         outerEl={ editAppOuterEl }
-        dataFromAdminBackend={ window.dataFromAdminBackend }
-        onMounted={ cmp => {
+        onWillMount={ cmp => {
             api.saveButton.init(cmp.saveButtonRef);
         } }/>,
     editAppOuterEl
@@ -34,10 +34,13 @@ preact.render(
 );
 
 preact.render(
-    <WebPagePreviewIframe urlToLoad="@currentUrl"/>,
+    <WebPagePreviewIframeApp
+        urlToLoad="@currentUrl"
+        ref={ cmp => {
+            if (cmp) editAppInternalApi.webPagePreviewIframeApp.init(cmp);
+        } }/>,
     document.getElementById('webpage-preview-app')
 );
-
 
 /*const webPagePreview = new FooTemp;
 webPagePreview.mount(':currentUrl');*/

@@ -56,7 +56,9 @@ Structure:
 
     --small-rect-radius: 4px;
 
-    --leftPanelWidth: 339px;
+    --menuColumnWidth: 339px;
+    --menuColumnOffset: 0px;
+    --menuColumnWidthComputed: calc(var(--menuColumnWidth) + var(--menuColumnOffset));
     --contentSpawnerWidth: 210px;
 }
 /* Spectre-overrides */
@@ -363,7 +365,7 @@ h2 {
 #edit-app,
 #inspector-panel {
     position: absolute;
-    width: var(--leftPanelWidth);
+    width: var(--menuColumnWidthComputed);
     color: var(--color-fg-default);
     border-right: 1px solid var(--color-bg-dimmed2);
     transition: opacity .1s linear;
@@ -372,6 +374,8 @@ h2 {
 #edit-app {
     height: 100%;
     background-color: var(--color-bg-default);
+    display: grid;
+    grid-template-columns: minmax(0, var(--menuColumnOffset)) minmax(0, 1fr);
 }
 #inspector-panel {
     bottom: 0;
@@ -408,9 +412,9 @@ h2 {
 .site-preview-iframe {
     position: absolute;
     height: 100%;
-    width: calc(100% - var(--leftPanelWidth));
+    width: calc(100% - var(--menuColumnWidth) - var(--menuColumnOffset));
     border: none;
-    transform: translateX(var(--leftPanelWidth));
+    transform: translateX(var(--menuColumnWidthComputed));
     height: 100%;
 }
 .resize-panel-handle {
@@ -434,7 +438,7 @@ h2 {
     pointer-events: none;
 }
 #inspector-panel .resize-panel-handle {
-    width: var(--leftPanelWidth);
+    width: var(--menuColumnWidthComputed);
     height: 8px;
     bottom: 0;
     cursor: row-resize;
@@ -998,7 +1002,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 }
 #edit-app .mode-chooser + .stickied {
     position: fixed;
-    left: calc(var(--leftPanelWidth) - 100px); /* --leftPanelWidth - 100 (stickied-with); */
+    left: calc(var(--menuColumnWidthComputed) - 127px);
     margin: initial;
     background-color: rgba(var(--components-color-bg-default),.9);
     z-index: 2;
@@ -1580,9 +1584,9 @@ span.highlight-rect[data-label-position="bottom-inside"]:before {
 #view {
     display: none;
     position: fixed;
-    left: var(--leftPanelWidth);
+    left: var(--menuColumnWidthComputed);
     top: 0;
-    width: calc(100% - var(--leftPanelWidth));
+    width: calc(100% - var(--menuColumnWidthComputed));
     background-color: #f9fafb;
     height: 100%;
     z-index: 1;

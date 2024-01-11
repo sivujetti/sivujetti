@@ -478,3 +478,5 @@ interface ColorValueInputPropsData {
 interface SaveButton {
     // todo
 }
+
+type mediaScope = 'all'|'960'|'840'|'600'|'480'|String;

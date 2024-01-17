@@ -241,6 +241,7 @@ stringBundles.push({
     'Add link': 'Add link',
     'Edit': 'Edit',
     'Edit link': 'Edit link',
+    'Duplicate link': 'Duplicate link',
     'Delete link': 'Delete link',
     // edit-app/src/block-types/menu/EditItemPanel.jsx
     'Link text': 'Link text',

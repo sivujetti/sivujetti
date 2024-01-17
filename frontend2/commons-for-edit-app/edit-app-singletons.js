@@ -1,5 +1,5 @@
 import {env, urlUtils} from '@sivujetti-commons-for-web-pages';
-import ScssWizard from '../shared-includes/ScssWizard.js';
+import ScssWizard from './ScssWizard.js';
 import Signals from '../shared-includes/Signals.js';
 import Translator from './Translator.js';
 

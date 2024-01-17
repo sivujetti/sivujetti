@@ -1,4 +1,4 @@
-import {__/*, floatingDialog*/, Icon} from '../../../sivujetti-commons-unified.js';
+import {__/*, floatingDialog*/, Icon} from './interal-wrapper.js';
 // import ScreenSizesTabShowHelpPopup from '../../popups/styles/ScreenSizesTabShowHelpPopup.jsx';
 
 class ScreenSizesVerticalTabs extends preact.Component {

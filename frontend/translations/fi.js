@@ -242,6 +242,7 @@ stringBundles.push({
     'Add link': 'Lisää linkki',
     'Edit': 'Muokkaa',
     'Edit link': 'Muokkaa linkkiä',
+    'Duplicate link': 'Monista linkki',
     'Delete link': 'Poista linkki',
     // edit-app/src/block-types/menu/EditItemPanel.jsx
     'Link text': 'Linkin teksti',

@@ -9,6 +9,8 @@ import {
     editAppSignalsInstance,
     editAppTranslatorInstance,
     editAppUserApiInstance,
+    stringUtils,
+    timingUtils,
     urlUtils,
 } from './edit-app-singletons.js';
 import {
@@ -25,10 +27,14 @@ import {
     unhookForm,
     validateAll,
 } from './Form.jsx';
+import {sensibleDefaults, validationConstraints} from './constants.js';
+import ContextMenu from './ContextMenu.jsx';
 import {Icon, iconAsString} from './Icon.jsx';
 import blockTypes, {blockTypeGetIconId} from './block-types-map.js';
 import blockTreeUtils, {cloneDeep} from './block/tree-utils.js';
-import {stringUtils, timingUtils} from './utils.js';
+import globalData from './globals-temp.js';
+import {mediaScopes} from './ScssWizard.js';
+import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
 
 const api = {
     blockTypes,
@@ -40,6 +46,7 @@ const api = {
         init(saveButtonReactRef) {
             this.saveButtonReactRef = saveButtonReactRef;
         },
+        /** @returns {SaveButton} */
         getInstance() {
             return this.saveButtonReactRef.current;
         }
@@ -47,7 +54,7 @@ const api = {
     user: editAppUserApiInstance,
     webPageIframe: { // todo
         getEl() {
-            document.body.querySelector('#site-preview-iframe');
+            return document.body.querySelector('.site-preview-iframe.active');
         },
         highlightBlock(block) {
             //
@@ -72,12 +79,14 @@ export {
     api,
     blockTreeUtils,
     cloneDeep,
+    ContextMenu,
     editAppScssWizardInstance,
     editAppSignalsInstance,
     editAppTranslatorInstance,
     env,
     FormGroup,
     FormGroupInline,
+    globalData,
     handleSubmit,
     hasErrors,
     hookForm,
@@ -86,11 +95,15 @@ export {
     Input,
     InputErrors,
     InputError,
+    mediaScopes,
     reHookValues,
+    ScreenSizesVerticalTabs,
+    sensibleDefaults,
     stringUtils,
     Textarea,
     timingUtils,
     unhookForm,
     urlUtils,
     validateAll,
+    validationConstraints,
 };

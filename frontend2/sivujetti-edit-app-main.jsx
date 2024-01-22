@@ -5,14 +5,13 @@ included in edit-app's template (edit-app-wrapper.tmpl.php).
 import {api} from './sivujetti-commons-unified.js';
 import EditApp from './edit-app/EditApp.jsx';
 import WebPagePreviewIframeApp from './edit-app/main-column/WebPagePreviewIframeApp.jsx';
+import MainColumnViews from './edit-app/main-column/MainColumnViews.jsx';
 import InspectorPanel from './edit-app/menu-column/InspectorPanel.jsx';
 import editAppInternalApi from './edit-app/internal-api.js';
 
 window.myRoute = url => {
     preactRouter.route(url);
 };
-
-// <div id="view"></div> todo
 
 const editAppOuterEl = document.getElementById('edit-app');
 preact.render(
@@ -25,11 +24,12 @@ preact.render(
 );
 
 const inspectorPanelOuterEl = api.inspectorPanel.getEl();
+const rootEl = document.getElementById('root');
 preact.render(
     <InspectorPanel
         outerEl={ inspectorPanelOuterEl }
         editAppOuterEl={ editAppOuterEl }
-        rootEl={ document.getElementById('root') }/>,
+        rootEl={ rootEl }/>,
     inspectorPanelOuterEl
 );
 
@@ -42,5 +42,8 @@ preact.render(
     document.getElementById('webpage-preview-app')
 );
 
-/*const webPagePreview = new FooTemp;
-webPagePreview.mount(':currentUrl');*/
+preact.render(
+    <MainColumnViews
+        rootEl={ rootEl }/>,
+    document.getElementById('view')
+);

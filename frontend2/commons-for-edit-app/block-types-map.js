@@ -1,4 +1,4 @@
-import columns2BlockType from './block-types/columns2.js';
+import columns2BlockType from './block-types/columns2/columns2.js';
 import menuBlockType from './block-types/menu/menu.js';
 
 const editAppBlockTypes = new Map;

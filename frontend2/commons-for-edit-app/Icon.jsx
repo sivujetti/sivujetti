@@ -1,4 +1,4 @@
-import {urlUtils} from '@sivujetti-commons-for-web-pages';
+import {urlUtils} from './web-page-commons-unified.js';
 
 class Icon extends preact.Component {
     /**

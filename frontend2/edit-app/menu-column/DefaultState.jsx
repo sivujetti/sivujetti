@@ -1,15 +1,14 @@
 /**
- * @param {String} slug
- * @returns {Boolean}
+ * The default state ("#/", "#/some-page") for main column.
  */
-function isAnotherAppView(slug) {
-    return [
-        '/uploads',
-        '/website/edit-basic-info',
-        '/website/edit-global-scripts',
-        '/website/updates',
-        '/pages',
-    ].indexOf(slug) > -1;
+class DefaultState extends preact.Component {
+
+    /**
+     * @access protected
+     */
+    render() {
+        return <p>todo</p>;
+    }
 }
 
-export {isAnotherAppView as isEditAppViewUrl};
+export default DefaultState;

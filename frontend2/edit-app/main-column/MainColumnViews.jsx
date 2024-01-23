@@ -1,5 +1,4 @@
 import createHashHistory from '../includes/custom-history.js';
-import {isEditAppViewUrl} from '../menu-column/DefaultState.jsx';
 import UploadsListView from './upload/UploadsListView.jsx';
 
 const historyInstance = createHashHistory();
@@ -44,7 +43,7 @@ class MainColumnViews extends preact.Component {
      */
     onRouteChanged(e) {
         const {rootEl} = this.props;
-        const a = isEditAppViewUrl(e.url);
+        const a = isMainColumnViewUrl(e.url);
         const b = rootEl.classList.contains('view-opened');
         if (a && !b)
             rootEl.classList.add('view-opened');
@@ -54,5 +53,19 @@ class MainColumnViews extends preact.Component {
     }
 }
 
+/**
+ * @param {String} slug
+ * @returns {Boolean}
+ */
+function isMainColumnViewUrl(slug) {
+    return [
+        '/uploads',
+        '/website/edit-basic-info',
+        '/website/edit-global-scripts',
+        '/website/updates',
+        '/pages',
+    ].indexOf(slug) > -1;
+}
+
 export default MainColumnViews;
-export {historyInstance, MyRouter};
+export {historyInstance, MyRouter, isMainColumnViewUrl};

@@ -2,6 +2,7 @@
 Exports, which commons-for-edit-app/<any>.js can include (since they can't include
 directly from '@sivujetti-commons-for-edit-app').
 */
+import {http} from './web-page-commons-unified.js';
 import {
     __,
     env,
@@ -29,7 +30,12 @@ import {
 } from './Form.jsx';
 import {sensibleDefaults, validationConstraints} from './constants.js';
 import ContextMenu from './ContextMenu.jsx';
+import FileUploader, {placeholderImageSrc} from './FileUploader.jsx';
 import {Icon, iconAsString} from './Icon.jsx';
+import LoadingSpinner from './LoadingSpinner.jsx';
+import UploadButton from './UploadButton.jsx';
+import Tabs from './Tabs.jsx';
+import {getAndPutAndGetToLocalStorage, putToLocalStorage} from './local-storage-utils.js';
 import blockTypes, {blockTypeGetIconId} from './block-types-map.js';
 import blockTreeUtils, {cloneDeep} from './block/tree-utils.js';
 import globalData from './globals-temp.js';
@@ -84,25 +90,33 @@ export {
     editAppSignalsInstance,
     editAppTranslatorInstance,
     env,
+    FileUploader,
     FormGroup,
     FormGroupInline,
+    getAndPutAndGetToLocalStorage,
     globalData,
     handleSubmit,
     hasErrors,
     hookForm,
+    http,
     Icon,
     iconAsString,
     Input,
     InputErrors,
     InputError,
+    LoadingSpinner,
     mediaScopes,
+    placeholderImageSrc,
+    putToLocalStorage,
     reHookValues,
     ScreenSizesVerticalTabs,
     sensibleDefaults,
     stringUtils,
+    Tabs,
     Textarea,
     timingUtils,
     unhookForm,
+    UploadButton,
     urlUtils,
     validateAll,
     validationConstraints,

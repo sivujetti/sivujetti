@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Boot;
 
-use Pike\Db\{FluentDb};
+use Pike\Db\{FluentDb, FluentDb2};
 use Pike\{AppConfig, Db, FileSystem, Injector, NativeSession, PikeException,
           Request, Router, Response};
 use Pike\Auth\Authenticator;
@@ -112,6 +112,8 @@ class BootModule {
         $di->share(new AppConfig($this->configBundle["app"]));
         $di->share($db);
         $di->share(new FluentDb($db));
+        if (defined("USE_NEW_FLUENT_DB"))
+            $di->share(new FluentDb2($db));
         $di->share(new Authenticator(
             fn() => new DefaultUserRepository($db),
             fn() => new NativeSession(autostart: false),

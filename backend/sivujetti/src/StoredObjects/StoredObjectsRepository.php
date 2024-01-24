@@ -2,7 +2,7 @@
 
 namespace Sivujetti\StoredObjects;
 
-use Pike\Db\{FluentDb, MySelect, MyUpdate};
+use Pike\Db\{FluentDb, FluentDb2, Q, MySelect, MyUpdate};
 use Pike\Interfaces\RowMapperInterface;
 use Pike\PikeException;
 use Sivujetti\{JsonUtils, ValidationUtils};
@@ -12,11 +12,15 @@ final class StoredObjectsRepository {
     private const T = "\${p}storedObjects";
     /** @var \Pike\Db\FluentDb */
     private FluentDb $db;
+    /** @var \Pike\Db\FluentDb2 */
+    private FluentDb2 $db2;
     /**
      * @param \Pike\Db\FluentDb $db
+     * @param \Pike\Db\FluentDb2 $db2
      */
-    public function __construct(FluentDb $db) {
+    public function __construct(FluentDb $db, FluentDb2 $db2) {
         $this->db = $db;
+        $this->db2 = $db2;
     }
     /**
      * @param string $objectName e.g. "JetForms:mailSendSettings"
@@ -26,15 +30,22 @@ final class StoredObjectsRepository {
      */
     public function putEntry(string $objectName, array $data): string|false {
         $asJson = self::stringifyDataOrThrow($data);
+        if (!defined("USE_NEW_FLUENT_DB")) {
         return $this->db->insert(self::T)
             ->values([(object) ["objectName" => $objectName, "data" => $asJson]])
             ->execute();
+        } else {
+        return $this->db2->insert(self::T)
+            ->values([(object) ["objectName" => $objectName, "data" => $asJson]])
+            ->execute();
+        }
     }
     /**
      * @param string $objectName e.g. "JetForms:mailSendSettings" or "JetForms:submissions"
-     * @return \Pike\Db\MySelect
+     * @return \Pike\Db\MySelect|\Pike\Db\Q
      */
-    public function find(string $objectName): MySelect {
+    public function find(string $objectName): MySelect|Q {
+        if (!defined("USE_NEW_FLUENT_DB")) {
         return $this->db->select(self::T, Entry::class)
             ->fields(["objectName", "data AS dataJson"])
             ->where("objectName = ?", [$objectName])
@@ -45,19 +56,38 @@ final class StoredObjectsRepository {
                     return $row;
                 }
             });
+        } else {
+        return $this->db2->select(self::T)
+            ->fields(["objectName", "data AS dataJson"])
+            ->where("objectName = ?", [$objectName])
+            ->fetchWith(function (string $objectName, string $dataJson) {
+                $out = new Entry();
+                $out->objectName = $objectName;
+                $out->data = JsonUtils::parse($dataJson, asObject: false);
+                $out->dataJson = $dataJson;
+                return $out;
+            });
+        }
     }
     /**
      * @param string $objectName e.g. "JetForms:mailSendSettings"
      * @param array<string, mixed> $data e.g. {sendingMethod: "mail", ...}
-     * @return \Pike\Db\MyUpdate
+     * @return \Pike\Db\MyUpdate|\Pike\Db\Q
      * @throws \Pike\PikeException|\JsonException If $data is not valid or too large
      */
-    public function updateEntry(string $objectName, array $data): MyUpdate {
+    public function updateEntry(string $objectName, array $data): MyUpdate|Q {
         $asJson = self::stringifyDataOrThrow($data);
+        if (!defined("USE_NEW_FLUENT_DB")) {
         return $this->db
             ->update(self::T)
             ->values((object) ["data" => $asJson])
             ->where("objectName = ?", [$objectName]);
+        } else {
+        return $this->db2
+            ->update(self::T)
+            ->values((object) ["data" => $asJson])
+            ->where("objectName = ?", [$objectName]);
+        }
     }
     /**
      * @param array $data e.g. {sendingMethod: "mail", ...}

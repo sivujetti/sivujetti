@@ -1,20 +1,20 @@
-import {__, api, Icon} from '@sivujetti-commons-for-edit-app';
-import Tabs from '../../commons/Tabs.jsx';
+// ## import {__, api, Icon} from '@sivujetti-commons-for-edit-app';
+// ## import Tabs from '../../commons/Tabs.jsx';
 import {HAS_ERRORS, isMetaBlock, NO_OP_QUEUE_EMIT} from '../../block/dom-commons.js';
-import {getIcon} from '../../block-types/block-types.js';
-import store, {selectCurrentPageDataBundle} from '../../store.js';
-import store2, {observeStore as observeStore2} from '../../store2.js';
-import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
-import {treeToTransferable} from '../../block/utils.js';
-import blockTreeUtils from './blockTreeUtils.js';
-import {findBlockFrom, getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
-import WidgetBasedStylesList from '../styles-tabs/WidgetBasedStylesList.jsx';
-import CodeBasedStylesList from '../styles-tabs/CodeBasedStylesList.jsx';
-import {getAndPutAndGetToLocalStorage, putToLocalStorage} from '../../commons/local-storage-utils.js';
-
-/** @type {BlockTypes} */
-let blockTypes;
-
+// ## import {getIcon} from '../../block-types/block-types.js';
+import store/*, {selectCurrentPageDataBundle}*/ from '../../store.js';
+// ## import store2, {observeStore as observeStore2} from '../../store2.js';
+// ## import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
+// ## import {treeToTransferable} from '../../block/utils.js';
+// ## import blockTreeUtils from './blockTreeUtils.js';
+// ## import {findBlockFrom, getIsStoredToTreeIdFrom} from '../../block/utils-utils.js';
+// ## import WidgetBasedStylesList from '../styles-tabs/WidgetBasedStylesList.jsx';
+// ## import CodeBasedStylesList from '../styles-tabs/CodeBasedStylesList.jsx';
+// ## import {getAndPutAndGetToLocalStorage, putToLocalStorage} from '../../commons/local-storage-utils.js';
+// ## 
+// ## /** @type {BlockTypes} */
+// ## let blockTypes;
+// ## 
 class BlockEditForm extends preact.Component {
     // editFormImplsChangeGrabbers;
     // userCanSpecializeGlobalBlocks;
@@ -28,14 +28,14 @@ class BlockEditForm extends preact.Component {
     // isOutermostBlockOfGlobalBlockTree;
     // unregistrables;
     // dispatchFastChangeTimeout;
-    /**
-     * @param {{block: RawBlock; inspectorPanel: preact.Component;}} props
-     */
-    constructor(props) {
-        super(props);
-        blockTypes = api.blockTypes;
-        this.state = {};
-    }
+// ##     /**
+// ##      * @param {{block: RawBlock; inspectorPanel: preact.Component;}} props
+// ##      */
+// ##     constructor(props) {
+// ##         super(props);
+// ##         blockTypes = api.blockTypes;
+// ##         this.state = {};
+// ##     }
     /**
      * @access protected
      */
@@ -46,42 +46,42 @@ class BlockEditForm extends preact.Component {
         this.userCanEditVisualStyles = api.user.can('editBlockStylesVisually');
         this.userCanEditCss = api.user.can('editBlockCss');
         this.useVisualStyles = !this.userCanEditCss && this.userCanEditVisualStyles;
-        this.blockType = blockTypes.get(block.type);
+// ##         this.blockType = blockTypes.get(block.type);
         this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, 'mainTree');
         this.editFormImpls = [
             this.blockType.editForm,
-            ...(!this.blockType.extends ? [] : [blockTypes.get(this.blockType.extends).editForm])
+// ##             ...(!this.blockType.extends ? [] : [blockTypes.get(this.blockType.extends).editForm])
         ];
-        this.allowStylesEditing = !selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
-        this.isOutermostBlockOfGlobalBlockTree = false;
-        this.setState(this.createState(this.getLargestAllowedTabIdx(parseInt(getAndPutAndGetToLocalStorage('0', 'sivujettiLastBlockEditFormTabIdx'), 10))));
-        this.unregistrables = [observeStore2('theBlockTree', (_, [event, data]) => {
-            const isUndo = event === 'theBlockTree/undo';
-            if (event === 'theBlockTree/updatePropsOf' || isUndo) {
-                if (!this.editFormImplsChangeGrabbers.length)
-                    return;
-                const [blockId, isUndoOf] = !isUndo
-                    ? [
-                        data[0],  // updatePropsOf: [<blockId>, <blockIsStoredToTreeId>, <changes>, <flags>, <debounceMillis>]
-                        null
-                    ]
-                    : [
-                        data[1], // undo:          [<oldTree>, <blockId>, <isUndoOf>]
-                        data[2]
-                    ];
-                if ((!isUndo || isUndoOf === 'default' ? blockId : null) === this.props.block.id)
-                    this.editFormImplsChangeGrabbers.map(fn => fn(this.getCurrentBlockCopy(), event, isUndo));
-                return;
-            }
-
-            if ((event === 'theBlockTree/updateDefPropsOf' || event === 'theBlockTree/undoUpdateDefPropsOf') &&
-                this.state.currentBlockCopy) {
-                this.setState({currentBlockCopy: this.getCurrentBlockCopy()});
-            } else if (event === 'theBlockTree/deleteBlock') {
-                const [id, _blockIsStoredToTreeId, isChildOfOrCurrentlyOpenBlock] = data;
-                if (isChildOfOrCurrentlyOpenBlock || id === block.id) this.props.inspectorPanel.close();
-            }
-        })];
+// ##         this.allowStylesEditing = !selectCurrentPageDataBundle(store.getState()).page.isPlaceholderPage;
+// ##         this.isOutermostBlockOfGlobalBlockTree = false;
+// ##         this.setState(this.createState(this.getLargestAllowedTabIdx(parseInt(getAndPutAndGetToLocalStorage('0', 'sivujettiLastBlockEditFormTabIdx'), 10))));
+// ##         this.unregistrables = [observeStore2('theBlockTree', (_, [event, data]) => {
+// ##             const isUndo = event === 'theBlockTree/undo';
+// ##             if (event === 'theBlockTree/updatePropsOf' || isUndo) {
+// ##                 if (!this.editFormImplsChangeGrabbers.length)
+// ##                     return;
+// ##                 const [blockId, isUndoOf] = !isUndo
+// ##                     ? [
+// ##                         data[0],  // updatePropsOf: [<blockId>, <blockIsStoredToTreeId>, <changes>, <flags>, <debounceMillis>]
+// ##                         null
+// ##                     ]
+// ##                     : [
+// ##                         data[1], // undo:          [<oldTree>, <blockId>, <isUndoOf>]
+// ##                         data[2]
+// ##                     ];
+// ##                 if ((!isUndo || isUndoOf === 'default' ? blockId : null) === this.props.block.id)
+// ##                     this.editFormImplsChangeGrabbers.map(fn => fn(this.getCurrentBlockCopy(), event, isUndo));
+// ##                 return;
+// ##             }
+// ## 
+// ##             if ((event === 'theBlockTree/updateDefPropsOf' || event === 'theBlockTree/undoUpdateDefPropsOf') &&
+// ##                 this.state.currentBlockCopy) {
+// ##                 this.setState({currentBlockCopy: this.getCurrentBlockCopy()});
+// ##             } else if (event === 'theBlockTree/deleteBlock') {
+// ##                 const [id, _blockIsStoredToTreeId, isChildOfOrCurrentlyOpenBlock] = data;
+// ##                 if (isChildOfOrCurrentlyOpenBlock || id === block.id) this.props.inspectorPanel.close();
+// ##             }
+// ##         })];
     }
     /**
      * @access protected
@@ -93,7 +93,7 @@ class BlockEditForm extends preact.Component {
      * @access protected
      */
     render({block}, {currentTabIdx, currentBlockCopy}) {
-        const getCopy = this.getCurrentBlockCopy.bind(this);
+// ##         const getCopy = this.getCurrentBlockCopy.bind(this);
         const tr1 = __('Content');
         const tr2 = __('Styles');
         const tr3 = __('Styles (code)');
@@ -102,7 +102,7 @@ class BlockEditForm extends preact.Component {
         const t = isMeta ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
         return <div data-main>
         <div class={ `with-icon pb-1${t}` }>
-            <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
+// ##             <Icon iconId={ getIcon(this.blockType) } className="size-xs mr-1"/>
             { __(block.title || this.blockType.friendlyName) }
         </div>
         <Tabs
@@ -170,13 +170,13 @@ class BlockEditForm extends preact.Component {
             this.dispatchFastChangeTimeout = setTimeout(fn, debounceMillis);
         }
     }
-    /**
-     * @returns {RawBlock}
-     * @access private
-     */
-    getCurrentBlockCopy() {
-        return cloneObjectDeep(findBlockFrom(this.props.block.id, 'mainTree')[0]);
-    }
+// ##     /**
+// ##      * @returns {RawBlock}
+// ##      * @access private
+// ##      */
+// ##     getCurrentBlockCopy() {
+// ##         return cloneObjectDeep(findBlockFrom(this.props.block.id, 'mainTree')[0]);
+// ##     }
     /**
      * @param {Number} currentTabIdx
      * @returns {{currentTabIdx: Number; currentBlockCopy?: RawBlock;}}
@@ -216,6 +216,6 @@ function updateBlockProps(blockId, getUpdateSettings) {
         0 // debounceMillis
     ]);
 }
-
-export default BlockEditForm;
+// ## 
+// ## export default BlockEditForm;
 export {updateBlockProps};

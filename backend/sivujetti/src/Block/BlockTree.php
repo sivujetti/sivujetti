@@ -2,6 +2,8 @@
 
 namespace Sivujetti\Block;
 
+use Sivujetti\JsonUtils;
+
 /**
  * @template BlockCls
  */
@@ -78,10 +80,11 @@ final class BlockTree {
         return $out;
     }
     /**
+     * @deprecated Use JsonUtils::stringify() instead
      * @param BlockCls[] $branch
      * @return string
      */
     public static function toJson(array $blocks): string {
-        return json_encode($blocks, JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+        return JsonUtils::stringify($blocks);
     }
 }

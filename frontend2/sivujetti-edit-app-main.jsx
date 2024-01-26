@@ -2,7 +2,7 @@
 An entry point for global file "public/v2/sivujetti-edit-app-main.js" that is
 included in edit-app's template (edit-app-wrapper.tmpl.php).
 */
-import {api} from './sivujetti-commons-unified.js';
+import {api, FloatingDialog} from './sivujetti-commons-unified.js';
 import EditApp from './edit-app/EditApp.jsx';
 import WebPagePreviewIframeApp from './edit-app/main-column/WebPagePreviewIframeApp.jsx';
 import MainColumnViews from './edit-app/main-column/MainColumnViews.jsx';
@@ -43,7 +43,10 @@ preact.render(
 );
 
 preact.render(
-    <MainColumnViews
-        rootEl={ rootEl }/>,
+    [
+        <MainColumnViews
+            rootEl={ rootEl }/>,
+        <FloatingDialog/>
+    ],
     document.getElementById('view')
 );

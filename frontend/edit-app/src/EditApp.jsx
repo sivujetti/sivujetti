@@ -55,35 +55,35 @@ class EditApp extends preact.Component {
                 <img src={ logoUrl }/>
                 <Icon iconId="arrow-back-up"/>
             </a>,
-            // ## <header class={ !hidePanels ? 'd-flex' : 'd-none' }>
-            // ##     <div class="mode-chooser ml-2 d-flex p-1" style="margin-bottom: -.2rem; margin-top: .1rem;">
-            // ##         <a href={ urlUtils.makeUrl('_edit', true) } class="d-inline-block mr-1">
-            // ##             <img src={ logoUrl }/>
-            // ##         </a>
-            // ##         <span class="d-inline-block ml-1">
-            // ##             <span class="d-block">Sivujetti</span>
-            // ##             <select value={ this.changeViewOptions[!hidePanels ? 0 : 1].name } onChange={ e => {
-            // ##                 if (e.target.value === this.changeViewOptions[1].name) {
-            // ##                     this.handlePanelsAreHiddenChanged(true);
-            // ##                 } else if (e.target.value === this.changeViewOptions.at(-1).name)
-            // ##                     this.logUserOut();
-            // ##                  else if (e.target.value === (this.changeViewOptions[2] || {}).name)
-            // ##                     env.window.location.href = this.props.dataFromAdminBackend.dashboardUrl;
-            // ##                 else
-            // ##                     throw new Error(`Unkown option ${e.target.value}`);
-            // ##             } } class="form-select">
-            // ##             { this.changeViewOptions.map(({name, label}) =>
-            // ##                 <option value={ name }>{ label }</option>
-            // ##             ) }</select>
-            // ##         </span>
-            // ##     </div>
-            // ##     <SaveButton2
-            // ##         ref={ this.saveButtonRef2 }/>
-            // ##     <SaveButton
-            // ##         mainPanelOuterEl={ this.props.outerEl }
-            // ##         initialLeftPanelWidth={ this.props.leftPanelWidth }
-            // ##         ref={ this.saveButtonRef }/>
-            // ## </header>,
+// ##             <header class={ !hidePanels ? 'd-flex' : 'd-none' }>
+// ##                 <div class="mode-chooser ml-2 d-flex p-1" style="margin-bottom: -.2rem; margin-top: .1rem;">
+// ##                     <a href={ urlUtils.makeUrl('_edit', true) } class="d-inline-block mr-1">
+// ##                         <img src={ logoUrl }/>
+// ##                     </a>
+// ##                     <span class="d-inline-block ml-1">
+// ##                         <span class="d-block">Sivujetti</span>
+// ##                         <select value={ this.changeViewOptions[!hidePanels ? 0 : 1].name } onChange={ e => {
+// ##                             if (e.target.value === this.changeViewOptions[1].name) {
+// ##                                 this.handlePanelsAreHiddenChanged(true);
+// ##                             } else if (e.target.value === this.changeViewOptions.at(-1).name)
+// ##                                 this.logUserOut();
+// ##                              else if (e.target.value === (this.changeViewOptions[2] || {}).name)
+// ##                                 env.window.location.href = this.props.dataFromAdminBackend.dashboardUrl;
+// ##                             else
+// ##                                 throw new Error(`Unkown option ${e.target.value}`);
+// ##                         } } class="form-select">
+// ##                         { this.changeViewOptions.map(({name, label}) =>
+// ##                             <option value={ name }>{ label }</option>
+// ##                         ) }</select>
+// ##                     </span>
+// ##                 </div>
+// ##                 <SaveButton2
+// ##                     ref={ this.saveButtonRef2 }/>
+// ##                 <SaveButton
+// ##                     mainPanelOuterEl={ this.props.outerEl }
+// ##                     initialLeftPanelWidth={ this.props.leftPanelWidth }
+// ##                     ref={ this.saveButtonRef }/>
+// ##             </header>,
             !showFirstTimeDragInstructions ? null : <div class="drag-instructions-overlay"><div>
                 <p class="flex-centered">
                     <Icon iconId="info-circle" className="size-lg mr-2"/>
@@ -98,14 +98,14 @@ class EditApp extends preact.Component {
                     setTimeout(() => { el.parentElement.removeChild(el); }, 650);
                 } } class="btn btn-primary btn-sm p-absolute" type="button">{ __('Cool!') }</button>
             </div></div>,
-            // ## <MyRouter history={ historyInstance }>
-            // ##     <DefaultPanel path="/:slug*"/>
-            // ##     <PageCreatePanel path="/pages/create/:pageTypeName?/:layoutId?"/>
-            // ##     <PageDuplicatePanel path="/pages/:pageSlug/duplicate"/>
-            // ##     <PageTypeCreatePanel path="/page-types/create"/>
-            // ## </MyRouter>,
+// ##             <MyRouter history={ historyInstance }>
+// ##                 <DefaultPanel path="/:slug*"/>
+// ##                 <PageCreatePanel path="/pages/create/:pageTypeName?/:layoutId?"/>
+// ##                 <PageDuplicatePanel path="/pages/:pageSlug/duplicate"/>
+// ##                 <PageTypeCreatePanel path="/page-types/create"/>
+// ##             </MyRouter>,
             <Toaster id="editAppMain"/>,
-            <FloatingDialog signals={ signals }/>,
+// ##             <FloatingDialog signals={ signals }/>,
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         ];
     }

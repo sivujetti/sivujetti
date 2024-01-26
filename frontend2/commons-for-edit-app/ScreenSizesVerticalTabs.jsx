@@ -1,5 +1,5 @@
-import {__/*, floatingDialog*/, Icon} from './interal-wrapper.js';
-// import ScreenSizesTabShowHelpPopup from '../../popups/styles/ScreenSizesTabShowHelpPopup.jsx';
+import {__, floatingDialog, Icon} from './interal-wrapper.js';
+import ScreenSizesTabShowHelpPopup from './popups/ScreenSizesTabShowHelpPopup.jsx';
 
 class ScreenSizesVerticalTabs extends preact.Component {
     /**
@@ -38,9 +38,9 @@ class ScreenSizesVerticalTabs extends preact.Component {
                     title={ `${__('%s or smaller', '480px')} (${__('Small phones').toLowerCase()})` }>
                     <span class="color-dimmed3">Xs</span>
                 </button>
-                <button onClick={ () => `floatingDialog.open(ScreenSizesTabShowHelpPopup, {
+                <button onClick={ () => floatingDialog.open(ScreenSizesTabShowHelpPopup, {
                         title: __('Screen sizes'),
-                    }, {})` }
+                    }, {}) }
                     class="btn btn-link"
                     title={ __('What\'re these?') }>
                     <Icon iconId="info-circle" className="size-xxs"/>

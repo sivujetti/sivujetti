@@ -30,6 +30,7 @@ import {
 } from './Form.jsx';
 import {sensibleDefaults, validationConstraints} from './constants.js';
 import ContextMenu from './ContextMenu.jsx';
+import {FloatingDialog, currentInstance as floatingDialog} from './FloatingDialog.jsx';
 import FileUploader, {placeholderImageSrc} from './FileUploader.jsx';
 import {Icon, iconAsString} from './Icon.jsx';
 import LoadingSpinner from './LoadingSpinner.jsx';
@@ -41,6 +42,7 @@ import blockTreeUtils, {cloneDeep} from './block/tree-utils.js';
 import globalData from './globals-temp.js';
 import {mediaScopes} from './ScssWizard.js';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
+import setFocusTo from './auto-focusers.js';
 
 const api = {
     blockTypes,
@@ -91,6 +93,8 @@ export {
     editAppTranslatorInstance,
     env,
     FileUploader,
+    FloatingDialog,
+    floatingDialog,
     FormGroup,
     FormGroupInline,
     getAndPutAndGetToLocalStorage,
@@ -111,6 +115,7 @@ export {
     reHookValues,
     ScreenSizesVerticalTabs,
     sensibleDefaults,
+    setFocusTo,
     stringUtils,
     Tabs,
     Textarea,

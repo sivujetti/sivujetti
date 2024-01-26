@@ -1,5 +1,12 @@
-import {__, api, FormGroupInline, mediaScopes, editAppScssWizardInstance as scssWizard,
-        ScreenSizesVerticalTabs} from '../../interal-wrapper.js';
+import {
+    __,
+    api,
+    createScssTodoname,
+    FormGroupInline,
+    mediaScopes,
+    ScreenSizesVerticalTabs,
+    editAppScssWizardInstance as scssWizard,
+} from '../../internal-wrapper.js';
 
 class MenuBlockDefaultStylesEditForm extends preact.Component {
     render() {

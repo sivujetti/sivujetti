@@ -1,4 +1,4 @@
-import {Icon} from './interal-wrapper.js';
+import {Icon} from './internal-wrapper.js';
 
 class MenuSection extends preact.Component {
     /**

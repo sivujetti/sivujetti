@@ -48,7 +48,7 @@ import {
     urlUtils,
     validateAll,
     validationConstraints,
-} from './commons-for-edit-app/interal-wrapper.js';
+} from './commons-for-edit-app/internal-wrapper.js';
 
 export {
     __,

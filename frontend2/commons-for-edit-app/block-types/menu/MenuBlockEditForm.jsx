@@ -1,4 +1,4 @@
-import {__, cloneDeep, ContextMenu, env, globalData, Icon} from '../../interal-wrapper.js';
+import {__, cloneDeep, ContextMenu, env, globalData, Icon} from '../../internal-wrapper.js';
 import EditItemPanel from './EditItemPanel.jsx';
 
 class MenuBlockEditForm extends preact.Component {

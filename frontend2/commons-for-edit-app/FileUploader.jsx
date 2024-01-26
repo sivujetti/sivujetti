@@ -1,5 +1,16 @@
-import {__, env, getAndPutAndGetToLocalStorage, http, Icon, LoadingSpinner,
-        putToLocalStorage, Tabs, UploadButton, urlUtils} from './interal-wrapper.js';
+import {
+    __,
+    ContextMenu,
+    env,
+    getAndPutAndGetToLocalStorage,
+    http,
+    Icon,
+    LoadingSpinner,
+    putToLocalStorage,
+    Tabs,
+    UploadButton,
+    urlUtils
+} from './internal-wrapper.js';
 
 const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=';
 

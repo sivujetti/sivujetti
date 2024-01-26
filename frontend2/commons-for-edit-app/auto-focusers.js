@@ -1,4 +1,4 @@
-import {env} from './interal-wrapper.js';
+import {env} from './internal-wrapper.js';
 
 /**
  * @param {preact.Ref} elementRef

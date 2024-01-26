@@ -1,4 +1,4 @@
-import {iconAsString} from './interal-wrapper.js';
+import {iconAsString} from './internal-wrapper.js';
 
 let currentInstance = {
     open: null,

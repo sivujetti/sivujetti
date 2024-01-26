@@ -1,4 +1,4 @@
-import {__, env} from './interal-wrapper.js';
+import {__, env} from './internal-wrapper.js';
 
 let isGlobalEscKeyPressListenerHookedUp = false;
 let openInstance = null;

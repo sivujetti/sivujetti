@@ -1,4 +1,4 @@
-import {__, floatingDialog, Icon} from './interal-wrapper.js';
+import {__, floatingDialog, Icon} from './internal-wrapper.js';
 import ScreenSizesTabShowHelpPopup from './popups/ScreenSizesTabShowHelpPopup.jsx';
 
 class ScreenSizesVerticalTabs extends preact.Component {

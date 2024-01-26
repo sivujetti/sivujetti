@@ -1,5 +1,14 @@
-import {__, api, hookForm, unhookForm, reHookValues, Input, InputErrors, FormGroupInline,
-        validationConstraints} from '../../interal-wrapper.js';
+import {
+    __,
+    api,
+    FormGroupInline,
+    hookForm,
+    Input,
+    InputErrors,
+    reHookValues,
+    unhookForm,
+    validationConstraints
+} from '../../internal-wrapper.js';
 // import {PickUrlInputGroup} from '../button.js';
 
 class EditItemPanel extends preact.Component {

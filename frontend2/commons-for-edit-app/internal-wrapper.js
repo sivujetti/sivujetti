@@ -36,8 +36,8 @@ import {Icon, iconAsString} from './Icon.jsx';
 import LoadingSpinner from './LoadingSpinner.jsx';
 import UploadButton from './UploadButton.jsx';
 import Tabs from './Tabs.jsx';
-import {getAndPutAndGetToLocalStorage, putToLocalStorage} from './local-storage-utils.js';
-import blockTypes, {blockTypeGetIconId} from './block-types-map.js';
+import {putToLocalStorage, getFromLocalStorage, getAndPutAndGetToLocalStorage} from './local-storage-utils.js';
+import editAppBlockTypeMap, {blockTypeGetIconId} from './block-types-map.js';
 import blockTreeUtils, {cloneDeep} from './block/tree-utils.js';
 import globalData from './globals-temp.js';
 import {mediaScopes} from './ScssWizard.js';
@@ -93,11 +93,12 @@ export {
     editAppTranslatorInstance,
     env,
     FileUploader,
-    FloatingDialog,
     floatingDialog,
+    FloatingDialog,
     FormGroup,
     FormGroupInline,
     getAndPutAndGetToLocalStorage,
+    getFromLocalStorage,
     globalData,
     handleSubmit,
     hasErrors,
@@ -106,8 +107,8 @@ export {
     Icon,
     iconAsString,
     Input,
-    InputErrors,
     InputError,
+    InputErrors,
     LoadingSpinner,
     mediaScopes,
     placeholderImageSrc,

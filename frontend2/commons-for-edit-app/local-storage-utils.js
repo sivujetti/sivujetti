@@ -1,4 +1,4 @@
-import {env} from './internal-wrapper.js';
+import {env} from './web-page-commons-unified.js';
 
 /**
  * @param {String} value

@@ -1,4 +1,4 @@
-import {__, api, env, signals, urlUtils, Icon, MenuSectionAbstract} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, signals, urlUtils, Icon/*, MenuSectionAbstract*/} from '@sivujetti-commons-for-edit-app';
 import {createTrier} from '../../block/dom-commons.js';
 import {findBlockFrom} from '../../block/utils-utils.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
@@ -6,7 +6,7 @@ import {openPageDeleteDialog} from '../../right-column/page/PagesListView.jsx';
 import store, {selectCurrentPageDataBundle} from '../../store.js';
 import BlockTree from '../block/BlockTree.jsx';
 
-class OnThisPageSection extends MenuSectionAbstract {
+// ## class OnThisPageSection extends MenuSectionAbstract {
     // blockTreeRef;
     // unregistrables;
     // moreMenuIcon;
@@ -20,6 +20,14 @@ class OnThisPageSection extends MenuSectionAbstract {
         this.blockTreeRef = preact.createRef();
         this.moreMenuIcon = preact.createRef();
         this.moreMenu = preact.createRef();
+        this.state = {loadedPageBlocks: null};
+
+        // how to clean this?
+        console.log('start listening', this.props.currentPageSlug);
+        signals.on('webpage-preview-iframe-loaded', () => {
+            console.log('webpage-preview-iframe-loaded' , this.props.currentPageSlug, api.saveButton.getInstance().getChannelState('theBlockTree'));
+            this.setState({loadedPageBlocks: api.saveButton.getInstance().getChannelState('theBlockTree')});
+        });
     }
     /**
      * @access protected
@@ -27,18 +35,25 @@ class OnThisPageSection extends MenuSectionAbstract {
     componentWillMount() {
         const focusToBlockAndEmitBlockTreeClick = (visibleBlock, clickOrigin, then) => {
             if (this.state.isCollapsed) this.setState({isCollapsed: false});
+            if (visibleBlock.type !== 'Text') {
             this.blockTreeRef.current.handleItemClickedOrFocused(visibleBlock, clickOrigin);
             setTimeout(() => {
                 api.mainPanel.scrollTo(visibleBlock.id);
                 then();
             }, 100);
+            } else {
+            this.blockTreeRef.current.handleItemClickedOrFocused(visibleBlock, clickOrigin);
+            setTimeout(() => {
+                api.mainPanel.scrollTo(visibleBlock.id);
+                then();
+            }, 100);
+            }
         };
         this.unregistrables = [signals.on('web-page-click-received',
         /**
          * @param {HTMLElement?} blockEl
-         * @param {(blockEl: HTMLElement) => RawBlock|null} findBlock
          */
-        blockEl => {
+        (blockEl) => {
             if (!blockEl) return;
             focusToBlockAndEmitBlockTreeClick(findBlockFrom(blockEl.getAttribute('data-block'), 'mainTree')[0], 'web-page', () => { });
         }),
@@ -74,18 +89,19 @@ class OnThisPageSection extends MenuSectionAbstract {
                 this.blockTreeRef.current.deSelectAllBlocks();
         }), signals.on('page-saved-to-backend', () => {
             const {page} = selectCurrentPageDataBundle(store.getState());
-            if (this.state.loadedSlug !== page.slug)
-                this.updateTitlesToState(page.slug);
+            if (this.props.currentPageSlug !== page.slug) // todo reload whole iframe/page ?
+                this.updateState(page.slug);
         })];
         //
-        this.updateTitlesToState(this.props.loadedPageSlug);
+        this.updateState(this.props.currentPageSlug);
     }
     /**
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.loadedPageSlug !== this.props.loadedPageSlug)
-            this.updateTitlesToState(props.loadedPageSlug);
+        if (props.currentPageSlug !== this.props.currentPageSlug) {
+            console.log('got url change, on-loaded pitäisi tulla kohta');
+            this.updateState(props.currentPageSlug);}
     }
     /**
      * @access protected
@@ -93,11 +109,11 @@ class OnThisPageSection extends MenuSectionAbstract {
     componentWillUnmount() {
         this.unregistrables.forEach(unreg => unreg());
     }
-    /**
-     * @param {{loadedPageSlug?: String; loadingPageSlug?: String;} && {[key: String]: any;}} props
-     */
-    render({loadedPageSlug}, {isCollapsed, containingView, title, subtitle}) {
-        return <section class={ `on-this-page panel-section pl-0${isCollapsed ? '' : ' open'}` }>
+// ##     /**
+// ##      * @param {{[key: String]: any;}} props
+// ##      */
+// ##     render(_, {isCollapsed, containingView, loadedPageBlocks, title, subtitle}) {
+// ##         return <section class={ `on-this-page panel-section pl-0${isCollapsed ? '' : ' open'}` }>
             <button
                 class="flex-centered pr-2 pl-1 section-title col-12"
                 onClick={ this.handleMainButtonClicked.bind(this) }
@@ -123,10 +139,10 @@ class OnThisPageSection extends MenuSectionAbstract {
                 </span>
                 <Icon iconId="chevron-right" className="p-absolute size-xs"/>
             </button>
-            { loadedPageSlug ? <BlockTree
-                loadedPageSlug={ loadedPageSlug }
+            <BlockTree
+                blocks={ loadedPageBlocks }
                 containingView={ containingView }
-                ref={ this.blockTreeRef }/> : null }
+                ref={ this.blockTreeRef }/>
             { containingView === 'Default' ? <ContextMenu
                 links={ [
                     {text: __('Duplicate this page'), title: __('Duplicate page'), id: 'duplicate'},
@@ -136,7 +152,7 @@ class OnThisPageSection extends MenuSectionAbstract {
                 onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
                 onMenuClosed={ () => { this.slugOfPageWithNavOpened = null; } }
                 ref={ this.moreMenu }/> : null }
-        </section>;
+// ##         </section>;
     }
     /**
      * @param {Event} e
@@ -146,7 +162,7 @@ class OnThisPageSection extends MenuSectionAbstract {
         if (this.mouseFocusIsAt === 'moreMenuIcon' ||
             e.target.tagName === 'I' ||
             (this.moreMenu.current && this.moreMenuIcon.current.contains(e.target)))
-            this.openMoreMenu(this.state.loadedSlug, e);
+            this.openMoreMenu(this.props.currentPageSlug, e);
         else
             this.setState({isCollapsed: !this.state.isCollapsed});
     }
@@ -154,12 +170,11 @@ class OnThisPageSection extends MenuSectionAbstract {
      * @param {String|null} loadedSlug
      * @access private
      */
-    updateTitlesToState(loadedSlug) {
+    updateState(loadedSlug) {
         const slug = loadedSlug || '/';
         const containingView = determineViewNameFrom(slug);
         this.setState({
             title: __(containingView !== 'CreatePageType' ? 'On this page' : 'Default content'),
-            loadedSlug,
             subtitle: getSubtitle(slug, containingView),
             containingView
         });
@@ -190,7 +205,7 @@ class OnThisPageSection extends MenuSectionAbstract {
         } else if (link.id === 'show-without-edit-mode')
             env.window.open(urlUtils.makeUrl(this.slugOfPageWithNavOpened, true), '_blank');
     }
-}
+// ## }
 
 /**
  * @param {String} slug

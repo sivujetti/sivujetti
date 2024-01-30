@@ -25,6 +25,7 @@ class FileUploader extends preact.Component {
     // initialTabIdx;
     // dropAreaEl;
     // uploadButton;
+    // contextMenu;
     /**
      * @param {{onEntryClicked?: (entry: UploadsEntry) => void; mode?: 'pick'; showInitially?: 'images'|'files'; onlyImages?: Boolean; numColumns?: Number; hideUploadButton?: Boolean;}} props
      */
@@ -32,6 +33,7 @@ class FileUploader extends preact.Component {
         super(props);
         this.dropAreaEl = preact.createRef();
         this.uploadButton = preact.createRef();
+        this.contextMenu = preact.createRef();
     }
     /**
      * @access protected
@@ -39,7 +41,7 @@ class FileUploader extends preact.Component {
     componentWillMount() {
         this.initialTabIdx = (this.props.showInitially || 'images') === 'images' ? 0 : 1;
         const tabName = tabIdxToName(this.initialTabIdx);
-        this.setState({files: null, currentTab: tabName,
+        this.setState({files: null, currentTabName: tabName,
             displayAsGrid: getAndPutAndGetToLocalStorage('grid', 'sivujettiDisplayImageListAs') === 'grid'});
         this.fetchOrGetUploads(tabName)
             .then((fileGroup) => { this.setState({files: fileGroup}); });
@@ -47,8 +49,9 @@ class FileUploader extends preact.Component {
     /**
      * @access protected
      */
-    render({mode, numColumns, hideUploadButton, onlyImages}, {files, displayAsGrid}) {
+    render({mode, numColumns, hideUploadButton, onlyImages}, {files, displayAsGrid, currentTabName}) {
         const [imgItemCfg, fileItemCfg] = getListItemSettings(displayAsGrid, mode);
+        const showCrudButtons = this.props.mode !== 'pick';
         return [
         !onlyImages
             ? <div class="mb-2 pb-2">
@@ -91,12 +94,12 @@ class FileUploader extends preact.Component {
                     class={ `btn btn-sm with-icon-inline${displayAsGrid ? ' btn-selected' : ''} ml-1` }><Icon iconId="layout-grid" className="size-sm"/></button>
             </div>
             <div style={ hideUploadButton !== true ? '' : 'margin-top: 1rem;' }>{ files ? files.length
-                ? displayAsGrid ? <div class={ `live-files-list item-grid mt-2 pt-2${!numColumns ? '' : ({'3': ' three'}[numColumns] || '')}` }>{ files.map(f => {
+                ? displayAsGrid ? <div class={ `live-files-list item-grid mt-2 pt-2${!numColumns ? '' : ({'3': ' three'}[numColumns] || '')}${currentTabName !== 'onlyImages' ? '' : ' only-images'}` }>{ files.map(f => {
                     const {friendlyName, fileName, baseDir, ext, mime, createdAt} = f;
                     const isUploaded = createdAt > 0;
                     const isImage = mime.startsWith('image/');
                     const Elem = isImage ? imgItemCfg.el : fileItemCfg.el;
-                    return <article class={ `box text-center${isUploaded ? '' : ' loading'}` } title={ fileName } key={ friendlyName }>
+                    return <article class={ `box text-center p-relative list-item${isUploaded ? '' : ' loading'}` } title={ fileName } key={ friendlyName }>
                         { !isImage
                             ? <Elem { ...fileItemCfg.props } onClick={ () => this.handleEntryClicked(f) }>
                                 <Icon iconId="file" className="mb-2"/>
@@ -112,15 +115,23 @@ class FileUploader extends preact.Component {
                                 <div class="text-ellipsis my-2 px-2"><b>{ friendlyName || fileName }</b></div>,
                             ]
                         }
+                        { showCrudButtons
+                            ? <button onClick={ e => this.openMoreMenu(f, e) } class="btn btn-sm with-icon-inline p-absolute focus-default more-menu-btn" type="button">
+                                <Icon iconId="dots" className="size-sm"/>
+                            </button>
+                            : null
+                        }
                     </article>;
-                }) }</div> : <div><ul class="list table-list selectable-items live-files-list mt-2 pt-1">{ files.map(f => {
+                }) }</div> : <div><ul class="list with-more-menu-links table-list selectable-items live-files-list mt-2 pt-1">{ files.map(f => {
                         const {friendlyName, fileName, baseDir, ext, mime, createdAt} = f;
                         const isUploaded = createdAt > 0;
                         const isImage = mime.startsWith('image/');
-                        const Elem = isImage ? imgItemCfg.el : fileItemCfg.el;
+                        const cfgItem = isImage ? imgItemCfg : fileItemCfg;
+                        const Elem = cfgItem.el;
+                        const titleCls = mode !== 'pick' ? '' : ' pr-0';
                         return <li class={ `p-0${isUploaded ? '' : ' loading'}` }>
                             <Elem
-                                class={ `text-ellipsis text-left with-icon ${imgItemCfg.classes}` }
+                                class={ `list-item text-ellipsis text-left with-icon p-relative pl-1 ${cfgItem.classes}` }
                                 onClick={ () => this.handleEntryClicked(f) }
                                 style="height: 3.4rem"
                                 title={ fileName }
@@ -132,8 +143,7 @@ class FileUploader extends preact.Component {
                                                 <img src={ isUploaded ? `${urlUtils.assetBaseUrl}${UPLOADS_DIR_PATH}${baseDir}${fileName}` : placeholderImageSrc }/>
                                             </span>
                                         </span>,
-                                        <span class="h6 text-ellipsis mx-1 my-0">{ friendlyName || fileName }</span>,
-                                        <button onClick={ () => this.deleteFile(f) }>Delete</button>
+                                        <span class={ `h6 text-ellipsis mx-1 my-0${titleCls}` }>{ friendlyName || fileName }</span>,
                                     ]
                                     : [
                                         <span class="mr-2">
@@ -142,8 +152,14 @@ class FileUploader extends preact.Component {
                                         <span class="text-ellipsis mr-1 my-0">
                                             <b class="d-block">{ friendlyName }</b>
                                             <span class="d-block color-dimmed text-small text-uppercase" style="font-weight: 300;">{ ext }</span>
-                                        </span>
+                                        </span>,
                                     ]
+                                }
+                                { showCrudButtons
+                                    ? <button onClick={ e => this.openMoreMenu(f, e) } class="btn btn-sm with-icon-inline p-absolute focus-default p-0 pl-1 more-menu-btn" type="button">
+                                        <Icon iconId="dots" className="size-sm mr-1"/>
+                                    </button>
+                                    : null
                                 }
                             </Elem>
                         </li>;
@@ -152,7 +168,17 @@ class FileUploader extends preact.Component {
                     <p style="margin-top: 1rem">{ __('No uploads yet.') }</p>
                 </div>
             : <LoadingSpinner className="mt-2"/> }</div>
-        </div>
+        </div>,
+        !onlyImages
+            ? <ContextMenu
+                links={ [
+                    {text: __('Edit'), title: __('Edit item'), id: 'edit'},
+                    {text: __('Delete'), title: __('Delete item'), id: 'delete'},
+                ] }
+                onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
+                onMenuClosed={ () => this.setState({entryWithNavOpened: null}) }
+                ref={ this.contextMenu }/>
+            : null
         ];
     }
     /**
@@ -163,7 +189,7 @@ class FileUploader extends preact.Component {
         const k = this.props.onlyImages || file.mime.startsWith('image/') ? 'onlyImages' : 'nonImages';
         if (fetchedFiles[k]) fetchedFiles[k].unshift(file);
 
-        if (this.state.currentTab === k)
+        if (this.state.currentTabName === k)
             this.setState({files: cloneArrShallow(fetchedFiles[k])});
     }
     /**
@@ -178,7 +204,7 @@ class FileUploader extends preact.Component {
                 ? fetchedFiles[k].map(f => f.friendlyName !== file.friendlyName ? f : {...file})
                 : fetchedFiles[k].filter(({friendlyName}) => friendlyName !== file.friendlyName);
 
-        if (this.state.currentTab === k)
+        if (this.state.currentTabName === k)
             this.setState({files: cloneArrShallow(fetchedFiles[k])});
     }
     /**
@@ -232,8 +258,8 @@ class FileUploader extends preact.Component {
      */
     handleTabChanged(toIdx) {
         const next = tabIdxToName(toIdx);
-        if (this.state.currentTab !== next) {
-            this.setState({currentTab: next});
+        if (this.state.currentTabName !== next) {
+            this.setState({currentTabName: next});
             this.fetchOrGetUploads(next)
                 .then((fileGroup) => { this.setState({files: fileGroup}); });
         }
@@ -253,6 +279,25 @@ class FileUploader extends preact.Component {
     setGetDisplayAsGrid(to) {
         putToLocalStorage(to ? 'grid' : 'list', 'sivujettiDisplayImageListAs');
         this.setState({displayAsGrid: to});
+    }
+    /**
+     * @param {UploadsEntry} f
+     * @param {Event} e
+     * @access private
+     */
+    openMoreMenu(f, e) {
+        this.setState({entryWithNavOpened: f});
+        this.contextMenu.current.open(e);
+    }
+    /**
+     * @param {ContextMenuLink} link
+     * @access private
+     */
+    handleContextMenuLinkClicked(link) {
+        if (link.id === 'edit')
+            alert(__('This feature is not implemented yet.'));
+        else if (link.id === 'delete')
+            alert(__('This feature is not implemented yet.'));
     }
     /**
      * @param {UploadsEntry} file
@@ -315,8 +360,8 @@ function getListItemSettings(displayAsGrid, mode) {
             ? [{el: 'span', classes: ''}, {el: 'div', props: {}}]
             : [{el: 'button', classes: ' btn btn-link pt-0 pl-0'}, {el: 'button', props: {class: 'btn btn-link pt-2', style: 'height: 100%;'}}];
     return mode !== 'pick'
-        ? [{el: 'span', classes: 'pl-1'}, {el: 'span', classes: 'pl-1 text-ellipsis text-left with-icon'}]
-        : [{el: 'button', classes: 'btn btn-link col-12 my-0 pl-2 '}, {el: 'button', props: {class: 'btn btn-link pt-2', style: 'height: 100%;'}}];
+        ? [{el: 'span', classes: ''}, {el: 'span', classes: 'text-ellipsis text-left with-icon'}]
+        : [{el: 'button', classes: 'btn btn-link col-12 my-0 px-0 '}, {el: 'button', props: {class: 'btn btn-link pt-2', style: 'height: 100%;'}}];
 }
 
 export default FileUploader;

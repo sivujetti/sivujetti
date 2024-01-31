@@ -5,14 +5,15 @@ namespace Sivujetti\Upload;
 use Pike\PikeException;
 
 final class MimeValidator {
-    private const nonspecificTypes = [
+    private const umbrellaTypes = [
         "application/octet-stream",
         "application/encrypted",
         "application/CDFV2-encrypted",
         "application/zip",
     ];
     /**
-     * https://github.com/WordPress/WordPress/blob/facdf664c9f01d4f37e4abecb62b9accbdbd2e63/wp-includes/functions.php#L3053
+     * Checks if the mime of $inputFile is allowed. Uses the same "algorithm" as Wordpress
+     * (see. https://github.com/WordPress/WordPress/blob/facdf664c9f01d4f37e4abecb62b9accbdbd2e63/wp-includes/functions.php#L3053).
      *
      * @param array{name: string, tmp_name: string} $inputFile $_FILES["some-file"]
      * @param string[] $allowed = null
@@ -24,22 +25,22 @@ final class MimeValidator {
         $tempFilePath = $inputFile["tmp_name"];
 
         // 1. get mime from input filename ($_FILES[$key]["name"])
-        [$ext, $mimeFromInputFileName] = self::getExtAndMimeFromString($inputFilePath);
+        [$ext, $mimeDeterminedFromExt] = self::getExtAndMimeFromString($inputFilePath);
         if (!$ext) throw new PikeException("File extension not recognized",
                                            PikeException::BAD_INPUT);
 
-        // 2. Check that $mimeFromInputFileName checks out with the real mime
-        if (str_starts_with($mimeFromInputFileName, "image/")) {
-            if (!$this->isSupportedImageMime($mimeFromInputFileName, $tempFilePath))
+        // 2. Check that $mimeDeterminedFromExt checks out with the real mime
+        if (str_starts_with($mimeDeterminedFromExt, "image/")) {
+            if (!$this->isSupportedImageMime($mimeDeterminedFromExt, $tempFilePath))
                 return [null, null];
         } else {
-            if (!$this->isSupportedNonImageMime($mimeFromInputFileName, $tempFilePath))
+            if (!$this->isSupportedNonImageMime($mimeDeterminedFromExt, $tempFilePath))
                 return [null, null];
         }
 
         // 3. Check that the mime is in the list of allowed mimes
-        return in_array($mimeFromInputFileName, $allowed !== null ? $allowed : ["image/jpeg", "application/pdf"], true)
-            ? [$mimeFromInputFileName, $ext]
+        return in_array($mimeDeterminedFromExt, $allowed !== null ? $allowed : ["image/jpeg", "application/pdf"], true)
+            ? [$mimeDeterminedFromExt, $ext]
             : [null, null];
     }
     /**
@@ -72,68 +73,54 @@ final class MimeValidator {
         return $mime ? [$ext, $mime] : [null, null];
     }
     /**
-     * @param string $mimeFromInputFileName
+     * @param string $mimeDeterminedFromExt
      * @param string $fullFilePath
      * @return bool
      */
-    private function isSupportedImageMime(string $mimeFromInputFileName, string $fullFilePath): bool {
+    private function isSupportedImageMime(string $mimeDeterminedFromExt, string $fullFilePath): bool {
         $realMime = self::getRealMime($fullFilePath);
-        return $realMime === $mimeFromInputFileName;
+        return $realMime === $mimeDeterminedFromExt;
     }
     /**
-     * @param string $mimeFromInputFileName
+     * @param string $mimeDeterminedFromExt
      * @param string $fullFilePath
      * @return bool
      */
-    private function isSupportedNonImageMime(string $mimeFromInputFileName, string $fullFilePath): bool {
-        $realMime = self::getRealMime($fullFilePath);
-        /*
-        If $realMime doesn't match the content type we're expecting from the file's extension,
-        we need to do some additional vetting. Media types and those listed in ::nonspecificTypes are
-        allowed some leeway, but anything else must exactly match the real content type.
-        */
-        if (in_array($realMime, self::nonspecificTypes, true)) {
-            $subst = substr($mimeFromInputFileName, 0, strcspn($mimeFromInputFileName, "/"));
-            return in_array($subst, ["application", "video", "audio"], true);
-        }
-        /*
-        For these types, only the major type must match the real value. This means that
-        common mismatches are forgiven: application/vnd.apple.numbers is often misidentified as application/zip,
-        and some media files are commonly named with the wrong extension (.mov instead of .mp4)
-        */
-        if (str_starts_with($mimeFromInputFileName, "video/") || str_starts_with($mimeFromInputFileName, "audio/")) {
-            $a = substr($realMime, 0, strcspn($realMime, "/"));
-            $b = substr($mimeFromInputFileName, 0, strcspn($mimeFromInputFileName, "/"));
-            return $a === $b;
+    private function isSupportedNonImageMime(string $mimeDeterminedFromExt, string $fullFilePath): bool {
+        $mimeFromFinfo = self::getRealMime($fullFilePath);
+
+        // finfo sometimes returns `application/octet-stream` for xlsx files (for example): allow these.
+        if (in_array($mimeFromFinfo, self::umbrellaTypes, true)) {
+            $fromExtMainType = explode("/", $mimeDeterminedFromExt)[0]; // "mainType/subtype"
+            return in_array($fromExtMainType, ["application", "video", "audio"], true);
         }
 
-        return match ($realMime) {
-            // A few common file types are occasionally detected as text/plain; allow those.
-            "text/plain" => in_array($mimeFromInputFileName, [
+        // Allow subtype mismatches for audio and video files.
+        $fromExtMainType = explode("/", $mimeDeterminedFromExt)[0];
+        if ($fromExtMainType === "video" || $fromExtMainType === "audio/") {
+            $fromFinfoMainType = explode("/", $mimeFromFinfo)[0];
+            return $fromExtMainType === $fromFinfoMainType;
+        }
+
+        return match ($mimeFromFinfo) {
+            "text/plain" => in_array($mimeDeterminedFromExt, [
                 "text/plain",
                 "text/csv",
                 "application/csv",
                 "text/richtext",
                 "text/tsv",
-                "text/vtt",
             ], true),
-            // Special casing for CSV files.
-            "application/csv" => in_array($mimeFromInputFileName, [
+            "application/csv" => in_array($mimeDeterminedFromExt, [
                 "text/csv",
                 "text/plain",
                 "application/csv",
             ], true),
-            // Special casing for RTF files.
-            "text/rtf" => in_array($mimeFromInputFileName, [
+            "text/rtf" => in_array($mimeDeterminedFromExt, [
                 "text/rtf",
                 "text/plain",
                 "application/rtf",
             ], true),
-            /*
-            Everything else including image/* and application/*: If the real content
-            type doesn't match the file extension, assume it's dangerous.
-            */
-            default => $mimeFromInputFileName === $realMime,
+            default => $mimeDeterminedFromExt === $mimeFromFinfo,
         };
     }
     /**
@@ -148,121 +135,108 @@ final class MimeValidator {
         return $realMime;
     }
     /**
-     * https://github.com/WordPress/WordPress/blob/d533b76ef848528304a5ef08b82cc6e674eeb3cc/wp-includes/functions.php#L3325
-     *
      * @param string $ext
      * @return string|null
      */
     private static function extToMime(string $ext): ?string {
         return match ($ext) {
             // Image formats.
-            'jpg','jpeg','jpe'             => 'image/jpeg',
-            'gif'                          => 'image/gif',
-            'png'                          => 'image/png',
-            'bmp'                          => 'image/bmp',
-            'tiff','tif'                   => 'image/tiff',
-            'webp'                         => 'image/webp',
-            'ico'                          => 'image/x-icon',
+            "jpg","jpeg","jpe"             => "image/jpeg",
+            "gif"                          => "image/gif",
+            "png"                          => "image/png",
+            "bmp"                          => "image/bmp",
+            "tiff","tif"                   => "image/tiff",
+            "webp"                         => "image/webp",
+            "ico"                          => "image/x-icon",
             // Video formats.
-            'asf','asx'                    => 'video/x-ms-asf',
-            'wmv'                          => 'video/x-ms-wmv',
-            'wmx'                          => 'video/x-ms-wmx',
-            'wm'                           => 'video/x-ms-wm',
-            'avi'                          => 'video/avi',
-            'divx'                         => 'video/divx',
-            'flv'                          => 'video/x-flv',
-            'mov','qt'                     => 'video/quicktime',
-            'mpeg','mpg','mpe'             => 'video/mpeg',
-            'mp4','m4v'                    => 'video/mp4',
-            'ogv'                          => 'video/ogg',
-            'webm'                         => 'video/webm',
-            'mkv'                          => 'video/x-matroska',
-            '3gp','3gpp'                   => 'video/3gpp',  // Can also be audio.
-            '3g2','3gp2'                   => 'video/3gpp2', // Can also be audio.
+            "wmv"                          => "video/x-ms-wmv",
+            "avi"                          => "video/avi",
+            "flv"                          => "video/x-flv",
+            "mov","qt"                     => "video/quicktime",
+            "mpeg","mpg","mpe"             => "video/mpeg",
+            "mp4","m4v"                    => "video/mp4",
+            "ogv"                          => "video/ogg",
+            "webm"                         => "video/webm",
+            "mkv"                          => "video/x-matroska",
             // Text formats.
-            'txt','asc','c','cc','h','srt' => 'text/plain',
-            'csv'                          => 'text/csv',
-            'tsv'                          => 'text/tab-separated-values',
-            'ics'                          => 'text/calendar',
-            'rtx'                          => 'text/richtext',
-            'css'                          => 'text/css',
-            'htm','html'                   => 'text/html',
-            'vtt'                          => 'text/vtt',
-            'dfxp'                         => 'application/ttaf+xml',
+            "txt","asc","srt"              => "text/plain",
+            "csv"                          => "text/csv",
+            "tsv"                          => "text/tab-separated-values",
+            "ics"                          => "text/calendar",
+            "rtx"                          => "text/richtext",
+            "css"                          => "text/css",
+            "htm","html"                   => "text/html",
             // Audio formats.
-            'mp3','m4a','m4b'              => 'audio/mpeg',
-            'aac'                          => 'audio/aac',
-            'ra','ram'                     => 'audio/x-realaudio',
-            'wav'                          => 'audio/wav',
-            'ogg','oga'                    => 'audio/ogg',
-            'flac'                         => 'audio/flac',
-            'mid','midi'                   => 'audio/midi',
-            'wma'                          => 'audio/x-ms-wma',
-            'wax'                          => 'audio/x-ms-wax',
-            'mka'                          => 'audio/x-matroska',
-            // Misc application formats.
-            'rtf'                          => 'application/rtf',
-            'js'                           => 'application/javascript',
-            'pdf'                          => 'application/pdf',
-            'swf'                          => 'application/x-shockwave-flash',
-            'class'                        => 'application/java',
-            'tar'                          => 'application/x-tar',
-            'zip'                          => 'application/zip',
-            'gz','gzip'                    => 'application/x-gzip',
-            'rar'                          => 'application/rar',
-            '7z'                           => 'application/x-7z-compressed',
-            'exe'                          => 'application/x-msdownload',
-            'psd'                          => 'application/octet-stream',
-            'xcf'                          => 'application/octet-stream',
-            // MS Office formats.
-            'doc'                          => 'application/msword',
-            'pot','pps','ppt'              => 'application/vnd.ms-powerpoint',
-            'wri'                          => 'application/vnd.ms-write',
-            'xla','xls','xlt','xlw'        => 'application/vnd.ms-excel',
-            'mdb'                          => 'application/vnd.ms-access',
-            'mpp'                          => 'application/vnd.ms-project',
-            'docx'                         => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'docm'                         => 'application/vnd.ms-word.document.macroEnabled.12',
-            'dotx'                         => 'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
-            'dotm'                         => 'application/vnd.ms-word.template.macroEnabled.12',
-            'xlsx'                         => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'xlsm'                         => 'application/vnd.ms-excel.sheet.macroEnabled.12',
-            'xlsb'                         => 'application/vnd.ms-excel.sheet.binary.macroEnabled.12',
-            'xltx'                         => 'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
-            'xltm'                         => 'application/vnd.ms-excel.template.macroEnabled.12',
-            'xlam'                         => 'application/vnd.ms-excel.addin.macroEnabled.12',
-            'pptx'                         => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-            'pptm'                         => 'application/vnd.ms-powerpoint.presentation.macroEnabled.12',
-            'ppsx'                         => 'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
-            'ppsm'                         => 'application/vnd.ms-powerpoint.slideshow.macroEnabled.12',
-            'potx'                         => 'application/vnd.openxmlformats-officedocument.presentationml.template',
-            'potm'                         => 'application/vnd.ms-powerpoint.template.macroEnabled.12',
-            'ppam'                         => 'application/vnd.ms-powerpoint.addin.macroEnabled.12',
-            'sldx'                         => 'application/vnd.openxmlformats-officedocument.presentationml.slide',
-            'sldm'                         => 'application/vnd.ms-powerpoint.slide.macroEnabled.12',
-            'onetoc','onetoc2','onetmp','onepkg' => 'application/onenote',
-            'oxps'                         => 'application/oxps',
-            'xps'                          => 'application/vnd.ms-xpsdocument',
-            // OpenOffice formats.
-            'odt'                          => 'application/vnd.oasis.opendocument.text',
-            'odp'                          => 'application/vnd.oasis.opendocument.presentation',
-            'ods'                          => 'application/vnd.oasis.opendocument.spreadsheet',
-            'odg'                          => 'application/vnd.oasis.opendocument.graphics',
-            'odc'                          => 'application/vnd.oasis.opendocument.chart',
-            'odb'                          => 'application/vnd.oasis.opendocument.database',
-            'odf'                          => 'application/vnd.oasis.opendocument.formula',
-            // WordPerfect formats.
-            'wp','wpd'                     => 'application/wordperfect',
-            // iWork formats.
-            'key'                          => 'application/vnd.apple.keynote',
-            'numbers'                      => 'application/vnd.apple.numbers',
-            'pages'                        => 'application/vnd.apple.pages',
+            "mp3","m4a","m4b"              => "audio/mpeg",
+            "aac"                          => "audio/aac",
+            "wav"                          => "audio/wav",
+            "ogg","oga"                    => "audio/ogg",
+            "flac"                         => "audio/flac",
+            "mid","midi"                   => "audio/midi",
+            "wma"                          => "audio/x-ms-wma",
+            "wax"                          => "audio/x-ms-wax",
+            "mka"                          => "audio/x-matroska",
             // Font formats.
-            'ttf'                          => 'font/ttf',
-            'eot'                          => 'font/eot',
-            'otf'                          => 'font/otf',
-            'woff'                         => 'font/woff',
-            'woff2'                        => 'font/woff2',
+            "ttf"                          => "font/ttf",
+            "eot"                          => "font/eot",
+            "otf"                          => "font/otf",
+            "woff"                         => "font/woff",
+            "woff2"                        => "font/woff2",
+            // Misc application formats.
+            "rtf"                          => "application/rtf",
+            "js"                           => "application/javascript",
+            "pdf"                          => "application/pdf",
+            "class"                        => "application/java",
+            "tar"                          => "application/x-tar",
+            "zip"                          => "application/zip",
+            "gz","gzip"                    => "application/x-gzip",
+            "rar"                          => "application/rar",
+            "7z"                           => "application/x-7z-compressed",
+            "exe"                          => "application/x-msdownload",
+            "psd"                          => "application/octet-stream",
+            "xcf"                          => "application/octet-stream",
+            // MS Office formats.
+            "doc"                          => "application/msword",
+            "pot","pps","ppt"              => "application/vnd.ms-powerpoint",
+            "wri"                          => "application/vnd.ms-write",
+            "xla","xls","xlt","xlw"        => "application/vnd.ms-excel",
+            "mdb"                          => "application/vnd.ms-access",
+            "mpp"                          => "application/vnd.ms-project",
+            "docx"                         => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "docm"                         => "application/vnd.ms-word.document.macroEnabled.12",
+            "dotx"                         => "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
+            "dotm"                         => "application/vnd.ms-word.template.macroEnabled.12",
+            "xlsx"                         => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "xlsm"                         => "application/vnd.ms-excel.sheet.macroEnabled.12",
+            "xlsb"                         => "application/vnd.ms-excel.sheet.binary.macroEnabled.12",
+            "xltx"                         => "application/vnd.openxmlformats-officedocument.spreadsheetml.template",
+            "xltm"                         => "application/vnd.ms-excel.template.macroEnabled.12",
+            "xlam"                         => "application/vnd.ms-excel.addin.macroEnabled.12",
+            "pptx"                         => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "pptm"                         => "application/vnd.ms-powerpoint.presentation.macroEnabled.12",
+            "ppsx"                         => "application/vnd.openxmlformats-officedocument.presentationml.slideshow",
+            "ppsm"                         => "application/vnd.ms-powerpoint.slideshow.macroEnabled.12",
+            "potx"                         => "application/vnd.openxmlformats-officedocument.presentationml.template",
+            "potm"                         => "application/vnd.ms-powerpoint.template.macroEnabled.12",
+            "ppam"                         => "application/vnd.ms-powerpoint.addin.macroEnabled.12",
+            "sldx"                         => "application/vnd.openxmlformats-officedocument.presentationml.slide",
+            "sldm"                         => "application/vnd.ms-powerpoint.slide.macroEnabled.12",
+            "onetoc","onetoc2","onetmp","onepkg" => "application/onenote",
+            "xps"                          => "application/vnd.ms-xpsdocument",
+            // OpenOffice formats.
+            "odt"                          => "application/vnd.oasis.opendocument.text",
+            "odp"                          => "application/vnd.oasis.opendocument.presentation",
+            "ods"                          => "application/vnd.oasis.opendocument.spreadsheet",
+            "odg"                          => "application/vnd.oasis.opendocument.graphics",
+            "odc"                          => "application/vnd.oasis.opendocument.chart",
+            "odb"                          => "application/vnd.oasis.opendocument.database",
+            "odf"                          => "application/vnd.oasis.opendocument.formula",
+            // WordPerfect formats.
+            "wp","wpd"                     => "application/wordperfect",
+            // iWork formats.
+            "key"                          => "application/vnd.apple.keynote",
+            "numbers"                      => "application/vnd.apple.numbers",
+            "pages"                        => "application/vnd.apple.pages",
             default                        => null,
         };
     }

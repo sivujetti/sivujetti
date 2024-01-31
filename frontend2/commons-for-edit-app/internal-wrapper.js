@@ -3,16 +3,16 @@ Exports, which commons-for-edit-app/<any>.js can include (since they can't inclu
 directly from '@sivujetti-commons-for-edit-app').
 */
 import {http} from './web-page-commons-unified.js';
+import {stringUtils, timingUtils} from './utils.js';
 import {
     __,
+    blockTypesRegister,
     env,
-    editAppScssWizardInstance,
-    editAppSignalsInstance,
-    editAppTranslatorInstance,
-    editAppUserApiInstance,
-    stringUtils,
-    timingUtils,
+    scssWizard,
+    signals,
+    translator,
     urlUtils,
+    userApi,
 } from './edit-app-singletons.js';
 import {
     FormGroup,
@@ -21,8 +21,8 @@ import {
     hasErrors,
     hookForm,
     Input,
-    InputErrors,
     InputError,
+    InputErrors,
     reHookValues,
     Textarea,
     unhookForm,
@@ -37,16 +37,26 @@ import LoadingSpinner from './LoadingSpinner.jsx';
 import UploadButton from './UploadButton.jsx';
 import Tabs from './Tabs.jsx';
 import {putToLocalStorage, getFromLocalStorage, getAndPutAndGetToLocalStorage} from './local-storage-utils.js';
-import editAppBlockTypeMap, {blockTypeGetIconId} from './block-types-map.js';
 import blockTreeUtils, {cloneDeep} from './block/tree-utils.js';
 import globalData from './globals-temp.js';
-import {mediaScopes} from './ScssWizard.js';
+import {mediaScopes,} from './ScssWizard.js';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
 import setFocusTo from './auto-focusers.js';
+import columns2BlockType from './block-types/columns2/columns2.js';
+import menuBlockType from './block-types/menu/menu.js';
+
+const sectionRenderers = new Map;
+
+blockTypesRegister.setup([
+    ['Columns2',             columns2BlockType],
+    ['GlobalBlockReference', {name: 'GlobalBlockReference', friendlyName: 'GlobalBlockReference'}],
+    ['Menu',                 menuBlockType],
+    ['PageInfo',             {name: 'PageInfo', friendlyName: 'PageInfo'}],
+    ['Section',              {name: 'Section', friendlyName: 'Section'}],
+]);
 
 const api = {
-    blockTypes,
-    blockTypeGetIconId,
+    blockTypes: blockTypesRegister,
     inspectorPanel: {
         getEl() { return document.getElementById('inspector-panel'); },
     },
@@ -59,7 +69,7 @@ const api = {
             return this.saveButtonReactRef.current;
         }
     },
-    user: editAppUserApiInstance,
+    user: userApi,
     webPageIframe: { // todo
         getEl() {
             return document.body.querySelector('.site-preview-iframe.active');
@@ -88,9 +98,6 @@ export {
     blockTreeUtils,
     cloneDeep,
     ContextMenu,
-    editAppScssWizardInstance,
-    editAppSignalsInstance,
-    editAppTranslatorInstance,
     env,
     FileUploader,
     floatingDialog,
@@ -115,12 +122,15 @@ export {
     putToLocalStorage,
     reHookValues,
     ScreenSizesVerticalTabs,
+    scssWizard,
     sensibleDefaults,
     setFocusTo,
+    signals,
     stringUtils,
     Tabs,
     Textarea,
     timingUtils,
+    translator,
     unhookForm,
     UploadButton,
     urlUtils,

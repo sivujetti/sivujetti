@@ -1,7 +1,10 @@
-import {env, urlUtils} from './web-page-commons-unified.js';
-import ScssWizard from './ScssWizard.js';
 import Signals from '../shared-includes/Signals.js';
+import BlockTypesRegister from './BlockTypesRegister.js';
+import ScssWizard from './ScssWizard.js';
 import Translator from './Translator.js';
+import {env, urlUtils} from './web-page-commons-unified.js';
+
+const editAppBlockTypeRegister = new BlockTypesRegister;
 
 const editAppSignalsInstance = new Signals;
 
@@ -12,9 +15,11 @@ const editAppScssWizardInstance = new ScssWizard;
 
 export {
     __,
-    editAppScssWizardInstance,
-    editAppSignalsInstance,
-    editAppTranslatorInstance,
+    editAppBlockTypeRegister as blockTypesRegister,
+    editAppScssWizardInstance as scssWizard,
+    editAppSignalsInstance as signals,
+    editAppTranslatorInstance as translator,
+    editAppUserApiInstance as userApi,
     env,
     urlUtils,
 };

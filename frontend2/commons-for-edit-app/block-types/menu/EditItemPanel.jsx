@@ -26,7 +26,7 @@ class EditItemPanel extends preact.Component {
             ], {
                 linkTo: props.link.slug,
             }));
-            api.inspectorPanel.getEl().scrollTo({top: 0});
+            api.inspectorPanel.getOuterEl().scrollTo({top: 0});
         } else if (this.isOpen && !props.link) {
             this.isOpen = false;
         } else if (this.isOpen && props.link) {

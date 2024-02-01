@@ -8,6 +8,7 @@ import {
     __,
     blockTypesRegister,
     env,
+    mainMenuPanelApi,
     scssWizard,
     signals,
     translator,
@@ -56,9 +57,10 @@ blockTypesRegister.setup([
 ]);
 
 const api = {
+    menuPanel: mainMenuPanelApi,
     blockTypes: blockTypesRegister,
     inspectorPanel: {
-        getEl() { return document.getElementById('inspector-panel'); },
+        getOuterEl() { return document.getElementById('inspector-panel'); },
     },
     saveButton: {
         init(saveButtonReactRef) {
@@ -98,6 +100,7 @@ export {
     blockTreeUtils,
     cloneDeep,
     ContextMenu,
+    createScssTodoname,
     env,
     FileUploader,
     floatingDialog,

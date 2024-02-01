@@ -65,7 +65,7 @@ import BlockTree from '../block/BlockTree.jsx';
          */
         (visibleBlock, unitCls, origin = null) => {
             focusToBlockAndEmitBlockTreeClick(visibleBlock, 'styles-tab', () => {
-                const inspectorPanelOuter = api.inspectorPanel.getEl();
+                const inspectorPanelOuter = api.inspectorPanel.getOuterEl();
                 const fromStyleUnits = origin !== 'style-templates-tab';
                 const tabLinkSelector = fromStyleUnits ? '.tab-item-style-units' : '.tab-item-style-templates' ;
                 // Open styles tab

@@ -1,3 +1,4 @@
+import MainMenuPanelApi from '../edit-app/main-column/MainMenuPanelApi.js';
 import Signals from '../shared-includes/Signals.js';
 import BlockTypesRegister from './BlockTypesRegister.js';
 import ScssWizard from './ScssWizard.js';
@@ -13,9 +14,12 @@ const __ = editAppTranslatorInstance.t.bind(editAppTranslatorInstance);
 
 const editAppScssWizardInstance = new ScssWizard;
 
+const editAppMainMenuPanelApi =  new MainMenuPanelApi;
+
 export {
     __,
     editAppBlockTypeRegister as blockTypesRegister,
+    editAppMainMenuPanelApi as mainMenuPanelApi,
     editAppScssWizardInstance as scssWizard,
     editAppSignalsInstance as signals,
     editAppTranslatorInstance as translator,

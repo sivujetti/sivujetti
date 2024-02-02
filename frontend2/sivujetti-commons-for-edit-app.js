@@ -49,6 +49,7 @@ import {
     urlUtils,
     validateAll,
     validationConstraints,
+    writeBlockProps,
 } from './commons-for-edit-app/internal-wrapper.js';
 
 export {
@@ -99,4 +100,5 @@ export {
     urlUtils,
     validateAll,
     validationConstraints,
+    writeBlockProps,
 };

@@ -1,7 +1,16 @@
-import {__, api, blockTreeUtils, cloneDeep, getAndPutAndGetToLocalStorage, globalData,
-        Icon, putToLocalStorage, Tabs} from '../../../sivujetti-commons-unified.js';
 // -- import {HAS_ERRORS, isMetaBlock} from '../../block/dom-commons.js';
 // -- import store from '../../store.js';
+import {
+    __,
+    api,
+    blockTreeUtils,
+    cloneDeep,
+    getAndPutAndGetToLocalStorage,
+    Icon,
+    putToLocalStorage,
+    Tabs,
+    writeBlockProps,
+} from '../../../sivujetti-commons-unified.js';
 // -- import store2, {observeStore as observeStore2} from '../../store2.js';
 // -- import {cloneObjectDeep} from '../../block/theBlockTreeStore.js';
 // -- import {treeToTransferable} from '../../block/utils.js';

@@ -39,6 +39,7 @@ import UploadButton from './UploadButton.jsx';
 import Tabs from './Tabs.jsx';
 import {putToLocalStorage, getFromLocalStorage, getAndPutAndGetToLocalStorage} from './local-storage-utils.js';
 import blockTreeUtils, {cloneDeep} from './block/tree-utils.js';
+import {writeBlockProps} from './block/utils.js';
 import globalData from './globals-temp.js';
 import {mediaScopes,} from './ScssWizard.js';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
@@ -139,4 +140,5 @@ export {
     urlUtils,
     validateAll,
     validationConstraints,
+    writeBlockProps,
 };

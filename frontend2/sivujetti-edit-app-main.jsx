@@ -13,7 +13,7 @@ window.myRoute = url => {
     preactRouter.route(url);
 };
 
-const editAppOuterEl = document.getElementById('edit-app');
+const editAppOuterEl = api.menuPanel.getOuterEl();
 preact.render(
     <EditApp
         outerEl={ editAppOuterEl }
@@ -23,7 +23,7 @@ preact.render(
     editAppOuterEl
 );
 
-const inspectorPanelOuterEl = api.inspectorPanel.getEl();
+const inspectorPanelOuterEl = api.inspectorPanel.getOuterEl();
 const rootEl = document.getElementById('root');
 preact.render(
     <InspectorPanel

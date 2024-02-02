@@ -44,6 +44,7 @@ import {
     urlUtils,
     validateAll,
     validationConstraints,
+    writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
 
 export {
@@ -89,4 +90,5 @@ export {
     urlUtils,
     validateAll,
     validationConstraints,
+    writeBlockProps,
 };

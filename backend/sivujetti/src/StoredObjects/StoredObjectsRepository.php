@@ -2,7 +2,7 @@
 
 namespace Sivujetti\StoredObjects;
 
-use Pike\Db\{FluentDb, FluentDb2, Q, MySelect, MyUpdate};
+use Pike\Db\{FluentDb, FluentDb2, MySelect, MyUpdate, Query};
 use Pike\Interfaces\RowMapperInterface;
 use Pike\PikeException;
 use Sivujetti\{JsonUtils, ValidationUtils};
@@ -42,9 +42,9 @@ final class StoredObjectsRepository {
     }
     /**
      * @param string $objectName e.g. "JetForms:mailSendSettings" or "JetForms:submissions"
-     * @return \Pike\Db\MySelect|\Pike\Db\Q
+     * @return \Pike\Db\MySelect|\Pike\Db\Query
      */
-    public function find(string $objectName): MySelect|Q {
+    public function find(string $objectName): MySelect|Query {
         if (!defined("USE_NEW_FLUENT_DB")) {
         return $this->db->select(self::T, Entry::class)
             ->fields(["objectName", "data AS dataJson"])
@@ -72,10 +72,10 @@ final class StoredObjectsRepository {
     /**
      * @param string $objectName e.g. "JetForms:mailSendSettings"
      * @param array<string, mixed> $data e.g. {sendingMethod: "mail", ...}
-     * @return \Pike\Db\MyUpdate|\Pike\Db\Q
+     * @return \Pike\Db\MyUpdate|\Pike\Db\Query
      * @throws \Pike\PikeException|\JsonException If $data is not valid or too large
      */
-    public function updateEntry(string $objectName, array $data): MyUpdate|Q {
+    public function updateEntry(string $objectName, array $data): MyUpdate|Query {
         $asJson = self::stringifyDataOrThrow($data);
         if (!defined("USE_NEW_FLUENT_DB")) {
         return $this->db

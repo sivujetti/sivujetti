@@ -3,7 +3,7 @@
 namespace Sivujetti\GlobalBlockTree;
 
 use Envms\FluentPDO\Queries\Select;
-use Pike\Db\{FluentDb, FluentDb2, Q, MyInsert, MyUpdate};
+use Pike\Db\{FluentDb, FluentDb2, MyInsert, MyUpdate, Query};
 use Pike\Interfaces\RowMapperInterface;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree;
@@ -25,18 +25,18 @@ final class GlobalBlockTreesRepository2 {
         $this->db2 = $db2;
     }
     /**
-     * @return \Pike\Db\MyInsert|\Pike\Db\Q
+     * @return \Pike\Db\MyInsert|\Pike\Db\Query
      */
-    public function insert(): MyInsert|Q {
+    public function insert(): MyInsert|Query {
         if (!defined("USE_NEW_FLUENT_DB"))
             return $this->db->insert(self::T);
         else
             return $this->db2->insert(self::T);
     }
     /**
-     * @return \Pike\Db\MySelect|\Pike\Db\Q
+     * @return \Pike\Db\MySelect|\Pike\Db\Query
      */
-    public function select(): Select|Q {
+    public function select(): Select|Query {
         if (!defined("USE_NEW_FLUENT_DB")) {
         return $this->db->select(self::T, GlobalBlockTree::class)
             ->fields(["id", "name", "blocks AS blocksJson"])
@@ -62,9 +62,9 @@ final class GlobalBlockTreesRepository2 {
         }
     }
     /**
-     * @return \Pike\Db\MyUpdate|\Pike\Db\Q
+     * @return \Pike\Db\MyUpdate|\Pike\Db\Query
      */
-    public function update(): MyUpdate|Q {
+    public function update(): MyUpdate|Query {
         if (!defined("USE_NEW_FLUENT_DB"))
             return $this->db->update(self::T);
         else

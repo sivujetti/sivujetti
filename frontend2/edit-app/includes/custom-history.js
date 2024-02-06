@@ -13,7 +13,6 @@ class HashHistory {
         this.confirmNextNavMessage = null;
         this.doRevertNextHashChange = false;
         env.window.addEventListener('popstate', () => {
-            console.log('pop');
             if (!this.confirmNextNavMessage) {
                 this.doRevertNextHashChange = false;
                 return;
@@ -21,7 +20,6 @@ class HashHistory {
             this.doRevertNextHashChange = env.window.confirm(this.confirmNextNavMessage) !== true;
         });
         env.window.addEventListener('hashchange', e => {
-            console.log('hash',e.newURL, e.oldURL);
             if (e.newURL !== e.oldURL) {
                 if (!this.doRevertNextHashChange) {
                     this.path = this.parsePath();

@@ -1,6 +1,5 @@
 import {
     __,
-    ContextMenu,
     env,
     getAndPutAndGetToLocalStorage,
     http,
@@ -8,9 +7,10 @@ import {
     LoadingSpinner,
     putToLocalStorage,
     Tabs,
-    UploadButton,
     urlUtils
 } from './internal-wrapper.js';
+import ContextMenu from './ContextMenu.jsx';
+import UploadButton from './UploadButton.jsx';
 
 const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=';
 

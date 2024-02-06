@@ -1,4 +1,5 @@
-import {__, cloneDeep, ContextMenu, env, globalData, Icon} from '../../internal-wrapper.js';
+import {__, cloneDeep, env, globalData, Icon} from '../../internal-wrapper.js';
+import ContextMenu from '../../ContextMenu.jsx';
 import EditItemPanel from './EditItemPanel.jsx';
 
 class MenuBlockEditForm extends preact.Component {
@@ -26,15 +27,17 @@ class MenuBlockEditForm extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.block.tree !== this.props.block.tree) {
-            const newState = {parsedTree: this.linkCreator.setGetCounterUsingTreeOf(props.block)};
-            const {link, leftClass, rightClass} = this.state.editPanelState;
-            if (link) newState.editPanelState = createEditPanelState(
-                findLinkItem(newState.parsedTree, link.id),
-                leftClass,
-                rightClass
-            );
-            this.setState(newState);
+        if (props.block !== this.props.block) {
+            if (JSON.stringify(this.props.block.tree) !== JSON.stringify(props.block.tree)) {
+                const newState = {parsedTree: this.linkCreator.setGetCounterUsingTreeOf(props.block)};
+                const {link, leftClass, rightClass} = this.state.editPanelState;
+                if (link) newState.editPanelState = createEditPanelState(
+                    findLinkItem(newState.parsedTree, link.id),
+                    leftClass,
+                    rightClass
+                );
+                this.setState(newState);
+            }
         }
     }
     /**
@@ -229,4 +232,4 @@ function getMaxId(branch) {
  */
 
 export default MenuBlockEditForm;
-// export {CountingLinkItemFactory};
+export {CountingLinkItemFactory};

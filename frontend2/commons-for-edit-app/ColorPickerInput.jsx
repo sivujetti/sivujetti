@@ -1,4 +1,4 @@
-import {timingUtils} from './internal-wrapper.js';
+import {timingUtils} from './utils.js';
 
 /** @type {Array<preact.RefObject<ColorPickerInput>>} */
 const cmpRefs = [];

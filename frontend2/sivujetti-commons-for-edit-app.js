@@ -2,19 +2,25 @@
 An entry point for a global file "public/v2/sivujetti-commons-for-edit-app.js.js" that
 can be imported by custom plugins (and the edit app).
 */
-import Signals from './shared-includes/Signals.js';
+import setFocusTo from './commons-for-edit-app/auto-focusers.js';
+import BlockDefaultStylesEditForm from './commons-for-edit-app/BlockDefaultStylesEditForm.jsx';
+import ContextMenu from './commons-for-edit-app/ContextMenu.jsx';
+import FileUploader, {placeholderImageSrc} from './commons-for-edit-app/FileUploader.jsx';
+import {FloatingDialog, currentInstance as floatingDialog} from './commons-for-edit-app/FloatingDialog.jsx';
 import {MenuSection, MenuSectionAbstract} from './commons-for-edit-app/MenuSection.jsx';
+import ScreenSizesVerticalTabs from './commons-for-edit-app/ScreenSizesVerticalTabs.jsx';
+import UploadButton from './commons-for-edit-app/UploadButton.jsx';
+import Signals from './shared-includes/Signals.js';
+import './commons-for-edit-app/populate-block-types-map.js';
+
 import {
     __,
     api,
     blockTreeUtils,
     cloneDeep,
-    ContextMenu,
+    ColorPickerInput,
     createScssTodoname,
     env,
-    FileUploader,
-    floatingDialog,
-    FloatingDialog,
     FormGroup,
     FormGroupInline,
     getAndPutAndGetToLocalStorage,
@@ -31,13 +37,10 @@ import {
     InputErrors,
     LoadingSpinner,
     mediaScopes,
-    placeholderImageSrc,
     putToLocalStorage,
     reHookValues,
-    ScreenSizesVerticalTabs,
     scssWizard,
     sensibleDefaults,
-    setFocusTo,
     signals,
     stringUtils,
     Tabs,
@@ -45,7 +48,6 @@ import {
     timingUtils,
     translator,
     unhookForm,
-    UploadButton,
     urlUtils,
     validateAll,
     validationConstraints,
@@ -55,8 +57,10 @@ import {
 export {
     __,
     api,
+    BlockDefaultStylesEditForm,
     blockTreeUtils,
     cloneDeep,
+    ColorPickerInput,
     ContextMenu,
     createScssTodoname,
     env,

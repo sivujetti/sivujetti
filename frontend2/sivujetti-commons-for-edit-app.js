@@ -10,6 +10,12 @@ import {FloatingDialog, currentInstance as floatingDialog} from './commons-for-e
 import {MenuSection, MenuSectionAbstract} from './commons-for-edit-app/MenuSection.jsx';
 import ScreenSizesVerticalTabs from './commons-for-edit-app/ScreenSizesVerticalTabs.jsx';
 import UploadButton from './commons-for-edit-app/UploadButton.jsx';
+import {
+    isUndoOrRedo,
+    objectUtils,
+    stringUtils,
+    timingUtils,
+} from './commons-for-edit-app/utils.js';
 import Signals from './shared-includes/Signals.js';
 import './commons-for-edit-app/populate-block-types-map.js';
 
@@ -36,16 +42,13 @@ import {
     InputErrors,
     LoadingSpinner,
     mediaScopes,
-    objectUtils,
     putToLocalStorage,
     reHookValues,
     scssWizard,
     sensibleDefaults,
     signals,
-    stringUtils,
     Tabs,
     Textarea,
-    timingUtils,
     translator,
     unhookForm,
     urlUtils,
@@ -80,6 +83,7 @@ export {
     Input,
     InputError,
     InputErrors,
+    isUndoOrRedo,
     LoadingSpinner,
     mediaScopes,
     objectUtils,

@@ -4,7 +4,7 @@ class UrlUtils {
     // cacheBustStr; website.versionId by default
     // env;
     /**
-     * @param {{baseUrl?: String; assetBaseUrl?: String; cacheBustStr?: String;}} envSettings
+     * @param {EnvConfig|{baseUrl?: String; assetBaseUrl?: String; cacheBustStr?: String;}} envSettings
      * @param {Env} env
      */
     constructor({baseUrl, assetBaseUrl, cacheBustStr}, env = {window}) {

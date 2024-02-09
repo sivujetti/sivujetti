@@ -236,6 +236,36 @@ interface TheWebsiteBundle {
     availableUpdatePackages: Array<String>;
 }
 
+interface TheWebsiteBundle2 {
+    website: TheWebsite;
+    pageTypes: Array<PageType>;
+    activeTheme: {id: String;};
+    userPermissions: {
+        canDoAnything: Boolean;
+        canEditGlobalStylesVisually: Boolean;
+        canEditBlockStylesVisually: Boolean;
+        canEditBlockCss: Boolean;
+        canCreatePageTypes: Boolean;
+        canCreatePages: Boolean;
+        canCreateReusableBranches: Boolean;
+        canCreateGlobalBlockTrees: Boolean;
+        canSpecializeGlobalBlocks: Boolean;
+        canEditTheWebsitesBasicInfo: Boolean;
+        canEditTheWebsitesGlobalScripts: Boolean;
+        canListUploads: Boolean;
+    };
+    userRole: Number;
+    showGoToDashboardMode?: Boolean;
+    dashboardUrl?: String;
+    availableUpdatePackages: Array<String>;
+}
+
+interface EnvConfig {
+    baseUrl: String;
+    assetBaseUrl: String;
+    cacheBustStr: String;
+}
+
 interface EditAwareWebPageEventHandlers {
     onBlockHoverStarted(blockEl: HTMLElement, rect: DOMRect): void;
     onClicked(blockEl: HTMLElement|null): void;

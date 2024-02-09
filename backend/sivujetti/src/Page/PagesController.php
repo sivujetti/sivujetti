@@ -139,13 +139,35 @@ final class PagesController {
         $tmpl = self::createTemplate("edit-app-wrapper", $appEnv, $theWebsite);
         $res->html($tmpl->render([
             "userDefinedJsFiles" => $apiCtx->adminJsFiles,
-            "dataToFrontend" => WebPageAwareTemplate::escInlineJs(json_encode((object) [
+            "dataToFrontend" => !defined("USE_BUN_BUILD") ? WebPageAwareTemplate::escInlineJs(json_encode((object) [
                 "baseUrl" => $tmpl->makeUrl("/", true),
                 "assetBaseUrl" => $tmpl->makeUrl("/", false),
                 "website" => self::theWebsiteToRaw($theWebsite),
                 "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
                 "activeTheme" => (object) ["id" => $theWebsite->activeTheme->id],
                 "blockRenderers" => $apiCtx->blockRenderers,
+                "showGoToDashboardMode" => $config->get("app.showGoToDashboardMode", false),
+                "dashboardUrl" => $config->get("app.dashboardUrl", ""),
+                "userPermissions" => [
+                    "canDoAnything" => $userRole === ACL::ROLE_SUPER_ADMIN,
+                    "canEditGlobalStylesVisually" => $acl->can($userRole, "updateGlobalStylesOf", "themes"),
+                    "canEditBlockStylesVisually" => $acl->can($userRole, "upsertBlockTypeScopedVars", "themes"),
+                    "canEditBlockCss" => $acl->can($userRole, "upsertBlockTypeScopedCss", "themes"),
+                    "canCreatePageTypes" => $acl->can($userRole, "create", "pageTypes"),
+                    "canCreatePages" => $acl->can($userRole, "create", "pages"),
+                    "canCreateReusableBranches" => $acl->can($userRole, "create", "reusableBranches"),
+                    "canCreateGlobalBlockTrees" => $acl->can($userRole, "create", "globalBlockTrees"),
+                    "canSpecializeGlobalBlocks" => $userRole <= ACL::ROLE_ADMIN,
+                    "canEditTheWebsitesBasicInfo" => $acl->can($userRole, "updateBasicInfoOf", "theWebsite"),
+                    "canEditTheWebsitesGlobalScripts" => $acl->can($userRole, "updateGlobalScriptsOf", "theWebsite"),
+                    "canListUploads" => $acl->can($userRole, "list", "uploads"),
+                ],
+                "userRole" => $userRole,
+                "availableUpdatePackages" => $availableUpdatePackages,
+            ], JSON_UNESCAPED_UNICODE)) : WebPageAwareTemplate::escInlineJs(json_encode((object) [
+                "website" => self::theWebsiteToRaw($theWebsite),
+                "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
+                "activeTheme" => (object) ["id" => $theWebsite->activeTheme->id],
                 "showGoToDashboardMode" => $config->get("app.showGoToDashboardMode", false),
                 "dashboardUrl" => $config->get("app.dashboardUrl", ""),
                 "userPermissions" => [

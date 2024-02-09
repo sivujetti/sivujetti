@@ -1,4 +1,4 @@
-import {env} from './internal-wrapper.js';
+import {env} from './edit-app-singletons.js';
 
 /**
  * @param {preact.Ref} elementRef

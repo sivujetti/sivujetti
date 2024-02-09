@@ -69,7 +69,15 @@ const objectUtils = {
     }
 };
 
+/**
+ * @param {'default'|'undo'|undefined|null} changeSource
+ */
+function isUndoOrRedo(changeSource) {
+    return changeSource === 'undo' || changeSource === 'redo';
+}
+
 export {
+    isUndoOrRedo,
     objectUtils,
     stringUtils,
     timingUtils,

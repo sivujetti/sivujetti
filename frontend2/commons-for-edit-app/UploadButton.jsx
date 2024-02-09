@@ -1,4 +1,5 @@
-import {__, api, env, http, Icon, stringUtils} from './internal-wrapper.js';
+import {__, api, env, http, Icon} from './internal-wrapper.js';
+import {stringUtils} from './utils.js';
 
 const MAX_FILE_SIZE_MB = 8;
 

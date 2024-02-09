@@ -5,6 +5,7 @@ import {
     env,
     getAndPutAndGetToLocalStorage,
     Icon,
+    isUndoOrRedo,
     objectUtils,
     putToLocalStorage,
     Tabs,
@@ -218,13 +219,6 @@ class BlockEditForm extends preact.Component {
     doesCurrentTabContainStylesStuff(currentTabIdx) {
         return currentTabIdx >= 1 || (currentTabIdx === 0 && this.props.block.type === 'Columns2');
     }
-}
-
-/**
- * @param {'default'|'undo'|undefined|null} changeSource
- */
-function isUndoOrRedo(changeSource) {
-    return changeSource === 'undo' || changeSource === 'redo';
 }
 
 export default BlockEditForm;

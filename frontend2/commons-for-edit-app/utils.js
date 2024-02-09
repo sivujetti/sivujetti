@@ -48,4 +48,29 @@ const timingUtils = {
     }
 };
 
-export {stringUtils, timingUtils};
+const objectUtils = {
+    /**
+     * @param {Array<String>} keys
+     * @param {Object} obj
+     * @returns {Object}
+     */
+    clonePartially(keys, obj) {
+        return this.cloneDeep(keys.reduce((out, key) => {
+            out[key] = obj[key];
+            return out;
+        }, {}));
+    },
+    /**
+     * @param {Object} obj
+     * @returns {Object}
+     */
+    cloneDeep(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+};
+
+export {
+    objectUtils,
+    stringUtils,
+    timingUtils,
+};

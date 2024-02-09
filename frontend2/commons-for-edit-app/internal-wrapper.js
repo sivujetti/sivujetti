@@ -3,7 +3,7 @@ Exports, which commons-for-edit-app/<any>.js can include (since they can't inclu
 directly from '@sivujetti-commons-for-edit-app').
 */
 import {http} from './web-page-commons-unified.js';
-import {stringUtils, timingUtils} from './utils.js';
+import {objectUtils, stringUtils, timingUtils} from './utils.js';
 import {
     __,
     blockTypesRegister,
@@ -35,24 +35,10 @@ import LoadingSpinner from './LoadingSpinner.jsx';
 import ColorPickerInput from './ColorPickerInput.jsx';
 import Tabs from './Tabs.jsx';
 import {putToLocalStorage, getFromLocalStorage, getAndPutAndGetToLocalStorage} from './local-storage-utils.js';
-import blockTreeUtils, {cloneDeep} from './block/tree-utils.js';
+import blockTreeUtils from './block/tree-utils.js';
 import {writeBlockProps} from './block/utils.js';
 import globalData from './globals-temp.js';
 import {mediaScopes} from './ScssWizard.js';
-import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
-import setFocusTo from './auto-focusers.js';
-import columns2BlockType from './block-types/columns2/columns2.js';
-import menuBlockType from './block-types/menu/menu.js';
-
-const sectionRenderers = new Map;
-
-blockTypesRegister.setup([
-    ['Columns2',             columns2BlockType],
-    ['GlobalBlockReference', {name: 'GlobalBlockReference', friendlyName: 'GlobalBlockReference'}],
-    ['Menu',                 menuBlockType],
-    ['PageInfo',             {name: 'PageInfo', friendlyName: 'PageInfo'}],
-    ['Section',              {name: 'Section', friendlyName: 'Section'}],
-]);
 
 const api = {
     menuPanel: mainMenuPanelApi,
@@ -96,7 +82,6 @@ export {
     __,
     api,
     blockTreeUtils,
-    cloneDeep,
     ColorPickerInput,
     createScssTodoname,
     env,
@@ -116,6 +101,7 @@ export {
     InputErrors,
     LoadingSpinner,
     mediaScopes,
+    objectUtils,
     putToLocalStorage,
     reHookValues,
     scssWizard,

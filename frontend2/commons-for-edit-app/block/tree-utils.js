@@ -1,3 +1,5 @@
+import {objectUtils} from '../utils.js';
+
 const blockTreeUtils = {
     /**
      * @param {String} id
@@ -141,21 +143,16 @@ const blockTreeUtils = {
         );
         return refBlock ? refBlock.__globalBlockTree.blocks : null;
     },
-
+    /**
+     * @param {Array<RawBlock>} theTree
+     * @param {(newTreeCopyFreeToMutate: Array<RawBlock>) => Array<RawBlock>} mutator
+     * @returns {Array<RawBlock>} Mutated $newTreeCopyFreeToMutate
+     */
     createMutation(theTree, mutator) {
-        const newTree = cloneDeep(theTree);
+        const newTree = objectUtils.cloneDeep(theTree);
         mutator(newTree);
         return newTree;
     }
 };
 
-/**
- * @param {Object} obj
- * @returns {Object}
- */
-function cloneDeep(obj) {
-    return JSON.parse(JSON.stringify(obj));
-}
-
 export default blockTreeUtils;
-export {cloneDeep};

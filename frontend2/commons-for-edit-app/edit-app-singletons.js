@@ -46,25 +46,15 @@ const api = {
         }
     },
     user: editAppUserApiInstance,
-    webPageIframe: { // todo
-        getEl() {
-            return document.body.querySelector('.site-preview-iframe');
-        },
-        highlightBlock(block) {
-            //
-        },
-        unHighlightBlock(blockId) {
-            //
-        },
-        unHighlightTextBlockChildEl() {
-            //
-        },
-        highlightTextBlockChildEl(elIdx, textBlockId) {
-            //
-        },
-        scrollToBlock() {
-            //
-        }
+    webPagePreview: { // Will be replaced by sivujetti-edit-app-main.jsx
+        getEl() { return document.body.querySelector('.site-preview-iframe'); },
+        updateCss(/*allMediaScopesCss*/) { },
+        updateCssFast(/*selector, mediaScopeId, cssPropandval*/) { },
+        highlightBlock(/*block*/) { },
+        unHighlightBlock(/*blockId*/) { },
+        unHighlightTextBlockChildEl() { },
+        scrollToBlock(/*block*/) { },
+        highlightTextBlockChildEl(/*elIdx, textBlockBlockId*/) { },
     }
 };
 

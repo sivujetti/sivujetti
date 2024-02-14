@@ -18,8 +18,8 @@ function createDndController(stateManager) {
                 const isBeforeOrAfterGbtRef = (info.pos === 'before' || info.pos === 'after') && info.li.getAttribute('data-is-root-block-of');
                 if (!isBeforeOrAfterGbtRef) return false;
             }
-            api.webPageIframe.getEl().style.pointerEvents = 'none';
-            initialTree = cloneDeep(stateManager.getChannelState('theBlockTree'));
+            api.webPagePreview.getEl().style.pointerEvents = 'none';
+            initialTree = objectUtils.cloneDeep(saveButton.getChannelState('theBlockTree'));
             dropped = false;
             if (extDragData) {
                 const targetInf = createBlockDescriptorFromLi(info.li);
@@ -52,7 +52,7 @@ function createDndController(stateManager) {
                 callAddOrMoveBlockGetBlockPropChangesEventAndEmitResults('addBlock', swapSourceInfo);
                 "store2.dispatch('theBlockTree/applyAdd(Drop)Block', [swapSourceInfo, swapTargetInfo, cand.pos, treeTransfer, createBlockTreeMutateEventContext(store2.get().theBlockTree)]);"
             }
-            api.webPageIframe.getEl().style.pointerEvents = '';
+            api.webPagePreview.getEl().style.pointerEvents = '';
             dropped = true;
         },
         /**

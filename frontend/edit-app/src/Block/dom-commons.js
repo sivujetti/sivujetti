@@ -41,13 +41,13 @@ function createTrier(fn,
     return callTryFn;
 }
 
-/**
- * @returns {String} 'Meta' if macOS, 'Control' if Windows or anything else
- */
-function getMetaKey() {
-    return ((navigator.userAgentData && navigator.userAgentData.platform === 'macOS') ||
-            (navigator.platform === 'MacIntel')) ? 'Meta' : 'Control';
-}
+// ## /**
+// ##  * @returns {String} 'Meta' if macOS, 'Control' if Windows or anything else
+// ##  */
+// ## function getMetaKey() {
+// ##     return ((navigator.userAgentData && navigator.userAgentData.platform === 'macOS') ||
+// ##             (navigator.platform === 'MacIntel')) ? 'Meta' : 'Control';
+// ## }
 // ## 
 // ## /**
 // ##  * @param {RawBlock} block
@@ -66,22 +66,22 @@ function getBlockEl(blockId, from = document.body) {
     return from.querySelector(`[data-block="${blockId}"]`);
 }
 
-/**
- * @param {HTMLElement} node
- * @param {HTMLElement} root
- * @returns {HTMLElement}
- */
-function getNormalizedInitialHoverCandidate(node, root) {
-    // `$root > node`
-    if (node.parentElement === root)
-        return node;
-    // `$root > something node`
-    const outermost = Array.from(root.children).find(r => r.contains(node));
-    if (outermost)
-        return outermost;
-    // $root doesn't contain $node
-    return root;
-}
+// ## /**
+// ##  * @param {HTMLElement} node
+// ##  * @param {HTMLElement} root
+// ##  * @returns {HTMLElement}
+// ##  */
+// ## function getNormalizedInitialHoverCandidate(node, root) {
+// ##     // `$root > node`
+// ##     if (node.parentElement === root)
+// ##         return node;
+// ##     // `$root > something node`
+// ##     const outermost = Array.from(root.children).find(r => r.contains(node));
+// ##     if (outermost)
+// ##         return outermost;
+// ##     // $root doesn't contain $node
+// ##     return root;
+// ## }
 
 export {CHILDREN_START, CHILD_CONTENT_PLACEHOLDER, CHILDREN_END,
         noop, HAS_ERRORS, NO_OP_QUEUE_EMIT, createTrier, getMetaKey, isMetaBlock,

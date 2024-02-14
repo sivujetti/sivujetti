@@ -37,15 +37,29 @@ interface OpQueueOp {
     };
 }
 
+interface WebPagePreviewApp {
+    getEl(): HTMLIFrameElement;
+    reRenderAllBlocks(theTree: Array<RawBlock>): void;
+    reRenderAllBlocks(block: RawBlock, theTree: Array<RawBlock>): void;
+    updateCss(allMediaScopesCss: [String, String, String, String, String]): void;
+    updateCssFast(blockId: String, mediaScopeId: mediaScope, cssPropandval: String): void;
+    highlightBlock(block: RawBlock, origin: 'web-page'|'block-tree', rect: DOMRect = null): void;
+    unHighlightBlock(blockId: String): void;
+    highlightTextBlockChildEl(elIdx: Number, textBlockBlockId: String): void;
+    unHighlightTextBlockChildEl(): void;
+    scrollToBlock(block: RawBlock): Boolean;
+    scrollToTextBlockChildEl(childElemIdx: Number, textBlockBlockId: String): void;
+}
+
 interface WebPageIframe {
     renderNormalPage(slug: String): Promise<EditAppAwareWebPage>;
     renderPlaceholderPage(pageTypeName: String, layoutId: String = '1', slug: String = ''): Promise<EditAppAwareWebPage>;
     goBack(): void;
     scrollToBlock(block: RawBlock): Boolean;
-    scrollToTextBlockChildEl(childElemIdx: Number, textBlockId: String): void;
+    scrollToTextBlockChildEl(childElemIdx: Number, textBlockBlockId: String): void;
     highlightBlock(block: RawBlock): void;
     unHighlightBlock(blockId: String): void;
-    highlightTextBlockChildEl(elIdx: Number, textBlockId: String);
+    highlightTextBlockChildEl(elIdx: Number, textBlockBlockId: String);
     unHighlightTextBlockChildEl();
     getEl(): HTMLIFrameElement;
     registerWebPageDomUpdaterForBlockTree(trid: String): void;
@@ -270,7 +284,7 @@ interface EditAwareWebPageEventHandlers {
     onBlockHoverStarted(blockEl: HTMLElement, rect: DOMRect): void;
     onClicked(blockEl: HTMLElement|null): void;
     onBlockHoverEnded(blockEl: HTMLElement): void;
-    onTextBlockChildElHoverStarted(childIdx: Number, textBlockId: String): void;
+    onTextBlockChildElHoverStarted(childIdx: Number, textBlockBlockId: String): void;
     onTextBlockChildElHoverEnded(): void;
 }
 
@@ -419,6 +433,7 @@ interface BlockDescriptor {
 interface SpawnDescriptor {
     block: RawBlock;
     isReusable: Boolean|null;
+    styles: {[blockId: String]: Array<StyleChunk>;}|null;
 }
 
 interface PartialMenuLink {
@@ -507,6 +522,14 @@ interface ColorValueInputPropsData {
 
 interface SaveButton {
     // todo
+
+interface StyleChunk {
+    scss: String;
+    scope: {
+        block: 'todo';
+        layer: sasdsid;
+        media: 'todo';
+    };
 }
 
 type mediaScope = 'all'|'960'|'840'|'600'|'480'|String;

@@ -4,10 +4,9 @@ included in edit-app's template (edit-app-wrapper.tmpl.php).
 */
 import {api, FloatingDialog} from './sivujetti-commons-unified.js';
 import EditApp from './edit-app/EditApp.jsx';
-import WebPagePreviewIframeApp from './edit-app/main-column/WebPagePreviewIframeApp.jsx';
+import WebPagePreviewApp from './edit-app/main-column/WebPagePreviewApp.jsx';
 import MainColumnViews from './edit-app/main-column/MainColumnViews.jsx';
 import InspectorPanel from './edit-app/menu-column/InspectorPanel.jsx';
-import editAppInternalApi from './edit-app/internal-api.js';
 
 window.myRoute = url => {
     preactRouter.route(url);
@@ -34,10 +33,13 @@ preact.render(
 );
 
 preact.render(
-    <WebPagePreviewIframeApp
+    <WebPagePreviewApp
         urlToLoad="@currentUrl"
+        highlightRectEl={ document.querySelector('.highlight-rect') }
         ref={ cmp => {
-            if (cmp) editAppInternalApi.webPagePreviewIframeApp.init(cmp);
+            if (cmp) {
+                api.webPagePreview = cmp;
+            }
         } }/>,
     document.getElementById('webpage-preview-app')
 );

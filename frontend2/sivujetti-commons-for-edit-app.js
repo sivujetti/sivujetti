@@ -18,6 +18,7 @@ import {
 } from './commons-for-edit-app/utils.js';
 import Signals from './shared-includes/Signals.js';
 import './commons-for-edit-app/populate-block-types-map.js';
+import {translator} from './commons-for-edit-app/edit-app-singletons.js';
 
 import {
     __,
@@ -30,7 +31,6 @@ import {
     FormGroupInline,
     getAndPutAndGetToLocalStorage,
     getFromLocalStorage,
-    globalData,
     handleSubmit,
     hasErrors,
     hookForm,
@@ -49,7 +49,6 @@ import {
     signals,
     Tabs,
     Textarea,
-    translator,
     unhookForm,
     urlUtils,
     validateAll,
@@ -73,7 +72,6 @@ export {
     FormGroupInline,
     getAndPutAndGetToLocalStorage,
     getFromLocalStorage,
-    globalData,
     handleSubmit,
     hasErrors,
     hookForm,

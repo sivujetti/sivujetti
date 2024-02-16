@@ -2,7 +2,7 @@
 An entry point for global file "public/v2/sivujetti-edit-app-main.js" that is
 included in edit-app's template (edit-app-wrapper.tmpl.php).
 */
-import {api, FloatingDialog} from './sivujetti-commons-unified.js';
+import {api, FloatingDialog, translator} from './sivujetti-commons-unified.js';
 import EditApp from './edit-app/EditApp.jsx';
 import WebPagePreviewApp from './edit-app/main-column/WebPagePreviewApp.jsx';
 import MainColumnViews from './edit-app/main-column/MainColumnViews.jsx';
@@ -11,6 +11,8 @@ import InspectorPanel from './edit-app/menu-column/InspectorPanel.jsx';
 window.myRoute = url => {
     preactRouter.route(url);
 };
+
+configureApis();
 
 const editAppOuterEl = api.menuPanel.getOuterEl();
 preact.render(
@@ -52,3 +54,9 @@ preact.render(
     ],
     document.getElementById('view')
 );
+
+function configureApis() {
+    window.translationStringBundles.forEach(strings => {
+        translator.addStrings(strings);
+    });
+}

@@ -8,18 +8,27 @@ import WebPagePreviewApp from './edit-app/main-column/WebPagePreviewApp.jsx';
 import MainColumnViews from './edit-app/main-column/MainColumnViews.jsx';
 import InspectorPanel from './edit-app/menu-column/InspectorPanel.jsx';
 
-window.myRoute = url => {
-    preactRouter.route(url);
-};
-
 configureApis();
+
+preact.render(
+    <WebPagePreviewApp
+        urlToLoad="@currentUrl"
+        highlightRectEl={ document.querySelector('.highlight-rect') }
+        ref={ cmp => {
+            if (cmp) {
+                api.webPagePreview = cmp;
+            }
+        } }/>,
+    document.getElementById('webpage-preview-app')
+);
 
 const editAppOuterEl = api.menuPanel.getOuterEl();
 preact.render(
     <EditApp
         outerEl={ editAppOuterEl }
-        onWillMount={ cmp => {
-            api.saveButton.init(cmp.saveButtonRef);
+        onSaveButtonRefd={ saveButton => {
+            if (!saveButton) return;
+            api.saveButton.init(saveButton);
         } }/>,
     editAppOuterEl
 );
@@ -35,18 +44,6 @@ preact.render(
 );
 
 preact.render(
-    <WebPagePreviewApp
-        urlToLoad="@currentUrl"
-        highlightRectEl={ document.querySelector('.highlight-rect') }
-        ref={ cmp => {
-            if (cmp) {
-                api.webPagePreview = cmp;
-            }
-        } }/>,
-    document.getElementById('webpage-preview-app')
-);
-
-preact.render(
     [
         <MainColumnViews
             rootEl={ rootEl }/>,
@@ -56,6 +53,11 @@ preact.render(
 );
 
 function configureApis() {
+    // Common
+    window.myRoute = url => {
+        preactRouter.route(url);
+    };
+    // Translations (`__`-function)
     window.translationStringBundles.forEach(strings => {
         translator.addStrings(strings);
     });

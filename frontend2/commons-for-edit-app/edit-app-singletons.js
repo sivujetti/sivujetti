@@ -13,7 +13,8 @@ const editAppSignalsInstance = new Signals;
 const editAppTranslatorInstance = new Translator;
 const __ = editAppTranslatorInstance.t.bind(editAppTranslatorInstance);
 
-const {userPermissions, userRole} = window.dataFromAdminBackend || {userPermissions: {}, userRole: null};
+const dataFromBackend = window.dataFromAdminBackend || {};
+const {userPermissions, userRole} = dataFromBackend || {userPermissions: {}, userRole: null};
 const editAppUserApiInstance = {
     can(doWhat) { return userPermissions[`can${stringUtils.capitalize(doWhat)}`] === true; },
     getRole() { return userRole; },
@@ -31,6 +32,7 @@ const editAppScssWizardInstance = new ScssWizard;
 const editAppMainMenuPanelApi =  new MainMenuPanelApi;
 
 const api = {
+    getPageTypes: () => dataFromBackend.pageTypes,
     menuPanel: editAppMainMenuPanelApi,
     blockTypes: editAppBlockTypeRegister,
     inspectorPanel: {

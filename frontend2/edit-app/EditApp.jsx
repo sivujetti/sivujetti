@@ -5,7 +5,6 @@ import SaveButton from './menu-column/SaveButton.jsx';
 
 class EditApp extends preact.Component {
     // changeViewOptions;
-    // saveButtonRef;
     /**
      * @access protected
      */
@@ -17,11 +16,9 @@ class EditApp extends preact.Component {
             ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
             : []
         ).concat({name: 'log-out', label: __('Log out')});
-        this.saveButtonRef = preact.createRef();
-        this.props.onWillMount(this);
     }
     /**
-     * @param {{outerEl: HTMLElement; onWillMount: (cmp: EditApp) => void; showGoToDashboardMode?: Boolean; dashboardUrl?: String;}} props
+     * @param {{outerEl: HTMLElement; onSaveButtonRefd: (cmp: SaveButton) => void; showGoToDashboardMode?: Boolean; dashboardUrl?: String;}} props
      * @access protected
      */
     render({outerEl}) {
@@ -52,7 +49,7 @@ class EditApp extends preact.Component {
                 </div>
             <SaveButton
                 editAppOuterEl={ outerEl }
-                ref={ this.saveButtonRef }/>
+                ref={ this.props.onSaveButtonRefd }/>
             </header>,
             <MyRouter history={ historyInstance }>
                 <DefaultState path="/:slug*"/>

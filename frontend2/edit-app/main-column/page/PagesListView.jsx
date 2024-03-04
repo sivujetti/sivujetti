@@ -1,4 +1,12 @@
-import {__, ContextMenu, Icon, env, http, floatingDialog, LoadingSpinner} from '../../../sivujetti-commons-unified.js';
+import {
+    __,
+    ContextMenu,
+    env,
+    floatingDialog,
+    http,
+    Icon,
+    LoadingSpinner
+} from '../../../sivujetti-commons-unified.js';
 import toasters from '../../includes/toasters.jsx';
 import OverlayView from '../OverlayView.jsx';
 import PageDeleteDialog from '../popups/PageDeleteDialog.jsx';

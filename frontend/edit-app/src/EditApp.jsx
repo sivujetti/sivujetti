@@ -34,9 +34,9 @@ class EditApp extends preact.Component {
         this.state = {hidePanels: getArePanelsHidden()};
         if (this.state.hidePanels) props.rootEl.classList.add(PANELS_HIDDEN_CLS);
         this.resizeHandleEl = preact.createRef();
-        store2.dispatch('theWebsite/set', [props.dataFromAdminBackend.website]);
-        props.dataFromAdminBackend.__websiteDebugOnly = props.dataFromAdminBackend.website;
-        delete props.dataFromAdminBackend.website;
+// ##         store2.dispatch('theWebsite/set', [props.dataFromAdminBackend.website]);
+// ##         props.dataFromAdminBackend.__websiteDebugOnly = props.dataFromAdminBackend.website;
+// ##         delete props.dataFromAdminBackend.website;
     }
     /**
      * @returns {Number}

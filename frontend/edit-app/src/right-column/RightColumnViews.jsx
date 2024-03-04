@@ -1,8 +1,8 @@
 import {signals} from '@sivujetti-commons-for-edit-app';
-import WebsiteEditBasicInfoView from './website/WebsiteEditBasicInfoView.jsx';
-import WebsiteEditGlobalScriptsView from './website/WebsiteEditGlobalScriptsView.jsx';
+// ## import WebsiteEditBasicInfoView from './website/WebsiteEditBasicInfoView.jsx';
+// ## import WebsiteEditGlobalScriptsView from './website/WebsiteEditGlobalScriptsView.jsx';
 import WebsiteApplyUpdatesView from './website/WebsiteApplyUpdatesView.jsx';
-import PagesListView from './page/PagesListView.jsx';
+// ## import PagesListView from './page/PagesListView.jsx';
 // ## import UploadsListView from './upload/UploadsListView.jsx';
 // ## import {isEditAppViewUrl} from '../left-column/DefaultPanel.jsx';
 import createHashHistory from '../../custom-history.js';
@@ -33,10 +33,10 @@ class RightColumnViews extends preact.Component {
      */
     render() {
         return <MyRouter history={ historyInstance } onChange={ this.boundOnChange }>
-            <WebsiteEditBasicInfoView path="/website/edit-basic-info"/>
-            <WebsiteEditGlobalScriptsView path="/website/edit-global-scripts"/>
+{/*            <WebsiteEditBasicInfoView path="/website/edit-basic-info"/>*/}
+{/*            <WebsiteEditGlobalScriptsView path="/website/edit-global-scripts"/>*/}
             <WebsiteApplyUpdatesView path="/website/updates"/>
-            <PagesListView path="/pages"/>
+{/*            <PagesListView path="/pages"/>*/}
 {/*            <UploadsListView path="/uploads"/>*/}
         </MyRouter>;
     }

@@ -8,6 +8,7 @@ import WebPagePreviewApp from './edit-app/main-column/WebPagePreviewApp.jsx';
 import MainColumnViews from './edit-app/main-column/MainColumnViews.jsx';
 import InspectorPanel from './edit-app/menu-column/InspectorPanel.jsx';
 import {Toaster} from './edit-app/includes/toasters.jsx';
+import globalData from './edit-app/includes/globalData.js';
 
 configureApis();
 
@@ -23,6 +24,9 @@ preact.render(
     document.getElementById('webpage-preview-app')
 );
 
+globalData.theWebsite = window.dataFromAdminBackend.website;
+window.dataFromAdminBackend.__websiteDebugOnly = window.dataFromAdminBackend.website;
+delete window.dataFromAdminBackend.website;
 const editAppOuterEl = api.menuPanel.getOuterEl();
 preact.render(
     <EditApp

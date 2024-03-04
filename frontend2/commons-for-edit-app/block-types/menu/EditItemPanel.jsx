@@ -9,7 +9,7 @@ import {
     unhookForm,
     validationConstraints
 } from '../../internal-wrapper.js';
-// import {PickUrlInputGroup} from '../button.js';
+import PickUrlInputGroup from '../../includes-internal/PickUrlInputGroup.jsx';
 
 class EditItemPanel extends preact.Component {
     // isOpen;
@@ -61,7 +61,5 @@ class EditItemPanel extends preact.Component {
         ] : null }</div>;
     }
 }
-class PickUrlInputGroup extends preact.Component {
-    render() { return 'aaa'; }
-}
+
 export default EditItemPanel;

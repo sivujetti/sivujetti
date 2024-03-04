@@ -1,14 +1,22 @@
-import {
-    __,
-    api,
-    createScssTodoname,
-    FormGroupInline,
-    mediaScopes,
-    ScreenSizesVerticalTabs,
-    editAppScssWizardInstance as scssWizard,
-} from '../../internal-wrapper.js';
+import BlockDefaultStylesEditForm from '../../BlockDefaultStylesEditForm.jsx';
 
-class MenuBlockDefaultStylesEditForm extends preact.Component {
+class MenuBlockDefaultStylesEditForm extends BlockDefaultStylesEditForm {
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        //
+    }
+    /**
+     * @param {BlockStylesEditFormProps} props
+     * @access protected
+     */
+    componentWillReceiveProps(props) {
+        //
+    }
+    /**
+     * @access protected
+     */
     render() {
         return 'todo';
     }

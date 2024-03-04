@@ -19,7 +19,6 @@ import {
 import Signals from './shared-includes/Signals.js';
 import './commons-for-edit-app/populate-block-types-map.js';
 import {translator} from './commons-for-edit-app/edit-app-singletons.js';
-
 import {
     __,
     api,
@@ -55,6 +54,12 @@ import {
     validationConstraints,
     writeBlockProps,
 } from './commons-for-edit-app/internal-wrapper.js';
+import {
+    determineModeFrom,
+    determineModeFromPreview,
+    doubleNormalizeUrl,
+    getVisibleSlug,
+} from './commons-for-edit-app/pick-url-utils.js';
 
 export {
     __,
@@ -64,6 +69,9 @@ export {
     ColorPickerInput,
     ContextMenu,
     createScssTodoname,
+    determineModeFrom,
+    determineModeFromPreview,
+    doubleNormalizeUrl,
     env,
     FileUploader,
     floatingDialog,
@@ -72,6 +80,7 @@ export {
     FormGroupInline,
     getAndPutAndGetToLocalStorage,
     getFromLocalStorage,
+    getVisibleSlug,
     handleSubmit,
     hasErrors,
     hookForm,
@@ -84,9 +93,9 @@ export {
     isUndoOrRedo,
     LoadingSpinner,
     mediaScopes,
-    objectUtils,
     MenuSection,
     MenuSectionAbstract,
+    objectUtils,
     placeholderImageSrc,
     putToLocalStorage,
     reHookValues,

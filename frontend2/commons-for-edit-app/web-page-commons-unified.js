@@ -4,11 +4,13 @@
 import {
     env,
     http,
+    urlAndSlugUtils,
     urlUtils,
 } from '@sivujetti-commons-for-web-pages';
 
 export {
     env,
     http,
+    urlAndSlugUtils,
     urlUtils,
 };

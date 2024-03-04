@@ -1,6 +1,12 @@
-import {__, cloneDeep, env, globalData, Icon} from '../../internal-wrapper.js';
+import {
+    __,
+    api,
+    env,
+    Icon,
+} from '../../internal-wrapper.js';
 import ContextMenu from '../../ContextMenu.jsx';
 import EditItemPanel from './EditItemPanel.jsx';
+import {objectUtils} from '../../utils.js';
 
 class MenuBlockEditForm extends preact.Component {
     // linkCreator;
@@ -15,7 +21,7 @@ class MenuBlockEditForm extends preact.Component {
         this.outerEl = preact.createRef();
         this.contextMenu = preact.createRef();
         const {block} = this.props;
-        const pageSlug = globalData.pageDataBundle.page.slug;
+        const pageSlug = api.saveButton.getInstance().getChannelState('currentPageDataBundle').page.slug;
         const trid = 'main'; // getIsStoredToTreeIdFrom(block.id, 'mainTree');
         this.currentBlockIdInfo = `${block.id}:${trid}:${pageSlug}`;
         this.setState({parsedTree: this.linkCreator.setGetCounterUsingTreeOf(block),
@@ -110,7 +116,7 @@ class MenuBlockEditForm extends preact.Component {
                                             rightClass: 'reveal-from-right'}});
         else if (link.id === 'duplicate') {
             const {linkWithNavOpened, parsedTree} = this.state;
-            const clonedTree = cloneDeep(parsedTree);
+            const clonedTree = objectUtils.cloneDeep(parsedTree);
             const pos = clonedTree.findIndex(({id}) => id === linkWithNavOpened.id);
             const orig = clonedTree[pos];
             const duplicate = this.linkCreator.makeLinkItem({slug: orig.slug, text: orig.text});
@@ -156,7 +162,7 @@ class CountingLinkItemFactory {
      * @access public
      */
     setGetCounterUsingTreeOf(newTree) {
-        const parsedTree = cloneDeep(newTree.tree);// JSON.parse(newTree.tree);
+        const parsedTree = objectUtils.cloneDeep(newTree.tree);// JSON.parse(newTree.tree);
         this.counter = getMaxId(parsedTree);
         return parsedTree;
     }

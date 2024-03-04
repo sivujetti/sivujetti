@@ -2,11 +2,12 @@
 An entry point for global file "public/v2/sivujetti-edit-app-main.js" that is
 included in edit-app's template (edit-app-wrapper.tmpl.php).
 */
-import {api, FloatingDialog, translator} from './sivujetti-commons-unified.js';
+import {api, FloatingDialog, scssWizard, translator} from './sivujetti-commons-unified.js';
 import EditApp from './edit-app/EditApp.jsx';
 import WebPagePreviewApp from './edit-app/main-column/WebPagePreviewApp.jsx';
 import MainColumnViews from './edit-app/main-column/MainColumnViews.jsx';
 import InspectorPanel from './edit-app/menu-column/InspectorPanel.jsx';
+import {Toaster} from './edit-app/includes/toasters.jsx';
 
 configureApis();
 
@@ -29,6 +30,12 @@ preact.render(
         onSaveButtonRefd={ saveButton => {
             if (!saveButton) return;
             api.saveButton.init(saveButton);
+            // Refresh scssWizards's styles every time new styles (page) is loaded to
+            // the preview iframe, or when undo|redo event happens
+            api.saveButton.getInstance().subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
+                if (ctx === 'initial' || ctx === 'undo' || ctx === 'redo')
+                    scssWizard.replaceStylesState(bundle);
+            });
         } }/>,
     editAppOuterEl
 );
@@ -47,6 +54,7 @@ preact.render(
     [
         <MainColumnViews
             rootEl={ rootEl }/>,
+        <Toaster id="editAppMain"/>,
         <FloatingDialog/>
     ],
     document.getElementById('view')

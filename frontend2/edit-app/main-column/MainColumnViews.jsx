@@ -1,4 +1,5 @@
 import createHashHistory from '../includes/custom-history.js';
+import PagesListView from './page/PagesListView.jsx';
 import UploadsListView from './upload/UploadsListView.jsx';
 
 const historyInstance = createHashHistory();
@@ -33,7 +34,7 @@ class MainColumnViews extends preact.Component {
             {/*<WebsiteEditBasicInfoView path="/website/edit-basic-info"/>*/}
             {/*<WebsiteEditGlobalScriptsView path="/website/edit-global-scripts"/>*/}
             {/*<WebsiteApplyUpdatesView path="/website/updates"/>*/}
-            {/*<PagesListView path="/pages"/>*/}
+            <PagesListView path="/pages"/>
             <UploadsListView path="/uploads"/>
         </MyRouter>;
     }

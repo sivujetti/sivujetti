@@ -112,10 +112,6 @@ class BlockTree extends preact.Component {
                 style="right: .1rem; top: .1rem;">
                 <Icon iconId="info-circle" className="size-xs"/>
             </button></div>
-            <BlockDnDSpawner
-                mainTreeDnd={ this.dragDrop }
-                initiallyIsOpen={ this.currentPageIsPlaceholder && this.props.containingView === 'CreatePage' }
-                ref={ this.blockSpawner }/>
             <ul class="block-tree mx-1" ref={ el => {
                 if (!el) return;
                 this.dragDrop.attachOrUpdate(el);
@@ -150,169 +146,169 @@ class BlockTree extends preact.Component {
                 ref={ this.moreMenu }/>
         </div>;
     }
-    /**
-     * @param {Array<RawBlock>} branch
-     * @param {Number} depth = 1
-     * @param {RawBlock} paren = null
-     * @param {RawBlock} ref = null {type:'GlobalBlockReference'...}
-     */
-    doRenderBranch(branch, depth = 1, paren = null, ref = null) { return branch.map((block, i) => {
-        if (block.type === 'GlobalBlockReference')
-            return this.doRenderBranch(block.__globalBlockTree.blocks, depth, paren, block);
-        //
-        const lastIxd = branch.length - 1;
-        const {treeState} = this.state;
-        if (block.type !== 'PageInfo') {
-        const type = api.blockTypes.get(block.type);
-        const title = getShortFriendlyName(block, type);
-        const c = !block.children.length ? [] : this.doRenderBranch(block.children, depth + 1, block, ref);
-        const rootRefBlockId = !(ref && i + depth === 1) ? null : ref.id;
-        const isStoredTo = !ref ? 'main' : 'globalBlockTree';
-        return [<li
-            onDragStart={ this.onDragStart }
-            onDrag={ this.onDrag }
-            onDragOver={ this.onDragOver }
-            onDragLeave={ this.onDragLeave }
-            onDrop={ this.onDrop }
-            onDragEnd={ this.onDragEnd }
-            onMouseOver={ e => {
-                if (!this.currentlyHoveredLi && e.target.getAttribute('data-block-id') === block.id) {
-                    this.currentlyHoveredLi = e.target;
-                    api.webPageIframe.highlightBlock(block);
-                }
-            } }
-            onMouseLeave={ e => {
-                if (this.currentlyHoveredLi === e.target)
-                    this.unHighlighCurrentlyHoveredLi();
-            } }
-            class={ [`${isStoredTo}-block`,
-                    !treeState[block.id].isSelected ? '' : ' selected',
-                    !treeState[block.id].isHidden ? '' : ' d-none',
-                    !treeState[block.id].isCollapsed ? '' : ' collapsed'].join('') }
-            data-block-id={ block.id }
-            data-is-stored-to-tree-id={ isStoredTo === 'main' ? 'main' : ref.__globalBlockTree.id }
-            data-is-root-block-of={ rootRefBlockId }
-            data-depth={ depth }
-            data-has-children={ c.length > 0 }
-            data-is-children-of={ paren ? paren.id : null }
-            data-first-child={ i === 0 }
-            data-last-child={ i === lastIxd }
-            data-draggable={ true }
-            title={ title }
-            key={ `${this.props.loadedPageSlug}-${block.id}` }
-            draggable>
-            { !c.length ? null : <button onClick={ () => this.toggleBranchIsCollapsed(block) } class="toggle p-absolute" type="button">
-                <Icon iconId="chevron-down" className="size-xs"/>
-            </button> }
-            <div class="d-flex">
-                <button onClick={ () => this.handleItemClickedOrFocused(block) } class="block-handle text-ellipsis" type="button">
-                    <Icon iconId={ getIcon(type) } className="size-xs p-absolute"/>
-                    <span class="text-ellipsis">{ title }</span>
-                </button>
-                <button onClick={ e => this.openMoreMenu(block, rootRefBlockId !== null, e) } class="more-toggle ml-2" type="button">
-                    <Icon iconId="dots" className="size-xs"/>
-                </button>
-            </div>
-        </li>].concat(c);
-        }
-        //
-        const title = block.title || __('PageInfo');
-        return <li
-            class={ !treeState[block.id].isSelected ? '' : 'selected' }
-            data-block-id={ block.id }
-            data-block-type="PageInfo"
-            data-depth={ depth }
-            title={ title }
-            key={ block.id }>
-            <div class="d-flex">
-                <button
-                    onClick={ () => !this.disablePageInfo ? this.handleItemClickedOrFocused(block) : function(){} }
-                    class="block-handle text-ellipsis"
-                    type="button"
-                    disabled={ this.disablePageInfo }>
-                    <Icon iconId={ getIcon('PageInfo') } className="size-xs p-absolute"/>
-                    <span class="text-ellipsis">{ title }</span>
-                </button>
-            </div>
-        </li>;
-    }); }
-    /**
-     * @param {ContextMenuLink} link
-     * @access private
-     */
-    handleContextMenuLinkClicked(link) {
-        if (link.id === 'duplicate-block') {
-            this.cloneBlock(this.blockWithMoreMenuOpened);
-        } else if (link.id === 'delete-block') {
-            const blockVisible = this.blockWithMoreMenuOpened;
-            const isSelectedRootCurrentlyClickedBlock = () => {
-                if (!this.selectedRoot)
-                    return false;
-                return this.selectedRoot.id === blockVisible.id;
-            };
-            const isSelectedRootChildOfCurrentlyClickedBlock = () => {
-                if (!this.selectedRoot)
-                    return false;
-                if (!blockVisible.children.length)
-                    return false;
-                return !!blockTreeUtils.findRecursively(blockVisible.children,
-                    b => b.id === this.selectedRoot.id);
-            };
-            //
-            const wasCurrentlySelectedBlock = isSelectedRootCurrentlyClickedBlock() ||
-                                            isSelectedRootChildOfCurrentlyClickedBlock();
-            if (wasCurrentlySelectedBlock) this.selectedRoot = null;
-            //
-            if (!this.blockWithMoreMenuOpenedIsGbtsOutermostBlock) {
-                const {id} = blockVisible;
-                store2.dispatch('theBlockTree/deleteBlock', [id, this.openedBlockDetails.getAttribute('data-is-stored-to-tree-id'), wasCurrentlySelectedBlock]);
-            } else {
-                const refBlockId = this.openedBlockDetails.getAttribute('data-is-root-block-of');
-                store2.dispatch('theBlockTree/deleteBlock', [refBlockId, 'main', wasCurrentlySelectedBlock]);
-            }
-        } else if (link.id === 'save-block-as-reusable') {
-            const blockToStore = this.blockWithMoreMenuOpened;
-            const userCanCreateGlobalBlockTrees = api.user.can('createGlobalBlockTrees');
-            floatingDialog.open(SaveBlockAsReusableDialog, {
-                title: __('Save as reusable'),
-                height: userCanCreateGlobalBlockTrees ? 468 : 254,
-            }, {
-                blockToConvertAndStore: blockToStore,
-                onConfirmed: data => data.saveAsUnique ? this.doConvertBlockToGlobal(data, blockToStore) :
-                    this.doSaveBlockAsReusable(data, blockToStore),
-                userCanCreateGlobalBlockTrees,
-            });
-        }
-    }
-    /**
-     * @access private
-     */
-    onContextMenuClosed() {
-        this.blockWithMoreMenuOpened = null;
-        this.blockWithMoreMenuOpenedIsGbtsOutermostBlock = null;
-        this.refElOfOpenMoreMenu.style.opacity = '';
-    }
-    /**
-     * @param {RawBlock} openBlock
-     * @access private
-     */
-    cloneBlock(openBlock) {
-        const cloned = cloneDeep(findBlockFrom(openBlock.id, 'mainTree')[0]);
+// ##    /**
+// ##     * @param {Array<RawBlock>} branch
+// ##     * @param {Number} depth = 1
+// ##     * @param {RawBlock} paren = null
+// ##     * @param {RawBlock} ref = null {type:'GlobalBlockReference'...}
+// ##     */
+// ##    doRenderBranch(branch, depth = 1, paren = null, ref = null) { return branch.map((block, i) => {
+// ##        if (block.type === 'GlobalBlockReference')
+// ##            return this.doRenderBranch(block.__globalBlockTree.blocks, depth, paren, block);
+// ##        //
+// ##        const lastIxd = branch.length - 1;
+// ##        const {treeState} = this.state;
+// ##        if (block.type !== 'PageInfo') {
+// ##        const type = api.blockTypes.get(block.type);
+// ##        const title = getShortFriendlyName(block, type);
+// ##        const c = !block.children.length ? [] : this.doRenderBranch(block.children, depth + 1, block, ref);
+// ##        const rootRefBlockId = !(ref && i + depth === 1) ? null : ref.id;
+// ##        const isStoredTo = !ref ? 'main' : 'globalBlockTree';
+// ##        return [<li
+// ##            onDragStart={ this.onDragStart }
+// ##            onDrag={ this.onDrag }
+// ##            onDragOver={ this.onDragOver }
+// ##            onDragLeave={ this.onDragLeave }
+// ##            onDrop={ this.onDrop }
+// ##            onDragEnd={ this.onDragEnd }
+// ##            onMouseOver={ e => {
+// ##                if (!this.rightColumnViewIsCurrenlyOpen && !this.currentlyHoveredLi && e.target.getAttribute('data-block-id') === block.id) {
+// ##                    this.currentlyHoveredLi = e.target;
+// ##                    api.webPageIframe.highlightBlock(block);
+// ##                }
+// ##            } }
+// ##            onMouseLeave={ e => {
+// ##                if (this.currentlyHoveredLi === e.target)
+// ##                    this.unHighlighCurrentlyHoveredLi();
+// ##            } }
+// ##            class={ [`${isStoredTo}-block`,
+// ##                    !treeState[block.id].isSelected ? '' : ' selected',
+// ##                    !treeState[block.id].isHidden ? '' : ' d-none',
+// ##                    !treeState[block.id].isCollapsed ? '' : ' collapsed'].join('') }
+// ##            data-block-id={ block.id }
+// ##            data-is-stored-to-tree-id={ isStoredTo === 'main' ? 'main' : ref.__globalBlockTree.id }
+// ##            data-is-root-block-of={ rootRefBlockId }
+// ##            data-depth={ depth }
+// ##            data-has-children={ c.length > 0 }
+// ##            data-is-children-of={ paren ? paren.id : null }
+// ##            data-first-child={ i === 0 }
+// ##            data-last-child={ i === lastIxd }
+// ##            data-draggable={ true }
+// ##            title={ title }
+// ##            key={ `${this.props.loadedPageSlug}-${block.id}` }
+// ##            draggable>
+// ##            { !c.length ? null : <button onClick={ () => this.toggleBranchIsCollapsed(block) } class="toggle p-absolute" type="button">
+// ##                <Icon iconId="chevron-down" className="size-xs"/>
+// ##            </button> }
+// ##            <div class="d-flex">
+// ##                <button onClick={ () => this.handleItemClickedOrFocused(block) } class="block-handle text-ellipsis" type="button">
+// ##                    <Icon iconId={ getIcon(type) } className="size-xs p-absolute"/>
+// ##                    <span class="text-ellipsis">{ title }</span>
+// ##                </button>
+// ##                <button onClick={ e => this.openMoreMenu(block, rootRefBlockId !== null, e) } class="more-toggle ml-2" type="button">
+// ##                    <Icon iconId="dots" className="size-xs"/>
+// ##                </button>
+// ##            </div>
+// ##        </li>].concat(c);
+// ##        }
+// ##        //
+// ##        const title = block.title || __('PageInfo');
+// ##        return <li
+// ##            class={ !treeState[block.id].isSelected ? '' : 'selected' }
+// ##            data-block-id={ block.id }
+// ##            data-block-type="PageInfo"
+// ##            data-depth={ depth }
+// ##            title={ title }
+// ##            key={ block.id }>
+// ##            <div class="d-flex">
+// ##                <button
+// ##                    onClick={ () => !this.disablePageInfo ? this.handleItemClickedOrFocused(block) : function(){} }
+// ##                    class="block-handle text-ellipsis"
+// ##                    type="button"
+// ##                    disabled={ this.disablePageInfo }>
+// ##                    <Icon iconId={ getIcon('PageInfo') } className="size-xs p-absolute"/>
+// ##                    <span class="text-ellipsis">{ title }</span>
+// ##                </button>
+// ##            </div>
+// ##        </li>;
+// ##    }); }
+// ##     /**
+// ##      * @param {ContextMenuLink} link
+// ##      * @access private
+// ##      */
+// ##     handleContextMenuLinkClicked(link) {
+// ##         if (link.id === 'duplicate-block') {
+// ##             this.cloneBlock(this.blockWithMoreMenuOpened);
+// ##         } else if (link.id === 'delete-block') {
+// ##             const blockVisible = this.blockWithMoreMenuOpened;
+// ##             const isSelectedRootCurrentlyClickedBlock = () => {
+// ##                 if (!this.selectedRoot)
+// ##                     return false;
+// ##                 return this.selectedRoot.id === blockVisible.id;
+// ##             };
+// ##             const isSelectedRootChildOfCurrentlyClickedBlock = () => {
+// ##                 if (!this.selectedRoot)
+// ##                     return false;
+// ##                 if (!blockVisible.children.length)
+// ##                     return false;
+// ##                 return !!blockTreeUtils.findRecursively(blockVisible.children,
+// ##                     b => b.id === this.selectedRoot.id);
+// ##             };
+// ##             //
+// ##             const wasCurrentlySelectedBlock = isSelectedRootCurrentlyClickedBlock() ||
+// ##                                             isSelectedRootChildOfCurrentlyClickedBlock();
+// ##             if (wasCurrentlySelectedBlock) this.selectedRoot = null;
+// ##             //
+// ##             if (!this.blockWithMoreMenuOpenedIsGbtsOutermostBlock) {
+// ##                 const {id} = blockVisible;
+// ##                 store2.dispatch('theBlockTree/deleteBlock', [id, this.openedBlockDetails.getAttribute('data-is-stored-to-tree-id'), wasCurrentlySelectedBlock]);
+// ##             } else {
+// ##                 const refBlockId = this.openedBlockDetails.getAttribute('data-is-root-block-of');
+// ##                 store2.dispatch('theBlockTree/deleteBlock', [refBlockId, 'main', wasCurrentlySelectedBlock]);
+// ##             }
+// ##         } else if (link.id === 'save-block-as-reusable') {
+// ##             const blockToStore = this.blockWithMoreMenuOpened;
+// ##             const userCanCreateGlobalBlockTrees = api.user.can('createGlobalBlockTrees');
+// ##             floatingDialog.open(SaveBlockAsReusableDialog, {
+// ##                 title: __('Save as reusable'),
+// ##                 height: userCanCreateGlobalBlockTrees ? 468 : 254,
+// ##             }, {
+// ##                 blockToConvertAndStore: blockToStore,
+// ##                 onConfirmed: data => data.saveAsUnique ? this.doConvertBlockToGlobal(data, blockToStore) :
+// ##                     this.doSaveBlockAsReusable(data, blockToStore),
+// ##                 userCanCreateGlobalBlockTrees,
+// ##             });
+// ##         }
+// ##     }
+// ##     /**
+// ##      * @access private
+// ##      */
+// ##     onContextMenuClosed() {
+// ##         this.blockWithMoreMenuOpened = null;
+// ##         this.blockWithMoreMenuOpenedIsGbtsOutermostBlock = null;
+// ##         this.refElOfOpenMoreMenu.style.opacity = '';
+// ##     }
+// ##     /**
+// ##      * @param {RawBlock} openBlock
+// ##      * @access private
+// ##      */
+// ##     cloneBlock(openBlock) {
+        const cloned = duplicateDeepAndReAssignIds(findBlockFrom(openBlock.id, 'mainTree')[0]);
         const changes = callGetBlockPropChangesEvent(cloned.type, 'cloneBlock', [cloned]);
         if (changes) overrideData(cloned, changes);
         store2.dispatch('theBlockTree/cloneItem', [{block: cloned, isReusable: null}, createBlockDescriptor(openBlock), 'after']);
         api.webPageIframe.scrollToBlock(cloned);
-    }
-    /**
-     * @param {{name: String;}} data
-     * @param {RawBlock} originalBlock The block tree we just turned global
-     * @access private
-     */
-    doConvertBlockToGlobal(data, originalBlock) {
-        const newGbtWithoutBlocks = {id: generatePushID(), name: data.name, blocks: []};
-        const newBlockId = generatePushID();
-        store2.dispatch('theBlockTree/convertToGbt', [originalBlock.id, newBlockId, newGbtWithoutBlocks]);
-    }
+// ##     }
+// ??     /**
+// ??      * @param {{name: String;}} data
+// ??      * @param {RawBlock} originalBlock The block tree we just turned global
+// ??      * @access private
+// ??      */
+// ??     doConvertBlockToGlobal(data, originalBlock) {
+// ??         const newGbtWithoutBlocks = {id: generatePushID(), name: data.name, blocks: []};
+// ??         const newBlockId = generatePushID();
+// ??         store2.dispatch('theBlockTree/convertToGbt', [originalBlock.id, newBlockId, newGbtWithoutBlocks]);
+// ??     }
     /**
      * @param {{name: String;}} data From SaveBlockAsReusableDialog
      * @param {RawBlock} block
@@ -336,58 +332,38 @@ class BlockTree extends preact.Component {
             store2.dispatch('reusableBranches/addItem', [newReusableBranch, id]);
         }, 100);
     }
-    /**
-     * @param {RawBlock} block
-     * @param {Boolean} blockIsGbtsOutermostBlock
-     * @param {Event} e
-     * @access private
-     */
-    openMoreMenu(block, blockIsGbtsOutermostBlock, e) {
-        this.blockWithMoreMenuOpened = block;
-        this.blockWithMoreMenuOpenedIsGbtsOutermostBlock = blockIsGbtsOutermostBlock;
-        this.openedBlockDetails = e.target.closest('li');
-        this.refElOfOpenMoreMenu = e.target;
-        this.refElOfOpenMoreMenu.style.opacity = '1';
-        this.moreMenu.current.open(e, links => {
-            const notThese = [
-                ...(blockIsGbtsOutermostBlock ? ['duplicate-block'] : []),
+// ##     /**
+// ##      * @param {RawBlock} block
+// ##      * @param {Boolean} blockIsGbtsOutermostBlock
+// ##      * @param {Event} e
+// ##      * @access private
+// ##      */
+// ##     openMoreMenu(block, blockIsGbtsOutermostBlock, e) {
+// ##         this.blockWithMoreMenuOpened = block;
+// ##         this.blockWithMoreMenuOpenedIsGbtsOutermostBlock = blockIsGbtsOutermostBlock;
+// ##         this.openedBlockDetails = e.target.closest('li');
+// ##         this.refElOfOpenMoreMenu = e.target;
+// ##         this.refElOfOpenMoreMenu.style.opacity = '1';
+// ##         this.moreMenu.current.open(e, links => {
+// ##             const notThese = [
+// ##                 ...(blockIsGbtsOutermostBlock ? ['duplicate-block'] : []),
                 ...(['Columns', 'Section'].indexOf(block.type) < 0 ? ['save-block-as-reusable'] : [])
-            ];
-            return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
-        });
-    }
-    /**
-     * @param {RawBlock} block
-     * @param {Object} treeStateMutRef
-     * @returns {Object}
-     * @access private
-     */
-    setBlockAsSelected(block, treeStateMutRef) {
-        for (const key in treeStateMutRef) treeStateMutRef[key].isSelected = false;
-        treeStateMutRef[block.id].isSelected = true;
-        this.selectedRoot = block;
-        return treeStateMutRef;
-    }
-    /**
-     * @access private
-     */
-    deSelectAllBlocks() {
-        const mutRef = this.state.treeState;
-        for (const key in mutRef) mutRef[key].isSelected = false;
-        this.selectedRoot = null;
-        this.setState({treeState: mutRef});
-    }
-    /**
-     * @param {RawBlock} block
-     * @access private
-     */
-    toggleBranchIsCollapsed(block) {
-        const mutRef = this.state.treeState;
-        const to = !mutRef[block.id].isCollapsed;
-        mutRef[block.id].isCollapsed = to;
-        hideOrShowChildren(to, block, mutRef);
-        this.setState({treeState: mutRef});
-    }
+// ##             ];
+// ##             return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
+// ##         });
+// ##     }
+// ##    /**
+// ##     * @param {RawBlock} block
+// ##     * @param {Object} treeStateMutRef
+// ##     * @returns {Object}
+// ##     * @access private
+// ##     */
+// ##    setBlockAsSelected(block, treeStateMutRef) {
+// ##        for (const key in treeStateMutRef) treeStateMutRef[key].isSelected = false;
+// ##        treeStateMutRef[block.id].isSelected = true;
+// ##        this.selectedRoot = block;
+// ##        return treeStateMutRef;
+// ##    }
 // ##     /**
 // ##      * @access private
 // ##      */
@@ -395,6 +371,17 @@ class BlockTree extends preact.Component {
 // ##         const mutRef = this.state.treeState;
 // ##         for (const key in mutRef) mutRef[key].isSelected = false;
 // ##         this.selectedRoot = null;
+// ##         this.setState({treeState: mutRef});
+// ##     }
+// ##     /**
+// ##      * @param {RawBlock} block
+// ##      * @access private
+// ##      */
+// ##     toggleBranchIsCollapsed(block) {
+// ##         const mutRef = this.state.treeState;
+// ##         const to = !mutRef[block.id].isCollapsed;
+// ##         mutRef[block.id].isCollapsed = to;
+// ##         hideOrShowChildren(to, block, mutRef);
 // ##         this.setState({treeState: mutRef});
 // ##     }
     /**
@@ -405,30 +392,6 @@ class BlockTree extends preact.Component {
             title: __('Content tree'),
             width: 448,
         }, {});
-    }
-    /**
-     * @param {RawBlock} block
-     * @param {'direct'|'web-page'|'styles-tab'} origin = 'direct'
-     * @access public
-     */
-    handleItemClickedOrFocused(block, origin = 'direct') {
-        this.selectedRoot = block;
-        signals.emit('block-tree-item-clicked-or-focused', block, origin);
-        //
-        const mutRef = this.state.treeState;
-        const root = blockTreeUtils.findBlockSmart(block.id, store2.get().theBlockTree)[3];
-        const tree = blockTreeUtils.isMainTree(root) ? root : root.blocks;
-        const parentBlockIds = withParentIdPathDo(tree, (parentPath, {id}) => {
-            if (id !== block.id) return null;
-            // Found block, has depth 1
-            if (!parentPath) return [];
-            // Found block, has depth > 1
-            return splitPath(parentPath);
-        });
-        parentBlockIds.forEach(id => {
-            setAsHidden(false, blockTreeUtils.findBlock(id, tree)[0], mutRef);
-        });
-        this.setState({treeState: this.setBlockAsSelected(block, mutRef)});
     }
     /**
      * @access private
@@ -557,46 +520,74 @@ function createTreeStateItem(parentStateItem, overrides = {}) {
         isHidden: parentStateItem && parentStateItem.isCollapsed,
         isNew: false,
     }, overrides);
+// ##    /**
+// ##     * @param {RawBlock} block
+// ##     * @param {'direct'|'web-page'|'styles-tab'} origin = 'direct'
+// ##     * @access public
+// ##     */
+// ##    handleItemClickedOrFocused(block, origin = 'direct') {
+// ##        this.selectedRoot = block;
+// ##        signals.emit('block-tree-item-clicked-or-focused', block, origin);
+// ##        //
+// ##        const mutRef = this.state.treeState;
+// ##        const root = blockTreeUtils.findBlockSmart(block.id, this.props.blocks)[3];
+// ##        const tree = blockTreeUtils.isMainTree(root) ? root : root.blocks;
+// ##        const parentBlockIds = withParentIdPathDo(tree, (parentPath, {id}) => {
+// ##            if (id !== block.id) return null;
+// ##            // Found block, has depth 1
+// ##            if (!parentPath) return [];
+// ##            // Found block, has depth > 1
+// ##            return splitPath(parentPath);
+// ##        });
+// ##        parentBlockIds.forEach(id => {
+// ##            setAsHidden(false, blockTreeUtils.findBlock(id, tree)[0], mutRef);
+// ##        });
+// ##        this.setState({treeState: this.setBlockAsSelected(block, mutRef)});
+// ##    }
 }
 
-/**
- * @param {Array<RawBlock>} tree
- * @param {{[key: String]: BlockTreeItemState;}|null} previousTreeState
- * @returns {{[key: String]: BlockTreeItemState;}}
- */
-function createTreeState(tree, previousTreeState) {
-    const out = {};
-    const addItem = (block, parenBlock) => {
-        if (!previousTreeState || !previousTreeState[block.id])
-            out[block.id] = createTreeStateItem(!parenBlock ? null : out[parenBlock.id], !block.children.length ? undefined : {isCollapsed: true});
-        else {
-            const clone = {...previousTreeState[block.id]};
-            // Visible block moved inside a collapsed one
-            if (parenBlock && out[parenBlock.id].isCollapsed && !clone.isHidden)
-                clone.isHidden = true;
-            out[block.id] = clone;
-        }
-    };
-    blockTreeUtils.traverseRecursively(tree, (block, _i, paren) => {
-        if (block.type !== 'GlobalBlockReference')
-            addItem(block, paren);
-        else
-            blockTreeUtils.traverseRecursively(block.__globalBlockTree.blocks, (block2, _i2, paren2) => {
-                addItem(block2, paren2);
-            });
-    });
-    if (autoCollapse === 'nonUniqueRootLevelItems')
-        tree.forEach(block => {
-            if (block.type === 'GlobalBlockReference') return;
-            if (block.children.length)
-                setAsHidden(false, block, out, false);
-        });
-    else if (autoCollapse === 'mainContentItem') {
-        const main = getMainContent(tree);
-        if (main) setAsHidden(false, main, out, false);
-    }
-    return out;
-}
+// ## /**
+// ##  * @param {HTMLLIElement} li
+// ##  * @param {HTMLUListElement} ul
+// ##  * @param {HTMLLIElement} def
+// ##  * @returns {HTMLLIElement}
+// ##  */
+// ## function findVisibleLi(li, ul, def) {
+// ##     const parentBlockId = li.getAttribute('data-is-children-of');
+// ##     if (!parentBlockId) return def;
+// ##     const parentBlockLi = ul.querySelector(`li[data-block-id="${parentBlockId}"]`);
+// ##     if (!parentBlockLi.classList.contains('d-none')) // found it
+// ##         return parentBlockLi;
+// ##     // keep looking
+// ##     return findVisibleLi(parentBlockLi, ul, def);
+// ## }
+// ## 
+// ## /**
+// ##  * @param {Array<RawBlock>} blocks
+// ##  * @param {(parentIdPath: String, block: RawBlock) => any} fn
+// ##  * @param {String} parentIdPath
+// ##  * @returns {any}
+// ##  */
+// ## function withParentIdPathDo(blocks, fn, parentIdPath = '') {
+// ##     for (const block of blocks) {
+// ##         const ret = fn(parentIdPath, block);
+// ##         if (ret) return ret;
+// ##         if (block.children.length) {
+// ##             const ret2 = withParentIdPathDo(block.children, fn, `${parentIdPath}/${block.id}`);
+// ##             if (ret2) return ret2;
+// ##         }
+// ##     }
+// ## }
+// ## 
+// ## /**
+// ##  * @param {String} path e.g. '/foo/bar'
+// ##  * @returns {Array<String>} e.g. ['foo', 'bar']
+// ##  */
+// ## function splitPath(path) {
+// ##     const pieces = path.split('/'); // '/foo/bar' -> ['', 'foo', 'bar']
+// ##     pieces.shift();                 //            -> ['foo', 'bar']
+// ##     return pieces;
+// ## }
 
 /**
  * @param {Array<RawBlock>} tree
@@ -627,6 +618,45 @@ function getMainContent(tree) {
         return tree[1];
     return null;
 }
+// ## 
+// ## /**
+// ##  * @param {Array<RawBlock>} tree
+// ##  * @param {{[key: String]: BlockTreeItemState;}|null} previousTreeState
+// ##  * @returns {{[key: String]: BlockTreeItemState;}}
+// ##  */
+// ## function createTreeState(tree, previousTreeState) {
+// ##     const out = {};
+// ##     const addItem = (block, parenBlock) => {
+// ##         if (!previousTreeState || !previousTreeState[block.id])
+// ##             out[block.id] = createTreeStateItem(!parenBlock ? null : out[parenBlock.id], !block.children.length ? undefined : {isCollapsed: true});
+// ##         else {
+// ##             const clone = {...previousTreeState[block.id]};
+// ##             // Visible block moved inside a collapsed one
+// ##             if (parenBlock && out[parenBlock.id].isCollapsed && !clone.isHidden)
+// ##                 clone.isHidden = true;
+// ##             out[block.id] = clone;
+// ##         }
+// ##     };
+// ##     blockTreeUtils.traverseRecursively(tree, (block, _i, paren) => {
+// ##         if (block.type !== 'GlobalBlockReference')
+// ##             addItem(block, paren);
+// ##         else
+// ##             blockTreeUtils.traverseRecursively(block.__globalBlockTree.blocks, (block2, _i2, paren2) => {
+// ##                 addItem(block2, paren2);
+// ##             });
+// ##     });
+// ##     if (autoCollapse === 'nonUniqueRootLevelItems')
+// ##         tree.forEach(block => {
+// ##             if (block.type === 'GlobalBlockReference') return;
+// ##             if (block.children.length)
+// ##                 setAsHidden(false, block, out, false);
+// ##         });
+// ##     else if (autoCollapse === 'mainContentItem') {
+// ##         const main = getMainContent(tree);
+// ##         if (main) setAsHidden(false, main, out, false);
+// ##     }
+// ##     return out;
+// ## }
 
 /**
  * @param {RawBlock} block
@@ -641,29 +671,6 @@ function getShortFriendlyName(block, type) {
     return pcs.length < 2 ? translated : pcs[0];
 }
 
-/**
- * @param {RawBlock} block
- * @returns {BlockBlueprint}
- */
-function blockToBlueprint(block) {
-    return {
-        blockType: block.type,
-        initialOwnData: propsToObj(block.propsData),
-        initialDefaultsData: {
-            title: block.title || '',
-            renderer: block.renderer,
-            styleClasses: block.styleClasses || '',
-        },
-        initialChildren: block.children.map(w => blockToBlueprint(w)),
-    };
-}
-function propsToObj(propsData) {
-    const out = {};
-    for (const field of propsData) {
-        out[field.key] = field.value;
-    }
-    return out;
-}
 // ## /**
 // ##  * @param {RawBlock} block
 // ##  * @returns {BlockBlueprint}

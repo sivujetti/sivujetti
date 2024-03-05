@@ -1,10 +1,10 @@
 import {api, blockTreeUtils, cloneDeep} from '../../sivujetti-commons-unified.js';
 
 /**
- * @param {SaveButton} stateManager
+ * @param {SaveButton} saveButton
  * @returns {DragDropEventController}
  */
-function createDndController(stateManager) {
+function createDndController(saveButton) {
     let initialTree;
     let extDragData;
     let dropped;
@@ -72,7 +72,7 @@ function createDndController(stateManager) {
          */
         swap(cand, _prevCand, startLi) {
             const extBlock = !extDragData ? null : extDragData.block;
-            const drag = !extBlock ? createBlockDescriptorFromLi(startLi) : createBlockDescriptor(extBlock, stateManager);
+            const drag = !extBlock ? createBlockDescriptorFromLi(startLi) : createBlockDescriptor(extBlock, saveButton);
             const targ = createBlockDescriptorFromLi(cand.li);
             const [targIsStoredTo, targetIsSpeci] = getRealTarget(targ, cand.pos);
             // drag is external gbtref and target is inner block of gbtref
@@ -94,10 +94,10 @@ function createDndController(stateManager) {
         end(lastAcceptedSwapIdx) {
             if (dropped)
                 return;
-            api.webPageIframe.getEl().style.pointerEvents = '';
+            api.webPagePreview.getEl().style.pointerEvents = '';
             if (lastAcceptedSwapIdx === null) // No moves at all
                 return;
-            if (lastAcceptedSwapIdx === 0 && !extDragData && areKeysEqual(initialTree, stateManager.getChannelState('theBlockTree'))) // Had moves, but returned to initial
+            if (lastAcceptedSwapIdx === 0 && !extDragData && areKeysEqual(initialTree, saveButton.getChannelState('theBlockTree'))) // Had moves, but returned to initial
                 return;
             "store2.dispatch('theBlockTree/undo', [initialTree, null, 'default']);"
         },
@@ -150,11 +150,11 @@ function createBlockDescriptorFromLi(li) {
 
 /**
  * @param {RawBlock} block
- * @param {SaveButton} stateManager
+ * @param {SaveButton} saveButton
  * @returns {BlockDescriptor}
  */
-function createBlockDescriptor(block, stateManager) {
-    const isStoredToTreeId = blockTreeUtils.getIsStoredToTreeId(block.id, stateManager.getChannelState('theBlockTree'));
+function createBlockDescriptor(block, saveButton) {
+    const isStoredToTreeId = blockTreeUtils.getIsStoredToTreeId(block.id, saveButton.getChannelState('theBlockTree'));
     return {blockId: block.id, isStoredToTreeId, isGbtRef: false, data: null};
 }
 

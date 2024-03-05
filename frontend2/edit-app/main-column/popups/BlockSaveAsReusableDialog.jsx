@@ -10,7 +10,7 @@ import {
     unhookForm,
 } from '../../../sivujetti-commons-unified.js';
 
-class SaveBlockAsReusableDialog extends preact.Component {
+class BlockSaveAsReusableDialog extends preact.Component {
     // boundDoHandleSubmit;
     /**
      * @param {{blockToConvertAndStore: RawBlock; onConfirmed: (data: {name: String; saveAsUnique: Boolean;}) => any; userCanCreateGlobalBlockTrees: Boolean;}} props
@@ -99,4 +99,4 @@ class SaveBlockAsReusableDialog extends preact.Component {
     }
 }
 
-export default SaveBlockAsReusableDialog;
+export default BlockSaveAsReusableDialog;

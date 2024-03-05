@@ -41,12 +41,12 @@ class IframePageManager {
         this.currentWebPage = webPage;
         //
         const els = webPage.scanBlockElements();
-        const blocks = getAndInvalidate(webPage.data.page, 'blocks');
-        const ordered = getOrdededBlocks(blocks, els);
+// ##         const blocks = getAndInvalidate(webPage.data.page, 'blocks');
+// ##         const ordered = getOrdededBlocks(blocks, els);
         //
-        const {data} = webPage;
-        delete webPage.data;
-        data.page = maybePatchTitleAndSlug(data.page, isDuplicate);
+// ##         const {data} = webPage;
+// ##         delete webPage.data;
+// ##         data.page = maybePatchTitleAndSlug(data.page, isDuplicate);
         //
         webPage.addRootBoundingEls(ordered.at(-1));
         webPage.registerEventHandlers(this.createWebsiteEventHandlers(this, webPageUnregistrables));
@@ -54,9 +54,9 @@ class IframePageManager {
         this.registerWebPageDomUpdater('main');
         //
         opQueueItemEmitter.resetAndBegin();
-        store2.dispatch('theBlockTree/init', [ordered]);
-        store2.dispatch('themeStyles/setAll', [getAndInvalidate(data.theme, 'styles')]);
-        store.dispatch(setCurrentPageDataBundle(data));
+// ##         store2.dispatch('theBlockTree/init', [ordered]);
+// ##         store2.dispatch('themeStyles/setAll', [getAndInvalidate(data.theme, 'styles')]);
+// ##         store.dispatch(setCurrentPageDataBundle(data));
         store.dispatch(setOpQueue([]));
         const unregistrables = webPage.getGlobalListenerCreateCallables().map(([when, fn]) => sharedSignals.on(when, fn));
         webPageUnregistrables.set('globalEvents', () => unregistrables.map(unreg => unreg()));
@@ -66,11 +66,6 @@ class IframePageManager {
             (selector, varName, varValue, valueType) => {
                 webPage.fastOverrideStyleUnitVar(selector, varName, varValue, valueType);
             }));
-        //
-        const saveButton = api.saveButton.getInstance();
-        saveButton.initChannel('css', webPage.getCss('all'));
-        const tmp= this.currentWebPage.reRenderer.createBlockTreeChangeListeners();
-        saveButton.initChannel('theBlockTree', cloneDeep(ordered), tmp);
     }
     /**
      * @param {String} trid
@@ -218,41 +213,41 @@ class IframePageManager {
     }
 }
 
-/**
- * @param {String} nodeName Example 'P', 'UL', 'BLOCKQUOTE'
- * @returns {String} Example 'Paragraph', 'Unordered list', 'Blockquote'
- */
-function nodeNameToFriendly(nodeName) {
-    const pair = {
-        'P':          ['Paragraph',      ''],
-        'H1':         ['Heading',        ' 1'],
-        'H2':         ['Heading',        ' 2'],
-        'H3':         ['Heading',        ' 3'],
-        'H4':         ['Heading',        ' 4'],
-        'H5':         ['Heading',        ' 5'],
-        'H6':         ['Heading',        ' 6'],
-        'UL':         ['Unordered list', ''],
-        'OL':         ['Ordered list',   ''],
-        'BLOCKQUOTE': ['Blockquote',     ''],
-    }[nodeName];
-    return pair ? `${__(pair[0])}${pair[1]}` : `<${nodeName.toLowerCase()}>`;
-}
-
-/**
- * @param {Array<RawBlock>} unordered
- * @param {Array<HTMLElement>} orderedEls
- * @returns {Array<RawBlock>}
- */
-function getOrdededBlocks(unordered, orderedEls) {
-    const ordered = [unordered.find(({type}) => type === 'PageInfo')];
-    for (const el of orderedEls) {
-        const [isPartOfGlobalBlockTree, globalBlockRefBlockId] = t(el);
-        const blockId = !isPartOfGlobalBlockTree ? el.getAttribute('data-block') : globalBlockRefBlockId;
-        const block = unordered.find(({id}) => id === blockId);
-        if (block) ordered.push(block);
-    }
-    return ordered;
-}
+// ## /**
+// ##  * @param {String} nodeName Example 'P', 'UL', 'BLOCKQUOTE'
+// ##  * @returns {String} Example 'Paragraph', 'Unordered list', 'Blockquote'
+// ##  */
+// ## function nodeNameToFriendly(nodeName) {
+// ##     const pair = {
+// ##         'P':          ['Paragraph',      ''],
+// ##         'H1':         ['Heading',        ' 1'],
+// ##         'H2':         ['Heading',        ' 2'],
+// ##         'H3':         ['Heading',        ' 3'],
+// ##         'H4':         ['Heading',        ' 4'],
+// ##         'H5':         ['Heading',        ' 5'],
+// ##         'H6':         ['Heading',        ' 6'],
+// ##         'UL':         ['Unordered list', ''],
+// ##         'OL':         ['Ordered list',   ''],
+// ##         'BLOCKQUOTE': ['Blockquote',     ''],
+// ##     }[nodeName];
+// ##     return pair ? `${__(pair[0])}${pair[1]}` : `<${nodeName.toLowerCase()}>`;
+// ## }
+// ## 
+// ## /**
+// ##  * @param {Array<RawBlock>} unordered
+// ##  * @param {Array<HTMLElement>} orderedEls
+// ##  * @returns {Array<RawBlock>}
+// ##  */
+// ## function getOrdededBlocks(unordered, orderedEls) {
+// ##     const ordered = [unordered.find(({type}) => type === 'PageInfo')];
+// ##     for (const el of orderedEls) {
+// ##         const [isPartOfGlobalBlockTree, globalBlockRefBlockId] = t(el);
+// ##         const blockId = !isPartOfGlobalBlockTree ? el.getAttribute('data-block') : globalBlockRefBlockId;
+// ##         const block = unordered.find(({id}) => id === blockId);
+// ##         if (block) ordered.push(block);
+// ##     }
+// ##     return ordered;
+// ## }
 
 /**
  * @returns {Boolean}
@@ -272,32 +267,32 @@ function t(el) {
         : [true, p.nodeValue.split(' block-start ')[1].split(':')[0]];
 }
 
-/**
- * @param {Page} page
- * @param {Boolean} isDuplicate = false
- * @returns {Page}
- */
-function maybePatchTitleAndSlug(page, isDuplicate = false) {
-    if (page.isPlaceholderPage) {
-        page.title = __(page.title) + (!isDuplicate ? '' : ` (${__('Copy')})`);
-        page.slug = makeSlug(page.title);
-        const pageType = api.getPageTypes().find(({name}) => name === page.type);
-        page.path = makePath(page.slug, pageType);
-    }
-    return page;
-}
-
-/**
- * @param {Object} entity
- * @param {String} prop
- * @returns {any}
- */
-function getAndInvalidate(entity, prop) {
-    const out = entity[prop];
-    entity[`__${prop}DebugOnly`] = entity[prop];
-    delete entity[prop];
-    return out;
-}
+// ## /**
+// ##  * @param {Page} page
+// ##  * @param {Boolean} isDuplicate = false
+// ##  * @returns {Page}
+// ##  */
+// ## function maybePatchTitleAndSlug(page, isDuplicate = false) {
+// ##     if (page.isPlaceholderPage) {
+// ##         page.title = __(page.title) + (!isDuplicate ? '' : ` (${__('Copy')})`);
+// ##         page.slug = makeSlug(page.title);
+// ##         const pageType = api.getPageTypes().find(({name}) => name === page.type);
+// ##         page.path = makePath(page.slug, pageType);
+// ##     }
+// ##     return page;
+// ## }
+// ## 
+// ## /**
+// ##  * @param {Object} entity
+// ##  * @param {String} prop
+// ##  * @returns {any}
+// ##  */
+// ## function getAndInvalidate(entity, prop) {
+// ##     const out = entity[prop];
+// ##     entity[`__${prop}DebugOnly`] = entity[prop];
+// ##     delete entity[prop];
+// ##     return out;
+// ## }
 
 export default IframePageManager;
 export {getArePanelsHidden};

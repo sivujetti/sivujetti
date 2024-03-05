@@ -388,6 +388,15 @@ class BlockTree extends preact.Component {
         hideOrShowChildren(to, block, mutRef);
         this.setState({treeState: mutRef});
     }
+// ##     /**
+// ##      * @access private
+// ##      */
+// ##     deSelectAllBlocks() {
+// ##         const mutRef = this.state.treeState;
+// ##         for (const key in mutRef) mutRef[key].isSelected = false;
+// ##         this.selectedRoot = null;
+// ##         this.setState({treeState: mutRef});
+// ##     }
     /**
      * @access private
      */
@@ -655,5 +664,28 @@ function propsToObj(propsData) {
     }
     return out;
 }
+// ## /**
+// ##  * @param {RawBlock} block
+// ##  * @returns {BlockBlueprint}
+// ##  */
+// ## function blockToBlueprint(block) {
+// ##     return {
+// ##         blockType: block.type,
+// ##         initialOwnData: propsToObj(block.propsData),
+// ##         initialDefaultsData: {
+// ##             title: block.title || '',
+// ##             renderer: block.renderer,
+// ##             styleClasses: block.styleClasses || '',
+// ##         },
+// ##         initialChildren: block.children.map(w => blockToBlueprint(w)),
+// ##     };
+// ## }
+// ## function propsToObj(propsData) {
+// ##     const out = {};
+// ##     for (const field of propsData) {
+// ##         out[field.key] = field.value;
+// ##     }
+// ##     return out;
+// ## }
 
 export default BlockTree;

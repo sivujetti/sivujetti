@@ -6,6 +6,12 @@ class SaveButton extends preact.Component {
      */
     constructor(props) {
         super(props);
+    /**
+     * @access public
+     */
+    invalidateAll() {
+    }
+    }
     }
     /**
      * @access protected

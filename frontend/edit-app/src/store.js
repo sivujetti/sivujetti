@@ -13,7 +13,7 @@ const currentPageDataBundleReducer = (state = {}, action) => {
     }
 };
 
-const setCurrentPageDataBundle = value => ({type: 'currentPageDataBundle/set', value});
+// ## const setCurrentPageDataBundle = value => ({type: 'currentPageDataBundle/set', value});
 const selectCurrentPageDataBundle = state => state.currentPageDataBundle;
 
 /**

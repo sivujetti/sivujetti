@@ -4,15 +4,15 @@ import theBlockTreeStore from './block/theBlockTreeStore.js';
 const {createStoreon} = window.storeon;
 
 function themeStylesStore(store) {
-    store.on('themeStyles/setAll',
-    /**
-     * @param {Object} state
-     * @param {[Array<ThemeStyle>]} args
-     * @returns {Object}
-     */
-    (_state, [themeStyles]) =>
-        ({themeStyles})
-    );
+// ##     store.on('themeStyles/setAll',
+// ##     /**
+// ##      * @param {Object} state
+// ##      * @param {[Array<ThemeStyle>]} args
+// ##      * @returns {Object}
+// ##      */
+// ##     (_state, [themeStyles]) =>
+// ##         ({themeStyles})
+// ##     );
 
     store.on('themeStyles/addStyle',
     /**

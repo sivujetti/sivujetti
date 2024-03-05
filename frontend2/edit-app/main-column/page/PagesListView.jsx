@@ -2,14 +2,13 @@ import {
     __,
     ContextMenu,
     env,
-    floatingDialog,
     http,
     Icon,
     LoadingSpinner
 } from '../../../sivujetti-commons-unified.js';
 import toasters from '../../includes/toasters.jsx';
 import OverlayView from '../OverlayView.jsx';
-import PageDeleteDialog from '../popups/PageDeleteDialog.jsx';
+import {openPageDeleteDialog} from '../popups/PageDeleteDialog.jsx';
 
 const pageTypeNamePages = 'Pages';
 
@@ -107,29 +106,4 @@ class PagesListView extends preact.Component {
     }
 }
 
-/**
- * @param {String} pageSlug
- * @param {String} pageTitle
- * @param {() => any} onSuccess
- * @param {String} pageTypeName = 'Pages'
- */
-function openPageDeleteDialog(pageSlug, pageTitle, onSuccess, pageTypeName = pageTypeNamePages) {
-    floatingDialog.open(PageDeleteDialog, {
-        title: __('Delete page'),
-        height: 178,
-    }, {
-        pageSlug,
-        pageTitle,
-        onConfirmed: () => http.delete(`/api/pages/${pageTypeName}/${pageSlug.substring(1)}`)
-            .then(resp => {
-                if (resp.ok) {
-                    onSuccess();
-                } else {
-                    toasters.editAppMain(__('Failed to delete page.'), 'error');
-                }
-            })
-    });
-}
-
 export default PagesListView;
-export {openPageDeleteDialog};

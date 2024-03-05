@@ -1,3 +1,36 @@
+
+/**
+ * Calls $fn once every $tryEveryMillis until it returns true or $stopTryingAfterNTimes
+ * is reached.
+ *
+ * @param {() => Boolean} fn
+ * @param {Number} tryEveryMillis = 200
+ * @param {Number} stopTryingAfterNTimes = 5
+ * @param {String} messageTmpl = 'fn() did not return true after %sms'
+ * @returns {fn() => void}
+ */
+function createTrier(fn,
+                     tryEveryMillis = 200,
+                     stopTryingAfterNTimes = 5,
+                     messageTmpl = 'fn() did not return true after %sms') {
+    let tries = 0;
+    const callTryFn = () => {
+        const ret = fn();
+        if (ret === true) {
+            return;
+        }
+        if (ret === false) {
+            if (++tries < stopTryingAfterNTimes)
+                setTimeout(callTryFn, tryEveryMillis);
+            else
+                window.console.error(messageTmpl.replace('%s', tries * tryEveryMillis));
+        } else {
+            throw new Error('fn must return true or false, got: ', ret);
+        }
+    };
+    return callTryFn;
+}
+
 /**
  * https://gist.github.com/mikelehen/3596a30bd69384624c11
  */
@@ -49,4 +82,4 @@ const generatePushID = (function() {
   };
 })();
 
-export {generatePushID};
+export {createTrier, generatePushID};

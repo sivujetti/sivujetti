@@ -1,4 +1,5 @@
-import {__, handleSubmit, floatingDialog} from '../../../sivujetti-commons-unified.js';
+import {__, handleSubmit, floatingDialog, http} from '../../../sivujetti-commons-unified.js';
+import toasters from '../../includes/toasters.jsx';
 
 class PageDeleteDialog extends preact.Component {
     // boundDoHandleSubmit;
@@ -38,4 +39,29 @@ class PageDeleteDialog extends preact.Component {
     }
 }
 
+/**
+ * @param {String} pageSlug
+ * @param {String} pageTitle
+ * @param {() => any} onSuccess
+ * @param {String} pageTypeName = 'Pages'
+ */
+function openPageDeleteDialog(pageSlug, pageTitle, onSuccess, pageTypeName = 'Pages') {
+    floatingDialog.open(PageDeleteDialog, {
+        title: __('Delete page'),
+        height: 178,
+    }, {
+        pageSlug,
+        pageTitle,
+        onConfirmed: () => http.delete(`/api/pages/${pageTypeName}/${pageSlug.substring(1)}`)
+            .then(resp => {
+                if (resp.ok) {
+                    onSuccess();
+                } else {
+                    toasters.editAppMain(__('Failed to delete page.'), 'error');
+                }
+            })
+    });
+}
+
 export default PageDeleteDialog;
+export {openPageDeleteDialog};

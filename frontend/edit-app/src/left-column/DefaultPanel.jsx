@@ -17,11 +17,11 @@ class DefaultPanel extends preact.Component {
 // ##             sections: getRegisteredMainPanelSectionNames(),
 // ##         });
 // ##         this.loadPageToPreviewIframe(toLoadInitial);
-// ##         this.unregisterSignalListener = signals.on('edit-app-plugins-loaded', () => {
-// ##             const maybeUpdated = getRegisteredMainPanelSectionNames();
-// ##             if (maybeUpdated.length > this.state.sections.length)
-// ##                 this.setState({sections: maybeUpdated});
-// ##         });
+        this.unregisterSignalListener = signals.on('edit-app-plugins-loaded', () => {
+            const maybeUpdated = getRegisteredMainPanelSectionNames();
+            if (maybeUpdated.length > this.state.sections.length)
+                this.setState({sections: maybeUpdated});
+        });
 // ##     }
 // ##     /**
 // ##      * @param {{url: String;} & {[key]: String}: any;} props
@@ -47,16 +47,16 @@ class DefaultPanel extends preact.Component {
 // ##     componentWillUnmount() {
 // ##         this.unregisterSignalListener();
 // ##     }
-    /**
-     * @access protected
-     */
-    render(_, {loadingPageSlug, loadedPageSlug, sections}) {
-        return sections.map(sectionName => {
-            const Renderer = api.mainPanel.getSection(sectionName, true);
-            const t = {...{loadingPageSlug, loadedPageSlug}, ...this.props};
-            return <Renderer {...t}/>;
-        });
-    }
+// ##     /**
+// ##      * @access protected
+// ##      */
+// ##     render(_, {loadingPageSlug, loadedPageSlug, sections}) {
+// ##         return sections.map(sectionName => {
+// ##             const Renderer = api.mainPanel.getSection(sectionName, true);
+// ##             const t = {...{loadingPageSlug, loadedPageSlug}, ...this.props};
+// ##             return <Renderer {...t}/>;
+// ##         });
+// ##     }
 // ##     /**
 // ##      * @param {String} slug
 // ##      * @access private

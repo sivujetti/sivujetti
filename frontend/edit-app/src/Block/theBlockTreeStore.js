@@ -4,15 +4,15 @@ import {createBlockFromType, createGbtRefBlockProps} from './utils.js';
 const muts = new Map;
 
 function theBlockTreeStore(store) {
-    store.on('theBlockTree/init',
-    /**
-     * @param {Object} state
-     * @param {[Array<RawBlock>]} args
-     * @returns {Object}
-     */
-    (_state, [theBlockTree]) =>
-        ({theBlockTree})
-    );
+// ##     store.on('theBlockTree/init',
+// ##     /**
+// ##      * @param {Object} state
+// ##      * @param {[Array<RawBlock>]} args
+// ##      * @returns {Object}
+// ##      */
+// ##     (_state, [theBlockTree]) =>
+// ##         ({theBlockTree})
+// ##     );
 
     store.on('theBlockTree/swap',
     /**

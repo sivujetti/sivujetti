@@ -453,6 +453,8 @@ final class PagesController {
         self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo, $appEnv->di);
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
         $editModeIsOn = $isPlaceholderPage || ($req->queryVar("in-edit") !== null);
+        if (!defined("USE_NEW_RENDER_FEAT")) {
+        $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
         $theWebsite->activeTheme->loadStyles($editModeIsOn);
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
@@ -469,6 +471,32 @@ final class PagesController {
             "currentUrl" => $req->path,
             "site" => $theWebsite,
         ]);
+        } else {
+        $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page, $editModeIsOn);
+        $theWebsite->activeTheme->loadStyles($editModeIsOn);
+        $tmpl = new WebPageAwareTemplate(
+            $page->layout->relFilePath,
+            ["serverHost" => self::getServerHost($req)],
+            env: $appEnv->constants,
+            apiCtx: $apiCtx,
+            theWebsite: $theWebsite,
+            pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy()),
+            useEditModeMarkup: $editModeIsOn,
+            assetUrlCacheBustStr: "v={$theWebsite->versionId}",
+            dataForPreviewApp: $editModeIsOn ? [
+                "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
+                "layout" => self::layoutToRaw($page->layout),
+                "theme" => self::themeToRaw($theWebsite->activeTheme),
+            ] : null,
+        );
+        $html = $tmpl->render([
+            "currentPage" => $page,
+            "currentUrl" => $req->path,
+            "site" => $theWebsite,
+        ]);
+        }
+
+        if (!defined("USE_NEW_RENDER_FEAT")) {
         if ($editModeIsOn && ($bodyEnd = strrpos($html, "</body>")) > 0) {
             $html = substr($html, 0, $bodyEnd) .
                 "<script>window.sivujettiCurrentPageData = " . $tmpl->escInlineJs(json_encode([
@@ -479,6 +507,8 @@ final class PagesController {
                 "<script src=\"{$tmpl->assetUrl("public/sivujetti/sivujetti-webpage.js")}\"></script>" .
             substr($html, $bodyEnd);
         }
+        } // else do nothing (see WebPageAwareTemplate->jsFiles())
+
         $res->html($html);
     }
     /**
@@ -544,6 +574,7 @@ final class PagesController {
     private static function mergeLayoutBlocksTo(Page $toPage,
                                                 Layout $fromLayout,
                                                 PageType $pageType): void {
+        if (!defined("USE_NEW_RENDER_FEAT")) {
         foreach ($fromLayout->structure as $part) {
             if ($part->type === Layout::PART_TYPE_GLOBAL_BLOCK_TREE)
                 $toPage->blocks[] = Block::fromBlueprint((object) [
@@ -568,6 +599,31 @@ final class PagesController {
                     ]],
                     $pageType->blockFields
                 )));
+        }
+        } else {
+        $toPage->blocks[] = Block::fromBlueprint((object) [
+            "type" => Block::TYPE_PAGE_INFO,
+            "title" => "",
+            "defaultRenderer" => "sivujetti:block-auto",
+            "children" => [],
+            "initialData" => (object) ["overrides" => "[]"]
+        ]);
+        foreach ($fromLayout->structure as $part) {
+            if ($part->type === Layout::PART_TYPE_GLOBAL_BLOCK_TREE)
+                $toPage->blocks[] = Block::fromBlueprint((object) [
+                    "type" => Block::TYPE_GLOBAL_BLOCK_REF,
+                    "title" => "",
+                    "defaultRenderer" => "sivujetti:block-auto",
+                    "children" => [],
+                    "initialData" => (object) [
+                        "globalBlockTreeId" => $part->globalBlockTreeId,
+                        "overrides" => GlobalBlockReferenceBlockType::EMPTY_OVERRIDES,
+                        "useOverrides" => 0,
+                    ],
+                ]);
+            elseif ($part->type === Layout::PART_TYPE_PAGE_CONTENTS)
+                array_push($toPage->blocks, ...array_map([Block::class, "fromBlueprint"], $pageType->blockFields));
+        }
         }
     }
     /**

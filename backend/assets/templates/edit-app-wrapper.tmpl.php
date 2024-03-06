@@ -66,8 +66,8 @@
 
         .second-outer {
             position: absolute;
-            left: 318px;
-            width: calc(100% - 318px);
+            left: 379px;
+            width: calc(100% - 379px);
             height: 100%;
         }
         .box.second {
@@ -203,7 +203,7 @@
     </head>
     <body>
         <div id="root" class="one-column-layout">
-            <div id="main-panel"></div>
+            <div id="edit-app"></div>
             <div id="inspector-panel"></div>
             <div id="view"></div>
             <div id="webpage-preview-app"></div>
@@ -234,17 +234,15 @@
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/pickr.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/stylis.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/popper.min.js") ?>"></script>
-    <?php $useBunFiles = true; ?>
-    <?php if ($useBunFiles): ?>
+    <?php if (defined("USE_BUN_BUILD")): ?>
         <script type="importmap">{"imports": {
+            "@sivujetti-commons-for-web-pages": "./public/v2/sivujetti-commons-for-web-pages.js",
             "@sivujetti-commons-for-edit-app": "./public/v2/sivujetti-commons-for-edit-app.js"
         }}</script>
-        <script>window.sivujettiEnvConfig = {
-            baseUrl: '<?= $this->makeUrl("/", true) ?>',
-            assetBaseUrl:'<?= $this->makeUrl("/", false) ?>',
-            cacheBustStr: ('<?= $this->assetUrl("/") ?>'.split('v=')[1] ?? ''),
-        }</script>
+        <script><?= $this->generateSivujettiEnvConfJs() ?></script>
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
+        <script>window.translationStringBundles = []</script>
+        <script src="<?= $this->assetUrl("public/v2/lang-{$uiLang}.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/v2/sivujetti-edit-app-main.js", /* @see frontend2/sivujetti-edit-app-main.jsx */)."&t=".time() ?>" type="module"></script>
     <?php else: ?>
         <script>window.isFirstRun = <?= $isFirstRun ? "true" : "false" ?></script>
@@ -255,8 +253,10 @@
         <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.js", /* @see frontend/edit-app/main.js */) ?>"></script>
     <?php endif; ?>
 
-    <?php if ($useBunFiles): ?>
         <?php // todo plugins ?>
+    <?php if (defined("USE_BUN_BUILD")):
+        <script src="<?= $this->assetUrl("public/v2/{$relUrl}") ?>" type="module"></script>
+        <?php endif; endforeach; ?>
         <?php // todo showQuickIntro ?>
     <?php else: ?>
 

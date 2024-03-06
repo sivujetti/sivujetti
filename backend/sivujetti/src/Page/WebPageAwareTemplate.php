@@ -33,6 +33,7 @@ final class WebPageAwareTemplate extends Template {
      * @param ?array<string> $pluginNames = null
      * @param ?bool $useEditModeMarkup = null
      * @param ?string $assetUrlCacheBustStr = ""
+     * @param ?array{page: object, layout: object, theme: object{id: string, styles: \Sivujetti\Theme\Entities\Style[]}} $getDataForPreviewApp = null
      */
     public function __construct(string $file,
                                 ?array $vars = null,
@@ -42,11 +43,17 @@ final class WebPageAwareTemplate extends Template {
                                 ?TheWebsite $theWebsite = null,
                                 ?array $pluginNames = null,
                                 ?bool $useEditModeMarkup = null,
-                                ?string $assetUrlCacheBustStr = null) {
+                                ?string $assetUrlCacheBustStr = null,
+                                ?array $dataForPreviewApp = null) {
         parent::__construct($file, $vars, $env, $initialLocals);
         $this->__cssAndJsFiles = $apiCtx?->userDefinedAssets;
         $this->__internal = $theWebsite
-            ? ["theme" => $theWebsite->activeTheme, "hideFromSearchEngines" => $theWebsite->hideFromSearchEngines,]
+            ? [
+                "theme" => $theWebsite->activeTheme,
+                "hideFromSearchEngines" => $theWebsite->hideFromSearchEngines,
+                "blockTypes" => $apiCtx->blockTypes,
+                "dataForPreviewApp" => $dataForPreviewApp ?? null,
+            ]
             : null;
         $this->__useEditModeMarkup = $useEditModeMarkup ?? true;
         $this->__pluginNames = $pluginNames ?? [];
@@ -177,6 +184,11 @@ final class WebPageAwareTemplate extends Template {
      * @return string
      */
     public function renderBlocks(array $blocks): string {
+        if (defined("USE_NEW_RENDER_FEAT")) {
+            if ($this->__useEditModeMarkup)
+                return ""; // rendered by frontend2/webpage-renderer-app/ReRenderingWebPage.jsx
+            return "todo";
+        }
         $out = "";
         $emptyString = !$this->__useEditModeMarkup ? "" : null;
         foreach ($blocks as $block)
@@ -274,6 +286,7 @@ final class WebPageAwareTemplate extends Template {
         $externals = array_map($fileDefToTag, $this->__cssAndJsFiles->css);
         $site = $site ?? $this->__locals["site"];
 
+        if (!defined("USE_NEW_RENDER_FEAT")) {
         return $common . (!$this->__useEditModeMarkup ? (
             // Externals including theme-generated.css
             implode("\n", [...$externals, $fileDefToTag(
@@ -304,12 +317,16 @@ final class WebPageAwareTemplate extends Template {
             //
             "<style>" . self::getDefaultEditModeInlineCss() . "</style>\n"
         ));
+        } else {
+        return "todo";
+        }
     }
     /**
      * @param ?\Sivujetti\TheWebsite\Entities\TheWebsite $site = null
      * @return string
      */
     public function jsFiles(?TheWebsite $site = null): string {
+        if (!defined("USE_NEW_RENDER_FEAT")) {
         return (
             // Scripts defined by the dev
             ($this->__cssAndJsFiles ? implode("\n", array_map(function ($f) {
@@ -330,6 +347,43 @@ final class WebPageAwareTemplate extends Template {
                 ? ""
                 : "\n{$site->footHtml}\n")
         );
+        } else {
+        return (
+            // Include these if there's dev scripts _or_ edit mode is on (since sivujetti-webpage-renderer-app-main.js always imports '@sivujetti-commons-for-web-pages')
+            (count($this->__cssAndJsFiles->js) || $this->__useEditModeMarkup
+                ? (self::generateImportMap() . "\n" .
+                    "<script>{$this->generateSivujettiEnvConfJs()}</script>\n")
+                : ""
+            ) .
+            // Scripts defined by the dev
+            ($this->__cssAndJsFiles ? implode("\n", array_map(function ($f) {
+                if (str_starts_with($f->url, "sivujetti/sivujetti-commons-for-web-pages.js"))
+                    return "";
+                //
+                $url = $this->assetUrl("public/{$this->e($f->url)}");
+                return "<script src=\"{$url}\"{$this->attrMapToStr($f->attrs)}></script>";
+            }, $this->__cssAndJsFiles->js)) : "") .
+            // WebPageRendererApp
+            ($this->__useEditModeMarkup
+                ? ("\n<script src=\"".($this->assetUrl("public/sivujetti/vendor/preact.min.js"))."\"></script>" .
+                    (SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE
+                        ? (
+                            "<script>window.__pageDataDebugOnly = " . self::escInlineJs(JsonUtils::stringify($this->__internal["dataForPreviewApp"])) . "</script>" .
+                            "<script type=\"module\">import mountWebPageRendererApp from '{$this->assetUrl("public/v2/sivujetti-webpage-renderer-app-main.js")}';" .
+                            "mountWebPageRendererApp(window.__pageDataDebugOnly)</script>"
+                        )
+                        : (
+                            "<script type=\"module\">import mountWebPageRendererApp from '{$this->assetUrl("public/v2/sivujetti-webpage-renderer-app-main.js")}';" .
+                            "mountWebPageRendererApp(" . self::escInlineJs(JsonUtils::stringify($this->__internal["dataForPreviewApp"])) . ")</script>"
+                        ))
+                    )
+                : "") .
+            // theWebsite->footHtml
+            (($this->__useEditModeMarkup || !($site = $site ?? $this->__locals["site"]))
+                ? ""
+                : "\n{$site->footHtml}\n")
+        );
+        }
     }
     /**
      * https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements
@@ -365,6 +419,18 @@ final class WebPageAwareTemplate extends Template {
             "color" => "#" . implode("", $value->value),
             default => throw new PikeException("Bad variable", PikeException::BAD_INPUT),
         };
+    }
+    /**
+     * @return string
+     */
+    protected function generateSivujettiEnvConfJs(): string {
+        return (
+            "window.sivujettiEnvConfig = " . self::escInlineJs(JsonUtils::stringify([
+                "baseUrl" => $this->makeUrl("/", true),
+                "assetBaseUrl" => $this->makeUrl("/", false),
+                "cacheBustStr" => explode("v=", $this->assetUrl("/"))[1] ?? "",
+            ])) . ";"
+        );
     }
     /**
      * @param \Sivujetti\Page\Entities\Page $page
@@ -471,5 +537,10 @@ final class WebPageAwareTemplate extends Template {
             "  letter-spacing: 2px;",
             "}",
         ]);
+    }
+    private static function generateImportMap(): string {
+        return "<script type=\"importmap\">{\"imports\": {
+            \"@sivujetti-commons-for-web-pages\": \"./public/v2/sivujetti-commons-for-web-pages.js\"
+        }}</script>";
     }
 }

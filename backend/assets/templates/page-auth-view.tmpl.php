@@ -28,7 +28,7 @@
             "@sivujetti-commons-for-web-pages": "./public/v2/sivujetti-commons-for-web-pages.js",
             "@sivujetti-commons-for-edit-app": "./public/v2/sivujetti-commons-for-edit-app.js"
         }}</script>
-        <script><?= $this->printSivujettiEnvConfJs() ?></script>
+        <script><?= $this->generateSivujettiEnvConfJs() ?></script>
         <script>window.translationStringBundles = []</script>
         <script src="<?= $this->assetUrl("public/v2/lang-auth-apps-{$uiLang}.js") ?>"></script>
         <script type="module">

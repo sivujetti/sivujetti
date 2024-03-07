@@ -4,6 +4,7 @@ import columns2BlockType from './block-types/columns2/columns2.js';
 import imageBlockType from './block-types/image/image.js';
 import menuBlockType from './block-types/menu/menu.js';
 import textBlockType from './block-types/text/text.js';
+import pageInfoBlockType from './block-types/pageInfo.js';
 
 blockTypesRegister.setup([
     ['Button',               buttonBlockType],
@@ -11,7 +12,7 @@ blockTypesRegister.setup([
     ['GlobalBlockReference', {name: 'GlobalBlockReference', friendlyName: 'GlobalBlockReference'}],
     ['Image',                imageBlockType],
     ['Menu',                 menuBlockType],
-    ['PageInfo',             {name: 'PageInfo', friendlyName: 'PageInfo'}],
+    ['PageInfo',             pageInfoBlockType],
     ['Section',              {name: 'Section', friendlyName: 'Section'}],
     ['Text',                 textBlockType],
 ]);

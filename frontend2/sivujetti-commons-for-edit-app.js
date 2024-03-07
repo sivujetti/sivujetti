@@ -5,7 +5,7 @@ can be imported by custom plugins (and the edit app).
 import setFocusTo from './commons-for-edit-app/auto-focusers.js';
 import BlockDefaultStylesEditForm from './commons-for-edit-app/BlockDefaultStylesEditForm.jsx';
 import ContextMenu from './commons-for-edit-app/ContextMenu.jsx';
-import FileUploader, {placeholderImageSrc} from './commons-for-edit-app/FileUploader.jsx';
+import FileUploader from './commons-for-edit-app/FileUploader.jsx';
 import {FloatingDialog, currentInstance as floatingDialog} from './commons-for-edit-app/FloatingDialog.jsx';
 import {MenuSection, MenuSectionAbstract} from './commons-for-edit-app/MenuSection.jsx';
 import ScreenSizesVerticalTabs from './commons-for-edit-app/ScreenSizesVerticalTabs.jsx';
@@ -19,6 +19,8 @@ import {
 import Signals from './shared-includes/Signals.js';
 import './commons-for-edit-app/populate-block-types-map.js';
 import {translator} from './commons-for-edit-app/edit-app-singletons.js';
+import {makePath, makeSlug} from './commons-for-edit-app/local-url-utils.js';
+
 import {
     __,
     api,
@@ -60,6 +62,7 @@ import {
     doubleNormalizeUrl,
     getVisibleSlug,
 } from './commons-for-edit-app/pick-url-utils.js';
+import {placeholderImageSrc} from './shared-inline.js';
 
 export {
     __,
@@ -92,6 +95,8 @@ export {
     InputErrors,
     isUndoOrRedo,
     LoadingSpinner,
+    makePath,
+    makeSlug,
     mediaScopes,
     MenuSection,
     MenuSectionAbstract,

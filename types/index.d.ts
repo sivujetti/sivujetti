@@ -323,6 +323,8 @@ interface ContextMenuLink {
 
 type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/swap'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undo'|'theBlockTree/undoUpdateDefPropsOf'|'theBlockTree/deleteBlock'|'theBlockTree/addBlockOrBranch'|'theBlockTree/undoAdd(Drop)Block'|'theBlockTree/updatePropsOf'|'theBlockTree/updateDefPropsOf'|'theBlockTree/cloneItem'|'theBlockTree/convertToGbt';
 
+type blockPropValueChangeFlags = 'is-throttled'|'is-group'|null;
+
 interface BlockEditFormProps {
     getBlockCopy(): RawBlock;
     blockId: String;
@@ -533,3 +535,22 @@ interface StyleChunk {
 }
 
 type mediaScope = 'all'|'960'|'840'|'600'|'480'|String;
+
+type stateChangeContext = 'initial'|'push'|'undo'|'redo';
+
+interface StateChangeUserContext {
+    event?: String;
+    [otherData: String]; any;
+}
+
+interface StateHistory {
+    channelName: String;
+    initial: any;
+    first: any|null;
+    latest: any|null;
+}
+
+interface SaveButtonChannelHandler {
+    handleStateChange(state: any, userCtx: StateChangeUserContext|null, context: stateChangeContext): any;
+    syncToBackend(stateHistory: StateHistory, otherHistories: Array<StateHistory>): Promise<Boolean|any>;
+}

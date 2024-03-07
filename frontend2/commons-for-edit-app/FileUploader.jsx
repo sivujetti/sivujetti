@@ -11,8 +11,7 @@ import {
 } from './internal-wrapper.js';
 import ContextMenu from './ContextMenu.jsx';
 import UploadButton from './UploadButton.jsx';
-
-const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=';
+import {placeholderImageSrc} from '../shared-inline.js';
 
 const UPLOADS_DIR_PATH = 'public/uploads/';
 
@@ -365,4 +364,3 @@ function getListItemSettings(displayAsGrid, mode) {
 }
 
 export default FileUploader;
-export {placeholderImageSrc};

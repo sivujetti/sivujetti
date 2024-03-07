@@ -131,13 +131,13 @@ let doReRenderLinkedMenu;
 // ##                 <Textarea vm={ this } prop="description" id="pageDescription" ref={ this.descriptionEl }/>
 // ##                 <InputErrors vm={ this } prop="description"/>
 // ##             </FormGroup>
-            { this.ownFields ? this.ownFields.map(field =>
-                <ManyToManyField
-                    field={ field }
-                    emitChanges={ this.emitChanges.bind(this) }
-                    key={ field.name }/>
-            ) : null }
-        </div>;
+// ##             { this.ownFields ? this.ownFields.map(field =>
+// ##                 <ManyToManyField
+// ##                     field={ field }
+// ##                     emitChanges={ this.emitChanges.bind(this) }
+// ##                     key={ field.name }/>
+// ##             ) : null }
+// ##         </div>;
 // ##     }
 // ##     /**
 // ##      * @param {(pageToMutate: Page) => void} mutateProps

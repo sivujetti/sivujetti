@@ -11,14 +11,15 @@ import {
     reHookValues,
     Textarea,
     unhookForm,
-} from '../internal-wrapper.js';
-import {env, urlUtils} from '../edit-app-singletons.js';
-import setFocusTo from '../auto-focusers.js';
-import {isUndoOrRedo, timingUtils} from '../utils.js';
-import {makePath, makeSlug} from '../local-url-utils.js';
-import {urlValidatorImpl} from '../validation.js';
-import ImagePicker from '../ImagePicker.jsx';
-import {completeImageSrc} from '../../shared-inline.js';
+} from '../../internal-wrapper.js';
+import {env, urlUtils} from '../../edit-app-singletons.js';
+import setFocusTo from '../../auto-focusers.js';
+import {isUndoOrRedo, timingUtils} from '../../utils.js';
+import {makePath, makeSlug} from '../../local-url-utils.js';
+import {urlValidatorImpl} from '../../validation.js';
+import ImagePicker from '../../ImagePicker.jsx';
+import {completeImageSrc} from '../../../shared-inline.js';
+import ManyToManyField from './ManyToManyField.jsx';
 
 let throttler;
 
@@ -123,6 +124,12 @@ class PageInfoBlockEditForm extends preact.Component {
                 <Textarea vm={ this } prop="description" id="pageDescription" ref={ this.descriptionEl }/>
                 <InputErrors vm={ this } prop="description"/>
             </FormGroup>
+            { this.ownFields ? this.ownFields.map(field =>
+                <ManyToManyField
+                    field={ field }
+                    emitChanges={ handleValuesChanged }
+                    key={ field.name }/>
+            ) : null }
         </div>;
     }
     /**

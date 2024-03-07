@@ -188,11 +188,11 @@ interface RelPage {
     title: String;
     slug: String;
     path: String;
+    type: String;
 }
 
 interface Page extends RelPage {
     level: Number;
-    type: String;
     layoutId: String;
     status: Number;
     isPlaceholderPage: Boolean;

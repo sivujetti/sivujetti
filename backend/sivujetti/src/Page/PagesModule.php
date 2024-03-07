@@ -13,8 +13,8 @@ final class PagesModule {
             [PagesController::class, "renderPlaceholderPage", ["identifiedBy" => ["create", "pages"],
                                                                "allowMissingRequestedWithHeader" => true]]
         );
-        $router->map("POST", "/api/pages/[w:pageType]/quick",
-            [PagesController::class, "createPageQuick", ["consumes" => "application/json",
+        $router->map("POST", "/api/pages/[w:pageType]/upsert-quick",
+            [PagesController::class, "upsertPageQuick", ["consumes" => "application/json",
                                                         "identifiedBy" => ["create", "pages"]]]
         );
         $router->map("POST", "/api/pages/[w:pageType]",

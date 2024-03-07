@@ -4,6 +4,7 @@ namespace Sivujetti\Page;
 
 use MySite\Theme as UserTheme;
 use Pike\{AppConfig, ArrayUtils, Db, Injector, PikeException, Request, Response, Validation};
+use Pike\Db\FluentDb2;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\PageTypeValidator;
 use Sivujetti\PageType\Entities\PageType;
@@ -258,19 +259,21 @@ final class PagesController {
                                 "insertId" => $pagesRepo->getLastInsertId()]);
     }
     /**
-     * POST /api/pages/[w:pageType]/quick: Inserts a new page with defaults to
-     * the database.
+     * POST /api/pages/[w:pageType]/upsert-quick: Inserts new page to the database
+     * using the default data.
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\Page\PagesRepository2 $pagesRepo
+     * @param \Pike\Db\FluentDb2 $fluentDb
      * @param \Sivujetti\Page\PagesRepository $pagesRepoOld
      * @param \Sivujetti\Block\BlocksInputValidatorScanner $scanner
      * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
      */
-    public function createPageQuick(Request $req,
+    public function upsertPageQuick(Request $req,
                                     Response $res,
                                     PagesRepository2 $pagesRepo,
+                                    FluentDb2 $fluentDb,
                                     PagesRepository $pagesRepoOld,
                                     BlocksInputValidatorScanner $scanner,
                                     LayoutsRepository $layoutsRepo): void {
@@ -299,10 +302,16 @@ final class PagesController {
             $data->{$field->name} = $page->{$field->name};
         }
         //
-        $numRows = $pagesRepo->insert($pageType)->values($data)->execute(return: "numRows");
-        $ok = $numRows === 1;
-        $res->status($ok ? 201 : 200)->json(["ok" => $ok ? "ok" : "err",
-                                                "numAffectedRows" => $numRows]);
+        if (!defined("USE_NEW_FLUENT_DB")) {
+            $numRows = $pagesRepo->insert($pageType)->values($data)->execute(return: "numRows");
+            [$status, $ok] = $numRows === 1 ? [201, "ok"] : [200, "err"];
+            $res->status($status)->json(["ok" => $ok,  "numAffectedRows" => $numRows]);
+        } else {
+            $fluentDb->insert("\${p}{$pageType->name}", orReplace: true)
+                ->values($data)
+                ->execute(return: "numRows");
+            $res->status(200)->json(["ok" => "ok"]);
+        }
     }
     /**
      * GET /api/pages/[w:pageType]/[w:pageSlug]: Returns 200 & page with slug

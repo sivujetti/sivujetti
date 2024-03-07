@@ -8,6 +8,7 @@ import toasters from '../includes/toasters.jsx';
 const handlerFactoriesMap = {
     currentPageDataBundle: createCurrentPageDataBundleChannelHandler,
     globalBlockTrees: createGlobalBlockTreesChannelHandler,
+    quicklyAddedPages: createQuicklyAddedPagesChannelHandler,
     reusableBranches: createReusableBranchesChannelHandler,
     stylesBundle: createStylesBundleChannelHandler,
     theBlockTree: createBlockTreeChannelHandler,
@@ -25,7 +26,7 @@ function createStylesBundleChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns Promise<Boolean|any>
+         * @returns {Promise<Boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
         }
@@ -44,7 +45,7 @@ function createBlockTreeChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns Promise<Boolean|any>
+         * @returns {Promise<Boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
         },
@@ -64,7 +65,7 @@ function createReusableBranchesChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns Promise<Boolean|any>
+         * @returns {Promise<Boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
             // todo
@@ -84,11 +85,58 @@ function createGlobalBlockTreesChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns Promise<Boolean|any>
+         * @returns {Promise<Boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
         }
     };
+}
+
+function createQuicklyAddedPagesChannelHandler() {
+    return {
+        /**
+         * @param {any} _state
+         * @param {StateChangeUserContext|null} _userCtx
+         * @param {stateChangeContext} _context
+         */
+        handleStateChange(_state, _userCtx, _context) {
+            // Do nothing
+        },
+        /**
+         * @param {StateHistory} stateHistory
+         * @param {Array<StateHistory>} _otherHistories
+         * @returns {Promise<Boolean|any>}
+         */
+        syncToBackend(stateHistory, _otherHistories) {
+            const saveable = createSaveableQuickPages(stateHistory);
+            return Promise.all(saveable.map(({arg}) =>
+                http.post(`/api/pages/${arg.type}/upsert-quick`, arg)
+            )).then(results =>
+                results.every(resp => resp?.ok === 'ok')
+            );
+        }
+    };
+}
+/**
+ * @param {StateHistory} stateHistory
+ * @returns {Array<{type: 'upsert'; arg: RelPage;}>}
+ */
+function createSaveableQuickPages({initial, latest}) {
+    const out = [];
+    for (const compactPage of latest) {
+        const fromInitial = initial.find(({id}) => id === compactPage.id);
+        if (!fromInitial || JSON.stringify(fromInitial) !== JSON.stringify(compactPage))
+            out.push({type: 'upsert', arg: compactPage});
+    }
+    const includeDeletables = false;
+    if (includeDeletables) {
+    for (const compactPage of initial) {
+        const fromLatest = latest.find(({id}) => id === compactPage.id);
+        if (!fromLatest)
+            out.push({type: 'delete', arg: compactPage.id});
+    }
+    }
+    return out;
 }
 
 function createCurrentPageDataBundleChannelHandler() {

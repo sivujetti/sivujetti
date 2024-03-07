@@ -140,32 +140,32 @@ function reusableBranchesStore(store) {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-
-
-function pagesListingsStore(store) {
-    store.on('pagesListings/setAll',
-    /**
-     * @param {Object} state
-     * @param {[Array<RelPage>]} args
-     * @returns {Object}
-     */
-    (_state, [pagesListings]) =>
-        ({pagesListings})
-    );
-
-    store.on('pagesListings/addItem',
-    /**
-     * @param {Object} state
-     * @param {[RelPage]} args
-     * @returns {Object}
-     */
-    ({pagesListings}, [newItem]) =>
-        ({pagesListings: [...pagesListings, newItem]})
-    );
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
+// ## 
+// ## 
+// ## function pagesListingsStore(store) {
+// ##     store.on('pagesListings/setAll',
+// ##     /**
+// ##      * @param {Object} state
+// ##      * @param {[Array<RelPage>]} args
+// ##      * @returns {Object}
+// ##      */
+// ##     (_state, [pagesListings]) =>
+// ##         ({pagesListings})
+// ##     );
+// ## 
+// ##     store.on('pagesListings/addItem',
+// ##     /**
+// ##      * @param {Object} state
+// ##      * @param {[RelPage]} args
+// ##      * @returns {Object}
+// ##      */
+// ##     ({pagesListings}, [newItem]) =>
+// ##         ({pagesListings: [...pagesListings, newItem]})
+// ##     );
+// ## }
+// ## 
+// ## 
+// ## ////////////////////////////////////////////////////////////////////////////////
 // ## 
 // ## 
 // ## function theWebsiteStore(store) {
@@ -198,31 +198,31 @@ const mainStore = createStoreon([
     reusableBranchesStore,
     theWebsiteStore,
     theBlockTreeStore,
-    pagesListingsStore,
+// ##     pagesListingsStore,
 ]);
 
-/**
- * @param {String} namespace
- * @param {(state: Object, eventInfo: [String, Array<any>, Object]) => void} fn
- * @returns {() => void} unregister
- */
-function observeStore(namespace, fn) {
-    let nextChangeArgs = null;
-    const unreg1 = mainStore.on('@dispatch', (_state, args) => {
-        if (!nextChangeArgs && args[0] !== '@changed' && args[0].startsWith(`${namespace}/`))
-            nextChangeArgs = args; // [String, any]
-    });
-    const unreg2 = mainStore.on('@changed', (state, changes) => {
-        if (nextChangeArgs) {
-            fn(state, nextChangeArgs.concat(changes));
-            nextChangeArgs = null;
-        }
-    });
-    return () => {
-        unreg2();
-        unreg1();
-    };
-}
-
-export default mainStore;
-export {observeStore};
+// ## /**
+// ##  * @param {String} namespace
+// ##  * @param {(state: Object, eventInfo: [String, Array<any>, Object]) => void} fn
+// ##  * @returns {() => void} unregister
+// ##  */
+// ## function observeStore(namespace, fn) {
+// ##     let nextChangeArgs = null;
+// ##     const unreg1 = mainStore.on('@dispatch', (_state, args) => {
+// ##         if (!nextChangeArgs && args[0] !== '@changed' && args[0].startsWith(`${namespace}/`))
+// ##             nextChangeArgs = args; // [String, any]
+// ##     });
+// ##     const unreg2 = mainStore.on('@changed', (state, changes) => {
+// ##         if (nextChangeArgs) {
+// ##             fn(state, nextChangeArgs.concat(changes));
+// ##             nextChangeArgs = null;
+// ##         }
+// ##     });
+// ##     return () => {
+// ##         unreg2();
+// ##         unreg1();
+// ##     };
+// ## }
+// ## 
+// ## export default mainStore;
+// ## export {observeStore};

@@ -3,8 +3,8 @@ import buttonBlockType from './block-types/button/button.js';
 import columns2BlockType from './block-types/columns2/columns2.js';
 import imageBlockType from './block-types/image/image.js';
 import menuBlockType from './block-types/menu/menu.js';
+import pageInfoBlockType from './block-types/page-info/pageInfo.js';
 import textBlockType from './block-types/text/text.js';
-import pageInfoBlockType from './block-types/pageInfo.js';
 
 blockTypesRegister.setup([
     ['Button',               buttonBlockType],

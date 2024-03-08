@@ -117,16 +117,16 @@ const blockTreeUtils = {
     /**
      * @param {Array<Object>} branch
      * @param {(item: Object, i: Number, parent: Object|null, parentIdPath: String) => any} fn
-     * @param {Number} parentI = 0
+     * @param {Object} parent = null
      * @param {String} parentIdPath = ''
      * @returns {Array<Object>}
      * @access public
      */
-    traverseRecursively(branch, fn, parent = null, parentIdPath = '') {
+    traverseWithIdRecursively(branch, fn, parent = null, parentIdPath = '') {
         branch.forEach((b, i) => {
             fn(b, i, parent, parentIdPath);
             if (b.children.length) {
-                this.traverseRecursively(b.children, fn, b, `${parentIdPath}/${b.id}`);
+                this.traverseWithIdRecursively(b.children, fn, b, `${parentIdPath}/${b.id}`);
             }
         });
     },

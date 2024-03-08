@@ -5,6 +5,7 @@ Included by backend/sivujetti/src/Page/WebPageAwareTemplate.php jsFiles().
 
 import ReRenderingWebPage from './webpage-renderer-app/ReRenderingWebPage.jsx';
 
+
 /**
  * Mounts <ReRenderingWebPage/> to document.body.
  *

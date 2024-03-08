@@ -1,5 +1,7 @@
 import {
     api,
+    LoadingSpinner,
+    traverseRecursively,
 } from '../../../sivujetti-commons-unified.js';
 import createDndController, {callGetBlockPropChangesEvent} from '../../includes/create-block-tree-dnd-controller.js';
 import TreeDragDrop from '../../includes/TreeDragDrop.js';
@@ -60,7 +62,7 @@ class BlockTree extends preact.Component {
                             draggable><div class="d-flex">&nbsp;</div></li>)
                         : <li>-</li>
                 }</ul>
-                : '?'
+                : <LoadingSpinner className="ml-1 pl-2"/>
             }
             <ContextMenu
                 links={ [
@@ -295,7 +297,7 @@ class BlockTree extends preact.Component {
 function duplicateDeepAndReAssignIds(block) { // where to put this 
     const out = objectUtils.cloneDeep(block);
     console.log('bef',{...out});
-    blockTreeUtils.traverseRecursively([out], bRef => {
+    traverseRecursively([out], bRef => {
         bRef.id = generateShortId();
     });
     console.log('then',{...out});
@@ -309,11 +311,11 @@ function duplicateDeepAndReAssignIds(block) { // where to put this
  */
 function flattenBlocksRecursive(original, cloned) {
     const flatOriginal = [];
-    blockTreeUtils.traverseRecursively([original], b1 => {
+    traverseRecursively([original], b1 => {
         flatOriginal.push(b1);
     });
     const flatCloned = [];
-    blockTreeUtils.traverseRecursively([cloned], b2 => {
+    traverseRecursively([cloned], b2 => {
         flatCloned.push(b2);
     });
     return [flatOriginal, flatCloned];

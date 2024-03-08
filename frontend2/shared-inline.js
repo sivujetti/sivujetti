@@ -51,9 +51,23 @@ function completeImageSrc(src, urlUtils) {
     ) ? src : `//${src}`;
 }
 
+/**
+ * @param {Array<Object>} branch
+ * @param {(item: Object, i: Number, parent: Object|null) => any} fn
+ * @param {Object} parent = null
+ */
+function traverseRecursively(branch, fn, parent = null) {
+    branch.forEach((itm, i) => {
+        fn(itm, i, parent);
+        if (itm.children.length)
+            traverseRecursively(itm.children, fn, itm);
+    });
+}
+
 export {
     completeImageSrc,
     getNormalizedInitialHoverCandidate,
     getMetaKey,
     placeholderImageSrc,
+    traverseRecursively,
 };

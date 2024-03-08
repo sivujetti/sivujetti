@@ -554,3 +554,9 @@ interface SaveButtonChannelHandler {
     handleStateChange(state: any, userCtx: StateChangeUserContext|null, context: stateChangeContext): any;
     syncToBackend(stateHistory: StateHistory, otherHistories: Array<StateHistory>): Promise<Boolean|any>;
 }
+
+interface BlockRendererProps {
+    block: RawBlock;
+    createDefaultProps(customClasses: String = null): {[attrName: String]: String;};
+    renderChildren(): preact.ComponentChildren;
+}

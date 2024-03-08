@@ -21,7 +21,7 @@ final class SharedAPIContext {
     private array $eventListeners;
     /** @var array<string, callable[]> */
     private array $filters;
-    /** @var object @see \Sivujetti\App::create()  */
+    /** @var object @see Sivujetti\Boot\BootModule->loadEssentialsIfNotLoaded()  */
     public BlockTypes $blockTypes;
     /** @var object {"css" => object[], "js" => object[]} @see \Sivujetti\UserTheme\UserThemeAPI->enqueueCss|JsFile() */
     public object $userDefinedAssets;

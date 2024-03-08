@@ -14,6 +14,7 @@ $config = require "config.php";
 $loader = require SIVUJETTI_BACKEND_PATH . "vendor/autoload.php";
 $loader->addPsr4("MySite\\", SIVUJETTI_SITE_PATH);
 $loader->addPsr4("SitePlugins\\", SIVUJETTI_PLUGINS_PATH);
+if (defined("USE_NEW_RENDER_FEAT")) require_once SIVUJETTI_BACKEND_PATH . "sivujetti/src/v-node-funcs.php";
 
 $myExceptionHandler = function ($e) {
     http_response_code(500);

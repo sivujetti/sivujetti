@@ -20,7 +20,6 @@ import Signals from './shared-includes/Signals.js';
 import './commons-for-edit-app/populate-block-types-map.js';
 import {translator} from './commons-for-edit-app/edit-app-singletons.js';
 import {makePath, makeSlug} from './commons-for-edit-app/local-url-utils.js';
-
 import {
     __,
     api,
@@ -62,7 +61,8 @@ import {
     doubleNormalizeUrl,
     getVisibleSlug,
 } from './commons-for-edit-app/pick-url-utils.js';
-import {placeholderImageSrc} from './shared-inline.js';
+import {placeholderImageSrc, traverseRecursively} from './shared-inline.js';
+import Popup from './commons-for-edit-app/Popup.jsx';
 
 export {
     __,
@@ -102,6 +102,7 @@ export {
     MenuSectionAbstract,
     objectUtils,
     placeholderImageSrc,
+    Popup,
     putToLocalStorage,
     reHookValues,
     ScreenSizesVerticalTabs,
@@ -115,6 +116,7 @@ export {
     Textarea,
     timingUtils,
     translator,
+    traverseRecursively,
     unhookForm,
     UploadButton,
     urlUtils,

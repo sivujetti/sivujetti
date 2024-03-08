@@ -1,4 +1,5 @@
 <?php
+// @deprecated, see src/BlockType/MenuBlockType->render()
 // Note: this block does not escape $props->* since they're pre-validated.
 echo str_replace("{defaultAttrs}",
                  " class=\"j-" . \Sivujetti\Block\Entities\Block::TYPE_MENU .

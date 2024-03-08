@@ -11,6 +11,12 @@ use Sivujetti\Page\Entities\Page;
 use Sivujetti\Theme\ThemesController;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
+use function Sivujetti\renderVNodes;
+use function Sivujetti\createElement as el;
+
+/*
+ * @psalm-import-type VNode from Sivujetti\BlockType\JsxLikeRenderingBlockTypeInterface
+ */
 final class WebPageAwareTemplate extends Template {
     /** @var ?object */
     private ?object $__cssAndJsFiles;
@@ -184,11 +190,7 @@ final class WebPageAwareTemplate extends Template {
      * @return string
      */
     public function renderBlocks(array $blocks): string {
-        if (defined("USE_NEW_RENDER_FEAT")) {
-            if ($this->__useEditModeMarkup)
-                return ""; // rendered by frontend2/webpage-renderer-app/ReRenderingWebPage.jsx
-            return "todo";
-        }
+        if (!defined("USE_NEW_RENDER_FEAT")) {
         $out = "";
         $emptyString = !$this->__useEditModeMarkup ? "" : null;
         foreach ($blocks as $block)
@@ -199,6 +201,45 @@ final class WebPageAwareTemplate extends Template {
                         $this->renderBlocks($block->__globalBlockTree->blocks) .
                     ($emptyString ?? "<!-- block-end {$block->id} -->")
                 );
+        return $out;
+        } else {
+        if ($this->__useEditModeMarkup)
+            return ""; // rendered by frontend2/webpage-renderer-app/ReRenderingWebPage.jsx
+        $vnodes = $this->__doRenderBlocks($blocks);
+        return renderVNodes($vnodes);
+        }
+    }
+    /**
+     * @param \Sivujetti\Block\Entities\Block[] $blocks
+     * @return array<int, array>
+     * @psalm-return array<int, VNode>
+     */
+    private function __doRenderBlocks(array $blocks): array {
+        $out = [];
+        $blockTypes = $this->__internal["blockTypes"];
+        foreach ($blocks as $block) {
+            if ($block->type === Block::TYPE_PAGE_INFO)
+                continue;
+            //
+            if ($block->type === Block::TYPE_GLOBAL_BLOCK_REF) {
+                $out[] = $this->__doRenderBlocks($block->__globalBlockTree->blocks)[0];
+                continue;
+            }
+            //
+            if ($block->renderer === "jsx") {
+                $createDefaultProps = fn($ownClasses = "") => [
+                    "data-block" => $block->id,
+                    "data-block-type" => $block->type,
+                    "class" => "j-{$block->type}" .
+                        ($ownClasses ? " {$ownClasses}" : "") .
+                        ($block->styleClasses ? " {$block->styleClasses}" : ""),
+                ];
+                $renderChildren = fn() => $block->children ? $this->__doRenderBlocks($block->children) : [""];
+                $out[] = $blockTypes->{$block->type}->render($block, $createDefaultProps, $renderChildren, $this);
+            } else {
+                $out[] = el(":raw", [], [$this->partial($block->renderer, $block)]);
+            }
+        }
         return $out;
     }
     /**

@@ -1,3 +1,6 @@
+import {
+    traverseRecursively,
+} from '../../../sivujetti-commons-unified.js';
 /**
  * @param {Array<RawBlock>} newBlocks
  * @param {Object} previousState = {}
@@ -25,11 +28,11 @@ function createTreeState(tree, previousTreeState) {
             out[block.id] = clone;
         }
     };
-    blockTreeUtils.traverseRecursively(tree, (block, _i, paren) => {
+    traverseRecursively(tree, (block, _i, paren) => {
         if (block.type !== 'GlobalBlockReference')
             addItem(block, paren);
         else
-            blockTreeUtils.traverseRecursively(block.__globalBlockTree.blocks, (block2, _i2, paren2) => {
+            traverseRecursively(block.__globalBlockTree.blocks, (block2, _i2, paren2) => {
                 addItem(block2, paren2);
             });
     });

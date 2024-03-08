@@ -485,7 +485,7 @@ final class PagesController {
         $theWebsite->activeTheme->loadStyles($editModeIsOn);
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
-            ["serverHost" => self::getServerHost($req)],
+            ["serverHost" => self::getServerHost($req), "currentUrl" => $req->path],
             env: $appEnv->constants,
             apiCtx: $apiCtx,
             theWebsite: $theWebsite,

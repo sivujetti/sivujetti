@@ -1,4 +1,5 @@
 <?php use Sivujetti\Block\Entities\Block;
+// @deprecated, see src/BlockType/TextBlockType->render()
 if ($props->type === Block::TYPE_TEXT):
     echo "<div class=\"j-", Block::TYPE_TEXT,
         ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),

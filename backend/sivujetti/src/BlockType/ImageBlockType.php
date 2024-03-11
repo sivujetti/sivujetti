@@ -4,6 +4,8 @@ namespace Sivujetti\BlockType;
 
 use Sivujetti\Page\WebPageAwareTemplate;
 
+use function Sivujetti\createElement as el;
+
 class ImageBlockType implements BlockTypeInterface {
     const PLACEHOLDER_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=";
     /**
@@ -18,6 +20,22 @@ class ImageBlockType implements BlockTypeInterface {
             ->newProperty("altText", $builder::DATA_TYPE_TEXT)
             ->newProperty("caption", $builder::DATA_TYPE_TEXT)
             ->getResult();
+    }
+    /**
+     * @inheritdoc
+     */
+    public function render(object $block, 
+                           \Closure $createDefaultProps, 
+                           \Closure $renderChildren,
+                           WebPageAwareTemplate $tmpl): array {
+        return el("figure", $createDefaultProps(),
+            el("img", [
+                "src" => $block->src ? $tmpl->maybeExternalMediaUrl($block->src) : self::PLACEHOLDER_SRC,
+                "alt" => $block->altText,
+            ], ""),
+            $block->caption ? el("figcaption", null, $block->caption) : "",
+            ...$renderChildren()
+        );
     }
     /**
      * @param \Sivujetti\Page\WebPageAwareTemplate $tmpl

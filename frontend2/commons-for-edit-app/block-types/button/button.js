@@ -10,7 +10,7 @@ export default {
     stylesEditForm: ButtonBlockDefaultStylesEditForm,
     createOwnProps(/*defProps*/) {
         return {
-            html: [__('Button text')],
+            html: __('Button text'),
             linkTo: '/',
             tagType: 'link',
         };

@@ -8,6 +8,7 @@ if ($props->type === Block::TYPE_TEXT):
         $props->html, // @allow pre-validated html
         $this->renderChildren($props),
     "</div>";
+// @deprecated, see src/BlockType/ImageBlockType->render()
 elseif ($props->type === Block::TYPE_IMAGE):
     echo "<figure class=\"j-", Block::TYPE_IMAGE,
         ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),
@@ -25,6 +26,7 @@ elseif ($props->type === Block::TYPE_IMAGE):
             : "",
         $this->renderChildren($props),
     "</figure>";
+// @deprecated, see src/BlockType/ButtonBlockType->render()
 elseif ($props->type === Block::TYPE_BUTTON):
     [$start, $close] = match ($props->tagType) {
         "button" => ["<button type=\"button\"", "</button>"],

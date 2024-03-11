@@ -1,7 +1,41 @@
+import {urlAndSlugUtils} from '@sivujetti-commons-for-web-pages';
 import {
+    completeImageSrc,
     traverseRecursively,
 } from '../shared-inline.js';
 
+
+class ButtonBlock extends preact.Component {
+    /**
+     * @param {BlockRendererProps} props
+     * @access protected
+     */
+    render({block, createDefaultProps, renderChildren}) {
+        const [El, attrs] = block.tagType !== 'link'
+            ? ['button', {type: block.tagType}]
+            : ['a',      {href: urlAndSlugUtils.getCompletedUrl(block.linkTo)}];
+        return <El { ...createDefaultProps('btn') }{ ...attrs }>
+            { block.html }
+            { renderChildren() }
+        </El>;
+    }
+}
+
+class ImageBlock extends preact.Component {
+    /**
+     * @param {BlockRendererProps} props
+     * @access protected
+     */
+    render({block, renderChildren, createDefaultProps}) {
+        return <figure { ...createDefaultProps() }>
+            <img
+                src={ block.src ? completeImageSrc(block.src, urlUtils) : placeholderImageSrc }
+                alt={ block.altText }/>
+            { block.caption ? <figcaption>{ block.caption }</figcaption> : '' }
+            { renderChildren() }
+        </figure>;
+    }
+}
 
 class MenuBlock extends preact.Component {
     /**
@@ -69,6 +103,8 @@ class TextBlock extends preact.Component {
 }
 
 const renderers = {
+    Button: ButtonBlock,
+    Image: ImageBlock,
     Menu: MenuBlock,
     Text: TextBlock,
 };
@@ -122,7 +158,7 @@ class RenderAll extends preact.Component {
         });
         this.currentBlocksHashes = hashes;
 
-        const cloned = noMetas.map(b => ({...b}));
+        const cloned = JSON.parse(JSON.stringify(noMetas));
         traverseRecursively(cloned, block => {
             if (['Text', 'Button'].indexOf(block.type) > -1 && typeof block.html === 'string')
                 block.html = htmlStringToVNodeArray(block.html);

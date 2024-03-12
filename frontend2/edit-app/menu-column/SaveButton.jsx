@@ -1,5 +1,6 @@
 import {__, env, Icon, Signals} from '../../sivujetti-commons-unified.js';
-import {handlerFactoriesMap} from './SaveButtonFuncs.js';
+import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../includes/global-block-trees/repository.js';
+import {createGbtState, getLatestItemsOfEachChannel, getRefBlocksThatHasGbtChanges, handlerFactoriesMap} from './SaveButtonFuncs.js';
 
 const saveButtonSignals = new Signals;
 const saveButtonSignals2 = new Signals;
@@ -20,7 +21,7 @@ class SaveButton extends preact.Component {
     }
     /**
      * @param {String} name
-     * @param {(state: any, userCtx: StateChangeUserContext, context: stateChangeContext) => any} fn
+     * @param {(state: state, userCtx: StateChangeUserContext, context: stateChangeContext) => any} fn
      * @access public
      */
     subscribeToChannel(name, fn) {
@@ -32,7 +33,7 @@ class SaveButton extends preact.Component {
     }
     /**
      * @param {String} name
-     * @param {any} state
+     * @param {state} state
      * @param {Boolean} broadcastInitialStateToListeners = false
      * @access public
      */
@@ -58,7 +59,7 @@ class SaveButton extends preact.Component {
     }
     /**
      * @param {String} channelName
-     * @param {any} state
+     * @param {state} state
      * @param {StateChangeUserContext|null} userCtx = null
      * @param {blockPropValueChangeFlags} flags = null
      * @access public
@@ -165,7 +166,7 @@ class SaveButton extends preact.Component {
     }
     /**
      * @param {String} channelName
-     * @param {any} state
+     * @param {state} state
      * @param {StateChangeUserContext|null} userCtx
      * @param {stateChangeContext} context
      * @access private
@@ -206,56 +207,99 @@ class SaveButton extends preact.Component {
                     }
                 });
             } else { // Got them all
-                this.reset();
+                this.reset(getLatestItemsOfEachChannel(queue));
                 saveButtonSignals2.emit('after-items-synced');
             }
         };
         this.setState({isSubmitting: true});
-        const syncQueue = this.createSynctobackendQueue();
-        next(syncQueue, 0);
-    }
-    /**
-     * @returns {any}
-     * @access private
-     */
-    getHead(channelName) {
-        return (this.states[channelName] || [])[this.stateCursors[channelName]] || null;
-    }
-    /**
-     * @returns {Array<StateHistory>}
-     * @access private
-     */
-    createSynctobackendQueue() {
-        const tmpmap = new Map;
-        for (let i = 0; i < this.opHistoryCursor; ++i) {
-            normalizeItem(this.opHistory[i]).forEach(({channelName}) => {
-                // histV1: if (flags === 'is-initial') return;
-                tmpmap.set(channelName, 1);
-            });
-        }
-        const ordered = [...tmpmap.keys()];
-
-        return ordered.map(channelName => {
-            const pool = this.states[channelName];
-            const afterInitial = 1;
-            const fromFirstToCursor = pool.slice(afterInitial, this.stateCursors[channelName] + afterInitial);
-            return {
-                channelName,
-                initial: pool[0],               // Example 'initial'
-                first: fromFirstToCursor[0],    // Example '1st'
-                latest: fromFirstToCursor.at(-1)  // Example '3rd' (if cursor = 3)
-            };
+        this.createSynctobackendQueue().then(syncQueue => {
+            next(syncQueue, 0);
         });
     }
     /**
+     * @returns {state}
      * @access private
      */
-    reset() {
-        // todo
+    getHead(channelName) {
+        const pool = this.states[channelName] || [];
+        return pool[this.stateCursors[channelName]] || null;
     }
     /**
      * @param {String} channelName
-     * @param {any} initialState
+     * @returns {Array<state>}
+     * @access private
+     */
+    getActiveState(channelName) {
+        const pool = this.states[channelName];
+        const afterInitial = 1;
+        // ['initial', '1st', '2nd', '3rd'] -> ['1st']               (if cursor = 1)
+        // ['initial', '1st', '2nd', '3rd'] -> ['1st', '2nd']        (if cursor = 2)
+        // ['initial', '1st', '2nd', '3rd'] -> ['1st', '2nd', '3rd'] (if cursor = 3)
+        const fromFirstToCursor = pool.slice(afterInitial, this.stateCursors[channelName] + afterInitial);
+        return fromFirstToCursor;
+    }
+    /**
+     * @returns {Promise<Array<StateHistory>>}
+     * @access private
+     */
+    createSynctobackendQueue() {
+        const channelNamesOrdered = this.getHistoryChannelNames();
+        const activeStates = {};
+        const out = channelNamesOrdered.map(channelName => {
+            const fromFirstToCursor = this.getActiveState(channelName);
+            activeStates[channelName] = fromFirstToCursor;
+            return {
+                channelName,
+                initial: this.states[channelName][0], // Example 'initial'
+                first: fromFirstToCursor[0],          // Example '1st'
+                latest: fromFirstToCursor.at(-1)      // Example '3rd' (if cursor = 3)
+            };
+        });
+        const blockTreeStates = activeStates['theBlockTree'];
+        // Found block changes, check if any of them is a global block tree block
+        if (blockTreeStates) {
+            const refBlocksThatHasGbtChanges = getRefBlocksThatHasGbtChanges(blockTreeStates);
+            // Some were -> dynamically create, or patch $out's 'globalBlockTrees' item
+            if (refBlocksThatHasGbtChanges.length) {
+                return fetchOrGetGlobalBlockTrees().then(latestState => {
+                    const dynamicallyCreatedPatchedLatestState = createGbtState(latestState, refBlocksThatHasGbtChanges);
+
+                    const gbtsHistoryItem = out.find(({channelName}) => channelName === 'globalBlockTrees');
+                    if (!gbtsHistoryItem) { // $out didn't even contain 'globalBlockTrees' item, add it
+                        return [...out, {
+                            channelName: 'globalBlockTrees',
+                            initial: this.states['globalBlockTrees'][0],
+                            first: this.getActiveState('globalBlockTrees')[0],
+                            latest: dynamicallyCreatedPatchedLatestState
+                        }];
+                    } else { // patch it
+                        return out.map(item => item !== gbtsHistoryItem ? item : {
+                            ...item,
+                            ...{latest: dynamicallyCreatedPatchedLatestState}
+                        });
+                    }
+                });
+            }
+        }
+        //
+        return Promise.resolve(out);
+    }
+    /**
+     * @param {{[channelName]: state;}} syncedStates Latest / sunced states that were just saved to the backend
+     * @access private
+     */
+    reset(syncedStates) {
+        this.opHistory = [];
+        this.opHistoryCursor = 1;
+
+        this.setState({canUndo: false, canRedo: false});
+        for (const channelName in this.states) {
+            this.clearStateOf(channelName, syncedStates[channelName] || this.getHead(channelName));
+        }
+    }
+    /**
+     * @param {String} channelName
+     * @param {state} initialState
      * @access private
      */
     clearStateOf(channelName, initialState) {
@@ -264,6 +308,19 @@ class SaveButton extends preact.Component {
     }
     removeOpHistoryItemsBetween(from, to) {
         // todo
+    }
+    /**
+     * @returns {Array<String>}
+     * @access private
+     */
+    getHistoryChannelNames() {
+        const map = new Map;
+        for (let i = 0; i < this.opHistoryCursor; ++i) {
+            normalizeItem(this.opHistory[i]).forEach(({channelName}) => {
+                map.set(channelName, 1);
+            });
+        }
+        return [...map.keys()];
     }
 }
 
@@ -288,6 +345,9 @@ function createSignalName(channelName) {
 /**
  * @typedef SaveButtonProps
  * @prop {HTMLElement} editAppOuterEl
+ *
+ *
+ * @typedef {any} state
  *
  * @typedef HistoryItem
  * @prop {String} channelName

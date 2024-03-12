@@ -3,6 +3,7 @@ import {
     http,
     objectUtils,
 } from '../../sivujetti-commons-unified.js';
+import {treeToTransferable} from '../commons/block/utils.js';
 import toasters from '../includes/toasters.jsx';
 
 const handlerFactoriesMap = {
@@ -88,6 +89,12 @@ function createGlobalBlockTreesChannelHandler() {
          * @returns {Promise<Boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
+            const saveable = createSaveableItems(stateHistory);
+            return Promise.all(saveable.map(({arg}) =>
+                http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks})
+            )).then(results =>
+                results.every(resp => resp?.ok === 'ok')
+            );
         }
     };
 }
@@ -108,7 +115,7 @@ function createQuicklyAddedPagesChannelHandler() {
          * @returns {Promise<Boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
-            const saveable = createSaveableQuickPages(stateHistory);
+            const saveable = createSaveableItems(stateHistory);
             return Promise.all(saveable.map(({arg}) =>
                 http.post(`/api/pages/${arg.type}/upsert-quick`, arg)
             )).then(results =>
@@ -116,27 +123,6 @@ function createQuicklyAddedPagesChannelHandler() {
             );
         }
     };
-}
-/**
- * @param {StateHistory} stateHistory
- * @returns {Array<{type: 'upsert'; arg: RelPage;}>}
- */
-function createSaveableQuickPages({initial, latest}) {
-    const out = [];
-    for (const compactPage of latest) {
-        const fromInitial = initial.find(({id}) => id === compactPage.id);
-        if (!fromInitial || JSON.stringify(fromInitial) !== JSON.stringify(compactPage))
-            out.push({type: 'upsert', arg: compactPage});
-    }
-    const includeDeletables = false;
-    if (includeDeletables) {
-    for (const compactPage of initial) {
-        const fromLatest = latest.find(({id}) => id === compactPage.id);
-        if (!fromLatest)
-            out.push({type: 'delete', arg: compactPage.id});
-    }
-    }
-    return out;
 }
 
 function createCurrentPageDataBundleChannelHandler() {
@@ -190,4 +176,83 @@ function toTransferable(page, notTheseKeys = []) { // todo yhdistä jonnekin uti
     return objectUtils.clonePartially(onlyTheseKeys, page);
 }
 
-export {handlerFactoriesMap};
+
+/**
+ * @template T
+ * @param {StateHistory} stateHistory
+ * @returns {Array<{type: 'upsert'; arg: T;}>}
+ */
+function createSaveableItems({initial, latest}) {
+    const out = [];
+    for (const entity of latest) {
+        const fromInitial = initial.find(({id}) => id === entity.id);
+        if (!fromInitial || JSON.stringify(fromInitial) !== JSON.stringify(entity))
+            out.push({type: 'upsert', arg: entity});
+    }
+    const includeDeletables = false;
+    if (includeDeletables) {
+    for (const compactPage of initial) {
+        const fromLatest = latest.find(({id}) => id === compactPage.id);
+        if (!fromLatest)
+            out.push({type: 'delete', arg: compactPage.id});
+    }
+    }
+    return out;
+}
+
+/**
+ * @param {Array<Array<RawBlock>>} blockTreeStates
+ * @returns {Array<RawBlock>}
+ */
+function getRefBlocksThatHasGbtChanges(blockTreeStates) {
+    const map = new Map;
+    for (const item of blockTreeStates) {
+        for (const block of item) {
+            if (block.type === 'GlobalBlockReference' && !map.has(block.globalBlockTreeId))
+                map.set(block.globalBlockTreeId, block);
+        }
+    }
+    return [...map.values()];
+}
+
+/**
+ * Returns a patched $latestState that contains all changes from $refBlocksThatHasGbtChanges.
+ *
+ * @param {Array<RawGlobalBlockTree>} latestState
+ * @param {Array<RawBlock>} refBlocksThatHasGbtChanges
+ * @returns {Array<RawGlobalBlockTree>}
+ */
+function createGbtState(latestState, refBlocksThatHasGbtChanges) {
+    const patchedLatestState = refBlocksThatHasGbtChanges.reduce((patchedLatestState, globalBlockReferenceBlock) =>
+        // Return new [<someGbt>, <someGbt>, ...] -> [<someGbt>, <someGbtWithTheChange>, ...]
+        patchedLatestState.map(gbt =>
+            gbt.id !== globalBlockReferenceBlock.globalBlockTreeId
+                ? gbt
+                : {
+                    ...gbt,
+                    ...{blocks: treeToTransferable(globalBlockReferenceBlock.__globalBlockTree.blocks)}
+                }
+        )
+    , [...latestState]);
+    return objectUtils.cloneDeep(patchedLatestState);
+}
+
+/**
+ * @param {Array<StateHistory>} queue
+ * @returns {{[channelName: String]: state;}}
+ */
+function getLatestItemsOfEachChannel(queue) {
+    const out = {};
+    for (const item of queue) {
+        if (!item.latest) continue;
+        out[item.channelName] = item.latest;
+    }
+    return out;
+}
+
+export {
+    createGbtState,
+    getLatestItemsOfEachChannel,
+    getRefBlocksThatHasGbtChanges,
+    handlerFactoriesMap,
+};

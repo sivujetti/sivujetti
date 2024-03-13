@@ -106,19 +106,19 @@ class WebPagePreviewApp extends preact.Component {
         //
     }
     /**
-     * @param {Array<RawBlock>} theTree
-     * @access public
-     */
-    reRenderAllBlocks(theTree) {
-        //
-    }
-    /**
      * @param {RawBlock} block
      * @param {Array<RawBlock>} theTree
      * @access public
      */
     reRenderBlock(block, theTree) {
-        //
+        this.sendMessageToReRenderer(['reRenderBlock', block, theTree]);
+    }
+    /**
+     * @param {Array<RawBlock>} theTree
+     * @access public
+     */
+    reRenderAllBlocks(theTree) {
+        this.sendMessageToReRenderer(['reRenderAllBlocks', theTree]);
     }
     /**
      * @access protected
@@ -206,6 +206,13 @@ class WebPagePreviewApp extends preact.Component {
             this.messageChannel = null;
         this.messageChannel = new MessageChannel;
         this.setState({url});
+    }
+    /**
+     * @param {[String, ...any]} args
+     * @access private
+     */
+    sendMessageToReRenderer(args) {
+        this.messageChannel?.port1?.postMessage(args);
     }
     /**
      * @param {DOMRect} rect

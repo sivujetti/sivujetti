@@ -34,12 +34,11 @@ class BlockEditForm extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        const blockCopyForEditForm = objectUtils.cloneDeep(this.props.block);
 // --         this.userCanEditVisualStyles = api.user.can('editBlockStylesVisually');
         this.userCanEditCss = api.user.can('editBlockCss');
 // --         this.useVisualStyles = !this.userCanEditCss && this.userCanEditVisualStyles;
-        this.blockType = api.blockTypes.get(blockCopyForEditForm.type);
-// --         this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, 'mainTree');
+        this.blockType = api.blockTypes.get(this.props.block.type);
+        this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(this.props.block.id, 'mainTree');
         this.editFormImpls = [
             this.blockType.editForm,
             ...(!this.blockType.extends ? [] : [api.blockTypes.get(this.blockType.extends).editForm])
@@ -51,13 +50,10 @@ class BlockEditForm extends preact.Component {
         this.setState({
             currentTabIdx,
             ...this.createStylesState(currentTabIdx, api.saveButton.getInstance().getChannelState('stylesBundle')?.id),
-            blockCopyForEditForm,
+            blockCopyForEditForm: objectUtils.cloneDeep(this.props.block),
         });
 
         this.unregistrables = [api.saveButton.getInstance().subscribeToChannel('theBlockTree', (theTree, userCtx, ctx, flags) => {
-            if (!(this.blockType.name === 'Menu' || this.blockType.name === 'Columns2' || this.blockType.name === 'Image' ||
-                this.blockType.name === 'Text')) return;
-
             const event = userCtx?.event || '';
             const doCheckDifference = (event === 'update-single-block-prop' && userCtx?.blockId === this.state.blockCopyForEditForm.id) || ctx === 'undo';
 
@@ -95,10 +91,10 @@ class BlockEditForm extends preact.Component {
      */
     render({block}, {currentTabIdx, blockCopyForEditForm, lastBlockTreeChangeEventInfo}) {
         const isMeta = isMetaBlock(block);
-        const t = isMeta ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
+        const typeid = isMeta ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
         const StylesEditFormCls = this.stylesEditForm;
         return <div data-main>
-            <div class={ `with-icon pb-1${t}` }>
+            <div class={ `with-icon pb-1${typeid}` }>
                 <Icon iconId={ api.blockTypes.getIconId(this.blockType) } className="size-xs mr-1"/>
                 { __(block.title || this.blockType.friendlyName) }
             </div>
@@ -172,7 +168,7 @@ class BlockEditForm extends preact.Component {
     /**
      * @param {{[key: String]: any;}} changes
      * @param {Boolean} hasErrors = false
-     * @param {'is-throttled'|null} flags = null
+     * @param {blockPropValueChangeFlags} flags = null
      * @access public
      */
     handleValueValuesChanged(changes, hasErrors = false, flags = null) {
@@ -183,7 +179,21 @@ class BlockEditForm extends preact.Component {
         saveButton.pushOp(
             'theBlockTree',
             blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                const [blockRef] = blockTreeUtils.findBlock(blockId, newTreeCopy);
+                const [blockRef] = blockTreeUtils.findBlockSmart(blockId, newTreeCopy);
+                /*
+                Note: this mutates block from 1. (main/root tree)
+                [
+                    <mainTreeBlock1>,
+                    <mainTreeBlock2> <------------------- here (main/root tree)
+                ], or 2. (embedded global block tree)
+                [
+                    <mainTreeBlock1>,
+                    <mainTreeBlock2>,
+                    <mainTreeBlockThatIsGbtReference __globalBlockTree: [
+                        <gbtBlock1>,
+                        <gbtBlock2>, <------------------- here
+                    ]>
+                ]*/
                 writeBlockProps(blockRef, changes);
                 return newTreeCopy;
             }),

@@ -1,6 +1,6 @@
-import {__, floatingDialog} from '@sivujetti-commons-for-edit-app';
-import PickUrlDialog, {getHeight} from '../popups/PickUrlDialog.jsx';
-import {determineModeFrom} from './common.js';
+// ## import {__, floatingDialog} from '@sivujetti-commons-for-edit-app';
+// ## import PickUrlDialog, {getHeight} from '../popups/PickUrlDialog.jsx';
+// ## import {determineModeFrom} from './common.js';
 // ## 
 // ## const common = ['bold', 'italic', 'underline', 'strike'];
 // ## const simplest = common.concat('clean');
@@ -68,31 +68,31 @@ import {determineModeFrom} from './common.js';
 // ##                 : {history: {maxStack: 0, userOnly: true,},}),
 // ##             theme: 'snow',
 // ##             sivujettiApi: {openUrlPicker(_linkText, url) {
-                const mode = determineModeFrom(url)[0];
-                const norm = url.split('_edit')[1] || url; // '/sivujetti/index.php?q=/_edit#foo' -> '#foo'
-                                                           // '/sivujetti/index.php?q=/_edit' -> ''
-                floatingDialog.open(PickUrlDialog, {
-                    width: 480,
-                    height: getHeight('default', true)[0],
-                    title: __('Choose a link')
-                }, {
-                    mode,
-                    url: norm,
-                    dialog: floatingDialog,
-                    onConfirm: url2  => {
-                        const {quill} = dhis;
-                        const {scrollTop} = quill.root;
-                        const url3 = url2 || '-';
-                        if (quill.theme.tooltip.linkRange) {
-                            quill.formatText(quill.theme.tooltip.linkRange, 'link', url3, window.Quill.sources.USER);
-                            delete quill.theme.tooltip.linkRange;
-                        } else {
-                            quill.theme.tooltip.restoreFocus();
-                            quill.format('link', url3, window.Quill.sources.USER);
-                        }
-                        quill.root.scrollTop = scrollTop;
-                    },
-                });
+// ##                 const mode = determineModeFrom(url)[0];
+// ##                 const norm = url.split('_edit')[1] || url; // '/sivujetti/index.php?q=/_edit#foo' -> '#foo'
+// ##                                                            // '/sivujetti/index.php?q=/_edit' -> ''
+// ##                 floatingDialog.open(PickUrlDialog, {
+// ##                     width: 480,
+// ##                     height: getHeight('default', true)[0],
+// ##                     title: __('Choose a link')
+// ##                 }, {
+// ##                     mode,
+// ##                     url: norm,
+// ##                     dialog: floatingDialog,
+// ##                     onConfirm: url2  => {
+// ##                         const {quill} = dhis;
+// ##                         const {scrollTop} = quill.root;
+// ##                         const url3 = url2 || '-';
+// ##                         if (quill.theme.tooltip.linkRange) {
+// ##                             quill.formatText(quill.theme.tooltip.linkRange, 'link', url3, window.Quill.sources.USER);
+// ##                             delete quill.theme.tooltip.linkRange;
+// ##                         } else {
+// ##                             quill.theme.tooltip.restoreFocus();
+// ##                             quill.format('link', url3, window.Quill.sources.USER);
+// ##                         }
+// ##                         quill.root.scrollTop = scrollTop;
+// ##                     },
+// ##                 });
 // ##             }},
 // ##         });
 // ##         if (this.props.onInit) this.props.onInit(this);

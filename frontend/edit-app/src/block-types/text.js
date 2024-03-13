@@ -36,7 +36,7 @@
 // ##         const toolbarHeight = this.editor.current.quill.theme.modules.toolbar.container.getBoundingClientRect().height;
 // ##         const subEl = this.getNthEditorNode(info.childIdx);
 // ##         inspectorPanelEl.scrollTo({
-// ##             top: subEl.getBoundingClientRect().top - toolbarHeight + inspectorPanelEl.scrollTop - inspectorPanelEl.getBoundingClientRect().top,
+// ##             top: subEl.getBoundingClientRect().top - toolbarHeight + inspectorPanelEl.scrollTop - inspectorPanelEl.// ## getBoundingClientRect().top,
 // ##             behavior: 'smooth',
 // ##         });
 // ##     }
@@ -68,7 +68,7 @@
 // ##         this.initialHtml = html;
 // ##         this.setState(hookForm(this, [
 // ##             {name: 'html', value: html, validations: [['required'], ['maxLength', validationConstraints.MAX_PROSE_HTML_LENGTH]],
-// ##              label: __('Content'), onAfterValueChanged: (value, hasErrors, source) => { if (source !== 'undo') emitValueChanged(value, 'html', hasErrors, env.// ## ormalTypingDebounceMillis); }},
+// ##              label: __('Content'), onAfterValueChanged: (value, hasErrors, source) => { if (source !== 'undo') emitValueChanged(value, // ## 'html', hasErrors, env.normalTypingDebounceMillis); }},
 // ##         ]));
 // ##         grabChanges((block, _origin, isUndo) => {
 // ##             if (isUndo && this.state.values.html !== block.html)

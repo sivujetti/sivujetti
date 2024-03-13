@@ -1,5 +1,7 @@
 import {
     __,
+    api,
+    blockTreeUtils,
     http,
     objectUtils,
 } from '../../sivujetti-commons-unified.js';
@@ -42,6 +44,10 @@ function createBlockTreeChannelHandler() {
          * @param {stateChangeContext} _context
          */
         handleStateChange(state, userCtx, _context) {
+            if (userCtx?.event === 'update-single-block-prop')
+                api.webPagePreview.reRenderBlock(blockTreeUtils.findBlockSmart(userCtx.blockId)[0], state);
+            else
+                api.webPagePreview.reRenderAllBlocks(state);
         },
         /**
          * @param {StateHistory} stateHistory
@@ -49,6 +55,12 @@ function createBlockTreeChannelHandler() {
          * @returns {Promise<Boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
+            const {page} = api.saveButton.getInstance().getChannelState('currentPageDataBundle');
+            const blocks = treeToTransferable(stateHistory.latest);
+            return doPostOrPut(http.put(
+                `/api/pages/${page.type}/${page.id}/blocks`,
+                {blocks}
+            ));
         },
     };
 }
@@ -176,6 +188,26 @@ function toTransferable(page, notTheseKeys = []) { // todo yhdistä jonnekin uti
     return objectUtils.clonePartially(onlyTheseKeys, page);
 }
 
+/**
+ * @param {Promise<>} httpCall
+ * @returns {Promise<Boolean>}
+ */
+function doPostOrPut(httpCall) {
+    return httpCall
+        .then(resp => {
+            if (resp.ok !== 'ok') throw new Error(typeof resp.err !== 'string' ? '-' : resp.err);
+            return true;
+        })
+        .catch(err => {
+            if (err.message !== 'Not permitted.') {
+                window.console.error(err);
+                toasters.editAppMain(__('Something unexpected happened.'), 'error');
+            } else {
+                toasters.editAppMain(__('You lack permissions to edit this content.'), 'error');
+            }
+            return false;
+        });
+}
 
 /**
  * @template T

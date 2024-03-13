@@ -112,6 +112,39 @@ const renderers = {
 class RenderAll extends preact.Component {
     // currentBlocksHashes;
     /**
+     * @param {Array<RawBlock>} blocks
+     * @access public
+     */
+    exchangeBlocks(blocks) {
+        const noMetas = blocks.filter(b => b.type !== 'PageInfo');
+
+        const hashes = {};
+        traverseRecursively(noMetas, b => {
+            if (!hashes[b.id]) hashes[b.id] = hashCode(JSON.stringify(b, (key, value) => {
+                if (key === 'children')
+                    return undefined;
+                if (key.startsWith('__'))
+                    return undefined;
+                return value;
+            }));
+        });
+        this.currentBlocksHashes = hashes;
+
+        const cloned = JSON.parse(JSON.stringify(noMetas));
+        traverseRecursively(cloned, block => {
+            if (['Text', 'Button'].indexOf(block.type) > -1 && typeof block.html === 'string')
+                block.html = htmlStringToVNodeArray(block.html);
+        });
+        this.setState({blocks: cloned});
+    }
+    /**
+     * @param {RawBlock} block
+     * @access public
+     */
+    exchangeSingleBlock(block, blocks) {
+        // todo
+    }
+    /**
      * @access protected
      */
     componentWillMount() {
@@ -139,31 +172,9 @@ class RenderAll extends preact.Component {
                 key={ `k-${depth}-${this.currentBlocksHashes[block.id]}`}/>;
         });
     }
-    /**
-     * @param {Array<RawBlock>} blocks
-     * @access private
-     */
-    exchangeBlocks(blocks) {
-        const noMetas = blocks.filter(b => b.type !== 'PageInfo');
+}
 
-        const hashes = {};
-        traverseRecursively(noMetas, b => {
-            if (!hashes[b.id]) hashes[b.id] = hashCode(JSON.stringify(b, (key, value) => {
-                if (key === 'children')
-                    return undefined;
-                if (key.startsWith('__'))
-                    return undefined;
-                return value;
-            }));
-        });
-        this.currentBlocksHashes = hashes;
 
-        const cloned = JSON.parse(JSON.stringify(noMetas));
-        traverseRecursively(cloned, block => {
-            if (['Text', 'Button'].indexOf(block.type) > -1 && typeof block.html === 'string')
-                block.html = htmlStringToVNodeArray(block.html);
-        });
-        this.setState({blocks: cloned});
     }
 }
 
@@ -243,3 +254,4 @@ function domNodesToVNodes(nodes) {
 }
 
 export default RenderAllOuter;
+export {api};

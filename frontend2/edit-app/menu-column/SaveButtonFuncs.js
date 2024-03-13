@@ -44,9 +44,10 @@ function createBlockTreeChannelHandler() {
          * @param {stateChangeContext} _context
          */
         handleStateChange(state, userCtx, _context) {
-            if (userCtx?.event === 'update-single-block-prop')
-                api.webPagePreview.reRenderBlock(blockTreeUtils.findBlockSmart(userCtx.blockId)[0], state);
-            else
+            if (userCtx?.event === 'update-single-block-prop') {
+                if (!userCtx?.isDefPropOnly)
+                    api.webPagePreview.reRenderBlock(blockTreeUtils.findBlockSmart(userCtx.blockId, state)[0], state);
+            } else
                 api.webPagePreview.reRenderAllBlocks(state);
         },
         /**
@@ -81,10 +82,18 @@ function createReusableBranchesChannelHandler() {
          * @returns {Promise<Boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
-            // todo
+            const saveable = createSaveableItems(stateHistory);
+            return Promise.all(saveable.map(({type, arg}) =>
+                type === 'upsert'
+                    ? http.post('/api/reusable-branches', arg)
+                    : (window.console.error(`:ng to backend not implemented yet`), {ok: 'ok'})
+            )).then(results =>
+                results.every(resp => resp?.ok === 'ok')
+            );
         }
     };
 }
+
 function createGlobalBlockTreesChannelHandler() {
     return {
         /**
@@ -150,7 +159,7 @@ function createCurrentPageDataBundleChannelHandler() {
         /**
          * @param {StateHistory} stateHistory
          * @param {Array<StateHistory>} _otherHistories
-         * @returns Promise<Boolean|any>
+         * @returns {Promise<Boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
             if (!stateHistory.latest?.page.isPlaceholderPage) // Not new page, do nothing
@@ -216,17 +225,19 @@ function doPostOrPut(httpCall) {
  */
 function createSaveableItems({initial, latest}) {
     const out = [];
-    for (const entity of latest) {
-        const fromInitial = initial.find(({id}) => id === entity.id);
-        if (!fromInitial || JSON.stringify(fromInitial) !== JSON.stringify(entity))
-            out.push({type: 'upsert', arg: entity});
+    if (initial !== latest) {
+        for (const entity of latest) {
+            const fromInitial = initial.find(({id}) => id === entity.id);
+            if (!fromInitial || JSON.stringify(fromInitial) !== JSON.stringify(entity))
+                out.push({type: 'upsert', arg: entity});
+        }
     }
     const includeDeletables = false;
     if (includeDeletables) {
-    for (const compactPage of initial) {
-        const fromLatest = latest.find(({id}) => id === compactPage.id);
+    for (const entity of initial) {
+        const fromLatest = latest.find(({id}) => id === entity.id);
         if (!fromLatest)
-            out.push({type: 'delete', arg: compactPage.id});
+            out.push({type: 'delete', arg: entity.id});
     }
     }
     return out;

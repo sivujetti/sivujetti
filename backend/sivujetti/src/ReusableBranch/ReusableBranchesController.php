@@ -20,7 +20,7 @@ final class ReusableBranchesController {
      * @param \Pike\Db\FluentDb2 $db2
      * @param \Sivujetti\Block\BlockValidator $blockValidator
      */
-    public function create(Request $req,
+    public function upsert(Request $req,
                            Response $res,
                            FluentDb $db,
                            FluentDb2 $db2,
@@ -38,7 +38,7 @@ final class ReusableBranchesController {
             ])
             ->execute(return: "numRows");
         } else {
-        $numRows = $db2->insert(self::T)
+        $numRows = $db2->insert(self::T, orReplace: true)
             ->values((object) [
                 "id" => $req->body->id,
                 "blockBlueprints" => JsonUtils::stringify($req->body->blockBlueprints), // Note: allow possible junk data
@@ -46,7 +46,7 @@ final class ReusableBranchesController {
             ->execute(return: "numRows");
         }
         //
-        $res->json(["ok" => $numRows === 1 ? "ok" : "err",
+        $res->json(["ok" => "ok",
                     "details" => $numRows === 1 ? "" : "\$numRows !== 1"]);
     }
     /**

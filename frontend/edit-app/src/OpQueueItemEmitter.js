@@ -96,41 +96,41 @@ class OpQueueItemEmitter {
                 }, 'convertToGlobal');
             }
         }),
-        observeStore2('reusableBranches', (_state, [event, data]) => {
-            if (event === 'reusableBranches/addItem') {
-                const [newReusableBranch, associatedBlockId] = data;
-                const postData = {...newReusableBranch};
-                const {id} = newReusableBranch;
-                store.dispatch(pushItemToOpQueue('create-reusable-branch', {
-                    doHandle: () => http.post('/api/reusable-branches', postData).then(resp => {
-                        if (resp.ok !== 'ok') throw new Error('-');
-                    }),
-                    doUndo: () => {
-                        store2.dispatch('reusableBranches/removeItem', [id]);
-                        // the title of this block was changed just before emitting reusableBranches/addItem, undo it also
-                        if (associatedBlockId) setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
-                    },
-                    args: [],
-                }));
-            }
-        }),
-        observeStore2('pagesListings', ({pagesListings}, [event, data]) => {
-            if (event === 'pagesListings/addItem') {
-                const snap = JSON.parse(JSON.stringify(pagesListings));
-                const newItem = {...data[0]};
-                const pageTypeName = data[1];
-                store.dispatch(pushItemToOpQueue('quick-create-page', {
-                    doHandle: () => http.post(`/api/pages/${pageTypeName}/quick`, newItem).then(resp => {
-                        if (resp.ok !== 'ok') throw new Error('-'); // ??
-                    }),
-                    doUndo: () => {
-                        snap.pop();
-                        store2.dispatch('pagesListings/setAll', [snap]);
-                    },
-                    args: [],
-                }));
-            }
-        })];
+// ##         observeStore2('reusableBranches', (_state, [event, data]) => {
+// ##             if (event === 'reusableBranches/addItem') {
+// ##                 const [newReusableBranch, associatedBlockId] = data;
+// ##                 const postData = {...newReusableBranch};
+// ##                 const {id} = newReusableBranch;
+// ##                 store.dispatch(pushItemToOpQueue('create-reusable-branch', {
+// ##                     doHandle: () => http.post('/api/reusable-branches', postData).then(resp => {
+// ##                         if (resp.ok !== 'ok') throw new Error('-');
+// ##                     }),
+// ##                     doUndo: () => {
+// ##                         store2.dispatch('reusableBranches/removeItem', [id]);
+// ##                         // the title of this block was changed just before emitting reusableBranches/addItem, undo it also
+// ##                         if (associatedBlockId) setTimeout(() => { api.saveButton.triggerUndo(); }, 100);
+// ##                     },
+// ##                     args: [],
+// ##                 }));
+// ##             }
+// ##         }),
+// ##         observeStore2('pagesListings', ({pagesListings}, [event, data]) => {
+// ##             if (event === 'pagesListings/addItem') {
+// ##                 const snap = JSON.parse(JSON.stringify(pagesListings));
+// ##                 const newItem = {...data[0]};
+// ##                 const pageTypeName = data[1];
+// ##                 store.dispatch(pushItemToOpQueue('quick-create-page', {
+// ##                     doHandle: () => http.post(`/api/pages/${pageTypeName}/quick`, newItem).then(resp => {
+// ##                         if (resp.ok !== 'ok') throw new Error('-'); // ??
+// ##                     }),
+// ##                     doUndo: () => {
+// ##                         snap.pop();
+// ##                         store2.dispatch('pagesListings/setAll', [snap]);
+// ##                     },
+// ##                     args: [],
+// ##                 }));
+// ##             }
+// ##         })];
     }
     /**
      * @param {Array<RawBlock>} theBlockTree

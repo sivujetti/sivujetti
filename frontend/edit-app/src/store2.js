@@ -100,46 +100,46 @@ function findStyleIndex(from, blockTypeName) {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-
-
-function reusableBranchesStore(store) {
-    store.on('@init', () =>
-        ({reusableBranches: []})
-    );
-
-    store.on('reusableBranches/setAll',
-    /**
-     * @param {Object} state
-     * @param {[Array<ReusableBranch>]} args
-     * @returns {Object}
-     */
-    (_state, [reusableBranches]) =>
-        ({reusableBranches})
-    );
-
-    store.on('reusableBranches/addItem',
-    /**
-     * @param {Object} state
-     * @param {[ReusableBranch]} args
-     * @returns {Object}
-     */
-    ({reusableBranches}, [reusableBranch]) =>
-        ({reusableBranches: [reusableBranch, ...reusableBranches]})
-    );
-
-    store.on('reusableBranches/removeItem',
-    /**
-     * @param {Object} state
-     * @param {[String]} args
-     * @returns {Object}
-     */
-    ({reusableBranches}, [id]) =>
-        ({reusableBranches: reusableBranches.filter(b => b.id !== id)})
-    );
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
+// ## 
+// ## 
+// ## function reusableBranchesStore(store) {
+// ##     store.on('@init', () =>
+// ##         ({reusableBranches: []})
+// ##     );
+// ## 
+// ##     store.on('reusableBranches/setAll',
+// ##     /**
+// ##      * @param {Object} state
+// ##      * @param {[Array<ReusableBranch>]} args
+// ##      * @returns {Object}
+// ##      */
+// ##     (_state, [reusableBranches]) =>
+// ##         ({reusableBranches})
+// ##     );
+// ## 
+// ##     store.on('reusableBranches/addItem',
+// ##     /**
+// ##      * @param {Object} state
+// ##      * @param {[ReusableBranch]} args
+// ##      * @returns {Object}
+// ##      */
+// ##     ({reusableBranches}, [reusableBranch]) =>
+// ##         ({reusableBranches: [reusableBranch, ...reusableBranches]})
+// ##     );
+// ## 
+// ##     store.on('reusableBranches/removeItem',
+// ##     /**
+// ##      * @param {Object} state
+// ##      * @param {[String]} args
+// ##      * @returns {Object}
+// ##      */
+// ##     ({reusableBranches}, [id]) =>
+// ##         ({reusableBranches: reusableBranches.filter(b => b.id !== id)})
+// ##     );
+// ## }
+// ## 
+// ## 
+// ## ////////////////////////////////////////////////////////////////////////////////
 // ## 
 // ## 
 // ## function pagesListingsStore(store) {
@@ -195,8 +195,8 @@ function reusableBranchesStore(store) {
 
 const mainStore = createStoreon([
     themeStylesStore,
-    reusableBranchesStore,
-    theWebsiteStore,
+// ##     reusableBranchesStore,
+// ##     theWebsiteStore,
     theBlockTreeStore,
 // ##     pagesListingsStore,
 ]);

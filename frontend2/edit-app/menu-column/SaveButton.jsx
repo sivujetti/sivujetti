@@ -85,10 +85,15 @@ class SaveButton extends preact.Component {
     /**
      * Pushes multiple ops to the history that will be undone/redone as a group when undo/redo is called.
      *
+     * @param {[String, state, StateChangeUserContext|null, blockPropValueChangeFlags]} ...ops
      * @access public
      */
     pushOpGroup(...ops) {
-        //
+        const group = ops.map(args => {
+            this.pushOp(args[0], args[1], args[2], 'is-group');
+            return {channelName: args[0], userCtx: args[2], flags: args[3]};
+        });
+        this.pushHistoryItem(group);
     }
     /**
      * @param {() => any} fn

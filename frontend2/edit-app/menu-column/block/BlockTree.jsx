@@ -218,7 +218,36 @@ class BlockTree extends preact.Component {
      * @param {RawBlock} block
      * @access private
      */
-    async doSaveBlockAsReusable(data, block) {
+    doSaveBlockAsReusable(data, block) {
+        const saveButton = api.saveButton.getInstance();
+
+        let newOriginalBlock;
+        const updateOriginalBlockTitleOpArgs = [
+            'theBlockTree',
+            blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+                const [blockRef] = blockTreeUtils.findBlockSmart(block.id, newTreeCopy);
+                blockRef.title = data.name;
+                newOriginalBlock = blockRef;
+                return newTreeCopy;
+            }),
+            {event: 'update-single-block-prop', isDefPropOnly: true, blockId: block.id}
+        ];
+
+        fetchOrGetReusableBranches().then(reusablesPrev => {
+            const blockBlueprints = [blockToBlueprint(treeToTransferable([newOriginalBlock])[0], (blueprint, block) => {
+                return blueprint;
+            })];
+            const newReusablesState = [...objectUtils.cloneDeep(reusablesPrev), {
+                id: generatePushID(),
+                blockBlueprints,
+            }];
+            const addItemToReusablesOpArgs = ['reusableBranches', newReusablesState, {event: 'create'}];
+
+            saveButton.pushOpGroup(
+                updateOriginalBlockTitleOpArgs,
+                addItemToReusablesOpArgs
+            );
+        });
     }
     /**
      * @param {RawBlock} block

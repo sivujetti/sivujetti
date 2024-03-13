@@ -10,7 +10,7 @@ final class ReusableBranchesModule {
      */
     public function init(Router $router): void {
         $router->map("POST", "/api/reusable-branches",
-            [ReusableBranchesController::class, "create", ["consumes" => "application/json",
+            [ReusableBranchesController::class, "upsert", ["consumes" => "application/json",
                                                             "identifiedBy" => ["create", "reusableBranches"]]]
         );
         $router->map("GET", "/api/reusable-branches",

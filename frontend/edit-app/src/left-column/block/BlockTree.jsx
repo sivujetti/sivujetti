@@ -309,29 +309,29 @@ class BlockTree extends preact.Component {
 // ??         const newBlockId = generatePushID();
 // ??         store2.dispatch('theBlockTree/convertToGbt', [originalBlock.id, newBlockId, newGbtWithoutBlocks]);
 // ??     }
-    /**
-     * @param {{name: String;}} data From SaveBlockAsReusableDialog
-     * @param {RawBlock} block
-     * @access private
-     */
-    doSaveBlockAsReusable(data, block) {
-        const {id} = block;
-        const isStoredToTreeId = blockTreeUtils.getIsStoredToTreeId(block.id, store2.get().theBlockTree);
-
-        // Update the title of the existing block
-        const changes = {title: data.name};
-        const isOnlyStyleClassesChange = false;
-        const prevData = null;
-        store2.dispatch('theBlockTree/updateDefPropsOf',
-            [id, isStoredToTreeId, changes, isOnlyStyleClassesChange, prevData]);
-
-        // Push item to reusableBranches
-        setTimeout(() => {
-            const [latest] = blockTreeUtils.findBlockSmart(id, store2.get().theBlockTree);
-            const newReusableBranch = {id: generatePushID(), blockBlueprints: [blockToBlueprint(treeToTransferable([latest])[0])]};
-            store2.dispatch('reusableBranches/addItem', [newReusableBranch, id]);
-        }, 100);
-    }
+// ##     /**
+// ##      * @param {{name: String;}} data From SaveBlockAsReusableDialog
+// ##      * @param {RawBlock} block
+// ##      * @access private
+// ##      */
+// ##     doSaveBlockAsReusable(data, block) {
+// ##         const {id} = block;
+// ##         const isStoredToTreeId = blockTreeUtils.getIsStoredToTreeId(block.id, this.props.blocks);
+// ## 
+// ##         // Update the title of the existing block
+// ##         const changes = {title: data.name};
+// ##         const isOnlyStyleClassesChange = false;
+// ##         const prevData = null;
+// ##         store2.dispatch('theBlockTree/updateDefPropsOf',
+// ##             [id, isStoredToTreeId, changes, isOnlyStyleClassesChange, prevData]);
+// ## 
+// ##         // Push item to reusableBranches
+// ##         setTimeout(() => {
+// ##             const [latest] = blockTreeUtils.findBlockSmart(id, this.props.blocks);
+// ##             const newReusableBranch = {id: generatePushID(), blockBlueprints: [blockToBlueprint(treeToTransferable([latest])[0])]};
+// ##             store2.dispatch('reusableBranches/addItem', [newReusableBranch, id]);
+// ##         }, 100);
+// ##     }
 // ##     /**
 // ##      * @param {RawBlock} block
 // ##      * @param {Boolean} blockIsGbtsOutermostBlock

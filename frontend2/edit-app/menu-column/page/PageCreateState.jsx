@@ -1,6 +1,6 @@
 import {__, api, env, makePath, makeSlug, objectUtils} from '../../../sivujetti-commons-unified.js';
 import {treeToTransferable} from '../../commons/block/utils.js';
-import {createTrier, generatePushID} from '../../includes/utils.js';
+import {createTrier, generatePushID, pathToFullSlug} from '../../includes/utils.js';
 import DnDBlockSpawner from '../block/DnDBlockSpawner.jsx';
 import BaseStylesSection from '../default-state-sections/BaseStylesSection.jsx';
 import OnThisPageSection from '../default-state-sections/OnThisPageSection.jsx';
@@ -115,17 +115,6 @@ function createNewPage(isDuplicated) {
             },
         }}
     });
-}
-
-/**
- * @param {String} path
- * @param {String} fallback = '/'
- * @returns {String} 'foo/' -> '/foo'
- */
-function pathToFullSlug(path, fallback = '/') {
-    return path !== '/'
-        ? `/${path.substring(0, path.length - 1)}` // 'foo/' -> '/foo'
-        : fallback;
 }
 
 /**

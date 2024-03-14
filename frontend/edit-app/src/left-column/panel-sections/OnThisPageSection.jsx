@@ -80,11 +80,11 @@
 // ##         }), signals.on('inspector-panel-closed', () => {
 // ##             if (this.blockTreeRef.current)
 // ##                 this.blockTreeRef.current.deSelectAllBlocks();
-        }), signals.on('page-saved-to-backend', () => {
-            const {page} = selectCurrentPageDataBundle(store.getState());
-            if (this.props.currentPageSlug !== page.slug) // todo reload whole iframe/page ?
-                this.updateState(page.slug);
-        })];
+// ##         }), signals.on('page-saved-to-backend', () => {
+// ##             const {page} = selectCurrentPageDataBundle(store.getState());
+// ##             if (this.props.currentPageSlug !== page.slug) // todo reload whole iframe/page ?
+// ##                 this.updateState(page.slug);
+// ##         })];
 // ##         //
 // ##         this.updateState(this.props.currentPageSlug);
 // ##     }

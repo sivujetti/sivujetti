@@ -2,11 +2,13 @@ import {
     __,
     api,
     blockTreeUtils,
+    env,
     http,
     objectUtils,
 } from '../../sivujetti-commons-unified.js';
 import {treeToTransferable} from '../commons/block/utils.js';
 import toasters from '../includes/toasters.jsx';
+import {pathToFullSlug} from '../includes/utils.js';
 
 const handlerFactoriesMap = {
     currentPageDataBundle: createCurrentPageDataBundleChannelHandler,
@@ -147,6 +149,7 @@ function createQuicklyAddedPagesChannelHandler() {
 }
 
 function createCurrentPageDataBundleChannelHandler() {
+    let unregisterNavigateToNewSlugHandler;
     return {
         /**
          * @param {any} _state
@@ -161,10 +164,45 @@ function createCurrentPageDataBundleChannelHandler() {
          * @param {Array<StateHistory>} _otherHistories
          * @returns {Promise<Boolean|any>}
          */
-        syncToBackend(stateHistory, _otherHistories) {
-            if (!stateHistory.latest?.page.isPlaceholderPage) // Not new page, do nothing
-                return Promise.resolve(true);
-            const postData = toTransferable(stateHistory.latest.page);
+        syncToBackend(stateHistory, _otherHistories) { 
+            if (!stateHistory.latest.page.isPlaceholderPage) {
+                return this.syncAlreadyExistingPageToBackend(
+                    stateHistory.latest.page,
+                    stateHistory.initial.page,
+                );
+            }
+            return this.syncNewPageToBackend(stateHistory.latest.page);
+        },
+        /**
+         * @param {Page} page
+         * @param {Page} syncedPage
+         * @returns {Promise<Boolean|any>}
+         * @access private
+         */
+        syncAlreadyExistingPageToBackend(page, syncedPage) {
+            const data = toTransferable(page, ['blocks', 'isPlaceholderPage']);
+
+            // Add code that redirects to the new path after SaveButton has finished syncQueuedOpsToBackend()
+            if (data.path !== syncedPage.path && !unregisterNavigateToNewSlugHandler) {
+                const newPagePath = pathToFullSlug(data.path, '');
+                unregisterNavigateToNewSlugHandler = api.saveButton.getInstance().onAfterItemsSynced(() => {
+                    env.window.myRoute(newPagePath);
+                    unregisterNavigateToNewSlugHandler();
+                    unregisterNavigateToNewSlugHandler = null;
+                });
+            }
+
+            return doPostOrPut(
+                http.put(`/api/pages/${data.type}/${data.id}`, data)
+            );
+        },
+        /**
+         * @param {Page} newPage
+         * @returns {Promise<Boolean|any>}
+         * @access private
+         */
+        syncNewPageToBackend(newPage) {
+            const postData = toTransferable(newPage);
             //
             return http.post(`/api/pages/${postData.type}`, postData)
                 .then(resp => {

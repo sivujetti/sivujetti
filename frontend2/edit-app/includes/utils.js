@@ -82,4 +82,19 @@ const generatePushID = (function() {
   };
 })();
 
-export {createTrier, generatePushID};
+/**
+ * @param {String} path
+ * @param {String} fallback = '/'
+ * @returns {String} 'foo/' -> '/foo'
+ */
+function pathToFullSlug(path, fallback = '/') {
+    return path !== '/'
+        ? `/${path.substring(0, path.length - 1)}` // 'foo/' -> '/foo'
+        : fallback;
+}
+
+export {
+    createTrier,
+    generatePushID,
+    pathToFullSlug
+};

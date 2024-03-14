@@ -6,7 +6,7 @@ import {
     http,
     objectUtils,
 } from '../../sivujetti-commons-unified.js';
-import {treeToTransferable} from '../commons/block/utils.js';
+import {treeToTransferable} from '../includes/block/utils.js';
 import toasters from '../includes/toasters.jsx';
 import {pathToFullSlug} from '../includes/utils.js';
 
@@ -86,9 +86,9 @@ function createReusableBranchesChannelHandler() {
         syncToBackend(stateHistory, _otherHistories) {
             const saveable = createSaveableItems(stateHistory);
             return Promise.all(saveable.map(({type, arg}) =>
-                type === 'upsert'
+                type === 'insert'
                     ? http.post('/api/reusable-branches', arg)
-                    : (window.console.error(`:ng to backend not implemented yet`), {ok: 'ok'})
+                    : (window.console.error(`${type}:ng to backend not implemented yet`), {ok: 'ok'})
             )).then(results =>
                 results.every(resp => resp?.ok === 'ok')
             );
@@ -113,8 +113,10 @@ function createGlobalBlockTreesChannelHandler() {
          */
         syncToBackend(stateHistory, _otherHistories) {
             const saveable = createSaveableItems(stateHistory);
-            return Promise.all(saveable.map(({arg}) =>
-                http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks})
+            return Promise.all(saveable.map(({type, arg}) =>
+                type === 'update'
+                    ? http.put(`/api/global-block-trees/${arg.id}/blocks`, {blocks: arg.blocks})
+                    : http.post(`/api/global-block-trees`, arg)
             )).then(results =>
                 results.every(resp => resp?.ok === 'ok')
             );
@@ -263,12 +265,13 @@ function doPostOrPut(httpCall) {
  */
 function createSaveableItems({initial, latest}) {
     const out = [];
-    if (initial !== latest) {
-        for (const entity of latest) {
-            const fromInitial = initial.find(({id}) => id === entity.id);
-            if (!fromInitial || JSON.stringify(fromInitial) !== JSON.stringify(entity))
-                out.push({type: 'upsert', arg: entity});
-        }
+    for (const entity of latest) {
+        const fromInitial = initial.find(({id}) => id === entity.id);
+        const isNew = !fromInitial;
+        if (isNew)
+            out.push({type: 'insert', arg: entity});
+        else if (JSON.stringify(fromInitial) !== JSON.stringify(entity))
+            out.push({type: 'update', arg: entity, isNew});
     }
     const includeDeletables = false;
     if (includeDeletables) {
@@ -285,11 +288,12 @@ function createSaveableItems({initial, latest}) {
  * @param {Array<Array<RawBlock>>} blockTreeStates
  * @returns {Array<RawBlock>}
  */
-function getRefBlocksThatHasGbtChanges(blockTreeStates) {
+function getGbtRefBlocksFrom(blockTreeStates) {
     const map = new Map;
     for (const item of blockTreeStates) {
         for (const block of item) {
-            if (block.type === 'GlobalBlockReference' && !map.has(block.globalBlockTreeId))
+            if (block.type === 'GlobalBlockReference')
+                // Set or override previous, so map has always the latest change
                 map.set(block.globalBlockTreeId, block);
         }
     }
@@ -297,25 +301,27 @@ function getRefBlocksThatHasGbtChanges(blockTreeStates) {
 }
 
 /**
- * Returns a patched $latestState that contains all changes from $refBlocksThatHasGbtChanges.
+ * Returns a patched $initialState that contains changes from $refBlocksThatMaybeHaveChanges.
  *
- * @param {Array<RawGlobalBlockTree>} latestState
- * @param {Array<RawBlock>} refBlocksThatHasGbtChanges
- * @returns {Array<RawGlobalBlockTree>}
+ * @param {Array<RawGlobalBlockTree>} initialState
+ * @param {Array<RawBlock>} refBlocksThatMaybeHaveChanges
+ * @returns {Array<RawGlobalBlockTree>|null}
  */
-function createGbtState(latestState, refBlocksThatHasGbtChanges) {
-    const patchedLatestState = refBlocksThatHasGbtChanges.reduce((patchedLatestState, globalBlockReferenceBlock) =>
-        // Return new [<someGbt>, <someGbt>, ...] -> [<someGbt>, <someGbtWithTheChange>, ...]
-        patchedLatestState.map(gbt =>
-            gbt.id !== globalBlockReferenceBlock.globalBlockTreeId
-                ? gbt
-                : {
-                    ...gbt,
-                    ...{blocks: treeToTransferable(globalBlockReferenceBlock.__globalBlockTree.blocks)}
-                }
-        )
-    , [...latestState]);
-    return objectUtils.cloneDeep(patchedLatestState);
+function createGbtState(stateArr, refBlocksThatMaybeHaveChanges) {
+    const patchInfo = stateArr.map(_ => ({status: 'no-changes', newBlocks: null}));
+    for (const block of refBlocksThatMaybeHaveChanges) {
+        const fromStateArrIdx = stateArr.findIndex(gbt => gbt.id === block.globalBlockTreeId);
+        const fromBlockTree = treeToTransferable(block.__globalBlockTree.blocks);
+        if (JSON.stringify(stateArr[fromStateArrIdx].blocks) !== JSON.stringify(fromBlockTree))
+            patchInfo[fromStateArrIdx] = {status: 'has-changes', newBlocks: fromBlockTree};
+    }
+    if (patchInfo.findIndex(p => p.status === 'has-changes') < 0) {
+        return null;
+    }
+    return stateArr.map((gbt, i) => {
+        const pInfo = patchInfo[i];
+        return pInfo.status === 'no-changes' ? gbt : {...gbt, ...{blocks: pInfo.newBlocks}};
+    });
 }
 
 /**
@@ -334,6 +340,6 @@ function getLatestItemsOfEachChannel(queue) {
 export {
     createGbtState,
     getLatestItemsOfEachChannel,
-    getRefBlocksThatHasGbtChanges,
+    getGbtRefBlocksFrom,
     handlerFactoriesMap,
 };

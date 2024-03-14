@@ -12,7 +12,7 @@ import {
     timingUtils,
     writeBlockProps,
 } from '../../../sivujetti-commons-unified.js';
-import {isMetaBlock} from '../../commons/block/utils.js';
+import {getIsStoredToTreeIdFrom, isMetaBlock} from '../../includes/block/utils.js';
 import CodeBasedStylesList from '../block-styles/CodeBasedStylesTab.jsx';
 
 const Tab1Text = __('Content');

@@ -4,6 +4,7 @@ import {
     objectUtils,
     writeBlockProps,
 } from '../../../sivujetti-commons-unified.js';
+import {generatePushID} from '../../includes/utils.js';
 
 /**
  * @param {RawBlock} block
@@ -39,16 +40,6 @@ function isMetaBlock({type}) {
     return type === 'PageInfo';
 }
 
-// ??
-/**
- * @param {String} blockId
- * @param {'mainTree'|Array<RawBlock>} from
- * @returns {[RawBlock|null, Array<RawBlock>|null, RawBlock|null, RawGlobalBlockTree|Array<RawBlock>|null]}
- */
-function findBlockFrom(blockId, from) {
-    return blockTreeUtils.findBlockSmart(blockId, from === 'mainTree' ? getCurrentBlockTreeState() : from);
-}
-
 /**
  * @param {String} blockId
  * @param {'mainTree'|Array<RawBlock>} from
@@ -64,10 +55,37 @@ function getIsStoredToTreeIdFrom(blockId, from) {
 function getCurrentBlockTreeState() {
     return api.saveButton.getInstance().getChannelState('theBlockTree');
 }
-// ??
+
+/**
+ * @param {{type: String; renderer: String; id?: String; title?: String;}} defProps
+ * @param {{[key: String]: any;}} ownProps
+ * @returns {RawBlock}
+ */
+function createBlock(defProps, ownProps) {
+    const out = {
+        ...{
+            id: defProps.id || generatePushID(),
+            type: defProps.type,
+            title: defProps.title || '',
+            children: [],
+            renderer: defProps.renderer,
+            propsData: [],
+            styleClasses: '',
+        },
+        ...(Object.keys(defProps).reduce((cleaned, key) => {
+            if (key === 'propsData' || key === 'children')
+                throw new Error(`defProps can't contain key ${key}`);
+            if (key !== 'id' && key !== 'type') cleaned[key] = defProps[key];
+            return cleaned;
+        }, {}))
+    };
+    writeBlockProps(out, ownProps); // block.foo + block.propsData.*
+    return out;
+}
 
 export {
-    findBlockFrom,
+    createBlock,
+    getIsStoredToTreeIdFrom,
     isMetaBlock,
     treeToTransferable,
 };

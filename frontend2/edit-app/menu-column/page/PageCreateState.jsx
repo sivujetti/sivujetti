@@ -1,5 +1,5 @@
 import {__, api, env, makePath, makeSlug, objectUtils} from '../../../sivujetti-commons-unified.js';
-import {treeToTransferable} from '../../commons/block/utils.js';
+import {treeToTransferable} from '../../includes/block/utils.js';
 import {createTrier, generatePushID, pathToFullSlug} from '../../includes/utils.js';
 import DnDBlockSpawner from '../block/DnDBlockSpawner.jsx';
 import BaseStylesSection from '../default-state-sections/BaseStylesSection.jsx';

@@ -1,3 +1,5 @@
+import {cloneDeep} from '../shared-inline.js';
+
 const stringUtils = {
     /**
      * https://gist.github.com/mathewbyrne/1280286#gistcomment-2353812
@@ -64,8 +66,16 @@ const objectUtils = {
      * @param {Object} obj
      * @returns {Object}
      */
-    cloneDeep(obj) {
-        return JSON.parse(JSON.stringify(obj));
+    cloneDeep,
+    /**
+     * @param {Object} obj
+     * @param {(newCopyFreeToMutate: Object) => any} mutator
+     * @returns {Object} Mutated $obj
+     */
+    cloneDeepWithChanges(obj, doTheChanges) {
+        const clone = this.cloneDeep(obj);
+        doTheChanges(clone);
+        return clone;
     }
 };
 

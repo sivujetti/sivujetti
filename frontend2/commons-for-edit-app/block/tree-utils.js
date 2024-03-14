@@ -149,9 +149,7 @@ const blockTreeUtils = {
      * @returns {Array<RawBlock>} Mutated $newTreeCopyFreeToMutate
      */
     createMutation(theTree, mutator) {
-        const newTree = objectUtils.cloneDeep(theTree);
-        mutator(newTree);
-        return newTree;
+        return objectUtils.cloneDeepWithChanges(theTree, mutator);
     }
 };
 

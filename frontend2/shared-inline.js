@@ -64,10 +64,19 @@ function traverseRecursively(branch, fn, parent = null) {
     });
 }
 
+/**
+ * @param {any} obj
+ * @returns {String}
+ */
+function cloneDeep(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
+
 export {
+    cloneDeep,
     completeImageSrc,
-    getNormalizedInitialHoverCandidate,
     getMetaKey,
+    getNormalizedInitialHoverCandidate,
     placeholderImageSrc,
     traverseRecursively,
 };

@@ -1,6 +1,11 @@
 import {__, env, Icon, Signals} from '../../sivujetti-commons-unified.js';
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../includes/global-block-trees/repository.js';
-import {createGbtState, getLatestItemsOfEachChannel, getRefBlocksThatHasGbtChanges, handlerFactoriesMap} from './SaveButtonFuncs.js';
+import {
+    createGbtState,
+    getLatestItemsOfEachChannel,
+    getGbtRefBlocksFrom,
+    handlerFactoriesMap,
+} from './SaveButtonFuncs.js';
 
 const saveButtonSignals = new Signals;
 const saveButtonSignals2 = new Signals;
@@ -263,24 +268,33 @@ class SaveButton extends preact.Component {
         const blockTreeStates = activeStates['theBlockTree'];
         // Found block changes, check if any of them is a global block tree block
         if (blockTreeStates) {
-            const refBlocksThatHasGbtChanges = getRefBlocksThatHasGbtChanges(blockTreeStates);
+            const refBlocksThatMaybeHaveChanges = getGbtRefBlocksFrom(blockTreeStates);
             // Some were -> dynamically create, or patch $out's 'globalBlockTrees' item
-            if (refBlocksThatHasGbtChanges.length) {
-                return fetchOrGetGlobalBlockTrees().then(latestState => {
-                    const dynamicallyCreatedPatchedLatestState = createGbtState(latestState, refBlocksThatHasGbtChanges);
-
+            if (refBlocksThatMaybeHaveChanges.length) {
+                return fetchOrGetGlobalBlockTrees().then(_ => {
                     const gbtsHistoryItem = out.find(({channelName}) => channelName === 'globalBlockTrees');
-                    if (!gbtsHistoryItem) { // $out didn't even contain 'globalBlockTrees' item, add it
+                    if (!gbtsHistoryItem) {
+                        const initial = this.states['globalBlockTrees'][0];                                 // [<existing>,             <existing>]
+                        const maybePatchedInitial = createGbtState(initial, refBlocksThatMaybeHaveChanges); // [<maybePatchedExisting>, <maybePatchedExisting>]
+                        // None of the 'GlobalBlockReference' blocks had changes
+                        if (!maybePatchedInitial)
+                            return out;
+                        // else one ore more gbts in $initial (<existing>) changed -> add history item to $out
                         return [...out, {
                             channelName: 'globalBlockTrees',
-                            initial: this.states['globalBlockTrees'][0],
-                            first: this.getActiveState('globalBlockTrees')[0],
-                            latest: dynamicallyCreatedPatchedLatestState
+                            initial,
+                            first: maybePatchedInitial,
+                            latest: maybePatchedInitial
                         }];
-                    } else { // patch it
+                    } else {
+                        const latest = gbtsHistoryItem.latest;                                            // [<existing>,            <existing>,            <maybeNew>]
+                        const maybePatchedLatest = createGbtState(latest, refBlocksThatMaybeHaveChanges); // [<maybePatchedExisting>,<maybePatchedExisting>,<maybePatchedNew>]
+                        if (!maybePatchedLatest)
+                            return out;
+                        // else one ore more gbts in $gbtsHistoryItem.latest (<existing>) changed, patch $out's history item
                         return out.map(item => item !== gbtsHistoryItem ? item : {
                             ...item,
-                            ...{latest: dynamicallyCreatedPatchedLatestState}
+                            ...{latest: maybePatchedLatest}
                         });
                     }
                 });

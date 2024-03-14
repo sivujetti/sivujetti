@@ -1,13 +1,25 @@
 import {
+    __,
     api,
+    blockTreeUtils,
+    ContextMenu,
+    floatingDialog,
+    Icon,
     LoadingSpinner,
+    objectUtils,
     traverseRecursively,
 } from '../../../sivujetti-commons-unified.js';
 import createDndController, {callGetBlockPropChangesEvent} from '../../includes/create-block-tree-dnd-controller.js';
 import TreeDragDrop from '../../includes/TreeDragDrop.js';
+import BlockSaveAsReusableDialog from '../../main-column/popups/BlockSaveAsReusableDialog.jsx';
 import {
     createPartialState,
 } from './BlockTreeFuncs.js';
+import {generatePushID} from '../../includes/utils.js';
+import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
+import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
+import {createBlock, treeToTransferable} from '../../includes/block/utils.js';
+
 class BlockTree extends preact.Component {
     // unregistrables;
     // moreMenu;
@@ -208,10 +220,56 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {{name: String;}} data
-     * @param {RawBlock} originalBlock The block tree we just turned global
+     * @param {RawBlock} originalBlock The block/branch we're just turning global
      * @access private
      */
     doConvertBlockToGlobal(data, originalBlock) {
+        const newGbt = {
+            id: generatePushID(),
+            name: data.name,
+            blocks: treeToTransferable([{...originalBlock, ...{title: data.name}}]),
+        };
+
+        const newGbRefBlock = createBlock(
+            { // block.*
+                type: 'GlobalBlockReference',
+                title: data.name,
+                renderer: 'jsx',
+                __globalBlockTree: newGbt,
+            },
+            { // block.propData.*
+                globalBlockTreeId: newGbt.id,
+                overrides: '{}',
+                useOverrides: 0,
+            }
+        );
+
+        const saveButton = api.saveButton.getInstance();
+        // Swap original block/branch with the new 'GlobalBlockReference' block
+        const updateBlockTreeOpArgs = [
+            'theBlockTree',
+            blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+                const [curBlockRef, refBranch] = blockTreeUtils.findBlock(originalBlock.id, newTreeCopy);
+                refBranch[refBranch.indexOf(curBlockRef)] = newGbRefBlock;
+                return newTreeCopy;
+            }),
+            {
+                event: 'convert-branch-to-global-block-reference-block',
+                originalBlockId: originalBlock.id,
+                newBlockId: newGbRefBlock.id,
+            }
+        ];
+
+        // Create new 'globalBlockTrees' state array and push it to the history
+        fetchOrGetGlobalBlockTrees().then(gbtsPrev => {
+            const newGbtsState = [...objectUtils.cloneDeep(gbtsPrev), newGbt];
+            const pushNewGbtsStateOpArgs = ['globalBlockTrees', newGbtsState, {event: 'create'}];
+
+            saveButton.pushOpGroup(
+                updateBlockTreeOpArgs,
+                pushNewGbtsStateOpArgs
+            );
+        });
     }
     /**
      * @param {{name: String;}} data From BlockSaveAsReusableDialog
@@ -222,6 +280,7 @@ class BlockTree extends preact.Component {
         const saveButton = api.saveButton.getInstance();
 
         let newOriginalBlock;
+        // Update origin block's title
         const updateOriginalBlockTitleOpArgs = [
             'theBlockTree',
             blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
@@ -233,6 +292,7 @@ class BlockTree extends preact.Component {
             {event: 'update-single-block-prop', isDefPropOnly: true, blockId: block.id}
         ];
 
+        // Create new 'reusableBranches' state array and push it to the history
         fetchOrGetReusableBranches().then(reusablesPrev => {
             const blockBlueprints = [blockToBlueprint(treeToTransferable([newOriginalBlock])[0], (blueprint, block) => {
                 return blueprint;
@@ -241,11 +301,11 @@ class BlockTree extends preact.Component {
                 id: generatePushID(),
                 blockBlueprints,
             }];
-            const addItemToReusablesOpArgs = ['reusableBranches', newReusablesState, {event: 'create'}];
+            const pushNewReusablesStateOpArgs = ['reusableBranches', newReusablesState, {event: 'create'}];
 
             saveButton.pushOpGroup(
                 updateOriginalBlockTitleOpArgs,
-                addItemToReusablesOpArgs
+                pushNewReusablesStateOpArgs
             );
         });
     }

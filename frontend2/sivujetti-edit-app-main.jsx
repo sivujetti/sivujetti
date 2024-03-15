@@ -8,6 +8,7 @@ import WebPagePreviewApp from './edit-app/main-column/WebPagePreviewApp.jsx';
 import MainColumnViews from './edit-app/main-column/MainColumnViews.jsx';
 import InspectorPanel from './edit-app/menu-column/InspectorPanel.jsx';
 import {Toaster} from './edit-app/includes/toasters.jsx';
+import patchQuillEditor from './edit-app/includes/quill-customizations.js';
 import globalData from './edit-app/includes/globalData.js';
 
 configureApis();
@@ -73,4 +74,6 @@ function configureApis() {
     window.translationStringBundles.forEach(strings => {
         translator.addStrings(strings);
     });
+    //
+    patchQuillEditor();
 }

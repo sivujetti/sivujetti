@@ -23,12 +23,12 @@ final class SharedAPIContext {
     private array $filters;
     /** @var object @see Sivujetti\Boot\BootModule->loadEssentialsIfNotLoaded()  */
     public BlockTypes $blockTypes;
-    /** @var object {"css" => object[], "js" => object[]} @see \Sivujetti\UserTheme\UserThemeAPI->enqueueCss|JsFile() */
+    /** @var object {"css" => object[], "js" => object[]} @see also \Sivujetti\UserTheme\UserThemeAPI->enqueueCss|JsFile() */
     public object $userDefinedAssets;
     /** @var array<int, array{fileId: string, friendlyName: string|null, associatedWith: string|null}> \Sivujetti\UserSite\UserSiteAPI->registerBlockRenderer() */
     public array $blockRenderers;
-    /** @var string[] \Sivujetti\UserSite\UserSiteAPI->enqueueEditAppJsFile() */
-    public array $adminJsFiles;
+    /** @var object {"editApp" => object[], "previewApp" => object[]} @see also \Sivujetti\UserSite\UserSiteAPI->enqueueEdit|PreviewAppJsFile() */
+    public object $devJsFiles;
     /** @var array<string, \Sivujetti\UserPlugin\UserPluginInterface> */
     public array $userPlugins;
     /** @var \Sivujetti\UserSite\UserSiteInterface i.e. \MySite\Site */
@@ -40,7 +40,7 @@ final class SharedAPIContext {
         $this->filters = [];
         $this->userDefinedAssets = (object) ["css" => [], "js" => []];
         $this->blockRenderers = [];
-        $this->adminJsFiles = [];
+        $this->devJsFiles = (object) ["editApp" => [], "previewApp" => []];
         $this->userPlugins = [];
     }
     /**

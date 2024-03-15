@@ -67,16 +67,6 @@ final class UserPluginAPI extends UserSiteAPI {
     /**
      * @inheritdoc
      */
-    public function enqueueEditAppJsFile(string $url): void {
-        $expected = "plugin-{$this->getDashifiedNs()}";
-        if (!str_starts_with($url, $expected))
-            throw new PikeException("Expected url (`{$url}`) to start with `{$expected}`",
-                                    PikeException::BAD_INPUT);
-        parent::enqueueEditAppJsFile($url);
-    }
-    /**
-     * @inheritdoc
-     */
     public function registerBlockRenderer(string $fileId,
                                           ?string $friendlyName = null,
                                           ?string $for = null): void {
@@ -131,6 +121,16 @@ final class UserPluginAPI extends UserSiteAPI {
      */
     public function getCurrentLang(): string {
         return SIVUJETTI_UI_LANG;
+    }
+    /**
+     * @inheritdoc
+     */
+    protected function enqueueDevJsFile(string $url, string $key = "editApp"): void {
+        $expected = "plugin-{$this->getDashifiedNs()}";
+        if (!str_starts_with($url, $expected))
+            throw new PikeException("Expected url (`{$url}`) to start with `{$expected}`",
+                                    PikeException::BAD_INPUT);
+        parent::enqueueDevJsFile($url, $key);
     }
     /**
      * @return string

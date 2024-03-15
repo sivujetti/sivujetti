@@ -1,5 +1,5 @@
-// Usage: npm start -- --configBundle main|webpage|all
-//        npm start -- --configBundle myBundle (see docs/let's-create-a-custom-block-type.md)
+// Usage: npm start -- --configBundle bundle1,bundle2|all
+//        npm start -- --configInput backend/plugins/MyPlugin/frontend/rollup.config.js
 
 const path = require('path');
 const sucrase = require('@rollup/plugin-sucrase');
@@ -17,143 +17,47 @@ const makeOutputCfg = (...myCfg) => {
     return out;
 };
 
-const makeJsxPlugin = () =>
+const makeJsxPlugin = (include = []) =>
     sucrase({
         production: true,
-        include: [],
+        include, // An empty array means "The directory where {input: 'main-file.js'} is located at"
         transforms: ['jsx'],
         jsxPragma: 'preact.createElement',
         jsxFragmentPragma: 'preact.createFragment',
+        disableESTransforms: true,
     });
 
 const watchSettings = {
     clearScreen: false
 };
 
+const Bundles = {
+    WEBPAGE_COMMONS: 'webpage-commons',
+    WEBPAGE_PREVIEW_RENDERER_APP: 'webpage-renderer-app',
+    EDIT_APP_COMMONS: 'edit-app-commons',
+    EDIT_APP: 'edit-app',
+    AUTH_APPS: 'auth-apps',
+    LANG: 'lang',
+    TESTS: 'tests',
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 module.exports = args => {
-    //
+    const isBuild = args.w === undefined;
+    const postPlugins = !isBuild ? [] : [terser()];
+    const webPagesCommonsPath = '@sivujetti-commons-for-web-pages';
+    const webPageExternals = [webPagesCommonsPath];
+    const webPagesGlobals = {[webPagesCommonsPath]: 'sivujettiCommonsForWebPages'};
+    const previewRendererAppCommonsPath = '@sivujetti-webpage-preview-renderer-app';
+    const previewRendererAppGlobals = {[previewRendererAppCommonsPath]: 'sivujettiWebPagePreviewRendererApp'};
+    const previewRendererAppExternals = [previewRendererAppCommonsPath];
     const editAppCommonsPath = '@sivujetti-commons-for-edit-app';
     const editAppGlobals = {[editAppCommonsPath]: 'sivujettiCommonsEditApp'};
     const editAppExternals = [editAppCommonsPath];
-    const webPagesCommonsPath = '@sivujetti-commons-for-web-pages';
-    const webPagesGlobals = {[webPagesCommonsPath]: 'sivujettiCommonsForWebPages'};
-    const webPageExternals = [webPagesCommonsPath];
-    const bundle = !args.configInput ? args.configBundle || 'main' : 'custom';
-    const bundles = [];
     const selectedLang = args.configLang || 'fi';
-    const isBuild = args.w === undefined;
-    const postPlugins = !isBuild ? [] : [terser()];
-    const getTargetDirBase = input => {
-        if (!input) return 'public/sivujetti/';
-        if (input.indexOf('./') > -1)
-            throw new Error(`Invalid directory ${input}`);
-        return input;
-    };
     const targetDirBase = getTargetDirBase(args.configTargetRelDir);
-    // == sivujetti-edit-app.js ================================================
-    if (bundle === 'main' || bundle === 'all') {
-        bundles.push({
-            input: 'frontend/commons-for-edit-app/main.js',
-            output: makeOutputCfg({
-                name: editAppGlobals[editAppCommonsPath],
-                file: `${targetDirBase}sivujetti-commons-for-edit-app.js`,
-            }),
-            plugins: [
-                makeJsxPlugin(['frontend/edit-app/src/**']),
-            ].concat(...postPlugins),
-            watch: watchSettings
-        }, {
-            input: 'frontend/edit-app/main.js',
-            output: makeOutputCfg({
-                name: 'sivujettiEditApp',
-                file: `${targetDirBase}sivujetti-edit-app.js`,
-                globals: editAppGlobals,
-            }),
-            external: editAppExternals,
-            plugins: [
-                makeJsxPlugin(['frontend/edit-app/src/**']),
-            ].concat(...postPlugins),
-            watch: watchSettings
-        });
-    }
-    // == lang-*.js ============================================================
-    if (bundle === 'lang' || bundle === 'all') {
-        const globals = {'@sivujetti-string-bundles': 'translationStringBundles'};
-        const external = ['@sivujetti-string-bundles'];
-        bundles.push({
-            input: `frontend/translations/${selectedLang}.js`,
-            output: {
-                format: 'iife',
-                file: `${targetDirBase}lang-${selectedLang}.js`,
-                globals,
-            },
-            external,
-            plugins: postPlugins,
-            watch: watchSettings
-        }, {
-            input: `frontend/translations/auth-apps.${selectedLang}.js`,
-            output: {
-                format: 'iife',
-                file: `${targetDirBase}lang-auth-${selectedLang}.js`,
-                globals,
-            },
-            external,
-            plugins: postPlugins,
-            watch: watchSettings
-        });
-    }
-    // == sivujetti-webpage.js =================================================
-    if (bundle === 'webpage' || bundle === 'all') {
-        bundles.push({
-            input: 'frontend/commons-for-web-pages/main.js',
-            output: makeOutputCfg({
-                name: webPagesGlobals[webPagesCommonsPath],
-                file: `${targetDirBase}sivujetti-commons-for-web-pages.js`,
-            }),
-            plugins: postPlugins,
-            watch: watchSettings
-        }, {
-            input: 'frontend/webpage/main.js',
-            output: makeOutputCfg({
-                file: `${targetDirBase}sivujetti-webpage.js`,
-                globals: webPagesGlobals,
-            }),
-            external: webPageExternals,
-            plugins: postPlugins,
-            watch: watchSettings
-        });
-    }
-    // == render-auth-app.js ===================================================
-    if (bundle === 'auth' || bundle === 'all')
-        bundles.push({
-            input: 'frontend/auth-apps/renderAuthApp.js',
-            output: makeOutputCfg({
-                name: 'sivujettiRenderAuthApp',
-                file: `${targetDirBase}sivujetti-render-auth-app.js`,
-                globals: editAppGlobals,
-            }),
-            external: editAppExternals,
-            plugins: [
-                makeJsxPlugin(['frontend/edit-app/src/**']),
-            ].concat(...postPlugins),
-            watch: watchSettings
-        });
-    // == tests-bundled-main.js ================================================
-    if (bundle === 'tests' || bundle === 'all') {
-        bundles.push({
-            input: 'frontend/tests/main.js',
-            output: makeOutputCfg({
-                file: 'public/tests/bundled-main.js',
-                globals: editAppGlobals,
-            }),
-            plugins: [makeJsxPlugin(['frontend/edit-app/src/**'])].concat(...postPlugins),
-            external: editAppExternals,
-            watch: watchSettings
-        });
-    }
-    // == custom.js ============================================================
-    if (!bundles.length && bundle !== 'all') {
+
+    if (args.configInput) { // custom.js
         let userDefined = require(path.resolve(__dirname, args.configInput));
         if (typeof userDefined === 'function') userDefined = userDefined({selectedLang});
         const cfgs = !Array.isArray(userDefined) ? [userDefined] : userDefined;
@@ -162,7 +66,7 @@ module.exports = args => {
             const out = {
                 input: cfg.input,
                 output: makeOutputCfg({
-                    globals: Object.assign({}, editAppGlobals, webPagesGlobals),
+                    globals: {...webPagesGlobals, ...previewRendererAppGlobals, ...editAppGlobals},
                     banner: ''
                 }, cfg.output),
                 plugins: [
@@ -170,10 +74,8 @@ module.exports = args => {
                         ? cfg.jsxTranspile.include || []
                         : []),
                 ].concat(...postPlugins),
-                external: [...editAppExternals, ...webPageExternals],
-                watch: {
-                    clearScreen: false
-                },
+                external: [...webPageExternals, ...previewRendererAppExternals, ...editAppExternals],
+                watch: watchSettings,
             };
             ['banner'].forEach(optionalKey => {
                 if (cfg[optionalKey]) out[optionalKey] = cfg[optionalKey];
@@ -181,5 +83,124 @@ module.exports = args => {
             return out;
         });
     }
-    return bundles;
+
+    const bundlesStr = args.configBundle || 'main';
+    return createBundablesArray(bundlesStr).map(bundleName => {
+        if (bundleName === Bundles.WEBPAGE_COMMONS)
+            return {
+                input: 'frontend2/sivujetti-commons-for-web-pages.js',
+                output: makeOutputCfg({
+                    name: webPagesGlobals[webPagesCommonsPath],
+                    file: `${targetDirBase}sivujetti-commons-for-web-pages.js`,
+                }),
+                plugins: postPlugins,
+                watch: watchSettings
+            };
+        if (bundleName === Bundles.WEBPAGE_PREVIEW_RENDERER_APP)
+            return {
+                input: 'frontend2/webpage-renderer-app/main.js',
+                output: makeOutputCfg({
+                    name: 'sivujettiWebPagePreviewRendererApp',
+                    file: `${targetDirBase}sivujetti-webpage-renderer-app-main.js`,
+                    globals: {...webPagesGlobals, ...previewRendererAppGlobals},
+                }),
+                external: [...webPageExternals, ...previewRendererAppExternals],
+                plugins: [
+                    makeJsxPlugin(),
+                ].concat(...postPlugins),
+                watch: watchSettings
+            };
+        if (bundleName === Bundles.EDIT_APP_COMMONS)
+            return {
+                input: 'frontend/commons-for-edit-app/main.js',
+                output: makeOutputCfg({
+                    name: 'sivujettiCommonsEditApp',
+                    file: `${targetDirBase}sivujetti-commons-for-edit-app.js`,
+                }),
+                plugins: [
+                    makeJsxPlugin(),
+                ].concat(...postPlugins),
+                watch: watchSettings
+            };
+        if (bundleName === Bundles.EDIT_APP)
+            return {
+                input: 'frontend/edit-app/main.js',
+                output: makeOutputCfg({
+                    name: 'sivujettiEditApp',
+                    file: `${targetDirBase}sivujetti-edit-app.js`,
+                    globals: {[editAppCommonsPath]: 'sivujettiCommonsEditApp'},
+                }),
+                external: editAppExternals,
+                plugins: [
+                    makeJsxPlugin(),
+                ].concat(...postPlugins),
+                watch: watchSettings
+            };
+        if (bundleName === Bundles.AUTH_APPS)
+            return {
+                input: 'frontend/auth-apps/renderAuthApp.js',
+                output: makeOutputCfg({
+                    name: 'sivujettiRenderAuthApp',
+                    file: `${targetDirBase}sivujetti-render-auth-app.js`,
+                    globals: editAppGlobals,
+                }),
+                external: editAppExternals,
+                plugins: [
+                    makeJsxPlugin(),
+                ].concat(...postPlugins),
+                watch: watchSettings
+            };
+        if (bundleName === Bundles.LANG) {
+            const globals = {'@sivujetti-string-bundles': 'translationStringBundles'};
+            const external = ['@sivujetti-string-bundles'];
+            return [{
+                input: `frontend/translations/${selectedLang}.js`,
+                output: {
+                    format: 'iife',
+                    file: `${targetDirBase}lang-${selectedLang}.js`,
+                    globals,
+                },
+                external,
+                plugins: postPlugins,
+                watch: watchSettings
+            }, {
+                input: `frontend/translations/auth-apps.${selectedLang}.js`,
+                output: {
+                    format: 'iife',
+                    file: `${targetDirBase}lang-auth-${selectedLang}.js`,
+                    globals,
+                },
+                external,
+                plugins: postPlugins,
+                watch: watchSettings
+            }];
+        }
+        if (bundleName === Bundles.TESTS)
+            return {
+                input: 'frontend/tests/main.js',
+                output: makeOutputCfg({
+                    file: 'public/tests/bundled-main.js',
+                    globals: editAppGlobals,
+                }),
+                plugins: [makeJsxPlugin()].concat(...postPlugins),
+                external: editAppExternals,
+                watch: watchSettings
+            };
+    }).flat();
 };
+
+////////////////////////////////////////////////////////////////////////////////
+function getTargetDirBase(input) {
+    if (!input) return 'public/sivujetti/';
+    if (input.indexOf('./') > -1)
+        throw new Error(`Invalid directory ${input}`);
+    return input;
+}
+
+function createBundablesArray(bundlesStr) {
+    const ir = bundlesStr.split(',').map(p => p.trim()).filter(p => !!p);
+    return ir.indexOf('all') < 0 ? ir : [...new Set([
+        ...ir.filter(b => b !== 'all'),
+        ...Object.values(Bundles),
+    ])];
+}

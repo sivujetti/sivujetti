@@ -34,7 +34,25 @@ class UserSiteAPI extends BaseAPI {
      * @param string $url e.g. "my-site.bundle.js"
      */
     public function enqueueEditAppJsFile(string $url): void {
-        $this->apiCtx->adminJsFiles[] = $url;
+        $this->enqueueDevJsFile($url, "editApp");
+    }
+    /**
+     * Adds $url to a list of urls, that will be included with the $tmpl->jsFiles()
+     * when the edit mode is on. $url is relative to $appEnv->constants["BASE_URL"] .
+     * "public/" ("foo/file.js" will become "http://mysite.com/public/foo/file.js")
+     *
+     * @param string $url e.g. "my-site.bundle.js"
+     */
+    public function enqueuePreviewAppJsFile(string $url): void {
+        $this->enqueueDevJsFile($url, "previewApp");
+    }
+    /**
+     * @param string $url
+     * @param string $key = "editApp"
+     * @psalm-param "editApp"|"previewApp" $key = "editApp"
+     */
+    protected function enqueueDevJsFile(string $url, string $key = "editApp"): void {
+        $this->apiCtx->devJsFiles->{$key}[] = $url;
     }
     /**
      * Adds $fileId to a list of names that can be used as $block->renderer.

@@ -560,3 +560,7 @@ interface BlockRendererProps {
     createDefaultProps(customClasses: String = null): {[attrName: String]: String;};
     renderChildren(): preact.ComponentChildren;
 }
+
+interface WebPagePreviewRendererAppApi {
+    registerRenderer(name: String, Cls: preact.AnyComponent): void;
+}

@@ -1,9 +1,23 @@
-import {urlAndSlugUtils} from '@sivujetti-commons-for-web-pages';
+import {urlAndSlugUtils, urlUtils} from '@sivujetti-commons-for-web-pages';
 import {
+    cloneDeep,
     completeImageSrc,
+    placeholderImageSrc,
     traverseRecursively,
 } from '../shared-inline.js';
+import {convertHtmlStringsToVNodeArrays, createBlockTreeHashes} from './ReRenderingWebPageFuncs.js';
 
+/** @type {Map<String, preact.AnyComponent>} */
+const customRenderers = new Map;
+const api = {
+    /**
+     * @param {String} name
+     * @param {preact.AnyComponent} Cls
+     */
+    registerRenderer(name, Cls) {
+        customRenderers.set(name, Cls);
+    }
+};
 
 class ButtonBlock extends preact.Component {
     /**
@@ -96,13 +110,13 @@ class TextBlock extends preact.Component {
      */
     render({block, createDefaultProps, renderChildren}) {
         return <div { ...createDefaultProps() }>
-            { block.html /* todo */ }
+            { block.html }
             { renderChildren() }
         </div>;
     }
 }
 
-const renderers = {
+const builtInRenderers = {
     Button: ButtonBlock,
     Image: ImageBlock,
     Menu: MenuBlock,
@@ -117,24 +131,12 @@ class RenderAll extends preact.Component {
      */
     exchangeBlocks(blocks) {
         const noMetas = blocks.filter(b => b.type !== 'PageInfo');
+        const hashesMap = {};
+        createBlockTreeHashes(noMetas, hashesMap);
+        this.currentBlocksHashes = hashesMap;
 
-        const hashes = {};
-        traverseRecursively(noMetas, b => {
-            if (!hashes[b.id]) hashes[b.id] = hashCode(JSON.stringify(b, (key, value) => {
-                if (key === 'children')
-                    return undefined;
-                if (key.startsWith('__'))
-                    return undefined;
-                return value;
-            }));
-        });
-        this.currentBlocksHashes = hashes;
-
-        const cloned = JSON.parse(JSON.stringify(noMetas));
-        traverseRecursively(cloned, block => {
-            if (['Text', 'Button'].indexOf(block.type) > -1 && typeof block.html === 'string')
-                block.html = htmlStringToVNodeArray(block.html);
-        });
+        const cloned = cloneDeep(noMetas);
+        traverseRecursively(cloned, convertHtmlStringsToVNodeArrays);
         this.setState({blocks: cloned});
     }
     /**
@@ -142,34 +144,50 @@ class RenderAll extends preact.Component {
      * @access public
      */
     exchangeSingleBlock(block, blocks) {
-        // todo
+        this.exchangeBlocks(blocks);
     }
     /**
      * @access protected
      */
     componentWillMount() {
-        this.exchangeBlocks(this.props.blocks);
+        if (!this.props.hashes)
+            this.exchangeBlocks(this.props.blocks);
+        else {
+            this.currentBlocksHashes = this.props.hashes;
+            this.setState({blocks: this.props.blocks});
+        }
     }
     /**
-     * @param {{depth?: Number;}} props
+     * @param {{depth?: Number; hashes?: {[blockId: String]: String;};}} props
      * @access protected
      */
     render({depth}, {blocks}) {
         return blocks.map(block => {
+            depth = (depth || 0);
+            const key = `k-${depth}-${this.currentBlocksHashes[block.id]}`;
+            if (block.type === 'GlobalBlockReference') {
+                return <RenderAll
+                    blocks={ block.__globalBlockTree.blocks }
+                    depth={ depth }
+                    hashes={ this.currentBlocksHashes }
+                    key={ this.currentBlocksHashes[block.id] }/>;
+            }
             const {type, styleClasses} = block;
-            const renderChildren = () => block.children.length ? <RenderAll blocks={ block.children } depth={ (depth || 0 ) + 1 }/> : null;
+            const renderChildren = () => block.children.length
+                ? <RenderAll blocks={ block.children } depth={ depth + 1 } hashes={ this.currentBlocksHashes }/>
+                : null;
             const createDefaultProps = (ownClasses = '') => ({
                 'data-block': block.id,
                 'data-block-type': block.type,
                 'class': `j-${type}${ownClasses ? ` ${ownClasses}` : ''}${styleClasses ? ` ${styleClasses}` : ''}`,
             });
-            const Renderer = renderers[type] || null;
+            const Renderer = builtInRenderers[type] || customRenderers.get(type) || null;
             if (!Renderer) return <p>{ `Block type \`${type}\` doesn't have a renderer!` }</p>;
             return <Renderer
                 block={ block }
                 createDefaultProps={ createDefaultProps }
                 renderChildren={ renderChildren }
-                key={ `k-${depth}-${this.currentBlocksHashes[block.id]}`}/>;
+                key={ key }/>;
         });
     }
 }
@@ -198,59 +216,6 @@ class RenderAllOuter extends RenderAll {
     setThisForMessaging(messagePortToEditApp) {
         this.messagePortToEditApp = messagePortToEditApp;
     }
-}
-
-/**
- * https://stackoverflow.com/a/52171480
- *
- * @param {String} str
- * @param {Number} seed = 0
- * @returns {String}
- */
-function hashCode(str, seed = 0) {
-    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
-    for(let i = 0, ch; i < str.length; i++) {
-        ch = str.charCodeAt(i);
-        h1 = Math.imul(h1 ^ ch, 2654435761);
-        h2 = Math.imul(h2 ^ ch, 1597334677);
-    }
-    h1  = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
-    h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-    h2  = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
-    h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-
-    return 4294967296 * (2097151 & h2) + (h1 >>> 0);
-}
-
-
-/**
- * @param {String} htmlString
- * @returns {Array<preact.ComponentChild>}
- */
-function htmlStringToVNodeArray(htmlString) {
-    const container = document.createElement('div');
-    container.innerHTML = htmlString;
-    return domNodesToVNodes(container.childNodes);
-}
-
-/**
- * @param {NodeListOf<ChildNode>} nodes
- * @returns {Array<preact.ComponentChild>}
- */
-function domNodesToVNodes(nodes) {
-    return [...nodes].map(node => {
-        if (node.nodeType === Node.TEXT_NODE)
-            return node.textContent;
-        if (node.nodeType === Node.COMMENT_NODE)
-            return null;
-        const El = node.tagName.toLowerCase();
-        const attrs = [...node.attributes].reduce((mapped, {name, value}) =>
-            ({...mapped, ...{[name]: value}}),
-        {});
-        return <El { ...attrs }>{
-            node.childNodes.length ? domNodesToVNodes(node.childNodes) : null
-        }</El>;
-    });
 }
 
 export default RenderAllOuter;

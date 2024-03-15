@@ -2,11 +2,44 @@
 
 Some semi-internal notes.
 
-## Bundling frontend (new)
+## Bundling frontend
+
+### All
+
+npm start -- --configBundle all
+
+### Specific bundles
+
+`npm start -- --configBundle bundle,bundle2` where "bundle" is one of:
+
+```typescript
+type bundleName =
+    'webpage-commons' |
+    'webpage-renderer-app' |
+    'edit-app-commons' |
+    'edit-app' |
+    'auth-apps' |
+    'lang' |
+    'tests';
+```
+
+Example:
+
+`npm start -- --configBundle webpage-commons,edit-app-commons,edit-app`
+
+### Translation files
+
+`npm start -- --configBundle lang --configLang fi`
+
+## Building frontent
+
+Same as above, but replace `npm start` with `npm run-script build`
+
+## Bundling frontend (bun)
 
 Bundle | Command | Out files
 --- | --- | ---
-All | `bun build --entrypoints ./frontend2/sivujetti-commons-for-web-pages.js ./frontend2/sivujetti-commons-for-edit-app.js ./frontend2/sivujetti-edit-app-main.jsx ./frontend2/sivujetti-webpage-renderer-app-main.js ./frontend2/translations/lang-fi.js --outdir ./public/v2 --entry-naming '[name].[ext]' --external preact --external '@sivujetti-commons-for-web-pages' --external '@sivujetti-commons-for-edit-app' --external '@sivujetti-env-config' --watch` | -
+All | `bun build --entrypoints ./frontend2/sivujetti-commons-for-web-pages.js ./frontend2/sivujetti-commons-for-edit-app.js ./frontend2/sivujetti-edit-app-main.jsx ./frontend2/translations/lang-fi.js --outdir ./public/v2 --entry-naming '[name].[ext]' --external preact --external '@sivujetti-commons-for-web-pages' --external '@sivujetti-commons-for-edit-app' --external '@sivujetti-env-config' --watch` | -
 Edit app | `bun build --entrypoints ./frontend2/sivujetti-commons-for-edit-app.js ./frontend2/sivujetti-edit-app-main.jsx --outdir ./public/v2 --entry-naming '[name].[ext]' --external preact --external '@sivujetti-commons-for-web-pages' --external '@sivujetti-commons-for-edit-app' --external '@sivujetti-env-config' --watch` | public/v2/sivujetti-edit-app-main.js, public/v2/sivujetti-commons-for-edit-app.js
 Web page preview app | `bun build --entrypoints ./frontend2/sivujetti-webpage-renderer-app-main.js --outdir ./public/v2 --entry-naming '[name].[ext]' --external preact--external '@sivujetti-commons-for-web-pages' --external '@sivujetti-env-config' --watch` | public/v2/sivujetti-webpage-renderer-app-main.js
 Auth apps | `bun build --entrypoints ./frontend2/sivujetti-auth-apps-main.jsx ./frontend2/translations/lang-auth-apps-fi.js --outdir ./public/v2 --entry-naming '[name].[ext]' --external preact --external '@sivujetti-commons-for-web-pages' --external '@sivujetti-commons-for-edit-app' --external '@sivujetti-env-config' --watch` | public/v2/sivujetti-auth-apps-main.js, public/v2/lang-auth-apps-fi.js

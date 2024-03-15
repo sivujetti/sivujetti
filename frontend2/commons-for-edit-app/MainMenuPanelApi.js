@@ -1,4 +1,4 @@
-import {env} from '../../commons-for-edit-app/web-page-commons-unified.js';
+import {env} from '@sivujetti-commons-for-web-pages';
 
 const sectionRenderers = new Map;
 

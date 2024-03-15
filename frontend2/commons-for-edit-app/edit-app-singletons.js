@@ -1,10 +1,10 @@
-import MainMenuPanelApi from '../edit-app/main-column/MainMenuPanelApi.js';
+import {env, urlUtils} from '@sivujetti-commons-for-web-pages';
 import Signals from '../shared-includes/Signals.js';
 import BlockTypesRegister from './BlockTypesRegister.js';
+import MainMenuPanelApi from './MainMenuPanelApi.js';
 import ScssWizard from './ScssWizard.js';
 import Translator from './Translator.js';
 import {stringUtils} from './utils.js';
-import {env, urlUtils} from './web-page-commons-unified.js';
 
 const editAppBlockTypeRegister = new BlockTypesRegister;
 
@@ -29,7 +29,7 @@ const editAppUserApiInstance = {
 
 const editAppScssWizardInstance = new ScssWizard;
 
-const editAppMainMenuPanelApi =  new MainMenuPanelApi;
+const editAppMainMenuPanelApi = new MainMenuPanelApi;
 
 const api = {
     getPageTypes: () => dataFromBackend.pageTypes,

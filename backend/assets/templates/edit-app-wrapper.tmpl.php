@@ -236,16 +236,14 @@
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/pickr.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/stylis.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/popper.min.js") ?>"></script>
-    <?php if (defined("USE_BUN_BUILD")): ?>
-        <script type="importmap">{"imports": {
-            "@sivujetti-commons-for-web-pages": "./public/v2/sivujetti-commons-for-web-pages.js",
-            "@sivujetti-commons-for-edit-app": "./public/v2/sivujetti-commons-for-edit-app.js"
-        }}</script>
+    <?php if (defined("USE_V2_BUNDLER")): ?>
         <script><?= $this->generateSivujettiEnvConfJs() ?></script>
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
         <script>window.translationStringBundles = []</script>
         <script src="<?= $this->assetUrl("public/v2/lang-{$uiLang}.js") ?>"></script>
-        <script src="<?= $this->assetUrl("public/v2/sivujetti-edit-app-main.js", /* @see frontend2/sivujetti-edit-app-main.jsx */)."&t=".time() ?>" type="module"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-web-pages.js", /* @see frontend2/sivujetti-commons-for-web-pages.js */) ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-edit-app.js", /* @see frontend2/commons-for-edit-app/main.js */) ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.js", /* @see frontend2/edit-app/main.js */) ?>"></script>
     <?php else: ?>
         <script>window.isFirstRun = <?= $isFirstRun ? "true" : "false" ?></script>
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
@@ -255,10 +253,10 @@
         <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.js", /* @see frontend/edit-app/main.js */) ?>"></script>
     <?php endif; ?>
 
-        <?php // todo plugins ?>
-    <?php if (defined("USE_BUN_BUILD")):
-        <script src="<?= $this->assetUrl("public/v2/{$relUrl}") ?>" type="module"></script>
-        <?php endif; endforeach; ?>
+    <?php if (defined("USE_V2_BUNDLER")):
+        foreach ($userDefinedJsFiles->editApp as $relUrl): ?>
+            <script src="<?= $this->assetUrl("public/v2/{$relUrl}") ?>" type="module"></script>
+        <?php endforeach; ?>
         <?php // todo showQuickIntro ?>
     <?php else: ?>
 

@@ -1,4 +1,4 @@
-import {urlAndSlugUtils, urlUtils} from '../web-page-commons-unified.js';
+import {urlAndSlugUtils, urlUtils} from '@sivujetti-commons-for-web-pages';
 import {__, FormGroupInline} from '../internal-wrapper.js';
 import {determineModeFrom, getVisibleSlug} from '../pick-url-utils.js';
 import {currentInstance as floatingDialog} from '../FloatingDialog.jsx';

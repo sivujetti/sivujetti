@@ -23,7 +23,7 @@
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/quill.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/stylis.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.js") ?>"></script>
-    <?php if (defined("USE_BUN_BUILD")): ?>
+    <?php if (defined("USE_V2_BUNDLER")): ?>
         <script type="importmap">{"imports": {
             "@sivujetti-commons-for-web-pages": "./public/v2/sivujetti-commons-for-web-pages.js",
             "@sivujetti-commons-for-edit-app": "./public/v2/sivujetti-commons-for-edit-app.js"

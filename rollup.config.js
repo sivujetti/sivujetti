@@ -31,7 +31,7 @@ const watchSettings = {
     clearScreen: false
 };
 
-const Bundles = {
+const BundleNames = {
     WEBPAGE_COMMONS: 'webpage-commons',
     WEBPAGE_PREVIEW_RENDERER_APP: 'webpage-renderer-app',
     EDIT_APP_COMMONS: 'edit-app-commons',
@@ -86,7 +86,7 @@ module.exports = args => {
 
     const bundlesStr = args.configBundle || 'main';
     return createBundablesArray(bundlesStr).map(bundleName => {
-        if (bundleName === Bundles.WEBPAGE_COMMONS)
+        if (bundleName === BundleNames.WEBPAGE_COMMONS)
             return {
                 input: 'frontend2/sivujetti-commons-for-web-pages.js',
                 output: makeOutputCfg({
@@ -96,7 +96,7 @@ module.exports = args => {
                 plugins: postPlugins,
                 watch: watchSettings
             };
-        if (bundleName === Bundles.WEBPAGE_PREVIEW_RENDERER_APP)
+        if (bundleName === BundleNames.WEBPAGE_PREVIEW_RENDERER_APP)
             return {
                 input: 'frontend2/webpage-renderer-app/main.js',
                 output: makeOutputCfg({
@@ -110,21 +110,23 @@ module.exports = args => {
                 ].concat(...postPlugins),
                 watch: watchSettings
             };
-        if (bundleName === Bundles.EDIT_APP_COMMONS)
+        if (bundleName === BundleNames.EDIT_APP_COMMONS)
             return {
-                input: 'frontend/commons-for-edit-app/main.js',
+                input: 'frontend2/commons-for-edit-app/main.js',
                 output: makeOutputCfg({
                     name: 'sivujettiCommonsEditApp',
                     file: `${targetDirBase}sivujetti-commons-for-edit-app.js`,
+                    globals: webPagesGlobals,
                 }),
+                external: webPageExternals,
                 plugins: [
                     makeJsxPlugin(),
                 ].concat(...postPlugins),
                 watch: watchSettings
             };
-        if (bundleName === Bundles.EDIT_APP)
+        if (bundleName === BundleNames.EDIT_APP)
             return {
-                input: 'frontend/edit-app/main.js',
+                input: 'frontend2/edit-app/main.js',
                 output: makeOutputCfg({
                     name: 'sivujettiEditApp',
                     file: `${targetDirBase}sivujetti-edit-app.js`,
@@ -136,7 +138,7 @@ module.exports = args => {
                 ].concat(...postPlugins),
                 watch: watchSettings
             };
-        if (bundleName === Bundles.AUTH_APPS)
+        if (bundleName === BundleNames.AUTH_APPS)
             return {
                 input: 'frontend/auth-apps/renderAuthApp.js',
                 output: makeOutputCfg({
@@ -150,7 +152,7 @@ module.exports = args => {
                 ].concat(...postPlugins),
                 watch: watchSettings
             };
-        if (bundleName === Bundles.LANG) {
+        if (bundleName === BundleNames.LANG) {
             const globals = {'@sivujetti-string-bundles': 'translationStringBundles'};
             const external = ['@sivujetti-string-bundles'];
             return [{
@@ -175,7 +177,7 @@ module.exports = args => {
                 watch: watchSettings
             }];
         }
-        if (bundleName === Bundles.TESTS)
+        if (bundleName === BundleNames.TESTS)
             return {
                 input: 'frontend/tests/main.js',
                 output: makeOutputCfg({
@@ -186,6 +188,7 @@ module.exports = args => {
                 external: editAppExternals,
                 watch: watchSettings
             };
+        throw new Error(`Unknown bundle name "${bundleName}". Known: ${Object.values(BundleNames).join(', ')}`);
     }).flat();
 };
 
@@ -201,6 +204,6 @@ function createBundablesArray(bundlesStr) {
     const ir = bundlesStr.split(',').map(p => p.trim()).filter(p => !!p);
     return ir.indexOf('all') < 0 ? ir : [...new Set([
         ...ir.filter(b => b !== 'all'),
-        ...Object.values(Bundles),
+        ...Object.values(BundleNames),
     ])];
 }

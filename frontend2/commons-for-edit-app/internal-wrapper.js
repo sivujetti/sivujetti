@@ -2,7 +2,7 @@
 Exports, which commons-for-edit-app/<any>.js can include (since they can't include
 directly from '@sivujetti-commons-for-edit-app').
 */
-import {http} from './web-page-commons-unified.js';
+import {http} from '@sivujetti-commons-for-web-pages';
 import {
     __,
     api,

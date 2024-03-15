@@ -139,8 +139,8 @@ final class PagesController {
         $userRole = $req->myData->user->role;
         $tmpl = self::createTemplate("edit-app-wrapper", $appEnv, $theWebsite);
         $res->html($tmpl->render([
-            "userDefinedJsFiles" => $apiCtx->adminJsFiles,
-            "dataToFrontend" => !defined("USE_BUN_BUILD") ? WebPageAwareTemplate::escInlineJs(json_encode((object) [
+            "userDefinedJsFiles" => $apiCtx->devJsFiles,
+            "dataToFrontend" => !defined("USE_V2_BUNDLER") ? WebPageAwareTemplate::escInlineJs(json_encode((object) [
                 "baseUrl" => $tmpl->makeUrl("/", true),
                 "assetBaseUrl" => $tmpl->makeUrl("/", false),
                 "website" => self::theWebsiteToRaw($theWebsite),

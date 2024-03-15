@@ -1,4 +1,4 @@
-import {env} from './web-page-commons-unified.js';
+import {env} from '@sivujetti-commons-for-web-pages';
 
 /**
  * @param {String} value

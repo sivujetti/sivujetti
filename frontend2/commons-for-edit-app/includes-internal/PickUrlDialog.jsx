@@ -1,4 +1,4 @@
-import {env, http, urlUtils} from '../web-page-commons-unified.js';
+import {env, http, urlUtils} from '@sivujetti-commons-for-web-pages';
 import urlAndSlugUtils from '../../commons-for-web-pages/url-and-slug-utils.js';
 import FileUploader from '../FileUploader.jsx';
 import setFocusTo from '../auto-focusers.js';

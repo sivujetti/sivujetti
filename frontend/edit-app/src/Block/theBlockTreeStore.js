@@ -13,36 +13,36 @@ function theBlockTreeStore(store) {
 // ##     (_state, [theBlockTree]) =>
 // ##         ({theBlockTree})
 // ##     );
-
-    store.on('theBlockTree/swap',
-    /**
-     * @param {Object} state
-     * @param {[BlockDescriptor, BlockDescriptor, dropPosition]} args
-     * @returns {Object}
-     */
-    ({theBlockTree}, [dragInf, dropInf, dropPos]) => {
-        const clone = cloneObjectDeep(theBlockTree);
-        const [dragBlock, dragBranch] = blockTreeUtils.findBlockSmart(dragInf.blockId, clone);
-        const [dropBlock, dropBranch] = blockTreeUtils.findBlockSmart(!(dropInf.isGbtRef && dropPos === 'as-child') ? dropInf.blockId : dropInf.data.refTreesRootBlockId, clone);
-        //
-        const isBefore = dropPos === 'before';
-        if (isBefore || dropPos === 'after') {
-            if (dragBranch === dropBranch) {
-                const toIdx = dragBranch.indexOf(dropBlock);
-                const fromIndex = dragBranch.indexOf(dragBlock);
-                const realTo = isBefore ? toIdx : toIdx + 1;
-                dragBranch.splice(realTo, 0, dragBlock);
-                dragBranch.splice(fromIndex + (fromIndex > realTo ? 1 : 0), 1);
-            } else {
-                moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore);
-            }
-        } else if (dropPos === 'as-child') {
-            dropBlock.children.push(dragBlock);
-            const pos = dragBranch.indexOf(dragBlock);
-            dragBranch.splice(pos, 1);
-        }
-        return {theBlockTree: clone};
-    });
+// ## 
+// ##     store.on('theBlockTree/swap',
+// ##     /**
+// ##      * @param {Object} state
+// ##      * @param {[BlockDescriptor, BlockDescriptor, dropPosition]} args
+// ##      * @returns {Object}
+// ##      */
+// ##     ({theBlockTree}, [dragInf, dropInf, dropPos]) => {
+// ##         const clone = cloneObjectDeep(theBlockTree);
+// ##         const [dragBlock, dragBranch] = blockTreeUtils.findBlockSmart(dragInf.blockId, clone);
+// ##         const [dropBlock, dropBranch] = blockTreeUtils.findBlockSmart(!(dropInf.isGbtRef && dropPos === 'as-child') ? dropInf.blockId : dropInf.data.refTreesRootBlockId, clone);
+// ##         //
+// ##         const isBefore = dropPos === 'before';
+// ##         if (isBefore || dropPos === 'after') {
+// ##             if (dragBranch === dropBranch) {
+// ##                 const toIdx = dragBranch.indexOf(dropBlock);
+// ##                 const fromIndex = dragBranch.indexOf(dragBlock);
+// ##                 const realTo = isBefore ? toIdx : toIdx + 1;
+// ##                 dragBranch.splice(realTo, 0, dragBlock);
+// ##                 dragBranch.splice(fromIndex + (fromIndex > realTo ? 1 : 0), 1);
+// ##             } else {
+// ##                 moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore);
+// ##             }
+// ##         } else if (dropPos === 'as-child') {
+// ##             dropBlock.children.push(dragBlock);
+// ##             const pos = dragBranch.indexOf(dragBlock);
+// ##             dragBranch.splice(pos, 1);
+// ##         }
+// ##         return {theBlockTree: clone};
+// ##     });
 
     /**
      * @param {Object} state
@@ -173,20 +173,20 @@ function theBlockTreeStore(store) {
     });
 }
 
-/**
- * @param {RawBlock} dragBlock
- * @param {Array<RawBlock>} dragBranch
- * @param {RawBlock} dropBlock
- * @param {Array<RawBlock>} dropBranch
- * @param {Boolean} isBefore
- */
-function moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore) {
-    const dragBranchIdx = dragBranch.indexOf(dragBlock);
-    const dropBranchIdx = dropBranch.indexOf(dropBlock);
-    const pos = dropBranchIdx + (isBefore ? 0 : 1);
-    dropBranch.splice(pos, 0, dragBlock);
-    dragBranch.splice(dragBranchIdx, 1);
-}
+// ## /**
+// ##  * @param {RawBlock} dragBlock
+// ##  * @param {Array<RawBlock>} dragBranch
+// ##  * @param {RawBlock} dropBlock
+// ##  * @param {Array<RawBlock>} dropBranch
+// ##  * @param {Boolean} isBefore
+// ##  */
+// ## function moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore) {
+// ##     const dragBranchIdx = dragBranch.indexOf(dragBlock);
+// ##     const dropBranchIdx = dropBranch.indexOf(dropBlock);
+// ##     const pos = dropBranchIdx + (isBefore ? 0 : 1);
+// ##     dropBranch.splice(pos, 0, dragBlock);
+// ##     dragBranch.splice(dragBranchIdx, 1);
+// ## }
 
 /**
  * @param {RawBlock} block

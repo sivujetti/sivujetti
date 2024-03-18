@@ -54,7 +54,7 @@ class ReRenderer {
             this.elCache = createElCache(theBlockTree);
         // ====================================================================
         } else if ([
-            'theBlockTree/swap',
+// ##             'theBlockTree/swap',
             'theBlockTree/applyAdd(Drop)Block',
             'theBlockTree/applySwap',
             'theBlockTree/deleteBlock',

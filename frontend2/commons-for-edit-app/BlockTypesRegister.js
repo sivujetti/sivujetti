@@ -26,7 +26,7 @@ class BlockTypesRegister {
     }
     /**
      * @param {String} name
-     * @returns {BlockTypeDefinition|(...any) => BlockTypeDefinition}
+     * @returns {BlockTypeDefinition}
      * @access public
      */
     get(name) {
@@ -45,7 +45,7 @@ class BlockTypesRegister {
         return type.icon || fallback;
     }
     /**
-     * @returns {IterableIterator<String, BlockTypeDefinition|(...any) => BlockTypeDefinition>}
+     * @returns {IterableIterator<String, BlockTypeDefinition>}
      * @access public
      */
     entries() {

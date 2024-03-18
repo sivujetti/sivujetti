@@ -9,7 +9,7 @@ import {
     objectUtils,
     traverseRecursively,
 } from '../../../sivujetti-commons-unified.js';
-import createDndController, {callGetBlockPropChangesEvent} from '../../includes/create-block-tree-dnd-controller.js';
+import createDndController, {callGetBlockPropChangesEvent} from '../../includes/block/create-block-tree-dnd-controller.js';
 import TreeDragDrop from '../../includes/TreeDragDrop.js';
 import BlockSaveAsReusableDialog from '../../main-column/popups/BlockSaveAsReusableDialog.jsx';
 import {

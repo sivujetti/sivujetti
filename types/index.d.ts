@@ -1,5 +1,5 @@
 interface SivujettiFrontendApi {
-    blockTypes: BlockTypes;
+    blockTypes: BlockTypesRegister;
     webPageIframe: WebPageIframe;
     mainPanel: MainPanel;
     inspectorPanel: {getEl(): HTMLElement;};
@@ -78,10 +78,12 @@ interface MainPanel {
     getSections(): Map<preact.AnyComponent>;
 }
 
-interface BlockTypes {
-    get(name: String): BlockType|undefined;
-    register(name: String, blockTypeFactory: () => BlockType): void;
-    entries(): IterableIterator<String, BlockType>;
+interface BlockTypesRegister {
+    setup(defaultBlockTypes: Array<[String, BlockTypeDefinition]>): void;
+    register(name: String, blockTypeFactory: () => BlockTypeDefinition): void;
+    get(name: String): BlockTypeDefinition;
+    getIconId(blockType: BlockTypeDefinition|String, fallback: String = 'box'): String
+    entries(): IterableIterator<String, BlockTypeDefinition>;
 }
 
 interface RawBlockData {
@@ -324,7 +326,7 @@ interface ContextMenuLink {
     id: String;
 }
 
-type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/swap'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undoUpdateDefPropsOf'|'theBlockTree/deleteBlock'|'theBlockTree/addBlockOrBranch'|'theBlockTree/updatePropsOf'|'theBlockTree/updateDefPropsOf'|'theBlockTree/cloneItem'|'theBlockTree/convertToGbt';
+type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undoUpdateDefPropsOf'|'theBlockTree/deleteBlock'|'theBlockTree/addBlockOrBranch'|'theBlockTree/updatePropsOf'|'theBlockTree/updateDefPropsOf'|'theBlockTree/cloneItem'|'theBlockTree/convertToGbt';
 
 type blockPropValueChangeFlags = 'is-throttled'|'is-group'|null;
 

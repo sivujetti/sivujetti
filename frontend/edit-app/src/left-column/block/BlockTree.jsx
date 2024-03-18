@@ -63,8 +63,8 @@ class BlockTree extends preact.Component {
         this.unregistrables.push(observeStore2('theBlockTree', ({theBlockTree}, [event, data]) => {
             if (event === 'theBlockTree/init') {
                 // skip
-            } else if (event === 'theBlockTree/swap') {
-                // skip, wait until drop/applySwap
+// ##             } else if (event === 'theBlockTree/swap') {
+// ##                 // skip, wait until drop/applySwap
             } else if (event === 'theBlockTree/applySwap' ||
                 event === 'theBlockTree/applyAdd(Drop)Block' ||
                 event === 'theBlockTree/deleteBlock' ||

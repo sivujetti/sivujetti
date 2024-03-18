@@ -34,6 +34,9 @@ class DnDBlockSpawner extends preact.Component {
         this.unregisterables = [saveButton.subscribeToChannel('reusableBranches', (reusables, userCtx, ctx) => {
             if (userCtx?.event === 'create' || userCtx?.event === 'remove' || isUndoOrRedo(ctx))
                 this.setState({reusables});
+        }), saveButton.subscribeToChannel('theBlockTree', (theTree, userCtx, ctx) => {
+            if (userCtx?.event !== 'init' || isUndoOrRedo(ctx))
+                this.setState(createGlobalBlockTreesState(saveButton.getChannelState('globalBlockTrees'), theTree));
         }), saveButton.subscribeToChannel('globalBlockTrees', (gbts, userCtx, ctx) => {
             if (userCtx?.event === 'create' || userCtx?.event === 'remove' || isUndoOrRedo(ctx))
                 this.setState(createGlobalBlockTreesState(gbts));
@@ -232,9 +235,11 @@ class DnDBlockSpawner extends preact.Component {
 
 /**
  * @param {Array<RawGlobalBlockTree>} allGbts
+ * @param {Array<RawBlock>} theBlockTree = null
  */
-function createGlobalBlockTreesState(allGbts) {
-    const alreadyInCurrentPage = getGbtIdsFrom(api.saveButton.getInstance().getChannelState('theBlockTree'));
+function createGlobalBlockTreesState(allGbts, theBlockTree = null) {
+    if (!allGbts) return {};
+    const alreadyInCurrentPage = getGbtIdsFrom(theBlockTree || api.saveButton.getInstance().getChannelState('theBlockTree'));
     //
     const filtered = allGbts.filter(gbt =>
         alreadyInCurrentPage.indexOf(gbt.id) < 0
@@ -264,8 +269,8 @@ const ordinals = [
 , {});
 
 /**
- * @param {Array<[blockTypeName, BlockType]>} selectableBlockTypes
- * @returns {Array<[blockTypeName, BlockType]>}
+ * @param {Array<[blockTypeName, BlockTypeDefinition]>} selectableBlockTypes
+ * @returns {Array<[blockTypeName, BlockTypeDefinition]>}
  */
 function sort(selectableBlockTypes) {
     selectableBlockTypes.sort(([a], [b]) => {

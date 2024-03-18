@@ -8,7 +8,7 @@ import {
     MenuSectionAbstract,
     signals,
     urlUtils,
-} from '../../../sivujetti-commons-unified.js';
+} from '@sivujetti-commons-for-edit-app';
 import {openPageDeleteDialog} from '../../main-column/popups/PageDeleteDialog.jsx';
 import BlockTree from '../block/BlockTree.jsx';
 

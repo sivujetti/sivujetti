@@ -5,7 +5,7 @@ import {
     http,
     Icon,
     LoadingSpinner
-} from '../../../sivujetti-commons-unified.js';
+} from '@sivujetti-commons-for-edit-app';
 import toasters from '../../includes/toasters.jsx';
 import OverlayView from '../OverlayView.jsx';
 import {openPageDeleteDialog} from '../popups/PageDeleteDialog.jsx';

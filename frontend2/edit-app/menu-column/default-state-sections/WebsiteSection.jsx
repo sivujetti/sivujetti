@@ -1,4 +1,4 @@
-import {__, api, MenuSection, Icon} from '../../../sivujetti-commons-unified.js';
+import {__, api, MenuSection, Icon} from '@sivujetti-commons-for-edit-app';
 
 class WebsiteSection extends preact.Component {
     /**

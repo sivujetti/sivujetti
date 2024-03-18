@@ -1,5 +1,5 @@
 /*
-An entry point for global file "public/sivujetti/sivujetti-edit-app-main.js" that is
+An entry point for global file "public/sivujetti/sivujetti-edit-app.js" that is
 included in edit-app's template (edit-app-wrapper.tmpl.php).
 */
 import {api, FloatingDialog, scssWizard, translator} from '@sivujetti-commons-for-edit-app';

@@ -1,6 +1,7 @@
+import stringBundles from '@sivujetti-string-bundles';
 import validationStrings from './includes-internal/validation.fi.js';
 
-window.translationStringBundles.push({
+stringBundles.push({
     'Page': 'Page',
     'New page': 'New page',
     'Categories': 'Categories',
@@ -185,7 +186,7 @@ window.translationStringBundles.push({
     'Description': 'Description',
     'Listable': 'Listable',
     'Default layout': 'Default layout',
-    // edit-app/src/popups/reusable-branch/SaveBlockAsReusableDialog.jsx
+    // edit-app/src/popups/reusable-branch/BlockSaveAsReusableDialog.jsx
     'This function saves this content as reusable content, which can be easily added to other pages later on.': 'This function saves this content as reusable content, which can be easily added to other pages later on.',
     'Name': 'Name',
     'e.g. Text and image, Footer': 'e.g. Text and image, Footer',

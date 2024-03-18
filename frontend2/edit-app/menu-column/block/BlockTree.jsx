@@ -8,7 +8,7 @@ import {
     LoadingSpinner,
     objectUtils,
     traverseRecursively,
-} from '../../../sivujetti-commons-unified.js';
+} from '@sivujetti-commons-for-edit-app';
 import createDndController, {callGetBlockPropChangesEvent} from '../../includes/block/create-block-tree-dnd-controller.js';
 import TreeDragDrop from '../../includes/TreeDragDrop.js';
 import BlockSaveAsReusableDialog from '../../main-column/popups/BlockSaveAsReusableDialog.jsx';

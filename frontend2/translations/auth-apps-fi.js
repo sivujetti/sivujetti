@@ -1,6 +1,7 @@
+import stringBundles from '@sivujetti-string-bundles';
 import validationStrings from './includes-internal/validation.fi.js';
 
-window.translationStringBundles.push({
+stringBundles.push({
     'Username': 'Käyttäjänimi',
     'Password': 'Salasana',
     'Login': 'Kirjaudu',

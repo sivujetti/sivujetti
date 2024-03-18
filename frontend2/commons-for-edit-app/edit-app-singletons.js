@@ -39,12 +39,12 @@ const api = {
         getOuterEl() { return document.getElementById('inspector-panel'); },
     },
     saveButton: {
-        init(saveButtonReactRef) {
-            this.saveButtonReactRef = saveButtonReactRef;
+        init(saveButton) {
+            this.instance = saveButton;
         },
         /** @returns {SaveButton} */
         getInstance() {
-            return this.saveButtonReactRef.current;
+            return this.instance;
         }
     },
     user: editAppUserApiInstance,
@@ -57,6 +57,7 @@ const api = {
         unHighlightTextBlockChildEl() { },
         scrollToBlock(/*block*/) { },
         highlightTextBlockChildEl(/*elIdx, textBlockBlockId*/) { },
+        onReady(/*fn*/) {},
     }
 };
 

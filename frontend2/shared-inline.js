@@ -1,6 +1,6 @@
 /*
-Shared code that get's copied/inlined to both `public/sivujetti-edit-app-main.js`,
-`public/sivujetti-commons-for-edit-app.js`, and `public/sivujetti-webpage-renderer-app-main.js`
+Shared code that get's copied/inlined to both `public/sivujetti/sivujetti-edit-app.js`,
+`public/sivujetti/sivujetti-commons-for-edit-app.js`, and `public/sivujetti/sivujetti-webpage-renderer-app.js`
 by the bundler.
 */
 

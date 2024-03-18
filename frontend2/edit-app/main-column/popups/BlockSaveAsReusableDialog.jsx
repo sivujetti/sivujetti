@@ -8,7 +8,7 @@ import {
     Input,
     InputErrors,
     unhookForm,
-} from '../../../sivujetti-commons-unified.js';
+} from '@sivujetti-commons-for-edit-app';
 
 class BlockSaveAsReusableDialog extends preact.Component {
     // boundDoHandleSubmit;

@@ -1,4 +1,4 @@
-import {__, handleSubmit, floatingDialog, http} from '../../../sivujetti-commons-unified.js';
+import {__, handleSubmit, floatingDialog, http} from '@sivujetti-commons-for-edit-app';
 import toasters from '../../includes/toasters.jsx';
 
 class PageDeleteDialog extends preact.Component {

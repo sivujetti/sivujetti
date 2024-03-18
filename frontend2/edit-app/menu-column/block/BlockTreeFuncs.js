@@ -1,6 +1,6 @@
 import {
     traverseRecursively,
-} from '../../../sivujetti-commons-unified.js';
+} from '@sivujetti-commons-for-edit-app';
 /**
  * @param {Array<RawBlock>} newBlocks
  * @param {Object} previousState = {}

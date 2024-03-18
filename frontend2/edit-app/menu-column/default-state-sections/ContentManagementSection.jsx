@@ -1,4 +1,4 @@
-import {__, api, Icon, MenuSection} from '../../../sivujetti-commons-unified.js';
+import {__, api, Icon, MenuSection} from '@sivujetti-commons-for-edit-app';
 
 class ContentManagementSection extends preact.Component {
     // userCanCreatePageTypes;

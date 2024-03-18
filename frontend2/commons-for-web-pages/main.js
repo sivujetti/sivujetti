@@ -1,13 +1,13 @@
 /*
-An entry point for global file "public/v2/sivujetti-commons-for-web-pages.js" – a
+An entry point for global file "public/sivujetti/sivujetti-commons-for-web-pages.js" – a
 small file that contains common functionalities needed on Sivujetti pages (http,
 urlUtils etc.). Usually loaded at the end of the page (see backend/sivujetti/src/
 Page/WebPageAwareTemplate.php->jsFiles()).
 */
-import UrlUtils from './commons-for-web-pages/UrlUtils.js';
-import Http from './commons-for-web-pages/Http.js';
-import {urlUtils} from './commons-for-web-pages/singletons.js';
-import urlAndSlugUtils from './commons-for-web-pages/url-and-slug-utils.js';
+import UrlUtils from './UrlUtils.js';
+import Http from './Http.js';
+import {urlUtils} from './singletons.js';
+import urlAndSlugUtils from './url-and-slug-utils.js';
 
 const httpInstance = new Http(
     undefined, // Use default fetchFn (url, settings) => window.fetch(url, settings)
@@ -17,6 +17,7 @@ const httpInstance = new Http(
 const env = {
     window,
     document,
+    normalTypingDebounceMillis: 400, // ??
 };
 
 export {

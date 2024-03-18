@@ -1,4 +1,4 @@
-import {__, api, env, makePath, makeSlug, objectUtils} from '../../../sivujetti-commons-unified.js';
+import {__, api, env, makePath, makeSlug, objectUtils} from '@sivujetti-commons-for-edit-app';
 import {treeToTransferable} from '../../includes/block/utils.js';
 import {createTrier, generatePushID, pathToFullSlug} from '../../includes/utils.js';
 import DnDBlockSpawner from '../block/DnDBlockSpawner.jsx';

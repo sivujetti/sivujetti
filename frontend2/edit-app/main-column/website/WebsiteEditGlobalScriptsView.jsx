@@ -12,7 +12,7 @@ import {
     Textarea,
     unhookForm,
     validationConstraints,
-} from '../../../sivujetti-commons-unified.js';
+} from '@sivujetti-commons-for-edit-app';
 import globalData from '../../includes/globalData.js';
 import toasters from '../../includes/toasters.jsx';
 import OverlayView from '../OverlayView.jsx';

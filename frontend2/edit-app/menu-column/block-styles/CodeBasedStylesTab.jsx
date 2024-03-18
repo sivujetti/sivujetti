@@ -2,7 +2,7 @@ import {
     __,
     mediaScopes,
     ScreenSizesVerticalTabs,
-} from '../../../sivujetti-commons-unified.js';
+} from '@sivujetti-commons-for-edit-app';
 import ScssEditor from './ScssEditor.jsx';
 
 class CodeBasedStylesList extends preact.Component {

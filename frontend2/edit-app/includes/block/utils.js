@@ -3,7 +3,7 @@ import {
     blockTreeUtils,
     objectUtils,
     writeBlockProps,
-} from '../../../sivujetti-commons-unified.js';
+} from '@sivujetti-commons-for-edit-app';
 import {generatePushID} from '../../includes/utils.js';
 
 /**

@@ -411,7 +411,7 @@ final class WebPageAwareTemplate extends Template {
                     "\n<script src=\"{$this->assetUrl("public/sivujetti/vendor/preact.min.js")}\"></script>" .
                     (SIVUJETTI_FLAGS & SIVUJETTI_DEVMODE
                         ? (
-                            "\n<script src=\"{$this->assetUrl("public/sivujetti/sivujetti-webpage-renderer-app-main.js")}\"></script>" .
+                            "\n<script src=\"{$this->assetUrl("public/sivujetti/sivujetti-webpage-renderer-app.js")}\"></script>" .
                             implode("", array_map(fn($relUrl) =>
                                 "\n<script src=\"{$this->assetUrl("public/{$relUrl}")}\"></script>"
                             , $this->__internal["devJsFiles"]->previewApp)) .

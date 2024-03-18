@@ -22,6 +22,5 @@ node_modules
 /public/uploads
 /public/sivujetti/*.js
 /public/tests/bundled-main.js
-/public/v2
 /sdk/
 /tests_output/

@@ -1,4 +1,4 @@
-import {__, FileUploader} from '../../../sivujetti-commons-unified.js';
+import {__, FileUploader} from '@sivujetti-commons-for-edit-app';
 import OverlayView from '../OverlayView.jsx';
 
 /**

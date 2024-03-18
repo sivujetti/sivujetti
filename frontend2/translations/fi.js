@@ -1,6 +1,7 @@
+import stringBundles from '@sivujetti-string-bundles';
 import validationStrings from './includes-internal/validation.fi.js';
 
-window.translationStringBundles.push({
+stringBundles.push({
     'Page': 'Sivu',
     'New page': 'Uusi sivu',
     'Categories': 'Kategoriat',
@@ -186,7 +187,7 @@ window.translationStringBundles.push({
     'Description': 'Kuvaus',
     'Listable': 'Listattava',
     'Default layout': 'Oletusivupohja',
-    // edit-app/src/popups/reusable-branch/SaveBlockAsReusableDialog.jsx
+    // edit-app/src/popups/reusable-branch/BlockSaveAsReusableDialog.jsx
     'This function saves this content as reusable content, which can be easily added to other pages later on.': 'Tämä toiminto tallentaa sisällön uudelleenkäytettäväksi sisällöksi, jota voidaan myöhemmin helposti lisätä myös muihin sivuihin.',
     'Name': 'Nimi',
     'e.g. Text and image, Footer': 'esim. Teksti ja kuva, Footer',

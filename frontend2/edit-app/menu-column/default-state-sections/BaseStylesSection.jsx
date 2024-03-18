@@ -1,4 +1,4 @@
-import {__, MenuSection} from '../../../sivujetti-commons-unified.js';
+import {__, MenuSection} from '@sivujetti-commons-for-edit-app';
 
 class BaseStylesSection extends preact.Component {
     /**

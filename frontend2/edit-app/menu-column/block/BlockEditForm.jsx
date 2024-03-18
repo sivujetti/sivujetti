@@ -11,7 +11,7 @@ import {
     Tabs,
     timingUtils,
     writeBlockProps,
-} from '../../../sivujetti-commons-unified.js';
+} from '@sivujetti-commons-for-edit-app';
 import {getIsStoredToTreeIdFrom, isMetaBlock} from '../../includes/block/utils.js';
 import CodeBasedStylesList from '../block-styles/CodeBasedStylesTab.jsx';
 

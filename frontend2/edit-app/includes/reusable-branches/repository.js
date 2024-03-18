@@ -1,4 +1,4 @@
-import {api, env, http} from '../../../sivujetti-commons-unified.js';
+import {api, env, http} from '@sivujetti-commons-for-edit-app';
 
 /**
  * @returns {Promise<ReusableBranch[]>}

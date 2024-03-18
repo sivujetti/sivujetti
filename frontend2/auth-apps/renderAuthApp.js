@@ -1,5 +1,5 @@
 import {translator} from '@sivujetti-commons-for-edit-app';
-import LoginApp from './auth-apps/LoginApp.jsx';
+import LoginApp from './LoginApp.jsx';
 
 /**
  * Renders $appName to document.getElementById(`${appName}-app`).

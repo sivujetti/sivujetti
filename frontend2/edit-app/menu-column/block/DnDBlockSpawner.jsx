@@ -6,7 +6,7 @@ import {
     isUndoOrRedo,
     objectUtils,
     traverseRecursively,
-} from '../../../sivujetti-commons-unified.js';
+} from '@sivujetti-commons-for-edit-app';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
 import {createBlockFromBlueprint, createBlockFromType} from '../../includes/block/utils.js';

@@ -1,5 +1,5 @@
 /*
-An entry point for global file "public/v2/sivujetti-webpage-renderer-app-main.js".
+An entry point for global file "public/sivujetti/sivujetti-webpage-renderer-app.js".
 Included by backend/sivujetti/src/Page/WebPageAwareTemplate.php jsFiles().
 */
 

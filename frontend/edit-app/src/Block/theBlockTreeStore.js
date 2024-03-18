@@ -56,15 +56,15 @@ function theBlockTreeStore(store) {
 
     store.on('theBlockTree/applyAdd(Drop)Block', applySwapOrDrop);
 
-    store.on('theBlockTree/undo',
-    /**
-     * @param {Object} state
-     * @param {[Array<RawBlock>, String, 'default'|'delete'|'convertToGlobal']} args
-     * @returns {Object}
-     */
-    (_state, [theBlockTree]) =>
-        ({theBlockTree})
-    );
+// ##     store.on('theBlockTree/undo',
+// ##     /**
+// ##      * @param {Object} state
+// ##      * @param {[Array<RawBlock>, String, 'default'|'delete'|'convertToGlobal']} args
+// ##      * @returns {Object}
+// ##      */
+// ##     (_state, [theBlockTree]) =>
+// ##         ({theBlockTree})
+// ##     );
 
     store.on('theBlockTree/undoUpdateDefPropsOf',
     /**
@@ -112,9 +112,9 @@ function theBlockTreeStore(store) {
         }
         return {theBlockTree: clone};
     };
-    store.on('theBlockTree/addBlockOrBranch', addBlock);
+// ##     store.on('theBlockTree/addBlockOrBranch', addBlock);
 
-    store.on('theBlockTree/undoAdd(Drop)Block', deleteBlock);
+// ##     store.on('theBlockTree/undoAdd(Drop)Block', deleteBlock);
 
     store.on('theBlockTree/updatePropsOf',
     /**

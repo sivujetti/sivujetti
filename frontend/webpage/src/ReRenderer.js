@@ -58,7 +58,7 @@ class ReRenderer {
             'theBlockTree/applyAdd(Drop)Block',
             'theBlockTree/applySwap',
             'theBlockTree/deleteBlock',
-            'theBlockTree/undoAdd(Drop)Block',
+// ##             'theBlockTree/undoAdd(Drop)Block',
             'theBlockTree/convertToGbt'
         ].indexOf(event) > -1) {
             this.doReRender(theBlockTree);
@@ -71,66 +71,66 @@ class ReRenderer {
                 }
             }
         // ====================================================================
-        } else if (event === 'theBlockTree/undo') {
-            const [_oldTree, maybeBlockId, isUndoOf] = data;
-            //
-            if (maybeBlockId && isUndoOf === 'default') {
-                const pool = this.elCache.get(maybeBlockId);
-                pool.pop();
-                this.elCache.set(maybeBlockId, pool);
-            }
-            //
-            this.doReRender(theBlockTree);
-        // ====================================================================
-        } else if (event === 'theBlockTree/addBlockOrBranch') { // added to tree while dragging, not dropped yet
-            const [newBlockInf] = data; // [SpawnDescriptor, BlockDescriptor, dropPosition]
-            const newBlock = newBlockInf.block;
-            const {isReusable} = newBlockInf;
-
-            let renderType = 'none';
-            const isGbtRef = newBlock.type === 'GlobalBlockReference';
-            renderBlockAndThen(toTransferable(newBlock),
-            // # race-1
-            ({html}) => {
-                if (renderType === 'none') renderType = 'sync';
-
-                if (!isGbtRef) {
-                    const hasPlace = html.indexOf(CHILD_CONTENT_PLACEHOLDER) > -1;
-                    const completed = hasPlace ? html.replace(CHILD_CONTENT_PLACEHOLDER, '') : html;
-                    const temp = document.createElement('div');
-                    temp.innerHTML = completed;
-
-                    blockTreeUtils.traverseRecursively([newBlock], (b, _i, parent, _parentIdPath) => {
-                        const el = !parent ? temp.firstElementChild : getBlockEl(b.id, temp.firstElementChild);
-                        if (!el) throw new Error('');
-                        this.elCache.set(b.id, [extractRendered(el)]);
-                    });
-                } else {
-                    const temp = document.createElement('div');
-                    temp.innerHTML = html;
-                    blockTreeUtils.traverseRecursively(newBlock.__globalBlockTree.blocks, (b, _i, _parent, _parentIdPath) => {
-                        const fromTemp = getBlockEl(b.id, temp);
-                        this.elCache.set(b.id, [extractRendered(fromTemp)]);
-                    });
-                }
-
-                this.doReRender(theBlockTree);
-
-            }, isReusable);
-
-            // #race-2
-            if (renderType === 'none') {
-                renderType = 'async';
-                const insertPlaceholdersFor = !isGbtRef ? [newBlock] : newBlock.__globalBlockTree.blocks;
-                blockTreeUtils.traverseRecursively(insertPlaceholdersFor, (b, _i, parent, _parentIdPath) => {
-                    const place = document.createElement('div');
-                    const cls = parent ? '' : ' sjet-dots-animation';
-                    place.innerHTML = `<div class="j-Placeholder${cls}" data-block-type="Placeholder" data-block="${b.id}"><!--${CHILDREN_START}--><!--${CHILDREN_END}--></p>`;
-                    this.elCache.set(b.id, [extractRendered(place.firstElementChild)]);
-                });
-                this.doReRender(theBlockTree);
-            }
-        // ====================================================================
+// ##         } else if (event === 'theBlockTree/undo') {
+// ##             const [_oldTree, maybeBlockId, isUndoOf] = data;
+// ##             //
+// ##             if (maybeBlockId && isUndoOf === 'default') {
+// ##                 const pool = this.elCache.get(maybeBlockId);
+// ##                 pool.pop();
+// ##                 this.elCache.set(maybeBlockId, pool);
+// ##             }
+// ##             //
+// ##             this.doReRender(theBlockTree);
+// ##         // ====================================================================
+// ##         } else if (event === 'theBlockTree/addBlockOrBranch') { // added to tree while dragging, not dropped yet
+// ##             const [newBlockInf] = data; // [SpawnDescriptor, BlockDescriptor, dropPosition]
+// ##             const newBlock = newBlockInf.block;
+// ##             const {isReusable} = newBlockInf;
+// ## 
+// ##             let renderType = 'none';
+// ##             const isGbtRef = newBlock.type === 'GlobalBlockReference';
+// ##             renderBlockAndThen(toTransferable(newBlock),
+// ##             // # race-1
+// ##             ({html}) => {
+// ##                 if (renderType === 'none') renderType = 'sync';
+// ## 
+// ##                 if (!isGbtRef) {
+// ##                     const hasPlace = html.indexOf(CHILD_CONTENT_PLACEHOLDER) > -1;
+// ##                     const completed = hasPlace ? html.replace(CHILD_CONTENT_PLACEHOLDER, '') : html;
+// ##                     const temp = document.createElement('div');
+// ##                     temp.innerHTML = completed;
+// ## 
+// ##                     blockTreeUtils.traverseRecursively([newBlock], (b, _i, parent, _parentIdPath) => {
+// ##                         const el = !parent ? temp.firstElementChild : getBlockEl(b.id, temp.firstElementChild);
+// ##                         if (!el) throw new Error('');
+// ##                         this.elCache.set(b.id, [extractRendered(el)]);
+// ##                     });
+// ##                 } else {
+// ##                     const temp = document.createElement('div');
+// ##                     temp.innerHTML = html;
+// ##                     blockTreeUtils.traverseRecursively(newBlock.__globalBlockTree.blocks, (b, _i, _parent, _parentIdPath) => {
+// ##                         const fromTemp = getBlockEl(b.id, temp);
+// ##                         this.elCache.set(b.id, [extractRendered(fromTemp)]);
+// ##                     });
+// ##                 }
+// ## 
+// ##                 this.doReRender(theBlockTree);
+// ## 
+// ##             }, isReusable);
+// ## 
+// ##             // #race-2
+// ##             if (renderType === 'none') {
+// ##                 renderType = 'async';
+// ##                 const insertPlaceholdersFor = !isGbtRef ? [newBlock] : newBlock.__globalBlockTree.blocks;
+// ##                 blockTreeUtils.traverseRecursively(insertPlaceholdersFor, (b, _i, parent, _parentIdPath) => {
+// ##                     const place = document.createElement('div');
+// ##                     const cls = parent ? '' : ' sjet-dots-animation';
+// ##                     place.innerHTML = `<div class="j-Placeholder${cls}" data-block-type="Placeholder" data-block="${b.id}"><!--${CHILDREN_START}--><!--${CHILDREN_END}--></p>`;
+// ##                     this.elCache.set(b.id, [extractRendered(place.firstElementChild)]);
+// ##                 });
+// ##                 this.doReRender(theBlockTree);
+// ##             }
+// ##         // ====================================================================
         } else if (event === 'theBlockTree/updatePropsOf') {
             const [blockId, blockIsStoredToTreeId, _changes, flags, debounceMillis] = data;
             if (flags & HAS_ERRORS) { window.console.log('not impl'); return; }

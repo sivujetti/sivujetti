@@ -88,17 +88,20 @@ interface RawBlockData {
     [key: String]: any;
 }
 
+/**
+ * @deprecated
+ */
 interface BlockType {
-    name: String;
-    friendlyName: String;
-    ownPropNames?: Array<String>;
-    initialData: {[key: String]: any}|(() => {[key: String]: any});
-    initialChildren?: Array<BlockBlueprint>;
-    defaultRenderer: String,
-    reRender(props: {[key: String]: any}, renderChildren: () => String): String;
-    editForm: preact.ComponentConstructor;
-    infoFromBackend: {associatedRenderers: Array<String>;};
-    createSnapshot: (from: RawBlock) => RawBlockData;
+    //
+}
+
+interface BlockTypeDefinition {
+    name: String;         // Examples 'Text'
+    friendlyName: String; // Examples 'Text'
+    editForm: preact.Component;
+    stylesEditForm: preact.Component|null;
+    createOwnProps(defProps: {[key: String]: any;}): {[propName: String]: any};
+    icon?: String;        // Examples 'blockquote'
 }
 
 interface ReusableBranch {
@@ -321,7 +324,7 @@ interface ContextMenuLink {
     id: String;
 }
 
-type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/swap'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undo'|'theBlockTree/undoUpdateDefPropsOf'|'theBlockTree/deleteBlock'|'theBlockTree/addBlockOrBranch'|'theBlockTree/undoAdd(Drop)Block'|'theBlockTree/updatePropsOf'|'theBlockTree/updateDefPropsOf'|'theBlockTree/cloneItem'|'theBlockTree/convertToGbt';
+type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/swap'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undoUpdateDefPropsOf'|'theBlockTree/deleteBlock'|'theBlockTree/addBlockOrBranch'|'theBlockTree/updatePropsOf'|'theBlockTree/updateDefPropsOf'|'theBlockTree/cloneItem'|'theBlockTree/convertToGbt';
 
 type blockPropValueChangeFlags = 'is-throttled'|'is-group'|null;
 

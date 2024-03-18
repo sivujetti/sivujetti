@@ -68,8 +68,8 @@ class BlockTree extends preact.Component {
             } else if (event === 'theBlockTree/applySwap' ||
                 event === 'theBlockTree/applyAdd(Drop)Block' ||
                 event === 'theBlockTree/deleteBlock' ||
-                event === 'theBlockTree/undo' ||
-                event === 'theBlockTree/undoAdd(Drop)Block' ||
+// ##                 event === 'theBlockTree/undo' ||
+// ##                 event === 'theBlockTree/undoAdd(Drop)Block' ||
                 event === 'theBlockTree/cloneItem' ||
                 event === 'theBlockTree/convertToGbt') {
                 const newState = {blockTree: theBlockTree, treeState: createTreeState(theBlockTree, this.state.treeState)};

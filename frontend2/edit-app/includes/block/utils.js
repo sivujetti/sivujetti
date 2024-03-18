@@ -46,14 +46,12 @@ function isMetaBlock({type}) {
  * @returns {String|null}
  */
 function getIsStoredToTreeIdFrom(blockId, from) {
-    return blockTreeUtils.getIsStoredToTreeId(blockId, from === 'mainTree' ? getCurrentBlockTreeState() : from);
-}
-
-/**
- * @returns {Array<RawBlock>}
- */
-function getCurrentBlockTreeState() {
-    return api.saveButton.getInstance().getChannelState('theBlockTree');
+    return blockTreeUtils.getIsStoredToTreeId(
+        blockId,
+        from === 'mainTree'
+            ? api.saveButton.getInstance().getChannelState('theBlockTree')
+            : from
+    );
 }
 
 /**
@@ -83,8 +81,60 @@ function createBlock(defProps, ownProps) {
     return out;
 }
 
+/**
+ * @param {String|BlockTypeDefinition} blockType
+ * @param {{[key: keyof]: any;}} ownProps
+ * @returns {RawBlock}
+ */
+function createBlockFromType(blockType, defPropAdditions = {}) {
+    const type = typeof blockType === 'string' ? api.blockTypes.get(blockType) : blockType;
+    const defs = createDefProps(type, defPropAdditions);
+    const own = type.createOwnProps(defs);
+    return createBlock(
+        defs, // block.*
+        own   // block.propsData[*] & block.*
+    );
+}
+
+/**
+ * @param {BlockBlueprint} blueprint
+ * @returns {RawBlock}
+ */
+function createBlockFromBlueprint(blueprint) {
+    const {blockType, initialOwnData, initialDefaultsData, initialChildren} = blueprint;
+    const type = api.blockTypes.get(blockType);
+    const defs = createDefProps(type, initialDefaultsData);
+    const own = {...type.createOwnProps(defs), ...initialOwnData};
+    const block = {
+        ...createBlock(
+            defs, // block.*
+            own
+        ),
+        ...{
+            children: !Array.isArray(initialChildren) ? [] : initialChildren.map(blueprint =>
+            createBlockFromBlueprint(blueprint))
+        }
+    };
+
+/**
+ * @param {BlockTypeDefinition} type
+ * @param {{[key: String]: any;}} additions
+ * @returns {RawBlock}
+ */
+function createDefProps(type, additions) {
+    return {
+        ...{
+            type: type.name,
+            renderer: type.defaultRenderer || 'jsx'
+        },
+        ...additions
+    };
+}
+
 export {
     createBlock,
+    createBlockFromBlueprint,
+    createBlockFromType,
     getIsStoredToTreeIdFrom,
     isMetaBlock,
     treeToTransferable,

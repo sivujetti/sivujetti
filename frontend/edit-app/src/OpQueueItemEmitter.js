@@ -52,8 +52,8 @@ class OpQueueItemEmitter {
                 const originalEvent = 'delete';
                 this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, blockIsStoredToTreeId,
                                                     blockId, onUndo, originalEvent);
-            } else if (event === 'theBlockTree/undoAdd(Drop)Block') {
-                // do nothing
+// ##             } else if (event === 'theBlockTree/undoAdd(Drop)Block') {
+// ##                 // do nothing
             } else if (event === 'theBlockTree/updatePropsOf') {
                 const [blockId, blockIsStoredToTreeId, _changes, flags, debounceMillis] = data;
                 if ((flags & HAS_ERRORS) || (flags && NO_OP_QUEUE_EMIT)) return;
@@ -153,7 +153,7 @@ class OpQueueItemEmitter {
         store.dispatch(pushItemToOpQueue(`update-block-tree##${blockIsStoredToTreeId}`, {
             doHandle: () => saveExistingBlocksToBackend(rootOrInnerTree, blockIsStoredToTreeId),
             doUndo: () => {
-                store2.dispatch('theBlockTree/undo', [oldTree, updateOrDeleteOfBlockId, originalEvent]);
+// ##                 store2.dispatch('theBlockTree/undo', [oldTree, updateOrDeleteOfBlockId, originalEvent]);
                 this.setPrevBlockTree(oldTree);
                 if (onUndo) onUndo();
             },

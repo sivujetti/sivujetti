@@ -21,10 +21,6 @@ function createDndController(saveButton) {
             api.webPagePreview.getEl().style.pointerEvents = 'none';
             initialTree = objectUtils.cloneDeep(saveButton.getChannelState('theBlockTree'));
             dropped = false;
-            if (extDragData) {
-                const targetInf = createBlockDescriptorFromLi(info.li);
-                "store2.dispatch('theBlockTree/addBlockOrBranch', [extDragData, targetInf, info.pos])";
-            }
             return true;
         },
         /**
@@ -60,9 +56,7 @@ function createDndController(saveButton) {
          * @returns {Boolean}
          */
         dragOut(_info) {
-            if (!extDragData) return;
-            const {id, isStoredToTreeId} = extDragData.block;
-            "store2.dispatch('theBlockTree/undoAdd(Drop)Block', [id, isStoredToTreeId, null]);"
+            // Do nothing
         },
         /**
          * @param {DragDropInfo} to
@@ -89,17 +83,12 @@ function createDndController(saveButton) {
             "store2.dispatch('theBlockTree/swap', [drag, targ, cand.pos]);"
         },
         /**
-         * @param {Number|null} lastAcceptedSwapIdx
+         * @param {Number|null} _lastAcceptedSwapIdx
          */
-        end(lastAcceptedSwapIdx) {
+        end(_lastAcceptedSwapIdx) {
             if (dropped)
                 return;
             api.webPagePreview.getEl().style.pointerEvents = '';
-            if (lastAcceptedSwapIdx === null) // No moves at all
-                return;
-            if (lastAcceptedSwapIdx === 0 && !extDragData && areKeysEqual(initialTree, saveButton.getChannelState('theBlockTree'))) // Had moves, but returned to initial
-                return;
-            "store2.dispatch('theBlockTree/undo', [initialTree, null, 'default']);"
         },
         /**
          * @param {SpawnDescriptor|null}
@@ -156,15 +145,6 @@ function createBlockDescriptorFromLi(li) {
 function createBlockDescriptor(block, saveButton) {
     const isStoredToTreeId = blockTreeUtils.getIsStoredToTreeId(block.id, saveButton.getChannelState('theBlockTree'));
     return {blockId: block.id, isStoredToTreeId, isGbtRef: false, data: null};
-}
-
-/**
- * @param {Array<RawBlock>} clonedTree
- * @param {Array<RawBlock>} theBlockTree
- * @returns {Boolean}
- */
-function areKeysEqual(clonedTree, theBlockTree) {
-    return clonedTree === JSON.parse(JSON.stringify(theBlockTree));
 }
 
 /**

@@ -183,9 +183,9 @@ class BlockDnDSpawner extends preact.Component {
 // ##             http.get('/api/global-block-trees')
 // ##                 .then(this.receiveGlobalBlocks.bind(this))
 // ##                 .catch(env.window.console.error);
-            signals.emit('block-dnd-opened');
+// ##             signals.emit('block-dnd-opened');
 // ##         } else {
-            signals.emit('block-dnd-closed');
+// ##             signals.emit('block-dnd-closed');
 // ##         }
         this.updateStyleTopAndAdjustRootEl(newIsOpen);
 // ##         this.setState({isOpen: newIsOpen});

@@ -225,7 +225,7 @@ class WebPagePreviewApp extends preact.Component {
             'width:', rect.width, 'px;',
             'height:', rect.height, 'px;',
             'top:', rect.top, 'px;',
-            'left: calc(var(--menuColumnWidthComputed) + ', rect.left, 'px)'
+            'left: calc(var(--menu-column-width-computed) + ', rect.left, 'px)'
         ].join('');
         if (rect.top < -TITLE_LABEL_HEIGHT)
             highlightRectEl.setAttribute('data-label-position', 'bottom-inside');

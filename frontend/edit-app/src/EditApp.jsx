@@ -167,21 +167,21 @@ class EditApp extends preact.Component {
             if (!inspectorPanel) return;
             inspectorPanel.props.rootEl.classList.remove('adjusting-panel-widths');
         });
-        signals.on('block-dnd-opened', () => {
-            inspectorPanel = this.props.inspectorPanelRef.current;
-            this.leftPanelWidth += 148;
-            setAndEmitPanelWidths(this.leftPanelWidth);
-            commitPanelWidths();
-            this.props.rootEl.classList.add('new-block-spawner-opened');
+// ##         signals.on('block-dnd-opened', () => {
+// ##             inspectorPanel = this.props.inspectorPanelRef.current;
+// ##             this.leftPanelWidth += 148;
+// ##             setAndEmitPanelWidths(this.leftPanelWidth);
+// ##             commitPanelWidths();
+// ##             this.props.rootEl.classList.add('new-block-spawner-opened');
             if (showFirstTimeDragInstructions) env.document.querySelector('.drag-instructions-overlay').style.width =
                 `${this.leftPanelWidth}px`;
-        });
-        signals.on('block-dnd-closed', () => {
-            this.leftPanelWidth -= 148;
-            setAndEmitPanelWidths(this.leftPanelWidth);
-            commitPanelWidths();
-            this.props.rootEl.classList.remove('new-block-spawner-opened');
-        });
+// ##         });
+// ##         signals.on('block-dnd-closed', () => {
+// ##             this.leftPanelWidth -= 148;
+// ##             setAndEmitPanelWidths(this.leftPanelWidth);
+// ##             commitPanelWidths();
+// ##             this.props.rootEl.classList.remove('new-block-spawner-opened');
+// ##         });
         if (getFromLocalStorage('sivujettiFollowLinksInstructionDismissed') !== 'yes') {
             const startShowInstructionTimeout = () => setTimeout(() => {
                 toasters.editAppMain(<div>

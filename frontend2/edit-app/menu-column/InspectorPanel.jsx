@@ -1,4 +1,4 @@
-import {__, api, env, Icon, signals} from '../../sivujetti-commons-unified.js';
+import {__, api, env, Icon, signals} from '@sivujetti-commons-for-edit-app';
 import BlockEditForm from './block/BlockEditForm.jsx';
 
 class InspectorPanel extends preact.Component {
@@ -17,7 +17,7 @@ class InspectorPanel extends preact.Component {
         this.resizeHandleEl = preact.createRef();
         this.lastHeight = null;
         signals.on('block-tree-item-clicked-or-focused', this.open.bind(this));
-        signals.on('block-dnd-opened', this.close.bind(this));
+        signals.on('dnd-block-spawner-opened', this.close.bind(this));
     }
     /**
      * @param {Number} width

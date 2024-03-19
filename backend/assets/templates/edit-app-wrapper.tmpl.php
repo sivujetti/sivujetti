@@ -173,12 +173,12 @@
             opacity: 0;
             width: 0;
         }
-        .new-block-spawner-opened .drag-instructions-overlay {
+        .dnd-block-spawner-opened .drag-instructions-overlay {
             overflow: visible;
             padding-left: 4rem;
             z-index: 4;
         }
-        .new-block-spawner-opened .drag-instructions-overlay:not(.fade-away) {
+        .dnd-block-spawner-opened .drag-instructions-overlay:not(.fade-away) {
             opacity: 1;
         }
         .drag-instructions-overlay > div {

@@ -16,6 +16,8 @@ class DnDBlockSpawner extends preact.Component {
     // unregisterables;
     // selectableBlockTypes;
     // firstPluginRegisteredBlockTypeIdx;
+    // lastSeparatorHeight;
+    // unregisterSeparatorHeightUpdater;
     /**
      * @param {{initiallyIsOpen?: Boolean;}} props
      */
@@ -76,71 +78,69 @@ class DnDBlockSpawner extends preact.Component {
                 type="button">
                 <Icon iconId="chevron-right" className="mr-0 size-xs"/>
             </button>
-            <div class="wrp">
+            <div class="dnd-block-spawner-wrap">
                 <input class="form-input tight" placeholder={ __('Filter') } disabled/>
-                <div class="d-scroller">
-                    { isOpen ? <ul class="block-tree no-hover">{ [
-                        // Reusable blocks/branches
-                        ...reusables.map(({blockBlueprints}, i) => {
-                            const rootReusable = blockBlueprints[0];
-                            const blockType = api.blockTypes.get(rootReusable.blockType);
-                            return {
-                                label: rootReusable.initialDefaultsData.title || __(blockType.friendlyName),
-                                group: 'reusableBranch',
-                                nthInGroup: i,
-                                rootBlockTypeName: rootReusable.blockType,
-                                trid: 'main',
-                                varargs: {reusableBranchIdx: i.toString()},
-                            };
-                        }),
-                        // Plain blocks
-                        ...this.selectableBlockTypes.map(([name, blockType], i) =>
-                            ({
-                                label: __(blockType.friendlyName),
-                                group: i < this.firstPluginRegisteredBlockTypeIdx ? 'common' : 'registeredByPlugin',
-                                nthInGroup: i !== this.firstPluginRegisteredBlockTypeIdx ? i : 0,
-                                rootBlockTypeName: name,
-                                trid: 'main',
-                                varargs: {},
-                            })
-                        ),
-                        // Unique blocks/branches
-                        ...selectableGlobalBlockTrees.map(({id, blocks, name}, i) =>
-                            ({
-                                label: name,
-                                group: 'globalBlockTree',
-                                nthInGroup: i,
-                                rootBlockTypeName: blocks[0].type,
-                                trid: id,
-                                varargs: {}
-                            })
-                        )
-                    ].map(({group, label, nthInGroup, rootBlockTypeName, trid, varargs}) => {
-                        const isNotGbt = group !== 'globalBlockTree';
-                        const labelApdx = isNotGbt ? group !== 'reusableBranch' ? '' : ` (${__('reusable content')})` : ` (${__('Unique reusables').toLowerCase()})`;
-                        const groupLabel = nthInGroup > 0 ? null : translateGroup(group);
-                        return <li
-                            class={ `${isNotGbt ? 'page' : 'globalBlockTree'}-block ml-0` }
-                            data-block-type={ rootBlockTypeName }
-                            data-group={ group }
-                            data-first-in-group-title={ groupLabel }><div class="d-flex">
-                            <button
-                                onDragStart={ this.onDragStart }
-                                onDrag={ this.onDrag }
-                                onDragEnd={ this.onDragEnd }
-                                class="block-handle text-ellipsis"
-                                data-block-type={ isNotGbt ? rootBlockTypeName : 'GlobalBlockReference' }
-                                data-is-stored-to-tree-id={ trid }
-                                data-reusable-branch-idx={ varargs.reusableBranchIdx || '' }
-                                title={ `${label}${labelApdx}` }
-                                type="button"
-                                draggable>
-                                <Icon iconId={ api.blockTypes.getIconId(rootBlockTypeName) } className="size-xs p-absolute"/>
-                                <span class="text-ellipsis">{ label }</span>
-                            </button>
-                        </div></li>;
-                    }) }</ul> : null }
-                </div>
+                { isOpen ? <ul class="block-tree no-hover">{ [
+                    // Reusable blocks/branches
+                    ...reusables.map(({blockBlueprints}, i) => {
+                        const rootReusable = blockBlueprints[0];
+                        const blockType = api.blockTypes.get(rootReusable.blockType);
+                        return {
+                            label: rootReusable.initialDefaultsData.title || __(blockType.friendlyName),
+                            group: 'reusableBranch',
+                            nthInGroup: i,
+                            rootBlockTypeName: rootReusable.blockType,
+                            trid: 'main',
+                            varargs: {reusableBranchIdx: i.toString()},
+                        };
+                    }),
+                    // Plain blocks
+                    ...this.selectableBlockTypes.map(([name, blockType], i) =>
+                        ({
+                            label: __(blockType.friendlyName),
+                            group: i < this.firstPluginRegisteredBlockTypeIdx ? 'common' : 'registeredByPlugin',
+                            nthInGroup: i !== this.firstPluginRegisteredBlockTypeIdx ? i : 0,
+                            rootBlockTypeName: name,
+                            trid: 'main',
+                            varargs: {},
+                        })
+                    ),
+                    // Unique blocks/branches
+                    ...selectableGlobalBlockTrees.map(({id, blocks, name}, i) =>
+                        ({
+                            label: name,
+                            group: 'globalBlockTree',
+                            nthInGroup: i,
+                            rootBlockTypeName: blocks[0].type,
+                            trid: id,
+                            varargs: {}
+                        })
+                    )
+                ].map(({group, label, nthInGroup, rootBlockTypeName, trid, varargs}) => {
+                    const isNotGbt = group !== 'globalBlockTree';
+                    const labelApdx = isNotGbt ? group !== 'reusableBranch' ? '' : ` (${__('reusable content')})` : ` (${__('Unique reusables').toLowerCase()})`;
+                    const groupLabel = nthInGroup > 0 ? null : translateGroup(group);
+                    return <li
+                        class={ `${isNotGbt ? 'page' : 'globalBlockTree'}-block ml-0` }
+                        data-block-type={ rootBlockTypeName }
+                        data-group={ group }
+                        data-first-in-group-title={ groupLabel }><div class="d-flex">
+                        <button
+                            onDragStart={ this.onDragStart }
+                            onDrag={ this.onDrag }
+                            onDragEnd={ this.onDragEnd }
+                            class="block-handle text-ellipsis"
+                            data-block-type={ isNotGbt ? rootBlockTypeName : 'GlobalBlockReference' }
+                            data-is-stored-to-tree-id={ trid }
+                            data-reusable-branch-idx={ varargs.reusableBranchIdx || '' }
+                            title={ `${label}${labelApdx}` }
+                            type="button"
+                            draggable>
+                            <Icon iconId={ api.blockTypes.getIconId(rootBlockTypeName) } className="size-xs p-absolute"/>
+                            <span class="text-ellipsis">{ label }</span>
+                        </button>
+                    </div></li>;
+                }) }</ul> : null }
             </div>
         </div>;
     }
@@ -150,6 +150,7 @@ class DnDBlockSpawner extends preact.Component {
     toggleIsOpen() {
         const currentlyIsOpen = this.state.isOpen;
         const newIsOpen = !currentlyIsOpen;
+        getEditAppOuterEl().classList.toggle('dnd-block-spawner-opened');
         if (newIsOpen) {
             if (!this.selectableBlockTypes) {
                 this.selectableBlockTypes = sort(Array.from(api.blockTypes.entries()).filter(([name, _]) =>
@@ -159,14 +160,25 @@ class DnDBlockSpawner extends preact.Component {
                     name === 'Code'
                 ) + 1;
             }
+
             fetchOrGetReusableBranches()
                 .then((reusables) => {
                     this.setState({reusables});
+                    setTimeout(() => { this.calculateAndSetSeparatorHeight(); }, 100);
                 });
             fetchOrGetGlobalBlockTrees()
                 .then((gbts) => {
                     this.setState(createGlobalBlockTreesState(gbts));
+                    setTimeout(() => { this.calculateAndSetSeparatorHeight(); }, 100);
                 });
+
+            env.document.documentElement.style.setProperty('--menu-column-offset', '200px');
+            this.addOrRemoveSeparatorHeightUpdater(true);
+            signals.emit('dnd-block-spawner-opened');
+        } else {
+            env.document.documentElement.style.setProperty('--menu-column-offset', '0px');
+            this.addOrRemoveSeparatorHeightUpdater(false);
+            signals.emit('dnd-block-spawner-closed');
         }
         this.setState({isOpen: newIsOpen});
     }
@@ -230,6 +242,46 @@ class DnDBlockSpawner extends preact.Component {
      */
     closeIfOpen() {
         if (this.state.isOpen) this.toggleIsOpen();
+    }
+    /**
+     * @param {Boolean} doAdd
+     * @access private
+     */
+    addOrRemoveSeparatorHeightUpdater(doAdd) {
+        if (doAdd && !this.unregisterSeparatorHeightUpdater) {
+            const onScroll = () => {
+                const maybeNext = getSeparatorHeight();
+                if (this.lastSeparatorHeight !== maybeNext) this.setSeparatorHeight(maybeNext);
+            };
+            getEditAppOuterEl().addEventListener('scroll', onScroll);
+            //
+            this.unregisterSeparatorHeightUpdater = () => {
+                getEditAppOuterEl().removeEventListener('scroll', onScroll);
+                this.unregisterables = this.unregisterables.filter(fn => fn !== this.unregisterSeparatorHeightUpdater);
+                this.unregisterSeparatorHeightUpdater = null;
+            };
+            this.unregisterables.push(this.unregisterSeparatorHeightUpdater);
+        } else if (!doAdd && this.unregisterSeparatorHeightUpdater) {
+            this.unregisterSeparatorHeightUpdater();
+        }
+    }
+    /**
+     * @access private
+     */
+    calculateAndSetSeparatorHeight() {
+        const diff = getSeparatorHeight();
+        this.setSeparatorHeight(diff);
+    }
+    /**
+     * @param {Number} newHeight
+     * @access private
+     */
+    setSeparatorHeight(newHeight) {
+        this.lastSeparatorHeight = newHeight;
+        env.document.documentElement.style.setProperty(
+            '--dnd-block-spawner-separator-height',
+            `${document.querySelector('.dnd-block-spawner-wrap').getBoundingClientRect().height - 2 - newHeight}px`
+        );
     }
 }
 
@@ -305,6 +357,23 @@ function translateGroup(group) {
         registeredByPlugin: __('Specialized'),
         globalBlockTree: __('Unique reusables')
     }[group];
+}
+
+/**
+ * @returns {Number}
+ */
+function getSeparatorHeight() {
+    return Math.max(0,
+        document.querySelector('.dnd-block-spawner-wrap').getBoundingClientRect().bottom -
+        document.querySelector('.on-this-page.panel-section').getBoundingClientRect().bottom
+    );
+}
+
+/**
+ * @returns {HTMLElement}
+ */
+function getEditAppOuterEl() {
+    return env.document.querySelector('#edit-app');
 }
 
 export default DnDBlockSpawner;

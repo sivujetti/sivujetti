@@ -2,7 +2,17 @@ interface SivujettiFrontendApi {
     blockTypes: BlockTypesRegister;
     webPageIframe: WebPageIframe;
     mainPanel: MainPanel;
-    inspectorPanel: {getEl(): HTMLElement;};
+    inspectorPanel: {
+        getOuterEl(): HTMLElement;
+        close(): void;
+    };
+    saveButton: {
+        getInstance(): {
+            pushOp(): todo;
+            pushOpGroup(): todo;
+            // todo
+        };
+    };
     registerTranslationStrings(strings: {[key: String]: String}): void;
     getPageTypes(): Array<PageType>;
     getBlockRenderers(): Array<BlockRenderer>;
@@ -18,11 +28,6 @@ interface SivujettiFrontendApi {
         ROLE_CONTRIBUTOR: Number;
         ROLE_FOLLOWER: Number;
     }
-    saveButton: {
-        triggerUndo(): void;
-        setOnBeforeProcessQueueFn(fn: (queue: Array<OpQueueOp>) => Array<OpQueueOp>): void;
-        setOnBeforeProcessQueueFn(fn: null): void;
-    };
     events: todo;
     registerBlockTreeMutator(event: String, getMutationsFn: (event: String, theBlockTree: Array<RawBlock>, blockTreeUtils: blockTreeUtils) => Array<{blockId: String; changes: {[key: String]: any;};}>): void;
     getAvailableUpdatePackages: () => Array<String>;

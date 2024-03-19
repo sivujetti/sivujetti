@@ -28,6 +28,18 @@ class InspectorPanel extends preact.Component {
         this.resizeHandleEl.current.style.width = `${width}px`;
     }
     /**
+     * @access public
+     */
+    close() {
+        if (!this.state.Renderer) return;
+        this.setState({Renderer: null});
+        this.props.rootEl.classList.remove('inspector-panel-open');
+        this.props.editAppOuterEl.style.height = '';
+        this.rendererKey = null;
+        this.lastHeight = null;
+        signals.emit('inspector-panel-closed', this);
+    }
+    /**
      * @access proctected
      */
     componentDidMount() {
@@ -112,18 +124,6 @@ class InspectorPanel extends preact.Component {
         }
         signals.emit('inspector-panel-revealed', this);
         if (origin !== null && origin !== 'web-page') api.webPagePreview.scrollToBlock(block);
-    }
-    /**
-     * @access private
-     */
-    close() {
-        if (!this.state.Renderer) return;
-        this.setState({Renderer: null});
-        this.props.rootEl.classList.remove('inspector-panel-open');
-        this.props.editAppOuterEl.style.height = '';
-        this.rendererKey = null;
-        this.lastHeight = null;
-        signals.emit('inspector-panel-closed', this);
     }
 }
 

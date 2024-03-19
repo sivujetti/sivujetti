@@ -55,16 +55,23 @@ class BlockEditForm extends preact.Component {
 
         this.unregistrables = [api.saveButton.getInstance().subscribeToChannel('theBlockTree', (theTree, userCtx, ctx, flags) => {
             const event = userCtx?.event || '';
-            const doCheckDifference = (event === 'update-single-block-prop' && userCtx?.blockId === this.state.blockCopyForEditForm.id) || ctx === 'undo';
-
-            if (doCheckDifference) {
-                const block = doCheckDifference ? blockTreeUtils.findBlockSmart(this.state.blockCopyForEditForm.id, theTree)[0] : null;
+            if (event === 'convert-branch-to-global-block-reference-block') {
+                api.inspectorPanel.close();
+                return;
+            }
+            //
+            const doCheckDiffForEditForm = (
+                (event === 'update-single-block-prop' && userCtx?.blockId === this.state.blockCopyForEditForm.id) ||
+                ctx === 'undo'
+            );
+            if (doCheckDiffForEditForm) {
+                const block = doCheckDiffForEditForm ? blockTreeUtils.findBlockSmart(this.state.blockCopyForEditForm.id, theTree)[0] : null;
                 if (!block || this.state.blockCopyForEditForm.id !== block.id) return;
                 if (JSON.stringify(this.state.blockCopyForEditForm.propsData) !== JSON.stringify(block.propsData)) {
                     this.setState({blockCopyForEditForm: objectUtils.cloneDeep(block), lastBlockTreeChangeEventInfo: {ctx, flags}});
                 }
             }
-
+            //
             if (event === 'delete') { // todo
                 // const [id, _blockIsStoredToTreeId, isChildOfOrCurrentlyOpenBlock] = data;
                 // if (isChildOfOrCurrentlyOpenBlock || id === block.id) this.props.inspectorPanel.close();

@@ -34,7 +34,7 @@ preact.render(
         outerEl={ editAppOuterEl }
         onSaveButtonRefd={ saveButton => {
             if (!saveButton) return;
-            api.saveButton.init(saveButton);
+            api.saveButton.setInstance(saveButton);
             // Refresh scssWizards's styles every time new styles (page) is loaded to
             // the preview iframe, or when undo|redo event happens
             api.saveButton.getInstance().subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
@@ -51,7 +51,10 @@ preact.render(
     <InspectorPanel
         outerEl={ inspectorPanelOuterEl }
         editAppOuterEl={ editAppOuterEl }
-        rootEl={ rootEl }/>,
+        rootEl={ rootEl }
+        ref={ cmp => {
+            if (cmp) api.inspectorPanel.setInstance(cmp);
+        } }/>,
     inspectorPanelOuterEl
 );
 

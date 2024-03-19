@@ -37,15 +37,12 @@ const api = {
     blockTypes: editAppBlockTypeRegister,
     inspectorPanel: {
         getOuterEl() { return document.getElementById('inspector-panel'); },
+        setInstance(cmp) { this._instance = cmp; },
+        close() { this._instance?.close(); },
     },
     saveButton: {
-        init(saveButton) {
-            this.instance = saveButton;
-        },
-        /** @returns {SaveButton} */
-        getInstance() {
-            return this.instance;
-        }
+        setInstance(cmp) { this._instance = cmp; },
+        getInstance() { return this._instance; }
     },
     user: editAppUserApiInstance,
     webPagePreview: { // Will be replaced by sivujetti-edit-app-main.jsx

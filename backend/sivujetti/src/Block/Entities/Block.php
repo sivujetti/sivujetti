@@ -65,7 +65,7 @@ final class Block extends \stdClass {
     public string $filterLimit; e.g. 10
     public string $filterLimitType; "all"|"single"|"atMost"
     public string $filterOrder; "desc"|"asc"|"rand"
-    public string $filterAdditional; e.g. "{"slug":{"$startsWith":"foo"}}"
+    public string $filterAdditional; Example: {slug: {$startsWith: "foo"}}
     public ?array $__pages; ?array<int, \Sivujetti\Page\Entities\Page>
     public ?\Sivujetti\PageType\Entities\PageType $__pageType; */
 

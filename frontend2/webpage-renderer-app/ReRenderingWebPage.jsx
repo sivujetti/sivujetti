@@ -51,6 +51,63 @@ class ImageBlock extends preact.Component {
     }
 }
 
+/** @type {Map<String, {arr: Array<preact.ComponentChild>; hash: String;}>} */
+const cachedRenders =  new Map;
+class ListingBlock extends preact.Component {
+    /**
+     * @access protected
+     */
+    componentWillMount() {
+        const {block} = this.props;
+        const fromCache = cachedRenders.get(block.id);
+        this.setState({
+            renderedHtmlAsArr: fromCache ? [...fromCache.arr] : null,
+        });
+        if (fromCache) {
+            const maybeNextHash = createHash(block);
+            if (fromCache.hash !== maybeNextHash)
+                this.renderInBackendAndSetToState(block, maybeNextHash);
+        } else {
+            this.renderInBackendAndSetToState(block);
+        }
+    }
+    /**
+     * @param {BlockRendererProps} props
+     * @access protected
+     */
+    render({block, renderChildren, createDefaultProps}, {__pages, __pageType, renderedHtmlAsArr}) {
+        console.log('ren lis');
+        return <div { ...createDefaultProps(`page-type-${block.filterPageType.toLowerCase()}`) }>
+            { renderedHtmlAsArr || null /* loading */ }
+            { renderChildren() }
+        </div>;
+    }
+    /**
+     * @param {RawBlock} block
+     * @param {String} hash = null
+     * @access private
+     */
+    renderInBackendAndSetToState(block, hash = null) {
+        http.post('/api/blocks/render', {block})
+            .then(resp => {
+                const withWrapperDiv = htmlStringToVNodeArray(resp.result);
+                const divChildren = withWrapperDiv[0].props.children;
+                cachedRenders.set(block.id, {arr: divChildren, hash: hash || createHash(block)});
+                this.setState({renderedHtmlAsArr: cachedRenders.get(block.id).arr});
+            })
+            .catch(err => {
+                env.window.console.error(err);
+                this.setState({renderedHtmlAsArr: <p>{ __('Failed to render content.') }</p>});
+            });
+    }
+}
+function createHash(block) {
+    return JSON.stringify({...block.propsData, renderer: block.renderer});
+}
+function __(s) {
+    return s;
+}
+
 class MenuBlock extends preact.Component {
     /**
      * @param {BlockRendererProps} props
@@ -119,6 +176,7 @@ class TextBlock extends preact.Component {
 const builtInRenderers = {
     Button: ButtonBlock,
     Image: ImageBlock,
+    Listing: ListingBlock,
     Menu: MenuBlock,
     Text: TextBlock,
 };

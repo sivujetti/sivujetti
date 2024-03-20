@@ -32,7 +32,8 @@ const editAppMainMenuPanelApi = new MainMenuPanelApi;
 
 const api = {
     getPageTypes() { return dataFromBackend.pageTypes; },
-    getBlockRenderers() { console.log('get thgem',dataFromBackend); return dataFromBackend.blockRenderers; },
+    getBlockRenderers() { return dataFromBackend.blockRenderers; },
+    getAvailableUpdatePackages() { return dataFromBackend.availableUpdatePackages || []; },
     menuPanel: editAppMainMenuPanelApi,
     blockTypes: editAppBlockTypeRegister,
     inspectorPanel: {

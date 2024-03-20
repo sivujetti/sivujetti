@@ -1703,16 +1703,22 @@ span.highlight-rect[data-label-position="bottom-inside"]:before {
     border-color: var(--color-input-border);
     color: var(--color-fg-code);
 }
+.with-icon.with-notification-dot {
+    position: relative;
+}
 .with-notification-dot:after {
     content: "•";
-    color: #ee4d4d;
-    font-size: 38px;
+    color: #f16a6f;
+    font-size: 28px;
     position: absolute;
-    margin-top: -9px;
-    left: 24px;
+    margin-top: -10px;
+    left: 11px;
+    text-shadow: 0 0 1px var(--color-bg-default);
+    overflow: hidden;
 }
 .with-notification-dot.delta-2:after {
-    left: 30px;
+    font-size: 32px;
+    left: 23px;
 }
 ul.list {
     list-style: initial;

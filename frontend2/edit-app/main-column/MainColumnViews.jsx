@@ -1,6 +1,7 @@
 import createHashHistory from '../includes/custom-history.js';
 import PagesListView from './page/PagesListView.jsx';
 import UploadsListView from './upload/UploadsListView.jsx';
+import WebsiteApplyUpdatesView from './website/WebsiteApplyUpdatesView.jsx';
 import WebsiteEditBasicInfoView from './website/WebsiteEditBasicInfoView.jsx';
 import WebsiteEditGlobalScriptsView from './website/WebsiteEditGlobalScriptsView.jsx';
 
@@ -35,7 +36,7 @@ class MainColumnViews extends preact.Component {
         return <MyRouter history={ historyInstance } onChange={ this.boundOnChange }>
             <WebsiteEditBasicInfoView path="/website/edit-basic-info"/>
             <WebsiteEditGlobalScriptsView path="/website/edit-global-scripts"/>
-            {/*<WebsiteApplyUpdatesView path="/website/updates"/>*/}
+            <WebsiteApplyUpdatesView path="/website/updates"/>
             <PagesListView path="/pages"/>
             <UploadsListView path="/uploads"/>
         </MyRouter>;

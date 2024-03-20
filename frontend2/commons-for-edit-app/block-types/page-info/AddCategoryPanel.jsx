@@ -1,5 +1,5 @@
+import {__} from '../../edit-app-singletons.js';
 import {
-    __,
     FormGroupInline,
     handleSubmit,
     hasErrors,
@@ -7,8 +7,8 @@ import {
     Input,
     InputErrors,
     unhookForm,
-} from '../../internal-wrapper.js';
-import {generatePushID} from '../../../edit-app/includes/utils.js';
+} from '../../Form.jsx';
+import {generatePushID} from '../../utils.js';
 import {makePath, makeSlug} from '../../local-url-utils.js';
 
 class AddCategoryPanel extends preact.Component {

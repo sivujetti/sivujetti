@@ -1,15 +1,14 @@
+import {__, api} from '../../edit-app-singletons.js';
 import {
-    __,
-    api,
     FormGroup,
     FormGroupInline,
     hookForm,
     InputErrors,
     unhookForm,
-    validationConstraints,
-} from '../../internal-wrapper.js';
+} from '../../Form.jsx';
 import QuillEditor from '../../QuillEditor.jsx';
 import setFocusTo from '../../auto-focusers.js';
+import {validationConstraints} from '../../constants.js';
 import {isUndoOrRedo} from '../../utils.js';
 import PickUrlInputGroup from '../../includes-internal/PickUrlInputGroup.jsx';
 

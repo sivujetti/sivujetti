@@ -1,9 +1,6 @@
-import {
-    __,
-    api,
-    env,
-    Icon,
-} from '../../internal-wrapper.js';
+import {env} from '@sivujetti-commons-for-web-pages';
+import {__, api} from '../../edit-app-singletons.js';
+import {Icon} from '../../Icon.jsx';
 import ContextMenu from '../../ContextMenu.jsx';
 import EditItemPanel from './EditItemPanel.jsx';
 import {objectUtils} from '../../utils.js';
@@ -143,9 +140,10 @@ class MenuBlockEditForm extends preact.Component {
      * @access private
      */
     applyAndEmit(newParsedTree, doThrottle = false) {
-        const a = !doThrottle ? [undefined, undefined] : [env.normalTypingDebounceMillis, 'debounce-re-render-and-commit-to-queue'];
-        this.props.emitValueChanged(newParsedTree, 'tree', false, ...a); // clone parsedTree ??
-        //this.props.emitValueChanged(JSON.stringify(newParsedTree), 'tree', false, ...a);
+        if (!doThrottle)
+            this.props.emitValueChanged(newParsedTree, 'tree');
+        else
+            this.props.emitValueChangedThrottled(newParsedTree, 'tree');
     }
 }
 

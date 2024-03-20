@@ -2,6 +2,7 @@
 An entry point for a global file "public/sivujetti/sivujetti-commons-for-edit-app.js" that
 can be imported by custom plugins (and the edit app).
 */
+import {env, http, urlUtils} from '@sivujetti-commons-for-web-pages';
 import setFocusTo from './auto-focusers.js';
 import BlockDefaultStylesEditForm from './BlockDefaultStylesEditForm.jsx';
 import ContextMenu from './ContextMenu.jsx';
@@ -11,6 +12,7 @@ import {MenuSection, MenuSectionAbstract} from './MenuSection.jsx';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
 import UploadButton from './UploadButton.jsx';
 import {
+    generatePushID,
     isUndoOrRedo,
     objectUtils,
     stringUtils,
@@ -18,43 +20,40 @@ import {
 } from './utils.js';
 import Signals from '../shared-includes/Signals.js';
 import './populate-block-types-map.js';
-import {translator} from './edit-app-singletons.js';
 import {makePath, makeSlug} from './local-url-utils.js';
 import {
     __,
     api,
-    blockTreeUtils,
-    ColorPickerInput,
-    createScssTodoname,
-    env,
+    scssWizard,
+    signals,
+    translator,
+} from './edit-app-singletons.js';
+import {
     FormGroup,
     FormGroupInline,
-    getAndPutAndGetToLocalStorage,
-    getFromLocalStorage,
     handleSubmit,
     hasErrors,
     hookForm,
-    http,
-    Icon,
-    iconAsString,
     Input,
     InputError,
     InputErrors,
-    LoadingSpinner,
-    mediaScopes,
-    putToLocalStorage,
     reHookValues,
-    scssWizard,
-    sensibleDefaults,
-    signals,
-    Tabs,
     Textarea,
     unhookForm,
-    urlUtils,
     validateAll,
-    validationConstraints,
-    writeBlockProps,
-} from './internal-wrapper.js';
+} from './Form.jsx';
+import {sensibleDefaults, validationConstraints} from './constants.js';
+import {Icon, iconAsString} from './Icon.jsx';
+import LoadingSpinner from './LoadingSpinner.jsx';
+import ColorPickerInput from './ColorPickerInput.jsx';
+import Tabs from './Tabs.jsx';
+import {putToLocalStorage, getFromLocalStorage, getAndPutAndGetToLocalStorage} from './local-storage-utils.js';
+import blockTreeUtils from './block/tree-utils.js';
+import {writeBlockProps} from './block/utils.js';
+import {
+    createScssTodoname,
+    mediaScopes,
+} from './ScssWizard.js';
 import {
     determineModeFrom,
     determineModeFromPreview,
@@ -81,6 +80,7 @@ export {
     FloatingDialog,
     FormGroup,
     FormGroupInline,
+    generatePushID,
     getAndPutAndGetToLocalStorage,
     getFromLocalStorage,
     getVisibleSlug,

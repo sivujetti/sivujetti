@@ -144,6 +144,7 @@ final class PagesController {
                 "website" => self::theWebsiteToRaw($theWebsite),
                 "pageTypes" => $theWebsite->pageTypes->getArrayCopy(),
                 "activeTheme" => (object) ["id" => $theWebsite->activeTheme->id],
+                "blockRenderers" => $apiCtx->blockRenderers,
                 "showGoToDashboardMode" => $config->get("app.showGoToDashboardMode", false),
                 "dashboardUrl" => $config->get("app.dashboardUrl", ""),
                 "userPermissions" => [

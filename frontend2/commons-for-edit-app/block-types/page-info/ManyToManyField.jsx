@@ -1,11 +1,7 @@
-import {
-    __,
-    api,
-    env,
-    http,
-    Icon,
-    LoadingSpinner,
-} from '../../internal-wrapper.js';
+import {env, http} from '@sivujetti-commons-for-web-pages';
+import {__, api} from '../../edit-app-singletons.js';
+import {Icon} from '../../Icon.jsx';
+import LoadingSpinner from '../../LoadingSpinner.jsx';
 import {objectUtils} from '../../utils.js';
 import AddCategoryPanel from './AddCategoryPanel.jsx';
 

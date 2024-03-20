@@ -1,4 +1,4 @@
-import {__} from '../../internal-wrapper.js';
+import {__} from '../../edit-app-singletons.js';
 import MenuBlockEditForm, {CountingLinkItemFactory} from './MenuBlockEditForm.jsx';
 import MenuBlockDefaultStylesEditForm from './MenuStylesEditForm.jsx';
 

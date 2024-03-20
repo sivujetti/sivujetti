@@ -1,10 +1,10 @@
 import {
     api,
     blockTreeUtils,
+    generatePushID,
     objectUtils,
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
-import {generatePushID} from '../../includes/utils.js';
 
 /**
  * @param {RawBlock} block

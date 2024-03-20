@@ -1,4 +1,5 @@
-import {__, env} from './internal-wrapper.js';
+import {env} from '@sivujetti-commons-for-web-pages';
+import {__} from './edit-app-singletons.js';
 
 let isGlobalEscKeyPressListenerHookedUp = false;
 let openInstance = null;

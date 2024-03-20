@@ -1,7 +1,8 @@
 import {urlAndSlugUtils, urlUtils} from '@sivujetti-commons-for-web-pages';
-import {__, FormGroupInline} from '../internal-wrapper.js';
-import {determineModeFrom, getVisibleSlug} from '../pick-url-utils.js';
+import {__} from '../edit-app-singletons.js';
 import {currentInstance as floatingDialog} from '../FloatingDialog.jsx';
+import {FormGroupInline} from '../Form.jsx';
+import {determineModeFrom, getVisibleSlug} from '../pick-url-utils.js';
 import PickUrlDialog, {getHeight} from './PickUrlDialog.jsx';
 
 class PickUrlInputGroup extends preact.Component {

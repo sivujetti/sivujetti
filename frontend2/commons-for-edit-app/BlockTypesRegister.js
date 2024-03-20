@@ -4,7 +4,7 @@ const storage = new Map;
 class BlockTypesRegister {
     /**
      * @param {Array<[String, BlockTypeDefinition]>} defaultBlockTypes
-     * @see also ./internal-wrapper.js
+     * @see also ./populate-block-types-map.js
      * @access public
      */
     setup(defaultBlockTypes) {

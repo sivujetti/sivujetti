@@ -1,5 +1,6 @@
 import {currentInstance as floatingDialog} from '../FloatingDialog.jsx';
-import {__, Icon} from '../internal-wrapper.js';
+import {__} from '../edit-app-singletons.js';
+import {Icon} from '../Icon.jsx';
 
 class ScreenSizesTabShowHelpPopup extends preact.Component {
     render() {

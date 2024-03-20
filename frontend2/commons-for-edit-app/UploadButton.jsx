@@ -1,5 +1,7 @@
-import {__, api, env, http, Icon} from './internal-wrapper.js';
+import {env, http} from '@sivujetti-commons-for-web-pages';
+import {__, api} from './edit-app-singletons.js';
 import {stringUtils} from './utils.js';
+import {Icon} from './Icon.jsx';
 
 const MAX_FILE_SIZE_MB = 8;
 

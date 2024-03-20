@@ -1,4 +1,4 @@
-import {iconAsString} from './internal-wrapper.js';
+import {iconAsString} from './Icon.jsx';
 
 let currentInstance = {
     open: null,
@@ -16,7 +16,7 @@ class FloatingDialog extends preact.Component {
     // timeout;
     // closing;
     /**
-     * @param {{}} props
+     * @param {any} props
      */
     constructor(props) {
         super(props);

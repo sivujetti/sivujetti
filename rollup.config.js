@@ -52,8 +52,8 @@ module.exports = args => {
     const previewRendererAppGlobals = {[previewRendererAppCommonsPath]: 'sivujettiWebPagePreviewRendererApp'};
     const previewRendererAppExternals = [previewRendererAppCommonsPath];
     const editAppCommonsPath = '@sivujetti-commons-for-edit-app';
-    const editAppGlobals = {[editAppCommonsPath]: 'sivujettiCommonsEditApp'};
-    const editAppExternals = [editAppCommonsPath];
+    const editAppGlobals = {...webPagesGlobals, [editAppCommonsPath]: 'sivujettiCommonsEditApp'};
+    const editAppExternals = [...webPageExternals, editAppCommonsPath];
     const selectedLang = args.configLang || 'fi';
     const targetDirBase = getTargetDirBase(args.configTargetRelDir);
 
@@ -66,7 +66,7 @@ module.exports = args => {
             const out = {
                 input: cfg.input,
                 output: makeOutputCfg({
-                    globals: {...webPagesGlobals, ...previewRendererAppGlobals, ...editAppGlobals},
+                    globals: {...previewRendererAppGlobals, ...editAppGlobals},
                     banner: ''
                 }, cfg.output),
                 plugins: [
@@ -74,7 +74,7 @@ module.exports = args => {
                         ? cfg.jsxTranspile.include || []
                         : []),
                 ].concat(...postPlugins),
-                external: [...webPageExternals, ...previewRendererAppExternals, ...editAppExternals],
+                external: [...previewRendererAppExternals, ...editAppExternals],
                 watch: watchSettings,
             };
             ['banner'].forEach(optionalKey => {
@@ -84,7 +84,7 @@ module.exports = args => {
         });
     }
 
-    const bundlesStr = args.configBundle || 'main';
+    const bundlesStr = args.configBundle || BundleNames.EDIT_APP;
     return createBundablesArray(bundlesStr).map(bundleName => {
         if (bundleName === BundleNames.WEBPAGE_COMMONS)
             return {
@@ -130,7 +130,7 @@ module.exports = args => {
                 output: makeOutputCfg({
                     name: 'sivujettiEditApp',
                     file: `${targetDirBase}sivujetti-edit-app.js`,
-                    globals: {[editAppCommonsPath]: 'sivujettiCommonsEditApp'},
+                    globals: editAppGlobals,
                 }),
                 external: editAppExternals,
                 plugins: [

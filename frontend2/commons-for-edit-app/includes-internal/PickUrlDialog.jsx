@@ -1,20 +1,18 @@
-import {env, http, urlUtils} from '@sivujetti-commons-for-web-pages';
-import urlAndSlugUtils from '../../commons-for-web-pages/url-and-slug-utils.js';
+import {env, http, urlUtils, urlAndSlugUtils} from '@sivujetti-commons-for-web-pages';
 import FileUploader from '../FileUploader.jsx';
 import setFocusTo from '../auto-focusers.js';
+import {validationConstraints} from '../constants.js';
+import {__, api} from '../edit-app-singletons.js';
 import {
-    __,
-    api,
     FormGroup,
     hasErrors,
     hookForm,
-    Icon,
     Input,
     InputErrors,
-    LoadingSpinner,
     unhookForm,
-    validationConstraints
-} from '../internal-wrapper.js';
+} from '../Form.jsx';
+import {Icon} from '../Icon.jsx';
+import LoadingSpinner from '../LoadingSpinner.jsx';
 import {determineModeFrom, doubleNormalizeUrl, getLabel} from '../pick-url-utils.js';
 import {urlValidatorImpl} from '../validation.js';
 

@@ -1,4 +1,5 @@
-import {__, urlUtils} from './internal-wrapper.js';
+import {urlUtils} from '@sivujetti-commons-for-web-pages';
+import {__} from './edit-app-singletons.js';
 
 let dialogTitleTranslations;
 let previewTitleTranslations;

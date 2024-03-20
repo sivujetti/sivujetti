@@ -1,4 +1,3 @@
-import {env, urlUtils} from '@sivujetti-commons-for-web-pages';
 import Signals from '../shared-includes/Signals.js';
 import BlockTypesRegister from './BlockTypesRegister.js';
 import MainMenuPanelApi from './MainMenuPanelApi.js';
@@ -32,7 +31,8 @@ const editAppScssWizardInstance = new ScssWizard;
 const editAppMainMenuPanelApi = new MainMenuPanelApi;
 
 const api = {
-    getPageTypes: () => dataFromBackend.pageTypes,
+    getPageTypes() { return dataFromBackend.pageTypes; },
+    getBlockRenderers() { console.log('get thgem',dataFromBackend); return dataFromBackend.blockRenderers; },
     menuPanel: editAppMainMenuPanelApi,
     blockTypes: editAppBlockTypeRegister,
     inspectorPanel: {
@@ -65,6 +65,4 @@ export {
     editAppScssWizardInstance as scssWizard,
     editAppSignalsInstance as signals,
     editAppTranslatorInstance as translator,
-    env,
-    urlUtils,
 };

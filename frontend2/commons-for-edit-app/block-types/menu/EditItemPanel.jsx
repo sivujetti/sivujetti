@@ -1,14 +1,13 @@
+import {validationConstraints} from '../../constants.js';
+import {__, api,} from '../../edit-app-singletons.js';
 import {
-    __,
-    api,
     FormGroupInline,
     hookForm,
     Input,
     InputErrors,
     reHookValues,
     unhookForm,
-    validationConstraints
-} from '../../internal-wrapper.js';
+} from '../../Form.jsx';
 import PickUrlInputGroup from '../../includes-internal/PickUrlInputGroup.jsx';
 
 class EditItemPanel extends preact.Component {

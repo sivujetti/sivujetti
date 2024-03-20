@@ -1,7 +1,7 @@
+import {env, urlUtils} from '@sivujetti-commons-for-web-pages';
+import blockTreeUtils from '../../block/tree-utils.js';
+import {__, api} from '../../edit-app-singletons.js';
 import {
-    __,
-    api,
-    blockTreeUtils,
     FormGroup,
     FormGroupInline,
     hookForm,
@@ -11,8 +11,7 @@ import {
     reHookValues,
     Textarea,
     unhookForm,
-} from '../../internal-wrapper.js';
-import {env, urlUtils} from '../../edit-app-singletons.js';
+} from '../../Form.jsx';
 import setFocusTo from '../../auto-focusers.js';
 import {isUndoOrRedo, timingUtils} from '../../utils.js';
 import {makePath, makeSlug} from '../../local-url-utils.js';

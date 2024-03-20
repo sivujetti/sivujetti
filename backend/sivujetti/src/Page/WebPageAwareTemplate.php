@@ -238,7 +238,7 @@ final class WebPageAwareTemplate extends Template {
                 $renderChildren = fn() => $block->children ? $this->__doRenderBlocks($block->children) : [""];
                 $out[] = $blockTypes->{$block->type}->render($block, $createDefaultProps, $renderChildren, $this);
             } else {
-                $out[] = el(":raw", [], [$this->partial($block->renderer, $block)]);
+                $out[] = el(":raw", [], $this->partial($block->renderer, $block));
             }
         }
         return $out;

@@ -38,8 +38,8 @@ renderReactEditApp();
 
 function populateFrontendApi() {
     const d = window.dataFromAdminBackend;
-    api.getPageTypes = () => d.pageTypes;
-    api.getBlockRenderers = () => d.blockRenderers;
+// ##     api.getPageTypes = () => d.pageTypes;
+// ##     api.getBlockRenderers = () => d.blockRenderers;
     api.getActiveTheme = () => d.activeTheme;
     api.registerTranslationStrings = translator.addStrings.bind(translator);
     api.webPageIframe = new WebPageIframe(
@@ -47,22 +47,22 @@ function populateFrontendApi() {
         document.querySelector('.highlight-rect'),
         () => editAppReactRef.current.getCurrentLeftPanelWidth()
     );
-    api.user = {
-        can(doWhat) { return d.userPermissions[`can${stringUtils.capitalize(doWhat)}`] === true; },
-        getRole() { return d.userRole; },
-        ROLE_SUPER_ADMIN:  1 << 0, // 1
-        ROLE_ADMIN:        1 << 1, // 2
-        ROLE_ADMIN_EDITOR: 1 << 2, // 4
-        ROLE_EDITOR:       1 << 3, // 8
-        ROLE_AUTHOR:       1 << 4, // 16
-        ROLE_CONTRIBUTOR:  1 << 5, // 32
-        ROLE_FOLLOWER:     1 << 6, // 64
-    };
     api.saveButton = {
         triggerUndo() { editAppReactRef.current.saveButtonRef.current.doUndo(); },
         setOnBeforeProcessQueueFn(fn) { return editAppReactRef.current.saveButtonRef.current.setOnBeforeProcessQueueFn(fn); },
         getInstance() { return editAppReactRef.current.saveButtonRef2.current; },
     };
+// ##     api.user = {
+// ##         can(doWhat) { return d.userPermissions[`can${stringUtils.capitalize(doWhat)}`] === true; },
+// ##         getRole() { return d.userRole; },
+// ##         ROLE_SUPER_ADMIN:  1 << 0, // 1
+// ##         ROLE_ADMIN:        1 << 1, // 2
+// ##         ROLE_ADMIN_EDITOR: 1 << 2, // 4
+// ##         ROLE_EDITOR:       1 << 3, // 8
+// ##         ROLE_AUTHOR:       1 << 4, // 16
+// ##         ROLE_CONTRIBUTOR:  1 << 5, // 32
+// ##         ROLE_FOLLOWER:     1 << 6, // 64
+// ##     };
     // blockTypes, see configureServices
     // mainPanel see configureServices
     // inspectorPanel see configureServices
@@ -81,21 +81,21 @@ function configureServices() {
         if (strings.minLength) Validator.setValidationStrings(strings);
     });
     //
-    const blockTypes = new BlockTypes(api);
-    blockTypes.register('Menu', createMenuBlockType);
-    blockTypes.register('Button', createButtonBlockType);
+// ##     const blockTypes = new BlockTypes(api);
+// ##     blockTypes.register('Menu', createMenuBlockType);
+// ##     blockTypes.register('Button', createButtonBlockType);
     blockTypes.register('Code', createCodeBlockType);
     blockTypes.register('Columns', createColumnsBlockType);
     blockTypes.register('Columns2', createColumns2BlockType);
     blockTypes.register('GlobalBlockReference', createGlobalBlockReferenceBlockType);
     blockTypes.register('Heading', createHeadingBlockType);
-    blockTypes.register('Image', createImageBlockType);
+// ##     blockTypes.register('Image', createImageBlockType);
     blockTypes.register('Listing', createListingBlockType);
-    blockTypes.register('PageInfo', createPageInfoBlockType);
+// ##     blockTypes.register('PageInfo', createPageInfoBlockType);
     blockTypes.register('Paragraph', createParagraphBlockType);
     blockTypes.register('RichText', createRichTextBlockType);
     blockTypes.register('Section', createSectionBlockType);
-    blockTypes.register('Text', createTextBlockType);
+// ##     blockTypes.register('Text', createTextBlockType);
     api.blockTypes = blockTypes;
     //
     const mainPanel = new MainPanel(document.getElementById('main-panel'), env);
@@ -114,20 +114,23 @@ function configureServices() {
     api.inspectorPanel = {
         getEl() { return document.getElementById('inspector-panel'); },
     };
+// ##     api.inspectorPanel = {
+// ##         getEl() { return document.getElementById('inspector-panel'); },
+// ##     };
     //
-    patchQuillEditor();
+// ##     patchQuillEditor();
 }
 
-function patchQuillEditor() {
-    const Quill = window.Quill;
-    Quill.debug('error');
-    //
-    Quill.register('themes/snow', MySnowTheme);
-    Quill.register('modules/clipboard', MyClipboard);
-    Quill.register('modules/keyboard', MyKeyboard);
-    Quill.register('formats/id-anchor', IdAttributor);
-    Quill.register(MyLink);
-}
+// ## function patchQuillEditor() {
+// ##     const Quill = window.Quill;
+// ##     Quill.debug('error');
+// ##     //
+// ##     Quill.register('themes/snow', MySnowTheme);
+// ##     Quill.register('modules/clipboard', MyClipboard);
+// ##     Quill.register('modules/keyboard', MyKeyboard);
+// ##     Quill.register('formats/id-anchor', IdAttributor);
+// ##     Quill.register(MyLink);
+// ## }
 
 function renderReactEditApp() {
     const mainPanelOuterEl = api.mainPanel.getEl();

@@ -3,7 +3,7 @@ import {
     api,
     signals,
     urlUtils,
-} from '../../sivujetti-commons-unified.js';
+} from '@sivujetti-commons-for-edit-app';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 
 const broadcastInitialStateToListeners = true;

@@ -1,4 +1,4 @@
-import {env} from './edit-app-singletons.js';
+import {env} from '@sivujetti-commons-for-web-pages';
 
 /**
  * @param {preact.Ref} elementRef

@@ -1,4 +1,5 @@
-import {__, env} from './edit-app-singletons.js';
+import {env} from '@sivujetti-commons-for-web-pages';
+import {__} from './edit-app-singletons.js';
 
 const validatorImplFactories = {
     'required':   () => ({doValidate: value => !!value, errorMessageTmpl: __('required')}),

@@ -1,17 +1,12 @@
-import {
-    __,
-    env,
-    getAndPutAndGetToLocalStorage,
-    http,
-    Icon,
-    LoadingSpinner,
-    putToLocalStorage,
-    Tabs,
-    urlUtils
-} from './internal-wrapper.js';
+import {env, http, urlUtils} from '@sivujetti-commons-for-web-pages';
+import {__} from './edit-app-singletons.js';
 import ContextMenu from './ContextMenu.jsx';
 import UploadButton from './UploadButton.jsx';
 import {placeholderImageSrc} from '../shared-inline.js';
+import {Icon} from './Icon.jsx';
+import LoadingSpinner from './LoadingSpinner.jsx';
+import {getAndPutAndGetToLocalStorage, putToLocalStorage} from './local-storage-utils.js';
+import Tabs from './Tabs.jsx';
 
 const UPLOADS_DIR_PATH = 'public/uploads/';
 

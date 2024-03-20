@@ -1,6 +1,6 @@
-import {__, api, env, makePath, makeSlug, objectUtils} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, generatePushID, makePath, makeSlug, objectUtils} from '@sivujetti-commons-for-edit-app';
 import {treeToTransferable} from '../../includes/block/utils.js';
-import {createTrier, generatePushID, pathToFullSlug} from '../../includes/utils.js';
+import {createTrier, pathToFullSlug} from '../../includes/utils.js';
 import DnDBlockSpawner from '../block/DnDBlockSpawner.jsx';
 import BaseStylesSection from '../default-state-sections/BaseStylesSection.jsx';
 import OnThisPageSection from '../default-state-sections/OnThisPageSection.jsx';

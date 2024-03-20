@@ -1,4 +1,4 @@
-import {__} from '../../internal-wrapper.js';
+import {__} from '../../edit-app-singletons.js';
 import ButtonBlockEditForm from './ButtonBlockEditForm.jsx';
 import ButtonBlockDefaultStylesEditForm from './ButtonStylesEditForm.jsx';
 

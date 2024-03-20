@@ -12,7 +12,7 @@ class WebsiteSection extends preact.Component {
      * @access protected
      */
     render() {
-        const updateAvailableIndicatorCls = '';// !api.getAvailableUpdatePackages().length ? '' : ' with-notification-dot';
+        const updateAvailableIndicatorCls = !api.getAvailableUpdatePackages().length ? '' : ' with-notification-dot';
         return <MenuSection
             title={ __('Website') }
             subtitle={ __('Website\'s settings') }

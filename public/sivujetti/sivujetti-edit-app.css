@@ -1703,16 +1703,24 @@ span.highlight-rect[data-label-position="bottom-inside"]:before {
     border-color: var(--color-input-border);
     color: var(--color-fg-code);
 }
+.with-icon.with-notification-dot {
+    position: relative;
+}
 .with-notification-dot:after {
-    content: "•";
-    color: #ee4d4d;
-    font-size: 38px;
+    content: "";
+    height: 4px;
+    width: 4px;
+    background-color: #f16a6f;
+    box-shadow: 0 0 0 1px var(--color-bg-default);
+    border-radius: 5px;
     position: absolute;
-    margin-top: -9px;
-    left: 24px;
+    margin-top: -12px;
+    left: 13px;
 }
 .with-notification-dot.delta-2:after {
-    left: 30px;
+    height: 5px;
+    width: 5px;
+    left: 25px;
 }
 ul.list {
     list-style: initial;

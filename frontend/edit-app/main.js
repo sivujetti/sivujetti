@@ -67,7 +67,7 @@ function populateFrontendApi() {
     // mainPanel see configureServices
     // inspectorPanel see configureServices
     api.registerBlockTreeMutator = (...args) => registerMutator(...args);
-    api.getAvailableUpdatePackages = () => d.availableUpdatePackages || [];
+// ##     api.getAvailableUpdatePackages = () => d.availableUpdatePackages || [];
 }
 
 function configureServices() {

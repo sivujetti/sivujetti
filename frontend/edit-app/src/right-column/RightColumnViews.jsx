@@ -1,12 +1,12 @@
-import {signals} from '@sivujetti-commons-for-edit-app';
+// ## import {signals} from '@sivujetti-commons-for-edit-app';
 // ## import WebsiteEditBasicInfoView from './website/WebsiteEditBasicInfoView.jsx';
 // ## import WebsiteEditGlobalScriptsView from './website/WebsiteEditGlobalScriptsView.jsx';
-import WebsiteApplyUpdatesView from './website/WebsiteApplyUpdatesView.jsx';
+// ## import WebsiteApplyUpdatesView from './website/WebsiteApplyUpdatesView.jsx';
 // ## import PagesListView from './page/PagesListView.jsx';
 // ## import UploadsListView from './upload/UploadsListView.jsx';
 // ## import {isEditAppViewUrl} from '../left-column/DefaultPanel.jsx';
-import createHashHistory from '../../custom-history.js';
-
+// ## import createHashHistory from '../../custom-history.js';
+// ## 
 // ## const historyInstance = createHashHistory();
 // ## 
 // ## class MyRouter extends preactRouter {
@@ -20,26 +20,26 @@ import createHashHistory from '../../custom-history.js';
 // ##         return super.routeTo(url);
 // ##     }
 // ## }
-
-class RightColumnViews extends preact.Component {
+// ## 
+// ## class RightColumnViews extends preact.Component {
 // ##     /**
 // ##      */
 // ##     constructor(props) {
 // ##         super(props);
 // ##         this.boundOnChange = this.onRouteChanged.bind(this);
 // ##     }
-    /**
-     * @access protected
-     */
-    render() {
-        return <MyRouter history={ historyInstance } onChange={ this.boundOnChange }>
+// ##     /**
+// ##      * @access protected
+// ##      */
+// ##     render() {
+// ##         return <MyRouter history={ historyInstance } onChange={ this.boundOnChange }>
 {/*            <WebsiteEditBasicInfoView path="/website/edit-basic-info"/>*/}
 {/*            <WebsiteEditGlobalScriptsView path="/website/edit-global-scripts"/>*/}
-            <WebsiteApplyUpdatesView path="/website/updates"/>
+{/*            <WebsiteApplyUpdatesView path="/website/updates"/>*/}
 {/*            <PagesListView path="/pages"/>*/}
 {/*            <UploadsListView path="/uploads"/>*/}
-        </MyRouter>;
-    }
+// ##         </MyRouter>;
+// ##     }
 // ##     /**
 // ##      * @param {{url: String} & {[key: String]: any;}} e
 // ##      * @access private
@@ -54,7 +54,7 @@ class RightColumnViews extends preact.Component {
 // ##             rootEl.classList.remove('view-opened');
 // ##         signals.emit('route-changed', e, a);
 // ##     }
-}
-
+// ## }
+// ## 
 // ## export default RightColumnViews;
 // ## export {historyInstance, MyRouter};

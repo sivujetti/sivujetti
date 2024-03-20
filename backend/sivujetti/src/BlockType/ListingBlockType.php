@@ -4,7 +4,7 @@ namespace Sivujetti\BlockType;
 
 use Pike\{ArrayUtils, Injector, PikeException};
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\{JsonUtils, ValidationUtils};
+use Sivujetti\{JsonUtils};
 use Sivujetti\Page\PagesRepository2;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
@@ -27,9 +27,7 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
             ->newProperty("filterOrder")->dataType($builder::DATA_TYPE_TEXT, validationRules: [
                 ["in", ["desc", "asc", "rand"]]
             ])
-            ->newProperty("filterAdditional")->dataType($builder::DATA_TYPE_TEXT, validationRules: [
-                ["maxLength", ValidationUtils::HARD_LONG_TEXT_MAX_LEN]
-            ])
+            ->newProperty("filterAdditional", $builder::DATA_TYPE_OBJECT/*, sanitizeWith: omit/allow object as it is */)
             ->getResult();
     }
     /**
@@ -52,8 +50,8 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
                                           TheWebsite $theWebsite): void {
         $pageType = ArrayUtils::findByKey($theWebsite->pageTypes, $block->filterPageType, "name");
         $q = $pagesRepo->select($block->filterPageType, ["@own", "@blocks"]); // <- note @blocks
-        if ($block->filterAdditional !== "{}") {
-            $validFilters = self::getValidFilters(JsonUtils::parse($block->filterAdditional), $pageType->ownFields);
+        if (count((array)$block->filterAdditional)) {
+            $validFilters = self::getValidFilters($block->filterAdditional, $pageType->ownFields);
             $q = $q->mongoWhere(JsonUtils::stringify($validFilters));
         }
         if ($block->filterLimit)

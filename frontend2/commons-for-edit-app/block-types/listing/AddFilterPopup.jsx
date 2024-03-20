@@ -1,12 +1,8 @@
-import {
-    __,
-    api,
-    env,
-    Icon,
-    InputError,
-    signals,
-    validationConstraints,
-} from '../../internal-wrapper.js';
+import {env} from '@sivujetti-commons-for-web-pages';
+import {validationConstraints,} from '../../constants.js';
+import {__, api, signals} from '../../edit-app-singletons.js';
+import {InputError} from '../../Form.jsx';
+import {Icon} from '../../Icon.jsx';
 import {timingUtils} from '../../utils.js';
 import {ManyToManyItemSelector} from '../page-info/ManyToManyField.jsx';
 
@@ -218,7 +214,7 @@ function buildWorkableFilters(filters) {
  * @param {'isInCategory'|'urlStartsWith'} kind
  * @param {String|null} val
  * @param {String} current
- * @returns {String} Updated $current
+ * @returns {Object} Updated $current
  */
 function mergeToFilterAdditional(kind, val, current) {
     const parsed = JSON.parse(current);
@@ -234,14 +230,14 @@ function mergeToFilterAdditional(kind, val, current) {
             delete parsed['p.categories'];
     } else
         throw new Error(`Unkown additional filter \`${kind}\``);
-    return JSON.stringify(parsed);
+    return parsed;
 }
 
 /**
  * @param {String} from
- * @returns {String} $from without the isInCategory filter
+ * @returns {Object} $from without the isInCategory filter
  */
-function removeIsInCatFilter(from) { // json vs. object?
+function removeIsInCatFilter(from) {
     return mergeToFilterAdditional(FilterKind.IS_IN_CAT, null, from);
 }
 

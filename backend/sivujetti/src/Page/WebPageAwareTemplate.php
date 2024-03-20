@@ -33,6 +33,7 @@ final class WebPageAwareTemplate extends Template {
     /**
      * @param string $file
      * @param ?array<string, mixed> $vars = null
+     * @psalm-param EnvConstants $env = null (include "config.php")["env"]
      * @param ?array<string, mixed> $initialLocals = null
      * @param ?\Sivujetti\SharedAPIContext $apiCtx = null
      * @param ?Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite = null
@@ -43,8 +44,8 @@ final class WebPageAwareTemplate extends Template {
      */
     public function __construct(string $file,
                                 ?array $vars = null,
-                                ?array $initialLocals = null,
                                 ?array $env = null,
+                                ?array $initialLocals = null,
                                 ?SharedAPIContext $apiCtx = null,
                                 ?TheWebsite $theWebsite = null,
                                 ?array $pluginNames = null,

@@ -162,4 +162,50 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
         $this->expectException(PikeException::class);
         $this->sendOverwritePageBlocksRequest($state);
     }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testOverwritePageBlocksUsesUserDefinedJsonPropSanitizer(): void {
+        $state = $this->setupOverwriteProcUsesSanitizerTest();
+        $this->makePagesControllerTestApp($state);
+        $this->insertTestPageDataToDb($state);
+        $this->sendOverwritePageBlocksRequest($state);
+        $this->verifyRequestFinishedSuccesfully($state);
+        $this->verifySavedBlockFromDbIsSanitized($state);
+    }
+    private function setupOverwriteProcUsesSanitizerTest(): \TestState {
+        $state = $this->setupTest();
+        $state->inputData = (object) ["blocks" =>
+            [(new BlockTestUtils())->makeBlockData(Block::TYPE_SECTION2, id: "@auto", propsData: [
+                "columns" => [
+                    [(object) ["align" => null, "width" => "1fr", "isVisible" => true, "junk" => "data"]],
+                    null,
+                    null,
+                    null,
+                    null,
+                ],
+                "settings" => [
+                    (object) ["innerBg" => null, "outerBg" => null],
+                ],
+            ])]
+        ];
+        return $state;
+    }
+    private function verifySavedBlockFromDbIsSanitized(\TestState $state): void {
+        $page = $this->pageTestUtils->getPageById($state->testPageData->id);
+        $this->assertCount(1, $page->blocks);
+        $actual = $page->blocks[0];
+        //
+        $columnsPropFromRoot = $actual->columns;
+        $mainScreenSize = $columnsPropFromRoot[0];
+        $mainScreenFirstColObj = $mainScreenSize[0];
+        $this->assertObjectNotHasProperty("junk", $mainScreenFirstColObj);
+        //
+        $columnsPropFromPropsDataArr = $actual->propsData[0]->value;
+        $mainScreenSize2 = $columnsPropFromPropsDataArr[0];
+        $mainScreenFirstColObj2 = $mainScreenSize2[0];
+        $this->assertObjectNotHasProperty("junk", $mainScreenFirstColObj2);
+    }
 }

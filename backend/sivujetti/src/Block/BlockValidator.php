@@ -16,7 +16,7 @@ final class BlockValidator {
      * @param \Sivujetti\SharedAPIContext $apiCtx
      */
     public function __construct(SharedAPIContext $apiCtx) {
-        $expandedFileIds = [];
+        $expandedFileIds = ["jsx"];
         foreach ($apiCtx->blockRenderers as $renderer) {
             $fileId = $renderer["fileId"];
             $expandedFileIds[] = $fileId;
@@ -43,10 +43,11 @@ final class BlockValidator {
         $v = $this->addRulesForDefaultProps(
             Validation::makeObjectValidator()
                 ->addRuleImpl(...ValidationUtils::createPushIdValidatorImpl())
+                ->addRuleImpl(...ValidationUtils::createUrlValidatorImpl())
         );
         return ValidationUtils::addRulesForProperties(
             $blockTypeFinal->defineProperties(new PropertiesBuilder),
-            $v->addRuleImpl(...ValidationUtils::createUrlValidatorImpl())->rule("id", "pushId")
+            $v->rule("id", "type", "string")->rule("id", "pushId")
         )->validate($input);
     }
     /**

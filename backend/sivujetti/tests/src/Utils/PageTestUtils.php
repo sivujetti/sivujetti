@@ -6,7 +6,8 @@ use Pike\{Db, PikeException};
 use Sivujetti\Block\{BlocksController, BlockValidator};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, GlobalBlockReferenceBlockType, HeadingBlockType,
-                         MenuBlockType, ParagraphBlockType, SectionBlockType, TextBlockType};
+                         MenuBlockType, ParagraphBlockType, Section2BlockType, SectionBlockType,
+                         TextBlockType};
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\Page\{PagesRepository};
 use Sivujetti\PageType\Entities\PageType;
@@ -224,6 +225,7 @@ final class PageTestUtils {
             $blockTypes->{Block::TYPE_MENU} = new MenuBlockType;
             $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
             $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
+            $blockTypes->{Block::TYPE_SECTION2} = new Section2BlockType;
             $blockTypes->{Block::TYPE_TEXT} = new TextBlockType;
             $out->blockTypes = $blockTypes;
         }

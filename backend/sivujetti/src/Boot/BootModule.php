@@ -13,8 +13,8 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{ButtonBlockType, CodeBlockType, ColumnsBlockType,
                          GlobalBlockReferenceBlockType, HeadingBlockType, ImageBlockType,
                          ListingBlockType, MenuBlockType, PageInfoBlockType,
-                         ParagraphBlockType, RichTextBlockType, SectionBlockType,
-                         TextBlockType};
+                         ParagraphBlockType, RichTextBlockType, Section2BlockType,
+                         SectionBlockType, TextBlockType};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\Plugin\Entities\Plugin;
@@ -155,6 +155,7 @@ class BootModule {
         $blockTypes->{Block::TYPE_PARAGRAPH} = new ParagraphBlockType;
         $blockTypes->{Block::TYPE_RICH_TEXT} = new RichTextBlockType;
         $blockTypes->{Block::TYPE_SECTION} = new SectionBlockType;
+        $blockTypes->{Block::TYPE_SECTION2} = new Section2BlockType;
         $blockTypes->{Block::TYPE_TEXT} = new TextBlockType;
         if ($doCreateBlockTypes) $apiCtx->blockTypes = $blockTypes;
         $di->share($blockTypes);

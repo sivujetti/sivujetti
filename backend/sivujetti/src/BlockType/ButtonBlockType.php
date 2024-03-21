@@ -3,6 +3,7 @@
 namespace Sivujetti\BlockType;
 
 use Sivujetti\Auth\ACL;
+use Sivujetti\Page\WebPageAwareTemplate;
 
 use function Sivujetti\createElement as el;
 

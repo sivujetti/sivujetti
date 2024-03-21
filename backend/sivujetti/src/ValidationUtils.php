@@ -4,6 +4,7 @@ namespace Sivujetti;
 
 use Pike\{ArrayUtils, PikeException, Validation};
 use Pike\Validation\ObjectValidator;
+use Sivujetti\BlockType\Entities\BlockProperty;
 
 /**
  * @psalm-import-type RawPageTypeField from \Sivujetti\PageType\Entities\Field
@@ -99,13 +100,16 @@ abstract class ValidationUtils {
                                                  ObjectValidator $to): ObjectValidator {
         foreach ($properties as $prop) {
             $dt = $prop->dataType;
-            $defaultRules = [
-                "text"         => [["", "type", "string"], ["", "maxLength", self::HARD_SHORT_TEXT_MAX_LEN]],
-                "json"         => [["", "type", "string"], ["", "maxLength", self::HARD_JSON_TEXT_MAX_LEN]],
-                "many-to-many" => [["", "type", "array"],  ["%s.*", "type", "string"]],
-                "int"          => [["", "type", "number"]],
-                "uint"         => [["", "type", "number"], ["", "min", 0]],
-            ][$dt->type] ?? null;
+            $defaultRules = match ($dt->type) {
+                BlockProperty::DATA_TYPE_ARRAY  => [["", "type", "array"]],
+                "int"                           => [["", "type", "number"]],
+                "json"                          => [["", "type", "string"], ["", "maxLength", self::HARD_JSON_TEXT_MAX_LEN]],
+                BlockProperty::DATA_TYPE_OBJECT => [["", "type", "object"]],
+                BlockProperty::DATA_TYPE_TEXT   => [["", "type", "string"], ["", "maxLength", self::HARD_SHORT_TEXT_MAX_LEN]],
+                BlockProperty::DATA_TYPE_UINT   => [["", "type", "number"], ["", "min", 0]],
+                "many-to-many"                  => [["", "type", "array"],  ["%s.*", "type", "string"]],
+                default => null,
+            };
             if (!$defaultRules)
                 throw new \RuntimeException("Shouldn't happen");
             $userRules = $dt->validationRules ?? [];

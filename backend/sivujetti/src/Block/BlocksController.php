@@ -49,14 +49,13 @@ final class BlocksController {
         //
         PagesController::runBlockBeforeRenderEvent([$block], $apiCtx->blockTypes, $pagesRepo,
                                                     $appEnv->di);
-        $pagePageType = ArrayUtils::findByKey($theWebsite->pageTypes, PageType::PAGE, "name");
-        $html = (new WebPageAwareTemplate($block->renderer,
-            initialLocals: [
-                "currentPage" => PagesController::createEmptyPage($pagePageType),
-                "currentUrl" => "",
-                "site" => $theWebsite,
-            ],
-            pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy())
+        $html = (new WebPageAwareTemplate(
+            $block->renderer,
+            env: $appEnv->constants,
+            apiCtx: $apiCtx,
+            theWebsite: $theWebsite,
+            pluginNames: array_map(fn($p) => $p->name, $theWebsite->plugins->getArrayCopy()),
+            useEditModeMarkup: false,
         ))->renderBlocks([$block]);
         $res->json(json_encode(["result" => $html], JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE));
     }
@@ -97,8 +96,11 @@ final class BlocksController {
             "propsData" => [],
             "styleClasses" => $input->styleClasses,
         ];
-        foreach ($blockType->defineProperties(new PropertiesBuilder) as $prop)
-            $out->propsData[] = (object) ["key" => $prop->name, "value" => $input->{$prop->name}];
+        $noop = fn($v) => $v;
+        foreach ($blockType->defineProperties(new PropertiesBuilder) as $prop) {
+            $doSanitize = $prop->dataType->sanitizeWith ?? $noop;
+            $out->propsData[] = (object) ["key" => $prop->name, "value" => $doSanitize($input->{$prop->name})];
+        }
         return $out;
     }
     /**

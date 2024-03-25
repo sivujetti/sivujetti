@@ -28,7 +28,7 @@ final class ButtonBlockType implements BlockTypeInterface {
     /**
      * @inheritdoc
      */
-    public function render(object $block, 
+    public function render(object $block,
                            \Closure $createDefaultProps, 
                            \Closure $renderChildren,
                            WebPageAwareTemplate $tmpl): array {

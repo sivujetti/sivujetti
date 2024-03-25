@@ -39,6 +39,22 @@ class ButtonBlock extends preact.Component {
     }
 }
 
+class ColumnsBlock extends preact.Component {
+    /**
+     * @param {BlockRendererProps} props
+     * @access protected
+     */
+    render({block, renderChildren, createDefaultProps}) {
+        const extraClasses = [
+            'num-cols-', parseInt(block.numColumns),
+            block.takeFullWidth ? '' : ' inline'
+        ].join('');
+        return <div { ...createDefaultProps(extraClasses) }>
+            { renderChildren() }
+        </div>;
+    }
+}
+
 class ImageBlock extends preact.Component {
     /**
      * @param {BlockRendererProps} props
@@ -147,6 +163,37 @@ function menuPrintBranch(branch, block, depth = 0) {
     </li>) }</ul>;
 }
 
+class SectionBlock extends preact.Component {
+    /**
+     * @param {BlockRendererProps} props
+     * @access protected
+     */
+    render({block, renderChildren, createDefaultProps}) {
+        return <section { ...{
+            ...createDefaultProps(),
+            ...(block.bgImage ? {style: `background-image:url('${completeImageSrc(block.bgImage, urlUtils)}')`} : {})
+        } }>
+            <div data-block-root>
+                { renderChildren() }
+            </div>
+        </section>;
+    }
+}
+
+class Section2Block extends preact.Component {
+    /**
+     * @param {BlockRendererProps} props
+     * @access protected
+     */
+    render({renderChildren, createDefaultProps}) {
+        return <div { ...createDefaultProps() }>
+            <div class="j-Section2-cols">
+                { renderChildren() }
+            </div>
+        </div>;
+    }
+}
+
 class TextBlock extends preact.Component {
     /**
      * @param {BlockRendererProps} props
@@ -162,9 +209,12 @@ class TextBlock extends preact.Component {
 
 const builtInRenderers = {
     Button: ButtonBlock,
+    Columns: ColumnsBlock,
     Image: ImageBlock,
     Listing: ListingBlock,
     Menu: MenuBlock,
+    Section: SectionBlock,
+    Section2: Section2Block,
     Text: TextBlock,
 };
 

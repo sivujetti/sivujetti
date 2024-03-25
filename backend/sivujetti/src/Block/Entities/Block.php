@@ -72,13 +72,9 @@ final class Block extends \stdClass {
 
     /* If self::TYPE_MENU
     public string $tree;
-    public string $wrapStart;
-    public string $wrapEnd;
-    public string $treeStart;
-    public string $treeEnd;
-    public string $itemStart;
-    public string $itemAttrs;
-    public string $itemEnd; */
+    public string $wrapEl;
+    public string $treeEl;
+    public string $treeItemEl; */
 
     /* If self::TYPE_PARAGRAPH
     public string $text; */
@@ -90,8 +86,8 @@ final class Block extends \stdClass {
     public string $bgImage; */
 
     /* If self::TYPE_SECTION2
-    public array<int, todo> $columns;
-    public array<int, todo> $settings; */
+    public array<int, array<int, object{width: string, align: string|null, isVisible: boolean}>> $columns;
+    public todo $settings; */
 
     /* If self::TYPE_TEXT
     public string $html; */

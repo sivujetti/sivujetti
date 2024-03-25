@@ -16,8 +16,8 @@ interface JsxLikeRenderingBlockTypeInterface {
      * @return array
      * @psalm-return VNode
      */
-    public function render(object $block, 
-                           \Closure $createDefaultProps, 
+    public function render(object $block,
+                           \Closure $createDefaultProps,
                            \Closure $renderChildren,
                            WebPageAwareTemplate $tmpl): array;
 }

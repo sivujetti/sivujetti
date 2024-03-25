@@ -6,7 +6,7 @@ use Sivujetti\Page\WebPageAwareTemplate;
 
 use function Sivujetti\createElement as el;
 
-class Section2BlockType implements BlockTypeInterface {
+class Section2BlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
     /**
      * @inheritdoc
      */
@@ -25,25 +25,23 @@ class Section2BlockType implements BlockTypeInterface {
                 , $in)
             )
             ->newProperty("settings")->dataType(
-                $builder::DATA_TYPE_ARRAY,
-                sanitizeWith: fn(array $in) => array_map(fn($obj) =>
-                    (object) [
-                        "innerBg" => $obj->innerBg ? strval($obj->innerBg) : null,
-                        "outerBg" => $obj->outerBg ? strval($obj->outerBg) : null,
-                    ]
-                , $in)
+                $builder::DATA_TYPE_OBJECT,
+                sanitizeWith: fn(object $obj) => (object) [
+                    "innerBg" => $obj->innerBg ? strval($obj->innerBg) : null,
+                    "outerBg" => $obj->outerBg ? strval($obj->outerBg) : null,
+                ]
             )
             ->getResult();
     }
     /**
      * @inheritdoc
      */
-    public function render(object $block, 
-                           \Closure $createDefaultProps, 
+    public function render(object $block,
+                           \Closure $createDefaultProps,
                            \Closure $renderChildren,
                            WebPageAwareTemplate $tmpl): array {
         return el("div", $createDefaultProps(),
-            el("div", ["class" => "j-Columns2-cols"],
+            el("div", ["class" => "j-Section2-cols"],
                 ...$renderChildren()
             )
         );

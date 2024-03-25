@@ -7,6 +7,7 @@ use Sivujetti\Page\WebPageAwareTemplate;
 use function Sivujetti\createElement as el;
 
 /**
+ * @psalm-type LinkTreeItem = {id: string, slug: string, text: string, children: array<int, LinkTreeItem>}
  * @psalm-import-type VNode from Sivujetti\BlockType\JsxLikeRenderingBlockTypeInterface
  */
 final class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
@@ -47,7 +48,7 @@ final class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTy
      * @psalm-return VNode
      */
     private static function renderBranch(array $branch, object $block, int $depth, WebPageAwareTemplate $tmpl): array {
-        $currentPageSlug = $tmpl->currentUrl;
+        $currentPageSlug = $tmpl->getLocal("currentUrl");
         return el("ul", ["class" => "level-{$depth}"],
             ...array_map(fn($itm) => el(
                 "li",
@@ -67,6 +68,7 @@ final class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTy
     /**
      * @param object $obj
      * @return object
+     * @psalm-return LinkTreeItem
      */
     private static function objToTreeItem(object $obj): object {
         return (object) [
@@ -78,7 +80,9 @@ final class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTy
     }
     /**
      * @param array $input
+     * @psalm-param array<int, object> $input
      * @return array
+     * @psalm-return array<int, LinkTreeItem>
      */
     private static function createLinkTree(array $input): array {
         return array_map(self::objToTreeItem(...), $input);

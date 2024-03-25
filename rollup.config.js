@@ -58,11 +58,16 @@ module.exports = args => {
     const targetDirBase = getTargetDirBase(args.configTargetRelDir);
 
     if (args.configInput) { // custom.js
-        let userDefined = require(path.resolve(__dirname, args.configInput));
-        if (typeof userDefined === 'function') userDefined = userDefined({selectedLang});
-        const cfgs = !Array.isArray(userDefined) ? [userDefined] : userDefined;
+        const bundlesStr = args.configBundle || 'all';
+        const customExport = require(path.resolve(__dirname, args.configInput));
+        const customCfg = typeof customExport === 'function'
+            ? customExport({
+                selectedLang,
+                bundles: bundlesStr !== 'all' ? createBundablesArray(bundlesStr) : ['all'],
+            })
+            : customExport;
         //
-        return cfgs.map(cfg => {
+        return (!Array.isArray(customCfg) ? [customCfg] : customCfg).map(cfg => {
             const out = {
                 input: cfg.input,
                 output: makeOutputCfg({
@@ -169,7 +174,7 @@ module.exports = args => {
                 input: `frontend2/translations/auth-apps-${selectedLang}.js`,
                 output: {
                     format: 'iife',
-                    file: `${targetDirBase}lang-auth-${selectedLang}.js`,
+                    file: `${targetDirBase}lang-auth-apps-${selectedLang}.js`,
                     globals,
                 },
                 external,

@@ -102,6 +102,7 @@ class ListingBlockEditForm extends preact.Component {
         const curPopupProps = curPopupRenderer ? this.getCurrentPopupProps(curPopupRenderer) : null;
         const a1 = __('and');
         const a2 = `${__(howManyType !== 'single' ? 'which#nominative' : 'which') }/${ __(howManyType !== 'single' ? 'whose' : 'which#genitive')}`;
+        const howManyTypeAdjusted = createAdjustedHowManyType(howManyType, howManyAmount);
         /*
                1       2          3*                              4                             5
         --------------------------------------------------------------------------------------------------------------------
@@ -127,8 +128,8 @@ class ListingBlockEditForm extends preact.Component {
                     onClick={ e => this.openPartPopup(DefinePageTypePopup, e) }
                     class="form-select poppable pl-1"
                     type="button">{
-                    howManyType !== 'single'
-                        ? howManyType !== 'atMost'
+                    howManyTypeAdjusted !== 'single'
+                        ? howManyTypeAdjusted !== 'atMost'
                             ? this.selectedPageTypeFriendlyNamePlural
                             : this.selectedPageTypeFriendlyNamePartitive
                         : this.selectedPageTypeFriendlyName
@@ -140,7 +141,7 @@ class ListingBlockEditForm extends preact.Component {
                     const Cls = filter.kind === FilterKind.URL_STARTS_WITH ? UrlStartsWithPart : IsInCategoryPart;
                     return [
                         <span class="group-2 ml-1 pl-2 pr-1 no-round-right">{ // todo trigger next element when clicked
-                            (i ? `${__('and')} ` : '') + Cls.getLabel(howManyType)
+                            (i ? `${__('and')} ` : '') + Cls.getLabel(howManyTypeAdjusted)
                         }</span>,
                         <div class="group-2 no-round-left flex-centered pl-0" data-filter-part-kind={ filter.kind }>
                             <Cls
@@ -168,8 +169,8 @@ class ListingBlockEditForm extends preact.Component {
                 </div>
             ] }
 
-            { howManyType !== 'single' && (howManyAmount === 0 || howManyAmount > 1) ? [
-            <span class="group-3 ml-1 px-2 no-round-right"> { __('ordered by') } </span>,
+            { howManyType !== 'single' && howManyAmount > 0 ? [
+            <span class="group-3 ml-1 px-2 no-round-right"> { __(`ordered by${howManyAmount > 1 ? '' : '#singular'}`) } </span>,
             <div class="group-3 no-round-left">
                 <button
                     onClick={ e => this.openPartPopup(DefineOrderPopup, e) }
@@ -181,7 +182,7 @@ class ListingBlockEditForm extends preact.Component {
             }
 
             { this.selectedPageTypeBundle.renderers.length > 1 ? [
-            <span class="group-4 ml-1 px-2 no-round-right">{ __('rendering %s using template', __(howManyType !== 'single' ? 'them' : 'it')) }</span>,
+            <span class="group-4 ml-1 px-2 no-round-right">{ __('rendering %s using template', __(howManyTypeAdjusted !== 'single' ? 'them' : 'it')) }</span>,
             <div class="group-4 no-round-left">
                 <button
                     onClick={ e => this.openPartPopup(ChooseRendererPopup, e) }
@@ -224,7 +225,8 @@ class ListingBlockEditForm extends preact.Component {
         if (PopupRendererCls === DefinePageTypePopup)
             return {howManyType: this.state.howManyType, filterPageType: this.state.filterPageType, parent: this};
         if (PopupRendererCls === AddFilterPopup)
-            return {filtersParsed: this.state.filtersParsed, howManyType: this.state.howManyType,
+            return {filtersParsed: this.state.filtersParsed,
+                    howManyTypeAdjusted: createAdjustedHowManyType(this.state.howManyType, this.state.howManyAmount),
                     currentFiltersJson: this.state.additionalFiltersJson, parent: this};
         if (PopupRendererCls === DefineOrderPopup)
             return {order: this.state.order, parent: this};
@@ -350,6 +352,9 @@ class DefineLimitPopup extends preact.Component {
     handleHowManyAmountChanged(e) {
         const val = parseInt(e.target.value, 10);
         let err = !isNaN(val) ? '' : __('%s must be a number', __('This value'));
+        if (!err && e.target.value < 1) {
+            err = __('min').replace('{field}', __('This value')).replace('{arg0}', '1');
+        }
         if (!err && e.target.value > 10000) {
             err = __('max').replace('{field}', __('This value')).replace('{arg0}', '10 000');
         }
@@ -412,7 +417,7 @@ class DefineOrderPopup extends preact.Component {
             </label>
         ),
         this.props.parent.showTechnicalHints
-            ? <div class="my-2 text-small">
+            ? <div class="mt-1 text-small">
                 <a href="https://sivujetti.github.io/dev-docs/fi/misc/misc.html#miten-mutatoin-sivua-renderöidessä" rel="noopener noreferrer" target="_blank">Custom?</a>
             </div>
             : null
@@ -437,6 +442,15 @@ class ChooseRendererPopup extends preact.Component {
             </label>
         );
     }
+}
+
+/**
+ * @param {howManyType} howManyType
+ * @param {Number?} howManyAmount
+ * @returns {howManyType}
+ */
+function createAdjustedHowManyType(howManyType, howManyAmount) {
+    return (howManyType === 'single' || howManyAmount === 1) ? 'single' : howManyType;
 }
 
 /**

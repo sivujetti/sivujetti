@@ -291,6 +291,7 @@ stringBundles.push({
     'at most': 'at most',
     'Type amount': 'Type amount',
     'ordered by': 'ordered by',
+    'ordered by#singular': 'ordered by',
     'newest to oldest': 'newest to oldest',
     'oldest to newest': 'oldest to newest',
     'randomly': 'randomly',

@@ -292,6 +292,7 @@ stringBundles.push({
     'at most': 'enintään',
     'Type amount': 'Syötä lukumääärä',
     'ordered by': 'järjestäen ne',
+    'ordered by#singular': 'järjestäen tuloksen',
     'newest to oldest': 'uusimmasta vanhimpaan',
     'oldest to newest': 'vanhimmasta uusimpaan',
     'randomly': 'satunnaisesti',

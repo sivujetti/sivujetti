@@ -11,6 +11,8 @@ import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
 import {createBlockFromBlueprint, createBlockFromType} from '../../includes/block/utils.js';
 
+const UNSPAWNABLES = ['Columns', 'Heading', 'PageInfo', 'Paragraph', 'RichText', 'Section'];
+
 class DnDBlockSpawner extends preact.Component {
     // mainTreeDnd; // public
     // unregisterables;
@@ -154,7 +156,7 @@ class DnDBlockSpawner extends preact.Component {
         if (newIsOpen) {
             if (!this.selectableBlockTypes) {
                 this.selectableBlockTypes = sort(Array.from(api.blockTypes.entries()).filter(([name, _]) =>
-                    ['Heading', 'PageInfo', 'Paragraph', 'RichText'].indexOf(name) < 0 && name !== 'GlobalBlockReference'
+                    UNSPAWNABLES.indexOf(name) < 0 && name !== 'GlobalBlockReference'
                 ));
                 this.firstPluginRegisteredBlockTypeIdx = this.selectableBlockTypes.findIndex(([name, _]) =>
                     name === 'Code'
@@ -308,8 +310,9 @@ const ordinals = [
     'Button',
 
     'Section',
+    'Section2',
     'Columns',
-    'Columns2',
+    'Wrapper',
     'Listing',
     'Menu',
     'Code',

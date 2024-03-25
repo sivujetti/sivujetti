@@ -139,12 +139,12 @@ class BlockEditForm extends preact.Component {
                             } }
                             emitManyValuesChanged={ this.handleValueValuesChanged.bind(this) }
                             key={ block.id }
-                            { ...(block.type !== 'Columns2' ? {} : {stylesStateId: this.state.stylesStateId}) }/>)
+                            { ...(block.type !== 'Section2' ? {} : {stylesStateId: this.state.stylesStateId}) }/>)
                     }
                 </div>
                 : null }
             { currentTabIdx === 1
-                ? block.type !== 'Columns2'
+                ? block.type !== 'Section2'
                     ? <div class={ `block-styles-tab-content${currentTabIdx === 1 ? '' : ' d-none'}` }>
                         <StylesEditFormCls
                             blockId={ blockCopyForEditForm.id }

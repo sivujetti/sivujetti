@@ -401,7 +401,7 @@ final class WebPageAwareTemplate extends Template {
             ($this->__cssAndJsFiles ? implode("\n", array_map(function ($f) {
                 $pre = $f->url !== "sivujetti/sivujetti-commons-for-web-pages.js"
                     ? ""
-                    : "<script>{$this->generateSivujettiEnvConfJs()}</script>\n";
+                    : "<script>{$this->generateSivujettiEnvConfJs($this->__locals["currentUrl"])}</script>\n";
                 //
                 $url = $this->assetUrl("public/{$this->e($f->url)}");
                 return "{$pre}<script src=\"{$url}\"{$this->attrMapToStr($f->attrs)}></script>";
@@ -466,13 +466,15 @@ final class WebPageAwareTemplate extends Template {
         };
     }
     /**
+     * ?string $currentUrl = null
      * @return string
      */
-    protected function generateSivujettiEnvConfJs(): string {
+    protected function generateSivujettiEnvConfJs(?string $currentUrl = null): string {
         return (
             "window.sivujettiEnvConfig = " . self::escInlineJs(JsonUtils::stringify([
                 "baseUrl" => $this->makeUrl("/", true),
                 "assetBaseUrl" => $this->makeUrl("/", false),
+                "currentPageSlug" => $currentUrl ?? "/",
                 "cacheBustStr" => explode("v=", $this->assetUrl("/"))[1] ?? "",
             ])) . ";"
         );

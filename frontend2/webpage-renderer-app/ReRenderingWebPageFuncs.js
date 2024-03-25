@@ -66,9 +66,9 @@ function hashCode(str, seed = 0) {
 /**
  * @param {RawBlock} block
  */
-function convertHtmlStringsToVNodeArrays(block) {
+function stringHtmlPropToVNodeArray(block) {
     if (block.type === 'GlobalBlockReference') {
-        traverseRecursively(block.__globalBlockTree.blocks, convertHtmlStringsToVNodeArrays);
+        traverseRecursively(block.__globalBlockTree.blocks, stringHtmlPropToVNodeArray);
         return;
     }
     if (['Text', 'Button'].indexOf(block.type) > -1 && typeof block.html === 'string')
@@ -105,4 +105,8 @@ function domNodesToVNodes(nodes) {
     });
 }
 
-export {convertHtmlStringsToVNodeArrays, createBlockTreeHashes};
+export {
+    htmlStringToVNodeArray,
+    stringHtmlPropToVNodeArray,
+    createBlockTreeHashes,
+};

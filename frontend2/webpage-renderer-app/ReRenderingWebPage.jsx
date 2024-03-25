@@ -1,11 +1,15 @@
-import {urlAndSlugUtils, urlUtils} from '@sivujetti-commons-for-web-pages';
+import {env, http, urlAndSlugUtils, urlUtils} from '@sivujetti-commons-for-web-pages';
 import {
     cloneDeep,
     completeImageSrc,
     placeholderImageSrc,
     traverseRecursively,
 } from '../shared-inline.js';
-import {convertHtmlStringsToVNodeArrays, createBlockTreeHashes} from './ReRenderingWebPageFuncs.js';
+import {
+    createBlockTreeHashes,
+    htmlStringToVNodeArray,
+    stringHtmlPropToVNodeArray,
+} from './ReRenderingWebPageFuncs.js';
 
 /** @type {Map<String, preact.AnyComponent>} */
 const customRenderers = new Map;
@@ -128,36 +132,19 @@ class MenuBlock extends preact.Component {
  * @returns {preact.VNode}
  */
 function menuPrintBranch(branch, block, depth = 0) {
-    const OuterEl = block.treeEl || 'ul';
-    const outerElProps = block.treeElProps || {class: 'level-{depth}'};
-    const ListItemEl = block.treeItemEl || 'li';
-    const listItemElProps = block.treeItemElProps || {class: 'level-{depth}'};
-    const currentPageSlug = '/'; // ??
-    const linkElProps = block.linkeElProps || {};
-    return <OuterEl class={ outerElProps.class.replace(/\{depth\}/, depth) }>
-        { branch.map(({slug, text, children}) => {
-            return <ListItemEl
-                class={ listItemElProps.class.replace(/\{depth\}/, depth) }
-                { ...(slug === currentPageSlug ? {'data-current': 'true'} : {}) }>
-                <a
-                    href={ maybeExternalUrl(slug) }
-                    { ...linkElProps }>
-                    { text }
-                </a>
-                { children.length
-                    ? menuPrintBranch(children, block, depth + 1)
-                    : null
-                }
-            </ListItemEl>;
-        }) }
-    </OuterEl>;
-}
-function maybeExternalUrl(url) {
-    if (!isExternal(url)) return url;
-    return `/sivujetti/index.php?q=${url}`;
-}
-function isExternal(url) {
-    return false;
+    const currentPageSlug = '-';
+    return <ul class={ `level-${depth}` }>{ branch.map(({slug, text, children}) => <li>
+        <a
+            href={ urlAndSlugUtils.getCompletedUrl(slug) }
+            class={ `level-${depth}` }
+            { ...(slug === currentPageSlug ? {'data-current': 'true'} : {}) }>
+            { text }
+        </a>
+        { children.length
+            ? menuPrintBranch(children, block, depth + 1)
+            : null
+        }
+    </li>) }</ul>;
 }
 
 class TextBlock extends preact.Component {
@@ -194,7 +181,7 @@ class RenderAll extends preact.Component {
         this.currentBlocksHashes = hashesMap;
 
         const cloned = cloneDeep(noMetas);
-        traverseRecursively(cloned, convertHtmlStringsToVNodeArrays);
+        traverseRecursively(cloned, stringHtmlPropToVNodeArray);
         this.setState({blocks: cloned});
     }
     /**
@@ -247,10 +234,6 @@ class RenderAll extends preact.Component {
                 renderChildren={ renderChildren }
                 key={ key }/>;
         });
-    }
-}
-
-
     }
 }
 

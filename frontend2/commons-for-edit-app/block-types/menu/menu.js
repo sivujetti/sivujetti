@@ -17,10 +17,7 @@ export default {
             ],
             wrapEl: 'nav',
             treeEl: 'ul',
-            treeElProps: {'class': 'level-{depth}'},
             treeItemEl: 'li',
-            treeItemElProps: {'class': 'level-{depth}'},
-            linkElProps: {},
         };
     },
 };

@@ -236,6 +236,7 @@ interface TheWebsite {
 interface TheWebsiteBundle {
     baseUrl: String;
     assetBaseUrl: String;
+    currentPageSlug: String;
     website: TheWebsite;
     pageTypes: Array<PageType>;
     activeTheme: {id: String;};

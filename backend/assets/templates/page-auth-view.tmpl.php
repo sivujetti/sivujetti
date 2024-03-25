@@ -26,7 +26,7 @@
         <script><?= $this->generateSivujettiEnvConfJs() ?></script>
         <script>window.translationStringBundles = []</script>
         <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-web-pages.js") ?>"></script>
-        <script src="<?= $this->assetUrl("public/v2/lang-auth-apps-{$uiLang}.js") ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/lang-auth-apps-{$uiLang}.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-edit-app.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-render-auth-app.js") ?>"></script>
         <script>sivujettiRenderAuthApp('<?= $appName ?>', '<?= $dashboardUrl ?>')</script>

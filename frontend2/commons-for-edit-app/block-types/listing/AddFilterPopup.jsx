@@ -169,10 +169,10 @@ class UrlStartsWithPart extends preact.Component {
 
 class AddFilterPopup extends preact.Component {
     /**
-     * @param {{filtersParsed: Array<Object>; howManyType: 'all'|'single'|'atMost'; currentFiltersJson: String; parent: ListingBlockEditForm;}} props
+     * @param {{filtersParsed: Array<Object>; howManyTypeAdjusted: 'all'|'single'|'atMost'; currentFiltersJson: String; parent: ListingBlockEditForm;}} props
      * @access protected
      */
-    render({filtersParsed, howManyType, currentFiltersJson, parent}) {
+    render({filtersParsed, howManyTypeAdjusted, currentFiltersJson, parent}) {
         const a1 = __('and');
         return [
             <div class="py-1">{ filtersParsed.length ? a1 : '' }</div>,
@@ -181,13 +181,13 @@ class AddFilterPopup extends preact.Component {
                     onClick={ () => { parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.IS_IN_CAT, '', currentFiltersJson), 'added'); parent.closeCurrentPopup(); } }
                     class="group-2 poppable perhaps text-left"
                     type="button">
-                    { IsInCategoryPart.getLabel(howManyType) }
+                    { IsInCategoryPart.getLabel(howManyTypeAdjusted) }
                 </button>
                 <button
                     onClick={ () => { parent.onFiltersChanged(mergeToFilterAdditional(FilterKind.URL_STARTS_WITH, '', currentFiltersJson), 'added'); parent.closeCurrentPopup(); } }
                     class="group-2 poppable perhaps text-left"
                     type="button">
-                    { UrlStartsWithPart.getLabel(howManyType) }
+                    { UrlStartsWithPart.getLabel(howManyTypeAdjusted) }
                 </button>
             </div>
         ];

@@ -16,7 +16,7 @@ function renderVNodes(array $branch): string {
         } else if (array_is_list($node))
             $out .= renderVNodes($node);
         else {
-            if ($node["el"] === ":raw") {
+            if ($node["el"] === "j-raw") {
                 $out .= $node["children"][0]; // @allow unescaped
                 continue;
             }
@@ -28,7 +28,10 @@ function renderVNodes(array $branch): string {
             }
             // todo escape $node["el"]
             $out .= "<{$node["el"]}{$attrsMarkup}>" .
-                ($node["el"] !== "img" ? "{$childMarkup}</{$node["el"]}>" : "");
+                (match ($node["el"]) {
+                    "img", "input" => "",
+                    default => "{$childMarkup}</{$node["el"]}>",
+                });
         }
     }
     return $out;

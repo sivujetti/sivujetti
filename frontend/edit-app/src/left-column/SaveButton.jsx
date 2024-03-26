@@ -1,161 +1,11 @@
 import {__, env, signals, Icon} from '@sivujetti-commons-for-edit-app';
 import {getMetaKey} from '../block/dom-commons.js';
-import {historyInstance} from '../right-column/RightColumnViews.jsx';
-import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from '../store.js';
-import {refreshStyles} from '../styles-refresh-api-temp.js';
-
-class SaveButton2 extends preact.Component {
-    constructor(props) {
-        super(props);
-        this.channels = {};
-        this.listeners = {};
-        this.opHistory = [];
-        this.opIdx = 0;
-    }
-    subscribeToChannel(name, fn) {
-        this.listeners[name] = [...(this.listeners[name] || []), fn];
-    }
-    initChannel(name, data, tmp = null) {
-        if (name === 'css') {
-            this.channels.css = createChannel(createCssChannelHandler(), data, () => (this.listeners.css || []));
-            this.updateCounts();
-        } else if (name === 'theBlockTree') {
-            this.channels.theBlockTree = createChannel(createBlockTreeChannelHandler(tmp), data, () => (this.listeners.theBlockTree || []));
-            this.updateCounts();
-        } else throw new Error(`Unknown channel name: ${name}`);
-    }
-    getChannel(name) {
-        return this.channels[name];
-    }
-    componentWillMount() {
-        this.updateCounts();
-    }
-    updateCounts() {
-        this.setState({
-            numItemsTotal: Object.keys(this.channels).reduce((acc, key) =>
-                acc + this.channels[key].getItems().length, 0
-            )
-        });
-    }
-    /**
-     * Pushes multiple ops to the history that will be undone/redone as a group when undo/redo is called.
-     */
-    pushOpGroup(...ops) {
-        const channelNames = ops.map(([channelName, state, userCtx]) => {
-            this.channels[channelName].pushOp(state, userCtx);
-            return channelName;
-        });
-        this.opIdx = this.opHistory.push(channelNames);
-        this.setState({canUndo: true, canRedo: 'todo'});
-    }
-    pushOp(channelName, state, userCtx = null) {
-        this.opIdx = this.opHistory.push(channelName);
-        this.channels[channelName].pushOp(state, userCtx);
-        this.setState({canUndo: true, canRedo: 'todo'});
-    }
-    undo() {
-        const ir = this.opHistory[--this.opIdx]; // Single item can contains single name, or group of names
-        const channelNames = Array.isArray(ir) ? ir : [ir];
-        channelNames.forEach(channelName => this.channels[channelName].undo());
-        this.setState({canUndo: true, canRedo: 'todo'});
-    }
-    redo() {
-        const ir = this.opHistory[this.opIdx++];
-        const channelNames = Array.isArray(ir) ? ir : [ir];
-        channelNames.forEach(channelName => this.channels[channelName].redo());
-        this.setState({canUndo: true, canRedo: 'todo'});
-    }
-    render(_, {numItemsTotal}) {
-        return <div>
-            num items: { numItemsTotal }
-            <button onClick={ this.undo.bind(this) }>&lt;</button> |
-            <button onClick={ this.redo.bind(this) }>&gt;</button> |
-            <button onClick={ this.syncQueuedOpsToBackend.bind(this) }>s</button>
-        </div>;
-    }
-    syncQueuedOpsToBackend() {
-        // todo
-    }
-}
-
-function createChannel(handler, initialState, getListeners) {
-    const history = [[initialState, 'initial']];
-    let currentIdx = 0;
-    return {
-        getItems(startingFrom = currentIdx) {
-            return history.slice(startingFrom);
-        },
-        pushOp(state, userCtx = null) {
-            if (currentIdx < history.length - 1) history.splice(currentIdx + 1);
-            currentIdx = history.push([state, userCtx]) - 1;
-            handler.exec(state, userCtx, null);
-            getListeners().forEach(fn => fn(state, userCtx, null));
-        },
-        undo() {
-            // ?? Pass {old, new} to exec() instead
-            const [_stateNow, userCtxLatest] = history[currentIdx]; // Example: [<firstChange>, {event: 'update-something'}]
-            const [statePrev, userCtxPrev] = history[--currentIdx]; // Example: [<initial>, null]
-            handler.exec(statePrev, userCtxPrev, 'undo');
-            getListeners().forEach(fn => fn(statePrev, userCtxLatest, 'undo'));
-        },
-        redo() {
-            const [state, userCtx] = history[++currentIdx];
-            handler.exec(state, userCtx, 'redo');
-            getListeners().forEach(fn => fn(state, userCtx, 'redo'));
-        },
-        getState(asClone = false) {
-            if (asClone) throw new Error('not implemented');
-            return history[currentIdx][0];
-        }
-    };
-}
-
-function createCssChannelHandler() {
-    return {
-        exec(state, userCtx = null) {
-            console.log('updating css to dom. css: , userCtx: ', state, userCtx);
-            refreshStyles(state);
-        },
-        syncToBackend(state) {
-            console.log('syncing css to backend. css: ', state);
-            `http.post("save-css", {css: "${state}")`; // todo
-        }
-    };
-}
-function createBlockTreeChannelHandler({fast, slow}) {
-    return {
-        exec(state, userCtx = null, context = null) {
-            console.log('userCtx', userCtx, 'context', context);
-            if (userCtx.event === 'update-single-block-prop') {
-                console.log('updating single block prop', state);
-                return;
-            }
-            console.log('renderging block tree to dom', state);
-            fast({theBlockTree: state}, 'theBlockTree/updatePropsOf',
-                    [userCtx.blockId, 'main', '_changes', 0, 400]);
-        },
-        syncToBackend(state) {
-            console.log('syncing block tree to backend, the tree:', state);
-            `http.post("save-blocks", {tree: "${state}")`; // todo
-        }
-    };
-}
-/*
-type UserCtx = BlockEventCtx | null;
-
-interface BlockEventCtx {
-    event: 'update-single-block-prop';
-    blockId: string;
-}
-*/
-
-
-///
-
+// ## import {historyInstance} from '../right-column/RightColumnViews.jsx';
+// ## import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from '../store.js';
+// ## import {refreshStyles} from '../styles-refresh-api-temp.js';
 
 let listenersAdded = false;
-const useFormStatesState = false;
-
+// ## const useFormStatesState = false;
 
 class SaveButton extends preact.Component {
     // queuedOps;
@@ -166,36 +16,36 @@ class SaveButton extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.state = {isVisible: false, hasUndoableOps: false, formState: {isValid: true},
-                        isStickied: false, leftPanelWidth: props.initialLeftPanelWidth, isSubmitting: false};
-        this.queuedOps = [];
+// ##         this.state = {isVisible: false, hasUndoableOps: false, formState: {isValid: true},
+// ##                         isStickied: false, leftPanelWidth: props.initialLeftPanelWidth, isSubmitting: false};
+// ##         this.queuedOps = [];
         if (!isUndoKeyListenersAdded) {
             this.addUndoKeyListener();
             isUndoKeyListenersAdded = true;
         }
-        observeStore(selectOpQueue, ops => {
-            this.queuedOps = ops;
-            if (ops.length && !this.state.isVisible)
-                this.setState({isVisible: true});
-            else if (!ops.length && this.state.isVisible)
-                this.setState({isVisible: false, isSubmitting: false});
-            //
-            const hasUndoableOps = ops.length ? ops.some(({command}) => !!command.doUndo) : false;
-            if (hasUndoableOps && !this.unregisterUnsavedChangesAlert)
-                this.unregisterUnsavedChangesAlert = historyInstance.block(__('You have unsaved changes, do you want to navigate away?'));
-            else if (!hasUndoableOps && this.unregisterUnsavedChangesAlert)
-                this.unregisterAndClearUnsavedChagesAlert();
-            //
-            this.setState({hasUndoableOps});
-        });
-        if (useFormStatesState) observeStore(selectFormStates, formStates => {
-            let aggregated = {isValid: true};
-            for (const key in formStates) {
-                aggregated = formStates[key];
-                if (!aggregated.isValid) break;
-            }
-            this.setState({formState: aggregated});
-        });
+// ##         observeStore(selectOpQueue, ops => {
+// ##             this.queuedOps = ops;
+// ##             if (ops.length && !this.state.isVisible)
+// ##                 this.setState({isVisible: true});
+// ##             else if (!ops.length && this.state.isVisible)
+// ##                 this.setState({isVisible: false, isSubmitting: false});
+// ##             //
+// ##             const hasUndoableOps = ops.length ? ops.some(({command}) => !!command.doUndo) : false;
+// ##             if (hasUndoableOps && !this.unregisterUnsavedChangesAlert)
+// ##                 this.unregisterUnsavedChangesAlert = historyInstance.block(__('You have unsaved changes, do you want to navigate away?'));
+// ##             else if (!hasUndoableOps && this.unregisterUnsavedChangesAlert)
+// ##                 this.unregisterAndClearUnsavedChagesAlert();
+// ##             //
+// ##             this.setState({hasUndoableOps});
+// ##         });
+// ##         if (useFormStatesState) observeStore(selectFormStates, formStates => {
+// ##             let aggregated = {isValid: true};
+// ##             for (const key in formStates) {
+// ##                 aggregated = formStates[key];
+// ##                 if (!aggregated.isValid) break;
+// ##             }
+// ##             this.setState({formState: aggregated});
+// ##         });
     }
     /**
      * @access protected
@@ -205,79 +55,79 @@ class SaveButton extends preact.Component {
             if (this.state.leftPanelWidth !== w)
                 this.setState({leftPanelWidth: w});
         });
-        this.props.mainPanelOuterEl.addEventListener('scroll', e => {
-            if (e.target.scrollTop > 27 && !this.state.isStickied)
-                this.setState({isStickied: true});
-            else if (e.target.scrollTop < 27 && this.state.isStickied)
-                this.setState({isStickied: false});
-        });
-    }
-    /**
-     * @access public
-     */
-    doUndo() {
-        const head = this.queuedOps.at(-1).command;
-        if (!head.doUndo) return;
-        head.doUndo(...head.args);
-        store.dispatch(setOpQueue(this.queuedOps.slice(0, this.queuedOps.length - 1)));
-    }
-    /**
-     * @param {((queue: Array<OpQueueOp>) => Array<OpQueueOp>)|null} fn
-     * @access public
-     */
-    setOnBeforeProcessQueueFn(fn) {
-        this.opQueueMutator = fn;
-    }
-    /**
-     * @access protected
-     */
-    render (_, {isVisible, hasUndoableOps, formState, isStickied, leftPanelWidth, isSubmitting}) {
-        if (!isVisible) return;
-        const saveBtnIsDisabled = formState.isValidating || formState.isSubmitting || !formState.isValid || isSubmitting;
-        const undoButtonIsHidden = saveBtnIsDisabled ? true : hasUndoableOps === false;
-        const [cls, css] = !isStickied ? ['', ''] : [' stickied', `left: ${leftPanelWidth - (!undoButtonIsHidden ? 96 : 69)}px`];
-        return <div class={ `d-flex col-ml-auto flex-centered${cls}` } style={ css }>
-            <button
-                onClick={ this.doUndo.bind(this) }
-                class={ `btn btn-link px-1 pt-2${!undoButtonIsHidden ? '' : ' d-none'}` }
-                title={ __('Undo latest change') }>
-				<span class="d-flex rotated-undo-icon">
-                    <Icon iconId="rotate" className={ `${!isStickied ? 'size-sm' : 'size-xs'} color-dimmed3` }/>
-                </span>
-			</button>
-            <button
-                onClick={ this.execQueuedOps.bind(this) }
-                disabled={ saveBtnIsDisabled }
-                class="btn btn-link flex-centered px-2"
-                title={ __('Save changes') }>
-                <Icon iconId="device-floppy" className={ !isStickied ? '' : 'size-sm' }/>
-                <span class="mt-1 ml-1">*</span>
-            </button>
-        </div>;
-    }
-    /**
-     * @access private
-     */
-    execQueuedOps() {
-        if (this.unregisterUnsavedChangesAlert)
-            this.unregisterAndClearUnsavedChagesAlert();
-        const next = queue => {
-            const top = queue[0];
-            if (!top) {
-                store.dispatch(setOpQueue([]));
-                return;
-            }
-            top.command.doHandle(...top.command.args)
-                .then(doProceed => {
-                    // Truthy value -> clear item from the queue and proceed
-                    if (doProceed !== false) { queue.shift(); next(queue); }
-                    // false -> do not clear the item and stop
-                    else { this.setState({isSubmitting: false}); store.dispatch(setOpQueue(queue)); }
-                });
-        };
-        this.setState({isSubmitting: true});
-        const q = optimizeQueue(this.queuedOps.slice(0));
-        next(!this.opQueueMutator ? q : this.opQueueMutator(q));
+// ##         this.props.mainPanelOuterEl.addEventListener('scroll', e => {
+// ##             if (e.target.scrollTop > 27 && !this.state.isStickied)
+// ##                 this.setState({isStickied: true});
+// ##             else if (e.target.scrollTop < 27 && this.state.isStickied)
+// ##                 this.setState({isStickied: false});
+// ##         });
+// ##     }
+// ##     /**
+// ##      * @access public
+// ##      */
+// ##     doUndo() {
+// ##         const head = this.queuedOps.at(-1).command;
+// ##         if (!head.doUndo) return;
+// ##         head.doUndo(...head.args);
+// ##         store.dispatch(setOpQueue(this.queuedOps.slice(0, this.queuedOps.length - 1)));
+// ##     }
+// ##     /**
+// ##      * @param {((queue: Array<OpQueueOp>) => Array<OpQueueOp>)|null} fn
+// ##      * @access public
+// ##      */
+// ##     setOnBeforeProcessQueueFn(fn) {
+// ##         this.opQueueMutator = fn;
+// ##     }
+// ##     /**
+// ##      * @access protected
+// ##      */
+// ##     render (_, {isVisible, hasUndoableOps, formState, isStickied, leftPanelWidth, isSubmitting}) {
+// ##         if (!isVisible) return;
+// ##         const saveBtnIsDisabled = formState.isValidating || formState.isSubmitting || !formState.isValid || isSubmitting;
+// ##         const undoButtonIsHidden = saveBtnIsDisabled ? true : hasUndoableOps === false;
+// ##         const [cls, css] = !isStickied ? ['', ''] : [' stickied', `left: ${leftPanelWidth - (!undoButtonIsHidden ? 96 : 69)}px`];
+// ##         return <div class={ `d-flex col-ml-auto flex-centered${cls}` } style={ css }>
+// ##             <button
+// ##                 onClick={ this.doUndo.bind(this) }
+// ##                 class={ `btn btn-link px-1 pt-2${!undoButtonIsHidden ? '' : ' d-none'}` }
+// ##                 title={ __('Undo latest change') }>
+// ## 				<span class="d-flex rotated-undo-icon">
+// ##                     <Icon iconId="rotate" className={ `${!isStickied ? 'size-sm' : 'size-xs'} color-dimmed3` }/>
+// ##                 </span>
+// ## 			</button>
+// ##             <button
+// ##                 onClick={ this.execQueuedOps.bind(this) }
+// ##                 disabled={ saveBtnIsDisabled }
+// ##                 class="btn btn-link flex-centered px-2"
+// ##                 title={ __('Save changes') }>
+// ##                 <Icon iconId="device-floppy" className={ !isStickied ? '' : 'size-sm' }/>
+// ##                 <span class="mt-1 ml-1">*</span>
+// ##             </button>
+// ##         </div>;
+// ##     }
+// ##     /**
+// ##      * @access private
+// ##      */
+// ##     execQueuedOps() {
+// ##         if (this.unregisterUnsavedChangesAlert)
+// ##             this.unregisterAndClearUnsavedChagesAlert();
+// ##         const next = queue => {
+// ##             const top = queue[0];
+// ##             if (!top) {
+// ##                 store.dispatch(setOpQueue([]));
+// ##                 return;
+// ##             }
+// ##             top.command.doHandle(...top.command.args)
+// ##                 .then(doProceed => {
+// ##                     // Truthy value -> clear item from the queue and proceed
+// ##                     if (doProceed !== false) { queue.shift(); next(queue); }
+// ##                     // false -> do not clear the item and stop
+// ##                     else { this.setState({isSubmitting: false}); store.dispatch(setOpQueue(queue)); }
+// ##                 });
+// ##         };
+// ##         this.setState({isSubmitting: true});
+// ##         const q = optimizeQueue(this.queuedOps.slice(0));
+// ##         next(!this.opQueueMutator ? q : this.opQueueMutator(q));
     }
     /**
      * @access private
@@ -302,55 +152,55 @@ class SaveButton extends preact.Component {
             }
         });
     }
-    /**
-     * @access private
-     */
-    unregisterAndClearUnsavedChagesAlert() {
-        this.unregisterUnsavedChangesAlert();
-        this.unregisterUnsavedChangesAlert = null;
-    }
+// ##     /**
+// ##      * @access private
+// ##      */
+// ##     unregisterAndClearUnsavedChagesAlert() {
+// ##         this.unregisterUnsavedChangesAlert();
+// ##         this.unregisterUnsavedChangesAlert = null;
+// ##     }
 }
 
-/**
- * Note: may mutate queue.*.opName
- *
- * @param {Array<OpQueueOp>} queue
- * @returns {Array<OpQueueOp>}
- */
-function optimizeQueue(queue) {
-    const unifyBlockOpNames = queue => {
-        queue.forEach(itm => {
-            const opName = itm.opName;
-            // 'something#<trid>' -> 'update-block-tree#<trid>'
-            if (opName.startsWith('append-block-to-tree#') ||
-                opName.startsWith('swap-blocks-of-tree#') ||
-                opName.startsWith('delete-block-from-tree#')) {
-                itm.opName = `update-block-tree#${opName.split('#')[1]}`;
-            }
-        });
-        return queue;
-    };
-    const findLastSimilar = (itm, state) => {
-        let last = null;
-        queue.forEach((cand, i) => {
-            if (cand.opName === itm.opName) {
-                last = cand;
-                state[i].appended = true;
-            }
-        });
-        return last;
-    };
-    //
-    const out = [];
-    queue = queue.filter(({command}) => command.doHandle !== null);
-    const state = queue.map(() => ({appended: false}));
-    unifyBlockOpNames(queue).forEach((itm, i) => {
-        if (state[i].appended) return;
-        out.push(findLastSimilar(itm, state) || itm);
-        state[i].appended = true;
-    });
-    return out;
-}
+// ## /**
+// ##  * Note: may mutate queue.*.opName
+// ##  *
+// ##  * @param {Array<OpQueueOp>} queue
+// ##  * @returns {Array<OpQueueOp>}
+// ##  */
+// ## function optimizeQueue(queue) {
+// ##     const unifyBlockOpNames = queue => {
+// ##         queue.forEach(itm => {
+// ##             const opName = itm.opName;
+// ##             // 'something#<trid>' -> 'update-block-tree#<trid>'
+// ##             if (opName.startsWith('append-block-to-tree#') ||
+// ##                 opName.startsWith('swap-blocks-of-tree#') ||
+// ##                 opName.startsWith('delete-block-from-tree#')) {
+// ##                 itm.opName = `update-block-tree#${opName.split('#')[1]}`;
+// ##             }
+// ##         });
+// ##         return queue;
+// ##     };
+// ##     const findLastSimilar = (itm, state) => {
+// ##         let last = null;
+// ##         queue.forEach((cand, i) => {
+// ##             if (cand.opName === itm.opName) {
+// ##                 last = cand;
+// ##                 state[i].appended = true;
+// ##             }
+// ##         });
+// ##         return last;
+// ##     };
+// ##     //
+// ##     const out = [];
+// ##     queue = queue.filter(({command}) => command.doHandle !== null);
+// ##     const state = queue.map(() => ({appended: false}));
+// ##     unifyBlockOpNames(queue).forEach((itm, i) => {
+// ##         if (state[i].appended) return;
+// ##         out.push(findLastSimilar(itm, state) || itm);
+// ##         state[i].appended = true;
+// ##     });
+// ##     return out;
+// ## }
 
 export default SaveButton;
-export {optimizeQueue, SaveButton2};
+export {/*optimizeQueue, */SaveButton2};

@@ -36,7 +36,7 @@ final class ButtonBlockType implements BlockTypeInterface {
             ? ["button", ["type" => $block->tagType]]
             : ["a",      ["href" => $tmpl->maybeExternalUrl($block->linkTo)]];
         return el($el, [...$createDefaultProps("btn"), ...$attrs],
-            el(":raw", [], $block->html), // @allow pre-validated html
+            el("j-raw", [], $block->html), // @allow pre-validated html
             ...$renderChildren()
         );
     }

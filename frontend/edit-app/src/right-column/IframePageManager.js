@@ -1,5 +1,5 @@
 import {__, api, signals} from '@sivujetti-commons-for-edit-app';
-import store, {setCurrentPageDataBundle, setOpQueue} from '../store.js';
+// ## import store, {setCurrentPageDataBundle, setOpQueue} from '../store.js';
 import store2, {observeStore as observeStore2} from '../store2.js';
 import {makePath, makeSlug} from '../block-types/pageInfo.js';
 import {getFromLocalStorage} from '../commons/local-storage-utils.js';
@@ -57,7 +57,7 @@ class IframePageManager {
 // ##         store2.dispatch('theBlockTree/init', [ordered]);
 // ##         store2.dispatch('themeStyles/setAll', [getAndInvalidate(data.theme, 'styles')]);
 // ##         store.dispatch(setCurrentPageDataBundle(data));
-        store.dispatch(setOpQueue([]));
+// ##         store.dispatch(setOpQueue([]));
         const unregistrables = webPage.getGlobalListenerCreateCallables().map(([when, fn]) => sharedSignals.on(when, fn));
         webPageUnregistrables.set('globalEvents', () => unregistrables.map(unreg => unreg()));
         const handleStyleChange = webPage.createThemeStylesChangeListener();

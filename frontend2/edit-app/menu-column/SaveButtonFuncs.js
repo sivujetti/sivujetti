@@ -5,7 +5,7 @@ import {
     env,
     http,
     objectUtils,
-} from '../../sivujetti-commons-unified.js';
+} from '@sivujetti-commons-for-edit-app';
 import {treeToTransferable} from '../includes/block/utils.js';
 import toasters from '../includes/toasters.jsx';
 import {pathToFullSlug} from '../includes/utils.js';
@@ -261,7 +261,7 @@ function doPostOrPut(httpCall) {
 /**
  * @template T
  * @param {StateHistory} stateHistory
- * @returns {Array<{type: 'upsert'; arg: T;}>}
+ * @returns {Array<{type: 'insert'|'update'; arg: T;}>}
  */
 function createSaveableItems({initial, latest}) {
     const out = [];
@@ -337,9 +337,35 @@ function getLatestItemsOfEachChannel(queue) {
     return out;
 }
 
+/**
+ * @param {HistoryItem|Array<HistoryItem>} ir
+ * @returns {Array<HistoryItem>}
+ */
+function normalizeItem(ir) {
+    return Array.isArray(ir) ? ir : [ir];
+}
+
+/**
+ * @param {String} channelName
+ * @returns {String}
+ */
+function createSignalName(channelName) {
+    return `on-${channelName}-event`;
+}
+
+/**
+ * @returns {Object}
+ */
+function createInitialState() {
+    return {isVisible: false, canUndo: false, canRedo: false};
+}
+
 export {
     createGbtState,
-    getLatestItemsOfEachChannel,
+    createInitialState,
+    createSignalName,
     getGbtRefBlocksFrom,
+    getLatestItemsOfEachChannel,
     handlerFactoriesMap,
+    normalizeItem,
 };

@@ -20,12 +20,12 @@ final class TextBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTy
     /**
      * @inheritdoc
      */
-    public function render(object $block, 
+    public function render(object $block,
                            \Closure $createDefaultProps, 
                            \Closure $renderChildren,
                            WebPageAwareTemplate $tmpl): array {
         return el("div", $createDefaultProps(),
-            el(":raw", [], $block->html),
+            el("j-raw", [], $block->html),
             ...$renderChildren()
         );
     }

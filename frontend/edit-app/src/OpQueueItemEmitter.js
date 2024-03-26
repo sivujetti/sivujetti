@@ -70,31 +70,31 @@ class OpQueueItemEmitter {
                 const oldTree = this.prevTree;
                 const [_clonedInf, clonedFromInf] = data; // [SpawnDescriptor, BlockDescriptor]
                 this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, clonedFromInf.isStoredToTreeId);
-            } else if (event === 'theBlockTree/convertToGbt') {
-                // Push 1.
-                const [originalBlockId, idForTheNewBlock, newGbtWithoutBlocks] = data;
-                const [newGbtRef] = blockTreeUtils.findBlock(idForTheNewBlock, theBlockTree);
-                const dt = {id: newGbtWithoutBlocks.id, name: newGbtWithoutBlocks.name,
-                                blocks: treeToTransferable(newGbtRef.__globalBlockTree.blocks)};
-                store.dispatch(pushItemToOpQueue('convert-block-to-global', {
-                    doHandle: () => http.post('/api/global-block-trees', dt).then(resp => {
-                        if (resp.ok !== 'ok') throw new Error('-');
-                    }),
-                    doUndo: () => {
-                        // do nothing
-                    },
-                    args: [],
-                }));
-
-                // Push 2.
-                const oldTree = this.prevTree;
-                this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, 'main', originalBlockId, () => {
-                    setTimeout(() => {
-                        // Remove 1. op from the queue
-                        api.saveButton.triggerUndo();
-                    }, 100);
-                }, 'convertToGlobal');
-            }
+// ##             } else if (event === 'theBlockTree/convertToGbt') {
+// ##                 // Push 1.
+// ##                 const [originalBlockId, idForTheNewBlock, newGbtWithoutBlocks] = data;
+// ##                 const [newGbtRef] = blockTreeUtils.findBlock(idForTheNewBlock, theBlockTree);
+// ##                 const dt = {id: newGbtWithoutBlocks.id, name: newGbtWithoutBlocks.name,
+// ##                                 blocks: treeToTransferable(newGbtRef.__globalBlockTree.blocks)};
+// ##                 store.dispatch(pushItemToOpQueue('convert-block-to-global', {
+// ##                     doHandle: () => http.post('/api/global-block-trees', dt).then(resp => {
+// ##                         if (resp.ok !== 'ok') throw new Error('-');
+// ##                     }),
+// ##                     doUndo: () => {
+// ##                         // do nothing
+// ##                     },
+// ##                     args: [],
+// ##                 }));
+// ## 
+// ##                 // Push 2.
+// ##                 const oldTree = this.prevTree;
+// ##                 this.pushSaveBlockTreeToBackendOp(theBlockTree, oldTree, 'main', originalBlockId, () => {
+// ##                     setTimeout(() => {
+// ##                         // Remove 1. op from the queue
+// ##                         api.saveButton.triggerUndo();
+// ##                     }, 100);
+// ##                 }, 'convertToGlobal');
+// ##             }
         }),
 // ##         observeStore2('reusableBranches', (_state, [event, data]) => {
 // ##             if (event === 'reusableBranches/addItem') {

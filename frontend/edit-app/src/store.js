@@ -35,25 +35,25 @@ const opQueueReducer = (state = [], action) => {
     }
 };
 
-/**
- * @param {Array<OpQueueCommand>} opQueue
- */
-const setOpQueue = opQueue => ({type: 'opQueue/set', opQueue});
+// ## /**
+// ##  * @param {Array<OpQueueCommand>} opQueue
+// ##  */
+// ## const setOpQueue = opQueue => ({type: 'opQueue/set', opQueue});
 /**
  * @param {String} opName
  * @param {OpQueueCommand} command
  */
 const pushItemToOpQueue = (opName, command) => ({type: 'opQueue/pushItem', item: {opName, command}});
-/**
- * @param {String} opName
- */
-const deleteItemFromOpQueue = opName => ({type: 'opQueue/dropItem', opName});
+// ## /**
+// ##  * @param {String} opName
+// ##  */
+// ## const deleteItemFromOpQueue = opName => ({type: 'opQueue/dropItem', opName});
 /**
  * @param {String} afterOpName
  * @param {Boolean} includeOpItself = true
  */
 const deleteItemsFromOpQueueAfter = (afterOpName, includeOpItself = true) => ({type: 'opQueue/dropItemsAfter', afterOpName, includeOpItself});
-const selectOpQueue = state => state.opQueue;
+// ## const selectOpQueue = state => state.opQueue;
 
 
 /**
@@ -149,7 +149,7 @@ class FormStateStoreWrapper {
 export {setCurrentPageDataBundle, selectCurrentPageDataBundle,
         //
         setOpQueue, pushItemToOpQueue, deleteItemFromOpQueue, deleteItemsFromOpQueueAfter,
-        selectOpQueue,
+// ##         selectOpQueue,
         //
         FormStateStoreWrapper, selectFormStates,
         //

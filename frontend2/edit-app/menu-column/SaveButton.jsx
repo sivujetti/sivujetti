@@ -1,10 +1,14 @@
-import {__, env, Icon, Signals} from '../../sivujetti-commons-unified.js';
+import {__, env, Icon, Signals} from '@sivujetti-commons-for-edit-app';
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../includes/global-block-trees/repository.js';
+import {historyInstance} from '../main-column/MainColumnViews.jsx';
 import {
     createGbtState,
     getLatestItemsOfEachChannel,
     getGbtRefBlocksFrom,
     handlerFactoriesMap,
+    createSignalName,
+    normalizeItem,
+    createInitialState,
 } from './SaveButtonFuncs.js';
 
 const saveButtonSignals = new Signals;
@@ -16,13 +20,14 @@ class SaveButton extends preact.Component {
     // channelImpls;
     // opHistory;
     // opHistoryCursor;
+    // unregisterUnsavedChangesAlert;
     /**
      * @param {SaveButtonProps} props
      */
     constructor(props) {
         super(props);
-        this.invalidateAll();
-        this.state = {canUndo: false, canRedo: false};
+        this.doInvalidateAll();
+        this.state = createInitialState();
     }
     /**
      * @param {String} name
@@ -112,13 +117,9 @@ class SaveButton extends preact.Component {
      * @access public
      */
     invalidateAll() {
-        this.states = {};
-        this.stateCursors = {};
-        this.channelImpls = {};
-
-        this.opHistory = [];
-        this.opHistoryCursor = 1;
-    }
+        this.unregisterAndClearUnsavedChagesAlertIfSet();
+        this.doInvalidateAll();
+        this.setState(createInitialState());
     }
     /**
      * @access protected
@@ -135,8 +136,8 @@ class SaveButton extends preact.Component {
      * @param {SaveButtonProps} props
      * @access protected
      */
-    render(_, {isStickied, canUndo, canRedo}) {
-        const saveBtnIsDisabled = false;
+    render(_, {isVisible, canUndo, canRedo, isSubmitting, isStickied}) {
+        if (!isVisible) return;
         const cls = !isStickied ? '' : ' stickied pl-1';
         const icon = <Icon iconId="arrow-back-up" className={ `${!isStickied ? 'size-sm' : 'size-xs'} color-dimmed3` }/>;
         return <div class={ `save-button d-flex col-ml-auto flex-centered${cls}` }>
@@ -151,14 +152,14 @@ class SaveButton extends preact.Component {
                 onClick={ this.doRedo.bind(this) }
                 class="btn btn-link px-1 pt-2"
                 title={ __('Redo') }
-                disabled={ canRedo }>
+                disabled={ !canRedo }>
 				<span class="d-flex flipped-undo-icon">{ icon }</span>
 			</button>
             <button
                 onClick={ this.syncQueuedOpsToBackend.bind(this) }
                 class="btn btn-link flex-centered px-2"
                 title={ __('Save changes') }
-                disabled={ saveBtnIsDisabled }>
+                disabled={ isSubmitting }>
                 <Icon iconId="device-floppy" className={ !isStickied ? '' : 'size-sm' }/>
                 <span class="mt-1 ml-1">*</span>
             </button>
@@ -172,7 +173,9 @@ class SaveButton extends preact.Component {
         if (this.opHistoryCursor < this.opHistory.length)
             this.opHistory.splice(this.opHistoryCursor);
         this.opHistoryCursor = this.opHistory.push(item);
-        this.setState({canUndo: true});
+        this.setState({isVisible: true, canUndo: true});
+        if (!this.unregisterUnsavedChangesAlert)
+            this.unregisterUnsavedChangesAlert = historyInstance.block(__('You have unsaved changes, do you want to navigate away?'));
     }
     /**
      * @param {String} channelName
@@ -181,26 +184,49 @@ class SaveButton extends preact.Component {
      * @param {stateChangeContext} context
      * @access private
      */
-    emitStateChange(channelName, state, userCtx, context) { // todo 
+    emitStateChange(channelName, state, userCtx, context) {
         const handler = this.channelImpls[channelName];
         handler.handleStateChange(state, userCtx, context);
         saveButtonSignals.emit(createSignalName(channelName), state, userCtx, context);
     }
     /**
-    /**
      * @access private
      */
     doUndo() {
+        const head = this.opHistory[--this.opHistoryCursor];
+        const norm = normalizeItem(head);
+        norm.forEach(({channelName, userCtx}) => {
+            const state = this.states[channelName][--this.stateCursors[channelName]];
+            this.emitStateChange(channelName, state, userCtx, 'undo');
+        });
+        this.setState(this.createCanUndoAndRedo());
     }
     /**
      * @access private
      */
     doRedo() {
+        const head = this.opHistory[this.opHistoryCursor++];
+        normalizeItem(head).forEach(({channelName, userCtx}) => {
+            const state = this.states[channelName][++this.stateCursors[channelName]];
+            this.emitStateChange(channelName, state, userCtx, 'redo');
+        });
+        this.setState(this.createCanUndoAndRedo());
+    }
+    /**
+     * @access private
+     */
+    createCanUndoAndRedo() {
+        const activeHistory = this.opHistory.slice(this.opHistoryCursor);
+        return {
+            canUndo: this.opHistoryCursor > 0,
+            canRedo: activeHistory.length > 0,
+        };
     }
     /**
      * @access private
      */
     syncQueuedOpsToBackend() {
+        this.unregisterAndClearUnsavedChagesAlertIfSet();
         const next = (queue, i) => {
             const top = queue[i];
             if (top) {
@@ -311,10 +337,11 @@ class SaveButton extends preact.Component {
         this.opHistory = [];
         this.opHistoryCursor = 1;
 
-        this.setState({canUndo: false, canRedo: false});
         for (const channelName in this.states) {
             this.clearStateOf(channelName, syncedStates[channelName] || this.getHead(channelName));
         }
+        this.unregisterAndClearUnsavedChagesAlertIfSet();
+        this.setState(createInitialState());
     }
     /**
      * @param {String} channelName
@@ -341,30 +368,31 @@ class SaveButton extends preact.Component {
         }
         return [...map.keys()];
     }
-}
+    /**
+     * @access private
+     */
+    unregisterAndClearUnsavedChagesAlertIfSet() {
+        if (this.unregisterUnsavedChangesAlert) {
+            this.unregisterUnsavedChangesAlert();
+            this.unregisterUnsavedChangesAlert = null;
+        }
+    }
+    /**
+     * @access private
+     */
+    doInvalidateAll() {
+        this.states = {};
+        this.stateCursors = {};
+        this.channelImpls = {};
 
-/**
- * @param {HistoryItem|Array<HistoryItem>} ir
- * @returns {Array<HistoryItem>}
- */
-function normalizeItem(ir) {
-    return Array.isArray(ir) ? ir : [ir];
-}
-}
-
-/**
- * @param {String} channelName
- * @returns {String}
- */
-function createSignalName(channelName) {
-    return `${channelName} mutated`;
-}
+        this.opHistory = [];
+        this.opHistoryCursor = 1;
+    }
 }
 
 /**
  * @typedef SaveButtonProps
  * @prop {HTMLElement} editAppOuterEl
- *
  *
  * @typedef {any} state
  *

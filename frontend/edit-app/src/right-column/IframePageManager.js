@@ -49,7 +49,7 @@ class IframePageManager {
 // ##         data.page = maybePatchTitleAndSlug(data.page, isDuplicate);
         //
         webPage.addRootBoundingEls(ordered.at(-1));
-        webPage.registerEventHandlers(this.createWebsiteEventHandlers(this, webPageUnregistrables));
+// ##         webPage.registerEventHandlers(this.createWebsiteEventHandlers(this, webPageUnregistrables));
         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         this.registerWebPageDomUpdater('main');
         //
@@ -104,46 +104,46 @@ class IframePageManager {
         }));
         const pageManager = this;
         return {
-            /**
-             * @param {HTMLElement} blockEl
-             * @param {DOMRect} rect
-             */
-            onBlockHoverStarted(blockEl, rect) {
-                if (prevHoverStartBlockEl === blockEl)
-                    return;
-                const [block] = findBlockFrom(blockEl.getAttribute('data-block'), 'mainTree');
-                pageManager.showHighlightRect(block, 'web-page', rect);
-                prevHoverStartBlockEl = blockEl;
-            },
-            /**
-             * @param {HTMLElement|null} blockEl
-             */
-            onClicked(blockEl) {
-                signals.emit('web-page-click-received', blockEl);
-            },
-            /**
-             * @param {HTMLElement} blockEl
-             */
-            onBlockHoverEnded(blockEl) {
-                setTimeout(() => {
-                    if (blockEl === prevHoverStartBlockEl)
-                        hideRect(blockEl.getAttribute('data-block'));
-                }, 80);
-            },
-            /**
-             * @param {Number} childIdx
-             * @param {String} textBlockId
-             */
-            onTextBlockChildElHoverStarted(childIdx, textBlockId) {
-                pageManager.highlightTextBlockChildEl(childIdx, textBlockId);
-                signals.emit('web-page-text-block-child-el-hover-started', childIdx, textBlockId);
-            },
-            /**
-             */
-            onTextBlockChildElHoverEnded() {
-                pageManager.unHighlightTextBlockChildEl();
-                signals.emit('web-page-text-block-child-el-hover-ended');
-            }
+// ##             /**
+// ##              * @param {HTMLElement} blockEl
+// ##              * @param {DOMRect} rect
+// ##              */
+// ##             onBlockHoverStarted(blockEl, rect) {
+// ##                 if (prevHoverStartBlockEl === blockEl)
+// ##                     return;
+// ##                 const [block] = findBlockFrom(blockEl.getAttribute('data-block'), 'mainTree');
+// ##                 pageManager.showHighlightRect(block, 'web-page', rect);
+// ##                 prevHoverStartBlockEl = blockEl;
+// ##             },
+// ##             /**
+// ##              * @param {HTMLElement|null} blockEl
+// ##              */
+// ##             onClicked(blockEl) {
+// ##                 signals.emit('web-page-click-received', blockEl);
+// ##             },
+// ##             /**
+// ##              * @param {HTMLElement} blockEl
+// ##              */
+// ##             onBlockHoverEnded(blockEl) {
+// ##                 setTimeout(() => {
+// ##                     if (blockEl === prevHoverStartBlockEl)
+// ##                         hideRect(blockEl.getAttribute('data-block'));
+// ##                 }, 80);
+// ##             },
+// ##             /**
+// ##              * @param {Number} childIdx
+// ##              * @param {String} textBlockId
+// ##              */
+// ##             onTextBlockChildElHoverStarted(childIdx, textBlockId) {
+// ##                 pageManager.highlightTextBlockChildEl(childIdx, textBlockId);
+// ##                 signals.emit('web-page-text-block-child-el-hover-started', childIdx, textBlockId);
+// ##             },
+// ##             /**
+// ##              */
+// ##             onTextBlockChildElHoverEnded() {
+// ##                 pageManager.unHighlightTextBlockChildEl();
+// ##                 signals.emit('web-page-text-block-child-el-hover-ended');
+// ##             }
         };
     }
     /**

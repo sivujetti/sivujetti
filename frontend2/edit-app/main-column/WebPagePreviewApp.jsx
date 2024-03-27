@@ -1,9 +1,11 @@
 import {
     __,
     api,
+    blockTreeUtils,
     signals,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
+import {isMetaBlock} from '../includes/block/utils.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 
 const broadcastInitialStateToListeners = true;
@@ -43,7 +45,10 @@ class WebPagePreviewApp extends preact.Component {
      * @access public
      */
     highlightBlock(block, origin = 'block-tree', rect = null) {
-        //
+        if (isMetaBlock(block)) return;
+        const title = (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + (block.title || __(block.type));
+        this.doShowHighlightRect(rect || this.getBlockEl(block.id).getBoundingClientRect(), title);
+        signals.emit('highlight-rect-revealed', block.id, origin);
     }
     /**
      * @param {String} blockId
@@ -58,13 +63,15 @@ class WebPagePreviewApp extends preact.Component {
      * @access public
      */
     highlightTextBlockChildEl(elIdx, textBlockBlockId) {
-        //
+        const childEl = this.getBlockEl(textBlockBlockId).children[elIdx];
+        const rect = childEl.getBoundingClientRect();
+        this.doShowHighlightRect(rect, `${__('Text')} > ${nodeNameToFriendly(childEl.nodeName)}`);
     }
     /**
      * @access public
      */
     unHighlightTextBlockChildEl() {
-        //
+        this.doHideHighlightRect();
     }
     /**
      * @param {RawBlock} block
@@ -147,8 +154,11 @@ class WebPagePreviewApp extends preact.Component {
             const iframe = el?.querySelector('iframe');
             if (iframe && !this.currentIframeIsLoading) {
                 this.currentIframeIsLoading = true;
-                if (this.currentlyLoadedUrl)
+                // Clear _all_ data from current savebutton
+                if (this.currentlyLoadedUrl) {
                     api.saveButton.getInstance().invalidateAll();
+                }
+
                 iframe.addEventListener('load', () => {
                     // Listen for messages from ReRenderingWebPage
                     // See also https://github.com/mdn/dom-examples/blob/main/channel-messaging-multimessage/index.html
@@ -156,15 +166,24 @@ class WebPagePreviewApp extends preact.Component {
                         if (e.data[0] === 'hereIsPageDataBundle') {
                             broadcastCurrentPageData(e);
                         } else if (e.data[0] === 'onBlockHoverStarted') {
-                            //
+                            const [_, blockId, blockRect] = e.data; // [_, String, DOMRect]
+                            const block = blockRect ? blockTreeUtils.findBlockSmart(blockId, api.saveButton.getInstance().getChannelState('theBlockTree'))[0] : null;
+                            if (block) this.highlightBlock(block, 'web-page', blockRect);
                         } else if (e.data[0] === 'onBlockHoverEnded') {
-                            //
+                            const [_, blockId] = e.data; // [_, String]
+                            this.doHideHighlightRect();
+                            signals.emit('highlight-rect-removed', blockId);
                         } else if (e.data[0] === 'onTextBlockChildElHoverStarted') {
-                            //
+                            const [_, childIdx, textBlockBlockId] = e.data; // [_, Number, String]
+                            this.highlightTextBlockChildEl(childIdx, textBlockBlockId);
+                            signals.emit('web-page-text-block-child-el-hover-started', childIdx, textBlockBlockId);
                         } else if (e.data[0] === 'onTextBlockChildElHoverEnded') {
-                            //
+                            this.unHighlightTextBlockChildEl();
+                            signals.emit('web-page-text-block-child-el-hover-ended');
                         } else if (e.data[0] === 'onClicked') {
-                            //
+                            const [_, blockId] = e.data; // [_, String|null]
+                            if (blockId)
+                                signals.emit('web-page-click-received', blockId);
                         }
                     };
                     // Transfer port2 to the iframe (that sends the 'hereIsPageDataBundle')
@@ -182,20 +201,13 @@ class WebPagePreviewApp extends preact.Component {
         }></div>;
     }
     /**
-     * @param {String} url Example: '/sivujetti/index.php?q=/api/_placeholder-page/Pages/1'
+     * @param {String} hashPathname Example: '/sivujetti/index.php?q=/api/_placeholder-page/Pages/1'
      * @access private
      */
-    setOrReplacePreviewIframeUrl(url) {
-        if (url === '/pages/create') {
-            // todo
-        } else if (url.startsWith('/pages/') && url.endsWith('/duplicate')) {
-            // todo
-        } else if (url === '/page-types/create') {
-            // todo
-        } else if (!isMainColumnViewUrl(url)) {
-            const urlBaked = urlUtils.makeUrl(`${url}?in-edit=1`);
-            this.doSetOrReplaceIframeUrl(urlBaked);
-        }
+    setOrReplacePreviewIframeUrl(hashPathname) {
+        const url = createUrlForIframe(hashPathname);
+        if (url)
+            this.doSetOrReplaceIframeUrl(url);
     }
     /**
      * @param {String} url Example: '/sivujetti/index.php?q=/api/_placeholder-page/Pages/1'
@@ -242,6 +254,15 @@ class WebPagePreviewApp extends preact.Component {
         const {highlightRectEl} = this;
         highlightRectEl.setAttribute('data-title', '');
         highlightRectEl.style.cssText = '';
+    }
+    /**
+     * @param {String} blockId
+     * @returns {HTMLElement|null}
+     * @access private
+     */
+    getBlockEl(blockId) {
+        const iframe = document.querySelector('.site-preview-iframe');
+        return iframe.contentDocument.querySelector(`[data-block="${blockId}"]`);
     }
 }
 

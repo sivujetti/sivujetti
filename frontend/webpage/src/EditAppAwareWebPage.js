@@ -72,131 +72,131 @@ class EditAppAwareWebPage {
         if (nextOfLast) nextOfLast.parentElement.insertBefore(document.createComment(CHILDREN_END), nextOfLast);
         else lastEl.parentElement.appendChild(document.createComment(CHILDREN_END));
     }
-    /**
-     * @param {EditAwareWebPageEventHandlers} handlers
-     * @param {Signals} globalSignals
-     * @access public
-     */
-    registerEventHandlers(handlers) {
-        if (this.handlers) return;
-        this.handlers = handlers;
-        //
-        const links = document.body.querySelectorAll('a');
-        for (let i = 0; i < links.length; ++i) {
-            const a = links[i];
-            const hrefAsAuthored = a.getAttribute('href');
-            if (hrefAsAuthored.startsWith('#') || hrefAsAuthored === '') {
-                if (this.baseUrl.indexOf('.php?') < 0) {
-                    // 'https://domain.com/?in-edit=1#foo'     -> 'https://domain.com/#foo' or
-                    // 'https://domain.com/?in-edit=1'         -> 'https://domain.com/' or
-                    // 'https://domain.com/page?in-edit=1#foo' -> 'https://domain.com/page#foo' or
-                    // 'https://domain.com/page?in-edit=1'     -> 'https://domain.com/page'
-                    a.href = a.href.replace('?in-edit=1', '');
-                } else {
-                    // 'https://domain.com/index.php?q=/&in-edit=1#foo'     -> 'https://domain.com/index.php?q=/#foo'
-                    // 'https://domain.com/index.php?q=/&in-edit=1'         -> 'https://domain.com/index.php?q=/' or
-                    // 'https://domain.com/index.php?q=/page&in-edit=1#foo' -> 'https://domain.com/index.php?q=/page#foo'
-                    // 'https://domain.com/index.php?q=/page&in-edit=1'     -> 'https://domain.com/index.php?q=/page'
-                    a.href = a.href.replace('&in-edit=1', '');
-                }
-            }
-        }
-        //
-        document.body.addEventListener('mouseover', e => {
-            if (this.isMouseListenersDisabled) return;
-            //
-            this.handleBlockMouseover(e);
-            //
-            this.handleTextBlockChildElMouseover(e);
-        }, true);
-        //
-        document.body.addEventListener('mouseleave', e => {
-            if (this.isMouseListenersDisabled) return;
-            // Hover of inner node of text block element
-            if (this.curHoveredSubEl && e.target === this.curHoveredSubEl) {
-                this.handlers.onTextBlockChildElHoverEnded();
-                this.curHoveredSubEl = null;
-            }
-            // Hover of block element
-            if (this.currentlyHoveredBlockEl && e.target === this.currentlyHoveredBlockEl) {
-                if (this.currentlyHoveredBlockEl.getAttribute('data-block-type') !== 'Text') this.handlers.onBlockHoverEnded(this.currentlyHoveredBlockEl);
-                this.currentlyHoveredBlockEl = null;
-            }
-        }, true);
+// ##     /**
+// ##      * @param {EditAwareWebPageEventHandlers} handlers
+// ##      * @param {Signals} globalSignals
+// ##      * @access public
+// ##      */
+// ##     registerEventHandlers(handlers) {
+// ##         if (this.handlers) return;
+// ##         this.handlers = handlers;
+// ##         //
+// ##         const links = document.body.querySelectorAll('a');
+// ##         for (let i = 0; i < links.length; ++i) {
+// ##             const a = links[i];
+// ##             const hrefAsAuthored = a.getAttribute('href');
+// ##             if (hrefAsAuthored.startsWith('#') || hrefAsAuthored === '') {
+// ##                 if (this.baseUrl.indexOf('.php?') < 0) {
+// ##                     // 'https://domain.com/?in-edit=1#foo'     -> 'https://domain.com/#foo' or
+// ##                     // 'https://domain.com/?in-edit=1'         -> 'https://domain.com/' or
+// ##                     // 'https://domain.com/page?in-edit=1#foo' -> 'https://domain.com/page#foo' or
+// ##                     // 'https://domain.com/page?in-edit=1'     -> 'https://domain.com/page'
+// ##                     a.href = a.href.replace('?in-edit=1', '');
+// ##                 } else {
+// ##                     // 'https://domain.com/index.php?q=/&in-edit=1#foo'     -> 'https://domain.com/index.php?q=/#foo'
+// ##                     // 'https://domain.com/index.php?q=/&in-edit=1'         -> 'https://domain.com/index.php?q=/' or
+// ##                     // 'https://domain.com/index.php?q=/page&in-edit=1#foo' -> 'https://domain.com/index.php?q=/page#foo'
+// ##                     // 'https://domain.com/index.php?q=/page&in-edit=1'     -> 'https://domain.com/index.php?q=/page'
+// ##                     a.href = a.href.replace('&in-edit=1', '');
+// ##                 }
+// ##             }
+// ##         }
+// ##         //
+// ##         document.body.addEventListener('mouseover', e => {
+// ##             if (this.isMouseListenersDisabled) return;
+// ##             //
+// ##             this.handleBlockMouseover(e);
+// ##             //
+// ##             this.handleTextBlockChildElMouseover(e);
+// ##         }, true);
+// ##         //
+// ##         document.body.addEventListener('mouseleave', e => {
+// ##             if (this.isMouseListenersDisabled) return;
+// ##             // Hover of inner node of text block element
+// ##             if (this.curHoveredSubEl && e.target === this.curHoveredSubEl) {
+// ##                 this.handlers.onTextBlockChildElHoverEnded();
+// ##                 this.curHoveredSubEl = null;
+// ##             }
+// ##             // Hover of block element
+// ##             if (this.currentlyHoveredBlockEl && e.target === this.currentlyHoveredBlockEl) {
+// ##                 if (this.currentlyHoveredBlockEl.getAttribute('data-block-type') !== 'Text') this.handlers.onBlockHoverEnded(this.currentlyHoveredBlockEl);
+// ##                 this.currentlyHoveredBlockEl = null;
+// ##             }
+// ##         }, true);
         //
         window.addEventListener('resize', () => {
             this.onStylesUpdateFn();
         });
-        //
-        if (useCtrlClickBasedFollowLinkLogic)
-            this.addClickHandlersCtrlClickVersion();
-        else
-            this.addClickHandlersLongClickVersion();
-    }
-    /**
-     * @param {MouseEvent} e
-     * @access private
-     */
-    handleBlockMouseover(e) {
-        let targ;
-        if (this.currentlyHoveredBlockEl) {
-            targ = e.target;
-        } else {
-            targ = e.target.closest('[data-block-type]');
-            if (!targ) return;
-        }
-        //
-        if (this.currentlyHoveredBlockEl) {
-            const doShow = this.currentlyHoveredBlockEl.getAttribute('data-block-type') !== 'Text';
-            const hasBeenReplacedByPropUpdate = !document.body.contains(this.currentlyHoveredBlockEl);
-            if (hasBeenReplacedByPropUpdate) // @see ReRenderer.handleFastChangeEvent() ('theBlockTree/updatePropsOf')
-                this.currentlyHoveredBlockEl = getBlockEl(this.currentlyHoveredBlockEl.getAttribute('data-block'));
-            //
-            const b = e.target.getAttribute('data-block-type') ? e.target : e.target.closest('[data-block-type]');
-            if (this.currentlyHoveredBlockEl.contains(b) && this.currentlyHoveredBlockEl !== b) {
-                if (doShow) this.handlers.onBlockHoverEnded(this.currentlyHoveredBlockEl);
-                this.currentlyHoveredBlockEl = b;
-                if (doShow) this.handlers.onBlockHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
-            }
-        } else {
-            if (!targ.getAttribute('data-block-type')) return;
-            const doShow = targ.getAttribute('data-block-type') !== 'Text';
-            this.currentlyHoveredBlockEl = targ;
-            if (doShow) this.handlers.onBlockHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
-        }
-    }
-    /**
-     * @param {MouseEvent} e
-     * @access private
-     */
-    handleTextBlockChildElMouseover(e) {
-        if (this.curHoveredSubEl) {
-            const b = e.target;
-            const hasChanged = (
-                b !== this.curHoveredSubEl &&
-                isSubHoverable(e.target, this.currentlyHoveredBlockEl)
-            );
-            if (hasChanged) {
-                this.handlers.onTextBlockChildElHoverEnded();
-                this.curHoveredSubEl = b;
-                this.handlers.onTextBlockChildElHoverStarted(
-                    Array.from(this.currentlyHoveredBlockEl.children).indexOf(this.curHoveredSubEl),
-                    this.currentlyHoveredBlockEl.getAttribute('data-block')
-                );
-            }
-        } else {
-            if (this.currentlyHoveredBlockEl?.children?.length > 1) {
-                const candidate = getNormalizedInitialHoverCandidate(e.target, this.currentlyHoveredBlockEl);
-                if (isSubHoverable(candidate, this.currentlyHoveredBlockEl)) {
-                    this.curHoveredSubEl = candidate;
-                    this.handlers.onTextBlockChildElHoverStarted(
-                        Array.from(this.currentlyHoveredBlockEl.children).indexOf(this.curHoveredSubEl),
-                        this.currentlyHoveredBlockEl.getAttribute('data-block')
-                    );
-                }
-            }
-        }
-    }
+// ##         //
+// ##         if (useCtrlClickBasedFollowLinkLogic)
+// ##             this.addClickHandlersCtrlClickVersion();
+// ##         else
+// ##             this.addClickHandlersLongClickVersion();
+// ##     }
+// ##     /**
+// ##      * @param {MouseEvent} e
+// ##      * @access private
+// ##      */
+// ##     handleBlockMouseover(e) {
+// ##         let targ;
+// ##         if (this.currentlyHoveredBlockEl) {
+// ##             targ = e.target;
+// ##         } else {
+// ##             targ = e.target.closest('[data-block-type]');
+// ##             if (!targ) return;
+// ##         }
+// ##         //
+// ##         if (this.currentlyHoveredBlockEl) {
+// ##             const doShow = this.currentlyHoveredBlockEl.getAttribute('data-block-type') !== 'Text';
+// ##             const hasBeenReplacedByPropUpdate = !document.body.contains(this.currentlyHoveredBlockEl);
+// ##             if (hasBeenReplacedByPropUpdate) // @see ReRenderer.handleFastChangeEvent() ('theBlockTree/updatePropsOf')
+// ##                 this.currentlyHoveredBlockEl = getBlockEl(this.currentlyHoveredBlockEl.getAttribute('data-block'));
+// ##             //
+// ##             const b = e.target.getAttribute('data-block-type') ? e.target : e.target.closest('[data-block-type]');
+// ##             if (this.currentlyHoveredBlockEl.contains(b) && this.currentlyHoveredBlockEl !== b) {
+// ##                 if (doShow) this.handlers.onBlockHoverEnded(this.currentlyHoveredBlockEl);
+// ##                 this.currentlyHoveredBlockEl = b;
+// ##                 if (doShow) this.handlers.onBlockHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
+// ##             }
+// ##         } else {
+// ##             if (!targ.getAttribute('data-block-type')) return;
+// ##             const doShow = targ.getAttribute('data-block-type') !== 'Text';
+// ##             this.currentlyHoveredBlockEl = targ;
+// ##             if (doShow) this.handlers.onBlockHoverStarted(this.currentlyHoveredBlockEl, this.currentlyHoveredBlockEl.getBoundingClientRect());
+// ##         }
+// ##     }
+// ##     /**
+// ##      * @param {MouseEvent} e
+// ##      * @access private
+// ##      */
+// ##     handleTextBlockChildElMouseover(e) {
+// ##         if (this.curHoveredSubEl) {
+// ##             const b = e.target;
+// ##             const hasChanged = (
+// ##                 b !== this.curHoveredSubEl &&
+// ##                 isSubHoverable(e.target, this.currentlyHoveredBlockEl)
+// ##             );
+// ##             if (hasChanged) {
+// ##                 this.handlers.onTextBlockChildElHoverEnded();
+// ##                 this.curHoveredSubEl = b;
+// ##                 this.handlers.onTextBlockChildElHoverStarted(
+// ##                     Array.from(this.currentlyHoveredBlockEl.children).indexOf(this.curHoveredSubEl),
+// ##                     this.currentlyHoveredBlockEl.getAttribute('data-block')
+// ##                 );
+// ##             }
+// ##         } else {
+// ##             if (this.currentlyHoveredBlockEl?.children?.length > 1) {
+// ##                 const candidate = getNormalizedInitialHoverCandidate(e.target, this.currentlyHoveredBlockEl);
+// ##                 if (isSubHoverable(candidate, this.currentlyHoveredBlockEl)) {
+// ##                     this.curHoveredSubEl = candidate;
+// ##                     this.handlers.onTextBlockChildElHoverStarted(
+// ##                         Array.from(this.currentlyHoveredBlockEl.children).indexOf(this.curHoveredSubEl),
+// ##                         this.currentlyHoveredBlockEl.getAttribute('data-block')
+// ##                     );
+// ##                 }
+// ##             }
+// ##         }
+// ##     }
     /**
      * @returns {(state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void}
      * @access public
@@ -357,107 +357,107 @@ class EditAppAwareWebPage {
         this.deletedInnerContentStorage.delete(block.id);
         return cached;
     }
-    /**
-     * @param {HTMLAnchorElement} el
-     * @access private
-     */
-    doFollowLink(el) {
-        if (this.isLocalLink(el)) {
-            const noOrigin = el.href.substring(el.origin.length); // http://domain.com/foo -> /foo
-                                                                  // http://domain.com/foo/index.php?q=/foo -> /foo/index.php?q=/foo
-            const noBase = `/${noOrigin.substring(this.baseUrl.length)}`; // /foo -> /foo
-                                                                          // /sub-dir/foo -> /foo
-                                                                          // /index.php?q=/foo -> /foo
-                                                                          // /sub-dir/index.php?q=/foo -> /foo
-            const pcs = noBase.split('#');
-            if (pcs.length < 2)
-                window.parent.myRoute(pcs[0]);
-            else
-                document.getElementById(pcs[1])?.scrollIntoView();
-        }
-    }
-    /**
-     * @access private
-     */
-    addClickHandlersCtrlClickVersion() {
-        const metaKey = getMetaKey();
-        window.addEventListener('keydown', e => {
-            if (e.key === metaKey) this.metaKeyIsPressed = true;
-        });
-        window.addEventListener('keyup', e => {
-            if (e.key === metaKey) this.metaKeyIsPressed = false;
-        });
-        document.body.addEventListener('click', e => {
-            const currentBlock = this.currentlyHoveredBlockEl;
-            if (this.isMouseListenersDisabled) { this.handlers.onClicked(currentBlock); return; }
-
-            const isLeftClick = e.button === 0;
-            const a = !isLeftClick ? null : e.target.nodeName === 'A' ? e.target : e.target.closest('a');
-
-            const b = a || (e.button !== 0 ? null : e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button'));
-
-            if (!this.metaKeyIsPressed)
-                e.preventDefault();
-            else if (a || b) {
-                if (a) { e.preventDefault(); this.doFollowLink(a); }
-                // else omit preventDefault
-                return;
-            }
-
-            this.handlers.onClicked(currentBlock);
-        });
-    }
-    /**
-     * @access private
-     */
-    addClickHandlersLongClickVersion() {
-        let isDown = false;
-        let lastDownLink = null;
-        let lastDownLinkAlreadyHandled = false;
-        document.body.addEventListener('mousedown', e => {
-            if (!(this.currentlyHoveredBlockEl || this.isMouseListenersDisabled)) return;
-            isDown = true;
-            const a = e.button !== 0 ? null : e.target.nodeName === 'A' ? e.target : e.target.closest('a');
-            if (!a) return;
-            lastDownLink = a;
-            lastDownLinkAlreadyHandled = false;
-            setTimeout(() => {
-                if (isDown && e.button === 0) {
-                    lastDownLinkAlreadyHandled = true;
-                    this.handlers.onClicked(this.currentlyHoveredBlockEl);
-                }
-            }, 80);
-        });
-        document.body.addEventListener('click', e => {
-            const currentBlock = this.currentlyHoveredBlockEl;
-            isDown = false;
-            if (!lastDownLink) {
-                if (this.isMouseListenersDisabled) { this.handlers.onClicked(currentBlock); return; }
-                const b = e.button !== 0 ? null : e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button');
-                if (b) e.preventDefault();
-                this.handlers.onClicked(currentBlock);
-            } else {
-                e.preventDefault();
-                if (!lastDownLinkAlreadyHandled) {
-                    this.handlers.onClicked(null, lastDownLink);
-                    this.doFollowLink(lastDownLink);
-                }
-                lastDownLink = null;
-            }
-        });
-    }
+// ##     /**
+// ##      * @param {HTMLAnchorElement} el
+// ##      * @access private
+// ##      */
+// ##     doFollowLink(el) {
+// ##         if (this.isLocalLink(el)) {
+// ##             const noOrigin = el.href.substring(el.origin.length); // http://domain.com/foo -> /foo
+// ##                                                                   // http://domain.com/foo/index.php?q=/foo -> /foo/index.php?q=/foo
+// ##             const noBase = `/${noOrigin.substring(this.baseUrl.length)}`; // /foo -> /foo
+// ##                                                                           // /sub-dir/foo -> /foo
+// ##                                                                           // /index.php?q=/foo -> /foo
+// ##                                                                           // /sub-dir/index.php?q=/foo -> /foo
+// ##             const pcs = noBase.split('#');
+// ##             if (pcs.length < 2)
+// ##                 window.parent.myRoute(pcs[0]);
+// ##             else
+// ##                 document.getElementById(pcs[1])?.scrollIntoView();
+// ##         }
+// ##     }
+// ##     /**
+// ##      * @access private
+// ##      */
+// ##     addClickHandlersCtrlClickVersion() {
+// ##         const metaKey = getMetaKey();
+// ##         window.addEventListener('keydown', e => {
+// ##             if (e.key === metaKey) this.metaKeyIsPressed = true;
+// ##         });
+// ##         window.addEventListener('keyup', e => {
+// ##             if (e.key === metaKey) this.metaKeyIsPressed = false;
+// ##         });
+// ##         document.body.addEventListener('click', e => {
+// ##             const currentBlock = this.currentlyHoveredBlockEl;
+// ##             if (this.isMouseListenersDisabled) { this.handlers.onClicked(currentBlock); return; }
+// ## 
+// ##             const isLeftClick = e.button === 0;
+// ##             const a = !isLeftClick ? null : e.target.nodeName === 'A' ? e.target : e.target.closest('a');
+// ## 
+// ##             const b = a || (e.button !== 0 ? null : e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button'));
+// ## 
+// ##             if (!this.metaKeyIsPressed)
+// ##                 e.preventDefault();
+// ##             else if (a || b) {
+// ##                 if (a) { e.preventDefault(); this.doFollowLink(a); }
+// ##                 // else omit preventDefault
+// ##                 return;
+// ##             }
+// ## 
+// ##             this.handlers.onClicked(currentBlock);
+// ##         });
+// ##     }
+// ##     /**
+// ##      * @access private
+// ##      */
+// ##     addClickHandlersLongClickVersion() {
+// ##         let isDown = false;
+// ##         let lastDownLink = null;
+// ##         let lastDownLinkAlreadyHandled = false;
+// ##         document.body.addEventListener('mousedown', e => {
+// ##             if (!(this.currentlyHoveredBlockEl || this.isMouseListenersDisabled)) return;
+// ##             isDown = true;
+// ##             const a = e.button !== 0 ? null : e.target.nodeName === 'A' ? e.target : e.target.closest('a');
+// ##             if (!a) return;
+// ##             lastDownLink = a;
+// ##             lastDownLinkAlreadyHandled = false;
+// ##             setTimeout(() => {
+// ##                 if (isDown && e.button === 0) {
+// ##                     lastDownLinkAlreadyHandled = true;
+// ##                     this.handlers.onClicked(this.currentlyHoveredBlockEl);
+// ##                 }
+// ##             }, 80);
+// ##         });
+// ##         document.body.addEventListener('click', e => {
+// ##             const currentBlock = this.currentlyHoveredBlockEl;
+// ##             isDown = false;
+// ##             if (!lastDownLink) {
+// ##                 if (this.isMouseListenersDisabled) { this.handlers.onClicked(currentBlock); return; }
+// ##                 const b = e.button !== 0 ? null : e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button');
+// ##                 if (b) e.preventDefault();
+// ##                 this.handlers.onClicked(currentBlock);
+// ##             } else {
+// ##                 e.preventDefault();
+// ##                 if (!lastDownLinkAlreadyHandled) {
+// ##                     this.handlers.onClicked(null, lastDownLink);
+// ##                     this.doFollowLink(lastDownLink);
+// ##                 }
+// ##                 lastDownLink = null;
+// ##             }
+// ##         });
+// ##     }
 }
-
-/**
- * https://stackoverflow.com/a/2911045
- *
- * @param {Location} location = window.location
- * @returns {(link: HTMLAnchorElement) => Boolean}
- */
-function createIsLocalLinkCheckFn(location = window.location) {
-    const host = location.hostname;
-    return a => a.hostname === host || !a.hostname.length;
-}
+// ## 
+// ## /**
+// ##  * https://stackoverflow.com/a/2911045
+// ##  *
+// ##  * @param {Location} location = window.location
+// ##  * @returns {(link: HTMLAnchorElement) => Boolean}
+// ##  */
+// ## function createIsLocalLinkCheckFn(location = window.location) {
+// ##     const host = location.hostname;
+// ##     return a => a.hostname === host || !a.hostname.length;
+// ## }
 
 /**
  * @param {String} str
@@ -467,20 +467,20 @@ function isValidIdentifier(str) {
     return /^[a-zA-Z_]{1}\w*$/.test(str);
 }
 
-/**
- * @param {HTMLElement} el Child node of $currentlyHoveredBlockEl
- * @param {HTMLDivElement} currentlyHoveredBlockEl
- * @returns {Boolean}
- */
-function isSubHoverable(el, currentlyHoveredBlockEl) {
-    return (
-        // Is child of text block and ..
-        currentlyHoveredBlockEl.getAttribute('data-block-type') === 'Text' &&
-        // is first level child (h1, p, ul etc.) and ..
-        el.parentElement === currentlyHoveredBlockEl &&
-        // is not child _block_ (Button for example)
-        !(el.getAttribute('data-block') || '').length
-    );
-}
+// ## /**
+// ##  * @param {HTMLElement} el Child node of $currentlyHoveredBlockEl
+// ##  * @param {HTMLDivElement} currentlyHoveredBlockEl
+// ##  * @returns {Boolean}
+// ##  */
+// ## function isSubHoverable(el, currentlyHoveredBlockEl) {
+// ##     return (
+// ##         // Is child of text block and ..
+// ##         currentlyHoveredBlockEl.getAttribute('data-block-type') === 'Text' &&
+// ##         // is first level child (h1, p, ul etc.) and ..
+// ##         el.parentElement === currentlyHoveredBlockEl &&
+// ##         // is not child _block_ (Button for example)
+// ##         !(el.getAttribute('data-block') || '').length
+// ##     );
+// ## }
 
 export default EditAppAwareWebPage;

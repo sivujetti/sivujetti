@@ -88,35 +88,35 @@ class WebPageIframe {
             behavior,
         });
     }
-    /**
-     * @param {RawBlock} block
-     * @access public
-     */
-    highlightBlock(block) {
-        if (isMetaBlock(block)) return;
-        this.pageManager.showHighlightRect(block, 'block-tree');
-    }
-    /**
-     * @param {String} blockId
-     * @access public
-     */
-    unHighlightBlock(blockId) {
-        this.pageManager.hideHighlightRect(blockId);
-    }
-    /**
-     * @param {Number} elIdx
-     * @param {String} textBlockId
-     * @access public
-     */
-    highlightTextBlockChildEl(elIdx, textBlockId) {
-        this.pageManager.highlightTextBlockChildEl(elIdx, textBlockId);
-    }
-    /**
-     * @access public
-     */
-    unHighlightTextBlockChildEl() {
-        this.pageManager.unHighlightTextBlockChildEl();
-    }
+// ##     /**
+// ##      * @param {RawBlock} block
+// ##      * @access public
+// ##      */
+// ##     highlightBlock(block) {
+// ##         if (isMetaBlock(block)) return;
+// ##         this.pageManager.showHighlightRect(block, 'block-tree');
+// ##     }
+// ##     /**
+// ##      * @param {String} blockId
+// ##      * @access public
+// ##      */
+// ##     unHighlightBlock(blockId) {
+// ##         this.pageManager.hideHighlightRect(blockId);
+// ##     }
+// ##     /**
+// ##      * @param {Number} elIdx
+// ##      * @param {String} textBlockId
+// ##      * @access public
+// ##      */
+// ##     highlightTextBlockChildEl(elIdx, textBlockId) {
+// ##         this.pageManager.highlightTextBlockChildEl(elIdx, textBlockId);
+// ##     }
+// ##     /**
+// ##      * @access public
+// ##      */
+// ##     unHighlightTextBlockChildEl() {
+// ##         this.pageManager.unHighlightTextBlockChildEl();
+// ##     }
     /**
      * @returns {HTMLIFrameElement}
      * @access public

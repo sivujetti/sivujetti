@@ -41,8 +41,8 @@ function createBlockTreeMoveToOpArgs(dragInf, dropInf, dropPos) {
     return [
         'theBlockTree',
         blockTreeUtils.createMutation(api.saveButton.getInstance().getChannelState('theBlockTree'), newTreeCopy => {
-            const [dragBlock, dragBranch] = blockTreeUtils.findBlockSmart(dragInf.blockId, newTreeCopy);
-            const [dropBlock, dropBranch] = blockTreeUtils.findBlockSmart(!(dropInf.isGbtRef && dropPos === 'as-child') ? dropInf.blockId : dropInf.data.refTreesRootBlockId, newTreeCopy);
+            const [dragBlock, dragBranch] = blockTreeUtils.findBlockMultiTree(dragInf.blockId, newTreeCopy);
+            const [dropBlock, dropBranch] = blockTreeUtils.findBlockMultiTree(!(dropInf.isGbtRef && dropPos === 'as-child') ? dropInf.blockId : dropInf.data.refTreesRootBlockId, newTreeCopy);
             //
             const isBefore = dropPos === 'before';
             if (isBefore || dropPos === 'after') {

@@ -48,7 +48,7 @@ function createBlockTreeChannelHandler() {
         handleStateChange(state, userCtx, _context) {
             if (userCtx?.event === 'update-single-block-prop') {
                 if (!userCtx?.isDefPropOnly)
-                    api.webPagePreview.reRenderBlock(blockTreeUtils.findBlockSmart(userCtx.blockId, state)[0], state);
+                    api.webPagePreview.reRenderBlock(blockTreeUtils.findBlockMultiTree(userCtx.blockId, state)[0], state);
             } else
                 api.webPagePreview.reRenderAllBlocks(state);
         },
@@ -357,7 +357,12 @@ function createSignalName(channelName) {
  * @returns {Object}
  */
 function createInitialState() {
-    return {isVisible: false, canUndo: false, canRedo: false};
+    return {
+        isVisible: false,
+        isSubmitting: false,
+        canUndo: false,
+        canRedo: false,
+    };
 }
 
 export {

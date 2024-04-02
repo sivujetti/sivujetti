@@ -25,7 +25,7 @@ const blockTreeUtils = {
      * @access public
      */
     getIsStoredToTreeId(blockId, theBlockTree) {
-        const [b, _, __, root] = this.findBlockSmart(blockId, theBlockTree);
+        const [b, _, __, root] = this.findBlockMultiTree(blockId, theBlockTree);
         if (!b) return null;
         return this.getIdFor(root);
     },
@@ -38,18 +38,19 @@ const blockTreeUtils = {
      * @access public
      */
     findBlockSmart(id, tree, _parentBlock = null, _root = null) { // todo return {block, containingBranch, paren, root} ?
+    findBlockMultiTree(id, tree, _parentBlock = null, _root = null) {
         for (const b of tree) {
             if (b.id === id) return [b, tree, _parentBlock, _root || tree];
             if (b.type !== 'GlobalBlockReference') {
                 const c = b.children;
                 if (c.length) {
-                    const sub = this.findBlockSmart(id, c, b, _root || tree);
+                    const sub = this.findBlockMultiTree(id, c, b, _root || tree);
                     if (sub[0]) return sub;
                 }
             } else {
                 const c = b.__globalBlockTree.blocks;
                 if (c.length) {
-                    const sub = this.findBlockSmart(id, c, b, b.__globalBlockTree);
+                    const sub = this.findBlockMultiTree(id, c, b, b.__globalBlockTree);
                     if (sub[0]) return sub;
                 }
             }

@@ -167,7 +167,7 @@ class WebPagePreviewApp extends preact.Component {
                             broadcastCurrentPageData(e);
                         } else if (e.data[0] === 'onBlockHoverStarted') {
                             const [_, blockId, blockRect] = e.data; // [_, String, DOMRect]
-                            const block = blockRect ? blockTreeUtils.findBlockSmart(blockId, api.saveButton.getInstance().getChannelState('theBlockTree'))[0] : null;
+                            const block = blockRect ? blockTreeUtils.findBlockMultiTree(blockId, api.saveButton.getInstance().getChannelState('theBlockTree'))[0] : null;
                             if (block) this.highlightBlock(block, 'web-page', blockRect);
                         } else if (e.data[0] === 'onBlockHoverEnded') {
                             const [_, blockId] = e.data; // [_, String]

@@ -48,7 +48,7 @@ class OnThisPageSection extends MenuSectionAbstract {
             signals.on('web-page-click-received',
                 (blockId) => {
                     if (!blockId) return;
-                    const [block] = blockTreeUtils.findBlockSmart(blockId, this.state.loadedPageBlocks);
+                    const [block] = blockTreeUtils.findBlockMultiTree(blockId, this.state.loadedPageBlocks);
                     // rodo tämä palauttaa null, jos BlockTree on sisäisesti lisännyt uusia lohkoja -> emittoi uudet lohkot this.loadedPagesLbocks (ja sitten gräbbää ne BlockTeee:n receivepropsissa), jolloin myös blockTreen state.blocks -> props.blocks
                     this.focusToBlockAndEmitBlockTreeClick(block, 'web-page', () => { });
                 }

@@ -60,7 +60,7 @@ class BlockEditForm extends preact.Component {
                 ctx === 'undo'
             );
             if (doCheckDiffForEditForm) {
-                const block = doCheckDiffForEditForm ? blockTreeUtils.findBlockSmart(this.state.blockCopyForEditForm.id, theTree)[0] : null;
+                const block = doCheckDiffForEditForm ? blockTreeUtils.findBlockMultiTree(this.state.blockCopyForEditForm.id, theTree)[0] : null;
                 if (!block || this.state.blockCopyForEditForm.id !== block.id) return;
                 if (JSON.stringify(this.state.blockCopyForEditForm.propsData) !== JSON.stringify(block.propsData)) {
                     this.setState({blockCopyForEditForm: objectUtils.cloneDeep(block), lastBlockTreeChangeEventInfo: {ctx, flags}});

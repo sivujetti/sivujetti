@@ -19,6 +19,7 @@ final class Block extends \stdClass {
     public const TYPE_SECTION          = "Section";
     public const TYPE_SECTION2         = "Section2";
     public const TYPE_TEXT             = "Text";
+    public const TYPE_WRAPPER          = "Wrapper";
     /** @var string self::TYPE_* */
     public string $type;
     /** @var ?string */
@@ -91,6 +92,9 @@ final class Block extends \stdClass {
 
     /* If self::TYPE_TEXT
     public string $html; */
+
+    /* If self::TYPE_WRAPPER
+    public string $dummy; */
 
     /**
      * @param object $data

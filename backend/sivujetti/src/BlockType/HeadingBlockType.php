@@ -2,7 +2,7 @@
 
 namespace Sivujetti\BlockType;
 
-/** @deprecated */
+/** @deprecated Use TextBlockType */
 final class HeadingBlockType implements BlockTypeInterface {
     /**
      * @inheritdoc

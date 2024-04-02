@@ -24,8 +24,8 @@ class ImageBlockType implements BlockTypeInterface {
     /**
      * @inheritdoc
      */
-    public function render(object $block, 
-                           \Closure $createDefaultProps, 
+    public function render(object $block,
+                           \Closure $createDefaultProps,
                            \Closure $renderChildren,
                            WebPageAwareTemplate $tmpl): array {
         return el("figure", $createDefaultProps(),

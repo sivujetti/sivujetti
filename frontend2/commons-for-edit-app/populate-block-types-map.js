@@ -8,6 +8,7 @@ import pageInfoBlockType from './block-types/page-info/pageInfo.js';
 import sectionBlockType from './block-types/section/section.js';
 import section2BlockType from './block-types/section2/section2.js';
 import textBlockType from './block-types/text/text.js';
+import wrapperBlockType from './block-types/wrapper/wrapper.js';
 
 blockTypesRegister.setup([
     ['GlobalBlockReference', {name: 'GlobalBlockReference', friendlyName: 'GlobalBlockReference'}],
@@ -20,4 +21,5 @@ blockTypesRegister.setup([
     [sectionBlockType.name,  sectionBlockType],
     [section2BlockType.name, section2BlockType],
     [textBlockType.name,     textBlockType],
+    [wrapperBlockType.name,  wrapperBlockType],
 ]);

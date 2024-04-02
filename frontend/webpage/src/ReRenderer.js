@@ -59,7 +59,7 @@ class ReRenderer {
             'theBlockTree/applySwap',
             'theBlockTree/deleteBlock',
 // ##             'theBlockTree/undoAdd(Drop)Block',
-            'theBlockTree/convertToGbt'
+// ##             'theBlockTree/convertToGbt'
         ].indexOf(event) > -1) {
             this.doReRender(theBlockTree);
 

@@ -147,30 +147,30 @@ function theBlockTreeStore(store) {
 
     store.on('theBlockTree/cloneItem', addBlock);
 
-    store.on('theBlockTree/convertToGbt',
-    /**
-     * @param {Object} state
-     * @param {[String, String, RawGlobalBlockTree]} args args[2].blocks will always be empty at this point
-     * @returns {Object}
-     */
-    ({theBlockTree}, [originalBlockId, idForTheNewBlock, newGbt]) => {
-        const clone = cloneObjectDeep(theBlockTree);
-
-        // Convert original to array, change isStoredToTreeIds recursively
-        const [original] = blockTreeUtils.findBlock(originalBlockId, clone);
-        original.title = newGbt.name;
-        const newTree = [original];
-
-        // Create new block, set $newTree as its .__globalBlockTree.blocks
-        const converted = createBlockFromType('GlobalBlockReference',
-            idForTheNewBlock, createGbtRefBlockProps(newGbt, newTree));
-
-        // Replace the block
-        const [ref, refBranch] = blockTreeUtils.findBlock(original.id, clone);
-        refBranch[refBranch.indexOf(ref)] = converted; // mutates clone
-
-        return {theBlockTree: clone};
-    });
+// ##     store.on('theBlockTree/convertToGbt',
+// ##     /**
+// ##      * @param {Object} state
+// ##      * @param {[String, String, RawGlobalBlockTree]} args args[2].blocks will always be empty at this point
+// ##      * @returns {Object}
+// ##      */
+// ##     ({theBlockTree}, [originalBlockId, idForTheNewBlock, newGbt]) => {
+// ##         const clone = cloneObjectDeep(theBlockTree);
+// ## 
+// ##         // Convert original to array, change isStoredToTreeIds recursively
+// ##         const [original] = blockTreeUtils.findBlock(originalBlockId, clone);
+// ##         original.title = newGbt.name;
+// ##         const newTree = [original];
+// ## 
+// ##         // Create new block, set $newTree as its .__globalBlockTree.blocks
+// ##         const converted = createBlockFromType('GlobalBlockReference',
+// ##             idForTheNewBlock, createGbtRefBlockProps(newGbt, newTree));
+// ## 
+// ##         // Replace the block
+// ##         const [ref, refBranch] = blockTreeUtils.findBlock(original.id, clone);
+// ##         refBranch[refBranch.indexOf(ref)] = converted; // mutates clone
+// ## 
+// ##         return {theBlockTree: clone};
+// ##     });
 }
 
 // ## /**

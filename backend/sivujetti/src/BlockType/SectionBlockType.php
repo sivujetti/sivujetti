@@ -6,6 +6,7 @@ use Sivujetti\Page\WebPageAwareTemplate;
 
 use function Sivujetti\createElement as el;
 
+/** @deprecated Use Section2BlockType */
 class SectionBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
     /**
      * @inheritdoc

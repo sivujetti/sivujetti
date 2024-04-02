@@ -211,6 +211,19 @@ class TextBlock extends preact.Component {
     }
 }
 
+class WrapperBlock extends preact.Component {
+    /**
+     * @param {BlockRendererProps} props
+     * @access protected
+     */
+    render({renderChildren, createDefaultProps}) {
+        return <div { ...createDefaultProps() }>
+            { /* Nothing */ }
+            { renderChildren() }
+        </div>;
+    }
+}
+
 const builtInRenderers = {
     Button: ButtonBlock,
     Columns: ColumnsBlock,
@@ -220,6 +233,7 @@ const builtInRenderers = {
     Section: SectionBlock,
     Section2: Section2Block,
     Text: TextBlock,
+    Wrapper: WrapperBlock,
 };
 
 class RenderAll extends preact.Component {

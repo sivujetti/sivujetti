@@ -2,7 +2,7 @@ import {api, env, http} from '@sivujetti-commons-for-edit-app';
 import {treeToTransferable} from '../block/utils.js';
 
 /**
- * @returns {Promise<RawGlobalBlockTree[]>}
+ * @returns {Promise<GlobalBlockTree[]>}
  */
 function fetchOrGet() {
     return new Promise(resolve => {

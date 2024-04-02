@@ -213,7 +213,7 @@ class DnDBlockSpawner extends preact.Component {
     /**
      * @param {String} typeStr
      * @param {HTMLButtonElement} dragEl
-     * @returns {[RawBlock, RawGlobalBlockTree]}
+     * @returns {[Block, GlobalBlockTree]}
      * @access private
      */
     createBlock(typeStr, dragEl) {
@@ -289,8 +289,8 @@ class DnDBlockSpawner extends preact.Component {
 }
 
 /**
- * @param {Array<RawGlobalBlockTree>} allGbts
- * @param {Array<RawBlock>} theBlockTree = null
+ * @param {Array<GlobalBlockTree>} allGbts
+ * @param {Array<Block>} theBlockTree = null
  */
 function createGlobalBlockTreesState(allGbts, theBlockTree = null) {
     if (!allGbts) return {};
@@ -338,7 +338,7 @@ function sort(selectableBlockTypes) {
 }
 
 /*
- * @param {Array<RawBlock>} currentBlockTree
+ * @param {Array<Block>} currentBlockTree
  * @returns {Array<String>}
  */
 function getGbtIdsFrom(currentBlockTree) {

@@ -91,7 +91,7 @@ class BlockEditForm extends preact.Component {
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {{block: RawBlock; inspectorPanel: preact.Component;}} props
+     * @param {{block: Block; inspectorPanel: preact.Component;}} props
      * @access protected
      */
     render({block}, {currentTabIdx, blockCopyForEditForm, lastBlockTreeChangeEventInfo}) {
@@ -177,7 +177,7 @@ class BlockEditForm extends preact.Component {
         saveButton.pushOp(
             'theBlockTree',
             blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                const [blockRef] = blockTreeUtils.findBlockSmart(blockId, newTreeCopy);
+                const [blockRef] = blockTreeUtils.findBlockMultiTree(blockId, newTreeCopy);
                 /*
                 Note: this mutates block from 1. (main/root tree)
                 [

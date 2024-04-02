@@ -32,14 +32,14 @@ class WebPagePreviewApp extends preact.Component {
         if (!this.currentIframeIsLoading)
             fn();
         else {
-            const once = signals.on('webpage-preview-iframe-loaded', () => {
+            const once = events.on('webpage-preview-iframe-loaded', () => {
                 fn();
                 once();
             });
         }
     }
     /**
-     * @param {RawBlock} block
+     * @param {Block} block
      * @param {'web-page'|'block-tree'} origin
      * @param {DOMRect} rect = null
      * @access public
@@ -74,7 +74,7 @@ class WebPagePreviewApp extends preact.Component {
         this.doHideHighlightRect();
     }
     /**
-     * @param {RawBlock} block
+     * @param {Block} block
      * @returns {Boolean} didScroll
      * @access public
      */
@@ -113,15 +113,15 @@ class WebPagePreviewApp extends preact.Component {
         //
     }
     /**
-     * @param {RawBlock} block
-     * @param {Array<RawBlock>} theTree
+     * @param {Block} block
+     * @param {Array<Block>} theTree
      * @access public
      */
     reRenderBlock(block, theTree) {
         this.sendMessageToReRenderer(['reRenderBlock', block, theTree]);
     }
     /**
-     * @param {Array<RawBlock>} theTree
+     * @param {Array<Block>} theTree
      * @access public
      */
     reRenderAllBlocks(theTree) {

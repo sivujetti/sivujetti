@@ -66,10 +66,10 @@ function createBlockTreeMoveToOpArgs(dragInf, dropInf, dropPos) {
 }
 
 /**
- * @param {RawBlock} dragBlock
- * @param {Array<RawBlock>} dragBranch
- * @param {RawBlock} dropBlock
- * @param {Array<RawBlock>} dropBranch
+ * @param {Block} dragBlock
+ * @param {Array<Block>} dragBranch
+ * @param {Block} dropBlock
+ * @param {Array<Block>} dropBranch
  * @param {Boolean} isBefore
  */
 function moveToBeforeOrAfter(dragBlock, dragBranch, dropBlock, dropBranch, isBefore) {

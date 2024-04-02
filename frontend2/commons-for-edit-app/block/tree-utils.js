@@ -3,9 +3,9 @@ import {objectUtils} from '../utils.js';
 const blockTreeUtils = {
     /**
      * @param {String} id
-     * @param {Array<RawBlock>} branch
-     * @param {RawBlock=} parentBlock = null
-     * @returns {[RawBlock|null, Array<RawBlock>|null, RawBlock|null]} [block, containingBranch, parentBlock]
+     * @param {Array<Block>} branch
+     * @param {Block=} parentBlock = null
+     * @returns {[Block|null, Array<Block>|null, Block|null]} [block, containingBranch, parentBlock]
      * @access public
      */
     findBlock(id, branch, parentBlock = null) {
@@ -20,7 +20,7 @@ const blockTreeUtils = {
     },
     /**
      * @param {String} blockId
-     * @param {Array<RawBlock>} theBlockTree
+     * @param {Array<Block>} theBlockTree
      * @returns {String|null}
      * @access public
      */
@@ -31,13 +31,12 @@ const blockTreeUtils = {
     },
     /**
      * @param {String} id
-     * @param {Array<RawBlock>} tree
-     * @param {RawBlock=} _parentBlock = null
-     * @param {RawGlobalBlockTree|Array<RawBlock>} _root = null
-     * @returns {[RawBlock|null, Array<RawBlock>|null, RawBlock|null, RawGlobalBlockTree|Array<RawBlock>|null]} [block, containingBranch, parentBlock, root]
+     * @param {Array<Block>} tree
+     * @param {Block=} _parentBlock = null
+     * @param {GlobalBlockTree|Array<Block>} _root = null
+     * @returns {[Block|null, Array<Block>|null, Block|null, GlobalBlockTree|Array<Block>|null]} [block, containingBranch, parentBlock, root]
      * @access public
      */
-    findBlockSmart(id, tree, _parentBlock = null, _root = null) { // todo return {block, containingBranch, paren, root} ?
     findBlockMultiTree(id, tree, _parentBlock = null, _root = null) {
         for (const b of tree) {
             if (b.id === id) return [b, tree, _parentBlock, _root || tree];
@@ -58,14 +57,14 @@ const blockTreeUtils = {
         return [null, null, null, null];
     },
     /**
-     * @param {RawGlobalBlockTree|Array<RawBlock>} input
+     * @param {GlobalBlockTree|Array<Block>} input
      * @returns {String} 'main' or <pushId>
      */
     getIdFor(root) {
         return this.isMainTree(root) ? 'main' : root.id;
     },
     /**
-     * @param {RawGlobalBlockTree|Array<RawBlock>} input
+     * @param {GlobalBlockTree|Array<Block>} input
      * @returns {Boolean}
      */
     isMainTree(root) {
@@ -133,8 +132,8 @@ const blockTreeUtils = {
     },
     /**
      * @param {String} trid 'main' or 'id-of-some-global-block-tree'
-     * @param {Array<RawBlock>} from
-     * @returns {Array<RawBlock>|null}
+     * @param {Array<Block>} from
+     * @returns {Array<Block>|null}
      */
     findTree(trid, from) {
         if (trid === 'main')
@@ -145,9 +144,9 @@ const blockTreeUtils = {
         return refBlock ? refBlock.__globalBlockTree.blocks : null;
     },
     /**
-     * @param {Array<RawBlock>} theTree
-     * @param {(newTreeCopyFreeToMutate: Array<RawBlock>) => Array<RawBlock>} mutator
-     * @returns {Array<RawBlock>} Mutated $newTreeCopyFreeToMutate
+     * @param {Array<Block>} theTree
+     * @param {(newTreeCopyFreeToMutate: Array<Block>) => Array<Block>} mutator
+     * @returns {Array<Block>} Mutated $newTreeCopyFreeToMutate
      */
     createMutation(theTree, mutator) {
         return objectUtils.cloneDeepWithChanges(theTree, mutator);

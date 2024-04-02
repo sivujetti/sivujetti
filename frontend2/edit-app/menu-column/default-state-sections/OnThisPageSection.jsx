@@ -182,7 +182,7 @@ class OnThisPageSection extends MenuSectionAbstract {
             env.window.open(urlUtils.makeUrl(this.slugOfPageWithNavOpened, true), '_blank');
     }
     /**
-     * @param {RawBlock} visibleBlock
+     * @param {Block} visibleBlock
      * @param {'web-page'|'styles-tab'} clickOrigin
      * @param {() => void} then
      * @access private

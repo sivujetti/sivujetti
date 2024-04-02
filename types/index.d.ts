@@ -29,7 +29,7 @@ interface SivujettiFrontendApi {
         ROLE_FOLLOWER: Number;
     }
     events: todo;
-    registerBlockTreeMutator(event: String, getMutationsFn: (event: String, theBlockTree: Array<RawBlock>, blockTreeUtils: blockTreeUtils) => Array<{blockId: String; changes: {[key: String]: any;};}>): void;
+    registerBlockTreeMutator(event: String, getMutationsFn: (event: String, theBlockTree: Array<Block>, blockTreeUtils: blockTreeUtils) => Array<{blockId: String; changes: {[key: String]: any;};}>): void;
     getAvailableUpdatePackages: () => Array<String>;
 }
 
@@ -44,15 +44,15 @@ interface OpQueueOp {
 
 interface WebPagePreviewApp {
     getEl(): HTMLIFrameElement;
-    reRenderAllBlocks(theTree: Array<RawBlock>): void;
-    reRenderAllBlocks(block: RawBlock, theTree: Array<RawBlock>): void;
+    reRenderAllBlocks(theTree: Array<Block>): void;
+    reRenderAllBlocks(block: Block, theTree: Array<Block>): void;
     updateCss(allMediaScopesCss: [String, String, String, String, String]): void;
     updateCssFast(blockId: String, mediaScopeId: mediaScope, cssPropandval: String): void;
-    highlightBlock(block: RawBlock, origin: 'web-page'|'block-tree', rect: DOMRect = null): void;
+    highlightBlock(block: Block, origin: 'web-page'|'block-tree', rect: DOMRect = null): void;
     unHighlightBlock(blockId: String): void;
     highlightTextBlockChildEl(elIdx: Number, textBlockBlockId: String): void;
     unHighlightTextBlockChildEl(): void;
-    scrollToBlock(block: RawBlock): Boolean;
+    scrollToBlock(block: Block): Boolean;
     scrollToTextBlockChildEl(childElemIdx: Number, textBlockBlockId: String): void;
 }
 
@@ -60,9 +60,9 @@ interface WebPageIframe {
     renderNormalPage(slug: String): Promise<EditAppAwareWebPage>;
     renderPlaceholderPage(pageTypeName: String, layoutId: String = '1', slug: String = ''): Promise<EditAppAwareWebPage>;
     goBack(): void;
-    scrollToBlock(block: RawBlock): Boolean;
+    scrollToBlock(block: Block): Boolean;
     scrollToTextBlockChildEl(childElemIdx: Number, textBlockBlockId: String): void;
-    highlightBlock(block: RawBlock): void;
+    highlightBlock(block: Block): void;
     unHighlightBlock(blockId: String): void;
     highlightTextBlockChildEl(elIdx: Number, textBlockBlockId: String);
     unHighlightTextBlockChildEl();
@@ -91,7 +91,7 @@ interface BlockTypesRegister {
     entries(): IterableIterator<String, BlockTypeDefinition>;
 }
 
-interface RawBlockData {
+interface BlockData {
     [key: String]: any;
 }
 
@@ -129,18 +129,18 @@ interface BlockStub {
     styleClasses: String; // Example 'j-Type-unit-3 j-Type-unit-12'
 }
 
-interface RawBlock extends BlockStub {
+interface Block extends BlockStub {
     title: String;
     renderer: String; // Example 'sivujetti:block-auto'
     __duplicatedFrom?: String; // Example 'unit-3'
-    children: Array<RawBlock>;
+    children: Array<Block>;
     [typeSpecificProps: String]: any;
 }
 
-interface RawGlobalBlockTree {
+interface GlobalBlockTree {
     id: String;
     name: String;
-    blocks: Array<RawBlock>;
+    blocks: Array<Block>;
 }
 
 interface Layout {
@@ -207,14 +207,6 @@ interface Page extends RelPage {
     status: Number;
     isPlaceholderPage: Boolean;
     [ownFieldName: String]: any; // Custom fields (PageType.ownFields)
-}
-
-interface PageMetaRaw {
-    title: String;
-    slug: String;
-    path: String;
-    meta: {description?: String;};
-    [key: String]: any; // Own fields
 }
 
 interface BlockRenderer {
@@ -303,20 +295,20 @@ interface EditAppAwareWebPage {
     data: CurrentPageData;
     reRenderer: WebPageReRenderer;
     metaKeyIsPressed: Boolean;
-    init(renderBlockAndThen: (block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void, toTransferable: (block: RawBlock, includePrivates: Boolean = false) => {[key: String]: any;}, blockTreeUtils: blockTreeUtils): void;
+    init(renderBlockAndThen: (block: Block, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void, toTransferable: (block: Block, includePrivates: Boolean = false) => {[key: String]: any;}, blockTreeUtils: blockTreeUtils): void;
     scanBlockElements(): Array<HTMLElement>;
-    addRootBoundingEls(lastBlock: RawBlock): void;
+    addRootBoundingEls(lastBlock: Block): void;
     createThemeStylesChangeListener(): (state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void;
     getGlobalListenerCreateCallables(): Array<[String, (...args: any) => void]>;
     setIsMouseListenersDisabled(isDisabled: Boolean): void;
     fastOverrideStyleUnitVar(selector: String, varName: String, varValue: String|(() => {supportingCss: String; mediaQueryWrap: String|null; varVal: String;}), valueType: 'color'): void;
-    setCssVarValue(varName: String, to: RawCssValue): void;
+    setCssVarValue(varName: String, to: CssValue): void;
     getBlockEl(blockId: String): HTMLElement|null;
     setOnReRenderOrUpdateStyles(fn: () => void): void;
 }
 
 interface WebPageReRenderer {
-    new(_renderBlockAndThen: (block: RawBlock, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void, _toTransferable: (block: RawBlock, includePrivates: Boolean = false) => {[key: String]: any;}, _blockTreeUtils: blockTreeUtils): WebPageReRenderer;
+    new(_renderBlockAndThen: (block: Block, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void, _toTransferable: (block: Block, includePrivates: Boolean = false) => {[key: String]: any;}, _blockTreeUtils: blockTreeUtils): WebPageReRenderer;
     createBlockTreeChangeListeners(): {fast: (event: blockChangeEvent, data: Array<any>) => void; slow: (blockId: String) => void;};
     setOnReRender(fn: () => void): void;
 }
@@ -337,13 +329,17 @@ type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/applySwap'|'theBlockTr
 type blockPropValueChangeFlags = 'is-throttled'|'is-group'|null;
 
 interface BlockEditFormProps {
-    getBlockCopy(): RawBlock;
+    block: Block;
+    lastBlockTreeChangeEventInfo: tod;
+    emitValueChanged(val: any, key: String, ...varargs): void;
+    emitValueChangedThrottled(val: any, key: String, hasErrors: Boolean = false, source: 'default'|'undo'|null = null): void;
+    emitManyValuesChanged(changes: {[key: String]: any;}, hasErrors: Boolean = false, flags: blockPropValueChangeFlags = null);
+    stylesStateId?: Number;
+}
+
+interface BlockStylesEditFormProps {
     blockId: String;
-    grabChanges(withFn: (block: RawBlock, origin: blockChangeEvent, isUndo: Boolean) => void): void;
-    emitValueChanged(val: any, key: String, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;
-    emitManyValuesChanged(partialData: {[key: String]: any;}, hasErrors: Boolean, debounceMillis: Number = 0, debounceType: 'debounce-commit-to-queue'|'debounce-re-render-and-commit-to-queue'|'debounce-none' = 'debounce-none'): void;
-    observeStore(namespace: String, fn: (state: Object, eventInfo: [String, Array<any>, Object]) => void): void;
-    serializeTree(tree: Array<RawBlock>): String;
+    stateId: Number;
 }
 
 interface UploadsEntry {
@@ -360,13 +356,13 @@ interface TranspileArgs {
     selectedLang: String;
 }
 
-interface RawCssRule {
+interface CssRule {
     name: String;
     friendlyName: String;
-    value: RawCscValue;
+    value: CscValue;
 }
 
-interface RawCssValue {
+interface CssValue {
     type: 'color';
     value: [String, String, String, String];
 }
@@ -444,7 +440,7 @@ interface BlockDescriptor {
 }
 
 interface SpawnDescriptor {
-    block: RawBlock;
+    block: Block;
     isReusable: Boolean|null;
     styles: {[blockId: String]: Array<StyleChunk>;}|null;
 }
@@ -494,7 +490,7 @@ interface OptionValue {
 }
 
 interface TheBlockTreeReducerContext {
-    clone: Array<RawBlock>;
+    clone: Array<Block>;
     reRenderThese: Array<String>;
 }
 
@@ -507,7 +503,7 @@ interface StylisAstNode {
 }
 
 interface StylesListProps {
-    blockCopy: RawBlock;
+    blockCopy: Block;
     userCanEditVisualStyles: Boolean;
     userCanEditCss: Boolean;
     useVisualStyles: Boolean;
@@ -567,7 +563,7 @@ interface SaveButtonChannelHandler {
 }
 
 interface BlockRendererProps {
-    block: RawBlock;
+    block: Block;
     createDefaultProps(customClasses: String = null): {[attrName: String]: String;};
     renderChildren(): preact.ComponentChildren;
 }

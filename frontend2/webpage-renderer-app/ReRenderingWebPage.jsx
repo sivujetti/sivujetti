@@ -107,7 +107,7 @@ class ListingBlock extends preact.Component {
         </div>;
     }
     /**
-     * @param {RawBlock} block
+     * @param {Block} block
      * @param {String} hash = null
      * @access private
      */
@@ -147,7 +147,7 @@ class MenuBlock extends preact.Component {
 }
 /**
  * @param {Array<Object>} branch
- * @param {RawBlock} block
+ * @param {Block} block
  * @param {Number} depth = 0
  * @returns {preact.VNode}
  */
@@ -239,7 +239,7 @@ const builtInRenderers = {
 class RenderAll extends preact.Component {
     // currentBlocksHashes;
     /**
-     * @param {Array<RawBlock>} blocks
+     * @param {Array<Block>} blocks
      * @access public
      */
     exchangeBlocks(blocks) {
@@ -253,7 +253,7 @@ class RenderAll extends preact.Component {
         this.setState({blocks: cloned});
     }
     /**
-     * @param {RawBlock} block
+     * @param {Block} block
      * @access public
      */
     exchangeSingleBlock(block, blocks) {

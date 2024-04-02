@@ -107,7 +107,7 @@ function createBlockDescriptorFromLi(li) {
 }
 
 /**
- * @param {RawBlock} block
+ * @param {Block} block
  * @param {SaveButton} saveButton
  * @returns {BlockDescriptor}
  */

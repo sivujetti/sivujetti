@@ -2,7 +2,7 @@ import {
     traverseRecursively,
 } from '@sivujetti-commons-for-edit-app';
 /**
- * @param {Array<RawBlock>} newBlocks
+ * @param {Array<Block>} newBlocks
  * @param {Object} previousState = {}
  * @returns {Object}
  */
@@ -11,8 +11,8 @@ function createPartialState(newBlocks, previousState = {}) {
 }
 
 /**
- * @param {Array<RawBlock>} tree
- * @param {{[key: String]: BlockTreeItemState;}|null} previousTreeState
+ * @param {Array<Block>} tree
+ * @param {{[key: String]: BlockTreeItemState;}|undefined} previousTreeState
  * @returns {{[key: String]: BlockTreeItemState;}}
  */
 function createTreeState(tree, previousTreeState) {

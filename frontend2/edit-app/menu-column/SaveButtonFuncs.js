@@ -285,8 +285,8 @@ function createSaveableItems({initial, latest}) {
 }
 
 /**
- * @param {Array<Array<RawBlock>>} blockTreeStates
- * @returns {Array<RawBlock>}
+ * @param {Array<Array<Block>>} blockTreeStates
+ * @returns {Array<Block>}
  */
 function getGbtRefBlocksFrom(blockTreeStates) {
     const map = new Map;
@@ -303,9 +303,9 @@ function getGbtRefBlocksFrom(blockTreeStates) {
 /**
  * Returns a patched $initialState that contains changes from $refBlocksThatMaybeHaveChanges.
  *
- * @param {Array<RawGlobalBlockTree>} initialState
- * @param {Array<RawBlock>} refBlocksThatMaybeHaveChanges
- * @returns {Array<RawGlobalBlockTree>|null}
+ * @param {Array<GlobalBlockTree>} initialState
+ * @param {Array<Block>} refBlocksThatMaybeHaveChanges
+ * @returns {Array<GlobalBlockTree>|null}
  */
 function createGbtState(stateArr, refBlocksThatMaybeHaveChanges) {
     const patchInfo = stateArr.map(_ => ({status: 'no-changes', newBlocks: null}));

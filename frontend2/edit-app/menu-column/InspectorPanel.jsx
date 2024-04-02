@@ -103,7 +103,7 @@ class InspectorPanel extends preact.Component {
     /**
      * Note to self: this currently supports BlockEditForm only.
      *
-     * @param {RawBlock} block
+     * @param {Block} block
      * @param {'direct'|'web-page'|'styles-tab'} origin = null
      * @access private
      */

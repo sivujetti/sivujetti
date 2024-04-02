@@ -1,5 +1,5 @@
 /**
- * @param {RawBlock} block
+ * @param {Block} block
  * @param {{[key: String]: any;}} props
  */
 function writeBlockProps(block, props) {

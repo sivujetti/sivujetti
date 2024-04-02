@@ -64,7 +64,7 @@ function createMessageChannelController(reRenderingWebPage) {
 }
 
 /**
- * @param {Array<RawBlock>} blocks
+ * @param {Array<Block>} blocks
  */
 function printBlockWarnings(blocks) {
     // todo warn if listing block contains children

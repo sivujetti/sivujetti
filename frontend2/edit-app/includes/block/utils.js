@@ -7,7 +7,7 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 
 /**
- * @param {RawBlock} block
+ * @param {Block} block
  * @param {Boolean} includePrivates = false
  * @returns {{[key: String]: any;}}
  */
@@ -24,7 +24,7 @@ function toTransferableSingle(block, includePrivates = false) {
 }
 
 /**
- * @param {Array<RawBlock>} tree
+ * @param {Array<Block>} tree
  * @param {Boolean} includePrivates = false
  * @returns {Array<{[key: String]: any;}>}
  */
@@ -33,7 +33,7 @@ function treeToTransferable(tree, includePrivates = false) {
 }
 
 /**
- * @param {RawBlock} block
+ * @param {Block} block
  * @returns {Boolean}
  */
 function isMetaBlock({type}) {
@@ -42,7 +42,7 @@ function isMetaBlock({type}) {
 
 /**
  * @param {String} blockId
- * @param {'mainTree'|Array<RawBlock>} from
+ * @param {'mainTree'|Array<Block>} from
  * @returns {String|null}
  */
 function getIsStoredToTreeIdFrom(blockId, from) {
@@ -57,7 +57,7 @@ function getIsStoredToTreeIdFrom(blockId, from) {
 /**
  * @param {{type: String; renderer: String; id?: String; title?: String;}} defProps
  * @param {{[key: String]: any;}} ownProps
- * @returns {RawBlock}
+ * @returns {Block}
  */
 function createBlock(defProps, ownProps) {
     const out = {
@@ -84,7 +84,7 @@ function createBlock(defProps, ownProps) {
 /**
  * @param {String|BlockTypeDefinition} blockType
  * @param {{[key: keyof]: any;}} ownProps
- * @returns {RawBlock}
+ * @returns {Block}
  */
 function createBlockFromType(blockType, defPropAdditions = {}) {
     const type = typeof blockType === 'string' ? api.blockTypes.get(blockType) : blockType;
@@ -98,7 +98,7 @@ function createBlockFromType(blockType, defPropAdditions = {}) {
 
 /**
  * @param {BlockBlueprint} blueprint
- * @returns {RawBlock}
+ * @returns {Block}
  */
 function createBlockFromBlueprint(blueprint) {
     const {blockType, initialOwnData, initialDefaultsData, initialChildren} = blueprint;
@@ -119,7 +119,7 @@ function createBlockFromBlueprint(blueprint) {
 /**
  * @param {BlockTypeDefinition} type
  * @param {{[key: String]: any;}} additions
- * @returns {RawBlock}
+ * @returns {Block}
  */
 function createDefProps(type, additions) {
     return {

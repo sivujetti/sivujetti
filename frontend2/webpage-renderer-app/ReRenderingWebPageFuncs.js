@@ -1,7 +1,7 @@
 import {traverseRecursively} from '../shared-inline.js';
 
 /**
- * @param {Array<RawBlock>} branch
+ * @param {Array<Block>} branch
  * @param {{[blockId: String]: String;}} map
  * @returns {Array<String>}
  */
@@ -27,7 +27,7 @@ function createBlockTreeHashes(branch, map) {
 }
 
 /**
- * @param {RawBlock} block
+ * @param {Block} block
  * @param {String} childArrHash
  * @returns {Number}
  */
@@ -64,7 +64,7 @@ function hashCode(str, seed = 0) {
 }
 
 /**
- * @param {RawBlock} block
+ * @param {Block} block
  */
 function stringHtmlPropToVNodeArray(block) {
     if (block.type === 'GlobalBlockReference') {

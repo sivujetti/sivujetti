@@ -90,10 +90,10 @@ class BlockTree extends preact.Component {
         </div>;
     }
     /**
-     * @param {Array<RawBlock>} branch
+     * @param {Array<Block>} branch
      * @param {Number} depth = 1
-     * @param {RawBlock} paren = null
-     * @param {RawBlock} ref = null {type:'GlobalBlockReference'...}
+     * @param {Block} paren = null
+     * @param {Block} ref = null {type:'GlobalBlockReference'...}
      */
     doRenderBranch(branch, depth = 1, paren = null, ref = null) { return branch.map((block, i) => {
         if (block.type === 'GlobalBlockReference')
@@ -207,20 +207,20 @@ class BlockTree extends preact.Component {
         this.refElOfOpenMoreMenu.style.opacity = '';
     }
     /**
-     * @param {RawBlock} openBlock
+     * @param {Block} openBlock
      * @access private
      */
     cloneBlock(openBlock) {
     }
     /**
-     * @param {RawBlock} openBlock
+     * @param {Block} openBlock
      * @access private
      */
     deleteBlock(blockVisible) {
     }
     /**
      * @param {{name: String;}} data
-     * @param {RawBlock} originalBlock The block/branch we're just turning global
+     * @param {Block} originalBlock The block/branch we're just turning global
      * @access private
      */
     doConvertBlockToGlobal(data, originalBlock) {
@@ -273,7 +273,7 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {{name: String;}} data From BlockSaveAsReusableDialog
-     * @param {RawBlock} block
+     * @param {Block} block
      * @access private
      */
     doSaveBlockAsReusable(data, block) {
@@ -310,7 +310,7 @@ class BlockTree extends preact.Component {
         });
     }
     /**
-     * @param {RawBlock} block
+     * @param {Block} block
      * @param {'direct'|'web-page'|'styles-tab'} origin = 'direct'
      * @access public
      */
@@ -334,7 +334,7 @@ class BlockTree extends preact.Component {
         this.setState({treeState: this.setBlockAsSelected(block, mutRef)});
     }
     /**
-     * @param {RawBlock} block
+     * @param {Block} block
      * @param {Boolean} blockIsGbtsOutermostBlock
      * @param {Event} e
      * @access private
@@ -351,7 +351,7 @@ class BlockTree extends preact.Component {
         });
     }
     /**
-     * @param {RawBlock} block
+     * @param {Block} block
      * @param {Object} treeStateMutRef
      * @returns {Object}
      * @access private
@@ -372,7 +372,7 @@ class BlockTree extends preact.Component {
         this.setState({treeState: mutRef});
     }
     /**
-     * @param {RawBlock} block
+     * @param {Block} block
      * @access private
      */
     toggleBranchIsCollapsed(block) {
@@ -394,9 +394,9 @@ function duplicateDeepAndReAssignIds(block) { // where to put this
 }
 
 /**
- * @param {RawBlock} original
- * @param {RawBlock} cloned
- * @returns {[Array<RawBlock>, Array<RawBlock]}
+ * @param {Block} original
+ * @param {Block} cloned
+ * @returns {[Array<Block>, Array<Block]}
  */
 function flattenBlocksRecursive(original, cloned) {
     const flatOriginal = [];
@@ -411,8 +411,8 @@ function flattenBlocksRecursive(original, cloned) {
 }
 
 /**
- * @param {RawBlock} block
- * @param {(item: BlockBlueprint, block: RawBlock) => BlockBlueprint} onEach
+ * @param {Block} block
+ * @param {(item: BlockBlueprint, block: Block) => BlockBlueprint} onEach
  * @returns {BlockBlueprint}
  */
 function blockToBlueprint(block, onEach) {

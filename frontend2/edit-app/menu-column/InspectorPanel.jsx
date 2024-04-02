@@ -1,4 +1,4 @@
-import {__, api, env, events, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, env, events, Icon} from '@sivujetti-commons-for-edit-app';
 import BlockEditForm from './block/BlockEditForm.jsx';
 
 class InspectorPanel extends preact.Component {
@@ -18,6 +18,7 @@ class InspectorPanel extends preact.Component {
         this.lastHeight = null;
         events.on('block-tree-item-clicked-or-focused', this.open.bind(this));
         events.on('dnd-block-spawner-opened', this.close.bind(this));
+        events.on('webpage-preview-iframe-before-loaded', this.close.bind(this));
     }
     /**
      * @param {Number} width
@@ -104,10 +105,9 @@ class InspectorPanel extends preact.Component {
      * Note to self: this currently supports BlockEditForm only.
      *
      * @param {Block} block
-     * @param {'direct'|'web-page'|'styles-tab'} origin = null
      * @access private
      */
-    open(block, origin = null) {
+    open(block) {
         const newRendererKey = `edit-block-tree-${block.id}`;
         if (this.rendererKey === newRendererKey) return;
         //
@@ -122,8 +122,6 @@ class InspectorPanel extends preact.Component {
             this.props.editAppOuterEl.style.height = `calc(100% - ${height}px)`;
             this.resizeHandleEl.current.style.transform = `translateY(-${height}px)`;
         }
-        events.emit('inspector-panel-revealed', this);
-        if (origin !== null && origin !== 'web-page') api.webPagePreview.scrollToBlock(block);
     }
 }
 

@@ -284,7 +284,7 @@ class BlockTree extends preact.Component {
         const updateOriginalBlockTitleOpArgs = [
             'theBlockTree',
             blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                const [blockRef] = blockTreeUtils.findBlockSmart(block.id, newTreeCopy);
+                const [blockRef] = blockTreeUtils.findBlockMultiTree(block.id, newTreeCopy);
                 blockRef.title = data.name;
                 newOriginalBlock = blockRef;
                 return newTreeCopy;
@@ -316,10 +316,11 @@ class BlockTree extends preact.Component {
      */
     handleItemClickedOrFocused(block, origin = 'direct') {
         this.selectedRoot = block;
-        signals.emit('block-tree-item-clicked-or-focused', block, origin);
+        events.emit('block-tree-item-clicked-or-focused', block, origin);
+        api.webPagePreview.scrollToBlock(block);
         //
         const mutRef = this.state.treeState;
-        const root = blockTreeUtils.findBlockSmart(block.id, this.props.blocks)[3];
+        const root = blockTreeUtils.findBlockMultiTree(block.id, this.props.blocks)[3];
         const tree = blockTreeUtils.isMainTree(root) ? root : root.blocks;
         const parentBlockIds = withParentIdPathDo(tree, (parentPath, {id}) => {
             if (id !== block.id) return null;

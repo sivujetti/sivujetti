@@ -1,4 +1,5 @@
 import {__, env, Icon, Events} from '@sivujetti-commons-for-edit-app';
+import {getMetaKey} from '../../shared-inline.js';
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../includes/global-block-trees/repository.js';
 import {historyInstance} from '../main-column/MainColumnViews.jsx';
 import {
@@ -28,6 +29,7 @@ class SaveButton extends preact.Component {
         super(props);
         this.doInvalidateAll();
         this.state = createInitialState();
+        this.addUndoKeyListener();
     }
     /**
      * @param {String} name
@@ -367,6 +369,36 @@ class SaveButton extends preact.Component {
             });
         }
         return [...map.keys()];
+    }
+    /**
+     * @access private
+     */
+    addUndoKeyListener() {
+        const metaKey = getMetaKey();
+        const undoKey = 'z';
+        let metaKeyIsPressed = false;
+        let shiftKeyIsPressed = false;
+        env.window.addEventListener('keydown', e => {
+            if (e.key === metaKey) {
+                metaKeyIsPressed = true;
+            } else if (e.key === 'Shift') {
+                shiftKeyIsPressed = true;
+            } else if (metaKeyIsPressed && e.key === undoKey) {
+                if (shiftKeyIsPressed && this.state.canRedo) {
+                    e.preventDefault(); // Prevent active input's onInput
+                    this.doRedo();
+                } else if (!shiftKeyIsPressed && this.state.canUndo) {
+                    e.preventDefault(); // Prevent active input's onInput
+                    this.doUndo();
+                }
+            }
+        });
+        env.window.addEventListener('keyup', e => {
+            if (e.key === metaKey)
+                metaKeyIsPressed = false;
+            else if (e.key === 'Shift')
+                shiftKeyIsPressed = false;
+        });
     }
     /**
      * @access private

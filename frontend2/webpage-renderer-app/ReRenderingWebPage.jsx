@@ -2,6 +2,7 @@ import {env, http, urlAndSlugUtils, urlUtils} from '@sivujetti-commons-for-web-p
 import {
     cloneDeep,
     completeImageSrc,
+    getBlockEl,
     getMetaKey,
     getNormalizedInitialHoverCandidate,
     placeholderImageSrc,
@@ -600,15 +601,6 @@ function isSubHoverable(el, currentlyHoveredBlockEl) {
         // is not child _block_ (Button for example)
         !(getBlockId(el) || '').length
     );
-}
-
-/**
- * @param {String} blockId
- * @param {HTMLElement} from = document.body
- * @returns {HTMLElement|null}
- */
-function getBlockEl(blockId, from = document.body) {
-    return from.querySelector(`[data-block="${blockId}"]`);
 }
 
 export default RenderAllOuter;

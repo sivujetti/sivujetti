@@ -56,16 +56,16 @@ function createTrier(fn,
 // ## function isMetaBlock({type}) {
 // ##     return type === 'PageInfo';
 // ## }
-
-/**
- * @param {String} blockId
- * @param {HTMLElement} from = document.body
- * @returns {HTMLElement|null}
- */
-function getBlockEl(blockId, from = document.body) {
-    return from.querySelector(`[data-block="${blockId}"]`);
-}
-
+// ## 
+// ## /**
+// ##  * @param {String} blockId
+// ##  * @param {HTMLElement} from = document.body
+// ##  * @returns {HTMLElement|null}
+// ##  */
+// ## function getBlockEl(blockId, from = document.body) {
+// ##     return from.querySelector(`[data-block="${blockId}"]`);
+// ## }
+// ## 
 // ## /**
 // ##  * @param {HTMLElement} node
 // ##  * @param {HTMLElement} root

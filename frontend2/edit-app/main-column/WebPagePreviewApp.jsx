@@ -5,6 +5,7 @@ import {
     events,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
+import {getBlockEl} from '../../shared-inline.js';
 import {isMetaBlock} from '../includes/block/utils.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 
@@ -78,8 +79,24 @@ class WebPagePreviewApp extends preact.Component {
      * @returns {Boolean} didScroll
      * @access public
      */
-    scrollToBlock(block) {
-        //
+    scrollToBlock(block, win = this.getEl().contentWindow, behavior = 'smooth') {
+        if (isMetaBlock(block)) return;
+        const body = this.getEl().contentDocument.body;
+        const getRect = firstEl => firstEl.getBoundingClientRect();
+        const inPageElRect = getRect(this.getBlockEl(block.id, body));
+        const inPageElTop = inPageElRect.top;
+        const elBottom = inPageElRect.bottom;
+        const quarterVisible = win.innerHeight / 4;
+        if (inPageElTop <= 0 && elBottom <= (quarterVisible * 3) ||
+            elBottom < 0 ||
+            inPageElTop > quarterVisible) {
+            win.scrollTo({
+                top: inPageElTop + win.scrollY - 40,
+                behavior,
+            });
+            return true;
+        }
+        return false;
     }
     /**
      * @param {Number} childElemIdx
@@ -262,7 +279,7 @@ class WebPagePreviewApp extends preact.Component {
      */
     getBlockEl(blockId) {
         const iframe = document.querySelector('.site-preview-iframe');
-        return iframe.contentDocument.querySelector(`[data-block="${blockId}"]`);
+        return getBlockEl(blockId, iframe.contentDocument);
     }
 }
 

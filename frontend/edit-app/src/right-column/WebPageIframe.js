@@ -48,30 +48,30 @@ class WebPageIframe {
     goBack() {
         env.window.history.back();
     }
-    /**
-     * @param {RawBlock} block
-     * @returns {Boolean} didScroll
-     * @access public
-     */
-    scrollToBlock(block, win = this.getEl().contentWindow, behavior = 'smooth') {
-        if (isMetaBlock(block)) return;
-        const body = this.getEl().contentDocument.body;
-        const getRect = firstEl => firstEl.getBoundingClientRect();
-        const inPageElRect = getRect(getBlockEl(block.id, body));
-        const inPageElTop = inPageElRect.top;
-        const elBottom = inPageElRect.bottom;
-        const quarterVisible = win.innerHeight / 4;
-        if (inPageElTop <= 0 && elBottom <= (quarterVisible * 3) ||
-            elBottom < 0 ||
-            inPageElTop > quarterVisible) {
-            win.scrollTo({
-                top: inPageElTop + win.scrollY - 40,
-                behavior,
-            });
-            return true;
-        }
-        return false;
-    }
+// ##     /**
+// ##      * @param {RawBlock} block
+// ##      * @returns {Boolean} didScroll
+// ##      * @access public
+// ##      */
+// ##     scrollToBlock(block, win = this.getEl().contentWindow, behavior = 'smooth') {
+// ##         if (isMetaBlock(block)) return;
+// ##         const body = this.getEl().contentDocument.body;
+// ##         const getRect = firstEl => firstEl.getBoundingClientRect();
+// ##         const inPageElRect = getRect(getBlockEl(block.id, body));
+// ##         const inPageElTop = inPageElRect.top;
+// ##         const elBottom = inPageElRect.bottom;
+// ##         const quarterVisible = win.innerHeight / 4;
+// ##         if (inPageElTop <= 0 && elBottom <= (quarterVisible * 3) ||
+// ##             elBottom < 0 ||
+// ##             inPageElTop > quarterVisible) {
+// ##             win.scrollTo({
+// ##                 top: inPageElTop + win.scrollY - 40,
+// ##                 behavior,
+// ##             });
+// ##             return true;
+// ##         }
+// ##         return false;
+// ##     }
     /**
      * @param {Number} childElemIdx
      * @param {String} textBlockId

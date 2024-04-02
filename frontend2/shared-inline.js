@@ -72,9 +72,19 @@ function cloneDeep(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
 
+/**
+ * @param {String} blockId
+ * @param {HTMLElement} from = document.body
+ * @returns {HTMLElement|null}
+ */
+function getBlockEl(blockId, from = document.body) {
+    return from.querySelector(`[data-block="${blockId}"]`);
+}
+
 export {
     cloneDeep,
     completeImageSrc,
+    getBlockEl,
     getMetaKey,
     getNormalizedInitialHoverCandidate,
     placeholderImageSrc,

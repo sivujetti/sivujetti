@@ -2,7 +2,7 @@ import {
     __,
     api,
     blockTreeUtils,
-    signals,
+    events,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
 import {isMetaBlock} from '../includes/block/utils.js';
@@ -48,7 +48,7 @@ class WebPagePreviewApp extends preact.Component {
         if (isMetaBlock(block)) return;
         const title = (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + (block.title || __(block.type));
         this.doShowHighlightRect(rect || this.getBlockEl(block.id).getBoundingClientRect(), title);
-        signals.emit('highlight-rect-revealed', block.id, origin);
+        events.emit('highlight-rect-revealed', block.id, origin);
     }
     /**
      * @param {String} blockId
@@ -172,18 +172,18 @@ class WebPagePreviewApp extends preact.Component {
                         } else if (e.data[0] === 'onBlockHoverEnded') {
                             const [_, blockId] = e.data; // [_, String]
                             this.doHideHighlightRect();
-                            signals.emit('highlight-rect-removed', blockId);
+                            events.emit('highlight-rect-removed', blockId);
                         } else if (e.data[0] === 'onTextBlockChildElHoverStarted') {
                             const [_, childIdx, textBlockBlockId] = e.data; // [_, Number, String]
                             this.highlightTextBlockChildEl(childIdx, textBlockBlockId);
-                            signals.emit('web-page-text-block-child-el-hover-started', childIdx, textBlockBlockId);
+                            events.emit('web-page-text-block-child-el-hover-started', childIdx, textBlockBlockId);
                         } else if (e.data[0] === 'onTextBlockChildElHoverEnded') {
                             this.unHighlightTextBlockChildEl();
-                            signals.emit('web-page-text-block-child-el-hover-ended');
+                            events.emit('web-page-text-block-child-el-hover-ended');
                         } else if (e.data[0] === 'onClicked') {
                             const [_, blockId] = e.data; // [_, String|null]
                             if (blockId)
-                                signals.emit('web-page-click-received', blockId);
+                                events.emit('web-page-click-received', blockId);
                         }
                     };
                     // Transfer port2 to the iframe (that sends the 'hereIsPageDataBundle')
@@ -276,15 +276,15 @@ function broadcastCurrentPageData(e) {
     const blocks = getAndInvalidate(dataBundle.page, 'blocks');
     const stylesBundle = getAndInvalidate(dataBundle.theme, 'styles');
 
-    signals.emit('webpage-preview-iframe-before-loaded');
+    events.emit('webpage-preview-iframe-before-loaded');
 
     const saveButton = api.saveButton.getInstance();
     const withId = {...stylesBundle[0], id: counter + 1};
     saveButton.initChannel('stylesBundle', withId, broadcastInitialStateToListeners);
     saveButton.initChannel('theBlockTree', blocks, broadcastInitialStateToListeners);
     saveButton.initChannel('currentPageDataBundle', dataBundle);
+    events.emit('webpage-preview-iframe-loaded');
 
-    signals.emit('webpage-preview-iframe-loaded');
 }
 
 /**

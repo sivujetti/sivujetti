@@ -1,5 +1,5 @@
 import {validationConstraints} from '../../constants.js';
-import {__, api, signals} from '../../edit-app-singletons.js';
+import {__, api, events} from '../../edit-app-singletons.js';
 import {
     FormGroup,
     hookForm,
@@ -14,17 +14,17 @@ import {getNormalizedInitialHoverCandidate} from '../../../shared-inline.js';
 let currentInstance;
 let currentHoveredNodeInfo;
 
-signals.on('web-page-text-block-child-el-hover-started', (childIdx, blockId) => {
+events.on('web-page-text-block-child-el-hover-started', (childIdx, blockId) => {
     currentHoveredNodeInfo = {childIdx, blockId};
     if (currentInstance) currentInstance.maybeHighlightEditorNode(currentHoveredNodeInfo);
 });
 
-signals.on('web-page-text-block-child-el-hover-ended', () => {
+events.on('web-page-text-block-child-el-hover-ended', () => {
     if (currentInstance) currentInstance.maybeUnHighhlightEditorNode(currentHoveredNodeInfo);
     currentHoveredNodeInfo = null;
 });
 
-signals.on('web-page-click-received', _blockEl => {
+events.on('web-page-click-received', _blockEl => {
     if (currentInstance && currentHoveredNodeInfo)
         currentInstance.maybeScrollToEditorNode(currentHoveredNodeInfo);
 });

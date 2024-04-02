@@ -4,9 +4,9 @@ import {
     blockTreeUtils,
     ContextMenu,
     env,
+    events,
     Icon,
     MenuSectionAbstract,
-    signals,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
 import {openPageDeleteDialog} from '../../main-column/popups/PageDeleteDialog.jsx';
@@ -45,7 +45,7 @@ class OnThisPageSection extends MenuSectionAbstract {
 
         this.unregistrables = [
             subsequentChangesListener,
-            signals.on('web-page-click-received',
+            events.on('web-page-click-received',
                 (blockId) => {
                     if (!blockId) return;
                     const [block] = blockTreeUtils.findBlockMultiTree(blockId, this.state.loadedPageBlocks);
@@ -53,7 +53,7 @@ class OnThisPageSection extends MenuSectionAbstract {
                     this.focusToBlockAndEmitBlockTreeClick(block, 'web-page', () => { });
                 }
             ),
-            signals.on('inspector-panel-closed', () => {
+            events.on('inspector-panel-closed', () => {
                 if (this.blockTreeRef.current)
                     this.blockTreeRef.current.deSelectAllBlocks();
             })
@@ -128,7 +128,7 @@ class OnThisPageSection extends MenuSectionAbstract {
      * @access private
      */
     startInitialPageDataGrabListener() {
-        this.unregisterPageDataGrabber = signals.on('webpage-preview-iframe-loaded', () => {
+        this.unregisterPageDataGrabber = events.on('webpage-preview-iframe-loaded', () => {
             const theTree = api.saveButton.getInstance().getChannelState('theBlockTree');
             this.doUnregisterPageDataGrabber(); // unregister
             this.setState({loadedPageBlocks: theTree});

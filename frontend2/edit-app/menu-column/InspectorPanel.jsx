@@ -1,4 +1,4 @@
-import {__, api, env, Icon, signals} from '@sivujetti-commons-for-edit-app';
+import {__, api, env, events, Icon} from '@sivujetti-commons-for-edit-app';
 import BlockEditForm from './block/BlockEditForm.jsx';
 
 class InspectorPanel extends preact.Component {
@@ -16,8 +16,8 @@ class InspectorPanel extends preact.Component {
         this.rendererKey = null;
         this.resizeHandleEl = preact.createRef();
         this.lastHeight = null;
-        signals.on('block-tree-item-clicked-or-focused', this.open.bind(this));
-        signals.on('dnd-block-spawner-opened', this.close.bind(this));
+        events.on('block-tree-item-clicked-or-focused', this.open.bind(this));
+        events.on('dnd-block-spawner-opened', this.close.bind(this));
     }
     /**
      * @param {Number} width
@@ -37,7 +37,7 @@ class InspectorPanel extends preact.Component {
         this.props.editAppOuterEl.style.height = '';
         this.rendererKey = null;
         this.lastHeight = null;
-        signals.emit('inspector-panel-closed', this);
+        events.emit('inspector-panel-closed', this);
     }
     /**
      * @access proctected
@@ -75,7 +75,7 @@ class InspectorPanel extends preact.Component {
             //
             inspectorPanelEl.style.height = `${h}px`;
             dragEl.style.transform = `translateY(-${h}px)`;
-            signals.emit('inspector-panel-height-changed', h);
+            events.emit('inspector-panel-height-changed', h);
         });
         document.addEventListener('mouseup', () => {
             if (currentHandle) {
@@ -84,7 +84,7 @@ class InspectorPanel extends preact.Component {
             }
             currentHandle = null;
         });
-        signals.on('route-changed', () => {
+        events.on('route-changed', () => {
             this.close();
         });
     }
@@ -122,7 +122,7 @@ class InspectorPanel extends preact.Component {
             this.props.editAppOuterEl.style.height = `calc(100% - ${height}px)`;
             this.resizeHandleEl.current.style.transform = `translateY(-${height}px)`;
         }
-        signals.emit('inspector-panel-revealed', this);
+        events.emit('inspector-panel-revealed', this);
         if (origin !== null && origin !== 'web-page') api.webPagePreview.scrollToBlock(block);
     }
 }

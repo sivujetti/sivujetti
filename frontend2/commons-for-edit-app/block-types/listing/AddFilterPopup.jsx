@@ -1,6 +1,6 @@
 import {env} from '@sivujetti-commons-for-web-pages';
 import {validationConstraints,} from '../../constants.js';
-import {__, api, signals} from '../../edit-app-singletons.js';
+import {__, api, events} from '../../edit-app-singletons.js';
 import {InputError} from '../../Form.jsx';
 import {Icon} from '../../Icon.jsx';
 import {timingUtils} from '../../utils.js';
@@ -274,8 +274,8 @@ class PopupPrerendered extends preact.Component {
                 this.popperInstance.update();
         };
         this.unregistrables = [
-            signals.on('left-column-width-changed', updatePopper),
-            signals.on('inspector-panel-height-changed', updatePopper)
+            events.on('left-column-width-changed', updatePopper),
+            events.on('inspector-panel-height-changed', updatePopper)
         ];
     }
     /**

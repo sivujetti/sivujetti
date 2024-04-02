@@ -2,6 +2,7 @@ import {
     __,
     api,
     env,
+    events,
     Icon,
     isUndoOrRedo,
     objectUtils,
@@ -176,11 +177,11 @@ class DnDBlockSpawner extends preact.Component {
 
             env.document.documentElement.style.setProperty('--menu-column-offset', '200px');
             this.addOrRemoveSeparatorHeightUpdater(true);
-            signals.emit('dnd-block-spawner-opened');
+            events.emit('dnd-block-spawner-opened');
         } else {
             env.document.documentElement.style.setProperty('--menu-column-offset', '0px');
             this.addOrRemoveSeparatorHeightUpdater(false);
-            signals.emit('dnd-block-spawner-closed');
+            events.emit('dnd-block-spawner-closed');
         }
         this.setState({isOpen: newIsOpen});
     }
@@ -312,9 +313,9 @@ const ordinals = [
     'Section',
     'Section2',
     'Columns',
-    'Wrapper',
     'Listing',
     'Menu',
+    'Wrapper',
     'Code',
 
     'GlobalBlockReference',

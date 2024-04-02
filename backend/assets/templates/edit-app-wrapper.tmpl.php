@@ -248,7 +248,9 @@
         <?php foreach ($userDefinedJsFiles->editApp as $relUrl): ?>
             <script src="<?= $this->assetUrl("public/{$relUrl}") ?>"></script>
         <?php endforeach; ?>
-        <script>(function ({signals}) { signals.emit('edit-app-plugins-loaded'); })(sivujettiCommonsEditApp)</script>
+        <script>(function ({events}) {
+            events.emit('edit-app-plugins-loaded');
+        })(sivujettiCommonsEditApp)</script>
         <?php if ($isFirstRun && defined("showQuickIntro")): ?>
         <script>(function () {
         const onPreviewIframeLoad = () => {
@@ -257,7 +259,7 @@
             Array.from(document.querySelectorAll('#quick-intro-outer .btn')).forEach(el => el.addEventListener('click', () => {
                 const el = document.getElementById('quick-intro-outer');
                 el.parentElement.removeChild(el);
-                sivujettiCommonsEditApp.signals.emit('quick-intro-dismissed');
+                sivujettiCommonsEditApp.events.emit('quick-intro-dismissed');
             }));
         };
         document.getElementById('site-preview-iframe').addEventListener('load', onPreviewIframeLoad);

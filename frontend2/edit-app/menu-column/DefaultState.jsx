@@ -1,4 +1,4 @@
-import {api, signals} from '../../sivujetti-commons-unified.js';
+import {api, events} from '@sivujetti-commons-for-edit-app';
 import {createTrier} from '../includes/utils.js';
 import DnDBlockSpawner from './block/DnDBlockSpawner.jsx';
 import BaseStylesSection from './default-state-sections/BaseStylesSection.jsx';

@@ -18,14 +18,14 @@ import {
     stringUtils,
     timingUtils,
 } from './utils.js';
-import Signals from '../shared-includes/Signals.js';
+import Events from '../shared-includes/Events.js';
 import './populate-block-types-map.js';
 import {makePath, makeSlug} from './local-url-utils.js';
 import {
     __,
     api,
     scssWizard,
-    signals,
+    events,
     translator,
 } from './edit-app-singletons.js';
 import {
@@ -75,6 +75,8 @@ export {
     determineModeFromPreview,
     doubleNormalizeUrl,
     env,
+    events,
+    Events,
     FileUploader,
     floatingDialog,
     FloatingDialog,
@@ -109,8 +111,6 @@ export {
     scssWizard,
     sensibleDefaults,
     setFocusTo,
-    signals,
-    Signals,
     stringUtils,
     Tabs,
     Textarea,

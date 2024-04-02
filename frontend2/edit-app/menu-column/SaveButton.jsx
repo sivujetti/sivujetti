@@ -1,4 +1,4 @@
-import {__, env, Icon, Signals} from '@sivujetti-commons-for-edit-app';
+import {__, env, Icon, Events} from '@sivujetti-commons-for-edit-app';
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../includes/global-block-trees/repository.js';
 import {historyInstance} from '../main-column/MainColumnViews.jsx';
 import {
@@ -11,8 +11,8 @@ import {
     createInitialState,
 } from './SaveButtonFuncs.js';
 
-const saveButtonSignals = new Signals;
-const saveButtonSignals2 = new Signals;
+const saveButtonEvents = new Events;
+const saveButtonEvents2 = new Events;
 
 class SaveButton extends preact.Component {
     // states;
@@ -39,7 +39,7 @@ class SaveButton extends preact.Component {
             env.console.warn(`Unknown channel "${name}". Known: ${Object.keys(handlerFactoriesMap).join(', ')}`);
             return;
         }
-        return saveButtonSignals.on(createSignalName(name), fn);
+        return saveButtonEvents.on(createSignalName(name), fn);
     }
     /**
      * @param {String} name
@@ -56,7 +56,7 @@ class SaveButton extends preact.Component {
             this.clearStateOf(name, state);
 
             if (broadcastInitialStateToListeners)
-                saveButtonSignals.emit(createSignalName(name), state, null, 'initial');
+                saveButtonEvents.emit(createSignalName(name), state, null, 'initial');
         } else throw new Error(`Unknown channel name: ${name}`);
     }
     /**
@@ -111,7 +111,7 @@ class SaveButton extends preact.Component {
      * @access public
      */
     onAfterItemsSynced(fn) {
-        return saveButtonSignals2.on('after-items-synced', fn);
+        return saveButtonEvents2.on('after-items-synced', fn);
     }
     /**
      * @access public
@@ -187,7 +187,7 @@ class SaveButton extends preact.Component {
     emitStateChange(channelName, state, userCtx, context) {
         const handler = this.channelImpls[channelName];
         handler.handleStateChange(state, userCtx, context);
-        saveButtonSignals.emit(createSignalName(channelName), state, userCtx, context);
+        saveButtonEvents.emit(createSignalName(channelName), state, userCtx, context);
     }
     /**
      * @access private
@@ -244,7 +244,7 @@ class SaveButton extends preact.Component {
                 });
             } else { // Got them all
                 this.reset(getLatestItemsOfEachChannel(queue));
-                saveButtonSignals2.emit('after-items-synced');
+                saveButtonEvents2.emit('after-items-synced');
             }
         };
         this.setState({isSubmitting: true});

@@ -393,133 +393,6 @@ class BlockTree extends preact.Component {
             width: 448,
         }, {});
     }
-    /**
-     * @access private
-     */
-    addBlockHoverHighlightListeners() {
-        const curHigh = {hovered: null, visible: null};
-        this.unregistrables.push(signals.on('highlight-rect-revealed', (blockId, origin) => {
-            if (origin !== 'web-page') return;
-            if (curHigh.hovered) clearHighlight(curHigh);
-            const {ul} = this.dragDrop;
-            const li = ul.querySelector(`li[data-block-id="${blockId}"]`);
-            if (li) {
-                curHigh.hovered = li;
-                curHigh.visible = !li.classList.contains('d-none') ? li : findVisibleLi(li, ul, li);
-                curHigh.visible.classList.add('highlighted');
-            }
-        }));
-        this.unregistrables.push(signals.on('highlight-rect-removed', blockId => {
-            if (curHigh.hovered && curHigh.hovered.getAttribute('data-block-id') === blockId) { clearHighlight(curHigh); }
-        }));
-    }
-    /**
-     * @access private
-     */
-    unHighlighCurrentlyHoveredLi() {
-        api.webPageIframe.unHighlightBlock(this.currentlyHoveredLi.getAttribute('data-block-id'));
-        this.currentlyHoveredLi = null;
-    }
-}
-
-/**
- * @param {{hovered: HTMLLIElement; visible: HTMLLIElement;}} curHigh
- */
-function clearHighlight(curHigh) {
-    curHigh.visible.classList.remove('highlighted');
-    curHigh.hovered = null;
-    curHigh.visible = null;
-}
-
-/**
- * @param {HTMLLIElement} li
- * @param {HTMLUListElement} ul
- * @param {HTMLLIElement} def
- * @returns {HTMLLIElement}
- */
-function findVisibleLi(li, ul, def) {
-    const parentBlockId = li.getAttribute('data-is-children-of');
-    if (!parentBlockId) return def;
-    const parentBlockLi = ul.querySelector(`li[data-block-id="${parentBlockId}"]`);
-    if (!parentBlockLi.classList.contains('d-none')) // found it
-        return parentBlockLi;
-    // keep looking
-    return findVisibleLi(parentBlockLi, ul, def);
-}
-
-/**
- * @param {Array<RawBlock>} blocks
- * @param {(parentIdPath: String, block: RawBlock) => any} fn
- * @param {String} parentIdPath
- * @returns {any}
- */
-function withParentIdPathDo(blocks, fn, parentIdPath = '') {
-    for (const block of blocks) {
-        const ret = fn(parentIdPath, block);
-        if (ret) return ret;
-        if (block.children.length) {
-            const ret2 = withParentIdPathDo(block.children, fn, `${parentIdPath}/${block.id}`);
-            if (ret2) return ret2;
-        }
-    }
-}
-
-/**
- * @param {String} path e.g. '/foo/bar'
- * @returns {Array<String>} e.g. ['foo', 'bar']
- */
-function splitPath(path) {
-    const pieces = path.split('/'); // '/foo/bar' -> ['', 'foo', 'bar']
-    pieces.shift();                 //            -> ['foo', 'bar']
-    return pieces;
-}
-
-/**
- * @param {Boolean} setAsHidden
- * @param {RawBlock} block
- * @param {Object} mutTreeState
- * @param {Boolean} recursive = true
- */
-function hideOrShowChildren(setAsHidden, block, mutTreeState, recursive = true) {
-    if (!block.children.length) return;
-    if (setAsHidden)
-        block.children.forEach(b2 => {
-            if (b2.type === 'GlobalBlockReference') return; // Ignore
-            mutTreeState[b2.id].isHidden = true;
-            // Always hide all children
-            if (recursive) hideOrShowChildren(true, b2, mutTreeState);
-        });
-    else
-        block.children.forEach(b2 => {
-            if (b2.type === 'GlobalBlockReference') return; // Ignore
-            mutTreeState[b2.id].isHidden = false;
-            // Show children only if it's not collapsed
-            if (recursive && !mutTreeState[b2.id].isCollapsed) hideOrShowChildren(false, b2, mutTreeState);
-        });
-}
-
-/**
- * @param {Boolean} isHidden
- * @param {RawBlock} block
- * @param {Object} mutTreeState
- * @param {Boolean} recursive = true
- */
-function setAsHidden(isHidden, block, mutTreeState, recursive = true) {
-    mutTreeState[block.id].isCollapsed = isHidden;
-    hideOrShowChildren(isHidden, block, mutTreeState, recursive);
-}
-
-/**
- * @param {Object} overrides = {}
- * @returns {BlockTreeItemState}
- */
-function createTreeStateItem(parentStateItem, overrides = {}) {
-    return Object.assign({
-        isSelected: false,
-        isCollapsed: false,
-        isHidden: parentStateItem && parentStateItem.isCollapsed,
-        isNew: false,
-    }, overrides);
 // ##    /**
 // ##     * @param {RawBlock} block
 // ##     * @param {'direct'|'web-page'|'styles-tab'} origin = 'direct'
@@ -544,8 +417,44 @@ function createTreeStateItem(parentStateItem, overrides = {}) {
 // ##        });
 // ##        this.setState({treeState: this.setBlockAsSelected(block, mutRef)});
 // ##    }
+// ##     /**
+// ##      * @access private
+// ##      */
+// ##     addBlockHoverHighlightListeners() {
+// ##         const curHigh = {hovered: null, visible: null};
+// ##         this.unregistrables.push(signals.on('highlight-rect-revealed', (blockId, origin) => {
+// ##             if (origin !== 'web-page') return;
+// ##             if (curHigh.hovered) clearHighlight(curHigh);
+// ##             const {ul} = this.dragDrop;
+// ##             const li = ul.querySelector(`li[data-block-id="${blockId}"]`);
+// ##             if (li) {
+// ##                 curHigh.hovered = li;
+// ##                 curHigh.visible = !li.classList.contains('d-none') ? li : findVisibleLi(li, ul, li);
+// ##                 curHigh.visible.classList.add('highlighted');
+// ##             }
+// ##         }));
+// ##         this.unregistrables.push(signals.on('highlight-rect-removed', blockId => {
+// ##             if (curHigh.hovered && curHigh.hovered.getAttribute('data-block-id') === blockId) { clearHighlight(curHigh); }
+// ##         }));
+// ##     }
+// ##    /**
+// ##     * @access private
+// ##     */
+// ##    unHighlighCurrentlyHoveredLi() {
+// ##        api.webPageIframe.unHighlightBlock(this.currentlyHoveredLi.getAttribute('data-block-id'));
+// ##        this.currentlyHoveredLi = null;
+// ##    }
 }
 
+// ## /**
+// ##  * @param {{hovered: HTMLLIElement; visible: HTMLLIElement;}} curHigh
+// ##  */
+// ## function clearHighlight(curHigh) {
+// ##     curHigh.visible.classList.remove('highlighted');
+// ##     curHigh.hovered = null;
+// ##     curHigh.visible = null;
+// ## }
+// ## 
 // ## /**
 // ##  * @param {HTMLLIElement} li
 // ##  * @param {HTMLUListElement} ul
@@ -589,35 +498,53 @@ function createTreeStateItem(parentStateItem, overrides = {}) {
 // ##     return pieces;
 // ## }
 
-/**
- * @param {Array<RawBlock>} tree
- * @returns {RawBlock|null}
- */
-function getMainContent(tree) {
-    let headerIndex = null;
-    tree.forEach((block, i) => {
-        if (block.type === 'GlobalBlockReference') return;
-        if (headerIndex === null && block.title.toLowerCase().indexOf('header') > -1)
-            headerIndex = i;
-    });
-    if (headerIndex !== null) {
-        const next = tree[headerIndex + 1];
-        if (next && next.children.length) // next + next + ... ?
-            return next;
-    }
-    if (tree.length === 4) {
-        const [maybPageInfo, maybeMainMenu, maybeMainContent, maybeFooter] = tree;
-        if (
-            maybPageInfo.type === 'PageInfo' &&
-            (maybeMainMenu.type === 'GlobalBlockReference' && blockTreeUtils.findRecursively(maybeMainMenu.__globalBlockTree.blocks, b=>b.type==='Menu')) &&
-            maybeMainContent.children.length &&
-            (maybeFooter.type === 'GlobalBlockReference' && (maybeFooter.__globalBlockTree.blocks[0] || {}).title.toLowerCase().indexOf('footer') > -1)
-        ) return maybeMainContent;
-    }
-    if (tree.length === 2 && tree[0].type === 'PageInfo' && tree[1].children.length)
-        return tree[1];
-    return null;
-}
+// ## /**
+// ##  * @param {Boolean} setAsHidden
+// ##  * @param {RawBlock} block
+// ##  * @param {Object} mutTreeState
+// ##  * @param {Boolean} recursive = true
+// ##  */
+// ## function hideOrShowChildren(setAsHidden, block, mutTreeState, recursive = true) {
+// ##     if (!block.children.length) return;
+// ##     if (setAsHidden)
+// ##         block.children.forEach(b2 => {
+// ##             if (b2.type === 'GlobalBlockReference') return; // Ignore
+// ##             mutTreeState[b2.id].isHidden = true;
+// ##             // Always hide all children
+// ##             if (recursive) hideOrShowChildren(true, b2, mutTreeState);
+// ##         });
+// ##     else
+// ##         block.children.forEach(b2 => {
+// ##             if (b2.type === 'GlobalBlockReference') return; // Ignore
+// ##             mutTreeState[b2.id].isHidden = false;
+// ##             // Show children only if it's not collapsed
+// ##             if (recursive && !mutTreeState[b2.id].isCollapsed) hideOrShowChildren(false, b2, mutTreeState);
+// ##         });
+// ## }
+// ## 
+// ## /**
+// ##  * @param {Boolean} isHidden
+// ##  * @param {RawBlock} block
+// ##  * @param {Object} mutTreeState
+// ##  * @param {Boolean} recursive = true
+// ##  */
+// ## function setAsHidden(isHidden, block, mutTreeState, recursive = true) {
+// ##     mutTreeState[block.id].isCollapsed = isHidden;
+// ##     hideOrShowChildren(isHidden, block, mutTreeState, recursive);
+// ## }
+// ## 
+// ## /**
+// ##  * @param {Object} overrides = {}
+// ##  * @returns {BlockTreeItemState}
+// ##  */
+// ## function createTreeStateItem(parentStateItem, overrides = {}) {
+// ##     return Object.assign({
+// ##         isSelected: false,
+// ##         isCollapsed: false,
+// ##         isHidden: parentStateItem && parentStateItem.isCollapsed,
+// ##         isNew: false,
+// ##     }, overrides);
+// ## }
 // ## 
 // ## /**
 // ##  * @param {Array<RawBlock>} tree
@@ -657,19 +584,49 @@ function getMainContent(tree) {
 // ##     }
 // ##     return out;
 // ## }
+// ## 
+// ## /**
+// ##  * @param {Array<RawBlock>} tree
+// ##  * @returns {RawBlock|null}
+// ##  */
+// ## function getMainContent(tree) {
+// ##     let headerIndex = null;
+// ##     tree.forEach((block, i) => {
+// ##         if (block.type === 'GlobalBlockReference') return;
+// ##         if (headerIndex === null && block.title.toLowerCase().indexOf('header') > -1)
+// ##             headerIndex = i;
+// ##     });
+// ##     if (headerIndex !== null) {
+// ##         const next = tree[headerIndex + 1];
+// ##         if (next && next.children.length) // next + next + ... ?
+// ##             return next;
+// ##     }
+// ##     if (tree.length === 4) {
+// ##         const [maybPageInfo, maybeMainMenu, maybeMainContent, maybeFooter] = tree;
+// ##         if (
+// ##             maybPageInfo.type === 'PageInfo' &&
+// ##             (maybeMainMenu.type === 'GlobalBlockReference' && blockTreeUtils.findRecursively(maybeMainMenu.__globalBlockTree.blocks, b=>b.type==='Menu')) &&
+// ##             maybeMainContent.children.length &&
+// ##             (maybeFooter.type === 'GlobalBlockReference' && (maybeFooter.__globalBlockTree.blocks[0] || {}).title.toLowerCase().indexOf('footer') > -1)
+// ##         ) return maybeMainContent;
+// ##     }
+// ##     if (tree.length === 2 && tree[0].type === 'PageInfo' && tree[1].children.length)
+// ##         return tree[1];
+// ##     return null;
+// ## }
 
-/**
- * @param {RawBlock} block
- * @param {BlockType} type
- * @returns {String}
- */
-function getShortFriendlyName(block, type) {
-    if (block.title)
-        return block.title;
-    const translated = __(type.friendlyName);
-    const pcs = translated.split(' ('); // ['Name', 'PluginName)'] or ['Name']
-    return pcs.length < 2 ? translated : pcs[0];
-}
+// ## /**
+// ##  * @param {RawBlock} block
+// ##  * @param {BlockType} type
+// ##  * @returns {String}
+// ##  */
+// ## function getShortFriendlyName(block, type) {
+// ##     if (block.title)
+// ##         return block.title;
+// ##     const translated = __(type.friendlyName);
+// ##     const pcs = translated.split(' ('); // ['Name', 'PluginName)'] or ['Name']
+// ##     return pcs.length < 2 ? translated : pcs[0];
+// ## }
 
 // ## /**
 // ##  * @param {RawBlock} block

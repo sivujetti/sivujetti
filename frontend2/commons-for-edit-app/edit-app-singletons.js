@@ -1,4 +1,4 @@
-import Signals from '../shared-includes/Signals.js';
+import Events from '../shared-includes/Events.js';
 import BlockTypesRegister from './BlockTypesRegister.js';
 import MainMenuPanelApi from './MainMenuPanelApi.js';
 import ScssWizard from './ScssWizard.js';
@@ -7,7 +7,7 @@ import {stringUtils} from './utils.js';
 
 const editAppBlockTypeRegister = new BlockTypesRegister;
 
-const editAppSignalsInstance = new Signals;
+const editAppEventsInstance = new Events;
 
 const editAppTranslatorInstance = new Translator;
 const __ = editAppTranslatorInstance.t.bind(editAppTranslatorInstance);
@@ -63,7 +63,7 @@ export {
     __,
     api,
     editAppBlockTypeRegister as blockTypesRegister,
+    editAppEventsInstance as events,
     editAppScssWizardInstance as scssWizard,
-    editAppSignalsInstance as signals,
     editAppTranslatorInstance as translator,
 };

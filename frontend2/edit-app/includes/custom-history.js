@@ -1,15 +1,15 @@
-import {env, Signals} from '../../sivujetti-commons-unified.js';
+import {env, Events} from '@sivujetti-commons-for-edit-app';
 
 class HashHistory {
     // path;
-    // signals;
+    // events;
     // confirmNextNavMessage;
     // doRevertNextHashChange;
     /**
      */
     constructor() {
         this.path = this.parsePath();
-        this.signals = new Signals;
+        this.events = new Events;
         this.confirmNextNavMessage = null;
         this.doRevertNextHashChange = false;
         env.window.addEventListener('popstate', () => {
@@ -23,7 +23,7 @@ class HashHistory {
             if (e.newURL !== e.oldURL) {
                 if (!this.doRevertNextHashChange) {
                     this.path = this.parsePath();
-                    this.signals.emit('dummy', {...this.path});
+                    this.events.emit('dummy', {...this.path});
                 } else {
                     history.replaceState(null, null, e.oldURL);
                 }
@@ -65,7 +65,7 @@ class HashHistory {
      * @access public
      */
     listen(listener) {
-        return this.signals.on('dummy', listener);
+        return this.events.on('dummy', listener);
     }
     /**
      * https://github.com/remix-run/history/blob/c9bc27dfcf81f540ee275978f651d3fed27e93a9/packages/history/index.ts#L1069

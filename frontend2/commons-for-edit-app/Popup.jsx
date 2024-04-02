@@ -1,5 +1,5 @@
 import {Icon} from './Icon.jsx';
-import {__, signals} from './edit-app-singletons.js';
+import {__, events} from './edit-app-singletons.js';
 
 class Popup extends preact.Component {
     // rendererCmp;
@@ -57,8 +57,8 @@ class Popup extends preact.Component {
                     this.popperInstance.update();
             };
             this.unregistrables = [
-                signals.on('left-column-width-changed', updatePopper),
-                signals.on('inspector-panel-height-changed', updatePopper)
+                events.on('left-column-width-changed', updatePopper),
+                events.on('inspector-panel-height-changed', updatePopper)
             ];
         }
     }

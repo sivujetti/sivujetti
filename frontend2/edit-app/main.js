@@ -2,7 +2,7 @@
 An entry point for global file "public/sivujetti/sivujetti-edit-app.js" that is
 included in edit-app's template (edit-app-wrapper.tmpl.php).
 */
-import {api, FloatingDialog, scssWizard, translator} from '@sivujetti-commons-for-edit-app';
+import {api, FloatingDialog, scssWizard} from '@sivujetti-commons-for-edit-app';
 import EditApp from './EditApp.jsx';
 import WebPagePreviewApp from './main-column/WebPagePreviewApp.jsx';
 import MainColumnViews from './main-column/MainColumnViews.jsx';
@@ -75,7 +75,7 @@ function configureApis() {
     };
     // Translations (`__`-function)
     window.translationStringBundles.forEach(strings => {
-        translator.addStrings(strings);
+        api.registerTranslationStrings(strings);
     });
     //
     patchQuillEditor();

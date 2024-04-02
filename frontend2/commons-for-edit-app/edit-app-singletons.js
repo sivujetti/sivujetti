@@ -46,6 +46,7 @@ const api = {
         getInstance() { return this._instance; }
     },
     user: editAppUserApiInstance,
+    registerTranslationStrings: editAppTranslatorInstance.addStrings.bind(editAppTranslatorInstance),
     webPagePreview: { // Will be replaced by sivujetti-edit-app-main.jsx
         getEl() { return document.body.querySelector('.site-preview-iframe'); },
         updateCss(/*allMediaScopesCss*/) { },

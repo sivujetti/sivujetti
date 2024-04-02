@@ -1,7 +1,9 @@
 interface SivujettiFrontendApi {
+    getPageTypes(): Array<PageType>;
+    getBlockRenderers(): Array<BlockRenderer>;
+    getAvailableUpdatePackages(): () => Array<String>;
+    menuPanel: MenuPanel;
     blockTypes: BlockTypesRegister;
-    webPageIframe: WebPageIframe;
-    mainPanel: MainPanel;
     inspectorPanel: {
         getOuterEl(): HTMLElement;
         close(): void;
@@ -13,10 +15,6 @@ interface SivujettiFrontendApi {
             // todo
         };
     };
-    registerTranslationStrings(strings: {[key: String]: String}): void;
-    getPageTypes(): Array<PageType>;
-    getBlockRenderers(): Array<BlockRenderer>;
-    getActiveTheme(): {id: String;};
     user: {
         can(doWhat: 'doAnything'|'editGlobalStylesVisually'|'editBlockCss'|'createPageTypes'|'createPages'|'createReusableBranches'|'createGlobalBlockTrees'|'specializeGlobalBlocks'|'editTheWebsitesBasicInfo'|'editTheWebsitesGlobalScripts'|'listUploads'): Boolean;
         getRole(): Number;
@@ -27,10 +25,9 @@ interface SivujettiFrontendApi {
         ROLE_AUTHOR: Number;
         ROLE_CONTRIBUTOR: Number;
         ROLE_FOLLOWER: Number;
-    }
-    events: todo;
-    registerBlockTreeMutator(event: String, getMutationsFn: (event: String, theBlockTree: Array<Block>, blockTreeUtils: blockTreeUtils) => Array<{blockId: String; changes: {[key: String]: any;};}>): void;
-    getAvailableUpdatePackages: () => Array<String>;
+    };
+    registerTranslationStrings(strings: {[key: String]: String}): void;
+    webPagePreview: WebPagePreviewApp;
 }
 
 interface OpQueueOp {
@@ -44,39 +41,22 @@ interface OpQueueOp {
 
 interface WebPagePreviewApp {
     getEl(): HTMLIFrameElement;
-    reRenderAllBlocks(theTree: Array<Block>): void;
-    reRenderAllBlocks(block: Block, theTree: Array<Block>): void;
-    updateCss(allMediaScopesCss: [String, String, String, String, String]): void;
-    updateCssFast(blockId: String, mediaScopeId: mediaScope, cssPropandval: String): void;
-    highlightBlock(block: Block, origin: 'web-page'|'block-tree', rect: DOMRect = null): void;
-    unHighlightBlock(blockId: String): void;
-    highlightTextBlockChildEl(elIdx: Number, textBlockBlockId: String): void;
-    unHighlightTextBlockChildEl(): void;
-    scrollToBlock(block: Block): Boolean;
-    scrollToTextBlockChildEl(childElemIdx: Number, textBlockBlockId: String): void;
-}
-
-interface WebPageIframe {
-    renderNormalPage(slug: String): Promise<EditAppAwareWebPage>;
-    renderPlaceholderPage(pageTypeName: String, layoutId: String = '1', slug: String = ''): Promise<EditAppAwareWebPage>;
-    goBack(): void;
-    scrollToBlock(block: Block): Boolean;
-    scrollToTextBlockChildEl(childElemIdx: Number, textBlockBlockId: String): void;
-    highlightBlock(block: Block): void;
-    unHighlightBlock(blockId: String): void;
-    highlightTextBlockChildEl(elIdx: Number, textBlockBlockId: String);
-    unHighlightTextBlockChildEl();
-    getEl(): HTMLIFrameElement;
-    registerWebPageDomUpdaterForBlockTree(trid: String): void;
-    unRegisterWebPageDomUpdaterForBlockTree(trid: String): void;
+    updateCss(/*allMediaScopesCss*/): todo;
+    updateCssFast(/*selector, mediaScopeId, cssPropandval*/): todo;
+    highlightBlock(block: Block): todo;
+    unHighlightBlock(blockId: String): todo;
+    unHighlightTextBlockChildEl(): todo;
+    scrollToBlock(block: Block): todo;
+    highlightTextBlockChildEl(elIdx: Number, textBlockBlockId: String): todo;
+    onReady(/*fn*/): todo;
 }
 
 type mainPanelSectionElName = 'onThisPage'|'baseStyles';
 
-interface MainPanel {
+interface MenuPanel {
     scrollTo(blockId: String, behavior: 'smooth'|'auto' = 'smooth');
     scrollToSection(name: mainPanelSectionElName, behavior: 'smooth'|'auto' = 'smooth');
-    getEl(): HTMLElement;
+    getOuterEl(): HTMLElement;
     getSectionEl(name: mainPanelSectionElName): HTMLElement;
     registerSection(name: String, Cls: preact.AnyComponent): void;
     getSection(name: String, doThrowIfNotFound: Boolean = false): preact.AnyComponent;

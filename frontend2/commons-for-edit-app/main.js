@@ -4,7 +4,6 @@ can be imported by custom plugins (and the edit app).
 */
 import {env, http, urlUtils} from '@sivujetti-commons-for-web-pages';
 import setFocusTo from './auto-focusers.js';
-import BlockDefaultStylesEditForm from './BlockDefaultStylesEditForm.jsx';
 import ContextMenu from './ContextMenu.jsx';
 import FileUploader from './FileUploader.jsx';
 import {FloatingDialog, currentInstance as floatingDialog} from './FloatingDialog.jsx';
@@ -51,10 +50,6 @@ import {putToLocalStorage, getFromLocalStorage, getAndPutAndGetToLocalStorage} f
 import blockTreeUtils from './block/tree-utils.js';
 import {writeBlockProps} from './block/utils.js';
 import {
-    createScssTodoname,
-    mediaScopes,
-} from './ScssWizard.js';
-import {
     determineModeFrom,
     determineModeFromPreview,
     doubleNormalizeUrl,
@@ -62,15 +57,18 @@ import {
 } from './pick-url-utils.js';
 import {placeholderImageSrc, traverseRecursively} from '../shared-inline.js';
 import Popup from './Popup.jsx';
+import {mediaScopes} from './ScssWizard.js';
+import {createCssDeclExtractor} from './ScssWizardFuncs.js';
+import BlockVisualStylesEditForm from './BlockVisualStylesEditForm.jsx';
 
 export {
     __,
     api,
-    BlockDefaultStylesEditForm,
     blockTreeUtils,
+    BlockVisualStylesEditForm,
     ColorPickerInput,
     ContextMenu,
-    createScssTodoname,
+    createCssDeclExtractor,
     determineModeFrom,
     determineModeFromPreview,
     doubleNormalizeUrl,

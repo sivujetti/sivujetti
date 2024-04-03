@@ -1,16 +1,16 @@
 import {__} from '../../edit-app-singletons.js';
 import TextBlockEditForm from './TextBlockEditForm.jsx';
-import TextBlockDefaultStylesEditForm from './TextStylesEditForm.jsx';
+import TextBlockVisualStylesEditForm from './TextBlockVisualStylesEditForm.jsx';
 
 export default {
     name: 'Text',
     friendlyName: 'Text',
     icon: 'blockquote',
     editForm: TextBlockEditForm,
-    stylesEditForm: TextBlockDefaultStylesEditForm,
+    stylesEditForm: TextBlockVisualStylesEditForm,
     createOwnProps(/*defProps*/) {
         return {
-            html: [{el: 'p', attrs: [], 'children': [`${__('Text content')}.`]}],
+            html: `<p>${__('Text content')}.</p>`,
         };
     }
 };

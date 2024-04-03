@@ -516,10 +516,16 @@ interface StyleChunk {
     scss: String;
     scope: {
         block: 'todo';
-        layer: sasdsid;
+        layer: stylesLayer;
         media: 'todo';
     };
 }
+
+interface CssVarsMap {
+    [varName: String]: String;
+}
+
+type stylesLayer = 'user-styles'|'dev-styles'|'todo';
 
 type mediaScope = 'all'|'960'|'840'|'600'|'480'|String;
 

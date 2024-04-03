@@ -1,7 +1,14 @@
 import {
     createSelector,
 } from './ScssWizardFuncs.js';
-const {compile, serialize, stringify} = window.stylis;
+
+const mediaScopes = [
+    'all',
+    '960', // lg
+    '840', // md
+    '600', // sm
+    '480', // xs
+];
 
 class ScssWizard {
     // stateId;
@@ -45,6 +52,57 @@ class ScssWizard {
             style.scope.block === blockScope && style.scss.startsWith(lookFor) && fn(style)
         );
     }
+    /**
+     * @param {String} blockScope
+     * @param {String} blockIdOrType
+     * @param {mediaScope} mediaScope = 'all'
+     * @param {stylesLayer} layer = 'user-styles'
+     * @returns {StyleChunk}
+     * @access public
+     */
+    findStyle(blockScope, blockIdOrType, mediaScope = 'all', layer = 'user-styles') {
+        const lookFor = createSelector(blockIdOrType, blockScope);
+        const found = this.styles.find(({scope, scss}) =>
+            scope.block === blockScope && scope.media === mediaScope && scope.layer === layer && scss.startsWith(lookFor)
+        );
+        return found;
+    }
+    /**
+     * @param {String} scssChunk
+     * @param {StyleChunk} currentStyle
+     * @param {mediaScope} mediaScope = 'all'
+     * @access public
+     */
+    tryToUpdateUniqueScopeScssChunkAndReturnAllRecompiled(scssChunk, currentStyle, mediaScope = 'all') {
+        // todo
+    }
+     * @param {String} scssChunkToDelete
+     * @param {StyleChunk} currentStyle
+     * @param {mediaScope} mediaScope = 'all'
+     * @access public
+     */
+    tryToDeleteUniqueScopeScssChunkAndReturnAllRecompiled(scssChunkToDelete, currentStyle, mediaScope = 'all') {
+        // todo
+    }
+    /**
+     * @param {String} newScssChunk Examples: 'color: red', 'ul li {\n  flex: 0 0 100%;\n}'
+     * @param {String} blockId
+     * @param {mediaScope} mediaScope = 'all'
+     * @access public
+     */
+    tryToAddFirstUniqueScopeScssChunkAndReturnAllRecompiled(newScssChunk, blockId, mediaScope = 'all') {
+        // todo
+    }
+    /**
+     * @param {String} scssChunkToAdd
+     * @param {StyleChunk} currentStyle
+     * @param {mediaScope} mediaScope = 'all'
+     * @access public
+     */
+    tryToAddUniqueScopeScssChunkAndReturnAllRecompiled(scssChunkToAdd, currentStyle, mediaScope = 'all') {
+        // todo
+    }
 }
 
 export default ScssWizard;
+export {mediaScopes};

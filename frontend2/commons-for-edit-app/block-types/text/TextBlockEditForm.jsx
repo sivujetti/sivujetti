@@ -7,7 +7,6 @@ import {
     unhookForm,
 } from '../../Form.jsx';
 import QuillEditor from '../../QuillEditor.jsx';
-import {isUndoOrRedo} from '../../utils.js';
 import setFocusTo from '../../auto-focusers.js';
 import {getNormalizedInitialHoverCandidate} from '../../../shared-inline.js';
 
@@ -20,7 +19,7 @@ events.on('web-page-text-block-child-el-hover-started', (childIdx, blockId) => {
 });
 
 events.on('web-page-text-block-child-el-hover-ended', () => {
-    if (currentInstance) currentInstance.maybeUnHighhlightEditorNode(currentHoveredNodeInfo);
+    if (currentInstance) currentInstance.maybeUnHighlightEditorNode(currentHoveredNodeInfo);
     currentHoveredNodeInfo = null;
 });
 
@@ -59,7 +58,7 @@ class TextBlockEditForm extends preact.Component {
      * @param {HoverNodeInfo} info
      * @access public
      */
-    maybeUnHighhlightEditorNode(info) {
+    maybeUnHighlightEditorNode(info) {
         if (info.blockId !== this.props.block.id) return;
         const cur = this.editor.current.quill.root.querySelector(':scope > [data-hovered]');
         if (cur) cur.removeAttribute('data-hovered');
@@ -85,7 +84,7 @@ class TextBlockEditForm extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.block !== this.props.block && isUndoOrRedo(props.lastBlockTreeChangeEventInfo.ctx) &&
+        if (props.block !== this.props.block && props.lastBlockTreeChangeEventInfo.isUndoOrRedo &&
             this.props.block.html !== props.block.html) {
             this.editor.current.replaceContents(
                 props.block.html,

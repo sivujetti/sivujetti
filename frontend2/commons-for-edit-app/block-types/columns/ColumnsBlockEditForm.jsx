@@ -1,5 +1,3 @@
-
-import {env} from '@sivujetti-commons-for-web-pages';
 import setFocusTo from '../../auto-focusers.js';
 import {__} from '../../edit-app-singletons.js';
 import {
@@ -10,7 +8,6 @@ import {
     reHookValues,
     unhookForm,
 } from '../../Form.jsx';
-import {isUndoOrRedo} from '../../utils.js';
 
 class ColumnsBlockEditForm extends preact.Component {
     // numColumnsEl;
@@ -49,7 +46,7 @@ class ColumnsBlockEditForm extends preact.Component {
         const {block} = props;
         if (block === this.props.block)
             return;
-        if (isUndoOrRedo(props.lastBlockTreeChangeEventInfo.ctx) && this.state.values.numColumns !== block.numColumns)
+        if (props.lastBlockTreeChangeEventInfo.isUndoOrRedo && this.state.values.numColumns !== block.numColumns)
             reHookValues(this, [{name: 'numColumns', value: block.numColumns}]);
         if (this.state.takeFullWidth !== block.takeFullWidth)
             this.setState({takeFullWidth: block.takeFullWidth});

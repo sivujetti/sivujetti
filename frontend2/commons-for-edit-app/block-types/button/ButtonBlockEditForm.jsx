@@ -9,7 +9,6 @@ import {
 import QuillEditor from '../../QuillEditor.jsx';
 import setFocusTo from '../../auto-focusers.js';
 import {validationConstraints} from '../../constants.js';
-import {isUndoOrRedo} from '../../utils.js';
 import PickUrlInputGroup from '../../includes-internal/PickUrlInputGroup.jsx';
 
 const tagTypes = Object.freeze({
@@ -72,7 +71,7 @@ class ButtonBlockEditForm extends preact.Component {
     componentWillReceiveProps(props) {
         const {block} = props;
         if (block !== this.props.block) {
-            if (isUndoOrRedo(props.lastBlockTreeChangeEventInfo.ctx) &&
+            if (props.lastBlockTreeChangeEventInfo.isUndoOrRedo &&
                 this.props.block.html !== block.html) {
                 this.editor.current.replaceContents(
                     block.html,

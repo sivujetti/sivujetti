@@ -306,11 +306,15 @@ interface ContextMenuLink {
 
 type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undoUpdateDefPropsOf'|'theBlockTree/deleteBlock'|'theBlockTree/addBlockOrBranch'|'theBlockTree/updatePropsOf'|'theBlockTree/updateDefPropsOf'|'theBlockTree/cloneItem';
 
-type blockPropValueChangeFlags = 'is-throttled'|'is-group'|null;
+type blockPropValueChangeFlags = 'is-throttled'|'is-group'|'is-initial'|null;
 
 interface BlockEditFormProps {
     block: Block;
-    lastBlockTreeChangeEventInfo: tod;
+    lastBlockTreeChangeEventInfo: {
+        ctx: stateChangeContext;
+        flags: blockPropValueChangeFlags;
+        isUndoOrRedo: Boolean;
+    };
     emitValueChanged(val: any, key: String, ...varargs): void;
     emitValueChangedThrottled(val: any, key: String, hasErrors: Boolean = false, source: 'default'|'undo'|null = null): void;
     emitManyValuesChanged(changes: {[key: String]: any;}, hasErrors: Boolean = false, flags: blockPropValueChangeFlags = null);

@@ -60,10 +60,15 @@ class BlockEditForm extends preact.Component {
                 ctx === 'undo'
             );
             if (doCheckDiffForEditForm) {
-                const block = doCheckDiffForEditForm ? blockTreeUtils.findBlockMultiTree(this.state.blockCopyForEditForm.id, theTree)[0] : null;
+                const block = doCheckDiffForEditForm
+                    ? blockTreeUtils.findBlockMultiTree(this.state.blockCopyForEditForm.id, theTree)[0]
+                    : null;
                 if (!block || this.state.blockCopyForEditForm.id !== block.id) return;
                 if (JSON.stringify(this.state.blockCopyForEditForm.propsData) !== JSON.stringify(block.propsData)) {
-                    this.setState({blockCopyForEditForm: objectUtils.cloneDeep(block), lastBlockTreeChangeEventInfo: {ctx, flags}});
+                    this.setState({
+                        blockCopyForEditForm: objectUtils.cloneDeep(block),
+                        lastBlockTreeChangeEventInfo: {ctx, flags, isUndoOrRedo: isUndoOrRedo(ctx)}
+                    });
                 }
             }
             //
@@ -119,23 +124,23 @@ class BlockEditForm extends preact.Component {
                         <EditFormImpl
                             block={ blockCopyForEditForm }
                             lastBlockTreeChangeEventInfo={ lastBlockTreeChangeEventInfo }
-                            emitValueChanged={ (val, key, ...varargs) => { this.handleValueValuesChanged({[key]: val}, ...varargs); } }
+                            emitValueChanged={ (val, key, ...varargs) => { this.handleValuesChanged({[key]: val}, ...varargs); } }
                             emitValueChangedThrottled={ (val, key, hasErrors = false, source = null) => {
                                 if (!this.emitValuesChangeThrottled)
                                     this.emitValuesChangeThrottled = timingUtils.debounce(changes => {
-                                        this.handleValueValuesChanged(changes, false, null);
+                                        this.handleValuesChanged(changes, false, null);
                                     }, env.normalTypingDebounceMillis);
 
                                 if (!isUndoOrRedo(source)) {
                                     if (hasErrors) throw new Error('todo');
                                     const changes = {[key]: val};
                                     // Emit "fast"/mergeable op
-                                    this.handleValueValuesChanged(changes, false, 'is-throttled');
+                                    this.handleValuesChanged(changes, false, 'is-throttled');
                                     // Call throttled func, which emits the "slow"/commit op
                                     this.emitValuesChangeThrottled(changes);
                                 }
                             } }
-                            emitManyValuesChanged={ this.handleValueValuesChanged.bind(this) }
+                            emitManyValuesChanged={ this.handleValuesChanged.bind(this) }
                             key={ block.id }
                             { ...(block.type !== 'Section2' ? {} : {stylesStateId: this.state.stylesStateId}) }/>
                     );
@@ -169,7 +174,7 @@ class BlockEditForm extends preact.Component {
      * @param {blockPropValueChangeFlags} flags = null
      * @access public
      */
-    handleValueValuesChanged(changes, hasErrors = false, flags = null) {
+    handleValuesChanged(changes, hasErrors = false, flags = null) {
         if (this.state.currentTabIdx > 0) return;
 
         const saveButton = api.saveButton.getInstance();
@@ -271,6 +276,8 @@ function createState(newTabIdx, tabsInfo, thisPropsBlock) {
  */
 function createInitialTabIdx(savedIdx, tabsInfo, userCanEditCss) {
     const tabIdx1 = getLargestAllowedTabIdx(savedIdx, userCanEditCss);
+    if (tabIdx1 === 1 && tabsInfo.some(({kind}) => kind === 'content+user-styles'))
+        return 0;
     return Math.min(tabIdx1, tabsInfo.length - 1);
 }
 

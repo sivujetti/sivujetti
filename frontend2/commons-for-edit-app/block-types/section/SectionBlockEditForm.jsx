@@ -4,7 +4,6 @@ import setFocusTo from '../../auto-focusers.js';
 import {__} from '../../edit-app-singletons.js';
 import {FormGroupInline} from '../../Form.jsx';
 import ImagePicker from '../../ImagePicker.jsx';
-import {isUndoOrRedo} from '../../utils.js';
 
 class SectionBlockEditForm extends preact.Component {
     // imagePicker;
@@ -27,7 +26,7 @@ class SectionBlockEditForm extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.block !== this.props.block && isUndoOrRedo(props.lastBlockTreeChangeEventInfo.ctx) &&
+        if (props.block !== this.props.block && props.lastBlockTreeChangeEventInfo.isUndoOrRedo &&
             this.state.bgImageSrc !== props.block.bgImage) {
             this.setState({bgImageSrc: props.block.bgImage});
         }

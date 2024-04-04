@@ -436,7 +436,6 @@ final class PagesController {
         $_ = new UserTheme($themeAPI); // Note: mutates $apiCtx->userDefinesAssets|etc
         //
         self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo, $appEnv->di);
-        $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
         $editModeIsOn = $isPlaceholderPage || ($req->queryVar("in-edit") !== null);
         if (!defined("USE_NEW_RENDER_FEAT")) {
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
@@ -458,7 +457,23 @@ final class PagesController {
         ]);
         } else {
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page, $editModeIsOn);
-        $theWebsite->activeTheme->loadStyles($editModeIsOn);
+        $theWebsite->activeTheme->loadStyles($editModeIsOn
+            ? function (string $mediaScopeId, string $themeName): string {
+                $fPath = SIVUJETTI_INDEX_PATH . "public/{$themeName}-generated-sizes-{$mediaScopeId}.css";
+                return file_exists($fPath)
+                    ? (
+                        explode(
+                            "\n/* ==== Generated styles end ==== */\n",
+                            explode(
+                                "\n/* ==== Generated styles start ==== */\n",
+                                file_get_contents($fPath)
+                            )[1]
+                        )[0]
+                    )
+                    : "";
+            }
+            : null
+        );
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
             ["serverHost" => self::getServerHost($req)],

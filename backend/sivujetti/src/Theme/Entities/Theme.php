@@ -12,7 +12,7 @@ final class Theme extends \stdClass {
     public string $name;
     /** @var object[] [{name: string, friendlyName: string, value: {type: "color", value: string[]}}] */
     public array $globalStyles;
-    /** @var \Sivujetti\Theme\Entities\Style[] */
+    /** @var object[] array<int, {userScss: todo, compiled: [string, string, string, string, string]}|\Sivujetti\Theme\Entities\Style> */
     public array $styles;
     /** @var string[] ["_body_", "j-Text" ...] */
     public array $stylesOrder;
@@ -37,12 +37,15 @@ final class Theme extends \stdClass {
         return $out;
     }
     /**
-     * @param bool $full
+     * @param bool|\Closure $arg $arg full|loader
      */
-    public function loadStyles(bool $full): void {
+    public function loadStyles(bool|\Closure $arg = null): void {
         if (!$this->__stash) return;
         $row = $this->__stash[0];
         $this->stylesLastUpdatedAt = (int) $row->themeStylesLastUpdatedAt;
+
+        if (!defined("USE_NEW_RENDER_FEAT")) {
+        $full = $arg;
         if ($full) {
             $this->globalStyles = JsonUtils::parse($row->themeGlobalStylesJson);
             $this->stylesOrder = JsonUtils::parse($row->themeStylesOrderJson);
@@ -60,5 +63,26 @@ final class Theme extends \stdClass {
         unset($this->themeStylesOrderJson);
         unset($this->themeStylesUnitsJson);
         $this->__stash = [];
+        } else {
+        $loader = $arg;
+        if ($loader) {
+            $this->globalStyles = JsonUtils::parse($row->themeGlobalStylesJson);
+            $this->stylesOrder = [];
+            //
+            $this->styles = [(object) [
+                "userScss" => (array) JsonUtils::parse($row->themeStylesStyleChunksJson),
+                "compiled" => [
+                    $loader("all", $this->name),
+                    $loader("960", $this->name),
+                    $loader("840", $this->name),
+                    $loader("600", $this->name),
+                    $loader("480", $this->name),
+                ],
+            ]];
+        }
+        unset($this->themeGlobalStylesJson);
+        unset($this->themeStylesStyleChunksJson);
+        $this->__stash = [];
+        }
     }
 }

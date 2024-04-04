@@ -21,6 +21,7 @@ final class ThemesController {
      * @param \Pike\Db\FluentDb $db
      */
     public function getStyles(Request $req, Response $res, FluentDb $db): void {
+        if (!defined("USE_NEW_RENDER_FEAT")) {
         $obj = $db->select("\${p}`themes` t", "stdClass")
             ->fields([
                 "t.`id` as `themeId`",
@@ -45,6 +46,9 @@ final class ThemesController {
             return;
         }
         $res->json($obj);
+        } else {
+        throw new \RuntimeException("todo");
+        }
     }
     /**
      * PUT /api/themes/:themeId/styles/scope-block-type/:blockTypeName: Overwrites

@@ -112,7 +112,6 @@ interface BlockStub {
 interface Block extends BlockStub {
     title: String;
     renderer: String; // Example 'sivujetti:block-auto'
-    __duplicatedFrom?: String; // Example 'unit-3'
     children: Array<Block>;
     [typeSpecificProps: String]: any;
 }
@@ -139,8 +138,13 @@ interface CurrentPageData {
         structure: Array<LayoutPart>;
     };
     theme: Theme | (Theme & {
-        styles: Array<ThemeStyle>;
+        styles: Array<StylesBundle>;
     });
+}
+
+interface StylesBundle {
+    userScss: Array<StyleChunk>;
+    compiled: [String, String, String, String, String];
 }
 
 interface LayoutPart {
@@ -338,6 +342,7 @@ interface UploadsEntry {
 
 interface TranspileArgs {
     selectedLang: String;
+    bundles: Array<String>;
 }
 
 interface CssRule {

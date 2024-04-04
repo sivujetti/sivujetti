@@ -5,6 +5,7 @@ $dataTypeForMaxIndexableText = "VARCHAR(191) NOT NULL"; // 191 * 4 = 767 bytes =
 
 return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
+"DROP TABLE IF EXISTS `\${p}snapshots`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
 "DROP TABLE IF EXISTS `\${p}reusableBranches`",
@@ -62,6 +63,7 @@ return [
 "CREATE TABLE `\${p}themes` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92) NOT NULL,
+    `styleChunksAll` JSON,
     `stylesOrder` JSON,
     `globalStyles` JSON,
     `isActive` TINYINT(1) NOT NULL,
@@ -166,6 +168,13 @@ return [
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `jobName` VARCHAR(64) NOT NULL,
     `startedAt` {$dataTypeForTimestamps},
+    PRIMARY KEY (`id`)
+) DEFAULT CHARSET = utf8mb4",
+
+"CREATE TABLE `\${p}snapshots` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `table` {$dataTypeForMaxIndexableText},
+    `data` JSON NOT NULL,
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

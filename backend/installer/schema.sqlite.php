@@ -4,6 +4,7 @@ $dataTypeForTimestamps = "INTEGER NOT NULL DEFAULT 0";
 
 return [
 "DROP TABLE IF EXISTS `\${p}jobs`",
+"DROP TABLE IF EXISTS `\${p}snapshots`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
 "DROP TABLE IF EXISTS `\${p}reusableBranches`",
@@ -59,6 +60,7 @@ return [
 "CREATE TABLE `\${p}themes` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
+    `styleChunksAll` JSON,
     `stylesOrder` JSON,
     `globalStyles` JSON,
     `isActive` INTEGER NOT NULL DEFAULT 0,
@@ -154,6 +156,12 @@ return [
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `jobName` TEXT NOT NULL,
     `startedAt` {$dataTypeForTimestamps}
+)",
+
+"CREATE TABLE `\${p}snapshots` (
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `table` TEXT,
+    `data` JSON NOT NULL
 )",
 
 "INSERT INTO `\${p}jobs` VALUES (1,'updates:all',0)",

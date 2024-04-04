@@ -1,19 +1,14 @@
 import {
+    createScssBlock,
     createSelector,
+    stylesToBaked,
 } from './ScssWizardFuncs.js';
 
-const mediaScopes = [
-    'all',
-    '960', // lg
-    '840', // md
-    '600', // sm
-    '480', // xs
-];
 
 class ScssWizard {
-    // stateId;
     // styles;
     // compiled;
+    // stateId;
     /**
      */
     constructor() {
@@ -22,7 +17,7 @@ class ScssWizard {
     /**
      * Replaces this.styles and this.compiled with $bundle.
      *
-     * @param {{userScss: Array<StyleChunk>; compiled: [String, String, String, String, String]: id: Number;}} bundle
+     * @param {StylesBundleWithId} bundle
      * @access public
      */
     replaceStylesState(bundle) {
@@ -31,6 +26,7 @@ class ScssWizard {
         this.stateId = bundle.id;
     }
     /**
+     * @param {Number} stateId
      * @returns {Array<StyleChunk>}
      * @access public
      */
@@ -40,7 +36,7 @@ class ScssWizard {
         return this.styles;
     }
     /**
-     * @param {'single-block'|'block-type'} blockScope
+     * @param {styleBlockScope} blockScope
      * @param {String} blockIdOrType
      * @param {(style: StyleChunk) => Boolean} predicate = true
      * @returns {Array<StyleChunk>}
@@ -55,54 +51,103 @@ class ScssWizard {
     /**
      * @param {String} blockScope
      * @param {String} blockIdOrType
-     * @param {mediaScope} mediaScope = 'all'
+     * @param {mediaScope} mediaScopeId = 'all'
      * @param {stylesLayer} layer = 'user-styles'
      * @returns {StyleChunk}
      * @access public
      */
-    findStyle(blockScope, blockIdOrType, mediaScope = 'all', layer = 'user-styles') {
+    findStyle(blockScope, blockIdOrType, mediaScopeId = 'all', layer = 'user-styles') {
         const lookFor = createSelector(blockIdOrType, blockScope);
         const found = this.styles.find(({scope, scss}) =>
-            scope.block === blockScope && scope.media === mediaScope && scope.layer === layer && scss.startsWith(lookFor)
+            scope.block === blockScope && scope.media === mediaScopeId && scope.layer === layer && scss.startsWith(lookFor)
         );
         return found;
     }
     /**
      * @param {String} scssChunk
      * @param {StyleChunk} currentStyle
-     * @param {mediaScope} mediaScope = 'all'
+     * @param {mediaScope} mediaScopeId = 'all'
+     * @returns {StylesBundleWithId}
      * @access public
      */
-    tryToUpdateUniqueScopeScssChunkAndReturnAllRecompiled(scssChunk, currentStyle, mediaScope = 'all') {
+    tryToUpdateUniqueScopeScssChunkAndReturnAllRecompiled(scssChunk, currentStyle, mediaScopeId = 'all') {
         // todo
     }
      * @param {String} scssChunkToDelete
      * @param {StyleChunk} currentStyle
-     * @param {mediaScope} mediaScope = 'all'
+     * @param {mediaScope} mediaScopeId = 'all'
+     * @returns {StylesBundleWithId}
      * @access public
      */
-    tryToDeleteUniqueScopeScssChunkAndReturnAllRecompiled(scssChunkToDelete, currentStyle, mediaScope = 'all') {
+    tryToDeleteUniqueScopeScssChunkAndReturnAllRecompiled(scssChunkToDelete, currentStyle, mediaScopeId = 'all') {
         // todo
     }
     /**
      * @param {String} newScssChunk Examples: 'color: red', 'ul li {\n  flex: 0 0 100%;\n}'
      * @param {String} blockId
-     * @param {mediaScope} mediaScope = 'all'
+     * @param {mediaScope} mediaScopeId = 'all'
+     * @returns {StylesBundleWithId}
      * @access public
      */
-    tryToAddFirstUniqueScopeScssChunkAndReturnAllRecompiled(newScssChunk, blockId, mediaScope = 'all') {
-        // todo
+    tryToAddFirstUniqueScopeScssChunkAndReturnAllRecompiled(newScssChunk, blockId, mediaScopeId = 'all') {
+        return this.doTryToAddFirstScssChunkAndReturnAllRecompiled(newScssChunk, blockId, mediaScopeId, 'user-styles');
     }
     /**
      * @param {String} scssChunkToAdd
      * @param {StyleChunk} currentStyle
-     * @param {mediaScope} mediaScope = 'all'
+     * @param {mediaScope} mediaScopeId = 'all'
+     * @returns {StylesBundleWithId}
      * @access public
      */
-    tryToAddUniqueScopeScssChunkAndReturnAllRecompiled(scssChunkToAdd, currentStyle, mediaScope = 'all') {
+    tryToAddUniqueScopeScssChunkAndReturnAllRecompiled(scssChunkToAdd, currentStyle, mediaScopeId = 'all') {
         // todo
+    /**
+     * @param {String} completeScssChunk
+     * @param {String} blockId
+     * @param {mediaScope} mediaScopeId
+     * @param {stylesLayer} layer
+     * @returns {StylesBundleWithId}
+     * @access private
+     */
+    doTryToAddFirstScssChunkAndReturnAllRecompiled(completeScssChunk, blockId, mediaScopeId, layer) {
+        if (this.findStyle('single-block', blockId, mediaScopeId, layer))
+            throw new Error(`Unique style ${blockId}:${mediaScopeId}:${layer} already exist`);
+
+        const updated = [...this.styles];
+        updated.push({
+            scope: {block: 'single-block', media: mediaScopeId, layer},
+            scss: createScssBlock(completeScssChunk, `${createSelector(blockId)} {`),
+        });
+
+        return this.commitAll(updated, mediaScopeId);
+    }
+    /**
+     * @param {Array<StyleChunk>} newStylesArr
+     * @param {mediaScope} mediaScopeId
+     * @returns {StylesBundleWithId}
+     * @access private
+     */
+    commitAll(newStylesArr, mediaScopeId) {
+
+        this.styles = newStylesArr;
+
+        const compiledNew = mediaScopes.map((scopeId, i) =>
+            scopeId !== mediaScopeId ? this.compiled[i] : stylesToBaked(this.styles, scopeId)
+        );
+        compiledNew.forEach(mediaScope => {
+            if (mediaScope.length > 256000) throw new Error('??');
+        });
+        this.compiled = compiledNew;
+
+        this.stateId += 1;
+
+        //
+        return {
+            userScss: this.styles,
+            compiled: this.compiled,
+            id: this.stateId,
+        };
     }
 }
 
 export default ScssWizard;
-export {mediaScopes};

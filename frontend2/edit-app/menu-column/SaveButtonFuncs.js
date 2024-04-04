@@ -22,11 +22,13 @@ const handlerFactoriesMap = {
 function createStylesBundleChannelHandler() {
     return {
         /**
-         * @param {any} state
-         * @param {StateChangeUserContext|null} userCtx
+         * @param {StylesBundleWithId} state
+         * @param {StateChangeUserContext|null} _userCtx
          * @param {stateChangeContext} _context
          */
-        handleStateChange(state, userCtx, _context) {
+        handleStateChange(state, _userCtx, _context) {
+            const {compiled} = state;
+            api.webPagePreview.updateCss(compiled);
         },
         /**
          * @param {StateHistory} stateHistory
@@ -34,6 +36,15 @@ function createStylesBundleChannelHandler() {
          * @returns {Promise<Boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
+            const toTransferable = bundle => ({
+                userScss: bundle.userScss,
+                compiled: bundle.compiled,
+            });
+            const {theme} = api.saveButton.getInstance().getChannelState('currentPageDataBundle');
+            return doPostOrPut(http.put(
+                `/api/themes/${theme.id}/styles/all`,
+                toTransferable(stateHistory.latest)
+            ));
         }
     };
 }

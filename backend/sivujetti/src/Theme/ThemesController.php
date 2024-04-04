@@ -80,6 +80,20 @@ final class ThemesController {
         $res->json(["ok" => "ok"]);
     }
     /**
+     * PUT /api/themes/[i:themeId]/styles/all: ...
+     *
+     * @param \Pike\Request $req
+     * @param \Pike\Response $res
+     * @param \Pike\Db\FluentDb $db
+     * @param \Pike\FileSystem $fs
+     */
+    public function upsertStyleChunksAll(Request $req,
+                                         Response $res,
+                                         FluentDb $db,
+                                         FileSystem $fs): void {
+        // todo
+        $res->json(["ok" => "ok"]);
+    }
      * PUT /api/themes/:themeId/styles/global: Overwrites $req->params->themeId
      * theme's global styles.
      *

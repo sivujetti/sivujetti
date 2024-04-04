@@ -1,8 +1,8 @@
 import {currentInstance as floatingDialog} from './FloatingDialog.jsx';
 import {Icon} from './Icon.jsx';
-import {mediaScopes} from './ScssWizard.js';
 import {__} from './edit-app-singletons.js';
 import ScreenSizesTabShowHelpPopup from './popups/ScreenSizesTabShowHelpPopup.jsx';
+import {mediaScopes} from '../shared-inline.js';
 
 class ScreenSizesVerticalTabs extends preact.Component {
     /**

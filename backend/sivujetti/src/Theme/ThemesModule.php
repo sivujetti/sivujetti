@@ -17,6 +17,10 @@ final class ThemesModule {
             [ThemesController::class, "upsertBlockTypeScopedStyles", ["consumes" => "application/json",
                                                                       "identifiedBy" => ["upsertBlockTypeScopedVars", "themes"]]],
         );
+        $router->map("PUT", "/api/themes/[i:themeId]/styles/all",
+            [ThemesController::class, "upsertStyleChunksAll", ["consumes" => "application/json",
+                                                               "identifiedBy" => ["upsertBlockTypeScopedVars", "themes"]]], // todo
+        );
         $router->map("PUT", "/api/themes/[i:themeId]/styles/global",
             [ThemesController::class, "updateGlobalStyles", ["consumes" => "application/json",
                                                              "identifiedBy" => ["updateGlobalStylesOf", "themes"]]],

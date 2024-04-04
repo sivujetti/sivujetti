@@ -5,6 +5,7 @@ import {
     events,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
+import {createSelector} from '../../commons-for-edit-app/ScssWizardFuncs.js';
 import {getBlockEl} from '../../shared-inline.js';
 import {isMetaBlock} from '../includes/block/utils.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
@@ -107,11 +108,11 @@ class WebPagePreviewApp extends preact.Component {
         //
     }
     /**
-     * @param {[String, String, String, String, String]} allMediaScopesCss
+     * @param {compiledMediaScopesCss} allMediaScopesCss
      * @access public
      */
     updateCss(allMediaScopesCss) {
-        //
+        this.sendMessageToReRenderer(['updateBlocksStyles', allMediaScopesCss]);
     }
     /**
      * @param {String} blockId
@@ -290,7 +291,9 @@ let counter = -1;
  */
 function broadcastCurrentPageData(e) {
     const [_, dataBundle] = e.data;
+    /** @type {Array<Block>} */
     const blocks = getAndInvalidate(dataBundle.page, 'blocks');
+    /** @type {Array<StylesBundle>} */
     const stylesBundle = getAndInvalidate(dataBundle.theme, 'styles');
 
     events.emit('webpage-preview-iframe-before-loaded');
@@ -305,10 +308,10 @@ function broadcastCurrentPageData(e) {
 }
 
 /**
- * @param {Object} entity
+ * @template {T}
+ * @param {T} entity
  * @param {String} prop
- * @param {String} prop 
- * @returns {any}
+ * @returns {T}
  */
 function getAndInvalidate(entity, prop, keepDebugEntry = false) {
     const out = entity[prop];

@@ -2,8 +2,12 @@
 An entry point for global file "public/sivujetti/sivujetti-webpage-renderer-app.js".
 Included by backend/sivujetti/src/Page/WebPageAwareTemplate.php jsFiles().
 */
-
+import {mediaScopes} from '../shared-inline.js';
 import ReRenderingWebPage, {api} from './ReRenderingWebPage.jsx';
+
+const mediaScopeLookup = mediaScopes.reduce((map, mediaScopeId) =>
+    ({...map, ...{[mediaScopeId]: mediaScopeId}}),
+{});
 
 /**
  * Mounts <ReRenderingWebPage/> to document.body.
@@ -31,7 +35,7 @@ function mountWebPageRendererApp(dataBundle) {
         // Start listening for messages from WebPagePreviewApp
         messagePortToEditApp.onmessage = createMessageChannelController(reRenderingWebPage);
         // Pass the port to ReRenderingWebPage, so it too can send messages to WebPagePreviewApp
-        reRenderingWebPage.current.setThisForMessaging(messagePortToEditApp);
+        reRenderingWebPage.current.hookUpEventHandlersAndEmitters(messagePortToEditApp);
         // Pass the data bundle to WebPagePreviewApp & finish up
         messagePortToEditApp.postMessage(['hereIsPageDataBundle', dataBundle]);
         window.removeEventListener('message', receiveMessageFromPreviewApp);
@@ -45,7 +49,12 @@ function mountWebPageRendererApp(dataBundle) {
 function createMessageChannelController(reRenderingWebPage) {
     return e => {
         if (e.data[0] === 'updateBlocksStyles') {
-            //
+            const cssCompiled = e.data[1]; // {compiledMediaScopesCss}
+            cssCompiled.forEach((forScreenSize, i) => {
+                const mediaScopeId = mediaScopes[i];
+                const el = getCssEl(mediaScopeId);
+                el.innerHTML = forScreenSize || '';
+            });
         } else if (e.data[0] === 'updateBlockStyleFast') {
             //
         } else if (e.data[0] === 'reRenderAllBlocks') {
@@ -55,8 +64,6 @@ function createMessageChannelController(reRenderingWebPage) {
             const updatedBlock = e.data[1];
             const newBlocks = e.data[2];
             reRenderingWebPage.current.exchangeSingleBlock(updatedBlock, newBlocks);
-        } else if (e.data[0] === 'registerEventHandlers') {
-            //
         } else if (e.data[0] === 'dsjPressedOrRepeased') {
             //
         }
@@ -64,6 +71,17 @@ function createMessageChannelController(reRenderingWebPage) {
 }
 
 /**
+ * @param {mediaScope} mediaScopeId = 'all'
+ * @param {String} attrPrefix = ''
+ * @returns {HTMLStyleElement|null}
+ */
+function getCssEl(mediaScopeId = 'all', attrPrefix = '') {
+    const iframeDocument = document;
+    const validated = mediaScopeLookup[mediaScopeId];
+    if (!validated) throw new Error(`Invalid media scope ${mediaScopeId}`);
+    return iframeDocument.head.querySelector(`style[data-scope="${attrPrefix}${validated}"]`);
+}
+
  * @param {Array<Block>} blocks
  */
 function printBlockWarnings(blocks) {

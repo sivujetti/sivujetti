@@ -144,7 +144,11 @@ interface CurrentPageData {
 
 interface StylesBundle {
     userScss: Array<StyleChunk>;
-    compiled: [String, String, String, String, String];
+    compiled: compiledMediaScopesCss;
+}
+
+interface StylesBundleWithId extends StylesBundle {
+    id: Number;
 }
 
 interface LayoutPart {
@@ -524,9 +528,9 @@ interface SaveButton {
 interface StyleChunk {
     scss: String;
     scope: {
-        block: 'todo';
+        block: styleBlockScope;
+        media: mediaScope;
         layer: stylesLayer;
-        media: 'todo';
     };
 }
 
@@ -537,6 +541,10 @@ interface CssVarsMap {
 type stylesLayer = 'user-styles'|'dev-styles'|'todo';
 
 type mediaScope = 'all'|'960'|'840'|'600'|'480'|String;
+
+type compiledMediaScopesCss = [String, String, String, String, String];
+
+type styleBlockScope = 'single-block'|'block-type';
 
 type stateChangeContext = 'initial'|'push'|'undo'|'redo';
 

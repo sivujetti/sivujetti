@@ -3,7 +3,7 @@ import {
     api,
     scssWizard,
 } from './edit-app-singletons.js';
-import {mediaScopes} from './ScssWizard.js';
+import {mediaScopes} from '../shared-inline.js';
 
 class BlockVisualStylesEditForm extends preact.Component {
     /**
@@ -13,21 +13,22 @@ class BlockVisualStylesEditForm extends preact.Component {
      * @access protected
      */
     handleCssDeclChanged(input, varName, varInputToCssDecl) {
-        const updatedAll = this.doHandleCssDeclChanged(input, varName, varInputToCssDecl);
+        const val = input instanceof Event ? input.target.value : input;
+        const updatedAll = this.doHandleCssDeclChanged(val, varName, varInputToCssDecl);
         api.saveButton.getInstance().pushOp('stylesBundle', updatedAll);
     }
     /**
-     * @param {String|Event} input
+     * @param {String} val
      * @param {String} varName
      * @param {(varName: String, value: String): String} varInputToCssDecl
+     * @returns {StylesBundleWithId}
      * @access private
      */
-    doHandleCssDeclChanged(input, varName, varInputToCssDecl) {
+    doHandleCssDeclChanged(val, varName, varInputToCssDecl) {
         const {styleScopes, curScreenSizeTabIdx} = this.state;
         const selectedScreenSizeStyles = styleScopes[curScreenSizeTabIdx];
         const current = selectedScreenSizeStyles || {};
         const styleRef = this.userStyleRefs[curScreenSizeTabIdx];
-        const val = input instanceof Event ? input.target.value : input;
         const newValIsNotEmpty = val.trim().length > 0;
         const upd = varInputToCssDecl(varName, newValIsNotEmpty ? val : '"dummy"');
         const mediaScope = mediaScopes[curScreenSizeTabIdx];

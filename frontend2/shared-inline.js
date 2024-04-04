@@ -81,12 +81,21 @@ function getBlockEl(blockId, from = document.body) {
     return from.querySelector(`[data-block="${blockId}"]`);
 }
 
+const mediaScopes = [
+    'all',
+    '960', // lg
+    '840', // md
+    '600', // sm
+    '480', // xs
+];
+
 export {
     cloneDeep,
     completeImageSrc,
     getBlockEl,
     getMetaKey,
     getNormalizedInitialHoverCandidate,
+    mediaScopes,
     placeholderImageSrc,
     traverseRecursively,
 };

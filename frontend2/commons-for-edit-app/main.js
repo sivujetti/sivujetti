@@ -55,9 +55,8 @@ import {
     doubleNormalizeUrl,
     getVisibleSlug,
 } from './pick-url-utils.js';
-import {placeholderImageSrc, traverseRecursively} from '../shared-inline.js';
+import {mediaScopes, placeholderImageSrc, traverseRecursively} from '../shared-inline.js';
 import Popup from './Popup.jsx';
-import {mediaScopes} from './ScssWizard.js';
 import {createCssDeclExtractor} from './ScssWizardFuncs.js';
 import BlockVisualStylesEditForm from './BlockVisualStylesEditForm.jsx';
 

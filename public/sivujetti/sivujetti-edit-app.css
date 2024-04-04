@@ -62,6 +62,8 @@ Structure:
     --contentSpawnerWidth: 210px;
 
     --toggle-button-opacity-transition: opacity .125s ease-out;
+
+    --block-spawner-offset: 66px;
 }
 /* Spectre-overrides */
 .btn {
@@ -376,6 +378,8 @@ h2 {
 #edit-app {
     height: 100%;
     background-color: var(--color-bg-default);
+}
+#edit-app > main {
     display: grid;
     grid-template-columns: minmax(0, var(--menu-column-offset)) minmax(0, 1fr);
     scrollbar-gutter: stable;
@@ -998,6 +1002,17 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 #edit-app header {
     padding: .4rem .4rem .6rem;
 }
+#edit-app header:first-child {
+    margin: 0 0 var(--block-spawner-offset) 0;
+}
+.panel-section.on-this-page > :first-child {
+    margin-top: calc(var(--block-spawner-offset) * -1);
+}
+#edit-app header.panel-section {
+    position: absolute;
+    top: 3rem;
+    left: .4rem;
+}
 #edit-app .mode-chooser a {
     text-decoration: none;
 }
@@ -1420,7 +1435,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     right: -3px;
 }
 .dnd-block-spawner-opened .dnd-block-spawner-wrap {
-    margin-left: .2rem;
+    margin-left: .3rem;
     margin-top: -.7rem;
     position: relative;
     height: 100vh;
@@ -1714,7 +1729,7 @@ span.highlight-rect[data-label-position="bottom-inside"]:before {
     box-shadow: 0 0 0 1px var(--color-bg-default);
     border-radius: 5px;
     position: absolute;
-    margin-top: -12px;
+    margin-top: -11px;
     left: 13px;
 }
 .with-notification-dot.delta-2:after {

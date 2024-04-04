@@ -1,6 +1,8 @@
-import {__, env, urlUtils} from '../sivujetti-commons-unified.js';
+import {__, env, urlUtils} from '@sivujetti-commons-for-edit-app';
 import {historyInstance, MyRouter} from './main-column/MainColumnViews.jsx';
 import DefaultState from './menu-column/DefaultState.jsx';
+import PageCreateState from './menu-column/page/PageCreateState.jsx';
+import PageDuplicateState from './menu-column/page/PageDuplicateState.jsx';
 import SaveButton from './menu-column/SaveButton.jsx';
 
 class EditApp extends preact.Component {
@@ -53,9 +55,9 @@ class EditApp extends preact.Component {
             </header>,
             <MyRouter history={ historyInstance }>
                 <DefaultState path="/:slug*"/>
-                { /* PageCreatePanel path="/pages/create/:pageTypeName?/:layoutId?"/>
-                <PageDuplicatePanel path="/pages/:pageSlug/duplicate"/>
-                <PageTypeCreatePanel path="/page-types/create"/> */ }
+                <PageCreateState path="/pages/create/:pageTypeName?/:layoutId?"/>
+                <PageDuplicateState path="/pages/:pageSlug/duplicate"/>
+                { /* <PageTypeCreatePanel path="/page-types/create"/> */ }
             </MyRouter>
         ];
     }

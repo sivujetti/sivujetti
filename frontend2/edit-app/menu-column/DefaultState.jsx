@@ -31,8 +31,8 @@ class DefaultState extends preact.Component {
      * @access protected
      */
     render(_, {userDefinedSections}) {
-        return [
-            <DnDBlockSpawner ref={ this.blockSpawner }/>,
+        return <main>
+            <DnDBlockSpawner ref={ this.blockSpawner }/>
             <div id="edit-app-sections-wrapper">
                 <OnThisPageSection
                     currentPageSlug={ this.props.url }
@@ -64,7 +64,7 @@ class DefaultState extends preact.Component {
                     })
                 ] }
             </div>
-        ];
+        </main>;
     }
 }
 

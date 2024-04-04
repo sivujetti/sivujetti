@@ -64,29 +64,31 @@ class PageCreateState extends preact.Component {
                     title={ __('Cancel create %s', nameTrans) }
                     type="button">&lt; { __('Back') }</button>
             </header>,
-            <DnDBlockSpawner initiallyIsOpen ref={ this.blockSpawner }/>,
-            <div id="edit-app-sections-wrapper">
-                <OnThisPageSection currentPageSlug={ url }
-                    ref={ cmp => {
-                        if (cmp && !this.isMainDndInited) {
-                            this.isMainDndInited = 1;
-                            createTrier(() => {
-                                const allSet = !!this.blockSpawner.current && !!cmp.blockTreeRef.current?.dragDrop;
-                                if (allSet)
-                                    this.blockSpawner.current.setMainTreeDnd(cmp.blockTreeRef.current.dragDrop);
-                                return allSet;
-                            }, 20, 20)();
-                        }
-                    } }/>
-                { [
-                    api.user.can('editGlobalStylesVisually')
-                        ? <BaseStylesSection/>
-                        : null, // User has no permission to edit styles
-                    SupportSection
-                        ? <SupportSection/>
-                        : null
-                ] }
-            </div>
+            <main>
+                <DnDBlockSpawner initiallyIsOpen ref={ this.blockSpawner }/>
+                <div id="edit-app-sections-wrapper">
+                    <OnThisPageSection currentPageSlug={ url }
+                        ref={ cmp => {
+                            if (cmp && !this.isMainDndInited) {
+                                this.isMainDndInited = 1;
+                                createTrier(() => {
+                                    const allSet = !!this.blockSpawner.current && !!cmp.blockTreeRef.current?.dragDrop;
+                                    if (allSet)
+                                        this.blockSpawner.current.setMainTreeDnd(cmp.blockTreeRef.current.dragDrop);
+                                    return allSet;
+                                }, 20, 20)();
+                            }
+                        } }/>
+                    { [
+                        api.user.can('editGlobalStylesVisually')
+                            ? <BaseStylesSection/>
+                            : null, // User has no permission to edit styles
+                        SupportSection
+                            ? <SupportSection/>
+                            : null
+                    ] }
+                </div>
+            </main>
         ];
     }
 }

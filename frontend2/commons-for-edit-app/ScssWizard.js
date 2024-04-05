@@ -1,3 +1,4 @@
+import {mediaScopes} from '../shared-inline.js';
 import {
     createScssBlock,
     createSelector,
@@ -7,7 +8,7 @@ import {
 
 class ScssWizard {
     // styles;
-    // compiled;
+    // cachedCompiledScreenSizesCss;
     // stateId;
     /**
      */
@@ -15,14 +16,14 @@ class ScssWizard {
         this.stateId = -1;
     }
     /**
-     * Replaces this.styles and this.compiled with $bundle.
+     * Replaces this.styles and this.cachedCompiledScreenSizesCss with $bundle.
      *
      * @param {StylesBundleWithId} bundle
      * @access public
      */
     replaceStylesState(bundle) {
-        this.styles = [...bundle.userScss];
-        this.compiled = bundle.compiled;
+        this.styles = [...bundle.styleChunks];
+        this.cachedCompiledScreenSizesCss = bundle.cachedCompiledScreenSizesCss;
         this.stateId = bundle.id;
     }
     /**
@@ -132,19 +133,19 @@ class ScssWizard {
         this.styles = newStylesArr;
 
         const compiledNew = mediaScopes.map((scopeId, i) =>
-            scopeId !== mediaScopeId ? this.compiled[i] : stylesToBaked(this.styles, scopeId)
+            scopeId !== mediaScopeId ? this.cachedCompiledScreenSizesCss[i] : stylesToBaked(this.styles, scopeId)
         );
         compiledNew.forEach(mediaScope => {
-            if (mediaScope.length > 256000) throw new Error('??');
+            if (mediaScope.length > 1024000) throw new Error('??');
         });
-        this.compiled = compiledNew;
+        this.cachedCompiledScreenSizesCss = compiledNew;
 
         this.stateId += 1;
 
         //
         return {
-            userScss: this.styles,
-            compiled: this.compiled,
+            styleChunks: this.styles,
+            cachedCompiledScreenSizesCss: this.cachedCompiledScreenSizesCss,
             id: this.stateId,
         };
     }

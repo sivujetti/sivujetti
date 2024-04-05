@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Page;
 
-use Pike\{ArrayUtils, PikeException};
+use Pike\{ArrayUtils, FileSystem, PikeException};
 use Sivujetti\{JsonUtils, SharedAPIContext, Template, ValidationUtils};
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
@@ -361,7 +361,65 @@ final class WebPageAwareTemplate extends Template {
             "<style>" . self::getDefaultEditModeInlineCss() . "</style>\n"
         ));
         } else {
-        return "todo";
+        $stylesTags = "";
+        if (!$this->__useEditModeMarkup) {
+            $cachedScreenSizesCssLengths = $theme->styles->cachedCompiledScreenSizesCssLengths;
+            $stylesTags = (
+                // Externals including {$theme->name}-generated-sizes-*.css
+                implode("\n", [
+                    ...$externals,
+                    ...array_reduce(ThemesController::MEDIA_SCOPES, fn($out, $s) =>
+                        $cachedScreenSizesCssLengths[array_search($s, ThemesController::MEDIA_SCOPES, true)] > 0
+                            ? [...$out, $fileDefToTag((object) [
+                                "url" => "{$theme->name}-generated-sizes-{$s}.css?t={$theme->stylesLastUpdatedAt}",
+                                "attrs" => $s !== "all" ? ["media" => "screen and (max-width: {$s}px)"] : []
+                            ])]
+                            : $out
+                    , []),
+                ]) .
+                // theWebsite->headHtml
+                ($site ? "\n{$site->headHtml}" : null)
+            );
+        } else {
+            $conf = $this->__applyFilters->__invoke("sivujetti:editAppAdditionalStyleUnits", [])[0]->css ?? null;
+            $additionals = $conf ? self::escInlineJs(JsonUtils::stringify($conf)) : "\"\"";
+            $cachedScreenSizesCss = $theme->styles->cachedCompiledScreenSizesCss;
+            $getCssStr = fn($idx) => strlen($cachedScreenSizesCss[$idx])
+                ? self::escInlineJs($cachedScreenSizesCss[$idx])
+                : "";
+            $stylesTags = (
+                // Externals without theme-generated.css
+                implode("\n", $externals) .
+                // Style chunks: Inject each style bundle via javascript instead of echoing directly
+                // (to allow things such as `content: "</style>"` or `/* </style> */`)
+                "\n<!-- Note to devs: these inline styles appear here only when you're logged in -->\n" .
+                "<script>(function () {\n" .
+                "    const createStyleEl = (css, mediaScopeId) => {\n" .
+                "        const styleEl = document.createElement('style');\n" .
+                "        styleEl.innerHTML = css;\n" .
+                "        styleEl.setAttribute('data-scope', mediaScopeId);\n" .
+                "        if (mediaScopeId.indexOf('all') < 0)\n" .
+                "            styleEl.setAttribute('media', `screen and (max-width: \${parseInt(mediaScopeId.replace('fast-', ''), 10)}px)`);\n" .
+                "        return styleEl;\n" .
+                "    };\n" .
+                "    const {head} = document;\n" .
+                "    head.appendChild(createStyleEl({$additionals}, 'edit-app-all'));\n" .
+                "    head.appendChild(createStyleEl(`{$getCssStr(0)}`, 'all'));\n" .
+                "    head.appendChild(createStyleEl(`{$getCssStr(1)}`, '960'));\n" .
+                "    head.appendChild(createStyleEl(`{$getCssStr(2)}`, '840'));\n" .
+                "    head.appendChild(createStyleEl(`{$getCssStr(3)}`, '600'));\n" .
+                "    head.appendChild(createStyleEl(`{$getCssStr(4)}`, '480'));\n" .
+                "    head.appendChild(createStyleEl('', 'fast-all'));\n" .
+                "    head.appendChild(createStyleEl('', 'fast-960'));\n" .
+                "    head.appendChild(createStyleEl('', 'fast-840'));\n" .
+                "    head.appendChild(createStyleEl('', 'fast-600'));\n" .
+                "    head.appendChild(createStyleEl('', 'fast-480'));\n" .
+                "})();</script>\n" .
+                //
+                "<style>" . self::getDefaultEditModeInlineCss() . "</style>\n"
+            );
+        }
+        return $common . $stylesTags;
         }
     }
     /**

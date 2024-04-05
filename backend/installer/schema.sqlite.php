@@ -60,7 +60,8 @@ return [
 "CREATE TABLE `\${p}themes` (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
-    `styleChunksAll` JSON,
+    `styleChunkBundlesAll` JSON, -- {styleChunks: array<int, StyleChunk>, cachedCompiledScreenSizesCss: array<int, string>} see also backend/sivujetti/src/Theme/Entities/Theme.php
+    `cachedCompiledScreenSizesCssLengths` TEXT, -- '1,0,0,0,0'
     `stylesOrder` JSON,
     `globalStyles` JSON,
     `isActive` INTEGER NOT NULL DEFAULT 0,

@@ -43,8 +43,8 @@ $out->resources = (object) [
     "themes" => (object) [
         "view"                      => 0b00000010,
         "updateGlobalStylesOf"      => 0b00000100,
-        "upsertBlockTypeScopedVars" => 0b00001000,
-        "upsertBlockTypeScopedCss"  => 0b00010000,
+        "visuallyEditStylesOf"      => 0b00001000,
+        "viaCssEditStylesOf"        => 0b00010000,
     ],
     "theWebsite" => (object) [
         "updateBasicInfoOf"         => 0b00000010,
@@ -93,7 +93,7 @@ $out->userPermissions = (object) [
         "pages"             => ACL::makePermissions("*", $out->resources->pages),
         // pageTypes        -> none
         "reusableBranches"  => ACL::makePermissions("*", $out->resources->reusableBranches),
-        "themes"            => ACL::makePermissions(["view","updateGlobalStylesOf","upsertBlockTypeScopedVars"], $out->resources->themes),
+        "themes"            => ACL::makePermissions(["view","updateGlobalStylesOf","visuallyEditStylesOf"], $out->resources->themes),
         "theWebsite"        => ACL::makePermissions(["updateBasicInfoOf"], $out->resources->theWebsite),
         "uploads"           => ACL::makePermissions("*", $out->resources->uploads),
     ],

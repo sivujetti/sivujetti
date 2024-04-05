@@ -63,7 +63,8 @@ return [
 "CREATE TABLE `\${p}themes` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92) NOT NULL,
-    `styleChunksAll` JSON,
+    `styleChunkBundlesAll` JSON, -- {styleChunks: array<int, StyleChunk>, cachedCompiledScreenSizesCss: array<int, string>} see also backend/sivujetti/src/Theme/Entities/Theme.php
+    `cachedCompiledScreenSizesCssLengths` TEXT, -- '1,0,0,0,0'
     `stylesOrder` JSON,
     `globalStyles` JSON,
     `isActive` TINYINT(1) NOT NULL,

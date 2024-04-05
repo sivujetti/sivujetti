@@ -4,7 +4,7 @@ namespace Sivujetti\Page;
 
 use MySite\Theme as UserTheme;
 use Pike\{AppConfig, ArrayUtils, Db, Injector, PikeException, Request, Response, Validation};
-use Pike\Db\FluentDb2;
+use Pike\Db\{FluentDb, FluentDb2};
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\PageTypeValidator;
 use Sivujetti\PageType\Entities\PageType;
@@ -32,6 +32,7 @@ final class PagesController {
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\Update\Updater $updater
      * @param \Sivujetti\AppEnv $appEnv
+     * @param \Pike\Db\FluentDb $db
      */
     public function renderPage(Request $req,
                                Response $res,
@@ -39,7 +40,8 @@ final class PagesController {
                                SharedAPIContext $apiCtx,
                                TheWebsite $theWebsite,
                                Updater $updater,
-                               AppEnv $appEnv): void {
+                               AppEnv $appEnv,
+                               FluentDb $db): void {
         $pcs = explode("/", $req->params->url, 3);
         [$pageTypeSlug, $slug] = count($pcs) > 2
             ? ["/" . $pcs[1], "/{$pcs[2]}"]
@@ -62,7 +64,7 @@ final class PagesController {
             return;
         }
         self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
-            $page, $pageType, $appEnv, false);
+            $page, $pageType, $appEnv, $db, false);
     }
     /**
      * GET /jet-login: Renders the login page.
@@ -150,8 +152,8 @@ final class PagesController {
                 "userPermissions" => [
                     "canDoAnything" => $userRole === ACL::ROLE_SUPER_ADMIN,
                     "canEditGlobalStylesVisually" => $acl->can($userRole, "updateGlobalStylesOf", "themes"),
-                    "canEditBlockStylesVisually" => $acl->can($userRole, "upsertBlockTypeScopedVars", "themes"),
-                    "canEditBlockCss" => $acl->can($userRole, "upsertBlockTypeScopedCss", "themes"),
+                    "canEditBlockStylesVisually" => $acl->can($userRole, "visuallyEditStylesOf", "themes"),
+                    "canEditBlockCss" => $acl->can($userRole, "viaCssEditStylesOf", "themes"),
                     "canCreatePageTypes" => $acl->can($userRole, "create", "pageTypes"),
                     "canCreatePages" => $acl->can($userRole, "create", "pages"),
                     "canCreateReusableBranches" => $acl->can($userRole, "create", "reusableBranches"),
@@ -179,6 +181,7 @@ final class PagesController {
      * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\AppEnv $appEnv
+     * @param \Pike\Db\FluentDb $db
      * @throws \Pike\PikeException
      */
     public function renderPlaceholderPage(Request $req,
@@ -187,7 +190,8 @@ final class PagesController {
                                           LayoutsRepository $layoutsRepo,
                                           SharedAPIContext $apiCtx,
                                           TheWebsite $theWebsite,
-                                          AppEnv $appEnv): void {
+                                          AppEnv $appEnv,
+                                          FluentDb $db): void {
         $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
         $slugOfPageToDuplicate = $req->queryVar("duplicate");
         $page = null;
@@ -198,7 +202,7 @@ final class PagesController {
         if (!$page) throw new \RuntimeException("No such page exist", PikeException::BAD_INPUT);
         //
         self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
-            $page, $pageType, $appEnv, true);
+            $page, $pageType, $appEnv, $db, true);
     }
     /**
      * POST /api/pages/[w:pageType]: Inserts a new page to the database.
@@ -421,6 +425,7 @@ final class PagesController {
      * @param \Sivujetti\Page\Entities\Page $page
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param \Sivujetti\AppEnv $appEnv
+     * @param \Pike\Db\FluentDb $db
      * @param bool $isPlaceholderPage
      */
     private static function sendPageResponse(Request $req,
@@ -431,6 +436,7 @@ final class PagesController {
                                              Page $page,
                                              PageType $pageType,
                                              AppEnv $appEnv,
+                                             FluentDb $db,
                                              bool $isPlaceholderPage) {
         $themeAPI = new UserThemeAPI("theme", $apiCtx, new Translator);
         $_ = new UserTheme($themeAPI); // Note: mutates $apiCtx->userDefinesAssets|etc
@@ -457,23 +463,10 @@ final class PagesController {
         ]);
         } else {
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page, $editModeIsOn);
-        $theWebsite->activeTheme->loadStyles($editModeIsOn
-            ? function (string $mediaScopeId, string $themeName): string {
-                $fPath = SIVUJETTI_INDEX_PATH . "public/{$themeName}-generated-sizes-{$mediaScopeId}.css";
-                return file_exists($fPath)
-                    ? (
-                        explode(
-                            "\n/* ==== Generated styles end ==== */\n",
-                            explode(
-                                "\n/* ==== Generated styles start ==== */\n",
-                                file_get_contents($fPath)
-                            )[1]
-                        )[0]
-                    )
-                    : "";
-            }
-            : null
-        );
+        $theWebsite->activeTheme->loadStyles($editModeIsOn ? $db->select("\${p}themes", "\stdClass")
+            ->fields(["styleChunkBundlesAll AS styleChunkBundlesJson"])
+            ->where("`id` = ?", [$theWebsite->activeTheme->id])
+            ->fetch()?->styleChunkBundlesJson ?? null : null);
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
             ["serverHost" => self::getServerHost($req)],

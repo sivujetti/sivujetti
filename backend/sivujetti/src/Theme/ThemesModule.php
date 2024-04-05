@@ -15,11 +15,11 @@ final class ThemesModule {
         );
         $router->map("PUT", "/api/themes/[i:themeId]/styles/scope-block-type/[w:blockTypeName]",
             [ThemesController::class, "upsertBlockTypeScopedStyles", ["consumes" => "application/json",
-                                                                      "identifiedBy" => ["upsertBlockTypeScopedVars", "themes"]]],
+                                                                      "identifiedBy" => ["visuallyEditStylesOf", "themes"]]],
         );
         $router->map("PUT", "/api/themes/[i:themeId]/styles/all",
             [ThemesController::class, "upsertStyleChunksAll", ["consumes" => "application/json",
-                                                               "identifiedBy" => ["upsertBlockTypeScopedVars", "themes"]]], // todo
+                                                               "identifiedBy" => ["visuallyEditStylesOf", "themes"]]],
         );
         $router->map("PUT", "/api/themes/[i:themeId]/styles/global",
             [ThemesController::class, "updateGlobalStyles", ["consumes" => "application/json",

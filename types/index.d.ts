@@ -138,13 +138,13 @@ interface CurrentPageData {
         structure: Array<LayoutPart>;
     };
     theme: Theme | (Theme & {
-        styles: Array<StylesBundle>;
+        styles: StylesBundle;
     });
 }
 
 interface StylesBundle {
-    userScss: Array<StyleChunk>;
-    compiled: compiledMediaScopesCss;
+    styleChunks: Array<StyleChunk>;
+    cachedCompiledScreenSizesCss: compiledMediaScopesCss;
 }
 
 interface StylesBundleWithId extends StylesBundle {

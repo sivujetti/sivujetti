@@ -75,7 +75,7 @@ final class TheWebsiteRepository {
                 "t.`globalStyles` AS `themeGlobalStylesJson`",
                 "t.`stylesLastUpdatedAt` AS `themeStylesLastUpdatedAt`",
                 //
-                "t.`styleChunksAll` AS `themeStylesStyleChunksJson`",
+                "t.`cachedCompiledScreenSizesCssLengths` AS `themeStylesCachedCompiledScreenSizesCssLengths`",
             ])
             ->leftJoin("\${p}plugins p ON (1)")
             ->leftJoin("\${p}pageTypes pt ON (1)")

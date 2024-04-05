@@ -12,8 +12,8 @@ final class Theme extends \stdClass {
     public string $name;
     /** @var object[] [{name: string, friendlyName: string, value: {type: "color", value: string[]}}] */
     public array $globalStyles;
-    /** @var object[] array<int, {userScss: todo, compiled: [string, string, string, string, string]}|\Sivujetti\Theme\Entities\Style> */
-    public array $styles;
+    /** @var array|object {styleChunks: array<int, object{scss: string, scope: {block: string, media: string, layer: string}}>, cachedCompiledScreenSizesCss: array<int, string>, cachedCompiledScreenSizesCssLengths: array<int, int>} */
+    public array|object $styles;
     /** @var string[] ["_body_", "j-Text" ...] */
     public array $stylesOrder;
     /** @var int Unix timestamp */
@@ -30,16 +30,27 @@ final class Theme extends \stdClass {
         $out->id = strval($row->themeId);
         $out->name = $row->themeName;
         $out->globalStyles = [];
+        if (!defined("USE_NEW_RENDER_FEAT")) {
         $out->styles = [];
+        } else {
+        $out->styles = (object) [
+            "styleChunks" => [],
+            "cachedCompiledScreenSizesCss" => [],
+            "cachedCompiledScreenSizesCssLengths" => array_map(
+                fn($s) => (int) $s,
+                explode(",", $row->themeStylesCachedCompiledScreenSizesCssLengths)
+            ),
+        ];
+        }
         $out->stylesOrder = [];
         $out->stylesLastUpdatedAt = 0;
         $out->__stash = $rows;
         return $out;
     }
     /**
-     * @param bool|\Closure $arg $arg full|loader
+     * @param bool|string|null $arg = null
      */
-    public function loadStyles(bool|\Closure $arg = null): void {
+    public function loadStyles(bool|string|null $arg = null): void {
         if (!$this->__stash) return;
         $row = $this->__stash[0];
         $this->stylesLastUpdatedAt = (int) $row->themeStylesLastUpdatedAt;
@@ -64,24 +75,17 @@ final class Theme extends \stdClass {
         unset($this->themeStylesUnitsJson);
         $this->__stash = [];
         } else {
-        $loader = $arg;
-        if ($loader) {
+        $styleChunkBundlesJson = $arg;
+        if ($styleChunkBundlesJson) {
             $this->globalStyles = JsonUtils::parse($row->themeGlobalStylesJson);
             $this->stylesOrder = [];
-            //
-            $this->styles = [(object) [
-                "userScss" => (array) JsonUtils::parse($row->themeStylesStyleChunksJson),
-                "compiled" => [
-                    $loader("all", $this->name),
-                    $loader("960", $this->name),
-                    $loader("840", $this->name),
-                    $loader("600", $this->name),
-                    $loader("480", $this->name),
-                ],
-            ]];
+
+            $parsed = JsonUtils::parse($styleChunkBundlesJson);
+            $this->styles->styleChunks = $parsed->styleChunks;
+            $this->styles->cachedCompiledScreenSizesCss = $parsed->cachedCompiledScreenSizesCss;
         }
         unset($this->themeGlobalStylesJson);
-        unset($this->themeStylesStyleChunksJson);
+        unset($this->themeStylesCachedCompiledScreenSizesCssLengths);
         $this->__stash = [];
         }
     }

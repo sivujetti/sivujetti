@@ -293,13 +293,13 @@ function broadcastCurrentPageData(e) {
     const [_, dataBundle] = e.data;
     /** @type {Array<Block>} */
     const blocks = getAndInvalidate(dataBundle.page, 'blocks');
-    /** @type {Array<StylesBundle>} */
+    /** @type {StylesBundle} */
     const stylesBundle = getAndInvalidate(dataBundle.theme, 'styles');
 
     events.emit('webpage-preview-iframe-before-loaded');
 
     const saveButton = api.saveButton.getInstance();
-    const withId = {...stylesBundle[0], id: counter + 1};
+    const withId = {...stylesBundle, id: counter + 1};
     saveButton.initChannel('stylesBundle', withId, broadcastInitialStateToListeners);
     saveButton.initChannel('theBlockTree', blocks, broadcastInitialStateToListeners);
     saveButton.initChannel('currentPageDataBundle', dataBundle);

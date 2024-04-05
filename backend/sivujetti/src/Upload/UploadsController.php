@@ -151,7 +151,7 @@ final class UploadsController {
      * @return string[]
      */
     private static function getAllowedMimesFor(int $userRole): array {
-        $exts = ["jpg","jpeg","png","gif","pdf","doc","ppt","odt","pptx","docx","pps","ppsx","xls","xlsx","key","webp","asc","ogv","mp4","m4v","mov","wmv","avi","mpg","3gp","3g2"];
+        $exts = ["jpg","jpeg","png","gif","pdf","doc","ppt","odt","pptx","docx","pps","ppsx","xls","xlsx","key","webp","asc","ogv","mp4","m4v","mov","wmv","avi","mpg"];
         if ($userRole < ACL::ROLE_EDITOR)
             $exts = [...$exts, "ttf","eot","otf","woff","woff2"];
         return MimeValidator::extsToMimes($exts);

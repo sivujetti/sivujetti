@@ -77,6 +77,82 @@ const tab = '  ';
 function indent(line, numTabs) {
     return `${tab.repeat(numTabs)}${line}`;
 }
+
+/**
+ * @param {String} scss
+ */
+function createScssInspectorInternal(scss) {
+    const ast = compile(scss);
+    return {
+        /**
+         * @param {String} declName Example 'color', 'grid-template-columns'
+         * @returns {StylisAstNode|null}
+         */
+        findNodeByDeclName(declName) {
+            return findRecursively(ast, node =>
+                node.type === 'decl' && node.props === declName
+            );
+        },
+        /**
+         * @param {String} declName Example 'color', 'grid-template-columns'
+         * @param {String} scope Example 'ul li', 'ul li a:hover'
+         * @returns {StylisAstNode|null}
+         */
+        findNodeByDeclNameFromScope(declName, scope) {
+            return findRecursively(ast, (node, parenNode) =>
+                parenNode && node.type === 'decl' && (/*log('p',`${parenNode.value} === ${selector1}`,parenNode.value === selector1), */node.props === declName && parenNode.value === scope)
+            );
+        },
+        /**
+         * @param {(node: StylisAstNode, parentNode: StylisAstNode) => any} fn
+         * @returns {StylisAstNode|null}
+         */
+        findNode(fn) {
+            return findRecursively(ast, fn);
+        },
+        /**
+         * @returns {Array<StylisAstNode>}
+         */
+        getAst() {
+            return ast;
+        }
+    };
+}
+
+/**
+ * @param {Array<StylisAstNode>} ast
+ * @param {(node: StylisAstNode, parentNode: StylisAstNode) => any} fn
+ * @param {StylisAstNode|null} parenNode = null
+ * @returns {[StylisAstNode|null, StylisAstNode|null]} [node, parentNode]
+ */
+function findRecursively(ast, fn, parenNode = null) {
+    for (const node of ast) {
+        if (Array.isArray(node.children) && node.children.length) {
+            const fromC = findRecursively(node.children, fn, node);
+            if (fromC[0]) return fromC;
+        }
+        const found = fn(node, parenNode);
+        if (found) return [node, parenNode];
+    }
+    return [null, null];
+}
+
+/**
+ * @param {StylisAstNode|null} declsParentAstNode
+ * @param {StylisAstInspector} cur
+ * @returns {String}
+ */
+function getSelectorForDecl(declsParentAstNode, cur) {
+    if (declsParentAstNode && typeof declsParentAstNode.value === 'string' && declsParentAstNode.value[0] === ' ') {
+        window.console.error('########');
+        window.console.error('leading space',declsParentAstNode.value);
+        window.console.error('########');
+        }
+    return declsParentAstNode
+        ? declsParentAstNode.value // Example 'ul', 'ul li', 'ul li a:hover', '>.j-Section2-cols>:nth-of-type(2)'
+        : cur.getAst()[0].value;   // '[data-block="<id>"]'
+}
+
 /**
  * @param {String} blockIdOrType
  * @param {styleBlockScope} scope = 'single-block'
@@ -90,6 +166,8 @@ function createSelector(blockIdOrType, scope = 'single-block') {
 export {
     createCssDeclExtractor,
     createScssBlock,
+    createScssInspectorInternal,
     createSelector,
+    getSelectorForDecl,
     stylesToBaked,
 };

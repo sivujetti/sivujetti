@@ -495,6 +495,13 @@ interface StylisAstNode {
     [more: String]: any;
 }
 
+interface StylisAstInspector {
+    findNodeByDeclName(declName: String): StylisAstNode|null;
+    findNodeByDeclNameFromScope(declName: String, scope: String): StylisAstNode|null;
+    findNode(fn: (node: StylisAstNode, parentNode: StylisAstNode) => any): StylisAstNode|null;
+    getAst(): Array<StylisAstNode>;
+}
+
 interface StylesListProps {
     blockCopy: Block;
     userCanEditVisualStyles: Boolean;

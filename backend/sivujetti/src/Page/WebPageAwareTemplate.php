@@ -384,9 +384,7 @@ final class WebPageAwareTemplate extends Template {
             $conf = $this->__applyFilters->__invoke("sivujetti:editAppAdditionalStyleUnits", [])[0]->css ?? null;
             $additionals = $conf ? self::escInlineJs(JsonUtils::stringify($conf)) : "\"\"";
             $cachedScreenSizesCss = $theme->styles->cachedCompiledScreenSizesCss;
-            $getCssStr = fn($idx) => strlen($cachedScreenSizesCss[$idx])
-                ? self::escInlineJs($cachedScreenSizesCss[$idx])
-                : "";
+            $getCssStr = fn($idx) => self::escInlineJs(JsonUtils::stringify($cachedScreenSizesCss[$idx]));
             $stylesTags = (
                 // Externals without theme-generated.css
                 implode("\n", $externals) .
@@ -404,11 +402,11 @@ final class WebPageAwareTemplate extends Template {
                 "    };\n" .
                 "    const {head} = document;\n" .
                 "    head.appendChild(createStyleEl({$additionals}, 'edit-app-all'));\n" .
-                "    head.appendChild(createStyleEl(`{$getCssStr(0)}`, 'all'));\n" .
-                "    head.appendChild(createStyleEl(`{$getCssStr(1)}`, '960'));\n" .
-                "    head.appendChild(createStyleEl(`{$getCssStr(2)}`, '840'));\n" .
-                "    head.appendChild(createStyleEl(`{$getCssStr(3)}`, '600'));\n" .
-                "    head.appendChild(createStyleEl(`{$getCssStr(4)}`, '480'));\n" .
+                "    head.appendChild(createStyleEl({$getCssStr(0)}, 'all'));\n" .
+                "    head.appendChild(createStyleEl({$getCssStr(1)}, '960'));\n" .
+                "    head.appendChild(createStyleEl({$getCssStr(2)}, '840'));\n" .
+                "    head.appendChild(createStyleEl({$getCssStr(3)}, '600'));\n" .
+                "    head.appendChild(createStyleEl({$getCssStr(4)}, '480'));\n" .
                 "    head.appendChild(createStyleEl('', 'fast-all'));\n" .
                 "    head.appendChild(createStyleEl('', 'fast-960'));\n" .
                 "    head.appendChild(createStyleEl('', 'fast-840'));\n" .

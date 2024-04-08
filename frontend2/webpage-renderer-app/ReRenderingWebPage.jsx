@@ -68,7 +68,7 @@ class ImageBlock extends preact.Component {
     render({block, renderChildren, createDefaultProps}) {
         return <figure { ...createDefaultProps() }>
             <img
-                src={ block.src ? completeImageSrc(block.src, urlUtils) : placeholderImageSrc }
+                src={ completeImageSrc(block.src, urlUtils) }
                 alt={ block.altText }/>
             { block.caption ? <figcaption>{ block.caption }</figcaption> : '' }
             { renderChildren() }
@@ -101,7 +101,6 @@ class ListingBlock extends preact.Component {
      * @access protected
      */
     render({block, renderChildren, createDefaultProps}, {__pages, __pageType, renderedHtmlAsArr}) {
-        console.log('ren lis');
         return <div { ...createDefaultProps(`page-type-${block.filterPageType.toLowerCase()}`) }>
             { renderedHtmlAsArr || null /* loading */ }
             { renderChildren() }

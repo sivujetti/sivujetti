@@ -34,11 +34,12 @@ const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAA
 /**
  * @param {String} src
  * @param {urlUtils} urlUtils
+ * @param {String} fallback = placeholderImageSrc
  * @returns {String}
  */
-function completeImageSrc(src, urlUtils) {
+function completeImageSrc(src, urlUtils, fallback = placeholderImageSrc) {
     if (!src)
-        return placeholderImageSrc;
+        return fallback;
     const isLocal = src.indexOf("/") < 0;
     if (isLocal)
         return urlUtils.makeAssetUrl(`public/uploads/${src}`);

@@ -1,7 +1,8 @@
+import LengthValueInput from '../../styles/LengthValueInput.jsx';
 import BlockVisualStylesEditForm, {createCssVarsMaps} from '../../BlockVisualStylesEditForm.jsx';
 import ColorPickerInput from '../../ColorPickerInput.jsx';
-import {FormGroupInline} from '../../Form.jsx';
 import {__} from '../../edit-app-singletons.js';
+import {FormGroupInline} from '../../Form.jsx';
 import ScreenSizesVerticalTabs from '../../ScreenSizesVerticalTabs.jsx';
 import {createCssDeclExtractor} from '../../ScssWizardFuncs.js';
 
@@ -61,31 +62,31 @@ class TextBlockVisualStylesEditForm extends BlockVisualStylesEditForm {
                         )
                     }</select>
                 </FormGroupInline>
-                <FormGroupInline>
-                    <label htmlFor="textFontSize" class="form-label">{ __('Font size') }</label>
-                    <input value={ screenStyles.text || '' }
-                        onChange={ e => this.handleCssDeclChanged(e, 'text', textBlockVarInputToCssDecl) } id="textFontSize"/>
-                </FormGroupInline>
-                <FormGroupInline>
-                    <label htmlFor="textPaddingTop" class="form-label">{ __('Padding top') }</label>
-                    <input value={ screenStyles.paddingTop || '' }
-                        onChange={ e => this.handleCssDeclChanged(e, 'paddingTop', textBlockVarInputToCssDecl) } id="textPaddingTop"/>
-                </FormGroupInline>
-                <FormGroupInline>
-                    <label htmlFor="textPaddingRight" class="form-label">{ __('Padding right') }</label>
-                    <input value={ screenStyles.paddingRight || '' }
-                        onChange={ e => this.handleCssDeclChanged(e, 'paddingRight', textBlockVarInputToCssDecl) } id="textPaddingRight"/>
-                </FormGroupInline>
-                <FormGroupInline>
-                    <label htmlFor="textPaddingBottom" class="form-label">{ __('Padding bottom') }</label>
-                    <input value={ screenStyles.paddingBottom || '' }
-                        onChange={ e => this.handleCssDeclChanged(e, 'paddingBottom', textBlockVarInputToCssDecl) } id="textPaddingBottom"/>
-                </FormGroupInline>
-                <FormGroupInline>
-                    <label htmlFor="textPaddingLeft" class="form-label">{ __('Padding left') }</label>
-                    <input value={ screenStyles.paddingLeft || '' }
-                        onChange={ e => this.handleCssDeclChanged(e, 'paddingLeft', textBlockVarInputToCssDecl) } id="textPaddingLeft"/>
-                </FormGroupInline>
+                <LengthValueInput
+                    value={ LengthValueInput.valueFromInput(screenStyles.fontSize || 'initial') }
+                    onValueChanged={ newValAsString => this.handleCssDeclChanged(newValAsString, 'fontSize', textBlockVarInputToCssDecl) }
+                    labelTranslated={ __('Font size') }
+                    inputId="textFontSize"/>
+                <LengthValueInput
+                    value={ LengthValueInput.valueFromInput(screenStyles.paddingTop || 'initial') }
+                    onValueChanged={ newValAsString => this.handleCssDeclChanged(newValAsString, 'paddingTop', textBlockVarInputToCssDecl) }
+                    labelTranslated={ __('Padding top') }
+                    inputId="textPaddingTop"/>
+                <LengthValueInput
+                    value={ LengthValueInput.valueFromInput(screenStyles.paddingRight || 'initial') }
+                    onValueChanged={ newValAsString => this.handleCssDeclChanged(newValAsString, 'paddingRight', textBlockVarInputToCssDecl) }
+                    labelTranslated={ __('Padding right') }
+                    inputId="textPaddingRight"/>
+                <LengthValueInput
+                    value={ LengthValueInput.valueFromInput(screenStyles.paddingBottom || 'initial') }
+                    onValueChanged={ newValAsString => this.handleCssDeclChanged(newValAsString, 'paddingBottom', textBlockVarInputToCssDecl) }
+                    labelTranslated={ __('Padding bottom') }
+                    inputId="textPaddingBottom"/>
+                <LengthValueInput
+                    value={ LengthValueInput.valueFromInput(screenStyles.paddingLeft || 'initial') }
+                    onValueChanged={ newValAsString => this.handleCssDeclChanged(newValAsString, 'paddingLeft', textBlockVarInputToCssDecl) }
+                    labelTranslated={ __('Padding left') }
+                    inputId="textPaddingLeft"/>
             </div>
         </ScreenSizesVerticalTabs>;
     }

@@ -67,14 +67,15 @@ class ScssWizard {
         return found;
     }
     /**
-     * @param {String} scssChunk
+     * @param {String} scssChunkToUpdate
      * @param {StyleChunk} currentStyle
      * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
-    tryToUpdateUniqueScopeScssChunkAndReturnAllRecompiled(scssChunk, currentStyle, mediaScopeId = 'all') {
-        // todo
+    tryToUpdateUniqueScopeScssChunkAndReturnAllRecompiled(scssChunkToUpdate, currentStyle, mediaScopeId = 'all') {
+        const updated = this.doTryToUpdateUniqueScopedScssChunk(scssChunkToUpdate, currentStyle);
+        return this.commitAll(updated, mediaScopeId);
     }
     /**
      * @param {String} scssChunkToDelete Examples: 'color: red;', '> sub-selector {\n  color: red;\n}'
@@ -146,7 +147,7 @@ class ScssWizard {
             const [fromDel, fromDelParen] = del.findNode(node => node.type === 'decl');
             const declName = fromDel.props; // Example 'column-gap'
 
-            // find it from the current style.scss
+            // find it from current style.scss
             const containingCssBlockSel = getSelectorForDecl(fromDelParen, current);
             const [nodeToDelete, _toDeleteParen] = current.findNode((node, parenNode) =>
                 parenNode &&
@@ -167,6 +168,45 @@ class ScssWizard {
                 scss: linesCur.join('\n')
             };
         }).filter(s => s !== null);
+    }
+    /**
+     * @param {String} scssChunkToUpdate Examples 'color: red;', '> sub-selector {\n  color: red;\n}'
+     * @param {StyleChunk} currentStyle
+     * @returns {Array<StyleChunk>}
+     * @access private
+     */
+    doTryToUpdateUniqueScopedScssChunk(scssChunkToUpdate, currentStyle) {
+        return this.styles.map(s => {
+            if (s !== currentStyle) return s;
+
+            const current = createScssInspectorInternal(s.scss);
+            const upd = createScssInspectorInternal(scssChunkToUpdate);
+
+            if (scssChunkToUpdate.indexOf('\n') > -1)
+                throw new Error('todo');
+            // get the decl name we're trying to update
+            const [declToChange, dectToChangeParen] = upd.findNode(node => node.type === 'decl');
+            const declName = declToChange.props; // Example 'column-gap'
+
+            // find it from current style.scss
+            const containingCssBlockSel = getSelectorForDecl(dectToChangeParen, current);
+            const [toUpdate, _toUpdateParen] = current.findNode((node, parenNode) =>
+                parenNode &&
+                (node.type === 'decl' && node.props === declName) &&
+                (parenNode.type === 'rule' && parenNode.value === containingCssBlockSel)
+            );
+            if (!toUpdate)
+                throw new Error(`Expected to find \`${declName}\` in \`${containingCssBlockSel}\` (\`${s.scss}\`)`);
+
+            const linesIncoming = scssChunkToUpdate.split('\n');
+            const linesCur = s.scss.split('\n');
+            linesCur[toUpdate.line - 1] = indent(linesIncoming[1] || linesIncoming[0], 1);
+
+            return {
+                ...s,
+                scss: linesCur.join('\n')
+            };
+        });
     }
     /**
      * @param {Array<StyleChunk>} newStylesArr

@@ -2,14 +2,13 @@
 
 namespace Sivujetti\Block;
 
-use Pike\{ArrayUtils, Request, Response, Validation};
+use Pike\{Request, Response, Validation};
 use Sivujetti\{AppEnv, SharedAPIContext};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder};
 use Sivujetti\BlockType\Entities\BlockTypes;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesRepository2;
 use Sivujetti\Page\{PagesController, PagesRepository, WebPageAwareTemplate};
-use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class BlocksController {

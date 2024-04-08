@@ -173,6 +173,14 @@ final class WebPageAwareTemplate extends Template {
         return $this->e(!$args ? $str : sprintf($str, ...$args));
     }
     /**
+     * @param string $name
+     * @param mixed $default = null
+     * @return mixed
+     */
+    public function getLocal(string $name, $default = null) {
+        return $this->__locals[$name] ?? $default;
+    }
+    /**
      * @param \Sivujetti\Block\Entities\Block $block
      * @return string
      */

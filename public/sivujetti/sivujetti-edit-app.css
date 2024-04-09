@@ -822,9 +822,11 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     opacity: 1;
 }
 /* EditApp: Components: visual-style-inputs */
+.has-visual-style-widgets .pcr-button,
 .has-color-pickers .pcr-button {
     border: 1px solid rgba(var(--components-color-bg-default), .24);
 }
+.has-visual-style-widgets .is-very-light-color .pcr-button,
 .has-color-pickers .is-very-light-color .pcr-button {
     border-color: rgba(var(--components-color-fb-default),.12);
 }
@@ -832,41 +834,42 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     margin: 0.6rem 0.4rem 0 0.4rem;
     border-top: 1px solid #dadee4;
 }
-.style-vars-group {
-    background: #070b470a;
-    border-radius: var(--small-rect-radius);
-}
-.style-vars-group > .form-group,
+.has-visual-style-widgets > .form-group,
 .has-color-pickers > .form-group {
     display: grid;
-    grid-template-columns: 7rem auto;
+    grid-template-columns: 7rem 1fr;
     flex-wrap: unset;
     align-items: center;
     justify-content: flex-start;
     gap: .4rem;
+    padding-right: 1.2rem;
 }
-.form-group.has-visual-color-input {
-    grid-template-columns: 7rem auto;
-}
-.style-vars-group > .form-group:first-child,
+.has-visual-style-widgets > .form-group:first-child,
 .has-color-pickers > .form-group:first-child {
     margin-top: .2rem;
 }
-.style-vars-group > .form-group > *,
+.has-visual-style-widgets > .form-group > *,
 .has-color-pickers > .form-group > * {
     width: unset !important;
 }
-.style-vars-group > .form-group > :last-child,
+.has-visual-style-widgets > .form-group > :last-child,
 .has-color-pickers > .form-group > :last-child {
-    max-width: 4rem;
-    width: initial;
+    max-width: 8rem;
+    margin-left: initial !important;
 }
-.has-visual-length-input > :last-child > .p-relative {
+.has-visual-length-input > :last-child > div {
     min-width: 4.8rem;
+}
+.has-visual-style-widgets .clear-style-btn,
+.has-visual-length-input .clear-style-btn {
+    position: absolute;
+    right: -1.1rem;
+    top: 0.3rem;
 }
 .has-visual-length-input .form-select.input-group-addon {
     width: 1%;
     min-width: 2.6rem;
+    max-width: 2.8rem;
 }
 /* EditApp: Components: Big radios */
 .button-options {

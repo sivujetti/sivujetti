@@ -1,5 +1,5 @@
-import ImageBlockEditForm from './ImageBlockEditForm.jsx';
-import ImageBlockDefaultStylesEditForm from './ImageStylesEditForm.jsx';
+import EditForm from './ImageBlockEditForm.jsx';
+import StylesEditForm from './ImageBlockVisualStylesEditForm.jsx';
 
 /**
  * @typedef ImageBlockProps
@@ -12,8 +12,8 @@ export default {
     name: 'Image',
     friendlyName: 'Image',
     icon: 'photo',
-    editForm: ImageBlockEditForm,
-    stylesEditForm: ImageBlockDefaultStylesEditForm,
+    editForm: EditForm,
+    stylesEditForm: StylesEditForm,
     createOwnProps(/*defProps*/) {
         return {
             src: null,
@@ -22,6 +22,3 @@ export default {
         };
     }
 };
-
-
-

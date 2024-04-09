@@ -78,7 +78,7 @@ class ScssWizard {
         return this.commitAll(updated, mediaScopeId);
     }
     /**
-     * @param {String} scssChunkToDelete Examples: 'color: red;', '> sub-selector {\n  color: red;\n}'
+     * @param {String} scssChunkToDelete Examples: 'color: red;', '>img {\n  max-width: 100px;\n}'
      * @param {StyleChunk} currentStyle
      * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
@@ -129,7 +129,7 @@ class ScssWizard {
 
         return this.commitAll(updated, mediaScopeId);
     /**
-     * @param {String} scssChunkToDelete Examples 'color: red;', '> sub-selector {\n  color: red;\n}'
+     * @param {String} scssChunkToDelete Examples 'color: red;', '>img {\n  max-width: 100px;\n}'
      * @param {StyleChunk} currentStyle
      * @returns {Array<StyleChunk>}
      * @access private
@@ -141,8 +141,6 @@ class ScssWizard {
             const current = createScssInspectorInternal(s.scss);
             const del = createScssInspectorInternal(scssChunkToDelete);
 
-            if (scssChunkToDelete.indexOf('\n') > -1)
-                throw new Error('todo');
             // get the decl name we're trying to delete
             const [fromDel, fromDelParen] = del.findNode(node => node.type === 'decl');
             const declName = fromDel.props; // Example 'column-gap'
@@ -158,9 +156,16 @@ class ScssWizard {
                 throw new Error(`Expected "${s.scss}" to contain "${declName}"`);
 
             let linesCur = s.scss.split('\n');
-            linesCur.splice(nodeToDelete.line - 1, 1);
+            const deleteLineAt = nodeToDelete.line - 1;
+            linesCur.splice(deleteLineAt, 1);
+            const lineAfterDeletedLine = deleteLineAt;
 
-            if (linesCur.length < 3) // No rules left ( ['[data-block=\"u585XQVD\"] {', '}'] )
+            // Was inner css block, and was its last decl
+            if (fromDelParen && linesCur[lineAfterDeletedLine].endsWith('}') && linesCur[lineAfterDeletedLine - 1].endsWith('{'))
+                linesCur.splice(lineAfterDeletedLine - 1, 2); // [..., '  >img {', '  }', ...] -> [..., ...]
+
+            // No rules left ( ['[data-block=\"u585XQVD\"] {', '}'] )
+            if (linesCur.length < 3)
                 return null;
 
             return {
@@ -182,8 +187,6 @@ class ScssWizard {
             const current = createScssInspectorInternal(s.scss);
             const upd = createScssInspectorInternal(scssChunkToUpdate);
 
-            if (scssChunkToUpdate.indexOf('\n') > -1)
-                throw new Error('todo');
             // get the decl name we're trying to update
             const [declToChange, dectToChangeParen] = upd.findNode(node => node.type === 'decl');
             const declName = declToChange.props; // Example 'column-gap'

@@ -29,7 +29,7 @@ class BlockVisualStylesEditForm extends preact.Component {
         const selectedScreenSizeStyles = styleScopes[curScreenSizeTabIdx];
         const current = selectedScreenSizeStyles || {};
         const styleRef = this.userStyleRefs[curScreenSizeTabIdx];
-        const newValIsNotEmpty = val.trim().length > 0;
+        const newValIsNotEmpty = val?.trim().length > 0;
         const upd = varInputToCssDecl(varName, newValIsNotEmpty ? val : '"dummy"');
         const mediaScope = mediaScopes[curScreenSizeTabIdx];
 

@@ -86,10 +86,9 @@ class LengthValueInput extends preact.Component {
                 </div>
                 { isClearable
                     ? <button onClick={ () => { this.props.onValueChanged(null); } }
-                        class="btn btn-link btn-sm"
-                        title={ __('Restore default') }
-                        style="position: absolute;right: -1.5rem;top: .1rem;">
-                        <span class="d-flex"><Icon iconId="circle-x" className="size-xs color-dimmed3"/></span>
+                        class="btn btn-link btn-xs clear-style-btn"
+                        title={ __('Restore default') }>
+                            <span class="d-flex"><Icon iconId="circle-x" className="size-xs color-dimmed3"/></span>
                     </button>
                     : null
                 }
@@ -112,11 +111,12 @@ class LengthValueInput extends preact.Component {
     }
     /**
      * @param {String} input examples: '1.4rem', '1.4 rem ', '12px', 'initial'
+     * @param {String} initialUnit = 'rem'
      * @returns {LengthValue|null}
      */
-    static valueFromInput(input) {
+    static valueFromInput(input, initialUnit = 'rem') {
         if (input === 'initial')
-            return {num: '', unit: 'rem'};
+            return {num: '', unit: initialUnit};
         const chars = input.split('').filter(ch => ch !== ' ');
         const firstAlpha = chars.findIndex(ch => {
             const cc = ch.charCodeAt(0);

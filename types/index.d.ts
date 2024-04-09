@@ -515,6 +515,7 @@ interface ValueInputProps<T> {
     value: T;
     labelTranslated: String;
     onValueChanged: (newValAsString: String|null) => void;
+    isClearable?: Boolean;
     inputId?: String;
     showNotice?: Boolean;
     noticeDismissedWith?: (accepted: Boolean) => void;

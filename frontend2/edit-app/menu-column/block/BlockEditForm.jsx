@@ -111,7 +111,7 @@ class BlockEditForm extends preact.Component {
             </div>
             { hasMoreThat1Tab ? <Tabs
                 links={ tabsInfo.map(itm => itm.title) }
-                getTabName={ (_, i) => tabsInfo[i].title }
+                getTabName={ (_, i) => tabsInfo[i].kind }
                 onTabChanged={ (toIdx) => this.changeTab(toIdx) }
                 className={ `text-tinyish mt-0${currentTabIdx < 1 ? ' mb-2' : ''}` }
                 initialIndex={ currentTabIdx }/> : null }

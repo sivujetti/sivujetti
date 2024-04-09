@@ -1580,6 +1580,14 @@ textarea.code.padded-top {
 #inspector-panel [data-main] > .with-icon.global-block-tree-block .icon-tabler {
     color: var(--color-icon-global-block);
 }
+#inspector-panel .tab:has(
+    .active.tab-item-user-styles,
+    .active.tab-item-content\+user-styles,
+    .active.tab-item-dev-styles
+) {
+    margin-bottom: 0;
+    border-bottom: none;
+}
 
 
 /* EditApp: Block highligh rectangles */

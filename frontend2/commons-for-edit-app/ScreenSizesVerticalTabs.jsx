@@ -6,10 +6,10 @@ import {mediaScopes} from '../shared-inline.js';
 
 class ScreenSizesVerticalTabs extends preact.Component {
     /**
-     * @param {{curTabIdx: Number; setCurTabIdx: (newIdx: Number): void;}} props
+     * @param {{curTabIdx: Number; setCurTabIdx: (newIdx: Number): void; className?: String;}} props
      */
-    render({children, curTabIdx, setCurTabIdx}) {
-        return <div class="vert-tabs mx-1">
+    render({children, curTabIdx, setCurTabIdx, className}) {
+        return <div class={ 'vert-tabs' + (!className ? '' : ` ${className}`) }>
             <div class="vert-tab-btns">
                 <button
                     onClick={ () => setCurTabIdx(0) }

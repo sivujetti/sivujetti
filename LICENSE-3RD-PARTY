@@ -28,6 +28,10 @@ Library: Autosize
 License: MIT
 Link: https://github.com/jackmoore/autosize/blob/master/LICENSE.md
 
+Library: Coloris
+License: MIT
+Link: https://github.com/mdbassit/Coloris/blob/main/LICENSE
+
 Library: FileSaver.js
 License: MIT
 Link: https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md
@@ -39,10 +43,6 @@ Link: https://github.com/floating-ui/floating-ui/blob/master/LICENSE
 Library: jsPanel
 License: MIT
 Link: https://raw.githubusercontent.com/Flyer53/jsPanel4/master/LICENSE
-
-Library: Pickr
-License: MIT
-Link: https://github.com/Simonwep/pickr/blob/master/LICENSE
 
 Library: preact
 License: MIT

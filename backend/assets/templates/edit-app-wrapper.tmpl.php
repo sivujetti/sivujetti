@@ -5,8 +5,8 @@
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.css") ?>">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/quill.snow.min.css") ?>">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/jspanel-custom.min.css") ?>">
-        <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/pickr-theme-nano.min.css") ?>">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.css") ?>">
+        <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/coloris.min.css") ?>">
         <?php if ($isFirstRun): ?>
         <style>
         <?php if (defined("showQuickIntro")): ?>
@@ -233,7 +233,7 @@
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/quill.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/jspanel.min.js") ?>"></script>
-        <script src="<?= $this->assetUrl("public/sivujetti/vendor/pickr.min.js") ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/vendor/coloris.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/stylis.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/popper.min.js") ?>"></script>
         <script><?= $this->generateSivujettiEnvConfJs() ?></script>

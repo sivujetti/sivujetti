@@ -1,13 +1,13 @@
 import {__} from '../../edit-app-singletons.js';
-import MenuBlockEditForm, {CountingLinkItemFactory} from './MenuBlockEditForm.jsx';
-import MenuBlockDefaultStylesEditForm from './MenuStylesEditForm.jsx';
+import EditForm, {CountingLinkItemFactory} from './MenuBlockEditForm.jsx';
+import StylesEditForm from './MenuBlockVisualStylesEditForm.jsx';
 
 export default {
     name: 'Menu',
     friendlyName: 'Menu',
     icon: 'menu-2',
-    editForm: MenuBlockEditForm,
-    stylesEditForm: MenuBlockDefaultStylesEditForm,
+    editForm: EditForm,
+    stylesEditForm: StylesEditForm,
     createOwnProps(/*defProps*/) {
         const linkCreator = new CountingLinkItemFactory;
         return {

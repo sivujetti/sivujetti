@@ -58,12 +58,13 @@ class BlockVisualStylesEditForm extends preact.Component {
         const {varName, widgetSettings} = def;
         if (!widgetSettings)
             return null;
-        const {renderer, label, inputId, initialUnit} = widgetSettings;
+        const {renderer, label, inputId, initialUnit, defaultThemeValue} = widgetSettings;
         const commonProps = {
             onValueChanged: newValAsString => this.handleVisualVarChanged(newValAsString, varName, varInputToDecl),
             labelTranslated: __(label),
             isClearable: !!screenStyles[varName],
             inputId,
+            defaultThemeValue,
         };
         if (renderer === ColorValueInput)
             return <ColorValueInput
@@ -81,6 +82,7 @@ class BlockVisualStylesEditForm extends preact.Component {
                 options={ widgetSettings.options }
                 { ...commonProps }/>;
     }
+    /**
      * @param {String|Event} input
      * @param {String} varName
      * @param {(varName: String, value: String): String} varInputToScssChunk
@@ -189,6 +191,7 @@ function createVarsMapAuto(cssVarDefs, scss, _mediaScopeId) {
     } */
     const extr = createCssDeclExtractor(scss);
     return cssVarDefs.reduce((map, {varName, cssProp, cssSubSelector}) =>
+        ({...map, [varName]: extr.extractVal(cssProp, cssSubSelector || undefined)}),
     {});
 }
 
@@ -225,14 +228,66 @@ function getValidDefs(input) {
     return input.map(def => {
         if (typeof def.varName !== 'string')
             throw new Error('def.varName must be string');
+        if (def.varName === '__proto__')
+            throw new Error('def.varName is not valid');
         if (typeof def.cssProp !== 'string')
             throw new Error('def.cssProp must be string');
         return def;
     });
 }
 
+/**
+ * @param {String} prefix Examples: 'text', 'button'
+ * @returns {Array<VisualStylesFormVarDefinition>}
+ */
+function createPaddingVarDefs(prefix) {
+    return [
+        {
+            varName: 'paddingTop',
+            cssProp: 'padding-top',
+            cssSubSelector: null,
+            widgetSettings: {
+                renderer: LengthValueInput,
+                label: 'Padding top',
+                inputId: `${prefix}PaddingTop`,
+            },
+        },
+        {
+            varName: 'paddingRight',
+            cssProp: 'padding-right',
+            cssSubSelector: null,
+            widgetSettings: {
+                renderer: LengthValueInput,
+                label: 'Padding right',
+                inputId: `${prefix}PaddingRight`,
+            },
+        },
+        {
+            varName: 'paddingBottom',
+            cssProp: 'padding-bottom',
+            cssSubSelector: null,
+            widgetSettings: {
+                renderer: LengthValueInput,
+                label: 'Padding bottom',
+                inputId: `${prefix}PaddingBottom`,
+            },
+        },
+        {
+            varName: 'paddingLeft',
+            cssProp: 'padding-left',
+            cssSubSelector: null,
+            widgetSettings: {
+                renderer: LengthValueInput,
+                label: 'Padding left',
+                inputId: `${prefix}PaddingLeft`,
+            },
+        }
+    ];
+}
+
 export default BlockVisualStylesEditForm;
 export {
     createCssVarsMaps,
+    createPaddingVarDefs,
     createVarInputToScssChunkAuto,
 };

@@ -1,13 +1,13 @@
 import {__} from '../../edit-app-singletons.js';
-import ButtonBlockEditForm from './ButtonBlockEditForm.jsx';
-import ButtonBlockDefaultStylesEditForm from './ButtonStylesEditForm.jsx';
+import EditForm from './ButtonBlockEditForm.jsx';
+import StylesEditForm from './ButtonBlockVisualStylesEditForm.jsx';
 
 export default {
     name: 'Button',
     friendlyName: 'Button',
     icon: 'hand-finger',
-    editForm: ButtonBlockEditForm,
-    stylesEditForm: ButtonBlockDefaultStylesEditForm,
+    editForm: EditForm,
+    stylesEditForm: StylesEditForm,
     createOwnProps(/*defProps*/) {
         return {
             html: __('Button text'),

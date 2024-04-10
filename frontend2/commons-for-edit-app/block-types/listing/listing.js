@@ -1,6 +1,6 @@
 import {__} from '../../edit-app-singletons.js';
-import ListingBlockEditForm from './ListingBlockEditForm.jsx';
-import ListingBlockDefaultStylesEditForm from './ListingStylesEditForm.jsx';
+import EditForm from './ListingBlockEditForm.jsx';
+import StylesEditForm from './ListingBlockVisualStylesEditForm.jsx';
 
 /**
  * @typedef ListingBlockProps
@@ -15,8 +15,8 @@ export default {
     name: 'Listing',
     friendlyName: 'Listing',
     icon: 'layout-list',
-    editForm: ListingBlockEditForm,
-    stylesEditForm: ListingBlockDefaultStylesEditForm,
+    editForm: EditForm,
+    stylesEditForm: StylesEditForm,
     createOwnProps(/*defProps*/) {
         return {
             filterPageType: 'Pages',

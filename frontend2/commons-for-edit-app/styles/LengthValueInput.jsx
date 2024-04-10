@@ -51,7 +51,7 @@ class LengthValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({value, isClearable, labelTranslated, showNotice, noticeDismissedWith}, {unit}) {
+    render({value, isClearable, labelTranslated, defaultThemeValue, showNotice, noticeDismissedWith}, {unit}) {
         const {num} = value;
         return <FormGroupInline className="has-visual-length-input">
             <label htmlFor={ this.inputId } class="form-label p-relative pt-1" title={ labelTranslated }>
@@ -70,7 +70,7 @@ class LengthValueInput extends preact.Component {
             </label>
             <div class="p-relative">
                 <div class="input-group">
-                    <Input vm={ this } prop="num" id={ this.inputId } placeholder="1.4" autoComplete="off"/>
+                    <Input vm={ this } prop="num" id={ this.inputId } placeholder={ defaultThemeValue?.num || '1.4' } autoComplete="off"/>
                     <select
                         onChange={ e => {
                             if (num)

@@ -591,4 +591,8 @@ interface VisualStylesFormVarDefinitionWidgetSettings {
     renderer: preact.Component; // ColorValueInput|OptionValueInput etc.
     label: String;              // Example 'Text align'
     inputId: String;            // Example 'textTextAlign'
+    defaultThemeValue?:         // Example {num: '6', unit: 'rem'}
+        ColorValue |
+        LengthValue |
+        OptionValue;
 }

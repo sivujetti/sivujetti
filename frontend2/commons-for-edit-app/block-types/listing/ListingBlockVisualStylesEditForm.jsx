@@ -1,4 +1,3 @@
-import ColorValueInput from '../../styles/ColorValueInput.jsx';
 import LengthValueInput from '../../styles/LengthValueInput.jsx';
 import OptionValueInput from '../../styles/OptionValueInput.jsx';
 import BlockVisualStylesEditForm, {
@@ -11,49 +10,49 @@ import ScreenSizesVerticalTabs from '../../ScreenSizesVerticalTabs.jsx';
 /** @type {Array<VisualStylesFormVarDefinition>} */
 const cssVarDefs = [
     {
-        varName: 'textColor',
-        cssProp: 'color',
-        cssSubSelector: null,
-        widgetSettings: {
-            renderer: ColorValueInput,
-            label: 'Text color',
-            inputId: 'textTextColor',
-        },
-    },
-    {
-        varName: 'textAlign',
-        cssProp: 'text-align',
+        varName: 'numColumns',
+        cssProp: 'grid-template-columns',
         cssSubSelector: null,
         widgetSettings: {
             renderer: OptionValueInput,
             options: [
-                {label: __('Right'), value: 'right'},
-                {label: __('Center'), value: 'center'},
-                {label: __('Justify'), value: 'justify'},
-                {label: __('Default'), value: 'default'},
-                {label: __('Initial'), value: 'initial'},
+                {label: '1', value: 'repeat(1, minmax(0, 1fr))'},
+                {label: '2', value: 'repeat(2, minmax(0, 1fr))'},
+                {label: '3', value: 'repeat(3, minmax(0, 1fr))'},
+                {label: '4', value: 'repeat(4, minmax(0, 1fr))'},
                 {label: '-', value: ''},
             ],
-            label: 'Text align',
-            inputId: 'textTextAlign',
+            label: 'Items width',
+            inputId: 'listingNumColumns',
         },
     },
     {
-        varName: 'fontSize',
-        cssProp: 'font-size',
+        varName: 'gapY',
+        cssProp: 'row-gap',
         cssSubSelector: null,
         widgetSettings: {
             renderer: LengthValueInput,
-            label: 'Font size',
-            inputId: 'textFontSize',
+            label: 'Gap y',
+            inputId: 'listingGapY',
         },
     },
-    ...createPaddingVarDefs('text'),
+    {
+        varName: 'gapX',
+        cssProp: 'column-gap',
+        cssSubSelector: null,
+        widgetSettings: {
+            renderer: LengthValueInput,
+            label: 'Gap x',
+            inputId: 'listingGapX',
+            defaultThemeValue: LengthValueInput.valueFromInput('6rem'),
+        },
+    },
+    ...createPaddingVarDefs('listing'),
 ];
 
-const textBlockVarInputToScssChunk = createVarInputToScssChunkAuto(cssVarDefs);
+const listingBlockVarInputToScssChunk = createVarInputToScssChunkAuto(cssVarDefs);
 
-class TextBlockVisualStylesEditForm extends BlockVisualStylesEditForm {
+class ListingBlockVisualStylesEditForm extends BlockVisualStylesEditForm {
     /**
      * @inheritdoc
      */
@@ -70,11 +69,11 @@ class TextBlockVisualStylesEditForm extends BlockVisualStylesEditForm {
             setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }>
             <div class="form-horizontal has-visual-style-widgets tight pt-1 pl-2">
                 { cssVarDefs.map(def =>
-                    this.renderVarWidget(def, screenStyles, textBlockVarInputToScssChunk)
+                    this.renderVarWidget(def, screenStyles, listingBlockVarInputToScssChunk)
                 ) }
             </div>
         </ScreenSizesVerticalTabs>;
     }
 }
 
-export default TextBlockVisualStylesEditForm;
+export default ListingBlockVisualStylesEditForm;

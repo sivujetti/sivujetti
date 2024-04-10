@@ -155,7 +155,7 @@ class CountingLinkItemFactory {
         this.counter = 0;
     }
     /**
-     * @param {RawBlock|RawBlockData} newTree
+     * @param {Block|BlockData} newTree
      * @returns {Array<MenuLink>}
      * @access public
      */

@@ -822,18 +822,6 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     opacity: 1;
 }
 /* EditApp: Components: visual-style-inputs */
-.has-visual-style-widgets .pcr-button,
-.has-color-pickers .pcr-button {
-    border: 1px solid rgba(var(--components-color-bg-default), .24);
-}
-.has-visual-style-widgets .is-very-light-color .pcr-button,
-.has-color-pickers .is-very-light-color .pcr-button {
-    border-color: rgba(var(--components-color-fb-default),.12);
-}
-.pcr-app[data-theme="nano"] .pcr-swatches {
-    margin: 0.6rem 0.4rem 0 0.4rem;
-    border-top: 1px solid #dadee4;
-}
 .has-visual-style-widgets > .form-group,
 .has-color-pickers > .form-group {
     display: grid;
@@ -870,6 +858,44 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     width: 1%;
     min-width: 2.6rem;
     max-width: 2.8rem;
+}
+.clr-field button {
+    --color-picker-preview-rect-size: 22px;
+    width: var(--color-picker-preview-rect-size);
+    height: var(--color-picker-preview-rect-size);
+    left: .3rem;
+    border-radius: calc(var(--small-rect-radius) - 1px);
+    z-index: 1;
+}
+.clr-field input {
+    padding-left: 1.7rem !important;
+    cursor: pointer;
+}
+.clr-picker:has(#clr-clear) input.clr-color {
+    text-align: initial;
+}
+#clr-clear {
+    position: absolute;
+    /*
+    --color-area-height: 100px;
+    --color-area-margin-bottom: 15px;
+    --hue-slider-height: 8px;
+    --hue-slider-margin-y: 10px;
+    --alpha-slider-height: 8px;
+    --alpha-slider-margin-y: 10px;
+    --color-preview-height: 32px;
+    --color-preview-margin-y: 30px;
+    --color-preview-total-half: calc(var(--color-preview-height) * 0.5 + var(--color-preview-margin-y) * 0.5);
+    --clear-btn-height-half: 12px;
+    top: calc(var(--color-area-height) + var(--color-area-margin-bottom) + var(--hue-slider-height) + var(--hue-slider-margin-y) + var(--alpha-slider-height) + var(--alpha-slider-margin-y) + var(--color-preview-total-half) - var(--clear-btn-height-half));
+    */
+    top: 170px;
+    width: 24px;
+    padding: 0;
+    color: transparent;
+    right: 6px;
+    background: url('data:image/svg+xml;charset=utf8, <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>') no-repeat center center / .85rem;
+    line-height: 100%;
 }
 /* EditApp: Components: Big radios */
 .button-options {

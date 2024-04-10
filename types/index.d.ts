@@ -579,3 +579,14 @@ interface BlockRendererProps {
 interface WebPagePreviewRendererAppApi {
     registerRenderer(name: String, Cls: preact.AnyComponent): void;
 }
+
+interface VisualStylesFormVarDefinition {
+    varName: String;             // Example 'textAlign'
+    cssProp: String;             // Example 'text-align'
+    cssSubSelector: String|null; // Example '>img'
+    widgetSettings: VisualStylesFormVarDefinitionWidgetSettings;
+}
+
+interface VisualStylesFormVarDefinitionWidgetSettings {
+    // todo
+}

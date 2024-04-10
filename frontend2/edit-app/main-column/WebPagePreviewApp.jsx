@@ -116,19 +116,17 @@ class WebPagePreviewApp extends preact.Component {
     }
     /**
      * @param {String} blockId
-     * @param {mediaScope} mediaScopeId
-     * @param {String} cssPropandval
+     * @param {String} scssChunk
+     * @param {mediaScope} mediaScopeId = 'all'
      * @access public
      */
-    updateCssFast(blockId, mediaScopeId, cssPropandval) {
-        //
-    }
-    /**
-     * @param {String} css
-     * @param {mediaScipe} mediaScopeId
-     */
-    updateMediaCss(css, mediaScopeId) {
-        //
+    updateCssFast(blockId, scssChunk, mediaScopeId = 'all') {
+        this.sendMessageToReRenderer([
+            'updateBlockStyleFast',
+            createSelector(blockId, 'single-block'),
+            scssChunk,
+            mediaScopeId,
+        ]);
     }
     /**
      * @param {Block} block
@@ -282,6 +280,36 @@ class WebPagePreviewApp extends preact.Component {
         const iframe = document.querySelector('.site-preview-iframe');
         return getBlockEl(blockId, iframe.contentDocument);
     }
+}
+
+/**
+ * @param {String} hashPathname
+ * @returns {String}
+ */
+function createUrlForIframe(hashPathname) {
+    const pcs = hashPathname.split('/');
+    // '/pages/create/:pageTypeName?/:layoutId?'
+    if (pcs[1] === 'pages' && pcs[2] === 'create') {
+        const pageTypeName = pcs[3] || 'Pages';
+        const layoutId = pcs[4] || '1';
+        const out = urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`);
+        return out;
+    // '/pages/:pageSlug/duplicate'
+    } else if (pcs[1] === 'pages' && pcs[3] === 'duplicate') {
+        const pageTypeName = 'Pages';
+        const layoutId = '1';
+        const out = urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}` +
+            `?duplicate=${encodeURIComponent(pcs[2])}`);
+        return out;
+    // '/page-types/create'
+    } else if (pcs[1] === 'page-types' && pcs[2] === 'create') {
+        // todo
+    // '/some-page'
+    } else if (!isMainColumnViewUrl(hashPathname)) {
+        // ?, also transform/normalize (? -> &, # -> ?)
+        return urlUtils.makeUrl(`${hashPathname}?in-edit=1`);
+    }
+    return null;
 }
 
 let counter = -1;

@@ -52,11 +52,17 @@ function createMessageChannelController(reRenderingWebPage) {
             const cssCompiled = e.data[1]; // {compiledMediaScopesCss}
             cssCompiled.forEach((forScreenSize, i) => {
                 const mediaScopeId = mediaScopes[i];
+                // Clear any styles set during 'updateBlockStyleFast'
+                const fastCssEl = getCssEl(mediaScopeId, 'fast-');
+                fastCssEl.innerHTML = '';
+                // Set the committed styles
                 const el = getCssEl(mediaScopeId);
                 el.innerHTML = forScreenSize || '';
             });
         } else if (e.data[0] === 'updateBlockStyleFast') {
-            //
+            const [_, selector, scssChunk, mediaScopeId] = e.data;
+            const el = getCssEl(mediaScopeId, 'fast-');
+            el.innerHTML = `${selector} { ${scssChunk} }`;
         } else if (e.data[0] === 'reRenderAllBlocks') {
             const newBlocks = e.data[1];
             reRenderingWebPage.current.exchangeBlocks(newBlocks);

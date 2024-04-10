@@ -11,7 +11,7 @@ let helperCanvasCtx;
 class ColorValueInput extends preact.Component {
     // inputId;
     /**
-     * @param {ValueInputProps<null> & {valueAsString: String|null; onValueChangedFast?: () => void;}} props
+     * @param {ValueInputProps<null> & {valueAsString: String|null; onValueChangedFast?: (newRapidlyPickedVal: String) => void;}} props
      */
     constructor(props) {
         super(props);
@@ -20,7 +20,7 @@ class ColorValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({valueAsString, labelTranslated, onValueChanged, isClearable, showNotice, noticeDismissedWith}) {
+    render({valueAsString, labelTranslated, onValueChanged, onValueChangedFast, isClearable, showNotice, noticeDismissedWith}) {
         return <FormGroupInline>
             <label class="form-label p-relative pt-1" htmlFor={ this.inputId } title={ labelTranslated }>
                 { labelTranslated }
@@ -40,6 +40,7 @@ class ColorValueInput extends preact.Component {
                 <ColorPickerInput
                     initialColorStr={ valueAsString }
                     onColorPicked={ onValueChanged }
+                    onColorPickedFast={ onValueChangedFast }
                     inputId={ this.inputId }/>
                 { isClearable
                     ? <button onClick={ () => { this.props.onValueChanged(null); } }

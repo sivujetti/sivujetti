@@ -69,7 +69,7 @@ class BlockVisualStylesEditForm extends preact.Component {
             return <ColorValueInput
                 value={ null }
                 valueAsString={ screenStyles[varName] || null }
-                onValueChangedFast={ _ => {} }
+                onValueChangedFast={ newValAsString => this.handleVisualVarChangedFast(newValAsString, varName, varInputToDecl) }
                 { ...commonProps }/>;
         else if (renderer === LengthValueInput)
             return <LengthValueInput
@@ -90,6 +90,21 @@ class BlockVisualStylesEditForm extends preact.Component {
         const val = input instanceof Event ? input.target.value : input;
         const updatedAll = this.doHandleVisualVarChanged(val, varName, varInputToScssChunk);
         api.saveButton.getInstance().pushOp('stylesBundle', updatedAll);
+    }
+    /**
+     * @param {String|Event} input
+     * @param {String} varName
+     * @param {(varName: String, value: String): String} varInputToScssChunk
+     * @access protected
+     */
+    handleVisualVarChangedFast(val, varName, varInputToScssChunk) {
+        const {blockId} = this.props;
+        const chunk = varInputToScssChunk(varName, val);
+        if (chunk.indexOf('\n') > -1) {
+            window.console.debug('todo');
+            return;
+        }
+        api.webPagePreview.updateCssFast(blockId, chunk);
     }
     /**
      * @param {String|null} val

@@ -42,7 +42,7 @@ interface OpQueueOp {
 interface WebPagePreviewApp {
     getEl(): HTMLIFrameElement;
     updateCss(/*allMediaScopesCss*/): todo;
-    updateCssFast(/*selector, mediaScopeId, cssPropandval*/): todo;
+    updateCssFast(/*selector, scssChunk, mediaScopeId = 'all'*/): todo;
     highlightBlock(block: Block): todo;
     unHighlightBlock(blockId: String): todo;
     unHighlightTextBlockChildEl(): todo;
@@ -584,9 +584,11 @@ interface VisualStylesFormVarDefinition {
     varName: String;             // Example 'textAlign'
     cssProp: String;             // Example 'text-align'
     cssSubSelector: String|null; // Example '>img'
-    widgetSettings: VisualStylesFormVarDefinitionWidgetSettings;
+    widgetSettings: VisualStylesFormVarDefinitionWidgetSettings & {[possibleExtras: String]: any;};
 }
 
 interface VisualStylesFormVarDefinitionWidgetSettings {
-    // todo
+    renderer: preact.Component; // ColorValueInput|OptionValueInput etc.
+    label: String;              // Example 'Text align'
+    inputId: String;            // Example 'textTextAlign'
 }

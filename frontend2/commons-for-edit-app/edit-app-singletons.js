@@ -50,7 +50,7 @@ const api = {
     webPagePreview: { // Will be replaced by sivujetti-edit-app-main.jsx
         getEl() { return document.body.querySelector('.site-preview-iframe'); },
         updateCss(/*allMediaScopesCss*/) { },
-        updateCssFast(/*selector, mediaScopeId, cssPropandval*/) { },
+        updateCssFast(/*blockId, scssChunk, mediaScopeId = 'all'*/) { },
         highlightBlock(/*block*/) { },
         unHighlightBlock(/*blockId*/) { },
         unHighlightTextBlockChildEl() { },

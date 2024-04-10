@@ -2,19 +2,18 @@ import {timingUtils} from './utils.js';
 
 let pickerLibIsInitialized = false;
 let currOpenPicker = null;
+let lastColor;
+let pickOrigin = null;
+let pickingIsInProgress = false;
 
-const emitPickColor = (colorStr, input, isFast = false) => {
+const emitPickColor = (colorStr, isFast = false) => {
     if (!isFast)
         currOpenPicker.props.onColorPicked(colorStr);
     else
-        ; // todo
+        currOpenPicker.props.onColorPickedFast(colorStr);
 };
 
 const hookUpPickerLib = timingUtils.debounce(() => {
-    let pickOrigin = null;
-    let pickingIsInProgress = false;
-    let lastColor;
-
     window.Coloris({
         el: '.coloris',
         wrap: false,
@@ -26,41 +25,54 @@ const hookUpPickerLib = timingUtils.debounce(() => {
         ],
         /**
          * @param {String} color
-         * @param {HTMLInputElement} input
+         * @param {HTMLInputElement} _input
          */
-        onChange: (color, input) => {
-            emitPickColor(color, input, pickingIsInProgress);
+        onChange(color, _input) {
+            emitPickColor(color, pickingIsInProgress);
             lastColor = color;
         }
     });
 
     const picker = document.getElementById('clr-picker');
-    const handleDown = ({target}) => {
-        if (target.id === 'clr-color-area' || target.id === 'clr-color-marker') {
-            pickOrigin = 'color-area';
-            pickingIsInProgress = true;
-        } else if (target.id === 'clr-hue-slider' || target.id === 'clr-hue-marker' ||
-                  target.id === 'clr-alpha-slider' || target.id === 'clr-alpha-marker') {
-            pickOrigin = 'hue-or-alpha-slider';
+    const originIds = {
+        'clr-color-area': 'color-area',
+        'clr-color-marker': 'color-area',
+        'clr-hue-slider': 'hue-or-alpha-slider',
+        'clr-hue-marker': 'hue-or-alpha-slider',
+        'clr-alpha-slider': 'hue-or-alpha-slider',
+        'clr-alpha-marker': 'hue-or-alpha-slider',
+    };
+    const handleMouseOrTouchStart = ({target}) => {
+        const origin = originIds[target.id];
+        if (origin) {
+            pickOrigin = origin;
             pickingIsInProgress = true;
         }
     };
-    picker.addEventListener('mousedown', handleDown);
-    picker.addEventListener('touchstart', handleDown);
+    picker.addEventListener('mousedown', handleMouseOrTouchStart);
+    picker.addEventListener('touchstart', handleMouseOrTouchStart);
 
-    const onEnd = () => {
+    const handleMouseOrTouchEnd = () => {
         if (pickOrigin) {
             const lastChangeWasDuringInProgress = pickingIsInProgress;
             pickingIsInProgress = false;
-            if (lastChangeWasDuringInProgress)
-                emitPickColor(lastColor, lastColor, false);
+            if (lastChangeWasDuringInProgress && pickOrigin === 'hue-or-alpha-slider')
+                emitPickColor(lastColor, false);
         }
         pickingIsInProgress = false;
         pickOrigin = null;
     };
-    document.addEventListener('mouseup', onEnd);
-    document.addEventListener('touchend', onEnd);
+    document.addEventListener('mouseup', handleMouseOrTouchEnd);
+    document.addEventListener('touchend', handleMouseOrTouchEnd);
 }, 80);
+
+const handlePickerOpened = (cmp, initialValue) => {
+    if (currOpenPicker === cmp) return;
+    currOpenPicker = cmp;
+    lastColor = initialValue;
+    pickOrigin = null;
+    pickingIsInProgress = false;
+};
 
 class ColorPickerInput extends preact.Component {
     // inputElRef;
@@ -120,8 +132,7 @@ class ColorPickerInput extends preact.Component {
                 onClick={ () => {
                     if (!pickerLibIsInitialized)
                         return;
-                    if (currOpenPicker !== this)
-                        currOpenPicker = this;
+                    handlePickerOpened(this, initialValue);
                 } }
                 { ...(inputId ? {id: inputId} : {}) }
                 ref={ this.inputElRef }/>

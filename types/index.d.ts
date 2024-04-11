@@ -588,11 +588,14 @@ interface VisualStylesFormVarDefinition {
 }
 
 interface VisualStylesFormVarDefinitionWidgetSettings {
-    renderer: preact.Component; // ColorValueInput|OptionValueInput etc.
-    label: String;              // Example 'Text align'
-    inputId: String;            // Example 'textTextAlign'
-    defaultThemeValue?:         // Example {num: '6', unit: 'rem'}
+    valueType?: String;          // 'color'|'option' etc.
+    renderer?: preact.Component; // ColorValueInput|OptionValueInput etc.
+    label: String;               // Example 'Text align'
+    inputId: String;             // Example 'textTextAlign'
+    defaultThemeValue?:          // Example {num: '6', unit: 'rem'}
         ColorValue |
         LengthValue |
         OptionValue;
 }
+
+type translateVarInputToScssChunkFn = (varName: String, value: String) => String;

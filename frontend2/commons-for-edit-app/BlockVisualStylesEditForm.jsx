@@ -8,10 +8,12 @@ import {
     scssWizard,
 } from './edit-app-singletons.js';
 import {createCssDeclExtractor} from './ScssWizardFuncs.js';
+import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
 
 class BlockVisualStylesEditForm extends preact.Component {
     // cssVarDefs;
     // userStyleRefs;
+    // varInputToScssChunkFn;
     /**
      * @param {BlockStylesEditFormProps} props
      * @access protected
@@ -19,6 +21,7 @@ class BlockVisualStylesEditForm extends preact.Component {
     constructor(props) {
         super(props);
         this.cssVarDefs = getValidDefs(this.createCssVarDefinitions());
+        this.varInputToScssChunkFn = this.createVarInputToScssChunkFn(this.cssVarDefs);
     }
     /**
      * @returns {Array<VisualStylesFormVarDefinition>}
@@ -26,6 +29,14 @@ class BlockVisualStylesEditForm extends preact.Component {
      */
     createCssVarDefinitions() {
         throw new Error('Abstract method not implemented');
+    }
+    /**
+     * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
+     * @returns {translateVarInputToScssChunkFn}
+     * @access protected
+     */
+    createVarInputToScssChunkFn(cssVarDefs) {
+        return createVarInputToScssChunkAuto(cssVarDefs);
     }
     /**
      * @access protected
@@ -49,43 +60,58 @@ class BlockVisualStylesEditForm extends preact.Component {
         }
     }
     /**
-     * @param {String|Event} input
-     * @param {String} varName
-     * @param {(varName: String, value: String): String} varInputToScssChunk
      * @access protected
      */
-    renderVarWidget(def, screenStyles, varInputToDecl) {
+    render(_, {styleScopes, curScreenSizeTabIdx}) {
+        const selectedScreenSizeVars = styleScopes[curScreenSizeTabIdx] || {};
+        return <ScreenSizesVerticalTabs
+            curTabIdx={ curScreenSizeTabIdx }
+            setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }>
+            <div class="form-horizontal has-visual-style-widgets tight pt-1 pl-2">
+                { this.cssVarDefs.map(def =>
+                    this.renderVarWidget(def, selectedScreenSizeVars, this.varInputToScssChunkFn)
+                ) }
+            </div>
+        </ScreenSizesVerticalTabs>;
+    }
+    /**
+     * @param {VisualStylesFormVarDefinition} def
+     * @param {CssVarsMap} selectedScreenSizeVars
+     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
+     * @access protected
+     */
+    renderVarWidget(def, selectedScreenSizeVars, varInputToScssChunk) {
         const {varName, widgetSettings} = def;
         if (!widgetSettings)
             return null;
-        const {renderer, label, inputId, initialUnit, defaultThemeValue} = widgetSettings;
+        const {valueType, renderer, label, inputId, initialUnit, defaultThemeValue} = widgetSettings;
         const commonProps = {
-            onValueChanged: newValAsString => this.handleVisualVarChanged(newValAsString, varName, varInputToDecl),
+            onValueChanged: newValAsString => this.handleVisualVarChanged(newValAsString, varName, varInputToScssChunk),
             labelTranslated: __(label),
-            isClearable: !!screenStyles[varName],
+            isClearable: !!selectedScreenSizeVars[varName],
             inputId,
             defaultThemeValue,
         };
-        if (renderer === ColorValueInput)
+        if (valueType === 'color' || renderer === ColorValueInput)
             return <ColorValueInput
                 value={ null }
-                valueAsString={ screenStyles[varName] || null }
-                onValueChangedFast={ newValAsString => this.handleVisualVarChangedFast(newValAsString, varName, varInputToDecl) }
+                valueAsString={ selectedScreenSizeVars[varName] || null }
+                onValueChangedFast={ newValAsString => this.handleVisualVarChangedFast(newValAsString, varName, varInputToScssChunk) }
                 { ...commonProps }/>;
-        else if (renderer === LengthValueInput)
+        else if (valueType === 'length' || renderer === LengthValueInput)
             return <LengthValueInput
-                value={ LengthValueInput.valueFromInput(screenStyles[varName] || 'initial') }
+                value={ LengthValueInput.valueFromInput(selectedScreenSizeVars[varName] || 'initial', initialUnit || defaultThemeValue?.unit || undefined) }
                 { ...commonProps }/>;
-        else if (renderer === OptionValueInput)
+        else if (valueType === 'option' || renderer === OptionValueInput)
             return <OptionValueInput
-                value={ OptionValueInput.valueFromInput(screenStyles[varName] || '-', initialUnit) }
+                value={ OptionValueInput.valueFromInput(selectedScreenSizeVars[varName] || '-', initialUnit) }
                 options={ widgetSettings.options }
                 { ...commonProps }/>;
     }
     /**
      * @param {String|Event} input
      * @param {String} varName
-     * @param {(varName: String, value: String): String} varInputToScssChunk
+     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
      * @access protected
      */
     handleVisualVarChanged(input, varName, varInputToScssChunk) {
@@ -96,22 +122,18 @@ class BlockVisualStylesEditForm extends preact.Component {
     /**
      * @param {String|Event} input
      * @param {String} varName
-     * @param {(varName: String, value: String): String} varInputToScssChunk
+     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
      * @access protected
      */
     handleVisualVarChangedFast(val, varName, varInputToScssChunk) {
         const {blockId} = this.props;
         const chunk = varInputToScssChunk(varName, val);
-        if (chunk.indexOf('\n') > -1) {
-            window.console.debug('todo');
-            return;
-        }
         api.webPagePreview.updateCssFast(blockId, chunk);
     }
     /**
      * @param {String|null} val
      * @param {String} varName
-     * @param {(varName: String, value: String): String} varInputToScssChunk
+     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
      * @returns {StylesBundleWithId}
      * @access private
      */
@@ -247,7 +269,7 @@ function createPaddingVarDefs(prefix) {
             cssProp: 'padding-top',
             cssSubSelector: null,
             widgetSettings: {
-                renderer: LengthValueInput,
+                valueType: 'length',
                 label: 'Padding top',
                 inputId: `${prefix}PaddingTop`,
             },
@@ -257,7 +279,7 @@ function createPaddingVarDefs(prefix) {
             cssProp: 'padding-right',
             cssSubSelector: null,
             widgetSettings: {
-                renderer: LengthValueInput,
+                valueType: 'length',
                 label: 'Padding right',
                 inputId: `${prefix}PaddingRight`,
             },
@@ -267,7 +289,7 @@ function createPaddingVarDefs(prefix) {
             cssProp: 'padding-bottom',
             cssSubSelector: null,
             widgetSettings: {
-                renderer: LengthValueInput,
+                valueType: 'length',
                 label: 'Padding bottom',
                 inputId: `${prefix}PaddingBottom`,
             },
@@ -277,7 +299,7 @@ function createPaddingVarDefs(prefix) {
             cssProp: 'padding-left',
             cssSubSelector: null,
             widgetSettings: {
-                renderer: LengthValueInput,
+                valueType: 'length',
                 label: 'Padding left',
                 inputId: `${prefix}PaddingLeft`,
             },
@@ -287,7 +309,5 @@ function createPaddingVarDefs(prefix) {
 
 export default BlockVisualStylesEditForm;
 export {
-    createCssVarsMaps,
     createPaddingVarDefs,
-    createVarInputToScssChunkAuto,
 };

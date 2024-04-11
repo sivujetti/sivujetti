@@ -1,12 +1,7 @@
-import ColorValueInput from '../../styles/ColorValueInput.jsx';
-import LengthValueInput from '../../styles/LengthValueInput.jsx';
-import OptionValueInput from '../../styles/OptionValueInput.jsx';
 import BlockVisualStylesEditForm, {
     createPaddingVarDefs,
-    createVarInputToScssChunkAuto,
 } from '../../BlockVisualStylesEditForm.jsx';
 import {__} from '../../edit-app-singletons.js';
-import ScreenSizesVerticalTabs from '../../ScreenSizesVerticalTabs.jsx';
 
 /** @type {Array<VisualStylesFormVarDefinition>} */
 const cssVarDefs = [
@@ -15,9 +10,19 @@ const cssVarDefs = [
         cssProp: 'background-color',
         cssSubSelector: null,
         widgetSettings: {
-            renderer: ColorValueInput,
+            valueType: 'color',
             label: 'Background normal',
             inputId: 'buttonBgNormalColor',
+        },
+    },
+    {
+        varName: 'bgHover',
+        cssProp: 'background-color',
+        cssSubSelector: '&:hover',
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Background hover',
+            inputId: 'buttonBgHoverColor',
         },
     },
     {
@@ -25,9 +30,19 @@ const cssVarDefs = [
         cssProp: 'color',
         cssSubSelector: null,
         widgetSettings: {
-            renderer: ColorValueInput,
+            valueType: 'color',
             label: 'Text normal',
             inputId: 'buttonTextNormalColor',
+        },
+    },
+    {
+        varName: 'textHover',
+        cssProp: 'color',
+        cssSubSelector: '&:hover',
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Text hover',
+            inputId: 'buttonTextHoverColor',
         },
     },
     {
@@ -35,9 +50,30 @@ const cssVarDefs = [
         cssProp: 'border-color',
         cssSubSelector: null,
         widgetSettings: {
-            renderer: ColorValueInput,
+            valueType: 'color',
             label: 'Border normal',
             inputId: 'buttonBorderNormalColor',
+        },
+    },
+    {
+        varName: 'borderHover',
+        cssProp: 'border-color',
+        cssSubSelector: '&:hover',
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Border hover',
+            inputId: 'buttonBorderHoverColor',
+        },
+    },
+    {
+        varName: 'borderWidth',
+        cssProp: 'border-width',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Border width',
+            inputId: 'buttonBorderWidth',
+            initialUnit: 'px',
         },
     },
     {
@@ -45,17 +81,17 @@ const cssVarDefs = [
         cssProp: 'min-height',
         cssSubSelector: null,
         widgetSettings: {
-            renderer: LengthValueInput,
+            valueType: 'length',
             label: 'Min height',
             inputId: 'buttonMinHeight',
         },
     },
     {
-        varName: 'flexWrap',
+        varName: 'wrapContent',
         cssProp: 'flex-wrap',
         cssSubSelector: null,
         widgetSettings: {
-            renderer: OptionValueInput,
+            valueType: 'option',
             options: [
                 {label: __('Wrap'), value: 'nowrap'},
                 {label: __('Nowrap'), value: 'wrap'},
@@ -78,7 +114,7 @@ const cssVarDefs = [
         cssProp: 'align-items',
         cssSubSelector: null,
         widgetSettings: {
-            renderer: OptionValueInput,
+            valueType: 'option',
             options: [
                 {label: __('Start'), value: 'start'},
                 {label: __('Center'), value: 'center'},
@@ -89,13 +125,22 @@ const cssVarDefs = [
                 {label: '-', value: ''},
             ],
             label: 'Align updown',
-            inputId: 'buttonAlignItems',
+            inputId: 'buttonAlignY',
+        },
+    },
+    {
+        varName: 'radius',
+        cssProp: 'radius',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Radius',
+            inputId: 'buttonRadius',
+            initialUnit: 'px',
         },
     },
     ...createPaddingVarDefs('button'),
 ];
-
-const buttonBlockVarInputToScssChunk = createVarInputToScssChunkAuto(cssVarDefs);
 
 class ButtonBlockVisualStylesEditForm extends BlockVisualStylesEditForm {
     /**
@@ -103,21 +148,6 @@ class ButtonBlockVisualStylesEditForm extends BlockVisualStylesEditForm {
      */
     createCssVarDefinitions() {
         return cssVarDefs;
-    }
-    /**
-     * @access protected
-     */
-    render(_, {styleScopes, curScreenSizeTabIdx}) {
-        const screenStyles = styleScopes[curScreenSizeTabIdx] || {};
-        return <ScreenSizesVerticalTabs
-            curTabIdx={ curScreenSizeTabIdx }
-            setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }>
-            <div class="form-horizontal has-visual-style-widgets tight pt-1 pl-2">
-                { cssVarDefs.map(def =>
-                    this.renderVarWidget(def, screenStyles, buttonBlockVarInputToScssChunk)
-                ) }
-            </div>
-        </ScreenSizesVerticalTabs>;
     }
 }
 

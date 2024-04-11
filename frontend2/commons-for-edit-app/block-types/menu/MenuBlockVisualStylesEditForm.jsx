@@ -1,12 +1,8 @@
-import ColorValueInput from '../../styles/ColorValueInput.jsx';
 import LengthValueInput from '../../styles/LengthValueInput.jsx';
-import OptionValueInput from '../../styles/OptionValueInput.jsx';
 import BlockVisualStylesEditForm, {
     createPaddingVarDefs,
-    createVarInputToScssChunkAuto,
 } from '../../BlockVisualStylesEditForm.jsx';
 import {__} from '../../edit-app-singletons.js';
-import ScreenSizesVerticalTabs from '../../ScreenSizesVerticalTabs.jsx';
 import {stringUtils} from '../../utils.js';
 
 /** @type {Array<VisualStylesFormVarDefinition>} */
@@ -16,7 +12,7 @@ const cssVarDefs = [
         cssProp: 'flex',
         cssSubSelector: 'ul li',
         widgetSettings: {
-            renderer: OptionValueInput,
+            valueType: 'option',
             options: [
                 {label: __('Side by side / horizontal'), value: '0 1 0'},
                 {label: __('One below another/ vertical'), value: '1 0 100%'},
@@ -31,7 +27,7 @@ const cssVarDefs = [
         cssProp: 'list-style-type',
         cssSubSelector: 'ul',
         widgetSettings: {
-            renderer: OptionValueInput,
+            valueType: 'option',
             options: [
                 {label: __('None'), value: 'none'},
                 {label: __('Circle'), value: 'circle'},
@@ -51,7 +47,7 @@ const cssVarDefs = [
         cssProp: 'column-gap',
         cssSubSelector: 'ul',
         widgetSettings: {
-            renderer: LengthValueInput,
+            valueType: 'length',
             label: 'Links gap x',
             inputId: 'menuLinksGapX',
             defaultThemeValue: LengthValueInput.valueFromInput('0.2rem'),
@@ -62,9 +58,29 @@ const cssVarDefs = [
         cssProp: 'row-gap',
         cssSubSelector: 'ul',
         widgetSettings: {
-            renderer: LengthValueInput,
+            valueType: 'length',
             label: 'Links gap y',
             inputId: 'menuLinksGapY',
+        },
+    },
+    {
+        varName: 'linksNormal',
+        cssProp: 'color',
+        cssSubSelector: 'ul li a',
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Links normal',
+            inputId: 'menuLinksNormalColor',
+        },
+    },
+    {
+        varName: 'linksHover',
+        cssProp: 'color',
+        cssSubSelector: 'ul li a:hover',
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Links hover',
+            inputId: 'menuLinksHoverColor',
         },
     },
     ...createPaddingVarDefs('menuItems').map(itm => ({
@@ -77,31 +93,11 @@ const cssVarDefs = [
         },
     })),
     {
-        varName: 'linksNormal',
-        cssProp: 'color',
-        cssSubSelector: 'ul li a',
-        widgetSettings: {
-            renderer: ColorValueInput,
-            label: 'Links normal',
-            inputId: 'menuLinksNormalColor',
-        },
-    },
-    {
-        varName: 'linksHover',
-        cssProp: 'color',
-        cssSubSelector: 'ul li a:hover',
-        widgetSettings: {
-            renderer: ColorValueInput,
-            label: 'Links hover',
-            inputId: 'menuLinksHoverColor',
-        },
-    },
-    {
         varName: 'fontSizeLinks',
         cssProp: 'font-size',
         cssSubSelector: 'ul li a',
         widgetSettings: {
-            renderer: LengthValueInput,
+            valueType: 'length',
             label: 'Font size',
             inputId: 'menuFontSizeLinks',
         },
@@ -111,7 +107,7 @@ const cssVarDefs = [
         cssProp: 'line-height',
         cssSubSelector: 'ul li a',
         widgetSettings: {
-            renderer: LengthValueInput,
+            valueType: 'length',
             label: 'Line height',
             inputId: 'menuLineHeightLinks',
         },
@@ -121,7 +117,7 @@ const cssVarDefs = [
         cssProp: 'text-transform',
         cssSubSelector: 'ul li a',
         widgetSettings: {
-            renderer: OptionValueInput,
+            valueType: 'option',
             options: [
                 {label: __('None'), value: 'none'},
                 {label: __('Uppercase'), value: 'uppercase'},
@@ -136,29 +132,12 @@ const cssVarDefs = [
     ...createPaddingVarDefs('menu'),
 ];
 
-const menuBlockVarInputToScssChunk = createVarInputToScssChunkAuto(cssVarDefs);
-
 class MenuBlockVisualStylesEditForm extends BlockVisualStylesEditForm {
     /**
      * @inheritdoc
      */
     createCssVarDefinitions() {
         return cssVarDefs;
-    }
-    /**
-     * @access protected
-     */
-    render(_, {styleScopes, curScreenSizeTabIdx}) {
-        const screenStyles = styleScopes[curScreenSizeTabIdx] || {};
-        return <ScreenSizesVerticalTabs
-            curTabIdx={ curScreenSizeTabIdx }
-            setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }>
-            <div class="form-horizontal has-visual-style-widgets tight pt-1 pl-2">
-                { cssVarDefs.map(def =>
-                    this.renderVarWidget(def, screenStyles, menuBlockVarInputToScssChunk)
-                ) }
-            </div>
-        </ScreenSizesVerticalTabs>;
     }
 }
 

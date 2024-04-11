@@ -1,11 +1,7 @@
-import LengthValueInput from '../../styles/LengthValueInput.jsx';
-import OptionValueInput from '../../styles/OptionValueInput.jsx';
 import BlockDefaultStylesEditForm, {
     createPaddingVarDefs,
-    createVarInputToScssChunkAuto,
 } from '../../BlockVisualStylesEditForm.jsx';
 import {__} from '../../edit-app-singletons';
-import ScreenSizesVerticalTabs from '../../ScreenSizesVerticalTabs.jsx';
 
 const innerElScope = '>img';
 
@@ -16,7 +12,7 @@ const cssVarDefs = [
         cssProp: 'display',
         cssSubSelector: null,
         widgetSettings: {
-            renderer: OptionValueInput,
+            valueType: 'option',
             options: [
                 {label: 'Block', value: 'block'},
                 {label: 'Inline', value: 'inline'},
@@ -35,7 +31,7 @@ const cssVarDefs = [
         cssProp: 'aspect-ratio',
         cssSubSelector: innerElScope,
         widgetSettings: {
-            renderer: OptionValueInput,
+            valueType: 'option',
             options: [
                 {label: '1/1', value: '1/1'},
                 {label: '3/4', value: '3/4'},
@@ -60,7 +56,7 @@ const cssVarDefs = [
         cssProp: 'min-height',
         cssSubSelector: innerElScope,
         widgetSettings: {
-            renderer: LengthValueInput,
+            valueType: 'length',
             label: 'Min height',
             inputId: 'imageMinHeight',
             initialUnit: 'px',
@@ -71,7 +67,7 @@ const cssVarDefs = [
         cssProp: 'max-height',
         cssSubSelector: innerElScope,
         widgetSettings: {
-            renderer: LengthValueInput,
+            valueType: 'length',
             label: 'Max height',
             inputId: 'imageMaxHeight',
             initialUnit: 'px',
@@ -82,7 +78,7 @@ const cssVarDefs = [
         cssProp: 'min-width',
         cssSubSelector: innerElScope,
         widgetSettings: {
-            renderer: LengthValueInput,
+            valueType: 'length',
             label: 'Min width',
             inputId: 'imageMinWidth',
             initialUnit: 'px',
@@ -93,7 +89,7 @@ const cssVarDefs = [
         cssProp: 'max-width',
         cssSubSelector: innerElScope,
         widgetSettings: {
-            renderer: LengthValueInput,
+            valueType: 'length',
             label: 'Max width',
             inputId: 'imageMaxWidth',
             initialUnit: 'px',
@@ -102,29 +98,12 @@ const cssVarDefs = [
     ...createPaddingVarDefs('image'),
 ];
 
-const imageBlockVarInputToScssChunk = createVarInputToScssChunkAuto(cssVarDefs);
-
 class ImageBlockVisualStylesEditForm extends BlockDefaultStylesEditForm {
     /**
      * @inheritdoc
      */
     createCssVarDefinitions() {
         return cssVarDefs;
-    }
-    /**
-     * @access protected
-     */
-    render(_, {styleScopes, curScreenSizeTabIdx}) {
-        const screenStyles = styleScopes[curScreenSizeTabIdx] || {};
-        return <ScreenSizesVerticalTabs
-            curTabIdx={ curScreenSizeTabIdx }
-            setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }>
-            <div class="form-horizontal has-visual-style-widgets tight pt-1 pl-2">
-                { cssVarDefs.map(def =>
-                    this.renderVarWidget(def, screenStyles, imageBlockVarInputToScssChunk)
-                ) }
-            </div>
-        </ScreenSizesVerticalTabs>;
     }
 }
 

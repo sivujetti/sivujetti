@@ -67,149 +67,193 @@ class ScssWizard {
         return found;
     }
     /**
-     * @param {String} scssChunkToUpdate
-     * @param {StyleChunk} currentStyle
-     * @param {mediaScope} mediaScopeId = 'all'
-     * @returns {StylesBundleWithId}
-     * @access public
-     */
-    tryToUpdateUniqueScopeScssChunkAndReturnAllRecompiled(scssChunkToUpdate, currentStyle, mediaScopeId = 'all') {
-        const updated = this.doTryToUpdateUniqueScopedScssChunk(scssChunkToUpdate, currentStyle);
-        return this.commitAll(updated, mediaScopeId);
-    }
-    /**
-     * @param {String} scssChunkToDelete Examples: 'color: red;', '>img {\n  max-width: 100px;\n}'
-     * @param {StyleChunk} currentStyle
-     * @param {mediaScope} mediaScopeId = 'all'
-     * @returns {StylesBundleWithId}
-     * @access public
-     */
-    tryToDeleteUniqueScopeScssChunkAndReturnAllRecompiled(scssChunkToDelete, currentStyle, mediaScopeId = 'all') {
-        const updated = this.doTryToDeleteUniqueScopedScssChunk(scssChunkToDelete, currentStyle);
-        return this.commitAll(updated, mediaScopeId);
-    }
-    /**
-     * @param {String} newScssChunk Examples: 'color: red', 'ul li {\n  flex: 0 0 100%;\n}'
+     * @param {String} varName
+     * @param {String} val
+     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
      * @param {String} blockId
      * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
-    tryToAddFirstUniqueScopeScssChunkAndReturnAllRecompiled(newScssChunk, blockId, mediaScopeId = 'all') {
-        return this.doTryToAddFirstScssChunkAndReturnAllRecompiled(newScssChunk, blockId, mediaScopeId, 'user-styles');
+    addNewUniqueScopeScssChunkAndReturnAllRecompiled(varName, val, varInputToScssChunk, blockId, mediaScopeId = 'all') {
+        const updated = this.doTryToAddFirstScssChunk(varName, val, varInputToScssChunk, blockId, mediaScopeId, 'user-styles');
+        return this.commitAll(updated, mediaScopeId);
     }
     /**
-     * @param {String} scssChunkToAdd
+     * @param {String} varName
+     * @param {String} val
+     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
      * @param {StyleChunk} currentStyle
      * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
-    tryToAddUniqueScopeScssChunkAndReturnAllRecompiled(scssChunkToAdd, currentStyle, mediaScopeId = 'all') {
-        // todo
+    updateUniqueScopeScssChunkOfExistingChunkAndReturnAllRecompiled(varName, val, varInputToScssChunk, currentStyle, mediaScopeId = 'all') {
+        const updated = this.doTryToUpdateUniqueScopedScssChunk(varName, val, varInputToScssChunk, currentStyle);
+        return this.commitAll(updated, mediaScopeId);
+    }
     /**
-     * @param {String} completeScssChunk
+     * @param {String} varName
+     * @param {String} val
+     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
+     * @param {StyleChunk} currentStyle
+     * @param {mediaScope} mediaScopeId = 'all'
+     * @returns {StylesBundleWithId}
+     * @access public
+     */
+    deleteUniqueScopeScssChunkOfExistingChunkAndReturnAllRecompiled(varName, val, varInputToScssChunk, currentStyle, mediaScopeId = 'all') {
+        const updated = this.doTryToDeleteUniqueScopedScssChunk(varName, val, varInputToScssChunk, currentStyle);
+        return this.commitAll(updated, mediaScopeId);
+    }
+    /**
+     * @param {String} varName
+     * @param {String} val
+     * @param {translateVarInputToScssChunkFn} varInputToScssChunk Examples () => 'color: red', () => 'ul li {\n  flex: 0 0 100%;\n}', () => [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
      * @param {String} blockId
      * @param {mediaScope} mediaScopeId
      * @param {stylesLayer} layer
      * @returns {StylesBundleWithId}
      * @access private
      */
-    doTryToAddFirstScssChunkAndReturnAllRecompiled(completeScssChunk, blockId, mediaScopeId, layer) {
-        if (this.findStyle('single-block', blockId, mediaScopeId, layer))
+    doTryToAddFirstScssChunk(varName, val, varInputToScssChunk, blockId, mediaScopeId, layer) {
+        if (findStyle('single-block', blockId, mediaScopeId, layer, this.styles))
             throw new Error(`Unique style ${blockId}:${mediaScopeId}:${layer} already exist`);
 
-        const updated = [
-            ...this.styles,
-            {
-                scope: {block: 'single-block', media: mediaScopeId, layer},
-                scss: createScssBlock(completeScssChunk, `${createSelector(blockId)} {`),
-            }
-        ];
+        const chunkInput = varInputToScssChunk(varName, val);
+        if (!Array.isArray(chunkInput))
+            return [
+                ...this.styles,
+                {
+                    scope: {block: 'single-block', media: mediaScopeId, layer},
+                    scss: createScssBlock(chunkInput.replace(/%s/g, val), `${createSelector(blockId)} {`),
+                }
+            ];
+        else
+            return [
+                ...this.styles,
+                {
+                    scope: {block: 'single-block', media: mediaScopeId, layer},
 
-        return this.commitAll(updated, mediaScopeId);
+                    scss: [
+                        `${createSelector(blockId)} {`,
+                            ...chunkInput.map(l => indent(l.replace('%s', val), 1)),
+                        '}'
+                    ].join('\n'),
+                }
+            ];
     /**
-     * @param {String} scssChunkToDelete Examples 'color: red;', '>img {\n  max-width: 100px;\n}'
+     * @param {String} varName
+     * @param {String} val
+     * @param {translateVarInputToScssChunkFn} varInputToScssChunk Examples () => 'color: red;', () => '> sub-selector {\n  color: red;\n}', () => [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
      * @param {StyleChunk} currentStyle
      * @returns {Array<StyleChunk>}
      * @access private
      */
-    doTryToDeleteUniqueScopedScssChunk(scssChunkToDelete, currentStyle) {
+    doTryToUpdateUniqueScopedScssChunk(varName, val, varInputToScssChunk, currentStyle) {
         return this.styles.map(s => {
             if (s !== currentStyle) return s;
 
             const current = createScssInspectorInternal(s.scss);
-            const del = createScssInspectorInternal(scssChunkToDelete);
+            const chunkInput1 = varInputToScssChunk(varName, val);
+            const chunkInput2 = Array.isArray(chunkInput1) ? chunkInput1.join('\n') : chunkInput1;
+            const chunkInput = chunkInput2.replace(/%s/g, val);
+            const upd = createScssInspectorInternal(chunkInput);
 
-            // get the decl name we're trying to delete
-            const [fromDel, fromDelParen] = del.findNode(node => node.type === 'decl');
-            const declName = fromDel.props; // Example 'column-gap'
+            let linesCpy = s.scss.split('\n');
+            let linesIncoming = chunkInput.split('\n');
+            const decls = upd.findNodes((node, parenNode) => {
+                return parenNode && node.type === 'decl';
+            });
 
-            // find it from current style.scss
-            const containingCssBlockSel = getSelectorForDecl(fromDelParen, current);
-            const [nodeToDelete, _toDeleteParen] = current.findNode((node, parenNode) =>
-                parenNode &&
-                (node.type === 'decl' && node.props === declName) &&
-                (parenNode.type === 'rule' && parenNode.value === containingCssBlockSel)
-            );
-            if (!nodeToDelete)
-                throw new Error(`Expected "${s.scss}" to contain "${declName}"`);
+            decls.forEach(([fromUpd, fromDelParen]) => {
+                // get the decl name we're trying to update
+                const declName = fromUpd.props; // Example 'column-gap'
 
-            let linesCur = s.scss.split('\n');
-            const deleteLineAt = nodeToDelete.line - 1;
-            linesCur.splice(deleteLineAt, 1);
-            const lineAfterDeletedLine = deleteLineAt;
+                // find it from current style.scss
+                const containingCssBlockSel = getSelectorForDecl(fromDelParen, current);
+                const [toUpdate, _toUpdateParen] = current.findNode((node, parenNode) =>
+                    parenNode &&
+                    (node.type === 'decl' && node.props === declName) &&
+                    (parenNode.type === 'rule' && parenNode.value === containingCssBlockSel)
+                );
+                if (!toUpdate)
+                    throw new Error(`Expected to find \`${declName}\` in \`${containingCssBlockSel}\` (\`${s.scss}\`)`);
 
-            // Was inner css block, and was its last decl
-            if (fromDelParen && linesCur[lineAfterDeletedLine].endsWith('}') && linesCur[lineAfterDeletedLine - 1].endsWith('{'))
-                linesCur.splice(lineAfterDeletedLine - 1, 2); // [..., '  >img {', '  }', ...] -> [..., ...]
+                // update it
+                linesCpy[toUpdate.line - 1] = indent(linesIncoming[fromUpd.line - 1], 1);
+            });
+
+            return {
+                ...s,
+                scss: linesCpy.join('\n')
+            };
+        });
+    }
+    /**
+     * @param {String} varName
+     * @param {String} val
+     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
+     * @param {StyleChunk} currentStyle
+     * @returns {Array<StyleChunk>}
+     * @access private
+     */
+    doTryToDeleteUniqueScopedScssChunk(varName, val, varInputToScssChunk, currentStyle) {
+        const EMPTY_LINE = '^::empty::^';
+        return this.styles.map(s => {
+            if (s !== currentStyle) return s;
+
+            const current = createScssInspectorInternal(s.scss);
+            const chunkInput1 = varInputToScssChunk(varName, val);
+            const chunkInput2 = Array.isArray(chunkInput1) ? chunkInput1.join('\n') : chunkInput1;
+            const chunkInput = chunkInput2.replace(/%s/g, val);
+            const del = createScssInspectorInternal(chunkInput);
+
+            let linesCpy = s.scss.split('\n');
+            const decls = del.findNodes((node, parenNode) => {
+                return parenNode && node.type === 'decl';
+            });
+
+            decls.forEach(([fromDel, fromDelParen]) => {
+                // get the decl name we're trying to delete
+                const declName = fromDel.props; // Example 'column-gap'
+
+                // find it from current style.scss
+                const containingCssBlockSel = getSelectorForDecl(fromDelParen, current);
+                const [nodeToDelete, _toDeleteParen] = current.findNode((node, parenNode) =>
+                    parenNode &&
+                    (node.type === 'decl' && node.props === declName) &&
+                    (parenNode.type === 'rule' && parenNode.value === containingCssBlockSel)
+                );
+                if (!nodeToDelete)
+                    throw new Error(`Expected "${s.scss}" to contain "${declName}"`);
+
+                // mark it as deleted
+                const deleteLineAt = nodeToDelete.line - 1;
+                linesCpy[deleteLineAt] = EMPTY_LINE;
+            });
+
+            // ['.foo {', '^::empty::^', '}'] -> ['.foo {', '}']
+            const withoutEmptyLines = arr => arr.filter(line => line !== EMPTY_LINE);
+            linesCpy = withoutEmptyLines(linesCpy);
+
+            // ['.foo {', '}', ...] -> [...]
+            let emptyBlockCloseTagIdx = findEmptyBlockClosingTagIndex(linesCpy);
+            while (emptyBlockCloseTagIdx > 0 && linesCpy.length) {
+                linesCpy[emptyBlockCloseTagIdx] = EMPTY_LINE;
+                linesCpy[emptyBlockCloseTagIdx - 1] = EMPTY_LINE;
+                linesCpy = withoutEmptyLines(linesCpy);
+                emptyBlockCloseTagIdx = findEmptyBlockClosingTagIndex(linesCpy);
+            }
 
             // No rules left ( ['[data-block=\"u585XQVD\"] {', '}'] )
-            if (linesCur.length < 3)
+            if (!linesCpy.length)
                 return null;
 
             return {
                 ...s,
-                scss: linesCur.join('\n')
+                scss: linesCpy.join('\n')
             };
         }).filter(s => s !== null);
-    }
-    /**
-     * @param {String} scssChunkToUpdate Examples 'color: red;', '> sub-selector {\n  color: red;\n}'
-     * @param {StyleChunk} currentStyle
-     * @returns {Array<StyleChunk>}
-     * @access private
-     */
-    doTryToUpdateUniqueScopedScssChunk(scssChunkToUpdate, currentStyle) {
-        return this.styles.map(s => {
-            if (s !== currentStyle) return s;
-
-            const current = createScssInspectorInternal(s.scss);
-            const upd = createScssInspectorInternal(scssChunkToUpdate);
-
-            // get the decl name we're trying to update
-            const [declToChange, dectToChangeParen] = upd.findNode(node => node.type === 'decl');
-            const declName = declToChange.props; // Example 'column-gap'
-
-            // find it from current style.scss
-            const containingCssBlockSel = getSelectorForDecl(dectToChangeParen, current);
-            const [toUpdate, _toUpdateParen] = current.findNode((node, parenNode) =>
-                parenNode &&
-                (node.type === 'decl' && node.props === declName) &&
-                (parenNode.type === 'rule' && parenNode.value === containingCssBlockSel)
-            );
-            if (!toUpdate)
-                throw new Error(`Expected to find \`${declName}\` in \`${containingCssBlockSel}\` (\`${s.scss}\`)`);
-
-            const linesIncoming = scssChunkToUpdate.split('\n');
-            const linesCur = s.scss.split('\n');
-            linesCur[toUpdate.line - 1] = indent(linesIncoming[1] || linesIncoming[0], 1);
-
-            return {
-                ...s,
-                scss: linesCur.join('\n')
-            };
-        });
     }
     /**
      * @param {Array<StyleChunk>} newStylesArr

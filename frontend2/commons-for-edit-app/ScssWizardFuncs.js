@@ -14,7 +14,15 @@ function createCssDeclExtractor(scss) {
          * @returns {StylisAstNode|null}
          */
         extractVal(prop, scope = rootScope) {
-            // todo
+            if (scope[0] === ' ' || scope[0].indexOf('> ') > -1)
+                throw new Error('Scope selctor must be normalized (no spaces)');
+            const [declNode, _parenNode] = findRecursively(ast, (node, parenNode) =>
+                parenNode &&
+                node.type === 'decl' &&
+                node.props === prop &&
+                parenNode.value === scope
+            );
+            return declNode ? declNode.children : null;
         }
     };
 }
@@ -105,10 +113,17 @@ function createScssInspectorInternal(scss) {
         },
         /**
          * @param {(node: StylisAstNode, parentNode: StylisAstNode) => any} fn
-         * @returns {StylisAstNode|null}
+         * @returns {[StylisAstNode|null, StylisAstNode|null]} [node, parenNode]
          */
         findNode(fn) {
             return findRecursively(ast, fn);
+        },
+        /**
+         * @param {(node: StylisAstNode, parentNode: StylisAstNode) => any} fn
+         * @returns {Array<[StylisAstNode|null, StylisAstNode|null]>} [ [node, parenNode], ... ]
+         */
+        findNodes(fn) {
+            return filterRecursively(ast, fn);
         },
         /**
          * @returns {Array<StylisAstNode>}
@@ -138,6 +153,31 @@ function findRecursively(ast, fn, parenNode = null) {
 }
 
 /**
+ * @param {Array<StylisAstNode>} ast
+ * @param {(node: StylisAstNode, parentNode: StylisAstNode) => any} fn
+ * @param {StylisAstNode|null} parenNode = null
+ * @returns {Array<[StylisAstNode|null, StylisAstNode|null]>} [ [node, parentNode], ... ]
+ */
+function filterRecursively(ast, fn, parenNode = null) {
+    const out = [];
+    for (const node of ast) {
+        const inc = fn(node, parenNode);
+
+        let c = null;
+        if (Array.isArray(node.children) && node.children.length) {
+            const fromC = filterRecursively(node.children, fn, node);
+            if (fromC.length) c = fromC;
+        }
+
+        if (inc)
+            out.push([node, parenNode]);
+
+        if (c) out.push(...c);
+    }
+    return out;
+}
+
+/**
  * @param {StylisAstNode|null} declsParentAstNode
  * @param {StylisAstInspector} cur
  * @returns {String}
@@ -163,11 +203,27 @@ function createSelector(blockIdOrType, scope = 'single-block') {
     return scope === 'single-block' ? `[data-block="${blockIdOrType}"]` : 'todo';
 }
 
+
+/**
+ * @param {Array<String>} lines
+ * @returns {Number}
+ */
+function findEmptyBlockClosingTagIndex(lines) {
+    for (let l = lines.length; --l > -1; ) {
+        const line = lines[l];
+        if (line.trim() === '}') {
+            const prev = lines[l - 1];
+            if (prev.trimEnd().at(-1) === '{') return l;
+        }
+    }
+    return -1;
+}
 export {
     createCssDeclExtractor,
     createScssBlock,
     createScssInspectorInternal,
     createSelector,
+    findEmptyBlockClosingTagIndex,
     getSelectorForDecl,
     stylesToBaked,
 };

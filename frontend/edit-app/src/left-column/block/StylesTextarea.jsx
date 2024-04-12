@@ -425,21 +425,21 @@ function optimizeScss(derivedScss, baseScss) {
     }
     return emptied.join('\n');
 }
-
-/**
- * @param {Array<String>} lines
- * @returns {Number}
- */
-function findEmptyBlockClosingTagIndex(lines) {
-    for (let l = lines.length; --l > -1; ) {
-        const line = lines[l];
-        if (line.trim() === '}') {
-            const prev = lines[l - 1];
-            if (prev.trimEnd().at(-1) === '{') return l;
-        }
-    }
-    return -1;
-}
+// ## 
+// ## /**
+// ##  * @param {Array<String>} lines
+// ##  * @returns {Number}
+// ##  */
+// ## function findEmptyBlockClosingTagIndex(lines) {
+// ##     for (let l = lines.length; --l > -1; ) {
+// ##         const line = lines[l];
+// ##         if (line.trim() === '}') {
+// ##             const prev = lines[l - 1];
+// ##             if (prev.trimEnd().at(-1) === '{') return l;
+// ##         }
+// ##     }
+// ##     return -1;
+// ## }
 
 /**
  * @param {String} lineB Example '--background_Section_base1: initial;'

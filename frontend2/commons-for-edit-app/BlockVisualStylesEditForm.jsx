@@ -42,9 +42,9 @@ class BlockVisualStylesEditForm extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        const [states, styleRefs] = createCssVarsMaps(this.props.blockId, this.cssVarDefs);
+        const [scopes, styleRefs] = createCssVarsMaps(this.props.blockId, this.cssVarDefs);
         this.userStyleRefs = styleRefs;
-        this.setState({styleScopes: states, curScreenSizeTabIdx: 0});
+        this.setState({styleScopes: scopes, curScreenSizeTabIdx: 0});
     }
     /**
      * @param {BlockStylesEditFormProps} props
@@ -52,10 +52,10 @@ class BlockVisualStylesEditForm extends preact.Component {
      */
     componentWillReceiveProps(props) {
         if (props.stateId !== this.props.stateId) {
-            const [states, styleRefs] = createCssVarsMaps(props.blockId, this.cssVarDefs);
-            if (JSON.stringify(states) !== JSON.stringify(this.state.styleScopes)) {
+            const [scopes, styleRefs] = createCssVarsMaps(props.blockId, this.cssVarDefs);
+            if (JSON.stringify(scopes) !== JSON.stringify(this.state.styleScopes)) {
                 this.userStyleRefs = styleRefs;
-                this.setState({styleScopes: states});
+                this.setState({styleScopes: scopes});
             }
         }
     }
@@ -138,37 +138,35 @@ class BlockVisualStylesEditForm extends preact.Component {
      * @access private
      */
     doHandleVisualVarChanged(val, varName, varInputToScssChunk) {
-        const {styleScopes, curScreenSizeTabIdx} = this.state;
-        const selectedScreenSizeStyles = styleScopes[curScreenSizeTabIdx];
-        const current = selectedScreenSizeStyles || {};
-        const styleRef = this.userStyleRefs[curScreenSizeTabIdx];
+        const {curScreenSizeTabIdx} = this.state;
+        const curChunk = this.userStyleRefs[curScreenSizeTabIdx];
         const newValIsNotEmpty = val?.trim().length > 0;
-        const upd = varInputToScssChunk(varName, newValIsNotEmpty ? val : '"dummy"');
-        const mediaScope = mediaScopes[curScreenSizeTabIdx];
+        const valNorm = newValIsNotEmpty ? val : '"dummy"';
+        const mediaScopeId = mediaScopes[curScreenSizeTabIdx];
 
-        if (current[varName]) {
-            return newValIsNotEmpty
-                ? scssWizard.tryToUpdateUniqueScopeScssChunkAndReturnAllRecompiled(
-                    upd,
-                    styleRef,
-                    mediaScope
-                )
-                : scssWizard.tryToDeleteUniqueScopeScssChunkAndReturnAllRecompiled(
-                    upd,
-                    styleRef,
-                    mediaScope
-                );
+        if (!curChunk) {
+            return scssWizard.addNewUniqueScopeScssChunkAndReturnAllRecompiled(
+                varName,
+                valNorm,
+                varInputToScssChunk,
+                this.props.blockId,
+                mediaScopeId
+            );
         } else {
-            return !styleRef
-                ? scssWizard.tryToAddFirstUniqueScopeScssChunkAndReturnAllRecompiled(
-                    upd,
-                    this.props.blockId,
-                    mediaScope
+            return newValIsNotEmpty
+                ? scssWizard.updateUniqueScopeScssChunkOfExistingChunkAndReturnAllRecompiled(
+                    varName,
+                    valNorm,
+                    varInputToScssChunk,
+                    curChunk,
+                    mediaScopeId
                 )
-                : scssWizard.tryToAddUniqueScopeScssChunkAndReturnAllRecompiled(
-                    upd,
-                    styleRef,
-                    mediaScope
+                : scssWizard.deleteUniqueScopeScssChunkOfExistingChunkAndReturnAllRecompiled(
+                    varName,
+                    valNorm,
+                    varInputToScssChunk,
+                    curChunk,
+                    mediaScopeId
                 );
         }
     }
@@ -177,7 +175,7 @@ class BlockVisualStylesEditForm extends preact.Component {
 /**
  * @param {String} blockId
  * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
- * @returns {[Array<CssVarsMap>, todo]}
+ * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}
  */
 function createCssVarsMaps(blockId, cssVarDefs) {
     return mediaScopes.reduce((out, scopeId) => {
@@ -221,23 +219,27 @@ function createVarsMapAuto(cssVarDefs, scss, _mediaScopeId) {
  * Returns a function that translates varName+val to css declaration or block.
  *
  * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
- * @returns {(varName: String, val: String) => String}
+ * @returns {translateVarInputToScssChunkFn}
  */
 function createVarInputToScssChunkAuto(cssVarDefs) {
     /**
      * @param {String} varName
-     * @param {String} val
-     * @returns {String}
+     * @param {String} _val
+     * @returns {chunkInput}
      */
-    return (varName, val) => {
+    return (varName, _val) => {
         const def = cssVarDefs.find(r => r.varName === varName);
         if (!def) throw new Error(`Unknown property ${varName}`);
 
         return !def.cssSubSelector
             // Example: 'display: ${val};'
-            ? `${def.cssProp}: ${val};`
+            ? `${def.cssProp}: %s;`
             // Example: '>img {\n  aspect-ratio: ${val};\n}'
-            : `${def.cssSubSelector} {\n  ${def.cssProp}: ${val};\n}`;
+            : [
+                `${def.cssSubSelector} {`,
+                `  ${def.cssProp}: %s;`,
+                `}`,
+            ];
     };
 }
 

@@ -22,7 +22,7 @@ function createTrier(fn,
         if (ret === false) {
             if (++tries < stopTryingAfterNTimes)
                 setTimeout(callTryFn, tryEveryMillis);
-            else
+            else if (messageTmpl.length)
                 window.console.error(messageTmpl.replace('%s', tries * tryEveryMillis));
         } else {
             throw new Error('fn must return true or false, got: ', ret);

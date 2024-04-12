@@ -8,11 +8,14 @@ import {
     objectUtils,
     traverseRecursively,
 } from '@sivujetti-commons-for-edit-app';
-import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
-import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
 import {createBlockFromBlueprint, createBlockFromType} from '../../includes/block/utils.js';
+import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
+import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
+import {createTrier} from '../../includes/utils.js';
 
 const UNSPAWNABLES = ['Columns', 'Heading', 'PageInfo', 'Paragraph', 'RichText', 'Section'];
+
+const EVENTS_THAT_NEVER_CHANGE_TREE_HEIGHT =  ['update-single-block-prop', 'convert-branch-to-global-block-reference-block'];
 
 class DnDBlockSpawner extends preact.Component {
     // mainTreeDnd; // public
@@ -34,17 +37,28 @@ class DnDBlockSpawner extends preact.Component {
             reusables: [],
             selectableGlobalBlockTrees: [],
         };
+        this.updateSeparatorHeightIfBlockTreeHeightsChanged = () => {
+            const maybeNext = getNextSeparatorHeight();
+            if (this.lastSeparatorHeight !== maybeNext) { this.setSeparatorHeight(maybeNext); return true; }
+            return false;
+        };
         this.overwriteDragListenerFuncs();
         const saveButton = api.saveButton.getInstance();
         this.unregisterables = [saveButton.subscribeToChannel('reusableBranches', (reusables, userCtx, ctx) => {
             if (userCtx?.event === 'create' || userCtx?.event === 'remove' || isUndoOrRedo(ctx))
                 this.setState({reusables});
         }), saveButton.subscribeToChannel('theBlockTree', (theTree, userCtx, ctx) => {
-            if (userCtx?.event !== 'init' || isUndoOrRedo(ctx))
+            const event = userCtx?.event;
+            if (event !== 'init' || isUndoOrRedo(ctx)) {
                 this.setState(createGlobalBlockTreesState(saveButton.getChannelState('globalBlockTrees'), theTree));
+                if (EVENTS_THAT_NEVER_CHANGE_TREE_HEIGHT.indexOf(event) < 0)
+                    this.runUpdateSeparatorHeightLoop();
+            }
         }), saveButton.subscribeToChannel('globalBlockTrees', (gbts, userCtx, ctx) => {
-            if (userCtx?.event === 'create' || userCtx?.event === 'remove' || isUndoOrRedo(ctx))
+            if (userCtx?.event === 'create' || userCtx?.event === 'remove' || isUndoOrRedo(ctx)) {
                 this.setState(createGlobalBlockTreesState(gbts));
+                this.runUpdateSeparatorHeightLoop();
+            }
         })];
     }
     /**
@@ -252,14 +266,10 @@ class DnDBlockSpawner extends preact.Component {
      */
     addOrRemoveSeparatorHeightUpdater(doAdd) {
         if (doAdd && !this.unregisterSeparatorHeightUpdater) {
-            const onScroll = () => {
-                const maybeNext = getSeparatorHeight();
-                if (this.lastSeparatorHeight !== maybeNext) this.setSeparatorHeight(maybeNext);
-            };
-            getEditAppOuterEl().addEventListener('scroll', onScroll);
+            getEditAppOuterEl().addEventListener('scroll', this.updateSeparatorHeightIfBlockTreeHeightsChanged);
             //
             this.unregisterSeparatorHeightUpdater = () => {
-                getEditAppOuterEl().removeEventListener('scroll', onScroll);
+                getEditAppOuterEl().removeEventListener('scroll', this.updateSeparatorHeightIfBlockTreeHeightsChanged);
                 this.unregisterables = this.unregisterables.filter(fn => fn !== this.unregisterSeparatorHeightUpdater);
                 this.unregisterSeparatorHeightUpdater = null;
             };
@@ -272,7 +282,7 @@ class DnDBlockSpawner extends preact.Component {
      * @access private
      */
     calculateAndSetSeparatorHeight() {
-        const diff = getSeparatorHeight();
+        const diff = getNextSeparatorHeight();
         this.setSeparatorHeight(diff);
     }
     /**
@@ -285,6 +295,14 @@ class DnDBlockSpawner extends preact.Component {
             '--dnd-block-spawner-separator-height',
             `${document.querySelector('.dnd-block-spawner-wrap').getBoundingClientRect().height - 2 - newHeight}px`
         );
+    }
+    /**
+     * @access private
+     */
+    runUpdateSeparatorHeightLoop() {
+        if (this.state.isOpen) createTrier(() => {
+            return this.updateSeparatorHeightIfBlockTreeHeightsChanged();
+        }, 20, 20, '')();
     }
 }
 
@@ -366,7 +384,7 @@ function translateGroup(group) {
 /**
  * @returns {Number}
  */
-function getSeparatorHeight() {
+function getNextSeparatorHeight() {
     return Math.max(0,
         document.querySelector('.dnd-block-spawner-wrap').getBoundingClientRect().bottom -
         document.querySelector('.on-this-page.panel-section').getBoundingClientRect().bottom

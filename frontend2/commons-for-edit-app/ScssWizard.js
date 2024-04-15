@@ -76,7 +76,7 @@ class ScssWizard {
      * @access public
      */
     addNewUniqueScopeScssChunkAndReturnAllRecompiled(varName, val, varInputToScssChunk, blockId, mediaScopeId = 'all') {
-        const updated = this.doTryToAddFirstScssChunk(varName, val, varInputToScssChunk, blockId, mediaScopeId, 'user-styles');
+        const updated = this.doTryToAddFirstScssChunk(varName, val, varInputToScssChunk, blockId, mediaScopeId);
         return this.commitAll(updated, mediaScopeId);
     }
     /**
@@ -106,40 +106,56 @@ class ScssWizard {
         return this.commitAll(updated, mediaScopeId);
     }
     /**
+     * @param {String} initialScssChunk Example: '// Your code here ...\ncolor: red;'
+     * @param {String} blockId
+     * @param {mediaScope} mediaScopeId = 'all'
+     * @returns {StylesBundleWithId}
+     * @access public
+     */
+    addNewDevsUniqueScopeScssChunkAndReturnAllRecompiled(initialScssChunk, blockId, mediaScopeId = 'all') {
+        const updated = [
+            ...this.styles,
+            this.createNewUniqueChunk(
+                createScssBlock(initialScssChunk, `${createSelector(blockId)} {`),
+                blockId,
+                mediaScopeId,
+                'dev-styles'
+            )
+        ];
+        return this.commitAll(updated, mediaScopeId);
+    }
+    /**
      * @param {String} varName
      * @param {String} val
      * @param {translateVarInputToScssChunkFn} varInputToScssChunk Examples () => 'color: red', () => 'ul li {\n  flex: 0 0 100%;\n}', () => [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
      * @param {String} blockId
      * @param {mediaScope} mediaScopeId
-     * @param {stylesLayer} layer
      * @returns {StylesBundleWithId}
      * @access private
      */
-    doTryToAddFirstScssChunk(varName, val, varInputToScssChunk, blockId, mediaScopeId, layer) {
-        if (findStyle('single-block', blockId, mediaScopeId, layer, this.styles))
-            throw new Error(`Unique style ${blockId}:${mediaScopeId}:${layer} already exist`);
-
+    doTryToAddFirstScssChunk(varName, val, varInputToScssChunk, blockId, mediaScopeId) {
         const chunkInput = varInputToScssChunk(varName, val);
         if (!Array.isArray(chunkInput))
             return [
                 ...this.styles,
-                {
-                    scope: {block: 'single-block', media: mediaScopeId, layer},
-                    scss: createScssBlock(chunkInput.replace(/%s/g, val), `${createSelector(blockId)} {`),
-                }
+                this.createNewUniqueChunk(
+                    createScssBlock(chunkInput.replace(/%s/g, val), `${createSelector(blockId)} {`),
+                    blockId,
+                    mediaScopeId,
+                )
             ];
         else
             return [
                 ...this.styles,
-                {
-                    scope: {block: 'single-block', media: mediaScopeId, layer},
-
-                    scss: [
+                this.createNewUniqueChunk(
+                    [
                         `${createSelector(blockId)} {`,
                             ...chunkInput.map(l => indent(l.replace('%s', val), 1)),
                         '}'
                     ].join('\n'),
-                }
+                    blockId,
+                    mediaScopeId,
+                )
             ];
     /**
      * @param {String} varName
@@ -280,6 +296,22 @@ class ScssWizard {
             styleChunks: this.styles,
             cachedCompiledScreenSizesCss: this.cachedCompiledScreenSizesCss,
             id: this.stateId,
+        };
+    }
+    /**
+     * @param {String} scss
+     * @param {String} blockId
+     * @param {mediaScope} mediaScopeId
+     * @param {stylesLayer} layer = 'user-styles'
+     * @returns {StyleChunk}
+     * @access private
+     */
+    createNewUniqueChunk(scss, blockId, mediaScopeId, layer = 'user-styles') {
+        if (this.findStyle('single-block', blockId, mediaScopeId, layer, this.styles))
+            throw new Error(`Unique style ${blockId}:${mediaScopeId}:${layer} already exist`);
+        return {
+            scope: {block: 'single-block', media: mediaScopeId, layer},
+            scss,
         };
     }
 }

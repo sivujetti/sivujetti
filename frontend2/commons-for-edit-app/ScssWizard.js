@@ -174,13 +174,12 @@ class ScssWizard {
             const chunkInput2 = Array.isArray(chunkInput1) ? chunkInput1.join('\n') : chunkInput1;
             const chunkInput = chunkInput2.replace(/%s/g, val);
             const upd = createScssInspectorInternal(chunkInput);
+            const decls = upd.findNodes((node, _parenNode) => {
+                return node.type === 'decl';
+            });
 
             let linesCpy = s.scss.split('\n');
             let linesIncoming = chunkInput.split('\n');
-            const decls = upd.findNodes((node, parenNode) => {
-                return parenNode && node.type === 'decl';
-            });
-
             decls.forEach(([fromUpd, fromDelParen]) => {
                 // get the decl name we're trying to update
                 const declName = fromUpd.props; // Example 'column-gap'
@@ -223,12 +222,11 @@ class ScssWizard {
             const chunkInput2 = Array.isArray(chunkInput1) ? chunkInput1.join('\n') : chunkInput1;
             const chunkInput = chunkInput2.replace(/%s/g, val);
             const del = createScssInspectorInternal(chunkInput);
-
-            let linesCpy = s.scss.split('\n');
-            const decls = del.findNodes((node, parenNode) => {
-                return parenNode && node.type === 'decl';
+            const decls = del.findNodes((node, _parenNode) => {
+                return node.type === 'decl';
             });
 
+            let linesCpy = s.scss.split('\n');
             decls.forEach(([fromDel, fromDelParen]) => {
                 // get the decl name we're trying to delete
                 const declName = fromDel.props; // Example 'column-gap'

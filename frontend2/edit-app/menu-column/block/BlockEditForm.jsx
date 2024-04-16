@@ -34,8 +34,8 @@ class BlockEditForm extends preact.Component {
         this.blockType = api.blockTypes.get(this.props.block.type);
         this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(this.props.block.id, 'mainTree');
         this.editFormImpls = [
-            this.blockType.editForm,
-            ...(!this.blockType.extends ? [] : [api.blockTypes.get(this.blockType.extends).editForm])
+            createBlockEditFormCfg(this.blockType),
+            ...(!this.blockType.extends ? [] : [createBlockEditFormCfg(api.blockTypes.get(this.blockType.extends))])
         ];
         this.stylesEditForm = this.blockType.stylesEditForm || 'DefaultWidgetBasedStylesEditForm';
 
@@ -120,8 +120,8 @@ class BlockEditForm extends preact.Component {
                 if (currentTabIdx !== i)
                     content = null;
                 else if (itm.kind === 'content' || itm.kind === 'content+user-styles') {
-                    content = this.editFormImpls.map(EditFormImpl =>
-                        <EditFormImpl
+                    content = this.editFormImpls.map(({Renderer, type}) =>
+                        <Renderer
                             block={ blockCopyForEditForm }
                             lastBlockTreeChangeEventInfo={ lastBlockTreeChangeEventInfo }
                             emitValueChanged={ (val, key, ...varargs) => { this.handleValuesChanged({[key]: val}, ...varargs); } }
@@ -142,7 +142,10 @@ class BlockEditForm extends preact.Component {
                             } }
                             emitManyValuesChanged={ this.handleValuesChanged.bind(this) }
                             key={ block.id }
-                            { ...(block.type !== 'Section2' ? {} : {stylesStateId: this.state.stylesStateId}) }/>
+                            { ...(type !== 'content+user-styles'
+                                ? {}
+                                : {stylesStateId: this.state.stylesStateId, blockId: block.id}
+                            ) }/>
                     );
                 } else if (itm.kind === 'user-styles') {
                     const StylesEditFormCls = this.stylesEditForm;
@@ -300,6 +303,17 @@ function getLargestAllowedTabIdx(savedIdx, userCanEditCss) {
  */
 function doesTabContainStylesStuff(tabIdx, tabsInfo) {
     return tabsInfo[tabIdx]?.kind.indexOf('styles') > -1;
+}
+
+/**
+ * @param {BlockTypeDefinition} input
+ * @returns {Renderer: preact.Component; type: 'content'|'content+user-styles';}
+ */
+function createBlockEditFormCfg(input) {
+    return {
+        Renderer: input.editForm,
+        type: input.editFormType || 'content'
+    };
 }
 
 /**

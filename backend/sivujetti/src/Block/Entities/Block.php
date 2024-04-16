@@ -72,10 +72,7 @@ final class Block extends \stdClass {
     public ?\Sivujetti\PageType\Entities\PageType $__pageType; */
 
     /* If self::TYPE_MENU
-    public string $tree;
-    public string $wrapEl;
-    public string $treeEl;
-    public string $treeItemEl; */
+    public array $tree; */
 
     /* If self::TYPE_PARAGRAPH
     public string $text; */

@@ -5,6 +5,7 @@ export default {
     friendlyName: 'Section',
     icon: 'columns-3',
     editForm: Section2CombinedBlockAndStylesEditForm,
+    editFormType: 'content+user-styles',
     createOwnProps(/*defProps*/) {
         return {
             columns: [

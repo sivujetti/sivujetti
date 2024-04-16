@@ -5,7 +5,6 @@ import {
     getBlockEl,
     getMetaKey,
     getNormalizedInitialHoverCandidate,
-    placeholderImageSrc,
     traverseRecursively,
 } from '../shared-inline.js';
 import {
@@ -138,11 +137,10 @@ class MenuBlock extends preact.Component {
      * @access protected
      */
     render({block, renderChildren, createDefaultProps}) {
-        const El = block.wrapEl || 'nav';
-        return <El { ...createDefaultProps() }>
+        return <nav { ...createDefaultProps() }>
             { menuPrintBranch(block.tree, block) }
             { renderChildren() }
-        </El>;
+        </nav>;
     }
 }
 /**

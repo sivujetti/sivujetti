@@ -39,7 +39,7 @@ const cssVarDefs = [
                 {label: '-', value: ''},
             ],
             label: 'List style',
-            inputId: 'menuItemsWidth',
+            inputId: 'menuListStyleType',
         },
     },
     {

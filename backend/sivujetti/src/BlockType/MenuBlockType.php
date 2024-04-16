@@ -20,9 +20,6 @@ final class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTy
                 $builder::DATA_TYPE_ARRAY,
                 sanitizeWith: self::createLinkTree(...)
             )
-            ->newProperty("wrapEl", $builder::DATA_TYPE_TEXT)
-            ->newProperty("treeEl", $builder::DATA_TYPE_TEXT)
-            ->newProperty("treeItemEl", $builder::DATA_TYPE_TEXT)
             ->getResult();
     }
     /**

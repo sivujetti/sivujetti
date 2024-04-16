@@ -86,6 +86,7 @@ interface BlockTypeDefinition {
     name: String;         // Examples 'Text'
     friendlyName: String; // Examples 'Text'
     editForm: preact.Component;
+    editFormType?: 'content'|'content+user-styles';
     stylesEditForm: preact.Component|null;
     createOwnProps(defProps: {[key: String]: any;}): {[propName: String]: any};
     icon?: String;        // Examples 'blockquote'

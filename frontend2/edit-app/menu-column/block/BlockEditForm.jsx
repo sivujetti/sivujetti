@@ -41,12 +41,12 @@ class BlockEditForm extends preact.Component {
 
         const userCanEditCss = api.user.can('editBlockCss');
         this.tabsInfo = createTabsInfo(this.blockType.name, userCanEditCss);
-        const currentTabIdx = createInitialTabIdx(
-            parseInt(getAndPutAndGetToLocalStorage('0', 'sivujettiLastBlockEditFormTabIdx'), 10),
+        const currentTabKind = createInitialTabKind(
+            getAndPutAndGetToLocalStorage('content', 'sivujettiLastBlockEditFormTabKind'),
             this.tabsInfo,
             userCanEditCss
         );
-        this.setState(createState(currentTabIdx, this.tabsInfo, this.props.block));
+        this.setState(createState(currentTabKind, this.props.block));
 
         this.unregistrables = [saveButton.subscribeToChannel('theBlockTree', (theTree, userCtx, ctx, flags) => {
             const event = userCtx?.event || '';
@@ -79,13 +79,8 @@ class BlockEditForm extends preact.Component {
         }),
 
         saveButton.subscribeToChannel('stylesBundle', (bundle, userCtx, ctx) => {
-            const doesIt = doesTabContainStylesStuff(
-                this.state.currentTabIdx,
-                this.tabsInfo,
-            );
-            if (!doesIt) return;
+            if (!doesTabContainStylesStuff(this.state.currentTabKind)) return;
             if (ctx === 'initial') return;
-            // if chnanged?
             this.setState({stylesStateId: bundle.id});
         })];
     }
@@ -99,7 +94,7 @@ class BlockEditForm extends preact.Component {
      * @param {{block: Block; inspectorPanel: preact.Component;}} props
      * @access protected
      */
-    render({block}, {currentTabIdx, blockCopyForEditForm, lastBlockTreeChangeEventInfo}) {
+    render({block}, {currentTabKind, blockCopyForEditForm, lastBlockTreeChangeEventInfo}) {
         const isMeta = isMetaBlock(block);
         const typeid = isMeta ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
         const {tabsInfo} = this;
@@ -112,12 +107,12 @@ class BlockEditForm extends preact.Component {
             { hasMoreThat1Tab ? <Tabs
                 links={ tabsInfo.map(itm => itm.title) }
                 getTabName={ (_, i) => tabsInfo[i].kind }
-                onTabChanged={ (toIdx) => this.changeTab(toIdx) }
-                className={ `text-tinyish mt-0${currentTabIdx < 1 ? ' mb-2' : ''}` }
-                initialIndex={ currentTabIdx }/> : null }
-            { tabsInfo.map((itm, i) => {
+                onTabChanged={ (toIdx) => this.changeTab(this.tabsInfo[toIdx].kind) }
+                className={ `text-tinyish mt-0${currentTabKind !== 'content' ? '' : ' mb-2'}` }
+                initialIndex={ tabsInfo.findIndex(({kind}) => kind === currentTabKind) }/> : null }
+            { tabsInfo.map(itm => {
                 let content;
-                if (currentTabIdx !== i)
+                if (itm.kind !== currentTabKind)
                     content = null;
                 else if (itm.kind === 'content' || itm.kind === 'content+user-styles') {
                     content = this.editFormImpls.map(({Renderer, type}) =>
@@ -157,19 +152,19 @@ class BlockEditForm extends preact.Component {
                         stylesStateId={ this.state.stylesStateId }
                         blockId={ block.id }/>;
                 }
-                return <div class={ currentTabIdx === i ? '' : 'd-none' } key={ itm.kind }>
+                return <div class={ itm.kind === currentTabKind ? '' : 'd-none' } key={ itm.kind }>
                     { content }
                 </div>;
             }) }
         </div>;
     }
     /**
-     * @param {Number} toIdx
+     * @param {tabKind} toKind
      * @access private
      */
-    changeTab(toIdx) {
-        putToLocalStorage(toIdx.toString(), 'sivujettiLastBlockEditFormTabIdx');
-        this.setState(createState(toIdx, this.tabsInfo, this.props.block));
+    changeTab(toKind) {
+        putToLocalStorage(toKind, 'sivujettiLastBlockEditFormTabKind');
+        this.setState(createState(toKind, this.props.block));
     }
     /**
      * @param {{[key: String]: any;}} changes
@@ -178,7 +173,7 @@ class BlockEditForm extends preact.Component {
      * @access public
      */
     handleValuesChanged(changes, hasErrors = false, flags = null) {
-        if (this.state.currentTabIdx > 0) return;
+        if (this.state.currentTabKind.indexOf('content') < 0) return;
 
         const saveButton = api.saveButton.getInstance();
         const blockId = this.props.block.id;
@@ -251,19 +246,18 @@ function createTabConfig(blockTypeName) {
 }
 
 /**
- * @param {Number} newTabIdx
- * @param {Array<TabInfo>} tabsInfo
+ * @param {tabKind} newTabKind
  * @param {Object} thisPropsBlock
  * @returns {Object}
  */
-function createState(newTabIdx, tabsInfo, thisPropsBlock) {
+function createState(newTabKind, thisPropsBlock) {
     const  out =  {
-        currentTabIdx: newTabIdx,
-        ...(tabsInfo[newTabIdx].kind.indexOf('content') > -1
+        currentTabKind: newTabKind,
+        ...(newTabKind.indexOf('content') > -1
             ? {blockCopyForEditForm: objectUtils.cloneDeep(thisPropsBlock)}
             : {}
         ),
-        ...(doesTabContainStylesStuff(newTabIdx, tabsInfo)
+        ...(doesTabContainStylesStuff(newTabKind)
             ? {stylesStateId: api.saveButton.getInstance().getChannelState('stylesBundle')?.id}
             : {}
         )
@@ -272,37 +266,43 @@ function createState(newTabIdx, tabsInfo, thisPropsBlock) {
 }
 
 /**
- * @param {Number} savedIdx
+ * @param {tabKind} savedTabKind
  * @param {Array<TabInfo>} tabsInfo
  * @param {Boolean} userCanEditCss
  * @returns {Number}
  */
-function createInitialTabIdx(savedIdx, tabsInfo, userCanEditCss) {
-    const tabIdx1 = getLargestAllowedTabIdx(savedIdx, userCanEditCss);
-    if (tabIdx1 === 1 && tabsInfo.some(({kind}) => kind === 'content+user-styles'))
-        return 0;
-    return Math.min(tabIdx1, tabsInfo.length - 1);
+function createInitialTabKind(savedTabKind, tabsInfo, userCanEditCss) {
+    if (savedTabKind === 'dev-styles' && !userCanEditCss) {
+        const idx = getTabIdx(tabsInfo, savedTabKind);
+        return tabsInfo[idx - 1].kind;
+    }
+    if (tabsInfo[0].kind === 'content+user-styles' && (
+        savedTabKind === 'user-styles' ||
+        savedTabKind === 'content'
+    )) {
+        return 'content+user-styles';
+    }
+    if (savedTabKind === 'content+user-styles' && tabsInfo[0].kind === 'content')
+        return 'content';
+    return savedTabKind;
 }
 
 /**
- * @param {Number} savedIdx
- * @param {Boolean} userCanEditCss
+ * @param {Array<TabInfo>} tabsInfo
+ * @param {tabKind} ofKind
  * @returns {Number}
  */
-function getLargestAllowedTabIdx(savedIdx, userCanEditCss) {
-    if (savedIdx > 1 && !userCanEditCss)
-        return 1;
-    return savedIdx;
+function getTabIdx(tabsInfo, ofKind) {
+    return tabsInfo.findIndex(({kind}) => kind === ofKind);
 }
 
 /**
- * @param {Number} tabIdx
- * @param {Array<TabInfo>} tabsInfo
+ * @param {tabKind} tabKind
  * @returns {Boolean}
  * @access private
  */
-function doesTabContainStylesStuff(tabIdx, tabsInfo) {
-    return tabsInfo[tabIdx]?.kind.indexOf('styles') > -1;
+function doesTabContainStylesStuff(tabKind) {
+    return tabKind.indexOf('styles') > -1;
 }
 
 /**

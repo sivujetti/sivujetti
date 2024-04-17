@@ -32,7 +32,7 @@ class BlockVisualStylesEditForm extends preact.Component {
     }
     /**
      * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
-     * @returns {translateVarInputToScssChunkFn}
+     * @returns {translateVarInputToScssCodeTemplateFn}
      * @access protected
      */
     createVarInputToScssChunkFn(cssVarDefs) {
@@ -77,7 +77,7 @@ class BlockVisualStylesEditForm extends preact.Component {
     /**
      * @param {VisualStylesFormVarDefinition} def
      * @param {CssVarsMap} selectedScreenSizeVars
-     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
+     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssChunk
      * @access protected
      */
     renderVarWidget(def, selectedScreenSizeVars, varInputToScssChunk) {
@@ -111,7 +111,7 @@ class BlockVisualStylesEditForm extends preact.Component {
     /**
      * @param {String|Event} input
      * @param {String} varName
-     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
+     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssChunk
      * @access protected
      */
     handleVisualVarChanged(input, varName, varInputToScssChunk) {
@@ -122,7 +122,7 @@ class BlockVisualStylesEditForm extends preact.Component {
     /**
      * @param {String|Event} input
      * @param {String} varName
-     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
+     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssChunk
      * @access protected
      */
     handleVisualVarChangedFast(val, varName, varInputToScssChunk) {
@@ -133,41 +133,41 @@ class BlockVisualStylesEditForm extends preact.Component {
     /**
      * @param {String|null} val
      * @param {String} varName
-     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
+     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssChunk
      * @returns {StylesBundleWithId}
      * @access private
      */
     doHandleVisualVarChanged(val, varName, varInputToScssChunk) {
-        const {curScreenSizeTabIdx} = this.state;
+        const {styleScopes, curScreenSizeTabIdx} = this.state;
         const curChunk = this.userStyleRefs[curScreenSizeTabIdx];
         const newValIsNotEmpty = val?.trim().length > 0;
         const valNorm = newValIsNotEmpty ? val : '"dummy"';
         const mediaScopeId = mediaScopes[curScreenSizeTabIdx];
+        const codeTemplate = varInputToScssChunk(varName);
 
         if (!curChunk) {
-            return scssWizard.addNewUniqueScopeScssChunkAndReturnAllRecompiled(
-                varName,
+            return scssWizard.addNewUniqueScopeChunkAndReturnAllRecompiled(
+                codeTemplate,
                 valNorm,
-                varInputToScssChunk,
                 this.props.blockId,
                 mediaScopeId
             );
         } else {
-            return newValIsNotEmpty
-                ? scssWizard.updateUniqueScopeScssChunkOfExistingChunkAndReturnAllRecompiled(
-                    varName,
+            const selectedScreenSizeVars = styleScopes[curScreenSizeTabIdx] || {};
+            const hasVarValPreviously = !!selectedScreenSizeVars[varName];
+            if (!newValIsNotEmpty && hasVarValPreviously)
+                return scssWizard.deleteScssCodeFromExistingUniqueScopeChunkAndReturnAllRecompiled(
+                    codeTemplate,
                     valNorm,
-                    varInputToScssChunk,
-                    curChunk,
-                    mediaScopeId
-                )
-                : scssWizard.deleteUniqueScopeScssChunkOfExistingChunkAndReturnAllRecompiled(
-                    varName,
-                    valNorm,
-                    varInputToScssChunk,
                     curChunk,
                     mediaScopeId
                 );
+            return scssWizard.addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(
+                codeTemplate,
+                valNorm,
+                curChunk,
+                mediaScopeId,
+            );
         }
     }
 }
@@ -219,13 +219,13 @@ function createVarsMapAuto(cssVarDefs, scss, _mediaScopeId) {
  * Returns a function that translates varName+val to css declaration or block.
  *
  * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
- * @returns {translateVarInputToScssChunkFn}
+ * @returns {translateVarInputToScssCodeTemplateFn}
  */
 function createVarInputToScssChunkAuto(cssVarDefs) {
     /**
      * @param {String} varName
      * @param {String} _val
-     * @returns {chunkInput}
+     * @returns {scssCodeInput}
      */
     return (varName, _val) => {
         const def = cssVarDefs.find(r => r.varName === varName);

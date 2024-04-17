@@ -67,42 +67,39 @@ class ScssWizard {
         return found;
     }
     /**
-     * @param {String} varName
+     * @param {scssCodeInput} codeTemplate Examples 'color: red', 'ul li {\n  flex: 0 0 100%;\n}', [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
      * @param {String} val
-     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
      * @param {String} blockId
      * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
-    addNewUniqueScopeScssChunkAndReturnAllRecompiled(varName, val, varInputToScssChunk, blockId, mediaScopeId = 'all') {
-        const updated = this.doTryToAddFirstScssChunk(varName, val, varInputToScssChunk, blockId, mediaScopeId);
+    addNewUniqueScopeChunkAndReturnAllRecompiled(codeTemplate, val, blockId, mediaScopeId = 'all') {
+        const updated = this.doAddFirstScssChunk(codeTemplate, val, blockId, mediaScopeId);
         return this.commitAll(updated, mediaScopeId);
     }
     /**
-     * @param {String} varName
+     * @param {scssCodeInput} codeTemplate Examples 'color: red;', '> sub-selector {\n  color: red;\n}', [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
      * @param {String} val
-     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
      * @param {StyleChunk} currentStyle
      * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
-    updateUniqueScopeScssChunkOfExistingChunkAndReturnAllRecompiled(varName, val, varInputToScssChunk, currentStyle, mediaScopeId = 'all') {
-        const updated = this.doTryToUpdateUniqueScopedScssChunk(varName, val, varInputToScssChunk, currentStyle);
+    addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(codeTemplate, val, currentStyle, mediaScopeId = 'all') {
+        const updated = this.doAddOrUpdateScssCodeOfExistingUniqueScopedChunk(codeTemplate, val, currentStyle);
         return this.commitAll(updated, mediaScopeId);
     }
     /**
-     * @param {String} varName
+     * @param {scssCodeInput} codeTemplate
      * @param {String} val
-     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
      * @param {StyleChunk} currentStyle
      * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
-    deleteUniqueScopeScssChunkOfExistingChunkAndReturnAllRecompiled(varName, val, varInputToScssChunk, currentStyle, mediaScopeId = 'all') {
-        const updated = this.doTryToDeleteUniqueScopedScssChunk(varName, val, varInputToScssChunk, currentStyle);
+    deleteScssCodeFromExistingUniqueScopeChunkAndReturnAllRecompiled(codeTemplate, val, currentStyle, mediaScopeId = 'all') {
+        const updated = this.deleteScssCodeFromExistingUniqueScopedChunk(codeTemplate, val, currentStyle);
         return this.commitAll(updated, mediaScopeId);
     }
     /**
@@ -125,21 +122,37 @@ class ScssWizard {
         return this.commitAll(updated, mediaScopeId);
     }
     /**
-     * @param {String} varName
+     * @param {String} updatedScssChunk Example: 'color: blue;'
+     * @param {StyleChunk} currentStyle
+     * @param {mediaScope} mediaScopeId = 'all'
+     * @returns {StylesBundleWithId}
+     * @access public
+     */
+    updateDevsExistingUniqueScopeChunkWithScssChunkAndReturnAllRecompiled(updatedScssChunk, currentStyle, mediaScopeId = 'all') {
+        const updated = this.styles.map(s =>
+            s !== currentStyle
+                ? s
+                : {
+                    ...s,
+                    scss: updatedScssChunk,
+                }
+        );
+        return this.commitAll(updated, mediaScopeId);
+    }
+    /**
+     * @param {scssCodeInput} codeTemplate
      * @param {String} val
-     * @param {translateVarInputToScssChunkFn} varInputToScssChunk Examples () => 'color: red', () => 'ul li {\n  flex: 0 0 100%;\n}', () => [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
      * @param {String} blockId
      * @param {mediaScope} mediaScopeId
      * @returns {StylesBundleWithId}
      * @access private
      */
-    doTryToAddFirstScssChunk(varName, val, varInputToScssChunk, blockId, mediaScopeId) {
-        const chunkInput = varInputToScssChunk(varName, val);
-        if (!Array.isArray(chunkInput))
+    doAddFirstScssChunk(inputCodeTemplate, val, blockId, mediaScopeId) {
+        if (!Array.isArray(inputCodeTemplate))
             return [
                 ...this.styles,
                 this.createNewUniqueChunk(
-                    createScssBlock(chunkInput.replace(/%s/g, val), `${createSelector(blockId)} {`),
+                    createScssBlock(inputCodeTemplate.replace(/%s/g, val), `${createSelector(blockId)} {`),
                     blockId,
                     mediaScopeId,
                 )
@@ -150,90 +163,108 @@ class ScssWizard {
                 this.createNewUniqueChunk(
                     [
                         `${createSelector(blockId)} {`,
-                            ...chunkInput.map(l => indent(l.replace('%s', val), 1)),
+                            ...inputCodeTemplate.map(l => indent(l.replace('%s', val), 1)),
                         '}'
                     ].join('\n'),
                     blockId,
                     mediaScopeId,
                 )
             ];
+    }
     /**
-     * @param {String} varName
+     * @param {scssCodeInput} codeTemplate
      * @param {String} val
-     * @param {translateVarInputToScssChunkFn} varInputToScssChunk Examples () => 'color: red;', () => '> sub-selector {\n  color: red;\n}', () => [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
      * @param {StyleChunk} currentStyle
      * @returns {Array<StyleChunk>}
      * @access private
      */
-    doTryToUpdateUniqueScopedScssChunk(varName, val, varInputToScssChunk, currentStyle) {
+    doAddOrUpdateScssCodeOfExistingUniqueScopedChunk(codeTemplate, val, currentStyle) {
         return this.styles.map(s => {
             if (s !== currentStyle) return s;
 
-            const current = createScssInspectorInternal(s.scss);
-            const chunkInput1 = varInputToScssChunk(varName, val);
-            const chunkInput2 = Array.isArray(chunkInput1) ? chunkInput1.join('\n') : chunkInput1;
-            const chunkInput = chunkInput2.replace(/%s/g, val);
-            const upd = createScssInspectorInternal(chunkInput);
-            const decls = upd.findNodes((node, _parenNode) => {
+            const incoming1 = Array.isArray(codeTemplate) ? codeTemplate.join('\n') : codeTemplate;
+            const incoming = incoming1.replace(/%s/g, val);
+            const linesIncoming = incoming.split('\n');
+            const decls = createScssInspectorInternal(incoming).findNodes((node, _parenNode) => {
                 return node.type === 'decl';
             });
 
-            let linesCpy = s.scss.split('\n');
-            let linesIncoming = chunkInput.split('\n');
-            decls.forEach(([fromUpd, fromDelParen]) => {
-                // get the decl name we're trying to update
-                const declName = fromUpd.props; // Example 'column-gap'
+            let inspector = createScssInspectorInternal(s.scss);
+            let lines = s.scss.split('\n');
+            decls.forEach(([fromInc, fromIncParen]) => {
+                // name of the decl we're adding or updating, 'column-gap' for example
+                const declName = fromInc.props;
 
                 // find it from current style.scss
-                const containingCssBlockSel = getSelectorForDecl(fromDelParen, current);
-                const [toUpdate, _toUpdateParen] = current.findNode((node, parenNode) =>
+                const containingCssBlockSel = getSelectorForDecl(fromIncParen, inspector);
+                const [toUpdate, _toUpdateParen] = inspector.findNode((node, parenNode) =>
                     parenNode &&
                     (node.type === 'decl' && node.props === declName) &&
                     (parenNode.type === 'rule' && parenNode.value === containingCssBlockSel)
                 );
-                if (!toUpdate)
-                    throw new Error(`Expected to find \`${declName}\` in \`${containingCssBlockSel}\` (\`${s.scss}\`)`);
 
-                // update it
-                linesCpy[toUpdate.line - 1] = indent(linesIncoming[fromUpd.line - 1], 1);
+                const newLine = indent(linesIncoming[fromInc.line - 1], 1);
+                if (toUpdate) { // update it
+                    lines[toUpdate.line - 1] = newLine;
+                } else { // add
+                    if (!fromIncParen) { // root level decl, add to the beginning
+                        lines.splice(1, 0, newLine);
+                    } else { // inner block's decl
+                        const targetScope = inspector.getAst().find((n, i) =>
+                            i > 0 && // skip root
+                            n.parent && n.type === 'rule' && n.value === containingCssBlockSel
+                        );
+
+                        // inner scope (css block) exist, add to the beginning
+                        if (targetScope)
+                            lines.splice(targetScope.children[0].line - 1, 0, newLine);
+                        // scope doesn't exist, add to the end of root
+                        else
+                            lines.splice(lines.length - 1, 0,
+                                indent(`${containingCssBlockSel} {`, 1),
+                                newLine,
+                                indent('}', 1),
+                            );
+                    }
+                }
+
+                // update inspector, since inspector.getAst()[*].line may have changed
+                inspector = createScssInspectorInternal(lines.join('\n'));
             });
 
             return {
                 ...s,
-                scss: linesCpy.join('\n')
+                scss: lines.join('\n')
             };
         });
     }
     /**
-     * @param {String} varName
+     * @param {scssCodeInput} codeTemplate
      * @param {String} val
-     * @param {translateVarInputToScssChunkFn} varInputToScssChunk
      * @param {StyleChunk} currentStyle
      * @returns {Array<StyleChunk>}
      * @access private
      */
-    doTryToDeleteUniqueScopedScssChunk(varName, val, varInputToScssChunk, currentStyle) {
+    deleteScssCodeFromExistingUniqueScopedChunk(codeTemplate, val, currentStyle) {
         const EMPTY_LINE = '^::empty::^';
         return this.styles.map(s => {
             if (s !== currentStyle) return s;
 
-            const current = createScssInspectorInternal(s.scss);
-            const chunkInput1 = varInputToScssChunk(varName, val);
-            const chunkInput2 = Array.isArray(chunkInput1) ? chunkInput1.join('\n') : chunkInput1;
-            const chunkInput = chunkInput2.replace(/%s/g, val);
-            const del = createScssInspectorInternal(chunkInput);
-            const decls = del.findNodes((node, _parenNode) => {
+            const incoming1 = Array.isArray(codeTemplate) ? codeTemplate.join('\n') : codeTemplate;
+            const incoming = incoming1.replace(/%s/g, val);
+            const decls = createScssInspectorInternal(incoming).findNodes((node, _parenNode) => {
                 return node.type === 'decl';
             });
 
-            let linesCpy = s.scss.split('\n');
+            let inspector = createScssInspectorInternal(s.scss);
+            let lines = s.scss.split('\n');
             decls.forEach(([fromDel, fromDelParen]) => {
-                // get the decl name we're trying to delete
-                const declName = fromDel.props; // Example 'column-gap'
+                // name of the decl we're deleting 'column-gap' for example
+                const declName = fromDel.props;
 
                 // find it from current style.scss
-                const containingCssBlockSel = getSelectorForDecl(fromDelParen, current);
-                const [nodeToDelete, _toDeleteParen] = current.findNode((node, parenNode) =>
+                const containingCssBlockSel = getSelectorForDecl(fromDelParen, inspector);
+                const [nodeToDelete, _toDeleteParen] = inspector.findNode((node, parenNode) =>
                     parenNode &&
                     (node.type === 'decl' && node.props === declName) &&
                     (parenNode.type === 'rule' && parenNode.value === containingCssBlockSel)
@@ -243,29 +274,29 @@ class ScssWizard {
 
                 // mark it as deleted
                 const deleteLineAt = nodeToDelete.line - 1;
-                linesCpy[deleteLineAt] = EMPTY_LINE;
+                lines[deleteLineAt] = EMPTY_LINE;
             });
 
             // ['.foo {', '^::empty::^', '}'] -> ['.foo {', '}']
             const withoutEmptyLines = arr => arr.filter(line => line !== EMPTY_LINE);
-            linesCpy = withoutEmptyLines(linesCpy);
+            lines = withoutEmptyLines(lines);
 
             // ['.foo {', '}', ...] -> [...]
-            let emptyBlockCloseTagIdx = findEmptyBlockClosingTagIndex(linesCpy);
-            while (emptyBlockCloseTagIdx > 0 && linesCpy.length) {
-                linesCpy[emptyBlockCloseTagIdx] = EMPTY_LINE;
-                linesCpy[emptyBlockCloseTagIdx - 1] = EMPTY_LINE;
-                linesCpy = withoutEmptyLines(linesCpy);
-                emptyBlockCloseTagIdx = findEmptyBlockClosingTagIndex(linesCpy);
+            let emptyBlockCloseTagIdx = findEmptyBlockClosingTagIndex(lines);
+            while (emptyBlockCloseTagIdx > 0 && lines.length) {
+                lines[emptyBlockCloseTagIdx] = EMPTY_LINE;
+                lines[emptyBlockCloseTagIdx - 1] = EMPTY_LINE;
+                lines = withoutEmptyLines(lines);
+                emptyBlockCloseTagIdx = findEmptyBlockClosingTagIndex(lines);
             }
 
             // No rules left ( ['[data-block=\"u585XQVD\"] {', '}'] )
-            if (!linesCpy.length)
+            if (!lines.length)
                 return null;
 
             return {
                 ...s,
-                scss: linesCpy.join('\n')
+                scss: lines.join('\n')
             };
         }).filter(s => s !== null);
     }

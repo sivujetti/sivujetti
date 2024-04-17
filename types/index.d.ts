@@ -599,6 +599,6 @@ interface VisualStylesFormVarDefinitionWidgetSettings {
         OptionValue;
 }
 
-type chunkInput = String|Array<String>;
+type scssCodeInput = String|Array<String>;
 
-type translateVarInputToScssChunkFn = (varName: String, value: String) => chunkInput;
+type translateVarInputToScssCodeTemplateFn = (varName: String, value: String) => scssCodeInput;

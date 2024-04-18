@@ -311,5 +311,6 @@ function createPaddingVarDefs(prefix) {
 
 export default BlockVisualStylesEditForm;
 export {
+    createCssVarsMaps,
     createPaddingVarDefs,
 };

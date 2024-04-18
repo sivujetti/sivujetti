@@ -552,6 +552,18 @@ type compiledMediaScopesCss = [String, String, String, String, String];
 
 type styleBlockScope = 'single-block'|'block-type';
 
+interface Section2BlockColumnConfig {
+    width: String;      // Example '1fr', '120px'
+    align: String|null;
+    isVisible: Boolean;
+}
+
+interface Section2BlockColumnConfigLocalRepr extends Section2BlockColumnConfig {
+    id: String;
+}
+
+type section2ColConfigsAllScreens = [Array<Section2BlockColumnConfigLocalRepr>|null, Array<Section2BlockColumnConfigLocalRepr>|null, Array<Section2BlockColumnConfigLocalRepr>|null, Array<Section2BlockColumnConfigLocalRepr>|null, Array<Section2BlockColumnConfigLocalRepr>|null];
+
 type stateChangeContext = 'initial'|'push'|'undo'|'redo';
 
 interface StateChangeUserContext {

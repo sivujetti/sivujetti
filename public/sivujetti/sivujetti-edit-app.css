@@ -1024,6 +1024,29 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     left: 0;
     cursor: inherit;
 }
+/* EditApp: Components: grid builder */
+.grid-builder {
+    border-radius: var(--small-rect-radius);
+    gap: .1rem;
+}
+.grid-builder .row {
+    display: grid;
+    min-height: 4rem;
+    grid-template-columns: 1fr 1fr;
+    gap: .3rem;
+    flex: 1 0;
+    background: rgba(var(--components-color-fb-default),.022);
+}
+.grid-builder .row .col {
+    background: rgba(var(--components-color-fb-default),.06);
+    min-height: 2rem;
+    border-radius: var(--small-rect-radius);
+    position: relative;
+    padding: 0 .4rem;
+}
+.grid-builder .row .col.visibility-hidden {
+    background: repeating-linear-gradient( 45deg, rgba(var(--components-color-fb-default),.03), rgba(var(--components-color-fb-default),.03) 10px, rgba(var(--components-color-fb-default),.06) 10px, rgba(var(--components-color-fb-default),.06) 20px);
+}
 
 
 /* == EditApp: * ============================================================ */

@@ -9,6 +9,8 @@ stringBundles.push({
     'Services#partitive': 'Services',
     'Service': 'Service',
     'No results for "%s"': 'No results for "%s"',
+    // commons-for-edit-app/block-types/section2/Section2CombinedBlockAndStylesEditForm.jsx
+    'Add columnn': 'Add columnn',
     // edit-app/src/commons/FileUploader.jsx
     'Images': 'Images',
     'Files': 'Files',

@@ -520,6 +520,7 @@ interface ValueInputProps<T> {
     inputId?: String;
     showNotice?: Boolean;
     noticeDismissedWith?: (accepted: Boolean) => void;
+    additionalUnits?: Array<String>; // Example: ['fr']
 }
 
 interface ColorValueInputPropsData {

@@ -51,7 +51,7 @@ class LengthValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({value, isClearable, labelTranslated, defaultThemeValue, showNotice, noticeDismissedWith}, {unit}) {
+    render({value, isClearable, labelTranslated, defaultThemeValue, showNotice, noticeDismissedWith, additionalUnits}, {unit}) {
         const {num} = value;
         return <FormGroupInline className="has-visual-length-input">
             <label htmlFor={ this.inputId } class="form-label p-relative pt-1" title={ labelTranslated }>
@@ -79,7 +79,7 @@ class LengthValueInput extends preact.Component {
                                 this.setState({unit: e.target.value});
                         } }
                         class="form-input input-group-addon addon-sm form-select"
-                        value={ unit }>{ ['rem', 'px', '%', 'em', 'vh', 'vw', 'vb', 'vmin', 'vmax'].map(ltype =>
+                        value={ unit }>{ ['rem', 'px', '%', 'em', 'vh', 'vw', 'vb', 'vmin', 'vmax', ...(additionalUnits || [])].map(ltype =>
                             <option value={ ltype }>{ ltype }</option>
                         )
                     }</select>

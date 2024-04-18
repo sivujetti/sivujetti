@@ -35,31 +35,31 @@ function createColumnConfig() {
  * @returns {Array<Section2BlockColumnConfig>}
  */
 function colsScreenToTransferable(colsScreeenLocalRepr) {
-    return colsScreeenLocalRepr.map(colsToTransferable);
+    return colsScreeenLocalRepr.map(colToTransferable);
 }
 
 /**
  * @param {Section2BlockColumnConfigLocalRepr} colConfig
  * @returns {Columns2BlockColumn}
  */
-function colsToTransferable(colConfig) {
+function colToTransferable(colConfig) {
     return {
         width: colConfig.width,
-        isVisible: colConfig.isVisible,
         align: colConfig.align,
+        isVisible: colConfig.isVisible,
     };
 }
 
 /**
  * @param {Array<Section2BlockColumnConfig|Section2BlockColumnConfigLocalRepr>} colConfigs
  * @param {String} colMinWidth = '0'
- * @returns {[{template: String; val: String;}, {}]}
+ * @returns {[{template: String; val: String;}, Array<{align: String|undefined; isVisible: Boolean|undefined;}>]}
  */
 function decompose(colConfigs, colMinWidth = '0') {
     const [main, each] = decompose2(colConfigs, colMinWidth);
     return [
         {template: 'grid-template-columns: %s;', val: main},
-        {} // todo
+        each
     ];
 }
 
@@ -89,23 +89,17 @@ function decompose(colConfigs, colMinWidth = '0') {
  * ]
  * ```
  * @param {Array<Section2BlockColumnConfig|Section2BlockColumnConfigLocalRepr>} colConfigs
- * @returns {[String, Array<todo>]}
+ * @returns {[String, Array<{align: String|undefined; isVisible: Boolean|undefined;}>]}
  */
 function decompose2(colConfigs, colMinWidth = '0') {
     const main = (
         colConfigs.map(itm => `minmax(${colMinWidth}, ${itm.width || '1fr'})`).join(' ')
     );
     //
-    const each = colConfigs.map(itm => {
-        const p = [];
-        if (itm.align) {
-            p.push({part: 'justifySelf', cssDecl: `justify-self: ${itm.align}`});
-        }
-        if (!itm.isVisible) {
-            p.push({part: 'visibility', cssDecl: 'visibility: hidden'});
-        }
-        return p;
-    });
+    const each = colConfigs.map(itm => ({
+        align: itm.align || undefined,
+        isVisible: itm.isVisible || undefined,
+    }));
     //
     return [main, each];
 }
@@ -113,7 +107,7 @@ function decompose2(colConfigs, colMinWidth = '0') {
 export {
     colsScreenToTransferable,
     colsToLocalRepr,
-    colsToTransferable,
+    colToTransferable,
     createColumnConfig,
     createStateForEachScreenSize,
     decompose,

@@ -157,7 +157,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
     /**
      * @access protected
      */
-    render(_, {editStateIsOn, editFormProps, screenSizeColumns, styleScopes, curScreenSizeTabIdx}) {
+    render(_, {editStateIsOn, screenSizeColumns, styleScopes, curScreenSizeTabIdx}) {
         const selectedScreenSizeVars = styleScopes[curScreenSizeTabIdx] || {};
         const columnConfigs = screenSizeColumns[curScreenSizeTabIdx] || [createColumnConfig()];
         const [main, each] = !editStateIsOn ? decompose(columnConfigs, '2.4rem') : [{template: '', val: ''}, []];
@@ -186,7 +186,10 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
                             <Icon iconId="plus" className="size-xxs color-dimmed3"/>
                         </button>
                     ]
-                    : 'todo'
+                    : <ColumnEditTabForm
+                        column={ columnConfigs[this.state.openColIdx] }
+                        onPropChanged={ (propName, val) => this.handlePropOfOpenColConfigChanged(propName, val, screenSizeColumns, curScreenSizeTabIdx) }
+                        onEditEnded={ this.endColumnEdit.bind(this) }/>
                 }</div>
                 { this.cssVarDefs.map(def =>
                     this.renderVarWidget(def, selectedScreenSizeVars, this.varInputToScssChunkFn)
@@ -219,11 +222,11 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
      */
     addColumn(colsAllScreens, curStyleChunkSelectedScreen, curScreenSizeTabIdx) {
         if (curStyleChunkSelectedScreen) {
-            const newCols = [createColumnConfig(), createColumnConfig()];
             const newColScreens = colsAllScreens.map((colsSingleScreenLocalRepr, i) => i !== curScreenSizeTabIdx
                 ? colsSingleScreenLocalRepr ? colsScreenToTransferable(colsSingleScreenLocalRepr) : null
-                : [...colsScreenToTransferable(colsSingleScreenLocalRepr), newCols]
+                : [...colsScreenToTransferable(colsSingleScreenLocalRepr), createColumnConfig()]
             );
+            const newCols = newColScreens[curScreenSizeTabIdx];
             const saveButton = api.saveButton.getInstance();
 
             saveButton.pushOpGroup(
@@ -277,13 +280,70 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
                 })(this)]
             );
         }
+    /**
+     * @param {keyof Section2BlockColumnConfig} propName
+     * @param {String|Boolean|null} val
+     * @param {section2ColConfigsAllScreens} screenSizeColumns
+     * @param {Number} curScreenSizeTabIdx
+     */
+    handlePropOfOpenColConfigChanged(propName, val, screenSizeColumns, curScreenSizeTabIdx) {
+        const newColScreens = screenSizeColumns.map((colsSingleScreenLocalRepr, i) => i !== curScreenSizeTabIdx
+            ? colsSingleScreenLocalRepr ? colsScreenToTransferable(colsSingleScreenLocalRepr) : null
+            : colsScreenToTransferable(colsSingleScreenLocalRepr).map((transferable, i2) =>
+                i2 !== this.state.openColIdx ? transferable : {...transferable, [propName]: val}
+            )
+        );
+        const updatedColsSelectedScreen = newColScreens[curScreenSizeTabIdx];
+        const saveButton = api.saveButton.getInstance();
+
+        saveButton.pushOpGroup(
+            ['theBlockTree', blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+                const [blockRef] = blockTreeUtils.findBlockMultiTree(this.props.blockId, newTreeCopy);
+                writeBlockProps(blockRef, {columns: newColScreens});
+                return newTreeCopy;
+            }), {event: 'update-single-block-prop', blockId: this.props.blockId}],
+
+            ['stylesBundle', (function (self) {
+                if (propName === 'width') {
+                    const [main, each] = decompose(updatedColsSelectedScreen);
+                    return scssWizard.addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(
+                        [
+                            `${innerElScope} {`,
+                            `  ${main.template}`,
+                            '}'
+                        ],
+                        main.val,
+                        self.userStyleRefs[curScreenSizeTabIdx],
+                        mediaScopes[curScreenSizeTabIdx]
+                    );
+                } else {
+                    // todo align, isVisible
+                }
+            })(this)]
+        );
     }
     /**
      * @param {Number} colIdx
      * @access private
      */
     openColumnForEdit(colIdx) {
-        // todo
+        this.setState({
+            editStateIsOn: true,
+            openColIdx: colIdx,
+        });
+    }
+    /**
+     * @param {Boolean} doConfirmChanges
+     * @param {todo} initialColumnCopy
+     * @access private
+     */
+    endColumnEdit(doConfirmChanges, initialColumnCopy) {
+        this.setState({
+            editStateIsOn: false,
+            openColIdx: null,
+        });
+        if (!doConfirmChanges) {
+        }
     }
     /**
      * @param {Section2BlockColumnConfigLocalRepr} col

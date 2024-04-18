@@ -26,7 +26,7 @@ class SectionBlockEditForm extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.block !== this.props.block && props.lastBlockTreeChangeEventInfo.isUndoOrRedo &&
+        if (props.block !== this.props.block &&
             this.state.bgImageSrc !== props.block.bgImage) {
             this.setState({bgImageSrc: props.block.bgImage});
         }

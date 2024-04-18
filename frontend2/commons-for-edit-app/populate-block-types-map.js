@@ -1,5 +1,6 @@
 import {blockTypesRegister} from './edit-app-singletons.js';
 import buttonBlockType from './block-types/button/button.js';
+import codeBlockType from './block-types/code/code.js';
 import columnsBlockType from './block-types/columns/columns.js';
 import imageBlockType from './block-types/image/image.js';
 import listingBlockType from './block-types/listing/listing.js';
@@ -13,6 +14,7 @@ import wrapperBlockType from './block-types/wrapper.js';
 blockTypesRegister.setup([
     ['GlobalBlockReference', {name: 'GlobalBlockReference', friendlyName: 'GlobalBlockReference'}],
     [buttonBlockType.name,   buttonBlockType],
+    [codeBlockType.name,     codeBlockType],
     [columnsBlockType.name,  columnsBlockType],
     [imageBlockType.name,    imageBlockType],
     [listingBlockType.name,  listingBlockType],

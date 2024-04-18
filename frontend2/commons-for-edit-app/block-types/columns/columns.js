@@ -1,11 +1,12 @@
-import ColumnsBlockEditForm from './ColumnsBlockEditForm.jsx';
+import EditForm from './ColumnsBlockEditForm.jsx';
+import StylesEditForm from './ColumnsBlockVisualStylesEditForm.jsx';
 
 export default {
     name: 'Columns',
     friendlyName: 'Columns',
     icon: 'layout-columns',
-    editForm: ColumnsBlockEditForm,
-    stylesEditForm: null,
+    editForm: EditForm,
+    stylesEditForm: StylesEditForm,
     createOwnProps(/*defProps*/) {
         return {
             numColumns: 2,

@@ -19,10 +19,9 @@ import {
     colsScreenToTransferable,
     createColumnConfig,
     createStateForEachScreenSize,
-    decompose,
+    innerElScope,
+    toStyleConfig,
 } from './Section2CombinedBlockAndStylesEditFormFuncs.js';
-
-const innerElScope = '>.j-Section2-cols';
 
 /** @type {Array<VisualStylesFormVarDefinition>} */
 const cssVarDefs = [
@@ -160,16 +159,19 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
     render(_, {editStateIsOn, screenSizeColumns, styleScopes, curScreenSizeTabIdx}) {
         const selectedScreenSizeVars = styleScopes[curScreenSizeTabIdx] || {};
         const columnConfigs = screenSizeColumns[curScreenSizeTabIdx] || [createColumnConfig()];
-        const [main, each] = !editStateIsOn ? decompose(columnConfigs, '2.4rem') : [{template: '', val: ''}, []];
+        const {mainEl, innerEls} = !editStateIsOn ? toStyleConfig(columnConfigs, '2.4rem') : {};
         return <ScreenSizesVerticalTabs
             curTabIdx={ curScreenSizeTabIdx }
             setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }>
             <div class="form-horizontal has-visual-style-widgets tight pt-1 pl-2">
                 <div class="grid-builder flex-centered mt-1 mr-1">{ !editStateIsOn
                     ? [
-                        <div class="row" style={ main.template.replace('%s', main.val) }>
+                        <div class="row" style={ mainEl.template.replace('%s', mainEl.val) }>
                             { columnConfigs.map((col, i) => {
-                                return <div class="col flex-centered">
+                                const ss = innerEls[i];
+                                const alignCss = ss.align?.val ? `justify-self: ${ss.align.val}` : '';
+                                const visibilityCls = ss.visibility?.val === 'hidden' ? ' visibility-hidden' : '';
+                                return <div class={ `col flex-centered${visibilityCls}` } style={ alignCss }>
                                     <button onClick={ () => this.openColumnForEdit(i) } class="btn btn-sm btn-link">
                                         { col.width || 'auto' } <Icon iconId="pencil" className="size-xxs color-dimmed3"/>
                                     </button>
@@ -237,14 +239,14 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
                 }), {event: 'update-single-block-prop', blockId: this.props.blockId}],
 
                 ['stylesBundle', (function (self) {
-                    const [main] = decompose(newCols);
+                    const {mainEl} = toStyleConfig(newCols);
                     return scssWizard.addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(
                         [
                             `${innerElScope} {`,
-                            `  ${main.template}`,
+                            `  ${mainEl.template}`,
                             '}'
                         ],
-                        main.val,
+                        mainEl.val,
                         curStyleChunkSelectedScreen,
                         mediaScopes[curScreenSizeTabIdx]
                     );
@@ -266,14 +268,14 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
                 }), {event: 'update-single-block-prop', blockId: this.props.blockId}],
 
                 ['stylesBundle', (function (self) {
-                    const [main] = decompose(newCols);
+                    const {mainEl} = toStyleConfig(newCols);
                     return scssWizard.addNewUniqueScopeChunkAndReturnAllRecompiled(
                         [
                             `${innerElScope} {`,
-                            `  ${main.template}`,
+                            `  ${mainEl.template}`,
                             '}'
                         ],
-                        main.val,
+                        mainEl.val,
                         self.props.blockId,
                         mediaScopes[curScreenSizeTabIdx]
                     );
@@ -305,19 +307,32 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
 
             ['stylesBundle', (function (self) {
                 if (propName === 'width') {
-                    const [main, each] = decompose(updatedColsSelectedScreen);
+                    const {mainEl} = toStyleConfig(updatedColsSelectedScreen);
                     return scssWizard.addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(
                         [
                             `${innerElScope} {`,
-                            `  ${main.template}`,
+                            `  ${mainEl.template}`,
                             '}'
                         ],
-                        main.val,
+                        mainEl.val,
                         self.userStyleRefs[curScreenSizeTabIdx],
                         mediaScopes[curScreenSizeTabIdx]
                     );
-                } else {
-                    // todo align, isVisible
+                } else if (propName === 'align' || propName === 'isVisible') {
+                    const {innerEls} = toStyleConfig(updatedColsSelectedScreen);
+                    const changedCol = updatedColsSelectedScreen[self.state.openColIdx];
+                    const v = innerEls[self.state.openColIdx][propName !== 'isVisible' ? propName : 'visibility'];
+                    return v.val ? scssWizard.addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(
+                        v.template,
+                        v.val,
+                        self.userStyleRefs[curScreenSizeTabIdx],
+                        mediaScopes[curScreenSizeTabIdx]
+                    ) : scssWizard.deleteScssCodeFromExistingUniqueScopeChunkAndReturnAllRecompiled(
+                        v.template,
+                        '"dummy"',
+                        self.userStyleRefs[curScreenSizeTabIdx],
+                        mediaScopes[curScreenSizeTabIdx]
+                    );
                 }
             })(this)]
         );
@@ -333,17 +348,13 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
         });
     }
     /**
-     * @param {Boolean} doConfirmChanges
-     * @param {todo} initialColumnCopy
      * @access private
      */
-    endColumnEdit(doConfirmChanges, initialColumnCopy) {
+    endColumnEdit() {
         this.setState({
             editStateIsOn: false,
             openColIdx: null,
         });
-        if (!doConfirmChanges) {
-        }
     }
     /**
      * @param {Section2BlockColumnConfigLocalRepr} col

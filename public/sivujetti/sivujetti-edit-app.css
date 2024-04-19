@@ -15,6 +15,7 @@ Structure:
     --color-bg-dimmed: rgb(250, 252, 255);
     --color-bg-dimmed2: rgb(235, 237, 243);
     --color-bg-very-light: rgba(var(--components-color-fb-default),.03);
+    --color-bg-very-light2: rgba(var(--components-color-fb-default),.022);
     --components-color-accent: 165, 82%, 51%;
     --components-color-accent2: 165, 80%, 49%;
     --components-color-purple: 262, 53%, 47%;
@@ -894,7 +895,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     padding: 0;
     color: transparent;
     right: 6px;
-    background: url('data:image/svg+xml;charset=utf8, <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>') no-repeat center center / .85rem;
+    background: url('data:image/svg+xml;charset=utf8, <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="%238d8d8d" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>') no-repeat center center / .8rem;
     line-height: 100%;
 }
 /* EditApp: Components: Big radios */
@@ -1035,7 +1036,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     grid-template-columns: 1fr 1fr;
     gap: .3rem;
     flex: 1 0;
-    background: rgba(var(--components-color-fb-default),.022);
+    background: var(--color-bg-very-light2);
 }
 .grid-builder .row .col {
     background: rgba(var(--components-color-fb-default),.06);
@@ -1045,7 +1046,16 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     padding: 0 .4rem;
 }
 .grid-builder .row .col.visibility-hidden {
-    background: repeating-linear-gradient( 45deg, rgba(var(--components-color-fb-default),.03), rgba(var(--components-color-fb-default),.03) 10px, rgba(var(--components-color-fb-default),.06) 10px, rgba(var(--components-color-fb-default),.06) 20px);
+    background: repeating-linear-gradient( 45deg, rgba(var(--components-color-fb-default),.05), rgba(var(--components-color-fb-default),.05) 10px, rgba(var(--components-color-fb-default),.06) 10px, rgba(var(--components-color-fb-default),.06) 20px);
+}
+.grid-builder .row .col.visibility-hidden:before {
+    content: "";
+    background: url('data:image/svg+xml;charset=utf8, <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="%236e7693" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="3" y1="3" x2="21" y2="21" /><path d="M10.584 10.587a2 2 0 0 0 2.828 2.83" /><path d="M9.363 5.365a9.466 9.466 0 0 1 2.637 -.365c4 0 7.333 2.333 10 7c-.778 1.361 -1.612 2.524 -2.503 3.488m-2.14 1.861c-1.631 1.1 -3.415 1.651 -5.357 1.651c-4 0 -7.333 -2.333 -10 -7c1.369 -2.395 2.913 -4.175 4.632 -5.341" /></svg>') no-repeat center center / .75rem;
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    left: .1rem;
+    top: .1rem;
 }
 
 

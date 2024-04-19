@@ -1,18 +1,32 @@
 import LengthValueInput from '../../styles/LengthValueInput.jsx';
+import OptionValueInput from '../../styles/OptionValueInput.jsx';
 import {__} from '../../edit-app-singletons.js';
+import {FormGroupInline} from '../../Form.jsx';
 import {colToTransferable} from './Section2CombinedBlockAndStylesEditFormFuncs.js';
 
 class ColumnEditTabForm extends preact.Component {
-    // initialItem;
+    // alignOptions;
+    /**
+     * @param {{column: Section2BlockColumnConfigLocalRepr; onPropChanged(propName: keyof Section2BlockColumnConfig, val: String|Boolean|null): void; onEditEnded(): void;}} props
+     */
+    constructor(props) {
+        super(props);
+        this.alignOptions = [
+            {value: 'start', label: __('Start')},
+            {value: 'center', label: __('Center')},
+            {value: 'end', label: __('End')},
+            {value: 'baseline', label: __('Baseline')},
+            {value: 'stretch', label: __('Stretch')},
+            {value: null, label: __('Default')},
+        ];
+    }
     /**
      * @access protected
      */
     componentWillMount() {
-        this.initialItem = colToTransferable(this.props.column);
         this.setState(colToTransferable(this.props.column));
     }
     /**
-     * @param {{column: Section2BlockColumnConfigLocalRepr; onPropChanged(propName: keyof Section2BlockColumnConfig, val: String|Boolea|null): void; onEditEnded(doConfirmChanges: Boolean, todo: todo): void;}} props
      * @access protected
      */
     componentWillReceiveProps(props) {
@@ -22,8 +36,9 @@ class ColumnEditTabForm extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {width}) {
-        return <div class="form-horizontal pt-0">
+    render(_, {width, align, isVisible}) {
+        return <div class="form-horizontal px-2 py-1 col-12" style="background-color: var(--color-bg-very-light2)">
+            <button onClick={ () => this.props.onEditEnded() } class="btn btn-sm" type="button"> &lt; </button>
             <LengthValueInput
                 value={ LengthValueInput.valueFromInput(width || 'initial') }
                 onValueChanged={ newValAsString => {
@@ -33,23 +48,25 @@ class ColumnEditTabForm extends preact.Component {
                 isClearable={ false }
                 inputId="section2ColWidth"
                 additionalUnits={ ['fr'] }/>
-            <button
-                onClick={ () => this.endEdit(true) }
-                class="btn btn-sm text-tiny btn-primary"
-                type="button">Ok</button>
-            <button
-                onClick={ () => this.endEdit(false) }
-                class="btn btn-sm text-tiny"
-                type="button">{ __('Cancel') }</button>
-            <hr class="mt-1"/>
+            <OptionValueInput
+                value={ OptionValueInput.valueFromInput(align || null) }
+                options={ this.alignOptions }
+                onValueChanged={ newValAsString => {
+                    this.props.onPropChanged('align', newValAsString || null);
+                } }
+                labelTranslated={ __('Align') }
+                inputId="section2Align"/>
+            <FormGroupInline>
+                <span class="form-label">{ __('Is visible?') }?</span>
+                <label class="form-checkbox mt-0">
+                    <input
+                        onClick={ e => this.props.onPropChanged('isVisible', e.target.checked) }
+                        checked={ isVisible }
+                        type="checkbox"
+                        class="form-input"/><i class="form-icon"></i>
+                </label>
+            </FormGroupInline>
         </div>;
-    }
-    /**
-     * @param {Boolean} applyChanges
-     * @access private
-     */
-    endEdit(applyChanges) {
-        this.props.onEditEnded(applyChanges, applyChanges ? null : this.initialItem);
     }
 }
 

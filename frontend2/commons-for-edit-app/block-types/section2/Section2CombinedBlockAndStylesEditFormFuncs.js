@@ -1,3 +1,5 @@
+const innerElScope = '>.j-Section2-cols';
+
 /**
  * @param {[Array<Section2BlockColumnConfig>|null, Array<Section2BlockColumnConfig>|null, Array<Section2BlockColumnConfig>|null, Array<Section2BlockColumnConfig>|null, Array<Section2BlockColumnConfig>|null]} screenColumnsSettings [<all>, <lg>, <md> etc.]
  * @returns {section2ColConfigsAllScreens}
@@ -53,55 +55,38 @@ function colToTransferable(colConfig) {
 /**
  * @param {Array<Section2BlockColumnConfig|Section2BlockColumnConfigLocalRepr>} colConfigs
  * @param {String} colMinWidth = '0'
- * @returns {[{template: String; val: String;}, Array<{align: String|undefined; isVisible: Boolean|undefined;}>]}
+ * @returns {{mainEl: {template: String; val: String;}; innerEls: Array<{align: {template: String; val: String|null;}; visibility: {template: String; val: 'hidden'|null;};}>;}}
  */
-function decompose(colConfigs, colMinWidth = '0') {
-    const [main, each] = decompose2(colConfigs, colMinWidth);
-    return [
-        {template: 'grid-template-columns: %s;', val: main},
-        each
-    ];
-}
-
-/**
- * Examples:
- * ```
- * [{width: null, align: 'end', isVisible: true}]
- * ->
- * [
- *   '1fr',
- *   [
- *       [{part: 'justifySelf', cssDecl: 'justify-self: end'}],
- *   ]
- * ]
- *
- * [
- *     {width: null, align: null, isVisible: true},
- *     {width: null, align: 'end', isVisible: false},
- * ]
- * ->
- * [
- *   '1fr 1fr',
- *   [
- *       [],
- *       [{part: 'justifySelf', cssDecl: 'justify-self: end'}, {part: 'visibility', cssDecl: 'visibility: hidden'}],
- *   ]
- * ]
- * ```
- * @param {Array<Section2BlockColumnConfig|Section2BlockColumnConfigLocalRepr>} colConfigs
- * @returns {[String, Array<{align: String|undefined; isVisible: Boolean|undefined;}>]}
- */
-function decompose2(colConfigs, colMinWidth = '0') {
-    const main = (
-        colConfigs.map(itm => `minmax(${colMinWidth}, ${itm.width || '1fr'})`).join(' ')
-    );
+function toStyleConfig(colConfigs, colMinWidth = '0') {
+    const mainEl = {
+        template: [
+            `${innerElScope} {`,
+            `  grid-template-columns: %s;`,
+            `}`
+        ].join('\n'),
+        val: colConfigs.map(itm => `minmax(${colMinWidth}, ${itm.width || '1fr'})`).join(' '),
+    };
     //
-    const each = colConfigs.map(itm => ({
-        align: itm.align || undefined,
-        isVisible: itm.isVisible || undefined,
+    const innerEls = colConfigs.map((itm, i) => ({
+        align: {
+            template: [
+                `${innerElScope}>:nth-child(${i + 1}) {`,
+                `  justify-self: %s;`,
+                `}`
+            ].join('\n'),
+            val: itm.align,
+        },
+        visibility: {
+            template: [
+                `${innerElScope}>:nth-child(${i + 1}) {`,
+                `  visibility: %s;`,
+                `}`
+            ].join('\n'),
+            val: itm.isVisible ? null : 'hidden',
+        },
     }));
     //
-    return [main, each];
+    return {mainEl, innerEls};
 }
 
 export {
@@ -110,6 +95,6 @@ export {
     colToTransferable,
     createColumnConfig,
     createStateForEachScreenSize,
-    decompose,
-    decompose2,
+    innerElScope,
+    toStyleConfig,
 };

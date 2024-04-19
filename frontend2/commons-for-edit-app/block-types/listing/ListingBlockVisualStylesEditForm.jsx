@@ -19,7 +19,7 @@ const cssVarDefs = [
                 {label: '4', value: 'repeat(4, minmax(0, 1fr))'},
                 {label: '-', value: ''},
             ],
-            label: 'Items width',
+            label: 'Num columns',
             inputId: 'listingNumColumns',
         },
     },

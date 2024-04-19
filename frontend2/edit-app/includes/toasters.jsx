@@ -1,4 +1,4 @@
-import {Icon} from '../../sivujetti-commons-unified.js';
+import {Icon} from '@sivujetti-commons-for-edit-app';
 
 const toasters = {
     unnamed: null,

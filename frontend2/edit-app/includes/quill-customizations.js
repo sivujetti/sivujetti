@@ -6,7 +6,7 @@ import {
     getVisibleSlug,
     iconAsString,
     stringUtils,
-} from '../../sivujetti-commons-unified.js';
+} from '@sivujetti-commons-for-edit-app';
 
 const Quill = window.Quill;
 

@@ -15,9 +15,6 @@ export default {
                 linkCreator.makeLinkItem({slug: '/', text: __('Home')}),
                 linkCreator.makeLinkItem({slug: '/about', text: __('About')})
             ],
-            wrapEl: 'nav',
-            treeEl: 'ul',
-            treeItemEl: 'li',
         };
     },
 };

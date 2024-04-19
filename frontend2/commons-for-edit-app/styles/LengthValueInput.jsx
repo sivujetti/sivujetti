@@ -30,7 +30,7 @@ class LengthValueInput extends preact.Component {
         this.setState(hookForm(this, [
             {name: 'num', value: num, validations: [['maxLength', 32], [{doValidate: val =>
                 !val.length || !isNaN(parseFloat(val))
-            , errorMessageTmpl: __('%s must be a number').replace('%', '{field}')}, null]],
+            , errorMessageTmpl: __('%s must be a number').replace('%s', '{field}')}, null]],
                 label: this.props.labelTranslated, onAfterValueChanged: (value, hasErrors, source) => {
                     throttler(value, hasErrors, source);
                 }},

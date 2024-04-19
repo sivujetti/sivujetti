@@ -7,7 +7,7 @@ let counter = 0;
 class OptionValueInput extends preact.Component {
     // inputId;
     /**
-     * @param {ValueInputProps<OptionValue & {options: Array<String>;}>} props
+     * @param {ValueInputProps<OptionValue & {options: Array<{label: String; value: String;}>;}>} props
      */
     constructor(props) {
         super(props);

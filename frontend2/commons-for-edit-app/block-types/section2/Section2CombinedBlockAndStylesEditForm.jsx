@@ -1,4 +1,3 @@
-import {urlUtils} from '@sivujetti-commons-for-web-pages';
 import {mediaScopes} from '../../../shared-inline.js';
 import blockTreeUtils from '../../block/tree-utils.js';
 import {writeBlockProps} from '../../block/utils.js';
@@ -8,10 +7,7 @@ import BlockVisualStylesEditForm, {
     createPaddingVarDefs,
 } from '../../BlockVisualStylesEditForm.jsx';
 import {__, api, scssWizard} from '../../edit-app-singletons.js';
-import ColorPickerInput from '../../ColorPickerInput.jsx';
-import {FormGroupInline} from '../../Form.jsx';
 import {Icon} from '../../Icon.jsx';
-import ImagePicker from '../../ImagePicker.jsx';
 import ScreenSizesVerticalTabs from '../../ScreenSizesVerticalTabs.jsx';
 import {createCssDeclExtractor} from '../../ScssWizardFuncs.js';
 import ColumnEditTabForm from './ColumnEditTabForm.jsx';
@@ -22,6 +18,7 @@ import {
     innerElScope,
     toStyleConfig,
 } from './Section2CombinedBlockAndStylesEditFormFuncs.js';
+/** @typedef {import("./Section2CombinedBlockAndStylesEditFormFuncs.js").ColumnConfig} ColumnConfig */
 
 /** @type {Array<VisualStylesFormVarDefinition>} */
 const cssVarDefs = [
@@ -45,7 +42,7 @@ const cssVarDefs = [
         cssSubSelector: innerElScope,
         widgetSettings: {
             valueType: 'length',
-            label: 'Column gap',
+            label: 'Gap ↔',
             inputId: 'section2ColumnGap',
             defaultThemeValue: LengthValueInput.valueFromInput('0.4rem'),
         },
@@ -56,23 +53,9 @@ const cssVarDefs = [
         cssSubSelector: innerElScope,
         widgetSettings: {
             valueType: 'length',
-            label: 'Row gap',
+            label: 'Gap ↕',
             inputId: 'section2RowGap',
             defaultThemeValue: LengthValueInput.valueFromInput('0.4rem'),
-        },
-    },
-    {
-        varName: 'alignX',
-        cssProp: 'margin-inline',
-        cssSubSelector: innerElScope,
-        widgetSettings: {
-            valueType: 'option',
-            options: [
-                {label: __('Center'), value: 'auto'},
-                {label: '-', value: ''},
-            ],
-            label: 'Align x',
-            inputId: 'section2AlignX',
         },
     },
     {
@@ -90,8 +73,22 @@ const cssVarDefs = [
                 {label: __('Stretch'), value: 'stretch'},
                 {label: '-', value: ''},
             ],
-            label: 'Align y',
+            label: 'Align ⇅',
             inputId: 'section2AlignY',
+        },
+    },
+    {
+        varName: 'alignX',
+        cssProp: 'margin-inline',
+        cssSubSelector: innerElScope,
+        widgetSettings: {
+            valueType: 'option',
+            options: [
+                {label: __('Center'), value: 'auto'},
+                {label: '-', value: ''},
+            ],
+            label: 'Align ⇄',
+            inputId: 'section2AlignX',
         },
     },
     {
@@ -110,18 +107,38 @@ const cssVarDefs = [
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
-            label: 'Outer background color',
+            label: 'Outer background',
             inputId: 'section2BgOuterColor',
         },
     },
     {
-        varName: 'bgInnererColor',
+        varName: 'bgOuterImage',
+        cssProp: 'background-image',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'backgroundImage',
+            label: 'Outer background',
+            inputId: 'section2BgOuterImage',
+        },
+    },
+    {
+        varName: 'bgInnerColor',
         cssProp: 'background-color',
         cssSubSelector: innerElScope,
         widgetSettings: {
             valueType: 'color',
-            label: 'Inner background color',
+            label: 'Inner background',
             inputId: 'section2BgInnerColor',
+        },
+    },
+    {
+        varName: 'bgInnerImage',
+        cssProp: 'background-image',
+        cssSubSelector: innerElScope,
+        widgetSettings: {
+            valueType: 'backgroundImage',
+            label: 'Inner background',
+            inputId: 'section2BgInnerImage',
         },
     },
     ...createPaddingVarDefs('section2'),
@@ -140,7 +157,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
     componentWillMount() {
         const [state, styleRefs] = this.createStateAndStyleRefs(this.props);
         this.userStyleRefs = styleRefs;
-        this.setState(state);
+        this.setState({...state, curScreenSizeTabIdx: 0});
     }
     /**
      * @param {BlockStylesEditFormProps & BlockEditFormProps} props
@@ -183,7 +200,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
                         </div>,
                         <button
                             onClick={ () => this.addColumn(screenSizeColumns, this.userStyleRefs[curScreenSizeTabIdx], curScreenSizeTabIdx) }
-                            class="btn btn-sm flex-centered btn-link"
+                            class="btn btn-sm flex-centered btn-link p-0"
                             title={ __('Add columnn') }>
                             <Icon iconId="plus" className="size-xxs color-dimmed3"/>
                         </button>
@@ -210,7 +227,6 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
         return [
             {
                 styleScopes: scopes,
-                curScreenSizeTabIdx: 0,
                 screenSizeColumns,
             },
             styleRefs
@@ -283,7 +299,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
             );
         }
     /**
-     * @param {keyof Section2BlockColumnConfig} propName
+     * @param {keyof ColumnConfig} propName
      * @param {String|Boolean|null} val
      * @param {section2ColConfigsAllScreens} screenSizeColumns
      * @param {Number} curScreenSizeTabIdx
@@ -357,7 +373,6 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
         });
     }
     /**
-     * @param {Section2BlockColumnConfigLocalRepr} col
      * @access private
      */
     deleteColumn(col) {

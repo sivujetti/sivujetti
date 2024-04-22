@@ -49,12 +49,12 @@ class SectionBlockEditForm extends preact.Component {
     }
     /**
      * @param {String|null} src
-     * @param {String|null} mime
+     * @param {String|null} _mime
+     * @param {Boolean} srcWasTyped
      */
-    emitNewBgImageSrc(src, mime) {
+    emitNewBgImageSrc(src, _mime, srcWasTyped) {
         const bgImageSrc = src ? completeImageSrc(src, urlUtils) : '';
-        const wasTyped = !mime;
-        if (!wasTyped)
+        if (!srcWasTyped)
             this.props.emitValueChanged(bgImageSrc, 'bgImage');
         else
             this.props.emitValueChangedThrottled(bgImageSrc, 'bgImage');

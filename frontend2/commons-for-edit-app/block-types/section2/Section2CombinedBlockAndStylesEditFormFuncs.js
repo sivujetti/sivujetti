@@ -1,7 +1,7 @@
 const innerElScope = '>.j-Section2-cols';
 
 /**
- * @param {[Array<Section2BlockColumnConfig>|null, Array<Section2BlockColumnConfig>|null, Array<Section2BlockColumnConfig>|null, Array<Section2BlockColumnConfig>|null, Array<Section2BlockColumnConfig>|null]} screenColumnsSettings [<all>, <lg>, <md> etc.]
+ * @param {[Array<ColumnConfig>|null, Array<ColumnConfig>|null, Array<ColumnConfig>|null, Array<ColumnConfig>|null, Array<ColumnConfig>|null]} screenColumnsSettings [<all>, <lg>, <md> etc.]
  * @returns {section2ColConfigsAllScreens}
  */
 function createStateForEachScreenSize(screenColumnsSettings) {
@@ -11,8 +11,8 @@ function createStateForEachScreenSize(screenColumnsSettings) {
 }
 
 /**
- * @param {Array<Section2BlockColumnConfig>} transferableCols
- * @returns {Array<Section2BlockColumnConfigLocalRepr>}
+ * @param {Array<ColumnConfig>} transferableCols
+ * @returns {Array<ColumnConfigLocalRepr>}
  */
 function colsToLocalRepr(transferableCols) {
     return transferableCols.map((col, i) => ({
@@ -22,7 +22,7 @@ function colsToLocalRepr(transferableCols) {
 }
 
 /**
- * @returns {Section2BlockColumnConfig}
+ * @returns {ColumnConfig}
  */
 function createColumnConfig() {
     return {
@@ -33,15 +33,15 @@ function createColumnConfig() {
 }
 
 /**
- * @param {Array<Section2BlockColumnConfigLocalRepr>} colsScreeenLocalRepr
- * @returns {Array<Section2BlockColumnConfig>}
+ * @param {Array<ColumnConfigLocalRepr>} colsScreeenLocalRepr
+ * @returns {Array<ColumnConfig>}
  */
 function colsScreenToTransferable(colsScreeenLocalRepr) {
     return colsScreeenLocalRepr.map(colToTransferable);
 }
 
 /**
- * @param {Section2BlockColumnConfigLocalRepr} colConfig
+ * @param {ColumnConfigLocalRepr} colConfig
  * @returns {Columns2BlockColumn}
  */
 function colToTransferable(colConfig) {
@@ -53,17 +53,13 @@ function colToTransferable(colConfig) {
 }
 
 /**
- * @param {Array<Section2BlockColumnConfig|Section2BlockColumnConfigLocalRepr>} colConfigs
+ * @param {Array<ColumnConfig|ColumnConfigLocalRepr>} colConfigs
  * @param {String} colMinWidth = '0'
  * @returns {{mainEl: {template: String; val: String;}; innerEls: Array<{align: {template: String; val: String|null;}; visibility: {template: String; val: 'hidden'|null;};}>;}}
  */
 function toStyleConfig(colConfigs, colMinWidth = '0') {
     const mainEl = {
-        template: [
-            `${innerElScope} {`,
-            `  grid-template-columns: %s;`,
-            `}`
-        ].join('\n'),
+        template: 'grid-template-columns: %s;',
         val: colConfigs.map(itm => `minmax(${colMinWidth}, ${itm.width || '1fr'})`).join(' '),
     };
     //
@@ -88,6 +84,19 @@ function toStyleConfig(colConfigs, colMinWidth = '0') {
     //
     return {mainEl, innerEls};
 }
+
+/**
+ * @typedef ColumnConfig
+ * @prop {String} width      // Example '1fr', '120px'
+ * @prop {String|null} align
+ * @prop {Boolean} isVisible
+ *
+ * @typedef ColumnConfigLocalReprProps
+ * @prop {String} id
+ * @typedef {ColumnConfig & ColumnConfigLocalReprProps} ColumnConfigLocalRepr
+ *
+ * @typedef {[Array<ColumnConfigLocalRepr>|null, Array<ColumnConfigLocalRepr>|null, Array<ColumnConfigLocalRepr>|null, Array<ColumnConfigLocalRepr>|null, Array<ColumnConfigLocalRepr>|null]} section2ColConfigsAllScreens
+ */
 
 export {
     colsScreenToTransferable,

@@ -106,11 +106,11 @@ class ImageBlockEditForm extends preact.Component {
     }
     /**
      * @param {String|null} src
-     * @param {String|null} mime
+     * @param {String|null} _mime
+     * @param {Boolean} srcWasTyped
      */
-    emitNewSrc(src, mime) {
-        const wasTyped = !mime;
-        if (!wasTyped)
+    emitNewSrc(src, _mime, srcWasTyped) {
+        if (!srcWasTyped)
             this.props.emitValueChanged(src, 'src');
         else
             this.props.emitValueChangedThrottled(src, 'src');

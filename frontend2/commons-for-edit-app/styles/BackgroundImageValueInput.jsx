@@ -1,22 +1,24 @@
+import {urlUtils} from '@sivujetti-commons-for-web-pages';
+import {completeImageSrc} from '../../shared-inline.js';
 import {__} from '../edit-app-singletons.js';
 import {FormGroupInline} from '../Form.jsx';
 import {Icon} from '../Icon.jsx';
+import ImagePicker from '../ImagePicker.jsx';
 import {createInputId} from './ValueInputFuncs.js';
 
-class OptionValueInput extends preact.Component {
+class BackgroundImageValueInput extends preact.Component {
     // inputId;
     /**
-     * @param {ValueInputProps<OptionValue & {options: Array<{label: String; value: String;}>;}>} props
+     * @param {ValueInputProps<null> & {valueAsString: String|null;}} props
      */
     constructor(props) {
         super(props);
-        this.inputId = createInputId('styleOption', props);
+        this.inputId = createInputId('styleImage', props);
     }
     /**
      * @access protected
      */
-    render({value, options, isClearable, labelTranslated, showNotice, noticeDismissedWith}) {
-        const selectedVisible = value.selected;
+    render({valueAsString, isClearable, labelTranslated, showNotice, noticeDismissedWith}) {
         return <FormGroupInline>
             <label class="form-label p-relative pt-1" htmlFor={ this.inputId } title={ labelTranslated }>
                 { labelTranslated }
@@ -33,15 +35,11 @@ class OptionValueInput extends preact.Component {
                 </button> }
             </label>
             <div class="p-relative">
-                <select
-                    class="form-select"
-                    value={ selectedVisible }
-                    onChange={ e => this.props.onValueChanged(e.target.value) }
-                    id={ this.inputId }>
-                { options.map(({label, value}) =>
-                    <option value={ value }>{ label }</option>
-                ) }
-                </select>
+                <ImagePicker
+                    src={ valueAsString }
+                    onSrcCommitted={ this.handleImageSrcCommitted.bind(this) }
+                    inputId={ this.inputId }
+                    omitClearButton/>
                 { isClearable
                     ? <button onClick={ () => { this.props.onValueChanged(null); } }
                         class="btn btn-link btn-xs clear-style-btn"
@@ -54,19 +52,31 @@ class OptionValueInput extends preact.Component {
         </FormGroupInline>;
     }
     /**
-     * @param {String} input examples: 'inline-block', 'Fira Sans'
-     * @returns {OptionValue|null}
+     * @param {String|null} src
+     * @param {String|null} _mime
+     * @param {Boolean} _srcWasTyped
      */
-    static valueFromInput(input) {
-        return {selected: input};
+    handleImageSrcCommitted(src, _mime, _srcWasTyped) {
+        this.props.onValueChanged(`url("${completeImageSrc(src, urlUtils)}")`);
     }
     /**
-     * @param {OptionValue} value
+     * @param {String} input Examples 'url("/public/uploads/cat.jpg")', 'url("/dir/public/uploads/dog.webp")'
+     * @returns {ImageValue}
+     */
+    static valueFromInput(input) {
+        if (input === 'initial')
+            return {src: null};
+        const begin = 'url("'.length;
+        const end = -('")'.length);
+        return {src: input.slice(begin, end)};
+    }
+    /**
+     * @param {ImageValue} value
      * @returns {String}
      */
     static valueToString(value) {
-        return `${value.selected}`;
+        return value.src;
     }
 }
 
-export default OptionValueInput;
+export default BackgroundImageValueInput;

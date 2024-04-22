@@ -1,15 +1,17 @@
+import {env} from '@sivujetti-commons-for-web-pages';
 import {validationConstraints} from './constants.js';
-import {__} from './edit-app-singletons.js';
+import {__, events} from './edit-app-singletons.js';
 import FileUploader from './FileUploader.jsx';
 import {currentInstance as floatingDialog} from './FloatingDialog.jsx';
 import {hookForm, reHookValues, Input} from './Form.jsx';
-import {mediaUrlValidatorImpl} from './validation.js';
 import {Icon} from './Icon.jsx';
+import {timingUtils} from './utils.js';
+import {mediaUrlValidatorImpl} from './validation.js';
 
 class ImagePicker extends preact.Component {
     // srcInput;
     /**
-     * @param {{onSrcCommitted: (newSrc: String|null, mime: String|null) => void; src: String|null; inputId: String;}} props
+     * @param {{onSrcCommitted: (newSrc: String|null, mime: String|null, srcWasTyped: Boolean) => void; src: String|null; inputId: String; omitClearButton?: Boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -19,14 +21,15 @@ class ImagePicker extends preact.Component {
      * @access protected
      */
     componentWillMount() {
+        const throttledEmitSrc = timingUtils.debounce((src, hasErrors, _source) => {
+            if (!hasErrors)
+                this.props.onSrcCommitted(src, null, true);
+        }, env.normalTypingDebounceMillis);
         this.setState(hookForm(this, [
             {name: 'srcManual', value: this.props.src || '', validations: [
                 [mediaUrlValidatorImpl],
                 ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]
-            ], label: __('Image file'), onAfterValueChanged: (value, hasErrors, source) => {
-                if (source !== 'undo' && !hasErrors)
-                    this.props.onSrcCommitted(value, null);
-            }},
+            ], label: __('Image file'), onAfterValueChanged: throttledEmitSrc},
         ]));
     }
     /**
@@ -39,16 +42,16 @@ class ImagePicker extends preact.Component {
     /**
      * @access protected
      */
-    render({src, inputId}) {
+    render({src, inputId, omitClearButton}, {values}) {
         if (src !== undefined) {
-            const [inputWrapCls, clearSrcBtnCls] = src
+            const [inputWrapCls, clearSrcBtnCls] = src && !omitClearButton
                 ? ['has-icon-right', '']
                 : ['',               ' d-none'];
             return <div class="flex-centered">
                 <div class={ inputWrapCls } style="flex: 1 0">
-                    <Input vm={ this } prop="srcManual" id={ inputId } ref={ this.srcInput }/>
+                    <Input vm={ this } prop="srcManual" id={ inputId } ref={ this.srcInput } title={ values.srcManual }/>
                     <button
-                        onClick={ () => this.props.onSrcCommitted(null, null) }
+                        onClick={ () => this.props.onSrcCommitted(null, null, false) }
                         class={ `sivujetti-form-icon btn no-color${clearSrcBtnCls}` }
                         type="button">
                         <Icon iconId="x" className="size-xs color-dimmed"/>
@@ -72,7 +75,10 @@ class ImagePicker extends preact.Component {
         }, {
             selectedImagePath: this.props.src,
             onSelected: file => {
-                this.props.onSrcCommitted(...(file ? [file.fileName, file.mime] : [null, null]));
+                this.props.onSrcCommitted(...(file
+                    ? [file.fileName, file.mime, true]
+                    : [null,          null,      false]
+                ));
             }
         });
         this.srcInput.current.inputEl.current.blur();

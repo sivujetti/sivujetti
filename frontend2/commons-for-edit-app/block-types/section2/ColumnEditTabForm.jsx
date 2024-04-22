@@ -3,11 +3,13 @@ import OptionValueInput from '../../styles/OptionValueInput.jsx';
 import {__} from '../../edit-app-singletons.js';
 import {FormGroupInline} from '../../Form.jsx';
 import {colToTransferable} from './Section2CombinedBlockAndStylesEditFormFuncs.js';
+/** @typedef {import("./Section2CombinedBlockAndStylesEditFormFuncs.js").ColumnConfigLocalRepr} ColumnConfigLocalRepr */
+/** @typedef {import("./Section2CombinedBlockAndStylesEditFormFuncs.js").ColumnConfig} ColumnConfig */
 
 class ColumnEditTabForm extends preact.Component {
     // alignOptions;
     /**
-     * @param {{column: Section2BlockColumnConfigLocalRepr; onPropChanged(propName: keyof Section2BlockColumnConfig, val: String|Boolean|null): void; onEditEnded(): void;}} props
+     * @param {{column: ColumnConfigLocalRepr; onPropChanged(propName: keyof ColumnConfig, val: String|Boolean|null): void; onEditEnded(): void;}} props
      */
     constructor(props) {
         super(props);

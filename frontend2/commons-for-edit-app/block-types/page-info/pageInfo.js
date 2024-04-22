@@ -20,8 +20,6 @@ import ImagePicker from '../../ImagePicker.jsx';
 import {completeImageSrc} from '../../../shared-inline.js';
 import ManyToManyField from './ManyToManyField.jsx';
 
-let throttler;
-
 class PageInfoBlockEditForm extends preact.Component {
     // titleEl;
     // descriptionEl;
@@ -38,7 +36,7 @@ class PageInfoBlockEditForm extends preact.Component {
         this.pageType = api.getPageTypes().find(({name}) => name === curPage.type);
         this.ownFields = this.pageType.ownFields.filter(({dataType}) => dataType.type === 'many-to-many');
 
-        throttler = createThrottler(handleValuesChanged);
+        const throttler = createThrottler(handleValuesChanged);
 
         const initialFormState = createFormState(curPage);
         this.setState(hookForm(this, [
@@ -134,13 +132,14 @@ class PageInfoBlockEditForm extends preact.Component {
     /**
      * @param {String|null} newSrc
      * @param {String|null} mime
+     * @param {Boolean} _srcWasTyped
      */
-    emitNewSocialImageSrc(newSrc, mime) {
+    emitNewSocialImageSrc(newSrc, mime, _srcWasTyped) {
         if (newSrc) {
             const tmp = new Image();
             tmp.onload = () => {
                 this.setState({metaImgLoadError: null, socialImageSrc: newSrc});
-                throttler(mut => {
+                handleValuesChanged(mut => {
                     mut.meta.socialImage = {src: newSrc, mime,
                         width: tmp.naturalWidth, height: tmp.naturalHeight};
                 }, false, null);

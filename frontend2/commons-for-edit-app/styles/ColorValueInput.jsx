@@ -2,8 +2,7 @@ import ColorPickerInput from '../ColorPickerInput.jsx';
 import {__} from '../edit-app-singletons.js';
 import {FormGroupInline} from '../Form.jsx';
 import {Icon} from '../Icon.jsx';
-
-let counter = 0;
+import {createInputId} from './ValueInputFuncs.js';
 
 /** @type {CanvasRenderingContext2D} */
 let helperCanvasCtx;
@@ -15,7 +14,7 @@ class ColorValueInput extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.inputId = `styleColor-${props.inputId || (++counter)}`;
+        this.inputId = createInputId('styleColor', props);
     }
     /**
      * @access protected

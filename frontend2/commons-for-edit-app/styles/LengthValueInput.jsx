@@ -9,8 +9,7 @@ import {
 } from '../Form.jsx';
 import {Icon} from '../Icon.jsx';
 import {isUndoOrRedo, timingUtils} from '../utils.js';
-
-let counter = 0;
+import {createInputId} from './ValueInputFuncs.js';
 
 class LengthValueInput extends preact.Component {
     // inputId;
@@ -19,7 +18,7 @@ class LengthValueInput extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.inputId = `styleLength-${props.inputId || (++counter)}`;
+        this.inputId = createInputId('styleLength', props);
     }
     /**
      * @access protected

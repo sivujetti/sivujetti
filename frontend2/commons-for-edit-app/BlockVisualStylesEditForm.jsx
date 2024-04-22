@@ -1,4 +1,5 @@
 import {mediaScopes} from '../shared-inline.js';
+import BackgroundImageValueInput from './styles/BackgroundImageValueInput.jsx';
 import ColorValueInput from './styles/ColorValueInput.jsx';
 import LengthValueInput from './styles/LengthValueInput.jsx';
 import OptionValueInput from './styles/OptionValueInput.jsx';
@@ -106,6 +107,11 @@ class BlockVisualStylesEditForm extends preact.Component {
             return <OptionValueInput
                 value={ OptionValueInput.valueFromInput(selectedScreenSizeVars[varName] || '-', initialUnit) }
                 options={ widgetSettings.options }
+                { ...commonProps }/>;
+        else if (valueType === 'backgroundImage' || renderer === BackgroundImageValueInput)
+            return <BackgroundImageValueInput
+                value={ null }
+                valueAsString={ BackgroundImageValueInput.valueFromInput(selectedScreenSizeVars[varName] || 'initial').src }
                 { ...commonProps }/>;
     }
     /**

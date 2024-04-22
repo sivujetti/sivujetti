@@ -91,9 +91,7 @@ function toStyleConfig(colConfigs, colMinWidth = '0') {
  * @prop {String|null} align
  * @prop {Boolean} isVisible
  *
- * @typedef ColumnConfigLocalReprProps
- * @prop {String} id
- * @typedef {ColumnConfig & ColumnConfigLocalReprProps} ColumnConfigLocalRepr
+ * @typedef {ColumnConfig & {id: String}} ColumnConfigLocalRepr
  *
  * @typedef {[Array<ColumnConfigLocalRepr>|null, Array<ColumnConfigLocalRepr>|null, Array<ColumnConfigLocalRepr>|null, Array<ColumnConfigLocalRepr>|null, Array<ColumnConfigLocalRepr>|null]} section2ColConfigsAllScreens
  */

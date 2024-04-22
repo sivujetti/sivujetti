@@ -9,7 +9,6 @@ import BlockVisualStylesEditForm, {
 import {__, api, scssWizard} from '../../edit-app-singletons.js';
 import {Icon} from '../../Icon.jsx';
 import ScreenSizesVerticalTabs from '../../ScreenSizesVerticalTabs.jsx';
-import {createCssDeclExtractor} from '../../ScssWizardFuncs.js';
 import ColumnEditTabForm from './ColumnEditTabForm.jsx';
 import {
     colsScreenToTransferable,
@@ -19,6 +18,8 @@ import {
     toStyleConfig,
 } from './Section2CombinedBlockAndStylesEditFormFuncs.js';
 /** @typedef {import("./Section2CombinedBlockAndStylesEditFormFuncs.js").ColumnConfig} ColumnConfig */
+/** @typedef {import("./Section2CombinedBlockAndStylesEditFormFuncs.js").section2ColConfigsAllScreens} section2ColConfigsAllScreens */
+/** @typedef {import("../../../edit-app/menu-column/SaveButton.jsx").state} saveButtonEventState */
 
 /** @type {Array<VisualStylesFormVarDefinition>} */
 const cssVarDefs = [
@@ -192,7 +193,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
                                     <button onClick={ () => this.openColumnForEdit(i) } class="btn btn-sm btn-link">
                                         { col.width || 'auto' } <Icon iconId="pencil" className="size-xxs color-dimmed3"/>
                                     </button>
-                                    <button onClick={ () => this.deleteColumn(col) } class="btn btn-xs btn-link p-absolute" style="right: .2rem;top: .2rem;">
+                                    <button onClick={ () => this.deleteColumn(i, screenSizeColumns, curScreenSizeTabIdx) } class="btn btn-xs btn-link p-absolute" style="right: .2rem;top: .2rem;">
                                         <Icon iconId="x" className="size-xxs color-dimmed3"/>
                                     </button>
                                 </div>;
@@ -244,60 +245,15 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
                 ? colsSingleScreenLocalRepr ? colsScreenToTransferable(colsSingleScreenLocalRepr) : null
                 : [...colsScreenToTransferable(colsSingleScreenLocalRepr), createColumnConfig()]
             );
-            const newCols = newColScreens[curScreenSizeTabIdx];
-            const saveButton = api.saveButton.getInstance();
-
-            saveButton.pushOpGroup(
-                ['theBlockTree', blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                    const [blockRef] = blockTreeUtils.findBlockMultiTree(this.props.blockId, newTreeCopy);
-                    writeBlockProps(blockRef, {columns: newColScreens});
-                    return newTreeCopy;
-                }), {event: 'update-single-block-prop', blockId: this.props.blockId}],
-
-                ['stylesBundle', (function (self) {
-                    const {mainEl} = toStyleConfig(newCols);
-                    return scssWizard.addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(
-                        [
-                            `${innerElScope} {`,
-                            `  ${mainEl.template}`,
-                            '}'
-                        ],
-                        mainEl.val,
-                        curStyleChunkSelectedScreen,
-                        mediaScopes[curScreenSizeTabIdx]
-                    );
-                })(this)]
-            );
+            this.emitNewCols(newColScreens, curScreenSizeTabIdx);
         } else {
-            const newCols = [createColumnConfig(), createColumnConfig()];
             const newColScreens = colsAllScreens.map((colsSingleScreenLocalRepr, i) => i !== curScreenSizeTabIdx
                 ? colsSingleScreenLocalRepr ? colsScreenToTransferable(colsSingleScreenLocalRepr) : null
-                : newCols
+                : [createColumnConfig(), createColumnConfig()]
             );
-            const saveButton = api.saveButton.getInstance();
-
-            saveButton.pushOpGroup(
-                ['theBlockTree', blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                    const [blockRef] = blockTreeUtils.findBlockMultiTree(this.props.blockId, newTreeCopy);
-                    writeBlockProps(blockRef, {columns: newColScreens});
-                    return newTreeCopy;
-                }), {event: 'update-single-block-prop', blockId: this.props.blockId}],
-
-                ['stylesBundle', (function (self) {
-                    const {mainEl} = toStyleConfig(newCols);
-                    return scssWizard.addNewUniqueScopeChunkAndReturnAllRecompiled(
-                        [
-                            `${innerElScope} {`,
-                            `  ${mainEl.template}`,
-                            '}'
-                        ],
-                        mainEl.val,
-                        self.props.blockId,
-                        mediaScopes[curScreenSizeTabIdx]
-                    );
-                })(this)]
-            );
+            this.emitNewCols(newColScreens, curScreenSizeTabIdx, true);
         }
+    }
     /**
      * @param {keyof ColumnConfig} propName
      * @param {String|Boolean|null} val
@@ -315,11 +271,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
         const saveButton = api.saveButton.getInstance();
 
         saveButton.pushOpGroup(
-            ['theBlockTree', blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                const [blockRef] = blockTreeUtils.findBlockMultiTree(this.props.blockId, newTreeCopy);
-                writeBlockProps(blockRef, {columns: newColScreens});
-                return newTreeCopy;
-            }), {event: 'update-single-block-prop', blockId: this.props.blockId}],
+            this.createUpdateBlockColsUpdateOp(newColScreens, saveButton),
 
             ['stylesBundle', (function (self) {
                 if (propName === 'width') {
@@ -336,7 +288,6 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
                     );
                 } else if (propName === 'align' || propName === 'isVisible') {
                     const {innerEls} = toStyleConfig(updatedColsSelectedScreen);
-                    const changedCol = updatedColsSelectedScreen[self.state.openColIdx];
                     const v = innerEls[self.state.openColIdx][propName !== 'isVisible' ? propName : 'visibility'];
                     return v.val ? scssWizard.addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(
                         v.template,
@@ -373,10 +324,67 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
         });
     }
     /**
+     * @param {Number} idx
+     * @param {section2ColConfigsAllScreens} colsAllScreens
+     * @param {Number} curScreenSizeTabIdx
      * @access private
      */
-    deleteColumn(col) {
-        // todo
+    deleteColumn(idx, colsAllScreens, curScreenSizeTabIdx) {
+        const newColScreens = colsAllScreens.map((colsSingleScreenLocalRepr, i) => i !== curScreenSizeTabIdx
+            ? colsSingleScreenLocalRepr ? colsScreenToTransferable(colsSingleScreenLocalRepr) : null
+            : colsScreenToTransferable(colsSingleScreenLocalRepr).filter((_, i2) =>i2 !== idx)
+        );
+        this.emitNewCols(newColScreens, curScreenSizeTabIdx);
+    }
+    /**
+     * @param {section2ColConfigsAllScreens} newColScreens
+     * @param {Number} curScreenSizeTabIdx
+     * @param {Boolean} isNewChunk = false
+     * @access private
+     */
+    emitNewCols(newColScreens, curScreenSizeTabIdx, isNewChunk = false) {
+        const selectedScreenCols = newColScreens[curScreenSizeTabIdx];
+        const saveButton = api.saveButton.getInstance();
+
+        saveButton.pushOpGroup(
+            this.createUpdateBlockColsUpdateOp(newColScreens, saveButton),
+
+            ['stylesBundle', (function (self) {
+                const {mainEl} = toStyleConfig(selectedScreenCols);
+                const css = [
+                    `${innerElScope} {`,
+                    `  ${mainEl.template}`,
+                    '}'
+                ];
+                if (!isNewChunk)
+                    return scssWizard.addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(
+                        css,
+                        mainEl.val,
+                        self.userStyleRefs[curScreenSizeTabIdx],
+                        mediaScopes[curScreenSizeTabIdx]
+                    );
+                else
+                    return scssWizard.addNewUniqueScopeChunkAndReturnAllRecompiled(
+                        css,
+                        mainEl.val,
+                        self.props.blockId,
+                        mediaScopes[curScreenSizeTabIdx]
+                    );
+            })(this)]
+        );
+    }
+    /**
+     * @param {section2ColConfigsAllScreens} newColScreens
+     * @param {SaveButton} saveButton
+     * @returns {[String, saveButtonEventState, StateChangeUserContext]}
+     * @access private
+     */
+    createUpdateBlockColsUpdateOp(newColScreens, saveButton) {
+        return ['theBlockTree', blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+            const [blockRef] = blockTreeUtils.findBlockMultiTree(this.props.blockId, newTreeCopy);
+            writeBlockProps(blockRef, {columns: newColScreens});
+            return newTreeCopy;
+        }), {event: 'update-single-block-prop', blockId: this.props.blockId}];
     }
 }
 

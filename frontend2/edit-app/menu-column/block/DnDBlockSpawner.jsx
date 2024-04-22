@@ -96,7 +96,7 @@ class DnDBlockSpawner extends preact.Component {
                 <Icon iconId="chevron-right" className="mr-0 size-xs"/>
             </button>
             <div class="dnd-block-spawner-wrap">
-                <input class="form-input tight" placeholder={ __('Filter') } disabled/>
+                <input name="filterSpawnableBlocks" class="form-input tight" placeholder={ __('Filter') } disabled/>
                 { isOpen ? <ul class="block-tree no-hover">{ [
                     // Reusable blocks/branches
                     ...reusables.map(({blockBlueprints}, i) => {

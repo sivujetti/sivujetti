@@ -54,7 +54,7 @@ class OptionValueInput extends preact.Component {
         </FormGroupInline>;
     }
     /**
-     * @param {String} input examples: 'inline-block', 'Fira Sans'
+     * @param {String|null} input examples: 'inline-block', 'Fira Sans'
      * @returns {OptionValue|null}
      */
     static valueFromInput(input) {

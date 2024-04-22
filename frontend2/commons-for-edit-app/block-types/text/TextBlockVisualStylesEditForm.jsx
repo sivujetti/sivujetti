@@ -27,7 +27,7 @@ const cssVarDefs = [
                 {label: __('Justify'), value: 'justify'},
                 {label: __('Default'), value: 'default'},
                 {label: __('Initial'), value: 'initial'},
-                {label: '-', value: ''},
+                {label: '-', value: null},
             ],
             label: 'Text align',
             inputId: 'textTextAlign',

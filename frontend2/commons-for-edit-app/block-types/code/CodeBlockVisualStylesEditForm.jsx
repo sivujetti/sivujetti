@@ -14,7 +14,7 @@ const cssVarDefs = [
             options: [
                 {label: __('None'), value: 'none'},
                 {label: __('Block'), value: 'block'},
-                {label: '-', value: ''},
+                {label: '-', value: null},
             ],
             label: 'Display',
             inputId: 'codeDisplay',

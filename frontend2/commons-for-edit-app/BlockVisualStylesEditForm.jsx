@@ -105,7 +105,7 @@ class BlockVisualStylesEditForm extends preact.Component {
                 { ...commonProps }/>;
         else if (valueType === 'option' || renderer === OptionValueInput)
             return <OptionValueInput
-                value={ OptionValueInput.valueFromInput(selectedScreenSizeVars[varName] || '-', initialUnit) }
+                value={ OptionValueInput.valueFromInput(selectedScreenSizeVars[varName] || null, initialUnit) }
                 options={ widgetSettings.options }
                 { ...commonProps }/>;
         else if (valueType === 'backgroundImage' || renderer === BackgroundImageValueInput)

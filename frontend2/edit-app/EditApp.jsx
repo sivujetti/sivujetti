@@ -43,7 +43,7 @@ class EditApp extends preact.Component {
                                 env.window.location.href = this.props.dashboardUrl;
                             else
                                 throw new Error(`Unkown option ${e.target.value}`);
-                        } } class="form-select">
+                        } } name="changeView" class="form-select">
                         { this.changeViewOptions.map(({name, label}) =>
                             <option value={ name }>{ label }</option>
                         ) }</select>

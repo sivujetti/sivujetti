@@ -78,7 +78,8 @@ class LengthValueInput extends preact.Component {
                                 this.setState({unit: e.target.value});
                         } }
                         class="form-input input-group-addon addon-sm form-select"
-                        value={ unit }>{ ['rem', 'px', '%', 'em', 'vh', 'vw', 'vb', 'vmin', 'vmax', ...(additionalUnits || [])].map(ltype =>
+                        value={ unit }
+                        name={ `${this.inputId}Unit` }>{ ['rem', 'px', '%', 'em', 'vh', 'vw', 'vb', 'vmin', 'vmax', ...(additionalUnits || [])].map(ltype =>
                             <option value={ ltype }>{ ltype }</option>
                         )
                     }</select>

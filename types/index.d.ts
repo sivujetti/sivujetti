@@ -484,7 +484,7 @@ interface LengthValue {
 }
 
 interface OptionValue {
-    selected: any;
+    selected: any|null;
 }
 
 interface TheBlockTreeReducerContext {

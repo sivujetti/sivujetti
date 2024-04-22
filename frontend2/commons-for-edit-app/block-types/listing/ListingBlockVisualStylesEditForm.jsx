@@ -17,7 +17,7 @@ const cssVarDefs = [
                 {label: '2', value: 'repeat(2, minmax(0, 1fr))'},
                 {label: '3', value: 'repeat(3, minmax(0, 1fr))'},
                 {label: '4', value: 'repeat(4, minmax(0, 1fr))'},
-                {label: '-', value: ''},
+                {label: '-', value: null},
             ],
             label: 'Num columns',
             inputId: 'listingNumColumns',

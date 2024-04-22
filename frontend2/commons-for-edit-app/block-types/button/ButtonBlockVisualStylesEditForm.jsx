@@ -93,9 +93,9 @@ const cssVarDefs = [
         widgetSettings: {
             valueType: 'option',
             options: [
-                {label: __('Wrap'), value: 'nowrap'},
-                {label: __('Nowrap'), value: 'wrap'},
-                {label: __('Wrap reverse'), value: 'wrap-reverse'},
+                {label: __('Side by side (nowrap)'), value: 'nowrap'},
+                {label: __('Stacked (wrap)'), value: 'wrap'},
+                {label: __('Reverse (wrap-reverse)'), value: 'wrap-reverse'},
                 // Global values
                 {label: __('Inherit'), value: 'inherit'},
                 {label: __('Initial'), value: 'initial'},
@@ -103,9 +103,9 @@ const cssVarDefs = [
                 {label: __('Revert layer'), value: 'revert-layer'},
                 {label: __('Unset'), value: 'unset'},
                 //
-                {label: '-', value: ''},
+                {label: '-', value: null},
             ],
-            label: 'Wrap content',
+            label: 'Order content',
             inputId: 'buttonWrapContent',
         },
     },
@@ -122,9 +122,9 @@ const cssVarDefs = [
                 {label: __('Baseline'), value: 'baseline'},
                 {label: __('Normal'), value: 'normal'},
                 {label: __('Stretch'), value: 'stretch'},
-                {label: '-', value: ''},
+                {label: '-', value: null},
             ],
-            label: 'Align updown',
+            label: 'Align ⇅',
             inputId: 'buttonAlignY',
         },
     },

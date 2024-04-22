@@ -24,7 +24,7 @@ class BlockSaveAsReusableDialog extends preact.Component {
         ], {
             saveAsUnique: false,
         }));
-        this.boundDoHandleSubmit = this.applyCreateGlobalBlockTree.bind(this);
+        this.boundDoHandleSubmit = this.doHandleSubmit.bind(this);
     }
     /**
      * @access protected
@@ -91,7 +91,7 @@ class BlockSaveAsReusableDialog extends preact.Component {
      * @returns {Promise<void>}
      * @access private
      */
-    applyCreateGlobalBlockTree() {
+    doHandleSubmit() {
         this.props.onConfirmed({name: this.state.values.name,
             saveAsUnique: this.state.saveAsUnique});
         floatingDialog.close();

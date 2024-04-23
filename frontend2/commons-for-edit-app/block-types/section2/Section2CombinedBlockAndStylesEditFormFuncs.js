@@ -42,7 +42,7 @@ function colsScreenToTransferable(colsScreeenLocalRepr) {
 
 /**
  * @param {ColumnConfigLocalRepr} colConfig
- * @returns {Columns2BlockColumn}
+ * @returns {ColumnConfig}
  */
 function colToTransferable(colConfig) {
     return {

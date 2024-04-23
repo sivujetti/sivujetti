@@ -1,4 +1,3 @@
-import LengthValueInput from '../../styles/LengthValueInput.jsx';
 import BlockVisualStylesEditForm, {
     createPaddingVarDefs,
 } from '../../BlockVisualStylesEditForm.jsx';
@@ -50,7 +49,7 @@ const cssVarDefs = [
             valueType: 'length',
             label: 'Links gap ↔',
             inputId: 'menuLinksGapX',
-            defaultThemeValue: LengthValueInput.valueFromInput('0.2rem'),
+            defaultThemeValue: '0.2rem',
         },
     },
     {

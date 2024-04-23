@@ -602,7 +602,8 @@ interface VisualStylesFormVarDefinitionWidgetSettings {
         ColorValue |
         ImageValue |
         LengthValue |
-        OptionValue;
+        OptionValue |
+        String;
 }
 
 type scssCodeInput = String|Array<String>;

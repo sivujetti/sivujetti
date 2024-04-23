@@ -11,6 +11,13 @@ import {
 import {createCssDeclExtractor} from './ScssWizardFuncs.js';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
 
+const WidgetClses = {
+    'backgroundImage': BackgroundImageValueInput,
+    'color': ColorValueInput,
+    'length': LengthValueInput,
+    'option': OptionValueInput,
+};
+
 class BlockVisualStylesEditForm extends preact.Component {
     // cssVarDefs;
     // userStyleRefs;
@@ -21,7 +28,7 @@ class BlockVisualStylesEditForm extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.cssVarDefs = getValidDefs(this.createCssVarDefinitions());
+        this.cssVarDefs = createNormalizedDefs(getValidDefs(this.createCssVarDefinitions()));
         this.varInputToScssChunkFn = this.createVarInputToScssChunkFn(this.cssVarDefs);
     }
     /**
@@ -262,8 +269,31 @@ function getValidDefs(input) {
             throw new Error('def.varName is not valid');
         if (typeof def.cssProp !== 'string')
             throw new Error('def.cssProp must be string');
+        if (typeof def.widgetSettings?.valueType !== 'string')
+            throw new Error('def.widgetSettings.valueType is required');
+        if (!WidgetClses[def.widgetSettings.valueType])
+            throw new Error('Unkown def.widgetSettings.valueType "' + def.widgetSettings.valueType +
+                '". Supported values are ' + Object.keys(WidgetClses).join(', '));
         return def;
     });
+}
+
+/**
+ * Replaces validDefs.*.widgetSettings.defaultValue string -> Object
+ * @param {Array<VisualStylesFormVarDefinition>} validDefs
+ * @returns {Array<VisualStylesFormVarDefinition>}
+ */
+function createNormalizedDefs(validDefs) {
+    return validDefs.map(itm => typeof itm.widgetSettings.defaultThemeValue !== 'string'
+        ? itm
+        : {
+            ...itm,
+            widgetSettings: {
+                ...itm.widgetSettings,
+                defaultThemeValue: WidgetClses[itm.widgetSettings.valueType].valueFromInput(itm.widgetSettings.defaultThemeValue)
+            }
+        }
+    );
 }
 
 /**

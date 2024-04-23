@@ -1,7 +1,6 @@
 import {mediaScopes} from '../../../shared-inline.js';
 import blockTreeUtils from '../../block/tree-utils.js';
 import {writeBlockProps} from '../../block/utils.js';
-import LengthValueInput from '../../styles/LengthValueInput.jsx';
 import BlockVisualStylesEditForm, {
     createCssVarsMaps,
     createPaddingVarDefs,
@@ -47,7 +46,7 @@ const cssVarDefs = [
             valueType: 'length',
             label: 'Gap ↔',
             inputId: 'section2ColumnGap',
-            defaultThemeValue: LengthValueInput.valueFromInput('0.4rem'),
+            defaultThemeValue: '0.4rem'
         },
     },
     {
@@ -58,7 +57,7 @@ const cssVarDefs = [
             valueType: 'length',
             label: 'Gap ↕',
             inputId: 'section2RowGap',
-            defaultThemeValue: LengthValueInput.valueFromInput('0.4rem'),
+            defaultThemeValue: '0.4rem'
         },
     },
     {

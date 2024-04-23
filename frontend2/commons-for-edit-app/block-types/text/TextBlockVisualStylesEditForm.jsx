@@ -34,6 +34,16 @@ const cssVarDefs = [
         },
     },
     {
+        varName: 'lineHeight',
+        cssProp: 'line-height',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Line height',
+            inputId: 'textLineHeight',
+        },
+    },
+    {
         varName: 'fontSize',
         cssProp: 'font-size',
         cssSubSelector: null,
@@ -41,6 +51,39 @@ const cssVarDefs = [
             valueType: 'length',
             label: 'Font size',
             inputId: 'textFontSize',
+        },
+    },
+    {
+        varName: 'minWidth',
+        cssProp: 'min-width',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Min width',
+            inputId: 'textMinWidth',
+            initialUnit: 'px',
+        },
+    },
+    {
+        varName: 'maxWidth',
+        cssProp: 'max-width',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Max width',
+            inputId: 'textMaxWidth',
+            initialUnit: 'px',
+        },
+    },
+    {
+        varName: 'paragraphsMarginBottom',
+        cssProp: 'margin-bottom',
+        cssSubSelector: 'p',
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Paragraphs gap',
+            inputId: 'textParagraphsMarginBottom',
+            defaultThemeValue: '1.2rem',
         },
     },
     ...createPaddingVarDefs('text'),

@@ -1,4 +1,3 @@
-import LengthValueInput from '../../styles/LengthValueInput.jsx';
 import BlockVisualStylesEditForm, {
     createPaddingVarDefs,
 } from '../../BlockVisualStylesEditForm.jsx';
@@ -31,7 +30,7 @@ const cssVarDefs = [
             valueType: 'length',
             label: 'Gap y',
             inputId: 'listingGapY',
-            defaultThemeValue: LengthValueInput.valueFromInput('6rem'),
+            defaultThemeValue: '6rem',
         },
     },
     {

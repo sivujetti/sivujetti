@@ -87,6 +87,16 @@ const cssVarDefs = [
         },
     },
     {
+        varName: 'minWidth',
+        cssProp: 'min-width',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Min width',
+            inputId: 'buttonMinWidth',
+        },
+    },
+    {
         varName: 'wrapContent',
         cssProp: 'flex-wrap',
         cssSubSelector: null,
@@ -139,7 +149,18 @@ const cssVarDefs = [
             initialUnit: 'px',
         },
     },
-    ...createPaddingVarDefs('button'),
+    ...(function ([top, right, bottom, left]) {
+        const newTop = {...top.widgetSettings, defaultThemeValue: '0.25rem'};
+        const newRight = {...right.widgetSettings, defaultThemeValue: '0.4rem'};
+        const newBottom = {...bottom.widgetSettings, defaultThemeValue: '0.25rem'};
+        const newLeft = {...left.widgetSettings, defaultThemeValue: '0.4rem'};
+        return [
+            {...top, widgetSettings: newTop},
+            {...right, widgetSettings: newRight},
+            {...bottom, widgetSettings: newBottom},
+            {...left, widgetSettings: newLeft},
+        ];
+    })(createPaddingVarDefs('button')),
 ];
 
 class ButtonBlockVisualStylesEditForm extends BlockVisualStylesEditForm {

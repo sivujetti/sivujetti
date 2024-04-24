@@ -40,6 +40,7 @@ elseif ($props->type === Block::TYPE_BUTTON):
         $props->html, // @allow pre-validated html
         $this->renderChildren($props),
     $close;
+// @deprecated, see src/BlockType/CodeBlockType->render()
 elseif ($props->type === Block::TYPE_CODE):
     echo "<div class=\"j-", Block::TYPE_CODE,
             ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : ""),

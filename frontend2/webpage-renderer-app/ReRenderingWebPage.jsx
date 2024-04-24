@@ -43,6 +43,16 @@ class ButtonBlock extends preact.Component {
     }
 }
 
+class CodeBlock extends preact.Component {
+    /**
+     * @param {BlockRendererProps} props
+     * @access protected
+     */
+    render({block, renderChildren, createDefaultProps}) {
+        return <div { ...createDefaultProps() } dangerouslySetInnerHTML={ {__html: block.html} }></div>;
+    }
+}
+
 class ColumnsBlock extends preact.Component {
     /**
      * @param {BlockRendererProps} props
@@ -224,6 +234,7 @@ class WrapperBlock extends preact.Component {
 
 const builtInRenderers = {
     Button: ButtonBlock,
+    Code: CodeBlock,
     Columns: ColumnsBlock,
     Image: ImageBlock,
     Listing: ListingBlock,

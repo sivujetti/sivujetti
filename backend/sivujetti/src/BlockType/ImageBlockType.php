@@ -6,7 +6,7 @@ use Sivujetti\Page\WebPageAwareTemplate;
 
 use function Sivujetti\createElement as el;
 
-class ImageBlockType implements BlockTypeInterface {
+class ImageBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
     const PLACEHOLDER_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAD6AQMAAAAho+iwAAAABlBMVEX19fUzMzO8wlcyAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAIElEQVRoge3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAD8GJhYAATKiH3kAAAAASUVORK5CYII=";
     /**
      * @inheritdoc

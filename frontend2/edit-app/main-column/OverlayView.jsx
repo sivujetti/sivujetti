@@ -1,4 +1,4 @@
-import {__, Icon} from '../../sivujetti-commons-unified.js';
+import {__, Icon} from '@sivujetti-commons-for-edit-app';
 
 class OverlayView extends preact.Component {
     /**

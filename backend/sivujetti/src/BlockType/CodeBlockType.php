@@ -3,9 +3,12 @@
 namespace Sivujetti\BlockType;
 
 use Sivujetti\Auth\ACL;
+use Sivujetti\Page\WebPageAwareTemplate;
 use Sivujetti\ValidationUtils;
 
-final class CodeBlockType implements BlockTypeInterface {
+use function Sivujetti\createElement as el;
+
+final class CodeBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
     /**
      * @inheritdoc
      */
@@ -18,5 +21,19 @@ final class CodeBlockType implements BlockTypeInterface {
                     validationRules: [["maxLength", ValidationUtils::HARD_JSON_TEXT_MAX_LEN]]
                 )
             ->getResult();
+    }
+    /**
+     * @inheritdoc
+     */
+    public function render(object $block,
+                           \Closure $createDefaultProps, 
+                           \Closure $renderChildren,
+                           WebPageAwareTemplate $tmpl): array {
+        return el("div", $createDefaultProps(),
+            $block->code
+                ? el("j-raw", [], $block->code) // @allow raw html/css/js
+                : $tmpl->__("Waits for configuration ..."),
+            ...$renderChildren()
+        );
     }
 }

@@ -7,7 +7,7 @@ use Sivujetti\Page\WebPageAwareTemplate;
 
 use function Sivujetti\createElement as el;
 
-final class ButtonBlockType implements BlockTypeInterface {
+final class ButtonBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
     public const TAG_TYPE_LINK = "link";
     public const TAG_TYPE_NORMAL_BUTTON = "button";
     public const TAG_TYPE_SUBMIT_BUTTON = "submit";

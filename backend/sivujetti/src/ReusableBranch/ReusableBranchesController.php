@@ -8,6 +8,7 @@ use Pike\Interfaces\RowMapperInterface;
 use Pike\Validation\ObjectValidator;
 use Sivujetti\{JsonUtils, ValidationUtils};
 use Sivujetti\Block\BlockValidator;
+use Sivujetti\Theme\ThemesController;
 
 final class ReusableBranchesController {
     private const T = "\${p}reusableBranches";
@@ -98,6 +99,8 @@ final class ReusableBranchesController {
             ->rule("initialOwnData", "type", "object");
         // initialDefaultsData.title|renderer etc.
         $v = $blockValidator->addRulesForDefaultProps($v, "initialDefaultsData.");
+        // initialStyles.scss|scope
+        $v = ThemesController::addRulesForStyleChunks($v, "initialStyles");
         $v = $v->rule("initialChildren", "type", "array");
         return $this->validateBlockBlueprints($input->blockBlueprints, $v);
     }

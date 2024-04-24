@@ -5,6 +5,21 @@ namespace Sivujetti\Tests\ReusableBranch;
 use Sivujetti\JsonUtils;
 
 final class CreateReusableBranchTest extends ReusableBranchesControllerTestCase {
+    private const ERRORS_EMPTY_OWN_DATA = [
+        "initialOwnData must be object",
+        "Expected `initialDefaultsData` to be an object",
+        "Expected `initialDefaultsData` to be an object",
+        "Expected `initialDefaultsData` to be an object",
+        "Expected `initialDefaultsData` to be an object",
+        "Expected `initialDefaultsData` to be an object",
+    ];
+    private const ERRORS_EMPTY_STYLES = [
+        "initialStyles must be array",
+        "Expected `initialStyles` to be an array",
+        "Expected `initialStyles` to be an array",
+        "Expected `initialStyles` to be an array",
+        "Expected `initialStyles` to be an array",
+    ];
     public function testCreateReusableBranchInsertsReusableBranchesToDb(): void {
         $state = $this->setupTest();
         $this->makeTestSivujettiApp($state);
@@ -51,12 +66,8 @@ final class CreateReusableBranchTest extends ReusableBranchesControllerTestCase 
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals([
             "The value of blockType was not in the list",
-            "initialOwnData must be object",
-            "Expected `initialDefaultsData` to be an object",
-            "Expected `initialDefaultsData` to be an object",
-            "Expected `initialDefaultsData` to be an object",
-            "Expected `initialDefaultsData` to be an object",
-            "Expected `initialDefaultsData` to be an object",
+            ...self::ERRORS_EMPTY_OWN_DATA,
+            ...self::ERRORS_EMPTY_STYLES,
             "initialChildren must be array",
         ], $state->spyingResponse);
         //
@@ -66,6 +77,7 @@ final class CreateReusableBranchTest extends ReusableBranchesControllerTestCase 
                 "blockType" => "Text",
                 "initialOwnData" => (object) [],
                 "initialDefaultsData" => (object) ["not" => "valid"],
+                "initialStyles" => [(object) ["not" => "valid"]],
                 "initialChildren" => [(object) ["not" => "valid"]]
             ]]
         ];
@@ -77,9 +89,12 @@ final class CreateReusableBranchTest extends ReusableBranchesControllerTestCase 
             "The value of initialDefaultsData.renderer was not in the list",
             "initialDefaultsData.styleClasses must be string",
             "The length of initialDefaultsData.styleClasses must be 1024 or less",
+            "Expected `initialStyles.0.scope` to be an object",
+            "Expected `initialStyles.0.scope` to be an object",
+            "Expected `initialStyles.0.scope` to be an object",
+            "initialStyles.0.scss must be string"
         ], $state->spyingResponse);
     }
-
 
     ////////////////////////////////////////////////////////////////////////////
 
@@ -93,12 +108,8 @@ final class CreateReusableBranchTest extends ReusableBranchesControllerTestCase 
         $this->verifyResponseMetaEquals(400, "application/json", $state->spyingResponse);
         $this->verifyResponseBodyEquals([
             "The value of blockType was not in the list",
-            "initialOwnData must be object",
-            "Expected `initialDefaultsData` to be an object",
-            "Expected `initialDefaultsData` to be an object",
-            "Expected `initialDefaultsData` to be an object",
-            "Expected `initialDefaultsData` to be an object",
-            "Expected `initialDefaultsData` to be an object",
+            ...self::ERRORS_EMPTY_OWN_DATA,
+            ...self::ERRORS_EMPTY_STYLES,
             "initialChildren must be array",
         ], $state->spyingResponse);
     }

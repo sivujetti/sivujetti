@@ -79,6 +79,26 @@ class ScssWizard {
         return this.commitAll(updated, mediaScopeId);
     }
     /**
+     * @param {Array<StyleChunk>} newUniqueScopeChunksToAdd Example [{scope: {block: 'single-block', layer: 'user-styles', media: 'all'}, scss: '[data-block="abcdefg"] {\n  color: #ab7878;\n}'}]
+     * @returns {StylesBundleWithId}
+     * @access public
+     */
+    addManyNewUniqueScopeChunksAndReturnAllRecompiled(newUniqueScopeChunksToAdd) {
+        const affectedMediaScopeIds = {};
+        for (const {scope, scss} of newUniqueScopeChunksToAdd) {
+            const {media, layer} = scope;
+            const blockId = scss.split('data-block="')[1].split('"')[0];
+            if (this.findStyle('single-block', blockId, media, layer, this.styles))
+                throw new Error(`Unique style ${blockId}:${media}:${layer} already exist`);
+            affectedMediaScopeIds[media] = 1;
+        }
+        const updated = [
+            ...this.styles,
+            ...newUniqueScopeChunksToAdd,
+        ];
+        return this.commitAll(updated, affectedMediaScopeIds);
+    }
+    /**
      * @param {scssCodeInput} codeTemplate Examples 'color: red;', '> sub-selector {\n  color: red;\n}', [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
      * @param {String} val
      * @param {StyleChunk} currentStyle
@@ -302,19 +322,20 @@ class ScssWizard {
     }
     /**
      * @param {Array<StyleChunk>} newStylesArr
-     * @param {mediaScope} mediaScopeId
+     * @param {mediaScope|{[key: mediaScope]: any;}} mediaScopeIdOrIds
      * @returns {StylesBundleWithId}
      * @access private
      */
-    commitAll(newStylesArr, mediaScopeId) {
+    commitAll(newStylesArr, mediaScopeIdOrIds) {
 
         this.styles = newStylesArr;
 
+        const mediaScopesToUpdate = typeof mediaScopeIdOrIds === 'string' ? {[mediaScopeIdOrIds]: 1} : mediaScopeIdOrIds;
         const compiledNew = mediaScopes.map((scopeId, i) =>
-            scopeId !== mediaScopeId ? this.cachedCompiledScreenSizesCss[i] : stylesToBaked(this.styles, scopeId)
+            !mediaScopesToUpdate[scopeId] ? this.cachedCompiledScreenSizesCss[i] : stylesToBaked(this.styles, scopeId)
         );
-        compiledNew.forEach(mediaScope => {
-            if (mediaScope.length > 1024000) throw new Error('??');
+        compiledNew.forEach(compiledSingleScope => {
+            if (compiledSingleScope.length > 1024000) throw new Error('??');
         });
         this.cachedCompiledScreenSizesCss = compiledNew;
 

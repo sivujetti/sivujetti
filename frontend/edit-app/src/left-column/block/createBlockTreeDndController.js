@@ -247,21 +247,21 @@
 // ##     return Object.keys(changes).length ? changes : null;
 // ## }
 // ## 
-/**
- * @param {'moveBlock'|'addBlock'} getChangesEventName
- * @param {BlockDescriptor} swapSourceInfo
- */
-function callAddOrMoveBlockGetBlockPropChangesEventAndEmitResults(getChangesEventName, swapSourceInfo) {
-    const [block, branch, _, root] = blockTreeUtils.findBlockSmart(swapSourceInfo.blockId, store2.get().theBlockTree);
-    const changes = callGetBlockPropChangesEvent(block.type, getChangesEventName, [block, branch, store2.get().theBlockTree]);
-    if (changes) store2.dispatch('theBlockTree/updatePropsOf', [
-        block.id,
-        blockTreeUtils.getIdFor(root),
-        changes,
-        NO_OP_QUEUE_EMIT,
-        0 // debounceMillis
-    ]);
-}
+// ## /**
+// ##  * @param {'moveBlock'|'addBlock'} getChangesEventName
+// ##  * @param {BlockDescriptor} swapSourceInfo
+// ##  */
+// ## function callAddOrMoveBlockGetBlockPropChangesEventAndEmitResults(getChangesEventName, swapSourceInfo) {
+// ##     const [block, branch, _, root] = blockTreeUtils.findBlockSmart(swapSourceInfo.blockId, store2.get().theBlockTree);
+// ##     const changes = callGetBlockPropChangesEvent(block.type, getChangesEventName, [block, branch, store2.get().theBlockTree]);
+// ##     if (changes) store2.dispatch('theBlockTree/updatePropsOf', [
+// ##         block.id,
+// ##         blockTreeUtils.getIdFor(root),
+// ##         changes,
+// ##         NO_OP_QUEUE_EMIT,
+// ##         0 // debounceMillis
+// ##     ]);
+// ## }
 // ## 
 // ## export default createDndController;
 // ## export {saveExistingBlocksToBackend, createBlockDescriptor, callGetBlockPropChangesEvent};

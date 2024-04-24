@@ -98,9 +98,10 @@ function createBlockFromType(blockType, defPropAdditions = {}) {
 
 /**
  * @param {BlockBlueprint} blueprint
+ * @param {(item: BlockBlueprint, block: Block) => BlockBlueprint} onEach
  * @returns {Block}
  */
-function createBlockFromBlueprint(blueprint) {
+function createBlockFromBlueprint(blueprint, onEach) {
     const {blockType, initialOwnData, initialDefaultsData, initialChildren} = blueprint;
     const type = api.blockTypes.get(blockType);
     const defs = createDefProps(type, initialDefaultsData);
@@ -112,9 +113,12 @@ function createBlockFromBlueprint(blueprint) {
         ),
         ...{
             children: !Array.isArray(initialChildren) ? [] : initialChildren.map(blueprint =>
-            createBlockFromBlueprint(blueprint))
+            createBlockFromBlueprint(blueprint, onEach))
         }
     };
+    onEach(blueprint, block);
+    return block;
+}
 
 /**
  * @param {BlockTypeDefinition} type

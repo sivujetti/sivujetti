@@ -1,6 +1,7 @@
 import {
     api,
     blockTreeUtils,
+    scssWizard,
 } from '@sivujetti-commons-for-edit-app';
 import {
     createBlockTreeInsertAtOpArgs,
@@ -50,7 +51,12 @@ function createDndController(saveButton) {
                 if (!extDragData.isReusable) // Plain block -> add block but no styles
                     saveButton.pushOp(...insertBlockAtOpArgs);
                 else { // Reusable -> add block and copies of all of its styles recursively
-                    // todo
+                    const userAndDevStyles = extDragData.styles;
+                    const updatedAll = scssWizard.addManyNewUniqueScopeChunksAndReturnAllRecompiled(userAndDevStyles);
+                    saveButton.pushOpGroup(
+                        insertBlockAtOpArgs,
+                        ['stylesBundle', updatedAll]
+                    );
                 }
             }
             api.webPagePreview.getEl().style.pointerEvents = '';
@@ -70,7 +76,22 @@ function createDndController(saveButton) {
          * @returns {Boolean|undefined}
          */
         swap(cand, _prevCand, startLi) {
-            // todo
+            const extBlock = !extDragData ? null : extDragData.block;
+            const drag = !extBlock ? createBlockDescriptorFromLi(startLi) : createBlockDescriptor(extBlock, saveButton);
+            const targ = createBlockDescriptorFromLi(cand.li);
+            const [targIsStoredTo, targetIsSpeci] = getRealTarget(targ, cand.pos);
+            // drag is external gbtref and target is inner block of gbtref
+            if (extBlock && extBlock.type === 'GlobalBlockReference' && (targ.isStoredToTreeId !== 'main' || targetIsSpeci)) {
+                return false;
+            }
+            // drag is not external gbtref and target is inner block of _some other_ gbtref
+            if (!extBlock &&
+                (drag.isGbtRef || drag.isStoredToTreeId !== 'main') &&
+                ((targ.isStoredToTreeId !== 'main' || targetIsSpeci) &&
+                targIsStoredTo !== drag.isStoredToTreeId)) {
+                return false;
+            }
+            // Do nothing
         },
         /**
          * @param {Number|null} _lastAcceptedSwapIdx

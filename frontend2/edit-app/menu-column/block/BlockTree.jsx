@@ -3,18 +3,27 @@ import {
     api,
     blockTreeUtils,
     ContextMenu,
+    events,
     floatingDialog,
     generatePushID,
     Icon,
     LoadingSpinner,
     objectUtils,
+    scssWizard,
     traverseRecursively,
 } from '@sivujetti-commons-for-edit-app';
 import createDndController, {callGetBlockPropChangesEvent} from '../../includes/block/create-block-tree-dnd-controller.js';
 import TreeDragDrop from '../../includes/TreeDragDrop.js';
 import BlockSaveAsReusableDialog from '../../main-column/popups/BlockSaveAsReusableDialog.jsx';
 import {
+    blockToBlueprint,
     createPartialState,
+    createStyleShunkcScssIdReplacer,
+    getShortFriendlyName,
+    hideOrShowChildren,
+    setAsHidden,
+    splitPath,
+    withParentIdPathDo,
 } from './BlockTreeFuncs.js';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
@@ -47,6 +56,26 @@ class BlockTree extends preact.Component {
         this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
         this.currentlyHoveredLi = null;
         if (this.props.blocks) this.setState(createPartialState(this.props.blocks));
+
+        api.saveButton.getInstance().subscribeToChannel('theBlockTree', (theTree, _userCtx, ctx) => {
+            if (ctx === 'initial') return;
+            this.setState(createPartialState(theTree));
+        });
+    }
+    /**
+     * @access protected
+     */
+    componentWillReceiveProps(props) {
+        // Page navigation happened (or convert-branch-to-global-block-reference-block)
+        if (props.blocks !== this.props.blocks)
+            this.setState(createPartialState(props.blocks));
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        this.unregistrables.forEach(unreg => unreg());
+    }
     /**
      * @access protected
      */
@@ -295,7 +324,13 @@ class BlockTree extends preact.Component {
         // Create new 'reusableBranches' state array and push it to the history
         fetchOrGetReusableBranches().then(reusablesPrev => {
             const blockBlueprints = [blockToBlueprint(treeToTransferable([newOriginalBlock])[0], (blueprint, block) => {
-                return blueprint;
+                const userAndDevStyles = scssWizard.findStyles('single-block', block.id);
+                const replacer = createStyleShunkcScssIdReplacer(block.id, '@placeholder');
+                const init = userAndDevStyles.map(replacer); // 'data-block-id="uagNk..."' -> 'data-block-id="@placeholder"'
+                return {
+                    ...blueprint,
+                    ...{initialStyles: init}
+                };
             })];
             const newReusablesState = [...objectUtils.cloneDeep(reusablesPrev), {
                 id: generatePushID(),
@@ -383,6 +418,7 @@ class BlockTree extends preact.Component {
         hideOrShowChildren(to, block, mutRef);
         this.setState({treeState: mutRef});
     }
+}
 
 function duplicateDeepAndReAssignIds(block) { // where to put this 
     const out = objectUtils.cloneDeep(block);
@@ -409,32 +445,6 @@ function flattenBlocksRecursive(original, cloned) {
         flatCloned.push(b2);
     });
     return [flatOriginal, flatCloned];
-}
-
-/**
- * @param {Block} block
- * @param {(item: BlockBlueprint, block: Block) => BlockBlueprint} onEach
- * @returns {BlockBlueprint}
- */
-function blockToBlueprint(block, onEach) {
-    return onEach({
-        blockType: block.type,
-        initialOwnData: propsToObj(block.propsData),
-        initialDefaultsData: {
-            title: block.title || '',
-            renderer: block.renderer,
-            styleClasses: block.styleClasses || '',
-        },
-        initialChildren: block.children.map(w => blockToBlueprint(w, onEach)),
-        initialStyles: [],
-    }, block);
-}
-function propsToObj(propsData) { // Can these contain __private -fields? 
-    const out = {};
-    for (const field of propsData) {
-        out[field.key] = field.value;
-    }
-    return out;
 }
 
 export default BlockTree;

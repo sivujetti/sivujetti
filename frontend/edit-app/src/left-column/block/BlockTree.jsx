@@ -5,7 +5,7 @@ import {findBlockFrom} from '../../block/utils-utils.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import {generatePushID} from '../../commons/utils.js';
 import BlockTreeShowHelpPopup from '../../popups/BlockTreeShowHelpPopup.jsx';
-import SaveBlockAsReusableDialog from '../../popups/reusable-branch/SaveBlockAsReusableDialog.jsx';
+// ## import SaveBlockAsReusableDialog from '../../popups/reusable-branch/SaveBlockAsReusableDialog.jsx';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import TreeDragDrop from '../../TreeDragDrop.js';
 import BlockDnDSpawner from './BlockDnDSpawner.jsx';
@@ -30,7 +30,7 @@ class BlockTree extends preact.Component {
         this.selectedRoot = null;
         this.disablePageInfo = this.props.containingView === 'CreatePageType';
         this.blockSpawner = preact.createRef();
-        this.moreMenu = preact.createRef();
+// ##         this.moreMenu = preact.createRef();
         this.currentPageIsPlaceholder = this.props.containingView !== 'Default';
         this.unregistrables = [];
         this.dragDrop = new TreeDragDrop(createDndController(this));

@@ -101,6 +101,7 @@ interface BlockBlueprint {
     blockType: String;
     initialOwnData: {[key: String]: any;};
     initialDefaultsData: {title: String; renderer: String; styleClasses: String};
+    initialStyles: Array<StyleChunk>;
     initialChildren: Array<BlockBlueprint>;
 }
 
@@ -436,7 +437,7 @@ interface BlockDescriptor {
 interface SpawnDescriptor {
     block: Block;
     isReusable: Boolean|null;
-    styles: {[blockId: String]: Array<StyleChunk>;}|null;
+    styles?: Array<StyleChunk>;
 }
 
 interface PartialMenuLink {

@@ -12,6 +12,7 @@ import {createBlockFromBlueprint, createBlockFromType} from '../../includes/bloc
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import {createTrier} from '../../includes/utils.js';
+import {createStyleShunkcScssIdReplacer} from './BlockTreeFuncs.js';
 
 const UNSPAWNABLES = ['Columns', 'Heading', 'PageInfo', 'Paragraph', 'RichText', 'Section'];
 
@@ -212,9 +213,13 @@ class DnDBlockSpawner extends preact.Component {
             this.mainTreeDnd.handleDragStartedFromOutside({block: newBlock, isReusable: false, styles: null});
         } else {
             const root = this.state.reusables[parseInt(reusableBranchIdx, 10)].blockBlueprints[0];
-            const blockTmp = createBlockFromBlueprint(root);
-            const newBlock = {...blockTmp, ...{title: `${blockTmp.title} ${__('duplicated')}`}};
-            this.mainTreeDnd.handleDragStartedFromOutside({block: newBlock, isReusable: true});
+            const styles = [];
+            const block = createBlockFromBlueprint(root, ({initialStyles}, block) => {
+                const replacer = createStyleShunkcScssIdReplacer('@placeholder', block.id);
+                styles.push(...initialStyles.map(replacer)); // 'data-block-id="@placeholder"' -> 'data-block-id="uagNk..."'
+            });
+            const newBlock = {...block, ...{title: `${block.title} ${__('duplicated')}`}};
+            this.mainTreeDnd.handleDragStartedFromOutside({block: newBlock, isReusable: true, styles});
         }
     }
     /**

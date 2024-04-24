@@ -4,6 +4,7 @@ namespace Sivujetti\Theme;
 
 use Pike\Db\{FluentDb, FluentDb2, NoDupeRowMapper};
 use Pike\{FileSystem, PikeException, Request, Response, Validation};
+use Pike\Validation\ObjectValidator;
 use Sivujetti\BlockType\Entities\{BlockTypes};
 use Sivujetti\{JsonUtils, ValidationUtils};
 use Sivujetti\Block\BlockTree;
@@ -94,12 +95,7 @@ final class ThemesController {
                                          FluentDb $db,
                                          FluentDb2 $db2,
                                          FileSystem $fs): void {
-        $errors = Validation::makeObjectValidator()
-            ->rule("styleChunks", "type", "array")
-            ->rule("styleChunks.*.scope.block?", "in", ["single-block", "block-type"])
-            ->rule("styleChunks.*.scope.media", "in", self::MEDIA_SCOPES)
-            ->rule("styleChunks.*.scope.layer", "in", ["user-styles", "dev-styles", "todo"])
-            ->rule("styleChunks.*.scss", "type", "string")
+        $errors = self::addRulesForStyleChunks(Validation::makeObjectValidator())
             ->rule("cachedCompiledScreenSizesCss", "minLength", count(self::MEDIA_SCOPES), "array")
             ->rule("cachedCompiledScreenSizesCss.*", "type", "string")
             ->rule("cachedCompiledScreenSizesCss.*", "maxLength", 1024000)
@@ -121,7 +117,7 @@ final class ThemesController {
         $current->cachedScreenSizesCssLengths = array_map(fn($s) => (int)$s, explode(",", $lengths));
         unset($current->cachedCompiledScreenSizesCssLengths);
         } else {
-        $current = $db2->select("\${p}themes", "stdClass")
+        $current = $db2->select("\${p}themes")
             ->fields(["name", "cachedCompiledScreenSizesCssLengths"])
             ->where(...$whereArgs)
             ->fetch(fn(string $name, string $lengths) => (object) [
@@ -134,7 +130,8 @@ final class ThemesController {
 
         $compiledScreenSizes = $req->body->cachedCompiledScreenSizesCss;
         $compiledScreenSizeLengths = array_map(fn($s) => strlen($s), $compiledScreenSizes);
-        $db->update("\${p}themes")
+        $db3 = !defined("USE_NEW_FLUENT_DB") ? $db : $db2;
+        $db3->update("\${p}themes")
             ->values((object) [
                 "styleChunkBundlesAll" => JsonUtils::stringify([
                     "styleChunks" => array_map(fn($b) => (object) [
@@ -169,19 +166,6 @@ final class ThemesController {
         $res->json(["ok" => "ok"]);
     }
     /**
-     * @param int $i
-     * @param int[] $newCompiledScreenSizeLengths
-     * @param int[] $curCompiledScreenSizeLengths
-     * @return bool
-     */
-    private static function mediaScopeCssHasChanged(int $i,
-                                                    array $newCompiledScreenSizeLengths,
-                                                    array $curCcompiledScreenSizeLengths): bool {
-        $newLength = $newCompiledScreenSizeLengths[$i] ?? -1;
-        $curLength = $curCcompiledScreenSizeLengths[$i] ?? -1;
-        return $newLength !== $curLength; // Todo check that $previoslyStoredHash !== hash(new)
-    }
-    /**
      * PUT /api/themes/:themeId/styles/global: Overwrites $req->params->themeId
      * theme's global styles.
      *
@@ -203,6 +187,77 @@ final class ThemesController {
             return;
         }
         $res->json(["ok" => "ok"]);
+    }
+    /**
+     * @psalm-param array<int, ThemeStyleUnit> $units
+     * @param string $blockTypeName
+     * @return string `@import "foo";<separator>@layer body-units { .j-_body {color:red;} }`
+     */
+    public static function combineAndWrapCss(array $units, string $blockTypeName): string {
+        $noRemote = $blockTypeName !== "_body_" ? array_filter($units, fn($u) => $u->origin !== "_body_") : $units;
+        $css = implode("\n", array_map(fn($u) => $u->optimizedGeneratedCss ?? $u->generatedCss, $noRemote));
+        $pcs = $blockTypeName !== "_body_" ? [] : explode("/* hoisted decls ends */", $css);
+        [$hoisted, $css2] = count($pcs) < 2 ? ["", $css] : ["{$pcs[0]}/* hoisted decls ends */", $pcs[1]];
+        $layerName = $blockTypeName !== "_body_" ? "units" : "body-unit";
+        return $hoisted . ($css2 ? "@layer {$layerName} { {$css2} }" : "/* - */");
+    }
+    /**
+     * Replaces every line between $startLine and $endLine with $startLine + $withLines
+     * from $from.
+     *
+     * @param string $from The haystack
+     * @param string $withLines Lines to add after $startLine
+     * @param string $startLine Add $withLines after this line or offset
+     * @param string $endLine
+     * @param ?int $startLineStartPos = null
+     * @return string
+     * @throws \Pike\PikeException If $from doesn't contain $startLine or $endLine
+     */
+    public static function replaceLinesBetween(string $from,
+                                                string $withLines,
+                                                string $startLine,
+                                                string $endLine,
+                                                ?int $startLineStartPos = null): string {
+        if ($startLineStartPos === null && ($startLineStartPos = strpos($from, $startLine)) === false)
+            throw new PikeException("\$from doesn't contain line `{$startLine}`",
+                                    PikeException::ERROR_EXCEPTION);
+        $beginningOfLineAfterStartLinePos = $startLineStartPos + strlen($startLine);
+        $endLineStartPos = strpos($from, $endLine, $beginningOfLineAfterStartLinePos);
+        if ($endLineStartPos === false)
+            throw new PikeException("\$from doesn't contain line `{$endLine}`",
+                                    PikeException::ERROR_EXCEPTION);
+        return (
+            substr($from, 0, $beginningOfLineAfterStartLinePos) .
+            $withLines .
+            substr($from, $endLineStartPos)
+        );
+    }
+    /**
+     * @param \Pike\Validation\ObjectValidator $validator
+     * @param string $propName = "styleChunks"
+     * @return \Pike\Validation\ObjectValidator
+     */
+    public static function addRulesForStyleChunks(ObjectValidator $validator,
+                                                  string $propName = "styleChunks"): ObjectValidator {
+        return $validator
+            ->rule("{$propName}", "type", "array")
+            ->rule("{$propName}.*.scope.block?", "in", ["single-block", "block-type"])
+            ->rule("{$propName}.*.scope.media", "in", self::MEDIA_SCOPES)
+            ->rule("{$propName}.*.scope.layer", "in", ["user-styles", "dev-styles", "todo"])
+            ->rule("{$propName}.*.scss", "type", "string");
+    }
+    /**
+     * @param int $i
+     * @param int[] $newCompiledScreenSizeLengths
+     * @param int[] $curCompiledScreenSizeLengths
+     * @return bool
+     */
+    private static function mediaScopeCssHasChanged(int $i,
+                                                    array $newCompiledScreenSizeLengths,
+                                                    array $curCcompiledScreenSizeLengths): bool {
+        $newLength = $newCompiledScreenSizeLengths[$i] ?? -1;
+        $curLength = $curCcompiledScreenSizeLengths[$i] ?? -1;
+        return $newLength !== $curLength; // Todo check that $previoslyStoredHash !== hash(new)
     }
     /**
      * @param object $input
@@ -313,19 +368,6 @@ final class ThemesController {
         return []; // No errors
     }
     /**
-     * @psalm-param array<int, ThemeStyleUnit> $units
-     * @param string $blockTypeName
-     * @return string `@import "foo";<separator>@layer body-units { .j-_body {color:red;} }`
-     */
-    public static function combineAndWrapCss(array $units, string $blockTypeName): string {
-        $noRemote = $blockTypeName !== "_body_" ? array_filter($units, fn($u) => $u->origin !== "_body_") : $units;
-        $css = implode("\n", array_map(fn($u) => $u->optimizedGeneratedCss ?? $u->generatedCss, $noRemote));
-        $pcs = $blockTypeName !== "_body_" ? [] : explode("/* hoisted decls ends */", $css);
-        [$hoisted, $css2] = count($pcs) < 2 ? ["", $css] : ["{$pcs[0]}/* hoisted decls ends */", $pcs[1]];
-        $layerName = $blockTypeName !== "_body_" ? "units" : "body-unit";
-        return $hoisted . ($css2 ? "@layer {$layerName} { {$css2} }" : "/* - */");
-    }
-    /**
      * @param object $input
      * @return string[] Error messages or []
      */
@@ -357,37 +399,6 @@ final class ThemesController {
             return self::replaceLinesBetween($from, $withLines, $startLine, $endLine, $startLineStartPos);
         }
         return "{$from}{$startLine}{$withLines}{$endLine}";
-    }
-    /**
-     * Replaces every line between $startLine and $endLine with $startLine + $withLines
-     * from $from.
-     *
-     * @param string $from The haystack
-     * @param string $withLines Lines to add after $startLine
-     * @param string $startLine Add $withLines after this line or offset
-     * @param string $endLine
-     * @param ?int $startLineStartPos = null
-     * @return string
-     * @throws \Pike\PikeException If $from doesn't contain $startLine or $endLine
-     */
-    public static function replaceLinesBetween(string $from,
-                                                string $withLines,
-                                                string $startLine,
-                                                string $endLine,
-                                                ?int $startLineStartPos = null): string {
-        if ($startLineStartPos === null && ($startLineStartPos = strpos($from, $startLine)) === false)
-            throw new PikeException("\$from doesn't contain line `{$startLine}`",
-                                    PikeException::ERROR_EXCEPTION);
-        $beginningOfLineAfterStartLinePos = $startLineStartPos + strlen($startLine);
-        $endLineStartPos = strpos($from, $endLine, $beginningOfLineAfterStartLinePos);
-        if ($endLineStartPos === false)
-            throw new PikeException("\$from doesn't contain line `{$endLine}`",
-                                    PikeException::ERROR_EXCEPTION);
-        return (
-            substr($from, 0, $beginningOfLineAfterStartLinePos) .
-            $withLines .
-            substr($from, $endLineStartPos)
-        );
     }
     /**
      * @return string "Turdas, 10:56:08 AM, 12th of Morning Star, 2E 23"

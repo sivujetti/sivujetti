@@ -41,6 +41,7 @@ abstract class ReusableBranchesControllerTestCase extends DbTestCase {
                 "renderer" => $block->renderer,
                 "styleClasses" => $block->styleClasses ?? "",
             ],
+            "initialStyles" => [],
             "initialChildren" => $depth === 0
                 ? array_map(fn($w) => self::blockToBlueprint($w, $depth + 1), $block->children)
                 : [],

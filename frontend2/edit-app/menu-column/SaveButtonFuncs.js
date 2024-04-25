@@ -9,6 +9,7 @@ import {
 import {treeToTransferable} from '../includes/block/utils.js';
 import toasters from '../includes/toasters.jsx';
 import {pathToFullSlug} from '../includes/utils.js';
+import globalData from '../includes/globalData.js';
 
 const handlerFactoriesMap = {
     currentPageDataBundle: createCurrentPageDataBundleChannelHandler,
@@ -27,8 +28,8 @@ function createStylesBundleChannelHandler() {
          * @param {stateChangeContext} _context
          */
         handleStateChange(state, _userCtx, _context) {
-            const {compiled} = state;
-            api.webPagePreview.updateCss(compiled);
+            const {cachedCompiledScreenSizesCss} = state;
+            api.webPagePreview.updateCss(cachedCompiledScreenSizesCss);
         },
         /**
          * @param {StateHistory} stateHistory
@@ -37,10 +38,10 @@ function createStylesBundleChannelHandler() {
          */
         syncToBackend(stateHistory, _otherHistories) {
             const toTransferable = bundle => ({
-                userScss: bundle.userScss,
-                compiled: bundle.compiled,
+                styleChunks: bundle.styleChunks,
+                cachedCompiledScreenSizesCss: bundle.cachedCompiledScreenSizesCss,
             });
-            const {theme} = api.saveButton.getInstance().getChannelState('currentPageDataBundle');
+            const {theme} = globalData;
             return doPostOrPut(http.put(
                 `/api/themes/${theme.id}/styles/all`,
                 toTransferable(stateHistory.latest)
@@ -165,7 +166,7 @@ function createCurrentPageDataBundleChannelHandler() {
     let unregisterNavigateToNewSlugHandler;
     return {
         /**
-         * @param {any} _state
+         * @param {{page: Page;}} _state
          * @param {StateChangeUserContext|null} _userCtx
          * @param {stateChangeContext} _context
          */

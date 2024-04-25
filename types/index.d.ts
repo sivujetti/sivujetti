@@ -135,6 +135,7 @@ interface Theme {
 
 interface CurrentPageData {
     page: Page;
+    initialPageBlocksStyles: Array<StyleChunk>;
     layout: {
         friendlyName: String;
         structure: Array<LayoutPart>;

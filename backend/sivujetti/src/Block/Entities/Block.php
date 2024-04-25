@@ -4,6 +4,13 @@ namespace Sivujetti\Block\Entities;
 
 use Sivujetti\PushIdGenerator;
 
+/**
+ * @psalm-type stylesLayer = 'user-styles'|'dev-styles'|'todo'
+ * @psalm-type mediaScope = 'all'|'960'|'840'|'600'|'480'|string
+ * @psalm-type styleBlockScope = 'single-block'|'block-type'
+ * @psalm-type StyleChunk = object{scss: string, scope: object{block: styleBlockScope, media: mediaScope, layer: stylesLayer}}
+ * @psalm-type BlockBlueprint = object{blockType: string, initialOwnData: object, initialDefaultsData: object{title: string, renderer: string, styleClasses: string}, initialStyles: array<int, StyleChunk>, initialChildren: array<int, BlockBlueprint>}
+ */
 final class Block extends \stdClass {
     public const TYPE_BUTTON           = "Button";
     public const TYPE_CODE             = "Code";
@@ -132,6 +139,35 @@ final class Block extends \stdClass {
             $out->propsData[] = (object) ["key" => $key, "value" => $value];
             $out->{$key} = $value;
         }
+        return $out;
+    }
+    /**
+     * @param object $blueprint
+     * @psalm-param BlockBlueprint $blueprint 
+     * @param \Closure $onEach
+     * @psalm-param \Closure(BlockBlueprint, Block): void $onEach
+     * @return \Sivujetti\Block\Entities\Block
+     */
+    public static function fromBlueprint2(object $blueprint, \Closure $onEach): Block {
+        $out = new Block;
+        $defaults = $blueprint->initialDefaultsData;
+        $out->type = $blueprint->blockType;
+        $out->title = $defaults->title;
+        $out->renderer = $defaults->renderer;
+        $out->styleClasses = $defaults->styleClasses;
+        $out->id = PushIdGenerator::generatePushId();
+
+        $out->propsData = [];
+        foreach ($blueprint->initialOwnData as $key => $value) {
+            $out->propsData[] = (object) ["key" => $key, "value" => $value];
+            $out->{$key} = $value;
+        }
+
+        $out->children = [];
+        foreach ($blueprint->initialChildren as $child)
+            $out->children[] = self::fromBlueprint2($child, $onEach);
+
+        $onEach($blueprint, $out);
         return $out;
     }
 }

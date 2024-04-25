@@ -21,6 +21,9 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
 use Sivujetti\Update\Updater;
 use Sivujetti\UserTheme\UserThemeAPI;
 
+/**
+ * @psalm-import-type StyleChunk from \Sivujetti\Block\Entities\Block
+ */
 final class PagesController {
     /**
      * GET /[anything]: Renders a page.
@@ -64,7 +67,7 @@ final class PagesController {
             return;
         }
         self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
-            $page, $pageType, $appEnv, $db, false);
+            $page, $pageType, $appEnv, $db, null);
     }
     /**
      * GET /jet-login: Renders the login page.
@@ -196,13 +199,16 @@ final class PagesController {
         $slugOfPageToDuplicate = $req->queryVar("duplicate");
         $page = null;
         //
-        $page = $slugOfPageToDuplicate === null
-            ? self::createEmptyPageWithBlocks($pageType, $layoutsRepo, $req->params->layoutId)
-            : $pagesRepo->getSingle($pageType, ["filters" => [["slug", urldecode($slugOfPageToDuplicate)]]]);
+        [$page, $styles] = $slugOfPageToDuplicate === null
+            ? self::createEmptyPageWithBlocksAndStyles($pageType, $layoutsRepo, $req->params->layoutId)
+            : [
+                $pagesRepo->getSingle($pageType, ["filters" => [["slug", urldecode($slugOfPageToDuplicate)]]]),
+                [] // todo
+            ];
         if (!$page) throw new \RuntimeException("No such page exist", PikeException::BAD_INPUT);
         //
         self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
-            $page, $pageType, $appEnv, $db, true);
+            $page, $pageType, $appEnv, $db, $styles);
     }
     /**
      * POST /api/pages/[w:pageType]: Inserts a new page to the database.
@@ -263,7 +269,7 @@ final class PagesController {
         }
         //
         $pageType = $pagesRepoOld->getPageTypeOrThrow($req->params->pageType);
-        $page = self::createEmptyPageWithBlocks($pageType, $layoutsRepo);
+        [$page, $styles] = self::createEmptyPageWithBlocksAndStyles($pageType, $layoutsRepo);
         if ($errors) throw new \RuntimeException("Shouldn't never happen.");
         $data = (object) [
             "id" => $req->body->id,
@@ -426,7 +432,7 @@ final class PagesController {
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param \Sivujetti\AppEnv $appEnv
      * @param \Pike\Db\FluentDb $db
-     * @param bool $isPlaceholderPage
+     * @param ?array $placeholderPageStyles
      */
     private static function sendPageResponse(Request $req,
                                              Response $res,
@@ -437,11 +443,12 @@ final class PagesController {
                                              PageType $pageType,
                                              AppEnv $appEnv,
                                              FluentDb $db,
-                                             bool $isPlaceholderPage) {
+                                             ?array $placeholderPageStyles = null) {
         $themeAPI = new UserThemeAPI("theme", $apiCtx, new Translator);
         $_ = new UserTheme($themeAPI); // Note: mutates $apiCtx->userDefinesAssets|etc
         //
         self::runBlockBeforeRenderEvent($page->blocks, $apiCtx->blockTypes, $pagesRepo, $appEnv->di);
+        $isPlaceholderPage = $placeholderPageStyles !== null;
         $editModeIsOn = $isPlaceholderPage || ($req->queryVar("in-edit") !== null);
         if (!defined("USE_NEW_RENDER_FEAT")) {
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page);
@@ -478,6 +485,7 @@ final class PagesController {
             assetUrlCacheBustStr: "v={$theWebsite->versionId}",
             dataForPreviewApp: $editModeIsOn ? [
                 "page" => self::pageToRaw($page, $pageType, $isPlaceholderPage),
+                "initialPageBlocksStyles" => $placeholderPageStyles,
                 "layout" => self::layoutToRaw($page->layout),
                 "theme" => self::themeToRaw($theWebsite->activeTheme),
             ] : null,
@@ -540,11 +548,12 @@ final class PagesController {
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param \Sivujetti\Layout\LayoutsRepository $layoutsRepo
      * @param ?string $layoutId = null
-     * @return \Sivujetti\Page\Entities\Page
+     * @return array
+     * @psalm-return [\Sivujetti\Page\Entities\Page, array]
      */
-    private static function createEmptyPageWithBlocks(PageType $pageType,
-                                                      LayoutsRepository $layoutsRepo,
-                                                      ?string $layoutId = null): Page {
+    private static function createEmptyPageWithBlocksAndStyles(PageType $pageType,
+                                                               LayoutsRepository $layoutsRepo,
+                                                               ?string $layoutId = null): array {
         $page = self::createEmptyPage($pageType);
         foreach ($pageType->ownFields as $field) {
             $page->{$field->name} = $field->defaultValue;
@@ -556,8 +565,57 @@ final class PagesController {
                                               PikeException::BAD_INPUT);
         $page->layoutId = $layout->id;
         $page->layout = $layout;
+        if (!defined("USE_NEW_RENDER_FEAT")) {
         self::mergeLayoutBlocksTo($page, $page->layout, $pageType);
-        return $page;
+        return [$page, null];
+        } else {
+        [$blocks, $styles] = self::createInitalBlocksAndStyles($page->layout->structure,
+                                                               $pageType->blockFields);
+        $page->blocks = $blocks;
+        return [$page, $styles];
+        }
+    }
+    /**
+     * @param array $layoutStructure
+     * @param array $blockBlueprints
+     * @return array
+     * @psampl-return [array<int, \Sivujetti\Block\Entities\Block>, StyleChunk]
+     */
+    private static function createInitalBlocksAndStyles(array $layoutStructure,
+                                                        array $blockBlueprints): array {
+        $blocks = [Block::fromBlueprint((object) [
+            "type" => Block::TYPE_PAGE_INFO,
+            "title" => "",
+            "defaultRenderer" => "sivujetti:block-auto",
+            "children" => [],
+            "initialData" => (object) ["overrides" => "[]"]
+        ])];
+        $styles = new \ArrayObject([]);
+        foreach ($layoutStructure as $part) {
+            if ($part->type === Layout::PART_TYPE_GLOBAL_BLOCK_TREE)
+                $blocks[] = Block::fromBlueprint((object) [
+                    "type" => Block::TYPE_GLOBAL_BLOCK_REF,
+                    "title" => "",
+                    "defaultRenderer" => "sivujetti:block-auto",
+                    "children" => [],
+                    "initialData" => (object) [
+                        "globalBlockTreeId" => $part->globalBlockTreeId,
+                        "overrides" => GlobalBlockReferenceBlockType::EMPTY_OVERRIDES,
+                        "useOverrides" => 0,
+                    ],
+                ]);
+            elseif ($part->type === Layout::PART_TYPE_PAGE_CONTENTS) {
+                $blueprintToBlock = fn($it) => Block::fromBlueprint2($it, function ($blueprint, $block) use ($styles) {
+                    foreach ($blueprint->initialStyles as $s) {
+                        $s2 = clone $s;
+                        $s2->scss = str_replace("@placeholder", $block->id, $s2->scss); // 'data-block-id="@placeholder"' -> 'data-block-id="uagNk..."'
+                        $styles[] = $s2;
+                    }
+                });
+                $blocks = [...$blocks, ...array_map($blueprintToBlock, $blockBlueprints)];
+            }
+        }
+        return [$blocks, $styles->getArrayCopy()];
     }
     /**
      * @param \Sivujetti\Page\Entities\Page $toPage
@@ -567,7 +625,6 @@ final class PagesController {
     private static function mergeLayoutBlocksTo(Page $toPage,
                                                 Layout $fromLayout,
                                                 PageType $pageType): void {
-        if (!defined("USE_NEW_RENDER_FEAT")) {
         foreach ($fromLayout->structure as $part) {
             if ($part->type === Layout::PART_TYPE_GLOBAL_BLOCK_TREE)
                 $toPage->blocks[] = Block::fromBlueprint((object) [
@@ -592,31 +649,6 @@ final class PagesController {
                     ]],
                     $pageType->blockFields
                 )));
-        }
-        } else {
-        $toPage->blocks[] = Block::fromBlueprint((object) [
-            "type" => Block::TYPE_PAGE_INFO,
-            "title" => "",
-            "defaultRenderer" => "sivujetti:block-auto",
-            "children" => [],
-            "initialData" => (object) ["overrides" => "[]"]
-        ]);
-        foreach ($fromLayout->structure as $part) {
-            if ($part->type === Layout::PART_TYPE_GLOBAL_BLOCK_TREE)
-                $toPage->blocks[] = Block::fromBlueprint((object) [
-                    "type" => Block::TYPE_GLOBAL_BLOCK_REF,
-                    "title" => "",
-                    "defaultRenderer" => "sivujetti:block-auto",
-                    "children" => [],
-                    "initialData" => (object) [
-                        "globalBlockTreeId" => $part->globalBlockTreeId,
-                        "overrides" => GlobalBlockReferenceBlockType::EMPTY_OVERRIDES,
-                        "useOverrides" => 0,
-                    ],
-                ]);
-            elseif ($part->type === Layout::PART_TYPE_PAGE_CONTENTS)
-                array_push($toPage->blocks, ...array_map([Block::class, "fromBlueprint"], $pageType->blockFields));
-        }
         }
     }
     /**

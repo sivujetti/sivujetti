@@ -1,9 +1,19 @@
-import {__, api, env, generatePushID, makePath, makeSlug, objectUtils} from '@sivujetti-commons-for-edit-app';
+import {
+    __,
+    api,
+    env,
+    generatePushID,
+    makePath,
+    makeSlug,
+    objectUtils,
+    scssWizard,
+} from '@sivujetti-commons-for-edit-app';
 import {treeToTransferable} from '../../includes/block/utils.js';
 import {createTrier, pathToFullSlug} from '../../includes/utils.js';
 import DnDBlockSpawner from '../block/DnDBlockSpawner.jsx';
 import BaseStylesSection from '../default-state-sections/BaseStylesSection.jsx';
 import OnThisPageSection from '../default-state-sections/OnThisPageSection.jsx';
+import globalData from '../../includes/globalData.js';
 
 const STATUS_PUBLISHED = 0;
 
@@ -30,12 +40,16 @@ class PageCreateState extends preact.Component {
         // Push new page to 'currentPageDataBundle'
         api.webPagePreview.onReady(() => { // make sure currentPageDataBundle is loaded
             const saveButton = api.saveButton.getInstance();
-            const pageDataBundleStateWithNewPage = createNewPage(this.props.url.indexOf('/duplicate') > '/pages/'.length);
-            saveButton.pushOp(
-                'currentPageDataBundle',
-                pageDataBundleStateWithNewPage,
-                {event: 'create'}
-            );
+            const pageDataBundleStateWithNewPage = createNewPageDataBundle(this.props.url.indexOf('/duplicate') > '/pages/'.length);
+            const createPageToOpArgs = ['currentPageDataBundle', pageDataBundleStateWithNewPage, {event: 'create'}];
+            const {initialPageBlocksStyles} = globalData;
+            if (!initialPageBlocksStyles.length)
+                saveButton.pushOp(...createPageToOpArgs);
+            else
+                saveButton.pushOpGroup(
+                    createPageToOpArgs,
+                    ['stylesBundle', scssWizard.addManyNewUniqueScopeChunksAndReturnAllRecompiled(initialPageBlocksStyles)]
+                );
             this.unregistrables.push(saveButton.onAfterItemsSynced(() => {
                 const {path} = saveButton.getChannelState('currentPageDataBundle').page;
                 const newPagePath = pathToFullSlug(path, '');
@@ -95,9 +109,9 @@ class PageCreateState extends preact.Component {
 
 /**
  * @param {Boolean} isDuplicated
- * @returns {Page}
+ * @returns {CurrentPageData}
  */
-function createNewPage(isDuplicated) {
+function createNewPageDataBundle(isDuplicated) {
     const saveButton = api.saveButton.getInstance();
     const initial = saveButton.getChannelState('currentPageDataBundle');
     const placeholderPage = initial.page;

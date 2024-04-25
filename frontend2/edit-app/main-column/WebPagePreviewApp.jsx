@@ -9,6 +9,7 @@ import {createSelector} from '../../commons-for-edit-app/ScssWizardFuncs.js';
 import {getBlockEl} from '../../shared-inline.js';
 import {isMetaBlock} from '../includes/block/utils.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
+import globalData from '../includes/globalData.js';
 
 const broadcastInitialStateToListeners = true;
 
@@ -330,9 +331,14 @@ function broadcastCurrentPageData(e) {
     const withId = {...stylesBundle, id: counter + 1};
     saveButton.initChannel('stylesBundle', withId, broadcastInitialStateToListeners);
     saveButton.initChannel('theBlockTree', blocks, broadcastInitialStateToListeners);
-    saveButton.initChannel('currentPageDataBundle', dataBundle);
-    events.emit('webpage-preview-iframe-loaded');
 
+    globalData.initialPageBlocksStyles = getAndInvalidate(dataBundle, 'initialPageBlocksStyles');
+    globalData.theme = getAndInvalidate(dataBundle, 'theme');
+    globalData.layout = getAndInvalidate(dataBundle, 'layout');
+
+    saveButton.initChannel('currentPageDataBundle', dataBundle);
+
+    events.emit('webpage-preview-iframe-loaded');
 }
 
 /**

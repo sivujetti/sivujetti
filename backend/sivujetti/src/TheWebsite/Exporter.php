@@ -2,7 +2,7 @@
 
 namespace Sivujetti\TheWebsite;
 
-use Pike\Db\FluentDb;
+use Pike\Db\{FluentDb, FluentDb2};
 use Pike\{AppConfig, Db};
 
 /**
@@ -11,14 +11,18 @@ use Pike\{AppConfig, Db};
 final class Exporter {
     /** @var \Pike\Db\FluentDb */
     private FluentDb $db;
+    /** @var \Pike\Db\FluentDb2 */
+    private FluentDb2 $db2;
     /** @var \Pike\AppConfig */
     private AppConfig $config;
     /**
      * @param \Pike\Db\FluentDb $db
+     * @param \Pike\Db\FluentDb2 $db2
      * @param \Pike\AppConfig $config
      */
-    public function __construct(FluentDb $db, AppConfig $config) {
+    public function __construct(FluentDb $db, FluentDb $db2, AppConfig $config) {
         $this->db = $db;
+        $this->db2 = $db2;
         $this->config = $config;
     }
     /**
@@ -59,7 +63,7 @@ final class Exporter {
             //
             $columnInfos = self::describeTableColums(
                 $tableName,
-                $this->db->getDb(),
+                (!defined("USE_NEW_FLUENT_DB") ? $this->db : $this->db2)->getDb(),
                 $dbDriver,
                 $schemaName
             );
@@ -100,10 +104,17 @@ final class Exporter {
      */
     private function getEachRowFrom(string $tableName, array $infos): array {
         $cols = array_column($infos, "colName");
+        if (!defined("USE_NEW_FLUENT_DB")) {
         return $this->db->select("`\${p}{$tableName}`", "\stdClass")
             ->fields($cols)
             ->limit(1000)
             ->fetchAll();
+        } else {
+        return $this->db2->select("`\${p}{$tableName}`")
+            ->fields($cols)
+            ->limit(1000)
+            ->fetchAll(\PDO::FETCH_OBJ);
+        }
     }
     /**
      * @param string $tableName

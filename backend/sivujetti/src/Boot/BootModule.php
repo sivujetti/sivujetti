@@ -169,7 +169,7 @@ class BootModule {
         ]);
 
         //
-        $fluentDb = $di->make(FluentDb::class);
+        $fluentDb = $di->make(!defined("USE_NEW_FLUENT_DB") ? FluentDb::class : FluentDb2::class);
         $fluentDb->getDb()->open($this->configBundle["app"]["db.driver"] === "sqlite"
             ? [\PDO::ATTR_EMULATE_PREPARES => 0]
             : [\PDO::ATTR_EMULATE_PREPARES => 0, \PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE"]

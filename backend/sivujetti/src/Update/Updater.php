@@ -3,13 +3,13 @@
 namespace Sivujetti\Update;
 
 use Pike\{ArrayUtils, FileSystem, Injector, PikeException};
-use Pike\Db\FluentDb;
+use Pike\Db\{FluentDb, FluentDb2};
 use Sivujetti\{App, AppEnv, JsonUtils, LogUtils};
 use Sivujetti\Update\Entities\Job;
 
 /**
  * @psalm-type Package object{name: string, sig: string}
-*/
+ */
 final class Updater {
     public const RESULT_BAD_INPUT           = 111010;
     public const RESULT_ALREADY_IN_PROGRESS = 111011;
@@ -22,6 +22,8 @@ final class Updater {
     private const UPDATE_JOB_NAME_DEFAULT = "updates:all";
     /** @var \Pike\Db\FluentDb */
     private FluentDb $db;
+    /** @var \Pike\Db\FluentDb2 */
+    private FluentDb2 $db2;
     /** @var \Pike\FileSystem */
     private FileSystem $fs;
     /** @var \Sivujetti\Update\HttpClientInterface */
@@ -42,6 +44,7 @@ final class Updater {
     private static Injector $di;
     /**
      * @param \Pike\Db\FluentDb $db
+     * @param \Pike\Db\FluentDb2 $db2
      * @param \Pike\FileSystem $fs
      * @param \Sivujetti\Update\HttpClientInterface $http
      * @param \Sivujetti\Update\Signer $signer
@@ -51,6 +54,7 @@ final class Updater {
      * @param string $errorLogFn = "error_log" Mainly for tests
      */
     public function __construct(FluentDb $db,
+                                FluentDb2 $db2,
                                 FileSystem $fs,
                                 HttpClientInterface $http,
                                 Signer $signer,
@@ -59,6 +63,7 @@ final class Updater {
                                 string $targetIndexDirPath = SIVUJETTI_INDEX_PATH,
                                 string $errorLogFn = "error_log") {
         $this->db = $db;
+        $this->db2 = $db2;
         $this->fs = $fs;
         $this->http = $http;
         $this->signer = $signer;
@@ -342,10 +347,17 @@ final class Updater {
      * @deprecated
      */
     private function getUpdateState(string $taskName): Job {
+        if (!defined("USE_NEW_FLUENT_DB")) {
         $job = $this->db->select("\${p}jobs", Job::class)
             ->fields(["startedAt"])
             ->where("`jobName` = ?", [$taskName])
             ->fetchAll()[0] ?? null; // #ref-1
+        } else {
+        $job = $this->db2->select("\${p}jobs")
+            ->fields(["startedAt"])
+            ->where("`jobName` = ?", [$taskName])
+            ->fetchAll(\PDO::FETCH_CLASS, Job::class)[0] ?? null; // #ref-1
+        }
         if (!($job instanceof Job)) throw new PikeException("Invalid database state", 301010);
         return $job;
     }
@@ -354,7 +366,7 @@ final class Updater {
      * @deprecated
      */
     private function updateUpdateStateAsStarted(string $taskName): void {
-        $db = $this->db->getDb();
+        $db = (!defined("USE_NEW_FLUENT_DB") ? $this->db : $this->db2)->getDb();
         $db->beginTransaction(); // Force other requests/processes to wait at #ref-1
         $db->exec("UPDATE `\${p}jobs` SET `startedAt` = ? WHERE `jobName` = ?",
                   [time(), $taskName]);
@@ -369,7 +381,8 @@ final class Updater {
     private function updateUpdateStateAsEnded(string $taskName,
                                               ?string $failedWhile = null,
                                               ?\Exception $_failDetails = null): void {
-        $this->db->update("\${p}jobs")
+        $db = !defined("USE_NEW_FLUENT_DB") ? $this->db : $this->db2;
+        $db->update("\${p}jobs")
             ->values((object) ["startedAt" => 0])
             ->where("`jobName` = ?", [$taskName])
             ->execute();
@@ -449,7 +462,8 @@ final class Updater {
                 ? ["pendingUpdates" => JsonUtils::stringify($packages)]
                 : []
         );
-        $this->db->update("\${p}theWebsite")
+        $db = !defined("USE_NEW_FLUENT_DB") ? $this->db : $this->db2;
+        $db->update("\${p}theWebsite")
             ->values((object) $data)
             ->where("pendingUpdates is null")
             ->execute();
@@ -517,10 +531,17 @@ final class Updater {
      * @return \Sivujetti\Update\Entities\Job
      */
     private function getUpdateJob(): Job {
+        if (!defined("USE_NEW_FLUENT_DB")) {
         $job = $this->db->select("\${p}jobs", Job::class)
             ->fields(["startedAt"])
             ->where("`jobName` = ?", [self::UPDATE_JOB_NAME_DEFAULT])
             ->fetchAll()[0] ?? null; // #ref-1
+        } else {
+        $job = $this->db2->select("\${p}jobs")
+            ->fields(["startedAt"])
+            ->where("`jobName` = ?", [self::UPDATE_JOB_NAME_DEFAULT])
+            ->fetchAll(\PDO::FETCH_CLASS, Job::class)[0] ?? null; // #ref-1
+        }
         if (!($job instanceof Job)) throw new PikeException("Invalid database state", 301010);
         return $job;
     }
@@ -528,9 +549,10 @@ final class Updater {
      * @param string $taskName self::UPDATE_*_TASK
      */
     private function updateUpdateJob(array $data): void {
-        $db = $this->db->getDb();
+        $fluentDb = !defined("USE_NEW_FLUENT_DB") ? $this->db : $this->db2;
+        $db = $fluentDb->getDb();
         $db->beginTransaction(); // Force other requests/processes to wait at #ref-1
-        $this->db->update("\${p}jobs")
+        $fluentDb->update("\${p}jobs")
             ->values((object) $data)
             ->where("jobName = ?", [self::UPDATE_JOB_NAME_DEFAULT])
             ->execute();
@@ -578,11 +600,12 @@ final class Updater {
     /**
      */
     private function markUpdatesAsEnded(): void {
-        $this->db->update("\${p}jobs")
+        $db = !defined("USE_NEW_FLUENT_DB") ? $this->db : $this->db2;
+        $db->update("\${p}jobs")
             ->values((object) ["startedAt" => 0])
             ->where("`jobName` = ?", [self::UPDATE_JOB_NAME_DEFAULT])
             ->execute();
-        $this->db->update("\${p}theWebsite")
+        $db->update("\${p}theWebsite")
             ->values((object) ["pendingUpdates" => null, "lastUpdatedAt" => time()])
             ->where("1=1")
             ->execute();

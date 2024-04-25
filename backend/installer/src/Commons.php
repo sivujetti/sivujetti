@@ -198,13 +198,14 @@ return [
      * @param bool $isSqlite
      */
     private function insertManyTableBundles(array $bundles, array $config): void {
-        $db = new \Pike\Db\FluentDb($this->db);
+        $Cls = "\\Pike\\Db\\FluentDb" . (!defined("USE_NEW_FLUENT_DB") ? "" : "2");
+        $fluentDb = new $Cls($this->db);
         $tail = $config["db.driver"] === "sqlite" ? " TRANSACTION" : "";
         $this->db->exec("BEGIN{$tail}");
         foreach ($bundles as $bundle) { // Note: trust input / assumes that each bundle->tableName, and each field bundle->entities[*] are valid
             $infos = Exporter::describeTableColums($bundle->tableName, $this->db, $config["db.driver"], $config["db.database"]);
             $cols = \array_column($infos, "colName");
-            $db->insert($bundle->tableName)->fields($cols)->values($bundle->entities)->execute();
+            $fluentDb->insert($bundle->tableName)->fields($cols)->values($bundle->entities)->execute();
         }
         $this->db->exec("COMMIT{$tail}");
     }

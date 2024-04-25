@@ -26,7 +26,8 @@ final class DeletePageTypeTest extends PageTypesControllerTestCase {
         $state->spyingResponse = $state->app->sendRequest($this->createApiRequest($url, "DELETE"));
     }
     private function verifyDeletePageTypeFromDb(\TestState $state): void {
-        $all = (new TheWebsiteRepository())->fetchActive(new \Pike\Db\FluentDb(self::$db))->pageTypes;
+        $Cls = "\\Pike\\Db\\FluentDb" . (!defined("USE_NEW_FLUENT_DB") ? "" : "2");
+        $all = (new TheWebsiteRepository())->fetchActive(new $Cls(self::$db))->pageTypes;
         $actual = ArrayUtils::findByKey($all, PageTypeMigrator::MAGIC_PAGE_TYPE_NAME, "name");
         $this->assertNull($actual);
     }

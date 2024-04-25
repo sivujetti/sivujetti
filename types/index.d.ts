@@ -566,16 +566,16 @@ interface StateChangeUserContext {
     [otherData: String]; any;
 }
 
-interface StateHistory {
+interface StateHistory<T = any> {
     channelName: String;
-    initial: any;
-    first: any|null;
-    latest: any|null;
+    initial: T;
+    first: T|null;
+    latest: T|null;
 }
 
-interface SaveButtonChannelHandler {
-    handleStateChange(state: any, userCtx: StateChangeUserContext|null, context: stateChangeContext): any;
-    syncToBackend(stateHistory: StateHistory, otherHistories: Array<StateHistory>): Promise<Boolean|any>;
+interface SaveButtonChannelHandler<T = any> {
+    handleStateChange(state: T, userCtx: StateChangeUserContext|null, context: stateChangeContext): void;
+    syncToBackend(stateHistory: StateHistory<T>, otherHistories: Array<StateHistory>): Promise<Boolean|any>;
 }
 
 interface BlockRendererProps {

@@ -18,7 +18,7 @@ class MenuBlockEditForm extends preact.Component {
         this.outerEl = preact.createRef();
         this.contextMenu = preact.createRef();
         const {block} = this.props;
-        const pageSlug = api.saveButton.getInstance().getChannelState('currentPageDataBundle').page.slug;
+        const pageSlug = api.saveButton.getInstance().getChannelState('currentPageData').slug;
         const trid = 'main'; // getIsStoredToTreeIdFrom(block.id, 'mainTree');
         this.currentBlockIdInfo = `${block.id}:${trid}:${pageSlug}`;
         this.setState({parsedTree: this.linkCreator.setGetCounterUsingTreeOf(block),

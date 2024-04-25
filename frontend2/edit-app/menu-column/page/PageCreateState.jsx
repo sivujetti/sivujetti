@@ -37,11 +37,11 @@ class PageCreateState extends preact.Component {
         this.pageType = api.getPageTypes().find(({name}) => name === pageTypeName);
         const triplet = this.props.matches.addToMenu;
         this.addToMenuIdInfo = !triplet ? null: triplet.split(':').map(input => input.replace(/[^a-zA-Z0-9_/-]/g, ''));
-        // Push new page to 'currentPageDataBundle'
-        api.webPagePreview.onReady(() => { // make sure currentPageDataBundle is loaded
+        // Push new page to 'currentPageData'
+        api.webPagePreview.onReady(() => { // make sure currentPageData is loaded
             const saveButton = api.saveButton.getInstance();
-            const pageDataBundleStateWithNewPage = createNewPageDataBundle(this.props.url.indexOf('/duplicate') > '/pages/'.length);
-            const createPageToOpArgs = ['currentPageDataBundle', pageDataBundleStateWithNewPage, {event: 'create'}];
+            const withNewPage = createNewCurrentPageData(this.props.url.indexOf('/duplicate') > '/pages/'.length);
+            const createPageToOpArgs = ['currentPageData', withNewPage, {event: 'create'}];
             const {initialPageBlocksStyles} = globalData;
             if (!initialPageBlocksStyles.length)
                 saveButton.pushOp(...createPageToOpArgs);
@@ -51,7 +51,7 @@ class PageCreateState extends preact.Component {
                     ['stylesBundle', scssWizard.addManyNewUniqueScopeChunksAndReturnAllRecompiled(initialPageBlocksStyles)]
                 );
             this.unregistrables.push(saveButton.onAfterItemsSynced(() => {
-                const {path} = saveButton.getChannelState('currentPageDataBundle').page;
+                const {path} = saveButton.getChannelState('currentPageData');
                 const newPagePath = pathToFullSlug(path, '');
                 env.window.myRoute(newPagePath);
             }));
@@ -109,27 +109,21 @@ class PageCreateState extends preact.Component {
 
 /**
  * @param {Boolean} isDuplicated
- * @returns {CurrentPageData}
+ * @returns {Page}
  */
-function createNewPageDataBundle(isDuplicated) {
+function createNewCurrentPageData(isDuplicated) {
     const saveButton = api.saveButton.getInstance();
-    const initial = saveButton.getChannelState('currentPageDataBundle');
-    const placeholderPage = initial.page;
+    const placeholderPage = saveButton.getChannelState('currentPageData');
     const title = __(placeholderPage.title) + (!isDuplicated ? '' : ` (${__('Copy')})`);
     const slug = makeSlug(title);
     return objectUtils.cloneDeep({
-        ...initial,
-        ...{page: {
-            ...placeholderPage,
-            ...{
-                id: generatePushID(),
-                title,
-                slug,
-                path: makePath(slug, api.getPageTypes().find(({name}) => name === placeholderPage.type)),
-                blocks: treeToTransferable(saveButton.getChannelState('theBlockTree')),
-                status: STATUS_PUBLISHED,
-            },
-        }}
+        ...placeholderPage,
+        id: generatePushID(),
+        title,
+        slug,
+        path: makePath(slug, api.getPageTypes().find(({name}) => name === placeholderPage.type)),
+        blocks: treeToTransferable(saveButton.getChannelState('theBlockTree')),
+        status: STATUS_PUBLISHED,
     });
 }
 
@@ -137,7 +131,7 @@ function createNewPageDataBundle(isDuplicated) {
  * @returns {PartialMenuLink}
  */
 function createMenuLinkFromNewestData() {
-    const {page} = api.saveButton.getInstance().getChannelState('currentPageDataBundle');
+    const page = api.saveButton.getInstance().getChannelState('currentPageData');
     return {slug: pathToFullSlug(page.path), text: page.title};
 }
 

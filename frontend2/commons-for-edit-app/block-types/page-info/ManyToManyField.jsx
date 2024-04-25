@@ -120,11 +120,10 @@ class ManyToManyField extends preact.Component {
         this.firstPanelEl = preact.createRef();
         const saveButton = api.saveButton.getInstance();
         this.state = {
-            currentManyToManyIdList: getManyToManyValue(saveButton.getChannelState('currentPageDataBundle').page, this.k),
+            currentManyToManyIdList: getManyToManyValue(saveButton.getChannelState('currentPageData'), this.k),
             createCatPanelState: createCreateCatPanelStateState(),
         };
-        this.unregistrables = [saveButton.subscribeToChannel('currentPageDataBundle', (bundleAll, _userCtx, _ctx) => {
-            const {page} = bundleAll;
+        this.unregistrables = [saveButton.subscribeToChannel('currentPageData', (page, _userCtx, _ctx) => {
             if (this.state.currentManyToManyIdList.toString() !== page[this.k].toString())
                this.setState({currentManyToManyIdList: getManyToManyValue(page, this.k)});
         })];

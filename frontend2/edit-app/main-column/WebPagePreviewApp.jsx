@@ -332,11 +332,11 @@ function broadcastCurrentPageData(e) {
     saveButton.initChannel('stylesBundle', withId, broadcastInitialStateToListeners);
     saveButton.initChannel('theBlockTree', blocks, broadcastInitialStateToListeners);
 
-    globalData.initialPageBlocksStyles = getAndInvalidate(dataBundle, 'initialPageBlocksStyles');
-    globalData.theme = getAndInvalidate(dataBundle, 'theme');
-    globalData.layout = getAndInvalidate(dataBundle, 'layout');
+    globalData.initialPageBlocksStyles = dataBundle.initialPageBlocksStyles;
+    globalData.theme = dataBundle.theme;
+    globalData.layout = dataBundle.layout;
 
-    saveButton.initChannel('currentPageDataBundle', dataBundle);
+    saveButton.initChannel('currentPageData', dataBundle.page);
 
     events.emit('webpage-preview-iframe-loaded');
 }

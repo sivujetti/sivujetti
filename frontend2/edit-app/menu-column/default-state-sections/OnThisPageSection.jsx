@@ -174,7 +174,7 @@ class OnThisPageSection extends MenuSectionAbstract {
         if (link.id === 'duplicate')
             env.window.myRoute(`/pages/${encodeURIComponent(this.slugOfPageWithNavOpened)}/duplicate`);
         else if (link.id === 'delete') {
-            const {page} = api.saveButton.getInstance().getChannelState('currentPageDataBundle');
+            const page = api.saveButton.getInstance().getChannelState('currentPageData');
             openPageDeleteDialog(page.slug, page.title, () => {
                 urlUtils.redirect('/_edit');
             });

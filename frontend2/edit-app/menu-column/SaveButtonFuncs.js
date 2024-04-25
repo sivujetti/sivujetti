@@ -12,7 +12,7 @@ import {pathToFullSlug} from '../includes/utils.js';
 import globalData from '../includes/globalData.js';
 
 const handlerFactoriesMap = {
-    currentPageDataBundle: createCurrentPageDataBundleChannelHandler,
+    currentPageData: createCurrentPageDataChannelHandler,
     globalBlockTrees: createGlobalBlockTreesChannelHandler,
     quicklyAddedPages: createQuicklyAddedPagesChannelHandler,
     reusableBranches: createReusableBranchesChannelHandler,
@@ -70,7 +70,7 @@ function createBlockTreeChannelHandler() {
          * @returns {Promise<Boolean|any>}
          */
         syncToBackend(stateHistory, _otherHistories) {
-            const {page} = api.saveButton.getInstance().getChannelState('currentPageDataBundle');
+            const page = api.saveButton.getInstance().getChannelState('currentPageData');
             const blocks = treeToTransferable(stateHistory.latest);
             return doPostOrPut(http.put(
                 `/api/pages/${page.type}/${page.id}/blocks`,
@@ -162,11 +162,11 @@ function createQuicklyAddedPagesChannelHandler() {
     };
 }
 
-function createCurrentPageDataBundleChannelHandler() {
+function createCurrentPageDataChannelHandler() {
     let unregisterNavigateToNewSlugHandler;
     return {
         /**
-         * @param {{page: Page;}} _state
+         * @param {Page} _state
          * @param {StateChangeUserContext|null} _userCtx
          * @param {stateChangeContext} _context
          */
@@ -174,18 +174,18 @@ function createCurrentPageDataBundleChannelHandler() {
             // Do nothing
         },
         /**
-         * @param {StateHistory} stateHistory
+         * @param {StateHistory<Page>} stateHistory
          * @param {Array<StateHistory>} _otherHistories
          * @returns {Promise<Boolean|any>}
          */
-        syncToBackend(stateHistory, _otherHistories) { 
-            if (!stateHistory.latest.page.isPlaceholderPage) {
+        syncToBackend(stateHistory, _otherHistories) {
+            if (!stateHistory.latest.isPlaceholderPage) {
                 return this.syncAlreadyExistingPageToBackend(
-                    stateHistory.latest.page,
-                    stateHistory.initial.page,
+                    stateHistory.latest,
+                    stateHistory.initial,
                 );
             }
-            return this.syncNewPageToBackend(stateHistory.latest.page);
+            return this.syncNewPageToBackend(stateHistory.latest);
         },
         /**
          * @param {Page} page

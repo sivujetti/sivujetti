@@ -1,5 +1,4 @@
 import {env, urlUtils} from '@sivujetti-commons-for-web-pages';
-import blockTreeUtils from '../../block/tree-utils.js';
 import {__, api} from '../../edit-app-singletons.js';
 import {
     FormGroup,
@@ -13,7 +12,7 @@ import {
     unhookForm,
 } from '../../Form.jsx';
 import setFocusTo from '../../auto-focusers.js';
-import {isUndoOrRedo, timingUtils} from '../../utils.js';
+import {isUndoOrRedo, objectUtils, timingUtils} from '../../utils.js';
 import {makePath, makeSlug} from '../../local-url-utils.js';
 import {urlValidatorImpl} from '../../validation.js';
 import ImagePicker from '../../ImagePicker.jsx';
@@ -30,7 +29,7 @@ class PageInfoBlockEditForm extends preact.Component {
      */
     componentWillMount() {
         const saveButton = api.saveButton.getInstance();
-        const curPage = saveButton.getChannelState('currentPageDataBundle').page;
+        const curPage = saveButton.getChannelState('currentPageData');
         this.titleEl = preact.createRef();
         this.descriptionEl = preact.createRef();
         this.pageType = api.getPageTypes().find(({name}) => name === curPage.type);
@@ -60,14 +59,14 @@ class PageInfoBlockEditForm extends preact.Component {
             socialImageSrc: getNormalizedMetaImageSrc(curPage)
         }));
 
-        this.unregistrables = [saveButton.subscribeToChannel('currentPageDataBundle', (bundleAll, _userCtx, _ctx) => {
-            const newCandidate = createFormState(bundleAll.page);
+        this.unregistrables = [saveButton.subscribeToChannel('currentPageData', (page, _userCtx, _ctx) => {
+            const newCandidate = createFormState(page);
             if (newCandidate[0].value !== this.state.values.title ||
                 newCandidate[1].value !== this.state.values.slug ||
                 newCandidate[2].value !== this.state.values.description) {
                 reHookValues(this, newCandidate);
             }
-            const srcCandidate = getNormalizedMetaImageSrc(bundleAll.page);
+            const srcCandidate = getNormalizedMetaImageSrc(page);
             if (this.state.socialImageSrc !== srcCandidate)
                 this.setState({socialImageSrc: srcCandidate});
         })];
@@ -176,15 +175,15 @@ function createFormState(page) {
  */
 function handleValuesChanged(changesOrMutator, _hasErrors = false, flags = null) {
     const saveButton = api.saveButton.getInstance();
-    const bundleAll = saveButton.getChannelState('currentPageDataBundle');
+    const page = saveButton.getChannelState('currentPageData');
     saveButton.pushOp(
-        'currentPageDataBundle',
-        blockTreeUtils.createMutation(bundleAll, newBundleAllCopy => {
+        'currentPageData',
+        objectUtils.cloneDeepWithChanges(page, pageCopy => {
             if (typeof changesOrMutator !== 'function')
-                Object.assign(newBundleAllCopy.page, changesOrMutator);
+                Object.assign(pageCopy, changesOrMutator);
             else
-                changesOrMutator(newBundleAllCopy.page);
-            return newBundleAllCopy;
+                changesOrMutator(pageCopy);
+            return pageCopy;
         }),
         {event: 'update-basic-info'},
         flags

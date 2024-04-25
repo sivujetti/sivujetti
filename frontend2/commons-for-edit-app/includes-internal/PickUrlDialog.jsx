@@ -143,7 +143,7 @@ class PickUrlDialog extends preact.Component {
         let content;
         let arrowLeft;
         if (pop === 'pick-url') {
-            const currentPageSlug = api.saveButton.getInstance().getChannelState('currentPageDataBundle').page.slug;
+            const currentPageSlug = api.saveButton.getInstance().getChannelState('currentPageData').slug;
             [content, arrowLeft] = [<PickPageTab
                 url={ this.state.url }
                 onPickurl={ slug => {

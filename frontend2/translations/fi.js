@@ -210,7 +210,7 @@ stringBundles.push({
     'Evaluates to\n`body [specifierHere] .%s`': 'Evaluoituu muotoon\n`body [tarkenneTähän] .%s`',
     'e.g. `>`, `div`, `.j-Button >`': 'esim. `>`, `div`, `.j-Button >`',
     // edit-app/src/popups/styles/ScreenSizesTabShowHelpPopup.jsx
-    'You can define styles separately for different screen widths. The style for the smallest screen size "wins".': 'Voit määritellä tyylit erikseen eri levyisille näytöille. Pienimmän näyttökoon tyyli "voittaa".',
+    'You can define styles separately for different screen widths according to the following table. You can preview the styles by resizing the browser window.': 'Voit määritellä tyylit erikseen eri levyisille näytöille seuraavan taulukon mukaisesti. Voit esikatsella tyylejä muuttamalla selainikkunan kokoa.',
     'Width': 'Leveys',
     'Affects when screen is': 'Vaikuttaa leveydellä',
     'Examples': 'Esimerkit',

@@ -209,7 +209,7 @@ stringBundles.push({
     'Evaluates to\n`body [specifierHere] .%s`': 'Evaluates to\n`body [specifierHere] .%s`',
     'e.g. `>`, `div`, `.j-Button >`': 'e.g. `>`, `div`, `.j-Button >`',
     // edit-app/src/popups/styles/ScreenSizesTabShowHelpPopup.jsx
-    'You can define styles separately for different screen widths. The style for the smallest screen size "wins".': 'You can define styles separately for different screen widths. The style for the smallest screen size "wins".',
+    'You can define styles separately for different screen widths according to the following table. You can preview the styles by resizing the browser window.': 'You can define styles separately for different screen widths according to the following table. You can preview the styles by resizing the browser window.',
     'Width': 'Width',
     'Affects when screen is': 'Affects when screen is',
     'Examples': 'Examples',

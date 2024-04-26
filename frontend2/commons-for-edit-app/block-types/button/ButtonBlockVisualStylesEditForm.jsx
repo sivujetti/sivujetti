@@ -11,7 +11,7 @@ const cssVarDefs = [
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
-            label: 'Background normal',
+            label: 'Background',
             inputId: 'buttonBgNormalColor',
         },
     },
@@ -31,7 +31,7 @@ const cssVarDefs = [
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
-            label: 'Text normal',
+            label: 'Text',
             inputId: 'buttonTextNormalColor',
         },
     },
@@ -51,7 +51,7 @@ const cssVarDefs = [
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
-            label: 'Border normal',
+            label: 'Border',
             inputId: 'buttonBorderNormalColor',
         },
     },

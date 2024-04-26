@@ -6,8 +6,8 @@ class ScreenSizesTabShowHelpPopup extends preact.Component {
     render() {
         return <div>
             <div class="with-icon py-1 mb-2">
-                <Icon iconId="info-circle" className="size-sm color-dimmed3"/>
-                <span>{ __('You can define styles separately for different screen widths. The style for the smallest screen size "wins".') }</span>
+                <span><Icon iconId="info-circle" className="size-sm color-dimmed3"/></span>
+                { __('You can define styles separately for different screen widths according to the following table. You can preview the styles by resizing the browser window.') }
             </div>
             <table class="table table-striped">
                 <thead><tr>

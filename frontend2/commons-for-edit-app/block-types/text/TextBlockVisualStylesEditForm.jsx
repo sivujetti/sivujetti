@@ -34,16 +34,6 @@ const cssVarDefs = [
         },
     },
     {
-        varName: 'lineHeight',
-        cssProp: 'line-height',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'length',
-            label: 'Line height',
-            inputId: 'textLineHeight',
-        },
-    },
-    {
         varName: 'fontSize',
         cssProp: 'font-size',
         cssSubSelector: null,
@@ -51,6 +41,16 @@ const cssVarDefs = [
             valueType: 'length',
             label: 'Font size',
             inputId: 'textFontSize',
+        },
+    },
+    {
+        varName: 'lineHeight',
+        cssProp: 'line-height',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Line height',
+            inputId: 'textLineHeight',
         },
     },
     {

@@ -13,8 +13,9 @@ const cssVarDefs = [
         widgetSettings: {
             valueType: 'option',
             options: [
-                {label: __('Side by side / horizontal'), value: '0 1 0'},
-                {label: __('One below another/ vertical'), value: '1 0 100%'},
+                {label: __('Side by side narrow ↔'), value: '0 0 0'},
+                {label: __('Side by side wide ↔'), value: '1 1 auto'},
+                {label: __('Stacked ↕'), value: '1 0 100%'},
                 {label: '-', value: null},
             ],
             label: 'Items width',

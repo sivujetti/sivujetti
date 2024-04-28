@@ -530,17 +530,27 @@ final class WebPageAwareTemplate extends Template {
         };
     }
     /**
-     * ?string $currentUrl = null
+     * @param ?string $currentUrl = null
+     * @param ?bool $includeUserFlags = false
      * @return string
      */
-    protected function generateSivujettiEnvConfJs(?string $currentUrl = null): string {
+    protected function generateSivujettiEnvConfJs(?string $currentUrl = null,
+                                                  ?bool $includeUserFlags = false): string {
         return (
-            "window.sivujettiEnvConfig = " . self::escInlineJs(JsonUtils::stringify([
-                "baseUrl" => $this->makeUrl("/", true),
-                "assetBaseUrl" => $this->makeUrl("/", false),
-                "currentPageSlug" => $currentUrl ?? "/",
-                "cacheBustStr" => explode("v=", $this->assetUrl("/"))[1] ?? "",
-            ])) . ";"
+            "(function ({envConfig, userFlags}) {\n" .
+            "  window.sivujettiEnvConfig = envConfig;\n" .
+            "  window.sivujettiUserFlags = userFlags;\n" .
+            "})(" . self::escInlineJs(JsonUtils::stringify([
+                "envConfig" => [
+                    "baseUrl" => $this->makeUrl("/", true),
+                    "assetBaseUrl" => $this->makeUrl("/", false),
+                    "currentPageSlug" => $currentUrl ?? "/",
+                    "cacheBustStr" => explode("v=", $this->assetUrl("/"))[1] ?? "",
+                ],
+                "userFlags" => $includeUserFlags ? [
+                    "useShortIds" => defined("USE_SHORT_IDS"),
+                ] : null,
+            ])) . ")"
         );
     }
     /**

@@ -424,7 +424,7 @@ function duplicateDeepAndReAssignIds(block) { // where to put this
     const out = objectUtils.cloneDeep(block);
     console.log('bef',{...out});
     traverseRecursively([out], bRef => {
-        bRef.id = generateShortId();
+        bRef.id = generatePushID(true);
     });
     console.log('then',{...out});
     return out;

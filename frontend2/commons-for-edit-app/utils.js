@@ -1,4 +1,5 @@
 import {cloneDeep} from '../shared-inline.js';
+import {generateShortId} from './short-id-gen.js';
 
 const stringUtils = {
     /**
@@ -102,7 +103,9 @@ const generatePushID = (function() {
   // "incremented" by one.
   var lastRandChars = [];
 
-  return function() {
+  return function(genShortInstead = false) {
+    if (genShortInstead && window.sivujettiUserFlags?.useShortIds)
+        return generateShortId();
     var now = new Date().getTime();
     var duplicateTime = (now === lastPushTime);
     lastPushTime = now;
@@ -139,6 +142,7 @@ const generatePushID = (function() {
 
 export {
     generatePushID,
+    generateShortId,
     isUndoOrRedo,
     objectUtils,
     stringUtils,

@@ -237,7 +237,7 @@
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/stylis.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/popper.min.js") ?>"></script>
         <script defer src="<?= $this->assetUrl("public/sivujetti/vendor/run-codemirror-6.min.js") ?>"></script>
-        <script><?= $this->generateSivujettiEnvConfJs() ?></script>
+        <script><?= $this->generateSivujettiEnvConfJs(includeUserFlags: true) ?></script> 
         <script>window.isFirstRun = <?= $isFirstRun ? "true" : "false" ?></script>
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
         <script>window.translationStringBundles = []</script>

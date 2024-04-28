@@ -184,13 +184,13 @@ module.exports = args => {
         }
         if (bundleName === BundleNames.TESTS)
             return {
-                input: 'frontend/tests/main.js',
+                input: 'frontend2/tests/main.js',
                 output: makeOutputCfg({
                     file: 'public/tests/bundled-main.js',
                     globals: editAppGlobals,
                 }),
-                plugins: [makeJsxPlugin()].concat(...postPlugins),
                 external: editAppExternals,
+                plugins: [makeJsxPlugin()].concat(...postPlugins),
                 watch: watchSettings
             };
         throw new Error(`Unknown bundle name "${bundleName}". Known: ${Object.values(BundleNames).join(', ')}`);

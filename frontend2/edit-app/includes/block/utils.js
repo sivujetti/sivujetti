@@ -62,7 +62,7 @@ function getIsStoredToTreeIdFrom(blockId, from) {
 function createBlock(defProps, ownProps) {
     const out = {
         ...{
-            id: defProps.id || generatePushID(),
+            id: defProps.id || generatePushID(true),
             type: defProps.type,
             title: defProps.title || '',
             children: [],

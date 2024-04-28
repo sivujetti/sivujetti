@@ -19,10 +19,14 @@
     <script src="qunit-2.16.0.js"></script>
     <script src="sinon.min.js"></script>
     <script>
-        window.sivujettiBaseUrl = 'overridden-at-tests-main';
-        window.sivujettiAssetBaseUrl = 'overridden-at-tests-main';
-        window.sivujettiCacheBustStr = 'overridden-at-tests-main';
+        window.sivujettiEnvConfig = {
+            baseUrl: 'todo',
+            assetBaseUrl: 'todo',
+            currentPageSlug: 'todo',
+            cacheBustStr: 'todo',
+        };
     </script>
+    <script src="../sivujetti/sivujetti-commons-for-web-pages.js"></script>
     <script src="../sivujetti/sivujetti-commons-for-edit-app.js"></script>
     <!-- See ../frontend/tests/main.js -->
     <script src="bundled-main.js"></script>

@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Block\Entities;
 
-use Sivujetti\PushIdGenerator;
+use Sivujetti\{PushIdGenerator, ShortIdGenerator};
 
 /**
  * @psalm-type stylesLayer = 'user-styles'|'dev-styles'|'todo'
@@ -129,7 +129,11 @@ final class Block extends \stdClass {
         $out->type = $blueprint->type;
         $out->title = $blueprint->title;
         $out->renderer = $blueprint->defaultRenderer;
+        if (!defined("USE_SHORT_IDS")) {
         $out->id = PushIdGenerator::generatePushId();
+        } else {
+        $out->id = ShortIdGenerator::generate();
+        }
         $out->propsData = [];
         $out->styleClasses = $blueprint->styleClasses ?? "";
         $out->children = [];
@@ -155,7 +159,11 @@ final class Block extends \stdClass {
         $out->title = $defaults->title;
         $out->renderer = $defaults->renderer;
         $out->styleClasses = $defaults->styleClasses;
+        if (!defined("USE_SHORT_IDS")) {
         $out->id = PushIdGenerator::generatePushId();
+        } else {
+        $out->id = ShortIdGenerator::generate();
+        }
 
         $out->propsData = [];
         foreach ($blueprint->initialOwnData as $key => $value) {

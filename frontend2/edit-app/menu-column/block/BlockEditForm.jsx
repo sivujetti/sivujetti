@@ -14,10 +14,8 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 import {getIsStoredToTreeIdFrom, isMetaBlock} from '../../includes/block/utils.js';
 import CodeBasedStylesList from '../block-styles/CodeBasedStylesTab.jsx';
-
-const ContentTabText = __('Content');
-const UserStylesTabText = __('Styles');
-const DevStylesTabText = __('Styles (code)');
+import {createInitialTabKind, createTabsInfo} from '../block-styles/style-tabs-commons.js';
+/** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
 
 class BlockEditForm extends preact.Component {
     // blockType;
@@ -37,14 +35,12 @@ class BlockEditForm extends preact.Component {
             createBlockEditFormCfg(this.blockType),
             ...(!this.blockType.extends ? [] : [createBlockEditFormCfg(api.blockTypes.get(this.blockType.extends))])
         ];
-        this.stylesEditForm = this.blockType.stylesEditForm || 'DefaultWidgetBasedStylesEditForm';
+        this.stylesEditForm = this.blockType.stylesEditForm;
 
-        const userCanEditCss = api.user.can('editBlockCss');
-        this.tabsInfo = createTabsInfo(this.blockType.name, userCanEditCss);
+        this.tabsInfo = createTabsInfo(createTabConfig(this.blockType.editFormType, !!this.stylesEditForm));
         const currentTabKind = createInitialTabKind(
             getAndPutAndGetToLocalStorage('content', 'sivujettiLastBlockEditFormTabKind'),
-            this.tabsInfo,
-            userCanEditCss
+            this.tabsInfo
         );
         this.setState(createState(currentTabKind, this.props.block));
 
@@ -100,7 +96,7 @@ class BlockEditForm extends preact.Component {
         const {tabsInfo} = this;
         const hasMoreThat1Tab = tabsInfo.length > 1;
         return <div data-main>
-            <div class={ `with-icon${typeid} ${hasMoreThat1Tab ? 'pb-1' : 'pb-2 mb-8'}` }>
+            <div class={ `with-icon${typeid} ${hasMoreThat1Tab ? 'pb-1' : 'pb-2 mb-1'}` }>
                 <Icon iconId={ api.blockTypes.getIconId(this.blockType) } className="size-xs mr-1"/>
                 { __(block.title || this.blockType.friendlyName) }
             </div>
@@ -205,43 +201,24 @@ class BlockEditForm extends preact.Component {
 }
 
 /**
- * @param {String} blockTypeName
- * @param {Boolean} userCanEditCss
- * @returns {Array<TabInfo>}
- */
-function createTabsInfo(blockTypeName, userCanEditCss) {
-    const all = createTabConfig(blockTypeName);
-    const filtered = userCanEditCss ? all : all.filter(({kind}) => kind !== 'dev-styles');
-    return filtered.map((itm) => {
-        if (itm.kind === 'content')
-            return {...itm, ...{title: ContentTabText}};
-        if (itm.kind === 'user-styles')
-            return {...itm, ...{title: UserStylesTabText}};
-        if (itm.kind === 'content+user-styles')
-            return {...itm, ...{title: `${ContentTabText} & ${UserStylesTabText}`}};
-        if (itm.kind === 'dev-styles')
-            return {...itm, ...{title: DevStylesTabText}};
-    });
-}
-
-/**
- * @param {String} blockTypeName
+ * @param {editFormType} editFormType
+ * @param {Boolean} hasStylesForm
  * @returns {Array<{kind: tabKind;}>}
  */
-function createTabConfig(blockTypeName) {
-    if (blockTypeName === 'PageInfo')
-        return [
-            {kind: 'content'}
-        ];
-    if (blockTypeName === 'Section2')
+function createTabConfig(editFormType, hasStylesForm) {
+    if (editFormType === 'content+user-styles')
         return [
             {kind: 'content+user-styles'},
             {kind: 'dev-styles'}
         ];
+    if (hasStylesForm)
+        return [
+            {kind: 'content'},
+            {kind: 'user-styles'},
+            {kind: 'dev-styles'},
+        ];
     return [
-        {kind: 'content'},
-        {kind: 'user-styles'},
-        {kind: 'dev-styles'},
+        {kind: 'content'}
     ];
 }
 
@@ -266,37 +243,6 @@ function createState(newTabKind, thisPropsBlock) {
 }
 
 /**
- * @param {tabKind} savedTabKind
- * @param {Array<TabInfo>} tabsInfo
- * @param {Boolean} userCanEditCss
- * @returns {Number}
- */
-function createInitialTabKind(savedTabKind, tabsInfo, userCanEditCss) {
-    if (savedTabKind === 'dev-styles' && !userCanEditCss) {
-        const idx = getTabIdx(tabsInfo, savedTabKind);
-        return tabsInfo[idx - 1].kind;
-    }
-    if (tabsInfo[0].kind === 'content+user-styles' && (
-        savedTabKind === 'user-styles' ||
-        savedTabKind === 'content'
-    )) {
-        return 'content+user-styles';
-    }
-    if (savedTabKind === 'content+user-styles' && tabsInfo[0].kind === 'content')
-        return 'content';
-    return savedTabKind;
-}
-
-/**
- * @param {Array<TabInfo>} tabsInfo
- * @param {tabKind} ofKind
- * @returns {Number}
- */
-function getTabIdx(tabsInfo, ofKind) {
-    return tabsInfo.findIndex(({kind}) => kind === ofKind);
-}
-
-/**
  * @param {tabKind} tabKind
  * @returns {Boolean}
  * @access private
@@ -315,13 +261,5 @@ function createBlockEditFormCfg(input) {
         type: input.editFormType || 'content'
     };
 }
-
-/**
- * @typedef {'content'|'user-styles'|'dev-styles'|'content+user-styles'} tabKind
- *
- * @typedef TabInfo
- * @prop {tabKind} kind
- * @prop {String} title
- */
 
 export default BlockEditForm;

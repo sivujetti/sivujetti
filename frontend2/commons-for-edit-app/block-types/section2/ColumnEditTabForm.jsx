@@ -3,8 +3,8 @@ import OptionValueInput from '../../styles/OptionValueInput.jsx';
 import {__} from '../../edit-app-singletons.js';
 import {FormGroupInline} from '../../Form.jsx';
 import {colToTransferable} from './Section2CombinedBlockAndStylesEditFormFuncs.js';
-/** @typedef {import("./Section2CombinedBlockAndStylesEditFormFuncs.js").ColumnConfigLocalRepr} ColumnConfigLocalRepr */
-/** @typedef {import("./Section2CombinedBlockAndStylesEditFormFuncs.js").ColumnConfig} ColumnConfig */
+/** @typedef {import('./Section2CombinedBlockAndStylesEditFormFuncs.js').ColumnConfigLocalRepr} ColumnConfigLocalRepr */
+/** @typedef {import('./Section2CombinedBlockAndStylesEditFormFuncs.js').ColumnConfig} ColumnConfig */
 
 class ColumnEditTabForm extends preact.Component {
     // alignOptions;

@@ -19,16 +19,16 @@ class CodeBasedStylesList extends preact.Component {
         this.unregistrables = [];
         this.setState({
             curScreenSizeTabIdx: 0,
-            devStyleScopes: createStylesState(this.props.stylesStateId || 0)
+            devStyleScopes: createStylesState(this.props)
         });
     }
     /**
-     * @param {{blockId: String; stylesStateId: Number;}} props
+     * @param {CodeBasedStylesListProps} props
      * @access protected
      */
     componentWillReceiveProps(props) {
         if (props.stylesStateId !== this.props.stylesStateId)
-            this.setState({devStyleScopes: createStylesState(props.stylesStateId)});
+            this.setState({devStyleScopes: createStylesState(props)});
     }
     /**
      * @access protected
@@ -39,7 +39,7 @@ class CodeBasedStylesList extends preact.Component {
     /**
      * @access protected
      */
-    render({stylesStateId}, {devStyleScopes, curScreenSizeTabIdx}) {
+    render(_, {devStyleScopes, curScreenSizeTabIdx}) {
         const selectedScreenSizeStyles = devStyleScopes[curScreenSizeTabIdx];
         const styleScopes = selectedScreenSizeStyles || [];
         const selectedMediaScopeId = mediaScopes[curScreenSizeTabIdx];
@@ -80,6 +80,9 @@ class CodeBasedStylesList extends preact.Component {
  * @param {mediaScope} selectedMediaScopeId
  */
 function doAddEmptyStyle(blockId, selectedMediaScopeId) {
+    if (blockId === 'j-_body_') {
+        return; // todo
+    }
     const newAll = scssWizard.addNewDevsUniqueScopeScssChunkAndReturnAllRecompiled(
         `// ${__('Your code here ...') }\ncolor: red;`,
         blockId,
@@ -89,15 +92,32 @@ function doAddEmptyStyle(blockId, selectedMediaScopeId) {
 }
 
 /**
- * @param {Number} stylesStateId
+ * @param {CodeBasedStylesListProps} props
  * @returns {Array<Array<StyleChunk>|null>}
  */
-function createStylesState(stylesStateId) {
-    const allStyles = scssWizard.getAllStyles(stylesStateId);
+function createStylesState({blockId, stylesStateId}) {
+    if (blockId === 'j-_body_') {
+        const all = scssWizard.getAllStyles(stylesStateId).filter(s => s.scope.layer === 'body-styles');
+        return mediaScopes.map(scopeId => {
+            const forThisScreenSize = all.filter(({scope}) =>
+                scope.media === scopeId
+            );
+            return forThisScreenSize.length ? forThisScreenSize : null;
+        });
+    }
+
     return mediaScopes.map(scopeId => {
-        const forThisScreenSize = allStyles.filter(({scope}) => scope.layer === 'dev-styles' && scope.media === scopeId);
+        const forThisScreenSize = scssWizard.findStyles('single-block', blockId, ({scope}) =>
+            scope.layer === 'dev-styles' && scope.media === scopeId
+        );
         return forThisScreenSize.length ? forThisScreenSize : null;
     });
 }
+
+/**
+ * @typedef CodeBasedStylesListProps
+ * @prop {String} blockId
+ * @prop {Number} stylesStateId
+ */
 
 export default CodeBasedStylesList;

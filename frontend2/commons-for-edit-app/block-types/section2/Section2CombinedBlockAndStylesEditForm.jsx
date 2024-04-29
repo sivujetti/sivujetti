@@ -17,10 +17,10 @@ import {
     innerElScope,
     toStyleConfig,
 } from './Section2CombinedBlockAndStylesEditFormFuncs.js';
-/** @typedef {import("./Section2CombinedBlockAndStylesEditFormFuncs.js").ColumnConfig} ColumnConfig */
-/** @typedef {import("./Section2CombinedBlockAndStylesEditFormFuncs.js").ColumnConfigLocalRepr} ColumnConfigLocalRepr */
-/** @typedef {import("./Section2CombinedBlockAndStylesEditFormFuncs.js").section2ColConfigsAllScreens} section2ColConfigsAllScreens */
-/** @typedef {import("../../../edit-app/menu-column/SaveButton.jsx").state} saveButtonEventState */
+/** @typedef {import('./Section2CombinedBlockAndStylesEditFormFuncs.js').ColumnConfig} ColumnConfig */
+/** @typedef {import('./Section2CombinedBlockAndStylesEditFormFuncs.js').ColumnConfigLocalRepr} ColumnConfigLocalRepr */
+/** @typedef {import('./Section2CombinedBlockAndStylesEditFormFuncs.js').section2ColConfigsAllScreens} section2ColConfigsAllScreens */
+/** @typedef {import('../../../edit-app/menu-column/SaveButton.jsx").state} saveButtonEventState */
 
 /** @type {Array<VisualStylesFormVarDefinition>} */
 const cssVarDefs = [

@@ -5,7 +5,6 @@ import {
     events,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
-import {createSelector} from '../../commons-for-edit-app/ScssWizardFuncs.js';
 import {getBlockEl} from '../../shared-inline.js';
 import {isMetaBlock} from '../includes/block/utils.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
@@ -117,15 +116,15 @@ class WebPagePreviewApp extends preact.Component {
     }
     /**
      * @param {String} blockId
-     * @param {String} scssChunk
+     * @param {String} css Examples '[data-block="uacHWbsK"] {color: #ad5f5f;}'
      * @param {mediaScope} mediaScopeId = 'all'
      * @access public
      */
-    updateCssFast(blockId, scssChunk, mediaScopeId = 'all') {
+    updateCssFast(blockId, css, mediaScopeId = 'all') {
         this.sendMessageToReRenderer([
             'updateBlockStyleFast',
-            createSelector(blockId, 'single-block'),
-            scssChunk,
+            css,
+            blockId,
             mediaScopeId,
         ]);
     }

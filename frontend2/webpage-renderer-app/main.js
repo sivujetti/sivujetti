@@ -60,10 +60,9 @@ function createMessageChannelController(reRenderingWebPage) {
                 el.innerHTML = forScreenSize || '';
             });
         } else if (e.data[0] === 'updateBlockStyleFast') {
-            const [_, rootSelector, scssChunk, mediaScopeId] = e.data;
+            const [_, css, _blockId, mediaScopeId] = e.data;
             const el = getCssEl(mediaScopeId, 'fast-');
-            const isSingleLineDecl = scssChunk.indexOf('\n') < 0;
-            el.innerHTML = `${rootSelector} ` + (isSingleLineDecl ? `{ ${scssChunk} }` : scssChunk);
+            el.innerHTML = css;
         } else if (e.data[0] === 'reRenderAllBlocks') {
             const newBlocks = e.data[1];
             reRenderingWebPage.current.exchangeBlocks(newBlocks);

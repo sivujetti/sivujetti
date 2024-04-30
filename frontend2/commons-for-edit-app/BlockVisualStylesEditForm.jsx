@@ -8,7 +8,7 @@ import {
     api,
     scssWizard,
 } from './edit-app-singletons.js';
-import {createCssDeclExtractor} from './ScssWizardFuncs.js';
+import {createCssDeclExtractor, createSelector} from './ScssWizardFuncs.js';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
 
 const WidgetClses = {
@@ -140,8 +140,19 @@ class BlockVisualStylesEditForm extends preact.Component {
      */
     handleVisualVarChangedFast(val, varName, varInputToScssChunk) {
         const {blockId} = this.props;
-        const chunk = varInputToScssChunk(varName, val);
-        api.webPagePreview.updateCssFast(blockId, chunk);
+        const codeTemplate = varInputToScssChunk(varName, val);
+        const asArr = Array.isArray(codeTemplate) ? codeTemplate : codeTemplate.split('\n');
+        const isSingleLineDecl = asArr[0].at(-1) === ';';
+        const rootSelector = blockId !== 'j-_body_' ? createSelector(blockId, 'single-block') : '';
+        const lines = isSingleLineDecl
+            ? [`${rootSelector} {`, ...asArr, '}']
+            : [
+                `${rootSelector}`, // asArr[0] already contains '{'
+                ...asArr,
+                // asArr.at(-1) already contains '}'
+            ];
+        const css = lines.map(l => l.replace('%s', val)).join('');
+        api.webPagePreview.updateCssFast(blockId, css);
     }
     /**
      * @param {String|null} val

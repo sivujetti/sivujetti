@@ -2,13 +2,14 @@
 An entry point for global file "public/sivujetti/sivujetti-edit-app.js" that is
 included in edit-app's template (edit-app-wrapper.tmpl.php).
 */
-import {api, FloatingDialog, scssWizard} from '@sivujetti-commons-for-edit-app';
+import {api, env, FloatingDialog, scssWizard} from '@sivujetti-commons-for-edit-app';
 import EditApp from './EditApp.jsx';
 import WebPagePreviewApp from './main-column/WebPagePreviewApp.jsx';
 import MainColumnViews from './main-column/MainColumnViews.jsx';
 import InspectorPanel from './menu-column/InspectorPanel.jsx';
 import {Toaster} from './includes/toasters.jsx';
 import patchQuillEditor from './includes/quill-customizations.js';
+import {getMetaKey} from '../shared-inline.js';
 import globalData from './includes/globalData.js';
 
 configureApis();
@@ -18,8 +19,18 @@ preact.render(
         urlToLoad="@currentUrl"
         highlightRectEl={ document.querySelector('.highlight-rect') }
         ref={ cmp => {
-            if (cmp) {
+            if (cmp && api.webPagePreview.initialized === false) {
                 api.webPagePreview = cmp;
+                const metaKey = getMetaKey();
+                const emitMetaKeyIsDown = isDown => {
+                    api.webPagePreview.sendMessageToReRenderer(['handleMetaKeyPressedOrReleased', isDown]);
+                };
+                env.window.addEventListener('keydown', e => {
+                    if (e.key === metaKey) emitMetaKeyIsDown(true);
+                });
+                env.window.addEventListener('keyup', e => {
+                    if (e.key === metaKey) emitMetaKeyIsDown(false);
+                });
             }
         } }/>,
     document.getElementById('webpage-preview-app')
@@ -30,18 +41,21 @@ window.dataFromAdminBackend.__websiteDebugOnly = window.dataFromAdminBackend.web
 delete window.dataFromAdminBackend.website;
 const editAppOuterEl = api.menuPanel.getOuterEl();
 preact.render(
-    <EditApp
-        outerEl={ editAppOuterEl }
-        onSaveButtonRefd={ saveButton => {
-            if (!saveButton) return;
-            api.saveButton.setInstance(saveButton);
-            // Refresh scssWizards's styles every time new styles (page) is loaded to
-            // the preview iframe, or when undo|redo event happens
-            api.saveButton.getInstance().subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
-                if (ctx === 'initial' || ctx === 'undo' || ctx === 'redo')
-                    scssWizard.replaceStylesState(bundle);
-            });
-        } }/>,
+    [
+        <EditApp
+            outerEl={ editAppOuterEl }
+            onSaveButtonRefd={ saveButton => {
+                if (!saveButton) return;
+                api.saveButton.setInstance(saveButton);
+                // Refresh scssWizards's styles every time new styles (page) is loaded to
+                // the preview iframe, or when undo|redo event happens
+                api.saveButton.getInstance().subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
+                    if (ctx === 'initial' || ctx === 'undo' || ctx === 'redo')
+                        scssWizard.replaceStylesState(bundle);
+                });
+            } }/>,
+        <Toaster id="editAppMain"/>
+    ],
     editAppOuterEl
 );
 
@@ -60,9 +74,7 @@ preact.render(
 
 preact.render(
     [
-        <MainColumnViews
-            rootEl={ rootEl }/>,
-        <Toaster id="editAppMain"/>,
+        <MainColumnViews rootEl={ rootEl }/>,
         <FloatingDialog/>
     ],
     document.getElementById('view')

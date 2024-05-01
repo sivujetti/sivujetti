@@ -48,6 +48,7 @@ const api = {
     user: editAppUserApiInstance,
     registerTranslationStrings: editAppTranslatorInstance.addStrings.bind(editAppTranslatorInstance),
     webPagePreview: { // Will be replaced by sivujetti-edit-app-main.jsx
+        initialized: false,
         getEl() { return document.body.querySelector('.site-preview-iframe'); },
         updateCss(/*allMediaScopesCss*/) { },
         updateCssFast(/*blockId, scssChunk, mediaScopeId = 'all'*/) { },
@@ -57,6 +58,7 @@ const api = {
         scrollToBlock(/*block*/) { },
         highlightTextBlockChildEl(/*elIdx, textBlockBlockId*/) { },
         onReady(/*fn*/) {},
+        sendMessageToReRenderer(/*args*/) {},
     }
 };
 

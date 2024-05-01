@@ -234,15 +234,15 @@ class EditAppAwareWebPage {
             this.onStylesUpdateFn();
         };
     }
-    /**
-     * @returns {Array<[String, (...args: any) => void]>}
-     * @access public
-     */
-    getGlobalListenerCreateCallables() {
-        return [['meta-key-pressed-or-released', isDown => {
-            this.metaKeyIsPressed = isDown;
-        }]];
-    }
+// ##     /**
+// ##      * @returns {Array<[String, (...args: any) => void]>}
+// ##      * @access public
+// ##      */
+// ##     getGlobalListenerCreateCallables() {
+// ##         return [['meta-key-pressed-or-released', isDown => {
+// ##             this.metaKeyIsPressed = isDown;
+// ##         }]];
+// ##     }
     /**
      * @param {Boolean} isDisabled
      * @access public

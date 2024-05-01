@@ -1,5 +1,5 @@
 import {__, api, signals, http, env, urlUtils, FloatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
-import toasters, {Toaster} from './commons/Toaster.jsx';
+// ## import toasters, {Toaster} from './commons/Toaster.jsx';
 import store2 from './store2.js';
 import SaveButton, { SaveButton2 } from './left-column/SaveButton.jsx';
 import DefaultPanel from './left-column/DefaultPanel.jsx';
@@ -104,7 +104,7 @@ class EditApp extends preact.Component {
 // ##                 <PageDuplicatePanel path="/pages/:pageSlug/duplicate"/>
 // ##                 <PageTypeCreatePanel path="/page-types/create"/>
 // ##             </MyRouter>,
-            <Toaster id="editAppMain"/>,
+// ##             <Toaster id="editAppMain"/>,
 // ##             <FloatingDialog signals={ signals }/>,
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         ];

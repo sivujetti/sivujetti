@@ -70,8 +70,9 @@ function createMessageChannelController(reRenderingWebPage) {
             const updatedBlock = e.data[1];
             const newBlocks = e.data[2];
             reRenderingWebPage.current.exchangeSingleBlock(updatedBlock, newBlocks);
-        } else if (e.data[0] === 'dsjPressedOrRepeased') {
-            //
+        } else if (e.data[0] === 'handleMetaKeyPressedOrReleased') {
+            const isDown = e.data[1];
+            reRenderingWebPage.current.handleEditAppMetaKeyPressedOrReleased(isDown);
         }
     };
 }

@@ -510,6 +510,10 @@ p.info-box.error, .toaster-message.error {
     border-color: rgb(254,90,120);
     background-color: rgba(254,90,120,0.031);
 }
+p.info-box.error, .toaster-message.notice {
+    border-color: rgb(254,203,90);
+    background-color: rgba(255,146,57,0.05);
+}
 p.info-box.success, .toaster-message.success {
     border-color: rgb(47,200,139);
     background-color: rgba(47,200,139,0.06);

@@ -5,7 +5,7 @@ import {makePath, makeSlug} from '../block-types/pageInfo.js';
 import {getFromLocalStorage} from '../commons/local-storage-utils.js';
 import opQueueItemEmitter from '../OpQueueItemEmitter.js';
 import {cloneDeep, findBlockFrom} from '../block/utils-utils.js';
-import {sharedSignals} from '../shared.js';
+// ## import {sharedSignals} from '../shared.js';
 
 const webPageUnregistrables = new Map;
 const TITLE_LABEL_HEIGHT = 18; // at least
@@ -58,7 +58,7 @@ class IframePageManager {
 // ##         store2.dispatch('themeStyles/setAll', [getAndInvalidate(data.theme, 'styles')]);
 // ##         store.dispatch(setCurrentPageDataBundle(data));
 // ##         store.dispatch(setOpQueue([]));
-        const unregistrables = webPage.getGlobalListenerCreateCallables().map(([when, fn]) => sharedSignals.on(when, fn));
+// ##         const unregistrables = webPage.getGlobalListenerCreateCallables().map(([when, fn]) => sharedSignals.on(when, fn));
         webPageUnregistrables.set('globalEvents', () => unregistrables.map(unreg => unreg()));
         const handleStyleChange = webPage.createThemeStylesChangeListener();
         webPageUnregistrables.set('themeStyleChanges', observeStore2('themeStyles', handleStyleChange));

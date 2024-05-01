@@ -1,10 +1,10 @@
 import {__, env, signals, Icon} from '@sivujetti-commons-for-edit-app';
-import {getMetaKey} from '../block/dom-commons.js';
+// ## import {getMetaKey} from '../block/dom-commons.js';
 // ## import {historyInstance} from '../right-column/RightColumnViews.jsx';
 // ## import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from '../store.js';
 // ## import {refreshStyles} from '../styles-refresh-api-temp.js';
 
-let listenersAdded = false;
+// ## let listenersAdded = false;
 // ## const useFormStatesState = false;
 
 class SaveButton extends preact.Component {
@@ -19,10 +19,10 @@ class SaveButton extends preact.Component {
 // ##         this.state = {isVisible: false, hasUndoableOps: false, formState: {isValid: true},
 // ##                         isStickied: false, leftPanelWidth: props.initialLeftPanelWidth, isSubmitting: false};
 // ##         this.queuedOps = [];
-        if (!isUndoKeyListenersAdded) {
-            this.addUndoKeyListener();
-            isUndoKeyListenersAdded = true;
-        }
+// ##         if (!isUndoKeyListenersAdded) {
+// ##             this.addUndoKeyListener();
+// ##             isUndoKeyListenersAdded = true;
+// ##         }
 // ##         observeStore(selectOpQueue, ops => {
 // ##             this.queuedOps = ops;
 // ##             if (ops.length && !this.state.isVisible)
@@ -128,30 +128,30 @@ class SaveButton extends preact.Component {
 // ##         this.setState({isSubmitting: true});
 // ##         const q = optimizeQueue(this.queuedOps.slice(0));
 // ##         next(!this.opQueueMutator ? q : this.opQueueMutator(q));
-    }
-    /**
-     * @access private
-     */
-    addUndoKeyListener() {
-        const metaKey = getMetaKey();
-        const undoKey = 'z';
-        let metaKeyIsPressed = false;
-        env.window.addEventListener('keydown', e => {
-            if (e.key === metaKey) {
-                metaKeyIsPressed = true;
-                return;
-            }
-            if (metaKeyIsPressed && e.key === undoKey && this.queuedOps.length) {
-                e.preventDefault(); // Prevent active input's onInput
-                this.doUndo();
-            }
-        });
-        env.window.addEventListener('keyup', e => {
-            if (e.key === metaKey) {
-                metaKeyIsPressed = false;
-            }
-        });
-    }
+// ##     }
+// ##     /**
+// ##      * @access private
+// ##      */
+// ##     addUndoKeyListener() {
+// ##         const metaKey = getMetaKey();
+// ##         const undoKey = 'z';
+// ##         let metaKeyIsPressed = false;
+// ##         env.window.addEventListener('keydown', e => {
+// ##             if (e.key === metaKey) {
+// ##                 metaKeyIsPressed = true;
+// ##                 return;
+// ##             }
+// ##             if (metaKeyIsPressed && e.key === undoKey && this.queuedOps.length) {
+// ##                 e.preventDefault(); // Prevent active input's onInput
+// ##                 this.doUndo();
+// ##             }
+// ##         });
+// ##         env.window.addEventListener('keyup', e => {
+// ##             if (e.key === metaKey) {
+// ##                 metaKeyIsPressed = false;
+// ##             }
+// ##         });
+// ##     }
 // ##     /**
 // ##      * @access private
 // ##      */

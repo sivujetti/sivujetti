@@ -23,8 +23,8 @@ import RightColumnViews, { historyInstance } from './src/right-column/RightColum
 import Foo from './src/right-column/Foo.jsx';
 // ## import MainPanel from './src/left-column/MainPanel.js';
 // ## import {MyClipboard, MyKeyboard, MyLink, IdAttributor, MySnowTheme} from './src/quill/quill-customizations.js';
-import {sharedSignals} from './src/shared.js';
-import {getMetaKey} from './src/block/dom-commons.js';
+// ## import {sharedSignals} from './src/shared.js';
+// ## import {getMetaKey} from './src/block/dom-commons.js';
 
 const editAppReactRef = preact.createRef();
 
@@ -82,7 +82,7 @@ function populateFrontendApi() {
 }
 
 function configureServices() {
-    addGlobalKeyPressEventEmitters();
+// ##     addGlobalKeyPressEventEmitters();
     //
     env.normalTypingDebounceMillis = sensibleDefaults.normalTypingDebounceMillis;
     //
@@ -159,16 +159,16 @@ function renderReactEditApp() {
     };
 }
 
-/**
- */
-function addGlobalKeyPressEventEmitters() {
-    const metaKey = getMetaKey();
-    env.window.addEventListener('keydown', e => {
-        if (e.key === metaKey)
-            sharedSignals.emit('meta-key-pressed-or-released', true);
-    });
-    env.window.addEventListener('keyup', e => {
-        if (e.key === metaKey)
-            sharedSignals.emit('meta-key-pressed-or-released', false);
-    });
-}
+// ## /**
+// ##  */
+// ## function addGlobalKeyPressEventEmitters() {
+// ##     const metaKey = getMetaKey();
+// ##     env.window.addEventListener('keydown', e => {
+// ##         if (e.key === metaKey)
+// ##             sharedSignals.emit('meta-key-pressed-or-released', true);
+// ##     });
+// ##     env.window.addEventListener('keyup', e => {
+// ##         if (e.key === metaKey)
+// ##             sharedSignals.emit('meta-key-pressed-or-released', false);
+// ##     });
+// ## }

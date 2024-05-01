@@ -115,7 +115,7 @@ class WebPagePreviewApp extends preact.Component {
         this.sendMessageToReRenderer(['updateBlocksStyles', allMediaScopesCss]);
     }
     /**
-     * @param {String} blockId
+     * @param {String} blockId Examples 'uacHWbsK', '' (if `:root {...}` body style)
      * @param {String} css Examples '[data-block="uacHWbsK"] {color: #ad5f5f;}'
      * @param {mediaScope} mediaScopeId = 'all'
      * @access public

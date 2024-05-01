@@ -36,6 +36,11 @@ function stylesToBaked(styles, mediaScopeId) {
     const forThisMedia = styles.filter(({scope}) => scope.media === mediaScopeId);
     if (!forThisMedia.length) return '';
     return [
+        '@layer body-styles {\n',
+        serialize(compile(
+            forThisMedia.filter(({scope}) => scope.layer === 'body-styles').map(({scss}) => scss).join('')
+        ), stringify),
+        '\n}\n',
         '@layer user-styles {\n',
         serialize(compile(
             forThisMedia.filter(({scope}) => scope.block === 'single-block' && scope.layer === 'user-styles').map(({scss}) => scss).join('')
@@ -200,7 +205,11 @@ function getSelectorForDecl(declsParentAstNode, cur) {
  * @access public
  */
 function createSelector(blockIdOrType, scope = 'single-block') {
-    return scope === 'single-block' ? `[data-block="${blockIdOrType}"]` : 'todo';
+    return scope === 'single-block'
+        ? `[data-block="${blockIdOrType}"]`
+        : scope === 'none'
+            ? ':root'
+            : 'todo';
 }
 
 

@@ -6,6 +6,7 @@ import {
     putToLocalStorage,
     Tabs,
 } from '@sivujetti-commons-for-edit-app';
+import BaseStylesVisualEditForm from '../block-styles/BaseStylesVisualEditForm.jsx';
 import CodeBasedStylesList from '../block-styles/CodeBasedStylesTab.jsx';
 import {createInitialTabKind, createTabsInfo} from '../block-styles/style-tabs-commons.js';
 /** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
@@ -41,6 +42,7 @@ class BaseStylesSection extends preact.Component {
     render(_, {currentTabKind, stylesStateId, isCollapsed}) {
         const {tabsInfo} = this;
         const hasMoreThat1Tab = tabsInfo.length > 1;
+        const clses = hasMoreThat1Tab ? ['pt-1'] : [];
         return <MenuSection
             title={ __('Styles') }
             subtitle={ __('Colours and fonts') }
@@ -56,14 +58,15 @@ class BaseStylesSection extends preact.Component {
                 className={ `text-tinyish mt-0${currentTabKind !== 'content' ? '' : ' mb-2'}` }
                 initialIndex={ tabsInfo.findIndex(({kind}) => kind === currentTabKind) }/> : null }
             { tabsInfo.map(itm =>
-                <div class={ itm.kind === currentTabKind ? '' : 'd-none' } key={ itm.kind }>
+                <div class={ [...clses, ...(itm.kind === currentTabKind ? [] : ['d-none'])].join(' ') } key={ itm.kind }>
                     { itm.kind === 'user-styles'
-                        ? `<StylesEditFormCls 
-                            blockId={ null }
-                            stateId={ this.state.stylesStateId }/>` // todo
+                        ? <BaseStylesVisualEditForm
+                            blockId="j-_body_"
+                            stateId={ stylesStateId }/>
                         : <CodeBasedStylesList
                             stylesStateId={ stylesStateId }
-                            blockId="j-_body_"/> }
+                            blockId="j-_body_"/>
+                    }
                 </div>
             ) }
             </div> : null }

@@ -18,14 +18,13 @@ class BaseStylesSection extends preact.Component {
      */
     componentWillMount() {
         const saveButton = api.saveButton.getInstance();
-        this.tabsInfo = createTabsInfo([{kind: 'user-styles'}, {kind: 'dev-styles'},]);
+        this.tabsInfo = createTabsInfo([{kind: 'user-styles'}, {kind: 'dev-styles'}]);
         const currentTabKind = createInitialTabKind(
             getAndPutAndGetToLocalStorage('user-styles', 'sivujettiLastBaseStylesTabKind'),
             this.tabsInfo
         );
         this.setState({currentTabKind, stylesStateId: null, isCollapsed: true});
-        this.unregistrables = [saveButton.subscribeToChannel('stylesBundle', (bundle, userCtx, ctx) => {
-            console.log('on grab',bundle.id);
+        this.unregistrables = [saveButton.subscribeToChannel('stylesBundle', (bundle, _userCtx, _ctx) => {
             this.setState({stylesStateId: bundle.id});
         })];
     }

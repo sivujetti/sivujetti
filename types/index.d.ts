@@ -553,13 +553,13 @@ interface CssVarsMap {
     [varName: String]: String;
 }
 
-type stylesLayer = 'user-styles'|'dev-styles'|'todo';
+type stylesLayer = 'user-styles'|'dev-styles'|'body-styles';
 
 type mediaScope = 'all'|'960'|'840'|'600'|'480'|String;
 
 type compiledMediaScopesCss = [String, String, String, String, String];
 
-type styleBlockScope = 'single-block'|'block-type';
+type styleBlockScope = 'single-block'|'block-type'|'none';
 
 type stateChangeContext = 'initial'|'push'|'undo'|'redo';
 

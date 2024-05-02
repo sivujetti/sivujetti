@@ -56,7 +56,7 @@ class ScssWizard {
      * @param {String} blockIdOrType
      * @param {mediaScope} mediaScopeId = 'all'
      * @param {stylesLayer} layer = 'user-styles'
-     * @returns {StyleChunk}
+     * @returns {StyleChunk|null}
      * @access public
      */
     findStyle(blockScope, blockIdOrType, mediaScopeId = 'all', layer = 'user-styles') {
@@ -64,7 +64,7 @@ class ScssWizard {
         const found = this.styles.find(({scope, scss}) =>
             scope.block === blockScope && scope.media === mediaScopeId && scope.layer === layer && scss.startsWith(lookFor)
         );
-        return found;
+        return found || null;
     }
     /**
      * @param {scssCodeInput} codeTemplate Examples 'color: red', 'ul li {\n  flex: 0 0 100%;\n}', [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]

@@ -207,19 +207,19 @@ class EditApp extends preact.Component {
         putToLocalStorage(to ? 'yes' : 'no', 'sivujettiDoHidePanels');
         this.setState({hidePanels: to});
     }
-    /**
-     * @access private
-     */
-    logUserOut() {
-        http.post('/api/auth/logout')
-            .then(() => {
-                urlUtils.redirect('/');
-            })
-            .catch(err => {
-                window.console.error(err);
-                toasters.editAppMain(__('Something unexpected happened.'), 'error');
-            });
-    }
+// ##     /**
+// ##      * @access private
+// ##      */
+// ##     logUserOut() {
+// ##         http.post('/api/auth/logout')
+// ##             .then(() => {
+// ##                 urlUtils.redirect('/');
+// ##             })
+// ##             .catch(err => {
+// ##                 window.console.error(err);
+// ##                 toasters.editAppMain(__('Something unexpected happened.'), 'error');
+// ##             });
+// ##     }
 }
 
 export default EditApp;

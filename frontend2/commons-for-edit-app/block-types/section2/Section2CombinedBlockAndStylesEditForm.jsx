@@ -181,6 +181,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
         const columnConfigs = screenSizeColumns[curScreenSizeTabIdx] || colsToLocalRepr([createColumnConfig()]);
         const {mainEl, innerEls} = !editStateIsOn ? toStyleConfig(columnConfigs, '2.4rem') : {};
         return <ScreenSizesVerticalTabs
+            populatedTabs={ this.userStyleRefs.map(s => !!s) }
             curTabIdx={ curScreenSizeTabIdx }
             setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }>
             <div class="form-horizontal has-visual-style-widgets tight pt-1 pl-2">
@@ -231,6 +232,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
         const innerElsToShow = currentScreenHasVars ? innerEls : inheritedInnerEls;
         const colsToShow = currentScreenHasVars ? columnConfigs : inheritedColumnConfigs;
         return <ScreenSizesVerticalTabs
+            populatedTabs={ this.userStyleRefs.map(s => !!s) }
             curTabIdx={ curScreenSizeTabIdx }
             setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }>
             <div class="form-horizontal has-visual-style-widgets tight pt-1 pl-2">

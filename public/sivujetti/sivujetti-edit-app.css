@@ -857,7 +857,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .has-visual-length-input .clear-style-btn {
     position: absolute;
     right: -1.1rem;
-    top: 0.3rem;
+    top: .4rem;
 }
 .has-visual-length-input .form-select.input-group-addon {
     width: 1%;
@@ -1060,6 +1060,15 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     position: absolute;
     left: .1rem;
     top: .1rem;
+}
+/* EditApp: Components: tabs */
+.tab:has(
+    .active.tab-item-user-styles,
+    .active.tab-item-content\+user-styles,
+    .active.tab-item-dev-styles
+) {
+    margin-bottom: 0;
+    border-bottom: none;
 }
 
 
@@ -1599,6 +1608,10 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     position: relative;
     text-indent: 1px;
 }
+.vert-tabs > .vert-tab-btns > button.is-populated {
+    font-weight: 800;
+    text-shadow: 0px 0px 10px hsla(var(--components-color-accent),.6);
+}
 .vert-tabs > .vert-tab-btns > button:first-child span {
     position: relative;
     top: 3px;
@@ -1642,14 +1655,6 @@ textarea.code.padded-top {
 }
 #inspector-panel [data-main] > .with-icon.global-block-tree-block .icon-tabler {
     color: var(--color-icon-global-block);
-}
-#inspector-panel .tab:has(
-    .active.tab-item-user-styles,
-    .active.tab-item-content\+user-styles,
-    .active.tab-item-dev-styles
-) {
-    margin-bottom: 0;
-    border-bottom: none;
 }
 
 

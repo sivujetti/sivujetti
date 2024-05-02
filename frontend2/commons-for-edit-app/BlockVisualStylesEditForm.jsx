@@ -79,7 +79,9 @@ class BlockVisualStylesEditForm extends preact.Component {
                 this.renderVarWidget(def, selectedScreenSizeVars, this.varInputToScssChunkFn)
             )
         }</div>;
+        const chunks = this.userStyleRefs;
         return !this.isSpecialRootVarsStyle ? <ScreenSizesVerticalTabs
+            populatedTabs={ chunks.map(s => !!s) }
             curTabIdx={ curScreenSizeTabIdx }
             setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }>
             { content }

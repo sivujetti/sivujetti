@@ -47,6 +47,7 @@ class CodeBasedStylesList extends preact.Component {
         const selectedMediaScopeId = mediaScopes[curScreenSizeTabIdx];
         const isBodyStyle = blockId === BODY_STYLE_ID;
         return <ScreenSizesVerticalTabs
+            populatedTabs={ devStyleScopes.map(s => s !== null) }
             curTabIdx={ curScreenSizeTabIdx }
             setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }>
                 <ul class="list styles-list mb-2">{ styleScopes.length

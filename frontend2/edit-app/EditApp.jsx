@@ -1,8 +1,9 @@
-import {__, env, urlUtils} from '@sivujetti-commons-for-edit-app';
+import {__, env, http, urlUtils} from '@sivujetti-commons-for-edit-app';
+import toasters from './includes/toasters.jsx';
 import {historyInstance, MyRouter} from './main-column/MainColumnViews.jsx';
-import DefaultState from './menu-column/DefaultState.jsx';
 import PageCreateState from './menu-column/page/PageCreateState.jsx';
 import PageDuplicateState from './menu-column/page/PageDuplicateState.jsx';
+import DefaultState from './menu-column/DefaultState.jsx';
 import SaveButton from './menu-column/SaveButton.jsx';
 
 class EditApp extends preact.Component {
@@ -60,6 +61,19 @@ class EditApp extends preact.Component {
                 { /* <PageTypeCreatePanel path="/page-types/create"/> */ }
             </MyRouter>
         ];
+    }
+    /**
+     * @access private
+     */
+    logUserOut() {
+        http.post('/api/auth/logout')
+            .then(() => {
+                urlUtils.redirect('/');
+            })
+            .catch(err => {
+                window.console.error(err);
+                toasters.editAppMain(__('Something unexpected happened.'), 'error');
+            });
     }
 }
 

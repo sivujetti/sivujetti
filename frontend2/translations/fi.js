@@ -416,4 +416,6 @@ stringBundles.push({
     'Links': 'Linkit',
     'Line height': 'Riviväli',
     'Paragraphs margin': 'Tekstikappale väli',
+
+    'You lack permissions to do this action.': 'Käyttöoikeutesi ei riitä tähän toiminnallisuuteen.',
 }, validationStrings);

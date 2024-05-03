@@ -415,4 +415,6 @@ stringBundles.push({
     'Links': 'Links',
     'Line height': 'Line height',
     'Paragraphs margin': 'Paragraphs margin',
+
+    'You lack permissions to do this action.': 'You lack permissions to do this action.',
 }, validationStrings);

@@ -35,6 +35,8 @@ class Http {
             .then(resp => {
                 if (resp.status === 401)
                     window.console.error('todo');
+                if (resp.status === 403)
+                    throw new Error('403 Forbidden', {cause: resp});
                 return resp.json();
             });
     }

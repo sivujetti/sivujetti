@@ -10,6 +10,7 @@ import {treeToTransferable} from '../includes/block/utils.js';
 import toasters from '../includes/toasters.jsx';
 import {pathToFullSlug} from '../includes/utils.js';
 import globalData from '../includes/globalData.js';
+/** @typedef {import('../includes/toasters.jsx').messageLevel} messageLevel */
 
 const handlerFactoriesMap = {
     currentPageData: createCurrentPageDataChannelHandler,
@@ -75,7 +76,9 @@ function createBlockTreeChannelHandler() {
             return doPostOrPut(http.put(
                 `/api/pages/${page.type}/${page.id}/blocks`,
                 {blocks}
-            ));
+            ), (err, [message, level]) =>
+                [err.cause?.status === 403 ? 'You lack permissions to edit this content.' : message, level]
+            );
         },
     };
 }
@@ -227,13 +230,27 @@ function createCurrentPageDataChannelHandler() {
                     if (resp.ok !== 'ok') throw new Error('-');
                     return true;
                 })
-                .catch(err => {
-                    window.console.error(err);
-                    toasters.editAppMain(__('Something unexpected happened.'), 'error');
-                    return false;
-                });
+                .catch(err => handleHttpError(err, null));
         }
     };
+}
+
+/**
+ * @param {Error|Object} err
+ * @param {adjustErrorToastArgsFn|null} adjustErrorToastArgs
+ */
+function handleHttpError(err, adjustErrorToastArgs) {
+    window.console.error(err);
+    //
+    const pair1 = err.cause?.status === 403
+        ? ['You lack permissions to do this action.', 'notice']
+        : ['Something unexpected happened.', 'error'];
+    const [message, level] = !adjustErrorToastArgs
+        ? pair1
+        : adjustErrorToastArgs(err, ...pair1);
+    toasters.editAppMain(__(message), level);
+    //
+    return false;
 }
 
 /**
@@ -250,24 +267,17 @@ function toTransferable(page, notTheseKeys = []) { // todo yhdistä jonnekin uti
 }
 
 /**
- * @param {Promise<>} httpCall
+ * @param {Promise<Object|String>} httpCall
+ * @param {adjustErrorToastArgsFn} adjustErrorToastArgs = null
  * @returns {Promise<Boolean>}
  */
-function doPostOrPut(httpCall) {
+function doPostOrPut(httpCall, adjustErrorToastArgs = null) {
     return httpCall
         .then(resp => {
             if (resp.ok !== 'ok') throw new Error(typeof resp.err !== 'string' ? '-' : resp.err);
             return true;
         })
-        .catch(err => {
-            if (err.message !== 'Not permitted.') {
-                window.console.error(err);
-                toasters.editAppMain(__('Something unexpected happened.'), 'error');
-            } else {
-                toasters.editAppMain(__('You lack permissions to edit this content.'), 'error');
-            }
-            return false;
-        });
+        .catch(err => handleHttpError(err, adjustErrorToastArgs));
 }
 
 /**
@@ -376,6 +386,10 @@ function createInitialState() {
         canRedo: false,
     };
 }
+
+/**
+ * @typedef {(err: Error|Object, message: String, level: messageLevel) => [String, messageLevel]} adjustErrorToastArgsFn
+ */
 
 export {
     createGbtState,

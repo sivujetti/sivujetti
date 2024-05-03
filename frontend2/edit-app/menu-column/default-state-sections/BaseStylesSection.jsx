@@ -42,7 +42,7 @@ class BaseStylesSection extends preact.Component {
     render(_, {currentTabKind, stylesStateId, isCollapsed}) {
         const {tabsInfo} = this;
         const hasMoreThat1Tab = tabsInfo.length > 1;
-        const clses = hasMoreThat1Tab ? ['pt-1'] : [];
+        const clses = hasMoreThat1Tab && currentTabKind === 'user-styles' ? ['pt-1'] : [];
         return <MenuSection
             title={ __('Styles') }
             subtitle={ __('Colours and fonts') }

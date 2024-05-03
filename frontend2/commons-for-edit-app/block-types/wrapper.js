@@ -1,3 +1,5 @@
+import BlockDefaultStylesEditForm, {createPaddingVarDefs} from '../BlockVisualStylesEditForm.jsx';
+
 class WrapperBlockEditForm extends preact.Component {
     /**
      * @param {BlockEditFormProps} props
@@ -8,12 +10,26 @@ class WrapperBlockEditForm extends preact.Component {
     }
 }
 
+/** @type {Array<VisualStylesFormVarDefinition>} */
+const cssVarDefs = [
+    ...createPaddingVarDefs('wrapper'),
+];
+
+class WrapperBlockVisualStylesEditForm extends BlockDefaultStylesEditForm {
+    /**
+     * @inheritdoc
+     */
+    createCssVarDefinitions() {
+        return cssVarDefs;
+    }
+}
+
 export default {
     name: 'Wrapper',
     friendlyName: 'Wrapper',
     icon: 'rectangle',
     editForm: WrapperBlockEditForm,
-    stylesEditForm: null,
+    stylesEditForm: WrapperBlockVisualStylesEditForm,
     createOwnProps(/*defProps*/) {
         return {
             dummy: '',

@@ -157,6 +157,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
      * @access protected
      */
     componentWillMount() {
+        // Note: skip super.componentWillMount()
         const [state, styleRefs] = this.createStateAndStyleRefs(this.props);
         this.userStyleRefs = styleRefs;
         this.setState({...state, curScreenSizeTabIdx: 0});
@@ -166,6 +167,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
      * @access protected
      */
     componentWillReceiveProps(props) {
+        // Note: skip super.componentWillReceiveProps()
         if (props.stylesStateId !== this.props.stylesStateId) {
             const [newState, styleRefs] = this.createStateAndStyleRefs(props);
             this.userStyleRefs = styleRefs;

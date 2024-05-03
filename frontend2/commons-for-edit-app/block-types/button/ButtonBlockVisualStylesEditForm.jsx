@@ -140,7 +140,7 @@ const cssVarDefs = [
     },
     {
         varName: 'radius',
-        cssProp: 'radius',
+        cssProp: 'border-radius',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'length',

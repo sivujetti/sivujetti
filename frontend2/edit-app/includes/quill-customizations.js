@@ -35,8 +35,6 @@ class MySnowTheme extends Quill.import('themes/snow') {
      * @inheritdoc
      */
     extendToolbar(toolbar) {
-        toolbar.addHandler('link', MySnowTheme.DEFAULTS.modules.toolbar.handlers.link.bind(this));
-
         super.extendToolbar(toolbar);
         this.buildIdPicker(toolbar.container);
         //

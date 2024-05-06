@@ -238,11 +238,16 @@ final class WebPageAwareTemplate extends Template {
             //
             if ($block->renderer === "jsx") {
                 $createDefaultProps = fn($ownClasses = "") => [
-                    "data-block" => $block->id,
-                    "data-block-type" => $block->type,
-                    "class" => "j-{$block->type}" .
-                        ($ownClasses ? " {$ownClasses}" : "") .
-                        ($block->styleClasses ? " {$block->styleClasses}" : ""),
+                    ...[
+                        "data-block" => $block->id,
+                        "data-block-type" => $block->type,
+                        "class" => "j-{$block->type}" .
+                            ($ownClasses ? " {$ownClasses}" : "") .
+                            ($block->styleClasses ? " {$block->styleClasses}" : ""),
+                    ],
+                    ...($block->styleGroup ? [
+                        "data-style-group" => $block->styleGroup,
+                    ] : [])
                 ];
                 $renderChildren = fn() => $block->children ? $this->__doRenderBlocks($block->children) : [""];
                 $out[] = $blockTypes->{$block->type}->render($block, $createDefaultProps, $renderChildren, $this);

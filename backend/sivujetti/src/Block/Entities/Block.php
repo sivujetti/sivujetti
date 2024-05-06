@@ -31,20 +31,22 @@ final class Block extends \stdClass {
     public string $type;
     /** @var ?string */
     public ?string $title;
-    /** @var string e.g. "my-file", "site:my-file", "sivujetti:block-auto" */
+    /** @var string Examples "my-file", "site:my-file", "sivujetti:block-auto" */
     public string $renderer;
     /** @var string */
     public string $id;
     /** @var array array<int, {key: string, value: string}> */
     public array $propsData;
-    /** @var string e.g. "j-Section-default j-Section-header" */
+    /** @var string Example "j-Section-default j-Section-header" */
     public string $styleClasses;
+    /** @var string Example "ubGrFbpaKF7" */
+    public string $styleGroup;
     /** @var \Sivujetti\Block\Entities\Block[] */
     public array $children;
 
     /* If self::TYPE_BUTTON
     public string $html;
-    public string $linkTo; e.g. "/my-page", "https://foo.com", "//foo.com"
+    public string $linkTo; Examples "/my-page", "https://foo.com", "//foo.com"
     public string $tagType; "link"|"button"|"submit" */
 
     /* If self::TYPE_CODE
@@ -70,8 +72,8 @@ final class Block extends \stdClass {
     public string $caption; */
 
     /* If "MyListing"
-    public string $filterPageType; e.g. "Pages"
-    public string $filterLimit; e.g. 10
+    public string $filterPageType; Example "Pages"
+    public string $filterLimit; Example 10
     public string $filterLimitType; "all"|"single"|"atMost"
     public string $filterOrder; "desc"|"asc"|"rand"
     public string $filterAdditional; Example: {slug: {$startsWith: "foo"}}
@@ -112,6 +114,7 @@ final class Block extends \stdClass {
         $out->id = $data->id;
         $out->propsData = $data->propsData;
         $out->styleClasses = $data->styleClasses ?? "";
+        $out->styleGroup = $data->styleGroup ?? "";
         $out->children = [];
         foreach ($data->children as $child)
             $out->children[] = self::fromObject($child);
@@ -136,6 +139,7 @@ final class Block extends \stdClass {
         }
         $out->propsData = [];
         $out->styleClasses = $blueprint->styleClasses ?? "";
+        $out->styleGroup = $blueprint->styleGroup ?? "";
         $out->children = [];
         foreach ($blueprint->children as $child)
             $out->children[] = self::fromBlueprint($child);
@@ -159,6 +163,7 @@ final class Block extends \stdClass {
         $out->title = $defaults->title;
         $out->renderer = $defaults->renderer;
         $out->styleClasses = $defaults->styleClasses;
+        $out->styleGroup = $defaults->styleGroup;
         if (!defined("USE_SHORT_IDS")) {
         $out->id = PushIdGenerator::generatePushId();
         } else {

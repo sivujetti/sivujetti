@@ -79,6 +79,8 @@ final class UpdateGlobalBlockTreeTest extends GlobalBlockTreesControllerTestCase
             "The value of renderer was not in the list",
             "styleClasses must be string",
             "The length of styleClasses must be 1024 or less",
+            "styleGroup must be string",
+            "The length of styleGroup must be 1024 or less",
             "id is not valid push id",
             "html must be string",
             "The length of html must be 128000 or less",

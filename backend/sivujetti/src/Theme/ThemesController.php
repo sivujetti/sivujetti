@@ -241,9 +241,9 @@ final class ThemesController {
                                                   string $propName = "styleChunks"): ObjectValidator {
         return $validator
             ->rule("{$propName}", "type", "array")
-            ->rule("{$propName}.*.scope.block?", "in", ["single-block", "block-type"])
+            ->rule("{$propName}.*.scope.block", "in", ["single-block", "class", "block-type", "none"])
             ->rule("{$propName}.*.scope.media", "in", self::MEDIA_SCOPES)
-            ->rule("{$propName}.*.scope.layer", "in", ["user-styles", "dev-styles", "todo"])
+            ->rule("{$propName}.*.scope.layer", "in", ["user-styles", "dev-styles", "body-styles"])
             ->rule("{$propName}.*.scss", "type", "string");
     }
     /**

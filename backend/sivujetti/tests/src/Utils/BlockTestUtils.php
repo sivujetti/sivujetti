@@ -8,6 +8,9 @@ use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\ButtonBlockType;
 use Sivujetti\{PushIdGenerator, Template};
 
+/**
+ * @psalm-import-type RawStorableBlock from \Sivujetti\BlockType\SaveAwareBlockTypeInterface
+ */
 final class BlockTestUtils {
     /** @var ?\Sivujetti\Tests\Utils\PageTestUtils */
     private ?PageTestUtils $pageTestUtils;
@@ -25,7 +28,9 @@ final class BlockTestUtils {
      * @param array<string, mixed>|object|null $propsData = null
      * @param ?string $id = null
      * @param ?string $styleClasses = null
-     * @return object object{type: string, title: string, renderer: string, id: string, children: array<int, object>, propsData: array<int, object{key: string, value: mixed}>}
+     * @param ?string $styleGroup = null
+     * @return object
+     * @psalm-return RawStorableBlock
      */
     public function makeBlockData(?string $type = null,
                                   ?string $title = null,
@@ -33,7 +38,8 @@ final class BlockTestUtils {
                                   ?array $children = null,
                                   array|object|null $propsData = null,
                                   ?string $id = null,
-                                  ?string $styleClasses = null): object {
+                                  ?string $styleClasses = null,
+                                  ?string $styleGroup = null): object {
         $out = new \stdClass;
         $out->type = $type ?? Block::TYPE_PARAGRAPH;
         $out->title = $title ?? "";
@@ -45,6 +51,7 @@ final class BlockTestUtils {
         };
         $out->children = $children ?? [];
         $out->styleClasses = $styleClasses ?? "";
+        $out->styleGroup = $styleGroup ?? "";
         $out->propsData = [];
         if ($propsData) {
             foreach ($propsData as $key => $value) {

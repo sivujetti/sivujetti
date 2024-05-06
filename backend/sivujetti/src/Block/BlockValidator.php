@@ -74,7 +74,9 @@ final class BlockValidator {
             ->rule("{$pathPrefix}title", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
             ->rule("{$pathPrefix}renderer", "in", $this->validBlockRenderers)
             ->rule("{$pathPrefix}styleClasses", "type", "string")
-            ->rule("{$pathPrefix}styleClasses", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN);
+            ->rule("{$pathPrefix}styleClasses", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
+            ->rule("{$pathPrefix}styleGroup", "type", "string")
+            ->rule("{$pathPrefix}styleGroup", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN);
     }
     /**
      * @return string[]

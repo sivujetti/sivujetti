@@ -102,7 +102,12 @@ interface ReusableBranch {
 interface BlockBlueprint {
     blockType: String;
     initialOwnData: {[key: String]: any;};
-    initialDefaultsData: {title: String; renderer: String; styleClasses: String};
+    initialDefaultsData: {
+        title: String;
+        renderer: String;
+        styleClasses: String;
+        styleGroup: String;
+    };
     initialStyles: Array<StyleChunk>;
     initialChildren: Array<BlockBlueprint>;
 }
@@ -111,6 +116,7 @@ interface BlockStub {
     id: String; // Example 'unit-12' or 'j-Type-unit-12'
     type: String; // 'Section', 'Button' etc.
     styleClasses: String; // Example 'j-Type-unit-3 j-Type-unit-12'
+    styleGroup: String; // Example 'ubGrFbpaKF7'
 }
 
 interface Block extends BlockStub {

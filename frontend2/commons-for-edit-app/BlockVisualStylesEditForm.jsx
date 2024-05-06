@@ -241,7 +241,7 @@ function createCssVarsMaps(blockId, cssVarDefs) {
 function doCreateCssVarsMaps(cssVarDefs, blockScopeType, blockScopeId, layer = undefined) {
     return mediaScopes.reduce((out, mediaScopeId) => {
         const styleRef = scssWizard.findStyle(blockScopeType, blockScopeId, mediaScopeId, layer);
-        const styleVarsForThisMediaScope = createVarsMapAuto(cssVarDefs, styleRef?.scss || null, mediaScopeId);
+        const styleVarsForThisMediaScope = createVarsMapAuto(cssVarDefs, styleRef?.scss || null);
         out[0].push(styleVarsForThisMediaScope);
         out[1].push(styleRef);
         return out;
@@ -249,11 +249,11 @@ function doCreateCssVarsMaps(cssVarDefs, blockScopeType, blockScopeId, layer = u
 }
 
 /**
- * @param {String} blockId
  * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
- * @returns {[Array<CssVarsMap>, todo]}
+ * @param {String|null} scss
+ * @returns {Array<CssVarsMap>}
  */
-function createVarsMapAuto(cssVarDefs, scss, _mediaScopeId) {
+function createVarsMapAuto(cssVarDefs, scss) {
     /* Create map for non-existing chunk. Example: {
         display: null,
         aspectRatio: null,

@@ -5,7 +5,7 @@ namespace Sivujetti\BlockType;
 use Pike\Injector;
 
 /**
- * @psalm-type RawStorableBlock = object{type: string, title: string, renderer: string, id: string, children: array, propsData: array<int, object{key: string, value: string}>, styleClasses: string}
+ * @psalm-type RawStorableBlock = object{type: string, title: string, renderer: string, id: string, children: array, propsData: array<int, object{key: string, value: string}>, styleClasses: string, styleGroup: string}
  */
 interface SaveAwareBlockTypeInterface {
     /**

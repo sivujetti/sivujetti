@@ -170,6 +170,7 @@ function blockToBlueprint(block, onEach) {
             title: block.title || '',
             renderer: block.renderer,
             styleClasses: block.styleClasses || '',
+            styleGroup: block.styleGroup || '',
         },
         initialChildren: block.children.map(w => blockToBlueprint(w, onEach)),
         initialStyles: [],

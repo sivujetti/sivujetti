@@ -94,6 +94,7 @@ final class BlocksController {
             "children" => [],
             "propsData" => [],
             "styleClasses" => $input->styleClasses,
+            "styleGroup" => $input->styleGroup,
         ];
         $noop = fn($v) => $v;
         foreach ($blockType->defineProperties(new PropertiesBuilder) as $prop) {

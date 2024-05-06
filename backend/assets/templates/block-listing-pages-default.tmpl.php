@@ -1,4 +1,4 @@
-<div class="j-<?= \Sivujetti\Block\Entities\Block::TYPE_LISTING, " page-type-", strtolower($props->filterPageType), ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : "") ?>" data-block-type="<?= \Sivujetti\Block\Entities\Block::TYPE_LISTING ?>" data-block="<?= $props->id ?>">
+<div class="j-<?= \Sivujetti\Block\Entities\Block::TYPE_LISTING, " page-type-", strtolower($props->filterPageType), ($props->styleClasses ? " {$this->escAttr($props->styleClasses)}" : "") ?>" data-block-type="<?= \Sivujetti\Block\Entities\Block::TYPE_LISTING ?>" data-block="<?= $props->id ?>"<?= $props->styleGroup ? " data-style-group=\"{$this->escAttr($props->styleGroup)}\"" : "" ?>>
 <?php if ($props->__pages ?? null): ?>
     <?php foreach ($props->__pages as $page): ?>
     <article class="list-item list-item-<?= $page->slug ?>">

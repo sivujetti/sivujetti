@@ -12,7 +12,7 @@ final class PushIdGenerator {
      *
      * @var float
      */
-    private static $lastPushTime = 0.0;
+    private static $lastPushTime = 0;
     /**
      * We generate 72-bits of randomness which get turned into 12 characters and appended to the
      * timestamp to prevent collisions with other clients.  We store the last characters we
@@ -26,16 +26,16 @@ final class PushIdGenerator {
      * @return string
      */
     public static function generatePushId(): string {
-        $now = floor(microtime(true) * 1000);
+        $now = PHP_INT_SIZE > 4 ? (int) date_create()->format("Uv") : time();
         $duplicateTime = ($now === self::$lastPushTime);
         self::$lastPushTime = $now;
 
         $id = "";
         for ($i = 7; $i >= 0; $i--) {
-            $id .= self::PUSH_CHARS[$now % 64];
-            $now = floor($now / 64);
+            $id = self::PUSH_CHARS[$now % 64] . $id;
+            $now = (int) floor($now / 64);
         }
-        if ((int)$now !== 0) throw new \RuntimeException("We should have converted the entire timestamp.");
+        if ($now !== 0) throw new \RuntimeException("We should have converted the entire timestamp.");
 
         if (!$duplicateTime) {
             for ($i = 0; $i < 12; $i++) {

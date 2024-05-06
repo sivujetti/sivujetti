@@ -7,10 +7,10 @@ use Sivujetti\ShortIdGenerator;
 
 final class ShortIdGeneratorTest extends TestCase {
     public function testGenerateIdGeneratesUniqueIds(): void {
-        $t1 = floor(microtime(true) * 1000);
+        $t1 = (int) date_create()->format("Uv");
         $t2 = $t1 + 1001;
         $t3 = $t1 + 2002;
-        $t4 = strtotime("18 january 2038") * 1000.0;
+        $t4 = strtotime("12 january 2420") * 1000;
         $t5 = $t4 + 1;
         $id1 = ShortIdGenerator::generate($t1);
         $id2 = ShortIdGenerator::generate($t2);
@@ -36,10 +36,13 @@ final class ShortIdGeneratorTest extends TestCase {
         $this->assertEquals(4, strlen($c4["randomPart"]));
         $this->assertEquals(4, strlen($c5["randomPart"]));
 
+        $onlyEncodedTimePart = substr($id4, 0, strlen($id4) - 4);
+        $this->assertEquals("421E82T6", $onlyEncodedTimePart);
+
         ShortIdGenerator::reset();
     }
     public function testGenerateIdIncrementsMillisecond(): void {
-        $t = floor(microtime(true) * 1000);
+        $t = (int) date_create()->format("Uv");
         $id1 = ShortIdGenerator::generate($t);
         $id2 = ShortIdGenerator::generate($t);
 
@@ -52,7 +55,7 @@ final class ShortIdGeneratorTest extends TestCase {
         ShortIdGenerator::reset();
     }
     public function testGenerateIdNeverUsesSameMillisecond(): void {
-        $t = floor(microtime(true) * 1000);
+        $t = (int) date_create()->format("Uv");
         // Batch/call #1
         $_id1 = ShortIdGenerator::generate($t); // $t
         $_id2 = ShortIdGenerator::generate($t); // $t + 1

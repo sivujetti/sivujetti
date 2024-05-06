@@ -5,7 +5,7 @@ QUnit.module('short-id-gen.js', () => {
         const $t1 = Date.now();
         const $t2 = $t1 + 1001;
         const $t3 = $t1 + 2002;
-        const $t4 = 2147385600000; // strtotime("18 january 2038") * 1000.0;
+        const $t4 = 14201568000000; // strtotime("12 january 2420") * 1000;
         const $t5 = $t4 + 1;
         const $id1 = generateShortId($t1);
         const $id2 = generateShortId($t2);
@@ -30,6 +30,9 @@ QUnit.module('short-id-gen.js', () => {
         assert.equal($c3.randomPart.length, 4);
         assert.equal($c4.randomPart.length, 4);
         assert.equal($c5.randomPart.length, 4);
+
+        const $onlyEncodedTimePart = $id4.slice(0, -4);
+        assert.equal($onlyEncodedTimePart, '421E82T6');
 
         reset();
     });

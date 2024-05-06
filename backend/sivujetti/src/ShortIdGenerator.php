@@ -4,17 +4,17 @@ namespace Sivujetti;
 
 final class ShortIdGenerator {
     private const base62Chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    /** @var float */
-    private static float $prevLargest = 0.0;
+    /** @var int */
+    private static int $prevLargest = 0;
     /**
      * Generates approximately 11-character strings consisting of a base62-encoded unix
      * timestamp (with milliseconds) and a 4-character random portion. Example:
      *
-     * ```javascript
-     * const now = Date.now(); // 1708429511346
-     * const shortId = generateShortId(now); // 'u4Pi7F8a6jd'
+     * ```php
+     * $now = (int) date_create()->format("Uv"); // 1708429511346
+     * $shortId = ShortIdGenerator::generate($now); // "u4Pi7F8a6jd"
      *
-     * // 'u4Pi7F8a6jd'
+     * // "u4Pi7F8a6jd"
      * //     ^   ^
      * //     |   |
      * //     |   |______ Random portion, always 4 characters
@@ -23,11 +23,14 @@ final class ShortIdGenerator {
      * //                 typically 7 characters
      * ```
      *
-     * @param ?float $t = unixTimeWithMillis($now)
+     * @param ?int $t = unixTimeWithMillis($now)
      * @return string
      */
-    public static function generate(?float $t = null): string {
-        $nowMilli = ($t ?? floor(microtime(true) * 1000));
+    public static function generate(?int $t = null): string {
+        $nowMilli = $t ?? (PHP_INT_SIZE > 4
+            ? (int) date_create()->format("Uv")
+            : time()
+        );
         if (!self::$prevLargest) {
             self::$prevLargest = $nowMilli;
             return self::genId($nowMilli);
@@ -40,10 +43,10 @@ final class ShortIdGenerator {
         }
     }
     /**
-     * @param float $nowMilli
+     * @param int $nowMilli
      * @return string
      */
-    private static function genId(float $nowMilli): string {
+    private static function genId(int $nowMilli): string {
         $timePart = self::base62Encode($nowMilli);
 
         $randomPart = "";
@@ -55,7 +58,7 @@ final class ShortIdGenerator {
     /**
      * @param string $shortId
      * @return object
-     * @phpstan-return object{timestampWithMillis: float, randomPart: string}
+     * @phpstan-return object{timestampWithMillis: int, randomPart: string}
      */
     public static function toComponents(string $shortId): array {
         $timePart = substr($shortId, 0, strlen($shortId) - 4);
@@ -70,24 +73,24 @@ final class ShortIdGenerator {
      * Original code https://github.com/base62/base62.js/blob/9d980bb167408c0bfc61dfab28ae17bc95d0ba90/lib/ascii.js,
      * MIT-license.
      *
-     * @param float $num
+     * @param int $num
      * @return string
      */
-    private static function base62Encode(float $num): string {
+    private static function base62Encode(int $num): string {
         $encoded = "";
         do {
             $encoded = self::base62Chars[$num % 62] . $encoded;
-            $num = floor($num / 62);
+            $num = (int) floor($num / 62);
         } while ($num > 0);
         return $encoded;
     }
     /**
      * @param string $shortId
-     * @return float
+     * @return int
      */
-    private static function base62Decode(string $shortId): float {
+    private static function base62Decode(string $shortId): int {
         $chars = str_split(self::base62Chars);
-        $decoded = 0.0;
+        $decoded = 0;
         foreach (str_split($shortId) as $c)
             $decoded = $decoded * 62 + array_search($c, $chars);
         return $decoded;
@@ -95,6 +98,6 @@ final class ShortIdGenerator {
     /**
      */
     public static function reset(): void {
-        self::$prevLargest = 0.0;
+        self::$prevLargest = 0;
     }
 }

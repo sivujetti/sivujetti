@@ -85,11 +85,19 @@ abstract class ValidationUtils {
      * @return array{0: string, 1: \Closure, 2: string}
      */
     public static function createPushIdValidatorImpl(): array {
+        if (!defined("USE_SHORT_IDS")) {
         return ["pushId", fn($value) =>
             is_string($value) &&
             strlen($value) === 20 &&
             Validation::isStringType(str_replace(["_", "-"], "", $value), "alnum")
         , "%s is not valid push id"];
+        } else {
+        return ["pushId", fn($value) =>
+            is_string($value) &&
+            strlen($value) > 4 &&
+            Validation::isStringType(str_replace(["_", "-"], "", $value), "alnum")
+        , "%s is not valid push id"];
+        }
     }
     /**
      * @psalm-param array<int, RawPageTypeField>|\ArrayObject $properties pageType->ownFields or $blockType->defineProperties()

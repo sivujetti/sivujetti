@@ -23,6 +23,7 @@ use Sivujetti\UserTheme\UserThemeAPI;
 
 /**
  * @psalm-import-type StyleChunk from \Sivujetti\Block\Entities\Block
+ * @psalm-import-type StylesBundle from \Sivujetti\Theme\Entities\Theme
  */
 final class PagesController {
     /**
@@ -691,7 +692,8 @@ final class PagesController {
     }
     /**
      * @param \Sivujetti\Theme\Entities\Theme $theme
-     * @psalm-return object{id: string, styles: \Sivujetti\Theme\Entities\Style[]}
+     * @return object
+     * @psalm-return object{id: string, styles: StylesBundle|array<int, \Sivujetti\Theme\Entities\Style>}
      */
     private static function themeToRaw(Theme $theme): object {
         return (object) [

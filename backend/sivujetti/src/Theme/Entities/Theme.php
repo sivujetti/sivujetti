@@ -5,6 +5,9 @@ namespace Sivujetti\Theme\Entities;
 use Pike\Db\NoDupeRowMapper;
 use Sivujetti\JsonUtils;
 
+/**
+ * @psalm-type StylesBundle {styleChunks: array<int, object{scss: string, scope: {block: string, media: string, layer: string}}>, cachedCompiledScreenSizesCss: array<int, string>, cachedCompiledScreenSizesCssLengths: array<int, int>}
+ */
 final class Theme extends \stdClass {
     /** @var string */
     public string $id;
@@ -12,7 +15,10 @@ final class Theme extends \stdClass {
     public string $name;
     /** @var object[] [{name: string, friendlyName: string, value: {type: "color", value: string[]}}] */
     public array $globalStyles;
-    /** @var array|object {styleChunks: array<int, object{scss: string, scope: {block: string, media: string, layer: string}}>, cachedCompiledScreenSizesCss: array<int, string>, cachedCompiledScreenSizesCssLengths: array<int, int>} */
+    /**
+     * @var array|object
+     * @psalm-var StylesBundle
+     */
     public array|object $styles;
     /** @var string[] ["_body_", "j-Text" ...] */
     public array $stylesOrder;

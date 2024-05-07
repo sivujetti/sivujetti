@@ -156,6 +156,7 @@ interface CurrentPageData {
 interface StylesBundle {
     styleChunks: Array<StyleChunk>;
     cachedCompiledScreenSizesCss: compiledMediaScopesCss;
+    cachedCompiledScreenSizesCssLengths?: Array<Number>;
 }
 
 interface StylesBundleWithId extends StylesBundle {

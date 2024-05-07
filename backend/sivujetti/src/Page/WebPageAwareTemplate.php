@@ -346,7 +346,7 @@ final class WebPageAwareTemplate extends Template {
         return $common . (!$this->__useEditModeMarkup ? (
             // Externals including theme-generated.css
             implode("\n", [...$externals, $fileDefToTag(
-                (object) ["url" => "{$theme->name}-generated.css?t={$theme->stylesLastUpdatedAt}",
+                (object) ["url" => "{$theme->name}-generated.css?t={$theme->stylesLastUpdatedAt[0]}",
                           "attrs" => []]
             )]) .
             // theWebsite->headHtml
@@ -381,14 +381,15 @@ final class WebPageAwareTemplate extends Template {
                 // Externals including {$theme->name}-generated-sizes-*.css
                 implode("\n", [
                     ...$externals,
-                    ...array_reduce(ThemesController::MEDIA_SCOPES, fn($out, $s) =>
-                        $cachedScreenSizesCssLengths[array_search($s, ThemesController::MEDIA_SCOPES, true)] > 0
+                    ...array_reduce([0, 1, 2, 3, 4], function ($out, $i) use ($cachedScreenSizesCssLengths, $theme, $fileDefToTag) {
+                        $s = ThemesController::MEDIA_SCOPES[$i];
+                        return $cachedScreenSizesCssLengths[$i] > 0
                             ? [...$out, $fileDefToTag((object) [
-                                "url" => "{$theme->name}-generated-sizes-{$s}.css?t={$theme->stylesLastUpdatedAt}",
+                                "url" => "{$theme->name}-generated-sizes-{$s}.css?t={$theme->stylesLastUpdatedAt[$i]}",
                                 "attrs" => $s !== "all" ? ["media" => "screen and (max-width: {$s}px)"] : []
                             ])]
-                            : $out
-                    , []),
+                            : $out;
+                    }, []),
                 ]) .
                 // theWebsite->headHtml
                 ($site ? "\n{$site->headHtml}" : null)

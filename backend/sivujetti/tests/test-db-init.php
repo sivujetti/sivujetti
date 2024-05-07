@@ -16,12 +16,12 @@ $statements = array_merge($statements, [
 ])."','abcdefg1','','')",
 
 "INSERT INTO `themes` (`id`,`name`,`styleChunkBundlesAll`,`cachedCompiledScreenSizesCssLengths`," .
-    "`stylesOrder`,`globalStyles`,`isActive`,`generatedScopedStylesCss`) VALUES
+    "`stylesOrder`,`globalStyles`,`isActive`,`generatedScopedStylesCss`,`stylesLastUpdatedAt`) VALUES
 ('1','test-suite-theme','[]','0,0,0,0,0','" .
     json_encode(["Text", "Section"])
 . "','[]',1,'" .
     \Sivujetti\Tests\Utils\CssGenTestUtils::generateScopedStyles($styles) .
-"')",
+"','0,0,0,0,0')",
 
 "INSERT INTO `themeStyles` (`units`,`themeId`,`blockTypeName`) VALUES
 ('{$styles[0]->units}','1','{$styles[0]->blockTypeName}'),

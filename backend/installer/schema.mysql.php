@@ -69,7 +69,7 @@ return [
     `globalStyles` JSON,
     `isActive` TINYINT(1) NOT NULL,
     `generatedScopedStylesCss` TEXT,
-    `stylesLastUpdatedAt` {$dataTypeForTimestamps},
+    `stylesLastUpdatedAt` VARCHAR(54), -- '1701932634,0,0,0,0'
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

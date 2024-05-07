@@ -66,7 +66,7 @@ return [
     `globalStyles` JSON,
     `isActive` INTEGER NOT NULL DEFAULT 0,
     `generatedScopedStylesCss` TEXT,
-    `stylesLastUpdatedAt` {$dataTypeForTimestamps}
+    `stylesLastUpdatedAt` TEXT -- '1701932634,0,0,0,0'
 )",
 
 "CREATE TABLE `\${p}themeStyles` (

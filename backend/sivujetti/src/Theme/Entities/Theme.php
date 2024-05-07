@@ -16,8 +16,8 @@ final class Theme extends \stdClass {
     public array|object $styles;
     /** @var string[] ["_body_", "j-Text" ...] */
     public array $stylesOrder;
-    /** @var int Unix timestamp */
-    public int $stylesLastUpdatedAt;
+    /** @var int[] An array of unix timestamps */
+    public array $stylesLastUpdatedAt;
     /** @var object[] */
     private array $__stash;
     /**
@@ -43,7 +43,7 @@ final class Theme extends \stdClass {
         ];
         }
         $out->stylesOrder = [];
-        $out->stylesLastUpdatedAt = 0;
+        $out->stylesLastUpdatedAt = [0,0,0,0,0];
         $out->__stash = $rows;
         return $out;
     }
@@ -53,7 +53,7 @@ final class Theme extends \stdClass {
     public function loadStyles(bool|string|null $arg = null): void {
         if (!$this->__stash) return;
         $row = $this->__stash[0];
-        $this->stylesLastUpdatedAt = (int) $row->themeStylesLastUpdatedAt;
+        $this->stylesLastUpdatedAt = array_map(fn($s) => (int)$s, explode(",", $row->themeStylesLastUpdatedAt));
 
         if (!defined("USE_NEW_RENDER_FEAT")) {
         $full = $arg;

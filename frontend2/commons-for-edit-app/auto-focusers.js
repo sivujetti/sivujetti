@@ -1,27 +1,27 @@
 import {env} from '@sivujetti-commons-for-web-pages';
 
 /**
- * @param {preact.Ref} elementRef
+ * @param {preact.Ref} ref
  */
-function setFocusTo(elementRef) {
-    if (!elementRef.current)
+function setFocusTo(ref) {
+    const elOrCmp = ref.current;
+    if (!elOrCmp || typeof elOrCmp !== 'object')
         return;
-    const isObject = typeof elementRef.current === 'object';
-    // QuillEditor
-    if (isObject && elementRef.current.quill) {
-        const quill = elementRef.current.quill;
+    // <Input/>, <Textarea/> (from ./Form.jsx) etc.
+    if (elOrCmp.inputEl?.current) {
+        setFocusTo(elOrCmp.inputEl);
+    // native <input>, <textarea>
+    } else if (elOrCmp instanceof HTMLElement) {
+        elOrCmp.focus();
+    // <QuillEditor/>
+    } else if (elOrCmp.quill) {
+        const quill = elOrCmp.quill;
         quill.setSelection(quill.getLength(), 0);
-    } else if (elementRef.current instanceof HTMLElement) {
-        const inputEl = elementRef.current;
-        inputEl.focus();
-    // ImagePicker
-    } else if (isObject && elementRef.current.srcInput && elementRef.current.srcInput.current) {
-        setFocusTo(elementRef.current.srcInput.current);
-    // Input
-    } else if (isObject && elementRef.current.inputEl && elementRef.current.inputEl.current) {
-        setFocusTo(elementRef.current.inputEl.current);
+    // <ImagePicker/>
+    } else if (elOrCmp.srcInput?.current) {
+        setFocusTo(elOrCmp.srcInput);
     } else {
-        env.window.console.error('Don\'t know how to focus to', elementRef.current);
+        env.window.console.error('Don\'t know how to focus to', elOrCmp);
     }
 }
 

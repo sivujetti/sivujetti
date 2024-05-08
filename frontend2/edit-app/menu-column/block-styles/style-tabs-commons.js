@@ -49,7 +49,8 @@ function createInitialTabKind(savedTabKind, tabsInfo) {
     )) {
         return 'content+user-styles';
     }
-    if (savedTabKind === 'content+user-styles' && tabsInfo[0].kind === 'content')
+    if ((savedTabKind === 'content+user-styles' && tabsInfo[0].kind === 'content') ||
+        (tabsInfo.length === 1 && tabsInfo[0].kind === 'content'))
         return 'content';
     return savedTabKind;
 }

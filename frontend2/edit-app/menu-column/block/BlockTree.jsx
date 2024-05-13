@@ -326,7 +326,9 @@ class BlockTree extends preact.Component {
                 const blockInNewTree = blockTreeUtils.findBlock(blockId, newTree)[0];
                 newConvertedStyleChunkIds.push({blockInNewTree, newCls});
             });
-            newStyles = updatedAll;
+            if (updatedAll)
+                newStyles = updatedAll;
+            // else scssWizard did not find anything to convert
         } else {
             newStyles = null;
         }

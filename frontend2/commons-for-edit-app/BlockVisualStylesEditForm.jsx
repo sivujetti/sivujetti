@@ -1,4 +1,5 @@
 import {mediaScopes} from '../shared-inline.js';
+import blockTreeUtils from './block/tree-utils.js';
 import BackgroundImageValueInput from './styles/BackgroundImageValueInput.jsx';
 import ColorValueInput from './styles/ColorValueInput.jsx';
 import LengthValueInput from './styles/LengthValueInput.jsx';
@@ -61,7 +62,7 @@ class BlockVisualStylesEditForm extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.stateId !== this.props.stateId) {
+        if (props.stateId !== this.props.stateId || props.blockStyleGroup !== this.props.blockStyleGroup) {
             const [scopes, styleRefs] = this.createCssVarsMapsInternal(props);
             if (JSON.stringify(scopes) !== JSON.stringify(this.state.styleScopes)) {
                 this.userStyleRefs = styleRefs;
@@ -134,8 +135,24 @@ class BlockVisualStylesEditForm extends preact.Component {
      */
     handleVisualVarChanged(input, varName, varInputToScssChunk) {
         const val = input instanceof Event ? input.target.value : input;
-        const updatedAll = this.doHandleVisualVarChanged(val, varName, varInputToScssChunk);
-        api.saveButton.getInstance().pushOp('stylesBundle', updatedAll);
+        if (!this.props.blockStyleGroup) {
+            const updatedAll = this.doHandleValChanged(val, varName, varInputToScssChunk);
+            api.saveButton.getInstance().pushOp('stylesBundle', updatedAll);
+            return;
+        }
+
+        const clearStyleGroupOpArgs = createBlockTreeClearStyleGroupOpArgs(this.props.blockId);
+        const updatedAll = this.doHandleVarOfOptimizedChunkChanged(val, varName, varInputToScssChunk);
+        if (updatedAll)
+            api.saveButton.getInstance().pushOpGroup(
+                clearStyleGroupOpArgs,
+                ['stylesBundle', updatedAll]
+            );
+        else {
+            // style group had only single var, which was then removed -> do not
+            // add new (empty) style chunk, and leave current styles untouched
+            api.saveButton.getInstance().pushOp(...clearStyleGroupOpArgs);
+        }
     }
     /**
      * @param {String|Event} input
@@ -168,20 +185,20 @@ class BlockVisualStylesEditForm extends preact.Component {
      * @returns {StylesBundleWithId}
      * @access private
      */
-    doHandleVisualVarChanged(val, varName, varInputToScssChunk) {
+    doHandleValChanged(val, varName, varInputToScssChunk) {
         const {styleScopes, curScreenSizeTabIdx} = this.state;
         const curChunk = this.userStyleRefs[curScreenSizeTabIdx];
         const newValIsNotEmpty = val?.trim().length > 0;
         const valNorm = newValIsNotEmpty ? val : '"dummy"';
         const mediaScopeId = mediaScopes[curScreenSizeTabIdx];
-        const codeTemplate = varInputToScssChunk(varName);
+        const codeTemplate = varInputToScssChunk(varName, val, valNorm);
 
         if (!curChunk) {
             return scssWizard.addNewUniqueScopeChunkAndReturnAllRecompiled(
                 codeTemplate,
                 valNorm,
                 this.props.blockId,
-                mediaScopeId
+                mediaScopeId,
             );
         } else {
             const selectedScreenSizeVars = styleScopes[curScreenSizeTabIdx] || {};
@@ -200,6 +217,32 @@ class BlockVisualStylesEditForm extends preact.Component {
                 mediaScopeId,
             );
         }
+    }
+    /**
+     * @param {String|null} val
+     * @param {String} varName
+     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssChunk
+     * @returns {StylesBundleWithId}
+     * @access private
+     */
+    doHandleVarOfOptimizedChunkChanged(val, varName, varInputToScssChunk) {
+        const {styleScopes, curScreenSizeTabIdx} = this.state;
+        const classChunk = this.userStyleRefs[curScreenSizeTabIdx];
+        const newValIsNotEmpty = val?.trim().length > 0;
+        const valNorm = newValIsNotEmpty ? val : '"dummy"';
+        const mediaScopeId = mediaScopes[curScreenSizeTabIdx];
+        const codeTemplate = varInputToScssChunk(varName, val, valNorm);
+
+        const selectedScreenSizeVars = styleScopes[curScreenSizeTabIdx] || {};
+        const hasVarValPreviously = !!selectedScreenSizeVars[varName];
+        return scssWizard.addNewUniqueScopeChunkFromExistingClassScopeChunkAndReturnAllRecompiled(
+            hasVarValPreviously ? newValIsNotEmpty ? 'update' : 'delete' : 'add',
+            codeTemplate,
+            valNorm,
+            classChunk,
+            this.props.blockId,
+            mediaScopeId,
+        );
     }
     /**
      * @param {BlockStylesEditFormProps} props
@@ -398,8 +441,25 @@ function createPaddingVarDefs(prefix) {
     ];
 }
 
+/**
+ * @param {String} ofBlockId
+ * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]}
+ */
+function createBlockTreeClearStyleGroupOpArgs(ofBlockId) {
+    return [
+        'theBlockTree',
+        blockTreeUtils.createMutation(api.saveButton.getInstance().getChannelState('theBlockTree'), newTreeCopy => {
+            const [blockRef] = blockTreeUtils.findBlockMultiTree(ofBlockId, newTreeCopy);
+            blockRef.styleGroup = '';
+            return newTreeCopy;
+        }),
+        {event: 'update-single-block-prop', blockId: ofBlockId}
+    ];
+}
+
 export default BlockVisualStylesEditForm;
 export {
+    createBlockTreeClearStyleGroupOpArgs,
     createCssVarsMaps,
     createPaddingVarDefs,
 };

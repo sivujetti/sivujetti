@@ -619,4 +619,4 @@ interface VisualStylesFormVarDefinitionWidgetSettings {
 
 type scssCodeInput = String|Array<String>;
 
-type translateVarInputToScssCodeTemplateFn = (varName: String, value: String) => scssCodeInput;
+type translateVarInputToScssCodeTemplateFn = (varName: String, value: String, valueNorm: String) => scssCodeInput;

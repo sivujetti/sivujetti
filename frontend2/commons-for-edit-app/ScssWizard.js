@@ -1,11 +1,11 @@
 import {mediaScopes} from '../shared-inline.js';
 import {
+    addOrUpdateCodeTo,
     createScssBlock,
-    createScssInspectorInternal,
     createSelector,
-    getSelectorForDecl,
     stylesToBaked,
 } from './ScssWizardFuncs.js';
+import {generatePushID} from './utils.js';
 
 
 class ScssWizard {
@@ -156,11 +156,42 @@ class ScssWizard {
                     ...s,
                     scss: updatedScssChunk,
                 }
+    /**
+     * @param {'add'|'update'|'delete'} addOrUpdateOrDelete
+     * @param {scssCodeInput} codeTemplate
+     * @param {String} val
+     * @param {StyleChunk} currentStyle
+     * @param {String} blockId
+     * @param {mediaScope} mediaScopeId = 'all'
+     * @returns {StylesBundleWithId|null}
+     * @access public
+     */
+    addNewUniqueScopeChunkFromExistingClassScopeChunkAndReturnAllRecompiled(addOrUpdateOrDelete, codeTemplate, val, currentStyle, blockId, mediaScopeId = 'all') {
+        if (addOrUpdateOrDelete !== 'update')
+            throw new Error('todo');
+
+        // Create scss that has $val updated, removed or added
+        const classChunkScss = currentStyle.scss;
+        const scss1 = addOrUpdateCodeTo(classChunkScss, codeTemplate, val);
+        const scss = scss1.replace(
+            `data-style-group="${extractStyleGroupId(scss1)}"`,
+            `data-block="${blockId}"`
         );
+
+        // Add new unique scope chunk with updated scss
+        const updated = [
+            ...this.styles,
+            {
+                scope: {...currentStyle.scope, block: 'single-block'},
+                scss,
+            }
+        ];
+        return this.commitAll(updated, mediaScopeId);
+    }
     /**
      * @param {Array<StyleChunk>} uniqueScopeChunks
      * @param {(blockId: String, newClass: String) => any} onConverted
-     * @returns {StylesBundleWithId}
+     * @returns {StylesBundleWithId|null}
      * @access public
      */
     convertManyUniqueScopeChunksToClassScopeChunksAndReturnAllRecompiled(uniqueScopeChunks, onConverted) {
@@ -230,6 +261,8 @@ class ScssWizard {
         }, {});
 
         const mappedArr = Object.keys(mapped).map(key => mapped[key]);
+        if (!mappedArr.length)
+            return null;
         const optimized = this.styles.reduce((out, s) => {
             const opt = mappedArr.find(({converted}) => converted.some(({orig}) => orig === s));
             if (!opt) return [...out, s];
@@ -237,8 +270,8 @@ class ScssWizard {
             const {newClass, converted, newStyle} = opt;
             if (!out.find(({scss}) => scss === newStyle.scss)) {
                 converted.forEach(({blockId}) => onConverted(blockId, newClass));
-            } // else already added
                 return [...out, newStyle];
+            } // else already added
             return out;
         }, []);
 
@@ -289,59 +322,11 @@ class ScssWizard {
         return this.styles.map(s => {
             if (s !== currentStyle) return s;
 
-            const incoming1 = Array.isArray(codeTemplate) ? codeTemplate.join('\n') : codeTemplate;
-            const incoming = incoming1.replace(/%s/g, val);
-            const linesIncoming = incoming.split('\n');
-            const decls = createScssInspectorInternal(incoming).findNodes((node, _parenNode) => {
-                return node.type === 'decl';
-            });
-
-            let inspector = createScssInspectorInternal(s.scss);
-            let lines = s.scss.split('\n');
-            decls.forEach(([fromInc, fromIncParen]) => {
-                // name of the decl we're adding or updating, 'column-gap' for example
-                const declName = fromInc.props;
-
-                // find it from current style.scss
-                const containingCssBlockSel = getSelectorForDecl(fromIncParen, inspector);
-                const [toUpdate, _toUpdateParen] = inspector.findNode((node, parenNode) =>
-                    parenNode &&
-                    (node.type === 'decl' && node.props === declName) &&
-                    (parenNode.type === 'rule' && parenNode.value === containingCssBlockSel)
-                );
-
-                const newLine = indent(linesIncoming[fromInc.line - 1], 1);
-                if (toUpdate) { // update it
-                    lines[toUpdate.line - 1] = newLine;
-                } else { // add
-                    if (!fromIncParen) { // root level decl, add to the beginning
-                        lines.splice(1, 0, newLine);
-                    } else { // inner block's decl
-                        const targetScope = inspector.getAst().find((n, i) =>
-                            i > 0 && // skip root
-                            n.parent && n.type === 'rule' && n.value === containingCssBlockSel
-                        );
-
-                        // inner scope (css block) exist, add to the beginning
-                        if (targetScope)
-                            lines.splice(targetScope.children[0].line - 1, 0, newLine);
-                        // scope doesn't exist, add to the end of root
-                        else
-                            lines.splice(lines.length - 1, 0,
-                                indent(`${containingCssBlockSel} {`, 1),
-                                newLine,
-                                indent('}', 1),
-                            );
-                    }
-                }
-
-                // update inspector, since inspector.getAst()[*].line may have changed
-                inspector = createScssInspectorInternal(lines.join('\n'));
-            });
+            const updatedScss = addOrUpdateCodeTo(s.scss, codeTemplate, val);
 
             return {
                 ...s,
-                scss: lines.join('\n')
+                scss: updatedScss
             };
         });
     }

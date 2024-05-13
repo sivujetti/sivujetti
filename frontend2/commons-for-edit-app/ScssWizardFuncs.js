@@ -230,12 +230,71 @@ function findEmptyBlockClosingTagIndex(lines) {
     }
     return -1;
 }
+
+/**
+ * @param {String} scssTo
+ * @param {String} codeTemplate
+ * @param {any} val
+ * @returns {String}
+ */
+function addOrUpdateCodeTo(scssTo, codeTemplate, val) {
+    const incoming1 = Array.isArray(codeTemplate) ? codeTemplate.join('\n') : codeTemplate;
+    const incoming = incoming1.replace(/%s/g, val);
+    const linesIncoming = incoming.split('\n');
+    const decls = createScssInspectorInternal(incoming).findNodes((node, _parenNode) => {
+        return node.type === 'decl';
+    });
+
+    let inspector = createScssInspectorInternal(scssTo);
+    let lines = scssTo.split('\n');
+    decls.forEach(([fromInc, fromIncParen]) => {
+        // name of the decl we're adding or updating, 'column-gap' for example
+        const declName = fromInc.props;
+
+        // find it from current scssTo
+        const containingCssBlockSel = getSelectorForDecl(fromIncParen, inspector);
+        const [toUpdate, _toUpdateParen] = inspector.findNode((node, parenNode) =>
+            parenNode &&
+            (node.type === 'decl' && node.props === declName) &&
+            (parenNode.type === 'rule' && parenNode.value === containingCssBlockSel)
+        );
+
+        const newLine = indent(linesIncoming[fromInc.line - 1], 1);
+        if (toUpdate) { // update it
+            lines[toUpdate.line - 1] = newLine;
+        } else { // add
+            if (!fromIncParen) { // root level decl, add to the beginning
+                lines.splice(1, 0, newLine);
+            } else { // inner block's decl
+                const targetScope = inspector.getAst().find((n, i) =>
+                    i > 0 && // skip root
+                    n.parent && n.type === 'rule' && n.value === containingCssBlockSel
+                );
+
+                // inner scope (css block) exist, add to the beginning
+                if (targetScope)
+                    lines.splice(targetScope.children[0].line - 1, 0, newLine);
+                // scope doesn't exist, add to the end of root
+                else
+                    lines.splice(lines.length - 1, 0,
+                        indent(`${containingCssBlockSel} {`, 1),
+                        newLine,
+                        indent('}', 1),
+                    );
+            }
+        }
+
+        // update inspector, since inspector.getAst()[*].line may have changed
+        inspector = createScssInspectorInternal(lines.join('\n'));
+    });
+
+    return lines.join('\n');
+}
+
 export {
+    addOrUpdateCodeTo,
     createCssDeclExtractor,
     createScssBlock,
-    createScssInspectorInternal,
     createSelector,
-    findEmptyBlockClosingTagIndex,
-    getSelectorForDecl,
     stylesToBaked,
 };

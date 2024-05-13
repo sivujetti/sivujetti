@@ -87,7 +87,7 @@ class ScssWizard {
         const affectedMediaScopeIds = {};
         for (const {scope, scss} of newUniqueScopeChunksToAdd) {
             const {media, layer} = scope;
-            const blockId = scss.split('data-block="')[1].split('"')[0];
+            const blockId = extractBlockId(scss);
             if (this.findStyle('single-block', blockId, media, layer, this.styles))
                 throw new Error(`Unique style ${blockId}:${media}:${layer} already exist`);
             affectedMediaScopeIds[media] = 1;
@@ -123,17 +123,17 @@ class ScssWizard {
         return this.commitAll(updated, mediaScopeId);
     }
     /**
-     * @param {String} initialScssChunk Example: '// Your code here ...\ncolor: red;'
+     * @param {String} initialScssCode Example: '// Your code here ...\ncolor: red;'
      * @param {String} blockId
      * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
-    addNewDevsUniqueScopeScssChunkAndReturnAllRecompiled(initialScssChunk, blockId, mediaScopeId = 'all') {
+    addNewDevsUniqueScopeScssChunkAndReturnAllRecompiled(initialScssCode, blockId, mediaScopeId = 'all') {
         const updated = [
             ...this.styles,
             this.createNewUniqueChunk(
-                createScssBlock(initialScssChunk, `${createSelector(blockId)} {`),
+                createScssBlock(initialScssCode, `${createSelector(blockId)} {`),
                 blockId,
                 mediaScopeId,
                 'dev-styles'
@@ -142,13 +142,13 @@ class ScssWizard {
         return this.commitAll(updated, mediaScopeId);
     }
     /**
-     * @param {String} updatedScssChunk Example: 'color: blue;'
+     * @param {String} updatedScssCode Example: 'color: blue;'
      * @param {StyleChunk} currentStyle
      * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
-    updateDevsExistingUniqueScopeChunkWithScssChunkAndReturnAllRecompiled(updatedScssChunk, currentStyle, mediaScopeId = 'all') {
+    updateDevsExistingUniqueScopeChunkWithScssChunkAndReturnAllRecompiled(updatedScssCode, currentStyle, mediaScopeId = 'all') {
         const updated = this.styles.map(s =>
             s !== currentStyle
                 ? s
@@ -157,6 +157,93 @@ class ScssWizard {
                     scss: updatedScssChunk,
                 }
         );
+    /**
+     * @param {Array<StyleChunk>} uniqueScopeChunks
+     * @param {(blockId: String, newClass: String) => any} onConverted
+     * @returns {StylesBundleWithId}
+     * @access public
+     */
+    convertManyUniqueScopeChunksToClassScopeChunksAndReturnAllRecompiled(uniqueScopeChunks, onConverted) {
+        const affectedMediaScopeIds = {};
+        const styles = [];
+        const styleBlockIds = [];
+        for (const {scope, scss} of uniqueScopeChunks) {
+            const {media, layer} = scope;
+            const blockId = extractBlockId(scss);
+            const s = this.findStyle('single-block', blockId, media, layer, this.styles);
+            if (!s) throw new Error(`Unique style ${blockId}:${media}:${layer} already exist`);
+            styles.push(s);
+            styleBlockIds.push(blockId);
+            affectedMediaScopeIds[media] = 1;
+        }
+
+        // Build {[duplicateScssKey: String]: {newClass: String; newStyle: StyleChunk; converted: Array<{blockId: String; orig: StyleChunk;}>;}}
+        const mapped = this.styles.reduce((map, s) => {
+            const idx = styles.indexOf(s);
+            if (idx < 0) return map;
+
+            const blockIdOfThisStyleChunk = styleBlockIds[idx];
+            const ir = s.scss.replace(
+                `data-block="${blockIdOfThisStyleChunk}"`,
+                `data-style-group="@temp"`,
+            );
+
+            const maybeDuplicateScssSorted = ir.split('\n').sort().join('\n');
+            const maybeDuplicateScssKey = [
+                s.scope.media,
+                s.scope.layer,
+                maybeDuplicateScssSorted
+            ].join('|');
+
+            const prev = map[maybeDuplicateScssKey];
+            if (!prev) {
+                const newClass = generatePushID(true);
+                const scss = ir.replace('@temp', newClass);
+                // {hash1: {...}} ->
+                // {hash1: {...}, hash2: {...}}
+                return {
+                    ...map,
+                    [maybeDuplicateScssKey]: {
+                        newClass,
+                        converted: [{blockId: blockIdOfThisStyleChunk, orig: s}],
+                        newStyle: {
+                            scss,
+                            scope: {
+                                block: 'class',
+                                media: s.scope.media,
+                                layer: s.scope.layer,
+                            }
+                        },
+                    }
+                };
+            } else {
+                // {..., hash2: {..., converted: [<first>]}} ->
+                // {..., hash2: {..., converted: [<first>, <second>]}}
+                return {
+                    ...map,
+                    [maybeDuplicateScssKey]: {
+                        ...prev,
+                        converted: [...prev.converted, {blockId: blockIdOfThisStyleChunk, orig: s}]
+                    }
+                };
+            }
+        }, {});
+
+        const mappedArr = Object.keys(mapped).map(key => mapped[key]);
+        const optimized = this.styles.reduce((out, s) => {
+            const opt = mappedArr.find(({converted}) => converted.some(({orig}) => orig === s));
+            if (!opt) return [...out, s];
+
+            const {newClass, converted, newStyle} = opt;
+            if (!out.find(({scss}) => scss === newStyle.scss)) {
+                converted.forEach(({blockId}) => onConverted(blockId, newClass));
+            } // else already added
+                return [...out, newStyle];
+            return out;
+        }, []);
+
+        return this.commitAll(optimized, affectedMediaScopeIds);
+    }
         return this.commitAll(updated, mediaScopeId);
     }
     /**
@@ -364,6 +451,21 @@ class ScssWizard {
             scss,
         };
     }
+
+/**
+ * @param {String} uniqChunkScss
+ * @returns {String}
+ */
+function extractBlockId(uniqChunkScss) {
+    return uniqChunkScss.split('data-block="')[1].split('"')[0];
+}
+
+/**
+ * @param {String} classChunkScss
+ * @returns {String}
+ */
+function extractStyleGroupId(classChunkScss) {
+    return classChunkScss.split('data-style-group="')[1].split('"')[0];
 }
 
 export default ScssWizard;

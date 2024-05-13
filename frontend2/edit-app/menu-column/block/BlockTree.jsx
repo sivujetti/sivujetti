@@ -103,7 +103,7 @@ class BlockTree extends preact.Component {
                             draggable><div class="d-flex">&nbsp;</div></li>)
                         : <li>-</li>
                 }</ul>
-                : <LoadingSpinner className="ml-1 pl-2"/>
+                : <LoadingSpinner className="ml-1 pl-2 pb-1"/>
             }
             <ContextMenu
                 links={ [
@@ -308,40 +308,58 @@ class BlockTree extends preact.Component {
     doSaveBlockAsReusable(data, block) {
         const saveButton = api.saveButton.getInstance();
 
-        let newOriginalBlock;
-        // Update origin block's title
-        const updateOriginalBlockTitleOpArgs = [
-            'theBlockTree',
-            blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-                const [blockRef] = blockTreeUtils.findBlockMultiTree(block.id, newTreeCopy);
-                blockRef.title = data.name;
-                newOriginalBlock = blockRef;
-                return newTreeCopy;
-            }),
-            {event: 'update-single-block-prop', isDefPropOnly: true, blockId: block.id}
-        ];
+        const newTree = objectUtils.cloneDeep(saveButton.getChannelState('theBlockTree'));
+        const [newReusableRootRef] = blockTreeUtils.findBlockMultiTree(block.id, newTree);
 
-        // Create new 'reusableBranches' state array and push it to the history
+        // 1. Convert all styles recursively from scope = 'singe-block' to
+        // scope = 'class' when possible
+        let newStyles = null;
+        const newConvertedStyleChunkIds = [];
+        const uniqueScopedStyleChunks = new Map;
+        traverseRecursively([newReusableRootRef], b => {
+            const userAndDevStyles = scssWizard.findStyles('single-block', b.id);
+            uniqueScopedStyleChunks.set(b.id, userAndDevStyles);
+        });
+        if (uniqueScopedStyleChunks.size) {
+            const chunks = [...uniqueScopedStyleChunks.values()].flat();
+            const updatedAll = scssWizard.convertManyUniqueScopeChunksToClassScopeChunksAndReturnAllRecompiled(chunks, (blockId, newCls) => {
+                const blockInNewTree = blockTreeUtils.findBlock(blockId, newTree)[0];
+                newConvertedStyleChunkIds.push({blockInNewTree, newCls});
+            });
+            newStyles = updatedAll;
+        } else {
+            newStyles = null;
+        }
+
+        // 2. Mutate new block tree (update `newReusable.blockBlueprints[0].title`
+        // and `newReusable.blockBlueprints[*].styleGroup`)
+        newReusableRootRef.title = data.name;
+        for (const {blockInNewTree, newCls} of newConvertedStyleChunkIds)
+            blockInNewTree.styleGroup = newCls;
+
+        // 3. Create new reusable branch
+        const blockBlueprints = [blockToBlueprint(treeToTransferable([newReusableRootRef])[0], (blueprint, block) => {
+            const nonClassUserAndDevStyles = scssWizard.findStyles('single-block', block.id);
+            const replacer = createStyleShunkcScssIdReplacer(block.id, '@placeholder');
+            const init = nonClassUserAndDevStyles.map(replacer); // 'data-block-id="uagNk..."' -> 'data-block-id="@placeholder:block-id"'
+            return {
+                ...blueprint,
+                ...{initialStyles: init}
+            };
+        })];
+
+        // 4. Commit all
         fetchOrGetReusableBranches().then(reusablesPrev => {
-            const blockBlueprints = [blockToBlueprint(treeToTransferable([newOriginalBlock])[0], (blueprint, block) => {
-                const userAndDevStyles = scssWizard.findStyles('single-block', block.id);
-                const replacer = createStyleShunkcScssIdReplacer(block.id, '@placeholder');
-                const init = userAndDevStyles.map(replacer); // 'data-block-id="uagNk..."' -> 'data-block-id="@placeholder"'
-                return {
-                    ...blueprint,
-                    ...{initialStyles: init}
-                };
-            })];
-            const newReusablesState = [...objectUtils.cloneDeep(reusablesPrev), {
+            const newReusablesState = [{
                 id: generatePushID(),
                 blockBlueprints,
-            }];
-            const pushNewReusablesStateOpArgs = ['reusableBranches', newReusablesState, {event: 'create'}];
-
-            saveButton.pushOpGroup(
-                updateOriginalBlockTitleOpArgs,
-                pushNewReusablesStateOpArgs
-            );
+            }, ...objectUtils.cloneDeep(reusablesPrev)];
+            const arrOfOpArgs = [
+                ...[['theBlockTree', newTree, {event: 'update-many-blocks-prop'}]],
+                ...(newStyles ? [['stylesBundle', newStyles]] : []),
+                ...[['reusableBranches', newReusablesState, {event: 'create'}]]
+            ];
+            saveButton.pushOpGroup(...arrOfOpArgs);
         });
     }
     /**

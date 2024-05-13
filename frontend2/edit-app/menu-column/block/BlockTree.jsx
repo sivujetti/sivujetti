@@ -15,6 +15,7 @@ import {
 import createDndController, {callGetBlockPropChangesEvent} from '../../includes/block/create-block-tree-dnd-controller.js';
 import TreeDragDrop from '../../includes/TreeDragDrop.js';
 import BlockSaveAsReusableDialog from '../../main-column/popups/BlockSaveAsReusableDialog.jsx';
+import BlockTreeShowHelpPopup from '../../main-column/popups/BlockTreeShowHelpPopup.jsx';
 import {
     blockToBlueprint,
     createPartialState,
@@ -81,6 +82,13 @@ class BlockTree extends preact.Component {
      */
     render({blocks}, {treeState}) {
         return <div>
+            <div class="p-relative" style="z-index: 1"><button
+                onClick={ this.showBlockTreeHelpPopup.bind(this) }
+                class={ `btn btn-link p-absolute btn-sm pt-1${treeState ? '' : ' d-invisible'}` }
+                type="button"
+                style="right: .1rem">
+                <Icon iconId="info-circle" className="size-xs"/>
+            </button></div>
             { treeState
                 ? <ul class="block-tree mx-1" ref={ el => {
                     if (!el) return;
@@ -363,6 +371,15 @@ class BlockTree extends preact.Component {
             ];
             saveButton.pushOpGroup(...arrOfOpArgs);
         });
+    }
+    /**
+     * @access private
+     */
+    showBlockTreeHelpPopup() {
+        floatingDialog.open(BlockTreeShowHelpPopup, {
+            title: __('Content tree'),
+            width: 448,
+        }, {});
     }
     /**
      * @param {Block} block

@@ -2,14 +2,12 @@ import {currentInstance as floatingDialog} from './FloatingDialog.jsx';
 import {Icon} from './Icon.jsx';
 import {__} from './edit-app-singletons.js';
 import ScreenSizesTabShowHelpPopup from './popups/ScreenSizesTabShowHelpPopup.jsx';
-import {mediaScopes} from '../shared-inline.js';
 
 class ScreenSizesVerticalTabs extends preact.Component {
     /**
      * @param {{curTabIdx: Number; setCurTabIdx: (newIdx: Number): void; populatedTabs: [Boolean, Boolean, Boolean, Boolean, Boolean]; className?: String;}} props
      */
     render({children, curTabIdx, setCurTabIdx, populatedTabs, className}) {
-        console.log('oass',populatedTabs);
         return <div class={ 'vert-tabs' + (!className ? '' : ` ${className}`) }>
             <div class="vert-tab-btns">
                 <button

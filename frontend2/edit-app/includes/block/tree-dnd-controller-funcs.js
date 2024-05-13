@@ -7,6 +7,7 @@ import {
  * @param {SpawnDescriptor} spawn
  * @param {BlockDescriptor} target
  * @param {dropPosition} dropPos
+ * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]}
  */
 function createBlockTreeInsertAtOpArgs(spawn, target, insertPos) {
     return [
@@ -36,6 +37,7 @@ function createBlockTreeInsertAtOpArgs(spawn, target, insertPos) {
  * @param {BlockDescriptor} dragInf
  * @param {BlockDescriptor} dropInf
  * @param {dropPosition} dropPos
+ * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]}
  */
 function createBlockTreeMoveToOpArgs(dragInf, dropInf, dropPos) {
     return [

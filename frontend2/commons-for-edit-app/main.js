@@ -58,7 +58,7 @@ import {
 import {mediaScopes, placeholderImageSrc, traverseRecursively} from '../shared-inline.js';
 import Popup from './Popup.jsx';
 import {createCssDeclExtractor} from './ScssWizardFuncs.js';
-import BlockVisualStylesEditForm from './BlockVisualStylesEditForm.jsx';
+import BlockVisualStylesEditForm, {createBlockTreeClearStyleGroupOpArgs} from './BlockVisualStylesEditForm.jsx';
 
 export {
     __,
@@ -67,6 +67,7 @@ export {
     BlockVisualStylesEditForm,
     ColorPickerInput,
     ContextMenu,
+    createBlockTreeClearStyleGroupOpArgs,
     createCssDeclExtractor,
     determineModeFrom,
     determineModeFromPreview,

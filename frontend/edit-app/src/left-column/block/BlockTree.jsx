@@ -4,7 +4,7 @@ import {cloneDeep, treeToTransferable} from '../../block/utils.js';
 import {findBlockFrom} from '../../block/utils-utils.js';
 import ContextMenu from '../../commons/ContextMenu.jsx';
 import {generatePushID} from '../../commons/utils.js';
-import BlockTreeShowHelpPopup from '../../popups/BlockTreeShowHelpPopup.jsx';
+// ## import BlockTreeShowHelpPopup from '../../popups/BlockTreeShowHelpPopup.jsx';
 // ## import SaveBlockAsReusableDialog from '../../popups/reusable-branch/SaveBlockAsReusableDialog.jsx';
 import store2, {observeStore as observeStore2} from '../../store2.js';
 import TreeDragDrop from '../../TreeDragDrop.js';
@@ -105,13 +105,13 @@ class BlockTree extends preact.Component {
             return null;
         })(this);
         return <div class="pt-2">
-            <div class="p-relative" style="z-index: 1"><button
-                onClick={ this.showBlockTreeHelpPopup.bind(this) }
-                class="btn btn-link p-absolute btn-sm pt-1"
-                type="button"
-                style="right: .1rem; top: .1rem;">
-                <Icon iconId="info-circle" className="size-xs"/>
-            </button></div>
+// ##             <div class="p-relative" style="z-index: 1"><button
+// ##                 onClick={ this.showBlockTreeHelpPopup.bind(this) }
+// ##                 class="btn btn-link p-absolute btn-sm pt-1"
+// ##                 type="button"
+// ##                 style="right: .1rem; top: .1rem;">
+// ##                 <Icon iconId="info-circle" className="size-xs"/>
+// ##             </button></div>
             <ul class="block-tree mx-1" ref={ el => {
                 if (!el) return;
                 this.dragDrop.attachOrUpdate(el);
@@ -384,15 +384,15 @@ class BlockTree extends preact.Component {
 // ##         hideOrShowChildren(to, block, mutRef);
 // ##         this.setState({treeState: mutRef});
 // ##     }
-    /**
-     * @access private
-     */
-    showBlockTreeHelpPopup() {
-        floatingDialog.open(BlockTreeShowHelpPopup, {
-            title: __('Content tree'),
-            width: 448,
-        }, {});
-    }
+// ##     /**
+// ##      * @access private
+// ##      */
+// ##     showBlockTreeHelpPopup() {
+// ##         floatingDialog.open(BlockTreeShowHelpPopup, {
+// ##             title: __('Content tree'),
+// ##             width: 448,
+// ##         }, {});
+// ##     }
 // ##    /**
 // ##     * @param {RawBlock} block
 // ##     * @param {'direct'|'web-page'|'styles-tab'} origin = 'direct'

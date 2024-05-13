@@ -235,10 +235,7 @@ function createTabConfig(editFormType, hasStylesForm) {
 function createState(newTabKind, thisPropsBlock) {
     const  out =  {
         currentTabKind: newTabKind,
-        ...(newTabKind.indexOf('content') > -1
-            ? {blockCopyForEditForm: objectUtils.cloneDeep(thisPropsBlock)}
-            : {}
-        ),
+        blockCopyForEditForm: objectUtils.cloneDeep(thisPropsBlock),
         ...(doesTabContainStylesStuff(newTabKind)
             ? {stylesStateId: api.saveButton.getInstance().getChannelState('stylesBundle')?.id}
             : {}

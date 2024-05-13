@@ -30,26 +30,30 @@ function createCssDeclExtractor(scss) {
 /**
  * @param {Array<StyleChunk>} styles
  * @param {mediaScope} mediaScopeId
- * @returns {String} '@layer user-styles {\n<compiled>\n}\n@layer dev-styles {\n<compiled>\n}\n'
+ * @returns {String} '@layer body-styles {\n<compiled>\n}\n@layer user-styles {\n<compiled>\n}\n@layer dev-styles {\n<compiled>\n}\n'
  */
 function stylesToBaked(styles, mediaScopeId) {
     const forThisMedia = styles.filter(({scope}) => scope.media === mediaScopeId);
     if (!forThisMedia.length) return '';
+    const {body, user, dev} = forThisMedia.reduce((out, s) => {
+        const {scope} = s;
+        if (scope.layer === 'body-styles')
+            return {...out, body: [...out.body, s]};
+        if (scope.layer === 'user-styles' && (scope.block === 'single-block' || scope.block === 'class'))
+            return {...out, user: [...out.user, s]};
+        if (scope.layer === 'dev-styles' && (scope.block === 'single-block' || scope.block === 'class'))
+            return {...out, dev: [...out.dev, s]};
+        return out;
+    }, {body: [], user: [], dev: []});
     return [
         '@layer body-styles {\n',
-        serialize(compile(
-            forThisMedia.filter(({scope}) => scope.layer === 'body-styles').map(({scss}) => scss).join('')
-        ), stringify),
+        serialize(compile(body.map(({scss}) => scss).join('')), stringify),
         '\n}\n',
         '@layer user-styles {\n',
-        serialize(compile(
-            forThisMedia.filter(({scope}) => scope.block === 'single-block' && scope.layer === 'user-styles').map(({scss}) => scss).join('')
-        ), stringify),
+        serialize(compile(user.map(({scss}) => scss).join('')), stringify),
         '\n}\n',
         '@layer dev-styles {\n',
-        serialize(compile(
-            forThisMedia.filter(({scope}) => scope.block === 'single-block' && scope.layer === 'dev-styles').map(({scss}) => scss).join('')
-        ), stringify),
+        serialize(compile(dev.map(({scss}) => scss).join('')), stringify),
         '\n}\n',
     ].join('');
 }
@@ -205,13 +209,12 @@ function getSelectorForDecl(declsParentAstNode, cur) {
  * @access public
  */
 function createSelector(blockIdOrType, scope = 'single-block') {
-    return scope === 'single-block'
-        ? `[data-block="${blockIdOrType}"]`
-        : scope === 'none'
-            ? ':root'
-            : 'todo';
+    if (scope === 'single-block')
+        return `[data-block="${blockIdOrType}"]`;
+    if (scope === 'class')
+        return `[data-style-group="${blockIdOrType}"]`;
+    return scope === 'none' ? ':root' : '// invalid';
 }
-
 
 /**
  * @param {Array<String>} lines

@@ -206,13 +206,18 @@ class BlockVisualStylesEditForm extends preact.Component {
      * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}
      */
     createCssVarsMapsInternal(props) {
-        const [blockScope, blockScopeId, layer] = !this.isSpecialRootVarsStyle
-            ? ['single-block', props.blockId, undefined]
-            : ['none',         '',           'body-styles'];
+        const [scopeKind, scopeId, layer] = (function (self) {
+            if (self.isSpecialRootVarsStyle)
+                return ['none',         '',                    'body-styles'];
+            if (!props.blockStyleGroup)
+                return ['single-block', props.blockId,         undefined];
+            else
+                return ['class',        props.blockStyleGroup, undefined];
+        })(this);
         return doCreateCssVarsMaps(
             this.cssVarDefs,
-            blockScope,
-            blockScopeId,
+            scopeKind,
+            scopeId,
             layer
         );
     }
@@ -227,20 +232,20 @@ function createCssVarsMaps(blockId, cssVarDefs) {
     return doCreateCssVarsMaps(
         cssVarDefs,
         'single-block',
-        blockId
+        blockId,
     );
 }
 
 /**
  * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
- * @param {styleBlockScope} blockScopeType
- * @param {String} blockScopeId
+ * @param {styleBlockScope} scopeKind
+ * @param {String} scopeId
  * @param {stylesLayer|undefined} layer = undefined
  * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}
  */
-function doCreateCssVarsMaps(cssVarDefs, blockScopeType, blockScopeId, layer = undefined) {
+function doCreateCssVarsMaps(cssVarDefs, scopeKind, scopeId, layer = undefined) {
     return mediaScopes.reduce((out, mediaScopeId) => {
-        const styleRef = scssWizard.findStyle(blockScopeType, blockScopeId, mediaScopeId, layer);
+        const styleRef = scssWizard.findStyle(scopeKind, scopeId, mediaScopeId, layer);
         const styleVarsForThisMediaScope = createVarsMapAuto(cssVarDefs, styleRef?.scss || null);
         out[0].push(styleVarsForThisMediaScope);
         out[1].push(styleRef);

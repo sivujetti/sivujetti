@@ -342,6 +342,7 @@ interface BlockEditFormProps {
 
 interface BlockStylesEditFormProps {
     blockId: String;
+    blockStyleGroup: String;
     stateId: Number;
 }
 
@@ -565,7 +566,7 @@ type mediaScope = 'all'|'960'|'840'|'600'|'480'|String;
 
 type compiledMediaScopesCss = [String, String, String, String, String];
 
-type styleBlockScope = 'single-block'|'block-type'|'none';
+type styleBlockScope = 'single-block'|'block-type'|'class'|'none';
 
 type stateChangeContext = 'initial'|'push'|'undo'|'redo';
 

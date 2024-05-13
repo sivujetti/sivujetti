@@ -7,9 +7,9 @@ use Sivujetti\{PushIdGenerator, ShortIdGenerator};
 /**
  * @psalm-type stylesLayer = 'user-styles'|'dev-styles'|'body-styles'
  * @psalm-type mediaScope = 'all'|'960'|'840'|'600'|'480'|string
- * @psalm-type styleBlockScope = 'single-block'|'block-type'|'none'
+ * @psalm-type styleBlockScope = 'single-block'|'block-type'|'class'|'none'
  * @psalm-type StyleChunk = object{scss: string, scope: object{block: styleBlockScope, media: mediaScope, layer: stylesLayer}}
- * @psalm-type BlockBlueprint = object{blockType: string, initialOwnData: object, initialDefaultsData: object{title: string, renderer: string, styleClasses: string}, initialStyles: array<int, StyleChunk>, initialChildren: array<int, BlockBlueprint>}
+ * @psalm-type BlockBlueprint = object{blockType: string, initialOwnData: object, initialDefaultsData: object{title: string, renderer: string, styleClasses: string, styleGroup: string}, initialStyles: array<int, StyleChunk>, initialChildren: array<int, BlockBlueprint>}
  */
 final class Block extends \stdClass {
     public const TYPE_BUTTON           = "Button";

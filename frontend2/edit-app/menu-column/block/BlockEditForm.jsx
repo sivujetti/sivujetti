@@ -53,14 +53,17 @@ class BlockEditForm extends preact.Component {
             //
             const doCheckDiffForEditForm = (
                 (event === 'update-single-block-prop' && userCtx?.blockId === this.state.blockCopyForEditForm?.id) ||
-                ctx === 'undo'
+                ctx === 'undo' ||
+                ctx === 'redo'
             );
             if (doCheckDiffForEditForm) {
-                const block = doCheckDiffForEditForm
+                const block = doCheckDiffForEditForm && this.state.blockCopyForEditForm
                     ? blockTreeUtils.findBlockMultiTree(this.state.blockCopyForEditForm.id, theTree)[0]
                     : null;
                 if (!block || this.state.blockCopyForEditForm.id !== block.id) return;
-                if (JSON.stringify(this.state.blockCopyForEditForm.propsData) !== JSON.stringify(block.propsData)) {
+                if (JSON.stringify(this.state.blockCopyForEditForm.propsData) !== JSON.stringify(block.propsData) ||
+                    this.state.blockCopyForEditForm.styleGroup !== block.styleGroup ||
+                    this.state.blockCopyForEditForm.styleClasses !== block.styleClasses) {
                     this.setState({
                         blockCopyForEditForm: objectUtils.cloneDeep(block),
                         lastBlockTreeChangeEventInfo: {ctx, flags, isUndoOrRedo: isUndoOrRedo(ctx)}
@@ -90,15 +93,16 @@ class BlockEditForm extends preact.Component {
      * @param {{block: Block; inspectorPanel: preact.Component;}} props
      * @access protected
      */
-    render({block}, {currentTabKind, blockCopyForEditForm, lastBlockTreeChangeEventInfo}) {
-        const isMeta = isMetaBlock(block);
+    render(_, {currentTabKind, blockCopyForEditForm, lastBlockTreeChangeEventInfo}) {
+        const blockId = blockCopyForEditForm.id;
+        const isMeta = isMetaBlock(blockCopyForEditForm);
         const typeid = isMeta ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
         const {tabsInfo} = this;
         const hasMoreThat1Tab = tabsInfo.length > 1;
         return <div data-main>
             <div class={ `with-icon${typeid} ${hasMoreThat1Tab ? 'pb-1' : 'pb-2 mb-1'}` }>
                 <Icon iconId={ api.blockTypes.getIconId(this.blockType) } className="size-xs mr-1"/>
-                { __(block.title || this.blockType.friendlyName) }
+                { __(blockCopyForEditForm.title || this.blockType.friendlyName) }
             </div>
             { hasMoreThat1Tab ? <Tabs
                 links={ tabsInfo.map(itm => itm.title) }
@@ -132,16 +136,17 @@ class BlockEditForm extends preact.Component {
                                 }
                             } }
                             emitManyValuesChanged={ this.handleValuesChanged.bind(this) }
-                            key={ block.id }
+                            key={ blockId }
                             { ...(type !== 'content+user-styles'
                                 ? {}
-                                : {stylesStateId: this.state.stylesStateId, blockId: block.id}
+                                : {stylesStateId: this.state.stylesStateId, blockId: blockId}
                             ) }/>
                     );
                 } else if (itm.kind === 'user-styles') {
                     const StylesEditFormCls = this.stylesEditForm;
                     content = <StylesEditFormCls
-                        blockId={ block.id }
+                        blockId={ blockId }
+                        blockStyleGroup={ blockCopyForEditForm.styleGroup }
                         stateId={ this.state.stylesStateId }/>;
                 } else if (itm.kind === 'dev-styles') {
                     content = <CodeBasedStylesList

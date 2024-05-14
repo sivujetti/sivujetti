@@ -49,7 +49,9 @@ class WebPagePreviewApp extends preact.Component {
     highlightBlock(block, origin = 'block-tree', rect = null) {
         if (isMetaBlock(block)) return;
         const title = (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + (block.title || __(block.type));
-        this.doShowHighlightRect(rect || this.getBlockEl(block.id).getBoundingClientRect(), title);
+        const foundRect = rect || this.getBlockEl(block.id)?.getBoundingClientRect();
+        if (!foundRect) return;
+        this.doShowHighlightRect(foundRect, title);
         events.emit('highlight-rect-revealed', block.id, origin);
     }
     /**
@@ -66,6 +68,7 @@ class WebPagePreviewApp extends preact.Component {
      */
     highlightTextBlockChildEl(elIdx, textBlockBlockId) {
         const childEl = this.getBlockEl(textBlockBlockId).children[elIdx];
+        if (!childEl) return;
         const rect = childEl.getBoundingClientRect();
         this.doShowHighlightRect(rect, `${__('Text')} > ${nodeNameToFriendly(childEl.nodeName)}`);
     }

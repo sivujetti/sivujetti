@@ -422,10 +422,17 @@ class RenderAllOuter extends RenderAll {
         }
         //
         if (this.currentlyHoveredBlockEl) {
+            const curHoveredBlockId = getBlockId(this.currentlyHoveredBlockEl);
             const doShow = this.currentlyHoveredBlockEl.getAttribute('data-block-type') !== 'Text';
             const hasBeenReplacedByReRender = !document.body.contains(this.currentlyHoveredBlockEl);
-            if (hasBeenReplacedByReRender)
-                this.currentlyHoveredBlockEl = getBlockEl(getBlockId(this.currentlyHoveredBlockEl));
+            if (hasBeenReplacedByReRender) {
+                this.currentlyHoveredBlockEl = getBlockEl(curHoveredBlockId);
+                // Was removed completely
+                if (!this.currentlyHoveredBlockEl) {
+                    this.messagePortToEditApp.postMessage(['onBlockHoverEnded', curHoveredBlockId]);
+                    return;
+                } // else was replaced, fall through
+            }
             //
             const b = e.target.getAttribute('data-block-type') ? e.target : e.target.closest('[data-block-type]');
             if (this.currentlyHoveredBlockEl.contains(b) && this.currentlyHoveredBlockEl !== b) {

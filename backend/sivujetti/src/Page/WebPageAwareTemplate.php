@@ -555,6 +555,7 @@ final class WebPageAwareTemplate extends Template {
                 ],
                 "userFlags" => $includeUserFlags ? [
                     "useShortIds" => defined("USE_SHORT_IDS"),
+                    "useStyleGroups" => defined("USE_STYLE_GROUPS"),
                 ] : null,
             ])) . ")"
         );

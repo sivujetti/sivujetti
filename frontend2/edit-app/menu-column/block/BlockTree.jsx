@@ -323,6 +323,7 @@ class BlockTree extends preact.Component {
         // scope = 'class' when possible
         let newStyles = null;
         const newConvertedStyleChunkIds = [];
+        if (window.sivujettiUserFlags?.useStyleGroups) {
         const uniqueScopedStyleChunks = new Map;
         traverseRecursively([newReusableRootRef], b => {
             const userAndDevStyles = scssWizard.findStyles('single-block', b.id);
@@ -339,6 +340,7 @@ class BlockTree extends preact.Component {
             // else scssWizard did not find anything to convert
         } else {
             newStyles = null;
+        }
         }
 
         // 2. Mutate new block tree (update `newReusable.blockBlueprints[0].title`

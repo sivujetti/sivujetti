@@ -11,15 +11,15 @@ class BaseStylesVisualEditForm extends BlockVisualStylesEditForm {
     /**
      * @inheritdoc
      */
-    renderVarWidget(def, selectedScreenSizeVars, varInputToScssChunk) {
-        const orig = super.renderVarWidget(def, selectedScreenSizeVars, varInputToScssChunk);
+    renderVarWidget(def, selectedScreenSizeVars, varInputToScssCode) {
+        const orig = super.renderVarWidget(def, selectedScreenSizeVars, varInputToScssCode);
         return [
             // Buttons
-            'bodyStyleButtonsFontSize',
+            'baseStyleButtonsFontSize',
             // Fonts
-            'bodyStyleBaseFont',
+            'baseStyleBaseFont',
             // Defaults
-            'bodyStylePrimaryColor'
+            'baseStylePrimaryColor',
         ].indexOf(def.varName) > -1
             ? [
                 <div class="form-group"><div><hr style="border-color: var(--color-section-separator);"/></div></div>,

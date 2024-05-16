@@ -6,51 +6,51 @@ export default [
 // :root {
 //   --spectre-link-color: #2c86bb; /* --spectre-primary-color */
     {
-        varName: 'bodyStyleLinkColor',
+        varName: 'baseStyleLinkColor',
         cssProp: '--spectre-link-color',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Links',
-            inputId: 'bodyStyleLinkColor',
+            inputId: 'baseStyleLinkColor',
         },
     },
 //   --spectre-link-color-dark: #226892; /* darken(--spectre-link-color, 10%) */
     {
-        varName: 'bodyStyleLinkColorDark',
+        varName: 'baseStyleLinkColorDark',
         cssProp: '--spectre-link-color-dark',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Links darker',
-            inputId: 'bodyStyleLinkColorDark',
+            inputId: 'baseStyleLinkColorDark',
         },
     },
 //   --spectre-link-color-light: #469fd4; /* lighten(--spectre-link-color, 10%) */
     {
-        varName: 'bodyStyleLinkColorLight',
+        varName: 'baseStyleLinkColorLight',
         cssProp: '--spectre-link-color-light',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Links lighter',
-            inputId: 'bodyStyleLinkColorLight',
+            inputId: 'baseStyleLinkColorLight',
         },
     },
 //   --spectre-body-font-color: #303742; /* lighten(--spectre-dark-color, 5%) todo*/
     {
-        varName: 'bodyStyleBodyFontColor',
+        varName: 'baseStyleBodyFontColor',
         cssProp: '--spectre-body-font-color',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Texts', // 'Body font',
-            inputId: 'bodyStyleBodyFontColor',
+            inputId: 'baseStyleBodyFontColor',
         },
     },
 //   --spectre-base-font-family: "Domine", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto;
     {
-        varName: 'bodyStyleBaseFont',
+        varName: 'baseStyleBaseFont',
         cssProp: '--spectre-base-font-family',
         cssSubSelector: null,
         widgetSettings: {
@@ -60,23 +60,23 @@ export default [
                 {label: __('Default'), value: '-apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto'},
             ],
             label: 'Font',
-            inputId: 'bodyStyleBaseFont',
+            inputId: 'baseStyleBaseFont',
         },
     },
 //   --spectre-font-size: 0.9rem;
     {
-        varName: 'bodyStyleFontSize',
+        varName: 'baseStyleFontSize',
         cssProp: '--spectre-font-size',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'length',
             label: 'Font size',
-            inputId: 'bodyStyleFontSize',
+            inputId: 'baseStyleFontSize',
         },
     },
 //   --jet-headings-font-family: "Inter";
     {
-        varName: 'bodyStyleHeadingsFont',
+        varName: 'baseStyleHeadingsFont',
         cssProp: '--jet-headings-font-family',
         cssSubSelector: null,
         widgetSettings: {
@@ -86,12 +86,12 @@ export default [
                 {label: __('Default'), value: 'var(--spectre-base-font-family)'},
             ],
             label: 'Headings font',
-            inputId: 'bodyStyleHeadingsFont',
+            inputId: 'baseStyleHeadingsFont',
         },
     },
 //   --jet-headings-font-weight: 700;
     {
-        varName: 'bodyStyleHeadingsFontWeight',
+        varName: 'baseStyleHeadingsFontWeight',
         cssProp: '--jet-headings-font-weight',
         cssSubSelector: null,
         widgetSettings: {
@@ -101,328 +101,328 @@ export default [
                 {label: __('Default'), value: '700'},
             ],
             label: 'Headings font weight',
-            inputId: 'bodyStyleHeadingsFontWeight',
+            inputId: 'baseStyleHeadingsFontWeight',
         },
     },
 //   --jet-headings-line-height: 2.4rem;
     {
-        varName: 'bodyStyleHeadingsLineHeight',
+        varName: 'baseStyleHeadingsLineHeight',
         cssProp: '--jet-headings-line-height',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'length',
             label: 'Headings line height',
-            inputId: 'bodyStyleHeadingsLineHeight',
+            inputId: 'baseStyleHeadingsLineHeight',
         },
     },
 //   --jet-h1-font-size: 2.4rem;
     {
-        varName: 'bodyStyleHeadings1FontSize',
+        varName: 'baseStyleHeadings1FontSize',
         cssProp: '--jet-h1-font-size',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'length',
             label: 'h1 font size',
-            inputId: 'bodyStyleHeadings1FontSize',
+            inputId: 'baseStyleHeadings1FontSize',
         },
     },
 //   --jet-h2-font-size: 1.8rem;
     {
-        varName: 'bodyStyleHeadings2FontSize',
+        varName: 'baseStyleHeadings2FontSize',
         cssProp: '--jet-h2-font-size',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'length',
             label: 'h2 font size',
-            inputId: 'bodyStyleHeadings2FontSize',
+            inputId: 'baseStyleHeadings2FontSize',
         },
     },
 //   --jet-h3-font-size: 1.4rem;
     {
-        varName: 'bodyStyleHeadings3FontSize',
+        varName: 'baseStyleHeadings3FontSize',
         cssProp: '--jet-h3-font-size',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'length',
             label: 'h3 font size',
-            inputId: 'bodyStyleHeadings3FontSize',
+            inputId: 'baseStyleHeadings3FontSize',
         },
     },
 //   --jet-h4-font-size: 1.2rem;
     {
-        varName: 'bodyStyleHeadings4FontSize',
+        varName: 'baseStyleHeadings4FontSize',
         cssProp: '--jet-h4-font-size',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'length',
             label: 'h4 font size',
-            inputId: 'bodyStyleHeadings4FontSize',
+            inputId: 'baseStyleHeadings4FontSize',
         },
     },
 //   --jet-h5-font-size: 1rem;
     {
-        varName: 'bodyStyleHeadings5FontSize',
+        varName: 'baseStyleHeadings5FontSize',
         cssProp: '--jet-h5-font-size',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'length',
             label: 'h5 font size',
-            inputId: 'bodyStyleHeadings5FontSize',
+            inputId: 'baseStyleHeadings5FontSize',
         },
     },
 //   --jet-h6-font-size: .8rem;
     {
-        varName: 'bodyStyleHeadings6FontSize',
+        varName: 'baseStyleHeadings6FontSize',
         cssProp: '--jet-h6-font-size',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'length',
             label: 'h6 font size',
-            inputId: 'bodyStyleHeadings6FontSize',
+            inputId: 'baseStyleHeadings6FontSize',
         },
     },
 //   /* Buttons, button links */
 //   --jet-button-font-size: .85rem;
     {
-        varName: 'bodyStyleButtonsFontSize',
+        varName: 'baseStyleButtonsFontSize',
         cssProp: '--jet-button-font-size',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'length',
             label: 'Buttons font size',
-            inputId: 'bodyStyleButtonsFontSize',
+            inputId: 'baseStyleButtonsFontSize',
         },
     },
 //   --jet-button-color-normal: #333;
     {
-        varName: 'bodyStyleButtonColorNormal',
+        varName: 'baseStyleButtonColorNormal',
         cssProp: '--jet-button-color-normal',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
-            label: 'Buttons',
-            inputId: 'bodyStyleButtonColorNormal',
+            label: 'Buttons text',
+            inputId: 'baseStyleButtonColorNormal',
         },
     },
 //   --jet-button-bg-color-normal: #f8f8f8;
     {
-        varName: 'bodyStyleButtonBgColorNormal',
+        varName: 'baseStyleButtonBgColorNormal',
         cssProp: '--jet-button-bg-color-normal',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Buttons background',
-            inputId: 'bodyStyleButtonBgColorNormal',
+            inputId: 'baseStyleButtonBgColorNormal',
         },
     },
 //   --jet-button-border-color-normal: #f8f8f8;
     {
-        varName: 'bodyStyleButtonBorderColorNormal',
+        varName: 'baseStyleButtonBorderColorNormal',
         cssProp: '--jet-button-border-color-normal',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Buttons border',
-            inputId: 'bodyStyleButtonBorderColorNormal',
+            inputId: 'baseStyleButtonBorderColorNormal',
         },
     },
 //   --jet-button-border-width: 1px;
     {
-        varName: 'bodyStyleButtonBorderWidth',
+        varName: 'baseStyleButtonBorderWidth',
         cssProp: '--jet-button-border-width',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'length',
             label: 'Buttons border width',
-            inputId: 'bodyStyleButtonBorderWidth',
+            inputId: 'baseStyleButtonBorderWidth',
         },
     },
 //   /* Defaults */
 //   --spectre-primary-color: #2c86bb;
     {
-        varName: 'bodyStylePrimaryColor',
+        varName: 'baseStylePrimaryColor',
         cssProp: '--spectre-primary-color',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Primary',
-            inputId: 'bodyStylePrimaryColor',
+            inputId: 'baseStylePrimaryColor',
         },
     },
 //   --spectre-primary-color-dark: #297daf; /* darken(--spectre-primary-color, 3%), you can use http://scg.ar-ch.org/ for this */
     {
-        varName: 'bodyStylePrimaryColorDark',
+        varName: 'baseStylePrimaryColorDark',
         cssProp: '--spectre-primary-color-dark',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Primary darker',
-            inputId: 'bodyStylePrimaryColorDark',
+            inputId: 'baseStylePrimaryColorDark',
         },
     },
 //   --spectre-primary-color-light: #2f8fc7; /* lighten(--spectre-primary-color, 3%) */
     {
-        varName: 'bodyStylePrimaryColorLight',
+        varName: 'baseStylePrimaryColorLight',
         cssProp: '--spectre-primary-color-light',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Primary lighter',
-            inputId: 'bodyStylePrimaryColorLight',
+            inputId: 'baseStylePrimaryColorLight',
         },
     },
 //   --spectre-dark-color: #303742;
     {
-        varName: 'bodyStyleDarkColor',
+        varName: 'baseStyleDarkColor',
         cssProp: '--spectre-dark-color',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Dark',
-            inputId: 'bodyStyleDarkColor',
+            inputId: 'baseStyleDarkColor',
         },
     },
 //   --spectre-light-color: #fff;
     {
-        varName: 'bodyStyleLightColor',
+        varName: 'baseStyleLightColor',
         cssProp: '--spectre-light-color',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Light',
-            inputId: 'bodyStyleLightColor',
+            inputId: 'baseStyleLightColor',
         },
     },
 //   --spectre-secondary-color: #badbef; /* lighten(--spectre-primary-color, 38%) */
     {
-        varName: 'bodyStyleSecondaryColor',
+        varName: 'baseStyleSecondaryColor',
         cssProp: '--spectre-secondary-color',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Secondary',
-            inputId: 'bodyStyleSecondaryColor',
+            inputId: 'baseStyleSecondaryColor',
         },
     },
 //   --spectre-secondary-color-dark: #aed5ec; /* darken(--spectre-secondary-color, 3%) */
     {
-        varName: 'bodyStyleSecondaryColorDark',
+        varName: 'baseStyleSecondaryColorDark',
         cssProp: '--spectre-secondary-color-dark',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Secondary darker',
-            inputId: 'bodyStyleSecondaryColorDark',
+            inputId: 'baseStyleSecondaryColorDark',
         },
     },
 //   --spectre-secondary-color-light: #c6e1f2; /* lighten(--spectre-primary-color, 3%) */
     {
-        varName: 'bodyStyleSecondaryColorLight',
+        varName: 'baseStyleSecondaryColorLight',
         cssProp: '--spectre-secondary-color-light',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Secondary lighter',
-            inputId: 'bodyStyleSecondaryColorLight',
+            inputId: 'baseStyleSecondaryColorLight',
         },
     },
 //   --spectre-primary-shadow-color: #2c86bb33; /* rgba(0.2) */
     {
-        varName: 'bodyStylePrimaryShadow',
+        varName: 'baseStylePrimaryShadow',
         cssProp: '--spectre-primary-shadow-color',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Shadow primary',
-            inputId: 'bodyStylePrimaryShadow',
+            inputId: 'baseStylePrimaryShadow',
         },
     },
 //   --spectre-gray-color: #bcc3ce; /* lighten(--spectre-dark-color, 55%) */
     {
-        varName: 'bodyStyleGrayColor',
+        varName: 'baseStyleGrayColor',
         cssProp: '--spectre-gray-color',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Gray',
-            inputId: 'bodyStyleGrayColor',
+            inputId: 'baseStyleGrayColor',
         },
     },
 //   --spectre-gray-color-dark: #66748b; /* darken(--spectre-gray-color, 30%) */
     {
-        varName: 'bodyStyleGrayColorDark',
+        varName: 'baseStyleGrayColorDark',
         cssProp: '--spectre-gray-color-dark',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Gray darker',
-            inputId: 'bodyStyleGrayColorDark',
+            inputId: 'baseStyleGrayColorDark',
         },
     },
 //   --spectre-gray-color-light: #f7f8f9; /* lighten(--spectre-gray-color, 20%) */
     {
-        varName: 'bodyStyleGrayColorLight',
+        varName: 'baseStyleGrayColorLight',
         cssProp: '--spectre-gray-color-light',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Gray lighter',
-            inputId: 'bodyStyleGrayColorLight',
+            inputId: 'baseStyleGrayColorLight',
         },
     },
 //   --spectre-border-color: #dadee4; /* lighten($dark-color, 65%) */
     {
-        varName: 'bodyStyleBorderColor',
+        varName: 'baseStyleBorderColor',
         cssProp: '--spectre-border-color',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Borders',
-            inputId: 'bodyStyleBorderColor',
+            inputId: 'baseStyleBorderColor',
         },
     },
 //   --spectre-border-color-dark: #bdc4ce; /* darken(--spectre-border-color, 10%) */
     {
-        varName: 'bodyStyleBorderColorDark',
+        varName: 'baseStyleBorderColorDark',
         cssProp: '--spectre-border-color-dark',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Borders darker',
-            inputId: 'bodyStyleBorderColorDark',
+            inputId: 'baseStyleBorderColorDark',
         },
     },
 //   --spectre-border-color-light: #f2f3f5; /* lighten(--spectre-border-color, 8%) */
     {
-        varName: 'bodyStyleBorderColorLight',
+        varName: 'baseStyleBorderColorLight',
         cssProp: '--spectre-border-color-light',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Borders lighter',
-            inputId: 'bodyStyleBorderColorLight',
+            inputId: 'baseStyleBorderColorLight',
         },
     },
 //   --spectre-bg-color: #f7f8f9; /* lighten(--spectre-dark-color, 75%) */
     {
-        varName: 'bodyStyleBgColor',
+        varName: 'baseStyleBgColor',
         cssProp: '--spectre-bg-color',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Background (elements)',
-            inputId: 'bodyStyleBgColor',
+            inputId: 'baseStyleBgColor',
         },
     },
 //   --spectre-bg-color-dark: #eef0f2; /* darken(--spectre-bg-color, 3%) */
     {
-        varName: 'bodyStyleBgColorDark',
+        varName: 'baseStyleBgColorDark',
         cssProp: '--spectre-bg-color-dark',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
             label: 'Background darker (elements)',
-            inputId: 'bodyStyleBgColorDark',
+            inputId: 'baseStyleBgColorDark',
         },
     },
 // }

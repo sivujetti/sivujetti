@@ -5,7 +5,7 @@ namespace Sivujetti\Block\Entities;
 use Sivujetti\{PushIdGenerator, ShortIdGenerator};
 
 /**
- * @psalm-type stylesLayer = 'user-styles'|'dev-styles'|'body-styles'
+ * @psalm-type stylesLayer = 'user-styles'|'dev-styles'|'base-styles'
  * @psalm-type mediaScope = 'all'|'960'|'840'|'600'|'480'|string
  * @psalm-type styleBlockScope = 'single-block'|'block-type'|'class'|'none'
  * @psalm-type StyleChunk = object{scss: string, scope: object{block: styleBlockScope, media: mediaScope, layer: stylesLayer}}

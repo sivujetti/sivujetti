@@ -63,21 +63,17 @@ class CodeBasedStylesList extends preact.Component {
                             } }
                             scss={ ref.scss }/></li>;
                         })
-                        : <li><span class="ml-2 pl-1">
-                            { __('No styles for screen size %s', `"${selectedMediaScopeId}"`) }
-                            { !isBodyStyle
-                                ? [
-                                    ', ',
-                                    <a
-                                        href="#"
-                                        onClick={ e => (e.preventDefault(), doAddEmptyStyle(blockId, selectedMediaScopeId)) }
-                                        class="color-dimmed">
-                                            { __('Add style') }
-                                        </a>,
-                                    '.'
-                                ]
-                                : '.' }
-                        </span></li>
+                        : <li><span class="ml-2 pl-1">{ [
+                            __('No styles for screen size %s', `"${selectedMediaScopeId}"`),
+                            ', ',
+                            <a
+                                href="#"
+                                onClick={ e => (e.preventDefault(), doAddEmptyStyle(blockId, selectedMediaScopeId)) }
+                                class="color-dimmed">
+                                    { __('Add style').toLowerCase() }
+                                </a>,
+                            '.'
+                        ] }</span></li>
                 }</ul>
         </ScreenSizesVerticalTabs>;
     }
@@ -102,20 +98,22 @@ function doAddEmptyStyle(blockId, selectedMediaScopeId) {
  */
 function createStylesState({blockId, stylesStateId}) {
     if (blockId === BODY_STYLE_ID) {
-        const allEditableBodyStyles = scssWizard.getAllStyles(stylesStateId).filter(({scope, scss}) =>
-            scope.layer === 'body-styles' && !scss.startsWith(':root')
+        const allEditableBaseStyles = scssWizard.getAllStyles(stylesStateId).filter(({scope, scss}) =>
+            scope.layer === 'base-styles' && !scss.startsWith(':root')
         );
         return mediaScopes.map(scopeId => {
-            const forThisScreenSize = allEditableBodyStyles.filter(({scope}) =>
+            const forThisScreenSize = allEditableBaseStyles.filter(({scope}) =>
                 scope.media === scopeId
             );
             return forThisScreenSize.length ? forThisScreenSize : null;
         });
     }
-
-    return mediaScopes.map(scopeId => {
-        const forThisScreenSize = scssWizard.findStyles('single-block', blockId, ({scope}) =>
-            scope.layer === 'dev-styles' && scope.media === scopeId
+    const [scopeKind, scopeId] = !blockStyleGroup
+        ? ['single-block', blockId]
+        : ['class',        blockStyleGroup];
+    return mediaScopes.map(mediaScopeId => {
+        const forThisScreenSize = scssWizard.findStyles(scopeKind, scopeId, ({scope}) =>
+            scope.layer === 'dev-styles' && scope.media === mediaScopeId
         );
         return forThisScreenSize.length ? forThisScreenSize : null;
     });
@@ -125,6 +123,7 @@ function createStylesState({blockId, stylesStateId}) {
  * @typedef CodeBasedStylesListProps
  * @prop {String} blockId
  * @prop {Number} stylesStateId
+ * @prop {String} blockStyleGroup
  */
 
 export default CodeBasedStylesList;

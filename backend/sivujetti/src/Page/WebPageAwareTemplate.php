@@ -330,15 +330,20 @@ final class WebPageAwareTemplate extends Template {
         };
 
         $theme = $this->__internal["theme"];
-        $common = "<style>@layer theme, body-unit, base-units, var-units, units" . ($theme->globalStyles
-            ? "; :root {" .
-                implode("\n", array_map(fn($style) =>
-                    // Note: these are pre-validated
-                    "  --{$style->name}: {$this->cssValueToString($style->value)};"
-                , $theme->globalStyles)) .
-            "}"
-            : ""
-        ) . "</style>\n";
+        $commonCss = (
+            (!defined("USE_NEW_RENDER_FEAT")
+                ? "@layer theme, body-unit, base-units, var-units, units; "
+                : "") .
+            ($theme->globalStyles
+                ? (":root {" .
+                    implode(" ", array_map(fn($style) =>
+                        // Note: these are pre-validated
+                        "  --{$style->name}: {$this->cssValueToString($style->value)};"
+                    , $theme->globalStyles)) .
+                "}")
+                : "")
+        );
+        $common = $commonCss ? "<style>{$commonCss}</style>\n" : "";
         $externals = array_map($fileDefToTag, $this->__cssAndJsFiles->css);
         $site = $site ?? $this->__locals["site"];
 

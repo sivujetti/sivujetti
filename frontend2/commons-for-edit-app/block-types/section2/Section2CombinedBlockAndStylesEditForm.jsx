@@ -217,7 +217,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
                         onEditEnded={ this.endColumnEdit.bind(this) }/>
                 }</div>
                 { this.cssVarDefs.map(def =>
-                    this.renderVarWidget(def, selectedScreenSizeVars, this.varInputToScssChunkFn)
+                    this.renderVarWidget(def, selectedScreenSizeVars, this.varInputToScssCodeFn)
                 ) }
             </div>
         </ScreenSizesVerticalTabs>;
@@ -292,7 +292,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
                         onEditEnded={ this.endColumnEdit.bind(this) }/>
                 }</div>
                 { this.cssVarDefs.map(def =>
-                    this.renderVarWidget(def, selectedScreenSizeVars, this.varInputToScssChunkFn)
+                    this.renderVarWidget(def, selectedScreenSizeVars, this.varInputToScssCodeFn)
                 ) }
             </div>
         </ScreenSizesVerticalTabs>;

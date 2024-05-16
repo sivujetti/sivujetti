@@ -150,12 +150,10 @@ class ScssWizard {
      */
     updateDevsExistingUniqueScopeChunkWithScssChunkAndReturnAllRecompiled(updatedScssCode, currentStyle, mediaScopeId = 'all') {
         const updated = this.styles.map(s =>
-            s !== currentStyle
-                ? s
-                : {
-                    ...s,
-                    scss: updatedScssChunk,
-                }
+            s !== currentStyle ? s : {...s, scss: updatedScssCode}
+        );
+        return this.commitAll(updated, mediaScopeId);
+    }
     /**
      * @param {'add'|'update'|'delete'} addOrUpdateOrDelete
      * @param {scssCodeInput} codeTemplate

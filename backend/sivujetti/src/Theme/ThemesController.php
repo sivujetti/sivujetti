@@ -283,7 +283,7 @@ final class ThemesController {
             ->rule("{$propName}", "type", "array")
             ->rule("{$propName}.*.scope.block", "in", ["single-block", "class", "block-type", "none"])
             ->rule("{$propName}.*.scope.media", "in", self::MEDIA_SCOPES)
-            ->rule("{$propName}.*.scope.layer", "in", ["user-styles", "dev-styles", "body-styles"])
+            ->rule("{$propName}.*.scope.layer", "in", ["user-styles", "dev-styles", "base-styles"])
             ->rule("{$propName}.*.scss", "type", "string");
     }
     /**

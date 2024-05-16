@@ -22,7 +22,7 @@ const WidgetClses = {
 class BlockVisualStylesEditForm extends preact.Component {
     // cssVarDefs;
     // userStyleRefs;
-    // varInputToScssChunkFn;
+    // varInputToScssCodeFn;
     // isSpecialRootVarsStyle;
     /**
      * @param {BlockStylesEditFormProps} props
@@ -31,7 +31,7 @@ class BlockVisualStylesEditForm extends preact.Component {
     constructor(props) {
         super(props);
         this.cssVarDefs = createNormalizedDefs(getValidDefs(this.createCssVarDefinitions()));
-        this.varInputToScssChunkFn = this.createVarInputToScssChunkFn(this.cssVarDefs);
+        this.varInputToScssCodeFn = this.createVarInputToScssCodeFn(this.cssVarDefs);
     }
     /**
      * @returns {Array<VisualStylesFormVarDefinition>}
@@ -45,8 +45,8 @@ class BlockVisualStylesEditForm extends preact.Component {
      * @returns {translateVarInputToScssCodeTemplateFn}
      * @access protected
      */
-    createVarInputToScssChunkFn(cssVarDefs) {
-        return createVarInputToScssChunkAuto(cssVarDefs);
+    createVarInputToScssCodeFn(cssVarDefs) {
+        return createVarInputToScssCodeAuto(cssVarDefs);
     }
     /**
      * @access protected
@@ -77,7 +77,7 @@ class BlockVisualStylesEditForm extends preact.Component {
         const selectedScreenSizeVars = styleScopes[curScreenSizeTabIdx] || {};
         const content = <div class="form-horizontal has-visual-style-widgets tight pt-1 pl-2">{
             this.cssVarDefs.map(def =>
-                this.renderVarWidget(def, selectedScreenSizeVars, this.varInputToScssChunkFn)
+                this.renderVarWidget(def, selectedScreenSizeVars, this.varInputToScssCodeFn)
             )
         }</div>;
         const chunks = this.userStyleRefs;
@@ -91,16 +91,16 @@ class BlockVisualStylesEditForm extends preact.Component {
     /**
      * @param {VisualStylesFormVarDefinition} def
      * @param {CssVarsMap} selectedScreenSizeVars
-     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssChunk
+     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssCode
      * @access protected
      */
-    renderVarWidget(def, selectedScreenSizeVars, varInputToScssChunk) {
+    renderVarWidget(def, selectedScreenSizeVars, varInputToScssCode) {
         const {varName, widgetSettings} = def;
         if (!widgetSettings)
             return null;
         const {valueType, renderer, label, inputId, initialUnit, defaultThemeValue} = widgetSettings;
         const commonProps = {
-            onValueChanged: newValAsString => this.handleVisualVarChanged(newValAsString, varName, varInputToScssChunk),
+            onValueChanged: newValAsString => this.handleVisualVarChanged(newValAsString, varName, varInputToScssCode),
             labelTranslated: __(label),
             isClearable: !this.isSpecialRootVarsStyle && !!selectedScreenSizeVars[varName],
             inputId,
@@ -110,7 +110,7 @@ class BlockVisualStylesEditForm extends preact.Component {
             return <ColorValueInput
                 value={ null }
                 valueAsString={ selectedScreenSizeVars[varName] || null }
-                onValueChangedFast={ newValAsString => this.handleVisualVarChangedFast(newValAsString, varName, varInputToScssChunk) }
+                onValueChangedFast={ newValAsString => this.handleVisualVarChangedFast(newValAsString, varName, varInputToScssCode) }
                 { ...commonProps }/>;
         else if (valueType === 'length' || renderer === LengthValueInput)
             return <LengthValueInput
@@ -130,19 +130,19 @@ class BlockVisualStylesEditForm extends preact.Component {
     /**
      * @param {String|Event} input
      * @param {String} varName
-     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssChunk
+     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssCode
      * @access protected
      */
-    handleVisualVarChanged(input, varName, varInputToScssChunk) {
+    handleVisualVarChanged(input, varName, varInputToScssCode) {
         const val = input instanceof Event ? input.target.value : input;
         if (!this.props.blockStyleGroup) {
-            const updatedAll = this.doHandleValChanged(val, varName, varInputToScssChunk);
+            const updatedAll = this.doHandleValChanged(val, varName, varInputToScssCode);
             api.saveButton.getInstance().pushOp('stylesBundle', updatedAll);
             return;
         }
 
         const clearStyleGroupOpArgs = createBlockTreeClearStyleGroupOpArgs(this.props.blockId);
-        const updatedAll = this.doHandleVarOfOptimizedChunkChanged(val, varName, varInputToScssChunk);
+        const updatedAll = this.doHandleVarOfOptimizedChunkChanged(val, varName, varInputToScssCode);
         if (updatedAll)
             api.saveButton.getInstance().pushOpGroup(
                 clearStyleGroupOpArgs,
@@ -157,11 +157,11 @@ class BlockVisualStylesEditForm extends preact.Component {
     /**
      * @param {String|Event} input
      * @param {String} varName
-     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssChunk
+     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssCode
      * @access protected
      */
-    handleVisualVarChangedFast(val, varName, varInputToScssChunk) {
-        const codeTemplate = varInputToScssChunk(varName, val);
+    handleVisualVarChangedFast(val, varName, varInputToScssCode) {
+        const codeTemplate = varInputToScssCode(varName, val);
         const asArr = Array.isArray(codeTemplate) ? codeTemplate : codeTemplate.split('\n');
         const isSingleLineDecl = asArr[0].at(-1) === ';';
         const [blockId, blockScope] = !this.isSpecialRootVarsStyle
@@ -181,17 +181,17 @@ class BlockVisualStylesEditForm extends preact.Component {
     /**
      * @param {String|null} val
      * @param {String} varName
-     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssChunk
+     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssCode
      * @returns {StylesBundleWithId}
      * @access private
      */
-    doHandleValChanged(val, varName, varInputToScssChunk) {
+    doHandleValChanged(val, varName, varInputToScssCode) {
         const {styleScopes, curScreenSizeTabIdx} = this.state;
         const curChunk = this.userStyleRefs[curScreenSizeTabIdx];
         const newValIsNotEmpty = val?.trim().length > 0;
         const valNorm = newValIsNotEmpty ? val : '"dummy"';
         const mediaScopeId = mediaScopes[curScreenSizeTabIdx];
-        const codeTemplate = varInputToScssChunk(varName, val, valNorm);
+        const codeTemplate = varInputToScssCode(varName, val);
 
         if (!curChunk) {
             return scssWizard.addNewUniqueScopeChunkAndReturnAllRecompiled(
@@ -221,17 +221,17 @@ class BlockVisualStylesEditForm extends preact.Component {
     /**
      * @param {String|null} val
      * @param {String} varName
-     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssChunk
+     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssCode
      * @returns {StylesBundleWithId}
      * @access private
      */
-    doHandleVarOfOptimizedChunkChanged(val, varName, varInputToScssChunk) {
+    doHandleVarOfOptimizedChunkChanged(val, varName, varInputToScssCode) {
         const {styleScopes, curScreenSizeTabIdx} = this.state;
         const classChunk = this.userStyleRefs[curScreenSizeTabIdx];
         const newValIsNotEmpty = val?.trim().length > 0;
         const valNorm = newValIsNotEmpty ? val : '"dummy"';
         const mediaScopeId = mediaScopes[curScreenSizeTabIdx];
-        const codeTemplate = varInputToScssChunk(varName, val, valNorm);
+        const codeTemplate = varInputToScssCode(varName, val);
 
         const selectedScreenSizeVars = styleScopes[curScreenSizeTabIdx] || {};
         const hasVarValPreviously = !!selectedScreenSizeVars[varName];
@@ -251,7 +251,7 @@ class BlockVisualStylesEditForm extends preact.Component {
     createCssVarsMapsInternal(props) {
         const [scopeKind, scopeId, layer] = (function (self) {
             if (self.isSpecialRootVarsStyle)
-                return ['none',         '',                    'body-styles'];
+                return ['none',         '',                    'base-styles'];
             if (!props.blockStyleGroup)
                 return ['single-block', props.blockId,         undefined];
             else
@@ -330,7 +330,7 @@ function createVarsMapAuto(cssVarDefs, scss) {
  * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
  * @returns {translateVarInputToScssCodeTemplateFn}
  */
-function createVarInputToScssChunkAuto(cssVarDefs) {
+function createVarInputToScssCodeAuto(cssVarDefs) {
     /**
      * @param {String} varName
      * @param {String} _val

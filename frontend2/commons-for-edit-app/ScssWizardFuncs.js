@@ -30,14 +30,14 @@ function createCssDeclExtractor(scss) {
 /**
  * @param {Array<StyleChunk>} styles
  * @param {mediaScope} mediaScopeId
- * @returns {String} '@layer body-styles {\n<compiled>\n}\n@layer user-styles {\n<compiled>\n}\n@layer dev-styles {\n<compiled>\n}\n'
+ * @returns {String} '@layer base-styles {\n<compiled>\n}\n@layer user-styles {\n<compiled>\n}\n@layer dev-styles {\n<compiled>\n}\n'
  */
 function stylesToBaked(styles, mediaScopeId) {
     const forThisMedia = styles.filter(({scope}) => scope.media === mediaScopeId);
     if (!forThisMedia.length) return '';
     const {body, user, dev} = forThisMedia.reduce((out, s) => {
         const {scope} = s;
-        if (scope.layer === 'body-styles')
+        if (scope.layer === 'base-styles')
             return {...out, body: [...out.body, s]};
         if (scope.layer === 'user-styles' && (scope.block === 'single-block' || scope.block === 'class'))
             return {...out, user: [...out.user, s]};
@@ -46,7 +46,7 @@ function stylesToBaked(styles, mediaScopeId) {
         return out;
     }, {body: [], user: [], dev: []});
     return [
-        '@layer body-styles {\n',
+        '@layer base-styles {\n',
         serialize(compile(body.map(({scss}) => scss).join('')), stringify),
         '\n}\n',
         '@layer user-styles {\n',

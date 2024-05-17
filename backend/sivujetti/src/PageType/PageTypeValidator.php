@@ -76,8 +76,8 @@ final class PageTypeValidator {
             }
         }
         //
-        return array_merge($errors,
-                           $this->blockValidator->validateMany($input->blockFields));
+        $errors2 = $this->blockValidator->validateMany($input->blockFields);
+        return [...$errors, ...$errors2];
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType $pageType

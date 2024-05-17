@@ -2,7 +2,7 @@ import {env, http} from '@sivujetti-commons-for-web-pages';
 import {__, api} from '../../edit-app-singletons.js';
 import {Icon} from '../../Icon.jsx';
 import LoadingSpinner from '../../LoadingSpinner.jsx';
-import {objectUtils} from '../../utils.js';
+import {isUndoOrRedo, objectUtils} from '../../utils.js';
 import AddCategoryPanel from './AddCategoryPanel.jsx';
 
 class ManyToManyItemSelector extends preact.Component {
@@ -21,7 +21,7 @@ class ManyToManyItemSelector extends preact.Component {
         this.fetchManyToManyPagesToState(props.relPageType.name);
         //
         this.unregistrables = [api.saveButton.getInstance().subscribeToChannel('quicklyAddedPages', (pages, userCtx, ctx) => {
-            if (ctx === 'init' || ctx === 'undo' || ctx === 'redo' || userCtx?.event === 'create')
+            if (ctx === 'init' || isUndoOrRedo(ctx) || userCtx?.event === 'create')
                 this.setState({manyToManyPages: pages});
         })];
     }

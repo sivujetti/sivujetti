@@ -12,10 +12,20 @@ import textBlockType from './block-types/text/text.js';
 import wrapperBlockType from './block-types/wrapper.js';
 
 blockTypesRegister.setup([
-    ['GlobalBlockReference', {name: 'GlobalBlockReference', friendlyName: 'GlobalBlockReference'}],
     [buttonBlockType.name,   buttonBlockType],
     [codeBlockType.name,     codeBlockType],
     [columnsBlockType.name,  columnsBlockType],
+    ['GlobalBlockReference', {
+        name: 'GlobalBlockReference',
+        friendlyName: 'GlobalBlockReference',
+        createOwnProps(defProps) {
+            return {
+                globalBlockTreeId: defProps.__globalBlockTree.id,
+                overrides: "{}",
+                useOverrides: 0,
+            };
+        }
+    }],
     [imageBlockType.name,    imageBlockType],
     [listingBlockType.name,  listingBlockType],
     [menuBlockType.name,     menuBlockType],

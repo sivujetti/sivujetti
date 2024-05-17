@@ -2,11 +2,10 @@
 
 namespace Sivujetti\Page;
 
-use Pike\{ArrayUtils, FileSystem, PikeException};
+use Pike\{ArrayUtils, PikeException};
 use Sivujetti\{JsonUtils, SharedAPIContext, Template, ValidationUtils};
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\Theme\ThemesController;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
@@ -256,31 +255,6 @@ final class WebPageAwareTemplate extends Template {
             }
         }
         return $out;
-    }
-    /**
-     * Note: mutates $block->__blobalBlockTree->blocks*->*
-     *
-     * @deprecated
-     * @param \Sivujetti\Block\Entities\Block $globalBlockRef
-     * @return \Sivujetti\Block\Entities\Block[]
-     */
-    private function getMutatedGlobalTreeBlocks(Block $globalBlockRef): array {
-        $overrides = $globalBlockRef->overrides;
-        $gbt = $globalBlockRef->__globalBlockTree;
-        $blocks = $gbt->blocks;
-        //
-        if ($overrides === GlobalBlockReferenceBlockType::EMPTY_OVERRIDES)
-            return $blocks;
-        foreach (JsonUtils::parse($overrides) as $blockId => $perBlockPropOverrides) {
-            $blockToOverride = BlockTree::findBlockById($blockId, $blocks);
-            foreach ($perBlockPropOverrides as $key => $val) {
-                $blockToOverride->{$key} = $val;
-                $default = ArrayUtils::findByKey($blockToOverride->propsData, $key, "key");
-                $default->value = $val;
-            }
-        }
-        //
-        return $blocks;
     }
     /**
      * @see \Sivujetti\Block\BlockTree::findBlock()

@@ -5,10 +5,10 @@ import ScreenSizesTabShowHelpPopup from './popups/ScreenSizesTabShowHelpPopup.js
 
 class ScreenSizesVerticalTabs extends preact.Component {
     /**
-     * @param {{curTabIdx: Number; setCurTabIdx: (newIdx: Number): void; populatedTabs: [Boolean, Boolean, Boolean, Boolean, Boolean]; className?: String;}} props
+     * @param {{curTabIdx: Number; setCurTabIdx: (newIdx: Number): void; populatedTabs: [Boolean, Boolean, Boolean, Boolean, Boolean]; className?: String; allowOverflowX?: Boolean;}} props
      */
-    render({children, curTabIdx, setCurTabIdx, populatedTabs, className}) {
-        return <div class={ 'vert-tabs' + (!className ? '' : ` ${className}`) }>
+    render({children, curTabIdx, setCurTabIdx, populatedTabs, className, allowOverflowX}) {
+        return <div class={ 'vert-tabs' + (!className ? '' : ` ${className}`) } style={ !allowOverflowX ? '' : 'width:100%;overflow-x:auto;' }>
             <div class="vert-tab-btns">
                 <button
                     onClick={ () => setCurTabIdx(0) }

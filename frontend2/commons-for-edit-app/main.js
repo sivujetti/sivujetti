@@ -58,7 +58,10 @@ import {
 import {mediaScopes, placeholderImageSrc, traverseRecursively} from '../shared-inline.js';
 import Popup from './Popup.jsx';
 import {createCssDeclExtractor} from './ScssWizardFuncs.js';
-import BlockVisualStylesEditForm, {createBlockTreeClearStyleGroupOpArgs} from './BlockVisualStylesEditForm.jsx';
+import BlockVisualStylesEditForm, {
+    createBlockTreeClearStyleGroupOpArgs,
+    createPaddingVarDefs,
+} from './BlockVisualStylesEditForm.jsx';
 
 export {
     __,
@@ -69,6 +72,7 @@ export {
     ContextMenu,
     createBlockTreeClearStyleGroupOpArgs,
     createCssDeclExtractor,
+    createPaddingVarDefs,
     determineModeFrom,
     determineModeFromPreview,
     doubleNormalizeUrl,

@@ -5,8 +5,8 @@
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/vendor.bundle.min.css") ?>">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/quill.snow.min.css") ?>">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/jspanel-custom.min.css") ?>">
-        <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.css") ?>">
         <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/vendor/coloris.min.css") ?>">
+        <link rel="stylesheet" href="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.css") ?>">
         <?php if ($isFirstRun): ?>
         <style>
         <?php if (defined("showQuickIntro")): ?>
@@ -236,15 +236,15 @@
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/coloris.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/stylis.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/popper.min.js") ?>"></script>
-        <script defer src="<?= $this->assetUrl("public/sivujetti/vendor/run-codemirror-6.min.js") ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/vendor/run-codemirror-6.min.js") ?>"></script>
         <script><?= $this->generateSivujettiEnvConfJs(includeUserFlags: true) ?></script> 
         <script>window.isFirstRun = <?= $isFirstRun ? "true" : "false" ?></script>
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
         <script>window.translationStringBundles = []</script>
         <script src="<?= $this->assetUrl("public/sivujetti/lang-{$uiLang}.js") ?>"></script>
-        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-web-pages.js", /* @see frontend2/commons-for-web-pages/main.js */) ?>"></script>
-        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-edit-app.js", /* @see frontend2/commons-for-edit-app/main.js */) ?>"></script>
-        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.js", /* @see frontend2/edit-app/main.js */) ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-web-pages.js") /* @see frontend2/commons-for-web-pages/main.js */ ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-edit-app.js") /* @see frontend2/commons-for-edit-app/main.js */ ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.js") /* @see frontend2/edit-app/main.js */ ?>"></script>
 
         <?php foreach ($userDefinedJsFiles->editApp as $relUrl): ?>
             <script src="<?= $this->assetUrl("public/{$relUrl}") ?>"></script>

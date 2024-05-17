@@ -2,7 +2,7 @@
 An entry point for global file "public/sivujetti/sivujetti-edit-app.js" that is
 included in edit-app's template (edit-app-wrapper.tmpl.php).
 */
-import {api, env, FloatingDialog, scssWizard} from '@sivujetti-commons-for-edit-app';
+import {api, env, FloatingDialog, isUndoOrRedo, scssWizard} from '@sivujetti-commons-for-edit-app';
 import EditApp from './EditApp.jsx';
 import WebPagePreviewApp from './main-column/WebPagePreviewApp.jsx';
 import MainColumnViews from './main-column/MainColumnViews.jsx';
@@ -50,7 +50,7 @@ preact.render(
                 // Refresh scssWizards's styles every time new styles (page) is loaded to
                 // the preview iframe, or when undo|redo event happens
                 api.saveButton.getInstance().subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
-                    if (ctx === 'initial' || ctx === 'undo' || ctx === 'redo')
+                    if (ctx === 'initial' || isUndoOrRedo(ctx))
                         scssWizard.replaceStylesState(bundle);
                 });
             } }/>,

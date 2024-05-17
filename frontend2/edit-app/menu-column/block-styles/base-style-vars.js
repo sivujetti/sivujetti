@@ -1,7 +1,5 @@
 import {__} from '@sivujetti-commons-for-edit-app';
 
-const cssSubSelector = ':root';
-
 export default [
 // :root {
 //   --spectre-link-color: #2c86bb; /* --spectre-primary-color */
@@ -423,6 +421,127 @@ export default [
             valueType: 'color',
             label: 'Background darker (elements)',
             inputId: 'baseStyleBgColorDark',
+        },
+    },
+//   /* Forms */
+    {
+        varName: 'baseStyleInputsFontSize',
+        cssProp: '--jet-inputs-font-size',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Inputs font size',
+            inputId: 'baseStyleInputsFontSize',
+        },
+    },
+    {
+        varName: 'baseStyleInputsTextColor',
+        cssProp: '--jet-inputs-text-color',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Inputs text',
+            inputId: 'baseStyleInputsTextColor',
+        },
+    },
+    {
+        varName: 'baseStyleInputsBorderNormalColor',
+        cssProp: '--jet-inputs-border-normal-color',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Inputs border',
+            inputId: 'baseStyleInputsBorderNormalColor',
+        },
+    },
+    {
+        varName: 'baseStyleInputsBorderFocusColor',
+        cssProp: '--jet-inputs-border-focus-color',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Inputs border focus',
+            inputId: 'baseStyleInputsBorderFocusColor',
+        },
+    },
+    {
+        varName: 'baseStyleInputsBorderWidth',
+        cssProp: '--jet-inputs-border-width',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Inputs border width',
+            inputId: 'baseStyleInputsBorderWidth',
+        },
+    },
+    {
+        varName: 'baseStyleInputsBorderRadius',
+        cssProp: '--jet-inputs-border-radius',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Inputs radius',
+            inputId: 'baseStyleInputsBorderRadius',
+        },
+    },
+    {
+        varName: 'baseStyleInputsBgNormalColor',
+        cssProp: '--jet-inputs-bg-normal-color',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Inputs background',
+            inputId: 'baseStyleInputsBgNormalColor',
+        },
+    },
+    {
+        varName: 'baseStyleInputsCheckboxSelectedColor',
+        cssProp: '--jet-inputs-checkbox-selected-color',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Inputs checkbox selected',
+            inputId: 'baseStyleInputsCheckboxSelectedColor',
+        },
+    },
+    {
+        varName: 'baseStyleInputsFocusShadowColor',
+        cssProp: '--jet-inputs-focus-shadow-color',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Inputs focus shadow',
+            inputId: 'baseStyleInputsFocusShadowColor',
+        },
+    },
+    {
+        varName: 'baseStyleInputsPlaceholderColor',
+        cssProp: '--jet-inputs-placeholder-color:',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Inputs placeholder text',
+            inputId: 'baseStyleInputsPlaceholderColor',
+        },
+    },
+    {
+        varName: 'baseStyleInputsPaddingY',
+        cssProp: '--jet-inputs-padding-y',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Inputs padding ↕',
+            inputId: 'baseStyleInputsPaddingY',
+        },
+    },
+    {
+        varName: 'baseStyleInputsPaddingX',
+        cssProp: '--jet-inputs-padding-x',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Inputs padding ↔',
+            inputId: 'baseStyleInputsPaddingX',
         },
     },
 // }

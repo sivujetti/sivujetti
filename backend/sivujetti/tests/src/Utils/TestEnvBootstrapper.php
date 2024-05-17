@@ -54,6 +54,7 @@ class TestEnvBootstrapper extends BootModule {
                 $di->share(new Authenticator(
                     makeUserRepositoryFn: function ($_factory) { },
                     makeSessionFn: fn() => $mockSession,
+                    makeRequestFn: function ($_factory) { },
                     makeCookieStorageFn: function ($_factory) { },
                     userRoleCookieName: "",
                     doUseRememberMe: false

@@ -20,6 +20,8 @@ class BaseStylesVisualEditForm extends BlockVisualStylesEditForm {
             'baseStyleBaseFont',
             // Defaults
             'baseStylePrimaryColor',
+            // Forms
+            'baseStyleInputsFontSize'
         ].indexOf(def.varName) > -1
             ? [
                 <div class="form-group"><div><hr style="border-color: var(--color-section-separator);"/></div></div>,

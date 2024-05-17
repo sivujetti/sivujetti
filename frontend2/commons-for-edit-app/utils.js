@@ -81,7 +81,7 @@ const objectUtils = {
 };
 
 /**
- * @param {'default'|'undo'|undefined|null} changeSource
+ * @param {'default'|'undo'|'redo'|undefined|null} changeSource
  */
 function isUndoOrRedo(changeSource) {
     return changeSource === 'undo' || changeSource === 'redo';

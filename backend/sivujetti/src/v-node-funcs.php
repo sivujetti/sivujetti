@@ -29,7 +29,8 @@ function renderVNodes(array $branch): string {
             // todo escape $node["el"]
             $out .= "<{$node["el"]}{$attrsMarkup}>" .
                 (match ($node["el"]) {
-                    "img", "input" => "",
+                    "img", "input", "br", "hr", "link",
+                    "source", "wbr", "area", "track" => "",
                     default => "{$childMarkup}</{$node["el"]}>",
                 });
         }

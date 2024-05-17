@@ -49,7 +49,8 @@ class CodeBasedStylesList extends preact.Component {
         return <ScreenSizesVerticalTabs
             populatedTabs={ devStyleScopes.map(s => s !== null) }
             curTabIdx={ curScreenSizeTabIdx }
-            setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }>
+            setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }
+            allowOverflowX>
                 <ul class="list styles-list mb-2">{ styleScopes.length
                     ? styleScopes.map(ref => {
                         return <li class="open"><ScssEditor

@@ -115,12 +115,13 @@ class BootModule {
         if (defined("USE_NEW_FLUENT_DB"))
             $di->share(new FluentDb2($db));
         $di->share(new Authenticator(
-            fn() => new DefaultUserRepository($db),
-            fn() => new NativeSession(autostart: false),
-            fn() => new DefaultCookieStorage((object) ["req" => $di->make(Request::class),
-                                                       "res" => $di->make(Response::class)]),
+            fn($_fac) => new DefaultUserRepository($db),
+            fn($_fac) => new NativeSession(autostart: false),
+            fn($_fac) => $di->make(Request::class),
+            fn($fact) => new DefaultCookieStorage((object) ["req" => $fact->makeRequest(),
+                                                            "res" => $di->make(Response::class)]),
             userRoleCookieName: "maybeLoggedInUserRole",
-            doUseRememberMe: true
+            doUseRememberMe: !defined("isDemo")
         ));
     }
     /**

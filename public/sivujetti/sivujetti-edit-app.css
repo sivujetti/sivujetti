@@ -500,7 +500,7 @@ h2 {
 
 
 /* == EditApp: Components ============================================== */
-/* EditApp: Components: Info boxes & toaster messages */
+/* EditApp: Components: info boxes & toaster messages */
 p.info-box, .toaster-message {
     padding: 1.2rem;
     border-left: 2px solid rgb(177,177,179);
@@ -902,7 +902,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     background: url('data:image/svg+xml;charset=utf8, <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="%238d8d8d" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>') no-repeat center center / .8rem;
     line-height: 100%;
 }
-/* EditApp: Components: Big radios */
+/* EditApp: Components: big radios */
 .button-options {
     display: grid;
     grid-template-columns: minmax(0,1fr) minmax(0,1fr);
@@ -1070,6 +1070,19 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     margin-bottom: 0;
     border-bottom: none;
 }
+/* EditApp: Components: codemirror */
+.ͼ1 .cm-scroller {
+    font-size: 12px;
+}
+.ͼ2 .cm-gutters {
+    display: none; /* todo */
+}
+ul.styles-list > li {
+    background: initial;
+}
+.ͼ1.cm-focused {
+    outline: none;
+}
 
 
 /* == EditApp: * ============================================================ */
@@ -1130,7 +1143,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     padding: 0 .4rem .4rem;
     z-index: 1;
 }
-.panel-section:not(.on-this-page) {
+.panel-section:not(.on-this-page, .base-styles) {
     overflow-x: hidden;
 }
 .panel-section:not(:last-of-type) {

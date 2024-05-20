@@ -16,7 +16,7 @@ let showFirstTimeDragInstructions = !(!env.window.isFirstRun || getFromLocalStor
 class EditApp extends preact.Component {
     // changeViewOptions;
     // resizeHandleEl;
-    // leftPanelWidth;
+// ##     // leftPanelWidth;
     /**
      * @param {{dataFromAdminBackend: TheWebsiteBundle; outerEl: HTMLElement; inspectorPanelRef: preact.Ref; rootEl: HTMLElement;}} props
      */
@@ -38,13 +38,13 @@ class EditApp extends preact.Component {
 // ##         props.dataFromAdminBackend.__websiteDebugOnly = props.dataFromAdminBackend.website;
 // ##         delete props.dataFromAdminBackend.website;
     }
-    /**
-     * @returns {Number}
-     * @access public
-     */
-    getCurrentLeftPanelWidth() {
-        return this.leftPanelWidth;
-    }
+// ##     /**
+// ##      * @returns {Number}
+// ##      * @access public
+// ##      */
+// ##     getCurrentLeftPanelWidth() {
+// ##         return this.leftPanelWidth;
+// ##     }
     /**
      * @access protected
      */
@@ -106,67 +106,67 @@ class EditApp extends preact.Component {
 // ##             </MyRouter>,
 // ##             <Toaster id="editAppMain"/>,
 // ##             <FloatingDialog signals={ signals }/>,
-            <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
+// ##             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         ];
     }
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        const el = this.resizeHandleEl.current;
-        const mainPanelEl = this.props.outerEl;
-        el.style.transform = `translateX(${mainPanelEl.getBoundingClientRect().width}px`;
-        //
-        const startTreshold = 2;
-        const minWidth = 206;
-        let startWidth;
-        let startScreenX = null;
-        let currentHandle = null;
-        let inspectorPanel = null;
-        //
-        el.addEventListener('mousedown', e => {
-            if (e.button !== 0) return;
-            //
-            currentHandle = e.target;
-            startWidth = mainPanelEl.getBoundingClientRect().width;
-            startScreenX = e.screenX;
-            el.classList.add('dragging');
-            inspectorPanel = this.props.inspectorPanelRef.current;
-            inspectorPanel.props.rootEl.classList.add('adjusting-panel-widths');
-        });
-        const setAndEmitPanelWidths = (w) => {
-            mainPanelEl.style.width = `${w}px`;
-            inspectorPanel.resizeX(w);
-            const iframeEl = api.webPageIframe.getEl();
-            iframeEl.style.width = `calc(100% - ${w}px)`;
-            iframeEl.style.transform = `translateX(${w}px)`;
-            //
-            el.style.transform = `translateX(${w}px)`;
-            //
-            signals.emit('left-column-width-changed', w);
-        };
-        this.leftPanelWidth = this.props.LEFT_PANEL_WIDTH;
-        const commitPanelWidths = () => {
-            this.leftPanelWidth = parseFloat(mainPanelEl.style.width);
-        };
-        document.addEventListener('mousemove', e => {
-            if (!currentHandle) return;
-            //
-            let delta = e.screenX - startScreenX;
-            if (Math.abs(delta) < startTreshold) return;
-            //
-            let w = startWidth + delta;
-            if (w < minWidth) w = minWidth;
-            //
-            setAndEmitPanelWidths(w);
-        });
-        document.addEventListener('mouseup', () => {
-            if (currentHandle) commitPanelWidths();
-            currentHandle = null;
-            el.classList.remove('dragging');
-            if (!inspectorPanel) return;
-            inspectorPanel.props.rootEl.classList.remove('adjusting-panel-widths');
-        });
+// ##     /**
+// ##      * @access protected
+// ##      */
+// ##     componentDidMount() {
+// ##         const el = this.resizeHandleEl.current;
+// ##         const mainPanelEl = this.props.outerEl;
+// ##         el.style.transform = `translateX(${mainPanelEl.getBoundingClientRect().width}px`;
+// ##         //
+// ##         const startTreshold = 2;
+// ##         const minWidth = 206;
+// ##         let startWidth;
+// ##         let startScreenX = null;
+// ##         let currentHandle = null;
+// ##         let inspectorPanel = null;
+// ##         //
+// ##         el.addEventListener('mousedown', e => {
+// ##             if (e.button !== 0) return;
+// ##             //
+// ##             currentHandle = e.target;
+// ##             startWidth = mainPanelEl.getBoundingClientRect().width;
+// ##             startScreenX = e.screenX;
+// ##             el.classList.add('dragging');
+// ##             inspectorPanel = this.props.inspectorPanelRef.current;
+// ##             inspectorPanel.props.rootEl.classList.add('adjusting-panel-widths');
+// ##         });
+// ##         const setAndEmitPanelWidths = (w) => {
+// ##             mainPanelEl.style.width = `${w}px`;
+// ##             inspectorPanel.resizeX(w);
+// ##             const iframeEl = api.webPageIframe.getEl();
+// ##             iframeEl.style.width = `calc(100% - ${w}px)`;
+// ##             iframeEl.style.transform = `translateX(${w}px)`;
+// ##             //
+// ##             el.style.transform = `translateX(${w}px)`;
+// ##             //
+// ##             signals.emit('left-column-width-changed', w);
+// ##         };
+// ##         this.leftPanelWidth = this.props.LEFT_PANEL_WIDTH;
+// ##         const commitPanelWidths = () => {
+// ##             this.leftPanelWidth = parseFloat(mainPanelEl.style.width);
+// ##         };
+// ##         document.addEventListener('mousemove', e => {
+// ##             if (!currentHandle) return;
+// ##             //
+// ##             let delta = e.screenX - startScreenX;
+// ##             if (Math.abs(delta) < startTreshold) return;
+// ##             //
+// ##             let w = startWidth + delta;
+// ##             if (w < minWidth) w = minWidth;
+// ##             //
+// ##             setAndEmitPanelWidths(w);
+// ##         });
+// ##         document.addEventListener('mouseup', () => {
+// ##             if (currentHandle) commitPanelWidths();
+// ##             currentHandle = null;
+// ##             el.classList.remove('dragging');
+// ##             if (!inspectorPanel) return;
+// ##             inspectorPanel.props.rootEl.classList.remove('adjusting-panel-widths');
+// ##         });
 // ##         signals.on('block-dnd-opened', () => {
 // ##             inspectorPanel = this.props.inspectorPanelRef.current;
 // ##             this.leftPanelWidth += 148;

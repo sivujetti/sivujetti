@@ -1,4 +1,5 @@
 import {__, env, events, Icon} from '@sivujetti-commons-for-edit-app';
+import {clamp} from '../includes/utils.js';
 import BlockEditForm from './block/BlockEditForm.jsx';
 
 class InspectorPanel extends preact.Component {
@@ -7,7 +8,7 @@ class InspectorPanel extends preact.Component {
     // resizeHandleEl;
     // lastHeight;
     /**
-     * @param {{outerEl: HTMLElement; rootEl: HTMLElement; editAppOuterEl: HTMLElement;}} props
+     * @param {{rootEl: HTMLElement;}} props
      */
     constructor(props) {
         super(props);
@@ -21,33 +22,21 @@ class InspectorPanel extends preact.Component {
         events.on('webpage-preview-iframe-before-loaded', this.close.bind(this));
     }
     /**
-     * @param {Number} width
-     * @access public
-     */
-    resizeX(width) {
-        this.props.outerEl.style.width = `${width}px`;
-        this.resizeHandleEl.current.style.width = `${width}px`;
-    }
-    /**
      * @access public
      */
     close() {
         if (!this.state.Renderer) return;
         this.setState({Renderer: null});
         this.props.rootEl.classList.remove('inspector-panel-open');
-        this.props.editAppOuterEl.style.height = '';
+        document.documentElement.style.setProperty('--inspector-panel-height', '0');
         this.rendererKey = null;
-        this.lastHeight = null;
         events.emit('inspector-panel-closed', this);
     }
     /**
      * @access proctected
      */
     componentDidMount() {
-        const dragEl = this.resizeHandleEl.current;
-        const inspectorPanelEl = this.props.outerEl;
         const MAIN_PANEL_HEADER_HEIGHT = 52;
-        //
         const startTreshold = 2;
         const minHeight = 32;
         let maxHeight;
@@ -55,33 +44,24 @@ class InspectorPanel extends preact.Component {
         let startScreenY = null;
         let currentHandle = null;
         //
-        dragEl.addEventListener('mousedown', e => {
+        this.resizeHandleEl.current.addEventListener('mousedown', e => {
             if (e.button !== 0) return;
-            //
             currentHandle = e.target;
-            startHeight = inspectorPanelEl.getBoundingClientRect().height;
+            startHeight = getCurrentPanelHeight();
             startScreenY = e.screenY;
-            inspectorPanelEl.style.height = `${startHeight}px`;
             maxHeight = env.window.innerHeight - MAIN_PANEL_HEADER_HEIGHT;
         });
         document.addEventListener('mousemove', e => {
             if (!currentHandle) return;
-            //
-            let delta = e.screenY - startScreenY;
+            const delta = e.screenY - startScreenY;
             if (Math.abs(delta) < startTreshold) return;
-            //
-            let h = startHeight - delta;
-            if (h < minHeight) h = minHeight;
-            else if (h > maxHeight) h = maxHeight;
-            //
-            inspectorPanelEl.style.height = `${h}px`;
-            dragEl.style.transform = `translateY(-${h}px)`;
-            events.emit('inspector-panel-height-changed', h);
+            const height = clamp(startHeight - delta, minHeight, maxHeight);
+            document.documentElement.style.setProperty('--inspector-panel-height', `${height}px`);
+            events.emit('inspector-panel-height-changed', height);
         });
         document.addEventListener('mouseup', () => {
             if (currentHandle) {
-                this.lastHeight = Math.abs(parseFloat(dragEl.style.transform.split('translateY(')[1]));
-                this.props.editAppOuterEl.style.height = `calc(100% - ${this.lastHeight}px)`;
+                this.lastHeight = getCurrentPanelHeight();
             }
             currentHandle = null;
         });
@@ -116,25 +96,16 @@ class InspectorPanel extends preact.Component {
         this.setState({Renderer: BlockEditForm});
         this.props.rootEl.classList.add('inspector-panel-open');
         //
-        if (!this.lastHeight) {
-            const height = this.lastHeight || clamp(env.window.innerHeight / 100 * 30, 375, 467);
-            this.props.outerEl.style.height = `${height}px`;
-            this.props.editAppOuterEl.style.height = `calc(100% - ${height}px)`;
-            this.resizeHandleEl.current.style.transform = `translateY(-${height}px)`;
-        }
+        const height = this.lastHeight || clamp(env.window.innerHeight / 100 * 30, 375, 467);
+        document.documentElement.style.setProperty('--inspector-panel-height', `${height}px`);
     }
 }
 
 /**
- * https://stackoverflow.com/a/11409978
- *
- * @param {Number} number
- * @param {Number} min
- * @param {Number} max
  * @returns {Number}
  */
-function clamp(number, min, max) {
-    return Math.max(min, Math.min(number, max));
+function getCurrentPanelHeight() {
+    return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--inspector-panel-height'));
 }
 
 export default InspectorPanel;

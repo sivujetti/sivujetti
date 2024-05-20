@@ -17,16 +17,16 @@ const TITLE_LABEL_HEIGHT = 18; // at least
 class IframePageManager {
     // currentWebPage; // public
     // highlightRectEl;
-    // getCurrentLeftPanelWidth;
-    // cachedLeftPanelWidth;
-    /**
-     * @param {HTMLSpanElement} highlightRectEl
-     * @param {(width: Number) => void} getCurrentLeftPanelWidth
-     */
-    constructor(highlightRectEl, getCurrentLeftPanelWidth) {
-        this.highlightRectEl = highlightRectEl;
-        this.getCurrentLeftPanelWidth = getCurrentLeftPanelWidth;
-    }
+// ##     // getCurrentLeftPanelWidth;
+// ##     // cachedLeftPanelWidth;
+// ##     /**
+// ##      * @param {HTMLSpanElement} highlightRectEl
+// ##      * @param {(width: Number) => void} getCurrentLeftPanelWidth
+// ##      */
+// ##     constructor(highlightRectEl, getCurrentLeftPanelWidth) {
+// ##         this.highlightRectEl = highlightRectEl;
+// ##         this.getCurrentLeftPanelWidth = getCurrentLeftPanelWidth;
+// ##     }
     /**
      * @param {EditAppAwareWebPage} webPage
      * @param {Boolean} isDuplicate = false
@@ -40,17 +40,17 @@ class IframePageManager {
         }
         this.currentWebPage = webPage;
         //
-        const els = webPage.scanBlockElements();
+// ##         const els = webPage.scanBlockElements();
 // ##         const blocks = getAndInvalidate(webPage.data.page, 'blocks');
 // ##         const ordered = getOrdededBlocks(blocks, els);
-        //
+// ##         //
 // ##         const {data} = webPage;
 // ##         delete webPage.data;
 // ##         data.page = maybePatchTitleAndSlug(data.page, isDuplicate);
-        //
-        webPage.addRootBoundingEls(ordered.at(-1));
+// ##         //
+// ##         webPage.addRootBoundingEls(ordered.at(-1));
 // ##         webPage.registerEventHandlers(this.createWebsiteEventHandlers(this, webPageUnregistrables));
-        webPage.setIsMouseListenersDisabled(getArePanelsHidden());
+// ##         webPage.setIsMouseListenersDisabled(getArePanelsHidden());
         this.registerWebPageDomUpdater('main');
         //
         opQueueItemEmitter.resetAndBegin();
@@ -93,17 +93,17 @@ class IframePageManager {
      */
     createWebsiteEventHandlers() {
         let prevHoverStartBlockEl = null;
-        const {getCurrentLeftPanelWidth} = this;
+// ##         const {getCurrentLeftPanelWidth} = this;
         const hideRect = (blockId = null) => {
             this.hideHighlightRect(blockId);
             prevHoverStartBlockEl = null;
         };
-        this.cachedLeftPanelWidth = getCurrentLeftPanelWidth();
-        webPageUnregistrables.set('highlightRectLeftPosUpdater', signals.on('left-column-width-changed', w => {
-            this.cachedLeftPanelWidth = w;
-        }));
-        const pageManager = this;
-        return {
+// ##         this.cachedLeftPanelWidth = getCurrentLeftPanelWidth();
+// ##         webPageUnregistrables.set('highlightRectLeftPosUpdater', signals.on('left-column-width-changed', w => {
+// ##             this.cachedLeftPanelWidth = w;
+// ##         }));
+// ##         const pageManager = this;
+// ##         return {
 // ##             /**
 // ##              * @param {HTMLElement} blockEl
 // ##              * @param {DOMRect} rect
@@ -182,27 +182,27 @@ class IframePageManager {
     unHighlightTextBlockChildEl() {
         this.doHideHighlightRect();
     }
-    /**
-     * @param {DOMRect} rect
-     * @param {String} title
-     * @access private
-     */
-    doShowHighlightRect(rect, title) {
-        const {highlightRectEl} = this;
-        highlightRectEl.style.cssText = [
-            'width:', rect.width, 'px;',
-            'height:', rect.height, 'px;',
-            'top:', rect.top, 'px;',
-            'left:', rect.left + this.cachedLeftPanelWidth, 'px'
-        ].join('');
-        if (rect.top < -TITLE_LABEL_HEIGHT)
-            highlightRectEl.setAttribute('data-label-position', 'bottom-inside');
-        else if (rect.top > TITLE_LABEL_HEIGHT)
-            highlightRectEl.setAttribute('data-label-position', 'top-outside');
-        else
-            highlightRectEl.setAttribute('data-label-position', 'top-inside');
-        highlightRectEl.setAttribute('data-title', title);
-    }
+// ##     /**
+// ##      * @param {DOMRect} rect
+// ##      * @param {String} title
+// ##      * @access private
+// ##      */
+// ##     doShowHighlightRect(rect, title) {
+// ##         const {highlightRectEl} = this;
+// ##         highlightRectEl.style.cssText = [
+// ##             'width:', rect.width, 'px;',
+// ##             'height:', rect.height, 'px;',
+// ##             'top:', rect.top, 'px;',
+// ##             'left:', rect.left + this.cachedLeftPanelWidth, 'px'
+// ##         ].join('');
+// ##         if (rect.top < -TITLE_LABEL_HEIGHT)
+// ##             highlightRectEl.setAttribute('data-label-position', 'bottom-inside');
+// ##         else if (rect.top > TITLE_LABEL_HEIGHT)
+// ##             highlightRectEl.setAttribute('data-label-position', 'top-outside');
+// ##         else
+// ##             highlightRectEl.setAttribute('data-label-position', 'top-inside');
+// ##         highlightRectEl.setAttribute('data-title', title);
+// ##     }
     /**
      * @access private
      */

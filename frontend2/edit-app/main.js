@@ -63,8 +63,6 @@ const inspectorPanelOuterEl = api.inspectorPanel.getOuterEl();
 const rootEl = document.getElementById('root');
 preact.render(
     <InspectorPanel
-        outerEl={ inspectorPanelOuterEl }
-        editAppOuterEl={ editAppOuterEl }
         rootEl={ rootEl }
         ref={ cmp => {
             if (cmp) api.inspectorPanel.setInstance(cmp);

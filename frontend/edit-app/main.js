@@ -17,23 +17,24 @@ import createParagraphBlockType from './src/block-types/paragraph.js';
 import createRichTextBlockType from './src/block-types/richText.js';
 // ## import createSectionBlockType from './src/block-types/section.js';
 // ## import createTextBlockType from './src/block-types/text.js';
-import InspectorPanel from './src/left-column/InspectorPanel.jsx';
-import RightColumnViews, { historyInstance } from './src/right-column/RightColumnViews.jsx';
+// ## import InspectorPanel from './src/left-column/InspectorPanel.jsx';
+// ## import RightColumnViews, { historyInstance } from './src/right-column/RightColumnViews.jsx';
 // ## import WebPageIframe from './src/right-column/WebPageIframe.js';
 import Foo from './src/right-column/Foo.jsx';
 // ## import MainPanel from './src/left-column/MainPanel.js';
 // ## import {MyClipboard, MyKeyboard, MyLink, IdAttributor, MySnowTheme} from './src/quill/quill-customizations.js';
 // ## import {sharedSignals} from './src/shared.js';
 // ## import {getMetaKey} from './src/block/dom-commons.js';
-
-const editAppReactRef = preact.createRef();
-
-populateFrontendApi();
-configureServices();
-renderReactEditApp();
+// ## 
+// ## const editAppReactRef = preact.createRef();
+// ## let webPagePreviewAppReactRef = preact.createRef();
+// ## 
+// ## populateFrontendApi();
+// ## configureServices();
+// ## renderReactEditApp();
 
 function populateFrontendApi() {
-    const d = window.dataFromAdminBackend;
+// ##     const d = window.dataFromAdminBackend;
 // ##     api.getPageTypes = () => d.pageTypes;
 // ##     api.getBlockRenderers = () => d.blockRenderers;
     api.getActiveTheme = () => d.activeTheme;
@@ -83,9 +84,9 @@ function populateFrontendApi() {
 
 function configureServices() {
 // ##     addGlobalKeyPressEventEmitters();
-    //
-    env.normalTypingDebounceMillis = sensibleDefaults.normalTypingDebounceMillis;
-    //
+// ##     //
+// ##     env.normalTypingDebounceMillis = sensibleDefaults.normalTypingDebounceMillis;
+// ##     //
     Validator.registerStateWrapperImpl('default', FormStateStoreWrapper);
 // ##     window.translationStringBundles.forEach(strings => {
 // ##         api.registerTranslationStrings(strings);
@@ -106,18 +107,18 @@ function configureServices() {
     blockTypes.register('RichText', createRichTextBlockType);
 // ##     blockTypes.register('Section', createSectionBlockType);
 // ##     blockTypes.register('Text', createTextBlockType);
-    api.blockTypes = blockTypes;
-    //
+// ##     api.blockTypes = blockTypes;
+// ##     //
 // ##     const mainPanel = new MainPanel(document.getElementById('main-panel'), env);
 // ##     api.mainPanel = mainPanel;
-    //
+// ##     //
 // ##     api.inspectorPanel = {
 // ##         getEl() { return document.getElementById('inspector-panel'); },
 // ##     };
-    //
+// ##     //
 // ##     patchQuillEditor();
-}
-
+// ## }
+// ## 
 // ## function patchQuillEditor() {
 // ##     const Quill = window.Quill;
 // ##     Quill.debug('error');
@@ -128,37 +129,37 @@ function configureServices() {
 // ##     Quill.register('formats/id-anchor', IdAttributor);
 // ##     Quill.register(MyLink);
 // ## }
-
-function renderReactEditApp() {
-    const mainPanelOuterEl = api.mainPanel.getEl();
-    const inspectorPanelOuterEl = api.inspectorPanel.getEl();
-    const inspectorPanelReactRef = preact.createRef();
-    const rootEl = document.getElementById('root');
-    preact.render(preact.createElement(EditApp, {
-        outerEl: mainPanelOuterEl,
-        inspectorPanelRef: inspectorPanelReactRef,
-        dataFromAdminBackend: window.dataFromAdminBackend,
-        rootEl,
-        LEFT_PANEL_WIDTH: 339,
-        ref: editAppReactRef,
-    }), mainPanelOuterEl);
-
-    preact.render(preact.createElement(InspectorPanel, {
-        outerEl: inspectorPanelOuterEl,
-        mainPanelOuterEl,
-        rootEl,
-        ref: inspectorPanelReactRef,
-    }), inspectorPanelOuterEl);
-
-    preact.render(preact.createElement(RightColumnViews, {
-        rootEl,
-    }), document.getElementById('view'));
-
-    window.myRoute = url => {
-        preactRouter.route(url);
-    };
-}
-
+// ## 
+// ## function renderReactEditApp() {
+// ##     const mainPanelOuterEl = api.mainPanel.getEl();
+// ##     const inspectorPanelOuterEl = api.inspectorPanel.getEl();
+// ##     const inspectorPanelReactRef = preact.createRef();
+// ##     const rootEl = document.getElementById('root');
+// ##     preact.render(preact.createElement(EditApp, {
+// ##         outerEl: mainPanelOuterEl,
+// ##         inspectorPanelRef: inspectorPanelReactRef,
+// ##         dataFromAdminBackend: window.dataFromAdminBackend,
+// ##         rootEl,
+// ##         LEFT_PANEL_WIDTH: 339,
+// ##         ref: editAppReactRef,
+// ##     }), mainPanelOuterEl);
+// ## 
+// ##     preact.render(preact.createElement(InspectorPanel, {
+// ##         outerEl: inspectorPanelOuterEl,
+// ##         mainPanelOuterEl,
+// ##         rootEl,
+// ##         ref: inspectorPanelReactRef,
+// ##     }), inspectorPanelOuterEl);
+// ## 
+// ##     preact.render(preact.createElement(RightColumnViews, {
+// ##         rootEl,
+// ##     }), document.getElementById('view'));
+// ## 
+// ##     window.myRoute = url => {
+// ##         preactRouter.route(url);
+// ##     };
+// ## }
+// ## 
 // ## /**
 // ##  */
 // ## function addGlobalKeyPressEventEmitters() {

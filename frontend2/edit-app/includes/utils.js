@@ -42,7 +42,20 @@ function pathToFullSlug(path, fallback = '/') {
         : fallback;
 }
 
+/**
+ * https://stackoverflow.com/a/11409978
+ *
+ * @param {Number} number
+ * @param {Number} min
+ * @param {Number} max
+ * @returns {Number}
+ */
+function clamp(number, min, max) {
+    return Math.max(min, Math.min(number, max));
+}
+
 export {
+    clamp,
     createTrier,
     pathToFullSlug
 };

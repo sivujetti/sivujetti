@@ -61,6 +61,7 @@ Structure:
     --menu-column-offset: 0px;
     --menu-column-width-computed: calc(var(--menu-column-width) + var(--menu-column-offset));
     --contentSpawnerWidth: 210px;
+    --inspector-panel-height: 0px;
 
     --toggle-button-opacity-transition: opacity .125s ease-out;
 
@@ -393,6 +394,7 @@ h2 {
     box-shadow: -5px 0 8px 0px rgba(var(--components-color-fb-default),.16);
     border-top: 1px solid rgba(var(--components-color-fb-default),.14);
     z-index: -1;
+    height: var(--inspector-panel-height);
 }
 #inspector-panel:before {
     content: "";
@@ -412,7 +414,7 @@ h2 {
     opacity: 1;
 }
 .inspector-panel-open #edit-app {
-    height: initial;
+    height: calc(100% - var(--inspector-panel-height));
 }
 .inspector-panel-open #inspector-panel {
     z-index: 1;
@@ -435,11 +437,21 @@ h2 {
     width: 8px;
     top: 0;
     cursor: col-resize;
+    left: var(--menu-column-width-computed);
+}
+#edit-app .resize-panel-handle:hover:after {
+    content: "";
+    border-left: 2px solid rgba(24, 33, 94, .09);
+    height: 100%;
+    position: absolute;
+}
+#edit-app .resize-panel-handle.dragging:hover:after {
+    transform: translateX(160px);
 }
 /* Increase width to prevent .site-preview-iframe from disrupting the mouse drag events */
 #edit-app .resize-panel-handle.dragging {
     width: 320px;
-    margin-left: -120px;
+    margin-left: -160px;
 }
 #root.adjusting-panel-widths #edit-app > div > section,
 #root.adjusting-panel-widths #inspector-panel {
@@ -450,6 +462,14 @@ h2 {
     height: 8px;
     bottom: 0;
     cursor: row-resize;
+    transform: translateY(calc(var(--inspector-panel-height) * -1));
+}
+#inspector-panel .resize-panel-handle:hover:after {
+    content: "";
+    border-bottom: 2px solid rgba(24, 33, 94, .09);
+    width: 100%;
+    position: absolute;
+    transform: translateY(6px);
 }
 .panels-hidden #edit-app .resize-panel-handle {
     display: none;

@@ -1,5 +1,6 @@
-import {__, env, http, urlUtils} from '@sivujetti-commons-for-edit-app';
+import {__, env, events, http, urlUtils} from '@sivujetti-commons-for-edit-app';
 import toasters from './includes/toasters.jsx';
+import {clamp} from './includes/utils.js';
 import {historyInstance, MyRouter} from './main-column/MainColumnViews.jsx';
 import PageCreateState from './menu-column/page/PageCreateState.jsx';
 import PageDuplicateState from './menu-column/page/PageDuplicateState.jsx';
@@ -8,6 +9,7 @@ import SaveButton from './menu-column/SaveButton.jsx';
 
 class EditApp extends preact.Component {
     // changeViewOptions;
+    // resizeHandleEl;
     /**
      * @access protected
      */
@@ -19,6 +21,41 @@ class EditApp extends preact.Component {
             ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
             : []
         ).concat({name: 'log-out', label: __('Log out')});
+        this.resizeHandleEl = preact.createRef();
+    }
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        const rootEl = document.getElementById('root');
+        const resizeEl = this.resizeHandleEl.current;
+        const startTreshold = 1;
+        const minWidth = 219;
+        const {documentElement, addEventListener} = document;
+        let startWidth = 0;
+        let startScreenX = null;
+        resizeEl.addEventListener('mousedown', async e => {
+            if (e.button !== 0) return;
+            startScreenX = e.screenX;
+            startWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--menu-column-width'));
+            resizeEl.classList.add('dragging');
+            rootEl.classList.add('adjusting-panel-widths');
+        });
+        addEventListener('mousemove', e => {
+            if (startScreenX === null) return;
+            const screenXDelta = e.screenX - startScreenX;
+            if (Math.abs(screenXDelta) < startTreshold) return;
+            const newWidth = clamp(parseInt(startWidth + screenXDelta, 10), minWidth, Infinity);
+            documentElement.style.setProperty('--menu-column-width', `${newWidth}px`);
+            events.emit('left-column-width-changed', newWidth);
+        });
+        addEventListener('mouseup', () => {
+            if (startScreenX === null) return;
+            startScreenX = null;
+            startWidth = null;
+            resizeEl.classList.remove('dragging');
+            rootEl.classList.remove('adjusting-panel-widths');
+        });
     }
     /**
      * @param {{outerEl: HTMLElement; onSaveButtonRefd: (cmp: SaveButton) => void; showGoToDashboardMode?: Boolean; dashboardUrl?: String;}} props
@@ -59,7 +96,8 @@ class EditApp extends preact.Component {
                 <PageCreateState path="/pages/create/:pageTypeName?/:layoutId?"/>
                 <PageDuplicateState path="/pages/:pageSlug/duplicate"/>
                 { /* <PageTypeCreatePanel path="/page-types/create"/> */ }
-            </MyRouter>
+            </MyRouter>,
+            <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         ];
     }
     /**

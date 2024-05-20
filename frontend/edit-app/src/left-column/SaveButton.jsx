@@ -1,21 +1,21 @@
-import {__, env, signals, Icon} from '@sivujetti-commons-for-edit-app';
+// ## import {__, env, signals, Icon} from '@sivujetti-commons-for-edit-app';
 // ## import {getMetaKey} from '../block/dom-commons.js';
 // ## import {historyInstance} from '../right-column/RightColumnViews.jsx';
 // ## import store, {observeStore, setOpQueue, selectOpQueue, selectFormStates} from '../store.js';
 // ## import {refreshStyles} from '../styles-refresh-api-temp.js';
-
+// ## 
 // ## let listenersAdded = false;
 // ## const useFormStatesState = false;
-
-class SaveButton extends preact.Component {
-    // queuedOps;
-    // opQueueMutator;
-    // unregisterUnsavedChangesAlert;
-    /**
-     * @param {{mainPanelOuterEl: HTMLElement; initialLeftPanelWidth: Number;}} props
-     */
-    constructor(props) {
-        super(props);
+// ## 
+// ## class SaveButton extends preact.Component {
+// ##     // queuedOps;
+// ##     // opQueueMutator;
+// ##     // unregisterUnsavedChangesAlert;
+// ##     /**
+// ##      * @param {{mainPanelOuterEl: HTMLElement; initialLeftPanelWidth: Number;}} props
+// ##      */
+// ##     constructor(props) {
+// ##         super(props);
 // ##         this.state = {isVisible: false, hasUndoableOps: false, formState: {isValid: true},
 // ##                         isStickied: false, leftPanelWidth: props.initialLeftPanelWidth, isSubmitting: false};
 // ##         this.queuedOps = [];
@@ -46,15 +46,15 @@ class SaveButton extends preact.Component {
 // ##             }
 // ##             this.setState({formState: aggregated});
 // ##         });
-    }
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        signals.on('left-column-width-changed', w => {
-            if (this.state.leftPanelWidth !== w)
-                this.setState({leftPanelWidth: w});
-        });
+// ##     }
+// ##     /**
+// ##      * @access protected
+// ##      */
+// ##     componentDidMount() {
+// ##         signals.on('left-column-width-changed', w => {
+// ##             if (this.state.leftPanelWidth !== w)
+// ##                 this.setState({leftPanelWidth: w});
+// ##         });
 // ##         this.props.mainPanelOuterEl.addEventListener('scroll', e => {
 // ##             if (e.target.scrollTop > 27 && !this.state.isStickied)
 // ##                 this.setState({isStickied: true});
@@ -159,8 +159,8 @@ class SaveButton extends preact.Component {
 // ##         this.unregisterUnsavedChangesAlert();
 // ##         this.unregisterUnsavedChangesAlert = null;
 // ##     }
-}
-
+// ## }
+// ## 
 // ## /**
 // ##  * Note: may mutate queue.*.opName
 // ##  *
@@ -201,6 +201,6 @@ class SaveButton extends preact.Component {
 // ##     });
 // ##     return out;
 // ## }
-
-export default SaveButton;
-export {/*optimizeQueue, */SaveButton2};
+// ## 
+// ## export default SaveButton;
+// ## export {/*optimizeQueue, */SaveButton2};

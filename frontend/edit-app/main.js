@@ -87,7 +87,7 @@ function configureServices() {
 // ##     //
 // ##     env.normalTypingDebounceMillis = sensibleDefaults.normalTypingDebounceMillis;
 // ##     //
-    Validator.registerStateWrapperImpl('default', FormStateStoreWrapper);
+// ##     Validator.registerStateWrapperImpl('default', FormStateStoreWrapper);
 // ##     window.translationStringBundles.forEach(strings => {
 // ##         api.registerTranslationStrings(strings);
 // ##         if (strings.minLength) Validator.setValidationStrings(strings);

@@ -32,22 +32,22 @@ class WebPageIframe {
                 + (!slug ? '' : `?duplicate=${encodeURIComponent(slug)}`))
         );
     }
-    /**
-     * @param {String} slug
-     * @returns {Promise<EditAppAwareWebPage>}
-     * @access public
-     */
-    renderNormalPage(slug) {
-        return this.loadPageToIframe(
-            urlUtils.makeUrl(`${slug}?in-edit=1`)
-        );
-    }
-    /**
-     * @access public
-     */
-    goBack() {
-        env.window.history.back();
-    }
+// ##     /**
+// ##      * @param {String} slug
+// ##      * @returns {Promise<EditAppAwareWebPage>}
+// ##      * @access public
+// ##      */
+// ##     renderNormalPage(slug) {
+// ##         return this.loadPageToIframe(
+// ##             urlUtils.makeUrl(`${slug}?in-edit=1`)
+// ##         );
+// ##     }
+// ##     /**
+// ##      * @access public
+// ##      */
+// ##     goBack() {
+// ##         env.window.history.back();
+// ##     }
 // ##     /**
 // ##      * @param {RawBlock} block
 // ##      * @returns {Boolean} didScroll
@@ -72,22 +72,22 @@ class WebPageIframe {
 // ##         }
 // ##         return false;
 // ##     }
-    /**
-     * @param {Number} childElemIdx
-     * @param {String} textBlockId
-     * @access public
-     */
-    scrollToTextBlockChildEl(childElemIdx, textBlockId, behavior = 'auto') {
-        const body = this.getEl().contentDocument.body;
-        const blockEl = getBlockEl(textBlockId, body);
-        const child = blockEl.children[childElemIdx];
-        const rect = child.getBoundingClientRect();
-        const win = this.getEl().contentWindow;
-        win.scrollTo({
-            top: rect.top + win.scrollY - 30,
-            behavior,
-        });
-    }
+// ##     /**
+// ##      * @param {Number} childElemIdx
+// ##      * @param {String} textBlockId
+// ##      * @access public
+// ##      */
+// ##     scrollToTextBlockChildEl(childElemIdx, textBlockId, behavior = 'auto') {
+// ##         const body = this.getEl().contentDocument.body;
+// ##         const blockEl = getBlockEl(textBlockId, body);
+// ##         const child = blockEl.children[childElemIdx];
+// ##         const rect = child.getBoundingClientRect();
+// ##         const win = this.getEl().contentWindow;
+// ##         win.scrollTo({
+// ##             top: rect.top + win.scrollY - 30,
+// ##             behavior,
+// ##         });
+// ##     }
 // ##     /**
 // ##      * @param {RawBlock} block
 // ##      * @access public
@@ -124,13 +124,13 @@ class WebPageIframe {
     getEl() {
         return this.el;
     }
-    /**
-     * @param {String} trid
-     * @access public
-     */
-    registerWebPageDomUpdater(trid) {
-        this.pageManager.registerWebPageDomUpdater(trid);
-    }
+// ##     /**
+// ##      * @param {String} trid
+// ##      * @access public
+// ##      */
+// ##     registerWebPageDomUpdater(trid) {
+// ##         this.pageManager.registerWebPageDomUpdater(trid);
+// ##     }
     /**
      * @param {String} trid
      * @access public

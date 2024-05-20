@@ -1,3 +1,4 @@
+import {events} from './edit-app-singletons.js';
 import {iconAsString} from './Icon.jsx';
 
 let currentInstance = {
@@ -39,6 +40,9 @@ class FloatingDialog extends preact.Component {
                 this.timeout = setTimeout(() => { this.currentJsPanel.classList.remove('animating'); }, 400);
             }
         };
+        events.on('route-changed', () => {
+            this.close();
+        });
     }
     /**
      * @param {preact.ComponentType|string} Renderer

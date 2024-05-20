@@ -45,22 +45,29 @@ class DnDBlockSpawner extends preact.Component {
         };
         this.overwriteDragListenerFuncs();
         const saveButton = api.saveButton.getInstance();
-        this.unregisterables = [saveButton.subscribeToChannel('reusableBranches', (reusables, userCtx, ctx) => {
-            if (userCtx?.event === 'create' || userCtx?.event === 'remove' || isUndoOrRedo(ctx))
-                this.setState({reusables});
-        }), saveButton.subscribeToChannel('theBlockTree', (theTree, userCtx, ctx) => {
-            const event = userCtx?.event;
-            if (event !== 'init' || isUndoOrRedo(ctx)) {
-                this.setState(createGlobalBlockTreesState(saveButton.getChannelState('globalBlockTrees'), theTree));
-                if (EVENTS_THAT_NEVER_CHANGE_TREE_HEIGHT.indexOf(event) < 0)
+        this.unregisterables = [
+            saveButton.subscribeToChannel('reusableBranches', (reusables, userCtx, ctx) => {
+                if (userCtx?.event === 'create' || userCtx?.event === 'remove' || isUndoOrRedo(ctx))
+                    this.setState({reusables});
+            }),
+            saveButton.subscribeToChannel('theBlockTree', (theTree, userCtx, ctx) => {
+                const event = userCtx?.event;
+                if (event !== 'init' || isUndoOrRedo(ctx)) {
+                    this.setState(createGlobalBlockTreesState(saveButton.getChannelState('globalBlockTrees'), theTree));
+                    if (EVENTS_THAT_NEVER_CHANGE_TREE_HEIGHT.indexOf(event) < 0)
+                        this.runUpdateSeparatorHeightLoop();
+                }
+            }),
+            saveButton.subscribeToChannel('globalBlockTrees', (gbts, userCtx, ctx) => {
+                if (userCtx?.event === 'create' || userCtx?.event === 'remove' || isUndoOrRedo(ctx)) {
+                    this.setState(createGlobalBlockTreesState(gbts));
                     this.runUpdateSeparatorHeightLoop();
-            }
-        }), saveButton.subscribeToChannel('globalBlockTrees', (gbts, userCtx, ctx) => {
-            if (userCtx?.event === 'create' || userCtx?.event === 'remove' || isUndoOrRedo(ctx)) {
-                this.setState(createGlobalBlockTreesState(gbts));
-                this.runUpdateSeparatorHeightLoop();
-            }
-        })];
+                }
+            }),
+            events.on('route-changed', (_, isRightColumView) => {
+                if (isRightColumView) this.closeIfOpen();
+            })
+        ];
     }
     /**
      * @param {TreeDragDrop} mainTreeDnd

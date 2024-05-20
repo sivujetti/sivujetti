@@ -1,3 +1,4 @@
+import {events} from '@sivujetti-commons-for-edit-app';
 import createHashHistory from '../includes/custom-history.js';
 import PagesListView from './page/PagesListView.jsx';
 import UploadsListView from './upload/UploadsListView.jsx';
@@ -53,7 +54,7 @@ class MainColumnViews extends preact.Component {
             rootEl.classList.add('view-opened');
         else if (!a && b)
             rootEl.classList.remove('view-opened');
-        // signals.emit('route-changed', e, a); ??
+        events.emit('route-changed', e, a);
     }
 }
 

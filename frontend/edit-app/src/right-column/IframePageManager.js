@@ -67,16 +67,16 @@ class IframePageManager {
                 webPage.fastOverrideStyleUnitVar(selector, varName, varValue, valueType);
             }));
     }
-    /**
-     * @param {String} trid
-     * @access public
-     */
-    registerWebPageDomUpdater(trid) {
-        if (webPageUnregistrables.has(trid)) return;
-        const {fast, slow} = this.currentWebPage.reRenderer.createBlockTreeChangeListeners();
-        webPageUnregistrables.set('blockTreeFastChangeListener', observeStore2('theBlockTree', fast));
-        webPageUnregistrables.set('blockTreeSlowChangeListener', signals.on('op-queue-before-push-item', slow));
-    }
+// ##     /**
+// ##      * @param {String} trid
+// ##      * @access public
+// ##      */
+// ##     registerWebPageDomUpdater(trid) {
+// ##         if (webPageUnregistrables.has(trid)) return;
+// ##         const {fast, slow} = this.currentWebPage.reRenderer.createBlockTreeChangeListeners();
+// ##         webPageUnregistrables.set('blockTreeFastChangeListener', observeStore2('theBlockTree', fast));
+// ##         webPageUnregistrables.set('blockTreeSlowChangeListener', signals.on('op-queue-before-push-item', slow));
+// ##     }
     /**
      * @param {String} trid
      * @access public
@@ -87,17 +87,17 @@ class IframePageManager {
         unreg();
         webPageUnregistrables.delete(trid);
     }
-    /**
-     * @returns {EditAwareWebPageEventHandlers}
-     * @access private
-     */
-    createWebsiteEventHandlers() {
-        let prevHoverStartBlockEl = null;
+// ##     /**
+// ##      * @returns {EditAwareWebPageEventHandlers}
+// ##      * @access private
+// ##      */
+// ##     createWebsiteEventHandlers() {
+// ##         let prevHoverStartBlockEl = null;
 // ##         const {getCurrentLeftPanelWidth} = this;
-        const hideRect = (blockId = null) => {
-            this.hideHighlightRect(blockId);
-            prevHoverStartBlockEl = null;
-        };
+// ##         const hideRect = (blockId = null) => {
+// ##             this.hideHighlightRect(blockId);
+// ##             prevHoverStartBlockEl = null;
+// ##         };
 // ##         this.cachedLeftPanelWidth = getCurrentLeftPanelWidth();
 // ##         webPageUnregistrables.set('highlightRectLeftPosUpdater', signals.on('left-column-width-changed', w => {
 // ##             this.cachedLeftPanelWidth = w;
@@ -144,44 +144,44 @@ class IframePageManager {
 // ##                 pageManager.unHighlightTextBlockChildEl();
 // ##                 signals.emit('web-page-text-block-child-el-hover-ended');
 // ##             }
-        };
-    }
-    /**
-     * @param {RawBlock} block
-     * @param {'web-page'|'block-tree'} origin
-     * @param {DOMRect} rect = null
-     * @access public
-     */
-    showHighlightRect(block, origin, rect = null) {
-        if (!rect) rect = this.currentWebPage.getBlockEl(block.id).getBoundingClientRect();
-        const title = (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type);
-        this.doShowHighlightRect(rect, title);
-        signals.emit('highlight-rect-revealed', block.id, origin);
-    }
-    /**
-     * @param {String|null} blockId
-     * @access public
-     */
-    hideHighlightRect(blockId) {
-        this.doHideHighlightRect();
-        signals.emit('highlight-rect-removed', blockId);
-    }
-    /**
-     * @param {Number} elIdx
-     * @param {String} textBlockId
-     * @access public
-     */
-    highlightTextBlockChildEl(elIdx, textBlockId) {
-        const childEl = this.currentWebPage.getBlockEl(textBlockId).children[elIdx];
-        const rect = childEl.getBoundingClientRect();
-        this.doShowHighlightRect(rect, `${__('Text')} > ${nodeNameToFriendly(childEl.nodeName)}`);
-    }
-    /**
-     * @access public
-     */
-    unHighlightTextBlockChildEl() {
-        this.doHideHighlightRect();
-    }
+// ##         };
+// ##     }
+// ##     /**
+// ##      * @param {RawBlock} block
+// ##      * @param {'web-page'|'block-tree'} origin
+// ##      * @param {DOMRect} rect = null
+// ##      * @access public
+// ##      */
+// ##     showHighlightRect(block, origin, rect = null) {
+// ##         if (!rect) rect = this.currentWebPage.getBlockEl(block.id).getBoundingClientRect();
+// ##         const title = (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + block.title || __(block.type);
+// ##         this.doShowHighlightRect(rect, title);
+// ##         signals.emit('highlight-rect-revealed', block.id, origin);
+// ##     }
+// ##     /**
+// ##      * @param {String|null} blockId
+// ##      * @access public
+// ##      */
+// ##     hideHighlightRect(blockId) {
+// ##         this.doHideHighlightRect();
+// ##         signals.emit('highlight-rect-removed', blockId);
+// ##     }
+// ##     /**
+// ##      * @param {Number} elIdx
+// ##      * @param {String} textBlockId
+// ##      * @access public
+// ##      */
+// ##     highlightTextBlockChildEl(elIdx, textBlockId) {
+// ##         const childEl = this.currentWebPage.getBlockEl(textBlockId).children[elIdx];
+// ##         const rect = childEl.getBoundingClientRect();
+// ##         this.doShowHighlightRect(rect, `${__('Text')} > ${nodeNameToFriendly(childEl.nodeName)}`);
+// ##     }
+// ##     /**
+// ##      * @access public
+// ##      */
+// ##     unHighlightTextBlockChildEl() {
+// ##         this.doHideHighlightRect();
+// ##     }
 // ##     /**
 // ##      * @param {DOMRect} rect
 // ##      * @param {String} title
@@ -203,14 +203,14 @@ class IframePageManager {
 // ##             highlightRectEl.setAttribute('data-label-position', 'top-inside');
 // ##         highlightRectEl.setAttribute('data-title', title);
 // ##     }
-    /**
-     * @access private
-     */
-    doHideHighlightRect() {
-        const {highlightRectEl} = this;
-        highlightRectEl.setAttribute('data-title', '');
-        highlightRectEl.style.cssText = '';
-    }
+// ##     /**
+// ##      * @access private
+// ##      */
+// ##     doHideHighlightRect() {
+// ##         const {highlightRectEl} = this;
+// ##         highlightRectEl.setAttribute('data-title', '');
+// ##         highlightRectEl.style.cssText = '';
+// ##     }
 }
 
 // ## /**

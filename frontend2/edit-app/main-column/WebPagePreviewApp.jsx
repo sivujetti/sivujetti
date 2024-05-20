@@ -108,7 +108,15 @@ class WebPagePreviewApp extends preact.Component {
      * @access public
      */
     scrollToTextBlockChildEl(childElemIdx, textBlockBlockId) {
-        //
+        const body = this.getEl().contentDocument.body;
+        const blockEl = getBlockEl(textBlockBlockId, body);
+        const child = blockEl.children[childElemIdx];
+        const rect = child.getBoundingClientRect();
+        const win = this.getEl().contentWindow;
+        win.scrollTo({
+            top: rect.top + win.scrollY - 30,
+            behavior: 'auto',
+        });
     }
     /**
      * @param {compiledMediaScopesCss} allMediaScopesCss

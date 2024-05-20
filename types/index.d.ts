@@ -283,35 +283,6 @@ interface EnvConfig {
     cacheBustStr: String;
 }
 
-interface EditAwareWebPageEventHandlers {
-    onBlockHoverStarted(blockEl: HTMLElement, rect: DOMRect): void;
-    onClicked(blockEl: HTMLElement|null): void;
-    onBlockHoverEnded(blockEl: HTMLElement): void;
-    onTextBlockChildElHoverStarted(childIdx: Number, textBlockBlockId: String): void;
-    onTextBlockChildElHoverEnded(): void;
-}
-
-interface EditAppAwareWebPage {
-    data: CurrentPageData;
-    reRenderer: WebPageReRenderer;
-    metaKeyIsPressed: Boolean;
-    init(renderBlockAndThen: (block: Block, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void, toTransferable: (block: Block, includePrivates: Boolean = false) => {[key: String]: any;}, blockTreeUtils: blockTreeUtils): void;
-    scanBlockElements(): Array<HTMLElement>;
-    addRootBoundingEls(lastBlock: Block): void;
-    createThemeStylesChangeListener(): (state: {themeStyles: Array<ThemeStyle>; [key: String]: any;}, eventInfo: ['themeStyles/addStyle'|'themeStyles/removeStyle'|'themeStyles/addUnitTo'|'themeStyles/removeUnitFrom', [String]|[ThemeStyle, String], Object]) => void;
-    setIsMouseListenersDisabled(isDisabled: Boolean): void;
-    fastOverrideStyleUnitVar(selector: String, varName: String, varValue: String|(() => {supportingCss: String; mediaQueryWrap: String|null; varVal: String;}), valueType: 'color'): void;
-    setCssVarValue(varName: String, to: CssValue): void;
-    getBlockEl(blockId: String): HTMLElement|null;
-    setOnReRenderOrUpdateStyles(fn: () => void): void;
-}
-
-interface WebPageReRenderer {
-    new(_renderBlockAndThen: (block: Block, then: (result: BlockRendctor) => void, shouldBackendRender: Boolean = false) => void, _toTransferable: (block: Block, includePrivates: Boolean = false) => {[key: String]: any;}, _blockTreeUtils: blockTreeUtils): WebPageReRenderer;
-    createBlockTreeChangeListeners(): {fast: (event: blockChangeEvent, data: Array<any>) => void; slow: (blockId: String) => void;};
-    setOnReRender(fn: () => void): void;
-}
-
 interface Env {
     window: Window;
     document: Document;
@@ -405,11 +376,6 @@ interface DragDropEventController {
 interface DragDropInfo {
     li: HTMLLIElement;
     pos: 'initial'|dropPosition;
-}
-
-interface BlockRendctor {
-    html: String;
-    onAfterInsertedToDom(html: String): void;
 }
 
 interface ThemeStyle {

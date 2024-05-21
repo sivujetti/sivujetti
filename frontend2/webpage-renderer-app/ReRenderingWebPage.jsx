@@ -44,13 +44,52 @@ class ButtonBlock extends preact.Component {
 }
 
 class CodeBlock extends preact.Component {
+    // lastExecutedCode;
+    /**
+     * @access protected
+     */
+    componentDidMount() {
+        const {id, code} = this.props.block;
+        if (this.lastExecutedCode === code) return;
+        this.lastExecutedCode = code;
+        const {head} = document;
+        // Remove previous injections (if any)
+        [...head.querySelectorAll(`[data-injected-by-sivujetti-code-block="${id}"]`)].forEach(el => {
+            head.removeChild(el);
+        });
+        // Inject again
+        const temp = document.createElement('div');
+        temp.innerHTML = code;
+        [...temp.querySelectorAll('script')].forEach(el => {
+            injectScript(el, head, [{name: 'data-injected-by-sivujetti-code-block', value: id}]);
+        });
+    }
     /**
      * @param {BlockRendererProps} props
      * @access protected
      */
-    render({block, renderChildren, createDefaultProps}) {
-        return <div { ...createDefaultProps() } dangerouslySetInnerHTML={ {__html: block.html} }></div>;
+    render({block, createDefaultProps}) {
+        return <div
+            { ...createDefaultProps() }
+            dangerouslySetInnerHTML={ {
+                __html: block.code || __('Waits for configuration ...'),
+            } }></div>;
     }
+}
+
+/**
+ * @param {HTMLScriptElement} original
+ * @param {HTMLElement} toEl
+ * @param {Array<{name: String; value: String;}>} extraAttrs
+ */
+function injectScript(original, toEl, extraAttrs = []) {
+    const inject = document.createElement('script');
+    [...original.attributes, ...extraAttrs].forEach(attr => {
+        inject.setAttribute(attr.name, attr.value);
+    });
+    if (original.innerHTML)
+        inject.innerHTML = original.innerHTML;
+    toEl.appendChild(inject);
 }
 
 class ColumnsBlock extends preact.Component {

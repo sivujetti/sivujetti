@@ -33,7 +33,7 @@ final class CodeBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTy
             $block->code
                 ? el("j-raw", [], $block->code) // @allow raw html/css/js
                 : $tmpl->__("Waits for configuration ..."),
-            ...$renderChildren()
+            // no children allowed
         );
     }
 }

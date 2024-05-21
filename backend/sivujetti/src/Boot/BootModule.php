@@ -121,7 +121,7 @@ class BootModule {
             fn($fact) => new DefaultCookieStorage((object) ["req" => $fact->makeRequest(),
                                                             "res" => $di->make(Response::class)]),
             userRoleCookieName: "maybeLoggedInUserRole",
-            doUseRememberMe: !defined("isDemo")
+            doUseRememberMe: true
         ));
     }
     /**

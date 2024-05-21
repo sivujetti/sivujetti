@@ -51,10 +51,10 @@ class BlockEditForm extends preact.Component {
                 return;
             }
             //
+            const isIt = isUndoOrRedo(ctx);
             const doCheckDiffForEditForm = (
                 (event === 'update-single-block-prop' && userCtx?.blockId === this.state.blockCopyForEditForm?.id) ||
-                ctx === 'undo' ||
-                ctx === 'redo'
+                isIt
             );
             if (doCheckDiffForEditForm) {
                 const block = doCheckDiffForEditForm && this.state.blockCopyForEditForm
@@ -66,14 +66,14 @@ class BlockEditForm extends preact.Component {
                     this.state.blockCopyForEditForm.styleClasses !== block.styleClasses) {
                     this.setState({
                         blockCopyForEditForm: objectUtils.cloneDeep(block),
-                        lastBlockTreeChangeEventInfo: {ctx, flags, isUndoOrRedo: isUndoOrRedo(ctx)}
+                        lastBlockTreeChangeEventInfo: {ctx, flags, isUndoOrRedo: isIt}
                     });
                 }
             }
             //
-            if (event === 'delete') { // todo
-                // const [id, _blockIsStoredToTreeId, isChildOfOrCurrentlyOpenBlock] = data;
-                // if (isChildOfOrCurrentlyOpenBlock || id === block.id) this.props.inspectorPanel.close();
+            if (event === 'delete') {
+                const {wasCurrentlySelectedBlock} = userCtx || {};
+                if (wasCurrentlySelectedBlock) this.props.inspectorPanel.close();
             }
         }),
 
@@ -127,7 +127,7 @@ class BlockEditForm extends preact.Component {
                                     }, env.normalTypingDebounceMillis);
 
                                 if (!isUndoOrRedo(source)) {
-                                    if (hasErrors) throw new Error('todo');
+                                    if (hasErrors) { env.window.console.error('Had error, skipping'); return; }
                                     const changes = {[key]: val};
                                     // Emit "fast"/mergeable op
                                     this.handleValuesChanged(changes, false, 'is-throttled');

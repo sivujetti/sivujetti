@@ -76,44 +76,44 @@ function theBlockTreeStore(store) {
         ({theBlockTree})
     );
 
-    /**
-     * @param {Object} state
-     * @param {[String, String, Boolean|null]} args
-     * @returns {Object}
-     */
-    const deleteBlock = ({theBlockTree}, [blockId, _blockIsStoredToTreeId, _wasCurrentlySelectedBlock]) => {
-        const clone = cloneObjectDeep(theBlockTree);
-        const [ref, refBranch] = blockTreeUtils.findBlockSmart(blockId, clone);
-        refBranch.splice(refBranch.indexOf(ref), 1); // mutates clone
-        return {theBlockTree: clone};
-    };
-    store.on('theBlockTree/deleteBlock', deleteBlock);
-
-    /**
-     * @param {Object} state
-     * @param {[SpawnDescriptor, BlockDescriptor, dropPosition]} args
-     * @returns {Object}
-     */
-    const addBlock = ({theBlockTree}, [spawn, target, insertPos]) => {
-        const blockOrBranch = spawn.block;
-        const clone = cloneObjectDeep(theBlockTree);
-        const {isStoredToTreeId, blockId} = !(target.isGbtRef && insertPos === 'as-child') ? target
-            : {isStoredToTreeId: target.data.refTreeId, blockId: target.data.refTreesRootBlockId};
-        const rootOrInnerTree = blockTreeUtils.findTree(isStoredToTreeId, clone);
-        if (insertPos === 'before') {
-            const [before, branch] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
-            branch.splice(branch.indexOf(before), 0, blockOrBranch);
-        } else if (insertPos === 'after') {
-            const [after, branch] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
-            branch.splice(branch.indexOf(after) + 1, 0, blockOrBranch);
-        } else {
-            const [asChildOf] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
-            asChildOf.children.push(blockOrBranch);
-        }
-        return {theBlockTree: clone};
-    };
+// ##     /**
+// ##      * @param {Object} state
+// ##      * @param {[String, String, Boolean|null]} args
+// ##      * @returns {Object}
+// ##      */
+// ##     const deleteBlock = ({theBlockTree}, [blockId, _blockIsStoredToTreeId, _wasCurrentlySelectedBlock]) => {
+// ##         const clone = cloneObjectDeep(theBlockTree);
+// ##         const [ref, refBranch] = blockTreeUtils.findBlockSmart(blockId, clone);
+// ##         refBranch.splice(refBranch.indexOf(ref), 1); // mutates clone
+// ##         return {theBlockTree: clone};
+// ##     };
+// ##     store.on('theBlockTree/deleteBlock', deleteBlock);
+// ## 
+// ##     /**
+// ##      * @param {Object} state
+// ##      * @param {[SpawnDescriptor, BlockDescriptor, dropPosition]} args
+// ##      * @returns {Object}
+// ##      */
+// ##     const addBlock = ({theBlockTree}, [spawn, target, insertPos]) => {
+// ##         const blockOrBranch = spawn.block;
+// ##         const clone = cloneObjectDeep(theBlockTree);
+// ##         const {isStoredToTreeId, blockId} = !(target.isGbtRef && insertPos === 'as-child') ? target
+// ##             : {isStoredToTreeId: target.data.refTreeId, blockId: target.data.refTreesRootBlockId};
+// ##         const rootOrInnerTree = blockTreeUtils.findTree(isStoredToTreeId, clone);
+// ##         if (insertPos === 'before') {
+// ##             const [before, branch] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
+// ##             branch.splice(branch.indexOf(before), 0, blockOrBranch);
+// ##         } else if (insertPos === 'after') {
+// ##             const [after, branch] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
+// ##             branch.splice(branch.indexOf(after) + 1, 0, blockOrBranch);
+// ##         } else {
+// ##             const [asChildOf] = blockTreeUtils.findBlock(blockId, rootOrInnerTree);
+// ##             asChildOf.children.push(blockOrBranch);
+// ##         }
+// ##         return {theBlockTree: clone};
+// ##     };
 // ##     store.on('theBlockTree/addBlockOrBranch', addBlock);
-
+// ## 
 // ##     store.on('theBlockTree/undoAdd(Drop)Block', deleteBlock);
 
     store.on('theBlockTree/updatePropsOf',
@@ -145,8 +145,8 @@ function theBlockTreeStore(store) {
         return {theBlockTree: clone};
     });
 
-    store.on('theBlockTree/cloneItem', addBlock);
-
+// ##     store.on('theBlockTree/cloneItem', addBlock);
+// ## 
 // ##     store.on('theBlockTree/convertToGbt',
 // ##     /**
 // ##      * @param {Object} state

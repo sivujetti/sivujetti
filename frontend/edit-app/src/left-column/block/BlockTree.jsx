@@ -67,10 +67,10 @@ class BlockTree extends preact.Component {
 // ##                 // skip, wait until drop/applySwap
             } else if (event === 'theBlockTree/applySwap' ||
                 event === 'theBlockTree/applyAdd(Drop)Block' ||
-                event === 'theBlockTree/deleteBlock' ||
+// ##                 event === 'theBlockTree/deleteBlock' ||
 // ##                 event === 'theBlockTree/undo' ||
 // ##                 event === 'theBlockTree/undoAdd(Drop)Block' ||
-                event === 'theBlockTree/cloneItem' ||
+// ##                 event === 'theBlockTree/cloneItem' ||
 // ##                 event === 'theBlockTree/convertToGbt') {
                 const newState = {blockTree: theBlockTree, treeState: createTreeState(theBlockTree, this.state.treeState)};
                 if ((event === 'theBlockTree/applyAdd(Drop)Block' || event === 'theBlockTree/applySwap') && data[2] === 'as-child') {
@@ -293,11 +293,11 @@ class BlockTree extends preact.Component {
 // ##      * @access private
 // ##      */
 // ##     cloneBlock(openBlock) {
-        const cloned = duplicateDeepAndReAssignIds(findBlockFrom(openBlock.id, 'mainTree')[0]);
-        const changes = callGetBlockPropChangesEvent(cloned.type, 'cloneBlock', [cloned]);
-        if (changes) overrideData(cloned, changes);
-        store2.dispatch('theBlockTree/cloneItem', [{block: cloned, isReusable: null}, createBlockDescriptor(openBlock), 'after']);
-        api.webPageIframe.scrollToBlock(cloned);
+// ##         const cloned = duplicateDeepAndReAssignIds(findBlockFrom(openBlock.id, 'mainTree')[0]);
+// ##         const changes = callGetBlockPropChangesEvent(cloned.type, 'cloneBlock', [cloned]);
+// ##         if (changes) overrideData(cloned, changes);
+// ##         store2.dispatch('theBlockTree/cloneItem', [{block: cloned, isReusable: null}, createBlockDescriptor(openBlock), 'after']);
+// ##         api.webPageIframe.scrollToBlock(cloned);
 // ##     }
 // ??     /**
 // ??      * @param {{name: String;}} data

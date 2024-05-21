@@ -9,6 +9,7 @@ import {getBlockEl} from '../../shared-inline.js';
 import {isMetaBlock} from '../includes/block/utils.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 import globalData from '../includes/globalData.js';
+import {createTrier} from '../includes/utils.js';
 
 const broadcastInitialStateToListeners = true;
 
@@ -85,22 +86,23 @@ class WebPagePreviewApp extends preact.Component {
      */
     scrollToBlock(block, win = this.getEl().contentWindow, behavior = 'smooth') {
         if (isMetaBlock(block)) return;
+        const blockEl = this.getBlockEl(block.id, this.getEl().contentDocument.body);
+        if (!blockEl) return false;
+        return this.scrollToBlockEl(blockEl, win, behavior);
+    }
+    /**
+     * @param {Block} block
+     * @access public
+     */
+    scrollToBlockAsync(block, win = this.getEl().contentWindow, behavior = 'smooth') {
+        if (isMetaBlock(block)) return;
         const body = this.getEl().contentDocument.body;
-        const getRect = firstEl => firstEl.getBoundingClientRect();
-        const inPageElRect = getRect(this.getBlockEl(block.id, body));
-        const inPageElTop = inPageElRect.top;
-        const elBottom = inPageElRect.bottom;
-        const quarterVisible = win.innerHeight / 4;
-        if (inPageElTop <= 0 && elBottom <= (quarterVisible * 3) ||
-            elBottom < 0 ||
-            inPageElTop > quarterVisible) {
-            win.scrollTo({
-                top: inPageElTop + win.scrollY - 40,
-                behavior,
-            });
+        createTrier(() => {
+            const el = this.getBlockEl(block.id, body);
+            if (!el) return false;
+            this.scrollToBlockEl(el, win, behavior);
             return true;
-        }
-        return false;
+        }, 100, 30, '')();
     }
     /**
      * @param {Number} childElemIdx
@@ -290,6 +292,29 @@ class WebPagePreviewApp extends preact.Component {
     getBlockEl(blockId) {
         const iframe = document.querySelector('.site-preview-iframe');
         return getBlockEl(blockId, iframe.contentDocument);
+    }
+    /**
+     * @param {HTMLElement} blockEl
+     * @param {Window} win
+     * @param {ScrollBehavior} behavior
+     * @returns {Boolean} didScroll
+     * @access private
+     */
+    scrollToBlockEl(blockEl, win, behavior) {
+        const inPageElRect = blockEl.getBoundingClientRect();
+        const inPageElTop = inPageElRect.top;
+        const elBottom = inPageElRect.bottom;
+        const quarterVisible = win.innerHeight / 4;
+        if (inPageElTop <= 0 && elBottom <= (quarterVisible * 3) ||
+            elBottom < 0 ||
+            inPageElTop > quarterVisible) {
+            win.scrollTo({
+                top: inPageElTop + win.scrollY - 40,
+                behavior,
+            });
+            return true;
+        }
+        return false;
     }
 }
 

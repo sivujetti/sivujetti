@@ -11,6 +11,7 @@ import {
     objectUtils,
     scssWizard,
     traverseRecursively,
+    writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
 import createDndController, {callGetBlockPropChangesEvent} from '../../includes/block/create-block-tree-dnd-controller.js';
 import TreeDragDrop from '../../includes/TreeDragDrop.js';
@@ -20,6 +21,7 @@ import {
     blockToBlueprint,
     createPartialState,
     createStyleShunkcScssIdReplacer,
+    duplicateDeepAndReAssignIds,
     getShortFriendlyName,
     hideOrShowChildren,
     setAsHidden,
@@ -111,11 +113,12 @@ class BlockTree extends preact.Component {
                             draggable><div class="d-flex">&nbsp;</div></li>)
                         : <li>-</li>
                 }</ul>
-                : <LoadingSpinner className="ml-1 pl-2 pb-1"/>
+                : <LoadingSpinner className="ml-2 pl-2 pb-1"/>
             }
             <ContextMenu
                 links={ [
                     {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
+                    {text: __('Duplicate'), title: `${__('Duplicate content')} (${__('no styles')})`, id: 'duplicate-block'},
                     {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
                 ].concat(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees')
                     ? [{text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}]
@@ -218,7 +221,8 @@ class BlockTree extends preact.Component {
      */
     handleContextMenuLinkClicked(link) {
         if (link.id === 'duplicate-block') {
-            this.cloneBlock(this.blockWithMoreMenuOpened);
+            const withStyles = link.text.indexOf('(') < 0;
+            this.cloneBlock(this.blockWithMoreMenuOpened, withStyles);
         } else if (link.id === 'delete-block') {
             this.deleteBlock(this.blockWithMoreMenuOpened);
         } else if (link.id === 'save-block-as-reusable') {
@@ -245,15 +249,76 @@ class BlockTree extends preact.Component {
     }
     /**
      * @param {Block} openBlock
+     * @param {Boolean} alsoCloneStyles
      * @access private
      */
-    cloneBlock(openBlock) {
+    cloneBlock(openBlock, alsoCloneStyles) {
+        const saveButton = api.saveButton.getInstance();
+        let cloned;
+
+        let newUserStyles = [];
+        let newDevStyles = [];
+        const newTree = blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+            const [origBlockRef, refBranch] = blockTreeUtils.findBlockMultiTree(openBlock.id, newTreeCopy);
+            const cloned2 = duplicateDeepAndReAssignIds(origBlockRef);
+            const changes = callGetBlockPropChangesEvent(cloned2.type, 'cloneBlock', [cloned2]);
+            if (changes) writeBlockProps(cloned2, changes);
+
+            if (alsoCloneStyles) {
+                // todo
+            }
+
+            // insert after current
+            refBranch.splice(refBranch.indexOf(origBlockRef) + 1, 0, cloned2);
+            cloned = cloned2;
+            return newTreeCopy;
+        });
+
+        const pushNewTreeArgs = ['theBlockTree', newTree, {event: 'duplicate'}];
+
+        if (newUserStyles.length || newDevStyles.length) {
+            // todo
+        } else {
+            saveButton.pushOp(...pushNewTreeArgs);
+        }
+
+        api.webPagePreview.scrollToBlockAsync(cloned);
     }
     /**
      * @param {Block} openBlock
      * @access private
      */
     deleteBlock(blockVisible) {
+        const isSelectedRootCurrentlyClickedBlock = () => {
+            if (!this.selectedRoot)
+                return false;
+            return this.selectedRoot.id === blockVisible.id;
+        };
+        const isSelectedRootChildOfCurrentlyClickedBlock = () => {
+            if (!this.selectedRoot)
+                return false;
+            if (!blockVisible.children.length)
+                return false;
+            return !!blockTreeUtils.findRecursively(blockVisible.children,
+                b => b.id === this.selectedRoot.id);
+        };
+        //
+        const wasCurrentlySelectedBlock = isSelectedRootCurrentlyClickedBlock() ||
+                                        isSelectedRootChildOfCurrentlyClickedBlock();
+        if (wasCurrentlySelectedBlock) this.selectedRoot = null;
+        //
+        const blockToDeleteId = !this.blockWithMoreMenuOpenedIsGbtsOutermostBlock
+            ? blockVisible.id
+            : this.openedBlockDetails.getAttribute('data-is-root-block-of');
+        const saveButton = api.saveButton.getInstance();
+        saveButton.pushOp(
+            'theBlockTree',
+            blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+                const [ref, refBranch] = blockTreeUtils.findBlockMultiTree(blockToDeleteId, newTreeCopy);
+                refBranch.splice(refBranch.indexOf(ref), 1); // mutates newTreeCopy
+                return newTreeCopy;
+            }), {event: 'delete', wasCurrentlySelectedBlock}
+        );
     }
     /**
      * @param {{name: String;}} data
@@ -457,16 +522,6 @@ class BlockTree extends preact.Component {
         hideOrShowChildren(to, block, mutRef);
         this.setState({treeState: mutRef});
     }
-}
-
-function duplicateDeepAndReAssignIds(block) { // where to put this 
-    const out = objectUtils.cloneDeep(block);
-    console.log('bef',{...out});
-    traverseRecursively([out], bRef => {
-        bRef.id = generatePushID(true);
-    });
-    console.log('then',{...out});
-    return out;
 }
 
 /**

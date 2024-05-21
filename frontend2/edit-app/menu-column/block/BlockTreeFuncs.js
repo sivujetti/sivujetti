@@ -1,4 +1,6 @@
 import {
+    generatePushID,
+    objectUtils,
     traverseRecursively,
 } from '@sivujetti-commons-for-edit-app';
 /**
@@ -184,10 +186,23 @@ function propsToObj(propsData) { // Can these contain __private -fields?
     return out;
 }
 
+/**
+ * @param {Block} block
+ * @returns {Block}
+ */
+function duplicateDeepAndReAssignIds(block) {
+    const out = objectUtils.cloneDeep(block);
+    traverseRecursively([out], bRef => {
+        bRef.id = generatePushID(true);
+    });
+    return out;
+}
+
 export {
     blockToBlueprint,
     createPartialState,
     createStyleShunkcScssIdReplacer,
+    duplicateDeepAndReAssignIds,
     getShortFriendlyName,
     hideOrShowChildren,
     setAsHidden,

@@ -135,6 +135,7 @@ stringBundles.push({
     'Add child content': 'Add child content',
     'Duplicate': 'Duplicate',
     'Duplicate content': 'Duplicate content',
+    'no styles': 'no styles',
     'Delete': 'Delete',
     'Delete content': 'Delete content',
     'Save as reusable': 'Save as reusable',

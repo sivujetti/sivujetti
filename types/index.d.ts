@@ -294,7 +294,7 @@ interface ContextMenuLink {
     id: String;
 }
 
-type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undoUpdateDefPropsOf'|'theBlockTree/deleteBlock'|'theBlockTree/addBlockOrBranch'|'theBlockTree/updatePropsOf'|'theBlockTree/updateDefPropsOf'|'theBlockTree/cloneItem';
+type blockChangeEvent = 'theBlockTree/init'|'theBlockTree/applySwap'|'theBlockTree/applyAdd(Drop)Block'|'theBlockTree/undoUpdateDefPropsOf'|'theBlockTree/addBlockOrBranch'|'theBlockTree/updatePropsOf'|'theBlockTree/updateDefPropsOf';
 
 type blockPropValueChangeFlags = 'is-throttled'|'is-group'|'is-initial'|null;
 
@@ -526,7 +526,7 @@ interface CssVarsMap {
     [varName: String]: String;
 }
 
-type stylesLayer = 'user-styles'|'dev-styles'|'body-styles';
+type stylesLayer = 'user-styles'|'dev-styles'|'base-styles';
 
 type mediaScope = 'all'|'960'|'840'|'600'|'480'|String;
 

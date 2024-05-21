@@ -56,6 +56,7 @@ const api = {
         unHighlightBlock(/*blockId*/) { },
         unHighlightTextBlockChildEl() { },
         scrollToBlock(/*block*/) { },
+        scrollToBlockAsync(/*block*/) { },
         highlightTextBlockChildEl(/*elIdx, textBlockBlockId*/) { },
         onReady(/*fn*/) {},
         sendMessageToReRenderer(/*args*/) {},

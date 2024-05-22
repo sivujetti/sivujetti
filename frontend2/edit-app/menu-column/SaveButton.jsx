@@ -15,6 +15,8 @@ import {
 const saveButtonEvents = new Events;
 const saveButtonEvents2 = new Events;
 
+const useStickiedClsChangeUpdater = false;
+
 class SaveButton extends preact.Component {
     // states;
     // stateCursors;
@@ -127,12 +129,13 @@ class SaveButton extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        this.props.editAppOuterEl.addEventListener('scroll', e => {
-            if (e.target.scrollTop > 21 && !this.state.isStickied)
-                this.setState({isStickied: true});
-            else if (e.target.scrollTop < 21 && this.state.isStickied)
-                this.setState({isStickied: false});
-        });
+        if (useStickiedClsChangeUpdater)
+            this.props.editAppOuterEl.addEventListener('scroll', e => {
+                if (e.target.scrollTop > 21 && !this.state.isStickied)
+                    this.setState({isStickied: true});
+                else if (e.target.scrollTop < 21 && this.state.isStickied)
+                    this.setState({isStickied: false});
+            });
     }
     /**
      * @param {SaveButtonProps} props

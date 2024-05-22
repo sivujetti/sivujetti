@@ -78,7 +78,7 @@ class PageCreateState extends preact.Component {
                     title={ __('Cancel create %s', nameTrans) }
                     type="button">&lt; { __('Back') }</button>
             </header>,
-            <main>
+            <main style="--header-height: 116px">
                 <DnDBlockSpawner initiallyIsOpen ref={ this.blockSpawner }/>
                 <div id="edit-app-sections-wrapper">
                     <OnThisPageSection currentPageSlug={ url }

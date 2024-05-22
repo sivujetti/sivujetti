@@ -59,13 +59,14 @@ class ColumnEditTabForm extends preact.Component {
                 labelTranslated={ __('Align') }
                 inputId="section2Align"/>
             <FormGroupInline>
-                <span class="form-label">{ __('Is visible?') }?</span>
+                <span class="form-label">{ __('Is visible') }?</span>
                 <label class="form-checkbox mt-0">
                     <input
                         onClick={ e => this.props.onPropChanged('isVisible', e.target.checked) }
                         checked={ isVisible }
                         type="checkbox"
-                        class="form-input"/><i class="form-icon"></i>
+                        class="form-input"
+                        name="section2ColIsVisible"/><i class="form-icon"></i>
                 </label>
             </FormGroupInline>
         </div>;

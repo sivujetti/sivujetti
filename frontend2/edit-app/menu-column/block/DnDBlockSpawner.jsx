@@ -18,6 +18,8 @@ const UNSPAWNABLES = ['Columns', 'Heading', 'PageInfo', 'Paragraph', 'RichText',
 
 const EVENTS_THAT_NEVER_CHANGE_TREE_HEIGHT =  ['update-single-block-prop', 'convert-branch-to-global-block-reference-block'];
 
+const useSeparatorHeightUpdater = false;
+
 class DnDBlockSpawner extends preact.Component {
     // mainTreeDnd; // public
     // unregisterables;
@@ -175,7 +177,7 @@ class DnDBlockSpawner extends preact.Component {
     toggleIsOpen() {
         const currentlyIsOpen = this.state.isOpen;
         const newIsOpen = !currentlyIsOpen;
-        getEditAppOuterEl().classList.toggle('dnd-block-spawner-opened');
+        api.menuPanel.getOuterEl().classList.toggle('dnd-block-spawner-opened');
         if (newIsOpen) {
             if (!this.selectableBlockTypes) {
                 this.selectableBlockTypes = sort(Array.from(api.blockTypes.entries()).filter(([name, _]) =>
@@ -197,7 +199,7 @@ class DnDBlockSpawner extends preact.Component {
                     setTimeout(() => { this.calculateAndSetSeparatorHeight(); }, 100);
                 });
 
-            env.document.documentElement.style.setProperty('--menu-column-offset', '200px');
+            env.document.documentElement.style.setProperty('--menu-column-offset', '208px');
             this.addOrRemoveSeparatorHeightUpdater(true);
             events.emit('dnd-block-spawner-opened');
         } else {
@@ -278,10 +280,12 @@ class DnDBlockSpawner extends preact.Component {
      */
     addOrRemoveSeparatorHeightUpdater(doAdd) {
         if (doAdd && !this.unregisterSeparatorHeightUpdater) {
-            getEditAppOuterEl().addEventListener('scroll', this.updateSeparatorHeightIfBlockTreeHeightsChanged);
+            if (useSeparatorHeightUpdater)
+                getOnThisPageScrollEl().addEventListener('scroll', this.updateSeparatorHeightIfBlockTreeHeightsChanged);
             //
             this.unregisterSeparatorHeightUpdater = () => {
-                getEditAppOuterEl().removeEventListener('scroll', this.updateSeparatorHeightIfBlockTreeHeightsChanged);
+                if (useSeparatorHeightUpdater)
+                    getOnThisPageScrollEl().removeEventListener('scroll', this.updateSeparatorHeightIfBlockTreeHeightsChanged);
                 this.unregisterables = this.unregisterables.filter(fn => fn !== this.unregisterSeparatorHeightUpdater);
                 this.unregisterSeparatorHeightUpdater = null;
             };
@@ -294,6 +298,7 @@ class DnDBlockSpawner extends preact.Component {
      * @access private
      */
     calculateAndSetSeparatorHeight() {
+        if (!useSeparatorHeightUpdater) return;
         const diff = getNextSeparatorHeight();
         this.setSeparatorHeight(diff);
     }
@@ -312,6 +317,7 @@ class DnDBlockSpawner extends preact.Component {
      * @access private
      */
     runUpdateSeparatorHeightLoop() {
+        if (!useSeparatorHeightUpdater) return;
         if (this.state.isOpen) createTrier(() => {
             return this.updateSeparatorHeightIfBlockTreeHeightsChanged();
         }, 20, 20, '')();
@@ -406,8 +412,8 @@ function getNextSeparatorHeight() {
 /**
  * @returns {HTMLElement}
  */
-function getEditAppOuterEl() {
-    return env.document.querySelector('#edit-app');
+function getOnThisPageScrollEl() {
+    return env.document.querySelector('#edit-app-sections-wrapper');
 }
 
 export default DnDBlockSpawner;

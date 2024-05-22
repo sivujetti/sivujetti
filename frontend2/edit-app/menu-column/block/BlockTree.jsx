@@ -188,7 +188,7 @@ class BlockTree extends preact.Component {
                     <Icon iconId={ api.blockTypes.getIconId(type) } className="size-xs p-absolute"/>
                     <span class="text-ellipsis">{ title }</span>
                 </button>
-                <button onClick={ e => this.openMoreMenu(block, rootRefBlockId !== null, e) } class="more-toggle ml-2" type="button">
+                <button onClick={ e => this.openMoreMenu(block, rootRefBlockId !== null, e) } class="more-toggle pl-2" type="button">
                     <Icon iconId="dots" className="size-xs"/>
                 </button>
             </div>

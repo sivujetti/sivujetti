@@ -143,7 +143,7 @@ final class TestDataBundles {
                 "description" => "",
                 "fields" => [
                     "ownFields" => [],
-                    "blockFields" => [],
+                    "blockBlueprintFields" => [],
                     "defaultFields" => (object) ["title" => (object) ["defaultValue" => "Article"]],
                 ],
                 "defaultLayoutId" => "1",

@@ -5,6 +5,7 @@ namespace Sivujetti\Tests\PageType;
 use Pike\PikeException;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\PageType\{PageTypeMigrator};
+use Sivujetti\Tests\ReusableBranch\ReusableBranchesControllerTestCase;
 
 final class UpdatePageTypeTest extends PageTypesControllerTestCase {
     protected const TEST_NAME = "MyCustomArticles";
@@ -35,7 +36,7 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
                 "isListable" => true,
             ] : [],
             $inputData ?? [
-                "blockFields" => $this->createBlockFieldsInput(),
+                "blockBlueprintFields" => $this->createBlockBlueprintFieldsInput(),
                 "defaultFields" => self::createDefaultFieldsInput(),
                 "ownFields" => self::createOwnFieldsInput(),
             ]
@@ -44,13 +45,13 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
         $state->app = null;
         return $state;
     }
-    private function createBlockFieldsInput(): array {
+    private function createBlockBlueprintFieldsInput(): array {
         $pure = $this->blockTestUtils->makeBlockData(
             propsData: (object) ["text" => "My page type's initial block"],
             id: "@auto"
         );
         $pure->junk = "prop 1";
-        return [$pure];
+        return [ReusableBranchesControllerTestCase::blockToBlueprint($pure)];
     }
     private static function createDefaultFieldsInput(): object {
         $pure = (object) ["title" => (object) ["defaultValue" => "New custom article"]];
@@ -134,7 +135,7 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
     public function testUpdatePlaceholderPageTypeRejectsInvalidBasicFieldsInputs(): void {
         $state = $this->setupTest([
             // Omit name, slug, friendlyName, friendlyNamePlural, description, defaultLayoutId, status, isListable
-            "blockFields" => $this->createBlockFieldsInput(),
+            "blockBlueprintFields" => $this->createBlockBlueprintFieldsInput(),
             "defaultFields" => self::createDefaultFieldsInput(),
             "ownFields" => self::createOwnFieldsInput(),
         ]);
@@ -164,7 +165,7 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
 
     public function testUpdatePlaceholderPageTypeRejectsInvalidDefaultFieldsAndOwnFieldsInputs1(): void {
         $this->runValidateOwnOrDefaultFieldsTest([
-            "blockFields" => $this->createBlockFieldsInput(),
+            "blockFblockBlueprintFieldsields" => $this->createBlockBlueprintFieldsInput(),
             "defaultFields" => (object) ["title" => (object) ["partial" => "object"]],
             "ownFields" => [(object) ["nothing" => "here", "dataType" => (object) [
                 "isNullable" => "not-a-boolean",
@@ -197,7 +198,7 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
             "friendlyName" => "friendlyName",
         ]);
         $this->runValidateOwnOrDefaultFieldsTest([
-            "blockFields" => $this->createBlockFieldsInput(),
+            "blockBlueprintFields" => $this->createBlockBlueprintFieldsInput(),
             "defaultFields" => self::createDefaultFieldsInput(),
             "ownFields" => [$completeField([
                 "defaultValue" => ["not-a-string"],
@@ -228,9 +229,9 @@ final class UpdatePageTypeTest extends PageTypesControllerTestCase {
     ////////////////////////////////////////////////////////////////////////////
 
 
-    public function testUpdatePlaceholderPageTypeRejectsInvalidBlockFieldsInputs(): void {
+    public function testUpdatePlaceholderPageTypeRejectsInvalidBlockBlueprintFieldsInputs(): void {
         $state = $this->setupTest([
-            "blockFields" => [(object) ["type" => "not-valid-block"]],
+            "blockBlueprintFields" => [(object) ["type" => "not-valid-block-blueprint"]],
             "defaultFields" => self::createDefaultFieldsInput(),
             "ownFields" => self::createOwnFieldsInput(),
         ], "completeBasicFields");

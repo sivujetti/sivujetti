@@ -188,7 +188,7 @@ final class PageTestUtils {
             $cfg->friendlyName = "Products";
             $cfg->friendlyNamePlural = "Products";
             // $cfg->description = use default;
-            // $cfg->blockFields = use default;
+            // $cfg->blockBlueprintFields = use default;
             $cfg->ownFields = $pageType->ownFields;
             $cfg->defaultFields->title->defaultValue = "Product name";
             // $cfg->defaultLayoutId = use default;

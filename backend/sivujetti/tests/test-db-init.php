@@ -31,9 +31,20 @@ $statements = array_merge($statements, [
                           ",`fields`,`defaultLayoutId`,`status`,`isListable`) VALUES
 (2,'PagesCategories','/pages-categories','Page category','Page categories','','" . json_encode([
     "ownFields" => [],
-    "blockFields" => [(object) ["type" => "Text", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
-                                "initialData" => (object) ["html" => "<p>Category</p>"],
-                                "children" => []]],
+    "blockBlueprintFields" => [(object) [
+        "blockType" => "Text",
+        "initialOwnData" => (object) [
+            "html" => "<p>Category</p>",
+        ],
+        "initialDefaultsData" => (object) [
+            "title" => "",
+            "renderer" => "jsx",
+            "styleClasses" => "",
+            "styleGroup" => "",
+        ],
+        "initialStyles" => [],
+        "initialChildren" => [],
+    ]],
     "defaultFields" => (object) ["title" => (object) ["defaultValue" => "New category"]],
 ]) . "','1',0,1),
 (1,'Pages','/pages','Page','Pages','','" . json_encode([
@@ -43,9 +54,20 @@ $statements = array_merge($statements, [
         "dataType" => (object) ["type" => "many-to-many", "isNullable" => false, "rel" => "PagesCategories"],
         "defaultValue" => [],
     ]],
-    "blockFields" => [(object) ["type" => "Text", "title" => "", "defaultRenderer" => "sivujetti:block-auto",
-                                "initialData" => (object) ["text" => "<p>Paragraph text</p>"],
-                                "children" => []]],
+    "blockBlueprintFields" => [(object) [
+        "blockType" => "Text",
+        "initialOwnData" => (object) [
+            "html" => "<p>Paragraph text</p>",
+        ],
+        "initialDefaultsData" => (object) [
+            "title" => "",
+            "renderer" => "jsx",
+            "styleClasses" => "",
+            "styleGroup" => "",
+        ],
+        "initialStyles" => [],
+        "initialChildren" => [],
+    ]],
     "defaultFields" => (object) ["title" => (object) ["defaultValue" => "New page"]],
 ]) . "','1',0,1)",
 

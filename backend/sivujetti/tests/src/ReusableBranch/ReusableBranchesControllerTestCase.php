@@ -32,7 +32,7 @@ abstract class ReusableBranchesControllerTestCase extends DbTestCase {
     protected function insertTestReusableBranchToDb(object $reusableBranch): void {
         $this->dbDataHelper->insertData($reusableBranch, "reusableBranches");
     }
-    protected static function blockToBlueprint(object $block, int $depth = 0): object {
+    public static function blockToBlueprint(object $block, int $depth = 0): object {
         return (object) [
             "blockType" => $block->type,
             "initialOwnData" => self::propsToObj($block->propsData),
@@ -40,6 +40,7 @@ abstract class ReusableBranchesControllerTestCase extends DbTestCase {
                 "title" => $block->title ?? "",
                 "renderer" => $block->renderer,
                 "styleClasses" => $block->styleClasses ?? "",
+                "styleGroup" => $block->styleGroup ?? "",
             ],
             "initialStyles" => [],
             "initialChildren" => $depth === 0

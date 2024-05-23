@@ -159,7 +159,7 @@ class PageTypeCreatePanel extends preact.Component {
                 p.type === 'globalBlockTree' &&
                 p.globalBlockTreeId === b.globalBlockTreeId
             ));
-        data.blockFields = store2.get().theBlockTree.filter(b => !belongsToLayout(b));
+        data.blockBlueprintFields = store2.get().theBlockTree.filter(b => !belongsToLayout(b));
         data.defaultFields = this.pageType.defaultFields;
         data.ownFields = this.fieldsWorkingCopy;
         //

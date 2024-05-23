@@ -69,13 +69,18 @@ final class PageTypesController {
         $out->friendlyName = "_";
         $out->friendlyNamePlural = "_";
         $out->description = "_";
-        $out->blockFields = [Block::fromBlueprint((object) [
-            "type" => Block::TYPE_TEXT,
-            "title" => "",
-            "defaultRenderer" => "sivujetti:block-auto",
-            "initialData" => (object) ["html" => "<p>Paragraph text.</p>"],
-            "children" => [],
-        ])];
+        $out->blockBlueprintFields = [(object) [
+            "blockType" => Block::TYPE_TEXT,
+            "initialOwnData" => (object) ["html" => "<p>Paragraph text.</p>"],
+            "initialDefaultsData" => (object) [
+                "title" => "",
+                "renderer" => "jsx",
+                "styleClasses" => "",
+                "styleGroup" => "",
+            ],
+            "initialStyles" => [],
+            "initialChildren" => [],
+        ]];
         $out->ownFields = [(object) [
             "name" => "field1",
             "friendlyName" => "Field 1",

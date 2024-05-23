@@ -8,6 +8,7 @@ use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\ValidationUtils;
 use Pike\Validation;
 use Pike\Validation\ObjectValidator;
+use Sivujetti\ReusableBranch\ReusableBranchesController;
 
 final class PageTypeValidator {
     public const FIELD_DATA_TYPES = ["text", "json", "int", "uint", "many-to-many"];
@@ -76,7 +77,10 @@ final class PageTypeValidator {
             }
         }
         //
-        $errors2 = $this->blockValidator->validateMany($input->blockFields);
+        $errors2 = ReusableBranchesController::validateBlockBlueprints(
+            $input->blockBlueprintFields,
+            $this->blockValidator
+        );
         return [...$errors, ...$errors2];
     }
     /**

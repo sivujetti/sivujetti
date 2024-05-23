@@ -125,38 +125,12 @@ final class Block extends \stdClass {
     }
     /**
      * @param object $blueprint
+     * @psalm-param BlockBlueprint $blueprint
+     * @param ?\Closure $onEach = null
+     * @psalm-param (\Closure(BlockBlueprint, Block): void)|null $onEach = null
      * @return \Sivujetti\Block\Entities\Block
      */
-    public static function fromBlueprint(object $blueprint): Block {
-        $out = new Block;
-        $out->type = $blueprint->type;
-        $out->title = $blueprint->title;
-        $out->renderer = $blueprint->defaultRenderer;
-        if (!defined("USE_SHORT_IDS")) {
-        $out->id = PushIdGenerator::generatePushId();
-        } else {
-        $out->id = ShortIdGenerator::generate();
-        }
-        $out->propsData = [];
-        $out->styleClasses = $blueprint->styleClasses ?? "";
-        $out->styleGroup = $blueprint->styleGroup ?? "";
-        $out->children = [];
-        foreach ($blueprint->children as $child)
-            $out->children[] = self::fromBlueprint($child);
-        foreach ($blueprint->initialData as $key => $value) {
-            $out->propsData[] = (object) ["key" => $key, "value" => $value];
-            $out->{$key} = $value;
-        }
-        return $out;
-    }
-    /**
-     * @param object $blueprint
-     * @psalm-param BlockBlueprint $blueprint 
-     * @param \Closure $onEach
-     * @psalm-param \Closure(BlockBlueprint, Block): void $onEach
-     * @return \Sivujetti\Block\Entities\Block
-     */
-    public static function fromBlueprint2(object $blueprint, \Closure $onEach): Block {
+    public static function fromBlueprint(object $blueprint, ?\Closure $onEach = null): Block {
         $out = new Block;
         $defaults = $blueprint->initialDefaultsData;
         $out->type = $blueprint->blockType;
@@ -178,9 +152,10 @@ final class Block extends \stdClass {
 
         $out->children = [];
         foreach ($blueprint->initialChildren as $child)
-            $out->children[] = self::fromBlueprint2($child, $onEach);
+            $out->children[] = self::fromBlueprint($child, $onEach);
 
-        $onEach($blueprint, $out);
+        if ($onEach)
+            $onEach($blueprint, $out);
         return $out;
     }
 }

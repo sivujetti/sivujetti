@@ -48,15 +48,15 @@ abstract class PageTypesControllerTestCase extends DbTestCase {
         $this->assertEquals($expected->friendlyNamePlural, $actual->friendlyNamePlural);
         $this->assertEquals($expected->description, $actual->description);
         $this->assertEquals($expected->defaultLayoutId, $actual->defaultLayoutId);
-        $this->assertEquals(self::createExpectedBlockFields($expected), $actual->blockFields);
+        $this->assertEquals(self::createExpectedBlockBlueprintFields($expected), $actual->blockBlueprintFields);
         $this->assertEquals(self::createExpectedDefaultFields($expected), $actual->defaultFields);
         $this->assertEquals(self::createExpectedOwnFields($expected), $actual->ownFields);
         $this->assertEquals($expectedStatus, $actual->status);
         $this->assertEquals($expected->isListable, $actual->isListable);
     }
-    private static function createExpectedBlockFields(object $input): array {
+    private static function createExpectedBlockBlueprintFields(object $input): array {
         return array_map([PageTypeMigrator::class, "inputToBlueprint"],
-                         $input->blockFields);
+                         $input->blockBlueprintFields);
     }
     private static function createExpectedDefaultFields(object $input): object {
         return (object) ["title" => (object) [

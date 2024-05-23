@@ -5,6 +5,7 @@ namespace Sivujetti\PageType;
 use Pike\Db;
 use Pike\PikeException;
 use Sivujetti\PageType\Entities\PageType;
+use Sivujetti\ReusableBranch\ReusableBranchesController;
 
 /**
  * Installs / removes page types to / from the database.
@@ -108,9 +109,9 @@ final class PageTypeMigrator {
         $pageTypeRaw->friendlyNamePlural = $input->friendlyNamePlural;
         $pageTypeRaw->description = $input->description;
         $pageTypeRaw->fields = json_encode((object) [
-            "blockFields" => array_map(fn(object $blockRaw) =>
-                self::inputToBlueprint($blockRaw)
-            , $input->blockFields),
+            "blockBlueprintFields" => array_map(fn(object $blueprintRaw) =>
+                self::inputToBlueprint($blueprintRaw)
+            , $input->blockBlueprintFields),
             "ownFields" => $fields, // Will trigger jsonSerialize()
             "defaultFields" => (object) ["title" => (object) [
                 "defaultValue" => $input->defaultFields->title->defaultValue,
@@ -175,21 +176,11 @@ final class PageTypeMigrator {
         return $numRows === 1 ? $this->db->lastInsertId() : "";
     }
     /**
-     * @param object|\Sivujetti\Block\Entities\Block $blueprint
+     * @param object $input
      * @return object
+     * @psalm-return BlockBlueprint
      */
     public static function inputToBlueprint(object $input): object {
-        $out = new \stdClass;
-        $out->type = $input->type;
-        $out->title = $input->title;
-        $out->defaultRenderer = $input->renderer;
-        $initialData = new \stdClass;
-        foreach ($input->propsData as $field)
-            $initialData->{$field->key} = $field->value;
-        $out->initialData = $initialData;
-        $out->children = [];
-        foreach ($input->children as $child)
-            $out->children[] = self::inputToBlueprint($child);
-        return $out;
+        return $input;
     }
 }

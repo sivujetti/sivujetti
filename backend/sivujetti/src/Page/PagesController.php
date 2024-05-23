@@ -571,7 +571,7 @@ final class PagesController {
         return [$page, null];
         } else {
         [$blocks, $styles] = self::createInitalBlocksAndStyles($page->layout->structure,
-                                                               $pageType->blockFields);
+                                                               $pageType->blockBlueprintFields);
         $page->blocks = $blocks;
         return [$page, $styles];
         }
@@ -585,28 +585,38 @@ final class PagesController {
     private static function createInitalBlocksAndStyles(array $layoutStructure,
                                                         array $blockBlueprints): array {
         $blocks = [Block::fromBlueprint((object) [
-            "type" => Block::TYPE_PAGE_INFO,
-            "title" => "",
-            "defaultRenderer" => "sivujetti:block-auto",
-            "children" => [],
-            "initialData" => (object) ["overrides" => "[]"]
+            "blockType" => Block::TYPE_PAGE_INFO,
+            "initialOwnData" => (object) ["overrides" => "[]"],
+            "initialDefaultsData" => (object) [
+                "title" => "",
+                "renderer" => "sivujetti:block-auto",
+                "styleClasses" => "",
+                "styleGroup" => "",
+            ],
+            "initialStyles" => [],
+            "initialChildren" => [],
         ])];
         $styles = new \ArrayObject([]);
         foreach ($layoutStructure as $part) {
             if ($part->type === Layout::PART_TYPE_GLOBAL_BLOCK_TREE)
                 $blocks[] = Block::fromBlueprint((object) [
-                    "type" => Block::TYPE_GLOBAL_BLOCK_REF,
-                    "title" => "",
-                    "defaultRenderer" => "sivujetti:block-auto",
-                    "children" => [],
-                    "initialData" => (object) [
+                    "blockType" => Block::TYPE_GLOBAL_BLOCK_REF,
+                    "initialOwnData" => (object) [
                         "globalBlockTreeId" => $part->globalBlockTreeId,
                         "overrides" => GlobalBlockReferenceBlockType::EMPTY_OVERRIDES,
                         "useOverrides" => 0,
                     ],
+                    "initialDefaultsData" => (object) [
+                        "title" => "",
+                        "renderer" => "sivujetti:block-auto",
+                        "styleClasses" => "",
+                        "styleGroup" => "",
+                    ],
+                    "initialStyles" => [],
+                    "initialChildren" => [],
                 ]);
             elseif ($part->type === Layout::PART_TYPE_PAGE_CONTENTS) {
-                $blueprintToBlock = fn($it) => Block::fromBlueprint2($it, function ($blueprint, $block) use ($styles) {
+                $blueprintToBlock = fn($it) => Block::fromBlueprint($it, function ($blueprint, $block) use ($styles) {
                     foreach ($blueprint->initialStyles as $s) {
                         $s2 = clone $s;
                         $s2->scss = str_replace("@placeholder", $block->id, $s2->scss); // 'data-block-id="@placeholder"' -> 'data-block-id="uagNk..."'
@@ -648,7 +658,7 @@ final class PagesController {
                         "children" => [],
                         "initialData" => (object) ["overrides" => "[]"]
                     ]],
-                    $pageType->blockFields
+                    $pageType->blockBlueprintFields
                 )));
         }
     }

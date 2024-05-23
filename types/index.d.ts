@@ -181,7 +181,7 @@ interface PageType {
     friendlyNamePlural: String;
     description: String;
     slug: String;
-    blockFields: Array<BlockBlueprint2>;
+    initialBlocks: Array<BlockBlueprint>;
     ownFields: Array<PageTypeField>;
     defaultFields: {
         [key: String]: {

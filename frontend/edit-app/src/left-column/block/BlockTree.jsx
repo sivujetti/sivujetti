@@ -1,19 +1,19 @@
-import {__, api, signals, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
-import {getIcon} from '../../block-types/block-types.js';
-import {cloneDeep, treeToTransferable} from '../../block/utils.js';
-import {findBlockFrom} from '../../block/utils-utils.js';
-import ContextMenu from '../../commons/ContextMenu.jsx';
-import {generatePushID} from '../../commons/utils.js';
+// ## import {__, api, signals, floatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
+// ## import {getIcon} from '../../block-types/block-types.js';
+// ## import {cloneDeep, treeToTransferable} from '../../block/utils.js';
+// ## import {findBlockFrom} from '../../block/utils-utils.js';
+// ## import ContextMenu from '../../commons/ContextMenu.jsx';
+// ## import {generatePushID} from '../../commons/utils.js';
 // ## import BlockTreeShowHelpPopup from '../../popups/BlockTreeShowHelpPopup.jsx';
 // ## import SaveBlockAsReusableDialog from '../../popups/reusable-branch/SaveBlockAsReusableDialog.jsx';
-import store2, {observeStore as observeStore2} from '../../store2.js';
-import TreeDragDrop from '../../TreeDragDrop.js';
-import BlockDnDSpawner from './BlockDnDSpawner.jsx';
-import blockTreeUtils from './blockTreeUtils.js';
-import createDndController, {createBlockDescriptor, callGetBlockPropChangesEvent} from './createBlockTreeDndController.js';
-import {overrideData} from '../../block/theBlockTreeStore.js';
-
-const autoCollapse = 'nonUniqueRootLevelItems'; // 'mainContentItem'|'nonUniqueRootLevelItems';
+// ## import store2, {observeStore as observeStore2} from '../../store2.js';
+// ## import TreeDragDrop from '../../TreeDragDrop.js';
+// ## import BlockDnDSpawner from './BlockDnDSpawner.jsx';
+// ## import blockTreeUtils from './blockTreeUtils.js';
+// ## import createDndController, {createBlockDescriptor, callGetBlockPropChangesEvent} from './createBlockTreeDndController.js';
+// ## import {overrideData} from '../../block/theBlockTreeStore.js';
+// ## 
+// ## const autoCollapse = 'nonUniqueRootLevelItems'; // 'mainContentItem'|'nonUniqueRootLevelItems';
 
 let pluginsLoaded = false;
 let timesReRendered = 0;
@@ -21,80 +21,80 @@ signals.on('edit-app-plugins-loaded', () => {
     pluginsLoaded = true;
 });
 
-class BlockTree extends preact.Component {
-    // ?;
-    /**
-     * @access protected
-     */
-    componentWillMount() {
-        this.selectedRoot = null;
-        this.disablePageInfo = this.props.containingView === 'CreatePageType';
-        this.blockSpawner = preact.createRef();
+// ## class BlockTree extends preact.Component {
+// ##     // ?;
+// ##     /**
+// ##      * @access protected
+// ##      */
+// ##     componentWillMount() {
+// ##         this.selectedRoot = null;
+// ##         this.disablePageInfo = this.props.containingView === 'CreatePageType';
+// ##         this.blockSpawner = preact.createRef();
 // ##         this.moreMenu = preact.createRef();
-        this.currentPageIsPlaceholder = this.props.containingView !== 'Default';
-        this.unregistrables = [];
-        this.dragDrop = new TreeDragDrop(createDndController(this));
-        this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
-        this.onDrag = this.dragDrop.handleDrag.bind(this.dragDrop);
-        this.onDragOver = this.dragDrop.handleDraggedOver.bind(this.dragDrop);
-        this.onDragLeave = this.dragDrop.handleDragLeave.bind(this.dragDrop);
-        this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
-        this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
-        this.currentlyHoveredLi = null;
-        const maybe = store2.get().theBlockTree;
-        if (maybe) this.receiveNewBlocks(maybe);
-    }
-    /**
-     * @param {{loadedPageSlug: String; containingView: leftPanelName;}} props
-     * @access protected
-     */
-    componentWillReceiveProps(props) {
-        if (props.loadedPageSlug === this.props.loadedPageSlug) return;
-        this.unregistrables.forEach(unregister => unregister());
-        this.unregistrables = [];
-        this.receiveNewBlocks(store2.get().theBlockTree);
-    }
-    /**
-     * @param {Array<RawBlock>} theBlockTree
-     * @access protected
-     */
-    receiveNewBlocks(theBlockTree) {
-        // 2. Later changes
-        this.unregistrables.push(observeStore2('theBlockTree', ({theBlockTree}, [event, data]) => {
-            if (event === 'theBlockTree/init') {
-                // skip
+// ##         this.currentPageIsPlaceholder = this.props.containingView !== 'Default';
+// ##         this.unregistrables = [];
+// ##         this.dragDrop = new TreeDragDrop(createDndController(this));
+// ##         this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
+// ##         this.onDrag = this.dragDrop.handleDrag.bind(this.dragDrop);
+// ##         this.onDragOver = this.dragDrop.handleDraggedOver.bind(this.dragDrop);
+// ##         this.onDragLeave = this.dragDrop.handleDragLeave.bind(this.dragDrop);
+// ##         this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
+// ##         this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
+// ##         this.currentlyHoveredLi = null;
+// ##         const maybe = store2.get().theBlockTree;
+// ##         if (maybe) this.receiveNewBlocks(maybe);
+// ##     }
+// ##     /**
+// ##      * @param {{loadedPageSlug: String; containingView: leftPanelName;}} props
+// ##      * @access protected
+// ##      */
+// ##     componentWillReceiveProps(props) {
+// ##         if (props.loadedPageSlug === this.props.loadedPageSlug) return;
+// ##         this.unregistrables.forEach(unregister => unregister());
+// ##         this.unregistrables = [];
+// ##         this.receiveNewBlocks(store2.get().theBlockTree);
+// ##     }
+// ##     /**
+// ##      * @param {Array<RawBlock>} theBlockTree
+// ##      * @access protected
+// ##      */
+// ##     receiveNewBlocks(theBlockTree) {
+// ##         // 2. Later changes
+// ##         this.unregistrables.push(observeStore2('theBlockTree', ({theBlockTree}, [event, data]) => {
+// ##             if (event === 'theBlockTree/init') {
+// ##                 // skip
 // ##             } else if (event === 'theBlockTree/swap') {
 // ##                 // skip, wait until drop/applySwap
-            } else if (event === 'theBlockTree/applySwap' ||
-                event === 'theBlockTree/applyAdd(Drop)Block' ||
+// ##             } else if (event === 'theBlockTree/applySwap' ||
+// ##                 event === 'theBlockTree/applyAdd(Drop)Block' ||
 // ##                 event === 'theBlockTree/deleteBlock' ||
 // ##                 event === 'theBlockTree/undo' ||
 // ##                 event === 'theBlockTree/undoAdd(Drop)Block' ||
 // ##                 event === 'theBlockTree/cloneItem' ||
 // ##                 event === 'theBlockTree/convertToGbt') {
-                const newState = {blockTree: theBlockTree, treeState: createTreeState(theBlockTree, this.state.treeState)};
-                if ((event === 'theBlockTree/applyAdd(Drop)Block' || event === 'theBlockTree/applySwap') && data[2] === 'as-child') {
-                    const swapTargetInfo = data[1]; // [BlockDescriptor, BlockDescriptor, dropPosition, treeTransferType]
-                    const {isStoredToTreeId, blockId} = !swapTargetInfo.isGbtRef ? swapTargetInfo
-                        : {isStoredToTreeId: swapTargetInfo.data.refTreeId, blockId: swapTargetInfo.data.refTreesRootBlockId};
-                    const branch = blockTreeUtils.findTree(isStoredToTreeId, theBlockTree);
-                    const [paren] = blockTreeUtils.findBlock(blockId, branch);
-                    setAsHidden(false, paren, newState.treeState);
-                }
-                this.setState(newState);
-            } else if (event === 'theBlockTree/updateDefPropsOf' || event === 'theBlockTree/undoUpdateDefPropsOf') {
-                const isOnlyStyleClassesChange = event === 'theBlockTree/updateDefPropsOf'
-                    ? data[3]  // [<blockId>, <blockIsStoredToTreeId>, <changes>, <isOnlyStyleClassesChange>]
-                    : data[3]; // [<oldTree>, <blockId>, <blockIsStoredToTreeId>, <isOnlyStyleClassesChange>]
-                if (isOnlyStyleClassesChange) return;
-                this.setState({blockTree: theBlockTree});
-            }
-        }));
-        //
-        this.addBlockHoverHighlightListeners();
-        // 1. Initial
-        this.setState({blockTree: theBlockTree, treeState: createTreeState(theBlockTree, null)});
-    }
+// ##                 const newState = {blockTree: theBlockTree, treeState: createTreeState(theBlockTree, this.state.treeState)};
+// ##                 if ((event === 'theBlockTree/applyAdd(Drop)Block' || event === 'theBlockTree/applySwap') && data[2] === 'as-child') {
+// ##                     const swapTargetInfo = data[1]; // [BlockDescriptor, BlockDescriptor, dropPosition, treeTransferType]
+// ##                     const {isStoredToTreeId, blockId} = !swapTargetInfo.isGbtRef ? swapTargetInfo
+// ##                         : {isStoredToTreeId: swapTargetInfo.data.refTreeId, blockId: swapTargetInfo.data.refTreesRootBlockId};
+// ##                     const branch = blockTreeUtils.findTree(isStoredToTreeId, theBlockTree);
+// ##                     const [paren] = blockTreeUtils.findBlock(blockId, branch);
+// ##                     setAsHidden(false, paren, newState.treeState);
+// ##                 }
+// ##                 this.setState(newState);
+// ##             } else if (event === 'theBlockTree/updateDefPropsOf' || event === 'theBlockTree/undoUpdateDefPropsOf') {
+// ##                 const isOnlyStyleClassesChange = event === 'theBlockTree/updateDefPropsOf'
+// ##                     ? data[3]  // [<blockId>, <blockIsStoredToTreeId>, <changes>, <isOnlyStyleClassesChange>]
+// ##                     : data[3]; // [<oldTree>, <blockId>, <blockIsStoredToTreeId>, <isOnlyStyleClassesChange>]
+// ##                 if (isOnlyStyleClassesChange) return;
+// ##                 this.setState({blockTree: theBlockTree});
+// ##             }
+// ##         }));
+// ##         //
+// ##         this.addBlockHoverHighlightListeners();
+// ##         // 1. Initial
+// ##         this.setState({blockTree: theBlockTree, treeState: createTreeState(theBlockTree, null)});
+// ##     }
     /**
      * @access protected
      */
@@ -104,7 +104,7 @@ class BlockTree extends preact.Component {
             if (timesReRendered < 3) setTimeout(() => { timesReRendered += 1; vm.forceUpdate(); }, 60);
             return null;
         })(this);
-        return <div class="pt-2">
+// ##         return <div class="pt-2">
 // ##             <div class="p-relative" style="z-index: 1"><button
 // ##                 onClick={ this.showBlockTreeHelpPopup.bind(this) }
 // ##                 class="btn btn-link p-absolute btn-sm pt-1"
@@ -112,39 +112,39 @@ class BlockTree extends preact.Component {
 // ##                 style="right: .1rem; top: .1rem;">
 // ##                 <Icon iconId="info-circle" className="size-xs"/>
 // ##             </button></div>
-            <ul class="block-tree mx-1" ref={ el => {
-                if (!el) return;
-                this.dragDrop.attachOrUpdate(el);
-                if (!this.mouseDownHoverClearerHookedUp) {
-                    el.addEventListener('mousedown', e => {
-                        if (e.button === 0 && this.currentlyHoveredLi)
-                            this.unHighlighCurrentlyHoveredLi();
-                    });
-                    this.mouseDownHoverClearerHookedUp = true;
-                }
-            } }>{
-                tree ? tree.length
-                    ? this.doRenderBranch(blockTree).concat(<li
-                        onDragOver={ this.onDragOver }
-                        onDrop={ this.onDrop }
-                        onDragLeave={ this.onDragLeave }
-                        data-draggable={ true }
-                        data-last
-                        draggable><div class="d-flex">&nbsp;</div></li>)
-                    : <li>-</li> : null
-            }</ul>
-            <ContextMenu
-                links={ [
-                    {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
-                    {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
-                ].concat(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees')
-                    ? [{text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}]
-                    : []
-                ) }
-                onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
-                onMenuClosed={ this.onContextMenuClosed.bind(this) }
-                ref={ this.moreMenu }/>
-        </div>;
+// ##             <ul class="block-tree mx-1" ref={ el => {
+// ##                 if (!el) return;
+// ##                 this.dragDrop.attachOrUpdate(el);
+// ##                 if (!this.mouseDownHoverClearerHookedUp) {
+// ##                     el.addEventListener('mousedown', e => {
+// ##                         if (e.button === 0 && this.currentlyHoveredLi)
+// ##                             this.unHighlighCurrentlyHoveredLi();
+// ##                     });
+// ##                     this.mouseDownHoverClearerHookedUp = true;
+// ##                 }
+// ##             } }>{
+// ##                 tree ? tree.length
+// ##                     ? this.doRenderBranch(blockTree).concat(<li
+// ##                         onDragOver={ this.onDragOver }
+// ##                         onDrop={ this.onDrop }
+// ##                         onDragLeave={ this.onDragLeave }
+// ##                         data-draggable={ true }
+// ##                         data-last
+// ##                         draggable><div class="d-flex">&nbsp;</div></li>)
+// ##                     : <li>-</li> : null
+// ##             }</ul>
+// ##             <ContextMenu
+// ##                 links={ [
+// ##                     {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
+// ##                     {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
+// ##                 ].concat(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees')
+// ##                     ? [{text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}]
+// ##                     : []
+// ##                 ) }
+// ##                 onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
+// ##                 onMenuClosed={ this.onContextMenuClosed.bind(this) }
+// ##                 ref={ this.moreMenu }/>
+// ##         </div>;
     }
 // ##    /**
 // ##     * @param {Array<RawBlock>} branch
@@ -347,7 +347,7 @@ class BlockTree extends preact.Component {
 // ##         this.moreMenu.current.open(e, links => {
 // ##             const notThese = [
 // ##                 ...(blockIsGbtsOutermostBlock ? ['duplicate-block'] : []),
-                ...(['Columns', 'Section'].indexOf(block.type) < 0 ? ['save-block-as-reusable'] : [])
+// ##                 ...(['Columns', 'Section'].indexOf(block.type) < 0 ? ['save-block-as-reusable'] : [])
 // ##             ];
 // ##             return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
 // ##         });
@@ -445,7 +445,7 @@ class BlockTree extends preact.Component {
 // ##        this.currentlyHoveredLi = null;
 // ##    }
 }
-
+// ## 
 // ## /**
 // ##  * @param {{hovered: HTMLLIElement; visible: HTMLLIElement;}} curHigh
 // ##  */
@@ -497,7 +497,7 @@ class BlockTree extends preact.Component {
 // ##     pieces.shift();                 //            -> ['foo', 'bar']
 // ##     return pieces;
 // ## }
-
+// ## 
 // ## /**
 // ##  * @param {Boolean} setAsHidden
 // ##  * @param {RawBlock} block
@@ -614,7 +614,7 @@ class BlockTree extends preact.Component {
 // ##         return tree[1];
 // ##     return null;
 // ## }
-
+// ## 
 // ## /**
 // ##  * @param {RawBlock} block
 // ##  * @param {BlockType} type
@@ -627,7 +627,7 @@ class BlockTree extends preact.Component {
 // ##     const pcs = translated.split(' ('); // ['Name', 'PluginName)'] or ['Name']
 // ##     return pcs.length < 2 ? translated : pcs[0];
 // ## }
-
+// ## 
 // ## /**
 // ##  * @param {RawBlock} block
 // ##  * @returns {BlockBlueprint}

@@ -19,9 +19,11 @@ import BlockSaveAsReusableDialog from '../../main-column/popups/BlockSaveAsReusa
 import BlockTreeShowHelpPopup from '../../main-column/popups/BlockTreeShowHelpPopup.jsx';
 import {
     blockToBlueprint,
+    clearHighlight,
     createPartialState,
     createStyleShunkcScssIdReplacer,
     duplicateDeepAndReAssignIds,
+    findVisibleLi,
     getShortFriendlyName,
     hideOrShowChildren,
     setAsHidden,
@@ -58,20 +60,17 @@ class BlockTree extends preact.Component {
         this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
         this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
         this.currentlyHoveredLi = null;
+
         if (this.props.blocks) this.setState(createPartialState(this.props.blocks));
 
-        api.saveButton.getInstance().subscribeToChannel('theBlockTree', (theTree, _userCtx, ctx) => {
-            if (ctx === 'initial') return;
-            this.setState(createPartialState(theTree));
-        });
+        this.addBlockHoverHighlightListeners();
     }
     /**
      * @access protected
      */
     componentWillReceiveProps(props) {
-        // Page navigation happened (or convert-branch-to-global-block-reference-block)
         if (props.blocks !== this.props.blocks)
-            this.setState(createPartialState(props.blocks));
+            this.setState(createPartialState(props.blocks, this.state));
     }
     /**
      * @access protected
@@ -521,6 +520,34 @@ class BlockTree extends preact.Component {
         mutRef[block.id].isCollapsed = to;
         hideOrShowChildren(to, block, mutRef);
         this.setState({treeState: mutRef});
+    }
+    /**
+     * @access private
+     */
+    addBlockHoverHighlightListeners() {
+        const curHigh = {hovered: null, visible: null};
+        this.unregistrables.push(events.on('highlight-rect-revealed', (blockId, origin) => {
+            if (origin !== 'web-page') return;
+            if (curHigh.hovered) clearHighlight(curHigh);
+            const {ul} = this.dragDrop;
+            const li = ul.querySelector(`li[data-block-id="${blockId}"]`);
+            if (li) {
+                curHigh.hovered = li;
+                curHigh.visible = !li.classList.contains('d-none') ? li : findVisibleLi(li, ul, li);
+                curHigh.visible.classList.add('highlighted');
+            }
+        }));
+        this.unregistrables.push(events.on('highlight-rect-removed', blockId => {
+            if (curHigh.hovered && curHigh.hovered.getAttribute('data-block-id') === blockId)
+                clearHighlight(curHigh);
+        }));
+    }
+    /**
+     * @access private
+     */
+    unHighlighCurrentlyHoveredLi() {
+        api.webPagePreview.unHighlightBlock(this.currentlyHoveredLi.getAttribute('data-block-id'));
+        this.currentlyHoveredLi = null;
     }
 }
 

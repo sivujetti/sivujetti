@@ -1,8 +1,13 @@
 import {
+    __,
+    blockTreeUtils,
     generatePushID,
     objectUtils,
     traverseRecursively,
 } from '@sivujetti-commons-for-edit-app';
+
+const autoCollapse = 'nonUniqueRootLevelItems'; // 'mainContentItem'|'nonUniqueRootLevelItems';
+
 /**
  * @param {Array<Block>} newBlocks
  * @param {Object} previousState = {}
@@ -24,10 +29,10 @@ function createTreeState(tree, previousTreeState) {
             out[block.id] = createTreeStateItem(!parenBlock ? null : out[parenBlock.id], !block.children.length ? undefined : {isCollapsed: true});
         else {
             const clone = {...previousTreeState[block.id]};
-            // Visible block moved inside a collapsed one
-            if (parenBlock && out[parenBlock.id].isCollapsed && !clone.isHidden)
-                clone.isHidden = true;
             out[block.id] = clone;
+            // Visible block moved inside a collapsed one -> uncollapse
+            if (parenBlock && out[parenBlock.id].isCollapsed && !clone.isHidden)
+                setAsHidden(false, parenBlock, out, false);
         }
     };
     traverseRecursively(tree, (block, _i, paren) => {
@@ -56,7 +61,29 @@ function createTreeState(tree, previousTreeState) {
  * @returns {Block|null}
  */
 function getMainContent(tree) {
-    return null; // todo
+    let headerIndex = null;
+    tree.forEach((block, i) => {
+        if (block.type === 'GlobalBlockReference') return;
+        if (headerIndex === null && block.title.toLowerCase().indexOf('header') > -1)
+            headerIndex = i;
+    });
+    if (headerIndex !== null) {
+        const next = tree[headerIndex + 1];
+        if (next && next.children.length) // next + next + ... ?
+            return next;
+    }
+    if (tree.length === 4) {
+        const [maybPageInfo, maybeMainMenu, maybeMainContent, maybeFooter] = tree;
+        if (
+            maybPageInfo.type === 'PageInfo' &&
+            (maybeMainMenu.type === 'GlobalBlockReference' && blockTreeUtils.findRecursively(maybeMainMenu.__globalBlockTree.blocks, b=>b.type==='Menu')) &&
+            maybeMainContent.children.length &&
+            (maybeFooter.type === 'GlobalBlockReference' && (maybeFooter.__globalBlockTree.blocks[0] || {}).title.toLowerCase().indexOf('footer') > -1)
+        ) return maybeMainContent;
+    }
+    if (tree.length === 2 && tree[0].type === 'PageInfo' && tree[1].children.length)
+        return tree[1];
+    return null;
 }
 
 /**
@@ -68,6 +95,31 @@ function getMainContent(tree) {
 function setAsHidden(isHidden, block, mutTreeState, recursive = true) {
     mutTreeState[block.id].isCollapsed = isHidden;
     hideOrShowChildren(isHidden, block, mutTreeState, recursive);
+}
+
+/**
+ * @param {{hovered: HTMLLIElement; visible: HTMLLIElement;}} curHigh
+ */
+function clearHighlight(curHigh) {
+    curHigh.visible.classList.remove('highlighted');
+    curHigh.hovered = null;
+    curHigh.visible = null;
+}
+
+/**
+ * @param {HTMLLIElement} li
+ * @param {HTMLUListElement} ul
+ * @param {HTMLLIElement} def
+ * @returns {HTMLLIElement}
+ */
+function findVisibleLi(li, ul, def) {
+    const parentBlockId = li.getAttribute('data-is-children-of');
+    if (!parentBlockId) return def;
+    const parentBlockLi = ul.querySelector(`li[data-block-id="${parentBlockId}"]`);
+    if (!parentBlockLi.classList.contains('d-none')) // found it
+        return parentBlockLi;
+    // keep looking
+    return findVisibleLi(parentBlockLi, ul, def);
 }
 
 /**
@@ -200,9 +252,11 @@ function duplicateDeepAndReAssignIds(block) {
 
 export {
     blockToBlueprint,
+    clearHighlight,
     createPartialState,
     createStyleShunkcScssIdReplacer,
     duplicateDeepAndReAssignIds,
+    findVisibleLi,
     getShortFriendlyName,
     hideOrShowChildren,
     setAsHidden,

@@ -135,6 +135,7 @@ class ColorPickerInput extends preact.Component {
                     handlePickerOpened(this, initialValue);
                 } }
                 { ...(inputId ? {id: inputId} : {}) }
+                autoComplete="off"
                 ref={ this.inputElRef }/>
         </div>;
     }

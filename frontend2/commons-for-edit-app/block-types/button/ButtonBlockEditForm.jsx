@@ -28,7 +28,7 @@ class ButtonBlockEditForm extends preact.Component {
     constructor(props) {
         super(props);
         this.editor = preact.createRef();
-        this.userCanChangeTagType = api.user.getRole() <= 1 << 2; // ROLE_ADMIN_EDITOR
+        this.userCanChangeTagType = api.user.getRole() <= api.user.ROLE_ADMIN_EDITOR;
         this.tagTypeOptions = [
             {name: tagTypes.LINK, friendlyName: `${__('Link element')} (<a>)`},
             {name: tagTypes.NORMAL_BUTTON, friendlyName: `${__('Normal button')} (<button>)`},

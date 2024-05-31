@@ -14,7 +14,7 @@ class BlockTreeShowHelpPopup extends preact.Component {
                 <div class="col-4"><ul class="block-tree no-hover ml-0 mt-0"><li style="border-color:transparent" class="page-block ml-0 pl-0"><div class="d-flex">
                     <button class="block-handle" type="button"><Icon className="size-xs p-absolute" iconId="layout-rows"/>
                     <span class="text-ellipsis">{ __('Colorless') }</span></button>
-                    <button class="more-toggle ml-2" type="button" style="opacity: 1;"><Icon iconId="dots" className="size-xs"/></button>
+                    <button class="more-toggle pl-1" type="button" style="opacity: 1;"><Icon iconId="dots" className="size-xs"/></button>
                 </div></li></ul></div>
                 <div class="col-8 mt-1 pl-2 ml-2">
                     { __('Regular content, with no colored text, is ') }<b>{ __('stored only to this page') }</b>.

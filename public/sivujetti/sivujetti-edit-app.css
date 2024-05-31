@@ -188,7 +188,8 @@ Structure:
     margin-top: -.4rem;
 }
 .prop-widget-many-to-many, .select-list-scroller {
-    max-height: 7.76rem;
+    display: grid;
+    max-height: 8.7rem;
     overflow-y: auto;
 }
 .flipped-undo-icon {
@@ -1380,7 +1381,7 @@ main.scrolled-past-main-block-tree #edit-app-sections-wrapper:before {
 .block-tree button {
     border: none;
     background: transparent;
-    padding: 0;
+    padding: 0 .2rem 0 0;
     font-weight: 300;
 }
 .block-tree .block-handle[disabled] {
@@ -1508,24 +1509,22 @@ main.scrolled-past-main-block-tree #edit-app-sections-wrapper:before {
 .block-tree li.maybe-drop-before:before,
 .block-tree li.maybe-drop-after:after {
     content: "";
+    background-color: #a7acbd;
     position: absolute;
     left: -1px;
-    height: calc(100% + 4px);
+    height: 2px;
     width: calc(50% + 1px);
-    top: -1.5px;
-    border: 2px solid transparent;
-}
-.block-tree li.maybe-drop-before:before {
-    top: -2px;
-    border-top-color: #b5b8ca;
+    top: -2.5px;
 }
 .block-tree li.maybe-drop-after:after {
-    border-bottom-color: #b5b8ca;
+    top: initial;
+    bottom: -2.5px;
 }
 .block-tree li.maybe-drop-as-child .block-handle {
     font-weight: bolder;
     color: var(--color-bg-default);
-    background: #b5b8ca;
+    background: #a7acbd;
+    height: calc(100% + 4px);
 }
 .block-tree li.maybe-drop-as-child .block-handle:before {
     content: "";

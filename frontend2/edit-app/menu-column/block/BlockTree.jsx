@@ -112,7 +112,7 @@ class BlockTree extends preact.Component {
                             draggable><div class="d-flex">&nbsp;</div></li>)
                         : <li>-</li>
                 }</ul>
-                : <LoadingSpinner className="ml-2 pl-2 pb-1"/>
+                : <LoadingSpinner className="ml-2 pl-2 pb-2"/>
             }
             <ContextMenu
                 links={ [
@@ -187,7 +187,7 @@ class BlockTree extends preact.Component {
                     <Icon iconId={ api.blockTypes.getIconId(type) } className="size-xs p-absolute"/>
                     <span class="text-ellipsis">{ title }</span>
                 </button>
-                <button onClick={ e => this.openMoreMenu(block, rootRefBlockId !== null, e) } class="more-toggle pl-2" type="button">
+                <button onClick={ e => this.openMoreMenu(block, rootRefBlockId !== null, e) } class="more-toggle pl-1" type="button">
                     <Icon iconId="dots" className="size-xs"/>
                 </button>
             </div>

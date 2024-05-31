@@ -69,7 +69,7 @@ class ManyToManyItemSelector extends preact.Component {
         }
         http.get(`/api/pages/${pageTypeName}`)
             .then(pages => {
-                const baked = pages.reverse().map(createCompactPageFrom);
+                const baked = pages.map(createCompactPageFrom);
                 saveButton.initChannel('quicklyAddedPages', baked);
                 if (this.props.onItemsFetched) this.props.onItemsFetched(baked);
                 this.setState({manyToManyPages: baked});

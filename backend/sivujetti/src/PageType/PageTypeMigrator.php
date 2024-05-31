@@ -109,9 +109,8 @@ final class PageTypeMigrator {
         $pageTypeRaw->friendlyNamePlural = $input->friendlyNamePlural;
         $pageTypeRaw->description = $input->description;
         $pageTypeRaw->fields = json_encode((object) [
-            "blockBlueprintFields" => array_map(fn(object $blueprintRaw) =>
-                self::inputToBlueprint($blueprintRaw)
-            , $input->blockBlueprintFields),
+            "blockBlueprintFields" => array_map(ReusableBranchesController::objectToBlueprint(...),
+                                                $input->blockBlueprintFields),
             "ownFields" => $fields, // Will trigger jsonSerialize()
             "defaultFields" => (object) ["title" => (object) [
                 "defaultValue" => $input->defaultFields->title->defaultValue,
@@ -174,13 +173,5 @@ final class PageTypeMigrator {
         $numRows = $this->db->exec("INSERT INTO `\${p}pageTypes` ({$columns}) VALUES ({$qList})",
                                    $values);
         return $numRows === 1 ? $this->db->lastInsertId() : "";
-    }
-    /**
-     * @param object $input
-     * @return object
-     * @psalm-return BlockBlueprint
-     */
-    public static function inputToBlueprint(object $input): object {
-        return $input;
     }
 }

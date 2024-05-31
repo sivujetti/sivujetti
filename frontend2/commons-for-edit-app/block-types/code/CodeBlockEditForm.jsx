@@ -20,7 +20,7 @@ class CodeBlockEditForm extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        this.userCanEditCode = api.user.isTechnical();
+        this.userCanEditCode = api.user.getRole() <= api.user.ROLE_ADMIN_EDITOR;
         this.codeInputEl = preact.createRef();
         this.keyHandlers = createUndoRedoKeyPressPropagationStopperHandlers();
         const {block} = this.props;

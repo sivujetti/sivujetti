@@ -334,6 +334,12 @@ class PickPageTab extends preact.Component {
     /**
      * @access protected
      */
+    componentDidMount() {
+        setFocusTo(this.filterInput);
+    }
+    /**
+     * @access protected
+     */
     render({onPickurl, currentPageSlug}, {filteredPages, selectedIdx, currentFilterStr}) {
         const p = filteredPages === null
             ? null

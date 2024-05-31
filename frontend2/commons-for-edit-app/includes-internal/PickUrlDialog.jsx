@@ -247,11 +247,9 @@ class CurrentUrlDisplay extends preact.Component {
             'pick-file': 'photo',
             'type-external-url': 'external-link',
         }[mode];
-        const [urlPreview, Elem] = url.startsWith('#')
-            ? [url, 'span']
-            : url !== EMPTY_SLUG
-                ? [doubleNormalizeUrl(url, mode), 'a']
-                : [`(${__('This page').toLowerCase()})`, 'span'];
+        const [previewUrl, PreviewEl] = url === EMPTY_SLUG || url.startsWith('#')
+            ? [`(${__('This page').toLowerCase()})`, 'span']
+            : [doubleNormalizeUrl(url, mode),        'a'];
         const linkTitlePrefix = mode !== 'type-external-url' ? env.window.location.origin : '';
         return <div>
             <div class="with-icon color-dimmed">
@@ -259,12 +257,12 @@ class CurrentUrlDisplay extends preact.Component {
                 { title }
             </div>
             <div class="mt-2">
-                <Elem
+                <PreviewEl
                     href={ url }
                     class="d-inline-block pr-1 text-ellipsis"
                     title={ linkTitlePrefix + url }
                     style="max-width: 100%"
-                    target="_blank"><b>{ urlPreview }</b></Elem>
+                    target="_blank"><b>{ previewUrl }</b></PreviewEl>
                 <br/>
                 <button
                     style="transform: scale(.9);margin-left: -.1rem;"

@@ -1741,6 +1741,10 @@ textarea.code.padded-top {
     border: 1px solid rgba(var(--components-color-highlight-outline), .8);
     box-shadow: 0 0 0px 2px rgba(var(--components-color-highlight-outline), .4);
 }
+.highlight-rect:has(+ .sub-rect:not([data-title=""])) {
+    border: 1px solid rgba(var(--components-color-highlight-outline), .4);
+    box-shadow: 0 0 0px 2px rgba(var(--components-color-highlight-outline), .2);
+}
 .highlight-rect:before {
     content: attr(data-title);
     position: absolute;
@@ -1749,6 +1753,12 @@ textarea.code.padded-top {
     padding: 0 .2rem;
     font-size: .6rem;
     border-radius: 2px;
+}
+.highlight-rect:has(+ .sub-rect:not([data-title=""])):before {
+    background: rgba(var(--components-color-highlight-outline), .6);
+}
+.highlight-rect[data-has-sole-sub-rect]:before {
+    content: initial;
 }
 .highlight-rect[data-label-position="top-inside"]:before {
     margin: initial;

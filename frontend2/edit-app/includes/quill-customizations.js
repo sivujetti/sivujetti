@@ -205,11 +205,11 @@ class MySnowTheme extends Quill.import('themes/snow') {
                 innerSpan.appendChild(inputWrap);
             // }
 
-            const doApplyIdSpanBtn = createElementUsing('<span role="button" tabindex="0" class="btn btn-sm">Ok</span>');
+            const doApplyIdSpanBtn = createElementUsing('<input type="button" class="btn btn-sm" value="Ok">');
             doApplyIdSpanBtn.addEventListener('click', doApplyId);
             innerSpan.appendChild(doApplyIdSpanBtn);
 
-            const cancelChangesSpanBtn = createElementUsing(`<span role="button" tabindex="0" class="btn btn-sm btn-link">${__('Peruuta')}</span>`);
+            const cancelChangesSpanBtn = createElementUsing(`<input type="button" class="btn btn-sm btn-link" value="${__('Peruuta')}">`);
             cancelChangesSpanBtn.addEventListener('click', doClose);
             innerSpan.appendChild(cancelChangesSpanBtn);
 

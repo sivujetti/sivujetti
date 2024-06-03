@@ -4,7 +4,6 @@ import {
     completeImageSrc,
     getBlockEl,
     getMetaKey,
-    getNormalizedInitialHoverCandidate,
     traverseRecursively,
 } from '../shared-inline.js';
 import {
@@ -359,6 +358,8 @@ class RenderAll extends preact.Component {
 }
 
 class RenderAllOuter extends RenderAll {
+    // messagePortToEditApp;
+    // curHoveredBlockEl;
     // metaKeyIsPressed;
     // baseUrl;
     // isLocalLink;
@@ -389,8 +390,8 @@ class RenderAllOuter extends RenderAll {
      * @access private
      */
     hookUpEventHandlers() {
-        const {outerEl} = this.props;
-        const links = outerEl.querySelectorAll('a');
+        const docBody = this.props.outerEl;
+        const links = docBody.querySelectorAll('a');
         for (const a of links) {
             const hrefAsAuthored = a.getAttribute('href');
             if (hrefAsAuthored.startsWith('#') || hrefAsAuthored === '') {
@@ -410,33 +411,10 @@ class RenderAllOuter extends RenderAll {
             }
         }
         //
-        outerEl.addEventListener('mouseover', e => {
-            if (this.isMouseListenersDisabled) return;
-            //
-            this.handleBlockMouseover(e);
-            //
-            this.handleTextBlockChildElMouseover(e);
-        }, true);
-        //
-        outerEl.addEventListener('mouseleave', e => {
-            if (this.isMouseListenersDisabled) return;
-            // Hover of inner node of text block element
-            if (this.curHoveredSubEl && e.target === this.curHoveredSubEl) {
-                this.messagePortToEditApp.postMessage(['onTextBlockChildElHoverEnded']);
-                this.curHoveredSubEl = null;
-            }
-            // Hover of block element
-            if (this.currentlyHoveredBlockEl && e.target === this.currentlyHoveredBlockEl) {
-                if (this.currentlyHoveredBlockEl.getAttribute('data-block-type') !== 'Text') {
-                    this.messagePortToEditApp.postMessage(['onBlockHoverEnded',
-                        getBlockId(this.currentlyHoveredBlockEl)]);
-                }
-                this.currentlyHoveredBlockEl = null;
-            }
-        }, true);
+        this.addHoverHanders(docBody);
         //
         if (useCtrlClickBasedFollowLinkLogic)
-            this.addClickHandlersCtrlClickVersion();
+            this.addClickHandlersCtrlClickVersion(docBody);
         else
             this.addClickHandlersLongClickVersion();
     }
@@ -446,88 +424,6 @@ class RenderAllOuter extends RenderAll {
      */
     handleEditAppMetaKeyPressedOrReleased(isDown) {
         this.metaKeyIsPressed = isDown;
-    }
-    /**
-     * @param {MouseEvent} e
-     * @access private
-     */
-    handleBlockMouseover(e) {
-        let targ;
-        if (this.currentlyHoveredBlockEl) {
-            targ = e.target;
-        } else {
-            targ = e.target.closest('[data-block-type]');
-            if (!targ) return;
-        }
-        //
-        if (this.currentlyHoveredBlockEl) {
-            const curHoveredBlockId = getBlockId(this.currentlyHoveredBlockEl);
-            const doShow = this.currentlyHoveredBlockEl.getAttribute('data-block-type') !== 'Text';
-            const hasBeenReplacedByReRender = !document.body.contains(this.currentlyHoveredBlockEl);
-            if (hasBeenReplacedByReRender) {
-                this.currentlyHoveredBlockEl = getBlockEl(curHoveredBlockId);
-                // Was removed completely
-                if (!this.currentlyHoveredBlockEl) {
-                    this.messagePortToEditApp.postMessage(['onBlockHoverEnded', curHoveredBlockId]);
-                    return;
-                } // else was replaced, fall through
-            }
-            //
-            const b = e.target.getAttribute('data-block-type') ? e.target : e.target.closest('[data-block-type]');
-            if (this.currentlyHoveredBlockEl.contains(b) && this.currentlyHoveredBlockEl !== b) {
-                if (doShow) {
-                    this.messagePortToEditApp.postMessage(['onBlockHoverEnded',
-                        getBlockId(this.currentlyHoveredBlockEl)]);
-                }
-                this.currentlyHoveredBlockEl = b;
-                if (doShow) {
-                    this.messagePortToEditApp.postMessage(['onBlockHoverStarted',
-                        getBlockId(this.currentlyHoveredBlockEl),
-                        this.currentlyHoveredBlockEl.getBoundingClientRect()]);
-                }
-            }
-        } else {
-            if (!targ.getAttribute('data-block-type')) return;
-            const doShow = targ.getAttribute('data-block-type') !== 'Text';
-            this.currentlyHoveredBlockEl = targ;
-            if (doShow) {
-                this.messagePortToEditApp.postMessage(['onBlockHoverStarted',
-                    getBlockId(this.currentlyHoveredBlockEl),
-                    this.currentlyHoveredBlockEl.getBoundingClientRect()]);
-            }
-        }
-    }
-    /**
-     * @param {MouseEvent} e
-     * @access private
-     */
-    handleTextBlockChildElMouseover(e) {
-        if (this.curHoveredSubEl) {
-            const b = e.target;
-            const hasChanged = (
-                b !== this.curHoveredSubEl &&
-                isSubHoverable(e.target, this.currentlyHoveredBlockEl)
-            );
-            if (hasChanged) {
-                this.messagePortToEditApp.postMessage(['onTextBlockChildElHoverEnded']);
-                this.curHoveredSubEl = b;
-                this.messagePortToEditApp.postMessage(['onTextBlockChildElHoverStarted',
-                    Array.from(this.currentlyHoveredBlockEl.children).indexOf(this.curHoveredSubEl),
-                    getBlockId(this.currentlyHoveredBlockEl)
-                ]);
-            }
-        } else {
-            if (this.currentlyHoveredBlockEl?.children?.length > 1) {
-                const candidate = getNormalizedInitialHoverCandidate(e.target, this.currentlyHoveredBlockEl);
-                if (isSubHoverable(candidate, this.currentlyHoveredBlockEl)) {
-                    this.curHoveredSubEl = candidate;
-                    this.messagePortToEditApp.postMessage(['onTextBlockChildElHoverStarted',
-                        Array.from(this.currentlyHoveredBlockEl.children).indexOf(this.curHoveredSubEl),
-                        getBlockId(this.currentlyHoveredBlockEl)
-                    ]);
-                }
-            }
-        }
     }
     /**
      * @param {HTMLAnchorElement} el
@@ -549,9 +445,80 @@ class RenderAllOuter extends RenderAll {
         }
     }
     /**
+     * @param {HTMLBodyElement} docBody
+     */
+    addHoverHanders(docBody) {
+        const handleMouseEntered = el => {
+            this.curHoveredBlockEl = el;
+            this.messagePortToEditApp.postMessage(['onBlockHoverStarted',
+                getBlockId(el),
+                el.getBoundingClientRect()]);
+        };
+        const handleMouseExited = el => {
+            this.curHoveredBlockEl = null;
+            this.messagePortToEditApp.postMessage(['onBlockHoverEnded',
+                getBlockId(el)]);
+        };
+        const handleMouseEnteredTextChild = (childEl, textBlockEl) => {
+            this.messagePortToEditApp.postMessage(['onTextBlockChildElHoverStarted',
+                Array.from(textBlockEl.children).indexOf(childEl),
+                getBlockId(textBlockEl)]);
+        };
+        const handleMouseExitedTextChild = _el => {
+            this.messagePortToEditApp.postMessage(['onTextBlockChildElHoverEnded']);
+        };
+        const stack = [];
+        docBody.addEventListener('mouseenter', e => {
+            if (this.isMouseListenersDisabled) return;
+            if (stack.indexOf(e.target) > -1) return;
+            stack.push(e.target);
+            const end = stack.at(-1);
+            const endParen = stack.at(-2) || null;
+            if (isBlockEl(end)) {
+                if (endParen && isBlockEl(endParen))
+                    handleMouseExited(endParen);
+                handleMouseEntered(end);
+            } else if (endParen && isSubHoverable(end, endParen)) {
+                handleMouseEnteredTextChild(end, endParen);
+            }
+        }, true);
+
+        docBody.addEventListener('mouseleave', e => {
+            if (this.isMouseListenersDisabled) return;
+            if (stack.indexOf(e.target) < 0) return;
+            const end = stack.at(-1);
+            const endParen = stack.at(-2) || null;
+            // Example:
+            // [body.j-_body_, ..., div.j-Text,   p  ]
+            //                           ^        ^
+            //                        endParen   end
+            if (endParen && isSubHoverable(end, endParen)) {
+                handleMouseExitedTextChild(end);
+            } else {
+                const endParen2 = stack.at(-3) || null;
+                if (isBlockEl(end))
+                    handleMouseExited(end);
+                // Example:
+                // [body.j-_body_, div.j-Section2, div.j-Section2-cols, div.j-Wrapper]
+                //                        ^                ^                    ^
+                //                    endParen2         endParen               end
+                if (endParen2 && isBlockEl(endParen2))
+                    handleMouseEntered(endParen2);
+                // Example:
+                // [body.j-_body_, ..., nav.j-Menu, a.j-Button]
+                //                          ^            ^
+                //                      endParen        end
+                if (endParen && isBlockEl(endParen))
+                    handleMouseEntered(endParen);
+            }
+            stack.pop();
+        }, true);
+    }
+    /**
+     * @param {HTMLBodyElement} docBody
      * @access private
      */
-    addClickHandlersCtrlClickVersion() {
+    addClickHandlersCtrlClickVersion(docBody) {
         const metaKey = getMetaKey();
         window.addEventListener('keydown', e => {
             if (e.key === metaKey) this.metaKeyIsPressed = true;
@@ -559,8 +526,8 @@ class RenderAllOuter extends RenderAll {
         window.addEventListener('keyup', e => {
             if (e.key === metaKey) this.metaKeyIsPressed = false;
         });
-        document.body.addEventListener('click', e => {
-            const currentBlock = this.currentlyHoveredBlockEl;
+        docBody.addEventListener('click', e => {
+            const currentBlock = this.curHoveredBlockEl;
             if (this.isMouseListenersDisabled) {
                 this.messagePortToEditApp.postMessage(['onClicked', getBlockId(currentBlock)]);
                 return;
@@ -590,7 +557,7 @@ class RenderAllOuter extends RenderAll {
         let lastDownLink = null;
         let lastDownLinkAlreadyHandled = false;
         document.body.addEventListener('mousedown', e => {
-            if (!(this.currentlyHoveredBlockEl || this.isMouseListenersDisabled)) return;
+            if (!(this.curHoveredBlockEl || this.isMouseListenersDisabled)) return;
             isDown = true;
             const a = e.button !== 0 ? null : e.target.nodeName === 'A' ? e.target : e.target.closest('a');
             if (!a) return;
@@ -600,12 +567,12 @@ class RenderAllOuter extends RenderAll {
                 if (isDown && e.button === 0) {
                     lastDownLinkAlreadyHandled = true;
                     this.messagePortToEditApp.postMessage(['onClicked',
-                        getBlockId(this.currentlyHoveredBlockEl)]);
+                        getBlockId(this.curHoveredBlockEl)]);
                 }
             }, 80);
         });
         document.body.addEventListener('click', e => {
-            const currentBlock = this.currentlyHoveredBlockEl;
+            const currentBlock = this.curHoveredBlockEl;
             isDown = false;
             if (!lastDownLink) {
                 if (this.isMouseListenersDisabled) {
@@ -660,6 +627,14 @@ function isSubHoverable(el, currentlyHoveredBlockEl) {
         // is not child _block_ (Button for example)
         !(getBlockId(el) || '').length
     );
+}
+
+/**
+ * @param {HTMLElement} el
+ * @returns {Boolean}
+ */
+function isBlockEl(el) {
+    return !!el.getAttribute('data-block-type');
 }
 
 export default RenderAllOuter;

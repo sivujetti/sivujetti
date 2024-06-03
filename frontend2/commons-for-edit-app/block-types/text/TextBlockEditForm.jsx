@@ -19,7 +19,7 @@ events.on('web-page-text-block-child-el-hover-started', (childIdx, blockId) => {
 });
 
 events.on('web-page-text-block-child-el-hover-ended', () => {
-    if (currentInstance) currentInstance.maybeUnHighlightEditorNode(currentHoveredNodeInfo);
+    if (currentInstance) currentInstance.doUnHighlightEditorNode();
     currentHoveredNodeInfo = null;
 });
 
@@ -60,8 +60,7 @@ class TextBlockEditForm extends preact.Component {
      */
     maybeUnHighlightEditorNode(info) {
         if (info.blockId !== this.props.block.id) return;
-        const cur = this.editor.current.quill.root.querySelector(':scope > [data-hovered]');
-        if (cur) cur.removeAttribute('data-hovered');
+        this.doUnHighlightEditorNode();
     }
     /**
      * @access protected
@@ -133,6 +132,13 @@ class TextBlockEditForm extends preact.Component {
      */
     getNthEditorNode(idx) {
         return this.editor.current.quill.root.children[idx];
+    }
+    /**
+     * @access private
+     */
+    doUnHighlightEditorNode() {
+        const cur = this.editor.current.quill.root.querySelector(':scope > [data-hovered]');
+        if (cur) cur.removeAttribute('data-hovered');
     }
     /**
      * @param {QuillEditor} instance

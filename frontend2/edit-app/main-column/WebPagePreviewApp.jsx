@@ -19,7 +19,7 @@ class WebPagePreviewApp extends preact.Component {
     // currentIframeIsLoading;
     // currentlyLoadedUrl;
     // messageChannel;
-    // highlightRectEl;
+    // highlightRectEls;
     /**
      * @returns {HTMLIFrameElement}
      * @access public
@@ -52,7 +52,7 @@ class WebPagePreviewApp extends preact.Component {
         const title = (block.type !== 'PageInfo' ? '' : `${__('Page title')}: `) + (block.title || __(block.type));
         const foundRect = rect || this.getBlockEl(block.id)?.getBoundingClientRect();
         if (!foundRect) return;
-        this.doShowHighlightRect(foundRect, title);
+        this.doShowHighlightRect(foundRect, title, 0);
         events.emit('highlight-rect-revealed', block.id, origin);
     }
     /**
@@ -60,7 +60,7 @@ class WebPagePreviewApp extends preact.Component {
      * @access public
      */
     unHighlightBlock(/*blockId*/) {
-        this.doHideHighlightRect();
+        this.doHideHighlightRect(0);
     }
     /**
      * @param {Number} elIdx
@@ -68,16 +68,19 @@ class WebPagePreviewApp extends preact.Component {
      * @access public
      */
     highlightTextBlockChildEl(elIdx, textBlockBlockId) {
-        const childEl = this.getBlockEl(textBlockBlockId).children[elIdx];
+        const blockEl = this.getBlockEl(textBlockBlockId);
+        const childEl = blockEl.children[elIdx];
         if (!childEl) return;
         const rect = childEl.getBoundingClientRect();
-        this.doShowHighlightRect(rect, `${__('Text')} > ${nodeNameToFriendly(childEl.nodeName)}`);
+        this.doShowHighlightRect(rect, `${__('Text')} > ${nodeNameToFriendly(childEl.nodeName)}`, 1);
+        if (elIdx === 0 && blockEl.children.length === 1)
+            this.highlightRectEls[0].setAttribute('data-has-sole-sub-rect', '1');
     }
     /**
      * @access public
      */
     unHighlightTextBlockChildEl() {
-        this.doHideHighlightRect();
+        this.doHideHighlightRect(1);
     }
     /**
      * @param {Block} block
@@ -167,7 +170,7 @@ class WebPagePreviewApp extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        this.highlightRectEl = this.props.highlightRectEl;
+        this.highlightRectEls = this.props.highlightRectEls;
 
         // Initial load: load current url to iframe
         const initialUrl = this.props.urlToLoad === '@currentUrl' ? historyInstance.getCurrentLocation().pathname : this.props.urlToLoad;
@@ -207,7 +210,7 @@ class WebPagePreviewApp extends preact.Component {
                             if (block) this.highlightBlock(block, 'web-page', blockRect);
                         } else if (e.data[0] === 'onBlockHoverEnded') {
                             const [_, blockId] = e.data; // [_, String]
-                            this.doHideHighlightRect();
+                            this.doHideHighlightRect(0);
                             events.emit('highlight-rect-removed', blockId);
                         } else if (e.data[0] === 'onTextBlockChildElHoverStarted') {
                             const [_, childIdx, textBlockBlockId] = e.data; // [_, Number, String]
@@ -258,31 +261,35 @@ class WebPagePreviewApp extends preact.Component {
     /**
      * @param {DOMRect} rect
      * @param {String} title
+     * @param {Number} rectIdx
      * @access private
      */
-    doShowHighlightRect(rect, title) {
-        const {highlightRectEl} = this;
-        highlightRectEl.style.cssText = [
+    doShowHighlightRect(rect, title, rectIdx) {
+        const el = this.highlightRectEls[rectIdx];
+        el.style.cssText = [
             'width:', rect.width, 'px;',
             'height:', rect.height, 'px;',
             'top:', rect.top, 'px;',
             'left: calc(var(--menu-column-width-computed) + ', rect.left, 'px)'
         ].join('');
         if (rect.top < -TITLE_LABEL_HEIGHT)
-            highlightRectEl.setAttribute('data-label-position', 'bottom-inside');
+            el.setAttribute('data-label-position', 'bottom-inside');
         else if (rect.top > TITLE_LABEL_HEIGHT)
-            highlightRectEl.setAttribute('data-label-position', 'top-outside');
+            el.setAttribute('data-label-position', 'top-outside');
         else
-            highlightRectEl.setAttribute('data-label-position', 'top-inside');
-        highlightRectEl.setAttribute('data-title', title);
+            el.setAttribute('data-label-position', 'top-inside');
+        el.setAttribute('data-title', title);
     }
     /**
+     * @param {Number} rectIdx
      * @access private
      */
-    doHideHighlightRect() {
-        const {highlightRectEl} = this;
-        highlightRectEl.setAttribute('data-title', '');
-        highlightRectEl.style.cssText = '';
+    doHideHighlightRect(rectIdx) {
+        const el = this.highlightRectEls[rectIdx];
+        el.setAttribute('data-title', '');
+        if (rectIdx > 0)
+            this.highlightRectEls[0].removeAttribute('data-has-sole-sub-rect');
+        el.style.cssText = '';
     }
     /**
      * @param {String} blockId

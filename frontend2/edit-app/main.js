@@ -17,7 +17,7 @@ configureApis();
 preact.render(
     <WebPagePreviewApp
         urlToLoad="@currentUrl"
-        highlightRectEl={ document.querySelector('.highlight-rect') }
+        highlightRectEls={ [...document.querySelectorAll('.highlight-rect')] }
         ref={ cmp => {
             if (cmp && api.webPagePreview.initialized === false) {
                 api.webPagePreview = cmp;

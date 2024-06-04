@@ -2,14 +2,18 @@
 An entry point for global file "public/sivujetti/sivujetti-edit-app.js" that is
 included in edit-app's template (edit-app-wrapper.tmpl.php).
 */
-import {api, env, FloatingDialog, isUndoOrRedo, scssWizard} from '@sivujetti-commons-for-edit-app';
+import {
+    api,
+    FloatingDialog,
+    isUndoOrRedo,
+    scssWizard,
+} from '@sivujetti-commons-for-edit-app';
 import EditApp from './EditApp.jsx';
 import WebPagePreviewApp from './main-column/WebPagePreviewApp.jsx';
 import MainColumnViews from './main-column/MainColumnViews.jsx';
 import InspectorPanel from './menu-column/InspectorPanel.jsx';
 import {Toaster} from './includes/toasters.jsx';
 import patchQuillEditor from './includes/quill-customizations.js';
-import {getMetaKey} from '../shared-inline.js';
 import globalData from './includes/globalData.js';
 
 configureApis();
@@ -19,19 +23,8 @@ preact.render(
         urlToLoad="@currentUrl"
         highlightRectEls={ [...document.querySelectorAll('.highlight-rect')] }
         ref={ cmp => {
-            if (cmp && api.webPagePreview.initialized === false) {
+            if (cmp && api.webPagePreview.initialized === false)
                 api.webPagePreview = cmp;
-                const metaKey = getMetaKey();
-                const emitMetaKeyIsDown = isDown => {
-                    api.webPagePreview.sendMessageToReRenderer(['handleMetaKeyPressedOrReleased', isDown]);
-                };
-                env.window.addEventListener('keydown', e => {
-                    if (e.key === metaKey) emitMetaKeyIsDown(true);
-                });
-                env.window.addEventListener('keyup', e => {
-                    if (e.key === metaKey) emitMetaKeyIsDown(false);
-                });
-            }
         } }/>,
     document.getElementById('webpage-preview-app')
 );

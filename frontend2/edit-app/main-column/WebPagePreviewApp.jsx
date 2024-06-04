@@ -5,7 +5,7 @@ import {
     events,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
-import {getBlockEl} from '../../shared-inline.js';
+import {getBlockEl, getMetaKey} from '../../shared-inline.js';
 import {isMetaBlock} from '../includes/block/utils.js';
 import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 import globalData from '../includes/globalData.js';
@@ -181,6 +181,17 @@ class WebPagePreviewApp extends preact.Component {
             if (this.state.url !== pathname)
                 this.setOrReplacePreviewIframeUrl(pathname);
         });
+
+        const metaKey = getMetaKey();
+        const emitMetaKeyIsDown = isDown => {
+            this.sendMessageToReRenderer(['handleMetaKeyPressedOrReleased', isDown]);
+        };
+        window.addEventListener('keydown', e => {
+            if (e.key === metaKey) emitMetaKeyIsDown(true);
+        });
+        window.addEventListener('keyup', e => {
+            if (e.key === metaKey) emitMetaKeyIsDown(false);
+        });
     }
     /**
      * @param {{urlToLoad: '@currentUrl'|String;}} _
@@ -231,6 +242,18 @@ class WebPagePreviewApp extends preact.Component {
                         window.location.origin,
                         [this.messageChannel.port2]
                     );
+                    //
+                    const win = iframe.contentWindow;
+                    win.addEventListener('mousedown', e => {
+                        if (
+                            e.button === 0 &&
+                            !iframe.contentDocument.hasFocus() &&
+                            (e.target.nodeName === 'A' ? true : e.target.closest('a'))
+                        ) {
+                            win.focus();
+                        }
+                    }, false);
+                    //
                     this.currentIframeIsLoading = false;
                     this.currentlyLoadedUrl = url;
                 });

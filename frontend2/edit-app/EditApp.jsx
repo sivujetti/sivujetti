@@ -1,4 +1,13 @@
-import {__, env, events, http, urlUtils} from '@sivujetti-commons-for-edit-app';
+import {
+    __,
+    env,
+    events,
+    getFromLocalStorage,
+    http,
+    Icon,
+    putToLocalStorage,
+    urlUtils,
+} from '@sivujetti-commons-for-edit-app';
 import toasters from './includes/toasters.jsx';
 import {clamp} from './includes/utils.js';
 import {historyInstance, MyRouter} from './main-column/MainColumnViews.jsx';
@@ -6,6 +15,8 @@ import PageCreateState from './menu-column/page/PageCreateState.jsx';
 import PageDuplicateState from './menu-column/page/PageDuplicateState.jsx';
 import DefaultState from './menu-column/DefaultState.jsx';
 import SaveButton from './menu-column/SaveButton.jsx';
+
+let showFirstTimeDragInstructions = env.window.isFirstRun && getFromLocalStorage('sivujettiDragInstructionsShown') !== 'yes';
 
 class EditApp extends preact.Component {
     // changeViewOptions;
@@ -56,6 +67,20 @@ class EditApp extends preact.Component {
             resizeEl.classList.remove('dragging');
             rootEl.classList.remove('adjusting-panel-widths');
         });
+        if (getFromLocalStorage('sivujettiFollowLinksInstructionDismissed') !== 'yes') {
+            const startShowInstructionTimeout = () => setTimeout(() => {
+                toasters.editAppMain(<div>
+                    <h4>{ __('Did you know?') }</h4>
+                    <span>{ __('When you\'re in the edit mode, you still can navigate any website hyperlink by clicking on it holding Ctrl (Windows) or ⌘ (Mac) key.') }</span>
+                </div>, 'info', 0, () => {
+                    putToLocalStorage('yes', 'sivujettiFollowLinksInstructionDismissed');
+                });
+            }, 8000);
+            if (!env.window.isFirstRun)
+                startShowInstructionTimeout();
+            else
+                events.on('quick-intro-dismissed', startShowInstructionTimeout);
+        }
     }
     /**
      * @param {{outerEl: HTMLElement; onSaveButtonRefd: (cmp: SaveButton) => void; showGoToDashboardMode?: Boolean; dashboardUrl?: String;}} props
@@ -91,6 +116,14 @@ class EditApp extends preact.Component {
                 editAppOuterEl={ outerEl }
                 ref={ this.props.onSaveButtonRefd }/>
             </header>,
+            !showFirstTimeDragInstructions ? null : <div class="drag-instructions-overlay"><div>
+                <p class="flex-centered">
+                    <Icon iconId="info-circle" className="size-lg mr-2"/>
+                    { __('You can add content by dragging') }
+                </p>
+                <img src={ urlUtils.makeAssetUrl('/public/sivujetti/assets/drag-right-illustration.png') } alt=""/>
+                <button onClick={ dismissFirstTimeInstructions } class="btn btn-primary btn-sm p-absolute" type="button">{ __('Cool!') }</button>
+            </div></div>,
             <MyRouter history={ historyInstance }>
                 <DefaultState path="/:slug*"/>
                 <PageCreateState path="/pages/create/:pageTypeName?/:layoutId?"/>
@@ -113,6 +146,19 @@ class EditApp extends preact.Component {
                 toasters.editAppMain(__('Something unexpected happened.'), 'error');
             });
     }
+}
+
+/**
+ * @param {Event} e
+ */
+function dismissFirstTimeInstructions(e) {
+    putToLocalStorage('yes', 'sivujettiDragInstructionsShown');
+    showFirstTimeDragInstructions = false;
+    const el = e.target.closest('.drag-instructions-overlay');
+    el.classList.add('fade-away');
+    setTimeout(() => {
+        el.parentElement.removeChild(el);
+    }, 650);
 }
 
 export default EditApp;

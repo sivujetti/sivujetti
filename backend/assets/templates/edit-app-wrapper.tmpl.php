@@ -61,25 +61,25 @@
         }
 
         .box.first {
-            left: 80px;
-            top: 34%;
+            left: 120px;
+            top: clamp(205px, 40%, 240px);
         }
 
         .second-outer {
             position: absolute;
-            left: 379px;
-            width: calc(100% - 379px);
+            left: var(--menu-column-width);
+            width: calc(100% - var(--menu-column-width));
             height: 100%;
         }
         .box.second {
             left: 50%;
-            top: 58%;
+            top: clamp(160px, 45%, 2000px);
             margin-left: -210px;
         }
 
         .box.third {
             top: 50px;
-            left: 59px;
+            left: 69px;
         }
 
         .first:before,
@@ -171,7 +171,7 @@
 
             overflow: hidden;
             opacity: 0;
-            width: 0;
+            width: var(--menu-column-width-computed);
         }
         .dnd-block-spawner-opened .drag-instructions-overlay {
             overflow: visible;
@@ -254,18 +254,17 @@
             events.emit('edit-app-plugins-loaded');
         })(sivujettiCommonsEditApp)</script>
         <?php if ($isFirstRun && defined("showQuickIntro")): ?>
-        <script>(function () {
-        const onPreviewIframeLoad = () => {
-            document.getElementById('quick-intro-outer').style.opacity = 1;
-            document.getElementById('site-preview-iframe').removeEventListener('load', onPreviewIframeLoad);
-            Array.from(document.querySelectorAll('#quick-intro-outer .btn')).forEach(el => el.addEventListener('click', () => {
-                const el = document.getElementById('quick-intro-outer');
-                el.parentElement.removeChild(el);
-                sivujettiCommonsEditApp.events.emit('quick-intro-dismissed');
-            }));
-        };
-        document.getElementById('site-preview-iframe').addEventListener('load', onPreviewIframeLoad);
-        })()</script>
+        <script>(function ({events}) {
+            const unregister = events.on('webpage-preview-iframe-loaded', () => {
+                document.getElementById('quick-intro-outer').style.opacity = 1;
+                [...document.querySelectorAll('#quick-intro-outer .btn')].forEach(el => el.addEventListener('click', () => {
+                    const el = document.getElementById('quick-intro-outer');
+                    el.parentElement.removeChild(el);
+                    sivujettiCommonsEditApp.events.emit('quick-intro-dismissed');
+                }));
+                unregister();
+            });
+        })(sivujettiCommonsEditApp)</script>
         <?php endif; ?>
     </body>
 </html>

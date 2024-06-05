@@ -1,17 +1,17 @@
 import {__, api, signals, http, env, urlUtils, FloatingDialog, Icon} from '@sivujetti-commons-for-edit-app';
 // ## import toasters, {Toaster} from './commons/Toaster.jsx';
-import store2 from './store2.js';
-import SaveButton, { SaveButton2 } from './left-column/SaveButton.jsx';
-import DefaultPanel from './left-column/DefaultPanel.jsx';
-import PageCreatePanel from './left-column/page/PageCreatePanel.jsx';
-import PageDuplicatePanel from './left-column/page/PageDuplicatePanel.jsx';
-import PageTypeCreatePanel from './left-column/page-type/PageTypeCreatePanel.jsx';
+// ## import store2 from './store2.js';
+// ## import SaveButton, { SaveButton2 } from './left-column/SaveButton.jsx';
+// ## import DefaultPanel from './left-column/DefaultPanel.jsx';
+// ## import PageCreatePanel from './left-column/page/PageCreatePanel.jsx';
+// ## import PageDuplicatePanel from './left-column/page/PageDuplicatePanel.jsx';
+// ## import PageTypeCreatePanel from './left-column/page-type/PageTypeCreatePanel.jsx';
 import {getArePanelsHidden} from './right-column/IframePageManager.js';
-import {MyRouter, historyInstance} from './right-column/RightColumnViews.jsx';
-import {getFromLocalStorage, putToLocalStorage} from './commons/local-storage-utils.js';
+// ## import {MyRouter, historyInstance} from './right-column/RightColumnViews.jsx';
+// ## import {getFromLocalStorage, putToLocalStorage} from './commons/local-storage-utils.js';
 
 const PANELS_HIDDEN_CLS = 'panels-hidden';
-let showFirstTimeDragInstructions = !(!env.window.isFirstRun || getFromLocalStorage('sivujettiDragInstructionsShown') === 'yes');
+// ## let showFirstTimeDragInstructions = !(!env.window.isFirstRun || getFromLocalStorage('sivujettiDragInstructionsShown') === 'yes');
 
 class EditApp extends preact.Component {
     // changeViewOptions;
@@ -21,19 +21,19 @@ class EditApp extends preact.Component {
      * @param {{dataFromAdminBackend: TheWebsiteBundle; outerEl: HTMLElement; inspectorPanelRef: preact.Ref; rootEl: HTMLElement;}} props
      */
     constructor(props) {
-        super(props);
-        this.changeViewOptions = [
-            {name: 'edit-mode', label: __('Edit mode')},
-            {name: 'hide-edit-menu', label: __('Hide edit menu')},
-        ].concat(props.dataFromAdminBackend.showGoToDashboardMode
-            ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
-            : []
-        ).concat({name: 'log-out', label: __('Log out')});
-        this.saveButtonRef = preact.createRef();
-        this.saveButtonRef2 = preact.createRef();
+// ##         super(props);
+// ##         this.changeViewOptions = [
+// ##             {name: 'edit-mode', label: __('Edit mode')},
+// ##             {name: 'hide-edit-menu', label: __('Hide edit menu')},
+// ##         ].concat(props.dataFromAdminBackend.showGoToDashboardMode
+// ##             ? {name: 'go-to-dashboard', label: __('Go to dashboard')}
+// ##             : []
+// ##         ).concat({name: 'log-out', label: __('Log out')});
+// ##         this.saveButtonRef = preact.createRef();
+// ##         this.saveButtonRef2 = preact.createRef();
         this.state = {hidePanels: getArePanelsHidden()};
         if (this.state.hidePanels) props.rootEl.classList.add(PANELS_HIDDEN_CLS);
-        this.resizeHandleEl = preact.createRef();
+// ##         this.resizeHandleEl = preact.createRef();
 // ##         store2.dispatch('theWebsite/set', [props.dataFromAdminBackend.website]);
 // ##         props.dataFromAdminBackend.__websiteDebugOnly = props.dataFromAdminBackend.website;
 // ##         delete props.dataFromAdminBackend.website;
@@ -84,20 +84,20 @@ class EditApp extends preact.Component {
 // ##                     initialLeftPanelWidth={ this.props.leftPanelWidth }
 // ##                     ref={ this.saveButtonRef }/>
 // ##             </header>,
-            !showFirstTimeDragInstructions ? null : <div class="drag-instructions-overlay"><div>
-                <p class="flex-centered">
-                    <Icon iconId="info-circle" className="size-lg mr-2"/>
-                    { __('You can add content by dragging') }
-                </p>
-                <img src={ urlUtils.makeAssetUrl('/public/sivujetti/assets/drag-right-illustration.png') } alt=""/>
-                <button onClick={ e => {
-                    putToLocalStorage('yes', 'sivujettiDragInstructionsShown');
-                    showFirstTimeDragInstructions = false;
-                    const el = e.target.closest('.drag-instructions-overlay');
-                    el.classList.add('fade-away');
-                    setTimeout(() => { el.parentElement.removeChild(el); }, 650);
-                } } class="btn btn-primary btn-sm p-absolute" type="button">{ __('Cool!') }</button>
-            </div></div>,
+// ##             !showFirstTimeDragInstructions ? null : <div class="drag-instructions-overlay"><div>
+// ##                 <p class="flex-centered">
+// ##                     <Icon iconId="info-circle" className="size-lg mr-2"/>
+// ##                     { __('You can add content by dragging') }
+// ##                 </p>
+// ##                 <img src={ urlUtils.makeAssetUrl('/public/sivujetti/assets/drag-right-illustration.png') } alt=""/>
+// ##                 <button onClick={ e => {
+// ##                     putToLocalStorage('yes', 'sivujettiDragInstructionsShown');
+// ##                     showFirstTimeDragInstructions = false;
+// ##                     const el = e.target.closest('.drag-instructions-overlay');
+// ##                     el.classList.add('fade-away');
+// ##                     setTimeout(() => { el.parentElement.removeChild(el); }, 650);
+// ##                 } } class="btn btn-primary btn-sm p-absolute" type="button">{ __('Cool!') }</button>
+// ##             </div></div>,
 // ##             <MyRouter history={ historyInstance }>
 // ##                 <DefaultPanel path="/:slug*"/>
 // ##                 <PageCreatePanel path="/pages/create/:pageTypeName?/:layoutId?"/>
@@ -173,8 +173,8 @@ class EditApp extends preact.Component {
 // ##             setAndEmitPanelWidths(this.leftPanelWidth);
 // ##             commitPanelWidths();
 // ##             this.props.rootEl.classList.add('new-block-spawner-opened');
-            if (showFirstTimeDragInstructions) env.document.querySelector('.drag-instructions-overlay').style.width =
-                `${this.leftPanelWidth}px`;
+// ##             if (showFirstTimeDragInstructions) env.document.querySelector('.drag-instructions-overlay').style.width =
+// ##                 `${this.leftPanelWidth}px`;
 // ##         });
 // ##         signals.on('block-dnd-closed', () => {
 // ##             this.leftPanelWidth -= 148;
@@ -182,21 +182,21 @@ class EditApp extends preact.Component {
 // ##             commitPanelWidths();
 // ##             this.props.rootEl.classList.remove('new-block-spawner-opened');
 // ##         });
-        if (getFromLocalStorage('sivujettiFollowLinksInstructionDismissed') !== 'yes') {
-            const startShowInstructionTimeout = () => setTimeout(() => {
-                toasters.editAppMain(<div>
-                    <h4>{ __('Did you know?') }</h4>
-                    <span>{ __('When you\'re in the edit mode, you still can navigate any website hyperlink by clicking on it holding Ctrl (Windows) or ⌘ (Mac) key.') }</span>
-                </div>, 'info', 0, () => {
-                    putToLocalStorage('ys', 'sivujettiFollowLinksInstructionDismissed');
-                });
-            }, 8000);
-            if (!env.window.isFirstRun)
-                startShowInstructionTimeout();
-            else
-                signals.on('quick-intro-dismissed', startShowInstructionTimeout);
-        }
-    }
+// ##         if (getFromLocalStorage('sivujettiFollowLinksInstructionDismissed') !== 'yes') {
+// ##             const startShowInstructionTimeout = () => setTimeout(() => {
+// ##                 toasters.editAppMain(<div>
+// ##                     <h4>{ __('Did you know?') }</h4>
+// ##                     <span>{ __('When you\'re in the edit mode, you still can navigate any website hyperlink by clicking on it holding Ctrl (Windows) or ⌘ (Mac) key.') }</span>
+// ##                 </div>, 'info', 0, () => {
+// ##                     putToLocalStorage('ys', 'sivujettiFollowLinksInstructionDismissed');
+// ##                 });
+// ##             }, 8000);
+// ##             if (!env.window.isFirstRun)
+// ##                 startShowInstructionTimeout();
+// ##             else
+// ##                 signals.on('quick-intro-dismissed', startShowInstructionTimeout);
+// ##         }
+// ##     }
     /**
      * @param {Boolean} to
      * @access private

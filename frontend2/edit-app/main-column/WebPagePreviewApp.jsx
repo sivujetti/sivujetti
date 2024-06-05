@@ -173,13 +173,16 @@ class WebPagePreviewApp extends preact.Component {
         this.highlightRectEls = this.props.highlightRectEls;
 
         // Initial load: load current url to iframe
-        const initialUrl = this.props.urlToLoad === '@currentUrl' ? historyInstance.getCurrentLocation().pathname : this.props.urlToLoad;
+        const initialUrl = this.props.urlToLoad === '@currentUrl'
+            ? getFullUrl(historyInstance.getCurrentLocation())
+            : this.props.urlToLoad;
         this.setOrReplacePreviewIframeUrl(initialUrl);
 
         // Start listening url changes, load new urls as they come
-        historyInstance.listen(({pathname}) => {
-            if (this.state.url !== pathname)
-                this.setOrReplacePreviewIframeUrl(pathname);
+        historyInstance.listen(path => {
+            const newUrl = getFullUrl(path);
+            if (this.state.url !== newUrl)
+                this.setOrReplacePreviewIframeUrl(newUrl);
         });
 
         const metaKey = getMetaKey();
@@ -263,21 +266,14 @@ class WebPagePreviewApp extends preact.Component {
         }></div>;
     }
     /**
-     * @param {String} hashPathname Example: '/sivujetti/index.php?q=/api/_placeholder-page/Pages/1'
+     * @param {String} urlFromRouter Examples: '/services', '/services#ref-1'
      * @access private
      */
-    setOrReplacePreviewIframeUrl(hashPathname) {
-        const url = createUrlForIframe(hashPathname);
-        if (url)
-            this.doSetOrReplaceIframeUrl(url);
-    }
-    /**
-     * @param {String} url Example: '/sivujetti/index.php?q=/api/_placeholder-page/Pages/1'
-     * @access private
-     */
-    doSetOrReplaceIframeUrl(url) {
-        if (this.messageChannel)
-            this.messageChannel = null;
+    setOrReplacePreviewIframeUrl(urlFromRouter) {
+        const url = createUrlForIframe(urlFromRouter);
+        if (!url) return;
+
+        if (this.messageChannel) this.messageChannel = null;
         this.messageChannel = new MessageChannel;
         this.setState({url});
     }
@@ -349,11 +345,12 @@ class WebPagePreviewApp extends preact.Component {
 }
 
 /**
- * @param {String} hashPathname
+ * @param {String} url
  * @returns {String}
  */
-function createUrlForIframe(hashPathname) {
-    const pcs = hashPathname.split('/');
+function createUrlForIframe(url) {
+    const [pathname, hash] = url.split('#');
+    const pcs = pathname.split('/');
     // '/pages/create/:pageTypeName?/:layoutId?'
     if (pcs[1] === 'pages' && pcs[2] === 'create') {
         const pageTypeName = pcs[3] || 'Pages';
@@ -370,10 +367,10 @@ function createUrlForIframe(hashPathname) {
     // '/page-types/create'
     } else if (pcs[1] === 'page-types' && pcs[2] === 'create') {
         // todo
-    // '/some-page'
-    } else if (!isMainColumnViewUrl(hashPathname)) {
+    // '/some-page', '/some-page#anchor
+    } else if (!isMainColumnViewUrl(pathname)) {
         // ?, also transform/normalize (? -> &, # -> ?)
-        return urlUtils.makeUrl(`${hashPathname}?in-edit=1`);
+        return urlUtils.makeUrl(`${pathname}?in-edit=1${!hash ? '' : `#${hash}`}`);
     }
     return null;
 }
@@ -437,6 +434,14 @@ function nodeNameToFriendly(nodeName) {
         'BLOCKQUOTE': ['Blockquote',     ''],
     }[nodeName];
     return pair ? `${__(pair[0])}${pair[1]}` : `<${nodeName.toLowerCase()}>`;
+}
+
+/**
+ * @param {Path} location {pathname: '/foo', hash: '#anchor', search: null}
+ * @returns {String} '/foo#anchor'
+ */
+function getFullUrl({pathname, hash}) {
+    return `${pathname}${hash || ''}`;
 }
 
 export default WebPagePreviewApp;

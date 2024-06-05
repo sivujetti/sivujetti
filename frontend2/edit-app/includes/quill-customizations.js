@@ -304,11 +304,16 @@ class MyLink extends Quill.import('formats/link') {
     static create(value) {
         const node = super.create(value);
         const isEmpty = value === '-';
-        const isLocal = isEmpty || (value.startsWith('/') && !value.startsWith('//') && node.host === env.window.location.host);
+        const isLocalJump = value.startsWith('#');
+        const isLocal = isEmpty || isLocalJump || (
+            value.startsWith('/') &&
+            !value.startsWith('//') &&
+            node.host === env.window.location.host
+        );
         if (isLocal) {
             node.removeAttribute('rel');
             node.removeAttribute('target');
-            if (!isEmpty)
+            if (!isEmpty && !isLocalJump)
                 addOrReplaceHrefAttrsPatch(node);
         }
         return node;

@@ -1,16 +1,15 @@
-import {env, http, urlAndSlugUtils, urlUtils} from '@sivujetti-commons-for-web-pages';
+import {urlUtils} from '@sivujetti-commons-for-web-pages';
 import {
     cloneDeep,
-    completeImageSrc,
     getBlockEl,
     getMetaKey,
     traverseRecursively,
 } from '../shared-inline.js';
 import {
     createBlockTreeHashes,
-    htmlStringToVNodeArray,
     stringHtmlPropToVNodeArray,
 } from './ReRenderingWebPageFuncs.js';
+import builtInRenderers from './builtin-renderers-all.jsx';
 
 /** @type {Map<String, preact.AnyComponent>} */
 const customRenderers = new Map;
@@ -25,263 +24,6 @@ const api = {
 };
 
 const useCtrlClickBasedFollowLinkLogic = true;
-
-class ButtonBlock extends preact.Component {
-    /**
-     * @param {BlockRendererProps} props
-     * @access protected
-     */
-    render({block, createDefaultProps, renderChildren}) {
-        const [El, attrs] = block.tagType !== 'link'
-            ? ['button', {type: block.tagType}]
-            : ['a',      {href: urlAndSlugUtils.getCompletedUrl(block.linkTo)}];
-        return <El { ...createDefaultProps('btn') }{ ...attrs }>
-            { block.html }
-            { renderChildren() }
-        </El>;
-    }
-}
-
-class CodeBlock extends preact.Component {
-    // lastExecutedCode;
-    /**
-     * @access protected
-     */
-    componentDidMount() {
-        const {id, code} = this.props.block;
-        if (this.lastExecutedCode === code) return;
-        this.lastExecutedCode = code;
-        const {head} = document;
-        // Remove previous injections (if any)
-        [...head.querySelectorAll(`[data-injected-by-sivujetti-code-block="${id}"]`)].forEach(el => {
-            head.removeChild(el);
-        });
-        // Inject again
-        const temp = document.createElement('div');
-        temp.innerHTML = code;
-        [...temp.querySelectorAll('script')].forEach(el => {
-            injectScript(el, head, [{name: 'data-injected-by-sivujetti-code-block', value: id}]);
-        });
-    }
-    /**
-     * @param {BlockRendererProps} props
-     * @access protected
-     */
-    render({block, createDefaultProps}) {
-        return <div
-            { ...createDefaultProps() }
-            dangerouslySetInnerHTML={ {
-                __html: block.code || __('Waits for configuration ...'),
-            } }></div>;
-    }
-}
-
-/**
- * @param {HTMLScriptElement} original
- * @param {HTMLElement} toEl
- * @param {Array<{name: String; value: String;}>} extraAttrs
- */
-function injectScript(original, toEl, extraAttrs = []) {
-    const inject = document.createElement('script');
-    [...original.attributes, ...extraAttrs].forEach(attr => {
-        inject.setAttribute(attr.name, attr.value);
-    });
-    if (original.innerHTML)
-        inject.innerHTML = original.innerHTML;
-    toEl.appendChild(inject);
-}
-
-class ColumnsBlock extends preact.Component {
-    /**
-     * @param {BlockRendererProps} props
-     * @access protected
-     */
-    render({block, renderChildren, createDefaultProps}) {
-        const extraClasses = [
-            'num-cols-', parseInt(block.numColumns),
-            block.takeFullWidth ? '' : ' inline'
-        ].join('');
-        return <div { ...createDefaultProps(extraClasses) }>
-            { renderChildren() }
-        </div>;
-    }
-}
-
-class ImageBlock extends preact.Component {
-    /**
-     * @param {BlockRendererProps} props
-     * @access protected
-     */
-    render({block, renderChildren, createDefaultProps}) {
-        return <figure { ...createDefaultProps() }>
-            <img
-                src={ completeImageSrc(block.src, urlUtils) }
-                alt={ block.altText }/>
-            { block.caption ? <figcaption>{ block.caption }</figcaption> : '' }
-            { renderChildren() }
-        </figure>;
-    }
-}
-
-/** @type {Map<String, {arr: Array<preact.ComponentChild>; hash: String;}>} */
-const cachedRenders =  new Map;
-class ListingBlock extends preact.Component {
-    /**
-     * @access protected
-     */
-    componentWillMount() {
-        const {block} = this.props;
-        const fromCache = cachedRenders.get(block.id);
-        this.setState({
-            renderedHtmlAsArr: fromCache ? [...fromCache.arr] : null,
-        });
-        if (fromCache) {
-            const maybeNextHash = createHash(block);
-            if (fromCache.hash !== maybeNextHash)
-                this.renderInBackendAndSetToState(block, maybeNextHash);
-        } else {
-            this.renderInBackendAndSetToState(block);
-        }
-    }
-    /**
-     * @param {BlockRendererProps} props
-     * @access protected
-     */
-    render({block, renderChildren, createDefaultProps}, {__pages, __pageType, renderedHtmlAsArr}) {
-        return <div { ...createDefaultProps(`page-type-${block.filterPageType.toLowerCase()}`) }>
-            { renderedHtmlAsArr || null /* loading */ }
-            { renderChildren() }
-        </div>;
-    }
-    /**
-     * @param {Block} block
-     * @param {String} hash = null
-     * @access private
-     */
-    renderInBackendAndSetToState(block, hash = null) {
-        http.post('/api/blocks/render', {block})
-            .then(resp => {
-                const withWrapperDiv = htmlStringToVNodeArray(resp.result);
-                const divChildren = withWrapperDiv[0].props.children;
-                cachedRenders.set(block.id, {arr: divChildren, hash: hash || createHash(block)});
-                this.setState({renderedHtmlAsArr: cachedRenders.get(block.id).arr});
-            })
-            .catch(err => {
-                env.window.console.error(err);
-                this.setState({renderedHtmlAsArr: <p>{ __('Failed to render content.') }</p>});
-            });
-    }
-}
-function createHash(block) {
-    return JSON.stringify({...block.propsData, renderer: block.renderer});
-}
-function __(s) {
-    return s;
-}
-
-class MenuBlock extends preact.Component {
-    /**
-     * @param {BlockRendererProps} props
-     * @access protected
-     */
-    render({block, renderChildren, createDefaultProps}) {
-        return <nav { ...createDefaultProps() }>
-            { menuPrintBranch(block.tree, block) }
-            { renderChildren() }
-        </nav>;
-    }
-}
-/**
- * @param {Array<Object>} branch
- * @param {Block} block
- * @param {Number} depth = 0
- * @returns {preact.VNode}
- */
-function menuPrintBranch(branch, block, depth = 0) {
-    const currentPageSlug = '-';
-    return <ul class={ `level-${depth}` }>{ branch.map(({slug, text, children}) => <li>
-        <a
-            href={ urlAndSlugUtils.getCompletedUrl(slug) }
-            class={ `level-${depth}` }
-            { ...(slug === currentPageSlug ? {'data-current': 'true'} : {}) }>
-            { text }
-        </a>
-        { children.length
-            ? menuPrintBranch(children, block, depth + 1)
-            : null
-        }
-    </li>) }</ul>;
-}
-
-class SectionBlock extends preact.Component {
-    /**
-     * @param {BlockRendererProps} props
-     * @access protected
-     */
-    render({block, renderChildren, createDefaultProps}) {
-        return <section { ...{
-            ...createDefaultProps(),
-            ...(block.bgImage ? {style: `background-image:url('${completeImageSrc(block.bgImage, urlUtils)}')`} : {})
-        } }>
-            <div data-block-root>
-                { renderChildren() }
-            </div>
-        </section>;
-    }
-}
-
-class Section2Block extends preact.Component {
-    /**
-     * @param {BlockRendererProps} props
-     * @access protected
-     */
-    render({renderChildren, createDefaultProps}) {
-        return <div { ...createDefaultProps() }>
-            <div class="j-Section2-cols">
-                { renderChildren() }
-            </div>
-        </div>;
-    }
-}
-
-class TextBlock extends preact.Component {
-    /**
-     * @param {BlockRendererProps} props
-     * @access protected
-     */
-    render({block, createDefaultProps, renderChildren}) {
-        return <div { ...createDefaultProps() }>
-            { block.html }
-            { renderChildren() }
-        </div>;
-    }
-}
-
-class WrapperBlock extends preact.Component {
-    /**
-     * @param {BlockRendererProps} props
-     * @access protected
-     */
-    render({renderChildren, createDefaultProps}) {
-        return <div { ...createDefaultProps() }>
-            { /* Nothing */ }
-            { renderChildren() }
-        </div>;
-    }
-}
-
-const builtInRenderers = {
-    Button: ButtonBlock,
-    Code: CodeBlock,
-    Columns: ColumnsBlock,
-    Image: ImageBlock,
-    Listing: ListingBlock,
-    Menu: MenuBlock,
-    Section: SectionBlock,
-    Section2: Section2Block,
-    Text: TextBlock,
-    Wrapper: WrapperBlock,
-};
 
 class RenderAll extends preact.Component {
     // currentBlocksHashes;
@@ -391,26 +133,6 @@ class RenderAllOuter extends RenderAll {
      */
     hookUpEventHandlers() {
         const docBody = this.props.outerEl;
-        const links = docBody.querySelectorAll('a');
-        for (const a of links) {
-            const hrefAsAuthored = a.getAttribute('href');
-            if (hrefAsAuthored.startsWith('#') || hrefAsAuthored === '') {
-                if (this.baseUrl.indexOf('.php?') < 0) {
-                    // 'https://domain.com/?in-edit=1#foo'     -> 'https://domain.com/#foo' or
-                    // 'https://domain.com/?in-edit=1'         -> 'https://domain.com/' or
-                    // 'https://domain.com/page?in-edit=1#foo' -> 'https://domain.com/page#foo' or
-                    // 'https://domain.com/page?in-edit=1'     -> 'https://domain.com/page'
-                    a.href = a.href.replace('?in-edit=1', '');
-                } else {
-                    // 'https://domain.com/index.php?q=/&in-edit=1#foo'     -> 'https://domain.com/index.php?q=/#foo'
-                    // 'https://domain.com/index.php?q=/&in-edit=1'         -> 'https://domain.com/index.php?q=/' or
-                    // 'https://domain.com/index.php?q=/page&in-edit=1#foo' -> 'https://domain.com/index.php?q=/page#foo'
-                    // 'https://domain.com/index.php?q=/page&in-edit=1'     -> 'https://domain.com/index.php?q=/page'
-                    a.href = a.href.replace('&in-edit=1', '');
-                }
-            }
-        }
-        //
         this.addHoverHanders(docBody);
         //
         if (useCtrlClickBasedFollowLinkLogic)
@@ -431,17 +153,19 @@ class RenderAllOuter extends RenderAll {
      */
     doFollowLink(el) {
         if (this.isLocalLink(el)) {
+            const hrefAsAuthored = el.getAttribute('href');
+            if (hrefAsAuthored.startsWith('#')) {
+                document.getElementById(hrefAsAuthored.substring(1))?.scrollIntoView();
+                return;
+            }
             const noOrigin = el.href.substring(el.origin.length); // http://domain.com/foo -> /foo
                                                                   // http://domain.com/foo/index.php?q=/foo -> /foo/index.php?q=/foo
             const noBase = `/${noOrigin.substring(this.baseUrl.length)}`; // /foo -> /foo
                                                                           // /sub-dir/foo -> /foo
                                                                           // /index.php?q=/foo -> /foo
                                                                           // /sub-dir/index.php?q=/foo -> /foo
-            const pcs = noBase.split('#');
-            if (pcs.length < 2)
-                window.parent.myRoute(pcs[0]);
-            else
-                document.getElementById(pcs[1])?.scrollIntoView();
+            // Note: $noBase may contain hash here (/slug#hash), allow it
+            window.parent.myRoute(noBase);
         }
     }
     /**
@@ -534,9 +258,8 @@ class RenderAllOuter extends RenderAll {
             }
 
             const isLeftClick = e.button === 0;
-            const a = !isLeftClick ? null : e.target.nodeName === 'A' ? e.target : e.target.closest('a');
-
-            const b = a || (e.button !== 0 ? null : e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button'));
+            const a = isLeftClick ? e.target.nodeName === 'A' ? e.target : e.target.closest('a') : null;
+            const b = a || (isLeftClick ? e.target.classList.contains('j-Button') ? e.target : e.target.closest('.j-Button') : null);
 
             if (!this.metaKeyIsPressed)
                 e.preventDefault();

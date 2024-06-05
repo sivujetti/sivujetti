@@ -89,6 +89,7 @@ function getCssEl(mediaScopeId = 'all', attrPrefix = '') {
     return iframeDocument.head.querySelector(`style[data-scope="${attrPrefix}${validated}"]`);
 }
 
+/**
  * @param {Array<Block>} blocks
  */
 function printBlockWarnings(blocks) {

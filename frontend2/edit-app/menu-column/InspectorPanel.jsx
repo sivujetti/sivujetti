@@ -95,6 +95,7 @@ class InspectorPanel extends preact.Component {
         this.rendererKey = newRendererKey;
         this.setState({Renderer: BlockEditForm});
         this.props.rootEl.classList.add('inspector-panel-open');
+        events.emit('inspector-panel-opened', this);
         //
         const height = this.lastHeight || clamp(env.window.innerHeight / 100 * 30, 375, 467);
         document.documentElement.style.setProperty('--inspector-panel-height', `${height}px`);

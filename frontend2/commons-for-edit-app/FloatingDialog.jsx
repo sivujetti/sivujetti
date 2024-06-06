@@ -60,7 +60,7 @@ class FloatingDialog extends preact.Component {
      * @access public
      */
     close() {
-        if (!this.state.Renderer)
+        if (!this.state.Renderer || !this.currentJsPanel)
             return;
         if (!this.closing) {
             // Call currentJsPanel.close(), which then calls this method again (see onbeforeclose)

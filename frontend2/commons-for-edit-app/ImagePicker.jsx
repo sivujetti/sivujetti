@@ -10,6 +10,8 @@ import {mediaUrlValidatorImpl} from './validation.js';
 
 class ImagePicker extends preact.Component {
     // srcInput;
+    // dialogIsOpen;
+    // unregistrables;
     /**
      * @param {{onSrcCommitted: (newSrc: String|null, mime: String|null, srcWasTyped: Boolean) => void; src: String|null; inputId: String; omitClearButton?: Boolean;}} props
      */
@@ -21,6 +23,7 @@ class ImagePicker extends preact.Component {
      * @access protected
      */
     componentWillMount() {
+        this.dialogIsOpen = false;
         const throttledEmitSrc = timingUtils.debounce((src, hasErrors, _source) => {
             if (!hasErrors)
                 this.props.onSrcCommitted(src, null, true);
@@ -31,6 +34,13 @@ class ImagePicker extends preact.Component {
                 ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]
             ], label: __('Image file'), onAfterValueChanged: throttledEmitSrc},
         ]));
+        const closeDialogIfOpen = () => {
+            if (this.dialogIsOpen) this.closePickerDialog();
+        };
+        this.unregistrables = [
+            events.on('inspector-panel-closed', closeDialogIfOpen),
+            events.on('inspector-panel-opened', closeDialogIfOpen), // Re-opened with different block
+        ];
     }
     /**
      * @access protected
@@ -38,6 +48,12 @@ class ImagePicker extends preact.Component {
     componentWillReceiveProps(props) {
         if (props.src !== this.state.values.srcManual)
             reHookValues(this, [{name: 'srcManual', value: props.src || ''}]);
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        this.unregistrables.forEach(unreg => unreg());
     }
     /**
      * @access protected
@@ -69,6 +85,7 @@ class ImagePicker extends preact.Component {
      */
     openPickerDialog(e) {
         e.preventDefault();
+        this.dialogIsOpen = true;
         floatingDialog.open(PickImageDialog, {
             title: __('Choose a picture'),
             className: 'image-picker-dialog',
@@ -79,9 +96,17 @@ class ImagePicker extends preact.Component {
                     ? [file.fileName, file.mime, true]
                     : [null,          null,      false]
                 ));
+                this.closePickerDialog();
             }
         });
         this.srcInput.current.inputEl.current.blur();
+    }
+    /**
+     * @access private
+     */
+    closePickerDialog() {
+        this.dialogIsOpen = false;
+        floatingDialog.close();
     }
 }
 
@@ -94,10 +119,7 @@ class PickImageDialog extends preact.Component {
         return [
             <FileUploader
                 mode="pick"
-                onEntryClicked={ imageEntry => {
-                    onSelected(imageEntry);
-                    floatingDialog.close();
-                } }
+                onEntryClicked={ onSelected }
                 onlyImages/>,
             <button
                 onClick={ () => floatingDialog.close() }

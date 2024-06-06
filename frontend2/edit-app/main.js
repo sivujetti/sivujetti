@@ -15,6 +15,7 @@ import InspectorPanel from './menu-column/InspectorPanel.jsx';
 import {Toaster} from './includes/toasters.jsx';
 import patchQuillEditor from './includes/quill-customizations.js';
 import globalData from './includes/globalData.js';
+import ContextMenu from './includes/ContextMenu.jsx';
 
 configureApis();
 
@@ -34,21 +35,18 @@ window.dataFromAdminBackend.__websiteDebugOnly = window.dataFromAdminBackend.web
 delete window.dataFromAdminBackend.website;
 const editAppOuterEl = api.menuPanel.getOuterEl();
 preact.render(
-    [
-        <EditApp
-            outerEl={ editAppOuterEl }
-            onSaveButtonRefd={ saveButton => {
-                if (!saveButton) return;
-                api.saveButton.setInstance(saveButton);
-                // Refresh scssWizards's styles every time new styles (page) is loaded to
-                // the preview iframe, or when undo|redo event happens
-                api.saveButton.getInstance().subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
-                    if (ctx === 'initial' || isUndoOrRedo(ctx))
-                        scssWizard.replaceStylesState(bundle);
-                });
-            } }/>,
-        <Toaster id="editAppMain"/>
-    ],
+    <EditApp
+        outerEl={ editAppOuterEl }
+        onSaveButtonRefd={ saveButton => {
+            if (!saveButton) return;
+            api.saveButton.setInstance(saveButton);
+            // Refresh scssWizards's styles every time new styles (page) is loaded to
+            // the preview iframe, or when undo|redo event happens
+            api.saveButton.getInstance().subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
+                if (ctx === 'initial' || isUndoOrRedo(ctx))
+                    scssWizard.replaceStylesState(bundle);
+            });
+        } }/>,
     editAppOuterEl
 );
 
@@ -65,10 +63,16 @@ preact.render(
 
 preact.render(
     [
-        <MainColumnViews rootEl={ rootEl }/>,
-        <FloatingDialog/>
+        <ContextMenu ref={ cmp => {
+            if (cmp && api.contextMenu.initialized === false) api.contextMenu = cmp;
+        } }/>,
+        <div id="view">
+            <MainColumnViews rootEl={ rootEl }/>
+            <FloatingDialog/>
+        </div>,
+        <Toaster id="editAppMain"/>
     ],
-    document.getElementById('view')
+    document.getElementById('view-and-context-menu-layer')
 );
 
 function configureApis() {

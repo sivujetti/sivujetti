@@ -1,6 +1,6 @@
 import {
     __,
-    ContextMenu,
+    api,
     env,
     http,
     Icon,
@@ -16,13 +16,11 @@ const pageTypeNamePages = 'Pages';
  * #/pages.
  */
 class PagesListView extends preact.Component {
-    // contextMenu;
     // infoOfPageWithNavOpened;
     /**
      */
     constructor(props) {
         super(props);
-        this.contextMenu = preact.createRef();
         this.infoOfPageWithNavOpened = null;
         this.state = {pages: undefined};
     }
@@ -63,16 +61,6 @@ class PagesListView extends preact.Component {
                     </a>
                 </li>
             ) : <li>{ __('No pages') }</li> }</ul> : <LoadingSpinner/> }
-            <ContextMenu
-                links={ [
-                    {text: __('Edit'), title: __('Edit page'), id: 'edit'},
-                    {text: __('Duplicate'), title: __('Duplicate page'), id: 'duplicate'},
-                    {text: __('Delete'), title: __('Delete page'), id: 'delete'},
-                ] }
-                onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
-                onMenuClosed={ () => { this.infoOfPageWithNavOpened = null; } }
-                position="right"
-                ref={ this.contextMenu }/>
         </OverlayView>;
     }
     /**
@@ -83,9 +71,27 @@ class PagesListView extends preact.Component {
      */
     openMoreMenu(pageSlug, pageTitle, e) {
         this.infoOfPageWithNavOpened = {pageSlug, pageTitle, pageTypeName: pageTypeNamePages};
-        this.contextMenu.current.open(e, links =>
-            pageSlug !== '/' ? links : links.filter(({id}) => id !== 'delete')
-        );
+        api.contextMenu.open(e, this.createContextMenuController(pageSlug));
+    }
+    /**
+     * @param {String} pageSlug
+     * @returns {ContextMenuController}
+     * @access private
+     */
+    createContextMenuController(pageSlug) {
+        return {
+            getLinks: () => {
+                const links = [
+                    {text: __('Edit'), title: __('Edit page'), id: 'edit'},
+                    {text: __('Duplicate'), title: __('Duplicate page'), id: 'duplicate'},
+                    {text: __('Delete'), title: __('Delete page'), id: 'delete'},
+                ];
+                return pageSlug !== '/' ? links : links.filter(({id}) => id !== 'delete');
+            },
+            onItemClicked: this.handleContextMenuLinkClicked.bind(this),
+            onMenuClosed: () => { this.infoOfPageWithNavOpened = null; },
+            placement: 'right',
+        };
     }
     /**
      * @param {ContextMenuLink} link

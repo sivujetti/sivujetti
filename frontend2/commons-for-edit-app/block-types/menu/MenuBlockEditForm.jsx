@@ -1,14 +1,12 @@
 import {env} from '@sivujetti-commons-for-web-pages';
 import {__, api} from '../../edit-app-singletons.js';
 import {Icon} from '../../Icon.jsx';
-import ContextMenu from '../../ContextMenu.jsx';
 import EditItemPanel from './EditItemPanel.jsx';
 import {objectUtils} from '../../utils.js';
 
 class MenuBlockEditForm extends preact.Component {
     // linkCreator;
     // outerEl;
-    // contextMenu;
     // currentBlockIdInfo;
     /**
      * @access protected
@@ -16,7 +14,6 @@ class MenuBlockEditForm extends preact.Component {
     componentDidMount() {
         this.linkCreator = new CountingLinkItemFactory();
         this.outerEl = preact.createRef();
-        this.contextMenu = preact.createRef();
         const {block} = this.props;
         const pageSlug = api.saveButton.getInstance().getChannelState('currentPageData').slug;
         const trid = 'main'; // getIsStoredToTreeIdFrom(block.id, 'mainTree');
@@ -67,15 +64,6 @@ class MenuBlockEditForm extends preact.Component {
                     <Icon iconId="plus" className="size-xs mr-1"/> { __('Add link') }
                 </button>
             </div>
-            <ContextMenu
-                links={ [
-                    {text: __('Edit'), title: __('Edit link'), id: 'edit'},
-                    {text: __('Duplicate'), title: __('Duplicate link'), id: 'duplicate'},
-                    {text: __('Delete'), title: __('Delete link'), id: 'delete'},
-                ] }
-                onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
-                onMenuClosed={ () => this.setState({linkWithNavOpened: null}) }
-                ref={ this.contextMenu }/>
             <EditItemPanel
                 link={ editPanelState.link }
                 cssClass={ editPanelState.rightClass }
@@ -100,7 +88,15 @@ class MenuBlockEditForm extends preact.Component {
      */
     openMoreMenu(item, e) {
         this.setState({linkWithNavOpened: item});
-        this.contextMenu.current.open(e);
+        api.contextMenu.open(e, {
+            getLinks: () => [
+                {text: __('Edit'), title: __('Edit link'), id: 'edit'},
+                {text: __('Duplicate'), title: __('Duplicate link'), id: 'duplicate'},
+                {text: __('Delete'), title: __('Delete link'), id: 'delete'},
+            ],
+            onItemClicked: this.handleContextMenuLinkClicked.bind(this),
+            onMenuClosed: () => this.setState({linkWithNavOpened: null}),
+        });
     }
     /**
      * @param {ContextMenuLink} link

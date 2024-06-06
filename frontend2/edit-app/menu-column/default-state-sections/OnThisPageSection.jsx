@@ -2,7 +2,6 @@ import {
     __,
     api,
     blockTreeUtils,
-    ContextMenu,
     env,
     events,
     Icon,
@@ -27,7 +26,6 @@ class OnThisPageSection extends MenuSectionAbstract {
         super(Object.assign(props, {initiallyIsCollapsed: props.initiallyIsCollapsed === true}));
         this.blockTreeRef = preact.createRef();
         this.moreMenuIcon = preact.createRef();
-        this.moreMenu = preact.createRef();
     }
     /**
      * @access protected
@@ -143,15 +141,6 @@ class OnThisPageSection extends MenuSectionAbstract {
                 blocks={ loadedPageBlocks }
                 containingView={ containingView }
                 ref={ this.blockTreeRef }/>
-            { containingView === 'Default' ? <ContextMenu
-                links={ [
-                    {text: __('Duplicate this page'), title: __('Duplicate page'), id: 'duplicate'},
-                    {text: __('Delete this page'), title: __('Delete page'), id: 'delete'},
-                    {text: __('Show without edit mode'), title: __('Show without edit mode'), id: 'show-without-edit-mode'},
-                ] }
-                onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
-                onMenuClosed={ () => { this.slugOfPageWithNavOpened = null; } }
-                ref={ this.moreMenu }/> : null }
         </section>;
     }
     /**
@@ -180,7 +169,7 @@ class OnThisPageSection extends MenuSectionAbstract {
     handleMainButtonClicked(e)  {
         if (this.mouseFocusIsAt === 'moreMenuIcon' ||
             e.target.tagName === 'I' ||
-            (this.moreMenu.current && this.moreMenuIcon.current.contains(e.target)))
+            this.moreMenuIcon?.current?.contains(e.target))
             this.openMoreMenu(this.props.currentPageSlug, e);
         else
             this.setState({isCollapsed: !this.state.isCollapsed});
@@ -192,9 +181,26 @@ class OnThisPageSection extends MenuSectionAbstract {
      */
     openMoreMenu(pageSlug, e) {
         this.slugOfPageWithNavOpened = pageSlug;
-        this.moreMenu.current.open(e, links =>
-            pageSlug !== '/' ? links : links.filter(({id}) => id !== 'delete')
-        );
+        api.contextMenu.open(e, this.createContextMenuController(pageSlug));
+    }
+    /**
+     * @param {String} pageSlug
+     * @returns {ContextMenuController}
+     * @access private
+     */
+    createContextMenuController(pageSlug) {
+        return {
+            getLinks: () => {
+                const links = [
+                    {text: __('Duplicate this page'), title: __('Duplicate page'), id: 'duplicate'},
+                    {text: __('Delete this page'), title: __('Delete page'), id: 'delete'},
+                    {text: __('Show without edit mode'), title: __('Show without edit mode'), id: 'show-without-edit-mode'},
+                ];
+                return pageSlug !== '/' ? links : links.filter(({id}) => id !== 'delete');
+            },
+            onItemClicked: this.handleContextMenuLinkClicked.bind(this),
+            onMenuClosed: () => { this.slugOfPageWithNavOpened = null; },
+        };
     }
     /**
      * @param {ContextMenuLink} link

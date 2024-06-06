@@ -288,6 +288,13 @@ interface Env {
     document: Document;
 }
 
+interface ContextMenuController {
+    getLinks(): Array<ContextMenuLink>;
+    onItemClicked(item: ContextMenuLink): void;
+    onMenuClosed(): void;
+    placement?: 'right';
+}
+
 interface ContextMenuLink {
     text: String;
     title: String;

@@ -4,7 +4,6 @@ can be imported by custom plugins (and the edit app).
 */
 import {env, http, urlUtils} from '@sivujetti-commons-for-web-pages';
 import setFocusTo from './auto-focusers.js';
-import ContextMenu from './ContextMenu.jsx';
 import FileUploader from './FileUploader.jsx';
 import {FloatingDialog, currentInstance as floatingDialog} from './FloatingDialog.jsx';
 import {MenuSection, MenuSectionAbstract} from './MenuSection.jsx';
@@ -69,7 +68,6 @@ export {
     blockTreeUtils,
     BlockVisualStylesEditForm,
     ColorPickerInput,
-    ContextMenu,
     createBlockTreeClearStyleGroupOpArgs,
     createCssDeclExtractor,
     createPaddingVarDefs,

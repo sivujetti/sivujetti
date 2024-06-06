@@ -380,6 +380,7 @@ h2 {
 #edit-app {
     height: 100%;
     background-color: var(--color-bg-default);
+    z-index: 1;
 }
 #edit-app > main {
     height: 100%;
@@ -431,7 +432,7 @@ h2 {
 }
 .resize-panel-handle {
     position: fixed;
-    z-index: 1;
+    z-index: 2;
     left: 0;
 }
 #edit-app .resize-panel-handle {
@@ -506,7 +507,7 @@ h2 {
     position: fixed;
     left: 1rem;
     bottom: 1rem;
-    z-index: 101;
+    z-index: 4;
     cursor: pointer;
     line-height: 1rem;
     background: transparent;
@@ -552,7 +553,7 @@ p.info-box, .toaster-message {
 /* EditApp: Components: popup-menu */
 ul.popup-menu.menu {
     position: fixed;
-    z-index: 2;
+    z-index: 3;
 }
 a.popup-close-area {
     position: fixed;
@@ -560,7 +561,7 @@ a.popup-close-area {
     height: 100%;
     top: 0;
     left: 0;
-    z-index: 2;
+    z-index: 3;
 }
 @keyframes reveal-anim {
     from { }

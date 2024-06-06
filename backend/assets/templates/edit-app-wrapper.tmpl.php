@@ -206,8 +206,8 @@
         <div id="root" class="one-column-layout">
             <div id="edit-app"></div>
             <div id="inspector-panel"></div>
-            <div id="view"></div>
             <div id="webpage-preview-app"></div>
+            <div id="view-and-context-menu-layer"></div>
             <span class="highlight-rect" data-label-position="top-outside" data-title></span>
             <span class="highlight-rect sub-rect" data-label-position="top-outside" data-title></span>
             <?php if ($isFirstRun && defined("showQuickIntro")): ?>

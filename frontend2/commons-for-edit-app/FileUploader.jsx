@@ -1,6 +1,5 @@
 import {env, http, urlUtils} from '@sivujetti-commons-for-web-pages';
-import {__} from './edit-app-singletons.js';
-import ContextMenu from './ContextMenu.jsx';
+import {__, api} from './edit-app-singletons.js'; // ctrl + f edit-app-singletons.js'
 import UploadButton from './UploadButton.jsx';
 import {placeholderImageSrc} from '../shared-inline.js';
 import {Icon} from './Icon.jsx';
@@ -19,7 +18,6 @@ class FileUploader extends preact.Component {
     // initialTabIdx;
     // dropAreaEl;
     // uploadButton;
-    // contextMenu;
     /**
      * @param {{onEntryClicked?: (entry: UploadsEntry) => void; mode?: 'pick'; showInitially?: 'images'|'files'; onlyImages?: Boolean; numColumns?: Number; hideUploadButton?: Boolean;}} props
      */
@@ -27,7 +25,6 @@ class FileUploader extends preact.Component {
         super(props);
         this.dropAreaEl = preact.createRef();
         this.uploadButton = preact.createRef();
-        this.contextMenu = preact.createRef();
     }
     /**
      * @access protected
@@ -163,16 +160,6 @@ class FileUploader extends preact.Component {
                 </div>
             : <LoadingSpinner className="mt-2"/> }</div>
         </div>,
-        !onlyImages
-            ? <ContextMenu
-                links={ [
-                    {text: __('Edit'), title: __('Edit item'), id: 'edit'},
-                    {text: __('Delete'), title: __('Delete item'), id: 'delete'},
-                ] }
-                onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
-                onMenuClosed={ () => this.setState({entryWithNavOpened: null}) }
-                ref={ this.contextMenu }/>
-            : null
         ];
     }
     /**
@@ -281,7 +268,14 @@ class FileUploader extends preact.Component {
      */
     openMoreMenu(f, e) {
         this.setState({entryWithNavOpened: f});
-        this.contextMenu.current.open(e);
+        api.contextMenu.open(e, {
+            getLinks: () => [
+                {text: __('Edit'), title: __('Edit item'), id: 'edit'},
+                {text: __('Delete'), title: __('Delete item'), id: 'delete'},
+            ],
+            onItemClicked: this.handleContextMenuLinkClicked.bind(this),
+            onMenuClosed: () => this.setState({entryWithNavOpened: null}),
+        });
     }
     /**
      * @param {ContextMenuLink} link

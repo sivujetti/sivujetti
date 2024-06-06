@@ -2,7 +2,6 @@ import {
     __,
     api,
     blockTreeUtils,
-    ContextMenu,
     events,
     floatingDialog,
     generatePushID,
@@ -51,7 +50,6 @@ class BlockTree extends preact.Component {
      */
     componentWillMount() {
         this.unregistrables = [];
-        this.moreMenu = preact.createRef();
         this.dragDrop = new TreeDragDrop(createDndController(api.saveButton.getInstance()));
         this.onDragStart = this.dragDrop.handleDragStarted.bind(this.dragDrop);
         this.onDrag = this.dragDrop.handleDrag.bind(this.dragDrop);
@@ -114,18 +112,6 @@ class BlockTree extends preact.Component {
                 }</ul>
                 : <LoadingSpinner className="ml-2 pl-2 pb-2"/>
             }
-            <ContextMenu
-                links={ [
-                    {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
-                    {text: __('Duplicate'), title: `${__('Duplicate content')} (${__('no styles')})`, id: 'duplicate-block'},
-                    {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
-                ].concat(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees')
-                    ? [{text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}]
-                    : []
-                ) }
-                onItemClicked={ this.handleContextMenuLinkClicked.bind(this) }
-                onMenuClosed={ this.onContextMenuClosed.bind(this) }
-                ref={ this.moreMenu }/>
         </div>;
     }
     /**
@@ -484,10 +470,30 @@ class BlockTree extends preact.Component {
         this.openedBlockDetails = e.target.closest('li');
         this.refElOfOpenMoreMenu = e.target;
         this.refElOfOpenMoreMenu.style.opacity = '1';
-        this.moreMenu.current.open(e, links => {
-            const notThese = blockIsGbtsOutermostBlock ? ['duplicate-block'] : [];
-            return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
-        });
+        api.contextMenu.open(e, this.createContextMenuController(blockIsGbtsOutermostBlock));
+    }
+    /**
+     * @param {Boolean} blockIsGbtsOutermostBlock
+     * @returns {ContextMenuController}
+     * @access private
+     */
+    createContextMenuController(blockIsGbtsOutermostBlock) {
+        return {
+            getLinks: () => {
+                const links = [
+                    {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
+                    {text: __('Duplicate'), title: `${__('Duplicate content')} (${__('no styles')})`, id: 'duplicate-block'},
+                    {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
+                ].concat(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees')
+                    ? [{text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}]
+                    : []
+                );
+                const notThese = blockIsGbtsOutermostBlock ? ['duplicate-block'] : [];
+                return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
+            },
+            onItemClicked: this.handleContextMenuLinkClicked.bind(this),
+            onMenuClosed: this.onContextMenuClosed.bind(this),
+        };
     }
     /**
      * @param {Block} block

@@ -81,7 +81,8 @@ class PageCreateState extends preact.Component {
             <main style="--header-height: 116px">
                 <DnDBlockSpawner initiallyIsOpen ref={ this.blockSpawner }/>
                 <div id="edit-app-sections-wrapper">
-                    <OnThisPageSection currentPageSlug={ url }
+                    <OnThisPageSection
+                        currentPageSlug="/pages/create"
                         ref={ cmp => {
                             if (cmp && !this.isMainDndInited) {
                                 this.isMainDndInited = 1;

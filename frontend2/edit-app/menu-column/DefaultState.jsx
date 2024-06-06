@@ -20,6 +20,9 @@ class DefaultState extends preact.Component {
         this.setState({
             userDefinedSections: getRegisteredMainPanelSectionNames(),
         });
+        this.unregisterSignalListener = events.on('edit-app-plugins-loaded', () => {
+            this.setState({userDefinedSections: getRegisteredMainPanelSectionNames()});
+        });
     }
     /**
      * @access protected
@@ -28,6 +31,7 @@ class DefaultState extends preact.Component {
         this.unregisterSignalListener();
     }
     /**
+     * @param {{url: String; path: '/:slug*'; [other: String]: any;}} _
      * @access protected
      */
     render(_, {userDefinedSections}) {
@@ -72,7 +76,7 @@ class DefaultState extends preact.Component {
  * @returns {Array<String>}
  */
 function getRegisteredMainPanelSectionNames() {
-    return Array.from(api.menuPanel.getSections().keys());
+    return [...api.menuPanel.getSections().keys()];
 }
 
 export default DefaultState;

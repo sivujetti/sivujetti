@@ -9,6 +9,7 @@ import {
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
 import {openPageDeleteDialog} from '../../main-column/popups/PageDeleteDialog.jsx';
+import {isMainColumnViewUrl} from '../../main-column/MainColumnViews.jsx';
 import BlockTree from '../block/BlockTree.jsx';
 
 class OnThisPageSection extends MenuSectionAbstract {
@@ -47,7 +48,6 @@ class OnThisPageSection extends MenuSectionAbstract {
                 (blockId) => {
                     if (!blockId) return;
                     const [block] = blockTreeUtils.findBlockMultiTree(blockId, this.state.loadedPageBlocks);
-                    // rodo tämä palauttaa null, jos BlockTree on sisäisesti lisännyt uusia lohkoja -> emittoi uudet lohkot this.loadedPagesLbocks (ja sitten gräbbää ne BlockTeee:n receivepropsissa), jolloin myös blockTreen state.blocks -> props.blocks
                     this.focusToBlockAndEmitBlockTreeClick(block, 'web-page', () => { });
                 }
             ),
@@ -62,6 +62,10 @@ class OnThisPageSection extends MenuSectionAbstract {
      * @access protected
      */
     componentWillReceiveProps(props) {
+        if (isMainColumnViewUrl(props.currentPageSlug)) {
+            this.setState(createPartialState(props.currentPageSlug));
+            return;
+        }
         if (props.currentPageSlug !== this.props.currentPageSlug) {
             // Start waiting for new data from the iframe
             this.doUnregisterPageDataGrabber();
@@ -242,39 +246,34 @@ class OnThisPageSection extends MenuSectionAbstract {
 }
 
 /**
- * @param {String|null} loadedSlug
+ * @param {String|null} currentPageSlug
  * @access private
  */
-function createPartialState(loadedSlug) {
-    const slug = loadedSlug || '/';
-    const containingView = determineViewNameFrom(slug);
+function createPartialState(currentPageSlug) {
+    if (isMainColumnViewUrl(currentPageSlug)) {
+        return {title: __('On this page'), subtitle: ['-', null], containingView: 'Default'};
+    }
+    const containingView = {
+        '/pages/create': 'CreatePage',
+        '/page-types/create': 'CreatePageType',
+    }[currentPageSlug] || 'Default';
     return {
         title: __(containingView !== 'CreatePageType' ? 'On this page' : 'Default content'),
-        subtitle: getSubtitle(slug, containingView),
+        subtitle: createSubtitle(currentPageSlug, containingView),
         containingView,
     };
 }
 
 /**
  * @param {String} slug
- * @returns {leftPanelName}
- */
-function determineViewNameFrom(slug) {
-    if (slug.startsWith(':pseudo/'))
-        return !slug.endsWith('/new-page-type') ? 'CreatePage' : 'CreatePageType';
-    return 'Default';
-}
-
-/**
- * @param {String} slug
+ * @param {'Default'|'CreatePage'|'CreatePageType'} containingView
  * @returns {[String, preact.VNode|null]}
  */
-function getSubtitle(slug, containingView) {
+function createSubtitle(slug, containingView) {
     if (containingView === 'Default') {
         const [a, b] = __('Content of page %s', '|').split('|'); // ['Content of page ', ''] or ['', ' -sivun sisältö']
         return a === '' ? [<b>{ slug }</b>, b] : [a, <b>{ slug }</b>];
     }
-    //
     return [__(containingView === 'CreatePage' ? 'New page content' : 'Uuden sivutyypin oletussisältö'), null];
 }
 

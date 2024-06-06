@@ -16,6 +16,7 @@ import createDndController, {callGetBlockPropChangesEvent} from '../../includes/
 import TreeDragDrop from '../../includes/TreeDragDrop.js';
 import BlockSaveAsReusableDialog from '../../main-column/popups/BlockSaveAsReusableDialog.jsx';
 import BlockTreeShowHelpPopup from '../../main-column/popups/BlockTreeShowHelpPopup.jsx';
+import {historyInstance} from '../../main-column/MainColumnViews.jsx';
 import {
     blockToBlueprint,
     clearHighlight,
@@ -45,6 +46,7 @@ class BlockTree extends preact.Component {
     // onDragEnd;
     // currentlyHoveredLi;
     // mouseDownHoverClearerHookedUp;
+    // curUrl;
     /**
      * @access protected
      */
@@ -67,8 +69,15 @@ class BlockTree extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.blocks !== this.props.blocks)
-            this.setState(createPartialState(props.blocks, this.state));
+        if (props.blocks !== this.props.blocks) {
+            const {pathname} = historyInstance.getCurrentLocation();
+            if (!this.curUrl) this.curUrl = pathname;
+            //
+            const prevState = pathname === this.curUrl ? this.state : {};
+            //
+            this.setState(createPartialState(props.blocks, prevState));
+            this.curUrl = pathname;
+        }
     }
     /**
      * @access protected

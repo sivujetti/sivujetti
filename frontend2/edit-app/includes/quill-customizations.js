@@ -357,7 +357,9 @@ function addOrReplaceHrefAttrsPatch(linkEl) {
 
 const Parchment = Quill.import('parchment');
 const IdAttributor = new Parchment.Attributor('id-anchor', 'id', {
-    scope: Parchment.Scope.BLOCK
+    scope: !window.sivujettiUserFlags?.useInlineIdPickerScope
+        ? Parchment.Scope.BLOCK
+        : Parchment.Scope.INLINE_ATTRIBUTE
 });
 
 export default () => {

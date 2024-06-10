@@ -1,4 +1,4 @@
-const innerElScope = '>.j-Section2-cols';
+const innerElScope = '> .j-Section2-cols';
 
 /**
  * @param {[Array<ColumnConfig>|null, Array<ColumnConfig>|null, Array<ColumnConfig>|null, Array<ColumnConfig>|null, Array<ColumnConfig>|null]} screenColumnsSettings [<all>, <lg>, <md> etc.]

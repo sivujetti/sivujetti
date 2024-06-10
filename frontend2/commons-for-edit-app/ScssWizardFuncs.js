@@ -14,8 +14,7 @@ function createCssDeclExtractor(scss) {
          * @returns {StylisAstNode|null}
          */
         extractVal(prop, scope = rootScope) {
-            if (scope[0] === ' ' || scope[0].indexOf('> ') > -1)
-                throw new Error('Scope selctor must be normalized (no spaces)');
+            scope = scope.replace('&:', '&\f:');
             const [declNode, _parenNode] = findRecursively(ast, (node, parenNode) =>
                 parenNode &&
                 node.type === 'decl' &&
@@ -41,7 +40,7 @@ function stylesToBaked(styles, mediaScopeId) {
             return {...out, body: [...out.body, s]};
         if (scope.layer === 'user-styles' && (scope.block === 'single-block' || scope.block === 'class'))
             return {...out, user: [...out.user, s]};
-        if (scope.layer === 'dev-styles' && (scope.block === 'single-block' || scope.block === 'class'))
+        if (scope.layer === 'dev-styles')
             return {...out, dev: [...out.dev, s]};
         return out;
     }, {body: [], user: [], dev: []});
@@ -291,10 +290,87 @@ function addOrUpdateCodeTo(scssTo, codeTemplate, val) {
     return lines.join('\n');
 }
 
+const EMPTY_LINE = '^::empty::^';
+
+/**
+ * @param {String} scssFrom
+ * @param {String} codeTemplate
+ * @param {any} val
+ * @returns {String}
+ */
+function deleteCodeFrom(scssFrom, codeTemplate, val) {
+    const incoming1 = Array.isArray(codeTemplate) ? codeTemplate.join('\n') : codeTemplate;
+    const incoming = incoming1.replace(/%s/g, val);
+    const decls = createScssInspectorInternal(incoming).findNodes((node, _parenNode) => {
+        return node.type === 'decl';
+    });
+
+    let inspector = createScssInspectorInternal(scssFrom);
+    let lines = scssFrom.split('\n');
+    decls.forEach(([fromDel, fromDelParen]) => {
+        // name of the decl we're deleting 'column-gap' for example
+        const declName = fromDel.props;
+
+        // find it from current scssFrom
+        const containingCssBlockSel = getSelectorForDecl(fromDelParen, inspector);
+        const [nodeToDelete, _toDeleteParen] = inspector.findNode((node, parenNode) =>
+            parenNode &&
+            (node.type === 'decl' && node.props === declName) &&
+            (parenNode.type === 'rule' && parenNode.value === containingCssBlockSel)
+        );
+        if (!nodeToDelete)
+            throw new Error(`Expected "${scssFrom}" to contain "${declName}"`);
+
+        // mark it as deleted
+        const deleteLineAt = nodeToDelete.line - 1;
+        lines[deleteLineAt] = EMPTY_LINE;
+    });
+
+    // ['.foo {', '^::empty::^', '}'] -> ['.foo {', '}']
+    const withoutEmptyLines = arr => arr.filter(line => line !== EMPTY_LINE);
+    lines = withoutEmptyLines(lines);
+
+    // ['.foo {', '}', ...] -> [...]
+    let emptyBlockCloseTagIdx = findEmptyBlockClosingTagIndex(lines);
+    while (emptyBlockCloseTagIdx > 0 && lines.length) {
+        lines[emptyBlockCloseTagIdx] = EMPTY_LINE;
+        lines[emptyBlockCloseTagIdx - 1] = EMPTY_LINE;
+        lines = withoutEmptyLines(lines);
+        emptyBlockCloseTagIdx = findEmptyBlockClosingTagIndex(lines);
+    }
+
+    // No rules left ( ['[data-block=\"u585XQVD\"] {', '}'] )
+    if (!lines.length)
+        return null;
+
+    return lines.join('\n');
+}
+
+/**
+ * @param {String} uniqChunkScss
+ * @returns {String}
+ */
+function extractBlockId(uniqChunkScss) {
+    return uniqChunkScss.split('data-block="')[1].split('"')[0];
+}
+
+/**
+ * @param {String} classChunkScss
+ * @returns {String}
+ */
+function extractStyleGroupId(classChunkScss) {
+    return classChunkScss.split('data-style-group="')[1].split('"')[0];
+}
+
 export {
     addOrUpdateCodeTo,
+    compile,
     createCssDeclExtractor,
     createScssBlock,
     createSelector,
+    deleteCodeFrom,
+    extractBlockId,
+    extractStyleGroupId,
+    indent,
     stylesToBaked,
 };

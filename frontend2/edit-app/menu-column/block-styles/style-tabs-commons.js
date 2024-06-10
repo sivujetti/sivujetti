@@ -40,8 +40,7 @@ function createTabsInfo(tabsConfig) {
 function createInitialTabKind(savedTabKind, tabsInfo) {
     initLocals();
     if (savedTabKind === 'dev-styles' && !userCanEditCss) {
-        const idx = getTabIdx(tabsInfo, savedTabKind);
-        return tabsInfo[idx - 1].kind;
+        return tabsInfo.at(-1);
     }
     if (tabsInfo[0].kind === 'content+user-styles' && (
         savedTabKind === 'user-styles' ||

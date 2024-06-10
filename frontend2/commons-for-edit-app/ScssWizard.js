@@ -3,10 +3,13 @@ import {
     addOrUpdateCodeTo,
     createScssBlock,
     createSelector,
+    deleteCodeFrom,
+    extractBlockId,
+    extractStyleGroupId,
+    indent,
     stylesToBaked,
 } from './ScssWizardFuncs.js';
 import {generatePushID} from './utils.js';
-
 
 class ScssWizard {
     // styles;
@@ -170,7 +173,11 @@ class ScssWizard {
 
         // Create scss that has $val updated, removed or added
         const classChunkScss = currentStyle.scss;
-        const scss1 = addOrUpdateCodeTo(classChunkScss, codeTemplate, val);
+        const scss1 = addOrUpdateOrDelete !== 'delete'
+            ? addOrUpdateCodeTo(classChunkScss, codeTemplate, val)
+            : deleteCodeFrom(classChunkScss, codeTemplate, val);
+        if (!scss1) // Was 'delete', and new chunk ended up empty
+            return null;
         const scss = scss1.replace(
             `data-style-group="${extractStyleGroupId(scss1)}"`,
             `data-block="${blockId}"`
@@ -200,7 +207,7 @@ class ScssWizard {
             const {media, layer} = scope;
             const blockId = extractBlockId(scss);
             const s = this.findStyle('single-block', blockId, media, layer, this.styles);
-            if (!s) throw new Error(`Unique style ${blockId}:${media}:${layer} already exist`);
+            if (!s) throw new Error(`Failed to locate unique style ${blockId}:${media}:${layer}`);
             styles.push(s);
             styleBlockIds.push(blockId);
             affectedMediaScopeIds[media] = 1;
@@ -275,8 +282,6 @@ class ScssWizard {
 
         return this.commitAll(optimized, affectedMediaScopeIds);
     }
-        return this.commitAll(updated, mediaScopeId);
-    }
     /**
      * @param {scssCodeInput} codeTemplate
      * @param {String} val
@@ -336,57 +341,17 @@ class ScssWizard {
      * @access private
      */
     deleteScssCodeFromExistingUniqueScopedChunk(codeTemplate, val, currentStyle) {
-        const EMPTY_LINE = '^::empty::^';
+
         return this.styles.map(s => {
             if (s !== currentStyle) return s;
 
-            const incoming1 = Array.isArray(codeTemplate) ? codeTemplate.join('\n') : codeTemplate;
-            const incoming = incoming1.replace(/%s/g, val);
-            const decls = createScssInspectorInternal(incoming).findNodes((node, _parenNode) => {
-                return node.type === 'decl';
-            });
-
-            let inspector = createScssInspectorInternal(s.scss);
-            let lines = s.scss.split('\n');
-            decls.forEach(([fromDel, fromDelParen]) => {
-                // name of the decl we're deleting 'column-gap' for example
-                const declName = fromDel.props;
-
-                // find it from current style.scss
-                const containingCssBlockSel = getSelectorForDecl(fromDelParen, inspector);
-                const [nodeToDelete, _toDeleteParen] = inspector.findNode((node, parenNode) =>
-                    parenNode &&
-                    (node.type === 'decl' && node.props === declName) &&
-                    (parenNode.type === 'rule' && parenNode.value === containingCssBlockSel)
-                );
-                if (!nodeToDelete)
-                    throw new Error(`Expected "${s.scss}" to contain "${declName}"`);
-
-                // mark it as deleted
-                const deleteLineAt = nodeToDelete.line - 1;
-                lines[deleteLineAt] = EMPTY_LINE;
-            });
-
-            // ['.foo {', '^::empty::^', '}'] -> ['.foo {', '}']
-            const withoutEmptyLines = arr => arr.filter(line => line !== EMPTY_LINE);
-            lines = withoutEmptyLines(lines);
-
-            // ['.foo {', '}', ...] -> [...]
-            let emptyBlockCloseTagIdx = findEmptyBlockClosingTagIndex(lines);
-            while (emptyBlockCloseTagIdx > 0 && lines.length) {
-                lines[emptyBlockCloseTagIdx] = EMPTY_LINE;
-                lines[emptyBlockCloseTagIdx - 1] = EMPTY_LINE;
-                lines = withoutEmptyLines(lines);
-                emptyBlockCloseTagIdx = findEmptyBlockClosingTagIndex(lines);
-            }
-
-            // No rules left ( ['[data-block=\"u585XQVD\"] {', '}'] )
-            if (!lines.length)
+            const newScss = deleteCodeFrom(s.scss, codeTemplate, val);
+            if (!newScss)
                 return null;
 
             return {
                 ...s,
-                scss: lines.join('\n')
+                scss: newScss,
             };
         }).filter(s => s !== null);
     }
@@ -397,7 +362,6 @@ class ScssWizard {
      * @access private
      */
     commitAll(newStylesArr, mediaScopeIdOrIds) {
-
         this.styles = newStylesArr;
 
         const mediaScopesToUpdate = typeof mediaScopeIdOrIds === 'string' ? {[mediaScopeIdOrIds]: 1} : mediaScopeIdOrIds;
@@ -411,7 +375,6 @@ class ScssWizard {
 
         this.stateId += 1;
 
-        //
         return {
             styleChunks: this.styles,
             cachedCompiledScreenSizesCss: this.cachedCompiledScreenSizesCss,
@@ -434,21 +397,6 @@ class ScssWizard {
             scss,
         };
     }
-
-/**
- * @param {String} uniqChunkScss
- * @returns {String}
- */
-function extractBlockId(uniqChunkScss) {
-    return uniqChunkScss.split('data-block="')[1].split('"')[0];
-}
-
-/**
- * @param {String} classChunkScss
- * @returns {String}
- */
-function extractStyleGroupId(classChunkScss) {
-    return classChunkScss.split('data-style-group="')[1].split('"')[0];
 }
 
 export default ScssWizard;

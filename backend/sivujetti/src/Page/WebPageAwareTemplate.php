@@ -59,6 +59,7 @@ final class WebPageAwareTemplate extends Template {
                 "hideFromSearchEngines" => $theWebsite->hideFromSearchEngines,
                 "blockTypes" => $apiCtx->blockTypes,
                 "devJsFiles" => $apiCtx->devJsFiles,
+                "blockRenderers" => $apiCtx->blockRenderers,
                 "dataForPreviewApp" => $dataForPreviewApp ?? null,
             ]
             : null;
@@ -226,6 +227,7 @@ final class WebPageAwareTemplate extends Template {
     private function __doRenderBlocks(array $blocks): array {
         $out = [];
         $blockTypes = $this->__internal["blockTypes"];
+        $blockRenderers = $this->__internal["blockRenderers"];
         foreach ($blocks as $block) {
             if ($block->type === Block::TYPE_PAGE_INFO)
                 continue;
@@ -235,7 +237,14 @@ final class WebPageAwareTemplate extends Template {
                 continue;
             }
             //
+            $impl = null;
             if ($block->renderer === "jsx") {
+                $impl = $blockTypes->{$block->type};
+            } else {
+                $entry = ArrayUtils::findByKey($blockRenderers, $block->renderer, "fileId");
+                $impl = $entry ? $entry["impl"] ?? null : null;
+            }
+            if ($impl) {
                 $createDefaultProps = fn($ownClasses = "") => [
                     ...[
                         "data-block" => $block->id,
@@ -249,7 +258,7 @@ final class WebPageAwareTemplate extends Template {
                     ] : [])
                 ];
                 $renderChildren = fn() => $block->children ? $this->__doRenderBlocks($block->children) : [""];
-                $out[] = $blockTypes->{$block->type}->render($block, $createDefaultProps, $renderChildren, $this);
+                $out[] = $impl->render($block, $createDefaultProps, $renderChildren, $this);
             } else {
                 $out[] = el("j-raw", [], $this->partial($block->renderer, $block));
             }

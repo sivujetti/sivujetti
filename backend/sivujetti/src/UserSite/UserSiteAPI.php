@@ -3,7 +3,7 @@
 namespace Sivujetti\UserSite;
 
 use Sivujetti\{BaseAPI, ValidationUtils};
-use Sivujetti\BlockType\BlockTypeInterface;
+use Sivujetti\BlockType\{BlockTypeInterface, JsxLikeRenderingBlockTypeInterface};
 use Pike\{PikeException, Validation};
 use Sivujetti\UserPlugin\UserPluginInterface;
 
@@ -60,12 +60,15 @@ class UserSiteAPI extends BaseAPI {
      * @param string $fileId "my-file", "site:my-file", "sivujetti:block-auto"
      * @param ?string $friendlyName = null "Default"
      * @param ?string $for = null "Pages", "Articles", "*"
+     * @param ?\Sivujetti\BlockType\JsxLikeRenderingBlockTypeInterface $impl = null
      */
     public function registerBlockRenderer(string $fileId,
                                           ?string $friendlyName = null,
-                                          ?string $for = null): void {
+                                          ?string $for = null,
+                                          ?JsxLikeRenderingBlockTypeInterface $impl = null): void {
         $this->apiCtx->blockRenderers[] = [
             "fileId" => str_contains($fileId, ":") ? $fileId : "site:{$fileId}",
+            "impl" => $impl,
             "friendlyName" => $friendlyName,
             "associatedWith" => $for
         ];

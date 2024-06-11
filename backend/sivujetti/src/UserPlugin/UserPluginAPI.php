@@ -3,7 +3,7 @@
 namespace Sivujetti\UserPlugin;
 
 use Pike\{PikeException, Router};
-use Sivujetti\BlockType\BlockTypeInterface;
+use Sivujetti\BlockType\{BlockTypeInterface, JsxLikeRenderingBlockTypeInterface};
 use Sivujetti\SharedAPIContext;
 use Sivujetti\UserSite\UserSiteAPI;
 
@@ -69,13 +69,14 @@ final class UserPluginAPI extends UserSiteAPI {
      */
     public function registerBlockRenderer(string $fileId,
                                           ?string $friendlyName = null,
-                                          ?string $for = null): void {
+                                          ?string $for = null,
+                                          ?JsxLikeRenderingBlockTypeInterface $impl = null): void {
         $expected = "plugins/{$this->namespace}:";
         if (!str_starts_with($fileId, $expected))
             throw new PikeException("Expected file path part of fileId (`{$fileId}`)" .
                                     " to start with `{$expected}`",
                                     PikeException::BAD_INPUT);
-        parent::registerBlockRenderer($fileId, $friendlyName, $for);
+        parent::registerBlockRenderer($fileId, $friendlyName, $for, $impl);
     }
     /**
      * Registers a http route and its controller. Example:

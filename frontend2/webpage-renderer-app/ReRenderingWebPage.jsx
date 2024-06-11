@@ -74,7 +74,7 @@ class RenderAll extends preact.Component {
                     hashes={ this.currentBlocksHashes }
                     key={ this.currentBlocksHashes[block.id] }/>;
             }
-            const {type, styleClasses, styleGroup} = block;
+            const {type, styleClasses, styleGroup, renderer} = block;
             const renderChildren = () => block.children.length
                 ? <RenderAll blocks={ block.children } depth={ depth + 1 } hashes={ this.currentBlocksHashes }/>
                 : null;
@@ -88,8 +88,13 @@ class RenderAll extends preact.Component {
                     'data-style-group': styleGroup,
                 } : {})
             });
-            const Renderer = builtInRenderers[type] || customRenderers.get(type) || null;
-            if (!Renderer) return <p>{ `Block type \`${type}\` doesn't have a renderer!` }</p>;
+            const Renderer = renderer === 'jsx' || type === 'Listing'
+                ? (builtInRenderers[type] || customRenderers.get(type))
+                : customRenderers.get(renderer);
+            if (!Renderer) return <p>{ renderer === 'jsx'
+                ? `Block type \`${type}\` doesn't have a renderer!`
+                : `Renderer "${renderer || 'none provided'}" does not exist`
+            }</p>;
             return <Renderer
                 block={ block }
                 createDefaultProps={ createDefaultProps }

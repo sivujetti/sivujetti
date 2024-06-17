@@ -20,6 +20,7 @@ class WebPagePreviewApp extends preact.Component {
     // currentlyLoadedUrl;
     // messageChannel;
     // highlightRectEls;
+    // urlFromRouter;
     /**
      * @returns {HTMLIFrameElement}
      * @access public
@@ -181,7 +182,7 @@ class WebPagePreviewApp extends preact.Component {
         // Start listening url changes, load new urls as they come
         historyInstance.listen(path => {
             const newUrl = getFullUrl(path);
-            if (this.state.url !== newUrl)
+            if (!isMainColumnViewUrl(newUrl) && this.urlFromRouter !== newUrl)
                 this.setOrReplacePreviewIframeUrl(newUrl);
         });
 
@@ -270,6 +271,8 @@ class WebPagePreviewApp extends preact.Component {
      * @access private
      */
     setOrReplacePreviewIframeUrl(urlFromRouter) {
+        this.urlFromRouter = urlFromRouter;
+
         const url = createUrlForIframe(urlFromRouter);
         if (!url) return;
 

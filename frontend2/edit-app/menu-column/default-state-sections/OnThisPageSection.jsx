@@ -15,7 +15,6 @@ import BlockTree from '../block/BlockTree.jsx';
 class OnThisPageSection extends MenuSectionAbstract {
     // blockTreeRef; // public
     // unregistrables;
-    // unregisterPageDataGrabber;
     // moreMenuIcon;
     // moreMenu;
     // mouseFocusIsAt;
@@ -32,18 +31,19 @@ class OnThisPageSection extends MenuSectionAbstract {
      * @access protected
      */
     componentWillMount() {
-        // Start waiting for the initial data from the iframe
-        this.startInitialPageDataGrabListener();
-
-        // Start listening subsequent theBlockTree's changes
-        const subsequentChangesListener = api.saveButton.getInstance().subscribeToChannel('theBlockTree',
-            (theTree, _userCtx, ctx) => {
-                if (ctx === 'initial') return;
-                this.setState({loadedPageBlocks: theTree});
-            });
-
         this.unregistrables = [
-            subsequentChangesListener,
+            api.saveButton.getInstance().subscribeToChannel('theBlockTree',
+            (theTree, _userCtx, _ctx) => {
+                const latest = this.props.currentPageSlug;
+                const loaded = this.state.loadedBlocksPageUrl;
+                this.setState({
+                    loadedPageBlocks: theTree,
+                    loadedBlocksPageUrl: latest,
+                    ...(loaded === null || (!isMainColumnViewUrl(latest) && loaded !== latest))
+                        ? createTitlesState(latest)
+                        : {}
+                });
+            }),
             events.on('web-page-click-received',
                 (blockId) => {
                     if (!blockId) return;
@@ -56,23 +56,11 @@ class OnThisPageSection extends MenuSectionAbstract {
                     this.blockTreeRef.current.deSelectAllBlocks();
             })
         ];
-        this.setState({loadedPageBlocks: null, ...createPartialState(this.props.currentPageSlug)});
-    }
-    /**
-     * @access protected
-     */
-    componentWillReceiveProps(props) {
-        if (isMainColumnViewUrl(props.currentPageSlug)) {
-            this.setState(createPartialState(props.currentPageSlug));
-            return;
-        }
-        if (props.currentPageSlug !== this.props.currentPageSlug) {
-            // Start waiting for new data from the iframe
-            this.doUnregisterPageDataGrabber();
-            this.startInitialPageDataGrabListener();
-            // Update titles
-            this.setState(createPartialState(props.currentPageSlug));
-        }
+        this.setState({
+            loadedPageBlocks: null,
+            loadedBlocksPageUrl: null,
+            ...createTitlesState(this.props.currentPageSlug)
+        });
     }
     /**
      * @access protected
@@ -108,7 +96,6 @@ class OnThisPageSection extends MenuSectionAbstract {
      * @access protected
      */
     componentWillUnmount() {
-        this.doUnregisterPageDataGrabber();
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
@@ -146,25 +133,6 @@ class OnThisPageSection extends MenuSectionAbstract {
                 containingView={ containingView }
                 ref={ this.blockTreeRef }/>
         </section>;
-    }
-    /**
-     * @access private
-     */
-    startInitialPageDataGrabListener() {
-        this.unregisterPageDataGrabber = events.on('webpage-preview-iframe-loaded', () => {
-            const theTree = api.saveButton.getInstance().getChannelState('theBlockTree');
-            this.doUnregisterPageDataGrabber(); // unregister
-            this.setState({loadedPageBlocks: theTree});
-        });
-    }
-    /**
-     * @access private
-     */
-    doUnregisterPageDataGrabber() {
-        if (this.unregisterPageDataGrabber) {
-            this.unregisterPageDataGrabber();
-            this.unregisterPageDataGrabber = null;
-        }
     }
     /**
      * @param {Event} e
@@ -249,7 +217,7 @@ class OnThisPageSection extends MenuSectionAbstract {
  * @param {String|null} currentPageSlug
  * @access private
  */
-function createPartialState(currentPageSlug) {
+function createTitlesState(currentPageSlug) {
     if (isMainColumnViewUrl(currentPageSlug)) {
         return {title: __('On this page'), subtitle: ['-', null], containingView: 'Default'};
     }

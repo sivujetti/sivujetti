@@ -129,7 +129,6 @@ class RenderAllOuter extends RenderAll {
      * @access protected
      */
     componentDidMount() {
-        super.componentWillMount();
         this.baseUrl = urlUtils.baseUrl;
         this.isLocalLink = createIsLocalLinkCheckFn();
     }

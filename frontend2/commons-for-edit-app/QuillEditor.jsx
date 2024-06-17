@@ -18,13 +18,8 @@ const toolbarBundles = {
         ['clean'],
     ],
     longText: [
-        [headingToobarItem, ...common, ...['link', 'id-anchor']],  [{'size': ['small', false, 'large', 'huge'] }],
-        [
-            'blockquote',
-            {'list': 'ordered'},
-            {'list': 'bullet'},
-            {'misc-style': [false, 'style-1', 'style-2', 'style-3']}
-        ],
+        [headingToobarItem, ...common, ...['link', 'id-anchor']],
+        ['blockquote', {'list': 'ordered'}, {'list': 'bullet'}],
         ['clean'],
     ],
     full: [

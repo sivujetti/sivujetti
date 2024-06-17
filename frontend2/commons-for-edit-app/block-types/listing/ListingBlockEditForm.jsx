@@ -169,7 +169,7 @@ class ListingBlockEditForm extends preact.Component {
                 </div>
             ] }
 
-            { howManyType !== 'single' && howManyAmount > 0 ? [
+            { howManyType === 'all' || (howManyType !== 'single' && howManyAmount > 0) ? [
             <span class="group-3 ml-1 px-2 no-round-right"> { __(`ordered by${howManyAmount > 1 ? '' : '#singular'}`) } </span>,
             <div class="group-3 no-round-left">
                 <button

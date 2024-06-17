@@ -99,7 +99,7 @@ class EditApp extends preact.Component {
                         <span class="d-block">Sivujetti</span>
                         <select value={ this.changeViewOptions[!hidePanels ? 0 : 1].name } onChange={ e => {
                             if (e.target.value === this.changeViewOptions[1].name) {
-                                this.handlePanelsAreHiddenChanged(true);
+                                alert('This feature is currently disabled.');
                             } else if (e.target.value === this.changeViewOptions.at(-1).name)
                                 this.logUserOut();
                             else if (e.target.value === (this.changeViewOptions[2] || {}).name)

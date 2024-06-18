@@ -7,6 +7,7 @@ import {
     makeSlug,
     objectUtils,
     scssWizard,
+    traverseRecursively,
 } from '@sivujetti-commons-for-edit-app';
 import {treeToTransferable} from '../../includes/block/utils.js';
 import {createTrier, pathToFullSlug} from '../../includes/utils.js';
@@ -18,7 +19,7 @@ import globalData from '../../includes/globalData.js';
 const STATUS_PUBLISHED = 0;
 
 /**
- * Main column state for #/pages/create/:pageTypeName?/:layoutId?[?addToMenu='menuBlockId:menuBlockIsStoredToTreeId:pageSlug'].
+ * Menu column state for #/pages/create/:pageTypeName?/:layoutId?[?addToMenu='menuBlockId:menuBlockIsStoredToTreeId:pageSlug'].
  */
 class PageCreateState extends preact.Component {
     // unregistrables;
@@ -117,13 +118,17 @@ function createNewCurrentPageData(isDuplicated) {
     const placeholderPage = saveButton.getChannelState('currentPageData');
     const title = __(placeholderPage.title) + (!isDuplicated ? '' : ` (${__('Copy')})`);
     const slug = makeSlug(title);
+    const blocks = treeToTransferable(saveButton.getChannelState('theBlockTree'));
+    if (isDuplicated) traverseRecursively(blocks, bRef => {
+        bRef.id = generatePushID(true);
+    });
     return objectUtils.cloneDeep({
         ...placeholderPage,
         id: generatePushID(),
         title,
         slug,
         path: makePath(slug, api.getPageTypes().find(({name}) => name === placeholderPage.type)),
-        blocks: treeToTransferable(saveButton.getChannelState('theBlockTree')),
+        blocks,
         status: STATUS_PUBLISHED,
     });
 }

@@ -238,12 +238,12 @@ class SaveButton extends preact.Component {
                 const handler = this.channelImpls[top.channelName];
                 handler.syncToBackend(top, queue).then(doProceed => {
                     const hadRecoverableException = doProceed === false; // Note: false = recoverableException, anyOtherValue = ok
-                    // Promise returned any value other than false (undefined, true, etc.) -> intepret this as a success and continue
+                    // Promise returned any value other than false (undefined, true, etc.) -> interpret this as a success and continue
                     if (!hadRecoverableException)
                         next(queue, i + 1);
-                    // Handler returned false -> this menas that it encountered a recoverable error -> do not call next() and stop
+                    // Handler returned false (i.e., a recoverable error occurred) -> do not call next() and stop
                     else {
-                        this.removeOpHistoryItemsBetween(/*this.opHistoryCursor - 1, this.opHistoryCursor - 1 + i todo*/);
+                        this.removeOpHistoryItemsBetween(/*?, ? todo*/);
                         this.setState({isSubmitting: false});
                     }
                 });
@@ -357,6 +357,11 @@ class SaveButton extends preact.Component {
         this.states[channelName] = [initialState];
         this.stateCursors[channelName] = 0;
     }
+    /**
+     * @param {Number} from
+     * @param {Number} to
+     * @access private
+     */
     removeOpHistoryItemsBetween(from, to) {
         // todo
     }

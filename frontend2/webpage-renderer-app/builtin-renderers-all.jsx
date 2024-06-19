@@ -125,7 +125,7 @@ class ListingBlock extends preact.Component {
      */
     render({block, renderChildren, createDefaultProps}, {renderedHtmlAsArr}) {
         return <div { ...createDefaultProps(`page-type-${block.filterPageType.toLowerCase()}`) }>
-            { renderedHtmlAsArr || null /* loading */ }
+            { renderedHtmlAsArr || __('Loading ...') }
             { renderChildren() }
         </div>;
     }

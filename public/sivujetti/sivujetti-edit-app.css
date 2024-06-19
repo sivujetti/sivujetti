@@ -1449,7 +1449,6 @@ main.scrolled-past-main-block-tree #edit-app-sections-wrapper:before {
     margin: -2px 0 0 0;
     border-left-color: transparent;
     height: 8px;
-    overflow: hidden;
 }
 .block-tree li[data-last].maybe-drop-before:before {
     top: 0;
@@ -1510,12 +1509,22 @@ main.scrolled-past-main-block-tree #edit-app-sections-wrapper:before {
 .block-tree li.maybe-drop-before:before,
 .block-tree li.maybe-drop-after:after {
     content: "";
-    background-color: #a7acbd;
+    background-color: #707070; /* same as #393939bf */
     position: absolute;
     left: -1px;
     height: 2px;
     width: calc(50% + 1px);
     top: -2.5px;
+}
+.block-tree li[data-depth="1"].maybe-drop-before:before,
+.block-tree li[data-depth="1"].maybe-drop-after:after,
+.block-tree li[data-last].maybe-drop-before:before {
+    background-color: #595959; /* same as #393939db */
+    left: -.2rem;
+    width: calc(75% + .2rem);
+}
+.block-tree li[data-last].maybe-drop-before:before {
+    width: calc(75% + .6rem);
 }
 .block-tree li.maybe-drop-after:after {
     top: initial;
@@ -1524,7 +1533,7 @@ main.scrolled-past-main-block-tree #edit-app-sections-wrapper:before {
 .block-tree li.maybe-drop-as-child .block-handle {
     font-weight: bolder;
     color: var(--color-bg-default);
-    background: #a7acbd;
+    background: #707070;
     height: calc(100% + 4px);
 }
 .block-tree li.maybe-drop-as-child .block-handle:before {

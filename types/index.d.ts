@@ -171,16 +171,29 @@ interface LayoutPart {
 interface PageTypeField {
     name: String;
     friendlyName: String;
-    dataType: {type: 'text'|'json'|'int'|'uint'; isNullable: Boolean; length?: Number; validationRules?: Array; canBeEditedBy?: Number;};
-    defaultValue: String|null;
+    dataType: {
+        type: 'text'|'json'|'int'|'uint';
+        isNullable: Boolean;
+        length?: Number;
+        validationRules?: Array;
+        canBeEditedBy?: Number;
+        rel?: String;
+    };
+    defaultValue: String|Array|Object|null;
 }
 
-interface PageType {
+interface PageTypeStub {
     name: String;
     friendlyName: String;
     friendlyNamePlural: String;
     description: String;
     slug: String;
+    defaultLayoutId: String;
+    status: Number;
+    isListable: Boolean;
+}
+
+interface PageType extends PageTypeStub {
     initialBlocks: Array<BlockBlueprint>;
     ownFields: Array<PageTypeField>;
     defaultFields: {
@@ -188,9 +201,6 @@ interface PageType {
             defaultValue: String;
         };
     };
-    defaultLayoutId: String;
-    status: Number;
-    isListable: Boolean;
 }
 
 interface RelPage {

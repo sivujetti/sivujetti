@@ -9,9 +9,9 @@ final class PageTypesModule {
      * @param \Pike\Router $router
      */
     public function init(Router $router): void {
-        $router->map("POST", "/api/page-types/as-placeholder",
-            [PageTypesController::class, "createPlaceholderPageType", ["consumes" => "application/json",
-                                                                       "identifiedBy" => ["create", "pageTypes"]]],
+        $router->map("POST", "/api/page-types/[as-placeholder:asPlaceholder]?",
+            [PageTypesController::class, "createPageType", ["consumes" => "application/json",
+                                                            "identifiedBy" => ["create", "pageTypes"]]],
         );
         $router->map("PUT", "/api/page-types/[w:name]/[as-placeholder:asPlaceholder]?",
             [PageTypesController::class, "updatePageType", ["consumes" => "application/json",

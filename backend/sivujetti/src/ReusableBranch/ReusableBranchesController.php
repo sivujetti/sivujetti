@@ -29,7 +29,7 @@ final class ReusableBranchesController {
                            FluentDb $db,
                            FluentDb2 $db2,
                            BlockValidator $blockValidator): void {
-        if (($errors = self::validateBlockBlueprints($req->body, $blockValidator))) {
+        if (($errors = self::validateUpsertInput($req->body, $blockValidator))) {
             $res->status(400)->json($errors);
             return;
         }
@@ -109,11 +109,25 @@ final class ReusableBranchesController {
      * @param \Sivujetti\Block\BlockValidator $blockValidator
      * @return string[] Error messages or []
      */
-    public static function validateBlockBlueprints(object $input, BlockValidator $blockValidator): array {
-        if (($errors = (Validation::makeObjectValidator()
+    private static function validateUpsertInput(object $input, BlockValidator $blockValidator): array {
+        $errors1 = Validation::makeObjectValidator()
             ->addRuleImpl(...ValidationUtils::createPushIdValidatorImpl())
             ->rule("id", "pushId")
-            ->rule("blockBlueprints", "minLength", 1, "array"))
+            ->validate($input);
+        $errors2 = self::validateBlockBlueprints($input, $blockValidator, "blockBlueprints");
+        return [...$errors1, ...$errors2];
+    }
+    /**
+     * @param object $input
+     * @param \Sivujetti\Block\BlockValidator $blockValidator
+     * @param string $propPath = "blockBlueprints"
+     * @return string[] Error messages or []
+     */
+    public static function validateBlockBlueprints(object $input,
+                                                   BlockValidator $blockValidator,
+                                                   string $propPath = "blockBlueprintFields"): array {
+        if (($errors = Validation::makeObjectValidator()
+            ->rule($propPath, "minLength", 1, "array")
             ->validate($input))) {
             return $errors;
         }
@@ -125,7 +139,7 @@ final class ReusableBranchesController {
         // initialStyles.scss|scope
         $v = ThemesController::addRulesForStyleChunks($v, "initialStyles");
         $v = $v->rule("initialChildren", "type", "array");
-        return self::doValidateBlockBlueprints($input->blockBlueprints, $v);
+        return self::doValidateBlockBlueprints($input->{$propPath}, $v);
     }
     /**
      * @param object[] $input

@@ -5,21 +5,27 @@ namespace Sivujetti\PageType;
 use Pike\{ArrayUtils, PikeException, Request, Response};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\Entities\BlockProperty;
+use Sivujetti\JsonUtils;
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class PageTypesController {
     /**
-     * POST /api/page-types/as-placeholder: Inserts new page type to the database
-     * using self::createEmptyPageType()'s data.
+     * POST /api/page-types/:asPlaceholder?: Inserts new page type to the database
+     * using $req->body or self::createEmptyPageType() as data.
      *
+     * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\PageType\PageTypeMigrator $migrator
      */
-    public function createPlaceholderPageType(Response $res,
-                                              PageTypeMigrator $migrator): void {
+    public function createPageType(Request $req,
+                                   Response $res,
+                                   PageTypeMigrator $migrator): void {
+        [$input, $asPlaceholder] = property_exists($req->params, "asPlaceholder")
+            ? [self::createEmptyPageTypeInput(), true]
+            : [$req->body,                       false];
         // @allow \Pike\PikeException
-        $newPageType = $migrator->install(self::createEmptyPageTypeInput(), true);
+        $newPageType = $migrator->install($input, $asPlaceholder);
         $res->status(201)->json(["ok" => "ok",
                                  "newEntity" => $newPageType]);
     }
@@ -60,12 +66,27 @@ final class PageTypesController {
         $res->status(200)->json(["ok" => "ok"]);
     }
     /**
+     * @return \Sivujetti\PageType\Entities\PageType
+     */
+    public static function createEmptyPageType(): PageType {
+        $obj = self::createEmptyPageTypeInput();
+        $obj->fields = JsonUtils::stringify((object) [
+            "ownFields" => $obj->ownFields,
+            "blockBlueprintFields" => $obj->blockBlueprintFields,
+            "defaultFields" => $obj->defaultFields,
+        ]);
+        unset($obj->ownFields);
+        unset($obj->blockBlueprintFields);
+        unset($obj->defaultFields);
+        return PageType::fromRawPageType($obj);
+    }
+    /**
      * @return object Same as $req->body of `PUT /api/page-types`
      */
     public static function createEmptyPageTypeInput(): object {
         $out = new \stdClass;
         $out->name = PageTypeMigrator::MAGIC_PAGE_TYPE_NAME;
-        $out->slug = "/draft";
+        $out->slug = "/" . PageTypeMigrator::MAGIC_PAGE_TYPE_NAME_SLUGIFIED;
         $out->friendlyName = "_";
         $out->friendlyNamePlural = "_";
         $out->description = "_";

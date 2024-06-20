@@ -11,7 +11,8 @@ use Sivujetti\ReusableBranch\ReusableBranchesController;
  * Installs / removes page types to / from the database.
  */
 final class PageTypeMigrator {
-    public const MAGIC_PAGE_TYPE_NAME = "Draft";
+    public const MAGIC_PAGE_TYPE_NAME           = "Draft";
+    public const MAGIC_PAGE_TYPE_NAME_SLUGIFIED = "draft";
     /** @var \Pike\Db */
     private Db $db;
     /** @var \Sivujetti\PageType\PageTypeValidator */

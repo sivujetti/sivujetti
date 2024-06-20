@@ -9,13 +9,6 @@ import {FloatingDialog, currentInstance as floatingDialog} from './FloatingDialo
 import {MenuSection, MenuSectionAbstract} from './MenuSection.jsx';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
 import UploadButton from './UploadButton.jsx';
-import {
-    generatePushID,
-    isUndoOrRedo,
-    objectUtils,
-    stringUtils,
-    timingUtils,
-} from './utils.js';
 import Events from '../shared-includes/Events.js';
 import './populate-block-types-map.js';
 import {makePath, makeSlug} from './local-url-utils.js';
@@ -61,6 +54,14 @@ import BlockVisualStylesEditForm, {
     createBlockTreeClearStyleGroupOpArgs,
     createPaddingVarDefs,
 } from './BlockVisualStylesEditForm.jsx';
+import {
+    generatePushID,
+    isUndoOrRedo,
+    objectUtils,
+    stringUtils,
+    timingUtils,
+} from './utils.js';
+import {urlValidatorImpl} from './validation.js';
 
 export {
     __,
@@ -120,6 +121,7 @@ export {
     unhookForm,
     UploadButton,
     urlUtils,
+    urlValidatorImpl,
     validateAll,
     validationConstraints,
     writeBlockProps,

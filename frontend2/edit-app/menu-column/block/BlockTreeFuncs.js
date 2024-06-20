@@ -213,10 +213,10 @@ function createStyleShunkcScssIdReplacer(from, to) {
 
 /**
  * @param {Block} block
- * @param {(item: BlockBlueprint, block: Block) => BlockBlueprint} onEach
+ * @param {(item: BlockBlueprint, block: Block) => BlockBlueprint} onEach = (blueprint, _block) => blueprint
  * @returns {BlockBlueprint}
  */
-function blockToBlueprint(block, onEach) {
+function blockToBlueprint(block, onEach = (blueprint, _block) => blueprint) {
     return onEach({
         blockType: block.type,
         initialOwnData: propsToObj(block.propsData),

@@ -78,7 +78,7 @@ final class PageTypeValidator {
         }
         //
         $errors2 = ReusableBranchesController::validateBlockBlueprints(
-            $input->blockBlueprintFields,
+            $input,
             $this->blockValidator
         );
         return [...$errors, ...$errors2];

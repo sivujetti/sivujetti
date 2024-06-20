@@ -19,6 +19,7 @@ const handlerFactoriesMap = {
     reusableBranches: createReusableBranchesChannelHandler,
     stylesBundle: createStylesBundleChannelHandler,
     theBlockTree: createBlockTreeChannelHandler,
+    pageTypes: createPageTypesChannelHandler,
 };
 
 function createStylesBundleChannelHandler() {
@@ -235,6 +236,32 @@ function createCurrentPageDataChannelHandler() {
     };
 }
 
+function createPageTypesChannelHandler() {
+    return {
+        /**
+         * @param {any} _state
+         * @param {StateChangeUserContext|null} _userCtx
+         * @param {stateChangeContext} _context
+         */
+        handleStateChange(_state, _userCtx, _context) {
+            // Do nothing
+        },
+        /**
+         * @param {StateHistory} stateHistory
+         * @param {Array<StateHistory>} _otherHistories
+         * @returns {Promise<Boolean|any>}
+         */
+        syncToBackend(stateHistory, _otherHistories) {
+            const saveable = createSaveableItems(stateHistory, 'name');
+            return Promise.all(saveable.map(({arg}) =>
+                http.post(`/api/page-types`, arg)
+            )).then(results =>
+                results.every(resp => resp?.ok === 'ok')
+            );
+        }
+    };
+}
+
 /**
  * @param {Error|Object} err
  * @param {adjustErrorToastArgsFn|null} adjustErrorToastArgs
@@ -283,12 +310,13 @@ function doPostOrPut(httpCall, adjustErrorToastArgs = null) {
 /**
  * @template T
  * @param {StateHistory} stateHistory
+ * @param {String} key = 'id'
  * @returns {Array<{type: 'insert'|'update'; arg: T;}>}
  */
-function createSaveableItems({initial, latest}) {
+function createSaveableItems({initial, latest}, key = 'id') {
     const out = [];
     for (const entity of latest) {
-        const fromInitial = initial.find(({id}) => id === entity.id);
+        const fromInitial = initial.find(ent => ent[key] === entity[key]);
         const isNew = !fromInitial;
         if (isNew)
             out.push({type: 'insert', arg: entity});
@@ -298,12 +326,56 @@ function createSaveableItems({initial, latest}) {
     const includeDeletables = false;
     if (includeDeletables) {
     for (const entity of initial) {
-        const fromLatest = latest.find(({id}) => id === entity.id);
+        const fromLatest = latest.find(ent => ent[key] === entity[key]);
         if (!fromLatest)
-            out.push({type: 'delete', arg: entity.id});
+            out.push({type: 'delete', arg: entity[key]});
     }
     }
     return out;
+}
+
+/**
+ * @param {Array<StateHistory>} out
+ * @param {{theBlockTree: Array<Array<Block>>; [others: String]: any;}} activeStates
+ * @returns {Promise<Array<StateHistory>|null>}
+ */
+async function globalBlockTreeSaveOpFilter(out, activeStates) {
+    const blockTreeStates = activeStates['theBlockTree'];
+    // Found block changes, check if any of them is a global block tree block
+    if (blockTreeStates) {
+        const refBlocksThatMaybeHaveChanges = getGbtRefBlocksFrom(blockTreeStates);
+        // Some were -> dynamically create, or patch $out's 'globalBlockTrees' item
+        if (refBlocksThatMaybeHaveChanges.length) {
+            const _ = await fetchOrGetGlobalBlockTrees();
+            const gbtsHistoryItem = out.find(({channelName}) => channelName === 'globalBlockTrees');
+            if (!gbtsHistoryItem) {
+                const initial = this.states['globalBlockTrees'][0];                                 // [<existing>,             <existing>]
+                const maybePatchedInitial = createGbtState(initial, refBlocksThatMaybeHaveChanges); // [<maybePatchedExisting>, <maybePatchedExisting>]
+
+                // None of the 'GlobalBlockReference' blocks had changes
+                if (!maybePatchedInitial)
+                    return out;
+                // else one ore more gbts in $initial (<existing>) changed -> add history item to $out
+                return [...out, {
+                    channelName: 'globalBlockTrees',
+                    initial,
+                    first: maybePatchedInitial,
+                    latest: maybePatchedInitial
+                }];
+            } else {
+                const latest = gbtsHistoryItem.latest;                                            // [<existing>,            <existing>,            <maybeNew>]
+                const maybePatchedLatest = createGbtState(latest, refBlocksThatMaybeHaveChanges); // [<maybePatchedExisting>,<maybePatchedExisting>,<maybePatchedNew>]
+                if (!maybePatchedLatest)
+                    return out;
+                // else one ore more gbts in $gbtsHistoryItem.latest (<existing>) changed, patch $out's history item
+                return out.map(item => item !== gbtsHistoryItem ? item : {
+                    ...item,
+                    ...{latest: maybePatchedLatest}
+                });
+            }
+        }
+    }
+    return null;
 }
 
 /**
@@ -399,4 +471,5 @@ export {
     getLatestItemsOfEachChannel,
     handlerFactoriesMap,
     normalizeItem,
+    globalBlockTreeSaveOpFilter,
 };

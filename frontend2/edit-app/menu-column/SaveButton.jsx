@@ -10,6 +10,7 @@ import {
     createSignalName,
     normalizeItem,
     createInitialState,
+    globalBlockTreeSaveOpFilter,
 } from './SaveButtonFuncs.js';
 
 const saveButtonEvents = new Events;
@@ -24,6 +25,7 @@ class SaveButton extends preact.Component {
     // opHistory;
     // opHistoryCursor;
     // unregisterUnsavedChangesAlert;
+    // syncQueueFilters;
     /**
      * @param {SaveButtonProps} props
      */
@@ -136,6 +138,7 @@ class SaveButton extends preact.Component {
                 else if (e.target.scrollTop < 21 && this.state.isStickied)
                     this.setState({isStickied: false});
             });
+        this.syncQueueFilters = [globalBlockTreeSaveOpFilter.bind(this)];
     }
     /**
      * @param {SaveButtonProps} props
@@ -230,7 +233,7 @@ class SaveButton extends preact.Component {
     /**
      * @access private
      */
-    syncQueuedOpsToBackend() {
+    async syncQueuedOpsToBackend() {
         this.unregisterAndClearUnsavedChagesAlertIfSet();
         const next = (queue, i) => {
             const top = queue[i];
@@ -253,9 +256,22 @@ class SaveButton extends preact.Component {
             }
         };
         this.setState({isSubmitting: true});
-        this.createSynctobackendQueue().then(syncQueue => {
-            next(syncQueue, 0);
-        });
+        const syncQueue = await this.createSynctobackendQueue();
+        next(syncQueue, 0);
+    }
+    /**
+     * @template T
+     * @param {(queue: Array<StateHistory<T>>, activeState: Array<T>) => Array<StateHistory<T>>|null} fn
+     * @param {Boolean} toEnd
+     * @returns {() => void} Unregister
+     * @access public
+     */
+    registerSyncQueueFilter(fn, toEnd = true) {
+        if (toEnd) this.syncQueueFilters.push(fn);
+        else this.syncQueueFilters.unshift(fn);
+        return () => {
+            this.syncQueueFilters = this.syncQueueFilters.filter(fn2 => fn2 !== fn);
+        };
     }
     /**
      * @returns {state}
@@ -283,10 +299,10 @@ class SaveButton extends preact.Component {
      * @returns {Promise<Array<StateHistory>>}
      * @access private
      */
-    createSynctobackendQueue() {
+    async createSynctobackendQueue() {
         const channelNamesOrdered = this.getHistoryChannelNames();
         const activeStates = {};
-        const out = channelNamesOrdered.map(channelName => {
+        let out = channelNamesOrdered.map(channelName => {
             const fromFirstToCursor = this.getActiveState(channelName);
             activeStates[channelName] = fromFirstToCursor;
             return {
@@ -296,40 +312,10 @@ class SaveButton extends preact.Component {
                 latest: fromFirstToCursor.at(-1)      // Example '3rd' (if cursor = 3)
             };
         });
-        const blockTreeStates = activeStates['theBlockTree'];
-        // Found block changes, check if any of them is a global block tree block
-        if (blockTreeStates) {
-            const refBlocksThatMaybeHaveChanges = getGbtRefBlocksFrom(blockTreeStates);
-            // Some were -> dynamically create, or patch $out's 'globalBlockTrees' item
-            if (refBlocksThatMaybeHaveChanges.length) {
-                return fetchOrGetGlobalBlockTrees().then(_ => {
-                    const gbtsHistoryItem = out.find(({channelName}) => channelName === 'globalBlockTrees');
-                    if (!gbtsHistoryItem) {
-                        const initial = this.states['globalBlockTrees'][0];                                 // [<existing>,             <existing>]
-                        const maybePatchedInitial = createGbtState(initial, refBlocksThatMaybeHaveChanges); // [<maybePatchedExisting>, <maybePatchedExisting>]
-                        // None of the 'GlobalBlockReference' blocks had changes
-                        if (!maybePatchedInitial)
-                            return out;
-                        // else one ore more gbts in $initial (<existing>) changed -> add history item to $out
-                        return [...out, {
-                            channelName: 'globalBlockTrees',
-                            initial,
-                            first: maybePatchedInitial,
-                            latest: maybePatchedInitial
-                        }];
-                    } else {
-                        const latest = gbtsHistoryItem.latest;                                            // [<existing>,            <existing>,            <maybeNew>]
-                        const maybePatchedLatest = createGbtState(latest, refBlocksThatMaybeHaveChanges); // [<maybePatchedExisting>,<maybePatchedExisting>,<maybePatchedNew>]
-                        if (!maybePatchedLatest)
-                            return out;
-                        // else one ore more gbts in $gbtsHistoryItem.latest (<existing>) changed, patch $out's history item
-                        return out.map(item => item !== gbtsHistoryItem ? item : {
-                            ...item,
-                            ...{latest: maybePatchedLatest}
-                        });
-                    }
-                });
-            }
+        //
+        for (const fn of this.syncQueueFilters) {
+            const resolved = await fn(out, activeStates);
+            if (resolved) out = resolved;
         }
         //
         return Promise.resolve(out);

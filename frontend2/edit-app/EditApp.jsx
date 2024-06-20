@@ -13,6 +13,7 @@ import {clamp} from './includes/utils.js';
 import {historyInstance, MyRouter} from './main-column/MainColumnViews.jsx';
 import PageCreateState from './menu-column/page/PageCreateState.jsx';
 import PageDuplicateState from './menu-column/page/PageDuplicateState.jsx';
+import PageTypeCreateState from './menu-column/page-type/PageTypeCreateState.jsx';
 import DefaultState from './menu-column/DefaultState.jsx';
 import SaveButton from './menu-column/SaveButton.jsx';
 
@@ -128,7 +129,7 @@ class EditApp extends preact.Component {
                 <DefaultState path="/:slug*"/>
                 <PageCreateState path="/pages/create/:pageTypeName?/:layoutId?"/>
                 <PageDuplicateState path="/pages/:pageSlug/duplicate"/>
-                { /* <PageTypeCreatePanel path="/page-types/create"/> */ }
+                <PageTypeCreateState path="/page-types/create"/>
             </MyRouter>,
             <div class="resize-panel-handle" ref={ this.resizeHandleEl }></div>
         ];

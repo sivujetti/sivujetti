@@ -6,7 +6,7 @@ use MySite\Theme as UserTheme;
 use Pike\{AppConfig, ArrayUtils, Db, Injector, PikeException, Request, Response, Validation};
 use Pike\Db\{FluentDb, FluentDb2};
 use Sivujetti\Page\Entities\Page;
-use Sivujetti\PageType\PageTypeValidator;
+use Sivujetti\PageType\{PageTypeMigrator, PageTypesController, PageTypeValidator};
 use Sivujetti\PageType\Entities\PageType;
 use Sivujetti\{AppEnv, JsonUtils, PushIdGenerator, SharedAPIContext, Template, Translator};
 use Sivujetti\Auth\ACL;
@@ -196,7 +196,9 @@ final class PagesController {
                                           TheWebsite $theWebsite,
                                           AppEnv $appEnv,
                                           FluentDb $db): void {
-        $pageType = $pagesRepo->getPageTypeOrThrow($req->params->pageType);
+        $pageType = $req->params->pageType !== PageTypeMigrator::MAGIC_PAGE_TYPE_NAME_SLUGIFIED
+            ? $pagesRepo->getPageTypeOrThrow($req->params->pageType)
+            : PageTypesController::createEmptyPageType();
         $slugOfPageToDuplicate = $req->queryVar("duplicate");
         $page = null;
         //

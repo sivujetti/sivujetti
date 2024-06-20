@@ -5,11 +5,11 @@ import {
     events,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
-import {getBlockEl, getMetaKey} from '../../shared-inline.js';
 import {isMetaBlock} from '../includes/block/utils.js';
-import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 import globalData from '../includes/globalData.js';
 import {createTrier} from '../includes/utils.js';
+import {getBlockEl, getMetaKey} from '../../shared-inline.js';
+import {historyInstance, isMainColumnViewUrl} from './MainColumnViews.jsx';
 
 const broadcastInitialStateToListeners = true;
 
@@ -358,18 +358,18 @@ function createUrlForIframe(url) {
     if (pcs[1] === 'pages' && pcs[2] === 'create') {
         const pageTypeName = pcs[3] || 'Pages';
         const layoutId = pcs[4] || '1';
-        const out = urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`);
-        return out;
+        return urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`);
     // '/pages/:pageSlug/duplicate'
     } else if (pcs[1] === 'pages' && pcs[3] === 'duplicate') {
         const pageTypeName = 'Pages';
         const layoutId = '1';
-        const out = urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}` +
+        return urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}` +
             `?duplicate=${encodeURIComponent(pcs[2])}`);
-        return out;
     // '/page-types/create'
     } else if (pcs[1] === 'page-types' && pcs[2] === 'create') {
-        // todo
+        const pageTypeName = 'draft';
+        const layoutId = '1';
+        return urlUtils.makeUrl(`/api/_placeholder-page/${pageTypeName}/${layoutId}`);
     // '/some-page', '/some-page#anchor
     } else if (!isMainColumnViewUrl(pathname)) {
         // ?, also transform/normalize (? -> &, # -> ?)
@@ -402,6 +402,9 @@ function broadcastCurrentPageData(e) {
     globalData.layout = dataBundle.layout;
 
     saveButton.initChannel('currentPageData', dataBundle.page);
+    // saveButton.initChannel('reusableBranches', ...); deferred, see ../includes/reusable-branches/repository.js
+    // saveButton.initChannel('globalBlockTrees', ...); deferred, see ../includes/global-block-trees/repository.js
+    // saveButton.initChannel('pageTypes', ...); deferred, see ../menu-column/page-type/PageTypeCreateState.jsx @componentWillMount
 
     events.emit('webpage-preview-iframe-loaded');
 }

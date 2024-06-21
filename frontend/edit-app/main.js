@@ -1,5 +1,5 @@
 import {translator, api, env, stringUtils, sensibleDefaults} from '@sivujetti-commons-for-edit-app';
-import {Validator} from './src/commons/Form.jsx';
+// ## import {Validator} from './src/commons/Form.jsx';
 import {FormStateStoreWrapper} from './src/store.js';
 import EditApp from './src/EditApp.jsx';
 import {registerMutator} from './src/block/theBlockTreeStore.js';

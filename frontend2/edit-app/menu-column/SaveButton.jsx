@@ -1,11 +1,8 @@
 import {__, env, Icon, Events} from '@sivujetti-commons-for-edit-app';
 import {getMetaKey} from '../../shared-inline.js';
-import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../includes/global-block-trees/repository.js';
 import {historyInstance} from '../main-column/MainColumnViews.jsx';
 import {
-    createGbtState,
     getLatestItemsOfEachChannel,
-    getGbtRefBlocksFrom,
     handlerFactoriesMap,
     createSignalName,
     normalizeItem,
@@ -126,6 +123,7 @@ class SaveButton extends preact.Component {
         this.unregisterAndClearUnsavedChagesAlertIfSet();
         this.doInvalidateAll();
         this.setState(createInitialState());
+        this.syncQueueFilters = [globalBlockTreeSaveOpFilter.bind(this)];
     }
     /**
      * @access protected

@@ -6,12 +6,12 @@ import {
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
 import toasters from '../../includes/toasters.jsx';
-import {createTrier} from '../../includes/utils.js';
 import {blockToBlueprint} from '../block/BlockTreeFuncs.js';
 import DnDBlockSpawner from '../block/DnDBlockSpawner.jsx';
 import OnThisPageSection from '../default-state-sections/OnThisPageSection.jsx';
 import BasicInfoConfigForm from './BasicInfoConfigForm.jsx';
 import OwnFieldsConfigForm from './OwnFieldsConfigForm.jsx';
+import {initBlockSpawner} from '../DefaultState.jsx';
 
 const PAGETYPE_STATUS_COMPLETE = 0;
 const PAGETYPE_STATUS_DRAFT = 1;
@@ -73,8 +73,7 @@ class PageTypeCreateState extends preact.Component {
             }));
 
             this.unregistrables.push(saveButton.onAfterItemsSynced(() => {
-                toasters.editAppMain(`${__('Created new %s', __('page type'))}.`, 'success');
-                urlUtils.redirect('_edit', true);
+                urlUtils.redirect('/_edit&show-message=page-type-created', true);
             }));
 
             this.setState({ready: true});
@@ -105,17 +104,7 @@ class PageTypeCreateState extends preact.Component {
                 <div id="edit-app-sections-wrapper">
                     <OnThisPageSection
                         currentPageSlug="/page-types/create"
-                        ref={ cmp => {
-                            if (cmp && !this.isMainDndInited) {
-                                this.isMainDndInited = 1;
-                                createTrier(() => {
-                                    const allSet = !!this.blockSpawner.current && !!cmp.blockTreeRef.current?.dragDrop;
-                                    if (allSet)
-                                        this.blockSpawner.current.setMainTreeDnd(cmp.blockTreeRef.current.dragDrop);
-                                    return allSet;
-                                }, 20, 20)();
-                            }
-                        } }/>
+                        ref={ cmp => initBlockSpawner(cmp, this) }/>
                     <MenuSection
                         title={ __('Settings') }
                         subtitle={ __('Uuden sivutyypin perustiedot') }

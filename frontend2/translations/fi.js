@@ -102,7 +102,7 @@ stringBundles.push({
     'Edit page': 'Muokkaa sivua',
     'Duplicate page': 'Monista sivu',
     'Delete page': 'Poista sivu',
-    'Deleted page "%s".': 'Sivu "%s" poistettu.',
+    'Deleted page "%s".': 'Poistettiin sivu "%s".',
     'Failed to delete page.': 'Sivun poistaminen epäonnistui.',
     // edit-app/src/right-column/IframePageManager.js
     'Paragraph': 'Tekstikappale',

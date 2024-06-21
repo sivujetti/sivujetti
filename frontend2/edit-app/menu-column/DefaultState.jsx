@@ -40,17 +40,7 @@ class DefaultState extends preact.Component {
             <div id="edit-app-sections-wrapper">
                 <OnThisPageSection
                     currentPageSlug={ this.props.url }
-                    ref={ cmp => {
-                        if (cmp && !this.isMainDndInited) {
-                            this.isMainDndInited = 1;
-                            createTrier(() => {
-                                const allSet = !!this.blockSpawner.current && !!cmp.blockTreeRef.current?.dragDrop;
-                                if (allSet)
-                                    this.blockSpawner.current.setMainTreeDnd(cmp.blockTreeRef.current.dragDrop);
-                                return allSet;
-                            }, 20, 20)();
-                        }
-                    } }/>
+                    ref={ cmp => initBlockSpawner(cmp, this) }/>
                 { [
                     api.user.can('editGlobalStylesVisually')
                         ? <BaseStylesSection/>
@@ -73,6 +63,22 @@ class DefaultState extends preact.Component {
 }
 
 /**
+ * @param {OnThisPageSection} cmp
+ * @param {DefaultState|PageCreateState|PateTypeCreateState|preact.Component} vm
+ */
+function initBlockSpawner(cmp, vm) {
+    if (cmp && !vm.isMainDndInited) {
+        vm.isMainDndInited = 1;
+        createTrier(() => {
+            const allSet = !!vm.blockSpawner.current && !!cmp.blockTreeRef.current?.dragDrop;
+            if (allSet)
+                vm.blockSpawner.current.setMainTreeDnd(cmp.blockTreeRef.current.dragDrop);
+            return allSet;
+        }, 20, 20)();
+    }
+}
+
+/**
  * @returns {Array<String>}
  */
 function getRegisteredMainPanelSectionNames() {
@@ -80,3 +86,4 @@ function getRegisteredMainPanelSectionNames() {
 }
 
 export default DefaultState;
+export {initBlockSpawner};

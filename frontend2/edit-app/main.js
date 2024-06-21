@@ -3,6 +3,7 @@ An entry point for global file "public/sivujetti/sivujetti-edit-app.js" that is
 included in edit-app's template (edit-app-wrapper.tmpl.php).
 */
 import {
+    __,
     api,
     FloatingDialog,
     isUndoOrRedo,
@@ -12,7 +13,7 @@ import EditApp from './EditApp.jsx';
 import WebPagePreviewApp from './main-column/WebPagePreviewApp.jsx';
 import MainColumnViews from './main-column/MainColumnViews.jsx';
 import InspectorPanel from './menu-column/InspectorPanel.jsx';
-import {Toaster} from './includes/toasters.jsx';
+import toasters, {Toaster} from './includes/toasters.jsx';
 import patchQuillEditor from './includes/quill-customizations.js';
 import globalData from './includes/globalData.js';
 import ContextMenu from './includes/ContextMenu.jsx';
@@ -61,8 +62,25 @@ preact.render(
     inspectorPanelOuterEl
 );
 
-preact.render(
-    [
+class ViewAndContextMenuLayer extends preact.Component {
+    componentDidMount() {
+        const qstr = (window.location.search || ' '); // '?q=/_edit&show-message=page-type-created' or '?show-message=page-type-created'
+        const qvars = qstr.substring(1).split('&').map(pair => pair.split('=')).filter(pair => pair.length === 2);
+        const messageKey = (qvars.find(([q]) => q === 'show-message') || [])[1];
+        const messageCreators = {
+            'page-type-created': () => __('Created new %s', __('page type')),
+            'page-deleted': () => __('Deleted page "%s".', '').replace(' ""', ''),
+        };
+        const createMessage = messageKey ? messageCreators[messageKey] : null;
+        if (!createMessage) return;
+        toasters.editAppMain(
+            createMessage(),
+            (qvars.find(([q]) => q === 'message-level') || ['', 'success'])[1]
+        );
+        const pcs = qstr.split('/_edit'); // ['?q=', '&show-message=page-type-created'] or ['?show-message=page-type-created']
+        history.replaceState(null, null, location.href.replace(pcs[1] || pcs[0], ''));
+    }
+    render() { return [
         <ContextMenu ref={ cmp => {
             if (cmp && api.contextMenu.initialized === false) api.contextMenu = cmp;
         } }/>,
@@ -71,7 +89,10 @@ preact.render(
             <FloatingDialog/>
         </div>,
         <Toaster id="editAppMain"/>
-    ],
+    ]; }
+}
+preact.render(
+    <ViewAndContextMenuLayer/>,
     document.getElementById('view-and-context-menu-layer')
 );
 

@@ -184,7 +184,7 @@ class OnThisPageSection extends MenuSectionAbstract {
         else if (link.id === 'delete') {
             const page = api.saveButton.getInstance().getChannelState('currentPageData');
             openPageDeleteDialog(page.slug, page.title, () => {
-                urlUtils.redirect('/_edit');
+                urlUtils.redirect('/_edit&show-message=page-deleted', true);
             });
         } else if (link.id === 'show-without-edit-mode')
             env.window.open(urlUtils.makeUrl(this.slugOfPageWithNavOpened, true), '_blank');

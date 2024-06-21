@@ -28,12 +28,13 @@ class UrlUtils {
     /**
      * @param {String} url
      * @param {Boolean} includeDomain = false
+     * @param {Boolean} normalizeQ = true
      * @returns {String}
      * @access public
      */
-    makeUrl(url, includeDomain = false) {
+    makeUrl(url, includeDomain = false, normalizeQ = true) {
         const pref = !includeDomain ? '' : this.env.window.location.origin;
-        return pref + this.baseUrl + this.normalizeUrl(url, true);
+        return pref + this.baseUrl + this.normalizeUrl(url, normalizeQ);
     }
     /**
      * @param {String} url
@@ -48,10 +49,11 @@ class UrlUtils {
     /**
      * @param {String} url
      * @param {Boolean} includeDomain = false
+     * @param {Boolean} normalizeQ = false
      * @access public
      */
-    redirect(url, includeDomain = false) {
-        this.env.window.location.href = this.makeUrl(url, includeDomain);
+    redirect(url, includeDomain = false, normalizeQ = false) {
+        this.env.window.location.href = this.makeUrl(url, includeDomain, normalizeQ);
     }
     /**
      * @param {String} url '/foo' -> 'foo', 'bar' -> 'bar'

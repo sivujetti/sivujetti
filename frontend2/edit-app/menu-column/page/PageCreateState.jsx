@@ -10,11 +10,12 @@ import {
     traverseRecursively,
 } from '@sivujetti-commons-for-edit-app';
 import {treeToTransferable} from '../../includes/block/utils.js';
-import {createTrier, pathToFullSlug} from '../../includes/utils.js';
+import {pathToFullSlug} from '../../includes/utils.js';
 import DnDBlockSpawner from '../block/DnDBlockSpawner.jsx';
 import BaseStylesSection from '../default-state-sections/BaseStylesSection.jsx';
 import OnThisPageSection from '../default-state-sections/OnThisPageSection.jsx';
 import globalData from '../../includes/globalData.js';
+import {initBlockSpawner} from '../DefaultState.jsx';
 
 const STATUS_PUBLISHED = 0;
 
@@ -26,7 +27,6 @@ class PageCreateState extends preact.Component {
     // blockSpawner;
     // pageType;
     // addToMenuIdInfo;
-    // savePageToBackendResult;
     // addToMenuIsInCurrentPage;
     /**
      * @access protected
@@ -84,17 +84,7 @@ class PageCreateState extends preact.Component {
                 <div id="edit-app-sections-wrapper">
                     <OnThisPageSection
                         currentPageSlug="/pages/create"
-                        ref={ cmp => {
-                            if (cmp && !this.isMainDndInited) {
-                                this.isMainDndInited = 1;
-                                createTrier(() => {
-                                    const allSet = !!this.blockSpawner.current && !!cmp.blockTreeRef.current?.dragDrop;
-                                    if (allSet)
-                                        this.blockSpawner.current.setMainTreeDnd(cmp.blockTreeRef.current.dragDrop);
-                                    return allSet;
-                                }, 20, 20)();
-                            }
-                        } }/>
+                        ref={ cmp => initBlockSpawner(cmp, this) }/>
                     { [
                         api.user.can('editGlobalStylesVisually')
                             ? <BaseStylesSection/>

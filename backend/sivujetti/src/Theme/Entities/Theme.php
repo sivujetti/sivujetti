@@ -6,7 +6,8 @@ use Pike\Db\NoDupeRowMapper;
 use Sivujetti\JsonUtils;
 
 /**
- * @psalm-type StylesBundle {styleChunks: array<int, object{scss: string, scope: {block: string, media: string, layer: string}}>, cachedCompiledScreenSizesCss: array<int, string>, cachedCompiledScreenSizesCssLengths: array<int, int>}
+ * @psalm-import-type StyleChunk from \Sivujetti\Block\Entities\Block
+ * @psalm-type StylesBundle {styleChunks: array<int, StyleChunk>, cachedCompiledScreenSizesCss: array<int, string>, cachedCompiledScreenSizesCssLengths: array<int, int>}
  */
 final class Theme extends \stdClass {
     /** @var string */

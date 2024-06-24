@@ -7,8 +7,8 @@ use Sivujetti\{PushIdGenerator, ShortIdGenerator};
 /**
  * @psalm-type stylesLayer = 'user-styles'|'dev-styles'|'base-styles'
  * @psalm-type mediaScope = 'all'|'960'|'840'|'600'|'480'|string
- * @psalm-type styleBlockScope = 'single-block'|'block-type'|'class'|'none'
- * @psalm-type StyleChunk = object{scss: string, scope: object{block: styleBlockScope, media: mediaScope, layer: stylesLayer}}
+ * @psalm-type styleScopeKind = 'single-block'|'style-group'|'custom-class'|'base'
+ * @psalm-type StyleChunk = object{scss: string, scope: object{kind: styleScopeKind, media: mediaScope, layer: stylesLayer}}
  * @psalm-type BlockBlueprint = object{blockType: string, initialOwnData: object, initialDefaultsData: object{title: string, renderer: string, styleClasses: string, styleGroup: string}, initialStyles: array<int, StyleChunk>, initialChildren: array<int, BlockBlueprint>}
  */
 final class Block extends \stdClass {

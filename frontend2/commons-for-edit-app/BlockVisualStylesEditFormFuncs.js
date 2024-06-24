@@ -29,7 +29,7 @@ function createCssVarsMaps(blockId, cssVarDefs) {
 
 /**
  * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
- * @param {styleBlockScope} scopeKind
+ * @param {styleScopeKind} scopeKind
  * @param {String} scopeId
  * @param {stylesLayer|undefined} layer = undefined
  * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}

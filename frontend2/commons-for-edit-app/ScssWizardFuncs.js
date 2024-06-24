@@ -34,19 +34,19 @@ function createCssDeclExtractor(scss) {
 function stylesToBaked(styles, mediaScopeId) {
     const forThisMedia = styles.filter(({scope}) => scope.media === mediaScopeId);
     if (!forThisMedia.length) return '';
-    const {body, user, dev} = forThisMedia.reduce((out, s) => {
+    const {base, user, dev} = forThisMedia.reduce((out, s) => {
         const {scope} = s;
         if (scope.layer === 'base-styles')
-            return {...out, body: [...out.body, s]};
-        if (scope.layer === 'user-styles' && (scope.block === 'single-block' || scope.block === 'class'))
+            return {...out, base: [...out.base, s]};
+        if (scope.layer === 'user-styles' && (scope.kind === 'single-block' || scope.kind === 'style-group'))
             return {...out, user: [...out.user, s]};
         if (scope.layer === 'dev-styles')
             return {...out, dev: [...out.dev, s]};
         return out;
-    }, {body: [], user: [], dev: []});
+    }, {base: [], user: [], dev: []});
     return [
         '@layer base-styles {\n',
-        serialize(compile(body.map(({scss}) => scss).join('')), stringify),
+        serialize(compile(base.map(({scss}) => scss).join('')), stringify),
         '\n}\n',
         '@layer user-styles {\n',
         serialize(compile(user.map(({scss}) => scss).join('')), stringify),
@@ -202,17 +202,17 @@ function getSelectorForDecl(declsParentAstNode, cur) {
 }
 
 /**
- * @param {String} blockIdOrType
- * @param {styleBlockScope} scope = 'single-block'
+ * @param {String} scopeSpecifier
+ * @param {styleScopeKind} scopeKind = 'single-block'
  * @returns {String}
  * @access public
  */
-function createSelector(blockIdOrType, scope = 'single-block') {
-    if (scope === 'single-block')
-        return `[data-block="${blockIdOrType}"]`;
-    if (scope === 'class')
-        return `[data-style-group="${blockIdOrType}"]`;
-    return scope === 'none' ? ':root' : '// invalid';
+function createSelector(scopeSpecifier, scopeKind = 'single-block') {
+    if (scopeKind === 'single-block')
+        return `[data-block="${scopeSpecifier}"]`;
+    if (scopeKind === 'style-group')
+        return `[data-style-group="${scopeSpecifier}"]`;
+    return scopeKind === 'base' ? ':root' : '// invalid';
 }
 
 /**

@@ -379,7 +379,7 @@ class BlockTree extends preact.Component {
         const [newReusableRootRef] = blockTreeUtils.findBlockMultiTree(block.id, newTree);
 
         // 1. Convert all styles recursively from scope = 'singe-block' to
-        // scope = 'class' when possible
+        // scope = 'style-group' when possible
         let newStyles = null;
         const newConvertedStyleChunkIds = [];
         if (window.sivujettiUserFlags?.useStyleGroups) {

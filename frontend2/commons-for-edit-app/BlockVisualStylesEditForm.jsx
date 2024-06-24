@@ -166,10 +166,10 @@ class BlockVisualStylesEditForm extends preact.Component {
         const codeTemplate = varInputToScssCode(varName, val);
         const asArr = Array.isArray(codeTemplate) ? codeTemplate : codeTemplate.split('\n');
         const isSingleLineDecl = asArr[0].at(-1) === ';';
-        const [blockId, blockScope] = !this.isSpecialRootVarsStyle
+        const [scopeSpecifier, scopeKind] = !this.isSpecialRootVarsStyle
             ? [this.props.blockId, 'single-block']
-            : ['',                 'none'];
-        const rootSelector = createSelector(blockId, blockScope);
+            : [null,               'base'];
+        const rootSelector = createSelector(scopeSpecifier, scopeKind);
         const lines = isSingleLineDecl
             ? [`${rootSelector} {`, ...asArr, '}']
             : [
@@ -178,7 +178,7 @@ class BlockVisualStylesEditForm extends preact.Component {
                 // asArr.at(-1) already contains '}'
             ];
         const css = lines.map(l => l.replace('%s', val)).join('');
-        api.webPagePreview.updateCssFast(blockId, css);
+        api.webPagePreview.updateCssFast(scopeSpecifier, css);
     }
     /**
      * @param {String|null} val
@@ -251,18 +251,18 @@ class BlockVisualStylesEditForm extends preact.Component {
      * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}
      */
     createCssVarsMapsInternal(props) {
-        const [scopeKind, scopeId, layer] = (function (self) {
+        const [scopeKind, scopeSpecifier, layer] = (function (self) {
             if (self.isSpecialRootVarsStyle)
-                return ['none',         '',                    'base-styles'];
+                return ['base',         null,                 'base-styles'];
             if (!props.blockStyleGroup)
                 return ['single-block', props.blockId,         undefined];
             else
-                return ['class',        props.blockStyleGroup, undefined];
+                return ['style-group',  props.blockStyleGroup, undefined];
         })(this);
         return doCreateCssVarsMaps(
             this.cssVarDefs,
             scopeKind,
-            scopeId,
+            scopeSpecifier,
             layer
         );
     }

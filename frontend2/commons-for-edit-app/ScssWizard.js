@@ -42,30 +42,30 @@ class ScssWizard {
         return this.styles;
     }
     /**
-     * @param {styleBlockScope} blockScope
-     * @param {String} blockIdOrType
+     * @param {styleScopeKind} scopeKind
+     * @param {String} scopeSpecifier
      * @param {(style: StyleChunk) => Boolean} predicate = true
      * @returns {Array<StyleChunk>}
      * @access public
      */
-    findStyles(blockScope, blockIdOrType, fn = (_style) => true) {
-        const lookFor = createSelector(blockIdOrType, blockScope);
+    findStyles(scopeKind, scopeSpecifier, fn = (_style) => true) {
+        const lookFor = createSelector(scopeSpecifier, scopeKind);
         return this.styles.filter((style) =>
-            style.scope.block === blockScope && style.scss.startsWith(lookFor) && fn(style)
+            style.scope.kind === scopeKind && style.scss.startsWith(lookFor) && fn(style)
         );
     }
     /**
-     * @param {String} blockScope
-     * @param {String} blockIdOrType
+     * @param {String} scopeKind
+     * @param {String} scopeSpecifier
      * @param {mediaScope} mediaScopeId = 'all'
      * @param {stylesLayer} layer = 'user-styles'
      * @returns {StyleChunk|null}
      * @access public
      */
-    findStyle(blockScope, blockIdOrType, mediaScopeId = 'all', layer = 'user-styles') {
-        const lookFor = createSelector(blockIdOrType, blockScope);
+    findStyle(scopeKind, scopeSpecifier, mediaScopeId = 'all', layer = 'user-styles') {
+        const lookFor = createSelector(scopeSpecifier, scopeKind);
         const found = this.styles.find(({scope, scss}) =>
-            scope.block === blockScope && scope.media === mediaScopeId && scope.layer === layer && scss.startsWith(lookFor)
+            scope.kind === scopeKind && scope.media === mediaScopeId && scope.layer === layer && scss.startsWith(lookFor)
         );
         return found || null;
     }
@@ -82,7 +82,7 @@ class ScssWizard {
         return this.commitAll(updated, mediaScopeId);
     }
     /**
-     * @param {Array<StyleChunk>} newUniqueScopeChunksToAdd Example [{scope: {block: 'single-block', layer: 'user-styles', media: 'all'}, scss: '[data-block="abcdefg"] {\n  color: #ab7878;\n}'}]
+     * @param {Array<StyleChunk>} newUniqueScopeChunksToAdd Example [{scope: {kind: 'single-block', layer: 'user-styles', media: 'all'}, scss: '[data-block="abcdefg"] {\n  color: #ab7878;\n}'}]
      * @returns {StylesBundleWithId}
      * @access public
      */
@@ -187,7 +187,7 @@ class ScssWizard {
         const updated = [
             ...this.styles,
             {
-                scope: {...currentStyle.scope, block: 'single-block'},
+                scope: {...currentStyle.scope, kind: 'single-block'},
                 scss,
             }
         ];
@@ -245,7 +245,7 @@ class ScssWizard {
                         newStyle: {
                             scss,
                             scope: {
-                                block: 'class',
+                                kind: 'style-group',
                                 media: s.scope.media,
                                 layer: s.scope.layer,
                             }
@@ -393,7 +393,7 @@ class ScssWizard {
         if (this.findStyle('single-block', blockId, mediaScopeId, layer, this.styles))
             throw new Error(`Unique style ${blockId}:${mediaScopeId}:${layer} already exist`);
         return {
-            scope: {block: 'single-block', media: mediaScopeId, layer},
+            scope: {kind: 'single-block', media: mediaScopeId, layer},
             scss,
         };
     }

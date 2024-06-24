@@ -42,7 +42,7 @@ interface OpQueueOp {
 interface WebPagePreviewApp {
     getEl(): HTMLIFrameElement;
     updateCss(/*allMediaScopesCss*/): todo;
-    updateCssFast(/*selector, scssChunk, mediaScopeId = 'all'*/): todo;
+    updateCssFast(/*blockId, css, mediaScopeId = 'all'*/): todo;
     highlightBlock(block: Block): todo;
     unHighlightBlock(blockId: String): todo;
     unHighlightTextBlockChildEl(): todo;
@@ -533,7 +533,7 @@ interface SaveButton {
 interface StyleChunk {
     scss: String;
     scope: {
-        block: styleBlockScope;
+        kind: styleScopeKind;
         media: mediaScope;
         layer: stylesLayer;
     };
@@ -549,7 +549,7 @@ type mediaScope = 'all'|'960'|'840'|'600'|'480'|String;
 
 type compiledMediaScopesCss = [String, String, String, String, String];
 
-type styleBlockScope = 'single-block'|'block-type'|'class'|'none';
+type styleScopeKind = 'single-block'|'custom-class'|'optimized-class'|'base';
 
 type stateChangeContext = 'initial'|'push'|'undo'|'redo';
 

@@ -129,6 +129,9 @@ stringBundles.push({
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Styles',
     'Styles (code)': 'Styles (code)',
+    'Base': 'Base',
+    'Base (code)': 'Base (code)',
+    'Classes (code)': 'Classes (code)',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
     'Only root styles may contain @imports': 'Only root styles may contain @imports',
     // edit-app/src/left-column/block/BlockTree.jsx

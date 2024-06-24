@@ -1,7 +1,7 @@
 import {api, events} from '@sivujetti-commons-for-edit-app';
 import {createTrier} from '../includes/utils.js';
 import DnDBlockSpawner from './block/DnDBlockSpawner.jsx';
-import BaseStylesSection from './default-state-sections/BaseStylesSection.jsx';
+import BaseAndCustomClassStylesSection from './default-state-sections/BaseStylesSection.jsx';
 import ContentManagementSection from './default-state-sections/ContentManagementSection.jsx';
 import OnThisPageSection from './default-state-sections/OnThisPageSection.jsx';
 import WebsiteSection from './default-state-sections/WebsiteSection.jsx';
@@ -43,7 +43,7 @@ class DefaultState extends preact.Component {
                     ref={ cmp => initBlockSpawner(cmp, this) }/>
                 { [
                     api.user.can('editGlobalStylesVisually')
-                        ? <BaseStylesSection/>
+                        ? <BaseAndCustomClassStylesSection/>
                         : null,
                     api.user.can('createPages')
                         ? <ContentManagementSection/>

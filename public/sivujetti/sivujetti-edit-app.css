@@ -1088,7 +1088,8 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 .tab:has(
     .active.tab-item-user-styles,
     .active.tab-item-content\+user-styles,
-    .active.tab-item-dev-styles
+    .active.tab-item-dev-styles,
+    .active.tab-item-dev-class-styles
 ) {
     margin-bottom: 0;
     border-bottom: none;

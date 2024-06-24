@@ -23,15 +23,16 @@ function createTabsInfo(tabsConfig) {
     const filtered = userCanEditCss ? tabsConfig : tabsConfig.filter(({kind}) => kind !== 'dev-styles');
     return filtered.map((itm) => {
         if (itm.kind === 'content')
-            return {...itm, ...{title: contentTabText}};
+            return {...itm, title: contentTabText};
         if (itm.kind === 'user-styles')
-            return {...itm, ...{title: userStylesTabText}};
+            return {...itm, title: userStylesTabText};
         if (itm.kind === 'content+user-styles')
-            return {...itm, ...{title: `${contentTabText} & ${userStylesTabText}`}};
+            return {...itm, title: `${contentTabText} & ${userStylesTabText}`};
         if (itm.kind === 'dev-styles')
-            return {...itm, ...{title: devStylesTabText}};
+            return {...itm, title: devStylesTabText};
     });
 }
+
 /**
  * @param {tabKind} savedTabKind
  * @param {Array<TabInfo>} tabsInfo
@@ -39,7 +40,7 @@ function createTabsInfo(tabsConfig) {
  */
 function createInitialTabKind(savedTabKind, tabsInfo) {
     initLocals();
-    if (savedTabKind === 'dev-styles' && !userCanEditCss) {
+    if (savedTabKind.indexOf('dev-') > -1 && !userCanEditCss) {
         return tabsInfo.at(-1);
     }
     if (tabsInfo[0].kind === 'content+user-styles' && (
@@ -55,16 +56,7 @@ function createInitialTabKind(savedTabKind, tabsInfo) {
 }
 
 /**
- * @param {Array<TabInfo>} tabsInfo
- * @param {tabKind} ofKind
- * @returns {Number}
- */
-function getTabIdx(tabsInfo, ofKind) {
-    return tabsInfo.findIndex(({kind}) => kind === ofKind);
-}
-
-/**
- * @typedef {'content'|'user-styles'|'dev-styles'|'content+user-styles'} tabKind
+ * @typedef {'content'|'user-styles'|'dev-styles'|'dev-class-styles'|'content+user-styles'} tabKind
  *
  * @typedef TabInfo
  * @prop {tabKind} kind

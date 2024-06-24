@@ -43,16 +43,15 @@ class ScssWizard {
     }
     /**
      * @param {styleScopeKind} scopeKind
-     * @param {String} scopeSpecifier
+     * @param {String} scopeSpecifier = undefined
      * @param {(style: StyleChunk) => Boolean} predicate = true
      * @returns {Array<StyleChunk>}
      * @access public
      */
-    findStyles(scopeKind, scopeSpecifier, fn = (_style) => true) {
-        const lookFor = createSelector(scopeSpecifier, scopeKind);
-        return this.styles.filter((style) =>
-            style.scope.kind === scopeKind && style.scss.startsWith(lookFor) && fn(style)
-        );
+    findStyles(scopeKind, scopeSpecifier = undefined, fn = (_style) => true) {
+        return scopeSpecifier !== undefined
+            ? this.findStylesWithSpecifier(scopeKind, scopeSpecifier, fn)
+            : this.findStylesWithoutSpecifier(scopeKind, fn);
     }
     /**
      * @param {String} scopeKind
@@ -127,20 +126,31 @@ class ScssWizard {
     }
     /**
      * @param {String} initialScssCode Example: '// Your code here ...\ncolor: red;'
-     * @param {String} blockId
+     * @param {styleScopeKind} scopeKind
+     * @param {String} scopeSpecifier = undefined
      * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
-    addNewDevsUniqueScopeScssChunkAndReturnAllRecompiled(initialScssCode, blockId, mediaScopeId = 'all') {
+    addNewDevsScssChunkAndReturnAllRecompiled(initialScssCode, scopeKind, scopeSpecifier = undefined, mediaScopeId = 'all') {
         const updated = [
             ...this.styles,
-            this.createNewUniqueChunk(
-                createScssBlock(initialScssCode, `${createSelector(blockId)} {`),
-                blockId,
-                mediaScopeId,
-                'dev-styles'
-            )
+            (() => {
+                if (scopeKind === 'custom-class') return {
+                    scope: {kind: 'custom-class', media: mediaScopeId, layer: 'dev-styles'},
+                    scss: createScssBlock(initialScssCode, `.my-class {`),
+                };
+                if (scopeKind === 'single-block') return this.createNewUniqueChunk(
+                    createScssBlock(initialScssCode, `${createSelector(scopeSpecifier)} {`),
+                    scopeSpecifier,
+                    mediaScopeId,
+                    'dev-styles'
+                );
+                return {
+                    scope: {kind: 'base', media: mediaScopeId, layer: 'base-styles'},
+                    scss: initialScssCode,
+                };
+            })()
         ];
         return this.commitAll(updated, mediaScopeId);
     }
@@ -313,6 +323,30 @@ class ScssWizard {
                     mediaScopeId,
                 )
             ];
+    }
+    /**
+     * @param {styleScopeKind} scopeKind
+     * @param {(style: StyleChunk) => Boolean} predicate = true
+     * @returns {Array<StyleChunk>}
+     * @access private
+     */
+    findStylesWithoutSpecifier(scopeKind, fn = (_style) => true) {
+        return this.styles.filter((style) =>
+            style.scope.kind === scopeKind && fn(style)
+        );
+    }
+    /**
+     * @param {styleScopeKind} scopeKind
+     * @param {String} scopeSpecifier
+     * @param {(style: StyleChunk) => Boolean} predicate = true
+     * @returns {Array<StyleChunk>}
+     * @access private
+     */
+    findStylesWithSpecifier(scopeKind, scopeSpecifier, fn = (_style) => true) {
+        const lookFor = createSelector(scopeSpecifier, scopeKind);
+        return this.styles.filter((style) =>
+            style.scope.kind === scopeKind && style.scss.startsWith(lookFor) && fn(style)
+        );
     }
     /**
      * @param {scssCodeInput} codeTemplate

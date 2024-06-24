@@ -151,7 +151,9 @@ class BlockEditForm extends preact.Component {
                 } else if (itm.kind === 'dev-styles') {
                     content = <CodeBasedStylesList
                         stylesStateId={ this.state.stylesStateId }
-                        blockId={ block.id }/>;
+                        scopeSettings={ !blockCopyForEditForm.styleGroup
+                            ? {kind: 'single-block', specifier: blockId}
+                            : {kind: 'style-group', specifier: blockCopyForEditForm.styleGroup} }/>;
                 }
                 return <div class={ itm.kind === currentTabKind ? '' : 'd-none' } key={ itm.kind }>
                     { content }

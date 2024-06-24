@@ -8,10 +8,10 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 import BaseStylesVisualEditForm from '../block-styles/BaseStylesVisualEditForm.jsx';
 import CodeBasedStylesList from '../block-styles/CodeBasedStylesTab.jsx';
-import {createInitialTabKind, createTabsInfo} from '../block-styles/style-tabs-commons.js';
+import {createInitialTabKind} from '../block-styles/style-tabs-commons.js';
 /** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
 
-class BaseStylesSection extends preact.Component {
+class BaseAndCustomClassStylesSection extends preact.Component {
     // tabsInfo;
     // unregistrables;
     /**
@@ -19,7 +19,11 @@ class BaseStylesSection extends preact.Component {
      */
     componentWillMount() {
         const saveButton = api.saveButton.getInstance();
-        this.tabsInfo = createTabsInfo([{kind: 'user-styles'}, {kind: 'dev-styles'}]);
+        this.tabsInfo = [
+            {kind: 'user-styles', title: __('Base')},
+            {kind: 'dev-styles', title: __('Base (code)')},
+            {kind: 'dev-class-styles', title: __('Classes (code)')},
+        ];
         const currentTabKind = createInitialTabKind(
             getAndPutAndGetToLocalStorage('user-styles', 'sivujettiLastBaseStylesTabKind'),
             this.tabsInfo
@@ -57,18 +61,21 @@ class BaseStylesSection extends preact.Component {
                 onTabChanged={ (toIdx) => this.changeTab(this.tabsInfo[toIdx].kind) }
                 className={ `text-tinyish mt-0${currentTabKind !== 'content' ? '' : ' mb-2'}` }
                 initialIndex={ tabsInfo.findIndex(({kind}) => kind === currentTabKind) }/> : null }
-            { tabsInfo.map(itm =>
-                <div class={ [...clses, ...(itm.kind === currentTabKind ? [] : ['d-none'])].join(' ') } key={ itm.kind }>
-                    { itm.kind === 'user-styles'
-                        ? <BaseStylesVisualEditForm
-                            blockId="j-_body_"
-                            stateId={ stylesStateId }/>
-                        : <CodeBasedStylesList
-                            stylesStateId={ stylesStateId }
-                            blockId="j-_body_"/>
+            { tabsInfo.map(({kind}) => {
+                const isCurrent = kind === currentTabKind;
+                return <div class={ [...clses, ...(isCurrent ? [] : ['d-none'])].join(' ') } key={ kind }>
+                    { isCurrent
+                        ? kind === 'user-styles'
+                            ? <BaseStylesVisualEditForm
+                                blockId="j-_body_"
+                                stateId={ stylesStateId }/>
+                            : <CodeBasedStylesList
+                                stylesStateId={ stylesStateId }
+                                scopeSettings={ {kind: kind === 'dev-class-styles' ? 'custom-class' : 'base'} }/>
+                        : null
                     }
-                </div>
-            ) }
+                </div>;
+            }) }
             </div> : null }
         </MenuSection>;
     }
@@ -89,4 +96,4 @@ class BaseStylesSection extends preact.Component {
     }
 }
 
-export default BaseStylesSection;
+export default BaseAndCustomClassStylesSection;

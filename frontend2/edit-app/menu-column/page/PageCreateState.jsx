@@ -12,7 +12,7 @@ import {
 import {treeToTransferable} from '../../includes/block/utils.js';
 import {pathToFullSlug} from '../../includes/utils.js';
 import DnDBlockSpawner from '../block/DnDBlockSpawner.jsx';
-import BaseStylesSection from '../default-state-sections/BaseStylesSection.jsx';
+import BaseAndCustomClassStylesSection from '../default-state-sections/BaseStylesSection.jsx';
 import OnThisPageSection from '../default-state-sections/OnThisPageSection.jsx';
 import globalData from '../../includes/globalData.js';
 import {initBlockSpawner} from '../DefaultState.jsx';
@@ -87,7 +87,7 @@ class PageCreateState extends preact.Component {
                         ref={ cmp => initBlockSpawner(cmp, this) }/>
                     { [
                         api.user.can('editGlobalStylesVisually')
-                            ? <BaseStylesSection/>
+                            ? <BaseAndCustomClassStylesSection/>
                             : null, // User has no permission to edit styles
                         SupportSection
                             ? <SupportSection/>

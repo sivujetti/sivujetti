@@ -7,8 +7,6 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 import ScssEditor from './ScssEditor.jsx';
 
-const BODY_STYLE_ID = 'j-_body_';
-
 let saveButtonInstance;
 
 class CodeBasedStylesList extends preact.Component {
@@ -21,7 +19,7 @@ class CodeBasedStylesList extends preact.Component {
         this.unregistrables = [];
         this.setState({
             curScreenSizeTabIdx: 0,
-            devStyleScopes: createStylesState(this.props)
+            styleScreens: createStylesState(this.props.scopeSettings)
         });
     }
     /**
@@ -29,8 +27,9 @@ class CodeBasedStylesList extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.stylesStateId !== this.props.stylesStateId)
-            this.setState({devStyleScopes: createStylesState(props)});
+        if (props.stylesStateId !== this.props.stylesStateId ||
+            props.scopeSettings.specifier !== this.props.scopeSettings.specifier)
+            this.setState({styleScreens: createStylesState(props.scopeSettings)});
     }
     /**
      * @access protected
@@ -41,13 +40,12 @@ class CodeBasedStylesList extends preact.Component {
     /**
      * @access protected
      */
-    render({blockId}, {devStyleScopes, curScreenSizeTabIdx}) {
-        const selectedScreenSizeStyles = devStyleScopes[curScreenSizeTabIdx];
+    render({scopeSettings}, {styleScreens, curScreenSizeTabIdx}) {
+        const selectedScreenSizeStyles = styleScreens[curScreenSizeTabIdx];
         const styleScopes = selectedScreenSizeStyles || [];
         const selectedMediaScopeId = mediaScopes[curScreenSizeTabIdx];
-        const isBodyStyle = blockId === BODY_STYLE_ID;
         return <ScreenSizesVerticalTabs
-            populatedTabs={ devStyleScopes.map(s => s !== null) }
+            populatedTabs={ styleScreens.map(s => s !== null) }
             curTabIdx={ curScreenSizeTabIdx }
             setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }
             allowOverflowX>
@@ -69,7 +67,7 @@ class CodeBasedStylesList extends preact.Component {
                             ', ',
                             <a
                                 href="#"
-                                onClick={ e => (e.preventDefault(), doAddEmptyStyle(blockId, selectedMediaScopeId)) }
+                                onClick={ e => (e.preventDefault(), doAddEmptyStyle(scopeSettings, selectedMediaScopeId)) }
                                 class="color-dimmed">
                                     { __('Add style').toLowerCase() }
                                 </a>,
@@ -81,39 +79,47 @@ class CodeBasedStylesList extends preact.Component {
 }
 
 /**
- * @param {String} blockId
+ * @param {ScopeSettings} scopeSettings
  * @param {mediaScope} selectedMediaScopeId
  */
-function doAddEmptyStyle(blockId, selectedMediaScopeId) {
-    const newAll = scssWizard.addNewDevsUniqueScopeScssChunkAndReturnAllRecompiled(
-        `// ${__('Your code here ...') }\ncolor: red;`,
-        blockId,
+function doAddEmptyStyle(scopeSettings, selectedMediaScopeId) {
+    const [initialScss, scopeSpeficier] = (({kind, specifier}) => {
+        if (kind === 'custom-class') return [
+            `// ${__('Your code here ...') }\ncolor: red;`,
+            undefined,
+        ];
+        if (kind === 'single-block') return [
+            `// ${__('Your code here ...') }\ncolor: red;`,
+            specifier,
+        ];
+        return [
+            `body {\n  // ${__('Your code here ...')}\n}`,
+            undefined,
+        ];
+    })(scopeSettings);
+    const newAll = scssWizard.addNewDevsScssChunkAndReturnAllRecompiled(
+        initialScss,
+        scopeSpeficier,
         selectedMediaScopeId
     );
     saveButtonInstance.pushOp('stylesBundle', newAll);
 }
 
 /**
- * @param {CodeBasedStylesListProps} props
+ * @param {ScopeSettings} scopeSettings
  * @returns {Array<Array<StyleChunk>|null>}
  */
-function createStylesState({blockId, stylesStateId}) {
-    if (blockId === BODY_STYLE_ID) {
-        const allEditableBaseStyles = scssWizard.getAllStyles(stylesStateId).filter(({scope, scss}) =>
-            scope.layer === 'base-styles' && !scss.startsWith(':root')
-        );
-        return mediaScopes.map(scopeId => {
-            const forThisScreenSize = allEditableBaseStyles.filter(({scope}) =>
-                scope.media === scopeId
+function createStylesState({kind, specifier}) {
+    if (kind === 'base') {
+        return mediaScopes.map(mediaScopeId => {
+            const forThisScreenSize = scssWizard.findStyles(kind, undefined, ({scope, scss}) =>
+                scope.layer === 'base-styles' && !scss.startsWith(':root') && scope.media === mediaScopeId
             );
             return forThisScreenSize.length ? forThisScreenSize : null;
         });
     }
-    const [scopeKind, scopeId] = !blockStyleGroup
-        ? ['single-block', blockId]
-        : ['class',        blockStyleGroup];
     return mediaScopes.map(mediaScopeId => {
-        const forThisScreenSize = scssWizard.findStyles(scopeKind, scopeId, ({scope}) =>
+        const forThisScreenSize = scssWizard.findStyles(kind, specifier, ({scope}) =>
             scope.layer === 'dev-styles' && scope.media === mediaScopeId
         );
         return forThisScreenSize.length ? forThisScreenSize : null;
@@ -121,10 +127,9 @@ function createStylesState({blockId, stylesStateId}) {
 }
 
 /**
- * @typedef CodeBasedStylesListProps
- * @prop {String} blockId
- * @prop {Number} stylesStateId
- * @prop {String} blockStyleGroup
+ * @typedef {{stylesStateId: Number; scopeSettings: ScopeSettings;}} CodeBasedStylesListProps
+ *
+ * @typedef {{kind: styleScopeKind; specifier: String;}} ScopeSettings
  */
 
 export default CodeBasedStylesList;

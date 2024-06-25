@@ -64,7 +64,7 @@ class ScssEditor extends preact.Component {
                                     return;
                                 const newCode = e.state.doc.toString();
                                 this.currentCode = newCode;
-                                this.setCommittedCode(this.currentCode);
+                                this.updateApplyButtonVisibility(this.currentCode);
                             })
                         ]
                     }
@@ -91,6 +91,13 @@ class ScssEditor extends preact.Component {
      */
     setCommittedCode(code) {
         this.committedCode = code;
+        this.updateApplyButtonVisibility(code);
+    }
+    /**
+     * @param {String} code
+     * @access private
+     */
+    updateApplyButtonVisibility(code) {
         if (code !== this.committedCode && this.saveButtonEl.classList.contains('d-none')) {
             this.saveButtonEl.classList.remove('d-none');
         } else if (code === this.committedCode && !this.saveButtonEl.classList.contains('d-none')) {

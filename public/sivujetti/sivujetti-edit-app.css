@@ -1107,6 +1107,28 @@ ul.styles-list > li {
 .ͼ1.cm-focused {
     outline: none;
 }
+/* EditApp: Components: tagify widgets */
+:root {
+    --tagify-dd-color-primary: #18225d;
+}
+.tagify {
+    --tags-border-color: var(--color-input-border);
+    --tags-hover-border-color: var(--color-input-border);
+    --tag-text-color: unset;
+    --tags-focus-border-color: var(--tagify-dd-color-primary);
+    --tag-bg: var(--color-bg-button);
+    --tag-hover: var(--color-bg-button-hover);
+    --tag-pad: .1rem .1rem .1rem .3rem;
+    border-radius: var(--small-rect-radius);
+}
+.tagify__dropdown__wrapper {
+    transition-duration: .08s;
+    animation-duration: .08s;
+}
+.tagify__dropdown__item--active {
+    background: var(--color-bg-button);
+    color: unset;
+}
 
 
 /* == EditApp: * ============================================================ */

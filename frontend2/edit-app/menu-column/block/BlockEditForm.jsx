@@ -14,6 +14,7 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 import {getIsStoredToTreeIdFrom, isMetaBlock} from '../../includes/block/utils.js';
 import CodeBasedStylesList from '../block-styles/CodeBasedStylesTab.jsx';
+import StyleClassesPicker from '../block-styles/StyleClassesPicker.jsx';
 import {createInitialTabKind, createTabsInfo} from '../block-styles/style-tabs-commons.js';
 /** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
 
@@ -149,11 +150,27 @@ class BlockEditForm extends preact.Component {
                         blockStyleGroup={ blockCopyForEditForm.styleGroup }
                         stateId={ this.state.stylesStateId }/>;
                 } else if (itm.kind === 'dev-styles') {
-                    content = <CodeBasedStylesList
-                        stylesStateId={ this.state.stylesStateId }
-                        scopeSettings={ !blockCopyForEditForm.styleGroup
-                            ? {kind: 'single-block', specifier: blockId}
-                            : {kind: 'style-group', specifier: blockCopyForEditForm.styleGroup} }/>;
+                    content = [
+                        <CodeBasedStylesList
+                            stylesStateId={ this.state.stylesStateId }
+                            scopeSettings={ !blockCopyForEditForm.styleGroup
+                                ? {kind: 'single-block', specifier: blockId}
+                                : {kind: 'style-group', specifier: blockCopyForEditForm.styleGroup} }/>,
+                        <StyleClassesPicker
+                            currentClasses={ blockCopyForEditForm.styleClasses }
+                            onClassesChanged={ newClasses => {
+                                const saveButton = api.saveButton.getInstance();
+                                saveButton.pushOp(
+                                    'theBlockTree',
+                                    blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
+                                        const [blockRef] = blockTreeUtils.findBlockMultiTree(blockId, newTreeCopy);
+                                        blockRef.styleClasses = newClasses;
+                                        return newTreeCopy;
+                                    }),
+                                    {event: 'update-single-block-prop', blockId},
+                                );
+                            } }/>
+                    ];
                 }
                 return <div class={ itm.kind === currentTabKind ? '' : 'd-none' } key={ itm.kind }>
                     { content }

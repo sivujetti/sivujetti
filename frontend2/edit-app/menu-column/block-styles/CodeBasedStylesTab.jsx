@@ -52,9 +52,9 @@ class CodeBasedStylesList extends preact.Component {
                 <ul class="list styles-list mb-2">{ styleScopes.length
                     ? styleScopes.map(ref => {
                         return <li class="open"><ScssEditor
-                            handleInput={ newScss => {
-                                const updatedAll = scssWizard.updateDevsExistingUniqueScopeChunkWithScssChunkAndReturnAllRecompiled(
-                                    newScss,
+                            onCommitInput={ scss => {
+                                const updatedAll = scssWizard.updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(
+                                    scss,
                                     ref,
                                     selectedMediaScopeId
                                 );

@@ -1729,6 +1729,32 @@ textarea.code.padded-top {
 }
 
 
+/* EditApp: Main panel > Scss code editors */
+.scss-editor-outer .btn-primary {
+    position: absolute;
+    top: .2rem;
+    left: calc(var(--menu-column-width) - 4.2rem);
+    opacity: .8;
+}
+.scss-editor-outer.scrolled-past-top .btn-primary {
+    position: fixed;
+    top: var(--header-height);
+    transform: translateY(.2rem);
+    left: calc(var(--menu-column-width) - 2.8rem);
+}
+.scss-editor-outer.scrolled-past-bottom .btn-primary {
+    display: none;
+}
+#inspector-panel .scss-editor-outer .btn-primary {
+    top: -.1rem;
+    left: calc(var(--menu-column-width) - 4.5rem);
+}
+#inspector-panel .scss-editor-outer.scrolled-past-top .btn-primary {
+    top: calc(100% - var(--inspector-panel-height) + .3rem);
+    transform: translateX(1.4rem);
+}
+
+
 /* EditApp: Inspector panel */
 #inspector-panel [data-main] > .with-icon .icon-tabler {
     color: var(--color-icon-normal-block);

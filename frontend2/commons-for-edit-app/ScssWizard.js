@@ -161,7 +161,7 @@ class ScssWizard {
      * @returns {StylesBundleWithId}
      * @access public
      */
-    updateDevsExistingUniqueScopeChunkWithScssChunkAndReturnAllRecompiled(updatedScssCode, currentStyle, mediaScopeId = 'all') {
+    updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(updatedScssCode, currentStyle, mediaScopeId = 'all') {
         const updated = this.styles.map(s =>
             s !== currentStyle ? s : {...s, scss: updatedScssCode}
         );

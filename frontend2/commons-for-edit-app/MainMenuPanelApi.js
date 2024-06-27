@@ -5,11 +5,13 @@ const sectionRenderers = new Map;
 class MainMenuPanelApi {
     // outerEl;
     // scrollEl;
+    // sectionComponentImpls;
     /**
      * @param {HTMLElement} outerEl = env.document.getElementById('edit-app')
      */
     constructor(outerEl = env.document.getElementById('edit-app')) {
         this.outerEl = outerEl;
+        this.sectionComponentImpls = new Map;
     }
     /**
      * @param {String} blockId
@@ -31,7 +33,7 @@ class MainMenuPanelApi {
         });
     }
     /**
-     * @param {mainPanelSectionElName} name
+     * @param {mainPanelSectionName} name
      * @returns {HTMLElement}
      * @access public
      */
@@ -45,7 +47,24 @@ class MainMenuPanelApi {
         throw new Error(`Section name (${name}) must be ${Object.keys(nameToSelector).join(', ')}`);
     }
     /**
-     * @param {mainPanelSectionElName} name
+     * @param {mainPanelSectionName} name
+     * @param {preact.Component} cmp
+     * @access public
+     */
+    setSectionCmp(name, cmp) {
+        if (!this.sectionComponentImpls.has(name))
+            this.sectionComponentImpls.set(name, cmp);
+    }
+    /**
+     * @param {mainPanelSectionName} name
+     * @returns {preact.Component|null}
+     * @access public
+     */
+    getSectionCmp(name) {
+        return this.sectionComponentImpls.get(name) || null;
+    }
+    /**
+     * @param {mainPanelSectionName} name
      * @param {'smooth'|'auto'} behavior = 'smooth'
      * @access public
      */

@@ -6,6 +6,7 @@ class MenuSection extends preact.Component {
      */
     constructor(props) {
         super(props);
+        this.el = preact.createRef();
         this.state = {isCollapsed: props.initiallyIsCollapsed !== false};
     }
     /**
@@ -18,10 +19,17 @@ class MenuSection extends preact.Component {
         if (onIsCollapsedChanged) onIsCollapsedChanged(next);
     }
     /**
+     * @returns {HTMLElement}
+     * @access public
+     */
+    getEl() {
+        return this.el.current;
+    }
+    /**
      * @access protected
      */
     render({title, subtitle, iconId, colorClass, outerClass, buttonClass, children}, {isCollapsed}) {
-        return <section class={ ['panel-section', outerClass ? ` ${outerClass}` : '', isCollapsed ? '' : ' open'].join('') }>
+        return <section class={ ['panel-section', outerClass ? ` ${outerClass}` : '', isCollapsed ? '' : ' open'].join('') } ref={ this.el }>
             <button class={ `flex-centered pr-2 section-title col-12${buttonClass || ''}` } onClick={ this.collapseOrUncollapse.bind(this) }>
                 <Icon iconId={ iconId } className={ `p-absolute size-sm mr-2 ${colorClass}` }/>
                 <span class="pl-1 d-block col-12 color-default">

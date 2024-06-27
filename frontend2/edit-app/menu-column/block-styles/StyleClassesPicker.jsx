@@ -1,13 +1,15 @@
-import {__, FormGroup} from '@sivujetti-commons-for-edit-app';
+import {__, api, FormGroup, scssWizard} from '@sivujetti-commons-for-edit-app';
 import Tagify from './Tagify.jsx';
 
 class StyleClassesPicker extends preact.Component {
     // tagify;
+    // tagifyChoiceBundles;
     /**
      * @access protected
      */
     componentWillMount() {
         this.tagify = preact.createRef();
+        this.tagifyChoiceBundles = createTagifyChoiceBundles();
     }
     /**
      * @param {{currentClasses: String; onClassesChanged(classes: String): void;}} props
@@ -31,10 +33,26 @@ class StyleClassesPicker extends preact.Component {
             <label class="form-label mt-1 pb-1 pt-2 color-dimmed2">{ __('Css classes') }</label>
             <Tagify
                 tags={ currentClasses }
-                createTagsDropdownChoices={ createTagifyChoices }
+                createTagsDropdownChoices={ () => {
+                    const {devDefinedClasseStyleNames, spectreCssClasses} = this.tagifyChoiceBundles;
+                    return [...devDefinedClasseStyleNames, spectreCssClasses];
+                } }
                 onChanged={ this.props.onClassesChanged }
+                onTagClicked={ e => {
+                    const tagText = e.detail.data.value;
+                    if (this.isDevDefinedClasseStyleName(tagText))
+                        api.menuPanel.getSectionCmp('baseStyles')?.scrollToCustomClassesTabClass(tagText);
+                } }
                 ref={ this.tagify }/>
         </FormGroup>;
+    }
+    /**
+     * @param {String} tagText
+     * @returns {Boolean}
+     * @access private
+     */
+    isDevDefinedClasseStyleName(tagText) {
+        return this.tagifyChoiceBundles.devDefinedClasseStyleNames.indexOf(tagText) > -1;
     }
 }
 
@@ -138,14 +156,18 @@ const spectreCssClasses = [
 ];
 
 /**
- * @returns {Array<String>}
+ * @returns {{devDefinedClasseStyleNames: Array<String>; spectreCssClasses: Array<String>;}}
  */
-function createTagifyChoices() {
-    const devDefinedCustomClassStyleNames = []; // todo
-    return [
-        ...devDefinedCustomClassStyleNames,
-        ...spectreCssClasses,
-    ];
+function createTagifyChoiceBundles() {
+    const devDefinedClasseStyles = scssWizard.findStyles('custom-class', undefined, ({scope}) =>
+        scope.layer === 'dev-styles' && scope.media === 'all'
+    );
+    return {
+        devDefinedClasseStyleNames: devDefinedClasseStyles.reduce((out, chunk) =>
+            [...out, ...scssWizard.extractClassCssBlocks(chunk)]
+        , []),
+        spectreCssClasses,
+    };
 }
 
 export default StyleClassesPicker;

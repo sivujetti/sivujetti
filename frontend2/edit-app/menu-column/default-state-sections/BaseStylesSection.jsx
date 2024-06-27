@@ -18,6 +18,7 @@ class BaseAndCustomClassStylesSection extends preact.Component {
      * @access protected
      */
     componentWillMount() {
+        this.sectionCmp = preact.createRef();
         const saveButton = api.saveButton.getInstance();
         this.tabsInfo = [
             {kind: 'user-styles', title: __('Base')},
@@ -32,6 +33,13 @@ class BaseAndCustomClassStylesSection extends preact.Component {
         this.unregistrables = [saveButton.subscribeToChannel('stylesBundle', (bundle, _userCtx, _ctx) => {
             this.setState({stylesStateId: bundle.id});
         })];
+    }
+    /**
+     * @param {String} className
+     * @access public
+     */
+    scrollToCustomClassesTabClass(className) {
+        // todo
     }
     /**
      * @access protected

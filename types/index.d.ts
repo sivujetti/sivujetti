@@ -51,13 +51,15 @@ interface WebPagePreviewApp {
     onReady(/*fn*/): todo;
 }
 
-type mainPanelSectionElName = 'onThisPage'|'baseStyles';
+type mainPanelSectionName = 'onThisPage'|'baseStyles';
 
 interface MenuPanel {
     scrollTo(blockId: String, behavior: 'smooth'|'auto' = 'smooth');
-    scrollToSection(name: mainPanelSectionElName, behavior: 'smooth'|'auto' = 'smooth');
+    scrollToSection(name: mainPanelSectionName, behavior: 'smooth'|'auto' = 'smooth');
     getOuterEl(): HTMLElement;
-    getSectionEl(name: mainPanelSectionElName): HTMLElement;
+    setSectionCmp(name: mainPanelSectionName, cmp: preact.Component);
+    getSectionCmp(name: mainPanelSectionName): preact.Component|null;
+    getSectionEl(name: mainPanelSectionName): HTMLElement;
     registerSection(name: String, Cls: preact.AnyComponent): void;
     getSection(name: String, doThrowIfNotFound: Boolean = false): preact.AnyComponent;
     getSections(): Map<preact.AnyComponent>;

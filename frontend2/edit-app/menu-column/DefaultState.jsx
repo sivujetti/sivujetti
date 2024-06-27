@@ -43,7 +43,9 @@ class DefaultState extends preact.Component {
                     ref={ cmp => initBlockSpawner(cmp, this) }/>
                 { [
                     api.user.can('editGlobalStylesVisually')
-                        ? <BaseAndCustomClassStylesSection/>
+                        ? <BaseAndCustomClassStylesSection ref={ cmp => {
+                            if (cmp) api.menuPanel.setSectionCmp('baseStyles', cmp);
+                        } }/>
                         : null,
                     api.user.can('createPages')
                         ? <ContentManagementSection/>

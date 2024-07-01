@@ -1,6 +1,7 @@
 import {mediaScopes} from '../shared-inline.js';
 import {
     addOrUpdateCodeTo,
+    compile,
     createScssBlock,
     createSelector,
     deleteCodeFrom,
@@ -62,11 +63,9 @@ class ScssWizard {
      * @access public
      */
     findStyle(scopeKind, scopeSpecifier, mediaScopeId = 'all', layer = 'user-styles') {
-        const lookFor = createSelector(scopeSpecifier, scopeKind);
-        const found = this.styles.find(({scope, scss}) =>
-            scope.kind === scopeKind && scope.media === mediaScopeId && scope.layer === layer && scss.startsWith(lookFor)
-        );
-        return found || null;
+        return scopeSpecifier !== undefined
+            ? this.findStyleWithSpecifier(scopeKind, scopeSpecifier, mediaScopeId, layer)
+            : this.findStyleWithoutSpecifier(scopeKind, mediaScopeId, layer);
     }
     /**
      * @param {scssCodeInput} codeTemplate Examples 'color: red', 'ul li {\n  flex: 0 0 100%;\n}', [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
@@ -90,7 +89,7 @@ class ScssWizard {
         for (const {scope, scss} of newUniqueScopeChunksToAdd) {
             const {media, layer} = scope;
             const blockId = extractBlockId(scss);
-            if (this.findStyle('single-block', blockId, media, layer, this.styles))
+            if (this.findStyle('single-block', blockId, media, layer))
                 throw new Error(`Unique style ${blockId}:${media}:${layer} already exist`);
             affectedMediaScopeIds[media] = 1;
         }
@@ -216,7 +215,7 @@ class ScssWizard {
         for (const {scope, scss} of uniqueScopeChunks) {
             const {media, layer} = scope;
             const blockId = extractBlockId(scss);
-            const s = this.findStyle('single-block', blockId, media, layer, this.styles);
+            const s = this.findStyle('single-block', blockId, media, layer);
             if (!s) throw new Error(`Failed to locate unique style ${blockId}:${media}:${layer}`);
             styles.push(s);
             styleBlockIds.push(blockId);
@@ -349,6 +348,32 @@ class ScssWizard {
         );
     }
     /**
+     * @param {styleScopeKind} scopeKind
+     * @param {mediaScope} mediaScopeId
+     * @param {stylesLayer} layer
+     * @returns {StyleChunk|null}
+     * @access private
+     */
+    findStyleWithoutSpecifier(scopeKind, mediaScopeId, layer) {
+        return this.styles.find(({scope}) =>
+            scope.kind === scopeKind && scope.media === mediaScopeId && scope.layer === layer
+        ) || null;
+    }
+    /**
+     * @param {styleScopeKind} scopeKind
+     * @param {String} scopeSpecifier
+     * @param {mediaScope} mediaScopeId
+     * @param {stylesLayer} layer
+     * @returns {StyleChunk|null}
+     * @access private
+     */
+    findStyleWithSpecifier(scopeKind, scopeSpecifier, mediaScopeId, layer) {
+        const lookFor = createSelector(scopeSpecifier, scopeKind);
+        return this.styles.find(({scope, scss}) =>
+            scope.kind === scopeKind && scope.media === mediaScopeId && scope.layer === layer && scss.startsWith(lookFor)
+        ) || null;
+    }
+    /**
      * @param {scssCodeInput} codeTemplate
      * @param {String} val
      * @param {StyleChunk} currentStyle
@@ -424,12 +449,25 @@ class ScssWizard {
      * @access private
      */
     createNewUniqueChunk(scss, blockId, mediaScopeId, layer = 'user-styles') {
-        if (this.findStyle('single-block', blockId, mediaScopeId, layer, this.styles))
+        if (this.findStyle('single-block', blockId, mediaScopeId, layer))
             throw new Error(`Unique style ${blockId}:${mediaScopeId}:${layer} already exist`);
         return {
             scope: {kind: 'single-block', media: mediaScopeId, layer},
             scss,
         };
+    }
+    /**
+     * @param {StyleChunk} chunk
+     * @returns {Array<{className: string; lineIdx: number;}>}
+     */
+    extractClassCssBlocks({scss}) {
+        const ast = compile(scss); // [{value: '.header-simple', root: null, parent: null, type: 'rule', props: Array(1), …}
+                                   //  {value: '.social-icons', root: null, parent: null, type: 'rule', props: Array(1), …}
+                                   //  {value: '>.j-Section2-cols', root: null, parent: {…}, type: 'rule', props: Array(1), …}
+                                   //  {value: '.j-Button', root: null, parent: {…}, type: 'rule', props: Array(1), …}]
+        return ast
+            .filter(node => !node.parent && node.type === 'rule' && node.value.startsWith('.'))
+            .map(node => ({className: node.value.substring(1), lineIdx: node.line - 1}));
     }
 }
 

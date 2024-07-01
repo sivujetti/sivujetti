@@ -32,9 +32,7 @@ class Tagify extends preact.Component {
                     const {value} = e.detail;
                     this.props.onChanged(value ? JSON.parse(value).map(({value}) => value).join(' ') : '');
                 },
-                'click': e => {
-                    //
-                },
+                'click': this.props.onTagClicked || (() => {}),
             },
         });
     }

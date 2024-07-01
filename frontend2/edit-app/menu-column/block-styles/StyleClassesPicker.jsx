@@ -3,13 +3,15 @@ import Tagify from './Tagify.jsx';
 
 class StyleClassesPicker extends preact.Component {
     // tagify;
-    // tagifyChoiceBundles;
+    // devsCustomClassInfos;
     /**
      * @access protected
      */
     componentWillMount() {
         this.tagify = preact.createRef();
-        this.tagifyChoiceBundles = createTagifyChoiceBundles();
+        const chunk = scssWizard.findStyle('custom-class', undefined, 'all', 'dev-styles');
+        this.devsCustomClassInfos = chunk ? scssWizard.extractClassCssBlocks(chunk) : [];
+        this.tagifyChoices = createTagifyChoices(this.devsCustomClassInfos);
     }
     /**
      * @param {{currentClasses: String; onClassesChanged(classes: String): void;}} props
@@ -33,26 +35,20 @@ class StyleClassesPicker extends preact.Component {
             <label class="form-label mt-1 pb-1 pt-2 color-dimmed2">{ __('Css classes') }</label>
             <Tagify
                 tags={ currentClasses }
-                createTagsDropdownChoices={ () => {
-                    const {devDefinedClasseStyleNames, spectreCssClasses} = this.tagifyChoiceBundles;
-                    return [...devDefinedClasseStyleNames, spectreCssClasses];
-                } }
+                createTagsDropdownChoices={ () => this.tagifyChoices }
                 onChanged={ this.props.onClassesChanged }
                 onTagClicked={ e => {
                     const tagText = e.detail.data.value;
-                    if (this.isDevDefinedClasseStyleName(tagText))
-                        api.menuPanel.getSectionCmp('baseStyles')?.scrollToCustomClassesTabClass(tagText);
+                    const info = this.devsCustomClassInfos.find(({className}) => className === tagText);
+                    if (info) {
+                        api.menuPanel.getSectionCmp('baseStyles')?.scrollToCustomClassesTabClass(
+                            info.lineIdx,
+                            tagText
+                        );
+                    }
                 } }
                 ref={ this.tagify }/>
         </FormGroup>;
-    }
-    /**
-     * @param {String} tagText
-     * @returns {Boolean}
-     * @access private
-     */
-    isDevDefinedClasseStyleName(tagText) {
-        return this.tagifyChoiceBundles.devDefinedClasseStyleNames.indexOf(tagText) > -1;
     }
 }
 
@@ -63,25 +59,6 @@ const cursors = [
     'c-zoom-out',
     'c-not-allowed',
     'c-auto',
-];
-const colors = [
-    // text
-    'text-primary',
-    'text-secondary',
-    'text-dark',
-    'text-gray',
-    'text-light',
-    'text-success',
-    'text-warning',
-    'text-error',
-    // bg
-    'bg-primary',
-    'bg-secondary',
-    'bg-dark',
-    'bg-gray',
-    'bg-success',
-    'bg-warning',
-    'bg-error',
 ];
 const display = [
     // flow
@@ -122,7 +99,7 @@ const position = [
     'float-left',
     'float-right',
     'clearfix',
-]
+];
 const text = [
     // alignment
     'text-left',
@@ -150,24 +127,19 @@ const text = [
 const spectreCssClasses = [
     ...text,
     ...position,
-    ...colors,
     ...display,
     ...cursors,
 ];
 
 /**
- * @returns {{devDefinedClasseStyleNames: Array<String>; spectreCssClasses: Array<String>;}}
+ * @param {Array<{className: string; lineIdx: number;}>} devDefinedClassInfos
+ * @returns {Array<string>}
  */
-function createTagifyChoiceBundles() {
-    const devDefinedClasseStyles = scssWizard.findStyles('custom-class', undefined, ({scope}) =>
-        scope.layer === 'dev-styles' && scope.media === 'all'
-    );
-    return {
-        devDefinedClasseStyleNames: devDefinedClasseStyles.reduce((out, chunk) =>
-            [...out, ...scssWizard.extractClassCssBlocks(chunk)]
-        , []),
-        spectreCssClasses,
-    };
+function createTagifyChoices(devDefinedClassInfos) {
+    return [
+        ...devDefinedClassInfos.map(({className}) => className),
+        ...spectreCssClasses,
+    ];
 }
 
 export default StyleClassesPicker;

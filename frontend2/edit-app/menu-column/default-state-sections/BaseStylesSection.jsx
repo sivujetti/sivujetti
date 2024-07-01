@@ -14,11 +14,36 @@ import {createInitialTabKind} from '../block-styles/style-tabs-commons.js';
 class BaseAndCustomClassStylesSection extends preact.Component {
     // tabsInfo;
     // unregistrables;
+    // menuSection;
+    /**
+     * @param {number} lineIdx
+     * @param {string} _className
+     * @access public
+     */
+    async scrollToCustomClassesTabClass(lineIdx, _className) {
+        const sectionEl = this.getEl();
+        const scrollerEl = sectionEl.parentElement;
+        const baseCfg = {left: 0, behavior: 'smooth'};
+
+        if (this.state.isCollapsed) {
+            scrollerEl.scrollTo({top: sectionEl.offsetTop, ...baseCfg});
+            await new Promise(resolve => { setTimeout(() => { resolve(); }, 200); });
+            await this.unCollapse();
+        }
+
+        if (lineIdx < 0)
+            return;
+
+        const editorEl = await this.openTab('dev-class-styles');
+        const delta = editorEl.getBoundingClientRect().top - sectionEl.getBoundingClientRect().top;
+        const linePos = lineIdx * editorEl.querySelector('.cm-line').getBoundingClientRect().height;
+        scrollerEl.scrollTo({top: sectionEl.offsetTop + delta + linePos, ...baseCfg});
+    }
     /**
      * @access protected
      */
     componentWillMount() {
-        this.sectionCmp = preact.createRef();
+        this.menuSection = preact.createRef();
         const saveButton = api.saveButton.getInstance();
         this.tabsInfo = [
             {kind: 'user-styles', title: __('Base')},
@@ -33,13 +58,6 @@ class BaseAndCustomClassStylesSection extends preact.Component {
         this.unregistrables = [saveButton.subscribeToChannel('stylesBundle', (bundle, _userCtx, _ctx) => {
             this.setState({stylesStateId: bundle.id});
         })];
-    }
-    /**
-     * @param {String} className
-     * @access public
-     */
-    scrollToCustomClassesTabClass(className) {
-        // todo
     }
     /**
      * @access protected
@@ -61,7 +79,8 @@ class BaseAndCustomClassStylesSection extends preact.Component {
             iconId="palette"
             colorClass="color-pink"
             onIsCollapsedChanged={ this.onIsCollapsedChanged.bind(this) }
-            outerClass="base-styles">
+            outerClass="base-styles"
+            ref={ this.menuSection }>
             { !isCollapsed ? <div>
             { hasMoreThat1Tab ? <Tabs
                 links={ tabsInfo.map(itm => itm.title) }
@@ -101,6 +120,44 @@ class BaseAndCustomClassStylesSection extends preact.Component {
      */
     onIsCollapsedChanged(to) {
         this.setState({isCollapsed: to});
+    }
+    /**
+     * @returns {Promise<HTMLElement>}
+     * @access private
+     */
+    openTab(kind) {
+        if (this.state.currentTabKind === kind)
+            return this.getEl().querySelector('.scss-editor-outer');
+
+        const el = this.getEl();
+        const linkEl = el.querySelector(`.tab-item-${kind} a`);
+        if (!linkEl) return;
+        linkEl.click();
+
+        return new Promise(resolve => {
+            setTimeout(() => {
+                resolve(el.querySelector('.scss-editor-outer'));
+            }, 10);
+        });
+    }
+    /**
+     * @returns {Promise<void>}
+     * @access private
+     */
+    unCollapse() {
+        return new Promise(resolve => {
+            this.getEl().querySelector('button.section-title').click();
+            setTimeout(() => {
+                resolve();
+            }, 10);
+        });
+    }
+    /**
+     * @returns {HTMLElement}
+     * @access private
+     */
+    getEl() {
+        return this.menuSection.current.getEl();
     }
 }
 

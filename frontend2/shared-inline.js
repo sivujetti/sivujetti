@@ -67,7 +67,7 @@ function traverseRecursively(branch, fn, parent = null) {
 
 /**
  * @param {any} obj
- * @returns {String}
+ * @returns {any}
  */
 function cloneDeep(obj) {
     return JSON.parse(JSON.stringify(obj));

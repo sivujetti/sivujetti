@@ -69,7 +69,7 @@ interface BlockTypesRegister {
     setup(defaultBlockTypes: Array<[String, BlockTypeDefinition]>): void;
     register(name: String, blockTypeFactory: () => BlockTypeDefinition): void;
     get(name: String): BlockTypeDefinition;
-    getIconId(blockType: BlockTypeDefinition|String, fallback: String = 'box'): String
+    getIconId(blockType: BlockTypeDefinition|String, fallback: String = 'box'): String;
     entries(): IterableIterator<String, BlockTypeDefinition>;
 }
 

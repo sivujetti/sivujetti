@@ -142,7 +142,7 @@ final class ThemesController {
                     "styleChunks" => array_map(fn($b) => (object) [
                         "scss" => $b->scss,
                         "scope" => (object) [
-                            "block" => $b->scope->block,
+                            "kind" => $b->scope->kind,
                             "media" => $b->scope->media,
                             "layer" => $b->scope->layer,
                         ]

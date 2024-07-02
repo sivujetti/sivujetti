@@ -57,7 +57,7 @@ class BlockVisualStylesEditForm extends preact.Component {
         this.isSpecialRootVarsStyle = this.props.blockId === 'j-_body_';
         const [scopes, styleRefs] = this.createCssVarsMapsInternal(this.props);
         this.userStyleRefs = styleRefs;
-        this.setState({styleScopes: scopes, curScreenSizeTabIdx: 0});
+        this.setState({styleScreens: scopes, curScreenSizeTabIdx: 0});
     }
     /**
      * @param {BlockStylesEditFormProps} props
@@ -66,17 +66,17 @@ class BlockVisualStylesEditForm extends preact.Component {
     componentWillReceiveProps(props) {
         if (props.stateId !== this.props.stateId || props.blockStyleGroup !== this.props.blockStyleGroup) {
             const [scopes, styleRefs] = this.createCssVarsMapsInternal(props);
-            if (JSON.stringify(scopes) !== JSON.stringify(this.state.styleScopes)) {
+            if (JSON.stringify(scopes) !== JSON.stringify(this.state.styleScreens)) {
                 this.userStyleRefs = styleRefs;
-                this.setState({styleScopes: scopes});
             }
+                this.setState({styleScreens: scopes});
         }
     }
     /**
      * @access protected
      */
-    render(_, {styleScopes, curScreenSizeTabIdx}) {
-        const selectedScreenSizeVars = styleScopes[curScreenSizeTabIdx] || {};
+    render(_, {styleScreens, curScreenSizeTabIdx}) {
+        const selectedScreenSizeVars = styleScreens[curScreenSizeTabIdx] || {};
         const content = <div class="form-horizontal has-visual-style-widgets tight pt-1 pl-2">{
             this.cssVarDefs.map(def =>
                 this.renderVarWidget(def, selectedScreenSizeVars, this.varInputToScssCodeFn)
@@ -188,7 +188,7 @@ class BlockVisualStylesEditForm extends preact.Component {
      * @access private
      */
     doHandleValChanged(val, varName, varInputToScssCode) {
-        const {styleScopes, curScreenSizeTabIdx} = this.state;
+        const {styleScreens, curScreenSizeTabIdx} = this.state;
         const curChunk = this.userStyleRefs[curScreenSizeTabIdx];
         const newValIsNotEmpty = val?.trim().length > 0;
         const valNorm = newValIsNotEmpty ? val : '"dummy"';
@@ -203,7 +203,7 @@ class BlockVisualStylesEditForm extends preact.Component {
                 mediaScopeId,
             );
         } else {
-            const selectedScreenSizeVars = styleScopes[curScreenSizeTabIdx] || {};
+            const selectedScreenSizeVars = styleScreens[curScreenSizeTabIdx] || {};
             const hasVarValPreviously = !!selectedScreenSizeVars[varName];
             if (!newValIsNotEmpty && hasVarValPreviously)
                 return scssWizard.deleteScssCodeFromExistingUniqueScopeChunkAndReturnAllRecompiled(
@@ -228,14 +228,14 @@ class BlockVisualStylesEditForm extends preact.Component {
      * @access private
      */
     doHandleVarOfOptimizedChunkChanged(val, varName, varInputToScssCode) {
-        const {styleScopes, curScreenSizeTabIdx} = this.state;
+        const {styleScreens, curScreenSizeTabIdx} = this.state;
         const classChunk = this.userStyleRefs[curScreenSizeTabIdx];
         const newValIsNotEmpty = val?.trim().length > 0;
         const valNorm = newValIsNotEmpty ? val : '"dummy"';
         const mediaScopeId = mediaScopes[curScreenSizeTabIdx];
         const codeTemplate = varInputToScssCode(varName, val);
 
-        const selectedScreenSizeVars = styleScopes[curScreenSizeTabIdx] || {};
+        const selectedScreenSizeVars = styleScreens[curScreenSizeTabIdx] || {};
         const hasVarValPreviously = !!selectedScreenSizeVars[varName];
         return scssWizard.addNewUniqueScopeChunkFromExistingClassScopeChunkAndReturnAllRecompiled(
             hasVarValPreviously ? newValIsNotEmpty ? 'update' : 'delete' : 'add',
@@ -253,7 +253,7 @@ class BlockVisualStylesEditForm extends preact.Component {
     createCssVarsMapsInternal(props) {
         const [scopeKind, scopeSpecifier, layer] = (function (self) {
             if (self.isSpecialRootVarsStyle)
-                return ['base',         null,                 'base-styles'];
+                return ['base',         undefined,            'base-styles'];
             if (!props.blockStyleGroup)
                 return ['single-block', props.blockId,         undefined];
             else

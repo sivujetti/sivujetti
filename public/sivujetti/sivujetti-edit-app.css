@@ -1119,7 +1119,9 @@ ul.styles-list > li {
     --tag-bg: var(--color-bg-button);
     --tag-hover: var(--color-bg-button-hover);
     --tag-pad: .1rem .1rem .1rem .3rem;
+    --placeholder-color: #bcc3ce;
     border-radius: var(--small-rect-radius);
+    width: 100%;
 }
 .tagify__dropdown__wrapper {
     transition-duration: .08s;
@@ -1762,7 +1764,7 @@ textarea.code.padded-top {
     position: fixed;
     top: var(--header-height);
     transform: translateY(.2rem);
-    left: calc(var(--menu-column-width) - 2.8rem);
+    left: calc(var(--menu-column-width-computed) - 2.8rem);
 }
 .scss-editor-outer.scrolled-past-bottom .btn-primary {
     display: none;

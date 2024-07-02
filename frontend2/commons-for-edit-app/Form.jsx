@@ -54,6 +54,7 @@ function hookForm(cmp, inps, initialState = {}) {
  * @param {preact.Component} cmp
  * @param {() => Promise<any>} fn
  * @param {Event=} e = null
+ * @returns {boolean|null}
  */
 function handleSubmit(cmp, fn, e = null) {
     if (e) e.preventDefault();

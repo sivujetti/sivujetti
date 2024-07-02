@@ -5,7 +5,7 @@ class Events {
         this.listeners = new Map;
     }
     /**
-     * @param {String} when
+     * @param {string} when
      * @param {(...any) => void} thenDo
      * @returns {Function} Call it to unregister this listener
      * @access public
@@ -18,22 +18,13 @@ class Events {
             this.listeners.set(when, fns.filter(fn => fn !== thenDo));
         };
     }
-    once(when, thenDoOnce) {
-        // ??
-        return () => {
-        const unreg = this.on(when, (...args) => {
-            thenDoOnce(...args);
-            unreg();
-        });
-        };
-    }
     /**
-     * @param {String} signalName
+     * @param {string} eventName
      * @param {...any} args
      * @access public
      */
-    emit(signalName, ...args) {
-        const fns = this.listeners.get(signalName);
+    emit(eventName, ...args) {
+        const fns = this.listeners.get(eventName);
         if (!fns) return;
         fns.forEach(fn => fn(...args));
     }

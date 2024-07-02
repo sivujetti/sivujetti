@@ -1,13 +1,15 @@
 class Tagify extends preact.Component {
     // inputEl;
+    // currentVal;
     /**
-     * @param {String} newTags
+     * @param {string} newTags
      * @access public
      */
     exchangeTags(newTags) {
-        const currentTags = this.tagify.getCleanValue().map(({value}) => value).join(' ');
-        if (newTags !== currentTags)
+        if (newTags !== this.currentVal) {
+            this.currentVal = newTags;
             this.tagify.loadOriginalValues(newTags.split(' '));
+        }
     }
     /**
      * @access protected
@@ -19,7 +21,9 @@ class Tagify extends preact.Component {
      * @access protected
      */
     componentDidMount() {
-        this.tagify = new window.Tagify(this.inputEl.current, {
+        const el = this.inputEl.current;
+        this.currentVal = `${el.value}`;
+        this.tagify = new window.Tagify(el, {
             whitelist: this.props.createTagsDropdownChoices(),
             dropdown: {
                 position: 'text',   // place the dropdown near the typed text
@@ -30,7 +34,11 @@ class Tagify extends preact.Component {
             callbacks: {
                 'change': e => {
                     const {value} = e.detail;
-                    this.props.onChanged(value ? JSON.parse(value).map(({value}) => value).join(' ') : '');
+                    const newVal = value ? JSON.parse(value).map(({value}) => value).join(' ') : '';
+                    if (newVal !== this.currentVal) {
+                        this.currentVal = newVal;
+                        this.props.onChanged(newVal);
+                    }
                 },
                 'click': this.props.onTagClicked || (() => {}),
             },

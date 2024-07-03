@@ -41,6 +41,7 @@ import Tabs from './Tabs.jsx';
 import {putToLocalStorage, getFromLocalStorage, getAndPutAndGetToLocalStorage} from './local-storage-utils.js';
 import blockTreeUtils from './block/tree-utils.js';
 import {writeBlockProps} from './block/utils.js';
+import scssUtils from './styles/scss-utils.js';
 import {
     determineModeFrom,
     determineModeFromPreview,
@@ -109,6 +110,7 @@ export {
     putToLocalStorage,
     reHookValues,
     ScreenSizesVerticalTabs,
+    scssUtils,
     scssWizard,
     sensibleDefaults,
     setFocusTo,

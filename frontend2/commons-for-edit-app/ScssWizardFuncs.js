@@ -1,4 +1,4 @@
-const {compile, serialize, stringify} = window.stylis;
+import scssUtils, {compile, serialize, stringify} from './styles/scss-utils';
 
 /**
  * @param {String} scss
@@ -29,13 +29,25 @@ function createCssDeclExtractor(scss) {
 /**
  * @param {Array<StyleChunk>} styles
  * @param {mediaScope} mediaScopeId
- * @returns {String} '@layer base-styles {\n<compiled>\n}\n@layer user-styles {\n<compiled>\n}\n@layer dev-styles {\n<compiled>\n}\n'
+ * @returns {String} '@import "maybeExternalImport";@font-face {<maybeLocalImport>}@layer base-styles {\n<compiled>\n}\n@layer user-styles {\n<compiled>\n}\n@layer dev-styles {\n<compiled>\n}\n'
  */
 function stylesToBaked(styles, mediaScopeId) {
     const forThisMedia = styles.filter(({scope}) => scope.media === mediaScopeId);
     if (!forThisMedia.length) return '';
-    const {base, user, dev} = forThisMedia.reduce((out, s) => {
+    const {hoisted, base, user, dev} = forThisMedia.reduce((out, s) => {
         const {scope} = s;
+        if (scope.layer === 'base-styles' && scope.kind === 'base') {
+            const [hoistedLines, hoistedLineIdxes] = hoistImportsIfAny(s.scss);
+            if (hoistedLines.length) return {
+                ...out,
+                ...{
+                    base: [...out.base, {...s, scss: s.scss.split('\n').filter((_line, i) =>
+                        hoistedLineIdxes.indexOf(i) < 0
+                    ).join('\n')}],
+                    hoisted: [...out.hoisted, ...hoistedLines],
+                }
+            }; // else fall through
+        }
         if (scope.layer === 'base-styles')
             return {...out, base: [...out.base, s]};
         if (scope.layer === 'user-styles' && (scope.kind === 'single-block' || scope.kind === 'style-group'))
@@ -43,8 +55,10 @@ function stylesToBaked(styles, mediaScopeId) {
         if (scope.layer === 'dev-styles')
             return {...out, dev: [...out.dev, s]};
         return out;
-    }, {base: [], user: [], dev: []});
+    }, {base: [], user: [], dev: [], hoisted: []});
+
     return [
+        ...(hoisted.length ? hoisted : ['']),
         '@layer base-styles {\n',
         serialize(compile(base.map(({scss}) => scss).join('')), stringify),
         '\n}\n',
@@ -360,6 +374,34 @@ function extractBlockId(uniqChunkScss) {
  */
 function extractStyleGroupId(classChunkScss) {
     return classChunkScss.split('data-style-group="')[1].split('"')[0];
+}
+
+/**
+ * @param {string} scss
+ * @returns {[Array<string>, Array<number>]}
+ */
+function hoistImportsIfAny(scss) {
+    const insights = scssUtils.extractImports(scss);
+
+    const hoistedLines = insights.reduce((out, insi) =>
+        !insi.completedUrl
+            // External (@import ...) -> insert at the start
+            ? [insi.node.value, ...out]
+            // Local (@font-face ...) -> append to the end
+            : [...out, [
+                '@font-face{',
+                    'font-family:"', insi.fontFamily, '";',
+                    'src:url("', insi.completedUrl, '") format("', insi.ext, '");',
+                    'font-weight:', insi.fontWeight || '400', ';',
+                    'font-style:normal;',
+                '}',
+            ].join('')]
+    , []);
+
+    return [
+        hoistedLines,
+        insights.map(({node}) => node.line - 1)
+    ];
 }
 
 export {

@@ -30,13 +30,13 @@ function createCssVarsMaps(blockId, cssVarDefs) {
 /**
  * @param {Array<VisualStylesFormVarDefinition>} cssVarDefs
  * @param {styleScopeKind} scopeKind
- * @param {String} scopeId
+ * @param {String} scopeSpecifier = undefined
  * @param {stylesLayer|undefined} layer = undefined
  * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}
  */
-function doCreateCssVarsMaps(cssVarDefs, scopeKind, scopeId, layer = undefined) {
+function doCreateCssVarsMaps(cssVarDefs, scopeKind, scopeSpecifier = undefined, layer = undefined) {
     return mediaScopes.reduce((out, mediaScopeId) => {
-        const styleRef = scssWizard.findStyle(scopeKind, scopeId, mediaScopeId, layer);
+        const styleRef = scssWizard.findStyle(scopeKind, scopeSpecifier, mediaScopeId, layer);
         const styleVarsForThisMediaScope = createVarsMapAuto(cssVarDefs, styleRef?.scss || null);
         out[0].push(styleVarsForThisMediaScope);
         out[1].push(styleRef);

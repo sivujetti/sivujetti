@@ -73,7 +73,7 @@ const cssVarDefs = [
             valueType: 'length',
             label: 'Border width',
             inputId: 'buttonBorderWidth',
-            initialUnit: 'px',
+            defaultThemeValue: '1px',
         },
     },
     {
@@ -146,7 +146,7 @@ const cssVarDefs = [
             valueType: 'length',
             label: 'Radius',
             inputId: 'buttonRadius',
-            initialUnit: 'px',
+            defaultThemeValue: '1px',
         },
     },
     ...(function ([top, right, bottom, left]) {

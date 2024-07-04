@@ -68,8 +68,8 @@ class BlockVisualStylesEditForm extends preact.Component {
             const [scopes, styleRefs] = this.createCssVarsMapsInternal(props);
             if (JSON.stringify(scopes) !== JSON.stringify(this.state.styleScreens)) {
                 this.userStyleRefs = styleRefs;
-            }
                 this.setState({styleScreens: scopes});
+            }
         }
     }
     /**
@@ -164,20 +164,31 @@ class BlockVisualStylesEditForm extends preact.Component {
      */
     handleVisualVarChangedFast(val, varName, varInputToScssCode) {
         const codeTemplate = varInputToScssCode(varName, val);
-        const asArr = Array.isArray(codeTemplate) ? codeTemplate : codeTemplate.split('\n');
-        const isSingleLineDecl = asArr[0].at(-1) === ';';
+        const lines = Array.isArray(codeTemplate) ? codeTemplate : codeTemplate.split('\n');
+        const isSingleLineDecl = lines[0].at(-1) === ';';
         const [scopeSpecifier, scopeKind] = !this.isSpecialRootVarsStyle
             ? [this.props.blockId, 'single-block']
             : [null,               'base'];
         const rootSelector = createSelector(scopeSpecifier, scopeKind);
-        const lines = isSingleLineDecl
-            ? [`${rootSelector} {`, ...asArr, '}']
+        const linesFull = isSingleLineDecl
+            ? [
+                rootSelector,
+                ' {',
+                ...lines,
+                '}'
+            ]
             : [
-                rootSelector, // asArr[0] already contains '{'
-                ...asArr,
+                rootSelector,
+                // asArr[0] already contains ' {'
+                ...lines.map((line, i) => {
+                    if (i > 0) return line;
+                    return !line.startsWith('&')
+                        ? ` ${line}`         // Example 'ul li a {' -> ' ul li a {'
+                        : line.substring(1); // Example '&:hover {' -> ':hover {'
+                }),
                 // asArr.at(-1) already contains '}'
             ];
-        const css = lines.map(l => l.replace('%s', val)).join('');
+        const css = linesFull.map(l => l.replace('%s', val)).join('');
         api.webPagePreview.updateCssFast(scopeSpecifier, css);
     }
     /**

@@ -4,6 +4,19 @@ const {compile, serialize, stringify} = window.stylis;
 
 const scssUtils = {
     /**
+     * @param {StyleChunk} chunk
+     * @returns {Array<{className: string; lineIdx: number;}>}
+     */
+    extractClassCssBlocks({scss}) {
+        const ast = compile(scss); // [{value: '.header-simple', root: null, parent: null, type: 'rule', props: Array(1), …}
+                                   //  {value: '.social-icons', root: null, parent: null, type: 'rule', props: Array(1), …}
+                                   //  {value: '>.j-Section2-cols', root: null, parent: {…}, type: 'rule', props: Array(1), …}
+                                   //  {value: '.j-Button', root: null, parent: {…}, type: 'rule', props: Array(1), …}]
+        return ast
+            .filter(node => !node.parent && node.type === 'rule' && node.value.startsWith('.'))
+            .map(node => ({className: node.value.substring(1), lineIdx: node.line - 1}));
+    },
+    /**
      * @param {string} scss
      * @returns {Array<{fontFamily: string; node: StylisAstNode; completedUrl: string|null; fontWeight: string|null; ext: string|null;}>}
      */

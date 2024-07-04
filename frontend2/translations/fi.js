@@ -133,6 +133,7 @@ stringBundles.push({
     'Base': 'Pohja',
     'Base (code)': 'Pohja (koodi)',
     'Classes (code)': 'Luokat (koodi)',
+    'Show all': 'Näytä kaikki',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
     'Only root styles may contain @imports': 'Vain juurityylit voi sisältää @importeja',
     // edit-app/src/left-column/block/BlockTree.jsx

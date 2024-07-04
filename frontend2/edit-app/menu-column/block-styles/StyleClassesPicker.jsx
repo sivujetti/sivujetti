@@ -1,4 +1,4 @@
-import {__, api, FormGroup, scssWizard} from '@sivujetti-commons-for-edit-app';
+import {__, api, FormGroup, scssUtils, scssWizard} from '@sivujetti-commons-for-edit-app';
 import Tagify from './Tagify.jsx';
 
 class StyleClassesPicker extends preact.Component {
@@ -10,7 +10,7 @@ class StyleClassesPicker extends preact.Component {
     componentWillMount() {
         this.tagify = preact.createRef();
         const chunk = scssWizard.findStyle('custom-class', undefined, 'all', 'dev-styles');
-        this.devsCustomClassInfos = chunk ? scssWizard.extractClassCssBlocks(chunk) : [];
+        this.devsCustomClassInfos = chunk ? scssUtils.extractClassCssBlocks(chunk) : [];
         this.tagifyChoices = createTagifyChoices(this.devsCustomClassInfos);
     }
     /**

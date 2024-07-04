@@ -1,7 +1,76 @@
 import {__} from '@sivujetti-commons-for-edit-app';
 
+const DEFAULT_FONT = '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto';
+
 export default [
 // :root {
+//   --spectre-dark-color: #303742;
+    {
+        varName: 'baseStyleDarkColor',
+        cssProp: '--spectre-dark-color',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Dark',
+            inputId: 'baseStyleDarkColor',
+        },
+    },
+//   --spectre-light-color: #fff;
+    {
+        varName: 'baseStyleLightColor',
+        cssProp: '--spectre-light-color',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Light',
+            inputId: 'baseStyleLightColor',
+        },
+    },
+//   /* Defaults #1 */
+//   --spectre-primary-color: #2c86bb;
+    {
+        varName: 'baseStylePrimaryColor',
+        cssProp: '--spectre-primary-color',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Primary',
+            inputId: 'baseStylePrimaryColor',
+        },
+    },
+//   --spectre-primary-color-dark: #297daf; /* darken(--spectre-primary-color, 3%), you can use http://scg.ar-ch.org/ for this */
+    {
+        varName: 'baseStylePrimaryColorDark',
+        cssProp: '--spectre-primary-color-dark',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Primary active',
+            inputId: 'baseStylePrimaryColorDark',
+        },
+    },
+//   --spectre-primary-color-light: #2f8fc7; /* lighten(--spectre-primary-color, 3%) */
+    /* {
+        varName: 'baseStylePrimaryColorLight',
+        cssProp: '--spectre-primary-color-light',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Primary lighter',
+            inputId: 'baseStylePrimaryColorLight',
+        },
+    }, */
+//   --spectre-body-font-color: #303742; /* lighten(--spectre-dark-color, 5%) todo*/
+    {
+        varName: 'baseStyleBodyFontColor',
+        cssProp: '--spectre-body-font-color',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Texts', // 'Body font',
+            inputId: 'baseStyleBodyFontColor',
+        },
+    },
 //   --spectre-link-color: #2c86bb; /* --spectre-primary-color */
     {
         varName: 'baseStyleLinkColor',
@@ -20,7 +89,7 @@ export default [
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
-            label: 'Links darker',
+            label: 'Links active',
             inputId: 'baseStyleLinkColorDark',
         },
     },
@@ -31,22 +100,11 @@ export default [
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',
-            label: 'Links lighter',
+            label: 'Links visited',
             inputId: 'baseStyleLinkColorLight',
         },
     },
-//   --spectre-body-font-color: #303742; /* lighten(--spectre-dark-color, 5%) todo*/
-    {
-        varName: 'baseStyleBodyFontColor',
-        cssProp: '--spectre-body-font-color',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'color',
-            label: 'Texts', // 'Body font',
-            inputId: 'baseStyleBodyFontColor',
-        },
-    },
-//   --spectre-base-font-family: "Domine", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto;
+//   --spectre-base-font-family: "Domine", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto; 
     {
         varName: 'baseStyleBaseFont',
         cssProp: '--spectre-base-font-family',
@@ -54,8 +112,7 @@ export default [
         widgetSettings: {
             valueType: 'option',
             options: [
-                {label: 'Domine', value: '"Domine"'},
-                {label: __('Default'), value: '-apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto'},
+                {label: __('Default'), value: DEFAULT_FONT},
             ],
             label: 'Font',
             inputId: 'baseStyleBaseFont',
@@ -80,8 +137,7 @@ export default [
         widgetSettings: {
             valueType: 'option',
             options: [
-                {label: 'Inter', value: '"Inter"'},
-                {label: __('Default'), value: 'var(--spectre-base-font-family)'},
+                {label: __('Default'), value: DEFAULT_FONT},
             ],
             label: 'Headings font',
             inputId: 'baseStyleHeadingsFont',
@@ -95,7 +151,11 @@ export default [
         widgetSettings: {
             valueType: 'option',
             options: [
+                {label: '500', value: '500'},
+                {label: '600', value: '600'},
                 {label: '700', value: '700'},
+                {label: '800', value: '800'},
+                {label: '900', value: '900'},
                 {label: __('Default'), value: '700'},
             ],
             label: 'Headings font weight',
@@ -103,7 +163,7 @@ export default [
         },
     },
 //   --jet-headings-line-height: 2.4rem;
-    {
+    /* {
         varName: 'baseStyleHeadingsLineHeight',
         cssProp: '--jet-headings-line-height',
         cssSubSelector: null,
@@ -112,7 +172,7 @@ export default [
             label: 'Headings line height',
             inputId: 'baseStyleHeadingsLineHeight',
         },
-    },
+    }, */
 //   --jet-h1-font-size: 2.4rem;
     {
         varName: 'baseStyleHeadings1FontSize',
@@ -180,10 +240,76 @@ export default [
         },
     },
 //   /* Buttons, button links */
-//   --jet-button-font-size: .85rem;
+//   --jet-buttons-bg-color-normal: #f8f8f8;
+    {
+        varName: 'baseStyleButtonsBgColorNormal',
+        cssProp: '--jet-buttons-bg-color-normal',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Buttons background',
+            inputId: 'baseStyleButtonsBgColorNormal',
+        },
+    },
+//   --jet-buttons-bg-color-hover: $secondary-color;
+    {
+        varName: 'baseStyleButtonsBgColorHover',
+        cssProp: '--jet-buttons-bg-color-hover',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Buttons background hover',
+            inputId: 'baseStyleButtonsBgColorHover',
+        },
+    },
+//   --jet-buttons-color-normal: #333;
+    {
+        varName: 'baseStyleButtonsColorNormal',
+        cssProp: '--jet-buttons-color-normal',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Buttons text',
+            inputId: 'baseStyleButtonsColorNormal',
+        },
+    },
+//   --jet-buttons-color-hover: #333;
+    {
+        varName: 'baseStyleButtonsColorHover',
+        cssProp: '--jet-buttons-color-hover',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Buttons text hover',
+            inputId: 'baseStyleButtonsColorHover',
+        },
+    },
+//   --jet-buttons-border-color-normal: #f8f8f8;
+    {
+        varName: 'baseStyleButtonsBorderColorNormal',
+        cssProp: '--jet-buttons-border-color-normal',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Buttons border',
+            inputId: 'baseStyleButtonsBorderColorNormal',
+        },
+    },
+//   --jet-buttons-border-color-hover: $primary-color-dark;
+    {
+        varName: 'baseStyleButtonsBorderColorHover',
+        cssProp: '--jet-buttons-border-color-hover',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Buttons border hover',
+            inputId: 'baseStyleButtonsBorderColorHover',
+        },
+    },
+//   --jet-buttons-font-size: .85rem;
     {
         varName: 'baseStyleButtonsFontSize',
-        cssProp: '--jet-button-font-size',
+        cssProp: '--jet-buttons-font-size',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'length',
@@ -191,106 +317,31 @@ export default [
             inputId: 'baseStyleButtonsFontSize',
         },
     },
-//   --jet-button-color-normal: #333;
+//   --jet-buttons-border-radius: 2px;
     {
-        varName: 'baseStyleButtonColorNormal',
-        cssProp: '--jet-button-color-normal',
+        varName: 'baseStyleButtonsBorderRadius',
+        cssProp: '--jet-buttons-border-radius',
         cssSubSelector: null,
         widgetSettings: {
-            valueType: 'color',
-            label: 'Buttons text',
-            inputId: 'baseStyleButtonColorNormal',
+            valueType: 'length',
+            label: 'Buttons border radius',
+            inputId: 'baseStyleButtonsBorderRadius',
+            defaultThemeValue: '2px',
         },
     },
-//   --jet-button-bg-color-normal: #f8f8f8;
+//   --jet-buttons-border-width: 1px;
     {
-        varName: 'baseStyleButtonBgColorNormal',
-        cssProp: '--jet-button-bg-color-normal',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'color',
-            label: 'Buttons background',
-            inputId: 'baseStyleButtonBgColorNormal',
-        },
-    },
-//   --jet-button-border-color-normal: #f8f8f8;
-    {
-        varName: 'baseStyleButtonBorderColorNormal',
-        cssProp: '--jet-button-border-color-normal',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'color',
-            label: 'Buttons border',
-            inputId: 'baseStyleButtonBorderColorNormal',
-        },
-    },
-//   --jet-button-border-width: 1px;
-    {
-        varName: 'baseStyleButtonBorderWidth',
-        cssProp: '--jet-button-border-width',
+        varName: 'baseStyleButtonsBorderWidth',
+        cssProp: '--jet-buttons-border-width',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'length',
             label: 'Buttons border width',
-            inputId: 'baseStyleButtonBorderWidth',
+            inputId: 'baseStyleButtonsBorderWidth',
+            defaultThemeValue: '1px',
         },
     },
-//   /* Defaults */
-//   --spectre-primary-color: #2c86bb;
-    {
-        varName: 'baseStylePrimaryColor',
-        cssProp: '--spectre-primary-color',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'color',
-            label: 'Primary',
-            inputId: 'baseStylePrimaryColor',
-        },
-    },
-//   --spectre-primary-color-dark: #297daf; /* darken(--spectre-primary-color, 3%), you can use http://scg.ar-ch.org/ for this */
-    {
-        varName: 'baseStylePrimaryColorDark',
-        cssProp: '--spectre-primary-color-dark',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'color',
-            label: 'Primary darker',
-            inputId: 'baseStylePrimaryColorDark',
-        },
-    },
-//   --spectre-primary-color-light: #2f8fc7; /* lighten(--spectre-primary-color, 3%) */
-    {
-        varName: 'baseStylePrimaryColorLight',
-        cssProp: '--spectre-primary-color-light',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'color',
-            label: 'Primary lighter',
-            inputId: 'baseStylePrimaryColorLight',
-        },
-    },
-//   --spectre-dark-color: #303742;
-    {
-        varName: 'baseStyleDarkColor',
-        cssProp: '--spectre-dark-color',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'color',
-            label: 'Dark',
-            inputId: 'baseStyleDarkColor',
-        },
-    },
-//   --spectre-light-color: #fff;
-    {
-        varName: 'baseStyleLightColor',
-        cssProp: '--spectre-light-color',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'color',
-            label: 'Light',
-            inputId: 'baseStyleLightColor',
-        },
-    },
+//   /* Defaults #2 */
 //   --spectre-secondary-color: #badbef; /* lighten(--spectre-primary-color, 38%) */
     {
         varName: 'baseStyleSecondaryColor',
@@ -425,16 +476,6 @@ export default [
     },
 //   /* Forms */
     {
-        varName: 'baseStyleInputsFontSize',
-        cssProp: '--jet-inputs-font-size',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'length',
-            label: 'Inputs font size',
-            inputId: 'baseStyleInputsFontSize',
-        },
-    },
-    {
         varName: 'baseStyleInputsTextColor',
         cssProp: '--jet-inputs-text-color',
         cssSubSelector: null,
@@ -465,6 +506,26 @@ export default [
         },
     },
     {
+        varName: 'baseStyleInputsBgNormalColor',
+        cssProp: '--jet-inputs-bg-normal-color',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'color',
+            label: 'Inputs background',
+            inputId: 'baseStyleInputsBgNormalColor',
+        },
+    },
+    {
+        varName: 'baseStyleInputsFontSize',
+        cssProp: '--jet-inputs-font-size',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'length',
+            label: 'Inputs font size',
+            inputId: 'baseStyleInputsFontSize',
+        },
+    },
+    {
         varName: 'baseStyleInputsBorderWidth',
         cssProp: '--jet-inputs-border-width',
         cssSubSelector: null,
@@ -472,6 +533,7 @@ export default [
             valueType: 'length',
             label: 'Inputs border width',
             inputId: 'baseStyleInputsBorderWidth',
+            defaultThemeValue: '1px',
         },
     },
     {
@@ -482,16 +544,7 @@ export default [
             valueType: 'length',
             label: 'Inputs radius',
             inputId: 'baseStyleInputsBorderRadius',
-        },
-    },
-    {
-        varName: 'baseStyleInputsBgNormalColor',
-        cssProp: '--jet-inputs-bg-normal-color',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'color',
-            label: 'Inputs background',
-            inputId: 'baseStyleInputsBgNormalColor',
+            defaultThemeValue: '2px',
         },
     },
     {
@@ -532,6 +585,7 @@ export default [
             valueType: 'length',
             label: 'Inputs padding ↕',
             inputId: 'baseStyleInputsPaddingY',
+            defaultThemeValue: '0.25rem',
         },
     },
     {
@@ -542,7 +596,33 @@ export default [
             valueType: 'length',
             label: 'Inputs padding ↔',
             inputId: 'baseStyleInputsPaddingX',
+            defaultThemeValue: '0.4rem',
         },
     },
 // }
 ];
+
+const essentialVarNames = [
+    'baseStyleDarkColor',
+    'baseStyleLightColor',
+    'baseStylePrimaryColor',
+    'baseStyleBodyFontColor',
+    'baseStyleLinkColor',
+    'baseStyleBaseFont',
+    'baseStyleFontSize',
+    'baseStyleHeadingsFont',
+
+    'baseStyleButtonsBgColorNormal',
+    'baseStyleButtonsColorNormal',
+    'baseStyleButtonsBorderColorNormal',
+    'baseStyleButtonsFontSize',
+    'baseStyleButtonsBorderRadius',
+
+    'baseStyleInputsTextColor',
+    'baseStyleInputsBorderNormalColor',
+    'baseStyleInputsBgNormalColor',
+    'baseStyleInputsFontSize',
+    'baseStyleInputsBorderRadius',
+];
+
+export {essentialVarNames};

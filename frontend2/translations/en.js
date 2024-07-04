@@ -132,6 +132,7 @@ stringBundles.push({
     'Base': 'Base',
     'Base (code)': 'Base (code)',
     'Classes (code)': 'Classes (code)',
+    'Show all': 'Show all',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
     'Only root styles may contain @imports': 'Only root styles may contain @imports',
     // edit-app/src/left-column/block/BlockTree.jsx

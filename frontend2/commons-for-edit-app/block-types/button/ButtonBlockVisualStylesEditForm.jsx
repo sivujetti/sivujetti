@@ -1,6 +1,7 @@
 import BlockVisualStylesEditForm, {
     createPaddingVarDefs,
 } from '../../BlockVisualStylesEditForm.jsx';
+import {createJustifyContentVarDef} from '../../BlockVisualStylesEditFormFuncs.js';
 import {__} from '../../edit-app-singletons.js';
 
 /** @type {Array<VisualStylesFormVarDefinition>} */
@@ -138,6 +139,7 @@ const cssVarDefs = [
             inputId: 'buttonAlignY',
         },
     },
+    createJustifyContentVarDef('button'),
     {
         varName: 'radius',
         cssProp: 'border-radius',

@@ -1,6 +1,7 @@
 import BlockVisualStylesEditForm, {
     createPaddingVarDefs,
 } from '../../BlockVisualStylesEditForm.jsx';
+import {createJustifyContentVarDef} from '../../BlockVisualStylesEditFormFuncs.js';
 import {__} from '../../edit-app-singletons.js';
 
 const innerElScope = '>div';
@@ -24,24 +25,7 @@ const cssVarDefs = [
             inputId: 'sectionAlignY',
         },
     },
-    {
-        varName: 'alignX',
-        cssProp: 'justify-content',
-        cssSubSelector: null,
-        widgetSettings: {
-            valueType: 'option',
-            options: [
-                {label: __('Start'), value: 'start'},
-                {label: __('Center'), value: 'center'},
-                {label: __('End'), value: 'end'},
-                {label: __('Normal'), value: 'normal'},
-                {label: __('Unset'), value: 'unset'},
-                {label: '-', value: null},
-            ],
-            label: 'Align ⇄',
-            inputId: 'sectionAlignX',
-        },
-    },
+    createJustifyContentVarDef('section'),
     {
         varName: 'textAlign',
         cssProp: 'text-align',

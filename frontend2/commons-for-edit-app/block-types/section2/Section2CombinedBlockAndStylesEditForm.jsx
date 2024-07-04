@@ -5,6 +5,7 @@ import BlockVisualStylesEditForm, {
     createCssVarsMaps,
     createPaddingVarDefs,
 } from '../../BlockVisualStylesEditForm.jsx';
+import {createJustifyContentVarDef} from '../../BlockVisualStylesEditFormFuncs.js';
 import {__, api, scssWizard} from '../../edit-app-singletons.js';
 import {Icon} from '../../Icon.jsx';
 import ScreenSizesVerticalTabs from '../../ScreenSizesVerticalTabs.jsx';

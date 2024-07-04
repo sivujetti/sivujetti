@@ -162,6 +162,35 @@ function createNormalizedSubSelector(input) {
  * @param {String} prefix Examples: 'text', 'button'
  * @returns {Array<VisualStylesFormVarDefinition>}
  */
+function createJustifyContentVarDef(prefix) {
+    return {
+        varName: 'alignX',
+        cssProp: 'justify-content',
+        cssSubSelector: null,
+        widgetSettings: {
+            valueType: 'option',
+            options: [
+                {label: __('Start'), value: 'start'},
+                {label: __('Center'), value: 'center'},
+                {label: __('End'), value: 'end'},
+                {label: __('Normal'), value: 'normal'},
+                {label: __('Space between'), value: 'space-between'},
+                {label: __('Space around'), value: 'space-around'},
+                {label: __('Space evenly'), value: 'space-evenly'},
+                {label: __('Stretch'), value: 'stretch'},
+                {label: __('Unset'), value: 'unset'},
+                {label: '-', value: null},
+            ],
+            label: 'Align ⇄',
+            inputId: `${prefix}AlignX`,
+        },
+    };
+}
+
+/**
+ * @param {String} prefix Examples: 'text', 'button'
+ * @returns {Array<VisualStylesFormVarDefinition>}
+ */
 function createPaddingVarDefs(prefix) {
     return [
         {
@@ -226,6 +255,7 @@ function createBlockTreeClearStyleGroupOpArgs(ofBlockId) {
 export {
     createBlockTreeClearStyleGroupOpArgs,
     createCssVarsMaps,
+    createJustifyContentVarDef,
     createNormalizedDefs,
     createPaddingVarDefs,
     createVarInputToScssCodeAuto,

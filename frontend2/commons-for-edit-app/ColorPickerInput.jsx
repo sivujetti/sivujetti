@@ -1,5 +1,3 @@
-import {timingUtils} from './utils.js';
-
 let pickerLibIsInitialized = false;
 let currOpenPicker = null;
 let lastColor;
@@ -13,7 +11,7 @@ const emitPickColor = (colorStr, isFast = false) => {
         currOpenPicker.props.onColorPickedFast(colorStr);
 };
 
-const hookUpPickerLib = timingUtils.debounce(() => {
+const hookUpPickerLib = () => {
     window.Coloris({
         el: '.coloris',
         wrap: false,
@@ -64,7 +62,7 @@ const hookUpPickerLib = timingUtils.debounce(() => {
     };
     document.addEventListener('mouseup', handleMouseOrTouchEnd);
     document.addEventListener('touchend', handleMouseOrTouchEnd);
-}, 80);
+};
 
 const handlePickerOpened = (cmp, initialValue) => {
     if (currOpenPicker === cmp) return;
@@ -92,6 +90,10 @@ class ColorPickerInput extends preact.Component {
      */
     componentWillMount() {
         this.inputElRef = preact.createRef();
+        if (currOpenPicker) {
+            window.Coloris.close();
+            currOpenPicker = null;
+        }
     }
     /**
      * @access protected
@@ -115,6 +117,12 @@ class ColorPickerInput extends preact.Component {
     componentWillReceiveProps(props) {
         if (props.initialColorStr !== this.props.initialColorStr)
             this.setColor(getNormalizedValue(props.initialColorStr));
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        currOpenPicker = null;
     }
     /**
      * @param {{onColorPicked: (color: String) => void; initialColorStr?: String; inputId?: String;}} props

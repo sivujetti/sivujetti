@@ -99,8 +99,9 @@ function doAddEmptyStyle(scopeSettings, selectedMediaScopeId) {
     })(scopeSettings);
     const newAll = scssWizard.addNewDevsScssChunkAndReturnAllRecompiled(
         initialScss,
+        scopeSettings.kind,
         scopeSpeficier,
-        selectedMediaScopeId
+        selectedMediaScopeId,
     );
     saveButtonInstance.pushOp('stylesBundle', newAll);
 }

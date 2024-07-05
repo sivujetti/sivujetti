@@ -8,7 +8,7 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 import BaseStylesVisualEditForm from '../block-styles/BaseStylesVisualEditForm.jsx';
 import CodeBasedStylesList from '../block-styles/CodeBasedStylesTab.jsx';
-import {createInitialTabKind} from '../block-styles/style-tabs-commons.js';
+import {createInitialTabKind, filterTabsForLoggedInUser} from '../block-styles/style-tabs-commons.js';
 /** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
 
 class BaseAndCustomClassStylesSection extends preact.Component {
@@ -45,11 +45,11 @@ class BaseAndCustomClassStylesSection extends preact.Component {
     componentWillMount() {
         this.menuSection = preact.createRef();
         const saveButton = api.saveButton.getInstance();
-        this.tabsInfo = [
+        this.tabsInfo = filterTabsForLoggedInUser([
             {kind: 'user-styles', title: __('Base')},
             {kind: 'dev-styles', title: __('Base (code)')},
             {kind: 'dev-class-styles', title: __('Classes (code)')},
-        ];
+        ]);
         const currentTabKind = createInitialTabKind(
             getAndPutAndGetToLocalStorage('user-styles', 'sivujettiLastBaseStylesTabKind'),
             this.tabsInfo

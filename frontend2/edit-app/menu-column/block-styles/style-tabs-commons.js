@@ -20,8 +20,7 @@ function initLocals() {
  */
 function createTabsInfo(tabsConfig) {
     initLocals();
-    const filtered = userCanEditCss ? tabsConfig : tabsConfig.filter(({kind}) => kind !== 'dev-styles');
-    return filtered.map((itm) => {
+    return filterTabsForLoggedInUser(tabsConfig).map((itm) => {
         if (itm.kind === 'content')
             return {...itm, title: contentTabText};
         if (itm.kind === 'user-styles')
@@ -31,6 +30,15 @@ function createTabsInfo(tabsConfig) {
         if (itm.kind === 'dev-styles')
             return {...itm, title: devStylesTabText};
     });
+}
+
+/**
+ * @param {Array<TabInfo>} allTabs
+ * @returns {Array<TabInfo>}
+ */
+function filterTabsForLoggedInUser(allTabs) {
+    initLocals();
+    return userCanEditCss ? allTabs : allTabs.filter(({kind}) => kind.indexOf('dev-') < 0);
 }
 
 /**
@@ -58,12 +66,11 @@ function createInitialTabKind(savedTabKind, tabsInfo) {
 /**
  * @typedef {'content'|'user-styles'|'dev-styles'|'dev-class-styles'|'content+user-styles'} tabKind
  *
- * @typedef TabInfo
- * @prop {tabKind} kind
- * @prop {String} title
+ * @typedef {{kind: tabKind; title: string;}} TabInfo
  */
 
 export {
     createInitialTabKind,
     createTabsInfo,
+    filterTabsForLoggedInUser,
 };

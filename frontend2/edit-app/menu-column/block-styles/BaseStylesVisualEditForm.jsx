@@ -18,7 +18,7 @@ class BaseStylesVisualEditForm extends BlockVisualStylesEditForm {
             scope.layer === 'base-styles' && !scss.startsWith(':root') && scope.media === 'all'
         )[0];
         const fontNames = customBaseScss ? getDevDefinedFontNames(customBaseScss.scss) : [];
-        return fontNames
+        return fontNames.length
             ? baseStyleVarDefs.map(def =>
                 (!def.cssProp.endsWith('-font-family') ? def : {
                     ...def,
@@ -75,7 +75,9 @@ class BaseStylesVisualEditForm extends BlockVisualStylesEditForm {
  * @returns {Array<string>}
  */
 function getDevDefinedFontNames(scss) {
-    return scssUtils.extractImports(scss).map(({fontFamily}) => fontFamily);
+    const maybeDuplicates = scssUtils.extractImports(scss).map(({fontFamily}) => fontFamily);
+    const unique = [...new Set(maybeDuplicates)];
+    return unique;
 }
 
 export default BaseStylesVisualEditForm;

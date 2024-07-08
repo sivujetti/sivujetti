@@ -7,7 +7,7 @@ use Sivujetti\JsonUtils;
 
 /**
  * @psalm-import-type StyleChunk from \Sivujetti\Block\Entities\Block
- * @psalm-type StylesBundle {styleChunks: array<int, StyleChunk>, cachedCompiledScreenSizesCss: array<int, string>, cachedCompiledScreenSizesCssLengths: array<int, int>}
+ * @psalm-type StylesBundle {styleChunks: array<int, StyleChunk>, cachedCompiledScreenSizesCss: array<int, string>, cachedCompiledScreenSizesCssHashes: array<int, string>}
  */
 final class Theme extends \stdClass {
     /** @var string */
@@ -43,9 +43,9 @@ final class Theme extends \stdClass {
         $out->styles = (object) [
             "styleChunks" => [],
             "cachedCompiledScreenSizesCss" => [],
-            "cachedCompiledScreenSizesCssLengths" => array_map(
-                fn($s) => (int) $s,
-                explode(",", $row->themeStylesCachedCompiledScreenSizesCssLengths)
+            "cachedCompiledScreenSizesCssHashes" => explode(
+                ",",
+                $row->themeStylesCachedCompiledScreenSizesCssHashes
             ),
         ];
         }
@@ -92,7 +92,7 @@ final class Theme extends \stdClass {
             $this->styles->cachedCompiledScreenSizesCss = $parsed->cachedCompiledScreenSizesCss;
         }
         unset($this->themeGlobalStylesJson);
-        unset($this->themeStylesCachedCompiledScreenSizesCssLengths);
+        unset($this->themeStylesCachedCompiledScreenSizesCssHashes);
         $this->__stash = [];
         }
     }

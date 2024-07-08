@@ -61,7 +61,7 @@ return [
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `name` TEXT NOT NULL,
     `styleChunkBundlesAll` JSON, -- see backend/sivujetti/src/Theme/Entities/Theme.php
-    `cachedCompiledScreenSizesCssLengths` TEXT, -- '1,0,0,0,0'
+    `cachedCompiledScreenSizesCssHashes` TEXT, -- 'dffd60...,,,,'
     `stylesOrder` JSON,
     `globalStyles` JSON,
     `isActive` INTEGER NOT NULL DEFAULT 0,

@@ -116,7 +116,7 @@ final class TheWebsiteRepository {
                 "t.`globalStyles` AS `themeGlobalStylesJson`",
                 "t.`stylesLastUpdatedAt` AS `themeStylesLastUpdatedAt`",
                 //
-                "t.`cachedCompiledScreenSizesCssLengths` AS `themeStylesCachedCompiledScreenSizesCssLengths`",
+                "t.`cachedCompiledScreenSizesCssHashes` AS `themeStylesCachedCompiledScreenSizesCssHashes`",
             ])
             ->leftJoin("\${p}plugins p ON (1)")
             ->leftJoin("\${p}pageTypes pt ON (1)")
@@ -154,7 +154,7 @@ final class TheWebsiteRepository {
                 "t.`globalStyles` AS `themeGlobalStylesJson`",
                 "t.`stylesLastUpdatedAt` AS `themeStylesLastUpdatedAt`",
                 //
-                "t.`cachedCompiledScreenSizesCssLengths` AS `themeStylesCachedCompiledScreenSizesCssLengths`",
+                "t.`cachedCompiledScreenSizesCssHashes` AS `themeStylesCachedCompiledScreenSizesCssHashes`",
             ])
             ->leftJoin("\${p}plugins p ON (1)")
             ->leftJoin("\${p}pageTypes pt ON (1)")

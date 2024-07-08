@@ -4,6 +4,7 @@ namespace Sivujetti\Theme;
 
 use Pike\Db\{FluentDb, FluentDb2, NoDupeRowMapper};
 use Pike\{FileSystem, PikeException, Request, Response, Validation};
+use Pike\Auth\Crypto;
 use Pike\Validation\ObjectValidator;
 use Sivujetti\BlockType\Entities\{BlockTypes};
 use Sivujetti\{JsonUtils, ValidationUtils};
@@ -108,32 +109,32 @@ final class ThemesController {
         $whereArgs = ["`id` = ?", [$req->params->themeId]];
         if (!defined("USE_NEW_FLUENT_DB")) {
         $current = $db->select("\${p}themes", "stdClass")
-            ->fields(["name", "cachedCompiledScreenSizesCssLengths"])
+            ->fields(["name", "cachedCompiledScreenSizesCssHashes"])
             ->where(...$whereArgs)
             ->fetch();
         if (!$current)
             throw new PikeException("Theme `{$req->params->themeId}` doesn't exist", PikeException::BAD_INPUT);
-        $lengths = $current->cachedCompiledScreenSizesCssLengths;
-        $current->cachedScreenSizesCssLengths = array_map(fn($s) => (int)$s, explode(",", $lengths));
-        unset($current->cachedCompiledScreenSizesCssLengths);
+        $current->cachedScreenSizesCssHashes = explode(",", $current->cachedCompiledScreenSizesCssHashes);
+        unset($current->cachedCompiledScreenSizesCssHashes);
         } else {
         $current = $db2->select("\${p}themes")
-            ->fields(["name", "cachedCompiledScreenSizesCssLengths", "stylesLastUpdatedAt"])
+            ->fields(["name", "cachedCompiledScreenSizesCssHashes", "stylesLastUpdatedAt"])
             ->where(...$whereArgs)
-            ->fetch(fn(string $name, string $lengths, string $lastUpdated) => (object) [
+            ->fetch(fn(string $name, string $hashes, string $lastUpdated) => (object) [
                 "name" => $name,
-                "cachedScreenSizesCssLengths" => array_map(fn($s) => (int)$s, explode(",", $lengths)),
+                "cachedScreenSizesCssHashes" => explode(",", $hashes),
                 "stylesLastUpdatedAt" => array_map(fn($s) => (int)$s, explode(",", $lastUpdated)),
             ]);
         if (!$current)
             throw new PikeException("Theme `{$req->params->themeId}` doesn't exist", PikeException::BAD_INPUT);
         }
-        $newCompiledScreenSizes = $req->body->cachedCompiledScreenSizesCss;
+
+        $newCompiledScreens = $req->body->cachedCompiledScreenSizesCss;
         [
-            $newompiledScreenSizeLengths,
+            $newCompiledScreenHashes,
             $newCompiledFilesData,
             $newLastUpdatedAts,
-        ] = self::createNewScreens($newCompiledScreenSizes, $current);
+        ] = self::createNewScreens($newCompiledScreens, $current);
 
         $db3 = !defined("USE_NEW_FLUENT_DB") ? $db : $db2;
         $db3->update("\${p}themes")
@@ -147,9 +148,9 @@ final class ThemesController {
                             "layer" => $b->scope->layer,
                         ]
                     ], $req->body->styleChunks),
-                    "cachedCompiledScreenSizesCss" => $newCompiledScreenSizes,
+                    "cachedCompiledScreenSizesCss" => $newCompiledScreens,
                 ]),
-                "cachedCompiledScreenSizesCssLengths" => implode(",", $newompiledScreenSizeLengths),
+                "cachedCompiledScreenSizesCssHashes" => implode(",", $newCompiledScreenHashes),
                 "stylesLastUpdatedAt" => implode(",", $newLastUpdatedAts),
             ])
             ->where(...$whereArgs)
@@ -162,23 +163,24 @@ final class ThemesController {
         $res->json(["ok" => "ok"]);
     }
     /**
-     * @param string[] $newCompiledScreenSizes
+     * @param string[] $newCompiledScreens
      * @param object $currentTheme
-     * @psalm-param object{name: string, cachedScreenSizesCssLengths: int[], stylesLastUpdatedAt: int[]} $currentTheme
+     * @psalm-param object{name: string, cachedScreenSizesCssHashes: string[], stylesLastUpdatedAt: int[]} $currentTheme
      * @return array[]
-     * @psalm-return [[int, int, int, int, int], [array{filePath: string, contents: string}|null, array{filePath: string, contents: string}|null, array{filePath: string, contents: string}|null, array{filePath: string, contents: string}|null, array{filePath: string, contents: string}|null], [int, int, int, int, int]]
+     * @psalm-return [[string, string, string, string, string], [array{filePath: string, contents: string}|null, array{filePath: string, contents: string}|null, array{filePath: string, contents: string}|null, array{filePath: string, contents: string}|null, array{filePath: string, contents: string}|null], [int, int, int, int, int]]
      */
-    private static function createNewScreens(array $newCompiledScreenSizes,
+    private static function createNewScreens(array $newCompiledScreens,
                                              object $currentTheme): array {
-        $newLengths = array_map(fn($s) => strlen($s), $newCompiledScreenSizes);
+        $crypto = new Crypto;
+        $newHashes = array_map(fn($s) => $s ? $crypto->hash("sha256", $s) : "", $newCompiledScreens);
 
         $newFilesData = [];
         $now = time();
         $at = !defined("I_LIKE_TES") ? gmdate("D, M d Y H:i:s e", $now) : self::tesDate($now);
         for ($i = 0; $i < count(self::MEDIA_SCOPES); ++$i) {
-            $userAndBaseAndDevStyles = $newCompiledScreenSizes[$i]; // all layers
+            $userAndBaseAndDevStyles = $newCompiledScreens[$i]; // all layers
             $mediaScopeId = self::MEDIA_SCOPES[$i];
-            if (self::mediaScopeCssHasChanged($i, $newLengths, $currentTheme->cachedScreenSizesCssLengths))
+            if (self::mediaScopeCssHasChanged($i, $newHashes, $currentTheme->cachedScreenSizesCssHashes))
                 $newFilesData[] = [
                     "filePath" => SIVUJETTI_INDEX_PATH . "public/{$currentTheme->name}-generated-sizes-{$mediaScopeId}.css",
                     "contents" => (
@@ -200,7 +202,7 @@ final class ThemesController {
         }
 
         return [
-            $newLengths,
+            $newHashes,
             $newFilesData,
             $newTimes,
         ];
@@ -288,16 +290,16 @@ final class ThemesController {
     }
     /**
      * @param int $i
-     * @param int[] $newCompiledScreenSizeLengths
-     * @param int[] $curCompiledScreenSizeLengths
+     * @param string[] $newCompiledScreenHashes
+     * @param string[] $curCompiledScreenHashes
      * @return bool
      */
     private static function mediaScopeCssHasChanged(int $i,
-                                                    array $newCompiledScreenSizeLengths,
-                                                    array $curCompiledScreenSizeLengths): bool {
-        $newLength = $newCompiledScreenSizeLengths[$i] ?? -1;
-        $curLength = $curCompiledScreenSizeLengths[$i] ?? -1;
-        return $newLength !== $curLength; // Todo check that $previoslyStoredHash !== hash(new)
+                                                    array $newCompiledScreenHashes,
+                                                    array $curCompiledScreenHashes): bool {
+        $newLength = $newCompiledScreenHashes[$i] ?? "-";
+        $curLength = $curCompiledScreenHashes[$i] ?? "-";
+        return $newLength !== $curLength;
     }
     /**
      * @param object $input

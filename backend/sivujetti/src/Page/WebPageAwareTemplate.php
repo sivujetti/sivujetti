@@ -364,14 +364,14 @@ final class WebPageAwareTemplate extends Template {
         } else {
         $stylesTags = "";
         if (!$this->__useEditModeMarkup) {
-            $cachedScreenSizesCssLengths = $theme->styles->cachedCompiledScreenSizesCssLengths;
+            $cachedScreenSizesCssHashes = $theme->styles->cachedCompiledScreenSizesCssHashes;
             $stylesTags = (
                 // Externals including {$theme->name}-generated-sizes-*.css
                 implode("\n", [
                     ...$externals,
-                    ...array_reduce([0, 1, 2, 3, 4], function ($out, $i) use ($cachedScreenSizesCssLengths, $theme, $fileDefToTag) {
+                    ...array_reduce([0, 1, 2, 3, 4], function ($out, $i) use ($cachedScreenSizesCssHashes, $theme, $fileDefToTag) {
                         $s = ThemesController::MEDIA_SCOPES[$i];
-                        return $cachedScreenSizesCssLengths[$i] > 0
+                        return $cachedScreenSizesCssHashes[$i]
                             ? [...$out, $fileDefToTag((object) [
                                 "url" => "{$theme->name}-generated-sizes-{$s}.css?t={$theme->stylesLastUpdatedAt[$i]}",
                                 "attrs" => $s !== "all" ? ["media" => "screen and (max-width: {$s}px)"] : []

@@ -64,7 +64,7 @@ return [
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(92) NOT NULL,
     `styleChunkBundlesAll` JSON, -- see backend/sivujetti/src/Theme/Entities/Theme.php
-    `cachedCompiledScreenSizesCssLengths` TEXT, -- '1,0,0,0,0'
+    `cachedCompiledScreenSizesCssHashes` TEXT, -- 'dffd60...,,,,'
     `stylesOrder` JSON,
     `globalStyles` JSON,
     `isActive` TINYINT(1) NOT NULL,

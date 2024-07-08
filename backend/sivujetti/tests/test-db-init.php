@@ -15,9 +15,9 @@ $statements = array_merge($statements, [
     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" => "y"
 ])."','abcdefg1','','')",
 
-"INSERT INTO `themes` (`id`,`name`,`styleChunkBundlesAll`,`cachedCompiledScreenSizesCssLengths`," .
+"INSERT INTO `themes` (`id`,`name`,`styleChunkBundlesAll`,`cachedCompiledScreenSizesCssHashes`," .
     "`stylesOrder`,`globalStyles`,`isActive`,`generatedScopedStylesCss`,`stylesLastUpdatedAt`) VALUES
-('1','test-suite-theme','[]','0,0,0,0,0','" .
+('1','test-suite-theme','[]',',,,,','" .
     json_encode(["Text", "Section"])
 . "','[]',1,'" .
     \Sivujetti\Tests\Utils\CssGenTestUtils::generateScopedStyles($styles) .

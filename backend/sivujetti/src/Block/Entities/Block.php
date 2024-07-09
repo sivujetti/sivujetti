@@ -93,7 +93,6 @@ final class Block extends \stdClass {
     public string $bgImage; */
 
     /* If self::TYPE_SECTION2
-    public array<int, array<int, object{width: string, align: string|null, isVisible: boolean}>> $columns;
     public todo $settings; */
 
     /* If self::TYPE_TEXT

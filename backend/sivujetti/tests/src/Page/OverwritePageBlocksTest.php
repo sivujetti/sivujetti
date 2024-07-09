@@ -181,13 +181,6 @@ final class OverwritePageBlocksTest extends PagesControllerTestCase {
         $state = $this->setupTest();
         $state->inputData = (object) ["blocks" =>
             [(new BlockTestUtils())->makeBlockData(Block::TYPE_SECTION2, id: "@auto", propsData: [
-                "columns" => [
-                    [(object) ["align" => null, "width" => "1fr", "isVisible" => true, "junk" => "data"]],
-                    null,
-                    null,
-                    null,
-                    null,
-                ],
                 "settings" => [
                     (object) ["innerBg" => null, "outerBg" => null],
                 ],

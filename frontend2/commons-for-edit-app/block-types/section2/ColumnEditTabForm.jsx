@@ -38,7 +38,7 @@ class ColumnEditTabForm extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {width, align, isVisible}) {
+    render(_, {width, align, visibility}) {
         return <div class="form-horizontal px-2 py-1 col-12" style="background-color: var(--color-bg-very-light2)">
             <button onClick={ () => this.props.onEditEnded() } class="btn btn-sm" type="button"> &lt; </button>
             <LengthValueInput
@@ -62,8 +62,8 @@ class ColumnEditTabForm extends preact.Component {
                 <span class="form-label">{ __('Is visible') }?</span>
                 <label class="form-checkbox mt-0">
                     <input
-                        onClick={ e => this.props.onPropChanged('isVisible', e.target.checked) }
-                        checked={ isVisible }
+                        onClick={ e => this.props.onPropChanged('visibility', e.target.checked ? 'visible' : 'hidden') }
+                        checked={ visibility === 'visible' }
                         type="checkbox"
                         class="form-input"
                         name="section2ColIsVisible"/><i class="form-icon"></i>

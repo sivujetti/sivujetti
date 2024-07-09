@@ -1059,21 +1059,25 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
 }
 .grid-builder .row {
     display: grid;
-    min-height: 4rem;
-    grid-template-columns: 1fr 1fr;
+    min-height: 3.2rem;
+    grid-template-columns: 1fr;
     gap: .3rem;
     flex: 1 0;
     background: var(--color-bg-very-light2);
 }
+.grid-builder .row .inherited-message {
+    align-self: center;
+    justify-self: center;
+    text-indent: -.3rem;
+}
 .grid-builder .row .col {
-    background: rgba(var(--components-color-fb-default),.06);
-    min-height: 2rem;
+    background: rgba(var(--components-color-fb-default), .06);
     border-radius: var(--small-rect-radius);
     position: relative;
     padding: 0 .4rem;
 }
 .grid-builder .row .col.visibility-hidden {
-    background: repeating-linear-gradient( 45deg, rgba(var(--components-color-fb-default),.05), rgba(var(--components-color-fb-default),.05) 10px, rgba(var(--components-color-fb-default),.06) 10px, rgba(var(--components-color-fb-default),.06) 20px);
+    background: repeating-linear-gradient(45deg, var(--color-bg-very-light), var(--color-bg-very-light) 10px, rgba(var(--components-color-fb-default),.04) 10px, rgba(var(--components-color-fb-default),.04) 20px);
 }
 .grid-builder .row .col.visibility-hidden:before {
     content: "";

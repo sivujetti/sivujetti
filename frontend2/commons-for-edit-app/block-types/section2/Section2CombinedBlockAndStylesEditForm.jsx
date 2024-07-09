@@ -1,27 +1,22 @@
-import {mediaScopes} from '../../../shared-inline.js';
-import blockTreeUtils from '../../block/tree-utils.js';
-import {writeBlockProps} from '../../block/utils.js';
 import BlockVisualStylesEditForm, {
     createCssVarsMaps,
     createPaddingVarDefs,
 } from '../../BlockVisualStylesEditForm.jsx';
-import {createJustifyContentVarDef} from '../../BlockVisualStylesEditFormFuncs.js';
 import {__, api, scssWizard} from '../../edit-app-singletons.js';
 import {Icon} from '../../Icon.jsx';
 import ScreenSizesVerticalTabs from '../../ScreenSizesVerticalTabs.jsx';
+import {createCssDeclExtractor} from '../../ScssWizardFuncs.js';
+import {mediaScopes} from '../../../shared-inline.js';
 import ColumnEditTabForm from './ColumnEditTabForm.jsx';
 import {
-    colsScreenToTransferable,
     colsToLocalRepr,
+    columnsToScss,
+    columnsToWidthCss,
     createColumnConfig,
-    createStateForEachScreenSize,
     innerElScope,
-    toStyleConfig,
 } from './Section2CombinedBlockAndStylesEditFormFuncs.js';
 /** @typedef {import('./Section2CombinedBlockAndStylesEditFormFuncs.js').ColumnConfig} ColumnConfig */
 /** @typedef {import('./Section2CombinedBlockAndStylesEditFormFuncs.js').ColumnConfigLocalRepr} ColumnConfigLocalRepr */
-/** @typedef {import('./Section2CombinedBlockAndStylesEditFormFuncs.js').section2ColConfigsAllScreens} section2ColConfigsAllScreens */
-/** @typedef {import('../../../edit-app/menu-column/SaveButton.jsx").state} saveButtonEventState */
 
 /** @type {Array<VisualStylesFormVarDefinition>} */
 const cssVarDefs = [
@@ -80,7 +75,7 @@ const cssVarDefs = [
             inputId: 'section2AlignY',
         },
     },
-    {
+    /* {
         varName: 'alignX',
         cssProp: 'margin-inline',
         cssSubSelector: innerElScope,
@@ -93,7 +88,7 @@ const cssVarDefs = [
             label: 'Align ⇄',
             inputId: 'section2AlignX',
         },
-    },
+    }, */
     {
         varName: 'minHeight',
         cssProp: 'min-height',
@@ -155,141 +150,68 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
         return cssVarDefs;
     }
     /**
-     * @access protected
+     * @inheritdoc
      */
     componentWillMount() {
         // Note: skip super.componentWillMount()
-        const [state, styleRefs] = this.createStateAndStyleRefs(this.props);
+        const [state, styleRefs] = this.createCssVarsMaps(this.props);
         this.userStyleRefs = styleRefs;
         this.setState({...state, curScreenSizeTabIdx: 0});
     }
     /**
-     * @param {BlockStylesEditFormProps & BlockEditFormProps} props
+     * @param {BlockStylesEditFormProps} props
      * @access protected
      */
     componentWillReceiveProps(props) {
-        // Note: skip super.componentWillReceiveProps()
-        if (props.stylesStateId !== this.props.stylesStateId) {
-            const [newState, styleRefs] = this.createStateAndStyleRefs(props);
-            this.userStyleRefs = styleRefs;
-            this.setState(newState);
+        if (props.stylesStateId !== this.props.stylesStateId || props.blockStyleGroup !== this.props.blockStyleGroup) {
+            const [state, styleRefs] = this.createCssVarsMaps(props);
+            if (JSON.stringify(state.screens) !== JSON.stringify(this.state.styleScreens)) {
+                this.userStyleRefs = styleRefs;
+                this.setState(state);
+            }
         }
     }
     /**
      * @access protected
      */
-    render(_, {editStateIsOn, screenSizeColumns, styleScopes, curScreenSizeTabIdx}) {
-        if (curScreenSizeTabIdx === 0) {
-        const selectedScreenSizeVars = styleScopes[curScreenSizeTabIdx] || {};
-        const columnConfigs = screenSizeColumns[curScreenSizeTabIdx] || colsToLocalRepr([createColumnConfig()]);
-        const {mainEl, innerEls} = !editStateIsOn ? toStyleConfig(columnConfigs, '2.4rem') : {};
+    render(_, {editStateIsOn, columnStyleScreens, styleScreens, curScreenSizeTabIdx}) {
+        const selectedScreenSizeVars = styleScreens[curScreenSizeTabIdx] || {};
+        const columns = columnStyleScreens[curScreenSizeTabIdx]?.columns || null;
+        const chunks = this.userStyleRefs;
         return <ScreenSizesVerticalTabs
-            populatedTabs={ this.userStyleRefs.map(s => !!s) }
+            populatedTabs={ chunks.map(s => !!s) }
             curTabIdx={ curScreenSizeTabIdx }
             setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }>
             <div class="form-horizontal has-visual-style-widgets tight pt-1 pl-2">
                 <div class="grid-builder flex-centered mt-1 mr-1">{ !editStateIsOn
                     ? [
-                        <div class="row" style={ mainEl.template.replace('%s', mainEl.val) }>
-                            { columnConfigs.map((col, i) => {
-                                const ss = innerEls[i];
-                                const alignCss = ss.align?.val ? `justify-self: ${ss.align.val}` : '';
-                                const visibilityCls = ss.visibility?.val === 'hidden' ? ' visibility-hidden' : '';
-                                return <div class={ `col flex-centered${visibilityCls}` } style={ alignCss }>
-                                    <button onClick={ () => this.openColumnForEdit(i) } class="btn btn-sm btn-link">
-                                        { col.width || 'auto' } <Icon iconId="pencil" className="size-xxs color-dimmed3"/>
-                                    </button>
-                                    <button onClick={ () => this.deleteColumn(i, screenSizeColumns, curScreenSizeTabIdx) } class="btn btn-xs btn-link p-absolute" style="right: .2rem;top: .2rem;">
-                                        <Icon iconId="x" className="size-xxs color-dimmed3"/>
-                                    </button>
-                                </div>;
-                            }) }
-                        </div>,
-                        <button
-                            onClick={ () => this.addColumn(screenSizeColumns, this.userStyleRefs[curScreenSizeTabIdx], curScreenSizeTabIdx) }
-                            class="btn btn-sm flex-centered btn-link p-0"
-                            title={ __('Add columnn') }>
-                            <Icon iconId="plus" className="size-xxs color-dimmed3"/>
-                        </button>
-                    ]
-                    : <ColumnEditTabForm
-                        column={ columnConfigs[this.state.openColIdx] }
-                        onPropChanged={ (propName, val) => this.handlePropOfOpenColConfigChanged(propName, val, screenSizeColumns, curScreenSizeTabIdx) }
-                        onEditEnded={ this.endColumnEdit.bind(this) }/>
-                }</div>
-                { this.cssVarDefs.map(def =>
-                    this.renderVarWidget(def, selectedScreenSizeVars, this.varInputToScssCodeFn)
-                ) }
-            </div>
-        </ScreenSizesVerticalTabs>;
-        } else {
-        const selectedScreenSizeVars = styleScopes[curScreenSizeTabIdx] || {};
-        const currentScreenHasVars = !!screenSizeColumns[curScreenSizeTabIdx];
-        const columnConfigs = screenSizeColumns[curScreenSizeTabIdx] || colsToLocalRepr([createColumnConfig()]);
-
-        const inheritedColumnConfigs = createInheritedCols(curScreenSizeTabIdx, screenSizeColumns) || columnConfigs;
-        const {mainEl, innerEls} = !editStateIsOn ? toStyleConfig(columnConfigs, '2.4rem') : {};
-        const t = !editStateIsOn ? toStyleConfig(inheritedColumnConfigs, '2.4rem') : {};
-        const [inheritedMainEl, inheritedInnerEls] = t ? [t.mainEl, t.innerEls] : [null, null];
-        const mainToShow = currentScreenHasVars ? mainEl : inheritedMainEl;
-        const innerElsToShow = currentScreenHasVars ? innerEls : inheritedInnerEls;
-        const colsToShow = currentScreenHasVars ? columnConfigs : inheritedColumnConfigs;
-        return <ScreenSizesVerticalTabs
-            populatedTabs={ this.userStyleRefs.map(s => !!s) }
-            curTabIdx={ curScreenSizeTabIdx }
-            setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }>
-            <div class="form-horizontal has-visual-style-widgets tight pt-1 pl-2">
-                <div class="grid-builder flex-centered mt-1 mr-1">{ !editStateIsOn
-                    ? [
-                        <div class="row" style={ mainToShow.template.replace('%s', mainToShow.val) }>
-                            { colsToShow.map((col, i) => {
-                                const ss = innerElsToShow[i];
-                                const alignCss = ss.align?.val ? `justify-self: ${ss.align.val}` : '';
-                                const visibilityCls = ss.visibility?.val === 'hidden' ? ' visibility-hidden' : '';
-                                return <div class={ `col flex-centered${visibilityCls}` } style={ alignCss }>
-                                    <button onClick={ () => this.openColumnForEdit(i) } class="btn btn-sm btn-link">
-                                        { col.width || 'auto' } <Icon iconId="pencil" className="size-xxs color-dimmed3"/>
-                                    </button>
-                                    <button onClick={ () => {
-                                        if (currentScreenHasVars)
-                                            this.deleteColumn(i, screenSizeColumns, curScreenSizeTabIdx);
-                                        else {
-                                            const newCols = inheritedColumnConfigs.slice(0, inheritedColumnConfigs.length - 1);
-                                            this.createAndEmitNewStylesForSmallerScreen(curScreenSizeTabIdx, newCols, screenSizeColumns);
-                                        }
-                                    } } class="btn btn-xs btn-link p-absolute" style="right: .2rem;top: .2rem;">
-                                        <Icon iconId="x" className="size-xxs color-dimmed3"/>
-                                    </button>
-                                </div>;
-                            }) }
-                        </div>,
-                        <button
-                            onClick={ () => {
-                                if (currentScreenHasVars)
-                                    this.addColumn(screenSizeColumns, this.userStyleRefs[curScreenSizeTabIdx], curScreenSizeTabIdx);
-                                else {
-                                    const newCols = [...inheritedColumnConfigs, createColumnConfig()];
-                                    this.createAndEmitNewStylesForSmallerScreen(curScreenSizeTabIdx, newCols, screenSizeColumns);
-                                }
-                             } }
-                            class="btn btn-sm flex-centered btn-link p-0"
-                            title={ __('Add columnn') }>
-                            <Icon iconId="plus" className="size-xxs color-dimmed3"/>
-                        </button>
-                    ]
-                    : <ColumnEditTabForm
-                        column={ colsToShow[this.state.openColIdx] }
-                        onPropChanged={ (propName, val) => {
-                            if (currentScreenHasVars)
-                                this.handlePropOfOpenColConfigChanged(propName, val, screenSizeColumns, curScreenSizeTabIdx);
-                            else {
-                                const updatedCols = inheritedColumnConfigs.map((col, i) =>
-                                    i !== this.state.openColIdx ? col : {...col, [propName]: val}
-                                );
-                                this.createAndEmitNewStylesForSmallerScreen(curScreenSizeTabIdx, updatedCols, screenSizeColumns,
-                                    propName);
+                        <div class="row" style={ columns ? `grid-template-columns: ${columnsToWidthCss(columns, '2.4rem')}` : null }>
+                            { curScreenSizeTabIdx > 0 && !columns
+                                ? <span class="color-dimmed inherited-message">{ __('inherited') }</span>
+                                : (columns || []).map((col, i) => {
+                                    const alignCss = col.align ? `justify-self: ${col.align}` : '';
+                                    const visibilityCls = col.visibility === 'hidden' ? ' visibility-hidden' : '';
+                                    return <div class={ `col flex-centered${visibilityCls}` } style={ alignCss }>
+                                        <button onClick={ () => this.openColumnForEdit(i) } class="btn btn-sm btn-link">
+                                            { col.width || 'auto' } <Icon iconId="pencil" className="size-xxs color-dimmed3"/>
+                                        </button>
+                                        <button onClick={ () => this.deleteColumn(i, columns, curScreenSizeTabIdx) } class="btn btn-xs btn-link p-absolute" style="right: .2rem;top: .2rem;">
+                                            <Icon iconId="x" className="size-xxs color-dimmed3"/>
+                                        </button>
+                                    </div>;
+                                })
                             }
-                        } }
+                        </div>,
+                        <button
+                            onClick={ () => this.addColumn(columns, curScreenSizeTabIdx) }
+                            class="btn btn-sm flex-centered btn-link p-0"
+                            title={ __('Add columnn') }>
+                            <Icon iconId="plus" className="size-xxs color-dimmed3"/>
+                        </button>
+                    ]
+                    : <ColumnEditTabForm
+                        column={ columns[this.state.openColIdx] }
+                        onPropChanged={ (propName, val) => this.handlePropOfOpenColConfigChanged(propName, val, this.state.openColIdx, columns, curScreenSizeTabIdx) }
                         onEditEnded={ this.endColumnEdit.bind(this) }/>
                 }</div>
                 { this.cssVarDefs.map(def =>
@@ -297,94 +219,89 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
                 ) }
             </div>
         </ScreenSizesVerticalTabs>;
-        }
     }
     /**
-     * @param {BlockStylesEditFormProps & BlockEditFormProps} props
-     * @returns {[Object, Array<StyleChunk|null>]} [state, styleRefs]
+     * @param {BlockStylesEditFormProps} props
+     * @returns {[{styleScreens: Array<CssVarsMap>; columnStyleScreens: Array<{columns: Array<ColumnConfigLocalRepr>|null;}>;}, Array<StyleChunk|null>]}
      * @access private
      */
-    createStateAndStyleRefs(props) {
-        const [scopes, styleRefs] = createCssVarsMaps(props.blockId, this.cssVarDefs);
-        const screenSizeColumns = createStateForEachScreenSize(props.block.columns);
+    createCssVarsMaps({blockId}) {
+        const [styleScreens, styleRefs] = createCssVarsMaps(blockId, this.cssVarDefs);
+
+        const columnStyleScreens = mediaScopes.map((_mediaScopeId, i) => {
+            const chunk = styleRefs[i];
+            if (!chunk) return {columns: null};
+
+            const extr = createCssDeclExtractor(chunk.scss);
+            // ['minmax(0, 140px', 'minmax(0, 1fr', 'minmax(0, 0px']
+            const tmp = extr.extractVal('grid-template-columns', '>.j-Section2-cols')?.slice(0, -1).split(') ');
+            // ['140px', '1fr', '0px']
+            const widths = tmp ? tmp.map(p => p.split(', ')[1]) : [];
+            const colsMap = widths.reduce((out, width, i2) => ({
+                ...out,
+                [`${i2 + 1}`]: {...createColumnConfig(), width},
+            }), {}); // {'1': {width; align; visibility;}, '2': ...}
+
+            for (const node of extr.getAst()) {
+                if (node.type !== 'rule') continue;
+
+                const pcs = node.value.split(':nth-child('); // ['>.j-Section2-cols>', '3)']
+                if (pcs.length > 1) {
+                    const nthCol = pcs[1].slice(0, -1);
+                    const {children} = node; // [{value: 'visibility:hidden;', ...}, ...]
+
+                    if (!colsMap[nthCol]) colsMap[nthCol] = createColumnConfig();
+                    colsMap[nthCol].align = children.find(n => n.type === 'decl' && n.value.startsWith('justify-self:'))?.children || null;
+                    colsMap[nthCol].visibility = children.find(n => n.type === 'decl' && n.value.startsWith('visibility:'))?.children || null;
+                }
+            }
+
+            const out = [];
+            const nthColLargest = Math.max(...Object.keys(colsMap).map(s => parseInt(s, 10)));
+            for (let i = 0; i < nthColLargest; ++i) {
+                out.push(colsMap[`${i + 1}`] || createColumnConfig());
+            }
+            return {columns: out.map(colsToLocalRepr)};
+        }, []);
+
         return [
-            {
-                styleScopes: scopes,
-                screenSizeColumns,
-            },
+            {styleScreens, columnStyleScreens},
             styleRefs
         ];
     }
     /**
-     * @param {section2ColConfigsAllScreens} colsScreensAll
-     * @param {StyleChunk|null} curStyleChunkSelectedScreen
+     * @param {Array<ColumnConfigLocalRepr>} to
      * @param {Number} curScreenSizeTabIdx
      * @access private
      */
-    addColumn(colsScreensAll, curStyleChunkSelectedScreen, curScreenSizeTabIdx) {
-        if (curStyleChunkSelectedScreen) {
-            const newColsScreensAll = colsScreensAll.map((colsSingleScreenLocalRepr, i) => i !== curScreenSizeTabIdx
-                ? colsSingleScreenLocalRepr ? colsScreenToTransferable(colsSingleScreenLocalRepr) : null
-                : [...colsScreenToTransferable(colsSingleScreenLocalRepr), createColumnConfig()]
-            );
-            this.emitNewCols(newColsScreensAll, curScreenSizeTabIdx);
-        } else {
-            const newColsScreensAll = colsScreensAll.map((colsSingleScreenLocalRepr, i) => i !== curScreenSizeTabIdx
-                ? colsSingleScreenLocalRepr ? colsScreenToTransferable(colsSingleScreenLocalRepr) : null
-                : [createColumnConfig(), createColumnConfig()]
-            );
-            this.emitNewCols(newColsScreensAll, curScreenSizeTabIdx, true);
-        }
+    addColumn(to, curScreenSizeTabIdx) {
+        const newColumns = [...(to || []), createColumnConfig()];
+        const newScss = columnsToScss(newColumns);
+        const updatedAll = to ? scssWizard.replaceUniqueScopeChunkAndReturnAllRecompiled(
+            newScss,
+            this.userStyleRefs[curScreenSizeTabIdx],
+            mediaScopes[curScreenSizeTabIdx]
+        ) : scssWizard.addNewUniqueScopeChunkAndReturnAllRecompiled(
+            ...(((newScss) => {
+                const a = newScss.split('grid-template-columns: '); // ['>.j-Section2-cols {\n  ', 'minmax(0, 1fr);\n}']
+                const b = a[1].split(';');                          // ['minmax(0, 1fr)', '\n}']
+                const val = b[0];
+                const template = (
+                    a[0] + // '>.j-Section2-cols {\n  '
+                      'grid-template-columns: %s;\n' +
+                    '}'
+                );
+                return [template, val];
+            })()),
+            this.props.blockId,
+            mediaScopes[curScreenSizeTabIdx]
+        );
+        this.emitNewStyles(updatedAll);
     }
     /**
-     * @param {keyof ColumnConfig} propName
-     * @param {String|Boolean|null} val
-     * @param {section2ColConfigsAllScreens} colsScreensAll
-     * @param {Number} curScreenSizeTabIdx
      */
-    handlePropOfOpenColConfigChanged(propName, val, colsScreensAll, curScreenSizeTabIdx) {
-        const newColsScreensAll = colsScreensAll.map((colsSingleScreenLocalRepr, i) => i !== curScreenSizeTabIdx
-            ? colsSingleScreenLocalRepr ? colsScreenToTransferable(colsSingleScreenLocalRepr) : null
-            : colsScreenToTransferable(colsSingleScreenLocalRepr).map((transferable, i2) =>
-                i2 !== this.state.openColIdx ? transferable : {...transferable, [propName]: val}
-            )
-        );
-        const updatedColsSelectedScreen = newColsScreensAll[curScreenSizeTabIdx];
-        const saveButton = api.saveButton.getInstance();
-
-        saveButton.pushOpGroup(
-            this.createUpdateBlockColsUpdateOp(newColsScreensAll, saveButton),
-
-            ['stylesBundle', (function (self) {
-                if (propName === 'width') {
-                    const {mainEl} = toStyleConfig(updatedColsSelectedScreen);
-                    return scssWizard.addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(
-                        [
-                            `${innerElScope} {`,
-                            `  ${mainEl.template}`,
-                            '}'
-                        ],
-                        mainEl.val,
-                        self.userStyleRefs[curScreenSizeTabIdx],
-                        mediaScopes[curScreenSizeTabIdx]
-                    );
-                } else if (propName === 'align' || propName === 'isVisible') {
-                    const {innerEls} = toStyleConfig(updatedColsSelectedScreen);
-                    const v = innerEls[self.state.openColIdx][propName !== 'isVisible' ? propName : 'visibility'];
-                    return v.val ? scssWizard.addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(
-                        v.template,
-                        v.val,
-                        self.userStyleRefs[curScreenSizeTabIdx],
-                        mediaScopes[curScreenSizeTabIdx]
-                    ) : scssWizard.deleteScssCodeFromExistingUniqueScopeChunkAndReturnAllRecompiled(
-                        v.template,
-                        '"dummy"',
-                        self.userStyleRefs[curScreenSizeTabIdx],
-                        mediaScopes[curScreenSizeTabIdx]
-                    );
-                }
-            })(this)]
-        );
+    deleteColumn(colIdx, from, curScreenSizeTabIdx) {
+        // todo
     }
     /**
      * @param {Number} colIdx
@@ -397,6 +314,11 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
         });
     }
     /**
+     */
+    handlePropOfOpenColConfigChanged(propName, val, colIdx, columnsAll, curScreenSizeTabIdx) {
+        // todo
+    }
+    /**
      * @access private
      */
     endColumnEdit() {
@@ -406,110 +328,15 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
         });
     }
     /**
-     * @param {Number} smallerScreenIdx
-     * @param {Array<ColumnConfig|ColumnConfigLocalRepr>} newColsCreatedFromLargerInheritedScreen
-     * @param {section2ColConfigsAllScreens} colsScreensAll
-     * @param {keyof ColumnConfig} firstSetProp = null
+     * @param {StylesBundleWithId} updatedAll
      * @access private
      */
-    createAndEmitNewStylesForSmallerScreen(smallerScreenIdx, newColsCreatedFromLargerInheritedScreen, colsScreensAll, firstSetProp = null) {
-        const newColsScreensAll = colsScreensAll.map((colsSingleScreenLocalRepr, i) => i !== smallerScreenIdx
-            ? colsSingleScreenLocalRepr ? colsScreenToTransferable(colsSingleScreenLocalRepr) : null
-            : colsScreenToTransferable(newColsCreatedFromLargerInheritedScreen)
-        );
-        this.emitNewCols(newColsScreensAll, smallerScreenIdx, true, firstSetProp);
-    }
-    /**
-     * @param {Number} idx
-     * @param {section2ColConfigsAllScreens} colsScreensAll
-     * @param {Number} smallerScreenIdx
-     * @access private
-     */
-    deleteColumn(idx, colsScreensAll, curScreenSizeTabIdx) {
-        const newColsScreensAll = colsScreensAll.map((colsSingleScreenLocalRepr, i) => i !== curScreenSizeTabIdx
-            ? colsSingleScreenLocalRepr ? colsScreenToTransferable(colsSingleScreenLocalRepr) : null
-            : colsScreenToTransferable(colsSingleScreenLocalRepr).filter((_, i2) =>i2 !== idx)
-        );
-        this.emitNewCols(newColsScreensAll, curScreenSizeTabIdx);
-    }
-    /**
-     * @param {section2ColConfigsAllScreens} newColsScreensAll
-     * @param {Number} curScreenSizeTabIdx
-     * @param {Boolean} isNewChunk = false
-     * @param {keyof ColumnConfig} firstSetProp = null
-     * @access private
-     */
-    emitNewCols(newColsScreensAll, curScreenSizeTabIdx, isNewChunk = false, firstSetProp = null) {
-        const selectedScreenCols = newColsScreensAll[curScreenSizeTabIdx];
-        const saveButton = api.saveButton.getInstance();
-
-        saveButton.pushOpGroup(
-            this.createUpdateBlockColsUpdateOp(newColsScreensAll, saveButton),
-
-            ['stylesBundle', (function (self) {
-                const {mainEl} = toStyleConfig(selectedScreenCols);
-                const css = [
-                    `${innerElScope} {`,
-                    `  ${mainEl.template}`,
-                    '}'
-                ];
-                if (!isNewChunk)
-                    return scssWizard.addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(
-                        css,
-                        mainEl.val,
-                        self.userStyleRefs[curScreenSizeTabIdx],
-                        mediaScopes[curScreenSizeTabIdx]
-                    );
-                else {
-                    // null means 'grid-template-columns'
-                    if (!firstSetProp || firstSetProp === 'width')
-                        return scssWizard.addNewUniqueScopeChunkAndReturnAllRecompiled(
-                            css,
-                            mainEl.val,
-                            self.props.blockId,
-                            mediaScopes[curScreenSizeTabIdx]
-                        );
-                    else if (firstSetProp === 'align' || firstSetProp === 'isVisible') {
-                        const {innerEls} = toStyleConfig(selectedScreenCols);
-                        const v = innerEls[self.state.openColIdx][firstSetProp !== 'isVisible' ? firstSetProp : 'visibility'];
-                        return scssWizard.addNewUniqueScopeChunkAndReturnAllRecompiled(
-                            v.template,
-                            firstSetProp !== 'isVisible' ? v.val : v.val !== null ? v.val : 'visible',
-                            self.props.blockId,
-                            mediaScopes[curScreenSizeTabIdx]
-                        );
-                    }
-                }
-            })(this)]
+    emitNewStyles(updatedAll) {
+        api.saveButton.getInstance().pushOp(
+            'stylesBundle',
+            updatedAll
         );
     }
-    /**
-     * @param {section2ColConfigsAllScreens} newColsScreensAll
-     * @param {SaveButton} saveButton
-     * @returns {[String, saveButtonEventState, StateChangeUserContext]}
-     * @access private
-     */
-    createUpdateBlockColsUpdateOp(newColsScreensAll, saveButton) {
-        return ['theBlockTree', blockTreeUtils.createMutation(saveButton.getChannelState('theBlockTree'), newTreeCopy => {
-            const [blockRef] = blockTreeUtils.findBlockMultiTree(this.props.blockId, newTreeCopy);
-            writeBlockProps(blockRef, {columns: newColsScreensAll});
-            return newTreeCopy;
-        }), {event: 'update-single-block-prop', blockId: this.props.blockId}];
-    }
-}
-
-/**
- * @param {Number} forSmallerScreenIdx
- * @param {section2ColConfigsAllScreens} colsScreensAll
- * @returns {Array<ColumnConfigLocalRepr>|null}
- * @access private
- */
-function createInheritedCols(forSmallerScreenIdx, colsScreensAll) {
-    for (let i = forSmallerScreenIdx; i--; i > -1) {
-        if (colsScreensAll[i])
-            return colsScreensAll[i];
-    }
-    return null;
 }
 
 export default Section2CombinedBlockAndStylesEditForm;

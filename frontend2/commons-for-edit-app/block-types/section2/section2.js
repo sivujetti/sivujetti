@@ -8,13 +8,6 @@ export default {
     editFormType: 'content+user-styles',
     createOwnProps(/*defProps*/) {
         return {
-            columns: [
-                [{align: null, width: '1fr', isVisible: true}], // *
-                null,                                           // lg
-                null,                                           // md
-                null,                                           // sm
-                null                                            // xs
-            ],
             settings: {
                 innerBg: null,
                 outerBg: null,

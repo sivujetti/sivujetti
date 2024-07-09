@@ -13,7 +13,7 @@ class ImagePicker extends preact.Component {
     // dialogIsOpen;
     // unregistrables;
     /**
-     * @param {{onSrcCommitted: (newSrc: String|null, mime: String|null, srcWasTyped: Boolean) => void; src: String|null; inputId: String; omitClearButton?: Boolean;}} props
+     * @param {{onSrcCommitted: (newSrc: String|null, mime: String|null, srcWasTyped: Boolean) => void; src: String|null; inputId: String; omitClearButton?: Boolean; showClearItem?: Boolean;}} props
      */
     constructor(props) {
         super(props);
@@ -90,6 +90,7 @@ class ImagePicker extends preact.Component {
             title: __('Choose a picture'),
             className: 'image-picker-dialog',
         }, {
+            showClearItem: !!this.props.showClearItem,
             selectedImagePath: this.props.src,
             onSelected: file => {
                 this.props.onSrcCommitted(...(file
@@ -112,13 +113,14 @@ class ImagePicker extends preact.Component {
 
 class PickImageDialog extends preact.Component {
     /**
-     * @param {{selectedImagePath: String; onSelected: (img: UploadsEntry) => void;}} props
+     * @param {{selectedImagePath: String; onSelected: (img: UploadsEntry|null) => void; showClearItem: Boolean;}} props
      * @access protected
      */
-    render({onSelected}) {
+    render({onSelected, showClearItem}) {
         return [
             <FileUploader
                 mode="pick"
+                showClearItem={ showClearItem }
                 onEntryClicked={ onSelected }
                 onlyImages/>,
             <button

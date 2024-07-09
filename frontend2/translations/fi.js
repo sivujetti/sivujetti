@@ -16,6 +16,7 @@ stringBundles.push({
     'Files': 'Tiedostot',
     'Drop files here': 'Pudota tiedostot tähän',
     'No uploads yet.': 'Ei vielä latauksia.',
+    'No image': 'Ei kuvaa',
     // edit-app/src/commons/UploadButton.jsx
     'File #%s could not be uploaded because the file type is not supported.': 'Tiedostoa #%s ei voitu ladata koska tiedostotyyppiä ei tuettu.',
     'File #%s could not be uploaded because its size exceeded the maximum %sMB': 'Tiedostoa #%s ei voitu ladata koska sen koko ylitti enimmäiskoon %sMB',

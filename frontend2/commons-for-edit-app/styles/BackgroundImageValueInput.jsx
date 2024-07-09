@@ -39,6 +39,7 @@ class BackgroundImageValueInput extends preact.Component {
                     src={ valueAsString }
                     onSrcCommitted={ this.handleImageSrcCommitted.bind(this) }
                     inputId={ this.inputId }
+                    showClearItem
                     omitClearButton/>
                 { isClearable
                     ? <button onClick={ () => { this.props.onValueChanged(null); } }
@@ -57,15 +58,17 @@ class BackgroundImageValueInput extends preact.Component {
      * @param {Boolean} _srcWasTyped
      */
     handleImageSrcCommitted(src, _mime, _srcWasTyped) {
-        this.props.onValueChanged(`url("${completeImageSrc(src, urlUtils)}")`);
+        this.props.onValueChanged(src ? `url("${completeImageSrc(src, urlUtils)}")` : 'none');
     }
     /**
-     * @param {String} input Examples 'url("/public/uploads/cat.jpg")', 'url("/dir/public/uploads/dog.webp")'
+     * @param {String} input Examples 'url("/public/uploads/cat.jpg")', 'url("/dir/public/uploads/dog.webp")', 'none'
      * @returns {ImageValue}
      */
     static valueFromInput(input) {
         if (input === 'initial')
             return {src: null};
+        if (input === 'none')
+            return {src: 'none'};
         const begin = 'url("'.length;
         const end = -('")'.length);
         return {src: input.slice(begin, end)};

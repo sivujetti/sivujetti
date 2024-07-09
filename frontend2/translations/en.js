@@ -16,6 +16,7 @@ stringBundles.push({
     'Files': 'Files',
     'Drop files here': 'Drop files here',
     'No uploads yet.': 'No uploads yet.',
+    'No image': 'No image',
     // edit-app/src/commons/UploadButton.jsx
     'File #%s could not be uploaded because the file type is not supported.': 'File #%s could not be uploaded because the file type is not supported.',
     'File #%s could not be uploaded because its size exceeded the maximum %sMB': 'File #%s could not be uploaded because its size exceeded the maximum %sMB',

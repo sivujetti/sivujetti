@@ -23,7 +23,7 @@ import {
 
 class BlockVisualStylesEditForm extends preact.Component {
     // cssVarDefs;
-    // userStyleRefs;
+    // userStyleChunks;
     // varInputToScssCodeFn;
     // isSpecialRootVarsStyle;
     /**
@@ -55,8 +55,8 @@ class BlockVisualStylesEditForm extends preact.Component {
      */
     componentWillMount() {
         this.isSpecialRootVarsStyle = this.props.blockId === 'j-_body_';
-        const [scopes, styleRefs] = this.createCssVarsMapsInternal(this.props);
-        this.userStyleRefs = styleRefs;
+        const [scopes, styleChunks] = this.createCssVarsMapsInternal(this.props);
+        this.userStyleChunks = styleChunks;
         this.setState({styleScreens: scopes, curScreenSizeTabIdx: 0});
     }
     /**
@@ -65,9 +65,9 @@ class BlockVisualStylesEditForm extends preact.Component {
      */
     componentWillReceiveProps(props) {
         if (props.stateId !== this.props.stateId || props.blockStyleGroup !== this.props.blockStyleGroup) {
-            const [scopes, styleRefs] = this.createCssVarsMapsInternal(props);
+            const [scopes, styleChunks] = this.createCssVarsMapsInternal(props);
             if (JSON.stringify(scopes) !== JSON.stringify(this.state.styleScreens)) {
-                this.userStyleRefs = styleRefs;
+                this.userStyleChunks = styleChunks;
                 this.setState({styleScreens: scopes});
             }
         }
@@ -82,7 +82,7 @@ class BlockVisualStylesEditForm extends preact.Component {
                 this.renderVarWidget(def, selectedScreenSizeVars, this.varInputToScssCodeFn)
             )
         }</div>;
-        const chunks = this.userStyleRefs;
+        const chunks = this.userStyleChunks;
         return !this.isSpecialRootVarsStyle ? <ScreenSizesVerticalTabs
             populatedTabs={ chunks.map(s => !!s) }
             curTabIdx={ curScreenSizeTabIdx }
@@ -200,7 +200,7 @@ class BlockVisualStylesEditForm extends preact.Component {
      */
     doHandleValChanged(val, varName, varInputToScssCode) {
         const {styleScreens, curScreenSizeTabIdx} = this.state;
-        const curChunk = this.userStyleRefs[curScreenSizeTabIdx];
+        const curChunk = this.userStyleChunks[curScreenSizeTabIdx];
         const newValIsNotEmpty = val?.trim().length > 0;
         const valNorm = newValIsNotEmpty ? val : '"dummy"';
         const mediaScopeId = mediaScopes[curScreenSizeTabIdx];
@@ -240,7 +240,7 @@ class BlockVisualStylesEditForm extends preact.Component {
      */
     doHandleVarOfOptimizedChunkChanged(val, varName, varInputToScssCode) {
         const {styleScreens, curScreenSizeTabIdx} = this.state;
-        const classChunk = this.userStyleRefs[curScreenSizeTabIdx];
+        const classChunk = this.userStyleChunks[curScreenSizeTabIdx];
         const newValIsNotEmpty = val?.trim().length > 0;
         const valNorm = newValIsNotEmpty ? val : '"dummy"';
         const mediaScopeId = mediaScopes[curScreenSizeTabIdx];

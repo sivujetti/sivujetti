@@ -12,19 +12,7 @@ function createColumnConfig() {
 }
 
 /**
- * @param {ColumnConfigLocalRepr} colConfig
- * @returns {ColumnConfig}
- */
-function colToTransferable(colConfig) {
-    return {
-        width: colConfig.width,
-        align: colConfig.align,
-        visibility: colConfig.visibility,
-    };
-}
-
-/**
- * @param {Array<ColumnConfig|ColumnConfigLocalRepr>} columns
+ * @param {Array<ColumnConfig>} columns
  * @returns {Array<String>} Example ['>.j-Section2-cols {', 'grid-template-columns: minmax(0, 1fr);', '}', '>.j-Section2-cols>:nth-child(1) {', 'justify-self: end;', 'visibility: visible;', '}']
  */
 function columnsToScss(columns) {
@@ -60,28 +48,13 @@ function columnsToWidthCss(columns, colMinWidth = '0') {
 }
 
 /**
- * @param {Array<ColumnConfig>} transferableCols
- * @returns {Array<ColumnConfigLocalRepr>}
- */
-function colsToLocalRepr(transferableCols) {
-    return transferableCols.map((col, i) => ({
-        ...col,
-        id: `col-${i}`
-    }));
-}
-
-/**
  * @typedef ColumnConfig
  * @prop {String} width      // Example '1fr', '120px'
  * @prop {String|null} align
- * @prop {'hidden'|'visible'|String} visibility
- *
- * @typedef {ColumnConfig & {id: String}} ColumnConfigLocalRepr
+ * @prop {'hidden'|'visible'|String|null} visibility
  */
 
 export {
-    colsToLocalRepr,
-    colToTransferable,
     columnsToScss,
     columnsToWidthCss,
     createColumnConfig,

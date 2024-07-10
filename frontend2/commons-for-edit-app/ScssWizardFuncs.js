@@ -2,7 +2,7 @@ import scssUtils, {compile, serialize, stringify} from './styles/scss-utils';
 
 /**
  * @param {String} scss
- * @returns {{extractVal(prop: String, scope?: String): StylisAstNode|null;}}
+ * @returns {{extractVal(prop: String, scope?: String): StylisAstNode|null; getAst(): Array<StylisAstNode>;}}
  */
 function createCssDeclExtractor(scss) {
     const ast = compile(scss);
@@ -22,6 +22,12 @@ function createCssDeclExtractor(scss) {
                 parenNode.value === scope
             );
             return declNode ? declNode.children : null;
+        },
+        /**
+         * @returns {Array<StylisAstNode>}
+         */
+        getAst() {
+            return ast;
         }
     };
 }

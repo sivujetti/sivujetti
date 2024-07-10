@@ -9,14 +9,12 @@ import {createCssDeclExtractor} from '../../ScssWizardFuncs.js';
 import {mediaScopes} from '../../../shared-inline.js';
 import ColumnEditTabForm from './ColumnEditTabForm.jsx';
 import {
-    colsToLocalRepr,
     columnsToScss,
     columnsToWidthCss,
     createColumnConfig,
     innerElScope,
 } from './Section2CombinedBlockAndStylesEditFormFuncs.js';
 /** @typedef {import('./Section2CombinedBlockAndStylesEditFormFuncs.js').ColumnConfig} ColumnConfig */
-/** @typedef {import('./Section2CombinedBlockAndStylesEditFormFuncs.js').ColumnConfigLocalRepr} ColumnConfigLocalRepr */
 
 /** @type {Array<VisualStylesFormVarDefinition>} */
 const cssVarDefs = [
@@ -154,8 +152,8 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
      */
     componentWillMount() {
         // Note: skip super.componentWillMount()
-        const [state, styleRefs] = this.createCssVarsMaps(this.props);
-        this.userStyleRefs = styleRefs;
+        const [state, styleChunks] = this.createCssVarsMaps(this.props);
+        this.userStyleChunks = styleChunks;
         this.setState({...state, curScreenSizeTabIdx: 0});
     }
     /**
@@ -164,9 +162,9 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
      */
     componentWillReceiveProps(props) {
         if (props.stylesStateId !== this.props.stylesStateId || props.blockStyleGroup !== this.props.blockStyleGroup) {
-            const [state, styleRefs] = this.createCssVarsMaps(props);
+            const [state, styleChunks] = this.createCssVarsMaps(props);
             if (JSON.stringify(state.screens) !== JSON.stringify(this.state.styleScreens)) {
-                this.userStyleRefs = styleRefs;
+                this.userStyleChunks = styleChunks;
                 this.setState(state);
             }
         }
@@ -177,7 +175,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
     render(_, {editStateIsOn, columnStyleScreens, styleScreens, curScreenSizeTabIdx}) {
         const selectedScreenSizeVars = styleScreens[curScreenSizeTabIdx] || {};
         const columns = columnStyleScreens[curScreenSizeTabIdx]?.columns || null;
-        const chunks = this.userStyleRefs;
+        const chunks = this.userStyleChunks;
         return <ScreenSizesVerticalTabs
             populatedTabs={ chunks.map(s => !!s) }
             curTabIdx={ curScreenSizeTabIdx }
@@ -222,14 +220,14 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
     }
     /**
      * @param {BlockStylesEditFormProps} props
-     * @returns {[{styleScreens: Array<CssVarsMap>; columnStyleScreens: Array<{columns: Array<ColumnConfigLocalRepr>|null;}>;}, Array<StyleChunk|null>]}
+     * @returns {[{styleScreens: Array<CssVarsMap>; columnStyleScreens: Array<{columns: Array<ColumnConfig>|null;}>;}, Array<StyleChunk|null>]}
      * @access private
      */
     createCssVarsMaps({blockId}) {
-        const [styleScreens, styleRefs] = createCssVarsMaps(blockId, this.cssVarDefs);
+        const [styleScreens, styleChunks] = createCssVarsMaps(blockId, this.cssVarDefs);
 
         const columnStyleScreens = mediaScopes.map((_mediaScopeId, i) => {
-            const chunk = styleRefs[i];
+            const chunk = styleChunks[i];
             if (!chunk) return {columns: null};
 
             const extr = createCssDeclExtractor(chunk.scss);
@@ -237,10 +235,11 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
             const tmp = extr.extractVal('grid-template-columns', '>.j-Section2-cols')?.slice(0, -1).split(') ');
             // ['140px', '1fr', '0px']
             const widths = tmp ? tmp.map(p => p.split(', ')[1]) : [];
+            // {'1': {width; align; visibility;}, '2': ...}
             const colsMap = widths.reduce((out, width, i2) => ({
                 ...out,
                 [`${i2 + 1}`]: {...createColumnConfig(), width},
-            }), {}); // {'1': {width; align; visibility;}, '2': ...}
+            }), {});
 
             for (const node of extr.getAst()) {
                 if (node.type !== 'rule') continue;
@@ -261,16 +260,16 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
             for (let i = 0; i < nthColLargest; ++i) {
                 out.push(colsMap[`${i + 1}`] || createColumnConfig());
             }
-            return {columns: out.map(colsToLocalRepr)};
+            return {columns: out};
         }, []);
 
         return [
             {styleScreens, columnStyleScreens},
-            styleRefs
+            styleChunks
         ];
     }
     /**
-     * @param {Array<ColumnConfigLocalRepr>} to
+     * @param {Array<ColumnConfig>} to
      * @param {Number} curScreenSizeTabIdx
      * @access private
      */
@@ -279,29 +278,40 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
         const newScss = columnsToScss(newColumns);
         const updatedAll = to ? scssWizard.replaceUniqueScopeChunkAndReturnAllRecompiled(
             newScss,
-            this.userStyleRefs[curScreenSizeTabIdx],
+            this.userStyleChunks[curScreenSizeTabIdx],
             mediaScopes[curScreenSizeTabIdx]
         ) : scssWizard.addNewUniqueScopeChunkAndReturnAllRecompiled(
-            ...(((newScss) => {
-                const a = newScss.split('grid-template-columns: '); // ['>.j-Section2-cols {\n  ', 'minmax(0, 1fr);\n}']
-                const b = a[1].split(';');                          // ['minmax(0, 1fr)', '\n}']
-                const val = b[0];
-                const template = (
-                    a[0] + // '>.j-Section2-cols {\n  '
-                      'grid-template-columns: %s;\n' +
-                    '}'
-                );
-                return [template, val];
-            })()),
+            [
+                newScss[0], // '>.j-Section2-cols {'
+                '  grid-template-columns: %s;',
+                '}'
+            ],
+            (() => {
+                const pcs = newScss[1].split('grid-template-columns: '); // ['  ', 'minmax(0, 1fr);']
+                return pcs[1].slice(0, -1);                              // 'minmax(0, 1fr)'
+            })(),
             this.props.blockId,
             mediaScopes[curScreenSizeTabIdx]
         );
-        this.emitNewStyles(updatedAll);
+        emitNewStyles(updatedAll);
     }
     /**
+     * @param {Number} colIdx
+     * @param {Array<ColumnConfig>} from
+     * @param {Number} curScreenSizeTabIdx
+     * @access private
      */
     deleteColumn(colIdx, from, curScreenSizeTabIdx) {
-        // todo
+        const newColumns = from.filter((_, i) => i !== colIdx);
+        const updatedAll = newColumns.length ? scssWizard.replaceUniqueScopeChunkAndReturnAllRecompiled(
+            columnsToScss(newColumns),
+            this.userStyleChunks[curScreenSizeTabIdx],
+            mediaScopes[curScreenSizeTabIdx]
+        ) : scssWizard.deleteUniqueScopeChunkAndReturnAllRecompiled(
+            this.userStyleChunks[curScreenSizeTabIdx],
+            mediaScopes[curScreenSizeTabIdx]
+        );
+        emitNewStyles(updatedAll);
     }
     /**
      * @param {Number} colIdx
@@ -314,9 +324,21 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
         });
     }
     /**
+     * @param {String} propName
+     * @param {String} val
+     * @param {Number} colIdx
+     * @param {Array<ColumnConfig>} columnsAll
+     * @param {Number} curScreenSizeTabIdx
+     * @access private
      */
     handlePropOfOpenColConfigChanged(propName, val, colIdx, columnsAll, curScreenSizeTabIdx) {
-        // todo
+        const newColumns = columnsAll.map((c, i) => i !== colIdx ? c : {...c, [propName]: val});
+        const updatedAll = scssWizard.replaceUniqueScopeChunkAndReturnAllRecompiled(
+            columnsToScss(newColumns),
+            this.userStyleChunks[curScreenSizeTabIdx],
+            mediaScopes[curScreenSizeTabIdx]
+        );
+        emitNewStyles(updatedAll);
     }
     /**
      * @access private
@@ -327,16 +349,16 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
             openColIdx: null,
         });
     }
-    /**
-     * @param {StylesBundleWithId} updatedAll
-     * @access private
-     */
-    emitNewStyles(updatedAll) {
-        api.saveButton.getInstance().pushOp(
-            'stylesBundle',
-            updatedAll
-        );
-    }
+}
+
+/**
+ * @param {StylesBundleWithId} updatedAll
+ */
+function emitNewStyles(updatedAll) {
+    api.saveButton.getInstance().pushOp(
+        'stylesBundle',
+        updatedAll
+    );
 }
 
 export default Section2CombinedBlockAndStylesEditForm;

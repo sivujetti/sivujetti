@@ -1,7 +1,6 @@
 import {mediaScopes} from '../shared-inline.js';
 import {
     addOrUpdateCodeTo,
-    compile,
     createScssBlock,
     createSelector,
     deleteCodeFrom,
@@ -109,6 +108,38 @@ class ScssWizard {
      */
     addOrUpdateScssCodeToExistingUniqueScopeChunkAndReturnAllRecompiled(codeTemplate, val, currentStyle, mediaScopeId = 'all') {
         const updated = this.doAddOrUpdateScssCodeOfExistingUniqueScopedChunk(codeTemplate, val, currentStyle);
+        return this.commitAll(updated, mediaScopeId);
+    }
+    /**
+     * @param {scssCodeInput} newScss
+     * @param {StyleChunk} currentStyle
+     * @param {mediaScope} mediaScopeId = 'all'
+     * @returns {StylesBundleWithId}
+     * @access public
+     */
+    replaceUniqueScopeChunkAndReturnAllRecompiled(newScss, currentStyle, mediaScopeId = 'all') {
+        const updated = this.styles.map(s => {
+            if (s !== currentStyle) return s;
+
+            return {
+                ...s,
+                scss: [
+                    `${createSelector(extractBlockId(s.scss))} {`,
+                        ...(Array.isArray(newScss) ? newScss : newScss.split('\n')).map(l => indent(l, 1)),
+                    '}'
+                ].join('\n'),
+            };
+        });
+        return this.commitAll(updated, mediaScopeId);
+    }
+    /**
+     * @param {StyleChunk} currentStyle
+     * @param {mediaScope} mediaScopeId = 'all'
+     * @returns {StylesBundleWithId}
+     * @access public
+     */
+    deleteUniqueScopeChunkAndReturnAllRecompiled(currentStyle, mediaScopeId = 'all') {
+        const updated = this.styles.filter(s => s !== currentStyle);
         return this.commitAll(updated, mediaScopeId);
     }
     /**
@@ -400,7 +431,6 @@ class ScssWizard {
      * @access private
      */
     deleteScssCodeFromExistingUniqueScopedChunk(codeTemplate, val, currentStyle) {
-
         return this.styles.map(s => {
             if (s !== currentStyle) return s;
 
@@ -455,19 +485,6 @@ class ScssWizard {
             scope: {kind: 'single-block', media: mediaScopeId, layer},
             scss,
         };
-    }
-    /**
-     * @param {StyleChunk} chunk
-     * @returns {Array<{className: string; lineIdx: number;}>}
-     */
-    extractClassCssBlocks({scss}) {
-        const ast = compile(scss); // [{value: '.header-simple', root: null, parent: null, type: 'rule', props: Array(1), …}
-                                   //  {value: '.social-icons', root: null, parent: null, type: 'rule', props: Array(1), …}
-                                   //  {value: '>.j-Section2-cols', root: null, parent: {…}, type: 'rule', props: Array(1), …}
-                                   //  {value: '.j-Button', root: null, parent: {…}, type: 'rule', props: Array(1), …}]
-        return ast
-            .filter(node => !node.parent && node.type === 'rule' && node.value.startsWith('.'))
-            .map(node => ({className: node.value.substring(1), lineIdx: node.line - 1}));
     }
 }
 

@@ -2,14 +2,12 @@ import LengthValueInput from '../../styles/LengthValueInput.jsx';
 import OptionValueInput from '../../styles/OptionValueInput.jsx';
 import {__} from '../../edit-app-singletons.js';
 import {FormGroupInline} from '../../Form.jsx';
-import {colToTransferable} from './Section2CombinedBlockAndStylesEditFormFuncs.js';
-/** @typedef {import('./Section2CombinedBlockAndStylesEditFormFuncs.js').ColumnConfigLocalRepr} ColumnConfigLocalRepr */
 /** @typedef {import('./Section2CombinedBlockAndStylesEditFormFuncs.js').ColumnConfig} ColumnConfig */
 
 class ColumnEditTabForm extends preact.Component {
     // alignOptions;
     /**
-     * @param {{column: ColumnConfigLocalRepr; onPropChanged(propName: keyof ColumnConfig, val: String|Boolean|null): void; onEditEnded(): void;}} props
+     * @param {{column: ColumnConfig; onPropChanged(propName: keyof ColumnConfig, val: String|Boolean|null): void; onEditEnded(): void;}} props
      */
     constructor(props) {
         super(props);
@@ -26,14 +24,14 @@ class ColumnEditTabForm extends preact.Component {
      * @access protected
      */
     componentWillMount() {
-        this.setState(colToTransferable(this.props.column));
+        this.setState({...this.props.column});
     }
     /**
      * @access protected
      */
     componentWillReceiveProps(props) {
         if (props.column !== this.props.column)
-            this.setState(colToTransferable(props.column));
+            this.setState({...props.column});
     }
     /**
      * @access protected
@@ -60,7 +58,7 @@ class ColumnEditTabForm extends preact.Component {
                 inputId="section2Align"/>
             <FormGroupInline>
                 <span class="form-label">{ __('Is visible') }?</span>
-                <label class="form-checkbox mt-0">
+                <label class="form-checkbox d-inline-block mt-0 mb-0">
                     <input
                         onClick={ e => this.props.onPropChanged('visibility', e.target.checked ? 'visible' : 'hidden') }
                         checked={ visibility === 'visible' }

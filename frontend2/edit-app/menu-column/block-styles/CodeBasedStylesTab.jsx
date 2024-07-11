@@ -41,17 +41,18 @@ class CodeBasedStylesList extends preact.Component {
      * @access protected
      */
     render({scopeSettings}, {styleScreens, curScreenSizeTabIdx}) {
-        const selectedScreenSizeStyles = styleScreens[curScreenSizeTabIdx];
-        const styleScopes = selectedScreenSizeStyles || [];
+        const selectedScreenSizeStyles = styleScreens[curScreenSizeTabIdx] || [];
         const selectedMediaScopeId = mediaScopes[curScreenSizeTabIdx];
         return <ScreenSizesVerticalTabs
             populatedTabs={ styleScreens.map(s => s !== null) }
             curTabIdx={ curScreenSizeTabIdx }
             setCurTabIdx={ to => this.setState({curScreenSizeTabIdx: to}) }
             allowOverflowX>
-                <ul class="list styles-list mb-2">{ styleScopes.length
-                    ? styleScopes.map(ref => {
+                <ul class="list styles-list mb-2">{ selectedScreenSizeStyles.length
+                    ? selectedScreenSizeStyles.map(ref => {
                         return <li class="open"><ScssEditor
+                            editorId={ scopeSettings.kind + '-styles' }
+                            collapseOuterCode={ scopeSettings.kind === 'custom-class' }
                             onCommitInput={ scss => {
                                 const updatedAll = scssWizard.updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(
                                     scss,
@@ -62,7 +63,7 @@ class CodeBasedStylesList extends preact.Component {
                             } }
                             scss={ ref.scss }/></li>;
                         })
-                        : <li><span class="ml-2 pl-1">{ [
+                        : <li class="mt-2"><span class="ml-2 pl-1">{ [
                             __('No styles for screen size %s', `"${selectedMediaScopeId}"`),
                             ', ',
                             <a

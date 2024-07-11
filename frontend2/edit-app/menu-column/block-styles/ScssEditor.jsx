@@ -13,12 +13,13 @@ class ScssEditor extends preact.Component {
         this.currentCode = this.props.scss;
         this.committedCode = this.currentCode;
         this.unregistrables = [];
+        this.editor = null;
     }
     /**
      * @access protected
      */
     componentDidMount() {
-        this.hookUpSaveButtonPosUpdateListener(this.editor.dom.closest('.scss-editor-outer'));
+        this.hookUpSaveButtonPosUpdateListener(this.editor.view.dom.closest('.scss-editor-outer'));
     }
     /**
      * @access protected
@@ -28,9 +29,10 @@ class ScssEditor extends preact.Component {
         if (this.currentCode !== this.committedCode)
             this.handleCommitChangesBtnClicked();
         this.unregistrables.forEach(unreg => unreg());
+        this.isEditorReady = false;
     }
     /**
-     * @param {{scss: String; onCommitInput(scss: String): void;}} props
+     * @param {{scss: String; onCommitInput: (scss: String) => void; editorId: String; collapseOuterCode?: Boolean;}} props
      * @access protected
      */
     componentWillReceiveProps(props) {
@@ -53,13 +55,23 @@ class ScssEditor extends preact.Component {
         return <div class="p-relative scss-editor-outer">
             <div ref={ el => {
                 if (!el || this.editor) return;
-                this.editor = window.renderCodeMirror6(el, (defaultSettings, {EditorView}) => ({
-                    ...defaultSettings,
-                    ...{
+                this.isEditorReady = false;
+                this.editor = window.renderCodeMirror6(el, (
+                    createEditorView,
+                    {defaultSettings, EditorView, foldAllExcept, syntaxTreeAvailable}
+                ) => ({
+                    view: createEditorView({
+                        ...defaultSettings,
                         doc: this.currentCode,
                         extensions: [
                             ...defaultSettings.extensions,
                             EditorView.updateListener.of(e => {
+                                if (this.props.collapseOuterCode) {
+                                    if (!this.isEditorReady) {
+                                        this.isEditorReady = syntaxTreeAvailable(e.state);
+                                        if (this.isEditorReady) this.collapseOuterBlocks();
+                                    }
+                                }
                                 if (!e.docChanged)
                                     return;
                                 const newCode = e.state.doc.toString();
@@ -67,8 +79,9 @@ class ScssEditor extends preact.Component {
                                 this.updateApplyButtonVisibility(this.currentCode);
                             })
                         ]
-                    }
-                })).view;
+                    }),
+                    api: {foldAllExcept},
+                }));
             } }></div>
             <button
                 onClick={ this.handleCommitChangesBtnClicked.bind(this) }
@@ -77,6 +90,12 @@ class ScssEditor extends preact.Component {
                 <Icon iconId="check" className="size-xs"/>
             </button>
         </div>;
+    }
+    /**
+     * @access private
+     */
+    collapseOuterBlocks() {
+        this.editor.api.foldAllExcept(this.editor.view, (_line, _range) => true);
     }
     /**
      * @access private
@@ -109,8 +128,9 @@ class ScssEditor extends preact.Component {
      * @access private
      */
     overwriteEditorCode(code) {
-        this.editor.dispatch({
-            changes: {from: 0, to: this.editor.state.doc.length, insert: code}
+        const {view} = this.editor;
+        view.dispatch({
+            changes: {from: 0, to: view.state.doc.length, insert: code}
         });
     }
     /**

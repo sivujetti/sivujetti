@@ -17,10 +17,10 @@ class BaseAndCustomClassStylesSection extends preact.Component {
     // menuSection;
     /**
      * @param {number} lineIdx
-     * @param {string} _className
+     * @param {string} className
      * @access public
      */
-    async scrollToCustomClassesTabClass(lineIdx, _className) {
+    async scrollToCustomClassesTabClass(lineIdx, className) {
         const sectionEl = this.getEl();
         const scrollerEl = sectionEl.parentElement;
         const baseCfg = {left: 0, behavior: 'smooth'};
@@ -35,9 +35,20 @@ class BaseAndCustomClassStylesSection extends preact.Component {
             return;
 
         const editorEl = await this.openTab('dev-class-styles');
+        editorEl.closest('.vert-tabs').scrollLeft = 0;
+
+        const classNodes = [...editorEl.querySelectorAll('.cm-line > .ͼj')];
+        const node = classNodes.find(({textContent}) => textContent === className);
+        if (!node) return;
+
+        const lineEl = node.parentElement;
+        const lineIdx2 = [...lineEl.parentElement.children].indexOf(lineEl);
         const delta = editorEl.getBoundingClientRect().top - sectionEl.getBoundingClientRect().top;
-        const linePos = lineIdx * editorEl.querySelector('.cm-line').getBoundingClientRect().height;
+        const linePos = lineIdx2 * lineEl.getBoundingClientRect().height;
         scrollerEl.scrollTo({top: sectionEl.offsetTop + delta + linePos, ...baseCfg});
+        await new Promise(resolve => { setTimeout(() => { resolve(); }, 320); });
+
+        lineEl.querySelector('.cm-foldPlaceholder')?.click();
     }
     /**
      * @access protected

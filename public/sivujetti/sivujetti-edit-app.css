@@ -1103,10 +1103,13 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     font-size: 12px;
 }
 .ͼ2 .cm-gutters {
-    display: none; /* todo */
+    background-color: transparent;
+    border-color: transparent;
+    transform: translateX(.1rem);
 }
 ul.styles-list > li {
     background: initial;
+    margin: 0;
 }
 .ͼ1.cm-focused {
     outline: none;
@@ -1717,7 +1720,6 @@ main.scrolled-past-main-block-tree #dnd-block-spawner:not(
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     position: relative;
-    text-indent: 1px;
 }
 .vert-tabs > .vert-tab-btns > button.is-populated {
     font-weight: 800;
@@ -1964,7 +1966,7 @@ span.highlight-rect[data-label-position="bottom-inside"]:before {
     left: 25px;
 }
 ul.list {
-    list-style: initial;
+    list-style: none;
     margin: 0;
 }
 ul.table-list > li {

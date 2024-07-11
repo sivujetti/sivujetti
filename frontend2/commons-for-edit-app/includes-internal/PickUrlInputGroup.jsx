@@ -15,12 +15,13 @@ class PickUrlInputGroup extends preact.Component {
             <label htmlFor="linkTo" class="form-label">{ __('Link') }</label>
             <input
                 value={ getVisibleSlug(linkTo) }
-                onClick={ e => this.openPickUrlDialog(e, linkTo, onUrlPicked) }
+                onFocus={ e => this.openPickUrlDialog(e, linkTo, onUrlPicked) }
                 name="linkTo"
                 id="linkTo"
                 class="form-input"
                 type="text"
-                autoComplete="off"/>
+                autoComplete="off"
+                readOnly/>
         </FormGroupInline>;
     }
     /**

@@ -132,6 +132,9 @@ Structure:
 .form-group > .form-input-hint {
     margin-bottom: -.2rem;
 }
+.form-input[readonly] {
+    background-color: #fff;
+}
 .menu .menu-item > a:focus, .menu .menu-item > a:hover {
     background: rgba(129, 134, 165, .15);
 }
@@ -661,7 +664,7 @@ a.popup-close-area {
     box-shadow: none;
     padding: 0;
 }
-.live-files-list.item-grid article > .btn-link {
+.live-files-list.item-grid article > .btn:not(.more-menu-btn) {
     width: 100%;
     border-radius: 0;
 }

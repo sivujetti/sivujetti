@@ -200,31 +200,17 @@ final class WebPageAwareTemplate extends Template {
      * @return string
      */
     public function renderBlocks(array $blocks): string {
-        if (!defined("USE_NEW_RENDER_FEAT")) {
-        $out = "";
-        $emptyString = !$this->__useEditModeMarkup ? "" : null;
-        foreach ($blocks as $block)
-            $out .= $block->type !== Block::TYPE_GLOBAL_BLOCK_REF
-                ? $this->partial($block->renderer, $block)
-                : (
-                    ($emptyString ?? "<!-- block-start {$block->id}:{$block->type} -->") .
-                        $this->renderBlocks($block->__globalBlockTree->blocks) .
-                    ($emptyString ?? "<!-- block-end {$block->id} -->")
-                );
-        return $out;
-        } else {
         if ($this->__useEditModeMarkup)
             return ""; // rendered by frontend2/webpage-renderer-app/ReRenderingWebPage.jsx
-        $vnodes = $this->__doRenderBlocks($blocks);
+        $vnodes = $this->__createVNodeTree($blocks);
         return renderVNodes($vnodes);
-        }
     }
     /**
      * @param \Sivujetti\Block\Entities\Block[] $blocks
      * @return array<int, array>
      * @psalm-return array<int, VNode>
      */
-    private function __doRenderBlocks(array $blocks): array {
+    private function __createVNodeTree(array $blocks): array {
         $out = [];
         $blockTypes = $this->__internal["blockTypes"];
         $blockRenderers = $this->__internal["blockRenderers"];
@@ -233,7 +219,7 @@ final class WebPageAwareTemplate extends Template {
                 continue;
             //
             if ($block->type === Block::TYPE_GLOBAL_BLOCK_REF) {
-                $out[] = $this->__doRenderBlocks($block->__globalBlockTree->blocks)[0];
+                $out[] = $this->__createVNodeTree($block->__globalBlockTree->blocks)[0];
                 continue;
             }
             //
@@ -246,18 +232,16 @@ final class WebPageAwareTemplate extends Template {
             }
             if ($impl) {
                 $createDefaultProps = fn($ownClasses = "") => [
-                    ...[
-                        "data-block" => $block->id,
-                        "data-block-type" => $block->type,
-                        "class" => "j-{$block->type}" .
-                            ($ownClasses ? " {$ownClasses}" : "") .
-                            ($block->styleClasses ? " {$block->styleClasses}" : ""),
-                    ],
+                    "data-block" => $block->id,
+                    "data-block-type" => $block->type,
+                    "class" => "j-{$block->type}" .
+                        ($ownClasses ? " {$ownClasses}" : "") .
+                        ($block->styleClasses ? " {$block->styleClasses}" : ""),
                     ...($block->styleGroup ? [
                         "data-style-group" => $block->styleGroup,
                     ] : [])
                 ];
-                $renderChildren = fn() => $block->children ? $this->__doRenderBlocks($block->children) : [""];
+                $renderChildren = fn() => $block->children ? $this->__createVNodeTree($block->children) : [""];
                 $out[] = $impl->render($block, $createDefaultProps, $renderChildren, $this);
             } else {
                 $out[] = el("j-raw", [], $this->partial($block->renderer, $block));
@@ -314,9 +298,6 @@ final class WebPageAwareTemplate extends Template {
 
         $theme = $this->__internal["theme"];
         $commonCss = (
-            (!defined("USE_NEW_RENDER_FEAT")
-                ? "@layer theme, body-unit, base-units, var-units, units; "
-                : "") .
             ($theme->globalStyles
                 ? (":root {" .
                     implode(" ", array_map(fn($style) =>
@@ -329,39 +310,6 @@ final class WebPageAwareTemplate extends Template {
         $common = $commonCss ? "<style>{$commonCss}</style>\n" : "";
         $externals = array_map($fileDefToTag, $this->__cssAndJsFiles->css);
         $site = $site ?? $this->__locals["site"];
-
-        if (!defined("USE_NEW_RENDER_FEAT")) {
-        return $common . (!$this->__useEditModeMarkup ? (
-            // Externals including theme-generated.css
-            implode("\n", [...$externals, $fileDefToTag(
-                (object) ["url" => "{$theme->name}-generated.css?t={$theme->stylesLastUpdatedAt[0]}",
-                          "attrs" => []]
-            )]) .
-            // theWebsite->headHtml
-            ($site ? "\n{$site->headHtml}" : null)
-        ) : (
-            // Externals without theme-generated.css
-            implode("\n", $externals) .
-            // Injectables
-            "\n<!-- Note to devs: these inline styles appear here only when you're logged in -->\n" .
-            // Scoped styles: Inject each style bundle via javascript instead of echoing them directly
-            // (to allow things such as `content: "</style>"` or `/* </style> */`)
-            "<script>document.head.appendChild(" . self::escInlineJs(JsonUtils::stringify(
-                array_merge(array_map(fn($itm) => (object) [
-                    "css" => ThemesController::combineAndWrapCss($itm->units, $itm->blockTypeName),
-                    "blockTypeName" => $itm->blockTypeName,
-                ], $theme->styles), $this->__applyFilters->__invoke("sivujetti:editAppAdditionalStyleUnits", []))
-            ) . ".reduce((out, {css, blockTypeName}) => {\n" .
-            "  const bundle = document.createElement('style');\n" .
-            "  bundle.innerHTML = css;\n" .
-            "  bundle.setAttribute('data-style-units-for', blockTypeName);\n" .
-            "  out.appendChild(bundle);\n" .
-            "  return out;\n") .
-            "}, document.createDocumentFragment()))</script>\n" .
-            //
-            "<style>" . self::getDefaultEditModeInlineCss() . "</style>\n"
-        ));
-        } else {
         $stylesTags = "";
         if (!$this->__useEditModeMarkup) {
             $cachedScreenSizesCssHashes = $theme->styles->cachedCompiledScreenSizesCssHashes;
@@ -420,35 +368,12 @@ final class WebPageAwareTemplate extends Template {
             );
         }
         return $common . $stylesTags;
-        }
     }
     /**
      * @param ?\Sivujetti\TheWebsite\Entities\TheWebsite $site = null
      * @return string
      */
     public function jsFiles(?TheWebsite $site = null): string {
-        if (!defined("USE_NEW_RENDER_FEAT")) {
-        return (
-            // Scripts defined by the dev
-            ($this->__cssAndJsFiles ? implode("\n", array_map(function ($f) {
-                $attrsMap = $f->attrs;
-                //
-                $pre = !str_starts_with($f->url, "sivujetti/sivujetti-commons-for-web-pages.js")
-                    ? ""
-                    : "<script>window.sivujettiBaseUrl='{$this->makeUrl("/", true)}';\n" .
-                    "        window.sivujettiAssetBaseUrl='{$this->makeUrl("/", false)}';</script>";
-                //
-                $url = str_contains($f->url, "pristine") || str_starts_with($_SERVER["REQUEST_URI"] ?? "/sivujetti/", "/sivujetti/") ? $this->assetUrl("public/{$this->e($f->url)}") : ("/sivujetti/public/{$this->e($f->url)}?".$this->__assetUrlAppendix);
-                // $url = $this->assetUrl("public/{$this->e($f->url)}");
-                //
-                return "{$pre}<script src=\"{$url}\"{$this->attrMapToStr($attrsMap)}></script>";
-            }, $this->__cssAndJsFiles->js)) : "") .
-            // theWebsite->footHtml
-            (($this->__useEditModeMarkup || !($site = $site ?? $this->__locals["site"]))
-                ? ""
-                : "\n{$site->footHtml}\n")
-        );
-        } else {
         $files = $this->__useEditModeMarkup && ArrayUtils::findIndexByKey($this->__cssAndJsFiles->js,
                                                                           "sivujetti/sivujetti-commons-for-web-pages.js",
                                                                           "url") < 0
@@ -486,7 +411,6 @@ final class WebPageAwareTemplate extends Template {
                 ? ""
                 : "\n{$site->footHtml}\n")
         );
-        }
     }
     /**
      * https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements

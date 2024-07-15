@@ -2,14 +2,13 @@
 
 namespace Sivujetti\Theme;
 
-use Pike\Db\{FluentDb, FluentDb2, NoDupeRowMapper};
+use Pike\Db\{FluentDb, FluentDb2};
 use Pike\{FileSystem, PikeException, Request, Response, Validation};
 use Pike\Auth\Crypto;
 use Pike\Validation\ObjectValidator;
 use Sivujetti\BlockType\Entities\{BlockTypes};
 use Sivujetti\{JsonUtils, ValidationUtils};
 use Sivujetti\Block\BlockTree;
-use Sivujetti\Theme\Entities\Style;
 
 /**
  * @psalm-import-type ThemeStyleUnit from \Sivujetti\Theme\Entities\Style
@@ -24,34 +23,7 @@ final class ThemesController {
      * @param \Pike\Db\FluentDb $db
      */
     public function getStyles(Request $req, Response $res, FluentDb $db): void {
-        if (!defined("USE_NEW_RENDER_FEAT")) {
-        $obj = $db->select("\${p}`themes` t", "stdClass")
-            ->fields([
-                "t.`id` as `themeId`",
-                "t.`globalStyles` AS `globalStyles`",
-                "ts.`units` AS `themeStylesUnitsJson`",
-                "ts.`blockTypeName` AS `themeStylesBlockTypeName`",
-            ])
-            ->leftJoin("`\${p}themeStyles` ts ON (ts.`themeId` = t.`id`)")
-            ->mapWith(new class("themeId") extends NoDupeRowMapper {
-                public function doMapRow(object $row, int $i, array $allRows): object {
-                    $row->globalStyles = JsonUtils::parse($row->globalStyles);
-                    $row->styles = self::collectOnce($allRows, fn($row) =>
-                        Style::fromParentRs($row)
-                    , "themeStylesBlockTypeName", [], 1);
-                    return $row;
-                }
-            })
-            ->where("t.`id` = ?", [$req->params->themeId])
-            ->fetchAll()[0] ?? null;
-        if (!$obj) {
-            $res->status(404)->json([]);
-            return;
-        }
-        $res->json($obj);
-        } else {
         throw new \RuntimeException("todo");
-        }
     }
     /**
      * PUT /api/themes/:themeId/styles/scope-block-type/:blockTypeName: Overwrites

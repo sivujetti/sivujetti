@@ -1,6 +1,6 @@
 let pickerLibIsInitialized = false;
 let currOpenPicker = null;
-let lastColor;
+let lastEmittedColor;
 let pickOrigin = null;
 let pickingIsInProgress = false;
 
@@ -9,6 +9,11 @@ const emitPickColor = (colorStr, isFast = false) => {
         currOpenPicker.props.onColorPicked(colorStr);
     else
         currOpenPicker.props.onColorPickedFast(colorStr);
+};
+
+const handleOnChange = color => {
+    emitPickColor(color, pickingIsInProgress);
+    lastEmittedColor = color;
 };
 
 const hookUpPickerLib = () => {
@@ -25,10 +30,7 @@ const hookUpPickerLib = () => {
          * @param {String} color
          * @param {HTMLInputElement} _input
          */
-        onChange(color, _input) {
-            emitPickColor(color, pickingIsInProgress);
-            lastColor = color;
-        }
+        onChange: handleOnChange
     });
 
     const picker = document.getElementById('clr-picker');
@@ -50,12 +52,22 @@ const hookUpPickerLib = () => {
     picker.addEventListener('mousedown', handleMouseOrTouchStart);
     picker.addEventListener('touchstart', handleMouseOrTouchStart);
 
-    const handleMouseOrTouchEnd = () => {
+    const handleMouseOrTouchEnd = e => {
         if (pickOrigin) {
             const lastChangeWasDuringInProgress = pickingIsInProgress;
             pickingIsInProgress = false;
-            if (lastChangeWasDuringInProgress && pickOrigin === 'hue-or-alpha-slider')
-                emitPickColor(lastColor, false);
+
+            if (lastChangeWasDuringInProgress) {
+                if (pickOrigin === 'hue-or-alpha-slider')
+                    emitPickColor(lastEmittedColor, false);
+
+                const isTargetInsidePicker = picker.contains(e.target);
+                if (!isTargetInsidePicker)
+                    handleOnChange(
+                        picker.querySelector('#clr-color-value').value,
+                        currOpenPicker.inputElRef.current
+                    );
+            }
         }
         pickingIsInProgress = false;
         pickOrigin = null;
@@ -67,7 +79,7 @@ const hookUpPickerLib = () => {
 const handlePickerOpened = (cmp, initialValue) => {
     if (currOpenPicker === cmp) return;
     currOpenPicker = cmp;
-    lastColor = initialValue;
+    lastEmittedColor = initialValue;
     pickOrigin = null;
     pickingIsInProgress = false;
 };
@@ -115,7 +127,7 @@ class ColorPickerInput extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.initialColorStr !== this.props.initialColorStr)
+        if (props.initialColorStr !== this.props.initialColorStr && currOpenPicker === this)
             this.setColor(getNormalizedValue(props.initialColorStr));
     }
     /**
@@ -123,6 +135,7 @@ class ColorPickerInput extends preact.Component {
      */
     componentWillUnmount() {
         currOpenPicker = null;
+        lastEmittedColor = undefined;
     }
     /**
      * @param {{onColorPicked: (color: String) => void; initialColorStr?: String; inputId?: String;}} props

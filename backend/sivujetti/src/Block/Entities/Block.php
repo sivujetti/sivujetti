@@ -6,9 +6,8 @@ use Sivujetti\{PushIdGenerator, ShortIdGenerator};
 
 /**
  * @psalm-type stylesLayer = 'user-styles'|'dev-styles'|'base-styles'
- * @psalm-type mediaScope = 'all'|'960'|'840'|'600'|'480'|string
  * @psalm-type styleScopeKind = 'single-block'|'style-group'|'custom-class'|'base'
- * @psalm-type StyleChunk = object{scss: string, scope: object{kind: styleScopeKind, media: mediaScope, layer: stylesLayer}}
+ * @psalm-type StyleChunk = object{scss: string, scope: object{kind: styleScopeKind, layer: stylesLayer}}
  * @psalm-type BlockBlueprint = object{blockType: string, initialOwnData: object, initialDefaultsData: object{title: string, renderer: string, styleClasses: string, styleGroup: string}, initialStyles: array<int, StyleChunk>, initialChildren: array<int, BlockBlueprint>}
  */
 final class Block extends \stdClass {
@@ -53,8 +52,8 @@ final class Block extends \stdClass {
     public string $code; */
 
     /* If self::TYPE_COLUMNS
-    public int $numColumns;
-    public int $takeFullWidth; */
+    public int|null $numColumns;
+    public int|null $takeFullWidth; */
 
     /* If self::TYPE_TYPE_GLOBAL_BLOCK_REF
     public string $globalBlockTreeId;
@@ -90,7 +89,7 @@ final class Block extends \stdClass {
     public string $html; */
 
     /* If self::TYPE_SECTION
-    public string $bgImage; */
+    public string|null $bgImage; */
 
     /* If self::TYPE_SECTION2
     public todo $settings; */

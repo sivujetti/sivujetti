@@ -17,8 +17,8 @@ class ColumnsBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeI
      */
     public static function addProperties(PropertiesBuilder $to): PropertiesBuilder {
         return $to
-            ->newProperty("numColumns", $to::DATA_TYPE_UINT)
-            ->newProperty("takeFullWidth", $to::DATA_TYPE_UINT);
+            ->newProperty("numColumns")->dataType($to::DATA_TYPE_UINT, isNullable: true)
+            ->newProperty("takeFullWidth")->dataType($to::DATA_TYPE_UINT, isNullable: true);
     }
     /**
      * @inheritdoc
@@ -27,10 +27,11 @@ class ColumnsBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeI
                            \Closure $createDefaultProps,
                            \Closure $renderChildren,
                            WebPageAwareTemplate $tmpl): array {
-        $extraClasses = (
-            "num-cols-" . ((int) $block->numColumns) .
-            ($block->takeFullWidth ? "" : " inline")
-        );
+        $numCols = $block->numColumns ?? null;
+        $extraClasses = implode(" ", [
+            ...($numCols ? ["num-cols-" . ((int) $numCols)] : []),
+            ...($block->takeFullWidth === false ? ["inline"] : []),
+        ]);
         return el("div", $createDefaultProps($extraClasses),
             ...$renderChildren()
         );

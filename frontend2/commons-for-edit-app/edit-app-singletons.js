@@ -51,7 +51,7 @@ const api = {
         initialized: false,
         getEl() { return document.body.querySelector('.site-preview-iframe'); },
         updateCss(/*compiledCss*/) { },
-        updateCssFast(/*blockId, scssChunk, mediaScopeId = 'all'*/) { },
+        updateCssFast(/*blockId, scssChunk*/) { },
         highlightBlock(/*block*/) { },
         unHighlightBlock(/*blockId*/) { },
         unHighlightTextBlockChildEl() { },

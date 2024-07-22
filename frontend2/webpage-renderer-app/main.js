@@ -2,12 +2,7 @@
 An entry point for global file "public/sivujetti/sivujetti-webpage-renderer-app.js".
 Included by backend/sivujetti/src/Page/WebPageAwareTemplate.php jsFiles().
 */
-import {mediaScopes} from '../shared-inline.js';
 import ReRenderingWebPage, {api} from './ReRenderingWebPage.jsx';
-
-const mediaScopeLookup = mediaScopes.reduce((map, mediaScopeId) =>
-    ({...map, ...{[mediaScopeId]: mediaScopeId}}),
-{});
 
 /**
  * Mounts <ReRenderingWebPage/> to document.body.
@@ -49,19 +44,16 @@ function mountWebPageRendererApp(dataBundle) {
 function createMessageChannelController(reRenderingWebPage) {
     return e => {
         if (e.data[0] === 'updateBlocksStyles') {
-            const cssCompiled = e.data[1]; // {compiledMediaScopesCss}
-            cssCompiled.forEach((forScreenSize, i) => {
-                const mediaScopeId = mediaScopes[i];
-                // Clear any styles set during 'updateBlockStyleFast'
-                const fastCssEl = getCssEl(mediaScopeId, 'fast-');
-                fastCssEl.innerHTML = '';
-                // Set the committed styles
-                const el = getCssEl(mediaScopeId);
-                el.innerHTML = forScreenSize || '';
-            });
+            const cssCompiled = e.data[1];
+            // Clear any styles set during 'updateBlockStyleFast'
+            const fastCssEl = getCssEl('fast-');
+            fastCssEl.innerHTML = '';
+            // Set the committed styles
+            const el = getCssEl();
+            el.innerHTML = cssCompiled;
         } else if (e.data[0] === 'updateBlockStyleFast') {
-            const [_, css, _blockId, mediaScopeId] = e.data;
-            const el = getCssEl(mediaScopeId, 'fast-');
+            const [_, css, _blockId] = e.data;
+            const el = getCssEl('fast-');
             el.innerHTML = css;
         } else if (e.data[0] === 'reRenderAllBlocks') {
             const newBlocks = e.data[1];
@@ -78,15 +70,12 @@ function createMessageChannelController(reRenderingWebPage) {
 }
 
 /**
- * @param {mediaScope} mediaScopeId = 'all'
  * @param {String} attrPrefix = ''
  * @returns {HTMLStyleElement|null}
  */
-function getCssEl(mediaScopeId = 'all', attrPrefix = '') {
+function getCssEl(attrPrefix = '') {
     const iframeDocument = document;
-    const validated = mediaScopeLookup[mediaScopeId];
-    if (!validated) throw new Error(`Invalid media scope ${mediaScopeId}`);
-    return iframeDocument.head.querySelector(`style[data-scope="${attrPrefix}${validated}"]`);
+    return iframeDocument.head.querySelector(`style[data-scope="${attrPrefix}all"]`);
 }
 
 /**

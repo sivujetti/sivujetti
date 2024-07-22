@@ -149,6 +149,7 @@ class BlockEditForm extends preact.Component {
                     content = [
                         <ClassChunkStylesList
                             blockId={ blockId }
+                            currentClasses={ blockCopyForEditForm.styleClasses }
                             stylesStateId={ this.state.stylesStateId }/>,
                         <StyleClassesPicker
                             currentClasses={ blockCopyForEditForm.styleClasses }

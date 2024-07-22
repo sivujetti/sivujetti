@@ -6,10 +6,11 @@ export default {
     friendlyName: 'Section',
     icon: 'layout-rows',
     editForm: EditForm,
+    editFormType: 'content+user-styles',
     stylesEditForm: StylesEditForm,
     createOwnProps(/*defProps*/) {
         return {
-            bgImage: '',
+            bgImage: null,
         };
     },
 };

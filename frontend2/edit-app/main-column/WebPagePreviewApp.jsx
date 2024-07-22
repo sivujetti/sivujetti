@@ -134,15 +134,13 @@ class WebPagePreviewApp extends preact.Component {
     /**
      * @param {String} blockId Examples 'uacHWbsK', '' (if `:root {...}` body style)
      * @param {String} css Examples '[data-block="uacHWbsK"] {color: #ad5f5f;}'
-     * @param {mediaScope} mediaScopeId = 'all'
      * @access public
      */
-    updateCssFast(blockId, css, mediaScopeId = 'all') {
+    updateCssFast(blockId, css) {
         this.sendMessageToReRenderer([
             'updateBlockStyleFast',
             css,
             blockId,
-            mediaScopeId,
         ]);
     }
     /**

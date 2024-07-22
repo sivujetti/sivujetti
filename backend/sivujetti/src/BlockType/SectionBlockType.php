@@ -14,7 +14,7 @@ class SectionBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeI
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
         return $builder
             ->newProperty("bgImage")
-                ->dataType($builder::DATA_TYPE_TEXT, validationRules: [
+                ->dataType($builder::DATA_TYPE_TEXT, isNullable: true, validationRules: [
                     ["notContains", "./", "string"],
                 ])
             ->getResult();

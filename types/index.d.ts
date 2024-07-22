@@ -42,7 +42,7 @@ interface OpQueueOp {
 interface WebPagePreviewApp {
     getEl(): HTMLIFrameElement;
     updateCss(/*compiledCss*/): todo;
-    updateCssFast(/*blockId, css, mediaScopeId = 'all'*/): todo;
+    updateCssFast(/*blockId, css*/): todo;
     highlightBlock(block: Block): todo;
     unHighlightBlock(blockId: String): todo;
     unHighlightTextBlockChildEl(): todo;
@@ -536,8 +536,9 @@ interface StyleChunk {
     scss: String;
     scope: {
         kind: styleScopeKind;
-        media: mediaScope;
         layer: stylesLayer;
+        page?: String;
+        data?: Object;
     };
 }
 
@@ -546,8 +547,6 @@ interface CssVarsMap {
 }
 
 type stylesLayer = 'user-styles'|'dev-styles'|'base-styles';
-
-type mediaScope = 'all'|'960'|'840'|'600'|'480'|String;
 
 type styleScopeKind = 'single-block'|'custom-class'|'optimized-class'|'base';
 

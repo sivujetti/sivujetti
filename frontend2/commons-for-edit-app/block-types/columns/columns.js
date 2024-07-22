@@ -6,11 +6,12 @@ export default {
     friendlyName: 'Columns',
     icon: 'layout-columns',
     editForm: EditForm,
+    editFormType: 'content+user-styles',
     stylesEditForm: StylesEditForm,
     createOwnProps(/*defProps*/) {
         return {
-            numColumns: 2,
-            takeFullWidth: 1,
+            numColumns: null,
+            takeFullWidth: null,
         };
     },
 };

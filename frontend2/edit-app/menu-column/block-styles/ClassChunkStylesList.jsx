@@ -35,11 +35,12 @@ class ClassChunkStylesList extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {styleChunksVisible, listItemIsOpens}) {
+    render({currentClasses}, {styleChunksVisible, listItemIsOpens}) {
+        const checkCurIsActive = createIsChunkStyleEnabledChecker(currentClasses);
         return [
             <ul class="list styles-list mb-2">{ styleChunksVisible.length
                 ? styleChunksVisible.map((chunk, i) => {
-                    const curIsActive = false;
+                    const curIsActive = checkCurIsActive(chunk);
                     const title = extractClassName(chunk);
                     return <li class={ `mt-1 py-1${!listItemIsOpens[i] ? '' : ' open'}` }>
                         <header class="p-relative">
@@ -57,7 +58,7 @@ class ClassChunkStylesList extends preact.Component {
                             { curIsActive !== null
                                 ? <label class="form-checkbox" title={ __('Use style') }>
                                     <input
-                                        onClick={ () => `TODO` }
+                                        onClick={ e => this.toggleStyleIsActivated(e.target.checked, curIsActive, extractClassName(chunk, false)) }
                                         checked={ curIsActive }
                                         type="checkbox" value="unit-1"/>
                                     <i class="form-icon"></i>
@@ -100,12 +101,21 @@ class ClassChunkStylesList extends preact.Component {
         const sb = api.saveButton.getInstance();
         sb.pushOpGroup(
             ['stylesBundle', newAll],
-            ['theBlockTree', blockTreeUtils.createMutation(sb.getChannelState('theBlockTree'), newTreeCopy => {
-                const [blockRef] = blockTreeUtils.findBlockMultiTree(this.props.blockId, newTreeCopy);
-                blockRef.styleClasses = addOrRemoveStyleClass('add', newChunkClass, blockRef.styleClasses);
-                return newTreeCopy;
-            }), {event: 'update-single-block-prop', blockId: this.props.blockId}]
+            createAddOrRemoveBlockClassOpArgs('add', newChunkClass, this.props.blockId),
         );
+    }
+    /**
+     * @param {boolean} newIsActive
+     * @param {boolean} curIsActive
+     * @param {string} chunkClass
+     * @access private
+     */
+    toggleStyleIsActivated(newIsActive, curIsActive, chunkClass) {
+        const saveButton = api.saveButton.getInstance();
+        if (newIsActive && !curIsActive)
+            saveButton.pushOp(...createAddOrRemoveBlockClassOpArgs('add', chunkClass, this.props.blockId));
+        else if (curIsActive && !newIsActive)
+            saveButton.pushOp(...createAddOrRemoveBlockClassOpArgs('remove', chunkClass, this.props.blockId));
     }
 }
 
@@ -138,22 +148,48 @@ function extractClassName({scss}, withDot = true) {
 
 /**
  * @param {'add'|'remove'} type
- * @param {string} className
+ * @param {string} chunkClass
+ * @param {string} blockId
+ * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]}
+ */
+function createAddOrRemoveBlockClassOpArgs(type, chunkClass, blockId) {
+    const sb = api.saveButton.getInstance();
+    return ['theBlockTree', blockTreeUtils.createMutation(sb.getChannelState('theBlockTree'), newTreeCopy => {
+        const [blockRef] = blockTreeUtils.findBlockMultiTree(blockId, newTreeCopy);
+        blockRef.styleClasses = addOrRemoveStyleClass(type, chunkClass, blockRef.styleClasses);
+        return newTreeCopy;
+    }), {event: 'update-single-block-prop', blockId}];
+}
+
+/**
+ * @param {'add'|'remove'} type
+ * @param {string} chunkClass
  * @param {string} to
  * @returns {string}
  */
-function addOrRemoveStyleClass(type, className, to) {
-    const currentAsArr = to.split(' ');
+function addOrRemoveStyleClass(type, chunkClass, to) {
+    const currentAsArr = to.trim().length ? to.split(' ') : [];
     if (type === 'add') {
-        const maybeDuplicates = [...currentAsArr, className];
+        const maybeDuplicates = [...currentAsArr, chunkClass];
         return [...new Set(maybeDuplicates)].join(' ');
     }
-    const filteredArr = currentAsArr.filter(cls => cls !== className);
+    const filteredArr = currentAsArr.filter(cls => cls !== chunkClass);
     return filteredArr.length ? filteredArr.join(' ') : '';
 }
 
 /**
- * @typedef {{blockId: string; stylesStateId: number;}} ClassChunkStylesListProps
+ * @param {string} currentClasses
+ * @returns {(chunk: StyleChunk) => boolean}
+ */
+function createIsChunkStyleEnabledChecker(currentClasses) {
+    const currentAsArr = currentClasses.split(' ');
+    return chunk =>
+        currentAsArr.indexOf(extractClassName(chunk, false)) > -1
+    ;
+}
+
+/**
+ * @typedef {{blockId: string; currentClasses: string; stylesStateId: number;}} ClassChunkStylesListProps
  */
 
 export default ClassChunkStylesList;

@@ -73,10 +73,11 @@ class ColumnsBlock extends preact.Component {
      * @access protected
      */
     render({block, renderChildren, createDefaultProps}) {
+        const numCols = block.numColumns ?? null;
         const extraClasses = [
-            'num-cols-', parseInt(block.numColumns),
-            block.takeFullWidth ? '' : ' inline'
-        ].join('');
+            ...(numCols ? [`num-cols-${numCols}`] : []),
+            ...(block.takeFullWidth === false ? ['inline'] : []),
+        ].join(' ');
         return <div { ...createDefaultProps(extraClasses) }>
             { renderChildren() }
         </div>;

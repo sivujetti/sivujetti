@@ -59,7 +59,7 @@ class BaseAndCustomClassStylesSection extends preact.Component {
         this.tabsInfo = filterTabsForLoggedInUser([
             {kind: 'user-styles', title: __('Base')},
             {kind: 'dev-styles', title: __('Base (code)')},
-            {kind: 'dev-class-styles', title: __('Classes (code)')},
+            {kind: 'dev-class-styles', title: __('All (code)')},
         ]);
         const currentTabKind = createInitialTabKind(
             getAndPutAndGetToLocalStorage('user-styles', 'sivujettiLastBaseStylesTabKind'),

@@ -155,34 +155,25 @@ class ScssWizard {
         return this.commitAll(updated, mediaScopeId);
     }
     /**
-     * @param {String} initialScssCode Example: '// Your code here ...\ncolor: red;'
+     * @param {String} initialScssCode Example: '  // Your code here ...\n  color: red;'
      * @param {styleScopeKind} scopeKind
-     * @param {String} scopeSpecifier = undefined
-     * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
-    addNewDevsScssChunkAndReturnAllRecompiled(initialScssCode, scopeKind, scopeSpecifier = undefined, mediaScopeId = 'all') {
+    addNewDevsScssChunkAndReturnAllRecompiled(initialScssCode, scopeKind) {
         const updated = [
             ...this.styles,
-            (() => {
-                if (scopeKind === 'custom-class') return {
-                    scope: {kind: 'custom-class', media: mediaScopeId, layer: 'dev-styles'},
-                    scss: createScssBlock(initialScssCode, `.my-class {`),
-                };
-                if (scopeKind === 'single-block') return this.createNewUniqueChunk(
-                    createScssBlock(initialScssCode, `${createSelector(scopeSpecifier)} {`),
-                    scopeSpecifier,
-                    mediaScopeId,
-                    'dev-styles'
-                );
-                return {
-                    scope: {kind: 'base', media: mediaScopeId, layer: 'base-styles'},
+            scopeKind === 'custom-class'
+                ? {
+                    scope: {kind: 'custom-class', page: null, layer: 'dev-styles'},
                     scss: initialScssCode,
-                };
-            })()
+                }
+                : {
+                    scope: {kind: 'base', page: null, layer: 'base-styles'},
+                    scss: initialScssCode,
+                }
         ];
-        return this.commitAll(updated, mediaScopeId);
+        return this.commitAll(updated);
     }
     /**
      * @param {String} updatedScssCode Example: 'color: blue;'

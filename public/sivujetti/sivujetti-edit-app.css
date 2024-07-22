@@ -828,29 +828,48 @@ a.popup-close-area {
     top: -6px;
 }
 /* EditApp: Components: styles-list */
-ul.styles-list > li {
-    background: var(--color-bg-very-light);
+.styles-list li {
+    background: var(--color-bg-very-light2);
     border-radius: var(--small-rect-radius);
 }
-ul.styles-list > li > div {
-    display: none;
+.styles-list li > header {
+    z-index: 1;
 }
-ul.styles-list > li.open > header > .btn > .icon-tabler {
-    transition: transform .175s;
+.styles-list header > div {
+    padding-right: 1.1rem;
+    display: inline-grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4rem);
 }
-ul.styles-list > li.open > div {
-    display: block;
+.styles-list .row-item {
+    align-items: center;
+    height: initial;
 }
-ul.styles-list > li.open > header > .btn > .icon-tabler:first-child {
-    transform: rotate(180deg);
+.styles-list .row-item:first-child {
+    padding-left: 1.2rem !important;
 }
-ul.styles-list > li > header > .btn > span.edit-icon-outer {
+.styles-list .row-item:last-child {
     opacity: 0;
     transition: var(--toggle-button-opacity-transition);
 }
-ul.styles-list > li > header > .btn > span:hover + div + span.edit-icon-outer,
-ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
+.styles-list .row-item:hover + .row-item,
+.styles-list .row-item:last-child:hover {
     opacity: 1;
+}
+.styles-list .row-item > svg {
+    position: absolute;
+}
+.styles-list li.open .row-item:first-child svg {
+    transform: translateX(-1rem) rotate(180deg);
+}
+.styles-list .row-item:first-child svg {
+    transform: translateX(-1rem);
+}
+.styles-list header > label.form-checkbox {
+    padding: .6rem;
+    margin: 0;
+    position: absolute;
+    top: 0;
+    right: 0;
 }
 /* EditApp: Components: visual-style-inputs */
 .has-visual-style-widgets > .form-group,
@@ -1099,10 +1118,6 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     background-color: transparent;
     border-color: transparent;
     transform: translateX(.1rem);
-}
-ul.styles-list > li {
-    background: initial;
-    margin: 0;
 }
 .ͼ1.cm-focused {
     outline: none;

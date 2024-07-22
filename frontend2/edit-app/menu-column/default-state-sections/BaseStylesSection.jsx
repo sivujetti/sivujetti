@@ -7,7 +7,7 @@ import {
     Tabs,
 } from '@sivujetti-commons-for-edit-app';
 import BaseStylesVisualEditForm from '../block-styles/BaseStylesVisualEditForm.jsx';
-import CodeBasedStylesList from '../block-styles/CodeBasedStylesTab.jsx';
+import ClassChunkStylesList from '../block-styles/ClassChunkStylesList.jsx';
 import {createInitialTabKind, filterTabsForLoggedInUser} from '../block-styles/style-tabs-commons.js';
 /** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
 
@@ -107,9 +107,11 @@ class BaseAndCustomClassStylesSection extends preact.Component {
                             ? <BaseStylesVisualEditForm
                                 blockId="j-_body_"
                                 stateId={ stylesStateId }/>
-                            : <CodeBasedStylesList
-                                stylesStateId={ stylesStateId }
-                                scopeSettings={ {kind: kind === 'dev-class-styles' ? 'custom-class' : 'base'} }/>
+                            : kind === 'dev-class-styles'
+                                ? <ClassChunkStylesList
+                                    stylesStateId={ stylesStateId }
+                                    blockId={ null }/>
+                                : 'todo'
                         : null
                     }
                 </div>;

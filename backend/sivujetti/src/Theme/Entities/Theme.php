@@ -6,7 +6,7 @@ use Sivujetti\JsonUtils;
 
 /**
  * @psalm-import-type StyleChunk from \Sivujetti\Block\Entities\Block
- * @psalm-type StylesBundle {styleChunks: array<int, StyleChunk>, cachedCompiledScreenSizesCss: array<int, string>, cachedCompiledScreenSizesCssHashes: array<int, string>}
+ * @psalm-type StylesBundle {styleChunks: array<int, StyleChunk>, cachedCompiledCss: string, cachedCompiledScreenSizesCssHashes: array<int, string>}
  */
 final class Theme extends \stdClass {
     /** @var string */
@@ -38,7 +38,7 @@ final class Theme extends \stdClass {
         $out->globalStyles = [];
         $out->styles = (object) [
             "styleChunks" => [],
-            "cachedCompiledScreenSizesCss" => [],
+            "cachedCompiledCss" => "",
             "cachedCompiledScreenSizesCssHashes" => explode(
                 ",",
                 $row->themeStylesCachedCompiledScreenSizesCssHashes

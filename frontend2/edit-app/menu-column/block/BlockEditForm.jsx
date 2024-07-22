@@ -13,7 +13,7 @@ import {
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
 import {getIsStoredToTreeIdFrom, isMetaBlock} from '../../includes/block/utils.js';
-import CodeBasedStylesList from '../block-styles/CodeBasedStylesTab.jsx';
+import ClassChunkStylesList from '../block-styles/ClassChunkStylesList.jsx';
 import StyleClassesPicker from '../block-styles/StyleClassesPicker.jsx';
 import {createInitialTabKind, createTabsInfo} from '../block-styles/style-tabs-commons.js';
 /** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
@@ -144,18 +144,12 @@ class BlockEditForm extends preact.Component {
                             ) }/>
                     );
                 } else if (itm.kind === 'user-styles') {
-                    const StylesEditFormCls = this.stylesEditForm;
-                    content = <StylesEditFormCls
-                        blockId={ blockId }
-                        blockStyleGroup={ blockCopyForEditForm.styleGroup }
-                        stateId={ this.state.stylesStateId }/>;
+                    content = <span class="d-none TODO">TODO</span>;
                 } else if (itm.kind === 'dev-styles') {
                     content = [
-                        <CodeBasedStylesList
-                            stylesStateId={ this.state.stylesStateId }
-                            scopeSettings={ !blockCopyForEditForm.styleGroup
-                                ? {kind: 'single-block', specifier: blockId}
-                                : {kind: 'style-group', specifier: blockCopyForEditForm.styleGroup} }/>,
+                        <ClassChunkStylesList
+                            blockId={ blockId }
+                            stylesStateId={ this.state.stylesStateId }/>,
                         <StyleClassesPicker
                             currentClasses={ blockCopyForEditForm.styleClasses }
                             onClassesChanged={ newClasses => {
@@ -232,14 +226,14 @@ class BlockEditForm extends preact.Component {
 function createTabConfig(editFormType, hasStylesForm) {
     if (editFormType === 'content+user-styles')
         return [
+            {kind: 'dev-styles'},
             {kind: 'content+user-styles'},
-            {kind: 'dev-styles'}
         ];
     if (hasStylesForm)
         return [
             {kind: 'content'},
-            {kind: 'user-styles'},
             {kind: 'dev-styles'},
+            {kind: 'user-styles'},
         ];
     return [
         {kind: 'content'}

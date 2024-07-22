@@ -14,6 +14,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}pageTypes`",
 "DROP TABLE IF EXISTS `\${p}plugins`",
+"DROP TABLE IF EXISTS `\${p}themeStyles2`",
 "DROP TABLE IF EXISTS `\${p}themeStyles`",
 "DROP TABLE IF EXISTS `\${p}themes`",
 "DROP TABLE IF EXISTS `\${p}theWebsite`",
@@ -80,6 +81,15 @@ return [
     FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
     PRIMARY KEY (`themeId`, `blockTypeName`)
 ) DEFAULT CHARSET = utf8mb4",
+
+"CREATE TABLE `\${p}themeStyles2` (
+    `chunks` JSON NOT NULL,
+    `pageId` CHAR(20) NOT NULL,
+    `pageType` VARCHAR(92) NOT NULL,
+    `themeId` SMALLINT UNSIGNED NOT NULL,
+    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
+    PRIMARY KEY (`pageId`, `pageType`, `themeId`)
+)",
 
 "CREATE TABLE `\${p}plugins` (
     `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,

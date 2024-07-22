@@ -30,8 +30,8 @@ function createStylesBundleChannelHandler() {
          * @param {stateChangeContext} _context
          */
         handleStateChange(state, _userCtx, _context) {
-            const {cachedCompiledScreenSizesCss} = state;
-            api.webPagePreview.updateCss(cachedCompiledScreenSizesCss);
+            const {cachedCompiledCss} = state;
+            api.webPagePreview.updateCss(cachedCompiledCss);
         },
         /**
          * @param {StateHistory} stateHistory
@@ -41,7 +41,7 @@ function createStylesBundleChannelHandler() {
         syncToBackend(stateHistory, _otherHistories) {
             const toTransferable = bundle => ({
                 styleChunks: bundle.styleChunks,
-                cachedCompiledScreenSizesCss: bundle.cachedCompiledScreenSizesCss,
+                cachedCompiledCss: bundle.cachedCompiledCss,
             });
             const {theme} = globalData;
             return doPostOrPut(http.put(

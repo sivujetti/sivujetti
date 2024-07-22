@@ -50,7 +50,7 @@ Structure:
 
     --color-icon-global-block: #eb732a;
     --components-global-block-text: 188, 94, 37;
-    --color-drop-indicator: rgba(var(--components-color-fb-default), .32);
+    --color-drop-indicator: rgba(var(--components-color-fb-default),.32);
 
     --color-border-popup: rgba(var(--components-color-fb-default),.5);
     --color-table-row-odd: #f7f8f9;
@@ -399,8 +399,8 @@ h2 {
     height: var(--inspector-panel-height);
     opacity: 0;
     background: transparent;
-    box-shadow: -5px 0 8px 0px rgba(var(--components-color-fb-default),.16);
-    border-top: 1px solid rgba(var(--components-color-fb-default),.14);
+    box-shadow: -5px 0 4px 0px rgba(var(--components-color-fb-default),.3);
+    border-top: 1px solid rgba(var(--components-color-fb-default),.2);
     z-index: -1;
     overflow: hidden;
 }
@@ -708,7 +708,7 @@ a.popup-close-area {
 .live-files-list li.loading:before {
     content: "";
     position: absolute;
-    background: rgba(var(--components-color-bg-default), .5);
+    background: rgba(var(--components-color-bg-default),.5);
     width: 100%;
     height: 100%;
     top: 0;
@@ -1074,7 +1074,7 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     text-indent: -.3rem;
 }
 .grid-builder .row .col {
-    background: rgba(var(--components-color-fb-default), .06);
+    background: rgba(var(--components-color-fb-default),.06);
     border-radius: var(--small-rect-radius);
     position: relative;
     padding: 0 .4rem;
@@ -1090,16 +1090,6 @@ ul.styles-list > li > header > .btn > span.edit-icon-outer:hover {
     position: absolute;
     left: .1rem;
     top: .1rem;
-}
-/* EditApp: Components: tabs */
-.tab:has(
-    .active.tab-item-user-styles,
-    .active.tab-item-content\+user-styles,
-    .active.tab-item-dev-styles,
-    .active.tab-item-dev-class-styles
-) {
-    margin-bottom: 0;
-    border-bottom: none;
 }
 /* EditApp: Components: codemirror */
 .ͼ1 .cm-scroller {
@@ -1124,7 +1114,7 @@ ul.styles-list > li {
 .tagify {
     --tags-border-color: var(--color-input-border);
     --tags-hover-border-color: var(--color-input-border);
-    --tag-text-color: unset;
+    --tag-text-color: var(--color-fg-default);
     --tags-focus-border-color: var(--tagify-dd-color-primary);
     --tag-bg: var(--color-bg-button);
     --tag-hover: var(--color-bg-button-hover);
@@ -1132,6 +1122,7 @@ ul.styles-list > li {
     --placeholder-color: #bcc3ce;
     border-radius: var(--small-rect-radius);
     width: 100%;
+    font-weight: 400;
 }
 .tagify__dropdown__wrapper {
     transition-duration: .08s;
@@ -1695,7 +1686,7 @@ main.scrolled-past-main-block-tree #dnd-block-spawner:not(
 }
 #dnd-block-spawner .block-tree .block-handle {
     cursor: grab;
-    filter: grayscale(.9);
+    filter: grayscale(.5);
 }
 
 

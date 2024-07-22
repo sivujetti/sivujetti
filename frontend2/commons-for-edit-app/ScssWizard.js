@@ -13,7 +13,7 @@ import {generatePushID} from './utils.js';
 
 class ScssWizard {
     // styles;
-    // cachedCompiledScreenSizesCss;
+    // cachedCompiledCss;
     // stateId;
     /**
      */
@@ -21,14 +21,14 @@ class ScssWizard {
         this.stateId = -1;
     }
     /**
-     * Replaces this.styles and this.cachedCompiledScreenSizesCss with $bundle.
+     * Replaces this.styles and this.cachedCompiledCss with $bundle.
      *
      * @param {StylesBundleWithId} bundle
      * @access public
      */
     replaceStylesState(bundle) {
         this.styles = [...bundle.styleChunks];
-        this.cachedCompiledScreenSizesCss = bundle.cachedCompiledScreenSizesCss;
+        this.cachedCompiledCss = bundle.cachedCompiledCss;
         this.stateId = bundle.id;
     }
     /**
@@ -453,20 +453,16 @@ class ScssWizard {
     commitAll(newStylesArr, mediaScopeIdOrIds) {
         this.styles = newStylesArr;
 
-        const mediaScopesToUpdate = typeof mediaScopeIdOrIds === 'string' ? {[mediaScopeIdOrIds]: 1} : mediaScopeIdOrIds;
-        const compiledNew = mediaScopes.map((scopeId, i) =>
-            !mediaScopesToUpdate[scopeId] ? this.cachedCompiledScreenSizesCss[i] : stylesToBaked(this.styles, scopeId)
-        );
-        compiledNew.forEach(compiledSingleScope => {
-            if (compiledSingleScope.length > 1024000) throw new Error('??');
-        });
-        this.cachedCompiledScreenSizesCss = compiledNew;
+        const compiledNew = stylesToBaked(this.styles);
+        if (compiledNew.length > 1024000) throw new Error('??');
+
+        this.cachedCompiledCss = compiledNew;
 
         this.stateId += 1;
 
         return {
             styleChunks: this.styles,
-            cachedCompiledScreenSizesCss: this.cachedCompiledScreenSizesCss,
+            cachedCompiledCss: this.cachedCompiledCss,
             id: this.stateId,
         };
     }

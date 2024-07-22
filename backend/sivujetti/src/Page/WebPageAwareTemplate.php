@@ -312,20 +312,14 @@ final class WebPageAwareTemplate extends Template {
         $site = $site ?? $this->__locals["site"];
         $stylesTags = "";
         if (!$this->__useEditModeMarkup) {
-            $cachedScreenSizesCssHashes = $theme->styles->cachedCompiledScreenSizesCssHashes;
             $stylesTags = (
-                // Externals including {$theme->name}-generated-sizes-*.css
+                // Externals including {$theme->name}-generated.css
                 implode("\n", [
                     ...$externals,
-                    ...array_reduce([0, 1, 2, 3, 4], function ($out, $i) use ($cachedScreenSizesCssHashes, $theme, $fileDefToTag) {
-                        $s = ThemesController::MEDIA_SCOPES[$i];
-                        return $cachedScreenSizesCssHashes[$i]
-                            ? [...$out, $fileDefToTag((object) [
-                                "url" => "{$theme->name}-generated-sizes-{$s}.css?t={$theme->stylesLastUpdatedAt[$i]}",
-                                "attrs" => $s !== "all" ? ["media" => "screen and (max-width: {$s}px)"] : []
-                            ])]
-                            : $out;
-                    }, []),
+                    $fileDefToTag((object) [
+                        "url" => "{$theme->name}-generated.css?t={$theme->stylesLastUpdatedAt[0]}",
+                        "attrs" => [],
+                    ])
                 ]) .
                 // theWebsite->headHtml
                 ($site ? "\n{$site->headHtml}" : null)
@@ -333,8 +327,6 @@ final class WebPageAwareTemplate extends Template {
         } else {
             $conf = $this->__applyFilters->__invoke("sivujetti:editAppAdditionalStyleUnits", [])[0]->css ?? null;
             $additionals = $conf ? self::escInlineJs(JsonUtils::stringify($conf)) : "\"\"";
-            $cachedScreenSizesCss = $theme->styles->cachedCompiledScreenSizesCss;
-            $getCssStr = fn($idx) => self::escInlineJs(JsonUtils::stringify($cachedScreenSizesCss[$idx]));
             $stylesTags = (
                 // Externals without theme-generated.css
                 implode("\n", $externals) .
@@ -342,26 +334,19 @@ final class WebPageAwareTemplate extends Template {
                 // (to allow things such as `content: "</style>"` or `/* </style> */`)
                 "\n<!-- Note to devs: these inline styles appear here only when you're logged in -->\n" .
                 "<script>(function () {\n" .
-                "    const createStyleEl = (css, mediaScopeId) => {\n" .
-                "        const styleEl = document.createElement('style');\n" .
-                "        styleEl.innerHTML = css;\n" .
-                "        styleEl.setAttribute('data-scope', mediaScopeId);\n" .
-                "        if (mediaScopeId.indexOf('all') < 0)\n" .
-                "            styleEl.setAttribute('media', `screen and (max-width: \${parseInt(mediaScopeId.replace('fast-', ''), 10)}px)`);\n" .
-                "        return styleEl;\n" .
-                "    };\n" .
                 "    const {head} = document;\n" .
                 "    head.appendChild(createStyleEl({$additionals}, 'edit-app-all'));\n" .
-                "    head.appendChild(createStyleEl({$getCssStr(0)}, 'all'));\n" .
-                "    head.appendChild(createStyleEl({$getCssStr(1)}, '960'));\n" .
-                "    head.appendChild(createStyleEl({$getCssStr(2)}, '840'));\n" .
-                "    head.appendChild(createStyleEl({$getCssStr(3)}, '600'));\n" .
-                "    head.appendChild(createStyleEl({$getCssStr(4)}, '480'));\n" .
+                "    head.appendChild(createStyleEl(" . self::escInlineJs(
+                    JsonUtils::stringify($theme->styles->cachedCompiledCss)
+                ) . ", 'all'));\n" .
                 "    head.appendChild(createStyleEl('', 'fast-all'));\n" .
-                "    head.appendChild(createStyleEl('', 'fast-960'));\n" .
-                "    head.appendChild(createStyleEl('', 'fast-840'));\n" .
-                "    head.appendChild(createStyleEl('', 'fast-600'));\n" .
-                "    head.appendChild(createStyleEl('', 'fast-480'));\n" .
+                "    \n" .
+                "    function createStyleEl(css, scopeId) {\n" .
+                "        const styleEl = document.createElement('style');\n" .
+                "        styleEl.innerHTML = css;\n" .
+                "        styleEl.setAttribute('data-scope', scopeId);\n" .
+                "        return styleEl;\n" .
+                "    }\n" .
                 "})();</script>\n" .
                 //
                 "<style>" . self::getDefaultEditModeInlineCss() . "</style>\n"

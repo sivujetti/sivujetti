@@ -34,13 +34,12 @@ function createCssDeclExtractor(scss) {
 
 /**
  * @param {Array<StyleChunk>} styles
- * @param {mediaScope} mediaScopeId
  * @returns {String} '@import "maybeExternalImport";@font-face {<maybeLocalImport>}@layer base-styles {\n<compiled>\n}\n@layer user-styles {\n<compiled>\n}\n@layer dev-styles {\n<compiled>\n}\n'
  */
-function stylesToBaked(styles, mediaScopeId) {
-    const forThisMedia = styles.filter(({scope}) => scope.media === mediaScopeId);
-    if (!forThisMedia.length) return '';
-    const {hoisted, base, user, dev} = forThisMedia.reduce((out, s) => {
+function stylesToBaked(styles) {
+    if (!styles.length) return '';
+
+    const {hoisted, base, user, dev} = styles.reduce((out, s) => {
         const {scope} = s;
         if (scope.layer === 'base-styles' && scope.kind === 'base') {
             const [hoistedLines, hoistedLineIdxes] = hoistImportsIfAny(s.scss);

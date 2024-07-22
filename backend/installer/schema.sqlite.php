@@ -13,6 +13,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}PagesCategories`",
 "DROP TABLE IF EXISTS `\${p}pageTypes`",
 "DROP TABLE IF EXISTS `\${p}plugins`",
+"DROP TABLE IF EXISTS `\${p}themeStyles2`",
 "DROP TABLE IF EXISTS `\${p}themeStyles`",
 "DROP TABLE IF EXISTS `\${p}themes`",
 "DROP TABLE IF EXISTS `\${p}theWebsite`",
@@ -75,6 +76,15 @@ return [
     `blockTypeName` TEXT NOT NULL,
     FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
     PRIMARY KEY (`themeId`, `blockTypeName`)
+)",
+
+"CREATE TABLE `\${p}themeStyles2` (
+    `chunks` JSON NOT NULL,
+    `pageId` TEXT NOT NULL,
+    `pageType` TEXT NOT NULL,
+    `themeId` INTEGER NOT NULL,
+    FOREIGN KEY (`themeId`) REFERENCES `\${p}themes`(`id`),
+    PRIMARY KEY (`pageId`, `pageType`, `themeId`)
 )",
 
 "CREATE TABLE `\${p}plugins` (

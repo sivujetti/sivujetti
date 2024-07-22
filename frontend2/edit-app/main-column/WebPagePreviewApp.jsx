@@ -125,11 +125,11 @@ class WebPagePreviewApp extends preact.Component {
         });
     }
     /**
-     * @param {compiledMediaScopesCss} allMediaScopesCss
+     * @param {String} compiledCss
      * @access public
      */
-    updateCss(allMediaScopesCss) {
-        this.sendMessageToReRenderer(['updateBlocksStyles', allMediaScopesCss]);
+    updateCss(compiledCss) {
+        this.sendMessageToReRenderer(['updateBlocksStyles', compiledCss]);
     }
     /**
      * @param {String} blockId Examples 'uacHWbsK', '' (if `:root {...}` body style)

@@ -41,7 +41,7 @@ interface OpQueueOp {
 
 interface WebPagePreviewApp {
     getEl(): HTMLIFrameElement;
-    updateCss(/*allMediaScopesCss*/): todo;
+    updateCss(/*compiledCss*/): todo;
     updateCssFast(/*blockId, css, mediaScopeId = 'all'*/): todo;
     highlightBlock(block: Block): todo;
     unHighlightBlock(blockId: String): todo;
@@ -157,7 +157,7 @@ interface CurrentPageData {
 
 interface StylesBundle {
     styleChunks: Array<StyleChunk>;
-    cachedCompiledScreenSizesCss: compiledMediaScopesCss;
+    cachedCompiledCss: string;
     cachedCompiledScreenSizesCssHashes?: Array<string>;
 }
 
@@ -548,8 +548,6 @@ interface CssVarsMap {
 type stylesLayer = 'user-styles'|'dev-styles'|'base-styles';
 
 type mediaScope = 'all'|'960'|'840'|'600'|'480'|String;
-
-type compiledMediaScopesCss = [String, String, String, String, String];
 
 type styleScopeKind = 'single-block'|'custom-class'|'optimized-class'|'base';
 

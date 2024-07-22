@@ -50,7 +50,7 @@ const api = {
     webPagePreview: { // Initialized in ../edit-app/main.js
         initialized: false,
         getEl() { return document.body.querySelector('.site-preview-iframe'); },
-        updateCss(/*allMediaScopesCss*/) { },
+        updateCss(/*compiledCss*/) { },
         updateCssFast(/*blockId, scssChunk, mediaScopeId = 'all'*/) { },
         highlightBlock(/*block*/) { },
         unHighlightBlock(/*blockId*/) { },

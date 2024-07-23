@@ -168,7 +168,7 @@ class BlockVisualStylesEditForm extends preact.Component {
         const isSingleLineDecl = lines[0].at(-1) === ';';
         const [scopeSpecifier, scopeKind] = !this.isSpecialRootVarsStyle
             ? [this.props.blockId, 'single-block']
-            : [null,               'base'];
+            : [null,               'base-vars'];
         const rootSelector = createSelector(scopeSpecifier, scopeKind);
         const linesFull = isSingleLineDecl
             ? [
@@ -264,7 +264,7 @@ class BlockVisualStylesEditForm extends preact.Component {
     createCssVarsMapsInternal(props) {
         const [scopeKind, scopeSpecifier, layer] = (function (self) {
             if (self.isSpecialRootVarsStyle)
-                return ['base',         undefined,            'base-styles'];
+                return ['base-vars',    undefined,            'base-styles'];
             if (!props.blockStyleGroup)
                 return ['single-block', props.blockId,         undefined];
             else

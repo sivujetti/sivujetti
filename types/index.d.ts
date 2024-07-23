@@ -548,7 +548,7 @@ interface CssVarsMap {
 
 type stylesLayer = 'user-styles'|'dev-styles'|'base-styles';
 
-type styleScopeKind = 'single-block'|'custom-class'|'optimized-class'|'base';
+type styleScopeKind = 'single-block'|'custom-class'|'optimized-class'|'base-vars'|'base-freeform';
 
 type stateChangeContext = 'initial'|'push'|'undo'|'redo';
 

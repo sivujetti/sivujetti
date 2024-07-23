@@ -27,9 +27,11 @@ class ScssEditor extends preact.Component {
      * @access protected
      */
     componentWillUnmount() {
+        if (!window.sivujettiUserFlags?.use014Styles) {
         // Auto-commit accidentally forgotten changes
         if (this.currentCode !== this.committedCode)
             this.handleCommitChangesBtnClicked();
+        }
         this.unregistrables.forEach(unreg => unreg());
         this.isEditorReady = false;
     }
@@ -148,8 +150,10 @@ class ScssEditor extends preact.Component {
      * @access private
      */
     setCommittedCode(code) {
+        if (!window.sivujettiUserFlags?.use014Styles) {
         this.committedCode = code;
         this.updateApplyButtonVisibility(code);
+        }
     }
     /**
      * @param {String} code

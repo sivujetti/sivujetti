@@ -6,8 +6,8 @@ import {
     putToLocalStorage,
     Tabs,
 } from '@sivujetti-commons-for-edit-app';
+import BaseStyleChunkScssEditor from '../block-styles/BaseStyleChunkScssEditor.jsx';
 import BaseStylesVisualEditForm from '../block-styles/BaseStylesVisualEditForm.jsx';
-import ClassChunkStylesList from '../block-styles/ClassChunkStylesList.jsx';
 import {createInitialTabKind, filterTabsForLoggedInUser} from '../block-styles/style-tabs-commons.js';
 /** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
 
@@ -57,9 +57,8 @@ class BaseAndCustomClassStylesSection extends preact.Component {
         this.menuSection = preact.createRef();
         const saveButton = api.saveButton.getInstance();
         this.tabsInfo = filterTabsForLoggedInUser([
-            {kind: 'user-styles', title: __('Base')},
-            {kind: 'dev-styles', title: __('Base (code)')},
-            {kind: 'dev-class-styles', title: __('All (code)')},
+            {kind: 'user-styles', title: __('Visual')},
+            {kind: 'dev-styles', title: __('Code')},
         ]);
         const currentTabKind = createInitialTabKind(
             getAndPutAndGetToLocalStorage('user-styles', 'sivujettiLastBaseStylesTabKind'),
@@ -107,11 +106,8 @@ class BaseAndCustomClassStylesSection extends preact.Component {
                             ? <BaseStylesVisualEditForm
                                 blockId="j-_body_"
                                 stateId={ stylesStateId }/>
-                            : kind === 'dev-class-styles'
-                                ? <ClassChunkStylesList
-                                    stylesStateId={ stylesStateId }
-                                    blockId={ null }/>
-                                : 'todo'
+                            : <BaseStyleChunkScssEditor
+                                stylesStateId={ stylesStateId }/>
                         : null
                     }
                 </div>;

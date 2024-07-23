@@ -873,6 +873,23 @@ a.popup-close-area {
     top: 0;
     right: 0;
 }
+.styles-list .open > .scss-editor-outer {
+    margin-top: -1.1rem;
+}
+.styles-list .open > .scss-editor-outer .cm-content > .cm-line:first-child {
+    visibility: hidden;
+}
+.styles-list .ͼ1 > .cm-scroller {
+    overflow: hidden;
+    display: block !important;
+}
+.styles-list .ͼ1 .cm-scroller {
+    font-family: monospace;
+    line-height: 1.4;
+}
+.styles-list .ͼj {
+    color: #167;
+}
 /* EditApp: Components: visual-style-inputs */
 .has-visual-style-widgets > .form-group,
 .has-color-pickers > .form-group {

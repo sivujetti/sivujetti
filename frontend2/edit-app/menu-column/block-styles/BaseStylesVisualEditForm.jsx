@@ -14,10 +14,8 @@ class BaseStylesVisualEditForm extends BlockVisualStylesEditForm {
      * @inheritdoc
      */
     createCssVarDefinitions() {
-        const customBaseScss = scssWizard.findStyles('base', undefined, ({scope, scss}) =>
-            scope.layer === 'base-styles' && !scss.startsWith(':root') && scope.media === 'all'
-        )[0];
-        const fontNames = customBaseScss ? getDevDefinedFontNames(customBaseScss.scss) : [];
+        const baseVarsChunk = scssWizard.findStyle('base-vars', undefined, 'all', 'base-styles');
+        const fontNames = getDevDefinedFontNames(baseVarsChunk.scss);
         return fontNames.length
             ? baseStyleVarDefs.map(def =>
                 (!def.cssProp.endsWith('-font-family') ? def : {

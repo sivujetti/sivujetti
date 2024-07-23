@@ -169,7 +169,7 @@ class ScssWizard {
                     scss: initialScssCode,
                 }
                 : {
-                    scope: {kind: 'base', page: null, layer: 'base-styles'},
+                    scope: {kind: 'base-freeform', page: null, layer: 'base-styles'},
                     scss: initialScssCode,
                 }
         ];

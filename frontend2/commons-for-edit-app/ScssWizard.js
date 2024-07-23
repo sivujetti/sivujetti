@@ -178,15 +178,14 @@ class ScssWizard {
     /**
      * @param {String} updatedScssCode Example: 'color: blue;'
      * @param {StyleChunk} currentStyle
-     * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
-    updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(updatedScssCode, currentStyle, mediaScopeId = 'all') {
+    updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(updatedScssCode, currentStyle) {
         const updated = this.styles.map(s =>
             s !== currentStyle ? s : {...s, scss: updatedScssCode}
         );
-        return this.commitAll(updated, mediaScopeId);
+        return this.commitAll(updated);
     }
     /**
      * @param {'add'|'update'|'delete'} addOrUpdateOrDelete

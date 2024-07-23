@@ -2,17 +2,29 @@ import {
     __,
     api,
     blockTreeUtils,
+    env,
     Icon,
     scssWizard,
+    timingUtils,
 } from '@sivujetti-commons-for-edit-app';
+import ScssEditor from './ScssEditor.jsx';
+
+let saveButtonInstance;
 
 /** @extends {preact.Component<ClassChunkStylesListProps, any>} */
 class ClassChunkStylesList extends preact.Component {
+    // handleScssChangedThrottled;
     /**
      * @access protected
      */
     componentWillMount() {
+        saveButtonInstance = api.saveButton.getInstance();
         const styleChunksVisible = createChunksState();
+        this.handleScssChangedThrottled = timingUtils.debounce(
+            this.handleScssChanged.bind(this),
+            env.normalTypingDebounceMillis
+        );
+        //
         this.setState({
             styleChunksVisible,
             listItemIsOpens: styleChunksVisible.map(() => false),
@@ -25,11 +37,12 @@ class ClassChunkStylesList extends preact.Component {
     componentWillReceiveProps(props) {
         if (props.stylesStateId !== this.props.stylesStateId) {
             const next = createChunksState();
-            if (next.length !== this.state.styleChunksVisible.length)
-                this.setState({
-                    styleChunksVisible: next,
-                    listItemIsOpens: [...this.state.listItemIsOpens, true]
-                });
+            const {styleChunksVisible, listItemIsOpens} = this.state;
+            const end = styleChunksVisible.length;
+            this.setState({
+                styleChunksVisible: next,
+                listItemIsOpens: next.map((v, i) => i < end ? listItemIsOpens[i] : true),
+            });
         }
     }
     /**
@@ -68,7 +81,12 @@ class ClassChunkStylesList extends preact.Component {
                         </header>
                         { !listItemIsOpens[i]
                             ? <div></div>
-                            : 'todo'
+                            : <ScssEditor
+                                editorId="dev-class-styles"
+                                onInput={ scss => {
+                                    this.handleScssChangedThrottled(scss, chunk);
+                                } }
+                                scss={ chunk.scss }/>
                         }
                     </li>;
                 })
@@ -98,11 +116,22 @@ class ClassChunkStylesList extends preact.Component {
             `.${newChunkClass} {${initialScss}}`,
             'custom-class',
         );
-        const sb = api.saveButton.getInstance();
-        sb.pushOpGroup(
+        saveButtonInstance.pushOpGroup(
             ['stylesBundle', newAll],
             createAddOrRemoveBlockClassOpArgs('add', newChunkClass, this.props.blockId),
         );
+    }
+    /**
+     * @param {string} scss
+     * @param {StyleChunk} scss
+     * @access private
+     */
+    handleScssChanged(scss, chunkVisible) {
+        const updatedAll = scssWizard.updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(
+            scss,
+            chunkVisible,
+        );
+        saveButtonInstance.pushOp('stylesBundle', updatedAll);
     }
     /**
      * @param {boolean} newIsActive
@@ -111,11 +140,10 @@ class ClassChunkStylesList extends preact.Component {
      * @access private
      */
     toggleStyleIsActivated(newIsActive, curIsActive, chunkClass) {
-        const saveButton = api.saveButton.getInstance();
         if (newIsActive && !curIsActive)
-            saveButton.pushOp(...createAddOrRemoveBlockClassOpArgs('add', chunkClass, this.props.blockId));
+            saveButtonInstance.pushOp(...createAddOrRemoveBlockClassOpArgs('add', chunkClass, this.props.blockId));
         else if (curIsActive && !newIsActive)
-            saveButton.pushOp(...createAddOrRemoveBlockClassOpArgs('remove', chunkClass, this.props.blockId));
+            saveButtonInstance.pushOp(...createAddOrRemoveBlockClassOpArgs('remove', chunkClass, this.props.blockId));
     }
 }
 
@@ -153,12 +181,15 @@ function extractClassName({scss}, withDot = true) {
  * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]}
  */
 function createAddOrRemoveBlockClassOpArgs(type, chunkClass, blockId) {
-    const sb = api.saveButton.getInstance();
-    return ['theBlockTree', blockTreeUtils.createMutation(sb.getChannelState('theBlockTree'), newTreeCopy => {
-        const [blockRef] = blockTreeUtils.findBlockMultiTree(blockId, newTreeCopy);
-        blockRef.styleClasses = addOrRemoveStyleClass(type, chunkClass, blockRef.styleClasses);
-        return newTreeCopy;
-    }), {event: 'update-single-block-prop', blockId}];
+    return [
+        'theBlockTree',
+        blockTreeUtils.createMutation(saveButtonInstance.getChannelState('theBlockTree'), newTreeCopy => {
+            const [blockRef] = blockTreeUtils.findBlockMultiTree(blockId, newTreeCopy);
+            blockRef.styleClasses = addOrRemoveStyleClass(type, chunkClass, blockRef.styleClasses);
+            return newTreeCopy;
+        }),
+        {event: 'update-single-block-prop', blockId}
+    ];
 }
 
 /**

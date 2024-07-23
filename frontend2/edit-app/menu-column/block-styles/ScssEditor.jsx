@@ -1,4 +1,4 @@
-import {__, Icon} from '@sivujetti-commons-for-edit-app';
+import {__, api, Icon} from '@sivujetti-commons-for-edit-app';
 
 class ScssEditor extends preact.Component {
     // currentCode;
@@ -6,6 +6,7 @@ class ScssEditor extends preact.Component {
     // editor;
     // saveButtonEl;
     // unregistrables;
+    // emitLockIsOn;
     /**
      * @access protected
      */
@@ -19,6 +20,7 @@ class ScssEditor extends preact.Component {
      * @access protected
      */
     componentDidMount() {
+        if (!window.sivujettiUserFlags?.use014Styles)
         this.hookUpSaveButtonPosUpdateListener(this.editor.view.dom.closest('.scss-editor-outer'));
     }
     /**
@@ -39,6 +41,10 @@ class ScssEditor extends preact.Component {
         if (props.scss !== this.currentCode) {
             this.currentCode = props.scss;
             this.setCommittedCode(this.currentCode);
+            this.emitLockIsOn = true;
+            setTimeout(() => {
+                this.emitLockIsOn = null;
+            }, 400);
             this.overwriteEditorCode(props.scss);
         }
     }
@@ -52,6 +58,39 @@ class ScssEditor extends preact.Component {
      * @access protected
      */
     render() {
+        if (window.sivujettiUserFlags?.use014Styles)
+        return <div class="scss-editor-outer">
+            <div ref={ el => {
+                if (!el || this.editor) return;
+                this.editor = window.renderCodeMirror6(el, (
+                    createEditorView,
+                    {defaultSettings, EditorView}
+                ) => ({
+                    view: createEditorView({
+                        ...defaultSettings,
+                        doc: this.currentCode,
+                        extensions: [
+                            ...defaultSettings.extensions,
+                            EditorView.updateListener.of(e => {
+                                if (!e.docChanged)
+                                    return;
+                                const newCode = e.state.doc.toString();
+                                this.currentCode = newCode;
+                                if (this.emitLockIsOn) {
+                                    return;
+                                }
+                                if (e.transactions.some(tr => tr.isUserEvent('undo') || tr.isUserEvent('redo'))) {
+                                    return;
+                                }
+                                this.props.onInput(this.currentCode);
+                            })
+                        ]
+                    }),
+                    api: {foldAllExcept: () => {}},
+                }));
+            } }></div>
+        </div>;
+        else
         return <div class="p-relative scss-editor-outer">
             <div ref={ el => {
                 if (!el || this.editor) return;
@@ -117,10 +156,12 @@ class ScssEditor extends preact.Component {
      * @access private
      */
     updateApplyButtonVisibility(code) {
+        if (!window.sivujettiUserFlags?.use014Styles) {
         if (code !== this.committedCode && this.saveButtonEl.classList.contains('d-none')) {
             this.saveButtonEl.classList.remove('d-none');
         } else if (code === this.committedCode && !this.saveButtonEl.classList.contains('d-none')) {
             this.saveButtonEl.classList.add('d-none');
+        }
         }
     }
     /**

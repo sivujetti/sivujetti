@@ -454,6 +454,7 @@ final class WebPageAwareTemplate extends Template {
                     "useShortIds" => defined("USE_SHORT_IDS"),
                     "useStyleGroups" => defined("USE_STYLE_GROUPS"),
                     "useInlineIdPickerScope" => defined("USE_INLINE_ID_PICKER_SCOPE"),
+                    "use014Styles" => defined("USE_014_STYLES"),
                 ] : null,
             ])) . ")"
         );

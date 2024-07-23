@@ -194,6 +194,7 @@ Structure:
     display: grid;
     max-height: 8.7rem;
     overflow-y: auto;
+    scrollbar-width: thin;
 }
 .flipped-undo-icon {
     transform: scaleX(-1);
@@ -424,6 +425,7 @@ h2 {
     z-index: 1;
     opacity: 1;
     overflow: auto;
+    scrollbar-width: thin;
 }
 .site-preview-iframe {
     position: absolute;
@@ -1207,6 +1209,7 @@ a.popup-close-area {
     height: 100%;
     position: relative;
     z-index: 1;
+    scrollbar-width: thin;
 }
 .dnd-block-spawner-opened #edit-app-sections-wrapper:has(.on-this-page.open) {
     margin-left: -2px;

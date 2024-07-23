@@ -238,7 +238,11 @@
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/coloris.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/stylis.min.js") ?>"></script>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/popper.min.js") ?>"></script>
+        <?php if (!defined("USE_014_STYLES")) : ?>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/run-codemirror-6.min.js") ?>"></script>
+        <?php else: ?>
+        <script src="<?= $this->assetUrl("public/sivujetti/vendor/run-codemirror-6-next.min.js") ?>"></script>
+        <?php endif; ?>
         <script src="<?= $this->assetUrl("public/sivujetti/vendor/tagify.min.js") ?>"></script>
         <script><?= $this->generateSivujettiEnvConfJs(includeUserFlags: true) ?></script> 
         <script>window.isFirstRun = <?= $isFirstRun ? "true" : "false" ?></script>

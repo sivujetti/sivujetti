@@ -98,7 +98,6 @@ final class ReusableBranchesController {
                 "title" => $defaults->title,
                 "renderer" => $defaults->renderer,
                 "styleClasses" => $defaults->styleClasses,
-                "styleGroup" => $defaults->styleGroup,
             ],
             "initialStyles" => $input->initialStyles,
             "initialChildren" => array_map(self::objectToBlueprint(...), $input->initialChildren),

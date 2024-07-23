@@ -74,19 +74,14 @@ class RenderAll extends preact.Component {
                     hashes={ this.currentBlocksHashes }
                     key={ this.currentBlocksHashes[block.id] }/>;
             }
-            const {type, styleClasses, styleGroup, renderer} = block;
+            const {type, styleClasses, renderer} = block;
             const renderChildren = () => block.children.length
                 ? <RenderAll blocks={ block.children } depth={ depth + 1 } hashes={ this.currentBlocksHashes }/>
                 : null;
             const createDefaultProps = (ownClasses = '') => ({
-                ...{
-                    'data-block': block.id,
-                    'data-block-type': type,
-                    'class': `j-${type}${ownClasses ? ` ${ownClasses}` : ''}${styleClasses ? ` ${styleClasses}` : ''}`,
-                },
-                ...(styleGroup ? {
-                    'data-style-group': styleGroup,
-                } : {})
+                'data-block': block.id,
+                'data-block-type': type,
+                'class': `j-${type}${ownClasses ? ` ${ownClasses}` : ''}${styleClasses ? ` ${styleClasses}` : ''}`,
             });
             const Renderer = renderer === 'jsx' || type === 'Listing'
                 ? (builtInRenderers[type] || customRenderers.get(type))

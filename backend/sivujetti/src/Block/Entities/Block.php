@@ -6,9 +6,9 @@ use Sivujetti\{PushIdGenerator, ShortIdGenerator};
 
 /**
  * @psalm-type stylesLayer = 'user-styles'|'dev-styles'|'base-styles'
- * @psalm-type styleScopeKind = 'single-block'|'style-group'|'custom-class'|'base-vars'|'base-freeform'
+ * @psalm-type styleScopeKind = 'single-block'|'custom-class'|'base-vars'|'base-freeform'
  * @psalm-type StyleChunk = object{scss: string, scope: object{kind: styleScopeKind, layer: stylesLayer}}
- * @psalm-type BlockBlueprint = object{blockType: string, initialOwnData: object, initialDefaultsData: object{title: string, renderer: string, styleClasses: string, styleGroup: string}, initialStyles: array<int, StyleChunk>, initialChildren: array<int, BlockBlueprint>}
+ * @psalm-type BlockBlueprint = object{blockType: string, initialOwnData: object, initialDefaultsData: object{title: string, renderer: string, styleClasses: string}, initialStyles: array<int, StyleChunk>, initialChildren: array<int, BlockBlueprint>}
  */
 final class Block extends \stdClass {
     public const TYPE_BUTTON           = "Button";
@@ -38,8 +38,6 @@ final class Block extends \stdClass {
     public array $propsData;
     /** @var string Example "j-Section-default j-Section-header" */
     public string $styleClasses;
-    /** @var string Example "ubGrFbpaKF7" */
-    public string $styleGroup;
     /** @var \Sivujetti\Block\Entities\Block[] */
     public array $children;
 
@@ -112,7 +110,6 @@ final class Block extends \stdClass {
         $out->id = $data->id;
         $out->propsData = $data->propsData;
         $out->styleClasses = $data->styleClasses ?? "";
-        $out->styleGroup = $data->styleGroup ?? "";
         $out->children = [];
         foreach ($data->children as $child)
             $out->children[] = self::fromObject($child);
@@ -135,7 +132,6 @@ final class Block extends \stdClass {
         $out->title = $defaults->title;
         $out->renderer = $defaults->renderer;
         $out->styleClasses = $defaults->styleClasses;
-        $out->styleGroup = $defaults->styleGroup;
         if (!defined("USE_SHORT_IDS")) {
         $out->id = PushIdGenerator::generatePushId();
         } else {

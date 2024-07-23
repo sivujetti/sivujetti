@@ -237,9 +237,6 @@ final class WebPageAwareTemplate extends Template {
                     "class" => "j-{$block->type}" .
                         ($ownClasses ? " {$ownClasses}" : "") .
                         ($block->styleClasses ? " {$block->styleClasses}" : ""),
-                    ...($block->styleGroup ? [
-                        "data-style-group" => $block->styleGroup,
-                    ] : [])
                 ];
                 $renderChildren = fn() => $block->children ? $this->__createVNodeTree($block->children) : [""];
                 $out[] = $impl->render($block, $createDefaultProps, $renderChildren, $this);
@@ -452,7 +449,6 @@ final class WebPageAwareTemplate extends Template {
                 ],
                 "userFlags" => $includeUserFlags ? [
                     "useShortIds" => defined("USE_SHORT_IDS"),
-                    "useStyleGroups" => defined("USE_STYLE_GROUPS"),
                     "useInlineIdPickerScope" => defined("USE_INLINE_ID_PICKER_SCOPE"),
                     "use014Styles" => defined("USE_014_STYLES"),
                 ] : null,

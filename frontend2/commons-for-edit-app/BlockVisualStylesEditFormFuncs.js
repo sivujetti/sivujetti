@@ -236,24 +236,7 @@ function createPaddingVarDefs(prefix) {
     ];
 }
 
-/**
- * @param {String} ofBlockId
- * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]}
- */
-function createBlockTreeClearStyleGroupOpArgs(ofBlockId) {
-    return [
-        'theBlockTree',
-        blockTreeUtils.createMutation(api.saveButton.getInstance().getChannelState('theBlockTree'), newTreeCopy => {
-            const [blockRef] = blockTreeUtils.findBlockMultiTree(ofBlockId, newTreeCopy);
-            blockRef.styleGroup = '';
-            return newTreeCopy;
-        }),
-        {event: 'update-single-block-prop', blockId: ofBlockId}
-    ];
-}
-
 export {
-    createBlockTreeClearStyleGroupOpArgs,
     createCssVarsMaps,
     createJustifyContentVarDef,
     createNormalizedDefs,

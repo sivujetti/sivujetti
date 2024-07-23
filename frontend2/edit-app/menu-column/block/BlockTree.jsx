@@ -45,6 +45,7 @@ class BlockTree extends preact.Component {
     // onDrop;
     // onDragEnd;
     // currentlyHoveredLi;
+    // disablePageInfo;
     // mouseDownHoverClearerHookedUp;
     // curUrl;
     /**
@@ -60,6 +61,7 @@ class BlockTree extends preact.Component {
         this.onDrop = this.dragDrop.handleDraggableDropped.bind(this.dragDrop);
         this.onDragEnd = this.dragDrop.handleDragEnded.bind(this.dragDrop);
         this.currentlyHoveredLi = null;
+        this.disablePageInfo = this.props.containingView === 'CreatePageType';
 
         if (this.props.blocks) this.setState(createPartialState(this.props.blocks));
 
@@ -378,37 +380,10 @@ class BlockTree extends preact.Component {
         const newTree = objectUtils.cloneDeep(saveButton.getChannelState('theBlockTree'));
         const [newReusableRootRef] = blockTreeUtils.findBlockMultiTree(block.id, newTree);
 
-        // 1. Convert all styles recursively from scope = 'singe-block' to
-        // scope = 'style-group' when possible
-        let newStyles = null;
-        const newConvertedStyleChunkIds = [];
-        if (window.sivujettiUserFlags?.useStyleGroups) {
-        const uniqueScopedStyleChunks = new Map;
-        traverseRecursively([newReusableRootRef], b => {
-            const userAndDevStyles = scssWizard.findStyles('single-block', b.id);
-            uniqueScopedStyleChunks.set(b.id, userAndDevStyles);
-        });
-        if (uniqueScopedStyleChunks.size) {
-            const chunks = [...uniqueScopedStyleChunks.values()].flat();
-            const updatedAll = scssWizard.convertManyUniqueScopeChunksToClassScopeChunksAndReturnAllRecompiled(chunks, (blockId, newCls) => {
-                const blockInNewTree = blockTreeUtils.findBlock(blockId, newTree)[0];
-                newConvertedStyleChunkIds.push({blockInNewTree, newCls});
-            });
-            if (updatedAll)
-                newStyles = updatedAll;
-            // else scssWizard did not find anything to convert
-        } else {
-            newStyles = null;
-        }
-        }
-
-        // 2. Mutate new block tree (update `newReusable.blockBlueprints[0].title`
-        // and `newReusable.blockBlueprints[*].styleGroup`)
+        // 1. Mutate new block tree (update `newReusable.blockBlueprints[0].title`)
         newReusableRootRef.title = data.name;
-        for (const {blockInNewTree, newCls} of newConvertedStyleChunkIds)
-            blockInNewTree.styleGroup = newCls;
 
-        // 3. Create new reusable branch
+        // 2. Create new reusable branch
         const blockBlueprints = [blockToBlueprint(treeToTransferable([newReusableRootRef])[0], (blueprint, block) => {
             const nonClassUserAndDevStyles = scssWizard.findStyles('single-block', block.id);
             const replacer = createStyleShunkcScssIdReplacer(block.id, '@placeholder');
@@ -419,18 +394,16 @@ class BlockTree extends preact.Component {
             };
         })];
 
-        // 4. Commit all
+        // 3. Commit all
         fetchOrGetReusableBranches().then(reusablesPrev => {
             const newReusablesState = [{
                 id: generatePushID(),
                 blockBlueprints,
             }, ...objectUtils.cloneDeep(reusablesPrev)];
-            const arrOfOpArgs = [
-                ...[['theBlockTree', newTree, {event: 'update-many-blocks-prop'}]],
-                ...(newStyles ? [['stylesBundle', newStyles]] : []),
-                ...[['reusableBranches', newReusablesState, {event: 'create'}]]
-            ];
-            saveButton.pushOpGroup(...arrOfOpArgs);
+            saveButton.pushOpGroup(
+                ['theBlockTree', newTree, {event: 'update-many-blocks-prop'}],
+                ['reusableBranches', newReusablesState, {event: 'create'}]
+            );
         });
     }
     /**

@@ -28,7 +28,6 @@ final class BlockTestUtils {
      * @param array<string, mixed>|object|null $propsData = null
      * @param ?string $id = null
      * @param ?string $styleClasses = null
-     * @param ?string $styleGroup = null
      * @return object
      * @psalm-return RawStorableBlock
      */
@@ -38,12 +37,11 @@ final class BlockTestUtils {
                                   ?array $children = null,
                                   array|object|null $propsData = null,
                                   ?string $id = null,
-                                  ?string $styleClasses = null,
-                                  ?string $styleGroup = null): object {
+                                  ?string $styleClasses = null): object {
         $out = new \stdClass;
         $out->type = $type ?? Block::TYPE_PARAGRAPH;
         $out->title = $title ?? "";
-        $out->renderer = $renderer ?? "sivujetti:block-auto";
+        $out->renderer = $renderer ?? "jsx";
         $out->id = match ($id) {
             "@auto" => PushIdGenerator::generatePushId(),
             null => "-bbbbbbbbbbbbbbbbbbb",
@@ -51,7 +49,6 @@ final class BlockTestUtils {
         };
         $out->children = $children ?? [];
         $out->styleClasses = $styleClasses ?? "";
-        $out->styleGroup = $styleGroup ?? "";
         $out->propsData = [];
         if ($propsData) {
             foreach ($propsData as $key => $value) {

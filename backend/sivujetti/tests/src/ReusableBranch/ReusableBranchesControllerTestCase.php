@@ -40,7 +40,6 @@ abstract class ReusableBranchesControllerTestCase extends DbTestCase {
                 "title" => $block->title ?? "",
                 "renderer" => $block->renderer,
                 "styleClasses" => $block->styleClasses ?? "",
-                "styleGroup" => $block->styleGroup ?? "",
             ],
             "initialStyles" => [],
             "initialChildren" => $depth === 0

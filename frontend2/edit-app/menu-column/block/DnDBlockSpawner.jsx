@@ -14,7 +14,7 @@ import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-
 import {createTrier} from '../../includes/utils.js';
 import {createStyleShunkcScssIdReplacer} from './BlockTreeFuncs.js';
 
-const UNSPAWNABLES = ['Columns', 'Heading', 'PageInfo', 'Paragraph', 'RichText', 'Section'];
+const UNSPAWNABLES = ['Heading', 'PageInfo', 'Paragraph', 'RichText', 'Section2'];
 
 const EVENTS_THAT_NEVER_CHANGE_TREE_HEIGHT =  ['update-single-block-prop', 'convert-branch-to-global-block-reference-block'];
 

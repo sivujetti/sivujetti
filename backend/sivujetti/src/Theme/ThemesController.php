@@ -269,7 +269,7 @@ final class ThemesController {
             ->rule("{$propName}", "type", "array")
             ->rule("{$propName}.*.scss", "type", "string")
             ->rule("{$propName}.*.data?", "type", "object")
-            ->rule("{$propName}.*.scope.kind", "in", ["single-block", "custom-class", "style-group", "base-vars", "base-freeform"])
+            ->rule("{$propName}.*.scope.kind", "in", ["single-block", "custom-class", "base-vars", "base-freeform"])
             ->rule("{$propName}.*.scope.page?", "type", "string")
             ->rule("{$propName}.*.scope.layer", "in", ["user-styles", "dev-styles", "base-styles"]);
     }

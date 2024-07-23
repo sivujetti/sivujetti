@@ -1,4 +1,4 @@
-import scssUtils, {compile, serialize, stringify} from './styles/scss-utils';
+import scssUtils, {compile, serialize, stringify} from './styles/scss-utils.js';
 
 /**
  * @param {String} scss
@@ -41,7 +41,7 @@ function stylesToBaked(styles) {
 
     const {hoisted, base, user, dev} = styles.reduce((out, s) => {
         const {scope} = s;
-        if (scope.layer === 'base-styles' && scope.kind === 'base') {
+        if (scope.layer === 'base-styles' && scope.kind === 'base-freeform') {
             const [hoistedLines, hoistedLineIdxes] = hoistImportsIfAny(s.scss);
             if (hoistedLines.length) return {
                 ...out,
@@ -55,7 +55,7 @@ function stylesToBaked(styles) {
         }
         if (scope.layer === 'base-styles')
             return {...out, base: [...out.base, s]};
-        if (scope.layer === 'user-styles' && (scope.kind === 'single-block' || scope.kind === 'style-group'))
+        if (scope.layer === 'user-styles' && (scope.kind === 'single-block'))
             return {...out, user: [...out.user, s]};
         if (scope.layer === 'dev-styles')
             return {...out, dev: [...out.dev, s]};
@@ -229,9 +229,7 @@ function getSelectorForDecl(declsParentAstNode, cur) {
 function createSelector(scopeSpecifier, scopeKind = 'single-block') {
     if (scopeKind === 'single-block')
         return `[data-block="${scopeSpecifier}"]`;
-    if (scopeKind === 'style-group')
-        return `[data-style-group="${scopeSpecifier}"]`;
-    return scopeKind === 'base' ? ':root' : '// invalid';
+    return scopeKind === 'base-vars' ? ':root' : '// invalid';
 }
 
 /**
@@ -374,14 +372,6 @@ function extractBlockId(uniqChunkScss) {
 }
 
 /**
- * @param {String} classChunkScss
- * @returns {String}
- */
-function extractStyleGroupId(classChunkScss) {
-    return classChunkScss.split('data-style-group="')[1].split('"')[0];
-}
-
-/**
  * @param {string} scss
  * @returns {[Array<string>, Array<number>]}
  */
@@ -417,7 +407,6 @@ export {
     createSelector,
     deleteCodeFrom,
     extractBlockId,
-    extractStyleGroupId,
     indent,
     stylesToBaked,
 };

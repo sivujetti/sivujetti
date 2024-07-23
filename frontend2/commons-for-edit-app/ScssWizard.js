@@ -1,11 +1,9 @@
-import {mediaScopes} from '../shared-inline.js';
 import {
     addOrUpdateCodeTo,
     createScssBlock,
     createSelector,
     deleteCodeFrom,
     extractBlockId,
-    extractStyleGroupId,
     indent,
     stylesToBaked,
 } from './ScssWizardFuncs.js';
@@ -186,42 +184,6 @@ class ScssWizard {
             s !== currentStyle ? s : {...s, scss: updatedScssCode}
         );
         return this.commitAll(updated);
-    }
-    /**
-     * @param {'add'|'update'|'delete'} addOrUpdateOrDelete
-     * @param {scssCodeInput} codeTemplate
-     * @param {String} val
-     * @param {StyleChunk} currentStyle
-     * @param {String} blockId
-     * @param {mediaScope} mediaScopeId = 'all'
-     * @returns {StylesBundleWithId|null}
-     * @access public
-     */
-    addNewUniqueScopeChunkFromExistingClassScopeChunkAndReturnAllRecompiled(addOrUpdateOrDelete, codeTemplate, val, currentStyle, blockId, mediaScopeId = 'all') {
-        if (addOrUpdateOrDelete !== 'update')
-            throw new Error('todo');
-
-        // Create scss that has $val updated, removed or added
-        const classChunkScss = currentStyle.scss;
-        const scss1 = addOrUpdateOrDelete !== 'delete'
-            ? addOrUpdateCodeTo(classChunkScss, codeTemplate, val)
-            : deleteCodeFrom(classChunkScss, codeTemplate, val);
-        if (!scss1) // Was 'delete', and new chunk ended up empty
-            return null;
-        const scss = scss1.replace(
-            `data-style-group="${extractStyleGroupId(scss1)}"`,
-            `data-block="${blockId}"`
-        );
-
-        // Add new unique scope chunk with updated scss
-        const updated = [
-            ...this.styles,
-            {
-                scope: {...currentStyle.scope, kind: 'single-block'},
-                scss,
-            }
-        ];
-        return this.commitAll(updated, mediaScopeId);
     }
     /**
      * @param {Array<StyleChunk>} uniqueScopeChunks

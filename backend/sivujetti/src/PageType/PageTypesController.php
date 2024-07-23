@@ -97,7 +97,6 @@ final class PageTypesController {
                 "title" => "",
                 "renderer" => "jsx",
                 "styleClasses" => "",
-                "styleGroup" => "",
             ],
             "initialStyles" => [],
             "initialChildren" => [],

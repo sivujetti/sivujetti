@@ -69,7 +69,6 @@ function createBlock(defProps, ownProps) {
             renderer: defProps.renderer,
             propsData: [],
             styleClasses: '',
-            styleGroup: '',
         },
         ...(Object.keys(defProps).reduce((cleaned, key) => {
             if (key === 'propsData' || key === 'children')

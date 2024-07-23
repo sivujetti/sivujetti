@@ -108,7 +108,6 @@ interface BlockBlueprint {
         title: String;
         renderer: String;
         styleClasses: String;
-        styleGroup: String;
     };
     initialStyles: Array<StyleChunk>;
     initialChildren: Array<BlockBlueprint>;
@@ -118,7 +117,6 @@ interface BlockStub {
     id: String; // Example 'unit-12' or 'j-Type-unit-12'
     type: String; // 'Section', 'Button' etc.
     styleClasses: String; // Example 'j-Type-unit-3 j-Type-unit-12'
-    styleGroup: String; // Example 'ubGrFbpaKF7'
 }
 
 interface Block extends BlockStub {
@@ -548,7 +546,7 @@ interface CssVarsMap {
 
 type stylesLayer = 'user-styles'|'dev-styles'|'base-styles';
 
-type styleScopeKind = 'single-block'|'custom-class'|'optimized-class'|'base-vars'|'base-freeform';
+type styleScopeKind = 'single-block'|'custom-class'|'base-vars'|'base-freeform';
 
 type stateChangeContext = 'initial'|'push'|'undo'|'redo';
 

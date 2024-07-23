@@ -52,7 +52,6 @@ import {mediaScopes, placeholderImageSrc, traverseRecursively} from '../shared-i
 import Popup from './Popup.jsx';
 import {createCssDeclExtractor} from './ScssWizardFuncs.js';
 import BlockVisualStylesEditForm, {
-    createBlockTreeClearStyleGroupOpArgs,
     createPaddingVarDefs,
 } from './BlockVisualStylesEditForm.jsx';
 import {
@@ -70,7 +69,6 @@ export {
     blockTreeUtils,
     BlockVisualStylesEditForm,
     ColorPickerInput,
-    createBlockTreeClearStyleGroupOpArgs,
     createCssDeclExtractor,
     createPaddingVarDefs,
     determineModeFrom,

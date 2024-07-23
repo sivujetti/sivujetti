@@ -35,7 +35,6 @@ final class BlockValidatorTest extends TestCase {
             "renderer" => "sivujetti:block-auto",
             "id" => "aaaaaaaaaaaaaaaaaaaa",
             "styleClasses" => "foo",
-            "styleGroup" => "abcdefghijk",
             "html" => "<p>Some text</p>",
         ];
         $state->validationErrors = null;

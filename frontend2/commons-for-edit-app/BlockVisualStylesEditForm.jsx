@@ -11,12 +11,10 @@ import {
 import {createSelector} from './ScssWizardFuncs.js';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
 import {
-    createBlockTreeClearStyleGroupOpArgs,
     createCssVarsMaps,
     createNormalizedDefs,
     createPaddingVarDefs,
     createVarInputToScssCodeAuto,
-    createVarsMapAuto,
     doCreateCssVarsMaps,
     getValidDefs,
 } from './BlockVisualStylesEditFormFuncs.js';
@@ -137,24 +135,8 @@ class BlockVisualStylesEditForm extends preact.Component {
      */
     handleVisualVarChanged(input, varName, varInputToScssCode) {
         const val = input instanceof Event ? input.target.value : input;
-        if (!this.props.blockStyleGroup) {
-            const updatedAll = this.doHandleValChanged(val, varName, varInputToScssCode);
-            api.saveButton.getInstance().pushOp('stylesBundle', updatedAll);
-            return;
-        }
-
-        const clearStyleGroupOpArgs = createBlockTreeClearStyleGroupOpArgs(this.props.blockId);
-        const updatedAll = this.doHandleVarOfOptimizedChunkChanged(val, varName, varInputToScssCode);
-        if (updatedAll)
-            api.saveButton.getInstance().pushOpGroup(
-                clearStyleGroupOpArgs,
-                ['stylesBundle', updatedAll]
-            );
-        else {
-            // style group had only single var, which was then removed -> do not
-            // add new (empty) style chunk, and leave current styles untouched
-            api.saveButton.getInstance().pushOp(...clearStyleGroupOpArgs);
-        }
+        const updatedAll = this.doHandleValChanged(val, varName, varInputToScssCode);
+        api.saveButton.getInstance().pushOp('stylesBundle', updatedAll);
     }
     /**
      * @param {String|Event} input
@@ -232,44 +214,13 @@ class BlockVisualStylesEditForm extends preact.Component {
         }
     }
     /**
-     * @param {String|null} val
-     * @param {String} varName
-     * @param {translateVarInputToScssCodeTemplateFn} varInputToScssCode
-     * @returns {StylesBundleWithId}
-     * @access private
-     */
-    doHandleVarOfOptimizedChunkChanged(val, varName, varInputToScssCode) {
-        const {styleScreens, curScreenSizeTabIdx} = this.state;
-        const classChunk = this.userStyleChunks[curScreenSizeTabIdx];
-        const newValIsNotEmpty = val?.trim().length > 0;
-        const valNorm = newValIsNotEmpty ? val : '"dummy"';
-        const mediaScopeId = mediaScopes[curScreenSizeTabIdx];
-        const codeTemplate = varInputToScssCode(varName, val);
-
-        const selectedScreenSizeVars = styleScreens[curScreenSizeTabIdx] || {};
-        const hasVarValPreviously = !!selectedScreenSizeVars[varName];
-        return scssWizard.addNewUniqueScopeChunkFromExistingClassScopeChunkAndReturnAllRecompiled(
-            hasVarValPreviously ? newValIsNotEmpty ? 'update' : 'delete' : 'add',
-            codeTemplate,
-            valNorm,
-            classChunk,
-            this.props.blockId,
-            mediaScopeId,
-        );
-    }
-    /**
      * @param {BlockStylesEditFormProps} props
      * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}
      */
     createCssVarsMapsInternal(props) {
-        const [scopeKind, scopeSpecifier, layer] = (function (self) {
-            if (self.isSpecialRootVarsStyle)
-                return ['base-vars',    undefined,            'base-styles'];
-            if (!props.blockStyleGroup)
-                return ['single-block', props.blockId,         undefined];
-            else
-                return ['style-group',  props.blockStyleGroup, undefined];
-        })(this);
+        const [scopeKind, scopeSpecifier, layer] = !this.isSpecialRootVarsStyle
+            ? ['single-block', props.blockId, undefined]
+            : ['base-vars',    undefined,     'base-styles'];
         return doCreateCssVarsMaps(
             this.cssVarDefs,
             scopeKind,
@@ -281,7 +232,6 @@ class BlockVisualStylesEditForm extends preact.Component {
 
 export default BlockVisualStylesEditForm;
 export {
-    createBlockTreeClearStyleGroupOpArgs,
     createCssVarsMaps,
     createPaddingVarDefs,
 };

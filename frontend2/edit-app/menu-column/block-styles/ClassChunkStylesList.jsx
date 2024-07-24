@@ -111,7 +111,7 @@ class ClassChunkStylesList extends preact.Component {
             const c = parseInt(extractClassName(chunk).split('-')[1], 10);
             return c > out ? c : out;
         }, 0);
-        const newChunkClass = `c-${prevMax + 1}`;
+        const newChunkClass = `cc-${prevMax + 1}`;
         const newAll = scssWizard.addNewDevsScssChunkAndReturnAllRecompiled(
             `.${newChunkClass} {${initialScss}}`,
             'custom-class',

@@ -4,6 +4,7 @@ import Tagify from './Tagify.jsx';
 class StyleClassesPicker extends preact.Component {
     // tagify;
     // devsCustomClassInfos;
+    // changeableClasses;
     /**
      * @access protected
      */
@@ -12,14 +13,20 @@ class StyleClassesPicker extends preact.Component {
         const chunk = scssWizard.findStyle('custom-class', undefined, 'all', 'dev-styles');
         this.devsCustomClassInfos = chunk ? scssUtils.extractClassCssBlocks(chunk) : [];
         this.tagifyChoices = createTagifyChoices(this.devsCustomClassInfos);
+        this.changeableClasses = extractChangeableClasses(this.props.currentClasses);
     }
     /**
-     * @param {{currentClasses: String; onClassesChanged(classes: String): void;}} props
+     * @param {{currentClasses: string; onClassesChanged(classes: string): void;}} props
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.currentClasses !== this.props.currentClasses)
-            this.tagify.current.exchangeTags(props.currentClasses);
+        if (props.currentClasses !== this.props.currentClasses) {
+            const maybeNext = extractChangeableClasses(props.currentClasses);
+            if (JSON.stringify(maybeNext) !== JSON.stringify(this.changeableClasses)) {
+                this.changeableClasses = maybeNext;
+                this.tagify.current.exchangeTags(this.changeableClasses);
+            }
+        }
     }
     /**
      * @access protected
@@ -31,13 +38,20 @@ class StyleClassesPicker extends preact.Component {
      * @access protected
      */
     render({currentClasses}) {
+        const {changeableClasses} = this;
         return <FormGroup>
             <label class="form-label mt-1 pb-1 pt-2 color-dimmed2">{ __('Css classes') }</label>
             <Tagify
-                tags={ currentClasses }
+                tags={ changeableClasses }
                 createTagsDropdownChoices={ () => this.tagifyChoices }
-                onChanged={ this.props.onClassesChanged }
+                onChanged={ newChangeableClasses => {
+                    const managed = currentClasses ? currentClasses.split(' ').filter(cls => cls.startsWith('cc-')) : [];
+                    const newChangeable = newChangeableClasses ? newChangeableClasses.split(' ') : [];
+                    const combind = [...managed, ...newChangeable];
+                    this.props.onClassesChanged(combind.length ? combind.join(' ') : '');
+                } }
                 onTagClicked={ e => {
+                    if (!window.sivujettiUserFlags?.use014Styles) {
                     const tagText = e.detail.data.value;
                     const info = this.devsCustomClassInfos.find(({className}) => className === tagText);
                     if (info) {
@@ -46,12 +60,18 @@ class StyleClassesPicker extends preact.Component {
                             tagText
                         );
                     }
+                    }
                 } }
                 ref={ this.tagify }/>
         </FormGroup>;
     }
 }
 
+const buttons = [
+    'btn-primary',
+    'btn-link',
+    'btn-block',
+];
 const cursors = [
     'c-hand',
     'c-move',
@@ -128,6 +148,7 @@ const spectreCssClasses = [
     ...text,
     ...position,
     ...display,
+    ...buttons,
     ...cursors,
 ];
 
@@ -140,6 +161,14 @@ function createTagifyChoices(devDefinedClassInfos) {
         ...devDefinedClassInfos.map(({className}) => className),
         ...spectreCssClasses,
     ];
+}
+
+/**
+ * @param {string} styleClasses
+ * @returns {string}
+ */
+function extractChangeableClasses(styleClasses) {
+    return styleClasses ? styleClasses.split(' ').filter(cls => !cls.startsWith('cc-')).join(' ') : '';
 }
 
 export default StyleClassesPicker;

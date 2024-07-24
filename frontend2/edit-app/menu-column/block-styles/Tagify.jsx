@@ -8,7 +8,7 @@ class Tagify extends preact.Component {
     exchangeTags(newTags) {
         if (newTags !== this.currentVal) {
             this.currentVal = newTags;
-            this.tagify.loadOriginalValues(newTags);
+            this.tagify.loadOriginalValues(newTags ? newTags.split(' ') : []);
         }
     }
     /**

@@ -28,6 +28,12 @@ class BaseStyleChunkScssEditor extends preact.Component {
     /**
      * @access protected
      */
+    shouldComponentUpdate() {
+        return false;
+    }
+    /**
+     * @access protected
+     */
     render(_, {styleChunk}) {
         return <ScssEditor
             editorId="base-freeform-styles"
@@ -44,7 +50,7 @@ class BaseStyleChunkScssEditor extends preact.Component {
  */
 function handleBaseChunkScssChanged(updatedScss, chunk) {
     const updatedAll = scssWizard.updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(
-        updatedScss,
+        {scss: updatedScss},
         chunk,
     );
     saveButtonInstance.pushOp('stylesBundle', updatedAll);

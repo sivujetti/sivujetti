@@ -161,7 +161,7 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.stylesStateId !== this.props.stylesStateId || props.blockStyleGroup !== this.props.blockStyleGroup) {
+        if (props.stylesStateId !== this.props.stylesStateId) {
             const [state, styleChunks] = this.createCssVarsMaps(props);
             if (JSON.stringify(state.screens) !== JSON.stringify(this.state.styleScreens)) {
                 this.userStyleChunks = styleChunks;

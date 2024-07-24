@@ -48,12 +48,11 @@ class ClassChunkStylesList extends preact.Component {
     /**
      * @access protected
      */
-    render({currentClasses}, {styleChunksVisible, listItemIsOpens}) {
-        const checkCurIsActive = createIsChunkStyleEnabledChecker(currentClasses);
+    render({checkIsChunkActive}, {styleChunksVisible, listItemIsOpens}) {
         return [
             <ul class="list styles-list mb-2">{ styleChunksVisible.length
                 ? styleChunksVisible.map((chunk, i) => {
-                    const curIsActive = checkCurIsActive(chunk);
+                    const curIsActive = checkIsChunkActive(chunk);
                     const title = extractClassName(chunk);
                     return <li class={ `mt-1 py-1${!listItemIsOpens[i] ? '' : ' open'}` }>
                         <header class="p-relative">
@@ -209,18 +208,8 @@ function addOrRemoveStyleClass(type, chunkClass, to) {
 }
 
 /**
- * @param {string} currentClasses
- * @returns {(chunk: StyleChunk) => boolean}
- */
-function createIsChunkStyleEnabledChecker(currentClasses) {
-    const currentAsArr = currentClasses.split(' ');
-    return chunk =>
-        currentAsArr.indexOf(extractClassName(chunk, false)) > -1
-    ;
-}
-
-/**
- * @typedef {{blockId: string; currentClasses: string; stylesStateId: number;}} ClassChunkStylesListProps
+ * @typedef {{blockId: string; stylesStateId: number; checkIsChunkActive: (chunk: StyleChunk) => boolean;}} ClassChunkStylesListProps
  */
 
 export default ClassChunkStylesList;
+export {extractClassName};

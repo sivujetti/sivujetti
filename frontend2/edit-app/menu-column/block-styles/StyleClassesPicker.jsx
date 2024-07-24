@@ -22,17 +22,11 @@ class StyleClassesPicker extends preact.Component {
     componentWillReceiveProps(props) {
         if (props.currentClasses !== this.props.currentClasses) {
             const maybeNext = extractChangeableClasses(props.currentClasses);
-            if (JSON.stringify(maybeNext) !== JSON.stringify(this.changeableClasses)) {
+            if (maybeNext !== this.changeableClasses) {
                 this.changeableClasses = maybeNext;
                 this.tagify.current.exchangeTags(this.changeableClasses);
             }
         }
-    }
-    /**
-     * @access protected
-     */
-    shouldComponentUpdate() {
-        return false;
     }
     /**
      * @access protected

@@ -2,6 +2,7 @@ import {
     __,
     api,
     blockTreeUtils,
+    DefaultStyleMutationsEditForm,
     env,
     getAndPutAndGetToLocalStorage,
     Icon,
@@ -13,7 +14,7 @@ import {
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
 import {getIsStoredToTreeIdFrom, isMetaBlock} from '../../includes/block/utils.js';
-import ClassChunkStylesList from '../block-styles/ClassChunkStylesList.jsx';
+import ClassChunkStylesList, {extractClassName} from '../block-styles/ClassChunkStylesList.jsx';
 import StyleClassesPicker from '../block-styles/StyleClassesPicker.jsx';
 import {createInitialTabKind, createTabsInfo} from '../block-styles/style-tabs-commons.js';
 /** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
@@ -32,11 +33,14 @@ class BlockEditForm extends preact.Component {
         const saveButton = api.saveButton.getInstance();
         this.blockType = api.blockTypes.get(this.props.block.type);
         this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(this.props.block.id, 'mainTree');
+        const editForm = createBlockEditFormCfg(this.blockType);
         this.editFormImpls = [
-            createBlockEditFormCfg(this.blockType),
+            ...(editForm.Renderer ? [editForm] : []),
             ...(!this.blockType.extends ? [] : [createBlockEditFormCfg(api.blockTypes.get(this.blockType.extends))])
         ];
-        this.stylesEditForm = this.blockType.stylesEditForm;
+        this.stylesEditForm = this.blockType.stylesEditForm !== 'auto'
+            ? this.blockType.stylesEditForm
+            : DefaultStyleMutationsEditForm;
 
         this.tabsInfo = createTabsInfo(createTabConfig(this.blockType.editFormType, !!this.stylesEditForm));
         const currentTabKind = createInitialTabKind(
@@ -143,12 +147,16 @@ class BlockEditForm extends preact.Component {
                             ) }/>
                     );
                 } else if (itm.kind === 'user-styles') {
-                    content = <span class="d-none TODO">TODO</span>;
+                    const Renderer = this.stylesEditForm;
+                    content = <Renderer
+                        blockId={ blockId }
+                        checkIsChunkActive={ createIsChunkStyleEnabledChecker(blockCopyForEditForm.styleClasses) }
+                        stylesStateId={ this.state.stylesStateId }/>;
                 } else if (itm.kind === 'dev-styles') {
                     content = [
                         <ClassChunkStylesList
                             blockId={ blockId }
-                            currentClasses={ blockCopyForEditForm.styleClasses }
+                            checkIsChunkActive={ createIsChunkStyleEnabledChecker(blockCopyForEditForm.styleClasses) }
                             stylesStateId={ this.state.stylesStateId }/>,
                         <StyleClassesPicker
                             currentClasses={ blockCopyForEditForm.styleClasses }
@@ -268,13 +276,24 @@ function doesTabContainStylesStuff(tabKind) {
 
 /**
  * @param {BlockTypeDefinition} input
- * @returns {Renderer: preact.Component; type: 'content'|'content+user-styles';}
+ * @returns {Renderer: preact.Component|null; type: 'content'|'content+user-styles';}
  */
 function createBlockEditFormCfg(input) {
     return {
         Renderer: input.editForm,
         type: input.editFormType || 'content'
     };
+}
+
+/**
+ * @param {string} currentClasses
+ * @returns {(chunk: StyleChunk) => boolean}
+ */
+function createIsChunkStyleEnabledChecker(currentClasses) {
+    const currentAsArr = currentClasses.split(' ');
+    return chunk =>
+        currentAsArr.indexOf(extractClassName(chunk, false)) > -1
+    ;
 }
 
 export default BlockEditForm;

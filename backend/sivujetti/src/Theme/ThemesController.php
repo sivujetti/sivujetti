@@ -130,7 +130,7 @@ final class ThemesController {
      * @param object $currentTheme
      * @psalm-param object{name: string, cachedScreenSizesCssHashes: string[], stylesLastUpdatedAt: int[]} $currentTheme
      * @return array[]
-     * @psalm-return [[string, string, string, string, string], [array{filePath: string, contents: string}|null, array{filePath: string, contents: string}|null, array{filePath: string, contents: string}|null, array{filePath: string, contents: string}|null, array{filePath: string, contents: string}|null], [int, int, int, int, int]]
+     * @psalm-return [[string], [array{filePath: string, contents: string}|null], [int]]
      */
     private static function createNewBundle(string $newCompiledCss,
                                              object $currentTheme): array {
@@ -185,7 +185,7 @@ final class ThemesController {
         if (($data = $input->data ?? null)) {
             if ($input->scope->kind === "custom-class")
                 return (object) [
-                    "title" => substr($data->title, 0, ValidationUtils::HARD_SHORT_TEXT_MAX_LEN),
+                    ...(($data->title ?? null) ? ["title" => substr($data->title, 0, ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)] : []),
                     ...(($data->mutationRules ?? null) ? ["mutationRules" => $data->mutationRules] : []),
                 ];
         }
@@ -268,10 +268,10 @@ final class ThemesController {
         return $validator
             ->rule("{$propName}", "type", "array")
             ->rule("{$propName}.*.scss", "type", "string")
-            ->rule("{$propName}.*.data?", "type", "object")
             ->rule("{$propName}.*.scope.kind", "in", ["single-block", "custom-class", "base-vars", "base-freeform"])
             ->rule("{$propName}.*.scope.page?", "type", "string")
-            ->rule("{$propName}.*.scope.layer", "in", ["user-styles", "dev-styles", "base-styles"]);
+            ->rule("{$propName}.*.scope.layer", "in", ["user-styles", "dev-styles", "base-styles"])
+            ->rule("{$propName}.*.data?", "type", "object");
     }
     /**
      * @param int $i

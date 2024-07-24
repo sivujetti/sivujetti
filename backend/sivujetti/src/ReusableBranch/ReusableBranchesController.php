@@ -135,7 +135,7 @@ final class ReusableBranchesController {
             ->rule("initialOwnData", "type", "object");
         // initialDefaultsData.title|renderer etc.
         $v = $blockValidator->addRulesForDefaultProps($v, "initialDefaultsData.");
-        // initialStyles.scss|scope
+        // initialStyles.scss|scope|data
         $v = ThemesController::addRulesForStyleChunks($v, "initialStyles");
         $v = $v->rule("initialChildren", "type", "array");
         return self::doValidateBlockBlueprints($input->{$propPath}, $v);

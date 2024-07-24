@@ -55,7 +55,7 @@ class CodeBasedStylesList extends preact.Component {
                             collapseOuterCode={ scopeSettings.kind === 'custom-class' }
                             onCommitInput={ scss => {
                                 const updatedAll = scssWizard.updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(
-                                    scss,
+                                    {scss},
                                     ref,
                                     selectedMediaScopeId
                                 );

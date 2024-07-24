@@ -89,9 +89,9 @@ type editFormType = 'content'|'content+user-styles';
 interface BlockTypeDefinition {
     name: String;         // Examples 'Text'
     friendlyName: String; // Examples 'Text'
-    editForm: preact.Component;
+    editForm: preact.Component|null;
     editFormType?: editFormType;
-    stylesEditForm: preact.Component|null;
+    stylesEditForm: 'auto'|preact.Component|null;
     createOwnProps(defProps: {[key: String]: any;}): {[propName: String]: any};
     icon?: String;        // Examples 'blockquote'
 }
@@ -330,7 +330,6 @@ interface BlockEditFormProps {
 
 interface BlockStylesEditFormProps {
     blockId: String;
-    blockStyleGroup: String;
     stateId: Number;
 }
 
@@ -536,7 +535,14 @@ interface StyleChunk {
         kind: styleScopeKind;
         layer: stylesLayer;
         page?: String;
-        data?: Object;
+    };
+    data?: CustomClassStyleChunkData;
+}
+
+interface CustomClassStyleChunkData {
+    title?: string;
+    mutationRules?: {
+        varDefs: Array<VisualStylesFormVarDefinition>;
     };
 }
 

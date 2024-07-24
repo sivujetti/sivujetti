@@ -5,7 +5,6 @@ import {
     objectUtils,
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
-import toasters from '../../includes/toasters.jsx';
 import {blockToBlueprint} from '../block/BlockTreeFuncs.js';
 import DnDBlockSpawner from '../block/DnDBlockSpawner.jsx';
 import OnThisPageSection from '../default-state-sections/OnThisPageSection.jsx';

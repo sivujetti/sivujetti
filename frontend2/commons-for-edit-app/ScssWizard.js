@@ -174,14 +174,14 @@ class ScssWizard {
         return this.commitAll(updated);
     }
     /**
-     * @param {String} updatedScssCode Example: 'color: blue;'
+     * @param {{scss?: String; data?: CustomClassStyleChunkData;}} changes Example: {scss: 'color: blue;'}
      * @param {StyleChunk} currentStyle
      * @returns {StylesBundleWithId}
      * @access public
      */
-    updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(updatedScssCode, currentStyle) {
+    updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(changes, currentStyle) {
         const updated = this.styles.map(s =>
-            s !== currentStyle ? s : {...s, scss: updatedScssCode}
+            s !== currentStyle ? s : {...s, ...changes}
         );
         return this.commitAll(updated);
     }

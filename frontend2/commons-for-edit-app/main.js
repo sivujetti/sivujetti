@@ -42,6 +42,7 @@ import {putToLocalStorage, getFromLocalStorage, getAndPutAndGetToLocalStorage} f
 import blockTreeUtils from './block/tree-utils.js';
 import {writeBlockProps} from './block/utils.js';
 import scssUtils from './styles/scss-utils.js';
+import DefaultStyleMutationsEditForm from './styles/DefaultStyleMutationsEditForm.jsx';
 import {
     determineModeFrom,
     determineModeFromPreview,
@@ -71,6 +72,7 @@ export {
     ColorPickerInput,
     createCssDeclExtractor,
     createPaddingVarDefs,
+    DefaultStyleMutationsEditForm,
     determineModeFrom,
     determineModeFromPreview,
     doubleNormalizeUrl,

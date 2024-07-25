@@ -344,6 +344,7 @@ h2 {
 }
 .jsPanel .jsPanel-content {
     padding: 0 1rem 1rem 1rem;
+    scrollbar-width: thin;
 }
 .jsPanel-headerbar {
     padding: 1rem;
@@ -854,7 +855,8 @@ a.popup-close-area {
     transition: var(--toggle-button-opacity-transition);
 }
 .styles-list .row-item:hover + .row-item,
-.styles-list .row-item:last-child:hover {
+.styles-list .row-item:last-child:hover,
+.styles-list .row-item:last-child:focus {
     opacity: 1;
 }
 .styles-list .row-item > svg {

@@ -15,8 +15,8 @@ class OptionValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({value, options, isClearable, labelTranslated, showNotice, noticeDismissedWith}) {
-        const selectedVisible = value.selected;
+    render({value, options, defaultThemeValue, isClearable, labelTranslated, showNotice, noticeDismissedWith}) {
+        const selectedVisible = value.selected || defaultThemeValue?.selected;
         return <FormGroupInline>
             <label class="form-label p-relative pt-1" htmlFor={ this.inputId } title={ labelTranslated }>
                 { labelTranslated }

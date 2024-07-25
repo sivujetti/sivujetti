@@ -14,7 +14,7 @@ import {
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
 import {getIsStoredToTreeIdFrom, isMetaBlock} from '../../includes/block/utils.js';
-import ClassChunkStylesList, {extractClassName} from '../block-styles/ClassChunkStylesList.jsx';
+import CustomClassStylesList, {extractClassName} from '../block-styles/CustomClassStylesList.jsx';
 import StyleClassesPicker from '../block-styles/StyleClassesPicker.jsx';
 import {createInitialTabKind, createTabsInfo} from '../block-styles/style-tabs-commons.js';
 /** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
@@ -154,7 +154,7 @@ class BlockEditForm extends preact.Component {
                         stylesStateId={ this.state.stylesStateId }/>;
                 } else if (itm.kind === 'dev-styles') {
                     content = [
-                        <ClassChunkStylesList
+                        <CustomClassStylesList
                             blockId={ blockId }
                             checkIsChunkActive={ createIsChunkStyleEnabledChecker(blockCopyForEditForm.styleClasses) }
                             stylesStateId={ this.state.stylesStateId }/>,

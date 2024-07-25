@@ -38,7 +38,8 @@ class CustomClassStylesList extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.stylesStateId !== this.props.stylesStateId) {
+        if (props.stylesStateId !== this.props.stylesStateId ||
+            props.styleClasses !== this.props.styleClasses) {
             const next = createChunksState();
             const {styleChunksVisible, listItemIsOpens} = this.state;
             const end = styleChunksVisible.length;
@@ -270,7 +271,7 @@ function addOrRemoveStyleClass(type, chunkClass, to) {
 }
 
 /**
- * @typedef {{blockId: string; stylesStateId: number; checkIsChunkActive: (chunk: StyleChunk) => boolean;}} CustomClassStylesListProps
+ * @typedef {{blockId: string; stylesStateId: number; checkIsChunkActive: (chunk: StyleChunk) => boolean; styleClasses: string;}} CustomClassStylesListProps
  */
 
 export default CustomClassStylesList;

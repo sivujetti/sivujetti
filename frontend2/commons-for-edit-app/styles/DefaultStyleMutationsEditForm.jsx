@@ -44,7 +44,8 @@ class DefaultStyleMutationsEditForm extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.stylesStateId !== this.props.stylesStateId) {
+        if (props.stylesStateId !== this.props.stylesStateId ||
+            props.styleClasses !== this.props.styleClasses) {
             const [scopes, styleChunks] = this.createCssVarsMapsInternal(props);
             if (JSON.stringify(scopes) !== JSON.stringify(this.state.styleScreens)) {
                 this.styleChunks = styleChunks;
@@ -209,7 +210,7 @@ function getAllChunks() {
 }
 
 /**
- * @typedef {{blockId: string; stylesStateId: number; checkIsChunkActive: (chunk: StyleChunk) => boolean;}} DefaultStyleMutationsEditFormProps
+ * @typedef {{blockId: string; stylesStateId: number; checkIsChunkActive: (chunk: StyleChunk) => boolean; styleClasses: string;}} DefaultStyleMutationsEditFormProps
  */
 
 export default DefaultStyleMutationsEditForm;

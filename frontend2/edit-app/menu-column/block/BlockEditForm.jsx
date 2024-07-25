@@ -47,7 +47,7 @@ class BlockEditForm extends preact.Component {
             getAndPutAndGetToLocalStorage('content', 'sivujettiLastBlockEditFormTabKind'),
             this.tabsInfo
         );
-        this.setState(createState(currentTabKind, this.props.block));
+        this.setState(createState(currentTabKind, objectUtils.cloneDeep(this.props.block)));
 
         this.unregistrables = [saveButton.subscribeToChannel('theBlockTree', (theTree, userCtx, ctx, flags) => {
             const event = userCtx?.event || '';
@@ -151,13 +151,15 @@ class BlockEditForm extends preact.Component {
                     content = <Renderer
                         blockId={ blockId }
                         checkIsChunkActive={ createIsChunkStyleEnabledChecker(blockCopyForEditForm.styleClasses) }
-                        stylesStateId={ this.state.stylesStateId }/>;
+                        stylesStateId={ this.state.stylesStateId }
+                        styleClasses={ blockCopyForEditForm.styleClasses }/>;
                 } else if (itm.kind === 'dev-styles') {
                     content = [
                         <CustomClassStylesList
                             blockId={ blockId }
                             checkIsChunkActive={ createIsChunkStyleEnabledChecker(blockCopyForEditForm.styleClasses) }
-                            stylesStateId={ this.state.stylesStateId }/>,
+                            stylesStateId={ this.state.stylesStateId }
+                            styleClasses={ blockCopyForEditForm.styleClasses }/>,
                         <StyleClassesPicker
                             currentClasses={ blockCopyForEditForm.styleClasses }
                             onClassesChanged={ newClasses => {
@@ -186,7 +188,10 @@ class BlockEditForm extends preact.Component {
      */
     changeTab(toKind) {
         putToLocalStorage(toKind, 'sivujettiLastBlockEditFormTabKind');
-        this.setState(createState(toKind, this.props.block));
+        this.setState(createState(
+            toKind,
+            this.state.blockCopyForEditForm || objectUtils.cloneDeep(this.props.block)
+        ));
     }
     /**
      * @param {{[key: String]: any;}} changes
@@ -250,13 +255,13 @@ function createTabConfig(editFormType, hasStylesForm) {
 
 /**
  * @param {tabKind} newTabKind
- * @param {Object} thisPropsBlock
+ * @param {Object} block
  * @returns {Object}
  */
-function createState(newTabKind, thisPropsBlock) {
-    const  out =  {
+function createState(newTabKind, block) {
+    const out =  {
         currentTabKind: newTabKind,
-        blockCopyForEditForm: objectUtils.cloneDeep(thisPropsBlock),
+        blockCopyForEditForm: block,
         ...(doesTabContainStylesStuff(newTabKind)
             ? {stylesStateId: api.saveButton.getInstance().getChannelState('stylesBundle')?.id}
             : {}

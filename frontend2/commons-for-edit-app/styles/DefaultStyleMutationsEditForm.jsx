@@ -166,6 +166,7 @@ class DefaultStyleMutationsEditForm extends preact.Component {
                 codeTemplate,
                 valNorm,
                 this.props.blockId,
+                this.props.blockIsStoredToTreeId,
             );
         } else {
             const selectedScreenSizeVars = styleScreens[curScreenSizeTabIdx] || {};
@@ -210,7 +211,7 @@ function getAllChunks() {
 }
 
 /**
- * @typedef {{blockId: string; stylesStateId: number; checkIsChunkActive: (chunk: StyleChunk) => boolean; styleClasses: string;}} DefaultStyleMutationsEditFormProps
+ * @typedef {{blockId: string; blockIsStoredToTreeId: 'main'|string; stylesStateId: number; checkIsChunkActive: (chunk: StyleChunk) => boolean; styleClasses: string;}} DefaultStyleMutationsEditFormProps
  */
 
 export default DefaultStyleMutationsEditForm;

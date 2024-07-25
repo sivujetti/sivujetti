@@ -290,7 +290,8 @@ class Section2CombinedBlockAndStylesEditForm extends BlockVisualStylesEditForm {
                 const pcs = newScss[1].split('grid-template-columns: '); // ['  ', 'minmax(0, 1fr);']
                 return pcs[1].slice(0, -1);                              // 'minmax(0, 1fr)'
             })(),
-            this.props.blockId
+            this.props.blockId,
+            'main',
         );
         emitNewStyles(updatedAll);
     }

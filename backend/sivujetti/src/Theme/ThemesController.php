@@ -87,10 +87,7 @@ final class ThemesController {
             ->execute();
         $db2->insert("\${p}pageThemeStyles", orReplace: true)
             ->values((object) [
-                "chunks" => JsonUtils::stringify((object) [
-                    "styleChunks" => array_map(self::inputToStorableChunk(...), $pageChunks),
-                    "cachedCompiledCss" => "",
-                ]),
+                "chunks" => JsonUtils::stringify(array_map(self::inputToStorableChunk(...), $pageChunks)),
                 "pageId" => $req->body->pageId,
                 "pageType" => $req->body->pageType,
                 "themeId" => $req->params->themeId,
@@ -213,13 +210,14 @@ final class ThemesController {
      * @return object
      */
     private static function inputToStorableChunk(object $input): object {
+        $pageIdPair = $input->scope->page ?? null;
         return (object) [
             "scss" => $input->scss,
             "data" => self::createData($input),
             "scope" => (object) [
                 "kind" => $input->scope->kind,
                 "layer" => $input->scope->layer,
-                "page" => $input->scope->page,
+                ...($pageIdPair ? ["page" => $pageIdPair] : []),
             ]
         ];
     }

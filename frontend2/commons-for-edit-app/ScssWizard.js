@@ -69,18 +69,19 @@ class ScssWizard {
      */
     findStyle(scopeKind, scopeSpecifier, mediaScopeId = 'all', layer = 'user-styles') {
         return scopeSpecifier !== undefined
-            ? this.findStyleWithSpecifier(scopeKind, scopeSpecifier, mediaScopeId, layer)
-            : this.findStyleWithoutSpecifier(scopeKind, mediaScopeId, layer);
+            ? this.findStyleWithSpecifier(scopeKind, scopeSpecifier, layer)
+            : this.findStyleWithoutSpecifier(scopeKind, layer);
     }
     /**
      * @param {scssCodeInput} codeTemplate Examples 'color: red', 'ul li {\n  flex: 0 0 100%;\n}', [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
      * @param {String} val
      * @param {String} blockId
+     * @param {'main'|String} blockTreeId
      * @returns {StylesBundleWithId}
      * @access public
      */
-    addNewUniqueScopeChunkAndReturnAllRecompiled(codeTemplate, val, blockId) {
-        const updated = this.doAddFirstScssChunk(codeTemplate, val, blockId);
+    addNewUniqueScopeChunkAndReturnAllRecompiled(codeTemplate, val, blockId, blockTreeId) {
+        const updated = this.doAddFirstScssChunk(codeTemplate, val, blockId, blockTreeId);
         return this.commitAll(updated);
     }
     /**
@@ -285,16 +286,18 @@ class ScssWizard {
      * @param {scssCodeInput} codeTemplate
      * @param {String} val
      * @param {String} blockId
+     * @param {'main'|String} blockTreeId
      * @returns {StylesBundleWithId}
      * @access private
      */
-    doAddFirstScssChunk(inputCodeTemplate, val, blockId) {
+    doAddFirstScssChunk(inputCodeTemplate, val, blockId, blockTreeId) {
         if (!Array.isArray(inputCodeTemplate))
             return [
                 ...this.styles,
                 this.createNewUniqueChunk(
                     createScssBlock(inputCodeTemplate.replace(/%s/g, val), `${createSelector(blockId)} {`),
                     blockId,
+                    blockTreeId,
                 )
             ];
         else
@@ -307,6 +310,7 @@ class ScssWizard {
                         '}'
                     ].join('\n'),
                     blockId,
+                    blockTreeId,
                 )
             ];
     }
@@ -336,28 +340,26 @@ class ScssWizard {
     }
     /**
      * @param {styleScopeKind} scopeKind
-     * @param {mediaScope} mediaScopeId
      * @param {stylesLayer} layer
      * @returns {StyleChunk|null}
      * @access private
      */
-    findStyleWithoutSpecifier(scopeKind, mediaScopeId, layer) {
+    findStyleWithoutSpecifier(scopeKind, layer) {
         return this.styles.find(({scope}) =>
-            scope.kind === scopeKind && scope.media === mediaScopeId && scope.layer === layer
+            scope.kind === scopeKind && scope.layer === layer
         ) || null;
     }
     /**
      * @param {styleScopeKind} scopeKind
      * @param {String} scopeSpecifier
-     * @param {mediaScope} mediaScopeId
      * @param {stylesLayer} layer
      * @returns {StyleChunk|null}
      * @access private
      */
-    findStyleWithSpecifier(scopeKind, scopeSpecifier, mediaScopeId, layer) {
+    findStyleWithSpecifier(scopeKind, scopeSpecifier, layer) {
         const lookFor = createSelector(scopeSpecifier, scopeKind);
         return this.styles.find(({scope, scss}) =>
-            scope.kind === scopeKind && scope.media === mediaScopeId && scope.layer === layer && scss.startsWith(lookFor)
+            scope.kind === scopeKind && scope.layer === layer && scss.startsWith(lookFor)
         ) || null;
     }
     /**
@@ -409,7 +411,11 @@ class ScssWizard {
     commitAll(newStylesArr, mediaScopeIdOrIds) {
         this.styles = newStylesArr;
 
-        const compiledNew = stylesToBaked(this.styles);
+        const compiledNew = stylesToBaked(
+            this.styles,
+            this.cachedCompiledCss,
+            this.currentPageIdPair
+        );
         if (compiledNew.length > 1024000) throw new Error('??');
 
         this.cachedCompiledCss = compiledNew;
@@ -425,15 +431,20 @@ class ScssWizard {
     /**
      * @param {String} scss
      * @param {String} blockId
+     * @param {'main'|String} blockTreeId
      * @param {stylesLayer} layer = 'user-styles'
      * @returns {StyleChunk}
      * @access private
      */
-    createNewUniqueChunk(scss, blockId, layer = 'user-styles') {
+    createNewUniqueChunk(scss, blockId, blockTreeId, layer = 'user-styles') {
         if (this.findStyle('single-block', blockId, 'all', layer))
             throw new Error(`Unique style ${blockId}:${layer} already exist`);
         return {
-            scope: {kind: 'single-block', page: this.currentPageIdPair, layer},
+            scope: {
+                kind: 'single-block',
+                layer,
+                ...(blockTreeId === 'main' ? {page: this.currentPageIdPair} : {}),
+            },
             scss,
         };
     }

@@ -34,12 +34,14 @@ function createCssDeclExtractor(scss) {
 
 /**
  * @param {Array<StyleChunk>} styles
+ * @param {String} cachedCompiledCss
+ * @param {String} pageIdPair
  * @returns {String} '@import "maybeExternalImport";@font-face {<maybeLocalImport>}@layer base-styles {\n<compiled>\n}\n@layer user-styles {\n<compiled>\n}\n@layer dev-styles {\n<compiled>\n}\n'
  */
-function stylesToBaked(styles) {
+function stylesToBaked(styles, cachedCompiledCss, pageIdPair) {
     if (!styles.length) return '';
 
-    const {hoisted, base, user, dev} = styles.reduce((out, s) => {
+    const {hoisted, base, userGlobal, userPageScoped, dev} = styles.reduce((out, s) => {
         const {scope} = s;
         if (scope.layer === 'base-styles' && scope.kind === 'base-freeform') {
             const [hoistedLines, hoistedLineIdxes] = hoistImportsIfAny(s.scss);
@@ -55,25 +57,76 @@ function stylesToBaked(styles) {
         }
         if (scope.layer === 'base-styles')
             return {...out, base: [...out.base, s]};
-        if (scope.layer === 'user-styles' && (scope.kind === 'single-block'))
-            return {...out, user: [...out.user, s]};
+        if (scope.layer === 'user-styles' && scope.kind === 'single-block')
+            return !scope.page
+                ? {...out, userGlobal: [...out.userGlobal, s]}
+                : {...out, userPageScoped: [...out.userPageScoped, s]};
         if (scope.layer === 'dev-styles')
             return {...out, dev: [...out.dev, s]};
         return out;
-    }, {base: [], user: [], dev: [], hoisted: []});
+    }, {base: [], userGlobal: [], userPageScoped: [], dev: [], hoisted: []});
+
+    const NO_CSS = '/* - */';
+
+    const userGlobalCss = userGlobal.length
+        ? serialize(compile(userGlobal.map(({scss}) => scss).join('')), stringify)
+        : NO_CSS;
+    const currentPageCss = userPageScoped.length
+        ? serialize(compile(userPageScoped.map(({scss}) => scss).join('')), stringify)
+        : null;
+    const updateCurrentPageCss = createCompiledPageScopedLinesUpdateFn(cachedCompiledCss, pageIdPair);
+    const userPageCss = updateCurrentPageCss(currentPageCss)?.filter(line => line !== NO_CSS).join('\n') || NO_CSS;
 
     return [
         ...(hoisted.length ? hoisted : ['']),
         '@layer base-styles {\n',
-        serialize(compile(base.map(({scss}) => scss).join('')), stringify),
+            serialize(compile(base.map(({scss}) => scss).join('')), stringify),
         '\n}\n',
         '@layer user-styles {\n',
-        serialize(compile(user.map(({scss}) => scss).join('')), stringify),
-        '\n}\n',
+            '/* == global-scoped:start */\n',
+            userGlobalCss, '\n',
+            '/* == global-scoped:end */\n',
+            '/* == page-scoped:start */\n',
+            userPageCss, '\n',
+            '/* == page-scoped:end */\n',
+        '}\n',
         '@layer dev-styles {\n',
-        serialize(compile(dev.map(({scss}) => scss).join('')), stringify),
-        '\n}\n',
+            serialize(compile(dev.map(({scss}) => scss).join('')), stringify), '\n',
+        '}\n',
     ].join('');
+}
+
+/**
+ * @param {String} currentCachedCompiledCss
+ * @param {String} pageIdPair
+ * @returns {(newCssForThisPage: String|null) => Array<String>|null}
+ */
+function createCompiledPageScopedLinesUpdateFn(currentCachedCompiledCss, pageIdPair) {
+    const prevLines = getPageScopedLines(currentCachedCompiledCss.split('\n'));
+    const posBefore = prevLines.indexOf(`/* page:${pageIdPair} */`) + 2;
+
+    // Found line pair, return a function that replaces the previous line with the new one
+    if (posBefore > 1)
+        return newCssForThisPage => {
+            prevLines.map((l, i) => i !== posBefore ? l : newCssForThisPage);
+        };
+    // Didn't find, return a function that adds the new to the end of page scoped lines
+    else
+        return newCssForThisPage => {
+            if (!newCssForThisPage)
+                return null;
+            return [...prevLines, `/* page:${pageIdPair} */`, newCssForThisPage];
+        };
+}
+
+/**
+ * @param {Array<String>} linesAll
+ * @returns {Array<String>}
+ */
+function getPageScopedLines(linesAll) {
+    const idxFrom = linesAll.indexOf('/* == page-scoped:start */') + 1;
+    const idxTo = linesAll.indexOf('/* == page-scoped:end */');
+    return linesAll.slice(idxFrom, idxTo);
 }
 
 /**

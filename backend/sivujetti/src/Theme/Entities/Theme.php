@@ -51,7 +51,7 @@ final class Theme extends \stdClass {
     }
     /**
      * @param ?object $stylesRow = null
-     * @psalm-param ?object{globalStyleChunkBundlesJson: string, pageStyleChunkBundlesJson: string|null} $stylesRow = null
+     * @psalm-param ?object{globalStyleChunkBundlesJson: string, pageStyleChunksJson: string|null} $stylesRow = null
      */
     public function loadStyles(?object $stylesRow = null): void {
         if (!$this->__stash) return;
@@ -62,12 +62,14 @@ final class Theme extends \stdClass {
             $this->globalStyles = JsonUtils::parse($themeRow->themeGlobalStylesJson);
             $this->stylesOrder = [];
 
+            /** @psalm-var object{styleChunks: StyleChunk[], cachedCompiledCss: string}|null */
             $parsed = JsonUtils::parse($stylesRow->globalStyleChunkBundlesJson);
             $this->styles->cachedCompiledCss = $parsed->cachedCompiledCss;
 
-            $parsed2 = $stylesRow->pageStyleChunkBundlesJson ? JsonUtils::parse($stylesRow->pageStyleChunkBundlesJson) : null;
-            $this->styles->styleChunks = $parsed2?->styleChunks
-                ? [...$parsed->styleChunks, ...$parsed2->styleChunks]
+            /** @psalm-var array<int, StyleChunk>|null */
+            $parsed2 = $stylesRow->pageStyleChunksJson ? JsonUtils::parse($stylesRow->pageStyleChunksJson) : null;
+            $this->styles->styleChunks = $parsed2
+                ? [...$parsed->styleChunks, ...$parsed2]
                 : $parsed->styleChunks;
         }
         unset($this->themeGlobalStylesJson);

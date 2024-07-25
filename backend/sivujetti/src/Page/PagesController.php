@@ -594,11 +594,11 @@ final class PagesController {
      * @param string $themeId
      * @param \Sivujetti\Page\Entities\Page $page
      * @return \stdClass|null
-     * @psalm-return object{globalStyleChunkBundlesJson: string, pageStyleChunkBundlesJson: string|null}|null
+     * @psalm-return object{globalStyleChunkBundlesJson: string, pageStyleChunksJson: string|null}|null
      */
     private static function fetchThemeStyles(FluentDb2 $db2, string $themeId, Page $page): \stdClass|null {
         return $db2->select("\${p}themes t")
-            ->fields(["t.styleChunkBundlesAll AS globalStyleChunkBundlesJson", "ps.`chunks` AS pageStyleChunkBundlesJson"])
+            ->fields(["t.styleChunkBundlesAll AS globalStyleChunkBundlesJson", "ps.`chunks` AS pageStyleChunksJson"])
             ->leftJoin("\${p}pageThemeStyles ps ON (ps.`themeId` = t.`id` AND ps.`pageId` = ? AND ps.`pageType` = ?)")
             ->where("t.`id` = ?", [$page->id, $page->type, $themeId])
             ->fetch(\PDO::FETCH_OBJ) ?? null;

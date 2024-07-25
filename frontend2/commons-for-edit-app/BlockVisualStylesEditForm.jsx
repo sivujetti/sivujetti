@@ -193,6 +193,7 @@ class BlockVisualStylesEditForm extends preact.Component {
                 codeTemplate,
                 valNorm,
                 this.props.blockId,
+                'main',
             );
         } else {
             const selectedScreenSizeVars = styleScreens[curScreenSizeTabIdx] || {};

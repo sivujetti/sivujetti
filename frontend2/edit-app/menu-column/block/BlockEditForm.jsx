@@ -68,6 +68,7 @@ class BlockEditForm extends preact.Component {
                 if (!block || this.state.blockCopyForEditForm.id !== block.id) return;
                 if (JSON.stringify(this.state.blockCopyForEditForm.propsData) !== JSON.stringify(block.propsData) ||
                     this.state.blockCopyForEditForm.styleClasses !== block.styleClasses) {
+                    this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, theTree);
                     this.setState({
                         blockCopyForEditForm: objectUtils.cloneDeep(block),
                         lastBlockTreeChangeEventInfo: {ctx, flags, isUndoOrRedo: isIt}
@@ -150,6 +151,7 @@ class BlockEditForm extends preact.Component {
                     const Renderer = this.stylesEditForm;
                     content = <Renderer
                         blockId={ blockId }
+                        blockIsStoredToTreeId={ this.blockIsStoredToTreeId }
                         checkIsChunkActive={ createIsChunkStyleEnabledChecker(blockCopyForEditForm.styleClasses) }
                         stylesStateId={ this.state.stylesStateId }
                         styleClasses={ blockCopyForEditForm.styleClasses }/>;
@@ -188,10 +190,9 @@ class BlockEditForm extends preact.Component {
      */
     changeTab(toKind) {
         putToLocalStorage(toKind, 'sivujettiLastBlockEditFormTabKind');
-        this.setState(createState(
-            toKind,
-            this.state.blockCopyForEditForm || objectUtils.cloneDeep(this.props.block)
-        ));
+        const block = this.state.blockCopyForEditForm || objectUtils.cloneDeep(this.props.block);
+        this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, 'mainTree');
+        this.setState(createState(toKind, block));
     }
     /**
      * @param {{[key: String]: any;}} changes

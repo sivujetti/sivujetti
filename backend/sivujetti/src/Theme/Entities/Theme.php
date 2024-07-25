@@ -50,20 +50,25 @@ final class Theme extends \stdClass {
         return $out;
     }
     /**
-     * @param ?string $styleChunkBundlesJson = null
+     * @param ?object $stylesRow = null
+     * @psalm-param ?object{globalStyleChunkBundlesJson: string, pageStyleChunkBundlesJson: string|null} $stylesRow = null
      */
-    public function loadStyles(?string $styleChunkBundlesJson = null): void {
+    public function loadStyles(?object $stylesRow = null): void {
         if (!$this->__stash) return;
-        $row = $this->__stash[0];
-        $this->stylesLastUpdatedAt = array_map(fn($s) => (int)$s, explode(",", $row->themeStylesLastUpdatedAt));
+        $themeRow = $this->__stash[0];
+        $this->stylesLastUpdatedAt = array_map(fn($s) => (int)$s, explode(",", $themeRow->themeStylesLastUpdatedAt));
 
-        if ($styleChunkBundlesJson) {
-            $this->globalStyles = JsonUtils::parse($row->themeGlobalStylesJson);
+        if ($stylesRow?->globalStyleChunkBundlesJson) {
+            $this->globalStyles = JsonUtils::parse($themeRow->themeGlobalStylesJson);
             $this->stylesOrder = [];
 
-            $parsed = JsonUtils::parse($styleChunkBundlesJson);
-            $this->styles->styleChunks = $parsed->styleChunks;
-            $this->styles->cachedCompiledScreenSizesCss = $parsed->cachedCompiledScreenSizesCss;
+            $parsed = JsonUtils::parse($stylesRow->globalStyleChunkBundlesJson);
+            $this->styles->cachedCompiledCss = $parsed->cachedCompiledCss;
+
+            $parsed2 = $stylesRow->pageStyleChunkBundlesJson ? JsonUtils::parse($stylesRow->pageStyleChunkBundlesJson) : null;
+            $this->styles->styleChunks = $parsed2?->styleChunks
+                ? [...$parsed->styleChunks, ...$parsed2->styleChunks]
+                : $parsed->styleChunks;
         }
         unset($this->themeGlobalStylesJson);
         unset($this->themeStylesCachedCompiledScreenSizesCssHashes);

@@ -2,16 +2,15 @@
 
 namespace Sivujetti\Theme;
 
-use Pike\Db\{FluentDb, FluentDb2};
+use Pike\Db\{FluentDb2};
 use Pike\{FileSystem, PikeException, Request, Response, Validation};
 use Pike\Auth\Crypto;
 use Pike\Validation\ObjectValidator;
-use Sivujetti\BlockType\Entities\{BlockTypes};
 use Sivujetti\{JsonUtils, ValidationUtils};
-use Sivujetti\Block\BlockTree;
 
 /**
  * @psalm-import-type ThemeStyleUnit from \Sivujetti\Theme\Entities\Style
+ * @psalm-import-type StyleChunk from \Sivujetti\Block\Entities\Block
  */
 final class ThemesController {
     /**
@@ -19,38 +18,18 @@ final class ThemesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb $db
+     * @param \Pike\Db\FluentDb2 $db2
      */
-    public function getStyles(Request $req, Response $res, FluentDb $db): void {
+    public function getStyles(Request $req, Response $res, FluentDb2 $db2): void {
         throw new \RuntimeException("todo");
     }
     /**
      * PUT /api/themes/:themeId/styles/scope-block-type/:blockTypeName: Overwrites
      * $req->params->blockTypeName's styles of $req->params->themeId theme.
      *
-     * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb $db
-     * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
-     * @param \Pike\FileSystem $fs
      */
-    public function upsertBlockTypeScopedStyles(Request $req,
-                                                Response $res,
-                                                FluentDb $db,
-                                                BlockTypes $blockTypes,
-                                                FileSystem $fs): void {
-        $errors1 = $this->doUpsertStyles($req, $db, $blockTypes, $fs);
-        //
-        $errors = $errors1 ? $errors1 : (
-            property_exists($req->body, "connectedUnits") && is_string($req->body->connectedUnitsBlockTypeName ?? null)
-                ? $this->doUpsertStyles($req, $db, $blockTypes, $fs, $req->body->connectedUnitsBlockTypeName)
-                : []
-        );
-        if ($errors) {
-            $res->status(400)->json($errors);
-            return;
-        }
-        //
+    public function upsertBlockTypeScopedStyles(Response $res): void {
         $res->json(["ok" => "ok"]);
     }
     /**
@@ -58,13 +37,11 @@ final class ThemesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb $db
      * @param \Pike\Db\FluentDb2 $db2
      * @param \Pike\FileSystem $fs
      */
     public function upsertStyleChunksAll(Request $req,
                                          Response $res,
-                                         FluentDb $db,
                                          FluentDb2 $db2,
                                          FileSystem $fs): void {
         $errors = self::addRulesForStyleChunks(Validation::makeObjectValidator())
@@ -77,16 +54,6 @@ final class ThemesController {
         }
 
         $whereArgs = ["`id` = ?", [$req->params->themeId]];
-        if (!defined("USE_NEW_FLUENT_DB")) {
-        $current = $db->select("\${p}themes", "stdClass")
-            ->fields(["name", "cachedCompiledScreenSizesCssHashes"])
-            ->where(...$whereArgs)
-            ->fetch();
-        if (!$current)
-            throw new PikeException("Theme `{$req->params->themeId}` doesn't exist", PikeException::BAD_INPUT);
-        $current->cachedScreenSizesCssHashes = explode(",", $current->cachedCompiledScreenSizesCssHashes);
-        unset($current->cachedCompiledScreenSizesCssHashes);
-        } else {
         $current = $db2->select("\${p}themes")
             ->fields(["name", "cachedCompiledScreenSizesCssHashes", "stylesLastUpdatedAt"])
             ->where(...$whereArgs)
@@ -97,7 +64,6 @@ final class ThemesController {
             ]);
         if (!$current)
             throw new PikeException("Theme `{$req->params->themeId}` doesn't exist", PikeException::BAD_INPUT);
-        }
 
         $newCompiledCss = $req->body->cachedCompiledCss;
         [
@@ -106,17 +72,29 @@ final class ThemesController {
             $newLastUpdatedAts,
         ] = self::createNewBundle($newCompiledCss, $current);
 
-        $db3 = !defined("USE_NEW_FLUENT_DB") ? $db : $db2;
-        $db3->update("\${p}themes")
+        [$globalChunks, $pageChunks] = self::splitChunksToStorageGoups($req->body->styleChunks);
+
+        $db2->update("\${p}themes")
             ->values((object) [
                 "styleChunkBundlesAll" => JsonUtils::stringify([
-                    "styleChunks" => array_map(self::inputToStorableChunk(...), $req->body->styleChunks),
+                    "styleChunks" => array_map(self::inputToStorableChunk(...), $globalChunks),
                     "cachedCompiledCss" => $newCompiledCss,
                 ]),
                 "cachedCompiledScreenSizesCssHashes" => implode(",", $newCompiledScreenHashes),
                 "stylesLastUpdatedAt" => implode(",", $newLastUpdatedAts),
             ])
             ->where(...$whereArgs)
+            ->execute();
+        $db2->insert("\${p}pageThemeStyles", orReplace: true)
+            ->values((object) [
+                "chunks" => JsonUtils::stringify((object) [
+                    "styleChunks" => array_map(self::inputToStorableChunk(...), $pageChunks),
+                    "cachedCompiledCss" => "",
+                ]),
+                "pageId" => $req->body->pageId,
+                "pageType" => $req->body->pageType,
+                "themeId" => $req->params->themeId,
+            ])
             ->execute();
 
         foreach ($newCompiledFilesData as $itm) {
@@ -126,92 +104,12 @@ final class ThemesController {
         $res->json(["ok" => "ok"]);
     }
     /**
-     * @param string $newCompiledCss
-     * @param object $currentTheme
-     * @psalm-param object{name: string, cachedScreenSizesCssHashes: string[], stylesLastUpdatedAt: int[]} $currentTheme
-     * @return array[]
-     * @psalm-return [[string], [array{filePath: string, contents: string}|null], [int]]
-     */
-    private static function createNewBundle(string $newCompiledCss,
-                                             object $currentTheme): array {
-        $crypto = new Crypto;
-        $newHashes = [$crypto->hash("sha256", $newCompiledCss)];
-
-        $now = time();
-        $at = !defined("I_LIKE_TES") ? gmdate("D, M d Y H:i:s e", $now) : self::tesDate($now);
-        $newFilesData = [self::mediaScopeCssHasChanged(0, $newHashes, $currentTheme->cachedScreenSizesCssHashes)
-            ? [
-                "filePath" => SIVUJETTI_INDEX_PATH . "public/{$currentTheme->name}-generated.css",
-                "contents" => (
-                    "@charset \"utf-8\";\n" .
-                    "\n/* Generated by Sivujetti at {$at} */\n" .
-                    "\n/* ==== Generated styles start ==== */\n" .
-                    $newCompiledCss .
-                    "\n/* ==== Generated styles end ==== */\n"
-                )
-            ]
-            : null
-        ];
-
-        $newTimes = [$newFilesData[0] ? $now : $currentTheme->stylesLastUpdatedAt[0]];
-
-        return [
-            $newHashes,
-            $newFilesData,
-            $newTimes,
-        ];
-    }
-    /**
-     * @param object $input
-     * @return object
-     */
-    private static function inputToStorableChunk(object $input): object {
-        return (object) [
-            "scss" => $input->scss,
-            "data" => self::createData($input),
-            "scope" => (object) [
-                "kind" => $input->scope->kind,
-                "media" => $input->scope->media,
-                "layer" => $input->scope->layer,
-                "page" => $input->scope->page,
-            ]
-        ];
-    }
-    /**
-     * @param object $input
-     * @return object|null
-     */
-    private static function createData(object $input): ?object {
-        if (($data = $input->data ?? null)) {
-            if ($input->scope->kind === "custom-class")
-                return (object) [
-                    ...(($data->title ?? null) ? ["title" => substr($data->title, 0, ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)] : []),
-                    ...(($data->mutationRules ?? null) ? ["mutationRules" => $data->mutationRules] : []),
-                ];
-        }
-        return null;
-    }
-    /**
      * PUT /api/themes/:themeId/styles/global: Overwrites $req->params->themeId
      * theme's global styles.
      *
-     * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb $db
      */
-    public function updateGlobalStyles(Request $req, Response $res, FluentDb $db): void {
-        if (($errors = $this->validateOverwriteGlobalStylesInput($req->body))) {
-            $res->status(400)->json($errors);
-            return;
-        }
-        $numRows = $db->update("\${p}themes")
-            ->values((object) ["globalStyles" => json_encode($req->body->allStyles, JSON_UNESCAPED_UNICODE)])
-            ->where("`id` = ?", [$req->params->themeId])
-            ->execute();
-        if ($numRows !== 1) {
-            $res->status(404)->json(["ok" => "err"]);
-            return;
-        }
+    public function updateGlobalStyles(Response $res): void {
         $res->json(["ok" => "ok"]);
     }
     /**
@@ -270,8 +168,89 @@ final class ThemesController {
             ->rule("{$propName}.*.scss", "type", "string")
             ->rule("{$propName}.*.scope.kind", "in", ["single-block", "custom-class", "base-vars", "base-freeform"])
             ->rule("{$propName}.*.scope.page?", "type", "string")
+            ->rule("{$propName}.*.scope.page?", "maxLength", 160)
             ->rule("{$propName}.*.scope.layer", "in", ["user-styles", "dev-styles", "base-styles"])
             ->rule("{$propName}.*.data?", "type", "object");
+    }
+    /**
+     * @param string $newCompiledCss
+     * @param object $currentTheme
+     * @psalm-param object{name: string, cachedScreenSizesCssHashes: string[], stylesLastUpdatedAt: int[]} $currentTheme
+     * @return array[]
+     * @psalm-return [[string], [array{filePath: string, contents: string}|null], [int]]
+     */
+    private static function createNewBundle(string $newCompiledCss,
+                                             object $currentTheme): array {
+        $crypto = new Crypto;
+        $newHashes = [$crypto->hash("sha256", $newCompiledCss)];
+
+        $now = time();
+        $at = !defined("I_LIKE_TES") ? gmdate("D, M d Y H:i:s e", $now) : self::tesDate($now);
+        $newFilesData = [self::mediaScopeCssHasChanged(0, $newHashes, $currentTheme->cachedScreenSizesCssHashes)
+            ? [
+                "filePath" => SIVUJETTI_INDEX_PATH . "public/{$currentTheme->name}-generated.css",
+                "contents" => (
+                    "@charset \"utf-8\";\n" .
+                    "\n/* Generated by Sivujetti at {$at} */\n" .
+                    "\n/* ==== Generated styles start ==== */\n" .
+                    $newCompiledCss .
+                    "\n/* ==== Generated styles end ==== */\n"
+                )
+            ]
+            : null
+        ];
+
+        $newTimes = [$newFilesData[0] ? $now : $currentTheme->stylesLastUpdatedAt[0]];
+
+        return [
+            $newHashes,
+            $newFilesData,
+            $newTimes,
+        ];
+    }
+    /**
+     * @param object $input
+     * @return object
+     */
+    private static function inputToStorableChunk(object $input): object {
+        return (object) [
+            "scss" => $input->scss,
+            "data" => self::createData($input),
+            "scope" => (object) [
+                "kind" => $input->scope->kind,
+                "layer" => $input->scope->layer,
+                "page" => $input->scope->page,
+            ]
+        ];
+    }
+    /**
+     * @param object $input
+     * @return object|null
+     */
+    private static function createData(object $input): ?object {
+        if (($data = $input->data ?? null)) {
+            if ($input->scope->kind === "custom-class")
+                return (object) [
+                    ...(($data->title ?? null) ? ["title" => substr($data->title, 0, ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)] : []),
+                    ...(($data->mutationRules ?? null) ? ["mutationRules" => $data->mutationRules] : []),
+                ];
+        }
+        return null;
+    }
+    /**
+     * @param object[] $allChunks
+     * @psalm-param StyleChunk[] $allChunks
+     * @return array
+     * @psalm-return [StyleChunk[], StyleChunk[]]
+     */
+    private static function splitChunksToStorageGoups(array $allChunks): array {
+        $global = [];
+        $page = [];
+        foreach ($allChunks as $chunk) {
+            if (!$chunk->scope->page) $global[] = $chunk;
+            else $page[] = $chunk;
+        }
+        return [$global, $page];
     }
     /**
      * @param int $i
@@ -285,147 +264,6 @@ final class ThemesController {
         $newHash = $newCompiledScreenHashes[$i] ?? "-";
         $curHash = $curCompiledScreenHashes[$i] ?? "-";
         return $newHash !== $curHash;
-    }
-    /**
-     * @param object $input
-     * @param string $key = "units"
-     * @return string[] Error messages or []
-     */
-    private function validateUpsertScopedStyleInput(object $input, string $key = "units"): array {
-        $key = $key === "units" ? $key : "connectedUnits";
-        return Validation::makeObjectValidator()
-            ->rule($key, "type", "array")
-            ->rule("{$key}.*.id", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
-            ->rule("{$key}.*.title", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
-            ->rule("{$key}.*.scss", "type", "string")
-            ->rule("{$key}.*.generatedCss", "type", "string")
-            ->rule("{$key}.*.optimizedScss?", "type", "string")
-            ->rule("{$key}.*.optimizedGeneratedCss?", "type", "string")
-            ->rule("{$key}.*.origin", "type", "string")
-            ->rule("{$key}.*.specifier", "type", "string")
-            ->rule("{$key}.*.isDerivable", "type", "bool")
-            ->rule("{$key}.*.derivedFrom?", "type", "string")
-            ->validate($input);
-    }
-    /**
-     * @param \Pike\Request $req
-     * @param \Pike\Db\FluentDb $db
-     * @param \Sivujetti\BlockType\Entities\BlockTypes $blockTypes
-     * @param \Pike\FileSystem $fs
-     * @param ?string $unitsOnlyBlockTypeName = null
-     * @return string[] Error messages or []
-     */
-    private function doUpsertStyles(Request $req,
-                                    FluentDb $db,
-                                    BlockTypes $blockTypes,
-                                    FileSystem $fs,
-                                    ?string $unitsOnlyBlockTypeName = null): array {
-        $blockTypeName = $unitsOnlyBlockTypeName ?? $req->params->blockTypeName;
-        $isNormalUpsert = $unitsOnlyBlockTypeName === null;
-        $bodyKey = $isNormalUpsert ? "units" : "connectedUnits";
-        if ($blockTypeName !== "_body_" &&
-            !property_exists($blockTypes, $blockTypeName))
-            throw new PikeException("Unknown block type `{$blockTypeName}`.",
-                                    PikeException::BAD_INPUT);
-        if (($errors = $this->validateUpsertScopedStyleInput($req->body, $bodyKey)))
-            return $errors;
-        //
-        $db->getDb()->runInTransaction(function () use ($blockTypeName, $bodyKey, $isNormalUpsert, $req, $db, $fs) {
-            $w = ["themeId=? AND blockTypeName=?", [$req->params->themeId, $blockTypeName]];
-
-            // 1. Select current style
-            $current = $db->select("\${p}themes t", "stdClass")
-                ->fields(["t.name AS themeName", "t.generatedScopedStylesCss", "ts.units AS unitsJson"])
-                ->leftJoin("mutateThis AS ts ON (1=1)")
-                ->mutateQWith(fn($q) =>
-                    str_replace("mutateThis AS", "(SELECT units FROM \${p}themeStyles WHERE {$w[0]})", $q)
-                )
-                ->where("t.id = ?", [...$w[1],               // join
-                                     $req->params->themeId]) // where
-                ->fetch();
-            if (!$current)
-                throw new PikeException("Theme `{$req->params->themeId}` doesn't exist", PikeException::BAD_INPUT);
-
-            // 2. Overwrite it's units with $req->body->units|connectedUnits. Note: trust the input
-            $db->update("\${p}themeStyles")
-                ->values((object) ["units" => BlockTree::toJson(array_map(fn($b) => (object) [
-                    "title" => $b->title,
-                    "id" => $b->id,
-                    "scss" => $b->scss,
-                    "generatedCss" => $b->generatedCss,
-                    "optimizedScss" => $b->optimizedScss ?? null,
-                    "optimizedGeneratedCss" => $b->optimizedGeneratedCss ?? null,
-                    "origin" => $b->origin ?? "",
-                    "specifier" => $b->specifier ?? "",
-                    "isDerivable" => !($b->derivedFrom ?? null) && $b->isDerivable,
-                    "derivedFrom" => ($b->derivedFrom ?? null),
-                ], $req->body->{$bodyKey}))])
-                ->where(...$w)
-                ->execute();
-
-            $isRemoteUnitsOnly = !$isNormalUpsert;
-            if ($isRemoteUnitsOnly)
-                return;
-
-            // 3. Replace or add the updated portion from/to theme.generatedScopedStylesCss
-            $generatedCssAll = $current->generatedScopedStylesCss;
-            $updatedAll = self::addOrReplaceLines(
-                from: $generatedCssAll,
-                withLines: self::combineAndWrapCss($req->body->units, $blockTypeName) . "\n",
-                startLine: "/* -- .j-{$blockTypeName} classes start -- */\n",
-                endLine: "/* -- .j-{$blockTypeName} classes end -- */\n"
-            );
-
-            $db->update("\${p}themes")
-                ->values((object) ["generatedScopedStylesCss" => $updatedAll,
-                                    "stylesLastUpdatedAt" => time()])
-                ->where("id=?", [$req->params->themeId])
-                ->execute();
-
-            $at = !defined("I_LIKE_TES") ? gmdate("D, M d Y H:i:s e") : self::tesDate();
-            // 4. Commit to disk
-            $fs->write(SIVUJETTI_INDEX_PATH . "public/{$current->themeName}-generated.css", (
-                "@charset \"utf-8\";\n\n".
-                "/* Generated by Sivujetti at {$at} */\n\n".
-                "/* ==== Scoped styles start ==== */\n" .
-                $updatedAll .
-                "/* ==== Scoped styles end ==== */\n"
-            ));
-        });
-        return []; // No errors
-    }
-    /**
-     * @param object $input
-     * @return string[] Error messages or []
-     */
-    private function validateOverwriteGlobalStylesInput(object $input): array {
-        return Validation::makeObjectValidator()
-            ->rule("allStyles", "minLength", 1, "array")
-            ->rule("allStyles.*.name", "identifier")
-            ->rule("allStyles.*.name", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
-            ->rule("allStyles.*.friendlyName", "maxLength", ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)
-            ->rule("allStyles.*.value.type", "in", ["color"])
-            ->rule("allStyles.*.value.value", "minLength", 4, "array")
-            ->rule("allStyles.*.value.value.*", "maxLength", 2)
-            ->rule("allStyles.*.value.value.*", "stringType", "xdigit")
-            ->validate($input);
-    }
-    /**
-     * @param string $from The haystack
-     * @param string $withLines
-     * @param string $startLine
-     * @param string $endLine
-     * @return string
-     */
-    private static function addOrReplaceLines(string $from,
-                                              string $withLines,
-                                              string $startLine,
-                                              string $endLine): string {
-        $startLineStartPos = strpos($from, $startLine);
-        if ($startLineStartPos !== false) {
-            return self::replaceLinesBetween($from, $withLines, $startLine, $endLine, $startLineStartPos);
-        }
-        return "{$from}{$startLine}{$withLines}{$endLine}";
     }
     /**
      * @param ?int $timestamp = null

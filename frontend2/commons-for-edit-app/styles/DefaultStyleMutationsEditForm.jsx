@@ -165,7 +165,6 @@ class DefaultStyleMutationsEditForm extends preact.Component {
                 codeTemplate,
                 valNorm,
                 this.props.blockId,
-                mediaScopeId,
             );
         } else {
             const selectedScreenSizeVars = styleScreens[curScreenSizeTabIdx] || {};

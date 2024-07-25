@@ -13,6 +13,7 @@ class ScssWizard {
     // styles;
     // cachedCompiledCss;
     // stateId;
+    // currentPageIdPair;
     /**
      */
     constructor() {
@@ -28,6 +29,13 @@ class ScssWizard {
         this.styles = [...bundle.styleChunks];
         this.cachedCompiledCss = bundle.cachedCompiledCss;
         this.stateId = bundle.id;
+    }
+    /**
+     * @param {Page} page
+     * @access public
+     */
+    setCurrentPageInfo(page) {
+        this.currentPageIdPair = `${page.id}:${page.type}`;
     }
     /**
      * @param {Number} stateId
@@ -68,16 +76,15 @@ class ScssWizard {
      * @param {scssCodeInput} codeTemplate Examples 'color: red', 'ul li {\n  flex: 0 0 100%;\n}', [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]
      * @param {String} val
      * @param {String} blockId
-     * @param {mediaScope} mediaScopeId = 'all'
      * @returns {StylesBundleWithId}
      * @access public
      */
-    addNewUniqueScopeChunkAndReturnAllRecompiled(codeTemplate, val, blockId, mediaScopeId = 'all') {
-        const updated = this.doAddFirstScssChunk(codeTemplate, val, blockId, mediaScopeId);
-        return this.commitAll(updated, mediaScopeId);
+    addNewUniqueScopeChunkAndReturnAllRecompiled(codeTemplate, val, blockId) {
+        const updated = this.doAddFirstScssChunk(codeTemplate, val, blockId);
+        return this.commitAll(updated);
     }
     /**
-     * @param {Array<StyleChunk>} newUniqueScopeChunksToAdd Example [{scope: {kind: 'single-block', layer: 'user-styles', media: 'all'}, scss: '[data-block="abcdefg"] {\n  color: #ab7878;\n}'}]
+     * @param {Array<StyleChunk>} newUniqueScopeChunksToAdd Example [{scope: {kind: 'single-block', page: '<pushId>:Pages', layer: 'user-styles', media: 'all'}, scss: '[data-block="abcdefg"] {\n  color: #ab7878;\n}'}]
      * @returns {StylesBundleWithId}
      * @access public
      */
@@ -163,11 +170,11 @@ class ScssWizard {
             ...this.styles,
             scopeKind === 'custom-class'
                 ? {
-                    scope: {kind: 'custom-class', page: null, layer: 'dev-styles'},
+                    scope: {kind: 'custom-class', layer: 'dev-styles'},
                     scss: initialScssCode,
                 }
                 : {
-                    scope: {kind: 'base-freeform', page: null, layer: 'base-styles'},
+                    scope: {kind: 'base-freeform', layer: 'base-styles'},
                     scss: initialScssCode,
                 }
         ];
@@ -278,18 +285,16 @@ class ScssWizard {
      * @param {scssCodeInput} codeTemplate
      * @param {String} val
      * @param {String} blockId
-     * @param {mediaScope} mediaScopeId
      * @returns {StylesBundleWithId}
      * @access private
      */
-    doAddFirstScssChunk(inputCodeTemplate, val, blockId, mediaScopeId) {
+    doAddFirstScssChunk(inputCodeTemplate, val, blockId) {
         if (!Array.isArray(inputCodeTemplate))
             return [
                 ...this.styles,
                 this.createNewUniqueChunk(
                     createScssBlock(inputCodeTemplate.replace(/%s/g, val), `${createSelector(blockId)} {`),
                     blockId,
-                    mediaScopeId,
                 )
             ];
         else
@@ -302,7 +307,6 @@ class ScssWizard {
                         '}'
                     ].join('\n'),
                     blockId,
-                    mediaScopeId,
                 )
             ];
     }
@@ -421,16 +425,15 @@ class ScssWizard {
     /**
      * @param {String} scss
      * @param {String} blockId
-     * @param {mediaScope} mediaScopeId
      * @param {stylesLayer} layer = 'user-styles'
      * @returns {StyleChunk}
      * @access private
      */
-    createNewUniqueChunk(scss, blockId, mediaScopeId, layer = 'user-styles') {
-        if (this.findStyle('single-block', blockId, mediaScopeId, layer))
-            throw new Error(`Unique style ${blockId}:${mediaScopeId}:${layer} already exist`);
+    createNewUniqueChunk(scss, blockId, layer = 'user-styles') {
+        if (this.findStyle('single-block', blockId, 'all', layer))
+            throw new Error(`Unique style ${blockId}:${layer} already exist`);
         return {
-            scope: {kind: 'single-block', media: mediaScopeId, layer},
+            scope: {kind: 'single-block', page: this.currentPageIdPair, layer},
             scss,
         };
     }

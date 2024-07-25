@@ -534,7 +534,7 @@ interface StyleChunk {
     scope: {
         kind: styleScopeKind;
         layer: stylesLayer;
-        page?: String;
+        page?: String; // Example '-NGLsmQwm7aOSH-lS1-J:Pages'
     };
     data?: CustomClassStyleChunkData;
 }

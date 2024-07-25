@@ -5,6 +5,7 @@ included in edit-app's template (edit-app-wrapper.tmpl.php).
 import {
     __,
     api,
+    events,
     FloatingDialog,
     isUndoOrRedo,
     scssWizard,
@@ -41,11 +42,17 @@ preact.render(
         onSaveButtonRefd={ saveButton => {
             if (!saveButton) return;
             api.saveButton.setInstance(saveButton);
-            // Refresh scssWizards's styles every time new styles (page) is loaded to
-            // the preview iframe, or when undo|redo event happens
-            api.saveButton.getInstance().subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
+            const instance = api.saveButton.getInstance();
+            // Refresh ScssWizard's styles every time new styles (page) are loaded
+            // into the preview iframe, or when an undo|redo event happens
+            instance.subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
                 if (ctx === 'initial' || isUndoOrRedo(ctx))
                     scssWizard.replaceStylesState(bundle);
+            });
+            // Update ScssWizard's 'currentPageIdPair' every time a new page is
+            // loaded into the preview iframe
+            events.on('webpage-preview-iframe-loaded', () => {
+                scssWizard.setCurrentPageInfo(saveButton.getChannelState('currentPageData'));
             });
         } }/>,
     editAppOuterEl

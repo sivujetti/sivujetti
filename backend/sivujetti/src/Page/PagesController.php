@@ -37,6 +37,7 @@ final class PagesController {
      * @param \Sivujetti\Update\Updater $updater
      * @param \Sivujetti\AppEnv $appEnv
      * @param \Pike\Db\FluentDb $db
+     * @param \Pike\Db\FluentDb2 $db2
      */
     public function renderPage(Request $req,
                                Response $res,
@@ -45,7 +46,7 @@ final class PagesController {
                                TheWebsite $theWebsite,
                                Updater $updater,
                                AppEnv $appEnv,
-                               FluentDb $db): void {
+                               FluentDb2 $db2): void {
         $pcs = explode("/", $req->params->url, 3);
         [$pageTypeSlug, $slug] = count($pcs) > 2
             ? ["/" . $pcs[1], "/{$pcs[2]}"]
@@ -68,7 +69,7 @@ final class PagesController {
             return;
         }
         self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
-            $page, $pageType, $appEnv, $db, null);
+            $page, $pageType, $appEnv, $db2, null);
     }
     /**
      * GET /jet-login: Renders the login page.
@@ -185,7 +186,7 @@ final class PagesController {
      * @param \Sivujetti\SharedAPIContext $apiCtx
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\AppEnv $appEnv
-     * @param \Pike\Db\FluentDb $db
+     * @param \Pike\Db\FluentDb2 $db2
      * @throws \Pike\PikeException
      */
     public function renderPlaceholderPage(Request $req,
@@ -195,7 +196,7 @@ final class PagesController {
                                           SharedAPIContext $apiCtx,
                                           TheWebsite $theWebsite,
                                           AppEnv $appEnv,
-                                          FluentDb $db): void {
+                                          FluentDb2 $db2): void {
         $pageType = $req->params->pageType !== PageTypeMigrator::MAGIC_PAGE_TYPE_NAME_SLUGIFIED
             ? $pagesRepo->getPageTypeOrThrow($req->params->pageType)
             : PageTypesController::createEmptyPageType();
@@ -211,7 +212,7 @@ final class PagesController {
         if (!$page) throw new \RuntimeException("No such page exist", PikeException::BAD_INPUT);
         //
         self::sendPageResponse($req, $res, $pagesRepo, $apiCtx, $theWebsite,
-            $page, $pageType, $appEnv, $db, $styles);
+            $page, $pageType, $appEnv, $db2, $styles);
     }
     /**
      * POST /api/pages/[w:pageType]: Inserts a new page to the database.
@@ -434,7 +435,7 @@ final class PagesController {
      * @param \Sivujetti\Page\Entities\Page $page
      * @param \Sivujetti\PageType\Entities\PageType $pageType
      * @param \Sivujetti\AppEnv $appEnv
-     * @param \Pike\Db\FluentDb $db
+     * @param \Pike\Db\FluentDb2 $db2
      * @param ?array $placeholderPageStyles
      */
     private static function sendPageResponse(Request $req,
@@ -445,7 +446,7 @@ final class PagesController {
                                              Page $page,
                                              PageType $pageType,
                                              AppEnv $appEnv,
-                                             FluentDb $db,
+                                             FluentDb2 $db2,
                                              ?array $placeholderPageStyles = null) {
         $themeAPI = new UserThemeAPI("theme", $apiCtx, new Translator);
         $_ = new UserTheme($themeAPI); // Note: mutates $apiCtx->userDefinesAssets|etc
@@ -454,10 +455,9 @@ final class PagesController {
         $isPlaceholderPage = $placeholderPageStyles !== null;
         $editModeIsOn = $isPlaceholderPage || ($req->queryVar("in-edit") !== null);
         $apiCtx->triggerEvent($themeAPI::ON_PAGE_BEFORE_RENDER, $page, $editModeIsOn);
-        $theWebsite->activeTheme->loadStyles($editModeIsOn ? $db->select("\${p}themes", "\stdClass")
-            ->fields(["styleChunkBundlesAll AS styleChunkBundlesJson"])
-            ->where("`id` = ?", [$theWebsite->activeTheme->id])
-            ->fetch()?->styleChunkBundlesJson ?? null : null);
+        $theWebsite->activeTheme->loadStyles($editModeIsOn
+            ? self::fetchThemeStyles($db2, $theWebsite->activeTheme->id, $page)
+            : null);
         $tmpl = new WebPageAwareTemplate(
             $page->layout->relFilePath,
             ["serverHost" => self::getServerHost($req)],
@@ -588,6 +588,20 @@ final class PagesController {
             }
         }
         return [$blocks, $styles->getArrayCopy()];
+    }
+    /**
+     * @param \Pike\Db\FluentDb2 $db2
+     * @param string $themeId
+     * @param \Sivujetti\Page\Entities\Page $page
+     * @return \stdClass|null
+     * @psalm-return object{globalStyleChunkBundlesJson: string, pageStyleChunkBundlesJson: string|null}|null
+     */
+    private static function fetchThemeStyles(FluentDb2 $db2, string $themeId, Page $page): \stdClass|null {
+        return $db2->select("\${p}themes t")
+            ->fields(["t.styleChunkBundlesAll AS globalStyleChunkBundlesJson", "ps.`chunks` AS pageStyleChunkBundlesJson"])
+            ->leftJoin("\${p}pageThemeStyles ps ON (ps.`themeId` = t.`id` AND ps.`pageId` = ? AND ps.`pageType` = ?)")
+            ->where("t.`id` = ?", [$page->id, $page->type, $themeId])
+            ->fetch(\PDO::FETCH_OBJ) ?? null;
     }
     /**
      * @param \Sivujetti\Page\Entities\Page $page

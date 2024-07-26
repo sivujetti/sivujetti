@@ -75,7 +75,7 @@ class BackgroundImageValueInput extends preact.Component {
     }
     /**
      * @param {ImageValue} value
-     * @returns {String}
+     * @returns {String|null}
      */
     static valueToString(value) {
         return value.src;

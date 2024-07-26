@@ -569,7 +569,7 @@ export default [
     },
     {
         varName: 'baseStyleInputsPlaceholderColor',
-        cssProp: '--jet-inputs-placeholder-color:',
+        cssProp: '--jet-inputs-placeholder-color',
         cssSubSelector: null,
         widgetSettings: {
             valueType: 'color',

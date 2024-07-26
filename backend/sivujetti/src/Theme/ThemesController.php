@@ -245,7 +245,7 @@ final class ThemesController {
         $global = [];
         $page = [];
         foreach ($allChunks as $chunk) {
-            if (!$chunk->scope->page) $global[] = $chunk;
+            if (!($chunk->scope->page ?? null)) $global[] = $chunk;
             else $page[] = $chunk;
         }
         return [$global, $page];

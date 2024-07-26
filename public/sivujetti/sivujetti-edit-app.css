@@ -1131,6 +1131,24 @@ a.popup-close-area {
     left: .1rem;
     top: .1rem;
 }
+.grid-builder2 {
+    border-radius: var(--small-rect-radius);
+    gap: .1rem;
+    background: var(--color-bg-very-light2);
+}
+.grid-builder2 .row {
+    display: grid;
+    min-height: 2.4rem;
+    grid-template-columns: 1fr;
+    gap: .2rem;
+    flex: 1 0;
+}
+.grid-builder2 .row .col {
+    background: rgba(var(--components-color-fb-default),.06);
+    border-radius: var(--small-rect-radius);
+    position: relative;
+    padding: 0 .4rem;
+}
 /* EditApp: Components: codemirror */
 .ͼ1 .cm-scroller {
     font-size: 12px;

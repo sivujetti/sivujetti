@@ -1,15 +1,16 @@
 import {mediaScopes} from '../shared-inline.js';
-import blockTreeUtils from './block/tree-utils.js';
 import BackgroundImageValueInput from './styles/BackgroundImageValueInput.jsx';
 import ColorValueInput from './styles/ColorValueInput.jsx';
+import GridColumnsValueInput from './styles/GridColumnsValueInput.jsx';
 import LengthValueInput from './styles/LengthValueInput.jsx';
 import OptionValueInput from './styles/OptionValueInput.jsx';
-import {__, api, scssWizard} from './edit-app-singletons.js';
+import {__, scssWizard} from './edit-app-singletons.js';
 import {compile, createCssDeclExtractor} from './ScssWizardFuncs.js';
 
 const WidgetClses = {
     'backgroundImage': BackgroundImageValueInput,
     'color': ColorValueInput,
+    'gridColumns': GridColumnsValueInput,
     'length': LengthValueInput,
     'option': OptionValueInput,
 };

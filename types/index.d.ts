@@ -450,10 +450,10 @@ type treeTransferType = 'none'|'out-of-gbt'|'into-gbt';
 
 type urlMode = 'pick-url'|'pick-file'|'type-external-url';
 
-type cssValType = LengthValue|ColorValue|OptionValue;
+type cssValType = ColorValue|ImageValue|GridColumnsValue|LengthValue|OptionValue;
 
 interface CssVar {
-    type: 'length'|'color'|'option';
+    type: 'backgroundImage'|'color'|'gridColumns'|'length'|'option';
     value: cssValType|null;
     valueLiteral: String;
     varName: String;
@@ -462,13 +462,17 @@ interface CssVar {
     __idx: Number;
 }
 
+interface ImageValue {
+    src: String|null;
+}
+
 interface ColorValue {
     data: String;
     type: 'hexa';
 }
 
-interface ImageValue {
-    src: String;
+interface GridColumnsValue {
+    decl: String;
 }
 
 interface LengthValue {
@@ -597,6 +601,7 @@ interface VisualStylesFormVarDefinitionWidgetSettings {
     inputId: String;             // Example 'textTextAlign'
     defaultThemeValue?:          // Example {num: '6', unit: 'rem'}
         ColorValue |
+        GridColumnsValue |
         ImageValue |
         LengthValue |
         OptionValue |

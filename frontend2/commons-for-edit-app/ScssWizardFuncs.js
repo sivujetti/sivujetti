@@ -103,12 +103,12 @@ function stylesToBaked(styles, cachedCompiledCss, pageIdPair) {
  */
 function createCompiledPageScopedLinesUpdateFn(currentCachedCompiledCss, pageIdPair) {
     const prevLines = getPageScopedLines(currentCachedCompiledCss.split('\n'));
-    const posBefore = prevLines.indexOf(`/* page:${pageIdPair} */`) + 2;
+    const posBefore = prevLines.indexOf(`/* page:${pageIdPair} */`) + 1;
 
     // Found line pair, return a function that replaces the previous line with the new one
-    if (posBefore > 1)
+    if (posBefore > 0)
         return newCssForThisPage => {
-            prevLines.map((l, i) => i !== posBefore ? l : newCssForThisPage);
+            return prevLines.map((l, i) => i !== posBefore ? l : newCssForThisPage);
         };
     // Didn't find, return a function that adds the new to the end of page scoped lines
     else

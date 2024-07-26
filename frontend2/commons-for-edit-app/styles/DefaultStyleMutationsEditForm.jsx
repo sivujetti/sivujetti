@@ -9,6 +9,7 @@ import {
 } from '../BlockVisualStylesEditFormFuncs.js';
 import BackgroundImageValueInput from './BackgroundImageValueInput.jsx';
 import ColorValueInput from './ColorValueInput.jsx';
+import GridColumnsValueInput from './GridColumnsValueInput.jsx';
 import LengthValueInput from './LengthValueInput.jsx';
 import OptionValueInput from './OptionValueInput.jsx';
 
@@ -82,11 +83,21 @@ class DefaultStyleMutationsEditForm extends preact.Component {
             inputId,
             defaultThemeValue,
         };
-        if (valueType === 'color' || renderer === ColorValueInput)
+        if (valueType === 'backgroundImage' || renderer === BackgroundImageValueInput)
+            return <BackgroundImageValueInput
+                value={ null }
+                valueAsString={ BackgroundImageValueInput.valueFromInput(selectedScreenSizeVars[varName] || 'initial').src }
+                { ...commonProps }/>;
+        else if (valueType === 'color' || renderer === ColorValueInput)
             return <ColorValueInput
                 value={ null }
                 valueAsString={ selectedScreenSizeVars[varName] || null }
                 onValueChangedFast={ newValAsString => this.handleVisualVarChangedFast(newValAsString, varName, varInputToScssCode) }
+                { ...commonProps }/>;
+        else if (valueType === 'gridColumns' || renderer === GridColumnsValueInput)
+            return <GridColumnsValueInput
+                value={ null }
+                valueAsString={ GridColumnsValueInput.valueFromInput(selectedScreenSizeVars[varName] || null).decl }
                 { ...commonProps }/>;
         else if (valueType === 'length' || renderer === LengthValueInput)
             return <LengthValueInput
@@ -96,11 +107,6 @@ class DefaultStyleMutationsEditForm extends preact.Component {
             return <OptionValueInput
                 value={ OptionValueInput.valueFromInput(selectedScreenSizeVars[varName] || null, initialUnit) }
                 options={ widgetSettings.options }
-                { ...commonProps }/>;
-        else if (valueType === 'backgroundImage' || renderer === BackgroundImageValueInput)
-            return <BackgroundImageValueInput
-                value={ null }
-                valueAsString={ BackgroundImageValueInput.valueFromInput(selectedScreenSizeVars[varName] || 'initial').src }
                 { ...commonProps }/>;
     }
     /**

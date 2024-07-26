@@ -11,14 +11,7 @@ class ColumnsBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeI
      * @inheritdoc
      */
     public function defineProperties(PropertiesBuilder $builder): \ArrayObject {
-        return self::addProperties($builder)->getResult();
-    }
-    /**
-     */
-    public static function addProperties(PropertiesBuilder $to): PropertiesBuilder {
-        return $to
-            ->newProperty("numColumns")->dataType($to::DATA_TYPE_UINT, isNullable: true)
-            ->newProperty("takeFullWidth")->dataType($to::DATA_TYPE_UINT, isNullable: true);
+        return $this->addDefaultProperties($builder)->getResult();
     }
     /**
      * @inheritdoc
@@ -35,5 +28,14 @@ class ColumnsBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeI
         return el("div", $createDefaultProps($extraClasses),
             ...$renderChildren()
         );
+    }
+    /**
+     * @param \Sivujetti\BlockType\PropertiesBuilder $to
+     * @return \Sivujetti\BlockType\PropertiesBuilder
+     */
+    protected function addDefaultProperties(PropertiesBuilder $to): PropertiesBuilder {
+        return $to
+            ->newProperty("numColumns")->dataType($to::DATA_TYPE_UINT, isNullable: true)
+            ->newProperty("takeFullWidth")->dataType($to::DATA_TYPE_UINT, isNullable: true);
     }
 }

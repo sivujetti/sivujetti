@@ -5,17 +5,22 @@ import {
     env,
     floatingDialog,
     Icon,
+    Popup,
     scssWizard,
     timingUtils,
 } from '@sivujetti-commons-for-edit-app';
 import CustomClassStyleEditCustomizationsDialog from '../../main-column/popups/CustomClassStyleEditCustomizationsDialog.jsx';
+import EditTitlePopup from '../../main-column/popups/CustomClassStyleEditTitlePopup.jsx';
 import ScssEditor from './ScssEditor.jsx';
+/** @typedef {import('../../main-column/popups/CustomClassStyleEditTitlePopup.jsx').CustomClassStyleEditTitlePopupProps} CustomClassStyleEditTitlePopupProps */
 
 let saveButtonInstance;
 
 /** @extends {preact.Component<CustomClassStylesListProps, any>} */
 class CustomClassStylesList extends preact.Component {
-    // handleScssChangedThrottled;
+    // emitChunksChangesThrottled;
+    // listElRef;
+    // popupRef;
     // idxOfOpenMoreMenuChunk;
     /**
      * @access protected
@@ -23,10 +28,12 @@ class CustomClassStylesList extends preact.Component {
     componentWillMount() {
         saveButtonInstance = api.saveButton.getInstance();
         const styleChunksVisible = createChunksState();
-        this.handleScssChangedThrottled = timingUtils.debounce(
-            this.handleScssChanged.bind(this),
+        this.emitChunksChangesThrottled = timingUtils.debounce(
+            this.emitChunksChanges.bind(this),
             env.normalTypingDebounceMillis
         );
+        this.listElRef = preact.createRef();
+        this.popupRef = preact.createRef();
         //
         this.setState({
             styleChunksVisible,
@@ -52,22 +59,25 @@ class CustomClassStylesList extends preact.Component {
     /**
      * @access protected
      */
-    render({checkIsChunkActive}, {styleChunksVisible, listItemIsOpens}) {
+    render({checkIsChunkActive}, {styleChunksVisible, listItemIsOpens, titleUncommitted, idxOfOpenPopupListItem, editTitlePopupCfg}) {
         return [
-            <ul class="list styles-list mb-2">{ styleChunksVisible.length
+            <ul class="list styles-list mb-2" ref={ this.listElRef }>{ styleChunksVisible.length
                 ? styleChunksVisible.map((chunk, i) => {
                     const curIsActive = checkIsChunkActive(chunk);
-                    const title = extractClassName(chunk);
+                    const cls = extractClassName(chunk);
+                    const title = titleUncommitted && i === idxOfOpenPopupListItem
+                        ? titleUncommitted
+                        : (chunk.data?.title || cls);
                     return <li class={ `mt-1 py-1${!listItemIsOpens[i] ? '' : ' open'}` }>
                         <header class="p-relative">
                             <div>
                                 <button onClick={ () => {
                                     this.setState({listItemIsOpens: listItemIsOpens.map((v, i2) => i2 !== i ? v : !v)});
-                                } } class="btn with-icon2 row-item no-color d-flex p-1" title={ title }>
+                                } } class="row-item btn no-color d-flex p-1" title={ title + (title !== cls ? ` / ${cls}` : '') }>
                                     <Icon iconId="chevron-down" className="size-xs"/>
                                     <span class="ͼ1 text-ellipsis"><span class="ͼj cm-scroller text-ellipsis">{ title }</span></span>
                                 </button>
-                                <button onClick={ e => this.openMoreMenu(i, e) } class="btn row-item no-color d-flex p-1" type="button">
+                                <button onClick={ e => this.openMoreMenu(i, e) } class="row-item btn no-color d-flex p-1" type="button">
                                     <Icon iconId="dots" className="size-xs color-dimmed"/>
                                 </button>
                             </div>
@@ -87,7 +97,7 @@ class CustomClassStylesList extends preact.Component {
                             : <ScssEditor
                                 editorId="dev-class-styles"
                                 onInput={ scss => {
-                                    this.handleScssChangedThrottled(scss, chunk);
+                                    this.emitChunksChangesThrottled({scss}, chunk);
                                 } }
                                 scss={ chunk.scss }/>
                         }
@@ -103,6 +113,14 @@ class CustomClassStylesList extends preact.Component {
                 onClick={ () => 'TODO' }
                 class="btn btn-sm"
                 type="button">{ __('Show parent styles') }</button>,
+            editTitlePopupCfg
+                ? <Popup
+                    Renderer={ EditTitlePopup }
+                    rendererProps={ editTitlePopupCfg.formProps }
+                    btn={ editTitlePopupCfg.arrowRefEl }
+                    close={ this.closeEditTitlePopup.bind(this) }
+                    ref={ this.popupRef }/>
+                : null
         ];
     }
     /**
@@ -126,12 +144,12 @@ class CustomClassStylesList extends preact.Component {
     }
     /**
      * @param {string} scss
-     * @param {StyleChunk} scss
+     * @param {scss?: string; data?: CustomClassStyleChunkData;}} changes
      * @access private
      */
-    handleScssChanged(scss, chunkVisible) {
+    emitChunksChanges(changes, chunkVisible) {
         const updatedAll = scssWizard.updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(
-            {scss},
+            changes,
             chunkVisible,
         );
         saveButtonInstance.pushOp('stylesBundle', updatedAll);
@@ -172,9 +190,12 @@ class CustomClassStylesList extends preact.Component {
              * @param {ContextMenuLink} link
              */
             onItemClicked: link => {
-                if (link.id === 'edit-title')
-                    alert('TODO');
-                else if (link.id === 'edit-settings') {
+                if (link.id === 'edit-title') {
+                    this.setState({
+                        idxOfOpenPopupListItem: this.idxOfOpenMoreMenuChunk,
+                        editTitlePopupCfg: this.createEditTitlePopupCfg(this.idxOfOpenMoreMenuChunk),
+                    });
+                } else if (link.id === 'edit-settings') {
                     const saved = this.idxOfOpenMoreMenuChunk;
                     floatingDialog.open(CustomClassStyleEditCustomizationsDialog, {
                         title: __('Edit style customizations'),
@@ -189,6 +210,38 @@ class CustomClassStylesList extends preact.Component {
                 this.idxOfOpenMoreMenuChunk = null;
             },
         };
+    }
+    /**
+     * @param {number} i
+     * @returns {{formProps: CustomClassStyleEditTitlePopupProps; arrowRefEl: HTMLElement;}}
+     * @access private
+     */
+    createEditTitlePopupCfg(i) {
+        const chunk = this.state.styleChunksVisible[i];
+        return {
+            formProps: {
+                currentTitle: chunk.data?.title || extractClassName(chunk),
+                onTitleTyped: newTitle => { this.setState({titleUncommitted: newTitle}); },
+                onSubmitOrDiscard: isSubmit => {
+                    if (isSubmit) {
+                        const newTitle = this.state.titleUncommitted;
+                        const chunk = this.state.styleChunksVisible[this.state.idxOfOpenPopupListItem];
+                        this.emitChunksChanges({data: {
+                            ...(chunk.data || {}),
+                            title: newTitle,
+                        }}, chunk);
+                    }
+                    this.closeEditTitlePopup();
+                },
+            },
+            arrowRefEl: this.listElRef.current.children[this.idxOfOpenMoreMenuChunk].querySelector('.ͼ1'),
+        };
+    }
+    /**
+     * @access private
+     */
+    closeEditTitlePopup() {
+        this.setState({editTitlePopupCfg: null, titleUncommitted: null, idxOfOpenPopupListItem: null});
     }
     /**
      * @param {Array<VisualStylesFormVarDefinition>} newSettings
@@ -271,7 +324,12 @@ function addOrRemoveStyleClass(type, chunkClass, to) {
 }
 
 /**
- * @typedef {{blockId: string; stylesStateId: number; checkIsChunkActive: (chunk: StyleChunk) => boolean; styleClasses: string;}} CustomClassStylesListProps
+ * @typedef {{
+ *   blockId: string;
+ *   stylesStateId: number;
+ *   checkIsChunkActive: (chunk: StyleChunk) => boolean;
+ *   styleClasses: string;
+ * }} CustomClassStylesListProps
  */
 
 export default CustomClassStylesList;

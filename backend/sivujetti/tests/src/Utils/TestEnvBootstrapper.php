@@ -5,7 +5,7 @@ namespace Sivujetti\Tests\Utils;
 use PHPUnit\Framework\MockObject\MockObject;
 use Pike\{AppConfig, Db, Injector, PikeException};
 use Pike\Auth\Authenticator;
-use Pike\Db\{FluentDb, FluentDb2};
+use Pike\Db\FluentDb2;
 use Pike\Interfaces\SessionInterface;
 use Pike\TestUtils\SingleConnectionDb;
 use Sivujetti\SharedAPIContext;
@@ -42,9 +42,7 @@ class TestEnvBootstrapper extends BootModule {
         $di->share(new AppConfig($this->configBundle["app"]));
         $di->share($this->db);
         $di->alias(Db::class, SingleConnectionDb::class);
-        $di->share(new FluentDb($this->db));
-        if (defined("USE_NEW_FLUENT_DB"))
-            $di->share(new FluentDb2($this->db));
+        $di->share(new FluentDb2($this->db));
         //
         if ($this->authTemp) {
             if (is_array($this->authTemp)) {

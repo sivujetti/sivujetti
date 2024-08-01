@@ -3,8 +3,7 @@
 namespace Sivujetti\ReusableBranch;
 
 use Pike\{Request, Response, Validation};
-use Pike\Db\{FluentDb, FluentDb2};
-use Pike\Interfaces\RowMapperInterface;
+use Pike\Db\FluentDb2;
 use Pike\Validation\ObjectValidator;
 use Sivujetti\{JsonUtils, ValidationUtils};
 use Sivujetti\Block\BlockValidator;
@@ -20,13 +19,11 @@ final class ReusableBranchesController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb $db
      * @param \Pike\Db\FluentDb2 $db2
      * @param \Sivujetti\Block\BlockValidator $blockValidator
      */
     public function upsert(Request $req,
                            Response $res,
-                           FluentDb $db,
                            FluentDb2 $db2,
                            BlockValidator $blockValidator): void {
         if (($errors = self::validateUpsertInput($req->body, $blockValidator))) {
@@ -34,21 +31,12 @@ final class ReusableBranchesController {
             return;
         }
         //
-        if (!defined("USE_NEW_FLUENT_DB")) {
-        $numRows = $db->insert(self::T)
-            ->values((object) [
-                "id" => $req->body->id,
-                "blockBlueprints" => JsonUtils::stringify($req->body->blockBlueprints), // Note: allow possible junk data
-            ])
-            ->execute(return: "numRows");
-        } else {
         $numRows = $db2->insert(self::T, orReplace: true)
             ->values((object) [
                 "id" => $req->body->id,
                 "blockBlueprints" => JsonUtils::stringify($req->body->blockBlueprints), // Note: allow possible junk data
             ])
             ->execute(return: "numRows");
-        }
         //
         $res->json(["ok" => "ok",
                     "details" => $numRows === 1 ? "" : "\$numRows !== 1"]);
@@ -57,23 +45,9 @@ final class ReusableBranchesController {
      * GET /api/reusable-branches: Returns a list of reusable content saved to the db.
      *
      * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb $db
      * @param \Pike\Db\FluentDb2 $db2
      */
-    public function list(Response $res, FluentDb $db, FluentDb2 $db2): void {
-        if (!defined("USE_NEW_FLUENT_DB")) {
-        $entities = $db->select(self::T, "\\stdClass")
-            ->fields(["id", "blockBlueprints as blockBlueprintsJson"])
-            ->mapWith(new class implements RowMapperInterface {
-                public function mapRow(object $row, int $_numRow, array $_rows): object {
-                    $row->blockBlueprints = JsonUtils::parse($row->blockBlueprintsJson);
-                    unset($row->blockBlueprintsJson);
-                    return $row;
-                }
-            })
-            ->limit(20)
-            ->fetchAll();
-        } else {
+    public function list(Response $res, FluentDb2 $db2): void {
         $entities = $db2->select(self::T)
             ->fields(["id", "blockBlueprints"])
             ->limit(20)
@@ -81,7 +55,6 @@ final class ReusableBranchesController {
                 "id" => $id,
                 "blockBlueprints" => JsonUtils::parse($blockBlueprints),
             ]);
-        }
         $res->json($entities);
     }
     /**

@@ -4,6 +4,7 @@ namespace Sivujetti\Installer;
 
 use Pike\{Db, FileSystem, PikeException};
 use Pike\Auth\Authenticator;
+use Pike\Db\FluentDb2;
 use Sivujetti\Auth\ACL;
 use Sivujetti\TheWebsite\Exporter;
 use Sivujetti\Update\{PackageStreamInterface, Updater};
@@ -198,8 +199,7 @@ return [
      * @param bool $isSqlite
      */
     private function insertManyTableBundles(array $bundles, array $config): void {
-        $Cls = "\\Pike\\Db\\FluentDb" . (!defined("USE_NEW_FLUENT_DB") ? "" : "2");
-        $fluentDb = new $Cls($this->db);
+        $fluentDb = new FluentDb2($this->db);
         $tail = $config["db.driver"] === "sqlite" ? " TRANSACTION" : "";
         $this->db->exec("BEGIN{$tail}");
         foreach ($bundles as $bundle) { // Note: trust input / assumes that each bundle->tableName, and each field bundle->entities[*] are valid

@@ -3,7 +3,7 @@
 namespace Sivujetti\Upload;
 
 use Pike\{PikeException, Request, Response, Validation};
-use Pike\Db\{FluentDb, FluentDb2};
+use Pike\Db\FluentDb2;
 use Pike\Validation\ObjectValidator;
 use Sivujetti\Auth\ACL;
 use Sivujetti\Upload\Entities\UploadsEntry;
@@ -16,20 +16,11 @@ final class UploadsController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Sivujetti\Upload\UploadsRepository $uploadsRepo
      * @param \Pike\Db\FluentDb2 $db2
      */
     public function getUploads(Request $req,
                                Response $res,
-                               UploadsRepository $uploadsRepo,
                                FluentDb2 $db2): void {
-        if (!defined("USE_NEW_FLUENT_DB")) {
-        $files = match (urldecode($req->params->filters)) {
-            '{"mime":{"$eq":"image/*"}}' => $uploadsRepo->getMany((new UploadsQFilters)->byMime("image/*")),
-            '{"mime":{"$neq":"image/*"}}' => $uploadsRepo->getMany((new UploadsQFilters)->byMime("image/*", negate: true)),
-            default => throw new \RuntimeException("Not implemented"),
-        };
-        } else {
         $files = $db2->select(self::FILES_TABLE_NAME)
             ->where(...(match (urldecode($req->params->filters)) {
                 '{"mime":{"$eq":"image/*"}}' => ["`mime` LIKE ?", ["image/%"]],
@@ -39,7 +30,6 @@ final class UploadsController {
             ->orderBy("id DESC")
             ->limit(40)
             ->fetchAll(\PDO::FETCH_CLASS, UploadsEntry::class);
-        }
         $res->json($files);
     }
     /**
@@ -49,16 +39,12 @@ final class UploadsController {
      * @param \Pike\Request $req
      * @param \Pike\Response $res
      * @param \Sivujetti\Upload\Uploader $uploader
-     * @param \Sivujetti\Upload\UploadsRepository $uploadsRepo
-     * @param \Pike\Db\FluentDb $db
-     * @param \Pike\Db\FluentDb2 $db2
+     * @param \Pike\Db\FluentDb2 $db
      */
     public function uploadFile(Request $req,
                                Response $res,
                                Uploader $uploader,
-                               UploadsRepository $uploadsRepo,
-                               FluentDb $db,
-                               FluentDb2 $db2): void {
+                               FluentDb2 $db): void {
         if (!isset($req->files->localFile["error"]) ||
             $req->files->localFile["error"] !== UPLOAD_ERR_OK) {
             throw new PikeException("Expected UPLOAD_ERR_OK (0), but got " .
@@ -71,8 +57,6 @@ final class UploadsController {
             $res->status(400)->json($errors);
             return;
         }
-        if (defined("USE_NEW_FLUENT_DB"))
-            $db = $db2;
         $maybePatched = self::enumerateFileNameIfDuplicate($req->body->targetFileName, $db);
         $fileNameFinal = $maybePatched ?? $req->body->targetFileName;
         // @allow \Pike\PikeException
@@ -86,14 +70,10 @@ final class UploadsController {
             $file->createdAt = time();
             $file->updatedAt = $file->createdAt;
         }
-        if (!defined("USE_NEW_FLUENT_DB")) {
         // @allow \Pike\PikeException
-        $insertId = $uploadsRepo->insert($file);
-        } else {
         $insertId = $db->insert(self::FILES_TABLE_NAME)
             ->values($file)
             ->execute();
-        }
         //
         $res->json(["file" => $insertId !== "" ? $file : null]);
     }
@@ -102,10 +82,10 @@ final class UploadsController {
      * $input in the database. Otherwise returns null.
      *
      * @param string $input
-     * @param \Pike\Db\FluentDb|\Pike\Db\FluentDb2 $db
+     * @param \Pike\Db\FluentDb2 $db
      * @return string|null
      */
-    private static function enumerateFileNameIfDuplicate(string $input, FluentDb|FluentDb2 $db): ?string {
+    private static function enumerateFileNameIfDuplicate(string $input, FluentDb2 $db): ?string {
         $pcs = explode(".", $input);
         $ext = array_pop($pcs);
         $noExt = implode(".", $pcs);

@@ -4,7 +4,7 @@ namespace Sivujetti\Page;
 
 use Envms\FluentPDO\Queries\Select;
 use Pike\{ArrayUtils, PikeException};
-use Pike\Db\{FluentDb, FluentDb2, MyDelete, MyInsert, MyUpdate, Query};
+use Pike\Db\{FluentDb, FluentDb2, Query};
 use Pike\Interfaces\RowMapperInterface;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\Db\TempJsonCompatSelect;
@@ -15,19 +15,15 @@ use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 final class PagesRepository2 {
     public const HARD_LIMIT = 200;
-    /** @var \Pike\Db\FluentDb */
-    private FluentDb $fluentDb;
     /** @var \Pike\Db\FluentDb2 */
     private FluentDb2 $fluentDb2;
     /** @var \ArrayObject<int, \Sivujetti\PageType\Entities\PageType> */
     private \ArrayObject $pageTypes;
     /**
-     * @param \Pike\Db\FluentDb $fluentDb
      * @param \Pike\Db\FluentDb2 $fluentDb2
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      */
-    public function __construct(FluentDb $fluentDb, FluentDb2 $fluentDb2, TheWebsite $theWebsite) {
-        $this->fluentDb = $fluentDb;
+    public function __construct(FluentDb2 $fluentDb2, TheWebsite $theWebsite) {
         $this->fluentDb2 = $fluentDb2;
         $this->pageTypes = $theWebsite->pageTypes;
     }
@@ -41,7 +37,7 @@ final class PagesRepository2 {
         if (!defined("USE_NEW_FLUENT_DB")) {
         $sqliteVersion = "3.37";
         $compatCls = version_compare($sqliteVersion, "3.38", ">=") ? null : TempJsonCompatSelect::class;
-        return $this->fluentDb->select("\${p}{$pageType->name} p", Page::class, $compatCls)
+        return (new FluentDb($this->fluentDb2->getDb()))->select("\${p}{$pageType->name} p", Page::class, $compatCls)
             ->fields(self::createSelectFields($fields, $pageType))
             ->mapWith(new class implements RowMapperInterface {
                 public function mapRow(object $page, int $_numRow, array $_rows): object {
@@ -84,38 +80,26 @@ final class PagesRepository2 {
     }
     /**
      * @param string $pageTypeName = "Pages"
-     * @return \Pike\Db\MyInsert|\Pike\Db\Query
+     * @return \Pike\Db\Query
      */
-    public function insert(PageType $pageType): MyInsert|Query {
-        if (!defined("USE_NEW_FLUENT_DB")) {
-        return $this->fluentDb->insert("\${p}{$pageType->name}");
-        } else {
+    public function insert(PageType $pageType): Query {
         return $this->fluentDb2->insert("\${p}{$pageType->name}");
-        }
     }
     /**
      * @param string $pageTypeName = "Pages"
-     * @return \Pike\Db\MyUpdate|\Pike\Db\Query
+     * @return \Pike\Db\Query
      */
-    public function update(string $pageTypeName = "Pages"): MyUpdate|Query {
+    public function update(string $pageTypeName = "Pages"): Query {
         $pageType = $this->getPageTypeOrThrow($pageTypeName);
-        if (!defined("USE_NEW_FLUENT_DB")) {
-        return $this->fluentDb->update("\${p}{$pageType->name}");
-        } else {
         return $this->fluentDb2->update("\${p}{$pageType->name}");
-        }
     }
     /**
      * @param string $pageTypeName = "Pages"
-     * @return \Pike\Db\MyDelete|\Pike\Db\Query
+     * @return \Pike\Db\Query
      */
-    public function delete(string $pageTypeName = "Pages"): MyDelete|Query {
+    public function delete(string $pageTypeName = "Pages"): Query {
         $pageType = $this->getPageTypeOrThrow($pageTypeName);
-        if (!defined("USE_NEW_FLUENT_DB")) {
-        return $this->fluentDb->delete("\${p}{$pageType->name}");
-        } else {
         return $this->fluentDb2->delete("\${p}{$pageType->name}");
-        }
     }
     /**
      * @param string $candidate

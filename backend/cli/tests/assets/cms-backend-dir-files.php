@@ -126,7 +126,6 @@ return [
     "\$backend/sivujetti/src/Upload/MimeValidator.php",
     "\$backend/sivujetti/src/Upload/Uploader.php",
     "\$backend/sivujetti/src/Upload/UploadsController.php",
-    "\$backend/sivujetti/src/Upload/UploadsRepository.php",
     "\$backend/sivujetti/src/Upload/UploadsModule.php",
     "\$backend/sivujetti/src/Upload/Entities/UploadsEntry.php",
     "\$backend/sivujetti/src/Block/BlocksController.php",

@@ -4,7 +4,7 @@ namespace Sivujetti\Page;
 
 use MySite\Theme as UserTheme;
 use Pike\{AppConfig, ArrayUtils, Db, Injector, PikeException, Request, Response, Validation};
-use Pike\Db\{FluentDb, FluentDb2};
+use Pike\Db\FluentDb2;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\{PageTypeMigrator, PageTypesController, PageTypeValidator};
 use Sivujetti\PageType\Entities\PageType;
@@ -36,7 +36,6 @@ final class PagesController {
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
      * @param \Sivujetti\Update\Updater $updater
      * @param \Sivujetti\AppEnv $appEnv
-     * @param \Pike\Db\FluentDb $db
      * @param \Pike\Db\FluentDb2 $db2
      */
     public function renderPage(Request $req,
@@ -292,16 +291,10 @@ final class PagesController {
             $data->{$field->name} = $page->{$field->name};
         }
         //
-        if (!defined("USE_NEW_FLUENT_DB")) {
-            $numRows = $pagesRepo->insert($pageType)->values($data)->execute(return: "numRows");
-            [$status, $ok] = $numRows === 1 ? [201, "ok"] : [200, "err"];
-            $res->status($status)->json(["ok" => $ok,  "numAffectedRows" => $numRows]);
-        } else {
-            $fluentDb->insert("\${p}{$pageType->name}", orReplace: true)
-                ->values($data)
-                ->execute(return: "numRows");
-            $res->status(200)->json(["ok" => "ok"]);
-        }
+        $fluentDb->insert("\${p}{$pageType->name}", orReplace: true)
+            ->values($data)
+            ->execute(return: "numRows");
+        $res->status(200)->json(["ok" => "ok"]);
     }
     /**
      * GET /api/pages/[w:pageType]/[w:pageSlug]: Returns 200 & page with slug

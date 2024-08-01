@@ -3,9 +3,9 @@
 namespace Sivujetti\TheWebsite;
 
 use Pike\{Request, Response, Validation};
-use Pike\Db\{FluentDb, FluentDb2};
+use Pike\Db\FluentDb2;
 use Pike\Interfaces\FileSystemInterface;
-use Sivujetti\{JsonUtils, ValidationUtils};
+use Sivujetti\{AppEnv, JsonUtils, ValidationUtils};
 
 final class TheWebsiteController {
     private const T = "\${p}theWebsite";
@@ -15,12 +15,10 @@ final class TheWebsiteController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb $db
      * @param \Pike\Db\FluentDb2 $db2
      */
     public function saveBasicInfo(Request $req,
                                   Response $res,
-                                  FluentDb $db,
                                   FluentDb2 $db2): void {
         if (($errors = $this->validateSaveBasicInfoInput($req->body))) {
             $res->status(400)->json($errors);
@@ -33,7 +31,7 @@ final class TheWebsiteController {
             "country" => $req->body->country,
             "description" => $req->body->description,
             "hideFromSearchEngines" => $req->body->hideFromSearchEngines,
-        ], !defined("USE_NEW_FLUENT_DB") ? $db : $db2);
+        ], $db2);
         //
         $res->json(["ok" => "ok"]);
     }
@@ -43,12 +41,10 @@ final class TheWebsiteController {
      *
      * @param \Pike\Request $req
      * @param \Pike\Response $res
-     * @param \Pike\Db\FluentDb $db
      * @param \Pike\Db\FluentDb2 $db2
      */
     public function saveGlobalScripts(Request $req,
                                       Response $res,
-                                      FluentDb $db,
                                       FluentDb2 $db2): void {
         if (($errors = $this->validateSaveGlobalScriptsInput($req->body))) {
             $res->status(400)->json($errors);
@@ -58,7 +54,7 @@ final class TheWebsiteController {
         self::updateTheWebsite((object) [
             "headHtml" => $req->body->headHtml,
             "footHtml" => $req->body->footHtml,
-        ], !defined("USE_NEW_FLUENT_DB") ? $db : $db2);
+        ], $db2);
         //
         $res->json(["ok" => "ok"]);
     }
@@ -89,10 +85,10 @@ final class TheWebsiteController {
     }
     /**
      * @param object $data
-     * @param \Pike\Db\FluentDb|\Pike\Db\FluentDb2 $db
+     * @param \Pike\Db\FluentDb2 $db2
      */
-    private static function updateTheWebsite(object $data, FluentDb|FluentDb2 $db): void {
-        $db->update(self::T)
+    private static function updateTheWebsite(object $data, FluentDb2 $db2): void {
+        $db2->update(self::T)
             ->values($data)
             ->where("1=1")
             ->execute();

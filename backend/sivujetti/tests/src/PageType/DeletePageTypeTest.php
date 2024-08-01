@@ -3,6 +3,7 @@
 namespace Sivujetti\Tests\PageType;
 
 use Pike\ArrayUtils;
+use Pike\Db\FluentDb2;
 use Sivujetti\PageType\{PageTypeMigrator};
 use Sivujetti\TheWebsite\TheWebsiteRepository;
 
@@ -26,8 +27,7 @@ final class DeletePageTypeTest extends PageTypesControllerTestCase {
         $state->spyingResponse = $state->app->sendRequest($this->createApiRequest($url, "DELETE"));
     }
     private function verifyDeletePageTypeFromDb(\TestState $state): void {
-        $Cls = "\\Pike\\Db\\FluentDb" . (!defined("USE_NEW_FLUENT_DB") ? "" : "2");
-        $all = (new TheWebsiteRepository())->fetchActive(new $Cls(self::$db))->pageTypes;
+        $all = (new TheWebsiteRepository())->fetchActive(new FluentDb2(self::$db))->pageTypes;
         $actual = ArrayUtils::findByKey($all, PageTypeMigrator::MAGIC_PAGE_TYPE_NAME, "name");
         $this->assertNull($actual);
     }

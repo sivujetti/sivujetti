@@ -3,6 +3,7 @@
 namespace Sivujetti\Tests\PageType;
 
 use Pike\ArrayUtils;
+use Pike\Db\FluentDb2;
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 use Sivujetti\PageType\{FieldCollection, PageTypeMigrator, PageTypesController};
 use Sivujetti\Tests\Utils\{BlockTestUtils, DbDataHelper, HttpApiTestTrait};
@@ -39,8 +40,7 @@ abstract class PageTypesControllerTestCase extends DbTestCase {
         $this->assertEquals("ok", $actualBody->ok);
     }
     protected function verifyPageTypeInDbEquals(object $expected, int $expectedStatus): void {
-        $Cls = "\\Pike\\Db\\FluentDb" . (!defined("USE_NEW_FLUENT_DB") ? "" : "2");
-        $all = (new TheWebsiteRepository())->fetchActive(new $Cls(self::$db))->pageTypes;
+        $all = (new TheWebsiteRepository())->fetchActive(new FluentDb2(self::$db))->pageTypes;
         $actual = ArrayUtils::findByKey($all, $expected->name, "name");
         $this->assertNotNull($actual);
         $this->assertEquals($expected->slug, $actual->slug);

@@ -2,26 +2,22 @@
 
 namespace Sivujetti\TheWebsite;
 
-use Pike\Db\{FluentDb, FluentDb2};
+use Pike\Db\FluentDb2;
 use Pike\{AppConfig, Db};
 
 /**
  * @psalm-type ColumnInfo = array{tableName: string, entities: array<int, \stdClass>}
  */
 final class Exporter {
-    /** @var \Pike\Db\FluentDb */
-    private FluentDb $db;
     /** @var \Pike\Db\FluentDb2 */
     private FluentDb2 $db2;
     /** @var \Pike\AppConfig */
     private AppConfig $config;
     /**
-     * @param \Pike\Db\FluentDb $db
      * @param \Pike\Db\FluentDb2 $db2
      * @param \Pike\AppConfig $config
      */
-    public function __construct(FluentDb $db, FluentDb $db2, AppConfig $config) {
-        $this->db = $db;
+    public function __construct(FluentDb2 $db2, AppConfig $config) {
         $this->db2 = $db2;
         $this->config = $config;
     }
@@ -63,7 +59,7 @@ final class Exporter {
             //
             $columnInfos = self::describeTableColums(
                 $tableName,
-                (!defined("USE_NEW_FLUENT_DB") ? $this->db : $this->db2)->getDb(),
+                $this->db2->getDb(),
                 $dbDriver,
                 $schemaName
             );

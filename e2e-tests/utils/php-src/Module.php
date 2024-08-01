@@ -2,7 +2,7 @@
 
 namespace Sivujetti\E2eTests;
 
-use Pike\Db\{FluentDb, FluentDb2};
+use Pike\Db\FluentDb2;
 use Pike\{Db, Injector, Router};
 
 final class Module {
@@ -29,8 +29,7 @@ final class Module {
      * @param \Pike\Injector $di
      */
     public function beforeExecCtrl(Injector $di): void {
-        $Cls = !defined("USE_NEW_FLUENT_DB") ? FluentDb::class : FluentDb2::class;
-        $fluentDb = new $Cls(new Db($this->config));
+        $fluentDb = new FluentDb2(new Db($this->config));
         $di->share($fluentDb);
         $fluentDb->getDb()->open();
     }

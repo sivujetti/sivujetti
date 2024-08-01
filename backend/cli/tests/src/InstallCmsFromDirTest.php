@@ -4,9 +4,9 @@ namespace Sivujetti\Cli\Tests;
 
 use Pike\Auth\{Authenticator, Crypto};
 use Pike\{AppConfig, Db, Injector, PikeException, Request};
-use Pike\Db\{FluentDb, FluentDb2};
+use Pike\Db\FluentDb2;
 use Pike\Interfaces\FileSystemInterface;
-use Pike\TestUtils\{DbTestCase, HttpTestUtils, MockCrypto};
+use Pike\TestUtils\{DbTestCase, HttpTestUtils, MockCrypto, SingleConnectionDb};
 use Sivujetti\FileSystem;
 use Sivujetti\Auth\ACL;
 use Sivujetti\Cli\{App, Controller};
@@ -85,7 +85,6 @@ final class InstallCmsFromDirTest extends DbTestCase {
                 $di->share(new AppConfig(TestsInstallCmsFromDirTest::getDbConfig()));
                 $di->share($this->testDb);
                 $di->alias(Db::class, SingleConnectionDb::class);
-                $di->share(new FluentDb($this->testDb));
                 $di->share(new FluentDb2($this->testDb));
                 $di->alias(FileSystemInterface::class, FileSystem::class);
                 $di->prepare(Commons::class, function (Commons $instance) {

@@ -2,52 +2,31 @@
 
 namespace Sivujetti\GlobalBlockTree;
 
-use Envms\FluentPDO\Queries\Select;
-use Pike\Db\{FluentDb, FluentDb2, MyInsert, MyUpdate, Query};
-use Pike\Interfaces\RowMapperInterface;
+use Pike\Db\{FluentDb2, Query};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree;
 use Sivujetti\JsonUtils;
-use Sivujetti\Page\PagesRepository;
 
 final class GlobalBlockTreesRepository2 {
     private const T = "\${p}globalBlockTrees";
-    /** @var \Pike\Db\FluentDb */
-    private FluentDb $db;
     /** @var \Pike\Db\FluentDb2 */
     private FluentDb2 $db2;
     /**
-     * @param \Pike\Db\FluentDb $db
      * @param \Pike\Db\FluentDb2 $db2
      */
-    public function __construct(FluentDb $db, FluentDb2 $db2) {
-        $this->db = $db;
+    public function __construct(FluentDb2 $db2) {
         $this->db2 = $db2;
     }
     /**
-     * @return \Pike\Db\MyInsert|\Pike\Db\Query
+     * @return \Pike\Db\Query
      */
-    public function insert(): MyInsert|Query {
-        if (!defined("USE_NEW_FLUENT_DB"))
-            return $this->db->insert(self::T);
-        else
-            return $this->db2->insert(self::T);
+    public function insert(): Query {
+        return $this->db2->insert(self::T);
     }
     /**
-     * @return \Pike\Db\MySelect|\Pike\Db\Query
+     * @return \Pike\Db\Query
      */
-    public function select(): Select|Query {
-        if (!defined("USE_NEW_FLUENT_DB")) {
-        return $this->db->select(self::T, GlobalBlockTree::class)
-            ->fields(["id", "name", "blocks AS blocksJson"])
-            ->mapWith(new class implements RowMapperInterface {
-                public function mapRow(object $row, int $_numRow, array $_rows): object {
-                    GlobalBlockTreesRepository2::normalizeSingle($row);
-                    return $row;
-                }
-            })
-            ->limit(20);
-        } else {
+    public function select(): Query {
         return $this->db2->select(self::T)
             ->fetchWith(function (string $id, string $name, string $blocks) {
                 $out = new GlobalBlockTree;
@@ -59,22 +38,11 @@ final class GlobalBlockTreesRepository2 {
                 return $out;
             })
             ->limit(20);
-        }
     }
     /**
-     * @return \Pike\Db\MyUpdate|\Pike\Db\Query
+     * @return \Pike\Db\Query
      */
-    public function update(): MyUpdate|Query {
-        if (!defined("USE_NEW_FLUENT_DB"))
-            return $this->db->update(self::T);
-        else
-            return $this->db2->update(self::T);
-    }
-    /**
-     * @param \Sivujetti\GlobalBlockTree\Entities\GlobalBlockTree $row
-     */
-    public static function normalizeSingle(object $row): void {
-        $row->blocks = $row->blocksJson ? PagesRepository::blocksFromRs("blocksJson", $row) : null;
-        unset($row->blocksJson);
+    public function update(): Query {
+        return $this->db2->update(self::T);
     }
 }

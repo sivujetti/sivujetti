@@ -212,18 +212,6 @@ final class PagesRepository {
         return $rows;
     }
     /**
-     * @param string $key
-     * @param object $row
-     * @return \Sivujetti\Block\Entities\Block[]
-     */
-    public static function blocksFromRs(string $key, object $row): array {
-        $arr = [];
-        foreach (JsonUtils::parse($row->{$key}) as $data)
-            $arr[] = Block::fromObject($data);
-        unset($row->{$key});
-        return $arr;
-    }
-    /**
      * @param string|\Sivujetti\PageType\Entities\PageType $candidate
      * @return \Sivujetti\PageType\Entities\PageType
      * @throws \Pike\PikeException
@@ -248,6 +236,18 @@ final class PagesRepository {
     private function insertRevision(string $snapshot,
                                     bool $doInsertRevisionAsCurrentDraft): int {
         return 1;
+    }
+    /**
+     * @param string $key
+     * @param object $row
+     * @return \Sivujetti\Block\Entities\Block[]
+     */
+    private static function blocksFromRs(string $key, object $row): array {
+        $arr = [];
+        foreach (JsonUtils::parse($row->{$key}) as $data)
+            $arr[] = Block::fromObject($data);
+        unset($row->{$key});
+        return $arr;
     }
     /**
      * @param object $input Valid $req->body

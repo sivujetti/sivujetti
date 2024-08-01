@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Boot;
 
-use Pike\Db\{FluentDb, FluentDb2};
+use Pike\Db\FluentDb2;
 use Pike\{AppConfig, Db, FileSystem, Injector, NativeSession, PikeException,
           Request, Router, Response};
 use Pike\Auth\Authenticator;
@@ -111,9 +111,7 @@ class BootModule {
         $db = new Db($this->configBundle["app"]);
         $di->share(new AppConfig($this->configBundle["app"]));
         $di->share($db);
-        $di->share(new FluentDb($db));
-        if (defined("USE_NEW_FLUENT_DB"))
-            $di->share(new FluentDb2($db));
+        $di->share(new FluentDb2($db));
         $di->share(new Authenticator(
             fn($_fac) => new DefaultUserRepository($db),
             fn($_fac) => new NativeSession(autostart: false),
@@ -170,7 +168,7 @@ class BootModule {
         ]);
 
         //
-        $fluentDb = $di->make(!defined("USE_NEW_FLUENT_DB") ? FluentDb::class : FluentDb2::class);
+        $fluentDb = $di->make(FluentDb2::class);
         $fluentDb->getDb()->open($this->configBundle["app"]["db.driver"] === "sqlite"
             ? [\PDO::ATTR_EMULATE_PREPARES => 0]
             : [\PDO::ATTR_EMULATE_PREPARES => 0, \PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE"]

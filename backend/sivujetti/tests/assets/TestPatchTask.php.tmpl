@@ -2,20 +2,20 @@
 
 namespace Sivujetti\Update\Patch;
 
-use Pike\Db\FluentDb;
+use Pike\Db\FluentDb2;
 use Sivujetti\Block\BlockTree;
 use Sivujetti\JsonUtils;
 use Sivujetti\Update\UpdateProcessTaskInterface;
 
 final class TestPatchTask implements UpdateProcessTaskInterface {
     private bool $doSkip;
-    private FluentDb $db;
+    private FluentDb2 $db;
     /**
      * @param string $toVersion
      * @param string $currentVersion
-     * @param \Pike\Db\FluentDb $db
+     * @param \Pike\Db\FluentDb2 $db
      */
-    function __construct(string $toVersion, string $currentVersion, FluentDb $db) {
+    function __construct(string $toVersion, string $currentVersion, FluentDb2 $db) {
         $this->doSkip = $toVersion !== "99.99.99-test";
         $this->db = $db;
     }

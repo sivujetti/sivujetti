@@ -2,7 +2,7 @@
 
 namespace Sivujetti\Tests\Theme;
 
-use Pike\Db\{FluentDb, FluentDb2};
+use Pike\Db\FluentDb2;
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 use Sivujetti\Tests\Utils\{CssGenTestUtils, DbDataHelper, HttpApiTestTrait};
 
@@ -55,7 +55,7 @@ abstract class ThemesControllerTestCase extends DbTestCase {
     }
     protected function insertTestStylesForTestTheme(\TestState $state): void {
         $this->dbDataHelper->insertData($state->testStyles, "themeStyles");
-        (!defined("USE_NEW_FLUENT_DB") ? new FluentDb(self::$db) : new FluentDb2(self::$db))->update("\${p}themes")
+        (new FluentDb2(self::$db))->update("\${p}themes")
             ->values((object) ["generatedScopedStylesCss" => CssGenTestUtils::generateScopedStyles($state->testStyles)])
             ->where("id=?", [$state->testTheme->id])
             ->execute();

@@ -127,7 +127,7 @@ class CustomClassStylesList extends preact.Component {
      * @access private
      */
     addStyle() {
-        const initialScss = `  // ${__('Your code here ...') }\n  color: red;`;
+        const initialScss = `\n  color: red;\n`;
         const prevMax = getAllChunks().reduce((out, chunk) => {
             const c = parseInt(extractClassName(chunk).split('-')[1], 10);
             return c > out ? c : out;
@@ -190,21 +190,24 @@ class CustomClassStylesList extends preact.Component {
              * @param {ContextMenuLink} link
              */
             onItemClicked: link => {
+                const idx = this.idxOfOpenMoreMenuChunk;
                 if (link.id === 'edit-title') {
                     this.setState({
-                        idxOfOpenPopupListItem: this.idxOfOpenMoreMenuChunk,
-                        editTitlePopupCfg: this.createEditTitlePopupCfg(this.idxOfOpenMoreMenuChunk),
+                        idxOfOpenPopupListItem: idx,
+                        editTitlePopupCfg: this.createEditTitlePopupCfg(idx),
                     });
                 } else if (link.id === 'edit-settings') {
-                    const saved = this.idxOfOpenMoreMenuChunk;
                     floatingDialog.open(CustomClassStyleEditCustomizationsDialog, {
                         title: __('Edit style customizations'),
                     }, {
-                        currentSettings: this.state.styleChunksVisible[saved].data?.mutationRules?.varDefs,
-                        onConfirm: newSettings => this.emitCustomClassSettingsData(saved, newSettings),
+                        currentSettings: this.state.styleChunksVisible[idx].data?.mutationRules?.varDefs,
+                        onConfirm: newSettings => this.emitCustomClassSettingsData(idx, newSettings),
                     });
                 } else if (link.id === 'delete')
-                    alert('TODO');
+                    api.saveButton.getInstance().pushOp(
+                        'stylesBundle',
+                        scssWizard.deleteStyleChunkAndReturnAllRecompiled(this.state.styleChunksVisible[idx])
+                    );
             },
             onMenuClosed: () => {
                 this.idxOfOpenMoreMenuChunk = null;

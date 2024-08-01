@@ -139,14 +139,13 @@ class ScssWizard {
         return this.commitAll(updated, mediaScopeId);
     }
     /**
-     * @param {StyleChunk} currentStyle
-     * @param {mediaScope} mediaScopeId = 'all'
+     * @param {StyleChunk} chunkToDelete
      * @returns {StylesBundleWithId}
      * @access public
      */
-    deleteUniqueScopeChunkAndReturnAllRecompiled(currentStyle, mediaScopeId = 'all') {
-        const updated = this.styles.filter(s => s !== currentStyle);
-        return this.commitAll(updated, mediaScopeId);
+    deleteStyleChunkAndReturnAllRecompiled(chunkToDelete) {
+        const updated = this.styles.filter(s => s !== chunkToDelete);
+        return this.commitAll(updated);
     }
     /**
      * @param {scssCodeInput} codeTemplate

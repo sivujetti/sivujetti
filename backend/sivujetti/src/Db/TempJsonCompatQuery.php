@@ -2,16 +2,15 @@
 
 namespace Sivujetti\Db;
 
-use Envms\FluentPDO\Queries\Select;
-use Pike\Db\{MongoFilters, MySelect};
+use Pike\Db\{MongoFilters, Query};
 
-class TempJsonCompatSelect extends MySelect {
+class TempJsonCompatQuery extends Query {
     /** @var \Closure[] */
     private array $jsonFilters = [];
     /**
      * @inheritdoc
      */
-    public function mongoWhere(string $mongoExpr, array $variables = []): Select {
+    public function mongoWhere(string $mongoExpr, array $variables = []): Query {
         if (count($this->jsonFilters)) throw new \RuntimeException("Not implemented");
         [$whereSql, $whereVals] = MongoFilters::fromString($mongoExpr)->toQParts();
         //
@@ -37,11 +36,11 @@ class TempJsonCompatSelect extends MySelect {
     /**
      * @inheritdoc
      */
-    public function fetchAll($index = "", $selectOnly = "") {
+    public function fetchAll(...$fetchConfig): array {
         if (!count($this->jsonFilters))
-            return parent::fetchAll($index, $selectOnly);
+            return parent::fetchAll(...$fetchConfig);
         //
-        $rows = parent::fetchAll($index, $selectOnly);
+        $rows = parent::fetchAll(...$fetchConfig);
         $filtered = [];
         foreach ($rows as $row) {
             foreach ($this->jsonFilters as $boundFilter) {
@@ -51,7 +50,7 @@ class TempJsonCompatSelect extends MySelect {
                 }
             }
         }
-        return $this->processAndGetResults($filtered);
+        return $filtered;
     }
     /**
      * @param string[] $whereSql

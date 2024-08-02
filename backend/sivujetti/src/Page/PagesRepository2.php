@@ -4,10 +4,9 @@ namespace Sivujetti\Page;
 
 use Envms\FluentPDO\Queries\Select;
 use Pike\{ArrayUtils, PikeException};
-use Pike\Db\{FluentDb, FluentDb2, Query};
-use Pike\Interfaces\RowMapperInterface;
+use Pike\Db\{FluentDb2, Query};
 use Sivujetti\Block\Entities\Block;
-use Sivujetti\Db\TempJsonCompatSelect;
+use Sivujetti\Db\TempJsonCompatQuery;
 use Sivujetti\JsonUtils;
 use Sivujetti\Page\Entities\Page;
 use Sivujetti\PageType\Entities\PageType;
@@ -34,25 +33,11 @@ final class PagesRepository2 {
      */
     public function select(string $pageTypeName = "Pages", array $fields = []): Select|Query {
         $pageType = $this->getPageTypeOrThrow($pageTypeName);
-        if (!defined("USE_NEW_FLUENT_DB")) {
         $sqliteVersion = "3.37";
-        $compatCls = version_compare($sqliteVersion, "3.38", ">=") ? null : TempJsonCompatSelect::class;
-        return (new FluentDb($this->fluentDb2->getDb()))->select("\${p}{$pageType->name} p", Page::class, $compatCls)
-            ->fields(self::createSelectFields($fields, $pageType))
-            ->mapWith(new class implements RowMapperInterface {
-                public function mapRow(object $page, int $_numRow, array $_rows): object {
-                    $page->meta = $page->metaJson ? JsonUtils::parse($page->metaJson) : null;
-                    unset($page->metaJson);
-                    $blocksJson = $page->blocksJson ?? null;
-                    $page->blocks = $blocksJson ? array_map(fn($blockRaw) =>
-                        Block::fromObject($blockRaw)
-                    , json_decode($blocksJson, flags: JSON_THROW_ON_ERROR)) : [];
-                    unset($page->blocksJson);
-                    return $page;
-                }
-            });
-        } else {
-        return $this->fluentDb2->select("\${p}{$pageType->name} p")
+        $db2 = version_compare($sqliteVersion, "3.38", ">=")
+            ? $this->fluentDb2
+            : new FluentDb2($this->fluentDb2->getDb(), TempJsonCompatQuery::class);
+        return $db2->select("\${p}{$pageType->name} p")
             ->fields(self::createSelectFields($fields, $pageType))
             ->fetchWith(\PDO::FETCH_CLASS, Page::class)
             ->mapWith(function (Page $row, int $_rowNum, array $_rows): ?Page {
@@ -76,7 +61,6 @@ final class PagesRepository2 {
                 // /* Own props set by pdo */
                 return $row;
             });
-        }
     }
     /**
      * @param string $pageTypeName = "Pages"

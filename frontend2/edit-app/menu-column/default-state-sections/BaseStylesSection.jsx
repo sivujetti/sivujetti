@@ -97,7 +97,7 @@ class BaseAndCustomClassStylesSection extends preact.Component {
                 getTabName={ (_, i) => tabsInfo[i].kind }
                 onTabChanged={ (toIdx) => this.changeTab(this.tabsInfo[toIdx].kind) }
                 className={ `text-tinyish mt-0${currentTabKind !== 'content' ? '' : ' mb-2'}` }
-                initialIndex={ tabsInfo.findIndex(({kind}) => kind === currentTabKind) }/> : null }
+                initialTabIdx={ tabsInfo.findIndex(({kind}) => kind === currentTabKind) }/> : null }
             { tabsInfo.map(({kind}) => {
                 const isCurrent = kind === currentTabKind;
                 return <div class={ [...clses, ...(isCurrent ? [] : ['d-none'])].join(' ') } key={ kind }>

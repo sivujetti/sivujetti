@@ -753,6 +753,10 @@ a.popup-close-area {
     backdrop-filter: blur(3px);
     z-index: 1;
 }
+/* EditApp: Components: tabs */
+.tab-item > a > svg {
+    margin-bottom: -.2rem;
+}
 /* EditApp: Components: tooltips */
 .my-tooltip {
     background: var(--color-bg-default);
@@ -1185,6 +1189,9 @@ a.popup-close-area {
 .tagify__dropdown__item--active {
     background: var(--color-bg-button);
     color: unset;
+}
+.tagify__input {
+    z-index: 0;
 }
 
 

@@ -84,13 +84,10 @@ interface BlockType {
     //
 }
 
-type editFormType = 'content'|'content+user-styles';
-
 interface BlockTypeDefinition {
     name: String;         // Examples 'Text'
     friendlyName: String; // Examples 'Text'
     editForm: preact.Component|null;
-    editFormType?: editFormType;
     stylesEditForm: 'auto'|preact.Component|null;
     createOwnProps(defProps: {[key: String]: any;}): {[propName: String]: any};
     icon?: String;        // Examples 'blockquote'
@@ -325,7 +322,6 @@ interface BlockEditFormProps {
     emitValueChanged(val: any, key: String, ...varargs): void;
     emitValueChangedThrottled(val: any, key: String, hasErrors: Boolean = false, source: 'default'|'undo'|null = null): void;
     emitManyValuesChanged(changes: {[key: String]: any;}, hasErrors: Boolean = false, flags: blockPropValueChangeFlags = null);
-    stylesStateId?: Number;
 }
 
 interface BlockStylesEditFormProps {

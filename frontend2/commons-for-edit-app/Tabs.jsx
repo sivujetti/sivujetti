@@ -1,11 +1,11 @@
 class Tabs extends preact.Component {
     // getTabName;
     /**
-     * @param {{links: Array<preact.ComponentChild>; onTabChanged: (idx: number) => any; initialIndex?: Number; className?: String; getTabName?: (linkText: String, tabIdx: Number) => String|null;}} props
+     * @param {{links: Array<preact.ComponentChild>; onTabChanged: (idx: number) => any; initialTabIdx?: Number; className?: String; getTabName?: (linkText: String, tabIdx: Number) => String|null;}} props
      */
     constructor(props) {
         super(props);
-        this.state = {currentIdx: typeof props.initialIndex !== 'number' ? 0 : props.initialIndex};
+        this.state = {currentIdx: typeof props.initialTabIdx !== 'number' ? 0 : props.initialTabIdx};
         this.getTabName = props.getTabName || (() => null);
     }
     /**

@@ -33,16 +33,23 @@ class BlockEditForm extends preact.Component {
         const saveButton = api.saveButton.getInstance();
         this.blockType = api.blockTypes.get(this.props.block.type);
         this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(this.props.block.id, 'mainTree');
-        const editForm = createBlockEditFormCfg(this.blockType);
+        const editFormRenderer = this.blockType.editForm;
         this.editFormImpls = [
-            ...(editForm.Renderer ? [editForm] : []),
-            ...(!this.blockType.extends ? [] : [createBlockEditFormCfg(api.blockTypes.get(this.blockType.extends))])
+            ...(editFormRenderer ? [editFormRenderer] : []),
+            ...(!this.blockType.extends ? [] : [api.blockTypes.get(this.blockType.extends).editForm])
         ];
         this.stylesEditForm = this.blockType.stylesEditForm !== 'auto'
             ? this.blockType.stylesEditForm
             : DefaultStyleMutationsEditForm;
-
-        this.tabsInfo = createTabsInfo(createTabConfig(this.blockType.editFormType, !!this.stylesEditForm));
+        this.tabsInfo = createTabsInfo(api.user.can('editBlockCss') ? [
+                ...(this.editFormImpls.length ? [{kind: 'content'}] : []),
+                ...(this.blockType.name !== 'PageInfo' ? [
+                    {kind: 'dev-styles'},
+                    {kind: 'user-styles'},
+                ] : []),
+            ] : [
+                ...(this.stylesEditForm ? [{kind: 'user-styles'}] : []),
+            ]);
         const currentTabKind = createInitialTabKind(
             getAndPutAndGetToLocalStorage('content', 'sivujettiLastBlockEditFormTabKind'),
             this.tabsInfo
@@ -110,17 +117,24 @@ class BlockEditForm extends preact.Component {
                 { __(blockCopyForEditForm.title || this.blockType.friendlyName) }
             </div>
             { hasMoreThat1Tab ? <Tabs
-                links={ tabsInfo.map(itm => itm.title) }
+                links={ tabsInfo.map(itm => [
+                    itm.title.split('(')[0],
+                    itm.kind === 'dev-styles'
+                        ? <Icon iconId="settings" className="size-xs ml-1 color-dimmed3"/>
+                        : itm.kind === 'user-styles'
+                            ? <Icon iconId="palette" className={ `size-xs ml-1 color-pink${!this.state.hasTw ? ' colro-sat2' : ''}` }/>
+                            : null,
+                ]) }
                 getTabName={ (_, i) => tabsInfo[i].kind }
                 onTabChanged={ (toIdx) => this.changeTab(this.tabsInfo[toIdx].kind) }
                 className={ `text-tinyish mt-0${currentTabKind !== 'content' ? '' : ' mb-2'}` }
-                initialIndex={ tabsInfo.findIndex(({kind}) => kind === currentTabKind) }/> : null }
+                initialTabIdx={ tabsInfo.findIndex(({kind}) => kind === currentTabKind) }/> : null }
             { tabsInfo.map(itm => {
                 let content;
                 if (itm.kind !== currentTabKind)
                     content = null;
-                else if (itm.kind === 'content' || itm.kind === 'content+user-styles') {
-                    content = this.editFormImpls.map(({Renderer, type}) =>
+                else if (itm.kind === 'content') {
+                    content = this.editFormImpls.map(Renderer =>
                         <Renderer
                             block={ blockCopyForEditForm }
                             lastBlockTreeChangeEventInfo={ lastBlockTreeChangeEventInfo }
@@ -141,11 +155,7 @@ class BlockEditForm extends preact.Component {
                                 }
                             } }
                             emitManyValuesChanged={ this.handleValuesChanged.bind(this) }
-                            key={ blockId }
-                            { ...(type !== 'content+user-styles'
-                                ? {}
-                                : {stylesStateId: this.state.stylesStateId, blockId: blockId}
-                            ) }/>
+                            key={ blockId }/>
                     );
                 } else if (itm.kind === 'user-styles') {
                     const Renderer = this.stylesEditForm;
@@ -233,28 +243,6 @@ class BlockEditForm extends preact.Component {
 }
 
 /**
- * @param {editFormType} editFormType
- * @param {Boolean} hasStylesForm
- * @returns {Array<{kind: tabKind;}>}
- */
-function createTabConfig(editFormType, hasStylesForm) {
-    if (editFormType === 'content+user-styles')
-        return [
-            {kind: 'dev-styles'},
-            {kind: 'content+user-styles'},
-        ];
-    if (hasStylesForm)
-        return [
-            {kind: 'content'},
-            {kind: 'dev-styles'},
-            {kind: 'user-styles'},
-        ];
-    return [
-        {kind: 'content'}
-    ];
-}
-
-/**
  * @param {tabKind} newTabKind
  * @param {Object} block
  * @returns {Object}
@@ -278,17 +266,6 @@ function createState(newTabKind, block) {
  */
 function doesTabContainStylesStuff(tabKind) {
     return tabKind.indexOf('styles') > -1;
-}
-
-/**
- * @param {BlockTypeDefinition} input
- * @returns {Renderer: preact.Component|null; type: 'content'|'content+user-styles';}
- */
-function createBlockEditFormCfg(input) {
-    return {
-        Renderer: input.editForm,
-        type: input.editFormType || 'content'
-    };
 }
 
 /**

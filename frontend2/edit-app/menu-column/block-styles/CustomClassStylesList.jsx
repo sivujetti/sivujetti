@@ -103,7 +103,7 @@ class CustomClassStylesList extends preact.Component {
                         }
                     </li>;
                 })
-                : __('No styles')
+                : <div class="mt-2">{ __('No styles') }</div>
             }</ul>,
             <button
                 onClick={ this.addStyle.bind(this) }
@@ -136,6 +136,7 @@ class CustomClassStylesList extends preact.Component {
         const newAll = scssWizard.addNewDevsScssChunkAndReturnAllRecompiled(
             `.${newChunkClass} {${initialScss}}`,
             'custom-class',
+            {associatedBlockTypes: [this.props.blockTypeName]},
         );
         saveButtonInstance.pushOpGroup(
             ['stylesBundle', newAll],
@@ -253,8 +254,8 @@ class CustomClassStylesList extends preact.Component {
     emitCustomClassSettingsData(i, newSettings) {
         const current = this.state.styleChunksVisible[i];
         const obj = {
-            ...(current.data?.title ? {title: current.data.title}             : {}),
-            ...(newSettings         ? {mutationRules: {varDefs: newSettings}} : {}),
+            ...(current.data || {}),
+            ...(newSettings ? {mutationRules: {varDefs: newSettings}} : {}),
         };
         const newAll = scssWizard.updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(
             {data: Object.keys(obj).length ? obj : null},
@@ -329,6 +330,7 @@ function addOrRemoveStyleClass(type, chunkClass, to) {
 /**
  * @typedef {{
  *   blockId: string;
+ *   blockTypeName: string;
  *   stylesStateId: number;
  *   checkIsChunkActive: (chunk: StyleChunk) => boolean;
  *   styleClasses: string;

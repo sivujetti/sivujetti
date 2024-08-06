@@ -544,6 +544,7 @@ interface CustomClassStyleChunkData {
     mutationRules?: {
         varDefs: Array<VisualStylesFormVarDefinition>;
     };
+    associatedBlockTypes?: Array<string>;
 }
 
 interface CssVarsMap {

@@ -231,6 +231,10 @@ final class ThemesController {
                 return (object) [
                     ...(($data->title ?? null) ? ["title" => substr($data->title, 0, ValidationUtils::HARD_SHORT_TEXT_MAX_LEN)] : []),
                     ...(($data->mutationRules ?? null) ? ["mutationRules" => $data->mutationRules] : []),
+                    ...(($data->associatedBlockTypes ?? null) ? ["associatedBlockTypes" => array_map(function(string $bt) {
+                        if (!Validation::isIdentifier($bt)) throw new PikeException("", PikeException::BAD_INPUT);
+                        return substr($bt, 0, ValidationUtils::INDEX_STR_MAX_LENGTH);
+                    }, $data->associatedBlockTypes)] : []),
                 ];
         }
         return null;

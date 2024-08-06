@@ -48,6 +48,7 @@ class BlockEditForm extends preact.Component {
                     {kind: 'user-styles'},
                 ] : []),
             ] : [
+                ...(this.editFormImpls.length ? [{kind: 'content'}] : []),
                 ...(this.stylesEditForm ? [{kind: 'user-styles'}] : []),
             ]);
         const currentTabKind = createInitialTabKind(
@@ -169,6 +170,7 @@ class BlockEditForm extends preact.Component {
                     content = [
                         <CustomClassStylesList
                             blockId={ blockId }
+                            blockTypeName={ this.blockType.name }
                             checkIsChunkActive={ createIsChunkStyleEnabledChecker(blockCopyForEditForm.styleClasses) }
                             stylesStateId={ this.state.stylesStateId }
                             styleClasses={ blockCopyForEditForm.styleClasses }/>,

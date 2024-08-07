@@ -8,7 +8,7 @@ class ScreenSizesVerticalTabs extends preact.Component {
      * @param {{curTabIdx: Number; setCurTabIdx: (newIdx: Number): void; populatedTabs: [Boolean, Boolean, Boolean, Boolean, Boolean]; className?: String; allowOverflowX?: Boolean;}} props
      */
     render({children, curTabIdx, setCurTabIdx, populatedTabs, className, allowOverflowX}) {
-        return <div class={ 'vert-tabs' + (!className ? '' : ` ${className}`) } style={ !allowOverflowX ? '' : 'width:100%;overflow-x:auto;' }>
+        return <div class={ 'vert-tabs vert-tabs-tiny' + (!className ? '' : ` ${className}`) } style={ !allowOverflowX ? '' : 'width:100%;overflow-x:auto;' }>
             <div class="vert-tab-btns">
                 <button
                     onClick={ () => setCurTabIdx(0) }

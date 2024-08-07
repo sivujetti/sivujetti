@@ -48,7 +48,7 @@ const api = {
     user: editAppUserApiInstance,
     registerTranslationStrings: editAppTranslatorInstance.addStrings.bind(editAppTranslatorInstance),
 
-    // There are initialized in ViewAndContextMenuLayer (../edit-app/main.js)
+    // These are initialized in ViewAndContextMenuLayer (../edit-app/main.js)
     webPagePreview: {
         initialized: false,
         getEl() { return document.body.querySelector('.site-preview-iframe'); },

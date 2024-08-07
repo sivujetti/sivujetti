@@ -23,15 +23,6 @@ stringBundles.push({
     'Failed to upload file #%s': 'Failed to upload file #%s',
     'Upload files': 'Upload files',
     'You can also drag files here\n from your computer.': 'You can also drag files here\n from your computer.',
-    // edit-app/src/left-column/block/BlockDnDSpawner.jsx
-    'Start adding content': 'Start adding content',
-    'reusable content': 'reusable content',
-    'Filter': 'Filter',
-    'Reusables': 'Reusables',
-    'Common': 'Common',
-    'Specialized': 'Specialized',
-    'Unique reusables': 'Uniques reusables',
-    'duplicated': 'duplicated',
     // edit-app/src/left-column/block/BlockStylesTab2.jsx
     'No editable styles.': 'No editable styles.',
     // edit-app/src/left-column/block/createBlockTreeDndController.js
@@ -137,16 +128,15 @@ stringBundles.push({
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
     'Only root styles may contain @imports': 'Only root styles may contain @imports',
     // edit-app/src/left-column/block/BlockTree.jsx
-    'Add child content': 'Add child content',
+    '↑ Add content above': '↑ Add content above',
+    '↓ Add content below': '↓ Add content below',
+    '↳ Add content as child': '↳ Add content as child',
     'Duplicate': 'Duplicate',
     'Duplicate content': 'Duplicate content',
     'no styles': 'no styles',
     'Delete': 'Delete',
     'Delete content': 'Delete content',
     'Save as reusable': 'Save as reusable',
-    '↑ Add content above': '↑ Add content above',
-    '↓ Add content below': '↓ Add content below',
-    '↳ Add child content': '↳ Add child content',
     'Save as reusable content': 'Save as reusable content',
     'Content tree': 'Content tree',
     // edit-app/src/left-column/panel-sections/BaseStylesSection.jsx
@@ -243,6 +233,7 @@ stringBundles.push({
     ', and otherwise act like ordinary content.': ', and otherwise act like ordinary content.',
     // edit-app/src/popups/PickUrlDialog.jsx
     'This page': 'This page',
+    'Filter': 'Filter',
     // edit-app/src/left-column/SaveButton.jsx
     'You have unsaved changes, do you want to navigate away?': 'You have unsaved changes, do you want to navigate away?',
     'Undo latest change': 'Undo latest change',
@@ -375,6 +366,15 @@ stringBundles.push({
     'Append example': 'Append example',
     'Body scripts': 'Body scripts',
     'Saved global scripts.': 'Saved global scripts.',
+    // edit-app/menu-column/block/AddContentPopup.jsx
+    'Stored': 'Stored',
+    'Blocks': 'Blocks',
+    'Templates': 'Templates',
+    'Common#plural': 'Common#plural',
+    'Other': 'Other',
+    'Plugins': 'Plugins',
+    'Headers': 'Headers',
+    'Content#plural': 'Content#plural',
     // ../std-styles.md
     'Text default': 'Text default',
     'Headings default': 'Headings default',

@@ -748,7 +748,11 @@ a.popup-close-area {
     z-index: 1;
 }
 /* EditApp: Components: tabs */
-.tab-item > a > svg {
+.tab:has(+ .vert-tabs) {
+    margin-bottom: 0;
+    border-bottom: none;
+}
+.tab-item > a > .icon-tabler {
     margin-bottom: -.2rem;
 }
 /* EditApp: Components: tooltips */
@@ -857,13 +861,13 @@ a.popup-close-area {
 .styles-list .row-item:last-child:focus {
     opacity: 1;
 }
-.styles-list .row-item > svg {
+.styles-list .row-item > .icon-tabler {
     position: absolute;
 }
-.styles-list li.open .row-item:first-child svg {
+.styles-list li.open .row-item:first-child .icon-tabler {
     transform: translateX(-1rem) rotate(180deg);
 }
-.styles-list .row-item:first-child svg {
+.styles-list .row-item:first-child .icon-tabler {
     transform: translateX(-1rem);
 }
 .styles-list header > label.form-checkbox {
@@ -1606,10 +1610,47 @@ a.popup-close-area {
 }
 
 
+/* EditApp: Main panel > add content button lists */
+.block-buttons-list {
+    display: inline-grid;
+    gap: .1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.block-buttons-list > :nth-child(3n+2):before,
+.block-buttons-list > :nth-child(3n+3):before {
+    content: "";
+    border-right: 1px solid #f3f3f3;
+    height: 100%;
+    transform: translateX(-.7rem);
+}
+.block-buttons-list button {
+    font-weight: 300;
+    background: #fff;
+    border-color: #fff;
+}
+.block-buttons-list button .icon-tabler {
+    color: var(--color-icon-normal-block);
+    min-width: .85rem;
+}
+.block-buttons-list button.globalBlockTree-block .icon-tabler {
+    color: var(--color-icon-global-block);
+}
+.block-buttons-list[data-list-of="reusables"] button span:after {
+    content: "☆";
+    font-size: .5rem;
+    opacity: .9;
+    position: absolute;
+    transform: translateX(.3rem);
+}
+
+
 /* EditApp: Main panel > Style tab media-query vertical tabs */
 .vert-tabs {
-    display: grid !important;
+    display: grid;
     position: relative;
+    grid-template-columns: 3rem 1fr;
+}
+.vert-tabs-tiny {
     grid-template-columns: 20px 1fr;
 }
 .vert-tab-btns > button > * {
@@ -1635,7 +1676,7 @@ a.popup-close-area {
     font-weight: 800;
     text-shadow: 0px 0px 10px hsla(var(--components-color-accent),.6);
 }
-.vert-tabs > .vert-tab-btns > button:first-child span {
+.vert-tabs-tiny > .vert-tab-btns > button:first-child span {
     position: relative;
     top: 3px;
 }

@@ -219,7 +219,7 @@ class BlockTree extends preact.Component {
     handleContextMenuLinkClicked(link) {
         const addContentKind = ({
             'add-content-above': 'before',
-            'add-content-beneath': 'after',
+            'add-content-below': 'after',
             'add-content-as-child': 'as-child',
         }[link.id]) || null;
         if (addContentKind) {
@@ -227,7 +227,8 @@ class BlockTree extends preact.Component {
             api.mainPopper.open(
                 AddContentPopup,
                 li.querySelector('.block-handle'),
-                this.createAddContentPopupConfig(createBlockDescriptorFromLi(li), addContentKind)
+                this.createAddContentPopupConfig(createBlockDescriptorFromLi(li), addContentKind),
+                {maxWidth: 580},
             );
         } else if (link.id === 'duplicate-block') {
             const withStyles = link.text.indexOf('(') < 0;
@@ -490,7 +491,7 @@ class BlockTree extends preact.Component {
                     ...[
                         {text: __('↑ Add content above'), title: __(''), id: 'add-content-above'},
                         {text: __('↓ Add content below'), title: __(''), id: 'add-content-below'},
-                        {text: __('↳ Add child content'), title: __(''), id: 'add-content-as-child'},
+                        {text: __('↳ Add content as child'), title: __(''), id: 'add-content-as-child'},
                         {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
                         {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
                     ],

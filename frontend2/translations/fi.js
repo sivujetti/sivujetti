@@ -23,15 +23,6 @@ stringBundles.push({
     'Failed to upload file #%s': 'Tiedoston #%s lataus epäonnistui',
     'Upload files': 'Lataa tiedostoja',
     'You can also drag files here\n from your computer.': 'Voit myös raahata tähän tie-\ndostoja tietokoneeltasi.',
-    // edit-app/src/left-column/block/BlockDnDSpawner.jsx
-    'Start adding content': 'Aloita lisäämään sisältöä',
-    'reusable content': 'uudelleenkäytettävä sisältö',
-    'Filter': 'Suodata',
-    'Reusables': 'Uudelleenkäytettävät',
-    'Common': 'Yleiset',
-    'Specialized': 'Erikoistuneet',
-    'Unique reusables': 'Uniikit uudelleenkäytettävät',
-    'duplicated': 'monistettu',
     // edit-app/src/left-column/block/BlockStylesTab2.jsx
     'No editable styles.': 'Ei muokattavia tyylejä.',
     // edit-app/src/left-column/block/createBlockTreeDndController.js
@@ -138,16 +129,15 @@ stringBundles.push({
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
     'Only root styles may contain @imports': 'Vain juurityylit voi sisältää @importeja',
     // edit-app/src/left-column/block/BlockTree.jsx
-    'Add child content': 'Lisää lapsisisältöä',
+    '↑ Add content above': '↑ Lisää sisältöä yläpuolelle',
+    '↓ Add content below': '↓ Lisää sisältöä alapuolelle',
+    '↳ Add content as child': '↳ Lisää lapsisisältöä',
     'Duplicate': 'Monista',
     'Duplicate content': 'Monista sisältö',
     'no styles': 'ei tyylejä',
     'Delete': 'Poista',
     'Delete content': 'Poista sisältö',
     'Save as reusable': 'Tallenna uudelleenkäytettäväksi',
-    '↑ Add content above': '↑ Lisää sisältöä yläpuolelle',
-    '↓ Add content below': '↓ Lisää sisältöä alapuolelle',
-    '↳ Add child content': '↳ Lisää lapsisisältöä',
     'Save as reusable content': 'Tallenna uudelleenkäytettäväksi sisällöksi',
     'Content tree': 'Sisältöpuu',
     // edit-app/src/left-column/panel-sections/BaseStylesSection.jsx
@@ -244,6 +234,7 @@ stringBundles.push({
     ', and otherwise act like ordinary content.': ', ja käyttäytyvät muilta osin kuten tavallinen sisältö.',
     // edit-app/src/popups/PickUrlDialog.jsx
     'This page': 'Tämä sivu',
+    'Filter': 'Suodata',
     // edit-app/src/left-column/SaveButton.jsx
     'You have unsaved changes, do you want to navigate away?': 'Sinulla on tallentamattomia muutoksia, haluatko poistua sivulta?',
     'Undo latest change': 'Kumoa viimeisin muutos',
@@ -376,6 +367,16 @@ stringBundles.push({
     'Append example': 'Lataa esimerkki',
     'Body scripts': 'Body -skriptit',
     'Saved global scripts.': 'Globaalit skriptit tallennettin.',
+    // edit-app/menu-column/block/AddContentPopup.jsx
+    'Stored': 'Tallennetut',
+    'Blocks': 'Lohkot',
+    'Templates': 'Templaatit',
+    'Common#plural': 'Yleiset',
+    'Other': 'Muut',
+    'Plugins': 'Lisäosat',
+    'Headers': 'Headerit',
+    'Content#plural': 'Sisällöt',
+    'Footers': 'Footerit',
     // ../std-styles.md
     'Text default': 'Teksti oletus',
     'Headings default': 'Otsikot oletus',

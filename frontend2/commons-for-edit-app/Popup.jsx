@@ -51,10 +51,13 @@ class Popup extends preact.Component {
             this.isUnmounted = false;
             const {placement} = this.props;
             this.popperInstance = window.Popper.createPopper(this.props.btn, el, {...{
-                modifiers: [{
-                    name: 'offset',
-                    options: {offset: [0, 16]},
-                }, {name: 'eventListeners', enabled: true}],
+                modifiers: [
+                    // Distance between the arrow reference element
+                    {name: 'offset', options: {offset: [0, 8]}},
+                    // Distance from the edge of the browser window
+                    {name: 'preventOverflow', options: {altAxis: true, padding: 4}},
+                    {name: 'eventListeners', enabled: true},
+                ],
             }, ...(placement ? {placement} : {})});
             const updatePopper = () => {
                 if (!this.isUnmounted && this.popperInstance)

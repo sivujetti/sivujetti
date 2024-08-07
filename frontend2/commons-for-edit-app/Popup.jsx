@@ -21,11 +21,15 @@ class Popup extends preact.Component {
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {{Renderer: preact.Component; btn: HTMLElement; close: () => void; rendererProps?: {[key: String]: any;}; placement?: 'top-start';}} props
+     * @param {{Renderer: preact.Component; btn: HTMLElement; close: () => void; rendererProps?: {[key: String]: any;}; placement?: 'top-start'; className?: String; maxWidth?: Number;}} props
      * @access protected
      */
-    render({Renderer, rendererProps, close}) {
-        return <div class="my-tooltip" role="tooltip" ref={ this.handleOuterElRefd.bind(this) }>
+    render({Renderer, rendererProps, close, className, maxWidth}) {
+        return <div
+            class={ 'my-tooltip' + (className ? ` ${className}` : '') }
+            role="tooltip"
+            ref={ this.handleOuterElRefd.bind(this) }
+            { ...(maxWidth ? {style: `max-width: ${parseFloat(maxWidth)}px`} : {}) }>
             <Renderer { ...rendererProps } ref={ this.rendererCmp }/>
             <div class="popper-arrow" data-popper-arrow></div>
             <button

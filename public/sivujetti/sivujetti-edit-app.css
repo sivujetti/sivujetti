@@ -391,11 +391,6 @@ h2 {
     height: 100%;
     padding-top: var(--header-height);
 }
-#edit-app.dnd-block-spawner-opened > main {
-    display: grid;
-    grid-template-columns: minmax(0, var(--menu-column-offset)) minmax(0, 1fr);
-    margin-left: .3rem;
-}
 #inspector-panel {
     bottom: 0;
     height: var(--inspector-panel-height);
@@ -487,7 +482,6 @@ h2 {
     width: 0 !important;
     z-index: 1;
 }
-.panels-hidden #dnd-block-spawner,
 .panels-hidden #inspector-panel {
     display: none;
 }
@@ -1255,26 +1249,6 @@ a.popup-close-area {
     z-index: 1;
     scrollbar-width: thin;
 }
-.dnd-block-spawner-opened #edit-app-sections-wrapper:has(.on-this-page.open) {
-    margin-left: -2px;
-}
-.dnd-block-spawner-opened #edit-app-sections-wrapper:has(.on-this-page.open):before {
-    content: "";
-    position: fixed;
-    width: calc(var(--menu-column-width) - 1.2rem);
-    height: .8rem;
-    left: calc(var(--menu-column-offset) + 2px);
-    top: var(--header-height);
-    border: 2px solid var(--color-highlight-outline);
-    border-bottom: none;
-    border-top-left-radius: var(--small-rect-radius);
-    border-top-right-radius: var(--small-rect-radius);
-    z-index: 2;
-    border-right: none;
-}
-main.scrolled-past-main-block-tree #edit-app-sections-wrapper:before {
-    visibility: hidden;
-}
 .panel-section:not(.on-this-page, .base-styles) {
     overflow-x: hidden;
 }
@@ -1306,11 +1280,6 @@ main.scrolled-past-main-block-tree #edit-app-sections-wrapper:before {
     position: relative;
     border-bottom: none;
 }
-.dnd-block-spawner-opened .panel-section.on-this-page {
-    margin-left: -.4rem;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-}
 .panel-section.on-this-page.open {
     padding-bottom: .2rem;
 }
@@ -1322,15 +1291,6 @@ main.scrolled-past-main-block-tree #edit-app-sections-wrapper:before {
     width: 2px;
     top: 0;
     position: absolute;
-}
-.dnd-block-spawner-opened .panel-section.on-this-page.open:before {
-    content: "";
-    background: #fff;
-    height: 100%;
-    width: 2px;
-    top: 0;
-    position: absolute;
-    left: 0px;
 }
 .panel-section.on-this-page.open:before {
     left: -2px;
@@ -1643,112 +1603,6 @@ main.scrolled-past-main-block-tree #edit-app-sections-wrapper:before {
 }
 .block-tree li.collapsed > .toggle .icon-tabler {
     transform: rotate(-90deg);
-}
-
-
-/* EditApp: Main panel > Block spawner */
-#dnd-block-spawner {
-    position: relative;
-    top: .8rem;
-    left: 0;
-    height: 0;
-    z-index: 2;
-}
-.dnd-block-spawner-wrap {
-    border: 2px solid var(--color-highlight-outline);
-    border-radius: var(--small-rect-radius);
-    padding: .3rem .2rem .2rem .2rem;
-}
-main.scrolled-past-main-block-tree .dnd-block-spawner-wrap {
-    opacity: .5;
-}
-.useSeparatorHeightUpdater .dnd-block-spawner-wrap:after {
-    content: "";
-    position: absolute;
-    background: var(--color-bg-default);
-    width: 4px;
-    height: var(--dnd-block-spawner-separator-height);
-    top: 0;
-    right: -3px;
-}
-.dnd-block-spawner-opened #dnd-block-spawner {
-    height: calc(100% - .8rem);
-    z-index: 0;
-}
-.dnd-block-spawner-opened .dnd-block-spawner-wrap {
-    position: absolute;
-    max-height: calc(100% - .4rem);
-    overflow: hidden auto;
-    scrollbar-gutter: stable;
-    width: 100%;
-}
-#dnd-block-spawner:not(.dnd-block-spawner-opened #dnd-block-spawner) .dnd-block-spawner-wrap {
-    visibility: hidden;
-}
-#edit-app:has(.on-this-page.collapsed) .dnd-block-spawner-wrap {
-    opacity: .5;
-    pointer-events: none;
-    border-color: transparent;
-}
-
-#dnd-block-spawner > .btn-primary {
-    transform: translate(-4px, -1px);
-    z-index: 3;
-    position: absolute;
-}
-main.scrolled-past-main-block-tree #dnd-block-spawner:not(
-    .dnd-block-spawner-opened #dnd-block-spawner
-) > .btn-primary {
-    display: none;
-}
-.dnd-block-spawner-opened #dnd-block-spawner > .btn-primary {
-    transform: translate(-9px, 17px);
-}
-.dnd-block-spawner-opened #dnd-block-spawner > .btn-primary .icon-tabler {
-    transform: rotate(180deg);
-}
-
-.dnd-block-spawner-opened .block-tree.no-hover {
-    opacity: .9;
-    padding-bottom: .4rem;
-}
-#dnd-block-spawner .block-tree li {
-    border-left: none;
-    padding: 0.24rem 0.2rem 0.24rem 0.3rem;
-}
-#dnd-block-spawner .block-tree li[data-first-in-group-title]:before {
-    font-size: .6rem;
-    margin: .2rem 0 .5rem 0;
-    color: #a4a6c1;
-    content: attr(data-first-in-group-title);
-    background: var(--color-bg-default);
-    padding-right: .2rem;
-    position: relative;
-    z-index: 1;
-    display: inline-block;
-}
-#dnd-block-spawner .block-tree li[data-first-in-group-title]:after {
-    content: "";
-    position: absolute;
-    top: 1rem;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(90deg, #d3ddd9 50%, transparent);
-    z-index: 0;
-}
-#dnd-block-spawner .block li[data-group="reusableBranch"] .block-handle {
-    padding-right: .8rem;
-}
-#dnd-block-spawner .block li[data-group="reusableBranch"] .block-handle:after {
-    content: "☆";
-    font-size: .5rem;
-    opacity: .9;
-    position: absolute;
-    right: .1rem;
-}
-#dnd-block-spawner .block-tree .block-handle {
-    cursor: grab;
-    filter: grayscale(.5);
 }
 
 

@@ -33,6 +33,7 @@ import {
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
 import {createBlock, treeToTransferable} from '../../includes/block/utils.js';
+import AddContentPopup from './AddContentPopup.jsx';
 
 class BlockTree extends preact.Component {
     // unregistrables;
@@ -216,7 +217,19 @@ class BlockTree extends preact.Component {
      * @access private
      */
     handleContextMenuLinkClicked(link) {
-        if (link.id === 'duplicate-block') {
+        const addContentKind = ({
+            'add-content-above': 'before',
+            'add-content-beneath': 'after',
+            'add-content-as-child': 'as-child',
+        }[link.id]) || null;
+        if (addContentKind) {
+            const li = this.openedBlockDetails;
+            api.mainPopper.open(
+                AddContentPopup,
+                li.querySelector('.block-handle'),
+                this.createAddContentPopupConfig(createBlockDescriptorFromLi(li), addContentKind)
+            );
+        } else if (link.id === 'duplicate-block') {
             const withStyles = link.text.indexOf('(') < 0;
             this.cloneBlock(this.blockWithMoreMenuOpened, withStyles);
         } else if (link.id === 'delete-block') {
@@ -234,6 +247,17 @@ class BlockTree extends preact.Component {
                 userCanCreateGlobalBlockTrees,
             });
         }
+    }
+    /**
+     * @param {BlockDescriptor} targetInfo
+     * @param {dropPosition} insertPos
+     * @returns 
+     * @access private
+     */
+    createAddContentPopupConfig(targetInfo, insertPos) {
+        return {
+            // todo
+        };
     }
     /**
      * @access private
@@ -463,13 +487,17 @@ class BlockTree extends preact.Component {
         return {
             getLinks: () => {
                 const links = [
-                    {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
-                    {text: __('Duplicate'), title: `${__('Duplicate content')} (${__('no styles')})`, id: 'duplicate-block'},
-                    {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
-                ].concat(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees')
-                    ? [{text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}]
-                    : []
-                );
+                    ...[
+                        {text: __('↑ Add content above'), title: __(''), id: 'add-content-above'},
+                        {text: __('↓ Add content below'), title: __(''), id: 'add-content-below'},
+                        {text: __('↳ Add child content'), title: __(''), id: 'add-content-as-child'},
+                        {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
+                        {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
+                    ],
+                    ...(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees')
+                        ? [{text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}]
+                        : []),
+                ];
                 const notThese = blockIsGbtsOutermostBlock ? ['duplicate-block'] : [];
                 return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;
             },

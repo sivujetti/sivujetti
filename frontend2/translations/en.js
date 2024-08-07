@@ -144,6 +144,9 @@ stringBundles.push({
     'Delete': 'Delete',
     'Delete content': 'Delete content',
     'Save as reusable': 'Save as reusable',
+    '↑ Add content above': '↑ Add content above',
+    '↓ Add content below': '↓ Add content below',
+    '↳ Add child content': '↳ Add child content',
     'Save as reusable content': 'Save as reusable content',
     'Content tree': 'Content tree',
     // edit-app/src/left-column/panel-sections/BaseStylesSection.jsx

@@ -47,7 +47,9 @@ const api = {
     },
     user: editAppUserApiInstance,
     registerTranslationStrings: editAppTranslatorInstance.addStrings.bind(editAppTranslatorInstance),
-    webPagePreview: { // Initialized in ../edit-app/main.js
+
+    // There are initialized in ViewAndContextMenuLayer (../edit-app/main.js)
+    webPagePreview: {
         initialized: false,
         getEl() { return document.body.querySelector('.site-preview-iframe'); },
         updateCss(/*compiledCss*/) { },
@@ -61,11 +63,15 @@ const api = {
         onReady(/*fn*/) {},
         sendMessageToReRenderer(/*args*/) {},
     },
-    contextMenu: { // Initialized in ../edit-app/main.js
+    contextMenu: {
         initialized: false,
         open(/*event, links, onClosed*/) { },
         close() { },
-    }
+    },
+    mainPopper: {
+        open(/*Renderer, btn, rendererProps = {}, settings = {}*/) {},
+        close() {},
+    },
 };
 
 export {

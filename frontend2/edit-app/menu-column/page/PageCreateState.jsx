@@ -11,11 +11,9 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 import {treeToTransferable} from '../../includes/block/utils.js';
 import {pathToFullSlug} from '../../includes/utils.js';
-import DnDBlockSpawner from '../block/DnDBlockSpawner.jsx';
 import BaseAndCustomClassStylesSection from '../default-state-sections/BaseStylesSection.jsx';
 import OnThisPageSection from '../default-state-sections/OnThisPageSection.jsx';
 import globalData from '../../includes/globalData.js';
-import {initBlockSpawner} from '../DefaultState.jsx';
 
 const STATUS_PUBLISHED = 0;
 
@@ -24,7 +22,6 @@ const STATUS_PUBLISHED = 0;
  */
 class PageCreateState extends preact.Component {
     // unregistrables;
-    // blockSpawner;
     // pageType;
     // addToMenuIdInfo;
     // addToMenuIsInCurrentPage;
@@ -33,7 +30,6 @@ class PageCreateState extends preact.Component {
      */
     componentWillMount() {
         this.unregistrables = [];
-        this.blockSpawner = preact.createRef();
         const pageTypeName = this.props.pageTypeName || 'Pages';
         this.pageType = api.getPageTypes().find(({name}) => name === pageTypeName);
         const triplet = this.props.matches.addToMenu;
@@ -80,11 +76,8 @@ class PageCreateState extends preact.Component {
                     type="button">&lt; { __('Back') }</button>
             </header>,
             <main style="--header-height: 116px">
-                <DnDBlockSpawner initiallyIsOpen ref={ this.blockSpawner }/>
                 <div id="edit-app-sections-wrapper">
                     <OnThisPageSection
-                        currentPageSlug="/pages/create"
-                        ref={ cmp => initBlockSpawner(cmp, this) }/>
                     { [
                         api.user.can('editGlobalStylesVisually')
                             ? <BaseAndCustomClassStylesSection/>

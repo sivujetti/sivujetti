@@ -6,11 +6,9 @@ import {
     urlUtils,
 } from '@sivujetti-commons-for-edit-app';
 import {blockToBlueprint} from '../block/BlockTreeFuncs.js';
-import DnDBlockSpawner from '../block/DnDBlockSpawner.jsx';
 import OnThisPageSection from '../default-state-sections/OnThisPageSection.jsx';
 import BasicInfoConfigForm from './BasicInfoConfigForm.jsx';
 import OwnFieldsConfigForm from './OwnFieldsConfigForm.jsx';
-import {initBlockSpawner} from '../DefaultState.jsx';
 
 const PAGETYPE_STATUS_COMPLETE = 0;
 const PAGETYPE_STATUS_DRAFT = 1;
@@ -20,7 +18,6 @@ const PAGETYPE_STATUS_DRAFT = 1;
  */
 class PageTypeCreateState extends preact.Component {
     // unregistrables;
-    // blockSpawner;
     // basicInfoForm;
     // ownFieldsForm;
     /**
@@ -28,7 +25,6 @@ class PageTypeCreateState extends preact.Component {
      */
     componentWillMount() {
         this.unregistrables = [];
-        this.blockSpawner = preact.createRef();
         this.basicInfoForm = preact.createRef();
         this.ownFieldsForm = preact.createRef();
         api.webPagePreview.onReady(() => { // make sure currentPageData is loaded
@@ -99,11 +95,9 @@ class PageTypeCreateState extends preact.Component {
                     type="button">&lt; { __('Back') }</button>
             </header>,
             <main style="--header-height: 116px">
-                <DnDBlockSpawner initiallyIsOpen ref={ this.blockSpawner }/>
                 <div id="edit-app-sections-wrapper">
                     <OnThisPageSection
-                        currentPageSlug="/page-types/create"
-                        ref={ cmp => initBlockSpawner(cmp, this) }/>
+                        currentPageSlug="/page-types/create"/>
                     <MenuSection
                         title={ __('Settings') }
                         subtitle={ __('Uuden sivutyypin perustiedot') }

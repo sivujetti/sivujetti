@@ -65,36 +65,6 @@ class OnThisPageSection extends MenuSectionAbstract {
     /**
      * @access protected
      */
-    componentDidMount() {
-        const delta = 20;
-        const thisSectionEl = api.menuPanel.getSectionEl('onThisPage');
-        const blockTreeBottom = {px: null, invalidateTimeout: null, hasScolledPast: false};
-        const updateHasScrolledPastBlockTreeBottomCls = e => {
-            if (blockTreeBottom.px === null) {
-                blockTreeBottom.px = thisSectionEl.offsetTop + thisSectionEl.getBoundingClientRect().height - delta;
-            } else {
-                clearTimeout(blockTreeBottom.invalidateTimeout);
-                blockTreeBottom.invalidateTimeout = setTimeout(() => { blockTreeBottom.px = null; }, 2000);
-            }
-            //
-            const newHasScollerPast = e.target.scrollTop > blockTreeBottom.px;
-            if (newHasScollerPast && !blockTreeBottom.hasScolledPast) {
-                e.target.closest('main').classList.add('scrolled-past-main-block-tree');
-                blockTreeBottom.hasScolledPast = true;
-            } else if (!newHasScollerPast && blockTreeBottom.hasScolledPast) {
-                blockTreeBottom.hasScolledPast = false;
-                e.target.closest('main').classList.remove('scrolled-past-main-block-tree');
-            }
-        };
-        const scrollEl = thisSectionEl.parentElement; // #edit-app-sections-wrapper
-        scrollEl.addEventListener('scroll', updateHasScrolledPastBlockTreeBottomCls);
-        this.unregistrables.push(() => {
-            scrollEl.removeEventListener('scroll', updateHasScrolledPastBlockTreeBottomCls);
-        });
-    }
-    /**
-     * @access protected
-     */
     componentWillUnmount() {
         this.unregistrables.forEach(unreg => unreg());
     }

@@ -1,6 +1,4 @@
 import {api, events} from '@sivujetti-commons-for-edit-app';
-import {createTrier} from '../includes/utils.js';
-import DnDBlockSpawner from './block/DnDBlockSpawner.jsx';
 import BaseAndCustomClassStylesSection from './default-state-sections/BaseStylesSection.jsx';
 import ContentManagementSection from './default-state-sections/ContentManagementSection.jsx';
 import OnThisPageSection from './default-state-sections/OnThisPageSection.jsx';
@@ -10,13 +8,11 @@ import WebsiteSection from './default-state-sections/WebsiteSection.jsx';
  * The default state ("#/", "#/some-page") for main column.
  */
 class DefaultState extends preact.Component {
-    // blockSpawner;
     // unregisterSignalListener;
     /**
      * @access protected
      */
     componentWillMount() {
-        this.blockSpawner = preact.createRef();
         this.setState({
             userDefinedSections: getRegisteredMainPanelSectionNames(),
         });
@@ -36,11 +32,9 @@ class DefaultState extends preact.Component {
      */
     render(_, {userDefinedSections}) {
         return <main>
-            <DnDBlockSpawner ref={ this.blockSpawner }/>
             <div id="edit-app-sections-wrapper">
                 <OnThisPageSection
-                    currentPageSlug={ this.props.url }
-                    ref={ cmp => initBlockSpawner(cmp, this) }/>
+                    currentPageSlug={ this.props.url }/>
                 { [
                     api.user.can('editGlobalStylesVisually')
                         ? <BaseAndCustomClassStylesSection ref={ cmp => {
@@ -65,22 +59,6 @@ class DefaultState extends preact.Component {
 }
 
 /**
- * @param {OnThisPageSection} cmp
- * @param {DefaultState|PageCreateState|PateTypeCreateState|preact.Component} vm
- */
-function initBlockSpawner(cmp, vm) {
-    if (cmp && !vm.isMainDndInited) {
-        vm.isMainDndInited = 1;
-        createTrier(() => {
-            const allSet = !!vm.blockSpawner.current && !!cmp.blockTreeRef.current?.dragDrop;
-            if (allSet)
-                vm.blockSpawner.current.setMainTreeDnd(cmp.blockTreeRef.current.dragDrop);
-            return allSet;
-        }, 20, 20)();
-    }
-}
-
-/**
  * @returns {Array<String>}
  */
 function getRegisteredMainPanelSectionNames() {
@@ -88,4 +66,3 @@ function getRegisteredMainPanelSectionNames() {
 }
 
 export default DefaultState;
-export {initBlockSpawner};

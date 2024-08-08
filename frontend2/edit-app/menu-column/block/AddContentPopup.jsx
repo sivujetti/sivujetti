@@ -33,7 +33,8 @@ class AddContentPopup extends preact.Component {
                 className="text-tinyish mt-0"/>
             { (() => {
                 if (currentTabIdx === 0)
-                    return <AddReusableContentTab/>;
+                    return <AddReusableContentTab
+                        onContentPicked={ this.handleBlockContentPicked.bind(this) }/>;
                 if (currentTabIdx === 1)
                     return <AddSimpleContentBlocksTab
                         onContentPicked={ this.handleBlockContentPicked.bind(this) }/>;
@@ -52,7 +53,11 @@ class AddContentPopup extends preact.Component {
         if (!descr.isReusable) // Plain block -> add block but no styles
             api.saveButton.getInstance().pushOp(...insertBlockAtOpArgs);
         else { // Reusable -> add block and copies of all of its styles recursively
-            // todo
+            const updatedAll = scssWizard.addManyNewUniqueScopeChunksAndReturnAllRecompiled(descr.styles);
+            api.saveButton.getInstance().pushOpGroup(
+                insertBlockAtOpArgs,
+                ['stylesBundle', updatedAll]
+            );
         }
         api.mainPopper.close();
     }

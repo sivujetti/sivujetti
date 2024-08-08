@@ -90,19 +90,17 @@ class ScssWizard {
      * @access public
      */
     addManyNewUniqueScopeChunksAndReturnAllRecompiled(newUniqueScopeChunksToAdd) {
-        const affectedMediaScopeIds = {};
         for (const {scope, scss} of newUniqueScopeChunksToAdd) {
-            const {media, layer} = scope;
+            const {layer} = scope;
             const blockId = extractBlockId(scss);
-            if (this.findStyle('single-block', blockId, media, layer))
-                throw new Error(`Unique style ${blockId}:${media}:${layer} already exist`);
-            affectedMediaScopeIds[media] = 1;
+            if (this.findStyle('single-block', blockId, undefined, layer))
+                throw new Error(`Unique style ${blockId}:${layer} already exist`);
         }
         const updated = [
             ...this.styles,
             ...newUniqueScopeChunksToAdd,
         ];
-        return this.commitAll(updated, affectedMediaScopeIds);
+        return this.commitAll(updated);
     }
     /**
      * @param {scssCodeInput} codeTemplate Examples 'color: red;', '> sub-selector {\n  color: red;\n}', [`.icon {`, `  width: %s;`, `  height: %s;`, `}`,]

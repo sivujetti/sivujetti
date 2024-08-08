@@ -1,8 +1,9 @@
-import {__, api, Icon, traverseRecursively} from '@sivujetti-commons-for-edit-app';
-import {createBlockFromType} from '../../includes/block/utils.js';
+import {__, api, Icon, objectUtils, traverseRecursively} from '@sivujetti-commons-for-edit-app';
+import {createBlockFromBlueprint, createBlockFromType} from '../../includes/block/utils.js';
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import VerticalTabs from '../../includes/VerticalTabs.jsx';
+import {createStyleShunkcScssIdReplacer} from './BlockTreeFuncs.js';
 
 const blockBtnClses = 'btn with-icon with-icon-inline focus-default';
 
@@ -28,7 +29,7 @@ class AddReusableContentTab extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {reusables, selectableGlobalBlockTrees}) {
+    render({onContentPicked}, {reusables, selectableGlobalBlockTrees}) {
         return <div class="block-buttons-list mt-1" data-list-of="reusables">
             { [
                 ...(reusables || []).map(reusable => {
@@ -36,24 +37,49 @@ class AddReusableContentTab extends preact.Component {
                     const blockType = api.blockTypes.get(root.blockType);
                     return <button
                         class={ blockBtnClses }
-                        onClick={ () => 'todo' }
+                        onClick={ () => onContentPicked(createReusableBlockSpawnDescriptor(root)) }
                         type="button">
                         <Icon iconId={ api.blockTypes.getIconId(root.blockType) } className="size-xs"/>
                         <span class="d-inline-block text-ellipsis">{ root.initialDefaultsData.title || __(blockType.friendlyName) }</span>
                     </button>;
                 }),
-                ...(selectableGlobalBlockTrees || []).map(({id, blocks, name}) =>
+                ...(selectableGlobalBlockTrees || []).map(gbt =>
                     <button
                         class={ `globalBlockTree-block ${blockBtnClses}` }
-                        onClick={ () => 'todo' }
+                        onClick={ () => onContentPicked(createGbtBlockSpawnDescriptor(gbt)) }
                         type="button">
-                        <Icon iconId={ api.blockTypes.getIconId(blocks[0].type) } className="size-xs"/>
-                        <span class="d-inline-block text-ellipsis">{ name }</span>
+                        <Icon iconId={ api.blockTypes.getIconId(gbt.blocks[0].type) } className="size-xs"/>
+                        <span class="d-inline-block text-ellipsis">{ gbt.name }</span>
                     </button>
                 )
             ] }
         </div>;
     }
+}
+
+/**
+ * @param {GlobalBlockTree} gbt
+ * @returns {SpawnDescriptor}
+ */
+function createGbtBlockSpawnDescriptor(gbt) {
+    return {
+        block: createBlockFromType('GlobalBlockReference', {__globalBlockTree: objectUtils.cloneDeep(gbt)}),
+        isReusable: false,
+        styles: null,
+    };
+}
+
+/**
+ * @param {Block} rootBlock
+ * @returns {SpawnDescriptor}
+ */
+function createReusableBlockSpawnDescriptor(rootBlock) {
+    const styles = [];
+    const block = createBlockFromBlueprint(rootBlock, ({initialStyles}, block) => {
+        const replacer = createStyleShunkcScssIdReplacer('@placeholder', block.id);
+        styles.push(...initialStyles.map(replacer)); // 'data-block-id="@placeholder"' -> 'data-block-id="uagNk..."'
+    });
+    return {block, isReusable: true, styles};
 }
 
 /*

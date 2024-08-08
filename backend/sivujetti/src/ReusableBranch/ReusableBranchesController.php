@@ -50,7 +50,7 @@ final class ReusableBranchesController {
     public function list(Response $res, FluentDb2 $db2): void {
         $entities = $db2->select(self::T)
             ->fields(["id", "blockBlueprints"])
-            ->limit(20)
+            ->limit(80)
             ->fetchAll(fn(string $id, string $blockBlueprints) => (object) [
                 "id" => $id,
                 "blockBlueprints" => JsonUtils::parse($blockBlueprints),

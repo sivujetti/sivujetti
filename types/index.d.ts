@@ -129,6 +129,14 @@ interface GlobalBlockTree {
     blocks: Array<Block>;
 }
 
+interface ContentTemplate {
+    id: String;
+    title: String;
+    previewImgSrc: String;
+    category: 'headers'|'content'|'footers'|String;
+    blockBlueprints: Array<BlockBlueprint>;
+}
+
 interface Layout {
     id: String;
     friendlyName: String;

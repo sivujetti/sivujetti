@@ -7,6 +7,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}snapshots`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
+"DROP TABLE IF EXISTS `\${p}contentTemplates`",
 "DROP TABLE IF EXISTS `\${p}reusableBranches`",
 "DROP TABLE IF EXISTS `\${p}globalBlockTrees`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
@@ -144,6 +145,14 @@ return [
 "CREATE TABLE `\${p}reusableBranches` (
     `id` TEXT PRIMARY KEY,
     `blockBlueprints` JSON
+)",
+
+"CREATE TABLE `\${p}contentTemplates` (
+    `id` TEXT PRIMARY KEY,
+    `blockBlueprints` JSON,
+    `title` TEXT NOT NULL,
+    `previewImgSrc` TEXT NOT NULL,
+    `category` TEXT NOT NULL
 )",
 
 "CREATE TABLE `\${p}layouts` (

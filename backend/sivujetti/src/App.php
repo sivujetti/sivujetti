@@ -6,6 +6,7 @@ use Pike\{App as PikeApp, Injector};
 use Sivujetti\Auth\AuthModule;
 use Sivujetti\Block\BlocksModule;
 use Sivujetti\Boot\{BootModule, PostBootModule};
+use Sivujetti\ContentTemplate\ContentTemplatesModule;
 use Sivujetti\GlobalBlockTree\GlobalBlockTreesModule;
 use Sivujetti\Layout\LayoutsModule;
 use Sivujetti\Page\PagesModule;
@@ -33,6 +34,7 @@ final class App extends PikeApp {
             $module,
             new AuthModule,
             new BlocksModule,
+            new ContentTemplatesModule,
             new GlobalBlockTreesModule,
             new LayoutsModule,
             new PageTypesModule,

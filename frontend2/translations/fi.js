@@ -377,6 +377,7 @@ stringBundles.push({
     'Headers': 'Headerit',
     'Content#plural': 'Sisällöt',
     'Footers': 'Footerit',
+    'No templates in category "%s".': 'Ei templaatteja kategoriassa "%s".',
     // ../std-styles.md
     'Text default': 'Teksti oletus',
     'Headings default': 'Otsikot oletus',

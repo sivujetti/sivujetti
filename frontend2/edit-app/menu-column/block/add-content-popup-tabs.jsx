@@ -1,4 +1,14 @@
-import {__, api, Icon, objectUtils, traverseRecursively} from '@sivujetti-commons-for-edit-app';
+import {
+    __,
+    api,
+    env,
+    http,
+    Icon,
+    LoadingSpinner,
+    objectUtils,
+    traverseRecursively,
+    urlUtils,
+} from '@sivujetti-commons-for-edit-app';
 import {createBlockFromBlueprint, createBlockFromType} from '../../includes/block/utils.js';
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
@@ -190,33 +200,70 @@ function sort(selectableBlockTypes) {
 
 ////
 
+/** @extends {preact.Component<AddTemplateContentTabProps, any>} */
 class AddTemplateContentTab extends preact.Component {
+    // tabTitles;
     /**
      * @access protected
      */
-    render() {
-        return <div class="image-buttons-list p-1">
-            <VerticalTabs tabs={ [
-                {text: __('Headers')},
-                {text: __('Content#plural')},
-                {text: __('Footers')},
-            ] } initialTabIdx={ 1 }>{ (_tab, currentTabIdx) => {
-                if (currentTabIdx === 0) { // 'Headers'
-                    return 'list of header templates';
-                } else if (currentTabIdx === 1) { // 'Content'
-                    return 'list of content templates';
-                } else if (currentTabIdx === 2) { // 'Footers'
-                    return 'list of footer templates';
-                }
-            } }</VerticalTabs>
-        </div>;
+    componentWillMount() {
+        this.tabTitles = [
+            {text: __('Headers')},
+            {text: __('Content#plural')},
+            {text: __('Footers')},
+        ];
+        fetchContentTemplates()
+            .then(templates => { this.setState({templates}); })
+            .catch(env.window.console.error);
     }
+    /**
+     * @access protected
+     */
+    render({onContentPicked}, {templates}) {
+        return <VerticalTabs tabs={ this.tabTitles } initialTabIdx={ 1 }>{ (tab, currentTabIdx) => {
+            if (!templates)
+                return <LoadingSpinner className="ml-2 pl-1"/>;
+            const selectedCat = ['headers', 'content', 'footers'][currentTabIdx];
+            const toList = templates.filter(({category}) => category === selectedCat);
+            return <div class="image-buttons-list p-1">{ toList.length ? toList.map(tmpl =>
+                <button onClick={ () => onContentPicked(createContentTemplateSpawnDescriptor(tmpl)) } class="btn no-color" type="button">
+                    <figure><img src={ urlUtils.makeAssetUrl(tmpl.previewImgSrc) }/></figure>
+                    <div class="text-ellipsis text-tinyish color-dimmed2 p-2">
+                        { __(tmpl.title || tmpl.blockBlueprints[0].initialDefaultsData.title) }
+                    </div>
+                </button>
+            ) : <span class="text-tinyish ml-1 mt-1">{ __('No templates in category "%s".', tab.text) }</span> }</div>;
+        } }</VerticalTabs>;
+    }
+}
+
+/**
+ * @returns {Promise<ContentTemplate[]>}
+ */
+function fetchContentTemplates() {
+    return http.get('/api/content-templates');
+}
+
+/**
+ * @param {ContentTemplate} template
+ * @returns {SpawnDescriptor}
+ */
+function createContentTemplateSpawnDescriptor(template) {
+    const styles = []; // todo
+
+    const newBlock = {}; // todo
+
+    return {block: newBlock, isReusable: false, styles};
 }
 
 /**
  * @typedef {{
  *   onContentPicked: (descr: SpawnDescriptor) => void;
  * }} AddContentTabProps
+ *
+ * @typedef {{
+ *   onContentPicked: (todo: todo) => void;
+ * }} AddTemplateContentTabProps
  */
 
 export {

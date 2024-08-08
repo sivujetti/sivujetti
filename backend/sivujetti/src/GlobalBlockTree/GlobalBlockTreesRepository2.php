@@ -37,7 +37,7 @@ final class GlobalBlockTreesRepository2 {
                 , JsonUtils::parse($blocks));
                 return $out;
             })
-            ->limit(20);
+            ->limit(80);
     }
     /**
      * @return \Pike\Db\Query

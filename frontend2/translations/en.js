@@ -375,6 +375,8 @@ stringBundles.push({
     'Plugins': 'Plugins',
     'Headers': 'Headers',
     'Content#plural': 'Content#plural',
+    'Footers': 'Footers',
+    'No templates in category "%s".': 'No templates in category "%s".',
     // ../std-styles.md
     'Text default': 'Text default',
     'Headings default': 'Headings default',

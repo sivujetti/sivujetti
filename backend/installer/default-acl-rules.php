@@ -8,6 +8,9 @@ $out->resources = (object) [
         "create"            => 0b00000010,
         "renderOrList"      => 0b00000100,
     ],
+    "contentTemplates" => (object) [
+        "list"              => 0b00000010,
+    ],
     "coreUpdates" => (object) [
         "install"           => 0b00000010,
     ],
@@ -60,6 +63,7 @@ $out->resources = (object) [
 $out->userPermissions = (object) [
     ACL::ROLE_ADMIN => (object) [
         "blocks"            => ACL::makePermissions("*", $out->resources->blocks),
+        "contentTemplates"  => ACL::makePermissions("*", $out->resources->contentTemplates),
         "coreUpdates"       => ACL::makePermissions("*", $out->resources->coreUpdates),
         "globalBlockTrees"  => ACL::makePermissions("*", $out->resources->globalBlockTrees),
         "editMode"          => ACL::makePermissions("*", $out->resources->editMode),
@@ -73,6 +77,7 @@ $out->userPermissions = (object) [
     ],
     ACL::ROLE_ADMIN_EDITOR => (object) [
         "blocks"            => ACL::makePermissions("*", $out->resources->blocks),
+        "contentTemplates"  => ACL::makePermissions("*", $out->resources->contentTemplates),
         "coreUpdates"       => ACL::makePermissions(["install"], $out->resources->coreUpdates),
         "globalBlockTrees"  => ACL::makePermissions("*", $out->resources->globalBlockTrees),
         "editMode"          => ACL::makePermissions("*", $out->resources->editMode),
@@ -86,6 +91,7 @@ $out->userPermissions = (object) [
     ],
     ACL::ROLE_EDITOR => (object) [
         "blocks"            => ACL::makePermissions("*", $out->resources->blocks),
+        "contentTemplates"  => ACL::makePermissions(["list"], $out->resources->contentTemplates),
         // coreUpdates      -> none
         "globalBlockTrees"  => ACL::makePermissions(["read","updateBlocksOf"], $out->resources->globalBlockTrees),
         "editMode"          => ACL::makePermissions(["access"], $out->resources->editMode),
@@ -99,6 +105,7 @@ $out->userPermissions = (object) [
     ],
     ACL::ROLE_AUTHOR => (object) [
         // blocks           -> none
+        // contentTemplates -> none
         // coreUpdates      -> none
         // globalBlockTrees -> none
         "editMode"          => ACL::makePermissions(["access"], $out->resources->editMode),

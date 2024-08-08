@@ -39,7 +39,8 @@ class AddContentPopup extends preact.Component {
                     return <AddSimpleContentBlocksTab
                         onContentPicked={ this.handleBlockContentPicked.bind(this) }/>;
                 if (currentTabIdx === 2)
-                    return <AddTemplateContentTab/>;
+                    return <AddTemplateContentTab
+                        onContentPicked={ this.handleTemplateContentPicked.bind(this) }/>;
             })() }
         </div>;
     }
@@ -60,6 +61,13 @@ class AddContentPopup extends preact.Component {
             );
         }
         api.mainPopper.close();
+    }
+    /**
+     * @param {todo} todo
+     * @access private
+     */
+    handleTemplateContentPicked(todo) {
+        //
     }
     /**
      * @param {number} toIdx

@@ -8,6 +8,7 @@ return [
 "DROP TABLE IF EXISTS `\${p}snapshots`",
 "DROP TABLE IF EXISTS `\${p}files`",
 "DROP TABLE IF EXISTS `\${p}layouts`",
+"DROP TABLE IF EXISTS `\${p}contentTemplates`",
 "DROP TABLE IF EXISTS `\${p}reusableBranches`",
 "DROP TABLE IF EXISTS `\${p}globalBlockTrees`",
 "DROP TABLE IF EXISTS `\${p}Pages`",
@@ -153,6 +154,12 @@ return [
 "CREATE TABLE `\${p}reusableBranches` (
     `id` CHAR(20) NOT NULL,
     `blockBlueprints` JSON,
+    PRIMARY KEY (`id`)
+) DEFAULT CHARSET = utf8mb4",
+
+"CREATE TABLE `\${p}contentTemplates` (
+    `id` CHAR(20) NOT NULL,
+    -- todo
     PRIMARY KEY (`id`)
 ) DEFAULT CHARSET = utf8mb4",
 

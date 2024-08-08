@@ -40,7 +40,7 @@ const placeholderImageSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAA
 function completeImageSrc(src, urlUtils, fallback = placeholderImageSrc) {
     if (!src)
         return fallback;
-    const isLocal = src.indexOf("/") < 0;
+    const isLocal = src.indexOf('/') < 0;
     if (isLocal)
         return urlUtils.makeAssetUrl(`public/uploads/${src}`);
     //

@@ -30,6 +30,7 @@ Structure:
     --color-fg-input: var(--color-fg-default);
     --color-fg-code: var(--color-fg-dimmed);
     --color-section-separator: rgba(var(--components-color-fb-default),.08);
+    --color-section-separator2: rgba(var(--components-color-fb-default),.06);
     --border-tree-guide: 1px dotted rgba(var(--components-color-fb-default),.4);
     --border-dashed-box: 1px dashed rgba(var(--components-color-fb-default),.3);
     --color-input-border: #e1e4e8;
@@ -363,16 +364,6 @@ h2 {
 }
 .table .th {
     border-bottom-width: 0.1rem;
-}
-@keyframes adjust-main-panel {
-    to {
-        height: 70%;
-    }
-}
-@keyframes adjust-inspector-panel {
-    to {
-        height: 30%;
-    }
 }
 #edit-app,
 #inspector-panel {
@@ -761,7 +752,7 @@ a.popup-close-area {
     padding: .4rem;
     border-radius: var(--small-rect-radius);
     border: 1px solid var(--color-border-popup);
-    z-index: 1;
+    z-index: 2;
 }
 .my-tooltip.tooltip-prerendered {
     display: none;
@@ -1619,9 +1610,9 @@ a.popup-close-area {
 .block-buttons-list > :nth-child(3n+2):before,
 .block-buttons-list > :nth-child(3n+3):before {
     content: "";
-    border-right: 1px solid #f3f3f3;
+    border-right: 1px solid var(--color-section-separator2);
     height: 100%;
-    transform: translateX(-.7rem);
+    transform: translate(-.7rem, 10%) scaleY(1.6);
 }
 .block-buttons-list button {
     font-weight: 300;
@@ -1641,6 +1632,37 @@ a.popup-close-area {
     opacity: .9;
     position: absolute;
     transform: translateX(.3rem);
+}
+.image-buttons-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .2rem .4rem;
+}
+.image-buttons-list > button:nth-child(even):before {
+    content: "";
+    border-right: 1px solid var(--color-section-separator2);
+    height: calc(100% - .4rem);
+    position: absolute;
+    left: calc(-.2rem - 1px);
+    top: .2rem;
+}
+.image-buttons-list > button {
+    height: initial;
+    border-radius: 0;
+    padding: 0;
+    position: relative;
+}
+.image-buttons-list > button:hover {
+    background-color: var(--color-bg-very-light) !important;
+}
+.image-buttons-list > button > figure {
+    align-items: center;
+    display: flex;
+    aspect-ratio: 2 / 1;
+    justify-content: center;
+}
+.image-buttons-list > button > figure > img {
+    max-width: 11rem;
 }
 
 

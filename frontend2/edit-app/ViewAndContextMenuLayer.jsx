@@ -53,6 +53,7 @@ class MainPopper extends preact.Component {
      * @access public
      */
     open(Renderer, arrowRefEl, rendererProps = {}, settings = {}) {
+        if (this.state.Renderer) return;
         this.settings = settings;
         this.setState({Renderer, arrowRefEl, rendererProps});
     }

@@ -1,10 +1,12 @@
 import {__, api, Icon, traverseRecursively} from '@sivujetti-commons-for-edit-app';
+import {createBlockFromType} from '../../includes/block/utils.js';
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import VerticalTabs from '../../includes/VerticalTabs.jsx';
 
 const blockBtnClses = 'btn with-icon with-icon-inline focus-default';
 
+/** @extends {preact.Component<AddContentTabProps, any>} */
 class AddReusableContentTab extends preact.Component {
     /**
      * @access protected
@@ -73,6 +75,7 @@ const unspawnables = ['Heading', 'PageInfo', 'Paragraph', 'RichText', 'Section2'
 const common = ['Text', 'Image', 'Button', 'Section', 'Columns', 'JetIconsIcon', 'Wrapper'];
 const other = ['Listing', 'Menu', 'Code'];
 
+/** @extends {preact.Component<AddContentTabProps, any>} */
 class AddSimpleContentBlocksTab extends preact.Component {
     // selectableBlockTypes;
     /**
@@ -86,7 +89,7 @@ class AddSimpleContentBlocksTab extends preact.Component {
     /**
      * @access protected
      */
-    render() {
+    render({onContentPicked}) {
         return <VerticalTabs tabs={ [
             {text: __('Common#plural')},
             {text: __('Other')},
@@ -102,10 +105,10 @@ class AddSimpleContentBlocksTab extends preact.Component {
                 toList = this.selectableBlockTypes.filter(([name]) => notThese.indexOf(name) < 0);
             }
             return <div class="block-buttons-list p-1 pb-0">
-                { toList.map(([name, blockType], i) =>
+                { toList.map(([blockTypeName, blockType]) =>
                     <button
                         class={ blockBtnClses }
-                        onClick={ () => 'todo' }
+                        onClick={ () => onContentPicked(createSimpleBlockSpawnDescriptor(blockTypeName)) }
                         type="button">
                         <Icon iconId={ api.blockTypes.getIconId(blockType) } className="size-xs"/>
                         <span class="d-inline-block text-ellipsis">{ __(blockType.friendlyName) }</span>
@@ -114,6 +117,18 @@ class AddSimpleContentBlocksTab extends preact.Component {
             </div>;
         } }</VerticalTabs>;
     }
+}
+
+/**
+ * @param {string} blockTypeName
+ * @returns {SpawnDescriptor}
+ */
+function createSimpleBlockSpawnDescriptor(blockTypeName) {
+    return {
+        block: createBlockFromType(blockTypeName),
+        isReusable: false,
+        styles: null,
+    };
 }
 
 const ordinals = [
@@ -171,6 +186,12 @@ class AddTemplateContentTab extends preact.Component {
         </div>;
     }
 }
+
+/**
+ * @typedef {{
+ *   onContentPicked: (descr: SpawnDescriptor) => void;
+ * }} AddContentTabProps
+ */
 
 export {
     AddReusableContentTab,

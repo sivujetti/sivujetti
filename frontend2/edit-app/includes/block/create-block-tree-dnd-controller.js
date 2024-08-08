@@ -47,7 +47,7 @@ function createDndController(saveButton) {
                 saveButton.pushOp(...createBlockTreeMoveToOpArgs(drag, targ, cand.pos));
             } else {
                 const targetInf = createBlockDescriptorFromLi(cand.li);
-                const insertBlockAtOpArgs = createBlockTreeInsertAtOpArgs(extDragData, targetInf, cand.pos);
+                const insertBlockAtOpArgs = createBlockTreeInsertAtOpArgs(extDragData.block, targetInf, cand.pos);
                 if (!extDragData.isReusable) // Plain block -> add block but no styles
                     saveButton.pushOp(...insertBlockAtOpArgs);
                 else { // Reusable -> add block and copies of all of its styles recursively
@@ -167,4 +167,4 @@ function callGetBlockPropChangesEvent(blockTypeName, event, args) {
 }
 
 export default createDndController;
-export {createBlockDescriptor, callGetBlockPropChangesEvent};
+export {createBlockDescriptor, createBlockDescriptorFromLi, callGetBlockPropChangesEvent};

@@ -12,7 +12,10 @@ import {
     traverseRecursively,
     writeBlockProps,
 } from '@sivujetti-commons-for-edit-app';
-import createDndController, {callGetBlockPropChangesEvent} from '../../includes/block/create-block-tree-dnd-controller.js';
+import createDndController, {
+    callGetBlockPropChangesEvent,
+    createBlockDescriptorFromLi,
+} from '../../includes/block/create-block-tree-dnd-controller.js';
 import TreeDragDrop from '../../includes/TreeDragDrop.js';
 import BlockSaveAsReusableDialog from '../../main-column/popups/BlockSaveAsReusableDialog.jsx';
 import BlockTreeShowHelpPopup from '../../main-column/popups/BlockTreeShowHelpPopup.jsx';
@@ -227,7 +230,7 @@ class BlockTree extends preact.Component {
             api.mainPopper.open(
                 AddContentPopup,
                 li.querySelector('.block-handle'),
-                this.createAddContentPopupConfig(createBlockDescriptorFromLi(li), addContentKind),
+                {targetInfo: createBlockDescriptorFromLi(li), insertPos: addContentKind},
                 {maxWidth: 580},
             );
         } else if (link.id === 'duplicate-block') {
@@ -248,17 +251,6 @@ class BlockTree extends preact.Component {
                 userCanCreateGlobalBlockTrees,
             });
         }
-    }
-    /**
-     * @param {BlockDescriptor} targetInfo
-     * @param {dropPosition} insertPos
-     * @returns 
-     * @access private
-     */
-    createAddContentPopupConfig(targetInfo, insertPos) {
-        return {
-            // todo
-        };
     }
     /**
      * @access private

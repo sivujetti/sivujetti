@@ -4,16 +4,15 @@ import {
 } from '@sivujetti-commons-for-edit-app';
 
 /**
- * @param {SpawnDescriptor} spawn
+ * @param {Block} blockOrBranch
  * @param {BlockDescriptor} target
  * @param {dropPosition} dropPos
  * @returns {['theBlockTree', Array<Block>, StateChangeUserContext]}
  */
-function createBlockTreeInsertAtOpArgs(spawn, target, insertPos) {
+function createBlockTreeInsertAtOpArgs(blockOrBranch, target, insertPos) {
     return [
         'theBlockTree',
         blockTreeUtils.createMutation(api.saveButton.getInstance().getChannelState('theBlockTree'), newTreeCopy => {
-            const blockOrBranch = spawn.block;
             const {isStoredToTreeId, blockId} = !(target.isGbtRef && insertPos === 'as-child') ? target
                 : {isStoredToTreeId: target.data.refTreeId, blockId: target.data.refTreesRootBlockId};
             const rootOrInnerTree = blockTreeUtils.findTree(isStoredToTreeId, newTreeCopy);

@@ -35,5 +35,6 @@ return function (?string $testSitePath = null,
     $loader->addPsr4("SitePlugins\\", SIVUJETTI_PLUGINS_PATH);
     if ($alterPsr4Loader)
         $alterPsr4Loader($loader);
+    require_once SIVUJETTI_BACKEND_PATH . "sivujetti/src/v-node-funcs.php";
     return $configBundle;
 };

@@ -185,15 +185,10 @@ final class WebPageAwareTemplate extends Template {
      * @return string
      */
     public function renderChildren(Block $block): string {
-        [$wrapStart, $childPlaceholder, $wrapEnd] = !$this->__useEditModeMarkup
-            ? ["",                        "",                              ""]
-            : ["<!-- children-start -->", "<!-- children-placeholder -->", "<!-- children-end -->"];
-        return $wrapStart . ($block->children ? (
-            $block->children[0]->type !== "__marker"
-                ? $this->renderBlocks($block->children)
-                : $childPlaceholder
-            ) : ""
-        ) . $wrapEnd;
+        [$wrapStart, $wrapEnd] = !$this->__useEditModeMarkup
+            ? ["",                        ""]
+            : ["<!-- children-start -->", "<!-- children-end -->"];
+        return $wrapStart . ($block->children ? $this->renderBlocks($block->children) : "") . $wrapEnd;
     }
     /**
      * @param \Sivujetti\Block\Entities\Block[] $blocks

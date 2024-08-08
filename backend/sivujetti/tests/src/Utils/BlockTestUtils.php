@@ -109,33 +109,30 @@ final class BlockTestUtils {
      * @param object $rawBlock
      * @param ?string $lnk = null
      * @param ?string $cls = null
-     * @param string $childMarker = ""
      */
     public function getExpectedButtonBlockOutput(object $rawBlock,
                                                  ?string $lnk = null,
-                                                 ?string $cls = null,
-                                                 string $childMarker = ""): string {
-        if ($lnk === null && $rawBlock->linkTo) $lnk = (new Template("dummy"))->makeUrl($rawBlock->linkTo);
+                                                 ?string $cls = null): string {
         if ($cls === null) $cls = !$rawBlock->styleClasses ? "" : (" " . Template::escAttr($rawBlock->styleClasses));
-        [$start, $end] = match ($rawBlock->tagType) {
-            ButtonBlockType::TAG_TYPE_NORMAL_BUTTON => ["<button type=\"button\"", "</button>"],
-            ButtonBlockType::TAG_TYPE_SUBMIT_BUTTON => ["<button type=\"submit\"", "</button>"],
-            default => ["<a href=\"{$lnk}\"", "</a>"],
+        [$tag, $attrs] = match ($rawBlock->tagType) {
+            ButtonBlockType::TAG_TYPE_NORMAL_BUTTON => ["button", "type=\"button\""],
+            ButtonBlockType::TAG_TYPE_SUBMIT_BUTTON => ["button", "type=\"submit\""],
+            default => ["a", "href=\"{$lnk}\""],
         };
-        return "{$start} class=\"j-Button btn{$cls}\" data-block-type=\"Button\" data-block=\"{$rawBlock->id}\">" .
-            "{$rawBlock->html}{$childMarker}" .
-        $end;
+        return "<{$tag} data-block=\"{$rawBlock->id}\" data-block-type=\"Button\" class=\"j-Button btn{$cls}\" {$attrs}>" .
+            "{$rawBlock->html}" .
+        "</{$tag}>";
     }
     /**
      * @param object $rawBlock
      * @param ?string $cls = null
-     * @param string $childHtml = "<!-- children-start --><!-- children-end -->"
+     * @param ?string $childHtml = null
      */
     public function getExpectedTextBlockOutput(object $rawBlock,
                                                ?string $cls = null,
-                                               string $childHtml = "<!-- children-start --><!-- children-end -->"): string {
-        return "<div class=\"j-Text{$cls}\" data-block-type=\"Text\" data-block=\"{$rawBlock->id}\">" .
-            "{$rawBlock->html}{$childHtml}" .
+                                               ?string $childHtml = null): string {
+        return "<div data-block=\"{$rawBlock->id}\" data-block-type=\"Text\" class=\"j-Text{$cls}\">" .
+            "{$rawBlock->html}" . ($childHtml ?? "") .
         "</div>";
     }
     /**

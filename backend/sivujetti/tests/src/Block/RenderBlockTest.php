@@ -20,11 +20,11 @@ final class RenderBlockTest extends RenderBlocksTestCase {
     private function verifyReturnedRenderOutput(\TestState $state): void {
         $section = $state->testBlock;
         [$heading, $paragraph] = $section->children;
-        $expected = "<section class=\"j-Section\" data-block-type=\"Section\" data-block=\"{$state->testBlock->id}\">" .
-            "<div data-block-root><!-- children-start -->" .
+        $expected = "<section data-block=\"{$state->testBlock->id}\" data-block-type=\"Section\" class=\"j-Section\">" .
+            "<div data-block-root=\"\">" .
                 $this->blockTestUtils->getExpectedTextBlockOutput($heading) .
                 $this->blockTestUtils->getExpectedTextBlockOutput($paragraph) .
-            "<!-- children-end --></div>" .
+            "</div>" .
         "</section>";
         $this->verifyResponseBodyEquals((object) ["result" => $expected],
                                         $state->spyingResponse);

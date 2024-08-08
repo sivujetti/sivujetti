@@ -10,9 +10,9 @@ use Sivujetti\Tests\Utils\{DbDataHelper};
 final class RenderEachBuiltInBlockTest extends RenderBuiltInBlocksTestCase {
     public function testRenderBlockRendersButtons(): void {
         $makeExpectedHtml = fn($b, $lnk, $cls = "") =>
-            $this->blockTestUtils->getExpectedButtonBlockOutput($b, $lnk, $cls, "[childMarker]")
+            $this->blockTestUtils->getExpectedButtonBlockOutput($b, $lnk, $cls)
         ;
-        $tmpl = new Template("dummy");
+        $tmpl = new Template("dummy", env: (require TEST_CONFIG_FILE_PATH)["env"]);
         //
         $state = $this->setupRenderButtonBlocksTest();
         $this->makeTestSivujettiApp($state);

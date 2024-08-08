@@ -496,8 +496,6 @@ final class PagesController {
                                                      PagesRepository $pagesRepo,
                                                      Injector $di): void {
         foreach ($branch as $block) {
-            if ($block->type === "__marker")
-                continue;
             $blockType = $blockTypes->{$block->type};
             if (array_key_exists(RenderAwareBlockTypeInterface::class, class_implements($blockType)))
                 $blockType->onBeforeRender($block, $blockType, $di);

@@ -249,9 +249,25 @@ function duplicateDeepAndReAssignIds(block) {
     return out;
 }
 
+/**
+ * @param {HTMLLIElement} li
+ * @param {dropPosition} pos
+ * @returns {[Array<Block>, Array<Block]}
+ */
+function createAddContentPlacementCfg(li, pos) {
+    if (pos === 'as-child' &&
+        !li.classList.contains('collapsed') &&
+        li.getAttribute('data-has-children') === 'true') {
+        const childLis = li.parentElement.querySelectorAll(`li[data-is-children-of="${li.getAttribute('data-block-id')}"]`);
+        return [[...childLis].at(-1).querySelector('.block-handle'), false];
+    }
+    return [li.querySelector('.block-handle'), pos === 'before'];
+}
+
 export {
     blockToBlueprint,
     clearHighlight,
+    createAddContentPlacementCfg,
     createPartialState,
     createStyleShunkcScssIdReplacer,
     duplicateDeepAndReAssignIds,

@@ -21,10 +21,11 @@ class Popup extends preact.Component {
         this.unregistrables.forEach(unreg => unreg());
     }
     /**
-     * @param {{Renderer: preact.Component; btn: HTMLElement; close: () => void; rendererProps?: {[key: String]: any;}; placement?: 'top-start'; className?: String; maxWidth?: Number;}} props
+     * @param {{Renderer: preact.Component; btn: HTMLElement; close: () => void; rendererProps?: {[key: String]: any;}; placement?: 'top-start'; className?: String; settings?: {maxWidth?: Number; offsetY?: Number;};}} props
      * @access protected
      */
-    render({Renderer, rendererProps, close, className, maxWidth}) {
+    render({Renderer, rendererProps, close, className, settings}) {
+        const {maxWidth} = settings || {};
         return <div
             class={ 'my-tooltip' + (className ? ` ${className}` : '') }
             role="tooltip"
@@ -49,11 +50,11 @@ class Popup extends preact.Component {
     handleOuterElRefd(el) {
         if (el && this.rendererCmp.current && !this.popperInstance) {
             this.isUnmounted = false;
-            const {placement} = this.props;
-            this.popperInstance = window.Popper.createPopper(this.props.btn, el, {...{
+            const {placement, btn, settings} = this.props;
+            this.popperInstance = window.Popper.createPopper(btn, el, {...{
                 modifiers: [
                     // Distance between the arrow reference element
-                    {name: 'offset', options: {offset: [0, 8]}},
+                    {name: 'offset', options: {offset: [0, (settings?.offsetY || 0) + 8]}},
                     // Distance from the edge of the browser window
                     {name: 'preventOverflow', options: {altAxis: true, padding: 4}},
                     {name: 'eventListeners', enabled: true},

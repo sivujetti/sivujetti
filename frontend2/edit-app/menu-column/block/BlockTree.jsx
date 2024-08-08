@@ -23,6 +23,7 @@ import {historyInstance} from '../../main-column/MainColumnViews.jsx';
 import {
     blockToBlueprint,
     clearHighlight,
+    createAddContentPlacementCfg,
     createPartialState,
     createStyleShunkcScssIdReplacer,
     duplicateDeepAndReAssignIds,
@@ -227,11 +228,12 @@ class BlockTree extends preact.Component {
         }[link.id]) || null;
         if (addContentKind) {
             const li = this.openedBlockDetails;
+            const [arrowRefEl, placeAtBefore] = createAddContentPlacementCfg(li, addContentKind);
             api.mainPopper.open(
                 AddContentPopup,
-                li.querySelector('.block-handle'),
+                arrowRefEl,
                 {targetInfo: createBlockDescriptorFromLi(li), insertPos: addContentKind},
-                {maxWidth: 580},
+                {maxWidth: 580, offsetY: !placeAtBefore ? 4 : -25},
             );
         } else if (link.id === 'duplicate-block') {
             const withStyles = link.text.indexOf('(') < 0;

@@ -85,12 +85,13 @@ class ScssWizard {
         return this.commitAll(updated);
     }
     /**
-     * @param {Array<StyleChunk>} newUniqueScopeChunksToAdd Example [{scope: {kind: 'single-block', page: '<pushId>:Pages', layer: 'user-styles', media: 'all'}, scss: '[data-block="abcdefg"] {\n  color: #ab7878;\n}'}]
+     * @param {Array<StyleChunk>} chunksToAdd
      * @returns {StylesBundleWithId}
      * @access public
      */
-    addManyNewUniqueScopeChunksAndReturnAllRecompiled(newUniqueScopeChunksToAdd) {
-        for (const {scope, scss} of newUniqueScopeChunksToAdd) {
+    addManyNewChunksAndReturnAllRecompiled(chunksToAdd) {
+        for (const {scope, scss} of chunksToAdd) {
+            if (scope.kind !== 'single-block') continue;
             const {layer} = scope;
             const blockId = extractBlockId(scss);
             if (this.findStyle('single-block', blockId, undefined, layer))
@@ -98,7 +99,7 @@ class ScssWizard {
         }
         const updated = [
             ...this.styles,
-            ...newUniqueScopeChunksToAdd,
+            ...chunksToAdd,
         ];
         return this.commitAll(updated);
     }

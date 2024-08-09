@@ -47,7 +47,7 @@ class PageCreateState extends preact.Component {
                     : [['theBlockTree', maybePatchedBlockTree, {event: 'patch-single-block-props'}]]),
                 ...(!initialPageBlocksStyles.length
                     ? []
-                    : [['stylesBundle', scssWizard.addManyNewUniqueScopeChunksAndReturnAllRecompiled(initialPageBlocksStyles)]]),
+                    : [['stylesBundle', scssWizard.addManyNewChunksAndReturnAllRecompiled(initialPageBlocksStyles)]]),
             ]);
             this.unregistrables.push(saveButton.onAfterItemsSynced(() => {
                 const {path} = saveButton.getChannelState('currentPageData');

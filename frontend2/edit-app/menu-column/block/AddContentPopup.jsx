@@ -34,13 +34,13 @@ class AddContentPopup extends preact.Component {
             { (() => {
                 if (currentTabIdx === 0)
                     return <AddReusableContentTab
-                        onContentPicked={ this.handleBlockContentPicked.bind(this) }/>;
+                        onContentPicked={ this.handleContentPicked.bind(this) }/>;
                 if (currentTabIdx === 1)
                     return <AddSimpleContentBlocksTab
-                        onContentPicked={ this.handleBlockContentPicked.bind(this) }/>;
+                        onContentPicked={ this.handleContentPicked.bind(this) }/>;
                 if (currentTabIdx === 2)
                     return <AddTemplateContentTab
-                        onContentPicked={ this.handleTemplateContentPicked.bind(this) }/>;
+                        onContentPicked={ this.handleContentPicked.bind(this) }/>;
             })() }
         </div>;
     }
@@ -48,26 +48,19 @@ class AddContentPopup extends preact.Component {
      * @param {SpawnDescriptor} descr
      * @access private
      */
-    handleBlockContentPicked(descr) {
+    handleContentPicked(descr) {
         const {targetInfo, insertPos} = this.props;
         const insertBlockAtOpArgs = createBlockTreeInsertAtOpArgs(descr.block, targetInfo, insertPos);
-        if (!descr.isReusable) // Plain block -> add block but no styles
+        if (!descr.styles?.length) {
             api.saveButton.getInstance().pushOp(...insertBlockAtOpArgs);
-        else { // Reusable -> add block and copies of all of its styles recursively
-            const updatedAll = scssWizard.addManyNewUniqueScopeChunksAndReturnAllRecompiled(descr.styles);
+        } else {
+            const updatedAll = scssWizard.addManyNewChunksAndReturnAllRecompiled(descr.styles);
             api.saveButton.getInstance().pushOpGroup(
                 insertBlockAtOpArgs,
                 ['stylesBundle', updatedAll]
             );
         }
         api.mainPopper.close();
-    }
-    /**
-     * @param {todo} todo
-     * @access private
-     */
-    handleTemplateContentPicked(todo) {
-        //
     }
     /**
      * @param {number} toIdx

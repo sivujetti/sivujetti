@@ -52,7 +52,7 @@ function createDndController(saveButton) {
                     saveButton.pushOp(...insertBlockAtOpArgs);
                 else { // Reusable -> add block and copies of all of its styles recursively
                     const userAndDevStyles = extDragData.styles;
-                    const updatedAll = scssWizard.addManyNewUniqueScopeChunksAndReturnAllRecompiled(userAndDevStyles);
+                    const updatedAll = scssWizard.addManyNewChunksAndReturnAllRecompiled(userAndDevStyles);
                     saveButton.pushOpGroup(
                         insertBlockAtOpArgs,
                         ['stylesBundle', updatedAll]

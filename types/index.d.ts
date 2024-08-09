@@ -131,10 +131,10 @@ interface GlobalBlockTree {
 
 interface ContentTemplate {
     id: String;
+    blockBlueprints: Array<BlockBlueprint>;
     title: String;
     previewImgSrc: String;
     category: 'headers'|'content'|'footers'|String;
-    blockBlueprints: Array<BlockBlueprint>;
 }
 
 interface Layout {

@@ -13,6 +13,7 @@ import {createBlockFromBlueprint, createBlockFromType} from '../../includes/bloc
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import VerticalTabs from '../../includes/VerticalTabs.jsx';
+import {createCustomClassChunkClassNameCreator} from '../block-styles/CustomClassStylesList.jsx';
 import {createStyleShunkcScssIdReplacer} from './BlockTreeFuncs.js';
 
 const blockBtnClses = 'btn with-icon with-icon-inline focus-default';
@@ -249,10 +250,25 @@ function fetchContentTemplates() {
  * @returns {SpawnDescriptor}
  */
 function createContentTemplateSpawnDescriptor(template) {
-    const styles = []; // todo
+    if (template.blockBlueprints.length > 1)
+        throw new Error('template.blockBlueprints.length > 1 not implemented yet');
 
-    const newBlock = {}; // todo
+    const root = template.blockBlueprints[0];
+    const styles = [];
+    let spawnClassName = null;
+    const newBlock = createBlockFromBlueprint(root, ({initialStyles}, block) => {
+        if (block.styleClasses.indexOf('@customClass[0]') < 0) return;
 
+        if (initialStyles.length !== 1)
+            throw new Error('template.blockBlueprints[*].initialStyles.length > 1 not implemented yet');
+        if (initialStyles[0].scope.kind !== 'custom-class')
+            throw new Error('template.blockBlueprints[*].initialStyles[0].kind !== "custom-class" not implemented yet');
+
+        if (!spawnClassName) spawnClassName = createCustomClassChunkClassNameCreator();
+        const incremented = spawnClassName();
+        block.styleClasses = block.styleClasses.replace('@customClass[0]', incremented);
+        styles.push({...initialStyles[0], scss: initialStyles[0].scss.replace('@customClass[0]', incremented)});
+    });
     return {block: newBlock, isReusable: false, styles};
 }
 

@@ -128,11 +128,7 @@ class CustomClassStylesList extends preact.Component {
      */
     addStyle() {
         const initialScss = `\n  color: red;\n`;
-        const prevMax = getAllChunks().reduce((out, chunk) => {
-            const c = parseInt(extractClassName(chunk).split('-')[1], 10);
-            return c > out ? c : out;
-        }, 0);
-        const newChunkClass = `cc-${prevMax + 1}`;
+        const newChunkClass = createCustomClassChunkClassNameCreator()();
         const newAll = scssWizard.addNewDevsScssChunkAndReturnAllRecompiled(
             `.${newChunkClass} {${initialScss}}`,
             'custom-class',
@@ -283,13 +279,29 @@ function getAllChunks() {
 }
 
 /**
- * @returns {Array<StyleChunk>}
+ * @param {StyleChunk} scss
  * @param {boolean} withDot = true
  * @returns {string}
  */
 function extractClassName({scss}, withDot = true) {
     const s1 = scss.split(' {')[0];
     return withDot ? s1 : s1.substring(1);
+}
+
+/**
+ * @param {Array<StyleChunk>} curCustomClassChunks = null
+ * @returns {() => string}
+ */
+function createCustomClassChunkClassNameCreator(curCustomClassChunks = null) {
+    let max = curCustomClassChunks || getAllChunks().reduce((out, chunk) => {
+        const cc = extractClassName(chunk);
+        const c = parseInt(cc.split('-')[1], 10);
+        return c > out ? c : out;
+    }, 0);
+    return () => {
+        max += 1;
+        return `cc-${max}`;
+    };
 }
 
 /**
@@ -338,4 +350,4 @@ function addOrRemoveStyleClass(type, chunkClass, to) {
  */
 
 export default CustomClassStylesList;
-export {extractClassName};
+export {createCustomClassChunkClassNameCreator, extractClassName};

@@ -1,6 +1,7 @@
 import {
     __,
     api,
+    blockTreeUtils,
     env,
     generatePushID,
     makePath,
@@ -37,16 +38,17 @@ class PageCreateState extends preact.Component {
         // Push new page to 'currentPageData'
         api.webPagePreview.onReady(() => { // make sure currentPageData is loaded
             const saveButton = api.saveButton.getInstance();
-            const withNewPage = createNewCurrentPageData(this.props.url.indexOf('/duplicate') > '/pages/'.length);
-            const createPageToOpArgs = ['currentPageData', withNewPage, {event: 'create'}];
+            const [newPageData, maybePatchedBlockTree] = createNewCurrentPageData(this.props.url.indexOf('/duplicate') > '/pages/'.length);
             const {initialPageBlocksStyles} = globalData;
-            if (!initialPageBlocksStyles.length)
-                saveButton.pushOp(...createPageToOpArgs);
-            else
-                saveButton.pushOpGroup(
-                    createPageToOpArgs,
-                    ['stylesBundle', scssWizard.addManyNewUniqueScopeChunksAndReturnAllRecompiled(initialPageBlocksStyles)]
-                );
+            saveButton.pushOpGroup(...[
+                ['currentPageData', newPageData, {event: 'create'}],
+                ...(!maybePatchedBlockTree
+                    ? []
+                    : [['theBlockTree', maybePatchedBlockTree, {event: 'patch-single-block-props'}]]),
+                ...(!initialPageBlocksStyles.length
+                    ? []
+                    : [['stylesBundle', scssWizard.addManyNewUniqueScopeChunksAndReturnAllRecompiled(initialPageBlocksStyles)]]),
+            ]);
             this.unregistrables.push(saveButton.onAfterItemsSynced(() => {
                 const {path} = saveButton.getChannelState('currentPageData');
                 const newPagePath = pathToFullSlug(path, '');
@@ -78,6 +80,7 @@ class PageCreateState extends preact.Component {
             <main style="--header-height: 116px">
                 <div id="edit-app-sections-wrapper">
                     <OnThisPageSection
+                        currentPageSlug="/pages/create"/>
                     { [
                         api.user.can('editGlobalStylesVisually')
                             ? <BaseAndCustomClassStylesSection/>
@@ -94,26 +97,29 @@ class PageCreateState extends preact.Component {
 
 /**
  * @param {Boolean} isDuplicated
- * @returns {Page}
+ * @returns {[Page, Array<Block>|null]}
  */
 function createNewCurrentPageData(isDuplicated) {
     const saveButton = api.saveButton.getInstance();
     const placeholderPage = saveButton.getChannelState('currentPageData');
     const title = __(placeholderPage.title) + (!isDuplicated ? '' : ` (${__('Copy')})`);
     const slug = makeSlug(title);
-    const blocks = treeToTransferable(saveButton.getChannelState('theBlockTree'));
-    if (isDuplicated) traverseRecursively(blocks, bRef => {
-        bRef.id = generatePushID(true);
+    const blocks = saveButton.getChannelState('theBlockTree');
+    const patchedBlocks = !isDuplicated ? null : blockTreeUtils.createMutation(blocks, newTreeCopy => {
+        traverseRecursively(newTreeCopy, bRef => {
+            bRef.id = generatePushID(true);
+        });
+        return newTreeCopy;
     });
-    return objectUtils.cloneDeep({
+    return [objectUtils.cloneDeep({
         ...placeholderPage,
         id: generatePushID(),
         title,
         slug,
         path: makePath(slug, api.getPageTypes().find(({name}) => name === placeholderPage.type)),
-        blocks,
+        blocks: treeToTransferable(patchedBlocks || blocks),
         status: STATUS_PUBLISHED,
-    });
+    }), patchedBlocks];
 }
 
 /**

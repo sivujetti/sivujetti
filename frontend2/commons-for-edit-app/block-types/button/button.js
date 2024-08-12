@@ -7,7 +7,7 @@ export default {
     friendlyName: 'Button',
     icon: 'hand-finger',
     editForm: EditForm,
-    stylesEditForm: StylesEditForm,
+    stylesEditForm: 'default',
     createOwnProps(/*defProps*/) {
         return {
             html: __('Button text'),

@@ -3,7 +3,7 @@ export default {
     friendlyName: 'Section',
     icon: 'layout-rows',
     editForm: null,
-    stylesEditForm: 'auto',
+    stylesEditForm: 'default',
     createOwnProps(/*defProps*/) {
         return {
             bgImage: null,

@@ -13,7 +13,7 @@ export default {
     friendlyName: 'Image',
     icon: 'photo',
     editForm: EditForm,
-    stylesEditForm: StylesEditForm,
+    stylesEditForm: 'default',
     createOwnProps(/*defProps*/) {
         return {
             src: null,

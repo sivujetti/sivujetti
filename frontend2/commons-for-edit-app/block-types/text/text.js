@@ -7,7 +7,7 @@ export default {
     friendlyName: 'Text',
     icon: 'blockquote',
     editForm: EditForm,
-    stylesEditForm: StylesEditForm,
+    stylesEditForm: 'default',
     createOwnProps(/*defProps*/) {
         return {
             html: `<p>${__('Text content')}.</p>`,

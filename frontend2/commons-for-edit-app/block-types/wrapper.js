@@ -28,7 +28,7 @@ export default {
     name: 'Wrapper',
     friendlyName: 'Wrapper',
     icon: 'rectangle',
-    editForm: WrapperBlockEditForm,
+    editForm: 'default',
     stylesEditForm: WrapperBlockVisualStylesEditForm,
     createOwnProps(/*defProps*/) {
         return {

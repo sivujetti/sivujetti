@@ -16,7 +16,7 @@ export default {
     friendlyName: 'Listing',
     icon: 'layout-list',
     editForm: EditForm,
-    stylesEditForm: StylesEditForm,
+    stylesEditForm: 'default',
     createOwnProps(/*defProps*/) {
         return {
             filterPageType: 'Pages',

@@ -3,7 +3,7 @@ export default {
     friendlyName: 'Columns',
     icon: 'layout-columns',
     editForm: null,
-    stylesEditForm: 'auto',
+    stylesEditForm: 'default',
     createOwnProps(/*defProps*/) {
         return {
             numColumns: null,

@@ -7,7 +7,7 @@ export default {
     friendlyName: 'Code',
     icon: 'code',
     editForm: EditForm,
-    stylesEditForm: StylesEditForm,
+    stylesEditForm: 'default',
     createOwnProps(/*defProps*/) {
         return {
             code: ''

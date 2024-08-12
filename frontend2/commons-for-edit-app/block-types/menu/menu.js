@@ -7,7 +7,7 @@ export default {
     friendlyName: 'Menu',
     icon: 'menu-2',
     editForm: EditForm,
-    stylesEditForm: StylesEditForm,
+    stylesEditForm: 'default',
     createOwnProps(/*defProps*/) {
         const linkCreator = new CountingLinkItemFactory;
         return {

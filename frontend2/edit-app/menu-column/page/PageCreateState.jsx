@@ -39,6 +39,7 @@ class PageCreateState extends preact.Component {
         api.webPagePreview.onReady(() => { // make sure currentPageData is loaded
             const saveButton = api.saveButton.getInstance();
             const [newPageData, maybePatchedBlockTree] = createNewCurrentPageData(this.props.url.indexOf('/duplicate') > '/pages/'.length);
+            scssWizard.setCurrentPageInfo(newPageData);
             const {initialPageBlocksStyles} = globalData;
             saveButton.pushOpGroup(...[
                 ['currentPageData', newPageData, {event: 'create'}],

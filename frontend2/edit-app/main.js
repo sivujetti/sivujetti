@@ -49,6 +49,7 @@ preact.render(
             // Update ScssWizard's 'currentPageIdPair' every time a new page is
             // loaded into the preview iframe
             events.on('webpage-preview-iframe-loaded', () => {
+                // See also ./menu-column/page/PageCreateState.jsx.componentWillMount() (if pageData.isPlaceholderPage === true)
                 scssWizard.setCurrentPageInfo(saveButton.getChannelState('currentPageData'));
             });
         } }/>,

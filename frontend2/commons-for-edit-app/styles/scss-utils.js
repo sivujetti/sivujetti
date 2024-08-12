@@ -4,6 +4,13 @@ const {compile, serialize, stringify} = window.stylis;
 
 const scssUtils = {
     /**
+     * @param {string} scss
+     * @returns {string}
+     */
+    compileToString(scss) {
+        return serialize(compile(scss), stringify);
+    },
+    /**
      * @param {StyleChunk} chunk
      * @returns {Array<{className: string; lineIdx: number;}>}
      */

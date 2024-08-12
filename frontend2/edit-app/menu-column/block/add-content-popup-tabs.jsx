@@ -13,7 +13,10 @@ import {createBlockFromBlueprint, createBlockFromType} from '../../includes/bloc
 import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-block-trees/repository.js';
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import VerticalTabs from '../../includes/VerticalTabs.jsx';
-import {createCustomClassChunkClassNameCreator} from '../block-styles/CustomClassStylesList.jsx';
+import {
+    createCustomClassChunkClassNameCreator,
+    createIsDuplicateCustomClassChunkChecker,
+} from '../block-styles/CustomClassStylesList.jsx';
 import {createStyleShunkcScssIdReplacer} from './BlockTreeFuncs.js';
 
 const blockBtnClses = 'btn with-icon with-icon-inline focus-default';
@@ -227,7 +230,17 @@ class AddTemplateContentTab extends preact.Component {
             const selectedCat = ['headers', 'content', 'footers'][currentTabIdx];
             const toList = templates.filter(({category}) => category === selectedCat);
             return <div class="image-buttons-list p-1">{ toList.length ? toList.map(tmpl =>
-                <button onClick={ () => onContentPicked(createContentTemplateSpawnDescriptor(tmpl)) } class="btn no-color" type="button">
+                <button onClick={ () => {
+                    let descr;
+                    try {
+                        descr = createContentTemplateSpawnDescriptor(tmpl);
+                    } catch (e) {
+                        env.console.error(e);
+                        env.window.alert(__('Failed to create block from template'));
+                        return;
+                    }
+                    onContentPicked(descr);
+                } } class="btn no-color" type="button">
                     <figure><img src={ urlUtils.makeAssetUrl(tmpl.previewImgSrc) }/></figure>
                     <div class="text-ellipsis text-tinyish color-dimmed2 p-2">
                         { __(tmpl.title || tmpl.blockBlueprints[0].initialDefaultsData.title) }
@@ -256,6 +269,7 @@ function createContentTemplateSpawnDescriptor(template) {
     const root = template.blockBlueprints[0];
     const styles = [];
     let spawnClassName = null;
+    let checkIsDuplicateChunk = null;
     const newBlock = createBlockFromBlueprint(root, ({initialStyles}, block) => {
         if (block.styleClasses.indexOf('@customClass[0]') < 0) return;
 
@@ -264,11 +278,23 @@ function createContentTemplateSpawnDescriptor(template) {
         if (initialStyles[0].scope.kind !== 'custom-class')
             throw new Error('template.blockBlueprints[*].initialStyles[0].kind !== "custom-class" not implemented yet');
 
+        if (!checkIsDuplicateChunk) checkIsDuplicateChunk = createIsDuplicateCustomClassChunkChecker();
+        // Case #1: The template's blockBlueprints.initialStyles[0] has already been added earlier -> use
+        // the className of that style
+        const className = checkIsDuplicateChunk(initialStyles[0]);
+        if (className) {
+            block.styleClasses = block.styleClasses.replace('@customClass[0]', className);
+            return;
+        }
+
         if (!spawnClassName) spawnClassName = createCustomClassChunkClassNameCreator();
+        // Case #2: The template's blockBlueprints.initialStyles[0] has not been added -> add it and
+        // generate a className for it
         const incremented = spawnClassName();
         block.styleClasses = block.styleClasses.replace('@customClass[0]', incremented);
         styles.push({...initialStyles[0], scss: initialStyles[0].scss.replace('@customClass[0]', incremented)});
     });
+
     return {block: newBlock, isReusable: false, styles};
 }
 

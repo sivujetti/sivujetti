@@ -200,6 +200,8 @@ class BlockTree extends preact.Component {
         return <li
             class={ !treeState[block.id].isSelected ? '' : 'selected' }
             data-block-id={ block.id }
+            data-is-stored-to-tree-id="main"
+            data-is-root-block-of={ null }
             data-block-type="PageInfo"
             data-depth={ depth }
             title={ title }
@@ -212,6 +214,9 @@ class BlockTree extends preact.Component {
                     disabled={ this.disablePageInfo }>
                     <Icon iconId={ api.blockTypes.getIconId('PageInfo') } className="size-xs p-absolute"/>
                     <span class="text-ellipsis">{ title }</span>
+                </button>
+                <button onClick={ e => this.openMoreMenu(block, false, e) } class="more-toggle pl-1" type="button">
+                    <Icon iconId="dots" className="size-xs"/>
                 </button>
             </div>
         </li>;
@@ -479,19 +484,23 @@ class BlockTree extends preact.Component {
      * @access private
      */
     createContextMenuController(blockIsGbtsOutermostBlock) {
+        const isPageInfo = this.blockWithMoreMenuOpened.type === 'PageInfo';
+        const spawnLinks = [
+            {text: __('↑ Add content above'), title: __('↑ Add content above'), id: 'add-content-above'},
+            {text: __('↓ Add content below'), title: __('↓ Add content below'), id: 'add-content-below'},
+            {text: __('↳ Add content as child'), title: __('↳ Add content as child'), id: 'add-content-as-child'},
+        ];
         return {
             getLinks: () => {
                 const links = [
-                    ...[
-                        {text: __('↑ Add content above'), title: __(''), id: 'add-content-above'},
-                        {text: __('↓ Add content below'), title: __(''), id: 'add-content-below'},
-                        {text: __('↳ Add content as child'), title: __(''), id: 'add-content-as-child'},
+                    ...(!isPageInfo ? spawnLinks : [spawnLinks[1]]),
+                    ...(!isPageInfo ? [
                         {text: __('Duplicate'), title: __('Duplicate content'), id: 'duplicate-block'},
                         {text: __('Delete'), title: __('Delete content'), id: 'delete-block'},
-                    ],
-                    ...(api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees')
-                        ? [{text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}]
-                        : []),
+                    ] : []),
+                    ...(!isPageInfo && (api.user.can('createReusableBranches') || api.user.can('createGlobalBlockTrees')) ? [
+                        {text: __('Save as reusable'), title: __('Save as reusable content'), id: 'save-block-as-reusable'}
+                    ] : []),
                 ];
                 const notThese = blockIsGbtsOutermostBlock ? ['duplicate-block'] : [];
                 return notThese.length ? links.filter(({id}) => notThese.indexOf(id) < 0) : links;

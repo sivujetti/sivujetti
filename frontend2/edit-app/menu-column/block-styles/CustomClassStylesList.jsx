@@ -6,6 +6,7 @@ import {
     floatingDialog,
     Icon,
     Popup,
+    scssUtils,
     scssWizard,
     timingUtils,
 } from '@sivujetti-commons-for-edit-app';
@@ -305,6 +306,24 @@ function createCustomClassChunkClassNameCreator(curCustomClassChunks = null) {
 }
 
 /**
+ * @param {Array<StyleChunk>} curCustomClassChunks = null
+ * @returns {(chunk: StyleChunk) => string|false}
+ */
+function createIsDuplicateCustomClassChunkChecker(curCustomClassChunks = null) {
+    const [current, clses] = curCustomClassChunks || getAllChunks().reduce((out, {scss}) => {
+        const cls = scss.match(/\.cc-[0-9]+/)[0];
+        return [
+            [...out[0], scssUtils.compileToString(scss.replace(cls, '.@customClass[0]'))],
+            [...out[1], cls.substring(1)],
+        ];
+    }, [[], []]);
+    return ({scss}) => {
+        const idx = current.indexOf(scssUtils.compileToString(scss));
+        return idx > -1 ? clses[idx] : false;
+    };
+}
+
+/**
  * @param {'add'|'remove'} type
  * @param {string} chunkClass
  * @param {string} blockId
@@ -350,4 +369,8 @@ function addOrRemoveStyleClass(type, chunkClass, to) {
  */
 
 export default CustomClassStylesList;
-export {createCustomClassChunkClassNameCreator, extractClassName};
+export {
+    createCustomClassChunkClassNameCreator,
+    createIsDuplicateCustomClassChunkChecker,
+    extractClassName,
+};

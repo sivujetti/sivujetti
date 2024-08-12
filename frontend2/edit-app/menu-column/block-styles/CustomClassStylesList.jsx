@@ -3,6 +3,7 @@ import {
     api,
     blockTreeUtils,
     env,
+    getAllCustomClassChunks,
     floatingDialog,
     Icon,
     Popup,
@@ -252,7 +253,7 @@ class CustomClassStylesList extends preact.Component {
         const current = this.state.styleChunksVisible[i];
         const obj = {
             ...(current.data || {}),
-            ...(newSettings ? {mutationRules: {varDefs: newSettings}} : {}),
+            ...(newSettings ? {customizationSettings: {varDefs: newSettings}} : {}),
         };
         const newAll = scssWizard.updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(
             {data: Object.keys(obj).length ? obj : null},
@@ -266,17 +267,7 @@ class CustomClassStylesList extends preact.Component {
  * @returns {Array<StyleChunk>}
  */
 function createChunksState() {
-    return getAllChunks();
-}
-
-/**
- * @returns {Array<StyleChunk>}
- */
-function getAllChunks() {
-    const chunks = scssWizard.findStyles('custom-class', undefined, ({scope}) =>
-        scope.layer === 'dev-styles'
-    );
-    return chunks;
+    return getAllCustomClassChunks();
 }
 
 /**
@@ -294,7 +285,7 @@ function extractClassName({scss}, withDot = true) {
  * @returns {() => string}
  */
 function createCustomClassChunkClassNameCreator(curCustomClassChunks = null) {
-    let max = curCustomClassChunks || getAllChunks().reduce((out, chunk) => {
+    let max = curCustomClassChunks || getAllCustomClassChunks().reduce((out, chunk) => {
         const cc = extractClassName(chunk);
         const c = parseInt(cc.split('-')[1], 10);
         return c > out ? c : out;
@@ -310,7 +301,7 @@ function createCustomClassChunkClassNameCreator(curCustomClassChunks = null) {
  * @returns {(chunk: StyleChunk) => string|false}
  */
 function createIsDuplicateCustomClassChunkChecker(curCustomClassChunks = null) {
-    const [current, clses] = curCustomClassChunks || getAllChunks().reduce((out, {scss}) => {
+    const [current, clses] = curCustomClassChunks || getAllCustomClassChunks().reduce((out, {scss}) => {
         const cls = scss.match(/\.cc-[0-9]+/)[0];
         return [
             [...out[0], scssUtils.compileToString(scss.replace(cls, '.@customClass[0]'))],

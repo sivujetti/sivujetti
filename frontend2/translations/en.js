@@ -120,13 +120,13 @@ stringBundles.push({
     'Anchor': 'Anchor',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Styles',
-    'Styles (code)': 'Styles (code)',
-    'Base': 'Base',
-    'Base (code)': 'Base (code)',
-    'Classes (code)': 'Classes (code)',
+    'Styles (customizations)': 'Tyylit (customizations)',
+    'Styles (definitions)': 'Tyylit (definitions)',
     'Show all': 'Show all',
     'Styles must contain at least one CSS-rule': 'Styles must contain at least one CSS-rule',
     'Only root styles may contain @imports': 'Only root styles may contain @imports',
+    'This content block does not have any editable properties.': 'This content block does not have any editable properties.',
+    'This content block currently has no styles active, or they don\'t contain customizable properties.': 'This content block currently has no styles active, or they don\'t contain customizable properties.',
     // edit-app/src/left-column/block/BlockTree.jsx
     '↑ Add content above': '↑ Add content above',
     '↓ Add content below': '↓ Add content below',

@@ -2,7 +2,7 @@ import {
     __,
     api,
     blockTreeUtils,
-    DefaultStyleMutationsEditForm,
+    DefaultStyleCustomizatorForm,
     env,
     getAndPutAndGetToLocalStorage,
     Icon,
@@ -18,6 +18,7 @@ import CustomClassStylesList, {extractClassName} from '../block-styles/CustomCla
 import StyleClassesPicker from '../block-styles/StyleClassesPicker.jsx';
 import {createInitialTabKind, createTabsInfo} from '../block-styles/style-tabs-commons.js';
 /** @typedef {import('../block-styles/style-tabs-commons.js').tabKind} tabKind */
+/** @typedef {import('../block-styles/style-tabs-commons.js').TabInfo} TabInfo */
 
 class BlockEditForm extends preact.Component {
     // blockType;
@@ -38,24 +39,21 @@ class BlockEditForm extends preact.Component {
             ...(editFormRenderer ? [editFormRenderer] : []),
             ...(!this.blockType.extends ? [] : [api.blockTypes.get(this.blockType.extends).editForm])
         ];
-        this.stylesEditForm = this.blockType.stylesEditForm !== 'auto'
+        this.userCanEditScss = api.user.can('editBlockCss');
+        this.stylesEditForm = this.blockType.stylesEditForm !== 'default'
             ? this.blockType.stylesEditForm
-            : DefaultStyleMutationsEditForm;
-        this.tabsInfo = createTabsInfo(api.user.can('editBlockCss') ? [
-                ...(this.editFormImpls.length ? [{kind: 'content'}] : []),
-                ...(this.blockType.name !== 'PageInfo' ? [
-                    {kind: 'dev-styles'},
-                    {kind: 'user-styles'},
-                ] : []),
-            ] : [
-                ...(this.editFormImpls.length ? [{kind: 'content'}] : []),
-                ...(this.stylesEditForm ? [{kind: 'user-styles'}] : []),
-            ]);
-        const currentTabKind = createInitialTabKind(
+            : DefaultStyleCustomizatorForm;
+
+        const [tabs, blockHasCustomizableStyles] = this.createTabsInfo();
+        this.tabsInfo = tabs;
+        const tabKind = createInitialTabKind(
             getAndPutAndGetToLocalStorage('content', 'sivujettiLastBlockEditFormTabKind'),
             this.tabsInfo
         );
-        this.setState(createState(currentTabKind, objectUtils.cloneDeep(this.props.block)));
+        this.setState({
+            blockHasCustomizableStyles,
+            ...createState(tabKind, objectUtils.cloneDeep(this.props.block)),
+        });
 
         this.unregistrables = [saveButton.subscribeToChannel('theBlockTree', (theTree, userCtx, ctx, flags) => {
             const event = userCtx?.event || '';
@@ -79,7 +77,10 @@ class BlockEditForm extends preact.Component {
                     this.blockIsStoredToTreeId = getIsStoredToTreeIdFrom(block.id, theTree);
                     this.setState({
                         blockCopyForEditForm: objectUtils.cloneDeep(block),
-                        lastBlockTreeChangeEventInfo: {ctx, flags, isUndoOrRedo: isIt}
+                        lastBlockTreeChangeEventInfo: {ctx, flags, isUndoOrRedo: isIt},
+                        blockHasCustomizableStyles: this.state.blockCopyForEditForm.styleClasses !== block.styleClasses || isIt
+                            ? getUserStyleTabHasContent(block, this.tabsInfo)
+                            : this.state.blockHasCustomizableStyles,
                     });
                 }
             }
@@ -93,7 +94,7 @@ class BlockEditForm extends preact.Component {
         saveButton.subscribeToChannel('stylesBundle', (bundle, userCtx, ctx) => {
             if (!doesTabContainStylesStuff(this.state.currentTabKind)) return;
             if (ctx === 'initial') return;
-            this.setState({stylesStateId: bundle.id});
+            this.setState({stylesStateId: bundle.id, blockHasCustomizableStyles: getUserStyleTabHasContent(this.state.blockCopyForEditForm, this.tabsInfo)});
         })];
     }
     /**
@@ -106,7 +107,7 @@ class BlockEditForm extends preact.Component {
      * @param {{block: Block; inspectorPanel: preact.Component;}} props
      * @access protected
      */
-    render(_, {currentTabKind, blockCopyForEditForm, lastBlockTreeChangeEventInfo}) {
+    render(_, {currentTabKind, blockCopyForEditForm, lastBlockTreeChangeEventInfo, blockHasCustomizableStyles}) {
         const blockId = blockCopyForEditForm.id;
         const isMeta = isMetaBlock(blockCopyForEditForm);
         const typeid = isMeta ? ' page-info-block' : this.blockIsStoredToTreeId === 'main' ? '' : ' global-block-tree-block';
@@ -123,7 +124,7 @@ class BlockEditForm extends preact.Component {
                     itm.kind === 'dev-styles'
                         ? <Icon iconId="settings" className="size-xs ml-1 color-dimmed3"/>
                         : itm.kind === 'user-styles'
-                            ? <Icon iconId="palette" className={ `size-xs ml-1 color-pink${!this.state.hasTw ? ' colro-sat2' : ''}` }/>
+                            ? <Icon iconId="palette" className={ `size-xs ml-1 color-pink${blockHasCustomizableStyles ? '' : ' color-saturated2'}` }/>
                             : null,
                 ]) }
                 getTabName={ (_, i) => tabsInfo[i].kind }
@@ -159,9 +160,10 @@ class BlockEditForm extends preact.Component {
                             key={ blockId }/>
                     );
                 } else if (itm.kind === 'user-styles') {
-                    const Renderer = this.stylesEditForm;
+                    const Renderer = this.userCanEditScss && !blockHasCustomizableStyles ? NoContentStyleCustomizationsEditForm : this.stylesEditForm;
                     content = <Renderer
                         blockId={ blockId }
+                        blockType={ this.blockType }
                         blockIsStoredToTreeId={ this.blockIsStoredToTreeId }
                         checkIsChunkActive={ createIsChunkStyleEnabledChecker(blockCopyForEditForm.styleClasses) }
                         stylesStateId={ this.state.stylesStateId }
@@ -242,6 +244,57 @@ class BlockEditForm extends preact.Component {
             flags
         );
     }
+    /**
+     * @returns {[Array<TabInfo>, boolean]}
+     */
+    createTabsInfo() {
+        let tabs = createTabsInfo(this.userCanEditScss ? [
+            ...(this.editFormImpls.length ? [{kind: 'content'}] : []),
+            ...(this.blockType.name !== 'PageInfo' ? [
+                {kind: 'dev-styles'},
+                {kind: 'user-styles'},
+            ] : []),
+        ] : [
+            ...(this.editFormImpls.length ? [{kind: 'content'}] : []),
+            ...(this.stylesEditForm ? [{kind: 'user-styles'}] : []),
+        ]);
+
+        const blockHasCustomizableStyles = getUserStyleTabHasContent(this.props.block, tabs);
+
+        if (!this.userCanEditScss) {
+            if (!blockHasCustomizableStyles && tabs.some(({kind}) => kind === 'user-styles')) {
+                tabs = tabs.filter(({kind}) => kind !== 'user-styles');
+            }
+            if (!tabs.length) {
+                this.editFormImpls = [NoContentBlockEditForm];
+                tabs = createTabsInfo([{kind: 'content'}]);
+            }
+        }
+
+        return [tabs, blockHasCustomizableStyles];
+    }
+}
+
+class NoContentBlockEditForm extends preact.Component {
+    /**
+     * @access protected
+     */
+    render() {
+        return <div class="pt-1">
+            { __('This content block does not have any editable properties.') }
+        </div>;
+    }
+}
+
+class NoContentStyleCustomizationsEditForm extends preact.Component {
+    /**
+     * @access protected
+     */
+    render() {
+        return <div class="pt-1">
+            { __('This content block currently has no styles active, or they don\'t contain customizable properties.') }
+        </div>;
+    }
 }
 
 /**
@@ -250,7 +303,7 @@ class BlockEditForm extends preact.Component {
  * @returns {Object}
  */
 function createState(newTabKind, block) {
-    const out =  {
+    return {
         currentTabKind: newTabKind,
         blockCopyForEditForm: block,
         ...(doesTabContainStylesStuff(newTabKind)
@@ -258,7 +311,6 @@ function createState(newTabKind, block) {
             : {}
         )
     };
-    return out;
 }
 
 /**
@@ -279,6 +331,20 @@ function createIsChunkStyleEnabledChecker(currentClasses) {
     return chunk =>
         currentAsArr.indexOf(extractClassName(chunk, false)) > -1
     ;
+}
+
+/**
+ * @param {Block} block
+ * @param {Array<TabInfo>} block
+ * @returns {boolean}
+ * @access private
+ */
+function getUserStyleTabHasContent({styleClasses}, tabsInfo) {
+    if (tabsInfo.some(({kind}) => kind === 'user-styles')) {
+        const varList = DefaultStyleCustomizatorForm.getConfigurableVarsList(null, createIsChunkStyleEnabledChecker(styleClasses));
+        return varList.length > 0;
+    }
+    return false;
 }
 
 export default BlockEditForm;

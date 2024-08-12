@@ -121,13 +121,13 @@ stringBundles.push({
     'Anchor': 'Ankkuri',
     // edit-app/src/left-column/block/BlockEditForm.jsx
     'Styles': 'Tyylit',
-    'Styles (code)': 'Tyylit (koodi)',
-    'Base': 'Pohja',
-    'Base (code)': 'Pohja (koodi)',
-    'Classes (code)': 'Luokat (koodi)',
+    'Styles (customizations)': 'Tyylit (kustomoinnit)',
+    'Styles (definitions)': 'Tyylit (määritykset)',
     'Show all': 'Näytä kaikki',
     'Styles must contain at least one CSS-rule': 'Tyylit tulisi sisältää ainakin yhden CSS-säännön',
     'Only root styles may contain @imports': 'Vain juurityylit voi sisältää @importeja',
+    'This content block does not have any editable properties.': 'Tällä sisältölohkolla ei ole omia muokattavia ominaisuuksia.',
+    'This content block currently has no styles active, or they don\'t contain customizable properties.': 'Tällä sisältölohkolla ei ole tällä hetkellä tyylejä aktiivisena, tai ne ei sisällä kustomoitavia ominaisuuksia.',
     // edit-app/src/left-column/block/BlockTree.jsx
     '↑ Add content above': '↑ Lisää sisältöä yläpuolelle',
     '↓ Add content below': '↓ Lisää sisältöä alapuolelle',

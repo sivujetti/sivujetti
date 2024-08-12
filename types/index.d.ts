@@ -549,7 +549,7 @@ interface StyleChunk {
 
 interface CustomClassStyleChunkData {
     title?: string;
-    mutationRules?: {
+    customizationSetting?: {
         varDefs: Array<VisualStylesFormVarDefinition>;
     };
     associatedBlockTypes?: Array<string>;

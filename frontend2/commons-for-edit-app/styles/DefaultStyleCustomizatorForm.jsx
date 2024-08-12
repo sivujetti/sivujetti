@@ -13,21 +13,19 @@ import GridColumnsValueInput from './GridColumnsValueInput.jsx';
 import LengthValueInput from './LengthValueInput.jsx';
 import OptionValueInput from './OptionValueInput.jsx';
 
-/** @extends {preact.Component<DefaultStyleMutationsEditFormProps, any>} */
-class DefaultStyleMutationsEditForm extends preact.Component {
+/** @extends {preact.Component<DefaultStyleCustomizatorForm, any>} */
+class DefaultStyleCustomizatorForm extends preact.Component {
     // cssVarDefs;
     // styleChunks;
     // varInputToScssCodeFn;
     /**
-     * @param {DefaultStyleMutationsEditFormProps} props
+     * @param {DefaultStyleCustomizatorForm} props
      * @access protected
      */
     constructor(props) {
         super(props);
 
-        const enabled = getAllChunks().filter(props.checkIsChunkActive);
-        const withRules = enabled.filter(c => c.data?.mutationRules?.varDefs.length > 0);
-        const reduced = withRules.map(c => c.data?.mutationRules?.varDefs).flat();
+        const reduced = DefaultStyleCustomizatorForm.getConfigurableVarsList(null, props.checkIsChunkActive);
 
         this.cssVarDefs = createNormalizedDefs(getValidDefs(reduced));
         this.varInputToScssCodeFn = createVarInputToScssCodeAuto(this.cssVarDefs);
@@ -41,7 +39,7 @@ class DefaultStyleMutationsEditForm extends preact.Component {
         this.setState({styleScreens: scopes, curScreenSizeTabIdx: 0});
     }
     /**
-     * @param {DefaultStyleMutationsEditFormProps} props
+     * @param {DefaultStyleCustomizatorForm} props
      * @access protected
      */
     componentWillReceiveProps(props) {
@@ -118,6 +116,7 @@ class DefaultStyleMutationsEditForm extends preact.Component {
     handleVisualVarChanged(input, varName, varInputToScssCode) {
         const val = input instanceof Event ? input.target.value : input;
         const updatedAll = this.doHandleValChanged(val, varName, varInputToScssCode);
+        console.log('then',updatedAll);
         api.saveButton.getInstance().pushOp('stylesBundle', updatedAll);
     }
     /**
@@ -193,7 +192,7 @@ class DefaultStyleMutationsEditForm extends preact.Component {
         }
     }
     /**
-     * @param {DefaultStyleMutationsEditFormProps} props
+     * @param {DefaultStyleCustomizatorForm} props
      * @returns {[Array<CssVarsMap>, Array<StyleChunk|null>]}
      */
     createCssVarsMapsInternal(props) {
@@ -207,9 +206,20 @@ class DefaultStyleMutationsEditForm extends preact.Component {
 }
 
 /**
+ * @param {Array<StyleChunk>|null} styleChunks
+ * @param {(chunk: StyleChunk) => boolean} checkIsChunkActive
+ * @returns {Array<VisualStylesFormVarDefinition>}
+ */
+DefaultStyleCustomizatorForm.getConfigurableVarsList = (styleChunks, checkIsChunkActive) => {
+    const enabled = (styleChunks || getAllCustomClassChunks()).filter(checkIsChunkActive);
+    const withRules = enabled.filter(c => c.data?.customizationSettings?.varDefs.length > 0);
+    return withRules.map(c => c.data?.customizationSettings?.varDefs).flat();
+};
+
+/**
  * @returns {Array<StyleChunk>}
  */
-function getAllChunks() {
+function getAllCustomClassChunks() {
     const chunks = scssWizard.findStyles('custom-class', undefined, ({scope}) =>
         scope.layer === 'dev-styles'
     );
@@ -217,7 +227,8 @@ function getAllChunks() {
 }
 
 /**
- * @typedef {{blockId: string; blockIsStoredToTreeId: 'main'|string; stylesStateId: number; checkIsChunkActive: (chunk: StyleChunk) => boolean; styleClasses: string;}} DefaultStyleMutationsEditFormProps
+ * @typedef {{blockId: string; blockIsStoredToTreeId: 'main'|string; stylesStateId: number; checkIsChunkActive: (chunk: StyleChunk) => boolean; styleClasses: string;}} DefaultStyleCustomizatorForm
  */
 
-export default DefaultStyleMutationsEditForm;
+export default DefaultStyleCustomizatorForm;
+export {getAllCustomClassChunks};

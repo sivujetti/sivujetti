@@ -100,17 +100,10 @@ final class Exporter {
      */
     private function getEachRowFrom(string $tableName, array $infos): array {
         $cols = array_column($infos, "colName");
-        if (!defined("USE_NEW_FLUENT_DB")) {
-        return $this->db->select("`\${p}{$tableName}`", "\stdClass")
-            ->fields($cols)
-            ->limit(1000)
-            ->fetchAll();
-        } else {
         return $this->db2->select("`\${p}{$tableName}`")
             ->fields($cols)
             ->limit(1000)
             ->fetchAll(\PDO::FETCH_OBJ);
-        }
     }
     /**
      * @param string $tableName

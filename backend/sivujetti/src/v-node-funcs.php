@@ -10,28 +10,26 @@ namespace Sivujetti;
 function renderVNodes(array $branch): string {
     $out = "";
     foreach ($branch as $node) {
-        if (is_string($node)) {
-            // todo escape
-            $out .= $node;
-        } else if (array_is_list($node))
+        if (\is_string($node)) {
+            $out .= Template::e($node);
+        } else if (\array_is_list($node))
             $out .= renderVNodes($node);
         else {
             if ($node["el"] === "j-raw") {
                 $out .= $node["children"][0]; // @allow unescaped
                 continue;
             }
-            $attrsMarkup = _renderAttrs($node["attrs"]);
             if ($node["el"] === "svg") {
                 $childMarkup = $node["children"][0] ?? ""; // @allow unescaped
             } else {
                 $childMarkup = $node["children"] ? renderVNodes($node["children"]) : "";
             }
-            // todo escape $node["el"]
-            $out .= "<{$node["el"]}{$attrsMarkup}>" .
-                (match ($node["el"]) {
+            $el = Template::e($node["el"]);
+            $out .= "<{$el}" . _renderAttrs($node["attrs"]) . ">" .
+                (match ($el) {
                     "img", "input", "br", "hr", "link",
                     "source", "wbr", "area", "track" => "",
-                    default => "{$childMarkup}</{$node["el"]}>",
+                    default => "{$childMarkup}</{$el}>",
                 });
         }
     }
@@ -60,8 +58,10 @@ function createElement(string $el, ?array $attrs, array|string ...$children): ar
 function _renderAttrs(array $attrs): string {
     $mapped = [];
     foreach ($attrs as $key => $val) {
-        // todo escape
-        $mapped[] = "{$key}=\"{$val}\"";
+        $mapped[] = \str_replace([" ", "\"", "'", ">", "/", "="], "", $key) .
+            "=\"" .
+            Template::escAttr($val) .
+            "\"";
     }
-    return $mapped ? (" " . implode(" ", $mapped)) : "";
+    return $mapped ? (" " . \implode(" ", $mapped)) : "";
 }

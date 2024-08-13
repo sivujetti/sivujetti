@@ -47,6 +47,7 @@ class OnThisPageSection extends MenuSectionAbstract {
             events.on('web-page-click-received',
                 (blockId) => {
                     if (!blockId) return;
+                    if (!this.state.loadedPageBlocks?.length) return;
                     const [block] = blockTreeUtils.findBlockMultiTree(blockId, this.state.loadedPageBlocks);
                     this.focusToBlockAndEmitBlockTreeClick(block, 'web-page', () => { });
                 }

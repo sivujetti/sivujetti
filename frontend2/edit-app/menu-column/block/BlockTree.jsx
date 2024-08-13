@@ -548,6 +548,7 @@ class BlockTree extends preact.Component {
         const curHigh = {hovered: null, visible: null};
         this.unregistrables.push(events.on('highlight-rect-revealed', (blockId, origin) => {
             if (origin !== 'web-page') return;
+            if (!this.props.blocks?.length) return;
             if (curHigh.hovered) clearHighlight(curHigh);
             const {ul} = this.dragDrop;
             const li = ul.querySelector(`li[data-block-id="${blockId}"]`);

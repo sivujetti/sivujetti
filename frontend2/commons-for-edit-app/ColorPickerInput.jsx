@@ -127,7 +127,7 @@ class ColorPickerInput extends preact.Component {
      * @access protected
      */
     componentWillReceiveProps(props) {
-        if (props.initialColorStr !== this.props.initialColorStr && currOpenPicker === this)
+        if (props.initialColorStr !== this.props.initialColorStr)
             this.setColor(getNormalizedValue(props.initialColorStr));
     }
     /**

@@ -1,9 +1,8 @@
-import {__, api, FormGroup, scssUtils, scssWizard} from '@sivujetti-commons-for-edit-app';
+import {__, FormGroup, scssUtils, scssWizard} from '@sivujetti-commons-for-edit-app';
 import Tagify from './Tagify.jsx';
 
 class StyleClassesPicker extends preact.Component {
     // tagify;
-    // devsCustomClassInfos;
     // changeableClasses;
     /**
      * @access protected
@@ -11,8 +10,8 @@ class StyleClassesPicker extends preact.Component {
     componentWillMount() {
         this.tagify = preact.createRef();
         const chunk = scssWizard.findStyle('custom-class', undefined, 'all', 'dev-styles');
-        this.devsCustomClassInfos = chunk ? scssUtils.extractClassCssBlocks(chunk) : [];
-        this.tagifyChoices = createTagifyChoices(this.devsCustomClassInfos);
+        const devsCustomClassInfos = chunk ? scssUtils.extractClassCssBlocks(chunk) : [];
+        this.tagifyChoices = createTagifyChoices(devsCustomClassInfos);
         this.changeableClasses = extractChangeableClasses(this.props.currentClasses);
     }
     /**
@@ -43,18 +42,6 @@ class StyleClassesPicker extends preact.Component {
                     const newChangeable = newChangeableClasses ? newChangeableClasses.split(' ') : [];
                     const combind = [...managed, ...newChangeable];
                     this.props.onClassesChanged(combind.length ? combind.join(' ') : '');
-                } }
-                onTagClicked={ e => {
-                    if (!window.sivujettiUserFlags?.use014Styles) {
-                    const tagText = e.detail.data.value;
-                    const info = this.devsCustomClassInfos.find(({className}) => className === tagText);
-                    if (info) {
-                        api.menuPanel.getSectionCmp('baseStyles')?.scrollToCustomClassesTabClass(
-                            info.lineIdx,
-                            tagText
-                        );
-                    }
-                    }
                 } }
                 ref={ this.tagify }/>
         </FormGroup>;

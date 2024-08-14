@@ -28,12 +28,6 @@ class BaseStyleChunkScssEditor extends preact.Component {
     /**
      * @access protected
      */
-    shouldComponentUpdate() {
-        return false;
-    }
-    /**
-     * @access protected
-     */
     render(_, {styleChunk}) {
         return <ScssEditor
             editorId="base-freeform-styles"

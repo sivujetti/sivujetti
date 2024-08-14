@@ -52,7 +52,7 @@ class TextBlockEditForm extends preact.Component {
      */
     maybeHighlightEditorNode(info) {
         if (info.blockId !== this.props.block.id) return;
-        this.getNthEditorNode(info.childIdx).setAttribute('data-hovered', 'y');
+        this.getNthEditorNode(info.childIdx)?.setAttribute('data-hovered', 'y');
     }
     /**
      * @param {HoverNodeInfo} info

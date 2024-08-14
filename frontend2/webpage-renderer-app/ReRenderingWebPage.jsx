@@ -1,14 +1,6 @@
 import {urlUtils} from '@sivujetti-commons-for-web-pages';
-import {
-    cloneDeep,
-    getBlockEl,
-    getMetaKey,
-    traverseRecursively,
-} from '../shared-inline.js';
-import {
-    createBlockTreeHashes,
-    stringHtmlPropToVNodeArray,
-} from './ReRenderingWebPageFuncs.js';
+import {cloneDeep, getBlockEl, getMetaKey, traverseRecursively} from '../shared-inline.js';
+import {stringHtmlPropToVNodeArray} from './ReRenderingWebPageFuncs.js';
 import builtInRenderers from './builtin-renderers-all.jsx';
 
 /** @type {Map<String, preact.AnyComponent>} */
@@ -26,80 +18,6 @@ const api = {
 const useCtrlClickBasedFollowLinkLogic = true;
 
 class RenderAll extends preact.Component {
-    // currentBlocksHashes;
-    /**
-     * @param {Array<Block>} blocks
-     * @access public
-     */
-    exchangeBlocks(blocks) {
-        const noMetas = blocks.filter(b => b.type !== 'PageInfo');
-        const hashesMap = {};
-        createBlockTreeHashes(noMetas, hashesMap);
-        this.currentBlocksHashes = hashesMap;
-
-        const cloned = cloneDeep(noMetas);
-        traverseRecursively(cloned, stringHtmlPropToVNodeArray);
-        this.setState({blocks: cloned});
-    }
-    /**
-     * @param {Block} block
-     * @access public
-     */
-    exchangeSingleBlock(block, blocks) {
-        this.exchangeBlocks(blocks);
-    }
-    /**
-     * @access protected
-     */
-    componentWillMount() {
-        if (!this.props.hashes)
-            this.exchangeBlocks(this.props.blocks);
-        else {
-            this.currentBlocksHashes = this.props.hashes;
-            this.setState({blocks: this.props.blocks});
-        }
-    }
-    /**
-     * @param {{depth?: Number; hashes?: {[blockId: String]: String;};}} props
-     * @access protected
-     */
-    render({depth}, {blocks}) {
-        return blocks.map(block => {
-            depth = (depth || 0);
-            const key = `k-${depth}-${this.currentBlocksHashes[block.id]}`;
-            if (block.type === 'GlobalBlockReference') {
-                return <RenderAll
-                    blocks={ block.__globalBlockTree.blocks }
-                    depth={ depth }
-                    hashes={ this.currentBlocksHashes }
-                    key={ this.currentBlocksHashes[block.id] }/>;
-            }
-            const {type, styleClasses, renderer} = block;
-            const renderChildren = () => block.children.length
-                ? <RenderAll blocks={ block.children } depth={ depth + 1 } hashes={ this.currentBlocksHashes }/>
-                : null;
-            const createDefaultProps = (ownClasses = '') => ({
-                'data-block': block.id,
-                'data-block-type': type,
-                'class': `j-${type}${ownClasses ? ` ${ownClasses}` : ''}${styleClasses ? ` ${styleClasses}` : ''}`,
-            });
-            const Renderer = renderer === 'jsx' || type === 'Listing'
-                ? (builtInRenderers[type] || customRenderers.get(type))
-                : customRenderers.get(renderer);
-            if (!Renderer) return <p>{ renderer === 'jsx'
-                ? `Block type \`${type}\` doesn't have a renderer!`
-                : `Renderer "${renderer || 'none provided'}" does not exist`
-            }</p>;
-            return <Renderer
-                block={ block }
-                createDefaultProps={ createDefaultProps }
-                renderChildren={ renderChildren }
-                key={ key }/>;
-        });
-    }
-}
-
-class RenderAllOuter extends RenderAll {
     // messagePortToEditApp;
     // curHoveredBlockEl;
     // metaKeyIsPressed;
@@ -114,11 +32,29 @@ class RenderAllOuter extends RenderAll {
         this.hookUpEventHandlers();
     }
     /**
+     * @param {Array<Block>} newBlocks
+     * @access public
+     */
+    exchangeBlocks(newBlocks) {
+        const noMetas = newBlocks.filter(b => b.type !== 'PageInfo');
+        const cloned = cloneDeep(noMetas);
+        traverseRecursively(cloned, stringHtmlPropToVNodeArray);
+        this.setState({blocks: cloned});
+    }
+    /**
+     * @param {Block} block
+     * @param {Array<Block>} allBlocks
+     * @access public
+     */
+    exchangeSingleBlock(block, allBlocks) {
+        this.exchangeBlocks(allBlocks);
+    }
+    /**
      * @access protected
      */
     componentWillMount() {
-        super.componentWillMount();
         this.metaKeyIsPressed = !!this.props.metaKeyIsPressed;
+        this.exchangeBlocks(this.props.blocks);
     }
     /**
      * @access protected
@@ -126,6 +62,46 @@ class RenderAllOuter extends RenderAll {
     componentDidMount() {
         this.baseUrl = urlUtils.baseUrl;
         this.isLocalLink = createIsLocalLinkCheckFn();
+    }
+    /**
+     * @access protected
+     */
+    render(_, {blocks}) {
+        return this.doRender(blocks, 0);
+    }
+    /**
+     * @param {Array<Block>} branch
+     * @param {number} depth
+     * @access private
+     */
+    doRender(branch, depth) {
+        return branch.map(block => {
+            if (block.type === 'GlobalBlockReference')
+                return this.doRender(
+                    block.__globalBlockTree.blocks,
+                    depth
+                );
+            const {type, styleClasses, renderer} = block;
+            const Renderer = renderer === 'jsx' || renderer.indexOf(':block-listing-') > -1
+                ? (builtInRenderers[type] || customRenderers.get(type))
+                : customRenderers.get(renderer);
+            if (!Renderer) return <p>{ renderer === 'jsx'
+                ? `Block type \`${type}\` doesn't have a renderer!`
+                : `Renderer "${renderer || 'none provided'}" does not exist`
+            }</p>;
+            return <Renderer
+                block={ block }
+                createDefaultProps={ (ownClasses = '') => ({
+                    'data-block': block.id,
+                    'data-block-type': type,
+                    'class': `j-${type}${ownClasses ? ` ${ownClasses}` : ''}${styleClasses ? ` ${styleClasses}` : ''}`,
+                }) }
+                renderChildren={ () =>
+                    block.children.length
+                        ? this.doRender(block.children, depth + 1)
+                        : null
+                }/>;
+        });
     }
     /**
      * @access private
@@ -138,34 +114,6 @@ class RenderAllOuter extends RenderAll {
             this.addClickHandlersCtrlClickVersion(docBody);
         else
             this.addClickHandlersLongClickVersion();
-    }
-    /**
-     * @param {Boolean} isDown
-     * @access private
-     */
-    handleEditAppMetaKeyPressedOrReleased(isDown) {
-        this.metaKeyIsPressed = isDown;
-    }
-    /**
-     * @param {HTMLAnchorElement} el
-     * @access private
-     */
-    doFollowLink(el) {
-        if (this.isLocalLink(el)) {
-            const hrefAsAuthored = el.getAttribute('href');
-            if (hrefAsAuthored.startsWith('#')) {
-                document.getElementById(hrefAsAuthored.substring(1))?.scrollIntoView();
-                return;
-            }
-            const noOrigin = el.href.substring(el.origin.length); // http://domain.com/foo -> /foo
-                                                                  // http://domain.com/foo/index.php?q=/foo -> /foo/index.php?q=/foo
-            const noBase = `/${noOrigin.substring(this.baseUrl.length)}`; // /foo -> /foo
-                                                                          // /sub-dir/foo -> /foo
-                                                                          // /index.php?q=/foo -> /foo
-                                                                          // /sub-dir/index.php?q=/foo -> /foo
-            // Note: $noBase may contain hash here (/slug#hash), allow it
-            window.parent.myRoute(noBase);
-        }
     }
     /**
      * @param {HTMLBodyElement} docBody
@@ -252,7 +200,8 @@ class RenderAllOuter extends RenderAll {
         docBody.addEventListener('click', e => {
             const currentBlock = this.curHoveredBlockEl;
             if (this.isMouseListenersDisabled) {
-                this.messagePortToEditApp.postMessage(['onClicked', getBlockId(currentBlock)]);
+                const blockId = getBlockId(currentBlock);
+                if (blockId) this.messagePortToEditApp.postMessage(['onClicked', blockId]);
                 return;
             }
 
@@ -268,7 +217,8 @@ class RenderAllOuter extends RenderAll {
                 return;
             }
 
-            this.messagePortToEditApp.postMessage(['onClicked', getBlockId(currentBlock)]);
+            const blockId = getBlockId(currentBlock);
+            if (blockId) this.messagePortToEditApp.postMessage(['onClicked', blockId]);
         });
     }
     /**
@@ -313,6 +263,34 @@ class RenderAllOuter extends RenderAll {
                 lastDownLink = null;
             }
         });
+    }
+    /**
+     * @param {Boolean} isDown
+     * @access private
+     */
+    handleEditAppMetaKeyPressedOrReleased(isDown) {
+        this.metaKeyIsPressed = isDown;
+    }
+    /**
+     * @param {HTMLAnchorElement} el
+     * @access private
+     */
+    doFollowLink(el) {
+        if (this.isLocalLink(el)) {
+            const hrefAsAuthored = el.getAttribute('href');
+            if (hrefAsAuthored.startsWith('#')) {
+                document.getElementById(hrefAsAuthored.substring(1))?.scrollIntoView();
+                return;
+            }
+            const noOrigin = el.href.substring(el.origin.length); // http://domain.com/foo -> /foo
+                                                                  // http://domain.com/foo/index.php?q=/foo -> /foo/index.php?q=/foo
+            const noBase = `/${noOrigin.substring(this.baseUrl.length)}`; // /foo -> /foo
+                                                                          // /sub-dir/foo -> /foo
+                                                                          // /index.php?q=/foo -> /foo
+                                                                          // /sub-dir/index.php?q=/foo -> /foo
+            // Note: $noBase may contain hash here (/slug#hash), allow it
+            window.parent.myRoute(noBase);
+        }
     }
 }
 
@@ -359,5 +337,5 @@ function isBlockEl(el) {
     return !!el.getAttribute('data-block-type');
 }
 
-export default RenderAllOuter;
+export default RenderAll;
 export {api};

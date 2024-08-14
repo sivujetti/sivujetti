@@ -1,5 +1,5 @@
 import {env, http, urlAndSlugUtils, urlUtils} from '@sivujetti-commons-for-web-pages';
-import {completeImageSrc,} from '../shared-inline.js';
+import {completeImageSrc} from '../shared-inline.js';
 import {htmlStringToVNodeArray,} from './ReRenderingWebPageFuncs.js';
 
 class ButtonBlock extends preact.Component {
@@ -100,53 +100,50 @@ class ImageBlock extends preact.Component {
     }
 }
 
-/** @type {Map<String, {arr: Array<preact.ComponentChild>; hash: String;}>} */
-const cachedRenders =  new Map;
+/** @type {Map<String, {htmlArr: Array<preact.ComponentChild>; hash: String;}>} */
+const cachedRenders = new Map;
 class ListingBlock extends preact.Component {
-    /**
-     * @access protected
-     */
-    componentWillMount() {
-        const {block} = this.props;
-        const fromCache = cachedRenders.get(block.id);
-        this.setState({
-            renderedHtmlAsArr: fromCache ? [...fromCache.arr] : null,
-        });
-        if (fromCache) {
-            const maybeNextHash = createHash(block);
-            if (fromCache.hash !== maybeNextHash)
-                this.renderInBackendAndSetToState(block, maybeNextHash);
-        } else {
-            this.renderInBackendAndSetToState(block);
-        }
-    }
     /**
      * @param {BlockRendererProps} props
      * @access protected
      */
-    render({block, renderChildren, createDefaultProps}, {renderedHtmlAsArr}) {
+    render({block, renderChildren, createDefaultProps}) {
+        let content = null;
+        const cachedRender = cachedRenders.get(block.id);
+        if (!cachedRender) {
+            content = __('Loading ...');
+            this.renderInBackend(block).then(htmlArr => {
+                cachedRenders.set(block.id, {htmlArr, hash: createHash(block)});
+                this.forceUpdate();
+            });
+        } else {
+            content = cachedRender.htmlArr;
+            const maybeChanged = createHash(block);
+            if (maybeChanged !== cachedRender.hash) {
+                cachedRenders.delete(block.id);
+                this.forceUpdate();
+            }
+        }
         return <div { ...createDefaultProps(`page-type-${block.filterPageType.toLowerCase()}`) }>
-            { renderedHtmlAsArr || __('Loading ...') }
+            { content }
             { renderChildren() }
         </div>;
     }
     /**
      * @param {Block} block
-     * @param {String} hash = null
+     * @returns {Promise<Array<preact.ComponentChild>>}
      * @access private
      */
-    renderInBackendAndSetToState(block, hash = null) {
-        http.post('/api/blocks/render', {block})
-            .then(resp => {
-                const withWrapperDiv = htmlStringToVNodeArray(resp.result);
-                const divChildren = withWrapperDiv[0].props.children;
-                cachedRenders.set(block.id, {arr: divChildren, hash: hash || createHash(block)});
-                this.setState({renderedHtmlAsArr: cachedRenders.get(block.id).arr});
-            })
-            .catch(err => {
-                env.window.console.error(err);
-                this.setState({renderedHtmlAsArr: <p>{ __('Failed to render content.') }</p>});
-            });
+    async renderInBackend(block) {
+        try {
+            const resp = await http.post('/api/blocks/render', {block});
+            const withWrapperDiv = htmlStringToVNodeArray(resp.result);
+            const divChildren = withWrapperDiv[0].props.children;
+            return divChildren;
+        } catch (err) {
+            env.window.console.error(err);
+            return <p>{ __('Failed to render content.') }</p>;
+        }
     }
 }
 function createHash(block) {

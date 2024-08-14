@@ -49,7 +49,7 @@ class MainPopper extends preact.Component {
      * @param {preact.Component} Renderer
      * @param {HTMLElement} arrowRefEl
      * @param {Object} rendererProps = {}
-     * @param {{maxWidth?: number; offsetY?: number;}} settings = {}
+     * @param {{onClose?: () => void; maxWidth?: number; offsetY?: number;}} settings = {}
      * @access public
      */
     open(Renderer, arrowRefEl, rendererProps = {}, settings = {}) {

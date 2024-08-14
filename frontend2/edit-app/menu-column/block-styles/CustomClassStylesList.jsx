@@ -6,7 +6,6 @@ import {
     getAllCustomClassChunks,
     floatingDialog,
     Icon,
-    Popup,
     scssUtils,
     scssWizard,
     timingUtils,
@@ -22,7 +21,6 @@ let saveButtonInstance;
 class CustomClassStylesList extends preact.Component {
     // emitChunksChangesThrottled;
     // listElRef;
-    // popupRef;
     // idxOfOpenMoreMenuChunk;
     /**
      * @access protected
@@ -35,7 +33,6 @@ class CustomClassStylesList extends preact.Component {
             env.normalTypingDebounceMillis
         );
         this.listElRef = preact.createRef();
-        this.popupRef = preact.createRef();
         //
         this.setState({
             styleChunksVisible,
@@ -61,7 +58,7 @@ class CustomClassStylesList extends preact.Component {
     /**
      * @access protected
      */
-    render({checkIsChunkActive}, {styleChunksVisible, listItemIsOpens, titleUncommitted, idxOfOpenPopupListItem, editTitlePopupCfg}) {
+    render({checkIsChunkActive}, {styleChunksVisible, listItemIsOpens, titleUncommitted, idxOfOpenPopupListItem}) {
         return [
             <ul class="list styles-list mb-2" ref={ this.listElRef }>{ styleChunksVisible.length
                 ? styleChunksVisible.map((chunk, i) => {
@@ -115,14 +112,6 @@ class CustomClassStylesList extends preact.Component {
                 onClick={ () => 'TODO' }
                 class="btn btn-sm"
                 type="button">{ __('Show parent styles') }</button>,
-            editTitlePopupCfg
-                ? <Popup
-                    Renderer={ EditTitlePopup }
-                    rendererProps={ editTitlePopupCfg.formProps }
-                    btn={ editTitlePopupCfg.arrowRefEl }
-                    close={ this.closeEditTitlePopup.bind(this) }
-                    ref={ this.popupRef }/>
-                : null
         ];
     }
     /**
@@ -191,15 +180,19 @@ class CustomClassStylesList extends preact.Component {
             onItemClicked: link => {
                 const idx = this.idxOfOpenMoreMenuChunk;
                 if (link.id === 'edit-title') {
-                    this.setState({
-                        idxOfOpenPopupListItem: idx,
-                        editTitlePopupCfg: this.createEditTitlePopupCfg(idx),
-                    });
+                    this.setState({idxOfOpenPopupListItem: idx});
+                    const cfg = this.createEditTitlePopupCfg(idx);
+                    api.mainPopper.open(
+                        EditTitlePopup,
+                        cfg.arrowRefEl,
+                        cfg.formProps,
+                        {onClose: () => this.clearPopupState(), maxWidth: 174},
+                    );
                 } else if (link.id === 'edit-settings') {
                     floatingDialog.open(CustomClassStyleEditCustomizationsDialog, {
-                        title: __('Edit style customizations'),
+                        title: __('Edit customization settings'),
                     }, {
-                        currentSettings: this.state.styleChunksVisible[idx].data?.mutationRules?.varDefs,
+                        currentSettings: this.state.styleChunksVisible[idx].data?.customizationSettings?.varDefs,
                         onConfirm: newSettings => this.emitCustomClassSettingsData(idx, newSettings),
                     });
                 } else if (link.id === 'delete')
@@ -233,7 +226,8 @@ class CustomClassStylesList extends preact.Component {
                             title: newTitle,
                         }}, chunk);
                     }
-                    this.closeEditTitlePopup();
+                    this.clearPopupState();
+                    api.mainPopper.close();
                 },
             },
             arrowRefEl: this.listElRef.current.children[this.idxOfOpenMoreMenuChunk].querySelector('.ͼ1'),
@@ -242,8 +236,8 @@ class CustomClassStylesList extends preact.Component {
     /**
      * @access private
      */
-    closeEditTitlePopup() {
-        this.setState({editTitlePopupCfg: null, titleUncommitted: null, idxOfOpenPopupListItem: null});
+    clearPopupState() {
+        this.setState({titleUncommitted: null, idxOfOpenPopupListItem: null});
     }
     /**
      * @param {Array<VisualStylesFormVarDefinition>} newSettings

@@ -5,7 +5,8 @@ import GridColumnsValueInput from './styles/GridColumnsValueInput.jsx';
 import LengthValueInput from './styles/LengthValueInput.jsx';
 import OptionValueInput from './styles/OptionValueInput.jsx';
 import {__, scssWizard} from './edit-app-singletons.js';
-import {compile, createCssDeclExtractor} from './ScssWizardFuncs.js';
+import {createCssDeclExtractor} from './ScssWizardFuncs.js';
+import {compile} from './styles/scss-utils.js';
 
 const WidgetClses = {
     'backgroundImage': BackgroundImageValueInput,
@@ -68,9 +69,9 @@ function createVarsMapAuto(cssVarDefs, scss) {
         etc ...
     } */
     const extr = createCssDeclExtractor(scss);
-    return cssVarDefs.reduce((map, {varName, cssProp, cssSubSelector}) =>
-        ({...map, [varName]: extr.extractVal(cssProp, cssSubSelector || undefined)}),
-    {});
+    return cssVarDefs.reduce((map, {varName, cssProp, cssTemplate, cssSubSelector}) =>
+        ({...map, [varName]: extr.extractVal(cssProp, cssSubSelector || undefined, cssTemplate)})
+    , {});
 }
 
 /**
@@ -89,13 +90,17 @@ function createVarInputToScssCodeAuto(cssVarDefs) {
         const def = cssVarDefs.find(r => r.varName === varName);
         if (!def) throw new Error(`Unknown property ${varName}`);
 
+        const propTmpl = !def.cssTemplate
+                ? `${def.cssProp}: %s;`
+                : def.cssTemplate;
+
         return !def.cssSubSelector
-            // Example: 'display: ${val};'
-            ? `${def.cssProp}: %s;`
-            // Example: '>img {\n  aspect-ratio: ${val};\n}'
+            // Example: 'display: %s;'
+            ? propTmpl
+            // Example: ['>img {', '  aspect-ratio: %s;', '}']
             : [
                 `${def.cssSubSelector} {`,
-                `  ${def.cssProp}: %s;`,
+                ...propTmpl.split('\n').map(line => `  ${line}`),
                 `}`,
             ];
     };
@@ -130,21 +135,21 @@ function getValidDefs(input) {
  */
 function createNormalizedDefs(validDefs) {
     return validDefs.map(itm => {
-        const out = typeof itm.widgetSettings.defaultThemeValue !== 'string'
-            ? itm
-            : {
-                ...itm,
-                widgetSettings: {
+        return {
+            ...itm,
+            ...(typeof itm.widgetSettings.defaultThemeValue === 'string'
+                ? {widgetSettings: {
                     ...itm.widgetSettings,
-                    defaultThemeValue: WidgetClses[itm.widgetSettings.valueType].valueFromInput(itm.widgetSettings.defaultThemeValue)
-                }
-            };
-        return !itm.cssSubSelector
-            ? out
-            : {
-                ...out,
-                cssSubSelector: createNormalizedSubSelector(itm.cssSubSelector),
-            };
+                    defaultThemeValue: WidgetClses[itm.widgetSettings.valueType].valueFromInput(itm.widgetSettings.defaultThemeValue),
+                }}
+                : {}),
+            ...(itm.cssProp.indexOf('%s') < 0
+                ? {cssTemplate: null}
+                : {cssTemplate: itm.cssProp, cssProp: itm.cssProp.split(':')[0]}),
+            ...(itm.cssSubSelector
+                ? {cssSubSelector: createNormalizedSubSelector(itm.cssSubSelector),}
+                : {})
+        };
     });
 }
 

@@ -11,9 +11,10 @@ function createCssDeclExtractor(scss) {
         /**
          * @param {String} prop
          * @param {String=} scope = rootScope
+         * @param {String=} propTmpl = null
          * @returns {StylisAstNode|null}
          */
-        extractVal(prop, scope = rootScope) {
+        extractVal(prop, scope = rootScope, propTmpl = null) {
             scope = scope.replace('&:', '&\f:');
             const [declNode, _parenNode] = findRecursively(ast, (node, parenNode) =>
                 parenNode &&
@@ -21,7 +22,20 @@ function createCssDeclExtractor(scss) {
                 node.props === prop &&
                 parenNode.value === scope
             );
-            return declNode ? declNode.children : null;
+            const cand1 = declNode ? declNode.children : null;
+
+            if (cand1 && propTmpl) {
+                const c1 = compile(`.dum{${propTmpl.replace('%s', '20483750912843')}}`);
+                const c2 = c1[0].children[0].children.split('20483750912843').join('¨');
+                const c3 = c2.replace('¨', '¨'.repeat((cand1.length - c2.length) + 1));
+                // Example: cand1 is now 'minmax(0, 1rem) minmax(0, 1fr)'
+                //          f3    is now 'minmax(0, ¨¨¨¨) minmax(0, 1fr)'
+                const out = cand1.slice(c3.indexOf('¨'), c3.lastIndexOf('¨') + 1);
+                return out;
+            }
+
+            return cand1;
+
         },
         /**
          * @returns {Array<StylisAstNode>}
@@ -108,13 +122,17 @@ function createCompiledPageScopedLinesUpdateFn(currentCachedCompiledCss, pageIdP
     // Found line pair, return a function that replaces the previous line with the new one
     if (posBefore > 0)
         return newCssForThisPage => {
+            if (!newCssForThisPage) {
+                prevLines.splice(posBefore - 1, 2);
+                return prevLines;
+            }
             return prevLines.map((l, i) => i !== posBefore ? l : newCssForThisPage);
         };
     // Didn't find, return a function that adds the new to the end of page scoped lines
     else
         return newCssForThisPage => {
             if (!newCssForThisPage)
-                return null;
+                return prevLines;
             return [...prevLines, `/* page:${pageIdPair} */`, newCssForThisPage];
         };
 }
@@ -454,7 +472,6 @@ function hoistImportsIfAny(scss) {
 
 export {
     addOrUpdateCodeTo,
-    compile,
     createCssDeclExtractor,
     createScssBlock,
     createSelector,

@@ -595,6 +595,7 @@ interface WebPagePreviewRendererAppApi {
 interface VisualStylesFormVarDefinition {
     varName: String;             // Example 'textAlign'
     cssProp: String;             // Example 'text-align'
+    cssTemplate: String|null;    // Example 'border: 1px solid %s'
     cssSubSelector: String|null; // Example '>img'
     widgetSettings: VisualStylesFormVarDefinitionWidgetSettings & {[possibleExtras: String]: any;};
 }

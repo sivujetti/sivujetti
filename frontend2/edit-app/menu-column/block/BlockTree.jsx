@@ -436,7 +436,8 @@ class BlockTree extends preact.Component {
     showBlockTreeHelpPopup() {
         floatingDialog.open(BlockTreeShowHelpPopup, {
             title: __('Content tree'),
-            width: 448,
+            width: 480,
+            height: 525,
         }, {});
     }
     /**

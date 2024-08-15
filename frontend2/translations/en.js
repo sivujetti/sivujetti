@@ -211,10 +211,10 @@ stringBundles.push({
     // edit-app/src/popups/BlockTreeShowHelpPopup.jsx
     'In Sivujetti, the content of pages is presented as a tree structure: each row or branch in the tree corresponds to a section or content of the page. You can ': 'In Sivujetti, the content of pages is presented as a tree structure: each row or branch in the tree corresponds to a section or content of the page. You can ',
     'arrange': 'arrange',
-    ' the different sections of the page by dragging the rows in the content tree. You can start ': ' the different sections of the page by dragging the rows in the content tree. You can start ',
-    'adding content': 'adding content',
-    ' using the': ' using the',
-    'button': 'button',
+    ' the different sections of the page by dragging the rows in the content tree. You can ': ' the different sections of the page by dragging the rows in the content tree. You can ',
+    'add content': 'add content',
+    ' from the rows': ' from the rows',
+    'context menus.': 'context menus.',
     ' on the left side of the page.': ' on the left side of the page.',
     'Colorless': 'Colorless',
     'Regular content, with no colored text, is ': 'Regular content, with no colored text, is ',
@@ -226,7 +226,6 @@ stringBundles.push({
     'Violet': 'Violet',
     'Meta content contains ': 'Meta content contains ',
     'additional data / metadata': 'additional data / metadata',
-    ', and otherwise act like ordinary content.': ', and otherwise act like ordinary content.',
     // edit-app/src/popups/PickUrlDialog.jsx
     'This page': 'This page',
     'Filter': 'Filter',

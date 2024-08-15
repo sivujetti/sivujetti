@@ -212,11 +212,10 @@ stringBundles.push({
     // edit-app/src/popups/BlockTreeShowHelpPopup.jsx
     'In Sivujetti, the content of pages is presented as a tree structure: each row or branch in the tree corresponds to a section or content of the page. You can ': 'Sivujetissä sivujen sisältö esitetään tällaisena puurakenteena: yksi puun rivi tai oksa vastaa yhtä sivun osiota tai sisältöä. Voit ',
     'arrange': 'järjestellä',
-    ' the different sections of the page by dragging the rows in the content tree. You can start ': ' sivun eri osioita sisältöpuun rivejä raahaamalla. Voit aloittaa ',
-    'adding content': 'lisäämään sisältöä',
-    ' using the': ' ',
-    'button': ' -napista',
-    ' on the left side of the page.': ' sivun vasemmalla reunalla.',
+    ' the different sections of the page by dragging the rows in the content tree. You can ': ' sivun eri osioita sisältöpuun rivejä raahaamalla. Voit ',
+    'add content': 'lisätä sisältöä',
+    ' from the rows': ' rivien',
+    'context menus.': '-kontekstivalikoista.',
     'Colorless': 'Väritön',
     'Regular content, with no colored text, is ': 'Tavallinen sisältö, jonka tekstillä ei ole väriä, on ',
     'stored only to this page': 'tallennettu vain tähän sivuun',
@@ -227,7 +226,6 @@ stringBundles.push({
     'Violet': 'Violetti',
     'Meta content contains ': 'Metasisältöön on tallennettu ',
     'additional data / metadata': 'lisä-, tai metatietoja',
-    ', and otherwise act like ordinary content.': ', ja käyttäytyvät muilta osin kuten tavallinen sisältö.',
     // edit-app/src/popups/PickUrlDialog.jsx
     'This page': 'Tämä sivu',
     'Filter': 'Suodata',

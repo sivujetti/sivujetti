@@ -1868,6 +1868,10 @@ span.highlight-rect[data-label-position="bottom-inside"]:before {
 .text-tinyish {
     font-size: .65rem !important;
 }
+.text-prose {
+    font-size: .75rem;
+    line-height: 1.1rem;
+}
 .btn.widen.btn-sm {
     padding: .05rem .6rem;
 }

@@ -28,6 +28,9 @@ interface SivujettiFrontendApi {
     };
     registerTranslationStrings(strings: {[key: String]: String}): void;
     webPagePreview: WebPagePreviewApp;
+    // ?? getActiveTheme(): {id: String;};
+    // ?? events: todo;
+    // ?? registerBlockTreeMutator(event: String, getMutationsFn: (event: String, theBlockTree: Array<Block>, blockTreeUtils: blockTreeUtils) => Array<{blockId: String; changes: {[key: String]: any;};}>): void;
 }
 
 interface OpQueueOp {
@@ -523,8 +526,6 @@ interface ValueInputProps<T> {
     onValueChanged: (newValAsString: String|null) => void;
     isClearable?: Boolean;
     inputId?: String;
-    showNotice?: Boolean;
-    noticeDismissedWith?: (accepted: Boolean) => void;
     additionalUnits?: Array<String>; // Example: ['fr']
 }
 
@@ -534,8 +535,14 @@ interface ColorValueInputPropsData {
     supportingCss?: String;
 }
 
-interface SaveButton {
-    // todo
+/*interface SaveButton {
+    subscribeToChannel(name: String, fn: Todo): Function;
+    initChannel(name: String, state: todo, broadcastInitialStateToListeners: Boolean = false);
+    getChannelState(channelName: String);
+
+    pushOp(channelName: String, state: todo, userCtx: Object = null): void;
+    pushOpGroup(...ops): void;
+}*/
 
 interface StyleChunk {
     scss: String;
@@ -617,3 +624,64 @@ interface VisualStylesFormVarDefinitionWidgetSettings {
 type scssCodeInput = String|Array<String>;
 
 type translateVarInputToScssCodeTemplateFn = (varName: String, value: String, valueNorm: String) => scssCodeInput;
+
+
+/*
+interface Http {
+    new (fetchFn: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response> = (url, settings) => window.fetch(url, settings), makeUrl: (url: string) => string = url => url): Http;
+    get<T>(url: string, settings: RequestInit = {}): Promise<T>;
+    post<T>(url: string, data: Object, settings: RequestInit = {}, defaults: RequestInit = {method: 'POST'}): Promise<T>;
+    put<T>(url: string, data: Object, settings: RequestInit = {}): Promise<T>;
+    delete<T>(url: string, settings: RequestInit = {}): Promise<T>;
+}
+
+interface Events {
+    on(when: string, thenDo: (...any) => void): Function;
+    emit(eventName: String, ...args: any): void;
+}
+
+export class FOo extends preact.Component<{prop: string}, S> {}
+
+export class MenuSection extends preact.Component<{title: String; subtitle: String; iconId: String; colorClass: String; outerClass?: String; buttonClass?: String; onIsCollapsedChanged?: (to: Boolean) => void; initiallyIsCollapsed?: Boolean;}, any> {
+    collapseOrUncollapse(): void;
+    getEl(): HTMLElement;
+}
+
+
+export function handleSubmit(cmp: preact.Component, fn: Promise<any>, e: Event = null): boolean|null;
+
+export const objectUtils: {
+    clonePartially(keys: Array<string>, obj: Object): Object;
+    cloneDeep(obj: Object): Object,
+    cloneDeepWithChanges(obj: Object, doTheChanges: (newCopyFreeToMutate: Object) => any): Object;
+}
+
+interface Env {
+    window: Window;
+    document: Document;
+    normalTypingDebounceMillis: number;
+}
+
+
+export function hookForm(cmp: preact.Component, inputs: Array<InputDef>, initialState: {[key: string]: any;} = {}): {[key: string]: any;};
+
+export function setFocusTo(ref: preact.Ref): void;
+
+interface StringUtils {
+    slugify(text: string): string;
+    capitalize(str: string): string;
+}
+
+interface TimingUtils {
+    debounce(func: Function, wait: number, immediate?: boolean): Function;
+}
+
+interface ValidationConstraints {
+    HARD_SHORT_TEXT_MAX_LEN: number; // Default 1024,
+    HARD_LONG_TEXT_MAX_LEN: number; // Default 128000,
+    MAX_PROSE_HTML_LENGTH: number; // Default 128000,
+    INDEX_STR_MAX_LENGTH: number; // Default 92,
+    SLUG_REGEXP: string; // Default '^/[a-zA-Z0-9_-]*$',
+}
+// export type Foo = class extends preact.Component<{prop: string}, any>;
+*/

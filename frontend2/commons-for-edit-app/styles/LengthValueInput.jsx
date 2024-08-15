@@ -50,22 +50,11 @@ class LengthValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({value, isClearable, labelTranslated, defaultThemeValue, showNotice, noticeDismissedWith, additionalUnits}, {unit}) {
+    render({value, isClearable, labelTranslated, defaultThemeValue, additionalUnits}, {unit}) {
         const {num} = value;
         return <FormGroupInline className="has-visual-length-input">
             <label htmlFor={ this.inputId } class="form-label p-relative pt-1" title={ labelTranslated }>
                 { labelTranslated }
-                { !showNotice ? null : <button
-                    onClick={ () => {
-                        const doCreateCopy = confirm(__('todo2323'));
-                        noticeDismissedWith(doCreateCopy);
-                    } }
-                    class="btn btn-link btn-sm p-absolute"
-                    title={ __('Notice') }
-                    style="left: 72%"
-                    type="button">
-                    <span class="d-flex"><Icon iconId="alert-triangle" className="size-sm color-orange color-saturated"/></span>
-                </button> }
             </label>
             <div class="p-relative">
                 <div class="input-group">

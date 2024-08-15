@@ -18,21 +18,10 @@ class BackgroundImageValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({valueAsString, isClearable, labelTranslated, showNotice, noticeDismissedWith}) {
+    render({valueAsString, isClearable, labelTranslated}) {
         return <FormGroupInline>
             <label class="form-label p-relative pt-1" htmlFor={ this.inputId } title={ labelTranslated }>
                 { labelTranslated }
-                { !showNotice ? null : <button
-                    onClick={ () => {
-                        const doCreateCopy = confirm(__('todo2323'));
-                        noticeDismissedWith(doCreateCopy);
-                    } }
-                    class="btn btn-link btn-sm p-absolute"
-                    title={ __('Notice') }
-                    style="left: 72%"
-                    type="button">
-                    <span class="d-flex"><Icon iconId="alert-triangle" className="size-sm color-orange color-saturated"/></span>
-                </button> }
             </label>
             <div class="p-relative">
                 <ImagePicker

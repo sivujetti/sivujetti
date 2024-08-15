@@ -1,6 +1,6 @@
 import {__, env, Icon, Events} from '@sivujetti-commons-for-edit-app';
 import {getMetaKey} from '../../shared-inline.js';
-import {historyInstance} from '../main-column/MainColumnViews.jsx';
+import {historyInstance, isMainColumnViewUrl} from '../main-column/MainColumnViews.jsx';
 import {
     getLatestItemsOfEachChannel,
     handlerFactoriesMap,
@@ -152,15 +152,15 @@ class SaveButton extends preact.Component {
                 class="btn btn-link px-1 pt-2"
                 title={ __('Undo latest change') }
                 disabled={ !canUndo }>
-				<span class="d-flex">{ icon }</span>
-			</button>
+                <span class="d-flex">{ icon }</span>
+            </button>
             <button
                 onClick={ this.doRedo.bind(this) }
                 class="btn btn-link px-1 pt-2"
                 title={ __('Redo') }
                 disabled={ !canRedo }>
-				<span class="d-flex flipped-undo-icon">{ icon }</span>
-			</button>
+                <span class="d-flex flipped-undo-icon">{ icon }</span>
+            </button>
             <button
                 onClick={ this.syncQueuedOpsToBackend.bind(this) }
                 class="btn btn-link flex-centered px-2"
@@ -180,8 +180,23 @@ class SaveButton extends preact.Component {
             this.opHistory.splice(this.opHistoryCursor);
         this.opHistoryCursor = this.opHistory.push(item);
         this.setState({isVisible: true, canUndo: true});
-        if (!this.unregisterUnsavedChangesAlert)
-            this.unregisterUnsavedChangesAlert = historyInstance.block(__('You have unsaved changes, do you want to navigate away?'));
+        if (!this.unregisterUnsavedChangesAlert) {
+            // #1 Register a function that will prompt the user for confirmation during the next navigation
+            const unregisterBlocker = historyInstance.block(__('You have unsaved changes, do you want to navigate away?'));
+            // #2 Register a function that calls this.reset() if the user accepted the confirmation from #1
+            const unregisterClearer = historyInstance.listen(({pathname}) => {
+                if (isMainColumnViewUrl(pathname) && !historyInstance.doRevertNextHashChange) {
+                    const queue = this.createSyncQueuePre()[0];
+                    const initialStates = queue.reduce((out, {channelName, initial}) => ({...out, [channelName]: initial}), {});
+                    this.reset(initialStates, true);
+                    this.unregisterAndClearUnsavedChagesAlertIfSet();
+                }
+            });
+            this.unregisterUnsavedChangesAlert = () => {
+                unregisterBlocker();
+                unregisterClearer();
+            };
+        }
     }
     /**
      * @param {String} channelName
@@ -298,18 +313,7 @@ class SaveButton extends preact.Component {
      * @access private
      */
     async createSynctobackendQueue() {
-        const channelNamesOrdered = this.getHistoryChannelNames();
-        const activeStates = {};
-        let out = channelNamesOrdered.map(channelName => {
-            const fromFirstToCursor = this.getActiveState(channelName);
-            activeStates[channelName] = fromFirstToCursor;
-            return {
-                channelName,
-                initial: this.states[channelName][0], // Example 'initial'
-                first: fromFirstToCursor[0],          // Example '1st'
-                latest: fromFirstToCursor.at(-1)      // Example '3rd' (if cursor = 3)
-            };
-        });
+        let [out, activeStates] = this.createSyncQueuePre();
         //
         for (const fn of this.syncQueueFilters) {
             const resolved = await fn(out, activeStates);
@@ -319,17 +323,39 @@ class SaveButton extends preact.Component {
         return Promise.resolve(out);
     }
     /**
-     * @param {{[channelName]: state;}} syncedStates Latest / sunced states that were just saved to the backend
+     * @returns {[Array<StateHistory>, todo]}
      * @access private
      */
-    reset(syncedStates) {
+    createSyncQueuePre() {
+        const channelNamesOrdered = this.getHistoryChannelNames();
+        const activeStates = {};
+        const out = channelNamesOrdered.map(channelName => {
+            const fromFirstToCursor = this.getActiveState(channelName);
+            activeStates[channelName] = fromFirstToCursor;
+            return {
+                channelName,
+                initial: this.states[channelName][0], // Example 'initial'
+                first: fromFirstToCursor[0],          // Example '1st'
+                latest: fromFirstToCursor.at(-1)      // Example '3rd' (if cursor = 3)
+            };
+        });
+        return [out, activeStates];
+    }
+    /**
+     * @param {{[channelName]: state;}} syncedStates Latest / synced states that were just saved to the backend
+     * @param {Boolean} emitChange = false
+     * @access private
+     */
+    reset(syncedStates, emitChange = false) {
         this.opHistory = [];
         this.opHistoryCursor = 1;
 
         for (const channelName in this.states) {
-            this.clearStateOf(channelName, syncedStates[channelName] || this.getHead(channelName));
+            const initialState = syncedStates[channelName] || this.getHead(channelName);
+            this.clearStateOf(channelName, initialState);
+            if (emitChange)
+                this.emitStateChange(channelName, initialState, {}, 'undo');
         }
-        this.unregisterAndClearUnsavedChagesAlertIfSet();
         this.setState(createInitialState());
     }
     /**

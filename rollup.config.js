@@ -93,7 +93,7 @@ module.exports = args => {
     return createBundablesArray(bundlesStr).map(bundleName => {
         if (bundleName === BundleNames.WEBPAGE_COMMONS)
             return {
-                input: 'frontend2/commons-for-web-pages/main.js',
+                input: 'frontend/commons-for-web-pages/main.js',
                 output: makeOutputCfg({
                     name: webPagesGlobals[webPagesCommonsPath],
                     file: `${targetDirBase}sivujetti-commons-for-web-pages.js`,
@@ -103,7 +103,7 @@ module.exports = args => {
             };
         if (bundleName === BundleNames.WEBPAGE_PREVIEW_RENDERER_APP)
             return {
-                input: 'frontend2/webpage-renderer-app/main.js',
+                input: 'frontend/webpage-renderer-app/main.js',
                 output: makeOutputCfg({
                     name: 'sivujettiWebPagePreviewRendererApp',
                     file: `${targetDirBase}sivujetti-webpage-renderer-app.js`,
@@ -117,7 +117,7 @@ module.exports = args => {
             };
         if (bundleName === BundleNames.EDIT_APP_COMMONS)
             return {
-                input: 'frontend2/commons-for-edit-app/main.js',
+                input: 'frontend/commons-for-edit-app/main.js',
                 output: makeOutputCfg({
                     name: 'sivujettiCommonsEditApp',
                     file: `${targetDirBase}sivujetti-commons-for-edit-app.js`,
@@ -131,7 +131,7 @@ module.exports = args => {
             };
         if (bundleName === BundleNames.EDIT_APP)
             return {
-                input: 'frontend2/edit-app/main.js',
+                input: 'frontend/edit-app/main.js',
                 output: makeOutputCfg({
                     name: 'sivujettiEditApp',
                     file: `${targetDirBase}sivujetti-edit-app.js`,
@@ -145,7 +145,7 @@ module.exports = args => {
             };
         if (bundleName === BundleNames.AUTH_APPS)
             return {
-                input: 'frontend2/auth-apps/renderAuthApp.js',
+                input: 'frontend/auth-apps/renderAuthApp.js',
                 output: makeOutputCfg({
                     name: 'sivujettiRenderAuthApp',
                     file: `${targetDirBase}sivujetti-render-auth-app.js`,
@@ -161,7 +161,7 @@ module.exports = args => {
             const globals = {'@sivujetti-string-bundles': 'translationStringBundles'};
             const external = ['@sivujetti-string-bundles'];
             return [{
-                input: `frontend2/translations/${selectedLang}.js`,
+                input: `frontend/translations/${selectedLang}.js`,
                 output: {
                     format: 'iife',
                     file: `${targetDirBase}lang-${selectedLang}.js`,
@@ -171,7 +171,7 @@ module.exports = args => {
                 plugins: postPlugins,
                 watch: watchSettings
             }, {
-                input: `frontend2/translations/auth-apps-${selectedLang}.js`,
+                input: `frontend/translations/auth-apps-${selectedLang}.js`,
                 output: {
                     format: 'iife',
                     file: `${targetDirBase}lang-auth-apps-${selectedLang}.js`,
@@ -184,7 +184,7 @@ module.exports = args => {
         }
         if (bundleName === BundleNames.TESTS)
             return {
-                input: 'frontend2/tests/main.js',
+                input: 'frontend/tests/main.js',
                 output: makeOutputCfg({
                     file: 'public/tests/bundled-main.js',
                     globals: editAppGlobals,

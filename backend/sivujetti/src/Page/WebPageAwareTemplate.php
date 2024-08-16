@@ -196,7 +196,7 @@ final class WebPageAwareTemplate extends Template {
      */
     public function renderBlocks(array $blocks): string {
         if ($this->__useEditModeMarkup)
-            return ""; // rendered by frontend2/webpage-renderer-app/ReRenderingWebPage.jsx
+            return ""; // rendered by frontend/webpage-renderer-app/ReRenderingWebPage.jsx
         $vnodes = $this->__createVNodeTree($blocks);
         return renderVNodes($vnodes);
     }

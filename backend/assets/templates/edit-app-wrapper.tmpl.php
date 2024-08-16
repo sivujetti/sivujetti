@@ -245,9 +245,9 @@
         <script>window.dataFromAdminBackend = <?= $dataToFrontend ?></script>
         <script>window.translationStringBundles = []</script>
         <script src="<?= $this->assetUrl("public/sivujetti/lang-{$uiLang}.js") ?>"></script>
-        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-web-pages.js") /* @see frontend2/commons-for-web-pages/main.js */ ?>"></script>
-        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-edit-app.js") /* @see frontend2/commons-for-edit-app/main.js */ ?>"></script>
-        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.js") /* @see frontend2/edit-app/main.js */ ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-web-pages.js") /* @see frontend/commons-for-web-pages/main.js */ ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-commons-for-edit-app.js") /* @see frontend/commons-for-edit-app/main.js */ ?>"></script>
+        <script src="<?= $this->assetUrl("public/sivujetti/sivujetti-edit-app.js") /* @see frontend/edit-app/main.js */ ?>"></script>
 
         <?php foreach ($userDefinedJsFiles->editApp as $relUrl): ?>
             <script src="<?= $this->assetUrl("public/{$relUrl}") ?>"></script>

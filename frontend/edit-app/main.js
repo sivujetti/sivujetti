@@ -1,175 +1,86 @@
-import {translator, api, env, stringUtils, sensibleDefaults} from '@sivujetti-commons-for-edit-app';
-// ## import {Validator} from './src/commons/Form.jsx';
-import {FormStateStoreWrapper} from './src/store.js';
-import EditApp from './src/EditApp.jsx';
-import {registerMutator} from './src/block/theBlockTreeStore.js';
-// ## import BlockTypes from './src/block-types/block-types.js';
-// ## import createMenuBlockType from './src/block-types/menu/menu.js';
-// ## import createButtonBlockType from './src/block-types/button.js';
-// ## import createColumnsBlockType from './src/block-types/columns.js';
-// ## import createCodeBlockType from './src/block-types/code.js';
-import createGlobalBlockReferenceBlockType from './src/block-types/globalBlockReference.js';
-import createHeadingBlockType from './src/block-types/heading.js';
-// ## import createImageBlockType from './src/block-types/image.js';
-// ## import createListingBlockType from './src/block-types/listing/listing.js';
-// ## import createPageInfoBlockType from './src/block-types/pageInfo.js';
-import createParagraphBlockType from './src/block-types/paragraph.js';
-import createRichTextBlockType from './src/block-types/richText.js';
-// ## import createSectionBlockType from './src/block-types/section.js';
-// ## import createTextBlockType from './src/block-types/text.js';
-// ## import InspectorPanel from './src/left-column/InspectorPanel.jsx';
-// ## import RightColumnViews, { historyInstance } from './src/right-column/RightColumnViews.jsx';
-// ## import WebPageIframe from './src/right-column/WebPageIframe.js';
-import Foo from './src/right-column/Foo.jsx';
-// ## import MainPanel from './src/left-column/MainPanel.js';
-// ## import {MyClipboard, MyKeyboard, MyLink, IdAttributor, MySnowTheme} from './src/quill/quill-customizations.js';
-// ## import {sharedSignals} from './src/shared.js';
-// ## import {getMetaKey} from './src/block/dom-commons.js';
-// ## 
-// ## const editAppReactRef = preact.createRef();
-// ## let webPagePreviewAppReactRef = preact.createRef();
-// ## 
-// ## populateFrontendApi();
-// ## configureServices();
-// ## renderReactEditApp();
+/*
+An entry point for global file "public/sivujetti/sivujetti-edit-app.js" that is
+included in edit-app's template (edit-app-wrapper.tmpl.php).
+*/
+import {
+    __,
+    api,
+    events,
+    isUndoOrRedo,
+    scssWizard,
+} from '@sivujetti-commons-for-edit-app';
+import WebPagePreviewApp from './main-column/WebPagePreviewApp.jsx';
+import InspectorPanel from './menu-column/InspectorPanel.jsx';
+import patchQuillEditor from './includes/quill-customizations.js';
+import globalData from './includes/globalData.js';
+import EditApp from './EditApp.jsx';
+import ViewAndContextMenuLayer from './ViewAndContextMenuLayer.jsx';
 
-function populateFrontendApi() {
-// ##     const d = window.dataFromAdminBackend;
-// ##     api.getPageTypes = () => d.pageTypes;
-// ##     api.getBlockRenderers = () => d.blockRenderers;
-    api.getActiveTheme = () => d.activeTheme;
-// ##     api.registerTranslationStrings = translator.addStrings.bind(translator);
-// ##     api.webPageIframe = {
-// ##         getEl() {
-// ##             document.body.querySelector('#site-preview-iframe');
-// ##         },
-// ##         highlightBlock(block) {
-// ##             //
-// ##         },
-// ##         unHighlightBlock(blockId) {
-// ##             //
-// ##         },
-// ##         unHighlightTextBlockChildEl() {
-// ##             //
-// ##         },
-// ##         highlightTextBlockChildEl(elIdx, textBlockId) {
-// ##             //
-// ##         },
-// ##         scrollToBlock() {
-// ##             //
-// ##         }
-// ##     };
-// ##     api.user = {
-// ##         can(doWhat) { return d.userPermissions[`can${stringUtils.capitalize(doWhat)}`] === true; },
-// ##         getRole() { return d.userRole; },
-// ##         ROLE_SUPER_ADMIN:  1 << 0, // 1
-// ##         ROLE_ADMIN:        1 << 1, // 2
-// ##         ROLE_ADMIN_EDITOR: 1 << 2, // 4
-// ##         ROLE_EDITOR:       1 << 3, // 8
-// ##         ROLE_AUTHOR:       1 << 4, // 16
-// ##         ROLE_CONTRIBUTOR:  1 << 5, // 32
-// ##         ROLE_FOLLOWER:     1 << 6, // 64
-// ##     };
-// ##     api.saveButton = {
-// ##         triggerUndo() { editAppReactRef.current.saveButtonRef.current.doUndo(); },
-// ##         setOnBeforeProcessQueueFn(fn) { return editAppReactRef.current.saveButtonRef.current.setOnBeforeProcessQueueFn(fn); },
-// ##         getInstance() { return editAppReactRef.current.saveButtonRef2.current; },
-// ##     };
-    // blockTypes, see configureServices
-    // mainPanel see configureServices
-    // inspectorPanel see configureServices
-    api.registerBlockTreeMutator = (...args) => registerMutator(...args);
-// ##     api.getAvailableUpdatePackages = () => d.availableUpdatePackages || [];
-}
+configureApis();
 
-function configureServices() {
-// ##     addGlobalKeyPressEventEmitters();
-// ##     //
-// ##     env.normalTypingDebounceMillis = sensibleDefaults.normalTypingDebounceMillis;
-// ##     //
-// ##     Validator.registerStateWrapperImpl('default', FormStateStoreWrapper);
-// ##     window.translationStringBundles.forEach(strings => {
-// ##         api.registerTranslationStrings(strings);
-// ##         if (strings.minLength) Validator.setValidationStrings(strings);
-// ##     });
+preact.render(
+    <WebPagePreviewApp
+        urlToLoad="@currentUrl"
+        highlightRectEls={ [...document.querySelectorAll('.highlight-rect')] }
+        ref={ cmp => {
+            if (cmp && api.webPagePreview.initialized === false)
+                api.webPagePreview = cmp;
+        } }/>,
+    document.getElementById('webpage-preview-app')
+);
+
+globalData.theWebsite = window.dataFromAdminBackend.website;
+window.dataFromAdminBackend.__websiteDebugOnly = window.dataFromAdminBackend.website;
+delete window.dataFromAdminBackend.website;
+const editAppOuterEl = api.menuPanel.getOuterEl();
+preact.render(
+    <EditApp
+        outerEl={ editAppOuterEl }
+        onSaveButtonRefd={ saveButton => {
+            if (!saveButton) return;
+            api.saveButton.setInstance(saveButton);
+            const instance = api.saveButton.getInstance();
+            // Refresh ScssWizard's styles every time new styles (page) are loaded
+            // into the preview iframe, or when an undo|redo event happens
+            instance.subscribeToChannel('stylesBundle', (bundle, _userCtx, ctx) => {
+                if (ctx === 'initial' || isUndoOrRedo(ctx))
+                    scssWizard.replaceStylesState(bundle);
+            });
+            // Update ScssWizard's 'currentPageIdPair' every time a new page is
+            // loaded into the preview iframe
+            events.on('webpage-preview-iframe-loaded', () => {
+                // See also ./menu-column/page/PageCreateState.jsx.componentWillMount() (if pageData.isPlaceholderPage === true)
+                scssWizard.setCurrentPageInfo(saveButton.getChannelState('currentPageData'));
+            });
+        } }/>,
+    editAppOuterEl
+);
+
+const inspectorPanelOuterEl = api.inspectorPanel.getOuterEl();
+const rootEl = document.getElementById('root');
+preact.render(
+    <InspectorPanel
+        rootEl={ rootEl }
+        ref={ cmp => {
+            if (cmp) api.inspectorPanel.setInstance(cmp);
+        } }/>,
+    inspectorPanelOuterEl
+);
+
+preact.render(
+    <ViewAndContextMenuLayer rootEl={ rootEl }/>,
+    document.getElementById('view-and-context-menu-layer')
+);
+
+function configureApis() {
+    // Common
+    window.myRoute = url => {
+        preactRouter.route(url);
+    };
+    // Translations (`__`-function)
+    window.translationStringBundles.forEach(strings => {
+        api.registerTranslationStrings(strings);
+    });
     //
-// ##     const blockTypes = new BlockTypes(api);
-// ##     blockTypes.register('Menu', createMenuBlockType);
-// ##     blockTypes.register('Button', createButtonBlockType);
-// ##     blockTypes.register('Code', createCodeBlockType);
-// ##     blockTypes.register('Columns', createColumnsBlockType);
-// ##     blockTypes.register('GlobalBlockReference', createGlobalBlockReferenceBlockType);
-    blockTypes.register('Heading', createHeadingBlockType);
-// ##     blockTypes.register('Image', createImageBlockType);
-// ##     blockTypes.register('Listing', createListingBlockType);
-// ##     blockTypes.register('PageInfo', createPageInfoBlockType);
-    blockTypes.register('Paragraph', createParagraphBlockType);
-    blockTypes.register('RichText', createRichTextBlockType);
-// ##     blockTypes.register('Section', createSectionBlockType);
-// ##     blockTypes.register('Text', createTextBlockType);
-// ##     api.blockTypes = blockTypes;
-// ##     //
-// ##     const mainPanel = new MainPanel(document.getElementById('main-panel'), env);
-// ##     api.mainPanel = mainPanel;
-// ##     //
-// ##     api.inspectorPanel = {
-// ##         getEl() { return document.getElementById('inspector-panel'); },
-// ##     };
-// ##     //
-// ##     patchQuillEditor();
-// ## }
-// ## 
-// ## function patchQuillEditor() {
-// ##     const Quill = window.Quill;
-// ##     Quill.debug('error');
-// ##     //
-// ##     Quill.register('themes/snow', MySnowTheme);
-// ##     Quill.register('modules/clipboard', MyClipboard);
-// ##     Quill.register('modules/keyboard', MyKeyboard);
-// ##     Quill.register('formats/id-anchor', IdAttributor);
-// ##     Quill.register(MyLink);
-// ## }
-// ## 
-// ## function renderReactEditApp() {
-// ##     const mainPanelOuterEl = api.mainPanel.getEl();
-// ##     const inspectorPanelOuterEl = api.inspectorPanel.getEl();
-// ##     const inspectorPanelReactRef = preact.createRef();
-// ##     const rootEl = document.getElementById('root');
-// ##     preact.render(preact.createElement(EditApp, {
-// ##         outerEl: mainPanelOuterEl,
-// ##         inspectorPanelRef: inspectorPanelReactRef,
-// ##         dataFromAdminBackend: window.dataFromAdminBackend,
-// ##         rootEl,
-// ##         LEFT_PANEL_WIDTH: 339,
-// ##         ref: editAppReactRef,
-// ##     }), mainPanelOuterEl);
-// ## 
-// ##     preact.render(preact.createElement(InspectorPanel, {
-// ##         outerEl: inspectorPanelOuterEl,
-// ##         mainPanelOuterEl,
-// ##         rootEl,
-// ##         ref: inspectorPanelReactRef,
-// ##     }), inspectorPanelOuterEl);
-// ## 
-// ##     preact.render(preact.createElement(RightColumnViews, {
-// ##         rootEl,
-// ##     }), document.getElementById('view'));
-// ## 
-// ##     window.myRoute = url => {
-// ##         preactRouter.route(url);
-// ##     };
-// ## }
-// ## 
-// ## /**
-// ##  */
-// ## function addGlobalKeyPressEventEmitters() {
-// ##     const metaKey = getMetaKey();
-// ##     env.window.addEventListener('keydown', e => {
-// ##         if (e.key === metaKey)
-// ##             sharedSignals.emit('meta-key-pressed-or-released', true);
-// ##     });
-// ##     env.window.addEventListener('keyup', e => {
-// ##         if (e.key === metaKey)
-// ##             sharedSignals.emit('meta-key-pressed-or-released', false);
-// ##     });
-// ## }
+    patchQuillEditor();
+}

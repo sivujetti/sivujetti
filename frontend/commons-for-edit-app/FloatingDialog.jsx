@@ -3,6 +3,8 @@ import {iconAsString} from './Icon.jsx';
 
 let currentInstance = {
     open: null,
+    isOpen: null,
+    updateRendererProps: null,
     close: null,
     setTitle: null,
     setOnBeforeClose: null,
@@ -21,9 +23,10 @@ class FloatingDialog extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.rendererProps = null;
-        this.state = {Renderer: null, title: null};
+        this.state = {Renderer: null, rendererProps: null, title: null};
         currentInstance.open = this.open.bind(this);
+        currentInstance.isOpen = () => !!this.state.Renderer;
+        currentInstance.updateRendererProps = newProps => this.setState({rendererProps: newProps});
         currentInstance.close = this.close.bind(this);
         currentInstance.setTitle = title => { this.currenTitle = title; this.currentJsPanel.setHeaderTitle(title); };
         currentInstance.setOnBeforeClose = fn => { this.onBeforeClose = fn; };
@@ -51,8 +54,7 @@ class FloatingDialog extends preact.Component {
      * @access public
      */
     open(Renderer, settings, rendererProps) {
-        this.rendererProps = rendererProps;
-        const state = createState(settings, {Renderer});
+        const state = createState(settings, {Renderer, rendererProps});
         this.currentHeight = state.height;
         this.setState(state);
     }
@@ -76,12 +78,12 @@ class FloatingDialog extends preact.Component {
     /**
      * @access protected
      */
-    render(_, {Renderer, className}) {
+    render(_, {Renderer, rendererProps, className}) {
         return Renderer
             ? <div
                 class={ 'floating-dialog' + (!className ? '' : ` ${className}`) }
                 ref={ this.handleDialogElChanged.bind(this) }>
-                { preact.createElement(Renderer, this.rendererProps) }
+                <Renderer { ...rendererProps }/>
             </div>
             : null;
     }
@@ -132,7 +134,7 @@ class FloatingDialog extends preact.Component {
 
 /**
  * @param {FloatingDialogSettingsInput & {[key: String]: any;}} input
- * @param {{Renderer: preact.AnyComponent;}} out
+ * @param {{Renderer: preact.AnyComponent; rendererProps: Object;}} out
  * @returns {{title: String; width: Number; height: Number;}}
  */
 function createState(input, out) {

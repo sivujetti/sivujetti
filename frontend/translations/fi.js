@@ -381,6 +381,9 @@ stringBundles.push({
     'Edit style name': 'Muokkaa tyylin nimeä',
     'Edit customization settings': 'Muokkaa kustomointiasetuksia',
     'Delete style': 'Poista tyyli',
+    'Add variable': 'Lisää muuttuja',
+    'Examples: Font size, Background color': 'Esimerkkejä: Fonttikoko, Taustaväri',
+    'Examples:': 'Esimerkkejä',
     // ../std-styles.md
     'Text default': 'Teksti oletus',
     'Headings default': 'Otsikot oletus',

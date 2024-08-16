@@ -368,6 +368,8 @@ interface CssValue {
 
 interface FloatingDialog {
     open(Renderer: preact.ComponentType|string, settings: FloatingDialogSettingsInput & {[key: String]: any;}, rendererProps: Object): void;
+    isOpen(): Boolean;
+    updateRendererProps(newProps: Object): void;
     close(): void;
     setTitle(title: String): void;
     setOnBeforeClose(fn: () => void): void;

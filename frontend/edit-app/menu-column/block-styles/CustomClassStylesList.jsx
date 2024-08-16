@@ -53,6 +53,11 @@ class CustomClassStylesList extends preact.Component {
                 styleChunksVisible: next,
                 listItemIsOpens: next.map((v, i) => i < end ? listItemIsOpens[i] : true),
             });
+            if (floatingDialog.isOpen())
+                floatingDialog.updateRendererProps({
+                    currentSettings: next[this.state.idxOfOpenDialogListItem].data?.customizationSettings?.varDefs,
+                    onSettingsChanged: newSettings => this.emitCustomClassSettingsData(this.state.idxOfOpenDialogListItem, newSettings),
+                });
         }
     }
     /**
@@ -189,11 +194,12 @@ class CustomClassStylesList extends preact.Component {
                         {onClose: () => this.clearPopupState(), maxWidth: 174},
                     );
                 } else if (link.id === 'edit-settings') {
+                    this.setState({idxOfOpenDialogListItem: idx});
                     floatingDialog.open(CustomClassStyleEditCustomizationsDialog, {
                         title: __('Edit customization settings'),
                     }, {
                         currentSettings: this.state.styleChunksVisible[idx].data?.customizationSettings?.varDefs,
-                        onConfirm: newSettings => this.emitCustomClassSettingsData(idx, newSettings),
+                        onSettingsChanged: newSettings => this.emitCustomClassSettingsData(idx, newSettings),
                     });
                 } else if (link.id === 'delete')
                     api.saveButton.getInstance().pushOp(
@@ -240,6 +246,7 @@ class CustomClassStylesList extends preact.Component {
         this.setState({titleUncommitted: null, idxOfOpenPopupListItem: null});
     }
     /**
+     * @param {number} i
      * @param {Array<VisualStylesFormVarDefinition>} newSettings
      * @access private
      */

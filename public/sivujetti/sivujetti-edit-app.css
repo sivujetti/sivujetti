@@ -173,6 +173,9 @@ Structure:
     width: calc(75% - .2rem);
     margin-left: auto;
 }
+.form-switch:hover > .form-icon {
+    outline: 2px solid var(--color-section-separator);
+}
 .fieldset {
     border: 1px solid var(--color-input-border);
     border-radius: var(--small-rect-radius);
@@ -884,6 +887,22 @@ a.popup-close-area {
 }
 .styles-list .ͼj {
     color: #167;
+}
+.styles-list.style-tweak-settings-list > li {
+    padding: .6rem .8rem;
+    position: relative;
+}
+.styles-list.style-tweak-settings-list > li > button {
+    position: absolute;
+    top: 50%;
+    margin-top: -.4rem;
+    right: 2.2em;
+}
+.styles-list.style-tweak-settings-list > li > button:nth-child(3) {
+    right: 5em;
+}
+.styles-list.style-tweak-settings-list > li > button:last-child .icon-tabler {
+    stroke-width: 2px;
 }
 /* EditApp: Components: visual-style-inputs */
 .has-visual-style-widgets > .form-group,
@@ -1612,7 +1631,7 @@ a.popup-close-area {
     content: "";
     border-right: 1px solid var(--color-section-separator2);
     height: 100%;
-    transform: translate(-.7rem, 10%) scaleY(1.6);
+    transform: translate(-.7rem, 5%) scaleY(1.2);
 }
 .block-buttons-list button {
     font-weight: 300;

@@ -381,7 +381,12 @@ stringBundles.push({
     'Edit style name': 'Muokkaa tyylin nimeä',
     'Edit customization settings': 'Muokkaa kustomointiasetuksia',
     'Delete style': 'Poista tyyli',
+    'Length': 'Pituus',
+    'Color': 'Väri',
+    'Option': 'Alasvetovalikko',
+    'Background image': 'Taustakuva',
     'Add variable': 'Lisää muuttuja',
+    'Default value': 'Oletusarvo',
     'Examples: Font size, Background color': 'Esimerkkejä: Fonttikoko, Taustaväri',
     'Examples:': 'Esimerkkejä',
     // ../std-styles.md

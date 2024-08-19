@@ -3,8 +3,8 @@ import {
     api,
     blockTreeUtils,
     env,
-    getAllCustomClassChunks,
     floatingDialog,
+    getAllCustomClassChunks,
     Icon,
     scssUtils,
     scssWizard,
@@ -254,7 +254,7 @@ class CustomClassStylesList extends preact.Component {
         const current = this.state.styleChunksVisible[i];
         const obj = {
             ...(current.data || {}),
-            ...(newSettings ? {customizationSettings: {varDefs: newSettings}} : {}),
+            ...(newSettings ? {customizationSettings: {varDefs: maybePatchVarDefs(newSettings, current)}} : {}),
         };
         const newAll = scssWizard.updateDevsExistingChunkWithScssChunkAndReturnAllRecompiled(
             {data: Object.keys(obj).length ? obj : null},
@@ -262,6 +262,29 @@ class CustomClassStylesList extends preact.Component {
         );
         saveButtonInstance.pushOp('stylesBundle', newAll);
     }
+}
+
+/**
+ * @param {Array<VisualStylesFormVarDefinition>} arr
+ * @param {StyleChunk} chunk
+ * @returns {Array<VisualStylesFormVarDefinition>}
+ */
+function maybePatchVarDefs(arr, chunk) {
+    return arr.map(v => {
+        if (v.varName !== '@pending')
+            return v;
+        const cls = extractClassName(chunk, false).replace('-', '');
+        const next = arr.reduce((out, {varName}) => {
+            const c = parseInt(varName.split('_')[1], 10);
+            return c > out ? c : out;
+        }, 0) + 1;
+        const varName = `${cls}_${next}`;
+        return {
+            ...v,
+            varName,
+            widgetSettings: {...v.widgetSettings, inputId: varName}
+        };
+    });
 }
 
 /**

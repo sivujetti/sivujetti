@@ -311,6 +311,7 @@ interface ContextMenuController {
     onItemClicked(item: ContextMenuLink): void;
     onMenuClosed(): void;
     placement?: 'right';
+    zIndex?: Number;
 }
 
 interface ContextMenuLink {

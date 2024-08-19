@@ -166,10 +166,14 @@ function hasErrors(cmp) {
 /**
  * @param {preact.Component} cmp
  * @param {Array<InputDef>} inps
+ * @param {{[key: String]: any;}} initialState = {}
  */
-function reHookValues(cmp, inps) {
-    const newState = {values: Object.assign({}, cmp.state.values),
-                      errors: Object.assign({}, cmp.state.errors)};
+function reHookValues(cmp, inps, initialState = {}) {
+    const newState = {
+        ...initialState,
+        values: Object.assign({}, cmp.state.values),
+        errors: Object.assign({}, cmp.state.errors)
+    };
     inps.forEach(inp => {
         const k = mkKey(inp);
         const out2 = cmp.inputApis[k];

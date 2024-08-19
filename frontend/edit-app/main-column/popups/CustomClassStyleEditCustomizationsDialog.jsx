@@ -1,5 +1,6 @@
 import {
     __,
+    CrudList,
     FormGroupInline,
     hasErrors,
     hookForm,
@@ -7,6 +8,7 @@ import {
     Input,
     InputErrors,
     objectUtils,
+    reHookValues,
     setFocusTo,
     Textarea,
     validateAll,
@@ -85,7 +87,7 @@ class CustomClassStyleEditCustomizationsDialog extends preact.Component {
             varDefs: [...this.state.varDefs, {
                 varName: '@pending',
                 cssProp: '',
-                cssSubSelector: '',
+                cssSubSelector: null,
                 widgetSettings: {
                     valueType: 'length',
                     label: '',
@@ -133,6 +135,10 @@ function createVarDefsState({currentSettings}) {
     return currentSettings ? objectUtils.cloneDeep(currentSettings) : [];
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+
+
 /** @extends {preact.Component<EditConfigSettingsFormProps, any>} */
 class EditConfigSettingsForm extends preact.Component {
     // nameInputRef;
@@ -142,6 +148,7 @@ class EditConfigSettingsForm extends preact.Component {
     componentWillMount() {
         this.nameInputRef = preact.createRef();
         const {cssProp, cssSubSelector, widgetSettings} = this.props.item;
+        const widgetType = widgetSettings.valueType;
         this.setState(hookForm(this, [
             {name: 'name', value: widgetSettings.label, validations: [
                 ['required'], ['maxLength', 128]
@@ -149,11 +156,18 @@ class EditConfigSettingsForm extends preact.Component {
             {name: 'cssProp', value: cssProp, validations: [
                 ['required'], ['maxLength', 128], ['regexp', '^[-a-z]*$']
             ], label: 'CSS prop'},
-            {name: 'subSelector', value: cssSubSelector, validations: [
+            {name: 'subSelector', value: cssSubSelector || '', validations: [
                 ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]
             ], label: 'Sub selector'},
+            {name: 'defaultThemeValue', value: widgetSettings.defaultThemeValue || '', validations: [
+                ['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]
+            ], label: __('Default value')},
+            {name: 'initialUnit', value: widgetSettings.initialUnit || '', validations: [
+                ['maxLength', 32]
+            ], label: __('Initial unit')},
         ], {
-            widgetSettings: objectUtils.cloneDeep(widgetSettings)
+            widgetType,
+            ...(widgetType !== 'option' ? {} : {optionWidgetOptions: [...widgetSettings.options]}),
         }));
     }
     /**
@@ -162,7 +176,10 @@ class EditConfigSettingsForm extends preact.Component {
     componentDidMount() {
         setFocusTo(this.nameInputRef);
     }
-    render({widgetNamesTranslated}, {widgetSettings}) {
+    /**
+     * @access protected
+     */
+    render({widgetNamesTranslated}, {widgetType}) {
         return <form onSubmit={ this.doHandleSubmit.bind(this) } class="form-horizontal text-tinyish py-0">
             <FormGroupInline className="my-1 mx-0">
                 <label htmlFor="varName" class="form-label" placeholder={ __('Examples: Font size, Background color') }>{ __('Name') }</label>
@@ -185,17 +202,38 @@ class EditConfigSettingsForm extends preact.Component {
             </FormGroupInline>
             <FormGroupInline className="my-1 mx-0">
                 <label class="form-label">{ __('Type') }</label>
-                <select
-                    onChange={ () => {} }
-                    value={ widgetSettings.valueType }
-                    class="form-select"
-                    name="varType"
-                    disabled>
-                    { Object.keys(widgetNamesTranslated).map(name =>
-                        <option value={ name }>{ widgetNamesTranslated[name] }</option>
-                    ) }
-                </select>
+                <div>
+                    <select
+                        onChange={ this.handleWidgetTypeChanged.bind(this) }
+                        value={ widgetType }
+                        class="form-select"
+                        name="varType">
+                        { Object.keys(widgetNamesTranslated).map(name =>
+                            <option value={ name }>{ widgetNamesTranslated[name] }</option>
+                        ) }
+                    </select>
+                    { widgetType !== 'option' ? null : <CrudList
+                        items={ this.state.optionWidgetOptions }
+                        itemTitleKey="label"
+                        getTitle={ item => [`${item.label} `, <i class="color-dimmed">({item.value})</i>] }
+                        onListMutated={ reOrdered => this.setState({optionWidgetOptions: reOrdered}) }
+                        createNewItem={ () => ({label: 'Choice n', value: 'choice-n'}) }
+                        editForm={ OptionWidgetOptionEditForm }
+                        editFormProps={ {} }
+                        itemTypeFriendlyName={ __('option') }
+                        contextMenuZIndex={ 102 }/> }
+                </div>
             </FormGroupInline>
+            <FormGroupInline className="my-1 mx-0">
+                <label htmlFor="varDefaultValue" class="form-label" placeholder={ __('Examples: 1rem, flex-end') }>{ __('Default value') }</label>
+                <Input vm={ this } prop="defaultThemeValue" id="varDefaultValue"/>
+                <InputErrors vm={ this } prop="defaultThemeValue"/>
+            </FormGroupInline>
+            { widgetType !== 'length' ? null : <FormGroupInline className="my-1 mx-0">
+                <label htmlFor="varInitialUnit" class="form-label" placeholder={ __('Examples: px, %') }>{ __('Initial unit') }</label>
+                <Input vm={ this } prop="initialUnit" id="varInitialUnit"/>
+                <InputErrors vm={ this } prop="initialUnit"/>
+            </FormGroupInline> }
             <button
                 class="btn btn-sm px-2"
                 type="submit"
@@ -210,19 +248,100 @@ class EditConfigSettingsForm extends preact.Component {
      * @param {Event} e
      * @access private
      */
+    handleWidgetTypeChanged(e) {
+        const newVal = e.target.value;
+        reHookValues(this, [
+            {name: 'initialUnit', value: ''},
+            {name: 'defaultThemeValue', value: ''},
+        ], {
+            widgetType: newVal,
+            ...(newVal !== 'option'
+                ? {}
+                : {
+                    optionWidgetOptions: [
+                        {label: 'Choice 1', value: 'choice-1'},
+                        {label: 'Choice 2', value: 'choice-2'},
+                    ],
+                }),
+        });
+    }
+    /**
+     * @param {Event} e
+     * @access private
+     */
     doHandleSubmit(e) {
         e.preventDefault();
         if (!validateAll(this))
             return false;
-        const {values, widgetSettings} = this.state;
+        const {values, optionWidgetOptions, widgetType} = this.state;
         this.props.onEditEnded({
             cssProp: values.cssProp,
             cssSubSelector: values.subSelector || null,
             widgetSettings: {
-                ...widgetSettings,
-                label: values.label,
+                label: values.name,
+                inputId: this.props.item.widgetSettings.inputId,
+                valueType: widgetType,
+                ...(values.defaultThemeValue ? {defaultThemeValue: values.defaultThemeValue} : {}),
+                ...(optionWidgetOptions ? {options: optionWidgetOptions} : {}),
+                ...(values.initialUnit ? {initialUnit: values.initialUnit} : {}),
             },
         });
+    }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+class OptionWidgetOptionEditForm extends preact.Component {
+    /**
+     * @param {{item: OptionWidgetOption; onValueChanged: (value: string, key: keyof OptionWidgetOption) => void; done: () => void;}} props
+     */
+    constructor(props) {
+        super(props);
+        this.state = hookForm(this, [
+            {name: 'label', value: props.item.label, validations: [['minLength', 1]], label: __('Option text'),
+             onAfterValueChanged: (value, hasErrors, _source) => {
+                if (!hasErrors) this.props.onValueChanged(value, 'label');
+            }},
+            {name: 'value', value: props.item.value, validations: [['minLength', 1]], label: __('Option value'),
+             onAfterValueChanged: (value, hasErrors, _source) => {
+                if (!hasErrors) this.props.onValueChanged(value, 'value');
+            }},
+        ]);
+    }
+    /**
+     * @param {OptionWidgetOption} item
+     * @access public
+     */
+    overrideValues(item) {
+        reHookValues(this, [
+            {name: 'label', value: item.label},
+            {name: 'value', value: item.value},
+        ]);
+    }
+    /**
+     * @access protected
+     */
+    render({done}) {
+        return <div class="form-horizontal">
+            <button
+                onClick={ () => done() }
+                class="btn btn-sm"
+                disabled={ hasErrors(this) }
+                title={ __('Done') }
+                type="button">&lt;</button>
+            <FormGroupInline className="mt-0 mb-2">
+                <label htmlFor="optionItemText" class="form-label">{ __('Option text') }</label>
+                <Textarea vm={ this } prop="label" id="optionItemText" rows="3"/>
+                <InputErrors vm={ this } prop="label"/>
+            </FormGroupInline>
+            <FormGroupInline className="my-0">
+                <label htmlFor="selectOrRadioItemValue" class="form-label">{ __('Option value') }</label>
+                <Textarea vm={ this } prop="value" id="selectOrRadioItemValue" rows="3"/>
+                <InputErrors vm={ this } prop="value"/>
+            </FormGroupInline>
+        </div>;
     }
 }
 
@@ -237,6 +356,8 @@ class EditConfigSettingsForm extends preact.Component {
  *   onEditEnded: (what: todo) => void;
  *   widgetNamesTranslated: {[name: string]: string;};
  * }} EditConfigSettingsFormProps
+ *
+ * @typedef {{label: string; value: string;}} OptionWidgetOption
  */
 
 export default CustomClassStyleEditCustomizationsDialog;

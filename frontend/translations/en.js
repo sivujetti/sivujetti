@@ -381,7 +381,12 @@ stringBundles.push({
     'Edit style name': 'Edit style name',
     'Edit customization settings': 'Edit customization settings',
     'Delete style': 'Delete style',
+    'Length': 'Length',
+    'Color': 'Color',
+    'Option': 'Option',
+    'Background image': 'Background image',
     'Add variable': 'Add variable',
+    'Default value': 'Default value',
     'Examples: Font size, Background color': 'Examples: Font size, Background color',
     'Examples:': 'Esimerkkejä',
     // ../std-styles.md

@@ -71,6 +71,10 @@ class ContextMenu extends preact.Component {
                     this.pos.left -= (hiddenPortionRight + margin);
                     el.style.left = `${this.pos.left}px`;
                 }
+                const {zIndex} = this.controller;
+                if (typeof zIndex === 'number') {
+                    el.style.zIndex = zIndex;
+                }
             } }>{ this.controller.getLinks().map(link =>
                 <li class="menu-item"><a onClick={ e => this.emitItemClick(link, e) } href={ `#${link.id}` } title={ link.title }>{ link.text }</a></li>
             ) }</ul>

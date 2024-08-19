@@ -10,6 +10,7 @@ import {
     objectUtils,
     reHookValues,
     setFocusTo,
+    Sortable,
     Textarea,
     validateAll,
     validationConstraints,
@@ -22,6 +23,7 @@ class CustomClassStyleEditCustomizationsDialog extends preact.Component {
      * @access protected
      */
     componentWillMount() {
+        this.sortable = new Sortable();
         this.setState({varDefs: createVarDefsState(this.props), idxOfItemInEditMode: null});
         this.widgetNamesTranslated = {
             length: __('Length'),
@@ -42,11 +44,17 @@ class CustomClassStyleEditCustomizationsDialog extends preact.Component {
      * @access protected
      */
     render(_, {varDefs, idxOfItemInEditMode}) {
+        const editModeCls = idxOfItemInEditMode === null ? '': ' edit-mode-is-on';
         return <div>
             <div class="text-prose mb-2">{ __('...') }</div>
-            <ul class="list styles-list style-tweak-settings-list mb-2 color-dimmed">{ varDefs.map((v, i) =>
-                <li class="mt-1">{ i !== idxOfItemInEditMode
-                    ? [<b>{ v.widgetSettings.label }</b>,
+            <ul
+                class={ `list styles-list style-tweak-settings-list mb-2 color-dimmed${editModeCls}` }
+                ref={ this.activateSorting.bind(this) }>{ varDefs.map((v, i) =>
+                <li data-id={ v.varName } class={ `mt-1${i !== idxOfItemInEditMode ? '' : ' in-edit-mode'}` }>{ i !== idxOfItemInEditMode
+                    ? [<button class="drag-handle with-icon" title={ __('Drag') } type="button">
+                        <Icon iconId="grid-dots" className="size-xs mr-0"/>
+                    </button>,
+                    <b>{ v.widgetSettings.label }</b>,
                     <div class="text-tinyish mt-1" style="color: var(--color-fg-dimmed2)">
                         <div>{ __('Type') }: { this.widgetNamesTranslated[v.widgetSettings.valueType] || v.widgetSettings.valueType }</div>
                         <div>CSS prop: <span>{ v.cssProp }</span></div>
@@ -55,14 +63,14 @@ class CustomClassStyleEditCustomizationsDialog extends preact.Component {
                         onClick={ () => this.setToEditMode(i) }
                         class="btn btn-xs no-color flex-centered"
                         type="button"
-                        disabled={ idxOfItemInEditMode !== null }>
+                        disabled={ !!editModeCls }>
                         <Icon iconId="pencil" className="size-xs color-dimmed"/>
                     </button>,
                     <button
                         onClick={ () => this.removeVariable(i) }
                         class="btn btn-xs no-color flex-centered"
                         type="button"
-                        disabled={ idxOfItemInEditMode !== null }>
+                        disabled={ !!editModeCls }>
                         <svg class="icon icon-tabler size-xs color-dimmed" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 7l16 0"></path><path d="M10 11l0 6"></path><path d="M14 11l0 6"></path><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg>
                     </button>
                     ]
@@ -125,6 +133,19 @@ class CustomClassStyleEditCustomizationsDialog extends preact.Component {
     removeVariable(idx) {
         const filtered = this.state.varDefs.filter((_, i) => i !== idx);
         this.props.onSettingsChanged(filtered);
+    }
+    /**
+     * @param {HTMLUListElement} ulEl
+     * @access private
+     */
+    activateSorting(ulEl) {
+        this.sortable.register(ulEl, {
+            handle: '.drag-handle',
+            onReorder: orderedDataIds => {
+                const reOrdered = orderedDataIds.map(varName => this.state.varDefs.find(v => v.varName === varName));
+                this.props.onSettingsChanged(reOrdered);
+            },
+        });
     }
 }
 
@@ -221,7 +242,7 @@ class EditConfigSettingsForm extends preact.Component {
                         editForm={ OptionWidgetOptionEditForm }
                         editFormProps={ {} }
                         itemTypeFriendlyName={ __('option') }
-                        contextMenuZIndex={ 102 }/> }
+                        contextMenuZIndex={ 101 }/> }
                 </div>
             </FormGroupInline>
             <FormGroupInline className="my-1 mx-0">

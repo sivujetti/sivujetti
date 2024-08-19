@@ -9,6 +9,7 @@ import FileUploader from './FileUploader.jsx';
 import {FloatingDialog, currentInstance as floatingDialog} from './FloatingDialog.jsx';
 import {MenuSection, MenuSectionAbstract} from './MenuSection.jsx';
 import ScreenSizesVerticalTabs from './ScreenSizesVerticalTabs.jsx';
+import Sortable from './Sortable.js';
 import UploadButton from './UploadButton.jsx';
 import Events from '../shared-includes/Events.js';
 import './populate-block-types-map.js';
@@ -117,6 +118,7 @@ export {
     scssWizard,
     sensibleDefaults,
     setFocusTo,
+    Sortable,
     stringUtils,
     Tabs,
     Textarea,

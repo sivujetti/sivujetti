@@ -237,11 +237,8 @@ stringBundles.push({
     'Copy': 'Copy',
     // edit-app/src/block-types/menu/EditForm.jsx
     'Create and add page': 'Create and add page',
-    'Add link': 'Add link',
+    'link': 'link',
     'Edit': 'Edit',
-    'Edit link': 'Edit link',
-    'Duplicate link': 'Duplicate link',
-    'Delete link': 'Delete link',
     // edit-app/src/block-types/menu/EditItemPanel.jsx
     'Link text': 'Link text',
     'Url address': 'Url address',
@@ -254,7 +251,6 @@ stringBundles.push({
     'Link element': 'Link element',
     'Normal button': 'Normal button',
     'Submit button': 'Submit button',
-    'Link': 'Link',
     'Css classes': 'Css classes',
     'Tag type': 'Tag type',
     'Button text': 'Button text',

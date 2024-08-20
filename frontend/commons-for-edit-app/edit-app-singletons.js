@@ -65,7 +65,7 @@ const api = {
     },
     contextMenu: {
         initialized: false,
-        open(/*event, links, onClosed*/) { },
+        open(/*event, controller*/) { },
         close() { },
     },
     mainPopper: {

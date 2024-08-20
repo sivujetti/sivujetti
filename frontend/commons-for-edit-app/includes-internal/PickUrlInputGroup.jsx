@@ -3,6 +3,7 @@ import {__} from '../edit-app-singletons.js';
 import {currentInstance as floatingDialog} from '../FloatingDialog.jsx';
 import {FormGroupInline} from '../Form.jsx';
 import {determineModeFrom, getVisibleSlug} from '../pick-url-utils.js';
+import {stringUtils} from '../utils.js';
 import PickUrlDialog, {getHeight} from './PickUrlDialog.jsx';
 
 class PickUrlInputGroup extends preact.Component {
@@ -12,7 +13,7 @@ class PickUrlInputGroup extends preact.Component {
      */
     render({linkTo, onUrlPicked}) {
         return <FormGroupInline>
-            <label htmlFor="linkTo" class="form-label">{ __('Link') }</label>
+            <label htmlFor="linkTo" class="form-label">{ stringUtils.capitalize(__('link')) }</label>
             <input
                 value={ getVisibleSlug(linkTo) }
                 onFocus={ e => this.openPickUrlDialog(e, linkTo, onUrlPicked) }

@@ -10,9 +10,9 @@ let counter = 0;
 class CrudList extends preact.Component {
     // editForm;
     // sortable;
-    // itemWithNavOpened;
+    // itemWithNavOpened; // public
     /**
-     * @param {{items: Array<T>; onListMutated: (newList: Array<T>) => void; createNewItem: () => T; editForm: preact.AnyComponent; editFormProps?: {[key: string]: any;}; itemTypeFriendlyName: string; itemTitleKey?: string; getTitle?: (item: T) => preact.ComponentChild; contextMenuPos?: string; contextMenuZIndex?: number;}} props
+     * @param {{items: Array<T>; onListMutated: (newList: Array<T>, prop: string = null) => void; createNewItem: () => T; editForm: preact.AnyComponent; editFormProps?: {[key: string]: any;}; itemTypeFriendlyName: string; itemTitleKey?: string; getTitle?: (item: T) => preact.ComponentChild; contextMenuPos?: string; contextMenuZIndex?: number; onCreateCtxMenuCtrl?: (ctrl: ContextMenuController) => ContextMenuController;}} props
      */
     constructor(props) {
         super(props);
@@ -85,7 +85,7 @@ class CrudList extends preact.Component {
                     this.state.editItem[key] = value;
                     this.setState({items: this.state.items,
                                     editItem: this.state.editItem});
-                    this.emitListMutated(this.state.items);
+                    this.emitListMutated(this.state.items, key);
                 } }
                 done={ () => this.setState({tab: 'default', editItem: null}) }
                 ref={ this.editForm }/>;
@@ -98,7 +98,7 @@ class CrudList extends preact.Component {
      */
     openMoreMenu(item, e) {
         this.itemWithNavOpened = item;
-        api.contextMenu.open(e, {
+        const ctrl = {
             getLinks: () => [
                 {text: __('Edit'), title: __('Edit'), id: 'edit-option'},
                 {text: __('Delete'), title: __('Delete'), id: 'delete-option'},
@@ -107,7 +107,10 @@ class CrudList extends preact.Component {
             onMenuClosed: () => { this.itemWithNavOpened = null; },
             placement: this.props.contextMenuPos || 'right',
             zIndex: this.props.contextMenuZIndex || undefined,
-        });
+        };
+        api.contextMenu.open(e, this.props.onCreateCtxMenuCtrl
+            ? this.props.onCreateCtxMenuCtrl(ctrl)
+            : ctrl);
     }
     /**
      * @param {ContextMenuLink} link
@@ -124,10 +127,11 @@ class CrudList extends preact.Component {
     }
     /**
      * @param {Array<T && {key: string;}>} items
+     * @param {string} prop = null
      * @access private
      */
-    emitListMutated(items) {
-        this.props.onListMutated(removeKeys(items));
+    emitListMutated(items, prop = null) {
+        this.props.onListMutated(removeKeys(items), prop);
     }
     /**
      * @access private

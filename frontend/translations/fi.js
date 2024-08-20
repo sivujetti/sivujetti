@@ -237,11 +237,8 @@ stringBundles.push({
     'Copy': 'Kopio',
     // edit-app/src/block-types/menu/EditForm.jsx
     'Create and add page': 'Luo ja lisää sivu',
-    'Add link': 'Lisää linkki',
+    'link': 'linkki',
     'Edit': 'Muokkaa',
-    'Edit link': 'Muokkaa linkkiä',
-    'Duplicate link': 'Monista linkki',
-    'Delete link': 'Poista linkki',
     // edit-app/src/block-types/menu/EditItemPanel.jsx
     'Link text': 'Linkin teksti',
     'Url address': 'Url-osoite',
@@ -254,7 +251,6 @@ stringBundles.push({
     'Link element': 'Linkkielementti',
     'Normal button': 'Nappi',
     'Submit button': 'Lähetä-nappi',
-    'Link': 'Linkki',
     'Css classes': 'Css-luokat',
     'Tag type': 'Elementin tyyppi',
     'Button text': 'Napin teksti',

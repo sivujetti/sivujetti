@@ -1,7 +1,8 @@
 import {validationConstraints} from '../../constants.js';
-import {__, api,} from '../../edit-app-singletons.js';
+import {__} from '../../edit-app-singletons.js';
 import {
     FormGroupInline,
+    hasErrors,
     hookForm,
     Input,
     InputErrors,
@@ -11,29 +12,31 @@ import {
 import PickUrlInputGroup from '../../includes-internal/PickUrlInputGroup.jsx';
 
 class EditItemPanel extends preact.Component {
-    // isOpen;
     /**
-     * @param {{link: MenuLink; cssClass: String; onLinkUpdated: (mutatedLink: MenuLink) => void; endEditMode: () => void; panelHeight: Number;}} props
-     * @access protected
+     * @param {{item: MenuLink; onValueChanged: (value: string, key: keyof MenuLink) => void; done: () => void;}} props
      */
-    componentWillReceiveProps(props) {
-        if (props.link && !this.isOpen) {
-            this.isOpen = true;
-            this.setState(hookForm(this, [
-                {name: 'linkText', value: props.link.text, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link text'),
-                onAfterValueChanged: (value, hasErrors, source) => { if (!hasErrors && source !== 'undo') this.props.onLinkPropUpdated(value, 'text'); }},
-            ], {
-                linkTo: props.link.slug,
-            }));
-            api.inspectorPanel.getOuterEl().scrollTo({top: 0});
-        } else if (this.isOpen && !props.link) {
-            this.isOpen = false;
-        } else if (this.isOpen && props.link) {
-            if (this.state.values.linkText !== props.link.text)
-                reHookValues(this, [{name: 'linkText', value: props.link.text}]);
-            if (this.state.linkTo !== props.link.slug)
-                this.setState({linkTo: props.link.slug});
-        }
+    constructor(props) {
+        super(props);
+        this.state = hookForm(this, [
+            {name: 'linkText', value: props.item.text, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link text'),
+            onAfterValueChanged: (value, hasErrors, _source) => {
+                if (!hasErrors) this.props.onValueChanged(value, 'text');
+            }},
+        ], {
+            linkTo: props.item.slug,
+        });
+    }
+    /**
+     * @param {MenuLink} item
+     * @access public
+     */
+    overrideValues(item) {
+        if (item.text !== this.state.values.linkText)
+            reHookValues(this, [
+                {name: 'linkText', value: item.text},
+            ]);
+        else if (item.slug !== this.state.linkTo)
+            this.setState({linkTo: item.slug});
     }
     /**
      * @access protected
@@ -44,21 +47,32 @@ class EditItemPanel extends preact.Component {
     /**
      * @access protected
      */
-    render({panelHeight, cssClass, endEditMode}, {linkTo}) {
-        return <div class={ cssClass } style={ `top: -${panelHeight + 8}px` }>{ this.state.values ? [
-            <button onClick={ endEditMode } class="btn btn-sm" type="button"> &lt; </button>,
-            <div class="form-horizontal pt-0">
-                <FormGroupInline>
-                    <label htmlFor="linkText" class="form-label">{ __('Link text') }</label>
-                    <Input vm={ this } prop="linkText" id="linkText"/>
-                    <InputErrors vm={ this } prop="linkText"/>
-                </FormGroupInline>
+    render({done}, {linkTo}) {
+        return <div class="form-horizontal">
+            <button
+                onClick={ () => done() }
+                class="btn btn-sm"
+                disabled={ hasErrors(this) }
+                title={ __('Done') }
+                type="button">&lt;</button>
+            <FormGroupInline>
+                <label htmlFor="linkText" class="form-label">{ __('Link text') }</label>
+                <Input vm={ this } prop="linkText" id="linkText"/>
+                <InputErrors vm={ this } prop="linkText"/>
+            </FormGroupInline>
                 <PickUrlInputGroup linkTo={ linkTo } onUrlPicked={ normalized => {
-                    this.props.onLinkPropUpdated(normalized, 'slug');
+                    this.props.onValueChanged(normalized, 'slug');
                 } }/>
-            </div>
-        ] : null }</div>;
+        </div>;
     }
 }
+
+/**
+ * @typedef MenuLink
+ * @prop {string} text
+ * @prop {string} slug
+ * @prop {string} id
+ * @prop {Array<MenuLink>} children
+ */
 
 export default EditItemPanel;

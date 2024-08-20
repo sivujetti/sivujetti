@@ -6,6 +6,7 @@ import {
     Input,
     InputErrors,
     setFocusTo,
+    unhookForm,
     validationConstraints,
 } from '@sivujetti-commons-for-edit-app';
 
@@ -30,6 +31,12 @@ class CustomClassStyleEditTitlePopup extends preact.Component {
      */
     componentDidMount() {
         setFocusTo(this.titleInputRef);
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        unhookForm(this);
     }
     /**
      * @access protected

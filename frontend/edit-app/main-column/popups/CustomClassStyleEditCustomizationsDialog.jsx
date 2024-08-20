@@ -1,5 +1,6 @@
 import {
     __,
+    api,
     CrudList,
     FormGroupInline,
     hasErrors,
@@ -12,9 +13,11 @@ import {
     setFocusTo,
     Sortable,
     Textarea,
+    unhookForm,
     validateAll,
     validationConstraints,
 } from '@sivujetti-commons-for-edit-app';
+import {getMetaKey} from '../../../shared-inline.js';
 
 /** @extends {preact.Component<CustomClassStyleEditCustomizationsDialogProps, any>} */
 class CustomClassStyleEditCustomizationsDialog extends preact.Component {
@@ -49,7 +52,7 @@ class CustomClassStyleEditCustomizationsDialog extends preact.Component {
             <div class="text-prose mb-2">{ __('...') }</div>
             <ul
                 class={ `list styles-list style-tweak-settings-list mb-2 color-dimmed${editModeCls}` }
-                ref={ this.activateSorting.bind(this) }>{ varDefs.map((v, i) =>
+                ref={ this.activateSorting.bind(this) }>{ varDefs.length ? varDefs.map((v, i) =>
                 <li data-id={ v.varName } class={ `mt-1${i !== idxOfItemInEditMode ? '' : ' in-edit-mode'}` }>{ i !== idxOfItemInEditMode
                     ? [<button class="drag-handle with-icon" title={ __('Drag') } type="button">
                         <Icon iconId="grid-dots" className="size-xs mr-0"/>
@@ -79,7 +82,7 @@ class CustomClassStyleEditCustomizationsDialog extends preact.Component {
                         onEditEnded={ this.handleEditEnded.bind(this) }
                         widgetNamesTranslated={ this.widgetNamesTranslated }/>
                 }</li>
-            ) }</ul>
+            ) : <li><p style="transform: translate(-2.3rem, .58rem);">{ __('No variables yet.') }</p></li> }</ul>
             <button
                 onClick={ this.appendVariable.bind(this) }
                 class="btn btn-primary btn-sm"
@@ -163,6 +166,7 @@ function createVarDefsState({currentSettings}) {
 /** @extends {preact.Component<EditConfigSettingsFormProps, any>} */
 class EditConfigSettingsForm extends preact.Component {
     // nameInputRef;
+    // disableGlobalUndoHotkeys;
     /**
      * @access protected
      */
@@ -170,6 +174,7 @@ class EditConfigSettingsForm extends preact.Component {
         this.nameInputRef = preact.createRef();
         const {cssProp, cssSubSelector, widgetSettings} = this.props.item;
         const widgetType = widgetSettings.valueType;
+        this.disableGlobalUndoHotkeys = createSaveButtonUndoHotkeyDisabler();
         this.setState(hookForm(this, [
             {name: 'name', value: widgetSettings.label, validations: [
                 ['required'], ['maxLength', 128]
@@ -200,11 +205,23 @@ class EditConfigSettingsForm extends preact.Component {
     /**
      * @access protected
      */
+    componentWillUnmount() {
+        unhookForm(this);
+    }
+    /**
+     * @access protected
+     */
     render({widgetNamesTranslated}, {widgetType}) {
         return <form onSubmit={ this.doHandleSubmit.bind(this) } class="form-horizontal text-tinyish py-0">
             <FormGroupInline className="my-1 mx-0">
-                <label htmlFor="varName" class="form-label" placeholder={ __('Examples: Font size, Background color') }>{ __('Name') }</label>
-                <Input vm={ this } prop="name" id="varName" ref={ this.nameInputRef }/>
+                <label htmlFor="varName" class="form-label">{ __('Name') }</label>
+                <Input
+                    vm={ this }
+                    prop="name"
+                    id="varName"
+                    placeholder={ __('Examples: Font size, Background color') }
+                    ref={ this.nameInputRef }
+                    { ...this.disableGlobalUndoHotkeys }/>
                 <InputErrors vm={ this } prop="name"/>
             </FormGroupInline>
             <FormGroupInline className="my-1 mx-0">
@@ -213,12 +230,13 @@ class EditConfigSettingsForm extends preact.Component {
                     vm={ this }
                     prop="cssProp" id="varCssProp"
                     placeholder={ `${__('Examples:')} font-size, background-color` }
-                    rows="1"/>
+                    rows="1"
+                    { ...this.disableGlobalUndoHotkeys }/>
                 <InputErrors vm={ this } prop="cssProp"/>
             </FormGroupInline>
             <FormGroupInline className="my-1 mx-0">
                 <label htmlFor="varSubSelector" class="form-label">Sub selector</label>
-                <Input vm={ this } prop="subSelector" id="varSubSelector" placeholder={ `${__('Examples:')} img, > div` }/>
+                <Input vm={ this } prop="subSelector" id="varSubSelector" placeholder={ `${__('Examples:')} img, > div` } { ...this.disableGlobalUndoHotkeys }/>
                 <InputErrors vm={ this } prop="subSelector"/>
             </FormGroupInline>
             <FormGroupInline className="my-1 mx-0">
@@ -247,12 +265,12 @@ class EditConfigSettingsForm extends preact.Component {
             </FormGroupInline>
             <FormGroupInline className="my-1 mx-0">
                 <label htmlFor="varDefaultValue" class="form-label" placeholder={ __('Examples: 1rem, flex-end') }>{ __('Default value') }</label>
-                <Input vm={ this } prop="defaultThemeValue" id="varDefaultValue"/>
+                <Input vm={ this } prop="defaultThemeValue" id="varDefaultValue" { ...this.disableGlobalUndoHotkeys }/>
                 <InputErrors vm={ this } prop="defaultThemeValue"/>
             </FormGroupInline>
             { widgetType !== 'length' ? null : <FormGroupInline className="my-1 mx-0">
                 <label htmlFor="varInitialUnit" class="form-label" placeholder={ __('Examples: px, %') }>{ __('Initial unit') }</label>
-                <Input vm={ this } prop="initialUnit" id="varInitialUnit"/>
+                <Input vm={ this } prop="initialUnit" id="varInitialUnit" { ...this.disableGlobalUndoHotkeys }/>
                 <InputErrors vm={ this } prop="initialUnit"/>
             </FormGroupInline> }
             <button
@@ -315,11 +333,13 @@ class EditConfigSettingsForm extends preact.Component {
 
 
 class OptionWidgetOptionEditForm extends preact.Component {
+    // disableGlobalUndoHotkeys;
     /**
      * @param {{item: OptionWidgetOption; onValueChanged: (value: string, key: keyof OptionWidgetOption) => void; done: () => void;}} props
      */
     constructor(props) {
         super(props);
+        this.disableGlobalUndoHotkeys = createSaveButtonUndoHotkeyDisabler();
         this.state = hookForm(this, [
             {name: 'label', value: props.item.label, validations: [['minLength', 1]], label: __('Option text'),
              onAfterValueChanged: (value, hasErrors, _source) => {
@@ -354,16 +374,34 @@ class OptionWidgetOptionEditForm extends preact.Component {
                 type="button">&lt;</button>
             <FormGroupInline className="mt-0 mb-2">
                 <label htmlFor="optionItemText" class="form-label">{ __('Option text') }</label>
-                <Textarea vm={ this } prop="label" id="optionItemText" rows="3"/>
+                <Textarea vm={ this } prop="label" id="optionItemText" rows="3" { ...this.disableGlobalUndoHotkeys }/>
                 <InputErrors vm={ this } prop="label"/>
             </FormGroupInline>
             <FormGroupInline className="my-0">
                 <label htmlFor="selectOrRadioItemValue" class="form-label">{ __('Option value') }</label>
-                <Textarea vm={ this } prop="value" id="selectOrRadioItemValue" rows="3"/>
+                <Textarea vm={ this } prop="value" id="selectOrRadioItemValue" rows="3" { ...this.disableGlobalUndoHotkeys }/>
                 <InputErrors vm={ this } prop="value"/>
             </FormGroupInline>
         </div>;
     }
+}
+
+/**
+ * @returns {{onKeyDown: (event: Event) => void; onKeyUp: (event: Event) => void;}}
+ */
+function createSaveButtonUndoHotkeyDisabler() {
+    const saveButton = api.saveButton.getInstance();
+    const metaKey = getMetaKey();
+    return {
+        onKeyDown: e => {
+            if (e.key === metaKey)
+                saveButton.setHotkeyUndoLockIsOn(true);
+        },
+        onKeyUp: e => {
+            if (e.key === metaKey)
+                saveButton.setHotkeyUndoLockIsOn(false);
+        },
+    };
 }
 
 /**

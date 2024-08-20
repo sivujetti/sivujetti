@@ -893,12 +893,12 @@ a.popup-close-area {
     position: relative;
 }
 .styles-list.style-tweak-settings-list > li:not(.in-edit-mode) {
-    padding-left: 2rem;
+    padding-left: 3.6rem;
 }
 .styles-list.style-tweak-settings-list.edit-mode-is-on > li:not(.in-edit-mode):after {
     content: "";
     height: 100%;
-    width: 2rem;
+    width: 3.6rem;
     position: absolute;
     left: 0;
     top: 0;
@@ -909,7 +909,7 @@ a.popup-close-area {
     margin-top: -.4rem;
 }
 .styles-list.style-tweak-settings-list > li > button:first-child {
-    left: .33rem;
+    left: 1.1rem;
     opacity: .5;
 }
 .styles-list.style-tweak-settings-list > li > button:nth-child(4) {
@@ -922,7 +922,7 @@ a.popup-close-area {
     stroke-width: 2px;
 }
 .form-horizontal.text-tinyish ul.table-list > li {
-  padding: .1rem .2rem;
+    padding: .1rem .2rem;
 }
 /* EditApp: Components: visual-style-inputs */
 .has-visual-style-widgets > .form-group,

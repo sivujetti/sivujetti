@@ -389,6 +389,7 @@ stringBundles.push({
     'Default value': 'Default value',
     'Examples: Font size, Background color': 'Examples: Font size, Background color',
     'Examples:': 'Esimerkkejä',
+    'No variables yet.': 'Ei vielä muuttujia.',
     // ../std-styles.md
     'Text default': 'Text default',
     'Headings default': 'Headings default',

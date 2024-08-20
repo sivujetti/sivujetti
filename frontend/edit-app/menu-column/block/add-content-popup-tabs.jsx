@@ -235,7 +235,7 @@ class AddTemplateContentTab extends preact.Component {
                     try {
                         descr = createContentTemplateSpawnDescriptor(tmpl);
                     } catch (e) {
-                        env.console.error(e);
+                        env.window.console.error(e);
                         env.window.alert(__('Failed to create block from template'));
                         return;
                     }

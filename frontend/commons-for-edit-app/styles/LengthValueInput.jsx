@@ -6,6 +6,7 @@ import {
     Input,
     InputErrors,
     reHookValues,
+    unhookForm,
 } from '../Form.jsx';
 import {Icon} from '../Icon.jsx';
 import {isUndoOrRedo, timingUtils} from '../utils.js';
@@ -46,6 +47,12 @@ class LengthValueInput extends preact.Component {
             reHookValues(this, [{name: 'num', value: incoming.num}]);
         if (this.state.unit !== incoming.unit)
             this.setState({unit: incoming.unit});
+    }
+    /**
+     * @access protected
+     */
+    componentWillUnmount() {
+        unhookForm(this);
     }
     /**
      * @access protected

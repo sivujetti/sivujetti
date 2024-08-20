@@ -23,6 +23,7 @@ class SaveButton extends preact.Component {
     // opHistoryCursor;
     // unregisterUnsavedChangesAlert;
     // syncQueueFilters;
+    // hotkeyUndoLockIsOn;
     /**
      * @param {SaveButtonProps} props
      */
@@ -31,6 +32,7 @@ class SaveButton extends preact.Component {
         this.doInvalidateAll();
         this.state = createInitialState();
         this.addUndoKeyListener();
+        this.hotkeyUndoLockIsOn = false;
     }
     /**
      * @param {String} name
@@ -124,6 +126,13 @@ class SaveButton extends preact.Component {
         this.doInvalidateAll();
         this.setState(createInitialState());
         this.syncQueueFilters = [globalBlockTreeSaveOpFilter.bind(this)];
+    }
+    /**
+     * @param {isOn: boolean} isOn
+     * @access public
+     */
+    setHotkeyUndoLockIsOn(isOn) {
+        this.hotkeyUndoLockIsOn = isOn;
     }
     /**
      * @access protected
@@ -402,10 +411,10 @@ class SaveButton extends preact.Component {
             } else if (e.key === 'Shift') {
                 shiftKeyIsPressed = true;
             } else if (metaKeyIsPressed && e.key === undoKey) {
-                if (shiftKeyIsPressed && this.state.canRedo) {
+                if (shiftKeyIsPressed && this.state.canRedo && !this.hotkeyUndoLockIsOn) {
                     e.preventDefault(); // Prevent active input's onInput
                     this.doRedo();
-                } else if (!shiftKeyIsPressed && this.state.canUndo) {
+                } else if (!shiftKeyIsPressed && this.state.canUndo && !this.hotkeyUndoLockIsOn) {
                     e.preventDefault(); // Prevent active input's onInput
                     this.doUndo();
                 }

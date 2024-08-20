@@ -346,7 +346,7 @@ stringBundles.push({
     'Updates installed! Reloading page in %s': 'Päivitykset asennettu! Ladataan sivu uudelleen %s',
     'Reload page': 'Lataa sivu',
     'Begin update process': 'Aloita päivitysprosessi',
-    'The process will run a checklist and starts the update only after that. The website will be automatically put to a temporary maintenance mode.': 'Prosessi ajaa ensin checklistin, ja aloittaa asennuksen vasta niiden jälkeen. Asennuksen alettua sivusto asetetaan väliaikaiseen huolto-tilaan.',
+    'The process will run a checklist and starts the update only after that. The website will be automatically put to a temporary maintenance mode.': 'Prosessi ajaa ensin checklistin, ja aloittaa asennuksen mikäli se ei havaitse puutteita. Asennuksen alettua sivusto asetetaan väliaikaiseen huolto-tilaan.',
     'Begin checklist and update': 'Aloita checklist ja päivitys',
     // edit-app/src/right-column/website/WebsiteEditBasicInfoView.jsx
     'Edit website info': 'Muokkaa sivuston tietoja',
@@ -389,6 +389,7 @@ stringBundles.push({
     'Default value': 'Oletusarvo',
     'Examples: Font size, Background color': 'Esimerkkejä: Fonttikoko, Taustaväri',
     'Examples:': 'Esimerkkejä',
+    'No variables yet.': 'No variables yet.',
     // ../std-styles.md
     'Text default': 'Teksti oletus',
     'Headings default': 'Otsikot oletus',

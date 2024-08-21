@@ -7,7 +7,7 @@ use Sivujetti\Page\WebPageAwareTemplate;
 use function Sivujetti\createElement as el;
 
 /**
- * @psalm-type LinkTreeItem = {id: string, slug: string, text: string, children: array<int, LinkTreeItem>}
+ * @psalm-type LinkTreeItem = {id: string, slug: string, text: string, children: array<int, LinkTreeItem>, includeToggleButton?: bool}
  * @psalm-import-type VNode from Sivujetti\BlockType\JsxLikeRenderingBlockTypeInterface
  */
 final class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTypeInterface {
@@ -30,10 +30,8 @@ final class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTy
                            \Closure $renderChildren,
                            WebPageAwareTemplate $tmpl): array {
         return el("nav", $createDefaultProps(),
-            el("div", null,
-                self::renderBranch($block->tree, $block, 0, $tmpl),
-                ...$renderChildren()
-            )
+            self::renderBranch($block->tree, $block, 0, $tmpl),
+            ...$renderChildren()
         );
     }
     /**
@@ -47,19 +45,41 @@ final class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTy
     private static function renderBranch(array $branch, object $block, int $depth, WebPageAwareTemplate $tmpl): array {
         $currentPageSlug = $tmpl->getLocal("currentUrl");
         return el("ul", ["class" => "level-{$depth}"],
-            ...array_map(fn($itm) => el(
-                "li",
-                array_merge(
-                    ["class" => "level-{$depth}"],
-                    $itm->slug === $currentPageSlug ? ["data-current" => "true"] : []
-                ),
-                el("a", ["href" => $tmpl->maybeExternalUrl($itm->slug)],
-                    $itm->text
-                ),
-                $itm->children
-                    ? self::renderBranch($itm->children, $block, $depth + 1, $tmpl)
-                    : ""
-            ), $branch)
+            ...array_map(function($itm) use ($currentPageSlug, $depth, $tmpl, $block) {
+                $hasChildrenCls = !$itm->children ? "" : " has-children";
+                return el(
+                    "li",
+                    [
+                        "class" => "level-{$depth}{$hasChildrenCls}",
+                        ...($itm->slug === $currentPageSlug ? ["data-current" => "true"] : [])
+                    ],
+                    el("a", ["href" => $tmpl->maybeExternalUrl($itm->slug)],
+                        $itm->text
+                    ),
+                    $hasChildrenCls
+                        ? [
+                            ...(!($itm->includeToggleButton ?? null) ? [] : [el("button",
+                                [
+                                    "onclick" => "event.target.closest('li').classList.toggle('li-open')",
+                                    "class" => "btn btn-link btn-sub-nav-toggle",
+                                ],
+                                el("svg", [
+                                    "xmlns" => "http://www.w3.org/2000/svg",
+                                    "class" => "icon icon-tabler",
+                                    "width" => "24", "height" => "24",
+                                    "viewBox" => "0 0 24 24",
+                                    "stroke-width" => "2",
+                                    "stroke" => "currentColor",
+                                    "fill" => "none",
+                                    "stroke-linecap" => "round",
+                                    "stroke-linejoin" => "round",
+                                ], "<path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><polyline points=\"6 9 12 15 18 9\"></polyline>")
+                            )]),
+                            self::renderBranch($itm->children, $block, $depth + 1, $tmpl)
+                        ]
+                        : ""
+                );
+            }, $branch)
         );
     }
     /**
@@ -72,6 +92,7 @@ final class MenuBlockType implements BlockTypeInterface, JsxLikeRenderingBlockTy
             "id" => strval($obj->id),
             "slug" => strval($obj->slug),
             "text" => strval($obj->text),
+            ...(($obj->includeToggleButton ?? null) ? ["includeToggleButton" => true] : []),
             "children" => $obj->children ? self::createLinkTree($obj->children) : [],
         ];
     }

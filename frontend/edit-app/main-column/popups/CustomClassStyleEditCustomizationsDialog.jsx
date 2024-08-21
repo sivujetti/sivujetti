@@ -258,7 +258,6 @@ class EditConfigSettingsForm extends preact.Component {
                         onListMutated={ reOrdered => this.setState({optionWidgetOptions: reOrdered}) }
                         createNewItem={ () => ({label: 'Choice n', value: 'choice-n'}) }
                         editForm={ OptionWidgetOptionEditForm }
-                        editFormProps={ {} }
                         itemTypeFriendlyName={ __('option') }
                         contextMenuZIndex={ 101 }/> }
                 </div>

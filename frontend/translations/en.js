@@ -229,6 +229,7 @@ stringBundles.push({
     // edit-app/src/popups/PickUrlDialog.jsx
     'This page': 'This page',
     'Filter': 'Filter',
+    'Url address': 'Url address',
     // edit-app/src/left-column/SaveButton.jsx
     'You have unsaved changes, do you want to navigate away?': 'You have unsaved changes, do you want to navigate away?',
     'Undo latest change': 'Undo latest change',
@@ -239,9 +240,12 @@ stringBundles.push({
     'Create and add page': 'Create and add page',
     'link': 'link',
     'Edit': 'Edit',
-    // edit-app/src/block-types/menu/EditItemPanel.jsx
     'Link text': 'Link text',
-    'Url address': 'Url address',
+    // edit-app/src/block-types/menu/EditItemPanel.jsx
+    'Done': 'Done',
+    'Submenu': 'Submenu',
+    'Add submenu': 'Add submenu',
+    'Include arrow button': 'Include arrow button',
     // edit-app/src/block-types/menu/menu.js
     'Menu': 'Menu',
     'Home': 'Home',

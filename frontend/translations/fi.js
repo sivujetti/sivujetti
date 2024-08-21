@@ -229,6 +229,7 @@ stringBundles.push({
     // edit-app/src/popups/PickUrlDialog.jsx
     'This page': 'Tämä sivu',
     'Filter': 'Suodata',
+    'Url address': 'Url-osoite',
     // edit-app/src/left-column/SaveButton.jsx
     'You have unsaved changes, do you want to navigate away?': 'Sinulla on tallentamattomia muutoksia, haluatko poistua sivulta?',
     'Undo latest change': 'Kumoa viimeisin muutos',
@@ -239,9 +240,12 @@ stringBundles.push({
     'Create and add page': 'Luo ja lisää sivu',
     'link': 'linkki',
     'Edit': 'Muokkaa',
-    // edit-app/src/block-types/menu/EditItemPanel.jsx
     'Link text': 'Linkin teksti',
-    'Url address': 'Url-osoite',
+    // edit-app/src/block-types/menu/EditItemPanel.jsx
+    'Done': 'Valmis',
+    'Submenu': 'Alavalikko',
+    'Add submenu': 'Lisää alavalikko',
+    'Include arrow button': 'Sisällytä nuolipainike',
     // edit-app/src/block-types/menu/menu.js
     'Menu': 'Valikko',
     'Home': 'Etusivu',

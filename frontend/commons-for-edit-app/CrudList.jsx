@@ -8,7 +8,7 @@ let counter = 0;
  * @template T
  */
 class CrudList extends preact.Component {
-    // editForm;
+    // editFormRef;
     // sortable;
     // itemWithNavOpened; // public
     /**
@@ -16,7 +16,7 @@ class CrudList extends preact.Component {
      */
     constructor(props) {
         super(props);
-        this.editForm = preact.createRef();
+        this.editFormRef = preact.createRef();
         this.state = {items: this.addKeys(this.props.items), tab: 'default'};
     }
     /**
@@ -37,7 +37,8 @@ class CrudList extends preact.Component {
             else {
                 const editItemIdx = this.state.items.indexOf(this.state.editItem);
                 this.setState({items, editItem: items[editItemIdx]});
-                this.editForm.current.overrideValues(items[editItemIdx]);
+                const fn = this.editFormRef.current.overrideValues;
+                if (fn) this.editFormRef.current.overrideValues(items[editItemIdx]);
             }
         }
     }
@@ -49,7 +50,7 @@ class CrudList extends preact.Component {
             return;
         if (tab === 'default') return [
             <ul class="list table-list container px-0" ref={ this.activateSorting.bind(this) }>{ items.length ? items.map(item =>
-                <li data-id={ item.key } key={ item.key } class="columns">
+                <li data-id={ item.key } key={ item.key } class="columns py-1">
                     <div class="col-2">
                         <button class="drag-handle with-icon" title={ __('Drag') } type="button">
                             <Icon iconId="grid-dots" className="size-xs mr-0"/>
@@ -88,7 +89,7 @@ class CrudList extends preact.Component {
                     this.emitListMutated(this.state.items, key);
                 } }
                 done={ () => this.setState({tab: 'default', editItem: null}) }
-                ref={ this.editForm }/>;
+                ref={ this.editFormRef }/>;
         }
     }
     /**

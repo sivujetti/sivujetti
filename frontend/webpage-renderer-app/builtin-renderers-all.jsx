@@ -173,18 +173,27 @@ class MenuBlock extends preact.Component {
  */
 function menuPrintBranch(branch, block, depth = 0) {
     const currentPageSlug = '-';
-    return <ul class={ `level-${depth}` }>{ branch.map(({slug, text, children}) => <li>
-        <a
-            href={ urlAndSlugUtils.getCompletedUrl(slug) }
-            class={ `level-${depth}` }
+    return <ul class={ `level-${depth}` }>{ branch.map(({slug, text, children, includeToggleButton}) => {
+        const hasChildrenCls = !children.length ? '' : ' has-children';
+        return <li
+            class={ `level-${depth}${hasChildrenCls}` }
             { ...(slug === currentPageSlug ? {'data-current': 'true'} : {}) }>
-            { text }
-        </a>
-        { children.length
-            ? menuPrintBranch(children, block, depth + 1)
-            : null
-        }
-    </li>) }</ul>;
+            <a href={ urlAndSlugUtils.getCompletedUrl(slug) }>
+                { text }
+            </a>
+            { hasChildrenCls
+                ? [
+                    ...(!includeToggleButton ? [] : [<button
+                        onClick={ e => e.target.closest('li').classList.toggle('li-open') }
+                        class="btn btn-link btn-sub-nav-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>]),
+                    menuPrintBranch(children, block, depth + 1)
+                ]
+                : null
+            }
+        </li>;
+    }) }</ul>;
 }
 
 class SectionBlock extends preact.Component {

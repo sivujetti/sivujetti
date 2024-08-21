@@ -1,14 +1,28 @@
 import {env} from '@sivujetti-commons-for-web-pages';
 import CrudList from '../../CrudList.jsx';
 import {__, api} from '../../edit-app-singletons.js';
-import EditItemPanel from './EditItemPanel.jsx';
+import {Icon} from '../../Icon.jsx';
 import {objectUtils} from '../../utils.js';
+import EditItemPanel from './EditItemPanel.jsx';
 /** @typedef {import('./EditItemPanel.jsx').MenuLink} MenuLink */
 
 class MenuBlockEditForm extends preact.Component {
     // crudListRef;
     // linkCreator;
     // currentBlockIdInfo;
+    /**
+     * @param {string} linkId
+     * @param {keyof MenuLink} propToChange
+     * @param {MenuLink[keyof MenuLink]} newVal
+     * @param {boolean} doThrottleEmit = false
+     * @access public
+     */
+    updateSubLinkAndEmitChanges(linkId, propToChange, newVal, doThrottleEmit = false) {
+        const copy = objectUtils.cloneDeep(this.state.parsedTree);
+        const ref = copy.find(({id}) => id === linkId);
+        ref[propToChange] = newVal; // mutates $copy
+        this.emitNewTree(copy, doThrottleEmit);
+    }
     /**
      * @access protected
      */
@@ -41,15 +55,16 @@ class MenuBlockEditForm extends preact.Component {
             <CrudList
                 items={ parsedTree }
                 itemTitleKey="text"
+                getTitle={ item => !item.children.length ? item.text : [item.text, <Icon iconId="selector" className="size-xs ml-2 color-dimmed color-saturated2 p-absolute"/>] }
                 onCreateCtxMenuCtrl={ this.createCtxMenuCtrl.bind(this) }
                 onListMutated={ (newParsedTree, prop) => {
                     this.emitNewTree(newParsedTree, prop === 'text');
                 } }
                 createNewItem={ () =>
-                    this.linkCreator.makeLinkItem({slug: '/', text: __('Link text')})
+                    this.linkCreator.makeLinkItem()
                 }
                 editForm={ EditItemPanel }
-                editFormProps={ {} }
+                editFormProps={ {menuForm: this} }
                 itemTypeFriendlyName={ __('link') }
                 ref={ this.crudListRef }/>
         </div>;
@@ -57,6 +72,7 @@ class MenuBlockEditForm extends preact.Component {
     /**
      * @param {ContextMenuController} ctrl
      * @returns {ContextMenuController}
+     * @access private
      */
     createCtxMenuCtrl(ctrl) {
         const origGetLinks = ctrl.getLinks;
@@ -73,12 +89,19 @@ class MenuBlockEditForm extends preact.Component {
             },
             onItemClicked: link => {
                 if (link.id === 'duplicate') {
-                    const linkWithNavOpened = this.crudListRef.current.itemWithNavOpened;
-                    const {parsedTree} = this.state;
-                    const clonedTree = objectUtils.cloneDeep(parsedTree);
-                    const pos = clonedTree.findIndex(({id}) => id === linkWithNavOpened.id);
+                    const openNavId = this.crudListRef.current.itemWithNavOpened.id;
+                    const clonedTree = objectUtils.cloneDeep(this.state.parsedTree);
+                    const pos = clonedTree.findIndex(({id}) => id === openNavId);
                     const orig = clonedTree[pos];
-                    const duplicate = this.linkCreator.makeLinkItem({slug: orig.slug, text: orig.text});
+                    const cmap = branch => branch.map(({slug, text, children}) =>
+                        this.linkCreator.makeLinkItem({
+                            slug,
+                            text,
+                            children: children.length ? cmap(children.length) : [],
+                        }))
+                    ;
+                    const duplicate = this.linkCreator.makeLinkItem({slug: orig.slug, text: orig.text,
+                        children: cmap(orig.children), includeToggleButton: orig.includeToggleButton});
                     clonedTree.splice(pos + 1, 0, duplicate);
                     this.emitNewTree(clonedTree);
                 } else {
@@ -124,11 +147,11 @@ class CountingLinkItemFactory {
         return parsedTree;
     }
     /**
-     * @param {PartialMenuLink} vals
+     * @param {PartialMenuLink} vals = {slug: '/', text: __('Link text')}
      * @returns {MenuLink}
      * @access public
      */
-    makeLinkItem(vals) {
+    makeLinkItem(vals = {slug: '/', text: __('Link text')}) {
         return {
             ...vals,
             ...(!Object.prototype.hasOwnProperty.call(vals, 'id')

@@ -14,7 +14,7 @@ class ViewAndContextMenuLayer extends preact.Component {
         const messageKey = (qvars.find(([q]) => q === 'show-message') || [])[1];
         const messageCreators = {
             'page-type-created': () => __('Created new %s', __('page type')),
-            'page-deleted': () => __('Deleted page "%s".', '').replace(' ""', ''),
+            'page-deleted': () => __('Deleted page "%s".', '-').replace(' "-"', ''),
         };
         const createMessage = messageKey ? messageCreators[messageKey] : null;
         if (!createMessage) return;

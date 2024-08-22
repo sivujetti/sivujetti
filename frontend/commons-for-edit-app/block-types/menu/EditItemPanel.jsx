@@ -14,10 +14,12 @@ import {
 import {Icon} from '../../Icon.jsx';
 
 class EditItemPanel extends preact.Component {
+    // crudListRef;
     /**
      * @param {{item: MenuLink; onValueChanged: (value: string, key: keyof MenuLink) => void; done: () => void; menuForm?: MenuBlockEditForm;}} props
      */
     componentWillMount() {
+        this.crudListRef = preact.createRef();
         this.setState(hookForm(this, [
             {name: 'linkText', value: this.props.item.text, validations: [['maxLength', validationConstraints.HARD_SHORT_TEXT_MAX_LEN]], label: __('Link text'),
             onAfterValueChanged: (value, hasErrors, _source) => {
@@ -89,6 +91,7 @@ class EditItemPanel extends preact.Component {
                         <CrudList
                             items={ linkChildren }
                             itemTitleKey="text"
+                            onCreateCtxMenuCtrl={ menuForm ? this.createCtxMenuCtrl.bind(this) : undefined }
                             onListMutated={ (newArr, prop) => {
                                 menuForm.updateSubLinkAndEmitChanges(
                                     this.props.item.id,
@@ -102,10 +105,39 @@ class EditItemPanel extends preact.Component {
                             }
                             editForm={ EditItemPanel }
                             editFormProps={ {menuForm: null} }
-                            itemTypeFriendlyName={ __('link') }/>
+                            itemTypeFriendlyName={ __('link') }
+                            ref={ this.crudListRef }/>
                     </div> }
             </div>] : null }
         </div>;
+    }
+    /**
+     * @param {ContextMenuController} ctrl
+     * @returns {ContextMenuController}
+     * @access private
+     */
+    createCtxMenuCtrl(ctrl) {
+        const {menuForm} = this.props;
+        const origOnClicked = ctrl.onItemClicked;
+        return {
+            ...ctrl,
+            getLinks: menuForm.currentCtxMenuController.getLinks,
+            onItemClicked: link => {
+                if (link.id === 'duplicate') {
+                    const newChildren = menuForm.createNewBranchWithLinkDuplicated(
+                        this.crudListRef.current.itemWithNavOpened.id,
+                        this.state.linkChildren
+                    );
+                    menuForm.updateSubLinkAndEmitChanges(
+                        this.props.item.id,
+                        'children',
+                        newChildren
+                    );
+                } else {
+                    origOnClicked.call(ctrl, link);
+                }
+            },
+        };
     }
 }
 

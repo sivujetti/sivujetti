@@ -8,8 +8,9 @@ import EditItemPanel from './EditItemPanel.jsx';
 
 class MenuBlockEditForm extends preact.Component {
     // crudListRef;
-    // linkCreator;
+    // linkCreator; // public
     // currentBlockIdInfo;
+    // currentCtxMenuController; // public
     /**
      * @param {string} linkId
      * @param {keyof MenuLink} propToChange
@@ -22,6 +23,28 @@ class MenuBlockEditForm extends preact.Component {
         const ref = copy.find(({id}) => id === linkId);
         ref[propToChange] = newVal; // mutates $copy
         this.emitNewTree(copy, doThrottleEmit);
+    }
+    /**
+     * @param {string} idOfLinkToDuplicate
+     * @param {Array<MenuLink>} tree = this.state.parsedTree
+     * @returns {Array<MenuLink>}
+     * @access public
+     */
+    createNewBranchWithLinkDuplicated(idOfLinkToDuplicate, tree = this.state.parsedTree) {
+        const clonedTree = objectUtils.cloneDeep(tree);
+        const pos = clonedTree.findIndex(({id}) => id === idOfLinkToDuplicate);
+        const orig = clonedTree[pos];
+        const cmap = branch => branch.map(({slug, text, children}) =>
+            this.linkCreator.makeLinkItem({
+                slug,
+                text,
+                children: children.length ? cmap(children.length) : [],
+            }))
+        ;
+        const duplicate = this.linkCreator.makeLinkItem({slug: orig.slug, text: orig.text,
+            children: cmap(orig.children), includeToggleButton: orig.includeToggleButton});
+        clonedTree.splice(pos + 1, 0, duplicate);
+        return clonedTree;
     }
     /**
      * @access protected
@@ -77,7 +100,7 @@ class MenuBlockEditForm extends preact.Component {
     createCtxMenuCtrl(ctrl) {
         const origGetLinks = ctrl.getLinks;
         const origOnClicked = ctrl.onItemClicked;
-        return {
+        this.currentCtxMenuController = {
             ...ctrl,
             getLinks: () => {
                 const links = origGetLinks.call(ctrl);
@@ -87,28 +110,16 @@ class MenuBlockEditForm extends preact.Component {
                     links[1],
                 ];
             },
-            onItemClicked: link => {
+            onItemClicked: (link) => {
                 if (link.id === 'duplicate') {
-                    const openNavId = this.crudListRef.current.itemWithNavOpened.id;
-                    const clonedTree = objectUtils.cloneDeep(this.state.parsedTree);
-                    const pos = clonedTree.findIndex(({id}) => id === openNavId);
-                    const orig = clonedTree[pos];
-                    const cmap = branch => branch.map(({slug, text, children}) =>
-                        this.linkCreator.makeLinkItem({
-                            slug,
-                            text,
-                            children: children.length ? cmap(children.length) : [],
-                        }))
-                    ;
-                    const duplicate = this.linkCreator.makeLinkItem({slug: orig.slug, text: orig.text,
-                        children: cmap(orig.children), includeToggleButton: orig.includeToggleButton});
-                    clonedTree.splice(pos + 1, 0, duplicate);
-                    this.emitNewTree(clonedTree);
+                    const newTree = this.createNewBranchWithLinkDuplicated(this.crudListRef.current.itemWithNavOpened.id);
+                    this.emitNewTree(newTree);
                 } else {
                     origOnClicked.call(ctrl, link);
                 }
             },
         };
+        return this.currentCtxMenuController;
     }
     /**
      * @param {Array<MenuLink>} newParsedTree

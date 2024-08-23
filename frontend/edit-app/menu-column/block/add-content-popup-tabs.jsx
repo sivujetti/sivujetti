@@ -306,7 +306,6 @@ function createContentTemplateSpawnDescriptor(template) {
             data: data?.customizationSettings ? objectUtils.cloneDeepWithChanges(data, copy => {
                 copy.customizationSettings.varDefs.forEach(v => {
                     v.varName = v.varName.replace(ccPlaceholder, incremented);
-                    v.widgetSettings.inputId = v.widgetSettings.inputId.replace(ccPlaceholder, incremented);
                 });
             })
             : null,

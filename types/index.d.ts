@@ -527,8 +527,8 @@ interface ValueInputProps<T> {
     value: T;
     labelTranslated: String;
     onValueChanged: (newValAsString: String|null) => void;
+    inputId: String;
     isClearable?: Boolean;
-    inputId?: String;
     additionalUnits?: Array<String>; // Example: ['fr']
 }
 
@@ -614,7 +614,6 @@ interface VisualStylesFormVarDefinitionWidgetSettings {
     valueType?: String;          // 'color'|'option' etc.
     renderer?: preact.Component; // ColorValueInput|OptionValueInput etc.
     label: String;               // Example 'Text align'
-    inputId: String;             // Example 'textTextAlign'
     defaultThemeValue?:          // Example {num: '6', unit: 'rem'}
         ColorValue |
         GridColumnsValue |

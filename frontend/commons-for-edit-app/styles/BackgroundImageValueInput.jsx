@@ -4,30 +4,22 @@ import {__} from '../edit-app-singletons.js';
 import {FormGroupInline} from '../Form.jsx';
 import {Icon} from '../Icon.jsx';
 import ImagePicker from '../ImagePicker.jsx';
-import {createInputId} from './ValueInputFuncs.js';
 
+/** @extends {preact.Component<ValueInputProps<null> & {valueAsString: String|null;}, any>} */
 class BackgroundImageValueInput extends preact.Component {
-    // inputId;
-    /**
-     * @param {ValueInputProps<null> & {valueAsString: String|null;}} props
-     */
-    constructor(props) {
-        super(props);
-        this.inputId = createInputId('styleImage', props);
-    }
     /**
      * @access protected
      */
-    render({valueAsString, isClearable, labelTranslated}) {
+    render({valueAsString, isClearable, labelTranslated, inputId}) {
         return <FormGroupInline>
-            <label class="form-label p-relative pt-1" htmlFor={ this.inputId } title={ labelTranslated }>
+            <label class="form-label p-relative pt-1" htmlFor={ inputId } title={ labelTranslated }>
                 { labelTranslated }
             </label>
             <div class="p-relative">
                 <ImagePicker
                     src={ valueAsString }
                     onSrcCommitted={ this.handleImageSrcCommitted.bind(this) }
-                    inputId={ this.inputId }
+                    inputId={ inputId }
                     showClearItem
                     omitClearButton/>
                 { isClearable

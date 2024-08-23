@@ -280,12 +280,7 @@ function maybePatchVarDefs(arr, chunk) {
             const c = parseInt(varName.split('_')[1], 10);
             return c > out ? c : out;
         }, 0) + 1;
-        const varName = `${cls}_${next}`;
-        return {
-            ...v,
-            varName,
-            widgetSettings: {...v.widgetSettings, inputId: varName}
-        };
+        return {...v, varName: `${cls}_${next}`};
     });
 }
 

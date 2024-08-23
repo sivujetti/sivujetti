@@ -1,24 +1,16 @@
 import {__} from '../edit-app-singletons.js';
 import {FormGroupInline} from '../Form.jsx';
 import {Icon} from '../Icon.jsx';
-import {createInputId} from './ValueInputFuncs.js';
 
+/** @extends {preact.Component<ValueInputProps<OptionValue & {options: Array<{label: String; value: String;}>;}>, any>} */
 class OptionValueInput extends preact.Component {
-    // inputId;
-    /**
-     * @param {ValueInputProps<OptionValue & {options: Array<{label: String; value: String;}>;}>} props
-     */
-    constructor(props) {
-        super(props);
-        this.inputId = createInputId('styleOption', props);
-    }
     /**
      * @access protected
      */
-    render({value, options, defaultThemeValue, isClearable, labelTranslated}) {
+    render({value, options, defaultThemeValue, isClearable, labelTranslated, inputId}) {
         const selectedVisible = value.selected || defaultThemeValue?.selected;
         return <FormGroupInline>
-            <label class="form-label p-relative pt-1" htmlFor={ this.inputId } title={ labelTranslated }>
+            <label class="form-label p-relative pt-1" htmlFor={ inputId } title={ labelTranslated }>
                 { labelTranslated }
             </label>
             <div class="p-relative">
@@ -26,7 +18,7 @@ class OptionValueInput extends preact.Component {
                     class="form-select"
                     value={ selectedVisible }
                     onChange={ e => this.props.onValueChanged(e.target.value) }
-                    id={ this.inputId }>
+                    id={ inputId }>
                 { options.map(({label, value}) =>
                     <option value={ value }>{ label }</option>
                 ) }

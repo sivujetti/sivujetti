@@ -73,12 +73,12 @@ class DefaultStyleCustomizatorForm extends preact.Component {
         const {varName, widgetSettings} = def;
         if (!widgetSettings)
             return null;
-        const {valueType, renderer, label, inputId, initialUnit, defaultThemeValue} = widgetSettings;
+        const {valueType, renderer, label, initialUnit, defaultThemeValue} = widgetSettings;
         const commonProps = {
             onValueChanged: newValAsString => this.handleVisualVarChanged(newValAsString, varName, varInputToScssCode),
             labelTranslated: __(label),
             isClearable: !!selectedScreenSizeVars[varName],
-            inputId,
+            inputId: varName,
             defaultThemeValue,
         };
         if (valueType === 'backgroundImage' || renderer === BackgroundImageValueInput)

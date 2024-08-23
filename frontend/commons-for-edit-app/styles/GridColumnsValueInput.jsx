@@ -3,21 +3,13 @@ import {FormGroupInline} from '../Form.jsx';
 import {Icon} from '../Icon.jsx';
 import Popup from '../Popup.jsx';
 import LengthValueInput from './LengthValueInput.jsx';
-import {createInputId} from './ValueInputFuncs.js';
 
+/** @extends {preact.Component<ValueInputProps<null> & {valueAsString: string|null;}, any>} */
 class GridColumnsValueInput extends preact.Component {
-    // inputId;
-    /**
-     * @param {ValueInputProps<null> & {valueAsString: string|null;} props
-     */
-    constructor(props) {
-        super(props);
-        this.inputId = createInputId('styleGridColumns', props);
-    }
     /**
      * @access protected
      */
-    render({valueAsString, labelTranslated, isClearable}, {currentEditPopupData}) {
+    render({valueAsString, labelTranslated, isClearable, inputId}, {currentEditPopupData}) {
         let stylesOuter = '';
         let widths = [];
         if (valueAsString) {
@@ -29,7 +21,7 @@ class GridColumnsValueInput extends preact.Component {
         }
 
         return [<FormGroupInline>
-            <label class="form-label p-relative pt-1" htmlFor={ this.inputId } title={ labelTranslated }>
+            <label class="form-label p-relative pt-1" htmlFor={ inputId } title={ labelTranslated }>
                 { labelTranslated }
             </label>
             <div class="p-relative">

@@ -102,7 +102,6 @@ class CustomClassStyleEditCustomizationsDialog extends preact.Component {
                 widgetSettings: {
                     valueType: 'length',
                     label: '',
-                    inputId: '@pending',
                 }
             }],
             idxOfItemInEditMode: this.state.varDefs.length,
@@ -116,7 +115,7 @@ class CustomClassStyleEditCustomizationsDialog extends preact.Component {
         this.setState({idxOfItemInEditMode: idx});
     }
     /**
-     * @param {{cssProp: string; cssSubSelector: string|null; widgetSettings: {valueType: string; label: string; inputId: string;};}} newVarDefData
+     * @param {{cssProp: string; cssSubSelector: string|null; widgetSettings: {valueType: string; label: string;};}} newVarDefData
      * @access private
      */
     handleEditEnded(newVarDefData) {
@@ -317,7 +316,6 @@ class EditConfigSettingsForm extends preact.Component {
             cssSubSelector: values.subSelector || null,
             widgetSettings: {
                 label: values.name,
-                inputId: this.props.item.widgetSettings.inputId,
                 valueType: widgetType,
                 ...(values.defaultThemeValue ? {defaultThemeValue: values.defaultThemeValue} : {}),
                 ...(optionWidgetOptions ? {options: optionWidgetOptions} : {}),

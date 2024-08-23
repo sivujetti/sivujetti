@@ -2,26 +2,18 @@ import ColorPickerInput from '../ColorPickerInput.jsx';
 import {__} from '../edit-app-singletons.js';
 import {FormGroupInline} from '../Form.jsx';
 import {Icon} from '../Icon.jsx';
-import {createInputId} from './ValueInputFuncs.js';
 
 /** @type {CanvasRenderingContext2D} */
 let helperCanvasCtx;
 
+/** @extends {preact.Component<ValueInputProps<null> & {valueAsString: String|null; onValueChangedFast?: (newRapidlyPickedVal: String) => void;}, any>} */
 class ColorValueInput extends preact.Component {
-    // inputId;
-    /**
-     * @param {ValueInputProps<null> & {valueAsString: String|null; onValueChangedFast?: (newRapidlyPickedVal: String) => void;}} props
-     */
-    constructor(props) {
-        super(props);
-        this.inputId = createInputId('styleColor', props);
-    }
     /**
      * @access protected
      */
-    render({valueAsString, labelTranslated, onValueChanged, onValueChangedFast, isClearable}) {
+    render({valueAsString, labelTranslated, onValueChanged, onValueChangedFast, isClearable, inputId}) {
         return <FormGroupInline>
-            <label class="form-label p-relative pt-1" htmlFor={ this.inputId } title={ labelTranslated }>
+            <label class="form-label p-relative pt-1" htmlFor={ inputId } title={ labelTranslated }>
                 { labelTranslated }
             </label>
             <div class="p-relative">
@@ -29,7 +21,7 @@ class ColorValueInput extends preact.Component {
                     initialColorStr={ valueAsString }
                     onColorPicked={ onValueChanged }
                     onColorPickedFast={ onValueChangedFast }
-                    inputId={ this.inputId }/>
+                    inputId={ inputId }/>
                 { isClearable
                     ? <button onClick={ () => { this.props.onValueChanged(null); } }
                         class="btn btn-link btn-xs clear-style-btn"

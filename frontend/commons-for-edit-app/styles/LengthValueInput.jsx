@@ -10,17 +10,9 @@ import {
 } from '../Form.jsx';
 import {Icon} from '../Icon.jsx';
 import {isUndoOrRedo, timingUtils} from '../utils.js';
-import {createInputId} from './ValueInputFuncs.js';
 
+/** @extends {preact.Component<ValueInputProps<LengthValue>, any>} */
 class LengthValueInput extends preact.Component {
-    // inputId;
-    /**
-     * @param {ValueInputProps<LengthValue>} props
-     */
-    constructor(props) {
-        super(props);
-        this.inputId = createInputId('styleLength', props);
-    }
     /**
      * @access protected
      */
@@ -57,15 +49,15 @@ class LengthValueInput extends preact.Component {
     /**
      * @access protected
      */
-    render({value, isClearable, labelTranslated, defaultThemeValue, additionalUnits}, {unit}) {
+    render({value, isClearable, labelTranslated, defaultThemeValue, additionalUnits, inputId}, {unit}) {
         const {num} = value;
         return <FormGroupInline className="has-visual-length-input">
-            <label htmlFor={ this.inputId } class="form-label p-relative pt-1" title={ labelTranslated }>
+            <label htmlFor={ inputId } class="form-label p-relative pt-1" title={ labelTranslated }>
                 { labelTranslated }
             </label>
             <div class="p-relative">
                 <div class="input-group">
-                    <Input vm={ this } prop="num" id={ this.inputId } placeholder={ defaultThemeValue?.num || '1.4' } autoComplete="off"/>
+                    <Input vm={ this } prop="num" id={ inputId } placeholder={ defaultThemeValue?.num || '1.4' } autoComplete="off"/>
                     <select
                         onChange={ e => {
                             if (num)
@@ -75,7 +67,7 @@ class LengthValueInput extends preact.Component {
                         } }
                         class="form-input input-group-addon addon-sm form-select"
                         value={ unit }
-                        name={ `${this.inputId}Unit` }>{ ['rem', 'px', '%', 'em', 'vh', 'vw', 'vb', 'vmin', 'vmax', ...(additionalUnits || [])].map(ltype =>
+                        name={ `${inputId}Unit` }>{ ['rem', 'px', '%', 'em', 'vh', 'vw', 'vb', 'vmin', 'vmax', ...(additionalUnits || [])].map(ltype =>
                             <option value={ ltype }>{ ltype }</option>
                         )
                     }</select>

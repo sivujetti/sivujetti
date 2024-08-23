@@ -309,6 +309,11 @@ stringBundles.push({
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metadata',
     'Url (slug)': 'Url (slug)',
+    'Status': 'Status',
+    'Hidden': 'Hidden',
+    'draft': 'draft',
+    'Public': 'Public',
+    'published': 'published',
     'Social image': 'Social image',
     'Meta description': 'Meta description',
     // edit-app/src/block-types/paragraph.js

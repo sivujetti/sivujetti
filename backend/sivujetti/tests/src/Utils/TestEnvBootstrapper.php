@@ -8,19 +8,16 @@ use Pike\Auth\Authenticator;
 use Pike\Db\FluentDb2;
 use Pike\Interfaces\SessionInterface;
 use Pike\TestUtils\SingleConnectionDb;
-use Sivujetti\SharedAPIContext;
 use Sivujetti\Boot\BootModule;
 
 /**
  * @psalm-import-type ConfigBundle from \Sivujetti\App
  */
 class TestEnvBootstrapper extends BootModule {
+    /** @var array<string, mixed> */
+    public array $mockConfigs;
     /** @var ?\Pike\Db */
     protected ?Db $db;
-    /** @var ?array */
-    protected ?array $authTemp;
-    /** @var ?\Sivujetti\SharedAPIContext */
-    protected ?SharedAPIContext $apiCtxTemp;
     /** @var array<int, \Closure> */
     protected array $customAlterers;
     /**
@@ -31,8 +28,7 @@ class TestEnvBootstrapper extends BootModule {
         if ($db === null) throw new PikeException("Db is required");
         parent::__construct($configBundle);
         $this->db = $db;
-        $this->authTemp = null;
-        $this->apiCtxTemp = null;
+        $this->mockConfigs = [];
         $this->customAlterers = [];
     }
     /**
@@ -44,24 +40,22 @@ class TestEnvBootstrapper extends BootModule {
         $di->alias(Db::class, SingleConnectionDb::class);
         $di->share(new FluentDb2($this->db));
         //
-        if ($this->authTemp) {
-            if (is_array($this->authTemp)) {
-                $args = $this->authTemp[1];
-                $mockSession = $args[":session"];
-                $di->delegate(SessionInterface::class, fn() => $mockSession);
-                $di->share(new Authenticator(
-                    makeUserRepositoryFn: function ($_factory) { },
-                    makeSessionFn: fn() => $mockSession,
-                    makeRequestFn: function ($_factory) { },
-                    makeCookieStorageFn: function ($_factory) { },
-                    userRoleCookieName: "",
-                    doUseRememberMe: false
-                ));
-            }
+        if (array_key_exists("auth", $this->mockConfigs)) {
+            $args = $this->mockConfigs["auth"][1];
+            $mockSession = $args[":session"];
+            $di->delegate(SessionInterface::class, fn() => $mockSession);
+            $di->share(new Authenticator(
+                makeUserRepositoryFn: function ($_factory) { },
+                makeSessionFn: fn() => $mockSession,
+                makeRequestFn: function ($_factory) { },
+                makeCookieStorageFn: function ($_factory) { },
+                userRoleCookieName: "",
+                doUseRememberMe: false
+            ));
         }
         //
-        if ($this->apiCtxTemp) {
-            $di->share($this->apiCtxTemp);
+        if (array_key_exists("apiCtx", $this->mockConfigs)) {
+            $di->share($this->mockConfigs["apiCtx"]);
         }
         //
         foreach ($this->customAlterers as $fn) {
@@ -83,9 +77,9 @@ class TestEnvBootstrapper extends BootModule {
                 ? null
                 : (object) ["id" => "1", "role" => $args[":userRole"] ?? 1];
             $args[":session"]->method("get")->with("user")->willReturn($user);
-            $this->authTemp = ["@auto", $args];
+            $this->mockConfigs["auth"] = ["@auto", $args];
         } elseif ($name === "apiCtx") {
-            $this->apiCtxTemp = $args[0];
+            $this->mockConfigs["apiCtx"] = $args[0];
         } else {
             throw new PikeException("");
         }

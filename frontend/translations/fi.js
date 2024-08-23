@@ -309,6 +309,11 @@ stringBundles.push({
     // edit-app/src/block-types/pageInfo.js
     'PageInfo': 'Metatiedot',
     'Url (slug)': 'Urli (slug)',
+    'Status': 'Status',
+    'Hidden': 'Piilotettu',
+    'draft': 'luonnos',
+    'Public': 'Julkinen',
+    'published': 'julkaistu',
     'Social image': 'Some-kuva',
     'Meta description': 'Meta-selostus',
     // edit-app/src/block-types/paragraph.js

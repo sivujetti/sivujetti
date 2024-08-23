@@ -2,10 +2,10 @@
 
 namespace Sivujetti\BlockType;
 
-use Pike\{ArrayUtils, Injector, PikeException};
+use Pike\{ArrayUtils, Injector, PikeException, Request};
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\{JsonUtils};
-use Sivujetti\Page\PagesRepository2;
+use Sivujetti\Page\{PagesController, PagesRepository2};
 use Sivujetti\TheWebsite\Entities\TheWebsite;
 
 /**
@@ -44,16 +44,27 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
      * @param \Sivujetti\Block\Entities\Block $block
      * @param \Sivujetti\Page\PagesRepository2 $pagesRepo
      * @param \Sivujetti\TheWebsite\Entities\TheWebsite $theWebsite
+     * @param \Sivujetti\TheWebsite\Entities\TheWebsite $req 
      */
     public function doPerformBeforeRender(Block $block,
                                           PagesRepository2 $pagesRepo,
-                                          TheWebsite $theWebsite): void {
+                                          TheWebsite $theWebsite,
+                                          Request $req): void {
         $pageType = ArrayUtils::findByKey($theWebsite->pageTypes, $block->filterPageType, "name");
         $q = $pagesRepo->select($block->filterPageType, ["@own", "@blocks"]); // <- note @blocks
-        if (count((array)$block->filterAdditional)) {
-            $validFilters = self::getValidFilters($block->filterAdditional, $pageType->ownFields);
-            $q = $q->mongoWhere(JsonUtils::stringify($validFilters));
+
+        $mongoFilters = count((array) $block->filterAdditional)
+            ? self::getValidFilters($block->filterAdditional, $pageType->ownFields)
+            : new \stdClass;
+        $statusFilter = PagesController::createGetPublicPageFilters("-", $req->myData->user)["filters"][1] ?? null;
+        if ($statusFilter) {
+            [$col, $val] = $statusFilter; // Example ["status", 0]
+            $mongoFilters->{$col} = (object) ["\$eq" => $val];
         }
+        if (count((array) $mongoFilters)) {
+            $q = $q->mongoWhere(JsonUtils::stringify($mongoFilters));
+        }
+
         if ($block->filterLimit)
             $q = $q->limit($block->filterLimit);
         if ($block->filterOrder)
@@ -69,7 +80,7 @@ class ListingBlockType implements BlockTypeInterface, RenderAwareBlockTypeInterf
     /**
      * @param object $filtersIn Example: {"p.categories": {$contains: "\"catid\""}, "p.slug": {$startsWith: "/slug"}}
      * @param array<int, RawPageTypeField> $pageTypesFields
-     * @return object Copy of $filterIn if all valid
+     * @return object Identical to $filterIn if all props are valid
      */
     private static function getValidFilters(object $filtersIn, array $pageTypesFields): object {
         $out = new \stdClass;

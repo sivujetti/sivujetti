@@ -3,6 +3,7 @@
 namespace Sivujetti\Tests\Page;
 
 use Pike\{ArrayUtils, Injector};
+use Pike\Interfaces\SessionInterface;
 use Pike\TestUtils\{DbTestCase, HttpTestUtils};
 use Sivujetti\BlockType\{BlockTypeInterface, PropertiesBuilder, SaveAwareBlockTypeInterface};
 use Sivujetti\PageType\Entities\PageType;
@@ -32,9 +33,12 @@ abstract class PagesControllerTestCase extends DbTestCase {
     public static function getDbConfig(): array {
         return (require TEST_CONFIG_FILE_PATH)["app"];
     }
-    public function makePagesControllerTestApp(\TestState $state): void {
-        $this->makeTestSivujettiApp($state, function (TestEnvBootstrapper $bootModule) {
+    public function makePagesControllerTestApp(\TestState $state, ?int $loggedInUserRole = null): void {
+        $this->makeTestSivujettiApp($state, function (TestEnvBootstrapper $bootModule) use ($loggedInUserRole) {
             $bootModule->useMock("apiCtx", [$this->testApiCtx]);
+            if ($loggedInUserRole !== null)
+                $bootModule->useMock("auth", [":session" => $this->createMock(SessionInterface::class),
+                                              ":userRole" => $loggedInUserRole]);
         });
     }
     protected function insertTestPageDataToDb(object $stateOrPageData,

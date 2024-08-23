@@ -5,9 +5,11 @@ namespace Sivujetti\Tests\Page;
 use DiDom\Document;
 use MySite\Theme;
 use Pike\ArrayUtils;
+use Sivujetti\Auth\ACL;
 use Sivujetti\Block\BlockTree;
 use Sivujetti\Block\Entities\Block;
 use Sivujetti\BlockType\GlobalBlockReferenceBlockType;
+use Sivujetti\Page\Entities\Page;
 use Sivujetti\Page\WebPageAwareTemplate;
 use Sivujetti\Template;
 use Sivujetti\Tests\Utils\{BlockTestUtils, TestData};
@@ -27,7 +29,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $this->verifyRenderedHead($state);
     }
     private function setupTest(): \TestState {
-        $state = new \TestState;
+        $state = $this->createTestStateStub();
         $btu = new BlockTestUtils();
         $state->testGlobalBlockTree = [
             $btu->makeBlockData(Block::TYPE_TEXT, id: "@auto", propsData: ["html" => "<p>Footer text</p>"])
@@ -37,15 +39,12 @@ final class RenderBasicPageTest extends RenderPageTestCase {
             "name" => "Footer",
             "blocks" => BlockTree::toJson($state->testGlobalBlockTree),
         ];
-        $state->testPageData = $this->pageTestUtils->makeTestPageData();
         $state->testPageData->createdAt = time();
         $state->testPageData->lastUpdatedAt = $state->testPageData->createdAt;
         $state->testPageData->blocks[] = $btu->makeBlockData(Block::TYPE_GLOBAL_BLOCK_REF,
             propsData: ["globalBlockTreeId" => $state->testGlobalBlockData->id, "overrides" =>
                 GlobalBlockReferenceBlockType::EMPTY_OVERRIDES, "useOverrides" => 0]
         );
-        $state->spyingResponse = null;
-        $state->app = null;
         return $state;
     }
     private function insertTestGlobalBlocksToDb(\TestState $state): void {
@@ -89,7 +88,7 @@ final class RenderBasicPageTest extends RenderPageTestCase {
         $ldWebPage = ArrayUtils::findByKey($actualJdJson->{"@graph"}, "WebPage", "@type");
         $ldWebSite = ArrayUtils::findByKey($actualJdJson->{"@graph"}, "WebSite", "@type");
         // ld+json general
-        $expectedSiteUrlFull = "http://localhost" . Template::makeUrl("/", withIndexFile: false);
+        $expectedSiteUrlFull = "http://localhost{$this->makeUrl("/", withIndexFile: false)}";
         $this->assertEquals($expectedSiteUrlFull, $ldWebSite->url);
         $this->assertEquals("{$expectedSiteUrlFull}#website", $ldWebSite->{"@id"});
         $this->assertEquals((object) ["@id" => $ldWebSite->{"@id"}], $ldWebPage->isPartOf);
@@ -213,7 +212,36 @@ final class RenderBasicPageTest extends RenderPageTestCase {
             $injectJs
         );
     }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    public function testRenderPageNotRenderPageDraftsIfUserIsNotLoggedIn(): void {
+        $state = $this->setupVisibilityTest();
+        $this->insertTestPageToDb($state);
+
+        $this->makePagesControllerTestApp($state, loggedInUserRole: ACL::ROLE_CONTRIBUTOR);
+        $this->sendRenderPageRequest($state);
+        $this->verifyRequestFinishedSuccesfully($state, withStatusCode: 404, withContentType: "text/html");
+
+        $this->makePagesControllerTestApp($state, loggedInUserRole: ACL::ROLE_AUTHOR);
+        $this->sendRenderPageRequest($state);
+        $this->verifyRequestFinishedSuccesfully($state, withStatusCode: 200, withContentType: "text/html");
+    }
+    private function setupVisibilityTest(): \TestState {
+        $state = $this->createTestStateStub();
+        $state->testPageData->status = Page::STATUS_DRAFT;
+        return $state;
+    }
+    private function createTestStateStub(): \TestState {
+        $state = new \TestState;
+        $state->testPageData = $this->pageTestUtils->makeTestPageData();
+        $state->spyingResponse = null;
+        $state->app = null;
+        return $state;
+    }
     private static function makeUrl(...$args): string {
-        return (new WebPageAwareTemplate("dummy"))->makeUrl(...$args);
+        return (new WebPageAwareTemplate("dummy", env: (require TEST_CONFIG_FILE_PATH)["env"]))->makeUrl(...$args);
     }
 }

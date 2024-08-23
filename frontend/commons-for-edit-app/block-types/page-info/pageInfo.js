@@ -56,7 +56,8 @@ class PageInfoBlockEditForm extends preact.Component {
                 throttler(mut => { mut.meta.description = value; }, hasErrors, source);
              }},
         ], {
-            socialImageSrc: getNormalizedMetaImageSrc(curPage)
+            socialImageSrc: getNormalizedMetaImageSrc(curPage),
+            status: curPage.status.toString(),
         }));
 
         this.unregistrables = [saveButton.subscribeToChannel('currentPageData', (page, _userCtx, _ctx) => {
@@ -67,8 +68,9 @@ class PageInfoBlockEditForm extends preact.Component {
                 reHookValues(this, newCandidate);
             }
             const srcCandidate = getNormalizedMetaImageSrc(page);
-            if (this.state.socialImageSrc !== srcCandidate)
-                this.setState({socialImageSrc: srcCandidate});
+            const statusCandidate = page.status.toString();
+            if (this.state.socialImageSrc !== srcCandidate || this.state.status !== statusCandidate)
+                this.setState({socialImageSrc: srcCandidate, status: statusCandidate});
         })];
     }
     /**
@@ -89,7 +91,7 @@ class PageInfoBlockEditForm extends preact.Component {
      * @param {BlockEditFormProps} props
      * @access protected
      */
-    render(_, {socialImageSrc, metaImgLoadError}) {
+    render(_, {socialImageSrc, metaImgLoadError, status}) {
         const wrap = input => !this.pageType || this.pageType.name === 'Pages'
             ? input
             : <div class="input-group">
@@ -106,6 +108,17 @@ class PageInfoBlockEditForm extends preact.Component {
                 <label htmlFor="pageSlug" class="form-label">{ __('Url (slug)') }</label>
                 { wrap(<Input vm={ this } prop="slug" id="pageSlug"/>) }
                 <InputErrors vm={ this } prop="slug"/>
+            </FormGroupInline>
+            <FormGroupInline>
+                <label htmlFor="pageSlug" class="form-label">{ __('Status') }</label>
+                <select
+                    onChange={ e => handleValuesChanged({status: parseInt(e.target.value, 10)}) }
+                    value={ status }
+                    class="form-select"
+                    name="pageStatus">
+                    <option value="1">{ `${__('Hidden')} (${__('draft')})` }</option>
+                    <option value="0">{ `${__('Public')} (${__('published')})` }</option>
+                </select>
             </FormGroupInline>
             <FormGroupInline>
                 <label htmlFor="socialImageSrc" class="form-label">{ __('Social image') }</label>

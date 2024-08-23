@@ -52,7 +52,7 @@ final class PagesModule {
         );
         $router->map("GET", "[**:url]",
             [PagesController::class, "renderPage", ["allowMissingRequestedWithHeader" => true,
-                                                    "skipAuth" => true]]
+                                                    "skipAuthButLoadRequestUser" => true]]
         );
     }
 }

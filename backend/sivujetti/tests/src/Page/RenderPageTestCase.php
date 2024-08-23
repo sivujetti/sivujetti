@@ -9,12 +9,17 @@ abstract class RenderPageTestCase extends PagesControllerTestCase {
         $this->pageTestUtils->insertPage($state->testPageData);
     }
     protected function sendRenderPageRequest(\TestState $state, bool $inEditMode = false): void {
+        $testEnvBootModule = $state->app->getApp()->getModules()[0];
         $state->spyingResponse = $state->app->sendRequest(
             new Request($state->testPageData->slug, "GET",
                 body: null,
                 files: null,
                 serverVars: ["HTTP_HOST" => "localhost"],
-                queryVars: !$inEditMode ? null : ["in-edit" => ""]
+                queryVars: !$inEditMode ? null : ["in-edit" => ""],
+                // For skipAuthButLoadRequestUser
+                cookies: array_key_exists("auth", $testEnvBootModule->mockConfigs)
+                    ? ["PHPSESSID" => "--------------------------"]
+                    : [],
             ));
     }
 }

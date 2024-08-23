@@ -57,7 +57,7 @@ final class PagesController {
             return;
         }
         if (!($page = $pagesRepo->getSingle($pageType,
-                                            ["filters" => [["slug", $slug]]]))) {
+                                            self::createGetPublicPageFilters($slug, $req->myData->user)))) {
             $res->status(404)->html("404");
             return;
         }
@@ -503,6 +503,21 @@ final class PagesController {
             if ($children)
                 self::runBlockBeforeRenderEvent($children, $blockTypes, $pagesRepo, $di);
         }
+    }
+    /**
+     * @param string $slug
+     * @param ?object $reqUser
+     * @psalm-param ?object{id: string, role: int} $reqUser
+     * @return array
+     * @psalm-return array{filters: array<int, [sring, string|int]>}
+     */
+    public static function createGetPublicPageFilters(string $slug, ?object $reqUser): array {
+        return ["filters" => [
+            ["slug", $slug],
+            ...(!$reqUser || ($reqUser && $reqUser->role > ACL::ROLE_AUTHOR)
+                ? [["status", Page::STATUS_PUBLISHED]]
+                : [])
+        ]];
     }
     /**
      * @param \Sivujetti\PageType\Entities\PageType $pageType

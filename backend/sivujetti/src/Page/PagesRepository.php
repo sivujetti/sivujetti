@@ -295,16 +295,16 @@ final class PagesRepository {
      * todo
      */
     private function filtersToQParts(PageType $pageType, array $filters): array {
-        $filterSql = "";
+        $filterSql = [];
         $filterValues = [];
         $escape = function (string $candidate): string {
             return $candidate !== "p.`id`" ? $this->db->columnify($candidate) : $candidate;
         };
         foreach ($filters as $filter) {
             [$col, $val] = $filter;
-            $filterSql .= "{$escape($col)} = ?";
+            $filterSql[] = "{$escape($col)} = ?";
             $filterValues[] = $val;
         }
-        return [$filterSql, $filterValues, "", ""];
+        return [implode(" AND ", $filterSql), $filterValues, "", ""];
     }
 }

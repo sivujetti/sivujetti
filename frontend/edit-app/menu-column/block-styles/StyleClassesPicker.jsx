@@ -9,7 +9,7 @@ class StyleClassesPicker extends preact.Component {
      */
     componentWillMount() {
         this.tagify = preact.createRef();
-        const chunk = scssWizard.findStyle('custom-class', undefined, 'all', 'dev-styles');
+        const chunk = scssWizard.findStyle('base-freeform', undefined, 'all', 'base-styles');
         const devsCustomClassInfos = chunk ? scssUtils.extractClassCssBlocks(chunk) : [];
         this.tagifyChoices = createTagifyChoices(devsCustomClassInfos);
         this.changeableClasses = extractChangeableClasses(this.props.currentClasses);

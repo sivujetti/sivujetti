@@ -14,6 +14,7 @@ import {fetchOrGet as fetchOrGetGlobalBlockTrees} from '../../includes/global-bl
 import {fetchOrGet as fetchOrGetReusableBranches} from '../../includes/reusable-branches/repository.js';
 import VerticalTabs from '../../includes/VerticalTabs.jsx';
 import {
+    ccPlaceholder,
     createCustomClassChunkClassNameCreator,
     createIsDuplicateCustomClassChunkChecker,
 } from '../block-styles/CustomClassStylesList.jsx';
@@ -206,16 +207,22 @@ function sort(selectableBlockTypes) {
 
 /** @extends {preact.Component<AddTemplateContentTabProps, any>} */
 class AddTemplateContentTab extends preact.Component {
+    // tabIds;
     // tabTitles;
     /**
      * @access protected
      */
     componentWillMount() {
-        this.tabTitles = [
-            {text: __('Headers')},
-            {text: __('Content#plural')},
-            {text: __('Footers')},
-        ];
+        const tabs = {
+            'headers': __('Headers'),
+            'content': __('Content#plural'),
+            'footers': __('Footers'),
+            'other': __('Other'),
+        };
+        this.tabIds = Object.keys(tabs);
+        this.tabTitles = this.tabIds.map(key =>
+            ({text: tabs[key]})
+        );
         fetchContentTemplates()
             .then(templates => { this.setState({templates}); })
             .catch(env.window.console.error);
@@ -227,7 +234,7 @@ class AddTemplateContentTab extends preact.Component {
         return <VerticalTabs tabs={ this.tabTitles } initialTabIdx={ 1 }>{ (tab, currentTabIdx) => {
             if (!templates)
                 return <LoadingSpinner className="ml-2 pl-1"/>;
-            const selectedCat = ['headers', 'content', 'footers'][currentTabIdx];
+            const selectedCat = this.tabIds[currentTabIdx];
             const toList = templates.filter(({category}) => category === selectedCat);
             return <div class="image-buttons-list p-1">{ toList.length ? toList.map(tmpl =>
                 <button onClick={ () => {
@@ -271,7 +278,7 @@ function createContentTemplateSpawnDescriptor(template) {
     let spawnClassName = null;
     let checkIsDuplicateChunk = null;
     const newBlock = createBlockFromBlueprint(root, ({initialStyles}, block) => {
-        if (block.styleClasses.indexOf('@customClass[0]') < 0) return;
+        if (block.styleClasses.indexOf(ccPlaceholder) < 0) return;
 
         if (initialStyles.length !== 1)
             throw new Error('template.blockBlueprints[*].initialStyles.length > 1 not implemented yet');
@@ -283,7 +290,7 @@ function createContentTemplateSpawnDescriptor(template) {
         // the className of that style
         const className = checkIsDuplicateChunk(initialStyles[0]);
         if (className) {
-            block.styleClasses = block.styleClasses.replace('@customClass[0]', className);
+            block.styleClasses = block.styleClasses.replace(ccPlaceholder, className);
             return;
         }
 
@@ -291,8 +298,19 @@ function createContentTemplateSpawnDescriptor(template) {
         // Case #2: The template's blockBlueprints.initialStyles[0] has not been added -> add it and
         // generate a className for it
         const incremented = spawnClassName();
-        block.styleClasses = block.styleClasses.replace('@customClass[0]', incremented);
-        styles.push({...initialStyles[0], scss: initialStyles[0].scss.replace('@customClass[0]', incremented)});
+        block.styleClasses = block.styleClasses.replace(ccPlaceholder, incremented);
+        const {scss, data} = initialStyles[0];
+        styles.push({
+            ...initialStyles[0],
+            scss: scss.replace(/@customClass\[0\]/g, incremented),
+            data: data?.customizationSettings ? objectUtils.cloneDeepWithChanges(data, copy => {
+                copy.customizationSettings.varDefs.forEach(v => {
+                    v.varName = v.varName.replace(ccPlaceholder, incremented);
+                    v.widgetSettings.inputId = v.widgetSettings.inputId.replace(ccPlaceholder, incremented);
+                });
+            })
+            : null,
+        });
     });
 
     return {block: newBlock, isReusable: false, styles};

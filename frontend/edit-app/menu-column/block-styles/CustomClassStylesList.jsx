@@ -15,6 +15,8 @@ import EditTitlePopup from '../../main-column/popups/CustomClassStyleEditTitlePo
 import ScssEditor from './ScssEditor.jsx';
 /** @typedef {import('../../main-column/popups/CustomClassStyleEditTitlePopup.jsx').CustomClassStyleEditTitlePopupProps} CustomClassStyleEditTitlePopupProps */
 
+const ccPlaceholder = '@customClass[0]';
+
 let saveButtonInstance;
 
 /** @extends {preact.Component<CustomClassStylesListProps, any>} */
@@ -328,7 +330,7 @@ function createIsDuplicateCustomClassChunkChecker(curCustomClassChunks = null) {
     const [current, clses] = curCustomClassChunks || getAllCustomClassChunks().reduce((out, {scss}) => {
         const cls = scss.match(/\.cc-[0-9]+/)[0];
         return [
-            [...out[0], scssUtils.compileToString(scss.replace(cls, '.@customClass[0]'))],
+            [...out[0], scssUtils.compileToString(scss.replace(cls, `.${ccPlaceholder}`))],
             [...out[1], cls.substring(1)],
         ];
     }, [[], []]);
@@ -385,6 +387,7 @@ function addOrRemoveStyleClass(type, chunkClass, to) {
 
 export default CustomClassStylesList;
 export {
+    ccPlaceholder,
     createCustomClassChunkClassNameCreator,
     createIsDuplicateCustomClassChunkChecker,
     extractClassName,
